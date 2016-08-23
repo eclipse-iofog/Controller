@@ -1,4 +1,4 @@
-# fabric-controller
+# Fabric Controller
 
 Installation
 To install Fabric Controller clone fabric-controller repository locally.
