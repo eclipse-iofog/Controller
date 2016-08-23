@@ -7,7 +7,6 @@ import cookieParser from 'cookie-parser';
 import bodyParser from 'body-parser';
 import expressSession from 'express-session';
 import baseController from './server/controllers/baseController';
-import userController from './server/controllers/userController';
 import fabricController from './server/controllers/api/fabricController';
 import provisionKeyController from './server/controllers/api/provisionKeyController';
 import instanceStatusController from './server/controllers/api/instanceStatusController';
@@ -34,7 +33,6 @@ app.use(cookieParser());
 app.set('views', path.join(__dirname, 'views'));
 
 app.use('', baseController);
-app.use('', userController);
 app.use('', fabricController);
 app.use('', provisionKeyController);
 app.use('', instanceStatusController);
