@@ -26,8 +26,6 @@ const FabricConsole = sequelize.define('iofabric_console', {
   underscored: true
 });
 
-//Registry.belongsTo(Fabric);
-
 FabricConsole.belongsTo(Fabric);
 
 export default FabricConsole;

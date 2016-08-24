@@ -39,7 +39,4 @@ const ElementInstance = sequelize.define('element_instance', {
 ElementInstance.belongsTo(Element);
 ElementInstance.belongsTo(Fabric);
 
-//Fabric.hasOne(FabricProvisionKey, {as: 'provisionKeys'});
-// FabricProvisionKey.belongsTo(Fabric);
-
 export default ElementInstance;

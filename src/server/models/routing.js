@@ -24,9 +24,4 @@ const Routing = sequelize.define('routing', {
   underscored: true
 });
 
-//Registry.belongsTo(Fabric);
-
-//Fabric.hasOne(FabricProvisionKey, {as: 'provisionKeys'});
-// FabricProvisionKey.belongsTo(Fabric);
-
 export default Routing;

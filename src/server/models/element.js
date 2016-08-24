@@ -31,8 +31,6 @@ const Element = sequelize.define('element', {
   underscored: true
 });
 
-
-//Fabric.hasOne(FabricProvisionKey, {as: 'provisionKeys'});
 Element.belongsTo(Registry);
 
 export default Element;

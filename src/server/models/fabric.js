@@ -60,7 +60,6 @@ const Fabric = sequelize.define('iofabrics', {
   underscored: true
 });
 
-//Fabric.hasOne(FabricProvisionKey, {as: 'provisionKeys'});
 FabricProvisionKey.belongsTo(Fabric);
 ChangeTracking.belongsTo(Fabric);
 

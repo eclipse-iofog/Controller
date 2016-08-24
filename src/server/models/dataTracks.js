@@ -26,5 +26,4 @@ const DataTracks = sequelize.define('data_tracks', {
   underscored: true
 });
 
-
 export default DataTracks;

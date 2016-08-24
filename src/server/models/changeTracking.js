@@ -26,7 +26,4 @@ const ChangeTracking = sequelize.define('iofabric_change_tracking', {
   underscored: true
 });
 
-
-//ChangeTracking.belongsTo(Registry);
-
 export default ChangeTracking;

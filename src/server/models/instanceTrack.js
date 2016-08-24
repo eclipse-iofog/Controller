@@ -28,7 +28,4 @@ const InstanceTrack = sequelize.define('instance_track', {
 
 InstanceTrack.belongsTo(ElementInstance);
 
-//Fabric.hasOne(FabricProvisionKey, {as: 'provisionKeys'});
-// FabricProvisionKey.belongsTo(Fabric);
-
 export default InstanceTrack;

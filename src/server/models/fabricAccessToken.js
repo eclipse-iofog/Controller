@@ -22,5 +22,4 @@ const FabricAccessToken = sequelize.define('iofabric_access_tokens', {
   underscored: true
 });
 
-
 export default FabricAccessToken;

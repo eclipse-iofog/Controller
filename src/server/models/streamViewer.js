@@ -25,9 +25,4 @@ const StreamViewer = sequelize.define('stream_viewer', {
   underscored: true
 });
 
-//Registry.belongsTo(Fabric);
-
-//Fabric.hasOne(FabricProvisionKey, {as: 'provisionKeys'});
-// FabricProvisionKey.belongsTo(Fabric);
-
 export default StreamViewer;
