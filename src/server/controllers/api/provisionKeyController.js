@@ -14,7 +14,7 @@ import FabricUserManager from '../../managers/fabricUserManager';
 import AppUtils from '../../utils/appUtils';
 import Constants from '../../constants.js';
 
-router.get('/api/v2/instance/createprovision/id/:instanceId', BaseApiController.checkfabricExistance, (req,res) => {
+router.get('/api/v2/authoring/fabric/provisionkey/instanceid/:instanceId', BaseApiController.checkfabricExistance, (req,res) => {
 
   var newProvision = {
       iofabric_uuid : req.params.instanceId,
