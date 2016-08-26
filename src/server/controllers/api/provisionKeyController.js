@@ -6,6 +6,7 @@
 import async from 'async';
 import express from 'express';
 const router = express.Router();
+import BaseApiController from './baseApiController';
 import FabricManager from '../../managers/fabricManager';
 import FabricAccessTokenManager from '../../managers/fabricAccessTokenManager';
 import FabricProvisionKeyManager from '../../managers/fabricProvisionKeyManager';
@@ -13,15 +14,39 @@ import FabricUserManager from '../../managers/fabricUserManager';
 import AppUtils from '../../utils/appUtils';
 import Constants from '../../constants.js';
 
+router.get('/api/v2/instance/createprovision/id/:instanceId', BaseApiController.checkfabricExistance, (req,res) => {
+
+  var newProvision = {
+      iofabric_uuid : req.params.instanceId,
+      provisionKey : AppUtils.generateRandomString(8),
+      expirationTime : new Date().getTime() + (20 * 60 * 1000)
+      };
+
+  FabricProvisionKeyManager.createProvisionKey(newProvision)
+  .then ((newProvision)=>{
+    if(newProvision){
+      res.status(200);
+      res.send({
+        'success' : true,
+        'provisionKey' : newProvision.provisionKey
+      });
+    } else {
+      res.send({
+        'success' : false,
+        'error' : "instance id invalid"
+      });
+    }
+
+  });
+
+});
+
 router.get('/api/v2/instance/provision/key/:provisionKey/fabrictype/:fabricType', (req, res) => {
 
   var provisionKey = req.params.provisionKey,
     fabricType = req.params.fabricType;
-  /**
-   * @desc - async.waterfall control flow, sequential calling of an Array of functions.
-   * @param Array - [getFabricProcisionKey, getFabric, getFabricUser, generateAccessToken, saveUserToken]
-   * @return - returns an appropriate response to the client
-   */
+
+  // async.waterfall control flow, sequential calling of an Array of functions.
   async.waterfall([
     async.apply(getFabricProvisionKey, provisionKey, fabricType),
     getFabric,
@@ -48,6 +73,7 @@ router.get('/api/v2/instance/provision/key/:provisionKey/fabrictype/:fabricType'
     }
   });
 });
+
 /**
  * @desc - if the provision key exists in the database forwards to getFabric function
  * @param - provisionKey, fabricType, callback
@@ -63,8 +89,9 @@ function getFabricProvisionKey(provisionKey, fabricType, callback) {
         callback('error', Constants.MSG.SYSTEM_ERROR);
       });
 }
+
 /**
- * @desc - if the provision key is not expired in the database finds its 
+ * @desc - if the provision key is not expired in the database finds its
  * coresponding fabric data and forwards to getFabricUser function
  * @param - fabricType, fabricKey, callback
  * @return - none
@@ -73,7 +100,7 @@ function getFabric(fabricType, fabricKey, callback) {
   var date = new Date();
 
   if (date < fabricKey.expirationTime) {
-    FabricManager.findByInstanceId(fabricKey.iofabric_id)
+    FabricManager.findByInstanceId(fabricKey.iofabric_uuid)
       .then((fabricData) => {
         if (fabricData) callback(null, fabricType, fabricData);
         else callback('error', Constants.MSG.ERROR_FABRIC_UNKNOWN);
@@ -84,9 +111,10 @@ function getFabric(fabricType, fabricKey, callback) {
     callback('error', Constants.MSG.ERROR_PROVISION_KEY_EXPIRED);
   }
 }
+
 /**
  * @desc - if the fabricType matches the type in the database this function
- * retrieves the data for the user who owns this fabric and forwards to 
+ * retrieves the data for the user who owns this fabric and forwards to
  * generateAccessToken function.
  * @param - fabricType, fabricData, callback
  * @return - none
@@ -94,7 +122,7 @@ function getFabric(fabricType, fabricKey, callback) {
 function getFabricUser(fabricType, fabricData, callback) {
 
   if (fabricType == fabricData.typeKey) {
-    FabricUserManager.findByInstanceId(fabricData.id)
+    FabricUserManager.findByInstanceId(fabricData.uuid)
       .then((fabricUser) => {
           if (fabricUser) callback(null, fabricUser, fabricData);
           else callback('error', Constants.MSG.ERROR_FABRIC_UNKNOWN);
@@ -106,6 +134,7 @@ function getFabricUser(fabricType, fabricData, callback) {
     callback('error', Constants.MSG.ERROR_FABRIC_MISMATCH);
   }
 }
+
 /**
  * @desc - this function checks if an accessToken is present for a user, if yes then
  * removes it and then calls the saveUserToken function with a new generated token as
@@ -148,8 +177,9 @@ function generateAccessToken(fabricUser, fabricData, callback) {
 
       });
 }
+
 /**
- * @desc - this function inserts a new token against a user_Id 
+ * @desc - this function inserts a new token against a user_Id
  * @param - fabricUser, fabricData, tokenExpiryTime, accessToken, callback
  * @return - none
  */
@@ -158,7 +188,7 @@ function saveUserToken(fabricUser, fabricData, tokenExpiryTime, accessToken, cal
     .then(function(rowInserted) {
       if (rowInserted) {
         callback(null, {
-          id: fabricData.id,
+          id: fabricData.uuid,
           token: accessToken
         });
       } else {
@@ -168,6 +198,7 @@ function saveUserToken(fabricUser, fabricData, tokenExpiryTime, accessToken, cal
       callback('error', Constants.MSG.ERROR_ACCESS_TOKEN_GEN);
     });
 }
+
 /**
  * @desc - this function deletes the provision key entry in all cases from the database
  * @param - provisionKey

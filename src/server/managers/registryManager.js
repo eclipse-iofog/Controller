@@ -21,9 +21,9 @@ class RegistryManager extends BaseManager {
       where: {
         $or: [{
           is_public: 1
-        }, {
+        }, {    
           ID: {
-            $in: [sequelize.literal('select registry_id from iofabric_registry where iofabric_id = ' + instanceId)]
+            $in: [sequelize.literal('select registry_id from iofabric_registry where iofabric_uuid = ' + instanceId)]
           }
         }]
       }

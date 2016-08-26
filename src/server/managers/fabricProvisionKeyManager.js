@@ -38,6 +38,14 @@ class FabricProvisionKeyManager extends BaseManager {
       }
     });
   }
+  /**
+   * @desc - creates a new ProvisionKey with the param data
+   * @param JSON object - newProvision
+   * @return JSON object - returns the created object
+   */
+  createProvisionKey(newProvision) {
+  return FabricProvisionKey.create(newProvision);
+}
 
 }
 

@@ -6,13 +6,13 @@
 
 import Sequelize from 'sequelize';
 import sequelize from './../utils/sequelize';
+import Fabric from './fabric';
 
 const StreamViewer = sequelize.define('stream_viewer', {
   id: {type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true, field: 'ID'},
   orgId: {type: Sequelize.BIGINT, field: 'orgId'},
   version: {type: Sequelize.BIGINT, field: 'version'},
   apiBaseUrl: {type: Sequelize.TEXT, field: 'api_base_url'},
-  instanceId: {type: Sequelize.TEXT, field: 'instance_id'},
   elementId: {type: Sequelize.TEXT, field: 'element_id'},
   accessToken: {type: Sequelize.TEXT, field: 'access_token'},
   }, {
@@ -22,7 +22,9 @@ const StreamViewer = sequelize.define('stream_viewer', {
   freezeTableName: true,
   // don't use camelcase for automatically added attributes but underscore style
   // so updatedAt will be updated_at
-  underscored: true
+  underscored: true 
 });
+
+StreamViewer.belongsTo(Fabric);
 
 export default StreamViewer;

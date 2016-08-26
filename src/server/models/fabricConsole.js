@@ -8,7 +8,6 @@ import Sequelize from 'sequelize';
 import sequelize from './../utils/sequelize';
 import Fabric from './fabric'
 
-console.log("inside console model");
 const FabricConsole = sequelize.define('iofabric_console', {
   id: {type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true, field: 'ID'},
   orgId: {type: Sequelize.BIGINT, field: 'org_id'},

@@ -20,7 +20,7 @@ class FabricConsoleManager extends BaseManager {
 	findByInstanceId(instanceId) {
 		return FabricConsole.find({
 			where: {
-				iofabric_id: instanceId
+				iofabric_uuid: instanceId
 			}
 		});
 	}

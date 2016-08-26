@@ -43,7 +43,7 @@ router.get('/api/v2/instance/routing/id/:ID/token/:Token', BaseApiController.che
       res.send({
         'status': 'ok',
         'timestamp': new Date().getTime(),
-        'routng': result
+        'routing': result                                         
       });
     }
   });

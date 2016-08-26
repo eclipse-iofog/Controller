@@ -20,7 +20,7 @@ class StreamViewerManager extends BaseManager {
 	findByInstanceId(instanceId) {
 		return StreamViewer.find({
 			where: {
-				instance_id: instanceId
+				iofabric_uuid: instanceId
 			}
 		});
 	}

@@ -8,6 +8,7 @@ import async from 'async';
 import express from 'express';
 const router = express.Router();
 import RegistryManager from '../../managers/registryManager';
+import FabricRegistryManager from '../../managers/fabricRegistryManager';
 import BaseApiController from './baseApiController';
 
 import AppUtils from '../../utils/appUtils';
@@ -16,7 +17,6 @@ import Constants from '../../constants.js';
 router.get('/api/v2/instance/registries/id/:ID/token/:Token', BaseApiController.checkUserExistance, (req, res) => {
   var milliseconds = new Date().getTime(),
     instanceId = req.params.ID,
-    token = req.params.Token,
     i,
     registriesArr;
   /**

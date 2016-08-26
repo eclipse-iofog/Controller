@@ -7,6 +7,7 @@
 import errorUtils from './../../utils/errorUtils';
 import FabricAccessTokenManager from '../../managers/fabricAccessTokenManager';
 import FabricUserManager from '../../managers/fabricUserManager';
+import FabricManager from '../../managers/fabricManager';
 import Constants from '../../constants.js';
 
 const get = (req, res, manager) => {
@@ -65,7 +66,26 @@ const checkUserExistance = (req, res, next) => {
   });
 }
 
+const checkfabricExistance = (req, res, next) => {
+  var instanceId = req.params.instanceId;
+
+      FabricManager.findByInstanceId(instanceId)
+      .then((fabricData) =>{
+        if(fabricData) {
+          next();
+        } else {
+          res.send({
+            'status': 'failure',
+            'timestamp': new Date().getTime(),
+            'errormessage': Constants.MSG.ERROR_FABRIC_UNKNOWN
+          })
+        }
+      });
+
+}
+
 export default {
   get: get,
-  checkUserExistance: checkUserExistance
+  checkUserExistance: checkUserExistance,
+  checkfabricExistance : checkfabricExistance 
 }

@@ -6,6 +6,7 @@
 
 import Fabric from './../models/fabric';
 import BaseManager from './../managers/baseManager';
+import sequelize from './../utils/sequelize';
 
 class FabricManager extends BaseManager {
   getEntity() {
@@ -19,7 +20,7 @@ class FabricManager extends BaseManager {
   findByInstanceId(instanceId) {
     return Fabric.find({
       where: {
-        id: instanceId
+        uuid: instanceId
       }
     });
   }
@@ -31,9 +32,30 @@ class FabricManager extends BaseManager {
   updateFabricConfig(instanceId, config) {
     return Fabric.update(config, {
       where: {
-        id: instanceId
+        uuid: instanceId
       }
     });
+  }
+  /**
+   * @desc - creates a new Iofabric with config data
+   * @param JSON object - config
+   * @return Integer - returns the number of rows created
+   */
+  createFabric(config){
+    return Fabric.create({
+     uuid : config.uuid,
+     typeKey : config.typeKey
+    });
+  }
+  /**
+   * @desc - finds all the fabrics UUID and Typkey and sends them 
+   * back in order of TypeKey in the form of JSON objects
+   * @param - none
+   * @return Array of JSON - returns an Array containing JSON objects
+   */
+  getFabricList(){
+    var fabricListQuery = "SELECT UUID, TypeKey from iofabrics ORDER BY TypeKey";
+    return sequelize.query(fabricListQuery);
   }
 }
 

@@ -22,8 +22,10 @@ import session from 'express-session';
 const app = express();
 
 // parse application/x-www-form-urlencoded
-app.use(bodyParser.urlencoded({ extended: true }))
-// parse application/json
+app.use(bodyParser.urlencoded({
+    extended: true
+  }))
+  // parse application/json
 app.use(bodyParser.json())
 app.engine('ejs', require('ejs').renderFile);
 app.set('view engine', 'ejs');

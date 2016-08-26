@@ -48,11 +48,7 @@ router.post('/api/v2/instance/status/id/:ID/token/:Token', BaseApiController.che
         "status": "failure",
         "Error": "System Error"
       });
-
     });
-
-
 });
-
 
 export default router;

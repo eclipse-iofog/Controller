@@ -22,7 +22,24 @@ const generateAccessToken = function () {
     }
       return token;
 }
+/**
+* @desc generates a random String of the size specified by the input param
+* @param Integer - size
+* @return String - returns random string
+*/
+const generateRandomString = function(size) {
+
+    var randString = "";
+    var possible = "2346789bcdfghjkmnpqrtvwxyzBCDFGHJKLMNPQRTVWXYZ";
+
+    for( var i=0; i < size; i++ )
+        randString += possible.charAt(Math.floor(Math.random() * possible.length));
+
+    return randString;
+}
+
 export default {
   isArray: isArray,
-  generateAccessToken : generateAccessToken
+  generateAccessToken : generateAccessToken,
+  generateRandomString : generateRandomString
 };

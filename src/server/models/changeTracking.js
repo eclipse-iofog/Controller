@@ -14,8 +14,7 @@ const ChangeTracking = sequelize.define('iofabric_change_tracking', {
   containerList: {type: Sequelize.BIGINT, field: 'container_list'},
   config: {type: Sequelize.BIGINT, field: 'config'},
   routing: {type: Sequelize.BIGINT, field: 'routing'},
-  registeries: {type: Sequelize.BIGINT, field: 'registeries'},
-  instanceId: {type: Sequelize.INTEGER, field: 'iofabric_id'}
+  registeries: {type: Sequelize.BIGINT, field: 'registeries'}
 }, {
   // don't add the timestamp attributes (updatedAt, createdAt)
   timestamps: false,

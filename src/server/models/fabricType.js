@@ -1,0 +1,28 @@
+/**
+* @file fabricType.js
+* @author Zishan Iqbal
+* @description This file includes a fabric_type model used by sequalize for ORM;
+*/
+
+import Sequelize from 'sequelize';
+import sequelize from './../utils/sequelize';
+
+const FabricType = sequelize.define('iofabric_type', {
+  id: {type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true, field: 'ID'},
+  name: {type: Sequelize.TEXT, field: 'Name'},
+  image: {type: Sequelize.TEXT, field: 'Image'},
+  description: {type: Sequelize.TEXT, field: 'Description'},
+  streamViewerElementKey: {type: Sequelize.BIGINT, field: 'StreamViewerElementKey'},
+  consoleElementKey: {type: Sequelize.BIGINT, field: 'consoleElementKey'},
+  networkElementKey: {type: Sequelize.BIGINT, field: 'NetworkElementKey'}
+}, {
+  // don't add the timestamp attributes (updatedAt, createdAt)
+  timestamps: false,
+  // disable the modification of table names
+  freezeTableName: true,
+  // don't use camelcase for automatically added attributes but underscore style
+  // so updatedAt will be updated_at
+  underscored: true
+});
+
+export default FabricType;
