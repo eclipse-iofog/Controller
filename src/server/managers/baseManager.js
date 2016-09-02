@@ -49,7 +49,7 @@ export default class BaseManager {
         if (null == dbObject)
           throw new errorUtils.BadRequestError('Invalid id');
 
-        //update the properties  
+        //update the properties
         sequelizeUtils.updateObject(dbObject, newObject);
 
         //if there are any updated properites

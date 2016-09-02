@@ -1,5 +1,5 @@
 const getDBPath = () => {
-  return './db/fabric_controller.db';
+  return __dirname + '/../../db/fabric_controller.db';
 }
 
 export default {

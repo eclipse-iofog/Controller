@@ -23,14 +23,14 @@ const sequelize = new Sequelize(null, null, null, {
 });
 
 sequelize
-.sync({
-  force: false
-})
-.then(function(err) {
-  console.log('Connection has been established successfully.');
-}, function (err) {
-  console.log('Unable to connect to the database:', err);
-});
+  .sync({
+    force: false
+  })
+  .then(function(err) {
+
+  }, function(err) {
+    console.log('Unable to connect to the database:', err);
+  });
 
 
 //  export default is used in the case where a module exports a single value
