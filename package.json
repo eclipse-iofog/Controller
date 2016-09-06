@@ -19,7 +19,7 @@
   "scripts": {
     "test": "node ./dist/main.js",
     "start": "babel-node ./src/main",
-    "build": "babel src --presets babel-preset-es2015 --out-dir dist && cp -R src/views dist",
+    "build": "babel src --presets babel-preset-es2015 --out-dir dist && cp -R src/views dist && cp src/config.json dist",
     "prepublish": "npm run build"
   },
   "bin": {
@@ -60,7 +60,7 @@
     "html-webpack-plugin": "^1.6.1",
     "jscs": "^2.1.1",
     "jsdom": "^6.5.1",
-    "json-loader": "^0.5.3",
+    "json-loader": "^0.5.4",
     "mocha": "^2.3.3",
     "mocha-jsdom": "^1.0.0",
     "stats-webpack-plugin": "^0.2.1",

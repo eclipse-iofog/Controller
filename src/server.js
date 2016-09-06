@@ -4,7 +4,7 @@ const express = require('express');
 import https from 'https';
 import fs from 'fs';
 
-import appConfig from './config/app.config';
+import appConfig from './config.json';
 import appUtils from './server/utils/appUtils';
 import configUtil from './server/utils/configUtil';
 import constants from './server/constants.js';
@@ -36,10 +36,11 @@ const startServer = function(port) {
     .then(() => {
       if (!port) {
         dbPort = configUtil.getConfigParam(constants.CONFIG.PORT);
+        console.log(dbPort);
         if (dbPort) {
           port = dbPort;
         } else {
-          port = appConfig.getPort();
+          port = appConfig.port;
         }
       }
       sslKey = configUtil.getConfigParam(constants.CONFIG.SSL_KEY);

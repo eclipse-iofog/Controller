@@ -1,5 +1,5 @@
 import Sequelize from 'sequelize';
-import dbConfig from './../../config/db.config';
+import appConfig from './../../config.json';
 import cls from 'continuation-local-storage';
 
 let namespace = cls.createNamespace('fabric-controller-namespace');
@@ -11,10 +11,9 @@ Sequelize.cls = namespace;
 //  It also signals that the variable will be used only in the block it’s defined in, which is not always the entire containing function.
 //  `var` is now the weakest signal available when you define a variable in JavaScript.
 //  The variable may or may not be reassigned, and the variable may or may not be used for an entire function, or just for the purpose of a block or loop.
-
 const sequelize = new Sequelize(null, null, null, {
   dialect: 'sqlite',
-  storage: dbConfig.getDBPath(),
+  storage: __dirname + '/../../../' + appConfig.dbPath, //TODO: needs to improve this line of code
   pool: {
     max: 5,
     min: 0,

@@ -14,11 +14,11 @@ class FabricControllerConfigUtil {
   getConfigParam(key) {
     let configValue;
 
-    if (!FabricControllerConfigUtil.fabricConfigs) {
+    if (!this.fabricConfigs) {
       return undefined;
     } else {
 
-      _.each(FabricControllerConfigUtil.fabricConfigs, function(config) {
+      _.each(this.fabricConfigs, function(config) {
         if (config.key.toUpperCase() === key.toUpperCase()) {
           configValue = config.value;
           return;
@@ -30,7 +30,11 @@ class FabricControllerConfigUtil {
 
   setConfigParam(key, value) {
     if (this.isKeyExist(key)) {
-      FabricControllerConfigManager.setByKey(key, value);
+      if (this.validateValue(key, value)) {
+        FabricControllerConfigManager.setByKey(key, value);
+      } else {
+        throw 'Invalid value provided for key "' + key + '"';
+      }
     } else {
       throw '"' + key + '" is not a valid property. You can set properties like port, ssl_key, ssl_cert, intermediate_cert etc';
     }
@@ -42,6 +46,14 @@ class FabricControllerConfigUtil {
         return true;
       }
     });
+  }
+
+  validateValue(key, value) {
+    if (key.toUpperCase() == Constants.CONFIG.PORT) {
+      return AppUtils.isValidPort(value);
+    } else if (key.toUpperCase() == Constants.CONFIG.SSL_KEY || key.toUpperCase() == Constants.CONFIG.SSL_CERT || key.toUpperCase() == Constants.CONFIG.INTERMEDIATE_CERT) {
+      return AppUtils.isFileExists(value);
+    }
   }
 
   getAllConfigs() {

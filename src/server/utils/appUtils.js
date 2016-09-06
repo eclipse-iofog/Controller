@@ -4,6 +4,9 @@
  * @description This file includes the utility functions relevant to IOFabric;
  */
 
+import fs from 'fs';
+import path from 'path';
+
 const isArray = (object) => {
   return Object.prototype.toString.call(object) === '[object Array]';
 }
@@ -50,6 +53,14 @@ const isFileExists = function(filePath) {
   }
 }
 
+const isValidPort = function(port) {
+  port = Number(port);
+  if (Number.isInteger(port)) {
+    if (port >= 0 && port < 65535)
+      return true;
+  }
+  return false;
+}
 
 const convertRelativePathToAbsolute = function(filePath) {
   if (path.isAbsolute(filePath)) {
@@ -61,8 +72,9 @@ const convertRelativePathToAbsolute = function(filePath) {
 
 export default {
   isArray: isArray,
+  isFileExists: isFileExists,
+  isValidPort: isValidPort,
   generateAccessToken: generateAccessToken,
   generateRandomString: generateRandomString,
-  isFileExists: isFileExists,
   convertRelativePathToAbsolute: convertRelativePathToAbsolute
 };
