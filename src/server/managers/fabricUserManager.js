@@ -12,11 +12,11 @@ class FabricUserManager extends BaseManager {
 	getEntity() {
 			return FabricUser;
 		}
-/**
- * @desc - finds the fabricUser based on the instanceId
- * @param Integer - instanceId
- * @return JSON - returns a JSON object of fabricUser
- */
+		/**
+		 * @desc - finds the fabricUser based on the instanceId
+		 * @param Integer - instanceId
+		 * @return JSON - returns a JSON object of fabricUser
+		 */
 	findByInstanceId(instanceId) {
 			return FabricUser.find({
 				where: {
@@ -24,17 +24,30 @@ class FabricUserManager extends BaseManager {
 				}
 			});
 		}
-/**
- * @desc - finds the fabricUser based on the instanceId and userId
- * (Basically used to check users Linkage with a fabric instance)
- * @param Integer, Integer - userId, instanceId
- * @return JSON - returns a JSON object of fabricUser
- */
+		/**
+		 * @desc - finds the fabricUser based on the instanceId and userId
+		 * (Basically used to check users Linkage with a fabric instance)
+		 * @param Integer, Integer - userId, instanceId
+		 * @return JSON - returns a JSON object of fabricUser
+		 */
 	isUserExist(userId, instanceId) {
 		return FabricUser.find({
 			where: {
 				fabric_id: instanceId,
 				user_id: userId
+			}
+		});
+	}
+
+	/**
+	 * @desc - deletes the fabric user based on the instanceId
+	 * @param String - instanceId
+	 * @return  Integer - returns the number of rows deleted
+	 */
+	deleteByInstanceId(instanceId) {
+		return FabricUser.destroy({
+			where: {
+				fabric_id: instanceId
 			}
 		});
 	}

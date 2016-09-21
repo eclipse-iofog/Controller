@@ -21,11 +21,8 @@ router.post('/api/v2/instance/status/id/:ID/token/:Token', BaseApiController.che
   if (fabricUpdate.version == null || fabricUpdate.version == "") {
     fabricUpdate.version = "1.0";
   }
-  /**
-   * @desc This function Updates the fabric data based on its id and incommming values.
-   * @param Integer, JSON object - instanceId, fabricUpdate
-   * @return - returns an appropriate response to the client
-   */
+
+  //This function Updates the fabric data based on its id and incoming values.
   FabricManager.updateFabricConfig(instanceId, fabricUpdate)
     .then(function(rowupdated) {
       if (rowupdated > 0) {

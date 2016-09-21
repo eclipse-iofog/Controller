@@ -13,11 +13,11 @@ class FabricProvisionKeyManager extends BaseManager {
   getEntity() {
       return FabricProvisionKey;
     }
-  /**
-   * @desc - finds the provisionKey based on the key parameter
-   * @param String - key
-   * @return JSON - returns a JSON object of fabricProvisionKey including the fabric it belongs to
-   */
+    /**
+     * @desc - finds the provisionKey based on the key parameter
+     * @param String - key
+     * @return JSON - returns a JSON object of fabricProvisionKey including the fabric it belongs to
+     */
   getByProvisionKey(key) {
       return FabricProvisionKey.findOne({
         where: {
@@ -26,27 +26,39 @@ class FabricProvisionKeyManager extends BaseManager {
         include: [Fabric]
       });
     }
-  /**
-   * @desc - removes the provisionKey based on the key from the database
-   * @param String - key
-   * @return Integer - returns the number of rows deleted
-   */
+    /**
+     * @desc - removes the provisionKey based on the key from the database
+     * @param String - key
+     * @return Integer - returns the number of rows deleted
+     */
   deleteByProvisionKey(key) {
+      return FabricProvisionKey.destroy({
+        where: {
+          provisionKey: key
+        }
+      });
+    }
+    /**
+     * @desc - creates a new ProvisionKey with the param data
+     * @param JSON object - newProvision
+     * @return JSON object - returns the created object
+     */
+  createProvisionKey(newProvision) {
+    return FabricProvisionKey.create(newProvision);
+  }
+
+  /**
+   * @desc - deletes the fabric provision key based on the instanceId
+   * @param String - instanceId
+   * @return  Integer - returns the number of rows deleted
+   */
+  deleteByInstanceId(instanceId) {
     return FabricProvisionKey.destroy({
       where: {
-        provisionKey: key
+        iofabric_uuid: instanceId
       }
     });
   }
-  /**
-   * @desc - creates a new ProvisionKey with the param data
-   * @param JSON object - newProvision
-   * @return JSON object - returns the created object
-   */
-  createProvisionKey(newProvision) {
-  return FabricProvisionKey.create(newProvision);
-}
-
 }
 
 const instance = new FabricProvisionKeyManager();

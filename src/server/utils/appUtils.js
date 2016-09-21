@@ -62,6 +62,11 @@ const isValidPort = function(port) {
   return false;
 }
 
+const isValidEmail = function(email) {
+  var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+  return re.test(email);
+}
+
 const convertRelativePathToAbsolute = function(filePath) {
   if (path.isAbsolute(filePath)) {
     return filePath;
@@ -70,11 +75,29 @@ const convertRelativePathToAbsolute = function(filePath) {
   }
 }
 
+/**
+ * @desc generates a random String of the size specified by the input param
+ * @param Integer - size
+ * @return String - returns random string
+ */
+const generateInstanceId = function(size) {
+
+  var randString = "";
+  var possible = "2346789bcdfghjkmnpqrtvwxyzBCDFGHJKLMNPQRTVWXYZ";
+
+  for (var i = 0; i < size; i++)
+    randString += possible.charAt(Math.floor(Math.random() * possible.length));
+
+  return randString;
+}
+
 export default {
   isArray: isArray,
   isFileExists: isFileExists,
   isValidPort: isValidPort,
+  isValidEmail: isValidEmail,
   generateAccessToken: generateAccessToken,
   generateRandomString: generateRandomString,
-  convertRelativePathToAbsolute: convertRelativePathToAbsolute
+  convertRelativePathToAbsolute: convertRelativePathToAbsolute,
+  generateInstanceId: generateInstanceId
 };

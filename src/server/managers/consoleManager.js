@@ -12,13 +12,26 @@ class FabricConsoleManager extends BaseManager {
 	getEntity() {
 			return FabricConsole;
 		}
-	/**
-	 * @desc - finds the fabricConsole based on the instanceId
-	 * @param Integer - instanceId
-	 * @return JSON - returns a JSON object of fabricConsole
-	 */
+		/**
+		 * @desc - finds the fabricConsole based on the instanceId
+		 * @param Integer - instanceId
+		 * @return JSON - returns a JSON object of fabricConsole
+		 */
 	findByInstanceId(instanceId) {
 		return FabricConsole.find({
+			where: {
+				iofabric_uuid: instanceId
+			}
+		});
+	}
+
+	/**
+	 * @desc - deletes the console based on the instanceId
+	 * @param String - instanceId
+	 * @return  Integer - returns the number of rows deleted
+	 */
+	deleteByInstanceId(instanceId) {
+		return FabricConsole.destroy({
 			where: {
 				iofabric_uuid: instanceId
 			}

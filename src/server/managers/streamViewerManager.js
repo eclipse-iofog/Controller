@@ -12,19 +12,30 @@ class StreamViewerManager extends BaseManager {
 	getEntity() {
 			return StreamViewer;
 		}
-	/**
-	 * @desc - finds the StreamViewer based on the instanceId
-	 * @param Integer - instanceId
-	 * @return JSON - returns a JSON object of streamViewer
-	 */
+		/**
+		 * @desc - finds the StreamViewer based on the instanceId
+		 * @param Integer - instanceId
+		 * @return JSON - returns a JSON object of streamViewer
+		 */
 	findByInstanceId(instanceId) {
-		return StreamViewer.find({
+			return StreamViewer.find({
+				where: {
+					iofabric_uuid: instanceId
+				}
+			});
+		}
+		/**
+		 * @desc - deletes the streamViewer based on the instanceId
+		 * @param String - instanceId
+		 * @return  Integer - returns the number of rows deleted
+		 */
+	deleteByInstanceId(instanceId) {
+		return StreamViewer.destroy({
 			where: {
 				iofabric_uuid: instanceId
 			}
 		});
 	}
-
 }
 
 const instance = new StreamViewerManager();
