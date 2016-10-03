@@ -9,18 +9,27 @@ import BaseManager from './../managers/baseManager';
 
 class ElementInstancePortManager extends BaseManager {
 	getEntity() {
-			return FabricProvisionKey;
+			return ElementInstancePort;
 		}
-	/**
-	 * @desc - finds the elementInstancePort based on the element_Id
-	 * @param Integer - id
-	 * @return JSON - returns an Array of JSON objects of elementInstancePort
-	 */
+		/**
+		 * @desc - finds the elementInstancePort based on the element_Id
+		 * @param Integer - id
+		 * @return JSON - returns an Array of JSON objects of elementInstancePort
+		 */
 	getPortsByElementId(id) {
 		return ElementInstancePort.findAll({
 			where: {
 				element_id: id
 			}
+		});
+	}
+
+	createStreamViewerPort(userId, streamViewerId) {
+		return ElementInstancePort.create({
+			portInternal: 80,
+			portExternal: 60400,
+			updatedBy: userId,
+			element_id: streamViewerId
 		});
 	}
 

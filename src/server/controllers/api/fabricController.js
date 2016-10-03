@@ -31,7 +31,7 @@ router.get('/api/v2/status', (req, res) => {
 
 router.get('/api/v2/instance/create/type/:type', (req, res) => {
 	var fabricType = req.params.type,
-		instanceId = AppUtils.generateRandomString(22);
+		instanceId = AppUtils.generateRandomString(32);
 
 	var config = {
 		uuid: instanceId,

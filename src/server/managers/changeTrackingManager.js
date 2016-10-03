@@ -10,13 +10,27 @@ import BaseManager from './../managers/baseManager';
 class ChangeTrackingManager extends BaseManager {
 
 	getEntity() {
-			return ChangeTracking;
+		return ChangeTracking;
+	}
+
+	createChangeTracking(instanceId) {
+			var milliseconds = new Date().getTime();
+
+			return ChangeTracking.create({
+				iofabric_uuid: instanceId,
+				containerConfig: milliseconds,
+				containerList: milliseconds,
+				config: milliseconds,
+				routing: milliseconds,
+				registeries: milliseconds
+			});
 		}
 		/**
 		 * @desc - finds the changeTracking based on the instanceId
 		 * @param String - instanceId
 		 * @return JSON - returns a JSON object of changeTracking
 		 */
+
 	findByInstanceId(instanceId) {
 			return ChangeTracking.find({
 				where: {

@@ -20,12 +20,12 @@ import Constants from '../../constants.js';
 router.post('/api/v2/authoring/build/element/instance/create', (req, res) => {
   var milliseconds = new Date().getTime();
   var bodyParams = req.body;
-  var userID = 1; //USER ID
+  var userId = 1; //USER ID
 
   console.log(bodyParams);
 
   async.waterfall([
-    async.apply(getElement, bodyParams, userID),
+    async.apply(getElement, bodyParams, userId),
     createElementInstance
   ], function(err, result) {
     res.status(200);
@@ -48,33 +48,12 @@ router.post('/api/v2/authoring/build/element/instance/create', (req, res) => {
 /**
  * @desc - this function gets an element and sets default values for an element instance
  */
-function getElement(bodyParams, userID, callback) {
+function getElement(bodyParams, userId, callback) {
 
   ElementManager.findElementById(bodyParams.ElementKey)
-    .then((elementData) => {
-        if (elementData) {
-          var randomString = AppUtils.generateInstanceId(22);
-          var registry = elementData.registry_id;
-          var trackid = bodyParams.TrackId;
-          var element = {
-            uuid: randomString,
-            trackId: trackid,
-            elementKey: bodyParams.ElementKey,
-            config: "{}",
-            name: bodyParams.Name,
-            last_updated: new Date().getTime(),
-            updatedBy: userID, //USER ID
-            configLastUpdated: new Date().getTime(),
-            isStreamViewer: false,
-            isDebugConsole: false,
-            isManager: false,
-            isNetwork: false,
-            registryId: registry,
-            rebuild: false,
-            RootHostAccess: false,
-            logSize: bodyParams.LogSize
-          };
-          callback(null, element);
+    .then((element) => {
+        if (element) {
+          callback(null, bodyParams, userId, element);
         } else callback('error', "error");
       },
       (err) => {
@@ -85,13 +64,15 @@ function getElement(bodyParams, userID, callback) {
 /**
  * @desc - this function uses the default values to create a new element instance
  */
-function createElementInstance(element, callback) {
-  console.log(element.track_id);
-  ElementInstanceManager.createElementInstance(element)
+function createElementInstance(bodyParams, userId, element, callback) {
+  ElementInstanceManager.createElementInstance(element, userId, bodyParams.TrackId, bodyParams.Name, bodyParams.LogSize)
     .then((rowcreated) => {
-        if (rowcreated > 0) {
+        console.log(rowcreated);
+        if (rowcreated) {
           callback(null, element);
-        } else callback('error', "Unable to create ElementInstance");
+        } else {
+          callback('error', "Unable to create ElementInstance");
+        }
       },
       (err) => {
         callback('error', Constants.MSG.SYSTEM_ERROR);
@@ -105,36 +86,46 @@ function createElementInstance(element, callback) {
 router.post('/api/v2/authoring/element/instance/update', (req, res) => {
   var userId = 1; // USER ID
   var bodyParams = req.body;
+  console.log(bodyParams);
 
-  async.waterfall([
-    async.apply(getElementInstance, bodyParams),
-    updateElementInstance, // update the fabric id
-    updateChangeTracking, // update the changetracking data based on elementinstance.iofabric_uuid
-    updateChange, // update the changetracking data based on the post param Fabric id
-    updateElement // update the element data from incoming post params
-  ], function(err, result) {
-    res.status(200);
-    if (err) {
-      res.send({
-        'status': 'failure',
-        'timestamp': new Date().getTime(),
-        'errormessage': result
-      });
-    } else {
-      res.send({
-        'status': 'ok',
-        'timestamp': new Date().getTime(),
-        'instance Id': result
-      });
-    }
-  });
+  if (!bodyParams.FabricInstance) {
+    res.send({
+      'status': 'failure',
+      'timestamp': new Date().getTime(),
+      'errormessage': 'Fabric Instance Id is required'
+    });
+  } else {
+    async.waterfall([
+      async.apply(getElementInstance, bodyParams),
+      updateElementInstance, // update the fabric id
+      updateChangeTracking, // update the changetracking data based on elementinstance.iofabric_uuid
+      updateChange, // update the changetracking data based on the post param Fabric id
+      updateElement // update the element data from incoming post params
+    ], function(err, result) {
+      res.status(200);
+      if (err) {
+        res.send({
+          'status': 'failure',
+          'timestamp': new Date().getTime(),
+          'errormessage': result
+        });
+      } else {
+        res.send({
+          'status': 'ok',
+          'timestamp': new Date().getTime(),
+          'instance Id': result
+        });
+      }
+    });
+  }
 });
 
 /**
  * @desc - this function finds the element instance which was changed
  */
 function getElementInstance(bodyParams, callback) {
-  ElementInstanceManager.findByUuId(bodyParams.InstanceID)
+  console.log(bodyParams);
+  ElementInstanceManager.findByUuId(bodyParams.InstanceId)
     .then((elementInstance) => {
         if (elementInstance) {
           callback(null, bodyParams, elementInstance);
@@ -149,20 +140,26 @@ function getElementInstance(bodyParams, callback) {
  * @desc - this function sets this element instance to a fabric
  */
 function updateElementInstance(bodyParams, elementInstance, callback) {
+  var data;
 
-  var data = {
-    iofabric_uuid: bodyParams.FabricInstance
-  };
-  console.log(bodyParams.FabricInstance);
-  ElementInstanceManager.updateByUUID(bodyParams.InstanceID, data)
-    .then((updatedElement) => {
-        if (updatedElement > 0) {
-          callback(null, bodyParams, elementInstance);
-        } else callback('error', "Unable to Update elements fabric id");
-      },
-      (err) => {
-        callback('error', Constants.MSG.SYSTEM_ERROR);
-      });
+  if (elementInstance.iofabric_uuid === bodyParams.FabricInstance) {
+    callback(null, bodyParams, elementInstance);
+  } else {
+
+    data = {
+      iofabric_uuid: bodyParams.FabricInstance
+    };
+
+    ElementInstanceManager.updateByUUID(bodyParams.InstanceId, data)
+      .then((updatedElement) => {
+          if (updatedElement > 0) {
+            callback(null, bodyParams, elementInstance);
+          } else callback('error', "Unable to Update elements fabric id");
+        },
+        (err) => {
+          callback('error', Constants.MSG.SYSTEM_ERROR);
+        });
+  }
 }
 
 /**
@@ -170,17 +167,18 @@ function updateElementInstance(bodyParams, elementInstance, callback) {
  */
 function updateChangeTracking(bodyParams, elementInstance, callback) {
 
-  var lastUpdated = new Date().getTime();
-  var updateChangeTracking = {};
-  var updateChange = {};
-  var updateElementObject = {
-    logSize: bodyParams.LogSize,
-    name: bodyParams.Name,
-    iofabric_uuid: bodyParams.FabricInstance,
-    config: bodyParams.Config,
-    configLastUpdated: lastUpdated,
-    RootHostAccess: bodyParams.RootAccess
-  };
+  var lastUpdated = new Date().getTime(),
+    updateChangeTracking = {},
+    updateChange = {},
+
+    updateElementObject = {
+      logSize: bodyParams.LogSize,
+      name: bodyParams.Name,
+      config: bodyParams.Config,
+      configLastUpdated: lastUpdated,
+      RootHostAccess: bodyParams.RootAccess
+    };
+
   if (elementInstance.config != bodyParams.Config) {
     updateElementObject.configLastUpdated = new Date().getTime();
     updateChangeTracking.containerConfig = new Date().getTime();
@@ -223,17 +221,15 @@ function updateChange(bodyParams, updateChange, updateElementObject, callback) {
  */
 function updateElement(bodyParams, updateElementObject, callback) {
 
-  ElementInstanceManager.updateByUUID(bodyParams.InstanceID, updateElementObject)
+  ElementInstanceManager.updateByUUID(bodyParams.InstanceId, updateElementObject)
     .then((updatedElement) => {
         if (updatedElement > 0) {
-          callback(null, bodyParams.InstanceID);
+          callback(null, bodyParams.InstanceId);
         } else callback('error', "Unable to Update element instance data");
       },
       (err) => {
         callback('error', Constants.MSG.SYSTEM_ERROR);
       });
 }
-
-
 
 export default router;

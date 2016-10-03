@@ -13,6 +13,7 @@ import bodyParser from 'body-parser';
 import expressSession from 'express-session';
 import baseController from './server/controllers/baseController';
 import fabricController from './server/controllers/api/fabricController';
+import elementInstanceController from './server/controllers/api/elementInstanceController';
 import provisionKeyController from './server/controllers/api/provisionKeyController';
 import instanceStatusController from './server/controllers/api/instanceStatusController';
 import instanceConfigController from './server/controllers/api/instanceConfigController';
@@ -21,6 +22,7 @@ import instanceChangesController from './server/controllers/api/instanceChangesC
 import instanceRegistriesController from './server/controllers/api/instanceRegistriesController';
 import instanceRoutingController from './server/controllers/api/instanceRoutingController';
 import instanceContainerConfigController from './server/controllers/api/instanceContainerConfigController';
+import integratorController from './server/controllers/api/integratorController';
 import session from 'express-session';
 
 const startServer = function(port) {
@@ -80,6 +82,8 @@ const initApp = function() {
   app.use('', instanceRegistriesController);
   app.use('', instanceRoutingController);
   app.use('', instanceContainerConfigController);
+  app.use('', elementInstanceController);
+  app.use('', integratorController);
 
   //generic error handler
   app.use((err, req, res, next) => {

@@ -10,7 +10,13 @@ import BaseManager from './../managers/baseManager';
 class FabricUserManager extends BaseManager {
 
 	getEntity() {
-			return FabricUser;
+		return FabricUser;
+	}
+	create(userId, instanceId) {
+			return FabricUser.create({
+				fabric_id: instanceId,
+				user_id: userId
+			});
 		}
 		/**
 		 * @desc - finds the fabricUser based on the instanceId
