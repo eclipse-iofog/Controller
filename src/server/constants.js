@@ -22,7 +22,8 @@ const MSG = {
   SYSTEM_ERROR: 'System error.',
   ERROR_ACCESS_DENIED: 'Access denied: you do not have acces to the instance Id you provided.',
   ERROR_CONTAINER_IMAGE: "Container error: There was a problem getting the container images.",
-  ERROR_ACCESS_DENIED_INSTANCE: 'Access denied: You do not have access to the instance ID you provided.'
+  ERROR_ACCESS_DENIED_INSTANCE: 'Access denied: You do not have access to the instance ID you provided.',
+  ERROR_ACCESS_DENIED_TRACK: 'Permission error: You are not authorized to view the tracks for this ioFabric instance.',
 
 };
 

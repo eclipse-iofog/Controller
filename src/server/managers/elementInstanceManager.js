@@ -41,6 +41,18 @@ class ElementInstanceManager extends BaseManager {
 		});
 	}
 
+	findByTrackId(trackId) {
+		return ElementInstance.findAll({
+			where: {
+				trackId: trackId
+			}
+		});
+	}
+
+	createElementInstance(element) {
+		return ElementInstance.create(element);
+	}
+
 	createElementInstance(element, userId, trackId, elementName, logSize) {
 		var elementInstance = {
 			uuid: AppUtils.generateInstanceId(32),

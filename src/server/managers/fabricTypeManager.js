@@ -19,6 +19,14 @@ class FabricTypeManager extends BaseManager {
     return sequelize.query(fabricTypeQuery);
   }
 
+  findFabricTypeById(id) {
+    return FabricType.findOne({
+      where: {
+        'ID': id
+      }
+    });
+  }
+
 }
 
 const instance = new FabricTypeManager();
