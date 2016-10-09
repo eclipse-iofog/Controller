@@ -24,12 +24,12 @@ class ElementInstancePortManager extends BaseManager {
 		});
 	}
 
-	createStreamViewerPort(userId, streamViewerId) {
+	createElementPort(userId, elementId, portExternal) {
 		return ElementInstancePort.create({
 			portInternal: 80,
-			portExternal: 60400,
+			portExternal: portExternal,
 			updatedBy: userId,
-			element_id: streamViewerId
+			element_id: elementId
 		});
 	}
 

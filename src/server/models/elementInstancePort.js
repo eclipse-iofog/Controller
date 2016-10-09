@@ -15,7 +15,6 @@ const ElementInstancePort = sequelize.define('element_instance_port', {
     autoIncrement: true,
     field: 'ID'
   },
-  // elementId: {type: Sequelize.TEXT, field: 'elementId'},
   portInternal: {
     type: Sequelize.BIGINT,
     field: 'port_internal'

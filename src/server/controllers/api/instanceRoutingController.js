@@ -43,7 +43,7 @@ router.get('/api/v2/instance/routing/id/:ID/token/:Token', BaseApiController.che
       res.send({
         'status': 'ok',
         'timestamp': new Date().getTime(),
-        'routing': result                                         
+        'routing': result
       });
     }
   });
@@ -74,7 +74,7 @@ function getConsole(instanceId, streamId, consoleId, containerList, callback) {
   ConsoleManager.findByInstanceId(instanceId)
     .then((consoleData) => {
         if (consoleData) {
-          consoleId = console.elementId;
+          consoleId = consoleData.elementId;
           callback(null, instanceId, streamId, consoleId, containerList);
         } else callback('error', Constants.MSG.ERROR_CONSOLE_UNKNOWN);
       },

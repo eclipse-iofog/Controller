@@ -100,15 +100,15 @@ class ElementInstanceManager extends BaseManager {
 		return ElementInstance.create(elementInstance);
 	}
 
-	createNetworkInstance(element, userId, fabricInstanceId, satelliteDomain, satellitePort1) {
+	createNetworkInstance(element, userId, fabricInstanceId, satelliteDomain, satellitePort1, name, localPort) {
 		var netConfig = {
 				'mode': 'public',
-				'host': satellite.domain,
-				'port': satellitePort.port1,
+				'host': satelliteDomain,
+				'port': satellitePort1,
 				'connectioncount': 60,
 				'passcode': AppUtils.generateRandomString(32),
 				'localhost': 'iofabric',
-				'localport': 60400,
+				'localport': localPort,
 				'heartbeatfrequency': 20000,
 				'heartbeatabsencethreshold': 60000
 			},
@@ -117,7 +117,7 @@ class ElementInstanceManager extends BaseManager {
 				trackId: 0,
 				elementKey: element.id,
 				config: JSON.stringify(netConfig),
-				name: 'Network for Stream Viewer',
+				name: name,
 				last_updated: new Date().getTime(),
 				updatedBy: userId,
 				configLastUpdated: new Date().getTime(),
@@ -125,6 +125,34 @@ class ElementInstanceManager extends BaseManager {
 				isDebugConsole: false,
 				isManager: false,
 				isNetwork: true,
+				registryId: element.registry_id,
+				rebuild: false,
+				RootHostAccess: false,
+				logSize: 50,
+				iofabric_uuid: fabricInstanceId
+			};
+
+		return ElementInstance.create(elementInstance);
+	}
+
+	createDebugConsoleInstance(consoleElementKey, userId, fabricInstanceId) {
+		var config = {
+				'accesstoken': AppUtils.generateRandomString(32),
+				'filesizelimit': 200.0
+			},
+			elementInstance = {
+				uuid: AppUtils.generateInstanceId(32),
+				trackId: 0,
+				elementKey: consoleElementKey,
+				config: JSON.stringify(config),
+				name: 'Debug Console',
+				last_updated: new Date().getTime(),
+				updatedBy: userId,
+				configLastUpdated: new Date().getTime(),
+				isStreamViewer: false,
+				isDebugConsole: true,
+				isManager: false,
+				isNetwork: false,
 				registryId: element.registry_id,
 				rebuild: false,
 				RootHostAccess: false,

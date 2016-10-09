@@ -53,7 +53,6 @@ function createElement(bodyParams, callback) {
     ramRequired: false,
     picture: bodyParams.picture,
     isPublic: true,
-    orgID: null,
     registry_id: 1
   };
 
@@ -127,7 +126,6 @@ function updateElement(bodyParams, callback) {
     ramRequired: false,
     picture: bodyParams.picture,
     isPublic: true,
-    orgID: null,
     id: bodyParams.id,
     registry_id: 1
   };

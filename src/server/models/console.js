@@ -1,14 +1,15 @@
 /**
- * @file fabricConsole.js
+ * @file consoles.js
  * @author Zishan Iqbal
- * @description This file includes a iofabric_console model used by sequalize for ORM;
+ * @description This file includes a consoles model used by sequalize for ORM;
  */
 
 import Sequelize from 'sequelize';
 import sequelize from './../utils/sequelize';
-import Fabric from './fabric'
+import Fabric from './fabric';
+import ElementInstance from './elementInstance';
 
-const FabricConsole = sequelize.define('iofabric_console', {
+const Console = sequelize.define('consoles', {
   id: {
     type: Sequelize.INTEGER,
     primaryKey: true,
@@ -23,14 +24,10 @@ const FabricConsole = sequelize.define('iofabric_console', {
     type: Sequelize.TEXT,
     field: 'api_base_url'
   },
-  elementId: {
-    type: Sequelize.TEXT,
-    field: 'element_id'
-  },
   accessToken: {
     type: Sequelize.TEXT,
     field: 'access_token'
-  }
+  },
 }, {
   // don't add the timestamp attributes (updatedAt, createdAt)
   timestamps: false,
@@ -41,6 +38,11 @@ const FabricConsole = sequelize.define('iofabric_console', {
   underscored: true
 });
 
-FabricConsole.belongsTo(Fabric);
+Console.belongsTo(Fabric);
+Console.belongsTo(ElementInstance, {
+  foreignKey: 'ElementId',
+  as: 'elementId',
+  targetKey: 'uuid'
+});
 
-export default FabricConsole;
+export default Console;
