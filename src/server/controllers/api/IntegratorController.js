@@ -6,12 +6,13 @@
 
 import async from 'async';
 import express from 'express';
+import querystring from 'querystring';
+import https from 'https';
 const router = express.Router();
 import FabricManager from '../../managers/fabricManager';
 import FabricTypeManager from '../../managers/fabricTypeManager';
 import FabricUserManager from '../../managers/fabricUserManager';
 import StreamViewerManager from '../../managers/streamViewerManager';
-import ConsoleManager from '../../managers/consoleManager';
 import FabricProvisionKeyManager from '../../managers/fabricProvisionKeyManager';
 import ChangeTrackingManager from '../../managers/changeTrackingManager';
 import ElementManager from '../../managers/elementManager';
@@ -20,7 +21,7 @@ import ElementInstancePortManager from '../../managers/elementInstancePortManage
 import SatelliteManager from '../../managers/satelliteManager';
 import SatellitePortManager from '../../managers/satellitePortManager';
 import NetworkPairingManager from '../../managers/networkPairingManager';
-import StreamViewerManager from '../../managers/streamViewerManager';
+import ConsoleManager from '../../managers/consoleManager';
 import AppUtils from '../../utils/appUtils';
 
 /**
@@ -48,8 +49,19 @@ router.post('/api/v2/authoring/integrator/instance/create', (req, res) => {
     getNetworkElement,
     createNetworkElementInstance,
     updateChangeTrackingCL,
+    createNeworkPairing,
     createStreamViewer,
     createDebugConsole,
+    createDebugConsolePort,
+    updateDebugConsole,
+    updateChangeTrackingDebugConsole,
+    getMaxSatellitePort2,
+    createSatellitePort2,
+    openPortsOnComsat2,
+    getNetworkElement2,
+    createNetworkElementInstance2,
+    createNeworkPairing2,
+    createConsole,
     getFabricInstanceDetails
   ], function(err, result) {
     res.status(200);
@@ -63,7 +75,7 @@ router.post('/api/v2/authoring/integrator/instance/create', (req, res) => {
       res.send({
         'status': 'ok',
         'timestamp': new Date().getTime(),
-        'instance Id': result
+        'instance': result.fabricInstance
       });
     }
   });
@@ -234,87 +246,36 @@ function getSatellitePorts(userId, bodyParams, fabricInstance, fabricType, strea
 }
 
 function openPortsOnComsat(userId, bodyParams, fabricInstance, fabricType, streamViewer, streamViewerPort, satellite, satellitePort, satellitePorts, callback) {
-  var satelliteUrl = "https://" + satellite.domain + '/api/v1/mapping/add',
-    object1 = {
-      id: satellitePort.id,
-      port1: satellitePort.port1,
-      port2: satellitePort.port2,
-      maxconnectionsport1: satellitePort.maxConnectionsPort1,
-      maxconnectionsport2: satellitePort.maxConnectionsPort2,
-      passcodeport1: satellitePort.passcodePort1,
-      passcodeport2: satellitePort.passcodePort2,
-      heartbeatabsencethresholdport1: satellitePort.heartBeatAbsenceThresholdPort1,
-      heartbeatabsencethresholdport2: satellitePort.heartBeatAbsenceThresholdPort2,
+  var data = querystring.stringify({
+    mapping: '{"type":"public","maxconnections":60,"heartbeatabsencethreshold":200000}'
+  });
 
+  var options = {
+    host: satellite.domain,
+    port: 443,
+    path: '/api/v2/mapping/add',
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Content-Length': Buffer.byteLength(data)
+    }
+  };
+  var httpreq = https.request(options, function(response) {
+    var output = '';
+    response.setEncoding('utf8');
 
-    };
+    response.on('data', function(chunk) {
+      output += chunk;
+    });
 
-  callback(null, userId, bodyParams, fabricInstance, fabricType, streamViewer, streamViewerPort, satellite, satellitePort, satellitePorts);
-
-  /*
-    //Prepare the start of the POST data
-    //      $postString = 'mapping='.json_encode($singleMap);
-    //      $postString. = '&config=';
-
-    //Create the new config dictionary with an array of mapping objects
-    $configDict = array();
-    $mappingsArray = array();
-
-    //We have to get the set of mappings for this particular Comsat using direct SQL
-    $fullSetSQL = "SELECT * FROM ult_Object_Data_SatellitePorts WHERE SatelliteID = $satID";
-    $myDat3 = new Data();
-    $myDat3 - > Select($fullSetSQL);
-
-    if ($myDat3 - > Count() > 0) {
-      $localData = $myDat3 - > data;
-
-      for ($i = 0; $i < count($localData); $i++) {
-        $curMapping = $localData[$i];
-        $tmpDict = array();
-
-        $tmpDict["id"] = intval($curMapping["ID"]);
-        $tmpDict["port1"] = $curMapping["Port1"];
-        $tmpDict["port2"] = $curMapping["Port2"];
-        $tmpDict["maxconnectionsport1"] = $curMapping["MaxConnectionsPort1"];
-        $tmpDict["maxconnectionsport2"] = $curMapping["MaxConnectionsPort2"];
-        $tmpDict["passcodeport1"] = $curMapping["PassCodePort1"];
-        $tmpDict["passcodeport2"] = $curMapping["PassCodePort2"];
-        $tmpDict["heartbeatabsencethresholdport1"] = $curMapping["HeartbeatAbsenceThresholdPort1"];
-        $tmpDict["heartbeatabsencethresholdport2"] = $curMapping["HeartbeatAbsenceThresholdPort2"];
-
-        $mappingsArray[] = $tmpDict;
-      }
-
-      $configDict["mappings"] = $mappingsArray;
-
-      //Add the confg string to the POST data
-      $postString. = json_encode($configDict);
-
-      //$postData = 'mapping={"id": 1,"port1": 34778,"port2": 34777,"maxconnectionsport1":60,"maxconnectionsport2":0,"passcodeport1":"Q8bT2ss0DwE26Bax","passcodeport2":"","heartbeatabsencethresholdport1":60000,"heartbeatabsencethresholdport2":0}&config={"mappings":[{"id": 1,"port1": 34778,"port2": 34777,"maxconnectionsport1":60,"maxconnectionsport2":0,"passcodeport1":"Q8bT2ss0DwE26Bax","passcodeport2":"","heartbeatabsencethresholdport1":60000,"heartbeatabsencethresholdport2":0}]}';
-
-      //Use cURL to talk to the Comsat
-      $ch = curl_init($satURL);
-      curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-      curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
-      curl_setopt($ch, CURLOPT_POST, 1);
-      curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/x-www-form-urlencoded'));
-      curl_setopt($ch, CURLOPT_CAINFO, ($_SERVER["DOCUMENT_ROOT"].
-        "/certs/server-intermediate-wildcard.crt"));
-      curl_setopt($ch, CURLOPT_SSLKEY, ($_SERVER["DOCUMENT_ROOT"].
-        "/certs/server-basic-wildcard.key"));
-      curl_setopt($ch, CURLOPT_SSLCERT, ($_SERVER["DOCUMENT_ROOT"].
-        "/certs/server-basic-wildcard.pem"));
-      curl_setopt($ch, CURLOPT_POSTFIELDS, $postString);
-      $htmlResult = curl_exec($ch);
-      $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-      curl_close($ch);
-
-      //If we received a 200 OK reponse, return true. Otherwise return false
-      if ($httpCode == 200) {
-        return true;
-      } else {
-        return false;
-      }*/
+    response.on('end', function() {
+      var obj = JSON.parse(output);
+      console.log(obj);
+      callback(null, userId, bodyParams, fabricInstance, fabricType, streamViewer, streamViewerPort, satellite, satellitePort, satellitePorts);
+    });
+  });
+  httpreq.write(data);
+  httpreq.end();
 }
 
 function getNetworkElement(userId, bodyParams, fabricInstance, fabricType, streamViewer, streamViewerPort, satellite, satellitePort, satellitePorts, callback) {
@@ -369,8 +330,11 @@ function createNeworkPairing(userId, bodyParams, fabricInstance, fabricType, str
     satellitePortId: satellitePort.id
   };
 
+  console.log(networkPairingObj);
+
   NetworkPairingManager.create(networkPairingObj)
     .then((obj) => {
+      console.log(obj);
       if (obj) {
         callback(null, userId, bodyParams, fabricInstance, fabricType, streamViewer, streamViewerPort, satellite, satellitePort, satellitePorts, networkElementInstance);
 
@@ -412,7 +376,7 @@ function createDebugConsole(userId, bodyParams, fabricInstance, fabricType, stre
   ElementInstanceManager.createDebugConsoleInstance(fabricType.consoleElementKey, userId, fabricInstance.uuid)
     .then((debugConsoleObj) => {
       if (debugConsoleObj) {
-        callback(null, userId, bodyParams, fabricInstance, fabricType, streamViewer, streamViewerPort, satellite, satellitePort, satellitePorts, networkElementInstance, debugConsole);
+        callback(null, userId, bodyParams, fabricInstance, fabricType, streamViewer, streamViewerPort, satellite, satellitePort, satellitePorts, networkElementInstance, debugConsoleObj);
 
       } else {
         callback('error', "Unable to create Debug console object");
@@ -435,7 +399,7 @@ function createDebugConsolePort(userId, bodyParams, fabricInstance, fabricType, 
 }
 
 function updateDebugConsole(userId, bodyParams, fabricInstance, fabricType, streamViewer, streamViewerPort, satellite, satellitePort, satellitePorts, networkElementInstance, debugConsole, callback) {
-  ElementInstanceManager.updateByUuid(debugConsole.uuid, {
+  ElementInstanceManager.updateByUUID(debugConsole.uuid, {
     'updatedBy': userId
   }).then((updatedElement) => {
     if (updatedElement.length > 0) {
@@ -486,87 +450,36 @@ function createSatellitePort2(userId, bodyParams, fabricInstance, fabricType, st
 }
 
 function openPortsOnComsat2(userId, bodyParams, fabricInstance, fabricType, streamViewer, streamViewerPort, satellite, satellitePort, satellitePorts, networkElementInstance, debugConsole, dcSatellitePort, callback) {
-  var satelliteUrl = "https://" + satellite.domain + '/api/v1/mapping/add',
-    object1 = {
-      id: satellitePort.id,
-      port1: satellitePort.port1,
-      port2: satellitePort.port2,
-      maxconnectionsport1: satellitePort.maxConnectionsPort1,
-      maxconnectionsport2: satellitePort.maxConnectionsPort2,
-      passcodeport1: satellitePort.passcodePort1,
-      passcodeport2: satellitePort.passcodePort2,
-      heartbeatabsencethresholdport1: satellitePort.heartBeatAbsenceThresholdPort1,
-      heartbeatabsencethresholdport2: satellitePort.heartBeatAbsenceThresholdPort2,
+  var data = querystring.stringify({
+    mapping: '{"type":"public","maxconnections":60,"heartbeatabsencethreshold":200000}'
+  });
 
+  var options = {
+    host: satellite.domain,
+    port: 443,
+    path: '/api/v2/mapping/add',
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Content-Length': Buffer.byteLength(data)
+    }
+  };
+  var httpreq = https.request(options, function(response) {
+    var output = '';
+    response.setEncoding('utf8');
 
-    };
+    response.on('data', function(chunk) {
+      output += chunk;
+    });
 
-  callback(null, userId, bodyParams, fabricInstance, fabricType, streamViewer, streamViewerPort, satellite, satellitePort, satellitePorts, networkElementInstance, debugConsole, dcSatellitePort);
-
-  /*
-    //Prepare the start of the POST data
-    //      $postString = 'mapping='.json_encode($singleMap);
-    //      $postString. = '&config=';
-
-    //Create the new config dictionary with an array of mapping objects
-    $configDict = array();
-    $mappingsArray = array();
-
-    //We have to get the set of mappings for this particular Comsat using direct SQL
-    $fullSetSQL = "SELECT * FROM ult_Object_Data_SatellitePorts WHERE SatelliteID = $satID";
-    $myDat3 = new Data();
-    $myDat3 - > Select($fullSetSQL);
-
-    if ($myDat3 - > Count() > 0) {
-      $localData = $myDat3 - > data;
-
-      for ($i = 0; $i < count($localData); $i++) {
-        $curMapping = $localData[$i];
-        $tmpDict = array();
-
-        $tmpDict["id"] = intval($curMapping["ID"]);
-        $tmpDict["port1"] = $curMapping["Port1"];
-        $tmpDict["port2"] = $curMapping["Port2"];
-        $tmpDict["maxconnectionsport1"] = $curMapping["MaxConnectionsPort1"];
-        $tmpDict["maxconnectionsport2"] = $curMapping["MaxConnectionsPort2"];
-        $tmpDict["passcodeport1"] = $curMapping["PassCodePort1"];
-        $tmpDict["passcodeport2"] = $curMapping["PassCodePort2"];
-        $tmpDict["heartbeatabsencethresholdport1"] = $curMapping["HeartbeatAbsenceThresholdPort1"];
-        $tmpDict["heartbeatabsencethresholdport2"] = $curMapping["HeartbeatAbsenceThresholdPort2"];
-
-        $mappingsArray[] = $tmpDict;
-      }
-
-      $configDict["mappings"] = $mappingsArray;
-
-      //Add the confg string to the POST data
-      $postString. = json_encode($configDict);
-
-      //$postData = 'mapping={"id": 1,"port1": 34778,"port2": 34777,"maxconnectionsport1":60,"maxconnectionsport2":0,"passcodeport1":"Q8bT2ss0DwE26Bax","passcodeport2":"","heartbeatabsencethresholdport1":60000,"heartbeatabsencethresholdport2":0}&config={"mappings":[{"id": 1,"port1": 34778,"port2": 34777,"maxconnectionsport1":60,"maxconnectionsport2":0,"passcodeport1":"Q8bT2ss0DwE26Bax","passcodeport2":"","heartbeatabsencethresholdport1":60000,"heartbeatabsencethresholdport2":0}]}';
-
-      //Use cURL to talk to the Comsat
-      $ch = curl_init($satURL);
-      curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-      curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
-      curl_setopt($ch, CURLOPT_POST, 1);
-      curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/x-www-form-urlencoded'));
-      curl_setopt($ch, CURLOPT_CAINFO, ($_SERVER["DOCUMENT_ROOT"].
-        "/certs/server-intermediate-wildcard.crt"));
-      curl_setopt($ch, CURLOPT_SSLKEY, ($_SERVER["DOCUMENT_ROOT"].
-        "/certs/server-basic-wildcard.key"));
-      curl_setopt($ch, CURLOPT_SSLCERT, ($_SERVER["DOCUMENT_ROOT"].
-        "/certs/server-basic-wildcard.pem"));
-      curl_setopt($ch, CURLOPT_POSTFIELDS, $postString);
-      $htmlResult = curl_exec($ch);
-      $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-      curl_close($ch);
-
-      //If we received a 200 OK reponse, return true. Otherwise return false
-      if ($httpCode == 200) {
-        return true;
-      } else {
-        return false;
-      }*/
+    response.on('end', function() {
+      var obj = JSON.parse(output);
+      console.log(obj);
+      callback(null, userId, bodyParams, fabricInstance, fabricType, streamViewer, streamViewerPort, satellite, satellitePort, satellitePorts, networkElementInstance, debugConsole, dcSatellitePort);
+    });
+  });
+  httpreq.write(data);
+  httpreq.end();
 }
 
 function getNetworkElement2(userId, bodyParams, fabricInstance, fabricType, streamViewer, streamViewerPort, satellite, satellitePort, satellitePorts, networkElementInstance, debugConsole, dcSatellitePort, callback) {
@@ -605,6 +518,8 @@ function createNeworkPairing2(userId, bodyParams, fabricInstance, fabricType, st
     element1PortId: dcSatellitePort.id,
     satellitePortId: satellitePort.id
   };
+
+  console.log(networkPairingObj);
 
   NetworkPairingManager.create(networkPairingObj)
     .then((obj) => {
@@ -645,7 +560,14 @@ function createConsole(userId, bodyParams, fabricInstance, fabricType, streamVie
  * @desc - this function finds the element instance which was changed
  */
 function getFabricInstanceDetails(userId, bodyParams, fabricInstance, fabricType, streamViewer, streamViewerPort, satellite, satellitePort, satellitePorts, networkElementInstance, debugConsole, dcSatellitePort, dcNetworkElementInstance, callback) {
-  callback(null, userId, bodyParams, fabricInstance, fabricType, streamViewer, streamViewerPort, satellite, satellitePort, satellitePorts, networkElementInstance, debugConsole, dcSatellitePort, dcNetworkElementInstance);
+  fabricInstance = fabricInstance.dataValues;
+  fabricInstance.typeName = fabricType.name;
+  fabricInstance.typeDescription = fabricType.description;
+  fabricInstance.typeImage = fabricType.image;
+
+  callback(null, {
+    fabricInstance: fabricInstance
+  });
 }
 
 export default router;

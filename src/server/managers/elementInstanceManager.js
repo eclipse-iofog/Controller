@@ -153,7 +153,7 @@ class ElementInstanceManager extends BaseManager {
 				isDebugConsole: true,
 				isManager: false,
 				isNetwork: false,
-				registryId: element.registry_id,
+				registryId: null,
 				rebuild: false,
 				RootHostAccess: false,
 				logSize: 50,

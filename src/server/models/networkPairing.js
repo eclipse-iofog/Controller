@@ -9,6 +9,7 @@ import sequelize from './../utils/sequelize';
 import Fabric from './fabric';
 import ElementInstance from './elementInstance';
 import ElementInstancePort from './elementInstancePort';
+import SatellitePort from './satellitePort';
 
 const NetworkPairing = sequelize.define('network_pairing', {
   id: {
@@ -32,40 +33,40 @@ const NetworkPairing = sequelize.define('network_pairing', {
 });
 
 NetworkPairing.belongsTo(Fabric, {
-  foreignKey: 'InstanceId1',
-  as: 'instanceId1'
+  foreignKey: 'instanceId1',
+  as: 'InstanceId1'
 });
 NetworkPairing.belongsTo(Fabric, {
-  foreignKey: 'InstanceId2',
-  as: 'instanceId2'
+  foreignKey: 'instanceId2',
+  as: 'InstanceId2'
 });
 NetworkPairing.belongsTo(ElementInstance, {
-  foreignKey: 'ElementId1',
-  as: 'elementId1',
+  foreignKey: 'elementId1',
+  as: 'ElementId1',
   targetKey: 'uuid'
 });
 NetworkPairing.belongsTo(ElementInstance, {
-  foreignKey: 'ElementId2',
-  as: 'elementId2',
+  foreignKey: 'elementId2',
+  as: 'ElementId2',
   targetKey: 'uuid'
 });
 NetworkPairing.belongsTo(ElementInstance, {
-  foreignKey: 'NetworkElementId1',
-  as: 'networkElementId1',
+  foreignKey: 'networkElementId1',
+  as: 'NetworkElementId1',
   targetKey: 'uuid'
 });
 NetworkPairing.belongsTo(ElementInstance, {
-  foreignKey: 'NetworkElementId2',
-  as: 'networkElementId2',
+  foreignKey: 'networkElementId2',
+  as: 'NetworkElementId2',
   targetKey: 'uuid'
 });
 NetworkPairing.belongsTo(ElementInstancePort, {
-  foreignKey: 'Elemen1PortId',
-  as: 'element1PortId'
+  foreignKey: 'elemen1PortId',
+  as: 'Element1PortId'
 });
 NetworkPairing.belongsTo(SatellitePort, {
-  foreignKey: 'SatellitePortId',
-  as: 'satellitePortId'
+  foreignKey: 'satellitePortId',
+  as: 'SatellitePortId'
 });
 
 export default NetworkPairing;
