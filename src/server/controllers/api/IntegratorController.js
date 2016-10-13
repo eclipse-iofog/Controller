@@ -30,11 +30,13 @@ import AppUtils from '../../utils/appUtils';
  * @return - returns and appropriate response to the client
  */
 router.post('/api/v2/authoring/integrator/instance/create', (req, res) => {
-  var userId = 1,
-    bodyParams = req.body;
+  var params = {};
+
+  params.userId = 1;
+  params.bodyParams = req.body;
 
   async.waterfall([
-    async.apply(createFabricInstance, userId, bodyParams),
+    async.apply(createFabricInstance, params),
     initiateFabricChangeTracking,
     createFabricUser,
     getFabricTypeDetail,
@@ -42,8 +44,8 @@ router.post('/api/v2/authoring/integrator/instance/create', (req, res) => {
     createStreamViewerPort,
     updateChangeTracking,
     getRandomSatellite,
-    getMaxSatellitePort,
-    createSatellitePort,
+    getMaxSatellitePort, // not required
+    createSatellitePort, // change it
     getSatellitePorts,
     openPortsOnComsat,
     getNetworkElement,
@@ -84,8 +86,8 @@ router.post('/api/v2/authoring/integrator/instance/create', (req, res) => {
 /**
  * @desc - this function finds the element instance which was changed
  */
-function createFabricInstance(userId, bodyParams, callback) {
-  var fabricType = bodyParams.FabricType,
+function createFabricInstance(params, callback) {
+  var fabricType = params.bodyParams.FabricType,
     instanceId = AppUtils.generateRandomString(32);
 
   var config = {
@@ -95,163 +97,111 @@ function createFabricInstance(userId, bodyParams, callback) {
 
   // This function creates a new fabric and inserts its data
   // in to the database, along with the default values
-  FabricManager.createFabric(config)
-    .then((fabricInstance) => {
-      console.log(fabricInstance);
-      if (fabricInstance) {
-        callback(null, userId, bodyParams, fabricInstance);
+  FabricManager
+    .createFabric(config)
+    .then(onCreate.bind(null, params, 'fabricInstance', 'Unable to create Fabric Instance', callback));
 
-      } else {
-        callback('error', "Unable to create Fabric Instance");
-
-      }
-    });
 }
 
 /**
  * @desc - this function finds the element instance which was changed
  */
-function initiateFabricChangeTracking(userId, bodyParams, fabricInstance, callback) {
-  ChangeTrackingManager.createChangeTracking(fabricInstance.uuid)
-    .then((changeTrackingObj) => {
-      if (changeTrackingObj) {
-        callback(null, userId, bodyParams, fabricInstance);
+function initiateFabricChangeTracking(params, callback) {
+  ChangeTrackingManager
+    .createChangeTracking(params.fabricInstance.uuid)
+    .then(onCreate.bind(null, params, null, 'Unable to initialize change tracking for Fabric Instance', callback));
 
-      } else {
-        callback('error', "Unable to initialize change tracking for Fabric Instance");
-
-      }
-    });
 }
 
 /**
  * @desc - this function finds the element instance which was changed
  */
-function createFabricUser(userId, bodyParams, fabricInstance, callback) {
-  FabricUserManager.create(userId, fabricInstance.uuid)
-    .then((fabricUser) => {
-      if (fabricUser) {
-        callback(null, userId, bodyParams, fabricInstance);
+function createFabricUser(params, callback) {
+  FabricUserManager
+    .create(params.userId, params.fabricInstance.uuid)
+    .then(onCreate.bind(null, params, null, 'Unable to create user for Fabric Instance', callback));
 
-      } else {
-        callback('error', "Unable to create user for Fabric Instance");
-
-      }
-    });
 }
 
-function getFabricTypeDetail(userId, bodyParams, fabricInstance, callback) {
-  FabricTypeManager.findById(fabricInstance.typeKey)
-    .then((fabricType) => {
-      if (fabricType) {
-        callback(null, userId, bodyParams, fabricInstance, fabricType);
+function getFabricTypeDetail(params, callback) {
+  FabricTypeManager
+    .findById(params.fabricInstance.typeKey)
+    .then(onCreate.bind(null, params, 'fabricType', 'Unable to read fabric type detail', callback));
 
-      } else {
-        callback('error', "Unable to create user for Fabric Instance");
+}
+/**
+ * @desc - this function finds the element instance which was changed
+ */
+function createStreamViewerElement(params, callback) {
+  ElementInstanceManager
+    .createStreamViewerInstance(params.fabricType.streamViewerElementKey, params.userId, params.fabricInstance.uuid)
+    .then(onCreate.bind(null, params, 'streamViewer', 'Unable to create Stream Viewer', callback));
 
-      }
+}
+
+function createStreamViewerPort(params, callback) {
+  ElementInstancePortManager
+    .createElementPort(params.userId, params.streamViewer.uuid, 60400)
+    .then(onCreate.bind(null, params, 'streamViewerPort', 'Unable to create Stream Viewer Port', callback));
+
+}
+
+function updateChangeTracking(params, callback) {
+  ChangeTrackingManager
+    .updateByUuid(params.fabricInstance.uuid, {
+      'containerList': new Date().getTime()
     })
-}
-/**
- * @desc - this function finds the element instance which was changed
- */
-function createStreamViewerElement(userId, bodyParams, fabricInstance, fabricType, callback) {
-  ElementInstanceManager.createStreamViewerInstance(fabricType.streamViewerElementKey, userId, fabricInstance.uuid)
-    .then((streamViewObj) => {
-      if (streamViewObj) {
-        callback(null, userId, bodyParams, fabricInstance, fabricType, streamViewObj);
+    .then(onUpdate.bind(null, params, 'Unable to update Change Tracking for stream Viewer', callback));
 
-      } else {
-        callback('error', "Unable to create Stream Viewer");
-
-      }
-    });
 }
 
-function createStreamViewerPort(userId, bodyParams, fabricInstance, fabricType, streamViewer, callback) {
-  ElementInstancePortManager.createElementPort(userId, streamViewer.uuid, 60400)
-    .then((streamViewerPort) => {
-      if (streamViewerPort) {
-        callback(null, userId, bodyParams, fabricInstance, fabricType, streamViewer, streamViewerPort);
-
-      } else {
-        callback('error', "Unable to create Stream Viewer Port");
-
-      }
-    })
-}
-
-function updateChangeTracking(userId, bodyParams, fabricInstance, fabricType, streamViewer, streamViewerPort, callback) {
-  ChangeTrackingManager.updateByUuid(fabricInstance.uuid, {
-    'containerList': new Date().getTime()
-  }).then((updatedElement) => {
-    if (updatedElement.length > 0) {
-      callback(null, userId, bodyParams, fabricInstance, fabricType, streamViewer, streamViewerPort);
-
-    } else {
-      callback('error', "Unable to update Change Tracking for Stream Viewer");
-
-    }
-  });
-}
-
-function getRandomSatellite(userId, bodyParams, fabricInstance, fabricType, streamViewer, streamViewerPort, callback) {
+function getRandomSatellite(params, callback) {
   var randomNumber;
 
   SatelliteManager.findAll()
     .then((satellites) => {
       if (satellites && satellites.length > 0) {
         randomNumber = Math.floor((Math.random() * (satellites.length - 1)));
-        callback(null, userId, bodyParams, fabricInstance, fabricType, streamViewer, streamViewerPort, satellites[randomNumber]);
+        params.satellite = satellites[randomNumber];
+        callback(null, params);
       } else {
         callback('error', "No Satellite defined");
       }
     });
 }
 
-function getMaxSatellitePort(userId, bodyParams, fabricInstance, fabricType, streamViewer, streamViewerPort, satellite, callback) {
+function getMaxSatellitePort(params, callback) {
   SatellitePortManager.getMaxPort()
     .then((maxPort) => {
       if (isNaN(maxPort)) {
-        callback(null, userId, bodyParams, fabricInstance, fabricType, streamViewer, streamViewerPort, satellite, 3000);
-      } else {
-        console.log(2);
-        callback(null, userId, bodyParams, fabricInstance, fabricType, streamViewer, streamViewerPort, satellite, maxPort);
+        maxPort = 3000;
       }
+      params.maxPort = maxPort;
+      callback(null, params);
     })
 }
 
-function createSatellitePort(userId, bodyParams, fabricInstance, fabricType, streamViewer, streamViewerPort, satellite, maxPort, callback) {
-  SatellitePortManager.create(maxPort + 1, maxPort + 2, satellite.id)
-    .then((satellitePort) => {
-      if (satellitePort) {
-        callback(null, userId, bodyParams, fabricInstance, fabricType, streamViewer, streamViewerPort, satellite, satellitePort);
-      } else {
-        callback('error', "Unable to create satellite port");
-      }
-    })
+function createSatellitePort(params, callback) {
+  SatellitePortManager
+    .create(params.maxPort + 1, params.maxPort + 2, params.satellite.id)
+    .then(onCreate.bind(null, params, 'satellitePort', 'Unable to create satellite port', callback));
+
 }
 
-function getSatellitePorts(userId, bodyParams, fabricInstance, fabricType, streamViewer, streamViewerPort, satellite, satellitePort, callback) {
-  SatellitePortManager.findAllBySatelliteId(satellite.id)
-    .then((satellitePorts) => {
-      if (satellitePorts) {
-        callback(null, userId, bodyParams, fabricInstance, fabricType, streamViewer, streamViewerPort, satellite, satellitePort, satellitePorts);
+function getSatellitePorts(params, callback) {
+  SatellitePortManager
+    .findAllBySatelliteId(params.satellite.id)
+    .then(onCreate.bind(null, params, 'satellitePorts', 'Unable to find satellite ports', callback));
 
-      } else {
-        callback('error', "Unable to find satellite ports");
-
-      }
-    });
 }
 
-function openPortsOnComsat(userId, bodyParams, fabricInstance, fabricType, streamViewer, streamViewerPort, satellite, satellitePort, satellitePorts, callback) {
+function openPortsOnComsat(params, callback) {
   var data = querystring.stringify({
     mapping: '{"type":"public","maxconnections":60,"heartbeatabsencethreshold":200000}'
   });
 
   var options = {
-    host: satellite.domain,
+    host: params.satellite.domain,
     port: 443,
     path: '/api/v2/mapping/add',
     method: 'POST',
@@ -261,6 +211,7 @@ function openPortsOnComsat(userId, bodyParams, fabricInstance, fabricType, strea
     }
   };
   var httpreq = https.request(options, function(response) {
+    console.log(response.statusCode);
     var output = '';
     response.setEncoding('utf8');
 
@@ -271,191 +222,140 @@ function openPortsOnComsat(userId, bodyParams, fabricInstance, fabricType, strea
     response.on('end', function() {
       var obj = JSON.parse(output);
       console.log(obj);
-      callback(null, userId, bodyParams, fabricInstance, fabricType, streamViewer, streamViewerPort, satellite, satellitePort, satellitePorts);
+      callback(null, params);
     });
   });
+
+  httpreq.on('error', function(err) {
+    console.log(err);
+    callback(null, params);
+  });
+
   httpreq.write(data);
   httpreq.end();
 }
 
-function getNetworkElement(userId, bodyParams, fabricInstance, fabricType, streamViewer, streamViewerPort, satellite, satellitePort, satellitePorts, callback) {
-  ElementManager.findElementById(fabricType.networkElementKey)
-    .then((elementObj) => {
-      if (elementObj) {
-        callback(null, userId, bodyParams, fabricInstance, fabricType, streamViewer, streamViewerPort, satellite, satellitePort, satellitePorts, elementObj);
-      } else {
-        callback('error', "Unable to find Element object with id " + fabrictype.networkElementKey);
-      }
-    });
+function getNetworkElement(params, callback) {
+  ElementManager
+    .findElementById(params.fabricType.networkElementKey)
+    .then(onCreate.bind(null, params, 'networkElement', 'Unable to find Element object with id ' + params.fabricType.networkElementKey, callback));
+
 }
 
-function createNetworkElementInstance(userId, bodyParams, fabricInstance, fabricType, streamViewer, streamViewerPort, satellite, satellitePort, satellitePorts, element, callback) {
-  ElementInstanceManager.createNetworkInstance(element, userId, fabricInstance.uuid, satellite.domain, satellitePort.port1, 'Network for Stream Viewer', 60400)
-    .then((networkElementInstance) => {
-      if (networkElementInstance) {
-        callback(null, userId, bodyParams, fabricInstance, fabricType, streamViewer, streamViewerPort, satellite, satellitePort, satellitePorts, networkElementInstance);
+function createNetworkElementInstance(params, callback) {
+  ElementInstanceManager
+    .createNetworkInstance(params.networkElement, params.userId, params.fabricInstance.uuid, params.satellite.domain, params.satellitePort.port1, 'Network for Stream Viewer', 60400)
+    .then(onCreate.bind(null, params, 'networkElementInstance', 'Unable to create Network Element Instance', callback));
 
-      } else {
-        callback('error', 'Unable to create Network Element Instance');
-
-      }
-    });
 }
 
-function updateChangeTrackingCL(userId, bodyParams, fabricInstance, fabricType, streamViewer, streamViewerPort, satellite, satellitePort, satellitePorts, networkElementInstance, callback) {
-  ChangeTrackingManager.updateByUuid(fabricInstance.uuid, {
-    'containerList': new Date().getTime(),
-    'containerConfig': new Date().getTime()
-  }).then((updatedElement) => {
-    if (updatedElement.length > 0) {
-      callback(null, userId, bodyParams, fabricInstance, fabricType, streamViewer, streamViewerPort, satellite, satellitePort, satellitePorts, networkElementInstance);
+function updateChangeTrackingCL(params, callback) {
+  ChangeTrackingManager
+    .updateByUuid(params.fabricInstance.uuid, {
+      'containerList': new Date().getTime(),
+      'containerConfig': new Date().getTime()
+    })
+    .then(onUpdate.bind(null, params, 'Unable to update Change Tracking for Fog Instance', callback));
 
-    } else {
-      callback('error', "Unable to update Change Tracking for Fog Instance");
-
-    }
-  });
 }
 
-function createNeworkPairing(userId, bodyParams, fabricInstance, fabricType, streamViewer, streamViewerPort, satellite, satellitePort, satellitePorts, networkElementInstance, callback) {
+function createNeworkPairing(params, callback) {
   var networkPairingObj = {
-    instanceId1: fabricInstance.uuid,
+    instanceId1: params.fabricInstance.uuid,
     instanceId2: null,
-    elementId1: streamViewer.uuid,
+    elementId1: params.streamViewer.uuid,
     elementId2: null,
-    networkElementId1: networkElementInstance.uuid,
+    networkElementId1: params.networkElementInstance.uuid,
     networkElementId2: null,
     isPublicPort: true,
-    element1PortId: streamViewerPort.id,
-    satellitePortId: satellitePort.id
+    element1PortId: params.streamViewerPort.id,
+    satellitePortId: params.satellitePort.id
   };
 
-  console.log(networkPairingObj);
+  NetworkPairingManager
+    .create(networkPairingObj)
+    .then(onCreate.bind(null, params, null, 'Unable to create Network pairing', callback));
 
-  NetworkPairingManager.create(networkPairingObj)
-    .then((obj) => {
-      console.log(obj);
-      if (obj) {
-        callback(null, userId, bodyParams, fabricInstance, fabricType, streamViewer, streamViewerPort, satellite, satellitePort, satellitePorts, networkElementInstance);
-
-      } else {
-        callback('error', "Unable to create Network pairing");
-
-      }
-    });
 }
 
-function createStreamViewer(userId, bodyParams, fabricInstance, fabricType, streamViewer, streamViewerPort, satellite, satellitePort, satellitePorts, networkElementInstance, callback) {
-  var baseUrl = 'https://' + satellite.domain + ':' + satellitePort.port2,
-    token = JSON.parse(streamViewer.config).accesstoken,
+function createStreamViewer(params, callback) {
+  var baseUrl = 'https://' + params.satellite.domain + ':' + params.satellitePort.port2,
+    token = JSON.parse(params.streamViewer.config).accesstoken,
     streamViewerObj = {
       version: 1,
       apiBaseUrl: baseUrl,
       accessToken: token,
-      elementId: streamViewer.uuid,
-      iofabric_uuid: fabricInstance.uuid
+      elementId: params.streamViewer.uuid,
+      iofabric_uuid: params.fabricInstance.uuid
     };
 
-  StreamViewerManager.create(streamViewerObj)
-    .then((obj) => {
-      if (obj) {
-        callback(null, userId, bodyParams, fabricInstance, fabricType, streamViewer, streamViewerPort, satellite, satellitePort, satellitePorts, networkElementInstance);
+  StreamViewerManager
+    .create(streamViewerObj)
+    .then(onCreate.bind(null, params, null, 'Unable to create Stream Viewer object', callback));
 
-      } else {
-        callback('error', "Unable to create Stream Viewer object");
-
-      }
-    });
 }
 
 /**
  * @desc - this function finds the element instance which was changed
  */
-function createDebugConsole(userId, bodyParams, fabricInstance, fabricType, streamViewer, streamViewerPort, satellite, satellitePort, satellitePorts, networkElementInstance, callback) {
+function createDebugConsole(params, callback) {
 
-  ElementInstanceManager.createDebugConsoleInstance(fabricType.consoleElementKey, userId, fabricInstance.uuid)
-    .then((debugConsoleObj) => {
-      if (debugConsoleObj) {
-        callback(null, userId, bodyParams, fabricInstance, fabricType, streamViewer, streamViewerPort, satellite, satellitePort, satellitePorts, networkElementInstance, debugConsoleObj);
-
-      } else {
-        callback('error', "Unable to create Debug console object");
-
-      }
-    });
+  ElementInstanceManager
+    .createDebugConsoleInstance(params.fabricType.consoleElementKey, params.userId, params.fabricInstance.uuid)
+    .then(onCreate.bind(null, params, 'debugConsole', 'Unable to createDebug console object', callback));
 }
 
-function createDebugConsolePort(userId, bodyParams, fabricInstance, fabricType, streamViewer, streamViewerPort, satellite, satellitePort, satellitePorts, networkElementInstance, debugConsole, callback) {
-  ElementInstancePortManager.createElementPort(userId, debugConsole.uuid, 60401)
-    .then((debugConsolePort) => {
-      if (debugConsolePort) {
-        callback(null, userId, bodyParams, fabricInstance, fabricType, streamViewer, streamViewerPort, satellite, satellitePort, satellitePorts, networkElementInstance, debugConsole);
+function createDebugConsolePort(params, callback) {
+  ElementInstancePortManager
+    .createElementPort(params.userId, params.debugConsole.uuid, 60401)
+    .then(onCreate.bind(null, params, null, 'Unable to create Debug Console Port', callback));
 
-      } else {
-        callback('error', "Unable to create Debug Console Port");
+}
 
-      }
+function updateDebugConsole(params, callback) {
+  ElementInstanceManager
+    .updateByUUID(params.debugConsole.uuid, {
+      'updatedBy': params.userId
     })
+    .then(onUpdate.bind(null, params, "Unable to update 'UpdatedBy' field for DebugConsoleElement", callback));
+
 }
 
-function updateDebugConsole(userId, bodyParams, fabricInstance, fabricType, streamViewer, streamViewerPort, satellite, satellitePort, satellitePorts, networkElementInstance, debugConsole, callback) {
-  ElementInstanceManager.updateByUUID(debugConsole.uuid, {
-    'updatedBy': userId
-  }).then((updatedElement) => {
-    if (updatedElement.length > 0) {
-      callback(null, userId, bodyParams, fabricInstance, fabricType, streamViewer, streamViewerPort, satellite, satellitePort, satellitePorts, networkElementInstance, debugConsole);
+function updateChangeTrackingDebugConsole(params, callback) {
+  ChangeTrackingManager
+    .updateByUuid(params.fabricInstance.uuid, {
+      'containerList': new Date().getTime()
+    })
+    .then(onUpdate.bind(null, params, 'Unable to update Change Tracking for Fog instance', callback));
 
-    } else {
-      callback('error', "Unable to update 'UpdatedBy' field for DebugConsoleElement");
-
-    }
-  });
 }
 
-function updateChangeTrackingDebugConsole(userId, bodyParams, fabricInstance, fabricType, streamViewer, streamViewerPort, satellite, satellitePort, satellitePorts, networkElementInstance, debugConsole, callback) {
-  ChangeTrackingManager.updateByUuid(fabricInstance.uuid, {
-    'containerList': new Date().getTime()
-  }).then((updatedElement) => {
-    if (updatedElement.length > 0) {
-      callback(null, userId, bodyParams, fabricInstance, fabricType, streamViewer, streamViewerPort, satellite, satellitePort, satellitePorts, networkElementInstance, debugConsole);
-
-    } else {
-      callback('error', "Unable to update Change Tracking for Fog instance");
-
-    }
-  });
-}
-
-function getMaxSatellitePort2(userId, bodyParams, fabricInstance, fabricType, streamViewer, streamViewerPort, satellite, satellitePort, satellitePorts, networkElementInstance, debugConsole, callback) {
+function getMaxSatellitePort2(params, callback) {
   SatellitePortManager.getMaxPort()
     .then((maxPort) => {
       if (isNaN(maxPort)) {
-        callback(null, userId, bodyParams, fabricInstance, fabricType, streamViewer, streamViewerPort, satellite, satellitePort, satellitePorts, networkElementInstance, debugConsole, 3000);
-      } else {
-        console.log(2);
-        callback(null, userId, bodyParams, fabricInstance, fabricType, streamViewer, streamViewerPort, satellite, satellitePort, satellitePorts, networkElementInstance, debugConsole, maxPort);
+        maxPort = 3000;
       }
+
+      params.maxPort = maxPort;
+      callback(null, params);
     })
 }
 
-function createSatellitePort2(userId, bodyParams, fabricInstance, fabricType, streamViewer, streamViewerPort, satellite, satellitePort, satellitePorts, networkElementInstance, debugConsole, maxPort, callback) {
-  SatellitePortManager.create(maxPort + 1, maxPort + 2, satellite.id)
-    .then((dcSatellitePort) => {
-      if (dcSatellitePort) {
-        callback(null, userId, bodyParams, fabricInstance, fabricType, streamViewer, streamViewerPort, satellite, satellitePort, satellitePorts, networkElementInstance, debugConsole, dcSatellitePort);
-      } else {
-        callback('error', "Unable to create satellite port");
-      }
-    })
+function createSatellitePort2(params, callback) {
+  SatellitePortManager
+    .create(params.maxPort + 1, params.maxPort + 2, params.satellite.id)
+    .then(onCreate.bind(null, params, 'dcSatellitePort', 'Unable to create satellite Port', callback));
+
 }
 
-function openPortsOnComsat2(userId, bodyParams, fabricInstance, fabricType, streamViewer, streamViewerPort, satellite, satellitePort, satellitePorts, networkElementInstance, debugConsole, dcSatellitePort, callback) {
+function openPortsOnComsat2(params, callback) {
   var data = querystring.stringify({
     mapping: '{"type":"public","maxconnections":60,"heartbeatabsencethreshold":200000}'
   });
 
   var options = {
-    host: satellite.domain,
+    host: params.satellite.domain,
     port: 443,
     path: '/api/v2/mapping/add',
     method: 'POST',
@@ -475,99 +375,104 @@ function openPortsOnComsat2(userId, bodyParams, fabricInstance, fabricType, stre
     response.on('end', function() {
       var obj = JSON.parse(output);
       console.log(obj);
-      callback(null, userId, bodyParams, fabricInstance, fabricType, streamViewer, streamViewerPort, satellite, satellitePort, satellitePorts, networkElementInstance, debugConsole, dcSatellitePort);
+      callback(null, params);
     });
   });
+  httpreq.on('error', function(err) {
+    console.log(err);
+    callback(null, params);
+  });
+
   httpreq.write(data);
   httpreq.end();
 }
 
-function getNetworkElement2(userId, bodyParams, fabricInstance, fabricType, streamViewer, streamViewerPort, satellite, satellitePort, satellitePorts, networkElementInstance, debugConsole, dcSatellitePort, callback) {
-  ElementManager.findElementById(fabricType.networkElementKey)
-    .then((elementObj) => {
-      if (elementObj) {
-        callback(null, userId, bodyParams, fabricInstance, fabricType, streamViewer, streamViewerPort, satellite, satellitePort, satellitePorts, networkElementInstance, debugConsole, dcSatellitePort, elementObj);
-      } else {
-        callback('error', "Unable to find Element object with id " + fabrictype.networkElementKey);
-      }
-    });
+function getNetworkElement2(params, callback) {
+  ElementManager
+    .findElementById(params.fabricType.networkElementKey)
+    .then(onCreate.bind(null, params, 'dcElement', 'Unable to find Element object with id ' + params.fabricType.networkElementKey, callback));
+
 }
 
-function createNetworkElementInstance2(userId, bodyParams, fabricInstance, fabricType, streamViewer, streamViewerPort, satellite, satellitePort, satellitePorts, networkElementInstance, debugConsole, dcSatellitePort, element, callback) {
-  ElementInstanceManager.createNetworkInstance(element, userId, fabricInstance.uuid, satellite.domain, dcSatellitePort.port1, 'Network for Debug Console', 60401)
-    .then((dcNetworkElementInstance) => {
-      if (dcNetworkElementInstance) {
-        callback(null, userId, bodyParams, fabricInstance, fabricType, streamViewer, streamViewerPort, satellite, satellitePort, satellitePorts, networkElementInstance, debugConsole, dcSatellitePort, dcNetworkElementInstance);
+function createNetworkElementInstance2(params, callback) {
+  ElementInstanceManager
+    .createNetworkInstance(params.dcElement, params.userId, params.fabricInstance.uuid, params.satellite.domain, params.dcSatellitePort.port1, 'Network for Debug Console', 60401)
+    .then(onCreate.bind(null, params, 'dcNetworkElementInstance', 'Unable to create Debug console Network Element Instance', callback));
 
-      } else {
-        callback('error', 'Unable to create Debug console Network Element Instance');
-
-      }
-    });
 }
 
-function createNeworkPairing2(userId, bodyParams, fabricInstance, fabricType, streamViewer, streamViewerPort, satellite, satellitePort, satellitePorts, networkElementInstance, debugConsole, dcSatellitePort, dcNetworkElementInstance, callback) {
+function createNeworkPairing2(params, callback) {
   var networkPairingObj = {
-    instanceId1: fabricInstance.uuid,
+    instanceId1: params.fabricInstance.uuid,
     instanceId2: null,
-    elementId1: debugConsole.uuid,
+    elementId1: params.debugConsole.uuid,
     elementId2: null,
-    networkElementId1: dcNetworkElementInstance.uuid,
+    networkElementId1: params.dcNetworkElementInstance.uuid,
     networkElementId2: null,
     isPublicPort: true,
-    element1PortId: dcSatellitePort.id,
-    satellitePortId: satellitePort.id
+    element1PortId: params.dcSatellitePort.id,
+    satellitePortId: params.satellitePort.id
   };
 
-  console.log(networkPairingObj);
+  NetworkPairingManager
+    .create(networkPairingObj)
+    .then(onCreate.bind(null, params, null, 'Unable to create Network pairing for Debug Console', callback));
 
-  NetworkPairingManager.create(networkPairingObj)
-    .then((obj) => {
-      if (obj) {
-        callback(null, userId, bodyParams, fabricInstance, fabricType, streamViewer, streamViewerPort, satellite, satellitePort, satellitePorts, networkElementInstance, debugConsole, dcSatellitePort, dcNetworkElementInstance);
-
-      } else {
-        callback('error', "Unable to create Network pairing for Debug Console");
-
-      }
-    });
 }
 
-function createConsole(userId, bodyParams, fabricInstance, fabricType, streamViewer, streamViewerPort, satellite, satellitePort, satellitePorts, networkElementInstance, debugConsole, dcSatellitePort, dcNetworkElementInstance, callback) {
-  var baseUrl = 'https://' + satellite.domain + ':' + satellitePort.port2,
-    token = JSON.parse(debugConsole.config).accesstoken,
+function createConsole(params, callback) {
+  var baseUrl = 'https://' + params.satellite.domain + ':' + params.satellitePort.port2,
+    token = JSON.parse(params.debugConsole.config).accesstoken,
     consoleObj = {
       version: 1,
       apiBaseUrl: baseUrl,
       accessToken: token,
-      elementId: debugConsole.uuid,
-      iofabric_uuid: fabricInstance.uuid
+      elementId: params.debugConsole.uuid,
+      iofabric_uuid: params.fabricInstance.uuid
     };
 
-  ConsoleManager.create(consoleObj)
-    .then((obj) => {
-      if (obj) {
-        callback(null, userId, bodyParams, fabricInstance, fabricType, streamViewer, streamViewerPort, satellite, satellitePort, satellitePorts, networkElementInstance, debugConsole, dcSatellitePort, dcNetworkElementInstance);
+  ConsoleManager
+    .create(consoleObj)
+    .then(onCreate.bind(null, params, null, 'Unable to create Console object', callback));
 
-      } else {
-        callback('error', "Unable to create Console object");
-
-      }
-    });
 }
 
 /**
  * @desc - this function finds the element instance which was changed
  */
-function getFabricInstanceDetails(userId, bodyParams, fabricInstance, fabricType, streamViewer, streamViewerPort, satellite, satellitePort, satellitePorts, networkElementInstance, debugConsole, dcSatellitePort, dcNetworkElementInstance, callback) {
-  fabricInstance = fabricInstance.dataValues;
-  fabricInstance.typeName = fabricType.name;
-  fabricInstance.typeDescription = fabricType.description;
-  fabricInstance.typeImage = fabricType.image;
+function getFabricInstanceDetails(params, callback) {
+  var fabricInstance = params.fabricInstance.dataValues;
+
+  fabricInstance.typeName = params.fabricType.name;
+  fabricInstance.typeDescription = params.fabricType.description;
+  fabricInstance.typeImage = params.fabricType.image;
 
   callback(null, {
     fabricInstance: fabricInstance
   });
+}
+
+function onCreate(params, paramName, errorMsg, callback, modelObject) {
+  if (modelObject) {
+    if (paramName) {
+      params[paramName] = modelObject;
+    }
+    callback(null, params);
+
+  } else {
+    callback('error', errorMsg);
+
+  }
+}
+
+function onUpdate(params, errorMsg, callback, updatedModels) {
+  if (updatedModels.length > 0) {
+    callback(null, params);
+
+  } else {
+    callback('error', errorMsg);
+
+  }
 }
 
 export default router;
