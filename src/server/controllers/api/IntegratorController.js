@@ -43,11 +43,8 @@ router.post('/api/v2/authoring/integrator/instance/create', (req, res) => {
     createStreamViewerElement,
     createStreamViewerPort,
     updateChangeTracking,
-    getRandomSatellite,
-    getMaxSatellitePort, // not required
-    createSatellitePort, // change it
-    getSatellitePorts,
-    openPortsOnComsat,
+    openPortOnRadomComsat,
+    createSatellitePort,
     getNetworkElement,
     createNetworkElementInstance,
     updateChangeTrackingCL,
@@ -57,12 +54,11 @@ router.post('/api/v2/authoring/integrator/instance/create', (req, res) => {
     createDebugConsolePort,
     updateDebugConsole,
     updateChangeTrackingDebugConsole,
-    getMaxSatellitePort2,
-    createSatellitePort2,
-    openPortsOnComsat2,
-    getNetworkElement2,
-    createNetworkElementInstance2,
-    createNeworkPairing2,
+    openPortOnRadomComsat,
+    createSatellitePort,
+    getNetworkElement,
+    createNetworkElementInstance,
+    createDebugNeworkPairing,
     createConsole,
     getFabricInstanceDetails
   ], function(err, result) {
@@ -133,6 +129,9 @@ function getFabricTypeDetail(params, callback) {
  * @desc - this function finds the element instance which was changed
  */
 function createStreamViewerElement(params, callback) {
+  params.networkName = 'Network for Stream Viewer';
+  params.networkPort = 60400;
+
   ElementInstanceManager
     .createStreamViewerInstance(params.fabricType.streamViewerElementKey, params.userId, params.fabricInstance.uuid)
     .then(onCreate.bind(null, params, 'streamViewer', 'Unable to create Stream Viewer', callback));
@@ -155,44 +154,58 @@ function updateChangeTracking(params, callback) {
 
 }
 
+function openPortOnRadomComsat(params, callback) {
+  var isComsatPortOpen = false,
+    iterations = 0;
+
+  async.whilst(
+    function() { // TEST
+      return !(isComsatPortOpen || iterations > 5);
+    },
+    function(cb) { // ITERATE
+      iterations++;
+      async.waterfall([
+        async.apply(getRandomSatellite, params),
+        openPortsOnComsat,
+      ], function(err, result) {
+        if (err) {
+          console.log(err);
+        } else {
+          if (params.comsatPort) {
+            isComsatPortOpen = true;
+          } else {
+            console.log('Error');
+          }
+        }
+        cb(null, iterations);
+      });
+    },
+    function(err, n) { // CALLBACK
+      console.log(n);
+      console.log(err);
+      if (n > 5) {
+        callback('error', 'Not able to open port on remote COMSAT. Gave up after 5 tries. Error Received : ' + params.errormessage);
+      } else {
+        callback(null, params);
+      }
+    }
+  );
+}
+
 function getRandomSatellite(params, callback) {
   var randomNumber;
 
   SatelliteManager.findAll()
     .then((satellites) => {
       if (satellites && satellites.length > 0) {
-        randomNumber = Math.floor((Math.random() * (satellites.length - 1)));
+        randomNumber = Math.round((Math.random() * (satellites.length - 1)));
+        console.log('Random number ' + randomNumber);
         params.satellite = satellites[randomNumber];
         callback(null, params);
       } else {
-        callback('error', "No Satellite defined");
+        callback('error', 'No Satellite defined');
       }
     });
-}
-
-function getMaxSatellitePort(params, callback) {
-  SatellitePortManager.getMaxPort()
-    .then((maxPort) => {
-      if (isNaN(maxPort)) {
-        maxPort = 3000;
-      }
-      params.maxPort = maxPort;
-      callback(null, params);
-    })
-}
-
-function createSatellitePort(params, callback) {
-  SatellitePortManager
-    .create(params.maxPort + 1, params.maxPort + 2, params.satellite.id)
-    .then(onCreate.bind(null, params, 'satellitePort', 'Unable to create satellite port', callback));
-
-}
-
-function getSatellitePorts(params, callback) {
-  SatellitePortManager
-    .findAllBySatelliteId(params.satellite.id)
-    .then(onCreate.bind(null, params, 'satellitePorts', 'Unable to find satellite ports', callback));
-
 }
 
 function openPortsOnComsat(params, callback) {
@@ -220,19 +233,47 @@ function openPortsOnComsat(params, callback) {
     });
 
     response.on('end', function() {
-      var obj = JSON.parse(output);
-      console.log(obj);
-      callback(null, params);
+      var responseObj = JSON.parse(output);
+      console.log(responseObj);
+      if (responseObj.errormessage) {
+        params.errormessage = responseObj.errormessage;
+        callback('error', responseObj.errormessage);
+      } else {
+        params.comsatPort = responseObj;
+        callback(null, params);
+      }
     });
   });
 
   httpreq.on('error', function(err) {
+    console.log(123123);
     console.log(err);
+    params.errormessage = JSON.stringify(err);
     callback(null, params);
   });
 
   httpreq.write(data);
   httpreq.end();
+
+}
+
+function createSatellitePort(params, callback) {
+  var satellitePortObj = {
+    port1: params.comsatPort.port1,
+    port2: params.comsatPort.port2,
+    maxConnectionsPort1: 60,
+    maxConnectionsPort2: 0,
+    passcodePort1: params.comsatPort.passcode1,
+    passcodePort2: params.comsatPort.passcode2,
+    heartBeatAbsenceThresholdPort1: 60000,
+    heartBeatAbsenceThresholdPort2: 0,
+    satellite_id: params.satellite.id
+  };
+
+  SatellitePortManager
+    .create(satellitePortObj)
+    .then(onCreate.bind(null, params, 'satellitePort', 'Unable to create satellite port', callback));
+
 }
 
 function getNetworkElement(params, callback) {
@@ -244,7 +285,7 @@ function getNetworkElement(params, callback) {
 
 function createNetworkElementInstance(params, callback) {
   ElementInstanceManager
-    .createNetworkInstance(params.networkElement, params.userId, params.fabricInstance.uuid, params.satellite.domain, params.satellitePort.port1, 'Network for Stream Viewer', 60400)
+    .createNetworkInstance(params.networkElement, params.userId, params.fabricInstance.uuid, params.satellite.domain, params.satellitePort.port1, params.networkName, params.networkPort)
     .then(onCreate.bind(null, params, 'networkElementInstance', 'Unable to create Network Element Instance', callback));
 
 }
@@ -299,6 +340,8 @@ function createStreamViewer(params, callback) {
  * @desc - this function finds the element instance which was changed
  */
 function createDebugConsole(params, callback) {
+  params.networkName = 'Network for Debug Console';
+  params.networkPort = 60401;
 
   ElementInstanceManager
     .createDebugConsoleInstance(params.fabricType.consoleElementKey, params.userId, params.fabricInstance.uuid)
@@ -330,87 +373,16 @@ function updateChangeTrackingDebugConsole(params, callback) {
 
 }
 
-function getMaxSatellitePort2(params, callback) {
-  SatellitePortManager.getMaxPort()
-    .then((maxPort) => {
-      if (isNaN(maxPort)) {
-        maxPort = 3000;
-      }
-
-      params.maxPort = maxPort;
-      callback(null, params);
-    })
-}
-
-function createSatellitePort2(params, callback) {
-  SatellitePortManager
-    .create(params.maxPort + 1, params.maxPort + 2, params.satellite.id)
-    .then(onCreate.bind(null, params, 'dcSatellitePort', 'Unable to create satellite Port', callback));
-
-}
-
-function openPortsOnComsat2(params, callback) {
-  var data = querystring.stringify({
-    mapping: '{"type":"public","maxconnections":60,"heartbeatabsencethreshold":200000}'
-  });
-
-  var options = {
-    host: params.satellite.domain,
-    port: 443,
-    path: '/api/v2/mapping/add',
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-      'Content-Length': Buffer.byteLength(data)
-    }
-  };
-  var httpreq = https.request(options, function(response) {
-    var output = '';
-    response.setEncoding('utf8');
-
-    response.on('data', function(chunk) {
-      output += chunk;
-    });
-
-    response.on('end', function() {
-      var obj = JSON.parse(output);
-      console.log(obj);
-      callback(null, params);
-    });
-  });
-  httpreq.on('error', function(err) {
-    console.log(err);
-    callback(null, params);
-  });
-
-  httpreq.write(data);
-  httpreq.end();
-}
-
-function getNetworkElement2(params, callback) {
-  ElementManager
-    .findElementById(params.fabricType.networkElementKey)
-    .then(onCreate.bind(null, params, 'dcElement', 'Unable to find Element object with id ' + params.fabricType.networkElementKey, callback));
-
-}
-
-function createNetworkElementInstance2(params, callback) {
-  ElementInstanceManager
-    .createNetworkInstance(params.dcElement, params.userId, params.fabricInstance.uuid, params.satellite.domain, params.dcSatellitePort.port1, 'Network for Debug Console', 60401)
-    .then(onCreate.bind(null, params, 'dcNetworkElementInstance', 'Unable to create Debug console Network Element Instance', callback));
-
-}
-
-function createNeworkPairing2(params, callback) {
+function createDebugNeworkPairing(params, callback) {
   var networkPairingObj = {
     instanceId1: params.fabricInstance.uuid,
     instanceId2: null,
     elementId1: params.debugConsole.uuid,
     elementId2: null,
-    networkElementId1: params.dcNetworkElementInstance.uuid,
+    networkElementId1: params.networkElementInstance.uuid,
     networkElementId2: null,
     isPublicPort: true,
-    element1PortId: params.dcSatellitePort.id,
+    element1PortId: params.satellitePort.id,
     satellitePortId: params.satellitePort.id
   };
 
