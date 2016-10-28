@@ -95,7 +95,7 @@ function createFabricInstance(params, callback) {
   // in to the database, along with the default values
   FabricManager
     .createFabric(config)
-    .then(onCreate.bind(null, params, 'fabricInstance', 'Unable to create Fabric Instance', callback));
+    .then(AppUtils.onCreate.bind(null, params, 'fabricInstance', 'Unable to create Fabric Instance', callback));
 
 }
 
@@ -105,7 +105,7 @@ function createFabricInstance(params, callback) {
 function initiateFabricChangeTracking(params, callback) {
   ChangeTrackingManager
     .createChangeTracking(params.fabricInstance.uuid)
-    .then(onCreate.bind(null, params, null, 'Unable to initialize change tracking for Fabric Instance', callback));
+    .then(AppUtils.onCreate.bind(null, params, null, 'Unable to initialize change tracking for Fabric Instance', callback));
 
 }
 
@@ -115,14 +115,14 @@ function initiateFabricChangeTracking(params, callback) {
 function createFabricUser(params, callback) {
   FabricUserManager
     .create(params.userId, params.fabricInstance.uuid)
-    .then(onCreate.bind(null, params, null, 'Unable to create user for Fabric Instance', callback));
+    .then(AppUtils.onCreate.bind(null, params, null, 'Unable to create user for Fabric Instance', callback));
 
 }
 
 function getFabricTypeDetail(params, callback) {
   FabricTypeManager
     .findById(params.fabricInstance.typeKey)
-    .then(onCreate.bind(null, params, 'fabricType', 'Unable to read fabric type detail', callback));
+    .then(AppUtils.onCreate.bind(null, params, 'fabricType', 'Unable to read fabric type detail', callback));
 
 }
 /**
@@ -134,14 +134,14 @@ function createStreamViewerElement(params, callback) {
 
   ElementInstanceManager
     .createStreamViewerInstance(params.fabricType.streamViewerElementKey, params.userId, params.fabricInstance.uuid)
-    .then(onCreate.bind(null, params, 'streamViewer', 'Unable to create Stream Viewer', callback));
+    .then(AppUtils.onCreate.bind(null, params, 'streamViewer', 'Unable to create Stream Viewer', callback));
 
 }
 
 function createStreamViewerPort(params, callback) {
   ElementInstancePortManager
     .createElementPort(params.userId, params.streamViewer.uuid, 60400)
-    .then(onCreate.bind(null, params, 'streamViewerPort', 'Unable to create Stream Viewer Port', callback));
+    .then(AppUtils.onCreate.bind(null, params, 'streamViewerPort', 'Unable to create Stream Viewer Port', callback));
 
 }
 
@@ -150,7 +150,7 @@ function updateChangeTracking(params, callback) {
     .updateByUuid(params.fabricInstance.uuid, {
       'containerList': new Date().getTime()
     })
-    .then(onUpdate.bind(null, params, 'Unable to update Change Tracking for stream Viewer', callback));
+    .then(AppUtils.onUpdate.bind(null, params, 'Unable to update Change Tracking for stream Viewer', callback));
 
 }
 
@@ -246,7 +246,6 @@ function openPortsOnComsat(params, callback) {
   });
 
   httpreq.on('error', function(err) {
-    console.log(123123);
     console.log(err);
     params.errormessage = JSON.stringify(err);
     callback(null, params);
@@ -272,21 +271,21 @@ function createSatellitePort(params, callback) {
 
   SatellitePortManager
     .create(satellitePortObj)
-    .then(onCreate.bind(null, params, 'satellitePort', 'Unable to create satellite port', callback));
+    .then(AppUtils.onCreate.bind(null, params, 'satellitePort', 'Unable to create satellite port', callback));
 
 }
 
 function getNetworkElement(params, callback) {
   ElementManager
     .findElementById(params.fabricType.networkElementKey)
-    .then(onCreate.bind(null, params, 'networkElement', 'Unable to find Element object with id ' + params.fabricType.networkElementKey, callback));
+    .then(AppUtils.onCreate.bind(null, params, 'networkElement', 'Unable to find Element object with id ' + params.fabricType.networkElementKey, callback));
 
 }
 
 function createNetworkElementInstance(params, callback) {
   ElementInstanceManager
     .createNetworkInstance(params.networkElement, params.userId, params.fabricInstance.uuid, params.satellite.domain, params.satellitePort.port1, params.networkName, params.networkPort)
-    .then(onCreate.bind(null, params, 'networkElementInstance', 'Unable to create Network Element Instance', callback));
+    .then(AppUtils.onCreate.bind(null, params, 'networkElementInstance', 'Unable to create Network Element Instance', callback));
 
 }
 
@@ -296,7 +295,7 @@ function updateChangeTrackingCL(params, callback) {
       'containerList': new Date().getTime(),
       'containerConfig': new Date().getTime()
     })
-    .then(onUpdate.bind(null, params, 'Unable to update Change Tracking for Fog Instance', callback));
+    .then(AppUtils.onUpdate.bind(null, params, 'Unable to update Change Tracking for Fog Instance', callback));
 
 }
 
@@ -315,7 +314,7 @@ function createNeworkPairing(params, callback) {
 
   NetworkPairingManager
     .create(networkPairingObj)
-    .then(onCreate.bind(null, params, null, 'Unable to create Network pairing', callback));
+    .then(AppUtils.onCreate.bind(null, params, null, 'Unable to create Network pairing', callback));
 
 }
 
@@ -332,7 +331,7 @@ function createStreamViewer(params, callback) {
 
   StreamViewerManager
     .create(streamViewerObj)
-    .then(onCreate.bind(null, params, null, 'Unable to create Stream Viewer object', callback));
+    .then(AppUtils.onCreate.bind(null, params, null, 'Unable to create Stream Viewer object', callback));
 
 }
 
@@ -345,13 +344,13 @@ function createDebugConsole(params, callback) {
 
   ElementInstanceManager
     .createDebugConsoleInstance(params.fabricType.consoleElementKey, params.userId, params.fabricInstance.uuid)
-    .then(onCreate.bind(null, params, 'debugConsole', 'Unable to createDebug console object', callback));
+    .then(AppUtils.onCreate.bind(null, params, 'debugConsole', 'Unable to createDebug console object', callback));
 }
 
 function createDebugConsolePort(params, callback) {
   ElementInstancePortManager
     .createElementPort(params.userId, params.debugConsole.uuid, 60401)
-    .then(onCreate.bind(null, params, null, 'Unable to create Debug Console Port', callback));
+    .then(AppUtils.onCreate.bind(null, params, null, 'Unable to create Debug Console Port', callback));
 
 }
 
@@ -360,7 +359,7 @@ function updateDebugConsole(params, callback) {
     .updateByUUID(params.debugConsole.uuid, {
       'updatedBy': params.userId
     })
-    .then(onUpdate.bind(null, params, "Unable to update 'UpdatedBy' field for DebugConsoleElement", callback));
+    .then(AppUtils.onUpdate.bind(null, params, "Unable to update 'UpdatedBy' field for DebugConsoleElement", callback));
 
 }
 
@@ -369,7 +368,7 @@ function updateChangeTrackingDebugConsole(params, callback) {
     .updateByUuid(params.fabricInstance.uuid, {
       'containerList': new Date().getTime()
     })
-    .then(onUpdate.bind(null, params, 'Unable to update Change Tracking for Fog instance', callback));
+    .then(AppUtils.onUpdate.bind(null, params, 'Unable to update Change Tracking for Fog instance', callback));
 
 }
 
@@ -388,7 +387,7 @@ function createDebugNeworkPairing(params, callback) {
 
   NetworkPairingManager
     .create(networkPairingObj)
-    .then(onCreate.bind(null, params, null, 'Unable to create Network pairing for Debug Console', callback));
+    .then(AppUtils.onCreate.bind(null, params, null, 'Unable to create Network pairing for Debug Console', callback));
 
 }
 
@@ -405,7 +404,7 @@ function createConsole(params, callback) {
 
   ConsoleManager
     .create(consoleObj)
-    .then(onCreate.bind(null, params, null, 'Unable to create Console object', callback));
+    .then(AppUtils.onCreate.bind(null, params, null, 'Unable to create Console object', callback));
 
 }
 
@@ -422,29 +421,6 @@ function getFabricInstanceDetails(params, callback) {
   callback(null, {
     fabricInstance: fabricInstance
   });
-}
-
-function onCreate(params, paramName, errorMsg, callback, modelObject) {
-  if (modelObject) {
-    if (paramName) {
-      params[paramName] = modelObject;
-    }
-    callback(null, params);
-
-  } else {
-    callback('error', errorMsg);
-
-  }
-}
-
-function onUpdate(params, errorMsg, callback, updatedModels) {
-  if (updatedModels.length > 0) {
-    callback(null, params);
-
-  } else {
-    callback('error', errorMsg);
-
-  }
 }
 
 export default router;

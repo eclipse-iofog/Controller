@@ -91,6 +91,50 @@ const generateInstanceId = function(size) {
   return randString;
 }
 
+const onCreate = function(params, paramName, errorMsg, callback, modelObject) {
+  if (modelObject) {
+    if (paramName) {
+      params[paramName] = modelObject;
+    }
+    callback(null, params);
+
+  } else {
+    callback('error', errorMsg);
+
+  }
+}
+
+const onFind = function(params, paramName, errorMsg, callback, modelObject) {
+  if (modelObject) {
+    if (paramName) {
+      params[paramName] = modelObject;
+    }
+    callback(null, params);
+
+  } else {
+    callback('error', errorMsg);
+
+  }
+}
+
+const onUpdate = function(params, errorMsg, callback, updatedModels) {
+  if (updatedModels.length > 0) {
+    callback(null, params);
+
+  } else {
+    callback('error', errorMsg);
+
+  }
+}
+
+const onDelete = function(params, errorMsg, callback, deletedModels) {
+  if (deletedModels <= 0) {
+    console.log(errorMsg);
+  }
+
+  callback(null, params);
+}
+
 export default {
   isArray: isArray,
   isFileExists: isFileExists,
@@ -99,5 +143,9 @@ export default {
   generateAccessToken: generateAccessToken,
   generateRandomString: generateRandomString,
   convertRelativePathToAbsolute: convertRelativePathToAbsolute,
-  generateInstanceId: generateInstanceId
+  generateInstanceId: generateInstanceId,
+  onCreate: onCreate,
+  onUpdate: onUpdate,
+  onFind: onFind,
+  onDelete: onDelete
 };

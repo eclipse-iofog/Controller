@@ -19,7 +19,7 @@ class ElementInstancePortManager extends BaseManager {
 	getPortsByElementId(id) {
 		return ElementInstancePort.findAll({
 			where: {
-				element_id: id
+				elementId: id
 			}
 		});
 	}
@@ -29,7 +29,15 @@ class ElementInstancePortManager extends BaseManager {
 			portInternal: 80,
 			portExternal: portExternal,
 			updatedBy: userId,
-			element_id: elementId
+			elementId: elementId
+		});
+	}
+
+	deleteByElementInstanceId(instanceId) {
+		return ElementInstancePort.destroy({
+			where: {
+				elementId: instanceId
+			}
 		});
 	}
 

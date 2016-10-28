@@ -13,6 +13,22 @@ class NetworkPairingManager extends BaseManager {
     return NetworkPairing;
   }
 
+  deleteByElementId(elementId) {
+    return NetworkPairing.destroy({
+      where: {
+        $or: [{
+          elementId1: {
+            $eq: elementId
+          }
+        }, {
+          elementId2: {
+            $eq: elementId
+          }
+        }]
+      }
+    });
+  }
+
 }
 
 const instance = new NetworkPairingManager();

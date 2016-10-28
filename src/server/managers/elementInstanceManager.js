@@ -11,6 +11,11 @@ import sequelize from './../utils/sequelize';
 import AppUtils from '../utils/appUtils';
 
 class ElementInstanceManager extends BaseManager {
+
+	getEntity() {
+		return ElementInstance;
+	}
+
 	/**
 	 * @desc - updates the elementInstance which has the coresponding uuid
 	 * @param Integer, JSON object - uuid, data
@@ -161,6 +166,32 @@ class ElementInstanceManager extends BaseManager {
 			};
 
 		return ElementInstance.create(elementInstance);
+	}
+
+	deleteNetworkElement(elementId) {
+		var deleteQuery = ' \
+			DELETE FROM element_instance \
+			WHERE UUID IN( \
+				SELECT networkElementId1 \
+				FROM network_pairing \
+				WHERE elementId1 = "' + elementId + '" \
+			) \
+			OR UUID IN( \
+				SELECT networkElementId2 \
+				FROM network_pairing \
+				WHERE elementId1 = "' + elementId + '" \
+			) \
+		';
+
+		return sequelize.query(deleteQuery);
+	}
+
+	deleteByElementUUID(instanceId) {
+		return ElementInstance.destroy({
+			where: {
+				uuid: instanceId
+			}
+		});
 	}
 }
 

@@ -8,36 +8,37 @@ import express from 'express';
 const router = express.Router();
 import BaseApiController from './baseApiController';
 import FabricManager from '../../managers/fabricManager';
+import UserManager from '../../managers/userManager';
 import FabricAccessTokenManager from '../../managers/fabricAccessTokenManager';
 import FabricProvisionKeyManager from '../../managers/fabricProvisionKeyManager';
 import FabricUserManager from '../../managers/fabricUserManager';
 import AppUtils from '../../utils/appUtils';
 import Constants from '../../constants.js';
 
-router.get('/api/v2/authoring/fabric/provisionkey/instanceid/:instanceId', BaseApiController.checkfabricExistance, (req,res) => {
+router.get('/api/v2/authoring/fabric/provisionkey/instanceid/:instanceId', BaseApiController.checkfabricExistance, (req, res) => {
 
   var newProvision = {
-      iofabric_uuid : req.params.instanceId,
-      provisionKey : AppUtils.generateRandomString(8),
-      expirationTime : new Date().getTime() + (20 * 60 * 1000)
-      };
+    iofabric_uuid: req.params.instanceId,
+    provisionKey: AppUtils.generateRandomString(8),
+    expirationTime: new Date().getTime() + (20 * 60 * 1000)
+  };
 
   FabricProvisionKeyManager.createProvisionKey(newProvision)
-  .then ((newProvision)=>{
-    if(newProvision){
-      res.status(200);
-      res.send({
-        'success' : true,
-        'provisionKey' : newProvision.provisionKey
-      });
-    } else {
-      res.send({
-        'success' : false,
-        'error' : "instance id invalid"
-      });
-    }
+    .then((newProvision) => {
+      if (newProvision) {
+        res.status(200);
+        res.send({
+          'success': true,
+          'provisionKey': newProvision.provisionKey
+        });
+      } else {
+        res.send({
+          'success': false,
+          'error': "instance id invalid"
+        });
+      }
 
-  });
+    });
 
 });
 
@@ -73,6 +74,47 @@ router.get('/api/v2/instance/provision/key/:provisionKey/fabrictype/:fabricType'
     }
   });
 });
+
+router.post('/api/v2/authoring/fabric/provisioningkey/list/delete', (req, res) => {
+
+  var params = {};
+
+  params.bodyParams = req.body;
+  params.milliseconds = new Date().getTime();
+
+  async.waterfall([
+    async.apply(getUser, params),
+    deleteByFabricInstance
+  ], function(err, result) {
+    res.status(200);
+    if (err) {
+      res.send({
+        'status': 'failure',
+        'timestamp': new Date().getTime(),
+        'errormessage': result
+      });
+    } else {
+      res.send({
+        'status': 'ok',
+        'timestamp': new Date().getTime(),
+        'fabricInstanceId': params.bodyParams.fabricInstanceId
+      });
+    }
+  });
+});
+
+function getUser(params, callback) {
+  UserManager
+    .findByToken(params.bodyParams.userId)
+    .then(AppUtils.onFind.bind(null, params, 'user', 'User not found', callback));
+
+}
+
+function deleteByFabricInstance(params, callback) {
+  FabricProvisionKeyManager
+    .deleteByInstanceId(params.bodyParams.fabricInstanceId)
+    .then(AppUtils.onDelete.bind(null, params, 'No provision keys found', callback));
+}
 
 /**
  * @desc - if the provision key exists in the database forwards to getFabric function

@@ -6,6 +6,7 @@
 
 import SatellitePort from './../models/satellitePort';
 import BaseManager from './../managers/baseManager';
+import sequelize from './../utils/sequelize';
 import AppUtils from './../utils/appUtils';
 
 class SatellitePortManager extends BaseManager {
@@ -25,6 +26,35 @@ class SatellitePortManager extends BaseManager {
       }
     })
   }
+
+  getPortPasscodeForNetworkElements(elementId) {
+    var query = ' \
+      SELECT sp.passcode_port1, s.domain \
+      FROM satellite_port sp, satellite s \
+      WHERE sp.id IN ( \
+        SELECT satellitePortId \
+        FROM network_pairing \
+        WHERE elementID1 = "' + elementId + '" \
+        OR elementID2 = "' + elementId + '" \
+      ) \
+      AND sp.satellite_id = s.id';
+
+    return sequelize.query(query);
+  }
+
+  deletePortsForNetworkElements(elementId) {
+    var deleteQuery = ' \
+      DELETE FROM satellite_port \
+      WHERE id IN ( \
+        SELECT satellitePortId \
+        FROM network_pairing \
+        WHERE elementID1 = "' + elementId + '" \
+        OR elementID2 = "' + elementId + '" \
+      )';
+
+    return sequelize.query(deleteQuery);
+  }
+
 }
 
 const instance = new SatellitePortManager();

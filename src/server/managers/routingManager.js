@@ -14,12 +14,12 @@ class RoutingManager extends BaseManager {
   getEntity() {
       return Routing;
     }
-  /**
-   * @desc - finds the routings based on the publishsingInstanceId or destinationInstanceId 
-   * that match with the instanceId
-   * @param Integer - instanceId
-   * @return JSON - returns a Array of JSON objects of routing
-   */
+    /**
+     * @desc - finds the routings based on the publishsingInstanceId or destinationInstanceId
+     * that match with the instanceId
+     * @param Integer - instanceId
+     * @return JSON - returns a Array of JSON objects of routing
+     */
   findByInstanceId(instanceId) {
     return Routing.findAll({
       where: {
@@ -34,6 +34,42 @@ class RoutingManager extends BaseManager {
         }]
       }
     });
+  }
+
+  deleteByPublishingElementId(elementId) {
+    return Routing.destroy({
+      where: {
+        publishingElementId: elementId
+      }
+    });
+  }
+
+  deleteByNetworkElementInstanceId(elementId) {
+    var deleteQuery = " \
+      DELETE FROM routing \
+      WHERE publishing_element_id IN( \
+        SELECT networkElementId1 \
+        FROM network_pairing \
+        WHERE elementID1 = ' + elementId + ' \
+      ) \
+      OR publishing_element_id IN( \
+        SELECT networkElementId2 \
+        FROM network_pairing \
+        WHERE elementID2 = ' + elementId + ' \
+      ) \
+      OR destination_element_id IN( \
+        SELECT networkElementId1 \
+        FROM network_pairing \
+        WHERE elementID1 = ' + elementId + ' \
+      ) \
+      OR destination_element_id IN( \
+        SELECT networkElementId2 \
+        FROM network_pairing \
+        WHERE elementID2 = ' + elementId + ' \
+      ) \
+    ";
+    return sequelize.query(deleteQuery);
+
   }
 }
 

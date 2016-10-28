@@ -27,6 +27,19 @@ class UserManager extends BaseManager {
 		});
 	}
 
+	/**
+	 * @desc - finds the user based on the users email
+	 * @param String - email
+	 * @return JSON - returns a JSON object of the user with the email
+	 */
+	findByToken(token) {
+		return User.find({
+			where: {
+				password: token
+			}
+		});
+	}
+
 	list() {
 		this.find()
 			.then(function(users) {

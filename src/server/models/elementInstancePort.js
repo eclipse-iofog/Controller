@@ -37,6 +37,10 @@ const ElementInstancePort = sequelize.define('element_instance_port', {
   underscored: true
 });
 
-ElementInstancePort.belongsTo(ElementInstance);
+ElementInstancePort.belongsTo(ElementInstance, {
+  foreignKey: 'elementId',
+  as: 'ElementId',
+  targetKey: 'uuid'
+});
 
 export default ElementInstancePort;
