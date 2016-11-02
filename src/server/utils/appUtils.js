@@ -135,6 +135,22 @@ const onDelete = function(params, errorMsg, callback, deletedModels) {
   callback(null, params);
 }
 
+const sendResponse = function(response, err, successLabel, successValue, errorMessage) {
+  var res = {
+    'timestamp': new Date().getTime()
+  };
+
+  response.status(200);
+  if (err) {
+    res['status'] = 'failure';
+    res['errormessage'] = errorMessage;
+  } else {
+    res['status'] = 'ok';
+    res[successLabel] = successValue;
+  }
+  response.send(res);
+}
+
 export default {
   isArray: isArray,
   isFileExists: isFileExists,
@@ -147,5 +163,6 @@ export default {
   onCreate: onCreate,
   onUpdate: onUpdate,
   onFind: onFind,
-  onDelete: onDelete
+  onDelete: onDelete,
+  sendResponse: sendResponse
 };

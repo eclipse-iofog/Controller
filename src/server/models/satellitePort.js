@@ -47,6 +47,10 @@ const SatellitePort = sequelize.define('satellite_port', {
     type: Sequelize.BIGINT,
     field: 'heartbeat_absence_threshold_port2'
   },
+  mappingId: {
+    type: Sequelize.TEXT,
+    field: 'mapping_id'
+  },
   updatedBy: {
     type: Sequelize.BIGINT,
     field: 'updated_by'

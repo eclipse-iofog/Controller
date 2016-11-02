@@ -30,6 +30,14 @@ class DataTracksManager extends BaseManager {
     });
   }
 
+  deleteByTrackId(trackId) {
+    return DataTracks.destroy({
+      where: {
+        id: trackId
+      }
+    });
+  }
+
 }
 
 const instance = new DataTracksManager();

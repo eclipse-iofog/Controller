@@ -7,10 +7,22 @@
 import async from 'async';
 import express from 'express';
 const router = express.Router();
+
 import FabricManager from '../../managers/fabricManager';
 import DataTracksManager from '../../managers/dataTracksManager';
 import ElementInstanceManager from '../../managers/ElementInstanceManager';
 import ChangeTrackingManager from '../../managers/changeTrackingManager';
+
+import DataTracksService from '../../services/dataTracksService';
+import UserService from '../../services/userService';
+import ElementInstanceService from '../../services/elementInstanceService';
+import ElementInstancePortService from '../../services/elementInstancePortService';
+import ChangeTrackingService from '../../services/changeTrackingService';
+import NetworkPairingService from '../../services/networkPairingService';
+import RoutingService from '../../services/routingService';
+import SatellitePortService from '../../services/satellitePortService';
+import ComsatService from '../../services/comsatService';
+
 import AppUtils from '../../utils/appUtils';
 import Constants from '../../constants.js';
 
@@ -205,12 +217,57 @@ function updateDataTrack(track, bodyParams, userId, callback) {
 
 }
 
-/*
-// ioAuthoring_SDK_2_Delete_Track (api-v2-authoring-integrator-track-delete.php)
-router.post('api/v2/authoring/fabric/track/delete', (req, res) => {
+router.post('/api/v2/authoring/fabric/track/delete', (req, res) => {
+  var params = {};
 
+  params.bodyParams = req.body;
+
+  async.waterfall([
+    async.apply(UserService.getUser, params),
+    DataTracksService.getDataTrackById,
+    ElementInstanceService.getElementInstancesByTrackId,
+    deleteElementInstances,
+    DataTracksService.deleteTrackById
+  ], function(err, result) {
+    var errMsg = 'Internal error: There was a problem deleting the track : ' + result
+
+    AppUtils.sendResponse(res, err, 'trackId', params.bodyParams.trackId, errMsg);
+  });
 });
 
+function deleteElementInstances(params, callback) {
+  console.log();
+  if (params.trackElementInstances && params.trackElementInstances.length > 0) {
+    async.eachSeries(params.trackElementInstances, function(elementInstance, callback) {
+      params.bodyParams.elementId = elementInstance.uuid;
+      deleteElement(params, callback);
+    }, function(err) {
+      params.errormessage = JSON.stringify(err);
+      callback(null, params);
+    });
+  } else {
+    callback(null, params);
+  }
+}
+
+function deleteElement(params, callback) {
+  async.waterfall([
+    async.apply(ElementInstancePortService.deleteElementInstancePort, params),
+    RoutingService.deleteElementInstanceRouting,
+    RoutingService.deleteNetworkElementRouting,
+    ElementInstanceService.deleteNetworkElementInstance,
+    SatellitePortService.getPasscodeForNetworkElements,
+    ComsatService.closePortsOnComsat,
+    NetworkPairingService.deleteNetworkPairing,
+    SatellitePortService.deletePortsForNetworkElements,
+    ElementInstanceService.deleteElementInstance
+  ], function(err, result) {
+    console.log(err);
+    callback();
+  });
+}
+
+/*
 // ioAuthoring_SDK_2_Delete_Track (api-v2-authoring-integrator-track-delete-for-user.php)
 router.post('api/v2/authoring/user/track/delete', (req, res) => {
   var bodyParams = req.body,
