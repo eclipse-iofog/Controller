@@ -94,6 +94,12 @@ const deleteElementInstance = function(params, callback) {
     .then(AppUtils.onDelete.bind(null, params, 'Was unable to delete Element Instance', callback));
 }
 
+const deleteElementInstanceByNetworkPairing = function(params, callback) {
+  ElementInstanceManager
+    .deleteByElementUUID(params.networkPairing.networkElementId1)
+    .then(AppUtils.onDelete.bind(null, params, 'Was unable to delete Network pairing Element Instance', callback));
+}
+
 export default {
   getElementInstance: getElementInstance,
   getElementInstancesByTrackId: getElementInstancesByTrackId,
@@ -105,5 +111,6 @@ export default {
   updateElemInstance: updateElemInstance,
   deleteNetworkElementInstance: deleteNetworkElementInstance,
   deleteElementInstance: deleteElementInstance,
+  deleteElementInstanceByNetworkPairing: deleteElementInstanceByNetworkPairing,
 
 };

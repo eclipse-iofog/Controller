@@ -1,6 +1,13 @@
 import FabricManager from '../managers/fabricManager';
 import AppUtils from '../utils/appUtils';
 
+
+const getFogInstance = function(params, callback) {
+  FabricManager
+    .findByInstanceId(params.bodyParams.instanceId)
+    .then(AppUtils.onFind.bind(null, params, 'fabricInstance', 'Cannot find Fog Instance', callback));
+}
+
 /**
  * @desc - this function finds the element instance which was changed
  */
@@ -22,6 +29,6 @@ const createFabricInstance = function(params, callback) {
 }
 
 export default {
+  getFogInstance: getFogInstance,
   createFabricInstance: createFabricInstance,
-
 };

@@ -40,7 +40,7 @@ const StreamViewer = sequelize.define('stream_viewer', {
 
 StreamViewer.belongsTo(Fabric);
 StreamViewer.belongsTo(ElementInstance, {
-  foreignKey: 'ElementId',
+  foreignKey: 'element_id',
   as: 'elementId',
   targetKey: 'uuid'
 });

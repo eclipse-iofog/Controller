@@ -1,21 +1,21 @@
-const path = require('path');
+import bodyParser from 'body-parser';
+import cookieParser from 'cookie-parser';
 const express = require('express');
-
-import https from 'https';
+import expressSession from 'express-session';
 import fs from 'fs';
+import https from 'https';
+const path = require('path');
+import session from 'express-session';
 
 import appConfig from './config.json';
 import appUtils from './server/utils/appUtils';
 import configUtil from './server/utils/configUtil';
 import constants from './server/constants.js';
-import cookieParser from 'cookie-parser';
-import bodyParser from 'body-parser';
-import expressSession from 'express-session';
+
 import baseController from './server/controllers/baseController';
-import fabricController from './server/controllers/api/fabricController';
 import elementInstanceController from './server/controllers/api/elementInstanceController';
 import elementController from './server/controllers/api/elementController';
-import provisionKeyController from './server/controllers/api/provisionKeyController';
+import fabricController from './server/controllers/api/fabricController';
 import instanceStatusController from './server/controllers/api/instanceStatusController';
 import instanceConfigController from './server/controllers/api/instanceConfigController';
 import instanceContainerListController from './server/controllers/api/instanceContainerListController';
@@ -24,8 +24,9 @@ import instanceRegistriesController from './server/controllers/api/instanceRegis
 import instanceRoutingController from './server/controllers/api/instanceRoutingController';
 import instanceContainerConfigController from './server/controllers/api/instanceContainerConfigController';
 import integratorController from './server/controllers/api/integratorController';
+import provisionKeyController from './server/controllers/api/provisionKeyController';
 import trackController from './server/controllers/api/trackController';
-import session from 'express-session';
+import streamViewerController from './server/controllers/api/streamViewerController';
 
 const startServer = function(port) {
   let app,
@@ -75,8 +76,9 @@ const initApp = function() {
   app.set('views', path.join(__dirname, 'views'));
 
   app.use('', baseController);
+  app.use('', elementController);
+  app.use('', elementInstanceController);
   app.use('', fabricController);
-  app.use('', provisionKeyController);
   app.use('', instanceStatusController);
   app.use('', instanceConfigController);
   app.use('', instanceContainerListController);
@@ -84,9 +86,9 @@ const initApp = function() {
   app.use('', instanceRegistriesController);
   app.use('', instanceRoutingController);
   app.use('', instanceContainerConfigController);
-  app.use('', elementInstanceController);
   app.use('', integratorController);
-  app.use('', elementController);
+  app.use('', provisionKeyController);
+  app.use('', streamViewerController);
   app.use('', trackController);
 
   //generic error handler

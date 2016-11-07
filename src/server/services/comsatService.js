@@ -147,8 +147,59 @@ function closePortsOnComsat(params, callback) {
   }
 }
 
+function closePortOnComsat(params, callback) {
+  console.log(params.satellitePort);
+
+  var data = querystring.stringify({
+    mappingid: params.satellitePort.mappingId
+  });
+  console.log(data);
+
+  var options = {
+    host: params.satellite.domain,
+    port: 443,
+    path: '/api/v2/mapping/remove',
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Content-Length': Buffer.byteLength(data)
+    }
+  };
+
+  var httpreq = https.request(options, function(response) {
+    console.log(response.statusCode);
+    var output = '';
+    response.setEncoding('utf8');
+
+    response.on('data', function(chunk) {
+      output += chunk;
+    });
+
+    response.on('end', function() {
+      var responseObj = JSON.parse(output);
+      console.log(responseObj);
+      if (responseObj.errormessage) {
+        params.errormessage = responseObj.errormessage;
+      }
+      callback(null, params);
+    });
+  });
+
+  httpreq.on('error', function(err) {
+    console.log(err);
+    params.errormessage = JSON.stringify(err);
+    callback(null, params);
+  });
+
+  httpreq.write(data);
+  httpreq.end();
+
+
+}
+
 export default {
   openPortOnRadomComsat: openPortOnRadomComsat,
+  closePortOnComsat: closePortOnComsat,
   closePortsOnComsat: closePortsOnComsat,
   openPortsOnComsat: openPortsOnComsat
 };

@@ -9,16 +9,22 @@ import express from 'express';
 const router = express.Router();
 import querystring from 'querystring';
 import https from 'https';
+
 import ElementManager from '../../managers/elementManager';
-import UserService from '../../services/userService';
+
+import ChangeTrackingService from '../../services/changeTrackingService';
+import ComsatService from '../../services/comsatService';
 import ElementService from '../../services/elementService';
 import ElementInstanceService from '../../services/elementInstanceService';
 import ElementInstancePortService from '../../services/elementInstancePortService';
-import ChangeTrackingService from '../../services/changeTrackingService';
+import FabricService from '../../services/fabricService';
+import FabricTypeService from '../../services/fabricTypeService';
 import NetworkPairingService from '../../services/networkPairingService';
 import RoutingService from '../../services/routingService';
 import SatellitePortService from '../../services/satellitePortService';
-import ComsatService from '../../services/comsatService';
+import SatelliteService from '../../services/satelliteService';
+import UserService from '../../services/userService';
+
 import AppUtils from '../../utils/appUtils';
 import Constants from '../../constants.js';
 
@@ -36,7 +42,6 @@ router.post('/api/v2/authoring/build/element/instance/create', (req, res) => {
     ElementInstanceService.createElementInstance
   ], function(err, result) {
     var errMsg = 'Internal error: There was a problem creating the ioElement instance.' + result;
-
     AppUtils.sendResponse(res, err, 'elementId', result.elementInstance, errMsg);
   });
 });
@@ -320,9 +325,62 @@ router.post('/api/v2/authoring/element/instance/delete', (req, res) => {
     SatellitePortService.deletePortsForNetworkElements,
     ElementInstanceService.deleteElementInstance
   ], function(err, result) {
-    var errMsg = 'Internal error: There was a problem deleting ioElement instance.' + result
+    var errMsg = 'Internal error: There was a problem deleting ioElement instance.' + result;
 
     AppUtils.sendResponse(res, err, 'element', params.bodyParams.elementId, errMsg);
+  });
+});
+
+router.post('/api/v2/authoring/element/instance/comsat/pipe/create', (req, res) => {
+  var params = {};
+
+  params.bodyParams = req.body;
+  // elementId is used as params.streamViewer.uuid in NetworkPairingService->createNetworkPairing method
+  params.streamViewer = {};
+  params.streamViewer.uuid = params.bodyParams.elementId;
+
+  async.waterfall([
+    async.apply(UserService.getUser, params),
+    FabricService.getFogInstance,
+    FabricTypeService.getFabricTypeDetail,
+    ElementInstancePortService.getElementInstancePort,
+    ComsatService.openPortOnRadomComsat,
+    SatellitePortService.createSatellitePort,
+    ElementService.getNetworkElement,
+    ElementInstanceService.createNetworkElementInstance,
+    ChangeTrackingService.updateChangeTrackingCL,
+    NetworkPairingService.createNeworkPairing
+  ], function(err, result) {
+    var errMsg = 'Internal error: There was a problem trying to create the Comsat Pipe.' + result,
+      outputObj = {
+        'accessUrl': 'https://' + params.satellite.domain + ':' + params.satellitePort.port2,
+        'networkPairingId': params.networkPairingObj.id
+      };
+    AppUtils.sendResponse(res, err, 'connection', outputObj, errMsg);
+  });
+});
+
+
+router.post('/api/v2/authoring/element/instance/comsat/pipe/delete', (req, res) => {
+  var params = {};
+
+  params.bodyParams = req.body;
+
+  async.waterfall([
+    async.apply(UserService.getUser, params),
+    NetworkPairingService.getNetworkPairing,
+    SatellitePortService.getSatellitePort,
+    SatelliteService.getSatelliteById,
+    ComsatService.closePortOnComsat,
+    SatellitePortService.deleteSatellitePort,
+    ElementInstanceService.deleteElementInstanceByNetworkPairing,
+    NetworkPairingService.deleteNetworkPairingById,
+    ChangeTrackingService.updateChangeTrackingCL2
+
+  ], function(err, result) {
+    var errMsg = 'Internal error: There was a problem trying to delete the Comsat Pipe.' + result;
+
+    AppUtils.sendResponse(res, err, 'networkPairingId', params.bodyParams.networkPairingId, errMsg);
   });
 });
 

@@ -117,6 +117,15 @@ const onFind = function(params, paramName, errorMsg, callback, modelObject) {
   }
 }
 
+const onFindOptional = function(params, paramName, callback, modelObject) {
+  if (modelObject && paramName) {
+    params[paramName] = modelObject;
+
+  }
+
+  callback(null, params);
+}
+
 const onUpdate = function(params, errorMsg, callback, updatedModels) {
   if (updatedModels.length > 0) {
     callback(null, params);
@@ -163,6 +172,7 @@ export default {
   onCreate: onCreate,
   onUpdate: onUpdate,
   onFind: onFind,
+  onFindOptional: onFindOptional,
   onDelete: onDelete,
   sendResponse: sendResponse
 };

@@ -18,7 +18,14 @@ const createStreamViewer = function(params, callback) {
 
 }
 
+const getStreamViewerByFogInstanceId = function(params, callback) {
+  StreamViewerManager
+    .findByInstanceId(params.bodyParams.instanceId)
+    .then(AppUtils.onFindOptional.bind(null, params, 'streamViewer', callback));
+}
+
 export default {
-  createStreamViewer: createStreamViewer
+  createStreamViewer: createStreamViewer,
+  getStreamViewerByFogInstanceId: getStreamViewerByFogInstanceId
 
 };

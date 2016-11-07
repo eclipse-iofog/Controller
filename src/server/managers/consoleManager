@@ -12,23 +12,25 @@ class ConsoleManager extends BaseManager {
   getEntity() {
       return Console;
     }
-    /**
-     * @desc - finds the Console based on the instanceId
-     * @param Integer - instanceId
-     * @return JSON - returns a JSON object of console
-     */
+
+  /**
+   * @desc - finds the Console based on the instanceId
+   * @param Integer - instanceId
+   * @return JSON - returns a JSON object of console
+   */
   findByInstanceId(instanceId) {
-      return Console.find({
-        where: {
-          iofabric_uuid: instanceId
-        }
-      });
-    }
-    /**
-     * @desc - deletes the console based on the instanceId
-     * @param String - instanceId
-     * @return  Integer - returns the number of rows deleted
-     */
+    return Console.find({
+      where: {
+        iofabric_uuid: instanceId
+      }
+    });
+  }
+
+  /**
+   * @desc - deletes the console based on the instanceId
+   * @param String - instanceId
+   * @return  Integer - returns the number of rows deleted
+   */
   deleteByInstanceId(instanceId) {
     return Console.destroy({
       where: {

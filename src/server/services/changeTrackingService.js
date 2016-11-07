@@ -30,6 +30,16 @@ const updateChangeTrackingCL = function(params, callback) {
 
 }
 
+const updateChangeTrackingCL2 = function(params, callback) {
+  ChangeTrackingManager
+    .updateByUuid(params.networkPairing.instanceId1, {
+      'containerList': new Date().getTime(),
+      'containerConfig': new Date().getTime()
+    })
+    .then(AppUtils.onUpdate.bind(null, params, 'Unable to update Change Tracking for Fog Instance', callback));
+
+}
+
 const updateChangeTrackingDebugConsole = function(params, callback) {
   ChangeTrackingManager
     .updateByUuid(params.fabricInstance.uuid, {
@@ -57,6 +67,7 @@ export default {
   initiateFabricChangeTracking: initiateFabricChangeTracking,
   updateChangeTracking: updateChangeTracking,
   updateChangeTrackingCL: updateChangeTrackingCL,
+  updateChangeTrackingCL2: updateChangeTrackingCL2,
   updateChangeTrackingDebugConsole: updateChangeTrackingDebugConsole,
   updateConfigTracking: updateConfigTracking
 };

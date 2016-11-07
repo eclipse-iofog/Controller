@@ -18,7 +18,13 @@ const createConsole = function(params, callback) {
 
 }
 
-export default {
-  createConsole: createConsole
+const getConsoleByFogInstanceId = function(params, callback) {
+  ConsoleManager
+    .findByInstanceId(params.bodyParams.instanceId)
+    .then(AppUtils.onFindOptional.bind(null, params, 'console', callback));
+}
 
+export default {
+  createConsole: createConsole,
+  getConsoleByFogInstanceId: getConsoleByFogInstanceId
 };

@@ -9,13 +9,14 @@ import BaseManager from './../managers/baseManager';
 
 class ElementInstancePortManager extends BaseManager {
 	getEntity() {
-			return ElementInstancePort;
-		}
-		/**
-		 * @desc - finds the elementInstancePort based on the element_Id
-		 * @param Integer - id
-		 * @return JSON - returns an Array of JSON objects of elementInstancePort
-		 */
+		return ElementInstancePort;
+	}
+
+	/**
+	 * @desc - finds the elementInstancePort based on the element_Id
+	 * @param Integer - id
+	 * @return JSON - returns an Array of JSON objects of elementInstancePort
+	 */
 	getPortsByElementId(id) {
 		return ElementInstancePort.findAll({
 			where: {
