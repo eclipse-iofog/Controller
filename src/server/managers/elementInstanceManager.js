@@ -105,9 +105,9 @@ class ElementInstanceManager extends BaseManager {
 		return ElementInstance.create(elementInstance);
 	}
 
-	createNetworkInstance(element, userId, fabricInstanceId, satelliteDomain, satellitePort1, name, localPort) {
+	createNetworkInstance(element, userId, fabricInstanceId, satelliteDomain, satellitePort1, name, localPort, isPublic, trackId) {
 		var netConfig = {
-				'mode': 'public',
+				'mode': isPublic ? 'public' : 'private',
 				'host': satelliteDomain,
 				'port': satellitePort1,
 				'connectioncount': 60,
@@ -119,7 +119,7 @@ class ElementInstanceManager extends BaseManager {
 			},
 			elementInstance = {
 				uuid: AppUtils.generateInstanceId(32),
-				trackId: 0,
+				trackId: trackId,
 				elementKey: element.id,
 				config: JSON.stringify(netConfig),
 				name: name,

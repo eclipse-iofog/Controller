@@ -2,10 +2,12 @@ import FabricManager from '../managers/fabricManager';
 import AppUtils from '../utils/appUtils';
 
 
-const getFogInstance = function(params, callback) {
+const getFogInstance = function(props, params, callback) {
+  var fabricId = AppUtils.getProperty(params, props.fogId);
+
   FabricManager
-    .findByInstanceId(params.bodyParams.instanceId)
-    .then(AppUtils.onFind.bind(null, params, 'fabricInstance', 'Cannot find Fog Instance', callback));
+    .findByInstanceId(fabricId)
+    .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Cannot find Fog Instance', callback));
 }
 
 /**

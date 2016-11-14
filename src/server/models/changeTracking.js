@@ -1,20 +1,42 @@
 /**
-* @file changeTracking.js
-* @author Zishan Iqbal
-* @description This file includes a iofabric_change_tracking model used by sequalize for ORM;
-*/
+ * @file changeTracking.js
+ * @author Zishan Iqbal
+ * @description This file includes a iofabric_change_tracking model used by sequalize for ORM;
+ */
 
 import Sequelize from 'sequelize';
 import sequelize from './../utils/sequelize';
+
+import Fabric from './fabric';
 import Registry from './registry';
 
 const ChangeTracking = sequelize.define('iofabric_change_tracking', {
-  id: {type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true, field: 'ID'},
-  containerConfig: {type: Sequelize.BIGINT, field: 'container_config'},
-  containerList: {type: Sequelize.BIGINT, field: 'container_list'},
-  config: {type: Sequelize.BIGINT, field: 'config'},
-  routing: {type: Sequelize.BIGINT, field: 'routing'},
-  registeries: {type: Sequelize.BIGINT, field: 'registeries'}
+  id: {
+    type: Sequelize.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+    field: 'ID'
+  },
+  containerConfig: {
+    type: Sequelize.BIGINT,
+    field: 'container_config'
+  },
+  containerList: {
+    type: Sequelize.BIGINT,
+    field: 'container_list'
+  },
+  config: {
+    type: Sequelize.BIGINT,
+    field: 'config'
+  },
+  routing: {
+    type: Sequelize.BIGINT,
+    field: 'routing'
+  },
+  registeries: {
+    type: Sequelize.BIGINT,
+    field: 'registeries'
+  }
 }, {
   // don't add the timestamp attributes (updatedAt, createdAt)
   timestamps: false,
@@ -24,5 +46,7 @@ const ChangeTracking = sequelize.define('iofabric_change_tracking', {
   // so updatedAt will be updated_at
   underscored: true
 });
+
+ChangeTracking.belongsTo(Fabric);
 
 export default ChangeTracking;

@@ -1,10 +1,12 @@
 import ElementInstanceManager from '../managers/elementInstanceManager';
 import AppUtils from '../utils/appUtils';
 
-const getElementInstance = function(params, callback) {
+const getElementInstance = function(props, params, callback) {
+  var elementInstanceId = AppUtils.getProperty(params, props.elementInstanceId);
+
   ElementInstanceManager
-    .findByUuId(params.bodyParams.elementId)
-    .then(AppUtils.onFind.bind(null, params, 'elementInstance', 'Cannot find Element Instance', callback));
+    .findByUuId(elementInstanceId)
+    .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Cannot find Element Instance', callback));
 }
 
 const getElementInstancesByTrackId = function(params, callback) {
@@ -16,18 +18,16 @@ const getElementInstancesByTrackId = function(params, callback) {
 /**
  * @desc - this function uses the default values to create a new element instance
  */
-const createElementInstance = function(params, callback) {
+const createElementInstance = function(propertyName, params, callback) {
   ElementInstanceManager
     .createElementInstance(params.element, params.userId, params.bodyParams.TrackId, params.bodyParams.Name, params.bodyParams.LogSize)
-    .then(AppUtils.onCreate.bind(null, params, 'elementInstance', 'Unable to create Element Instance', callback));
+    .then(AppUtils.onCreate.bind(null, params, propertyName, 'Unable to create Element Instance', callback));
 }
 
 /**
  * @desc - this function finds the element instance which was changed
  */
 const createStreamViewerElement = function(params, callback) {
-  params.networkName = 'Network for Stream Viewer';
-  params.networkPort = 60400;
 
   ElementInstanceManager
     .createStreamViewerInstance(params.fabricType.streamViewerElementKey, params.userId, params.fabricInstance.uuid)
@@ -35,10 +35,21 @@ const createStreamViewerElement = function(params, callback) {
 
 }
 
-const createNetworkElementInstance = function(params, callback) {
+const createNetworkElementInstance = function(props, params, callback) {
+  var networkElement = AppUtils.getProperty(params, props.networkElement),
+    fogInstanceId = AppUtils.getProperty(params, props.fogInstanceId),
+    satellitePort = AppUtils.getProperty(params, props.satellitePort),
+    trackId = props.trackId ? AppUtils.getProperty(params, props.trackId) : 0,
+    satelliteDomain = AppUtils.getProperty(params, props.satelliteDomain),
+    userId = AppUtils.getProperty(params, props.userId);
+
+  if (!props.networkName) {
+    props.networkName = 'Network for Element ' + networkElement.uuid;
+  }
+
   ElementInstanceManager
-    .createNetworkInstance(params.networkElement, params.userId, params.fabricInstance.uuid, params.satellite.domain, params.satellitePort.port1, params.networkName, params.networkPort)
-    .then(AppUtils.onCreate.bind(null, params, 'networkElementInstance', 'Unable to create Network Element Instance', callback));
+    .createNetworkInstance(networkElement, userId, fogInstanceId, satelliteDomain, satellitePort, props.networkName, props.networkPort, props.isPublic, trackId)
+    .then(AppUtils.onCreate.bind(null, params, props.setProperty, 'Unable to create Network Element Instance', callback));
 
 }
 
@@ -46,8 +57,6 @@ const createNetworkElementInstance = function(params, callback) {
  * @desc - this function finds the element instance which was changed
  */
 const createDebugConsole = function(params, callback) {
-  params.networkName = 'Network for Debug Console';
-  params.networkPort = 60401;
 
   ElementInstanceManager
     .createDebugConsoleInstance(params.fabricType.consoleElementKey, params.userId, params.fabricInstance.uuid)
@@ -60,6 +69,17 @@ const updateDebugConsole = function(params, callback) {
       'updatedBy': params.userId
     })
     .then(AppUtils.onUpdate.bind(null, params, "Unable to update 'UpdatedBy' field for DebugConsoleElement", callback));
+
+}
+
+const updateRebuild = function(props, params, callback) {
+  var elementInstanceId = AppUtils.getProperty(params, props.elementInstanceId);
+
+  ElementInstanceManager
+    .updateByUUID(elementInstanceId, {
+      'rebuild': 1
+    })
+    .then(AppUtils.onUpdate.bind(null, params, "Unable to update 'rebuild' field for ElementInstance", callback));
 
 }
 
@@ -101,16 +121,17 @@ const deleteElementInstanceByNetworkPairing = function(params, callback) {
 }
 
 export default {
-  getElementInstance: getElementInstance,
-  getElementInstancesByTrackId: getElementInstancesByTrackId,
-  createElementInstance: createElementInstance,
-  createStreamViewerElement: createStreamViewerElement,
-  createNetworkElementInstance: createNetworkElementInstance,
   createDebugConsole: createDebugConsole,
-  updateDebugConsole: updateDebugConsole,
-  updateElemInstance: updateElemInstance,
-  deleteNetworkElementInstance: deleteNetworkElementInstance,
+  createElementInstance: createElementInstance,
+  createNetworkElementInstance: createNetworkElementInstance,
+  createStreamViewerElement: createStreamViewerElement,
   deleteElementInstance: deleteElementInstance,
   deleteElementInstanceByNetworkPairing: deleteElementInstanceByNetworkPairing,
+  deleteNetworkElementInstance: deleteNetworkElementInstance,
+  getElementInstance: getElementInstance,
+  getElementInstancesByTrackId: getElementInstancesByTrackId,
+  updateDebugConsole: updateDebugConsole,
+  updateElemInstance: updateElemInstance,
+  updateRebuild: updateRebuild,
 
 };

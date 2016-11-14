@@ -218,13 +218,18 @@ function updateDataTrack(track, bodyParams, userId, callback) {
 }
 
 router.post('/api/v2/authoring/fabric/track/delete', (req, res) => {
-  var params = {};
+  var params = {},
+
+    dataTrackProps = {
+      trackId: 'bodyParams.trackId',
+      setProperty: 'dataTrack'
+    }
 
   params.bodyParams = req.body;
 
   async.waterfall([
     async.apply(UserService.getUser, params),
-    DataTracksService.getDataTrackById,
+    async.apply(DataTracksService.getDataTrackById, dataTrackProps),
     ElementInstanceService.getElementInstancesByTrackId,
     deleteElementInstances,
     DataTracksService.deleteTrackById

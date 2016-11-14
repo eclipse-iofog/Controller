@@ -11,41 +11,12 @@ const initiateFabricChangeTracking = function(params, callback) {
 
 }
 
-const updateChangeTracking = function(params, callback) {
+const updateChangeTracking = function(props, params, callback) {
+  var fogInstanceId = AppUtils.getProperty(params, props.fogInstanceId);
+
   ChangeTrackingManager
-    .updateByUuid(params.fabricInstance.uuid, {
-      'containerList': new Date().getTime()
-    })
+    .updateByUuid(fogInstanceId, props.changeObject)
     .then(AppUtils.onUpdate.bind(null, params, 'Unable to update Change Tracking for stream Viewer', callback));
-
-}
-
-const updateChangeTrackingCL = function(params, callback) {
-  ChangeTrackingManager
-    .updateByUuid(params.fabricInstance.uuid, {
-      'containerList': new Date().getTime(),
-      'containerConfig': new Date().getTime()
-    })
-    .then(AppUtils.onUpdate.bind(null, params, 'Unable to update Change Tracking for Fog Instance', callback));
-
-}
-
-const updateChangeTrackingCL2 = function(params, callback) {
-  ChangeTrackingManager
-    .updateByUuid(params.networkPairing.instanceId1, {
-      'containerList': new Date().getTime(),
-      'containerConfig': new Date().getTime()
-    })
-    .then(AppUtils.onUpdate.bind(null, params, 'Unable to update Change Tracking for Fog Instance', callback));
-
-}
-
-const updateChangeTrackingDebugConsole = function(params, callback) {
-  ChangeTrackingManager
-    .updateByUuid(params.fabricInstance.uuid, {
-      'containerList': new Date().getTime()
-    })
-    .then(AppUtils.onUpdate.bind(null, params, 'Unable to update Change Tracking for Fog instance', callback));
 
 }
 
@@ -66,8 +37,5 @@ const updateConfigTracking = function(params, callback) {
 export default {
   initiateFabricChangeTracking: initiateFabricChangeTracking,
   updateChangeTracking: updateChangeTracking,
-  updateChangeTrackingCL: updateChangeTrackingCL,
-  updateChangeTrackingCL2: updateChangeTrackingCL2,
-  updateChangeTrackingDebugConsole: updateChangeTrackingDebugConsole,
   updateConfigTracking: updateConfigTracking
 };

@@ -91,6 +91,28 @@ const generateInstanceId = function(size) {
   return randString;
 }
 
+const getProperty = function(theObject, path, separator) {
+  if (path) {
+    try {
+      separator = separator || '.';
+
+      return path.
+      replace('[', separator).replace(']', '').
+      split(separator).
+      reduce(
+        function(obj, property) {
+          return obj[property];
+        }, theObject
+      );
+
+    } catch (err) {
+      return undefined;
+    }
+  } else {
+    return null;
+  }
+}
+
 const onCreate = function(params, paramName, errorMsg, callback, modelObject) {
   if (modelObject) {
     if (paramName) {
@@ -169,6 +191,7 @@ export default {
   generateRandomString: generateRandomString,
   convertRelativePathToAbsolute: convertRelativePathToAbsolute,
   generateInstanceId: generateInstanceId,
+  getProperty: getProperty,
   onCreate: onCreate,
   onUpdate: onUpdate,
   onFind: onFind,

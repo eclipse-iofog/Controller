@@ -7,41 +7,23 @@ const getNetworkPairing = function(params, callback) {
     .then(AppUtils.onFind.bind(null, params, 'networkPairing', 'Cannot find Network Pairing Instance', callback));
 }
 
-const createNeworkPairing = function(params, callback) {
+const createNetworkPairing = function(props, params, callback) {
+
   var networkPairingObj = {
-    instanceId1: params.fabricInstance.uuid,
-    instanceId2: null,
-    elementId1: params.streamViewer.uuid,
-    elementId2: null,
-    networkElementId1: params.networkElementInstance.uuid,
-    networkElementId2: null,
-    isPublicPort: true,
-    element1PortId: params.elementInstancePort.id,
-    satellitePortId: params.satellitePort.id
+    instanceId1: AppUtils.getProperty(params, props.instanceId1),
+    instanceId2: AppUtils.getProperty(params, props.instanceId2),
+    elementId1: AppUtils.getProperty(params, props.elementId1),
+    elementId2: AppUtils.getProperty(params, props.elementId2),
+    networkElementId1: AppUtils.getProperty(params, props.networkElementId1),
+    networkElementId2: AppUtils.getProperty(params, props.networkElementId2),
+    isPublicPort: props.isPublic,
+    element1PortId: AppUtils.getProperty(params, props.elementPortId),
+    satellitePortId: AppUtils.getProperty(params, props.satellitePortId)
   };
 
   NetworkPairingManager
     .create(networkPairingObj)
-    .then(AppUtils.onCreate.bind(null, params, 'networkPairingObj', 'Unable to create Network pairing', callback));
-
-}
-
-const createDebugNeworkPairing = function(params, callback) {
-  var networkPairingObj = {
-    instanceId1: params.fabricInstance.uuid,
-    instanceId2: null,
-    elementId1: params.debugConsole.uuid,
-    elementId2: null,
-    networkElementId1: params.networkElementInstance.uuid,
-    networkElementId2: null,
-    isPublicPort: true,
-    element1PortId: params.satellitePort.id,
-    satellitePortId: params.satellitePort.id
-  };
-
-  NetworkPairingManager
-    .create(networkPairingObj)
-    .then(AppUtils.onCreate.bind(null, params, null, 'Unable to create Network pairing for Debug Console', callback));
+    .then(AppUtils.onCreate.bind(null, params, props.setProperty, 'Unable to create Network pairing', callback));
 
 }
 
@@ -59,8 +41,7 @@ const deleteNetworkPairingById = function(params, callback) {
 
 export default {
   getNetworkPairing: getNetworkPairing,
-  createNeworkPairing: createNeworkPairing,
-  createDebugNeworkPairing: createDebugNeworkPairing,
+  createNetworkPairing: createNetworkPairing,
   deleteNetworkPairing: deleteNetworkPairing,
   deleteNetworkPairingById: deleteNetworkPairingById,
 

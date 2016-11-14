@@ -28,7 +28,76 @@ import AppUtils from '../../utils/appUtils';
  * @return - returns and appropriate response to the client
  */
 router.post('/api/v2/authoring/integrator/instance/create', (req, res) => {
-  var params = {};
+  var params = {},
+    fogTypeProps = {
+      fogTypeId: 'fabricInstance.typeKey',
+      setProperty: 'fabricType'
+    },
+    changeTrackingProps = {
+      fogInstanceId: 'fabricInstance.uuid',
+      changeObject: {
+        'containerList': new Date().getTime()
+      }
+    },
+    networkElementProps = {
+      networkElementId: 'fabricType.networkElementKey',
+      setProperty: 'networkElement'
+    },
+    networkElementInstanceProps = {
+      networkElement: 'networkElement',
+      fogInstanceId: 'fabricInstance.uuid',
+      satellitePort: 'satellitePort.port1',
+      satelliteDomain: 'satellite.domain',
+      trackId: null,
+      userId: 'userId',
+      networkName: 'Network for Stream Viewer',
+      networkPort: 60400,
+      isPublic: true,
+      setProperty: 'networkElementInstance'
+    },
+    debugElementInstanceProps = {
+      networkElement: 'networkElement',
+      fogInstanceId: 'fabricInstance.uuid',
+      satellitePort: 'satellitePort.port1',
+      satelliteDomain: 'satellite.domain',
+      trackId: null,
+      userId: 'userId',
+      networkName: 'Network for Debug Console',
+      networkPort: 60401,
+      isPublic: true,
+      setProperty: 'networkElementInstance'
+    },
+    changeTrackingCLProps = {
+      fogInstanceId: 'fabricInstance.uuid',
+      changeObject: {
+        'containerList': new Date().getTime(),
+        'containerConfig': new Date().getTime()
+      }
+    },
+    networkPairingProps = {
+      instanceId1: 'fabricInstance.uuid',
+      instanceId2: null,
+      elementId1: 'streamViewer.uuid',
+      elementId2: null,
+      networkElementId1: 'networkElementInstance.uuid',
+      networkElementId2: null,
+      isPublic: true,
+      elementPortId: 'elementInstancePort.id',
+      satellitePortId: 'satellitePort.id',
+      setProperty: 'networkPairingObj'
+    },
+    debugNetworkPairingProps = {
+      instanceId1: 'fabricInstance.uuid',
+      instanceId2: null,
+      elementId1: 'debugConsole.uuid',
+      elementId2: null,
+      networkElementId1: 'networkElementInstance.uuid',
+      networkElementId2: null,
+      isPublic: true,
+      elementPortId: 'elementInstancePort.id',
+      satellitePortId: 'satellitePort.id',
+      setProperty: 'debugNetworkPairingObj'
+    };
 
   params.userId = 1;
   params.bodyParams = req.body;
@@ -37,26 +106,26 @@ router.post('/api/v2/authoring/integrator/instance/create', (req, res) => {
     async.apply(FabricService.createFabricInstance, params),
     ChangeTrackingService.initiateFabricChangeTracking,
     FabricUserService.createFabricUser,
-    FabricTypeService.getFabricTypeDetail,
+    async.apply(FabricTypeService.getFabricTypeDetail, fogTypeProps),
     ElementInstanceService.createStreamViewerElement,
     ElementInstancePortService.createStreamViewerPort,
-    ChangeTrackingService.updateChangeTracking,
+    async.apply(ChangeTrackingService.updateChangeTracking, changeTrackingProps),
     ComsatService.openPortOnRadomComsat,
     SatellitePortService.createSatellitePort,
-    ElementService.getNetworkElement,
-    ElementInstanceService.createNetworkElementInstance,
-    ChangeTrackingService.updateChangeTrackingCL,
-    NetworkPairingService.createNeworkPairing,
+    async.apply(ElementService.getNetworkElement, networkElementProps),
+    async.apply(ElementInstanceService.createNetworkElementInstance, networkElementInstanceProps),
+    async.apply(ChangeTrackingService.updateChangeTracking, changeTrackingCLProps),
+    async.apply(NetworkPairingService.createNetworkPairing, networkPairingProps),
     StreamViewerService.createStreamViewer,
     ElementInstanceService.createDebugConsole,
     ElementInstancePortService.createDebugConsolePort,
     ElementInstanceService.updateDebugConsole,
-    ChangeTrackingService.updateChangeTrackingDebugConsole,
+    async.apply(ChangeTrackingService.updateChangeTracking, changeTrackingProps),
     ComsatService.openPortOnRadomComsat,
     SatellitePortService.createSatellitePort,
-    ElementService.getNetworkElement,
-    ElementInstanceService.createNetworkElementInstance,
-    NetworkPairingService.createDebugNeworkPairing,
+    async.apply(ElementService.getNetworkElement, networkElementProps),
+    async.apply(ElementInstanceService.createNetworkElementInstance, debugElementInstanceProps),
+    async.apply(NetworkPairingService.createNetworkPairing, debugNetworkPairingProps),
     ConsoleService.createConsole,
     getFabricInstanceDetails
   ], function(err, result) {

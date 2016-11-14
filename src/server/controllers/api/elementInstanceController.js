@@ -38,8 +38,8 @@ router.post('/api/v2/authoring/build/element/instance/create', (req, res) => {
 
   async.waterfall([
     async.apply(UserService.getUser, params),
-    ElementService.getElement,
-    ElementInstanceService.createElementInstance
+    async.apply(ElementService.getElement, 'bodyParams.ElementKey', 'element'),
+    async.apply(ElementInstanceService.createElementInstance, 'elementInstance')
   ], function(err, result) {
     var errMsg = 'Internal error: There was a problem creating the ioElement instance.' + result;
     AppUtils.sendResponse(res, err, 'elementId', result.elementInstance, errMsg);
@@ -51,25 +51,27 @@ router.post('/api/v2/authoring/build/element/instance/create', (req, res) => {
  * @return - returns and appropriate response to the client
  */
 router.post('/api/v2/authoring/element/instance/update', (req, res) => {
-  var params = {};
+  var params = {},
+    userId = 1,
+    elementInstanceProps;
 
   params.bodyParams = req.body;
   params.milliseconds = new Date().getTime();
 
-  var userId = 1; // USER ID
-  var bodyParams = req.body;
-  console.log(bodyParams);
+  elementInstanceProps = {
+    elementInstanceId: 'bodyParams.InstanceId',
+    setProperty: 'elementInstance'
+  };
 
-  if (!bodyParams.FabricInstance) {
+  if (!params.bodyParams.FabricInstance) {
     res.send({
       'status': 'failure',
       'timestamp': new Date().getTime(),
       'errormessage': 'Fabric Instance Id is required'
     });
   } else {
-    params.bodyParams.elementId = params.bodyParams.InstanceId;
     async.waterfall([
-      async.apply(ElementInstanceService.getElementInstance, bodyParams),
+      async.apply(ElementInstanceService.getElementInstance, elementInstanceProps, params),
       updateElementInstance, // update the fabric id
       updateChangeTracking, // update the changetracking data based on elementinstance.iofabric_uuid
       updateChange, // update the changetracking data based on the post param Fabric id
@@ -288,13 +290,19 @@ router.post([
   '/api/v2/authoring/element/instance/name/update',
 ], (req, res) => {
 
-  var params = {};
+  var params = {},
+    elementInstanceProps;
 
   params.bodyParams = req.body;
 
+  elementInstanceProps = {
+    elementInstanceId: 'bodyParams.elementId',
+    setProperty: 'elementInstance'
+  };
+
   async.waterfall([
     async.apply(UserService.getUser, params),
-    ElementInstanceService.getElementInstance,
+    async.apply(ElementInstanceService.getElementInstance, elementInstanceProps),
     ElementInstanceService.updateElemInstance,
     ChangeTrackingService.updateConfigTracking,
   ], function(err, result) {
@@ -332,7 +340,56 @@ router.post('/api/v2/authoring/element/instance/delete', (req, res) => {
 });
 
 router.post('/api/v2/authoring/element/instance/comsat/pipe/create', (req, res) => {
-  var params = {};
+  var params = {},
+
+    fogTypeProps = {
+      fogTypeId: 'fabricInstance.typeKey',
+      setProperty: 'fabricType'
+    },
+
+    networkPairingProps = {
+      instanceId1: 'fabricInstance.uuid',
+      instanceId2: null,
+      elementId1: 'streamViewer.uuid',
+      elementId2: null,
+      networkElementId1: 'networkElementInstance.uuid',
+      networkElementId2: null,
+      isPublic: true,
+      elementPortId: 'elementInstancePort.id',
+      satellitePortId: 'satellitePort.id',
+      setProperty: 'networkPairingObj'
+    },
+
+    changeTrackingCLProps = {
+      fogInstanceId: 'fabricInstance.uuid',
+      changeObject: {
+        'containerList': new Date().getTime(),
+        'containerConfig': new Date().getTime()
+      }
+    },
+
+    fogProps = {
+      fogId: 'bodyParams.instanceId',
+      setProperty: 'fabricInstance'
+    },
+
+    networkElementProps = {
+      networkElementId: 'fabricType.networkElementKey',
+      setProperty: 'networkElement'
+    },
+
+    networkElementInstanceProps = {
+      networkElement: 'networkElement',
+      fogInstanceId: 'fabricInstance.uuid',
+      satellitePort: 'satellitePort.port1',
+      satelliteDomain: 'satellite.domain',
+      trackId: null,
+      userId: 'userId',
+      networkName: null,
+      networkPort: 0,
+      isPublic: true,
+      setProperty: 'networkElementInstance'
+    };
 
   params.bodyParams = req.body;
   // elementId is used as params.streamViewer.uuid in NetworkPairingService->createNetworkPairing method
@@ -341,15 +398,15 @@ router.post('/api/v2/authoring/element/instance/comsat/pipe/create', (req, res) 
 
   async.waterfall([
     async.apply(UserService.getUser, params),
-    FabricService.getFogInstance,
-    FabricTypeService.getFabricTypeDetail,
+    async.apply(FabricService.getFogInstance, fogProps),
+    async.apply(FabricTypeService.getFabricTypeDetail, fogTypeProps),
     ElementInstancePortService.getElementInstancePort,
     ComsatService.openPortOnRadomComsat,
     SatellitePortService.createSatellitePort,
-    ElementService.getNetworkElement,
-    ElementInstanceService.createNetworkElementInstance,
-    ChangeTrackingService.updateChangeTrackingCL,
-    NetworkPairingService.createNeworkPairing
+    async.apply(ElementService.getNetworkElement, networkElementProps),
+    async.apply(ElementInstanceService.createNetworkElementInstance, networkElementInstanceProps),
+    async.apply(ChangeTrackingService.updateChangeTracking, changeTrackingCLProps),
+    async.apply(NetworkPairingService.createNetworkPairing, networkPairingProps)
   ], function(err, result) {
     var errMsg = 'Internal error: There was a problem trying to create the Comsat Pipe.' + result,
       outputObj = {
@@ -362,9 +419,18 @@ router.post('/api/v2/authoring/element/instance/comsat/pipe/create', (req, res) 
 
 
 router.post('/api/v2/authoring/element/instance/comsat/pipe/delete', (req, res) => {
-  var params = {};
+  var params = {},
+    changeTrackingProps;
 
   params.bodyParams = req.body;
+
+  changeTrackingProps = {
+    fogInstanceId: 'networkPairing.instanceId1',
+    changeObject: {
+      'containerList': new Date().getTime(),
+      'containerConfig': new Date().getTime()
+    }
+  };
 
   async.waterfall([
     async.apply(UserService.getUser, params),
@@ -375,7 +441,7 @@ router.post('/api/v2/authoring/element/instance/comsat/pipe/delete', (req, res) 
     SatellitePortService.deleteSatellitePort,
     ElementInstanceService.deleteElementInstanceByNetworkPairing,
     NetworkPairingService.deleteNetworkPairingById,
-    ChangeTrackingService.updateChangeTrackingCL2
+    ChangeTrackingService.updateChangeTracking
 
   ], function(err, result) {
     var errMsg = 'Internal error: There was a problem trying to delete the Comsat Pipe.' + result;

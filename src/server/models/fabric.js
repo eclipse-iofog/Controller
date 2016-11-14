@@ -187,7 +187,6 @@ const Fabric = sequelize.define('iofabrics', {
 });
 
 FabricProvisionKey.belongsTo(Fabric);
-ChangeTracking.belongsTo(Fabric);
 Fabric.belongsTo(FabricType, {
   foreignKey: 'typeKey'
 })

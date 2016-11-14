@@ -1,10 +1,12 @@
 import DataTracksManager from '../managers/dataTracksManager';
 import AppUtils from '../utils/appUtils';
 
-const getDataTrackById = function(params, callback) {
+const getDataTrackById = function(props, params, callback) {
+  var trackId = AppUtils.getProperty(params, props.trackId);
+
   DataTracksManager
-    .findById(params.bodyParams.trackId)
-    .then(AppUtils.onFind.bind(null, params, 'dataTrack', 'Unable to find Track having id ' + params.bodyParams.trackId, callback));
+    .findById(trackId)
+    .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Unable to find Track having id ' + trackId, callback));
 }
 
 const deleteTrackById = function(params, callback) {

@@ -1,17 +1,21 @@
 import ElementManager from '../managers/elementManager';
 import AppUtils from '../utils/appUtils';
 
-const getNetworkElement = function(params, callback) {
+const getNetworkElement = function(props, params, callback) {
+  var networkElementId = AppUtils.getProperty(params, props.networkElementId);
+
   ElementManager
-    .findElementById(params.fabricType.networkElementKey)
-    .then(AppUtils.onCreate.bind(null, params, 'networkElement', 'Unable to find Element object with id ' + params.fabricType.networkElementKey, callback));
+    .findElementById(networkElementId)
+    .then(AppUtils.onCreate.bind(null, params, props.setProperty, 'Unable to find Element object with id ' + networkElementId, callback));
 
 }
 
-const getElement = function(params, callback) {
+const getElement = function(paramName, propertyName, params, callback) {
+  var elementId = AppUtils.getProperty(params, paramName);
+
   ElementManager
-    .findElementById(params.bodyParams.ElementKey)
-    .then(AppUtils.onCreate.bind(null, params, 'element', 'Unable to find Element object with id ' + params.bodyParams.ElementKey, callback));
+    .findElementById(elementId)
+    .then(AppUtils.onCreate.bind(null, params, propertyName, 'Unable to find Element object with id ' + elementId, callback));
 
 }
 

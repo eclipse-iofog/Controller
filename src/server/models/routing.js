@@ -1,20 +1,26 @@
 /**
-* @file routing.js
-* @author Zishan Iqbal
-* @description This file includes a routing model used by sequalize for ORM;
-*/
+ * @file routing.js
+ * @author Zishan Iqbal
+ * @description This file includes a routing model used by sequalize for ORM;
+ */
 
 import Sequelize from 'sequelize';
 import sequelize from './../utils/sequelize';
+import Fabric from './fabric';
+import ElementInstance from './elementInstance';
 
 const Routing = sequelize.define('routing', {
-  id: {type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true, field: 'ID'},
-  publishingInstanceId: {type: Sequelize.TEXT, field: 'publishing_instance_id'},
-  publishingElementId: {type: Sequelize.TEXT, field: 'publishing_element_id'},
-  destinationInstanceId: {type: Sequelize.TEXT, field: 'destination_instance_id'},
-  destinationElementId: {type: Sequelize.TEXT, field: 'destination_element_id'},
-  isNetworkConnection: {type: Sequelize.BOOLEAN, field: 'is_network_connection'},
-  }, {
+  id: {
+    type: Sequelize.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+    field: 'ID'
+  },
+  isNetworkConnection: {
+    type: Sequelize.BOOLEAN,
+    field: 'is_network_connection'
+  },
+}, {
   // don't add the timestamp attributes (updatedAt, createdAt)
   timestamps: false,
   // disable the modification of table names
@@ -22,6 +28,28 @@ const Routing = sequelize.define('routing', {
   // don't use camelcase for automatically added attributes but underscore style
   // so updatedAt will be updated_at
   underscored: true
+});
+
+Routing.belongsTo(Fabric, {
+  foreignKey: 'publishing_instance_id',
+  as: 'publishingInstanceId'
+});
+
+Routing.belongsTo(Fabric, {
+  foreignKey: 'destination_instance_id',
+  as: 'destinationInstanceId'
+});
+
+Routing.belongsTo(ElementInstance, {
+  foreignKey: 'publishing_element_id',
+  as: 'publishingElementId',
+  targetKey: 'uuid'
+});
+
+Routing.belongsTo(ElementInstance, {
+  foreignKey: 'destination_element_id',
+  as: 'destinationElementId',
+  targetKey: 'uuid'
 });
 
 export default Routing;
