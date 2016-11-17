@@ -16,6 +16,16 @@ class SatelliteManager extends BaseManager {
   findAll() {
     return this.getEntity().findAll();
   }
+
+  findBySatelliteIds(satelliteIds) {
+    return Satellite.findAll({
+      where: {
+        id: {
+          $in: satelliteIds
+        }
+      }
+    })
+  }
 }
 
 const instance = new SatelliteManager();

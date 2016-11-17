@@ -5,6 +5,7 @@
  */
 
 import BaseManager from './../managers/baseManager';
+import Element from './../models/element';
 import ElementInstance from './../models/elementInstance';
 import DataTracks from './../models/dataTracks';
 import sequelize from './../utils/sequelize';
@@ -191,6 +192,67 @@ class ElementInstanceManager extends BaseManager {
 			where: {
 				uuid: instanceId
 			}
+		});
+	}
+
+	findRealElementInstanceByTrackId(trackId) {
+		return ElementInstance.findAll({
+			where: {
+				trackId: trackId,
+				isStreamViewer: false,
+				isDebugConsole: false,
+				isManager: false,
+				isNetwork: false
+			},
+
+			include: [{
+				model: Element,
+				attributes: ['id', 'name', 'category', 'containerImage', 'publisher']
+			}]
+		});
+	}
+
+	findByUuids(uuids) {
+		return ElementInstance.findAll({
+			where: {
+				uuid: {
+					$in: uuids
+				}
+			}
+		});
+	}
+
+	findIntraTrackByUuids(uuids) {
+		const query = 'select DISTINCT(ei.uuid) as elementid, ei.name as elementname, e.name elementtypename from element_instance ' +
+			' ei join element e on e.id = ei.element_key where ei.uuid in (:uuids)';
+		return sequelize.query(query, {
+			replacements: {
+				uuids: uuids
+			},
+			type: sequelize.QueryTypes.SELECT
+		});
+	}
+
+	findExtraTrackByUuids(uuids) {
+		const query = 'select DISTINCT(ei.uuid) as elementid, ei.name as elementname, e.name elementtypename, ei.track_id as trackid, t.name as trackname ' +
+			' from element_instance ei join element e on e.id = ei.element_key join data_tracks t on t.id = ei.track_id where ei.uuid in (:uuids)';
+		return sequelize.query(query, {
+			replacements: {
+				uuids: uuids
+			},
+			type: sequelize.QueryTypes.SELECT
+		});
+	}
+
+	findOtherTrackDetailByUuids(uuids) {
+		const query = 'select DISTINCT(ei.uuid) as elementid, ei.name as elementname, e.name elementtypename, ei.track_id as trackid, t.name as trackname, ' +
+			' ei.iofabric_uuid as instanceId, f.name as instanceName from element_instance ei join element e on e.id = ei.element_key join data_tracks t ' +
+			' on t.id = ei.track_id  join iofabrics f on ei.iofabric_uuid = f.uuid where ei.UUID in (:uuids)';
+		return sequelize.query(query, {
+			replacements: {
+				uuids: uuids
+			},
+			type: sequelize.QueryTypes.SELECT
 		});
 	}
 }

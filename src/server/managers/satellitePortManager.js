@@ -27,6 +27,16 @@ class SatellitePortManager extends BaseManager {
     })
   }
 
+  findBySatellitePortIds(networkPairingIds) {
+    return SatellitePort.findAll({
+      where: {
+        satellite_id: {
+          $in: networkPairingIds
+        }
+      }
+    })
+  }
+
   getPortPasscodeForNetworkElements(elementId) {
     var query = ' \
       SELECT sp.passcode_port1, sp.mapping_id, s.domain \

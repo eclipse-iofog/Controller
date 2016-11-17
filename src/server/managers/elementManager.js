@@ -19,6 +19,16 @@ class ElementManager extends BaseManager {
 			}
 		});
 	}
+
+	findElementByIds(ids) {
+		return Element.findAll({
+			where: {
+				'ID': {
+					$in: ids
+				}
+			}
+		});
+	}
 }
 
 const instance = new ElementManager();

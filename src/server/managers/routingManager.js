@@ -36,6 +36,25 @@ class RoutingManager extends BaseManager {
     });
   }
 
+  findByElementInstanceUuids(uuids) {
+    const query = 'select r.*, e.track_id from routing r JOIN element_instance e on e.UUID = r.publishing_element_id where r.publishing_element_id in (:uuids)';
+    return sequelize.query(query, {
+      replacements: {
+        uuids: uuids
+      },
+      type: sequelize.QueryTypes.SELECT
+    });
+  }
+  findOutputRoutingByElementInstanceUuids(uuids) {
+    const query = 'select r.*, e.track_id from routing r JOIN element_instance e on e.UUID = r.destination_element_id where r.destination_element_id in (:uuids)';
+    return sequelize.query(query, {
+      replacements: {
+        uuids: uuids
+      },
+      type: sequelize.QueryTypes.SELECT
+    });
+  }
+
   deleteByPublishingElementId(elementId) {
     return Routing.destroy({
       where: {

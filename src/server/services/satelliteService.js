@@ -1,5 +1,6 @@
 import SatelliteManager from '../managers/satelliteManager';
 import AppUtils from '../utils/appUtils';
+import _ from 'underscore';
 
 const getSatelliteById = function(params, callback) {
   SatelliteManager
@@ -23,8 +24,14 @@ const getRandomSatellite = function(params, callback) {
     });
 }
 
+const findBySatelliteIds = function(params, callback) {
+  SatelliteManager
+    .findBySatelliteIds(_.pluck(params.satellitePort, 'satellite_id'))
+    .then(AppUtils.onFind.bind(null, params, 'satellite', 'Satellite not found.', callback));
+}
+
 export default {
   getSatelliteById: getSatelliteById,
   getRandomSatellite: getRandomSatellite,
-
+  findBySatelliteIds: findBySatelliteIds,
 };

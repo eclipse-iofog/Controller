@@ -1,5 +1,6 @@
 import ElementInstanceManager from '../managers/elementInstanceManager';
 import AppUtils from '../utils/appUtils';
+import _ from 'underscore';
 
 const getElementInstance = function(props, params, callback) {
   var elementInstanceId = AppUtils.getProperty(params, props.elementInstanceId);
@@ -13,6 +14,48 @@ const getElementInstancesByTrackId = function(params, callback) {
   ElementInstanceManager
     .findByTrackId(params.bodyParams.trackId)
     .then(AppUtils.onFind.bind(null, params, 'trackElementInstances', 'Cannot find Element Instances related to track ' + params.bodyParams.trackId, callback));
+}
+
+const findRealElementInstanceByTrackId = function(params, callback) {
+  ElementInstanceManager
+    .findRealElementInstanceByTrackId(params.bodyParams.trackId)
+    .then(AppUtils.onFind.bind(null, params, 'elementInstance', 'ElementInstance not found.', callback));
+}
+
+const findIntraTrackByUuids = function(params, callback) {
+  ElementInstanceManager
+    .findIntraTrackByUuids(_.uniq(_.pluck(params.intraRoutingList, 'publishing_element_id')))
+    .then(AppUtils.onFind.bind(null, params, 'intraTracks', 'intraTracks not found.', callback));
+}
+
+const findExtraTrackByUuids = function(params, callback) {
+  ElementInstanceManager
+    .findExtraTrackByUuids(_.uniq(_.pluck(params.extraRoutingList, 'publishing_element_id')))
+    .then(AppUtils.onFind.bind(null, params, 'extraTracks', 'extraTracks not found.', callback));
+}
+
+const findOtherTrackDetailByUuids = function(params, callback) {
+  ElementInstanceManager
+    .findOtherTrackDetailByUuids(_.uniq(params.otherTrackElementIds))
+    .then(AppUtils.onFind.bind(null, params, 'extraintegrator', 'otherTracksDetail not found.', callback));
+}
+
+const findOutputIntraElementInfoByUuids = function(params, callback) {
+  ElementInstanceManager
+    .findIntraTrackByUuids(_.uniq(_.pluck(params.outputIntraRoutingList, 'destination_element_id')))
+    .then(AppUtils.onFind.bind(null, params, 'outputIntraTracks', 'outputIntraElement not found.', callback));
+}
+
+const findOutputExtraElementInfoByUuids = function(params, callback) {
+  ElementInstanceManager
+    .findExtraTrackByUuids(_.uniq(_.pluck(params.outputExtraRoutingList, 'destination_element_id')))
+    .then(AppUtils.onFind.bind(null, params, 'outPutExtraTracks', 'outPutExtraElement not found.', callback));
+}
+
+const findOutpuOtherTrackDetailByUuids = function(params, callback) {
+  ElementInstanceManager
+    .findOtherTrackDetailByUuids(_.uniq(params.outputOtherTrackElementId2))
+    .then(AppUtils.onFind.bind(null, params, 'outPutExtraintegrator', 'outPutExtraintegrator not found.', callback));
 }
 
 /**
@@ -125,6 +168,13 @@ export default {
   createElementInstance: createElementInstance,
   createNetworkElementInstance: createNetworkElementInstance,
   createStreamViewerElement: createStreamViewerElement,
+  findRealElementInstanceByTrackId: findRealElementInstanceByTrackId,
+  findIntraTrackByUuids: findIntraTrackByUuids,
+  findExtraTrackByUuids: findExtraTrackByUuids,
+  findOtherTrackDetailByUuids: findOtherTrackDetailByUuids,
+  findOutputIntraElementInfoByUuids: findOutputIntraElementInfoByUuids,
+  findOutputExtraElementInfoByUuids: findOutputExtraElementInfoByUuids,
+  findOutpuOtherTrackDetailByUuids: findOutpuOtherTrackDetailByUuids,
   deleteElementInstance: deleteElementInstance,
   deleteElementInstanceByNetworkPairing: deleteElementInstanceByNetworkPairing,
   deleteNetworkElementInstance: deleteNetworkElementInstance,

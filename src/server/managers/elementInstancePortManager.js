@@ -34,6 +34,16 @@ class ElementInstancePortManager extends BaseManager {
 		});
 	}
 
+	findPortsByElementIds(ids) {
+		return ElementInstancePort.findAll({
+			where: {
+				elementId: {
+					$in: ids
+				}
+			}
+		});
+	}
+
 	deleteByElementInstanceId(instanceId) {
 		return ElementInstancePort.destroy({
 			where: {

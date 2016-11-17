@@ -1,10 +1,49 @@
 import NetworkPairingManager from '../managers/networkPairingManager';
 import AppUtils from '../utils/appUtils';
+import _ from 'underscore';
 
 const getNetworkPairing = function(params, callback) {
   NetworkPairingManager
     .findById(params.bodyParams.networkPairingId)
     .then(AppUtils.onFind.bind(null, params, 'networkPairing', 'Cannot find Network Pairing Instance', callback));
+}
+
+const findByElementInstancePortIds = function(params, callback) {
+  NetworkPairingManager
+    .findByElemen1PortIds(_.pluck(params.elementInstance, 'id'))
+    .then(AppUtils.onFind.bind(null, params, 'networkPairing', 'NetworkPairing not found.', callback));
+}
+
+const findOtherTrackByUuids = function(params, callback) {
+  NetworkPairingManager
+    .findNetworkPairingElemenId1ByUuids(_.uniq(_.pluck(_.where(params.otherRoutingList, {
+      is_network_connection: 1
+    }), 'publishing_element_id')))
+    .then(AppUtils.onFind.bind(null, params, 'networkElementId', 'networkElementId not found.', callback));
+}
+
+const findOutputOtherElementInfoByUuids = function(params, callback) {
+  NetworkPairingManager
+    .findNetworkPairingElemenId2ByUuids(_.uniq(_.pluck(_.where(params.outputOtherRoutingList, {
+      is_network_connection: 1
+    }), 'destination_element_id')))
+    .then(AppUtils.onFind.bind(null, params, 'networkElementId2', 'networkElementId2 not found.', callback));
+}
+
+const concatNetwotkElementAndNormalElement = function(params, callback) {
+  params.otherTrackElementIds = params.networkElementId.concat(_.uniq(_.pluck(_.filter(params.otherRoutingList,
+    function(item) {
+      return item.is_network_connection !== 1;
+    }), 'publishing_element_id')));
+  callback(null, params);
+}
+
+const concatNetwotkElement2AndNormalElement = function(params, callback) {
+  params.outputOtherTrackElementId2 = params.networkElementId2.concat(_.uniq(_.pluck(_.filter(params.outputOtherRoutingList,
+    function(item) {
+      return item.is_network_connection !== 1;
+    }), 'destination_element_id')));
+  callback(null, params);
 }
 
 const createNetworkPairing = function(props, params, callback) {
@@ -41,6 +80,11 @@ const deleteNetworkPairingById = function(params, callback) {
 
 export default {
   getNetworkPairing: getNetworkPairing,
+  findByElementInstancePortIds: findByElementInstancePortIds,
+  findOtherTrackByUuids: findOtherTrackByUuids,
+  concatNetwotkElementAndNormalElement: concatNetwotkElementAndNormalElement,
+  findOutputOtherElementInfoByUuids: findOutputOtherElementInfoByUuids,
+  concatNetwotkElement2AndNormalElement: concatNetwotkElement2AndNormalElement,
   createNetworkPairing: createNetworkPairing,
   deleteNetworkPairing: deleteNetworkPairing,
   deleteNetworkPairingById: deleteNetworkPairingById,
