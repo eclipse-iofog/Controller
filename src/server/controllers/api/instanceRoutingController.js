@@ -18,6 +18,7 @@ import FabricService from '../../services/fabricService';
 import FabricTypeService from '../../services/fabricTypeService';
 import NetworkPairingService from '../../services/networkPairingService';
 import RoutingService from '../../services/routingService';
+import SatelliteService from '../../services/satelliteService';
 import SatellitePortService from '../../services/satellitePortService';
 import UserService from '../../services/userService';
 
@@ -159,6 +160,7 @@ function getRouting(instanceId, streamId, consoleId, containerList, callback) {
 router.post('/api/v2/authoring/element/instance/route/create', (req, res) => {
   var params = {},
     currentTime = new Date().getTime(),
+    watefallMethods = [],
 
     pubFogProps = {
       fogId: 'bodyParams.publishingInstanceId',
@@ -201,6 +203,15 @@ router.post('/api/v2/authoring/element/instance/route/create', (req, res) => {
       elementPortId: 'elementInstancePort.id',
       satellitePortId: 'satellitePort.id',
       setProperty: 'networkPairingObj'
+    },
+
+    routingProps = {
+      publishingInstanceId: 'publishingFogInstance.uuid',
+      destinationInstanceId: 'publishingFogInstance.uuid',
+      publishingElementId: 'bodyParams.publishingElementId',
+      destinationElementId: 'bodyParams.destinationElementId',
+      isNetworkConnection: false,
+      setProperty: 'route'
     },
 
     pubRoutingProps = {
@@ -282,42 +293,66 @@ router.post('/api/v2/authoring/element/instance/route/create', (req, res) => {
 
   params.bodyParams = req.body;
 
-  async.waterfall([
-    async.apply(UserService.getUser, params),
+  if (params.bodyParams.publishingInstanceId == params.bodyParams.destinationInstanceId) {
+    watefallMethods = [
+      async.apply(UserService.getUser, params),
 
-    async.apply(FabricService.getFogInstance, pubFogProps),
-    async.apply(FabricService.getFogInstance, destFogProps),
+      async.apply(FabricService.getFogInstance, pubFogProps),
+      async.apply(FabricService.getFogInstance, destFogProps),
 
-    async.apply(FabricTypeService.getFabricTypeDetail, pubFogTypeProps),
-    async.apply(FabricTypeService.getFabricTypeDetail, destFogTypeProps),
+      async.apply(ElementInstanceService.getElementInstance, destElementProps),
 
-    async.apply(ElementInstanceService.getElementInstance, pubElementProps),
-    async.apply(ElementInstanceService.getElementInstance, destElementProps),
+      async.apply(RoutingService.createRoute, routingProps),
 
-    ComsatService.openPortOnRadomComsat,
-    SatellitePortService.createSatellitePort,
+      async.apply(ElementInstanceService.updateRebuild, pubElementProps),
+      async.apply(ElementInstanceService.updateRebuild, destElementProps),
 
-    async.apply(ElementService.getNetworkElement, pubNetworkElementProps),
-    async.apply(ElementInstanceService.createNetworkElementInstance, pubNetworkInstanceProps),
+      async.apply(ChangeTrackingService.updateChangeTracking, pubChangeTrackingProps),
 
-    async.apply(ElementService.getNetworkElement, destNetworkElementProps),
-    async.apply(ElementInstanceService.createNetworkElementInstance, destNetworkInstanceProps),
+      async.apply(DataTracksService.getDataTrackById, trackProps),
 
-    async.apply(NetworkPairingService.createNetworkPairing, networkPairingProps),
+      getOutputDetails
+    ];
+  } else {
+    watefallMethods = [
+      async.apply(UserService.getUser, params),
 
-    async.apply(RoutingService.createRoute, pubRoutingProps),
-    async.apply(RoutingService.createRoute, destRoutingProps),
+      async.apply(FabricService.getFogInstance, pubFogProps),
+      async.apply(FabricService.getFogInstance, destFogProps),
 
-    async.apply(ElementInstanceService.updateRebuild, pubElementProps),
-    async.apply(ElementInstanceService.updateRebuild, destElementProps),
+      async.apply(FabricTypeService.getFabricTypeDetail, pubFogTypeProps),
+      async.apply(FabricTypeService.getFabricTypeDetail, destFogTypeProps),
 
-    async.apply(ChangeTrackingService.updateChangeTracking, pubChangeTrackingProps),
-    async.apply(ChangeTrackingService.updateChangeTracking, destChangeTrackingProps),
+      async.apply(ElementInstanceService.getElementInstance, pubElementProps),
+      async.apply(ElementInstanceService.getElementInstance, destElementProps),
 
-    async.apply(DataTracksService.getDataTrackById, trackProps),
+      ComsatService.openPortOnRadomComsat,
+      SatellitePortService.createSatellitePort,
 
-    getOutputDetails
-  ], function(err, result) {
+      async.apply(ElementService.getNetworkElement, pubNetworkElementProps),
+      async.apply(ElementInstanceService.createNetworkElementInstance, pubNetworkInstanceProps),
+
+      async.apply(ElementService.getNetworkElement, destNetworkElementProps),
+      async.apply(ElementInstanceService.createNetworkElementInstance, destNetworkInstanceProps),
+
+      async.apply(NetworkPairingService.createNetworkPairing, networkPairingProps),
+
+      async.apply(RoutingService.createRoute, pubRoutingProps),
+      async.apply(RoutingService.createRoute, destRoutingProps),
+
+      async.apply(ElementInstanceService.updateRebuild, pubElementProps),
+      async.apply(ElementInstanceService.updateRebuild, destElementProps),
+
+      async.apply(ChangeTrackingService.updateChangeTracking, pubChangeTrackingProps),
+      async.apply(ChangeTrackingService.updateChangeTracking, destChangeTrackingProps),
+
+      async.apply(DataTracksService.getDataTrackById, trackProps),
+
+      getOutputDetails
+    ];
+  }
+
+  async.waterfall(watefallMethods, function(err, result) {
     var errMsg = 'Internal error: There was a problem trying to create the ioElement Routing.' + result;
 
     AppUtils.sendResponse(res, err, 'route', params.output, errMsg);
@@ -333,6 +368,155 @@ function getOutputDetails(params, callback) {
     trackName: params.dataTrack.name,
     instanceId: params.destinationFogInstance.uuid,
     instanceName: params.destinationFogInstance.name
+  };
+
+  callback(null, params);
+}
+
+router.post('/api/v2/authoring/element/instance/route/delete', (req, res) => {
+  var params = {},
+    currentTime = new Date().getTime(),
+    watefallMethods = [],
+
+    pubFogProps = {
+      fogId: 'bodyParams.publishingInstanceId',
+      setProperty: 'publishingFogInstance'
+    },
+
+    destFogProps = {
+      fogId: 'bodyParams.destinationInstanceId',
+      setProperty: 'destinationFogInstance'
+    },
+
+    deleteRouteProps = {
+      instanceId1: 'bodyParams.publishingInstanceId',
+      instanceId2: 'bodyParams.publishingInstanceId',
+      elementId1: 'bodyParams.publishingElementId',
+      elementId2: 'bodyParams.destinationElementId',
+      isNetwork: false
+    },
+
+    networkPairingProps = {
+      instanceId1: 'bodyParams.publishingInstanceId',
+      instanceId2: 'bodyParams.destinationInstanceId',
+      elementId1: 'bodyParams.publishingElementId',
+      elementId2: 'bodyParams.destinationElementId',
+      setProperty: 'networkPairing'
+    },
+
+    satellitePortProps = {
+      satellitePortId: 'networkPairing.satellitePortId',
+      setProperty: 'satellitePort'
+    },
+
+    satelliteProps = {
+      satelliteId: 'satellitePort.satellite_id',
+      setProperty: 'satellite'
+    },
+
+    deleteSatelliteProps = {
+      satellitePortId: 'satellitePort.id'
+    },
+
+    deletePubRouteProps = {
+      instanceId1: 'bodyParams.publishingInstanceId',
+      instanceId2: 'bodyParams.publishingInstanceId',
+      elementId1: 'bodyParams.publishingElementId',
+      elementId2: 'networkPairing.networkElementId1',
+      isNetwork: true
+    },
+
+    deleteDestRouteProps = {
+      instanceId1: 'bodyParams.destinationInstanceId',
+      instanceId2: 'bodyParams.destinationInstanceId',
+      elementId1: 'networkPairing.networkElementId2',
+      elementId2: 'bodyParams.destinationElementId',
+      isNetwork: true
+    },
+
+    deleteNWElement1Props = {
+      elementId: 'networkPairing.networkElementId1'
+    },
+
+    deleteNWElement2Props = {
+      elementId: 'networkPairing.networkElementId2'
+    },
+
+    delNetworkPairingProps = {
+      networkPairingId: 'networkPairing.id'
+    },
+
+    pubChangeTrackingProps = {
+      fogInstanceId: 'bodyParams.publishingInstanceId',
+      changeObject: {
+        'containerList': new Date().getTime(),
+        'containerConfig': new Date().getTime(),
+        'Routing': new Date().getTime()
+      }
+    },
+
+    destChangeTrackingProps = {
+      fogInstanceId: 'bodyParams.destinationInstanceId',
+      changeObject: {
+        'containerList': new Date().getTime(),
+        'containerConfig': new Date().getTime(),
+        'Routing': new Date().getTime()
+      }
+    };
+
+  params.bodyParams = req.body;
+
+  if (params.bodyParams.isNetworkConnection == 0) {
+    watefallMethods = [
+      async.apply(UserService.getUser, params),
+      async.apply(RoutingService.deleteByFogAndElement, deleteRouteProps),
+      getDeleteOutput
+    ];
+  } else {
+    watefallMethods = [
+      async.apply(UserService.getUser, params),
+
+      async.apply(FabricService.getFogInstance, pubFogProps),
+      async.apply(FabricService.getFogInstance, destFogProps),
+
+      async.apply(NetworkPairingService.getNetworkPairingByFogAndElement, networkPairingProps),
+
+      async.apply(SatellitePortService.getSatellitePort, satellitePortProps),
+      async.apply(SatelliteService.getSatelliteById, satelliteProps),
+      ComsatService.closePortOnComsat,
+
+      async.apply(SatellitePortService.deleteSatellitePort, deleteSatelliteProps),
+
+      async.apply(RoutingService.deleteByFogAndElement, deletePubRouteProps),
+      async.apply(RoutingService.deleteByFogAndElement, deleteDestRouteProps),
+
+      async.apply(ElementInstanceService.deleteElementInstance, deleteNWElement1Props),
+      async.apply(ElementInstanceService.deleteElementInstance, deleteNWElement2Props),
+
+      async.apply(NetworkPairingService.deleteNetworkPairingById, delNetworkPairingProps),
+
+      async.apply(ChangeTrackingService.updateChangeTracking, pubChangeTrackingProps),
+      async.apply(ChangeTrackingService.updateChangeTracking, destChangeTrackingProps),
+
+      getDeleteOutput
+    ];
+  }
+
+  async.waterfall(watefallMethods, function(err, result) {
+    var errMsg = 'Internal error: There was a problem trying to delete the ioElement Routing.' + result;
+
+    AppUtils.sendResponse(res, err, 'route', params.output, errMsg);
+  });
+});
+
+function getDeleteOutput(params, callback) {
+  params.output = {
+    publishinginstanceid: params.bodyParams.publishingInstanceId,
+    publishingtrackid: params.bodyParams.publishingTrackId,
+    publishingelementid: params.publishingElementInstanceId,
+    destinationinstanceid: params.bodyParams.destinationInstanceId,
+    destinationtrackid: params.bodyParams.destinationTrackId,
+    destinationelementid: params.bodyParams.destinationElementId
   };
 
   callback(null, params);

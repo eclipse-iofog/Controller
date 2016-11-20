@@ -151,9 +151,10 @@ const deleteNetworkElementInstance = function(params, callback) {
     .then(AppUtils.onDelete.bind(null, params, 'No Network Element Instance found', callback));
 }
 
-const deleteElementInstance = function(params, callback) {
+const deleteElementInstance = function(props, params, callback) {
+  var elementId = AppUtils.getProperty(params, props.elementId);
   ElementInstanceManager
-    .deleteByElementUUID(params.bodyParams.elementId)
+    .deleteByElementUUID(elementId)
     .then(AppUtils.onDelete.bind(null, params, 'Was unable to delete Element Instance', callback));
 }
 

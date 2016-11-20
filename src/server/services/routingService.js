@@ -103,6 +103,18 @@ const deleteNetworkElementRouting = function(params, callback) {
     .then(AppUtils.onDelete.bind(null, params, 'No Network Element Instance Routing found', callback));
 }
 
+const deleteByFogAndElement = function(props, params, callback) {
+  var instanceId1 = AppUtils.getProperty(params, props.instanceId1),
+    instanceId2 = AppUtils.getProperty(params, props.instanceId2),
+    elementId1 = AppUtils.getProperty(params, props.elementId1),
+    elementId2 = AppUtils.getProperty(params, props.elementId2),
+    isNetwork = props.isNetwork;
+
+  RoutingManager
+    .deleteByFogAndElement(instanceId1, instanceId2, elementId1, elementId2, isNetwork)
+    .then(AppUtils.onDelete.bind(null, params, 'No Network Element Instance Routing found', callback));
+}
+
 export default {
   createRoute: createRoute,
   findByElementInstanceUuids: findByElementInstanceUuids,
@@ -110,6 +122,7 @@ export default {
   findOutputRoutingByElementInstanceUuids: findOutputRoutingByElementInstanceUuids,
   extractDifferentOutputRoutingList: extractDifferentOutputRoutingList,
   deleteElementInstanceRouting: deleteElementInstanceRouting,
-  deleteNetworkElementRouting: deleteNetworkElementRouting
+  deleteNetworkElementRouting: deleteNetworkElementRouting,
+  deleteByFogAndElement: deleteByFogAndElement
 
 };

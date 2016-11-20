@@ -63,6 +63,18 @@ class RoutingManager extends BaseManager {
     });
   }
 
+  deleteByFogAndElement(instanceId1, instanceId2, elementId1, elementId2, isNetwork) {
+    return Routing.destroy({
+      where: {
+        publishing_instance_id: instanceId1,
+        destination_instance_id: instanceId2,
+        publishing_element_id: elementId1,
+        destination_element_id: elementId2,
+        is_network_connection: isNetwork
+      }
+    });
+  }
+
   deleteByNetworkElementInstanceId(elementId) {
     var deleteQuery = " \
       DELETE FROM routing \

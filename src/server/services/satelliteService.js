@@ -2,10 +2,12 @@ import SatelliteManager from '../managers/satelliteManager';
 import AppUtils from '../utils/appUtils';
 import _ from 'underscore';
 
-const getSatelliteById = function(params, callback) {
+const getSatelliteById = function(props, params, callback) {
+  var satelliteId = AppUtils.getProperty(params, props.satelliteId);
+
   SatelliteManager
-    .findById(params.satellitePort.satellite_id)
-    .then(AppUtils.onFind.bind(null, params, 'satellite', 'Cannot find Satellite', callback));
+    .findById(satelliteId)
+    .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Cannot find Satellite', callback));
 }
 
 const getRandomSatellite = function(params, callback) {

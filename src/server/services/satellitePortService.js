@@ -2,10 +2,12 @@ import SatellitePortManager from '../managers/satellitePortManager';
 import AppUtils from '../utils/appUtils';
 import _ from 'underscore';
 
-const getSatellitePort = function(params, callback) {
+const getSatellitePort = function(props, params, callback) {
+  var satellitePortId = AppUtils.getProperty(params, props.satellitePortId);
+
   SatellitePortManager
-    .findById(params.networkPairing.satellitePortId)
-    .then(AppUtils.onFind.bind(null, params, 'satellitePort', 'Cannot find Satellite Port for Network Pairing Instance', callback));
+    .findById(satellitePortId)
+    .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Cannot find Satellite Port for Network Pairing Instance', callback));
 }
 
 const getPasscodeForNetworkElements = function(params, callback) {
@@ -46,10 +48,10 @@ const createSatellitePort = function(params, callback) {
 
 }
 
-const deleteSatellitePort = function(params, callback) {
-  console.log(params);
+const deleteSatellitePort = function(props, params, callback) {
+  var satellitePortId = AppUtils.getProperty(params, props.satellitePortId);
   SatellitePortManager
-    .deleteById(params.satellitePort.id)
+    .deleteById(satellitePortId)
     .then(AppUtils.onDelete.bind(null, params, 'No Satellite Port found', callback));
 }
 

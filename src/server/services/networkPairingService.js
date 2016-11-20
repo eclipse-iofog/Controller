@@ -46,6 +46,19 @@ const concatNetwotkElement2AndNormalElement = function(params, callback) {
   callback(null, params);
 }
 
+const getNetworkPairingByFogAndElement = function(props, params, callback) {
+
+  var instanceId1 = AppUtils.getProperty(params, props.instanceId1),
+    instanceId2 = AppUtils.getProperty(params, props.instanceId2),
+    elementId1 = AppUtils.getProperty(params, props.elementId1),
+    elementId2 = AppUtils.getProperty(params, props.elementId2);
+
+  NetworkPairingManager
+    .findByFogAndElement(instanceId1, instanceId2, elementId1, elementId2)
+    .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Unable to find Network pairing', callback));
+
+}
+
 const createNetworkPairing = function(props, params, callback) {
 
   var networkPairingObj = {
@@ -72,14 +85,17 @@ const deleteNetworkPairing = function(params, callback) {
     .then(AppUtils.onDelete.bind(null, params, 'No Network Pairing Element found', callback));
 }
 
-const deleteNetworkPairingById = function(params, callback) {
+const deleteNetworkPairingById = function(props, params, callback) {
+  var networkPairingId = AppUtils.getProperty(params, props.networkPairingId);
+
   NetworkPairingManager
-    .deleteById(params.networkPairing.id)
+    .deleteById(networkPairingId)
     .then(AppUtils.onDelete.bind(null, params, 'No Network Pairing Element found', callback));
 }
 
 export default {
   getNetworkPairing: getNetworkPairing,
+  getNetworkPairingByFogAndElement: getNetworkPairingByFogAndElement,
   findByElementInstancePortIds: findByElementInstancePortIds,
   findOtherTrackByUuids: findOtherTrackByUuids,
   concatNetwotkElementAndNormalElement: concatNetwotkElementAndNormalElement,

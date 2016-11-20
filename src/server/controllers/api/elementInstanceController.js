@@ -316,7 +316,11 @@ router.post([
  * @desc - this end-point deletes an elementInstance
  */
 router.post('/api/v2/authoring/element/instance/delete', (req, res) => {
-  var params = {};
+  var params = {},
+
+    deleteElementProps = {
+      elementId: 'bodyParams.elementId'
+    };
 
   params.bodyParams = req.body;
   params.milliseconds = new Date().getTime();
@@ -331,7 +335,7 @@ router.post('/api/v2/authoring/element/instance/delete', (req, res) => {
     ComsatService.closePortsOnComsat,
     NetworkPairingService.deleteNetworkPairing,
     SatellitePortService.deletePortsForNetworkElements,
-    ElementInstanceService.deleteElementInstance
+    async.apply(ElementInstanceService.deleteElementInstance, deleteElementProps)
   ], function(err, result) {
     var errMsg = 'Internal error: There was a problem deleting ioElement instance.' + result;
 
@@ -417,31 +421,47 @@ router.post('/api/v2/authoring/element/instance/comsat/pipe/create', (req, res) 
   });
 });
 
-
 router.post('/api/v2/authoring/element/instance/comsat/pipe/delete', (req, res) => {
   var params = {},
-    changeTrackingProps;
+
+    changeTrackingProps = {
+      fogInstanceId: 'networkPairing.instanceId1',
+      changeObject: {
+        'containerList': new Date().getTime(),
+        'containerConfig': new Date().getTime()
+      }
+    },
+
+    satellitePortProps = {
+      satellitePortId: 'networkPairing.satellitePortId',
+      setProperty: 'satellitePort'
+    },
+
+    satelliteProps = {
+      satelliteId: 'satellitePort.satellite_id',
+      setProperty: 'satellite'
+    },
+
+    deleteSatelliteProps = {
+      satellitePortId: 'satellitePort.id'
+    },
+
+    networkPairingProps = {
+      networkPairingId: 'networkPairing.id'
+    };
 
   params.bodyParams = req.body;
-
-  changeTrackingProps = {
-    fogInstanceId: 'networkPairing.instanceId1',
-    changeObject: {
-      'containerList': new Date().getTime(),
-      'containerConfig': new Date().getTime()
-    }
-  };
 
   async.waterfall([
     async.apply(UserService.getUser, params),
     NetworkPairingService.getNetworkPairing,
-    SatellitePortService.getSatellitePort,
-    SatelliteService.getSatelliteById,
+    async.apply(SatellitePortService.getSatellitePort, satellitePortProps),
+    async.apply(SatelliteService.getSatelliteById, satelliteProps),
     ComsatService.closePortOnComsat,
-    SatellitePortService.deleteSatellitePort,
+    async.apply(SatellitePortService.deleteSatellitePort, deleteSatelliteProps),
     ElementInstanceService.deleteElementInstanceByNetworkPairing,
-    NetworkPairingService.deleteNetworkPairingById,
-    ChangeTrackingService.updateChangeTracking
+    async.apply(NetworkPairingService.deleteNetworkPairingById, networkPairingProps),
+    async.apply(ChangeTrackingService.updateChangeTracking, changeTrackingProps)
 
   ], function(err, result) {
     var errMsg = 'Internal error: There was a problem trying to delete the Comsat Pipe.' + result;

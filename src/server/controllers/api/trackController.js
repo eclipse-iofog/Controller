@@ -10,7 +10,7 @@ const router = express.Router();
 
 import FabricManager from '../../managers/fabricManager';
 import DataTracksManager from '../../managers/dataTracksManager';
-import ElementInstanceManager from '../../managers/ElementInstanceManager';
+import ElementInstanceManager from '../../managers/elementInstanceManager';
 import ChangeTrackingManager from '../../managers/changeTrackingManager';
 
 import DataTracksService from '../../services/dataTracksService';
@@ -256,6 +256,10 @@ function deleteElementInstances(params, callback) {
 }
 
 function deleteElement(params, callback) {
+  var deleteElementProps = {
+    elementId: 'bodyParams.elementId'
+  };
+
   async.waterfall([
     async.apply(ElementInstancePortService.deleteElementInstancePort, params),
     RoutingService.deleteElementInstanceRouting,
@@ -265,7 +269,7 @@ function deleteElement(params, callback) {
     ComsatService.closePortsOnComsat,
     NetworkPairingService.deleteNetworkPairing,
     SatellitePortService.deletePortsForNetworkElements,
-    ElementInstanceService.deleteElementInstance
+    async.apply(ElementInstanceService.deleteElementInstance, deleteElementProps)
   ], function(err, result) {
     console.log(err);
     callback();

@@ -44,6 +44,17 @@ class NetworkPairingManager extends BaseManager {
     });
   }
 
+  findByFogAndElement(fogInstanceId1, fogInstanceId2, elementId1, elementId2) {
+    return NetworkPairing.findOne({
+      where: {
+        'instanceId1': fogInstanceId1,
+        'instanceId2': fogInstanceId2,
+        'elementId1': elementId1,
+        'elementId2': elementId2
+      }
+    });
+  }
+
   deleteByElementId(elementId) {
     return NetworkPairing.destroy({
       where: {
