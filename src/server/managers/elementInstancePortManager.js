@@ -25,9 +25,9 @@ class ElementInstancePortManager extends BaseManager {
 		});
 	}
 
-	createElementPort(userId, elementId, portExternal) {
+	createElementPort(userId, elementId, portExternal, portInternal) {
 		return ElementInstancePort.create({
-			portInternal: 80,
+			portInternal: portInternal,
 			portExternal: portExternal,
 			updatedBy: userId,
 			elementId: elementId

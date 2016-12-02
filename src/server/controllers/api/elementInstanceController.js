@@ -351,6 +351,11 @@ router.post('/api/v2/authoring/element/instance/comsat/pipe/create', (req, res) 
       setProperty: 'fabricType'
     },
 
+    elementInstanceProps = {
+      portId: 'bodyParams.portId',
+      setProperty: 'elementInstancePort'
+    },
+
     networkPairingProps = {
       instanceId1: 'fabricInstance.uuid',
       instanceId2: null,
@@ -404,7 +409,7 @@ router.post('/api/v2/authoring/element/instance/comsat/pipe/create', (req, res) 
     async.apply(UserService.getUser, params),
     async.apply(FabricService.getFogInstance, fogProps),
     async.apply(FabricTypeService.getFabricTypeDetail, fogTypeProps),
-    ElementInstancePortService.getElementInstancePort,
+    async.apply(ElementInstancePortService.getElementInstancePort, elementInstanceProps),
     ComsatService.openPortOnRadomComsat,
     SatellitePortService.createSatellitePort,
     async.apply(ElementService.getNetworkElement, networkElementProps),
@@ -467,6 +472,243 @@ router.post('/api/v2/authoring/element/instance/comsat/pipe/delete', (req, res) 
     var errMsg = 'Internal error: There was a problem trying to delete the Comsat Pipe.' + result;
 
     AppUtils.sendResponse(res, err, 'networkPairingId', params.bodyParams.networkPairingId, errMsg);
+  });
+});
+
+router.post('/api/v2/authoring/element/instance/port/create', (req, res) => {
+  var params = {},
+    waterfallMethods = [],
+
+    elementInstancePortProps = {
+      userId: 'bodyParams.userId',
+      internalPort: 'bodyParams.internalPort',
+      externalPort: 'bodyParams.externalPort',
+      elementId: 'bodyParams.elementId',
+      setProperty: 'elementInstancePort'
+    },
+
+    elementInstanceProps = {
+      elementInstanceId: 'bodyParams.elementId',
+      setProperty: 'elementInstance'
+    },
+
+    elementInstanceUpdateProps = {
+      elementId: 'bodyParams.elementId',
+      userId: 'user.id'
+    },
+
+    fogProps = {
+      fogId: 'elementInstance.iofabric_uuid',
+      setProperty: 'fogInstance'
+    },
+
+    changeTrackingProps = {
+      fogInstanceId: 'fogInstance.uuid',
+      changeObject: {
+        'containerList': new Date().getTime()
+      }
+    },
+
+    fogTypeProps = {
+      fogTypeId: 'fogInstance.typeKey',
+      setProperty: 'fogType'
+    },
+
+    networkPairingProps = {
+      instanceId1: 'fogInstance.uuid',
+      instanceId2: null,
+      elementId1: 'streamViewer.uuid',
+      elementId2: null,
+      networkElementId1: 'networkElementInstance.uuid',
+      networkElementId2: null,
+      isPublic: true,
+      elementPortId: 'elementInstancePort.id',
+      satellitePortId: 'satellitePort.id',
+      setProperty: 'networkPairingObj'
+    },
+
+    changeTrackingCLProps = {
+      fogInstanceId: 'fogInstance.uuid',
+      changeObject: {
+        'containerList': new Date().getTime(),
+        'containerConfig': new Date().getTime()
+      }
+    },
+
+    networkElementProps = {
+      networkElementId: 'fogType.networkElementKey',
+      setProperty: 'networkElement'
+    },
+
+    networkElementInstanceProps = {
+      networkElement: 'networkElement',
+      fogInstanceId: 'fogInstance.uuid',
+      satellitePort: 'satellitePort.port1',
+      satelliteDomain: 'satellite.domain',
+      trackId: null,
+      userId: 'userId',
+      networkName: null,
+      networkPort: 0,
+      isPublic: true,
+      setProperty: 'networkElementInstance'
+    };
+
+
+  params.bodyParams = req.body;
+
+  if (params.bodyParams.publicAccess == 1) {
+    waterfallMethods = [
+      async.apply(UserService.getUser, params),
+      async.apply(ElementInstancePortService.createElementInstancePort, elementInstancePortProps),
+      async.apply(ElementInstanceService.getElementInstance, elementInstanceProps),
+      async.apply(ElementInstanceService.updateElementInstance, elementInstanceUpdateProps),
+      async.apply(FabricService.getFogInstance, fogProps),
+      async.apply(ChangeTrackingService.updateChangeTracking, changeTrackingProps),
+
+      async.apply(FabricTypeService.getFabricTypeDetail, fogTypeProps),
+      ComsatService.openPortOnRadomComsat,
+      SatellitePortService.createSatellitePort,
+      async.apply(ElementService.getNetworkElement, networkElementProps),
+      async.apply(ElementInstanceService.createNetworkElementInstance, networkElementInstanceProps),
+      async.apply(ChangeTrackingService.updateChangeTracking, changeTrackingCLProps),
+      async.apply(NetworkPairingService.createNetworkPairing, networkPairingProps),
+      getOutputDetails
+    ];
+  } else {
+    waterfallMethods = [
+      async.apply(UserService.getUser, params),
+      async.apply(ElementInstancePortService.createElementInstancePort, elementInstancePortProps),
+      async.apply(ElementInstanceService.getElementInstance, elementInstanceProps),
+      async.apply(ElementInstanceService.updateElementInstance, elementInstanceUpdateProps),
+      async.apply(FabricService.getFogInstance, fogProps),
+      async.apply(ChangeTrackingService.updateChangeTracking, changeTrackingProps),
+      getOutputDetails
+    ];
+  }
+
+  async.waterfall(waterfallMethods, function(err, result) {
+    var errMsg = 'Internal error: There was a problem trying to delete the Comsat Pipe.' + result;
+
+    AppUtils.sendResponse(res, err, 'port', params.output, errMsg);
+  });
+});
+
+function getOutputDetails(params, callback) {
+  params.output = {
+    portId: params.elementInstancePort.id,
+    internalPort: params.bodyParams.internalPort,
+    externalPort: params.bodyParams.externalPort,
+    networkPairingId: ''
+  };
+
+  if (params.bodyParams.publicAccess == 1) {
+    params.output.accessUrl = "https://" + params.satellite.domain + ":" + params.satellitePort.port2;
+    params.networkPairingId = params.networkPairingObj.id;
+  }
+
+  callback(null, params);
+
+}
+
+router.post('/api/v2/authoring/element/instance/port/delete', (req, res) => {
+  var params = {},
+    waterfallMethods = [],
+
+    elementInstancePortProps = {
+      portId: 'bodyParams.portId',
+      setProperty: 'elementInstancePort'
+    },
+
+    elementInstanceProps = {
+      elementId: 'elementInstancePort.elementId',
+      userId: 'user.id'
+    },
+
+    readElementInstanceProps = {
+      elementInstanceId: 'elementInstancePort.elementId',
+      setProperty: 'elementInstance'
+    },
+
+    fogProps = {
+      fogId: 'elementInstance.iofabric_uuid',
+      setProperty: 'fogInstance'
+    },
+
+    changeTrackingProps = {
+      fogInstanceId: 'fogInstance.uuid',
+      changeObject: {
+        'containerList': new Date().getTime()
+      }
+    },
+
+    delElementInstancePortProps = {
+      elementPortId: 'elementInstancePort.id'
+    },
+
+    satellitePortProps = {
+      satellitePortId: 'networkPairing.satellitePortId',
+      setProperty: 'satellitePort'
+    },
+
+    satelliteProps = {
+      satelliteId: 'satellitePort.satellite_id',
+      setProperty: 'satellite'
+    },
+
+    deleteSatelliteProps = {
+      satellitePortId: 'satellitePort.id'
+    },
+
+    networkPairingProps = {
+      networkPairingId: 'networkPairing.id'
+    },
+
+    changeTrackingProps2 = {
+      fogInstanceId: 'networkPairing.instanceId1',
+      changeObject: {
+        'containerList': new Date().getTime(),
+        'containerConfig': new Date().getTime()
+      }
+    };
+
+
+  params.bodyParams = req.body;
+
+  if (params.bodyParams.networkPairingId > 0) {
+    waterfallMethods = [
+      async.apply(UserService.getUser, params),
+      async.apply(ElementInstancePortService.getElementInstancePort, elementInstancePortProps),
+      async.apply(ElementInstanceService.updateElementInstance, elementInstanceProps),
+      async.apply(ElementInstanceService.getElementInstance, readElementInstanceProps),
+      async.apply(FabricService.getFogInstance, fogProps),
+      async.apply(ChangeTrackingService.updateChangeTracking, changeTrackingProps),
+      async.apply(ElementInstancePortService.deleteElementInstancePortById, delElementInstancePortProps),
+
+      NetworkPairingService.getNetworkPairing,
+      async.apply(SatellitePortService.getSatellitePort, satellitePortProps),
+      async.apply(SatelliteService.getSatelliteById, satelliteProps),
+      ComsatService.closePortOnComsat,
+      async.apply(SatellitePortService.deleteSatellitePort, deleteSatelliteProps),
+      ElementInstanceService.deleteElementInstanceByNetworkPairing,
+      async.apply(NetworkPairingService.deleteNetworkPairingById, networkPairingProps),
+      async.apply(ChangeTrackingService.updateChangeTracking, changeTrackingProps2)
+    ];
+  } else {
+    waterfallMethods = [
+      async.apply(UserService.getUser, params),
+      async.apply(ElementInstancePortService.getElementInstancePort, elementInstancePortProps),
+      async.apply(ElementInstanceService.updateElementInstance, elementInstanceProps),
+      async.apply(ElementInstanceService.getElementInstance, readElementInstanceProps),
+      async.apply(FabricService.getFogInstance, fogProps),
+      async.apply(ChangeTrackingService.updateChangeTracking, changeTrackingProps),
+      async.apply(ElementInstancePortService.deleteElementInstancePortById, delElementInstancePortProps)
+    ];
+  }
+
+  async.waterfall(waterfallMethods, function(err, result) {
+    var errMsg = 'Internal error: There was a problem trying to delete the Comsat Pipe.' + result;
+
+    AppUtils.sendResponse(res, err, 'portId', params.bodyParams.portId, errMsg);
   });
 });
 

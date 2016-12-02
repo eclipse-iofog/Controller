@@ -106,6 +106,19 @@ const createDebugConsole = function(params, callback) {
     .then(AppUtils.onCreate.bind(null, params, 'debugConsole', 'Unable to createDebug console object', callback));
 }
 
+const updateElementInstance = function(props, params, callback) {
+  var elementId = AppUtils.getProperty(params, props.elementId),
+    userId = AppUtils.getProperty(params, props.userId);
+
+  ElementInstanceManager
+    .updateByUUID(elementId, {
+      'updatedBy': userId,
+      'updatedAt': new Date().getTime()
+    })
+    .then(AppUtils.onUpdate.bind(null, params, "Unable to update updatedBy for an element Instance", callback));
+
+}
+
 const updateDebugConsole = function(params, callback) {
   ElementInstanceManager
     .updateByUUID(params.debugConsole.uuid, {
@@ -183,6 +196,7 @@ export default {
   getElementInstancesByTrackId: getElementInstancesByTrackId,
   updateDebugConsole: updateDebugConsole,
   updateElemInstance: updateElemInstance,
+  updateElementInstance: updateElementInstance,
   updateRebuild: updateRebuild,
 
 };
