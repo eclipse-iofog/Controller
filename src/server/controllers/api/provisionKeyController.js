@@ -42,8 +42,17 @@ router.get('/api/v2/authoring/fabric/provisionkey/instanceid/:instanceId', BaseA
 
 });
 
-router.get('/api/v2/instance/provision/key/:provisionKey/fabrictype/:fabricType', (req, res) => {
+router.post('/api/v2/instance/provision/key/', (req, res) => {
+  req.params = req.body;
 
+  provisionFabricKey(req, res);
+});
+
+router.get('/api/v2/instance/provision/key/:provisionKey/fabrictype/:fabricType', (req, res) => {
+  provisionFabricKey(req, res);
+});
+
+function provisionFabricKey(req, res) {
   var provisionKey = req.params.provisionKey,
     fabricType = req.params.fabricType;
 
@@ -73,7 +82,7 @@ router.get('/api/v2/instance/provision/key/:provisionKey/fabrictype/:fabricType'
       });
     }
   });
-});
+}
 
 router.post('/api/v2/authoring/fabric/provisioningkey/list/delete', (req, res) => {
 
