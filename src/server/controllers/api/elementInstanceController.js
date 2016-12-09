@@ -17,6 +17,7 @@ import ComsatService from '../../services/comsatService';
 import ElementService from '../../services/elementService';
 import ElementInstanceService from '../../services/elementInstanceService';
 import ElementInstancePortService from '../../services/elementInstancePortService';
+import ElementAdvertisedPortService from '../../services/elementAdvertisedPortService';
 import FabricService from '../../services/fabricService';
 import FabricTypeService from '../../services/fabricTypeService';
 import NetworkPairingService from '../../services/networkPairingService';
@@ -27,6 +28,150 @@ import UserService from '../../services/userService';
 
 import AppUtils from '../../utils/appUtils';
 import Constants from '../../constants.js';
+import _ from 'underscore';
+
+
+router.get('/api/v2/authoring/integrator/track/elements/list/:trackId', (req, res) => {
+  var params = {};
+
+  params.bodyParams = req.params;
+
+  async.waterfall([
+    async.apply(ElementInstanceService.findRealElementInstanceByTrackId, params),
+    ElementAdvertisedPortService.findElementAdvertisedPortByElementIds,
+    ElementInstancePortService.findElementInstancePortsByElementIds,
+    NetworkPairingService.findByElementInstancePortId,
+    SatellitePortService.findBySatellitePortIds,
+    SatelliteService.findBySatelliteIds,
+    RoutingService.findByElementInstanceUuidsAndRoutingDestination,
+    RoutingService.extractDifferentRoutingList,
+    ElementInstanceService.findIntraTrackByUuids,
+    ElementInstanceService.findExtraTrackByUuids,
+    NetworkPairingService.findOtherTrackByUuids,
+    NetworkPairingService.concatNetwotkElementAndNormalElement,
+    ElementInstanceService.findOtherTrackDetailByUuids,
+    RoutingService.findOutputRoutingByElementInstanceUuidsAndRoutingPublishing,
+    RoutingService.extractDifferentOutputRoutingList,
+    ElementInstanceService.findOutputIntraElementInfoByUuids,
+    ElementInstanceService.findOutputExtraElementInfoByUuids,
+    NetworkPairingService.findOutputOtherElementInfoByUuids,
+    NetworkPairingService.concatNetwotkElement2AndNormalElement,
+    ElementInstanceService.findOutpuOtherTrackDetailByUuids,
+    extractElementsForTrack
+  ], function(err, result) {
+    AppUtils.sendResponse(res, err, 'elements', result.response, result);   
+})
+
+});
+
+const extractElementsForTrack= function (params, callback) {
+  let response = []
+  params.elementInstance.forEach((instance, index) => {
+
+    if (instance.element_key){
+
+      let elementInstance = {
+        elementid: instance.uuid,
+        elementkey: instance.element_key,
+        config: instance.config,
+        name: instance.name,
+        elementtypename: instance.element.name,
+        category: instance.element.category,
+        image: instance.element.containerImage,
+        publisher: instance.element.publisher,
+        advertisedports: _.where(params.elementAdvertisedPort, {
+        element_id: instance.element_key
+        }),
+        openports: extractOpenPort(params, instance),
+        routing: extractRouting(params, instance)
+    };
+    response.push(elementInstance);
+  }
+  });
+  params.response = response;
+  callback(null, params);
+}
+
+  const extractOpenPort =  function (params, elementInstance) {
+  let openports = [];
+  let elementInstancePort = _.where(params.elementInstancePort, {
+    elementId: elementInstance.uuid
+  })
+  elementInstancePort.forEach((instancePort, index) => {
+    let networkpairing = _.findWhere(params.networkPairing, {
+      elemen1PortId: instancePort.id
+    })
+    let accessurl, networkpairingid;
+
+    if (networkpairing != null) {
+
+      let satellitePort = _.findWhere(params.satellitePort, {
+        id: networkpairing.satellitePortId
+      });
+
+      let satellite = _.findWhere(params.satellite, {
+        id: satellitePort.satellite_id
+      });
+
+      accessurl = 'https://' + satellite.domain + ':' + satellitePort.port2;
+      networkpairingid = networkpairing.id;
+    } else {
+      accessurl = '';
+      networkpairingid = 0;
+    }
+
+    let openPort = {
+      portid: instancePort.id,
+      internalport: instancePort.portInternal,
+      externalport: instancePort.portExternal,
+      accessurl: accessurl,
+      networkpairingid: networkpairingid
+    }
+
+    openports.push(openPort);
+  });
+
+  return openports;
+}
+
+const extractRouting=function (params, elementInstance) {
+  let inputs, outputs;
+
+  let inputIntraTrack = _.where(params.intraTracks, {
+    elementid: elementInstance.uuid
+  });
+  let inputExtraTrack = _.where(params.extraTracks, {
+    elementid: elementInstance.uuid
+  });
+  let inputExtraIntegrator = _.where(params.extraintegrator, {
+    elementid: elementInstance.uuid
+  });
+
+  let outputIntraTrack = _.where(params.outputIntraTracks, {
+    elementid: elementInstance.uuid
+  });
+  let outputExtraTrack = _.where(params.outPutExtraTracks, {
+    elementid: elementInstance.uuid
+  });
+  let outputExtraIntegrator = _.where(params.outPutExtraintegrator, {
+    elementid: elementInstance.uuid
+  });
+
+  return {
+    inputs: {
+      intratrack: inputIntraTrack,
+      extratrack: inputExtraTrack,
+      extraintegrator: inputExtraIntegrator,
+    },
+    outputs: {
+      intratrack: outputIntraTrack,
+      extratrack: outputExtraTrack,
+      extraintegrator: outputExtraIntegrator,
+    }
+  }
+}
+
+
 
 /**
  * @desc - this end-point creates a new elementInstance

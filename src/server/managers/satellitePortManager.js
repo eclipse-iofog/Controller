@@ -30,7 +30,7 @@ class SatellitePortManager extends BaseManager {
   findBySatellitePortIds(networkPairingIds) {
     return SatellitePort.findAll({
       where: {
-        satellite_id: {
+        id: {
           $in: networkPairingIds
         }
       }

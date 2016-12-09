@@ -32,6 +32,18 @@ const findOutputRoutingByElementInstanceUuids = function(params, callback) {
     .then(AppUtils.onFind.bind(null, params, 'outputRouting', 'outputRouting not found.', callback));
 }
 
+const findByElementInstanceUuidsAndRoutingDestination = function(params, callback) {
+   RoutingManager
+    .findByElementInstanceUuidsAndRoutingDestination(_.pluck(params.elementInstance, 'uuid'))
+    .then(AppUtils.onFind.bind(null, params, 'routing', 'Routing not found.', callback));
+}
+
+const findOutputRoutingByElementInstanceUuidsAndRoutingPublishing = function(params, callback) {
+  RoutingManager
+    .findOutputRoutingByElementInstanceUuidsAndRoutingPublishing(_.pluck(params.elementInstance, 'uuid'))
+    .then(AppUtils.onFind.bind(null, params, 'outputRouting', 'outputRouting not found.', callback));
+}
+
 const extractDifferentRoutingList = function(params, callback) {
   let intraRoutingList = [];
   let extraRoutingList = [];
@@ -123,6 +135,7 @@ export default {
   extractDifferentOutputRoutingList: extractDifferentOutputRoutingList,
   deleteElementInstanceRouting: deleteElementInstanceRouting,
   deleteNetworkElementRouting: deleteNetworkElementRouting,
-  deleteByFogAndElement: deleteByFogAndElement
-
+  deleteByFogAndElement: deleteByFogAndElement,
+  findByElementInstanceUuidsAndRoutingDestination: findByElementInstanceUuidsAndRoutingDestination,
+  findOutputRoutingByElementInstanceUuidsAndRoutingPublishing: findOutputRoutingByElementInstanceUuidsAndRoutingPublishing
 };

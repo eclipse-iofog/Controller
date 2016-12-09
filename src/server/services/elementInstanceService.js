@@ -36,8 +36,8 @@ const findExtraTrackByUuids = function(params, callback) {
 
 const findOtherTrackDetailByUuids = function(params, callback) {
   ElementInstanceManager
-    .findOtherTrackDetailByUuids(_.uniq(params.otherTrackElementIds))
-    .then(AppUtils.onFind.bind(null, params, 'extraintegrator', 'otherTracksDetail not found.', callback));
+   .findOtherTrackDetailByUuids(_.uniq(_.pluck(params.otherTrackElementIds, 'elementId1')))   
+   .then(AppUtils.onFind.bind(null, params, 'extraintegrator' , 'otherTracksDetail not found', callback));
 }
 
 const findOutputIntraElementInfoByUuids = function(params, callback) {
@@ -54,8 +54,8 @@ const findOutputExtraElementInfoByUuids = function(params, callback) {
 
 const findOutpuOtherTrackDetailByUuids = function(params, callback) {
   ElementInstanceManager
-    .findOtherTrackDetailByUuids(_.uniq(params.outputOtherTrackElementId2))
-    .then(AppUtils.onFind.bind(null, params, 'outPutExtraintegrator', 'outPutExtraintegrator not found.', callback));
+    .findOtherTrackDetailByUuids(_.uniq(_.pluck(params.outputOtherTrackElementId2, 'elementId2')))
+    .then(AppUtils.onFind.bind(null, params, 'outPutExtraintegrator' ,'outPutExtraintegrator not found.', callback));
 }
 
 /**

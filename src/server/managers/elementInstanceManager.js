@@ -206,7 +206,7 @@ class ElementInstanceManager extends BaseManager {
 			},
 
 			include: [{
-				model: Element,
+				model: Element,  as: 'element',
 				attributes: ['id', 'name', 'category', 'containerImage', 'publisher']
 			}]
 		});

@@ -8,6 +8,12 @@ const getNetworkPairing = function(params, callback) {
     .then(AppUtils.onFind.bind(null, params, 'networkPairing', 'Cannot find Network Pairing Instance', callback));
 }
 
+const findByElementInstancePortId = function(params, callback) {
+  NetworkPairingManager
+    .findByElemen1PortIds(_.pluck(params.elementInstancePort, 'id'))
+    .then(AppUtils.onFind.bind(null, params, 'networkPairing', 'NetworkPairing not found.', callback));
+}
+
 const findByElementInstancePortIds = function(params, callback) {
   NetworkPairingManager
     .findByElemen1PortIds(_.pluck(params.elementInstance, 'id'))
@@ -104,5 +110,6 @@ export default {
   createNetworkPairing: createNetworkPairing,
   deleteNetworkPairing: deleteNetworkPairing,
   deleteNetworkPairingById: deleteNetworkPairingById,
+  findByElementInstancePortId: findByElementInstancePortId
 
 };
