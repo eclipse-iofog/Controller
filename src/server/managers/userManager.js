@@ -40,6 +40,14 @@ class UserManager extends BaseManager {
 		});
 	}
 
+	deleteByUserId(userId) {
+		return User.destroy({
+			where: {
+				id: userId
+			}
+		});
+	}
+	
 	list() {
 		this.find()
 			.then(function(users) {

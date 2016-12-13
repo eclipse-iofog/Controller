@@ -10,6 +10,9 @@ const router = express.Router();
 import FabricManager from '../../managers/fabricManager';
 import FabricTypeManager from '../../managers/fabricTypeManager';
 import FabricUserManager from '../../managers/fabricUserManager';
+import FabricUserService from '../../services/fabricUserService';
+import UserService from '../../services/userService';
+import FabricAccessTokenService from '../../services/fabricAccessTokenService';
 import StreamViewerManager from '../../managers/streamViewerManager';
 import ConsoleManager from '../../managers/consoleManager';
 import FabricProvisionKeyManager from '../../managers/fabricProvisionKeyManager';
@@ -28,6 +31,37 @@ router.get('/api/v2/status', (req, res) => {
 		"timestamp": milliseconds
 	});
 });
+
+
+router.post('/api/v2/authoring/integrator/instance/delete', (req, res) => {
+  var params = {},
+  
+  fogUserProps = {
+      instanceId: 'bodyParams.instanceId',
+      setProperty: 'fogUser'
+    },
+ 
+  deleteFogProps = {
+      userId: 'fogUser.user_id',
+      instanceId: 'bodyParams.instanceId'
+    };
+
+  params.bodyParams = req.body;
+
+  async.waterfall([
+    async.apply(FabricUserService.getFogUser, fogUserProps, params),
+    async.apply(FabricAccessTokenService.deleteFabricAccessTokenByUserId, deleteFogProps),
+    async.apply(FabricUserService.deleteFogUserByInstanceIdAndUserId, deleteFogProps),
+    async.apply(UserService.deleteByUserId, deleteFogProps) 
+ ],
+ 	function(err, result) {
+    var errMsg = 'Internal error: There was a problem trying to delete the Fabric User.' + result;
+
+    AppUtils.sendResponse(res, err, 'Deleted Fog User', params.bodyParams.instanceId, errMsg);
+  });
+});
+
+
 
 router.get('/api/v2/instance/create/type/:type', (req, res) => {
 	var fabricType = req.params.type,

@@ -30,7 +30,37 @@ const createFabricInstance = function(params, callback) {
 
 }
 
+const updateFogInstance = function(params, callback) {
+  var updateChange = {};
+
+  if (params.bodyParams.name) {
+    updateChange.name = params.bodyParams.name;
+  }
+
+  if (params.bodyParams.location) {
+    updateChange.location = params.bodyParams.location
+  }
+ 
+  if (params.bodyParams.latitude) {
+    updateChange.latitude = params.bodyParams.latitude
+  }
+  
+  if (params.bodyParams.longitude) {
+    updateChange.longitude = params.bodyParams.longitude
+  }
+  
+  if (params.bodyParams.description) {
+    updateChange.description = params.bodyParams.description
+  }
+
+    FabricManager
+      .updateFabricConfig(params.bodyParams.instanceId, updateChange)
+      .then(AppUtils.onUpdate.bind(null, params, 'Unable to update Fog Instance', callback));
+}
+
+
 export default {
   getFogInstance: getFogInstance,
   createFabricInstance: createFabricInstance,
+  updateFogInstance: updateFogInstance
 };

@@ -36,6 +36,7 @@ class FabricManager extends BaseManager {
         }
       });
     }
+
     /**
      * @desc - creates a new Iofabric with config data
      * @param JSON object - config

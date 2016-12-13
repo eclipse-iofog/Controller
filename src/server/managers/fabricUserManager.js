@@ -58,6 +58,17 @@ class FabricUserManager extends BaseManager {
 		});
 	}
 
+
+	deleteByInstanceIdAndUserId(userId, instanceId) {
+		return FabricUser.destroy({
+			where: {
+				user_id: userId,
+				fabric_id: instanceId
+			}
+		});
+	}
+
+
 }
 
 const instance = new FabricUserManager();

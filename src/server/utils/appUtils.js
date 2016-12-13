@@ -160,10 +160,12 @@ const onUpdate = function(params, errorMsg, callback, updatedModels) {
 
 const onDelete = function(params, errorMsg, callback, deletedModels) {
   if (deletedModels <= 0) {
-    console.log(errorMsg);
+    callback('error', errorMsg);
   }
-
-  callback(null, params);
+  else
+  {
+    callback(null, params);
+  }
 }
 
 const sendResponse = function(response, err, successLabel, successValue, errorMessage) {

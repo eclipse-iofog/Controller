@@ -147,6 +147,30 @@ router.post('/api/v2/authoring/integrator/instance/create', (req, res) => {
   });
 });
 
+
+router.post('/api/v2/authoring/integrator/instance/update', (req, res) => {
+  var params = {},
+  fogInstanceProps;
+
+  params.bodyParams = req.body;
+
+  fogInstanceProps = {
+    fogId: 'bodyParams.instanceId',
+    setProperty: 'fogInstance'
+  };
+
+  async.waterfall([
+    async.apply(FabricService.getFogInstance, fogInstanceProps, params),
+    FabricService.updateFogInstance
+
+  ], function(err, result) {
+    var errMsg = 'Internal error: There was a problem updating Fog instance.' + result
+
+    AppUtils.sendResponse(res, err, 'Updated Fog', params.bodyParams.instanceId, errMsg);
+  });
+
+});
+
 /**
  * @desc - this function finds the element instance which was changed
  */
