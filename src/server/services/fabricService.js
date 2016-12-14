@@ -27,7 +27,14 @@ const createFabricInstance = function(params, callback) {
   FabricManager
     .createFabric(config)
     .then(AppUtils.onCreate.bind(null, params, 'fabricInstance', 'Unable to create Fabric Instance', callback));
+}
 
+const getFogInstanceForUser = function(props, params, callback) {
+  var userId = AppUtils.getProperty(params, props.userId);
+
+  FabricManager
+    .findByUserId(userId)
+    .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Cannot find Fog Instance', callback));
 }
 
 const updateFogInstance = function(params, callback) {
@@ -40,27 +47,28 @@ const updateFogInstance = function(params, callback) {
   if (params.bodyParams.location) {
     updateChange.location = params.bodyParams.location
   }
- 
+
   if (params.bodyParams.latitude) {
     updateChange.latitude = params.bodyParams.latitude
   }
-  
+
   if (params.bodyParams.longitude) {
     updateChange.longitude = params.bodyParams.longitude
   }
-  
+
   if (params.bodyParams.description) {
     updateChange.description = params.bodyParams.description
   }
 
-    FabricManager
-      .updateFabricConfig(params.bodyParams.instanceId, updateChange)
-      .then(AppUtils.onUpdate.bind(null, params, 'Unable to update Fog Instance', callback));
+  FabricManager
+    .updateFabricConfig(params.bodyParams.instanceId, updateChange)
+    .then(AppUtils.onUpdate.bind(null, params, 'Unable to update Fog Instance', callback));
 }
 
 
 export default {
   getFogInstance: getFogInstance,
   createFabricInstance: createFabricInstance,
-  updateFogInstance: updateFogInstance
+  updateFogInstance: updateFogInstance,
+  getFogInstanceForUser: getFogInstanceForUser
 };

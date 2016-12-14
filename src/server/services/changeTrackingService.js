@@ -16,7 +16,7 @@ const updateChangeTracking = function(props, params, callback) {
 
   ChangeTrackingManager
     .updateByUuid(fogInstanceId, props.changeObject)
-    .then(AppUtils.onUpdate.bind(null, params, 'Unable to update Change Tracking for stream Viewer', callback));
+    .then(AppUtils.onUpdate.bind(null, params, 'Unable to update Change Tracking', callback));
 
 }
 
