@@ -7,6 +7,8 @@
 import async from 'async';
 import express from 'express';
 const router = express.Router();
+import FabricService from '../../services/fabricService';
+import UserService from '../../services/userService';
 import FabricManager from '../../managers/fabricManager';
 import FabricTypeManager from '../../managers/fabricTypeManager';
 import FabricUserManager from '../../managers/fabricUserManager';
@@ -15,6 +17,29 @@ import ConsoleManager from '../../managers/consoleManager';
 import FabricProvisionKeyManager from '../../managers/fabricProvisionKeyManager';
 import ChangeTrackingManager from '../../managers/changeTrackingManager';
 import AppUtils from '../../utils/appUtils';
+
+
+
+router.get('/api/v2/authoring/integrator/instances/list/:userId', (req, res) => {
+  var params = {},
+  fogInstanceForUserProps;
+  
+  params.bodyParams= req.params;
+
+  fogInstanceForUserProps={
+  	userId: 'user.id',
+  	setProperty: 'fogInstance'
+  }
+  
+ async.waterfall([
+    async.apply(UserService.getUser, params),
+ 	async.apply(FabricService.getFogInstanceForUser, fogInstanceForUserProps)
+
+  ], function(err, result) {
+    AppUtils.sendResponse(res, err, 'elementsInstances', params.fogInstance, result);   
+})
+});
+
 /**
  * @desc - if this end-point is hit it sends a timeStamp in milliseconds back to the client
  * (Used to check if the server is active)

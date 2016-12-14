@@ -27,10 +27,18 @@ const createFabricInstance = function(params, callback) {
   FabricManager
     .createFabric(config)
     .then(AppUtils.onCreate.bind(null, params, 'fabricInstance', 'Unable to create Fabric Instance', callback));
+}
 
+const getFogInstanceForUser = function(props, params, callback) {
+    var userId = AppUtils.getProperty(params, props.userId);
+
+  FabricManager
+    .findByUserId(userId)
+    .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Cannot find Fog Instance', callback));
 }
 
 export default {
   getFogInstance: getFogInstance,
   createFabricInstance: createFabricInstance,
+  getFogInstanceForUser: getFogInstanceForUser
 };

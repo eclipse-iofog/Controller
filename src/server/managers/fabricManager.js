@@ -69,6 +69,13 @@ class FabricManager extends BaseManager {
       }
     });
   }
+
+  findByUserId(userId){
+    var instanceQuery = 'SELECT i.*, t.id as typeId, t.name as typeName, t.image as typeImage, t.description as typeDescription FROM iofabrics i JOIN iofabric_type t ON (i.typeKey= t.ID)'+ 
+                        'JOIN iofabric_users u ON (i.UUID = u.fabric_id) WHERE u.user_id ='+userId;
+
+    return sequelize.query(instanceQuery, { type: sequelize.QueryTypes.SELECT });
+  }
 }
 
 const instance = new FabricManager();

@@ -9,6 +9,13 @@ const getElementInstance = function(props, params, callback) {
     .findByUuId(elementInstanceId)
     .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Cannot find Element Instance', callback));
 }
+const getElementInstanceByUuIds = function(props, params, callback) {
+  var elementInstanceId = AppUtils.getProperty(params, props.elementInstanceId);
+
+  ElementInstanceManager
+    .findByUuids(elementInstanceId)
+    .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Cannot find Element Instance', callback));
+}
 
 const getElementInstancesByTrackId = function(params, callback) {
   ElementInstanceManager
@@ -61,10 +68,21 @@ const findOutpuOtherTrackDetailByUuids = function(params, callback) {
 /**
  * @desc - this function uses the default values to create a new element instance
  */
-const createElementInstance = function(propertyName, params, callback) {
+const createElementInstance = function(props, params, callback) {
+var userId = AppUtils.getProperty(params, props.userId),
+    trackId = AppUtils.getProperty(params, props.trackId),
+    name= AppUtils.getProperty(params, props.name),
+    logSize = AppUtils.getProperty(params, props.logSize),
+    config = AppUtils.getProperty(params, props.config),
+    fogInstanceId = AppUtils.getProperty(params, props.fogInstanceId);
+
+    if(!config)
+   {
+     config = "{}";
+   }
   ElementInstanceManager
-    .createElementInstance(params.element, params.userId, params.bodyParams.TrackId, params.bodyParams.Name, params.bodyParams.LogSize)
-    .then(AppUtils.onCreate.bind(null, params, propertyName, 'Unable to create Element Instance', callback));
+    .createElementInstance(params.element, userId, trackId, config, name, logSize, fogInstanceId)
+    .then(AppUtils.onCreate.bind(null, params, props.setProperty, 'Unable to create Element Instance', callback));
 }
 
 /**
@@ -193,6 +211,7 @@ export default {
   deleteElementInstanceByNetworkPairing: deleteElementInstanceByNetworkPairing,
   deleteNetworkElementInstance: deleteNetworkElementInstance,
   getElementInstance: getElementInstance,
+  getElementInstanceByUuIds: getElementInstanceByUuIds,
   getElementInstancesByTrackId: getElementInstancesByTrackId,
   updateDebugConsole: updateDebugConsole,
   updateElemInstance: updateElemInstance,

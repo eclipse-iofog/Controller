@@ -59,12 +59,12 @@ class ElementInstanceManager extends BaseManager {
 		return ElementInstance.create(element);
 	}
 
-	createElementInstance(element, userId, trackId, elementName, logSize) {
+	createElementInstance(element, userId, trackId, config, elementName, logSize, fogInstanceId) {
 		var elementInstance = {
 			uuid: AppUtils.generateInstanceId(32),
 			trackId: trackId,
-			elementKey: element.id,
-			config: "{}",
+			element_key: element.id,
+			config: config,
 			name: elementName,
 			last_updated: new Date().getTime(),
 			updatedBy: userId,
@@ -76,7 +76,8 @@ class ElementInstanceManager extends BaseManager {
 			registryId: element.registry_id,
 			rebuild: false,
 			RootHostAccess: false,
-			logSize: logSize
+			logSize: logSize,
+			iofabric_uuid: fogInstanceId
 		};
 
 		return ElementInstance.create(elementInstance);
@@ -215,9 +216,7 @@ class ElementInstanceManager extends BaseManager {
 	findByUuids(uuids) {
 		return ElementInstance.findAll({
 			where: {
-				uuid: {
-					$in: uuids
-				}
+				uuid:  uuids	
 			}
 		});
 	}

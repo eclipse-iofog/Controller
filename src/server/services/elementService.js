@@ -15,11 +15,25 @@ const getElement = function(paramName, propertyName, params, callback) {
 
   ElementManager
     .findElementById(elementId)
-    .then(AppUtils.onCreate.bind(null, params, propertyName, 'Unable to find Element object with id ' + elementId, callback));
+    .then(AppUtils.onCreate.bind(null, params, propertyName, 'Unable to find Element object with id' + elementId, callback));
 
 }
 
+function getElementById(props, params, callback) {
+  var elementId = AppUtils.getProperty(params, props.elementId);
+
+  ElementManager
+    .findElementById(elementId)
+    .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Unable to find Element object with id' + elementId, callback));
+}
+
+
+
+
+
+
 export default {
   getNetworkElement: getNetworkElement,
-  getElement: getElement
+  getElement: getElement,
+  getElementById: getElementById
 };
