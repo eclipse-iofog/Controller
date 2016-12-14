@@ -210,7 +210,7 @@ router.post('/api/v2/authoring/element/instance/create', (req, res) => {
     async.apply(ElementService.getElementById, elementProps),
     async.apply(ElementInstanceService.createElementInstance,newElementInstanceProps),
     async.apply(ChangeTrackingService.updateChangeTracking,changeTrackingProps),
-    async.apply(ElementInstanceService.getElementInstanceByUuIds,elementInstanceProps),
+    convertToArr,
     ElementAdvertisedPortService.findElementAdvertisedPortByElementIds,
     ElementInstancePortService.findElementInstancePortsByElementIds,
     NetworkPairingService.findByElementInstancePortId,
@@ -237,6 +237,15 @@ router.post('/api/v2/authoring/element/instance/create', (req, res) => {
     AppUtils.sendResponse(res, err, 'elementDetails', params.elementInstanceDetails, errMsg);   
     });
 });
+
+const convertToArr= function (params, callback){
+  var elementInstance = [];
+
+  elementInstance.push(params.newElementInstance);
+  params.elementInstance = elementInstance;
+
+  callback(null, params);
+}
 
 const getElementDetails= function (params, callback) {
 
