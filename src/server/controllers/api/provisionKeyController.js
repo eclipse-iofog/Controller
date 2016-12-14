@@ -42,9 +42,7 @@ router.get('/api/v2/authoring/fabric/provisionkey/instanceid/:instanceId', BaseA
 
 });
 
-router.post('/api/v2/instance/provision/key/', (req, res) => {
-  req.params = req.body;
-
+router.post('/api/v2/instance/provision/key/:provisionKey/fabrictype/:fabricType', (req, res) => {
   provisionFabricKey(req, res);
 });
 
