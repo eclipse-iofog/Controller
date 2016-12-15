@@ -10,16 +10,7 @@ const getNetworkElement = function(props, params, callback) {
 
 }
 
-const getElement = function(paramName, propertyName, params, callback) {
-  var elementId = AppUtils.getProperty(params, paramName);
-
-  ElementManager
-    .findElementById(elementId)
-    .then(AppUtils.onCreate.bind(null, params, propertyName, 'Unable to find Element object with id' + elementId, callback));
-
-}
-
-function getElementById(props, params, callback) {
+const getElementById = function(props, params, callback) {
   var elementId = AppUtils.getProperty(params, props.elementId);
 
   ElementManager
@@ -29,11 +20,7 @@ function getElementById(props, params, callback) {
 
 
 
-
-
-
 export default {
   getNetworkElement: getNetworkElement,
-  getElement: getElement,
   getElementById: getElementById
 };

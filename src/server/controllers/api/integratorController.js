@@ -21,6 +21,8 @@ import SatellitePortService from '../../services/satellitePortService';
 import NetworkPairingService from '../../services/networkPairingService';
 import ConsoleService from '../../services/consoleService';
 import ComsatService from '../../services/comsatService';
+import UserService from '../../services/userService';
+
 import AppUtils from '../../utils/appUtils';
 
 /**
@@ -150,7 +152,7 @@ router.post('/api/v2/authoring/integrator/instance/create', (req, res) => {
 
 router.post('/api/v2/authoring/integrator/instance/update', (req, res) => {
   var params = {},
-  fogInstanceProps;
+    fogInstanceProps;
 
   params.bodyParams = req.body;
 
@@ -160,7 +162,8 @@ router.post('/api/v2/authoring/integrator/instance/update', (req, res) => {
   };
 
   async.waterfall([
-    async.apply(FabricService.getFogInstance, fogInstanceProps, params),
+    async.apply(UserService.getUser, params),
+    async.apply(FabricService.getFogInstance, fogInstanceProps),
     FabricService.updateFogInstance
 
   ], function(err, result) {

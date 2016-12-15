@@ -29,13 +29,14 @@ import Constants from '../../constants.js';
 import _ from 'underscore';
 
 
-router.get('/api/v2/authoring/integrator/track/elements/list/:trackId', (req, res) => {
+router.get('/api/v2/authoring/fabric/track/element/list/:trackId', (req, res) => {
   var params = {};
-
   params.bodyParams = req.params;
+  params.bodyParams.userId = req.query.userId;
 
   async.waterfall([
-    async.apply(ElementInstanceService.findRealElementInstanceByTrackId, params),
+    async.apply(UserService.getUser, params),
+    ElementInstanceService.findRealElementInstanceByTrackId,
     ElementAdvertisedPortService.findElementAdvertisedPortByElementIds,
     ElementInstancePortService.findElementInstancePortsByElementIds,
     NetworkPairingService.findByElementInstancePortId,
@@ -57,16 +58,16 @@ router.get('/api/v2/authoring/integrator/track/elements/list/:trackId', (req, re
     ElementInstanceService.findOutpuOtherTrackDetailByUuids,
     extractElementsForTrack
   ], function(err, result) {
-    AppUtils.sendResponse(res, err, 'elements', result.response, result);   
-})
+    AppUtils.sendResponse(res, err, 'elements', result.response, result);
+  })
 
 });
 
-const extractElementsForTrack= function (params, callback) {
-  let response = []
+const extractElementsForTrack = function(params, callback) {
+  let response = [];
   params.elementInstance.forEach((instance, index) => {
 
-    if (instance.element_key){
+    if (instance.element_key) {
 
       let elementInstance = {
         elementid: instance.uuid,
@@ -78,19 +79,19 @@ const extractElementsForTrack= function (params, callback) {
         image: instance.element.containerImage,
         publisher: instance.element.publisher,
         advertisedports: _.where(params.elementAdvertisedPort, {
-        element_id: instance.element_key
+          element_id: instance.element_key
         }),
         openports: extractOpenPort(params, instance),
         routing: extractRouting(params, instance)
-    };
-    response.push(elementInstance);
-  }
+      };
+      response.push(elementInstance);
+    }
   });
   params.response = response;
   callback(null, params);
 }
 
-  const extractOpenPort =  function (params, elementInstance) {
+const extractOpenPort = function(params, elementInstance) {
   let openports = [];
   let elementInstancePort = _.where(params.elementInstancePort, {
     elementId: elementInstance.uuid
@@ -132,7 +133,7 @@ const extractElementsForTrack= function (params, callback) {
   return openports;
 }
 
-const extractRouting=function (params, elementInstance) {
+const extractRouting = function(params, elementInstance) {
 
   let inputs, outputs;
 
@@ -172,34 +173,34 @@ const extractRouting=function (params, elementInstance) {
 
 router.post('/api/v2/authoring/element/instance/create', (req, res) => {
   var params = {},
-  elementProps,
-  elementInstanceProps,
-  changeTrackingProps,
-  newElementInstanceProps;
+    elementProps,
+    elementInstanceProps,
+    changeTrackingProps,
+    newElementInstanceProps;
 
   params.bodyParams = req.body;
   params.milliseconds = new Date().getTime();
-  
-  elementProps={
-    elementId: 'bodyParams.element_key',
-    setProperty: 'element'
-  },
-  newElementInstanceProps = {
-    userId: 'user.id',
-    trackId: 'bodyParams.trackId',
-    name: 'bodyParams.name',
-    logSize: 'bodyParams.logSize',
-    config: 'bodyParams.config',
-    fogInstanceId: 'bodyParams.fogInstanceId',
-    setProperty: 'newElementInstance'
-  },
-  changeTrackingProps = {
+
+  elementProps = {
+      elementId: 'bodyParams.elementKey',
+      setProperty: 'element'
+    },
+    newElementInstanceProps = {
+      userId: 'user.id',
+      trackId: 'bodyParams.trackId',
+      name: 'bodyParams.name',
+      logSize: 'bodyParams.logSize',
+      config: 'bodyParams.config',
+      fogInstanceId: 'bodyParams.fogInstanceId',
+      setProperty: 'newElementInstance'
+    },
+    changeTrackingProps = {
       fogInstanceId: 'bodyParams.fogInstanceId',
       changeObject: {
         containerConfig: params.milliseconds,
         containerList: params.milliseconds
       }
-  };
+    };
   elementInstanceProps = {
     elementInstanceId: 'newElementInstance.uuid',
     setProperty: 'elementInstance'
@@ -208,8 +209,8 @@ router.post('/api/v2/authoring/element/instance/create', (req, res) => {
   async.waterfall([
     async.apply(UserService.getUser, params),
     async.apply(ElementService.getElementById, elementProps),
-    async.apply(ElementInstanceService.createElementInstance,newElementInstanceProps),
-    async.apply(ChangeTrackingService.updateChangeTracking,changeTrackingProps),
+    async.apply(ElementInstanceService.createElementInstance, newElementInstanceProps),
+    async.apply(ChangeTrackingService.updateChangeTracking, changeTrackingProps),
     convertToArr,
     ElementAdvertisedPortService.findElementAdvertisedPortByElementIds,
     ElementInstancePortService.findElementInstancePortsByElementIds,
@@ -233,12 +234,12 @@ router.post('/api/v2/authoring/element/instance/create', (req, res) => {
     getElementDetails
 
   ], function(err, result) {
-    var errMsg= 'Internal error: ' + result
-    AppUtils.sendResponse(res, err, 'elementDetails', params.elementInstanceDetails, errMsg);   
-    });
+    var errMsg = 'Internal error: ' + result
+    AppUtils.sendResponse(res, err, 'elementDetails', params.elementInstanceDetails, errMsg);
+  });
 });
 
-const convertToArr= function (params, callback){
+const convertToArr = function(params, callback) {
   var elementInstance = [];
 
   elementInstance.push(params.newElementInstance);
@@ -247,50 +248,27 @@ const convertToArr= function (params, callback){
   callback(null, params);
 }
 
-const getElementDetails= function (params, callback) {
+const getElementDetails = function(params, callback) {
 
-      let elementInstanceDetails = {
-        elementId: params.elementInstance[0].uuid,
-        elementKey: params.elementInstance[0].element_key,
-        config: params.elementInstance[0].config,
-        name: params.elementInstance[0].name,
-        elementTypeName: params.element.name,
-        category: params.element.category,
-        image: params.element.containerImage,
-        publisher: params.element.publisher,
-        advertisedPorts: _.where(params.elementAdvertisedPort, {
-        element_id: params.elementInstance[0].element_key
-        }),
-        openPorts: extractOpenPort(params, params.elementInstance[0]),
-        routing: extractRouting(params, params.elementInstance[0])
-      };
+  let elementInstanceDetails = {
+    elementId: params.elementInstance[0].uuid,
+    elementKey: params.elementInstance[0].element_key,
+    config: params.elementInstance[0].config,
+    name: params.elementInstance[0].name,
+    elementTypeName: params.element.name,
+    category: params.element.category,
+    image: params.element.containerImage,
+    publisher: params.element.publisher,
+    advertisedPorts: _.where(params.elementAdvertisedPort, {
+      element_id: params.elementInstance[0].element_key
+    }),
+    openPorts: extractOpenPort(params, params.elementInstance[0]),
+    routing: extractRouting(params, params.elementInstance[0])
+  };
 
   params.elementInstanceDetails = elementInstanceDetails;
   callback(null, params);
 }
-
-
-
-// function getElementDetails(params, callback) {
-//   var elementInstance = {};
-
-//   elementInstance.elementId = params.elementInstance.uuid;
-//   elementInstance.elementKey = params.elementInstance.elementKey;
-//   elementInstance.config = params.elementInstance.config;
-//   elementInstance.name = params.elementInstance.name;
-
-//   elementInstance.elementTypeName = params.element.name;
-//   elementInstance.category = params.element.category;
-//   elementInstance.image = params.element.containerImage;
-//   elementInstance.publisher = params.element.publisher;
-//   //elementInstance.advertisedPorts = params.element.name;
-//   //elementInstance.openPorts = params.element.name;
-//   //elementInstance.routing = params.element.name;
-
-//   callback(null, {
-//     elementInstance: elementInstance
-//   });
-// }
 
 
 /**
@@ -299,24 +277,24 @@ const getElementDetails= function (params, callback) {
  */
 router.post('/api/v2/authoring/build/element/instance/create', (req, res) => {
   var params = {},
-  elementProps,
-  elementInstanceProps;
-  
+    elementProps,
+    elementInstanceProps;
+
   params.bodyParams = req.body;
-  
+
   elementProps = {
-    elementId: 'bodyParams.elementKey',
-    setProperty: 'element'
-  },
-  elementInstanceProps = {
-    userId: 'user.id',
-    trackId: 'bodyParams.trackId',
-    name: 'bodyParams.name',
-    logSize: 'bodyParams.logSize',
-    config: 'bodyParams.config',
-    fogInstanceId: 'bodyParams.fogInstanceId',
-    setProperty: 'elementInstance'
-  };
+      elementId: 'bodyParams.elementKey',
+      setProperty: 'element'
+    },
+    elementInstanceProps = {
+      userId: 'user.id',
+      trackId: 'bodyParams.trackId',
+      name: 'bodyParams.name',
+      logSize: 'bodyParams.logSize',
+      config: 'bodyParams.config',
+      fogInstanceId: 'bodyParams.fogInstanceId',
+      setProperty: 'elementInstance'
+    };
 
   async.waterfall([
     async.apply(UserService.getUser, params),

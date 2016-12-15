@@ -65,12 +65,6 @@ const updateFogInstance = function(params, callback) {
     .updateFabricConfig(params.bodyParams.instanceId, updateChange)
     .then(AppUtils.onUpdate.bind(null, params, 'Unable to update Fog Instance', callback));
 
-  var userId = AppUtils.getProperty(params, props.userId);
-
-  FabricManager
-    .findByUserId(userId)
-    .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Cannot find Fog Instance', callback));
-
 }
 
 
