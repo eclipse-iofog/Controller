@@ -24,8 +24,17 @@ const getStreamViewerByFogInstanceId = function(params, callback) {
     .then(AppUtils.onFindOptional.bind(null, params, 'streamViewer', callback));
 }
 
+const deleteStreamViewerByFogInstanceId  = function(props, params, callback) {
+  var instanceId = AppUtils.getProperty(params, props.instanceId);
+  
+  StreamViewerManager
+    .deleteByInstanceId(instanceId)
+    .then(AppUtils.onDelete.bind(null, params, 'Unable to delete Stream Viewer object', callback));
+}
+
 export default {
   createStreamViewer: createStreamViewer,
-  getStreamViewerByFogInstanceId: getStreamViewerByFogInstanceId
+  getStreamViewerByFogInstanceId: getStreamViewerByFogInstanceId,
+  deleteStreamViewerByFogInstanceId: deleteStreamViewerByFogInstanceId
 
 };

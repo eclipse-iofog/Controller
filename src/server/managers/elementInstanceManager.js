@@ -29,6 +29,15 @@ class ElementInstanceManager extends BaseManager {
 				}
 			});
 		}
+
+	updateByFogUuId(fog_uuid, data) {
+
+			return ElementInstance.update(data, {
+				where: {
+					iofabric_uuid: fog_uuid
+				}
+			});
+		}
 		/**
 		 * @desc - uses a raw-query to join element_instance and data_tracks
 		 * @param Integer - instanceId

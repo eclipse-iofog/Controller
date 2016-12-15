@@ -19,8 +19,8 @@ const getFogUser = function(props, params, callback) {
 }
 
 const deleteFogUserByInstanceIdAndUserId = function(props, params, callback) {
-    var userId = AppUtils.getProperty(params, props.userId);
-	var instanceId = AppUtils.getProperty(params, props.instanceId);
+  var userId = AppUtils.getProperty(params, props.userId),
+	    instanceId = AppUtils.getProperty(params, props.instanceId);
 
   FabricUserManager
     .deleteByInstanceIdAndUserId(userId, instanceId)

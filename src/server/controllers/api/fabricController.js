@@ -12,8 +12,14 @@ import UserService from '../../services/userService';
 import FabricManager from '../../managers/fabricManager';
 import FabricTypeManager from '../../managers/fabricTypeManager';
 import FabricUserManager from '../../managers/fabricUserManager';
+import FabricService from '../../services/fabricService';
 import FabricUserService from '../../services/fabricUserService';
+import ConsoleService from '../../services/consoleService';
+import ChangeTrackingService from '../../services/changeTrackingService';
+import StreamViewerService from '../../services/streamViewerService';
+import FabricProvisionKeyService from '../../services/fabricProvisionKeyService';
 import FabricAccessTokenService from '../../services/fabricAccessTokenService';
+import ElementInstanceService from '../../services/elementInstanceService';
 import StreamViewerManager from '../../managers/streamViewerManager';
 import ConsoleManager from '../../managers/consoleManager';
 import FabricProvisionKeyManager from '../../managers/fabricProvisionKeyManager';
@@ -59,27 +65,46 @@ router.get('/api/v2/status', (req, res) => {
 
 router.post('/api/v2/authoring/integrator/instance/delete', (req, res) => {
 	var params = {},
+		updateByFogUuIdProps,
+		instanceProps,
+		fogUserProps,
+		deleteFogUserProps;
+
+	params.bodyParams = req.body;
+
+	instanceProps = {
+			instanceId: 'bodyParams.instanceId',
+		},
+
+		updateByFogUuIdProps = {
+			fogInstanceId: 'bodyParams.instanceId',
+			updatedFogId: null
+		},
 
 		fogUserProps = {
 			instanceId: 'bodyParams.instanceId',
 			setProperty: 'fogUser'
 		},
 
-		deleteFogProps = {
+		deleteFogUserProps = {
 			userId: 'fogUser.user_id',
 			instanceId: 'bodyParams.instanceId'
 		};
 
-	params.bodyParams = req.body;
-
 	async.waterfall([
-			async.apply(FabricUserService.getFogUser, fogUserProps, params),
-			async.apply(FabricAccessTokenService.deleteFabricAccessTokenByUserId, deleteFogProps),
-			async.apply(FabricUserService.deleteFogUserByInstanceIdAndUserId, deleteFogProps),
-			async.apply(UserService.deleteByUserId, deleteFogProps)
+			async.apply(ElementInstanceService.updateElemInstanceByFogUuId, updateByFogUuIdProps, params),
+			async.apply(ChangeTrackingService.deleteChangeTracking, instanceProps),
+			async.apply(FabricUserService.getFogUser, fogUserProps),
+			async.apply(FabricAccessTokenService.deleteFabricAccessTokenByUserId, instanceProps),
+			async.apply(FabricUserService.deleteFogUserByInstanceIdAndUserId, deleteFogUserProps),
+			//async.apply(UserService.deleteByUserId, instanceProps),
+			async.apply(StreamViewerService.deleteStreamViewerByFogInstanceId, instanceProps),
+			async.apply(ConsoleService.deleteConsoleByFogInstanceId, instanceProps),
+			async.apply(FabricProvisionKeyService.deleteProvisonKeyByInstanceId, instanceProps),
+			async.apply(FabricService.deleteFogInstance, instanceProps)
 		],
 		function(err, result) {
-			var errMsg = 'Internal error: There was a problem trying to delete the Fabric User.' + result;
+			var errMsg = 'Internal error: ' + result;
 
 			AppUtils.sendResponse(res, err, 'Deleted Fog User', params.bodyParams.instanceId, errMsg);
 		});

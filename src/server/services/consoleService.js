@@ -24,7 +24,16 @@ const getConsoleByFogInstanceId = function(params, callback) {
     .then(AppUtils.onFindOptional.bind(null, params, 'console', callback));
 }
 
+const deleteConsoleByFogInstanceId = function(props, params, callback) {
+  var instanceId = AppUtils.getProperty(params, props.instanceId);
+  
+ ConsoleManager
+    .deleteByInstanceId(instanceId)
+    .then(AppUtils.onDelete.bind(null, params, 'Unable to delete Console', callback));
+}
+
 export default {
   createConsole: createConsole,
-  getConsoleByFogInstanceId: getConsoleByFogInstanceId
+  getConsoleByFogInstanceId: getConsoleByFogInstanceId,
+  deleteConsoleByFogInstanceId: deleteConsoleByFogInstanceId
 };

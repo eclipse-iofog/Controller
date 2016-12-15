@@ -143,7 +143,6 @@ const updateDebugConsole = function(params, callback) {
       'updatedBy': params.userId
     })
     .then(AppUtils.onUpdate.bind(null, params, "Unable to update 'UpdatedBy' field for DebugConsoleElement", callback));
-
 }
 
 const updateRebuild = function(props, params, callback) {
@@ -173,8 +172,21 @@ const updateElemInstance = function(params, callback) {
   ElementInstanceManager
     .updateByUUID(params.bodyParams.elementId, updateChange)
     .then(AppUtils.onUpdate.bind(null, params, 'Unable to update Element Instance', callback));
-
 }
+
+const updateElemInstanceByFogUuId = function(props, params, callback) {
+var updateChange = {};
+  var fogInstanceId = AppUtils.getProperty(params, props.fogInstanceId);
+
+if (params.bodyParams.instanceId) {
+    updateChange.iofabric_uuid = props.updatedFogId
+  }
+
+ ElementInstanceManager
+    .updateByFogUuId(fogInstanceId, updateChange)
+    .then(AppUtils.onUpdate.bind(null, params, "Unable to update 'iofabric_uuid' field for Element Instance", callback));
+}
+
 
 const deleteNetworkElementInstance = function(params, callback) {
   ElementInstanceManager
@@ -217,5 +229,6 @@ export default {
   updateElemInstance: updateElemInstance,
   updateElementInstance: updateElementInstance,
   updateRebuild: updateRebuild,
+  updateElemInstanceByFogUuId: updateElemInstanceByFogUuId 
 
 };
