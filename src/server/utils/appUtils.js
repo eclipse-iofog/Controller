@@ -161,11 +161,13 @@ const onUpdate = function(params, errorMsg, callback, updatedModels) {
 const onDelete = function(params, errorMsg, callback, deletedModels) {
   if (deletedModels <= 0) {
     callback('error', errorMsg);
-  }
-  else
-  {
+  } else {
     callback(null, params);
   }
+}
+
+const onDeleteOptional = function(params, errorMsg, callback, deletedModels) {
+  callback(null, params);
 }
 
 const sendResponse = function(response, err, successLabel, successValue, errorMessage) {
@@ -199,5 +201,6 @@ export default {
   onFind: onFind,
   onFindOptional: onFindOptional,
   onDelete: onDelete,
+  onDeleteOptional: onDeleteOptional,
   sendResponse: sendResponse
 };

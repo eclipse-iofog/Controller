@@ -34,12 +34,12 @@ const updateConfigTracking = function(params, callback) {
   }
 }
 
-const deleteChangeTracking  = function(props, params, callback) {
+const deleteChangeTracking = function(props, params, callback) {
   var instanceId = AppUtils.getProperty(params, props.instanceId);
-  
+
   ChangeTrackingManager
     .deleteByInstanceId(instanceId)
-    .then(AppUtils.onDelete.bind(null, params, 'Unable to delete Change Tracking', callback));
+    .then(AppUtils.onDeleteOptional.bind(null, params, 'Unable to delete Change Tracking', callback));
 }
 
 

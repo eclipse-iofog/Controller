@@ -12,7 +12,6 @@ import UserService from '../../services/userService';
 import FabricManager from '../../managers/fabricManager';
 import FabricTypeManager from '../../managers/fabricTypeManager';
 import FabricUserManager from '../../managers/fabricUserManager';
-import FabricService from '../../services/fabricService';
 import FabricUserService from '../../services/fabricUserService';
 import ConsoleService from '../../services/consoleService';
 import ChangeTrackingService from '../../services/changeTrackingService';
@@ -106,7 +105,7 @@ router.post('/api/v2/authoring/integrator/instance/delete', (req, res) => {
 		function(err, result) {
 			var errMsg = 'Internal error: ' + result;
 
-			AppUtils.sendResponse(res, err, 'Deleted Fog User', params.bodyParams.instanceId, errMsg);
+			AppUtils.sendResponse(res, err, 'Deleted Fog', params.bodyParams.instanceId, errMsg);
 		});
 });
 

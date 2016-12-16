@@ -7,7 +7,7 @@ const deleteFabricAccessTokenByUserId = function(props, params, callback) {
 
   FabricAccessTokenManager
     .deleteByUserId(userId)
-    .then(AppUtils.onDelete.bind(null, params, 'Unable to delete Fog Access Token', callback));
+    .then(AppUtils.onDeleteOptional.bind(null, params, 'Unable to delete Fog Access Token', callback));
 }
 
 export default {

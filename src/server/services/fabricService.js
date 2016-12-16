@@ -79,6 +79,6 @@ export default {
   getFogInstance: getFogInstance,
   createFabricInstance: createFabricInstance,
   updateFogInstance: updateFogInstance,
-  getFogInstanceForUser: getFogInstanceForUser
+  getFogInstanceForUser: getFogInstanceForUser,
   deleteFogInstance: deleteFogInstance
 };
