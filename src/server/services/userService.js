@@ -1,10 +1,12 @@
 import UserManager from '../managers/userManager';
 import AppUtils from '../utils/appUtils';
 
-const getUser = function(params, callback) {
+const getUser = function(props, params, callback) {
+  var userId = AppUtils.getProperty(params, props.userId);
+
   UserManager
-    .findByToken(params.bodyParams.userId)
-    .then(AppUtils.onFind.bind(null, params, 'user', 'User not found', callback));
+    .findByToken(userId)
+    .then(AppUtils.onFind.bind(null, params, props.setProperty, 'User not found', callback));
 }
 
 const deleteByUserId = function(props, params, callback) {

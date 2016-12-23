@@ -30,12 +30,17 @@ import _ from 'underscore';
 
 
 router.get('/api/v2/authoring/fabric/track/element/list/:trackId', (req, res) => {
-  var params = {};
+  var params = {},
+      userProps = {
+          userId: 'bodyParams.userId',
+          setProperty: 'user'
+      };
+
   params.bodyParams = req.params;
   params.bodyParams.userId = req.query.userId;
 
   async.waterfall([
-    async.apply(UserService.getUser, params),
+    async.apply(UserService.getUser, userProps, params),
     ElementInstanceService.findRealElementInstanceByTrackId,
     ElementAdvertisedPortService.findElementAdvertisedPortByElementIds,
     ElementInstancePortService.findElementInstancePortsByElementIds,
@@ -173,6 +178,7 @@ const extractRouting = function(params, elementInstance) {
 
 router.post('/api/v2/authoring/element/instance/create', (req, res) => {
   var params = {},
+    userProps,
     elementProps,
     elementInstanceProps,
     changeTrackingProps,
@@ -181,6 +187,10 @@ router.post('/api/v2/authoring/element/instance/create', (req, res) => {
   params.bodyParams = req.body;
   params.milliseconds = new Date().getTime();
 
+  userProps = {
+          userId: 'bodyParams.userId',
+          setProperty: 'user'
+      },
   elementProps = {
       elementId: 'bodyParams.elementKey',
       setProperty: 'element'
@@ -207,7 +217,7 @@ router.post('/api/v2/authoring/element/instance/create', (req, res) => {
   };
 
   async.waterfall([
-    async.apply(UserService.getUser, params),
+    async.apply(UserService.getUser, userProps, params),
     async.apply(ElementService.getElementById, elementProps),
     async.apply(ElementInstanceService.createElementInstance, newElementInstanceProps),
     async.apply(ChangeTrackingService.updateChangeTracking, changeTrackingProps),
@@ -277,16 +287,23 @@ const getElementDetails = function(params, callback) {
  */
 router.post('/api/v2/authoring/build/element/instance/create', (req, res) => {
   var params = {},
+    userProps,
     elementProps,
     elementInstanceProps;
 
   params.bodyParams = req.body;
 
+  userProps = {
+          userId: 'bodyParams.userId',
+          setProperty: 'user'
+      },
+      
   elementProps = {
       elementId: 'bodyParams.elementKey',
       setProperty: 'element'
     },
-    elementInstanceProps = {
+
+  elementInstanceProps = {
       userId: 'user.id',
       trackId: 'bodyParams.trackId',
       name: 'bodyParams.name',
@@ -297,7 +314,7 @@ router.post('/api/v2/authoring/build/element/instance/create', (req, res) => {
     };
 
   async.waterfall([
-    async.apply(UserService.getUser, params),
+    async.apply(UserService.getUser, userProps, params),
     async.apply(ElementService.getElementById, elementProps),
     async.apply(ElementInstanceService.createElementInstance, elementInstanceProps)
 
@@ -459,9 +476,15 @@ router.post([
 ], (req, res) => {
 
   var params = {},
+    userProps,
     elementInstanceProps;
 
   params.bodyParams = req.body;
+
+  userProps = {
+    userId: 'bodyParams.userId',
+    setProperty: 'user'
+  },
 
   elementInstanceProps = {
     elementInstanceId: 'bodyParams.elementId',
@@ -469,7 +492,7 @@ router.post([
   };
 
   async.waterfall([
-    async.apply(UserService.getUser, params),
+    async.apply(UserService.getUser, userProps, params),
     async.apply(ElementInstanceService.getElementInstance, elementInstanceProps),
     ElementInstanceService.updateElemInstance,
     ChangeTrackingService.updateConfigTracking,
@@ -486,6 +509,11 @@ router.post([
 router.post('/api/v2/authoring/element/instance/delete', (req, res) => {
   var params = {},
 
+    userProps = {
+      userId: 'bodyParams.userId',
+      setProperty: 'user'
+      },
+
     deleteElementProps = {
       elementId: 'bodyParams.elementId'
     };
@@ -494,7 +522,7 @@ router.post('/api/v2/authoring/element/instance/delete', (req, res) => {
   params.milliseconds = new Date().getTime();
 
   async.waterfall([
-    async.apply(UserService.getUser, params),
+    async.apply(UserService.getUser, userProps, params),
     ElementInstancePortService.deleteElementInstancePort,
     RoutingService.deleteElementInstanceRouting,
     RoutingService.deleteNetworkElementRouting,
@@ -513,6 +541,11 @@ router.post('/api/v2/authoring/element/instance/delete', (req, res) => {
 
 router.post('/api/v2/authoring/element/instance/comsat/pipe/create', (req, res) => {
   var params = {},
+
+    userProps = {
+      userId: 'bodyParams.userId',
+      setProperty: 'user'
+    },
 
     fogTypeProps = {
       fogTypeId: 'fabricInstance.typeKey',
@@ -574,7 +607,7 @@ router.post('/api/v2/authoring/element/instance/comsat/pipe/create', (req, res) 
   params.streamViewer.uuid = params.bodyParams.elementId;
 
   async.waterfall([
-    async.apply(UserService.getUser, params),
+    async.apply(UserService.getUser, userProps, params),
     async.apply(FabricService.getFogInstance, fogProps),
     async.apply(FabricTypeService.getFabricTypeDetail, fogTypeProps),
     async.apply(ElementInstancePortService.getElementInstancePort, elementInstanceProps),
@@ -596,6 +629,11 @@ router.post('/api/v2/authoring/element/instance/comsat/pipe/create', (req, res) 
 
 router.post('/api/v2/authoring/element/instance/comsat/pipe/delete', (req, res) => {
   var params = {},
+
+    userProps = {
+      userId: 'bodyParams.userId',
+      setProperty: 'user'
+    },
 
     changeTrackingProps = {
       fogInstanceId: 'networkPairing.instanceId1',
@@ -626,7 +664,7 @@ router.post('/api/v2/authoring/element/instance/comsat/pipe/delete', (req, res) 
   params.bodyParams = req.body;
 
   async.waterfall([
-    async.apply(UserService.getUser, params),
+    async.apply(UserService.getUser, userProps, params),
     NetworkPairingService.getNetworkPairing,
     async.apply(SatellitePortService.getSatellitePort, satellitePortProps),
     async.apply(SatelliteService.getSatelliteById, satelliteProps),
@@ -646,6 +684,11 @@ router.post('/api/v2/authoring/element/instance/comsat/pipe/delete', (req, res) 
 router.post('/api/v2/authoring/element/instance/port/create', (req, res) => {
   var params = {},
     waterfallMethods = [],
+
+    userProps = {
+      userId: 'bodyParams.userId',
+      setProperty: 'user'
+    },
 
     elementInstancePortProps = {
       userId: 'bodyParams.userId',
@@ -726,7 +769,7 @@ router.post('/api/v2/authoring/element/instance/port/create', (req, res) => {
 
   if (params.bodyParams.publicAccess == 1) {
     waterfallMethods = [
-      async.apply(UserService.getUser, params),
+      async.apply(UserService.getUser, userProps, params),
       async.apply(ElementInstancePortService.createElementInstancePort, elementInstancePortProps),
       async.apply(ElementInstanceService.getElementInstance, elementInstanceProps),
       async.apply(ElementInstanceService.updateElementInstance, elementInstanceUpdateProps),
@@ -744,7 +787,7 @@ router.post('/api/v2/authoring/element/instance/port/create', (req, res) => {
     ];
   } else {
     waterfallMethods = [
-      async.apply(UserService.getUser, params),
+      async.apply(UserService.getUser, userProps, params),
       async.apply(ElementInstancePortService.createElementInstancePort, elementInstancePortProps),
       async.apply(ElementInstanceService.getElementInstance, elementInstanceProps),
       async.apply(ElementInstanceService.updateElementInstance, elementInstanceUpdateProps),
@@ -781,6 +824,11 @@ function getOutputDetails(params, callback) {
 router.post('/api/v2/authoring/element/instance/port/delete', (req, res) => {
   var params = {},
     waterfallMethods = [],
+
+    userProps = {
+      userId: 'bodyParams.userId',
+      setProperty: 'user'
+    },
 
     elementInstancePortProps = {
       portId: 'bodyParams.portId',
@@ -844,7 +892,7 @@ router.post('/api/v2/authoring/element/instance/port/delete', (req, res) => {
 
   if (params.bodyParams.networkPairingId > 0) {
     waterfallMethods = [
-      async.apply(UserService.getUser, params),
+      async.apply(UserService.getUser, userProps, params),
       async.apply(ElementInstancePortService.getElementInstancePort, elementInstancePortProps),
       async.apply(ElementInstanceService.updateElementInstance, elementInstanceProps),
       async.apply(ElementInstanceService.getElementInstance, readElementInstanceProps),
@@ -863,7 +911,7 @@ router.post('/api/v2/authoring/element/instance/port/delete', (req, res) => {
     ];
   } else {
     waterfallMethods = [
-      async.apply(UserService.getUser, params),
+      async.apply(UserService.getUser, userProps, params),
       async.apply(ElementInstancePortService.getElementInstancePort, elementInstancePortProps),
       async.apply(ElementInstanceService.updateElementInstance, elementInstanceProps),
       async.apply(ElementInstanceService.getElementInstance, readElementInstanceProps),

@@ -29,7 +29,7 @@ const deleteStreamViewerByFogInstanceId  = function(props, params, callback) {
   
   StreamViewerManager
     .deleteByInstanceId(instanceId)
-    .then(AppUtils.onDelete.bind(null, params, 'Unable to delete Stream Viewer object', callback));
+    .then(AppUtils.onDeleteOptional.bind(null, params, 'Unable to delete Stream Viewer object', callback));
 }
 
 export default {

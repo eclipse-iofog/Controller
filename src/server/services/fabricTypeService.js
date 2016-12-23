@@ -9,7 +9,14 @@ const getFabricTypeDetail = function(props, params, callback) {
     .then(AppUtils.onCreate.bind(null, params, props.setProperty, 'Unable to read fabric type detail', callback));
 }
 
-export default {
-  getFabricTypeDetail: getFabricTypeDetail
+const getFogTypesList = function(props, params, callback) {
 
+  FabricTypeManager
+    .getFabricTypes() 
+    .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Unable to get Fog Types List', callback));
+}
+
+export default {
+  getFabricTypeDetail: getFabricTypeDetail,
+  getFogTypesList: getFogTypesList
 };

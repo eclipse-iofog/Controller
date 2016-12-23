@@ -54,9 +54,9 @@ class FabricManager extends BaseManager {
      * @param - none
      * @return Array of JSON - returns an Array containing JSON objects
      */
-  getFabricList() {
-      var fabricListQuery = "SELECT UUID, TypeKey from iofabrics ORDER BY TypeKey";
-      return sequelize.query(fabricListQuery);
+  getFogList() {
+      var fabricListQuery = "SELECT UUID, typeKey from iofabrics ORDER BY TypeKey";
+      return sequelize.query(fabricListQuery, { type: sequelize.QueryTypes.SELECT });
     }
     /**
      * @desc - deletes the fabric based on the instanceId

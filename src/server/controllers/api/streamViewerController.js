@@ -17,17 +17,23 @@ import UserService from '../../services/userService';
 import AppUtils from '../../utils/appUtils';
 
 router.get('/api/v2/authoring/fabric/viewer/access', (req, res) => {
-  var params = {};
+  var params = {},
+   userProps;
 
   params.bodyParams = req.query;
 
+  userProps = {
+    userId: 'bodyParams.userId',
+    setProperty: 'user'
+  };
+
   async.waterfall([
-    async.apply(UserService.getUser, params),
+    async.apply(UserService.getUser, userProps, params),
     StreamViewerService.getStreamViewerByFogInstanceId,
     ConsoleService.getConsoleByFogInstanceId,
     getResponse
   ], function(err, result) {
-    var errMsg = 'Internal error: There was a problem getting the toolset access for this ioFog instance.';
+    var errMsg = 'Internal error: There was a problem getting the toolset access for this ioFog instance.'+result;
     AppUtils.sendResponse(res, err, 'access', result.output, errMsg);
   });
 });

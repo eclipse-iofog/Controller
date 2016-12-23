@@ -13,20 +13,27 @@ const getFogInstance = function(props, params, callback) {
 /**
  * @desc - this function finds the element instance which was changed
  */
-const createFabricInstance = function(params, callback) {
-  var fabricType = params.bodyParams.FabricType,
-    instanceId = AppUtils.generateRandomString(32);
+const createFogInstance = function(props, params, callback) {
+  var fogType = AppUtils.getProperty(params, props.fabricType),
+      instanceId = AppUtils.generateRandomString(32);
 
   var config = {
     uuid: instanceId,
-    typeKey: fabricType
+    typeKey: fogType
   };
 
   // This function creates a new fabric and inserts its data
   // in to the database, along with the default values
   FabricManager
     .createFabric(config)
-    .then(AppUtils.onCreate.bind(null, params, 'fabricInstance', 'Unable to create Fabric Instance', callback));
+    .then(AppUtils.onCreate.bind(null, params, props.setProperty, 'Unable to create Fabric Instance', callback));
+}
+
+  const getFogList = function(props, params, callback) {
+
+  FabricManager
+    .getFogList()
+    .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Cannot get Fog List', callback));
 }
 
 const getFogInstanceForUser = function(props, params, callback) {
@@ -77,8 +84,9 @@ const deleteFogInstance = function(props, params, callback) {
 
 export default {
   getFogInstance: getFogInstance,
-  createFabricInstance: createFabricInstance,
+  createFogInstance: createFogInstance,
   updateFogInstance: updateFogInstance,
   getFogInstanceForUser: getFogInstanceForUser,
-  deleteFogInstance: deleteFogInstance
+  deleteFogInstance: deleteFogInstance,
+  getFogList: getFogList
 };

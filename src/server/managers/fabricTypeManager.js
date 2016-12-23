@@ -16,7 +16,7 @@ class FabricTypeManager extends BaseManager {
 
   getFabricTypes() {
     var fabricTypeQuery = "SELECT * from iofabric_type";
-    return sequelize.query(fabricTypeQuery);
+    return sequelize.query(fabricTypeQuery, { type: sequelize.QueryTypes.SELECT });
   }
 
   findFabricTypeById(id) {

@@ -162,6 +162,11 @@ router.post('/api/v2/authoring/element/instance/route/create', (req, res) => {
     currentTime = new Date().getTime(),
     watefallMethods = [],
 
+    userProps = {
+      userId: 'bodyParams.userId',
+      setProperty: 'user'
+    },
+
     pubFogProps = {
       fogId: 'bodyParams.publishingInstanceId',
       setProperty: 'publishingFogInstance'
@@ -295,7 +300,7 @@ router.post('/api/v2/authoring/element/instance/route/create', (req, res) => {
 
   if (params.bodyParams.publishingInstanceId == params.bodyParams.destinationInstanceId) {
     watefallMethods = [
-      async.apply(UserService.getUser, params),
+      async.apply(UserService.getUser, userProps, params),
 
       async.apply(FabricService.getFogInstance, pubFogProps),
       async.apply(FabricService.getFogInstance, destFogProps),
@@ -315,7 +320,7 @@ router.post('/api/v2/authoring/element/instance/route/create', (req, res) => {
     ];
   } else {
     watefallMethods = [
-      async.apply(UserService.getUser, params),
+      async.apply(UserService.getUser, userProps, params),
 
       async.apply(FabricService.getFogInstance, pubFogProps),
       async.apply(FabricService.getFogInstance, destFogProps),
@@ -377,6 +382,11 @@ router.post('/api/v2/authoring/element/instance/route/delete', (req, res) => {
   var params = {},
     currentTime = new Date().getTime(),
     watefallMethods = [],
+
+    userProps = {
+      userId: 'bodyParams.userId',
+      setProperty: 'user'
+    },
 
     pubFogProps = {
       fogId: 'bodyParams.publishingInstanceId',
@@ -468,13 +478,13 @@ router.post('/api/v2/authoring/element/instance/route/delete', (req, res) => {
 
   if (params.bodyParams.isNetworkConnection == 0) {
     watefallMethods = [
-      async.apply(UserService.getUser, params),
+      async.apply(UserService.getUser, userProps, params),
       async.apply(RoutingService.deleteByFogAndElement, deleteRouteProps),
       getDeleteOutput
     ];
   } else {
     watefallMethods = [
-      async.apply(UserService.getUser, params),
+      async.apply(UserService.getUser, userProps, params),
 
       async.apply(FabricService.getFogInstance, pubFogProps),
       async.apply(FabricService.getFogInstance, destFogProps),

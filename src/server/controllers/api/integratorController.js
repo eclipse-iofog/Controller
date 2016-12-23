@@ -32,6 +32,11 @@ import AppUtils from '../../utils/appUtils';
  */
 router.post('/api/v2/authoring/integrator/instance/create', (req, res) => {
   var params = {},
+    createFogProps = {
+          fabricType: 'bodyParams.fabricType',
+          setProperty: 'fabricInstance'
+      };
+
     fogTypeProps = {
       fogTypeId: 'fabricInstance.typeKey',
       setProperty: 'fabricType'
@@ -106,7 +111,7 @@ router.post('/api/v2/authoring/integrator/instance/create', (req, res) => {
   params.bodyParams = req.body;
 
   async.waterfall([
-    async.apply(FabricService.createFabricInstance, params),
+    async.apply(FabricService.createFogInstance, createFogProps, params),
     ChangeTrackingService.initiateFabricChangeTracking,
     FabricUserService.createFabricUser,
     async.apply(FabricTypeService.getFabricTypeDetail, fogTypeProps),
@@ -152,9 +157,15 @@ router.post('/api/v2/authoring/integrator/instance/create', (req, res) => {
 
 router.post('/api/v2/authoring/integrator/instance/update', (req, res) => {
   var params = {},
-    fogInstanceProps;
+    fogInstanceProps,
+    userProps;
 
   params.bodyParams = req.body;
+
+  userProps = {
+    userId: 'bodyParams.userId',
+    setProperty: 'user'
+  },
 
   fogInstanceProps = {
     fogId: 'bodyParams.instanceId',
@@ -162,7 +173,7 @@ router.post('/api/v2/authoring/integrator/instance/update', (req, res) => {
   };
 
   async.waterfall([
-    async.apply(UserService.getUser, params),
+    async.apply(UserService.getUser, userProps, params),
     async.apply(FabricService.getFogInstance, fogInstanceProps),
     FabricService.updateFogInstance
 
