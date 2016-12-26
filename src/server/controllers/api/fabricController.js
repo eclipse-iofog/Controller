@@ -205,7 +205,7 @@ router.post('/api/v2/authoring/integrator/instance/delete', (req, res) => {
 			async.apply(UserService.getUser, userProps, params),
 			async.apply(ElementInstanceService.updateElemInstanceByFogUuId, updateByFogUuIdProps),
 			async.apply(ChangeTrackingService.deleteChangeTracking, instanceProps),
-			async.apply(FabricUserService.getFogUser, fogUserProps),
+			async.apply(FabricUserService.getFogUserByInstanceId, fogUserProps),
 			async.apply(FabricAccessTokenService.deleteFabricAccessTokenByUserId, instanceProps),
 			async.apply(FabricUserService.deleteFogUserByInstanceIdAndUserId, deleteFogUserProps),
 			//async.apply(UserService.deleteByUserId, instanceProps),

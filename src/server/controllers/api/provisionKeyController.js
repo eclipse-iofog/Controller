@@ -6,262 +6,125 @@
 import async from 'async';
 import express from 'express';
 const router = express.Router();
+
 import BaseApiController from './baseApiController';
-import FabricManager from '../../managers/fabricManager';
-import UserManager from '../../managers/userManager';
-import FabricAccessTokenManager from '../../managers/fabricAccessTokenManager';
-import FabricProvisionKeyManager from '../../managers/fabricProvisionKeyManager';
-import FabricUserManager from '../../managers/fabricUserManager';
+import FabricAccessTokenService from '../../services/fabricAccessTokenService';
+import FabricProvisionKeyService from '../../services/fabricProvisionKeyService';
+import FabricService from '../../services/fabricService';
+import FabricUserService from '../../services/fabricUserService';
+import UserService from '../../services/userService';
+
 import AppUtils from '../../utils/appUtils';
-import Constants from '../../constants.js';
 
 router.get('/api/v2/authoring/fabric/provisionkey/instanceid/:instanceId', BaseApiController.checkfabricExistance, (req, res) => {
+  var params = {},
+      userProps = {
+          userId: 'bodyParams.userId',
+          setProperty: 'user'
+      },
+      createProvisionProps = {
+          instanceId: 'bodyParams.instanceId',
+          setProperty: 'newProvision'
+      };
 
-  var newProvision = {
-    iofabric_uuid: req.params.instanceId,
-    provisionKey: AppUtils.generateRandomString(8),
-    expirationTime: new Date().getTime() + (20 * 60 * 1000)
-  };
+      params.bodyParams = req.params;
+      params.bodyParams.userId = req.query;
 
-  FabricProvisionKeyManager.createProvisionKey(newProvision)
-    .then((newProvision) => {
-      if (newProvision) {
-        res.status(200);
-        res.send({
-          'success': true,
-          'provisionKey': newProvision.provisionKey
-        });
-      } else {
-        res.send({
-          'success': false,
-          'error': "instance id invalid"
-        });
-      }
+  async.waterfall([
+    async.apply(UserService.getUser, userProps, params),
+    async.apply(FabricProvisionKeyService.createProvisonKeyByInstanceId, createProvisionProps)
 
-    });
-
-});
-
-router.post('/api/v2/instance/provision/key/:provisionKey/fabrictype/:fabricType', (req, res) => {
-  provisionFabricKey(req, res);
+  ], function(err, result) {
+    AppUtils.sendResponse(res, err, 'provisionKey', params.newProvision.provisionKey, result);
+  })
 });
 
 router.get('/api/v2/instance/provision/key/:provisionKey/fabrictype/:fabricType', (req, res) => {
   provisionFabricKey(req, res);
 });
 
-function provisionFabricKey(req, res) {
-  var provisionKey = req.params.provisionKey,
-    fabricType = req.params.fabricType;
-
-  // async.waterfall control flow, sequential calling of an Array of functions.
-  async.waterfall([
-    async.apply(getFabricProvisionKey, provisionKey, fabricType),
-    getFabric,
-    getFabricUser,
-    generateAccessToken,
-    saveUserToken
-  ], function(err, result) {
-    res.status(200);
-    if (err) {
-      deleteKey(provisionKey);
-      res.send({
-        'status': 'failure',
-        'timestamp': new Date().getTime(),
-        'errormessage': result
-      });
-    } else {
-      deleteKey(provisionKey);
-      res.send({
-        'status': 'ok',
-        'timestamp': new Date().getTime(),
-        'id': result.id,
-        'token': result.token
-      });
-    }
-  });
-}
-
-router.post('/api/v2/authoring/fabric/provisioningkey/list/delete', (req, res) => {
-
-  var params = {};
-
-  params.bodyParams = req.body;
-  params.milliseconds = new Date().getTime();
-
-  async.waterfall([
-    async.apply(getUser, params),
-    deleteByFabricInstance
-  ], function(err, result) {
-    res.status(200);
-    if (err) {
-      res.send({
-        'status': 'failure',
-        'timestamp': new Date().getTime(),
-        'errormessage': result
-      });
-    } else {
-      res.send({
-        'status': 'ok',
-        'timestamp': new Date().getTime(),
-        'fabricInstanceId': params.bodyParams.fabricInstanceId
-      });
-    }
-  });
+router.post('/api/v2/instance/provision/key/:provisionKey/fabrictype/:fabricType', (req, res) => {
+  provisionFabricKey(req, res);
 });
 
-function getUser(params, callback) {
-  UserManager
-    .findByToken(params.bodyParams.userId)
-    .then(AppUtils.onFind.bind(null, params, 'user', 'User not found', callback));
-
-}
-
-function deleteByFabricInstance(params, callback) {
-  FabricProvisionKeyManager
-    .deleteByInstanceId(params.bodyParams.fabricInstanceId)
-    .then(AppUtils.onDelete.bind(null, params, 'No provision keys found', callback));
-}
-
-/**
- * @desc - if the provision key exists in the database forwards to getFabric function
- * @param - provisionKey, fabricType, callback
- * @return - none
- */
-function getFabricProvisionKey(provisionKey, fabricType, callback) {
-  FabricProvisionKeyManager.getByProvisionKey(provisionKey)
-    .then((fabricKey) => {
-        if (fabricKey) callback(null, fabricType, fabricKey);
-        else callback('error', Constants.MSG.ERROR_INVALID_PROVISTION_KEY);
+function provisionFabricKey(req, res) {
+  var params = {},
+      userProps = {
+        userId: 'bodyParams.userId',
+        setProperty: 'user'
       },
-      (err) => {
-        callback('error', Constants.MSG.SYSTEM_ERROR);
-      });
-}
+      provisionProps = {
+        provisionKey: 'bodyParams.provisionKey',
+        setProperty: 'fogProvision'
+      },
+      provisionKeyExpiryProps = {
+        expirationTime: 'fogProvision.expirationTime'
+      },
+      fogProps = {
+        fogId: 'fogProvision.iofabric_uuid',
+        setProperty: 'fogData'
+      },
+      fogUserProps = {
+        instanceId: 'fogData.uuid',
+        setProperty: 'fogUser'
+      },
+      deleteTokenProps = {
+        userId: 'fogUser.user_id'
+      },
+      saveFogAccessTokenProps = {
+        userId: 'fogUser.user_id',
+        expirationTime: 'tokenData.expirationTime',
+        accessToken: 'tokenData.accessToken',
+        setProperty: 'newAccessToken'
+      };
 
-/**
- * @desc - if the provision key is not expired in the database finds its
- * coresponding fabric data and forwards to getFabricUser function
- * @param - fabricType, fabricKey, callback
- * @return - none
- */
-function getFabric(fabricType, fabricKey, callback) {
-  var date = new Date();
+  params.bodyParams = req.params;
 
-  if (date < fabricKey.expirationTime) {
-    FabricManager.findByInstanceId(fabricKey.iofabric_uuid)
-      .then((fabricData) => {
-        if (fabricData) callback(null, fabricType, fabricData);
-        else callback('error', Constants.MSG.ERROR_FABRIC_UNKNOWN);
-      }, (err) => {
-        callback('error', Constants.MSG.SYSTEM_ERROR);
-      });
-  } else {
-    callback('error', Constants.MSG.ERROR_PROVISION_KEY_EXPIRED);
+  if(req.body.userId){
+    params.bodyParams.userId = req.body.userId;
   }
-}
-
-/**
- * @desc - if the fabricType matches the type in the database this function
- * retrieves the data for the user who owns this fabric and forwards to
- * generateAccessToken function.
- * @param - fabricType, fabricData, callback
- * @return - none
- */
-function getFabricUser(fabricType, fabricData, callback) {
-
-  if (fabricType == fabricData.typeKey) {
-    FabricUserManager.findByInstanceId(fabricData.uuid)
-      .then((fabricUser) => {
-          if (fabricUser) callback(null, fabricUser, fabricData);
-          else callback('error', Constants.MSG.ERROR_FABRIC_UNKNOWN);
-        },
-        (err) => {
-          callback('error', Constants.MSG.SYSTEM_ERROR);
-        });
-  } else {
-    callback('error', Constants.MSG.ERROR_FABRIC_MISMATCH);
+  else{
+    params.bodyParams.userId = req.query;
   }
-}
 
-/**
- * @desc - this function checks if an accessToken is present for a user, if yes then
- * removes it and then calls the saveUserToken function with a new generated token as
- * a parameter.
- * @param - fabricUser, fabricData, callback
- * @return - none
- */
-function generateAccessToken(fabricUser, fabricData, callback) {
-  var accessToken,
-    tokenExpiryTime;
+  async.waterfall([
+    async.apply(UserService.getUser, userProps, params),
+    async.apply(FabricProvisionKeyService.getFogByProvisionKey, provisionProps),
+    async.apply(FabricProvisionKeyService.deleteByProvisionKey, provisionProps),
+    async.apply(FabricProvisionKeyService.checkProvisionKeyExpiry, provisionKeyExpiryProps),
+    async.apply(FabricService.getFogInstance, fogProps),
+    async.apply(FabricUserService.getFogUserByInstanceId, fogUserProps),
+    FabricAccessTokenService.generateFogAccessToken,
+    async.apply(FabricAccessTokenService.deleteFabricAccessTokenByUserId, deleteTokenProps),
+    async.apply(FabricAccessTokenService.saveFogAccessToken,saveFogAccessTokenProps)
 
-  accessToken = AppUtils.generateAccessToken();
-  tokenExpiryTime = new Date();
-  tokenExpiryTime.setDate(tokenExpiryTime.getDate() + Constants.ACCESS_TOKEN_EXPIRE_PERIOD);
+  ], function(err, result) {
+    var successLabelArr= ['id', 'token'],
+        successValueArr= [params.fogData.uuid, params.newAccessToken.token];
 
-  var p1 = new Promise(
-    function(resolve, reject) {
-      FabricAccessTokenManager.getByToken(accessToken)
-        .then((tokenData) => {
-          if (tokenData && tokenData != " ") {
-            accessToken = AppUtils.generateAccessToken();
-          } else {
-            resolve("ok");
-          }
-        });
-    }
-  );
+    AppUtils.sendMultipleResponse(res, err, successLabelArr, successValueArr, result);
+  })
+};
 
-  p1.then(
-      function(val) {
-        FabricAccessTokenManager.deleteByUserId(fabricUser.user_id)
-          .then(function(rowDeleted) {
-            callback(null, fabricUser, fabricData, tokenExpiryTime, accessToken);
-          }, function(err) {
-            callback('error', Constants.MSG.ERROR_ACCESS_TOKEN_GEN);
-          });
-      })
-    .catch(
-      function(reason) {
+router.post('/api/v2/authoring/fabric/provisioningkey/list/delete', (req, res) => {
+  var params = {},
+      userProps = {
+        userId: 'bodyParams.userId',
+        setProperty: 'user'
+      },
+      instanceProps = {
+        instanceId: 'bodyParams.instanceId',
+      };
 
-      });
-}
+  params.bodyParams = req.body;
 
-/**
- * @desc - this function inserts a new token against a user_Id
- * @param - fabricUser, fabricData, tokenExpiryTime, accessToken, callback
- * @return - none
- */
-function saveUserToken(fabricUser, fabricData, tokenExpiryTime, accessToken, callback) {
-  FabricAccessTokenManager.saveUserToken(fabricUser.user_id, tokenExpiryTime, accessToken)
-    .then(function(rowInserted) {
-      if (rowInserted) {
-        callback(null, {
-          id: fabricData.uuid,
-          token: accessToken
-        });
-      } else {
-        callback('error', Constants.MSG.ERROR_ACCESS_TOKEN_GEN);
-      }
-    }, function(err) {
-      callback('error', Constants.MSG.ERROR_ACCESS_TOKEN_GEN);
-    });
-}
-
-/**
- * @desc - this function deletes the provision key entry in all cases from the database
- * @param - provisionKey
- * @return - none
- */
-function deleteKey(provisionKey) {
-  FabricProvisionKeyManager.deleteByProvisionKey(provisionKey)
-    .then(function(rowDeleted) {
-      if (rowDeleted > 0) {
-        console.log('Deleted successfully');
-      }
-    }, function(err) {
-      console.log(err);
-    });
-}
+  async.waterfall([
+    async.apply(UserService.getUser, userProps, params),
+    async.apply(FabricProvisionKeyService.deleteProvisonKeyByInstanceId, instanceProps)
+  
+  ], function(err, result) {
+       AppUtils.sendResponse(res, err, 'instanceId', params.bodyParams.instanceId, result);  
+  });
+});
 
 export default router;

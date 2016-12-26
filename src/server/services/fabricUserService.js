@@ -10,11 +10,11 @@ const createFabricUser = function(params, callback) {
     .then(AppUtils.onCreate.bind(null, params, null, 'Unable to create user for Fabric Instance', callback));
 }
 
-const getFogUser = function(props, params, callback) {
-  var fogUserId = AppUtils.getProperty(params, props.instanceId);
+const getFogUserByInstanceId = function(props, params, callback) {
+  var fogId = AppUtils.getProperty(params, props.instanceId);
 
   FabricUserManager
-    .findByInstanceId(fogUserId)
+    .findByInstanceId(fogId)
     .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Cannot find Fog User', callback));
 }
 
@@ -38,7 +38,7 @@ const deleteFogUserByInstanceIdAndUserId = function(props, params, callback) {
 
 export default {
   createFabricUser: createFabricUser,
-  getFogUser:  getFogUser,
+  getFogUserByInstanceId:  getFogUserByInstanceId,
   deleteFogUserByInstanceId: deleteFogUserByInstanceId,
   deleteFogUserByInstanceIdAndUserId: deleteFogUserByInstanceIdAndUserId
 };

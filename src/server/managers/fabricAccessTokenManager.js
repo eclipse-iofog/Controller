@@ -40,11 +40,11 @@ class FabricAccessTokenManager extends BaseManager {
    * @param Integer, Integer, String  - userId, expiryTokenTime, token
    * @return Integer - returns the number of rows inserted
    */
-  saveUserToken(userId, expiryTokenTime, token) {
+  saveUserToken(config) {
     return FabricAccessToken.create({
-      userId: userId,
-      expirationTime: expiryTokenTime,
-      token: token
+      userId: config.userId,
+      expirationTime: config.expirationTime,
+      token: config.accessToken
     });
   }
 }

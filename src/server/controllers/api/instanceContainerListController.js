@@ -17,6 +17,14 @@ import Constants from '../../constants.js';
 
 
 router.get('/api/v2/instance/containerlist/id/:ID/token/:Token', BaseApiController.checkUserExistance, (req, res) => {
+	containerList(req, res);
+});
+
+router.post('/api/v2/instance/containerlist/id/:ID/token/:Token', BaseApiController.checkUserExistance, (req, res) => {
+  	containerList(req, res);
+});
+
+const containerList= function(req, res){
   var milliseconds = new Date().getTime(),
     instanceId = req.params.ID,
     token = req.params.Token,
@@ -81,7 +89,7 @@ router.get('/api/v2/instance/containerlist/id/:ID/token/:Token', BaseApiControll
       console.log(err);
       callback('error', Constants.MSG.SYSTEM_ERROR);
     });
-});
+};
 /**
  * @desc - if the container needs to be rebuild, it sets the rebuild value to 0 and calls
  * the findElement function

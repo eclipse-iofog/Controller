@@ -15,6 +15,15 @@ import AppUtils from '../../utils/appUtils';
 import Constants from '../../constants.js';
 
 router.get('/api/v2/instance/registries/id/:ID/token/:Token', BaseApiController.checkUserExistance, (req, res) => {
+    instanceRegistries(req, res);
+});
+
+router.post('/api/v2/instance/registries/id/:ID/token/:Token', BaseApiController.checkUserExistance, (req, res) => {
+    instanceRegistries(req, res);
+});
+
+const instanceRegistries = function (req, res){
+
   var milliseconds = new Date().getTime(),
     instanceId = req.params.ID,
     i,
@@ -54,6 +63,6 @@ router.get('/api/v2/instance/registries/id/:ID/token/:Token', BaseApiController.
           'errormessage': Constants.MSG.ERROR_ACCESS_DENIED
         });
       });
-});
+};
 
 export default router;

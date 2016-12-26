@@ -20,6 +20,14 @@ import Constants from '../../constants.js';
  */
 
 router.get('/api/v2/instance/changes/id/:ID/token/:Token/timestamp/:TimeStamp', BaseApiController.checkUserExistance, (req, res) => {
+  updateFog(req, res);
+});
+
+router.post('/api/v2/instance/changes/id/:ID/token/:Token/timestamp/:TimeStamp', BaseApiController.checkUserExistance, (req, res) => {
+  updateFog(req, res);
+});
+
+const updateFog = function(req, res) {
   var milliseconds = new Date().getTime();
   var instanceId = req.params.ID;
   var timeStamp = req.params.TimeStamp;
@@ -88,8 +96,7 @@ router.get('/api/v2/instance/changes/id/:ID/token/:Token/timestamp/:TimeStamp', 
       (err) => {
         callback('error', Constants.MSG.SYSTEM_ERROR);
       });
-
-});
+};
 
 
 export default router;

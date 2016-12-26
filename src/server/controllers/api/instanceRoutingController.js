@@ -31,6 +31,14 @@ import AppUtils from '../../utils/appUtils';
 import Constants from '../../constants.js';
 
 router.get('/api/v2/instance/routing/id/:ID/token/:Token', BaseApiController.checkUserExistance, (req, res) => {
+  instanceRouting(req, res);
+});
+
+router.post('/api/v2/instance/routing/id/:ID/token/:Token', BaseApiController.checkUserExistance, (req, res) => {
+  instanceRouting(req, res);
+});
+
+const instanceRouting = function (req, res){
   var milliseconds = new Date().getTime(),
     instanceId = req.params.ID,
     token = req.params.Token,
@@ -62,7 +70,7 @@ router.get('/api/v2/instance/routing/id/:ID/token/:Token', BaseApiController.che
       });
     }
   });
-});
+};
 
 /**
  * @desc - if the streamViewer exists in the database, assigns the streamId and forwards to getConsole function

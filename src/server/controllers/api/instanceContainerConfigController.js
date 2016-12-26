@@ -13,7 +13,16 @@ import DataTracksManager from '../../managers/dataTracksManager';
 import AppUtils from '../../utils/appUtils';
 import Constants from '../../constants.js';
 
+
 router.get('/api/v2/instance/containerconfig/id/:ID/token/:Token', BaseApiController.checkUserExistance, (req, res) => {
+	containerConfig(req, res);
+});
+
+router.post('/api/v2/instance/containerconfig/id/:ID/token/:Token', BaseApiController.checkUserExistance, (req, res) => {
+	containerConfig(req, res);
+});
+
+const containerConfig= function(req, res){
 	var milliseconds = new Date().getTime(),
 		instanceId = req.params.ID,
 		token = req.params.Token,
@@ -65,6 +74,6 @@ router.get('/api/v2/instance/containerconfig/id/:ID/token/:Token', BaseApiContro
 
 			}
 		});
-});
+};
 
 export default router;

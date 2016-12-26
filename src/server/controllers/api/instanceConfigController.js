@@ -12,6 +12,14 @@ import AppUtils from '../../utils/appUtils';
 import Constants from '../../constants.js';
 
 router.get('/api/v2/instance/config/id/:ID/token/:Token', BaseApiController.checkUserExistance, (req, res) => {
+  instanceConfig (req, res);
+});
+
+router.post('/api/v2/instance/config/id/:ID/token/:Token', BaseApiController.checkUserExistance, (req, res) => {
+  instanceConfig (req, res);
+});
+
+const instanceConfig = function(req, res){
   var milliseconds = new Date().getTime();
   var instanceId = req.params.ID;
 
@@ -50,7 +58,7 @@ router.get('/api/v2/instance/config/id/:ID/token/:Token', BaseApiController.chec
 
       }
     });
-});
+};
 
 
 router.post('/api/v2/instance/config/changes/id/:ID/token/:Token', BaseApiController.checkUserExistance, (req, res) => {

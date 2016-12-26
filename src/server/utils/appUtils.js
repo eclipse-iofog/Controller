@@ -142,7 +142,6 @@ const onFind = function(params, paramName, errorMsg, callback, modelObject) {
 const onFindOptional = function(params, paramName, callback, modelObject) {
   if (modelObject && paramName) {
     params[paramName] = modelObject;
-
   }
 
   callback(null, params);
@@ -186,6 +185,27 @@ const sendResponse = function(response, err, successLabel, successValue, errorMe
   response.send(res);
 }
 
+const sendMultipleResponse = function(response, err, successLabelArr, successValueArr, errorMessage) {
+  var res = {
+    'timestamp': new Date().getTime()
+  };
+
+  response.status(200);
+  if (err) {
+    res['status'] = 'failure';
+    res['errormessage'] = errorMessage;
+  } else {
+    res['status'] = 'ok';
+
+    for (var i = 0; i < successValueArr.length; i++)
+    {
+    res[successLabelArr[i]] = successValueArr[i];
+    }
+  }
+  response.send(res);
+}
+
+
 export default {
   isArray: isArray,
   isFileExists: isFileExists,
@@ -202,5 +222,6 @@ export default {
   onFindOptional: onFindOptional,
   onDelete: onDelete,
   onDeleteOptional: onDeleteOptional,
-  sendResponse: sendResponse
+  sendResponse: sendResponse,
+  sendMultipleResponse: sendMultipleResponse
 };
