@@ -78,7 +78,7 @@ function provisionFabricKey(req, res) {
   }
 
   async.waterfall([
-    async.apply(FabricProvisionKeyService.getFogByProvisionKey, provisionProps),
+    async.apply(FabricProvisionKeyService.getFogByProvisionKey, provisionProps, params),
     async.apply(FabricProvisionKeyService.deleteByProvisionKey, provisionProps),
     async.apply(FabricProvisionKeyService.checkProvisionKeyExpiry, provisionKeyExpiryProps),
     async.apply(FabricService.getFogInstance, fogProps),
@@ -104,7 +104,7 @@ router.post('/api/v2/authoring/fabric/provisioningkey/list/delete', (req, res) =
   params.bodyParams = req.body;
 
   async.waterfall([
-    async.apply(FabricProvisionKeyService.deleteProvisonKeyByInstanceId, instanceProps)
+    async.apply(FabricProvisionKeyService.deleteProvisonKeyByInstanceId, instanceProps, params)
   
   ], function(err, result) {
        AppUtils.sendResponse(res, err, 'instanceId', params.bodyParams.instanceId, result);  
