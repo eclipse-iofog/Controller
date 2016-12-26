@@ -69,14 +69,7 @@ function provisionFabricKey(req, res) {
       };
 
   params.bodyParams = req.params;
-
-  if(req.body.userId){
-    params.bodyParams.userId = req.body.userId;
-  }
-  else{
-    params.bodyParams.userId = req.query;
-  }
-
+  
   async.waterfall([
     async.apply(FabricProvisionKeyService.getFogByProvisionKey, provisionProps, params),
     async.apply(FabricProvisionKeyService.deleteByProvisionKey, provisionProps),
