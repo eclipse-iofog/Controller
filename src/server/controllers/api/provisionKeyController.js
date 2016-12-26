@@ -18,21 +18,15 @@ import AppUtils from '../../utils/appUtils';
 
 router.get('/api/v2/authoring/fabric/provisionkey/instanceid/:instanceId', BaseApiController.checkfabricExistance, (req, res) => {
   var params = {},
-      userProps = {
-          userId: 'bodyParams.userId',
-          setProperty: 'user'
-      },
       createProvisionProps = {
           instanceId: 'bodyParams.instanceId',
           setProperty: 'newProvision'
       };
 
       params.bodyParams = req.params;
-      params.bodyParams.userId = req.query;
 
   async.waterfall([
-    async.apply(UserService.getUser, userProps, params),
-    async.apply(FabricProvisionKeyService.createProvisonKeyByInstanceId, createProvisionProps)
+    async.apply(FabricProvisionKeyService.createProvisonKeyByInstanceId, createProvisionProps, params)
 
   ], function(err, result) {
     AppUtils.sendResponse(res, err, 'provisionKey', params.newProvision.provisionKey, result);
@@ -49,10 +43,6 @@ router.post('/api/v2/instance/provision/key/:provisionKey/fabrictype/:fabricType
 
 function provisionFabricKey(req, res) {
   var params = {},
-      userProps = {
-        userId: 'bodyParams.userId',
-        setProperty: 'user'
-      },
       provisionProps = {
         provisionKey: 'bodyParams.provisionKey',
         setProperty: 'fogProvision'
@@ -88,7 +78,6 @@ function provisionFabricKey(req, res) {
   }
 
   async.waterfall([
-    async.apply(UserService.getUser, userProps, params),
     async.apply(FabricProvisionKeyService.getFogByProvisionKey, provisionProps),
     async.apply(FabricProvisionKeyService.deleteByProvisionKey, provisionProps),
     async.apply(FabricProvisionKeyService.checkProvisionKeyExpiry, provisionKeyExpiryProps),
@@ -108,10 +97,6 @@ function provisionFabricKey(req, res) {
 
 router.post('/api/v2/authoring/fabric/provisioningkey/list/delete', (req, res) => {
   var params = {},
-      userProps = {
-        userId: 'bodyParams.userId',
-        setProperty: 'user'
-      },
       instanceProps = {
         instanceId: 'bodyParams.instanceId',
       };
@@ -119,7 +104,6 @@ router.post('/api/v2/authoring/fabric/provisioningkey/list/delete', (req, res) =
   params.bodyParams = req.body;
 
   async.waterfall([
-    async.apply(UserService.getUser, userProps, params),
     async.apply(FabricProvisionKeyService.deleteProvisonKeyByInstanceId, instanceProps)
   
   ], function(err, result) {
