@@ -22,15 +22,14 @@ router.get('/api/v2/authoring/fabric/provisionkey/instanceid/:instanceId', BaseA
           instanceId: 'bodyParams.instanceId',
           setProperty: 'newProvision'
       };
-
-      params.bodyParams = req.params;
+  params.bodyParams = req.params;
 
   async.waterfall([
     async.apply(FabricProvisionKeyService.createProvisonKeyByInstanceId, createProvisionProps, params)
 
-  ], function(err, result) {
-    AppUtils.sendResponse(res, err, 'provisionKey', params.newProvision.provisionKey, result);
-  })
+  ],function(err, result) {
+      AppUtils.sendResponse(res, err, 'provisionKey', params.newProvision.provisionKey, result);
+    });
 });
 
 router.get('/api/v2/instance/provision/key/:provisionKey/fabrictype/:fabricType', (req, res) => {
@@ -67,7 +66,6 @@ function provisionFabricKey(req, res) {
         accessToken: 'tokenData.accessToken',
         setProperty: 'newAccessToken'
       };
-
   params.bodyParams = req.params;
   
   async.waterfall([
@@ -81,9 +79,14 @@ function provisionFabricKey(req, res) {
     async.apply(FabricAccessTokenService.saveFogAccessToken,saveFogAccessTokenProps)
 
   ], function(err, result) {
-    var successLabelArr= ['id', 'token'],
-        successValueArr= [params.fogData.uuid, params.newAccessToken.token];
+   
+   var successLabelArr,
+       successValueArr;
 
+    if (params.fogData && params.newAccessToken){
+      successLabelArr= ['id', 'token'],
+      successValueArr= [params.fogData.uuid, params.newAccessToken.token];
+    }
     AppUtils.sendMultipleResponse(res, err, successLabelArr, successValueArr, result);
   })
 };
@@ -93,7 +96,6 @@ router.post('/api/v2/authoring/fabric/provisioningkey/list/delete', (req, res) =
       instanceProps = {
         instanceId: 'bodyParams.instanceId',
       };
-
   params.bodyParams = req.body;
 
   async.waterfall([
