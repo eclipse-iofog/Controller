@@ -28,7 +28,14 @@ router.get('/api/v2/authoring/fabric/provisionkey/instanceid/:instanceId', BaseA
     async.apply(FabricProvisionKeyService.createProvisonKeyByInstanceId, createProvisionProps, params)
 
   ],function(err, result) {
-      AppUtils.sendResponse(res, err, 'provisionKey', params.newProvision.provisionKey, result);
+    var outputProvisionKey;
+
+    if (params.newProvision)
+    {
+      outputProvisionKey= params.newProvision.provisionKey;
+    }
+
+      AppUtils.sendResponse(res, err, 'provisionKey', outputProvisionKey, result);
     });
 });
 
