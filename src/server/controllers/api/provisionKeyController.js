@@ -34,7 +34,6 @@ router.get('/api/v2/authoring/fabric/provisionkey/instanceid/:instanceId', BaseA
     {
       outputProvisionKey= params.newProvision.provisionKey;
     }
-
       AppUtils.sendResponse(res, err, 'provisionKey', outputProvisionKey, result);
     });
 });
@@ -44,7 +43,6 @@ router.get('/api/v2/instance/provision/key/:provisionKey/fabrictype/:fabricType'
 });
 
 router.post('/api/v2/instance/provision/key/:provisionKey/fabrictype/:fabricType', (req, res) => {
-  req.params = req.body;
   provisionFabricKey(req, res);
 });
 
