@@ -3,7 +3,7 @@
 * @author Zishan Iqbal
 * @description This file includes a registry model used by sequalize for ORM;
 */
-
+//import Fabric from './fabric';
 import Sequelize from 'sequelize';
 import sequelize from './../utils/sequelize';
 
