@@ -38,15 +38,15 @@ const instanceConfig = function(req, res){
           "status": "ok",
           "timestamp": milliseconds,
           "config": {
-            "networkinterface": fabricData.networkInterface,
-            "dockerurl": fabricData.dockerURL,
-            "disklimit": fabricData.diskLimit,
-            "diskdirectory": fabricData.diskDirectory,
-            "memorylimit": fabricData.memoryLimit,
-            "cpulimit": fabricData.cpuLimit,
-            "loglimit": fabricData.logLimit,
-            "logdirectory": fabricData.logDirectory,
-            "logfilecount": fabricData.logFileCount
+            "networkinterface": fabricData.networkinterface,
+            "dockerurl": fabricData.dockerurl,
+            "disklimit": fabricData.disklimit,
+            "diskdirectory": fabricData.diskdirectory,
+            "memorylimit": fabricData.memorylimit,
+            "cpulimit": fabricData.cpulimit,
+            "loglimit": fabricData.loglimit,
+            "logdirectory": fabricData.logdirectory,
+            "logfilecount": fabricData.logfileCount
           }
         });
       } else {
@@ -96,6 +96,7 @@ router.post('/api/v2/instance/config/changes/id/:ID/token/:Token', BaseApiContro
  * @return - none
  */
 function updateFabrics(instanceId, fabricConfig, callback) {
+  console.log(instanceId);
   FabricManager.updateFabricConfig(instanceId, fabricConfig)
     .then((updatedFabric) => {
         if (updatedFabric) {

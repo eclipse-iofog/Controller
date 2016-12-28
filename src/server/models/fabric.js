@@ -38,7 +38,7 @@ const Fabric = sequelize.define('iofabrics', {
     type: Sequelize.TEXT,
     field: 'Description'
   },
-  lastActive: {
+  lastactive: {
     type: Sequelize.BIGINT,
     field: 'LastActive'
   },
@@ -46,129 +46,129 @@ const Fabric = sequelize.define('iofabrics', {
     type: Sequelize.TEXT,
     field: 'Token'
   },
-  daemonStatus: {
+  daemonstatus: {
     type: Sequelize.TEXT,
     defaultValue: "UNKNOWN",
     field: 'DaemonStatus'
   },
-  daemonOperatingDuration: {
+  daemonoperatingduration: {
     type: Sequelize.BIGINT,
     defaultValue: 0,
     field: 'DaemonOperatingDuration'
   },
-  daemonLastStart: {
+  daemonlaststart: {
     type: Sequelize.BIGINT,
     field: 'DaemonLastStart'
   },
-  memoryUsage: {
+  memoryusage: {
     type: Sequelize.FLOAT,
     defaultValue: 0.000,
     field: 'MemoryUsage'
   },
-  diskUsage: {
+  diskusage: {
     type: Sequelize.FLOAT,
     defaultValue: 0.000,
     field: 'DiskUsage'
   },
-  cpuUsage: {
+  cpuusage: {
     type: Sequelize.FLOAT,
     defaultValue: 0.00,
     field: 'CPUUsage'
   },
-  memoryViolation: {
+  memoryviolation: {
     type: Sequelize.TEXT,
     field: 'MemoryViolation'
   },
-  diskViolation: {
+  diskviolation: {
     type: Sequelize.TEXT,
     field: 'DiskViolation'
   },
-  cpuViolation: {
+  cpuviolation: {
     type: Sequelize.TEXT,
     field: 'CPUViolation'
   },
-  elementStatus: {
+  elementstatus: {
     type: Sequelize.TEXT,
     field: 'ElementStatus'
   },
-  repositoryCount: {
+  repositorycount: {
     type: Sequelize.BIGINT,
     field: 'RepositoryCount'
   },
-  repositoryStatus: {
+  repositorystatus: {
     type: Sequelize.TEXT,
     field: 'RepositoryStatus'
   },
-  systemTime: {
+  systemtime: {
     type: Sequelize.BIGINT,
     field: 'SystemTime'
   },
-  lastStatusTime: {
+  laststatustime: {
     type: Sequelize.BIGINT,
     field: 'LastStatusTime'
   },
-  ipAddress: {
+  ipaddress: {
     type: Sequelize.TEXT,
     defaultValue: "0.0.0.0",
     field: 'IPAddress'
   },
-  processedMessages: {
+  processedmessages: {
     type: Sequelize.BIGINT,
     defaultValue: 0,
     field: 'ProcessedMessages'
   },
-  elementMessageCounts: {
+  elementmessagecounts: {
     type: Sequelize.TEXT,
     field: 'ElementMessageCounts'
   },
-  messageSpeed: {
+  messagespeed: {
     type: Sequelize.BIGINT,
     field: 'MessageSpeed'
   },
-  lastCommandTime: {
+  lastcommandtime: {
     type: Sequelize.BIGINT,
     field: 'LastCommandTime'
   },
-  networkInterface: {
+  networkinterface: {
     type: Sequelize.TEXT,
     defaultValue: "eth0",
     field: 'NetworkInterface'
   },
-  dockerURL: {
+  dockerurl: {
     type: Sequelize.TEXT,
     defaultValue: "unix:///var/run/docker.sock",
     field: 'DockerURL'
   },
-  diskLimit: {
+  disklimit: {
     type: Sequelize.FLOAT,
     defaultValue: 50,
     field: 'DiskLimit'
   },
-  diskDirectory: {
+  diskdirectory: {
     type: Sequelize.TEXT,
     field: 'DiskDirectory'
   },
-  memoryLimit: {
+  memorylimit: {
     type: Sequelize.FLOAT,
     defaultValue: 4096,
     field: 'MemoryLimit'
   },
-  cpuLimit: {
+  cpulimit: {
     type: Sequelize.FLOAT,
     defaultValue: 80,
     field: 'CPULimit'
   },
-  logLimit: {
+  loglimit: {
     type: Sequelize.FLOAT,
     defaultValue: 10,
     field: 'LogLimit'
   },
-  logDirectory: {
+  logdirectory: {
     type: Sequelize.TEXT,
     defaultValue: "/var/log/iofabric/",
     field: 'LogDirectory'
   },
-  logFileCount: {
+  logfileCount: {
     type: Sequelize.BIGINT,
     defaultValue: 10,
     field: 'LogFileCount'
