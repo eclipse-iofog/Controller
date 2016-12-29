@@ -16,11 +16,18 @@ class InstanceTrackManager extends BaseManager {
 	 * @param Integer - instanceId
 	 * @return JSON - returns a Array of JSON objects with elementInstance and its related instanceTrack
 	 */
-	findInstanceContainer(instanceId) {
-		var instanceTrackingQuery = "SELECT i.*, t.* FROM element_instance i LEFT JOIN instance_track t ON (i.track_id = t.ID) WHERE i.iofabric_uuid = " + instanceId + " AND (i.track_id = 0 OR t.is_activated = 1)";
-		return sequelize.query(instanceTrackingQuery);
-	}
+	findInstanceContainer(instanceId) {										                                      
+		var instanceTrackingQuery = "SELECT i.*, t.* FROM element_instance i LEFT JOIN \
+		instance_track t ON i.track_id = t.ID \
+		WHERE i.iofabric_uuid in (:instanceId) AND (i.track_id = 0 OR t.is_activated = 1)";
 
+		return sequelize.query(instanceTrackingQuery, {
+			replacements: {
+				instanceId: instanceId
+			},
+			type: sequelize.QueryTypes.SELECT
+		});
+	}
 }
 
 const instance = new InstanceTrackManager();

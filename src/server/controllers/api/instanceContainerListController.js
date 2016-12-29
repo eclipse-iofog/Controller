@@ -11,9 +11,13 @@ import ElementInstanceManager from '../../managers/elementInstanceManager';
 import ElementManager from '../../managers/elementManager';
 import BaseApiController from './baseApiController';
 import Registry from '../../models/registry';
-import ElementInstancePortManager from '../../managers/elementInstancePortManager'
+import ElementInstancePortManager from '../../managers/elementInstancePortManager';
+
+import InstanceTrackService from '../../services/instanceTrackService';
+
 import AppUtils from '../../utils/appUtils';
 import Constants from '../../constants.js';
+import _ from 'underscore';
 
 
 router.get('/api/v2/instance/containerlist/id/:ID/token/:Token', BaseApiController.checkUserExistance, (req, res) => {
@@ -24,11 +28,11 @@ router.post('/api/v2/instance/containerlist/id/:ID/token/:Token', BaseApiControl
   	containerList(req, res);
 });
 
+
 const containerList= function(req, res){
-  var milliseconds = new Date().getTime(),
-    instanceId = req.params.ID,
-    token = req.params.Token,
-    containerList = [];
+  var instanceId = req.params.ID,
+      token = req.params.Token,
+      containerList = [];
   /**
    * @desc - if instanceTrack are found, this function populates a containerList 
    * with elementInstances and a sub-list of there respective ports
@@ -37,28 +41,29 @@ const containerList= function(req, res){
    */
   InstanceTrackManager.findInstanceContainer(instanceId)
     .then((instanceContainer) => {
-      if (instanceContainer && instanceContainer[0] && instanceContainer[0].length > 0) {
-        var instanceContainerList = instanceContainer[0];
-        for (let i = 0; i < instanceContainerList.length; i++) {
-          var container = instanceContainerList[i];
+      if (instanceContainer) {
+        //var instanceContainerList = instanceContainer[0];
+        
+        for (let i = 0; i < instanceContainer.length; i++) {
+          var container = instanceContainer[i];
           container.rebuildFlag = false;
           container.rootAccessFlag = false;
           container.ports = [];
 
           if (container.is_stream_viewer > 0) container.isViewerOrDebug = "viewer";
           if (container.is_debug_console > 0) container.isViewerOrDebug = "debug";
-          /**
-           * @desc - async.waterfall control flow, sequential calling of an Array of functions.
-           * @param Array - [resetElementInstanceRebuild, findElement, getElmentPorts]
-           * @return - returns an appropriate response to the client
-           */
+          // *
+          //  * @desc - async.waterfall control flow, sequential calling of an Array of functions.
+          //  * @param Array - [resetElementInstanceRebuild, findElement, getElmentPorts]
+          //  * @return - returns an appropriate response to the client
+           
           async.waterfall([
             async.apply(resetElementInstanceRebuild, container, containerList),
             findElement,
             getElementPorts,
           ], function(err, result) {
             if (err) {
-              if (i === (instanceContainerList.length - 1)) {
+              if (i === (instanceContainer.length - 1)) {
                 res.send({
                   'status': 'failure',
                   'timestamp': new Date().getTime(),
@@ -67,7 +72,7 @@ const containerList= function(req, res){
               }
             } else {
               res.status(200);
-              if (i === (instanceContainerList.length - 1)) {
+              if (i === (instanceContainer.length - 1)) {
                 res.send({
                   status: "ok",
                   timestamp: new Date().getTime(),
@@ -90,6 +95,7 @@ const containerList= function(req, res){
       callback('error', Constants.MSG.SYSTEM_ERROR);
     });
 };
+
 /**
  * @desc - if the container needs to be rebuild, it sets the rebuild value to 0 and calls
  * the findElement function
@@ -125,11 +131,11 @@ function findElement(container, containerList, callback) {
     logsize: parseFloat(container.log_size),
   }
 
-  ElementManager.findById(container.element_key, [Registry])
+  ElementManager.findElementAndRegistryById(container.element_key)
     .then((elementRegistry) => {
       if (elementRegistry) {
         newContainerItem.imageid = elementRegistry.containerImage;
-        newContainerItem.registry_url = elementRegistry.registry.url;
+        newContainerItem.registryurl = elementRegistry.registry.url;
         callback(null, container, newContainerItem, containerList, elementRegistry);
       } else {
         // call error
@@ -158,7 +164,7 @@ function getElementPorts(container, newContainerItem, containerList, elementRegi
           container.ports.push(OutputPortItem);
         }
       }
-      newContainerItem.portMappings = container.ports;
+      newContainerItem.portmappings = container.ports;
       containerList.push(newContainerItem);
       callback(null, containerList);
     }, (err) => {

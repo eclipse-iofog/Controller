@@ -6,6 +6,8 @@
 
 import Element from './../models/element';
 import BaseManager from './baseManager';
+import Registry from './../models/registry';
+
 
 class ElementManager extends BaseManager {
 	getEntity() {
@@ -19,7 +21,6 @@ class ElementManager extends BaseManager {
 			}
 		});
 	}
-
 	findElementByIds(ids) {
 		return Element.findAll({
 			where: {
@@ -27,6 +28,18 @@ class ElementManager extends BaseManager {
 					$in: ids
 				}
 			}
+		});
+	}
+
+	findElementAndRegistryById(id) {
+		return Element.findOne({
+			where: {
+				'ID': id
+			},
+			include: [{
+				model: Registry,  as: 'registry',
+				attributes: ['url']
+			}]
 		});
 	}
 }

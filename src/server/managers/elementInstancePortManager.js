@@ -20,7 +20,7 @@ class ElementInstancePortManager extends BaseManager {
 	getPortsByElementId(id) {
 		return ElementInstancePort.findAll({
 			where: {
-				elementId: id
+				id: id
 			}
 		});
 	}
