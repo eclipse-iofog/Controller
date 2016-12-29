@@ -15,11 +15,11 @@ const ElementInstancePort = sequelize.define('element_instance_port', {
     autoIncrement: true,
     field: 'ID'
   },
-  portInternal: {
+  portinternal: {
     type: Sequelize.BIGINT,
     field: 'port_internal'
   },
-  portExternal: {
+  portexternal: {
     type: Sequelize.BIGINT,
     field: 'port_external'
   },

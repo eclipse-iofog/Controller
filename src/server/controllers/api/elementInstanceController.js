@@ -126,8 +126,8 @@ const extractOpenPort = function(params, elementInstance) {
 
     let openPort = {
       portid: instancePort.id,
-      internalport: instancePort.portInternal,
-      externalport: instancePort.portExternal,
+      internalport: instancePort.portinternal,
+      externalport: instancePort.portexternal,
       accessurl: accessurl,
       networkpairingid: networkpairingid
     }
