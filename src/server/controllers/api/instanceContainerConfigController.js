@@ -8,10 +8,8 @@ import async from 'async';
 import express from 'express';
 const router = express.Router();
 import BaseApiController from './baseApiController';
-import ElementInstanceManager from '../../managers/elementInstanceManager';
-import DataTracksManager from '../../managers/dataTracksManager';
+import ElementInstanceService from '../../services/elementInstanceService';
 import AppUtils from '../../utils/appUtils';
-import Constants from '../../constants.js';
 
 
 router.get('/api/v2/instance/containerconfig/id/:ID/token/:Token', BaseApiController.checkUserExistance, (req, res) => {
@@ -23,57 +21,47 @@ router.post('/api/v2/instance/containerconfig/id/:ID/token/:Token', BaseApiContr
 });
 
 const containerConfig= function(req, res){
-	var milliseconds = new Date().getTime(),
-		instanceId = req.params.ID,
-		token = req.params.Token,
-		containerList = new Array();
-	/**
-	 * @desc - if elementInstance are found, this function populates an Array with 
-	 * the elements respective id, timestamp and  there configuration and sends the list back to the client
-	 * @param Integer - instanceId
-	 * @return - returns an appropriate response to the client
-	 */
-	ElementInstanceManager.findByInstanceId(instanceId)
-		.then((outputData) => {
-			var i;
-			if (outputData && outputData[0] && outputData[0].length > 0) {
-				for (i = 0; i < outputData[0].length; i++) {
-					var container = outputData[0][i];
-					var containerID = container.UUID;
+	var params = {},
+		instanceProps = {
+			instanceId: 'bodyParams.ID',
+			setProperty: 'outputData'
+		};
 
-					if (container.is_stream_viewer > 0) {
-						containerID = "viewer";
-					}
+	params.bodyParams = req.params;
 
-					if (container.is_debug_console > 0) {
-						containerID = "debug";
-					}
+	async.waterfall([
+		async.apply(ElementInstanceService.findByInstanceId, instanceProps, params),
+		processOutput
 
-					var containerUpdated = container.config_last_updated * 1000;
-					var containerConfig = container.config;
-					containerList.push({
-						'id': containerID,
-						'lastupdatedtimestamp': containerUpdated,
-						'config': containerConfig
-					});
-				}
-				res.status(200);
-				res.send({
-					"status": "ok",
-					"timestamp": new Date().getTime(),
-					"containerconfig": containerList
-				});
-
-			} else {
-
-				res.send({
-					"status": "failure",
-					"timestamp": new Date().getTime(),
-					"error": "Element not found"
-				});
-
-			}
-		});
+	], function(err, result) {
+		AppUtils.sendResponse(res, err, 'containerconfig', params.containerList, result);
+	})
 };
+
+const processOutput=function (params, callback)
+{
+	var containerList = new Array();
+
+	for (var i = 0; i < params.outputData.length; i++) {
+		var container = params.outputData[i],
+			containerID = container.UUID;
+
+		if (container.is_stream_viewer > 0) {
+			containerID = "viewer";
+		}
+		if (container.is_debug_console > 0) {
+			containerID = "debug";
+		}
+		var containerUpdated = container.config_last_updated,
+			containerConfig = container.config;
+			containerList.push({
+				'id': containerID,
+				'lastupdatedtimestamp': containerUpdated,
+				'config': containerConfig
+			});
+		params.containerList = containerList;
+	}
+	callback (null, params);
+}
 
 export default router;

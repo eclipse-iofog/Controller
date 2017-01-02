@@ -23,6 +23,14 @@ const getElementInstancesByTrackId = function(params, callback) {
     .then(AppUtils.onFind.bind(null, params, 'trackElementInstances', 'Cannot find Element Instances related to track ' + params.bodyParams.trackId, callback));
 }
 
+const findByInstanceId= function(props, params, callback) {
+  var instanceId = AppUtils.getProperty(params, props.instanceId);
+
+  ElementInstanceManager
+    .findByInstanceId(instanceId)
+    .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Cannot find Element Instance', callback));
+}
+
 const findRealElementInstanceByTrackId = function(params, callback) {
   ElementInstanceManager
     .findRealElementInstanceByTrackId(params.bodyParams.trackId)
@@ -212,6 +220,7 @@ export default {
   createElementInstance: createElementInstance,
   createNetworkElementInstance: createNetworkElementInstance,
   createStreamViewerElement: createStreamViewerElement,
+  findByInstanceId: findByInstanceId,
   findRealElementInstanceByTrackId: findRealElementInstanceByTrackId,
   findIntraTrackByUuids: findIntraTrackByUuids,
   findExtraTrackByUuids: findExtraTrackByUuids,

@@ -6,7 +6,7 @@
 import async from 'async';
 import express from 'express';
 const router = express.Router();
-import InstanceTrackManager from '../../managers/instanceTrackManager';
+import DataTracksManager from '../../managers/dataTracksManager';
 import ElementInstanceManager from '../../managers/elementInstanceManager';
 import ElementManager from '../../managers/elementManager';
 import BaseApiController from './baseApiController';
@@ -39,16 +39,17 @@ const containerList= function(req, res){
    * @param Integer - instanceId
    * @return - returns an appropriate response to the client
    */
-  InstanceTrackManager.findInstanceContainer(instanceId)
+  DataTracksManager.findContainerListByInstanceId(instanceId)
     .then((instanceContainer) => {
-      if (instanceContainer) {
-        //var instanceContainerList = instanceContainer[0];
-        
+      if (instanceContainer) {        
         for (let i = 0; i < instanceContainer.length; i++) {
           var container = instanceContainer[i];
           container.rebuildFlag = false;
           container.rootAccessFlag = false;
           container.ports = [];
+
+          container.isViewerOrDebug = instanceContainer[i].UUID;
+          container.last_updated = instanceContainer[i].updated_at;
 
           if (container.is_stream_viewer > 0) container.isViewerOrDebug = "viewer";
           if (container.is_debug_console > 0) container.isViewerOrDebug = "debug";
@@ -125,7 +126,7 @@ function resetElementInstanceRebuild(container, containerList, callback) {
 function findElement(container, containerList, callback) {
   var newContainerItem = {
     id: container.isViewerOrDebug,
-    lastmodified: parseFloat(container.last_updated),
+    lastmodified: container.last_updated,
     rebuild: container.rebuild > 0 ? true : false,
     roothostaccess: container.root_host_access > 0 ? true : false,
     logsize: parseFloat(container.log_size),
