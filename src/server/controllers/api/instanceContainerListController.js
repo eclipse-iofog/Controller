@@ -159,8 +159,8 @@ function getElementPorts(container, newContainerItem, containerList, elementRegi
       if (elementPorts && elementPorts.length > 0) {
         for (let i = 0; i < elementPorts.length; i++) {
           let OutputPortItem = {
-            outsidecontainer: (elementPorts[i].portexternal).toString(),
-            insidecontainer: (elementPorts[i].portinternal).toString()
+            outsidecontainer: elementPorts[i].portexternal,
+            insidecontainer: elementPorts[i].portinternal
           };
           container.ports.push(OutputPortItem);
         }
