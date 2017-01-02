@@ -24,11 +24,11 @@ class RoutingManager extends BaseManager {
     return Routing.findAll({
       where: {
         $or: [{
-          publishingInstanceId: {
+          publishing_instance_id: {
             $eq: instanceId
           }
         }, {
-          destinationInstanceId: {
+          destination_instance_id: {
             $eq: instanceId
           }
         }]
