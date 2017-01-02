@@ -126,7 +126,7 @@ function resetElementInstanceRebuild(container, containerList, callback) {
 function findElement(container, containerList, callback) {
   var newContainerItem = {
     id: container.isViewerOrDebug,
-    lastmodified: container.last_updated,
+    lastmodified: Date.parse(container.last_updated),
     rebuild: container.rebuild > 0 ? true : false,
     roothostaccess: container.root_host_access > 0 ? true : false,
     logsize: parseFloat(container.log_size),

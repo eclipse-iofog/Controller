@@ -52,7 +52,7 @@ const processOutput=function (params, callback)
 		if (container.is_debug_console > 0) {
 			containerID = "debug";
 		}
-		var containerUpdated = container.config_last_updated,
+		var containerUpdated = Date.parse(container.config_last_updated) * 1000,
 			containerConfig = container.config;
 			containerList.push({
 				'id': containerID,
