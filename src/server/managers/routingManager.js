@@ -79,7 +79,7 @@ class RoutingManager extends BaseManager {
   deleteByPublishingElementId(elementId) {
     return Routing.destroy({
       where: {
-        publishingElementId: elementId
+        publishing_element_id: elementId
       }
     });
   }
