@@ -15,13 +15,14 @@ const createConsole = function(params, callback) {
   ConsoleManager
     .create(consoleObj)
     .then(AppUtils.onCreate.bind(null, params, null, 'Unable to create Console object', callback));
-
 }
 
-const getConsoleByFogInstanceId = function(params, callback) {
+const getConsoleByFogInstanceId = function(props, params, callback) {
+  var instanceId = AppUtils.getProperty(params, props.instanceId);
+
   ConsoleManager
-    .findByInstanceId(params.bodyParams.instanceId)
-    .then(AppUtils.onFindOptional.bind(null, params, 'console', callback));
+    .findByInstanceId(instanceId)
+    .then(AppUtils.onFindOptional.bind(null, params, props.setProperty, callback));
 }
 
 const deleteConsoleByFogInstanceId = function(props, params, callback) {

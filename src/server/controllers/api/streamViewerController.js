@@ -25,12 +25,20 @@ router.get('/api/v2/authoring/fabric/viewer/access', (req, res) => {
   userProps = {
     userId: 'bodyParams.userId',
     setProperty: 'user'
+  },
+  streamViewerProps = {
+    instanceId: 'bodyParams.instanceId',
+    setProperty: 'streamViewer'
+  },
+  consoleProps={
+    instanceId: 'bodyParams.ID',
+    setProperty: 'console'
   };
 
   async.waterfall([
     async.apply(UserService.getUser, userProps, params),
-    StreamViewerService.getStreamViewerByFogInstanceId,
-    ConsoleService.getConsoleByFogInstanceId,
+    async.apply(StreamViewerService.getStreamViewerByFogInstanceId, streamViewerProps),
+    async.apply(ConsoleService.getConsoleByFogInstanceId, consoleProps),
     getResponse
   ], function(err, result) {
     var errMsg = 'Internal error: There was a problem getting the toolset access for this ioFog instance.'+result;

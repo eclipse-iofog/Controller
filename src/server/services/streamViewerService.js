@@ -15,13 +15,14 @@ const createStreamViewer = function(params, callback) {
   StreamViewerManager
     .create(streamViewerObj)
     .then(AppUtils.onCreate.bind(null, params, null, 'Unable to create Stream Viewer object', callback));
-
 }
 
-const getStreamViewerByFogInstanceId = function(params, callback) {
+const getStreamViewerByFogInstanceId = function(props, params, callback) {
+   var instanceId = AppUtils.getProperty(params, props.instanceId);
+
   StreamViewerManager
-    .findByInstanceId(params.bodyParams.instanceId)
-    .then(AppUtils.onFindOptional.bind(null, params, 'streamViewer', callback));
+    .findByInstanceId(instanceId)
+    .then(AppUtils.onFindOptional.bind(null, params, props.setProperty, callback));
 }
 
 const deleteStreamViewerByFogInstanceId  = function(props, params, callback) {

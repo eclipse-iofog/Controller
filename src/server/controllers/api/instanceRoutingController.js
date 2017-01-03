@@ -20,12 +20,9 @@ import NetworkPairingService from '../../services/networkPairingService';
 import RoutingService from '../../services/routingService';
 import SatelliteService from '../../services/satelliteService';
 import SatellitePortService from '../../services/satellitePortService';
+import ConsoleService from '../../services/consoleService';
+import StreamViewerService from '../../services/streamViewerService';
 import UserService from '../../services/userService';
-
-import StreamViewerManager from '../../managers/streamViewerManager';
-import FabricManager from '../../managers/fabricManager';
-import ConsoleManager from '../../managers/consoleManager';
-import RoutingManager from '../../managers/routingManager';
 
 import AppUtils from '../../utils/appUtils';
 import Constants from '../../constants.js';
@@ -39,131 +36,82 @@ router.post('/api/v2/instance/routing/id/:ID/token/:Token', BaseApiController.ch
 });
 
 const instanceRouting = function (req, res){
-  var milliseconds = new Date().getTime(),
-    instanceId = req.params.ID,
-    token = req.params.Token,
-    streamId = "",
-    consoleId = "",
-    containerList = [];
-  /**
-   * @desc - async.waterfall control flow, sequential calling of an Array of functions.
-   * @param Array - [getStreamViewer, getConsole, getRouting]
-   * @return - returns an appropriate response to the client
-   */
+  var params = {},
+      streamViewerProps = {
+        instanceId: 'bodyParams.ID',
+        setProperty: 'streamViewerData'
+      },
+      consoleProps = {
+        instanceId: 'bodyParams.ID',
+        setProperty: 'consoleData'
+      },
+      routingProps = { 
+        instanceId: 'bodyParams.ID',
+        setProperty: 'routingData'
+      };
+
+  params.bodyParams = req.params;
+
   async.waterfall([
-    async.apply(getStreamViewer, instanceId, streamId, consoleId, containerList),
-    getConsole,
+    async.apply(StreamViewerService.getStreamViewerByFogInstanceId, streamViewerProps, params),
+    async.apply(ConsoleService.getConsoleByFogInstanceId, consoleProps),
+    async.apply(RoutingService.findByInstanceId, routingProps),
     getRouting
-  ], function(err, result) {
-    if (err) {
-      res.send({
-        'status': 'failure',
-        'timestamp': new Date().getTime(),
-        'errormessage': result
-      });
-    } else {
-      res.status(200);
-      res.send({
-        'status': 'ok',
-        'timestamp': new Date().getTime(),
-        'routing': result
-      });
-    }
+ ], function(err, result) {
+    AppUtils.sendResponse(res, err, 'routing', params.containerList, result);
   });
 };
 
-/**
- * @desc - if the streamViewer exists in the database, assigns the streamId and forwards to getConsole function
- * @param - instanceId, streamId, consoleId, containerList, callback
- * @return - none
- */
-function getStreamViewer(instanceId, streamId, consoleId, containerList, callback) {
-  StreamViewerManager.findByInstanceId(instanceId)
-    .then((streamData) => {
-        if (streamData) {
-          streamId = streamData.elementId;
-          callback(null, instanceId, streamId, consoleId, containerList);
-        } else callback('error', Constants.MSG.ERROR_STREAMVIEWER_UNKNOWN);
-      },
-      (err) => {
-        callback('error', Constants.MSG.SYSTEM_ERROR);
-      });
-}
-/**
- * @desc - if the console exists in the database, assigns the consoleId and forwards to getRouting function
- * @param - instanceId, streamId, consoleId, containerList, callback
- * @return - none
- */
-function getConsole(instanceId, streamId, consoleId, containerList, callback) {
-  ConsoleManager.findByInstanceId(instanceId)
-    .then((consoleData) => {
-        if (consoleData) {
-          consoleId = consoleData.elementId;
-          callback(null, instanceId, streamId, consoleId, containerList);
-        } else callback('error', Constants.MSG.ERROR_CONSOLE_UNKNOWN);
-      },
-      (err) => {
-        callback('error', Constants.MSG.SYSTEM_ERROR);
-      });
-}
-/**
- * @desc - if the routing exists in the database, this function populates the containerList
- * with list of containers with there respective list of recievers
- * @param - instanceId, streamId, consoleId, containerList, callback
- * @return - none
- */
-function getRouting(instanceId, streamId, consoleId, containerList, callback) {
-  RoutingManager.findByInstanceId(instanceId)
-    .then((routingData) => {
-        if (routingData) {
-          var routingList = routingData;
-          for (let i = 0; i < routingList.length; i++) {
-            var container = routingList[i],
-              containerID = container.publishingElementId,
-              destinationInstanceID = container.destinationInstanceId,
-              destinationElementID = container.destinationElementId,
-              foundIt = false;
-            for (var j = 0; j < containerList.length; j++) {
-              var curItem = containerList[j];
-              var curID = curItem.container;
+  const getRouting = function (params, callback) {
+    var containerList = [];
+    for (let i = 0; i < params.routingData.length; i++) {
+      var container = params.routingData[i],
+          containerID = container.publishing_element_id,
+          destinationElementID = container.destination_element_id,
+          foundIt = false;
 
-              if (curID == containerID) {
-                foundIt = true;
-                var outElementLabel = destinationElementID;
-                if (destinationElementID == streamId) {
-                  outElementLabel = "viewer";
-                }
-                if (destinationElementID == consoleId) {
-                  outElementLabel = "debug";
-                }
+      params.container = container;
 
-                containerList[j]["receivers"].push(outElementLabel);
-              }
-            }
-            if (foundIt == false) {
-              var tmpNewContainerItem = {
-                container: containerID
-              };
-              var receiverList = new Array();
-              var outElementLabel = destinationElementID;
-              if (destinationElementID == streamId) {
-                outElementLabel = "viewer";
-              }
-              if (destinationElementID == consoleId) {
-                outElementLabel = "debug";
-              }
-              receiverList.push(outElementLabel);
-              tmpNewContainerItem.receivers = receiverList;
-              containerList.push(tmpNewContainerItem);
-            }
+      for (var j = 0; j < containerList.length; j++) {
+        var curItem = containerList[j],
+            curID = curItem.container;
+
+        if (curID == containerID) {
+          foundIt = true;
+          var outElementLabel = destinationElementID;
+
+          if (destinationElementID == params.streamViewerData.element_id) {
+            outElementLabel = "viewer";
           }
-          callback(null, containerList);
-        } else callback('error', Constants.MSG.ERROR_ROUTING_UNKNOWN);
-      },
-      (err) => {
-        callback('error', Constants.MSG.SYSTEM_ERROR);
-      });
-}
+          if (destinationElementID == params.consoleData.elementId) {
+            outElementLabel = "debug";
+          }
+            containerList[j]["receivers"].push(outElementLabel);
+        }
+      }
+      if (foundIt == false) {
+        var tmpNewContainerItem = {},
+            receiverList = new Array(),
+            outElementLabel = destinationElementID;
+              
+            tmpNewContainerItem.container = containerID;
+
+        if (destinationElementID ==  params.streamViewerData.element_id) {
+          outElementLabel = "viewer";
+          }
+        if (destinationElementID == params.consoleData.elementId) {
+          outElementLabel = "debug";
+          }
+        
+        receiverList.push(outElementLabel);
+
+        tmpNewContainerItem.receivers = receiverList;
+        containerList.push(tmpNewContainerItem);
+      }
+    }
+    params.containerList = containerList;
+    callback(null, params);
+  }
 
 router.post('/api/v2/authoring/element/instance/route/create', (req, res) => {
   var params = {},

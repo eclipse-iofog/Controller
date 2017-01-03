@@ -26,6 +26,14 @@ const findByElementInstanceUuids = function(params, callback) {
     .then(AppUtils.onFind.bind(null, params, 'routing', 'Routing not found.', callback));
 }
 
+const findByInstanceId = function(props, params, callback) {
+   var instanceId = AppUtils.getProperty(params, props.instanceId);
+
+  RoutingManager
+    .findByInstanceId(instanceId)
+    .then(AppUtils.onFind.bind(null, params, props.setProperty, 'instanceId not found in routing.', callback));
+}
+
 const findOutputRoutingByElementInstanceUuids = function(params, callback) {
   RoutingManager
     .findOutputRoutingByElementInstanceUuids(_.pluck(params.elementInstance, 'uuid'))
@@ -129,6 +137,7 @@ const deleteByFogAndElement = function(props, params, callback) {
 
 export default {
   createRoute: createRoute,
+  findByInstanceId: findByInstanceId,
   findByElementInstanceUuids: findByElementInstanceUuids,
   extractDifferentRoutingList: extractDifferentRoutingList,
   findOutputRoutingByElementInstanceUuids: findOutputRoutingByElementInstanceUuids,
