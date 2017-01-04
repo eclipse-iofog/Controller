@@ -168,7 +168,7 @@ const Fabric = sequelize.define('iofabrics', {
     defaultValue: "/var/log/iofabric/",
     field: 'LogDirectory'
   },
-  logfileCount: {
+  logfilecount: {
     type: Sequelize.BIGINT,
     defaultValue: 10,
     field: 'LogFileCount'

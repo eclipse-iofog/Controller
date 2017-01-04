@@ -46,7 +46,7 @@ const instanceConfig = function(req, res){
             "cpulimit": fabricData.cpulimit,
             "loglimit": fabricData.loglimit,
             "logdirectory": fabricData.logdirectory,
-            "logfilecount": fabricData.logfileCount
+            "logfilecount": fabricData.logfilecount
           }
         });
       } else {
