@@ -73,6 +73,11 @@ router.get('/api/v2/instance/create/type/:type', (req, res) => {
       		userId: 'bodyParams.userId',
       		setProperty: 'user'
     	},
+    	fogTypeProps = {
+      		fogTypeId: 'bodyParams.type',
+      		setProperty: 'fabricType'
+    	},
+
     	createFogProps = {
       		fabricType: 'bodyParams.type',
       		setProperty: 'fabricInstance'
@@ -83,6 +88,7 @@ router.get('/api/v2/instance/create/type/:type', (req, res) => {
 
 	async.waterfall([
 		async.apply(UserService.getUser, userProps, params),
+		async.apply(FabricTypeService.getFabricTypeDetail, fogTypeProps),
 		async.apply(FabricService.createFogInstance, createFogProps)
 	],
 	function(err, result) {
