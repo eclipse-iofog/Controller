@@ -28,7 +28,6 @@ router.post('/api/v2/instance/containerlist/id/:ID/token/:Token', BaseApiControl
   	containerList(req, res);
 });
 
-
 const containerList= function(req, res){
   var instanceId = req.params.ID,
       token = req.params.Token,
@@ -41,7 +40,8 @@ const containerList= function(req, res){
    */
   DataTracksManager.findContainerListByInstanceId(instanceId)
     .then((instanceContainer) => {
-      if (instanceContainer) {        
+      if (instanceContainer && instanceContainer.length>0) {  
+      console.log(instanceContainer);      
         for (let i = 0; i < instanceContainer.length; i++) {
           var container = instanceContainer[i];
           container.rebuildFlag = false;

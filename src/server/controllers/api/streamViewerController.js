@@ -18,9 +18,6 @@ import AppUtils from '../../utils/appUtils';
 
 router.get('/api/v2/authoring/fabric/viewer/access', (req, res) => {
   var params = {},
-   userProps;
-
-  params.bodyParams = req.query;
 
   userProps = {
     userId: 'bodyParams.userId',
@@ -34,6 +31,7 @@ router.get('/api/v2/authoring/fabric/viewer/access', (req, res) => {
     instanceId: 'bodyParams.ID',
     setProperty: 'console'
   };
+ params.bodyParams = req.query;
 
   async.waterfall([
     async.apply(UserService.getUser, userProps, params),

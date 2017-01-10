@@ -35,7 +35,7 @@ router.post('/api/v2/authoring/integrator/instance/create', (req, res) => {
     createFogProps = {
           fabricType: 'bodyParams.fabricType',
           setProperty: 'fabricInstance'
-      };
+      },
 
     fogTypeProps = {
       fogTypeId: 'fabricInstance.typeKey',

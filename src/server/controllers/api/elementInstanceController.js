@@ -24,6 +24,10 @@ import SatellitePortService from '../../services/satellitePortService';
 import SatelliteService from '../../services/satelliteService';
 import UserService from '../../services/userService';
 
+import ElementInstanceManager from '../../managers/elementInstanceManager';
+import ChangeTrackingManager from '../../managers/changeTrackingManager';
+
+
 import AppUtils from '../../utils/appUtils';
 import Constants from '../../constants.js';
 import _ from 'underscore';
@@ -324,73 +328,43 @@ router.post('/api/v2/authoring/build/element/instance/create', (req, res) => {
   });
 });
 
-/**
- * @desc - this end-point updates the element instance incase of any-change
- * @return - returns and appropriate response to the client
- */
+
 router.post('/api/v2/authoring/element/instance/update', (req, res) => {
   var params = {},
-    userId = 1,
-    elementInstanceProps;
+      elementInstanceProps = {
+        elementInstanceId: 'bodyParams.instanceId',
+        setProperty: 'elementInstance'
+      };
 
   params.bodyParams = req.body;
-  params.milliseconds = new Date().getTime();
 
-  elementInstanceProps = {
-    elementInstanceId: 'bodyParams.InstanceId',
-    setProperty: 'elementInstance'
-  };
-
-  if (!params.bodyParams.FabricInstance) {
-    res.send({
-      'status': 'failure',
-      'timestamp': new Date().getTime(),
-      'errormessage': 'Fabric Instance Id is required'
-    });
-  } else {
     async.waterfall([
       async.apply(ElementInstanceService.getElementInstance, elementInstanceProps, params),
-      updateElementInstance, // update the fabric id
-      updateChangeTracking, // update the changetracking data based on elementinstance.iofabric_uuid
-      updateChange, // update the changetracking data based on the post param Fabric id
-      updateElement // update the element data from incoming post params
+       updateElementInstance,
+       updateChangeTracking,
+       updateChange, 
+       updateElement 
     ], function(err, result) {
-      res.status(200);
-      if (err) {
-        res.send({
-          'status': 'failure',
-          'timestamp': new Date().getTime(),
-          'errormessage': result
-        });
-      } else {
-        res.send({
-          'status': 'ok',
-          'timestamp': new Date().getTime(),
-          'instance Id': result
-        });
-      }
+    AppUtils.sendResponse(res, err, 'instanceId', params.bodyParams.instanceId, result);
+
     });
-  }
 });
 
-/**
- * @desc - this function sets this element instance to a fabric
- */
-function updateElementInstance(bodyParams, elementInstance, callback) {
+function updateElementInstance(params, callback) {
   var data;
 
-  if (elementInstance.iofabric_uuid === bodyParams.FabricInstance) {
-    callback(null, bodyParams, elementInstance);
-  } else {
-
+  if (params.elementInstance.iofabric_uuid === params.bodyParams.FabricInstance) {
+    callback(null, params);
+  } 
+  else {
     data = {
-      iofabric_uuid: bodyParams.FabricInstance
+      iofabric_uuid: params.bodyParams.fabricInstanceId
     };
 
-    ElementInstanceManager.updateByUUID(bodyParams.InstanceId, data)
+    ElementInstanceManager.updateByUUID(params.bodyParams.instanceId, data)
       .then((updatedElement) => {
           if (updatedElement > 0) {
-            callback(null, bodyParams, elementInstance);
+            callback(null, params);
           } else callback('error', "Unable to Update elements fabric id");
         },
         (err) => {
@@ -402,25 +376,25 @@ function updateElementInstance(bodyParams, elementInstance, callback) {
 /**
  * @desc - this function popultes objects with updated values and updates the changetraking table
  */
-function updateChangeTracking(bodyParams, elementInstance, callback) {
+function updateChangeTracking(params, callback) {
 
   var lastUpdated = new Date().getTime(),
     updateChangeTracking = {},
     updateChange = {},
 
     updateElementObject = {
-      logSize: bodyParams.LogSize,
-      name: bodyParams.Name,
-      config: bodyParams.Config,
+      logSize: params.bodyParams.logSize,
+      name: params.bodyParams.name,
+      config: params.bodyParams.config,
       configLastUpdated: lastUpdated,
-      RootHostAccess: bodyParams.RootAccess
+      rootHostAccess: params.bodyParams.rootAccess
     };
 
-  if (elementInstance.config != bodyParams.Config) {
+  if (params.elementInstance.config != params.bodyParams.config) {
     updateElementObject.configLastUpdated = new Date().getTime();
     updateChangeTracking.containerConfig = new Date().getTime();
   }
-  if (elementInstance.iofabric_uuid != bodyParams.FabricInstance) {
+  if (params.elementInstance.iofabric_uuid != params.bodyParams.fabricInstanceId) {
 
     updateChangeTracking.containerList = new Date().getTime();
     updateChangeTracking.containerConfig = new Date().getTime();
@@ -428,40 +402,42 @@ function updateChangeTracking(bodyParams, elementInstance, callback) {
     updateChange.containerConfig = new Date().getTime();
     updateChange.containerList = new Date().getTime();
 
-  } else if (elementInstance.RootHostAccess != bodyParams.RootAccess) {
+  } else if (params.elementInstance.RootHostAccess != params.bodyParams.rootAccess) {
     updateChange.containerList = new Date().getTime();
   }
+  params.updateElementObject = updateElementObject;
+  params.updateChange = updateChange;
 
-  ChangeTrackingManager.updateByUuid(elementInstance.iofabric_uuid, updateChangeTracking)
+  ChangeTrackingManager.updateByUuid(params.elementInstance.iofabric_uuid, updateChangeTracking)
     .then((updatedchange) => {
-        callback(null, bodyParams, updateChange, updateElementObject);
+        callback(null, params);
       },
       (err) => {
-        callback(null, bodyParams, updateChange, updateElementObject);
+        callback(null, params);
       });
 }
 
 /**
  * @desc - this function uses the populated objects to update the database values
  */
-function updateChange(bodyParams, updateChange, updateElementObject, callback) {
-  ChangeTrackingManager.updateByUuid(bodyParams.FabricInstance, updateChange)
+function updateChange(params, callback) {
+  ChangeTrackingManager.updateByUuid(params.bodyParams.fabricInstanceId, params.updateChange)
     .then((changeUpdated) => {
-        callback(null, bodyParams, updateElementObject);
+        callback(null, params);
       },
       (err) => {
-        callback(null, bodyParams, updateElementObject);
+        callback(null, params);
       });
 }
 /**
  * @desc - this function updates the element instance with the new updated values
  */
-function updateElement(bodyParams, updateElementObject, callback) {
+function updateElement(params, callback) {
 
-  ElementInstanceManager.updateByUUID(bodyParams.InstanceId, updateElementObject)
+  ElementInstanceManager.updateByUUID(params.bodyParams.instanceId, params.updateElementObject)
     .then((updatedElement) => {
         if (updatedElement > 0) {
-          callback(null, bodyParams.InstanceId);
+          callback(null, params);
         } else callback('error', "Unable to Update element instance data");
       },
       (err) => {
@@ -618,11 +594,13 @@ router.post('/api/v2/authoring/element/instance/comsat/pipe/create', (req, res) 
     async.apply(ChangeTrackingService.updateChangeTracking, changeTrackingCLProps),
     async.apply(NetworkPairingService.createNetworkPairing, networkPairingProps)
   ], function(err, result) {
-    var errMsg = 'Internal error: There was a problem trying to create the Comsat Pipe.' + result,
-      outputObj = {
+    var errMsg = 'Internal error: There was a problem trying to create the Comsat Pipe.' + result;
+     if (params.satellite){
+      var outputObj = {
         'accessUrl': 'https://' + params.satellite.domain + ':' + params.satellitePort.port2,
         'networkPairingId': params.networkPairingObj.id
       };
+    }
     AppUtils.sendResponse(res, err, 'connection', outputObj, errMsg);
   });
 });
