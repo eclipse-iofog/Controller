@@ -40,6 +40,14 @@ class DataTracksManager extends BaseManager {
     });
   }
 
+  updateById(id, data) {
+    return DataTracks.update(data, {
+      where: {
+        id: id
+      }
+    });
+  }
+
   findContainerListByInstanceId(instanceId) {                                                         
     var instanceTrackingQuery = "SELECT i.*, t.is_activated FROM element_instance i LEFT JOIN \
     data_tracks t ON i.track_id = t.ID \

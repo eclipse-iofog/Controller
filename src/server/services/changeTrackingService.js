@@ -17,8 +17,14 @@ const updateChangeTracking = function(props, params, callback) {
   ChangeTrackingManager
     .updateByUuid(fogInstanceId, props.changeObject)
     .then(AppUtils.onUpdate.bind(null, params, 'Unable to update Change Tracking', callback));
-
 }
+
+const updateChangeTrackingData = function(props, params) {
+  var fogInstanceId = AppUtils.getProperty(params, props.fogInstanceId);
+
+  ChangeTrackingManager
+    .updateByUuid(fogInstanceId, props.changeObject)
+  }
 
 const updateConfigTracking = function(params, callback) {
   if (params.isConfigChanged) {
@@ -46,6 +52,7 @@ const deleteChangeTracking = function(props, params, callback) {
 
 export default {
   initiateFabricChangeTracking: initiateFabricChangeTracking,
+  updateChangeTrackingData: updateChangeTrackingData,
   updateChangeTracking: updateChangeTracking,
   updateConfigTracking: updateConfigTracking,
   deleteChangeTracking: deleteChangeTracking

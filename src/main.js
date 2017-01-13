@@ -1,7 +1,8 @@
 #! /usr/bin/env node
-
 import ConfigUtil from './server/utils/configUtil';
 import UserManager from './server/managers/userManager';
+import UserService from './server/services/UserService';
+
 import Server from './server';
 
 function main() {
@@ -35,7 +36,9 @@ function main() {
             UserManager.list();
             break;
           case '-add':
-            UserManager.createUser(args[2], args[3], args[4]);
+            UserService.createUser(args[2], args[3], args[4]);
+
+            //UserManager.createUser(args[2], args[3], args[4]);
             break;
           case '-remove':
             UserManager.removeUser(args[2]);

@@ -23,6 +23,14 @@ const getElementInstancesByTrackId = function(params, callback) {
     .then(AppUtils.onFind.bind(null, params, 'trackElementInstances', 'Cannot find Element Instances related to track ' + params.bodyParams.trackId, callback));
 }
 
+const findElementInstancesByTrackId = function(props, params, callback) {
+  var trackId = AppUtils.getProperty(params, props.trackId);
+
+  ElementInstanceManager
+    .findByTrackId(trackId)
+    .then(AppUtils.onFindOptional.bind(null, params, props.setProperty, callback));
+}
+
 const findByInstanceId= function(props, params, callback) {
   var instanceId = AppUtils.getProperty(params, props.instanceId);
 
@@ -195,7 +203,6 @@ if (params.bodyParams.instanceId) {
     .then(AppUtils.onUpdate.bind(null, params, "Unable to update 'iofabric_uuid' field for Element Instance", callback));
 }
 
-
 const deleteNetworkElementInstance = function(params, callback) {
   ElementInstanceManager
     .deleteNetworkElement(params.bodyParams.elementId)
@@ -228,6 +235,7 @@ export default {
   findOutputIntraElementInfoByUuids: findOutputIntraElementInfoByUuids,
   findOutputExtraElementInfoByUuids: findOutputExtraElementInfoByUuids,
   findOutpuOtherTrackDetailByUuids: findOutpuOtherTrackDetailByUuids,
+  findElementInstancesByTrackId: findElementInstancesByTrackId,
   deleteElementInstance: deleteElementInstance,
   deleteElementInstanceByNetworkPairing: deleteElementInstanceByNetworkPairing,
   deleteNetworkElementInstance: deleteNetworkElementInstance,

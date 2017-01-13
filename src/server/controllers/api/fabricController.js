@@ -81,6 +81,11 @@ router.get('/api/v2/instance/create/type/:type', (req, res) => {
     	createFogProps = {
       		fabricType: 'bodyParams.type',
       		setProperty: 'fabricInstance'
+    	},
+    	createFogUserProps = {
+      		userId: 'user.id',
+      		instanceId: 'fabricInstance.uuid',
+      		setProperty: 'fogUser'
     	};
 
 	params.bodyParams = req.params;
@@ -89,16 +94,15 @@ router.get('/api/v2/instance/create/type/:type', (req, res) => {
 	async.waterfall([
 		async.apply(UserService.getUser, userProps, params),
 		async.apply(FabricTypeService.getFabricTypeDetail, fogTypeProps),
-		async.apply(FabricService.createFogInstance, createFogProps)
+		async.apply(FabricService.createFogInstance, createFogProps),
+    	async.apply(FabricUserService.createFogUser, createFogUserProps),
 	],
 	function(err, result) {
 		var output;
-		if (!err)
-		{
+		if (!err){
 			output = params.fabricInstance.uuid;
 		}
-		var errMsg = 'Internal error: ' + result;
-		AppUtils.sendResponse(res, err, 'instanceId', output, errMsg);
+		AppUtils.sendResponse(res, err, 'instanceId', output, result);
 	});
 });
 

@@ -40,6 +40,15 @@ class UserManager extends BaseManager {
 		});
 	}
 
+	findByEmail(email) {
+		return User.find({
+			where: {
+				email: email
+			}
+		});
+	}
+
+
 	deleteByUserId(userId) {
 		return User.destroy({
 			where: {
@@ -71,7 +80,7 @@ class UserManager extends BaseManager {
 					email: email,
 					password: AppUtils.generateAccessToken()
 				}).then(function(user) {
-					console.log(user.password);
+					console.log('\nUser Access Token: '+user.password);
 				});
 			} else {
 				console.log('Invalid Email address provided');

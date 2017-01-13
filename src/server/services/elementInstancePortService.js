@@ -44,7 +44,7 @@ const findElementInstancePortsByElementIds = function(params, callback) {
 const deleteElementInstancePort = function(params, callback) {
   ElementInstancePortManager
     .deleteByElementInstanceId(params.bodyParams.elementId)
-    .then(AppUtils.onDelete.bind(null, params, 'No Element Instance Port found', callback));
+    .then(AppUtils.onDeleteOptional.bind(null, params, 'No Element Instance Port found', callback));
 }
 
 const deleteElementInstancePortById = function(props, params, callback) {

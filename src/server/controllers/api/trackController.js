@@ -3,218 +3,193 @@
  * @author Zishan Iqbal
  * @description This file includes the implementation of the status end-point
  */
-
 import async from 'async';
 import express from 'express';
 const router = express.Router();
 
-import FabricManager from '../../managers/fabricManager';
-import DataTracksManager from '../../managers/dataTracksManager';
-import ElementInstanceManager from '../../managers/elementInstanceManager';
-import ChangeTrackingManager from '../../managers/changeTrackingManager';
-
-import DataTracksService from '../../services/dataTracksService';
-import UserService from '../../services/userService';
-import ElementInstanceService from '../../services/elementInstanceService';
-import ElementInstancePortService from '../../services/elementInstancePortService';
 import ChangeTrackingService from '../../services/changeTrackingService';
+import ComsatService from '../../services/comsatService';
+import DataTracksService from '../../services/dataTracksService';
+import ElementInstancePortService from '../../services/elementInstancePortService';
+import ElementInstanceService from '../../services/elementInstanceService';
+import FabricService from '../../services/fabricService';
 import NetworkPairingService from '../../services/networkPairingService';
 import RoutingService from '../../services/routingService';
 import SatellitePortService from '../../services/satellitePortService';
-import ComsatService from '../../services/comsatService';
+import UserService from '../../services/userService';
 
 import AppUtils from '../../utils/appUtils';
-import Constants from '../../constants.js';
 
 
-/**
- * @desc - This function get tracks for an ioFabric.
- */
 router.get('/api/v2/authoring/fabric/track/list/:instanceId', (req, res) => {
-  var reqParams = req.params,
-    userId = 1;
+var params = {},
+
+    userProps = {
+      userId: 'bodyParams.userId',
+      setProperty: 'user'
+    },
+
+    fogInstanceProps = {
+      fogId: 'bodyParams.instanceId',
+      setProperty: 'fogData'
+    },
+    
+    dataTrackProps = {
+      instanceId: 'bodyParams.instanceId',
+      setProperty: 'dataTracks'
+    };
+
+  params.bodyParams = req.params;
+  params.bodyParams.userId = req.query.userId;
 
   async.waterfall([
-    async.apply(getFabricByInstanceId, null, reqParams, userId),
-    getDataTracksByInstanceId
+    async.apply(UserService.getUser, userProps, params),
+    async.apply(FabricService.getFogInstance, fogInstanceProps),
+    async.apply(DataTracksService.getDataTrackByInstanceId, dataTrackProps)
   ], function(err, result) {
-    res.status(200);
-    if (err) {
-      res.send({
-        'status': 'failure',
-        'timestamp': new Date().getTime(),
-        'errormessage': result
-      });
-    } else {
-      res.send({
-        'status': 'ok',
-        'timestamp': new Date().getTime(),
-        'tracks': result
-      });
-    }
-  });
+    AppUtils.sendResponse(res, err, 'tracks', params.dataTracks, result);
+  })
 });
-
-// return iofabric by instance id
-function getFabricByInstanceId(track, bodyParams, userId, callback) {
-  var instanceId = bodyParams.instanceId ? bodyParams.instanceId : track.instanceId;
-  console.log(instanceId)
-  FabricManager.findByInstanceId(instanceId)
-    .then((fabric) => {
-
-        if (fabric)
-          callback(null, track, bodyParams, userId);
-        else if (track === null)
-          callback('error', Constants.MSG.ERROR_ACCESS_DENIED_TRACK);
-        else
-          callback('error', Constants.MSG.ERROR_ACCESS_DENIED_TRACK_UPDATE)
-      },
-      (err) => {
-        callback('error', Constants.MSG.SYSTEM_ERROR);
-      });
-}
-
-// this method returns list of data-tracks by instance id
-function getDataTracksByInstanceId(track, bodyParams, userId, callback) {
-  DataTracksManager.findByInstanceId(bodyParams.instanceId)
-    .then((tracks) => {
-        callback(null, tracks);
-      },
-      (err) => {
-        callback('error', Constants.MSG.SYSTEM_ERROR);
-      });
-}
 
 router.post('/api/v2/authoring/user/track/update', (req, res) => {
-  var bodyParams = req.body,
-    userId = 1;
+var params = {},
+
+    userProps = {
+      userId: 'bodyParams.userId',
+      setProperty: 'user'
+    },
+    
+    dataTrackProps = {
+      trackId: 'bodyParams.trackId',
+      setProperty: 'dataTrack'
+    };
+
+  params.bodyParams = req.body;
 
   async.waterfall([
-    async.apply(getDataTrackById, bodyParams, userId),
-    updateDataTrackForUser
+    async.apply(UserService.getUser, userProps, params),
+    async.apply(DataTracksService.getDataTrackById, dataTrackProps),
+    resetSelectedActivatedAndName,
+    findElementInstanceByTrackId,
+    updateChangeTracking,
+    updateDataTrackById
+
   ], function(err, result) {
-    res.status(200);
-    if (err) {
-      res.send({
-        'status': 'failure',
-        'timestamp': new Date().getTime(),
-        'errormessage': result
-      });
-    } else {
-      res.send({
-        'status': 'ok',
-        'timestamp': new Date().getTime(),
-        'trackId': result
-      });
+    var trackId;
+
+    if (params.bodyParams){
+      trackId = params.bodyParams.trackId;
     }
-  });
+
+    AppUtils.sendResponse(res, err, 'trackId', trackId, result);
+  })
 });
 
-function getDataTrackById(bodyParams, userId, callback) {
+const resetSelectedActivatedAndName= function(params, callback) {
 
-  DataTracksManager.findById(bodyParams.trackId)
-    .then((track) => {
+  if (params.bodyParams.isSelected == -1)
+    params.bodyParams.isSelected = params.dataTrack.isSelected;
 
-        if (track)
-          callback(null, track, bodyParams, userId);
-        else
-          callback('error', 'Data Track not found.')
-      },
-      (err) => {
-        callback('error', Constants.MSG.SYSTEM_ERROR);
-      });
+  if (params.bodyParams.isActivated == -1)
+    params.bodyParams.isActivated = params.dataTrack.isActivated;
+
+  if (!params.bodyParams.name)
+    params.bodyParams.name = params.dataTrack.name;
+
+  callback(null, params);
 }
 
-function updateDataTrackForUser(track, bodyParams, userId, callback) {
-  console.log(bodyParams);
-  if (bodyParams.isSelected == -1)
-    bodyParams.isSelected = track.isSelected;
-  if (bodyParams.isActivated == -1)
-    bodyParams.isActivated = track.isActivated;
-
-  if (bodyParams.isActivated != track.isActivated) {
-
-    ElementInstanceManager.findByTrackId(track.id)
-      .then((elementInstances) => {
-
-          if (elementInstances) {
-            for (let i = 0; i < elementInstances.length; i++) {
-              if (elementInstances[i].iofabric_uuid) {
-                ChangeTrackingManager.updateByUuid(elementInstances[i].iofabric_uuid, {
-                  containerConfig: new Date().getTime(),
-                  containerList: new Date().getTime()
-                })
-              }
-            }
-          }
-
-          if (bodyParams.trackName === '')
-            bodyParams.trackName = track.name;
-
-          track.name = bodyParams.trackName;
-          track.lastUpdated = new Date();
-          track.user_id = userId;
-          track.description = '';
-          track.isSelected = bodyParams.isSelected;
-          track.isActivated = bodyParams.isActivated;
-
-          DataTracksManager.update(track.dataValues)
-            .then((updatedTrack) => {
-                callback(null, updatedTrack.id);
-              },
-              (err) => {
-                callback('error', Constants.MSG.SYSTEM_ERROR)
-              });
-
-        },
-        (err) => {
-          callback('error', Constants.MSG.SYSTEM_ERROR)
-        });
+const findElementInstanceByTrackId= function(params, callback) {
+    var elementInstanceProps = {
+          trackId: 'bodyParams.trackId',
+          setProperty: 'elementInstances'
+        };
+    
+  if (params.bodyParams.isActivated != params.dataTrack.isActivated) {
+    ElementInstanceService.findElementInstancesByTrackId(elementInstanceProps, params, callback);
+  }
+  else{
+    callback(null, params);
   }
 }
 
+const updateChangeTracking= function(params, callback) {
+  var changeTrackingProps = {};
+        
+  if (params.elementInstances){
+    for(var i = 0; i < params.elementInstances.length; i++){
+        changeTrackingProps = {
+          fogInstanceId: 'elementInstances['+i+'].iofabric_uuid',
+          changeObject: {
+            containerConfig: new Date().getTime(),
+            containerList: new Date().getTime()
+          }
+        };
+      ChangeTrackingService.updateChangeTrackingData(changeTrackingProps, params);
+    }
+    callback(null, params);
+  }
+  else{
+    callback(null, params);
+  }
+}
+
+const updateDataTrackById= function(params, callback) {
+  var updateDataTrackProps = {
+        trackId: 'bodyParams.trackId',
+        updatedObj: {
+          name: params.bodyParams.name,
+          description: '',
+          lastUpdated : new Date(),
+          isSelected: params.bodyParams.isSelected,
+          isActivated: params.bodyParams.isActivated,
+          user_id: params.user.id
+      }
+    };
+  DataTracksService.updateDataTrackById(updateDataTrackProps, params, callback);
+}
+
 router.post('/api/v2/authoring/fabric/track/update', (req, res) => {
-  var bodyParams = req.body,
-    userId = 1;
+var params = {},
+
+    userProps = {
+      userId: 'bodyParams.userId',
+      setProperty: 'user'
+    },
+
+    dataTrackProps = {
+      trackId: 'bodyParams.trackId',
+      setProperty: 'dataTrack'
+    };
+
+  params.bodyParams = req.body;
 
   async.waterfall([
-    async.apply(getDataTrackById, bodyParams, userId),
-    getFabricByInstanceId,
-    updateDataTrack
+    async.apply(UserService.getUser, userProps, params),
+    async.apply(DataTracksService.getDataTrackById, dataTrackProps),
+    getFogInstance,
+    updateDataTrackById
+
   ], function(err, result) {
-    res.status(200);
-    if (err) {
-      res.send({
-        'status': 'failure',
-        'timestamp': new Date().getTime(),
-        'errormessage': result
-      });
-    } else {
-      res.send({
-        'status': 'ok',
-        'timestamp': new Date().getTime(),
-        'trackId': result
-      });
+    var trackId;
+
+    if (params.bodyParams){
+      trackId = params.bodyParams.trackId;
     }
-  });
+
+    AppUtils.sendResponse(res, err, 'trackId', params.bodyParams.trackId, result);
+  })
 });
 
-function updateDataTrack(track, bodyParams, userId, callback) {
-
-  track.name = bodyParams.name;
-  track.user_id = userId;
-  track.description = bodyParams.description;
-  track.isSelected = bodyParams.isSelected;
-  track.isActivated = bodyParams.isActivated;
-
-  DataTracksManager.update(track.dataValues)
-    .then((updatedTrack) => {
-        callback(null, updatedTrack.id);
-      },
-      (err) => {
-        callback('error', Constants.MSG.SYSTEM_ERROR)
-      });
-
+const getFogInstance = function(params, callback) {
+    if (!params.bodyParams.instanceId){
+      params.bodyParams.instanceId = params.dataTrack.instanceId;
+    }
+   var fogInstanceProps = {
+      fogId: 'bodyParams.instanceId',
+      setProperty: 'fogData'
+    };
+  FabricService.getFogInstance(fogInstanceProps, params, callback)
 }
 
 router.post('/api/v2/authoring/fabric/track/delete', (req, res) => {
@@ -229,7 +204,6 @@ router.post('/api/v2/authoring/fabric/track/delete', (req, res) => {
       trackId: 'bodyParams.trackId',
       setProperty: 'dataTrack'
     };
-
   params.bodyParams = req.body;
 
   async.waterfall([
@@ -280,15 +254,5 @@ function deleteElement(params, callback) {
     callback();
   });
 }
-
-/*
-// ioAuthoring_SDK_2_Delete_Track (api-v2-authoring-integrator-track-delete-for-user.php)
-router.post('api/v2/authoring/user/track/delete', (req, res) => {
-  var bodyParams = req.body,
-    userId = 1,
-    trackId = bodyParams.trackId;
-
-});
-*/
 
 export default router;

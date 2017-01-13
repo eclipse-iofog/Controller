@@ -32,10 +32,22 @@ import AppUtils from '../../utils/appUtils';
  */
 router.post('/api/v2/authoring/integrator/instance/create', (req, res) => {
   var params = {},
+
+    userProps = {
+      userId: 'bodyParams.userId',
+      setProperty: 'user'
+    },
+
     createFogProps = {
-          fabricType: 'bodyParams.fabricType',
-          setProperty: 'fabricInstance'
-      },
+      fabricType: 'bodyParams.fabricType',
+      setProperty: 'fabricInstance'
+    },
+    
+    createFogUserProps = {
+      userId: 'user.id',
+      instanceId: 'fabricInstance.uuid',
+      setProperty: null
+    },
 
     fogTypeProps = {
       fogTypeId: 'fabricInstance.typeKey',
@@ -107,13 +119,13 @@ router.post('/api/v2/authoring/integrator/instance/create', (req, res) => {
       setProperty: 'debugNetworkPairingObj'
     };
 
-  params.userId = 1;
   params.bodyParams = req.body;
 
   async.waterfall([
-    async.apply(FabricService.createFogInstance, createFogProps, params),
+    async.apply(UserService.getUser, userProps, params),
+    async.apply(FabricService.createFogInstance, createFogProps),
     ChangeTrackingService.initiateFabricChangeTracking,
-    FabricUserService.createFabricUser,
+    async.apply(FabricUserService.createFogUser, createFogUserProps),
     async.apply(FabricTypeService.getFabricTypeDetail, fogTypeProps),
     ElementInstanceService.createStreamViewerElement,
     ElementInstancePortService.createStreamViewerPort,
