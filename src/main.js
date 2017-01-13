@@ -1,7 +1,7 @@
 #! /usr/bin/env node
 import ConfigUtil from './server/utils/configUtil';
 import UserManager from './server/managers/userManager';
-import UserService from './server/services/UserService';
+import UserService from './server/services/userService';
 
 import Server from './server';
 
