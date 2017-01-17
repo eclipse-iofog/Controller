@@ -45,6 +45,11 @@ const checkUserExistance = (req, res, next) => {
       token: 'bodyParams.Token',
       setProperty: 'fogAccessToken'
     },
+
+    tokenProps = {
+      expirationTime: 'fogAccessToken.expirationTime'
+    },
+
     fogUserProps = {
       instanceId: 'bodyParams.ID',
       userId: 'fogAccessToken.userId'
@@ -54,6 +59,7 @@ const checkUserExistance = (req, res, next) => {
 
   async.waterfall([
     async.apply(FabricAccessTokenService.findFogAccessTokenByToken, instanceProps, params),
+    async.apply(FabricAccessTokenService.checkFogTokenExpirationByToken, tokenProps),
     async.apply(FabricUserService.findFogUserByInstanceIdAndUserId, fogUserProps),
 
   ], function(err, result) {

@@ -2,6 +2,20 @@ import FabricAccessTokenManager from '../managers/fabricAccessTokenManager';
 import AppUtils from '../utils/appUtils';
 import Constants from '../constants.js';
 
+
+const checkFogTokenExpirationByToken = function(props, params, callback) {
+  var time =  new Date().getTime(),
+   expirationTime = AppUtils.getProperty(params, props.expirationTime);
+   expirationTime = Date.parse(expirationTime);
+
+  if(expirationTime > time){
+      callback(null, params);
+  }
+  else{
+    callback('Error', 'AccessToken is Expired');
+  }
+}
+
 const findFogAccessTokenByToken = function(props, params, callback) {
   var token = AppUtils.getProperty(params, props.token);
 
@@ -51,6 +65,7 @@ const saveFogAccessToken = function(props, params, callback) {
 }
 
 export default {
+  checkFogTokenExpirationByToken: checkFogTokenExpirationByToken,
   findFogAccessTokenByToken: findFogAccessTokenByToken,
   deleteFabricAccessTokenByUserId: deleteFabricAccessTokenByUserId,
   generateFogAccessToken: generateFogAccessToken,
