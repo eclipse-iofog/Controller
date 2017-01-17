@@ -9,11 +9,8 @@ import express from 'express';
 const router = express.Router();
 
 import ConsoleService from '../../services/consoleService';
-import FabricService from '../../services/fabricService';
 import StreamViewerService from '../../services/streamViewerService';
 import UserService from '../../services/userService';
-
-
 import AppUtils from '../../utils/appUtils';
 
 router.get('/api/v2/authoring/fabric/viewer/access', (req, res) => {
@@ -44,7 +41,7 @@ router.get('/api/v2/authoring/fabric/viewer/access', (req, res) => {
   });
 });
 
-function getResponse(params, callback) {
+const getResponse = function(params, callback) {
   var output = {};
 
   if (params.streamViewer) {

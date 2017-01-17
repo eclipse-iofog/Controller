@@ -1,14 +1,19 @@
 import ChangeTrackingManager from '../managers/changeTrackingManager';
 import AppUtils from '../utils/appUtils'
 
-/**
- * @desc - this function finds the element instance which was changed
- */
+
+const getChangeTrackingByInstanceId = function(props, params, callback) {
+  var instanceId = AppUtils.getProperty(params, props.instanceId);
+
+  ChangeTrackingManager
+    .findByInstanceId(instanceId)
+    .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Cannot find ChangeTracking', callback));
+}
+
 const initiateFabricChangeTracking = function(params, callback) {
   ChangeTrackingManager
     .createChangeTracking(params.fabricInstance.uuid)
     .then(AppUtils.onCreate.bind(null, params, null, 'Unable to initialize change tracking for Fabric Instance', callback));
-
 }
 
 const updateChangeTracking = function(props, params, callback) {
@@ -48,9 +53,8 @@ const deleteChangeTracking = function(props, params, callback) {
     .then(AppUtils.onDeleteOptional.bind(null, params, 'Unable to delete Change Tracking', callback));
 }
 
-
-
 export default {
+  getChangeTrackingByInstanceId: getChangeTrackingByInstanceId,
   initiateFabricChangeTracking: initiateFabricChangeTracking,
   updateChangeTrackingData: updateChangeTrackingData,
   updateChangeTracking: updateChangeTracking,

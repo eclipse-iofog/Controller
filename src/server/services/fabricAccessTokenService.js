@@ -2,6 +2,13 @@ import FabricAccessTokenManager from '../managers/fabricAccessTokenManager';
 import AppUtils from '../utils/appUtils';
 import Constants from '../constants.js';
 
+const findFogAccessTokenByToken = function(props, params, callback) {
+  var token = AppUtils.getProperty(params, props.token);
+
+  FabricAccessTokenManager
+    .getByToken(token)
+    .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Unable to find Fog Access Token', callback));
+}
 
 const deleteFabricAccessTokenByUserId = function(props, params, callback) {
   var userId = AppUtils.getProperty(params, props.userId);
@@ -44,6 +51,7 @@ const saveFogAccessToken = function(props, params, callback) {
 }
 
 export default {
+  findFogAccessTokenByToken: findFogAccessTokenByToken,
   deleteFabricAccessTokenByUserId: deleteFabricAccessTokenByUserId,
   generateFogAccessToken: generateFogAccessToken,
   saveFogAccessToken: saveFogAccessToken

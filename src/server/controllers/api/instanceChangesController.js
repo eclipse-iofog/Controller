@@ -7,10 +7,11 @@
 import async from 'async';
 import express from 'express';
 const router = express.Router();
+
 import BaseApiController from './baseApiController';
-import ChangeTrackingManager from '../../managers/changeTrackingManager';
-import FabricManager from '../../managers/fabricManager';
-import Constants from '../../constants.js';
+import ChangeTrackingService from '../../services/changeTrackingService';
+import FabricService from '../../services/fabricService';
+import AppUtils from '../../utils/appUtils';
 
 /**
  * @desc - if there is changeTracking data present, the data is checked against the timpstamp
@@ -20,83 +21,75 @@ import Constants from '../../constants.js';
  */
 
 router.get('/api/v2/instance/changes/id/:ID/token/:Token/timestamp/:TimeStamp', BaseApiController.checkUserExistance, (req, res) => {
-  updateFog(req, res);
+  getChangeTrackingChanges(req, res);
 });
 
 router.post('/api/v2/instance/changes/id/:ID/token/:Token/timestamp/:TimeStamp', BaseApiController.checkUserExistance, (req, res) => {
-  updateFog(req, res);
+  getChangeTrackingChanges(req, res);
 });
 
-const updateFog = function(req, res) {
-  var milliseconds = new Date().getTime();
-  var instanceId = req.params.ID;
-  var timeStamp = req.params.TimeStamp;
+const getChangeTrackingChanges = function(req, res) {
+  var params = {},
+      instanceProps = {
+        instanceId: 'bodyParams.ID',
+        setProperty: 'changeTrackingData'
+    };
 
-  if (timeStamp.length < 1) {
-    timeStamp = 0;
+  params.bodyParams = req.params;
+
+  async.waterfall([
+    async.apply(ChangeTrackingService.getChangeTrackingByInstanceId, instanceProps, params),
+    processChangeTrackingChanges,
+    updateFogInstance
+
+  ], function(err, result) {
+    AppUtils.sendResponse(res, err, 'changes', params.changes, result);
+  })
+}
+
+const processChangeTrackingChanges = function(params, callback) {
+  if(params.bodyParams.TimeStamp.length < 1) {
+    params.bodyParams.TimeStamp = 0;
+  }
+  var changes = {
+        config: false,
+        containerlist: false,
+        containerconfig: false,
+        routing: false,
+        registeries: false
+  };
+  
+  if(params.changeTrackingData.config > params.bodyParams.TimeStamp) {
+    changes.config = true;
+  }
+    
+  if(params.changeTrackingData.containerList > params.bodyParams.TimeStamp) {
+    changes.containerlist = true;
   }
 
-  ChangeTrackingManager.findByInstanceId(instanceId)
-    .then((changeData) => {
+  if(params.changeTrackingData.containerConfig > params.bodyParams.TimeStamp) {
+    changes.containerconfig = true;
+  }
+    
+  if(params.changeTrackingData.routing > params.bodyParams.TimeStamp) {
+    changes.routing = true;
+  }
 
-        var changes = {
-          config: false,
-          containerlist: false,
-          containerconfig: false,
-          routing: false,
-          registeries: false
-        };
+  if (params.changeTrackingData.registeries > params.bodyParams.TimeStamp) {
+    changes.registeries = true;
+  }
+  params.changes = changes;
+  callback (null, params);
+}
 
-        if (changeData) {
-
-          if (changeData.config > timeStamp) {
-            changes.config = true;
-          }
-
-          if (changeData.containerList > timeStamp) {
-            changes.containerlist = true;
-          }
-
-          if (changeData.containerConfig > timeStamp) {
-            changes.containerconfig = true;
-          }
-
-          if (changeData.routing > timeStamp) {
-            changes.routing = true;
-          }
-
-          if (changeData.registeries > timeStamp) {
-            changes.registeries = true;
-          }
-
-          var newLastActive = new Date().getTime();
-
-          var fabricConfig = {
-            lastActive: newLastActive
-          };
-
-          // Updates the fabric with the fabricConfig based on the fabrics instanceId
-          FabricManager.updateFabricConfig(instanceId, fabricConfig)
-            .then(function(rowUpdated) {
-              if (rowUpdated > 0) {
-                console.log("row Successfully Updated");
-              }
-            }, function(err) {
-
-            });
+const updateFogInstance = function(params, callback){
+  var fogInstanceProps = {
+        instanceId: 'bodyParams.ID',
+        updatedFog: {
+          lastactive : new Date().getTime(),
         }
-
-        res.status(200);
-        res.send({
-          "status": "ok",
-          "timestamp": new Date().getTime(),
-          "changes": changes
-        });
-      },
-      (err) => {
-        callback('error', Constants.MSG.SYSTEM_ERROR);
-      });
-};
-
+      };
+  FabricService.updateFogInstance(fogInstanceProps, params, callback);
+}
 
 export default router;

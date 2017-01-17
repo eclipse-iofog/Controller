@@ -6,14 +6,12 @@ const createStreamViewerPort = function(params, callback) {
   ElementInstancePortManager
     .createElementPort(params.userId, params.streamViewer.uuid, 60400, 80)
     .then(AppUtils.onCreate.bind(null, params, 'elementInstancePort', 'Unable to create Stream Viewer Port', callback));
-
 }
 
 const createDebugConsolePort = function(params, callback) {
   ElementInstancePortManager
     .createElementPort(params.userId, params.debugConsole.uuid, 60401, 80)
     .then(AppUtils.onCreate.bind(null, params, null, 'Unable to create Debug Console Port', callback));
-
 }
 
 const createElementInstancePort = function(props, params, callback) {
@@ -41,6 +39,14 @@ const findElementInstancePortsByElementIds = function(params, callback) {
     .then(AppUtils.onFind.bind(null, params, 'elementInstancePort', 'No Element Instance Port found', callback));
 }
 
+const getPortsByElementId = function(props, params, callback) {
+  var elementPortId = AppUtils.getProperty(params, props.elementPortId);
+
+  ElementInstancePortManager
+    .getPortsByElementId(elementPortId)
+    .then(AppUtils.onFind.bind(null, params, props.setProperty, 'No Element Instance Port found', callback));
+}
+
 const deleteElementInstancePort = function(params, callback) {
   ElementInstancePortManager
     .deleteByElementInstanceId(params.bodyParams.elementId)
@@ -62,6 +68,6 @@ export default {
   getElementInstancePort: getElementInstancePort,
   findElementInstancePortsByElementIds: findElementInstancePortsByElementIds,
   deleteElementInstancePort: deleteElementInstancePort,
-  deleteElementInstancePortById: deleteElementInstancePortById
-
+  deleteElementInstancePortById: deleteElementInstancePortById,
+  getPortsByElementId: getPortsByElementId
 };

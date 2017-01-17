@@ -12,15 +12,10 @@ class ElementInstancePortManager extends BaseManager {
 		return ElementInstancePort;
 	}
 
-	/**
-	 * @desc - finds the elementInstancePort based on the element_Id
-	 * @param Integer - id
-	 * @return JSON - returns an Array of JSON objects of elementInstancePort
-	 */
-	getPortsByElementId(id) {
+	getPortsByElementId(elementId) {
 		return ElementInstancePort.findAll({
 			where: {
-				id: id
+				elementId: elementId
 			}
 		});
 	}

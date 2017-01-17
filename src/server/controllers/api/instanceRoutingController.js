@@ -320,7 +320,7 @@ router.post('/api/v2/authoring/element/instance/route/create', (req, res) => {
   });
 });
 
-function getOutputDetails(params, callback) {
+const getOutputDetails = function(params, callback) {
   params.output = {
     elementId: params.bodyParams.destinationElementId,
     elementName: params.destinationElementInstance.name,
@@ -475,7 +475,7 @@ router.post('/api/v2/authoring/element/instance/route/delete', (req, res) => {
   });
 });
 
-function getDeleteOutput(params, callback) {
+const getDeleteOutput = function(params, callback) {
   params.output = {
     publishinginstanceid: params.bodyParams.publishingInstanceId,
     publishingtrackid: params.bodyParams.publishingTrackId,

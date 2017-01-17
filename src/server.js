@@ -41,7 +41,6 @@ const startServer = function(port) {
     .then(() => {
       if (!port) {
         dbPort = configUtil.getConfigParam(constants.CONFIG.PORT);
-        console.log(dbPort);
         if (dbPort) {
           port = dbPort;
         } else {
@@ -109,7 +108,7 @@ const startHttpServer = function(app, port) {
     if (err) {
       console.log(err);
     }
-    console.info('==> 🌎 Listening on port %s. Open up http://0.0.0.0:%s/ in your browser.', port, port);
+    console.info('==> 🌎 Listening on port %s. Open up http://localhost:%s/ in your browser.', port, port);
   });
 }
 
@@ -126,7 +125,7 @@ const startHttpsServer = function(app, port, sslKey, sslCert, intermedKey) {
     if (err) {
       console.log(err);
     }
-    console.info('==> 🌎 HTTPS server listening on port %s. Open up http://0.0.0.0:%s/ in your browser.', port, port);
+    console.info('==> 🌎 HTTPS server listening on port %s. Open up https://localhost:%s/ in your browser.', port, port);
   });
 }
 

@@ -13,7 +13,13 @@ class ElementManager extends BaseManager {
 	getEntity() {
 		return Element;
 	}
-
+	deleteElementById(id) {
+		return Element.destroy({
+			where: {
+				'ID': id
+			}
+		});
+	}
 	findElementById(id) {
 		return Element.findOne({
 			where: {
@@ -30,7 +36,6 @@ class ElementManager extends BaseManager {
 			}
 		});
 	}
-
 	findElementAndRegistryById(id) {
 		return Element.findOne({
 			where: {
@@ -40,6 +45,13 @@ class ElementManager extends BaseManager {
 				model: Registry,  as: 'registry',
 				attributes: ['url']
 			}]
+		});
+	}
+	updateElementById(id, data) {
+		return Element.update(data, {
+			where: {
+				'ID': id
+			}
 		});
 	}
 }

@@ -122,7 +122,6 @@ const onCreate = function(params, paramName, errorMsg, callback, modelObject) {
 
   } else {
     callback('error', errorMsg);
-
   }
 }
 
@@ -135,7 +134,6 @@ const onFind = function(params, paramName, errorMsg, callback, modelObject) {
 
   } else {
     callback('error', errorMsg);
-
   }
 }
 
@@ -153,7 +151,6 @@ const onUpdate = function(params, errorMsg, callback, updatedModels) {
 
   } else {
     callback('error', errorMsg);
-
   }
 }
 
@@ -180,7 +177,9 @@ const sendResponse = function(response, err, successLabel, successValue, errorMe
     res['errormessage'] = errorMessage;
   } else {
     res['status'] = 'ok';
-    res[successLabel] = successValue;
+    if (successLabel || successValue){
+      res[successLabel] = successValue;
+    }
   }
   response.send(res);
 }
@@ -197,14 +196,12 @@ const sendMultipleResponse = function(response, err, successLabelArr, successVal
   } else {
     res['status'] = 'ok';
 
-    for (var i = 0; i < successValueArr.length; i++)
-    {
+    for (var i = 0; i < successValueArr.length; i++){
     res[successLabelArr[i]] = successValueArr[i];
     }
   }
   response.send(res);
 }
-
 
 export default {
   isArray: isArray,

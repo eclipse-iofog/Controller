@@ -3,49 +3,61 @@
  * @author Zishan Iqbal
  * @description This file includes the implementation of the instance-status end-point
  */
+import async from 'async';
 import express from 'express';
 const router = express.Router();
-import FabricManager from '../../managers/fabricManager';
-import FabricAccessTokenManager from '../../managers/fabricAccessTokenManager';
-import FabricUserManager from '../../managers/fabricUserManager';
 import BaseApiController from './baseApiController';
+import FabricService from '../../services/fabricService';
+import AppUtils from '../../utils/appUtils';
 
 
 router.post('/api/v2/instance/status/id/:ID/token/:Token', BaseApiController.checkUserExistance, (req, res) => {
+  var params = {};
+ 
+  params.bodyParams = req.body;
+  params.bodyParams.instanceId = req.params.ID;
 
-  var milliseconds = new Date().getTime(),
-    instanceId = req.params.ID;
+  async.waterfall([
+    async.apply(updateFogInstance,params)
 
-  var fabricUpdate = req.body;
-
-  if (fabricUpdate.version == null || fabricUpdate.version == "") {
-    fabricUpdate.version = "1.0";
-  }
-
-  //This function Updates the fabric data based on its id and incoming values.
-  FabricManager.updateFabricConfig(instanceId, fabricUpdate)
-    .then(function(rowupdated) {
-      if (rowupdated > 0) {
-        console.log('updated successfully');
-        res.status(200);
-        res.send({
-          "status": "ok",
-          "timestamp": milliseconds
-        });
-
-      } else {
-        res.send({
-          "status": "failure",
-          "Error": "Update was not Successfull"
-        });
-      }
-    }, function(err) {
-      console.log(err);
-      res.send({
-        "status": "failure",
-        "Error": "System Error"
-      });
-    });
+  ], function(err, result) {
+    AppUtils.sendResponse(res, err,'','', result);
+  })
 });
+
+const updateFogInstance = function(params, callback){
+  var fogInstanceProps = {
+        instanceId: 'bodyParams.instanceId',
+        updatedFog: {
+          name : params.bodyParams.name,
+          location : params.bodyParams.location,
+          latitude : params.bodyParams.latitude,
+          longitude : params.bodyParams.longitude,
+          description : params.bodyParams.description,
+          lastactive : new Date().getTime(),
+          daemonstatus: params.bodyParams.daemonStatus,
+          daemonoperatingduration : params.bodyParams.daemonOperatingDuration,
+          daemonlaststart : params.bodyParams.daemonLastStart,
+          memoryusage : params.bodyParams.memoryUsage,
+          diskusage : params.bodyParams.diskUsage,
+          cpuusage : params.bodyParams.cpuUsage,
+          memoryviolation : params.bodyParams.memoryViolation,
+          diskviolation : params.bodyParams.diskViolation, 
+          cpuviolation : params.bodyParams.cpuViolation,
+          elementstatus : params.bodyParams.elementStatus, 
+          repositorycount : params.bodyParams.repositoryCount,
+          repositorystatus : params.bodyParams.repositoryStatus,
+          systemtime : params.bodyParams.systemTime,
+          laststatustime : params.bodyParams.lastStatusTime,
+          ipaddress : params.bodyParams.ipAddress,
+          processedmessages : params.bodyParams.processedMessages,
+          elementmessagecounts : params.bodyParams.elementMessageCounts, 
+          messagespeed : params.bodyParams.messageSpeed,
+          lastcommandtime : params.bodyParams.lastCommandTime,
+          version: params.bodyParams.version || '1.0'
+        }
+      };
+    FabricService.updateFogInstance(fogInstanceProps, params, callback);
+}
 
 export default router;

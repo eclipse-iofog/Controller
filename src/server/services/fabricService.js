@@ -45,33 +45,12 @@ const getFogInstanceForUser = function(props, params, callback) {
     .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Cannot find Fog Instance', callback));
 }
 
-const updateFogInstance = function(params, callback) {
-  var updateChange = {};
-
-  if (params.bodyParams.name) {
-    updateChange.name = params.bodyParams.name;
-  }
-
-  if (params.bodyParams.location) {
-    updateChange.location = params.bodyParams.location
-  }
-
-  if (params.bodyParams.latitude) {
-    updateChange.latitude = params.bodyParams.latitude
-  }
-
-  if (params.bodyParams.longitude) {
-    updateChange.longitude = params.bodyParams.longitude
-  }
-
-  if (params.bodyParams.description) {
-    updateChange.description = params.bodyParams.description
-  }
+const updateFogInstance = function(props, params, callback){
+  var instanceId = AppUtils.getProperty(params, props.instanceId);
 
   FabricManager
-    .updateFabricConfig(params.bodyParams.instanceId, updateChange)
+    .updateFabricConfig(instanceId, props.updatedFog)
     .then(AppUtils.onUpdate.bind(null, params, 'Unable to update Fog Instance', callback));
-
 }
 
 const deleteFogInstance = function(props, params, callback) {

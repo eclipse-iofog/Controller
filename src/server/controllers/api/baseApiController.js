@@ -3,12 +3,13 @@
 * @author Zishan Iqbal
 * @description This file includes the Middle-ware functions.
 */
+import async from 'async';
 
-import errorUtils from './../../utils/errorUtils';
-import FabricAccessTokenManager from '../../managers/fabricAccessTokenManager';
-import FabricUserManager from '../../managers/fabricUserManager';
-import FabricManager from '../../managers/fabricManager';
-import Constants from '../../constants.js';
+import FabricService from '../../services/fabricService';
+import FabricAccessTokenService from '../../services/fabricAccessTokenService';
+import FabricUserService from '../../services/fabricUserService';
+import AppUtils from '../../utils/appUtils';
+import ErrorUtils from './../../utils/errorUtils';
 
 const get = (req, res, manager) => {
   const id = req.params.id;
@@ -33,55 +34,58 @@ const get = (req, res, manager) => {
     res.send(response);
   })
   .catch((error) => {
-    return errorUtils.caughtError(res, error);
+    return ErrorUtils.caughtError(res, error);
   });
 };
 
 const checkUserExistance = (req, res, next) => {
-  var instanceId = req.params.ID,
-    token = req.params.Token;
+  var params = {},
 
-  FabricAccessTokenManager.getByToken(token)
-  .then((userTokenData) => {
-    if(userTokenData) {
-      FabricUserManager.isUserExist(userTokenData.userId, instanceId)
-      .then((fabricUserData) =>{
-        if(fabricUserData) {
-          next();
-        } else {
-          res.send({
-            'status': 'failure',
-            'timestamp': new Date().getTime(),
-            'errormessage': Constants.MSG.ERROR_ACCESS_DENIED
-          })
-        }
-      });
-    } else {
-      res.send({
-        'status': 'failure',
-        'timestamp': new Date().getTime(),
-        'errormessage': Constants.MSG.ERROR_ACCESS_TOKEN
-      })
+    instanceProps = {
+      token: 'bodyParams.Token',
+      setProperty: 'fogAccessToken'
+    },
+    fogUserProps = {
+      instanceId: 'bodyParams.ID',
+      userId: 'fogAccessToken.userId'
+    };
+
+  params.bodyParams = req.params;
+
+  async.waterfall([
+    async.apply(FabricAccessTokenService.findFogAccessTokenByToken, instanceProps, params),
+    async.apply(FabricUserService.findFogUserByInstanceIdAndUserId, fogUserProps),
+
+  ], function(err, result) {
+    if (!err){
+      next();
     }
-  });
+    else {
+    AppUtils.sendResponse(res, err, 'Error:', result, result);
+    }
+  })
 }
 
 const checkfabricExistance = (req, res, next) => {
-  var instanceId = req.params.instanceId;
+  var params = {},
 
-      FabricManager.findByInstanceId(instanceId)
-      .then((fabricData) =>{
-        if(fabricData) {
-          next();
-        } else {
-          res.send({
-            'status': 'failure',
-            'timestamp': new Date().getTime(),
-            'errormessage': Constants.MSG.ERROR_FABRIC_UNKNOWN
-          })
-        }
-      });
+    instanceProps = {
+      fogId: 'bodyParams.instanceId'
+    };
 
+  params.bodyParams = req.params;
+
+  async.waterfall([
+    async.apply(FabricService.getFogInstance, instanceProps, params),
+
+  ], function(err, result) {
+    if (!err){
+      next();
+    }
+    else {
+    AppUtils.sendResponse(res, err, 'Error:', result, result);
+    }
+  })
 }
 
 export default {

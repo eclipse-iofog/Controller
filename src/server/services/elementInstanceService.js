@@ -81,9 +81,6 @@ const findOutpuOtherTrackDetailByUuids = function(params, callback) {
     .then(AppUtils.onFind.bind(null, params, 'outPutExtraintegrator' ,'outPutExtraintegrator not found.', callback));
 }
 
-/**
- * @desc - this function uses the default values to create a new element instance
- */
 const createElementInstance = function(props, params, callback) {
 var userId = AppUtils.getProperty(params, props.userId),
     trackId = AppUtils.getProperty(params, props.trackId),
@@ -101,15 +98,11 @@ var userId = AppUtils.getProperty(params, props.userId),
     .then(AppUtils.onCreate.bind(null, params, props.setProperty, 'Unable to create Element Instance', callback));
 }
 
-/**
- * @desc - this function finds the element instance which was changed
- */
 const createStreamViewerElement = function(params, callback) {
 
   ElementInstanceManager
     .createStreamViewerInstance(params.fabricType.streamViewerElementKey, params.userId, params.fabricInstance.uuid)
     .then(AppUtils.onCreate.bind(null, params, 'streamViewer', 'Unable to create Stream Viewer', callback));
-
 }
 
 const createNetworkElementInstance = function(props, params, callback) {
@@ -127,12 +120,8 @@ const createNetworkElementInstance = function(props, params, callback) {
   ElementInstanceManager
     .createNetworkInstance(networkElement, userId, fogInstanceId, satelliteDomain, satellitePort, props.networkName, props.networkPort, props.isPublic, trackId)
     .then(AppUtils.onCreate.bind(null, params, props.setProperty, 'Unable to create Network Element Instance', callback));
-
 }
 
-/**
- * @desc - this function finds the element instance which was changed
- */
 const createDebugConsole = function(params, callback) {
 
   ElementInstanceManager
@@ -150,7 +139,6 @@ const updateElementInstance = function(props, params, callback) {
       'updatedAt': new Date().getTime()
     })
     .then(AppUtils.onUpdate.bind(null, params, "Unable to update updatedBy for an element Instance", callback));
-
 }
 
 const updateDebugConsole = function(params, callback) {
@@ -169,30 +157,19 @@ const updateRebuild = function(props, params, callback) {
       'rebuild': 1
     })
     .then(AppUtils.onUpdate.bind(null, params, "Unable to update 'rebuild' field for ElementInstance", callback));
-
 }
 
-const updateElemInstance = function(params, callback) {
-  var updateChange = {};
-
-  if (params.bodyParams.config) {
-    updateChange.config = params.bodyParams.config;
-    updateChange.configLastUpdated = params.milliseconds;
-    params.isConfigChanged = true;
-  }
-
-  if (params.bodyParams.name) {
-    updateChange.name = params.bodyParams.name
-  }
+const updateElemInstance = function(props, params, callback) {
+  var elementId = AppUtils.getProperty(params, props.elementId);
 
   ElementInstanceManager
-    .updateByUUID(params.bodyParams.elementId, updateChange)
+    .updateByUUID(elementId, props.updatedData)
     .then(AppUtils.onUpdate.bind(null, params, 'Unable to update Element Instance', callback));
 }
 
 const updateElemInstanceByFogUuId = function(props, params, callback) {
-var updateChange = {};
-  var fogInstanceId = AppUtils.getProperty(params, props.fogInstanceId);
+var updateChange = {},
+ fogInstanceId = AppUtils.getProperty(params, props.fogInstanceId);
 
 if (params.bodyParams.instanceId) {
     updateChange.iofabric_uuid = props.updatedFogId
@@ -243,8 +220,8 @@ export default {
   getElementInstanceByUuIds: getElementInstanceByUuIds,
   getElementInstancesByTrackId: getElementInstancesByTrackId,
   updateDebugConsole: updateDebugConsole,
-  updateElemInstance: updateElemInstance,
   updateElementInstance: updateElementInstance,
+  updateElemInstance: updateElemInstance,
   updateRebuild: updateRebuild,
   updateElemInstanceByFogUuId: updateElemInstanceByFogUuId 
 

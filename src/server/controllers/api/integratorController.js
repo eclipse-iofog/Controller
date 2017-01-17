@@ -3,7 +3,6 @@
  * @author Zishan Iqbal
  * @description This file includes the implementation of the Integrator instance
  */
-
 import async from 'async';
 import express from 'express';
 const router = express.Router();
@@ -25,11 +24,6 @@ import UserService from '../../services/userService';
 
 import AppUtils from '../../utils/appUtils';
 
-/**
- * @desc - if this end-point is hit it sends a timeStamp in milliseconds back to the client
- * (Used to check if the server is active)
- * @return - returns and appropriate response to the client
- */
 router.post('/api/v2/authoring/integrator/instance/create', (req, res) => {
   var params = {},
 
@@ -149,58 +143,51 @@ router.post('/api/v2/authoring/integrator/instance/create', (req, res) => {
     ConsoleService.createConsole,
     getFabricInstanceDetails
   ], function(err, result) {
-    res.status(200);
-    if (err) {
-      res.send({
-        'status': 'failure',
-        'timestamp': new Date().getTime(),
-        'errormessage': result
-      });
-    } else {
-      res.send({
-        'status': 'ok',
-        'timestamp': new Date().getTime(),
-        'instance': result.fabricInstance
-      });
-    }
+
+    AppUtils.sendResponse(res, err, 'instance', result.fabricInstance, result);
   });
 });
 
-
 router.post('/api/v2/authoring/integrator/instance/update', (req, res) => {
   var params = {},
-    fogInstanceProps,
-    userProps;
+      userProps = {
+        userId: 'bodyParams.userId',
+        setProperty: 'user'
+      },
 
+      fogInstanceProps = {
+        fogId: 'bodyParams.instanceId',
+        setProperty: 'fogInstance'
+      };
+  
   params.bodyParams = req.body;
-
-  userProps = {
-    userId: 'bodyParams.userId',
-    setProperty: 'user'
-  },
-
-  fogInstanceProps = {
-    fogId: 'bodyParams.instanceId',
-    setProperty: 'fogInstance'
-  };
 
   async.waterfall([
     async.apply(UserService.getUser, userProps, params),
     async.apply(FabricService.getFogInstance, fogInstanceProps),
-    FabricService.updateFogInstance
+    updateFogInstance
 
   ], function(err, result) {
     var errMsg = 'Internal error: There was a problem updating Fog instance.' + result
-
     AppUtils.sendResponse(res, err, 'Updated Fog', params.bodyParams.instanceId, errMsg);
   });
-
 });
 
-/**
- * @desc - this function finds the element instance which was changed
- */
-function getFabricInstanceDetails(params, callback) {
+const updateFogInstance = function(params, callback){
+  var fogInstanceProps = {
+        instanceId: 'bodyParams.instanceId',
+        updatedFog: {
+          name : params.bodyParams.name,
+          location : params.bodyParams.location,
+          latitude : params.bodyParams.latitude,
+          longitude : params.bodyParams.longitude,
+          description : params.bodyParams.description
+        }
+      };
+  FabricService.updateFogInstance(fogInstanceProps, params, callback);
+}
+
+const getFabricInstanceDetails = function(params, callback) {
   var fabricInstance = params.fabricInstance.dataValues;
 
   fabricInstance.typeName = params.fabricType.name;

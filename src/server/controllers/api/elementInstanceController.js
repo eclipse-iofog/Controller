@@ -7,9 +7,8 @@
 import async from 'async';
 import express from 'express';
 const router = express.Router();
-import querystring from 'querystring';
+
 import https from 'https';
-import ElementManager from '../../managers/elementManager';
 import ChangeTrackingService from '../../services/changeTrackingService';
 import ComsatService from '../../services/comsatService';
 import ElementService from '../../services/elementService';
@@ -24,12 +23,7 @@ import SatellitePortService from '../../services/satellitePortService';
 import SatelliteService from '../../services/satelliteService';
 import UserService from '../../services/userService';
 
-import ElementInstanceManager from '../../managers/elementInstanceManager';
-import ChangeTrackingManager from '../../managers/changeTrackingManager';
-
-
 import AppUtils from '../../utils/appUtils';
-import Constants from '../../constants.js';
 import _ from 'underscore';
 
 
@@ -331,6 +325,14 @@ router.post('/api/v2/authoring/build/element/instance/create', (req, res) => {
 
 router.post('/api/v2/authoring/element/instance/update', (req, res) => {
   var params = {},
+      userProps = {
+        userId: 'bodyParams.userId',
+        setProperty: 'user'
+      },
+      fogProps = {
+        fogId: 'bodyParams.fabricInstanceId',
+        setProperty: 'fogData'
+      },
       elementInstanceProps = {
         elementInstanceId: 'bodyParams.instanceId',
         setProperty: 'elementInstance'
@@ -339,21 +341,22 @@ router.post('/api/v2/authoring/element/instance/update', (req, res) => {
   params.bodyParams = req.body;
 
     async.waterfall([
-      async.apply(ElementInstanceService.getElementInstance, elementInstanceProps, params),
-       updateElementInstance,
-       updateChangeTracking,
-       updateChange, 
-       updateElement 
+      async.apply(UserService.getUser, userProps, params),
+      async.apply(FabricService.getFogInstance, fogProps),
+      async.apply(ElementInstanceService.getElementInstance, elementInstanceProps),
+      updateElementInstance,
+      updateChangeTracking,
+      updateChange, 
+      updateElement 
     ], function(err, result) {
     AppUtils.sendResponse(res, err, 'instanceId', params.bodyParams.instanceId, result);
-
     });
 });
 
-function updateElementInstance(params, callback) {
+const updateElementInstance = function (params, callback) {
   var data;
 
-  if (params.elementInstance.iofabric_uuid === params.bodyParams.FabricInstance) {
+  if (params.elementInstance.iofabric_uuid == params.bodyParams.fabricInstanceId) {
     callback(null, params);
   } 
   else {
@@ -361,23 +364,15 @@ function updateElementInstance(params, callback) {
       iofabric_uuid: params.bodyParams.fabricInstanceId
     };
 
-    ElementInstanceManager.updateByUUID(params.bodyParams.instanceId, data)
-      .then((updatedElement) => {
-          if (updatedElement > 0) {
-            callback(null, params);
-          } else callback('error', "Unable to Update elements fabric id");
-        },
-        (err) => {
-          callback('error', Constants.MSG.SYSTEM_ERROR);
-        });
+    var elementProps = {
+      elementId:'bodyParams.instanceId',
+      updatedData: data
+    };
+    ElementInstanceService.updateElemInstance(elementProps, params, callback);
   }
 }
 
-/**
- * @desc - this function popultes objects with updated values and updates the changetraking table
- */
-function updateChangeTracking(params, callback) {
-
+const updateChangeTracking = function(params, callback) {
   var lastUpdated = new Date().getTime(),
     updateChangeTracking = {},
     updateChange = {},
@@ -408,41 +403,28 @@ function updateChangeTracking(params, callback) {
   params.updateElementObject = updateElementObject;
   params.updateChange = updateChange;
 
-  ChangeTrackingManager.updateByUuid(params.elementInstance.iofabric_uuid, updateChangeTracking)
-    .then((updatedchange) => {
-        callback(null, params);
-      },
-      (err) => {
-        callback(null, params);
-      });
+  var changeTrackingProps = {
+    fogInstanceId: 'elementInstance.iofabric_uuid',
+    changeObject: updateChangeTracking
+  };
+  ChangeTrackingService.updateChangeTracking(changeTrackingProps, params, callback);
 }
 
-/**
- * @desc - this function uses the populated objects to update the database values
- */
-function updateChange(params, callback) {
-  ChangeTrackingManager.updateByUuid(params.bodyParams.fabricInstanceId, params.updateChange)
-    .then((changeUpdated) => {
-        callback(null, params);
-      },
-      (err) => {
-        callback(null, params);
-      });
+const updateChange = function(params, callback) {
+  var changeTrackingProps = {
+    fogInstanceId: 'bodyParams.fabricInstanceId',
+    changeObject: params.updateChange
+  };
+  ChangeTrackingService.updateChangeTracking(changeTrackingProps, params, callback);
 }
-/**
- * @desc - this function updates the element instance with the new updated values
- */
-function updateElement(params, callback) {
 
-  ElementInstanceManager.updateByUUID(params.bodyParams.instanceId, params.updateElementObject)
-    .then((updatedElement) => {
-        if (updatedElement > 0) {
-          callback(null, params);
-        } else callback('error', "Unable to Update element instance data");
-      },
-      (err) => {
-        callback('error', Constants.MSG.SYSTEM_ERROR);
-      });
+
+const updateElement = function(params, callback) {
+  var elementInstanceProps = {
+    elementId: 'bodyParams.fabricInstanceId',
+    updatedData: params.updateElementObject
+  };
+  ElementInstanceService.updateElemInstance(elementInstanceProps, params, callback);
 }
 
 
@@ -470,7 +452,7 @@ router.post([
   async.waterfall([
     async.apply(UserService.getUser, userProps, params),
     async.apply(ElementInstanceService.getElementInstance, elementInstanceProps),
-    ElementInstanceService.updateElemInstance,
+    updateElementInstanceConfig,
     ChangeTrackingService.updateConfigTracking,
   ], function(err, result) {
     var errMsg = 'Internal error: There was a problem updating ioElement instance.' + result
@@ -479,9 +461,24 @@ router.post([
   });
 });
 
-/**
- * @desc - this end-point deletes an elementInstance
- */
+const updateElementInstanceConfig = function(params, callback){
+  var updatedData = {};
+
+  if (params.bodyParams.config) {
+    updatedData.config = params.bodyParams.config;
+    updatedData.configLastUpdated = new Date().getTime();
+    params.isConfigChanged = true;
+  }
+  updatedData.name = params.bodyParams.name
+
+  var updateElementInstanceProps ={
+    elementId: 'bodyParams.elementId',
+    updatedData: updatedData
+  };
+
+  ElementInstanceService.updateElemInstance(updateElementInstanceProps, params, callback);
+}
+
 router.post('/api/v2/authoring/element/instance/delete', (req, res) => {
   var params = {},
 
@@ -782,7 +779,7 @@ router.post('/api/v2/authoring/element/instance/port/create', (req, res) => {
   });
 });
 
-function getOutputDetails(params, callback) {
+const getOutputDetails = function(params, callback) {
   params.output = {
     portId: params.elementInstancePort.id,
     internalPort: params.bodyParams.internalPort,

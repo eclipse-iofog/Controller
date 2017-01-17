@@ -24,7 +24,7 @@ function main() {
       break;
 
     case 'start':
-      console.log("Starting Fabric Controller ...");
+      console.log("Starting Fog Controller ...");
       Server.startServer(args[1]);
       break;
 
@@ -37,8 +37,6 @@ function main() {
             break;
           case '-add':
             UserService.createUser(args[2], args[3], args[4]);
-
-            //UserManager.createUser(args[2], args[3], args[4]);
             break;
           case '-remove':
             UserManager.removeUser(args[2]);
