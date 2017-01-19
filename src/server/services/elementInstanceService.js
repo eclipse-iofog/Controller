@@ -9,6 +9,7 @@ const getElementInstance = function(props, params, callback) {
     .findByUuId(elementInstanceId)
     .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Cannot find Element Instance', callback));
 }
+
 const getElementInstanceByUuIds = function(props, params, callback) {
   var elementInstanceId = AppUtils.getProperty(params, props.elementInstanceId);
 
@@ -17,10 +18,12 @@ const getElementInstanceByUuIds = function(props, params, callback) {
     .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Cannot find Element Instance', callback));
 }
 
-const getElementInstancesByTrackId = function(params, callback) {
+const getElementInstancesByTrackId = function(props, params, callback) {
+  var trackId = AppUtils.getProperty(params, props.trackId);
+
   ElementInstanceManager
-    .findByTrackId(params.bodyParams.trackId)
-    .then(AppUtils.onFind.bind(null, params, 'trackElementInstances', 'Cannot find Element Instances related to track ' + params.bodyParams.trackId, callback));
+    .findByTrackId(trackId)
+    .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Cannot find Element Instances related to track ' + params.bodyParams.trackId, callback));
 }
 
 const findElementInstancesByTrackId = function(props, params, callback) {
@@ -39,46 +42,36 @@ const findByInstanceId= function(props, params, callback) {
     .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Cannot find Element Instance', callback));
 }
 
-const findRealElementInstanceByTrackId = function(params, callback) {
+const findRealElementInstanceByTrackId = function(props, params, callback) {
+  var trackId = AppUtils.getProperty(params, props.trackId);
+
   ElementInstanceManager
-    .findRealElementInstanceByTrackId(params.bodyParams.trackId)
-    .then(AppUtils.onFind.bind(null, params, 'elementInstance', 'ElementInstance not found.', callback));
+    .findRealElementInstanceByTrackId(trackId)
+    .then(AppUtils.onFind.bind(null, params, props.setProperty, 'ElementInstance not found.', callback));
 }
 
-const findIntraTrackByUuids = function(params, callback) {
+const findIntraTrackByUuids = function(props, params, callback) {
+  var intraTrackData = AppUtils.getProperty(params, props.intraTrackData);
+
   ElementInstanceManager
-    .findIntraTrackByUuids(_.uniq(_.pluck(params.intraRoutingList, 'publishing_element_id')))
-    .then(AppUtils.onFind.bind(null, params, 'intraTracks', 'intraTracks not found.', callback));
+    .findIntraTrackByUuids(_.uniq(_.pluck(intraTrackData, props.field)))
+    .then(AppUtils.onFind.bind(null, params, props.setProperty, 'intraTracks not found.', callback));
 }
 
-const findExtraTrackByUuids = function(params, callback) {
+const findExtraTrackByUuids = function(props, params, callback) {
+  var extraTrackData = AppUtils.getProperty(params, props.extraTrackData);
+
   ElementInstanceManager
-    .findExtraTrackByUuids(_.uniq(_.pluck(params.extraRoutingList, 'publishing_element_id')))
-    .then(AppUtils.onFind.bind(null, params, 'extraTracks', 'extraTracks not found.', callback));
+    .findExtraTrackByUuids(_.uniq(_.pluck(extraTrackData, props.field)))
+    .then(AppUtils.onFind.bind(null, params, props.setProperty, 'extraTracks not found.', callback));
 }
 
-const findOtherTrackDetailByUuids = function(params, callback) {
-  ElementInstanceManager
-   .findOtherTrackDetailByUuids(_.uniq(_.pluck(params.otherTrackElementIds, 'elementId1')))   
-   .then(AppUtils.onFind.bind(null, params, 'extraintegrator' , 'otherTracksDetail not found', callback));
-}
+const findOtherTrackDetailByUuids = function(props, params, callback) {
+  var otherTrackData = AppUtils.getProperty(params, props.otherTrackData);
 
-const findOutputIntraElementInfoByUuids = function(params, callback) {
   ElementInstanceManager
-    .findIntraTrackByUuids(_.uniq(_.pluck(params.outputIntraRoutingList, 'destination_element_id')))
-    .then(AppUtils.onFind.bind(null, params, 'outputIntraTracks', 'outputIntraElement not found.', callback));
-}
-
-const findOutputExtraElementInfoByUuids = function(params, callback) {
-  ElementInstanceManager
-    .findExtraTrackByUuids(_.uniq(_.pluck(params.outputExtraRoutingList, 'destination_element_id')))
-    .then(AppUtils.onFind.bind(null, params, 'outPutExtraTracks', 'outPutExtraElement not found.', callback));
-}
-
-const findOutpuOtherTrackDetailByUuids = function(params, callback) {
-  ElementInstanceManager
-    .findOtherTrackDetailByUuids(_.uniq(_.pluck(params.outputOtherTrackElementId2, 'elementId2')))
-    .then(AppUtils.onFind.bind(null, params, 'outPutExtraintegrator' ,'outPutExtraintegrator not found.', callback));
+   .findOtherTrackDetailByUuids(_.uniq(_.pluck(otherTrackData, props.field)))   
+   .then(AppUtils.onFind.bind(null, params, props.setProperty , 'otherTracksDetail not found', callback));
 }
 
 const createElementInstance = function(props, params, callback) {
@@ -98,11 +91,14 @@ var userId = AppUtils.getProperty(params, props.userId),
     .then(AppUtils.onCreate.bind(null, params, props.setProperty, 'Unable to create Element Instance', callback));
 }
 
-const createStreamViewerElement = function(params, callback) {
-
+const createStreamViewerElement = function(props, params, callback) {
+  var elementKey = AppUtils.getProperty(params, props.elementKey),
+      userId = AppUtils.getProperty(params, props.userId),
+      fogInstanceId = AppUtils.getProperty(params, props.fogInstanceId);
+  
   ElementInstanceManager
-    .createStreamViewerInstance(params.fabricType.streamViewerElementKey, params.userId, params.fabricInstance.uuid)
-    .then(AppUtils.onCreate.bind(null, params, 'streamViewer', 'Unable to create Stream Viewer', callback));
+    .createStreamViewerInstance(elementKey, userId, fogInstanceId)
+    .then(AppUtils.onCreate.bind(null, params, props.setProperty, 'Unable to create Stream Viewer', callback));
 }
 
 const createNetworkElementInstance = function(props, params, callback) {
@@ -122,41 +118,14 @@ const createNetworkElementInstance = function(props, params, callback) {
     .then(AppUtils.onCreate.bind(null, params, props.setProperty, 'Unable to create Network Element Instance', callback));
 }
 
-const createDebugConsole = function(params, callback) {
-
+const createDebugConsole = function(props, params, callback) {
+  var elementKey = AppUtils.getProperty(params, props.elementKey),
+      userId = AppUtils.getProperty(params, props.userId),
+      fogInstanceId = AppUtils.getProperty(params, props.fogInstanceId);
+  
   ElementInstanceManager
-    .createDebugConsoleInstance(params.fabricType.consoleElementKey, params.userId, params.fabricInstance.uuid)
-    .then(AppUtils.onCreate.bind(null, params, 'debugConsole', 'Unable to createDebug console object', callback));
-}
-
-const updateElementInstance = function(props, params, callback) {
-  var elementId = AppUtils.getProperty(params, props.elementId),
-    userId = AppUtils.getProperty(params, props.userId);
-
-  ElementInstanceManager
-    .updateByUUID(elementId, {
-      'updatedBy': userId,
-      'updatedAt': new Date().getTime()
-    })
-    .then(AppUtils.onUpdate.bind(null, params, "Unable to update updatedBy for an element Instance", callback));
-}
-
-const updateDebugConsole = function(params, callback) {
-  ElementInstanceManager
-    .updateByUUID(params.debugConsole.uuid, {
-      'updatedBy': params.userId
-    })
-    .then(AppUtils.onUpdate.bind(null, params, "Unable to update 'UpdatedBy' field for DebugConsoleElement", callback));
-}
-
-const updateRebuild = function(props, params, callback) {
-  var elementInstanceId = AppUtils.getProperty(params, props.elementInstanceId);
-
-  ElementInstanceManager
-    .updateByUUID(elementInstanceId, {
-      'rebuild': 1
-    })
-    .then(AppUtils.onUpdate.bind(null, params, "Unable to update 'rebuild' field for ElementInstance", callback));
+    .createDebugConsoleInstance(elementKey, userId, fogInstanceId)
+    .then(AppUtils.onCreate.bind(null, params, props.setProperty, 'Unable to createDebug console object', callback));
 }
 
 const updateElemInstance = function(props, params, callback) {
@@ -180,9 +149,11 @@ if (params.bodyParams.instanceId) {
     .then(AppUtils.onUpdate.bind(null, params, "Unable to update 'iofabric_uuid' field for Element Instance", callback));
 }
 
-const deleteNetworkElementInstance = function(params, callback) {
+const deleteNetworkElementInstance = function(props, params, callback) {
+  var elementId = AppUtils.getProperty(params, props.elementId);
+
   ElementInstanceManager
-    .deleteNetworkElement(params.bodyParams.elementId)
+    .deleteNetworkElement(elementId)
     .then(AppUtils.onDelete.bind(null, params, 'No Network Element Instance found', callback));
 }
 
@@ -191,12 +162,6 @@ const deleteElementInstance = function(props, params, callback) {
   ElementInstanceManager
     .deleteByElementUUID(elementId)
     .then(AppUtils.onDelete.bind(null, params, 'Was unable to delete Element Instance', callback));
-}
-
-const deleteElementInstanceByNetworkPairing = function(params, callback) {
-  ElementInstanceManager
-    .deleteByElementUUID(params.networkPairing.networkElementId1)
-    .then(AppUtils.onDelete.bind(null, params, 'Was unable to delete Network pairing Element Instance', callback));
 }
 
 export default {
@@ -209,20 +174,12 @@ export default {
   findIntraTrackByUuids: findIntraTrackByUuids,
   findExtraTrackByUuids: findExtraTrackByUuids,
   findOtherTrackDetailByUuids: findOtherTrackDetailByUuids,
-  findOutputIntraElementInfoByUuids: findOutputIntraElementInfoByUuids,
-  findOutputExtraElementInfoByUuids: findOutputExtraElementInfoByUuids,
-  findOutpuOtherTrackDetailByUuids: findOutpuOtherTrackDetailByUuids,
   findElementInstancesByTrackId: findElementInstancesByTrackId,
   deleteElementInstance: deleteElementInstance,
-  deleteElementInstanceByNetworkPairing: deleteElementInstanceByNetworkPairing,
   deleteNetworkElementInstance: deleteNetworkElementInstance,
   getElementInstance: getElementInstance,
   getElementInstanceByUuIds: getElementInstanceByUuIds,
   getElementInstancesByTrackId: getElementInstancesByTrackId,
-  updateDebugConsole: updateDebugConsole,
-  updateElementInstance: updateElementInstance,
   updateElemInstance: updateElemInstance,
-  updateRebuild: updateRebuild,
-  updateElemInstanceByFogUuId: updateElemInstanceByFogUuId 
-
+  updateElemInstanceByFogUuId: updateElemInstanceByFogUuId
 };

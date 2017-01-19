@@ -101,11 +101,11 @@ class ElementInstanceManager extends BaseManager {
 		return ElementInstance.create(elementInstance);
 	}
 
-	createStreamViewerInstance(streamViewerElementKey, userId, fabricInstanceId) {
+	createStreamViewerInstance(streamViewerElementKey, userId, fogInstanceId) {
 		var elementInstance = {
 			uuid: AppUtils.generateInstanceId(32),
 			trackId: 0,
-			elementKey: streamViewerElementKey,
+			element_key: streamViewerElementKey,
 			config: '{"accesstoken":"' + AppUtils.generateInstanceId(32) + '","foldersizelimit":200.0}',
 			name: 'Stream Viewer',
 			last_updated: new Date().getTime(),
@@ -119,13 +119,13 @@ class ElementInstanceManager extends BaseManager {
 			rebuild: false,
 			RootHostAccess: false,
 			logSize: 50,
-			iofabric_uuid: fabricInstanceId
+			iofabric_uuid: fogInstanceId
 		};
 
 		return ElementInstance.create(elementInstance);
 	}
 
-	createNetworkInstance(element, userId, fabricInstanceId, satelliteDomain, satellitePort1, name, localPort, isPublic, trackId) {
+	createNetworkInstance(element, userId, fogInstanceId, satelliteDomain, satellitePort1, name, localPort, isPublic, trackId) {
 		var netConfig = {
 				'mode': isPublic ? 'public' : 'private',
 				'host': satelliteDomain,
@@ -154,13 +154,13 @@ class ElementInstanceManager extends BaseManager {
 				rebuild: false,
 				RootHostAccess: false,
 				logSize: 50,
-				iofabric_uuid: fabricInstanceId
+				iofabric_uuid: fogInstanceId
 			};
 
 		return ElementInstance.create(elementInstance);
 	}
 
-	createDebugConsoleInstance(consoleElementKey, userId, fabricInstanceId) {
+	createDebugConsoleInstance(consoleElementKey, userId, fogInstanceId) {
 		var config = {
 				'accesstoken': AppUtils.generateRandomString(32),
 				'filesizelimit': 200.0
@@ -168,7 +168,7 @@ class ElementInstanceManager extends BaseManager {
 			elementInstance = {
 				uuid: AppUtils.generateInstanceId(32),
 				trackId: 0,
-				elementKey: consoleElementKey,
+				element_key: consoleElementKey,
 				config: JSON.stringify(config),
 				name: 'Debug Console',
 				last_updated: new Date().getTime(),
@@ -182,7 +182,7 @@ class ElementInstanceManager extends BaseManager {
 				rebuild: false,
 				RootHostAccess: false,
 				logSize: 50,
-				iofabric_uuid: fabricInstanceId
+				iofabric_uuid: fogInstanceId
 			};
 
 		return ElementInstance.create(elementInstance);

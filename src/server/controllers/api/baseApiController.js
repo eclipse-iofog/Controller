@@ -72,7 +72,7 @@ const checkUserExistance = (req, res, next) => {
   })
 }
 
-const checkfabricExistance = (req, res, next) => {
+const checkfogExistance = (req, res, next) => {
   var params = {},
 
     instanceProps = {
@@ -97,5 +97,5 @@ const checkfabricExistance = (req, res, next) => {
 export default {
   get: get,
   checkUserExistance: checkUserExistance,
-  checkfabricExistance : checkfabricExistance 
+  checkfogExistance : checkfogExistance 
 }

@@ -20,7 +20,7 @@ router.post('/api/v2/instance/containerconfig/id/:ID/token/:Token', BaseApiContr
 	containerConfig(req, res);
 });
 
-const containerConfig= function(req, res){
+const containerConfig = function(req, res){
 	var params = {},
 		instanceProps = {
 			instanceId: 'bodyParams.ID',
@@ -38,7 +38,7 @@ const containerConfig= function(req, res){
 	})
 };
 
-const processOutput=function (params, callback)
+const processOutput = function (params, callback)
 {
 	var containerList = new Array();
 

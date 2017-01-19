@@ -101,9 +101,9 @@ const resetSelectedActivatedAndName= function(params, callback) {
 
 const findElementInstanceByTrackId= function(params, callback) {
     var elementInstanceProps = {
-          trackId: 'bodyParams.trackId',
-          setProperty: 'elementInstances'
-        };
+      trackId: 'bodyParams.trackId',
+      setProperty: 'elementInstances'
+    };
     
   if (params.bodyParams.isActivated != params.dataTrack.isActivated) {
     ElementInstanceService.findElementInstancesByTrackId(elementInstanceProps, params, callback);
@@ -203,15 +203,21 @@ router.post('/api/v2/authoring/fabric/track/delete', (req, res) => {
     dataTrackProps = {
       trackId: 'bodyParams.trackId',
       setProperty: 'dataTrack'
+    },
+
+    elementInstanceProps = {
+      trackId: 'bodyParams.trackId',
+      setProperty: 'trackElementInstances'
     };
+
   params.bodyParams = req.body;
 
   async.waterfall([
-    async.apply(UserService.getUser,userProps, params),
+    async.apply(UserService.getUser, userProps, params),
     async.apply(DataTracksService.getDataTrackById, dataTrackProps),
-    ElementInstanceService.getElementInstancesByTrackId,
+    async.apply(ElementInstanceService.getElementInstancesByTrackId, elementInstanceProps),
     deleteElementInstances,
-    DataTracksService.deleteTrackById
+    async.apply(DataTracksService.deleteTrackById, dataTrackProps)
   ], function(err, result) {
     var errMsg = 'Internal error: There was a problem deleting the track : ' + result
 
@@ -219,7 +225,7 @@ router.post('/api/v2/authoring/fabric/track/delete', (req, res) => {
   });
 });
 
-function deleteElementInstances(params, callback) {
+const deleteElementInstances = function(params, callback) {
   console.log();
   if (params.trackElementInstances && params.trackElementInstances.length > 0) {
     async.eachSeries(params.trackElementInstances, function(elementInstance, callback) {
@@ -234,20 +240,24 @@ function deleteElementInstances(params, callback) {
   }
 }
 
-function deleteElement(params, callback) {
+const deleteElement = function(params, callback) {
   var deleteElementProps = {
-    elementId: 'bodyParams.elementId'
-  };
+        elementId: 'bodyParams.elementId'
+      },
+      portPasscodeProps = {
+        elementId: 'bodyParams.elementId',
+        setProperty: 'portPasscode'
+      };
 
   async.waterfall([
-    async.apply(ElementInstancePortService.deleteElementInstancePort, params),
-    RoutingService.deleteElementInstanceRouting,
-    RoutingService.deleteNetworkElementRouting,
-    ElementInstanceService.deleteNetworkElementInstance,
-    SatellitePortService.getPasscodeForNetworkElements,
+    async.apply(ElementInstancePortService.deleteElementInstancePort,deleteElementProps, params),
+    async.apply(RoutingService.deleteElementInstanceRouting,deleteElementProps),
+    async.apply(RoutingService.deleteNetworkElementRouting,deleteElementProps),
+    async.apply(ElementInstanceService.deleteNetworkElementInstance, deleteElementProps),
+    async.apply(SatellitePortService.getPasscodeForNetworkElements, portPasscodeProps),
     ComsatService.closePortsOnComsat,
-    NetworkPairingService.deleteNetworkPairing,
-    SatellitePortService.deletePortsForNetworkElements,
+    async.apply(NetworkPairingService.deleteNetworkPairing, deleteElementProps),
+    async.apply(SatellitePortService.deletePortsForNetworkElements, deleteElementProps),
     async.apply(ElementInstanceService.deleteElementInstance, deleteElementProps)
   ], function(err, result) {
     console.log(err);

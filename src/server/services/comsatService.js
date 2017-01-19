@@ -90,7 +90,7 @@ const openPortsOnComsat = function(params, callback) {
 
 }
 
-function closePortsOnComsat(params, callback) {
+const closePortsOnComsat = function(params, callback) {
 
   console.log(params.portPasscode[0]);
   if (params.portPasscode[0] && params.portPasscode[0].length > 0) {
@@ -147,7 +147,7 @@ function closePortsOnComsat(params, callback) {
   }
 }
 
-function closePortOnComsat(params, callback) {
+const closePortOnComsat = function(params, callback) {
   console.log(params.satellitePort);
 
   var data = querystring.stringify({

@@ -24,10 +24,10 @@ router.post('/api/v2/authoring/organization/element/create', (req, res) => {
   async.waterfall([
     async.apply(UserService.getUser, userProps, params),
     createElement,
-    createElementFabricTypes
+    createElementFogTypes
 
   ], function(err, result) {
-    AppUtils.sendResponse(res, err, 'element', params.newElement, result);
+    AppUtils.sendResponse(res, err, 'element', params.element, result);
   })
 });
 
@@ -50,7 +50,7 @@ const createElement = function(params, callback) {
   ElementService.createElement(elementProps, params, callback);
 }
 
-const createElementFabricTypes = function(params, callback) {
+const createElementFogTypes = function(params, callback) {
   var fogTypeIds = 0;
 
   if(params.bodyParams.fabricTypeIds){
@@ -59,13 +59,13 @@ const createElementFabricTypes = function(params, callback) {
   
   if (fogTypeIds.length) {
     for (let i = 0; i < fogTypeIds.length; i++) {
-      var elementFabricTypeProps = {
+      var elementFogTypeProps = {
             elementType: {
               element_id: params.element.id,
               iofabric_type_id: fogTypeIds[i]
             }
           };
-      ElementFabricTypeService.createElementFabricType(elementFabricTypeProps, params);
+      ElementFabricTypeService.createElementFogType(elementFogTypeProps, params);
     }
   }
   callback(null, params);
@@ -79,18 +79,22 @@ router.post('/api/v2/authoring/organization/element/update', (req, res) => {
     },
     
     elementProps = {
-      elementId: 'bodyParams.id',
+      networkElementId: 'bodyParams.id',
       setProperty: 'element'
+    },
+
+    fogTypeProps = {
+      elementId: 'bodyParams.id',
     };
 
   params.bodyParams = req.body;
 
   async.waterfall([
     async.apply(UserService.getUser, userProps, params),
-    async.apply(ElementService.getElementById, elementProps),
+    async.apply(ElementService.getNetworkElement, elementProps),
     updateElement,
-    async.apply(ElementFabricTypeService.deleteElementFogType, elementProps),
-    createElementFabricTypes
+    async.apply(ElementFabricTypeService.deleteElementFogType, fogTypeProps),
+    createElementFogTypes
 
   ], function(err, result) {
     AppUtils.sendResponse(res, err, 'element', params.bodyParams.id, result);

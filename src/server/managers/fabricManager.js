@@ -29,7 +29,7 @@ class FabricManager extends BaseManager {
      * @param Integer, JSON object - instanceId, config
      * @return Integer - returns the number of rows updated
      */
-  updateFabricConfig(instanceId, config) {
+  updateFogConfig(instanceId, config) {
       return Fabric.update(config, {
         where: {
           uuid: instanceId
@@ -42,7 +42,7 @@ class FabricManager extends BaseManager {
      * @param JSON object - config
      * @return Integer - returns the number of rows created
      */
-  createFabric(config) {
+  createFog(config) {
       return Fabric.create({
         uuid: config.uuid,
         typeKey: config.typeKey
@@ -73,7 +73,7 @@ class FabricManager extends BaseManager {
 
   findByUserId(userId){
     var instanceQuery = 'SELECT i.*, t.id as typeId, t.name as typeName, t.image as typeImage, t.description as typeDescription FROM iofabrics i JOIN iofabric_type t ON (i.typeKey= t.ID)'+ 
-                        'JOIN iofabric_users u ON (i.UUID = u.fabric_id) WHERE u.user_id ='+userId;
+    'JOIN iofabric_users u ON (i.UUID = u.fabric_id) WHERE u.user_id ='+userId;
 
     return sequelize.query(instanceQuery, { type: sequelize.QueryTypes.SELECT });
   }

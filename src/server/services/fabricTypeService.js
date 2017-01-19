@@ -1,12 +1,12 @@
 import FabricTypeManager from '../managers/fabricTypeManager';
 import AppUtils from '../utils/appUtils';
 
-const getFabricTypeDetail = function(props, params, callback) {
+const getFogTypeDetail = function(props, params, callback) {
   var fogTypeId = AppUtils.getProperty(params, props.fogTypeId);
 
   FabricTypeManager
     .findById(fogTypeId)
-    .then(AppUtils.onCreate.bind(null, params, props.setProperty, 'Unable to read fabric type detail', callback));
+    .then(AppUtils.onCreate.bind(null, params, props.setProperty, 'Unable to read fogType details', callback));
 }
 
 const getFogTypesList = function(props, params, callback) {
@@ -17,6 +17,6 @@ const getFogTypesList = function(props, params, callback) {
 }
 
 export default {
-  getFabricTypeDetail: getFabricTypeDetail,
+  getFogTypeDetail: getFogTypeDetail,
   getFogTypesList: getFogTypesList
 };

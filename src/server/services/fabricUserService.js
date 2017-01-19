@@ -6,15 +6,15 @@ const createFogUser = function(props, params, callback) {
       instanceId = AppUtils.getProperty(params, props.instanceId);
 
   FabricUserManager
-    .create(userId, params.fabricInstance.uuid)
-    .then(AppUtils.onCreate.bind(null, params, props.setProperty, 'Unable to create user for Fabric Instance', callback));
+    .create(userId, instanceId)
+    .then(AppUtils.onCreate.bind(null, params, props.setProperty, 'Unable to create user for Fog Instance', callback));
 }
 
 const deleteFogUserByInstanceId = function(props, params, callback) {
   var instanceId = AppUtils.getProperty(params, props.instanceId);
 
   FabricUserManager
-    .deleteByInstanceIdAndUserId(instanceId)
+    .deleteByInstanceId(instanceId)
     .then(AppUtils.onDeleteOptional.bind(null, params, 'Unable to delete Fog User', callback));
 }
 

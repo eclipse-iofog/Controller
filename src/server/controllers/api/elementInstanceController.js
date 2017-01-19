@@ -32,6 +32,75 @@ router.get('/api/v2/authoring/fabric/track/element/list/:trackId', (req, res) =>
       userProps = {
           userId: 'bodyParams.userId',
           setProperty: 'user'
+      },
+      elementInstanceProps = {
+        trackId: 'bodyParams.trackId',
+        setProperty: 'elementInstance'
+      },
+      elementAdvertisedProps = {
+        elementInstanceData: 'elementInstance',
+        field: 'element_key',
+        setProperty: 'elementAdvertisedPort'
+      },
+      elementInstancePortProps = {
+        elementInstanceData: 'elementInstance',
+        field: 'uuid',
+        setProperty: 'elementInstancePort'
+      },
+      networkPortProps = {
+        elementInstancePortData: 'elementInstancePort',
+        field: 'id',
+        setProperty: 'networkPairing'
+      },
+      satellitePortProps = {
+        networkData: 'networkPairing',
+        field: 'satellitePortId',
+        setProperty: 'satellitePort'
+      },
+      satelliteProps = {
+        satellitePortData: 'satellitePort',
+        field: 'satellite_id',
+        setProperty: 'satellite'
+      },
+      routingProps = {
+        elementInstanceData: 'elementInstance',
+        field: 'uuid',
+        setProperty: 'routing'
+      },
+      outputRoutingProps = {
+        elementInstanceData: 'elementInstance',
+        field: 'uuid',
+        setProperty: 'outputRouting'
+      },
+      intraTrackProps = {
+        intraTrackData: 'intraRoutingList',
+        field: 'publishing_element_id',
+        setProperty: 'intraTracks'
+      },
+      outputIntraTrackProps = {
+        intraTrackData: 'outputIntraRoutingList',
+        field: 'destination_element_id',
+        setProperty: 'outputIntraTracks'
+      },
+      extraTrackProps = {
+        extraTrackData: 'extraRoutingList',
+        field: 'publishing_element_id',
+        setProperty: 'extraTracks'
+      },
+      outputExtraTrackProps = {
+        extraTrackData: 'outputExtraRoutingList',
+        field: 'destination_element_id',
+        setProperty: 'outPutExtraTracks'
+      },
+      otherTrackProps = {
+        otherTrackData: 'otherTrackElementIds',
+        field: 'elementId1',
+        setProperty: 'extraintegrator'
+      },
+      outputOtherTrackProps = {
+        otherTrackData: 'outputOtherTrackElementId2',
+        field: 'elementId2',
+        setProperty: 'outPutExtraintegrator'
       };
 
   params.bodyParams = req.params;
@@ -39,31 +108,30 @@ router.get('/api/v2/authoring/fabric/track/element/list/:trackId', (req, res) =>
 
   async.waterfall([
     async.apply(UserService.getUser, userProps, params),
-    ElementInstanceService.findRealElementInstanceByTrackId,
-    ElementAdvertisedPortService.findElementAdvertisedPortByElementIds,
-    ElementInstancePortService.findElementInstancePortsByElementIds,
-    NetworkPairingService.findByElementInstancePortId,
-    SatellitePortService.findBySatellitePortIds,
-    SatelliteService.findBySatelliteIds,
-    RoutingService.findByElementInstanceUuidsAndRoutingDestination,
+    async.apply(ElementInstanceService.findRealElementInstanceByTrackId, elementInstanceProps),
+    async.apply(ElementAdvertisedPortService.findElementAdvertisedPortByElementIds, elementAdvertisedProps),
+    async.apply(ElementInstancePortService.findElementInstancePortsByElementIds, elementInstancePortProps),
+    async.apply(NetworkPairingService.findByElementInstancePortId, networkPortProps),
+    async.apply(SatellitePortService.findBySatellitePortIds, satellitePortProps),
+    async.apply(SatelliteService.findBySatelliteIds, satelliteProps),
+    async.apply(RoutingService.findByElementInstanceUuidsAndRoutingDestination, routingProps),
     RoutingService.extractDifferentRoutingList,
-    ElementInstanceService.findIntraTrackByUuids,
-    ElementInstanceService.findExtraTrackByUuids,
+    async.apply(ElementInstanceService.findIntraTrackByUuids, intraTrackProps),
+    async.apply(ElementInstanceService.findExtraTrackByUuids, extraTrackProps),
     NetworkPairingService.findOtherTrackByUuids,
     NetworkPairingService.concatNetwotkElementAndNormalElement,
-    ElementInstanceService.findOtherTrackDetailByUuids,
-    RoutingService.findOutputRoutingByElementInstanceUuidsAndRoutingPublishing,
+    async.apply(ElementInstanceService.findOtherTrackDetailByUuids, otherTrackProps),
+    async.apply(RoutingService.findOutputRoutingByElementInstanceUuidsAndRoutingPublishing, outputRoutingProps),
     RoutingService.extractDifferentOutputRoutingList,
-    ElementInstanceService.findOutputIntraElementInfoByUuids,
-    ElementInstanceService.findOutputExtraElementInfoByUuids,
+    async.apply(ElementInstanceService.findIntraTrackByUuids, outputIntraTrackProps),
+    async.apply(ElementInstanceService.findExtraTrackByUuids, outputExtraTrackProps),
     NetworkPairingService.findOutputOtherElementInfoByUuids,
     NetworkPairingService.concatNetwotkElement2AndNormalElement,
-    ElementInstanceService.findOutpuOtherTrackDetailByUuids,
+    async.apply(ElementInstanceService.findOtherTrackDetailByUuids, outputOtherTrackProps),
     extractElementsForTrack
-  ], function(err, result) {
+  ], function(err, result) {           
     AppUtils.sendResponse(res, err, 'elements', result.response, result);
   })
-
 });
 
 const extractElementsForTrack = function(params, callback) {
@@ -176,73 +244,127 @@ const extractRouting = function(params, elementInstance) {
 
 router.post('/api/v2/authoring/element/instance/create', (req, res) => {
   var params = {},
-    userProps,
-    elementProps,
-    elementInstanceProps,
-    changeTrackingProps,
-    newElementInstanceProps;
+      userProps = {
+        userId: 'bodyParams.userId',
+        setProperty: 'user'
+      },
+      elementProps = {
+        networkElementId: 'bodyParams.elementKey',
+        setProperty: 'element'
+      },
+      newElementInstanceProps = {
+        userId: 'user.id',
+        trackId: 'bodyParams.trackId',
+        name: 'bodyParams.name',
+        logSize: 'bodyParams.logSize',
+        config: 'bodyParams.config',
+        fogInstanceId: 'bodyParams.fabricInstanceId',
+        setProperty: 'newElementInstance'
+      },  
+      changeTrackingProps = {
+        fogInstanceId: 'bodyParams.fabricInstanceId',
+        changeObject: {
+          containerConfig: new Date().getTime(),
+          containerList: new Date().getTime()
+        }
+      },
+      elementAdvertisedProps = {
+        elementInstanceData: 'elementInstance',
+        field: 'element_key',
+        setProperty: 'elementAdvertisedPort'
+      },
+      elementInstancePortProps = {
+        elementInstanceData: 'elementInstance',
+        field: 'uuid',
+        setProperty: 'elementInstancePort'
+      },
+      networkPortProps = {
+        elementInstancePortData: 'elementInstancePort',
+        field: 'id',
+        setProperty: 'networkPairing'
+      },
+      satellitePortProps = {
+        networkData: 'networkPairing',
+        field: 'satellitePortId',
+        setProperty: 'satellitePort'
+      },
+      satelliteProps = {
+        satellitePortData: 'satellitePort',
+        field: 'satellite_id',
+        setProperty: 'satellite'
+      },
+      routingProps = {
+        elementInstanceData: 'elementInstance',
+        field: 'uuid',
+        setProperty: 'routing'
+      },
+      outputRoutingProps = {
+        elementInstanceData: 'elementInstance',
+        field: 'uuid',
+        setProperty: 'outputRouting'
+      },
+      intraTrackProps = {
+        intraTrackData: 'intraRoutingList',
+        field: 'publishing_element_id',
+        setProperty: 'intraTracks'
+      },
+      outputIntraTrackProps = {
+        intraTrackData: 'outputIntraRoutingList',
+        field: 'destination_element_id',
+        setProperty: 'outputIntraTracks'
+      },
+      extraTrackProps = {
+        extraTrackData: 'extraRoutingList',
+        field: 'publishing_element_id',
+        setProperty: 'extraTracks'
+      },
+      outputExtraTrackProps = {
+        extraTrackData: 'outputExtraRoutingList',
+        field: 'destination_element_id',
+        setProperty: 'outPutExtraTracks'
+      },
+      otherTrackProps = {
+        otherTrackData: 'otherTrackElementIds',
+        field: 'elementId1',
+        setProperty: 'extraintegrator'
+      },
+      outputOtherTrackProps = {
+        otherTrackData: 'outputOtherTrackElementId2',
+        field: 'elementId2',
+        setProperty: 'outPutExtraintegrator'
+      };
 
   params.bodyParams = req.body;
-  params.milliseconds = new Date().getTime();
-
-  userProps = {
-          userId: 'bodyParams.userId',
-          setProperty: 'user'
-      },
-  elementProps = {
-      elementId: 'bodyParams.elementKey',
-      setProperty: 'element'
-    },
-    newElementInstanceProps = {
-      userId: 'user.id',
-      trackId: 'bodyParams.trackId',
-      name: 'bodyParams.name',
-      logSize: 'bodyParams.logSize',
-      config: 'bodyParams.config',
-      fogInstanceId: 'bodyParams.fogInstanceId',
-      setProperty: 'newElementInstance'
-    },
-    changeTrackingProps = {
-      fogInstanceId: 'bodyParams.fogInstanceId',
-      changeObject: {
-        containerConfig: params.milliseconds,
-        containerList: params.milliseconds
-      }
-    };
-  elementInstanceProps = {
-    elementInstanceId: 'newElementInstance.uuid',
-    setProperty: 'elementInstance'
-  };
 
   async.waterfall([
     async.apply(UserService.getUser, userProps, params),
-    async.apply(ElementService.getElementById, elementProps),
+    async.apply(ElementService.getNetworkElement, elementProps),
     async.apply(ElementInstanceService.createElementInstance, newElementInstanceProps),
     async.apply(ChangeTrackingService.updateChangeTracking, changeTrackingProps),
     convertToArr,
-    ElementAdvertisedPortService.findElementAdvertisedPortByElementIds,
-    ElementInstancePortService.findElementInstancePortsByElementIds,
-    NetworkPairingService.findByElementInstancePortId,
-    SatellitePortService.findBySatellitePortIds,
-    SatelliteService.findBySatelliteIds,
-    RoutingService.findByElementInstanceUuidsAndRoutingDestination,
+    async.apply(ElementAdvertisedPortService.findElementAdvertisedPortByElementIds, elementAdvertisedProps),
+    async.apply(ElementInstancePortService.findElementInstancePortsByElementIds, elementInstancePortProps),
+    async.apply(NetworkPairingService.findByElementInstancePortId, networkPortProps),
+    async.apply(SatellitePortService.findBySatellitePortIds, satellitePortProps),
+    async.apply(SatelliteService.findBySatelliteIds, satelliteProps),
+    async.apply(RoutingService.findByElementInstanceUuidsAndRoutingDestination, routingProps),
     RoutingService.extractDifferentRoutingList,
-    ElementInstanceService.findIntraTrackByUuids,
-    ElementInstanceService.findExtraTrackByUuids,
+    async.apply(ElementInstanceService.findIntraTrackByUuids,intraTrackProps),
+    async.apply(ElementInstanceService.findExtraTrackByUuids,extraTrackProps),
     NetworkPairingService.findOtherTrackByUuids,
     NetworkPairingService.concatNetwotkElementAndNormalElement,
-    ElementInstanceService.findOtherTrackDetailByUuids,
-    RoutingService.findOutputRoutingByElementInstanceUuidsAndRoutingPublishing,
+    async.apply(ElementInstanceService.findOtherTrackDetailByUuids, otherTrackProps),
+    async.apply(RoutingService.findOutputRoutingByElementInstanceUuidsAndRoutingPublishing, outputRoutingProps),
     RoutingService.extractDifferentOutputRoutingList,
-    ElementInstanceService.findOutputIntraElementInfoByUuids,
-    ElementInstanceService.findOutputExtraElementInfoByUuids,
+    async.apply(ElementInstanceService.findIntraTrackByUuids, outputIntraTrackProps),
+    async.apply(ElementInstanceService.findExtraTrackByUuids, outputExtraTrackProps),
     NetworkPairingService.findOutputOtherElementInfoByUuids,
     NetworkPairingService.concatNetwotkElement2AndNormalElement,
-    ElementInstanceService.findOutpuOtherTrackDetailByUuids,
+    async.apply(ElementInstanceService.findOtherTrackDetailByUuids, outputOtherTrackProps),
     getElementDetails
 
   ], function(err, result) {
-    var errMsg = 'Internal error: ' + result
+    var errMsg = 'Internal error: ' + result  
     AppUtils.sendResponse(res, err, 'elementDetails', params.elementInstanceDetails, errMsg);
   });
 });
@@ -285,35 +407,32 @@ const getElementDetails = function(params, callback) {
  */
 router.post('/api/v2/authoring/build/element/instance/create', (req, res) => {
   var params = {},
-    userProps,
-    elementProps,
-    elementInstanceProps;
-
-  params.bodyParams = req.body;
-
-  userProps = {
-          userId: 'bodyParams.userId',
-          setProperty: 'user'
-      },
+  
+    userProps = {
+      userId: 'bodyParams.userId',
+      setProperty: 'user'
+    },
       
-  elementProps = {
-      elementId: 'bodyParams.elementKey',
+    elementProps = {
+      networkElementId: 'bodyParams.elementKey',
       setProperty: 'element'
     },
 
-  elementInstanceProps = {
+    elementInstanceProps = {
       userId: 'user.id',
       trackId: 'bodyParams.trackId',
       name: 'bodyParams.name',
       logSize: 'bodyParams.logSize',
       config: 'bodyParams.config',
-      fogInstanceId: 'bodyParams.fogInstanceId',
+      fogInstanceId: 'bodyParams.fabricInstanceId',
       setProperty: 'elementInstance'
     };
+  
+  params.bodyParams = req.body;
 
   async.waterfall([
     async.apply(UserService.getUser, userProps, params),
-    async.apply(ElementService.getElementById, elementProps),
+    async.apply(ElementService.getNetworkElement, elementProps),
     async.apply(ElementInstanceService.createElementInstance, elementInstanceProps)
 
   ], function(err, result) {
@@ -434,32 +553,49 @@ router.post([
 ], (req, res) => {
 
   var params = {},
-    userProps,
-    elementInstanceProps;
+    userProps = {
+      userId: 'bodyParams.userId',
+      setProperty: 'user'
+    },
 
+    elementInstanceProps = {
+      elementInstanceId: 'bodyParams.elementId',
+      setProperty: 'elementInstance'
+    },
+
+    changeTrackingProps = {
+      instanceId: 'elementInstance.iofabric_uuid',
+      setProperty: 'trackingData'
+    };
   params.bodyParams = req.body;
-
-  userProps = {
-    userId: 'bodyParams.userId',
-    setProperty: 'user'
-  },
-
-  elementInstanceProps = {
-    elementInstanceId: 'bodyParams.elementId',
-    setProperty: 'elementInstance'
-  };
 
   async.waterfall([
     async.apply(UserService.getUser, userProps, params),
     async.apply(ElementInstanceService.getElementInstance, elementInstanceProps),
     updateElementInstanceConfig,
-    ChangeTrackingService.updateConfigTracking,
+    async.apply(ChangeTrackingService.getChangeTrackingByInstanceId, changeTrackingProps),
+    updateConfigTracking
+
   ], function(err, result) {
     var errMsg = 'Internal error: There was a problem updating ioElement instance.' + result
 
     AppUtils.sendResponse(res, err, 'element', params.bodyParams.elementId, errMsg);
   });
 });
+
+const updateConfigTracking = function(params, callback){
+  if (params.isConfigChanged) {
+    var changeTrackingProps = {
+      fogInstanceId: 'elementInstance.iofabric_uuid',
+      changeObject: {
+        containerConfig: new Date().getTime()
+      }
+    };
+    ChangeTrackingService.updateChangeTracking(changeTrackingProps, params, callback);
+  }else{
+    callback(null, params);
+  }
+}
 
 const updateElementInstanceConfig = function(params, callback){
   var updatedData = {};
@@ -469,7 +605,10 @@ const updateElementInstanceConfig = function(params, callback){
     updatedData.configLastUpdated = new Date().getTime();
     params.isConfigChanged = true;
   }
+
+  if (params.bodyParams.name) {
   updatedData.name = params.bodyParams.name
+  }
 
   var updateElementInstanceProps ={
     elementId: 'bodyParams.elementId',
@@ -485,7 +624,12 @@ router.post('/api/v2/authoring/element/instance/delete', (req, res) => {
     userProps = {
       userId: 'bodyParams.userId',
       setProperty: 'user'
-      },
+    },
+    
+    portPasscodeProps = {
+      elementId: 'bodyParams.elementId',
+      setProperty: 'portPasscode'
+    },
 
     deleteElementProps = {
       elementId: 'bodyParams.elementId'
@@ -496,14 +640,14 @@ router.post('/api/v2/authoring/element/instance/delete', (req, res) => {
 
   async.waterfall([
     async.apply(UserService.getUser, userProps, params),
-    ElementInstancePortService.deleteElementInstancePort,
-    RoutingService.deleteElementInstanceRouting,
-    RoutingService.deleteNetworkElementRouting,
-    ElementInstanceService.deleteNetworkElementInstance,
-    SatellitePortService.getPasscodeForNetworkElements,
+    async.apply(ElementInstancePortService.deleteElementInstancePort, deleteElementProps),
+    async.apply(RoutingService.deleteElementInstanceRouting, deleteElementProps),
+    async.apply(RoutingService.deleteNetworkElementRouting, deleteElementProps),
+    async.apply(ElementInstanceService.deleteNetworkElementInstance, deleteElementProps),
+    async.apply(SatellitePortService.getPasscodeForNetworkElements, portPasscodeProps),
     ComsatService.closePortsOnComsat,
-    NetworkPairingService.deleteNetworkPairing,
-    SatellitePortService.deletePortsForNetworkElements,
+    async.apply(NetworkPairingService.deleteNetworkPairing, deleteElementProps),
+    async.apply(SatellitePortService.deletePortsForNetworkElements, deleteElementProps),
     async.apply(ElementInstanceService.deleteElementInstance, deleteElementProps)
   ], function(err, result) {
     var errMsg = 'Internal error: There was a problem deleting ioElement instance.' + result;
@@ -521,8 +665,8 @@ router.post('/api/v2/authoring/element/instance/comsat/pipe/create', (req, res) 
     },
 
     fogTypeProps = {
-      fogTypeId: 'fabricInstance.typeKey',
-      setProperty: 'fabricType'
+      fogTypeId: 'fogInstance.typeKey',
+      setProperty: 'fogType'
     },
 
     elementInstanceProps = {
@@ -531,7 +675,7 @@ router.post('/api/v2/authoring/element/instance/comsat/pipe/create', (req, res) 
     },
 
     networkPairingProps = {
-      instanceId1: 'fabricInstance.uuid',
+      instanceId1: 'fogInstance.uuid',
       instanceId2: null,
       elementId1: 'streamViewer.uuid',
       elementId2: null,
@@ -544,7 +688,7 @@ router.post('/api/v2/authoring/element/instance/comsat/pipe/create', (req, res) 
     },
 
     changeTrackingCLProps = {
-      fogInstanceId: 'fabricInstance.uuid',
+      fogInstanceId: 'fogInstance.uuid',
       changeObject: {
         'containerList': new Date().getTime(),
         'containerConfig': new Date().getTime()
@@ -553,17 +697,17 @@ router.post('/api/v2/authoring/element/instance/comsat/pipe/create', (req, res) 
 
     fogProps = {
       fogId: 'bodyParams.instanceId',
-      setProperty: 'fabricInstance'
+      setProperty: 'fogInstance'
     },
 
     networkElementProps = {
-      networkElementId: 'fabricType.networkElementKey',
+      networkElementId: 'fogType.networkElementKey',
       setProperty: 'networkElement'
     },
 
     networkElementInstanceProps = {
       networkElement: 'networkElement',
-      fogInstanceId: 'fabricInstance.uuid',
+      fogInstanceId: 'fogInstance.uuid',
       satellitePort: 'satellitePort.port1',
       satelliteDomain: 'satellite.domain',
       trackId: null,
@@ -582,10 +726,10 @@ router.post('/api/v2/authoring/element/instance/comsat/pipe/create', (req, res) 
   async.waterfall([
     async.apply(UserService.getUser, userProps, params),
     async.apply(FabricService.getFogInstance, fogProps),
-    async.apply(FabricTypeService.getFabricTypeDetail, fogTypeProps),
+    async.apply(FabricTypeService.getFogTypeDetail, fogTypeProps),
     async.apply(ElementInstancePortService.getElementInstancePort, elementInstanceProps),
     ComsatService.openPortOnRadomComsat,
-    SatellitePortService.createSatellitePort,
+    createSatellitePort,
     async.apply(ElementService.getNetworkElement, networkElementProps),
     async.apply(ElementInstanceService.createNetworkElementInstance, networkElementInstanceProps),
     async.apply(ChangeTrackingService.updateChangeTracking, changeTrackingCLProps),
@@ -601,6 +745,25 @@ router.post('/api/v2/authoring/element/instance/comsat/pipe/create', (req, res) 
     AppUtils.sendResponse(res, err, 'connection', outputObj, errMsg);
   });
 });
+
+const createSatellitePort = function(params, callback){
+  var satellitePortProps = {
+    satellitePortObj: {
+      port1: params.comsatPort.port1,
+      port2: params.comsatPort.port2,
+      maxConnectionsPort1: 60,
+      maxConnectionsPort2: 0,
+      passcodePort1: params.comsatPort.passcode1,
+      passcodePort2: params.comsatPort.passcode2,
+      heartBeatAbsenceThresholdPort1: 60000,
+      heartBeatAbsenceThresholdPort2: 0,
+      satellite_id: params.satellite.id,
+      mappingId: params.comsatPort.id
+    },
+    setProperty: 'satellitePort'
+  };
+    SatellitePortService.createSatellitePort(satellitePortProps, params, callback);
+}
 
 router.post('/api/v2/authoring/element/instance/comsat/pipe/delete', (req, res) => {
   var params = {},
@@ -634,18 +797,25 @@ router.post('/api/v2/authoring/element/instance/comsat/pipe/delete', (req, res) 
 
     networkPairingProps = {
       networkPairingId: 'networkPairing.id'
+    },
+
+    deleteElementInstanceProps = {
+      elementId: 'networkPairing.networkElementId1'
+    },
+    getNetworkPairingProps = {
+      networkPairingId: 'bodyParams.networkPairingId'
     };
 
   params.bodyParams = req.body;
 
   async.waterfall([
     async.apply(UserService.getUser, userProps, params),
-    NetworkPairingService.getNetworkPairing,
+    async.apply(NetworkPairingService.getNetworkPairing, getNetworkPairingProps),
     async.apply(SatellitePortService.getSatellitePort, satellitePortProps),
     async.apply(SatelliteService.getSatelliteById, satelliteProps),
     ComsatService.closePortOnComsat,
     async.apply(SatellitePortService.deleteSatellitePort, deleteSatelliteProps),
-    ElementInstanceService.deleteElementInstanceByNetworkPairing,
+    async.apply(ElementInstanceService.deleteElementInstance, deleteElementInstanceProps),
     async.apply(NetworkPairingService.deleteNetworkPairingById, networkPairingProps),
     async.apply(ChangeTrackingService.updateChangeTracking, changeTrackingProps)
 
@@ -666,7 +836,7 @@ router.post('/api/v2/authoring/element/instance/port/create', (req, res) => {
     },
 
     elementInstancePortProps = {
-      userId: 'bodyParams.userId',
+      userId: 'user.id',
       internalPort: 'bodyParams.internalPort',
       externalPort: 'bodyParams.externalPort',
       elementId: 'bodyParams.elementId',
@@ -676,11 +846,6 @@ router.post('/api/v2/authoring/element/instance/port/create', (req, res) => {
     elementInstanceProps = {
       elementInstanceId: 'bodyParams.elementId',
       setProperty: 'elementInstance'
-    },
-
-    elementInstanceUpdateProps = {
-      elementId: 'bodyParams.elementId',
-      userId: 'user.id'
     },
 
     fogProps = {
@@ -747,13 +912,12 @@ router.post('/api/v2/authoring/element/instance/port/create', (req, res) => {
       async.apply(UserService.getUser, userProps, params),
       async.apply(ElementInstancePortService.createElementInstancePort, elementInstancePortProps),
       async.apply(ElementInstanceService.getElementInstance, elementInstanceProps),
-      async.apply(ElementInstanceService.updateElementInstance, elementInstanceUpdateProps),
+      updateElemInstance,
       async.apply(FabricService.getFogInstance, fogProps),
       async.apply(ChangeTrackingService.updateChangeTracking, changeTrackingProps),
-
-      async.apply(FabricTypeService.getFabricTypeDetail, fogTypeProps),
+      async.apply(FabricTypeService.getFogTypeDetail, fogTypeProps),
       ComsatService.openPortOnRadomComsat,
-      SatellitePortService.createSatellitePort,
+      createSatellitePort,
       async.apply(ElementService.getNetworkElement, networkElementProps),
       async.apply(ElementInstanceService.createNetworkElementInstance, networkElementInstanceProps),
       async.apply(ChangeTrackingService.updateChangeTracking, changeTrackingCLProps),
@@ -765,7 +929,7 @@ router.post('/api/v2/authoring/element/instance/port/create', (req, res) => {
       async.apply(UserService.getUser, userProps, params),
       async.apply(ElementInstancePortService.createElementInstancePort, elementInstancePortProps),
       async.apply(ElementInstanceService.getElementInstance, elementInstanceProps),
-      async.apply(ElementInstanceService.updateElementInstance, elementInstanceUpdateProps),
+      updateElemInstance,
       async.apply(FabricService.getFogInstance, fogProps),
       async.apply(ChangeTrackingService.updateChangeTracking, changeTrackingProps),
       getOutputDetails
@@ -778,6 +942,17 @@ router.post('/api/v2/authoring/element/instance/port/create', (req, res) => {
     AppUtils.sendResponse(res, err, 'port', params.output, errMsg);
   });
 });
+
+const updateElemInstance = function(params, callback) {
+  var elementInstanceUpdateProps = {
+      elementId: 'bodyParams.elementId',
+      updatedData: {
+        updatedBy: params.user.id,
+        updatedAt: new Date().getTime()
+      }
+    };
+  ElementInstanceService.updateElemInstance(elementInstanceUpdateProps, params, callback);
+}
 
 const getOutputDetails = function(params, callback) {
   params.output = {
@@ -808,11 +983,6 @@ router.post('/api/v2/authoring/element/instance/port/delete', (req, res) => {
     elementInstancePortProps = {
       portId: 'bodyParams.portId',
       setProperty: 'elementInstancePort'
-    },
-
-    elementInstanceProps = {
-      elementId: 'elementInstancePort.elementId',
-      userId: 'user.id'
     },
 
     readElementInstanceProps = {
@@ -860,8 +1030,13 @@ router.post('/api/v2/authoring/element/instance/port/delete', (req, res) => {
         'containerList': new Date().getTime(),
         'containerConfig': new Date().getTime()
       }
+    },
+    deleteElementInstanceProps = {
+      elementId: 'networkPairing.networkElementId1'
+    },
+    getNetworkPairingProps = {
+      networkPairingId: 'bodyParams.networkPairingId'
     };
-
 
   params.bodyParams = req.body;
 
@@ -869,18 +1044,17 @@ router.post('/api/v2/authoring/element/instance/port/delete', (req, res) => {
     waterfallMethods = [
       async.apply(UserService.getUser, userProps, params),
       async.apply(ElementInstancePortService.getElementInstancePort, elementInstancePortProps),
-      async.apply(ElementInstanceService.updateElementInstance, elementInstanceProps),
+      updateElemInstance,
       async.apply(ElementInstanceService.getElementInstance, readElementInstanceProps),
       async.apply(FabricService.getFogInstance, fogProps),
       async.apply(ChangeTrackingService.updateChangeTracking, changeTrackingProps),
       async.apply(ElementInstancePortService.deleteElementInstancePortById, delElementInstancePortProps),
-
-      NetworkPairingService.getNetworkPairing,
+      async.apply(NetworkPairingService.getNetworkPairing, getNetworkPairingProps),
       async.apply(SatellitePortService.getSatellitePort, satellitePortProps),
       async.apply(SatelliteService.getSatelliteById, satelliteProps),
       ComsatService.closePortOnComsat,
       async.apply(SatellitePortService.deleteSatellitePort, deleteSatelliteProps),
-      ElementInstanceService.deleteElementInstanceByNetworkPairing,
+      async.apply(ElementInstanceService.deleteElementInstance, deleteElementInstanceProps),
       async.apply(NetworkPairingService.deleteNetworkPairingById, networkPairingProps),
       async.apply(ChangeTrackingService.updateChangeTracking, changeTrackingProps2)
     ];
@@ -888,7 +1062,7 @@ router.post('/api/v2/authoring/element/instance/port/delete', (req, res) => {
     waterfallMethods = [
       async.apply(UserService.getUser, userProps, params),
       async.apply(ElementInstancePortService.getElementInstancePort, elementInstancePortProps),
-      async.apply(ElementInstanceService.updateElementInstance, elementInstanceProps),
+      updateElemInstance,
       async.apply(ElementInstanceService.getElementInstance, readElementInstanceProps),
       async.apply(FabricService.getFogInstance, fogProps),
       async.apply(ChangeTrackingService.updateChangeTracking, changeTrackingProps),

@@ -16,7 +16,7 @@ import UserService from '../../services/userService';
 
 import AppUtils from '../../utils/appUtils';
 
-router.get('/api/v2/authoring/fabric/provisionkey/instanceid/:instanceId', BaseApiController.checkfabricExistance, (req, res) => {
+router.get('/api/v2/authoring/fabric/provisionkey/instanceid/:instanceId', BaseApiController.checkfogExistance, (req, res) => {
   var params = {},
       createProvisionProps = {
           instanceId: 'bodyParams.instanceId',
@@ -39,14 +39,14 @@ router.get('/api/v2/authoring/fabric/provisionkey/instanceid/:instanceId', BaseA
 });
 
 router.get('/api/v2/instance/provision/key/:provisionKey/fabrictype/:fabricType', (req, res) => {
-  provisionFabricKey(req, res);
+  fogProvisionKey(req, res);
 });
 
 router.post('/api/v2/instance/provision/key/:provisionKey/fabrictype/:fabricType', (req, res) => {
-  provisionFabricKey(req, res);
+  fogProvisionKey(req, res);
 });
 
-function provisionFabricKey(req, res) {
+const fogProvisionKey = function(req, res) {
   var params = {},
       provisionProps = {
         provisionKey: 'bodyParams.provisionKey',
@@ -81,7 +81,7 @@ function provisionFabricKey(req, res) {
     async.apply(FabricService.getFogInstance, fogProps),
     async.apply(FabricUserService.getFogUserByInstanceId, fogUserProps),
     FabricAccessTokenService.generateFogAccessToken,
-    async.apply(FabricAccessTokenService.deleteFabricAccessTokenByUserId, deleteTokenProps),
+    async.apply(FabricAccessTokenService.deleteFogAccessTokenByUserId, deleteTokenProps),
     async.apply(FabricAccessTokenService.saveFogAccessToken,saveFogAccessTokenProps)
 
   ], function(err, result) {

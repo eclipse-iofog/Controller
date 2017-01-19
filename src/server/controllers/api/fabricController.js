@@ -75,16 +75,16 @@ router.get('/api/v2/instance/create/type/:type', (req, res) => {
     	},
     	fogTypeProps = {
       		fogTypeId: 'bodyParams.type',
-      		setProperty: 'fabricType'
+      		setProperty: 'fogType'
     	},
 
     	createFogProps = {
-      		fabricType: 'bodyParams.type',
-      		setProperty: 'fabricInstance'
+      		fogType: 'bodyParams.type',
+      		setProperty: 'fogInstance'
     	},
     	createFogUserProps = {
       		userId: 'user.id',
-      		instanceId: 'fabricInstance.uuid',
+      		instanceId: 'fogInstance.uuid',
       		setProperty: 'fogUser'
     	};
 
@@ -93,14 +93,14 @@ router.get('/api/v2/instance/create/type/:type', (req, res) => {
 
 	async.waterfall([
 		async.apply(UserService.getUser, userProps, params),
-		async.apply(FabricTypeService.getFabricTypeDetail, fogTypeProps),
+		async.apply(FabricTypeService.getFogTypeDetail, fogTypeProps),
 		async.apply(FabricService.createFogInstance, createFogProps),
     	async.apply(FabricUserService.createFogUser, createFogUserProps),
 	],
 	function(err, result) {
 		var output;
 		if (!err){
-			output = params.fabricInstance.uuid;
+			output = params.fogInstance.uuid;
 		}
 		AppUtils.sendResponse(res, err, 'instanceId', output, result);
 	});
@@ -212,22 +212,22 @@ router.post('/api/v2/authoring/integrator/instance/delete', (req, res) => {
 	params.bodyParams = req.body;
 
 	async.waterfall([
-			async.apply(UserService.getUser, userProps, params),
-			async.apply(ElementInstanceService.updateElemInstanceByFogUuId, updateByFogUuIdProps),
-			async.apply(ChangeTrackingService.deleteChangeTracking, instanceProps),
-			async.apply(FabricUserService.getFogUserByInstanceId, fogUserProps),
-			async.apply(FabricAccessTokenService.deleteFabricAccessTokenByUserId, instanceProps),
-			async.apply(FabricUserService.deleteFogUserByInstanceIdAndUserId, deleteFogUserProps),
-			//async.apply(UserService.deleteByUserId, instanceProps),
-			async.apply(StreamViewerService.deleteStreamViewerByFogInstanceId, instanceProps),
-			async.apply(ConsoleService.deleteConsoleByFogInstanceId, instanceProps),
-			async.apply(FabricProvisionKeyService.deleteProvisonKeyByInstanceId, instanceProps),
-			async.apply(FabricService.deleteFogInstance, instanceProps)
-		],
-		function(err, result) {
-			var errMsg = 'Internal error: ' + result;
-			AppUtils.sendResponse(res, err, 'Deleted Fog', params.bodyParams.instanceId, errMsg);
-		});
+		async.apply(UserService.getUser, userProps, params),
+		async.apply(ElementInstanceService.updateElemInstanceByFogUuId, updateByFogUuIdProps),
+		async.apply(ChangeTrackingService.deleteChangeTracking, instanceProps),
+		async.apply(FabricUserService.getFogUserByInstanceId, fogUserProps),
+		async.apply(FabricAccessTokenService.deleteFogAccessTokenByUserId, instanceProps),
+		async.apply(FabricUserService.deleteFogUserByInstanceIdAndUserId, deleteFogUserProps),
+		//async.apply(UserService.deleteByUserId, instanceProps),
+		async.apply(StreamViewerService.deleteStreamViewerByFogInstanceId, instanceProps),
+		async.apply(ConsoleService.deleteConsoleByFogInstanceId, instanceProps),
+		async.apply(FabricProvisionKeyService.deleteProvisonKeyByInstanceId, instanceProps),
+		async.apply(FabricService.deleteFogInstance, instanceProps)
+	],
+	function(err, result) {
+		var errMsg = 'Internal error: ' + result;
+		AppUtils.sendResponse(res, err, 'Deleted Fog', params.bodyParams.instanceId, errMsg);
+	});
 });
 
 export default router;

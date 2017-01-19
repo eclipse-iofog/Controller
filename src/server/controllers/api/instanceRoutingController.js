@@ -250,6 +250,19 @@ router.post('/api/v2/authoring/element/instance/route/create', (req, res) => {
     trackProps = {
       trackId: 'destinationElementInstance.trackId',
       setProperty: 'dataTrack'
+    },
+
+    updateRebuildPubProps = {
+      elementId: 'bodyParams.publishingElementId',
+      updatedData : {
+        rebuild: 1
+      }
+    },
+   updateRebuildDestProps = {
+      elementId: 'bodyParams.destinationElementId',
+      updatedData : {
+        rebuild: 1
+      }
     };
 
   params.bodyParams = req.body;
@@ -257,21 +270,14 @@ router.post('/api/v2/authoring/element/instance/route/create', (req, res) => {
   if (params.bodyParams.publishingInstanceId == params.bodyParams.destinationInstanceId) {
     watefallMethods = [
       async.apply(UserService.getUser, userProps, params),
-
       async.apply(FabricService.getFogInstance, pubFogProps),
       async.apply(FabricService.getFogInstance, destFogProps),
-
       async.apply(ElementInstanceService.getElementInstance, destElementProps),
-
       async.apply(RoutingService.createRoute, routingProps),
-
-      async.apply(ElementInstanceService.updateRebuild, pubElementProps),
-      async.apply(ElementInstanceService.updateRebuild, destElementProps),
-
+      async.apply(ElementInstanceService.updateElemInstance, updateRebuildPubProps),
+      async.apply(ElementInstanceService.updateElemInstance, updateRebuildDestProps),
       async.apply(ChangeTrackingService.updateChangeTracking, pubChangeTrackingProps),
-
       async.apply(DataTracksService.getDataTrackById, trackProps),
-
       getOutputDetails
     ];
   } else {
@@ -281,14 +287,14 @@ router.post('/api/v2/authoring/element/instance/route/create', (req, res) => {
       async.apply(FabricService.getFogInstance, pubFogProps),
       async.apply(FabricService.getFogInstance, destFogProps),
 
-      async.apply(FabricTypeService.getFabricTypeDetail, pubFogTypeProps),
-      async.apply(FabricTypeService.getFabricTypeDetail, destFogTypeProps),
+      async.apply(FabricTypeService.getFogTypeDetail, pubFogTypeProps),
+      async.apply(FabricTypeService.getFogTypeDetail, destFogTypeProps),
 
       async.apply(ElementInstanceService.getElementInstance, pubElementProps),
       async.apply(ElementInstanceService.getElementInstance, destElementProps),
 
       ComsatService.openPortOnRadomComsat,
-      SatellitePortService.createSatellitePort,
+      createSatellitePort,
 
       async.apply(ElementService.getNetworkElement, pubNetworkElementProps),
       async.apply(ElementInstanceService.createNetworkElementInstance, pubNetworkInstanceProps),
@@ -301,8 +307,8 @@ router.post('/api/v2/authoring/element/instance/route/create', (req, res) => {
       async.apply(RoutingService.createRoute, pubRoutingProps),
       async.apply(RoutingService.createRoute, destRoutingProps),
 
-      async.apply(ElementInstanceService.updateRebuild, pubElementProps),
-      async.apply(ElementInstanceService.updateRebuild, destElementProps),
+      async.apply(ElementInstanceService.updateElemInstance, updateRebuildPubProps),
+      async.apply(ElementInstanceService.updateElemInstance, updateRebuildDestProps),
 
       async.apply(ChangeTrackingService.updateChangeTracking, pubChangeTrackingProps),
       async.apply(ChangeTrackingService.updateChangeTracking, destChangeTrackingProps),
@@ -319,6 +325,25 @@ router.post('/api/v2/authoring/element/instance/route/create', (req, res) => {
     AppUtils.sendResponse(res, err, 'route', params.output, errMsg);
   });
 });
+
+const createSatellitePort = function(params, callback){
+  var satellitePortProps = {
+    satellitePortObj: {
+      port1: params.comsatPort.port1,
+      port2: params.comsatPort.port2,
+      maxConnectionsPort1: 60,
+      maxConnectionsPort2: 0,
+      passcodePort1: params.comsatPort.passcode1,
+      passcodePort2: params.comsatPort.passcode2,
+      heartBeatAbsenceThresholdPort1: 60000,
+      heartBeatAbsenceThresholdPort2: 0,
+      satellite_id: params.satellite.id,
+      mappingId: params.comsatPort.id
+    },
+    setProperty: 'satellitePort'
+  };
+    SatellitePortService.createSatellitePort(satellitePortProps, params, callback);
+}
 
 const getOutputDetails = function(params, callback) {
   params.output = {

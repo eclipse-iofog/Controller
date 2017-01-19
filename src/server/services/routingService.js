@@ -3,8 +3,6 @@ import AppUtils from '../utils/appUtils';
 import _ from 'underscore';
 
 const createRoute = function(props, params, callback) {
-  console.log(props);
-
   var routingObj = {
     publishing_instance_id: AppUtils.getProperty(params, props.publishingInstanceId),
     destination_instance_id: AppUtils.getProperty(params, props.destinationInstanceId),
@@ -13,43 +11,37 @@ const createRoute = function(props, params, callback) {
     isNetworkConnection: props.isNetworkConnection
   };
 
-  console.log(routingObj);
-
   RoutingManager
     .create(routingObj)
     .then(AppUtils.onCreate.bind(null, params, props.setProperty, 'Unable to create Routing Object', callback));
 }
 
-const findByElementInstanceUuids = function(params, callback) {
-  RoutingManager
-    .findByElementInstanceUuids(_.pluck(params.elementInstance, 'uuid'))
-    .then(AppUtils.onFind.bind(null, params, 'routing', 'Routing not found.', callback));
-}
-
-const findByInstanceId = function(props, params, callback) {
-   var instanceId = AppUtils.getProperty(params, props.instanceId);
+const deleteByFogAndElement = function(props, params, callback) {
+  var instanceId1 = AppUtils.getProperty(params, props.instanceId1),
+    instanceId2 = AppUtils.getProperty(params, props.instanceId2),
+    elementId1 = AppUtils.getProperty(params, props.elementId1),
+    elementId2 = AppUtils.getProperty(params, props.elementId2),
+    isNetwork = props.isNetwork;
 
   RoutingManager
-    .findByInstanceId(instanceId)
-    .then(AppUtils.onFind.bind(null, params, props.setProperty, 'instanceId not found in routing.', callback));
+    .deleteByFogAndElement(instanceId1, instanceId2, elementId1, elementId2, isNetwork)
+    .then(AppUtils.onDelete.bind(null, params, 'No Network Element Instance Routing found', callback));
 }
 
-const findOutputRoutingByElementInstanceUuids = function(params, callback) {
+const deleteElementInstanceRouting = function(props, params, callback) {
+  var elementId = AppUtils.getProperty(params, props.elementId);
+
   RoutingManager
-    .findOutputRoutingByElementInstanceUuids(_.pluck(params.elementInstance, 'uuid'))
-    .then(AppUtils.onFind.bind(null, params, 'outputRouting', 'outputRouting not found.', callback));
+    .deleteByPublishingElementId(elementId)
+    .then(AppUtils.onDelete.bind(null, params, 'No Element Instance Routing found', callback));
 }
 
-const findByElementInstanceUuidsAndRoutingDestination = function(params, callback) {
-   RoutingManager
-    .findByElementInstanceUuidsAndRoutingDestination(_.pluck(params.elementInstance, 'uuid'))
-    .then(AppUtils.onFind.bind(null, params, 'routing', 'Routing not found.', callback));
-}
+const deleteNetworkElementRouting = function(props, params, callback) {
+  var elementId = AppUtils.getProperty(params, props.elementId);
 
-const findOutputRoutingByElementInstanceUuidsAndRoutingPublishing = function(params, callback) {
   RoutingManager
-    .findOutputRoutingByElementInstanceUuidsAndRoutingPublishing(_.pluck(params.elementInstance, 'uuid'))
-    .then(AppUtils.onFind.bind(null, params, 'outputRouting', 'outputRouting not found.', callback));
+    .deleteByNetworkElementInstanceId(elementId)
+    .then(AppUtils.onDelete.bind(null, params, 'No Network Element Instance Routing found', callback));
 }
 
 const extractDifferentRoutingList = function(params, callback) {
@@ -111,40 +103,38 @@ const extractDifferentOutputRoutingList = function(params, callback) {
   callback(null, params);
 }
 
-const deleteElementInstanceRouting = function(params, callback) {
+const findByInstanceId = function(props, params, callback) {
+   var instanceId = AppUtils.getProperty(params, props.instanceId);
+
   RoutingManager
-    .deleteByPublishingElementId(params.bodyParams.elementId)
-    .then(AppUtils.onDelete.bind(null, params, 'No Element Instance Routing found', callback));
+    .findByInstanceId(instanceId)
+    .then(AppUtils.onFind.bind(null, params, props.setProperty, 'instanceId not found in routing.', callback));
 }
 
-const deleteNetworkElementRouting = function(params, callback) {
-  RoutingManager
-    .deleteByNetworkElementInstanceId(params.bodyParams.elementId)
-    .then(AppUtils.onDelete.bind(null, params, 'No Network Element Instance Routing found', callback));
+const findByElementInstanceUuidsAndRoutingDestination = function(props, params, callback) {
+  var elementInstanceData = AppUtils.getProperty(params, props.elementInstanceData);
+
+   RoutingManager
+    .findByElementInstanceUuidsAndRoutingDestination(_.pluck(elementInstanceData, props.field))
+    .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Routing not found.', callback));
 }
 
-const deleteByFogAndElement = function(props, params, callback) {
-  var instanceId1 = AppUtils.getProperty(params, props.instanceId1),
-    instanceId2 = AppUtils.getProperty(params, props.instanceId2),
-    elementId1 = AppUtils.getProperty(params, props.elementId1),
-    elementId2 = AppUtils.getProperty(params, props.elementId2),
-    isNetwork = props.isNetwork;
+const findOutputRoutingByElementInstanceUuidsAndRoutingPublishing = function(props, params, callback) {
+  var elementInstanceData = AppUtils.getProperty(params, props.elementInstanceData);
 
   RoutingManager
-    .deleteByFogAndElement(instanceId1, instanceId2, elementId1, elementId2, isNetwork)
-    .then(AppUtils.onDelete.bind(null, params, 'No Network Element Instance Routing found', callback));
+    .findOutputRoutingByElementInstanceUuidsAndRoutingPublishing(_.pluck(elementInstanceData, props.field))
+    .then(AppUtils.onFind.bind(null, params, props.setProperty, 'outputRouting not found.', callback));
 }
 
 export default {
   createRoute: createRoute,
-  findByInstanceId: findByInstanceId,
-  findByElementInstanceUuids: findByElementInstanceUuids,
-  extractDifferentRoutingList: extractDifferentRoutingList,
-  findOutputRoutingByElementInstanceUuids: findOutputRoutingByElementInstanceUuids,
-  extractDifferentOutputRoutingList: extractDifferentOutputRoutingList,
+  deleteByFogAndElement: deleteByFogAndElement,
   deleteElementInstanceRouting: deleteElementInstanceRouting,
   deleteNetworkElementRouting: deleteNetworkElementRouting,
-  deleteByFogAndElement: deleteByFogAndElement,
+  extractDifferentRoutingList: extractDifferentRoutingList,
+  extractDifferentOutputRoutingList: extractDifferentOutputRoutingList,
   findByElementInstanceUuidsAndRoutingDestination: findByElementInstanceUuidsAndRoutingDestination,
+  findByInstanceId: findByInstanceId,
   findOutputRoutingByElementInstanceUuidsAndRoutingPublishing: findOutputRoutingByElementInstanceUuidsAndRoutingPublishing
 };

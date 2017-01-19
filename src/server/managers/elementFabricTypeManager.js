@@ -12,11 +12,11 @@ class ElementFabricTypeManager extends BaseManager {
     return ElementFabricType;
   }
 
-  createElementFabricType(elementFabricType) {
-    return ElementFabricType.create(elementFabricType);
+  createElementFogType(elementFogType) {
+    return ElementFabricType.create(elementFogType);
   }
 
-  deleteElementFabricTypes(elementId) {
+  deleteElementFogTypes(elementId) {
     return ElementFabricType.destroy({
       where: {
         element_id: elementId

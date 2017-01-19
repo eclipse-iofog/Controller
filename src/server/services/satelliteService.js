@@ -2,12 +2,12 @@ import SatelliteManager from '../managers/satelliteManager';
 import AppUtils from '../utils/appUtils';
 import _ from 'underscore';
 
-const getSatelliteById = function(props, params, callback) {
-  var satelliteId = AppUtils.getProperty(params, props.satelliteId);
+const findBySatelliteIds = function(props, params, callback) {
+  var satellitePortData = AppUtils.getProperty(params, props.satellitePortData);
 
   SatelliteManager
-    .findById(satelliteId)
-    .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Cannot find Satellite', callback));
+    .findBySatelliteIds(_.pluck(satellitePortData, props.field))
+    .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Satellite not found.', callback));
 }
 
 const getRandomSatellite = function(params, callback) {
@@ -26,14 +26,16 @@ const getRandomSatellite = function(params, callback) {
     });
 }
 
-const findBySatelliteIds = function(params, callback) {
+const getSatelliteById = function(props, params, callback) {
+  var satelliteId = AppUtils.getProperty(params, props.satelliteId);
+
   SatelliteManager
-    .findBySatelliteIds(_.pluck(params.satellitePort, 'satellite_id'))
-    .then(AppUtils.onFind.bind(null, params, 'satellite', 'Satellite not found.', callback));
+    .findById(satelliteId)
+    .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Cannot find Satellite', callback));
 }
 
 export default {
-  getSatelliteById: getSatelliteById,
-  getRandomSatellite: getRandomSatellite,
   findBySatelliteIds: findBySatelliteIds,
+  getRandomSatellite: getRandomSatellite,
+  getSatelliteById: getSatelliteById
 };
