@@ -7,7 +7,7 @@ import async from 'async';
 import express from 'express';
 const router = express.Router();
 import BaseApiController from './baseApiController';
-import FabricService from '../../services/fabricService';
+import FogService from '../../services/fogService';
 import AppUtils from '../../utils/appUtils';
 
 
@@ -57,7 +57,7 @@ const updateFogInstance = function(params, callback){
           version: params.bodyParams.version || '1.0'
         }
       };
-    FabricService.updateFogInstance(fogInstanceProps, params, callback);
+    FogService.updateFogInstance(fogInstanceProps, params, callback);
 }
 
 export default router;

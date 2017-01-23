@@ -1,11 +1,11 @@
-import FabricUserManager from '../managers/fabricUserManager';
+import FogUserManager from '../managers/fogUserManager';
 import AppUtils from '../utils/appUtils';
 
 const createFogUser = function(props, params, callback) {
   var userId = AppUtils.getProperty(params, props.userId),
       instanceId = AppUtils.getProperty(params, props.instanceId);
 
-  FabricUserManager
+  FogUserManager
     .create(userId, instanceId)
     .then(AppUtils.onCreate.bind(null, params, props.setProperty, 'Unable to create user for Fog Instance', callback));
 }
@@ -13,7 +13,7 @@ const createFogUser = function(props, params, callback) {
 const deleteFogUserByInstanceId = function(props, params, callback) {
   var instanceId = AppUtils.getProperty(params, props.instanceId);
 
-  FabricUserManager
+  FogUserManager
     .deleteByInstanceId(instanceId)
     .then(AppUtils.onDeleteOptional.bind(null, params, 'Unable to delete Fog User', callback));
 }
@@ -22,7 +22,7 @@ const deleteFogUserByInstanceIdAndUserId = function(props, params, callback) {
   var userId = AppUtils.getProperty(params, props.userId),
       instanceId = AppUtils.getProperty(params, props.instanceId);
 
-  FabricUserManager
+  FogUserManager
     .deleteByInstanceIdAndUserId(userId, instanceId)
     .then(AppUtils.onDeleteOptional.bind(null, params, 'Unable to delete Fog User', callback));
 }
@@ -31,7 +31,7 @@ const findFogUserByInstanceIdAndUserId = function(props, params, callback) {
   var userId = AppUtils.getProperty(params, props.userId),
       instanceId = AppUtils.getProperty(params, props.instanceId);
 
-  FabricUserManager
+  FogUserManager
     .isUserExist(userId, instanceId)
     .then(AppUtils.onFind.bind(null, params,props.setProperty, 'Unable to find Fog User', callback));
 }
@@ -39,7 +39,7 @@ const findFogUserByInstanceIdAndUserId = function(props, params, callback) {
 const getFogUserByInstanceId = function(props, params, callback) {
   var fogId = AppUtils.getProperty(params, props.instanceId);
 
-  FabricUserManager
+  FogUserManager
     .findByInstanceId(fogId)
     .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Cannot find Fog User', callback));
 }

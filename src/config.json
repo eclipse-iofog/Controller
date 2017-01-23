@@ -1,4 +1,4 @@
 {
   "port": "3000",
-  "dbPath": "db/fabric_controller.db"
+  "dbPath": "db/fog_controller.db"
 }

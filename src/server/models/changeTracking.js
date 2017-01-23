@@ -1,16 +1,16 @@
 /**
  * @file changeTracking.js
  * @author Zishan Iqbal
- * @description This file includes a iofabric_change_tracking model used by sequalize for ORM;
+ * @description This file includes a iofog_change_tracking model used by sequalize for ORM;
  */
 
 import Sequelize from 'sequelize';
 import sequelize from './../utils/sequelize';
 
-import Fabric from './fabric';
+import Fog from './fog';
 import Registry from './registry';
 
-const ChangeTracking = sequelize.define('iofabric_change_tracking', {
+const ChangeTracking = sequelize.define('iofog_change_tracking', {
   id: {
     type: Sequelize.INTEGER,
     primaryKey: true,
@@ -47,6 +47,7 @@ const ChangeTracking = sequelize.define('iofabric_change_tracking', {
   underscored: true
 });
 
-ChangeTracking.belongsTo(Fabric);
-
+ChangeTracking.belongsTo(Fog, {
+  foreignKey: 'iofog_uuid'
+});
 export default ChangeTracking;

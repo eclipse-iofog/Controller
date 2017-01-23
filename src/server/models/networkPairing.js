@@ -6,7 +6,7 @@
 
 import Sequelize from 'sequelize';
 import sequelize from './../utils/sequelize';
-import Fabric from './fabric';
+import Fog from './fog';
 import ElementInstance from './elementInstance';
 import ElementInstancePort from './elementInstancePort';
 import SatellitePort from './satellitePort';
@@ -32,11 +32,11 @@ const NetworkPairing = sequelize.define('network_pairing', {
   underscored: true
 });
 
-NetworkPairing.belongsTo(Fabric, {
+NetworkPairing.belongsTo(Fog, {
   foreignKey: 'instanceId1',
   as: 'InstanceId1'
 });
-NetworkPairing.belongsTo(Fabric, {
+NetworkPairing.belongsTo(Fog, {
   foreignKey: 'instanceId2',
   as: 'InstanceId2'
 });

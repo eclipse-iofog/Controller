@@ -1,17 +1,17 @@
 /**
- * @file fabric.js
+ * @file fog.js
  * @author Zishan Iqbal
- * @description This file includes a iofabrics model used by sequalize for ORM;
+ * @description This file includes a iofogs model used by sequalize for ORM;
  */
 
 import Sequelize from 'sequelize';
 import sequelize from './../utils/sequelize';
 import Registry from './../models/registry';
-import FabricProvisionKey from './fabricProvisionKey';
+import FogProvisionKey from './fogProvisionKey';
 import ChangeTracking from './changeTracking';
-import FabricType from './fabricType';
+import FogType from './fogType';
 
-const Fabric = sequelize.define('iofabrics', {
+const Fog = sequelize.define('iofogs', {
   uuid: {
     type: Sequelize.TEXT,
     primaryKey: true,
@@ -19,7 +19,7 @@ const Fabric = sequelize.define('iofabrics', {
   },
   name: {
     type: Sequelize.TEXT,
-    defaultValue: "Unnamed ioFabric 1",
+    defaultValue: "Unnamed ioFog 1",
     field: 'Name'
   },
   location: {
@@ -165,7 +165,7 @@ const Fabric = sequelize.define('iofabrics', {
   },
   logdirectory: {
     type: Sequelize.TEXT,
-    defaultValue: "/var/log/iofabric/",
+    defaultValue: "/var/log/iofog/",
     field: 'LogDirectory'
   },
   logfilecount: {
@@ -187,11 +187,16 @@ const Fabric = sequelize.define('iofabrics', {
   underscored: true
 });
 
-Registry.belongsTo(Fabric);
-FabricProvisionKey.belongsTo(Fabric);
+Registry.belongsTo(Fog, {
+  foreignKey: 'iofog_uuid'
+});
 
-Fabric.belongsTo(FabricType, {
+FogProvisionKey.belongsTo(Fog, {
+  foreignKey: 'iofog_uuid'
+});
+
+Fog.belongsTo(FogType, {
   foreignKey: 'typeKey'
-})
+});
 
-export default Fabric;
+export default Fog;

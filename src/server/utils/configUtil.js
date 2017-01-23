@@ -6,19 +6,19 @@
 
 import _ from 'underscore';
 import AppUtils from './appUtils';
-import FabricControllerConfigManager from './../managers/fabricControllerConfigManager';
+import FogControllerConfigManager from './../managers/fogControllerConfigManager';
 import Constants from './../constants';
 
-class FabricControllerConfigUtil {
+class FogControllerConfigUtil {
 
   getConfigParam(key) {
     let configValue;
 
-    if (!this.fabricConfigs) {
+    if (!this.fogConfigs) {
       return undefined;
     } else {
 
-      _.each(this.fabricConfigs, function(config) {
+      _.each(this.fogConfigs, function(config) {
         if (config.key.toUpperCase() === key.toUpperCase()) {
           configValue = config.value;
           return;
@@ -31,7 +31,7 @@ class FabricControllerConfigUtil {
   setConfigParam(key, value) {
     if (this.isKeyExist(key)) {
       if (this.validateValue(key, value)) {
-        FabricControllerConfigManager.setByKey(key, value);
+        FogControllerConfigManager.setByKey(key, value);
       } else {
         throw 'Invalid value provided for key "' + key + '"';
       }
@@ -57,13 +57,13 @@ class FabricControllerConfigUtil {
   }
 
   getAllConfigs() {
-    return FabricControllerConfigManager.find()
+    return FogControllerConfigManager.find()
       .then(function(configs) {
-        this.fabricConfigs = configs;
+        this.fogConfigs = configs;
         return configs;
       }.bind(this));
   }
 }
 
-const instance = new FabricControllerConfigUtil();
+const instance = new FogControllerConfigUtil();
 export default instance;

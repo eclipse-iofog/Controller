@@ -141,12 +141,12 @@ var updateChange = {},
  fogInstanceId = AppUtils.getProperty(params, props.fogInstanceId);
 
 if (params.bodyParams.instanceId) {
-    updateChange.iofabric_uuid = props.updatedFogId
+    updateChange.iofog_uuid = props.updatedFogId
   }
 
  ElementInstanceManager
     .updateByFogUuId(fogInstanceId, updateChange)
-    .then(AppUtils.onUpdate.bind(null, params, "Unable to update 'iofabric_uuid' field for Element Instance", callback));
+    .then(AppUtils.onUpdate.bind(null, params, "Unable to update 'iofog_uuid' field for Element Instance", callback));
 }
 
 const deleteNetworkElementInstance = function(props, params, callback) {

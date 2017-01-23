@@ -13,7 +13,7 @@ class RegistryManager extends BaseManager {
  findByInstanceId(instanceId) {
     return Registry.findAll({
       where: {
-          iofabric_uuid: instanceId
+          iofog_uuid: instanceId
           }
       });
   }

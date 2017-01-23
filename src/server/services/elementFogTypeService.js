@@ -1,15 +1,15 @@
-import ElementFabricTypeManager from '../managers/elementFabricTypeManager';
+import ElementFogTypeManager from '../managers/elementFogTypeManager';
 import AppUtils from '../utils/appUtils';
 
 const createElementFogType = function(props, params) {
-  ElementFabricTypeManager
+  ElementFogTypeManager
     .createElementFogType(props.elementType)
 }
 
 const deleteElementFogType = function(props, params, callback) {
   var elementId = AppUtils.getProperty(params, props.elementId);
 
-  ElementFabricTypeManager
+  ElementFogTypeManager
     .deleteElementFogTypes(elementId)
     .then(AppUtils.onDelete.bind(null, params, 'ElementFogType not deleted', callback));
 }

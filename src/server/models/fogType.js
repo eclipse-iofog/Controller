@@ -1,13 +1,13 @@
 /**
-* @file fabricType.js
+* @file fogType.js
 * @author Zishan Iqbal
-* @description This file includes a fabric_type model used by sequalize for ORM;
+* @description This file includes a fog_type model used by sequalize for ORM;
 */
 
 import Sequelize from 'sequelize';
 import sequelize from './../utils/sequelize';
 
-const FabricType = sequelize.define('iofabric_type', {
+const FogType = sequelize.define('iofog_type', {
   id: {type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true, field: 'ID'},
   name: {type: Sequelize.TEXT, field: 'Name'},
   image: {type: Sequelize.TEXT, field: 'Image'},
@@ -25,4 +25,4 @@ const FabricType = sequelize.define('iofabric_type', {
   underscored: true
 });
 
-export default FabricType;
+export default FogType;

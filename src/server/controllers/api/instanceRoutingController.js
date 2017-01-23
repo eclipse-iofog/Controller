@@ -14,8 +14,8 @@ import ComsatService from '../../services/comsatService';
 import DataTracksService from '../../services/dataTracksService';
 import ElementService from '../../services/elementService';
 import ElementInstanceService from '../../services/elementInstanceService';
-import FabricService from '../../services/fabricService';
-import FabricTypeService from '../../services/fabricTypeService';
+import FogService from '../../services/fogService';
+import FogTypeService from '../../services/fogTypeService';
 import NetworkPairingService from '../../services/networkPairingService';
 import RoutingService from '../../services/routingService';
 import SatelliteService from '../../services/satelliteService';
@@ -270,8 +270,8 @@ router.post('/api/v2/authoring/element/instance/route/create', (req, res) => {
   if (params.bodyParams.publishingInstanceId == params.bodyParams.destinationInstanceId) {
     watefallMethods = [
       async.apply(UserService.getUser, userProps, params),
-      async.apply(FabricService.getFogInstance, pubFogProps),
-      async.apply(FabricService.getFogInstance, destFogProps),
+      async.apply(FogService.getFogInstance, pubFogProps),
+      async.apply(FogService.getFogInstance, destFogProps),
       async.apply(ElementInstanceService.getElementInstance, destElementProps),
       async.apply(RoutingService.createRoute, routingProps),
       async.apply(ElementInstanceService.updateElemInstance, updateRebuildPubProps),
@@ -284,11 +284,11 @@ router.post('/api/v2/authoring/element/instance/route/create', (req, res) => {
     watefallMethods = [
       async.apply(UserService.getUser, userProps, params),
 
-      async.apply(FabricService.getFogInstance, pubFogProps),
-      async.apply(FabricService.getFogInstance, destFogProps),
+      async.apply(FogService.getFogInstance, pubFogProps),
+      async.apply(FogService.getFogInstance, destFogProps),
 
-      async.apply(FabricTypeService.getFogTypeDetail, pubFogTypeProps),
-      async.apply(FabricTypeService.getFogTypeDetail, destFogTypeProps),
+      async.apply(FogTypeService.getFogTypeDetail, pubFogTypeProps),
+      async.apply(FogTypeService.getFogTypeDetail, destFogTypeProps),
 
       async.apply(ElementInstanceService.getElementInstance, pubElementProps),
       async.apply(ElementInstanceService.getElementInstance, destElementProps),
@@ -467,8 +467,8 @@ router.post('/api/v2/authoring/element/instance/route/delete', (req, res) => {
     watefallMethods = [
       async.apply(UserService.getUser, userProps, params),
 
-      async.apply(FabricService.getFogInstance, pubFogProps),
-      async.apply(FabricService.getFogInstance, destFogProps),
+      async.apply(FogService.getFogInstance, pubFogProps),
+      async.apply(FogService.getFogInstance, destFogProps),
 
       async.apply(NetworkPairingService.getNetworkPairingByFogAndElement, networkPairingProps),
 

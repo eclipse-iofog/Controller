@@ -17,7 +17,7 @@ class ChangeTrackingManager extends BaseManager {
 			var milliseconds = new Date().getTime();
 
 			return ChangeTracking.create({
-				iofabric_uuid: instanceId,
+				iofog_uuid: instanceId,
 				containerConfig: milliseconds,
 				containerList: milliseconds,
 				config: milliseconds,
@@ -34,7 +34,7 @@ class ChangeTrackingManager extends BaseManager {
 	findByInstanceId(instanceId) {
 			return ChangeTracking.find({
 				where: {
-					iofabric_uuid: instanceId
+					iofog_uuid: instanceId
 				}
 			});
 		}
@@ -46,7 +46,7 @@ class ChangeTrackingManager extends BaseManager {
 	deleteByInstanceId(instanceId) {
 			return ChangeTracking.destroy({
 				where: {
-					iofabric_uuid: instanceId
+					iofog_uuid: instanceId
 				}
 			});
 		}
@@ -56,10 +56,9 @@ class ChangeTrackingManager extends BaseManager {
 		 * @return Integer - returns the number of rows updated
 		 */
 	updateByUuid(uuid, data) {
-		console.log(data);
 		return ChangeTracking.update(data, {
 			where: {
-				iofabric_uuid: uuid
+				iofog_uuid: uuid
 			}
 		});
 	}

@@ -15,7 +15,7 @@ import constants from './server/constants.js';
 import baseController from './server/controllers/baseController';
 import elementInstanceController from './server/controllers/api/elementInstanceController';
 import elementController from './server/controllers/api/elementController';
-import fabricController from './server/controllers/api/fabricController';
+import fogController from './server/controllers/api/fogController';
 import instanceStatusController from './server/controllers/api/instanceStatusController';
 import instanceConfigController from './server/controllers/api/instanceConfigController';
 import instanceContainerListController from './server/controllers/api/instanceContainerListController';
@@ -77,7 +77,7 @@ const initApp = function() {
   app.use('', baseController);
   app.use('', elementController);
   app.use('', elementInstanceController);
-  app.use('', fabricController);
+  app.use('', fogController);
   app.use('', instanceStatusController);
   app.use('', instanceConfigController);
   app.use('', instanceContainerListController);

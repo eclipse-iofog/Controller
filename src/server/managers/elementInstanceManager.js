@@ -34,7 +34,7 @@ class ElementInstanceManager extends BaseManager {
 
 			return ElementInstance.update(data, {
 				where: {
-					iofabric_uuid: fog_uuid
+					iofog_uuid: fog_uuid
 				}
 			});
 		}
@@ -47,7 +47,7 @@ class ElementInstanceManager extends BaseManager {
 	findByInstanceId(instanceId) {										                                      
 		var instanceConfigQuery = 'SELECT i.*, t.is_activated FROM element_instance i LEFT JOIN \
 		data_tracks t ON i.track_id = t.ID \
-		WHERE i.iofabric_uuid in (:instanceId) AND (i.track_id = 0 OR t.is_activated = 1)';
+		WHERE i.iofog_uuid in (:instanceId) AND (i.track_id = 0 OR t.is_activated = 1)';
 
 		return sequelize.query(instanceConfigQuery, {
 			replacements: {
@@ -95,7 +95,7 @@ class ElementInstanceManager extends BaseManager {
 			rebuild: false,
 			RootHostAccess: false,
 			logSize: logSize,
-			iofabric_uuid: fogInstanceId
+			iofog_uuid: fogInstanceId
 		};
 
 		return ElementInstance.create(elementInstance);
@@ -119,7 +119,7 @@ class ElementInstanceManager extends BaseManager {
 			rebuild: false,
 			RootHostAccess: false,
 			logSize: 50,
-			iofabric_uuid: fogInstanceId
+			iofog_uuid: fogInstanceId
 		};
 
 		return ElementInstance.create(elementInstance);
@@ -132,7 +132,7 @@ class ElementInstanceManager extends BaseManager {
 				'port': satellitePort1,
 				'connectioncount': 60,
 				'passcode': AppUtils.generateRandomString(32),
-				'localhost': 'iofabric',
+				'localhost': 'iofog',
 				'localport': localPort,
 				'heartbeatfrequency': 20000,
 				'heartbeatabsencethreshold': 60000
@@ -154,7 +154,7 @@ class ElementInstanceManager extends BaseManager {
 				rebuild: false,
 				RootHostAccess: false,
 				logSize: 50,
-				iofabric_uuid: fogInstanceId
+				iofog_uuid: fogInstanceId
 			};
 
 		return ElementInstance.create(elementInstance);
@@ -182,7 +182,7 @@ class ElementInstanceManager extends BaseManager {
 				rebuild: false,
 				RootHostAccess: false,
 				logSize: 50,
-				iofabric_uuid: fogInstanceId
+				iofog_uuid: fogInstanceId
 			};
 
 		return ElementInstance.create(elementInstance);
@@ -263,8 +263,8 @@ class ElementInstanceManager extends BaseManager {
 
 	findOtherTrackDetailByUuids(uuids) {
 		const query = 'select DISTINCT(ei.uuid) as elementid, ei.name as elementname, e.name elementtypename, ei.track_id as trackid, t.name as trackname, ' +
-			' ei.iofabric_uuid as instanceId, f.name as instanceName from element_instance ei join element e on e.id = ei.element_key join data_tracks t ' +
-			' on t.id = ei.track_id  join iofabrics f on ei.iofabric_uuid = f.uuid where ei.UUID in (:uuids)';
+			' ei.iofog_uuid as instanceId, f.name as instanceName from element_instance ei join element e on e.id = ei.element_key join data_tracks t ' +
+			' on t.id = ei.track_id  join iofogs f on ei.iofog_uuid = f.uuid where ei.UUID in (:uuids)';
 		return sequelize.query(query, {
 			replacements: {
 				uuids: uuids

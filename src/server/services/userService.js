@@ -1,18 +1,6 @@
 import UserManager from '../managers/userManager';
 import AppUtils from '../utils/appUtils';
 
-const createUser = function(email, firstName, lastName) {
-
-  UserManager.findByEmail(email).then(function (res, err){
-    if (!res){
-      UserManager.createUser(email, firstName, lastName)
-    }
-    else{
-      console.log('\nUser already exists with this email. Please Try again with new Email.');
-    }
-  });
-}
-
 const getUser = function(props, params, callback) {
   var userId = AppUtils.getProperty(params, props.userId);
 
@@ -30,7 +18,6 @@ const deleteByUserId = function(props, params, callback) {
 }
 
 export default {
-  createUser: createUser,
   getUser: getUser,
   deleteByUserId : deleteByUserId 
 };

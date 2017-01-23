@@ -10,7 +10,7 @@ const router = express.Router();
 
 import BaseApiController from './baseApiController';
 import ChangeTrackingService from '../../services/changeTrackingService';
-import FabricService from '../../services/fabricService';
+import FogService from '../../services/fogService';
 import AppUtils from '../../utils/appUtils';
 
 /**
@@ -89,7 +89,7 @@ const updateFogInstance = function(params, callback){
           lastactive : new Date().getTime(),
         }
       };
-  FabricService.updateFogInstance(fogInstanceProps, params, callback);
+  FogService.updateFogInstance(fogInstanceProps, params, callback);
 }
 
 export default router;

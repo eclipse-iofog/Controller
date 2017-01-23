@@ -6,7 +6,7 @@
 
 import Sequelize from 'sequelize';
 import sequelize from './../utils/sequelize';
-import Fabric from './fabric';
+import Fog from './fog';
 import Element from './element'
 
 const ElementInstance = sequelize.define('element_instance', {
@@ -85,6 +85,7 @@ const ElementInstance = sequelize.define('element_instance', {
 ElementInstance.belongsTo(Element, {
   foreignKey: 'element_key'
 });
-ElementInstance.belongsTo(Fabric);
-
+ElementInstance.belongsTo(Fog, {
+  foreignKey: 'iofog_uuid'
+});
 export default ElementInstance;

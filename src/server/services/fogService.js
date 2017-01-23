@@ -1,4 +1,4 @@
-import FabricManager from '../managers/fabricManager';
+import FogManager from '../managers/fogManager';
 import AppUtils from '../utils/appUtils';
 
 const createFogInstance = function(props, params, callback) {
@@ -10,7 +10,7 @@ const createFogInstance = function(props, params, callback) {
     typeKey: fogType
   };
 
-  FabricManager
+  FogManager
     .createFog(config)
     .then(AppUtils.onCreate.bind(null, params, props.setProperty, 'Unable to create Fog Instance', callback));
 }
@@ -18,7 +18,7 @@ const createFogInstance = function(props, params, callback) {
 const deleteFogInstance = function(props, params, callback) {
   var instanceId = AppUtils.getProperty(params, props.instanceId);
 
-  FabricManager
+  FogManager
     .deleteByInstanceId(instanceId)
     .then(AppUtils.onDelete.bind(null, params, 'Unable to delete Fog Instance', callback));
 }
@@ -26,22 +26,21 @@ const deleteFogInstance = function(props, params, callback) {
 const getFogInstance = function(props, params, callback) {
   var fogId = AppUtils.getProperty(params, props.fogId);
 
-  FabricManager
+  FogManager
     .findByInstanceId(fogId)
     .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Cannot find Fog Instance', callback));
 }
 const getFogInstanceForUser = function(props, params, callback) {
-
   var userId = AppUtils.getProperty(params, props.userId);
 
-  FabricManager
+  FogManager
     .findByUserId(userId)
     .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Cannot find Fog Instance', callback));
 }
 
 const getFogList = function(props, params, callback) {
 
-  FabricManager
+  FogManager
     .getFogList()
     .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Cannot get Fog List', callback));
 }
@@ -49,7 +48,7 @@ const getFogList = function(props, params, callback) {
 const updateFogInstance = function(props, params, callback){
   var instanceId = AppUtils.getProperty(params, props.instanceId);
 
-  FabricManager
+  FogManager
     .updateFogConfig(instanceId, props.updatedFog)
     .then(AppUtils.onUpdate.bind(null, params, 'Unable to update Fog Instance', callback));
 }

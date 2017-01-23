@@ -1,15 +1,15 @@
 /**
-* @file fabricUser.js
+* @file fogUser.js
 * @author Zishan Iqbal
-* @description This file includes a iofabric_users model used by sequalize for ORM;
+* @description This file includes a iofog_users model used by sequalize for ORM;
 */
 
 import Sequelize from 'sequelize';
 import sequelize from './../utils/sequelize';
 import User from './user';
-import Fabric from './fabric';
+import Fog from './fog';
 
-const FabricUser = sequelize.define('iofabric_users', {
+const FogUser = sequelize.define('iofog_users', {
   id: {type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true, field: 'ID'}
 }, {
   // don't add the timestamp attributes (updatedAt, createdAt)
@@ -21,8 +21,8 @@ const FabricUser = sequelize.define('iofabric_users', {
   underscored: true
 });
 
-User.belongsToMany(Fabric, {through: FabricUser, as: 'userId', foreignKey: 'user_id'});
-Fabric.belongsToMany(User, {through: FabricUser, as: 'fabricId', foreignKey: 'fabric_id' });
+User.belongsToMany(Fog, {through: FogUser, as: 'userId', foreignKey: 'user_id'});
+Fog.belongsToMany(User, {through: FogUser, as: 'fogId', foreignKey: 'fog_id' });
 
-export default FabricUser;
+export default FogUser;
 

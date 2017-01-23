@@ -8,7 +8,7 @@ import async from 'async';
 import express from 'express';
 const router = express.Router();
 
-import ElementFabricTypeService from '../../services/elementFabricTypeService';
+import ElementFogTypeService from '../../services/elementFogTypeService';
 import ElementService from '../../services/elementService';
 import UserService from '../../services/userService';
 import AppUtils from '../../utils/appUtils';
@@ -62,10 +62,10 @@ const createElementFogTypes = function(params, callback) {
       var elementFogTypeProps = {
             elementType: {
               element_id: params.element.id,
-              iofabric_type_id: fogTypeIds[i]
+              iofog_type_id: fogTypeIds[i]
             }
           };
-      ElementFabricTypeService.createElementFogType(elementFogTypeProps, params);
+      ElementFogTypeService.createElementFogType(elementFogTypeProps, params);
     }
   }
   callback(null, params);
@@ -93,7 +93,7 @@ router.post('/api/v2/authoring/organization/element/update', (req, res) => {
     async.apply(UserService.getUser, userProps, params),
     async.apply(ElementService.getNetworkElement, elementProps),
     updateElement,
-    async.apply(ElementFabricTypeService.deleteElementFogType, fogTypeProps),
+    async.apply(ElementFogTypeService.deleteElementFogType, fogTypeProps),
     createElementFogTypes
 
   ], function(err, result) {

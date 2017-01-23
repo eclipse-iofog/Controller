@@ -6,7 +6,7 @@
 
 import Sequelize from 'sequelize';
 import sequelize from './../utils/sequelize';
-import Fabric from './fabric';
+import Fog from './fog';
 import ElementInstance from './elementInstance';
 
 const Console = sequelize.define('consoles', {
@@ -38,7 +38,7 @@ const Console = sequelize.define('consoles', {
   underscored: true
 });
 
-Console.belongsTo(Fabric);
+Console.belongsTo(Fog);
 Console.belongsTo(ElementInstance, {
   foreignKey: 'ElementId',
   as: 'elementId',

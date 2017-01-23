@@ -5,9 +5,9 @@
 */
 import async from 'async';
 
-import FabricService from '../../services/fabricService';
-import FabricAccessTokenService from '../../services/fabricAccessTokenService';
-import FabricUserService from '../../services/fabricUserService';
+import FogService from '../../services/fogService';
+import FogAccessTokenService from '../../services/fogAccessTokenService';
+import FogUserService from '../../services/fogUserService';
 import AppUtils from '../../utils/appUtils';
 import ErrorUtils from './../../utils/errorUtils';
 
@@ -58,9 +58,9 @@ const checkUserExistance = (req, res, next) => {
   params.bodyParams = req.params;
 
   async.waterfall([
-    async.apply(FabricAccessTokenService.findFogAccessTokenByToken, instanceProps, params),
-    async.apply(FabricAccessTokenService.checkFogTokenExpirationByToken, tokenProps),
-    async.apply(FabricUserService.findFogUserByInstanceIdAndUserId, fogUserProps),
+    async.apply(FogAccessTokenService.findFogAccessTokenByToken, instanceProps, params),
+    async.apply(FogAccessTokenService.checkFogTokenExpirationByToken, tokenProps),
+    async.apply(FogUserService.findFogUserByInstanceIdAndUserId, fogUserProps),
 
   ], function(err, result) {
     if (!err){
@@ -82,7 +82,7 @@ const checkfogExistance = (req, res, next) => {
   params.bodyParams = req.params;
 
   async.waterfall([
-    async.apply(FabricService.getFogInstance, instanceProps, params),
+    async.apply(FogService.getFogInstance, instanceProps, params),
 
   ], function(err, result) {
     if (!err){

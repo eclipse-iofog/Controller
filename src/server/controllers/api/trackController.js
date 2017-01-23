@@ -12,7 +12,7 @@ import ComsatService from '../../services/comsatService';
 import DataTracksService from '../../services/dataTracksService';
 import ElementInstancePortService from '../../services/elementInstancePortService';
 import ElementInstanceService from '../../services/elementInstanceService';
-import FabricService from '../../services/fabricService';
+import FogService from '../../services/fogService';
 import NetworkPairingService from '../../services/networkPairingService';
 import RoutingService from '../../services/routingService';
 import SatellitePortService from '../../services/satellitePortService';
@@ -44,7 +44,7 @@ var params = {},
 
   async.waterfall([
     async.apply(UserService.getUser, userProps, params),
-    async.apply(FabricService.getFogInstance, fogInstanceProps),
+    async.apply(FogService.getFogInstance, fogInstanceProps),
     async.apply(DataTracksService.getDataTrackByInstanceId, dataTrackProps)
   ], function(err, result) {
     AppUtils.sendResponse(res, err, 'tracks', params.dataTracks, result);
@@ -119,7 +119,7 @@ const updateChangeTracking= function(params, callback) {
   if (params.elementInstances){
     for(var i = 0; i < params.elementInstances.length; i++){
         changeTrackingProps = {
-          fogInstanceId: 'elementInstances['+i+'].iofabric_uuid',
+          fogInstanceId: 'elementInstances['+ i +'].iofog_uuid',
           changeObject: {
             containerConfig: new Date().getTime(),
             containerList: new Date().getTime()
@@ -189,7 +189,7 @@ const getFogInstance = function(params, callback) {
       fogId: 'bodyParams.instanceId',
       setProperty: 'fogData'
     };
-  FabricService.getFogInstance(fogInstanceProps, params, callback)
+  FogService.getFogInstance(fogInstanceProps, params, callback)
 }
 
 router.post('/api/v2/authoring/fabric/track/delete', (req, res) => {

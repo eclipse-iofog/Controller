@@ -1,7 +1,7 @@
 /**
  * @file appUtils.js
  * @author Zishan Iqbal
- * @description This file includes the utility functions relevant to IOFabric;
+ * @description This file includes the utility functions relevant to IOFog;
  */
 
 import fs from 'fs';

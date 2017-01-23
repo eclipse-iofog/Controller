@@ -20,7 +20,7 @@ class StreamViewerManager extends BaseManager {
 	findByInstanceId(instanceId) {
 			return StreamViewer.find({
 				where: {
-					iofabric_uuid: instanceId
+					iofog_uuid: instanceId
 				}
 			});
 		}
@@ -32,7 +32,7 @@ class StreamViewerManager extends BaseManager {
 	deleteByInstanceId(instanceId) {
 		return StreamViewer.destroy({
 			where: {
-				iofabric_uuid: instanceId
+				iofog_uuid: instanceId
 			}
 		});
 	}

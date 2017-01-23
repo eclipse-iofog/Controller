@@ -51,7 +51,7 @@ const extractDifferentRoutingList = function(params, callback) {
 
   params.elementInstance.forEach((instance) => {
     params.routing.forEach((route) => {
-      if (route.publishing_instance_id != instance.iofabric_uuid || route.is_network_connection === 1) {
+      if (route.publishing_instance_id != instance.iofog_uuid || route.is_network_connection === 1) {
         otherRoutingList.push(route);
       } else if (route.track_id != instance.trackId) {
         extraRoutingList.push(route);
@@ -81,7 +81,7 @@ const extractDifferentOutputRoutingList = function(params, callback) {
 
   params.elementInstance.forEach((instance) => {
     params.routing.forEach((route) => {
-      if (route.destination_element_id != instance.iofabric_uuid || route.is_network_connection === 1) {
+      if (route.destination_element_id != instance.iofog_uuid || route.is_network_connection === 1) {
         outputOtherRoutingList.push(route);
       } else if (route.track_id != instance.trackId) {
         outputExtraRoutingList.push(route);

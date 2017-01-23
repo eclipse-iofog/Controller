@@ -6,7 +6,7 @@
 
 import Sequelize from 'sequelize';
 import sequelize from './../utils/sequelize';
-import Fabric from './fabric';
+import Fog from './fog';
 import ElementInstance from './elementInstance';
 
 const StreamViewer = sequelize.define('stream_viewer', {
@@ -38,7 +38,10 @@ const StreamViewer = sequelize.define('stream_viewer', {
   underscored: true
 });
 
-StreamViewer.belongsTo(Fabric);
+StreamViewer.belongsTo(Fog, {
+  foreignKey: 'iofog_uuid'
+});
+
 StreamViewer.belongsTo(ElementInstance, {
   foreignKey: 'element_id',
   as: 'elementId',

@@ -15,8 +15,8 @@ import ElementService from '../../services/elementService';
 import ElementInstanceService from '../../services/elementInstanceService';
 import ElementInstancePortService from '../../services/elementInstancePortService';
 import ElementAdvertisedPortService from '../../services/elementAdvertisedPortService';
-import FabricService from '../../services/fabricService';
-import FabricTypeService from '../../services/fabricTypeService';
+import FogService from '../../services/fogService';
+import FogTypeService from '../../services/fogTypeService';
 import NetworkPairingService from '../../services/networkPairingService';
 import RoutingService from '../../services/routingService';
 import SatellitePortService from '../../services/satellitePortService';
@@ -461,7 +461,7 @@ router.post('/api/v2/authoring/element/instance/update', (req, res) => {
 
     async.waterfall([
       async.apply(UserService.getUser, userProps, params),
-      async.apply(FabricService.getFogInstance, fogProps),
+      async.apply(FogService.getFogInstance, fogProps),
       async.apply(ElementInstanceService.getElementInstance, elementInstanceProps),
       updateElementInstance,
       updateChangeTracking,
@@ -475,12 +475,12 @@ router.post('/api/v2/authoring/element/instance/update', (req, res) => {
 const updateElementInstance = function (params, callback) {
   var data;
 
-  if (params.elementInstance.iofabric_uuid == params.bodyParams.fabricInstanceId) {
+  if (params.elementInstance.iofog_uuid == params.bodyParams.fabricInstanceId) {
     callback(null, params);
   } 
   else {
     data = {
-      iofabric_uuid: params.bodyParams.fabricInstanceId
+      iofog_uuid: params.bodyParams.fabricInstanceId
     };
 
     var elementProps = {
@@ -508,7 +508,7 @@ const updateChangeTracking = function(params, callback) {
     updateElementObject.configLastUpdated = new Date().getTime();
     updateChangeTracking.containerConfig = new Date().getTime();
   }
-  if (params.elementInstance.iofabric_uuid != params.bodyParams.fabricInstanceId) {
+  if (params.elementInstance.iofog_uuid != params.bodyParams.fabricInstanceId) {
 
     updateChangeTracking.containerList = new Date().getTime();
     updateChangeTracking.containerConfig = new Date().getTime();
@@ -523,7 +523,7 @@ const updateChangeTracking = function(params, callback) {
   params.updateChange = updateChange;
 
   var changeTrackingProps = {
-    fogInstanceId: 'elementInstance.iofabric_uuid',
+    fogInstanceId: 'elementInstance.iofog_uuid',
     changeObject: updateChangeTracking
   };
   ChangeTrackingService.updateChangeTracking(changeTrackingProps, params, callback);
@@ -564,7 +564,7 @@ router.post([
     },
 
     changeTrackingProps = {
-      instanceId: 'elementInstance.iofabric_uuid',
+      instanceId: 'elementInstance.iofog_uuid',
       setProperty: 'trackingData'
     };
   params.bodyParams = req.body;
@@ -586,7 +586,7 @@ router.post([
 const updateConfigTracking = function(params, callback){
   if (params.isConfigChanged) {
     var changeTrackingProps = {
-      fogInstanceId: 'elementInstance.iofabric_uuid',
+      fogInstanceId: 'elementInstance.iofog_uuid',
       changeObject: {
         containerConfig: new Date().getTime()
       }
@@ -725,8 +725,8 @@ router.post('/api/v2/authoring/element/instance/comsat/pipe/create', (req, res) 
 
   async.waterfall([
     async.apply(UserService.getUser, userProps, params),
-    async.apply(FabricService.getFogInstance, fogProps),
-    async.apply(FabricTypeService.getFogTypeDetail, fogTypeProps),
+    async.apply(FogService.getFogInstance, fogProps),
+    async.apply(FogTypeService.getFogTypeDetail, fogTypeProps),
     async.apply(ElementInstancePortService.getElementInstancePort, elementInstanceProps),
     ComsatService.openPortOnRadomComsat,
     createSatellitePort,
@@ -849,7 +849,7 @@ router.post('/api/v2/authoring/element/instance/port/create', (req, res) => {
     },
 
     fogProps = {
-      fogId: 'elementInstance.iofabric_uuid',
+      fogId: 'elementInstance.iofog_uuid',
       setProperty: 'fogInstance'
     },
 
@@ -913,9 +913,9 @@ router.post('/api/v2/authoring/element/instance/port/create', (req, res) => {
       async.apply(ElementInstancePortService.createElementInstancePort, elementInstancePortProps),
       async.apply(ElementInstanceService.getElementInstance, elementInstanceProps),
       updateElemInstance,
-      async.apply(FabricService.getFogInstance, fogProps),
+      async.apply(FogService.getFogInstance, fogProps),
       async.apply(ChangeTrackingService.updateChangeTracking, changeTrackingProps),
-      async.apply(FabricTypeService.getFogTypeDetail, fogTypeProps),
+      async.apply(FogTypeService.getFogTypeDetail, fogTypeProps),
       ComsatService.openPortOnRadomComsat,
       createSatellitePort,
       async.apply(ElementService.getNetworkElement, networkElementProps),
@@ -930,7 +930,7 @@ router.post('/api/v2/authoring/element/instance/port/create', (req, res) => {
       async.apply(ElementInstancePortService.createElementInstancePort, elementInstancePortProps),
       async.apply(ElementInstanceService.getElementInstance, elementInstanceProps),
       updateElemInstance,
-      async.apply(FabricService.getFogInstance, fogProps),
+      async.apply(FogService.getFogInstance, fogProps),
       async.apply(ChangeTrackingService.updateChangeTracking, changeTrackingProps),
       getOutputDetails
     ];
@@ -991,7 +991,7 @@ router.post('/api/v2/authoring/element/instance/port/delete', (req, res) => {
     },
 
     fogProps = {
-      fogId: 'elementInstance.iofabric_uuid',
+      fogId: 'elementInstance.iofog_uuid',
       setProperty: 'fogInstance'
     },
 
@@ -1046,7 +1046,7 @@ router.post('/api/v2/authoring/element/instance/port/delete', (req, res) => {
       async.apply(ElementInstancePortService.getElementInstancePort, elementInstancePortProps),
       updateElemInstance,
       async.apply(ElementInstanceService.getElementInstance, readElementInstanceProps),
-      async.apply(FabricService.getFogInstance, fogProps),
+      async.apply(FogService.getFogInstance, fogProps),
       async.apply(ChangeTrackingService.updateChangeTracking, changeTrackingProps),
       async.apply(ElementInstancePortService.deleteElementInstancePortById, delElementInstancePortProps),
       async.apply(NetworkPairingService.getNetworkPairing, getNetworkPairingProps),
@@ -1064,7 +1064,7 @@ router.post('/api/v2/authoring/element/instance/port/delete', (req, res) => {
       async.apply(ElementInstancePortService.getElementInstancePort, elementInstancePortProps),
       updateElemInstance,
       async.apply(ElementInstanceService.getElementInstance, readElementInstanceProps),
-      async.apply(FabricService.getFogInstance, fogProps),
+      async.apply(FogService.getFogInstance, fogProps),
       async.apply(ChangeTrackingService.updateChangeTracking, changeTrackingProps),
       async.apply(ElementInstancePortService.deleteElementInstancePortById, delElementInstancePortProps)
     ];

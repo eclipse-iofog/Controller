@@ -73,6 +73,9 @@ class UserManager extends BaseManager {
 
 	createUser(email, firstName, lastName) {
 		if (email) {
+      		this.findByEmail(email)
+        	.then(function(user) {
+          if (!user) {  
 			if (AppUtils.isValidEmail(email)) {
 				this.create({
 					firstName: firstName,
@@ -83,10 +86,14 @@ class UserManager extends BaseManager {
 					console.log('\nUser Access Token: '+user.password);
 				});
 			} else {
-				console.log('Invalid Email address provided');
+				console.log('\nError: Invalid Email address provided');
 			}
+		   } else{
+      			console.log('\nError: User already exists with this email. Please Try again with different Email.');
+		   }
+		 })
 		} else {
-			console.log('Email address is required');
+      console.log('\nPlease provide values in following order:\n fog-controller user -add <email> <firstName> <lastName>');
 		}
 	}
 

@@ -8,10 +8,10 @@ import express from 'express';
 const router = express.Router();
 
 import BaseApiController from './baseApiController';
-import FabricAccessTokenService from '../../services/fabricAccessTokenService';
-import FabricProvisionKeyService from '../../services/fabricProvisionKeyService';
-import FabricService from '../../services/fabricService';
-import FabricUserService from '../../services/fabricUserService';
+import FogAccessTokenService from '../../services/fogAccessTokenService';
+import FogProvisionKeyService from '../../services/fogProvisionKeyService';
+import FogService from '../../services/fogService';
+import FogUserService from '../../services/fogUserService';
 import UserService from '../../services/userService';
 
 import AppUtils from '../../utils/appUtils';
@@ -25,7 +25,7 @@ router.get('/api/v2/authoring/fabric/provisionkey/instanceid/:instanceId', BaseA
   params.bodyParams = req.params;
 
   async.waterfall([
-    async.apply(FabricProvisionKeyService.createProvisonKeyByInstanceId, createProvisionProps, params)
+    async.apply(FogProvisionKeyService.createProvisonKeyByInstanceId, createProvisionProps, params)
 
   ],function(err, result) {
     var outputProvisionKey;
@@ -56,7 +56,7 @@ const fogProvisionKey = function(req, res) {
         expirationTime: 'fogProvision.expirationTime'
       },
       fogProps = {
-        fogId: 'fogProvision.iofabric_uuid',
+        fogId: 'fogProvision.iofog_uuid',
         setProperty: 'fogData'
       },
       fogUserProps = {
@@ -75,14 +75,14 @@ const fogProvisionKey = function(req, res) {
   params.bodyParams = req.params;
   
   async.waterfall([
-    async.apply(FabricProvisionKeyService.getFogByProvisionKey, provisionProps, params),
-    async.apply(FabricProvisionKeyService.deleteByProvisionKey, provisionProps),
-    async.apply(FabricProvisionKeyService.checkProvisionKeyExpiry, provisionKeyExpiryProps),
-    async.apply(FabricService.getFogInstance, fogProps),
-    async.apply(FabricUserService.getFogUserByInstanceId, fogUserProps),
-    FabricAccessTokenService.generateFogAccessToken,
-    async.apply(FabricAccessTokenService.deleteFogAccessTokenByUserId, deleteTokenProps),
-    async.apply(FabricAccessTokenService.saveFogAccessToken,saveFogAccessTokenProps)
+    async.apply(FogProvisionKeyService.getFogByProvisionKey, provisionProps, params),
+    async.apply(FogProvisionKeyService.deleteByProvisionKey, provisionProps),
+    async.apply(FogProvisionKeyService.checkProvisionKeyExpiry, provisionKeyExpiryProps),
+    async.apply(FogService.getFogInstance, fogProps),
+    async.apply(FogUserService.getFogUserByInstanceId, fogUserProps),
+    FogAccessTokenService.generateFogAccessToken,
+    async.apply(FogAccessTokenService.deleteFogAccessTokenByUserId, deleteTokenProps),
+    async.apply(FogAccessTokenService.saveFogAccessToken,saveFogAccessTokenProps)
 
   ], function(err, result) {
    
@@ -105,7 +105,7 @@ router.post('/api/v2/authoring/fabric/provisioningkey/list/delete', (req, res) =
   params.bodyParams = req.body;
 
   async.waterfall([
-    async.apply(FabricProvisionKeyService.deleteProvisonKeyByInstanceId, instanceProps, params)
+    async.apply(FogProvisionKeyService.deleteProvisonKeyByInstanceId, instanceProps, params)
   
   ], function(err, result) {
        AppUtils.sendResponse(res, err, 'instanceId', params.bodyParams.instanceId, result);  

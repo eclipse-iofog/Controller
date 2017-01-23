@@ -8,7 +8,7 @@ import express from 'express';
 const router = express.Router();
 import BaseApiController from './baseApiController';
 
-import FabricService from '../../services/fabricService';
+import FogService from '../../services/fogService';
 import AppUtils from '../../utils/appUtils';
 import Constants from '../../constants.js';
 
@@ -31,7 +31,7 @@ const instanceConfig = function(req, res){
   params.bodyParams = req.params;
 
   async.waterfall([
-    async.apply(FabricService.getFogInstance, fogProps, params),
+    async.apply(FogService.getFogInstance, fogProps, params),
     processConfigData
 
   ], function(err, result) {
@@ -87,7 +87,7 @@ const updateFogInstance = function(params, callback){
       logfilecount: params.bodyParams.logFileCount
       }
     };
-  FabricService.updateFogInstance(fogConfigProps, params, callback);
+  FogService.updateFogInstance(fogConfigProps, params, callback);
 }
 
 export default router;

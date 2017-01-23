@@ -13,9 +13,9 @@ import ConsoleService from '../../services/consoleService';
 import ElementService from '../../services/elementService';
 import ElementInstancePortService from '../../services/elementInstancePortService';
 import ElementInstanceService from '../../services/elementInstanceService';
-import FabricService from '../../services/fabricService';
-import FabricTypeService from '../../services/fabricTypeService';
-import FabricUserService from '../../services/fabricUserService';
+import FogService from '../../services/fogService';
+import FogTypeService from '../../services/fogTypeService';
+import FogUserService from '../../services/fogUserService';
 import NetworkPairingService from '../../services/networkPairingService';
 import SatelliteService from '../../services/satelliteService';
 import SatellitePortService from '../../services/satellitePortService';
@@ -149,10 +149,10 @@ router.post('/api/v2/authoring/integrator/instance/create', (req, res) => {
 
   async.waterfall([
     async.apply(UserService.getUser, userProps, params),
-    async.apply(FabricService.createFogInstance, createFogProps),
+    async.apply(FogService.createFogInstance, createFogProps),
     async.apply(ChangeTrackingService.createFogChangeTracking, createChangeTrackingProps),
-    async.apply(FabricUserService.createFogUser, createFogUserProps),
-    async.apply(FabricTypeService.getFogTypeDetail, fogTypeProps),
+    async.apply(FogUserService.createFogUser, createFogUserProps),
+    async.apply(FogTypeService.getFogTypeDetail, fogTypeProps),
     async.apply(ElementInstanceService.createStreamViewerElement,  streamViewerElementInstanceProps),
     async.apply(ElementInstancePortService.createElementInstancePortByPortValue, streamViewerProps),
     async.apply(ChangeTrackingService.updateChangeTracking, changeTrackingProps),
@@ -206,7 +206,7 @@ const createStreamViewer = function(params, callback){
         apiBaseUrl: 'https://' + params.satellite.domain + ':' + params.satellitePort.port2,
         accessToken: JSON.parse(params.streamViewer.config).accesstoken,
         element_id: params.streamViewer.uuid,
-        iofabric_uuid: params.fabricInstance.uuid
+        iofog_uuid: params.fogInstance.uuid
       }
     };
 
@@ -230,7 +230,7 @@ const createConsole = function(params, callback){
         apiBaseUrl: 'https://' + params.satellite.domain + ':' + params.satellitePort.port2,
         accessToken: JSON.parse(params.debugConsole.config).accesstoken,
         elementId: params.debugConsole.uuid,
-        iofabric_uuid: params.fabricInstance.uuid
+        iofog_uuid: params.fogInstance.uuid
       }
     };
   ConsoleService.createConsole(createConsoleProps, params, callback)
@@ -252,7 +252,7 @@ router.post('/api/v2/authoring/integrator/instance/update', (req, res) => {
 
   async.waterfall([
     async.apply(UserService.getUser, userProps, params),
-    async.apply(FabricService.getFogInstance, fogInstanceProps),
+    async.apply(FogService.getFogInstance, fogInstanceProps),
     updateFogInstance
 
   ], function(err, result) {
@@ -272,7 +272,7 @@ const updateFogInstance = function(params, callback){
           description : params.bodyParams.description
         }
       };
-  FabricService.updateFogInstance(fogInstanceProps, params, callback);
+  FogService.updateFogInstance(fogInstanceProps, params, callback);
 }
 
 const getFogInstanceDetails = function(params, callback) {

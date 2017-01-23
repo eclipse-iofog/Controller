@@ -1,26 +1,26 @@
 /**
  * @file consoleManager.js
  * @author Zishan Iqbal
- * @description This file includes the CURD operations for the fabricConsole Model.
+ * @description This file includes the CURD operations for the fogConsole Model.
  */
 
 import BaseManager from './../managers/baseManager';
-import FabricConsole from './../models/fabricConsole';
+import FogConsole from './../models/fogConsole';
 
-class FabricConsoleManager extends BaseManager {
+class FogConsoleManager extends BaseManager {
 
 	getEntity() {
-			return FabricConsole;
+			return FogConsole;
 		}
 		/**
-		 * @desc - finds the fabricConsole based on the instanceId
+		 * @desc - finds the fogConsole based on the instanceId
 		 * @param Integer - instanceId
-		 * @return JSON - returns a JSON object of fabricConsole
+		 * @return JSON - returns a JSON object of fogConsole
 		 */
 	findByInstanceId(instanceId) {
-		return FabricConsole.find({
+		return FogConsole.find({
 			where: {
-				iofabric_uuid: instanceId
+				iofog_uuid: instanceId
 			}
 		});
 	}
@@ -31,13 +31,13 @@ class FabricConsoleManager extends BaseManager {
 	 * @return  Integer - returns the number of rows deleted
 	 */
 	deleteByInstanceId(instanceId) {
-		return FabricConsole.destroy({
+		return FogConsole.destroy({
 			where: {
-				iofabric_uuid: instanceId
+				iofog_uuid: instanceId
 			}
 		});
 	}
 }
 
-const instance = new FabricConsoleManager();
+const instance = new FogConsoleManager();
 export default instance;

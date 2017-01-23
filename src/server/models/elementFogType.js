@@ -1,15 +1,15 @@
 /**
- * @file ioElementFebricType.js
+ * @file ioElementFogType.js
  * @author Zishan Iqbal
- * @description This file includes a IOElementFebricType model used by sequalize for ORM;
+ * @description This file includes a IOElementFogType model used by sequalize for ORM;
  */
 
 import Sequelize from 'sequelize';
 import sequelize from './../utils/sequelize';
 import Element from './element';
-import FabricType from './fabricType';
+import FogType from './fogType';
 
-const ElementFabricType = sequelize.define('element_fabric_types', {
+const ElementFogType = sequelize.define('element_fog_types', {
   id: {
     type: Sequelize.INTEGER,
     primaryKey: true,
@@ -26,7 +26,9 @@ const ElementFabricType = sequelize.define('element_fabric_types', {
   underscored: true
 });
 
-ElementFabricType.belongsTo(Element);
-ElementFabricType.belongsTo(FabricType);
+ElementFogType.belongsTo(Element);
+ElementFogType.belongsTo(FogType, {
+  foreignKey: 'iofog_type_id'
+});
 
-export default ElementFabricType;
+export default ElementFogType;

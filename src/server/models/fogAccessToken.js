@@ -1,18 +1,17 @@
 /**
-* @file fabricProvisionKey.js
+* @file fogAccessToken.js
 * @author Zishan Iqbal
-* @description This file includes a iofabric_provision_keys model used by sequalize for ORM;
+* @description This file includes a iofog_access_tokens model used by sequalize for ORM;
 */
 
 import Sequelize from 'sequelize';
 import sequelize from './../utils/sequelize';
-// import Fabric from './fabric';
 
-const FabricProvisionKey = sequelize.define('iofabric_provision_keys', {
+const FogAccessToken = sequelize.define('iofog_access_tokens', {
   id: {type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true, field: 'ID'},
-  provisionKey: {type: Sequelize.STRING(100), field: 'provisioning_string'},
-  expirationTime: {type: Sequelize.DATE, field: 'expiration_time'}
-  // instanceId: {type: Sequelize.TEXT, field: 'instanceID'}
+  userId: {type: Sequelize.INTEGER, field: 'user_id'},
+  expirationTime: {type: Sequelize.DATE, field: 'expiration_time'},
+  token: {type: Sequelize.TEXT, field: 'token'}
 }, {
   // don't add the timestamp attributes (updatedAt, createdAt)
   timestamps: false,
@@ -23,4 +22,4 @@ const FabricProvisionKey = sequelize.define('iofabric_provision_keys', {
   underscored: true
 });
 
-export default FabricProvisionKey;
+export default FogAccessToken;

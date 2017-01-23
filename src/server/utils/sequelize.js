@@ -2,7 +2,7 @@ import Sequelize from 'sequelize';
 import appConfig from './../../config.json';
 import cls from 'continuation-local-storage';
 
-let namespace = cls.createNamespace('fabric-controller-namespace');
+let namespace = cls.createNamespace('fog-controller-namespace');
 
 Sequelize.cls = namespace;
 

@@ -1,4 +1,4 @@
-import FabricAccessTokenManager from '../managers/fabricAccessTokenManager';
+import FogAccessTokenManager from '../managers/fogAccessTokenManager';
 import AppUtils from '../utils/appUtils';
 import Constants from '../constants.js';
 
@@ -6,7 +6,6 @@ import Constants from '../constants.js';
 const checkFogTokenExpirationByToken = function(props, params, callback) {
   var time =  new Date().getTime(),
    expirationTime = AppUtils.getProperty(params, props.expirationTime);
-   expirationTime = Date.parse(expirationTime);
 
   if(expirationTime > time){
       callback(null, params);
@@ -19,7 +18,7 @@ const checkFogTokenExpirationByToken = function(props, params, callback) {
 const findFogAccessTokenByToken = function(props, params, callback) {
   var token = AppUtils.getProperty(params, props.token);
 
-  FabricAccessTokenManager
+  FogAccessTokenManager
     .getByToken(token)
     .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Unable to find Fog Access Token', callback));
 }
@@ -27,7 +26,7 @@ const findFogAccessTokenByToken = function(props, params, callback) {
 const deleteFogAccessTokenByUserId = function(props, params, callback) {
   var userId = AppUtils.getProperty(params, props.userId);
 
-  FabricAccessTokenManager
+  FogAccessTokenManager
     .deleteByUserId(userId)
     .then(AppUtils.onDeleteOptional.bind(null, params, 'Unable to delete Fog Access Token', callback));
 }
@@ -59,7 +58,7 @@ const saveFogAccessToken = function(props, params, callback) {
     accessToken: accessToken
   };
 
-  FabricAccessTokenManager
+  FogAccessTokenManager
     .saveUserToken(config)
     .then(AppUtils.onCreate.bind(null, params, props.setProperty, 'Unable to create Fog Access Token', callback));
 }

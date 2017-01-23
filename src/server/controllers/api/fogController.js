@@ -1,5 +1,5 @@
 /**
- * @file fabricController.js
+ * @file fogController.js
  * @author Zishan Iqbal
  * @description This file includes the implementation of the status end-point
  */
@@ -11,11 +11,11 @@ const router = express.Router();
 import ChangeTrackingService from '../../services/changeTrackingService';
 import ConsoleService from '../../services/consoleService';
 import ElementInstanceService from '../../services/elementInstanceService';
-import FabricAccessTokenService from '../../services/fabricAccessTokenService';
-import FabricProvisionKeyService from '../../services/fabricProvisionKeyService';
-import FabricService from '../../services/fabricService';
-import FabricTypeService from '../../services/fabricTypeService';
-import FabricUserService from '../../services/fabricUserService';
+import FogAccessTokenService from '../../services/fogAccessTokenService';
+import FogProvisionKeyService from '../../services/fogProvisionKeyService';
+import FogService from '../../services/fogService';
+import FogTypeService from '../../services/fogTypeService';
+import FogUserService from '../../services/fogUserService';
 import StreamViewerService from '../../services/streamViewerService';
 import UserService from '../../services/userService';
 
@@ -60,7 +60,7 @@ router.get('/api/v2/authoring/integrator/instances/list/:userId', (req, res) => 
 
 	async.waterfall([
 		async.apply(UserService.getUser, userProps, params),
-		async.apply(FabricService.getFogInstanceForUser, fogInstanceForUserProps)
+		async.apply(FogService.getFogInstanceForUser, fogInstanceForUserProps)
 
 	], function(err, result) {
 		AppUtils.sendResponse(res, err, 'elementsInstances', params.fogInstance, result);
@@ -93,9 +93,9 @@ router.get('/api/v2/instance/create/type/:type', (req, res) => {
 
 	async.waterfall([
 		async.apply(UserService.getUser, userProps, params),
-		async.apply(FabricTypeService.getFogTypeDetail, fogTypeProps),
-		async.apply(FabricService.createFogInstance, createFogProps),
-    	async.apply(FabricUserService.createFogUser, createFogUserProps),
+		async.apply(FogTypeService.getFogTypeDetail, fogTypeProps),
+		async.apply(FogService.createFogInstance, createFogProps),
+    	async.apply(FogUserService.createFogUser, createFogUserProps),
 	],
 	function(err, result) {
 		var output;
@@ -121,7 +121,7 @@ router.get('/api/v2/instance/getfabriclist', (req, res) => {
 
 	async.waterfall([
 		async.apply(UserService.getUser, userProps, params),
-		async.apply(FabricService.getFogList, fogListProps)
+		async.apply(FogService.getFogList, fogListProps)
 	],
 	function(err, result) {
 		var errMsg = 'Internal error: ' + result;
@@ -130,7 +130,7 @@ router.get('/api/v2/instance/getfabriclist', (req, res) => {
 });
 
 /**
- * @desc - this end-point returns the list of fabricTypes avalible
+ * @desc - this end-point returns the list of fogTypes avalible
  * @return - returns and appropriate response to the client
  */
 router.get('/api/v2/getfabrictypes', (req, res) => {
@@ -148,7 +148,7 @@ router.get('/api/v2/getfabrictypes', (req, res) => {
 
 	async.waterfall([
 		async.apply(UserService.getUser, userProps, params),
-		async.apply(FabricTypeService.getFogTypesList, fogTypesListProps)
+		async.apply(FogTypeService.getFogTypesList, fogTypesListProps)
 	],
 	function(err, result) {
 		var errMsg = 'Internal error: ' + result;
@@ -157,7 +157,7 @@ router.get('/api/v2/getfabrictypes', (req, res) => {
 });
 
 /**
- * @desc - this end-point deletes the iofabric and data regarding it
+ * @desc - this end-point deletes the iofog and data regarding it
  * @return - returns and appropriate response to the client
  */
 router.post('/api/v2/authoring/fabric/instance/delete', (req, res) => {
@@ -175,11 +175,11 @@ router.post('/api/v2/authoring/fabric/instance/delete', (req, res) => {
 	async.waterfall([
 		async.apply(UserService.getUser, userProps, params),
 		async.apply(ChangeTrackingService.deleteChangeTracking,instanceProps),
-		async.apply(FabricUserService.deleteFogUserByInstanceId, instanceProps),
+		async.apply(FogUserService.deleteFogUserByInstanceId, instanceProps),
 		async.apply(StreamViewerService.deleteStreamViewerByFogInstanceId, instanceProps),
 		async.apply(ConsoleService.deleteConsoleByFogInstanceId, instanceProps),
-		async.apply(FabricProvisionKeyService.deleteProvisonKeyByInstanceId, instanceProps),
-		async.apply(FabricService.deleteFogInstance, instanceProps)
+		async.apply(FogProvisionKeyService.deleteProvisonKeyByInstanceId, instanceProps),
+		async.apply(FogService.deleteFogInstance, instanceProps)
 	],
 	function(err, result) {
 		var errMsg = 'Internal error: ' + result;
@@ -215,14 +215,14 @@ router.post('/api/v2/authoring/integrator/instance/delete', (req, res) => {
 		async.apply(UserService.getUser, userProps, params),
 		async.apply(ElementInstanceService.updateElemInstanceByFogUuId, updateByFogUuIdProps),
 		async.apply(ChangeTrackingService.deleteChangeTracking, instanceProps),
-		async.apply(FabricUserService.getFogUserByInstanceId, fogUserProps),
-		async.apply(FabricAccessTokenService.deleteFogAccessTokenByUserId, instanceProps),
-		async.apply(FabricUserService.deleteFogUserByInstanceIdAndUserId, deleteFogUserProps),
+		async.apply(FogUserService.getFogUserByInstanceId, fogUserProps),
+		async.apply(FogAccessTokenService.deleteFogAccessTokenByUserId, instanceProps),
+		async.apply(FogUserService.deleteFogUserByInstanceIdAndUserId, deleteFogUserProps),
 		//async.apply(UserService.deleteByUserId, instanceProps),
 		async.apply(StreamViewerService.deleteStreamViewerByFogInstanceId, instanceProps),
 		async.apply(ConsoleService.deleteConsoleByFogInstanceId, instanceProps),
-		async.apply(FabricProvisionKeyService.deleteProvisonKeyByInstanceId, instanceProps),
-		async.apply(FabricService.deleteFogInstance, instanceProps)
+		async.apply(FogProvisionKeyService.deleteProvisonKeyByInstanceId, instanceProps),
+		async.apply(FogService.deleteFogInstance, instanceProps)
 	],
 	function(err, result) {
 		var errMsg = 'Internal error: ' + result;

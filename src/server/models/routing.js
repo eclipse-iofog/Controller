@@ -6,7 +6,7 @@
 
 import Sequelize from 'sequelize';
 import sequelize from './../utils/sequelize';
-import Fabric from './fabric';
+import Fog from './fog';
 import ElementInstance from './elementInstance';
 
 const Routing = sequelize.define('routing', {
@@ -30,12 +30,12 @@ const Routing = sequelize.define('routing', {
   underscored: true
 });
 
-Routing.belongsTo(Fabric, {
+Routing.belongsTo(Fog, {
   foreignKey: 'publishing_instance_id',
   as: 'publishingInstanceId'
 });
 
-Routing.belongsTo(Fabric, {
+Routing.belongsTo(Fog, {
   foreignKey: 'destination_instance_id',
   as: 'destinationInstanceId'
 });

@@ -1,35 +1,26 @@
 /**
- * @file fabricConsole.js
+ * @file sslFiles.js
  * @author Zishan Iqbal
- * @description This file includes a iofabric_console model used by sequalize for ORM;
+ * @description This file includes a element model used by sequalize for ORM;
  */
 
 import Sequelize from 'sequelize';
 import sequelize from './../utils/sequelize';
-import Fabric from './fabric'
 
-const FabricConsole = sequelize.define('iofabric_console', {
+const FogControllerConfig = sequelize.define('config', {
   id: {
     type: Sequelize.INTEGER,
     primaryKey: true,
     autoIncrement: true,
     field: 'ID'
   },
-  version: {
-    type: Sequelize.BIGINT,
-    field: 'version'
-  },
-  apiBaseUrl: {
+  key: {
     type: Sequelize.TEXT,
-    field: 'api_base_url'
+    field: 'key'
   },
-  elementId: {
+  value: {
     type: Sequelize.TEXT,
-    field: 'element_id'
-  },
-  accessToken: {
-    type: Sequelize.TEXT,
-    field: 'access_token'
+    field: 'value'
   }
 }, {
   // don't add the timestamp attributes (updatedAt, createdAt)
@@ -41,6 +32,4 @@ const FabricConsole = sequelize.define('iofabric_console', {
   underscored: true
 });
 
-FabricConsole.belongsTo(Fabric);
-
-export default FabricConsole;
+export default FogControllerConfig;
