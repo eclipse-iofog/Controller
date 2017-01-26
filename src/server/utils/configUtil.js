@@ -15,9 +15,9 @@ class FogControllerConfigUtil {
     let configValue;
 
     if (!this.fogConfigs) {
-      console.log(configValue);
       return undefined;
     } else {
+
       _.each(this.fogConfigs, function(config) {
         if (config.key.toUpperCase() === key.toUpperCase()) {
           configValue = config.value;
