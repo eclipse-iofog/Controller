@@ -113,20 +113,52 @@ const startHttpServer = function(app, port) {
 }
 
 const startHttpsServer = function(app, port, sslKey, sslCert, intermedKey) {
-  let sslOptions = {
-    key: fs.readFileSync(sslKey),
-    cert: fs.readFileSync(sslCert),
-    ca: fs.readFileSync(intermedKey),
-    requestCert: true,
-    rejectUnauthorized: false
-  };
+  var flag = 0,
+      key,
+      cert,
+      intermedCert;
 
-  https.createServer(sslOptions, app).listen(port, function onStart(err) {
+  try{
+    key = fs.readFileSync(sslKey);
+    console.log(key);
+  }catch(e){
+    flag++;
+    console.log('\nError: SSL_KEY path not found or invalid.')
+  }
+
+  if (!sslCert && flag == 0){
+    try{
+      cert = fs.readFileSync(sslCert);
+    }catch(e){
+      flag++;
+      console.log('\nError: SSL_CERT path not found or invalid.')
+    }
+  }
+
+  else if (!intermedKey && flag == 0){
+    try{
+      intermedCert = fs.readFileSync(intermedKey);
+    }catch(e){
+      flag++;
+      console.log('\nError: INTERMEDIATE_CERT path not found or invalid.')
+    }
+  }
+  if (flag == 0){
+    let sslOptions = {
+      key: key,
+      cert: cert,
+      ca: intermedCert,
+      requestCert: true,
+      rejectUnauthorized: false
+    };
+
+    https.createServer(sslOptions, app).listen(port, function onStart(err) {
     if (err) {
       console.log(err);
     }
-    console.info('==> 🌎 HTTPS server listening on port %s. Open up https://localhost:%s/ in your browser.', port, port);
-  });
+      console.info('==> 🌎 HTTPS server listening on port %s. Open up https://localhost:%s/ in your browser.', port, port);
+    });
+  }
 }
 
 export default {

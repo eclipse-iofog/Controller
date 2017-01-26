@@ -1,4 +1,6 @@
 #! /usr/bin/env node
+var packageJson = require('../package.json');
+
 import FogControllerConfigService from './server/services/fogControllerConfigService';
 import FogControllerConfigManager from './server/managers/fogControllerConfigManager';
 import SatelliteManager from './server/managers/satelliteManager';
@@ -14,6 +16,11 @@ function main() {
     args = process.argv.slice(2);
 
   switch (args[0]) {
+   case 'version':
+        console.log(' ' + packageJson.version);
+        console.log(' ' + packageJson.license);
+        break;
+
     case 'config':
       switch (args[1]) {
           case '-list':
@@ -58,22 +65,22 @@ function main() {
                        "\tUsage 3: fog-controller [COMMAND] <key> <value>\n" + 
                        "\n\n" + 
 
-        "\tCommand          Arguments                                           Meaning\n" + 
-        "\t=======          =========                                           =======\n" + 
-        "\tconfig           -list                                               Displays Configuration information in CLI (config table content)\n" +
-        "\t                 -add <key> <value>                                  Set Configurations of fog-controller\n" +
-        "\t                                                                     (You can set one of these configurations: PORT, SSL_KEY, INTERMEDIATE_CERT,  SSL_CERT)\n" +
-
-        "\t                 -remove <key>                                       Deletes a Configuration with corresponding Key\n" +
-        "\n\thelp                                                                 Shows this message\n" + 
-        "\n\tsatellite        -list                                               List down all satellites\n" +
-        "\t                 -add <name> <domain> <publicIP>                     Creates a new satellite\n" +
-        "\t                 -remove <ID>                                        Deletes a satellite with corresponding ID\n" +
-        "\n\tstart                                                                Starts fog-controller\n"+
-        "\n\tuser             -list                                               List down all users\n" +
-        "\t                 -add <email> <firstName> <lastName>                 Creates a new user\n" +
-        "\t                 -remove <email>                                     Deletes a user with corresponding email\n" +
-        "\t                 -generateToken <email>                              Resets User Access Token of corresponding email\n" +
+        "\tCommand          Arguments                                 Meaning\n" + 
+        "\t=======          =========                                 =======\n" + 
+        "\tconfig           -list                                     Displays Configuration information in CLI (config table content)\n" +
+        "\t                 -add <key> <value>                        Set Configurations of fog-controller\n" +
+        "\t                                                           (You can set one of these configurations: PORT, SSL_KEY, INTERMEDIATE_CERT,  SSL_CERT)\n" +
+        "\t                 -remove <key>                             Deletes a Configuration with corresponding Key\n" +
+        "\n\thelp                                                       Shows this message\n" + 
+        "\n\tsatellite        -list                                     List down all satellites\n" +
+        "\t                 -add <name> <domain> <publicIP>           Creates a new satellite\n" +
+        "\t                 -remove <ID>                              Deletes a satellite with corresponding ID\n" +
+        "\n\tstart                                                      Starts fog-controller\n"+
+        "\n\tuser             -list                                     List down all users\n" +
+        "\t                 -add <email> <firstName> <lastName>       Creates a new user\n" +
+        "\t                 -remove <email>                           Deletes a user with corresponding email\n" +
+        "\t                 -generateToken <email>                    Resets User Access Token of corresponding email\n" +
+        "\n\tversion                                                    Displays Version and License\n"+
         "\n\n" + 
         "\tReport bugs to: bugs@iotracks.com\n" + 
         "\tioFog home page: http://iofog.com\n" +
@@ -130,7 +137,10 @@ function main() {
       break;
    
     default:
-      console.log('\nInvalid command "' + args[0] + '"');
+      console.log("Starting Fog Controller ...");
+      Server.startServer(args[1]);
+      break;
+  //    console.log('\nInvalid command "' + args[0] + '"');
   }
 }
 

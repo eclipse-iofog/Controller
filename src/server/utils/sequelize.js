@@ -14,6 +14,7 @@ Sequelize.cls = namespace;
 const sequelize = new Sequelize(null, null, null, {
   dialect: 'sqlite',
   storage: __dirname + '/../../../' + appConfig.dbPath, //TODO: needs to improve this line of code
+  logging: false,
   pool: {
     max: 5,
     min: 0,
