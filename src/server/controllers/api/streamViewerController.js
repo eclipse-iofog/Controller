@@ -12,8 +12,10 @@ import ConsoleService from '../../services/consoleService';
 import StreamViewerService from '../../services/streamViewerService';
 import UserService from '../../services/userService';
 import AppUtils from '../../utils/appUtils';
+import logger from '../../utils/winstonLogs';
 
 router.get('/api/v2/authoring/fabric/viewer/access', (req, res) => {
+  logger.info("Endpoint hitted: "+ req.originalUrl);
   var params = {},
 
   userProps = {
@@ -29,6 +31,7 @@ router.get('/api/v2/authoring/fabric/viewer/access', (req, res) => {
     setProperty: 'console'
   };
  params.bodyParams = req.query;
+ logger.info("Parameters:" + JSON.stringify(params.bodyParams));
 
   async.waterfall([
     async.apply(UserService.getUser, userProps, params),

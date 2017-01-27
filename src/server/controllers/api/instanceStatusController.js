@@ -9,13 +9,17 @@ const router = express.Router();
 import BaseApiController from './baseApiController';
 import FogService from '../../services/fogService';
 import AppUtils from '../../utils/appUtils';
+import logger from '../../utils/winstonLogs';
 
 
 router.post('/api/v2/instance/status/id/:ID/token/:Token', BaseApiController.checkUserExistance, (req, res) => {
+  logger.info("Endpoint hitted: "+ req.originalUrl);
+
   var params = {};
  
   params.bodyParams = req.body;
   params.bodyParams.instanceId = req.params.ID;
+  logger.info("Parameters:" + JSON.stringify(params.bodyParams));
 
   async.waterfall([
     async.apply(updateFogInstance,params)

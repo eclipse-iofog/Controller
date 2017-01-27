@@ -11,6 +11,7 @@ import BaseApiController from './baseApiController';
 import RegistryService from '../../services/registryService';
 
 import AppUtils from '../../utils/appUtils';
+import logger from '../../utils/winstonLogs';
 import Constants from '../../constants.js';
 
 router.get('/api/v2/instance/registries/id/:ID/token/:Token', BaseApiController.checkUserExistance, (req, res) => {
@@ -22,6 +23,7 @@ router.post('/api/v2/instance/registries/id/:ID/token/:Token', BaseApiController
 });
 
 const instanceRegistries = function (req, res){
+  logger.info("Endpoint hitted: "+ req.originalUrl);
   var params = {},
       instanceProps={
       instanceId: 'bodyParams.ID',
@@ -29,6 +31,7 @@ const instanceRegistries = function (req, res){
       };
 
   params.bodyParams = req.params;
+  logger.info("Parameters:" + JSON.stringify(params.bodyParams));
 
   async.waterfall([
     async.apply(RegistryService.findRegistriesByInstanceId , instanceProps, params)

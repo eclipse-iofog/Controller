@@ -4,7 +4,7 @@ import https from 'https';
 import AppUtils from '../utils/appUtils';
 import SatelliteService from '../services/satelliteService';
 
-function openPortOnRadomComsat(params, callback) {
+const openPortOnRadomComsat = function(params, callback) {
   var isComsatPortOpen = false,
     iterations = 0;
 

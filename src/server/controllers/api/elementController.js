@@ -12,14 +12,19 @@ import ElementFogTypeService from '../../services/elementFogTypeService';
 import ElementService from '../../services/elementService';
 import UserService from '../../services/userService';
 import AppUtils from '../../utils/appUtils';
+import logger from '../../utils/winstonLogs';
+
 
 router.post('/api/v2/authoring/organization/element/create', (req, res) => {
+  logger.info("Endpoint hitted: "+ req.originalUrl);
+
   var params = {},
       userProps = {
         userId: 'bodyParams.userId',
         setProperty: 'user'
       };
   params.bodyParams = req.body;
+  logger.info("Parameters:" + JSON.stringify(params.bodyParams));
 
   async.waterfall([
     async.apply(UserService.getUser, userProps, params),
@@ -72,6 +77,8 @@ const createElementFogTypes = function(params, callback) {
 }
 
 router.post('/api/v2/authoring/organization/element/update', (req, res) => {
+  logger.info("Endpoint hitted: "+ req.originalUrl);
+
   var params = {},
     userProps = {
       userId: 'bodyParams.userId',
@@ -88,6 +95,7 @@ router.post('/api/v2/authoring/organization/element/update', (req, res) => {
     };
 
   params.bodyParams = req.body;
+  logger.info("Parameters:" + JSON.stringify(params.bodyParams));
 
   async.waterfall([
     async.apply(UserService.getUser, userProps, params),
@@ -122,6 +130,8 @@ const updateElement = function(params, callback) {
 }
 
 router.post('/api/v2/authoring/organization/element/delete', (req, res) => {
+  logger.info("Endpoint hitted: "+ req.originalUrl);
+  
   var params = {},
       userProps = {
         userId: 'bodyParams.userId',
@@ -132,6 +142,7 @@ router.post('/api/v2/authoring/organization/element/delete', (req, res) => {
       };
 
   params.bodyParams = req.body;
+  logger.info("Parameters:" + JSON.stringify(params.bodyParams));
 
   async.waterfall([
     async.apply(UserService.getUser, userProps, params),

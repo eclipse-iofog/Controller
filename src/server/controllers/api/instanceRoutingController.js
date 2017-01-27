@@ -25,6 +25,7 @@ import StreamViewerService from '../../services/streamViewerService';
 import UserService from '../../services/userService';
 
 import AppUtils from '../../utils/appUtils';
+import logger from '../../utils/winstonLogs';
 import Constants from '../../constants.js';
 
 router.get('/api/v2/instance/routing/id/:ID/token/:Token', BaseApiController.checkUserExistance, (req, res) => {
@@ -36,6 +37,8 @@ router.post('/api/v2/instance/routing/id/:ID/token/:Token', BaseApiController.ch
 });
 
 const instanceRouting = function (req, res){
+  logger.info("Endpoint hitted: "+ req.originalUrl);
+
   var params = {},
       streamViewerProps = {
         instanceId: 'bodyParams.ID',
@@ -51,6 +54,7 @@ const instanceRouting = function (req, res){
       };
 
   params.bodyParams = req.params;
+  logger.info("Parameters:" + JSON.stringify(params.bodyParams));
 
   async.waterfall([
     async.apply(StreamViewerService.getStreamViewerByFogInstanceId, streamViewerProps, params),
@@ -114,6 +118,7 @@ const instanceRouting = function (req, res){
   }
 
 router.post('/api/v2/authoring/element/instance/route/create', (req, res) => {
+  logger.info("Endpoint hitted: "+ req.originalUrl);
   var params = {},
     currentTime = new Date().getTime(),
     watefallMethods = [],
@@ -266,6 +271,7 @@ router.post('/api/v2/authoring/element/instance/route/create', (req, res) => {
     };
 
   params.bodyParams = req.body;
+  logger.info("Parameters:" + JSON.stringify(params.bodyParams));
 
   if (params.bodyParams.publishingInstanceId == params.bodyParams.destinationInstanceId) {
     watefallMethods = [
@@ -360,6 +366,7 @@ const getOutputDetails = function(params, callback) {
 }
 
 router.post('/api/v2/authoring/element/instance/route/delete', (req, res) => {
+  logger.info("Endpoint hitted: "+ req.originalUrl);
   var params = {},
     currentTime = new Date().getTime(),
     watefallMethods = [],
@@ -456,6 +463,7 @@ router.post('/api/v2/authoring/element/instance/route/delete', (req, res) => {
     };
 
   params.bodyParams = req.body;
+  logger.info("Parameters:" + JSON.stringify(params.bodyParams));
 
   if (params.bodyParams.isNetworkConnection == 0) {
     watefallMethods = [

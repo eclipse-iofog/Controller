@@ -19,10 +19,11 @@ import SatellitePortService from '../../services/satellitePortService';
 import UserService from '../../services/userService';
 
 import AppUtils from '../../utils/appUtils';
-
+import logger from '../../utils/winstonLogs';
 
 router.get('/api/v2/authoring/fabric/track/list/:instanceId', (req, res) => {
-var params = {},
+  logger.info("Endpoint hitted: "+ req.originalUrl);
+  var params = {},
 
     userProps = {
       userId: 'bodyParams.userId',
@@ -41,6 +42,7 @@ var params = {},
 
   params.bodyParams = req.params;
   params.bodyParams.userId = req.query.userId;
+  logger.info("Parameters:" + JSON.stringify(params.bodyParams));
 
   async.waterfall([
     async.apply(UserService.getUser, userProps, params),
@@ -52,7 +54,9 @@ var params = {},
 });
 
 router.post('/api/v2/authoring/user/track/update', (req, res) => {
-var params = {},
+  logger.info("Endpoint hitted: "+ req.originalUrl);
+
+  var params = {},
 
     userProps = {
       userId: 'bodyParams.userId',
@@ -65,6 +69,7 @@ var params = {},
     };
 
   params.bodyParams = req.body;
+  logger.info("Parameters:" + JSON.stringify(params.bodyParams));
 
   async.waterfall([
     async.apply(UserService.getUser, userProps, params),
@@ -150,7 +155,8 @@ const updateDataTrackById= function(params, callback) {
 }
 
 router.post('/api/v2/authoring/fabric/track/update', (req, res) => {
-var params = {},
+  logger.info("Endpoint hitted: "+ req.originalUrl);
+  var params = {},
 
     userProps = {
       userId: 'bodyParams.userId',
@@ -163,6 +169,7 @@ var params = {},
     };
 
   params.bodyParams = req.body;
+  logger.info("Parameters:" + JSON.stringify(params.bodyParams));
 
   async.waterfall([
     async.apply(UserService.getUser, userProps, params),
@@ -193,6 +200,7 @@ const getFogInstance = function(params, callback) {
 }
 
 router.post('/api/v2/authoring/fabric/track/delete', (req, res) => {
+  logger.info("Endpoint hitted: "+ req.originalUrl);
   var params = {},
 
     userProps = {
@@ -211,6 +219,7 @@ router.post('/api/v2/authoring/fabric/track/delete', (req, res) => {
     };
 
   params.bodyParams = req.body;
+  logger.info("Parameters:" + JSON.stringify(params.bodyParams));
 
   async.waterfall([
     async.apply(UserService.getUser, userProps, params),

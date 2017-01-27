@@ -60,32 +60,7 @@ function main() {
       break;
 
     case 'help':
-      var helpString = "\tUsage 1: fog-controller [OPTION]\n" + 
-                       "\tUsage 2: fog-controller [COMMAND] <Argument>\n" + 
-                       "\tUsage 3: fog-controller [COMMAND] <key> <value>\n" + 
-                       "\n\n" + 
-
-        "\tCommand          Arguments                                 Meaning\n" + 
-        "\t=======          =========                                 =======\n" + 
-        "\tconfig           -list                                     Displays Configuration information in CLI (config table content)\n" +
-        "\t                 -add <key> <value>                        Set Configurations of fog-controller\n" +
-        "\t                                                           (You can set one of these configurations: PORT, SSL_KEY, INTERMEDIATE_CERT,  SSL_CERT)\n" +
-        "\t                 -remove <key>                             Deletes a Configuration with corresponding Key\n" +
-        "\n\thelp                                                       Shows this message\n" + 
-        "\n\tsatellite        -list                                     List down all satellites\n" +
-        "\t                 -add <name> <domain> <publicIP>           Creates a new satellite\n" +
-        "\t                 -remove <ID>                              Deletes a satellite with corresponding ID\n" +
-        "\n\tstart                                                      Starts fog-controller\n"+
-        "\n\tuser             -list                                     List down all users\n" +
-        "\t                 -add <email> <firstName> <lastName>       Creates a new user\n" +
-        "\t                 -remove <email>                           Deletes a user with corresponding email\n" +
-        "\t                 -generateToken <email>                    Resets User Access Token of corresponding email\n" +
-        "\n\tversion                                                    Displays Version and License\n"+
-        "\n\n" + 
-        "\tReport bugs to: bugs@iotracks.com\n" + 
-        "\tioFog home page: http://iofog.com\n" +
-        "\tFor users with Eclipse accounts, report bugs to: https://bugs.eclipse.org/bugs/enter_bug.cgi?product=iofog";
-        console.log(helpString);
+        displayHelp();
         break;
 
     case 'start':
@@ -137,11 +112,37 @@ function main() {
       break;
    
     default:
-      console.log("Starting Fog Controller ...");
-      Server.startServer(args[1]);
+      displayHelp();
       break;
-  //    console.log('\nInvalid command "' + args[0] + '"');
   }
+}
+const displayHelp = function (){
+  var helpString = "\tUsage 1: fog-controller [OPTION]\n" + 
+                   "\tUsage 2: fog-controller [COMMAND] <Argument>\n" + 
+                   "\tUsage 3: fog-controller [COMMAND] <key> <value>\n" + 
+                    "\n\n" + 
+
+    "\tCommand          Arguments                                 Meaning\n" + 
+    "\t=======          =========                                 =======\n" + 
+    "\tconfig           -list                                     Displays Configuration information in CLI (config table content)\n" +
+    "\t                 -add <key> <value>                        Set Configurations of fog-controller\n" +
+    "\t                                                           (You can set one of these configurations: PORT, SSL_KEY, INTERMEDIATE_CERT,  SSL_CERT)\n" +
+    "\t                 -remove <key>                             Deletes a Configuration with corresponding Key\n" +
+    "\n\thelp                                                       Shows this message\n" + 
+    "\n\tsatellite        -list                                     List down all satellites\n" +
+    "\t                 -add <name> <domain> <publicIP>           Creates a new satellite\n" +
+    "\t                 -remove <ID>                              Deletes a satellite with corresponding ID\n" +
+    "\n\tstart                                                      Starts fog-controller\n"+
+    "\n\tuser             -list                                     List down all users\n" +
+    "\t                 -add <email> <firstName> <lastName>       Creates a new user\n" +
+    "\t                 -remove <email>                           Deletes a user with corresponding email\n" +
+    "\t                 -generateToken <email>                    Resets User Access Token of corresponding email\n" +
+    "\n\tversion                                                    Displays Version and License\n"+
+    "\n\n" + 
+    "\tReport bugs to: bugs@iotracks.com\n" + 
+    "\tioFog home page: http://iofog.com\n" +
+    "\tFor users with Eclipse accounts, report bugs to: https://bugs.eclipse.org/bugs/enter_bug.cgi?product=iofog";
+    console.log(helpString);  
 }
 
 main();

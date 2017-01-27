@@ -1,6 +1,7 @@
 import Sequelize from 'sequelize';
 import appConfig from './../../config.json';
 import cls from 'continuation-local-storage';
+import logger from './winstonLogs';
 
 let namespace = cls.createNamespace('fog-controller-namespace');
 
@@ -14,7 +15,7 @@ Sequelize.cls = namespace;
 const sequelize = new Sequelize(null, null, null, {
   dialect: 'sqlite',
   storage: __dirname + '/../../../' + appConfig.dbPath, //TODO: needs to improve this line of code
-  logging: false,
+  logging: logger.debug,
   pool: {
     max: 5,
     min: 0,

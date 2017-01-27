@@ -10,6 +10,7 @@ const router = express.Router();
 import BaseApiController from './baseApiController';
 import ElementInstanceService from '../../services/elementInstanceService';
 import AppUtils from '../../utils/appUtils';
+import logger from '../../utils/winstonLogs';
 
 
 router.get('/api/v2/instance/containerconfig/id/:ID/token/:Token', BaseApiController.checkUserExistance, (req, res) => {
@@ -21,6 +22,7 @@ router.post('/api/v2/instance/containerconfig/id/:ID/token/:Token', BaseApiContr
 });
 
 const containerConfig = function(req, res){
+  logger.info("Endpoint hitted: "+ req.originalUrl);
 	var params = {},
 		instanceProps = {
 			instanceId: 'bodyParams.ID',
@@ -28,6 +30,7 @@ const containerConfig = function(req, res){
 		};
 
 	params.bodyParams = req.params;
+	logger.info("Parameters:" + JSON.stringify(params.bodyParams));
 
 	async.waterfall([
 		async.apply(ElementInstanceService.findByInstanceId, instanceProps, params),

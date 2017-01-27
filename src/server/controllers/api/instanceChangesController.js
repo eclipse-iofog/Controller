@@ -12,6 +12,7 @@ import BaseApiController from './baseApiController';
 import ChangeTrackingService from '../../services/changeTrackingService';
 import FogService from '../../services/fogService';
 import AppUtils from '../../utils/appUtils';
+import logger from '../../utils/winstonLogs';
 
 /**
  * @desc - if there is changeTracking data present, the data is checked against the timpstamp
@@ -29,6 +30,7 @@ router.post('/api/v2/instance/changes/id/:ID/token/:Token/timestamp/:TimeStamp',
 });
 
 const getChangeTrackingChanges = function(req, res) {
+  logger.info("Endpoint hitted: "+ req.originalUrl);
   var params = {},
       instanceProps = {
         instanceId: 'bodyParams.ID',
@@ -36,7 +38,8 @@ const getChangeTrackingChanges = function(req, res) {
     };
 
   params.bodyParams = req.params;
-
+  logger.info("Parameters:" + JSON.stringify(params.bodyParams));
+  
   async.waterfall([
     async.apply(ChangeTrackingService.getChangeTrackingByInstanceId, instanceProps, params),
     processChangeTrackingChanges,

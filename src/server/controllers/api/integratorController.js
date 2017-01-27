@@ -23,8 +23,10 @@ import StreamViewerService from '../../services/streamViewerService';
 import UserService from '../../services/userService';
 
 import AppUtils from '../../utils/appUtils';
+import logger from '../../utils/winstonLogs';
 
 router.post('/api/v2/authoring/integrator/instance/create', (req, res) => {
+  logger.info("Endpoint hitted: "+ req.originalUrl);
   var params = {},
 
     userProps = {
@@ -146,6 +148,7 @@ router.post('/api/v2/authoring/integrator/instance/create', (req, res) => {
     };
 
   params.bodyParams = req.body;
+  logger.info("Parameters:" + JSON.stringify(params.bodyParams));
 
   async.waterfall([
     async.apply(UserService.getUser, userProps, params),
@@ -237,6 +240,7 @@ const createConsole = function(params, callback){
 }
 
 router.post('/api/v2/authoring/integrator/instance/update', (req, res) => {
+  logger.info("Endpoint hitted: "+ req.originalUrl);
   var params = {},
       userProps = {
         userId: 'bodyParams.userId',
@@ -249,6 +253,7 @@ router.post('/api/v2/authoring/integrator/instance/update', (req, res) => {
       };
   
   params.bodyParams = req.body;
+  logger.info("Parameters:" + JSON.stringify(params.bodyParams));
 
   async.waterfall([
     async.apply(UserService.getUser, userProps, params),

@@ -6,11 +6,11 @@
 
 import fs from 'fs';
 import path from 'path';
+import logger from './winstonLogs';
 
 const isArray = (object) => {
   return Object.prototype.toString.call(object) === '[object Array]';
 }
-
 /**
  * @desc generates a random String of 64 size
  * @param - none
@@ -173,9 +173,11 @@ const sendResponse = function(response, err, successLabel, successValue, errorMe
 
   response.status(200);
   if (err) {
+    logger.error(errorMessage);
     res['status'] = 'failure';
     res['errormessage'] = errorMessage;
   } else {
+    logger.info("Success");
     res['status'] = 'ok';
     if (successLabel || successValue){
       res[successLabel] = successValue;
@@ -191,11 +193,11 @@ const sendMultipleResponse = function(response, err, successLabelArr, successVal
 
   response.status(200);
   if (err) {
+    logger.error(errorMessage);
     res['status'] = 'failure';
     res['errormessage'] = errorMessage;
   } else {
     res['status'] = 'ok';
-
     for (var i = 0; i < successValueArr.length; i++){
     res[successLabelArr[i]] = successValueArr[i];
     }

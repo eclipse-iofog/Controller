@@ -20,6 +20,7 @@ import StreamViewerService from '../../services/streamViewerService';
 import UserService from '../../services/userService';
 
 import AppUtils from '../../utils/appUtils';
+import logger from '../../utils/winstonLogs';
 
 /**
  * @desc - if this end-point is hit it sends a timeStamp in milliseconds back to the client
@@ -27,14 +28,15 @@ import AppUtils from '../../utils/appUtils';
  * @return - returns and appropriate response to the client
  */
 router.get('/api/v2/status', (req, res) => {
-	getFogControllerStatus(res);
+	getFogControllerStatus(req, res);
 });
 
 router.post('/api/v2/status', (req, res) => {
-	getFogControllerStatus(res);
+	getFogControllerStatus(req, res);
 });
 
-const getFogControllerStatus = function(res){
+const getFogControllerStatus = function(req, res){
+  logger.info("Endpoint hitted: "+ req.originalUrl);
 	var milliseconds = new Date().getTime();
 	res.status(200);
 	res.send({
@@ -44,6 +46,7 @@ const getFogControllerStatus = function(res){
 };
 
 router.get('/api/v2/authoring/integrator/instances/list/:userId', (req, res) => {
+  logger.info("Endpoint hitted: "+ req.originalUrl);
 	var params = {},
 
 		userProps = {
@@ -57,6 +60,7 @@ router.get('/api/v2/authoring/integrator/instances/list/:userId', (req, res) => 
 		};
 
 	params.bodyParams = req.params;
+	logger.info("Parameters:" + JSON.stringify(params.bodyParams));
 
 	async.waterfall([
 		async.apply(UserService.getUser, userProps, params),
@@ -68,6 +72,7 @@ router.get('/api/v2/authoring/integrator/instances/list/:userId', (req, res) => 
 });
 
 router.get('/api/v2/instance/create/type/:type', (req, res) => {
+  logger.info("Endpoint hitted: "+ req.originalUrl);
 	var params = {},
 		userProps = {
       		userId: 'bodyParams.userId',
@@ -90,6 +95,7 @@ router.get('/api/v2/instance/create/type/:type', (req, res) => {
 
 	params.bodyParams = req.params;
 	params.bodyParams.userId = req.query.userId;
+	logger.info("Parameters:" + JSON.stringify(params.bodyParams));
 
 	async.waterfall([
 		async.apply(UserService.getUser, userProps, params),
@@ -107,6 +113,7 @@ router.get('/api/v2/instance/create/type/:type', (req, res) => {
 });
 
 router.get('/api/v2/instance/getfabriclist', (req, res) => {
+  logger.info("Endpoint hitted: "+ req.originalUrl);
 	var params = {},
 		userProps = {
       		userId: 'bodyParams.userId',
@@ -118,6 +125,7 @@ router.get('/api/v2/instance/getfabriclist', (req, res) => {
 
 	params.bodyParams = req.params;
 	params.bodyParams.userId = req.query.userId;
+	logger.info("Parameters:" + JSON.stringify(params.bodyParams));
 
 	async.waterfall([
 		async.apply(UserService.getUser, userProps, params),
@@ -134,6 +142,7 @@ router.get('/api/v2/instance/getfabriclist', (req, res) => {
  * @return - returns and appropriate response to the client
  */
 router.get('/api/v2/getfabrictypes', (req, res) => {
+  logger.info("Endpoint hitted: "+ req.originalUrl);
 	var params = {},
 		userProps = {
       		userId: 'bodyParams.userId',
@@ -145,6 +154,8 @@ router.get('/api/v2/getfabrictypes', (req, res) => {
 
 	params.bodyParams = req.params;
 	params.bodyParams.userId = req.query.userId;
+	logger.info("Parameters:" + JSON.stringify(params.bodyParams));
+
 
 	async.waterfall([
 		async.apply(UserService.getUser, userProps, params),
@@ -161,6 +172,8 @@ router.get('/api/v2/getfabrictypes', (req, res) => {
  * @return - returns and appropriate response to the client
  */
 router.post('/api/v2/authoring/fabric/instance/delete', (req, res) => {
+  logger.info("Endpoint hitted: "+ req.originalUrl);
+
 	var params = {},
 		userProps = {
 			userId : 'bodyParams.userId',
@@ -171,7 +184,8 @@ router.post('/api/v2/authoring/fabric/instance/delete', (req, res) => {
 		};
 
 	params.bodyParams = req.body;	
-
+	logger.info("Parameters:" + JSON.stringify(params.bodyParams));
+	
 	async.waterfall([
 		async.apply(UserService.getUser, userProps, params),
 		async.apply(ChangeTrackingService.deleteChangeTracking,instanceProps),
@@ -188,6 +202,7 @@ router.post('/api/v2/authoring/fabric/instance/delete', (req, res) => {
 });
 
 router.post('/api/v2/authoring/integrator/instance/delete', (req, res) => {
+  logger.info("Endpoint hitted: "+ req.originalUrl);
 	var params = {},
 		userProps = {
       		userId: 'bodyParams.userId',
@@ -210,7 +225,8 @@ router.post('/api/v2/authoring/integrator/instance/delete', (req, res) => {
 		};
 
 	params.bodyParams = req.body;
-
+	logger.info("Parameters:" + JSON.stringify(params.bodyParams));
+	
 	async.waterfall([
 		async.apply(UserService.getUser, userProps, params),
 		async.apply(ElementInstanceService.updateElemInstanceByFogUuId, updateByFogUuIdProps),

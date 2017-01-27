@@ -24,10 +24,13 @@ import SatelliteService from '../../services/satelliteService';
 import UserService from '../../services/userService';
 
 import AppUtils from '../../utils/appUtils';
+import logger from '../../utils/winstonLogs';
 import _ from 'underscore';
 
 
 router.get('/api/v2/authoring/fabric/track/element/list/:trackId', (req, res) => {
+  logger.info("Endpoint hitted: "+ req.originalUrl);
+
   var params = {},
       userProps = {
           userId: 'bodyParams.userId',
@@ -105,6 +108,8 @@ router.get('/api/v2/authoring/fabric/track/element/list/:trackId', (req, res) =>
 
   params.bodyParams = req.params;
   params.bodyParams.userId = req.query.userId;
+
+  logger.info("Parameters:" + JSON.stringify(params.bodyParams));
 
   async.waterfall([
     async.apply(UserService.getUser, userProps, params),
@@ -243,7 +248,8 @@ const extractRouting = function(params, elementInstance) {
 }
 
 router.post('/api/v2/authoring/element/instance/create', (req, res) => {
-  var params = {},
+  logger.info("Endpoint hitted: "+ req.originalUrl);
+    var params = {},
       userProps = {
         userId: 'bodyParams.userId',
         setProperty: 'user'
@@ -335,6 +341,7 @@ router.post('/api/v2/authoring/element/instance/create', (req, res) => {
       };
 
   params.bodyParams = req.body;
+  logger.info("Parameters:" + JSON.stringify(params.bodyParams));
 
   async.waterfall([
     async.apply(UserService.getUser, userProps, params),
@@ -406,6 +413,7 @@ const getElementDetails = function(params, callback) {
  * @return - returns and appropriate response to the client
  */
 router.post('/api/v2/authoring/build/element/instance/create', (req, res) => {
+  logger.info("Endpoint hitted: "+ req.originalUrl);
   var params = {},
   
     userProps = {
@@ -429,6 +437,7 @@ router.post('/api/v2/authoring/build/element/instance/create', (req, res) => {
     };
   
   params.bodyParams = req.body;
+  logger.info("Parameters:" + JSON.stringify(params.bodyParams));
 
   async.waterfall([
     async.apply(UserService.getUser, userProps, params),
@@ -443,6 +452,8 @@ router.post('/api/v2/authoring/build/element/instance/create', (req, res) => {
 
 
 router.post('/api/v2/authoring/element/instance/update', (req, res) => {
+  logger.info("Endpoint hitted: "+ req.originalUrl);
+
   var params = {},
       userProps = {
         userId: 'bodyParams.userId',
@@ -458,6 +469,7 @@ router.post('/api/v2/authoring/element/instance/update', (req, res) => {
       };
 
   params.bodyParams = req.body;
+  logger.info("Parameters:" + JSON.stringify(params.bodyParams));
 
     async.waterfall([
       async.apply(UserService.getUser, userProps, params),
@@ -551,6 +563,7 @@ router.post([
   '/api/v2/authoring/element/instance/config/update',
   '/api/v2/authoring/element/instance/name/update',
 ], (req, res) => {
+logger.info("Endpoint hitted: "+req.originalUrl);
 
   var params = {},
     userProps = {
@@ -568,6 +581,7 @@ router.post([
       setProperty: 'trackingData'
     };
   params.bodyParams = req.body;
+  logger.info("Parameters:" + JSON.stringify(params.bodyParams));
 
   async.waterfall([
     async.apply(UserService.getUser, userProps, params),
@@ -619,6 +633,8 @@ const updateElementInstanceConfig = function(params, callback){
 }
 
 router.post('/api/v2/authoring/element/instance/delete', (req, res) => {
+  logger.info("Endpoint hitted: "+ req.originalUrl);
+
   var params = {},
 
     userProps = {
@@ -636,6 +652,7 @@ router.post('/api/v2/authoring/element/instance/delete', (req, res) => {
     };
 
   params.bodyParams = req.body;
+  logger.info("Parameters:" + JSON.stringify(params.bodyParams));
   params.milliseconds = new Date().getTime();
 
   async.waterfall([
@@ -657,6 +674,7 @@ router.post('/api/v2/authoring/element/instance/delete', (req, res) => {
 });
 
 router.post('/api/v2/authoring/element/instance/comsat/pipe/create', (req, res) => {
+  logger.info("Endpoint hitted: "+ req.originalUrl);
   var params = {},
 
     userProps = {
@@ -719,6 +737,7 @@ router.post('/api/v2/authoring/element/instance/comsat/pipe/create', (req, res) 
     };
 
   params.bodyParams = req.body;
+  logger.info("Parameters:" + JSON.stringify(params.bodyParams));
   // elementId is used as params.streamViewer.uuid in NetworkPairingService->createNetworkPairing method
   params.streamViewer = {};
   params.streamViewer.uuid = params.bodyParams.elementId;
@@ -766,6 +785,8 @@ const createSatellitePort = function(params, callback){
 }
 
 router.post('/api/v2/authoring/element/instance/comsat/pipe/delete', (req, res) => {
+  logger.info("Endpoint hitted: "+ req.originalUrl);
+
   var params = {},
 
     userProps = {
@@ -807,6 +828,7 @@ router.post('/api/v2/authoring/element/instance/comsat/pipe/delete', (req, res) 
     };
 
   params.bodyParams = req.body;
+  logger.info("Parameters:" + JSON.stringify(params.bodyParams));
 
   async.waterfall([
     async.apply(UserService.getUser, userProps, params),
@@ -827,6 +849,7 @@ router.post('/api/v2/authoring/element/instance/comsat/pipe/delete', (req, res) 
 });
 
 router.post('/api/v2/authoring/element/instance/port/create', (req, res) => {
+  logger.info("Endpoint hitted: "+ req.originalUrl);
   var params = {},
     waterfallMethods = [],
 
@@ -904,8 +927,8 @@ router.post('/api/v2/authoring/element/instance/port/create', (req, res) => {
       setProperty: 'networkElementInstance'
     };
 
-
   params.bodyParams = req.body;
+  logger.info("Parameters:" + JSON.stringify(params.bodyParams));
 
   if (params.bodyParams.publicAccess == 1) {
     waterfallMethods = [
@@ -972,6 +995,7 @@ const getOutputDetails = function(params, callback) {
 }
 
 router.post('/api/v2/authoring/element/instance/port/delete', (req, res) => {
+  logger.info("Endpoint hitted: "+ req.originalUrl);
   var params = {},
     waterfallMethods = [],
 
@@ -1039,6 +1063,7 @@ router.post('/api/v2/authoring/element/instance/port/delete', (req, res) => {
     };
 
   params.bodyParams = req.body;
+  logger.info("Parameters:" + JSON.stringify(params.bodyParams));
 
   if (params.bodyParams.networkPairingId > 0) {
     waterfallMethods = [

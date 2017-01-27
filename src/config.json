@@ -1,4 +1,5 @@
 {
   "port": "3000",
-  "dbPath": "db/fog_controller.db"
+  "dbPath": "db/fog_controller.db",
+  "loggingLevel": "debug"
 }

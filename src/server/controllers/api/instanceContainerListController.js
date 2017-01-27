@@ -13,6 +13,7 @@ import ElementService from '../../services/elementService';
 import ElementInstancePortService from '../../services/elementInstancePortService';
 import ElementInstanceService from '../../services/elementInstanceService';
 import AppUtils from '../../utils/appUtils';
+import logger from '../../utils/winstonLogs';
 
 router.get('/api/v2/instance/containerlist/id/:ID/token/:Token', BaseApiController.checkUserExistance, (req, res) => {
 	containerList(req, res);
@@ -22,13 +23,16 @@ router.post('/api/v2/instance/containerlist/id/:ID/token/:Token', BaseApiControl
   	containerList(req, res);
 });
 const containerList= function(req, res){
+  logger.info("Endpoint hitted: "+ req.originalUrl);
+
   var params= {},
       dataTrackProps = {
         instanceId: 'bodyParams.ID',
         setProperty: 'dataTracks'
       };
   params.bodyParams = req.params;
-
+  logger.info("Parameters:" + JSON.stringify(params.bodyParams));
+  
   async.waterfall([
     async.apply(DataTracksService.findContainerListByInstanceId, dataTrackProps, params),
     setViewerOrDebug

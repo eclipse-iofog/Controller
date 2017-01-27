@@ -15,14 +15,17 @@ import FogUserService from '../../services/fogUserService';
 import UserService from '../../services/userService';
 
 import AppUtils from '../../utils/appUtils';
+import logger from '../../utils/winstonLogs';
 
 router.get('/api/v2/authoring/fabric/provisionkey/instanceid/:instanceId', BaseApiController.checkfogExistance, (req, res) => {
+  logger.info("Endpoint hitted: "+ req.originalUrl);
   var params = {},
       createProvisionProps = {
           instanceId: 'bodyParams.instanceId',
           setProperty: 'newProvision'
       };
   params.bodyParams = req.params;
+  logger.info("Parameters:" + JSON.stringify(params.bodyParams));
 
   async.waterfall([
     async.apply(FogProvisionKeyService.createProvisonKeyByInstanceId, createProvisionProps, params)
@@ -47,6 +50,7 @@ router.post('/api/v2/instance/provision/key/:provisionKey/fabrictype/:fabricType
 });
 
 const fogProvisionKey = function(req, res) {
+  logger.info("Endpoint hitted: "+ req.originalUrl);
   var params = {},
       provisionProps = {
         provisionKey: 'bodyParams.provisionKey',
@@ -73,6 +77,7 @@ const fogProvisionKey = function(req, res) {
         setProperty: 'newAccessToken'
       };
   params.bodyParams = req.params;
+  logger.info("Parameters:" + JSON.stringify(params.bodyParams));
   
   async.waterfall([
     async.apply(FogProvisionKeyService.getFogByProvisionKey, provisionProps, params),
@@ -98,11 +103,13 @@ const fogProvisionKey = function(req, res) {
 };
 
 router.post('/api/v2/authoring/fabric/provisioningkey/list/delete', (req, res) => {
+  logger.info("Endpoint hitted: "+ req.originalUrl);
   var params = {},
       instanceProps = {
         instanceId: 'bodyParams.instanceId',
       };
   params.bodyParams = req.body;
+  logger.info("Parameters:" + JSON.stringify(params.bodyParams));
 
   async.waterfall([
     async.apply(FogProvisionKeyService.deleteProvisonKeyByInstanceId, instanceProps, params)

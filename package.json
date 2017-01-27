@@ -1,7 +1,7 @@
 {
-  "name": "fabric-controller",
-  "version": "0.1.0",
-  "description": "Fabric Controller project @ iotracks.com",
+  "name": "fog-controller",
+  "version": "0.1.6",
+  "description": "Fog Controller project @ iotracks.com",
   "main": "./src/main.js",
   "repository": {
     "type": "git",
@@ -12,25 +12,27 @@
     "node"
   ],
   "author": "Zishan Iqbal",
-  "license": "",
+  "license": "Copyright (C) 2017 iotracks, inc. \n Eclipse ioFog is provided under the Eclipse Public License (EPL) \n https://www.eclipse.org/legal/epl-v10.html",
   "bugs": {},
   "preferGlobal": true,
   "homepage": "iotracks.com",
   "scripts": {
     "test": "node ./dist/main.js",
-    "start": "babel-node ./src/main",
-    "build": "babel src --presets babel-preset-es2015 --out-dir dist && cp -R src/views dist && cp src/config.json dist",
+    "start": "babel-node ./dist/main",
+    "build": "babel src --presets babel-preset-es2015 --out-dir dist --copy-files",
     "prepublish": "npm run build"
   },
   "bin": {
-    "fabric-controller": "./dist/main.js"
+    "fog-controller": "./dist/main.js"
   },
   "dependencies": {
     "async": "^2.0.1",
     "body-parser": "1.14.2",
+    "continuation-local-storage": "^3.1.7",
     "cookie-parser": "^1.4.1",
     "ejs": "2.4.1",
     "es6-mixins": "^1.0.2",
+    "express": "^4.13.4",
     "express-session": "^1.13.0",
     "keymirror": "0.1.1",
     "moment": "^2.12.0",
@@ -43,8 +45,7 @@
     "sqlite3": "^3.1.4",
     "underscore": "^1.8.3",
     "uuid": "^2.0.2",
-    "continuation-local-storage": "^3.1.7",
-    "express": "^4.13.4"
+    "winston": "^2.3.1"
   },
   "devDependencies": {
     "autoprefixer": "^6.0.3",

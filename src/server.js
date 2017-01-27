@@ -27,6 +27,7 @@ import integratorController from './server/controllers/api/integratorController'
 import provisionKeyController from './server/controllers/api/provisionKeyController';
 import trackController from './server/controllers/api/trackController';
 import streamViewerController from './server/controllers/api/streamViewerController';
+import logger from './server/utils/winstonLogs';
 
 const startServer = function(port) {
   let app,
@@ -92,6 +93,8 @@ const initApp = function() {
 
   //generic error handler
   app.use((err, req, res, next) => {
+    logger.error('App crashed with error: ' + err);
+    logger.error('App crashed with stack: ' + err.stack);
     console.log('App crashed with error: ' + err);
     console.log('App crashed with stack: ' + err.stack);
     res.status(500).send('Hmm, what you have encountered is unexpected. If problem persists, contact app provider.');
@@ -100,6 +103,8 @@ const initApp = function() {
 }
 
 const startHttpServer = function(app, port) {
+  logger.warn("| SSL not configured, starting HTTP server.|");
+  
   console.log("------------------------------------------");
   console.log("| SSL not configured, starting HTTP server.|");
   console.log("------------------------------------------");
@@ -108,11 +113,13 @@ const startHttpServer = function(app, port) {
     if (err) {
       console.log(err);
     }
+    logger.info('==> 🌎 Listening on port %s. Open up http://localhost:%s/ in your browser.', port, port);
     console.info('==> 🌎 Listening on port %s. Open up http://localhost:%s/ in your browser.', port, port);
   });
 }
 
 const startHttpsServer = function(app, port, sslKey, sslCert, intermedKey) {
+  try{    
     let sslOptions = {
       key: fs.readFileSync(sslKey),
       cert: fs.readFileSync(sslCert),
@@ -125,8 +132,14 @@ const startHttpsServer = function(app, port, sslKey, sslCert, intermedKey) {
     if (err) {
       console.log(err);
     }
+      logger.info('==> 🌎 HTTPS server listening on port %s. Open up https://localhost:%s/ in your browser.', port, port);
       console.info('==> 🌎 HTTPS server listening on port %s. Open up https://localhost:%s/ in your browser.', port, port);
     });
+  }catch(e){
+    logger.error('Error: SSL-Key or SSL_CERT or INTERMEDIATE_CERT is missing. Provide valid SSL configurations.');
+    console.log('Error: SSL-Key or SSL_CERT or INTERMEDIATE_CERT is missing. Provide valid SSL configurations.');
+  }
+
 }
 
 export default {

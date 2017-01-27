@@ -10,6 +10,7 @@ import BaseApiController from './baseApiController';
 
 import FogService from '../../services/fogService';
 import AppUtils from '../../utils/appUtils';
+import logger from '../../utils/winstonLogs';
 import Constants from '../../constants.js';
 
 router.get('/api/v2/instance/config/id/:ID/token/:Token', BaseApiController.checkUserExistance, (req, res) => {
@@ -21,6 +22,7 @@ router.post('/api/v2/instance/config/id/:ID/token/:Token', BaseApiController.che
 });
 
 const instanceConfig = function(req, res){
+  logger.info("Endpoint hitted: "+ req.originalUrl);
   var params = {},
 
     fogProps = {
@@ -29,6 +31,7 @@ const instanceConfig = function(req, res){
     };
 
   params.bodyParams = req.params;
+  logger.info("Parameters:" + JSON.stringify(params.bodyParams));
 
   async.waterfall([
     async.apply(FogService.getFogInstance, fogProps, params),
@@ -57,12 +60,13 @@ const processConfigData = function(params, callback){
 }
 
 router.post('/api/v2/instance/config/changes/id/:ID/token/:Token', BaseApiController.checkUserExistance, (req, res) => {
-  
- var params = {};
+  logger.info("Endpoint hitted: "+ req.originalUrl);
+  var params = {};
 
   params.bodyParams = req.body;
   params.bodyParams.instanceId = req.params.ID;
-
+  logger.info("Parameters:" + JSON.stringify(params.bodyParams));
+  
   async.waterfall([
     async.apply(updateFogInstance, params)
 
