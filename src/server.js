@@ -136,8 +136,8 @@ const startHttpsServer = function(app, port, sslKey, sslCert, intermedKey) {
       console.info('==> 🌎 HTTPS server listening on port %s. Open up https://localhost:%s/ in your browser.', port, port);
     });
   }catch(e){
-    logger.error('Error: SSL-Key or SSL_CERT or INTERMEDIATE_CERT is missing. Provide valid SSL configurations.');
-    console.log('Error: SSL-Key or SSL_CERT or INTERMEDIATE_CERT is missing. Provide valid SSL configurations.');
+    logger.error('Error: SSL-Key or SSL_CERT or INTERMEDIATE_CERT is either missing or invalid. Provide valid SSL configurations.');
+    console.log('Error: SSL-Key or SSL_CERT or INTERMEDIATE_CERT is either missing or invalid. Provide valid SSL configurations.');
   }
 
 }

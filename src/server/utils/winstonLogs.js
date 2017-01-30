@@ -1,8 +1,10 @@
 import appConfig from './../../config.json';
 const winston = require('winston');
+const path = require('path');
 require('winston-daily-rotate-file');
 const fs = require('fs');
-const logDir = 'log';
+const logDir = path.join(__dirname, '../../../') + '/logs';
+
 const tsFormat = () => (new Date()).toLocaleTimeString();
 winston.emitErrs = true;
 
