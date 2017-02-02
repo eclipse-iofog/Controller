@@ -25,8 +25,8 @@ function main() {
 
   switch (args[0]) {
    case 'version':
-        console.log(' ' + packageJson.version);
-        console.log(' ' + packageJson.license);
+        console.log(packageJson.version);
+        console.log(packageJson.license);
         break;
 
     case 'config':
@@ -74,17 +74,17 @@ function main() {
     case 'status':
       var result = daemon.status();
       if (result == 0){
-        console.log('\n\tFog-Controller is not running.');
+        console.log('Fog-Controller is not running.');
       }else{
-        console.log('\n\tFog-Controller is running at pid:' + result);
+        console.log('Fog-Controller is running at pid:' + result);
         var memoryUsed = process.memoryUsage();
-        console.log("\tMemory consumed in RAM by Fog-Controller: " + Math.round((memoryUsed.rss/1024/1024) * 100) /100 + " MB");
+        console.log("Memory consumed in RAM by Fog-Controller: " + Math.round((memoryUsed.rss/1024/1024) * 100) /100 + " MB");
       }
       try{
         var databaseFile = fs.readFileSync(path.join(__dirname ,'../db/fog_controller.db'));
-        console.log('\tSize of database file: ' + Math.round((databaseFile.toString().length/1024)*100)/100 + ' KB');
+        console.log('Size of database file: ' + Math.round((databaseFile.toString().length/1024)*100)/100 + ' KB');
       }catch(e){
-        console.log('\tError: "fog_controller.db" not found in "db" folder.');
+        console.log('Error: "fog_controller.db" not found in "db" folder.');
       }
       break;
 

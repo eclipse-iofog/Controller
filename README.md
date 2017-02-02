@@ -1,4 +1,3 @@
-
 **Fog Controller Setup**
 
 1.&ensp;Install fog-controller
@@ -35,19 +34,44 @@
 
 &emsp;&emsp;&emsp;where &#39;:provisionKey&#39; is obtained by provisioning fog                                                        
 
-&emsp;&emsp;&emsp; and &#39;:fabricType&#39; is a FogType
+&emsp;&emsp;&emsp;and &#39;:fabricType&#39; is a FogType
 
 
+**Usage**
 
-**Fog Controller Configuration**
+1.&ensp;To view help menu
 
-1.&ensp;To start fog-controller
-          
-        fog-controller start
+        fog-controller help
 
-2.&ensp;To set configurations
+2.&ensp;To view current status
 
-        fog-controller set <key> <value>
+        fog-controller status   
+
+3.&ensp;To view version and license
+
+        fog-controller version
+ 
+   
+**System Requirements (Recommended)**
+- Processor: 64 bit Dual Core or better
+- RAM: 2 GB
+- Hard Disk: 10 GB
+
+**Platforms Supported**
+- Ubuntu
+- macOS Sierra
+- Windows
+
+
+**Configuration Management**
+
+1.&ensp;To list configurations
+
+        fog-controller config -list
+
+2.&ensp;To add a configuration
+
+        fog-controller config -add <key> <value>
 
 Note: Configuration keys can be one of following
 
@@ -58,25 +82,45 @@ Note: Configuration keys can be one of following
 
 To setup HTTPS for fog controller, do following steps:
 
-        fog-controller set PORT 443
-        fog-controller set SSL_KEY '/home/certificates/key.pem'
-        fog-controller set INTERMEDIATE_CERT '/home/certificates/gs_intermediate_ca.crt'
-        fog-controller set SSL_CERT '/home/certificates/certificate.pem'
+        fog-controller add PORT 443
+        fog-controller add SSL_KEY '/home/certificates/key.pem'
+        fog-controller add INTERMEDIATE_CERT '/home/certificates/gs_intermediate_ca.crt'
+        fog-controller add SSL_CERT '/home/certificates/certificate.pem'
 
-3.&ensp;To list the users
+3.&ensp;To remove a configuration
 
-        fog-controller user
-        OR
+        fog-controller config -remove <key>
+
+
+**User Managment**
+
+1.&ensp;To list users
+
         fog-controller user -list
 
-4.&ensp;To add a user
+2.&ensp;To add a user
 
         fog-controller user -add <email> <firstName> <lastName>
 
-5.&ensp;To remove a user
+3.&ensp;To remove a user
 
         fog-controller user -remove <email>
 
-6.&ensp;To reset password
+4.&ensp;To reset password
 
         fog-controller user -generateToken <email>
+
+
+**Satellite Managment**
+
+1.&ensp;To list satellites
+
+        fog-controller satellite -list
+
+2.&ensp;To add a satellite
+
+        fog-controller satellite -add <name> <domain> <publicIP>
+
+3.&ensp;To remove a satellite
+
+        fog-controller satellite -remove <ID>
