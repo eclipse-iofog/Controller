@@ -30,6 +30,7 @@
     "body-parser": "1.14.2",
     "continuation-local-storage": "^3.1.7",
     "cookie-parser": "^1.4.1",
+    "daemonize2": "^0.4.2",
     "ejs": "2.4.1",
     "es6-mixins": "^1.0.2",
     "express": "^4.13.4",
