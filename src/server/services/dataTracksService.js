@@ -6,7 +6,7 @@ const deleteTrackById = function(props, params, callback) {
 
   DataTracksManager
     .deleteByTrackId(trackId)
-    .then(AppUtils.onDelete.bind(null, params, 'Was unable to delete Track having Id' + params.bodyParams.trackId, callback));
+    .then(AppUtils.onDelete.bind(null, params, 'Was unable to delete Track having Id' + trackId, callback));
 }
 
 const findContainerListByInstanceId = function(props, params, callback) {

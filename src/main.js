@@ -2,6 +2,7 @@
 var packageJson = require('../package.json');
 
 import FogControllerConfigService from './server/services/fogControllerConfigService';
+import ComsatService from './server/services/comsatService';
 import FogControllerConfigManager from './server/managers/fogControllerConfigManager';
 import SatelliteManager from './server/managers/satelliteManager';
 import UserManager from './server/managers/userManager';
@@ -86,6 +87,8 @@ function main() {
       }catch(e){
         console.log('Error: "fog_controller.db" not found in "db" folder.');
       }
+      console.log('Verifying Fog-Controller connection to comsat(s):');
+      ComsatService.checkConnectionToComsat();
       break;
 
     case 'start':
