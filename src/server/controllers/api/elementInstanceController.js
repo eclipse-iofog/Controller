@@ -5,8 +5,6 @@
  */
 
 import async from 'async';
-import express from 'express';
-const router = express.Router();
 
 import https from 'https';
 import ChangeTrackingService from '../../services/changeTrackingService';
@@ -27,8 +25,10 @@ import AppUtils from '../../utils/appUtils';
 import logger from '../../utils/winstonLogs';
 import _ from 'underscore';
 
+/********************************************* EndPoints ******************************************************/
 
-router.get('/api/v2/authoring/fabric/track/element/list/:trackId', (req, res) => {
+/***** Track Element List By TrackId EndPoint (Get: /api/v2/authoring/fabric/track/element/list/:trackId) *****/
+ const trackElementListEndPoint = function(req, res) {
   logger.info("Endpoint hitted: "+ req.originalUrl);
 
   var params = {},
@@ -137,117 +137,10 @@ router.get('/api/v2/authoring/fabric/track/element/list/:trackId', (req, res) =>
   ], function(err, result) {           
     AppUtils.sendResponse(res, err, 'elements', result.response, result);
   })
-});
+};
 
-const extractElementsForTrack = function(params, callback) {
-  let response = [];
-  params.elementInstance.forEach((instance, index) => {
-
-    if (instance.element_key) {
-
-      let elementInstance = {
-        elementid: instance.uuid,
-        elementkey: instance.element_key,
-        config: instance.config,
-        name: instance.name,
-        elementtypename: instance.element.name,
-        category: instance.element.category,
-        image: instance.element.containerImage,
-        publisher: instance.element.publisher,
-        advertisedports: _.where(params.elementAdvertisedPort, {
-          element_id: instance.element_key
-        }),
-        openports: extractOpenPort(params, instance),
-        routing: extractRouting(params, instance)
-      };
-      response.push(elementInstance);
-    }
-  });
-  params.response = response;
-  callback(null, params);
-}
-
-const extractOpenPort = function(params, elementInstance) {
-  let openports = [];
-  let elementInstancePort = _.where(params.elementInstancePort, {
-    elementId: elementInstance.uuid
-  })
-  elementInstancePort.forEach((instancePort, index) => {
-    let networkpairing = _.findWhere(params.networkPairing, {
-      elemen1PortId: instancePort.id
-    })
-    let accessurl, networkpairingid;
-
-    if (networkpairing != null) {
-
-      let satellitePort = _.findWhere(params.satellitePort, {
-        id: networkpairing.satellitePortId
-      });
-
-      let satellite = _.findWhere(params.satellite, {
-        id: satellitePort.satellite_id
-      });
-
-      accessurl = 'https://' + satellite.domain + ':' + satellitePort.port2;
-      networkpairingid = networkpairing.id;
-    } else {
-      accessurl = '';
-      networkpairingid = 0;
-    }
-
-    let openPort = {
-      portid: instancePort.id,
-      internalport: instancePort.portinternal,
-      externalport: instancePort.portexternal,
-      accessurl: accessurl,
-      networkpairingid: networkpairingid
-    }
-
-    openports.push(openPort);
-  });
-
-  return openports;
-}
-
-const extractRouting = function(params, elementInstance) {
-
-  let inputs, outputs;
-
-  let inputIntraTrack = _.where(params.intraTracks, {
-    elementid: elementInstance.uuid
-  });
-  let inputExtraTrack = _.where(params.extraTracks, {
-    elementid: elementInstance.uuid
-  });
-  let inputExtraIntegrator = _.where(params.extraintegrator, {
-    elementid: elementInstance.uuid
-  });
-
-  let outputIntraTrack = _.where(params.outputIntraTracks, {
-    elementid: elementInstance.uuid
-  });
-  let outputExtraTrack = _.where(params.outPutExtraTracks, {
-    elementid: elementInstance.uuid
-  });
-  let outputExtraIntegrator = _.where(params.outPutExtraintegrator, {
-    elementid: elementInstance.uuid
-  });
-
-  return {
-    inputs: {
-      intratrack: inputIntraTrack,
-      extratrack: inputExtraTrack,
-      extraintegrator: inputExtraIntegrator,
-    },
-    outputs: {
-      intratrack: outputIntraTrack,
-      extratrack: outputExtraTrack,
-      extraintegrator: outputExtraIntegrator,
-    }
-  }
-}
-
-router.post('/api/v2/authoring/element/instance/create', (req, res) => {
+/******** Detailed Element Instance Create EndPoint (Post: /api/v2/authoring/element/instance/create) ************/
+ const detailedElementInstanceCreateEndPoint = function(req, res) {
   logger.info("Endpoint hitted: "+ req.originalUrl);
     var params = {},
       userProps = {
@@ -374,45 +267,10 @@ router.post('/api/v2/authoring/element/instance/create', (req, res) => {
     var errMsg = 'Internal error: ' + result  
     AppUtils.sendResponse(res, err, 'elementDetails', params.elementInstanceDetails, errMsg);
   });
-});
+};
 
-const convertToArr = function(params, callback) {
-  var elementInstance = [];
-
-  elementInstance.push(params.newElementInstance);
-  params.elementInstance = elementInstance;
-
-  callback(null, params);
-}
-
-const getElementDetails = function(params, callback) {
-
-  let elementInstanceDetails = {
-    elementId: params.elementInstance[0].uuid,
-    elementKey: params.elementInstance[0].element_key,
-    config: params.elementInstance[0].config,
-    name: params.elementInstance[0].name,
-    elementTypeName: params.element.name,
-    category: params.element.category,
-    image: params.element.containerImage,
-    publisher: params.element.publisher,
-    advertisedPorts: _.where(params.elementAdvertisedPort, {
-      element_id: params.elementInstance[0].element_key
-    }),
-    openPorts: extractOpenPort(params, params.elementInstance[0]),
-    routing: extractRouting(params, params.elementInstance[0])
-  };
-
-  params.elementInstanceDetails = elementInstanceDetails;
-  callback(null, params);
-}
-
-
-/**
- * @desc - this end-point creates a new elementInstance
- * @return - returns and appropriate response to the client
- */
-router.post('/api/v2/authoring/build/element/instance/create', (req, res) => {
+/********** Element Instance Create EndPoint (Post: /api/v2/authoring/build/element/instance/create) **********/
+const elementInstanceCreateEndPoint = function(req, res) {
   logger.info("Endpoint hitted: "+ req.originalUrl);
   var params = {},
   
@@ -448,10 +306,10 @@ router.post('/api/v2/authoring/build/element/instance/create', (req, res) => {
     var errMsg = 'Internal error: There was a problem creating the ioElement instance.' + result;
     AppUtils.sendResponse(res, err, 'elementInstance', result.elementInstance, errMsg);
   });
-});
+};
 
-
-router.post('/api/v2/authoring/element/instance/update', (req, res) => {
+/********** Element Instance Update EndPoint (Post: /api/v2/authoring/element/instance/update) **********/
+const elementInstanceUpdateEndPoint = function(req, res) {
   logger.info("Endpoint hitted: "+ req.originalUrl);
 
   var params = {},
@@ -482,87 +340,11 @@ router.post('/api/v2/authoring/element/instance/update', (req, res) => {
     ], function(err, result) {
     AppUtils.sendResponse(res, err, 'instanceId', params.bodyParams.instanceId, result);
     });
-});
+};
 
-const updateElementInstance = function (params, callback) {
-  var data;
-
-  if (params.elementInstance.iofog_uuid == params.bodyParams.fabricInstanceId) {
-    callback(null, params);
-  } 
-  else {
-    data = {
-      iofog_uuid: params.bodyParams.fabricInstanceId
-    };
-
-    var elementProps = {
-      elementId:'bodyParams.instanceId',
-      updatedData: data
-    };
-    ElementInstanceService.updateElemInstance(elementProps, params, callback);
-  }
-}
-
-const updateChangeTracking = function(params, callback) {
-  var lastUpdated = new Date().getTime(),
-    updateChangeTracking = {},
-    updateChange = {},
-
-    updateElementObject = {
-      logSize: params.bodyParams.logSize,
-      name: params.bodyParams.name,
-      config: params.bodyParams.config,
-      configLastUpdated: lastUpdated,
-      rootHostAccess: params.bodyParams.rootAccess
-    };
-
-  if (params.elementInstance.config != params.bodyParams.config) {
-    updateElementObject.configLastUpdated = new Date().getTime();
-    updateChangeTracking.containerConfig = new Date().getTime();
-  }
-  if (params.elementInstance.iofog_uuid != params.bodyParams.fabricInstanceId) {
-
-    updateChangeTracking.containerList = new Date().getTime();
-    updateChangeTracking.containerConfig = new Date().getTime();
-
-    updateChange.containerConfig = new Date().getTime();
-    updateChange.containerList = new Date().getTime();
-
-  } else if (params.elementInstance.RootHostAccess != params.bodyParams.rootAccess) {
-    updateChange.containerList = new Date().getTime();
-  }
-  params.updateElementObject = updateElementObject;
-  params.updateChange = updateChange;
-
-  var changeTrackingProps = {
-    fogInstanceId: 'elementInstance.iofog_uuid',
-    changeObject: updateChangeTracking
-  };
-  ChangeTrackingService.updateChangeTracking(changeTrackingProps, params, callback);
-}
-
-const updateChange = function(params, callback) {
-  var changeTrackingProps = {
-    fogInstanceId: 'bodyParams.fabricInstanceId',
-    changeObject: params.updateChange
-  };
-  ChangeTrackingService.updateChangeTracking(changeTrackingProps, params, callback);
-}
-
-
-const updateElement = function(params, callback) {
-  var elementInstanceProps = {
-    elementId: 'bodyParams.fabricInstanceId',
-    updatedData: params.updateElementObject
-  };
-  ElementInstanceService.updateElemInstance(elementInstanceProps, params, callback);
-}
-
-
-router.post([
-  '/api/v2/authoring/element/instance/config/update',
-  '/api/v2/authoring/element/instance/name/update',
-], (req, res) => {
+/*** Element Instance Name/Config Update EndPoint (Post: ['/api/v2/authoring/element/instance/config/update',
+                                                          '/api/v2/authoring/element/instance/name/update',]) ***/
+const elementInstanceConfigUpdateEndPoint = function(req, res) {
 logger.info("Endpoint hitted: "+req.originalUrl);
 
   var params = {},
@@ -595,44 +377,10 @@ logger.info("Endpoint hitted: "+req.originalUrl);
 
     AppUtils.sendResponse(res, err, 'element', params.bodyParams.elementId, errMsg);
   });
-});
+};
 
-const updateConfigTracking = function(params, callback){
-  if (params.isConfigChanged) {
-    var changeTrackingProps = {
-      fogInstanceId: 'elementInstance.iofog_uuid',
-      changeObject: {
-        containerConfig: new Date().getTime()
-      }
-    };
-    ChangeTrackingService.updateChangeTracking(changeTrackingProps, params, callback);
-  }else{
-    callback(null, params);
-  }
-}
-
-const updateElementInstanceConfig = function(params, callback){
-  var updatedData = {};
-
-  if (params.bodyParams.config) {
-    updatedData.config = params.bodyParams.config;
-    updatedData.configLastUpdated = new Date().getTime();
-    params.isConfigChanged = true;
-  }
-
-  if (params.bodyParams.name) {
-  updatedData.name = params.bodyParams.name
-  }
-
-  var updateElementInstanceProps ={
-    elementId: 'bodyParams.elementId',
-    updatedData: updatedData
-  };
-
-  ElementInstanceService.updateElemInstance(updateElementInstanceProps, params, callback);
-}
-
-router.post('/api/v2/authoring/element/instance/delete', (req, res) => {
+/********* Element Instance Delete EndPoint (Post: '/api/v2/authoring/element/instance/delete') *********/
+const elementInstanceDeleteEndPoint = function(req, res) {
   logger.info("Endpoint hitted: "+ req.originalUrl);
 
   var params = {},
@@ -671,9 +419,10 @@ router.post('/api/v2/authoring/element/instance/delete', (req, res) => {
 
     AppUtils.sendResponse(res, err, 'element', params.bodyParams.elementId, errMsg);
   });
-});
+};
 
-router.post('/api/v2/authoring/element/instance/comsat/pipe/create', (req, res) => {
+/** Element Instance Comsat Pipe Create EndPoint (Post: '/api/v2/authoring/element/instance/comsat/pipe/create') **/
+const elementInstanceComsatPipeCreateEndPoint = function(req, res) {
   logger.info("Endpoint hitted: "+ req.originalUrl);
   var params = {},
 
@@ -763,28 +512,10 @@ router.post('/api/v2/authoring/element/instance/comsat/pipe/create', (req, res) 
     }
     AppUtils.sendResponse(res, err, 'connection', outputObj, errMsg);
   });
-});
+};
 
-const createSatellitePort = function(params, callback){
-  var satellitePortProps = {
-    satellitePortObj: {
-      port1: params.comsatPort.port1,
-      port2: params.comsatPort.port2,
-      maxConnectionsPort1: 60,
-      maxConnectionsPort2: 0,
-      passcodePort1: params.comsatPort.passcode1,
-      passcodePort2: params.comsatPort.passcode2,
-      heartBeatAbsenceThresholdPort1: 60000,
-      heartBeatAbsenceThresholdPort2: 0,
-      satellite_id: params.satellite.id,
-      mappingId: params.comsatPort.id
-    },
-    setProperty: 'satellitePort'
-  };
-    SatellitePortService.createSatellitePort(satellitePortProps, params, callback);
-}
-
-router.post('/api/v2/authoring/element/instance/comsat/pipe/delete', (req, res) => {
+/** Element Instance Comsat Pipe Delete EndPoint (Post: '/api/v2/authoring/element/instance/comsat/pipe/delete') **/
+const elementInstanceComsatPipeDeleteEndPoint = function(req, res) {
   logger.info("Endpoint hitted: "+ req.originalUrl);
 
   var params = {},
@@ -846,9 +577,10 @@ router.post('/api/v2/authoring/element/instance/comsat/pipe/delete', (req, res) 
 
     AppUtils.sendResponse(res, err, 'networkPairingId', params.bodyParams.networkPairingId, errMsg);
   });
-});
+};
 
-router.post('/api/v2/authoring/element/instance/port/create', (req, res) => {
+/**** Element Instance Port Create EndPoint (Post: '/api/v2/authoring/element/instance/port/create') ****/
+const elementInstancePortCreateEndPoint = function(req, res) {
   logger.info("Endpoint hitted: "+ req.originalUrl);
   var params = {},
     waterfallMethods = [],
@@ -964,37 +696,10 @@ router.post('/api/v2/authoring/element/instance/port/create', (req, res) => {
 
     AppUtils.sendResponse(res, err, 'port', params.output, errMsg);
   });
-});
+};
 
-const updateElemInstance = function(params, callback) {
-  var elementInstanceUpdateProps = {
-      elementId: 'bodyParams.elementId',
-      updatedData: {
-        updatedBy: params.user.id,
-        updatedAt: new Date().getTime()
-      }
-    };
-  ElementInstanceService.updateElemInstance(elementInstanceUpdateProps, params, callback);
-}
-
-const getOutputDetails = function(params, callback) {
-  params.output = {
-    portId: params.elementInstancePort.id,
-    internalPort: params.bodyParams.internalPort,
-    externalPort: params.bodyParams.externalPort,
-    networkPairingId: ''
-  };
-
-  if (params.bodyParams.publicAccess == 1) {
-    params.output.accessUrl = "https://" + params.satellite.domain + ":" + params.satellitePort.port2;
-    params.networkPairingId = params.networkPairingObj.id;
-  }
-
-  callback(null, params);
-
-}
-
-router.post('/api/v2/authoring/element/instance/port/delete', (req, res) => {
+/**** Element Instance Port Delete EndPoint (Post: '/api/v2/authoring/element/instance/port/delete') ****/
+const elementInstancePortDeleteEndPoint = function(req, res) {
   logger.info("Endpoint hitted: "+ req.originalUrl);
   var params = {},
     waterfallMethods = [],
@@ -1100,6 +805,312 @@ router.post('/api/v2/authoring/element/instance/port/delete', (req, res) => {
 
     AppUtils.sendResponse(res, err, 'portId', params.bodyParams.portId, errMsg);
   });
-});
+};
 
-export default router;
+/********************************* Extra Functions *****************************************/
+const extractElementsForTrack = function(params, callback) {
+  let response = [];
+  params.elementInstance.forEach((instance, index) => {
+
+    if (instance.element_key) {
+
+      let elementInstance = {
+        elementid: instance.uuid,
+        elementkey: instance.element_key,
+        config: instance.config,
+        name: instance.name,
+        elementtypename: instance.element.name,
+        category: instance.element.category,
+        image: instance.element.containerImage,
+        publisher: instance.element.publisher,
+        advertisedports: _.where(params.elementAdvertisedPort, {
+          element_id: instance.element_key
+        }),
+        openports: extractOpenPort(params, instance),
+        routing: extractRouting(params, instance)
+      };
+      response.push(elementInstance);
+    }
+  });
+  params.response = response;
+  callback(null, params);
+}
+
+const extractOpenPort = function(params, elementInstance) {
+  let openports = [];
+  let elementInstancePort = _.where(params.elementInstancePort, {
+    elementId: elementInstance.uuid
+  })
+  elementInstancePort.forEach((instancePort, index) => {
+    let networkpairing = _.findWhere(params.networkPairing, {
+      elemen1PortId: instancePort.id
+    })
+    let accessurl, networkpairingid;
+
+    if (networkpairing != null) {
+
+      let satellitePort = _.findWhere(params.satellitePort, {
+        id: networkpairing.satellitePortId
+      });
+
+      let satellite = _.findWhere(params.satellite, {
+        id: satellitePort.satellite_id
+      });
+
+      accessurl = 'https://' + satellite.domain + ':' + satellitePort.port2;
+      networkpairingid = networkpairing.id;
+    } else {
+      accessurl = '';
+      networkpairingid = 0;
+    }
+
+    let openPort = {
+      portid: instancePort.id,
+      internalport: instancePort.portinternal,
+      externalport: instancePort.portexternal,
+      accessurl: accessurl,
+      networkpairingid: networkpairingid
+    }
+
+    openports.push(openPort);
+  });
+
+  return openports;
+}
+
+const extractRouting = function(params, elementInstance) {
+
+  let inputs, outputs;
+
+  let inputIntraTrack = _.where(params.intraTracks, {
+    elementid: elementInstance.uuid
+  });
+  let inputExtraTrack = _.where(params.extraTracks, {
+    elementid: elementInstance.uuid
+  });
+  let inputExtraIntegrator = _.where(params.extraintegrator, {
+    elementid: elementInstance.uuid
+  });
+
+  let outputIntraTrack = _.where(params.outputIntraTracks, {
+    elementid: elementInstance.uuid
+  });
+  let outputExtraTrack = _.where(params.outPutExtraTracks, {
+    elementid: elementInstance.uuid
+  });
+  let outputExtraIntegrator = _.where(params.outPutExtraintegrator, {
+    elementid: elementInstance.uuid
+  });
+
+  return {
+    inputs: {
+      intratrack: inputIntraTrack,
+      extratrack: inputExtraTrack,
+      extraintegrator: inputExtraIntegrator,
+    },
+    outputs: {
+      intratrack: outputIntraTrack,
+      extratrack: outputExtraTrack,
+      extraintegrator: outputExtraIntegrator,
+    }
+  }
+}
+
+const convertToArr = function(params, callback) {
+  var elementInstance = [];
+
+  elementInstance.push(params.newElementInstance);
+  params.elementInstance = elementInstance;
+
+  callback(null, params);
+}
+
+const getElementDetails = function(params, callback) {
+
+  let elementInstanceDetails = {
+    elementId: params.elementInstance[0].uuid,
+    elementKey: params.elementInstance[0].element_key,
+    config: params.elementInstance[0].config,
+    name: params.elementInstance[0].name,
+    elementTypeName: params.element.name,
+    category: params.element.category,
+    image: params.element.containerImage,
+    publisher: params.element.publisher,
+    advertisedPorts: _.where(params.elementAdvertisedPort, {
+      element_id: params.elementInstance[0].element_key
+    }),
+    openPorts: extractOpenPort(params, params.elementInstance[0]),
+    routing: extractRouting(params, params.elementInstance[0])
+  };
+
+  params.elementInstanceDetails = elementInstanceDetails;
+  callback(null, params);
+}
+
+const updateElementInstance = function (params, callback) {
+  var data;
+
+  if (params.elementInstance.iofog_uuid == params.bodyParams.fabricInstanceId) {
+    callback(null, params);
+  } 
+  else {
+    data = {
+      iofog_uuid: params.bodyParams.fabricInstanceId
+    };
+
+    var elementProps = {
+      elementId:'bodyParams.instanceId',
+      updatedData: data
+    };
+    ElementInstanceService.updateElemInstance(elementProps, params, callback);
+  }
+}
+
+const updateChangeTracking = function(params, callback) {
+  var lastUpdated = new Date().getTime(),
+    updateChangeTracking = {},
+    updateChange = {},
+
+    updateElementObject = {
+      logSize: params.bodyParams.logSize,
+      name: params.bodyParams.name,
+      config: params.bodyParams.config,
+      configLastUpdated: lastUpdated,
+      rootHostAccess: params.bodyParams.rootAccess
+    };
+
+  if (params.elementInstance.config != params.bodyParams.config) {
+    updateElementObject.configLastUpdated = new Date().getTime();
+    updateChangeTracking.containerConfig = new Date().getTime();
+  }
+  if (params.elementInstance.iofog_uuid != params.bodyParams.fabricInstanceId) {
+
+    updateChangeTracking.containerList = new Date().getTime();
+    updateChangeTracking.containerConfig = new Date().getTime();
+
+    updateChange.containerConfig = new Date().getTime();
+    updateChange.containerList = new Date().getTime();
+
+  } else if (params.elementInstance.RootHostAccess != params.bodyParams.rootAccess) {
+    updateChange.containerList = new Date().getTime();
+  }
+  params.updateElementObject = updateElementObject;
+  params.updateChange = updateChange;
+
+  var changeTrackingProps = {
+    fogInstanceId: 'elementInstance.iofog_uuid',
+    changeObject: updateChangeTracking
+  };
+  ChangeTrackingService.updateChangeTracking(changeTrackingProps, params, callback);
+}
+
+const updateChange = function(params, callback) {
+  var changeTrackingProps = {
+    fogInstanceId: 'bodyParams.fabricInstanceId',
+    changeObject: params.updateChange
+  };
+  ChangeTrackingService.updateChangeTracking(changeTrackingProps, params, callback);
+}
+
+
+const updateElement = function(params, callback) {
+  var elementInstanceProps = {
+    elementId: 'bodyParams.fabricInstanceId',
+    updatedData: params.updateElementObject
+  };
+  ElementInstanceService.updateElemInstance(elementInstanceProps, params, callback);
+}
+
+const updateConfigTracking = function(params, callback){
+  if (params.isConfigChanged) {
+    var changeTrackingProps = {
+      fogInstanceId: 'elementInstance.iofog_uuid',
+      changeObject: {
+        containerConfig: new Date().getTime()
+      }
+    };
+    ChangeTrackingService.updateChangeTracking(changeTrackingProps, params, callback);
+  }else{
+    callback(null, params);
+  }
+}
+
+const updateElementInstanceConfig = function(params, callback){
+  var updatedData = {};
+
+  if (params.bodyParams.config) {
+    updatedData.config = params.bodyParams.config;
+    updatedData.configLastUpdated = new Date().getTime();
+    params.isConfigChanged = true;
+  }
+
+  if (params.bodyParams.name) {
+  updatedData.name = params.bodyParams.name
+  }
+
+  var updateElementInstanceProps ={
+    elementId: 'bodyParams.elementId',
+    updatedData: updatedData
+  };
+
+  ElementInstanceService.updateElemInstance(updateElementInstanceProps, params, callback);
+}
+
+const createSatellitePort = function(params, callback){
+  var satellitePortProps = {
+    satellitePortObj: {
+      port1: params.comsatPort.port1,
+      port2: params.comsatPort.port2,
+      maxConnectionsPort1: 60,
+      maxConnectionsPort2: 0,
+      passcodePort1: params.comsatPort.passcode1,
+      passcodePort2: params.comsatPort.passcode2,
+      heartBeatAbsenceThresholdPort1: 60000,
+      heartBeatAbsenceThresholdPort2: 0,
+      satellite_id: params.satellite.id,
+      mappingId: params.comsatPort.id
+    },
+    setProperty: 'satellitePort'
+  };
+    SatellitePortService.createSatellitePort(satellitePortProps, params, callback);
+}
+
+const updateElemInstance = function(params, callback) {
+  var elementInstanceUpdateProps = {
+      elementId: 'bodyParams.elementId',
+      updatedData: {
+        updatedBy: params.user.id,
+        updatedAt: new Date().getTime()
+      }
+    };
+  ElementInstanceService.updateElemInstance(elementInstanceUpdateProps, params, callback);
+}
+
+const getOutputDetails = function(params, callback) {
+  params.output = {
+    portId: params.elementInstancePort.id,
+    internalPort: params.bodyParams.internalPort,
+    externalPort: params.bodyParams.externalPort,
+    networkPairingId: ''
+  };
+
+  if (params.bodyParams.publicAccess == 1) {
+    params.output.accessUrl = "https://" + params.satellite.domain + ":" + params.satellitePort.port2;
+    params.networkPairingId = params.networkPairingObj.id;
+  }
+
+  callback(null, params);
+}
+
+export default {
+  trackElementListEndPoint: trackElementListEndPoint,
+  detailedElementInstanceCreateEndPoint: detailedElementInstanceCreateEndPoint,
+  elementInstanceCreateEndPoint: elementInstanceCreateEndPoint,
+  elementInstanceUpdateEndPoint: elementInstanceUpdateEndPoint,
+  elementInstanceConfigUpdateEndPoint: elementInstanceConfigUpdateEndPoint,
+  elementInstanceDeleteEndPoint: elementInstanceDeleteEndPoint,
+  elementInstanceComsatPipeCreateEndPoint: elementInstanceComsatPipeCreateEndPoint,
+  elementInstanceComsatPipeDeleteEndPoint: elementInstanceComsatPipeDeleteEndPoint,
+  elementInstancePortCreateEndPoint: elementInstancePortCreateEndPoint,
+  elementInstancePortDeleteEndPoint: elementInstancePortDeleteEndPoint
+};

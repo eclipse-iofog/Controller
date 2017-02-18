@@ -4,8 +4,6 @@
  * @description This file includes the implementation of the instance-containerList end-point
  */
 import async from 'async';
-import express from 'express';
-const router = express.Router();
 
 import BaseApiController from './baseApiController';
 import DataTracksService from '../../services/dataTracksService';
@@ -15,14 +13,9 @@ import ElementInstanceService from '../../services/elementInstanceService';
 import AppUtils from '../../utils/appUtils';
 import logger from '../../utils/winstonLogs';
 
-router.get('/api/v2/instance/containerlist/id/:ID/token/:Token', BaseApiController.checkUserExistance, (req, res) => {
-	containerList(req, res);
-});
 
-router.post('/api/v2/instance/containerlist/id/:ID/token/:Token', BaseApiController.checkUserExistance, (req, res) => {
-  	containerList(req, res);
-});
-const containerList= function(req, res){
+/********************************************* EndPoints ******************************************************/
+const containerListEndPoint = function(req, res){
   logger.info("Endpoint hitted: "+ req.originalUrl);
 
   var params= {},
@@ -34,6 +27,7 @@ const containerList= function(req, res){
   logger.info("Parameters:" + JSON.stringify(params.bodyParams));
   
   async.waterfall([
+    async.apply(BaseApiController.checkUserExistance, req, res),
     async.apply(DataTracksService.findContainerListByInstanceId, dataTrackProps, params),
     setViewerOrDebug
 
@@ -41,6 +35,7 @@ const containerList= function(req, res){
       AppUtils.sendResponse(res, err, 'containerlist', params.containerList, result);
   })
 }
+/************************************* Extra Functions **************************************************/
 const setViewerOrDebug = function(params, callback){
   var dataTracks = params.dataTracks;
   params.containerList = [];
@@ -120,4 +115,6 @@ const processContainerListOutput = function(params, callback) {
   callback(null, params);
 }
 
-export default router;
+export default {
+  containerListEndPoint: containerListEndPoint
+};

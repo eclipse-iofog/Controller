@@ -4,8 +4,6 @@
  * @description This file includes the implementation of the Integrator instance
  */
 import async from 'async';
-import express from 'express';
-const router = express.Router();
 
 import ChangeTrackingService from '../../services/changeTrackingService';
 import ComsatService from '../../services/comsatService';
@@ -25,7 +23,10 @@ import UserService from '../../services/userService';
 import AppUtils from '../../utils/appUtils';
 import logger from '../../utils/winstonLogs';
 
-router.post('/api/v2/authoring/integrator/instance/create', (req, res) => {
+/********************************************* EndPoints ******************************************************/
+
+/*************** Integrator Instance Create EndPoint (Post: /api/v2/authoring/integrator/instance/create) ************/
+const integratorInstanceCreateEndPoint = function(req, res){
   logger.info("Endpoint hitted: "+ req.originalUrl);
   var params = {},
 
@@ -181,8 +182,37 @@ router.post('/api/v2/authoring/integrator/instance/create', (req, res) => {
 
     AppUtils.sendResponse(res, err, 'instance', result.fogInstance, result);
   });
-});
+};
 
+/*********** Integrator Instance Update EndPoint (Post: /api/v2/authoring/integrator/instance/update) *********/
+const integratorInstanceUpdateEndPoint = function(req, res){
+  logger.info("Endpoint hitted: "+ req.originalUrl);
+  var params = {},
+      userProps = {
+        userId: 'bodyParams.userId',
+        setProperty: 'user'
+      },
+
+      fogInstanceProps = {
+        fogId: 'bodyParams.instanceId',
+        setProperty: 'fogInstance'
+      };
+  
+  params.bodyParams = req.body;
+  logger.info("Parameters:" + JSON.stringify(params.bodyParams));
+
+  async.waterfall([
+    async.apply(UserService.getUser, userProps, params),
+    async.apply(FogService.getFogInstance, fogInstanceProps),
+    updateFogInstance
+
+  ], function(err, result) {
+    var errMsg = 'Internal error: There was a problem updating Fog instance.' + result
+    AppUtils.sendResponse(res, err, 'Updated Fog', params.bodyParams.instanceId, errMsg);
+  });
+};
+
+/************************************* Extra Functions **************************************************/
 const createSatellitePort = function(params, callback){
   var satellitePortProps = {
     satellitePortObj: {
@@ -239,33 +269,6 @@ const createConsole = function(params, callback){
   ConsoleService.createConsole(createConsoleProps, params, callback)
 }
 
-router.post('/api/v2/authoring/integrator/instance/update', (req, res) => {
-  logger.info("Endpoint hitted: "+ req.originalUrl);
-  var params = {},
-      userProps = {
-        userId: 'bodyParams.userId',
-        setProperty: 'user'
-      },
-
-      fogInstanceProps = {
-        fogId: 'bodyParams.instanceId',
-        setProperty: 'fogInstance'
-      };
-  
-  params.bodyParams = req.body;
-  logger.info("Parameters:" + JSON.stringify(params.bodyParams));
-
-  async.waterfall([
-    async.apply(UserService.getUser, userProps, params),
-    async.apply(FogService.getFogInstance, fogInstanceProps),
-    updateFogInstance
-
-  ], function(err, result) {
-    var errMsg = 'Internal error: There was a problem updating Fog instance.' + result
-    AppUtils.sendResponse(res, err, 'Updated Fog', params.bodyParams.instanceId, errMsg);
-  });
-});
-
 const updateFogInstance = function(params, callback){
   var fogInstanceProps = {
         instanceId: 'bodyParams.instanceId',
@@ -292,4 +295,7 @@ const getFogInstanceDetails = function(params, callback) {
   });
 }
 
-export default router;
+export default {
+  integratorInstanceCreateEndPoint: integratorInstanceCreateEndPoint,
+  integratorInstanceUpdateEndPoint: integratorInstanceUpdateEndPoint
+};

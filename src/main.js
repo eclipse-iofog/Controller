@@ -9,20 +9,24 @@ import UserManager from './server/managers/userManager';
 
 import Server from './server';
 import ConfigUtil from './server/utils/configUtil';
-import constants from './server/constants.js';
+import logger from './server/utils/winstonLogs';
 import fs from 'fs';
 const path = require('path');
 
 function main() {
   let key,
     value,
-    args = process.argv.slice(2);
+    args = process.argv.slice(2),
+    argsString= args.toString(),
+    commandInserted = argsString.replace(/,/g ,' ');
     
     var daemon = require("daemonize2").setup({
       main: "daemonServer.js",
       name: "fog-controller",
       pidfile: "fog-controller.pid"
     });
+  
+  logger.info('Command inserted: fog-controller '+ commandInserted);
 
   switch (args[0]) {
    case 'version':
@@ -42,7 +46,6 @@ function main() {
             try {
               if(key && value){
               ConfigUtil.setConfigParam(key, value);
-              console.log('Property "' + key + '" has been updated successfully.');
               }else{
                 console.log('\nPlease provide values in following order:\n fog-controller config -add <key> <value>');
               }
@@ -84,11 +87,11 @@ function main() {
       try{
         var databaseFile = fs.readFileSync(path.join(__dirname ,'../db/fog_controller.db'));
         console.log('Size of database file: ' + Math.round((databaseFile.toString().length/1024)*100)/100 + ' KB');
+        console.log('Verifying Fog-Controller connection to comsat(s):');
+        ComsatService.checkConnectionToComsat();
       }catch(e){
         console.log('Error: "fog_controller.db" not found in "db" folder.');
       }
-      console.log('Verifying Fog-Controller connection to comsat(s):');
-      ComsatService.checkConnectionToComsat();
       break;
 
     case 'start':
@@ -165,6 +168,7 @@ const displayHelp = function (){
     "\t                 -remove <ID>                              Deletes a satellite with corresponding ID\n" +
     "\n\tstart                                                      Starts fog-controller\n"+
     "\n\tstatus                                                     Shows status of fog-controller\n" +     
+    "\n\tstop                                                       Stops fog-controller\n" +     
     "\n\tuser             -list                                     List down all users\n" +
     "\t                 -add <email> <firstName> <lastName>       Creates a new user\n" +
     "\t                 -remove <email>                           Deletes a user with corresponding email\n" +

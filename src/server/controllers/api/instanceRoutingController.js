@@ -5,8 +5,6 @@
  */
 
 import async from 'async';
-import express from 'express';
-const router = express.Router();
 import BaseApiController from './baseApiController';
 
 import ChangeTrackingService from '../../services/changeTrackingService';
@@ -28,15 +26,10 @@ import AppUtils from '../../utils/appUtils';
 import logger from '../../utils/winstonLogs';
 import Constants from '../../constants.js';
 
-router.get('/api/v2/instance/routing/id/:ID/token/:Token', BaseApiController.checkUserExistance, (req, res) => {
-  instanceRouting(req, res);
-});
+/********************************************* EndPoints ******************************************************/
 
-router.post('/api/v2/instance/routing/id/:ID/token/:Token', BaseApiController.checkUserExistance, (req, res) => {
-  instanceRouting(req, res);
-});
-
-const instanceRouting = function (req, res){
+/********** Instance Routing EndPoint (Get/Post: /api/v2/instance/routing/id/:ID/token/:Token) ***************/
+const instanceRoutingEndPoint = function (req, res){
   logger.info("Endpoint hitted: "+ req.originalUrl);
 
   var params = {},
@@ -57,6 +50,7 @@ const instanceRouting = function (req, res){
   logger.info("Parameters:" + JSON.stringify(params.bodyParams));
 
   async.waterfall([
+    async.apply(BaseApiController.checkUserExistance, req, res),
     async.apply(StreamViewerService.getStreamViewerByFogInstanceId, streamViewerProps, params),
     async.apply(ConsoleService.getConsoleByFogInstanceId, consoleProps),
     async.apply(RoutingService.findByInstanceId, routingProps),
@@ -66,58 +60,10 @@ const instanceRouting = function (req, res){
   });
 };
 
-  const getRouting = function (params, callback) {
-    var containerList = [];
-    for (let i = 0; i < params.routingData.length; i++) {
-      var container = params.routingData[i],
-          containerID = container.publishing_element_id,
-          destinationElementID = container.destination_element_id,
-          foundIt = false;
+/********* Instance Route Create EndPoint (Post: /api/v2/authoring/element/instance/route/create) **********/
+const instanceRouteCreateEndPoint = function (req, res){
 
-      params.container = container;
-
-      for (var j = 0; j < containerList.length; j++) {
-        var curItem = containerList[j],
-            curID = curItem.container;
-
-        if (curID == containerID) {
-          foundIt = true;
-          var outElementLabel = destinationElementID;
-
-          if (destinationElementID == params.streamViewerData.element_id) {
-            outElementLabel = "viewer";
-          }
-          if (destinationElementID == params.consoleData.elementId) {
-            outElementLabel = "debug";
-          }
-            containerList[j]["receivers"].push(outElementLabel);
-        }
-      }
-      if (foundIt == false) {
-        var tmpNewContainerItem = {},
-            receiverList = new Array(),
-            outElementLabel = destinationElementID;
-              
-            tmpNewContainerItem.container = containerID;
-
-        if (destinationElementID ==  params.streamViewerData.element_id) {
-          outElementLabel = "viewer";
-          }
-        if (destinationElementID == params.consoleData.elementId) {
-          outElementLabel = "debug";
-          }
-        
-        receiverList.push(outElementLabel);
-
-        tmpNewContainerItem.receivers = receiverList;
-        containerList.push(tmpNewContainerItem);
-      }
-    }
-    params.containerList = containerList;
-    callback(null, params);
-  }
-
-router.post('/api/v2/authoring/element/instance/route/create', (req, res) => {
+//router.post('/api/v2/authoring/element/instance/route/create', (req, res) => {
   logger.info("Endpoint hitted: "+ req.originalUrl);
   var params = {},
     currentTime = new Date().getTime(),
@@ -330,42 +276,10 @@ router.post('/api/v2/authoring/element/instance/route/create', (req, res) => {
 
     AppUtils.sendResponse(res, err, 'route', params.output, errMsg);
   });
-});
+};
 
-const createSatellitePort = function(params, callback){
-  var satellitePortProps = {
-    satellitePortObj: {
-      port1: params.comsatPort.port1,
-      port2: params.comsatPort.port2,
-      maxConnectionsPort1: 60,
-      maxConnectionsPort2: 0,
-      passcodePort1: params.comsatPort.passcode1,
-      passcodePort2: params.comsatPort.passcode2,
-      heartBeatAbsenceThresholdPort1: 60000,
-      heartBeatAbsenceThresholdPort2: 0,
-      satellite_id: params.satellite.id,
-      mappingId: params.comsatPort.id
-    },
-    setProperty: 'satellitePort'
-  };
-    SatellitePortService.createSatellitePort(satellitePortProps, params, callback);
-}
-
-const getOutputDetails = function(params, callback) {
-  params.output = {
-    elementId: params.bodyParams.destinationElementId,
-    elementName: params.destinationElementInstance.name,
-    elementTypeName: params.destinationElementInstance.typeKey,
-    trackId: params.destinationElementInstance.trackId,
-    trackName: params.dataTrack.name,
-    instanceId: params.destinationFogInstance.uuid,
-    instanceName: params.destinationFogInstance.name
-  };
-
-  callback(null, params);
-}
-
-router.post('/api/v2/authoring/element/instance/route/delete', (req, res) => {
+/********* Instance Route Delete EndPoint (Post: /api/v2/authoring/element/instance/route/delete) **********/
+const instanceRouteDeleteEndPoint = function(req, res){
   logger.info("Endpoint hitted: "+ req.originalUrl);
   var params = {},
     currentTime = new Date().getTime(),
@@ -506,7 +420,92 @@ router.post('/api/v2/authoring/element/instance/route/delete', (req, res) => {
 
     AppUtils.sendResponse(res, err, 'route', params.output, errMsg);
   });
-});
+};
+
+/************************************* Extra Functions **************************************************/
+  const getRouting = function (params, callback) {
+    var containerList = [];
+    for (let i = 0; i < params.routingData.length; i++) {
+      var container = params.routingData[i],
+          containerID = container.publishing_element_id,
+          destinationElementID = container.destination_element_id,
+          foundIt = false;
+
+      params.container = container;
+
+      for (var j = 0; j < containerList.length; j++) {
+        var curItem = containerList[j],
+            curID = curItem.container;
+
+        if (curID == containerID) {
+          foundIt = true;
+          var outElementLabel = destinationElementID;
+
+          if (destinationElementID == params.streamViewerData.element_id) {
+            outElementLabel = "viewer";
+          }
+          if (destinationElementID == params.consoleData.elementId) {
+            outElementLabel = "debug";
+          }
+            containerList[j]["receivers"].push(outElementLabel);
+        }
+      }
+      if (foundIt == false) {
+        var tmpNewContainerItem = {},
+            receiverList = new Array(),
+            outElementLabel = destinationElementID;
+              
+            tmpNewContainerItem.container = containerID;
+
+        if (destinationElementID ==  params.streamViewerData.element_id) {
+          outElementLabel = "viewer";
+          }
+        if (destinationElementID == params.consoleData.elementId) {
+          outElementLabel = "debug";
+          }
+        
+        receiverList.push(outElementLabel);
+
+        tmpNewContainerItem.receivers = receiverList;
+        containerList.push(tmpNewContainerItem);
+      }
+    }
+    params.containerList = containerList;
+    callback(null, params);
+  }
+
+const createSatellitePort = function(params, callback){
+  var satellitePortProps = {
+    satellitePortObj: {
+      port1: params.comsatPort.port1,
+      port2: params.comsatPort.port2,
+      maxConnectionsPort1: 60,
+      maxConnectionsPort2: 0,
+      passcodePort1: params.comsatPort.passcode1,
+      passcodePort2: params.comsatPort.passcode2,
+      heartBeatAbsenceThresholdPort1: 60000,
+      heartBeatAbsenceThresholdPort2: 0,
+      satellite_id: params.satellite.id,
+      mappingId: params.comsatPort.id
+    },
+    setProperty: 'satellitePort'
+  };
+    SatellitePortService.createSatellitePort(satellitePortProps, params, callback);
+}
+
+const getOutputDetails = function(params, callback) {
+  params.output = {
+    elementId: params.bodyParams.destinationElementId,
+    elementName: params.destinationElementInstance.name,
+    elementTypeName: params.destinationElementInstance.typeKey,
+    trackId: params.destinationElementInstance.trackId,
+    trackName: params.dataTrack.name,
+    instanceId: params.destinationFogInstance.uuid,
+    instanceName: params.destinationFogInstance.name
+  };
+
+  callback(null, params);
+}
 
 const getDeleteOutput = function(params, callback) {
   params.output = {
@@ -521,4 +520,8 @@ const getDeleteOutput = function(params, callback) {
   callback(null, params);
 }
 
-export default router;
+export default {
+  instanceRoutingEndPoint: instanceRoutingEndPoint,
+  instanceRouteCreateEndPoint: instanceRouteCreateEndPoint,
+  instanceRouteDeleteEndPoint: instanceRouteDeleteEndPoint
+};

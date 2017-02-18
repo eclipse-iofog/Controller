@@ -4,8 +4,6 @@
  * @description This file includes the implementation of the instance-provision key end-point
  */
 import async from 'async';
-import express from 'express';
-const router = express.Router();
 
 import BaseApiController from './baseApiController';
 import FogAccessTokenService from '../../services/fogAccessTokenService';
@@ -17,7 +15,10 @@ import UserService from '../../services/userService';
 import AppUtils from '../../utils/appUtils';
 import logger from '../../utils/winstonLogs';
 
-router.get('/api/v2/authoring/fabric/provisionkey/instanceid/:instanceId', BaseApiController.checkfogExistance, (req, res) => {
+/********************************************* EndPoints ******************************************************/
+
+/******* Get Provision Key EndPoint (Get: /api/v2/authoring/fabric/provisionkey/instanceid/:instanceId) ********/
+ const getProvisionKeyEndPoint = function(req, res){
   logger.info("Endpoint hitted: "+ req.originalUrl);
   var params = {},
       createProvisionProps = {
@@ -28,6 +29,7 @@ router.get('/api/v2/authoring/fabric/provisionkey/instanceid/:instanceId', BaseA
   logger.info("Parameters:" + JSON.stringify(params.bodyParams));
 
   async.waterfall([
+    async.apply(BaseApiController.checkfogExistance, req, res),
     async.apply(FogProvisionKeyService.createProvisonKeyByInstanceId, createProvisionProps, params)
 
   ],function(err, result) {
@@ -39,17 +41,11 @@ router.get('/api/v2/authoring/fabric/provisionkey/instanceid/:instanceId', BaseA
     }
       AppUtils.sendResponse(res, err, 'provisionKey', outputProvisionKey, result);
     });
-});
+};
 
-router.get('/api/v2/instance/provision/key/:provisionKey/fabrictype/:fabricType', (req, res) => {
-  fogProvisionKey(req, res);
-});
+/** Fog Provisioning EndPoint (Get/Post: /api/v2/instance/provision/key/:provisionKey/fabrictype/:fabricType) **/
 
-router.post('/api/v2/instance/provision/key/:provisionKey/fabrictype/:fabricType', (req, res) => {
-  fogProvisionKey(req, res);
-});
-
-const fogProvisionKey = function(req, res) {
+const fogProvisionKeyEndPoint = function(req, res) {
   logger.info("Endpoint hitted: "+ req.originalUrl);
   var params = {},
       provisionProps = {
@@ -102,7 +98,8 @@ const fogProvisionKey = function(req, res) {
   })
 };
 
-router.post('/api/v2/authoring/fabric/provisioningkey/list/delete', (req, res) => {
+/********* Delete Provision Key EndPoint (Post: /api/v2/authoring/fabric/provisioningkey/list/delete) *********/
+const deleteProvisionKeyEndPoint = function(req, res) {
   logger.info("Endpoint hitted: "+ req.originalUrl);
   var params = {},
       instanceProps = {
@@ -117,6 +114,10 @@ router.post('/api/v2/authoring/fabric/provisioningkey/list/delete', (req, res) =
   ], function(err, result) {
        AppUtils.sendResponse(res, err, 'instanceId', params.bodyParams.instanceId, result);  
   });
-});
+};
 
-export default router;
+export default {
+  getProvisionKeyEndPoint: getProvisionKeyEndPoint,
+  fogProvisionKeyEndPoint: fogProvisionKeyEndPoint,
+  deleteProvisionKeyEndPoint: deleteProvisionKeyEndPoint
+};

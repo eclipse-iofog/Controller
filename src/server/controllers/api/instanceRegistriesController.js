@@ -4,25 +4,16 @@
  * @description This file includes the implementation of the instance-registries end-point
  */
 import async from 'async';
-import express from 'express';
-const router = express.Router();
 
 import BaseApiController from './baseApiController';
 import RegistryService from '../../services/registryService';
-
 import AppUtils from '../../utils/appUtils';
 import logger from '../../utils/winstonLogs';
-import Constants from '../../constants.js';
 
-router.get('/api/v2/instance/registries/id/:ID/token/:Token', BaseApiController.checkUserExistance, (req, res) => {
-    instanceRegistries(req, res);
-});
+/********************************************* EndPoints ******************************************************/
 
-router.post('/api/v2/instance/registries/id/:ID/token/:Token', BaseApiController.checkUserExistance, (req, res) => {
-    instanceRegistries(req, res);
-});
-
-const instanceRegistries = function (req, res){
+/********* Instance Registries EndPoint (Get/Post: /api/v2/instance/registries/id/:ID/token/:Token) **********/
+const instanceRegistriesEndPoint = function (req, res){
   logger.info("Endpoint hitted: "+ req.originalUrl);
   var params = {},
       instanceProps={
@@ -34,6 +25,7 @@ const instanceRegistries = function (req, res){
   logger.info("Parameters:" + JSON.stringify(params.bodyParams));
 
   async.waterfall([
+    async.apply(BaseApiController.checkUserExistance, req, res),
     async.apply(RegistryService.findRegistriesByInstanceId , instanceProps, params)
   
   ], function(err, result) {
@@ -41,4 +33,6 @@ const instanceRegistries = function (req, res){
   });
 };
 
-export default router;
+export default {
+  instanceRegistriesEndPoint: instanceRegistriesEndPoint
+};

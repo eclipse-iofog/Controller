@@ -4,24 +4,17 @@
  * @description This file includes the implementation of instance-config and config-changes end-points
  */
 import async from 'async';
-import express from 'express';
-const router = express.Router();
-import BaseApiController from './baseApiController';
 
+import BaseApiController from './baseApiController';
 import FogService from '../../services/fogService';
 import AppUtils from '../../utils/appUtils';
 import logger from '../../utils/winstonLogs';
 import Constants from '../../constants.js';
 
-router.get('/api/v2/instance/config/id/:ID/token/:Token', BaseApiController.checkUserExistance, (req, res) => {
-  instanceConfig (req, res);
-});
+/********************************************* EndPoints ******************************************************/
 
-router.post('/api/v2/instance/config/id/:ID/token/:Token', BaseApiController.checkUserExistance, (req, res) => {
-  instanceConfig (req, res);
-});
-
-const instanceConfig = function(req, res){
+/********* Instance Configurations EndPoint (Get/Post: /api/v2/instance/config/id/:ID/token/:Token) **********/
+const instanceConfigEndPoint = function(req, res){
   logger.info("Endpoint hitted: "+ req.originalUrl);
   var params = {},
 
@@ -34,6 +27,7 @@ const instanceConfig = function(req, res){
   logger.info("Parameters:" + JSON.stringify(params.bodyParams));
 
   async.waterfall([
+    async.apply(BaseApiController.checkUserExistance, req, res),
     async.apply(FogService.getFogInstance, fogProps, params),
     processConfigData
 
@@ -42,6 +36,26 @@ const instanceConfig = function(req, res){
   })
 };
 
+/***** Instance Configuration Changes EndPoint (Post: /api/v2/instance/config/changes/id/:ID/token/:Token) ******/
+const instanceConfigChangesEndPoint = function(req, res){
+  logger.info("Endpoint hitted: "+ req.originalUrl);
+  var params = {};
+
+  params.bodyParams = req.body;
+  params.bodyParams.instanceId = req.params.ID;
+  logger.info("Parameters:" + JSON.stringify(params.bodyParams));
+  
+  async.waterfall([
+    async.apply(BaseApiController.checkUserExistance, req, res),
+    async.apply(updateFogInstance, params)
+
+  ], function(err, result) {
+    AppUtils.sendResponse(res, err, '', '', result);
+  })
+};
+
+
+/************************************* Extra Functions **************************************************/
 const processConfigData = function(params, callback){
   var config = {
       networkinterface: params.fogData.networkinterface,
@@ -58,22 +72,6 @@ const processConfigData = function(params, callback){
     params.config = config;
     callback (null, params);
 }
-
-router.post('/api/v2/instance/config/changes/id/:ID/token/:Token', BaseApiController.checkUserExistance, (req, res) => {
-  logger.info("Endpoint hitted: "+ req.originalUrl);
-  var params = {};
-
-  params.bodyParams = req.body;
-  params.bodyParams.instanceId = req.params.ID;
-  logger.info("Parameters:" + JSON.stringify(params.bodyParams));
-  
-  async.waterfall([
-    async.apply(updateFogInstance, params)
-
-  ], function(err, result) {
-    AppUtils.sendResponse(res, err, '', '', result);
-  })
-});
 
 const updateFogInstance = function(params, callback){
 
@@ -94,4 +92,7 @@ const updateFogInstance = function(params, callback){
   FogService.updateFogInstance(fogConfigProps, params, callback);
 }
 
-export default router;
+export default {
+  instanceConfigEndPoint: instanceConfigEndPoint,
+  instanceConfigChangesEndPoint: instanceConfigChangesEndPoint
+};

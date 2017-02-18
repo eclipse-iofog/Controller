@@ -5,8 +5,6 @@
  */
 
 import async from 'async';
-import express from 'express';
-const router = express.Router();
 
 import BaseApiController from './baseApiController';
 import ChangeTrackingService from '../../services/changeTrackingService';
@@ -14,22 +12,10 @@ import FogService from '../../services/fogService';
 import AppUtils from '../../utils/appUtils';
 import logger from '../../utils/winstonLogs';
 
-/**
- * @desc - if there is changeTracking data present, the data is checked against the timpstamp
- * and the client is responsed with the true values for the changed data and false for unchanged data.
- * @param Integer - instanceId
- * @return - returns and appropriate response to the client
- */
+/********************************************* EndPoints ********************************************************/
 
-router.get('/api/v2/instance/changes/id/:ID/token/:Token/timestamp/:TimeStamp', BaseApiController.checkUserExistance, (req, res) => {
-  getChangeTrackingChanges(req, res);
-});
-
-router.post('/api/v2/instance/changes/id/:ID/token/:Token/timestamp/:TimeStamp', BaseApiController.checkUserExistance, (req, res) => {
-  getChangeTrackingChanges(req, res);
-});
-
-const getChangeTrackingChanges = function(req, res) {
+/** Check Change Tracking Changes EndPoint (Get/Post: /api/v2/instance/changes/id/:ID/token/:Token/timestamp/:TimeStamp) **/
+const getChangeTrackingChangesEndPoint = function(req, res) {
   logger.info("Endpoint hitted: "+ req.originalUrl);
   var params = {},
       instanceProps = {
@@ -41,6 +27,7 @@ const getChangeTrackingChanges = function(req, res) {
   logger.info("Parameters:" + JSON.stringify(params.bodyParams));
   
   async.waterfall([
+    async.apply(BaseApiController.checkUserExistance, req, res),
     async.apply(ChangeTrackingService.getChangeTrackingByInstanceId, instanceProps, params),
     processChangeTrackingChanges,
     updateFogInstance
@@ -50,6 +37,7 @@ const getChangeTrackingChanges = function(req, res) {
   })
 }
 
+/************************************* Extra Functions **************************************************/
 const processChangeTrackingChanges = function(params, callback) {
   if(params.bodyParams.TimeStamp.length < 1) {
     params.bodyParams.TimeStamp = 0;
@@ -95,4 +83,6 @@ const updateFogInstance = function(params, callback){
   FogService.updateFogInstance(fogInstanceProps, params, callback);
 }
 
-export default router;
+export default {
+  getChangeTrackingChangesEndPoint: getChangeTrackingChangesEndPoint
+};

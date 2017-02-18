@@ -5,8 +5,6 @@
  */
 
 import async from 'async';
-import express from 'express';
-const router = express.Router();
 
 import ConsoleService from '../../services/consoleService';
 import StreamViewerService from '../../services/streamViewerService';
@@ -14,7 +12,11 @@ import UserService from '../../services/userService';
 import AppUtils from '../../utils/appUtils';
 import logger from '../../utils/winstonLogs';
 
-router.get('/api/v2/authoring/fabric/viewer/access', (req, res) => {
+
+/********************************************* EndPoints ******************************************************/
+
+/******************** Fog Viewer Access EndPoint (Get: /api/v2/authoring/fabric/viewer/access) ***************/
+const fogViewerAccessEndPoint = function(req, res){
   logger.info("Endpoint hitted: "+ req.originalUrl);
   var params = {},
 
@@ -42,8 +44,9 @@ router.get('/api/v2/authoring/fabric/viewer/access', (req, res) => {
     var errMsg = 'Internal error: There was a problem getting the toolset access for this ioFog instance.'+result;
     AppUtils.sendResponse(res, err, 'access', result.output, errMsg);
   });
-});
+};
 
+/************************************* Extra Functions **************************************************/
 const getResponse = function(params, callback) {
   var output = {};
 
@@ -62,4 +65,6 @@ const getResponse = function(params, callback) {
   });
 }
 
-export default router;
+export default {
+  fogViewerAccessEndPoint: fogViewerAccessEndPoint
+};

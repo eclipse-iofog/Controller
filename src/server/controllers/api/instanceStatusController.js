@@ -4,15 +4,19 @@
  * @description This file includes the implementation of the instance-status end-point
  */
 import async from 'async';
-import express from 'express';
-const router = express.Router();
+
 import BaseApiController from './baseApiController';
 import FogService from '../../services/fogService';
 import AppUtils from '../../utils/appUtils';
 import logger from '../../utils/winstonLogs';
 
 
-router.post('/api/v2/instance/status/id/:ID/token/:Token', BaseApiController.checkUserExistance, (req, res) => {
+/********************************************* EndPoints ******************************************************/
+
+/*************** Instance Status EndPoint (Post: /api/v2/instance/status/id/:ID/token/:Token) *****************/
+
+  const instanceStatusEndPoint = function(req, res){
+
   logger.info("Endpoint hitted: "+ req.originalUrl);
 
   var params = {};
@@ -22,13 +26,15 @@ router.post('/api/v2/instance/status/id/:ID/token/:Token', BaseApiController.che
   logger.info("Parameters:" + JSON.stringify(params.bodyParams));
 
   async.waterfall([
+    async.apply(BaseApiController.checkUserExistance, req, res),
     async.apply(updateFogInstance,params)
 
   ], function(err, result) {
     AppUtils.sendResponse(res, err,'','', result);
   })
-});
+};
 
+/*********************************** Extra Functions ***************************************************/
 const updateFogInstance = function(params, callback){
   var fogInstanceProps = {
         instanceId: 'bodyParams.instanceId',
@@ -64,4 +70,6 @@ const updateFogInstance = function(params, callback){
     FogService.updateFogInstance(fogInstanceProps, params, callback);
 }
 
-export default router;
+export default {
+  instanceStatusEndPoint: instanceStatusEndPoint
+};

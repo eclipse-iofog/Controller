@@ -32,6 +32,7 @@ class FogControllerConfigUtil {
     if (this.isKeyExist(key)) {
       if (this.validateValue(key, value)) {
         FogControllerConfigManager.setByKey(key, value);
+        console.log('Property "' + key + '" has been updated successfully.');
       } else {
         throw 'Invalid value provided for key "' + key + '"';
       }

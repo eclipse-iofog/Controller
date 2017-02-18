@@ -22,20 +22,11 @@ import UserService from '../../services/userService';
 import AppUtils from '../../utils/appUtils';
 import logger from '../../utils/winstonLogs';
 
-/**
- * @desc - if this end-point is hit it sends a timeStamp in milliseconds back to the client
- * (Used to check if the server is active)
- * @return - returns and appropriate response to the client
- */
-router.get('/api/v2/status', (req, res) => {
-	getFogControllerStatus(req, res);
-});
 
-router.post('/api/v2/status', (req, res) => {
-	getFogControllerStatus(req, res);
-});
+/********************************************* EndPoints ******************************************************/
 
-const getFogControllerStatus = function(req, res){
+/**************************** Fog-Controller Status EndPoint (Get: /api/v2/status) ***************************/
+const getFogControllerStatusEndPoint = function(req, res){
   logger.info("Endpoint hitted: "+ req.originalUrl);
 	var milliseconds = new Date().getTime();
 	res.status(200);
@@ -45,7 +36,8 @@ const getFogControllerStatus = function(req, res){
 	});
 };
 
-router.get('/api/v2/authoring/integrator/instances/list/:userId', (req, res) => {
+/******** Fog Instances List By UserID EndPoint (Get: /api/v2/authoring/integrator/instances/list/:userId) *******/
+const fogInstancesListEndPoint = function(req, res){
   logger.info("Endpoint hitted: "+ req.originalUrl);
 	var params = {},
 
@@ -69,9 +61,10 @@ router.get('/api/v2/authoring/integrator/instances/list/:userId', (req, res) => 
 	], function(err, result) {
 		AppUtils.sendResponse(res, err, 'elementsInstances', params.fogInstance, result);
 	})
-});
+};
 
-router.get('/api/v2/instance/create/type/:type', (req, res) => {
+/******************** Fog Instance Create EndPoint (Get: /api/v2/instance/create/type/:type) ******************/
+const fogInstanceCreateEndPoint = function(req, res){
   logger.info("Endpoint hitted: "+ req.originalUrl);
 	var params = {},
 		userProps = {
@@ -110,9 +103,10 @@ router.get('/api/v2/instance/create/type/:type', (req, res) => {
 		}
 		AppUtils.sendResponse(res, err, 'instanceId', output, result);
 	});
-});
+};
 
-router.get('/api/v2/instance/getfabriclist', (req, res) => {
+/******************** Get Fog List EndPoint (Get: /api/v2/instance/getfabriclist) ******************/
+const getFogListEndPoint = function(req, res){
   logger.info("Endpoint hitted: "+ req.originalUrl);
 	var params = {},
 		userProps = {
@@ -135,13 +129,10 @@ router.get('/api/v2/instance/getfabriclist', (req, res) => {
 		var errMsg = 'Internal error: ' + result;
 		AppUtils.sendResponse(res, err, 'fogList', params.fogList, errMsg);
 	});
-});
+};
 
-/**
- * @desc - this end-point returns the list of fogTypes avalible
- * @return - returns and appropriate response to the client
- */
-router.get('/api/v2/getfabrictypes', (req, res) => {
+/******************** Get Fog Types EndPoint (Get: /api/v2/getfabrictypes) ******************/
+const getFogTypesEndPoint = function(req, res){
   logger.info("Endpoint hitted: "+ req.originalUrl);
 	var params = {},
 		userProps = {
@@ -165,13 +156,10 @@ router.get('/api/v2/getfabrictypes', (req, res) => {
 		var errMsg = 'Internal error: ' + result;
 		AppUtils.sendResponse(res, err, 'fogTypesList', params.fogTypesList, errMsg);
 	});
-});
+};
 
-/**
- * @desc - this end-point deletes the iofog and data regarding it
- * @return - returns and appropriate response to the client
- */
-router.post('/api/v2/authoring/fabric/instance/delete', (req, res) => {
+/***************** Fog Instance Delete EndPoint (Post: /api/v2/authoring/fabric/instance/delete) *************/
+const fogInstanceDeleteEndPoint = function(req, res){
   logger.info("Endpoint hitted: "+ req.originalUrl);
 
 	var params = {},
@@ -199,9 +187,10 @@ router.post('/api/v2/authoring/fabric/instance/delete', (req, res) => {
 		var errMsg = 'Internal error: ' + result;
 		AppUtils.sendResponse(res, err, 'instanceId', params.bodyParams.instanceId, errMsg);
 	});
-});
+};
 
-router.post('/api/v2/authoring/integrator/instance/delete', (req, res) => {
+/*********** Integrator Instance Delete EndPoint (Post: /api/v2/authoring/integrator/instance/delete) **********/
+const integratorInstanceDeleteEndPoint = function(req, res){
   logger.info("Endpoint hitted: "+ req.originalUrl);
 	var params = {},
 		userProps = {
@@ -244,6 +233,14 @@ router.post('/api/v2/authoring/integrator/instance/delete', (req, res) => {
 		var errMsg = 'Internal error: ' + result;
 		AppUtils.sendResponse(res, err, 'Deleted Fog', params.bodyParams.instanceId, errMsg);
 	});
-});
+};
 
-export default router;
+export default {
+  getFogControllerStatusEndPoint: getFogControllerStatusEndPoint,
+  fogInstancesListEndPoint: fogInstancesListEndPoint,
+  fogInstanceCreateEndPoint: fogInstanceCreateEndPoint,
+  getFogListEndPoint: getFogListEndPoint,
+  getFogTypesEndPoint: getFogTypesEndPoint,
+  fogInstanceDeleteEndPoint: fogInstanceDeleteEndPoint,
+  integratorInstanceDeleteEndPoint: integratorInstanceDeleteEndPoint
+};

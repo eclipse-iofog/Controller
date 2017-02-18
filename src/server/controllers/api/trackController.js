@@ -4,8 +4,6 @@
  * @description This file includes the implementation of the status end-point
  */
 import async from 'async';
-import express from 'express';
-const router = express.Router();
 
 import ChangeTrackingService from '../../services/changeTrackingService';
 import ComsatService from '../../services/comsatService';
@@ -21,7 +19,10 @@ import UserService from '../../services/userService';
 import AppUtils from '../../utils/appUtils';
 import logger from '../../utils/winstonLogs';
 
-router.get('/api/v2/authoring/fabric/track/list/:instanceId', (req, res) => {
+/********************************************* EndPoints ******************************************************/
+
+/***************** Fog Track List EndPoint (Get: /api/v2/authoring/fabric/track/list/:instanceId) **************/
+const fogTrackListEndPoint = function(req, res){
   logger.info("Endpoint hitted: "+ req.originalUrl);
   var params = {},
 
@@ -51,9 +52,10 @@ router.get('/api/v2/authoring/fabric/track/list/:instanceId', (req, res) => {
   ], function(err, result) {
     AppUtils.sendResponse(res, err, 'tracks', params.dataTracks, result);
   })
-});
+};
 
-router.post('/api/v2/authoring/user/track/update', (req, res) => {
+/***************** User Track Update EndPoint (Post: /api/v2/authoring/user/track/update) **************/
+const userTrackUpdateEndPoint = function(req, res){
   logger.info("Endpoint hitted: "+ req.originalUrl);
 
   var params = {},
@@ -88,8 +90,80 @@ router.post('/api/v2/authoring/user/track/update', (req, res) => {
 
     AppUtils.sendResponse(res, err, 'trackId', trackId, result);
   })
-});
+};
 
+/***************** Fog Track Update EndPoint (Post: /api/v2/authoring/fabric/track/update) **************/
+const fogTrackUpdateEndPoint = function(req, res){
+  logger.info("Endpoint hitted: "+ req.originalUrl);
+  var params = {},
+
+    userProps = {
+      userId: 'bodyParams.userId',
+      setProperty: 'user'
+    },
+
+    dataTrackProps = {
+      trackId: 'bodyParams.trackId',
+      setProperty: 'dataTrack'
+    };
+
+  params.bodyParams = req.body;
+  logger.info("Parameters:" + JSON.stringify(params.bodyParams));
+
+  async.waterfall([
+    async.apply(UserService.getUser, userProps, params),
+    async.apply(DataTracksService.getDataTrackById, dataTrackProps),
+    getFogInstance,
+    updateDataTrackById
+
+  ], function(err, result) {
+    var trackId;
+
+    if (params.bodyParams){
+      trackId = params.bodyParams.trackId;
+    }
+
+    AppUtils.sendResponse(res, err, 'trackId', params.bodyParams.trackId, result);
+  })
+};
+
+/***************** Fog Track Delete EndPoint (Post: /api/v2/authoring/fabric/track/delete) **************/
+const fogTrackDeleteEndPoint = function(req, res){
+  logger.info("Endpoint hitted: "+ req.originalUrl);
+  var params = {},
+
+    userProps = {
+      userId: 'bodyParams.userId',
+      setProperty: 'user'
+    },
+
+    dataTrackProps = {
+      trackId: 'bodyParams.trackId',
+      setProperty: 'dataTrack'
+    },
+
+    elementInstanceProps = {
+      trackId: 'bodyParams.trackId',
+      setProperty: 'trackElementInstances'
+    };
+
+  params.bodyParams = req.body;
+  logger.info("Parameters:" + JSON.stringify(params.bodyParams));
+
+  async.waterfall([
+    async.apply(UserService.getUser, userProps, params),
+    async.apply(DataTracksService.getDataTrackById, dataTrackProps),
+    async.apply(ElementInstanceService.getElementInstancesByTrackId, elementInstanceProps),
+    deleteElementInstances,
+    async.apply(DataTracksService.deleteTrackById, dataTrackProps)
+  ], function(err, result) {
+    var errMsg = 'Internal error: There was a problem deleting the track : ' + result
+
+    AppUtils.sendResponse(res, err, 'trackId', params.bodyParams.trackId, errMsg);
+  });
+};
+
+/************************************* Extra Functions **************************************************/
 const resetSelectedActivatedAndName= function(params, callback) {
 
   if (params.bodyParams.isSelected == -1)
@@ -154,40 +228,6 @@ const updateDataTrackById= function(params, callback) {
   DataTracksService.updateDataTrackById(updateDataTrackProps, params, callback);
 }
 
-router.post('/api/v2/authoring/fabric/track/update', (req, res) => {
-  logger.info("Endpoint hitted: "+ req.originalUrl);
-  var params = {},
-
-    userProps = {
-      userId: 'bodyParams.userId',
-      setProperty: 'user'
-    },
-
-    dataTrackProps = {
-      trackId: 'bodyParams.trackId',
-      setProperty: 'dataTrack'
-    };
-
-  params.bodyParams = req.body;
-  logger.info("Parameters:" + JSON.stringify(params.bodyParams));
-
-  async.waterfall([
-    async.apply(UserService.getUser, userProps, params),
-    async.apply(DataTracksService.getDataTrackById, dataTrackProps),
-    getFogInstance,
-    updateDataTrackById
-
-  ], function(err, result) {
-    var trackId;
-
-    if (params.bodyParams){
-      trackId = params.bodyParams.trackId;
-    }
-
-    AppUtils.sendResponse(res, err, 'trackId', params.bodyParams.trackId, result);
-  })
-});
-
 const getFogInstance = function(params, callback) {
     if (!params.bodyParams.instanceId){
       params.bodyParams.instanceId = params.dataTrack.instanceId;
@@ -198,41 +238,6 @@ const getFogInstance = function(params, callback) {
     };
   FogService.getFogInstance(fogInstanceProps, params, callback)
 }
-
-router.post('/api/v2/authoring/fabric/track/delete', (req, res) => {
-  logger.info("Endpoint hitted: "+ req.originalUrl);
-  var params = {},
-
-    userProps = {
-      userId: 'bodyParams.userId',
-      setProperty: 'user'
-    },
-
-    dataTrackProps = {
-      trackId: 'bodyParams.trackId',
-      setProperty: 'dataTrack'
-    },
-
-    elementInstanceProps = {
-      trackId: 'bodyParams.trackId',
-      setProperty: 'trackElementInstances'
-    };
-
-  params.bodyParams = req.body;
-  logger.info("Parameters:" + JSON.stringify(params.bodyParams));
-
-  async.waterfall([
-    async.apply(UserService.getUser, userProps, params),
-    async.apply(DataTracksService.getDataTrackById, dataTrackProps),
-    async.apply(ElementInstanceService.getElementInstancesByTrackId, elementInstanceProps),
-    deleteElementInstances,
-    async.apply(DataTracksService.deleteTrackById, dataTrackProps)
-  ], function(err, result) {
-    var errMsg = 'Internal error: There was a problem deleting the track : ' + result
-
-    AppUtils.sendResponse(res, err, 'trackId', params.bodyParams.trackId, errMsg);
-  });
-});
 
 const deleteElementInstances = function(params, callback) {
   console.log();
@@ -274,4 +279,9 @@ const deleteElement = function(params, callback) {
   });
 }
 
-export default router;
+export default {
+  fogTrackListEndPoint: fogTrackListEndPoint,
+  userTrackUpdateEndPoint: userTrackUpdateEndPoint,
+  fogTrackUpdateEndPoint: fogTrackUpdateEndPoint,
+  fogTrackDeleteEndPoint: fogTrackDeleteEndPoint
+};

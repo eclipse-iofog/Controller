@@ -5,23 +5,17 @@
  */
 
 import async from 'async';
-import express from 'express';
-const router = express.Router();
+
 import BaseApiController from './baseApiController';
 import ElementInstanceService from '../../services/elementInstanceService';
 import AppUtils from '../../utils/appUtils';
 import logger from '../../utils/winstonLogs';
 
+/********************************************* EndPoints ******************************************************/
 
-router.get('/api/v2/instance/containerconfig/id/:ID/token/:Token', BaseApiController.checkUserExistance, (req, res) => {
-	containerConfig(req, res);
-});
+/****** Instance Container Config EndPoint (Post: /api/v2/instance/containerconfig/id/:ID/token/:Token) *******/
 
-router.post('/api/v2/instance/containerconfig/id/:ID/token/:Token', BaseApiController.checkUserExistance, (req, res) => {
-	containerConfig(req, res);
-});
-
-const containerConfig = function(req, res){
+const containerConfigEndPoint = function(req, res){
   logger.info("Endpoint hitted: "+ req.originalUrl);
 	var params = {},
 		instanceProps = {
@@ -33,6 +27,7 @@ const containerConfig = function(req, res){
 	logger.info("Parameters:" + JSON.stringify(params.bodyParams));
 
 	async.waterfall([
+		async.apply(BaseApiController.checkUserExistance, req, res),
 		async.apply(ElementInstanceService.findByInstanceId, instanceProps, params),
 		processOutput
 
@@ -41,6 +36,7 @@ const containerConfig = function(req, res){
 	})
 };
 
+/*********************************** Extra Functions ***************************************************/
 const processOutput = function (params, callback)
 {
 	var containerList = new Array();
@@ -67,4 +63,6 @@ const processOutput = function (params, callback)
 	callback (null, params);
 }
 
-export default router;
+export default {
+	containerConfigEndPoint: containerConfigEndPoint
+};

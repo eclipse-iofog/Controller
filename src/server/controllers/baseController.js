@@ -1,10 +1,10 @@
-import express from 'express';
-const router = express.Router();
+import logger from '../utils/winstonLogs';
 
-import errorUtils from './../utils/errorUtils';
-
-router.get('/', (req, res) => {
+const mainPageEndPoint = function(req, res) {
+  logger.info("Endpoint hitted: "+ req.originalUrl);
   res.render("controller-status")
-});
+};
 
-export default router;
+export default {
+  mainPageEndPoint: mainPageEndPoint
+};

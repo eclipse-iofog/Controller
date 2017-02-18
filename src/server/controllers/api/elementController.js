@@ -5,8 +5,6 @@
  */
 
 import async from 'async';
-import express from 'express';
-const router = express.Router();
 
 import ElementFogTypeService from '../../services/elementFogTypeService';
 import ElementService from '../../services/elementService';
@@ -14,8 +12,8 @@ import UserService from '../../services/userService';
 import AppUtils from '../../utils/appUtils';
 import logger from '../../utils/winstonLogs';
 
-
-router.post('/api/v2/authoring/organization/element/create', (req, res) => {
+/*************** Create Element EndPoint (Post) *****************/
+ const createElementEndPoint = function(req, res) {
   logger.info("Endpoint hitted: "+ req.originalUrl);
 
   var params = {},
@@ -34,8 +32,68 @@ router.post('/api/v2/authoring/organization/element/create', (req, res) => {
   ], function(err, result) {
     AppUtils.sendResponse(res, err, 'element', params.element, result);
   })
-});
+};
 
+/*************** Update Element EndPoint (Post) *****************/
+ const updateElementEndPoint = function(req, res) {
+  logger.info("Endpoint hitted: "+ req.originalUrl);
+
+  var params = {},
+    userProps = {
+      userId: 'bodyParams.userId',
+      setProperty: 'user'
+    },
+    
+    elementProps = {
+      networkElementId: 'bodyParams.id',
+      setProperty: 'element'
+    },
+
+    fogTypeProps = {
+      elementId: 'bodyParams.id',
+    };
+
+  params.bodyParams = req.body;
+  logger.info("Parameters:" + JSON.stringify(params.bodyParams));
+
+  async.waterfall([
+    async.apply(UserService.getUser, userProps, params),
+    async.apply(ElementService.getNetworkElement, elementProps),
+    updateElement,
+    async.apply(ElementFogTypeService.deleteElementFogType, fogTypeProps),
+    createElementFogTypes
+
+  ], function(err, result) {
+    AppUtils.sendResponse(res, err, 'element', params.bodyParams.id, result);
+  })
+};
+
+/*************** Delete Element EndPoint (Post) *****************/
+ const deleteElementEndPoint = function(req, res) {
+  logger.info("Endpoint hitted: "+ req.originalUrl);
+  
+  var params = {},
+      userProps = {
+        userId: 'bodyParams.userId',
+        setProperty: 'user'
+      },
+      elementProps = {
+        elementId: 'bodyParams.id',
+      };
+
+  params.bodyParams = req.body;
+  logger.info("Parameters:" + JSON.stringify(params.bodyParams));
+
+  async.waterfall([
+    async.apply(UserService.getUser, userProps, params),
+    async.apply(ElementService.deleteElementById, elementProps),
+  
+  ], function(err, result) {
+    AppUtils.sendResponse(res, err, 'elementId', params.bodyParams.id, result);
+  })
+};
+
+/*********************** Extra Functions ********************/
 const createElement = function(params, callback) {
   var elementProps = {
         element : {
@@ -76,39 +134,6 @@ const createElementFogTypes = function(params, callback) {
   callback(null, params);
 }
 
-router.post('/api/v2/authoring/organization/element/update', (req, res) => {
-  logger.info("Endpoint hitted: "+ req.originalUrl);
-
-  var params = {},
-    userProps = {
-      userId: 'bodyParams.userId',
-      setProperty: 'user'
-    },
-    
-    elementProps = {
-      networkElementId: 'bodyParams.id',
-      setProperty: 'element'
-    },
-
-    fogTypeProps = {
-      elementId: 'bodyParams.id',
-    };
-
-  params.bodyParams = req.body;
-  logger.info("Parameters:" + JSON.stringify(params.bodyParams));
-
-  async.waterfall([
-    async.apply(UserService.getUser, userProps, params),
-    async.apply(ElementService.getNetworkElement, elementProps),
-    updateElement,
-    async.apply(ElementFogTypeService.deleteElementFogType, fogTypeProps),
-    createElementFogTypes
-
-  ], function(err, result) {
-    AppUtils.sendResponse(res, err, 'element', params.bodyParams.id, result);
-  })
-});
-
 const updateElement = function(params, callback) {
   var elementProps = {
         elementId: 'bodyParams.id',
@@ -129,28 +154,8 @@ const updateElement = function(params, callback) {
   ElementService.updateElement(elementProps, params, callback);
 }
 
-router.post('/api/v2/authoring/organization/element/delete', (req, res) => {
-  logger.info("Endpoint hitted: "+ req.originalUrl);
-  
-  var params = {},
-      userProps = {
-        userId: 'bodyParams.userId',
-        setProperty: 'user'
-      },
-      elementProps = {
-        elementId: 'bodyParams.id',
-      };
-
-  params.bodyParams = req.body;
-  logger.info("Parameters:" + JSON.stringify(params.bodyParams));
-
-  async.waterfall([
-    async.apply(UserService.getUser, userProps, params),
-    async.apply(ElementService.deleteElementById, elementProps),
-  
-  ], function(err, result) {
-    AppUtils.sendResponse(res, err, 'elementId', params.bodyParams.id, result);
-  })
-});
-
-export default router;
+export default {
+  createElementEndPoint: createElementEndPoint,
+  updateElementEndPoint: updateElementEndPoint,
+  deleteElementEndPoint: deleteElementEndPoint
+};

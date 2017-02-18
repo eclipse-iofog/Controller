@@ -51,7 +51,10 @@
 
         fog-controller version
  
-   
+**Logs**
+- Log files are located at './fog-controller/logs/'
+- Log files are rotated on daily basis or if a file size exceeds 20 MB 
+
 **System Requirements (Recommended)**
 - Processor: 64 bit Dual Core or better
 - RAM: 2 GB
@@ -61,7 +64,6 @@
 - Ubuntu
 - macOS Sierra
 - Windows
-
 
 **Configuration Management**
 
@@ -124,3 +126,39 @@ To setup HTTPS for fog controller, do following steps:
 3.&ensp;To remove a satellite
 
         fog-controller satellite -remove <ID>
+
+**Execute Fog-Controller on startup**
+
+**1.&ensp;Windows:**
+
+&ensp;&ensp;&ensp;- Open a new text document
+
+&ensp;&ensp;&ensp;- Insert following line in it: 
+
+        fog-controller start
+
+&ensp;&ensp;&ensp;- Save text document with extension as ‘.bat’
+
+&ensp;&ensp;&ensp;- Put the .bat file in 
+
+        “C:\Users\username\AppData\Roaming\Microsoft\Windows\StartMenu\Programs\Startup\” 
+        (replacing ‘username’ with the name of your user).
+
+**2.&ensp;Ubuntu:**
+
+&ensp;&ensp;&ensp;- Create a file as ‘fog-controller.conf’ in /etc/init/ directory with following command:
+
+        sudo gedit /etc/init/fog-controller.conf
+
+&ensp;&ensp;&ensp;- Save following text in the file:
+
+        # fog-controller.conf
+        description "Fog Controller project @ iotracks.com"
+        start on startup
+        stop on shutdown
+        post-start script
+                mkdir -p /usr/local/lib/node_modules/fog-controller
+                cd /usr/local/lib/node_modules/fog-controller
+                sudo fog-controller start
+        end script
+        respawn

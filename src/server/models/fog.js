@@ -176,7 +176,21 @@ const Fog = sequelize.define('iofogs', {
   version: {
     type: Sequelize.TEXT,
     field: 'Version'
-  }
+  },
+  statusfrequency: {
+    type: Sequelize.INTEGER,
+    defaultValue: 0,
+    field: 'StatusFrequency'
+  },
+  changefrequency: {
+    type: Sequelize.INTEGER,
+    defaultValue: 0,
+    field: 'ChangeFrequency'
+  },
+  volumemappings: {
+    type: Sequelize.TEXT,
+    field: 'VolumeMappings'
+  },
 }, {
   // don't add the timestamp attributes (updatedAt, createdAt)
   timestamps: false,

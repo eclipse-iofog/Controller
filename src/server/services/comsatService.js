@@ -91,7 +91,6 @@ const openPortsOnComsat = function(params, callback) {
 }
 
 const closePortsOnComsat = function(params, callback) {
-
   console.log(params.portPasscode[0]);
   if (params.portPasscode[0] && params.portPasscode[0].length > 0) {
     async.each(params.portPasscode[0], function(obj, callback) {
@@ -196,97 +195,108 @@ const closePortOnComsat = function(params, callback) {
 }
 
 const checkConnectionToComsat = function() {
+  var params = {};
+
+  async.waterfall([        
+    async.apply(getAllSatellites, params),
+    verifyComsatConnections,
+    displayComsatConnectionsStatus
+
+  ], function(err, result) {
+    if(err){
+      console.log('Error: There is some problem in verifying comsat connections.');
+    }
+  })
+}
+
+const getAllSatellites = function(params, callback){
+  var satellite = [];
+  
+  SatelliteManager.findAll().then(function(satellites){
+    for (var i = 0; i < satellites.length; i++){
+      satellite[i] = satellites[i];
+
+      if (i == satellites.length - 1){
+        params.satellite = satellite;
+        callback(null, params);
+      }
+    }
+  });
+}
+
+const verifyComsatConnections = function(params, callback){
   var data = querystring.stringify({
     mappingid: 'all'
   });
-  var validCount = 0,
-      inValidCount = 0,
+  let count = 0,
       percentage_done = 0,
-      satelliteNames = [],
-      satelliteDomains = [],
-      validSatelliteNames = [],
-      validSatelliteDomains = [],
-      inValidSatelliteNames = [],
-      inValidSatelliteDomains = [],
-      interval = 5 * 1000;
+      validSatellites = [],
+      invalidSatellites = [];
+      params.validSatellites = [];
+      params.invalidSatellites = [];
 
-  SatelliteManager.findAll().then(function(satellites){
-    for (var i = 0; i < satellites.length; i++){
-      satelliteNames[i] = satellites[i].name;
-      satelliteDomains[i] = satellites[i].domain;
-    }
+  async.eachSeries(params.satellite, function(satellite, cb){
+    count ++;
+    process.stdout.clearLine();  
+    process.stdout.cursorTo(0); 
+    percentage_done = Math.round((count / params.satellite.length) * 100);
+
+    process.stdout.write('Percentage completed ' + percentage_done + '%');
+    var options = {
+      host: satellite.domain,
+      port: 443,
+      path: '/api/v2/status',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Content-Length': Buffer.byteLength(data)
+      }
+    };
+
+    var httpreq = https.request(options, function(response) {
+      if (response.statusCode == 200){
+        var output = '';
+        response.setEncoding('utf8');
+
+        response.on('data', function(chunk) {
+          output += chunk;
+        });
+          
+        response.on('end', function() {
+          validSatellites.push(satellite);
+          cb();
+        });        
+      }else{
+        invalidSatellites.push(satellite);
+        cb();
+      }
+    });
+
+    httpreq.on('error', function(err) {
+      invalidSatellites.push(satellite);
+      cb();
+    });
+
+    httpreq.write(data);
+    httpreq.end();
+  },
+  function(err) {
+      params.validSatellites = validSatellites;
+      params.invalidSatellites = invalidSatellites;
+      callback(null, params);
+  });
+}
+const displayComsatConnectionsStatus = function(params, callback) {
+  console.log("\nConnection to following Comsat(s) was successful:");
+  params.validSatellites.forEach((validSatellite) => {
+    console.log(validSatellite.name + ' (' + validSatellite.domain + ')');
   });
 
-  process.stdout.write('Percentage completed 0%');
-
-  setTimeout( function () {
-    if(satelliteDomains.length > 0){
-      for (var i = 0; i < satelliteDomains.length; i++){
-        setTimeout( function (i) {
-
-        process.stdout.clearLine();  
-        process.stdout.cursorTo(0); 
-        percentage_done = ((i+1) / satelliteDomains.length) * 100;
-
-        process.stdout.write('Percentage completed ' + percentage_done + '%');
-
-        var options = {
-          host: satelliteDomains[i],
-          port: 443,
-          path: '/api/v2/status',
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'Content-Length': Buffer.byteLength(data)
-          }
-        };
-
-        var httpreq = https.request(options, function(response) {
-          if (response.statusCode == 200){
-            var output = '';
-            response.setEncoding('utf8');
-
-            response.on('data', function(chunk) {
-              output += chunk;
-            });
-          
-            response.on('end', function() {
-              validSatelliteNames[validCount] = satelliteNames[i];
-              validSatelliteDomains[validCount] = satelliteDomains[i];
-              validCount++;
-            });        
-          }else{
-            inValidSatelliteNames[inValidCount] = satelliteNames[i];
-            inValidSatelliteDomains[inValidCount] = satelliteDomains[i];
-            inValidCount++;
-          }
-        });
-
-        httpreq.on('error', function(err) {
-          console.log('Error: Please Check your connectivity to internet or invalid comsat domain provided.');
-        });
-
-        httpreq.write(data);
-        httpreq.end();
-
-        if (i == satelliteDomains.length - 1){
-          setTimeout( function () {
-            console.log("\nConnection to following Comsat(s) was successful:")
-            for (var j = 0; j < validSatelliteDomains.length; j++){
-              console.log(validSatelliteNames[j] + ' (' + validSatelliteDomains[j] + ')');
-            }
-            console.log("\nConnection to following Comsat(s) was failed:")
-            for (var k = 0; k < inValidSatelliteDomains.length; k++){
-              console.log(inValidSatelliteNames[k]  + ' (' + inValidSatelliteDomains[k] + ')');
-            }
-          }, 5000);
-        }
-      }, interval * i, i);
-    }
-   }else{
-    console.log('No comsat domain found to check connection.')
-   }
-  }, 5000);
+  console.log("\nConnection to following Comsat(s) was failed:");
+  params.invalidSatellites.forEach((invalidSatellite) => {
+    console.log(invalidSatellite.name + ' (' + invalidSatellite.domain + ')');
+  });
+  callback(null, params);
 }
 
 export default {

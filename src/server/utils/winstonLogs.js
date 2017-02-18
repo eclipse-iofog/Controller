@@ -18,6 +18,7 @@ var logger = new winston.Logger({
       name: 'info-file',
       filename: `${logDir}/FogController.log`,
       level: appConfig.loggingLevel,
+      json: false,
       maxsize: 20971520, //20 MB
       datePattern: 'yyyy-MM-dd_',
       timestamp: tsFormat,
