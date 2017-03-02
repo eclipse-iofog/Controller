@@ -33,6 +33,14 @@ const getDataTrackByInstanceId = function(props, params, callback) {
     .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Unable to find Data Track', callback));
 }
 
+const getTracksByUserId = function(props, params, callback) {
+  var userId = AppUtils.getProperty(params, props.userId);
+
+  DataTracksManager
+    .getTracksByUserId(userId)
+    .then(AppUtils.onFind.bind(null, params,props.setProperty, 'Unable to find Data Track', callback));
+}
+
 const updateDataTrackById = function(props, params, callback) {
   var trackId = AppUtils.getProperty(params, props.trackId);
 
@@ -46,5 +54,6 @@ export default {
   findContainerListByInstanceId: findContainerListByInstanceId,
   getDataTrackById: getDataTrackById,
   getDataTrackByInstanceId: getDataTrackByInstanceId,
+  getTracksByUserId: getTracksByUserId,
   updateDataTrackById: updateDataTrackById
 };

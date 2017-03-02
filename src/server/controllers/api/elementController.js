@@ -12,6 +12,8 @@ import UserService from '../../services/userService';
 import AppUtils from '../../utils/appUtils';
 import logger from '../../utils/winstonLogs';
 
+/************************ EndPoints ******************************/
+
 /*************** Create Element EndPoint (Post) *****************/
  const createElementEndPoint = function(req, res) {
   logger.info("Endpoint hitted: "+ req.originalUrl);
@@ -93,6 +95,26 @@ import logger from '../../utils/winstonLogs';
   })
 };
 
+/************* Get Element Catalog EndPoint (Get: api/v2/authoring/element/catalog/get) ***********/
+const getCatalogOfElements = function(req, res) {
+  logger.info("Endpoint hitted: "+ req.originalUrl);
+
+  var params = {},
+      getElementCatalogProps = {
+        setProperty: 'elementCatalog'
+      };
+  
+  params.bodyParams = req.params;
+  logger.info("Parameters:" + JSON.stringify(params.bodyParams));
+
+  async.waterfall([
+    async.apply(ElementService.getElementCatalog, getElementCatalogProps, params)
+
+  ], function(err, result) {
+      AppUtils.sendResponse(res, err, 'elementCatalog', params.elementCatalog, result);
+  })
+};
+
 /*********************** Extra Functions ********************/
 const createElement = function(params, callback) {
   var elementProps = {
@@ -157,5 +179,6 @@ const updateElement = function(params, callback) {
 export default {
   createElementEndPoint: createElementEndPoint,
   updateElementEndPoint: updateElementEndPoint,
-  deleteElementEndPoint: deleteElementEndPoint
+  deleteElementEndPoint: deleteElementEndPoint,
+  getCatalogOfElements: getCatalogOfElements
 };

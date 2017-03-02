@@ -163,7 +163,33 @@ const fogTrackDeleteEndPoint = function(req, res){
   });
 };
 
-/************************************* Extra Functions **************************************************/
+/********** Get Track Data for User EndPoint (Get: /api/v2/authoring/user/track/list/:userId) *******/
+const getTracksForUser = function(req, res) {
+  logger.info("Endpoint hitted: "+ req.originalUrl);
+
+  var params = {},
+    userProps = {
+      userId: 'bodyParams.userId',
+      setProperty: 'user'
+    },
+    trackProps = {
+      userId: 'user.id',
+      setProperty: 'dataTracks'
+    };
+    
+    params.bodyParams = req.params;
+    logger.info("Parameters:" + JSON.stringify(params.bodyParams));
+
+  async.waterfall([
+    async.apply(UserService.getUser, userProps, params),
+    async.apply(DataTracksService.getTracksByUserId, trackProps)
+
+  ], function(err, result) {
+      AppUtils.sendResponse(res, err, 'dataTracks', params.dataTracks, result);
+  })
+};
+
+/************************************* Extra Functions ********************************************/
 const resetSelectedActivatedAndName= function(params, callback) {
 
   if (params.bodyParams.isSelected == -1)
@@ -283,5 +309,6 @@ export default {
   fogTrackListEndPoint: fogTrackListEndPoint,
   userTrackUpdateEndPoint: userTrackUpdateEndPoint,
   fogTrackUpdateEndPoint: fogTrackUpdateEndPoint,
-  fogTrackDeleteEndPoint: fogTrackDeleteEndPoint
+  fogTrackDeleteEndPoint: fogTrackDeleteEndPoint,
+  getTracksForUser: getTracksForUser
 };

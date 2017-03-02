@@ -19,7 +19,7 @@ class FogControllerConfigUtil {
     } else {
 
       _.each(this.fogConfigs, function(config) {
-        if (config.key.toUpperCase() === key.toUpperCase()) {
+        if (config.key.toLowerCase() === key.toLowerCase()) {
           configValue = config.value;
           return;
         }
@@ -43,16 +43,16 @@ class FogControllerConfigUtil {
 
   isKeyExist(configKey) {
     return _.find(Constants.CONFIG, function(value, key) {
-      if (configKey.toUpperCase() == key.toUpperCase()) {
+      if (configKey.toLowerCase() == key.toLowerCase()) {
         return true;
       }
     });
   }
 
   validateValue(key, value) {
-    if (key.toUpperCase() == Constants.CONFIG.PORT) {
+    if (key == Constants.CONFIG.port) {
       return AppUtils.isValidPort(value);
-    } else if (key.toUpperCase() == Constants.CONFIG.SSL_KEY || key.toUpperCase() == Constants.CONFIG.SSL_CERT || key.toUpperCase() == Constants.CONFIG.INTERMEDIATE_CERT) {
+    } else if (key.toLowerCase() == Constants.CONFIG.ssl_key || key.toLowerCase() == Constants.CONFIG.ssl_cert || key.toLowerCase() == Constants.intermediate_cert) {
       return AppUtils.isFileExists(value);
     }
   }

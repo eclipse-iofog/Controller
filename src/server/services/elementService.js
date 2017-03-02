@@ -22,6 +22,13 @@ const findElementAndRegistryById = function(props, params, callback) {
     .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Unable to find Element object with id ' + elementId, callback));
 }
 
+const getElementCatalog = function(props, params, callback) {
+
+  ElementManager
+    .getElementCatalog()
+    .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Error: Element catalog not found', callback));
+}
+
 const getNetworkElement = function(props, params, callback) {
   var networkElementId = AppUtils.getProperty(params, props.networkElementId);
 
@@ -42,6 +49,7 @@ export default {
   createElement: createElement,
   deleteElementById: deleteElementById,
   findElementAndRegistryById: findElementAndRegistryById,
+  getElementCatalog: getElementCatalog,
   getNetworkElement: getNetworkElement,
   updateElement: updateElement
 };

@@ -45,7 +45,8 @@ function main() {
             value = args[3];
             try {
               if(key && value){
-              ConfigUtil.setConfigParam(key, value);
+                var lowerKey = key.toLowerCase();
+                ConfigUtil.setConfigParam(lowerKey, value);
               }else{
                 console.log('\nPlease provide values in following order:\n fog-controller config -add <key> <value>');
               }
@@ -58,7 +59,8 @@ function main() {
             key = args[2];
               try {
                 if(key){
-                  FogControllerConfigManager.deleteConfig(key);
+                  var lowerKey = key.toLowerCase();
+                  FogControllerConfigManager.deleteConfig(lowerKey);
                 }else{
                   console.log('\nPlease provide values in following order:\n fog-controller config -remove <key>');
                 }
@@ -87,7 +89,6 @@ function main() {
       try{
         var databaseFile = fs.readFileSync(path.join(__dirname ,'../db/fog_controller.db'));
         console.log('Size of database file: ' + Math.round((databaseFile.toString().length/1024)*100)/100 + ' KB');
-        console.log('Verifying Fog-Controller connection to comsat(s):');
         ComsatService.checkConnectionToComsat();
       }catch(e){
         console.log('Error: "fog_controller.db" not found in "db" folder.');
@@ -95,7 +96,7 @@ function main() {
       break;
 
     case 'start':
-        daemon.start();
+      daemon.start();
       break;
 
     case 'stop':
@@ -125,7 +126,7 @@ function main() {
       }
       break;
 
-    case 'satellite':
+    case 'comsat':
       if (args[1]) {
         switch (args[1]) {
           case '-list':
@@ -160,12 +161,12 @@ const displayHelp = function (){
     "\t=======          =========                                 =======\n" + 
     "\tconfig           -list                                     Displays Configuration information in CLI (config table content)\n" +
     "\t                 -add <key> <value>                        Set Configurations of fog-controller\n" +
-    "\t                                                           (You can set one of these configurations: PORT, SSL_KEY, INTERMEDIATE_CERT,  SSL_CERT)\n" +
+    "\t                                                           (You can set one of these configurations: port, ssl_key, intermediate_cert, ssl_cert)\n" +
     "\t                 -remove <key>                             Deletes a Configuration with corresponding Key\n" +
+    "\n\tcomsat           -list                                     List down all ComSat(s)\n" +
+    "\t                 -add <name> <domain> <publicIP>           Creates a new ComSat\n" +
+    "\t                 -remove <ID>                              Deletes a ComSat with corresponding ID\n" +
     "\n\thelp                                                       Shows this message\n" + 
-    "\n\tsatellite        -list                                     List down all satellites\n" +
-    "\t                 -add <name> <domain> <publicIP>           Creates a new satellite\n" +
-    "\t                 -remove <ID>                              Deletes a satellite with corresponding ID\n" +
     "\n\tstart                                                      Starts fog-controller\n"+
     "\n\tstatus                                                     Shows status of fog-controller\n" +     
     "\n\tstop                                                       Stops fog-controller\n" +     

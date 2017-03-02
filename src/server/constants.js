@@ -28,10 +28,10 @@ const MSG = {
 };
 
 const CONFIG = {
-  PORT: 'PORT',
-  SSL_KEY: 'SSL_KEY',
-  SSL_CERT: 'SSL_CERT',
-  INTERMEDIATE_CERT: 'INTERMEDIATE_CERT'
+  port: 'port',
+  ssl_key: 'ssl_key',
+  ssl_cert: 'ssl_cert',
+  intermediate_cert: 'intermediate_cert'
 };
 
 export default {

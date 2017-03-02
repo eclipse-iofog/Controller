@@ -801,7 +801,7 @@ const elementInstancePortDeleteEndPoint = function(req, res) {
   }
 
   async.waterfall(waterfallMethods, function(err, result) {
-    var errMsg = 'Internal error: There was a problem trying to delete the Comsat Pipe.' + result;
+    var errMsg = 'Internal error: There was a problem trying to delete the ComSat Pipe.' + result;
 
     AppUtils.sendResponse(res, err, 'portId', params.bodyParams.portId, errMsg);
   });

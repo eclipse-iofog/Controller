@@ -41,17 +41,17 @@ const startServer = function(port) {
   configUtil.getAllConfigs()
     .then(() => {
       if (!port) {
-        dbPort = configUtil.getConfigParam(constants.CONFIG.PORT);
+        dbPort = configUtil.getConfigParam(constants.CONFIG.port);
         if (dbPort) {
           port = dbPort;
         } else {
           port = appConfig.port;
         }
       }
-      sslKey = configUtil.getConfigParam(constants.CONFIG.SSL_KEY);
+      sslKey = configUtil.getConfigParam(constants.CONFIG.ssl_key);
       if (sslKey) {
-        sslCert = configUtil.getConfigParam(constants.CONFIG.SSL_CERT);
-        intermedKey = configUtil.getConfigParam(constants.CONFIG.INTERMEDIATE_CERT);
+        sslCert = configUtil.getConfigParam(constants.CONFIG.ssl_cert);
+        intermedKey = configUtil.getConfigParam(constants.CONFIG.intermediate_cert);
         startHttpsServer(app, port, sslKey, sslCert, intermedKey);
       } else {
         startHttpServer(app, port);
@@ -78,6 +78,7 @@ const initApp = function() {
   app.post('/api/v2/authoring/organization/element/create', elementController.createElementEndPoint);
   app.post('/api/v2/authoring/organization/element/update', elementController.updateElementEndPoint);
   app.post('/api/v2/authoring/organization/element/delete', elementController.deleteElementEndPoint);
+  app.get('/api/v2/authoring/element/catalog/get', elementController.getCatalogOfElements);
   app.get('/api/v2/authoring/fabric/track/element/list/:trackId', elementInstanceController.trackElementListEndPoint);
   app.post('/api/v2/authoring/element/instance/create', elementInstanceController.detailedElementInstanceCreateEndPoint);
   app.post('/api/v2/authoring/build/element/instance/create', elementInstanceController.elementInstanceCreateEndPoint);
@@ -124,6 +125,7 @@ const initApp = function() {
   app.post('/api/v2/authoring/user/track/update', trackController.userTrackUpdateEndPoint);
   app.post('/api/v2/authoring/fabric/track/update', trackController.fogTrackUpdateEndPoint);
   app.post('/api/v2/authoring/fabric/track/delete', trackController.fogTrackDeleteEndPoint);
+  app.get('/api/v2/authoring/user/track/list/:userId', trackController.getTracksForUser);
 
   //generic error handler
   app.use((err, req, res, next) => {
@@ -164,16 +166,16 @@ const startHttpsServer = function(app, port, sslKey, sslCert, intermedKey) {
 
     https.createServer(sslOptions, app).listen(port, function onStart(err) {
     if (err) {
+      logger.error(err);
       console.log(err);
     }
       logger.info('==> 🌎 HTTPS server listening on port %s. Open up https://localhost:%s/ in your browser.', port, port);
       console.info('==> 🌎 HTTPS server listening on port %s. Open up https://localhost:%s/ in your browser.', port, port);
     });
   }catch(e){
-    logger.error('Error: SSL-Key or SSL_CERT or INTERMEDIATE_CERT is either missing or invalid. Provide valid SSL configurations.');
-    console.log('Error: SSL-Key or SSL_CERT or INTERMEDIATE_CERT is either missing or invalid. Provide valid SSL configurations.');
+    logger.error('ssl_key or ssl_cert or intermediate_cert is either missing or invalid. Provide valid SSL configurations.');
+    console.info('ssl_key or ssl_cert or intermediate_cert is either missing or invalid. Provide valid SSL configurations.');
   }
-
 }
 
 export default {

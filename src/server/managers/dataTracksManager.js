@@ -32,6 +32,14 @@ class DataTracksManager extends BaseManager {
     });
   }
 
+  getTracksByUserId(userId) {
+    return DataTracks.findAll({
+      where: {
+        updatedBy: userId
+      }
+    });
+  }
+
   deleteByTrackId(trackId) {
     return DataTracks.destroy({
       where: {

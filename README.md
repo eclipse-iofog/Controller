@@ -2,7 +2,7 @@
 
 1.&ensp;Install fog-controller
 
-	   npm install –g fog-controller
+	   npm install -g fog-controller
 
 2.&ensp;Create user
 
@@ -52,7 +52,7 @@
         fog-controller version
  
 **Logs**
-- Log files are located at './fog-controller/logs/'
+- Log files are located at './node_modules/fog-controller/logs/'
 - Log files are rotated on daily basis or if a file size exceeds 20 MB 
 
 **System Requirements (Recommended)**
@@ -77,17 +77,17 @@
 
 Note: Configuration keys can be one of following
 
-- PORT
-- SSL\_KEY
-- SSL\_CERT
-- INTERMEDIATE\_CERT
+- port
+- ssl\_key
+- intermediate\_cert
+- ssl\_cert
 
 To setup HTTPS for fog controller, do following steps:
 
-        fog-controller add PORT 443
-        fog-controller add SSL_KEY '/home/certificates/key.pem'
-        fog-controller add INTERMEDIATE_CERT '/home/certificates/gs_intermediate_ca.crt'
-        fog-controller add SSL_CERT '/home/certificates/certificate.pem'
+        fog-controller config -add port 443
+        fog-controller config -add ssl_key '/home/certificates/key.pem'
+        fog-controller config -add intermediate_cert '/home/certificates/gs_intermediate_ca.crt'
+        fog-controller config -add ssl_cert '/home/certificates/certificate.pem'
 
 3.&ensp;To remove a configuration
 
@@ -113,23 +113,23 @@ To setup HTTPS for fog controller, do following steps:
         fog-controller user -generateToken <email>
 
 
-**Satellite Managment**
+**ComSat Managment**
 
-1.&ensp;To list satellites
+1.&ensp;To list all ComSat(s)
 
-        fog-controller satellite -list
+        fog-controller comsat -list
 
-2.&ensp;To add a satellite
+2.&ensp;To add a ComSat
 
-        fog-controller satellite -add <name> <domain> <publicIP>
+        fog-controller comsat -add <name> <domain> <publicIP>
 
-3.&ensp;To remove a satellite
+3.&ensp;To remove a ComSat
 
-        fog-controller satellite -remove <ID>
+        fog-controller comsat -remove <ID>
 
 **Execute Fog-Controller on startup**
 
-**1.&ensp;Windows:**
+&ensp;For Windows, do following steps:
 
 &ensp;&ensp;&ensp;- Open a new text document
 
@@ -144,7 +144,7 @@ To setup HTTPS for fog controller, do following steps:
         “C:\Users\username\AppData\Roaming\Microsoft\Windows\StartMenu\Programs\Startup\” 
         (replacing ‘username’ with the name of your user).
 
-**2.&ensp;Ubuntu:**
+&ensp;For Ubuntu, do following steps:
 
 &ensp;&ensp;&ensp;- Create a file as ‘fog-controller.conf’ in /etc/init/ directory with following command:
 

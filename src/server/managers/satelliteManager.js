@@ -6,6 +6,8 @@
 
 import Satellite from './../models/satellite';
 import BaseManager from './../managers/baseManager';
+import AppUtils from './../utils/appUtils';
+
 
 class SatelliteManager extends BaseManager {
 
@@ -45,20 +47,30 @@ class SatelliteManager extends BaseManager {
 
   createSatellite(name, domain, publicIP) {
     if (name && domain && publicIP) {
-      this.findBySatelliteName(name)
-        .then(function(satellite) {
-          if (!satellite) {  
-            this.create({
-              name: name,
-              domain: domain,
-              publicIP: publicIP,
-            }).then(function(satellite) {
-              console.log('\nSatellite Created : '+satellite.name);
-            });
-          } else {
-              console.log('\nSatellite already exists with this name. Please try again with different Name.');
+      if (AppUtils.isValidName(name)){
+        if(AppUtils.isValidDomain(domain)){
+          if(AppUtils.isValidPublicIP(publicIP)){
+            this.findBySatelliteName(name)
+              .then(function(satellite) {
+                if (!satellite) {  
+                  this.create({
+                    name: name,
+                    domain: domain,
+                    publicIP: publicIP,
+                  }).then(function(satellite) {
+                    console.log('\nSatellite Created : '+satellite.name);
+                  });
+                }else {
+                  console.log('\nSatellite already exists with this name. Please try again with different Name.');
+                }
+              });
+            }else{
+              console.log('ComSat publicIP is invalid. Try again with different ComSat publicIP.');
             }
-        });
+        }
+      }else{
+        console.log('ComSat name is invalid. Try again with different ComSat name.');
+      }
     }else { 
       console.log('\nPlease provide values in following order:\n fog-controller satellite -add <name> <domain> <publicIP>');
     }
