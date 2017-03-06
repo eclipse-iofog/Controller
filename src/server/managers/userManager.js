@@ -27,6 +27,15 @@ class UserManager extends BaseManager {
 		});
 	}
 
+	validateUser(email, password) {
+		return User.find({
+			where: {
+				email: email,
+				password: password
+			}
+		});
+	}
+
 	/**
 	 * @desc - finds the user based on the users email
 	 * @param String - email

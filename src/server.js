@@ -13,6 +13,7 @@ import configUtil from './server/utils/configUtil';
 import constants from './server/constants.js';
 
 import baseController from './server/controllers/baseController';
+import loginController from './server/controllers/api/loginController';
 import elementInstanceController from './server/controllers/api/elementInstanceController';
 import elementController from './server/controllers/api/elementController';
 import fogController from './server/controllers/api/fogController';
@@ -72,9 +73,19 @@ const initApp = function() {
   app.set('view engine', 'ejs');
   app.use(cookieParser());
 
+  // CORS Enabled
+  app.use(function(req, res, next) {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    next();
+  });
+
   app.set('views', path.join(__dirname, 'views'));
 
   app.get('/', baseController.mainPageEndPoint);
+
+  app.post('/api/v1/user/login', loginController.validateUserEndPoint);
+
   app.post('/api/v2/authoring/organization/element/create', elementController.createElementEndPoint);
   app.post('/api/v2/authoring/organization/element/update', elementController.updateElementEndPoint);
   app.post('/api/v2/authoring/organization/element/delete', elementController.deleteElementEndPoint);

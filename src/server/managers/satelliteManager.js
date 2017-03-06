@@ -7,7 +7,7 @@
 import Satellite from './../models/satellite';
 import BaseManager from './../managers/baseManager';
 import AppUtils from './../utils/appUtils';
-
+import Sequelize from 'sequelize';
 
 class SatelliteManager extends BaseManager {
 
@@ -37,12 +37,21 @@ class SatelliteManager extends BaseManager {
     })
   }
 
-  findBySatelliteName(satelliteName) {
+  findBySatelliteNameDomainAndPublicIP(satelliteName, satelliteDomain, satellitePublicIP) {
     return Satellite.find({
       where: {
-        name: satelliteName
+        $or: [{
+            name: 
+              { 
+                $like: satelliteName
+              }
+            }, {
+            domain: satelliteDomain
+            }, {
+            publicIP: satellitePublicIP
+        }]
       }
-    })
+    });
   }
 
   createSatellite(name, domain, publicIP) {
@@ -50,20 +59,20 @@ class SatelliteManager extends BaseManager {
       if (AppUtils.isValidName(name)){
         if(AppUtils.isValidDomain(domain)){
           if(AppUtils.isValidPublicIP(publicIP)){
-            this.findBySatelliteName(name)
-              .then(function(satellite) {
-                if (!satellite) {  
-                  this.create({
-                    name: name,
-                    domain: domain,
-                    publicIP: publicIP,
-                  }).then(function(satellite) {
+              this.findBySatelliteNameDomainAndPublicIP(name, domain, publicIP)
+                .then(function(satellite) {
+                  if (!satellite) {  
+                    this.create({
+                      name: name,
+                      domain: domain,
+                      publicIP: publicIP,
+                    }).then(function(satellite) {
                     console.log('\nSatellite Created : '+satellite.name);
-                  });
-                }else {
-                  console.log('\nSatellite already exists with this name. Please try again with different Name.');
-                }
-              });
+                    });
+                  }else {
+                    console.log('\nError: Following ComSat already exists with similar configurations: \n ' + satellite.name + ' (' + satellite.domain + ') ' + satellite.publicIP);
+                  }
+                });
             }else{
               console.log('ComSat publicIP is invalid. Try again with different ComSat publicIP.');
             }
