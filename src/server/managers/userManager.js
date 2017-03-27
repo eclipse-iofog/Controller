@@ -14,6 +14,10 @@ class UserManager extends BaseManager {
 		return User;
 	}
 
+	addUser(userData) {
+		return User.create(userData);
+	}
+
 	/**
 	 * @desc - finds the user based on the users email
 	 * @param String - email
@@ -21,6 +25,14 @@ class UserManager extends BaseManager {
 	 */
 	findByEmail(email) {
 		return User.find({
+			where: {
+				email: email
+			}
+		});
+	}
+
+	updateUserByEmail(email, data) {
+		return User.update(data, {
 			where: {
 				email: email
 			}
@@ -36,6 +48,13 @@ class UserManager extends BaseManager {
 		});
 	}
 
+	validateUserByEmail(email) {
+		return User.find({
+			where: {
+				email: email
+			}
+		});
+	}
 	/**
 	 * @desc - finds the user based on the users email
 	 * @param String - email
@@ -44,7 +63,7 @@ class UserManager extends BaseManager {
 	findByToken(token) {
 		return User.find({
 			where: {
-				password: token
+				userAccessToken: token
 			}
 		});
 	}
@@ -80,20 +99,25 @@ class UserManager extends BaseManager {
 			});
 	}
 
-	createUser(email, firstName, lastName) {
-		if (email) {
+	createUser(email, firstName, lastName, password) {
+		if (email && password) {
       		this.findByEmail(email)
         	.then(function(user) {
           if (!user) {  
 			if (AppUtils.isValidEmail(email)) {
-				this.create({
-					firstName: firstName,
-					lastName: lastName,
-					email: email,
-					password: AppUtils.generateAccessToken()
-				}).then(function(user) {
-					console.log('\nUser Access Token: '+user.password);
-				});
+				if (password.length >= 8){
+					this.create({
+						firstName: firstName,
+						lastName: lastName,
+						email: email,
+						password: password,
+						userAccessToken: AppUtils.generateAccessToken()
+					}).then(function(user) {
+					console.log('\nUser created successfully: ' + email);
+					});
+				}else{
+					console.log('\nError: Password length should be atleast 8 characters.');
+				}
 			} else {
 				console.log('\nError: Invalid Email address provided');
 			}
@@ -102,7 +126,7 @@ class UserManager extends BaseManager {
 		   }
 		 })
 		} else {
-      console.log('\nPlease provide values in following order:\n fog-controller user -add <email> <firstName> <lastName>');
+      		console.log('\nPlease provide values in following order:\n fog-controller user -add <email> <firstName> <lastName> <password>');
 		}
 	}
 

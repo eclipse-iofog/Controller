@@ -7,7 +7,7 @@ const findBySatelliteIds = function(props, params, callback) {
 
   SatelliteManager
     .findBySatelliteIds(_.pluck(satellitePortData, props.field))
-    .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Satellite not found.', callback));
+    .then(AppUtils.onFindOptional.bind(null, params, props.setProperty, callback));
 }
 
 const getRandomSatellite = function(params, callback) {

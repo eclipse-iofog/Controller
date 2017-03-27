@@ -17,7 +17,6 @@ class FogControllerConfigUtil {
     if (!this.fogConfigs) {
       return undefined;
     } else {
-
       _.each(this.fogConfigs, function(config) {
         if (config.key.toLowerCase() === key.toLowerCase()) {
           configValue = config.value;
@@ -52,7 +51,7 @@ class FogControllerConfigUtil {
   validateValue(key, value) {
     if (key == Constants.CONFIG.port) {
       return AppUtils.isValidPort(value);
-    } else if (key.toLowerCase() == Constants.CONFIG.ssl_key || key.toLowerCase() == Constants.CONFIG.ssl_cert || key.toLowerCase() == Constants.intermediate_cert) {
+    } else if (key.toLowerCase() == Constants.CONFIG.ssl_key || key.toLowerCase() == Constants.CONFIG.ssl_cert || key.toLowerCase() == Constants.CONFIG.intermediate_cert) {
       return AppUtils.isFileExists(value);
     }
   }

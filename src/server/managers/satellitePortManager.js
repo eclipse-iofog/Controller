@@ -27,6 +27,14 @@ class SatellitePortManager extends BaseManager {
     })
   }
 
+  deleteByPortId(satellitePortId){
+    return SatellitePort.destroy({
+      where: {
+        id: satellitePortId
+      }
+    })
+  }
+
   findBySatellitePortIds(networkPairingIds) {
     return SatellitePort.findAll({
       where: {

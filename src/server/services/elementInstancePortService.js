@@ -29,7 +29,7 @@ const deleteElementInstancePort = function(props, params, callback) {
 
   ElementInstancePortManager
     .deleteByElementInstanceId(elementId)
-    .then(AppUtils.onDeleteOptional.bind(null, params, 'No Element Instance Port found', callback));
+    .then(AppUtils.onDeleteOptional.bind(null, params, callback));
 }
 
 const deleteElementInstancePortById = function(props, params, callback) {
@@ -40,12 +40,20 @@ const deleteElementInstancePortById = function(props, params, callback) {
     .then(AppUtils.onDelete.bind(null, params, 'No Element Instance Port found', callback));
 }
 
+const deleteElementInstancePortsByElementIds = function(props, params, callback) {
+  var elementInstanceData = AppUtils.getProperty(params, props.elementInstanceData);
+
+  ElementInstancePortManager
+    .deleteByElementInstanceId(_.pluck(elementInstanceData, props.field))
+    .then(AppUtils.onDeleteOptional.bind(null, params, callback));
+}
+
 const findElementInstancePortsByElementIds = function(props, params, callback) {
   var elementInstanceData = AppUtils.getProperty(params, props.elementInstanceData);
 
   ElementInstancePortManager
     .findPortsByElementIds(_.pluck(elementInstanceData, props.field))
-    .then(AppUtils.onFind.bind(null, params, props.setProperty, 'No Element Instance Port found', callback));
+    .then(AppUtils.onFindOptional.bind(null, params, props.setProperty, callback));
 }
 
 const getElementInstancePort = function(props, params, callback) {
@@ -68,6 +76,7 @@ export default {
   createElementInstancePort: createElementInstancePort,
   createElementInstancePortByPortValue: createElementInstancePortByPortValue,
   deleteElementInstancePort: deleteElementInstancePort,
+  deleteElementInstancePortsByElementIds: deleteElementInstancePortsByElementIds,
   deleteElementInstancePortById: deleteElementInstancePortById,
   findElementInstancePortsByElementIds: findElementInstancePortsByElementIds,
   getElementInstancePort: getElementInstancePort,

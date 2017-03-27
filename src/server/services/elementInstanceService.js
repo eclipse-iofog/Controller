@@ -2,6 +2,22 @@ import ElementInstanceManager from '../managers/elementInstanceManager';
 import AppUtils from '../utils/appUtils';
 import _ from 'underscore';
 
+const getElementInstanceProperties = function(props, params, callback) {
+  var elementInstanceId = AppUtils.getProperty(params, props.elementInstanceId);
+
+  ElementInstanceManager
+    .getElementInstanceProperties(elementInstanceId)
+    .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Cannot find Element Instance', callback));
+}
+
+const getDetailedElementInstances = function(props, params, callback) {
+  var trackId = AppUtils.getProperty(params, props.trackId);
+
+  ElementInstanceManager
+    .getElementInstanceDetails(trackId)
+    .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Cannot find Element Instance', callback));
+}
+
 const getElementInstance = function(props, params, callback) {
   var elementInstanceId = AppUtils.getProperty(params, props.elementInstanceId);
 
@@ -157,11 +173,27 @@ const deleteNetworkElementInstance = function(props, params, callback) {
     .then(AppUtils.onDelete.bind(null, params, 'No Network Element Instance found', callback));
 }
 
+const deleteNetworkElementInstances = function(props, params, callback) {
+  var elementInstanceData = AppUtils.getProperty(params, props.elementInstanceData);
+
+  ElementInstanceManager
+    .deleteNetworkElements(_.pluck(elementInstanceData, props.field1), _.pluck(elementInstanceData, props.field2))
+    .then(AppUtils.onDeleteOptional.bind(null, params, callback));
+}
+
 const deleteElementInstance = function(props, params, callback) {
   var elementId = AppUtils.getProperty(params, props.elementId);
   ElementInstanceManager
     .deleteByElementUUID(elementId)
     .then(AppUtils.onDelete.bind(null, params, 'Was unable to delete Element Instance', callback));
+}
+
+const deleteElementInstances = function(props, params, callback) {
+  var elementInstanceData = AppUtils.getProperty(params, props.elementInstanceData);
+
+  ElementInstanceManager
+    .deleteByElementUUID(_.pluck(elementInstanceData, props.field))
+    .then(AppUtils.onDeleteOptional.bind(null, params, callback));
 }
 
 export default {
@@ -176,10 +208,14 @@ export default {
   findOtherTrackDetailByUuids: findOtherTrackDetailByUuids,
   findElementInstancesByTrackId: findElementInstancesByTrackId,
   deleteElementInstance: deleteElementInstance,
+  deleteElementInstances: deleteElementInstances,
   deleteNetworkElementInstance: deleteNetworkElementInstance,
+  deleteNetworkElementInstances: deleteNetworkElementInstances,
   getElementInstance: getElementInstance,
   getElementInstanceByUuIds: getElementInstanceByUuIds,
   getElementInstancesByTrackId: getElementInstancesByTrackId,
+  getElementInstanceProperties: getElementInstanceProperties,
   updateElemInstance: updateElemInstance,
-  updateElemInstanceByFogUuId: updateElemInstanceByFogUuId
+  updateElemInstanceByFogUuId: updateElemInstanceByFogUuId,
+  getDetailedElementInstances:getDetailedElementInstances
 };

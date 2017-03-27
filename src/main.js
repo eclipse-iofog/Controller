@@ -23,9 +23,30 @@ function main() {
     var daemon = require("daemonize2").setup({
       main: "daemonServer.js",
       name: "fog-controller",
-      pidfile: "fog-controller.pid"
+      pidfile: "fog-controller.pid",
+      silent: true
     });
   
+  daemon
+    .on("starting", function() {
+        console.log("Starting fog-controller...");
+    })
+    .on("stopping", function() {
+        console.log("Stopping fog-controller...");
+    })
+    .on("stopped", function(pid) {
+        console.log("fog-controller stopped.");
+    })
+    .on("running", function(pid) {
+        console.log("fog-controller already running. PID: " + pid);
+    })
+    .on("notrunning", function() {
+        console.log("fog-controller is not running");
+    })
+    .on("error", function(err) {
+        console.log("fog-controller failed to start:  " + err.message);
+    });
+
   logger.info('Command inserted: fog-controller '+ commandInserted);
 
   switch (args[0]) {
@@ -96,7 +117,25 @@ function main() {
       break;
 
     case 'start':
-      daemon.start();
+      var result = daemon.status();
+      if (result == 0){
+        var count = 0;
+        daemon.start();
+
+        var refreshIntervalId = setInterval(function(){
+          count ++;
+          var pid = daemon.status();
+          if (pid == 0){
+            console.log('Error: ssl_key or ssl_cert or intermediate_cert is either missing or invalid. Provide valid SSL configurations.');
+            clearInterval(refreshIntervalId);
+          }else if(count == 3){
+            console.log('Fog-Controller has started at pid: ' + pid);
+            clearInterval(refreshIntervalId);
+          }
+        }, 1000);
+      }else{
+        console.log("fog-controller already running. PID: " + result);
+      }
       break;
 
     case 'stop':
@@ -110,7 +149,7 @@ function main() {
             UserManager.list();
             break;
           case '-add':
-            UserManager.createUser(args[2], args[3], args[4]);
+            UserManager.createUser(args[2], args[3], args[4], args[5]);
             break;
           case '-remove':
             UserManager.removeUser(args[2]);

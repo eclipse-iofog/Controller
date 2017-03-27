@@ -7,6 +7,7 @@
 import Routing from './../models/routing';
 import BaseManager from './../managers/baseManager';
 import sequelize from './../utils/sequelize';
+import logger from '../utils/winstonLogs';
 
 
 class RoutingManager extends BaseManager {
@@ -33,6 +34,32 @@ class RoutingManager extends BaseManager {
           }
         }]
       }
+    });
+  }
+
+  isDebugging(uuid, fogInstanceId) {
+    return Routing.findAll({
+      where: {
+        $and:[{
+          publishing_instance_id: fogInstanceId,
+          destination_instance_id: fogInstanceId,
+          publishing_element_id: uuid,
+          destination_element_id: 'debug'
+        }]
+      } 
+    });
+  }
+
+  isViewer(uuid, fogInstanceId) {
+    return Routing.findAll({
+      where: {
+        $and:[{
+          publishing_instance_id: fogInstanceId,
+          destination_instance_id: fogInstanceId,
+          publishing_element_id: uuid,
+          destination_element_id: 'viewer'
+        }]
+      } 
     });
   }
 
@@ -80,6 +107,18 @@ class RoutingManager extends BaseManager {
     return Routing.destroy({
       where: {
         publishing_element_id: elementId
+      }
+    });
+  }
+
+  deleteByPublishingOrDestinationElementId(elementId) {
+    return Routing.destroy({
+      where: {
+        $or: [{
+          publishing_element_id: elementId
+        }, {
+          destination_element_id: elementId
+        }]
       }
     });
   }

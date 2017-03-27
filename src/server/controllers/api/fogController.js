@@ -59,7 +59,7 @@ const fogInstancesListEndPoint = function(req, res){
 		async.apply(FogService.getFogInstanceForUser, fogInstanceForUserProps)
 
 	], function(err, result) {
-		AppUtils.sendResponse(res, err, 'elementsInstances', params.fogInstance, result);
+		AppUtils.sendResponse(res, err, 'instances', params.fogInstance, result);
 	})
 };
 
@@ -77,9 +77,15 @@ const fogInstanceCreateEndPoint = function(req, res){
     	},
 
     	createFogProps = {
+    		name: 'bodyParams.name',
+      		location: 'bodyParams.location',
+      		latitude: 'bodyParams.latitude',
+      		longitude: 'bodyParams.longitude',
+      		description: 'bodyParams.description',
       		fogType: 'bodyParams.type',
       		setProperty: 'fogInstance'
     	},
+
     	createFogUserProps = {
       		userId: 'user.id',
       		instanceId: 'fogInstance.uuid',
@@ -231,7 +237,7 @@ const integratorInstanceDeleteEndPoint = function(req, res){
 	],
 	function(err, result) {
 		var errMsg = 'Internal error: ' + result;
-		AppUtils.sendResponse(res, err, 'Deleted Fog', params.bodyParams.instanceId, errMsg);
+		AppUtils.sendResponse(res, err, 'instanceid', params.bodyParams.instanceId, errMsg);
 	});
 };
 

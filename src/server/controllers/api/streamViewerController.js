@@ -29,7 +29,7 @@ const fogViewerAccessEndPoint = function(req, res){
     setProperty: 'streamViewer'
   },
   consoleProps={
-    instanceId: 'bodyParams.ID',
+    instanceId: 'bodyParams.instanceId',
     setProperty: 'console'
   };
  params.bodyParams = req.query;

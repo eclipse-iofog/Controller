@@ -2,7 +2,6 @@ import SatellitePortManager from '../managers/satellitePortManager';
 import AppUtils from '../utils/appUtils';
 import _ from 'underscore';
 
-
 const createSatellitePort = function(props, params, callback) {
   SatellitePortManager
     .create(props.satellitePortObj)
@@ -25,12 +24,20 @@ const deleteSatellitePort = function(props, params, callback) {
     .then(AppUtils.onDelete.bind(null, params, 'No Satellite Port found', callback));
 }
 
+const deleteSatellitePortByIds = function(props, params, callback) {
+  var satellitePortIds = AppUtils.getProperty(params, props.satellitePortIds);
+
+  SatellitePortManager
+    .deleteByPortId(_.pluck(satellitePortIds, props.field))
+    .then(AppUtils.onDeleteOptional.bind(null, params, callback));
+}
+
 const findBySatellitePortIds = function(props, params, callback) {
   var networkData = AppUtils.getProperty(params, props.networkData);
 
   SatellitePortManager
     .findBySatellitePortIds(_.pluck(networkData, props.field))
-    .then(AppUtils.onFind.bind(null, params, props.setProperty, 'SatellitePort not found.', callback));
+    .then(AppUtils.onFindOptional.bind(null, params, props.setProperty, callback));
 }
 
 const getPasscodeForNetworkElements = function(props, params, callback) {
@@ -53,6 +60,7 @@ export default {
   createSatellitePort: createSatellitePort,
   deletePortsForNetworkElements: deletePortsForNetworkElements,
   deleteSatellitePort: deleteSatellitePort,
+  deleteSatellitePortByIds: deleteSatellitePortByIds,
   findBySatellitePortIds: findBySatellitePortIds,
   getPasscodeForNetworkElements: getPasscodeForNetworkElements,
   getSatellitePort: getSatellitePort

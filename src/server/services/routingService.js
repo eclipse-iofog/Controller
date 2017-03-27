@@ -1,6 +1,23 @@
 import RoutingManager from '../managers/routingManager';
 import AppUtils from '../utils/appUtils';
 import _ from 'underscore';
+import logger from '../utils/winstonLogs';
+
+const isDebugging = function (props, params, callback){
+  var elementInstanceData = AppUtils.getProperty(params, props.elementInstanceData);
+
+  RoutingManager
+    .isDebugging(_.pluck(elementInstanceData, props.fieldOne), _.pluck(elementInstanceData, props.fieldTwo))
+    .then(AppUtils.onFindOptional.bind(null, params, props.setProperty, callback));
+}
+
+const isViewer = function (props, params, callback){
+  var elementInstanceData = AppUtils.getProperty(params, props.elementInstanceData);
+
+  RoutingManager
+    .isViewer(_.pluck(elementInstanceData, props.fieldOne), _.pluck(elementInstanceData, props.fieldTwo))
+    .then(AppUtils.onFindOptional.bind(null, params, props.setProperty, callback));
+}
 
 const createRoute = function(props, params, callback) {
   var routingObj = {
@@ -33,7 +50,15 @@ const deleteElementInstanceRouting = function(props, params, callback) {
 
   RoutingManager
     .deleteByPublishingElementId(elementId)
-    .then(AppUtils.onDelete.bind(null, params, 'No Element Instance Routing found', callback));
+    .then(AppUtils.onDeleteOptional.bind(null, params, callback));
+}
+
+const deleteByPublishingOrDestinationElementId = function(props, params, callback) {
+  var elementInstanceData = AppUtils.getProperty(params, props.elementInstanceData);
+
+  RoutingManager
+    .deleteByPublishingOrDestinationElementId(_.pluck(elementInstanceData, props.field))
+    .then(AppUtils.onDeleteOptional.bind(null, params, callback));
 }
 
 const deleteNetworkElementRouting = function(props, params, callback) {
@@ -129,9 +154,12 @@ const findOutputRoutingByElementInstanceUuidsAndRoutingPublishing = function(pro
 
 export default {
   createRoute: createRoute,
+  isDebugging: isDebugging,
+  isViewer: isViewer,
   deleteByFogAndElement: deleteByFogAndElement,
   deleteElementInstanceRouting: deleteElementInstanceRouting,
   deleteNetworkElementRouting: deleteNetworkElementRouting,
+  deleteByPublishingOrDestinationElementId: deleteByPublishingOrDestinationElementId,
   extractDifferentRoutingList: extractDifferentRoutingList,
   extractDifferentOutputRoutingList: extractDifferentOutputRoutingList,
   findByElementInstanceUuidsAndRoutingDestination: findByElementInstanceUuidsAndRoutingDestination,

@@ -193,7 +193,7 @@ const Fog = sequelize.define('iofogs', {
   },
 }, {
   // don't add the timestamp attributes (updatedAt, createdAt)
-  timestamps: false,
+  timestamps: true,
   // disable the modification of table names
   freezeTableName: true,
   // don't use camelcase for automatically added attributes but underscore style

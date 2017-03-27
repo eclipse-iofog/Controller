@@ -20,7 +20,7 @@ const deleteConsoleByFogInstanceId = function(props, params, callback) {
 
   ConsoleManager
     .deleteByInstanceId(instanceId)
-    .then(AppUtils.onDeleteOptional.bind(null, params, 'Unable to delete Console', callback));
+    .then(AppUtils.onDeleteOptional.bind(null, params, callback));
 }
 
 export default {

@@ -3,10 +3,20 @@ import AppUtils from '../utils/appUtils';
 
 const createFogInstance = function(props, params, callback) {
   var fogType = AppUtils.getProperty(params, props.fogType),
-      instanceId = AppUtils.generateRandomString(32);
+      instanceId = AppUtils.generateRandomString(32),
+      name = AppUtils.getProperty(params, props.name),
+      location = AppUtils.getProperty(params, props.location),
+      latitude = AppUtils.getProperty(params, props.latitude),
+      longitude = AppUtils.getProperty(params, props.longitude),
+      description = AppUtils.getProperty(params, props.description);
 
   var config = {
     uuid: instanceId,
+    name: name,
+    location: location,
+    latitude: latitude,
+    longitude: longitude,
+    description: description,
     typeKey: fogType
   };
 

@@ -42,7 +42,15 @@ const deleteNetworkPairing = function(props, params, callback) {
 
   NetworkPairingManager
     .deleteByElementId(elementId)
-    .then(AppUtils.onDelete.bind(null, params, 'No Network Pairing Element found', callback));
+    .then(AppUtils.onDeleteOptional.bind(null, params, callback));
+}
+
+const deleteNetworkPairingByElementId1 = function(props, params, callback) {
+  var elementInstanceData = AppUtils.getProperty(params, props.elementInstanceData);
+
+  NetworkPairingManager
+    .deleteByElementId1(_.pluck(elementInstanceData, props.field))
+    .then(AppUtils.onDeleteOptional.bind(null, params, callback));
 }
 
 const deleteNetworkPairingById = function(props, params, callback) {
@@ -57,8 +65,8 @@ const findByElementInstancePortId = function(props, params, callback) {
   var elementInstancePortData = AppUtils.getProperty(params, props.elementInstancePortData);
 
   NetworkPairingManager
-    .findByElemen1PortIds(_.pluck(params.elementInstancePort, props.field))
-    .then(AppUtils.onFind.bind(null, params, props.setProperty, 'NetworkPairing not found.', callback));
+    .findByElemen1PortIds(_.pluck(elementInstancePortData, props.field))
+    .then(AppUtils.onFindOptional.bind(null, params, props.setProperty, callback));
 }
 
 const findOtherTrackByUuids = function(params, callback) {
@@ -97,12 +105,22 @@ const getNetworkPairingByFogAndElement = function(props, params, callback) {
     .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Unable to find Network pairing', callback));
 }
 
+const findByElementInstanceIds = function(props, params, callback) {
+  var elementInstanceData = AppUtils.getProperty(params, props.elementInstanceData);
+
+  NetworkPairingManager
+    .findByElementIds(_.pluck(elementInstanceData, props.field))
+    .then(AppUtils.onFindOptional.bind(null, params, props.setProperty, callback));
+}
+
 export default {
   concatNetwotkElementAndNormalElement: concatNetwotkElementAndNormalElement,
   concatNetwotkElement2AndNormalElement: concatNetwotkElement2AndNormalElement,
   createNetworkPairing: createNetworkPairing,
   deleteNetworkPairing: deleteNetworkPairing,
   deleteNetworkPairingById: deleteNetworkPairingById,
+  deleteNetworkPairingByElementId1: deleteNetworkPairingByElementId1,
+  findByElementInstanceIds: findByElementInstanceIds,
   findByElementInstancePortId: findByElementInstancePortId,
   findOutputOtherElementInfoByUuids: findOutputOtherElementInfoByUuids,
   findOtherTrackByUuids: findOtherTrackByUuids,

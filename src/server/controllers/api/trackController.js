@@ -8,6 +8,7 @@ import async from 'async';
 import ChangeTrackingService from '../../services/changeTrackingService';
 import ComsatService from '../../services/comsatService';
 import DataTracksService from '../../services/dataTracksService';
+import ElementInstanceConnectionsService from '../../services/elementInstanceConnectionsService';
 import ElementInstancePortService from '../../services/elementInstancePortService';
 import ElementInstanceService from '../../services/elementInstanceService';
 import FogService from '../../services/fogService';
@@ -20,6 +21,40 @@ import AppUtils from '../../utils/appUtils';
 import logger from '../../utils/winstonLogs';
 
 /********************************************* EndPoints ******************************************************/
+
+/***************** Create Track EndPoint (Post: /api/v2/authoring/user/track/create) **************/
+const userTrackCreateEndPoint = function(req, res){
+  logger.info("Endpoint hitted: "+ req.originalUrl);
+  var params = {},
+
+    userProps = {
+      userId: 'bodyParams.t',
+      setProperty: 'user'
+    },
+    fogInstanceProps = {
+      fogId: 'bodyParams.FabricInstanceID',
+      setProperty: 'fogData'
+    },
+
+    trackProps = {
+      trackName: 'bodyParams.TrackName',
+      fogInstanceId: 'bodyParams.FabricInstanceID',
+      setProperty: 'trackData'
+    };
+
+  params.bodyParams = req.body;
+
+  logger.info("Parameters:" + JSON.stringify(params.bodyParams));
+
+  async.waterfall([
+    async.apply(UserService.getUser, userProps, params),
+    async.apply(FogService.getFogInstance, fogInstanceProps),
+    createDataTrack
+
+  ], function(err, result) {
+    AppUtils.sendResponse(res, err, 'trackid', params.dataTrack.id, result);
+  })
+};
 
 /***************** Fog Track List EndPoint (Get: /api/v2/authoring/fabric/track/list/:instanceId) **************/
 const fogTrackListEndPoint = function(req, res){
@@ -51,44 +86,6 @@ const fogTrackListEndPoint = function(req, res){
     async.apply(DataTracksService.getDataTrackByInstanceId, dataTrackProps)
   ], function(err, result) {
     AppUtils.sendResponse(res, err, 'tracks', params.dataTracks, result);
-  })
-};
-
-/***************** User Track Update EndPoint (Post: /api/v2/authoring/user/track/update) **************/
-const userTrackUpdateEndPoint = function(req, res){
-  logger.info("Endpoint hitted: "+ req.originalUrl);
-
-  var params = {},
-
-    userProps = {
-      userId: 'bodyParams.userId',
-      setProperty: 'user'
-    },
-    
-    dataTrackProps = {
-      trackId: 'bodyParams.trackId',
-      setProperty: 'dataTrack'
-    };
-
-  params.bodyParams = req.body;
-  logger.info("Parameters:" + JSON.stringify(params.bodyParams));
-
-  async.waterfall([
-    async.apply(UserService.getUser, userProps, params),
-    async.apply(DataTracksService.getDataTrackById, dataTrackProps),
-    resetSelectedActivatedAndName,
-    findElementInstanceByTrackId,
-    updateChangeTracking,
-    updateDataTrackById
-
-  ], function(err, result) {
-    var trackId;
-
-    if (params.bodyParams){
-      trackId = params.bodyParams.trackId;
-    }
-
-    AppUtils.sendResponse(res, err, 'trackId', trackId, result);
   })
 };
 
@@ -189,28 +186,198 @@ const getTracksForUser = function(req, res) {
   })
 };
 
+/***************** User Track Update EndPoint (Post: /api/v2/authoring/user/track/update) **************/
+const userTrackUpdateEndPoint = function(req, res){
+  logger.info("Endpoint hitted: "+ req.originalUrl);
+
+  var params = {},
+
+    userProps = {
+      userId: 'bodyParams.t',
+      setProperty: 'user'
+    },
+    
+    dataTrackProps = {
+      trackId: 'bodyParams.TrackID',
+      setProperty: 'dataTrack'
+    };
+
+  params.bodyParams = req.body;
+  logger.info("Parameters:" + JSON.stringify(params.bodyParams));
+
+  async.waterfall([
+    async.apply(UserService.getUser, userProps, params),
+    async.apply(DataTracksService.getDataTrackById, dataTrackProps),
+    resetSelectedActivatedAndName,
+    findElementInstanceByTrackId,
+    updateChangeTracking,
+    updateDataTrackById
+
+  ], function(err, result) {
+    var trackId;
+
+    if (params.bodyParams.TrackID){
+      trackId = params.bodyParams.TrackID;
+    }
+
+    AppUtils.sendResponse(res, err, 'trackid', trackId, result);
+  })
+};
+/***************** User Track Delete EndPoint (Post: /api/v2/authoring/user/track/delete) **************/
+
+const userTrackDeleteEndPoint = function(req, res){
+  logger.info("Endpoint hitted: "+ req.originalUrl);
+
+  var params = {},
+
+    userProps = {
+      userId: 'bodyParams.t',
+      setProperty: 'user'
+    },
+    
+    dataTrackProps = {
+      trackId: 'bodyParams.trackId',
+      setProperty: 'dataTrack'
+    },
+    elementInstanceProps = {
+      trackId: 'bodyParams.trackId',
+      setProperty: 'elementInstances'
+    },
+    elementInstanceDataProps = {
+      elementInstanceData: 'elementInstances',
+      field: 'uuid'
+    },
+    networkPairingProps = {
+      elementInstanceData: 'elementInstances',
+      field: 'uuid',
+      setProperty: 'networkPairingData'
+    },
+    satellitePortProps = {
+      satellitePortIds: 'networkPairingData',
+      field: 'satellitePortId'
+    },
+    deleteNetworkElementInstanceProps = {
+      elementInstanceData: 'networkPairingData',
+      field1: 'networkElementId1',
+      field2: 'networkElementId2'
+    },
+    elementInstanceConnectionProps = {
+     elementInstanceData: 'elementInstances',
+      field: 'uuid'
+    };
+
+  params.bodyParams = req.body;
+  logger.info("Parameters:" + JSON.stringify(params.bodyParams));
+
+  async.waterfall([
+    async.apply(UserService.getUser, userProps, params),
+    async.apply(DataTracksService.getDataTrackById, dataTrackProps),
+    deleteDataTrack,
+    async.apply(ElementInstanceService.findElementInstancesByTrackId, elementInstanceProps),
+    async.apply(ElementInstancePortService.deleteElementInstancePortsByElementIds, elementInstanceDataProps),
+    async.apply(NetworkPairingService.findByElementInstanceIds, networkPairingProps),
+    async.apply(SatellitePortService.deleteSatellitePortByIds, satellitePortProps),
+    async.apply(ElementInstanceService.deleteNetworkElementInstances, deleteNetworkElementInstanceProps),
+    async.apply(NetworkPairingService.deleteNetworkPairingByElementId1, networkPairingProps),
+    async.apply(ElementInstanceConnectionsService.deleteElementInstanceConnection, elementInstanceDataProps),
+    async.apply(RoutingService.deleteByPublishingOrDestinationElementId, elementInstanceDataProps),
+    updateFogChangeTracking,
+    async.apply(ElementInstanceService.deleteElementInstances, elementInstanceDataProps)
+
+  ], function(err, result) {
+    
+    AppUtils.sendResponse(res, err, 'elementInstances', params.elementInstances, result);
+  })
+};
+
 /************************************* Extra Functions ********************************************/
+const updateFogChangeTracking = function(params, callback){
+  var changeTrackingProps = {
+    elementInstanceData: 'elementInstances',
+    field: 'iofog_uuid',
+    changeObject: {
+      containerList: new Date().getTime()
+    }
+  };
+    
+  ChangeTrackingService.updateChangeTrackingData(changeTrackingProps, params, callback);
+}
+
+const deleteDataTrack = function(params, callback){
+  if (params.dataTrack.updatedBy == params.user.id){
+    var dataTrackProps = {
+      trackId :'bodyParams.trackId'
+    };
+  
+    DataTracksService.deleteTrackById(dataTrackProps, params, callback);
+
+  }else{
+    callback('err', 'Permission error: You are not authorized to delete this track.');
+  }
+}
+
+const deleteElement = function(params, callback) {
+  var deleteElementProps = {
+        elementId: 'bodyParams.elementId'
+      },
+      portPasscodeProps = {
+        elementId: 'bodyParams.elementId',
+        setProperty: 'portPasscode'
+      };
+
+  async.waterfall([
+    async.apply(ElementInstancePortService.deleteElementInstancePort,deleteElementProps, params),
+    async.apply(RoutingService.deleteElementInstanceRouting,deleteElementProps),
+    async.apply(RoutingService.deleteNetworkElementRouting,deleteElementProps),
+    async.apply(ElementInstanceService.deleteNetworkElementInstance, deleteElementProps),
+    async.apply(SatellitePortService.getPasscodeForNetworkElements, portPasscodeProps),
+    ComsatService.closePortsOnComsat,
+    async.apply(NetworkPairingService.deleteNetworkPairing, deleteElementProps),
+    async.apply(SatellitePortService.deletePortsForNetworkElements, deleteElementProps),
+    async.apply(ElementInstanceService.deleteElementInstance, deleteElementProps)
+  ], function(err, result) {
+    console.log(err);
+    callback();
+  });
+}
+
+const createDataTrack = function(params, callback){
+  var dataTrackProps = {
+    dataTrackObj: {
+      name: params.bodyParams.TrackName,
+      instanceId: params.bodyParams.FabricInstanceID,
+      updatedBy: params.user.id,
+      isSelected: 0,
+      isActivated: 0,
+      user_id: params.user.id
+    },
+    setProperty: 'dataTrack'
+  };
+  
+  DataTracksService.createDataTrack(dataTrackProps, params, callback);
+}
+
 const resetSelectedActivatedAndName= function(params, callback) {
 
-  if (params.bodyParams.isSelected == -1)
-    params.bodyParams.isSelected = params.dataTrack.isSelected;
+  if (params.bodyParams.IsSelected == -1 || params.bodyParams.IsSelected == '')
+    params.bodyParams.IsSelected = params.dataTrack.isSelected;
 
-  if (params.bodyParams.isActivated == -1)
-    params.bodyParams.isActivated = params.dataTrack.isActivated;
+  if (params.bodyParams.IsActivated == -1 || params.bodyParams.IsActivated == '')
+    params.bodyParams.IsActivated = params.dataTrack.isActivated;
 
-  if (!params.bodyParams.name)
-    params.bodyParams.name = params.dataTrack.name;
+  if (!params.bodyParams.TrackName)
+    params.bodyParams.TrackName = params.dataTrack.name;
 
   callback(null, params);
 }
 
 const findElementInstanceByTrackId= function(params, callback) {
     var elementInstanceProps = {
-      trackId: 'bodyParams.trackId',
+      trackId: 'bodyParams.TrackID',
       setProperty: 'elementInstances'
     };
     
-  if (params.bodyParams.isActivated != params.dataTrack.isActivated) {
+  if (params.bodyParams.IsActivated != params.dataTrack.isActivated) {
     ElementInstanceService.findElementInstancesByTrackId(elementInstanceProps, params, callback);
   }
   else{
@@ -219,35 +386,27 @@ const findElementInstanceByTrackId= function(params, callback) {
 }
 
 const updateChangeTracking= function(params, callback) {
-  var changeTrackingProps = {};
-        
-  if (params.elementInstances){
-    for(var i = 0; i < params.elementInstances.length; i++){
-        changeTrackingProps = {
-          fogInstanceId: 'elementInstances['+ i +'].iofog_uuid',
-          changeObject: {
-            containerConfig: new Date().getTime(),
-            containerList: new Date().getTime()
-          }
-        };
-      ChangeTrackingService.updateChangeTrackingData(changeTrackingProps, params);
+ var changeTrackingProps = {
+    elementInstanceData: 'elementInstances',
+    field: 'iofog_uuid',
+    changeObject: {
+      containerConfig: new Date().getTime(),
+      containerList: new Date().getTime()
     }
-    callback(null, params);
-  }
-  else{
-    callback(null, params);
-  }
+  };
+    
+  ChangeTrackingService.updateChangeTrackingData(changeTrackingProps, params, callback);
 }
 
 const updateDataTrackById= function(params, callback) {
   var updateDataTrackProps = {
-        trackId: 'bodyParams.trackId',
+        trackId: 'bodyParams.TrackID',
         updatedObj: {
-          name: params.bodyParams.name,
+          name: params.bodyParams.TrackName,
           description: '',
           lastUpdated : new Date(),
-          isSelected: params.bodyParams.isSelected,
-          isActivated: params.bodyParams.isActivated,
+          isSelected: params.bodyParams.IsSelected,
+          isActivated: params.bodyParams.IsActivated,
           user_id: params.user.id
       }
     };
@@ -280,35 +439,12 @@ const deleteElementInstances = function(params, callback) {
   }
 }
 
-const deleteElement = function(params, callback) {
-  var deleteElementProps = {
-        elementId: 'bodyParams.elementId'
-      },
-      portPasscodeProps = {
-        elementId: 'bodyParams.elementId',
-        setProperty: 'portPasscode'
-      };
-
-  async.waterfall([
-    async.apply(ElementInstancePortService.deleteElementInstancePort,deleteElementProps, params),
-    async.apply(RoutingService.deleteElementInstanceRouting,deleteElementProps),
-    async.apply(RoutingService.deleteNetworkElementRouting,deleteElementProps),
-    async.apply(ElementInstanceService.deleteNetworkElementInstance, deleteElementProps),
-    async.apply(SatellitePortService.getPasscodeForNetworkElements, portPasscodeProps),
-    ComsatService.closePortsOnComsat,
-    async.apply(NetworkPairingService.deleteNetworkPairing, deleteElementProps),
-    async.apply(SatellitePortService.deletePortsForNetworkElements, deleteElementProps),
-    async.apply(ElementInstanceService.deleteElementInstance, deleteElementProps)
-  ], function(err, result) {
-    console.log(err);
-    callback();
-  });
-}
-
 export default {
   fogTrackListEndPoint: fogTrackListEndPoint,
-  userTrackUpdateEndPoint: userTrackUpdateEndPoint,
   fogTrackUpdateEndPoint: fogTrackUpdateEndPoint,
   fogTrackDeleteEndPoint: fogTrackDeleteEndPoint,
-  getTracksForUser: getTracksForUser
+  getTracksForUser: getTracksForUser,
+  userTrackCreateEndPoint: userTrackCreateEndPoint,
+  userTrackUpdateEndPoint: userTrackUpdateEndPoint,
+  userTrackDeleteEndPoint: userTrackDeleteEndPoint
 };

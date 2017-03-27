@@ -6,7 +6,7 @@
 
 2.&ensp;Create user
 
-	   fog-controller user -add <email> <firstName> <lastName>
+	   fog-controller user -add <email> <firstName> <lastName> <password>
 
 3.&ensp;Start fog-controller
 
@@ -102,7 +102,7 @@ To setup HTTPS for fog controller, do following steps:
 
 2.&ensp;To add a user
 
-        fog-controller user -add <email> <firstName> <lastName>
+        fog-controller user -add <email> <firstName> <lastName> <password>
 
 3.&ensp;To remove a user
 

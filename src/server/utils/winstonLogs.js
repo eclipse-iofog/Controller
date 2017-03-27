@@ -22,6 +22,7 @@ var logger = new winston.Logger({
       maxsize: 20971520, //20 MB
       datePattern: 'yyyy-MM-dd_',
       timestamp: tsFormat,
+      localTime: true,
       prepend: true
     })
   ],

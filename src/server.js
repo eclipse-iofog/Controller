@@ -85,7 +85,10 @@ const initApp = function() {
   app.get('/', baseController.mainPageEndPoint);
 
   app.post('/api/v1/user/login', loginController.validateUserEndPoint);
-
+  app.post('/api/v1/user/signup', loginController.userSignupEndPoint);
+  app.post('/api/v1/user/password/reset', loginController.resetPasswordEndPoint);
+  app.post('/api/v1/user/account/activate/resend', loginController.resendActivationEndPoint);
+ 
   app.post('/api/v2/authoring/organization/element/create', elementController.createElementEndPoint);
   app.post('/api/v2/authoring/organization/element/update', elementController.updateElementEndPoint);
   app.post('/api/v2/authoring/organization/element/delete', elementController.deleteElementEndPoint);
@@ -133,10 +136,17 @@ const initApp = function() {
   app.post('/api/v2/authoring/integrator/instance/update', integratorController.integratorInstanceUpdateEndPoint);
   app.get('/api/v2/authoring/fabric/viewer/access', streamViewerController.fogViewerAccessEndPoint);
   app.get('/api/v2/authoring/fabric/track/list/:instanceId', trackController.fogTrackListEndPoint);
+  app.post('/api/v2/authoring/user/track/create', trackController.userTrackCreateEndPoint);
   app.post('/api/v2/authoring/user/track/update', trackController.userTrackUpdateEndPoint);
+  app.post('/api/v2/authoring/user/track/delete', trackController.userTrackDeleteEndPoint);
+
   app.post('/api/v2/authoring/fabric/track/update', trackController.fogTrackUpdateEndPoint);
   app.post('/api/v2/authoring/fabric/track/delete', trackController.fogTrackDeleteEndPoint);
   app.get('/api/v2/authoring/user/track/list/:userId', trackController.getTracksForUser);
+  app.post('/api/v2/authoring/element/instance/details/trackid/:trackId', elementInstanceController.getElementInstanceDetailsEndPoint);
+  app.post('/api/v2/authoring/build/properties/panel/get', elementInstanceController.getElementInstancePropertiesEndPoint);
+  app.post('/api/v2/authoring/element/connection/create', elementInstanceController.createElementInstanceConnectionEndPoint);
+
 
   //generic error handler
   app.use((err, req, res, next) => {
@@ -161,7 +171,7 @@ const startHttpServer = function(app, port) {
       console.log(err);
     }
     logger.info('==> 🌎 Listening on port %s. Open up http://localhost:%s/ in your browser.', port, port);
-    console.info('==> 🌎 Listening on port %s. Open up http://localhost:%s/ in your browser.', port, port);
+    console.log('==> 🌎 Listening on port %s. Open up http://localhost:%s/ in your browser.', port, port);
   });
 }
 
@@ -181,11 +191,11 @@ const startHttpsServer = function(app, port, sslKey, sslCert, intermedKey) {
       console.log(err);
     }
       logger.info('==> 🌎 HTTPS server listening on port %s. Open up https://localhost:%s/ in your browser.', port, port);
-      console.info('==> 🌎 HTTPS server listening on port %s. Open up https://localhost:%s/ in your browser.', port, port);
+      console.log('==> 🌎 HTTPS server listening on port %s. Open up https://localhost:%s/ in your browser.', port, port);
     });
   }catch(e){
     logger.error('ssl_key or ssl_cert or intermediate_cert is either missing or invalid. Provide valid SSL configurations.');
-    console.info('ssl_key or ssl_cert or intermediate_cert is either missing or invalid. Provide valid SSL configurations.');
+    console.log('ssl_key or ssl_cert or intermediate_cert is either missing or invalid. Provide valid SSL configurations.');
   }
 }
 

@@ -188,6 +188,19 @@ class ElementInstanceManager extends BaseManager {
 		return ElementInstance.create(elementInstance);
 	}
 
+	deleteNetworkElements(networkElementId1, networkElementId2) {
+    	return ElementInstance.destroy({
+      		where: {
+        		$or: [{
+          			uuid: networkElementId1
+        		}, {
+          			uuid: networkElementId2
+        		}]
+      		}
+    	});
+  	}
+
+
 	deleteNetworkElement(elementId) {
 		var deleteQuery = ' \
 			DELETE FROM element_instance \
@@ -202,7 +215,6 @@ class ElementInstanceManager extends BaseManager {
 				WHERE elementId1 = "' + elementId + '" \
 			) \
 		';
-
 		return sequelize.query(deleteQuery);
 	}
 
@@ -240,7 +252,7 @@ class ElementInstanceManager extends BaseManager {
 	}
 
 	findIntraTrackByUuids(uuids) {
-		const query = 'select DISTINCT(ei.uuid) as elementid, ei.name as elementname, e.name elementtypename from element_instance ' +
+		const query = 'select DISTINCT(ei.uuid) as elementid, ei.name as elementname, e.name as elementtypename from element_instance ' +
 			' ei join element e on e.id = ei.element_key where ei.uuid in (:uuids)';
 		return sequelize.query(query, {
 			replacements: {
@@ -251,7 +263,7 @@ class ElementInstanceManager extends BaseManager {
 	}
 
 	findExtraTrackByUuids(uuids) {
-		const query = 'select DISTINCT(ei.uuid) as elementid, ei.name as elementname, e.name elementtypename, ei.track_id as trackid, t.name as trackname ' +
+		const query = 'select DISTINCT(ei.uuid) as elementid, ei.name as elementname, e.name as elementtypename, ei.track_id as trackid, t.name as trackname ' +
 			' from element_instance ei join element e on e.id = ei.element_key join data_tracks t on t.id = ei.track_id where ei.uuid in (:uuids)';
 		return sequelize.query(query, {
 			replacements: {
@@ -262,7 +274,7 @@ class ElementInstanceManager extends BaseManager {
 	}
 
 	findOtherTrackDetailByUuids(uuids) {
-		const query = 'select DISTINCT(ei.uuid) as elementid, ei.name as elementname, e.name elementtypename, ei.track_id as trackid, t.name as trackname, ' +
+		const query = 'select DISTINCT(ei.uuid) as elementid, ei.name as elementname, e.name as elementtypename, ei.track_id as trackid, t.name as trackname, ' +
 			' ei.iofog_uuid as instanceId, f.name as instanceName from element_instance ei join element e on e.id = ei.element_key join data_tracks t ' +
 			' on t.id = ei.track_id  join iofogs f on ei.iofog_uuid = f.uuid where ei.UUID in (:uuids)';
 		return sequelize.query(query, {
@@ -272,7 +284,39 @@ class ElementInstanceManager extends BaseManager {
 			type: sequelize.QueryTypes.SELECT
 		});
 	}
-}
 
+	getElementInstanceDetails(trackId) {
+		const query = 'select ei.UUID as uuid, ei.name as elementInstanceName, ' +
+		 			  'ei.config as config, ei.iofog_uuid as fogInstanceId, ei.root_host_access ' +
+		 			  'as rootHostAccess, ei.log_size as logSize, e.name as elementName, e.picture ' +
+		 			  'as elementPicture, ft.Name, ft.ID from element_instance ei inner join element e ' +
+					  'on ei.element_key = e.id left join element_fog_types eft ' +
+					  'on ei.element_key = eft.element_id left join iofog_type ft ' +
+					  'on ft.ID = eft.iofog_type_id ' +
+					  'where ei.track_id = ' + trackId + ' AND e.publisher != "SYSTEM"';
+
+		return sequelize.query(query, {
+			type: sequelize.QueryTypes.SELECT
+		});
+	}
+
+	getElementInstanceProperties(uuid) {
+		const query = 'select ei.UUID as uuid, ei.element_key as elementKey, ei.name as elementInstanceName, ' +
+		 			  'ei.config as config, ei.iofog_uuid as fogInstanceId, ei.root_host_access ' +
+		 			  'as rootHostAccess, ei.log_size as logSize, ei.rebuild as rebuild, e.*, ' +
+		 			  'ft.ID as fogTypeID from element_instance ei left join element e ' +
+					  'on ei.element_key = e.id left join element_fog_types eft ' +
+					  'on ei.element_key = eft.element_id left join iofog_type ft ' +
+					  'on ft.ID = eft.iofog_type_id ' +
+					  'where ei.UUID in (:uuid)';
+
+		return sequelize.query(query, {
+			replacements: {
+				uuid: uuid
+			},
+			type: sequelize.QueryTypes.SELECT
+		});
+	}
+}
 const instance = new ElementInstanceManager();
 export default instance;

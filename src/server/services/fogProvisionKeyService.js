@@ -32,7 +32,7 @@ const deleteProvisonKeyByInstanceId = function(props, params, callback) {
 
   FogProvisionKeyManager
     .deleteByInstanceId(instanceId)
-    .then(AppUtils.onDeleteOptional.bind(null, params, 'Unable to delete Provision Key', callback));
+    .then(AppUtils.onDeleteOptional.bind(null, params, callback));
 }
 
 const deleteByProvisionKey= function(props, params, callback) {
@@ -40,7 +40,7 @@ const deleteByProvisionKey= function(props, params, callback) {
 
   FogProvisionKeyManager
     .deleteByProvisionKey(provisionKey)
-    .then(AppUtils.onDeleteOptional.bind(null, params, 'Unable to delete Provision Key', callback));
+    .then(AppUtils.onDeleteOptional.bind(null, params, callback));
 }
 
 const getFogByProvisionKey = function(props, params, callback) {

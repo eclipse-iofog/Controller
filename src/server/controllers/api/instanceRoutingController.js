@@ -70,7 +70,7 @@ const instanceRouteCreateEndPoint = function (req, res){
     watefallMethods = [],
 
     userProps = {
-      userId: 'bodyParams.userId',
+      userId: 'bodyParams.t',
       setProperty: 'user'
     },
 

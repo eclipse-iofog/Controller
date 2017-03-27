@@ -28,7 +28,7 @@ const deleteFogAccessTokenByUserId = function(props, params, callback) {
 
   FogAccessTokenManager
     .deleteByUserId(userId)
-    .then(AppUtils.onDeleteOptional.bind(null, params, 'Unable to delete Fog Access Token', callback));
+    .then(AppUtils.onDeleteOptional.bind(null, params, callback));
 }
 
 const generateFogAccessToken = function(params, callback) {

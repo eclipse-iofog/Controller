@@ -36,6 +36,11 @@ const integratorInstanceCreateEndPoint = function(req, res){
     },
 
     createFogProps = {
+      name: 'bodyParams.name',
+      location: 'bodyParams.location',
+      latitude: 'bodyParams.latitude',
+      longitude: 'bodyParams.longitude',
+      description: 'bodyParams.description',
       fogType: 'bodyParams.fabricType',
       setProperty: 'fogInstance'
     },

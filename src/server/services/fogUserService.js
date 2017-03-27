@@ -15,7 +15,7 @@ const deleteFogUserByInstanceId = function(props, params, callback) {
 
   FogUserManager
     .deleteByInstanceId(instanceId)
-    .then(AppUtils.onDeleteOptional.bind(null, params, 'Unable to delete Fog User', callback));
+    .then(AppUtils.onDeleteOptional.bind(null, params, callback));
 }
 
 const deleteFogUserByInstanceIdAndUserId = function(props, params, callback) {
@@ -24,7 +24,7 @@ const deleteFogUserByInstanceIdAndUserId = function(props, params, callback) {
 
   FogUserManager
     .deleteByInstanceIdAndUserId(userId, instanceId)
-    .then(AppUtils.onDeleteOptional.bind(null, params, 'Unable to delete Fog User', callback));
+    .then(AppUtils.onDeleteOptional.bind(null, params, callback));
 }
 
 const findFogUserByInstanceIdAndUserId = function(props, params, callback) {

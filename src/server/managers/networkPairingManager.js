@@ -55,6 +55,25 @@ class NetworkPairingManager extends BaseManager {
     });
   }
 
+  findByElementIds(elementId) {
+    return NetworkPairing.findAll({
+      where: {
+        $or: [{
+          elementId1: elementId
+        }, {
+          elementId2: elementId
+        }]
+      }
+    });
+  }
+  deleteByElementId1(elementId) {
+    return NetworkPairing.destroy({
+      where: {
+          elementId1: elementId
+      }
+    });
+  }
+
   deleteByElementId(elementId) {
     return NetworkPairing.destroy({
       where: {

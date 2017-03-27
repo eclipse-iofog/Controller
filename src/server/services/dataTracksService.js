@@ -1,6 +1,12 @@
 import DataTracksManager from '../managers/dataTracksManager';
 import AppUtils from '../utils/appUtils';
 
+const createDataTrack = function(props, params, callback) {
+  DataTracksManager
+    .create(props.dataTrackObj)
+    .then(AppUtils.onCreate.bind(null, params, props.setProperty, 'Unable to create DataTrack object.', callback));
+}
+
 const deleteTrackById = function(props, params, callback) {
   var trackId = AppUtils.getProperty(params, props.trackId);
 
@@ -50,6 +56,7 @@ const updateDataTrackById = function(props, params, callback) {
 }
 
 export default {
+  createDataTrack: createDataTrack,
   deleteTrackById: deleteTrackById,
   findContainerListByInstanceId: findContainerListByInstanceId,
   getDataTrackById: getDataTrackById,

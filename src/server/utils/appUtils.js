@@ -177,7 +177,7 @@ const onDelete = function(params, errorMsg, callback, deletedModels) {
   }
 }
 
-const onDeleteOptional = function(params, errorMsg, callback, deletedModels) {
+const onDeleteOptional = function(params, callback, deletedModels) {
   callback(null, params);
 }
 
