@@ -13,7 +13,6 @@ import configUtil from './server/utils/configUtil';
 import constants from './server/constants.js';
 
 import baseController from './server/controllers/baseController';
-import loginController from './server/controllers/api/loginController';
 import elementInstanceController from './server/controllers/api/elementInstanceController';
 import elementController from './server/controllers/api/elementController';
 import fogController from './server/controllers/api/fogController';
@@ -84,11 +83,6 @@ const initApp = function() {
 
   app.get('/', baseController.mainPageEndPoint);
 
-  app.post('/api/v1/user/login', loginController.validateUserEndPoint);
-  app.post('/api/v1/user/signup', loginController.userSignupEndPoint);
-  app.post('/api/v1/user/password/reset', loginController.resetPasswordEndPoint);
-  app.post('/api/v1/user/account/activate/resend', loginController.resendActivationEndPoint);
- 
   app.post('/api/v2/authoring/organization/element/create', elementController.createElementEndPoint);
   app.post('/api/v2/authoring/organization/element/update', elementController.updateElementEndPoint);
   app.post('/api/v2/authoring/organization/element/delete', elementController.deleteElementEndPoint);
