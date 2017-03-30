@@ -422,6 +422,7 @@ const instanceRouteDeleteEndPoint = function(req, res){
 
 /************************************* Extra Functions **************************************************/
   const getRouting = function (params, callback) {
+  try{
     var containerList = [];
     for (let i = 0; i < params.routingData.length; i++) {
       var container = params.routingData[i],
@@ -438,12 +439,15 @@ const instanceRouteDeleteEndPoint = function(req, res){
         if (curID == containerID) {
           foundIt = true;
           var outElementLabel = destinationElementID;
-
-          if (destinationElementID == params.streamViewerData.element_id) {
-            outElementLabel = "viewer";
+          if(params.streamViewerData){
+            if (destinationElementID == params.streamViewerData.element_id) {
+              outElementLabel = "viewer";
+            }
           }
-          if (destinationElementID == params.consoleData.elementId) {
-            outElementLabel = "debug";
+          if(params.consoleData){
+            if (destinationElementID == params.consoleData.elementId) {
+              outElementLabel = "debug";
+            }
           }
             containerList[j]["receivers"].push(outElementLabel);
         }
@@ -454,13 +458,16 @@ const instanceRouteDeleteEndPoint = function(req, res){
             outElementLabel = destinationElementID;
               
             tmpNewContainerItem.container = containerID;
-
-        if (destinationElementID ==  params.streamViewerData.element_id) {
-          outElementLabel = "viewer";
+        if(params.streamViewerData){
+          if (destinationElementID ==  params.streamViewerData.element_id) {
+            outElementLabel = "viewer";
           }
-        if (destinationElementID == params.consoleData.elementId) {
-          outElementLabel = "debug";
+        }
+        if (params.consoleData){
+          if (destinationElementID == params.consoleData.elementId) {
+            outElementLabel = "debug";
           }
+        }
         
         receiverList.push(outElementLabel);
 
@@ -470,7 +477,10 @@ const instanceRouteDeleteEndPoint = function(req, res){
     }
     params.containerList = containerList;
     callback(null, params);
+  }catch(e){
+    logger.error(e);
   }
+}
 
 const createSatellitePort = function(params, callback){
   var satellitePortProps = {
