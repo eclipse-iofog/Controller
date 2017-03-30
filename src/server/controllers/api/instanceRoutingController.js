@@ -62,8 +62,6 @@ const instanceRoutingEndPoint = function (req, res){
 
 /********* Instance Route Create EndPoint (Post: /api/v2/authoring/element/instance/route/create) **********/
 const instanceRouteCreateEndPoint = function (req, res){
-
-//router.post('/api/v2/authoring/element/instance/route/create', (req, res) => {
   logger.info("Endpoint hitted: "+ req.originalUrl);
   var params = {},
     currentTime = new Date().getTime(),
@@ -172,7 +170,7 @@ const instanceRouteCreateEndPoint = function (req, res){
       fogInstanceId: 'destinationFogInstance.uuid',
       satellitePort: 'satellitePort.port1',
       satelliteDomain: 'satellite.domain',
-      trackId: 'bodyParams.publishingTrackId',
+      trackId: 'bodyParams.destinationTrackId',
       userId: 'userId',
       networkName: null,
       networkPort: 0,
@@ -286,7 +284,7 @@ const instanceRouteDeleteEndPoint = function(req, res){
     watefallMethods = [],
 
     userProps = {
-      userId: 'bodyParams.userId',
+      userId: 'bodyParams.t',
       setProperty: 'user'
     },
 
@@ -302,7 +300,7 @@ const instanceRouteDeleteEndPoint = function(req, res){
 
     deleteRouteProps = {
       instanceId1: 'bodyParams.publishingInstanceId',
-      instanceId2: 'bodyParams.publishingInstanceId',
+      instanceId2: 'bodyParams.destinationInstanceId',
       elementId1: 'bodyParams.publishingElementId',
       elementId2: 'bodyParams.destinationElementId',
       isNetwork: false
@@ -511,7 +509,7 @@ const getDeleteOutput = function(params, callback) {
   params.output = {
     publishinginstanceid: params.bodyParams.publishingInstanceId,
     publishingtrackid: params.bodyParams.publishingTrackId,
-    publishingelementid: params.publishingElementInstanceId,
+    publishingelementid: params.publishingElementId,
     destinationinstanceid: params.bodyParams.destinationInstanceId,
     destinationtrackid: params.bodyParams.destinationTrackId,
     destinationelementid: params.bodyParams.destinationElementId

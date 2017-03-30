@@ -26,81 +26,33 @@ import AppUtils from '../../utils/appUtils';
 import logger from '../../utils/winstonLogs';
 import _ from 'underscore';
 
-/********************************************* EndPoints ******************************************************/
- 
-/***** Get Details of Element Instance EndPoint (Post: /api/v2/authoring/element/instance/details/trackid/:trackId *****/
- const getElementInstanceDetailsEndPoint = function(req, res) {
-  try{
+/*********************************************** EndPoints ******************************************************/
+/***** Get Rebuild Status of Element Instance EndPoint (Get: /api/v2/authoring/element/instance/rebuild/status/elementid/:elementId *****/
+ const elementInstanceRebuildStatusEndPoint = function(req, res) {
   logger.info("Endpoint hit: "+ req.originalUrl);
 
   var params = {},
-      userProps = {
-        userId: 'bodyParams.t',
-        setProperty: 'user'
-      },
-      elementInstanceProps = {
-        trackId: 'bodyParams.trackId',
-        setProperty: 'elementInstance'
-      },
-      elementInstanceConnectionProps = {
-        sourceElementInstanceIds: 'elementInstance',
-        field: 'uuid',
-        setProperty:'elementInstanceConnection'
-      },
-      elementInstancePortProps = {
-        elementInstanceData: 'elementInstance',
-        field: 'uuid',
-        setProperty:'elementInstancePort'
-      },
-      networkPairingProps = {
-        elementInstancePortData: 'elementInstancePort',
-        field: 'id',
-        setProperty:'networkPairing'
-      },
-      satellitePortProps = {
-        networkData: 'networkPairing',
-        field: 'satellitePortId',
-        setProperty: 'satellitePort'
-      },
-      satelliteProps = {
-        satellitePortData: 'satellitePort',
-        field: 'satellite_id',
-        setProperty: 'satellite'
-      },
-      debugProps = {
-        elementInstanceData: 'elementInstance',
-        fieldOne: 'uuid',
-        fieldTwo: 'fogInstanceId',
-        setProperty: 'isDebug'
-      },
-      viewerProps = {
-        elementInstanceData: 'elementInstance',
-        fieldOne: 'uuid',
-        fieldTwo: 'fogInstanceId',
-        setProperty: 'isViewer'
-      };
-  params.bodyParams = req.body;
+    elementInstanceProps = {
+      elementInstanceId: 'bodyParams.elementId',
+      setProperty: 'elementInstance'
+    };
+
+  params.bodyParams = req.params;
   logger.info("Parameters:" + JSON.stringify(params.bodyParams));
-  params.bodyParams.trackId = req.params.trackId;
 
   async.waterfall([
-    async.apply(UserService.getUser, userProps, params),
-    async.apply(ElementInstanceService.getDetailedElementInstances, elementInstanceProps),
-    async.apply(ElementInstanceConnectionsService.findBySourceElementInstance, elementInstanceConnectionProps),
-    async.apply(ElementInstancePortService.findElementInstancePortsByElementIds, elementInstancePortProps),
-    async.apply(NetworkPairingService.findByElementInstancePortId, networkPairingProps),
-    async.apply(SatellitePortService.findBySatellitePortIds, satellitePortProps),
-    async.apply(SatelliteService.findBySatelliteIds, satelliteProps),
-    async.apply(RoutingService.isDebugging, debugProps),
-    async.apply(RoutingService.isViewer, viewerProps),
-    getOpenPorts
+    async.apply(ElementInstanceService.getElementInstance, elementInstanceProps, params)
 
   ], function(err, result) {
-    AppUtils.sendResponse(res, err, 'instance', params.response, result);
+    var rebuild ;
+    if (params.elementInstance.rebuild){
+      rebuild = 1;
+    }else{
+      rebuild = 0;
+    }
+
+    AppUtils.sendResponse(res, err, 'rebuild', rebuild, result);
   });
-  }catch(e){
-    logger.error(e);
-  }
 };
 
 /***** Track Element List By TrackId EndPoint (Get: /api/v2/authoring/fabric/track/element/list/:trackId) *****/
@@ -109,7 +61,7 @@ import _ from 'underscore';
 
   var params = {},
       userProps = {
-          userId: 'bodyParams.userId',
+          userId: 'bodyParams.t',
           setProperty: 'user'
       },
       elementInstanceProps = {
@@ -183,7 +135,7 @@ import _ from 'underscore';
       };
 
   params.bodyParams = req.params;
-  params.bodyParams.userId = req.query.userId;
+  params.bodyParams.t = req.query.t;
 
   logger.info("Parameters:" + JSON.stringify(params.bodyParams));
 
@@ -220,7 +172,7 @@ import _ from 'underscore';
   logger.info("Endpoint hitted: "+ req.originalUrl);
     var params = {},
       userProps = {
-        userId: 'bodyParams.userId',
+        userId: 'bodyParams.t',
         setProperty: 'user'
       },
       elementProps = {
@@ -353,9 +305,10 @@ import _ from 'underscore';
 /********** Element Instance Create EndPoint (Post: /api/v2/authoring/build/element/instance/create) **********/
 const elementInstanceCreateEndPoint = function(req, res) {
   logger.info("Endpoint hitted: "+ req.originalUrl);
-  var params = {},
+  var params = {};
+  params.logSize = 10;
   
-    userProps = {
+  var userProps = {
       userId: 'bodyParams.t',
       setProperty: 'user'
     },
@@ -369,7 +322,7 @@ const elementInstanceCreateEndPoint = function(req, res) {
       userId: 'user.id',
       trackId: 'bodyParams.trackId',
       name: 'bodyParams.name',
-      logSize: 'bodyParams.logSize',
+      logSize: 'logSize',
       config: 'bodyParams.config',
       fogInstanceId: 'bodyParams.fabricInstanceId',
       setProperty: 'elementInstance'
@@ -401,40 +354,6 @@ const processNewElementInstance = function(params, callback) {
   callback(null, params); 
 }
 
-/********** Element Instance Update EndPoint (Post: /api/v2/authoring/element/instance/update) **********/
-const elementInstanceUpdateEndPoint = function(req, res) {
-  logger.info("Endpoint hitted: "+ req.originalUrl);
-
-  var params = {},
-      userProps = {
-        userId: 'bodyParams.userId',
-        setProperty: 'user'
-      },
-      fogProps = {
-        fogId: 'bodyParams.fabricInstanceId',
-        setProperty: 'fogData'
-      },
-      elementInstanceProps = {
-        elementInstanceId: 'bodyParams.instanceId',
-        setProperty: 'elementInstance'
-      };
-
-  params.bodyParams = req.body;
-  logger.info("Parameters:" + JSON.stringify(params.bodyParams));
-
-    async.waterfall([
-      async.apply(UserService.getUser, userProps, params),
-      async.apply(FogService.getFogInstance, fogProps),
-      async.apply(ElementInstanceService.getElementInstance, elementInstanceProps),
-      updateElementInstance,
-      updateChangeTracking,
-      updateChange, 
-      updateElement 
-    ], function(err, result) {
-    AppUtils.sendResponse(res, err, 'instanceId', params.bodyParams.instanceId, result);
-    });
-};
-
 /*** Element Instance Name/Config Update EndPoint (Post: ['/api/v2/authoring/element/instance/config/update',
                                                           '/api/v2/authoring/element/instance/name/update',]) ***/
 const elementInstanceConfigUpdateEndPoint = function(req, res) {
@@ -442,7 +361,7 @@ logger.info("Endpoint hitted: "+req.originalUrl);
 
   var params = {},
     userProps = {
-      userId: 'bodyParams.userId',
+      userId: 'bodyParams.t',
       setProperty: 'user'
     },
 
@@ -479,7 +398,7 @@ const elementInstanceDeleteEndPoint = function(req, res) {
   var params = {},
 
     userProps = {
-      userId: 'bodyParams.userId',
+      userId: 'bodyParams.t',
       setProperty: 'user'
     },
     
@@ -520,7 +439,7 @@ const elementInstanceComsatPipeCreateEndPoint = function(req, res) {
   var params = {},
 
     userProps = {
-      userId: 'bodyParams.userId',
+      userId: 'bodyParams.t',
       setProperty: 'user'
     },
 
@@ -614,7 +533,7 @@ const elementInstanceComsatPipeDeleteEndPoint = function(req, res) {
   var params = {},
 
     userProps = {
-      userId: 'bodyParams.userId',
+      userId: 'bodyParams.t',
       setProperty: 'user'
     },
 
@@ -679,7 +598,7 @@ const elementInstancePortCreateEndPoint = function(req, res) {
     waterfallMethods = [],
 
     userProps = {
-      userId: 'bodyParams.userId',
+      userId: 'bodyParams.t',
       setProperty: 'user'
     },
 
@@ -798,7 +717,7 @@ const elementInstancePortDeleteEndPoint = function(req, res) {
     waterfallMethods = [],
 
     userProps = {
-      userId: 'bodyParams.userId',
+      userId: 'bodyParams.t',
       setProperty: 'user'
     },
 
@@ -900,7 +819,6 @@ const elementInstancePortDeleteEndPoint = function(req, res) {
   });
 };
 
-
 /***** Get Properties of Element Instance EndPoint (Post: api/v2/authoring/build/properties/panel/get *****/
  const getElementInstancePropertiesEndPoint = function(req, res) {
   logger.info("Endpoint hit: "+ req.originalUrl);
@@ -977,18 +895,385 @@ const elementInstancePortDeleteEndPoint = function(req, res) {
 
   ], function(err, result) {
       var connectionId;
-      if (params.elementInstanceConnection[0].id){
+      if (params.elementInstanceConnection.length){
         connectionId =  params.elementInstanceConnection[0].id;
       }else{
-        connectionId = params.newElementInstanceConnection[0].id;
+        connectionId = params.newElementInstanceConnection.id;
       }
 
-    AppUtils.sendResponse(res, err, 'connection', params, result);
+    AppUtils.sendResponse(res, err, 'connection', connectionId, result);
   });
 };
 
+/***** Delete Element Instance Connection EndPoint (Post: /api/v2/authoring/element/connection/delete *****/
+ const deleteElementInstanceConnectionEndPoint = function(req, res) {
+  logger.info("Endpoint hit: "+ req.originalUrl);
+
+  var params = {},
+      userProps = {
+        userId: 'bodyParams.t',
+        setProperty: 'user'
+      },
+      elementInstanceConnectionProps = {
+        sourceElementInstanceId: 'bodyParams.sourceElementId',
+        destinationElementInstanceId: 'bodyParams.destinationElementId',
+        setProperty: 'elementInstanceConnection'
+      };
+
+  params.bodyParams = req.body;
+  logger.info("Parameters:" + JSON.stringify(params.bodyParams));
+
+  async.waterfall([
+    async.apply(UserService.getUser, userProps, params),
+    async.apply(ElementInstanceConnectionsService.deleteBySourceAndDestinationElementInstance, elementInstanceConnectionProps),
+
+  ], function(err, result) {
+
+    AppUtils.sendResponse(res, err, '', '', result);
+  });
+};
+
+/********** Element Instance Update EndPoint (Post: /api/v2/authoring/element/instance/update) **********/
+const elementInstanceUpdateEndPoint = function(req, res) {
+  logger.info("Endpoint hitted: "+ req.originalUrl);
+
+  var params = {},
+      userProps = {
+        userId: 'bodyParams.t',
+        setProperty: 'user'
+      },
+      fogProps = {
+        fogId: 'bodyParams.fabricInstanceId',
+        setProperty: 'fogData'
+      },
+      elementInstanceProps = {
+        elementInstanceId: 'bodyParams.instanceId',
+        setProperty: 'elementInstance'
+      };
+
+  params.bodyParams = req.body;
+  logger.info("Parameters:" + JSON.stringify(params.bodyParams));
+
+    async.waterfall([
+      async.apply(UserService.getUser, userProps, params),
+      async.apply(FogService.getFogInstance, fogProps),
+      async.apply(ElementInstanceService.getElementInstance, elementInstanceProps),
+      updateElementInstance,
+      updateChangeTracking,
+      updateChange, 
+      updateElement 
+    ], function(err, result) {
+    AppUtils.sendResponse(res, err, 'id', params.bodyParams.instanceId, result);
+    });
+};
+
+/***** Update Rebuild of Element Instance EndPoint (Post: /api/v2/authoring/element/instance/rebuild *****/
+ const elementInstanceRebuildUpdateEndPoint = function(req, res) {
+  logger.info("Endpoint hit: "+ req.originalUrl);
+
+  var params = {},
+      userProps = {
+        userId: 'bodyParams.t',
+        setProperty: 'user'
+      },
+      elementInstanceProps = {
+        elementInstanceId: 'bodyParams.elementId',
+        setProperty: 'elementInstance'
+      };
+
+  params.bodyParams = req.body;
+  logger.info("Parameters:" + JSON.stringify(params.bodyParams));
+
+  async.waterfall([
+    async.apply(UserService.getUser, userProps, params),
+    async.apply(ElementInstanceService.getElementInstance, elementInstanceProps),
+    updateRebuild,
+    updateChangeTrackingData
+
+  ], function(err, result) {
+
+    AppUtils.sendResponse(res, err, 'id', params.bodyParams.elementId, result);
+  });
+};
+
+/***** Get Details of Element Instance EndPoint (Post: /api/v2/authoring/element/instance/details/trackid/:trackId *****/
+ const getElementInstanceDetailsEndPoint = function(req, res) {
+  logger.info("Endpoint hit: "+ req.originalUrl);
+
+  var params = {},
+      userProps = {
+        userId: 'bodyParams.t',
+        setProperty: 'user'
+      },
+      elementInstanceProps = {
+        trackId: 'bodyParams.trackId',
+        setProperty: 'elementInstance'
+      },
+      elementInstanceConnectionProps = {
+        sourceElementInstanceIds: 'elementInstance',
+        field: 'uuid',
+        setProperty:'elementInstanceConnection'
+      },
+      elementInstancePortProps = {
+        elementInstanceData: 'elementInstance',
+        field: 'uuid',
+        setProperty:'elementInstancePort'
+      },
+      networkPairingProps = {
+        elementInstancePortData: 'elementInstancePort',
+        field: 'id',
+        setProperty:'networkPairing'
+      },
+      satellitePortProps = {
+        networkData: 'networkPairing',
+        field: 'satellitePortId',
+        setProperty: 'satellitePort'
+      },
+      satelliteProps = {
+        satellitePortData: 'satellitePort',
+        field: 'satellite_id',
+        setProperty: 'satellite'
+      },
+      debugProps = {
+        elementInstanceData: 'elementInstance',
+        fieldOne: 'uuid',
+        fieldTwo: 'fogInstanceId',
+        setProperty: 'isDebug'
+      },
+      viewerProps = {
+        elementInstanceData: 'elementInstance',
+        fieldOne: 'uuid',
+        fieldTwo: 'fogInstanceId',
+        setProperty: 'isViewer'
+      },
+      dataTrackProps = {
+        elementInstanceData: 'elementInstance',
+        field: 'uuid',
+        setProperty: 'dataTracks'
+      },
+      fogInstanceProps = {
+        fogData: 'elementInstance',
+        field: 'fogInstanceId',
+        setProperty: 'fogData'
+      };
+  
+  params.bodyParams = req.body;
+
+  if(req.query.t){
+      params.bodyParams.t = req.query.t;
+  }
+
+  logger.info("Parameters:" + JSON.stringify(params.bodyParams));
+  params.bodyParams.trackId = req.params.trackId;
+
+  async.waterfall([
+    async.apply(UserService.getUser, userProps, params),
+    async.apply(ElementInstanceService.getDetailedElementInstances, elementInstanceProps),
+    async.apply(ElementInstanceConnectionsService.findBySourceElementInstance, elementInstanceConnectionProps),
+    async.apply(ElementInstancePortService.findElementInstancePortsByElementIds, elementInstancePortProps),
+    async.apply(NetworkPairingService.findByElementInstancePortId, networkPairingProps),
+    async.apply(SatellitePortService.findBySatellitePortIds, satellitePortProps),
+    async.apply(SatelliteService.findBySatelliteIds, satelliteProps),
+    async.apply(RoutingService.isDebugging, debugProps),
+    async.apply(RoutingService.isViewer, viewerProps),
+    async.apply(ElementInstanceService.getDataTrackDetails, dataTrackProps),
+    async.apply(FogService.findFogInstance, fogInstanceProps),
+    getOpenPorts
+
+  ], function(err, result) {
+    AppUtils.sendResponse(res, err, 'instance', params.response, result);
+  });
+};
 
 /********************************* Extra Functions *****************************************/
+const getOpenPorts = function(params, callback){
+  let response = [];
+  async.each(params.elementInstance, function(instance, cb){
+      let elementInstance = {
+        id: instance.uuid,
+        elementInstanceName: instance.elementInstanceName,
+        config: instance.config,
+        fogInstanceId: instance.fogInstanceId,
+        rootHostAccess: instance.rootHostAccess,
+        logSize: instance.logSize,
+        volumeMappings: instance.volumeMappings,
+        elementName: instance.elementName,
+        picture: instance.elementPicture,
+        typeName: instance.Name,
+        typeId: instance.ID,
+        connections: getConnections(params, instance),
+        ports: extractOpenPort(params, instance),
+        debug: isDebugging(params, instance),
+        viewer: isViewer(params, instance),
+        status: getStatus(params, instance)
+      };
+      response.push(elementInstance);
+      cb();
+  },
+   function(err) {
+    params.response = response;
+    callback(null, params);
+  });
+}
+
+const getStatus = function(params, elementInstance) {
+  if (elementInstance.fogInstanceId){
+    let elementInstanceDataTrack = _.findWhere(params.dataTracks, {
+      instanceId: elementInstance.fogInstanceId
+    });
+    
+    let fogDataTrack = _.findWhere(params.fogData, {
+        uuid: elementInstance.fogInstanceId
+    });
+    return fogDataTrack.daemonstatus;
+  }else{
+    return 'UNKNOWN';
+  }
+}
+
+const isViewer = function(params, elementInstance) {
+   let elementInstanceViewer = _.where(params.isViewer, {
+    publishing_element_id: elementInstance.uuid
+  });
+
+  if(elementInstanceViewer.length > 0){
+    return 1;
+  }else{
+    return 0;
+  }
+}
+
+const getConnections = function(params, elementInstance) {
+  let connections = [];
+
+  let elementInstanceConnection = _.where(params.elementInstanceConnection, {
+    sourceElementInstance: elementInstance.uuid
+  });
+
+  elementInstanceConnection.forEach((instanceConnection, index) => {
+    connections.push(instanceConnection.destinationElementInstance);
+  });
+  return connections;
+}
+
+
+
+
+const updateChangeTrackingData = function(params, callback) {
+  if (params.elementInstance.iofog_uuid){
+    var changeTrackingProps = {
+      fogInstanceId: 'elementInstance.iofog_uuid',
+      changeObject: {
+        containerList: new Date().getTime()
+      }
+    };
+    
+    ChangeTrackingService.updateChangeTracking(changeTrackingProps, params, callback);
+  }else{
+    callback(null, params);
+  }
+}
+
+const updateRebuild = function (params, callback) {
+  params.elementInstanceName = 'Network for Element ' + params.bodyParams.elementId;
+  var elementProps = {
+      elementId: 'bodyParams.elementId',
+      name: 'elementInstanceName',
+      updatedData: {
+        rebuild: 1
+      }
+    };
+
+  ElementInstanceService.updateElementInstanceRebuild(elementProps, params, callback);
+}
+
+const updateElementInstance = function (params, callback) {
+  var data;
+
+  if (params.elementInstance.iofog_uuid == params.bodyParams.fabricInstanceId) {
+    callback(null, params);
+  } 
+  else {
+    data = {
+      iofog_uuid: params.bodyParams.fabricInstanceId
+    };
+
+    var elementProps = {
+      elementId:'bodyParams.instanceId',
+      updatedData: data
+    };
+    ElementInstanceService.updateElemInstance(elementProps, params, callback);
+  }
+}
+
+const updateChangeTracking = function(params, callback) {
+
+  var lastUpdated = new Date().getTime(),
+    updateChangeTracking = {},
+    updateChange = {},
+
+    updateElementObject = {
+      logSize: params.bodyParams.logSize,
+      name: params.bodyParams.name,
+      config: params.bodyParams.config,
+      configLastUpdated: lastUpdated,
+      rootHostAccess: params.bodyParams.rootAccess,
+      volumeMappings: params.bodyParams.volumes
+    };
+
+  if (params.elementInstance.config != params.bodyParams.config) {
+    updateElementObject.configLastUpdated = new Date().getTime();
+    updateChangeTracking.containerConfig = new Date().getTime();
+  }
+  if (params.elementInstance.iofog_uuid != params.bodyParams.fabricInstanceId) {
+
+    updateChangeTracking.containerList = new Date().getTime();
+    updateChangeTracking.containerConfig = new Date().getTime();
+
+    updateChange.containerConfig = new Date().getTime();
+    updateChange.containerList = new Date().getTime();
+
+  } else if (params.elementInstance.rootHostAccess != params.bodyParams.rootAccess) {
+    updateChange.containerList = new Date().getTime();
+  }
+
+  params.updateElementObject = updateElementObject;
+  params.updateChange = updateChange;
+
+  if (updateChangeTracking.containerConfig || updateChangeTracking.containerList){
+    var changeTrackingProps = {
+      fogInstanceId: 'elementInstance.iofog_uuid',
+      changeObject: updateChangeTracking
+    };
+    
+    ChangeTrackingService.updateChangeTracking(changeTrackingProps, params, callback);
+  }else{
+    callback(null, params);
+  }
+}
+
+const updateChange = function(params, callback) {
+  if (params.updateChange.containerConfig || params.updateChange.containerList){
+    var changeTrackingProps = {
+      fogInstanceId: 'bodyParams.fabricInstanceId',
+      changeObject: params.updateChange
+    };
+    
+    ChangeTrackingService.updateChangeTracking(changeTrackingProps, params, callback);
+  }else{
+    callback(null, params);
+  }
+}
+
+const updateElement = function(params, callback) {
+
+  var elementInstanceProps = {
+    elementId: 'bodyParams.instanceId',
+    updatedData: params.updateElementObject
+  };
+  ElementInstanceService.updateElemInstance(elementInstanceProps, params, callback);
+}
+
 const createElementInstanceConnection = function(params, callback) {
   if (params.elementInstanceConnection == ''){
      var newElementInstanceConnectionProps = {
@@ -1004,7 +1289,6 @@ const createElementInstanceConnection = function(params, callback) {
     callback(null, params);
   }
 }
-
 
 const getElementInstanceProperties = function(params, callback) {
   let response = [];
@@ -1041,35 +1325,6 @@ const getElementInstanceProperties = function(params, callback) {
   callback(null, params);
 }
 
-const getOpenPorts = function(params, callback){
-  let response = [];
-  async.each(params.elementInstance, function(instance, cb){
-      let elementInstance = {
-        id: instance.uuid,
-        elementInstanceName: instance.elementInstanceName,
-        config: instance.config,
-        fogInstanceId: instance.fogInstanceId,
-        rootHostAccess: instance.rootHostAccess,
-        logSize: instance.logSize,
-        elementName: instance.elementName,
-        picture: instance.elementPicture,
-        typeName: instance.Name,
-        typeId: instance.ID,
-        connections: getConnections(params, instance),
-        ports: extractOpenPort(params, instance),
-        debug: isDebugging(params, instance),
-        viewer: isViewer(params, instance),
-        status: 'UNKNOWN'
-      };
-      response.push(elementInstance);
-      cb();
-  },
-   function(err) {
-    params.response = response;
-    callback(null, params);
-  });
-}
-
 const isDebugging = function(params, elementInstance) {
    let elementInstanceDebug = _.where(params.isDebug, {
     publishing_element_id: elementInstance.uuid
@@ -1080,31 +1335,6 @@ const isDebugging = function(params, elementInstance) {
   }else{
     return 0;
   }
-}
-
-const isViewer = function(params, elementInstance) {
-   let elementInstanceViewer = _.where(params.isViewer, {
-    publishing_element_id: elementInstance.uuid
-  });
-
-  if(elementInstanceViewer.length > 0){
-    return 1;
-  }else{
-    return 0;
-  }
-}
-
-const getConnections = function(params, elementInstance) {
-  let connections = [];
-
-  let elementInstanceConnection = _.where(params.elementInstanceConnection, {
-    sourceElementInstance: elementInstance.uuid
-  });
-
-  elementInstanceConnection.forEach((instanceConnection, index) => {
-    connections.push(instanceConnection.destinationElementInstance);
-  });
-  return connections;
 }
 
 const extractOpenPort = function(params, elementInstance) {
@@ -1246,80 +1476,6 @@ const getElementDetails = function(params, callback) {
   callback(null, params);
 }
 
-const updateElementInstance = function (params, callback) {
-  var data;
-
-  if (params.elementInstance.iofog_uuid == params.bodyParams.fabricInstanceId) {
-    callback(null, params);
-  } 
-  else {
-    data = {
-      iofog_uuid: params.bodyParams.fabricInstanceId
-    };
-
-    var elementProps = {
-      elementId:'bodyParams.instanceId',
-      updatedData: data
-    };
-    ElementInstanceService.updateElemInstance(elementProps, params, callback);
-  }
-}
-
-const updateChangeTracking = function(params, callback) {
-  var lastUpdated = new Date().getTime(),
-    updateChangeTracking = {},
-    updateChange = {},
-
-    updateElementObject = {
-      logSize: params.bodyParams.logSize,
-      name: params.bodyParams.name,
-      config: params.bodyParams.config,
-      configLastUpdated: lastUpdated,
-      rootHostAccess: params.bodyParams.rootAccess
-    };
-
-  if (params.elementInstance.config != params.bodyParams.config) {
-    updateElementObject.configLastUpdated = new Date().getTime();
-    updateChangeTracking.containerConfig = new Date().getTime();
-  }
-  if (params.elementInstance.iofog_uuid != params.bodyParams.fabricInstanceId) {
-
-    updateChangeTracking.containerList = new Date().getTime();
-    updateChangeTracking.containerConfig = new Date().getTime();
-
-    updateChange.containerConfig = new Date().getTime();
-    updateChange.containerList = new Date().getTime();
-
-  } else if (params.elementInstance.RootHostAccess != params.bodyParams.rootAccess) {
-    updateChange.containerList = new Date().getTime();
-  }
-  params.updateElementObject = updateElementObject;
-  params.updateChange = updateChange;
-
-  var changeTrackingProps = {
-    fogInstanceId: 'elementInstance.iofog_uuid',
-    changeObject: updateChangeTracking
-  };
-  ChangeTrackingService.updateChangeTracking(changeTrackingProps, params, callback);
-}
-
-const updateChange = function(params, callback) {
-  var changeTrackingProps = {
-    fogInstanceId: 'bodyParams.fabricInstanceId',
-    changeObject: params.updateChange
-  };
-  ChangeTrackingService.updateChangeTracking(changeTrackingProps, params, callback);
-}
-
-
-const updateElement = function(params, callback) {
-  var elementInstanceProps = {
-    elementId: 'bodyParams.fabricInstanceId',
-    updatedData: params.updateElementObject
-  };
-  ElementInstanceService.updateElemInstance(elementInstanceProps, params, callback);
-}
-
 const updateConfigTracking = function(params, callback){
   if (params.isConfigChanged) {
     var changeTrackingProps = {
@@ -1403,6 +1559,7 @@ const getOutputDetails = function(params, callback) {
 
 export default {
   createElementInstanceConnectionEndPoint:createElementInstanceConnectionEndPoint,
+  deleteElementInstanceConnectionEndPoint: deleteElementInstanceConnectionEndPoint,
   detailedElementInstanceCreateEndPoint: detailedElementInstanceCreateEndPoint,
   elementInstanceCreateEndPoint: elementInstanceCreateEndPoint,
   elementInstanceUpdateEndPoint: elementInstanceUpdateEndPoint,
@@ -1412,6 +1569,8 @@ export default {
   elementInstanceComsatPipeDeleteEndPoint: elementInstanceComsatPipeDeleteEndPoint,
   elementInstancePortCreateEndPoint: elementInstancePortCreateEndPoint,
   elementInstancePortDeleteEndPoint: elementInstancePortDeleteEndPoint,
+  elementInstanceRebuildStatusEndPoint: elementInstanceRebuildStatusEndPoint,
+  elementInstanceRebuildUpdateEndPoint: elementInstanceRebuildUpdateEndPoint,
   getElementInstanceDetailsEndPoint: getElementInstanceDetailsEndPoint,
   getElementInstancePropertiesEndPoint: getElementInstancePropertiesEndPoint,
   trackElementListEndPoint: trackElementListEndPoint

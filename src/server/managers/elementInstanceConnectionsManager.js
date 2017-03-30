@@ -36,6 +36,15 @@ class ElementInstanceConnectionsManager extends BaseManager {
       }
     });
   }
+  
+  deleteBySourceAndDestinationElementInstance(sourceElementInstanceId, destinationElementInstanceId) {
+    return ElementInstanceConnections.destroy({
+      where: {
+          sourceElementInstance: sourceElementInstanceId,
+          destinationElementInstance: destinationElementInstanceId
+      }
+    });
+  }
 }
 
 const instance = new ElementInstanceConnectionsManager();

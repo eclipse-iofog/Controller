@@ -20,7 +20,7 @@ import logger from '../../utils/winstonLogs';
 
   var params = {},
       userProps = {
-        userId: 'bodyParams.userId',
+        userId: 'bodyParams.t',
         setProperty: 'user'
       };
   params.bodyParams = req.body;
@@ -42,7 +42,7 @@ import logger from '../../utils/winstonLogs';
 
   var params = {},
     userProps = {
-      userId: 'bodyParams.userId',
+      userId: 'bodyParams.t',
       setProperty: 'user'
     },
     
@@ -76,7 +76,7 @@ import logger from '../../utils/winstonLogs';
   
   var params = {},
       userProps = {
-        userId: 'bodyParams.userId',
+        userId: 'bodyParams.t',
         setProperty: 'user'
       },
       elementProps = {
@@ -115,7 +115,7 @@ const getCatalogOfElements = function(req, res) {
   })
 };
 
-/*********************** Extra Functions ********************/
+/*************************************** Extra Functions *************************************************/
 const createElement = function(params, callback) {
   var elementProps = {
         element : {

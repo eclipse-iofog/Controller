@@ -23,21 +23,32 @@ class ElementInstanceManager extends BaseManager {
 	 * @return Integer - returns the number of rows updated
 	 */
 	updateByUUID(uuid, data) {
-			return ElementInstance.update(data, {
-				where: {
-					uuid: uuid
-				}
-			});
-		}
+		return ElementInstance.update(data, {
+			where: {
+				uuid: uuid
+			}
+		});
+	}
+
+	updateByUUIDAndName(uuid, name, data) {
+		return ElementInstance.update(data, {
+			where: {
+				$or: [{
+          			uuid: uuid
+        		}, {
+          			name: name
+        		}]
+			}
+		});
+	}
 
 	updateByFogUuId(fog_uuid, data) {
-
-			return ElementInstance.update(data, {
-				where: {
-					iofog_uuid: fog_uuid
-				}
-			});
-		}
+		return ElementInstance.update(data, {
+			where: {
+				iofog_uuid: fog_uuid
+			}
+		});
+	}
 
 	/**
 	* @desc - uses a raw-query to join element_instance and data_tracks
@@ -93,7 +104,7 @@ class ElementInstanceManager extends BaseManager {
 			isNetwork: false,
 			registryId: element.registry_id,
 			rebuild: false,
-			RootHostAccess: false,
+			rootHostAccess: false,
 			logSize: logSize,
 			iofog_uuid: fogInstanceId
 		};
@@ -117,7 +128,7 @@ class ElementInstanceManager extends BaseManager {
 			isNetwork: false,
 			registryId: null,
 			rebuild: false,
-			RootHostAccess: false,
+			rootHostAccess: false,
 			logSize: 50,
 			iofog_uuid: fogInstanceId
 		};
@@ -140,7 +151,7 @@ class ElementInstanceManager extends BaseManager {
 			elementInstance = {
 				uuid: AppUtils.generateInstanceId(32),
 				trackId: trackId,
-				elementKey: element.id,
+				element_key: element.id,
 				config: JSON.stringify(netConfig),
 				name: name,
 				last_updated: new Date().getTime(),
@@ -152,7 +163,7 @@ class ElementInstanceManager extends BaseManager {
 				isNetwork: true,
 				registryId: element.registry_id,
 				rebuild: false,
-				RootHostAccess: false,
+				rootHostAccess: false,
 				logSize: 50,
 				iofog_uuid: fogInstanceId
 			};
@@ -180,7 +191,7 @@ class ElementInstanceManager extends BaseManager {
 				isNetwork: false,
 				registryId: null,
 				rebuild: false,
-				RootHostAccess: false,
+				rootHostAccess: false,
 				logSize: 50,
 				iofog_uuid: fogInstanceId
 			};
@@ -288,7 +299,8 @@ class ElementInstanceManager extends BaseManager {
 	getElementInstanceDetails(trackId) {
 		const query = 'select ei.UUID as uuid, ei.name as elementInstanceName, ' +
 		 			  'ei.config as config, ei.iofog_uuid as fogInstanceId, ei.root_host_access ' +
-		 			  'as rootHostAccess, ei.log_size as logSize, e.name as elementName, e.picture ' +
+		 			  'as rootHostAccess, ei.log_size as logSize,ei.volume_mappings as volumeMappings, e.name '+
+		 			  'as elementName, e.picture ' +
 		 			  'as elementPicture, ft.Name, ft.ID from element_instance ei inner join element e ' +
 					  'on ei.element_key = e.id left join element_fog_types eft ' +
 					  'on ei.element_key = eft.element_id left join iofog_type ft ' +
@@ -309,6 +321,18 @@ class ElementInstanceManager extends BaseManager {
 					  'on ei.element_key = eft.element_id left join iofog_type ft ' +
 					  'on ft.ID = eft.iofog_type_id ' +
 					  'where ei.UUID in (:uuid)';
+
+		return sequelize.query(query, {
+			replacements: {
+				uuid: uuid
+			},
+			type: sequelize.QueryTypes.SELECT
+		});
+	}
+
+	getDataTrackDetails(uuid){
+		const query = 'select t.instance_id as instanceId, t.is_activated as isActivated from element_instance ei '+
+					  'left join data_tracks t on ei.track_id = t.ID where ei.UUID in (:uuid)';
 
 		return sequelize.query(query, {
 			replacements: {

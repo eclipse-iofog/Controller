@@ -42,7 +42,7 @@ const fogInstancesListEndPoint = function(req, res){
 	var params = {},
 
 		userProps = {
-      		userId: 'bodyParams.userId',
+      		userId: 'bodyParams.t',
       		setProperty: 'user'
     	},
 
@@ -68,7 +68,7 @@ const fogInstanceCreateEndPoint = function(req, res){
   logger.info("Endpoint hitted: "+ req.originalUrl);
 	var params = {},
 		userProps = {
-      		userId: 'bodyParams.userId',
+      		userId: 'bodyParams.t',
       		setProperty: 'user'
     	},
     	fogTypeProps = {
@@ -93,7 +93,7 @@ const fogInstanceCreateEndPoint = function(req, res){
     	};
 
 	params.bodyParams = req.params;
-	params.bodyParams.userId = req.query.userId;
+	params.bodyParams.t = req.query.t;
 	logger.info("Parameters:" + JSON.stringify(params.bodyParams));
 
 	async.waterfall([
@@ -116,7 +116,7 @@ const getFogListEndPoint = function(req, res){
   logger.info("Endpoint hitted: "+ req.originalUrl);
 	var params = {},
 		userProps = {
-      		userId: 'bodyParams.userId',
+      		userId: 'bodyParams.t',
       		setProperty: 'user'
     	},
     	fogListProps = {
@@ -124,7 +124,7 @@ const getFogListEndPoint = function(req, res){
     	};
 
 	params.bodyParams = req.params;
-	params.bodyParams.userId = req.query.userId;
+	params.bodyParams.t = req.query.t;
 	logger.info("Parameters:" + JSON.stringify(params.bodyParams));
 
 	async.waterfall([
@@ -137,12 +137,12 @@ const getFogListEndPoint = function(req, res){
 	});
 };
 
-/******************** Get Fog Types EndPoint (Get: /api/v2/getfabrictypes) ******************/
+/******************** Get Fog Types EndPoint (Get: /api/v2/authoring/fabric/types/list) ******************/
 const getFogTypesEndPoint = function(req, res){
   logger.info("Endpoint hitted: "+ req.originalUrl);
 	var params = {},
 		userProps = {
-      		userId: 'bodyParams.userId',
+      		userId: 'bodyParams.t',
       		setProperty: 'user'
     	},
     	fogTypesListProps = {
@@ -150,7 +150,7 @@ const getFogTypesEndPoint = function(req, res){
     	};
 
 	params.bodyParams = req.params;
-	params.bodyParams.userId = req.query.userId;
+	params.bodyParams.t = req.query.t;
 	logger.info("Parameters:" + JSON.stringify(params.bodyParams));
 
 
@@ -160,7 +160,7 @@ const getFogTypesEndPoint = function(req, res){
 	],
 	function(err, result) {
 		var errMsg = 'Internal error: ' + result;
-		AppUtils.sendResponse(res, err, 'fogTypesList', params.fogTypesList, errMsg);
+		AppUtils.sendResponse(res, err, 'types', params.fogTypesList, errMsg);
 	});
 };
 
@@ -170,7 +170,7 @@ const fogInstanceDeleteEndPoint = function(req, res){
 
 	var params = {},
 		userProps = {
-			userId : 'bodyParams.userId',
+			userId : 'bodyParams.t',
 			setProperty: 'user'
 		},
 		instanceProps = {
@@ -200,7 +200,7 @@ const integratorInstanceDeleteEndPoint = function(req, res){
   logger.info("Endpoint hitted: "+ req.originalUrl);
 	var params = {},
 		userProps = {
-      		userId: 'bodyParams.userId',
+      		userId: 'bodyParams.t',
       		setProperty: 'user'
     	},
 		instanceProps = {

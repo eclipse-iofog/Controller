@@ -1,5 +1,6 @@
 import FogManager from '../managers/fogManager';
 import AppUtils from '../utils/appUtils';
+import _ from 'underscore';
 
 const createFogInstance = function(props, params, callback) {
   var fogType = AppUtils.getProperty(params, props.fogType),
@@ -40,6 +41,15 @@ const getFogInstance = function(props, params, callback) {
     .findByInstanceId(fogId)
     .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Cannot find Fog Instance', callback));
 }
+
+const findFogInstance = function(props, params, callback) {
+  var fogData= AppUtils.getProperty(params, props.fogData);
+
+  FogManager
+    .findByInstanceId(_.pluck(fogData, props.field))
+    .then(AppUtils.onFindOptional.bind(null, params, props.setProperty, callback));
+}
+
 const getFogInstanceForUser = function(props, params, callback) {
   var userId = AppUtils.getProperty(params, props.userId);
 
@@ -69,5 +79,6 @@ export default {
   getFogInstance: getFogInstance,
   getFogInstanceForUser: getFogInstanceForUser,
   getFogList: getFogList,
-  updateFogInstance: updateFogInstance
+  updateFogInstance: updateFogInstance,
+  findFogInstance: findFogInstance
 };

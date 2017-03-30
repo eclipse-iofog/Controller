@@ -31,7 +31,7 @@ const integratorInstanceCreateEndPoint = function(req, res){
   var params = {},
 
     userProps = {
-      userId: 'bodyParams.userId',
+      userId: 'bodyParams.t',
       setProperty: 'user'
     },
 
@@ -87,7 +87,7 @@ const integratorInstanceCreateEndPoint = function(req, res){
       satellitePort: 'satellitePort.port1',
       satelliteDomain: 'satellite.domain',
       trackId: null,
-      userId: 'userId',
+      userId: 'user.id',
       networkName: 'Network for Stream Viewer',
       networkPort: 60400,
       isPublic: true,
@@ -99,7 +99,7 @@ const integratorInstanceCreateEndPoint = function(req, res){
       satellitePort: 'satellitePort.port1',
       satelliteDomain: 'satellite.domain',
       trackId: null,
-      userId: 'userId',
+      userId: 'user.id',
       networkName: 'Network for Debug Console',
       networkPort: 60401,
       isPublic: true,
@@ -194,7 +194,7 @@ const integratorInstanceUpdateEndPoint = function(req, res){
   logger.info("Endpoint hitted: "+ req.originalUrl);
   var params = {},
       userProps = {
-        userId: 'bodyParams.userId',
+        userId: 'bodyParams.t',
         setProperty: 'user'
       },
 

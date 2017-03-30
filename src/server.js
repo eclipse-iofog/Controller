@@ -24,6 +24,7 @@ import instanceRegistriesController from './server/controllers/api/instanceRegis
 import instanceRoutingController from './server/controllers/api/instanceRoutingController';
 import instanceContainerConfigController from './server/controllers/api/instanceContainerConfigController';
 import integratorController from './server/controllers/api/integratorController';
+import loginController from './server/controllers/api/loginController';
 import provisionKeyController from './server/controllers/api/provisionKeyController';
 import trackController from './server/controllers/api/trackController';
 import streamViewerController from './server/controllers/api/streamViewerController';
@@ -83,6 +84,8 @@ const initApp = function() {
 
   app.get('/', baseController.mainPageEndPoint);
 
+  app.post('/api/v1/user/login', loginController.validateUserEndPoint);
+
   app.post('/api/v2/authoring/organization/element/create', elementController.createElementEndPoint);
   app.post('/api/v2/authoring/organization/element/update', elementController.updateElementEndPoint);
   app.post('/api/v2/authoring/organization/element/delete', elementController.deleteElementEndPoint);
@@ -100,10 +103,10 @@ const initApp = function() {
   app.post('/api/v2/authoring/element/instance/port/delete', elementInstanceController.elementInstancePortDeleteEndPoint);
   app.get('/api/v2/status', fogController.getFogControllerStatusEndPoint);
   app.post('/api/v2/status', fogController.getFogControllerStatusEndPoint);
-  app.get('/api/v2/authoring/integrator/instances/list/:userId', fogController.fogInstancesListEndPoint);
+  app.get('/api/v2/authoring/integrator/instances/list/:t', fogController.fogInstancesListEndPoint);
   app.get('/api/v2/instance/create/type/:type', fogController.fogInstanceCreateEndPoint);
   app.get('/api/v2/instance/getfabriclist', fogController.getFogListEndPoint);
-  app.get('/api/v2/getfabrictypes', fogController.getFogTypesEndPoint);
+  app.get('/api/v2/authoring/fabric/types/list', fogController.getFogTypesEndPoint);
   app.post('/api/v2/authoring/fabric/instance/delete', fogController.fogInstanceDeleteEndPoint);
   app.post('/api/v2/authoring/integrator/instance/delete', fogController.integratorInstanceDeleteEndPoint);
   app.get('/api/v2/instance/changes/id/:ID/token/:Token/timestamp/:TimeStamp', instanceChangesController.getChangeTrackingChangesEndPoint);
@@ -133,14 +136,18 @@ const initApp = function() {
   app.post('/api/v2/authoring/user/track/create', trackController.userTrackCreateEndPoint);
   app.post('/api/v2/authoring/user/track/update', trackController.userTrackUpdateEndPoint);
   app.post('/api/v2/authoring/user/track/delete', trackController.userTrackDeleteEndPoint);
-
   app.post('/api/v2/authoring/fabric/track/update', trackController.fogTrackUpdateEndPoint);
   app.post('/api/v2/authoring/fabric/track/delete', trackController.fogTrackDeleteEndPoint);
-  app.get('/api/v2/authoring/user/track/list/:userId', trackController.getTracksForUser);
+  app.get('/api/v2/authoring/user/track/list/:t', trackController.getTracksForUser);
+  app.post('/api/v2/authoring/element/connection/create', elementInstanceController.createElementInstanceConnectionEndPoint);
+  app.post('/api/v2/authoring/element/connection/delete', elementInstanceController.deleteElementInstanceConnectionEndPoint);
+  app.get('/api/v2/authoring/element/instance/rebuild/status/elementid/:elementId',  elementInstanceController.elementInstanceRebuildStatusEndPoint);
+  app.post('/api/v2/authoring/element/instance/rebuild',  elementInstanceController.elementInstanceRebuildUpdateEndPoint);
+  
+  app.get('/api/v2/authoring/element/instance/details/trackid/:trackId', elementInstanceController.getElementInstanceDetailsEndPoint);
   app.post('/api/v2/authoring/element/instance/details/trackid/:trackId', elementInstanceController.getElementInstanceDetailsEndPoint);
   app.post('/api/v2/authoring/build/properties/panel/get', elementInstanceController.getElementInstancePropertiesEndPoint);
-  app.post('/api/v2/authoring/element/connection/create', elementInstanceController.createElementInstanceConnectionEndPoint);
-
+  
 
   //generic error handler
   app.use((err, req, res, next) => {

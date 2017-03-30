@@ -21,7 +21,7 @@ const fogViewerAccessEndPoint = function(req, res){
   var params = {},
 
   userProps = {
-    userId: 'bodyParams.userId',
+    userId: 'bodyParams.t',
     setProperty: 'user'
   },
   streamViewerProps = {

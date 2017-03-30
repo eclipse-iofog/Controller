@@ -25,7 +25,7 @@ const ElementInstance = sequelize.define('element_instance', {
     field: 'track_id'
   },
   config: {
-    type: Sequelize.BIGINT,
+    type: Sequelize.TEXT,
     field: 'config'
   },
   name: {
@@ -64,13 +64,17 @@ const ElementInstance = sequelize.define('element_instance', {
     type: Sequelize.BOOLEAN,
     field: 'rebuild'
   },
-  RootHostAccess: {
+  rootHostAccess: {
     type: Sequelize.BOOLEAN,
     field: 'root_host_access'
   },
   logSize: {
-    type: Sequelize.BOOLEAN,
+    type: Sequelize.BIGINT,
     field: 'log_size'
+  },
+  volumeMappings: {
+    type: Sequelize.TEXT,
+    field: 'volume_mappings'
   },
 }, {
   // don't add the timestamp attributes (updatedAt, createdAt)

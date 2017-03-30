@@ -2,6 +2,23 @@ import ElementInstanceManager from '../managers/elementInstanceManager';
 import AppUtils from '../utils/appUtils';
 import _ from 'underscore';
 
+const getDataTrackDetails = function(props, params, callback) {
+  var elementInstanceData = AppUtils.getProperty(params, props.elementInstanceData);
+
+  ElementInstanceManager
+    .getDataTrackDetails(_.uniq(_.pluck(elementInstanceData, props.field)))
+    .then(AppUtils.onFind.bind(null, params, props.setProperty, 'extraTracks not found.', callback));
+}
+
+const updateElementInstanceRebuild = function(props, params, callback) {
+  var elementId = AppUtils.getProperty(params, props.elementId),
+    name = AppUtils.getProperty(params, props.name);
+
+  ElementInstanceManager
+    .updateByUUIDAndName(elementId, name, props.updatedData)
+    .then(AppUtils.onUpdate.bind(null, params, 'Unable to update Element Instance', callback));
+}
+
 const getElementInstanceProperties = function(props, params, callback) {
   var elementInstanceId = AppUtils.getProperty(params, props.elementInstanceId);
 
@@ -126,7 +143,7 @@ const createNetworkElementInstance = function(props, params, callback) {
     userId = AppUtils.getProperty(params, props.userId);
 
   if (!props.networkName) {
-    props.networkName = 'Network for Element ' + networkElement.uuid;
+    props.networkName = 'Network for Element ' + networkElement.id;
   }
 
   ElementInstanceManager
@@ -211,11 +228,13 @@ export default {
   deleteElementInstances: deleteElementInstances,
   deleteNetworkElementInstance: deleteNetworkElementInstance,
   deleteNetworkElementInstances: deleteNetworkElementInstances,
+  getDataTrackDetails: getDataTrackDetails,
   getElementInstance: getElementInstance,
   getElementInstanceByUuIds: getElementInstanceByUuIds,
   getElementInstancesByTrackId: getElementInstancesByTrackId,
   getElementInstanceProperties: getElementInstanceProperties,
   updateElemInstance: updateElemInstance,
   updateElemInstanceByFogUuId: updateElemInstanceByFogUuId,
+  updateElementInstanceRebuild: updateElementInstanceRebuild,
   getDetailedElementInstances:getDetailedElementInstances
 };

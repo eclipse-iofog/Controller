@@ -22,7 +22,7 @@ import logger from '../../utils/winstonLogs';
 
 /********************************************* EndPoints ******************************************************/
 
-/***************** Create Track EndPoint (Post: /api/v2/authoring/user/track/create) **************/
+/***************** Create Track User EndPoint (Post: /api/v2/authoring/user/track/create) **************/
 const userTrackCreateEndPoint = function(req, res){
   logger.info("Endpoint hitted: "+ req.originalUrl);
   var params = {},
@@ -32,13 +32,13 @@ const userTrackCreateEndPoint = function(req, res){
       setProperty: 'user'
     },
     fogInstanceProps = {
-      fogId: 'bodyParams.FabricInstanceID',
+      fogId: 'bodyParams.fogInstanceId',
       setProperty: 'fogData'
     },
 
     trackProps = {
-      trackName: 'bodyParams.TrackName',
-      fogInstanceId: 'bodyParams.FabricInstanceID',
+      trackName: 'bodyParams.trackName',
+      fogInstanceId: 'bodyParams.fogInstanceId',
       setProperty: 'trackData'
     };
 
@@ -48,11 +48,11 @@ const userTrackCreateEndPoint = function(req, res){
 
   async.waterfall([
     async.apply(UserService.getUser, userProps, params),
-    async.apply(FogService.getFogInstance, fogInstanceProps),
     createDataTrack
 
   ], function(err, result) {
-    AppUtils.sendResponse(res, err, 'trackid', params.dataTrack.id, result);
+
+    AppUtils.sendResponse(res, err, 'trackId', params.dataTrack.id, result);
   })
 };
 
@@ -62,7 +62,7 @@ const fogTrackListEndPoint = function(req, res){
   var params = {},
 
     userProps = {
-      userId: 'bodyParams.userId',
+      userId: 'bodyParams.t',
       setProperty: 'user'
     },
 
@@ -77,7 +77,7 @@ const fogTrackListEndPoint = function(req, res){
     };
 
   params.bodyParams = req.params;
-  params.bodyParams.userId = req.query.userId;
+  params.bodyParams.t = req.query.t;
   logger.info("Parameters:" + JSON.stringify(params.bodyParams));
 
   async.waterfall([
@@ -95,7 +95,7 @@ const fogTrackUpdateEndPoint = function(req, res){
   var params = {},
 
     userProps = {
-      userId: 'bodyParams.userId',
+      userId: 'bodyParams.t',
       setProperty: 'user'
     },
 
@@ -130,7 +130,7 @@ const fogTrackDeleteEndPoint = function(req, res){
   var params = {},
 
     userProps = {
-      userId: 'bodyParams.userId',
+      userId: 'bodyParams.t',
       setProperty: 'user'
     },
 
@@ -166,7 +166,7 @@ const getTracksForUser = function(req, res) {
 
   var params = {},
     userProps = {
-      userId: 'bodyParams.userId',
+      userId: 'bodyParams.t',
       setProperty: 'user'
     },
     trackProps = {
@@ -198,7 +198,7 @@ const userTrackUpdateEndPoint = function(req, res){
     },
     
     dataTrackProps = {
-      trackId: 'bodyParams.TrackID',
+      trackId: 'bodyParams.trackId',
       setProperty: 'dataTrack'
     };
 
@@ -220,7 +220,7 @@ const userTrackUpdateEndPoint = function(req, res){
       trackId = params.bodyParams.TrackID;
     }
 
-    AppUtils.sendResponse(res, err, 'trackid', trackId, result);
+    AppUtils.sendResponse(res, err, 'trackId', trackId, result);
   })
 };
 /***************** User Track Delete EndPoint (Post: /api/v2/authoring/user/track/delete) **************/
@@ -344,8 +344,8 @@ const deleteElement = function(params, callback) {
 const createDataTrack = function(params, callback){
   var dataTrackProps = {
     dataTrackObj: {
-      name: params.bodyParams.TrackName,
-      instanceId: params.bodyParams.FabricInstanceID,
+      name: params.bodyParams.trackName,
+      instanceId: params.bodyParams.fogInstanceId,
       updatedBy: params.user.id,
       isSelected: 0,
       isActivated: 0,
@@ -359,21 +359,21 @@ const createDataTrack = function(params, callback){
 
 const resetSelectedActivatedAndName= function(params, callback) {
 
-  if (params.bodyParams.IsSelected == -1 || params.bodyParams.IsSelected == '')
-    params.bodyParams.IsSelected = params.dataTrack.isSelected;
+  if (params.bodyParams.isSelected == -1 || params.bodyParams.isSelected == '')
+    params.bodyParams.isSelected = params.dataTrack.isSelected;
 
-  if (params.bodyParams.IsActivated == -1 || params.bodyParams.IsActivated == '')
-    params.bodyParams.IsActivated = params.dataTrack.isActivated;
+  if (params.bodyParams.isActivated == -1 || params.bodyParams.isActivated == '')
+    params.bodyParams.isActivated = params.dataTrack.isActivated;
 
-  if (!params.bodyParams.TrackName)
-    params.bodyParams.TrackName = params.dataTrack.name;
+  if (!params.bodyParams.trackName)
+    params.bodyParams.trackName = params.dataTrack.name;
 
   callback(null, params);
 }
 
 const findElementInstanceByTrackId= function(params, callback) {
     var elementInstanceProps = {
-      trackId: 'bodyParams.TrackID',
+      trackId: 'bodyParams.trackId',
       setProperty: 'elementInstances'
     };
     
@@ -400,13 +400,13 @@ const updateChangeTracking= function(params, callback) {
 
 const updateDataTrackById= function(params, callback) {
   var updateDataTrackProps = {
-        trackId: 'bodyParams.TrackID',
+        trackId: 'bodyParams.trackId',
         updatedObj: {
-          name: params.bodyParams.TrackName,
+          name: params.bodyParams.trackName,
           description: '',
           lastUpdated : new Date(),
-          isSelected: params.bodyParams.IsSelected,
-          isActivated: params.bodyParams.IsActivated,
+          isSelected: params.bodyParams.isSelected,
+          isActivated: params.bodyParams.isActivated,
           user_id: params.user.id
       }
     };
