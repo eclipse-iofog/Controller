@@ -1,7 +1,7 @@
 import logger from '../utils/winstonLogs';
 
 const mainPageEndPoint = function(req, res) {
-  logger.info("Endpoint hitted: "+ req.originalUrl);
+  logger.info("Endpoint hit: "+ req.originalUrl);
   res.render("controller-status")
 };
 

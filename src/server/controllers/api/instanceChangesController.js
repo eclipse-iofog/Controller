@@ -16,7 +16,7 @@ import logger from '../../utils/winstonLogs';
 
 /** Check Change Tracking Changes EndPoint (Get/Post: /api/v2/instance/changes/id/:ID/token/:Token/timestamp/:TimeStamp) **/
 const getChangeTrackingChangesEndPoint = function(req, res) {
-  logger.info("Endpoint hitted: "+ req.originalUrl);
+  logger.info("Endpoint hit: "+ req.originalUrl);
   var params = {},
       instanceProps = {
         instanceId: 'bodyParams.ID',

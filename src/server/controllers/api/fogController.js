@@ -27,7 +27,7 @@ import logger from '../../utils/winstonLogs';
 
 /**************************** Fog-Controller Status EndPoint (Get: /api/v2/status) ***************************/
 const getFogControllerStatusEndPoint = function(req, res){
-  logger.info("Endpoint hitted: "+ req.originalUrl);
+  logger.info("Endpoint hit: "+ req.originalUrl);
 	var milliseconds = new Date().getTime();
 	res.status(200);
 	res.send({
@@ -38,7 +38,7 @@ const getFogControllerStatusEndPoint = function(req, res){
 
 /******** Fog Instances List By UserID EndPoint (Get: /api/v2/authoring/integrator/instances/list/:userId) *******/
 const fogInstancesListEndPoint = function(req, res){
-  logger.info("Endpoint hitted: "+ req.originalUrl);
+  logger.info("Endpoint hit: "+ req.originalUrl);
 	var params = {},
 
 		userProps = {
@@ -65,7 +65,7 @@ const fogInstancesListEndPoint = function(req, res){
 
 /******************** Fog Instance Create EndPoint (Get: /api/v2/instance/create/type/:type) ******************/
 const fogInstanceCreateEndPoint = function(req, res){
-  logger.info("Endpoint hitted: "+ req.originalUrl);
+  logger.info("Endpoint hit: "+ req.originalUrl);
 	var params = {},
 		userProps = {
       		userId: 'bodyParams.t',
@@ -113,7 +113,7 @@ const fogInstanceCreateEndPoint = function(req, res){
 
 /******************** Get Fog List EndPoint (Get: /api/v2/instance/getfabriclist) ******************/
 const getFogListEndPoint = function(req, res){
-  logger.info("Endpoint hitted: "+ req.originalUrl);
+  logger.info("Endpoint hit: "+ req.originalUrl);
 	var params = {},
 		userProps = {
       		userId: 'bodyParams.t',
@@ -139,7 +139,7 @@ const getFogListEndPoint = function(req, res){
 
 /******************** Get Fog Types EndPoint (Get: /api/v2/authoring/fabric/types/list) ******************/
 const getFogTypesEndPoint = function(req, res){
-  logger.info("Endpoint hitted: "+ req.originalUrl);
+  logger.info("Endpoint hit: "+ req.originalUrl);
 	var params = {},
 		userProps = {
       		userId: 'bodyParams.t',
@@ -166,7 +166,7 @@ const getFogTypesEndPoint = function(req, res){
 
 /***************** Fog Instance Delete EndPoint (Post: /api/v2/authoring/fabric/instance/delete) *************/
 const fogInstanceDeleteEndPoint = function(req, res){
-  logger.info("Endpoint hitted: "+ req.originalUrl);
+  logger.info("Endpoint hit: "+ req.originalUrl);
 
 	var params = {},
 		userProps = {
@@ -197,7 +197,7 @@ const fogInstanceDeleteEndPoint = function(req, res){
 
 /*********** Integrator Instance Delete EndPoint (Post: /api/v2/authoring/integrator/instance/delete) **********/
 const integratorInstanceDeleteEndPoint = function(req, res){
-  logger.info("Endpoint hitted: "+ req.originalUrl);
+  logger.info("Endpoint hit: "+ req.originalUrl);
 	var params = {},
 		userProps = {
       		userId: 'bodyParams.t',

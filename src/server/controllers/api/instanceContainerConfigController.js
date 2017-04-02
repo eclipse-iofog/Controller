@@ -15,7 +15,7 @@ import logger from '../../utils/winstonLogs';
 
 /****** Instance Container Config EndPoint (Post: /api/v2/instance/containerconfig/id/:ID/token/:Token) *******/
 const containerConfigEndPoint = function(req, res){
-  logger.info("Endpoint hitted: "+ req.originalUrl);
+  logger.info("Endpoint hit: "+ req.originalUrl);
 	var params = {},
 		instanceProps = {
 			instanceId: 'bodyParams.ID',

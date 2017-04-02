@@ -15,7 +15,7 @@ import Constants from '../../constants.js';
 
 /********* Instance Configurations EndPoint (Get/Post: /api/v2/instance/config/id/:ID/token/:Token) **********/
 const instanceConfigEndPoint = function(req, res){
-  logger.info("Endpoint hitted: "+ req.originalUrl);
+  logger.info("Endpoint hit: "+ req.originalUrl);
   var params = {},
 
     fogProps = {
@@ -38,7 +38,7 @@ const instanceConfigEndPoint = function(req, res){
 
 /***** Instance Configuration Changes EndPoint (Post: /api/v2/instance/config/changes/id/:ID/token/:Token) ******/
 const instanceConfigChangesEndPoint = function(req, res){
-  logger.info("Endpoint hitted: "+ req.originalUrl);
+  logger.info("Endpoint hit: "+ req.originalUrl);
   var params = {};
 
   params.bodyParams = req.body;

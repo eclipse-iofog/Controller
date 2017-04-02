@@ -7,7 +7,7 @@ import logger from '../../utils/winstonLogs';
 /************************ EndPoints ************************************************/
 /*************** Validate User at login EndPoint (Post /api/v1/user/login) *****************/
  const validateUserEndPoint = function(req, res) {
-  logger.info("Endpoint hitted: "+ req.originalUrl);
+  logger.info("Endpoint hit: "+ req.originalUrl);
 
   var params = {},
       userProps = {

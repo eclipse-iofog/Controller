@@ -16,7 +16,7 @@ import logger from '../../utils/winstonLogs';
 
 /*************** Create Element EndPoint (Post) *****************/
  const createElementEndPoint = function(req, res) {
-  logger.info("Endpoint hitted: "+ req.originalUrl);
+  logger.info("Endpoint hit: "+ req.originalUrl);
 
   var params = {},
       userProps = {
@@ -38,7 +38,7 @@ import logger from '../../utils/winstonLogs';
 
 /*************** Update Element EndPoint (Post) *****************/
  const updateElementEndPoint = function(req, res) {
-  logger.info("Endpoint hitted: "+ req.originalUrl);
+  logger.info("Endpoint hit: "+ req.originalUrl);
 
   var params = {},
     userProps = {
@@ -72,7 +72,7 @@ import logger from '../../utils/winstonLogs';
 
 /*************** Delete Element EndPoint (Post) *****************/
  const deleteElementEndPoint = function(req, res) {
-  logger.info("Endpoint hitted: "+ req.originalUrl);
+  logger.info("Endpoint hit: "+ req.originalUrl);
   
   var params = {},
       userProps = {
@@ -97,7 +97,7 @@ import logger from '../../utils/winstonLogs';
 
 /************* Get Element Catalog EndPoint (Get: api/v2/authoring/element/catalog/get) ***********/
 const getCatalogOfElements = function(req, res) {
-  logger.info("Endpoint hitted: "+ req.originalUrl);
+  logger.info("Endpoint hit: "+ req.originalUrl);
 
   var params = {},
       getElementCatalogProps = {

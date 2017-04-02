@@ -56,7 +56,8 @@ function main() {
         break;
 
     case 'config':
-      switch (args[1]) {
+      if (args[1]) {
+        switch (args[1]) {
           case '-list':
             FogControllerConfigService.configList();
           break;
@@ -91,6 +92,9 @@ function main() {
             break;
           default:
             console.log('Invalid flag "' + args[1] + '"');
+        }
+      }else {
+        FogControllerConfigService.configList();
       }
       break;
 

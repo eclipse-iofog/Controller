@@ -57,7 +57,7 @@ import _ from 'underscore';
 
 /***** Track Element List By TrackId EndPoint (Get: /api/v2/authoring/fabric/track/element/list/:trackId) *****/
  const trackElementListEndPoint = function(req, res) {
-  logger.info("Endpoint hitted: "+ req.originalUrl);
+  logger.info("Endpoint hit: "+ req.originalUrl);
 
   var params = {},
       userProps = {
@@ -169,7 +169,7 @@ import _ from 'underscore';
 
 /******** Detailed Element Instance Create EndPoint (Post: /api/v2/authoring/element/instance/create) ************/
  const detailedElementInstanceCreateEndPoint = function(req, res) {
-  logger.info("Endpoint hitted: "+ req.originalUrl);
+  logger.info("Endpoint hit: "+ req.originalUrl);
     var params = {},
       userProps = {
         userId: 'bodyParams.t',
@@ -304,7 +304,7 @@ import _ from 'underscore';
 
 /********** Element Instance Create EndPoint (Post: /api/v2/authoring/build/element/instance/create) **********/
 const elementInstanceCreateEndPoint = function(req, res) {
-  logger.info("Endpoint hitted: "+ req.originalUrl);
+  logger.info("Endpoint hit: "+ req.originalUrl);
   var params = {};
   params.logSize = 10;
   
@@ -357,7 +357,7 @@ const processNewElementInstance = function(params, callback) {
 /*** Element Instance Name/Config Update EndPoint (Post: ['/api/v2/authoring/element/instance/config/update',
                                                           '/api/v2/authoring/element/instance/name/update',]) ***/
 const elementInstanceConfigUpdateEndPoint = function(req, res) {
-logger.info("Endpoint hitted: "+req.originalUrl);
+logger.info("Endpoint hit: "+req.originalUrl);
 
   var params = {},
     userProps = {
@@ -393,7 +393,7 @@ logger.info("Endpoint hitted: "+req.originalUrl);
 
 /********* Element Instance Delete EndPoint (Post: '/api/v2/authoring/element/instance/delete') *********/
 const elementInstanceDeleteEndPoint = function(req, res) {
-  logger.info("Endpoint hitted: "+ req.originalUrl);
+  logger.info("Endpoint hit: "+ req.originalUrl);
 
   var params = {},
 
@@ -435,7 +435,7 @@ const elementInstanceDeleteEndPoint = function(req, res) {
 
 /** Element Instance Comsat Pipe Create EndPoint (Post: '/api/v2/authoring/element/instance/comsat/pipe/create') **/
 const elementInstanceComsatPipeCreateEndPoint = function(req, res) {
-  logger.info("Endpoint hitted: "+ req.originalUrl);
+  logger.info("Endpoint hit: "+ req.originalUrl);
   var params = {},
 
     userProps = {
@@ -528,7 +528,7 @@ const elementInstanceComsatPipeCreateEndPoint = function(req, res) {
 
 /** Element Instance Comsat Pipe Delete EndPoint (Post: '/api/v2/authoring/element/instance/comsat/pipe/delete') **/
 const elementInstanceComsatPipeDeleteEndPoint = function(req, res) {
-  logger.info("Endpoint hitted: "+ req.originalUrl);
+  logger.info("Endpoint hit: "+ req.originalUrl);
 
   var params = {},
 
@@ -593,7 +593,7 @@ const elementInstanceComsatPipeDeleteEndPoint = function(req, res) {
 
 /**** Element Instance Port Create EndPoint (Post: '/api/v2/authoring/element/instance/port/create') ****/
 const elementInstancePortCreateEndPoint = function(req, res) {
-  logger.info("Endpoint hitted: "+ req.originalUrl);
+  logger.info("Endpoint hit: "+ req.originalUrl);
   var params = {},
     waterfallMethods = [],
 
@@ -712,7 +712,7 @@ const elementInstancePortCreateEndPoint = function(req, res) {
 
 /**** Element Instance Port Delete EndPoint (Post: '/api/v2/authoring/element/instance/port/delete') ****/
 const elementInstancePortDeleteEndPoint = function(req, res) {
-  logger.info("Endpoint hitted: "+ req.originalUrl);
+  logger.info("Endpoint hit: "+ req.originalUrl);
   var params = {},
     waterfallMethods = [],
 
@@ -935,7 +935,7 @@ const elementInstancePortDeleteEndPoint = function(req, res) {
 
 /********** Element Instance Update EndPoint (Post: /api/v2/authoring/element/instance/update) **********/
 const elementInstanceUpdateEndPoint = function(req, res) {
-  logger.info("Endpoint hitted: "+ req.originalUrl);
+  logger.info("Endpoint hit: "+ req.originalUrl);
 
   var params = {},
       userProps = {
@@ -1050,11 +1050,6 @@ const elementInstanceUpdateEndPoint = function(req, res) {
         elementInstanceData: 'elementInstance',
         field: 'uuid',
         setProperty: 'dataTracks'
-      },
-      fogInstanceProps = {
-        fogData: 'elementInstance',
-        field: 'fogInstanceId',
-        setProperty: 'fogData'
       };
   
   params.bodyParams = req.body;
@@ -1062,9 +1057,8 @@ const elementInstanceUpdateEndPoint = function(req, res) {
   if(req.query.t){
       params.bodyParams.t = req.query.t;
   }
-
-  logger.info("Parameters:" + JSON.stringify(params.bodyParams));
   params.bodyParams.trackId = req.params.trackId;
+  logger.info("Parameters:" + JSON.stringify(params.bodyParams));
 
   async.waterfall([
     async.apply(UserService.getUser, userProps, params),
@@ -1077,7 +1071,6 @@ const elementInstanceUpdateEndPoint = function(req, res) {
     async.apply(RoutingService.isDebugging, debugProps),
     async.apply(RoutingService.isViewer, viewerProps),
     async.apply(ElementInstanceService.getDataTrackDetails, dataTrackProps),
-    async.apply(FogService.findFogInstance, fogInstanceProps),
     getOpenPorts
 
   ], function(err, result) {
@@ -1087,8 +1080,9 @@ const elementInstanceUpdateEndPoint = function(req, res) {
 
 /********************************* Extra Functions *****************************************/
 const getOpenPorts = function(params, callback){
-  let response = [];
-  async.each(params.elementInstance, function(instance, cb){
+  try{
+    let response = [];
+    async.eachSeries(params.elementInstance, function(instance, cb){
       let elementInstance = {
         id: instance.uuid,
         elementInstanceName: instance.elementInstanceName,
@@ -1096,6 +1090,8 @@ const getOpenPorts = function(params, callback){
         fogInstanceId: instance.fogInstanceId,
         rootHostAccess: instance.rootHostAccess,
         logSize: instance.logSize,
+        viewerEnabled: instance.isStreamViewer,
+        debugEnabled: instance.isDebugConsole,
         volumeMappings: instance.volumeMappings,
         elementName: instance.elementName,
         picture: instance.elementPicture,
@@ -1105,29 +1101,17 @@ const getOpenPorts = function(params, callback){
         ports: extractOpenPort(params, instance),
         debug: isDebugging(params, instance),
         viewer: isViewer(params, instance),
-        status: getStatus(params, instance)
+        status: instance.daemonStatus == null ? 'UNKNOWN': instance.daemonStatus
       };
       response.push(elementInstance);
       cb();
-  },
-   function(err) {
-    params.response = response;
-    callback(null, params);
-  });
-}
-
-const getStatus = function(params, elementInstance) {
-  if (elementInstance.fogInstanceId){
-    let elementInstanceDataTrack = _.findWhere(params.dataTracks, {
-      instanceId: elementInstance.fogInstanceId
+    },
+    function(err) {
+      params.response = response;
+      callback(null, params);
     });
-    
-    let fogDataTrack = _.findWhere(params.fogData, {
-        uuid: elementInstance.fogInstanceId
-    });
-    return fogDataTrack.daemonstatus;
-  }else{
-    return 'UNKNOWN';
+  }catch(e){
+    logger.error(e);
   }
 }
 
@@ -1155,9 +1139,6 @@ const getConnections = function(params, elementInstance) {
   });
   return connections;
 }
-
-
-
 
 const updateChangeTrackingData = function(params, callback) {
   if (params.elementInstance.iofog_uuid){

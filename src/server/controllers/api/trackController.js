@@ -24,7 +24,7 @@ import logger from '../../utils/winstonLogs';
 
 /***************** Create Track User EndPoint (Post: /api/v2/authoring/user/track/create) **************/
 const userTrackCreateEndPoint = function(req, res){
-  logger.info("Endpoint hitted: "+ req.originalUrl);
+  logger.info("Endpoint hit: "+ req.originalUrl);
   var params = {},
 
     userProps = {
@@ -58,7 +58,7 @@ const userTrackCreateEndPoint = function(req, res){
 
 /***************** Fog Track List EndPoint (Get: /api/v2/authoring/fabric/track/list/:instanceId) **************/
 const fogTrackListEndPoint = function(req, res){
-  logger.info("Endpoint hitted: "+ req.originalUrl);
+  logger.info("Endpoint hit: "+ req.originalUrl);
   var params = {},
 
     userProps = {
@@ -91,7 +91,7 @@ const fogTrackListEndPoint = function(req, res){
 
 /***************** Fog Track Update EndPoint (Post: /api/v2/authoring/fabric/track/update) **************/
 const fogTrackUpdateEndPoint = function(req, res){
-  logger.info("Endpoint hitted: "+ req.originalUrl);
+  logger.info("Endpoint hit: "+ req.originalUrl);
   var params = {},
 
     userProps = {
@@ -126,7 +126,7 @@ const fogTrackUpdateEndPoint = function(req, res){
 
 /***************** Fog Track Delete EndPoint (Post: /api/v2/authoring/fabric/track/delete) **************/
 const fogTrackDeleteEndPoint = function(req, res){
-  logger.info("Endpoint hitted: "+ req.originalUrl);
+  logger.info("Endpoint hit: "+ req.originalUrl);
   var params = {},
 
     userProps = {
@@ -162,7 +162,7 @@ const fogTrackDeleteEndPoint = function(req, res){
 
 /********** Get Track Data for User EndPoint (Get: /api/v2/authoring/user/track/list/:userId) *******/
 const getTracksForUser = function(req, res) {
-  logger.info("Endpoint hitted: "+ req.originalUrl);
+  logger.info("Endpoint hit: "+ req.originalUrl);
 
   var params = {},
     userProps = {
@@ -188,7 +188,7 @@ const getTracksForUser = function(req, res) {
 
 /***************** User Track Update EndPoint (Post: /api/v2/authoring/user/track/update) **************/
 const userTrackUpdateEndPoint = function(req, res){
-  logger.info("Endpoint hitted: "+ req.originalUrl);
+  logger.info("Endpoint hit: "+ req.originalUrl);
 
   var params = {},
 
@@ -226,7 +226,7 @@ const userTrackUpdateEndPoint = function(req, res){
 /***************** User Track Delete EndPoint (Post: /api/v2/authoring/user/track/delete) **************/
 
 const userTrackDeleteEndPoint = function(req, res){
-  logger.info("Endpoint hitted: "+ req.originalUrl);
+  logger.info("Endpoint hit: "+ req.originalUrl);
 
   var params = {},
 

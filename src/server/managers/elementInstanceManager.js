@@ -299,12 +299,12 @@ class ElementInstanceManager extends BaseManager {
 	getElementInstanceDetails(trackId) {
 		const query = 'select ei.UUID as uuid, ei.name as elementInstanceName, ' +
 		 			  'ei.config as config, ei.iofog_uuid as fogInstanceId, ei.root_host_access ' +
-		 			  'as rootHostAccess, ei.log_size as logSize,ei.volume_mappings as volumeMappings, e.name '+
-		 			  'as elementName, e.picture ' +
-		 			  'as elementPicture, ft.Name, ft.ID from element_instance ei inner join element e ' +
+		 			  'as rootHostAccess, ei.log_size as logSize,ei.volume_mappings as volumeMappings, ei.is_stream_viewer '+
+		 			  'as isStreamViewer, ei.is_debug_console as isDebugConsole, e.name as elementName, e.picture ' +
+		 			  'as elementPicture, f.DaemonStatus as daemonStatus, ft.Name, ft.ID from element_instance ei inner join element e ' +
 					  'on ei.element_key = e.id left join element_fog_types eft ' +
 					  'on ei.element_key = eft.element_id left join iofog_type ft ' +
-					  'on ft.ID = eft.iofog_type_id ' +
+					  'on ft.ID = eft.iofog_type_id left join iofogs f on ei.iofog_uuid = f.UUID ' +
 					  'where ei.track_id = ' + trackId + ' AND e.publisher != "SYSTEM"';
 
 		return sequelize.query(query, {

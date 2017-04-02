@@ -28,7 +28,7 @@ const createNetworkPairing = function(props, params, callback) {
     networkElementId1: AppUtils.getProperty(params, props.networkElementId1),
     networkElementId2: AppUtils.getProperty(params, props.networkElementId2),
     isPublicPort: props.isPublic,
-    element1PortId: AppUtils.getProperty(params, props.elementPortId),
+    elemen1PortId: AppUtils.getProperty(params, props.elementPortId),
     satellitePortId: AppUtils.getProperty(params, props.satellitePortId)
   };
 

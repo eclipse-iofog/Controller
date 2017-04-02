@@ -114,6 +114,7 @@ class UserManager extends BaseManager {
 						userAccessToken: AppUtils.generateAccessToken()
 					}).then(function(user) {
 					console.log('\nUser created successfully: ' + email);
+					console.log('userAccessToken: ' + this.userAccessToken);
 					});
 				}else{
 					console.log('\nError: Password length should be atleast 8 characters.');

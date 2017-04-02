@@ -51,10 +51,20 @@ const getFogByProvisionKey = function(props, params, callback) {
     .then(AppUtils.onFind.bind(null, params, props.setProperty, Constants.MSG.ERROR_INVALID_PROVISTION_KEY, callback));
 }
 
+const getProvisionKeyByInstanceId = function(props, params, callback) {
+  var instanceId = AppUtils.getProperty(params, props.instanceId);
+
+  FogProvisionKeyManager
+    .findByInstanceId(instanceId)
+    .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Error: Unable to find provision key with this fog', callback));
+}
+
 export default {
   checkProvisionKeyExpiry: checkProvisionKeyExpiry,
   createProvisonKeyByInstanceId: createProvisonKeyByInstanceId,
   deleteByProvisionKey: deleteByProvisionKey,
   deleteProvisonKeyByInstanceId: deleteProvisonKeyByInstanceId,
-  getFogByProvisionKey: getFogByProvisionKey
+  getFogByProvisionKey: getFogByProvisionKey,
+  getProvisionKeyByInstanceId: getProvisionKeyByInstanceId
+
 }

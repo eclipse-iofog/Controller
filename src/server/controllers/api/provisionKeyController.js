@@ -9,6 +9,7 @@ import BaseApiController from './baseApiController';
 import FogAccessTokenService from '../../services/fogAccessTokenService';
 import FogProvisionKeyService from '../../services/fogProvisionKeyService';
 import FogService from '../../services/fogService';
+import FogTypeService from '../../services/fogTypeService';
 import FogUserService from '../../services/fogUserService';
 import UserService from '../../services/userService';
 
@@ -19,7 +20,7 @@ import logger from '../../utils/winstonLogs';
 
 /******* Get Provision Key EndPoint (Get: /api/v2/authoring/fabric/provisionkey/instanceid/:instanceId) ********/
  const getProvisionKeyEndPoint = function(req, res){
-  logger.info("Endpoint hitted: "+ req.originalUrl);
+  logger.info("Endpoint hit: "+ req.originalUrl);
   var params = {},
       createProvisionProps = {
           instanceId: 'bodyParams.instanceId',
@@ -44,9 +45,8 @@ import logger from '../../utils/winstonLogs';
 };
 
 /** Fog Provisioning EndPoint (Get/Post: /api/v2/instance/provision/key/:provisionKey/fabrictype/:fabricType) **/
-
 const fogProvisionKeyEndPoint = function(req, res) {
-  logger.info("Endpoint hitted: "+ req.originalUrl);
+  logger.info("Endpoint hit: "+ req.originalUrl);
   var params = {},
       provisionProps = {
         provisionKey: 'bodyParams.provisionKey',
@@ -58,6 +58,10 @@ const fogProvisionKeyEndPoint = function(req, res) {
       fogProps = {
         fogId: 'fogProvision.iofog_uuid',
         setProperty: 'fogData'
+      },
+      fogTypeProps = {
+        fogTypeId: 'bodyParams.fabricType',
+        setProperty: 'fogTypeData'
       },
       fogUserProps = {
         instanceId: 'fogData.uuid',
@@ -77,6 +81,7 @@ const fogProvisionKeyEndPoint = function(req, res) {
   
   async.waterfall([
     async.apply(FogProvisionKeyService.getFogByProvisionKey, provisionProps, params),
+    async.apply(FogTypeService.getFogTypeDetail, fogTypeProps),
     async.apply(FogProvisionKeyService.deleteByProvisionKey, provisionProps),
     async.apply(FogProvisionKeyService.checkProvisionKeyExpiry, provisionKeyExpiryProps),
     async.apply(FogService.getFogInstance, fogProps),
@@ -100,16 +105,18 @@ const fogProvisionKeyEndPoint = function(req, res) {
 
 /********* Delete Provision Key EndPoint (Post: /api/v2/authoring/fabric/provisioningkey/list/delete) *********/
 const deleteProvisionKeyEndPoint = function(req, res) {
-  logger.info("Endpoint hitted: "+ req.originalUrl);
+  logger.info("Endpoint hit: "+ req.originalUrl);
   var params = {},
       instanceProps = {
         instanceId: 'bodyParams.instanceId',
+        setProperty: 'provisionData'
       };
   params.bodyParams = req.body;
   logger.info("Parameters:" + JSON.stringify(params.bodyParams));
 
   async.waterfall([
-    async.apply(FogProvisionKeyService.deleteProvisonKeyByInstanceId, instanceProps, params)
+    async.apply(FogProvisionKeyService.getProvisionKeyByInstanceId, instanceProps, params),
+    async.apply(FogProvisionKeyService.deleteProvisonKeyByInstanceId, instanceProps)
   
   ], function(err, result) {
        AppUtils.sendResponse(res, err, 'instanceId', params.bodyParams.instanceId, result);  

@@ -17,7 +17,7 @@ import logger from '../../utils/winstonLogs';
 
   const instanceStatusEndPoint = function(req, res){
 
-  logger.info("Endpoint hitted: "+ req.originalUrl);
+  logger.info("Endpoint hit: "+ req.originalUrl);
 
   var params = {};
  

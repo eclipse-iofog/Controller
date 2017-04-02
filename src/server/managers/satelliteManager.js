@@ -67,7 +67,7 @@ class SatelliteManager extends BaseManager {
                       domain: domain,
                       publicIP: publicIP,
                     }).then(function(satellite) {
-                    console.log('\nSatellite Created : '+satellite.name);
+                    console.log('\nComSat Created : '+satellite.name);
                     });
                   }else {
                     console.log('\nError: Following ComSat already exists with similar configurations: \n ' + satellite.name + ' (' + satellite.domain + ') ' + satellite.publicIP);
@@ -81,7 +81,7 @@ class SatelliteManager extends BaseManager {
         console.log('ComSat name is invalid. Try again with different ComSat name.');
       }
     }else { 
-      console.log('\nPlease provide values in following order:\n fog-controller satellite -add <name> <domain> <publicIP>');
+      console.log('\nPlease provide values in following order:\n fog-controller comsat -add <name> <domain> <publicIP>');
     }
 }
 
@@ -91,13 +91,13 @@ class SatelliteManager extends BaseManager {
         .then(function(satellite) {
           if (satellite) {
             satellite.destroy();
-            console.log('\nSuccess: Satellite deleted');
+            console.log('\nSuccess: ComSat deleted');
           } else {
-            console.log('\nError: Can not find Satellite having "' + id + '" as ID');
+            console.log('\nError: Can not find ComSat having "' + id + '" as ID');
           }
         })
     } else {
-      console.log('\nPlease provide values in following order: fog-controller satellite -remove <id>');
+      console.log('\nPlease provide values in following order: fog-controller comsat -remove <id>');
     }
   }
 
@@ -105,13 +105,13 @@ class SatelliteManager extends BaseManager {
     this.find()
       .then(function(satellite) {
         if (satellite && satellite.length > 0) {
-          console.log('\n\tID | Satellite Name | Domain | Public IP');
+          console.log('\n\tID | ComSat Name | Domain | Public IP');
           for (var i = 0; i < satellite.length; i++) {
             console.log('\t' + satellite[i].id + ' | ' + satellite[i].name + ' | ' + satellite[i].domain + ' | ' 
                         + satellite[i].publicIP);
           }
         } else {
-          console.log('No satellite found');
+          console.log('No ComSat found');
         }
       });
   }

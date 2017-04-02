@@ -43,10 +43,10 @@ const getFogInstance = function(props, params, callback) {
 }
 
 const findFogInstance = function(props, params, callback) {
-  var fogData= AppUtils.getProperty(params, props.fogData);
+  var fogsData= AppUtils.getProperty(params, props.fogsData);
 
   FogManager
-    .findByInstanceId(_.pluck(fogData, props.field))
+    .findByInstanceId(_.pluck(fogsData, props.field))
     .then(AppUtils.onFindOptional.bind(null, params, props.setProperty, callback));
 }
 

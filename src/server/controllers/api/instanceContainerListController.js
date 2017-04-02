@@ -16,7 +16,7 @@ import logger from '../../utils/winstonLogs';
 
 /********************************************* EndPoints ******************************************************/
 const containerListEndPoint = function(req, res){
-  logger.info("Endpoint hitted: "+ req.originalUrl);
+  logger.info("Endpoint hit: "+ req.originalUrl);
 
   var params= {},
       dataTrackProps = {

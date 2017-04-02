@@ -30,7 +30,7 @@ import Constants from '../../constants.js';
 
 /********** Instance Routing EndPoint (Get/Post: /api/v2/instance/routing/id/:ID/token/:Token) ***************/
 const instanceRoutingEndPoint = function (req, res){
-  logger.info("Endpoint hitted: "+ req.originalUrl);
+  logger.info("Endpoint hit: "+ req.originalUrl);
 
   var params = {},
       streamViewerProps = {
@@ -62,7 +62,7 @@ const instanceRoutingEndPoint = function (req, res){
 
 /********* Instance Route Create EndPoint (Post: /api/v2/authoring/element/instance/route/create) **********/
 const instanceRouteCreateEndPoint = function (req, res){
-  logger.info("Endpoint hitted: "+ req.originalUrl);
+  logger.info("Endpoint hit: "+ req.originalUrl);
   var params = {},
     currentTime = new Date().getTime(),
     watefallMethods = [],
@@ -278,7 +278,7 @@ const instanceRouteCreateEndPoint = function (req, res){
 
 /********* Instance Route Delete EndPoint (Post: /api/v2/authoring/element/instance/route/delete) **********/
 const instanceRouteDeleteEndPoint = function(req, res){
-  logger.info("Endpoint hitted: "+ req.originalUrl);
+  logger.info("Endpoint hit: "+ req.originalUrl);
   var params = {},
     currentTime = new Date().getTime(),
     watefallMethods = [],

@@ -27,7 +27,7 @@ import logger from '../../utils/winstonLogs';
 
 /*************** Integrator Instance Create EndPoint (Post: /api/v2/authoring/integrator/instance/create) ************/
 const integratorInstanceCreateEndPoint = function(req, res){
-  logger.info("Endpoint hitted: "+ req.originalUrl);
+  logger.info("Endpoint hit: "+ req.originalUrl);
   var params = {},
 
     userProps = {
@@ -191,7 +191,7 @@ const integratorInstanceCreateEndPoint = function(req, res){
 
 /*********** Integrator Instance Update EndPoint (Post: /api/v2/authoring/integrator/instance/update) *********/
 const integratorInstanceUpdateEndPoint = function(req, res){
-  logger.info("Endpoint hitted: "+ req.originalUrl);
+  logger.info("Endpoint hit: "+ req.originalUrl);
   var params = {},
       userProps = {
         userId: 'bodyParams.t',
@@ -213,7 +213,7 @@ const integratorInstanceUpdateEndPoint = function(req, res){
 
   ], function(err, result) {
     var errMsg = 'Internal error: There was a problem updating Fog instance.' + result
-    AppUtils.sendResponse(res, err, 'Updated Fog', params.bodyParams.instanceId, errMsg);
+    AppUtils.sendResponse(res, err, 'instanceId', params.bodyParams.instanceId, errMsg);
   });
 };
 

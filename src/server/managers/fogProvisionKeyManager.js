@@ -19,6 +19,14 @@ class FogProvisionKeyManager extends BaseManager {
     return FogProvisionKey.create(newProvision);
   }
 
+  findByInstanceId(instanceId) {
+      return FogProvisionKey.find({
+        where: {
+          iofog_uuid: instanceId
+        }
+      });
+    }
+
   /**
    * @desc - deletes the fog provision key based on the instanceId
    * @param String - instanceId
