@@ -956,7 +956,7 @@ const elementInstanceUpdateEndPoint = function(req, res) {
 
     async.waterfall([
       async.apply(UserService.getUser, userProps, params),
-      async.apply(FogService.getFogInstance, fogProps),
+      async.apply(FogService.getFogInstanceOptional, fogProps),
       async.apply(ElementInstanceService.getElementInstance, elementInstanceProps),
       updateElementInstance,
       updateChangeTracking,
@@ -1087,7 +1087,7 @@ const getOpenPorts = function(params, callback){
         id: instance.uuid,
         elementInstanceName: instance.elementInstanceName,
         config: instance.config,
-        fogInstanceId: instance.fogInstanceId,
+        fogInstanceId: instance.fogInstanceId != null ? instance.fogInstanceId :'NONE',
         rootHostAccess: instance.rootHostAccess,
         logSize: instance.logSize,
         viewerEnabled: instance.isStreamViewer,
@@ -1169,14 +1169,21 @@ const updateRebuild = function (params, callback) {
 }
 
 const updateElementInstance = function (params, callback) {
+  try{
   var data;
 
   if (params.elementInstance.iofog_uuid == params.bodyParams.fabricInstanceId) {
+    logger.warn('Waqar');
     callback(null, params);
   } 
   else {
+    var fogInstanceId = null;
+    if (params.bodyParams.fabricInstanceId != 'NONE'){
+        fogInstanceId = params.bodyParams.fabricInstanceId;
+      }
+
     data = {
-      iofog_uuid: params.bodyParams.fabricInstanceId
+      iofog_uuid: fogInstanceId
     };
 
     var elementProps = {
@@ -1184,6 +1191,9 @@ const updateElementInstance = function (params, callback) {
       updatedData: data
     };
     ElementInstanceService.updateElemInstance(elementProps, params, callback);
+  }
+  }catch(e){
+    logger.error(e);
   }
 }
 
@@ -1282,7 +1292,7 @@ const getElementInstanceProperties = function(params, callback) {
         elementKey: instance.elementKey,
         config: instance.config,
         elementInstanceName: instance.elementInstanceName,
-        fogInstanceId: instance.fogInstanceId,
+        fogInstanceId: instance.fogInstanceId != null ? instance.fogInstanceId :'NONE',
         rebuild: instance.rebuild,
         rootHostAccess: instance.rootHostAccess,
         logSize: instance.logSize,

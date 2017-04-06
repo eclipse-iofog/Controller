@@ -12,7 +12,69 @@ import UserService from '../../services/userService';
 import AppUtils from '../../utils/appUtils';
 import logger from '../../utils/winstonLogs';
 
-/************************ EndPoints ******************************/
+/*********************************************** EndPoints **************************************************************/
+/*************** Update Element For User EndPoint (Post: /api/v2/authoring/element/module/update) *****************/
+ const updateElementForUserEndPoint= function(req, res) {
+  logger.info("Endpoint hit: "+ req.originalUrl);
+
+  var params = {},
+    userProps = {
+      userId: 'bodyParams.t',
+      setProperty: 'user'
+    },
+    
+    elementProps = {
+      networkElementId: 'bodyParams.id',
+      setProperty: 'element'
+    },
+
+    fogTypeProps = {
+      elementId: 'bodyParams.id',
+    };
+
+  params.bodyParams = req.body;
+  logger.info("Parameters:" + JSON.stringify(params.bodyParams));
+
+  async.waterfall([
+    async.apply(UserService.getUser, userProps, params),
+    async.apply(ElementService.getNetworkElement, elementProps),
+    updateElement
+
+  ], function(err, result) {
+    AppUtils.sendResponse(res, err, 'element', params, result);
+  })
+};
+
+/************ Create Element For User EndPoint (Post: api/v2/authoring/element/module/create) ************/
+ const createElementForUserEndPoint = function(req, res) {
+  logger.info("Endpoint hit: "+ req.originalUrl);
+
+  var params = {},
+      userProps = {
+        userId: 'bodyParams.t',
+        setProperty: 'user'
+      };
+  params.bodyParams = req.body;
+  logger.info("Parameters:" + JSON.stringify(params.bodyParams));
+
+  async.waterfall([
+    async.apply(UserService.getUser, userProps, params),
+    createElementForUser,
+    createElementFogType
+
+  ], function(err, result) {
+   var successLabelArr,
+       successValueArr,
+       elementData = {};
+
+    if (params.element && params.elementFogData){
+      elementData.id = params.element.id;
+      successLabelArr= ['elementFogType', 'module'],
+      successValueArr= [params.elementFogData.iofog_type_id, elementData];
+    }
+    AppUtils.sendMultipleResponse(res, err, successLabelArr, successValueArr, result);
+  })
+};
 
 /*************** Create Element EndPoint (Post) *****************/
  const createElementEndPoint = function(req, res) {
@@ -100,15 +162,22 @@ const getCatalogOfElements = function(req, res) {
   logger.info("Endpoint hit: "+ req.originalUrl);
 
   var params = {},
+      userProps = {
+          userId: 'bodyParams.t',
+          setProperty: 'user'
+      },
       getElementCatalogProps = {
         setProperty: 'elementCatalog'
       };
   
   params.bodyParams = req.params;
+  params.bodyParams.t = req.query.t;
+
   logger.info("Parameters:" + JSON.stringify(params.bodyParams));
 
   async.waterfall([
-    async.apply(ElementService.getElementCatalog, getElementCatalogProps, params)
+    async.apply(UserService.getUser, userProps, params),
+    async.apply(ElementService.getElementCatalog, getElementCatalogProps)
 
   ], function(err, result) {
       AppUtils.sendResponse(res, err, 'elementCatalog', params.elementCatalog, result);
@@ -127,7 +196,7 @@ const createElement = function(params, callback) {
           diskRequired: false,
           ramRequired: false,
           picture: params.bodyParams.picture,
-          isPublic: true,
+          isPublic: false,
           registry_id: 1
         },
         setProperty: 'element'
@@ -150,11 +219,44 @@ const createElementFogTypes = function(params, callback) {
               iofog_type_id: fogTypeIds[i]
             }
           };
-      ElementFogTypeService.createElementFogType(elementFogTypeProps, params);
+      ElementFogTypeService.createElementFogTypes(elementFogTypeProps, params);
     }
   }
   callback(null, params);
 }
+
+const createElementForUser = function(params, callback) {
+  var elementProps = {
+        element : {
+          name: '',
+          description: '',
+          category: '',
+          containerImage: '',
+          publisher: '',
+          diskRequired: false,
+          ramRequired: false,
+          picture: 'images/shared/default.png',
+          isPublic: false,
+          registry_id: 1
+        },
+        setProperty: 'element'
+      };
+  ElementService.createElement(elementProps, params, callback);
+}
+
+const createElementFogType = function(params, callback) {
+  if (params.bodyParams.fabricType){
+      var elementFogTypeProps = {
+            elementType: {
+              element_id: params.element.id,
+              iofog_type_id: params.bodyParams.fabricType
+            },
+            setProperty: 'elementFogData'
+          };
+      ElementFogTypeService.createElementFogType(elementFogTypeProps, params, callback);
+    }
+}
+
 
 const updateElement = function(params, callback) {
   var elementProps = {
@@ -165,10 +267,10 @@ const updateElement = function(params, callback) {
           category: params.bodyParams.category,
           containerImage: params.bodyParams.containerImage,
           publisher: params.bodyParams.publisher,
-          diskRequired: false,
-          ramRequired: false,
+          diskRequired: params.bodyParams.diskRequired ? params.bodyParams.diskRequired : false,
+          ramRequired: params.bodyParams.ramRequired ? params.bodyParams.ramRequired : false,
           picture: params.bodyParams.picture,
-          isPublic: true,
+          isPublic: false,
           registry_id: 1
         }
       };
@@ -178,7 +280,9 @@ const updateElement = function(params, callback) {
 
 export default {
   createElementEndPoint: createElementEndPoint,
+  createElementForUserEndPoint: createElementForUserEndPoint,
   updateElementEndPoint: updateElementEndPoint,
+  updateElementForUserEndPoint: updateElementForUserEndPoint,
   deleteElementEndPoint: deleteElementEndPoint,
   getCatalogOfElements: getCatalogOfElements
 };

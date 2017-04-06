@@ -106,7 +106,7 @@ const initApp = function() {
   app.get('/api/v2/authoring/integrator/instances/list/:t', fogController.fogInstancesListEndPoint);
   app.get('/api/v2/instance/create/type/:type', fogController.fogInstanceCreateEndPoint);
   app.get('/api/v2/instance/getfabriclist', fogController.getFogListEndPoint);
-  app.get('/api/v2/authoring/fabric/types/list', fogController.getFogTypesEndPoint);
+  app.get('/api/v2/authoring/fabric', fogController.getFogTypesEndPoint); ///api/v2/authoring/fabric/types/list
   app.post('/api/v2/authoring/fabric/instance/delete', fogController.fogInstanceDeleteEndPoint);
   app.post('/api/v2/authoring/integrator/instance/delete', fogController.integratorInstanceDeleteEndPoint);
   app.get('/api/v2/instance/changes/id/:ID/token/:Token/timestamp/:TimeStamp', instanceChangesController.getChangeTrackingChangesEndPoint);
@@ -143,11 +143,12 @@ const initApp = function() {
   app.post('/api/v2/authoring/element/connection/delete', elementInstanceController.deleteElementInstanceConnectionEndPoint);
   app.get('/api/v2/authoring/element/instance/rebuild/status/elementid/:elementId',  elementInstanceController.elementInstanceRebuildStatusEndPoint);
   app.post('/api/v2/authoring/element/instance/rebuild',  elementInstanceController.elementInstanceRebuildUpdateEndPoint);
-  
   app.get('/api/v2/authoring/element/instance/details/trackid/:trackId', elementInstanceController.getElementInstanceDetailsEndPoint);
   app.post('/api/v2/authoring/element/instance/details/trackid/:trackId', elementInstanceController.getElementInstanceDetailsEndPoint);
   app.post('/api/v2/authoring/build/properties/panel/get', elementInstanceController.getElementInstancePropertiesEndPoint);
   
+  app.post('/api/v2/authoring/element/module/create', elementController.createElementForUserEndPoint);
+  app.post('/api/v2/authoring/element/module/update', elementController.updateElementForUserEndPoint);
 
   //generic error handler
   app.use((err, req, res, next) => {

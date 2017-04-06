@@ -137,7 +137,7 @@ const getFogListEndPoint = function(req, res){
 	});
 };
 
-/******************** Get Fog Types EndPoint (Get: /api/v2/authoring/fabric/types/list) ******************/
+/******************** Get Fog Types EndPoint (Get: /api/v2/authoring/fabric) ******************/
 const getFogTypesEndPoint = function(req, res){
   logger.info("Endpoint hit: "+ req.originalUrl);
 	var params = {},
@@ -160,7 +160,7 @@ const getFogTypesEndPoint = function(req, res){
 	],
 	function(err, result) {
 		var errMsg = 'Internal error: ' + result;
-		AppUtils.sendResponse(res, err, 'types', params.fogTypesList, errMsg);
+		AppUtils.sendResponse(res, err, 'fogTypes', params.fogTypesList, errMsg);
 	});
 };
 

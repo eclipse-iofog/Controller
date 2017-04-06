@@ -75,6 +75,13 @@ class ElementInstanceManager extends BaseManager {
 			}
 		});
 	}
+	findByUuids(uuids) {
+		return ElementInstance.findAll({
+			where: {
+				uuid:  uuids	
+			}
+		});
+	}
 
 	findByTrackId(trackId) {
 		return ElementInstance.findAll({
@@ -211,7 +218,6 @@ class ElementInstanceManager extends BaseManager {
     	});
   	}
 
-
 	deleteNetworkElement(elementId) {
 		var deleteQuery = ' \
 			DELETE FROM element_instance \
@@ -251,14 +257,6 @@ class ElementInstanceManager extends BaseManager {
 				model: Element,  as: 'element',
 				attributes: ['id', 'name', 'category', 'containerImage', 'publisher']
 			}]
-		});
-	}
-
-	findByUuids(uuids) {
-		return ElementInstance.findAll({
-			where: {
-				uuid:  uuids	
-			}
 		});
 	}
 
@@ -320,6 +318,21 @@ class ElementInstanceManager extends BaseManager {
 					  'on ei.element_key = e.id left join element_fog_types eft ' +
 					  'on ei.element_key = eft.element_id left join iofog_type ft ' +
 					  'on ft.ID = eft.iofog_type_id ' +
+					  'where ei.UUID in (:uuid)';
+
+		return sequelize.query(query, {
+			replacements: {
+				uuid: uuid
+			},
+			type: sequelize.QueryTypes.SELECT
+		});
+	}
+
+	getElementInstanceRoute(uuid) {
+		const query = 'select ei.name as elementInstanceName, ei.track_id as trackId, ei.iofog_uuid as fogInstanceId, ' +
+		 			  'e.name as elementName, t.name as trackName from element_instance ei ' +
+		 			  'inner join element e on ei.element_key = e.id ' +
+					  'inner join data_tracks t on ei.track_id = t.ID ' +
 					  'where ei.UUID in (:uuid)';
 
 		return sequelize.query(query, {

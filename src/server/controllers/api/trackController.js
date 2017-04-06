@@ -224,7 +224,6 @@ const userTrackUpdateEndPoint = function(req, res){
   })
 };
 /***************** User Track Delete EndPoint (Post: /api/v2/authoring/user/track/delete) **************/
-
 const userTrackDeleteEndPoint = function(req, res){
   logger.info("Endpoint hit: "+ req.originalUrl);
 

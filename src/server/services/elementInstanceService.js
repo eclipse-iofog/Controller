@@ -40,15 +40,15 @@ const getElementInstance = function(props, params, callback) {
 
   ElementInstanceManager
     .findByUuId(elementInstanceId)
-    .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Cannot find Element Instance', callback));
+    .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Cannot find Element Instance: ' + elementInstanceId, callback));
 }
 
-const getElementInstanceByUuIds = function(props, params, callback) {
+const getElementInstanceOptional = function(props, params, callback) {
   var elementInstanceId = AppUtils.getProperty(params, props.elementInstanceId);
 
   ElementInstanceManager
-    .findByUuids(elementInstanceId)
-    .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Cannot find Element Instance', callback));
+    .findByUuId(elementInstanceId)
+    .then(AppUtils.onFindOptional.bind(null, params, props.setProperty, callback));
 }
 
 const getElementInstancesByTrackId = function(props, params, callback) {
@@ -213,6 +213,14 @@ const deleteElementInstances = function(props, params, callback) {
     .then(AppUtils.onDeleteOptional.bind(null, params, callback));
 }
 
+const getElementInstanceRouteDetails = function(props, params, callback) {
+  var elementInstanceId = AppUtils.getProperty(params, props.elementInstanceId);
+
+  ElementInstanceManager
+    .getElementInstanceRoute(elementInstanceId)
+    .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Cannot find element Instance route.', callback));
+}
+
 export default {
   createDebugConsole: createDebugConsole,
   createElementInstance: createElementInstance,
@@ -230,11 +238,12 @@ export default {
   deleteNetworkElementInstances: deleteNetworkElementInstances,
   getDataTrackDetails: getDataTrackDetails,
   getElementInstance: getElementInstance,
-  getElementInstanceByUuIds: getElementInstanceByUuIds,
+  getElementInstanceOptional: getElementInstanceOptional,
   getElementInstancesByTrackId: getElementInstancesByTrackId,
   getElementInstanceProperties: getElementInstanceProperties,
   updateElemInstance: updateElemInstance,
   updateElemInstanceByFogUuId: updateElemInstanceByFogUuId,
   updateElementInstanceRebuild: updateElementInstanceRebuild,
-  getDetailedElementInstances:getDetailedElementInstances
+  getDetailedElementInstances:getDetailedElementInstances,
+  getElementInstanceRouteDetails: getElementInstanceRouteDetails
 };

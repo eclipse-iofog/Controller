@@ -42,6 +42,14 @@ const getFogInstance = function(props, params, callback) {
     .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Cannot find Fog Instance', callback));
 }
 
+const getFogInstanceOptional = function(props, params, callback) {
+  var fogId = AppUtils.getProperty(params, props.fogId);
+
+  FogManager
+    .findByInstanceId(fogId)
+    .then(AppUtils.onFindOptional.bind(null, params, props.setProperty, callback));
+}
+
 const findFogInstance = function(props, params, callback) {
   var fogsData= AppUtils.getProperty(params, props.fogsData);
 
@@ -77,6 +85,7 @@ export default {
   createFogInstance: createFogInstance,
   deleteFogInstance: deleteFogInstance,
   getFogInstance: getFogInstance,
+  getFogInstanceOptional: getFogInstanceOptional,
   getFogInstanceForUser: getFogInstanceForUser,
   getFogList: getFogList,
   updateFogInstance: updateFogInstance,

@@ -212,6 +212,7 @@ const sendMultipleResponse = function(response, err, successLabelArr, successVal
     res['status'] = 'failure';
     res['errormessage'] = errorMessage;
   } else {
+    logger.info("Success");
     res['status'] = 'ok';
     for (var i = 0; i < successValueArr.length; i++){
     res[successLabelArr[i]] = successValueArr[i];

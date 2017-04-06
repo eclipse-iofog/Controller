@@ -222,13 +222,10 @@ const instanceRouteCreateEndPoint = function (req, res){
       async.apply(UserService.getUser, userProps, params),
       async.apply(FogService.getFogInstance, pubFogProps),
       async.apply(FogService.getFogInstance, destFogProps),
-      async.apply(ElementInstanceService.getElementInstance, destElementProps),
       async.apply(RoutingService.createRoute, routingProps),
-      async.apply(ElementInstanceService.updateElemInstance, updateRebuildPubProps),
-      async.apply(ElementInstanceService.updateElemInstance, updateRebuildDestProps),
+      async.apply(ElementInstanceService.getElementInstanceRouteDetails, destElementProps),
       async.apply(ChangeTrackingService.updateChangeTracking, pubChangeTrackingProps),
-      async.apply(DataTracksService.getDataTrackById, trackProps),
-      getOutputDetails
+      getRouteDetails
     ];
   } else {
     watefallMethods = [
@@ -275,6 +272,29 @@ const instanceRouteCreateEndPoint = function (req, res){
     AppUtils.sendResponse(res, err, 'route', params.output, errMsg);
   });
 };
+
+const getRouteDetails = function(params, callback) {
+  try{
+  params.output = {
+    elementId: params.bodyParams.destinationElementId,
+    elementName: params.destinationElementInstance[0].elementInstanceName,
+    elementTypeName: params.destinationElementInstance[0].elementName,
+    trackId: params.destinationElementInstance[0].trackId,
+    trackName: params.destinationElementInstance[0].trackName,
+    instanceId: params.destinationFogInstance.uuid,
+    instanceName: params.destinationFogInstance.name
+  };
+
+  if (!params.output){
+    params.output = null;
+  }
+
+  }catch(e){
+    logger.error(e);
+  }
+
+  callback(null, params);
+}
 
 /********* Instance Route Delete EndPoint (Post: /api/v2/authoring/element/instance/route/delete) **********/
 const instanceRouteDeleteEndPoint = function(req, res){
@@ -519,7 +539,7 @@ const getDeleteOutput = function(params, callback) {
   params.output = {
     publishinginstanceid: params.bodyParams.publishingInstanceId,
     publishingtrackid: params.bodyParams.publishingTrackId,
-    publishingelementid: params.publishingElementId,
+    publishingelementid: params.bodyParams.publishingElementId,
     destinationinstanceid: params.bodyParams.destinationInstanceId,
     destinationtrackid: params.bodyParams.destinationTrackId,
     destinationelementid: params.bodyParams.destinationElementId
