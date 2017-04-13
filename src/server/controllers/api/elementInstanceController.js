@@ -32,25 +32,31 @@ import _ from 'underscore';
   logger.info("Endpoint hit: "+ req.originalUrl);
 
   var params = {},
+    userProps = {
+      userId: 'bodyParams.t',
+      setProperty: 'user'
+    },
+
     elementInstanceProps = {
       elementInstanceId: 'bodyParams.elementId',
       setProperty: 'elementInstance'
     };
 
   params.bodyParams = req.params;
+  params.bodyParams.t = req.query.t; 
   logger.info("Parameters:" + JSON.stringify(params.bodyParams));
 
   async.waterfall([
-    async.apply(ElementInstanceService.getElementInstance, elementInstanceProps, params)
+    async.apply(UserService.getUser, userProps, params),
+    async.apply(ElementInstanceService.getElementInstance, elementInstanceProps)
 
   ], function(err, result) {
-    var rebuild ;
-    if (params.elementInstance.rebuild){
-      rebuild = 1;
-    }else{
-      rebuild = 0;
+    var rebuild = 0;
+    if(!err){
+      if (params.elementInstance.rebuild){
+        rebuild = 1;
+      }
     }
-
     AppUtils.sendResponse(res, err, 'rebuild', rebuild, result);
   });
 };
@@ -894,13 +900,14 @@ const elementInstancePortDeleteEndPoint = function(req, res) {
     createElementInstanceConnection
 
   ], function(err, result) {
-      var connectionId;
+    var connectionId;
+    if(!err){
       if (params.elementInstanceConnection.length){
         connectionId =  params.elementInstanceConnection[0].id;
       }else{
         connectionId = params.newElementInstanceConnection.id;
       }
-
+    }
     AppUtils.sendResponse(res, err, 'connection', connectionId, result);
   });
 };
@@ -1266,8 +1273,9 @@ const updateElement = function(params, callback) {
 }
 
 const createElementInstanceConnection = function(params, callback) {
-  if (params.elementInstanceConnection == ''){
-     var newElementInstanceConnectionProps = {
+  if (params.bodyParams.sourceElementId && params.bodyParams.destinationElementId){
+    if (params.elementInstanceConnection == ''){
+      var newElementInstanceConnectionProps = {
         newConnectionObj: {
           sourceElementInstance: params.bodyParams.sourceElementId,
           destinationElementInstance: params.bodyParams.destinationElementId
@@ -1275,9 +1283,12 @@ const createElementInstanceConnection = function(params, callback) {
         setProperty: 'newElementInstanceConnection'
       };
 
-    ElementInstanceConnectionsService.createElementInstanceConnection(newElementInstanceConnectionProps, params, callback);
+      ElementInstanceConnectionsService.createElementInstanceConnection(newElementInstanceConnectionProps, params, callback);
+    }else{
+      callback(null, params);
+    }
   }else{
-    callback(null, params);
+    callback('err', 'sourceElementId and destinationElementId cannot be empty');
   }
 }
 

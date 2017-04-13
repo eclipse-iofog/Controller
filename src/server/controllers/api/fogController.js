@@ -137,7 +137,7 @@ const getFogListEndPoint = function(req, res){
 	});
 };
 
-/******************** Get Fog Types EndPoint (Get: /api/v2/authoring/fabric) ******************/
+/******************** Get Fog Types EndPoint (Get: /api/v2/authoring/fabric/types/list) ******************/
 const getFogTypesEndPoint = function(req, res){
   logger.info("Endpoint hit: "+ req.originalUrl);
 	var params = {},

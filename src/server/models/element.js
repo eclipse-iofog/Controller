@@ -27,6 +27,10 @@ const Element = sequelize.define('element', {
     type: Sequelize.TEXT,
     field: 'category'
   },
+  config: {
+    type: Sequelize.TEXT,
+    field: 'config'
+  },
   containerImage: {
     type: Sequelize.TEXT,
     field: 'container_image'

@@ -424,7 +424,6 @@ const getFogInstance = function(params, callback) {
 }
 
 const deleteElementInstances = function(params, callback) {
-  console.log();
   if (params.trackElementInstances && params.trackElementInstances.length > 0) {
     async.eachSeries(params.trackElementInstances, function(elementInstance, callback) {
       params.bodyParams.elementId = elementInstance.uuid;

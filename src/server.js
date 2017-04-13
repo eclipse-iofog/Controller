@@ -86,6 +86,9 @@ const initApp = function() {
 
   app.post('/api/v1/user/login', loginController.validateUserEndPoint);
 
+
+
+
   app.post('/api/v2/authoring/organization/element/create', elementController.createElementEndPoint);
   app.post('/api/v2/authoring/organization/element/update', elementController.updateElementEndPoint);
   app.post('/api/v2/authoring/organization/element/delete', elementController.deleteElementEndPoint);
@@ -106,7 +109,7 @@ const initApp = function() {
   app.get('/api/v2/authoring/integrator/instances/list/:t', fogController.fogInstancesListEndPoint);
   app.get('/api/v2/instance/create/type/:type', fogController.fogInstanceCreateEndPoint);
   app.get('/api/v2/instance/getfabriclist', fogController.getFogListEndPoint);
-  app.get('/api/v2/authoring/fabric', fogController.getFogTypesEndPoint); ///api/v2/authoring/fabric/types/list
+  app.get('/api/v2/authoring/fabric/types/list', fogController.getFogTypesEndPoint);
   app.post('/api/v2/authoring/fabric/instance/delete', fogController.fogInstanceDeleteEndPoint);
   app.post('/api/v2/authoring/integrator/instance/delete', fogController.integratorInstanceDeleteEndPoint);
   app.get('/api/v2/instance/changes/id/:ID/token/:Token/timestamp/:TimeStamp', instanceChangesController.getChangeTrackingChangesEndPoint);
@@ -146,9 +149,13 @@ const initApp = function() {
   app.get('/api/v2/authoring/element/instance/details/trackid/:trackId', elementInstanceController.getElementInstanceDetailsEndPoint);
   app.post('/api/v2/authoring/element/instance/details/trackid/:trackId', elementInstanceController.getElementInstanceDetailsEndPoint);
   app.post('/api/v2/authoring/build/properties/panel/get', elementInstanceController.getElementInstancePropertiesEndPoint);
-  
   app.post('/api/v2/authoring/element/module/create', elementController.createElementForUserEndPoint);
   app.post('/api/v2/authoring/element/module/update', elementController.updateElementForUserEndPoint);
+  app.get('/api/v2/authoring/element/module/delete/moduleid/:moduleId', elementController.deleteElementForUserEndPoint);
+  app.get('/api/v2/authoring/element/module/details/moduleid/:moduleId', elementController.getElementDetailsEndPoint);
+
+  app.get('/api/v2/authoring/element/get', elementController.getElementsForPublishingEndPoint);
+
 
   //generic error handler
   app.use((err, req, res, next) => {

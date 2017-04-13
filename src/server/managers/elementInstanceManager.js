@@ -75,10 +75,10 @@ class ElementInstanceManager extends BaseManager {
 			}
 		});
 	}
-	findByUuids(uuids) {
+	findByElementKey(elementKey) {
 		return ElementInstance.findAll({
 			where: {
-				uuid:  uuids	
+				element_key: elementKey	
 			}
 		});
 	}

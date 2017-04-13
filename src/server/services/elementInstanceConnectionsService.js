@@ -33,13 +33,14 @@ const deleteElementInstanceConnection = function(props, params, callback) {
     .deleteElementInstanceConnection(_.pluck(elementInstanceData, props.field))
     .then(AppUtils.onDeleteOptional.bind(null, params, callback));
 }
+
 const deleteBySourceAndDestinationElementInstance = function(props, params, callback) {
   var sourceElementInstanceId = AppUtils.getProperty(params, props.sourceElementInstanceId),
       destinationElementInstanceId = AppUtils.getProperty(params, props.destinationElementInstanceId);
 
   ElementInstanceConnectionsManager
     .deleteBySourceAndDestinationElementInstance(sourceElementInstanceId, destinationElementInstanceId)
-    .then(AppUtils.onDeleteOptional.bind(null, params, callback));
+    .then(AppUtils.onDelete.bind(null, params, 'There is no such element instance connection to delete.', callback));
 }
 
 export default {

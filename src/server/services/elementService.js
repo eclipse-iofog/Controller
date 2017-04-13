@@ -9,9 +9,18 @@ const createElement = function(props, params, callback) {
 
 const deleteElementById = function(props, params, callback) {
   var elementId = AppUtils.getProperty(params, props.elementId);
+
   ElementManager
     .deleteElementById(elementId)
     .then(AppUtils.onDelete.bind(null, params, 'Unable to delete Element', callback));
+}
+
+const getElementDetails = function(props, params, callback) {
+  var elementId = AppUtils.getProperty(params, props.elementId);
+
+  ElementManager
+    .getElementDetails(elementId)
+    .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Unable to find Element details', callback));
 }
 
 const findElementAndRegistryById = function(props, params, callback) {
@@ -26,6 +35,13 @@ const getElementCatalog = function(props, params, callback) {
 
   ElementManager
     .getElementCatalog()
+    .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Error: Element catalog not found', callback));
+}
+
+const getElementForPublish = function(props, params, callback) {
+
+  ElementManager
+    .getElementForPublish()
     .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Error: Element catalog not found', callback));
 }
 
@@ -50,6 +66,8 @@ export default {
   deleteElementById: deleteElementById,
   findElementAndRegistryById: findElementAndRegistryById,
   getElementCatalog: getElementCatalog,
+  getElementDetails: getElementDetails,
+  getElementForPublish: getElementForPublish,
   getNetworkElement: getNetworkElement,
   updateElement: updateElement
 };

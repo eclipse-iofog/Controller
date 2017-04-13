@@ -57,7 +57,31 @@ class ElementManager extends BaseManager {
 	getElementCatalog() {
 		const query = 'select e.*, ft.name as fogTypeName, ft.image as fogTypeImage, ft.description as fogTypeDescription' +
 			' from element e left join element_fog_types eft on e.id = eft.element_id left join iofog_type ft on ft.id = eft.iofog_type_id' +
-			' where (e.is_public == 1 AND e.publisher != "SYSTEM")';
+			' where (e.publisher != "SYSTEM")';
+		return sequelize.query(query, {
+			type: sequelize.QueryTypes.SELECT
+		});
+	}
+
+	getElementForPublish(){
+		const query = 'select e.*, ft.name as fogTypeName, ft.image as fogTypeImage, ft.description as fogTypeDescription' +
+			' from element e left join element_fog_types eft on e.id = eft.element_id left join iofog_type ft on ft.id = eft.iofog_type_id' +
+			' where (e.publisher != "SYSTEM" AND e.publisher != "iotracks")';
+		return sequelize.query(query, {
+			type: sequelize.QueryTypes.SELECT
+		});
+	}
+	
+	getElementDetails(elementId){
+	const query = 'select e.*, it.info_type as inputInfoType, it.info_format as inputInfoFormat, ot.info_type as' + 
+				  ' outputInfoType, ot.info_format as outputInfoFormat, ft.Name as fogTypeName, ft.Image as fogTypeImage,' +
+		 		  ' ft.Description as fogTypeDescription, ft.StreamViewerElementKey as' +
+		 		  ' fogTypeStreamViewerElementKey, ft.consoleElementKey as fogTypeConsoleElementKey,'+
+		 		  ' ft.NetworkElementKey as fogTypeNetworkElementKey from element e join element_fog_types eft' +
+		 		  ' on e.id = eft.element_id join iofog_type ft on ft.id = eft.iofog_type_id left join element_input_type it' +
+				  ' on e.id = it.element_key left join element_output_type ot on e.id = ot.element_key' +
+				  ' where e.id =' + elementId;
+
 		return sequelize.query(query, {
 			type: sequelize.QueryTypes.SELECT
 		});

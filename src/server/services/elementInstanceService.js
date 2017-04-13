@@ -40,7 +40,7 @@ const getElementInstance = function(props, params, callback) {
 
   ElementInstanceManager
     .findByUuId(elementInstanceId)
-    .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Cannot find Element Instance: ' + elementInstanceId, callback));
+    .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Cannot find Element Instance', callback));
 }
 
 const getElementInstanceOptional = function(props, params, callback) {
@@ -67,12 +67,20 @@ const findElementInstancesByTrackId = function(props, params, callback) {
     .then(AppUtils.onFindOptional.bind(null, params, props.setProperty, callback));
 }
 
-const findByInstanceId= function(props, params, callback) {
+const findByInstanceId = function(props, params, callback) {
   var instanceId = AppUtils.getProperty(params, props.instanceId);
 
   ElementInstanceManager
     .findByInstanceId(instanceId)
     .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Cannot find Element Instance', callback));
+}
+
+const findElementInstancesByElementKey = function(props, params, callback) {
+  var elementKey = AppUtils.getProperty(params, props.elementKey);
+
+  ElementInstanceManager
+    .findByElementKey(elementKey)
+    .then(AppUtils.onFindOptional.bind(null, params, props.setProperty, callback));
 }
 
 const findRealElementInstanceByTrackId = function(props, params, callback) {
@@ -205,6 +213,13 @@ const deleteElementInstance = function(props, params, callback) {
     .then(AppUtils.onDelete.bind(null, params, 'Was unable to delete Element Instance', callback));
 }
 
+const deleteElementInstanceOptional = function(props, params, callback) {
+  var elementId = AppUtils.getProperty(params, props.elementId);
+  ElementInstanceManager
+    .deleteByElementUUID(elementId)
+    .then(AppUtils.onDeleteOptional.bind(null, params, callback));
+}
+
 const deleteElementInstances = function(props, params, callback) {
   var elementInstanceData = AppUtils.getProperty(params, props.elementInstanceData);
 
@@ -227,12 +242,14 @@ export default {
   createNetworkElementInstance: createNetworkElementInstance,
   createStreamViewerElement: createStreamViewerElement,
   findByInstanceId: findByInstanceId,
+  findElementInstancesByElementKey: findElementInstancesByElementKey,
   findRealElementInstanceByTrackId: findRealElementInstanceByTrackId,
   findIntraTrackByUuids: findIntraTrackByUuids,
   findExtraTrackByUuids: findExtraTrackByUuids,
   findOtherTrackDetailByUuids: findOtherTrackDetailByUuids,
   findElementInstancesByTrackId: findElementInstancesByTrackId,
   deleteElementInstance: deleteElementInstance,
+  deleteElementInstanceOptional: deleteElementInstanceOptional,
   deleteElementInstances: deleteElementInstances,
   deleteNetworkElementInstance: deleteNetworkElementInstance,
   deleteNetworkElementInstances: deleteNetworkElementInstances,
