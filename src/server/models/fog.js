@@ -146,6 +146,7 @@ const Fog = sequelize.define('iofogs', {
   },
   diskdirectory: {
     type: Sequelize.TEXT,
+    defaultValue: '/var/log/iofog/',
     field: 'DiskDirectory'
   },
   memorylimit: {
@@ -179,17 +180,13 @@ const Fog = sequelize.define('iofogs', {
   },
   statusfrequency: {
     type: Sequelize.INTEGER,
-    defaultValue: 0,
+    defaultValue: 10,
     field: 'StatusFrequency'
   },
   changefrequency: {
     type: Sequelize.INTEGER,
-    defaultValue: 0,
+    defaultValue: 20,
     field: 'ChangeFrequency'
-  },
-  volumemappings: {
-    type: Sequelize.TEXT,
-    field: 'VolumeMappings'
   },
 }, {
   // don't add the timestamp attributes (updatedAt, createdAt)

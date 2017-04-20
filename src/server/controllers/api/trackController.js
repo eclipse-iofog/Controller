@@ -284,8 +284,10 @@ const userTrackDeleteEndPoint = function(req, res){
     async.apply(ElementInstanceService.deleteElementInstances, elementInstanceDataProps)
 
   ], function(err, result) {
-    
-    AppUtils.sendResponse(res, err, 'elementInstances', params.elementInstances, result);
+    var successLabelArr= ['trackId', 'elementInstances'],
+      successValueArr= [params.bodyParams.trackId, params.elementInstances];
+      
+    AppUtils.sendMultipleResponse(res, err, successLabelArr, successValueArr, result);
   })
 };
 

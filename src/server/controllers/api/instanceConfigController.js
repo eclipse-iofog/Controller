@@ -66,7 +66,9 @@ const processConfigData = function(params, callback){
       cpulimit: params.fogData.cpulimit,
       loglimit: params.fogData.loglimit,
       logdirectory: params.fogData.logdirectory,
-      logfilecount: params.fogData.logfilecount
+      logfilecount: params.fogData.logfilecount,
+      statusfrequency: params.fogData.statusfrequency,
+      changefrequency: params.fogData.changefrequency
     };
 
     params.config = config;

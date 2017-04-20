@@ -329,8 +329,6 @@ const elementInstanceCreateEndPoint = function(req, res) {
       trackId: 'bodyParams.trackId',
       name: 'bodyParams.name',
       logSize: 'logSize',
-      config: 'bodyParams.config',
-      fogInstanceId: 'bodyParams.fabricInstanceId',
       setProperty: 'elementInstance'
     };
   
@@ -949,10 +947,6 @@ const elementInstanceUpdateEndPoint = function(req, res) {
         userId: 'bodyParams.t',
         setProperty: 'user'
       },
-      fogProps = {
-        fogId: 'bodyParams.fabricInstanceId',
-        setProperty: 'fogData'
-      },
       elementInstanceProps = {
         elementInstanceId: 'bodyParams.instanceId',
         setProperty: 'elementInstance'
@@ -963,7 +957,7 @@ const elementInstanceUpdateEndPoint = function(req, res) {
 
     async.waterfall([
       async.apply(UserService.getUser, userProps, params),
-      async.apply(FogService.getFogInstanceOptional, fogProps),
+      getFogInstance,
       async.apply(ElementInstanceService.getElementInstance, elementInstanceProps),
       updateElementInstance,
       updateChangeTracking,
@@ -973,6 +967,19 @@ const elementInstanceUpdateEndPoint = function(req, res) {
     AppUtils.sendResponse(res, err, 'id', params.bodyParams.instanceId, result);
     });
 };
+
+const getFogInstance = function (params, callback){
+  if (params.bodyParams.fabricInstanceId) {
+    var fogProps = {
+      fogId: 'bodyParams.fabricInstanceId',
+      setProperty: 'fogData'
+    };
+    
+    FogService.getFogInstance(fogProps, params, callback);
+  }else{
+    callback(null, params);
+  }
+}
 
 /***** Update Rebuild of Element Instance EndPoint (Post: /api/v2/authoring/element/instance/rebuild *****/
  const elementInstanceRebuildUpdateEndPoint = function(req, res) {
@@ -1180,7 +1187,6 @@ const updateElementInstance = function (params, callback) {
   var data;
 
   if (params.elementInstance.iofog_uuid == params.bodyParams.fabricInstanceId) {
-    logger.warn('Waqar');
     callback(null, params);
   } 
   else {

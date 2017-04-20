@@ -23,7 +23,7 @@ const createFogInstance = function(props, params, callback) {
 
   FogManager
     .createFog(config)
-    .then(AppUtils.onCreate.bind(null, params, props.setProperty, 'Unable to create Fog Instance', callback));
+    .then(AppUtils.onCreate.bind(null, params, props.setProperty, 'Unable to create iofog instance', callback));
 }
 
 const deleteFogInstance = function(props, params, callback) {
@@ -31,7 +31,7 @@ const deleteFogInstance = function(props, params, callback) {
 
   FogManager
     .deleteByInstanceId(instanceId)
-    .then(AppUtils.onDelete.bind(null, params, 'Unable to delete Fog Instance', callback));
+    .then(AppUtils.onDelete.bind(null, params, 'Unable to delete iofog instance', callback));
 }
 
 const getFogInstance = function(props, params, callback) {
@@ -39,7 +39,7 @@ const getFogInstance = function(props, params, callback) {
 
   FogManager
     .findByInstanceId(fogId)
-    .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Cannot find Fog Instance', callback));
+    .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Cannot find iofog instance', callback));
 }
 
 const getFogInstanceOptional = function(props, params, callback) {
@@ -63,14 +63,14 @@ const getFogInstanceForUser = function(props, params, callback) {
 
   FogManager
     .findByUserId(userId)
-    .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Cannot find Fog Instance', callback));
+    .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Cannot find iofog instance', callback));
 }
 
 const getFogList = function(props, params, callback) {
 
   FogManager
     .getFogList()
-    .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Cannot get Fog List', callback));
+    .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Cannot get iofog list', callback));
 }
 
 const updateFogInstance = function(props, params, callback){
@@ -78,7 +78,7 @@ const updateFogInstance = function(props, params, callback){
 
   FogManager
     .updateFogConfig(instanceId, props.updatedFog)
-    .then(AppUtils.onUpdate.bind(null, params, 'Unable to update Fog Instance', callback));
+    .then(AppUtils.onUpdate.bind(null, params, 'Unable to update iofog instance', callback));
 }
 
 export default {

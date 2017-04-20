@@ -14,7 +14,6 @@ import logger from '../../utils/winstonLogs';
 /********************************************* EndPoints ******************************************************/
 
 /*************** Instance Status EndPoint (Post: /api/v2/instance/status/id/:ID/token/:Token) *****************/
-
   const instanceStatusEndPoint = function(req, res){
 
   logger.info("Endpoint hit: "+ req.originalUrl);
@@ -27,7 +26,7 @@ import logger from '../../utils/winstonLogs';
 
   async.waterfall([
     async.apply(BaseApiController.checkUserExistance, req, res),
-    async.apply(updateFogInstance,params)
+    async.apply(updateFogInstance, params)
 
   ], function(err, result) {
     AppUtils.sendResponse(res, err,'','', result);
@@ -39,12 +38,12 @@ const updateFogInstance = function(params, callback){
   var fogInstanceProps = {
         instanceId: 'bodyParams.instanceId',
         updatedFog: {
-          name : params.bodyParams.name,
-          location : params.bodyParams.location,
-          latitude : params.bodyParams.latitude,
-          longitude : params.bodyParams.longitude,
-          description : params.bodyParams.description,
-          lastactive : new Date().getTime(),
+          //name : params.bodyParams.name,
+          //location : params.bodyParams.location,
+          //latitude : params.bodyParams.latitude,
+          //longitude : params.bodyParams.longitude,
+          //description : params.bodyParams.description,
+          //lastactive : new Date().getTime(),
           daemonstatus: params.bodyParams.daemonStatus,
           daemonoperatingduration : params.bodyParams.daemonOperatingDuration,
           daemonlaststart : params.bodyParams.daemonLastStart,
@@ -64,7 +63,7 @@ const updateFogInstance = function(params, callback){
           elementmessagecounts : params.bodyParams.elementMessageCounts, 
           messagespeed : params.bodyParams.messageSpeed,
           lastcommandtime : params.bodyParams.lastCommandTime,
-          version: params.bodyParams.version || '1.0'
+          //version: params.bodyParams.version || '1.0'
         }
       };
     FogService.updateFogInstance(fogInstanceProps, params, callback);

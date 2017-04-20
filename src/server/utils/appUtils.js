@@ -192,7 +192,7 @@ const sendResponse = function(response, err, successLabel, successValue, errorMe
     res['status'] = 'failure';
     res['errormessage'] = errorMessage;
   } else {
-    logger.info("Success");
+    logger.info("Endpoint served successfully");
     res['status'] = 'ok';
     if (successLabel || successValue){
       res[successLabel] = successValue;
@@ -212,7 +212,7 @@ const sendMultipleResponse = function(response, err, successLabelArr, successVal
     res['status'] = 'failure';
     res['errormessage'] = errorMessage;
   } else {
-    logger.info("Success");
+    logger.info("Endpoint served successfully");
     res['status'] = 'ok';
     for (var i = 0; i < successValueArr.length; i++){
     res[successLabelArr[i]] = successValueArr[i];

@@ -117,7 +117,7 @@ class UserManager extends BaseManager {
 					console.log('userAccessToken: ' + this.userAccessToken);
 					});
 				}else{
-					console.log('\nError: Password length should be atleast 8 characters.');
+					console.log('\nError: Password length should be at least 8 characters.');
 				}
 			} else {
 				console.log('\nError: Invalid Email address provided');
@@ -152,8 +152,8 @@ class UserManager extends BaseManager {
 			this.findByEmail(email)
 				.then(function(user) {
 					if (user) {
-						user.password = AppUtils.generateAccessToken();
-						console.log(user.password);
+						user.userAccessToken = AppUtils.generateAccessToken();
+						console.log('userAccessToken: ' + user.userAccessToken);
 						user.save();
 					} else {
 						console.log('Can not find user having "' + email + '" as email address');

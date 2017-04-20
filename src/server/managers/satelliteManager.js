@@ -67,21 +67,26 @@ class SatelliteManager extends BaseManager {
                       domain: domain,
                       publicIP: publicIP,
                     }).then(function(satellite) {
-                    console.log('\nComSat Created : '+satellite.name);
+                    console.log('ComSat Created : '+satellite.name);
                     });
                   }else {
-                    console.log('\nError: Following ComSat already exists with similar configurations: \n ' + satellite.name + ' (' + satellite.domain + ') ' + satellite.publicIP);
+                    console.log('Error: Following ComSat already exists with similar configurations: \n ' + satellite.name + ' (' + satellite.domain + ') ' + satellite.publicIP);
                   }
                 });
             }else{
               console.log('ComSat publicIP is invalid. Try again with different ComSat publicIP.');
+              console.log('Please provide values in following order:\n fog-controller comsat -add <name> <domain> <publicIP>');
             }
+        }else{
+          console.log('ComSat domain is invalid. Try again with different ComSat domain.');
+          console.log('Please provide values in following order:\n fog-controller comsat -add <name> <domain> <publicIP>');
         }
       }else{
         console.log('ComSat name is invalid. Try again with different ComSat name.');
+        console.log('Please provide values in following order:\n fog-controller comsat -add <name> <domain> <publicIP>');
       }
     }else { 
-      console.log('\nPlease provide values in following order:\n fog-controller comsat -add <name> <domain> <publicIP>');
+      console.log('Please provide values in following order:\n fog-controller comsat -add <name> <domain> <publicIP>');
     }
 }
 
@@ -91,13 +96,13 @@ class SatelliteManager extends BaseManager {
         .then(function(satellite) {
           if (satellite) {
             satellite.destroy();
-            console.log('\nSuccess: ComSat deleted');
+            console.log('Success: ComSat deleted');
           } else {
-            console.log('\nError: Can not find ComSat having "' + id + '" as ID');
+            console.log('Error: Can not find ComSat having "' + id + '" as ID');
           }
         })
     } else {
-      console.log('\nPlease provide values in following order: fog-controller comsat -remove <id>');
+      console.log('Please provide values in following order: fog-controller comsat -remove <id>');
     }
   }
 

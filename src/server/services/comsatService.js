@@ -223,7 +223,7 @@ const getAllSatellites = function(params, callback){
         }
       }
     }else{
-      console.log('No Comsat found to verify connection.');
+      console.log('No ComSat found to verify connection.');
     }
   });
 }
@@ -300,7 +300,7 @@ const displayComsatConnectionsStatus = function(params, callback) {
   }
 
   if(params.invalidSatellites.length){ 
-    console.log("\nConnection to following ComSat(s) was failed:");
+    console.log("\nConnection to following ComSat(s) failed:");
     params.invalidSatellites.forEach((invalidSatellite) => {
       console.log(invalidSatellite.name + ' (' + invalidSatellite.domain + ')');
     });

@@ -204,11 +204,14 @@ const integratorInstanceDeleteEndPoint = function(req, res){
       		setProperty: 'user'
     	},
 		instanceProps = {
-			instanceId: 'bodyParams.instanceId',
+			instanceId: 'bodyParams.instanceId'
 		},
 		updateByFogUuIdProps = {
 			fogInstanceId: 'bodyParams.instanceId',
 			updatedFogId: null
+		},
+		fogProps ={
+			fogId: 'bodyParams.instanceId'
 		},
 		fogUserProps = {
 			instanceId: 'bodyParams.instanceId',
@@ -224,6 +227,7 @@ const integratorInstanceDeleteEndPoint = function(req, res){
 	
 	async.waterfall([
 		async.apply(UserService.getUser, userProps, params),
+		async.apply(FogService.getFogInstance, fogProps),
 		async.apply(ElementInstanceService.updateElemInstanceByFogUuId, updateByFogUuIdProps),
 		async.apply(ChangeTrackingService.deleteChangeTracking, instanceProps),
 		async.apply(FogUserService.getFogUserByInstanceId, fogUserProps),

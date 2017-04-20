@@ -85,6 +85,7 @@ const fogProvisionKeyEndPoint = function(req, res) {
     async.apply(FogProvisionKeyService.deleteByProvisionKey, provisionProps),
     async.apply(FogProvisionKeyService.checkProvisionKeyExpiry, provisionKeyExpiryProps),
     async.apply(FogService.getFogInstance, fogProps),
+    checkFogType,
     async.apply(FogUserService.getFogUserByInstanceId, fogUserProps),
     FogAccessTokenService.generateFogAccessToken,
     async.apply(FogAccessTokenService.deleteFogAccessTokenByUserId, deleteTokenProps),
@@ -102,6 +103,14 @@ const fogProvisionKeyEndPoint = function(req, res) {
     AppUtils.sendMultipleResponse(res, err, successLabelArr, successValueArr, result);
   })
 };
+
+const checkFogType = function(params, callback){
+  if (params.bodyParams.fabricType == params.fogData.typeKey){
+    callback(null, params);
+  }else{
+    callback('err', 'Provisioning failed - System error: Host architecture is different from selected fog instance.')
+  }
+}
 
 /********* Delete Provision Key EndPoint (Post: /api/v2/authoring/fabric/provisioningkey/list/delete) *********/
 const deleteProvisionKeyEndPoint = function(req, res) {
