@@ -147,7 +147,6 @@ import logger from '../../utils/winstonLogs';
       userId: 'bodyParams.t',
       setProperty: 'user'
     },
-    
     elementProps = {
       networkElementId: 'bodyParams.id',
       setProperty: 'element'
@@ -172,25 +171,31 @@ import logger from '../../utils/winstonLogs';
   })
 };
 
-/*************** Delete Element EndPoint (Post) *****************/
+/*************** Delete Element EndPoint (Post: /api/v2/authoring/organization/element/delete) *****************/
  const deleteElementEndPoint = function(req, res) {
   logger.info("Endpoint hit: "+ req.originalUrl);
   
   var params = {},
-      userProps = {
-        userId: 'bodyParams.t',
-        setProperty: 'user'
-      },
-      elementProps = {
-        elementId: 'bodyParams.id',
-      };
+    userProps = {
+      userId: 'bodyParams.t',
+      setProperty: 'user'
+    },
+    elementProps = {
+      elementKey: 'bodyParams.id',
+      setProperty: 'elementInstanceData'
+    },
+    deleteElementProps = {
+      elementId: 'bodyParams.id',
+    };
 
   params.bodyParams = req.body;
   logger.info("Parameters:" + JSON.stringify(params.bodyParams));
 
   async.waterfall([
     async.apply(UserService.getUser, userProps, params),
-    async.apply(ElementService.deleteElementById, elementProps),
+    async.apply(ElementInstanceService.findElementInstancesByElementKey, elementProps),
+    deleteElementInstanceData,
+    async.apply(ElementService.deleteElementById, deleteElementProps)
   
   ], function(err, result) {
     AppUtils.sendResponse(res, err, 'elementId', params.bodyParams.id, result);

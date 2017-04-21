@@ -17,7 +17,7 @@ const deleteElementFogType = function(props, params, callback) {
 
   ElementFogTypeManager
     .deleteElementFogTypes(elementId)
-    .then(AppUtils.onDelete.bind(null, params, 'ElementFogType not deleted', callback));
+    .then(AppUtils.onDeleteOptional.bind(null, params, callback));
 }
 
 export default {
