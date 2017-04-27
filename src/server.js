@@ -155,6 +155,8 @@ const initApp = function() {
   app.get('/api/v2/authoring/element/module/details/moduleid/:moduleId', elementController.getElementDetailsEndPoint);
 
   app.get('/api/v2/authoring/element/get', elementController.getElementsForPublishingEndPoint);
+  app.post('/api/v2/authoring/fabric/instances/list/:t', fogController.fogInstancesListEndPoint);
+  app.post('/api/v2/authoring/fabric/instance/create', integratorController.integratorInstanceCreateEndPoint);
 
 
   //generic error handler

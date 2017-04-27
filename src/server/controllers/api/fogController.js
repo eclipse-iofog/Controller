@@ -36,7 +36,7 @@ const getFogControllerStatusEndPoint = function(req, res){
 	});
 };
 
-/******** Fog Instances List By UserID EndPoint (Get: /api/v2/authoring/integrator/instances/list/:userId) *******/
+/******** Fog Instances List By UserID EndPoint (Get: /api/v2/authoring/integrator/instances/list/:t) *******/
 const fogInstancesListEndPoint = function(req, res){
   logger.info("Endpoint hit: "+ req.originalUrl);
 	var params = {},
