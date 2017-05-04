@@ -73,6 +73,14 @@ const getFogList = function(props, params, callback) {
     .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Cannot get iofog list', callback));
 }
 
+const getFogInstanceDetails = function(props, params, callback) {
+  var instanceId = AppUtils.getProperty(params, props.instanceId);
+
+  FogManager
+    .getFogInstanceDetails(instanceId)
+    .then(AppUtils.onFindOptional.bind(null, params, props.setProperty, callback));
+}
+
 const updateFogInstance = function(props, params, callback){
   var instanceId = AppUtils.getProperty(params, props.instanceId);
 
@@ -87,6 +95,7 @@ export default {
   getFogInstance: getFogInstance,
   getFogInstanceOptional: getFogInstanceOptional,
   getFogInstanceForUser: getFogInstanceForUser,
+  getFogInstanceDetails: getFogInstanceDetails,
   getFogList: getFogList,
   updateFogInstance: updateFogInstance,
   findFogInstance: findFogInstance

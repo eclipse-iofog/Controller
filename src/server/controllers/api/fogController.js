@@ -9,13 +9,19 @@ import express from 'express';
 const router = express.Router();
 
 import ChangeTrackingService from '../../services/changeTrackingService';
+import ComsatService from '../../services/comsatService';
 import ConsoleService from '../../services/consoleService';
+import ElementService from '../../services/elementService'
 import ElementInstanceService from '../../services/elementInstanceService';
+import ElementInstancePortService from '../../services/elementInstancePortService';
 import FogAccessTokenService from '../../services/fogAccessTokenService';
 import FogProvisionKeyService from '../../services/fogProvisionKeyService';
 import FogService from '../../services/fogService';
 import FogTypeService from '../../services/fogTypeService';
 import FogUserService from '../../services/fogUserService';
+import NetworkPairingService from '../../services/networkPairingService';
+import SatelliteService from '../../services/satelliteService';
+import SatellitePortService from '../../services/satellitePortService';
 import StreamViewerService from '../../services/streamViewerService';
 import UserService from '../../services/userService';
 
@@ -245,12 +251,504 @@ const integratorInstanceDeleteEndPoint = function(req, res){
 	});
 };
 
+/*********** Get Fog Details EndPoint (Post: /api/v2/authoring/fabric/details) **********/
+const getFogDetailsEndpoint = function (req, res){
+	logger.info("Endpoint hit: "+ req.originalUrl);
+
+	var params = {},
+		userProps = {
+			userId : 'bodyParams.t',
+			setProperty: 'user'
+		},
+		instanceProps = {
+			instanceId: 'bodyParams.instanceId', 
+			setProperty: 'fogInstances'
+		};
+
+	params.bodyParams = req.body;	
+	logger.info("Parameters:" + JSON.stringify(params.bodyParams));
+	
+	async.waterfall([
+		async.apply(UserService.getUser, userProps, params),
+		async.apply(FogService.getFogInstanceDetails, instanceProps)
+	],
+	function(err, result) {
+		AppUtils.sendResponse(res, err, 'fog', params.fogInstances, result);
+	});
+}
+
+/*********** Update Fog settings EndPoint (Post: /api/v2/authoring/fabric/instances/settings/update) **********/
+const updateFogSettingsEndpoint = function (req, res){
+	logger.info("Endpoint hit: "+ req.originalUrl);
+
+	var params = {},
+		userProps = {
+			userId : 'bodyParams.t',
+			setProperty: 'user'
+		},
+		instanceProps = {
+			fogId: 'bodyParams.instanceId', 
+			setProperty: 'fogInstance'
+		},
+      	fogTypeProps = {
+			fogTypeId: 'fogInstance.typeKey',
+			setProperty:'fogTypeData'
+		};
+		
+	params.bodyParams = req.body;	
+	logger.info("Parameters:" + JSON.stringify(params.bodyParams));
+	
+	async.waterfall([
+		async.apply(UserService.getUser, userProps, params),
+		async.apply(FogService.getFogInstance, instanceProps),
+		async.apply(FogTypeService.getFogTypeDetail, fogTypeProps),
+		bluetoothElementForFog,
+		debugConsoleForFog,
+		streamViewerForFog,
+		updateChangeTracking,
+
+	],
+	function(err, result) {
+		AppUtils.sendResponse(res, err, 'fog', params, result);
+	});
+}
+
+const streamViewerForFog = function(params, callback){
+	try{
+	if(params.bodyParams.viewer && (params.bodyParams.viewer != params.fogInstance.viewer)){
+		params.isViewer = 1;
+		if(params.bodyParams.viewer > 0){
+			var elementProps = {
+				networkElementId: 'fogTypeData.streamViewerElementKey',
+				setProperty: 'streamViewerElement'
+			},
+    		streamViewerProps = {
+      			elementKey: 'fogTypeData.streamViewerElementKey',
+      			userId: 'user.id',
+      			fogInstanceId:'fogInstance.uuid',
+      			registryId: 'streamViewerElement.registry_id',
+      			setProperty: 'streamViewerElementInstnace'
+    		},
+    		streamViewerPortProps = {
+      			userId : 'user.id',
+      			internalPort : 80,
+      			externalPort : 60400,
+      			elementId : 'streamViewerElementInstnace.uuid',
+      			setProperty: 'streamViewerPort'
+    		},
+    		elementInstanceProps = {
+    			updatedData: {
+    				last_updated: new Date().getTime(),
+					updatedBy: params.user.id
+    			},
+    			elementId: 'streamViewerElementInstnace.uuid'
+    		},
+   			changeTrackingProps = {
+        		fogInstanceId: 'streamViewerElementInstnace.iofog_uuid',
+        		changeObject: {
+          			containerList: new Date().getTime()
+        		}
+      		},
+  			satelliteProps = {
+  				satelliteId: 'streamViewerSatellitePort.satellite_id',
+      			setProperty: 'streamViewerSatellite'
+  			},
+  			networkElementProps = {
+      			networkElementId: 'fogTypeData.networkElementKey',
+      			setProperty: 'streamViewerNetworkElement'
+    		},
+    		networkPairingProps = {
+      			instanceId1: 'fogInstance.uuid',
+      			instanceId2: null,
+      			elementId1: 'streamViewerElementInstnace.uuid',
+      			elementId2: null,
+      			networkElementId1: 'newStreamViewerNetworkElementInstance.uuid',
+      			networkElementId2: null,
+      			isPublic: true,
+      			elementPortId: 'streamViewerPort.id',
+      			satellitePortId: 'streamViewerSatellitePort.id',
+      			setProperty: 'streamViewerNetworkPairingObj'
+    		},
+    		changeTrackingProps = {
+        		fogInstanceId: 'bodyParams.instanceId',
+        		changeObject: {
+          			containerConfig: new Date().getTime(),
+          			containerList: new Date().getTime()
+        		}
+      		};
+
+			async.waterfall([
+				async.apply(ElementService.getNetworkElement, elementProps, params),
+				async.apply(ElementInstanceService.createStreamViewerElement, streamViewerProps),
+    			async.apply(ElementInstancePortService.createElementInstancePortByPortValue, streamViewerPortProps),
+    			async.apply(ElementInstanceService.updateElemInstance, elementInstanceProps),
+    			async.apply(ChangeTrackingService.updateChangeTracking, changeTrackingProps),
+    			ComsatService.openPortOnRadomComsat,
+    			createStreamViewerSatellitePort,
+    			async.apply(SatelliteService.getSatelliteById, satelliteProps),
+    			async.apply(ElementService.getNetworkElement, networkElementProps),
+    			createStreamViewerNetworkElementInstance,
+    			async.apply(NetworkPairingService.createNetworkPairing, networkPairingProps),
+    			createStreamViewerConsole,
+    			async.apply(ChangeTrackingService.updateChangeTracking, changeTrackingProps)
+
+			],
+			function(err, result) {
+				if (!err){
+					callback(null, params);
+				}else{
+					callback('Error', result);
+				}
+			});
+		}
+		else{
+			var elementInstanceProps = {
+				instanceId: 'bodyParams.instanceId',
+			};
+			ElementInstanceService.deleteDebugConsoleInstances(elementInstanceProps, params, callback);
+		}
+	}
+	else{
+		callback(null, params);
+	}
+}catch(e){
+	logger.infog(e);
+}
+}
+const createStreamViewerConsole = function(params, callback){
+  var createConsoleProps = {
+      consoleObj : {
+        version: 1,
+        apiBaseUrl: 'https://' + params.streamViewerSatellite.domain + ':' + params.streamViewerSatellitePort.port2,
+        accessToken: JSON.parse(params.streamViewerElementInstnace.config).accesstoken,
+        elementId: params.streamViewerElementInstnace.uuid,
+        iofog_uuid: params.fogInstance.uuid
+      }
+    };
+  ConsoleService.createConsole(createConsoleProps, params, callback)
+}
+
+
+
+
+const createStreamViewerNetworkElementInstance = function(params,callback){
+	var config = {
+		'mode': 'public',
+		'host': params.satellite.domain,
+		'port': params.satellitePort.port1,
+		'connectioncount': 60,
+		'passcode': params.comsatPort.passcode1,
+		'localhost': 'iofog',
+		'localport': 60400,
+		'heartbeatfrequency': 20000,
+		'heartbeatabsencethreshold': 60000
+	},
+	elementInstanceProps = {
+		elementInstance : {
+			uuid: AppUtils.generateInstanceId(32),
+			trackId: 0,
+			element_key: params.fogTypeData.networkElementKey,
+			config: JSON.stringify(config),
+			name: 'Network for Stream Viewer',
+			last_updated: new Date().getTime(),
+			updatedBy: params.user.id,
+			configLastUpdated: new Date().getTime(),
+			isStreamViewer: false,
+			isDebugConsole: false,
+			isManager: false,
+			isNetwork: true,
+			registryId: params.streamViewerNetworkElement.registry_id,
+			rebuild: false,
+			rootHostAccess: false,
+			logSize: 50,
+			iofog_uuid: params.bodyParams.instanceId,
+			volumeMappings: '{"volumemappings": []}'
+		},
+		setProperty: 'newStreamViewerNetworkElementInstance'
+	};
+
+    ElementInstanceService.createElementInstanceObj(elementInstanceProps, params, callback);
+}
+
+const createStreamViewerSatellitePort = function(params, callback){
+  var satellitePortProps = {
+    satellitePortObj: {
+      port1: params.comsatPort.port1,
+      port2: params.comsatPort.port2,
+      maxConnectionsPort1: 60,
+      maxConnectionsPort2: 0,
+      passcodePort1: params.comsatPort.passcode1,
+      passcodePort2: params.comsatPort.passcode2,
+      heartBeatAbsenceThresholdPort1: 60000,
+      heartBeatAbsenceThresholdPort2: 0,
+      satellite_id: params.satellite.id,
+      mappingId: params.comsatPort.id
+    },
+    setProperty: 'streamViewerSatellitePort'
+  };
+    SatellitePortService.createSatellitePort(satellitePortProps, params, callback);
+}
+
+const debugConsoleForFog = function(params, callback){
+	if(params.bodyParams.debug && (params.bodyParams.debug != params.fogInstance.debug)){
+		params.isDebug = 1;
+		if(params.bodyParams.debug > 0){
+			var elementProps = {
+				networkElementId: 'fogTypeData.consoleElementKey',
+				setProperty: 'debugElement'
+			},
+    		debugConsoleProps = {
+      			elementKey: 'fogTypeData.consoleElementKey',
+      			userId: 'user.id',
+      			fogInstanceId:'fogInstance.uuid',
+      			registryId: 'debugElement.registry_id',
+      			setProperty: 'debugConsole'
+    		},
+    		debugConsolePortProps = {
+      			userId : 'user.id',
+      			internalPort : 80,
+      			externalPort : 60401,
+      			elementId : 'debugConsole.uuid',
+      			setProperty: 'debugConsolePort'
+    		},
+    		elementInstanceProps = {
+    			updatedData: {
+    				last_updated: new Date().getTime(),
+					updatedBy: params.user.id
+    			},
+    			elementId: 'debugConsole.uuid'
+    		},
+   			changeTrackingProps = {
+        		fogInstanceId: 'debugConsole.iofog_uuid',
+        		changeObject: {
+          			containerList: new Date().getTime()
+        		}
+      		},
+  			satelliteProps = {
+  				satelliteId: 'satellitePort.satellite_id',
+      			setProperty: 'satellite'
+  			},
+  			networkElementProps = {
+      			networkElementId: 'fogTypeData.networkElementKey',
+      			setProperty: 'networkElement'
+    		},
+    		networkPairingProps = {
+      			instanceId1: 'fogInstance.uuid',
+      			instanceId2: null,
+      			elementId1: 'debugConsole.uuid',
+      			elementId2: null,
+      			networkElementId1: 'newNetworkElementInstance.uuid',
+      			networkElementId2: null,
+      			isPublic: true,
+      			elementPortId: 'debugConsolePort.id',
+      			satellitePortId: 'satellitePort.id',
+      			setProperty: 'networkPairingObj'
+    		},
+    		changeTrackingProps = {
+        		fogInstanceId: 'bodyParams.instanceId',
+        		changeObject: {
+          			containerConfig: new Date().getTime(),
+          			containerList: new Date().getTime()
+        		}
+      		};
+
+			async.waterfall([
+				async.apply(ElementService.getNetworkElement, elementProps, params),
+				async.apply(ElementInstanceService.createDebugConsole, debugConsoleProps),
+    			async.apply(ElementInstancePortService.createElementInstancePortByPortValue, debugConsolePortProps),
+    			async.apply(ElementInstanceService.updateElemInstance, elementInstanceProps),
+    			async.apply(ChangeTrackingService.updateChangeTracking, changeTrackingProps),
+    			ComsatService.openPortOnRadomComsat,
+    			createSatellitePort,
+    			async.apply(SatelliteService.getSatelliteById, satelliteProps),
+    			async.apply(ElementService.getNetworkElement, networkElementProps),
+    			createNetworkElementInstance,
+    			async.apply(NetworkPairingService.createNetworkPairing, networkPairingProps),
+    			createConsole,
+    			async.apply(ChangeTrackingService.updateChangeTracking, changeTrackingProps)
+
+			],
+			function(err, result) {
+				if (!err){
+					callback(null, params);
+				}else{
+					callback('Error', result);
+				}
+			});
+		}
+		else{
+			var elementInstanceProps = {
+				instanceId: 'bodyParams.instanceId',
+			};
+			ElementInstanceService.deleteDebugConsoleInstances(elementInstanceProps, params, callback);
+		}
+	}
+	else{
+		callback(null, params);
+	}
+}
+
+const createConsole = function(params, callback){
+  var createConsoleProps = {
+      consoleObj : {
+        version: 1,
+        apiBaseUrl: 'https://' + params.satellite.domain + ':' + params.satellitePort.port2,
+        accessToken: JSON.parse(params.debugConsole.config).accesstoken,
+        elementId: params.debugConsole.uuid,
+        iofog_uuid: params.fogInstance.uuid
+      }
+    };
+  ConsoleService.createConsole(createConsoleProps, params, callback)
+}
+
+const createNetworkElementInstance = function(params,callback){
+	var config = {
+		'mode': 'public',
+		'host': params.satellite.domain,
+		'port': params.satellitePort.port1,
+		'connectioncount': 60,
+		'passcode': params.comsatPort.passcode1,
+		'localhost': 'iofog',
+		'localport': 60401,
+		'heartbeatfrequency': 20000,
+		'heartbeatabsencethreshold': 60000
+	},
+	elementInstanceProps = {
+		elementInstance : {
+			uuid: AppUtils.generateInstanceId(32),
+			trackId: 0,
+			element_key: params.fogTypeData.networkElementKey,
+			config: JSON.stringify(config),
+			name: 'Network for Debug Console',
+			last_updated: new Date().getTime(),
+			updatedBy: params.user.id,
+			configLastUpdated: new Date().getTime(),
+			isStreamViewer: false,
+			isDebugConsole: false,
+			isManager: false,
+			isNetwork: true,
+			registryId: params.networkElement.registry_id,
+			rebuild: false,
+			rootHostAccess: false,
+			logSize: 50,
+			iofog_uuid: params.bodyParams.instanceId,
+			volumeMappings: '{"volumemappings": []}'
+		},
+		setProperty: 'newNetworkElementInstance'
+	};
+
+    ElementInstanceService.createElementInstanceObj(elementInstanceProps, params, callback);
+}
+
+
+const createSatellitePort = function(params, callback){
+  var satellitePortProps = {
+    satellitePortObj: {
+      port1: params.comsatPort.port1,
+      port2: params.comsatPort.port2,
+      maxConnectionsPort1: 60,
+      maxConnectionsPort2: 0,
+      passcodePort1: params.comsatPort.passcode1,
+      passcodePort2: params.comsatPort.passcode2,
+      heartBeatAbsenceThresholdPort1: 60000,
+      heartBeatAbsenceThresholdPort2: 0,
+      satellite_id: params.satellite.id,
+      mappingId: params.comsatPort.id
+    },
+    setProperty: 'satellitePort'
+  };
+    SatellitePortService.createSatellitePort(satellitePortProps, params, callback);
+}
+
+const bluetoothElementForFog = function(params, callback){
+	if(params.bodyParams.bluetooth != params.fogInstance.bluetooth){
+		params.isBluetooth = 1;
+		if(params.bodyParams.bluetooth > 0){
+			var elementProps = {
+				networkElementId: 'fogTypeData.bluetoothElementKey',
+				setProperty: 'bluetoothElement'
+			},
+			changeTrackingProps = {
+        		fogInstanceId: 'bodyParams.instanceId',
+        		changeObject: {
+          			containerConfig: new Date().getTime(),
+          			containerList: new Date().getTime()
+        		}
+      		};
+
+			async.waterfall([
+				async.apply(ElementService.getNetworkElement, elementProps, params),
+				createBluetoothElementInstance,
+				async.apply(ChangeTrackingService.updateChangeTracking, changeTrackingProps)
+			],
+			function(err, result) {
+				if (!err){
+					callback(null, params);
+				}else{
+					callback('Error', result);
+				}
+			});
+		}else{
+			var elementInstanceProps = {
+				instanceId: 'bodyParams.instanceId',
+				elementKey: 'fogTypeData.bluetoothElementKey'
+			};
+			ElementInstanceService.deleteElementInstancesByInstanceIdAndElementKey(elementInstanceProps, params, callback);
+		}
+	}else{
+		callback(null, params);
+	}
+}
+
+const updateChangeTracking = function(params, callback){
+	if(params.isBluetooth == 1 || params.isDebug == 1){
+		var changeTrackingProps = {
+        	fogInstanceId: 'bodyParams.instanceId',
+        	changeObject: {
+          		containerList: new Date().getTime()
+        	}
+      	}
+		ChangeTrackingService.updateChangeTracking(changeTrackingProps, params, callback);
+	}else{
+		callback(null, params);
+	}
+}
+
+const createBluetoothElementInstance = function (params, callback){
+    var elementInstanceProps = {
+        elementInstance: {
+        	uuid: AppUtils.generateInstanceId(32),
+        	trackId: 0,
+        	element_key: params.fogTypeData.bluetoothElementKey,
+          	config: '{}',
+          	configLastUpdated: new Date().getTime(),
+          	name: params.bluetoothElement.name,
+          	updatedBy: params.user.id,
+          	iofog_uuid: params.bodyParams.instanceId,
+          	isStreamViewer: false,
+          	isDebugConsole: false,
+          	isManager: false,
+          	isNetwork: false,
+          	rootHostAccess: true,
+          	logSize: 50,
+          	volumeMappings: '{"volumemappings": []}',
+          	registryId: params.bluetoothElement.registry_id,
+          	rebuild: false
+        },
+        setProperty: 'newBluetoothElementInstance'
+      };
+
+    ElementInstanceService.createElementInstanceObj(elementInstanceProps, params, callback);
+}
+
 export default {
+  getFogDetailsEndpoint: getFogDetailsEndpoint,
   getFogControllerStatusEndPoint: getFogControllerStatusEndPoint,
   fogInstancesListEndPoint: fogInstancesListEndPoint,
   fogInstanceCreateEndPoint: fogInstanceCreateEndPoint,
   getFogListEndPoint: getFogListEndPoint,
   getFogTypesEndPoint: getFogTypesEndPoint,
   fogInstanceDeleteEndPoint: fogInstanceDeleteEndPoint,
-  integratorInstanceDeleteEndPoint: integratorInstanceDeleteEndPoint
+  integratorInstanceDeleteEndPoint: integratorInstanceDeleteEndPoint,
+  updateFogSettingsEndpoint: updateFogSettingsEndpoint
 };

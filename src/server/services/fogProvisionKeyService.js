@@ -59,10 +59,21 @@ const getProvisionKeyByInstanceId = function(props, params, callback) {
     .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Error: Unable to find provision key with this fog', callback));
 }
 
+const deleteExpiredProvisionKeys = function (params, callback){
+  //Attempt to delete all of the expired keys.
+  var pastTime = new Date().getTime() - (20 * 60);  
+
+  FogProvisionKeyManager
+    .deleteExpiredProvisionKeys(pastTime)
+    .then(AppUtils.onDeleteOptional.bind(null, params, callback));
+
+}
+
 export default {
   checkProvisionKeyExpiry: checkProvisionKeyExpiry,
   createProvisonKeyByInstanceId: createProvisonKeyByInstanceId,
   deleteByProvisionKey: deleteByProvisionKey,
+  deleteExpiredProvisionKeys: deleteExpiredProvisionKeys,
   deleteProvisonKeyByInstanceId: deleteProvisonKeyByInstanceId,
   getFogByProvisionKey: getFogByProvisionKey,
   getProvisionKeyByInstanceId: getProvisionKeyByInstanceId

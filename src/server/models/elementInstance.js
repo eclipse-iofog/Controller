@@ -37,7 +37,7 @@ const ElementInstance = sequelize.define('element_instance', {
     field: 'updated_by'
   },
   configLastUpdated: {
-    type: Sequelize.DATE,
+    type: Sequelize.BIGINT,
     field: 'config_last_updated'
   },
   isStreamViewer: {

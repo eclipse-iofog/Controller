@@ -91,8 +91,8 @@ class ElementInstanceManager extends BaseManager {
 		});
 	}
 
-	createElementInstance(element) {
-		return ElementInstance.create(element);
+	createElementInstanceObj(elementInstance) {
+		return ElementInstance.create(elementInstance);
 	}
 
 	createElementInstance(element, userId, trackId, config, elementName, logSize, fogInstanceId) {
@@ -119,26 +119,31 @@ class ElementInstanceManager extends BaseManager {
 		return ElementInstance.create(elementInstance);
 	}
 
-	createStreamViewerInstance(streamViewerElementKey, userId, fogInstanceId) {
-		var elementInstance = {
-			uuid: AppUtils.generateInstanceId(32),
-			trackId: 0,
-			element_key: streamViewerElementKey,
-			config: '{"accesstoken":"' + AppUtils.generateInstanceId(32) + '","foldersizelimit":200.0}',
-			name: 'Stream Viewer',
-			last_updated: new Date().getTime(),
-			updatedBy: userId,
-			configLastUpdated: new Date().getTime(),
-			isStreamViewer: true,
-			isDebugConsole: false,
-			isManager: false,
-			isNetwork: false,
-			registryId: null,
-			rebuild: false,
-			rootHostAccess: false,
-			logSize: 50,
-			iofog_uuid: fogInstanceId
-		};
+	createStreamViewerInstance(streamViewerElementKey, userId, fogInstanceId, registryId) {
+		var config = {
+				'accesstoken': AppUtils.generateRandomString(32),
+				'filesizelimit': 200.0
+			},
+			elementInstance = {
+				uuid: AppUtils.generateInstanceId(32),
+				trackId: 0,
+				element_key: streamViewerElementKey,
+				config: JSON.stringify(config),
+				name: 'Stream Viewer',
+				last_updated: new Date().getTime(),
+				updatedBy: userId,
+				configLastUpdated: new Date().getTime(),
+				isStreamViewer: true,
+				isDebugConsole: false,
+				isManager: false,
+				isNetwork: false,
+				registryId: registryId,
+				rebuild: false,
+				rootHostAccess: false,
+				logSize: 50,
+				iofog_uuid: fogInstanceId,
+				volumeMappings: '{"volumemappings": []}'
+			};
 
 		return ElementInstance.create(elementInstance);
 	}
@@ -178,7 +183,7 @@ class ElementInstanceManager extends BaseManager {
 		return ElementInstance.create(elementInstance);
 	}
 
-	createDebugConsoleInstance(consoleElementKey, userId, fogInstanceId) {
+	createDebugConsoleInstance(consoleElementKey, userId, fogInstanceId, registryId) {
 		var config = {
 				'accesstoken': AppUtils.generateRandomString(32),
 				'filesizelimit': 200.0
@@ -196,15 +201,43 @@ class ElementInstanceManager extends BaseManager {
 				isDebugConsole: true,
 				isManager: false,
 				isNetwork: false,
-				registryId: null,
+				registryId: registryId,
 				rebuild: false,
 				rootHostAccess: false,
 				logSize: 50,
-				iofog_uuid: fogInstanceId
+				iofog_uuid: fogInstanceId,
+				volumeMappings: '{"volumemappings": []}'
 			};
 
 		return ElementInstance.create(elementInstance);
 	}
+
+	deleteElementInstancesByInstanceIdAndElementKey(instanceId, elementKey) {
+    	return ElementInstance.destroy({
+      		where: {
+          		iofog_uuid: instanceId,
+          		element_key: elementKey
+      		}
+    	});
+  	}
+
+  	deleteDebugConsoleInstances(instanceId){
+  		return ElementInstance.destroy({
+  			where: {
+  				$and : [{
+  					element_key: {
+  						$lt : 5
+  					},
+  				},{
+  					name: {
+  						$like: '%Debug Console'
+  					}
+  				},{
+  					iofog_uuid: instanceId
+  				}]
+  			}
+  		});
+  	}
 
 	deleteNetworkElements(networkElementId1, networkElementId2) {
     	return ElementInstance.destroy({

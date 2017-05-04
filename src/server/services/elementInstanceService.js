@@ -132,13 +132,21 @@ var userId = AppUtils.getProperty(params, props.userId),
     .then(AppUtils.onCreate.bind(null, params, props.setProperty, 'Unable to create Element Instance', callback));
 }
 
+const createElementInstanceObj = function(props, params, callback) {
+
+  ElementInstanceManager
+    .createElementInstanceObj(props.elementInstance)
+    .then(AppUtils.onCreate.bind(null, params, props.setProperty, 'Unable to create Element Instance', callback));
+}
+
 const createStreamViewerElement = function(props, params, callback) {
   var elementKey = AppUtils.getProperty(params, props.elementKey),
       userId = AppUtils.getProperty(params, props.userId),
-      fogInstanceId = AppUtils.getProperty(params, props.fogInstanceId);
-  
+      fogInstanceId = AppUtils.getProperty(params, props.fogInstanceId),
+      registryId = AppUtils.getProperty(params, props.registryId);
+
   ElementInstanceManager
-    .createStreamViewerInstance(elementKey, userId, fogInstanceId)
+    .createStreamViewerInstance(elementKey, userId, fogInstanceId, registryId)
     .then(AppUtils.onCreate.bind(null, params, props.setProperty, 'Unable to create Stream Viewer', callback));
 }
 
@@ -162,10 +170,11 @@ const createNetworkElementInstance = function(props, params, callback) {
 const createDebugConsole = function(props, params, callback) {
   var elementKey = AppUtils.getProperty(params, props.elementKey),
       userId = AppUtils.getProperty(params, props.userId),
-      fogInstanceId = AppUtils.getProperty(params, props.fogInstanceId);
+      fogInstanceId = AppUtils.getProperty(params, props.fogInstanceId),
+      registryId = AppUtils.getProperty(params, props.registryId);
   
   ElementInstanceManager
-    .createDebugConsoleInstance(elementKey, userId, fogInstanceId)
+    .createDebugConsoleInstance(elementKey, userId, fogInstanceId, registryId)
     .then(AppUtils.onCreate.bind(null, params, props.setProperty, 'Unable to createDebug console object', callback));
 }
 
@@ -227,6 +236,22 @@ const deleteElementInstances = function(props, params, callback) {
     .deleteByElementUUID(_.pluck(elementInstanceData, props.field))
     .then(AppUtils.onDeleteOptional.bind(null, params, callback));
 }
+const deleteElementInstancesByInstanceIdAndElementKey = function(props, params, callback) {
+  var instanceId = AppUtils.getProperty(params, props.instanceId),
+    elementKey = AppUtils.getProperty(params, props.elementKey);
+
+  ElementInstanceManager
+    .deleteElementInstancesByInstanceIdAndElementKey(instanceId, elementKey)
+    .then(AppUtils.onDeleteOptional.bind(null, params, callback));
+}
+
+const deleteDebugConsoleInstances = function(props, params, callback) {
+  var instanceId = AppUtils.getProperty(params, props.instanceId);
+
+  ElementInstanceManager
+    .deleteDebugConsoleInstances(instanceId)
+    .then(AppUtils.onDeleteOptional.bind(null, params, callback));
+}
 
 const getElementInstanceRouteDetails = function(props, params, callback) {
   var elementInstanceId = AppUtils.getProperty(params, props.elementInstanceId);
@@ -239,6 +264,7 @@ const getElementInstanceRouteDetails = function(props, params, callback) {
 export default {
   createDebugConsole: createDebugConsole,
   createElementInstance: createElementInstance,
+  createElementInstanceObj: createElementInstanceObj,
   createNetworkElementInstance: createNetworkElementInstance,
   createStreamViewerElement: createStreamViewerElement,
   findByInstanceId: findByInstanceId,
@@ -248,11 +274,13 @@ export default {
   findExtraTrackByUuids: findExtraTrackByUuids,
   findOtherTrackDetailByUuids: findOtherTrackDetailByUuids,
   findElementInstancesByTrackId: findElementInstancesByTrackId,
+  deleteDebugConsoleInstances: deleteDebugConsoleInstances,
   deleteElementInstance: deleteElementInstance,
   deleteElementInstanceOptional: deleteElementInstanceOptional,
   deleteElementInstances: deleteElementInstances,
   deleteNetworkElementInstance: deleteNetworkElementInstance,
   deleteNetworkElementInstances: deleteNetworkElementInstances,
+  deleteElementInstancesByInstanceIdAndElementKey: deleteElementInstancesByInstanceIdAndElementKey,
   getDataTrackDetails: getDataTrackDetails,
   getElementInstance: getElementInstance,
   getElementInstanceOptional: getElementInstanceOptional,

@@ -128,7 +128,7 @@ const initApp = function() {
   app.post('/api/v2/instance/routing/id/:ID/token/:Token', instanceRoutingController.instanceRoutingEndPoint);
   app.post('/api/v2/authoring/element/instance/route/create', instanceRoutingController.instanceRouteCreateEndPoint);
   app.post('/api/v2/authoring/element/instance/route/delete', instanceRoutingController.instanceRouteDeleteEndPoint);
-  app.get('/api/v2/authoring/fabric/provisionkey/instanceid/:instanceId', provisionKeyController.getProvisionKeyEndPoint);
+  app.get('/api/v2/authoring/fabric/provisioningkey/instanceid/:instanceId', provisionKeyController.getProvisionKeyEndPoint);
   app.get('/api/v2/instance/provision/key/:provisionKey/fabrictype/:fabricType', provisionKeyController.fogProvisionKeyEndPoint);
   app.post('/api/v2/instance/provision/key/:provisionKey/fabrictype/:fabricType', provisionKeyController.fogProvisionKeyEndPoint);
   app.post('/api/v2/authoring/fabric/provisioningkey/list/delete', provisionKeyController.deleteProvisionKeyEndPoint);
@@ -157,7 +157,8 @@ const initApp = function() {
   app.get('/api/v2/authoring/element/get', elementController.getElementsForPublishingEndPoint);
   app.post('/api/v2/authoring/fabric/instances/list/:t', fogController.fogInstancesListEndPoint);
   app.post('/api/v2/authoring/fabric/instance/create', integratorController.integratorInstanceCreateEndPoint);
-
+  app.post('/api/v2/authoring/fabric/details', fogController.getFogDetailsEndpoint);
+  app.post('/api/v2/authoring/fabric/instances/settings/update', fogController.updateFogSettingsEndpoint);
 
   //generic error handler
   app.use((err, req, res, next) => {

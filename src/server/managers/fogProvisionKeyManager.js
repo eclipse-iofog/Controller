@@ -69,6 +69,16 @@ class FogProvisionKeyManager extends BaseManager {
         include: [Fog]
       });
     }
+
+  deleteExpiredProvisionKeys(pastTime){
+    return FogProvisionKey.destroy({
+      where: {
+        expirationTime:{
+          $lt: pastTime
+        }
+      }
+    });
+  }
 }
 
 const instance = new FogProvisionKeyManager();

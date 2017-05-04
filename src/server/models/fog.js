@@ -146,7 +146,7 @@ const Fog = sequelize.define('iofogs', {
   },
   diskdirectory: {
     type: Sequelize.TEXT,
-    defaultValue: '/var/log/iofog/',
+    defaultValue: '/var/lib/iofog/',
     field: 'DiskDirectory'
   },
   memorylimit: {
@@ -168,6 +168,21 @@ const Fog = sequelize.define('iofogs', {
     type: Sequelize.TEXT,
     defaultValue: "/var/log/iofog/",
     field: 'LogDirectory'
+  },
+  debug: {
+    type: Sequelize.INTEGER,
+    defaultValue: 0,
+    field: 'Debug'
+  },
+  viewer: {
+    type: Sequelize.INTEGER,
+    defaultValue: 0,
+    field: 'Viewer'
+  },
+  bluetooth: {
+    type: Sequelize.INTEGER,
+    defaultValue: 0,
+    field: 'Bluetooth'
   },
   logfilecount: {
     type: Sequelize.BIGINT,

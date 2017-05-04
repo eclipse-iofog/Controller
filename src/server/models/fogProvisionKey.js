@@ -10,7 +10,7 @@ import sequelize from './../utils/sequelize';
 const FogProvisionKey = sequelize.define('iofog_provision_keys', {
   id: {type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true, field: 'ID'},
   provisionKey: {type: Sequelize.STRING(100), field: 'provisioning_string'},
-  expirationTime: {type: Sequelize.DATE, field: 'expiration_time'}
+  expirationTime: {type: Sequelize.BIGINT, field: 'expiration_time'}
   // instanceId: {type: Sequelize.TEXT, field: 'instanceID'}
 }, {
   // don't add the timestamp attributes (updatedAt, createdAt)

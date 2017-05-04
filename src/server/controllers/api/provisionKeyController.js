@@ -17,12 +17,11 @@ import AppUtils from '../../utils/appUtils';
 import logger from '../../utils/winstonLogs';
 
 /********************************************* EndPoints ******************************************************/
-
 /******* Get Provision Key EndPoint (Get: /api/v2/authoring/fabric/provisionkey/instanceid/:instanceId) ********/
  const getProvisionKeyEndPoint = function(req, res){
   logger.info("Endpoint hit: "+ req.originalUrl);
   var params = {},
-      createProvisionProps = {
+      fogProps = {
           instanceId: 'bodyParams.instanceId',
           setProperty: 'newProvision'
       };
@@ -31,17 +30,24 @@ import logger from '../../utils/winstonLogs';
 
   async.waterfall([
     async.apply(BaseApiController.checkfogExistance, req, res),
-    async.apply(FogProvisionKeyService.createProvisonKeyByInstanceId, createProvisionProps, params)
+    async.apply(FogProvisionKeyService.deleteProvisonKeyByInstanceId, fogProps, params),
+    async.apply(FogProvisionKeyService.createProvisonKeyByInstanceId, fogProps),
+    FogProvisionKeyService.deleteExpiredProvisionKeys
 
   ],function(err, result) {
-    var outputProvisionKey;
+    var outputProvisionKey, outputExpirationTime, successLabelArr, successValueArr;
 
     if (params.newProvision)
     {
       outputProvisionKey= params.newProvision.provisionKey;
+      outputExpirationTime = params.newProvision.expirationTime;
     }
-      AppUtils.sendResponse(res, err, 'provisionKey', outputProvisionKey, result);
-    });
+
+    successLabelArr= ['provisionKey', 'expirationTime'],
+    successValueArr= [outputProvisionKey, outputExpirationTime];
+    
+    AppUtils.sendMultipleResponse(res, err, successLabelArr, successValueArr, result);
+  });
 };
 
 /** Fog Provisioning EndPoint (Get/Post: /api/v2/instance/provision/key/:provisionKey/fabrictype/:fabricType) **/

@@ -24,7 +24,7 @@
 
 - Fog provisioning
 
-&emsp;&emsp;&emsp;[http://localhost:3000/api/v2/authoring/fabric/provisionkey/instanceid/:instanceId](http://localhost:3000/api/v2/authoring/fabric/provisionkey/instanceid/:instanceId)
+&emsp;&emsp;&emsp;[http://localhost:3000/api/v2/authoring/fabric/provisioningkey/instanceid/:instanceId](http://localhost:3000/api/v2/authoring/fabric/provisionkey/instanceid/:instanceId)
 
 &emsp;&emsp;&emsp;where  &#39;:instanceId&#39; is obtained by creating fog.
 
