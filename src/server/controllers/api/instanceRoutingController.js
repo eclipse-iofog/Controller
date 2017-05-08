@@ -381,7 +381,7 @@ const instanceRouteDeleteEndPoint = function(req, res){
       changeObject: {
         'containerList': new Date().getTime(),
         'containerConfig': new Date().getTime(),
-        'Routing': new Date().getTime()
+        'routing': new Date().getTime()
       }
     },
 
@@ -390,7 +390,13 @@ const instanceRouteDeleteEndPoint = function(req, res){
       changeObject: {
         'containerList': new Date().getTime(),
         'containerConfig': new Date().getTime(),
-        'Routing': new Date().getTime()
+        'routing': new Date().getTime()
+      }
+    },
+    changeTrackingProps = {
+      fogInstanceId: 'bodyParams.destinationInstanceId',
+      changeObject: {
+        'routing': new Date().getTime()
       }
     };
 
@@ -401,6 +407,7 @@ const instanceRouteDeleteEndPoint = function(req, res){
     watefallMethods = [
       async.apply(UserService.getUser, userProps, params),
       async.apply(RoutingService.deleteByFogAndElement, deleteRouteProps),
+      async.apply(ChangeTrackingService.updateChangeTracking, changeTrackingProps),
       getDeleteOutput
     ];
   } else {

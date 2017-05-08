@@ -253,6 +253,15 @@ const deleteDebugConsoleInstances = function(props, params, callback) {
     .then(AppUtils.onDeleteOptional.bind(null, params, callback));
 }
 
+const deleteStreamViewerInstances = function(props, params, callback) {
+  var instanceId = AppUtils.getProperty(params, props.instanceId);
+
+  ElementInstanceManager
+    .deleteStreamViewerInstances(instanceId)
+    .then(AppUtils.onDeleteOptional.bind(null, params, callback));
+}
+
+
 const getElementInstanceRouteDetails = function(props, params, callback) {
   var elementInstanceId = AppUtils.getProperty(params, props.elementInstanceId);
 
@@ -275,6 +284,7 @@ export default {
   findOtherTrackDetailByUuids: findOtherTrackDetailByUuids,
   findElementInstancesByTrackId: findElementInstancesByTrackId,
   deleteDebugConsoleInstances: deleteDebugConsoleInstances,
+  deleteStreamViewerInstances: deleteStreamViewerInstances,
   deleteElementInstance: deleteElementInstance,
   deleteElementInstanceOptional: deleteElementInstanceOptional,
   deleteElementInstances: deleteElementInstances,

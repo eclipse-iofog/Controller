@@ -1010,7 +1010,7 @@ const getFogInstance = function (params, callback){
   });
 };
 
-/***** Get Details of Element Instance EndPoint (Post: /api/v2/authoring/element/instance/details/trackid/:trackId *****/
+/***** Get Details of Element Instance EndPoint (Get/Post: /api/v2/authoring/element/instance/details/trackid/:trackId *****/
  const getElementInstanceDetailsEndPoint = function(req, res) {
   logger.info("Endpoint hit: "+ req.originalUrl);
 
@@ -1307,7 +1307,7 @@ const getElementInstanceProperties = function(params, callback) {
       let elementInstance = {
         id: instance.uuid,
         elementKey: instance.elementKey,
-        config: instance.config,
+        config: instance.elementInstanceConfig,
         elementInstanceName: instance.elementInstanceName,
         fogInstanceId: instance.fogInstanceId != null ? instance.fogInstanceId :'NONE',
         rebuild: instance.rebuild,
@@ -1321,6 +1321,7 @@ const getElementInstanceProperties = function(params, callback) {
         diskRequired: instance.diskRequired,
         ramRequired: instance.ram_required,
         picture: instance.picture,
+        volumeMappings: instance.volumeMappings,
         isPublic: instance.is_public,
         registryId: instance.registry_id,
         typeId: instance.fogTypeID,

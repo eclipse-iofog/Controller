@@ -15,6 +15,7 @@ import ElementInstancePortService from '../../services/elementInstancePortServic
 import ElementInstanceConnectionsService from '../../services/elementInstanceConnectionsService';
 import ElementInputTypeService from '../../services/elementInputTypeService';
 import ElementOutputTypeService from '../../services/elementOutputTypeService';
+import FogTypeService from '../../services/fogTypeService';
 import NetworkPairingService from '../../services/networkPairingService';
 import RoutingService from '../../services/routingService';
 import SatellitePortService from '../../services/satellitePortService';
@@ -57,12 +58,17 @@ import logger from '../../utils/winstonLogs';
       userProps = {
         userId: 'bodyParams.t',
         setProperty: 'user'
+      },
+      fogTypeProps = {
+        fogTypeId: 'bodyParams.fabricType',
+        setProperty: 'fogTypeData'
       };
   params.bodyParams = req.body;
   logger.info("Parameters:" + JSON.stringify(params.bodyParams));
 
   async.waterfall([
     async.apply(UserService.getUser, userProps, params),
+    async.apply(FogTypeService.getFogTypeDetail, fogTypeProps),
     createElementForUser,
     createElementFogType,
     createElementInputType,
@@ -217,6 +223,10 @@ import logger from '../../utils/winstonLogs';
     },
     elementIdProps = {
       elementId: 'bodyParams.moduleId'
+    },
+    elementKeyProps = {
+      networkElementId: 'bodyParams.moduleId',
+      setProperty: 'elementData'
     };
 
   params.bodyParams = req.params;
@@ -225,6 +235,7 @@ import logger from '../../utils/winstonLogs';
 
   async.waterfall([
     async.apply(UserService.getUser, userProps, params),
+    async.apply(ElementService.getNetworkElement, elementKeyProps), 
     async.apply(ElementInstanceService.findElementInstancesByElementKey, elementProps),
     deleteElementInstanceData,
     async.apply(ElementFogTypeService.deleteElementFogType, elementIdProps),

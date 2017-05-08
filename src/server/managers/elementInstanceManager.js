@@ -239,6 +239,24 @@ class ElementInstanceManager extends BaseManager {
   		});
   	}
 
+  	deleteStreamViewerInstances(instanceId){
+  		return ElementInstance.destroy({
+  			where: {
+  				$and : [{
+  					element_key: {
+  						$lt : 5
+  					},
+  				},{
+  					name: {
+  						$like: '%Stream Viewer'
+  					}
+  				},{
+  					iofog_uuid: instanceId
+  				}]
+  			}
+  		});
+  	}
+
 	deleteNetworkElements(networkElementId1, networkElementId2) {
     	return ElementInstance.destroy({
       		where: {
@@ -345,8 +363,8 @@ class ElementInstanceManager extends BaseManager {
 
 	getElementInstanceProperties(uuid) {
 		const query = 'select ei.UUID as uuid, ei.element_key as elementKey, ei.name as elementInstanceName, ' +
-		 			  'ei.config as config, ei.iofog_uuid as fogInstanceId, ei.root_host_access ' +
-		 			  'as rootHostAccess, ei.log_size as logSize, ei.rebuild as rebuild, e.*, ' +
+		 			  'ei.config as elementInstanceConfig, ei.iofog_uuid as fogInstanceId, ei.root_host_access ' +
+		 			  'as rootHostAccess, ei.log_size as logSize, ei.rebuild as rebuild, ei.volume_mappings as volumeMappings, e.*, ' +
 		 			  'ft.ID as fogTypeID from element_instance ei left join element e ' +
 					  'on ei.element_key = e.id left join element_fog_types eft ' +
 					  'on ei.element_key = eft.element_id left join iofog_type ft ' +

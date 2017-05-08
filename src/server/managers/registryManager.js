@@ -10,14 +10,20 @@ import sequelize from './../utils/sequelize';
 
 class RegistryManager extends BaseManager {
 
- findByInstanceId(instanceId) {
-    return Registry.findAll({
-      where: {
-          iofog_uuid: instanceId
-          }
-      });
-  }
- }
+	findByInstanceId(instanceId) {
+    	return Registry.findAll({
+    		where: {
+      			$or: [{
+          			iofog_uuid: instanceId
+        		}, {
+          			ispublic: {
+          				$gt: 0
+          			}
+        		}]
+	  		}
+    	});
+ 	}
+}
 
 const instance = new RegistryManager();
 export default instance;

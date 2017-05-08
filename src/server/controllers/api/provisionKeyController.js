@@ -30,8 +30,8 @@ import logger from '../../utils/winstonLogs';
 
   async.waterfall([
     async.apply(BaseApiController.checkfogExistance, req, res),
-    async.apply(FogProvisionKeyService.deleteProvisonKeyByInstanceId, fogProps, params),
-    async.apply(FogProvisionKeyService.createProvisonKeyByInstanceId, fogProps),
+    //async.apply(FogProvisionKeyService.deleteProvisonKeyByInstanceId, fogProps, params),
+    async.apply(FogProvisionKeyService.createProvisonKeyByInstanceId, fogProps, params),
     FogProvisionKeyService.deleteExpiredProvisionKeys
 
   ],function(err, result) {

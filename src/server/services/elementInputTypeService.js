@@ -21,7 +21,7 @@ const deleteElementInputType = function(props, params, callback) {
 
   ElementInputTypeManager
     .deleteByElementKey(elementKey)
-    .then(AppUtils.onDelete.bind(null, params, 'Unable to delete Element Input Type object.', callback));
+    .then(AppUtils.onDeleteOptional.bind(null, params, callback));
 }
 
 export default {

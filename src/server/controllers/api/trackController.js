@@ -214,13 +214,8 @@ const userTrackUpdateEndPoint = function(req, res){
     updateDataTrackById
 
   ], function(err, result) {
-    var trackId;
 
-    if (params.bodyParams.TrackID){
-      trackId = params.bodyParams.TrackID;
-    }
-
-    AppUtils.sendResponse(res, err, 'trackId', trackId, result);
+    AppUtils.sendResponse(res, err, 'trackId', params.bodyParams.trackId, result);
   })
 };
 /***************** User Track Delete EndPoint (Post: /api/v2/authoring/user/track/delete) **************/
@@ -404,7 +399,7 @@ const updateDataTrackById= function(params, callback) {
         trackId: 'bodyParams.trackId',
         updatedObj: {
           name: params.bodyParams.trackName,
-          description: '',
+          description: params.bodyParams.description,
           lastUpdated : new Date(),
           isSelected: params.bodyParams.isSelected,
           isActivated: params.bodyParams.isActivated,

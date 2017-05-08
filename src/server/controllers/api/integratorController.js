@@ -51,10 +51,10 @@ const integratorInstanceCreateEndPoint = function(req, res){
       setProperty: null
     },
 
-    // fogTypeProps = {
-    //   fogTypeId: 'fogInstance.typeKey',
-    //   setProperty: 'fogType'
-    // },
+    fogTypeProps = {
+      fogTypeId: 'bodyParams.fabricType',
+      setProperty: 'fogType'
+    },
 
     // streamViewerProps = {
     //   userId : 'user.id',
@@ -158,6 +158,7 @@ const integratorInstanceCreateEndPoint = function(req, res){
 
   async.waterfall([
     async.apply(UserService.getUser, userProps, params),
+    async.apply(FogTypeService.getFogTypeDetail, fogTypeProps),
     async.apply(FogService.createFogInstance, createFogProps),
     async.apply(ChangeTrackingService.createFogChangeTracking, createChangeTrackingProps),
     async.apply(FogUserService.createFogUser, createFogUserProps),

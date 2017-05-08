@@ -21,7 +21,7 @@ const deleteElementOutputType = function(props, params, callback) {
 
   ElementOutputTypeManager
     .deleteByElementKey(elementKey)
-    .then(AppUtils.onDelete.bind(null, params, 'Unable to delete Element Output Type object.', callback));
+    .then(AppUtils.onDeleteOptional.bind(null, params, callback));
 }
 
 export default {

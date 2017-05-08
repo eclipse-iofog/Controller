@@ -305,16 +305,50 @@ const updateFogSettingsEndpoint = function (req, res){
 		bluetoothElementForFog,
 		debugConsoleForFog,
 		streamViewerForFog,
-		updateChangeTracking,
-
+		updateFog,
+		updateChangeTracking
 	],
 	function(err, result) {
-		AppUtils.sendResponse(res, err, 'fog', params, result);
+	if (!err){
+    	var successLabelArr, successValueArr;
+
+    	successLabelArr= ['ppp', 'ttt'],
+    	successValueArr= [params.bodyParams.bluetooth, '1'];
+    
+    	AppUtils.sendMultipleResponse(res, err, successLabelArr, successValueArr, result);
+	}else{
+		AppUtils.sendResponse(res, err, '', '', result);
+	}
 	});
 }
 
+const updateFog = function (params, callback){
+	var fogProps = {
+      instanceId: 'bodyParams.instanceId',
+      updatedFog: {
+      	name: params.bodyParams.name,
+      	description: params.bodyParams.description,
+      	location: params.bodyParams.location,
+      	networkinterface: params.bodyParams.networkInterface,
+      	dockerurl: params.bodyParams.dockerUrl,
+      	disklimit: params.bodyParams.diskLimit,
+      	diskdirectory: params.bodyParams.diskDirectory,
+      	memorylimit: params.bodyParams.memoryLimit,
+      	cpulimit: params.bodyParams.cpuLimit,
+      	loglimit: params.bodyParams.logLimit,
+      	logdirectory: params.bodyParams.logDirectory,
+      	logfilecount: params.bodyParams.logFileCount,
+      	debug: params.bodyParams.debug,
+      	viewer: params.bodyParams.viewer,
+      	bluetooth: params.bodyParams.bluetooth,
+      	statusfrequency: params.bodyParams.statusFrequency,
+      	changefrequency: params.bodyParams.changeFrequency
+      }
+    };
+  	FogService.updateFogInstance(fogProps, params, callback);
+}
+
 const streamViewerForFog = function(params, callback){
-	try{
 	if(params.bodyParams.viewer && (params.bodyParams.viewer != params.fogInstance.viewer)){
 		params.isViewer = 1;
 		if(params.bodyParams.viewer > 0){
@@ -391,7 +425,6 @@ const streamViewerForFog = function(params, callback){
     			async.apply(NetworkPairingService.createNetworkPairing, networkPairingProps),
     			createStreamViewerConsole,
     			async.apply(ChangeTrackingService.updateChangeTracking, changeTrackingProps)
-
 			],
 			function(err, result) {
 				if (!err){
@@ -405,15 +438,22 @@ const streamViewerForFog = function(params, callback){
 			var elementInstanceProps = {
 				instanceId: 'bodyParams.instanceId',
 			};
-			ElementInstanceService.deleteDebugConsoleInstances(elementInstanceProps, params, callback);
+			async.waterfall([
+				async.apply(ElementInstanceService.deleteStreamViewerInstances, elementInstanceProps, params),
+				async.apply(StreamViewerService.deleteStreamViewerByFogInstanceId, elementInstanceProps)
+			],
+			function(err, result) {
+				if (!err){
+					callback(null, params);
+				}else{
+					callback('Error', result);
+				}
+			});
 		}
 	}
 	else{
 		callback(null, params);
 	}
-}catch(e){
-	logger.infog(e);
-}
 }
 const createStreamViewerConsole = function(params, callback){
   var createConsoleProps = {
@@ -428,14 +468,11 @@ const createStreamViewerConsole = function(params, callback){
   ConsoleService.createConsole(createConsoleProps, params, callback)
 }
 
-
-
-
 const createStreamViewerNetworkElementInstance = function(params,callback){
 	var config = {
 		'mode': 'public',
-		'host': params.satellite.domain,
-		'port': params.satellitePort.port1,
+		'host': params.streamViewerSatellite.domain,
+		'port': params.streamViewerSatellitePort.port1,
 		'connectioncount': 60,
 		'passcode': params.comsatPort.passcode1,
 		'localhost': 'iofog',
@@ -705,7 +742,8 @@ const updateChangeTracking = function(params, callback){
 		var changeTrackingProps = {
         	fogInstanceId: 'bodyParams.instanceId',
         	changeObject: {
-          		containerList: new Date().getTime()
+          		containerList: new Date().getTime(),
+          		config: new Date().getTime()
         	}
       	}
 		ChangeTrackingService.updateChangeTracking(changeTrackingProps, params, callback);

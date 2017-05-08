@@ -42,7 +42,7 @@ const deleteByFogAndElement = function(props, params, callback) {
 
   RoutingManager
     .deleteByFogAndElement(instanceId1, instanceId2, elementId1, elementId2, isNetwork)
-    .then(AppUtils.onDeleteOptional.bind(null, params, callback));
+    .then(AppUtils.onDelete.bind(null, params,'Unable to delete Routing Object', callback));
 }
 
 const deleteElementInstanceRouting = function(props, params, callback) {

@@ -58,7 +58,7 @@ const deleteNetworkPairingById = function(props, params, callback) {
 
   NetworkPairingManager
     .deleteById(networkPairingId)
-    .then(AppUtils.onDelete.bind(null, params, 'No Network Pairing Element found', callback));
+    .then(AppUtils.onDeleteOptional.bind(null, params, callback));
 }
 
 const findByElementInstancePortId = function(props, params, callback) {
