@@ -50,10 +50,10 @@ const startServer = function(port) {
         }
       }
       sslKey = configUtil.getConfigParam(constants.CONFIG.ssl_key);
-      sslCert = configUtil.getConfigParam(constants.CONFIG.ssl_cert);
-      intermedKey = configUtil.getConfigParam(constants.CONFIG.intermediate_cert);
       
-      if (sslKey && sslCert && intermedKey) {
+      if (sslKey) {
+        sslCert = configUtil.getConfigParam(constants.CONFIG.ssl_cert);
+        intermedKey = configUtil.getConfigParam(constants.CONFIG.intermediate_cert);
         startHttpsServer(app, port, sslKey, sslCert, intermedKey);
       } else {
         startHttpServer(app, port);
