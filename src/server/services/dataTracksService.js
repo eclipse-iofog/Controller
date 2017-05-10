@@ -25,10 +25,14 @@ const findContainerListByInstanceId = function(props, params, callback) {
 
 const getDataTrackById = function(props, params, callback) {
   var trackId = AppUtils.getProperty(params, props.trackId);
+  var errorMsg = '';
+  if(props.errorMsg){
+    errorMsg = props.errorMsg;
+  }
 
   DataTracksManager
     .findById(trackId)
-    .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Unable to find Track having id ' + trackId, callback));
+    .then(AppUtils.onFind.bind(null, params, props.setProperty, errorMsg + 'Unable to find Track having id ' + trackId, callback));
 }
 
 const getTrackById = function(props, params, callback) {

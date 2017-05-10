@@ -207,11 +207,21 @@ const instanceRouteCreateEndPoint = function (req, res){
         rebuild: 1
       }
     },
-   updateRebuildDestProps = {
+    updateRebuildDestProps = {
       elementId: 'bodyParams.destinationElementId',
       updatedData : {
         rebuild: 1
       }
+    },
+    pubTrackProps = {
+      trackId: 'bodyParams.publishingTrackId',
+      setProperty: 'publishingTrackData',
+      errorMsg: 'publishingTrackId is either missing or invalid.'
+    },
+    destTrackProps = {
+      trackId: 'bodyParams.destinationTrackId',
+      setProperty: 'destinationTrackData',
+      errorMsg: 'destinationTrackId is either missing or invalid.'
     };
 
   params.bodyParams = req.body;
@@ -239,6 +249,9 @@ const instanceRouteCreateEndPoint = function (req, res){
 
       async.apply(ElementInstanceService.getElementInstance, pubElementProps),
       async.apply(ElementInstanceService.getElementInstance, destElementProps),
+
+      async.apply(DataTracksService.getDataTrackById, pubTrackProps),
+      async.apply(DataTracksService.getDataTrackById, destTrackProps),
 
       ComsatService.openPortOnRadomComsat,
       createSatellitePort,

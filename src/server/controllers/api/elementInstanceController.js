@@ -639,7 +639,7 @@ const elementInstancePortCreateEndPoint = function(req, res) {
     networkPairingProps = {
       instanceId1: 'fogInstance.uuid',
       instanceId2: null,
-      elementId1: 'streamViewer.uuid',
+      elementId1: 'bodyParams.elementId',
       elementId2: null,
       networkElementId1: 'networkElementInstance.uuid',
       networkElementId2: null,
@@ -668,7 +668,7 @@ const elementInstancePortCreateEndPoint = function(req, res) {
       satellitePort: 'satellitePort.port1',
       satelliteDomain: 'satellite.domain',
       trackId: null,
-      userId: 'userId',
+      userId: 'user.id',
       networkName: null,
       networkPort: 0,
       isPublic: true,

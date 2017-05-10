@@ -30,16 +30,6 @@ const userTrackCreateEndPoint = function(req, res){
     userProps = {
       userId: 'bodyParams.t',
       setProperty: 'user'
-    },
-    fogInstanceProps = {
-      fogId: 'bodyParams.fogInstanceId',
-      setProperty: 'fogData'
-    },
-
-    trackProps = {
-      trackName: 'bodyParams.trackName',
-      fogInstanceId: 'bodyParams.fogInstanceId',
-      setProperty: 'trackData'
     };
 
   params.bodyParams = req.body;
@@ -48,14 +38,30 @@ const userTrackCreateEndPoint = function(req, res){
 
   async.waterfall([
     async.apply(UserService.getUser, userProps, params),
+    validateFogInstance,
     createDataTrack
 
   ], function(err, result) {
+    var trackId;
+    if (params.dataTrack){
+      trackId = params.dataTrack.id;
+    }
 
-    AppUtils.sendResponse(res, err, 'trackId', params.dataTrack.id, result);
+    AppUtils.sendResponse(res, err, 'trackId', trackId, result);
   })
 };
 
+const validateFogInstance = function(params, callback){
+  var fogProps = {
+    fogId: 'bodyParams.fogInstanceId',
+    setProperty: 'fogData'
+  }
+  if (params.bodyParams.fogInstanceId == 'NONE'){
+    callback(null, params);
+  }else{
+    FogService.getFogInstance(fogProps, params, callback);
+  }
+}
 /***************** Fog Track List EndPoint (Get: /api/v2/authoring/fabric/track/list/:instanceId) **************/
 const fogTrackListEndPoint = function(req, res){
   logger.info("Endpoint hit: "+ req.originalUrl);
@@ -230,8 +236,8 @@ const userTrackDeleteEndPoint = function(req, res){
     },
     
     dataTrackProps = {
-      trackId: 'bodyParams.trackId',
-      setProperty: 'dataTrack'
+      trackId: 'bodyParams.trackId'
+     // setProperty: 'dataTrack'
     },
     elementInstanceProps = {
       trackId: 'bodyParams.trackId',
@@ -266,7 +272,7 @@ const userTrackDeleteEndPoint = function(req, res){
   async.waterfall([
     async.apply(UserService.getUser, userProps, params),
     async.apply(DataTracksService.getDataTrackById, dataTrackProps),
-    deleteDataTrack,
+    async.apply(DataTracksService.deleteTrackById,dataTrackProps),
     async.apply(ElementInstanceService.findElementInstancesByTrackId, elementInstanceProps),
     async.apply(ElementInstancePortService.deleteElementInstancePortsByElementIds, elementInstanceDataProps),
     async.apply(NetworkPairingService.findByElementInstanceIds, networkPairingProps),
@@ -299,18 +305,18 @@ const updateFogChangeTracking = function(params, callback){
   ChangeTrackingService.updateChangeTrackingData(changeTrackingProps, params, callback);
 }
 
-const deleteDataTrack = function(params, callback){
-  if (params.dataTrack.updatedBy == params.user.id){
-    var dataTrackProps = {
-      trackId :'bodyParams.trackId'
-    };
+// const deleteDataTrack = function(params, callback){
+//   if (params.dataTrack.updatedBy == params.user.id){
+//     var dataTrackProps = {
+//       trackId :'bodyParams.trackId'
+//     };
   
-    DataTracksService.deleteTrackById(dataTrackProps, params, callback);
+//     DataTracksService.deleteTrackById(dataTrackProps, params, callback);
 
-  }else{
-    callback('err', 'Permission error: You are not authorized to delete this track.');
-  }
-}
+//   }else{
+//     callback('err', 'Permission error: You are not authorized to delete this track.');
+//   }
+// }
 
 const deleteElement = function(params, callback) {
   var deleteElementProps = {
