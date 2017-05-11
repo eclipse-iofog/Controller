@@ -821,7 +821,6 @@ const elementInstancePortDeleteEndPoint = function(req, res) {
   }
 
   async.waterfall(waterfallMethods, function(err, result) {
-  
     AppUtils.sendResponse(res, err, 'portId', params.bodyParams.portId, result);
   });
 };
@@ -1563,7 +1562,7 @@ const getOutputDetails = function(params, callback) {
 
   if (params.bodyParams.publicAccess == 1) {
     params.output.accessUrl = "https://" + params.satellite.domain + ":" + params.satellitePort.port2;
-    params.networkPairingId = params.networkPairingObj.id;
+    params.output.networkPairingId = params.networkPairingObj.id;
   }
 
   callback(null, params);
