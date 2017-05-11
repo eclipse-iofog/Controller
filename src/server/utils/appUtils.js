@@ -169,6 +169,10 @@ const onUpdate = function(params, errorMsg, callback, updatedModels) {
   }
 }
 
+const onUpdateOptional = function(params, callback, deletedModels) {
+  callback(null, params);
+}
+
 const onDelete = function(params, errorMsg, callback, deletedModels) {
   if (deletedModels <= 0) {
     callback('error', errorMsg);
@@ -236,6 +240,7 @@ export default {
   getProperty: getProperty,
   onCreate: onCreate,
   onUpdate: onUpdate,
+  onUpdateOptional: onUpdateOptional,
   onFind: onFind,
   onFindOptional: onFindOptional,
   onDelete: onDelete,

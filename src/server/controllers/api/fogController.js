@@ -35,6 +35,7 @@ import logger from '../../utils/winstonLogs';
 const getFogControllerStatusEndPoint = function(req, res){
   logger.info("Endpoint hit: "+ req.originalUrl);
 	var milliseconds = new Date().getTime();
+    logger.info("Endpoint served successfully");
 	res.status(200);
 	res.send({
 		"status": "ok",

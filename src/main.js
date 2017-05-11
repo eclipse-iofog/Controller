@@ -9,6 +9,8 @@ import UserManager from './server/managers/userManager';
 
 import Server from './server';
 import ConfigUtil from './server/utils/configUtil';
+import appConfig from './config.json';
+import constants from './server/constants.js';
 import logger from './server/utils/winstonLogs';
 import fs from 'fs';
 const path = require('path');
@@ -121,25 +123,41 @@ function main() {
       break;
 
     case 'start':
-      var result = daemon.status();
-      if (result == 0){
-        var count = 0;
-        daemon.start();
+      ConfigUtil.getAllConfigs().then(() => {
+        var dbPort = ConfigUtil.getConfigParam(constants.CONFIG.port),
+        sslKey = ConfigUtil.getConfigParam(constants.CONFIG.ssl_key),
+        sslCert = ConfigUtil.getConfigParam(constants.CONFIG.ssl_cert),
+        intermedKey = ConfigUtil.getConfigParam(constants.CONFIG.intermediate_cert);
 
-        var refreshIntervalId = setInterval(function(){
-          count ++;
-          var pid = daemon.status();
-          if (pid == 0){
-            console.log('Error: ssl_key or ssl_cert or intermediate_cert is either missing or invalid. Provide valid SSL configurations.');
-            clearInterval(refreshIntervalId);
-          }else if(count == 3){
-            console.log('Fog-Controller has started at pid: ' + pid);
-            clearInterval(refreshIntervalId);
-          }
-        }, 1000);
-      }else{
-        console.log("fog-controller already running. PID: " + result);
-      }
+        if(!dbPort){
+          dbPort = appConfig.port;
+        }
+
+        var result = daemon.status();
+        if (result == 0){
+          var count = 0;
+          daemon.start();
+
+          var refreshIntervalId = setInterval(function(){
+            count ++;
+            var pid = daemon.status();
+            if (pid == 0){
+              console.log('Error: ssl_key or ssl_cert or intermediate_cert is either missing or invalid. Provide valid SSL configurations.');
+              clearInterval(refreshIntervalId);
+            }else if(count == 5){
+              if (sslKey && sslCert && intermedKey) {
+                console.log('==> 🌎 HTTPS server listening on port %s. Open up https://localhost:%s/ in your browser.', dbPort, dbPort);
+              }else{
+                console.log('==> 🌎 Listening on port %s. Open up http://localhost:%s/ in your browser.', dbPort, dbPort);
+              }
+              console.log('Fog-Controller has started at pid: ' + pid);
+              clearInterval(refreshIntervalId);
+            }
+          }, 1000);
+        }else{
+          console.log("fog-controller already running. PID: " + result);
+        }
+      });
       break;
 
     case 'stop':
@@ -194,30 +212,31 @@ function main() {
       break;
   }
 }
+
 const displayHelp = function (){
   var helpString = "\tUsage 1: fog-controller [OPTION]\n" + 
                    "\tUsage 2: fog-controller [COMMAND] <Argument>\n" + 
                    "\tUsage 3: fog-controller [COMMAND] <key> <value>\n" + 
                     "\n\n" + 
 
-    "\tCommand          Arguments                                 Meaning\n" + 
-    "\t=======          =========                                 =======\n" + 
-    "\tconfig           -list                                     Displays Configuration information in CLI (config table content)\n" +
-    "\t                 -add <key> <value>                        Set Configurations of fog-controller\n" +
-    "\t                                                           (You can set one of these configurations: port, ssl_key, intermediate_cert, ssl_cert)\n" +
-    "\t                 -remove <key>                             Deletes a Configuration with corresponding Key\n" +
-    "\n\tcomsat           -list                                     List down all ComSat(s)\n" +
-    "\t                 -add <name> <domain> <publicIP>           Creates a new ComSat\n" +
-    "\t                 -remove <ID>                              Deletes a ComSat with corresponding ID\n" +
-    "\n\thelp                                                       Shows this message\n" + 
-    "\n\tstart                                                      Starts fog-controller\n"+
-    "\n\tstatus                                                     Shows status of fog-controller\n" +     
-    "\n\tstop                                                       Stops fog-controller\n" +     
-    "\n\tuser             -list                                     List down all users\n" +
-    "\t                 -add <email> <firstName> <lastName>       Creates a new user\n" +
-    "\t                 -remove <email>                           Deletes a user with corresponding email\n" +
-    "\t                 -generateToken <email>                    Resets User Access Token of corresponding email\n" +
-    "\n\tversion                                                    Displays Version and License\n"+
+    "\tCommand          Arguments                                         Meaning\n" + 
+    "\t=======          =========                                         =======\n" + 
+    "\tconfig           -list                                             Displays Configuration information in CLI (config table content)\n" +
+    "\t                 -add <key> <value>                                Set Configurations of fog-controller\n" +
+    "\t                                                                   (You can set one of these configurations: port, ssl_key, intermediate_cert, ssl_cert)\n" +
+    "\t                 -remove <key>                                     Deletes a Configuration with corresponding Key\n" +
+    "\n\tcomsat           -list                                             List down all ComSat(s)\n" +
+    "\t                 -add <name> <domain> <publicIP>                   Creates a new ComSat\n" +
+    "\t                 -remove <ID>                                      Deletes a ComSat with corresponding ID\n" +
+    "\n\thelp                                                               Shows this message\n" + 
+    "\n\tstart                                                              Starts fog-controller\n"+
+    "\n\tstatus                                                             Shows status of fog-controller\n" +     
+    "\n\tstop                                                               Stops fog-controller\n" +     
+    "\n\tuser             -list                                             List down all users\n" +
+    "\t                 -add <email> <firstName> <lastName> <password>    Creates a new user\n" +
+    "\t                 -remove <email>                                   Deletes a user with corresponding email\n" +
+    "\t                 -generateToken <email>                            Resets User Access Token of corresponding email\n" +
+    "\n\tversion                                                            Displays Version and License\n"+
     "\n\n" + 
     "\tReport bugs to: bugs@iotracks.com\n" + 
     "\tioFog home page: http://iofog.com\n" +

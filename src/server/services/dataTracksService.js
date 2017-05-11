@@ -63,9 +63,17 @@ const getTracksByUserId = function(props, params, callback) {
 const updateDataTrackById = function(props, params, callback) {
   var trackId = AppUtils.getProperty(params, props.trackId);
 
- DataTracksManager
+  DataTracksManager
     .updateById(trackId, props.updatedObj)
     .then(AppUtils.onUpdate.bind(null, params, 'Unable to update DataTrack', callback));
+}
+
+const updateDataTrackByUserId = function(props, params, callback) {
+  var userId = AppUtils.getProperty(params, props.userId);
+
+  DataTracksManager
+    .updateByUserId(userId, props.updatedObj)
+    .then(AppUtils.onUpdateOptional.bind(null, params, callback));
 }
 
 export default {
@@ -76,5 +84,6 @@ export default {
   getTrackById: getTrackById,
   getDataTrackByInstanceId: getDataTrackByInstanceId,
   getTracksByUserId: getTracksByUserId,
-  updateDataTrackById: updateDataTrackById
+  updateDataTrackById: updateDataTrackById,
+  updateDataTrackByUserId: updateDataTrackByUserId
 };

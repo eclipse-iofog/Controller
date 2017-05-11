@@ -660,19 +660,6 @@ const elementInstancePortCreateEndPoint = function(req, res) {
     networkElementProps = {
       networkElementId: 'fogType.networkElementKey',
       setProperty: 'networkElement'
-    },
-
-    networkElementInstanceProps = {
-      networkElement: 'networkElement',
-      fogInstanceId: 'fogInstance.uuid',
-      satellitePort: 'satellitePort.port1',
-      satelliteDomain: 'satellite.domain',
-      trackId: null,
-      userId: 'user.id',
-      networkName: null,
-      networkPort: 0,
-      isPublic: true,
-      setProperty: 'networkElementInstance'
     };
 
   params.bodyParams = req.body;
@@ -690,7 +677,7 @@ const elementInstancePortCreateEndPoint = function(req, res) {
       ComsatService.openPortOnRadomComsat,
       createSatellitePort,
       async.apply(ElementService.getNetworkElement, networkElementProps),
-      async.apply(ElementInstanceService.createNetworkElementInstance, networkElementInstanceProps),
+      createNetworkElementInstance,
       async.apply(ChangeTrackingService.updateChangeTracking, changeTrackingCLProps),
       async.apply(NetworkPairingService.createNetworkPairing, networkPairingProps),
       getOutputDetails
@@ -708,11 +695,28 @@ const elementInstancePortCreateEndPoint = function(req, res) {
   }
 
   async.waterfall(waterfallMethods, function(err, result) {
-    var errMsg = 'Internal error: There was a problem trying to delete the Comsat Pipe.' + result;
 
-    AppUtils.sendResponse(res, err, 'port', params.output, errMsg);
+    AppUtils.sendResponse(res, err, 'port', params.output, result);
   });
 };
+
+const createNetworkElementInstance = function (params, callback){
+  var networkElementInstanceProps = {
+      networkElement: 'networkElement',
+      fogInstanceId: 'fogInstance.uuid',
+      satellitePort: 'satellitePort.port1',
+      satelliteDomain: 'satellite.domain',
+      trackId: null,
+      userId: 'user.id',
+      networkName: 'Network for Element '+ params.elementInstance.uuid,
+      networkPort: 0,
+      isPublic: true,
+      setProperty: 'networkElementInstance'
+    };
+
+  ElementInstanceService.createNetworkElementInstance(networkElementInstanceProps, params, callback);
+}
+
 
 /**** Element Instance Port Delete EndPoint (Post: '/api/v2/authoring/element/instance/port/delete') ****/
 const elementInstancePortDeleteEndPoint = function(req, res) {
@@ -793,9 +797,9 @@ const elementInstancePortDeleteEndPoint = function(req, res) {
       updateElemInstance,
       async.apply(ElementInstanceService.getElementInstance, readElementInstanceProps),
       async.apply(FogService.getFogInstance, fogProps),
+      async.apply(NetworkPairingService.getNetworkPairing, getNetworkPairingProps),
       async.apply(ChangeTrackingService.updateChangeTracking, changeTrackingProps),
       async.apply(ElementInstancePortService.deleteElementInstancePortById, delElementInstancePortProps),
-      async.apply(NetworkPairingService.getNetworkPairing, getNetworkPairingProps),
       async.apply(SatellitePortService.getSatellitePort, satellitePortProps),
       async.apply(SatelliteService.getSatelliteById, satelliteProps),
       ComsatService.closePortOnComsat,
@@ -817,9 +821,8 @@ const elementInstancePortDeleteEndPoint = function(req, res) {
   }
 
   async.waterfall(waterfallMethods, function(err, result) {
-    var errMsg = 'Internal error: There was a problem trying to delete the ComSat Pipe.' + result;
-
-    AppUtils.sendResponse(res, err, 'portId', params.bodyParams.portId, errMsg);
+  
+    AppUtils.sendResponse(res, err, 'portId', params.bodyParams.portId, result);
   });
 };
 
