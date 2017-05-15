@@ -155,6 +155,7 @@ const initApp = function() {
   app.post('/api/v2/authoring/element/module/update', elementController.updateElementForUserEndPoint);
   app.get('/api/v2/authoring/element/module/delete/moduleid/:moduleId', elementController.deleteElementForUserEndPoint);
   app.get('/api/v2/authoring/element/module/details/moduleid/:moduleId', elementController.getElementDetailsEndPoint);
+  app.post('/api/v2/authoring/fabric/instance/bluebox/add', fogController.addBlueboxEndpoint);
 
   //generic error handler
   app.use((err, req, res, next) => {

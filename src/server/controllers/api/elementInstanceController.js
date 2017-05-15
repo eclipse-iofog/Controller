@@ -453,6 +453,11 @@ const elementInstanceComsatPipeCreateEndPoint = function(req, res) {
     },
 
     elementInstanceProps = {
+      elementInstanceId: 'bodyParams.elementId',
+      setProperty: 'elementInstance'
+    },
+
+    elementInstancePortProps = {
       portId: 'bodyParams.portId',
       setProperty: 'elementInstancePort'
     },
@@ -493,8 +498,9 @@ const elementInstanceComsatPipeCreateEndPoint = function(req, res) {
       fogInstanceId: 'fogInstance.uuid',
       satellitePort: 'satellitePort.port1',
       satelliteDomain: 'satellite.domain',
+      passcode: 'comsatPort.passcode1',
       trackId: null,
-      userId: 'userId',
+      userId: 'user.id',
       networkName: null,
       networkPort: 0,
       isPublic: true,
@@ -510,18 +516,20 @@ const elementInstanceComsatPipeCreateEndPoint = function(req, res) {
   async.waterfall([
     async.apply(UserService.getUser, userProps, params),
     async.apply(FogService.getFogInstance, fogProps),
+    async.apply(ElementInstanceService.getElementInstance, elementInstanceProps),
     async.apply(FogTypeService.getFogTypeDetail, fogTypeProps),
-    async.apply(ElementInstancePortService.getElementInstancePort, elementInstanceProps),
+    async.apply(ElementInstancePortService.getElementInstancePort, elementInstancePortProps),
     ComsatService.openPortOnRadomComsat,
     createSatellitePort,
     async.apply(ElementService.getNetworkElement, networkElementProps),
-    async.apply(ElementInstanceService.createNetworkElementInstance, networkElementInstanceProps),
+    createNetworkElementInstance,
     async.apply(ChangeTrackingService.updateChangeTracking, changeTrackingCLProps),
     async.apply(NetworkPairingService.createNetworkPairing, networkPairingProps)
   ], function(err, result) {
     var errMsg = 'Internal error: There was a problem trying to create the Comsat Pipe.' + result;
+    var outputObj;
      if (params.satellite){
-      var outputObj = {
+      outputObj = {
         'accessUrl': 'https://' + params.satellite.domain + ':' + params.satellitePort.port2,
         'networkPairingId': params.networkPairingObj.id
       };
@@ -711,6 +719,7 @@ const createNetworkElementInstance = function (params, callback){
       networkName: 'Network for Element '+ params.elementInstance.uuid,
       networkPort: 0,
       isPublic: true,
+      passcode: 'comsatPort.passcode1',
       setProperty: 'networkElementInstance'
     };
 

@@ -147,35 +147,9 @@ const instanceRouteCreateEndPoint = function (req, res){
       setProperty: 'publishingElementInstance'
     },
 
-    pubNetworkInstanceProps = {
-      networkElement: 'pubNetworkElement',
-      fogInstanceId: 'publishingFogInstance.uuid',
-      satellitePort: 'satellitePort.port1',
-      satelliteDomain: 'satellite.domain',
-      trackId: 'bodyParams.publishingTrackId',
-      userId: 'userId',
-      networkName: null,
-      networkPort: 0,
-      isPublic: false,
-      setProperty: 'pubNetworkElementInstance'
-    },
-
     destElementProps = {
       elementInstanceId: 'bodyParams.destinationElementId',
       setProperty: 'destinationElementInstance'
-    },
-
-    destNetworkInstanceProps = {
-      networkElement: 'destNetworkElement',
-      fogInstanceId: 'destinationFogInstance.uuid',
-      satellitePort: 'satellitePort.port1',
-      satelliteDomain: 'satellite.domain',
-      trackId: 'bodyParams.destinationTrackId',
-      userId: 'userId',
-      networkName: null,
-      networkPort: 0,
-      isPublic: false,
-      setProperty: 'destNetworkElementInstance'
     },
 
     pubChangeTrackingProps = {
@@ -222,7 +196,18 @@ const instanceRouteCreateEndPoint = function (req, res){
       trackId: 'bodyParams.destinationTrackId',
       setProperty: 'destinationTrackData',
       errorMsg: 'destinationTrackId is either missing or invalid.'
+    },
+    pubElementInstanceTrackProps ={
+      trackId: 'publishingElementInstance.trackId',
+      setProperty: 'pubElementInstanceTrack',
+      errorMsg: 'publishingElementId has invalid trackId.'
+    },
+    destElementInstanceTrackProps = {
+      trackId: 'destinationElementInstance.trackId',
+      setProperty: 'destElementInstanceTrack',
+      errorMsg: 'destinationElementId has invalid trackId.'
     };
+
 
   params.bodyParams = req.body;
   logger.info("Parameters:" + JSON.stringify(params.bodyParams));
@@ -232,8 +217,14 @@ const instanceRouteCreateEndPoint = function (req, res){
       async.apply(UserService.getUser, userProps, params),
       async.apply(FogService.getFogInstance, pubFogProps),
       async.apply(FogService.getFogInstance, destFogProps),
+      async.apply(ElementInstanceService.getElementInstance, pubElementProps),
+      async.apply(ElementInstanceService.getElementInstance, destElementProps),
+      async.apply(DataTracksService.getDataTrackById, pubElementInstanceTrackProps),
+      async.apply(DataTracksService.getDataTrackById, destElementInstanceTrackProps),
       async.apply(RoutingService.createRoute, routingProps),
       async.apply(ElementInstanceService.getElementInstanceRouteDetails, destElementProps),
+      async.apply(ElementInstanceService.updateElemInstance, updateRebuildPubProps),
+      async.apply(ElementInstanceService.updateElemInstance, updateRebuildDestProps),
       async.apply(ChangeTrackingService.updateChangeTracking, pubChangeTrackingProps),
       getRouteDetails
     ];
@@ -253,14 +244,17 @@ const instanceRouteCreateEndPoint = function (req, res){
       async.apply(DataTracksService.getDataTrackById, pubTrackProps),
       async.apply(DataTracksService.getDataTrackById, destTrackProps),
 
+      async.apply(DataTracksService.getDataTrackById, pubElementInstanceTrackProps),
+      async.apply(DataTracksService.getDataTrackById, destElementInstanceTrackProps),
+
       ComsatService.openPortOnRadomComsat,
       createSatellitePort,
 
       async.apply(ElementService.getNetworkElement, pubNetworkElementProps),
-      async.apply(ElementInstanceService.createNetworkElementInstance, pubNetworkInstanceProps),
+      createPubNetworkElementInstance,
 
       async.apply(ElementService.getNetworkElement, destNetworkElementProps),
-      async.apply(ElementInstanceService.createNetworkElementInstance, destNetworkInstanceProps),
+      createDestNetworkElementInstance,
 
       async.apply(NetworkPairingService.createNetworkPairing, networkPairingProps),
 
@@ -285,6 +279,44 @@ const instanceRouteCreateEndPoint = function (req, res){
     AppUtils.sendResponse(res, err, 'route', params.output, errMsg);
   });
 };
+
+const createPubNetworkElementInstance = function (params, callback){
+  var networkElementInstanceProps = {
+      networkElement: 'pubNetworkElement',
+      fogInstanceId: 'publishingFogInstance.uuid',
+      satellitePort: 'satellitePort.port1',
+      satelliteDomain: 'satellite.domain',
+      passcode: 'comsatPort.passcode1',
+      trackId: 'bodyParams.publishingTrackId',
+      userId: 'user.id',
+      networkName: 'Network for Element '+ params.bodyParams.publishingElementId,
+      networkPort: 0,
+      isPublic: false,
+      setProperty: 'pubNetworkElementInstance'
+    };
+
+  ElementInstanceService.createNetworkElementInstance(networkElementInstanceProps, params, callback);
+}
+
+const createDestNetworkElementInstance = function (params, callback){
+  var networkElementInstanceProps = {
+      networkElement: 'destNetworkElement',
+      fogInstanceId: 'destinationFogInstance.uuid',
+      satellitePort: 'satellitePort.port1',
+      satelliteDomain: 'satellite.domain',
+      passcode: 'comsatPort.passcode2',
+      trackId: 'bodyParams.destinationTrackId',
+      userId: 'user.id',
+      networkName: 'Network for Element '+ params.bodyParams.destinationElementId,
+      networkPort: 0,
+      isPublic: false,
+      setProperty: 'destNetworkElementInstance'
+    };
+
+  ElementInstanceService.createNetworkElementInstance(networkElementInstanceProps, params, callback);
+}
+
+
 
 const getRouteDetails = function(params, callback) {
   try{

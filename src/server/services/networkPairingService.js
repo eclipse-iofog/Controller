@@ -19,7 +19,6 @@ const concatNetwotkElement2AndNormalElement = function(params, callback) {
 }
 
 const createNetworkPairing = function(props, params, callback) {
-
   var networkPairingObj = {
     instanceId1: AppUtils.getProperty(params, props.instanceId1),
     instanceId2: AppUtils.getProperty(params, props.instanceId2),

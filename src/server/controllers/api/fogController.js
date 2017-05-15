@@ -15,10 +15,12 @@ import ElementService from '../../services/elementService'
 import ElementInstanceService from '../../services/elementInstanceService';
 import ElementInstancePortService from '../../services/elementInstancePortService';
 import FogAccessTokenService from '../../services/fogAccessTokenService';
+import FogControllerService from '../../services/fogControllerService';
 import FogProvisionKeyService from '../../services/fogProvisionKeyService';
 import FogService from '../../services/fogService';
 import FogTypeService from '../../services/fogTypeService';
 import FogUserService from '../../services/fogUserService';
+import GeneratedIdsService from '../../services/generatedIdsService';
 import NetworkPairingService from '../../services/networkPairingService';
 import SatelliteService from '../../services/satelliteService';
 import SatellitePortService from '../../services/satellitePortService';
@@ -30,6 +32,39 @@ import logger from '../../utils/winstonLogs';
 
 
 /********************************************* EndPoints ******************************************************/
+/****************** Add Bluebox EndPoint (Post: /api/v2/authoring/fabric/instance/bluebox/add) ***************/
+const addBlueboxEndpoint = function (req, res){
+	logger.info("Endpoint hit: "+ req.originalUrl);
+
+	var params = {},
+		userProps = {
+			userId : 'bodyParams.t',
+			setProperty: 'user'
+		},
+		 generatedIdsProps = {
+		 	bbid: 'bodyParams.token',
+		 	setProperty:'tokenData'
+		},
+		fogControllerProps = {
+			uuid: 'tokenData.controllerId',
+			setProperty: 'fogControllerData'
+		};
+		
+	params.bodyParams = req.body;	
+	logger.info("Parameters:" + JSON.stringify(params.bodyParams));
+
+	async.waterfall([
+		async.apply(UserService.getUser, userProps, params),
+		async.apply(GeneratedIdsService.findGeneratedIdsByBBID, generatedIdsProps),
+		async.apply(FogControllerService.findFogControllersByUUID, fogControllerProps),
+
+		// async.apply(FogService.getFogInstance, instanceProps),
+	],
+	function(err, result) {
+		AppUtils.sendResponse(res, err, 'test', params, result);
+	});
+}
+
 
 /**************************** Fog-Controller Status EndPoint (Get: /api/v2/status) ***************************/
 const getFogControllerStatusEndPoint = function(req, res){
@@ -781,6 +816,7 @@ const createBluetoothElementInstance = function (params, callback){
 }
 
 export default {
+  addBlueboxEndpoint: addBlueboxEndpoint,
   getFogDetailsEndpoint: getFogDetailsEndpoint,
   getFogControllerStatusEndPoint: getFogControllerStatusEndPoint,
   fogInstancesListEndPoint: fogInstancesListEndPoint,

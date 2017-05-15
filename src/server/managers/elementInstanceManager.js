@@ -148,13 +148,13 @@ class ElementInstanceManager extends BaseManager {
 		return ElementInstance.create(elementInstance);
 	}
 
-	createNetworkInstance(element, userId, fogInstanceId, satelliteDomain, satellitePort1, name, localPort, isPublic, trackId) {
+	createNetworkInstance(element, userId, fogInstanceId, satelliteDomain, satellitePort1, passcode, name, localPort, isPublic, trackId) {
 		var netConfig = {
 				'mode': isPublic ? 'public' : 'private',
 				'host': satelliteDomain,
 				'port': satellitePort1,
 				'connectioncount': 60,
-				'passcode': AppUtils.generateRandomString(32),
+				'passcode': passcode,
 				'localhost': 'iofog',
 				'localport': localPort,
 				'heartbeatfrequency': 20000,
@@ -177,6 +177,7 @@ class ElementInstanceManager extends BaseManager {
 				rebuild: false,
 				rootHostAccess: false,
 				logSize: 50,
+				volumeMappings: '{"volumemappings": []}',
 				iofog_uuid: fogInstanceId
 			};
 

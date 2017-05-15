@@ -156,6 +156,7 @@ const createNetworkElementInstance = function(props, params, callback) {
     satellitePort = AppUtils.getProperty(params, props.satellitePort),
     trackId = props.trackId ? AppUtils.getProperty(params, props.trackId) : 0,
     satelliteDomain = AppUtils.getProperty(params, props.satelliteDomain),
+    passcode = AppUtils.getProperty(params, props.passcode),
     userId = AppUtils.getProperty(params, props.userId);
 
   if (!props.networkName) {
@@ -163,7 +164,7 @@ const createNetworkElementInstance = function(props, params, callback) {
   }
 
   ElementInstanceManager
-    .createNetworkInstance(networkElement, userId, fogInstanceId, satelliteDomain, satellitePort, props.networkName, props.networkPort, props.isPublic, trackId)
+    .createNetworkInstance(networkElement, userId, fogInstanceId, satelliteDomain, satellitePort, passcode, props.networkName, props.networkPort, props.isPublic, trackId)
     .then(AppUtils.onCreate.bind(null, params, props.setProperty, 'Unable to create Network Element Instance', callback));
 }
 
