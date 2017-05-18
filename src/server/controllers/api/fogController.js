@@ -41,13 +41,21 @@ const addBlueboxEndpoint = function (req, res){
 			userId : 'bodyParams.t',
 			setProperty: 'user'
 		},
-		 generatedIdsProps = {
+		generatedIdsProps = {
 		 	bbid: 'bodyParams.token',
 		 	setProperty:'tokenData'
 		},
 		fogControllerProps = {
 			uuid: 'tokenData.controllerId',
 			setProperty: 'fogControllerData'
+		},
+		instanceProps = {
+			fogId: 'tokenData.iofog_uuid',
+			setProperty: 'fogData'
+		},
+		getTrackingProps = {
+			instanceId: 'tokenData.iofog_uuid',
+			setProperty: 'changeTrackingData'
 		};
 		
 	params.bodyParams = req.body;	
@@ -57,14 +65,94 @@ const addBlueboxEndpoint = function (req, res){
 		async.apply(UserService.getUser, userProps, params),
 		async.apply(GeneratedIdsService.findGeneratedIdsByBBID, generatedIdsProps),
 		async.apply(FogControllerService.findFogControllersByUUID, fogControllerProps),
+		validateFogInstance,
+		async.apply(FogService.getFogInstanceOptional, instanceProps),
+		createFogInstanceWithUUID,
+		updateGeneratedIdsByBBID,
+		async.apply(ChangeTrackingService.getChangeTrackingByInstanceId, getTrackingProps),
+		createChangeTracking,
 
-		// async.apply(FogService.getFogInstance, instanceProps),
 	],
 	function(err, result) {
 		AppUtils.sendResponse(res, err, 'test', params, result);
 	});
 }
 
+const createChangeTracking = function(params, callback){
+	if(!params.changeTrackingData){
+		var changeTrackingProps = {
+      		fogInstanceId: 'tokenData.iofog_uuid',
+      		setProperty: 'newChangeTracking'
+    	};
+
+		ChangeTrackingService.createFogChangeTracking(changeTrackingProps, params, callback);
+	}else{
+		callback(null, params);
+	}
+}
+
+const createFogInstanceWithUUID = function(params, callback){
+	if (!params.fogData){
+		var fogProps = {
+			fogObj :{
+    			uuid: params.tokenData.iofog_uuid,
+    			name: 'My BlueBox',
+    			location: '',
+    			latitude: '',
+    			longitude: '',
+    			description: '',
+    			token: '',
+    			typeKey: '2',
+    			daemonstatus: 'Not provisioned',
+    			daemonlaststart: 0,
+    			lastactive: 0,
+    			elementstatus: 0,
+    			memoryviolation: 'no',
+    			diskviolation: 'no',
+    			cpuviolation: 'no',
+    			repositorycount: 0,
+	    		repositorystatus: '',
+    			systemtime: 0,
+    			laststatustime: 0,
+    			elementmessagecounts: '',
+	    		messagespeed: 0,
+    			lastcommandtime: 0,
+    			version: ''
+			},
+			setProperty: 'blueBoxFogIntance'
+		};
+		FogService.createFogInstanceWithUUID(fogProps, params, callback);
+	}else{
+		callback('Error', 'Registration failed: Unable to create fog instance.')
+	}
+}
+
+const validateFogInstance = function(params, callback){ 
+	if(params.tokenData.iofog_uuid){
+		if(params.tokenData.iofog_uuid.length == 32){
+			callback(null, params);
+		}else{
+			callback('Error', 'Registration failed: Unable to create fog instance.')
+		}
+	}else{
+		callback('Error', 'Registration failed: Unable to create fog instance.')
+	}
+}
+
+
+const updateGeneratedIdsByBBID = function(params, callback){ 
+	var updateProps = {
+		updatedObj: {
+			email: params.user.email,
+			firstName: params.user.firstName,
+			lastName: params.user.lastName,
+			activated: 1
+		},
+		bbid: 'bodyParams.token'
+	};	
+	
+	GeneratedIdsService.updateGeneratedIdsByBBID(updateProps, params, callback);
+}
 
 /**************************** Fog-Controller Status EndPoint (Get: /api/v2/status) ***************************/
 const getFogControllerStatusEndPoint = function(req, res){
@@ -78,7 +166,8 @@ const getFogControllerStatusEndPoint = function(req, res){
 	});
 };
 
-/******** Fog Instances List By UserID EndPoint (Get: /api/v2/authoring/integrator/instances/list/:t) *******/
+/******** Fog Instances List By UserID EndPoint (Get: /api/v2/authoring/integrator/instances/list/:t 
+												 Post: /api/v2/authoring/fabric/instances/list 	) *******/
 const fogInstancesListEndPoint = function(req, res){
   logger.info("Endpoint hit: "+ req.originalUrl);
 	var params = {},
@@ -94,6 +183,8 @@ const fogInstancesListEndPoint = function(req, res){
 		};
 
 	params.bodyParams = req.params;
+	params.bodyParams = req.body;
+
 	logger.info("Parameters:" + JSON.stringify(params.bodyParams));
 
 	async.waterfall([
@@ -154,30 +245,30 @@ const fogInstanceCreateEndPoint = function(req, res){
 };
 
 /******************** Get Fog List EndPoint (Get: /api/v2/instance/getfabriclist) ******************/
-const getFogListEndPoint = function(req, res){
-  logger.info("Endpoint hit: "+ req.originalUrl);
-	var params = {},
-		userProps = {
-      		userId: 'bodyParams.t',
-      		setProperty: 'user'
-    	},
-    	fogListProps = {
-      		setProperty: 'fogList'
-    	};
+// const getFogListEndPoint = function(req, res){
+//   logger.info("Endpoint hit: "+ req.originalUrl);
+// 	var params = {},
+// 		userProps = {
+//       		userId: 'bodyParams.t',
+//       		setProperty: 'user'
+//     	},
+//     	fogListProps = {
+//       		setProperty: 'fogList'
+//     	};
 
-	params.bodyParams = req.params;
-	params.bodyParams.t = req.query.t;
-	logger.info("Parameters:" + JSON.stringify(params.bodyParams));
+// 	params.bodyParams = req.params;
+// 	params.bodyParams.t = req.query.t;
+// 	logger.info("Parameters:" + JSON.stringify(params.bodyParams));
 
-	async.waterfall([
-		async.apply(UserService.getUser, userProps, params),
-		async.apply(FogService.getFogList, fogListProps)
-	],
-	function(err, result) {
-		var errMsg = 'Internal error: ' + result;
-		AppUtils.sendResponse(res, err, 'fogList', params.fogList, errMsg);
-	});
-};
+// 	async.waterfall([
+// 		async.apply(UserService.getUser, userProps, params),
+// 		async.apply(FogService.getFogList, fogListProps)
+// 	],
+// 	function(err, result) {
+// 		var errMsg = 'Internal error: ' + result;
+// 		AppUtils.sendResponse(res, err, 'fogList', params.fogList, errMsg);
+// 	});
+// };
 
 /******************** Get Fog Types EndPoint (Get: /api/v2/authoring/fabric/types/list) ******************/
 const getFogTypesEndPoint = function(req, res){
@@ -492,8 +583,8 @@ const streamViewerForFog = function(params, callback){
 	}
 }
 const createStreamViewerConsole = function(params, callback){
-  var createConsoleProps = {
-      consoleObj : {
+  var createStreamProps = {
+      streamViewerObj : {
         version: 1,
         apiBaseUrl: 'https://' + params.streamViewerSatellite.domain + ':' + params.streamViewerSatellitePort.port2,
         accessToken: JSON.parse(params.streamViewerElementInstnace.config).accesstoken,
@@ -501,7 +592,7 @@ const createStreamViewerConsole = function(params, callback){
         iofog_uuid: params.fogInstance.uuid
       }
     };
-  ConsoleService.createConsole(createConsoleProps, params, callback)
+  StreamViewerService.createStreamViewer(createStreamProps, params, callback);
 }
 
 const createStreamViewerNetworkElementInstance = function(params,callback){
@@ -653,7 +744,18 @@ const debugConsoleForFog = function(params, callback){
 			var elementInstanceProps = {
 				instanceId: 'bodyParams.instanceId',
 			};
-			ElementInstanceService.deleteDebugConsoleInstances(elementInstanceProps, params, callback);
+
+			async.waterfall([
+				async.apply(ElementInstanceService.deleteDebugConsoleInstances, elementInstanceProps, params),
+				async.apply(ConsoleService.deleteConsoleByFogInstanceId, elementInstanceProps)
+			],
+			function(err, result) {
+				if (!err){
+					callback(null, params);
+				}else{
+					callback('Error', result);
+				}
+			});
 		}
 	}
 	else{
@@ -774,7 +876,7 @@ const bluetoothElementForFog = function(params, callback){
 }
 
 const updateChangeTracking = function(params, callback){
-	if(params.isBluetooth == 1 || params.isDebug == 1){
+	if(params.isBluetooth == 1 || params.isDebug == 1 || params.isViewer == 1){
 		var changeTrackingProps = {
         	fogInstanceId: 'bodyParams.instanceId',
         	changeObject: {
@@ -821,7 +923,7 @@ export default {
   getFogControllerStatusEndPoint: getFogControllerStatusEndPoint,
   fogInstancesListEndPoint: fogInstancesListEndPoint,
   fogInstanceCreateEndPoint: fogInstanceCreateEndPoint,
-  getFogListEndPoint: getFogListEndPoint,
+ // getFogListEndPoint: getFogListEndPoint,
   getFogTypesEndPoint: getFogTypesEndPoint,
   fogInstanceDeleteEndPoint: fogInstanceDeleteEndPoint,
   integratorInstanceDeleteEndPoint: integratorInstanceDeleteEndPoint,

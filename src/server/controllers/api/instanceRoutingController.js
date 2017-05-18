@@ -242,7 +242,7 @@ const instanceRouteCreateEndPoint = function (req, res){
       async.apply(ElementInstanceService.getElementInstance, destElementProps),
 
       async.apply(DataTracksService.getDataTrackById, pubTrackProps),
-      async.apply(DataTracksService.getDataTrackById, destTrackProps),
+      //async.apply(DataTracksService.getDataTrackById, destTrackProps),
 
       async.apply(DataTracksService.getDataTrackById, pubElementInstanceTrackProps),
       async.apply(DataTracksService.getDataTrackById, destElementInstanceTrackProps),
@@ -305,7 +305,7 @@ const createDestNetworkElementInstance = function (params, callback){
       satellitePort: 'satellitePort.port1',
       satelliteDomain: 'satellite.domain',
       passcode: 'comsatPort.passcode2',
-      trackId: 'bodyParams.destinationTrackId',
+      trackId: 'bodyParams.publishingTrackId',
       userId: 'user.id',
       networkName: 'Network for Element '+ params.bodyParams.destinationElementId,
       networkPort: 0,
@@ -316,30 +316,6 @@ const createDestNetworkElementInstance = function (params, callback){
   ElementInstanceService.createNetworkElementInstance(networkElementInstanceProps, params, callback);
 }
 
-
-
-const getRouteDetails = function(params, callback) {
-  try{
-  params.output = {
-    elementId: params.bodyParams.destinationElementId,
-    elementName: params.destinationElementInstance[0].elementInstanceName,
-    elementTypeName: params.destinationElementInstance[0].elementName,
-    trackId: params.destinationElementInstance[0].trackId,
-    trackName: params.destinationElementInstance[0].trackName,
-    instanceId: params.destinationFogInstance.uuid,
-    instanceName: params.destinationFogInstance.name
-  };
-
-  if (!params.output){
-    params.output = null;
-  }
-
-  }catch(e){
-    logger.error(e);
-  }
-
-  callback(null, params);
-}
 
 /********* Instance Route Delete EndPoint (Post: /api/v2/authoring/element/instance/route/delete) **********/
 const instanceRouteDeleteEndPoint = function(req, res){
@@ -573,6 +549,37 @@ const createSatellitePort = function(params, callback){
     SatellitePortService.createSatellitePort(satellitePortProps, params, callback);
 }
 
+
+const getRouteDetails = function(params, callback) {
+  params.output = {
+    elementId: params.bodyParams.destinationElementId,
+    elementName: params.destinationElementInstance[0].elementInstanceName,
+    elementTypeName: params.destinationElementInstance[0].elementName,
+    trackId: params.destinationElementInstance[0].trackId,
+    trackName: params.destinationElementInstance[0].trackName,
+    instanceId: params.destinationFogInstance.uuid,
+    instanceName: params.destinationFogInstance.name
+  };
+
+ if(params.bodyParams.publishingInstanceId != params.bodyParams.destinationInstanceId){
+    logger.warn('******A');
+  }else if(params.bodyParams.publishingTrackId != params.bodyParams.destinationTrackId){
+    params.output.instanceId = '';
+    params.output.instanceName = '';
+    logger.warn('******B');
+  }else{
+    params.output.instanceId = '';
+    params.output.instanceName = '';
+    params.output.trackId = '';
+    params.output.trackName = '';
+    logger.warn('******C');
+  }
+  logger.warn('******D');
+
+
+  callback(null, params);
+}
+
 const getOutputDetails = function(params, callback) {
   params.output = {
     elementId: params.bodyParams.destinationElementId,
@@ -583,6 +590,21 @@ const getOutputDetails = function(params, callback) {
     instanceId: params.destinationFogInstance.uuid,
     instanceName: params.destinationFogInstance.name
   };
+
+  if(params.bodyParams.publishingInstanceId != params.bodyParams.destinationInstanceId){
+    logger.warn('******A');
+  }else if(params.bodyParams.publishingTrackId != params.bodyParams.destinationTrackId){
+    params.output.instanceId = '';
+    params.output.instanceName = '';
+    logger.warn('******B');
+  }else{
+    params.output.instanceId = '';
+    params.output.instanceName = '';
+    params.output.trackId = '';
+    params.output.trackName = '';
+    logger.warn('******C');
+  }
+  logger.warn('******D');
 
   callback(null, params);
 }

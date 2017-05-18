@@ -102,6 +102,7 @@ import logger from '../../utils/winstonLogs';
 
   async.waterfall([
     async.apply(UserService.getUser, userProps, params),
+    checkFogTypes,
     createElement,
     createElementFogTypes
 
@@ -135,6 +136,7 @@ import logger from '../../utils/winstonLogs';
   async.waterfall([
     async.apply(UserService.getUser, userProps, params),
     async.apply(ElementService.getNetworkElement, elementProps),
+    checkFogTypes,
     updateElement,
     async.apply(ElementFogTypeService.deleteElementFogType, fogTypeProps),
     createElementFogTypes,
@@ -143,6 +145,61 @@ import logger from '../../utils/winstonLogs';
     AppUtils.sendResponse(res, err, 'element', params.bodyParams.id, result);
   })
 };
+
+const checkFogTypes = function(params, callback) {
+ var fogTypeIds = [];
+  
+  if(params.bodyParams.fabricTypeIds){
+    fogTypeIds = params.bodyParams.fabricTypeIds.split(',')
+  }
+  params.fogTypeIds = fogTypeIds;
+  if (fogTypeIds.length) {
+    async.eachOfSeries(params.fogTypeIds, function (value, key, cb) {
+      var fogTypeProps = {
+        fogTypeId: value
+      };
+      
+      FogTypeService.getFogTypeDetails(fogTypeProps, params, cb);
+
+    }, function (err) {
+      if(!err){
+        callback(null, params);
+      }else{
+        callback('Error', 'Error: Unable to find fogType details');
+      }
+    });
+  }else{
+    callback(null, params);
+  }
+}
+
+const createElementFogTypes = function(params, callback) {
+  var fogTypeIds = [];
+  
+  if(params.bodyParams.fabricTypeIds){
+    fogTypeIds = params.bodyParams.fabricTypeIds.split(',')
+  }
+  if (fogTypeIds.length) {
+    async.eachOfSeries(fogTypeIds, function (value, key, cb) {
+      var elementFogTypeProps = {
+        elementType: {
+          element_id: params.element.id,
+          iofog_type_id: value
+        }
+      };
+      
+      ElementFogTypeService.createElementFogType(elementFogTypeProps, params, cb);
+    }, function (err) {
+      if(!err){
+        callback(null, params);
+      }else{
+        callback('Error', err);
+      }
+    });
+  }else{
+    callback(null, params);
+  }
+}
 
 /*************** Update Element For User EndPoint (Post: /api/v2/authoring/element/module/update) ***********************/
  const updateElementForUserEndPoint= function(req, res) {
@@ -332,27 +389,6 @@ const createElement = function(params, callback) {
         setProperty: 'element'
       };
   ElementService.createElement(elementProps, params, callback);
-}
-
-const createElementFogTypes = function(params, callback) {
-  var fogTypeIds = 0;
-
-  if(params.bodyParams.fabricTypeIds){
-    fogTypeIds = params.bodyParams.fabricTypeIds.split(',')
-  }
-  
-  if (fogTypeIds.length) {
-    for (let i = 0; i < fogTypeIds.length; i++) {
-      var elementFogTypeProps = {
-            elementType: {
-              element_id: params.element.id,
-              iofog_type_id: fogTypeIds[i]
-            }
-          };
-      ElementFogTypeService.createElementFogTypes(elementFogTypeProps, params);
-    }
-  }
-  callback(null, params);
 }
 
 const createElementInputType = function(params, callback) {

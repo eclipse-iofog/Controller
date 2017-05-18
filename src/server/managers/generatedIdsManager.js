@@ -13,6 +13,14 @@ class GeneratedIdsManager extends BaseManager {
 			}
 		});
 	}
+
+	updateGeneratedIdsByBBID(bbid, updatedObj){
+		return GeneratedIds.update(updatedObj, {
+			where: {
+				bbid: bbid
+			}
+		});
+	}
 }
 
 const instance = new GeneratedIdsManager();

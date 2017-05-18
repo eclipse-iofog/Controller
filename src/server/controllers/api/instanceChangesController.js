@@ -39,38 +39,42 @@ const getChangeTrackingChangesEndPoint = function(req, res) {
 
 /************************************* Extra Functions **************************************************/
 const processChangeTrackingChanges = function(params, callback) {
-  if(params.bodyParams.TimeStamp.length < 1) {
-    params.bodyParams.TimeStamp = 0;
-  }
-  var changes = {
-        config: false,
-        containerlist: false,
-        containerconfig: false,
-        routing: false,
-        registeries: false
-  };
+  if(params.changeTrackingData){
+    if(params.bodyParams.TimeStamp.length < 1) {
+      params.bodyParams.TimeStamp = 0;
+    }
+    var changes = {
+      config: false,
+      containerlist: false,
+      containerconfig: false,
+      routing: false,
+      registeries: false
+    };
   
-  if(params.changeTrackingData.config > params.bodyParams.TimeStamp) {
-    changes.config = true;
-  }
+    if(params.changeTrackingData.config > params.bodyParams.TimeStamp) {
+      changes.config = true;
+    }
     
-  if(params.changeTrackingData.containerList > params.bodyParams.TimeStamp) {
-    changes.containerlist = true;
-  }
+    if(params.changeTrackingData.containerList > params.bodyParams.TimeStamp) {
+      changes.containerlist = true;
+    }
 
-  if(params.changeTrackingData.containerConfig > params.bodyParams.TimeStamp) {
-    changes.containerconfig = true;
-  }
+    if(params.changeTrackingData.containerConfig > params.bodyParams.TimeStamp) {
+      changes.containerconfig = true;
+    }
     
-  if(params.changeTrackingData.routing > params.bodyParams.TimeStamp) {
-    changes.routing = true;
-  }
+    if(params.changeTrackingData.routing > params.bodyParams.TimeStamp) {
+      changes.routing = true;
+    }
 
-  if (params.changeTrackingData.registeries > params.bodyParams.TimeStamp) {
-    changes.registeries = true;
+    if (params.changeTrackingData.registeries > params.bodyParams.TimeStamp) {
+      changes.registeries = true;
+    }
+    params.changes = changes;
+    callback (null, params);
+  }else{
+    callback('Error', 'Error: Cannot find changeTracking data of current iofog instance.')
   }
-  params.changes = changes;
-  callback (null, params);
 }
 
 const updateFogInstance = function(params, callback){

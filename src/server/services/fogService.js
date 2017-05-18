@@ -26,6 +26,13 @@ const createFogInstance = function(props, params, callback) {
     .then(AppUtils.onCreate.bind(null, params, props.setProperty, 'Unable to create iofog instance', callback));
 }
 
+const createFogInstanceWithUUID = function(props, params, callback) {
+
+  FogManager
+    .createFog(props.fogObj)
+    .then(AppUtils.onCreate.bind(null, params, props.setProperty, 'Unable to create fog instance.', callback));
+}
+
 const deleteFogInstance = function(props, params, callback) {
   var instanceId = AppUtils.getProperty(params, props.instanceId);
 
@@ -91,6 +98,7 @@ const updateFogInstance = function(props, params, callback){
 
 export default {
   createFogInstance: createFogInstance,
+  createFogInstanceWithUUID: createFogInstanceWithUUID,
   deleteFogInstance: deleteFogInstance,
   getFogInstance: getFogInstance,
   getFogInstanceOptional: getFogInstanceOptional,

@@ -3,7 +3,7 @@ const winston = require('winston');
 const path = require('path');
 require('winston-daily-rotate-file');
 const fs = require('fs');
-const logDir = path.join(__dirname, '../../../') + '/logs';
+const logDir = path.join(__dirname, '../../../../') + '/fog-controller-logs';
 
 const tsFormat = () => (new Date()).toLocaleTimeString();
 winston.emitErrs = true;

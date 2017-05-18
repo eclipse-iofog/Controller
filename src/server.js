@@ -89,7 +89,7 @@ const initApp = function() {
   app.get('/api/v2/status', fogController.getFogControllerStatusEndPoint);
   app.post('/api/v2/status', fogController.getFogControllerStatusEndPoint);
   app.get('/api/v2/instance/create/type/:type', fogController.fogInstanceCreateEndPoint);
-  app.get('/api/v2/instance/getfabriclist', fogController.getFogListEndPoint);
+ // app.get('/api/v2/instance/getfabriclist', fogController.getFogListEndPoint);
   app.get('/api/v2/authoring/element/get', elementController.getElementsForPublishingEndPoint);
   app.post('/api/v2/authoring/organization/element/create', elementController.createElementEndPoint);
   app.post('/api/v2/authoring/organization/element/update', elementController.updateElementEndPoint);
@@ -114,7 +114,7 @@ const initApp = function() {
   app.post('/api/v2/authoring/element/instance/port/create', elementInstanceController.elementInstancePortCreateEndPoint);
   app.post('/api/v2/authoring/element/instance/port/delete', elementInstanceController.elementInstancePortDeleteEndPoint);
   app.get('/api/v2/authoring/integrator/instances/list/:t', fogController.fogInstancesListEndPoint); //
-  app.post('/api/v2/authoring/fabric/instances/list/:t', fogController.fogInstancesListEndPoint);//
+  app.post('/api/v2/authoring/fabric/instances/list', fogController.fogInstancesListEndPoint);
   app.post('/api/v2/authoring/integrator/instance/delete', fogController.integratorInstanceDeleteEndPoint);
   app.get('/api/v2/instance/changes/id/:ID/token/:Token/timestamp/:TimeStamp', instanceChangesController.getChangeTrackingChangesEndPoint);
   app.post('/api/v2/instance/changes/id/:ID/token/:Token/timestamp/:TimeStamp', instanceChangesController.getChangeTrackingChangesEndPoint);

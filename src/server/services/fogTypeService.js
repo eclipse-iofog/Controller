@@ -9,6 +9,13 @@ const getFogTypeDetail = function(props, params, callback) {
     .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Error: Unable to find fogType details', callback));
 }
 
+const getFogTypeDetails = function(props, params, callback) {
+
+  FogTypeManager
+    .findFogTypeById(props.fogTypeId)
+    .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Error: Unable to find fogType details', callback));
+}
+
 const getFogTypesList = function(props, params, callback) {
 
   FogTypeManager
@@ -18,5 +25,6 @@ const getFogTypesList = function(props, params, callback) {
 
 export default {
   getFogTypeDetail: getFogTypeDetail,
+  getFogTypeDetails: getFogTypeDetails,
   getFogTypesList: getFogTypesList
 };

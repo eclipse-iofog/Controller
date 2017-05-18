@@ -63,7 +63,7 @@ const updateFogInstance = function(params, callback){
           elementmessagecounts : params.bodyParams.elementMessageCounts, 
           messagespeed : params.bodyParams.messageSpeed,
           lastcommandtime : params.bodyParams.lastCommandTime,
-          //version: params.bodyParams.version || '1.0'
+          version: params.bodyParams.version || '1.0'
         }
       };
     FogService.updateFogInstance(fogInstanceProps, params, callback);

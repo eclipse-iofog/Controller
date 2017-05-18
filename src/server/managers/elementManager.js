@@ -55,9 +55,12 @@ class ElementManager extends BaseManager {
 		});
 	}
 	getElementCatalog() {
-		const query = 'select e.*, ft.name as fogTypeName, ft.image as fogTypeImage, ft.description as fogTypeDescription' +
-			' from element e left join element_fog_types eft on e.id = eft.element_id left join iofog_type ft on ft.id = eft.iofog_type_id' +
+		const query = 'select e.*, ft.name as fogTypeName, ft.image as fogTypeImage, ft.description as fogTypeDescription,' +
+			' eit.info_type as inputType, eit.info_format as inputFormat, eot.info_type as outputType, eot.info_format as outputFormat'+
+			' from element e left join element_fog_types eft on e.id = eft.element_id left join element_input_type eit on' +
+			' e.id = eit.element_key left join element_output_type eot on e.id = eot.element_key left join iofog_type ft on ft.id = eft.iofog_type_id' +
 			' where (e.publisher != "SYSTEM")';
+
 		return sequelize.query(query, {
 			type: sequelize.QueryTypes.SELECT
 		});
