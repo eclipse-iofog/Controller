@@ -26,8 +26,10 @@ import instanceContainerConfigController from './server/controllers/api/instance
 import integratorController from './server/controllers/api/integratorController';
 import loginController from './server/controllers/api/loginController';
 import provisionKeyController from './server/controllers/api/provisionKeyController';
-import trackController from './server/controllers/api/trackController';
 import streamViewerController from './server/controllers/api/streamViewerController';
+import trackController from './server/controllers/api/trackController';
+import userController from './server/controllers/api/userController';
+
 import logger from './server/utils/winstonLogs';
 
 const startServer = function(port) {
@@ -155,7 +157,12 @@ const initApp = function() {
   app.post('/api/v2/authoring/element/module/update', elementController.updateElementForUserEndPoint);
   app.get('/api/v2/authoring/element/module/delete/moduleid/:moduleId', elementController.deleteElementForUserEndPoint);
   app.get('/api/v2/authoring/element/module/details/moduleid/:moduleId', elementController.getElementDetailsEndPoint);
-  app.post('/api/v2/authoring/fabric/instance/bluebox/add', fogController.addBlueboxEndpoint);
+ // app.post('/api/v2/authoring/fabric/instance/bluebox/add', fogController.addBlueboxEndpoint);
+
+ app.get('/api/v2/get/user/data/:t', userController.getUserDetailsEndPoint);
+ app.post('/api/v1/user/profile/update', userController.updateUserDetailsEndPoint);
+ app.post('/api/v1/user/password/change', userController.updateUserPasswordEndPoint);
+ app.post('/api/v1/user/account/delete', userController.deleteUserAccountEndPoint);
 
   //generic error handler
   app.use((err, req, res, next) => {

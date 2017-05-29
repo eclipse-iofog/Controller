@@ -16,3 +16,6 @@ dist
 
 # Optional eslint cache
 .eslintcache
+
+# Environment variables
+.env

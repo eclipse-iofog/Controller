@@ -113,6 +113,7 @@ class ElementInstanceManager extends BaseManager {
 			rebuild: false,
 			rootHostAccess: false,
 			logSize: logSize,
+			volumeMappings: '{"volumemappings": []}',
 			iofog_uuid: fogInstanceId
 		};
 

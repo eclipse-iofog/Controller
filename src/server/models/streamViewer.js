@@ -7,7 +7,6 @@
 import Sequelize from 'sequelize';
 import sequelize from './../utils/sequelize';
 import Fog from './fog';
-import ElementInstance from './elementInstance';
 
 const StreamViewer = sequelize.define('stream_viewer', {
   id: {
@@ -28,6 +27,10 @@ const StreamViewer = sequelize.define('stream_viewer', {
     type: Sequelize.TEXT,
     field: 'access_token'
   },
+  elementId:{
+    type: Sequelize.TEXT,
+    field: 'element_id'
+  },
 }, {
   // don't add the timestamp attributes (updatedAt, createdAt)
   timestamps: false,
@@ -40,12 +43,6 @@ const StreamViewer = sequelize.define('stream_viewer', {
 
 StreamViewer.belongsTo(Fog, {
   foreignKey: 'iofog_uuid'
-});
-
-StreamViewer.belongsTo(ElementInstance, {
-  foreignKey: 'element_id',
-  as: 'elementId',
-  targetKey: 'uuid'
 });
 
 export default StreamViewer;

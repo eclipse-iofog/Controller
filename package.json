@@ -1,6 +1,6 @@
 {
   "name": "fog-controller",
-  "version": "0.1.21",
+  "version": "0.1.22",
   "description": "Fog Controller project @ iotracks.com",
   "main": "./src/main.js",
   "repository": {
@@ -31,6 +31,7 @@
     "continuation-local-storage": "^3.1.7",
     "cookie-parser": "^1.4.1",
     "daemonize2": "^0.4.2",
+    "dotenv": "^4.0.0",
     "ejs": "2.4.1",
     "es6-mixins": "^1.0.2",
     "express": "^4.13.4",
@@ -40,7 +41,9 @@
     "moment-timezone": "^0.5.4",
     "ms": "^0.7.1",
     "multer": "^1.1.0",
+    "node-mailer": "^0.1.1",
     "node-uuid": "^1.4.7",
+    "nodemailer-smtp-transport": "^2.7.4",
     "path": "^0.12.7",
     "q": "^1.4.1",
     "sequelize": "^3.21.0",

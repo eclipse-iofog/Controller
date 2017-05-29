@@ -9,6 +9,7 @@ import async from 'async';
 import https from 'https';
 import ChangeTrackingService from '../../services/changeTrackingService';
 import ComsatService from '../../services/comsatService';
+import DataTracksService from '../../services/dataTracksService';
 import ElementService from '../../services/elementService';
 import ElementInstanceService from '../../services/elementInstanceService';
 import ElementInstancePortService from '../../services/elementInstancePortService';
@@ -330,6 +331,10 @@ const elementInstanceCreateEndPoint = function(req, res) {
       name: 'bodyParams.name',
       logSize: 'logSize',
       setProperty: 'elementInstance'
+    },
+    trackProps = {
+      trackId: 'bodyParams.trackId',
+      setProperty: 'trackData'
     };
   
   params.bodyParams = req.body;
@@ -338,6 +343,7 @@ const elementInstanceCreateEndPoint = function(req, res) {
   async.waterfall([
     async.apply(UserService.getUser, userProps, params),
     async.apply(ElementService.getNetworkElement, elementProps),
+    async.apply(DataTracksService.getDataTrackById, trackProps),
     async.apply(ElementInstanceService.createElementInstance, elementInstanceProps),
     processNewElementInstance
 

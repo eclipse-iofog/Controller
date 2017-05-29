@@ -40,6 +40,15 @@ const updateUserByEmail = function(props, params, callback) {
     .then(AppUtils.onUpdate.bind(null, params,'Password not updated', callback));
 }
 
+const updateUserByToken = function(props, params, callback) {
+  var token = AppUtils.getProperty(params, props.token);
+
+  UserManager
+    .updateUserByToken(token, props.updateData)
+    .then(AppUtils.onUpdate.bind(null, params,'User data is not updated.', callback));
+}
+
+
 const deleteByUserId = function(props, params, callback) {
   var userId = AppUtils.getProperty(params, props.userId);
 
@@ -54,5 +63,6 @@ export default {
   deleteByUserId : deleteByUserId,
   getUserByEmail: getUserByEmail,
   updateUserByEmail: updateUserByEmail,
+  updateUserByToken: updateUserByToken,
   getUserByEmailPassword: getUserByEmailPassword
 };

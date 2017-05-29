@@ -31,6 +31,14 @@ class UserManager extends BaseManager {
 		});
 	}
 
+	updateUserByToken(userAccessToken, data) {
+		return User.update(data, {
+			where: {
+				userAccessToken: userAccessToken
+			}
+		});
+	}	
+
 	updateUserByEmail(email, data) {
 		return User.update(data, {
 			where: {

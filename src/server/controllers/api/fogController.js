@@ -15,12 +15,12 @@ import ElementService from '../../services/elementService'
 import ElementInstanceService from '../../services/elementInstanceService';
 import ElementInstancePortService from '../../services/elementInstancePortService';
 import FogAccessTokenService from '../../services/fogAccessTokenService';
-import FogControllerService from '../../services/fogControllerService';
+//import FogControllerService from '../../services/fogControllerService';
 import FogProvisionKeyService from '../../services/fogProvisionKeyService';
 import FogService from '../../services/fogService';
 import FogTypeService from '../../services/fogTypeService';
 import FogUserService from '../../services/fogUserService';
-import GeneratedIdsService from '../../services/generatedIdsService';
+//import GeneratedIdsService from '../../services/generatedIdsService';
 import NetworkPairingService from '../../services/networkPairingService';
 import SatelliteService from '../../services/satelliteService';
 import SatellitePortService from '../../services/satellitePortService';
@@ -32,127 +32,6 @@ import logger from '../../utils/winstonLogs';
 
 
 /********************************************* EndPoints ******************************************************/
-/****************** Add Bluebox EndPoint (Post: /api/v2/authoring/fabric/instance/bluebox/add) ***************/
-const addBlueboxEndpoint = function (req, res){
-	logger.info("Endpoint hit: "+ req.originalUrl);
-
-	var params = {},
-		userProps = {
-			userId : 'bodyParams.t',
-			setProperty: 'user'
-		},
-		generatedIdsProps = {
-		 	bbid: 'bodyParams.token',
-		 	setProperty:'tokenData'
-		},
-		fogControllerProps = {
-			uuid: 'tokenData.controllerId',
-			setProperty: 'fogControllerData'
-		},
-		instanceProps = {
-			fogId: 'tokenData.iofog_uuid',
-			setProperty: 'fogData'
-		},
-		getTrackingProps = {
-			instanceId: 'tokenData.iofog_uuid',
-			setProperty: 'changeTrackingData'
-		};
-		
-	params.bodyParams = req.body;	
-	logger.info("Parameters:" + JSON.stringify(params.bodyParams));
-
-	async.waterfall([
-		async.apply(UserService.getUser, userProps, params),
-		async.apply(GeneratedIdsService.findGeneratedIdsByBBID, generatedIdsProps),
-		async.apply(FogControllerService.findFogControllersByUUID, fogControllerProps),
-		validateFogInstance,
-		async.apply(FogService.getFogInstanceOptional, instanceProps),
-		createFogInstanceWithUUID,
-		updateGeneratedIdsByBBID,
-		async.apply(ChangeTrackingService.getChangeTrackingByInstanceId, getTrackingProps),
-		createChangeTracking,
-
-	],
-	function(err, result) {
-		AppUtils.sendResponse(res, err, 'test', params, result);
-	});
-}
-
-const createChangeTracking = function(params, callback){
-	if(!params.changeTrackingData){
-		var changeTrackingProps = {
-      		fogInstanceId: 'tokenData.iofog_uuid',
-      		setProperty: 'newChangeTracking'
-    	};
-
-		ChangeTrackingService.createFogChangeTracking(changeTrackingProps, params, callback);
-	}else{
-		callback(null, params);
-	}
-}
-
-const createFogInstanceWithUUID = function(params, callback){
-	if (!params.fogData){
-		var fogProps = {
-			fogObj :{
-    			uuid: params.tokenData.iofog_uuid,
-    			name: 'My BlueBox',
-    			location: '',
-    			latitude: '',
-    			longitude: '',
-    			description: '',
-    			token: '',
-    			typeKey: '2',
-    			daemonstatus: 'Not provisioned',
-    			daemonlaststart: 0,
-    			lastactive: 0,
-    			elementstatus: 0,
-    			memoryviolation: 'no',
-    			diskviolation: 'no',
-    			cpuviolation: 'no',
-    			repositorycount: 0,
-	    		repositorystatus: '',
-    			systemtime: 0,
-    			laststatustime: 0,
-    			elementmessagecounts: '',
-	    		messagespeed: 0,
-    			lastcommandtime: 0,
-    			version: ''
-			},
-			setProperty: 'blueBoxFogIntance'
-		};
-		FogService.createFogInstanceWithUUID(fogProps, params, callback);
-	}else{
-		callback('Error', 'Registration failed: Unable to create fog instance.')
-	}
-}
-
-const validateFogInstance = function(params, callback){ 
-	if(params.tokenData.iofog_uuid){
-		if(params.tokenData.iofog_uuid.length == 32){
-			callback(null, params);
-		}else{
-			callback('Error', 'Registration failed: Unable to create fog instance.')
-		}
-	}else{
-		callback('Error', 'Registration failed: Unable to create fog instance.')
-	}
-}
-
-
-const updateGeneratedIdsByBBID = function(params, callback){ 
-	var updateProps = {
-		updatedObj: {
-			email: params.user.email,
-			firstName: params.user.firstName,
-			lastName: params.user.lastName,
-			activated: 1
-		},
-		bbid: 'bodyParams.token'
-	};	
-	
-	GeneratedIdsService.updateGeneratedIdsByBBID(updateProps, params, callback);
-}
 
 /**************************** Fog-Controller Status EndPoint (Get: /api/v2/status) ***************************/
 const getFogControllerStatusEndPoint = function(req, res){
@@ -183,8 +62,11 @@ const fogInstancesListEndPoint = function(req, res){
 		};
 
 	params.bodyParams = req.params;
-	params.bodyParams = req.body;
-
+	
+	if(req.body.t){
+		params.bodyParams = req.body;
+	}
+	
 	logger.info("Parameters:" + JSON.stringify(params.bodyParams));
 
 	async.waterfall([
@@ -218,6 +100,10 @@ const fogInstanceCreateEndPoint = function(req, res){
       		fogType: 'bodyParams.type',
       		setProperty: 'fogInstance'
     	},
+    	createChangeTrackingProps = {
+      		fogInstanceId: 'fogInstance.uuid',
+      		setProperty: null
+    	},
 
     	createFogUserProps = {
       		userId: 'user.id',
@@ -233,6 +119,7 @@ const fogInstanceCreateEndPoint = function(req, res){
 		async.apply(UserService.getUser, userProps, params),
 		async.apply(FogTypeService.getFogTypeDetail, fogTypeProps),
 		async.apply(FogService.createFogInstance, createFogProps),
+		async.apply(ChangeTrackingService.createFogChangeTracking, createChangeTrackingProps),
     	async.apply(FogUserService.createFogUser, createFogUserProps),
 	],
 	function(err, result) {
@@ -917,8 +804,131 @@ const createBluetoothElementInstance = function (params, callback){
     ElementInstanceService.createElementInstanceObj(elementInstanceProps, params, callback);
 }
 
+/****************** Add Bluebox EndPoint (Post: /api/v2/authoring/fabric/instance/bluebox/add) ***************/
+// const addBlueboxEndpoint = function (req, res){
+// 	logger.info("Endpoint hit: "+ req.originalUrl);
+
+// 	var params = {},
+// 		userProps = {
+// 			userId : 'bodyParams.t',
+// 			setProperty: 'user'
+// 		},
+// 		generatedIdsProps = {
+// 		 	bbid: 'bodyParams.token',
+// 		 	setProperty:'tokenData'
+// 		},
+// 		fogControllerProps = {
+// 			uuid: 'tokenData.controllerId',
+// 			setProperty: 'fogControllerData'
+// 		},
+// 		instanceProps = {
+// 			fogId: 'tokenData.iofog_uuid',
+// 			setProperty: 'fogData'
+// 		},
+// 		getTrackingProps = {
+// 			instanceId: 'tokenData.iofog_uuid',
+// 			setProperty: 'changeTrackingData'
+// 		};
+		
+// 	params.bodyParams = req.body;	
+// 	logger.info("Parameters:" + JSON.stringify(params.bodyParams));
+
+// 	async.waterfall([
+// 		async.apply(UserService.getUser, userProps, params),
+// 		async.apply(GeneratedIdsService.findGeneratedIdsByBBID, generatedIdsProps),
+// 		async.apply(FogControllerService.findFogControllersByUUID, fogControllerProps),
+// 		validateFogInstance,
+// 		async.apply(FogService.getFogInstanceOptional, instanceProps),
+// 		createFogInstanceWithUUID,
+// 		updateGeneratedIdsByBBID,
+// 		async.apply(ChangeTrackingService.getChangeTrackingByInstanceId, getTrackingProps),
+// 		createChangeTracking,
+
+// 	],
+// 	function(err, result) {
+// 		AppUtils.sendResponse(res, err, 'test', params, result);
+// 	});
+// }
+
+// const createChangeTracking = function(params, callback){
+// 	if(!params.changeTrackingData){
+// 		var changeTrackingProps = {
+//       		fogInstanceId: 'tokenData.iofog_uuid',
+//       		setProperty: 'newChangeTracking'
+//     	};
+
+// 		ChangeTrackingService.createFogChangeTracking(changeTrackingProps, params, callback);
+// 	}else{
+// 		callback(null, params);
+// 	}
+// }
+
+// const createFogInstanceWithUUID = function(params, callback){
+// 	if (!params.fogData){
+// 		var fogProps = {
+// 			fogObj :{
+//     			uuid: params.tokenData.iofog_uuid,
+//     			name: 'My BlueBox',
+//     			location: '',
+//     			latitude: '',
+//     			longitude: '',
+//     			description: '',
+//     			token: '',
+//     			typeKey: '2',
+//     			daemonstatus: 'Not provisioned',
+//     			daemonlaststart: 0,
+//     			lastactive: 0,
+//     			elementstatus: 0,
+//     			memoryviolation: 'no',
+//     			diskviolation: 'no',
+//     			cpuviolation: 'no',
+//     			repositorycount: 0,
+// 	    		repositorystatus: '',
+//     			systemtime: 0,
+//     			laststatustime: 0,
+//     			elementmessagecounts: '',
+// 	    		messagespeed: 0,
+//     			lastcommandtime: 0,
+//     			version: ''
+// 			},
+// 			setProperty: 'blueBoxFogIntance'
+// 		};
+// 		FogService.createFogInstanceWithUUID(fogProps, params, callback);
+// 	}else{
+// 		callback('Error', 'Registration failed: Unable to create fog instance.')
+// 	}
+// }
+
+// const validateFogInstance = function(params, callback){ 
+// 	if(params.tokenData.iofog_uuid){
+// 		if(params.tokenData.iofog_uuid.length == 32){
+// 			callback(null, params);
+// 		}else{
+// 			callback('Error', 'Registration failed: Unable to create fog instance.')
+// 		}
+// 	}else{
+// 		callback('Error', 'Registration failed: Unable to create fog instance.')
+// 	}
+// }
+
+
+// const updateGeneratedIdsByBBID = function(params, callback){ 
+// 	var updateProps = {
+// 		updatedObj: {
+// 			email: params.user.email,
+// 			firstName: params.user.firstName,
+// 			lastName: params.user.lastName,
+// 			activated: 1
+// 		},
+// 		bbid: 'bodyParams.token'
+// 	};	
+	
+// 	GeneratedIdsService.updateGeneratedIdsByBBID(updateProps, params, callback);
+// }
+
+
 export default {
-  addBlueboxEndpoint: addBlueboxEndpoint,
+//  addBlueboxEndpoint: addBlueboxEndpoint,
   getFogDetailsEndpoint: getFogDetailsEndpoint,
   getFogControllerStatusEndPoint: getFogControllerStatusEndPoint,
   fogInstancesListEndPoint: fogInstancesListEndPoint,
