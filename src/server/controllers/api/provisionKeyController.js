@@ -73,11 +73,9 @@ const fogProvisionKeyEndPoint = function(req, res) {
         instanceId: 'fogData.uuid',
         setProperty: 'fogUser'
       },
-      // deleteTokenProps = {
-      //   userId: 'fogUser.user_id'
-      // },
       saveFogAccessTokenProps = {
         userId: 'fogUser.user_id',
+        fogId: 'fogProvision.iofog_uuid',
         expirationTime: 'tokenData.expirationTime',
         accessToken: 'tokenData.accessToken',
         setProperty: 'newAccessToken'
@@ -94,7 +92,7 @@ const fogProvisionKeyEndPoint = function(req, res) {
     checkFogType,
     async.apply(FogUserService.getFogUserByInstanceId, fogUserProps),
     FogAccessTokenService.generateFogAccessToken,
-    //async.apply(FogAccessTokenService.deleteFogAccessTokenByUserId, deleteTokenProps),
+    async.apply(FogAccessTokenService.deleteFogAccessTokenByFogId, fogProps),
     async.apply(FogAccessTokenService.saveFogAccessToken,saveFogAccessTokenProps)
 
   ], function(err, result) {

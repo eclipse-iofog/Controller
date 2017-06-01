@@ -6,11 +6,12 @@
 
 import Sequelize from 'sequelize';
 import sequelize from './../utils/sequelize';
+import Fog from './fog';
 
 const FogAccessToken = sequelize.define('iofog_access_tokens', {
   id: {type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true, field: 'ID'},
   userId: {type: Sequelize.INTEGER, field: 'user_id'},
-  expirationTime: {type: Sequelize.DATE, field: 'expiration_time'},
+  expirationTime: {type: Sequelize.BIGINT, field: 'expiration_time'},
   token: {type: Sequelize.TEXT, field: 'token'}
 }, {
   // don't add the timestamp attributes (updatedAt, createdAt)
@@ -20,6 +21,10 @@ const FogAccessToken = sequelize.define('iofog_access_tokens', {
   // don't use camelcase for automatically added attributes but underscore style
   // so updatedAt will be updated_at
   underscored: true
+});
+
+FogAccessToken.belongsTo(Fog, {
+  foreignKey: 'iofog_uuid'
 });
 
 export default FogAccessToken;

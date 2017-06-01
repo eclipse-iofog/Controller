@@ -633,6 +633,11 @@ const elementInstancePortCreateEndPoint = function(req, res) {
       setProperty: 'elementInstance'
     },
 
+    elementInstancesProps = {
+      fogId: 'fogInstance.uuid',
+      setProperty: 'elementInstances'
+    },
+
     fogProps = {
       fogId: 'elementInstance.iofog_uuid',
       setProperty: 'fogInstance'
@@ -674,6 +679,11 @@ const elementInstancePortCreateEndPoint = function(req, res) {
     networkElementProps = {
       networkElementId: 'fogType.networkElementKey',
       setProperty: 'networkElement'
+    },
+    elementInstancesPortProps = {
+      elementInstanceData: 'elementInstances',
+      field: 'uuid',
+      setProperty: 'elemntInstancesPortData'
     };
 
   params.bodyParams = req.body;
@@ -682,12 +692,17 @@ const elementInstancePortCreateEndPoint = function(req, res) {
   if (params.bodyParams.publicAccess == 1) {
     waterfallMethods = [
       async.apply(UserService.getUser, userProps, params),
-      async.apply(ElementInstancePortService.createElementInstancePort, elementInstancePortProps),
       async.apply(ElementInstanceService.getElementInstance, elementInstanceProps),
-      updateElemInstance,
       async.apply(FogService.getFogInstance, fogProps),
-      async.apply(ChangeTrackingService.updateChangeTracking, changeTrackingProps),
       async.apply(FogTypeService.getFogTypeDetail, fogTypeProps),
+      
+      async.apply(ElementInstanceService.getElementInstancesByFogId, elementInstancesProps),
+      async.apply(ElementInstancePortService.findElementInstancePortsByElementIds, elementInstancesPortProps),
+      verifyPorts,
+      
+      async.apply(ChangeTrackingService.updateChangeTracking, changeTrackingProps),
+      async.apply(ElementInstancePortService.createElementInstancePort, elementInstancePortProps),
+      updateElemInstance,
       ComsatService.openPortOnRadomComsat,
       createSatellitePort,
       async.apply(ElementService.getNetworkElement, networkElementProps),
@@ -699,20 +714,54 @@ const elementInstancePortCreateEndPoint = function(req, res) {
   } else {
     waterfallMethods = [
       async.apply(UserService.getUser, userProps, params),
-      async.apply(ElementInstancePortService.createElementInstancePort, elementInstancePortProps),
       async.apply(ElementInstanceService.getElementInstance, elementInstanceProps),
-      updateElemInstance,
       async.apply(FogService.getFogInstance, fogProps),
       async.apply(ChangeTrackingService.updateChangeTracking, changeTrackingProps),
+      async.apply(ElementInstancePortService.createElementInstancePort, elementInstancePortProps),
+      updateElemInstance,
       getOutputDetails
     ];
   }
-
   async.waterfall(waterfallMethods, function(err, result) {
 
     AppUtils.sendResponse(res, err, 'port', params.output, result);
   });
 };
+
+const verifyPorts = function(params, callback){
+  var internalPort = params.bodyParams.internalPort,
+    externalPort = params.bodyParams.externalPort;
+
+  if(AppUtils.isValidPort(internalPort)){
+    if(AppUtils.isValidPort(externalPort)){
+      if(externalPort != 60400 && externalPort != 60401 && externalPort != 10500 && externalPort != 54321 && externalPort != 55555){
+        if(params.elemntInstancesPortData.length){
+          async.each(params.elemntInstancesPortData, function(obj, next) {
+            if(externalPort == obj.portexternal){
+              next('Error', 'Port is already in use.')
+            }else{
+              next();
+            }
+          }, function(err) {
+            if(!err){
+              callback(null, params)
+            }else{
+              callback('Error', 'Port '+ externalPort +' is already in use on this fog instance!');
+            }
+          });
+        }else{
+          callback(null, params);
+        }
+      }else{
+        callback('Error', 'Port '+ externalPort +' is already in use on this fog instance!');
+      }
+    }else{
+      callback('Error', 'You must enter a valid number for both the internal and external ports');
+    }
+  }else{
+    callback('Error', 'You must enter a valid number for both the internal and external ports');
+  }
+}
 
 const createNetworkElementInstance = function (params, callback){
   var networkElementInstanceProps = {
@@ -731,7 +780,6 @@ const createNetworkElementInstance = function (params, callback){
 
   ElementInstanceService.createNetworkElementInstance(networkElementInstanceProps, params, callback);
 }
-
 
 /**** Element Instance Port Delete EndPoint (Post: '/api/v2/authoring/element/instance/port/delete') ****/
 const elementInstancePortDeleteEndPoint = function(req, res) {
@@ -1392,11 +1440,11 @@ const extractOpenPort = function(params, elementInstance) {
     }
 
     let openPort = {
-      portid: instancePort.id,
-      internalport: instancePort.portinternal,
-      externalport: instancePort.portexternal,
-      accessurl: accessurl,
-      networkpairingid: networkpairingid
+      portId: instancePort.id,
+      internalPort: instancePort.portinternal,
+      externalPort: instancePort.portexternal,
+      accessUrl: accessurl,
+      networkPairingId: networkpairingid
     }
 
     openports.push(openPort);

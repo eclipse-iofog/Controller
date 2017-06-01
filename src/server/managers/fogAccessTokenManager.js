@@ -16,10 +16,11 @@ class FogAccessTokenManager extends BaseManager {
    * @param String - token
    * @return JSON - returns a JSON object of fogAccessToken
    */
-  getByToken(token) {
+  getByTokenAndFogId(token, fogId) {
       return FogAccessToken.find({
         where: {
-          token: token
+          token: token,
+          iofog_uuid: fogId
         }
       });
     }
@@ -28,10 +29,10 @@ class FogAccessTokenManager extends BaseManager {
    * @param Integer - userId
    * @return Integer -  returns the number of rows deleted
    */
-  deleteByUserId(userId) {
+  deleteByFogId(fogId) {
       return FogAccessToken.destroy({
         where: {
-          userId: userId
+          iofog_uuid: fogId
         }
       });
     }
@@ -41,11 +42,7 @@ class FogAccessTokenManager extends BaseManager {
    * @return Integer - returns the number of rows inserted
    */
   saveUserToken(config) {
-    return FogAccessToken.create({
-      userId: config.userId,
-      expirationTime: config.expirationTime,
-      token: config.accessToken
-    });
+    return FogAccessToken.create(config);
   }
 }
 

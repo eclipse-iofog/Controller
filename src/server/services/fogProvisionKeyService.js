@@ -17,9 +17,9 @@ const checkProvisionKeyExpiry = function(props, params, callback) {
 const createProvisonKeyByInstanceId = function(props, params, callback) {
   var instanceId = AppUtils.getProperty(params, props.instanceId),
   	  newProvision = {
-    	iofog_uuid: instanceId,
-    	provisionKey: AppUtils.generateRandomString(8),
-    	expirationTime: new Date().getTime() + (20 * 60 * 1000)
+    	 iofog_uuid: instanceId,
+    	 provisionKey: AppUtils.generateRandomString(8),
+    	 expirationTime: new Date().getTime() + (20 * 60 * 1000)
   		};
 
   FogProvisionKeyManager

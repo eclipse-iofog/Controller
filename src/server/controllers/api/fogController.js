@@ -15,12 +15,10 @@ import ElementService from '../../services/elementService'
 import ElementInstanceService from '../../services/elementInstanceService';
 import ElementInstancePortService from '../../services/elementInstancePortService';
 import FogAccessTokenService from '../../services/fogAccessTokenService';
-//import FogControllerService from '../../services/fogControllerService';
 import FogProvisionKeyService from '../../services/fogProvisionKeyService';
 import FogService from '../../services/fogService';
 import FogTypeService from '../../services/fogTypeService';
 import FogUserService from '../../services/fogUserService';
-//import GeneratedIdsService from '../../services/generatedIdsService';
 import NetworkPairingService from '../../services/networkPairingService';
 import SatelliteService from '../../services/satelliteService';
 import SatellitePortService from '../../services/satellitePortService';
@@ -251,7 +249,7 @@ const integratorInstanceDeleteEndPoint = function(req, res){
 		async.apply(ElementInstanceService.updateElemInstanceByFogUuId, updateByFogUuIdProps),
 		async.apply(ChangeTrackingService.deleteChangeTracking, instanceProps),
 		async.apply(FogUserService.getFogUserByInstanceId, fogUserProps),
-		async.apply(FogAccessTokenService.deleteFogAccessTokenByUserId, instanceProps),
+		async.apply(FogAccessTokenService.deleteFogAccessTokenByFogId, fogProps),
 		async.apply(FogUserService.deleteFogUserByInstanceIdAndUserId, deleteFogUserProps),
 		//async.apply(UserService.deleteByUserId, instanceProps),
 		async.apply(StreamViewerService.deleteStreamViewerByFogInstanceId, instanceProps),

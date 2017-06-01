@@ -50,6 +50,14 @@ class ElementInstanceManager extends BaseManager {
 		});
 	}
 
+	getByFogId(fog_uuid) {
+		return ElementInstance.findAll({
+			where: {
+				iofog_uuid: fog_uuid
+			}
+		});
+	}
+
 	/**
 	* @desc - uses a raw-query to join element_instance and data_tracks
 	* @param Integer - instanceId
@@ -68,6 +76,7 @@ class ElementInstanceManager extends BaseManager {
 		});
 	}
 
+
 	findByUuId(uuid) {
 		return ElementInstance.find({
 			where: {
@@ -75,6 +84,7 @@ class ElementInstanceManager extends BaseManager {
 			}
 		});
 	}
+
 	findByElementKey(elementKey) {
 		return ElementInstance.findAll({
 			where: {
