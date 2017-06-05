@@ -36,7 +36,7 @@ class FogControllerConfigUtil {
         throw 'Invalid value provided for key "' + key + '"';
       }
     } else {
-      throw '"' + key + '" is not a valid property. You can set properties like port, ssl_key, ssl_cert, intermediate_cert etc';
+      throw '"' + key + '" is not a valid property. You can set properties like port, ssl_key, ssl_cert, intermediate_cert, email, password, service';
     }
   }
 
@@ -51,7 +51,11 @@ class FogControllerConfigUtil {
   validateValue(key, value) {
     if (key == Constants.CONFIG.port) {
       return AppUtils.isValidPort(value);
-    } else if (key.toLowerCase() == Constants.CONFIG.ssl_key || key.toLowerCase() == Constants.CONFIG.ssl_cert || key.toLowerCase() == Constants.CONFIG.intermediate_cert) {
+    }else if (key == 'service' || key == 'password'){
+      return true;
+    }else if (key == 'email'){
+      return AppUtils.isValidEmail(value);
+    }else if (key.toLowerCase() == Constants.CONFIG.ssl_key || key.toLowerCase() == Constants.CONFIG.ssl_cert || key.toLowerCase() == Constants.CONFIG.intermediate_cert) {
       return AppUtils.isFileExists(value);
     }
   }

@@ -24,7 +24,6 @@ import instanceRegistriesController from './server/controllers/api/instanceRegis
 import instanceRoutingController from './server/controllers/api/instanceRoutingController';
 import instanceContainerConfigController from './server/controllers/api/instanceContainerConfigController';
 import integratorController from './server/controllers/api/integratorController';
-import loginController from './server/controllers/api/loginController';
 import provisionKeyController from './server/controllers/api/provisionKeyController';
 import streamViewerController from './server/controllers/api/streamViewerController';
 import trackController from './server/controllers/api/trackController';
@@ -86,7 +85,8 @@ const initApp = function() {
   app.set('views', path.join(__dirname, 'views'));
 
   app.get('/', baseController.mainPageEndPoint);
-  app.post('/api/v1/user/login', loginController.validateUserEndPoint);
+  app.post('/api/v1/user/login', userController.validateUserEndPoint);
+  app.post('/api/v1/user/logout', userController.logoutUserEndPoint);
 
   app.get('/api/v2/status', fogController.getFogControllerStatusEndPoint);
   app.post('/api/v2/status', fogController.getFogControllerStatusEndPoint);

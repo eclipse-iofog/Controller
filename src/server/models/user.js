@@ -13,7 +13,8 @@ const User = sequelize.define('users', {
   lastName: {type: Sequelize.STRING(100), field: 'last_name'},
   email: Sequelize.STRING(100),
   password: Sequelize.STRING(100),
-  userAccessToken: {type: Sequelize.TEXT, field: 'userAccessToken'},
+  emailActivated: {type:Sequelize.INTEGER, field: 'email_activated'},
+  userAccessToken: {type: Sequelize.TEXT, field: 'user_access_token'},
 }, {
   // don't add the timestamp attributes (updatedAt, createdAt)
   timestamps: false,

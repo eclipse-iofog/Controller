@@ -1,6 +1,10 @@
+import async from 'async';
+
 import FogAccessTokenManager from '../managers/fogAccessTokenManager';
+import UserService from './userService'
 import AppUtils from '../utils/appUtils';
 import Constants from '../constants.js';
+import logger from '../utils/winstonLogs';
 
 const checkFogTokenExpirationByToken = function(props, params, callback) {
   var time =  new Date(),
@@ -23,6 +27,14 @@ const findFogAccessTokenByTokenAndFogId = function(props, params, callback) {
     .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Unable to find Fog Access Token', callback));
 }
 
+const findFogAccessTokenByToken = function(props, params, callback) {
+  var token = AppUtils.getProperty(params, props.token);
+
+  FogAccessTokenManager
+    .getByToken(token)
+    .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Unable to find Fog Access Token', callback));
+}
+
 const deleteFogAccessTokenByFogId = function(props, params, callback) {
   var fogId = AppUtils.getProperty(params, props.fogId);
 
@@ -31,18 +43,48 @@ const deleteFogAccessTokenByFogId = function(props, params, callback) {
     .then(AppUtils.onDeleteOptional.bind(null, params, callback));
 }
 
-const generateFogAccessToken = function(params, callback) {
-  var accessToken = AppUtils.generateAccessToken(),
-	  tokenExpiryTime = new Date().getTime() +  (Constants.ACCESS_TOKEN_EXPIRE_PERIOD * 1000);
-    
-  var tokenData = {
-	 accessToken: accessToken,
-	 expirationTime: tokenExpiryTime
-  };
+const generateAccessToken = function(params, callback) {
+  var safeToken = false;
 
- params.tokenData = tokenData;
+  async.whilst(
+    function() {
+      return !(safeToken);
+    },
+    function(cb) { 
+      params.accessToken = AppUtils.generateAccessToken();
 
- callback(null, params);
+      var userProps = {
+        userId: 'accessToken',
+        setProperty: 'userAccessTokenData'
+      },
+      accessTokenProps = {
+        token: 'accessToken',
+        setProperty: 'fogAccessToken'
+      };
+
+      async.waterfall([
+        async.apply(UserService.getUserOptional, userProps, params),
+        async.apply(findFogAccessTokenByToken, accessTokenProps)
+
+      ], function(err, result) {
+          if(!params.userAccessTokenData && !params.fogAccessToken){
+            safeToken = true;
+          }
+          cb(null, safeToken);
+      });
+    },
+    function(err, token) { // CALLBACK
+      var tokenExpiryTime = new Date().getTime() +  (Constants.ACCESS_TOKEN_EXPIRE_PERIOD * 1000);
+
+      var tokenData = {
+        accessToken: params.accessToken,
+        expirationTime: tokenExpiryTime
+      };
+
+      params.tokenData = tokenData;
+      callback(null, params);
+    }
+  );
 }
 
 const saveFogAccessToken = function(props, params, callback) {
@@ -65,8 +107,9 @@ const saveFogAccessToken = function(props, params, callback) {
 
 export default {
   checkFogTokenExpirationByToken: checkFogTokenExpirationByToken,
+  findFogAccessTokenByToken: findFogAccessTokenByToken,
   findFogAccessTokenByTokenAndFogId: findFogAccessTokenByTokenAndFogId,
   deleteFogAccessTokenByFogId: deleteFogAccessTokenByFogId,
-  generateFogAccessToken: generateFogAccessToken,
+  generateAccessToken: generateAccessToken,
   saveFogAccessToken: saveFogAccessToken
 };

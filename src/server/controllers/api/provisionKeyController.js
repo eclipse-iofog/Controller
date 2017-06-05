@@ -91,7 +91,7 @@ const fogProvisionKeyEndPoint = function(req, res) {
     async.apply(FogService.getFogInstance, fogProps),
     checkFogType,
     async.apply(FogUserService.getFogUserByInstanceId, fogUserProps),
-    FogAccessTokenService.generateFogAccessToken,
+    FogAccessTokenService.generateAccessToken,
     async.apply(FogAccessTokenService.deleteFogAccessTokenByFogId, fogProps),
     async.apply(FogAccessTokenService.saveFogAccessToken,saveFogAccessTokenProps)
 

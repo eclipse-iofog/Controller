@@ -1,14 +1,89 @@
 import async from 'async';
 import https from 'https';
-require('dotenv').config();
-import emailRecoveryTemplate from '../../../views/emailTemp';
+//require('dotenv').config();
 
+import emailRecoveryTemplate from '../../../views/emailTemp';
 import UserService from '../../services/userService';
-import transporter  from '../../utils/emailSender';
+import FogAccessTokenService from '../../services/fogAccessTokenService';
+
+//import transporter  from '../../utils/emailSender';
 import AppUtils from '../../utils/appUtils';
+import configUtil from '../../utils/configUtil';
 import logger from '../../utils/winstonLogs';
 
 /*********************************************** EndPoints ******************************************************/
+/*************** Validate User at login EndPoint (Post /api/v1/user/login) *****************/
+ const validateUserEndPoint = function(req, res) {
+  logger.info("Endpoint hit: "+ req.originalUrl);
+
+  var params = {},
+      userProps = {
+        email: 'bodyParams.email',
+        password: 'bodyParams.password',
+        setProperty: 'user'
+      },
+      emailActivationProps = {
+        emailActivated: 'user.emailActivated'
+      };
+
+  params.bodyParams = req.body;
+  logger.info("Parameters:" + JSON.stringify(params.bodyParams));
+
+  async.waterfall([
+    async.apply(UserService.getUserByEmailPassword, userProps, params),
+    async.apply(UserService.verifyEmailActivation, emailActivationProps),
+    FogAccessTokenService.generateAccessToken,
+    updateUserAccessTokenByEmail
+
+  ], function(err, result) {
+    if(params.tokenData){
+      params.token = params.tokenData.accessToken;
+    }
+
+    AppUtils.sendResponse(res, err, 'token', params.token, result);
+  })
+};
+
+const updateUserAccessTokenByEmail = function(params, callback){
+  var updateProps = {
+    updateData:{
+      userAccessToken: params.tokenData.accessToken
+    },
+    email: 'bodyParams.email'
+  };
+
+  UserService.updateUserByEmail(updateProps, params, callback);
+}
+
+/*************** User Logout EndPoint (Post /api/v1/user/logout *****************/
+const logoutUserEndPoint = function(req, res){
+  logger.info("Endpoint hit: "+ req.originalUrl);
+
+    var params = {},
+    userProps = {
+      userId: 'bodyParams.t',
+      setProperty: 'user'
+    },
+    updateUserProps = {
+      email: 'user.email',
+      updateData: {
+        userAccessToken: ''
+      }
+    };
+
+    params.bodyParams = req.body;
+    logger.info("Parameters:" + JSON.stringify(params.bodyParams));
+
+    async.waterfall([
+      async.apply(UserService.getUser, userProps, params),
+      async.apply(UserService.updateUserByEmail, updateUserProps)
+
+    ], function(err, result) {
+      
+      AppUtils.sendResponse(res, err, '', '', result);
+    });
+}
+
 /********************** Get User Details EndPoint (Get: /api/v2/get/user/data/:t *******************************/
  const getUserDetailsEndPoint = function(req, res) {
  	logger.info("Endpoint hit: "+ req.originalUrl);
@@ -69,6 +144,11 @@ import logger from '../../utils/winstonLogs';
     userProps = {
       userId: 'bodyParams.t',
       setProperty: 'user'
+    },
+    emailProps = {
+      service: 'emailSenderData.service',
+      email: 'emailSenderData.email',
+      password: 'emailSenderData.password'
     };
 
   	params.bodyParams = req.body;
@@ -78,6 +158,8 @@ import logger from '../../utils/winstonLogs';
     	async.apply(UserService.getUser, userProps, params),
     	validateOldPassword,
     	validateNewPassword,
+      getEmailData,
+      async.apply(UserService.userEmailSender, emailProps),
     	updateUserPassword,
     	notifyUserAboutPasswordChange
 
@@ -86,18 +168,37 @@ import logger from '../../utils/winstonLogs';
   	});
  }
 
+const getEmailData = function(params, callback){
+  try{
+  configUtil.getAllConfigs().then(() => {
+    var email = configUtil.getConfigParam('email'),
+    password = configUtil.getConfigParam('password'),
+    service = configUtil.getConfigParam('service');
+
+    params.emailSenderData = {
+      email: email,
+      password: password,
+      service: service
+    };
+    callback(null, params);
+  });
+}catch(e){
+  logger.error(e);
+}
+}
+
 const notifyUserAboutPasswordChange = function(params, callback){
 	try{
   if (params.user){
     let mailOptions = {
-      from: '"IOTRACKS" <' + process.env.email + '>', // sender address
+      from: '"IOTRACKS" <' + params.emailSenderData.email + '>', // sender address
       to: params.user.email, // list of receivers
       subject: 'Password Change Notification', // Subject line
       html: emailRecoveryTemplate.p1+ params.user.firstName + ' ' + params.user.lastName + emailRecoveryTemplate.p2 // html body
     };
 
     // send mail with defined transport object
-    transporter.sendMail(mailOptions, (error, info) => {
+    params.transporter.sendMail(mailOptions, (error, info) => {
       if (error) {
         logger.error(error);
         callback('Err', 'Email not sent due to technical reasons. Please try later.');
@@ -193,5 +294,7 @@ const notifyUserAboutPasswordChange = function(params, callback){
  	getUserDetailsEndPoint: getUserDetailsEndPoint,
  	updateUserDetailsEndPoint: updateUserDetailsEndPoint,
  	updateUserPasswordEndPoint: updateUserPasswordEndPoint,
- 	deleteUserAccountEndPoint: deleteUserAccountEndPoint
+ 	deleteUserAccountEndPoint: deleteUserAccountEndPoint,
+  validateUserEndPoint: validateUserEndPoint,
+  logoutUserEndPoint: logoutUserEndPoint
  }

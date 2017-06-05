@@ -16,6 +16,14 @@ class FogAccessTokenManager extends BaseManager {
    * @param String - token
    * @return JSON - returns a JSON object of fogAccessToken
    */
+  getByToken(token) {
+      return FogAccessToken.find({
+        where: {
+          token: token
+        }
+      });
+    }
+
   getByTokenAndFogId(token, fogId) {
       return FogAccessToken.find({
         where: {

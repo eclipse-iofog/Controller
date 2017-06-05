@@ -10,8 +10,8 @@ var emailRecoveryTemplate = {
 							<tr>\
 								<td style='font-family: sans-serif; font-size:16px; vertical-align:top;color:#fff;text-align:center;background-color:#ff9f00; padding:20px' align='center'>\
 									Hi, ",
-	p2: 						".\
-								</td>\
+	
+	p2: 						"</td>\
 							</tr>\
 							<tr>\
 								<td style = 'padding:20px 0 20px 0'>\

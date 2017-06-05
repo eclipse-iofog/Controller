@@ -31,7 +31,10 @@ const CONFIG = {
   port: 'port',
   ssl_key: 'ssl_key',
   ssl_cert: 'ssl_cert',
-  intermediate_cert: 'intermediate_cert'
+  intermediate_cert: 'intermediate_cert',
+  email: 'email',
+  password: 'password',
+  service: 'service'
 };
 
 export default {

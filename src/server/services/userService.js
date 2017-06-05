@@ -1,5 +1,27 @@
+const nodemailer = require('nodemailer');
+var smtpTransport = require('nodemailer-smtp-transport');
 import UserManager from '../managers/userManager';
 import AppUtils from '../utils/appUtils';
+import logger from '../utils/winstonLogs';
+
+
+const userEmailSender = function (props, params, callback){
+  var service = AppUtils.getProperty(params, props.service),
+   email = AppUtils.getProperty(params, props.email),
+   password = AppUtils.getProperty(params, props.password);
+
+
+  let transporter = nodemailer.createTransport(smtpTransport({
+    service: service,
+    auth: {
+      user: email,
+      pass: password
+    }
+  }));
+
+  params.transporter = transporter;
+  callback(null, params);
+}
 
 const createUser = function(props, params, callback) {
   UserManager
@@ -14,6 +36,24 @@ const getUser = function(props, params, callback) {
     .findByToken(userId)
     .then(AppUtils.onFind.bind(null, params, props.setProperty, 'User not found', callback));
 }
+
+const getUserOptional = function(props, params, callback) {
+  var userId = AppUtils.getProperty(params, props.userId);
+
+  UserManager
+    .findByToken(userId)
+    .then(AppUtils.onFindOptional.bind(null, params, props.setProperty, callback));
+}
+
+ const verifyEmailActivation = function(props, params, callback){
+   var emailActivated = AppUtils.getProperty(params, props.emailActivated);
+
+   if(emailActivated > 0){
+    callback(null, params);
+   }else{
+    callback('Error', 'Email is not activated. Please activate your account first.');
+   }
+ }
 
 const getUserByEmailPassword = function(props, params, callback) {
   var email = AppUtils.getProperty(params, props.email),
@@ -60,9 +100,12 @@ const deleteByUserId = function(props, params, callback) {
 export default {
   createUser: createUser,
   getUser: getUser,
+  getUserOptional: getUserOptional,
+  userEmailSender: userEmailSender,
   deleteByUserId : deleteByUserId,
   getUserByEmail: getUserByEmail,
   updateUserByEmail: updateUserByEmail,
   updateUserByToken: updateUserByToken,
-  getUserByEmailPassword: getUserByEmailPassword
+  getUserByEmailPassword: getUserByEmailPassword,
+  verifyEmailActivation: verifyEmailActivation
 };
