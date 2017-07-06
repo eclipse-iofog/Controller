@@ -232,15 +232,17 @@ const validateUser = function (params, callback){
     UserService.getUserByEmailPassword(userProps, params, callback);
   }else{
     params.destination = 'changePassword'
-    var updatePasswordProps = {
-      email: 'bodyParams.email',
-      updateData: {
-        tempPassword: ''
-      }
-    };
-
-    UserService.updateUserByEmail(updatePasswordProps, params, callback);
+    callback(null, params);
   }
+  //   var updatePasswordProps = {
+  //     email: 'bodyParams.email',
+  //     updateData: {
+  //       tempPassword: ''
+  //     }
+  //   };
+
+  //   UserService.updateUserByEmail(updatePasswordProps, params, callback);
+  // }
 }
 
 /*************** User Logout EndPoint (Post /api/v1/user/logout) *****************/
@@ -430,8 +432,10 @@ const notifyUserAboutPasswordChange = function(params, callback){
 
 /***************************** Extra Functions **************************/
  const validateOldPassword = function(params, callback){
- 	if(params.bodyParams.oldPassword == params.user.password){
- 		callback(null, params);
+ 	if(params.bodyParams.oldPassword == params.user.password || params.bodyParams.oldPassword == params.user.tempPassword){
+ 		
+
+    callback(null, params);
  	}else{
  		callback('Error', 'Old password donot match with this userId.');
  	}
