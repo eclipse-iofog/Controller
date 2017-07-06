@@ -13,6 +13,7 @@ const User = sequelize.define('users', {
   lastName: {type: Sequelize.STRING(100), field: 'last_name'},
   email: Sequelize.STRING(100),
   password: Sequelize.STRING(100),
+  tempPassword: {type: Sequelize.STRING(100), field: 'temp_password'},
   emailActivated: {type:Sequelize.INTEGER, field: 'email_activated'},
   userAccessToken: {type: Sequelize.TEXT, field: 'user_access_token'},
 }, {

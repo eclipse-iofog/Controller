@@ -72,6 +72,15 @@ const getUserByEmail = function(props, params, callback) {
     .then(AppUtils.onFindOptional.bind(null, params, props.setProperty, callback));
 }
 
+const isUsingTempPassword = function (props, params, callback){
+  var email = AppUtils.getProperty(params, props.email),
+      password = AppUtils.getProperty(params, props.password);
+      
+  UserManager
+    .isTempPassword(email, password)
+    .then(AppUtils.onFindOptional.bind(null, params, props.setProperty, callback));
+}
+
 const updateUserByEmail = function(props, params, callback) {
   var email = AppUtils.getProperty(params, props.email);
 
@@ -107,5 +116,6 @@ export default {
   updateUserByEmail: updateUserByEmail,
   updateUserByToken: updateUserByToken,
   getUserByEmailPassword: getUserByEmailPassword,
-  verifyEmailActivation: verifyEmailActivation
+  verifyEmailActivation: verifyEmailActivation,
+  isUsingTempPassword: isUsingTempPassword
 };

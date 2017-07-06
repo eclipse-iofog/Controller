@@ -56,6 +56,15 @@ class UserManager extends BaseManager {
 		});
 	}
 
+	isTempPassword(email, password) {
+		return User.find({
+			where: {
+				email: email,
+				tempPassword: password
+			}
+		});
+	}
+
 	validateUserByEmail(email) {
 		return User.find({
 			where: {

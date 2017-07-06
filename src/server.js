@@ -163,6 +163,8 @@ const initApp = function() {
  app.post('/api/v1/user/profile/update', userController.updateUserDetailsEndPoint);
  app.post('/api/v1/user/password/change', userController.updateUserPasswordEndPoint);
  app.post('/api/v1/user/account/delete', userController.deleteUserAccountEndPoint);
+ app.post('/api/v1/user/signup', userController.userSignupEndPoint);
+ app.post('/api/v1/user/password/reset', userController.resetUserPasswordEndPoint);
 
   //generic error handler
   app.use((err, req, res, next) => {

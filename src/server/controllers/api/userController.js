@@ -3,6 +3,9 @@ import https from 'https';
 //require('dotenv').config();
 
 import emailRecoveryTemplate from '../../../views/emailTemp';
+import emailResetTemplate from '../../../views/resetPasswordTemp';
+import emailActivationTemplate from '../../../views/emailActivationTemp';
+
 import UserService from '../../services/userService';
 import FogAccessTokenService from '../../services/fogAccessTokenService';
 
@@ -11,8 +14,176 @@ import AppUtils from '../../utils/appUtils';
 import configUtil from '../../utils/configUtil';
 import logger from '../../utils/winstonLogs';
 
-/*********************************************** EndPoints ******************************************************/
-/*************** Validate User at login EndPoint (Post /api/v1/user/login) *****************/
+/**************************************** EndPoints *************************************************/
+/***************************** User Signup EndPoint (Post: /api/v1/user/signup) ***********************/
+ const userSignupEndPoint = function(req, res) {
+  logger.info("Endpoint hit: "+ req.originalUrl);
+
+  var params = {},
+    userProps = {
+      email: 'bodyParams.email',
+      setProperty: 'user'
+    },
+    emailActivationProps = {
+      emailActivated: 'user.emailActivated'
+    },
+    emailProps = {
+      service: 'emailSenderData.service',
+      email: 'emailSenderData.email',
+      password: 'emailSenderData.password'
+    };
+
+  params.bodyParams = req.body;
+  logger.info("Parameters:" + JSON.stringify(params.bodyParams));
+
+  async.waterfall([
+    async.apply(UserService.getUserByEmail, userProps, params),
+    validateUserInfo,
+    createNewUser,
+    getEmailData,
+    async.apply(UserService.userEmailSender, emailProps),
+    notifyUserAboutSignup
+
+  ], function(err, result) {
+    AppUtils.sendResponse(res, err, '', '', result);
+  })
+};
+
+const notifyUserAboutSignup = function(params, callback){
+  try{
+    let mailOptions = {
+      from: '"IOTRACKS" <' + params.emailSenderData.email + '>', // sender address
+      to: params.bodyParams.email, // list of receivers
+      subject: 'Activate Your Account', // Subject line
+      html: emailActivationTemplate.p1 // html body
+    };
+
+    // send mail with defined transport object
+    params.transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        logger.error(error);
+        callback('Err', 'Email not sent due to technical reasons. Please try later.');
+      }else{
+        logger.info('Message %s sent: %s', info.messageId, info.response);
+        callback(null, params);
+      }
+    });
+}catch(e){
+  logger.error(e);
+}
+}
+
+const validateUserInfo = function(params, callback){
+  if(!params.user){
+    if(AppUtils.isValidEmail(params.bodyParams.email)){
+      if(params.bodyParams.password.length > 7){
+        if(params.bodyParams.password == params.bodyParams.repeatPassword){
+          if(params.bodyParams.firstName.length > 2){
+            if(params.bodyParams.lastName.length > 2){
+              callback(null, params)
+            }else{
+              callback('err', 'Registration failed: Last Name length should be atleast 3 characters.')
+            }
+          }else{
+            callback('err', 'Registration failed: First Name length should be atleast 3 characters.')
+          }
+        }else{
+          callback('err', 'Registration failed: Passwords do not match.')
+        }
+      }else{
+        callback('err', 'Registration failed: Your password must have at least 8 characters.')
+      }
+    }else{
+      callback('err', 'Registration failed: Please enter a valid email address.')
+    }
+  }else{
+    callback('err', 'Registration failed: There is already an account associated with your email address. Please try logging in instead.')
+  }
+}
+
+const createNewUser = function (params, callback){
+  var newUserProps = {
+    user: {
+      email: params.bodyParams.email,
+      password: params.bodyParams.password,
+      firstName: params.bodyParams.firstName,
+      lastName: params.bodyParams.lastName,
+      emailActivated: 1
+    },
+    setProperty: 'newUser'
+  };
+
+  UserService.createUser(newUserProps, params, callback)
+}
+
+/**************************** Reset User Password (Post: /api/v1/user/password/reset) ********************/
+const resetUserPasswordEndPoint = function(req, res){
+  logger.info("Endpoint hit: "+ req.originalUrl);
+  var tempPass = AppUtils.generateRandomString(2) + 'uL7';
+  var params = {},
+    userProps = {
+      email: 'bodyParams.email',
+      setProperty: 'user'
+    },
+    updatePasswordProps = {
+      email: 'bodyParams.email',
+      updateData: {
+        tempPassword: tempPass
+      }
+    },
+    emailProps = {
+      service: 'emailSenderData.service',
+      email: 'emailSenderData.email',
+      password: 'emailSenderData.password'
+    };
+
+  params.tempPass = tempPass;
+  params.bodyParams = req.body;
+  logger.info("Parameters:" + JSON.stringify(params.bodyParams));
+
+  async.waterfall([
+    async.apply(UserService.getUserByEmail, userProps, params),
+    async.apply(UserService.updateUserByEmail, updatePasswordProps),
+    getEmailData,
+    async.apply(UserService.userEmailSender, emailProps),
+    notifyUserAboutPasswordReset
+
+  ], function(err, result) {
+
+    AppUtils.sendResponse(res, err, '', '', result);
+  })
+};
+
+
+const notifyUserAboutPasswordReset = function(params, callback){
+  try{
+  if (params.user){
+    let mailOptions = {
+      from: '"IOTRACKS" <' + params.emailSenderData.email + '>', // sender address
+      to: params.user.email, // list of receivers
+      subject: 'Password Reset Request', // Subject line
+      html: emailResetTemplate.p1 + params.user.firstName + ' ' + params.user.lastName + emailResetTemplate.p2 +  params.tempPass + emailResetTemplate.p3 // html body
+    };
+
+    // send mail with defined transport object
+    params.transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        logger.error(error);
+        callback('Err', 'Email not sent due to technical reasons. Please try later.');
+      }else{
+        logger.info('Message %s sent: %s', info.messageId, info.response);
+        callback(null, params);
+      }
+    });
+  }else{
+    callback('Err','Cannot find user email.')
+  }
+}catch(e){
+  logger.error(e);
+}
+}
+
+/********************* Validate User at login EndPoint (Post: /api/v1/user/login) ************************/
  const validateUserEndPoint = function(req, res) {
   logger.info("Endpoint hit: "+ req.originalUrl);
 
@@ -30,7 +201,8 @@ import logger from '../../utils/winstonLogs';
   logger.info("Parameters:" + JSON.stringify(params.bodyParams));
 
   async.waterfall([
-    async.apply(UserService.getUserByEmailPassword, userProps, params),
+    async.apply(UserService.isUsingTempPassword, userProps, params),
+    validateUser,
     async.apply(UserService.verifyEmailActivation, emailActivationProps),
     FogAccessTokenService.generateAccessToken,
     updateUserAccessTokenByEmail
@@ -40,22 +212,38 @@ import logger from '../../utils/winstonLogs';
       params.token = params.tokenData.accessToken;
     }
 
-    AppUtils.sendResponse(res, err, 'token', params.token, result);
+    var output = {
+      token: params.token,
+      destination: params.destination
+    }
+
+    AppUtils.sendResponse(res, err, 'output', output, result);
   })
 };
 
-const updateUserAccessTokenByEmail = function(params, callback){
-  var updateProps = {
-    updateData:{
-      userAccessToken: params.tokenData.accessToken
-    },
-    email: 'bodyParams.email'
-  };
+const validateUser = function (params, callback){
+  if (!params.user){
+    var userProps = {
+      email: 'bodyParams.email',
+      password: 'bodyParams.password',
+      setProperty: 'user' 
+    };
 
-  UserService.updateUserByEmail(updateProps, params, callback);
+    UserService.getUserByEmailPassword(userProps, params, callback);
+  }else{
+    params.destination = 'changePassword'
+    var updatePasswordProps = {
+      email: 'bodyParams.email',
+      updateData: {
+        tempPassword: ''
+      }
+    };
+
+    UserService.updateUserByEmail(updatePasswordProps, params, callback);
+  }
 }
 
-/*************** User Logout EndPoint (Post /api/v1/user/logout *****************/
+/*************** User Logout EndPoint (Post /api/v1/user/logout) *****************/
 const logoutUserEndPoint = function(req, res){
   logger.info("Endpoint hit: "+ req.originalUrl);
 
@@ -270,6 +458,17 @@ const notifyUserAboutPasswordChange = function(params, callback){
  	UserService.updateUserByToken(updateProps, params, callback);
  }
 
+ const updateUserAccessTokenByEmail = function(params, callback){
+  var updateProps = {
+    updateData:{
+      userAccessToken: params.tokenData.accessToken
+    },
+    email: 'bodyParams.email'
+  };
+
+  UserService.updateUserByEmail(updateProps, params, callback);
+}
+
  const updateUserProfile = function(params, callback){
   if (params.bodyParams.firstName.length > 2){
     if(params.bodyParams.lastName.length > 2){
@@ -296,5 +495,7 @@ const notifyUserAboutPasswordChange = function(params, callback){
  	updateUserPasswordEndPoint: updateUserPasswordEndPoint,
  	deleteUserAccountEndPoint: deleteUserAccountEndPoint,
   validateUserEndPoint: validateUserEndPoint,
-  logoutUserEndPoint: logoutUserEndPoint
+  logoutUserEndPoint: logoutUserEndPoint,
+  userSignupEndPoint: userSignupEndPoint,
+  resetUserPasswordEndPoint: resetUserPasswordEndPoint
  }
