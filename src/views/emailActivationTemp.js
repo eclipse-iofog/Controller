@@ -43,9 +43,12 @@ var emailActivationTemplate = {
 													font-family: sans-serif; \
 													font-size:14px;'>\
 													<td style = 'padding:0px 20px'>\
-														<a href='//javascript'>\
-															http://iotracks.com/account/activate/code/4f94766f4b0b166e\
-														</a> \
+														<a href='http://localhost:4000/account/activate/code/",
+
+p2:														"'>\
+															http://localhost:4000/account/activate/code/",
+
+p3:														"</a> \
 													</td>\
 												</tr>\
 												<tr>\
@@ -53,7 +56,9 @@ var emailActivationTemplate = {
 														style = 'padding:0px 20px 10; \
 														font-family: sans-serif; \
 														font-size:14px;'>\
-														<a href ='www.google.com' class = 'btn' style='\
+														<a href ='http://localhost:4000/account/activate/code/",
+
+p4:														"' class = 'btn' style='\
 															font-size: 14px;\
 														    color: #fff;\
 														    background: #348eda;\

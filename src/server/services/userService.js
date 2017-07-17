@@ -2,8 +2,6 @@ const nodemailer = require('nodemailer');
 var smtpTransport = require('nodemailer-smtp-transport');
 import UserManager from '../managers/userManager';
 import AppUtils from '../utils/appUtils';
-import logger from '../utils/winstonLogs';
-
 
 const userEmailSender = function (props, params, callback){
   var service = AppUtils.getProperty(params, props.service),
@@ -61,7 +59,15 @@ const getUserByEmailPassword = function(props, params, callback) {
       
   UserManager
     .validateUser(email, password)
-    .then(AppUtils.onFind.bind(null, params, props.setProperty, 'User not found', callback));
+    .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Error: Invalid login credentials.', callback));
+}
+
+const findUserByEmail = function(props, params, callback) {
+  var email = AppUtils.getProperty(params, props.email);
+
+  UserManager
+    .validateUserByEmail(email)
+    .then(AppUtils.onFind.bind(null, params, props.setProperty,'Error: Email not found.', callback));
 }
 
 const getUserByEmail = function(props, params, callback) {
@@ -89,6 +95,14 @@ const updateUserByEmail = function(props, params, callback) {
     .then(AppUtils.onUpdate.bind(null, params,'Password not updated', callback));
 }
 
+const updateUser = function(props, params, callback) {
+  var userId = AppUtils.getProperty(params, props.userId);
+
+  UserManager
+    .updateUserById(userId, props.updatedObj)
+    .then(AppUtils.onUpdate.bind(null, params, 'User not updated', callback));
+}
+
 const updateUserByToken = function(props, params, callback) {
   var token = AppUtils.getProperty(params, props.token);
 
@@ -109,6 +123,7 @@ const deleteByUserId = function(props, params, callback) {
 export default {
   createUser: createUser,
   getUser: getUser,
+  updateUser: updateUser,
   getUserOptional: getUserOptional,
   userEmailSender: userEmailSender,
   deleteByUserId : deleteByUserId,
@@ -117,5 +132,6 @@ export default {
   updateUserByToken: updateUserByToken,
   getUserByEmailPassword: getUserByEmailPassword,
   verifyEmailActivation: verifyEmailActivation,
-  isUsingTempPassword: isUsingTempPassword
+  isUsingTempPassword: isUsingTempPassword,
+  findUserByEmail: findUserByEmail
 };

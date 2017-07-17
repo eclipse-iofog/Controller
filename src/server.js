@@ -165,6 +165,9 @@ const initApp = function() {
  app.post('/api/v1/user/account/delete', userController.deleteUserAccountEndPoint);
  app.post('/api/v1/user/signup', userController.userSignupEndPoint);
  app.post('/api/v1/user/password/reset', userController.resetUserPasswordEndPoint);
+ app.post('/api/v1/user/account/activate/resend', userController.resendEmailActivationEndPoint);
+ app.get('/account/activate/code/:code', userController.activateUserAccountEndPoint);
+ app.get('/api/v2/user/authenticate/:t', userController.authenticateUserEndPoint)
 
   //generic error handler
   app.use((err, req, res, next) => {

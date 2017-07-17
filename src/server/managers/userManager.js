@@ -39,6 +39,14 @@ class UserManager extends BaseManager {
 		});
 	}	
 
+	updateUserById(userId, data){
+		return User.update(data, {
+			where: {
+				id: userId
+			}
+		});
+	}	
+
 	updateUserByEmail(email, data) {
 		return User.update(data, {
 			where: {

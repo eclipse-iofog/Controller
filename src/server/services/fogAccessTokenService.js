@@ -4,7 +4,6 @@ import FogAccessTokenManager from '../managers/fogAccessTokenManager';
 import UserService from './userService'
 import AppUtils from '../utils/appUtils';
 import Constants from '../constants.js';
-import logger from '../utils/winstonLogs';
 
 const checkFogTokenExpirationByToken = function(props, params, callback) {
   var time =  new Date(),

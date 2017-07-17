@@ -6,6 +6,7 @@ import emailRecoveryTemplate from '../../../views/emailTemp';
 import emailResetTemplate from '../../../views/resetPasswordTemp';
 import emailActivationTemplate from '../../../views/emailActivationTemp';
 
+import EmailActivationCodeService from '../../services/emailActivationCodeService';
 import UserService from '../../services/userService';
 import FogAccessTokenService from '../../services/fogAccessTokenService';
 
@@ -15,6 +16,95 @@ import configUtil from '../../utils/configUtil';
 import logger from '../../utils/winstonLogs';
 
 /**************************************** EndPoints *************************************************/
+/************ Activate User Account EndPoint (Get: /account/activate/code/:code) *******/
+ const activateUserAccountEndPoint = function(req, res) {
+  logger.info("Endpoint hit: "+ req.originalUrl);
+
+  var params = {},
+    activationCodeProps = {
+      activationCode: 'bodyParams.code',
+      setProperty: 'activationCodeData'
+    };
+
+  params.bodyParams = req.params;
+  logger.info("Parameters:" + JSON.stringify(params.bodyParams));
+
+  async.waterfall([
+    async.apply(EmailActivationCodeService.verifyActivationCode, activationCodeProps, params),
+    updateUser
+
+  ], function(err, result) {
+    AppUtils.sendResponse(res, err, '', '', result);
+  })
+};
+
+const updateUser = function(params, callback){
+  var userProps = {
+    userId: 'activationCodeData.user_id',
+    updatedObj:{
+      emailActivated: 1
+    }
+  };
+  UserService.updateUser(userProps, params, callback);
+}
+
+/************ Resend Email Activation EndPoint (Post: /api/v1/user/account/activate/resend) *******/
+ const resendEmailActivationEndPoint = function(req, res) {
+  logger.info("Endpoint hit: "+ req.originalUrl);
+
+  var params = {},
+    userProps = {
+      email: 'bodyParams.email',
+      setProperty: 'user'
+    },
+    emailProps = {
+      service: 'emailSenderData.service',
+      email: 'emailSenderData.email',
+      password: 'emailSenderData.password'
+    },
+    activationCodeProps = {
+      userId: 'user.id',
+      activationCode: 'activationCodeData.activationCode',
+      expirationTime: 'activationCodeData.expirationTime'
+    };
+
+  params.bodyParams = req.body;
+  logger.info("Parameters:" + JSON.stringify(params.bodyParams));
+
+  async.waterfall([
+    async.apply(UserService.findUserByEmail, userProps, params),
+    EmailActivationCodeService.generateActivationCode,
+    async.apply(EmailActivationCodeService.saveActivationCode, activationCodeProps),
+    getEmailData,
+    async.apply(UserService.userEmailSender, emailProps),
+    notifyUserAboutActivationCode
+
+  ], function(err, result) {
+    AppUtils.sendResponse(res, err, '', '', result);
+  })
+};
+
+ const authenticateUserEndPoint = function(req, res) {
+  logger.info("Endpoint hit: "+ req.originalUrl);
+  var params = {},
+
+    userProps = {
+      userId: 'bodyParams.t',
+      setProperty: 'user'
+    };
+
+  params.bodyParams = req.params;
+
+  logger.info("Parameters:" + JSON.stringify(params.bodyParams));
+
+  async.waterfall([
+    async.apply(UserService.getUser, userProps, params),
+
+  ], function(err, result) {
+    AppUtils.sendResponse(res, err, '', '', result);
+  })
+};
+
 /***************************** User Signup EndPoint (Post: /api/v1/user/signup) ***********************/
  const userSignupEndPoint = function(req, res) {
   logger.info("Endpoint hit: "+ req.originalUrl);
@@ -24,13 +114,15 @@ import logger from '../../utils/winstonLogs';
       email: 'bodyParams.email',
       setProperty: 'user'
     },
-    emailActivationProps = {
-      emailActivated: 'user.emailActivated'
-    },
     emailProps = {
       service: 'emailSenderData.service',
       email: 'emailSenderData.email',
       password: 'emailSenderData.password'
+    },
+    activationCodeProps = {
+      userId: 'newUser.id',
+      activationCode: 'activationCodeData.activationCode',
+      expirationTime: 'activationCodeData.expirationTime'
     };
 
   params.bodyParams = req.body;
@@ -40,22 +132,24 @@ import logger from '../../utils/winstonLogs';
     async.apply(UserService.getUserByEmail, userProps, params),
     validateUserInfo,
     createNewUser,
+    EmailActivationCodeService.generateActivationCode,
+    async.apply(EmailActivationCodeService.saveActivationCode, activationCodeProps),
     getEmailData,
     async.apply(UserService.userEmailSender, emailProps),
-    notifyUserAboutSignup
+    notifyUserAboutActivationCode
 
   ], function(err, result) {
     AppUtils.sendResponse(res, err, '', '', result);
   })
 };
 
-const notifyUserAboutSignup = function(params, callback){
+const notifyUserAboutActivationCode = function(params, callback){
   try{
     let mailOptions = {
       from: '"IOTRACKS" <' + params.emailSenderData.email + '>', // sender address
       to: params.bodyParams.email, // list of receivers
       subject: 'Activate Your Account', // Subject line
-      html: emailActivationTemplate.p1 // html body
+      html: emailActivationTemplate.p1 + params.activationCodeData.activationCode + emailActivationTemplate.p2 + params.activationCodeData.activationCode + emailActivationTemplate.p3 + params.activationCodeData.activationCode + emailActivationTemplate.p4 // html body
     };
 
     // send mail with defined transport object
@@ -108,7 +202,7 @@ const createNewUser = function (params, callback){
       password: params.bodyParams.password,
       firstName: params.bodyParams.firstName,
       lastName: params.bodyParams.lastName,
-      emailActivated: 1
+      emailActivated: 0
     },
     setProperty: 'newUser'
   };
@@ -361,9 +455,9 @@ const logoutUserEndPoint = function(req, res){
 const getEmailData = function(params, callback){
   try{
   configUtil.getAllConfigs().then(() => {
-    var email = configUtil.getConfigParam('email'),
-    password = configUtil.getConfigParam('password'),
-    service = configUtil.getConfigParam('service');
+    var email = configUtil.getConfigParam('email_address'),
+    password = configUtil.getConfigParam('email_password'),
+    service = configUtil.getConfigParam('email_service');
 
     params.emailSenderData = {
       email: email,
@@ -494,6 +588,7 @@ const notifyUserAboutPasswordChange = function(params, callback){
  }
 
  export default {
+  authenticateUserEndPoint: authenticateUserEndPoint,
  	getUserDetailsEndPoint: getUserDetailsEndPoint,
  	updateUserDetailsEndPoint: updateUserDetailsEndPoint,
  	updateUserPasswordEndPoint: updateUserPasswordEndPoint,
@@ -501,5 +596,7 @@ const notifyUserAboutPasswordChange = function(params, callback){
   validateUserEndPoint: validateUserEndPoint,
   logoutUserEndPoint: logoutUserEndPoint,
   userSignupEndPoint: userSignupEndPoint,
-  resetUserPasswordEndPoint: resetUserPasswordEndPoint
+  resetUserPasswordEndPoint: resetUserPasswordEndPoint,
+  resendEmailActivationEndPoint: resendEmailActivationEndPoint,
+  activateUserAccountEndPoint: activateUserAccountEndPoint
  }
