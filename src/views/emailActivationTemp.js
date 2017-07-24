@@ -43,12 +43,15 @@ var emailActivationTemplate = {
 													font-family: sans-serif; \
 													font-size:14px;'>\
 													<td style = 'padding:0px 20px'>\
-														<a href='http://localhost:4000/account/activate/code/",
+														<a href=",
 
-p2:														"'>\
-															http://localhost:4000/account/activate/code/",
+p2:														"/account/activate/code/",
 
-p3:														"</a> \
+p3:														">",														
+
+p4:													"/account/activate/code/",
+
+p5:														"</a> \
 													</td>\
 												</tr>\
 												<tr>\
@@ -56,9 +59,11 @@ p3:														"</a> \
 														style = 'padding:0px 20px 10; \
 														font-family: sans-serif; \
 														font-size:14px;'>\
-														<a href ='http://localhost:4000/account/activate/code/",
+														<a href =",
 
-p4:														"' class = 'btn' style='\
+p6:														"/account/activate/code/",
+
+p7:														" class = 'btn' style='\
 															font-size: 14px;\
 														    color: #fff;\
 														    background: #348eda;\

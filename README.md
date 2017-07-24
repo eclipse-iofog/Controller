@@ -55,8 +55,9 @@
         fog-controller version
  
 **Logs**
-- Log files are located at './node_modules/fog-controller/logs/'
-- Log files are rotated on daily basis or if a file size exceeds 20 MB 
+- Log files are located at './node_modules/fog-controller-logs/'
+- Log files are rotated on daily basis
+- If number of log files exceeds 90, oldest log file will be swapped with the newest file
 
 **System Requirements (Recommended)**
 - Processor: 64 bit Dual Core or better
@@ -79,11 +80,16 @@
         fog-controller config -add <key> <value>
 
 Note: Configuration keys can be one of following
-
 - port
 - ssl\_key
 - intermediate\_cert
 - ssl\_cert
+- email\_address
+- email\_password
+- email\_service
+- ioauthoring\_port
+- ioauthoring\_ip\_address
+- ioauthoring\_protocol
 
 To setup HTTPS for fog controller, do following steps:
 
@@ -91,6 +97,18 @@ To setup HTTPS for fog controller, do following steps:
         fog-controller config -add ssl_key '/home/certificates/key.pem'
         fog-controller config -add intermediate_cert '/home/certificates/gs_intermediate_ca.crt'
         fog-controller config -add ssl_cert '/home/certificates/certificate.pem'
+
+To setup ioauthoring configurations, do following steps:
+
+        fog-controller config -add ioauthoring_port 4000
+        fog-controller config -add ioauthoring_ip_address 127.0.0.1
+        fog-controller config -add ioauthoring_protocol http 
+
+To setup email sender, do following steps:
+
+        fog-controller config -add email_address abc@xyz.com
+        fog-controller config -add email_password abc123
+        fog-controller config -add email_service xyz
 
 3.&ensp;To remove a configuration
 

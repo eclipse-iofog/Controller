@@ -14,6 +14,7 @@ import FogAccessTokenService from '../../services/fogAccessTokenService';
 import AppUtils from '../../utils/appUtils';
 import configUtil from '../../utils/configUtil';
 import logger from '../../utils/winstonLogs';
+import appConfig from './../../../config.json';
 
 /**************************************** EndPoints *************************************************/
 /************ Activate User Account EndPoint (Get: /account/activate/code/:code) *******/
@@ -76,6 +77,7 @@ const updateUser = function(params, callback){
     EmailActivationCodeService.generateActivationCode,
     async.apply(EmailActivationCodeService.saveActivationCode, activationCodeProps),
     getEmailData,
+    getIOAuthoringData,
     async.apply(UserService.userEmailSender, emailProps),
     notifyUserAboutActivationCode
 
@@ -135,6 +137,7 @@ const updateUser = function(params, callback){
     EmailActivationCodeService.generateActivationCode,
     async.apply(EmailActivationCodeService.saveActivationCode, activationCodeProps),
     getEmailData,
+    getIOAuthoringData,
     async.apply(UserService.userEmailSender, emailProps),
     notifyUserAboutActivationCode
 
@@ -143,13 +146,51 @@ const updateUser = function(params, callback){
   })
 };
 
+const getIOAuthoringData = function(params, callback){
+  try{
+    configUtil.getAllConfigs().then(() => {
+      var ioAuthoringProtocol = configUtil.getConfigParam('ioauthoring_protocol'),
+      ioAuthoringIPAddress = configUtil.getConfigParam('ioauthoring_ip_address'),
+      ioAuthoringPort = configUtil.getConfigParam('ioauthoring_port');
+
+      logger.info(ioAuthoringProtocol);
+      logger.info(ioAuthoringIPAddress);
+      logger.info(ioAuthoringPort);
+
+      if(ioAuthoringProtocol == null){
+        ioAuthoringProtocol = appConfig.ioauthoringProtocol
+      }
+
+      if(ioAuthoringIPAddress == null){
+        ioAuthoringIPAddress = appConfig.ioauthoringIPAddress
+      }
+
+      if(ioAuthoringPort == null){
+        ioAuthoringPort = appConfig.ioauthoringPort
+      }
+
+      params.ioAuthoringConfigData = {
+        ioAuthoringProtocol: ioAuthoringProtocol,
+        ioAuthoringIPAddress: ioAuthoringIPAddress,
+        ioAuthoringPort: ioAuthoringPort
+      };
+      callback(null, params);
+    });
+  }catch(e){
+  logger.error(e);
+  }
+}
+
+
 const notifyUserAboutActivationCode = function(params, callback){
   try{
+    let ioAuthoringUrl = params.ioAuthoringConfigData.ioAuthoringProtocol + '://' + params.ioAuthoringConfigData.ioAuthoringIPAddress + ':' + params.ioAuthoringConfigData.ioAuthoringPort;
+
     let mailOptions = {
       from: '"IOTRACKS" <' + params.emailSenderData.email + '>', // sender address
       to: params.bodyParams.email, // list of receivers
       subject: 'Activate Your Account', // Subject line
-      html: emailActivationTemplate.p1 + params.activationCodeData.activationCode + emailActivationTemplate.p2 + params.activationCodeData.activationCode + emailActivationTemplate.p3 + params.activationCodeData.activationCode + emailActivationTemplate.p4 // html body
+      html: emailActivationTemplate.p1 + ioAuthoringUrl + emailActivationTemplate.p2 + params.activationCodeData.activationCode + emailActivationTemplate.p3 + ioAuthoringUrl + emailActivationTemplate.p4 + params.activationCodeData.activationCode + emailActivationTemplate.p5 + ioAuthoringUrl + emailActivationTemplate.p6 + params.activationCodeData.activationCode + emailActivationTemplate.p7 // html body
     };
 
     // send mail with defined transport object
@@ -239,6 +280,7 @@ const resetUserPasswordEndPoint = function(req, res){
     async.apply(UserService.getUserByEmail, userProps, params),
     async.apply(UserService.updateUserByEmail, updatePasswordProps),
     getEmailData,
+    getIOAuthoringData,
     async.apply(UserService.userEmailSender, emailProps),
     notifyUserAboutPasswordReset
 
@@ -251,30 +293,33 @@ const resetUserPasswordEndPoint = function(req, res){
 
 const notifyUserAboutPasswordReset = function(params, callback){
   try{
-  if (params.user){
-    let mailOptions = {
-      from: '"IOTRACKS" <' + params.emailSenderData.email + '>', // sender address
-      to: params.user.email, // list of receivers
-      subject: 'Password Reset Request', // Subject line
-      html: emailResetTemplate.p1 + params.user.firstName + ' ' + params.user.lastName + emailResetTemplate.p2 +  params.tempPass + emailResetTemplate.p3 // html body
-    };
 
-    // send mail with defined transport object
-    params.transporter.sendMail(mailOptions, (error, info) => {
-      if (error) {
-        logger.error(error);
-        callback('Err', 'Email not sent due to technical reasons. Please try later.');
-      }else{
-        logger.info('Message %s sent: %s', info.messageId, info.response);
-        callback(null, params);
-      }
-    });
-  }else{
-    callback('Err','Cannot find user email.')
+    let ioAuthoringUrl = params.ioAuthoringConfigData.ioAuthoringProtocol + '://' + params.ioAuthoringConfigData.ioAuthoringIPAddress + ':' + params.ioAuthoringConfigData.ioAuthoringPort;
+
+    if (params.user){
+      let mailOptions = {
+        from: '"IOTRACKS" <' + params.emailSenderData.email + '>', // sender address
+        to: params.user.email, // list of receivers
+        subject: 'Password Reset Request', // Subject line
+        html: emailResetTemplate.p1 + params.user.firstName + ' ' + params.user.lastName + emailResetTemplate.p2 +  params.tempPass + emailResetTemplate.p3 + ioAuthoringUrl + emailResetTemplate.p4// html body
+      };
+
+      // send mail with defined transport object
+      params.transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          logger.error(error);
+          callback('Err', 'Email not sent due to technical reasons. Please try later.');
+        }else{
+          logger.info('Message %s sent: %s', info.messageId, info.response);
+          callback(null, params);
+        }
+      });
+    }else{
+      callback('Err','Cannot find user email.')
+    }
+  }catch(e){
+    logger.error(e);
   }
-}catch(e){
-  logger.error(e);
-}
 }
 
 /********************* Validate User at login EndPoint (Post: /api/v1/user/login) ************************/

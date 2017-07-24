@@ -49,7 +49,9 @@ var emailResetTemplate = {
 														style = 'padding:0px 20px 10; \
 														font-family: sans-serif; \
 														font-size:14px;'>\
-														<a href ='http://localhost:4000/login' class = 'btn' style='\
+														<a href ='",
+
+	p4:													"/login' class = 'btn' style='\
 															font-size: 16px;\
 														    color: #fff;\
 														    background: #348eda;\

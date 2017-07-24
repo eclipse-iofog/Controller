@@ -32,9 +32,12 @@ const CONFIG = {
   ssl_key: 'ssl_key',
   ssl_cert: 'ssl_cert',
   intermediate_cert: 'intermediate_cert',
-  email: 'email',
-  password: 'password',
-  service: 'service'
+  email_address: 'email_address',
+  email_password: 'email_password',
+  email_service: 'email_service',
+  ioauthoring_port: 'ioauthoring_port',
+  ioauthoring_ip_address: 'ioauthoring_ip_address',
+  ioauthoring_protocol: 'ioauthoring_protocol'
 };
 
 export default {

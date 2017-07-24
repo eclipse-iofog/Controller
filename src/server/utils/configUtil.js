@@ -30,13 +30,25 @@ class FogControllerConfigUtil {
   setConfigParam(key, value) {
     if (this.isKeyExist(key)) {
       if (this.validateValue(key, value)) {
-        FogControllerConfigManager.setByKey(key, value);
-        console.log('Property "' + key + '" has been updated successfully.');
-      } else {
+        if(key == Constants.CONFIG.port){
+          AppUtils.checkPortAvailability(value).then(availability =>{
+            if(availability == 'closed'){
+              return FogControllerConfigManager.setByKey(key, value).then(result => {
+                console.log('"' + key + '" has been updated successfully.');
+              });
+            }else{
+              console.log('Port "' + value + '" is not available.');
+            }
+          });
+        }
+        return FogControllerConfigManager.setByKey(key, value).then(result => {
+          console.log('"' + key + '" has been updated successfully.');
+        });
+      }else {
         throw 'Invalid value provided for key "' + key + '"';
       }
-    } else {
-      throw '"' + key + '" is not a valid property. You can set properties like port, ssl_key, ssl_cert, intermediate_cert, email, password, service';
+    }else {
+      throw '"' + key + '" is not a valid property. You can set properties like: \nport, ssl_key, ssl_cert, intermediate_cert, \nemail_address, email_password, email_service, \nioauthoring_port, ioauthoring_ip_address, ioauthoring_protocol';
     }
   }
 
@@ -49,14 +61,18 @@ class FogControllerConfigUtil {
   }
 
   validateValue(key, value) {
-    if (key == Constants.CONFIG.port) {
+    if (key == Constants.CONFIG.port || key == Constants.CONFIG.ioauthoring_port) {
       return AppUtils.isValidPort(value);
-    }else if (key == 'service' || key == 'password'){
+    }else if (key.toLowerCase() == Constants.CONFIG.email_service || key.toLowerCase() == Constants.CONFIG.email_password){
       return true;
-    }else if (key == 'email'){
+    }else if (key.toLowerCase() == Constants.CONFIG.email_address){
       return AppUtils.isValidEmail(value);
     }else if (key.toLowerCase() == Constants.CONFIG.ssl_key || key.toLowerCase() == Constants.CONFIG.ssl_cert || key.toLowerCase() == Constants.CONFIG.intermediate_cert) {
       return AppUtils.isFileExists(value);
+    }else if(key.toLowerCase() == Constants.CONFIG.ioauthoring_ip_address){
+      return AppUtils.isValidPublicIP(value);
+    }else if(key.toLowerCase() == Constants.CONFIG.ioauthoring_protocol){
+      return AppUtils.isValidProtocol(value);
     }
   }
 

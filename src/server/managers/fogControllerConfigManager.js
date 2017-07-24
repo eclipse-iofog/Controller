@@ -23,7 +23,7 @@ class FogControllerConfigManager extends BaseManager {
   }
 
   setByKey(key, value) {
-    this.getByKey(key).then(function(dbConfig) {
+    return this.getByKey(key).then(function(dbConfig) {
       if (dbConfig) {
         dbConfig.value = value;
         dbConfig.save();
@@ -49,7 +49,7 @@ class FogControllerConfigManager extends BaseManager {
         .then(function(dbConfig) {
           if (dbConfig) {
             dbConfig.destroy();
-            console.log('\nProperty "' + key + '" has been deleted successfully.');
+            console.log('\n"' + key + '" has been deleted successfully.');
           } else {
             console.log('\nCan not find Configuration having "' + key + '" as key');
           }
