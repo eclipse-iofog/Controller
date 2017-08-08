@@ -16,17 +16,17 @@ import logger from '../../utils/winstonLogs';
 const instanceRegistriesEndPoint = function (req, res){
   logger.info("Endpoint hit: "+ req.originalUrl);
   var params = {},
-      instanceProps={
-      instanceId: 'bodyParams.ID',
-      setProperty: 'registry'
-      };
+    instanceProps = {
+    instanceId: 'bodyParams.ID',
+    setProperty: 'registry'
+  };
 
   params.bodyParams = req.params;
   logger.info("Parameters:" + JSON.stringify(params.bodyParams));
 
   async.waterfall([
     async.apply(BaseApiController.checkUserExistance, req, res),
-    async.apply(RegistryService.findRegistriesByInstanceId , instanceProps, params)
+    async.apply(RegistryService.findRegistriesByInstanceId, instanceProps, params)
   
   ], function(err, result) {
       AppUtils.sendResponse(res, err, 'registries', params.registry, result);  

@@ -562,20 +562,15 @@ const getRouteDetails = function(params, callback) {
   };
 
  if(params.bodyParams.publishingInstanceId != params.bodyParams.destinationInstanceId){
-    logger.warn('******A');
   }else if(params.bodyParams.publishingTrackId != params.bodyParams.destinationTrackId){
     params.output.instanceId = '';
     params.output.instanceName = '';
-    logger.warn('******B');
   }else{
     params.output.instanceId = '';
     params.output.instanceName = '';
     params.output.trackId = '';
     params.output.trackName = '';
-    logger.warn('******C');
   }
-  logger.warn('******D');
-
 
   callback(null, params);
 }
@@ -592,19 +587,15 @@ const getOutputDetails = function(params, callback) {
   };
 
   if(params.bodyParams.publishingInstanceId != params.bodyParams.destinationInstanceId){
-    logger.warn('******A');
   }else if(params.bodyParams.publishingTrackId != params.bodyParams.destinationTrackId){
     params.output.instanceId = '';
     params.output.instanceName = '';
-    logger.warn('******B');
   }else{
     params.output.instanceId = '';
     params.output.instanceName = '';
     params.output.trackId = '';
     params.output.trackName = '';
-    logger.warn('******C');
   }
-  logger.warn('******D');
 
   callback(null, params);
 }

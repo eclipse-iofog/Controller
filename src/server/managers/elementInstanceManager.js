@@ -63,18 +63,18 @@ class ElementInstanceManager extends BaseManager {
 	* @param Integer - instanceId
 	* @return JSON - returns a Array of JSON objects with elementInstance and its related dataTracks
 	*/
-	findByInstanceId(instanceId) {										                                      
-		var instanceConfigQuery = 'SELECT i.*, t.is_activated FROM element_instance i LEFT JOIN \
-		data_tracks t ON i.track_id = t.ID \
-		WHERE i.iofog_uuid in (:instanceId) AND (i.track_id = 0 OR t.is_activated = 1)';
+	// findByInstanceId(instanceId) {										                                      
+	// 	var instanceConfigQuery = 'SELECT i.*, t.is_activated FROM element_instance i LEFT JOIN \
+	// 	data_tracks t ON i.track_id = t.ID \
+	// 	WHERE i.iofog_uuid in (:instanceId) AND (i.track_id = 0 OR t.is_activated = 1)';
 
-		return sequelize.query(instanceConfigQuery, {
-			replacements: {
-				instanceId: instanceId
-			},
-			type: sequelize.QueryTypes.SELECT
-		});
-	}
+	// 	return sequelize.query(instanceConfigQuery, {
+	// 		replacements: {
+	// 			instanceId: instanceId
+	// 		},
+	// 		type: sequelize.QueryTypes.SELECT
+	// 	});
+	// }
 
 
 	findByUuId(uuid) {

@@ -80,17 +80,17 @@ const updateFogInstance = function(params, callback){
    var fogConfigProps = {
       instanceId: 'bodyParams.instanceId',
       updatedFog: {
-        networkinterface: params.bodyParams.networkInterface,
-        dockerurl: params.bodyParams.dockerUrl,
-        disklimit: params.bodyParams.diskLimit,
-        diskdirectory: params.bodyParams.diskDirectory,
-        memorylimit: params.bodyParams.memoryLimit,
-        cpulimit: params.bodyParams.cpuLimit,
-        loglimit: params.bodyParams.logLimit,
-        logdirectory: params.bodyParams.logDirectory,
-        logfilecount: params.bodyParams.logFileCount,
-        statusfrequency: params.bodyParams.statusFrequency,
-        changefrequency: params.bodyParams.changeFrequency
+        networkinterface: params.bodyParams.networkinterface,
+        dockerurl: params.bodyParams.dockerurl,
+        disklimit: params.bodyParams.disklimit,
+        diskdirectory: params.bodyParams.diskdirectory,
+        memorylimit: params.bodyParams.memorylimit,
+        cpulimit: params.bodyParams.cpulimit,
+        loglimit: params.bodyParams.loglimit,
+        logdirectory: params.bodyParams.logdirectory,
+        logfilecount: params.bodyParams.logfilecount,
+        statusfrequency: params.bodyParams.poststatusfreq,
+        changefrequency: params.bodyParams.getchangesfreq
       }
     };
   FogService.updateFogInstance(fogConfigProps, params, callback);

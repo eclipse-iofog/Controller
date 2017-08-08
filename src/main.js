@@ -223,7 +223,9 @@ const displayHelp = function (){
     "\t=======          =========                                         =======\n" + 
     "\tconfig           -list                                             Displays Configuration information in CLI (config table content)\n" +
     "\t                 -add <key> <value>                                Set Configurations of fog-controller\n" +
-    "\t                                                                   (You can set one of these configurations: port, ssl_key, intermediate_cert, ssl_cert)\n" +
+    "\t                                                                   (You can set one of these configurations: port, ssl_key, intermediate_cert, ssl_cert,\n" +
+    "\t                                                                     email_address, email_password, email_service, ioauthoring_port, ioauthoring_ip_address,\n" +
+    "\t                                                                     ioauthoring_protocal)\n" +
     "\t                 -remove <key>                                     Deletes a Configuration with corresponding Key\n" +
     "\n\tcomsat           -list                                             List down all ComSat(s)\n" +
     "\t                 -add <name> <domain> <publicIP>                   Creates a new ComSat\n" +

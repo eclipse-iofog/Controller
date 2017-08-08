@@ -18,7 +18,7 @@ const containerConfigEndPoint = function(req, res){
   logger.info("Endpoint hit: "+ req.originalUrl);
 	var params = {},
 		instanceProps = {
-			instanceId: 'bodyParams.ID',
+			fogId: 'bodyParams.ID',
 			setProperty: 'outputData'
 		};
 
@@ -27,7 +27,7 @@ const containerConfigEndPoint = function(req, res){
 
 	async.waterfall([
 		async.apply(BaseApiController.checkUserExistance, req, res),
-		async.apply(ElementInstanceService.findByInstanceId, instanceProps, params),
+		async.apply(ElementInstanceService.getElementInstancesByFogId, instanceProps, params),
 		processOutput
 
 	], function(err, result) {
@@ -39,21 +39,21 @@ const containerConfigEndPoint = function(req, res){
 const processOutput = function (params, callback)
 {
 	var containerList = new Array();
-
+	logger.info(params.outputData);
 	for (var i = 0; i < params.outputData.length; i++) {
 		var container = params.outputData[i],
-			containerID = container.UUID;
+			containerId = container.uuid;
 
-		if (container.is_stream_viewer > 0) {
-			containerID = "viewer";
+		if (container.isStreamViewer > 0) {
+			containerId = "viewer";
 		}
-		if (container.is_debug_console > 0) {
-			containerID = "debug";
+		if (container.isDebugConsole > 0) {
+			containerId = "debug";
 		}
-		var containerUpdated = Date.parse(container.config_last_updated),
+		var containerUpdated = container.configLastUpdated,
 			containerConfig = container.config;
 			containerList.push({
-				'id': containerID,
+				'id': containerId,
 				'lastupdatedtimestamp': containerUpdated,
 				'config': containerConfig
 			});

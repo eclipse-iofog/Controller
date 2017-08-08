@@ -1,6 +1,6 @@
 {
   "name": "fog-controller",
-  "version": "0.1.26",
+  "version": "0.1.27",
   "description": "Fog Controller project @ iotracks.com",
   "main": "./src/main.js",
   "repository": {
@@ -43,6 +43,7 @@
     "multer": "^1.1.0",
     "node-mailer": "^0.1.1",
     "node-uuid": "^1.4.7",
+    "nodemailer": "^4.0.1",
     "nodemailer-smtp-transport": "^2.7.4",
     "path": "^0.12.7",
     "portscanner": "^2.1.1",

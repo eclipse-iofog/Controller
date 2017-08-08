@@ -40,10 +40,11 @@ class FogControllerConfigUtil {
               console.log('Port "' + value + '" is not available.');
             }
           });
+        }else{
+          return FogControllerConfigManager.setByKey(key, value).then(result => {
+            console.log('"' + key + '" has been updated successfully.');
+          });
         }
-        return FogControllerConfigManager.setByKey(key, value).then(result => {
-          console.log('"' + key + '" has been updated successfully.');
-        });
       }else {
         throw 'Invalid value provided for key "' + key + '"';
       }
