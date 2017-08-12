@@ -39,7 +39,6 @@ const containerConfigEndPoint = function(req, res){
 const processOutput = function (params, callback)
 {
 	var containerList = new Array();
-	logger.info(params.outputData);
 	for (var i = 0; i < params.outputData.length; i++) {
 		var container = params.outputData[i],
 			containerId = container.uuid;
