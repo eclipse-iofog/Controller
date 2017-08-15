@@ -33,9 +33,9 @@ const ChangeTracking = sequelize.define('iofog_change_tracking', {
     type: Sequelize.BIGINT,
     field: 'routing'
   },
-  registeries: {
+  registries: {
     type: Sequelize.BIGINT,
-    field: 'registeries'
+    field: 'registries'
   }
 }, {
   // don't add the timestamp attributes (updatedAt, createdAt)

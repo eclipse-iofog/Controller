@@ -22,7 +22,7 @@ class ChangeTrackingManager extends BaseManager {
 				containerList: milliseconds,
 				config: milliseconds,
 				routing: milliseconds,
-				registeries: milliseconds
+				registries: milliseconds
 			});
 		}
 		/**
