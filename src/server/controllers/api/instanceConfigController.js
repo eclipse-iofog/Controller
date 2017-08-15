@@ -60,15 +60,15 @@ const processConfigData = function(params, callback){
   var config = {
       networkinterface: params.fogData.networkinterface,
       dockerurl: params.fogData.dockerurl,
-      disklimit: params.fogData.disklimit,
+      disklimit: params.fogData.disklimit.toString(),
       diskdirectory: params.fogData.diskdirectory,
-      memorylimit: params.fogData.memorylimit,
-      cpulimit: params.fogData.cpulimit,
-      loglimit: params.fogData.loglimit,
+      memorylimit: params.fogData.memorylimit.toString(),
+      cpulimit: params.fogData.cpulimit.toString(),
+      loglimit: params.fogData.loglimit.toString(),
       logdirectory: params.fogData.logdirectory,
-      logfilecount: params.fogData.logfilecount,
-      statusfrequency: params.fogData.statusfrequency,
-      changefrequency: params.fogData.changefrequency
+      logfilecount: params.fogData.logfilecount.toString(),
+      statusfrequency: params.fogData.statusfrequency.toString(),
+      changefrequency: params.fogData.changefrequency.toString()
     };
 
     params.config = config;
