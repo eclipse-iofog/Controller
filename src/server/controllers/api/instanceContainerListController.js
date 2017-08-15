@@ -19,16 +19,17 @@ const containerListEndPoint = function(req, res){
   logger.info("Endpoint hit: "+ req.originalUrl);
 
   var params= {},
-      dataTrackProps = {
+      instanceProps = {
         instanceId: 'bodyParams.ID',
-        setProperty: 'dataTracks'
+        setProperty: 'elementInstances'
       };
   params.bodyParams = req.params;
   logger.info("Parameters:" + JSON.stringify(params.bodyParams));
   
   async.waterfall([
     async.apply(BaseApiController.checkUserExistance, req, res),
-    async.apply(DataTracksService.findContainerListByInstanceId, dataTrackProps, params),
+    //async.apply(DataTracksService.findContainerListByInstanceId, dataTrackProps, params),
+    async.apply(ElementInstanceService.getElementInstancesByFogIdOptional, instanceProps, params),
     setViewerOrDebug
 
   ], function(err, result) {
@@ -37,25 +38,25 @@ const containerListEndPoint = function(req, res){
 }
 /************************************* Extra Functions **************************************************/
 const setViewerOrDebug = function(params, callback){
-  var dataTracks = params.dataTracks;
+  var elementInstances = params.elementInstances;
   params.containerList = [];
 
-  async.forEachLimit(dataTracks, 1, function(dataTrack, next){
-    var container = dataTrack;
+  async.forEachLimit(elementInstances, 1, function(elementInstance, next){
+    var container = elementInstance;
     container.rebuildFlag = false;
     container.rootAccessFlag = false;
     container.ports = [];
 
-    container.isViewerOrDebug = dataTrack.UUID;
-    container.last_updated = dataTrack.updated_at;
+    container.isViewerOrDebug = elementInstance.uuid;
+    container.last_updated = elementInstance.updated_at;
 
-    if (container.is_stream_viewer > 0) container.isViewerOrDebug = "viewer";
-    if (container.is_debug_console > 0) container.isViewerOrDebug = "debug";
+    if (container.isStreamViewer > 0) container.isViewerOrDebug = "viewer";
+    if (container.isDebugConsole > 0) container.isViewerOrDebug = "debug";
   
    params.container = container;
 
     var updateElementInstanceProps = {
-          elementId: 'container.UUID',
+          elementId: 'container.uuid',
           updatedData: {
             rebuild: 0
           }
@@ -65,7 +66,7 @@ const setViewerOrDebug = function(params, callback){
           setProperty: 'elementData'
         },
         elementPortProps = {
-          elementPortId: 'container.UUID',
+          elementPortId: 'container.uuid',
           setProperty: 'elementInstancePort'
         };
 
@@ -92,8 +93,8 @@ const processContainerListData = function(params, callback) {
     id: params.container.isViewerOrDebug,
     lastmodified: Date.parse(params.container.last_updated),
     rebuild: params.container.rebuild > 0 ? true : false,
-    roothostaccess: params.container.root_host_access > 0 ? true : false,
-    logsize: parseFloat(params.container.log_size),
+    roothostaccess: params.container.rootHostAccess > 0 ? true : false,
+    logsize: parseFloat(params.container.logSize),
     imageid: params.elementData.containerImage,
     registryurl: params.elementData.registry.url,
   };
@@ -101,7 +102,7 @@ const processContainerListData = function(params, callback) {
   callback(null, params);
 }
 const processContainerListOutput = function(params, callback) {
-
+try{
   for (let j = 0; j < params.elementInstancePort.length; j++) {
     let outputPortItem = {
         outsidecontainer: (params.elementInstancePort[j].portexternal).toString(),
@@ -113,8 +114,10 @@ const processContainerListOutput = function(params, callback) {
 
   params.containerList.push(params.newContainerItem);
   callback(null, params);
+}catch(e){
+  logger.error(e);
 }
-
+}
 export default {
   containerListEndPoint: containerListEndPoint
 };

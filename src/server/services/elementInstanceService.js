@@ -67,6 +67,14 @@ const getElementInstancesByFogId = function(props, params, callback) {
     .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Cannot find Element Instance', callback));
 }
 
+const getElementInstancesByFogIdOptional = function(props, params, callback) {
+  var instanceId = AppUtils.getProperty(params, props.instanceId);
+
+  ElementInstanceManager
+    .getByFogId(instanceId)
+    .then(AppUtils.onFindOptional.bind(null, params, props.setProperty, callback));
+}
+
 const findElementInstancesByTrackId = function(props, params, callback) {
   var trackId = AppUtils.getProperty(params, props.trackId);
 
@@ -310,5 +318,6 @@ export default {
   updateElementInstanceRebuild: updateElementInstanceRebuild,
   getDetailedElementInstances:getDetailedElementInstances,
   getElementInstanceRouteDetails: getElementInstanceRouteDetails,
-  getElementInstancesByFogId: getElementInstancesByFogId
+  getElementInstancesByFogId: getElementInstancesByFogId,
+  getElementInstancesByFogIdOptional: getElementInstancesByFogIdOptional
 };
