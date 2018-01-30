@@ -56,6 +56,28 @@ class Help {
     console.log(`-generateToken <email>
                   \t\t\t\t\t\t\tResets User Access Token of corresponding email`);
   }
+
+  static displayComsatCommandHelp = () => {
+    console.log(`You need to use one of the following commands:`);
+    Help.displayComsatListHelp();
+    Help.displayComsatAddHelp();
+    Help.displayComsatRemoveHelp();
+  }
+
+  static displayComsatListHelp = () => {
+    console.log(`-list
+                  \t\t\t\t\t\t\tList down all ComSat(s)`);
+  }
+
+  static displayComsatAddHelp = () => {
+    console.log(`-add <name> <domain> <publicIP>
+                  \t\t\t\t\t\t\tCreates a new ComSat`);
+  }
+
+  static displayComsatRemoveHelp = () => {
+    console.log(`-remove <ID>
+                  \t\t\t\t\t\t\tDeletes a ComSat with corresponding ID`);
+  }
 }
 
 exports.Help = Help;

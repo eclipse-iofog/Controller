@@ -3,6 +3,7 @@ const { Config } = require('./Config');
 const { Status } = require('./Status');
 const { Start } = require('./Start');
 const { User } = require('./User');
+const { Comsat } = require('./Comsat');
 
 class CLI {
   constructor(args) {
@@ -26,24 +27,8 @@ class CLI {
         let user = new User(args.slice(1));
         return user.run();
       case 'comsat':
-        if (args[1]) {
-          switch (args[1]) {
-            case '-list':
-              SatelliteManager.list();
-              break;
-            case '-add':
-              SatelliteManager.createSatellite(args[2], args[3], args[4]);
-              break;
-            case '-remove':
-              SatelliteManager.removeSatellite(args[2]);
-              break;
-            default:
-              console.log('Invalid flag "' + args[1] + '"');
-          }
-        } else {
-          SatelliteManager.list();
-        }
-        break;
+        let comsat = new Comsat(args.slice(1));
+        return comsat.run();
       case 'help':
       default:
         displayHelp();
