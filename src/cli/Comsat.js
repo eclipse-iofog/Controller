@@ -17,16 +17,44 @@ class Comsat {
 function runCommand(args) {
   switch (args[0]) {
     case '-list':
-      SatelliteManager.list();
-      break;
+      return runListCommand(args);
     case '-add':
-      SatelliteManager.createSatellite(args[2], args[3], args[4]);
-      break;
+      return runAddCommand(args);
     case '-remove':
-      SatelliteManager.removeSatellite(args[2]);
-      break;
+      return runRemoveCommand(args);
     default:
-      console.log('Invalid flag "' + args[1] + '"');
+      Help.displayComsatCommandHelp();
+  }
+}
+
+function runListCommand(args) {
+  if (args.length > 1) return Help.displayExtraArgumentHelp(args[1]);
+
+  try {
+    SatelliteManager.list();
+  } catch(e) {
+    console.log(e);
+  }
+}
+
+function runAddCommand(args) {
+  if (args.length < 4) return Help.displayUserCommandHelp();
+  if (args.length > 4) return Help.displayExtraArgumentHelp(args[4]);
+
+  try {
+    SatelliteManager.createSatellite(args[1], args[2], args[3]);
+  } catch(e) {
+    console.log(e);
+  }
+}
+
+function runRemoveCommand(args) {
+  if (args.length > 2) return Help.displayExtraArgumentHelp(args[2]);
+
+  try {
+    SatelliteManager.removeSatellite(args[1]);
+  } catch(e) {
+    console.log(e);
   }
 }
 

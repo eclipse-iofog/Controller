@@ -1,5 +1,5 @@
 const defaultConfig = require('../config.json');
-const constants = require('../server/constants');
+import constants from '../server/constants';
 
 import ConfigUtil from '../server/utils/configUtil';
 
@@ -7,7 +7,7 @@ class Start {
   static run = (daemon) => {
     ConfigUtil.getAllConfigs().then(() => {
       let configuration = {
-        dbPort: ConfigUtil.getConfigParam(constants.CONFIG.port) || appConfig.port,
+        dbPort: ConfigUtil.getConfigParam(constants.CONFIG.port) || defaultConfig.port,
         sslKey: ConfigUtil.getConfigParam(constants.CONFIG.ssl_key),
         sslCert: ConfigUtil.getConfigParam(constants.CONFIG.ssl_cert),
         intermedKey: ConfigUtil.getConfigParam(constants.CONFIG.intermediate_cert)
@@ -22,17 +22,17 @@ function startDaemon(daemon, configuration) {
   let pid = daemon.status();
   if (pid == 0) {
     daemon.start();
-    checkDaemon(daemon);
+    checkDaemon(daemon, configuration);
   } else {
     console.log(`fog-controller already running. PID: ${pid}`);
   }
 }
 
-function checkDaemon(daemon) {
+function checkDaemon(daemon, configuration) {
   let iterationsCount = 0;
   let intervalId = setInterval(() => {
     iterationsCount++;
-    pid = daemon.status();
+    let pid = daemon.status();
     if (pid === 0) {
       console.log('Error: ssl_key or ssl_cert or intermediate_cert is either missing or invalid. Provide valid SSL configurations.');
       clearInterval(intervalId);

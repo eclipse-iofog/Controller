@@ -1,36 +1,34 @@
 class Help {
   static displayExtraArgumentHelp = (arg) => {
-    console.log(`Unrecognized command: ${arg}`);
-    console.log(`Use fog-controller help for more information`);
+    console.log(`
+      \tUnrecognized command: ${arg}
+      \tUse fog-controller help for more information`);
   }
 
   static displayConfigCommandHelp = () => {
-    console.log(`You need to use one of the following commands:`);
+    displayHelpHeader();
     Help.displayConfigListHelp();
     Help.displayConfigAddHelp();
     Help.displayConfigRemoveHelp();
   }
 
   static displayConfigListHelp = () => {
-    console.log(`-list
-                  \t\t\tDisplays Configuration information in CLI (config table content)`);
+    console.log(`\t\t\t-list\t\t\t\t\t\tDisplays Configuration information in CLI (config table content)`);
   }
 
   static displayConfigAddHelp = () => {
-    console.log(`-add <key> <value>
-                  \tSet Configurations of fog-controller\n
-                  \t\t\t\t(You can set one of these configurations: port, ssl_key, intermediate_cert, ssl_cert,\n
-                  \t\t\t\temail_address, email_password, email_service, ioauthoring_port, ioauthoring_ip_address,\n
-                  \t\t\t\tioauthoring_protocal)`);
+    console.log(`\t\t\t-add <key> <value>\t\t\t\tSet Configurations of fog-controller
+                  \t\t\t\t\t\t\t\t(You can set one of these configurations: port, ssl_key, intermediate_cert, ssl_cert,
+                  \t\t\t\t\t\t\t\temail_address, email_password, email_service, ioauthoring_port, ioauthoring_ip_address,
+                  \t\t\t\t\t\t\t\tioauthoring_protocal)`);
   }
 
   static displayConfigRemoveHelp = () => {
-    console.log(`-remove <key>
-                  \t\tDeletes a Configuration with corresponding Key`);
+    console.log(`\t\t\t-remove <key>\t\t\t\t\tDeletes a Configuration with corresponding Key`);
   }
 
   static displayUserCommandHelp = () => {
-    console.log(`You need to use one of the following commands:`);
+    displayHelpHeader();
     Help.displayUserListHelp();
     Help.displayUserAddHelp();
     Help.displayUserRemoveHelp();
@@ -38,46 +36,81 @@ class Help {
   }
 
   static displayUserListHelp = () => {
-    console.log(`-list
-                  \t\t\t\t\t\t\t\tList down all users`);
+    console.log(`\t\t\t-list\t\t\t\t\t\tList down all users`);
   }
 
   static displayUserAddHelp = () => {
-    console.log(`-add <email> <firstName> <lastName> <password>
-                  \t\tCreates a new user`);
+    console.log(`\t\t\t-add <email> <firstName> <lastName> <password>\tCreates a new user`);
   }
 
   static displayUserRemoveHelp = () => {
-    console.log(`-remove <email>
-                  \t\t\t\t\t\tDeletes a user with corresponding email`);
+    console.log(`\t\t\t-remove <email>\t\t\t\t\tDeletes a user with corresponding email`);
   }
 
   static displayUserGenerateTokenHelp = () => {
-    console.log(`-generateToken <email>
-                  \t\t\t\t\t\t\tResets User Access Token of corresponding email`);
+    console.log(`\t\t\t-generateToken <email>\t\t\t\tResets User Access Token of corresponding email`);
   }
 
   static displayComsatCommandHelp = () => {
-    console.log(`You need to use one of the following commands:`);
+    displayHelpHeader();
     Help.displayComsatListHelp();
     Help.displayComsatAddHelp();
     Help.displayComsatRemoveHelp();
   }
 
   static displayComsatListHelp = () => {
-    console.log(`-list
-                  \t\t\t\t\t\t\tList down all ComSat(s)`);
+    console.log(`\t\t\t-list\t\t\t\t\t\tList down all ComSat(s)`);
   }
 
   static displayComsatAddHelp = () => {
-    console.log(`-add <name> <domain> <publicIP>
-                  \t\t\t\t\t\t\tCreates a new ComSat`);
+    console.log(`\t\t\t-add <name> <domain> <publicIP>\t\t\tCreates a new ComSat`);
   }
 
   static displayComsatRemoveHelp = () => {
-    console.log(`-remove <ID>
-                  \t\t\t\t\t\t\tDeletes a ComSat with corresponding ID`);
+    console.log(`\t\t\t-remove <ID>\t\t\t\t\tDeletes a ComSat with corresponding ID`);
   }
+
+  static displayGeneralHelp = () => {
+    displayHelpHeader();
+    console.log(`\tconfig`);
+    Help.displayConfigListHelp();
+    Help.displayConfigAddHelp();
+    Help.displayConfigRemoveHelp();
+    console.log(`\tcomsat`);
+    Help.displayComsatListHelp();
+    Help.displayComsatAddHelp();
+    Help.displayComsatRemoveHelp();
+    console.log(`\tuser`);
+    Help.displayUserListHelp();
+    Help.displayUserAddHelp();
+    Help.displayUserRemoveHelp();
+    Help.displayUserGenerateTokenHelp();
+    displayHelpFooter();
+  }
+}
+
+function displayHelpHeader() {
+  console.log(`\tUsage 1: fog-controller [OPTION]
+      \tUsage 2: fog-controller [COMMAND] <Argument>
+      \tUsage 3: fog-controller [COMMAND] <key> <value>
+      
+
+      \tCommand\t\tArguments\t\t\t\t\tMeaning
+      \t=======\t\t=========\t\t\t\t\t=======`);
+}
+
+function displayHelpFooter() {
+  console.log(`\thelp\t\t\t\t\t\t\t\tShows this message
+  \tstart\t\t\t\t\t\t\t\tStarts fog-controller
+  \tstatus\t\t\t\t\t\t\t\tShows status of fog-controller
+  \tstop\t\t\t\t\t\t\t\tStops fog-controller
+  \tversion\t\t\t\t\t\t\t\tDisplays Version and License
+  
+
+  \tReport bugs to: bugs@iotracks.com
+  \tioFog home page: http://iofog.com
+  \tFor users with Eclipse accounts, report bugs to: https://bugs.eclipse.org/bugs/enter_bug.cgi?product=iofog
+  `);
 }
 
 exports.Help = Help;

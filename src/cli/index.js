@@ -4,6 +4,7 @@ const { Status } = require('./Status');
 const { Start } = require('./Start');
 const { User } = require('./User');
 const { Comsat } = require('./Comsat');
+const { Help } = require('./Help');
 
 class CLI {
   constructor(args) {
@@ -15,7 +16,7 @@ class CLI {
       case 'version':
         return Version.display(this.args);
       case 'config':
-        let config = new Config(args.slice(1));
+        let config = new Config(this.args.slice(1));
         return config.run();
       case 'status':
         return Status.display(daemon);
@@ -24,15 +25,14 @@ class CLI {
       case 'stop':
         return daemon.stop();
       case 'user':
-        let user = new User(args.slice(1));
+        let user = new User(this.args.slice(1));
         return user.run();
       case 'comsat':
-        let comsat = new Comsat(args.slice(1));
+        let comsat = new Comsat(this.args.slice(1));
         return comsat.run();
       case 'help':
       default:
-        displayHelp();
-        break;
+        Help.displayGeneralHelp();
     }
   }
 }

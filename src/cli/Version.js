@@ -1,4 +1,4 @@
-const package = require('../../package.json');
+const packageJson = require('../../package.json');
 let {Help} = require('./Help');
 
 class Version {
@@ -12,4 +12,4 @@ class Version {
     }
 }
 
-exports.Version = version;
+exports.Version = Version;
