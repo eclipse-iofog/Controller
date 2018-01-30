@@ -19,3 +19,6 @@ dist
 
 # Environment variables
 .env
+
+# VS code
+.vscode/
