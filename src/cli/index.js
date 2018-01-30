@@ -12,26 +12,19 @@ class CLI {
   run = (daemon) => {
     switch (this.args[0]) {
       case 'version':
-        Version.display(this.args);
-        break;
+        return Version.display(this.args);
       case 'config':
         let config = new Config(args.slice(1));
-        config.run();
-        break;
+        return config.run();
       case 'status':
-        Status.display(daemon);
-        break;
+        return Status.display(daemon);
       case 'start':
-        Start.run(daemon);
-        break;
+        return Start.run(daemon);
       case 'stop':
-        daemon.stop();
-        break;
+        return daemon.stop();
       case 'user':
         let user = new User(args.slice(1));
-        user.run();
-        break;
-
+        return user.run();
       case 'comsat':
         if (args[1]) {
           switch (args[1]) {
