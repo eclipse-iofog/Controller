@@ -20,14 +20,11 @@ class Config {
 function runCommand(args) {
   switch (args[0]) {
     case '-list':
-      runListCommand(args);
-      break;
+      return runListCommand(args);
     case '-add':
-      runAddCommend(args);
-      break;
+      return runAddCommend(args);
     case '-remove':
-      runRemoveCommand(args);
-      break;
+      return runRemoveCommand(args);
     default:
       Help.displayExtraArgumentHelp(args[0])
   }

@@ -2,6 +2,7 @@ const { Version } = require('./Version');
 const { Config } = require('./Config');
 const { Status } = require('./Status');
 const { Start } = require('./Start');
+const { User } = require('./User');
 
 class CLI {
   constructor(args) {
@@ -23,32 +24,12 @@ class CLI {
       case 'start':
         Start.run(daemon);
         break;
-
       case 'stop':
         daemon.stop();
         break;
-
       case 'user':
-        if (args[1]) {
-          switch (args[1]) {
-            case '-list':
-              UserManager.list();
-              break;
-            case '-add':
-              UserManager.createUser(args[2], args[3], args[4], args[5]);
-              break;
-            case '-remove':
-              UserManager.removeUser(args[2]);
-              break;
-            case '-generateToken':
-              UserManager.generateToken(args[2]);
-              break;
-            default:
-              console.log('Invalid flag "' + args[1] + '"');
-          }
-        } else {
-          UserManager.list();
-        }
+        let user = new User(args.slice(1));
+        user.run();
         break;
 
       case 'comsat':
