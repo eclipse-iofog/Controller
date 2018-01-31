@@ -22,3 +22,6 @@ dist
 
 # VS code
 .vscode/
+
+# Database
+db/
