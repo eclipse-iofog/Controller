@@ -6,7 +6,6 @@ class Help {
   }
 
   static displayConfigCommandHelp = () => {
-    displayHelpHeader();
     Help.displayConfigListHelp();
     Help.displayConfigAddHelp();
     Help.displayConfigRemoveHelp();
@@ -28,7 +27,6 @@ class Help {
   }
 
   static displayUserCommandHelp = () => {
-    displayHelpHeader();
     Help.displayUserListHelp();
     Help.displayUserAddHelp();
     Help.displayUserRemoveHelp();
@@ -52,7 +50,6 @@ class Help {
   }
 
   static displayComsatCommandHelp = () => {
-    displayHelpHeader();
     Help.displayComsatListHelp();
     Help.displayComsatAddHelp();
     Help.displayComsatRemoveHelp();
