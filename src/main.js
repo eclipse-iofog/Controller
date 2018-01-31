@@ -18,8 +18,7 @@ function main() {
     let key,
         value,
         args = process.argv.slice(2),
-        argsString = args.toString(),
-        commandInserted = argsString.replace(/,/g, ' ');
+        commandInserted = args.join(' ');
 
     const cli = new CLI(args);
 
