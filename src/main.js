@@ -1,3 +1,6 @@
+const path = require('path');
+const fs = require('fs');
+
 const { CLI } = require('./cli');
 
 import FogControllerConfigService from './server/services/fogControllerConfigService';
@@ -10,8 +13,6 @@ import Server from './server';
 import ConfigUtil from './server/utils/configUtil';
 import constants from './server/constants.js';
 import logger from './server/utils/winstonLogs';
-import fs from 'fs';
-const path = require('path');
 
 function main() {
     let key,
@@ -20,9 +21,9 @@ function main() {
         argsString = args.toString(),
         commandInserted = argsString.replace(/,/g, ' ');
 
-    let cli = new CLI(args);
+    const cli = new CLI(args);
 
-    var daemon = require("daemonize2").setup({
+    let daemon = require("daemonize2").setup({
         main: "daemonServer.js",
         name: "fog-controller",
         pidfile: "fog-controller.pid",
@@ -30,22 +31,22 @@ function main() {
     });
 
     daemon
-        .on("starting", function () {
+        .on("starting", () => {
             console.log("Starting fog-controller...");
         })
-        .on("stopping", function () {
+        .on("stopping", () => {
             console.log("Stopping fog-controller...");
         })
-        .on("stopped", function (pid) {
+        .on("stopped", (pid) => {
             console.log("fog-controller stopped.");
         })
-        .on("running", function (pid) {
+        .on("running", (pid) => {
             console.log("fog-controller already running. PID: " + pid);
         })
-        .on("notrunning", function () {
+        .on("notrunning", () => {
             console.log("fog-controller is not running");
         })
-        .on("error", function (err) {
+        .on("error", (err) => {
             console.log("fog-controller failed to start:  " + err.message);
         });
 
