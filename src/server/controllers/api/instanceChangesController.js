@@ -48,7 +48,8 @@ const processChangeTrackingChanges = function(params, callback) {
       containerlist: false,
       containerconfig: false,
       routing: false,
-      registries: false
+      registries: false,
+      proxy: false
     };
   
     if(params.changeTrackingData.config > params.bodyParams.TimeStamp) {
@@ -69,6 +70,10 @@ const processChangeTrackingChanges = function(params, callback) {
 
     if (params.changeTrackingData.registries > params.bodyParams.TimeStamp) {
       changes.registries = true;
+    }
+
+    if (params.changeTrackingData.proxy > params.bodyParams.TimeStamp) {
+      changes.proxy = true;
     }
     params.changes = changes;
     callback (null, params);
