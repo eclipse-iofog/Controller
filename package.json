@@ -15,12 +15,13 @@
   "license": "Copyright (C) 2017 iotracks, inc. \nEclipse ioFog is provided under the Eclipse Public License (EPL) \nhttps://www.eclipse.org/legal/epl-v10.html",
   "bugs": {},
   "preferGlobal": true,
-  "homepage": "iotracks.com",
+  "homepage": "https://iotracks.com/",
   "scripts": {
     "test": "node ./dist/main.js",
     "start": "babel-node ./dist/main",
-    "build": "babel src -d dist --copy-files",
-    "dev": "npm start stop && npm run build && npm start start"
+    "build": "cd db/ && sqlite3 fog_controller.db < default.sql && cd ../ && babel src -d dist --copy-files",
+    "build-dev": "babel src -d dist --copy-files",
+    "dev": "npm start stop && npm run build-dev && npm start start"
   },
   "bin": {
     "fog-controller": "./dist/main.js"
