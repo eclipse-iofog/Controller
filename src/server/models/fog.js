@@ -203,6 +203,11 @@ const Fog = sequelize.define('iofogs', {
     defaultValue: 20,
     field: 'ChangeFrequency'
   },
+  isolateddockercontainer: {
+    type: Sequelize.INTEGER,
+    defaultValue: 0,
+    field: 'IsolatedDockerContainer'
+  }
 }, {
   // don't add the timestamp attributes (updatedAt, createdAt)
   timestamps: true,
