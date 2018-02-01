@@ -90,7 +90,8 @@ const updateFogInstance = function(params, callback){
         logdirectory: params.bodyParams.logdirectory,
         logfilecount: params.bodyParams.logfilecount,
         statusfrequency: params.bodyParams.poststatusfreq,
-        changefrequency: params.bodyParams.getchangesfreq
+        changefrequency: params.bodyParams.getchangesfreq,
+        isolatedDockerContainer: params.bodyParams.isolateddockercontainer
       }
     };
   FogService.updateFogInstance(fogConfigProps, params, callback);
