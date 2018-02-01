@@ -19,3 +19,9 @@ dist
 
 # Environment variables
 .env
+
+# VS code
+.vscode/
+
+# Database
+db/

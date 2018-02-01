@@ -31,7 +31,7 @@ import userController from './server/controllers/api/userController';
 
 import logger from './server/utils/winstonLogs';
 
-const startServer = function(port) {
+const startServer = function (port) {
   let app,
     dbPort,
     sslKey,
@@ -62,21 +62,21 @@ const startServer = function(port) {
     });
 }
 
-const initApp = function() {
+const initApp = function () {
   const app = express();
 
   // parse application/x-www-form-urlencoded
   app.use(bodyParser.urlencoded({
-      extended: true
-    }))
-    // parse application/json
+    extended: true
+  }))
+  // parse application/json
   app.use(bodyParser.json())
   app.engine('ejs', require('ejs').renderFile);
   app.set('view engine', 'ejs');
   app.use(cookieParser());
 
   // CORS Enabled
-  app.use(function(req, res, next) {
+  app.use(function (req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
     next();
@@ -91,7 +91,7 @@ const initApp = function() {
   app.get('/api/v2/status', fogController.getFogControllerStatusEndPoint);
   app.post('/api/v2/status', fogController.getFogControllerStatusEndPoint);
   app.get('/api/v2/instance/create/type/:type', fogController.fogInstanceCreateEndPoint);
- // app.get('/api/v2/instance/getfabriclist', fogController.getFogListEndPoint);
+  // app.get('/api/v2/instance/getfabriclist', fogController.getFogListEndPoint);
   app.get('/api/v2/authoring/element/get', elementController.getElementsForPublishingEndPoint);
   app.post('/api/v2/authoring/organization/element/create', elementController.createElementEndPoint);
   app.post('/api/v2/authoring/organization/element/update', elementController.updateElementEndPoint);
@@ -103,8 +103,8 @@ const initApp = function() {
   app.post('/api/v2/authoring/fabric/instance/create', integratorController.integratorInstanceCreateEndPoint);
   app.post('/api/v2/authoring/integrator/instance/update', integratorController.integratorInstanceUpdateEndPoint);
   app.post('/api/v2/authoring/element/instance/update', elementInstanceController.elementInstanceUpdateEndPoint);
-  app.post(['/api/v2/authoring/element/instance/config/update','/api/v2/authoring/element/instance/name/update',],
-                                                  elementInstanceController.elementInstanceConfigUpdateEndPoint);
+  app.post(['/api/v2/authoring/element/instance/config/update', '/api/v2/authoring/element/instance/name/update',],
+    elementInstanceController.elementInstanceConfigUpdateEndPoint);
   app.post('/api/v2/authoring/element/instance/delete', elementInstanceController.elementInstanceDeleteEndPoint);
   app.get('/api/v2/authoring/fabric/viewer/access', streamViewerController.fogViewerAccessEndPoint);
   app.get('/api/v2/instance/config/id/:ID/token/:Token', instanceConfigController.instanceConfigEndPoint);
@@ -138,8 +138,8 @@ const initApp = function() {
   app.get('/api/v2/authoring/fabric/track/list/:instanceId', trackController.fogTrackListEndPoint);
   app.post('/api/v2/authoring/element/connection/create', elementInstanceController.createElementInstanceConnectionEndPoint);
   app.post('/api/v2/authoring/element/connection/delete', elementInstanceController.deleteElementInstanceConnectionEndPoint);
-  app.post('/api/v2/authoring/element/instance/rebuild',  elementInstanceController.elementInstanceRebuildUpdateEndPoint);
-  app.get('/api/v2/authoring/element/instance/rebuild/status/elementid/:elementId',  elementInstanceController.elementInstanceRebuildStatusEndPoint);
+  app.post('/api/v2/authoring/element/instance/rebuild', elementInstanceController.elementInstanceRebuildUpdateEndPoint);
+  app.get('/api/v2/authoring/element/instance/rebuild/status/elementid/:elementId', elementInstanceController.elementInstanceRebuildStatusEndPoint);
   app.get('/api/v2/authoring/user/track/list/:t', trackController.getTracksForUser);
   app.get('/api/v2/authoring/fabric/types/list', fogController.getFogTypesEndPoint);
   app.get('/api/v2/authoring/element/instance/details/trackid/:trackId', elementInstanceController.getElementInstanceDetailsEndPoint);
@@ -157,17 +157,17 @@ const initApp = function() {
   app.post('/api/v2/authoring/element/module/update', elementController.updateElementForUserEndPoint);
   app.get('/api/v2/authoring/element/module/delete/moduleid/:moduleId', elementController.deleteElementForUserEndPoint);
   app.get('/api/v2/authoring/element/module/details/moduleid/:moduleId', elementController.getElementDetailsEndPoint);
- // app.post('/api/v2/authoring/fabric/instance/bluebox/add', fogController.addBlueboxEndpoint);
+  // app.post('/api/v2/authoring/fabric/instance/bluebox/add', fogController.addBlueboxEndpoint);
 
- app.get('/api/v2/get/user/data/:t', userController.getUserDetailsEndPoint);
- app.post('/api/v1/user/profile/update', userController.updateUserDetailsEndPoint);
- app.post('/api/v1/user/password/change', userController.updateUserPasswordEndPoint);
- app.post('/api/v1/user/account/delete', userController.deleteUserAccountEndPoint);
- app.post('/api/v1/user/signup', userController.userSignupEndPoint);
- app.post('/api/v1/user/password/reset', userController.resetUserPasswordEndPoint);
- app.post('/api/v1/user/account/activate/resend', userController.resendEmailActivationEndPoint);
- app.get('/account/activate/code/:code', userController.activateUserAccountEndPoint);
- app.get('/api/v2/user/authenticate/:t', userController.authenticateUserEndPoint)
+  app.get('/api/v2/get/user/data/:t', userController.getUserDetailsEndPoint);
+  app.post('/api/v1/user/profile/update', userController.updateUserDetailsEndPoint);
+  app.post('/api/v1/user/password/change', userController.updateUserPasswordEndPoint);
+  app.post('/api/v1/user/account/delete', userController.deleteUserAccountEndPoint);
+  app.post('/api/v1/user/signup', userController.userSignupEndPoint);
+  app.post('/api/v1/user/password/reset', userController.resetUserPasswordEndPoint);
+  app.post('/api/v1/user/account/activate/resend', userController.resendEmailActivationEndPoint);
+  app.get('/account/activate/code/:code', userController.activateUserAccountEndPoint);
+  app.get('/api/v2/user/authenticate/:t', userController.authenticateUserEndPoint)
 
   //generic error handler
   app.use((err, req, res, next) => {
@@ -180,9 +180,9 @@ const initApp = function() {
   return app;
 }
 
-const startHttpServer = function(app, port) {
+const startHttpServer = function (app, port) {
   logger.warn("| SSL not configured, starting HTTP server.|");
-  
+
   console.log("------------------------------------------");
   console.log("| SSL not configured, starting HTTP server.|");
   console.log("------------------------------------------");
@@ -196,8 +196,8 @@ const startHttpServer = function(app, port) {
   });
 }
 
-const startHttpsServer = function(app, port, sslKey, sslCert, intermedKey) {
-  try{    
+const startHttpsServer = function (app, port, sslKey, sslCert, intermedKey) {
+  try {
     let sslOptions = {
       key: fs.readFileSync(sslKey),
       cert: fs.readFileSync(sslCert),
@@ -207,14 +207,14 @@ const startHttpsServer = function(app, port, sslKey, sslCert, intermedKey) {
     };
 
     https.createServer(sslOptions, app).listen(port, function onStart(err) {
-    if (err) {
-      logger.error(err);
-      console.log(err);
-    }
+      if (err) {
+        logger.error(err);
+        console.log(err);
+      }
       logger.info('==> 🌎 HTTPS server listening on port %s. Open up https://localhost:%s/ in your browser.', port, port);
       console.log('==> 🌎 HTTPS server listening on port %s. Open up https://localhost:%s/ in your browser.', port, port);
     });
-  }catch(e){
+  } catch (e) {
     logger.error('ssl_key or ssl_cert or intermediate_cert is either missing or invalid. Provide valid SSL configurations.');
     console.log('ssl_key or ssl_cert or intermediate_cert is either missing or invalid. Provide valid SSL configurations.');
   }
