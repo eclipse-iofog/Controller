@@ -45,6 +45,7 @@ const processChangeTrackingChanges = function(params, callback) {
     }
     var changes = {
       config: false,
+      reboot: false,
       containerlist: false,
       containerconfig: false,
       routing: false,
@@ -54,6 +55,10 @@ const processChangeTrackingChanges = function(params, callback) {
   
     if(params.changeTrackingData.config > params.bodyParams.TimeStamp) {
       changes.config = true;
+    }
+
+    if(params.changeTrackingData.reboot > params.bodyParams.TimeStamp) {
+      changes.reboot = true;
     }
     
     if(params.changeTrackingData.containerList > params.bodyParams.TimeStamp) {
