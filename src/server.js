@@ -28,6 +28,7 @@ import provisionKeyController from './server/controllers/api/provisionKeyControl
 import streamViewerController from './server/controllers/api/streamViewerController';
 import trackController from './server/controllers/api/trackController';
 import userController from './server/controllers/api/userController';
+import instanceRebootController from "./server/controllers/api/instanceRebootController";
 
 import logger from './server/utils/winstonLogs';
 
@@ -127,6 +128,8 @@ const initApp = function () {
   app.post('/api/v2/authoring/user/track/update', trackController.userTrackUpdateEndPoint);
   app.get('/api/v2/instance/registries/id/:ID/token/:Token', instanceRegistriesController.instanceRegistriesEndPoint);
   app.post('/api/v2/instance/registries/id/:ID/token/:Token', instanceRegistriesController.instanceRegistriesEndPoint);
+  app.get('/api/v2/instance/reboot/id/:ID/token/:Token', instanceRebootController.instanceRebootEndPoint);
+  app.post('/api/v2/instance/reboot/id/:ID/token/:Token', instanceRebootController.instanceRebootEndPoint);
   app.get('/api/v2/instance/routing/id/:ID/token/:Token', instanceRoutingController.instanceRoutingEndPoint);
   app.post('/api/v2/instance/routing/id/:ID/token/:Token', instanceRoutingController.instanceRoutingEndPoint);
   app.post('/api/v2/authoring/element/instance/route/create', instanceRoutingController.instanceRouteCreateEndPoint);

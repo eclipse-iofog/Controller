@@ -60,6 +60,7 @@ INSERT INTO registry VALUES(1,'registry.hub.docker.com',1,1,'',0,'','','',NULL);
 CREATE TABLE iofog_change_tracking (
 	`ID`	INTEGER PRIMARY KEY AUTOINCREMENT,
 	`container_config`	BIGINT,
+	`reboot`	BIGINT,
 	`container_list`	BIGINT,
 	`config`	BIGINT,
 	`routing`	BIGINT,
