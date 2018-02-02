@@ -68,7 +68,8 @@ const processConfigData = function(params, callback){
       logdirectory: params.fogData.logdirectory,
       logfilecount: params.fogData.logfilecount.toString(),
       poststatusfreq: params.fogData.statusfrequency.toString(),
-      getchangesfreq: params.fogData.changefrequency.toString()
+      getchangesfreq: params.fogData.changefrequency.toString(),
+      isolateddockercontainer: params.fogData.isolateddockercontainer === 1 ? 'on' : 'off'
     };
 
     params.config = config;
