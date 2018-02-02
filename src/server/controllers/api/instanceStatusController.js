@@ -62,7 +62,7 @@ const updateFogInstance = function(params, callback){
         }
       };
     FogService.updateFogInstance(fogInstanceProps, params, callback);
-}
+};
 
 export default {
   instanceStatusEndPoint: instanceStatusEndPoint

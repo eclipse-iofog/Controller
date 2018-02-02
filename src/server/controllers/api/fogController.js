@@ -200,7 +200,7 @@ const fogInstanceDeleteEndPoint = function(req, res){
 	
 	async.waterfall([
 		async.apply(UserService.getUser, userProps, params),
-		async.apply(ChangeTrackingService.deleteChangeTracking,instanceProps),
+		async.apply(ChangeTrackingService.deleteChangeTracking, instanceProps),
 		async.apply(FogUserService.deleteFogUserByInstanceId, instanceProps),
 		async.apply(StreamViewerService.deleteStreamViewerByFogInstanceId, instanceProps),
 		async.apply(ConsoleService.deleteConsoleByFogInstanceId, instanceProps),
@@ -287,7 +287,7 @@ const getFogDetailsEndpoint = function (req, res){
 	function(err, result) {
 		AppUtils.sendResponse(res, err, 'fog', params.fogInstances, result);
 	});
-}
+};
 
 /*********** Update Fog settings EndPoint (Post: /api/v2/authoring/fabric/instances/settings/update) **********/
 const updateFogSettingsEndpoint = function (req, res){
@@ -332,7 +332,7 @@ const updateFogSettingsEndpoint = function (req, res){
 		AppUtils.sendResponse(res, err, '', '', result);
 	}
 	});
-}
+};
 
 const updateFog = function (params, callback){
 	var fogProps = {
@@ -358,7 +358,7 @@ const updateFog = function (params, callback){
       }
     };
   	FogService.updateFogInstance(fogProps, params, callback);
-}
+};
 
 const streamViewerForFog = function(params, callback){
 	if(params.bodyParams.viewer && (params.bodyParams.viewer != params.fogInstance.viewer)){
@@ -466,7 +466,7 @@ const streamViewerForFog = function(params, callback){
 	else{
 		callback(null, params);
 	}
-}
+};
 const createStreamViewerConsole = function(params, callback){
   var createStreamProps = {
       streamViewerObj : {
@@ -478,7 +478,7 @@ const createStreamViewerConsole = function(params, callback){
       }
     };
   StreamViewerService.createStreamViewer(createStreamProps, params, callback);
-}
+};
 
 const createStreamViewerNetworkElementInstance = function(params,callback){
 	var config = {
@@ -517,7 +517,7 @@ const createStreamViewerNetworkElementInstance = function(params,callback){
 	};
 
     ElementInstanceService.createElementInstanceObj(elementInstanceProps, params, callback);
-}
+};
 
 const createStreamViewerSatellitePort = function(params, callback){
   var satellitePortProps = {
@@ -536,7 +536,7 @@ const createStreamViewerSatellitePort = function(params, callback){
     setProperty: 'streamViewerSatellitePort'
   };
     SatellitePortService.createSatellitePort(satellitePortProps, params, callback);
-}
+};
 
 const debugConsoleForFog = function(params, callback){
 	if(params.bodyParams.debug && (params.bodyParams.debug != params.fogInstance.debug)){
@@ -646,7 +646,7 @@ const debugConsoleForFog = function(params, callback){
 	else{
 		callback(null, params);
 	}
-}
+};
 
 const createConsole = function(params, callback){
   var createConsoleProps = {
@@ -659,7 +659,7 @@ const createConsole = function(params, callback){
       }
     };
   ConsoleService.createConsole(createConsoleProps, params, callback)
-}
+};
 
 const createNetworkElementInstance = function(params,callback){
 	var config = {
@@ -698,7 +698,7 @@ const createNetworkElementInstance = function(params,callback){
 	};
 
     ElementInstanceService.createElementInstanceObj(elementInstanceProps, params, callback);
-}
+};
 
 
 const createSatellitePort = function(params, callback){
@@ -718,7 +718,7 @@ const createSatellitePort = function(params, callback){
     setProperty: 'satellitePort'
   };
     SatellitePortService.createSatellitePort(satellitePortProps, params, callback);
-}
+};
 
 const bluetoothElementForFog = function(params, callback){
 	if(params.bodyParams.bluetooth != params.fogInstance.bluetooth){
@@ -758,7 +758,7 @@ const bluetoothElementForFog = function(params, callback){
 	}else{
 		callback(null, params);
 	}
-}
+};
 
 const updateChangeTracking = function(params, callback){
 //	if(params.isBluetooth == 1 || params.isDebug == 1 || params.isViewer == 1){
@@ -773,7 +773,7 @@ const updateChangeTracking = function(params, callback){
 //	}else{
 //		callback(null, params);
 //	}
-}
+};
 
 const createBluetoothElementInstance = function (params, callback){
     var elementInstanceProps = {

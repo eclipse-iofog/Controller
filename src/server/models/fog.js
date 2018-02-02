@@ -207,15 +207,15 @@ const Fog = sequelize.define('iofogs', {
         type: Sequelize.TEXT,
         field: 'Proxy'
     },
-}, {
-    // don't add the timestamp attributes (updatedAt, createdAt)
-    timestamps: true,
-    // disable the modification of table names
-    freezeTableName: true,
-    // don't use camelcase for automatically added attributes but underscore style
-    // so updatedAt will be updated_at
-    underscored: true
-});
+    }, {
+        // don't add the timestamp attributes (updatedAt, createdAt)
+        timestamps: true,
+        // disable the modification of table names
+        freezeTableName: true,
+        // don't use camelcase for automatically added attributes but underscore style
+        // so updatedAt will be updated_at
+        underscored: true
+    });
 
 Registry.belongsTo(Fog, {
     foreignKey: 'iofog_uuid'
