@@ -767,9 +767,11 @@ const updateChangeTracking = function (params, callback) {
 		fogInstanceId: 'bodyParams.instanceId',
 		changeObject: {
 			containerList: new Date().getTime(),
-			config: new Date().getTime()
+			config: new Date().getTime(),
+            reboot: params.bodyParams.reboot
 		}
-	}
+    }
+
 	ChangeTrackingService.updateChangeTracking(changeTrackingProps, params, callback);
 	//	}else{
 	//		callback(null, params);

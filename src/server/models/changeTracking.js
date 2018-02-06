@@ -22,7 +22,7 @@ const ChangeTracking = sequelize.define('iofog_change_tracking', {
     field: 'container_config'
   },
   reboot: {
-    type: Sequelize.BIGINT,
+    type: Sequelize.BOOLEAN,
     field: 'reboot'
   },
   containerList: {

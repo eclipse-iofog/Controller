@@ -11,6 +11,8 @@ import ChangeTrackingService from '../../services/changeTrackingService';
 import FogService from '../../services/fogService';
 import AppUtils from '../../utils/appUtils';
 import logger from '../../utils/winstonLogs';
+import FogTypeService from "../../services/fogTypeService";
+import UserService from "../../services/userService";
 
 /********************************************* EndPoints ********************************************************/
 
@@ -57,8 +59,16 @@ const processChangeTrackingChanges = function(params, callback) {
       changes.config = true;
     }
 
-    if(params.changeTrackingData.reboot > params.bodyParams.TimeStamp) {
+    if(params.changeTrackingData.reboot) {
       changes.reboot = true;
+      async.waterfall([
+              async.apply(UserService.getUser, userProps, params),
+              async.apply(FogService.getFogInstance, instanceProps),
+              async.apply(FogTypeService.getFogTypeDetail, fogTypeProps),
+              updateChangeTracking
+          ],
+          function (err, result) {
+          });
     }
     
     if(params.changeTrackingData.containerList > params.bodyParams.TimeStamp) {
@@ -85,6 +95,17 @@ const processChangeTrackingChanges = function(params, callback) {
   }else{
     callback('Error', 'Error: Cannot find changeTracking data of current iofog instance.')
   }
+}
+
+const updateChangeTracking = function (params, callback) {
+    var changeTrackingProps = {
+        fogInstanceId: 'bodyParams.instanceId',
+        changeObject: {
+            reboot: false
+        }
+    }
+
+    ChangeTrackingService.updateChangeTracking(changeTrackingProps, params, callback);
 }
 
 const updateFogInstance = function(params, callback){
