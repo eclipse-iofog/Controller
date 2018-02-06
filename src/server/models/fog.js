@@ -205,7 +205,7 @@ const Fog = sequelize.define('iofogs', {
   },
   isolateddockercontainer: {
     type: Sequelize.INTEGER,
-    defaultValue: 0,
+    defaultValue: 1,
     field: 'IsolatedDockerContainer'
   }
 }, {
