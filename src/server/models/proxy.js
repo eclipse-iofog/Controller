@@ -17,40 +17,37 @@ const Proxy = sequelize.define('proxy', {
     },
     username: {
        type: Sequelize.TEXT,
-       field: 'Username'
+       field: 'username'
     },
     password: {
         type: Sequelize.TEXT,
-        field: 'Password'
+        field: 'password'
     },
     host: {
         type: Sequelize.TEXT,
-        field: 'Host'
+        field: 'host'
     },
     rport: {
         type: Sequelize.INTEGER,
-        field: 'RemotePort'
+        field: 'remote_port'
     },
     lport: {
         type: Sequelize.INTEGER,
         defaultValue: 22,
-        field: 'LocalPort'
+        field: 'local_port'
     },
     rsakey: {
         type: Sequelize.TEXT,
-        field: 'RsaKey'
+        field: 'rsa_key'
     },
-    status: {
-        type: Sequelize.TEXT,
-        field: 'Status'
-    },
-    errormessage: {
-        type: Sequelize.TEXT,
-        field: 'ErrorMessage'
+    close: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: false,
+        field: 'close'
     }
 }, {
     // don't add the timestamp attributes (updatedAt, createdAt)
-    timestamps: true,
+    timestamps: false,
     // disable the modification of table names
     freezeTableName: true,
     // don't use camelcase for automatically added attributes but underscore style

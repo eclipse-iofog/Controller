@@ -45,7 +45,7 @@ CREATE TABLE element_output_type (ID INTEGER PRIMARY KEY AUTOINCREMENT, element_
 CREATE TABLE satellite_port (ID INTEGER PRIMARY KEY AUTOINCREMENT, port1 BIGINT, port2 BIGINT, max_connections_port1 BIGINT, max_connection_port2 BIGINT, passcode_port1 TEXT, passcode_port2 TEXT, heartbeat_absence_threshold_port1 BIGINT, heartbeat_absence_threshold_port2 BIGINT, updated_by BIGINT, created_at DATETIME NOT NULL, updated_at DATETIME NOT NULL, satellite_id INTEGER REFERENCES satellite (ID) ON DELETE CASCADE ON UPDATE CASCADE, mapping_id TEXT);
 CREATE TABLE iofog_provision_keys (ID INTEGER PRIMARY KEY AUTOINCREMENT, provisioning_string VARCHAR (100), expiration_time BIGINT, iofog_uuid TEXT REFERENCES iofogs (UUID) ON DELETE SET NULL ON UPDATE CASCADE);
 INSERT INTO iofog_provision_keys VALUES(79,'jX3QfQvQ',1517402261932,'fVmnRpHgdNnDw7XJLJw7GV4NVRhjk4V3');
-CREATE TABLE iofogs (UUID TEXT PRIMARY KEY, Name TEXT DEFAULT ('Unnamed ioFog 1'), Location TEXT, Latitude TEXT, Longitude TEXT, OrgID BIGINT, Description TEXT, created_at DATETIME, updated_at DATETIME, LastActive BIGINT, Token TEXT, DaemonStatus TEXT DEFAULT 'UNKNOWN', DaemonOperatingDuration BIGINT DEFAULT 0, DaemonLastStart BIGINT, MemoryUsage FLOAT DEFAULT 0, DiskUsage FLOAT DEFAULT 0, CPUUsage FLOAT DEFAULT 0, MemoryViolation TEXT, DiskViolation TEXT, CPUViolation TEXT, ElementStatus TEXT, RepositoryCount BIGINT, RepositoryStatus TEXT, SystemTime BIGINT, LastStatusTime BIGINT, IPAddress TEXT DEFAULT '0.0.0.0', ProcessedMessages BIGINT DEFAULT 0, ElementMessageCounts TEXT, MessageSpeed BIGINT, LastCommandTime BIGINT, NetworkInterface TEXT DEFAULT 'eth0', DockerURL TEXT DEFAULT 'unix:///var/run/docker.sock', DiskLimit FLOAT DEFAULT 50, DiskDirectory TEXT DEFAULT ('/var/lib/iofog/'), MemoryLimit FLOAT DEFAULT 4096, CPULimit FLOAT DEFAULT 80, LogLimit FLOAT DEFAULT 10, LogDirectory TEXT DEFAULT ('/var/log/iofog/'), Debug INTEGER, Viewer INTEGER, Bluetooth INTEGER, IsolatedDockerContainer INTEGER, LogFileCount BIGINT DEFAULT 10, Version TEXT, StatusFrequency INTEGER DEFAULT (10), ChangeFrequency INTEGER DEFAULT (20), typeKey INTEGER REFERENCES iofog_type (ID) ON DELETE SET NULL ON UPDATE CASCADE);
+CREATE TABLE iofogs (UUID TEXT PRIMARY KEY, Name TEXT DEFAULT ('Unnamed ioFog 1'), Location TEXT, Latitude TEXT, Longitude TEXT, OrgID BIGINT, Description TEXT, created_at DATETIME, updated_at DATETIME, LastActive BIGINT, Token TEXT, DaemonStatus TEXT DEFAULT 'UNKNOWN', DaemonOperatingDuration BIGINT DEFAULT 0, DaemonLastStart BIGINT, MemoryUsage FLOAT DEFAULT 0, DiskUsage FLOAT DEFAULT 0, CPUUsage FLOAT DEFAULT 0, MemoryViolation TEXT, DiskViolation TEXT, CPUViolation TEXT, ElementStatus TEXT, RepositoryCount BIGINT, RepositoryStatus TEXT, SystemTime BIGINT, LastStatusTime BIGINT, IPAddress TEXT DEFAULT '0.0.0.0', ProcessedMessages BIGINT DEFAULT 0, ElementMessageCounts TEXT, MessageSpeed BIGINT, LastCommandTime BIGINT, NetworkInterface TEXT DEFAULT 'eth0', DockerURL TEXT DEFAULT 'unix:///var/run/docker.sock', DiskLimit FLOAT DEFAULT 50, DiskDirectory TEXT DEFAULT ('/var/lib/iofog/'), MemoryLimit FLOAT DEFAULT 4096, CPULimit FLOAT DEFAULT 80, LogLimit FLOAT DEFAULT 10, LogDirectory TEXT DEFAULT ('/var/log/iofog/'), Debug INTEGER, Viewer INTEGER, Bluetooth INTEGER, IsolatedDockerContainer INTEGER, LogFileCount BIGINT DEFAULT 10, Version TEXT, StatusFrequency INTEGER DEFAULT (10), ChangeFrequency INTEGER DEFAULT (20), Proxy TEXT DEFAULT (''), typeKey INTEGER REFERENCES iofog_type (ID) ON DELETE SET NULL ON UPDATE CASCADE);
 CREATE TABLE iofog_type (ID INTEGER PRIMARY KEY AUTOINCREMENT, Name TEXT, Image TEXT, Description TEXT, StreamViewerElementKey BIGINT, consoleElementKey BIGINT, NetworkElementKey BIGINT, BluetoothElementKey BIGINT);
 INSERT INTO iofog_type VALUES(1,'Standard Linux (x86)','iointegrator1.png','A standard Linux server of at least moderate processing power and capacity. Compatible with common Linux types such as Ubuntu, Red Hat, and CentOS.',1,2,3,5);
 INSERT INTO iofog_type VALUES(2,'ARM Linux','iointegrator2.png','A version of ioFog meant to run on Linux systems with ARM processors. Microservices for this ioFog type will be tailored to ARM systems.',1,2,3,5);
@@ -64,10 +64,23 @@ CREATE TABLE iofog_change_tracking (
 	`config`	BIGINT,
 	`routing`	BIGINT,
 	`registries`	BIGINT,
+	`proxy` BIGINT,
 	`iofog_uuid`	TEXT,
 	FOREIGN KEY(`iofog_uuid`) REFERENCES iofogs ( UUID ) ON DELETE SET NULL ON UPDATE CASCADE
 );
-INSERT INTO iofog_change_tracking VALUES(1,1517401049283,1517472938429,1517472938429,1517401049283,1517401049283,'fVmnRpHgdNnDw7XJLJw7GV4NVRhjk4V3');
+CREATE TABLE proxy (
+  `ID` INTEGER PRIMARY KEY AUTOINCREMENT,
+  `username` TEXT,
+  `password` TEXT,
+  `host` TEXT,
+  `remote_port` INTEGER,
+  `local_port` INTEGER DEFAULT 22,
+  `rsa_key` TEXT,
+  `close` BOOLEAN DEFAULT FALSE,
+  `iofog_uuid`	TEXT,
+  FOREIGN KEY(`iofog_uuid`) REFERENCES iofogs ( UUID ) ON DELETE SET NULL ON UPDATE CASCADE
+);
+INSERT INTO iofog_change_tracking VALUES(1,1517401049283,1517472938429,1517472938429,1517401049283,1517401049283, 1517401049283, 'fVmnRpHgdNnDw7XJLJw7GV4NVRhjk4V3');
 DELETE FROM sqlite_sequence;
 INSERT INTO sqlite_sequence VALUES('config',52);
 INSERT INTO sqlite_sequence VALUES('satellite',9);

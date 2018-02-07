@@ -205,6 +205,7 @@ const Fog = sequelize.define('iofogs', {
     },
     proxy: {
         type: Sequelize.TEXT,
+        defaultValue: "",
         field: 'Proxy'
     },
     isolateddockercontainer: {
