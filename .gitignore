@@ -24,4 +24,4 @@ dist
 .vscode/
 
 # Database
-db/
+/db/*.db
