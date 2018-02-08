@@ -5,6 +5,7 @@
  */
 
 import async from 'async';
+import BaseApiController from './baseApiController';
 import ChangeTrackingService from '../../services/changeTrackingService';
 import UserService from '../../services/userService';
 import ProxyService from '../../services/proxyService';
@@ -42,7 +43,7 @@ const proxyCreateOrUpdateEndPoint = function(req, res) {
     async.waterfall([
             async.apply(UserService.getUser, userProps, params),
             async.apply(ProxyService.getProxyByInstanceId, proxyProps),
-            createProxy,
+            createOrUpdateProxy,
             async.apply(ChangeTrackingService.updateChangeTracking, changeTrackingProps)
         ],
         function(err, result) {
@@ -101,11 +102,11 @@ const proxyGetEndPoint = function(req, res) {
 
     var params = {},
         instanceProps = {
-            fogInstanceId: 'bodyParams.instanceId',
+            fogInstanceId: 'bodyParams.ID',
             setProperty: 'config'
         };
 
-    params.bodyParams = req.body;
+    params.bodyParams = req.params;
     logger.info("Parameters:" + JSON.stringify(params.bodyParams));
 
     async.waterfall([
@@ -153,7 +154,7 @@ const getProxyStatusEndPoint = function(req, res) {
  * @param params parameters
  * @param callback  waterfall callback
  */
-const createProxy = function(params, callback) {
+const createOrUpdateProxy = function(params, callback) {
     var proxyProps;
     var proxyObject = {
         username: params.bodyParams.username,

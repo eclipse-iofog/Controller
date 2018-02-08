@@ -107,4 +107,10 @@ INSERT INTO sqlite_sequence VALUES('users',43);
 INSERT INTO sqlite_sequence VALUES('email_activation_code',35);
 INSERT INTO sqlite_sequence VALUES('registry',1);
 INSERT INTO sqlite_sequence VALUES('iofog_change_tracking',1);
+
+INSERT INTO config (key, value) VALUES ('port', '4443');
+INSERT INTO config (key, value) VALUES ('ssl_key', 'privkey.pem');
+INSERT INTO config (key, value) VALUES ('intermediate_cert', 'my-private-root-ca.cert.pem');
+INSERT INTO config (key, value) VALUES ('ssl_cert', 'fullchain.pem');
+
 COMMIT;

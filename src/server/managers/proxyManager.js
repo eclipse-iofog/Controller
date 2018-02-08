@@ -45,7 +45,7 @@ class ProxyManager extends BaseManager {
      * @return Integer - returns the number of rows updated
      */
     updateByUuid(uuid, data) {
-        return ChangeTracking.update(data, {
+        return Proxy.update(data, {
             where: {
                 iofog_uuid: uuid
             }
