@@ -35,7 +35,7 @@ const getChangeTrackingChangesEndPoint = function(req, res) {
   ], function(err, result) {
     AppUtils.sendResponse(res, err, 'changes', params.changes, result);
   })
-}
+};
 
 /************************************* Extra Functions **************************************************/
 const processChangeTrackingChanges = function(params, callback) {
@@ -85,7 +85,7 @@ const processChangeTrackingChanges = function(params, callback) {
   }else{
     callback('Error', 'Error: Cannot find changeTracking data of current iofog instance.')
   }
-}
+};
 
 const updateFogInstance = function(params, callback){
   var fogInstanceProps = {
@@ -95,7 +95,7 @@ const updateFogInstance = function(params, callback){
         }
       };
   FogService.updateFogInstance(fogInstanceProps, params, callback);
-}
+};
 
 export default {
   getChangeTrackingChangesEndPoint: getChangeTrackingChangesEndPoint

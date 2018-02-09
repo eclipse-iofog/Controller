@@ -355,6 +355,7 @@ const updateFog = function (params, callback) {
 			bluetooth: params.bodyParams.bluetooth,
 			statusfrequency: params.bodyParams.statusFrequency,
 			changefrequency: params.bodyParams.changeFrequency,
+            proxy: params.bodyParams.proxy,
 			isolateddockercontainer: params.bodyParams.docker
 		}
 	};
