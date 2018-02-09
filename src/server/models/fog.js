@@ -184,6 +184,11 @@ const Fog = sequelize.define('iofogs', {
     defaultValue: 0,
     field: 'Bluetooth'
   },
+  hal: {
+    type: Sequelize.INTEGER,
+    defaultValue: 0,
+    field: 'hal'
+  },
   logfilecount: {
     type: Sequelize.BIGINT,
     defaultValue: 10,

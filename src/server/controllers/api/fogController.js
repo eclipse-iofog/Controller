@@ -317,6 +317,7 @@ const updateFogSettingsEndpoint = function (req, res) {
 		bluetoothElementForFog,
 		debugConsoleForFog,
 		streamViewerForFog,
+		halForFog,
 		updateFog,
 		updateChangeTracking
 	],
@@ -719,6 +720,46 @@ const createSatellitePort = function (params, callback) {
 		setProperty: 'satellitePort'
 	};
 	SatellitePortService.createSatellitePort(satellitePortProps, params, callback);
+}
+
+const halForFog = (params, callback) => {
+	if (params.bodyParams.hal != params.fogInstance.hal) {
+		params.isHal = 1;
+		if (params.bodyParams.hal > 0) {
+			var elementProps = {
+				networkElementId: 'fogTypeData.halElementKey',
+				setProperty: 'halElement'
+			},
+				changeTrackingProps = {
+					fogInstanceId: 'bodyParams.instanceId',
+					changeObject: {
+						containerConfig: new Date().getTime(),
+						containerList: new Date().getTime()
+					}
+				};
+
+			async.waterfall([
+				async.apply(ElementService.getNetworkElement, elementProps, params),
+				createBluetoothElementInstance,
+				async.apply(ChangeTrackingService.updateChangeTracking, changeTrackingProps)
+			],
+				function (err, result) {
+					if (!err) {
+						callback(null, params);
+					} else {
+						callback('Error', result);
+					}
+				});
+		} else {
+			var elementInstanceProps = {
+				instanceId: 'bodyParams.instanceId',
+				elementKey: 'fogTypeData.bluetoothElementKey'
+			};
+			ElementInstanceService.deleteElementInstancesByInstanceIdAndElementKey(elementInstanceProps, params, callback);
+		}
+	} else {
+		callback(null, params);
+	}
 }
 
 const bluetoothElementForFog = function (params, callback) {
