@@ -57,7 +57,7 @@ const updateFogInstance = function(params, callback){
           elementmessagecounts : params.bodyParams.elementmessagecounts, 
           messagespeed : params.bodyParams.messagespeed,
           lastcommandtime : params.bodyParams.lastcommandtime,
-          proxystatus : params.bodyParams.proxystatus,
+          proxy : params.bodyParams.proxystatus,
           version: params.bodyParams.version || '1.0'
         }
       };

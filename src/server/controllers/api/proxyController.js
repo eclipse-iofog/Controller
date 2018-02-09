@@ -9,6 +9,7 @@ import BaseApiController from './baseApiController';
 import ChangeTrackingService from '../../services/changeTrackingService';
 import UserService from '../../services/userService';
 import ProxyService from '../../services/proxyService';
+import FogService from '../../services/fogService';
 
 import AppUtils from '../../utils/appUtils';
 import logger from '../../utils/winstonLogs';
@@ -43,6 +44,7 @@ const proxyCreateOrUpdateEndPoint = function(req, res) {
     async.waterfall([
             async.apply(UserService.getUser, userProps, params),
             async.apply(ProxyService.getProxyByInstanceId, proxyProps),
+            updateProxyStatusToPendingOpen,
             createOrUpdateProxy,
             async.apply(ChangeTrackingService.updateChangeTracking, changeTrackingProps)
         ],
@@ -83,6 +85,7 @@ const proxyCloseEndPoint = function(req, res) {
 
     async.waterfall([
             async.apply(UserService.getUser, userProps, params),
+            updateProxyStatusToPendingClose,
             async.apply(ProxyService.updateProxy, proxyProps),
             async.apply(ChangeTrackingService.updateChangeTracking, changeTrackingProps)
         ],
@@ -180,6 +183,61 @@ const createOrUpdateProxy = function(params, callback) {
         };
         ProxyService.createProxy(proxyProps, params, callback);
     }
+};
+
+const updateProxyStatusToPendingOpen = function(params, callback) {
+
+    var proxyObj = {
+        username: params.bodyParams.username,
+        host: params.bodyParams.host,
+        lport: params.bodyParams.lport,
+        rport: params.bodyParams.rport,
+        status: "PENDING_OPEN",
+        errormessage: ""
+    };
+    var proxyStr = JSON.stringify(proxyObj);
+    var fogInstanceProps = {
+        instanceId: 'bodyParams.instanceId',
+        updatedFog: {
+            proxy: proxyStr
+        }
+    };
+    FogService.updateFogInstance(fogInstanceProps, params, callback);
+};
+
+const updateProxyStatusToPendingClose = function(params, callback) {
+    var fogInstanceProps= {
+        fogId: 'bodyParams.instanceId',
+        setProperty: 'fogInstance'
+    };
+    async.waterfall([
+        async.apply(FogService.getFogInstance, fogInstanceProps, params),
+        updateProxyStatusObj
+    ], function(err, result) {
+        callback(null, params);
+    });
+
+};
+
+const updateProxyStatusObj = function(params, callback) {
+    var oldProxyStr = params.fogInstance.dataValues.proxy;
+    var oldProxyObj = JSON.parse(oldProxyStr);
+    var proxyObj = {
+        username: oldProxyObj.username,
+        host: oldProxyObj.host,
+        lport: oldProxyObj.lport,
+        rport: oldProxyObj.rport,
+        status: "PENDING_CLOSE",
+        errormessage: ""
+    };
+    var proxyStr = JSON.stringify(proxyObj);
+    var fogInstanceProps = {
+        instanceId: 'bodyParams.instanceId',
+        updatedFog: {
+            proxy: proxyStr
+        }
+    };
+    FogService.updateFogInstance(fogInstanceProps, params, callback);
 };
 
 

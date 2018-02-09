@@ -161,7 +161,7 @@ const initApp = function () {
   app.get('/api/v2/authoring/element/module/delete/moduleid/:moduleId', elementController.deleteElementForUserEndPoint);
   app.get('/api/v2/authoring/element/module/details/moduleid/:moduleId', elementController.getElementDetailsEndPoint);
   app.post('/api/v2/authoring/fabric/instance/proxy/createOrUpdate', proxyController.proxyCreateOrUpdateEndPoint);
-  app.get('/api/v2/authoring/fabric/instance/proxy/close', proxyController.proxyCloseEndPoint);
+  app.post('/api/v2/authoring/fabric/instance/proxy/close', proxyController.proxyCloseEndPoint);
   // app.post('/api/v2/authoring/fabric/instance/bluebox/add', fogController.addBlueboxEndpoint);
 
   app.get('/api/v2/get/user/data/:t', userController.getUserDetailsEndPoint);
@@ -208,8 +208,7 @@ const startHttpsServer = function (app, port, sslKey, sslCert, intermedKey) {
       cert: fs.readFileSync(sslCert),
       ca: fs.readFileSync(intermedKey),
       requestCert: true,
-      rejectUnauthorized: false,
-      strictSSL: false
+      rejectUnauthorized: false
     };
 
     https.createServer(sslOptions, app).listen(port, function onStart(err) {
