@@ -35,7 +35,7 @@ const getChangeTrackingChangesEndPoint = function(req, res) {
   ], function(err, result) {
     AppUtils.sendResponse(res, err, 'changes', params.changes, result);
   })
-}
+};
 
 /************************************* Extra Functions **************************************************/
 const processChangeTrackingChanges = function(params, callback) {
@@ -45,14 +45,20 @@ const processChangeTrackingChanges = function(params, callback) {
     }
     var changes = {
       config: false,
+      reboot: false,
       containerlist: false,
       containerconfig: false,
       routing: false,
-      registries: false
+      registries: false,
+      proxy: false
     };
   
     if(params.changeTrackingData.config > params.bodyParams.TimeStamp) {
       changes.config = true;
+    }
+
+    if(params.changeTrackingData.reboot > params.bodyParams.TimeStamp) {
+      changes.reboot = true;
     }
     
     if(params.changeTrackingData.containerList > params.bodyParams.TimeStamp) {
@@ -70,12 +76,16 @@ const processChangeTrackingChanges = function(params, callback) {
     if (params.changeTrackingData.registries > params.bodyParams.TimeStamp) {
       changes.registries = true;
     }
+
+    if (params.changeTrackingData.proxy > params.bodyParams.TimeStamp) {
+      changes.proxy = true;
+    }
     params.changes = changes;
     callback (null, params);
   }else{
     callback('Error', 'Error: Cannot find changeTracking data of current iofog instance.')
   }
-}
+};
 
 const updateFogInstance = function(params, callback){
   var fogInstanceProps = {
@@ -85,7 +95,7 @@ const updateFogInstance = function(params, callback){
         }
       };
   FogService.updateFogInstance(fogInstanceProps, params, callback);
-}
+};
 
 export default {
   getChangeTrackingChangesEndPoint: getChangeTrackingChangesEndPoint

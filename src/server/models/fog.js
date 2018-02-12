@@ -208,31 +208,36 @@ const Fog = sequelize.define('iofogs', {
     defaultValue: 20,
     field: 'ChangeFrequency'
   },
+  proxy: {
+    type: Sequelize.TEXT,
+    defaultValue: "",
+    field: 'Proxy'
+  },
   isolateddockercontainer: {
     type: Sequelize.INTEGER,
     defaultValue: 1,
     field: 'IsolatedDockerContainer'
   }
 }, {
-  // don't add the timestamp attributes (updatedAt, createdAt)
-  timestamps: true,
-  // disable the modification of table names
-  freezeTableName: true,
-  // don't use camelcase for automatically added attributes but underscore style
-  // so updatedAt will be updated_at
-  underscored: true
+    // don't add the timestamp attributes (updatedAt, createdAt)
+    timestamps: true,
+    // disable the modification of table names
+    freezeTableName: true,
+    // don't use camelcase for automatically added attributes but underscore style
+    // so updatedAt will be updated_at
+    underscored: true
 });
 
 Registry.belongsTo(Fog, {
-  foreignKey: 'iofog_uuid'
+    foreignKey: 'iofog_uuid'
 });
 
 FogProvisionKey.belongsTo(Fog, {
-  foreignKey: 'iofog_uuid'
+    foreignKey: 'iofog_uuid'
 });
 
 Fog.belongsTo(FogType, {
-  foreignKey: 'typeKey'
+    foreignKey: 'typeKey'
 });
 
 export default Fog;

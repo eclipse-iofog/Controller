@@ -382,19 +382,29 @@ CREATE TABLE registry (
 );
 INSERT INTO registry VALUES (1, 'registry.hub.docker.com', 1, 1, '', 0, '', '', '', NULL);
 CREATE TABLE iofog_change_tracking (
-  `ID`               INTEGER PRIMARY KEY AUTOINCREMENT,
-  `container_config` BIGINT,
-  `container_list`   BIGINT,
-  `config`           BIGINT,
-  `routing`          BIGINT,
-  `registries`       BIGINT,
-  `iofog_uuid`       TEXT,
-  FOREIGN KEY (`iofog_uuid`) REFERENCES iofogs (UUID)
-    ON DELETE SET NULL
-    ON UPDATE CASCADE
+	`ID`	INTEGER PRIMARY KEY AUTOINCREMENT,
+	`container_config`	BIGINT,
+	`container_list`	BIGINT,
+	`config`	BIGINT,
+	`routing`	BIGINT,
+	`registries`	BIGINT,
+	`proxy` BIGINT,
+	`iofog_uuid`	TEXT,
+	FOREIGN KEY(`iofog_uuid`) REFERENCES iofogs ( UUID ) ON DELETE SET NULL ON UPDATE CASCADE
 );
-INSERT INTO iofog_change_tracking VALUES
-  (1, 1517401049283, 1517472938429, 1517472938429, 1517401049283, 1517401049283, 'fVmnRpHgdNnDw7XJLJw7GV4NVRhjk4V3');
+CREATE TABLE proxy (
+  `ID` INTEGER PRIMARY KEY AUTOINCREMENT,
+  `username` TEXT,
+  `password` TEXT,
+  `host` TEXT,
+  `remote_port` INTEGER,
+  `local_port` INTEGER DEFAULT 22,
+  `rsa_key` TEXT,
+  `close` BOOLEAN DEFAULT FALSE,
+  `iofog_uuid`	TEXT,
+  FOREIGN KEY(`iofog_uuid`) REFERENCES iofogs ( UUID ) ON DELETE SET NULL ON UPDATE CASCADE
+);
+INSERT INTO iofog_change_tracking VALUES(1,1517401049283,1517472938429,1517472938429,1517401049283,1517401049283, 1517401049283, 'fVmnRpHgdNnDw7XJLJw7GV4NVRhjk4V3');
 DELETE FROM sqlite_sequence;
 INSERT INTO sqlite_sequence VALUES ('config', 52);
 INSERT INTO sqlite_sequence VALUES ('satellite', 9);
@@ -421,4 +431,10 @@ INSERT INTO sqlite_sequence VALUES ('users', 43);
 INSERT INTO sqlite_sequence VALUES ('email_activation_code', 35);
 INSERT INTO sqlite_sequence VALUES ('registry', 1);
 INSERT INTO sqlite_sequence VALUES ('iofog_change_tracking', 1);
+
+INSERT INTO config (key, value) VALUES ('port', '4443');
+INSERT INTO config (key, value) VALUES ('ssl_key', 'privkey.pem');
+INSERT INTO config (key, value) VALUES ('intermediate_cert', 'my-private-root-ca.cert.pem');
+INSERT INTO config (key, value) VALUES ('ssl_cert', 'fullchain.pem');
+
 COMMIT;
