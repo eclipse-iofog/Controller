@@ -22,7 +22,7 @@ function runCommand(args) {
     case '-list':
       return runListCommand(args);
     case '-add':
-      return runAddCommend(args);
+      return runAddCommand(args);
     case '-remove':
       return runRemoveCommand(args);
     default:

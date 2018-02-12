@@ -12,8 +12,8 @@ var portscanner = require('portscanner')
 // Checks the status of a single port
 // returns 'closed' if port is available
 // returns 'open' if port is not available
-const checkPortAvailability = function(port){  
-  return portscanner.checkPortStatus(port).then(function(status) {
+const checkPortAvailability = function (port) {
+  return portscanner.checkPortStatus(port).then(function (status) {
     return status;
   });
 }
@@ -27,20 +27,20 @@ const isArray = (object) => {
  * @param - none
  * @return String - returns random string
  */
-const generateAccessToken = function() {
-    var token = '',
-      i;
-    for (i = 0; i < 8; i++) {
-      token += ((0 + (Math.floor(Math.random() * (Math.pow(2, 31))) + 1).toString(16)).slice(-8)).substr(-8);
-    }
-    return token;
+const generateAccessToken = function () {
+  var token = '',
+    i;
+  for (i = 0; i < 8; i++) {
+    token += ((0 + (Math.floor(Math.random() * (Math.pow(2, 31))) + 1).toString(16)).slice(-8)).substr(-8);
   }
-  /**
-   * @desc generates a random String of the size specified by the input param
-   * @param Integer - size
-   * @return String - returns random string
-   */
-const generateRandomString = function(size) {
+  return token;
+}
+/**
+ * @desc generates a random String of the size specified by the input param
+ * @param Integer - size
+ * @return String - returns random string
+ */
+const generateRandomString = function (size) {
 
   var randString = "";
   var possible = "2346789bcdfghjkmnpqrtvwxyzBCDFGHJKLMNPQRTVWXYZ";
@@ -51,7 +51,7 @@ const generateRandomString = function(size) {
   return randString;
 }
 
-const isFileExists = function(filePath) {
+const isFileExists = function (filePath) {
   if (path.extname(filePath).indexOf(".") >= 0) {
     if (fs.existsSync(filePath)) {
       return true;
@@ -64,7 +64,7 @@ const isFileExists = function(filePath) {
   }
 }
 
-const isValidPort = function(port) {
+const isValidPort = function (port) {
   port = Number(port);
   if (Number.isInteger(port)) {
     if (port >= 0 && port < 65535)
@@ -73,34 +73,34 @@ const isValidPort = function(port) {
   return false;
 }
 
-const isValidEmail = function(email) {
+const isValidEmail = function (email) {
   var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
   return re.test(email);
 }
 
-const isValidName = function(name) {
+const isValidName = function (name) {
   var re = /^([a-zA-Z0-9]+)$/;
   return re.test(name);
 }
 
-const isValidDomain = function(domain) {
+const isValidDomain = function (domain) {
   var re = /^((?:(?:(?:\w[\.\-\+]?)*)\w)+)((?:(?:(?:\w[\.\-\+]?){0,62})\w)+)\.(\w{2,6})$/;
   return re.test(domain);
 }
 
-const isValidPublicIP = function(publicIP) {
+const isValidPublicIP = function (publicIP) {
   var re = /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$|^(([a-zA-Z]|[a-zA-Z][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])$|^\s*((([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})|((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})|((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})|((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})|((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(:(((:[0-9A-Fa-f]{1,4}){1,7})|((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:)))(%.+)?\s*$/;
   return re.test(publicIP);
 }
-const isValidProtocol = function(protocol){
-  if (protocol == 'http' || protocol == 'https'){
+const isValidProtocol = function (protocol) {
+  if (protocol == 'http' || protocol == 'https') {
     return true;
-  }else{
+  } else {
     return false;
   }
 }
 
-const convertRelativePathToAbsolute = function(filePath) {
+const convertRelativePathToAbsolute = function (filePath) {
   if (path.isAbsolute(filePath)) {
     return filePath;
   } else {
@@ -113,7 +113,7 @@ const convertRelativePathToAbsolute = function(filePath) {
  * @param Integer - size
  * @return String - returns random string
  */
-const generateInstanceId = function(size) {
+const generateInstanceId = function (size) {
 
   var randString = "";
   var possible = "2346789bcdfghjkmnpqrtvwxyzBCDFGHJKLMNPQRTVWXYZ";
@@ -124,19 +124,19 @@ const generateInstanceId = function(size) {
   return randString;
 }
 
-const getProperty = function(theObject, path, separator) {
+const getProperty = function (theObject, path, separator) {
   if (path) {
     try {
       separator = separator || '.';
 
       return path.
-      replace('[', separator).replace(']', '').
-      split(separator).
-      reduce(
-        function(obj, property) {
+        replace('[', separator).replace(']', '').
+        split(separator).
+        reduce(
+        function (obj, property) {
           return obj[property];
         }, theObject
-      );
+        );
 
     } catch (err) {
       return undefined;
@@ -146,7 +146,7 @@ const getProperty = function(theObject, path, separator) {
   }
 }
 
-const onCreate = function(params, paramName, errorMsg, callback, modelObject) {
+const onCreate = function (params, paramName, errorMsg, callback, modelObject) {
   if (modelObject) {
     if (paramName) {
       params[paramName] = modelObject;
@@ -158,7 +158,7 @@ const onCreate = function(params, paramName, errorMsg, callback, modelObject) {
   }
 }
 
-const onFind = function(params, paramName, errorMsg, callback, modelObject) {
+const onFind = function (params, paramName, errorMsg, callback, modelObject) {
   if (modelObject) {
     if (paramName) {
       params[paramName] = modelObject;
@@ -170,7 +170,7 @@ const onFind = function(params, paramName, errorMsg, callback, modelObject) {
   }
 }
 
-const onFindOptional = function(params, paramName, callback, modelObject) {
+const onFindOptional = function (params, paramName, callback, modelObject) {
   if (modelObject && paramName) {
     params[paramName] = modelObject;
   }
@@ -178,7 +178,7 @@ const onFindOptional = function(params, paramName, callback, modelObject) {
   callback(null, params);
 }
 
-const onUpdate = function(params, errorMsg, callback, updatedModels) {
+const onUpdate = function (params, errorMsg, callback, updatedModels) {
   if (updatedModels.length > 0) {
     callback(null, params);
 
@@ -187,11 +187,11 @@ const onUpdate = function(params, errorMsg, callback, updatedModels) {
   }
 }
 
-const onUpdateOptional = function(params, callback, deletedModels) {
+const onUpdateOptional = function (params, callback, deletedModels) {
   callback(null, params);
 }
 
-const onDelete = function(params, errorMsg, callback, deletedModels) {
+const onDelete = function (params, errorMsg, callback, deletedModels) {
   if (deletedModels <= 0) {
     callback('error', errorMsg);
   } else {
@@ -199,11 +199,11 @@ const onDelete = function(params, errorMsg, callback, deletedModels) {
   }
 }
 
-const onDeleteOptional = function(params, callback, deletedModels) {
+const onDeleteOptional = function (params, callback, deletedModels) {
   callback(null, params);
 }
 
-const sendResponse = function(response, err, successLabel, successValue, errorMessage) {
+const sendResponse = function (response, err, successLabel, successValue, errorMessage) {
   var res = {
     'timestamp': new Date().getTime()
   };
@@ -216,14 +216,14 @@ const sendResponse = function(response, err, successLabel, successValue, errorMe
   } else {
     logger.info("Endpoint served successfully");
     res['status'] = 'ok';
-    if (successLabel || successValue){
+    if (successLabel || successValue) {
       res[successLabel] = successValue;
     }
   }
   response.send(res);
 }
 
-const sendMultipleResponse = function(response, err, successLabelArr, successValueArr, errorMessage) {
+const sendMultipleResponse = function (response, err, successLabelArr, successValueArr, errorMessage) {
   var res = {
     'timestamp': new Date().getTime()
   };
@@ -236,8 +236,8 @@ const sendMultipleResponse = function(response, err, successLabelArr, successVal
   } else {
     logger.info("Endpoint served successfully");
     res['status'] = 'ok';
-    for (var i = 0; i < successValueArr.length; i++){
-    res[successLabelArr[i]] = successValueArr[i];
+    for (var i = 0; i < successValueArr.length; i++) {
+      res[successLabelArr[i]] = successValueArr[i];
     }
   }
   response.send(res);
