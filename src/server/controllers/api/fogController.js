@@ -804,7 +804,6 @@ const bluetoothElementForFog = function (params, callback) {
 }
 
 const updateChangeTracking = function (params, callback) {
-	//	if(params.isBluetooth == 1 || params.isDebug == 1 || params.isViewer == 1){
 	var changeTrackingProps = {
 		fogInstanceId: 'bodyParams.instanceId',
 		changeObject: {
@@ -812,13 +811,10 @@ const updateChangeTracking = function (params, callback) {
 			config: new Date().getTime(),
             reboot: params.bodyParams.reboot
 		}
-    }
+    };
 
 	ChangeTrackingService.updateChangeTracking(changeTrackingProps, params, callback);
-	//	}else{
-	//		callback(null, params);
-	//	}
-}
+};
 
 const createBluetoothElementInstance = function (params, callback) {
 	var elementInstanceProps = {
