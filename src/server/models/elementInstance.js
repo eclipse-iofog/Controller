@@ -76,6 +76,10 @@ const ElementInstance = sequelize.define('element_instance', {
     type: Sequelize.TEXT,
     field: 'volume_mappings'
   },
+  isHal: {
+    type: Sequelize.BOOLEAN,
+    field: 'is_hal'
+  }
 }, {
   // don't add the timestamp attributes (updatedAt, createdAt)
   timestamps: true,

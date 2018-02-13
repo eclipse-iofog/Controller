@@ -17,7 +17,7 @@ class InstanceTrackManager extends BaseManager {
 	 * @return JSON - returns a Array of JSON objects with elementInstance and its related instanceTrack
 	 */
 	findInstanceContainer(instanceId) {										                                      
-		var instanceTrackingQuery = "SELECT i.*, t.* FROM element_instance i LEFT JOIN \
+		let instanceTrackingQuery = "SELECT i.*, t.* FROM element_instance i LEFT JOIN \
 		instance_track t ON i.track_id = t.ID \
 		WHERE i.iofog_uuid in (:instanceId) AND (i.track_id = 0 OR t.is_activated = 1)";
 

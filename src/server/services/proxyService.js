@@ -12,7 +12,7 @@ const createOrUpdateExistingProxy = function(props, params, callback) {
 }
 
 const deleteProxy = function(props, params, callback) {
-    var instanceId = AppUtils.getProperty(params, props.fogInstanceId);
+    let instanceId = AppUtils.getProperty(params, props.fogInstanceId);
 
     ProxyManager
         .deleteByInstanceId(instanceId)
@@ -20,7 +20,7 @@ const deleteProxy = function(props, params, callback) {
 };
 
 const getProxyByInstanceId = function(props, params, callback) {
-    var instanceId = AppUtils.getProperty(params, props.fogInstanceId);
+    let instanceId = AppUtils.getProperty(params, props.fogInstanceId);
 
     ProxyManager
         .findByInstanceId(instanceId)
@@ -28,7 +28,7 @@ const getProxyByInstanceId = function(props, params, callback) {
 };
 
 const updateProxy = function(props, params, callback) {
-    var fogInstanceId = AppUtils.getProperty(params, props.fogInstanceId);
+    let fogInstanceId = AppUtils.getProperty(params, props.fogInstanceId);
 
     ProxyManager
         .updateByUuid(fogInstanceId, props.changeObject)

@@ -111,7 +111,7 @@ class SatelliteManager extends BaseManager {
       .then(function(satellite) {
         if (satellite && satellite.length > 0) {
           console.log('\n\tID | ComSat Name | Domain | Public IP');
-          for (var i = 0; i < satellite.length; i++) {
+          for (let i = 0; i < satellite.length; i++) {
             console.log('\t' + satellite[i].id + ' | ' + satellite[i].name + ' | ' + satellite[i].domain + ' | ' 
                         + satellite[i].publicIP);
           }

@@ -4,7 +4,7 @@ import _ from 'underscore';
 import logger from '../utils/winstonLogs';
 
 const isDebugging = function (props, params, callback){
-  var elementInstanceData = AppUtils.getProperty(params, props.elementInstanceData);
+  let elementInstanceData = AppUtils.getProperty(params, props.elementInstanceData);
 
   RoutingManager
     .isDebugging(_.pluck(elementInstanceData, props.fieldOne), _.pluck(elementInstanceData, props.fieldTwo))
@@ -12,7 +12,7 @@ const isDebugging = function (props, params, callback){
 }
 
 const isViewer = function (props, params, callback){
-  var elementInstanceData = AppUtils.getProperty(params, props.elementInstanceData);
+  let elementInstanceData = AppUtils.getProperty(params, props.elementInstanceData);
 
   RoutingManager
     .isViewer(_.pluck(elementInstanceData, props.fieldOne), _.pluck(elementInstanceData, props.fieldTwo))
@@ -20,7 +20,7 @@ const isViewer = function (props, params, callback){
 }
 
 const createRoute = function(props, params, callback) {
-  var routingObj = {
+  let routingObj = {
     publishing_instance_id: AppUtils.getProperty(params, props.publishingInstanceId),
     destination_instance_id: AppUtils.getProperty(params, props.destinationInstanceId),
     publishing_element_id: AppUtils.getProperty(params, props.publishingElementId),
@@ -34,7 +34,7 @@ const createRoute = function(props, params, callback) {
 }
 
 const deleteByFogAndElement = function(props, params, callback) {
-  var instanceId1 = AppUtils.getProperty(params, props.instanceId1),
+  let instanceId1 = AppUtils.getProperty(params, props.instanceId1),
     instanceId2 = AppUtils.getProperty(params, props.instanceId2),
     elementId1 = AppUtils.getProperty(params, props.elementId1),
     elementId2 = AppUtils.getProperty(params, props.elementId2),
@@ -46,7 +46,7 @@ const deleteByFogAndElement = function(props, params, callback) {
 }
 
 const deleteElementInstanceRouting = function(props, params, callback) {
-  var elementId = AppUtils.getProperty(params, props.elementId);
+  let elementId = AppUtils.getProperty(params, props.elementId);
 
   RoutingManager
     .deleteByPublishingElementId(elementId)
@@ -54,7 +54,7 @@ const deleteElementInstanceRouting = function(props, params, callback) {
 }
 
 const deleteByPublishingOrDestinationElementId = function(props, params, callback) {
-  var elementInstanceData = AppUtils.getProperty(params, props.elementInstanceData);
+  let elementInstanceData = AppUtils.getProperty(params, props.elementInstanceData);
 
   RoutingManager
     .deleteByPublishingOrDestinationElementId(_.pluck(elementInstanceData, props.field))
@@ -62,7 +62,7 @@ const deleteByPublishingOrDestinationElementId = function(props, params, callbac
 }
 
 const deleteNetworkElementRouting = function(props, params, callback) {
-  var elementId = AppUtils.getProperty(params, props.elementId);
+  let elementId = AppUtils.getProperty(params, props.elementId);
 
   RoutingManager
     .deleteByNetworkElementInstanceId(elementId)
@@ -129,7 +129,7 @@ const extractDifferentOutputRoutingList = function(params, callback) {
 }
 
 const findByInstanceId = function(props, params, callback) {
-   var instanceId = AppUtils.getProperty(params, props.instanceId);
+   let instanceId = AppUtils.getProperty(params, props.instanceId);
 
   RoutingManager
     .findByInstanceId(instanceId)
@@ -137,7 +137,7 @@ const findByInstanceId = function(props, params, callback) {
 }
 
 const findByElementInstanceUuidsAndRoutingDestination = function(props, params, callback) {
-  var elementInstanceData = AppUtils.getProperty(params, props.elementInstanceData);
+  let elementInstanceData = AppUtils.getProperty(params, props.elementInstanceData);
 
    RoutingManager
     .findByElementInstanceUuidsAndRoutingDestination(_.pluck(elementInstanceData, props.field))
@@ -145,7 +145,7 @@ const findByElementInstanceUuidsAndRoutingDestination = function(props, params, 
 }
 
 const findOutputRoutingByElementInstanceUuidsAndRoutingPublishing = function(props, params, callback) {
-  var elementInstanceData = AppUtils.getProperty(params, props.elementInstanceData);
+  let elementInstanceData = AppUtils.getProperty(params, props.elementInstanceData);
 
   RoutingManager
     .findOutputRoutingByElementInstanceUuidsAndRoutingPublishing(_.pluck(elementInstanceData, props.field))

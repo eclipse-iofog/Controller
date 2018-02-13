@@ -12,7 +12,7 @@ winston.emitErrs = true;
       fs.mkdirSync(logDir);
   }
 
-var logger = new winston.Logger({
+let logger = new winston.Logger({
   transports: [
     new (winston.transports.DailyRotateFile)({
       name: 'info-file',

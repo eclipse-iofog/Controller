@@ -16,7 +16,7 @@ import Constants from '../../constants.js';
 /********* Instance Configurations EndPoint (Get/Post: /api/v2/instance/config/id/:ID/token/:Token) **********/
 const instanceConfigEndPoint = function(req, res){
   logger.info("Endpoint hit: "+ req.originalUrl);
-  var params = {},
+  let params = {},
 
     fogProps = {
       fogId: 'bodyParams.ID',
@@ -39,7 +39,7 @@ const instanceConfigEndPoint = function(req, res){
 /***** Instance Configuration Changes EndPoint (Post: /api/v2/instance/config/changes/id/:ID/token/:Token) ******/
 const instanceConfigChangesEndPoint = function(req, res){
   logger.info("Endpoint hit: "+ req.originalUrl);
-  var params = {};
+  let params = {};
 
   params.bodyParams = req.body;
   params.bodyParams.instanceId = req.params.ID;
@@ -57,7 +57,7 @@ const instanceConfigChangesEndPoint = function(req, res){
 
 /************************************* Extra Functions **************************************************/
 const processConfigData = function(params, callback){
-  var config = {
+  let config = {
       networkinterface: params.fogData.networkinterface,
       dockerurl: params.fogData.dockerurl,
       disklimit: params.fogData.disklimit.toString(),
@@ -78,7 +78,7 @@ const processConfigData = function(params, callback){
 
 const updateFogInstance = function(params, callback){
 
-   var fogConfigProps = {
+   let fogConfigProps = {
       instanceId: 'bodyParams.instanceId',
       updatedFog: {
         networkinterface: params.bodyParams.networkinterface,

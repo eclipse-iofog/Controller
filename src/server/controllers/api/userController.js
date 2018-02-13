@@ -21,7 +21,7 @@ import appConfig from './../../../config.json';
  const activateUserAccountEndPoint = function(req, res) {
   logger.info("Endpoint hit: "+ req.originalUrl);
 
-  var params = {},
+  let params = {},
     activationCodeProps = {
       activationCode: 'bodyParams.code',
       setProperty: 'activationCodeData'
@@ -40,7 +40,7 @@ import appConfig from './../../../config.json';
 };
 
 const updateUser = function(params, callback){
-  var userProps = {
+  let userProps = {
     userId: 'activationCodeData.user_id',
     updatedObj:{
       emailActivated: 1
@@ -53,7 +53,7 @@ const updateUser = function(params, callback){
  const resendEmailActivationEndPoint = function(req, res) {
   logger.info("Endpoint hit: "+ req.originalUrl);
 
-  var params = {},
+  let params = {},
     userProps = {
       email: 'bodyParams.email',
       setProperty: 'user'
@@ -88,7 +88,7 @@ const updateUser = function(params, callback){
 
  const authenticateUserEndPoint = function(req, res) {
   logger.info("Endpoint hit: "+ req.originalUrl);
-  var params = {},
+  let params = {},
 
     userProps = {
       userId: 'bodyParams.t',
@@ -111,7 +111,7 @@ const updateUser = function(params, callback){
  const userSignupEndPoint = function(req, res) {
   logger.info("Endpoint hit: "+ req.originalUrl);
 
-  var params = {},
+  let params = {},
     userProps = {
       email: 'bodyParams.email',
       setProperty: 'user'
@@ -149,7 +149,7 @@ const updateUser = function(params, callback){
 const getIOAuthoringData = function(params, callback){
   try{
     configUtil.getAllConfigs().then(() => {
-      var ioAuthoringProtocol = configUtil.getConfigParam('ioauthoring_protocol'),
+      let ioAuthoringProtocol = configUtil.getConfigParam('ioauthoring_protocol'),
       ioAuthoringIPAddress = configUtil.getConfigParam('ioauthoring_ip_address'),
       ioAuthoringPort = configUtil.getConfigParam('ioauthoring_port');
 
@@ -237,7 +237,7 @@ const validateUserInfo = function(params, callback){
 }
 
 const createNewUser = function (params, callback){
-  var newUserProps = {
+  let newUserProps = {
     user: {
       email: params.bodyParams.email,
       password: params.bodyParams.password,
@@ -254,8 +254,8 @@ const createNewUser = function (params, callback){
 /**************************** Reset User Password (Post: /api/v1/user/password/reset) ********************/
 const resetUserPasswordEndPoint = function(req, res){
   logger.info("Endpoint hit: "+ req.originalUrl);
-  var tempPass = AppUtils.generateRandomString(2) + 'uL7';
-  var params = {},
+  let tempPass = AppUtils.generateRandomString(2) + 'uL7';
+  let params = {},
     userProps = {
       email: 'bodyParams.email',
       setProperty: 'user'
@@ -326,7 +326,7 @@ const notifyUserAboutPasswordReset = function(params, callback){
  const validateUserEndPoint = function(req, res) {
   logger.info("Endpoint hit: "+ req.originalUrl);
 
-  var params = {},
+  let params = {},
       userProps = {
         email: 'bodyParams.email',
         password: 'bodyParams.password',
@@ -351,7 +351,7 @@ const notifyUserAboutPasswordReset = function(params, callback){
       params.token = params.tokenData.accessToken;
     }
 
-    var output = {
+    let output = {
       token: params.token,
       destination: params.destination
     }
@@ -362,7 +362,7 @@ const notifyUserAboutPasswordReset = function(params, callback){
 
 const validateUser = function (params, callback){
   if (!params.user){
-    var userProps = {
+    let userProps = {
       email: 'bodyParams.email',
       password: 'bodyParams.password',
       setProperty: 'user' 
@@ -373,7 +373,7 @@ const validateUser = function (params, callback){
     params.destination = 'changePassword'
     callback(null, params);
   }
-  //   var updatePasswordProps = {
+  //   let updatePasswordProps = {
   //     email: 'bodyParams.email',
   //     updateData: {
   //       tempPassword: ''
@@ -388,7 +388,7 @@ const validateUser = function (params, callback){
 const logoutUserEndPoint = function(req, res){
   logger.info("Endpoint hit: "+ req.originalUrl);
 
-    var params = {},
+    let params = {},
     userProps = {
       userId: 'bodyParams.t',
       setProperty: 'user'
@@ -417,7 +417,7 @@ const logoutUserEndPoint = function(req, res){
  const getUserDetailsEndPoint = function(req, res) {
  	logger.info("Endpoint hit: "+ req.originalUrl);
 
-  	var params = {},
+  	let params = {},
     userProps = {
       userId: 'bodyParams.t',
       setProperty: 'user'
@@ -431,7 +431,7 @@ const logoutUserEndPoint = function(req, res){
 
    	], function(err, result) {
    		if(!err){
-   			var output = {
+   			let output = {
  				firstName: params.user.firstName,
  				lastName: params.user.lastName
  			}
@@ -446,7 +446,7 @@ const logoutUserEndPoint = function(req, res){
  const updateUserDetailsEndPoint = function(req, res) {
  	logger.info("Endpoint hit: "+ req.originalUrl);
 
-  	var params = {},
+  	let params = {},
     userProps = {
       userId: 'bodyParams.t',
       setProperty: 'user'
@@ -469,7 +469,7 @@ const logoutUserEndPoint = function(req, res){
  const updateUserPasswordEndPoint = function(req, res) {
  	logger.info("Endpoint hit: "+ req.originalUrl);
 
-  	var params = {},
+  	let params = {},
     userProps = {
       userId: 'bodyParams.t',
       setProperty: 'user'
@@ -500,7 +500,7 @@ const logoutUserEndPoint = function(req, res){
 const getEmailData = function(params, callback){
   try{
   configUtil.getAllConfigs().then(() => {
-    var email = configUtil.getConfigParam('email_address'),
+    let email = configUtil.getConfigParam('email_address'),
     password = configUtil.getConfigParam('email_password'),
     service = configUtil.getConfigParam('email_service');
 
@@ -548,7 +548,7 @@ const notifyUserAboutPasswordChange = function(params, callback){
  const deleteUserAccountEndPoint = function(req, res) {
  	logger.info("Endpoint hit: "+ req.originalUrl);
 
-  	var params = {},
+  	let params = {},
     userProps = {
       userId: 'bodyParams.t',
       setProperty: 'user'
@@ -592,7 +592,7 @@ const notifyUserAboutPasswordChange = function(params, callback){
  }
 
  const updateUserPassword = function(params, callback){
-    var updateProps = {
+    let updateProps = {
       token: 'bodyParams.t',
       updateData: {
       	password: params.bodyParams.newPassword
@@ -602,7 +602,7 @@ const notifyUserAboutPasswordChange = function(params, callback){
  }
 
  const updateUserAccessTokenByEmail = function(params, callback){
-  var updateProps = {
+  let updateProps = {
     updateData:{
       userAccessToken: params.tokenData.accessToken
     },
@@ -615,7 +615,7 @@ const notifyUserAboutPasswordChange = function(params, callback){
  const updateUserProfile = function(params, callback){
   if (params.bodyParams.firstName.length > 2){
     if(params.bodyParams.lastName.length > 2){
-      var updateProps = {
+      let updateProps = {
         token: 'bodyParams.t',
         updateData: {
       	 firstName: params.bodyParams.firstName,

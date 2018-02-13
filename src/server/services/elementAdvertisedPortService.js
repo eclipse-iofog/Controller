@@ -3,7 +3,7 @@ import AppUtils from '../utils/appUtils';
 import _ from 'underscore';
 
 const findElementAdvertisedPortByElementIds = function(props, params, callback) {
-  var elementInstanceData = AppUtils.getProperty(params, props.elementInstanceData);
+  let elementInstanceData = AppUtils.getProperty(params, props.elementInstanceData);
 
   ElementAdvertisedPortManager
     .findElementAdvertisedPortByElementIds(_.pluck(elementInstanceData, props.field))

@@ -8,7 +8,7 @@ const createElement = function(props, params, callback) {
 }
 
 const deleteElementById = function(props, params, callback) {
-  var elementId = AppUtils.getProperty(params, props.elementId);
+  let elementId = AppUtils.getProperty(params, props.elementId);
 
   ElementManager
     .deleteElementById(elementId)
@@ -16,7 +16,7 @@ const deleteElementById = function(props, params, callback) {
 }
 
 const getElementDetails = function(props, params, callback) {
-  var elementId = AppUtils.getProperty(params, props.elementId);
+  let elementId = AppUtils.getProperty(params, props.elementId);
 
   ElementManager
     .getElementDetails(elementId)
@@ -24,7 +24,7 @@ const getElementDetails = function(props, params, callback) {
 }
 
 const findElementAndRegistryById = function(props, params, callback) {
-  var elementId = AppUtils.getProperty(params, props.elementId);
+  let elementId = AppUtils.getProperty(params, props.elementId);
 
   ElementManager
     .findElementAndRegistryById(elementId)
@@ -46,7 +46,7 @@ const getElementForPublish = function(props, params, callback) {
 }
 
 const getNetworkElement = function(props, params, callback) {
-  var networkElementId = AppUtils.getProperty(params, props.networkElementId);
+  let networkElementId = AppUtils.getProperty(params, props.networkElementId);
 
   ElementManager
     .findElementById(networkElementId)
@@ -54,7 +54,7 @@ const getNetworkElement = function(props, params, callback) {
 }
 
 const updateElement = function(props, params, callback) {
-  var elementId = AppUtils.getProperty(params, props.elementId);
+  let elementId = AppUtils.getProperty(params, props.elementId);
 
   ElementManager
     .updateElementById(elementId, props.updatedElement)

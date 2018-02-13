@@ -14,7 +14,7 @@ class ChangeTrackingManager extends BaseManager {
 	}
 
 	createChangeTracking(instanceId) {
-			var milliseconds = new Date().getTime();
+			let milliseconds = new Date().getTime();
 
 			return ChangeTracking.create({
 				iofog_uuid: instanceId,

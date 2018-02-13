@@ -32,7 +32,7 @@ import _ from 'underscore';
  const elementInstanceRebuildStatusEndPoint = function(req, res) {
   logger.info("Endpoint hit: "+ req.originalUrl);
 
-  var params = {},
+  let params = {},
     userProps = {
       userId: 'bodyParams.t',
       setProperty: 'user'
@@ -52,7 +52,7 @@ import _ from 'underscore';
     async.apply(ElementInstanceService.getElementInstance, elementInstanceProps)
 
   ], function(err, result) {
-    var rebuild = 0;
+    let rebuild = 0;
     if(!err){
       if (params.elementInstance.rebuild){
         rebuild = 1;
@@ -66,7 +66,7 @@ import _ from 'underscore';
  const trackElementListEndPoint = function(req, res) {
   logger.info("Endpoint hit: "+ req.originalUrl);
 
-  var params = {},
+  let params = {},
       userProps = {
           userId: 'bodyParams.t',
           setProperty: 'user'
@@ -177,7 +177,7 @@ import _ from 'underscore';
 /******** Detailed Element Instance Create EndPoint (Post: /api/v2/authoring/element/instance/create) ************/
  const detailedElementInstanceCreateEndPoint = function(req, res) {
   logger.info("Endpoint hit: "+ req.originalUrl);
-    var params = {},
+    let params = {},
       userProps = {
         userId: 'bodyParams.t',
         setProperty: 'user'
@@ -304,7 +304,7 @@ import _ from 'underscore';
     getElementDetails
 
   ], function(err, result) {
-    var errMsg = 'Internal error: ' + result  
+    let errMsg = 'Internal error: ' + result  
     AppUtils.sendResponse(res, err, 'elementDetails', params.elementInstanceDetails, errMsg);
   });
 };
@@ -312,10 +312,10 @@ import _ from 'underscore';
 /********** Element Instance Create EndPoint (Post: /api/v2/authoring/build/element/instance/create) **********/
 const elementInstanceCreateEndPoint = function(req, res) {
   logger.info("Endpoint hit: "+ req.originalUrl);
-  var params = {};
+  let params = {};
   params.logSize = 10;
   
-  var userProps = {
+  let userProps = {
       userId: 'bodyParams.t',
       setProperty: 'user'
     },
@@ -348,13 +348,13 @@ const elementInstanceCreateEndPoint = function(req, res) {
     processNewElementInstance
 
   ], function(err, result) {
-    var errMsg = 'Internal error: There was a problem creating the ioElement instance.' + result;
+    let errMsg = 'Internal error: There was a problem creating the ioElement instance.' + result;
     AppUtils.sendResponse(res, err, 'elementInstance', params.outputObj, errMsg);
   });
 };
 
 const processNewElementInstance = function(params, callback) {
-  var outputObj = {
+  let outputObj = {
     id: params.elementInstance.uuid,
     layoutX: params.bodyParams.layoutX,
     layoutY: params.bodyParams.layoutY
@@ -369,7 +369,7 @@ const processNewElementInstance = function(params, callback) {
 const elementInstanceConfigUpdateEndPoint = function(req, res) {
 logger.info("Endpoint hit: "+req.originalUrl);
 
-  var params = {},
+  let params = {},
     userProps = {
       userId: 'bodyParams.t',
       setProperty: 'user'
@@ -395,7 +395,7 @@ logger.info("Endpoint hit: "+req.originalUrl);
     updateConfigTracking
 
   ], function(err, result) {
-    var errMsg = 'Internal error: There was a problem updating ioElement instance.' + result
+    let errMsg = 'Internal error: There was a problem updating ioElement instance.' + result
 
     AppUtils.sendResponse(res, err, 'elementInstance', params.bodyParams.elementId, errMsg);
   });
@@ -405,7 +405,7 @@ logger.info("Endpoint hit: "+req.originalUrl);
 const elementInstanceDeleteEndPoint = function(req, res) {
   logger.info("Endpoint hit: "+ req.originalUrl);
 
-  var params = {},
+  let params = {},
 
     userProps = {
       userId: 'bodyParams.t',
@@ -437,7 +437,7 @@ const elementInstanceDeleteEndPoint = function(req, res) {
     async.apply(SatellitePortService.deletePortsForNetworkElements, deleteElementProps),
     async.apply(ElementInstanceService.deleteElementInstance, deleteElementProps)
   ], function(err, result) {
-    var errMsg = 'Internal error: There was a problem deleting ioElement instance.' + result;
+    let errMsg = 'Internal error: There was a problem deleting ioElement instance.' + result;
 
     AppUtils.sendResponse(res, err, 'element', params.bodyParams.elementId, errMsg);
   });
@@ -446,7 +446,7 @@ const elementInstanceDeleteEndPoint = function(req, res) {
 /** Element Instance Comsat Pipe Create EndPoint (Post: '/api/v2/authoring/element/instance/comsat/pipe/create') **/
 const elementInstanceComsatPipeCreateEndPoint = function(req, res) {
   logger.info("Endpoint hit: "+ req.originalUrl);
-  var params = {},
+  let params = {},
 
     userProps = {
       userId: 'bodyParams.t',
@@ -532,8 +532,8 @@ const elementInstanceComsatPipeCreateEndPoint = function(req, res) {
     async.apply(ChangeTrackingService.updateChangeTracking, changeTrackingCLProps),
     async.apply(NetworkPairingService.createNetworkPairing, networkPairingProps)
   ], function(err, result) {
-    var errMsg = 'Internal error: There was a problem trying to create the Comsat Pipe.' + result;
-    var outputObj;
+    let errMsg = 'Internal error: There was a problem trying to create the Comsat Pipe.' + result;
+    let outputObj;
      if (params.satellite){
       outputObj = {
         'accessUrl': 'https://' + params.satellite.domain + ':' + params.satellitePort.port2,
@@ -548,7 +548,7 @@ const elementInstanceComsatPipeCreateEndPoint = function(req, res) {
 const elementInstanceComsatPipeDeleteEndPoint = function(req, res) {
   logger.info("Endpoint hit: "+ req.originalUrl);
 
-  var params = {},
+  let params = {},
 
     userProps = {
       userId: 'bodyParams.t',
@@ -603,7 +603,7 @@ const elementInstanceComsatPipeDeleteEndPoint = function(req, res) {
     async.apply(ChangeTrackingService.updateChangeTracking, changeTrackingProps)
 
   ], function(err, result) {
-    var errMsg = 'Internal error: There was a problem trying to delete the Comsat Pipe.' + result;
+    let errMsg = 'Internal error: There was a problem trying to delete the Comsat Pipe.' + result;
 
     AppUtils.sendResponse(res, err, 'networkPairingId', params.bodyParams.networkPairingId, errMsg);
   });
@@ -612,7 +612,7 @@ const elementInstanceComsatPipeDeleteEndPoint = function(req, res) {
 /**** Element Instance Port Create EndPoint (Post: '/api/v2/authoring/element/instance/port/create') ****/
 const elementInstancePortCreateEndPoint = function(req, res) {
   logger.info("Endpoint hit: "+ req.originalUrl);
-  var params = {},
+  let params = {},
     waterfallMethods = [],
 
     userProps = {
@@ -729,7 +729,7 @@ const elementInstancePortCreateEndPoint = function(req, res) {
 };
 
 const verifyPorts = function(params, callback){
-  var internalPort = params.bodyParams.internalPort,
+  let internalPort = params.bodyParams.internalPort,
     externalPort = params.bodyParams.externalPort;
 
   if(AppUtils.isValidPort(internalPort)){
@@ -764,7 +764,7 @@ const verifyPorts = function(params, callback){
 }
 
 const createNetworkElementInstance = function (params, callback){
-  var networkElementInstanceProps = {
+  let networkElementInstanceProps = {
       networkElement: 'networkElement',
       fogInstanceId: 'fogInstance.uuid',
       satellitePort: 'satellitePort.port1',
@@ -784,7 +784,7 @@ const createNetworkElementInstance = function (params, callback){
 /**** Element Instance Port Delete EndPoint (Post: '/api/v2/authoring/element/instance/port/delete') ****/
 const elementInstancePortDeleteEndPoint = function(req, res) {
   logger.info("Endpoint hit: "+ req.originalUrl);
-  var params = {},
+  let params = {},
     waterfallMethods = [],
 
     userProps = {
@@ -892,7 +892,7 @@ const elementInstancePortDeleteEndPoint = function(req, res) {
  const getElementInstancePropertiesEndPoint = function(req, res) {
   logger.info("Endpoint hit: "+ req.originalUrl);
 
-  var params = {},
+  let params = {},
       userProps = {
         userId: 'bodyParams.t',
         setProperty: 'user'
@@ -943,7 +943,7 @@ const elementInstancePortDeleteEndPoint = function(req, res) {
  const createElementInstanceConnectionEndPoint = function(req, res) {
   logger.info("Endpoint hit: "+ req.originalUrl);
 
-  var params = {},
+  let params = {},
       userProps = {
         userId: 'bodyParams.t',
         setProperty: 'user'
@@ -963,7 +963,7 @@ const elementInstancePortDeleteEndPoint = function(req, res) {
     createElementInstanceConnection
 
   ], function(err, result) {
-    var connectionId;
+    let connectionId;
     if(!err){
       if (params.elementInstanceConnection.length){
         connectionId =  params.elementInstanceConnection[0].id;
@@ -979,7 +979,7 @@ const elementInstancePortDeleteEndPoint = function(req, res) {
  const deleteElementInstanceConnectionEndPoint = function(req, res) {
   logger.info("Endpoint hit: "+ req.originalUrl);
 
-  var params = {},
+  let params = {},
       userProps = {
         userId: 'bodyParams.t',
         setProperty: 'user'
@@ -1007,7 +1007,7 @@ const elementInstancePortDeleteEndPoint = function(req, res) {
 const elementInstanceUpdateEndPoint = function(req, res) {
   logger.info("Endpoint hit: "+ req.originalUrl);
 
-  var params = {},
+  let params = {},
       userProps = {
         userId: 'bodyParams.t',
         setProperty: 'user'
@@ -1035,7 +1035,7 @@ const elementInstanceUpdateEndPoint = function(req, res) {
 
 const getFogInstance = function (params, callback){
   if (params.bodyParams.fabricInstanceId) {
-    var fogProps = {
+    let fogProps = {
       fogId: 'bodyParams.fabricInstanceId',
       setProperty: 'fogData'
     };
@@ -1050,7 +1050,7 @@ const getFogInstance = function (params, callback){
  const elementInstanceRebuildUpdateEndPoint = function(req, res) {
   logger.info("Endpoint hit: "+ req.originalUrl);
 
-  var params = {},
+  let params = {},
       userProps = {
         userId: 'bodyParams.t',
         setProperty: 'user'
@@ -1079,7 +1079,7 @@ const getFogInstance = function (params, callback){
  const getElementInstanceDetailsEndPoint = function(req, res) {
   logger.info("Endpoint hit: "+ req.originalUrl);
 
-  var params = {},
+  let params = {},
       userProps = {
         userId: 'bodyParams.t',
         setProperty: 'user'
@@ -1221,7 +1221,7 @@ const getConnections = function(params, elementInstance) {
 
 const updateChangeTrackingData = function(params, callback) {
   if (params.elementInstance.iofog_uuid){
-    var changeTrackingProps = {
+    let changeTrackingProps = {
       fogInstanceId: 'elementInstance.iofog_uuid',
       changeObject: {
         containerList: new Date().getTime()
@@ -1236,7 +1236,7 @@ const updateChangeTrackingData = function(params, callback) {
 
 const updateRebuild = function (params, callback) {
   params.elementInstanceName = 'Network for Element ' + params.bodyParams.elementId;
-  var elementProps = {
+  let elementProps = {
       elementId: 'bodyParams.elementId',
       name: 'elementInstanceName',
       updatedData: {
@@ -1249,13 +1249,13 @@ const updateRebuild = function (params, callback) {
 
 const updateElementInstance = function (params, callback) {
   try{
-  var data;
+  let data;
 
   if (params.elementInstance.iofog_uuid == params.bodyParams.fabricInstanceId) {
     callback(null, params);
   } 
   else {
-    var fogInstanceId = null;
+    let fogInstanceId = null;
     if (params.bodyParams.fabricInstanceId != 'NONE'){
         fogInstanceId = params.bodyParams.fabricInstanceId;
       }
@@ -1264,7 +1264,7 @@ const updateElementInstance = function (params, callback) {
       iofog_uuid: fogInstanceId
     };
 
-    var elementProps = {
+    let elementProps = {
       elementId:'bodyParams.instanceId',
       updatedData: data
     };
@@ -1277,7 +1277,7 @@ const updateElementInstance = function (params, callback) {
 
 const updateChangeTracking = function(params, callback) {
 
-  var lastUpdated = new Date().getTime(),
+  let lastUpdated = new Date().getTime(),
     updateChangeTracking = {},
     updateChange = {},
 
@@ -1310,7 +1310,7 @@ const updateChangeTracking = function(params, callback) {
   params.updateChange = updateChange;
 
   if (updateChangeTracking.containerConfig || updateChangeTracking.containerList){
-    var changeTrackingProps = {
+    let changeTrackingProps = {
       fogInstanceId: 'elementInstance.iofog_uuid',
       changeObject: updateChangeTracking
     };
@@ -1323,7 +1323,7 @@ const updateChangeTracking = function(params, callback) {
 
 const updateChange = function(params, callback) {
   if (params.updateChange.containerConfig || params.updateChange.containerList){
-    var changeTrackingProps = {
+    let changeTrackingProps = {
       fogInstanceId: 'bodyParams.fabricInstanceId',
       changeObject: params.updateChange
     };
@@ -1336,7 +1336,7 @@ const updateChange = function(params, callback) {
 
 const updateElement = function(params, callback) {
 
-  var elementInstanceProps = {
+  let elementInstanceProps = {
     elementId: 'bodyParams.instanceId',
     updatedData: params.updateElementObject
   };
@@ -1346,7 +1346,7 @@ const updateElement = function(params, callback) {
 const createElementInstanceConnection = function(params, callback) {
   if (params.bodyParams.sourceElementId && params.bodyParams.destinationElementId){
     if (params.elementInstanceConnection == ''){
-      var newElementInstanceConnectionProps = {
+      let newElementInstanceConnectionProps = {
         newConnectionObj: {
           sourceElementInstance: params.bodyParams.sourceElementId,
           destinationElementInstance: params.bodyParams.destinationElementId
@@ -1520,7 +1520,7 @@ const extractRouting = function(params, elementInstance) {
 }
 
 const convertToArr = function(params, callback) {
-  var elementInstance = [];
+  let elementInstance = [];
 
   elementInstance.push(params.newElementInstance);
   params.elementInstance = elementInstance;
@@ -1552,7 +1552,7 @@ const getElementDetails = function(params, callback) {
 
 const updateConfigTracking = function(params, callback){
   if (params.isConfigChanged) {
-    var changeTrackingProps = {
+    let changeTrackingProps = {
       fogInstanceId: 'elementInstance.iofog_uuid',
       changeObject: {
         containerConfig: new Date().getTime()
@@ -1565,7 +1565,7 @@ const updateConfigTracking = function(params, callback){
 }
 
 const updateElementInstanceConfig = function(params, callback){
-  var updatedData = {};
+  let updatedData = {};
 
   if (params.bodyParams.config) {
     updatedData.config = params.bodyParams.config;
@@ -1577,7 +1577,7 @@ const updateElementInstanceConfig = function(params, callback){
   updatedData.name = params.bodyParams.name
   }
 
-  var updateElementInstanceProps ={
+  let updateElementInstanceProps ={
     elementId: 'bodyParams.elementId',
     updatedData: updatedData
   };
@@ -1586,7 +1586,7 @@ const updateElementInstanceConfig = function(params, callback){
 }
 
 const createSatellitePort = function(params, callback){
-  var satellitePortProps = {
+  let satellitePortProps = {
     satellitePortObj: {
       port1: params.comsatPort.port1,
       port2: params.comsatPort.port2,
@@ -1605,7 +1605,7 @@ const createSatellitePort = function(params, callback){
 }
 
 const updateElemInstance = function(params, callback) {
-  var elementInstanceUpdateProps = {
+  let elementInstanceUpdateProps = {
       elementId: 'bodyParams.elementId',
       updatedData: {
         updatedBy: params.user.id,

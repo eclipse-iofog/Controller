@@ -8,7 +8,7 @@ const createConsole = function(props, params, callback) {
 }
 
 const getConsoleByFogInstanceId = function(props, params, callback) {
-  var instanceId = AppUtils.getProperty(params, props.instanceId);
+  let instanceId = AppUtils.getProperty(params, props.instanceId);
 
   ConsoleManager
     .findByInstanceId(instanceId)
@@ -16,7 +16,7 @@ const getConsoleByFogInstanceId = function(props, params, callback) {
 }
 
 const deleteConsoleByFogInstanceId = function(props, params, callback) {
-  var instanceId = AppUtils.getProperty(params, props.instanceId);
+  let instanceId = AppUtils.getProperty(params, props.instanceId);
 
   ConsoleManager
     .deleteByInstanceId(instanceId)

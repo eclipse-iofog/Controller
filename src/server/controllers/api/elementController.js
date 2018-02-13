@@ -29,7 +29,7 @@ import logger from '../../utils/winstonLogs';
  const getElementDetailsEndPoint = function(req, res) {
   logger.info("Endpoint hit: "+ req.originalUrl);
 
-  var params = {},
+  let params = {},
       userProps = {
         userId: 'bodyParams.t',
         setProperty: 'user'
@@ -54,7 +54,7 @@ import logger from '../../utils/winstonLogs';
  const createElementForUserEndPoint = function(req, res) {
   logger.info("Endpoint hit: "+ req.originalUrl);
 
-  var params = {},
+  let params = {},
       userProps = {
         userId: 'bodyParams.t',
         setProperty: 'user'
@@ -75,7 +75,7 @@ import logger from '../../utils/winstonLogs';
     createElementOutputType
 
   ], function(err, result) {
-   var successLabelArr,
+   let successLabelArr,
        successValueArr,
        elementData = {};
 
@@ -92,7 +92,7 @@ import logger from '../../utils/winstonLogs';
  const createElementEndPoint = function(req, res) {
   logger.info("Endpoint hit: "+ req.originalUrl);
 
-  var params = {},
+  let params = {},
       userProps = {
         userId: 'bodyParams.t',
         setProperty: 'user'
@@ -115,7 +115,7 @@ import logger from '../../utils/winstonLogs';
  const updateElementEndPoint = function(req, res) {
   logger.info("Endpoint hit: "+ req.originalUrl);
 
-  var params = {},
+  let params = {},
     userProps = {
       userId: 'bodyParams.t',
       setProperty: 'user'
@@ -147,7 +147,7 @@ import logger from '../../utils/winstonLogs';
 };
 
 const checkFogTypes = function(params, callback) {
- var fogTypeIds = [];
+ let fogTypeIds = [];
   
   if(params.bodyParams.fabricTypeIds){
     fogTypeIds = params.bodyParams.fabricTypeIds.split(',')
@@ -155,7 +155,7 @@ const checkFogTypes = function(params, callback) {
   params.fogTypeIds = fogTypeIds;
   if (fogTypeIds.length) {
     async.eachOfSeries(params.fogTypeIds, function (value, key, cb) {
-      var fogTypeProps = {
+      let fogTypeProps = {
         fogTypeId: value
       };
       
@@ -174,14 +174,14 @@ const checkFogTypes = function(params, callback) {
 }
 
 const createElementFogTypes = function(params, callback) {
-  var fogTypeIds = [];
+  let fogTypeIds = [];
   
   if(params.bodyParams.fabricTypeIds){
     fogTypeIds = params.bodyParams.fabricTypeIds.split(',')
   }
   if (fogTypeIds.length) {
     async.eachOfSeries(fogTypeIds, function (value, key, cb) {
-      var elementFogTypeProps = {
+      let elementFogTypeProps = {
         elementType: {
           element_id: params.element.id,
           iofog_type_id: value
@@ -205,7 +205,7 @@ const createElementFogTypes = function(params, callback) {
  const updateElementForUserEndPoint= function(req, res) {
   logger.info("Endpoint hit: "+ req.originalUrl);
 
-  var params = {},
+  let params = {},
     userProps = {
       userId: 'bodyParams.t',
       setProperty: 'user'
@@ -238,7 +238,7 @@ const createElementFogTypes = function(params, callback) {
  const deleteElementEndPoint = function(req, res) {
   logger.info("Endpoint hit: "+ req.originalUrl);
   
-  var params = {},
+  let params = {},
     userProps = {
       userId: 'bodyParams.t',
       setProperty: 'user'
@@ -269,7 +269,7 @@ const createElementFogTypes = function(params, callback) {
  const deleteElementForUserEndPoint = function(req, res) {
   logger.info("Endpoint hit: "+ req.originalUrl);
   
-  var params = {},
+  let params = {},
     userProps = {
       userId: 'bodyParams.t',
       setProperty: 'user'
@@ -306,7 +306,7 @@ const createElementFogTypes = function(params, callback) {
 };
 
 const updateFogChangeTracking = function(params, callback){
-  var changeTrackingProps = {
+  let changeTrackingProps = {
     elementInstanceData: 'elementInstancesData',
     field: 'iofog_uuid',
     changeObject: {
@@ -320,7 +320,7 @@ const updateFogChangeTracking = function(params, callback){
 const getCatalogOfElements = function(req, res) {
   logger.info("Endpoint hit: "+ req.originalUrl);
 
-  var params = {},
+  let params = {},
       userProps = {
           userId: 'bodyParams.t',
           setProperty: 'user'
@@ -347,7 +347,7 @@ const getCatalogOfElements = function(req, res) {
 const getElementsForPublishingEndPoint = function(req, res) {
   logger.info("Endpoint hit: "+ req.originalUrl);
 
-  var params = {},
+  let params = {},
       userProps = {
           userId: 'bodyParams.t',
           setProperty: 'user'
@@ -372,7 +372,7 @@ const getElementsForPublishingEndPoint = function(req, res) {
 
 /*************************************** Extra Functions *************************************************/
 const createElement = function(params, callback) {
-  var elementProps = {
+  let elementProps = {
         element : {
           name: params.bodyParams.name,
           description: params.bodyParams.description,
@@ -392,7 +392,7 @@ const createElement = function(params, callback) {
 }
 
 const createElementInputType = function(params, callback) {
-  var elementInputTypeProps = {
+  let elementInputTypeProps = {
         elementInputType : {
           elementKey: params.element.id,
           infoType: '',
@@ -405,7 +405,7 @@ const createElementInputType = function(params, callback) {
 }
 
 const createElementOutputType = function(params, callback) {
-  var elementOutputTypeProps = {
+  let elementOutputTypeProps = {
         elementOutputType : {
           elementKey: params.element.id,
           infoType: '',
@@ -418,7 +418,7 @@ const createElementOutputType = function(params, callback) {
 }
 
 const createElementForUser = function(params, callback) {
-  var elementProps = {
+  let elementProps = {
         element : {
           name: '',
           description: '',
@@ -439,7 +439,7 @@ const createElementForUser = function(params, callback) {
 
 const createElementFogType = function(params, callback) {
   if (params.bodyParams.fabricType){
-      var elementFogTypeProps = {
+      let elementFogTypeProps = {
             elementType: {
               element_id: params.element.id,
               iofog_type_id: params.bodyParams.fabricType
@@ -451,7 +451,7 @@ const createElementFogType = function(params, callback) {
 }
 
 const updateElement = function(params, callback) {
-  var elementProps = {
+  let elementProps = {
         elementId: 'bodyParams.id',
         updatedElement : {
           name: params.bodyParams.name,
@@ -472,7 +472,7 @@ const updateElement = function(params, callback) {
 }
 
 const updateElementInputType = function(params, callback) {
-  var elementInputTypeProps = {
+  let elementInputTypeProps = {
         elementKey: 'bodyParams.id',
         updatedData : {
           infoType: params.bodyParams.inputType,
@@ -484,7 +484,7 @@ const updateElementInputType = function(params, callback) {
 }
 
 const updateElementOutputType = function(params, callback) {
-    var elementOutputTypeProps = {
+    let elementOutputTypeProps = {
         elementKey: 'bodyParams.id',
         updatedData : {
           infoType: params.bodyParams.outputType,
@@ -497,7 +497,7 @@ const updateElementOutputType = function(params, callback) {
 
 const deleteElementInstanceData = function(params, callback) {
   if (params.elementInstanceData.length){
-    var elementInstanceDataProps = {
+    let elementInstanceDataProps = {
       elementInstanceData: 'elementInstanceData',
       field: 'uuid'
     },

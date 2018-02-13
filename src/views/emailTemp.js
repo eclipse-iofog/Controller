@@ -1,4 +1,4 @@
-var emailRecoveryTemplate = {
+let emailRecoveryTemplate = {
 	p1: "<div>\
 		<table bgcolor='#f6f6f6' style = 'width:100%'>\
 		<tbody><tr>\
@@ -18,7 +18,7 @@ var emailRecoveryTemplate = {
 									<table>\
 										<tbody>\
 											<tr style = 'line-height:1.6em; font-family: sans-serif; font-size:14px;'>\
-												<td style = 'padding:0px 20px'>\
+												<td style = 'padding:0 20px'>\
 													We sent you this email just to tell you that your password was changed.\
 													Did you do that? If so, then we are all good. If not, then please contact us\
 													so we can help you avoid any potential problems.\
@@ -30,7 +30,7 @@ var emailRecoveryTemplate = {
 												</td>\
 											</tr>\
 											<tr>\
-												<td style ='font-family: sans-serif; font-size:14px; padding:0px 20px'>\
+												<td style ='font-family: sans-serif; font-size:14px; padding:0 20px'>\
 													— the IOTRACKS team\
 												</td>\
 											</tr>\

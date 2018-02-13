@@ -17,7 +17,7 @@ import logger from '../../utils/winstonLogs';
 /** Check Change Tracking Changes EndPoint (Get/Post: /api/v2/instance/changes/id/:ID/token/:Token/timestamp/:TimeStamp) **/
 const getChangeTrackingChangesEndPoint = function(req, res) {
   logger.info("Endpoint hit: "+ req.originalUrl);
-  var params = {},
+  let params = {},
       instanceProps = {
         instanceId: 'bodyParams.ID',
         setProperty: 'changeTrackingData'
@@ -43,7 +43,7 @@ const processChangeTrackingChanges = function(params, callback) {
     if(params.bodyParams.TimeStamp.length < 1) {
       params.bodyParams.TimeStamp = 0;
     }
-    var changes = {
+    let changes = {
       config: false,
       reboot: false,
       containerlist: false,
@@ -88,7 +88,7 @@ const processChangeTrackingChanges = function(params, callback) {
 };
 
 const updateFogInstance = function(params, callback){
-  var fogInstanceProps = {
+  let fogInstanceProps = {
         instanceId: 'bodyParams.ID',
         updatedFog: {
           lastactive : new Date().getTime(),

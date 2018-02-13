@@ -22,7 +22,7 @@ import logger from '../../utils/winstonLogs';
 const proxyCreateOrUpdateEndPoint = function(req, res) {
     logger.info("Endpoint hit: "+ req.originalUrl);
 
-    var params = {},
+    let params = {},
         userProps = {
             userId : 'bodyParams.t',
             setProperty: 'user'
@@ -49,7 +49,7 @@ const proxyCreateOrUpdateEndPoint = function(req, res) {
             async.apply(ChangeTrackingService.updateChangeTracking, changeTrackingProps)
         ],
         function(err, result) {
-            var errMsg = 'Internal error: ' + result;
+            let errMsg = 'Internal error: ' + result;
             AppUtils.sendResponse(res, err, 'instanceId', params.bodyParams.instanceId, errMsg);
         });
 };
@@ -62,7 +62,7 @@ const proxyCreateOrUpdateEndPoint = function(req, res) {
 const proxyCloseEndPoint = function(req, res) {
   logger.info("Endpoint hit:"+ req.originalUrl);
 
-    var params = {},
+    let params = {},
         userProps = {
             userId : 'bodyParams.t',
             setProperty: 'user'
@@ -90,7 +90,7 @@ const proxyCloseEndPoint = function(req, res) {
             async.apply(ChangeTrackingService.updateChangeTracking, changeTrackingProps)
         ],
         function(err, result) {
-            var errMsg = 'Internal error: ' + result;
+            let errMsg = 'Internal error: ' + result;
             AppUtils.sendResponse(res, err, 'instanceId', params.bodyParams.instanceId, errMsg);
         });
 };
@@ -103,7 +103,7 @@ const proxyCloseEndPoint = function(req, res) {
 const proxyGetEndPoint = function(req, res) {
     logger.info("Endpoint hit:"+ req.originalUrl);
 
-    var params = {},
+    let params = {},
         instanceProps = {
             fogInstanceId: 'bodyParams.ID',
             setProperty: 'config'
@@ -122,7 +122,7 @@ const proxyGetEndPoint = function(req, res) {
 
 const getProxyStatusEndPoint = function(req, res) {
     logger.info("Endpoint hit: " + req.originalUrl);
-    var params = {},
+    let params = {},
         userProps = {
             userId: 'bodyParams.t',
             setProperty: 'user'
@@ -141,11 +141,11 @@ const getProxyStatusEndPoint = function(req, res) {
             async.apply(ProxyService.getProxyByInstanceId, proxyProps)
         ],
         function (err, result) {
-            var output;
+            let output;
             if (!err) {
                 output = params.proxy;
             }
-            // var errMsg = 'Internal error: ' + result;
+            // let errMsg = 'Internal error: ' + result;
             // AppUtils.sendResponse(res, err, 'proxy', params.proxy, errMsg);
             AppUtils.sendResponse(res, err, 'output', output, result);
         });
@@ -158,8 +158,8 @@ const getProxyStatusEndPoint = function(req, res) {
  * @param callback  waterfall callback
  */
 const createOrUpdateProxy = function(params, callback) {
-    var proxyProps;
-    var proxyObject = {
+    let proxyProps;
+    let proxyObject = {
         username: params.bodyParams.username,
         password: params.bodyParams.password,
         host: params.bodyParams.host,
@@ -187,7 +187,7 @@ const createOrUpdateProxy = function(params, callback) {
 
 const updateProxyStatusToPendingOpen = function(params, callback) {
 
-    var proxyObj = {
+    let proxyObj = {
         username: params.bodyParams.username,
         host: params.bodyParams.host,
         lport: params.bodyParams.lport,
@@ -195,8 +195,8 @@ const updateProxyStatusToPendingOpen = function(params, callback) {
         status: "PENDING_OPEN",
         errormessage: ""
     };
-    var proxyStr = JSON.stringify(proxyObj);
-    var fogInstanceProps = {
+    let proxyStr = JSON.stringify(proxyObj);
+    let fogInstanceProps = {
         instanceId: 'bodyParams.instanceId',
         updatedFog: {
             proxy: proxyStr
@@ -206,7 +206,7 @@ const updateProxyStatusToPendingOpen = function(params, callback) {
 };
 
 const updateProxyStatusToPendingClose = function(params, callback) {
-    var fogInstanceProps= {
+    let fogInstanceProps= {
         fogId: 'bodyParams.instanceId',
         setProperty: 'fogInstance'
     };
@@ -220,9 +220,9 @@ const updateProxyStatusToPendingClose = function(params, callback) {
 };
 
 const updateProxyStatusObj = function(params, callback) {
-    var oldProxyStr = params.fogInstance.dataValues.proxy;
-    var oldProxyObj = JSON.parse(oldProxyStr);
-    var proxyObj = {
+    let oldProxyStr = params.fogInstance.dataValues.proxy;
+    let oldProxyObj = JSON.parse(oldProxyStr);
+    let proxyObj = {
         username: oldProxyObj.username,
         host: oldProxyObj.host,
         lport: oldProxyObj.lport,
@@ -230,8 +230,8 @@ const updateProxyStatusObj = function(params, callback) {
         status: "PENDING_CLOSE",
         errormessage: ""
     };
-    var proxyStr = JSON.stringify(proxyObj);
-    var fogInstanceProps = {
+    let proxyStr = JSON.stringify(proxyObj);
+    let fogInstanceProps = {
         instanceId: 'bodyParams.instanceId',
         updatedFog: {
             proxy: proxyStr
