@@ -11,8 +11,6 @@ import ChangeTrackingService from '../../services/changeTrackingService';
 import FogService from '../../services/fogService';
 import AppUtils from '../../utils/appUtils';
 import logger from '../../utils/winstonLogs';
-import FogTypeService from "../../services/fogTypeService";
-import UserService from "../../services/userService";
 
 /********************************************* EndPoints ********************************************************/
 
@@ -62,10 +60,7 @@ const processChangeTrackingChanges = function(params, callback) {
     if(params.changeTrackingData.reboot) {
       changes.reboot = true;
       async.waterfall([
-              async.apply(UserService.getUser, userProps, params),
-              async.apply(FogService.getFogInstance, instanceProps),
-              async.apply(FogTypeService.getFogTypeDetail, fogTypeProps),
-              updateChangeTracking
+              async.apply(updateChangeTracking, params)
           ],
           function (err, result) {
           });
@@ -99,7 +94,7 @@ const processChangeTrackingChanges = function(params, callback) {
 
 const updateChangeTracking = function (params, callback) {
     var changeTrackingProps = {
-        fogInstanceId: 'bodyParams.instanceId',
+        fogInstanceId: 'bodyParams.ID',
         changeObject: {
             reboot: false
         }
