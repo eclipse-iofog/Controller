@@ -28,6 +28,7 @@ import provisionKeyController from './server/controllers/api/provisionKeyControl
 import streamViewerController from './server/controllers/api/streamViewerController';
 import trackController from './server/controllers/api/trackController';
 import userController from './server/controllers/api/userController';
+import instanceRebootController from "./server/controllers/api/instanceRebootController";
 
 import logger from './server/utils/winstonLogs';
 import proxyController from "./server/controllers/api/proxyController";
