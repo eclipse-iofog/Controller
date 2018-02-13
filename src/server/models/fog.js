@@ -184,6 +184,11 @@ const Fog = sequelize.define('iofogs', {
     defaultValue: 0,
     field: 'Bluetooth'
   },
+  hal: {
+    type: Sequelize.INTEGER,
+    defaultValue: 0,
+    field: 'hal'
+  },
   logfilecount: {
     type: Sequelize.BIGINT,
     defaultValue: 10,
@@ -205,11 +210,12 @@ const Fog = sequelize.define('iofogs', {
   },
   proxy: {
     type: Sequelize.TEXT,
+    defaultValue: "",
     field: 'Proxy'
   },
   isolateddockercontainer: {
     type: Sequelize.INTEGER,
-    defaultValue: 0,
+    defaultValue: 1,
     field: 'IsolatedDockerContainer'
   }
 }, {

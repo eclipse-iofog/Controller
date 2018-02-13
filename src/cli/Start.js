@@ -11,7 +11,7 @@ class Start {
         sslKey: ConfigUtil.getConfigParam(constants.CONFIG.ssl_key),
         sslCert: ConfigUtil.getConfigParam(constants.CONFIG.ssl_cert),
         intermedKey: ConfigUtil.getConfigParam(constants.CONFIG.intermediate_cert)
-      }
+      };
 
       startDaemon(daemon, configuration);
     });
