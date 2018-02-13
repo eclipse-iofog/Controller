@@ -208,7 +208,8 @@ const startHttpsServer = function (app, port, sslKey, sslCert, intermedKey) {
       cert: fs.readFileSync(sslCert),
       ca: fs.readFileSync(intermedKey),
       requestCert: true,
-      rejectUnauthorized: false
+      rejectUnauthorized: false,
+      strictSSL: false
     };
 
     https.createServer(sslOptions, app).listen(port, function onStart(err) {
