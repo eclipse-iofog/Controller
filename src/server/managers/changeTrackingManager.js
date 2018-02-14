@@ -23,7 +23,8 @@ class ChangeTrackingManager extends BaseManager {
 				config: milliseconds,
 				routing: milliseconds,
 				registries: milliseconds,
-				proxy: milliseconds
+				proxy: milliseconds,
+				version: milliseconds
 			});
 		}
 		/**

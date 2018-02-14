@@ -384,6 +384,7 @@ INSERT INTO registry VALUES (1, 'registry.hub.docker.com', 1, 1, '', 0, '', '', 
 CREATE TABLE iofog_change_tracking (
 	`ID`	INTEGER PRIMARY KEY AUTOINCREMENT,
 	`container_config`	BIGINT,
+	`version` BIGINT,
 	`container_list`	BIGINT,
 	`config`	BIGINT,
 	`routing`	BIGINT,
@@ -404,7 +405,13 @@ CREATE TABLE proxy (
   `iofog_uuid`	TEXT,
   FOREIGN KEY(`iofog_uuid`) REFERENCES iofogs ( UUID ) ON DELETE SET NULL ON UPDATE CASCADE
 );
-INSERT INTO iofog_change_tracking VALUES(1,1517401049283,1517472938429,1517472938429,1517401049283,1517401049283, 1517401049283, 'fVmnRpHgdNnDw7XJLJw7GV4NVRhjk4V3');
+CREATE TABLE iofog_version_commands (
+  ID INTEGER PRIMARY KEY AUTOINCREMENT,
+  version_command VARCHAR (100),
+  FOREIGN KEY(`iofog_uuid`) REFERENCES iofogs (UUID) ON DELETE SET NULL ON UPDATE CASCADE
+);
+
+INSERT INTO iofog_change_tracking VALUES(1,1517401049283, 1517401049283,1517472938429,1517472938429,1517401049283,1517401049283, 1517401049283, 'fVmnRpHgdNnDw7XJLJw7GV4NVRhjk4V3');
 DELETE FROM sqlite_sequence;
 INSERT INTO sqlite_sequence VALUES ('config', 52);
 INSERT INTO sqlite_sequence VALUES ('satellite', 9);

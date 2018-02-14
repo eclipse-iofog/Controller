@@ -21,6 +21,10 @@ const ChangeTracking = sequelize.define('iofog_change_tracking', {
     type: Sequelize.BIGINT,
     field: 'container_config'
   },
+  version: {
+      type: Sequelize.BIGINT,
+      field: 'version'
+  },
   containerList: {
     type: Sequelize.BIGINT,
     field: 'container_list'

@@ -45,6 +45,7 @@ const processChangeTrackingChanges = function(params, callback) {
     }
     var changes = {
       config: false,
+      version: false,
       reboot: false,
       containerlist: false,
       containerconfig: false,
@@ -52,9 +53,13 @@ const processChangeTrackingChanges = function(params, callback) {
       registries: false,
       proxy: false
     };
-  
+
     if(params.changeTrackingData.config > params.bodyParams.TimeStamp) {
       changes.config = true;
+    }
+
+    if(params.changeTrackingData.version > params.bodyParams.TimeStamp) {
+      changes.version = true;
     }
 
     if(params.changeTrackingData.reboot > params.bodyParams.TimeStamp) {
