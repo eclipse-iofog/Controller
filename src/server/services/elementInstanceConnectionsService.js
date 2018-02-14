@@ -10,7 +10,7 @@ const createElementInstanceConnection = function(props, params, callback) {
 }
 
 const findBySourceElementInstance = function(props, params, callback) {
-  var sourceElementInstanceIds = AppUtils.getProperty(params, props.sourceElementInstanceIds);
+  let sourceElementInstanceIds = AppUtils.getProperty(params, props.sourceElementInstanceIds);
 
   ElementInstanceConnectionsManager
     .findBySourceElementInstance(_.pluck(sourceElementInstanceIds, props.field))
@@ -18,7 +18,7 @@ const findBySourceElementInstance = function(props, params, callback) {
 }
 
 const findBySourceAndDestinationElementInstance = function(props, params, callback) {
-  var sourceElementInstanceId = AppUtils.getProperty(params, props.sourceElementInstanceId),
+  let sourceElementInstanceId = AppUtils.getProperty(params, props.sourceElementInstanceId),
       destinationElementInstanceId = AppUtils.getProperty(params, props.destinationElementInstanceId);
 
   ElementInstanceConnectionsManager
@@ -27,7 +27,7 @@ const findBySourceAndDestinationElementInstance = function(props, params, callba
 }
 
 const deleteElementInstanceConnection = function(props, params, callback) {
-  var elementInstanceData = AppUtils.getProperty(params, props.elementInstanceData);
+  let elementInstanceData = AppUtils.getProperty(params, props.elementInstanceData);
 
   ElementInstanceConnectionsManager
     .deleteElementInstanceConnection(_.pluck(elementInstanceData, props.field))
@@ -35,7 +35,7 @@ const deleteElementInstanceConnection = function(props, params, callback) {
 }
 
 const deleteBySourceAndDestinationElementInstance = function(props, params, callback) {
-  var sourceElementInstanceId = AppUtils.getProperty(params, props.sourceElementInstanceId),
+  let sourceElementInstanceId = AppUtils.getProperty(params, props.sourceElementInstanceId),
       destinationElementInstanceId = AppUtils.getProperty(params, props.destinationElementInstanceId);
 
   ElementInstanceConnectionsManager

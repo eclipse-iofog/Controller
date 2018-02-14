@@ -18,7 +18,7 @@ import logger from '../../utils/winstonLogs';
 const containerListEndPoint = function(req, res){
   logger.info("Endpoint hit: "+ req.originalUrl);
 
-  var params= {},
+  let params= {},
       instanceProps = {
         instanceId: 'bodyParams.ID',
         setProperty: 'elementInstances'
@@ -38,11 +38,11 @@ const containerListEndPoint = function(req, res){
 }
 /************************************* Extra Functions **************************************************/
 const setViewerOrDebug = function(params, callback){
-  var elementInstances = params.elementInstances;
+  let elementInstances = params.elementInstances;
   params.containerList = [];
 
   async.forEachLimit(elementInstances, 1, function(elementInstance, next){
-    var container = elementInstance;
+    let container = elementInstance;
     container.rebuildFlag = false;
     container.rootAccessFlag = false;
     container.ports = [];
@@ -55,7 +55,7 @@ const setViewerOrDebug = function(params, callback){
   
    params.container = container;
 
-    var updateElementInstanceProps = {
+    let updateElementInstanceProps = {
           elementId: 'container.uuid',
           updatedData: {
             rebuild: 0
@@ -89,7 +89,7 @@ const setViewerOrDebug = function(params, callback){
   });
 }
 const processContainerListData = function(params, callback) {
-  var newContainerItem = {
+  let newContainerItem = {
     id: params.container.isViewerOrDebug,
     lastmodified: Date.parse(params.container.last_updated),
     rebuild: params.container.rebuild > 0 ? true : false,

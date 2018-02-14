@@ -64,7 +64,7 @@ class ElementInstanceManager extends BaseManager {
 	* @return JSON - returns a Array of JSON objects with elementInstance and its related dataTracks
 	*/
 	// findByInstanceId(instanceId) {										                                      
-	// 	var instanceConfigQuery = 'SELECT i.*, t.is_activated FROM element_instance i LEFT JOIN \
+	// 	let instanceConfigQuery = 'SELECT i.*, t.is_activated FROM element_instance i LEFT JOIN \
 	// 	data_tracks t ON i.track_id = t.ID \
 	// 	WHERE i.iofog_uuid in (:instanceId) AND (i.track_id = 0 OR t.is_activated = 1)';
 
@@ -106,7 +106,7 @@ class ElementInstanceManager extends BaseManager {
 	}
 
 	createElementInstance(element, userId, trackId, config, elementName, logSize, fogInstanceId) {
-		var elementInstance = {
+		let elementInstance = {
 			uuid: AppUtils.generateInstanceId(32),
 			trackId: trackId,
 			element_key: element.id,
@@ -131,7 +131,7 @@ class ElementInstanceManager extends BaseManager {
 	}
 
 	createStreamViewerInstance(streamViewerElementKey, userId, fogInstanceId, registryId) {
-		var config = {
+		let config = {
 				'accesstoken': AppUtils.generateRandomString(32),
 				'filesizelimit': 200.0
 			},
@@ -160,7 +160,7 @@ class ElementInstanceManager extends BaseManager {
 	}
 
 	createNetworkInstance(element, userId, fogInstanceId, satelliteDomain, satellitePort1, passcode, name, localPort, isPublic, trackId) {
-		var netConfig = {
+		let netConfig = {
 				'mode': isPublic ? 'public' : 'private',
 				'host': satelliteDomain,
 				'port': satellitePort1,
@@ -196,7 +196,7 @@ class ElementInstanceManager extends BaseManager {
 	}
 
 	createDebugConsoleInstance(consoleElementKey, userId, fogInstanceId, registryId) {
-		var config = {
+		let config = {
 				'accesstoken': AppUtils.generateRandomString(32),
 				'filesizelimit': 200.0
 			},
@@ -282,7 +282,7 @@ class ElementInstanceManager extends BaseManager {
   	}
 
 	deleteNetworkElement(elementId) {
-		var deleteQuery = ' \
+		let deleteQuery = ' \
 			DELETE FROM element_instance \
 			WHERE UUID IN( \
 				SELECT networkElementId1 \

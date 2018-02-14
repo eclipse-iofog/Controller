@@ -1,4 +1,4 @@
-var emailActivationTemplate = {
+let emailActivationTemplate = {
 	p1: "\
 <div>\
 	<table \
@@ -21,7 +21,7 @@ var emailActivationTemplate = {
 										style = 'font-family: sans-serif; \
 										font-size: 14px; \
 										vertical-align: top; \
-										padding: 20px 20px 0px;'>\
+										padding: 20px 20px 0;'>\
 										Welcome to IOTRACKS!\
 									</td>\
 								</tr>\
@@ -42,7 +42,7 @@ var emailActivationTemplate = {
 													style = 'line-height: 60px; \
 													font-family: sans-serif; \
 													font-size:14px;'>\
-													<td style = 'padding:0px 20px'>\
+													<td style = 'padding:0 20px'>\
 														<a href=",
 
 p2:														"/account/activate/code/",
@@ -56,7 +56,7 @@ p5:														"</a> \
 												</tr>\
 												<tr>\
 													<td \
-														style = 'padding:0px 20px 10; \
+														style = 'padding:0 20px 10px; \
 														font-family: sans-serif; \
 														font-size:14px;'>\
 														<a href =",
@@ -79,7 +79,7 @@ p7:														" class = 'btn' style='\
 													<td \
 														style ='font-family: sans-serif; \
 														font-size:14px; \
-														padding: 20px 0px 20px 20px;'>\
+														padding: 20px 0 20px 20px;'>\
 														— the IOTRACKS team\
 													</td>\
 												</tr>\

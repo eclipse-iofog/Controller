@@ -115,7 +115,7 @@ class UserManager extends BaseManager {
 			.then(function(users) {
 				if (users && users.length > 0) {
 					console.log('Email Address | First Name | Last Name');
-					for (var i = 0; i < users.length; i++) {
+					for (let i = 0; i < users.length; i++) {
 						console.log(users[i].email + '|' + users[i].firstName + '|' + users[i].lastName);
 					}
 				} else {

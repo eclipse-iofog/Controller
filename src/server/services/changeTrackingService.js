@@ -3,7 +3,7 @@ import AppUtils from '../utils/appUtils'
 import _ from 'underscore';
 
 const createFogChangeTracking = function(props, params, callback) {
-  var fogInstanceId = AppUtils.getProperty(params, props.fogInstanceId);
+  let fogInstanceId = AppUtils.getProperty(params, props.fogInstanceId);
 
   ChangeTrackingManager
     .createChangeTracking(fogInstanceId)
@@ -11,7 +11,7 @@ const createFogChangeTracking = function(props, params, callback) {
 };
 
 const deleteChangeTracking = function(props, params, callback) {
-  var instanceId = AppUtils.getProperty(params, props.instanceId);
+  let instanceId = AppUtils.getProperty(params, props.instanceId);
 
   ChangeTrackingManager
     .deleteByInstanceId(instanceId)
@@ -19,7 +19,7 @@ const deleteChangeTracking = function(props, params, callback) {
 };
 
 const getChangeTrackingByInstanceId = function(props, params, callback) {
-  var instanceId = AppUtils.getProperty(params, props.instanceId);
+  let instanceId = AppUtils.getProperty(params, props.instanceId);
 
   ChangeTrackingManager
     .findByInstanceId(instanceId)
@@ -27,7 +27,7 @@ const getChangeTrackingByInstanceId = function(props, params, callback) {
 };
 
 const updateChangeTracking = function(props, params, callback) {
-  var fogInstanceId = AppUtils.getProperty(params, props.fogInstanceId);
+  let fogInstanceId = AppUtils.getProperty(params, props.fogInstanceId);
 
   ChangeTrackingManager
     .updateByUuid(fogInstanceId, props.changeObject)
@@ -35,7 +35,7 @@ const updateChangeTracking = function(props, params, callback) {
 };
 
 const updateChangeTrackingData = function(props, params, callback) {
-  var elementInstanceData = AppUtils.getProperty(params, props.elementInstanceData);
+  let elementInstanceData = AppUtils.getProperty(params, props.elementInstanceData);
 
   ChangeTrackingManager
     .updateByUuid(_.pluck(elementInstanceData, props.field), props.changeObject)

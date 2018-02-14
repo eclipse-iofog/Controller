@@ -3,7 +3,7 @@ import AppUtils from '../utils/appUtils';
 import _ from 'underscore';
 
 const createFogInstance = function(props, params, callback) {
-  var fogType = AppUtils.getProperty(params, props.fogType),
+  let fogType = AppUtils.getProperty(params, props.fogType),
       instanceId = AppUtils.generateRandomString(32),
       name = AppUtils.getProperty(params, props.name),
       location = AppUtils.getProperty(params, props.location),
@@ -11,7 +11,7 @@ const createFogInstance = function(props, params, callback) {
       longitude = AppUtils.getProperty(params, props.longitude),
       description = AppUtils.getProperty(params, props.description);
 
-  var config = {
+  let config = {
     uuid: instanceId,
     name: name,
     location: location,
@@ -34,7 +34,7 @@ const createFogInstanceWithUUID = function(props, params, callback) {
 }
 
 const deleteFogInstance = function(props, params, callback) {
-  var instanceId = AppUtils.getProperty(params, props.instanceId);
+  let instanceId = AppUtils.getProperty(params, props.instanceId);
 
   FogManager
     .deleteByInstanceId(instanceId)
@@ -42,7 +42,7 @@ const deleteFogInstance = function(props, params, callback) {
 }
 
 const getFogInstance = function(props, params, callback) {
-  var fogId = AppUtils.getProperty(params, props.fogId);
+  let fogId = AppUtils.getProperty(params, props.fogId);
 
   FogManager
     .findByInstanceId(fogId)
@@ -50,7 +50,7 @@ const getFogInstance = function(props, params, callback) {
 }
 
 const getFogInstanceOptional = function(props, params, callback) {
-  var fogId = AppUtils.getProperty(params, props.fogId);
+  let fogId = AppUtils.getProperty(params, props.fogId);
 
   FogManager
     .findByInstanceId(fogId)
@@ -58,7 +58,7 @@ const getFogInstanceOptional = function(props, params, callback) {
 }
 
 const findFogInstance = function(props, params, callback) {
-  var fogsData= AppUtils.getProperty(params, props.fogsData);
+  let fogsData= AppUtils.getProperty(params, props.fogsData);
 
   FogManager
     .findByInstanceId(_.pluck(fogsData, props.field))
@@ -66,7 +66,7 @@ const findFogInstance = function(props, params, callback) {
 }
 
 const getFogInstanceForUser = function(props, params, callback) {
-  var userId = AppUtils.getProperty(params, props.userId);
+  let userId = AppUtils.getProperty(params, props.userId);
 
   FogManager
     .findByUserId(userId)
@@ -81,7 +81,7 @@ const getFogList = function(props, params, callback) {
 }
 
 const getFogInstanceDetails = function(props, params, callback) {
-  var instanceId = AppUtils.getProperty(params, props.instanceId);
+  let instanceId = AppUtils.getProperty(params, props.instanceId);
 
   FogManager
     .getFogInstanceDetails(instanceId)
@@ -89,7 +89,7 @@ const getFogInstanceDetails = function(props, params, callback) {
 }
 
 const updateFogInstance = function(props, params, callback){
-  var instanceId = AppUtils.getProperty(params, props.instanceId);
+  let instanceId = AppUtils.getProperty(params, props.instanceId);
 
   FogManager
     .updateFogConfig(instanceId, props.updatedFog)

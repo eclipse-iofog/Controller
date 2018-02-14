@@ -18,7 +18,7 @@ import logger from '../../utils/winstonLogs';
 /******************** Fog Viewer Access EndPoint (Get: /api/v2/authoring/fabric/viewer/access) ***************/
 const fogViewerAccessEndPoint = function(req, res){
   logger.info("Endpoint hit: "+ req.originalUrl);
-  var params = {},
+  let params = {},
 
   userProps = {
     userId: 'bodyParams.t',
@@ -41,14 +41,14 @@ const fogViewerAccessEndPoint = function(req, res){
     async.apply(ConsoleService.getConsoleByFogInstanceId, consoleProps),
     getResponse
   ], function(err, result) {
-    var errMsg = 'Internal error: There was a problem getting the toolset access for this ioFog instance.'+result;
+    let errMsg = 'Internal error: There was a problem getting the toolset access for this ioFog instance.'+result;
     AppUtils.sendResponse(res, err, 'access', result.output, errMsg);
   });
 };
 
 /************************************* Extra Functions **************************************************/
 const getResponse = function(params, callback) {
-  var output = {};
+  let output = {};
 
   if (params.streamViewer) {
     output.streamViewerUrl = params.streamViewer.apiBaseUrl;

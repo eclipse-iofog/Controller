@@ -3,7 +3,7 @@ import AppUtils from '../utils/appUtils';
 
 
 const getInstanceTrackByInstanceId = function(props, params, callback) {
-  var instanceId = AppUtils.getProperty(params, props.instanceId);
+  let instanceId = AppUtils.getProperty(params, props.instanceId);
 
   InstanceTrackManager
     .findInstanceContainer(instanceId)
