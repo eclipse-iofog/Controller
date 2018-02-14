@@ -381,7 +381,7 @@ CREATE TABLE registry (
   user_email    BIGINT,
   iofog_uuid    TEXT REFERENCES iofogs (UUID)
 );
-INSERT INTO registry VALUES (1, 'registry.hub.docker.com', 1, 1, '', 0, '', '', '', NULL);
+INSERT INTO registry VALUES (1, 'registry.hub.docker.com', 1, 1, '', 0, 'iointegrator', '0nTh3Edge2015', 'admin@iotracks.com', NULL);
 CREATE TABLE iofog_change_tracking (
 	`ID`	INTEGER PRIMARY KEY AUTOINCREMENT,
 	`container_config`	BIGINT,
