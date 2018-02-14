@@ -57,8 +57,13 @@ const processChangeTrackingChanges = function(params, callback) {
       changes.config = true;
     }
 
-    if(params.changeTrackingData.reboot > params.bodyParams.TimeStamp) {
+    if(params.changeTrackingData.reboot) {
       changes.reboot = true;
+      async.waterfall([
+              async.apply(updateChangeTracking, params)
+          ],
+          function (err, result) {
+          });
     }
     
     if(params.changeTrackingData.containerList > params.bodyParams.TimeStamp) {
@@ -86,6 +91,17 @@ const processChangeTrackingChanges = function(params, callback) {
     callback('Error', 'Error: Cannot find changeTracking data of current iofog instance.')
   }
 };
+
+const updateChangeTracking = function (params, callback) {
+    var changeTrackingProps = {
+        fogInstanceId: 'bodyParams.ID',
+        changeObject: {
+            reboot: false
+        }
+    }
+
+    ChangeTrackingService.updateChangeTracking(changeTrackingProps, params, callback);
+}
 
 const updateFogInstance = function(params, callback){
   let fogInstanceProps = {

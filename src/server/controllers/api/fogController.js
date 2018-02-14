@@ -791,19 +791,17 @@ const bluetoothElementForFog = function (params, callback) {
 }
 
 const updateChangeTracking = function (params, callback) {
-  //	if(params.isBluetooth == 1 || params.isDebug == 1 || params.isViewer == 1){
-  let changeTrackingProps = {
-    fogInstanceId: 'bodyParams.instanceId',
-    changeObject: {
-      containerList: new Date().getTime(),
-      config: new Date().getTime()
-    }
-  }
-  ChangeTrackingService.updateChangeTracking(changeTrackingProps, params, callback);
-  //	}else{
-  //		callback(null, params);
-  //	}
-}
+	var changeTrackingProps = {
+		fogInstanceId: 'bodyParams.instanceId',
+		changeObject: {
+			containerList: new Date().getTime(),
+			config: new Date().getTime(),
+            reboot: params.bodyParams.reboot
+		}
+    };
+
+	ChangeTrackingService.updateChangeTracking(changeTrackingProps, params, callback);
+};
 
 const createBluetoothElementInstance = function (params, callback) {
   let elementInstanceProps = {
