@@ -94,9 +94,6 @@ const initApp = function () {
   app.post('/api/v2/status', fogController.getFogControllerStatusEndPoint);
   app.get('/api/v2/instance/create/type/:type', fogController.fogInstanceCreateEndPoint);
 
-    app.post('/api/v2/instance/hw_info/id/:ID/token/:Token', instanceResourcesController.fogInstanceHWInfo);
-    app.post('/api/v2/instance/usb_info/id/:ID/token/:Token', instanceResourcesController.fogInstanceUSBInfo);
-
   // app.get('/api/v2/instance/getfabriclist', fogController.getFogListEndPoint);
   app.get('/api/v2/authoring/element/get', elementController.getElementsForPublishingEndPoint);
   app.post('/api/v2/authoring/organization/element/create', elementController.createElementEndPoint);
@@ -161,6 +158,10 @@ const initApp = function () {
   app.post('/api/v2/authoring/fabric/track/update', trackController.fogTrackUpdateEndPoint);
   app.post('/api/v2/authoring/fabric/track/delete', trackController.fogTrackDeleteEndPoint);
   app.post('/api/v2/authoring/fabric/details', fogController.getFogDetailsEndpoint);
+
+
+    app.post('/api/v2/instance/hw_info/id/:ID/token/:Token', instanceResourcesController.fogInstanceHWInfo);
+    app.post('/api/v2/instance/usb_info/id/:ID/token/:Token', instanceResourcesController.fogInstanceUSBInfo);
     app.post('/api/v2/authoring/fog/info/hw', instanceResourcesController.getFogHwInfoEndPoint);
     app.post('/api/v2/authoring/fog/info/usb', instanceResourcesController.getFogUsbInfoEndPoint);
 
