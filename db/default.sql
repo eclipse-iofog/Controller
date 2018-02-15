@@ -408,6 +408,26 @@ CREATE TABLE proxy (
     ON DELETE SET NULL
     ON UPDATE CASCADE
 );
+CREATE TABLE hw_info (
+  `ID`         INTEGER PRIMARY KEY AUTOINCREMENT,
+  `info`       TEXT,
+  `iofog_uuid` TEXT,
+  `created_at` DATETIME NOT NULL,
+  `updated_at` DATETIME NOT NULL,
+  FOREIGN KEY (`iofog_uuid`) REFERENCES iofogs (UUID)
+    ON DELETE SET NULL
+    ON UPDATE CASCADE
+);
+CREATE TABLE usb_info (
+  `ID`         INTEGER PRIMARY KEY AUTOINCREMENT,
+  `info`       TEXT,
+  `iofog_uuid` TEXT,
+  `created_at` DATETIME NOT NULL,
+  `updated_at` DATETIME NOT NULL,
+  FOREIGN KEY (`iofog_uuid`) REFERENCES iofogs (UUID)
+    ON DELETE SET NULL
+    ON UPDATE CASCADE
+);
 INSERT INTO iofog_change_tracking VALUES(1,1517401049283,0,1517472938429,1517472938429,1517401049283,1517401049283, 1517401049283, 'fVmnRpHgdNnDw7XJLJw7GV4NVRhjk4V3');
 DELETE FROM sqlite_sequence;
 INSERT INTO sqlite_sequence VALUES ('config', 52);
