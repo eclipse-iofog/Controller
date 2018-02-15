@@ -16,6 +16,7 @@ import baseController from './server/controllers/baseController';
 import elementInstanceController from './server/controllers/api/elementInstanceController';
 import elementController from './server/controllers/api/elementController';
 import fogController from './server/controllers/api/fogController';
+import instanceResourcesController from './server/controllers/api/instanceResourcesController';
 import instanceStatusController from './server/controllers/api/instanceStatusController';
 import instanceConfigController from './server/controllers/api/instanceConfigController';
 import instanceContainerListController from './server/controllers/api/instanceContainerListController';
@@ -61,7 +62,7 @@ const startServer = function (port) {
         startHttpServer(app, port);
       }
     });
-}
+};
 
 const initApp = function () {
   const app = express();
@@ -69,9 +70,9 @@ const initApp = function () {
   // parse application/x-www-form-urlencoded
   app.use(bodyParser.urlencoded({
     extended: true
-  }))
+  }));
   // parse application/json
-  app.use(bodyParser.json())
+    app.use(bodyParser.json());
   app.engine('ejs', require('ejs').renderFile);
   app.set('view engine', 'ejs');
   app.use(cookieParser());
@@ -92,6 +93,10 @@ const initApp = function () {
   app.get('/api/v2/status', fogController.getFogControllerStatusEndPoint);
   app.post('/api/v2/status', fogController.getFogControllerStatusEndPoint);
   app.get('/api/v2/instance/create/type/:type', fogController.fogInstanceCreateEndPoint);
+
+    app.post('/api/v2/instance/hw_info/id/:ID/token/:Token', instanceResourcesController.fogInstanceHWInfo);
+    app.post('/api/v2/instance/usb_info/id/:ID/token/:Token', instanceResourcesController.fogInstanceUSBInfo);
+
   // app.get('/api/v2/instance/getfabriclist', fogController.getFogListEndPoint);
   app.get('/api/v2/authoring/element/get', elementController.getElementsForPublishingEndPoint);
   app.post('/api/v2/authoring/organization/element/create', elementController.createElementEndPoint);
@@ -183,7 +188,7 @@ const initApp = function () {
     res.status(500).send('Hmm, what you have encountered is unexpected. If problem persists, contact app provider.');
   });
   return app;
-}
+};
 
 const startHttpServer = function (app, port) {
   logger.warn("| SSL not configured, starting HTTP server.|");
@@ -199,7 +204,7 @@ const startHttpServer = function (app, port) {
     logger.info('==> 🌎 Listening on port %s. Open up http://localhost:%s/ in your browser.', port, port);
     console.log('==> 🌎 Listening on port %s. Open up http://localhost:%s/ in your browser.', port, port);
   });
-}
+};
 
 const startHttpsServer = function (app, port, sslKey, sslCert, intermedKey) {
   try {
@@ -223,7 +228,7 @@ const startHttpsServer = function (app, port, sslKey, sslCert, intermedKey) {
     logger.error('ssl_key or ssl_cert or intermediate_cert is either missing or invalid. Provide valid SSL configurations.');
     console.log('ssl_key or ssl_cert or intermediate_cert is either missing or invalid. Provide valid SSL configurations.');
   }
-}
+};
 
 export default {
   startServer: startServer
