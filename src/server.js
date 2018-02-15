@@ -161,6 +161,9 @@ const initApp = function () {
   app.post('/api/v2/authoring/fabric/track/update', trackController.fogTrackUpdateEndPoint);
   app.post('/api/v2/authoring/fabric/track/delete', trackController.fogTrackDeleteEndPoint);
   app.post('/api/v2/authoring/fabric/details', fogController.getFogDetailsEndpoint);
+    app.post('/api/v2/authoring/fog/info/hw', instanceResourcesController.getFogHwInfoEndPoint);
+    app.post('/api/v2/authoring/fog/info/usb', instanceResourcesController.getFogUsbInfoEndPoint);
+
   app.post('/api/v2/authoring/element/module/create', elementController.createElementForUserEndPoint);
   app.post('/api/v2/authoring/element/module/update', elementController.updateElementForUserEndPoint);
   app.get('/api/v2/authoring/element/module/delete/moduleid/:moduleId', elementController.deleteElementForUserEndPoint);

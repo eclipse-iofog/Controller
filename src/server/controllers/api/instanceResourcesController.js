@@ -10,6 +10,7 @@ const router = express.Router();
 import AppUtils from '../../utils/appUtils';
 import logger from '../../utils/winstonLogs';
 import instanceResourcesService from "../../services/instanceResourcesService";
+import UserService from "../../services/userService";
 
 
 /********************************************* EndPoints ******************************************************/
@@ -67,8 +68,61 @@ const fogInstanceUSBInfo = function (req, res) {
         });
 };
 
+/*********** POST getFogHwInfoEndPoint EndPoint (Post: /api/v2/authoring/fog/info/hw) **********/
+const getFogHwInfoEndPoint = function (req, res) {
+    logger.info("Endpoint hit: " + req.originalUrl);
+
+    let params = {},
+        userProps = {
+            userId: 'bodyParams.t',
+            setProperty: 'user'
+        },
+        instanceProps = {
+            instanceId: 'bodyParams.instanceId',
+            setProperty: 'fogInstances'
+        };
+
+    params.bodyParams = req.body;
+    logger.info("Parameters:" + JSON.stringify(params.bodyParams));
+
+    async.waterfall([
+            async.apply(UserService.getUser, userProps, params),
+            async.apply(instanceResourcesService.getFogHwInfo, instanceProps)
+        ],
+        function (err, result) {
+            AppUtils.sendResponse(res, err, 'fog', params.fogInstances, result);
+        });
+};
+/*********** POST getFogUsbInfoEndPoint EndPoint (Post: /api/v2/authoring/fog/info/usb) **********/
+const getFogUsbInfoEndPoint = function (req, res) {
+    logger.info("Endpoint hit: " + req.originalUrl);
+
+    let params = {},
+        userProps = {
+            userId: 'bodyParams.t',
+            setProperty: 'user'
+        },
+        instanceProps = {
+            instanceId: 'bodyParams.instanceId',
+            setProperty: 'fogInstances'
+        };
+
+    params.bodyParams = req.body;
+    logger.info("Parameters:" + JSON.stringify(params.bodyParams));
+
+    async.waterfall([
+            async.apply(UserService.getUser, userProps, params),
+            async.apply(instanceResourcesService.getFogUsbInfo, instanceProps)
+        ],
+        function (err, result) {
+            AppUtils.sendResponse(res, err, 'fog', params.fogInstances, result);
+        });
+};
+
 
 export default {
     fogInstanceHWInfo: fogInstanceHWInfo,
     fogInstanceUSBInfo: fogInstanceUSBInfo,
+    getFogHwInfoEndPoint: getFogHwInfoEndPoint,
+    getFogUsbInfoEndPoint: getFogUsbInfoEndPoint
 };

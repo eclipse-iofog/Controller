@@ -36,7 +36,25 @@ const saveUSBInfo = function (props, params, callback) {
         .then(AppUtils.onCreate.bind(null, params, props.setProperty, 'Unable to save USB Info.', callback));
 };
 
+const getFogHwInfo = function (props, params, callback) {
+    let instanceId = AppUtils.getProperty(params, props.instanceId);
+
+    HWInfoManager
+        .findByInstanceId(instanceId)
+        .then(AppUtils.onFindOptional.bind(null, params, props.setProperty, callback));
+};
+
+const getFogUsbInfo = function (props, params, callback) {
+    let instanceId = AppUtils.getProperty(params, props.instanceId);
+
+    USBInfoManager
+        .findByInstanceId(instanceId)
+        .then(AppUtils.onFindOptional.bind(null, params, props.setProperty, callback));
+};
+
 export default {
     saveHWInfo: saveHWInfo,
     saveUSBInfo: saveUSBInfo,
+    getFogHwInfo: getFogHwInfo,
+    getFogUsbInfo: getFogUsbInfo
 };
