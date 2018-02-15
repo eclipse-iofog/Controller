@@ -33,11 +33,7 @@ class USBInfoManager extends BaseManager {
     upsert(infoObj) {
         return this.findByInstanceId(infoObj.iofog_uuid)
             .then((dbObj) => {
-                if (null == dbObj) {
-                    return this.saveInfo(infoObj)
-                } else {
-                    return this.updateInfo(infoObj)
-                }
+                return null == dbObj ? this.saveInfo(infoObj) : this.updateInfo(infoObj)
             });
     }
 
