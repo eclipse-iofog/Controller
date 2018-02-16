@@ -289,7 +289,8 @@ CREATE TABLE iofogs (
   Version                 TEXT,
   StatusFrequency         INTEGER DEFAULT (10),
   ChangeFrequency         INTEGER DEFAULT (20),
-  Proxy                   TEXT DEFAULT (''),
+  ScanFrequency           INTEGER DEFAULT (60),
+  Proxy                   TEXT    DEFAULT (''),
   typeKey                 INTEGER REFERENCES iofog_type (ID)
     ON DELETE SET NULL
     ON UPDATE CASCADE
