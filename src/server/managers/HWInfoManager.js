@@ -31,7 +31,7 @@ class HWInfoManager extends BaseManager {
      * @param Integer, JSON object - uuid, infoObj
      * @return Integer - returns the number of rows updated
      */
-    updateInfo(uuid, infoObj) {
+    update(uuid, infoObj) {
         return HWInfo.update(infoObj, {
             where: {
                 iofog_uuid: uuid
@@ -44,7 +44,7 @@ class HWInfoManager extends BaseManager {
      * @param JSON object - infoObj
      * @return Integer - returns the number of rows created
      */
-    saveInfo(infoObj) {
+    save(infoObj) {
         return HWInfo.create(infoObj);
     }
 

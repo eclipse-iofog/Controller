@@ -69,6 +69,7 @@ const processConfigData = function(params, callback){
       logfilecount: params.fogData.logfilecount.toString(),
       poststatusfreq: params.fogData.statusfrequency.toString(),
       getchangesfreq: params.fogData.changefrequency.toString(),
+      scandevicesfreq: params.fogData.scanfrequency.toString(),
       isolateddockercontainer: params.fogData.isolateddockercontainer === 1 ? 'on' : 'off'
     };
 
@@ -92,6 +93,7 @@ const updateFogInstance = function(params, callback){
         logfilecount: params.bodyParams.logfilecount,
         statusfrequency: params.bodyParams.poststatusfreq,
         changefrequency: params.bodyParams.getchangesfreq,
+          scanfrequency: params.bodyParams.scandevicesfreq,
         isolatedDockerContainer: params.bodyParams.isolateddockercontainer
       }
     };
