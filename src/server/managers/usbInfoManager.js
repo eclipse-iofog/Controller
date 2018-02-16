@@ -33,7 +33,7 @@ class USBInfoManager extends BaseManager {
     upsert(infoObj) {
         return this.findByInstanceId(infoObj.iofog_uuid)
             .then((dbObj) => {
-                return null == dbObj ? this.saveInfo(infoObj) : this.updateInfo(infoObj)
+                return null == dbObj ? this.save(infoObj) : this.update(infoObj)
             });
     }
 
@@ -42,7 +42,7 @@ class USBInfoManager extends BaseManager {
      * @param Integer, JSON object - uuid, usbInfoObj
      * @return Integer - returns the number of rows updated
      */
-    updateInfo(infoObj) {
+    update(infoObj) {
         return USBInfo.update(infoObj, {
             where: {
                 iofog_uuid: infoObj.iofog_uuid
@@ -55,7 +55,7 @@ class USBInfoManager extends BaseManager {
      * @param JSON object - usbInfoObj
      * @return Integer - returns the number of rows created
      */
-    saveInfo(infoObj) {
+    save(infoObj) {
         return USBInfo.create(infoObj);
     }
 
