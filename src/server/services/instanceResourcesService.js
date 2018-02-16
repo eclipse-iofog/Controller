@@ -17,7 +17,7 @@ const saveHWInfo = function (props, params, callback) {
     };
 
     HWInfoManager
-        .saveInfo(config)
+        .save(config)
         .then(AppUtils.onCreate.bind(null, params, props.setProperty, 'Unable to save HW Info.', callback));
 };
 
