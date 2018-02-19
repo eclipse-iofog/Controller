@@ -287,6 +287,8 @@ CREATE TABLE iofogs (
   IsolatedDockerContainer INTEGER DEFAULT (1),
   LogFileCount            BIGINT  DEFAULT 10,
   Version                 TEXT,
+  isReadyToUpgrade        INTEGER DEFAULT(1),
+  isReadyToRollback       INTEGER DEFAULT(0),
   StatusFrequency         INTEGER DEFAULT (10),
   ChangeFrequency         INTEGER DEFAULT (20),
   typeKey                 INTEGER REFERENCES iofog_type (ID)
@@ -408,6 +410,7 @@ CREATE TABLE proxy (
 CREATE TABLE iofog_version_commands (
   ID INTEGER PRIMARY KEY AUTOINCREMENT,
   version_command VARCHAR (100),
+  `iofog_uuid`	TEXT,
   FOREIGN KEY(`iofog_uuid`) REFERENCES iofogs (UUID) ON DELETE SET NULL ON UPDATE CASCADE
 );
 
