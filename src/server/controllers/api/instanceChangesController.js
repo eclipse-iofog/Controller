@@ -45,6 +45,7 @@ const processChangeTrackingChanges = function(params, callback) {
     }
     let changes = {
       config: false,
+      version: false,
       reboot: false,
       containerlist: false,
       containerconfig: false,
@@ -52,9 +53,13 @@ const processChangeTrackingChanges = function(params, callback) {
       registries: false,
       proxy: false
     };
-  
+
     if(params.changeTrackingData.config > params.bodyParams.TimeStamp) {
       changes.config = true;
+    }
+
+    if(params.changeTrackingData.version > params.bodyParams.TimeStamp) {
+      changes.version = true;
     }
 
     if(params.changeTrackingData.reboot) {
@@ -104,7 +109,7 @@ const updateChangeTracking = function (params, callback) {
 }
 
 const updateFogInstance = function(params, callback){
-  let fogInstanceProps = {
+  var fogInstanceProps = {
         instanceId: 'bodyParams.ID',
         updatedFog: {
           lastactive : new Date().getTime(),

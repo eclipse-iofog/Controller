@@ -198,6 +198,16 @@ const Fog = sequelize.define('iofogs', {
         type: Sequelize.TEXT,
         field: 'Version'
     },
+    isReadyToUpgrade: {
+        type: Sequelize.INTEGER,
+        defaultValue: 1,
+        field: "isReadyToUpgrade"
+    },
+    isReadyToRollback: {
+        type: Sequelize.INTEGER,
+        defaultValue: 0,
+        field: "isReadyToRollback"
+    },
     statusfrequency: {
         type: Sequelize.INTEGER,
         defaultValue: 10,

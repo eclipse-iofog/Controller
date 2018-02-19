@@ -287,6 +287,8 @@ CREATE TABLE iofogs (
   IsolatedDockerContainer INTEGER DEFAULT (1),
   LogFileCount            BIGINT  DEFAULT 10,
   Version                 TEXT,
+  isReadyToUpgrade        INTEGER DEFAULT(1),
+  isReadyToRollback       INTEGER DEFAULT(0),
   StatusFrequency         INTEGER DEFAULT (10),
   ChangeFrequency         INTEGER DEFAULT (20),
   ScanFrequency           INTEGER DEFAULT (60),
@@ -387,6 +389,7 @@ CREATE TABLE iofog_change_tracking (
 	`ID`	INTEGER PRIMARY KEY AUTOINCREMENT,
 	`container_config`	BIGINT,
 	`reboot`	BOOLEAN,
+	`version` BIGINT,
 	`container_list`	BIGINT,
 	`config`	BIGINT,
 	`routing`	BIGINT,
@@ -429,7 +432,14 @@ CREATE TABLE usb_info (
     ON DELETE SET NULL
     ON UPDATE CASCADE
 );
-INSERT INTO iofog_change_tracking VALUES(1,1517401049283,0,1517472938429,1517472938429,1517401049283,1517401049283, 1517401049283, 'fVmnRpHgdNnDw7XJLJw7GV4NVRhjk4V3');
+CREATE TABLE iofog_version_commands (
+  ID INTEGER PRIMARY KEY AUTOINCREMENT,
+  version_command VARCHAR (100),
+  `iofog_uuid`	TEXT,
+  FOREIGN KEY(`iofog_uuid`) REFERENCES iofogs (UUID) ON DELETE SET NULL ON UPDATE CASCADE
+);
+
+INSERT INTO iofog_change_tracking VALUES(1, 1517401049283, 0, 1517401049283,1517472938429,1517472938429,1517401049283,1517401049283, 1517401049283, 'fVmnRpHgdNnDw7XJLJw7GV4NVRhjk4V3');
 DELETE FROM sqlite_sequence;
 INSERT INTO sqlite_sequence VALUES ('config', 52);
 INSERT INTO sqlite_sequence VALUES ('satellite', 9);
