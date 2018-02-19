@@ -18,7 +18,11 @@ import logger from '../../utils/winstonLogs';
 
   logger.info("Endpoint hit: "+ req.originalUrl);
 
-  let params = {};
+  let params = {},
+      fogInstanceProps= {
+        fogId: 'bodyParams.instanceId',
+        setProperty: 'fogInstance'
+      };
  
   params.bodyParams = req.body;
   params.bodyParams.instanceId = req.params.ID;
@@ -26,8 +30,8 @@ import logger from '../../utils/winstonLogs';
 
   async.waterfall([
     async.apply(BaseApiController.checkUserExistance, req, res),
-    async.apply(updateFogInstance, params)
-
+    async.apply(FogService.getFogInstance, fogInstanceProps, params),
+    updateFogInstance
   ], function(err, result) {
     AppUtils.sendResponse(res, err,'','', result);
   })
@@ -35,6 +39,9 @@ import logger from '../../utils/winstonLogs';
 
 /*********************************** Extra Functions ***************************************************/
 const updateFogInstance = function(params, callback){
+
+  let proxyStatus = getProxyStatus(params);
+
   let fogInstanceProps = {
         instanceId: 'bodyParams.instanceId',
         updatedFog: {
@@ -57,11 +64,27 @@ const updateFogInstance = function(params, callback){
           elementmessagecounts : params.bodyParams.elementmessagecounts, 
           messagespeed : params.bodyParams.messagespeed,
           lastcommandtime : params.bodyParams.lastcommandtime,
-          proxy : params.bodyParams.proxystatus,
+          proxy : proxyStatus,
           version: params.bodyParams.version || '1.0'
         }
       };
     FogService.updateFogInstance(fogInstanceProps, params, callback);
+};
+
+const getProxyStatus = function(params) {
+    let result;
+    let newProxyStr = params.bodyParams.proxystatus;
+    let oldProxyStr = params.fogInstance.dataValues.proxy;
+
+    if (oldProxyStr) {
+        let oldProxyObj = JSON.parse(oldProxyStr);
+        result = oldProxyObj.status === 'PENDING_OPEN' || oldProxyObj.status === 'PENDING_CLOSE'
+            ? oldProxyStr : newProxyStr;
+    } else {
+        result = newProxyStr;
+    }
+
+    return result;
 };
 
 export default {

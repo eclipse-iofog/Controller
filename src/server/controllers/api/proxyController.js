@@ -19,7 +19,7 @@ import logger from '../../utils/winstonLogs';
  * @param req request
  * @param res response
  */
-const proxyCreateOrUpdateEndPoint = function(req, res) {
+const createOrUpdateProxyEndPoint = function(req, res) {
     logger.info("Endpoint hit: "+ req.originalUrl);
 
     let params = {},
@@ -59,7 +59,7 @@ const proxyCreateOrUpdateEndPoint = function(req, res) {
  * @param req request
  * @param res response
  */
-const proxyCloseEndPoint = function(req, res) {
+const closeProxyEndPoint = function(req, res) {
   logger.info("Endpoint hit:"+ req.originalUrl);
 
     let params = {},
@@ -91,7 +91,7 @@ const proxyCloseEndPoint = function(req, res) {
         ],
         function(err, result) {
             let errMsg = 'Internal error: ' + result;
-            AppUtils.sendResponse(res, err, 'instanceId', params.bodyParams.instanceId, errMsg);
+            AppUtils.sendResponse(res, err,'','', result);
         });
 };
 
@@ -100,7 +100,7 @@ const proxyCloseEndPoint = function(req, res) {
  * @param req request
  * @param res response
  */
-const proxyGetEndPoint = function(req, res) {
+const getProxyEndPoint = function(req, res) {
     logger.info("Endpoint hit:"+ req.originalUrl);
 
     let params = {},
@@ -149,6 +149,28 @@ const getProxyStatusEndPoint = function(req, res) {
             // AppUtils.sendResponse(res, err, 'proxy', params.proxy, errMsg);
             AppUtils.sendResponse(res, err, 'output', output, result);
         });
+};
+
+const updateProxyStatusEndPoint = function(req, res) {
+    logger.info("Endpoint hit:"+ req.originalUrl);
+
+    let params = {},
+        instanceProps = {
+            instanceId: 'bodyParams.ID',
+            updatedFog: {
+                proxy: req.body.proxystatus
+            }
+        };
+
+    params.bodyParams = req.params;
+    logger.info("Parameters:" + JSON.stringify(params.bodyParams));
+
+    async.waterfall([
+        async.apply(BaseApiController.checkUserExistance, req, res),
+        async.apply(FogService.updateFogInstance, instanceProps, params)
+    ], function(err, result) {
+        AppUtils.sendResponse(res, err,'','', result);
+    })
 };
 
 /*************************************** Extra Functions *************************************************/
@@ -242,8 +264,9 @@ const updateProxyStatusObj = function(params, callback) {
 
 
 export default {
-    proxyCreateOrUpdateEndPoint: proxyCreateOrUpdateEndPoint,
-    proxyCloseEndPoint: proxyCloseEndPoint,
-    proxyGetEndPoint: proxyGetEndPoint,
-    getProxyStatusEndPoint: getProxyStatusEndPoint
+    createOrUpdateProxyEndPoint: createOrUpdateProxyEndPoint,
+    closeProxyEndPoint: closeProxyEndPoint,
+    getProxyEndPoint: getProxyEndPoint,
+    getProxyStatusEndPoint: getProxyStatusEndPoint,
+    updateProxyStatusEndPoint: updateProxyStatusEndPoint
 };
