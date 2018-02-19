@@ -25,7 +25,7 @@ import logger from '../../utils/winstonLogs';
 /***************** Create Track User EndPoint (Post: /api/v2/authoring/user/track/create) **************/
 const userTrackCreateEndPoint = function(req, res){
   logger.info("Endpoint hit: "+ req.originalUrl);
-  var params = {},
+  let params = {},
 
     userProps = {
       userId: 'bodyParams.t',
@@ -42,7 +42,7 @@ const userTrackCreateEndPoint = function(req, res){
     createDataTrack
 
   ], function(err, result) {
-    var trackId;
+    let trackId;
     if (params.dataTrack){
       trackId = params.dataTrack.id;
     }
@@ -52,7 +52,7 @@ const userTrackCreateEndPoint = function(req, res){
 };
 
 const validateFogInstance = function(params, callback){
-  var fogProps = {
+  let fogProps = {
     fogId: 'bodyParams.fogInstanceId',
     setProperty: 'fogData'
   }
@@ -66,7 +66,7 @@ const validateFogInstance = function(params, callback){
 /***************** Fog Track List EndPoint (Get: /api/v2/authoring/fabric/track/list/:instanceId) **************/
 const fogTrackListEndPoint = function(req, res){
   logger.info("Endpoint hit: "+ req.originalUrl);
-  var params = {},
+  let params = {},
 
     userProps = {
       userId: 'bodyParams.t',
@@ -99,7 +99,7 @@ const fogTrackListEndPoint = function(req, res){
 /***************** Fog Track Delete EndPoint (Post: /api/v2/authoring/fabric/track/delete) **************/
 const fogTrackDeleteEndPoint = function(req, res){
   logger.info("Endpoint hit: "+ req.originalUrl);
-  var params = {},
+  let params = {},
 
     userProps = {
       userId: 'bodyParams.t',
@@ -126,7 +126,7 @@ const fogTrackDeleteEndPoint = function(req, res){
     deleteElementInstances,
     async.apply(DataTracksService.deleteTrackById, dataTrackProps)
   ], function(err, result) {
-    var errMsg = 'Internal error: There was a problem deleting the track : ' + result
+    let errMsg = 'Internal error: There was a problem deleting the track : ' + result
 
     AppUtils.sendResponse(res, err, 'trackId', params.bodyParams.trackId, errMsg);
   });
@@ -136,7 +136,7 @@ const fogTrackDeleteEndPoint = function(req, res){
 const getTracksForUser = function(req, res) {
   logger.info("Endpoint hit: "+ req.originalUrl);
 
-  var params = {},
+  let params = {},
     userProps = {
       userId: 'bodyParams.t',
       setProperty: 'user'
@@ -161,7 +161,7 @@ const getTracksForUser = function(req, res) {
 /***************** Fog Track Update EndPoint (Post: /api/v2/authoring/fabric/track/update) **************/
 const fogTrackUpdateEndPoint = function(req, res){
   logger.info("Endpoint hit: "+ req.originalUrl);
-  var params = {},
+  let params = {},
 
     userProps = {
       userId: 'bodyParams.t',
@@ -183,7 +183,7 @@ const fogTrackUpdateEndPoint = function(req, res){
     updateDataTrackById
 
   ], function(err, result) {
-    var trackId;
+    let trackId;
 
     if (params.bodyParams){
       trackId = params.bodyParams.trackId;
@@ -197,7 +197,7 @@ const fogTrackUpdateEndPoint = function(req, res){
 const userTrackUpdateEndPoint = function(req, res){
   logger.info("Endpoint hit: "+ req.originalUrl);
 
-  var params = {},
+  let params = {},
 
     userProps = {
       userId: 'bodyParams.t',
@@ -230,7 +230,7 @@ const userTrackUpdateEndPoint = function(req, res){
 const updateSelectedTrack = function (params, callback){
   try{
   if (params.bodyParams.isSelected > 0){
-    var updateProps = {
+    let updateProps = {
       userId: 'user.id',
       updatedObj: {
         isSelected: 0
@@ -251,7 +251,7 @@ const updateSelectedTrack = function (params, callback){
 const userTrackDeleteEndPoint = function(req, res){
   logger.info("Endpoint hit: "+ req.originalUrl);
 
-  var params = {},
+  let params = {},
 
     userProps = {
       userId: 'bodyParams.t',
@@ -307,7 +307,7 @@ const userTrackDeleteEndPoint = function(req, res){
     async.apply(ElementInstanceService.deleteElementInstances, elementInstanceDataProps)
 
   ], function(err, result) {
-    var successLabelArr= ['trackId', 'elementInstances'],
+    let successLabelArr= ['trackId', 'elementInstances'],
       successValueArr= [params.bodyParams.trackId, params.elementInstances];
       
     AppUtils.sendMultipleResponse(res, err, successLabelArr, successValueArr, result);
@@ -316,7 +316,7 @@ const userTrackDeleteEndPoint = function(req, res){
 
 /************************************* Extra Functions ********************************************/
 const updateFogChangeTracking = function(params, callback){
-  var changeTrackingProps = {
+  let changeTrackingProps = {
     elementInstanceData: 'elementInstances',
     field: 'iofog_uuid',
     changeObject: {
@@ -328,7 +328,7 @@ const updateFogChangeTracking = function(params, callback){
 }
 
 const deleteElement = function(params, callback) {
-  var deleteElementProps = {
+  let deleteElementProps = {
         elementId: 'bodyParams.elementId'
       },
       portPasscodeProps = {
@@ -353,7 +353,7 @@ const deleteElement = function(params, callback) {
 }
 
 const createDataTrack = function(params, callback){
-  var dataTrackProps = {
+  let dataTrackProps = {
     dataTrackObj: {
       name: params.bodyParams.trackName,
       instanceId: params.bodyParams.fogInstanceId,
@@ -383,7 +383,7 @@ const resetSelectedActivatedAndName= function(params, callback) {
 }
 
 const findElementInstanceByTrackId= function(params, callback) {
-    var elementInstanceProps = {
+    let elementInstanceProps = {
       trackId: 'bodyParams.trackId',
       setProperty: 'elementInstances'
     };
@@ -397,7 +397,7 @@ const findElementInstanceByTrackId= function(params, callback) {
 }
 
 const updateChangeTracking= function(params, callback) {
- var changeTrackingProps = {
+ let changeTrackingProps = {
     elementInstanceData: 'elementInstances',
     field: 'iofog_uuid',
     changeObject: {
@@ -410,12 +410,12 @@ const updateChangeTracking= function(params, callback) {
 }
 
 const updateDataTrackById= function(params, callback) {
-  var isSelected = 0;
+  let isSelected = 0;
   if (params.bodyParams.isSelected > 0){
     isSelected = 1;
   }
 
-  var updateDataTrackProps = {
+  let updateDataTrackProps = {
         trackId: 'bodyParams.trackId',
         updatedObj: {
           name: params.bodyParams.trackName,

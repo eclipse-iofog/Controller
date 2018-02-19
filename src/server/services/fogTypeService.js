@@ -2,7 +2,7 @@ import FogTypeManager from '../managers/fogTypeManager';
 import AppUtils from '../utils/appUtils';
 
 const getFogTypeDetail = function(props, params, callback) {
-  var fogTypeId = AppUtils.getProperty(params, props.fogTypeId);
+  let fogTypeId = AppUtils.getProperty(params, props.fogTypeId);
 
   FogTypeManager
     .findFogTypeById(fogTypeId)

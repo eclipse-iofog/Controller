@@ -65,7 +65,7 @@ class DataTracksManager extends BaseManager {
   }
 
   // findContainerListByInstanceId(instanceId) {                                                         
-  //   var instanceTrackingQuery = "SELECT i.*, t.is_activated FROM element_instance i LEFT JOIN \
+  //   let instanceTrackingQuery = "SELECT i.*, t.is_activated FROM element_instance i LEFT JOIN \
   //   data_tracks t ON i.track_id = t.ID \
   //   WHERE i.iofog_uuid in (:instanceId) AND (i.track_id = 0 OR t.is_activated = 1)";
 

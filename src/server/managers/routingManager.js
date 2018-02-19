@@ -136,7 +136,7 @@ class RoutingManager extends BaseManager {
   }
 
   deleteByNetworkElementInstanceId(elementId) {
-    var deleteQuery = " \
+    let deleteQuery = " \
       DELETE FROM routing \
       WHERE publishing_element_id IN( \
         SELECT networkElementId1 \

@@ -3,7 +3,7 @@ import AppUtils from '../utils/appUtils';
 
 
 const findRegistriesByInstanceId = function(props, params, callback) {
-  var instanceId = AppUtils.getProperty(params, props.instanceId);
+  let instanceId = AppUtils.getProperty(params, props.instanceId);
 
   RegistryManager
     .findByInstanceId(instanceId)

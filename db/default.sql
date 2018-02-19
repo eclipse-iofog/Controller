@@ -185,9 +185,9 @@ INSERT INTO element VALUES
   (5, 'RESTBlue', 'Bluetooth RESTful API', 'Utilities', 'iotracks/catalog:bluetooth-rest-api-v0.5', 'SYSTEM', 0, 0,
       'none.png', NULL, 1, 0, 1);
 INSERT INTO element VALUES
-  (6, 'HAL', 'HAL container', 'Utilities', 'iotracks/catalog:hal-0.1', 'iotracks', 0, 0, 'none.png', NULL, 1, 0, 1);
+  (6, 'HAL', 'HAL container', 'Utilities', 'iotracks/catalog:hal-0.1', 'SYSTEM', 0, 0, 'none.png', NULL, 1, 0, 1);
 INSERT INTO element VALUES
-  (7, 'HAL ARM', 'ARM HAL container', 'Utilities', 'iotracks/catalog:hal-0.1-arm', 'iotracks', 0, 0, 'none.png', NULL,
+  (7, 'HAL ARM', 'ARM HAL container', 'Utilities', 'iotracks/catalog:hal-0.1-arm', 'SYSTEM', 0, 0, 'none.png', NULL,
       1, 0, 1);
 INSERT INTO element VALUES
   (8, 'Open Weather Map Data', 'A stream of data from the Open Weather Map API in JSON format', 'Sensors',
@@ -291,6 +291,8 @@ CREATE TABLE iofogs (
   isReadyToRollback       INTEGER DEFAULT(0),
   StatusFrequency         INTEGER DEFAULT (10),
   ChangeFrequency         INTEGER DEFAULT (20),
+  ScanFrequency           INTEGER DEFAULT (60),
+  Proxy                   TEXT    DEFAULT (''),
   typeKey                 INTEGER REFERENCES iofog_type (ID)
     ON DELETE SET NULL
     ON UPDATE CASCADE
@@ -382,10 +384,11 @@ CREATE TABLE registry (
   user_email    BIGINT,
   iofog_uuid    TEXT REFERENCES iofogs (UUID)
 );
-INSERT INTO registry VALUES (1, 'registry.hub.docker.com', 1, 1, '', 0, '', '', '', NULL);
+INSERT INTO registry VALUES (1, 'registry.hub.docker.com', 1, 1, '', 0, 'iointegrator', '0nTh3Edge2015', 'admin@iotracks.com', NULL);
 CREATE TABLE iofog_change_tracking (
 	`ID`	INTEGER PRIMARY KEY AUTOINCREMENT,
 	`container_config`	BIGINT,
+	`reboot`	BOOLEAN,
 	`version` BIGINT,
 	`container_list`	BIGINT,
 	`config`	BIGINT,
@@ -396,16 +399,38 @@ CREATE TABLE iofog_change_tracking (
 	FOREIGN KEY(`iofog_uuid`) REFERENCES iofogs ( UUID ) ON DELETE SET NULL ON UPDATE CASCADE
 );
 CREATE TABLE proxy (
-  `ID` INTEGER PRIMARY KEY AUTOINCREMENT,
-  `username` TEXT,
-  `password` TEXT,
-  `host` TEXT,
+  `ID`          INTEGER PRIMARY KEY AUTOINCREMENT,
+  `username`    TEXT,
+  `password`    TEXT,
+  `host`        TEXT,
   `remote_port` INTEGER,
-  `local_port` INTEGER DEFAULT 22,
-  `rsa_key` TEXT,
-  `close` BOOLEAN DEFAULT FALSE,
-  `iofog_uuid`	TEXT,
-  FOREIGN KEY(`iofog_uuid`) REFERENCES iofogs ( UUID ) ON DELETE SET NULL ON UPDATE CASCADE
+  `local_port`  INTEGER             DEFAULT 22,
+  `rsa_key`     TEXT,
+  `close`       BOOLEAN             DEFAULT FALSE,
+  `iofog_uuid`  TEXT,
+  FOREIGN KEY (`iofog_uuid`) REFERENCES iofogs (UUID)
+    ON DELETE SET NULL
+    ON UPDATE CASCADE
+);
+CREATE TABLE hw_info (
+  `ID`         INTEGER PRIMARY KEY AUTOINCREMENT,
+  `info`       TEXT,
+  `iofog_uuid` TEXT,
+  `created_at` DATETIME NOT NULL,
+  `updated_at` DATETIME NOT NULL,
+  FOREIGN KEY (`iofog_uuid`) REFERENCES iofogs (UUID)
+    ON DELETE SET NULL
+    ON UPDATE CASCADE
+);
+CREATE TABLE usb_info (
+  `ID`         INTEGER PRIMARY KEY AUTOINCREMENT,
+  `info`       TEXT,
+  `iofog_uuid` TEXT,
+  `created_at` DATETIME NOT NULL,
+  `updated_at` DATETIME NOT NULL,
+  FOREIGN KEY (`iofog_uuid`) REFERENCES iofogs (UUID)
+    ON DELETE SET NULL
+    ON UPDATE CASCADE
 );
 CREATE TABLE iofog_version_commands (
   ID INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -414,7 +439,7 @@ CREATE TABLE iofog_version_commands (
   FOREIGN KEY(`iofog_uuid`) REFERENCES iofogs (UUID) ON DELETE SET NULL ON UPDATE CASCADE
 );
 
-INSERT INTO iofog_change_tracking VALUES(1,1517401049283, 1517401049283,1517472938429,1517472938429,1517401049283,1517401049283, 1517401049283, 'fVmnRpHgdNnDw7XJLJw7GV4NVRhjk4V3');
+INSERT INTO iofog_change_tracking VALUES(1, 1517401049283, 0, 1517401049283,1517472938429,1517472938429,1517401049283,1517401049283, 1517401049283, 'fVmnRpHgdNnDw7XJLJw7GV4NVRhjk4V3');
 DELETE FROM sqlite_sequence;
 INSERT INTO sqlite_sequence VALUES ('config', 52);
 INSERT INTO sqlite_sequence VALUES ('satellite', 9);

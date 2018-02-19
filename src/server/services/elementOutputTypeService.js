@@ -9,7 +9,7 @@ const createElementOutputType = function(props, params, callback) {
 }
 
 const updateElementOutputType = function(props, params, callback) {
-  var elementKey = AppUtils.getProperty(params, props.elementKey);
+  let elementKey = AppUtils.getProperty(params, props.elementKey);
 
   ElementOutputTypeManager
     .updateElementOutputType(elementKey, props.updatedData)
@@ -17,7 +17,7 @@ const updateElementOutputType = function(props, params, callback) {
 }
 
 const deleteElementOutputType = function(props, params, callback) {
-  var elementKey = AppUtils.getProperty(params, props.elementKey);
+  let elementKey = AppUtils.getProperty(params, props.elementKey);
 
   ElementOutputTypeManager
     .deleteByElementKey(elementKey)

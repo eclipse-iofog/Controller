@@ -18,7 +18,7 @@ import logger from '../../utils/winstonLogs';
 
   logger.info("Endpoint hit: "+ req.originalUrl);
 
-  var params = {};
+  let params = {};
  
   params.bodyParams = req.body;
   params.bodyParams.instanceId = req.params.ID;
@@ -35,7 +35,7 @@ import logger from '../../utils/winstonLogs';
 
 /*********************************** Extra Functions ***************************************************/
 const updateFogInstance = function(params, callback){
-  var fogInstanceProps = {
+  let fogInstanceProps = {
         instanceId: 'bodyParams.instanceId',
         updatedFog: {
           daemonstatus: params.bodyParams.daemonstatus,

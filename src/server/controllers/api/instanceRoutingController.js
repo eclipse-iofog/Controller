@@ -32,7 +32,7 @@ import Constants from '../../constants.js';
 const instanceRoutingEndPoint = function (req, res){
   logger.info("Endpoint hit: "+ req.originalUrl);
 
-  var params = {},
+  let params = {},
       streamViewerProps = {
         instanceId: 'bodyParams.ID',
         setProperty: 'streamViewerData'
@@ -63,7 +63,7 @@ const instanceRoutingEndPoint = function (req, res){
 /********* Instance Route Create EndPoint (Post: /api/v2/authoring/element/instance/route/create) **********/
 const instanceRouteCreateEndPoint = function (req, res){
   logger.info("Endpoint hit: "+ req.originalUrl);
-  var params = {},
+  let params = {},
     currentTime = new Date().getTime(),
     watefallMethods = [],
 
@@ -274,14 +274,14 @@ const instanceRouteCreateEndPoint = function (req, res){
   }
 
   async.waterfall(watefallMethods, function(err, result) {
-    var errMsg = 'Internal error: There was a problem trying to create the ioElement Routing.' + result;
+    let errMsg = 'Internal error: There was a problem trying to create the ioElement Routing.' + result;
 
     AppUtils.sendResponse(res, err, 'route', params.output, errMsg);
   });
 };
 
 const createPubNetworkElementInstance = function (params, callback){
-  var networkElementInstanceProps = {
+  let networkElementInstanceProps = {
       networkElement: 'pubNetworkElement',
       fogInstanceId: 'publishingFogInstance.uuid',
       satellitePort: 'satellitePort.port1',
@@ -299,7 +299,7 @@ const createPubNetworkElementInstance = function (params, callback){
 }
 
 const createDestNetworkElementInstance = function (params, callback){
-  var networkElementInstanceProps = {
+  let networkElementInstanceProps = {
       networkElement: 'destNetworkElement',
       fogInstanceId: 'destinationFogInstance.uuid',
       satellitePort: 'satellitePort.port1',
@@ -320,7 +320,7 @@ const createDestNetworkElementInstance = function (params, callback){
 /********* Instance Route Delete EndPoint (Post: /api/v2/authoring/element/instance/route/delete) **********/
 const instanceRouteDeleteEndPoint = function(req, res){
   logger.info("Endpoint hit: "+ req.originalUrl);
-  var params = {},
+  let params = {},
     currentTime = new Date().getTime(),
     watefallMethods = [],
 
@@ -462,7 +462,7 @@ const instanceRouteDeleteEndPoint = function(req, res){
   }
 
   async.waterfall(watefallMethods, function(err, result) {
-    var errMsg = 'Internal error: There was a problem trying to delete the ioElement Routing.' + result;
+    let errMsg = 'Internal error: There was a problem trying to delete the ioElement Routing.' + result;
 
     AppUtils.sendResponse(res, err, 'route', params.output, errMsg);
   });
@@ -471,22 +471,22 @@ const instanceRouteDeleteEndPoint = function(req, res){
 /************************************* Extra Functions **************************************************/
   const getRouting = function (params, callback) {
   try{
-    var containerList = [];
+    let containerList = [];
     for (let i = 0; i < params.routingData.length; i++) {
-      var container = params.routingData[i],
+      let container = params.routingData[i],
           containerID = container.publishing_element_id,
           destinationElementID = container.destination_element_id,
           foundIt = false;
 
       params.container = container;
 
-      for (var j = 0; j < containerList.length; j++) {
-        var curItem = containerList[j],
+      for (let j = 0; j < containerList.length; j++) {
+        let curItem = containerList[j],
             curID = curItem.container;
 
         if (curID == containerID) {
           foundIt = true;
-          var outElementLabel = destinationElementID;
+          let outElementLabel = destinationElementID;
           if(params.streamViewerData){
             if (destinationElementID == params.streamViewerData.element_id) {
               outElementLabel = "viewer";
@@ -501,7 +501,7 @@ const instanceRouteDeleteEndPoint = function(req, res){
         }
       }
       if (foundIt == false) {
-        var tmpNewContainerItem = {},
+        let tmpNewContainerItem = {},
             receiverList = new Array(),
             outElementLabel = destinationElementID;
               
@@ -531,7 +531,7 @@ const instanceRouteDeleteEndPoint = function(req, res){
 }
 
 const createSatellitePort = function(params, callback){
-  var satellitePortProps = {
+  let satellitePortProps = {
     satellitePortObj: {
       port1: params.comsatPort.port1,
       port2: params.comsatPort.port2,

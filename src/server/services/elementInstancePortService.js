@@ -3,7 +3,7 @@ import AppUtils from '../utils/appUtils';
 import _ from 'underscore';
 
 const createElementInstancePort = function(props, params, callback) {
-  var userId = AppUtils.getProperty(params, props.userId),
+  let userId = AppUtils.getProperty(params, props.userId),
     internalPort = AppUtils.getProperty(params, props.internalPort),
     externalPort = AppUtils.getProperty(params, props.externalPort),
     elementId = AppUtils.getProperty(params, props.elementId);
@@ -14,7 +14,7 @@ const createElementInstancePort = function(props, params, callback) {
 }
 
 const createElementInstancePortByPortValue = function(props, params, callback) {
-  var userId = AppUtils.getProperty(params, props.userId),
+  let userId = AppUtils.getProperty(params, props.userId),
     internalPort = props.internalPort,
     externalPort = props.externalPort,
     elementId = AppUtils.getProperty(params, props.elementId);
@@ -25,7 +25,7 @@ const createElementInstancePortByPortValue = function(props, params, callback) {
 }
 
 const deleteElementInstancePort = function(props, params, callback) {
-  var elementId = AppUtils.getProperty(params, props.elementId);
+  let elementId = AppUtils.getProperty(params, props.elementId);
 
   ElementInstancePortManager
     .deleteByElementInstanceId(elementId)
@@ -33,7 +33,7 @@ const deleteElementInstancePort = function(props, params, callback) {
 }
 
 const deleteElementInstancePortById = function(props, params, callback) {
-  var elementPortId = AppUtils.getProperty(params, props.elementPortId);
+  let elementPortId = AppUtils.getProperty(params, props.elementPortId);
 
   ElementInstancePortManager
     .deleteById(elementPortId)
@@ -41,7 +41,7 @@ const deleteElementInstancePortById = function(props, params, callback) {
 }
 
 const deleteElementInstancePortsByElementIds = function(props, params, callback) {
-  var elementInstanceData = AppUtils.getProperty(params, props.elementInstanceData);
+  let elementInstanceData = AppUtils.getProperty(params, props.elementInstanceData);
 
   ElementInstancePortManager
     .deleteByElementInstanceId(_.pluck(elementInstanceData, props.field))
@@ -49,7 +49,7 @@ const deleteElementInstancePortsByElementIds = function(props, params, callback)
 }
 
 const findElementInstancePortsByElementIds = function(props, params, callback) {
-  var elementInstanceData = AppUtils.getProperty(params, props.elementInstanceData);
+  let elementInstanceData = AppUtils.getProperty(params, props.elementInstanceData);
 
   ElementInstancePortManager
     .findPortsByElementIds(_.pluck(elementInstanceData, props.field))
@@ -57,7 +57,7 @@ const findElementInstancePortsByElementIds = function(props, params, callback) {
 }
 
 const getElementInstancePort = function(props, params, callback) {
-  var portId = AppUtils.getProperty(params, props.portId);
+  let portId = AppUtils.getProperty(params, props.portId);
 
   ElementInstancePortManager
     .findById(portId)
@@ -65,7 +65,7 @@ const getElementInstancePort = function(props, params, callback) {
 }
 
 const getPortsByElementId = function(props, params, callback) {
-  var elementPortId = AppUtils.getProperty(params, props.elementPortId);
+  let elementPortId = AppUtils.getProperty(params, props.elementPortId);
 
   ElementInstancePortManager
     .getPortsByElementId(elementPortId)

@@ -8,7 +8,7 @@ const createDataTrack = function(props, params, callback) {
 }
 
 const deleteTrackById = function(props, params, callback) {
-  var trackId = AppUtils.getProperty(params, props.trackId);
+  let trackId = AppUtils.getProperty(params, props.trackId);
 
   DataTracksManager
     .deleteByTrackId(trackId)
@@ -16,7 +16,7 @@ const deleteTrackById = function(props, params, callback) {
 }
 
 // const findContainerListByInstanceId = function(props, params, callback) {
-//   var instanceId = AppUtils.getProperty(params, props.instanceId);
+//   let instanceId = AppUtils.getProperty(params, props.instanceId);
 
 //   DataTracksManager
 //     .findContainerListByInstanceId(instanceId)
@@ -24,8 +24,8 @@ const deleteTrackById = function(props, params, callback) {
 // }
 
 const getDataTrackById = function(props, params, callback) {
-  var trackId = AppUtils.getProperty(params, props.trackId);
-  var errorMsg = '';
+  let trackId = AppUtils.getProperty(params, props.trackId);
+  let errorMsg = '';
   if(props.errorMsg){
     errorMsg = props.errorMsg;
   }
@@ -36,7 +36,7 @@ const getDataTrackById = function(props, params, callback) {
 }
 
 const getTrackById = function(props, params, callback) {
-  var trackId = AppUtils.getProperty(params, props.trackId);
+  let trackId = AppUtils.getProperty(params, props.trackId);
 
   DataTracksManager
     .findById(trackId)
@@ -45,7 +45,7 @@ const getTrackById = function(props, params, callback) {
 
 
 const getDataTrackByInstanceId = function(props, params, callback) {
-  var instanceId = AppUtils.getProperty(params, props.instanceId);
+  let instanceId = AppUtils.getProperty(params, props.instanceId);
 
   DataTracksManager
     .findByInstanceId(instanceId)
@@ -53,7 +53,7 @@ const getDataTrackByInstanceId = function(props, params, callback) {
 }
 
 const getTracksByUserId = function(props, params, callback) {
-  var userId = AppUtils.getProperty(params, props.userId);
+  let userId = AppUtils.getProperty(params, props.userId);
 
   DataTracksManager
     .getTracksByUserId(userId)
@@ -61,7 +61,7 @@ const getTracksByUserId = function(props, params, callback) {
 }
 
 const updateDataTrackById = function(props, params, callback) {
-  var trackId = AppUtils.getProperty(params, props.trackId);
+  let trackId = AppUtils.getProperty(params, props.trackId);
 
   DataTracksManager
     .updateById(trackId, props.updatedObj)
@@ -69,7 +69,7 @@ const updateDataTrackById = function(props, params, callback) {
 }
 
 const updateDataTrackByUserId = function(props, params, callback) {
-  var userId = AppUtils.getProperty(params, props.userId);
+  let userId = AppUtils.getProperty(params, props.userId);
 
   DataTracksManager
     .updateByUserId(userId, props.updatedObj)

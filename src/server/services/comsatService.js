@@ -6,7 +6,7 @@ import SatelliteService from '../services/satelliteService';
 import AppUtils from '../utils/appUtils';
 
 const openPortOnRadomComsat = function(params, callback) {
-  var isComsatPortOpen = false,
+  let isComsatPortOpen = false,
     iterations = 0;
 
   async.whilst(
@@ -44,11 +44,11 @@ const openPortOnRadomComsat = function(params, callback) {
 }
 
 const openPortsOnComsat = function(params, callback) {
-  var data = querystring.stringify({
+  let data = querystring.stringify({
     mapping: '{"type":"public","maxconnections":60,"heartbeatabsencethreshold":200000}'
   });
 
-  var options = {
+  let options = {
     host: params.satellite.domain,
     port: 443,
     path: '/api/v2/mapping/add',
@@ -58,9 +58,9 @@ const openPortsOnComsat = function(params, callback) {
       'Content-Length': Buffer.byteLength(data)
     }
   };
-  var httpreq = https.request(options, function(response) {
+  let httpreq = https.request(options, function(response) {
     console.log(response.statusCode);
-    var output = '';
+    let output = '';
     response.setEncoding('utf8');
 
     response.on('data', function(chunk) {
@@ -68,7 +68,7 @@ const openPortsOnComsat = function(params, callback) {
     });
 
     response.on('end', function() {
-      var responseObj = JSON.parse(output);
+      let responseObj = JSON.parse(output);
       console.log(responseObj);
       if (responseObj.errormessage) {
         params.errormessage = responseObj.errormessage;
@@ -94,12 +94,12 @@ const closePortsOnComsat = function(params, callback) {
   console.log(params.portPasscode[0]);
   if (params.portPasscode[0] && params.portPasscode[0].length > 0) {
     async.each(params.portPasscode[0], function(obj, callback) {
-      var data = querystring.stringify({
+      let data = querystring.stringify({
         mappingid: obj.mapping_id
       });
       console.log(data);
 
-      var options = {
+      let options = {
         host: obj.domain,
         port: 443,
         path: '/api/v2/mapping/remove',
@@ -109,9 +109,9 @@ const closePortsOnComsat = function(params, callback) {
           'Content-Length': Buffer.byteLength(data)
         }
       };
-      var httpreq = https.request(options, function(response) {
+      let httpreq = https.request(options, function(response) {
         console.log(response.statusCode);
-        var output = '';
+        let output = '';
         response.setEncoding('utf8');
 
         response.on('data', function(chunk) {
@@ -119,7 +119,7 @@ const closePortsOnComsat = function(params, callback) {
         });
 
         response.on('end', function() {
-          var responseObj = JSON.parse(output);
+          let responseObj = JSON.parse(output);
           console.log(responseObj);
           if (responseObj.errormessage) {
             params.errormessage = responseObj.errormessage;
@@ -149,12 +149,12 @@ const closePortsOnComsat = function(params, callback) {
 const closePortOnComsat = function(params, callback) {
   console.log(params.satellitePort);
 
-  var data = querystring.stringify({
+  let data = querystring.stringify({
     mappingid: params.satellitePort.mappingId
   });
   console.log(data);
 
-  var options = {
+  let options = {
     host: params.satellite.domain,
     port: 443,
     path: '/api/v2/mapping/remove',
@@ -165,9 +165,9 @@ const closePortOnComsat = function(params, callback) {
     }
   };
 
-  var httpreq = https.request(options, function(response) {
+  let httpreq = https.request(options, function(response) {
     console.log(response.statusCode);
-    var output = '';
+    let output = '';
     response.setEncoding('utf8');
 
     response.on('data', function(chunk) {
@@ -175,7 +175,7 @@ const closePortOnComsat = function(params, callback) {
     });
 
     response.on('end', function() {
-      var responseObj = JSON.parse(output);
+      let responseObj = JSON.parse(output);
       console.log(responseObj);
       if (responseObj.errormessage) {
         params.errormessage = responseObj.errormessage;
@@ -195,7 +195,7 @@ const closePortOnComsat = function(params, callback) {
 }
 
 const checkConnectionToComsat = function() {
-  var params = {};
+  let params = {};
 
   async.waterfall([        
     async.apply(getAllSatellites, params),
@@ -210,11 +210,11 @@ const checkConnectionToComsat = function() {
 }
 
 const getAllSatellites = function(params, callback){
-  var satellite = [];
+  let satellite = [];
   
   SatelliteManager.findAll().then(function(satellites){
     if (satellites.length){
-      for (var i = 0; i < satellites.length; i++){
+      for (let i = 0; i < satellites.length; i++){
         satellite[i] = satellites[i];
 
         if (i == satellites.length - 1){
@@ -230,7 +230,7 @@ const getAllSatellites = function(params, callback){
 
 const verifyComsatConnections = function(params, callback){
     console.log('Verifying Fog-Controller connection to ComSat(s):');
-    var data = querystring.stringify({
+    let data = querystring.stringify({
       mappingid: 'all'
     });
     let count = 0,
@@ -247,7 +247,7 @@ const verifyComsatConnections = function(params, callback){
       percentage_done = Math.round((count / params.satellite.length) * 100);
 
       process.stdout.write('Percentage completed ' + percentage_done + '%');
-      var options = {
+      let options = {
         host: satellite.domain,
         port: 443,
         path: '/api/v2/status',
@@ -258,9 +258,9 @@ const verifyComsatConnections = function(params, callback){
         }
       };
 
-      var httpreq = https.request(options, function(response) {
+      let httpreq = https.request(options, function(response) {
         if (response.statusCode == 200){
-          var output = '';
+          let output = '';
           response.setEncoding('utf8');
 
           response.on('data', function(chunk) {
