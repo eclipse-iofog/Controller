@@ -10,7 +10,7 @@ import FogVersionCommand from "../../models/fogVersionCommand";
 
 
 /********************************************* EndPoints ******************************************************/
-/************* Change Version EndPoint (Get/Post: /api/v2/authoring/fabric/version/instanceid/:instanceId/) ******************/
+/************* Change Version EndPoint (Get/Post: /api/v2/authoring/fabric/version/change) ******************/
 const changeVersionEndPoint = function (req, res) {
     logger.info("Endpoint hit: "+ req.originalUrl);
     var params = {},
@@ -36,41 +36,18 @@ const changeVersionEndPoint = function (req, res) {
     async.waterfall([
         async.apply(FogProvisionKeyService.deleteProvisonKeyByInstanceId, fogProps, params),
         async.apply(FogProvisionKeyService.createProvisonKeyByInstanceId, fogProps),
-        FogProvisionKeyService.deleteExpiredProvisionKeys
+        async.apply(FogProvisionKeyService.deleteExpiredProvisionKeys),
+
+        async.apply(FogVersionCommandService.deleteVersionCommandByInstanceId, fogProps),
+        async.apply(FogVersionCommandService.createVersionCommandByInstanceId, commandProps),
+        async.apply(ChangeTrackingService.updateChangeTracking, pubChangeVersionProps)
 
     ],function(err, result) {
-        if (err) {
-            var errMsg = "Problem with new provision key";
-            AppUtils.sendMultipleResponse(res, err, null, null, errMsg)
-        } else {
-            async.waterfall([
-                async.apply(FogVersionCommandService.deleteVersionCommandByInstanceId, fogProps, params),
-                async.apply(FogVersionCommandService.createVersionCommandByInstanceId, commandProps),
-                async.apply(ChangeTrackingService.updateChangeTracking, pubChangeVersionProps)
-            ], function (err, result) {
-                var outputProvisionKey, outputExpirationTime, outputVersionCommand,
-                    successLabelArr, successValueArr;
-
-                if (params.newProvision) {
-                    outputProvisionKey= params.newProvision.provisionKey;
-                    outputExpirationTime = params.newProvision.expirationTime;
-                }
-
-                if (params.newVersionCommand) {
-                    outputVersionCommand = params.newVersionCommand.versionCommand
-                }
-
-                successLabelArr= ["versionCommand", "provisionKey", "expirationTime"];
-                successValueArr= [outputVersionCommand, outputProvisionKey, outputExpirationTime];
-
-                AppUtils.sendMultipleResponse(res, err, successLabelArr, successValueArr, result);
-            });
-        }
+        AppUtils.sendResponse(res, err, null, null, "Problem with version command")
     });
-
 };
 
-/********** Instance Routing EndPoint (Get/Post: /api/v2/instance/version/instanceid/:instanceId/token/:Token) ***************/
+/********** Instance Routing EndPoint (Get/Post: /api/v2/instance/version/id/:instanceId/token/:Token) ***************/
 const instanceVersionEndPoint = function (req, res) {
     logger.info("Endpoint hit: " + req.originalUrl);
 
