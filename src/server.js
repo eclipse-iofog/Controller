@@ -128,7 +128,8 @@ const initApp = function () {
   app.post('/api/v2/instance/containerconfig/id/:ID/token/:Token', instanceContainerConfigController.containerConfigEndPoint);
   app.get('/api/v2/instance/containerlist/id/:ID/token/:Token', instanceContainerListController.containerListEndPoint);
   app.post('/api/v2/instance/containerlist/id/:ID/token/:Token', instanceContainerListController.containerListEndPoint);
-  app.post('/api/v2/instance/proxyconfig/id/:ID/token/:Token', proxyController.proxyGetEndPoint);
+  app.post('/api/v2/instance/proxyconfig/id/:ID/token/:Token', proxyController.getProxyEndPoint);
+  app.post('/api/v2/instance/proxyconfig/changes/id/:ID/token/:Token', proxyController.updateProxyStatusEndPoint);
   app.post('/api/v2/authoring/user/track/update', trackController.userTrackUpdateEndPoint);
   app.get('/api/v2/instance/registries/id/:ID/token/:Token', instanceRegistriesController.instanceRegistriesEndPoint);
   app.post('/api/v2/instance/registries/id/:ID/token/:Token', instanceRegistriesController.instanceRegistriesEndPoint);
@@ -170,8 +171,8 @@ const initApp = function () {
   app.post('/api/v2/authoring/element/module/update', elementController.updateElementForUserEndPoint);
   app.get('/api/v2/authoring/element/module/delete/moduleid/:moduleId', elementController.deleteElementForUserEndPoint);
   app.get('/api/v2/authoring/element/module/details/moduleid/:moduleId', elementController.getElementDetailsEndPoint);
-  app.post('/api/v2/authoring/fabric/instance/proxy/createOrUpdate', proxyController.proxyCreateOrUpdateEndPoint);
-  app.post('/api/v2/authoring/fabric/instance/proxy/close', proxyController.proxyCloseEndPoint);
+  app.post('/api/v2/authoring/fabric/instance/proxy/createOrUpdate', proxyController.createOrUpdateProxyEndPoint);
+  app.post('/api/v2/authoring/fabric/instance/proxy/close', proxyController.closeProxyEndPoint);
   app.post('/api/v2/authoring/fabric/version/change', fogVersionCommandController.changeVersionEndPoint);
   app.get('/api/v2/instance/version/id/:instanceId/token/:Token', fogVersionCommandController.instanceVersionEndPoint);
   app.post('/api/v2/instance/version/id/:instanceId/token/:Token', fogVersionCommandController.instanceVersionEndPoint);
