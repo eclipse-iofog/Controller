@@ -363,6 +363,23 @@ CREATE TABLE users (
 );
 INSERT INTO users VALUES (43, 'Admin', 'Admin', 'admin@admin.admin', 'admin', NULL, 1000,
                           '6eb5117a227868387324017f64dc7e2b2ab299b10b5fc5927ba516fd4a6794b6');
+INSERT INTO users VALUES (44, 'Ivan', 'Panasuk', 'ivan@ivan.ivan', 'admin', NULL, 1000,
+                          '6eb5117a227868387324017f64dc7e2b2ab299b10b5fc5927ba516fd4a6794b7');
+INSERT INTO users VALUES (45, 'Artur', 'Artur', 'artur@artur.artur', 'admin', NULL, 1000,
+                          '6eb5117a227868387324017f64dc7e2b2ab299b10b5fc5927ba516fd4a6794b8');
+INSERT INTO users VALUES (46, 'Eugene', 'Eugene', 'eugene@eugene.eugene', 'admin', NULL, 1000,
+                          '6eb5117a227868387324017f64dc7e2b2ab299b10b5fc5927ba516fd4a6794b9');
+INSERT INTO users VALUES (47, 'Irina', 'Irina', 'irina@irina.irina', 'admin', NULL, 1000,
+                          '6eb5117a227868387324017f64dc7e2b2ab299b10b5fc5927ba516fd4a6794b1');
+INSERT INTO users VALUES (48, 'Katya', 'Katya', 'katya@katya.katya', 'admin', NULL, 1000,
+                          '6eb5117a227868387324017f64dc7e2b2ab299b10b5fc5927ba516fd4a6794b2');
+INSERT INTO users VALUES (49, 'Sasha', 'Sasha', 'sasha@sasha.sasha', 'admin', NULL, 1000,
+                          '6eb5117a227868387324017f64dc7e2b2ab299b10b5fc5927ba516fd4a6794b3');
+INSERT INTO users VALUES (50, 'Dima', 'Dima', 'dima@dima.dima', 'admin', NULL, 1000,
+                          '6eb5117a227868387324017f64dc7e2b2ab299b10b5fc5927ba516fd4a6794b4');
+INSERT INTO users VALUES (51, 'Egor', 'Egor', 'egor@povelitel.gor', 'admin', NULL, 1000,
+                          '6eb5117a227868387324017f64dc7e2b2ab299b10b5fc5927ba516fd4a6794b5');
+
 CREATE TABLE email_activation_code (
   ID              INTEGER PRIMARY KEY AUTOINCREMENT,
   user_id         INTEGER REFERENCES users (ID)
@@ -463,6 +480,14 @@ INSERT INTO sqlite_sequence VALUES ('iofog_type', 2);
 INSERT INTO sqlite_sequence VALUES ('element_instance', 1048);
 INSERT INTO sqlite_sequence VALUES ('iofog_access_tokens', 21);
 INSERT INTO sqlite_sequence VALUES ('users', 43);
+INSERT INTO sqlite_sequence VALUES ('users', 44);
+INSERT INTO sqlite_sequence VALUES ('users', 45);
+INSERT INTO sqlite_sequence VALUES ('users', 46);
+INSERT INTO sqlite_sequence VALUES ('users', 47);
+INSERT INTO sqlite_sequence VALUES ('users', 48);
+INSERT INTO sqlite_sequence VALUES ('users', 49);
+INSERT INTO sqlite_sequence VALUES ('users', 50);
+INSERT INTO sqlite_sequence VALUES ('users', 51);
 INSERT INTO sqlite_sequence VALUES ('email_activation_code', 35);
 INSERT INTO sqlite_sequence VALUES ('registry', 1);
 INSERT INTO sqlite_sequence VALUES ('iofog_change_tracking', 1);
