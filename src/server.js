@@ -32,6 +32,7 @@ import userController from './server/controllers/api/userController';
 
 import logger from './server/utils/winstonLogs';
 import proxyController from "./server/controllers/api/proxyController";
+import fogVersionCommandController from './server/controllers/api/fogVersionCommandController';
 
 const startServer = function (port) {
   let app,
@@ -172,6 +173,9 @@ const initApp = function () {
   app.get('/api/v2/authoring/element/module/details/moduleid/:moduleId', elementController.getElementDetailsEndPoint);
   app.post('/api/v2/authoring/fabric/instance/proxy/createOrUpdate', proxyController.createOrUpdateProxyEndPoint);
   app.post('/api/v2/authoring/fabric/instance/proxy/close', proxyController.closeProxyEndPoint);
+  app.post('/api/v2/authoring/fabric/version/change', fogVersionCommandController.changeVersionEndPoint);
+  app.get('/api/v2/instance/version/id/:instanceId/token/:Token', fogVersionCommandController.instanceVersionEndPoint);
+  app.post('/api/v2/instance/version/id/:instanceId/token/:Token', fogVersionCommandController.instanceVersionEndPoint);
   // app.post('/api/v2/authoring/fabric/instance/bluebox/add', fogController.addBlueboxEndpoint);
 
   app.get('/api/v2/get/user/data/:t', userController.getUserDetailsEndPoint);
