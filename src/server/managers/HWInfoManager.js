@@ -31,12 +31,24 @@ class HWInfoManager extends BaseManager {
      * @param Integer, JSON object - uuid, infoObj
      * @return Integer - returns the number of rows updated
      */
-    update(uuid, infoObj) {
+    update(infoObj) {
         return HWInfo.update(infoObj, {
             where: {
-                iofog_uuid: uuid
+                iofog_uuid: infoObj.iofog_uuid
             }
         });
+    }
+
+    /**
+     * @desc - updates if usbInfoObj exists in db otherwise creates it
+     * @param Integer - uuid
+     * @return JSON - returns a JSON usbInfoObj
+     */
+    upsert(infoObj) {
+        return this.findByInstanceId(infoObj.iofog_uuid)
+            .then((dbObj) => {
+                return null == dbObj ? this.save(infoObj) : this.update(infoObj)
+            });
     }
 
     /**
