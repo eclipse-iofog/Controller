@@ -136,7 +136,7 @@ const Fog = sequelize.define('iofogs', {
     },
     dockerurl: {
         type: Sequelize.TEXT,
-        defaultValue: "unix:///let/run/docker.sock",
+        defaultValue: "unix:///var/run/docker.sock",
         field: 'DockerURL'
     },
     disklimit: {
@@ -146,7 +146,7 @@ const Fog = sequelize.define('iofogs', {
     },
     diskdirectory: {
         type: Sequelize.TEXT,
-        defaultValue: '/let/lib/iofog/',
+        defaultValue: '/var/lib/iofog/',
         field: 'DiskDirectory'
     },
     memorylimit: {
