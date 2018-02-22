@@ -166,7 +166,7 @@ const Fog = sequelize.define('iofogs', {
     },
     logdirectory: {
         type: Sequelize.TEXT,
-        defaultValue: "/let/log/iofog/",
+        defaultValue: "/var/log/iofog/",
         field: 'LogDirectory'
     },
     debug: {
