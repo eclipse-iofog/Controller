@@ -353,6 +353,7 @@ const updateFog = function (params, callback) {
       debug: params.bodyParams.debug,
       viewer: params.bodyParams.viewer,
       bluetooth: params.bodyParams.bluetooth,
+        hal: params.bodyParams.hal,
       statusfrequency: params.bodyParams.statusFrequency,
       changefrequency: params.bodyParams.changeFrequency,
         scanfrequency: params.bodyParams.scanFrequency,
