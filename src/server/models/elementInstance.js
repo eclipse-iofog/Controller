@@ -79,6 +79,14 @@ const ElementInstance = sequelize.define('element_instance', {
   isHal: {
     type: Sequelize.BOOLEAN,
     field: 'is_hal'
+  },
+  isMongo: {
+    type: Sequelize.BOOLEAN,
+    field: 'is_mongo'
+  },
+  isInflux: {
+    type: Sequelize.BOOLEAN,
+    field: 'is_influx'
   }
 }, {
   // don't add the timestamp attributes (updatedAt, createdAt)
