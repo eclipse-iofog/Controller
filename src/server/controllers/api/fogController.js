@@ -764,6 +764,20 @@ const mongoForFog = (params, callback) => {
                     networkElementId: 'fogTypeData.mongoElementKey',
                     setProperty: 'mongoElement'
                 },
+                mongoPortProps = {
+                    userId: 'user.id',
+                    internalPort: 27017,
+                    externalPort: 27017,
+                    elementId: 'mongoElementInstance.uuid',
+                    setProperty: 'mongodbPort'
+                },
+                elementInstanceProps = {
+                    updatedData: {
+                        last_updated: new Date().getTime(),
+                        updatedBy: params.user.id
+                    },
+                    elementId: 'mongoElementInstance.uuid'
+                },
                 changeTrackingProps = {
                     fogInstanceId: 'bodyParams.instanceId',
                     changeObject: {
@@ -774,7 +788,9 @@ const mongoForFog = (params, callback) => {
 
             async.waterfall([
                     async.apply(ElementService.getNetworkElement, elementProps, params),
-                    createMongoElementInstance(),
+                    createMongoElementInstance,
+                    async.apply(ElementInstancePortService.createElementInstancePortByPortValue, mongoPortProps),
+                    async.apply(ElementInstanceService.updateElemInstance, elementInstanceProps),
                     async.apply(ChangeTrackingService.updateChangeTracking, changeTrackingProps)
                 ],
                 function (err, result) {
@@ -804,6 +820,20 @@ const influxForFog = (params, callback) => {
                     networkElementId: 'fogTypeData.influxElementKey',
                     setProperty: 'influxElement'
                 },
+                influxPortProps = {
+                    userId: 'user.id',
+                    internalPort: 8086,
+                    externalPort: 8086,
+                    elementId: 'influxElementInstance.uuid',
+                    setProperty: 'influxdbPort'
+                },
+                elementInstanceProps = {
+                    updatedData: {
+                        last_updated: new Date().getTime(),
+                        updatedBy: params.user.id
+                    },
+                    elementId: 'influxElementInstance.uuid'
+                },
                 changeTrackingProps = {
                     fogInstanceId: 'bodyParams.instanceId',
                     changeObject: {
@@ -814,7 +844,9 @@ const influxForFog = (params, callback) => {
 
             async.waterfall([
                     async.apply(ElementService.getNetworkElement, elementProps, params),
-                    createInfluxElementInstance(),
+                    createInfluxElementInstance,
+                    async.apply(ElementInstancePortService.createElementInstancePortByPortValue, influxPortProps),
+                    async.apply(ElementInstanceService.updateElemInstance, elementInstanceProps),
                     async.apply(ChangeTrackingService.updateChangeTracking, changeTrackingProps)
                 ],
                 function (err, result) {
@@ -950,6 +982,15 @@ const createHalElementInstance = function (params, callback) {
 }
 
 const createMongoElementInstance = function (params, callback) {
+    let volumeMappings = {
+        volumemappings: [
+            {
+                hostdestination: "/var/lib/mongodb",
+                containerdestination: "/data/db",
+                accessmode: "rw"
+            }
+        ]
+    };
     let elementInstanceProps = {
         elementInstance: {
             uuid: AppUtils.generateInstanceId(32),
@@ -967,19 +1008,28 @@ const createMongoElementInstance = function (params, callback) {
             isHal: false,
             isMongo: true,
             isInflux: false,
-            rootHostAccess: true,
+            rootHostAccess: false,
             logSize: 50,
-            volumeMappings: '{"volumemappings": []}',
+            volumeMappings: JSON.stringify(volumeMappings),
             registryId: params.mongoElement.registry_id,
             rebuild: false
         },
-        setProperty: 'newMongoElementInstance'
+        setProperty: 'mongoElementInstance'
     };
 
     ElementInstanceService.createElementInstanceObj(elementInstanceProps, params, callback);
 }
 
 const createInfluxElementInstance = function (params, callback) {
+    let volumeMappings = {
+        volumemappings: [
+            {
+                hostdestination: "/var/lib/influxdb",
+                containerdestination: "/var/lib/influxdb",
+                accessmode: "rw"
+            }
+        ]
+    };
     let elementInstanceProps = {
         elementInstance: {
             uuid: AppUtils.generateInstanceId(32),
@@ -997,13 +1047,13 @@ const createInfluxElementInstance = function (params, callback) {
             isHal: false,
             isMongo: false,
             isInflux: true,
-            rootHostAccess: true,
+            rootHostAccess: false,
             logSize: 50,
-            volumeMappings: '{"volumemappings": []}',
-            registryId: params.mongoElement.registry_id,
+            volumeMappings: JSON.stringify(volumeMappings),
+            registryId: params.influxElement.registry_id,
             rebuild: false
         },
-        setProperty: 'newInfluxElementInstance'
+        setProperty: 'influxElementInstance'
     };
 
     ElementInstanceService.createElementInstanceObj(elementInstanceProps, params, callback);

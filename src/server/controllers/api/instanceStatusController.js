@@ -76,7 +76,7 @@ const updateFogInstance = function(params, callback){
 const getProxyStatus = function(params) {
     let result;
     let newProxyStr = params.bodyParams.proxystatus;
-    let oldProxyStr = params.fogInstance.dataValues.proxy;
+    let oldProxyStr = params.fogInstance.proxy;
 
     if (oldProxyStr) {
         let oldProxyObj = JSON.parse(oldProxyStr);

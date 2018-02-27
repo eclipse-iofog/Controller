@@ -49,6 +49,7 @@ const setViewerOrDebug = function(params, callback){
 
     container.isViewerOrDebug = elementInstance.uuid;
     container.last_updated = elementInstance.updated_at;
+    container.volumeMappings = elementInstance.volumeMappings;
 
     if (container.isStreamViewer > 0) container.isViewerOrDebug = "viewer";
     if (container.isDebugConsole > 0) container.isViewerOrDebug = "debug";
@@ -97,6 +98,7 @@ const processContainerListData = function(params, callback) {
     logsize: parseFloat(params.container.logSize),
     imageid: params.elementData.containerImage,
     registryurl: params.elementData.registry.url,
+    volumemappings: params.container.volumeMappings
   };
   params.newContainerItem = newContainerItem;
   callback(null, params);
