@@ -319,6 +319,7 @@ const updateFogSettingsEndpoint = function (req, res) {
       halForFog,
       mongoForFog,
       influxForFog,
+      grafanaForFog,
       updateFog,
       updateChangeTracking
     ],
@@ -358,6 +359,7 @@ const updateFog = function (params, callback) {
       hal: params.bodyParams.hal,
       mongo: params.bodyParams.mongo,
       influx: params.bodyParams.influx,
+      grafana: params.bodyParams.grafana,
       statusfrequency: params.bodyParams.statusFrequency,
       changefrequency: params.bodyParams.changeFrequency,
       scanfrequency: params.bodyParams.scanFrequency,
@@ -756,6 +758,46 @@ const halForFog = (params, callback) => {
   }
 }
 
+const grafanaForFog = (params, callback) => {
+    if (params.bodyParams.grafana != params.fogInstance.grafana) {
+        params.isGrafana = 1;
+        if (params.bodyParams.grafana > 0) {
+            let elementProps = {
+                    networkElementId: 'fogTypeData.grafanaElementKey',
+                    setProperty: 'grafanaElement'
+                },
+                changeTrackingProps = {
+                    fogInstanceId: 'bodyParams.instanceId',
+                    changeObject: {
+                        containerConfig: new Date().getTime(),
+                        containerList: new Date().getTime()
+                    }
+                };
+
+            async.waterfall([
+                    async.apply(ElementService.getNetworkElement, elementProps, params),
+                    createGrafanaElementInstance,
+                    async.apply(ChangeTrackingService.updateChangeTracking, changeTrackingProps)
+                ],
+                function (err, result) {
+                    if (!err) {
+                        callback(null, params);
+                    } else {
+                        callback('Error', result);
+                    }
+                });
+        } else {
+            let elementInstanceProps = {
+                instanceId: 'bodyParams.instanceId',
+                elementKey: 'fogTypeData.grafanaElementKey'
+            };
+            ElementInstanceService.deleteElementInstancesByInstanceIdAndElementKey(elementInstanceProps, params, callback);
+        }
+    } else {
+        callback(null, params);
+    }
+}
+
 const mongoForFog = (params, callback) => {
     if (params.bodyParams.mongo != params.fogInstance.mongo) {
         params.isMongo = 1;
@@ -939,6 +981,7 @@ const createBluetoothElementInstance = function (params, callback) {
       isHal: false,
       isMongo: false,
       isInflux: false,
+      isGrafana: false,
       rootHostAccess: true,
       logSize: 50,
       volumeMappings: '{"volumemappings": []}',
@@ -969,6 +1012,7 @@ const createHalElementInstance = function (params, callback) {
       isHal: true,
       isMongo: false,
       isInflux: false,
+      isGrafana: false,
       rootHostAccess: true,
       logSize: 50,
       volumeMappings: '{"volumemappings": []}',
@@ -979,6 +1023,37 @@ const createHalElementInstance = function (params, callback) {
   };
 
   ElementInstanceService.createElementInstanceObj(elementInstanceProps, params, callback);
+}
+
+const createGrafanaElementInstance = function (params, callback) {
+    let elementInstanceProps = {
+        elementInstance: {
+            uuid: AppUtils.generateInstanceId(32),
+            trackId: 0,
+            element_key: params.fogTypeData.grafanaElementKey,
+            config: '{}',
+            configLastUpdated: new Date().getTime(),
+            name: params.grafanaElement.name,
+            updatedBy: params.user.id,
+            iofog_uuid: params.bodyParams.instanceId,
+            isStreamViewer: false,
+            isDebugConsole: false,
+            isManager: false,
+            isNetwork: false,
+            isHal: false,
+            isMongo: false,
+            isInflux: false,
+            isGrafana: true,
+            rootHostAccess: true,
+            logSize: 50,
+            volumeMappings: '{"volumemappings": []}',
+            registryId: params.grafanaElement.registry_id,
+            rebuild: false
+        },
+        setProperty: 'grafanaElementInstance'
+    };
+
+    ElementInstanceService.createElementInstanceObj(elementInstanceProps, params, callback);
 }
 
 const createMongoElementInstance = function (params, callback) {
@@ -1008,6 +1083,7 @@ const createMongoElementInstance = function (params, callback) {
             isHal: false,
             isMongo: true,
             isInflux: false,
+            isGrafana: false,
             rootHostAccess: false,
             logSize: 50,
             volumeMappings: JSON.stringify(volumeMappings),
@@ -1047,6 +1123,7 @@ const createInfluxElementInstance = function (params, callback) {
             isHal: false,
             isMongo: false,
             isInflux: true,
+            isGrafana: false,
             rootHostAccess: false,
             logSize: 50,
             volumeMappings: JSON.stringify(volumeMappings),

@@ -87,6 +87,10 @@ const ElementInstance = sequelize.define('element_instance', {
   isInflux: {
     type: Sequelize.BOOLEAN,
     field: 'is_influx'
+  },
+  isGrafana: {
+    type: Sequelize.BOOLEAN,
+    field: 'is_grafana'
   }
 }, {
   // don't add the timestamp attributes (updatedAt, createdAt)
