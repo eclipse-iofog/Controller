@@ -75,22 +75,6 @@ const ElementInstance = sequelize.define('element_instance', {
   volumeMappings: {
     type: Sequelize.TEXT,
     field: 'volume_mappings'
-  },
-  isHal: {
-    type: Sequelize.BOOLEAN,
-    field: 'is_hal'
-  },
-  isMongo: {
-    type: Sequelize.BOOLEAN,
-    field: 'is_mongo'
-  },
-  isInflux: {
-    type: Sequelize.BOOLEAN,
-    field: 'is_influx'
-  },
-  isGrafana: {
-    type: Sequelize.BOOLEAN,
-    field: 'is_grafana'
   }
 }, {
   // don't add the timestamp attributes (updatedAt, createdAt)
