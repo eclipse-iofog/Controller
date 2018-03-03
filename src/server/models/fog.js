@@ -189,6 +189,21 @@ const Fog = sequelize.define('iofogs', {
         defaultValue: 0,
         field: 'hal'
     },
+    mongo: {
+        type: Sequelize.INTEGER,
+        defaultValue: 0,
+        field: 'mongo'
+    },
+    influx: {
+        type: Sequelize.INTEGER,
+        defaultValue: 0,
+        field: 'influx'
+    },
+    grafana: {
+        type: Sequelize.INTEGER,
+        defaultValue: 0,
+        field: 'grafana'
+    },
     logfilecount: {
         type: Sequelize.BIGINT,
         defaultValue: 10,

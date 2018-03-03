@@ -66,8 +66,8 @@ const updateFogInstance = function(params, callback){
           lastcommandtime : params.bodyParams.lastcommandtime,
           proxy : proxyStatus,
           version: params.bodyParams.version || '1.0',
-          isReadyToUpgrade: params.bodyParams.isReadyToUpgrade,
-          isReadyToRollback: params.bodyParams.isReadyToRollback
+          isReadyToUpgrade: params.bodyParams.isreadytoupgrade,
+          isReadyToRollback: params.bodyParams.isreadytorollback
         }
       };
     FogService.updateFogInstance(fogInstanceProps, params, callback);
@@ -76,7 +76,7 @@ const updateFogInstance = function(params, callback){
 const getProxyStatus = function(params) {
     let result;
     let newProxyStr = params.bodyParams.proxystatus;
-    let oldProxyStr = params.fogInstance.dataValues.proxy;
+    let oldProxyStr = params.fogInstance.proxy;
 
     if (oldProxyStr) {
         let oldProxyObj = JSON.parse(oldProxyStr);

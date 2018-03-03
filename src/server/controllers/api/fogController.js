@@ -317,6 +317,9 @@ const updateFogSettingsEndpoint = function (req, res) {
       debugConsoleForFog,
       streamViewerForFog,
       halForFog,
+      mongoForFog,
+      influxForFog,
+      grafanaForFog,
       updateFog,
       updateChangeTracking
     ],
@@ -353,10 +356,13 @@ const updateFog = function (params, callback) {
       debug: params.bodyParams.debug,
       viewer: params.bodyParams.viewer,
       bluetooth: params.bodyParams.bluetooth,
-        hal: params.bodyParams.hal,
+      hal: params.bodyParams.hal,
+      mongo: params.bodyParams.mongo,
+      influx: params.bodyParams.influx,
+      grafana: params.bodyParams.grafana,
       statusfrequency: params.bodyParams.statusFrequency,
       changefrequency: params.bodyParams.changeFrequency,
-        scanfrequency: params.bodyParams.scanFrequency,
+      scanfrequency: params.bodyParams.scanFrequency,
       proxy: params.bodyParams.proxy,
       isolateddockercontainer: params.bodyParams.docker
     }
@@ -752,6 +758,158 @@ const halForFog = (params, callback) => {
   }
 }
 
+const grafanaForFog = (params, callback) => {
+    if (params.bodyParams.grafana != params.fogInstance.grafana) {
+        params.isGrafana = 1;
+        if (params.bodyParams.grafana > 0) {
+            let elementProps = {
+                    networkElementId: 'fogTypeData.grafanaElementKey',
+                    setProperty: 'grafanaElement'
+                },
+                changeTrackingProps = {
+                    fogInstanceId: 'bodyParams.instanceId',
+                    changeObject: {
+                        containerConfig: new Date().getTime(),
+                        containerList: new Date().getTime()
+                    }
+                };
+
+            async.waterfall([
+                    async.apply(ElementService.getNetworkElement, elementProps, params),
+                    createGrafanaElementInstance,
+                    async.apply(ChangeTrackingService.updateChangeTracking, changeTrackingProps)
+                ],
+                function (err, result) {
+                    if (!err) {
+                        callback(null, params);
+                    } else {
+                        callback('Error', result);
+                    }
+                });
+        } else {
+            let elementInstanceProps = {
+                instanceId: 'bodyParams.instanceId',
+                elementKey: 'fogTypeData.grafanaElementKey'
+            };
+            ElementInstanceService.deleteElementInstancesByInstanceIdAndElementKey(elementInstanceProps, params, callback);
+        }
+    } else {
+        callback(null, params);
+    }
+}
+
+const mongoForFog = (params, callback) => {
+    if (params.bodyParams.mongo != params.fogInstance.mongo) {
+        params.isMongo = 1;
+        if (params.bodyParams.mongo > 0) {
+            let elementProps = {
+                    networkElementId: 'fogTypeData.mongoElementKey',
+                    setProperty: 'mongoElement'
+                },
+                mongoPortProps = {
+                    userId: 'user.id',
+                    internalPort: 27017,
+                    externalPort: 27017,
+                    elementId: 'mongoElementInstance.uuid',
+                    setProperty: 'mongodbPort'
+                },
+                elementInstanceProps = {
+                    updatedData: {
+                        last_updated: new Date().getTime(),
+                        updatedBy: params.user.id
+                    },
+                    elementId: 'mongoElementInstance.uuid'
+                },
+                changeTrackingProps = {
+                    fogInstanceId: 'bodyParams.instanceId',
+                    changeObject: {
+                        containerConfig: new Date().getTime(),
+                        containerList: new Date().getTime()
+                    }
+                };
+
+            async.waterfall([
+                    async.apply(ElementService.getNetworkElement, elementProps, params),
+                    createMongoElementInstance,
+                    async.apply(ElementInstancePortService.createElementInstancePortByPortValue, mongoPortProps),
+                    async.apply(ElementInstanceService.updateElemInstance, elementInstanceProps),
+                    async.apply(ChangeTrackingService.updateChangeTracking, changeTrackingProps)
+                ],
+                function (err, result) {
+                    if (!err) {
+                        callback(null, params);
+                    } else {
+                        callback('Error', result);
+                    }
+                });
+        } else {
+            let elementInstanceProps = {
+                instanceId: 'bodyParams.instanceId',
+                elementKey: 'fogTypeData.mongoElementKey'
+            };
+            ElementInstanceService.deleteElementInstancesByInstanceIdAndElementKey(elementInstanceProps, params, callback);
+        }
+    } else {
+        callback(null, params);
+    }
+}
+
+const influxForFog = (params, callback) => {
+    if (params.bodyParams.influx != params.fogInstance.influx) {
+        params.isInflux = 1;
+        if (params.bodyParams.influx > 0) {
+            let elementProps = {
+                    networkElementId: 'fogTypeData.influxElementKey',
+                    setProperty: 'influxElement'
+                },
+                influxPortProps = {
+                    userId: 'user.id',
+                    internalPort: 8086,
+                    externalPort: 8086,
+                    elementId: 'influxElementInstance.uuid',
+                    setProperty: 'influxdbPort'
+                },
+                elementInstanceProps = {
+                    updatedData: {
+                        last_updated: new Date().getTime(),
+                        updatedBy: params.user.id
+                    },
+                    elementId: 'influxElementInstance.uuid'
+                },
+                changeTrackingProps = {
+                    fogInstanceId: 'bodyParams.instanceId',
+                    changeObject: {
+                        containerConfig: new Date().getTime(),
+                        containerList: new Date().getTime()
+                    }
+                };
+
+            async.waterfall([
+                    async.apply(ElementService.getNetworkElement, elementProps, params),
+                    createInfluxElementInstance,
+                    async.apply(ElementInstancePortService.createElementInstancePortByPortValue, influxPortProps),
+                    async.apply(ElementInstanceService.updateElemInstance, elementInstanceProps),
+                    async.apply(ChangeTrackingService.updateChangeTracking, changeTrackingProps)
+                ],
+                function (err, result) {
+                    if (!err) {
+                        callback(null, params);
+                    } else {
+                        callback('Error', result);
+                    }
+                });
+        } else {
+            let elementInstanceProps = {
+                instanceId: 'bodyParams.instanceId',
+                elementKey: 'fogTypeData.influxElementKey'
+            };
+            ElementInstanceService.deleteElementInstancesByInstanceIdAndElementKey(elementInstanceProps, params, callback);
+        }
+    } else {
+        callback(null, params);
+    }
+}
+
 const bluetoothElementForFog = function (params, callback) {
   if (params.bodyParams.bluetooth != params.fogInstance.bluetooth) {
     params.isBluetooth = 1;
@@ -853,10 +1011,109 @@ const createHalElementInstance = function (params, callback) {
       registryId: params.halElement.registry_id,
       rebuild: false
     },
-    setProperty: 'newBluetoothElementInstance'
+    setProperty: 'newHalElementInstance'
   };
 
   ElementInstanceService.createElementInstanceObj(elementInstanceProps, params, callback);
+}
+
+const createGrafanaElementInstance = function (params, callback) {
+    let elementInstanceProps = {
+        elementInstance: {
+            uuid: AppUtils.generateInstanceId(32),
+            trackId: 0,
+            element_key: params.fogTypeData.grafanaElementKey,
+            config: '{}',
+            configLastUpdated: new Date().getTime(),
+            name: params.grafanaElement.name,
+            updatedBy: params.user.id,
+            iofog_uuid: params.bodyParams.instanceId,
+            isStreamViewer: false,
+            isDebugConsole: false,
+            isManager: false,
+            isNetwork: false,
+            rootHostAccess: true,
+            logSize: 50,
+            volumeMappings: '{"volumemappings": []}',
+            registryId: params.grafanaElement.registry_id,
+            rebuild: false
+        },
+        setProperty: 'grafanaElementInstance'
+    };
+
+    ElementInstanceService.createElementInstanceObj(elementInstanceProps, params, callback);
+}
+
+const createMongoElementInstance = function (params, callback) {
+    let volumeMappings = {
+        volumemappings: [
+            {
+                hostdestination: "/var/lib/mongodb",
+                containerdestination: "/data/db",
+                accessmode: "rw"
+            }
+        ]
+    };
+    let elementInstanceProps = {
+        elementInstance: {
+            uuid: AppUtils.generateInstanceId(32),
+            trackId: 0,
+            element_key: params.fogTypeData.mongoElementKey,
+            config: '{}',
+            configLastUpdated: new Date().getTime(),
+            name: params.mongoElement.name,
+            updatedBy: params.user.id,
+            iofog_uuid: params.bodyParams.instanceId,
+            isStreamViewer: false,
+            isDebugConsole: false,
+            isManager: false,
+            isNetwork: false,
+            rootHostAccess: false,
+            logSize: 50,
+            volumeMappings: JSON.stringify(volumeMappings),
+            registryId: params.mongoElement.registry_id,
+            rebuild: false
+        },
+        setProperty: 'mongoElementInstance'
+    };
+
+    ElementInstanceService.createElementInstanceObj(elementInstanceProps, params, callback);
+}
+
+const createInfluxElementInstance = function (params, callback) {
+    let volumeMappings = {
+        volumemappings: [
+            {
+                hostdestination: "/var/lib/influxdb",
+                containerdestination: "/var/lib/influxdb",
+                accessmode: "rw"
+            }
+        ]
+    };
+    let elementInstanceProps = {
+        elementInstance: {
+            uuid: AppUtils.generateInstanceId(32),
+            trackId: 0,
+            element_key: params.fogTypeData.influxElementKey,
+            config: '{}',
+            configLastUpdated: new Date().getTime(),
+            name: params.influxElement.name,
+            updatedBy: params.user.id,
+            iofog_uuid: params.bodyParams.instanceId,
+            isStreamViewer: false,
+            isDebugConsole: false,
+            isManager: false,
+            isNetwork: false,
+            rootHostAccess: false,
+            logSize: 50,
+            volumeMappings: JSON.stringify(volumeMappings),
+            registryId: params.influxElement.registry_id,
+            rebuild: false
+        },
+        setProperty: 'influxElementInstance'
+    };
+
+    ElementInstanceService.createElementInstanceObj(elementInstanceProps, params, callback);
 }
 
 /****************** Add Bluebox EndPoint (Post: /api/v2/authoring/fabric/instance/bluebox/add) ***************/

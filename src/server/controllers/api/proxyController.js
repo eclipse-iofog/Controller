@@ -242,7 +242,7 @@ const updateProxyStatusToPendingClose = function(params, callback) {
 };
 
 const updateProxyStatusObj = function(params, callback) {
-    let oldProxyStr = params.fogInstance.dataValues.proxy;
+    let oldProxyStr = params.fogInstance.proxy;
     let oldProxyObj = JSON.parse(oldProxyStr);
     let proxyObj = {
         username: oldProxyObj.username,
