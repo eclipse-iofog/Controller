@@ -388,7 +388,7 @@ const findElementInstanceByTrackId= function(params, callback) {
       setProperty: 'elementInstances'
     };
     
-  if (params.bodyParams.IsActivated != params.dataTrack.isActivated) {
+  if (params.bodyParams.isActivated != params.dataTrack.isActivated) {
     ElementInstanceService.findElementInstancesByTrackId(elementInstanceProps, params, callback);
   }
   else{
@@ -410,10 +410,7 @@ const updateChangeTracking= function(params, callback) {
 }
 
 const updateDataTrackById= function(params, callback) {
-  let isSelected = 0;
-  if (params.bodyParams.isSelected > 0){
-    isSelected = 1;
-  }
+  let isSelected = params.bodyParams.isSelected > 0 ? 1 : 0;
 
   let updateDataTrackProps = {
         trackId: 'bodyParams.trackId',
