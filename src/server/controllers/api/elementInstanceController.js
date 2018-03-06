@@ -1302,7 +1302,8 @@ const updateChangeTracking = function(params, callback) {
     updateChange.containerConfig = new Date().getTime();
     updateChange.containerList = new Date().getTime();
 
-  } else if (params.elementInstance.rootHostAccess != params.bodyParams.rootAccess) {
+  } else if (params.elementInstance.rootHostAccess != params.bodyParams.rootAccess ||
+             params.elementInstance.volumeMappings != params.bodyParams.volumes) {
     updateChange.containerList = new Date().getTime();
   }
 
