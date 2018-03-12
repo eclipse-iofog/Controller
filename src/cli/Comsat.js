@@ -1,4 +1,5 @@
 const { Help } = require('./Help');
+import SatelliteManager from '../server/managers/satelliteManager';
 
 class Comsat {
   constructor(args) {
