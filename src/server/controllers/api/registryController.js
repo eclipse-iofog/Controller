@@ -23,11 +23,17 @@ const listRegistryEndPoint = function (req, res) {
         userProps = {
             userId: 'bodyParams.t',
             setProperty: 'user'
+        },
+        registryForUserProps = {
+            userId: 'user.id',
+            setProperty: 'registry'
         };
+    params.bodyParams = req.params;
+    params.bodyParams.t = req.query.t;
 
     async.waterfall([
             async.apply(UserService.getUser, userProps, params),
-            async.apply(RegistryService.listRegistry, userProps)
+            async.apply(RegistryService.listRegistry, registryForUserProps)
         ],
         function (err, result) {
             AppUtils.sendResponse(res, err, 'registry', params.registry, result);
@@ -47,10 +53,12 @@ const addRegistryEndPoint = function (req, res) {
             isPublic: 'bodyParams.isPublic',
             username: 'bodyParams.username',
             password: 'bodyParams.password',
-            email: 'bodyParams.email'
+            email: 'bodyParams.email',
+            userId: 'user.id'
         };
 
-    params.bodyParams = req.body;
+    params.bodyParams = req.params;
+    params.bodyParams.t = req.query.t;
     logger.info("Parameters:" + JSON.stringify(params.bodyParams));
 
     async.waterfall([
