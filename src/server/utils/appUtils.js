@@ -53,12 +53,7 @@ const generateRandomString = function (size) {
 
 const isFileExists = function (filePath) {
   if (path.extname(filePath).indexOf(".") >= 0) {
-    if (fs.existsSync(filePath)) {
-      return true;
-    } else {
-      return false;
-    }
-
+    return fs.existsSync(filePath);
   } else {
     return false;
   }
