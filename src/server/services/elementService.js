@@ -23,12 +23,13 @@ const getElementDetails = function(props, params, callback) {
     .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Unable to find Element details', callback));
 }
 
-const findElementAndRegistryById = function(props, params, callback) {
+const findElementImageAndRegistryByIdForFogInstance = function(props, params, callback) {
   let elementId = AppUtils.getProperty(params, props.elementId);
+  let fogId = AppUtils.getProperty(params, props.instanceId);
 
   ElementManager
-    .findElementAndRegistryById(elementId)
-    .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Unable to find Element object with id ' + elementId, callback));
+    .findElementImageAndRegistryByIdForFogInstance(elementId, fogId)
+    .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Unable to find Element Image or Registry for Element with id ' + elementId + ' and Fog with id ' + fogId, callback));
 }
 
 const getElementCatalog = function(props, params, callback) {
@@ -64,7 +65,7 @@ const updateElement = function(props, params, callback) {
 export default {
   createElement: createElement,
   deleteElementById: deleteElementById,
-  findElementAndRegistryById: findElementAndRegistryById,
+  findElementImageAndRegistryByIdForFogInstance: findElementImageAndRegistryByIdForFogInstance,
   getElementCatalog: getElementCatalog,
   getElementDetails: getElementDetails,
   getElementForPublish: getElementForPublish,

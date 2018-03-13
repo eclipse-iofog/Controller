@@ -1,7 +1,7 @@
 /**
- * @file ioElementFogType.js
+ * @file ioElementImage.js
  * @author Zishan Iqbal
- * @description This file includes a IOElementFogType model used by sequalize for ORM;
+ * @description This file includes a IOElementImage model used by sequalize for ORM;
  */
 
 import Sequelize from 'sequelize';
@@ -9,12 +9,16 @@ import sequelize from './../utils/sequelize';
 import Element from './element';
 import FogType from './fogType';
 
-const ElementFogType = sequelize.define('element_fog_types', {
+const ElementImage = sequelize.define('element_images', {
   id: {
     type: Sequelize.INTEGER,
     primaryKey: true,
     autoIncrement: true,
     field: 'ID'
+  },
+  containerImage: {
+    type: Sequelize.TEXT,
+    field:'container_image'
   }
 }, {
   // don't add the timestamp attributes (updatedAt, createdAt)
@@ -26,9 +30,11 @@ const ElementFogType = sequelize.define('element_fog_types', {
   underscored: true
 });
 
-ElementFogType.belongsTo(Element);
-ElementFogType.belongsTo(FogType, {
+ElementImage.belongsTo(Element, {
+    foreignKey: 'element_id'
+});
+ElementImage.belongsTo(FogType, {
   foreignKey: 'iofog_type_id'
 });
 
-export default ElementFogType;
+export default ElementImage;

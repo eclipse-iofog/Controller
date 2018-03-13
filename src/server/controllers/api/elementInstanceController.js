@@ -1023,7 +1023,7 @@ const elementInstanceUpdateEndPoint = function(req, res) {
     async.waterfall([
       async.apply(UserService.getUser, userProps, params),
       getFogInstance,
-      async.apply(ElementInstanceService.getElementInstance, elementInstanceProps),
+      async.apply(ElementInstanceService.getElementInstanceWithImages, elementInstanceProps),
       updateElementInstance,
       updateChangeTracking,
       updateChange, 
@@ -1174,8 +1174,8 @@ const getOpenPorts = function(params, callback){
         volumeMappings: instance.volumeMappings,
         elementName: instance.elementName,
         picture: instance.elementPicture,
-        typeName: instance.Name,
-        typeId: instance.ID,
+        x86ContainerImage: instance.x86ContainerImage,
+        armContainerImage: instance.armContainerImage,
         connections: getConnections(params, instance),
         ports: extractOpenPort(params, instance),
         debug: isDebugging(params, instance),
@@ -1259,6 +1259,13 @@ const updateElementInstance = function (params, callback) {
     if (params.bodyParams.fabricInstanceId != 'NONE'){
         fogInstanceId = params.bodyParams.fabricInstanceId;
       }
+
+    if ((params.fogData.typeKey === 1 && params.elementInstance.x86ContainerImage === "")
+        || (params.fogData.typeKey === 2 && params.elementInstance.armContainerImage === "")) {
+
+      callback('error', "no container image for this fog type");
+      return;
+    }
 
     data = {
       iofog_uuid: fogInstanceId
@@ -1381,7 +1388,8 @@ const getElementInstanceProperties = function(params, callback) {
         elementName: instance.name,
         description: instance.description,
         category: instance.category,
-        containerImage: instance.container_image,
+        x86ContainerImage: instance.x86ContainerImage,
+        armContainerImage: instance.armContainerImage,
         publisher: instance.publisher,
         diskRequired: instance.diskRequired,
         ramRequired: instance.ram_required,
@@ -1389,7 +1397,6 @@ const getElementInstanceProperties = function(params, callback) {
         volumeMappings: instance.volumeMappings,
         isPublic: instance.is_public,
         registryId: instance.registry_id,
-        typeId: instance.fogTypeID,
         ports: extractOpenPort(params, instance)
       };
       response.push(elementInstance);

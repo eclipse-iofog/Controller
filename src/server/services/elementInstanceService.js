@@ -43,6 +43,14 @@ const getElementInstance = function(props, params, callback) {
     .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Cannot find Element Instance', callback));
 }
 
+const getElementInstanceWithImages = function(props, params, callback) {
+    let elementInstanceId = AppUtils.getProperty(params, props.elementInstanceId);
+
+    ElementInstanceManager
+        .findWithImagesByUuId(elementInstanceId)
+        .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Cannot find Element Instance', callback));
+}
+
 const getElementInstanceOptional = function(props, params, callback) {
   let elementInstanceId = AppUtils.getProperty(params, props.elementInstanceId);
 
@@ -319,5 +327,6 @@ export default {
   getDetailedElementInstances:getDetailedElementInstances,
   getElementInstanceRouteDetails: getElementInstanceRouteDetails,
   getElementInstancesByFogId: getElementInstancesByFogId,
-  getElementInstancesByFogIdOptional: getElementInstancesByFogIdOptional
+  getElementInstancesByFogIdOptional: getElementInstancesByFogIdOptional,
+  getElementInstanceWithImages: getElementInstanceWithImages
 };

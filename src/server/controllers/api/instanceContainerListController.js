@@ -63,6 +63,7 @@ const setViewerOrDebug = function(params, callback){
         },
         elementProps = {
           elementId: 'container.element_key',
+          instanceId: 'bodyParams.ID',
           setProperty: 'elementData'
         },
         elementPortProps = {
@@ -72,7 +73,7 @@ const setViewerOrDebug = function(params, callback){
 
     async.waterfall([
       async.apply(ElementInstanceService.updateElemInstance, updateElementInstanceProps, params),
-      async.apply(ElementService.findElementAndRegistryById, elementProps),
+      async.apply(ElementService.findElementImageAndRegistryByIdForFogInstance, elementProps),
       processContainerListData,
       async.apply(ElementInstancePortService.getPortsByElementId, elementPortProps),
       processContainerListOutput
@@ -96,7 +97,7 @@ const processContainerListData = function(params, callback) {
     roothostaccess: params.container.rootHostAccess > 0 ? true : false,
     logsize: parseFloat(params.container.logSize),
     imageid: params.elementData.containerImage,
-    registryurl: params.elementData.registry.url,
+    registryurl: params.elementData.registryUrl,
   };
   params.newContainerItem = newContainerItem;
   callback(null, params);

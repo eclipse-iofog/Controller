@@ -853,7 +853,7 @@ const createHalElementInstance = function (params, callback) {
       registryId: params.halElement.registry_id,
       rebuild: false
     },
-    setProperty: 'newBluetoothElementInstance'
+    setProperty: 'newHalElementInstance'
   };
 
   ElementInstanceService.createElementInstanceObj(elementInstanceProps, params, callback);
