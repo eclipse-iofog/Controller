@@ -28,9 +28,7 @@ const containerListEndPoint = function(req, res){
   
   async.waterfall([
     async.apply(BaseApiController.checkUserExistance, req, res),
-    //todo: check this
     async.apply(DataTracksService.findContainerListByInstanceId, dataTrackProps, params),
-      async.apply(ElementInstanceService.getElementInstancesByFogIdOptional, dataTrackProps, params),
     processContainerList
 
   ], function(err, result) {

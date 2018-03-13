@@ -123,8 +123,8 @@ INSERT INTO element_images VALUES (8, 8, 1, 'iotracks/catalog:open-weather-map-v
 INSERT INTO element_images VALUES (9, 9, 1, '80444561333/alpine-mongo');
 INSERT INTO element_images VALUES (10, 10, 1, '80444561333/alpine-influx');
 INSERT INTO element_images VALUES (11, 11, 1, '80444561333/grafana');
-INSERT INTO element_images VALUES (9, 49, 1, 'iotracks/catalog:json-rest-api-v1.04');
-INSERT INTO element_images VALUES (10, 58, 1, 'iotracks/catalog:temperature-conversion-v1.03');
+INSERT INTO element_images VALUES (12, 49, 1, 'iotracks/catalog:json-rest-api-v1.04');
+INSERT INTO element_images VALUES (13, 58, 1, 'iotracks/catalog:temperature-conversion-v1.03');
 CREATE TABLE network_pairing (
   ID                INTEGER PRIMARY KEY AUTOINCREMENT,
   IsPublicPort      TINYINT(1),
