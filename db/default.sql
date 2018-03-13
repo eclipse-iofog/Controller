@@ -120,6 +120,9 @@ INSERT INTO element_images VALUES (5, 5, 1, 'iotracks/catalog:bluetooth-rest-api
 INSERT INTO element_images VALUES (6, 6, 1, 'iotracks/catalog:hal-0.1');
 INSERT INTO element_images VALUES (7, 6, 2, 'iotracks/catalog:hal-0.1-arm');
 INSERT INTO element_images VALUES (8, 8, 1, 'iotracks/catalog:open-weather-map-v1.06');
+INSERT INTO element_images VALUES (9, 9, 1, '80444561333/alpine-mongo');
+INSERT INTO element_images VALUES (10, 10, 1, '80444561333/alpine-influx');
+INSERT INTO element_images VALUES (11, 11, 1, '80444561333/grafana');
 INSERT INTO element_images VALUES (9, 49, 1, 'iotracks/catalog:json-rest-api-v1.04');
 INSERT INTO element_images VALUES (10, 58, 1, 'iotracks/catalog:temperature-conversion-v1.03');
 CREATE TABLE network_pairing (
@@ -197,6 +200,19 @@ INSERT INTO element VALUES
 INSERT INTO element VALUES
   (58, 'Temperature Converter', 'A simple temperature format converter', 'Utilities',
        'iotracks', 0, 0, 'images/build/58.png', NULL, 1, 0, 1);
+INSERT INTO element VALUES
+  (9, 'Mongo', 'MongoDB database', 'Utilities',
+      'SYSTEM', 0, 0,
+      'none.png', NULL, 1, 0, 1);
+INSERT INTO element VALUES
+  (10, 'Influx', 'InfluxDB database', 'Utilities',
+        'SYSTEM', 0, 0,
+        'none.png', NULL, 1, 0, 1);
+INSERT INTO element VALUES
+  (11, 'Grafana', 'Grafana container', 'Utilities',
+        'SYSTEM', 0, 0,
+        'none.png', NULL, 1, 0, 1);
+
 CREATE TABLE element_input_type (
   ID          INTEGER PRIMARY KEY AUTOINCREMENT,
   element_key BIGINT REFERENCES element (ID)
@@ -283,6 +299,9 @@ CREATE TABLE iofogs (
   Viewer                  INTEGER,
   Bluetooth               INTEGER,
   hal                     INTEGER DEFAULT (0),
+  mongo                   INTEGER DEFAULT (0),
+  influx                  INTEGER DEFAULT (0),
+  grafana                 INTEGER DEFAULT (0),
   IsolatedDockerContainer INTEGER DEFAULT (1),
   LogFileCount            BIGINT  DEFAULT 10,
   Version                 TEXT,
@@ -305,14 +324,17 @@ CREATE TABLE iofog_type (
   consoleElementKey      BIGINT,
   NetworkElementKey      BIGINT,
   HalElementKey          BIGINT,
+  MongoElementKey        BIGINT,
+  InfluxElementKey       BIGINT,
+  GrafanaElementKey      BIGINT,
   BluetoothElementKey    BIGINT
 );
 INSERT INTO iofog_type VALUES (1, 'Standard Linux (x86)', 'iointegrator1.png',
                                'A standard Linux server of at least moderate processing power and capacity. Compatible with common Linux types such as Ubuntu, Red Hat, and CentOS.',
-                               1, 2, 3, 6, 5);
+                               1, 2, 3, 6, 9, 10, 11, 5);
 INSERT INTO iofog_type VALUES (2, 'ARM Linux', 'iointegrator2.png',
                                'A version of ioFog meant to run on Linux systems with ARM processors. Microservices for this ioFog type will be tailored to ARM systems.',
-                               1, 2, 3, 6, 5);
+                               1, 2, 3, 6, 9, 10, 11, 5);
 CREATE TABLE element_instance (
   ID                  INTEGER PRIMARY KEY AUTOINCREMENT,
   UUID                TEXT UNIQUE,
@@ -324,7 +346,6 @@ CREATE TABLE element_instance (
   config_last_updated BIGINT,
   is_stream_viewer    TINYINT(1),
   is_debug_console    TINYINT(1),
-  is_hal              TINYINT(1),
   is_manager          TINYINT(1),
   is_network          TINYINT(1),
   registry_id         BIGINT,

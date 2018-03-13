@@ -18,8 +18,8 @@ import logger from '../../utils/winstonLogs';
 const containerListEndPoint = function(req, res){
   logger.info("Endpoint hit: "+ req.originalUrl);
 
-  let params= {},
-      instanceProps = {
+  let params = {},
+      dataTrackProps = {
         instanceId: 'bodyParams.ID',
         setProperty: 'elementInstances'
       };
@@ -28,35 +28,27 @@ const containerListEndPoint = function(req, res){
   
   async.waterfall([
     async.apply(BaseApiController.checkUserExistance, req, res),
-    //async.apply(DataTracksService.findContainerListByInstanceId, dataTrackProps, params),
-    async.apply(ElementInstanceService.getElementInstancesByFogIdOptional, instanceProps, params),
-    setViewerOrDebug
+    //todo: check this
+    async.apply(DataTracksService.findContainerListByInstanceId, dataTrackProps, params),
+      async.apply(ElementInstanceService.getElementInstancesByFogIdOptional, dataTrackProps, params),
+    processContainerList
 
   ], function(err, result) {
       AppUtils.sendResponse(res, err, 'containerlist', params.containerList, result);
   })
 }
 /************************************* Extra Functions **************************************************/
-const setViewerOrDebug = function(params, callback){
+const processContainerList = function(params, callback){
   let elementInstances = params.elementInstances;
   params.containerList = [];
 
   async.forEachLimit(elementInstances, 1, function(elementInstance, next){
-    let container = elementInstance;
-    container.rebuildFlag = false;
-    container.rootAccessFlag = false;
-    container.ports = [];
 
-    container.isViewerOrDebug = elementInstance.uuid;
-    container.last_updated = elementInstance.updated_at;
-
-    if (container.isStreamViewer > 0) container.isViewerOrDebug = "viewer";
-    if (container.isDebugConsole > 0) container.isViewerOrDebug = "debug";
-  
-   params.container = container;
+   params.container = elementInstance;
+   params.container.ports = [];
 
     let updateElementInstanceProps = {
-          elementId: 'container.uuid',
+          elementId: 'container.UUID',
           updatedData: {
             rebuild: 0
           }
@@ -67,16 +59,16 @@ const setViewerOrDebug = function(params, callback){
           setProperty: 'elementData'
         },
         elementPortProps = {
-          elementPortId: 'container.uuid',
+          elementPortId: 'container.UUID',
           setProperty: 'elementInstancePort'
         };
 
     async.waterfall([
       async.apply(ElementInstanceService.updateElemInstance, updateElementInstanceProps, params),
       async.apply(ElementService.findElementImageAndRegistryByIdForFogInstance, elementProps),
-      processContainerListData,
+      processContainerData,
       async.apply(ElementInstancePortService.getPortsByElementId, elementPortProps),
-      processContainerListOutput
+      processContainerPorts
     ], function(err, result) {
       if (err){
         callback(err, result);
@@ -89,20 +81,21 @@ const setViewerOrDebug = function(params, callback){
         callback(null, params);
   });
 }
-const processContainerListData = function(params, callback) {
+const processContainerData = function(params, callback) {
   let newContainerItem = {
-    id: params.container.isViewerOrDebug,
-    lastmodified: Date.parse(params.container.last_updated),
-    rebuild: params.container.rebuild > 0 ? true : false,
-    roothostaccess: params.container.rootHostAccess > 0 ? true : false,
-    logsize: parseFloat(params.container.logSize),
+    id: params.container.UUID,
+    lastmodified: Date.parse(params.container.updated_at),
+    rebuild: params.container.rebuild > 0,
+    roothostaccess: params.container.root_host_access > 0,
+    logsize: parseFloat(params.container.log_size),
     imageid: params.elementData.containerImage,
     registryurl: params.elementData.registryUrl,
+    volumemappings: params.container.volume_mappings
   };
   params.newContainerItem = newContainerItem;
   callback(null, params);
 }
-const processContainerListOutput = function(params, callback) {
+const processContainerPorts = function(params, callback) {
 try{
   for (let j = 0; j < params.elementInstancePort.length; j++) {
     let outputPortItem = {
