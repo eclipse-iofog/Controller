@@ -102,7 +102,6 @@ class ElementInstanceManager extends BaseManager {
 			'ei.root_host_access as rootHostAccess, ' +
 			'ei.log_size as logSize, ' +
 			'ei.volume_mappings as volumeMappings, ' +
-			'ei.is_hal as isHal, ' +
 			'ei.element_key, ' +
 			'ei.iofog_uuid, ' +
 			'max(CASE when eimg.iofog_type_id = 1 then eimg.container_image end) as x86ContainerImage, ' +
