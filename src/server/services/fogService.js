@@ -43,15 +43,14 @@ const deleteFogInstance = function(props, params, callback) {
 
 const getFogInstance = function(props, params, callback) {
   let fogId = AppUtils.getProperty(params, props.fogId);
-
   FogManager
     .findByInstanceId(fogId)
-    .then(function () {
-      if (fogId === 'NONE') {
-        callback(null, params);
-      } else {
-        AppUtils.onFind.bind(null, params, props.setProperty, 'Cannot find iofog instance', callback)
-      }
+    .then(function (obj) {
+        if (fogId === 'NONE') {
+            callback(null, params);
+        } else {
+            AppUtils.onFind(params, props.setProperty, 'Cannot find iofog instance', callback, obj)
+        }
     });
 };
 
