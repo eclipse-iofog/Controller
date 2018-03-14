@@ -46,8 +46,13 @@ const getFogInstance = function(props, params, callback) {
 
   FogManager
     .findByInstanceId(fogId)
-    .then(callback(null, params));
-    // .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Cannot find iofog instance', callback));
+    .then(function () {
+      if (fogId === 'NONE') {
+        callback(null, params);
+      } else {
+        AppUtils.onFind.bind(null, params, props.setProperty, 'Cannot find iofog instance', callback)
+      }
+    });
 };
 
 const getFogInstanceOptional = function(props, params, callback) {
