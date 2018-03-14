@@ -165,8 +165,8 @@ const getProxyStatusEndPoint = function(req, res) {
 /**
  * ioFog end point to update proxy status
  * (Post: /api/v2/instance/proxyconfig/changes/id/:ID/token/:Token)
- * @param req
- * @param res
+ * @param req request
+ * @param res response
  */
 const updateProxyStatusEndPoint = function(req, res) {
     logger.info("Endpoint hit:"+ req.originalUrl);
