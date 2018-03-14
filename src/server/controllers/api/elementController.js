@@ -372,19 +372,19 @@ const getElementsForPublishingEndPoint = function(req, res) {
 
 /*************************************** Extra Functions *************************************************/
 const createElement = function(params, callback) {
-  let elementProps = {
+    let elementProps = {
         element : {
           name: params.bodyParams.name,
           description: params.bodyParams.description,
           config: params.bodyParams.config,
           category: params.bodyParams.category,
           containerImage: params.bodyParams.containerImage,
+            registry: params.bodyParams.registry,
           publisher: params.bodyParams.publisher,
           diskRequired: false,
           ramRequired: false,
           picture: params.bodyParams.picture,
-          isPublic: false,
-          registry_id: 1
+            isPublic: false
         },
         setProperty: 'element'
       };
@@ -418,7 +418,7 @@ const createElementOutputType = function(params, callback) {
 }
 
 const createElementForUser = function(params, callback) {
-  let elementProps = {
+    let elementProps = {
         element : {
           name: '',
           description: '',
@@ -430,7 +430,7 @@ const createElementForUser = function(params, callback) {
           ramRequired: false,
           picture: 'images/shared/default.png',
           isPublic: false,
-          registry_id: 1
+            registryId: 1
         },
         setProperty: 'element'
       };
@@ -451,7 +451,7 @@ const createElementFogType = function(params, callback) {
 }
 
 const updateElement = function(params, callback) {
-  let elementProps = {
+    let elementProps = {
         elementId: 'bodyParams.id',
         updatedElement : {
           name: params.bodyParams.name,
@@ -459,12 +459,12 @@ const updateElement = function(params, callback) {
           config: params.bodyParams.config,
           category: params.bodyParams.category,
           containerImage: params.bodyParams.containerImage,
+            registryId: params.bodyParams.registry,
           publisher: params.bodyParams.publisher,
           diskRequired: params.bodyParams.diskRequired ? params.bodyParams.diskRequired : false,
           ramRequired: params.bodyParams.ramRequired ? params.bodyParams.ramRequired : false,
           picture: params.bodyParams.picture,
-          isPublic: false,
-          registry_id: 1
+            isPublic: false
         }
       };
 

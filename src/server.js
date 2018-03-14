@@ -29,6 +29,7 @@ import provisionKeyController from './server/controllers/api/provisionKeyControl
 import streamViewerController from './server/controllers/api/streamViewerController';
 import trackController from './server/controllers/api/trackController';
 import userController from './server/controllers/api/userController';
+import registryController from './server/controllers/api/registryController';
 
 import logger from './server/utils/winstonLogs';
 import proxyController from "./server/controllers/api/proxyController";
@@ -166,6 +167,10 @@ const initApp = function () {
     app.post('/api/v2/instance/usb_info/id/:ID/token/:Token', instanceResourcesController.fogInstanceUSBInfo);
     app.post('/api/v2/authoring/fog/info/hw', instanceResourcesController.getFogHwInfoEndPoint);
     app.post('/api/v2/authoring/fog/info/usb', instanceResourcesController.getFogUsbInfoEndPoint);
+
+    app.get('/api/v2/authoring/registry/list', registryController.listRegistryEndPoint);
+    app.post('/api/v2/authoring/registry/add', registryController.addRegistryEndPoint);
+    app.post('/api/v2/authoring/registry/delete', registryController.deleteRegistryEndPoint);
 
   app.post('/api/v2/authoring/element/module/create', elementController.createElementForUserEndPoint);
   app.post('/api/v2/authoring/element/module/update', elementController.updateElementForUserEndPoint);
