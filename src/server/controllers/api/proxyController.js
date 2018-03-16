@@ -14,8 +14,11 @@ import FogService from '../../services/fogService';
 import AppUtils from '../../utils/appUtils';
 import logger from '../../utils/winstonLogs';
 
+/********************************************* EndPoints ******************************************************/
+
 /**
  * ioAuthoring end point to create proxy for specific iofog instance
+ * (Post: /api/v2/authoring/fabric/instance/proxy/createOrUpdate)
  * @param req request
  * @param res response
  */
@@ -56,6 +59,7 @@ const createOrUpdateProxyEndPoint = function(req, res) {
 
 /**
  * ioAuthoring end point to close proxy for specific iofog instance
+ * (Post: /api/v2/authoring/fabric/instance/proxy/close)
  * @param req request
  * @param res response
  */
@@ -91,12 +95,13 @@ const closeProxyEndPoint = function(req, res) {
         ],
         function(err, result) {
             let errMsg = 'Internal error: ' + result;
-            AppUtils.sendResponse(res, err,'','', result);
+            AppUtils.sendResponse(res, err,'','', errMsg);
         });
 };
 
 /**
  * ioFog end point to retrieve proxy info for specific iofog instance
+ * (Post: /api/v2/instance/proxyconfig/id/:ID/token/:Token)
  * @param req request
  * @param res response
  */
@@ -120,6 +125,12 @@ const getProxyEndPoint = function(req, res) {
     })
 };
 
+/**
+ * ioAuthoring end point to retrieve proxy status
+ * (Get: /api/v2/authoring/fabric/proxy/status)
+ * @param req request
+ * @param res response
+ */
 const getProxyStatusEndPoint = function(req, res) {
     logger.info("Endpoint hit: " + req.originalUrl);
     let params = {},
@@ -151,6 +162,12 @@ const getProxyStatusEndPoint = function(req, res) {
         });
 };
 
+/**
+ * ioFog end point to update proxy status
+ * (Post: /api/v2/instance/proxyconfig/changes/id/:ID/token/:Token)
+ * @param req request
+ * @param res response
+ */
 const updateProxyStatusEndPoint = function(req, res) {
     logger.info("Endpoint hit:"+ req.originalUrl);
 

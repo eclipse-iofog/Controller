@@ -3,10 +3,8 @@
  */
 
 import async from 'async';
-import express from 'express';
 
-const router = express.Router();
-
+import BaseApiController from './baseApiController';
 import AppUtils from '../../utils/appUtils';
 import logger from '../../utils/winstonLogs';
 import instanceResourcesService from "../../services/instanceResourcesService";
@@ -22,21 +20,22 @@ const fogInstanceHWInfo = function (req, res) {
     let params = {},
         fogHWInfo = {
             fogInfo: 'body.info',
-            uuid: 'params.ID',
+            uuid: 'bodyParams.ID',
             setProperty: 'fogHWInfo'
         };
 
     params.body = req.body;
-    params.params = req.params;
+    params.bodyParams = req.params;
     logger.info("Parameters:" + JSON.stringify(params.bodyParams));
 
     async.waterfall([
-            async.apply(instanceResourcesService.saveHWInfo, fogHWInfo, params),
+            async.apply(BaseApiController.checkUserExistance, req, res),
+            async.apply(instanceResourcesService.saveHWInfo, fogHWInfo, params)
         ],
         function (err, result) {
             let output;
             if (!err) {
-                output = params.params.ID;
+                output = params.bodyParams.ID;
             }
             AppUtils.sendResponse(res, err, 'uuid', output, result);
         });
@@ -48,21 +47,22 @@ const fogInstanceUSBInfo = function (req, res) {
     let params = {},
         fogUSBInfo = {
             fogInfo: 'body.info',
-            uuid: 'params.ID',
+            uuid: 'bodyParams.ID',
             setProperty: 'fogHWInfo'
         };
 
     params.body = req.body;
-    params.params = req.params;
+    params.bodyParams = req.params;
     logger.info("Parameters:" + JSON.stringify(params.bodyParams));
 
     async.waterfall([
-            async.apply(instanceResourcesService.saveUSBInfo, fogUSBInfo, params),
+            async.apply(BaseApiController.checkUserExistance, req, res),
+            async.apply(instanceResourcesService.saveUSBInfo, fogUSBInfo, params)
         ],
         function (err, result) {
             let output;
             if (!err) {
-                output = params.params.ID;
+                output = params.bodyParams.ID;
             }
             AppUtils.sendResponse(res, err, 'uuid', output, result);
         });

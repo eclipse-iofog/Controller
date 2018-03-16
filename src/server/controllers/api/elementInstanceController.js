@@ -304,7 +304,7 @@ import _ from 'underscore';
     getElementDetails
 
   ], function(err, result) {
-    let errMsg = 'Internal error: ' + result  
+      let errMsg = 'Internal error: ' + result;
     AppUtils.sendResponse(res, err, 'elementDetails', params.elementInstanceDetails, errMsg);
   });
 };
@@ -361,8 +361,8 @@ const processNewElementInstance = function(params, callback) {
   };
 
   params.outputObj = outputObj;
-  callback(null, params); 
-}
+  callback(null, params);
+};
 
 /*** Element Instance Name/Config Update EndPoint (Post: ['/api/v2/authoring/element/instance/config/update',
                                                           '/api/v2/authoring/element/instance/name/update',]) ***/
@@ -395,7 +395,7 @@ logger.info("Endpoint hit: "+req.originalUrl);
     updateConfigTracking
 
   ], function(err, result) {
-    let errMsg = 'Internal error: There was a problem updating ioElement instance.' + result
+      let errMsg = 'Internal error: There was a problem updating ioElement instance.' + result;
 
     AppUtils.sendResponse(res, err, 'elementInstance', params.bodyParams.elementId, errMsg);
   });
@@ -1375,7 +1375,6 @@ const getElementInstanceProperties = function(params, callback) {
   params.elementInstance.forEach((instance, index) => {
 
     if (instance.elementKey) {
-
       let elementInstance = {
         id: instance.uuid,
         elementKey: instance.elementKey,
@@ -1389,13 +1388,13 @@ const getElementInstanceProperties = function(params, callback) {
         description: instance.description,
         category: instance.category,
         images: instance.elementImages,
+        registryId: instance.registry,
         publisher: instance.publisher,
         diskRequired: instance.diskRequired,
         ramRequired: instance.ram_required,
         picture: instance.picture,
         volumeMappings: instance.volumeMappings,
         isPublic: instance.is_public,
-        registryId: instance.registry_id,
         ports: extractOpenPort(params, instance)
       };
       response.push(elementInstance);
@@ -1464,7 +1463,6 @@ const extractElementsForTrack = function(params, callback) {
   params.elementInstance.forEach((instance, index) => {
 
     if (instance.element_key) {
-
       let elementInstance = {
         elementid: instance.uuid,
         elementkey: instance.element_key,
@@ -1473,6 +1471,7 @@ const extractElementsForTrack = function(params, callback) {
         elementtypename: instance.element.name,
         category: instance.element.category,
         image: instance.element.containerImage,
+        registryId: instance.element.registry,
         publisher: instance.element.publisher,
         advertisedports: _.where(params.elementAdvertisedPort, {
           element_id: instance.element_key
@@ -1535,7 +1534,6 @@ const convertToArr = function(params, callback) {
 }
 
 const getElementDetails = function(params, callback) {
-
   let elementInstanceDetails = {
     elementId: params.elementInstance[0].uuid,
     elementKey: params.elementInstance[0].element_key,
@@ -1544,6 +1542,7 @@ const getElementDetails = function(params, callback) {
     elementTypeName: params.element.name,
     category: params.element.category,
     image: params.element.containerImage,
+    registryId: params.element.registry,
     publisher: params.element.publisher,
     advertisedPorts: _.where(params.elementAdvertisedPort, {
       element_id: params.elementInstance[0].element_key
