@@ -67,29 +67,22 @@ class ElementManager extends BaseManager {
 	}
 	getElementCatalog() {
 		const query = 'select e.*, ' +
-			'max(CASE when eimg.iofog_type_id = 1 then eimg.container_image end) as x86ContainerImage, ' +
-			'max(CASE when eimg.iofog_type_id = 2 then eimg.container_image end) as armContainerImage, ' +
 			'eit.info_type as inputType, eit.info_format as inputFormat, ' +
 			'eot.info_type as outputType, eot.info_format as outputFormat ' +
 			'from element e ' +
-			'left join element_images eimg on e.id = eimg.element_id ' +
 			'left join element_input_type eit on e.id = eit.element_key ' +
 			'left join element_output_type eot on e.id = eot.element_key ' +
-			'where (e.publisher != "SYSTEM") ' +
-			'GROUP BY e.id';
+			'where (e.publisher != "SYSTEM")';
+
 		return sequelize.query(query, {
 			type: sequelize.QueryTypes.SELECT
 		});
 	}
 
 	getElementForPublish(){
-		const query = 'select e.*, ' +
-			'max(CASE when eimg.iofog_type_id = 1 then eimg.container_image end) as x86ContainerImage, ' +
-			'max(CASE when eimg.iofog_type_id = 2 then eimg.container_image end) as armContainerImage ' +
+		const query = 'select e.* ' +
 			'from element e ' +
-			'left join element_images eimg on e.id = eimg.element_id ' +
-			'where (e.publisher != "SYSTEM" AND e.publisher != "iotracks") ' +
-			'GROUP BY e.id';
+			'where (e.publisher != "SYSTEM" AND e.publisher != "iotracks")';
 		return sequelize.query(query, {
 			type: sequelize.QueryTypes.SELECT
 		});
@@ -97,18 +90,14 @@ class ElementManager extends BaseManager {
 	
 	getElementDetails(elementId){
 	const query = 'select e.*, ' +
-			'max(CASE when eimg.iofog_type_id = 1 then eimg.container_image end) as x86ContainerImage, ' +
-			'max(CASE when eimg.iofog_type_id = 2 then eimg.container_image end) as armContainerImage, ' +
 			'it.info_type as inputInfoType, it.info_format as inputInfoFormat, ' +
 			'ot.info_type as outputInfoType, ot.info_format as outputInfoFormat ' +
 			'from element e ' +
-			'join element_images eimg on e.id = eimg.element_id ' +
 			'left join element_input_type it on e.id = it.element_key ' +
-			'left join element_output_type ot on e.id = ot.element_key where e.id = ' + elementId + ' ' +
-			'group by e.id';
+			'left join element_output_type ot on e.id = ot.element_key where e.id = ' + elementId;
 
 		return sequelize.query(query, {
-			type: sequelize.QueryTypes.SELECT
+			plain: true, type: sequelize.QueryTypes.SELECT
 		});
 	}
 }

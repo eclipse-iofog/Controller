@@ -67,7 +67,6 @@ import logger from '../../utils/winstonLogs';
   async.waterfall([
     async.apply(UserService.getUser, userProps, params),
     createElementForUser,
-    createElementImages,
     createElementInputType,
     createElementOutputType
 
@@ -82,7 +81,9 @@ import logger from '../../utils/winstonLogs';
   })
 };
 
-/*************** Create Element EndPoint (Post) *****************/
+/*
+//Unused code
+/!*************** Create Element EndPoint (Post) *****************!/
  const createElementEndPoint = function(req, res) {
   logger.info("Endpoint hit: "+ req.originalUrl);
 
@@ -97,14 +98,16 @@ import logger from '../../utils/winstonLogs';
   async.waterfall([
     async.apply(UserService.getUser, userProps, params),
     createElement,
-    createElementImages
 
   ], function(err, result) {
     AppUtils.sendResponse(res, err, 'element', params.element, result);
   })
 };
+*/
 
-/*************** Update Element EndPoint (Post) *****************/
+/*
+//Unused code
+/!*************** Update Element EndPoint (Post) *****************!/
  const updateElementEndPoint = function(req, res) {
   logger.info("Endpoint hit: "+ req.originalUrl);
 
@@ -132,12 +135,12 @@ import logger from '../../utils/winstonLogs';
     checkFogTypes,
     updateElement,
     async.apply(ElementImageService.deleteElementImage, fogTypeProps),
-    createElementImages,
 
   ], function(err, result) {
     AppUtils.sendResponse(res, err, 'element', params.bodyParams.id, result);
   })
 };
+*/
 
 const checkFogTypes = function(params, callback) {
  let fogTypeIds = [];
@@ -165,30 +168,6 @@ const checkFogTypes = function(params, callback) {
     callback(null, params);
   }
 }
-
-const createElementImages = function(params, callback) {
-  let fogTypes = [1,2];
-
-  if (fogTypes.length) {
-    async.eachOfSeries(fogTypes, function (value, key, cb) {
-      let elementImage = {
-          element_id: params.element.id,
-          iofog_type_id: value,
-          containerImage: ''
-      };
-      
-      ElementImageService.createElementImage(elementImage, params, cb);
-    }, function (err) {
-      if(!err){
-        callback(null, params);
-      }else{
-        callback('Error', err);
-      }
-    });
-  }else{
-    callback(null, params);
-  }
-};
 
 /*************** Update Element For User EndPoint (Post: /api/v2/authoring/element/module/update) ***********************/
  const updateElementForUserEndPoint= function(req, res) {
@@ -224,7 +203,9 @@ const createElementImages = function(params, callback) {
   })
 };
 
-/*************** Delete Element EndPoint (Post: /api/v2/authoring/organization/element/delete) *****************/
+/*
+////Unused code
+/!*************** Delete Element EndPoint (Post: /api/v2/authoring/organization/element/delete) *****************!/
  const deleteElementEndPoint = function(req, res) {
   logger.info("Endpoint hit: "+ req.originalUrl);
   
@@ -254,6 +235,7 @@ const createElementImages = function(params, callback) {
     AppUtils.sendResponse(res, err, 'elementId', params.bodyParams.id, result);
   })
 };
+*/
 
 /*************** Delete Element For User EndPoint (Get: /api/v2/authoring/element/module/delete/moduleid/:moduleId) **************/
  const deleteElementForUserEndPoint = function(req, res) {
@@ -535,11 +517,8 @@ const deleteElementInstanceData = function(params, callback) {
 }
 
 export default {
-  createElementEndPoint: createElementEndPoint,
   createElementForUserEndPoint: createElementForUserEndPoint,
-  updateElementEndPoint: updateElementEndPoint,
   updateElementForUserEndPoint: updateElementForUserEndPoint,
-  deleteElementEndPoint: deleteElementEndPoint,
   getCatalogOfElements: getCatalogOfElements,
   getElementsForPublishingEndPoint: getElementsForPublishingEndPoint,
   getElementDetailsEndPoint: getElementDetailsEndPoint,

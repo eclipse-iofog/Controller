@@ -1,5 +1,6 @@
 import ElementManager from '../managers/elementManager';
 import AppUtils from '../utils/appUtils';
+import ElementImageService from "./elementImageService";
 
 const createElement = function(props, params, callback) {
   ElementManager
@@ -18,8 +19,14 @@ const deleteElementById = function(props, params, callback) {
 const getElementDetails = function(props, params, callback) {
   let elementId = AppUtils.getProperty(params, props.elementId);
 
+  let imageProps = {
+      elementId: 'ID',
+      setProperty: 'elementImages'
+  };
+
   ElementManager
     .getElementDetails(elementId)
+    .then(ElementImageService.addImagesForElement.bind(null, imageProps))
     .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Unable to find Element details', callback));
 }
 
@@ -33,16 +40,25 @@ const findElementImageAndRegistryByIdForFogInstance = function(props, params, ca
 }
 
 const getElementCatalog = function(props, params, callback) {
+  let imageProps = {
+      elementId: 'ID',
+      setProperty: 'elementImages'
+  };
 
   ElementManager
     .getElementCatalog()
+    .then(ElementImageService.addImagesForElements.bind(null, imageProps))
     .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Error: Element catalog not found', callback));
 }
 
 const getElementForPublish = function(props, params, callback) {
-
+  let imageProps = {
+      elementId: 'ID',
+      setProperty: 'elementImages'
+  };
   ElementManager
     .getElementForPublish()
+    .then(ElementImageService.addImagesForElements.bind(null, imageProps))
     .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Error: Element catalog not found', callback));
 }
 

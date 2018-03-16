@@ -84,36 +84,6 @@ class ElementInstanceManager extends BaseManager {
 		});
 	}
 
-	findWithImagesByUuId(uuid) {
-
-		const query = 'select ei.ID as id, ' +
-			'ei.UUID as uuid, ' +
-			'ei.track_id as trackId, ' +
-			'ei.config as config, ' +
-			'ei.name as name, ' +
-			'ei.updated_by as updatedBy, ' +
-			'ei.config_last_updated as configLastUpdated, ' +
-			'ei.is_stream_viewer as isStreamViewer, ' +
-			'ei.is_debug_console as isDebugConsole, ' +
-			'ei.is_manager as isManager, ' +
-			'ei.is_network as isNetwork, ' +
-			'ei.registry_id as registryId, ' +
-			'ei.rebuild as rebuild, ' +
-			'ei.root_host_access as rootHostAccess, ' +
-			'ei.log_size as logSize, ' +
-			'ei.volume_mappings as volumeMappings, ' +
-			'ei.element_key, ' +
-			'ei.iofog_uuid, ' +
-			'max(CASE when eimg.iofog_type_id = 1 then eimg.container_image end) as x86ContainerImage, ' +
-			'max(CASE when eimg.iofog_type_id = 2 then eimg.container_image end) as armContainerImage ' +
-			'from element_instance ei ' +
-			'left join element_images eimg ' +
-			'on ei.element_key = eimg.element_id ' +
-			'where ei.UUID  = "' + uuid + '" ' +
-			'GROUP BY ei.UUID';
-		return sequelize.query(query, { plain: true, type: sequelize.QueryTypes.SELECT});
-	}
-
 	findByElementKey(elementKey) {
 		return ElementInstance.findAll({
 			where: {
@@ -388,31 +358,25 @@ class ElementInstanceManager extends BaseManager {
 
 	getElementInstanceDetails(trackId) {
 		const query = 'select ' +
-        'ei.UUID as uuid, ' +
-        'ei.name as elementInstanceName, ' +
-        'ei.config as config, ' +
-        'ei.iofog_uuid as fogInstanceId, ' +
-        'ei.root_host_access as rootHostAccess, ' +
-        'ei.log_size as logSize, ' +
-        'ei.volume_mappings as volumeMappings, ' +
-        'ei.is_stream_viewer as isStreamViewer, ' +
-        'ei.is_debug_console as isDebugConsole, ' +
-        'e.name as elementName, ' +
-        'e.picture as elementPicture, ' +
-        'f.DaemonStatus as daemonStatus, ' +
-        'max(CASE when eimg.iofog_type_id = 1 then eimg.container_image end) as x86ContainerImage, ' +
-        'max(CASE when eimg.iofog_type_id = 2 then eimg.container_image end) as armContainerImage ' +
-        'from element_instance ei ' +
-        'inner join element e ' +
-        'on ei.element_key = e.id ' +
-        'left join element_images eimg ' +
-        'on ei.element_key = eimg.element_id ' +
-        'left join iofog_type ft ' +
-        'on ft.ID = eimg.iofog_type_id ' +
-        'left join iofogs f ' +
-        'on ei.iofog_uuid = f.UUID ' +
-        'where ei.track_id = ' + trackId + ' AND e.publisher != "SYSTEM" ' +
-        'GROUP BY ei.UUID';
+		'ei.UUID as uuid, ' +
+		'ei.name as elementInstanceName, ' +
+		'ei.config as config, ' +
+		'ei.iofog_uuid as fogInstanceId, ' +
+		'ei.root_host_access as rootHostAccess, ' +
+		'ei.log_size as logSize, ' +
+		'ei.volume_mappings as volumeMappings, ' +
+		'ei.is_stream_viewer as isStreamViewer, ' +
+		'ei.is_debug_console as isDebugConsole, ' +
+		'ei.element_key as elementKey, ' +
+		'e.name as elementName, ' +
+		'e.picture as elementPicture, ' +
+		'f.DaemonStatus as daemonStatus ' +
+		'from element_instance ei ' +
+		'inner join element e ' +
+		'on ei.element_key = e.id ' +
+		'left join iofogs f ' +
+		'on ei.iofog_uuid = f.UUID ' +
+		'where ei.track_id = ' + trackId + ' AND e.publisher != "SYSTEM"';
 
 		return sequelize.query(query, {
 			type: sequelize.QueryTypes.SELECT
@@ -429,18 +393,13 @@ class ElementInstanceManager extends BaseManager {
 		'ei.log_size as logSize, ' +
 		'ei.rebuild as rebuild, ' +
 		'ei.volume_mappings as volumeMappings, ' +
-		'e.*, ' +
-        'max(CASE when eimg.iofog_type_id = 1 then eimg.container_image end) as x86ContainerImage, ' +
-        'max(CASE when eimg.iofog_type_id = 2 then eimg.container_image end) as armContainerImage ' +
+		'e.* ' +
 		'from element_instance ei ' +
 		'left join element e ' +
 		'on ei.element_key = e.id ' +
 		'left join iofogs f ' +
 		'on f.UUID = ei.iofog_uuid ' +
-		'left join element_images eimg ' +
-		'on ei.element_key = eimg.element_id ' +
-		'where ei.UUID in (:uuid) ' +
-        'GROUP BY ei.UUID';
+		'where ei.UUID in (:uuid)'
 
 		return sequelize.query(query, {
 			replacements: {
@@ -464,7 +423,7 @@ class ElementInstanceManager extends BaseManager {
 			type: sequelize.QueryTypes.SELECT
 		});
 	}
-//TODO: why here?
+
 	getDataTrackDetails(uuid){
 		const query = 'select t.instance_id as instanceId, t.is_activated as isActivated from element_instance ei '+
 					  'left join data_tracks t on ei.track_id = t.ID where ei.UUID in (:uuid)';

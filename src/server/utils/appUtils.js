@@ -182,6 +182,18 @@ const onUpdate = function (params, errorMsg, callback, updatedModels) {
   }
 }
 
+const onUpdateOrCreate = function (params, paramName, errorMsg, callback, resultSet) {
+    if (resultSet) {
+        if (paramName) {
+            params[paramName] = modelObject;
+        }
+        callback(null, params);
+
+    }  else {
+        callback('error', errorMsg);
+    }
+}
+
 const onUpdateOptional = function (params, callback, deletedModels) {
   callback(null, params);
 }
@@ -261,5 +273,6 @@ export default {
   onDelete: onDelete,
   onDeleteOptional: onDeleteOptional,
   sendResponse: sendResponse,
-  sendMultipleResponse: sendMultipleResponse
+  sendMultipleResponse: sendMultipleResponse,
+  onUpdateOrCreate: onUpdateOrCreate
 };

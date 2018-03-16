@@ -12,8 +12,17 @@ class ElementImageManager extends BaseManager {
   getEntity() {
     return ElementImage;
   }
+
   createElementImage(FogTypeObj) {
     return ElementImage.create(FogTypeObj);
+  }
+
+  getElementImagesByElementId(elementId) {
+      return ElementImage.findAll({
+          where: {
+              element_id: elementId
+          }
+      });
   }
 
   updateElementImageByIdAndFogType(data) {
@@ -24,6 +33,31 @@ class ElementImageManager extends BaseManager {
           }
       });
   }
+
+    updateOrCreateElementImageByIdAndFogType(data) {
+        return ElementImage
+            .findOne({
+                where: {
+                    element_id: data.element_id,
+                    iofog_type_id: data.iofog_type_id
+                }
+            })
+            .then(function(obj) {
+                if(obj) { // update
+                    // console.log('update');
+                    return ElementImage.update(data, {
+                        where: {
+                            element_id: data.element_id,
+                            iofog_type_id: data.iofog_type_id
+                        }
+                    })
+                }
+                else { // insert
+                    // console.log('create');
+                    return ElementImage.create(data);
+                }
+            })
+    }
 
   deleteElementImage(elementId) {
     return ElementImage.destroy({
