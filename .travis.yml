@@ -7,13 +7,22 @@ notifications:
       secure: taYfHvkkrx/6FbL2FURMvYuu2vUB9thEK2qIo4DZPOzlwdn5XpqzAFmMXD1kCqDLTPGnhsGknbqkx+zMWIjLg3RCsxNm+yPik98QO9NCMu9L+gjEmxt31m/WGfYyCQ0Gf1/cxvxtrC/TK5T1GzF6XKsRExmDctOexwWJIBnFLP77LbWhKKe3F8DAWtzs8$
     on_success: change
     on_failure: always
-
-script: 
-  - sshpass -p $DEV_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no -p $DEV_MACHINE_PORT $DEV_MACHINE_USERNAME@$DEV_MACHINE_IP "npm install -g fog-controller; npm run build"
-
-deploy:
-  provider: npm
-  email: ${NPM_EMAIL_ADDRESS}
-  api_key: ${NPM_AUTH_TOKEN}
-  on:
-    branch: master
+stages:
+- name: dev_build
+  if: branch = develop
+- name: package_build
+  if: branch = master
+  
+jobs:
+  include:
+  - stage: dev_build
+    script: 
+    - sshpass -p $DEV_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no -p $DEV_MACHINE_PORT $DEV_MACHINE_USERNAME@$DEV_MACHINE_IP "npm install -g fog-controller; npm run build"
+  - stage: package_build
+    script: 
+    - npm install -g fog-controller 
+    - npm run build
+    deploy:
+      provider: npm
+      email: ${NPM_EMAIL_ADDRESS}
+      api_key: ${NPM_AUTH_TOKEN}
