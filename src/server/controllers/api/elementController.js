@@ -82,7 +82,7 @@ import logger from '../../utils/winstonLogs';
 };
 
 /*
-//Unused code
+//Deprecated code
 /!*************** Create Element EndPoint (Post) *****************!/
  const createElementEndPoint = function(req, res) {
   logger.info("Endpoint hit: "+ req.originalUrl);
@@ -106,7 +106,7 @@ import logger from '../../utils/winstonLogs';
 */
 
 /*
-//Unused code
+//Deprecated code
 /!*************** Update Element EndPoint (Post) *****************!/
  const updateElementEndPoint = function(req, res) {
   logger.info("Endpoint hit: "+ req.originalUrl);
@@ -204,7 +204,7 @@ const checkFogTypes = function(params, callback) {
 };
 
 /*
-////Unused code
+////Deprecated code
 /!*************** Delete Element EndPoint (Post: /api/v2/authoring/organization/element/delete) *****************!/
  const deleteElementEndPoint = function(req, res) {
   logger.info("Endpoint hit: "+ req.originalUrl);

@@ -26,6 +26,7 @@ import UserService from '../../services/userService';
 import AppUtils from '../../utils/appUtils';
 import logger from '../../utils/winstonLogs';
 import _ from 'underscore';
+import ArchitectureUtils from '../../utils/architectureUtils'
 
 /*********************************************** EndPoints ******************************************************/
 /***** Get Rebuild Status of Element Instance EndPoint (Get: /api/v2/authoring/element/instance/rebuild/status/elementid/:elementId *****/
@@ -1259,8 +1260,8 @@ const updateElementInstance = function (params, callback) {
         fogInstanceId = params.bodyParams.fabricInstanceId;
       }
 
-    if ((params.fogData.typeKey === 1 && params.elementInstance.x86ContainerImage === "")
-        || (params.fogData.typeKey === 2 && params.elementInstance.armContainerImage === "")) {
+    if (!ArchitectureUtils
+            .isExistsImageForFogType(params.fogData.typeKey, params.elementInstance.elementImages)) {
 
       callback('error', "no container image for this fog type");
       return;

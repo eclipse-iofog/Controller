@@ -1,6 +1,7 @@
 import ElementImageManager from '../managers/elementImageManager';
 import AppUtils from '../utils/appUtils';
 import async from "async";
+import ArchitectureUtils from '../utils/architectureUtils'
 
 const createElementImage = function(props, params, callback) {
   ElementImageManager
@@ -12,17 +13,11 @@ const getElementImagesByElementId = function (props, params, callback) {
     let elementId = AppUtils.getProperty(params, props.elementId);
     let packImages = function (images) {
 
-        let imagesList = {
-            x86ContainerImage: '',
-            armContainerImage: ''
-        };
+        let imagesList = ArchitectureUtils.createImagesListJsonTemplate();
 
         return new Promise(resolve => {
             async.each(images, function (image, next) {
-                switch (image.iofog_type_id) {
-                    case 1: imagesList.x86ContainerImage = image.containerImage; break;
-                    case 2: imagesList.armContainerImage = image.containerImage; break;
-                }
+                ArchitectureUtils.fillImageField(image.iofog_type_id, image.containerImage, imagesList);
                 next();
             }, function () {
                 resolve(imagesList)
@@ -33,7 +28,7 @@ const getElementImagesByElementId = function (props, params, callback) {
     ElementImageManager
         .getElementImagesByElementId(elementId)
         .then(packImages)
-        .then(AppUtils.onFindOptional.bind(null, params /*|| {}*/, props.setProperty, callback))
+        .then(AppUtils.onFindOptional.bind(null, params, props.setProperty, callback))
 };
 
 const updateElementImages = function (props, params, callback) {
@@ -50,7 +45,7 @@ const deleteElementImage = function(props, params, callback) {
     .then(AppUtils.onDeleteOptional.bind(null, params, callback));
 };
 
-const addImagesForElement = function (imageProps, element) {
+const populateImagesForElement = function (imageProps, element) {
     return new Promise(resolve => {
         async.waterfall([
             async.apply(getElementImagesByElementId, imageProps, element)
@@ -61,7 +56,7 @@ const addImagesForElement = function (imageProps, element) {
 
 };
 
-const addImagesForElements = function (imageProps, elements) {
+const populateImagesForElements = function (imageProps, elements) {
     return new Promise(resolve => {
         async.each(elements, function (element, inner_callback) {
             getElementImagesByElementId(imageProps, element, inner_callback);
@@ -76,6 +71,6 @@ export default {
   updateElementImages: updateElementImages,
   deleteElementImage: deleteElementImage,
   getElementImagesByElementId: getElementImagesByElementId,
-  addImagesForElement: addImagesForElement,
-  addImagesForElements: addImagesForElements,
+  populateImagesForElement: populateImagesForElement,
+  populateImagesForElements: populateImagesForElements,
 };

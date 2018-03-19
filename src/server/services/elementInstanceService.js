@@ -30,7 +30,7 @@ const getElementInstanceProperties = function(props, params, callback) {
 
   ElementInstanceManager
     .getElementInstanceProperties(elementInstanceId)
-    .then(ElementImageService.addImagesForElements.bind(null, imageProps))
+    .then(ElementImageService.populateImagesForElements.bind(null, imageProps))
     .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Cannot find Element Instance', callback));
 }
 
@@ -44,7 +44,7 @@ const getDetailedElementInstances = function(props, params, callback) {
 
   ElementInstanceManager
     .getElementInstanceDetails(trackId)
-    .then(ElementImageService.addImagesForElements.bind(null, imageProps))
+    .then(ElementImageService.populateImagesForElements.bind(null, imageProps))
     .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Cannot find Element Instance', callback));
 }
 
@@ -65,8 +65,8 @@ const getElementInstanceWithImages = function(props, params, callback) {
     };
 
     ElementInstanceManager
-        .findByElementKey(elementInstanceId)
-        .then(ElementImageService.addImagesForElements.bind(null, imageProps))
+        .findByUuId(elementInstanceId)
+        .then(ElementImageService.populateImagesForElement.bind(null, imageProps))
         .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Cannot find Element Instance', callback));
 }
 
