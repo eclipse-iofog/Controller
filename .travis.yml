@@ -9,7 +9,7 @@ notifications:
     on_failure: always
 
 script: 
-  - sshpass -p $DEV_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no -p $DEV_MACHINE_PORT $DEV_MACHINE_USERNAME@$DEV_MACHINE_IP "npm install -g fog-controller"
+  - sshpass -p $DEV_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no -p $DEV_MACHINE_PORT $DEV_MACHINE_USERNAME@$DEV_MACHINE_IP "npm install -g fog-controller; npm run build"
 
 deploy:
   provider: npm
