@@ -44,7 +44,6 @@ class ElementImageManager extends BaseManager {
             })
             .then(function(obj) {
                 if(obj) { // update
-                    // console.log('update');
                     return ElementImage.update(data, {
                         where: {
                             element_id: data.element_id,
@@ -53,7 +52,6 @@ class ElementImageManager extends BaseManager {
                     })
                 }
                 else { // insert
-                    // console.log('create');
                     return ElementImage.create(data);
                 }
             })
