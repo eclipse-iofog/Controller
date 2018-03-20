@@ -15,7 +15,7 @@ import logger from '../../utils/winstonLogs';
 /********* Instance Registries EndPoint (Get/Post: /api/v2/instance/registries/id/:ID/token/:Token) **********/
 const instanceRegistriesEndPoint = function (req, res){
   logger.info("Endpoint hit: "+ req.originalUrl);
-  var params = {},
+  let params = {},
     instanceProps = {
     instanceId: 'bodyParams.ID',
     setProperty: 'registry'

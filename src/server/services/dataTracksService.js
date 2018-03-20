@@ -8,24 +8,24 @@ const createDataTrack = function(props, params, callback) {
 }
 
 const deleteTrackById = function(props, params, callback) {
-  var trackId = AppUtils.getProperty(params, props.trackId);
+  let trackId = AppUtils.getProperty(params, props.trackId);
 
   DataTracksManager
     .deleteByTrackId(trackId)
     .then(AppUtils.onDelete.bind(null, params, 'Was unable to delete Track having Id' + trackId, callback));
 }
 
-// const findContainerListByInstanceId = function(props, params, callback) {
-//   var instanceId = AppUtils.getProperty(params, props.instanceId);
+const findContainerListByInstanceId = function(props, params, callback) {
+  let instanceId = AppUtils.getProperty(params, props.instanceId);
 
-//   DataTracksManager
-//     .findContainerListByInstanceId(instanceId)
-//     .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Unable to find data tracks', callback));
-// }
+  DataTracksManager
+    .findContainerListByInstanceId(instanceId)
+    .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Unable to find data tracks', callback));
+}
 
 const getDataTrackById = function(props, params, callback) {
-  var trackId = AppUtils.getProperty(params, props.trackId);
-  var errorMsg = '';
+  let trackId = AppUtils.getProperty(params, props.trackId);
+  let errorMsg = '';
   if(props.errorMsg){
     errorMsg = props.errorMsg;
   }
@@ -36,7 +36,7 @@ const getDataTrackById = function(props, params, callback) {
 }
 
 const getTrackById = function(props, params, callback) {
-  var trackId = AppUtils.getProperty(params, props.trackId);
+  let trackId = AppUtils.getProperty(params, props.trackId);
 
   DataTracksManager
     .findById(trackId)
@@ -45,7 +45,7 @@ const getTrackById = function(props, params, callback) {
 
 
 const getDataTrackByInstanceId = function(props, params, callback) {
-  var instanceId = AppUtils.getProperty(params, props.instanceId);
+  let instanceId = AppUtils.getProperty(params, props.instanceId);
 
   DataTracksManager
     .findByInstanceId(instanceId)
@@ -53,7 +53,7 @@ const getDataTrackByInstanceId = function(props, params, callback) {
 }
 
 const getTracksByUserId = function(props, params, callback) {
-  var userId = AppUtils.getProperty(params, props.userId);
+  let userId = AppUtils.getProperty(params, props.userId);
 
   DataTracksManager
     .getTracksByUserId(userId)
@@ -61,7 +61,7 @@ const getTracksByUserId = function(props, params, callback) {
 }
 
 const updateDataTrackById = function(props, params, callback) {
-  var trackId = AppUtils.getProperty(params, props.trackId);
+  let trackId = AppUtils.getProperty(params, props.trackId);
 
   DataTracksManager
     .updateById(trackId, props.updatedObj)
@@ -69,7 +69,7 @@ const updateDataTrackById = function(props, params, callback) {
 }
 
 const updateDataTrackByUserId = function(props, params, callback) {
-  var userId = AppUtils.getProperty(params, props.userId);
+  let userId = AppUtils.getProperty(params, props.userId);
 
   DataTracksManager
     .updateByUserId(userId, props.updatedObj)
@@ -79,7 +79,7 @@ const updateDataTrackByUserId = function(props, params, callback) {
 export default {
   createDataTrack: createDataTrack,
   deleteTrackById: deleteTrackById,
-//  findContainerListByInstanceId: findContainerListByInstanceId,
+ findContainerListByInstanceId: findContainerListByInstanceId,
   getDataTrackById: getDataTrackById,
   getTrackById: getTrackById,
   getDataTrackByInstanceId: getDataTrackByInstanceId,

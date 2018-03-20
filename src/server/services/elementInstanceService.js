@@ -3,7 +3,7 @@ import AppUtils from '../utils/appUtils';
 import _ from 'underscore';
 
 const getDataTrackDetails = function(props, params, callback) {
-  var elementInstanceData = AppUtils.getProperty(params, props.elementInstanceData);
+  let elementInstanceData = AppUtils.getProperty(params, props.elementInstanceData);
 
   ElementInstanceManager
     .getDataTrackDetails(_.uniq(_.pluck(elementInstanceData, props.field)))
@@ -11,7 +11,7 @@ const getDataTrackDetails = function(props, params, callback) {
 }
 
 const updateElementInstanceRebuild = function(props, params, callback) {
-  var elementId = AppUtils.getProperty(params, props.elementId),
+  let elementId = AppUtils.getProperty(params, props.elementId),
     name = AppUtils.getProperty(params, props.name);
 
   ElementInstanceManager
@@ -20,7 +20,7 @@ const updateElementInstanceRebuild = function(props, params, callback) {
 }
 
 const getElementInstanceProperties = function(props, params, callback) {
-  var elementInstanceId = AppUtils.getProperty(params, props.elementInstanceId);
+  let elementInstanceId = AppUtils.getProperty(params, props.elementInstanceId);
 
   ElementInstanceManager
     .getElementInstanceProperties(elementInstanceId)
@@ -28,7 +28,7 @@ const getElementInstanceProperties = function(props, params, callback) {
 }
 
 const getDetailedElementInstances = function(props, params, callback) {
-  var trackId = AppUtils.getProperty(params, props.trackId);
+  let trackId = AppUtils.getProperty(params, props.trackId);
 
   ElementInstanceManager
     .getElementInstanceDetails(trackId)
@@ -36,7 +36,7 @@ const getDetailedElementInstances = function(props, params, callback) {
 }
 
 const getElementInstance = function(props, params, callback) {
-  var elementInstanceId = AppUtils.getProperty(params, props.elementInstanceId);
+  let elementInstanceId = AppUtils.getProperty(params, props.elementInstanceId);
 
   ElementInstanceManager
     .findByUuId(elementInstanceId)
@@ -44,7 +44,7 @@ const getElementInstance = function(props, params, callback) {
 }
 
 const getElementInstanceOptional = function(props, params, callback) {
-  var elementInstanceId = AppUtils.getProperty(params, props.elementInstanceId);
+  let elementInstanceId = AppUtils.getProperty(params, props.elementInstanceId);
 
   ElementInstanceManager
     .findByUuId(elementInstanceId)
@@ -52,7 +52,7 @@ const getElementInstanceOptional = function(props, params, callback) {
 }
 
 const getElementInstancesByTrackId = function(props, params, callback) {
-  var trackId = AppUtils.getProperty(params, props.trackId);
+  let trackId = AppUtils.getProperty(params, props.trackId);
 
   ElementInstanceManager
     .findByTrackId(trackId)
@@ -60,7 +60,7 @@ const getElementInstancesByTrackId = function(props, params, callback) {
 }
 
 const getElementInstancesByFogId = function(props, params, callback) {
-  var fogId = AppUtils.getProperty(params, props.fogId);
+  let fogId = AppUtils.getProperty(params, props.fogId);
 
   ElementInstanceManager
     .getByFogId(fogId)
@@ -68,7 +68,7 @@ const getElementInstancesByFogId = function(props, params, callback) {
 }
 
 const getElementInstancesByFogIdOptional = function(props, params, callback) {
-  var instanceId = AppUtils.getProperty(params, props.instanceId);
+  let instanceId = AppUtils.getProperty(params, props.instanceId);
 
   ElementInstanceManager
     .getByFogId(instanceId)
@@ -76,7 +76,7 @@ const getElementInstancesByFogIdOptional = function(props, params, callback) {
 }
 
 const findElementInstancesByTrackId = function(props, params, callback) {
-  var trackId = AppUtils.getProperty(params, props.trackId);
+  let trackId = AppUtils.getProperty(params, props.trackId);
 
   ElementInstanceManager
     .findByTrackId(trackId)
@@ -84,7 +84,7 @@ const findElementInstancesByTrackId = function(props, params, callback) {
 }
 
 // const findByInstanceId = function(props, params, callback) {
-//   var instanceId = AppUtils.getProperty(params, props.instanceId);
+//   let instanceId = AppUtils.getProperty(params, props.instanceId);
 
 //   ElementInstanceManager
 //     .getByFogId(instanceId)
@@ -92,7 +92,7 @@ const findElementInstancesByTrackId = function(props, params, callback) {
 // }
 
 const findElementInstancesByElementKey = function(props, params, callback) {
-  var elementKey = AppUtils.getProperty(params, props.elementKey);
+  let elementKey = AppUtils.getProperty(params, props.elementKey);
 
   ElementInstanceManager
     .findByElementKey(elementKey)
@@ -100,7 +100,7 @@ const findElementInstancesByElementKey = function(props, params, callback) {
 }
 
 const findRealElementInstanceByTrackId = function(props, params, callback) {
-  var trackId = AppUtils.getProperty(params, props.trackId);
+  let trackId = AppUtils.getProperty(params, props.trackId);
 
   ElementInstanceManager
     .findRealElementInstanceByTrackId(trackId)
@@ -108,7 +108,7 @@ const findRealElementInstanceByTrackId = function(props, params, callback) {
 }
 
 const findIntraTrackByUuids = function(props, params, callback) {
-  var intraTrackData = AppUtils.getProperty(params, props.intraTrackData);
+  let intraTrackData = AppUtils.getProperty(params, props.intraTrackData);
 
   ElementInstanceManager
     .findIntraTrackByUuids(_.uniq(_.pluck(intraTrackData, props.field)))
@@ -116,7 +116,7 @@ const findIntraTrackByUuids = function(props, params, callback) {
 }
 
 const findExtraTrackByUuids = function(props, params, callback) {
-  var extraTrackData = AppUtils.getProperty(params, props.extraTrackData);
+  let extraTrackData = AppUtils.getProperty(params, props.extraTrackData);
 
   ElementInstanceManager
     .findExtraTrackByUuids(_.uniq(_.pluck(extraTrackData, props.field)))
@@ -124,7 +124,7 @@ const findExtraTrackByUuids = function(props, params, callback) {
 }
 
 const findOtherTrackDetailByUuids = function(props, params, callback) {
-  var otherTrackData = AppUtils.getProperty(params, props.otherTrackData);
+  let otherTrackData = AppUtils.getProperty(params, props.otherTrackData);
 
   ElementInstanceManager
    .findOtherTrackDetailByUuids(_.uniq(_.pluck(otherTrackData, props.field)))   
@@ -132,7 +132,7 @@ const findOtherTrackDetailByUuids = function(props, params, callback) {
 }
 
 const createElementInstance = function(props, params, callback) {
-var userId = AppUtils.getProperty(params, props.userId),
+let userId = AppUtils.getProperty(params, props.userId),
     trackId = AppUtils.getProperty(params, props.trackId),
     name= AppUtils.getProperty(params, props.name),
     logSize = AppUtils.getProperty(params, props.logSize),
@@ -156,7 +156,7 @@ const createElementInstanceObj = function(props, params, callback) {
 }
 
 const createStreamViewerElement = function(props, params, callback) {
-  var elementKey = AppUtils.getProperty(params, props.elementKey),
+  let elementKey = AppUtils.getProperty(params, props.elementKey),
       userId = AppUtils.getProperty(params, props.userId),
       fogInstanceId = AppUtils.getProperty(params, props.fogInstanceId),
       registryId = AppUtils.getProperty(params, props.registryId);
@@ -167,7 +167,7 @@ const createStreamViewerElement = function(props, params, callback) {
 }
 
 const createNetworkElementInstance = function(props, params, callback) {
-  var networkElement = AppUtils.getProperty(params, props.networkElement),
+  let networkElement = AppUtils.getProperty(params, props.networkElement),
     fogInstanceId = AppUtils.getProperty(params, props.fogInstanceId),
     satellitePort = AppUtils.getProperty(params, props.satellitePort),
     trackId = props.trackId ? AppUtils.getProperty(params, props.trackId) : 0,
@@ -185,7 +185,7 @@ const createNetworkElementInstance = function(props, params, callback) {
 }
 
 const createDebugConsole = function(props, params, callback) {
-  var elementKey = AppUtils.getProperty(params, props.elementKey),
+  let elementKey = AppUtils.getProperty(params, props.elementKey),
       userId = AppUtils.getProperty(params, props.userId),
       fogInstanceId = AppUtils.getProperty(params, props.fogInstanceId),
       registryId = AppUtils.getProperty(params, props.registryId);
@@ -196,7 +196,7 @@ const createDebugConsole = function(props, params, callback) {
 }
 
 const updateElemInstance = function(props, params, callback) {
-  var elementId = AppUtils.getProperty(params, props.elementId);
+  let elementId = AppUtils.getProperty(params, props.elementId);
 
   ElementInstanceManager
     .updateByUUID(elementId, props.updatedData)
@@ -204,7 +204,7 @@ const updateElemInstance = function(props, params, callback) {
 }
 
 const updateElemInstanceByFogUuId = function(props, params, callback) {
-var updateChange = {},
+let updateChange = {},
  fogInstanceId = AppUtils.getProperty(params, props.fogInstanceId);
 
 if (params.bodyParams.instanceId) {
@@ -217,7 +217,7 @@ if (params.bodyParams.instanceId) {
 }
 
 const deleteNetworkElementInstance = function(props, params, callback) {
-  var elementId = AppUtils.getProperty(params, props.elementId);
+  let elementId = AppUtils.getProperty(params, props.elementId);
 
   ElementInstanceManager
     .deleteNetworkElement(elementId)
@@ -225,7 +225,7 @@ const deleteNetworkElementInstance = function(props, params, callback) {
 }
 
 const deleteNetworkElementInstances = function(props, params, callback) {
-  var elementInstanceData = AppUtils.getProperty(params, props.elementInstanceData);
+  let elementInstanceData = AppUtils.getProperty(params, props.elementInstanceData);
 
   ElementInstanceManager
     .deleteNetworkElements(_.pluck(elementInstanceData, props.field1), _.pluck(elementInstanceData, props.field2))
@@ -233,28 +233,28 @@ const deleteNetworkElementInstances = function(props, params, callback) {
 }
 
 const deleteElementInstance = function(props, params, callback) {
-  var elementId = AppUtils.getProperty(params, props.elementId);
+  let elementId = AppUtils.getProperty(params, props.elementId);
   ElementInstanceManager
     .deleteByElementUUID(elementId)
     .then(AppUtils.onDelete.bind(null, params, 'Was unable to delete Element Instance', callback));
 }
 
 const deleteElementInstanceOptional = function(props, params, callback) {
-  var elementId = AppUtils.getProperty(params, props.elementId);
+  let elementId = AppUtils.getProperty(params, props.elementId);
   ElementInstanceManager
     .deleteByElementUUID(elementId)
     .then(AppUtils.onDeleteOptional.bind(null, params, callback));
 }
 
 const deleteElementInstances = function(props, params, callback) {
-  var elementInstanceData = AppUtils.getProperty(params, props.elementInstanceData);
+  let elementInstanceData = AppUtils.getProperty(params, props.elementInstanceData);
 
   ElementInstanceManager
     .deleteByElementUUID(_.pluck(elementInstanceData, props.field))
     .then(AppUtils.onDeleteOptional.bind(null, params, callback));
 }
 const deleteElementInstancesByInstanceIdAndElementKey = function(props, params, callback) {
-  var instanceId = AppUtils.getProperty(params, props.instanceId),
+  let instanceId = AppUtils.getProperty(params, props.instanceId),
     elementKey = AppUtils.getProperty(params, props.elementKey);
 
   ElementInstanceManager
@@ -263,7 +263,7 @@ const deleteElementInstancesByInstanceIdAndElementKey = function(props, params, 
 }
 
 const deleteDebugConsoleInstances = function(props, params, callback) {
-  var instanceId = AppUtils.getProperty(params, props.instanceId);
+  let instanceId = AppUtils.getProperty(params, props.instanceId);
 
   ElementInstanceManager
     .deleteDebugConsoleInstances(instanceId)
@@ -271,7 +271,7 @@ const deleteDebugConsoleInstances = function(props, params, callback) {
 }
 
 const deleteStreamViewerInstances = function(props, params, callback) {
-  var instanceId = AppUtils.getProperty(params, props.instanceId);
+  let instanceId = AppUtils.getProperty(params, props.instanceId);
 
   ElementInstanceManager
     .deleteStreamViewerInstances(instanceId)
@@ -280,7 +280,7 @@ const deleteStreamViewerInstances = function(props, params, callback) {
 
 
 const getElementInstanceRouteDetails = function(props, params, callback) {
-  var elementInstanceId = AppUtils.getProperty(params, props.elementInstanceId);
+  let elementInstanceId = AppUtils.getProperty(params, props.elementInstanceId);
 
   ElementInstanceManager
     .getElementInstanceRoute(elementInstanceId)

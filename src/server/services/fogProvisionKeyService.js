@@ -3,7 +3,7 @@ import AppUtils from '../utils/appUtils';
 import Constants from '../constants.js';
 
 const checkProvisionKeyExpiry = function(props, params, callback) {
-  var currentTime = new Date(),
+  let currentTime = new Date(),
       expirationTime = AppUtils.getProperty(params, props.expirationTime);
 
   if(currentTime < expirationTime) {
@@ -15,7 +15,7 @@ const checkProvisionKeyExpiry = function(props, params, callback) {
 }
 
 const createProvisonKeyByInstanceId = function(props, params, callback) {
-  var instanceId = AppUtils.getProperty(params, props.instanceId),
+  let instanceId = AppUtils.getProperty(params, props.instanceId),
   	  newProvision = {
     	 iofog_uuid: instanceId,
     	 provisionKey: AppUtils.generateRandomString(8),
@@ -28,7 +28,7 @@ const createProvisonKeyByInstanceId = function(props, params, callback) {
 }
 
 const deleteProvisonKeyByInstanceId = function(props, params, callback) {
-  var instanceId = AppUtils.getProperty(params, props.instanceId);
+  let instanceId = AppUtils.getProperty(params, props.instanceId);
 
   FogProvisionKeyManager
     .deleteByInstanceId(instanceId)
@@ -36,7 +36,7 @@ const deleteProvisonKeyByInstanceId = function(props, params, callback) {
 }
 
 const deleteByProvisionKey= function(props, params, callback) {
-  var provisionKey = AppUtils.getProperty(params, props.provisionKey);
+  let provisionKey = AppUtils.getProperty(params, props.provisionKey);
 
   FogProvisionKeyManager
     .deleteByProvisionKey(provisionKey)
@@ -44,7 +44,7 @@ const deleteByProvisionKey= function(props, params, callback) {
 }
 
 const getFogByProvisionKey = function(props, params, callback) {
-  var provisionKey = AppUtils.getProperty(params, props.provisionKey);
+  let provisionKey = AppUtils.getProperty(params, props.provisionKey);
 
   FogProvisionKeyManager
     .getByProvisionKey(provisionKey)
@@ -52,7 +52,7 @@ const getFogByProvisionKey = function(props, params, callback) {
 }
 
 const getProvisionKeyByInstanceId = function(props, params, callback) {
-  var instanceId = AppUtils.getProperty(params, props.instanceId);
+  let instanceId = AppUtils.getProperty(params, props.instanceId);
 
   FogProvisionKeyManager
     .findByInstanceId(instanceId)
@@ -61,7 +61,7 @@ const getProvisionKeyByInstanceId = function(props, params, callback) {
 
 const deleteExpiredProvisionKeys = function (params, callback){
   //Attempt to delete all of the expired keys.
-  var pastTime = new Date().getTime() - (20 * 60);  
+  let pastTime = new Date().getTime() - (20 * 60);
 
   FogProvisionKeyManager
     .deleteExpiredProvisionKeys(pastTime)

@@ -6,7 +6,7 @@ import AppUtils from '../utils/appUtils';
 import Constants from '../constants.js';
 
 const checkFogTokenExpirationByToken = function(props, params, callback) {
-  var time =  new Date(),
+  let time =  new Date(),
    expirationTime = AppUtils.getProperty(params, props.expirationTime);
 
   if(expirationTime > time){
@@ -18,7 +18,7 @@ const checkFogTokenExpirationByToken = function(props, params, callback) {
 }
 
 const findFogAccessTokenByTokenAndFogId = function(props, params, callback) {
-  var token = AppUtils.getProperty(params, props.token),
+  let token = AppUtils.getProperty(params, props.token),
   fogId = AppUtils.getProperty(params, props.fogId);
 
   FogAccessTokenManager
@@ -27,7 +27,7 @@ const findFogAccessTokenByTokenAndFogId = function(props, params, callback) {
 }
 
 const findFogAccessTokenByToken = function(props, params, callback) {
-  var token = AppUtils.getProperty(params, props.token);
+  let token = AppUtils.getProperty(params, props.token);
 
   FogAccessTokenManager
     .getByToken(token)
@@ -35,7 +35,7 @@ const findFogAccessTokenByToken = function(props, params, callback) {
 }
 
 const deleteFogAccessTokenByFogId = function(props, params, callback) {
-  var fogId = AppUtils.getProperty(params, props.fogId);
+  let fogId = AppUtils.getProperty(params, props.fogId);
 
   FogAccessTokenManager
     .deleteByFogId(fogId)
@@ -43,7 +43,7 @@ const deleteFogAccessTokenByFogId = function(props, params, callback) {
 }
 
 const generateAccessToken = function(params, callback) {
-  var safeToken = false;
+  let safeToken = false;
 
   async.whilst(
     function() {
@@ -52,7 +52,7 @@ const generateAccessToken = function(params, callback) {
     function(cb) { 
       params.accessToken = AppUtils.generateAccessToken();
 
-      var userProps = {
+      let userProps = {
         userId: 'accessToken',
         setProperty: 'userAccessTokenData'
       },
@@ -73,9 +73,9 @@ const generateAccessToken = function(params, callback) {
       });
     },
     function(err, token) { // CALLBACK
-      var tokenExpiryTime = new Date().getTime() +  (Constants.ACCESS_TOKEN_EXPIRE_PERIOD * 1000);
+      let tokenExpiryTime = new Date().getTime() +  (Constants.ACCESS_TOKEN_EXPIRE_PERIOD * 1000);
 
-      var tokenData = {
+      let tokenData = {
         accessToken: params.accessToken,
         expirationTime: tokenExpiryTime
       };
@@ -87,12 +87,12 @@ const generateAccessToken = function(params, callback) {
 }
 
 const saveFogAccessToken = function(props, params, callback) {
-  var userId = AppUtils.getProperty(params, props.userId),
+  let userId = AppUtils.getProperty(params, props.userId),
       fogId = AppUtils.getProperty(params, props.fogId),
       expirationTime = AppUtils.getProperty(params, props.expirationTime),
       accessToken = AppUtils.getProperty(params, props.accessToken);
 
-  var config = {
+  let config = {
     userId: userId,
     expirationTime: expirationTime,
     token: accessToken,

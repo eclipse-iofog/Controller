@@ -35,6 +35,10 @@ const Element = sequelize.define('element', {
     type: Sequelize.TEXT,
     field: 'container_image'
   },
+    registryId: {
+        type: Sequelize.BIGINT,
+        field: 'registry_id'
+    },
   publisher: {
     type: Sequelize.TEXT,
     field: 'publisher'
@@ -65,6 +69,8 @@ const Element = sequelize.define('element', {
   underscored: true
 });
 
-Element.belongsTo(Registry);
+Element.belongsTo(Registry, {
+    foreignKey: 'registry_id'
+});
 
 export default Element;

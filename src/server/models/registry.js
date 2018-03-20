@@ -5,6 +5,7 @@
 */
 import Sequelize from 'sequelize';
 import sequelize from './../utils/sequelize';
+import User from "./user";
 
 const Registry = sequelize.define('registry', {
   id: {type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true, field: 'ID'},
@@ -16,7 +17,8 @@ const Registry = sequelize.define('registry', {
   username: {type: Sequelize.TEXT, field: 'user_name'},
   password: {type: Sequelize.TEXT, field: 'password'},
   useremail: {type: Sequelize.BIGINT, field: 'user_email'},
-  }, {
+    user_id: {type: Sequelize.INTEGER, field: 'user_id'}
+}, {
   // don't add the timestamp attributes (updatedAt, createdAt)
   timestamps: false,
   // disable the modification of table names
@@ -24,6 +26,10 @@ const Registry = sequelize.define('registry', {
   // don't use camelcase for automatically added attributes but underscore style
   // so updatedAt will be updated_at
   underscored: true
+});
+
+Registry.belongsTo(User, {
+    foreignKey: 'user_id'
 });
 
 export default Registry;

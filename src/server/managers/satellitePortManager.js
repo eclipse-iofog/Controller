@@ -46,7 +46,7 @@ class SatellitePortManager extends BaseManager {
   }
 
   getPortPasscodeForNetworkElements(elementId) {
-    var query = ' \
+    let query = ' \
       SELECT sp.passcode_port1, sp.mapping_id, s.domain \
       FROM satellite_port sp, satellite s \
       WHERE sp.id IN ( \
@@ -61,7 +61,7 @@ class SatellitePortManager extends BaseManager {
   }
 
   deletePortsForNetworkElements(elementId) {
-    var deleteQuery = ' \
+    let deleteQuery = ' \
       DELETE FROM satellite_port \
       WHERE id IN ( \
         SELECT satellitePortId \

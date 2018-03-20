@@ -3,7 +3,7 @@ import AppUtils from '../utils/appUtils';
 import _ from 'underscore';
 
 const findBySatelliteIds = function(props, params, callback) {
-  var satellitePortData = AppUtils.getProperty(params, props.satellitePortData);
+  let satellitePortData = AppUtils.getProperty(params, props.satellitePortData);
 
   SatelliteManager
     .findBySatelliteIds(_.pluck(satellitePortData, props.field))
@@ -11,7 +11,7 @@ const findBySatelliteIds = function(props, params, callback) {
 }
 
 const getRandomSatellite = function(params, callback) {
-  var randomNumber;
+  let randomNumber;
 
   SatelliteManager.findAll()
     .then((satellites) => {
@@ -27,7 +27,7 @@ const getRandomSatellite = function(params, callback) {
 }
 
 const getSatelliteById = function(props, params, callback) {
-  var satelliteId = AppUtils.getProperty(params, props.satelliteId);
+  let satelliteId = AppUtils.getProperty(params, props.satelliteId);
 
   SatelliteManager
     .findById(satelliteId)
