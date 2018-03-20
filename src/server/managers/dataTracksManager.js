@@ -64,18 +64,18 @@ class DataTracksManager extends BaseManager {
     });
   }
 
-  // findContainerListByInstanceId(instanceId) {                                                         
-  //   var instanceTrackingQuery = "SELECT i.*, t.is_activated FROM element_instance i LEFT JOIN \
-  //   data_tracks t ON i.track_id = t.ID \
-  //   WHERE i.iofog_uuid in (:instanceId) AND (i.track_id = 0 OR t.is_activated = 1)";
+  findContainerListByInstanceId(instanceId) {
+    let instanceTrackingQuery = "SELECT i.*, t.is_activated FROM element_instance i LEFT JOIN \
+    data_tracks t ON i.track_id = t.ID \
+    WHERE i.iofog_uuid in (:instanceId) AND (i.track_id = 0 OR t.is_activated = 1)";
 
-  //   return sequelize.query(instanceTrackingQuery, {
-  //     replacements: {
-  //       instanceId: instanceId
-  //     },
-  //     type: sequelize.QueryTypes.SELECT
-  //   });
-  // }
+    return sequelize.query(instanceTrackingQuery, {
+      replacements: {
+        instanceId: instanceId
+      },
+      type: sequelize.QueryTypes.SELECT
+    });
+  }
 }
 
 const instance = new DataTracksManager();

@@ -2,7 +2,7 @@ import FogUserManager from '../managers/fogUserManager';
 import AppUtils from '../utils/appUtils';
 
 const createFogUser = function(props, params, callback) {
-  var userId = AppUtils.getProperty(params, props.userId),
+  let userId = AppUtils.getProperty(params, props.userId),
       instanceId = AppUtils.getProperty(params, props.instanceId);
 
   FogUserManager
@@ -11,7 +11,7 @@ const createFogUser = function(props, params, callback) {
 }
 
 const deleteFogUserByInstanceId = function(props, params, callback) {
-  var instanceId = AppUtils.getProperty(params, props.instanceId);
+  let instanceId = AppUtils.getProperty(params, props.instanceId);
 
   FogUserManager
     .deleteByInstanceId(instanceId)
@@ -19,7 +19,7 @@ const deleteFogUserByInstanceId = function(props, params, callback) {
 }
 
 const deleteFogUserByInstanceIdAndUserId = function(props, params, callback) {
-  var userId = AppUtils.getProperty(params, props.userId),
+  let userId = AppUtils.getProperty(params, props.userId),
       instanceId = AppUtils.getProperty(params, props.instanceId);
 
   FogUserManager
@@ -28,7 +28,7 @@ const deleteFogUserByInstanceIdAndUserId = function(props, params, callback) {
 }
 
 const findFogUserByInstanceIdAndUserId = function(props, params, callback) {
-  var userId = AppUtils.getProperty(params, props.userId),
+  let userId = AppUtils.getProperty(params, props.userId),
       instanceId = AppUtils.getProperty(params, props.instanceId);
 
   FogUserManager
@@ -37,7 +37,7 @@ const findFogUserByInstanceIdAndUserId = function(props, params, callback) {
 }
 
 const getFogUserByInstanceId = function(props, params, callback) {
-  var fogId = AppUtils.getProperty(params, props.instanceId);
+  let fogId = AppUtils.getProperty(params, props.instanceId);
 
   FogUserManager
     .findByInstanceId(fogId)

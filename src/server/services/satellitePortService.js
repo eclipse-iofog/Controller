@@ -9,7 +9,7 @@ const createSatellitePort = function(props, params, callback) {
 }
 
 const deletePortsForNetworkElements = function(props, params, callback) {
-  var elementId = AppUtils.getProperty(params, props.elementId);
+  let elementId = AppUtils.getProperty(params, props.elementId);
 
   SatellitePortManager
     .deletePortsForNetworkElements(elementId)
@@ -17,7 +17,7 @@ const deletePortsForNetworkElements = function(props, params, callback) {
 }
 
 const deleteSatellitePort = function(props, params, callback) {
-  var satellitePortId = AppUtils.getProperty(params, props.satellitePortId);
+  let satellitePortId = AppUtils.getProperty(params, props.satellitePortId);
   
   SatellitePortManager
     .deleteById(satellitePortId)
@@ -25,7 +25,7 @@ const deleteSatellitePort = function(props, params, callback) {
 }
 
 const deleteSatellitePortByIds = function(props, params, callback) {
-  var satellitePortIds = AppUtils.getProperty(params, props.satellitePortIds);
+  let satellitePortIds = AppUtils.getProperty(params, props.satellitePortIds);
 
   SatellitePortManager
     .deleteByPortId(_.pluck(satellitePortIds, props.field))
@@ -33,7 +33,7 @@ const deleteSatellitePortByIds = function(props, params, callback) {
 }
 
 const findBySatellitePortIds = function(props, params, callback) {
-  var networkData = AppUtils.getProperty(params, props.networkData);
+  let networkData = AppUtils.getProperty(params, props.networkData);
 
   SatellitePortManager
     .findBySatellitePortIds(_.pluck(networkData, props.field))
@@ -41,7 +41,7 @@ const findBySatellitePortIds = function(props, params, callback) {
 }
 
 const getPasscodeForNetworkElements = function(props, params, callback) {
-  var elementId = AppUtils.getProperty(params, props.elementId);
+  let elementId = AppUtils.getProperty(params, props.elementId);
 
   SatellitePortManager
     .getPortPasscodeForNetworkElements(elementId)
@@ -49,7 +49,7 @@ const getPasscodeForNetworkElements = function(props, params, callback) {
 }
 
 const getSatellitePort = function(props, params, callback) {
-  var satellitePortId = AppUtils.getProperty(params, props.satellitePortId);
+  let satellitePortId = AppUtils.getProperty(params, props.satellitePortId);
 
   SatellitePortManager
     .findById(satellitePortId)

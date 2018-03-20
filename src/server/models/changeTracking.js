@@ -21,6 +21,14 @@ const ChangeTracking = sequelize.define('iofog_change_tracking', {
     type: Sequelize.BIGINT,
     field: 'container_config'
   },
+  reboot: {
+    type: Sequelize.BOOLEAN,
+    field: 'reboot'
+  },
+  version: {
+      type: Sequelize.BIGINT,
+      field: 'version'
+  },
   containerList: {
     type: Sequelize.BIGINT,
     field: 'container_list'
@@ -36,6 +44,10 @@ const ChangeTracking = sequelize.define('iofog_change_tracking', {
   registries: {
     type: Sequelize.BIGINT,
     field: 'registries'
+  },
+  proxy: {
+    type: Sequelize.BIGINT,
+    field: 'proxy'
   }
 }, {
   // don't add the timestamp attributes (updatedAt, createdAt)

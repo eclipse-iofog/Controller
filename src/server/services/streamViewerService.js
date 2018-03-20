@@ -9,7 +9,7 @@ const createStreamViewer = function(props, params, callback) {
 }
 
 const getStreamViewerByFogInstanceId = function(props, params, callback) {
-   var instanceId = AppUtils.getProperty(params, props.instanceId);
+   let instanceId = AppUtils.getProperty(params, props.instanceId);
 
   StreamViewerManager
     .findByInstanceId(instanceId)
@@ -17,7 +17,7 @@ const getStreamViewerByFogInstanceId = function(props, params, callback) {
 }
 
 const deleteStreamViewerByFogInstanceId  = function(props, params, callback) {
-  var instanceId = AppUtils.getProperty(params, props.instanceId);
+  let instanceId = AppUtils.getProperty(params, props.instanceId);
   
   StreamViewerManager
     .deleteByInstanceId(instanceId)

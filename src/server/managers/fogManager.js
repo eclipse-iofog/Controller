@@ -52,7 +52,7 @@ class FogManager extends BaseManager {
      * @return Array of JSON - returns an Array containing JSON objects
      */
   getFogList() {
-      var fogListQuery = "SELECT UUID, typeKey from iofogs ORDER BY TypeKey";
+      let fogListQuery = "SELECT UUID, typeKey from iofogs ORDER BY TypeKey";
       return sequelize.query(fogListQuery, { type: sequelize.QueryTypes.SELECT });
     }
     /**
@@ -69,14 +69,14 @@ class FogManager extends BaseManager {
   }
 
   findByUserId(userId){
-    var instanceQuery = 'SELECT i.*, t.id as typeId, t.name as typeName, t.image as typeImage, t.description as typeDescription FROM iofogs i JOIN iofog_type t ON (i.typeKey= t.ID)'+ 
+    let instanceQuery = 'SELECT i.*, t.id as typeId, t.name as typeName, t.image as typeImage, t.description as typeDescription FROM iofogs i JOIN iofog_type t ON (i.typeKey= t.ID)'+ 
     ' JOIN iofog_users u ON (i.UUID = u.fog_id) WHERE u.user_id ='+userId;
 
     return sequelize.query(instanceQuery, { type: sequelize.QueryTypes.SELECT });
   }
 
   getFogInstanceDetails(instanceId){
-    var instanceQuery = 'SELECT i.*, t.name as typeName, t.image as typeImage, t.description as typeDescription '+
+    let instanceQuery = 'SELECT i.*, t.name as typeName, t.image as typeImage, t.description as typeDescription '+
       'FROM iofogs i INNER JOIN iofog_type t ON i.typeKey = t.ID WHERE i.UUID in (:instanceId)';
 
     return sequelize.query(instanceQuery, {

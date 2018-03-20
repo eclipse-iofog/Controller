@@ -13,7 +13,7 @@ const createElementFogTypes = function(props, params) {
 }
 
 const deleteElementFogType = function(props, params, callback) {
-  var elementId = AppUtils.getProperty(params, props.elementId);
+  let elementId = AppUtils.getProperty(params, props.elementId);
 
   ElementFogTypeManager
     .deleteElementFogTypes(elementId)

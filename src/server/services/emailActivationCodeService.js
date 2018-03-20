@@ -5,7 +5,7 @@ import EmailActivationCodeManager from '../managers/emailActivationCodeManager';
 import AppUtils from '../utils/appUtils';
 
 const generateActivationCode = function(params, callback) {
-  var safeCode = false;
+  let safeCode = false;
 
   async.whilst(
     function() {
@@ -14,7 +14,7 @@ const generateActivationCode = function(params, callback) {
     function(cb) { 
       params.newActivationCode = AppUtils.generateRandomString(16);
 
-      var activationCodeProps = {
+      let activationCodeProps = {
         activationCode: 'newActivationCode',
         setProperty: 'emailActivationCode'
       };
@@ -30,8 +30,8 @@ const generateActivationCode = function(params, callback) {
       });
     },
     function(err, activationCode) { // CALLBACK
-      var activationCodeExpiryTime = new Date().getTime() + ((60 * 60 * 24 * 3) * 1000);
-      var activationCodeData = {
+      let activationCodeExpiryTime = new Date().getTime() + ((60 * 60 * 24 * 3) * 1000);
+      let activationCodeData = {
         activationCode: params.newActivationCode,
         expirationTime: activationCodeExpiryTime
       };
@@ -43,7 +43,7 @@ const generateActivationCode = function(params, callback) {
 }
 
 const findEmailActivationCode = function(props, params, callback){
-  var activationCode = AppUtils.getProperty(params, props.activationCode);
+  let activationCode = AppUtils.getProperty(params, props.activationCode);
 
   EmailActivationCodeManager
     .getByActivationCode(activationCode)
@@ -51,7 +51,7 @@ const findEmailActivationCode = function(props, params, callback){
 }
 
 const verifyActivationCode = function(props, params, callback){
-  var activationCode = AppUtils.getProperty(params, props.activationCode);
+  let activationCode = AppUtils.getProperty(params, props.activationCode);
 
   EmailActivationCodeManager
     .verifyActivationCode(activationCode)
@@ -59,7 +59,7 @@ const verifyActivationCode = function(props, params, callback){
 }
 
 const saveActivationCode = function(props, params, callback){
-  var userId = AppUtils.getProperty(params, props.userId),
+  let userId = AppUtils.getProperty(params, props.userId),
   activationCode = AppUtils.getProperty(params, props.activationCode),
   expirationTime = AppUtils.getProperty(params, props.expirationTime);
 

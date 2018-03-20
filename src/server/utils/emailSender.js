@@ -2,7 +2,7 @@
 import appConfig from './../../config.json';
 require('dotenv').config();
 const nodemailer = require('nodemailer');
-var smtpTransport = require('nodemailer-smtp-transport');
+let smtpTransport = require('nodemailer-smtp-transport');
 
 // create reusable transporter object using the default SMTP transport
 let transporter = nodemailer.createTransport(smtpTransport({

@@ -23,6 +23,18 @@ class RegistryManager extends BaseManager {
 	  		}
     	});
  	}
+
+    findByUserId(userId) {
+        return Registry.findAll({
+            where: {
+                $or: [{
+                    user_id: userId
+                }, {
+                    user_id: null
+                }]
+            }
+        });
+    }
 }
 
 const instance = new RegistryManager();

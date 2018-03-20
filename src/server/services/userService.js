@@ -1,10 +1,10 @@
 const nodemailer = require('nodemailer');
-var smtpTransport = require('nodemailer-smtp-transport');
+let smtpTransport = require('nodemailer-smtp-transport');
 import UserManager from '../managers/userManager';
 import AppUtils from '../utils/appUtils';
 
 const userEmailSender = function (props, params, callback){
-  var service = AppUtils.getProperty(params, props.service),
+  let service = AppUtils.getProperty(params, props.service),
    email = AppUtils.getProperty(params, props.email),
    password = AppUtils.getProperty(params, props.password);
 
@@ -28,7 +28,7 @@ const createUser = function(props, params, callback) {
 }
 
 const getUser = function(props, params, callback) {
-  var userId = AppUtils.getProperty(params, props.userId);
+  let userId = AppUtils.getProperty(params, props.userId);
 
   UserManager
     .findByToken(userId)
@@ -36,7 +36,7 @@ const getUser = function(props, params, callback) {
 }
 
 const getUserOptional = function(props, params, callback) {
-  var userId = AppUtils.getProperty(params, props.userId);
+  let userId = AppUtils.getProperty(params, props.userId);
 
   UserManager
     .findByToken(userId)
@@ -44,7 +44,7 @@ const getUserOptional = function(props, params, callback) {
 }
 
  const verifyEmailActivation = function(props, params, callback){
-   var emailActivated = AppUtils.getProperty(params, props.emailActivated);
+   let emailActivated = AppUtils.getProperty(params, props.emailActivated);
 
    if(emailActivated > 0){
     callback(null, params);
@@ -54,7 +54,7 @@ const getUserOptional = function(props, params, callback) {
  }
 
 const getUserByEmailPassword = function(props, params, callback) {
-  var email = AppUtils.getProperty(params, props.email),
+  let email = AppUtils.getProperty(params, props.email),
       password = AppUtils.getProperty(params, props.password);
       
   UserManager
@@ -63,7 +63,7 @@ const getUserByEmailPassword = function(props, params, callback) {
 }
 
 const findUserByEmail = function(props, params, callback) {
-  var email = AppUtils.getProperty(params, props.email);
+  let email = AppUtils.getProperty(params, props.email);
 
   UserManager
     .validateUserByEmail(email)
@@ -71,7 +71,7 @@ const findUserByEmail = function(props, params, callback) {
 }
 
 const getUserByEmail = function(props, params, callback) {
-  var email = AppUtils.getProperty(params, props.email);
+  let email = AppUtils.getProperty(params, props.email);
 
   UserManager
     .validateUserByEmail(email)
@@ -79,7 +79,7 @@ const getUserByEmail = function(props, params, callback) {
 }
 
 const isUsingTempPassword = function (props, params, callback){
-  var email = AppUtils.getProperty(params, props.email),
+  let email = AppUtils.getProperty(params, props.email),
       password = AppUtils.getProperty(params, props.password);
       
   UserManager
@@ -88,7 +88,7 @@ const isUsingTempPassword = function (props, params, callback){
 }
 
 const updateUserByEmail = function(props, params, callback) {
-  var email = AppUtils.getProperty(params, props.email);
+  let email = AppUtils.getProperty(params, props.email);
 
   UserManager
     .updateUserByEmail(email, props.updateData)
@@ -96,7 +96,7 @@ const updateUserByEmail = function(props, params, callback) {
 }
 
 const updateUser = function(props, params, callback) {
-  var userId = AppUtils.getProperty(params, props.userId);
+  let userId = AppUtils.getProperty(params, props.userId);
 
   UserManager
     .updateUserById(userId, props.updatedObj)
@@ -104,7 +104,7 @@ const updateUser = function(props, params, callback) {
 }
 
 const updateUserByToken = function(props, params, callback) {
-  var token = AppUtils.getProperty(params, props.token);
+  let token = AppUtils.getProperty(params, props.token);
 
   UserManager
     .updateUserByToken(token, props.updateData)
@@ -113,7 +113,7 @@ const updateUserByToken = function(props, params, callback) {
 
 
 const deleteByUserId = function(props, params, callback) {
-  var userId = AppUtils.getProperty(params, props.userId);
+  let userId = AppUtils.getProperty(params, props.userId);
 
   UserManager
     .deleteByUserId(userId)

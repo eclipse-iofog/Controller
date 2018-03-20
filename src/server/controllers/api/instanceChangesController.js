@@ -17,7 +17,7 @@ import logger from '../../utils/winstonLogs';
 /** Check Change Tracking Changes EndPoint (Get/Post: /api/v2/instance/changes/id/:ID/token/:Token/timestamp/:TimeStamp) **/
 const getChangeTrackingChangesEndPoint = function(req, res) {
   logger.info("Endpoint hit: "+ req.originalUrl);
-  var params = {},
+  let params = {},
       instanceProps = {
         instanceId: 'bodyParams.ID',
         setProperty: 'changeTrackingData'
@@ -35,7 +35,7 @@ const getChangeTrackingChangesEndPoint = function(req, res) {
   ], function(err, result) {
     AppUtils.sendResponse(res, err, 'changes', params.changes, result);
   })
-}
+};
 
 /************************************* Extra Functions **************************************************/
 const processChangeTrackingChanges = function(params, callback) {
@@ -43,16 +43,32 @@ const processChangeTrackingChanges = function(params, callback) {
     if(params.bodyParams.TimeStamp.length < 1) {
       params.bodyParams.TimeStamp = 0;
     }
-    var changes = {
+    let changes = {
       config: false,
+      version: false,
+      reboot: false,
       containerlist: false,
       containerconfig: false,
       routing: false,
-      registries: false
+      registries: false,
+      proxy: false
     };
-  
+
     if(params.changeTrackingData.config > params.bodyParams.TimeStamp) {
       changes.config = true;
+    }
+
+    if(params.changeTrackingData.version > params.bodyParams.TimeStamp) {
+      changes.version = true;
+    }
+
+    if(params.changeTrackingData.reboot) {
+      changes.reboot = true;
+      async.waterfall([
+              async.apply(updateChangeTracking, params)
+          ],
+          function (err, result) {
+          });
     }
     
     if(params.changeTrackingData.containerList > params.bodyParams.TimeStamp) {
@@ -70,11 +86,26 @@ const processChangeTrackingChanges = function(params, callback) {
     if (params.changeTrackingData.registries > params.bodyParams.TimeStamp) {
       changes.registries = true;
     }
+
+    if (params.changeTrackingData.proxy > params.bodyParams.TimeStamp) {
+      changes.proxy = true;
+    }
     params.changes = changes;
     callback (null, params);
   }else{
     callback('Error', 'Error: Cannot find changeTracking data of current iofog instance.')
   }
+};
+
+const updateChangeTracking = function (params, callback) {
+    var changeTrackingProps = {
+        fogInstanceId: 'bodyParams.ID',
+        changeObject: {
+            reboot: false
+        }
+    }
+
+    ChangeTrackingService.updateChangeTracking(changeTrackingProps, params, callback);
 }
 
 const updateFogInstance = function(params, callback){
@@ -85,7 +116,7 @@ const updateFogInstance = function(params, callback){
         }
       };
   FogService.updateFogInstance(fogInstanceProps, params, callback);
-}
+};
 
 export default {
   getChangeTrackingChangesEndPoint: getChangeTrackingChangesEndPoint

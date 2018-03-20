@@ -20,7 +20,7 @@ import logger from '../../utils/winstonLogs';
 /******* Get Provision Key EndPoint (Get: /api/v2/authoring/fabric/provisionkey/instanceid/:instanceId) ********/
  const getProvisionKeyEndPoint = function(req, res){
   logger.info("Endpoint hit: "+ req.originalUrl);
-  var params = {},
+  let params = {},
       fogProps = {
           instanceId: 'bodyParams.instanceId',
           setProperty: 'newProvision'
@@ -35,7 +35,7 @@ import logger from '../../utils/winstonLogs';
     FogProvisionKeyService.deleteExpiredProvisionKeys
 
   ],function(err, result) {
-    var outputProvisionKey, outputExpirationTime, successLabelArr, successValueArr;
+    let outputProvisionKey, outputExpirationTime, successLabelArr, successValueArr;
 
     if (params.newProvision)
     {
@@ -53,7 +53,7 @@ import logger from '../../utils/winstonLogs';
 /** Fog Provisioning EndPoint (Get/Post: /api/v2/instance/provision/key/:provisionKey/fabrictype/:fabricType) **/
 const fogProvisionKeyEndPoint = function(req, res) {
   logger.info("Endpoint hit: "+ req.originalUrl);
-  var params = {},
+  let params = {},
       provisionProps = {
         provisionKey: 'bodyParams.provisionKey',
         setProperty: 'fogProvision'
@@ -97,7 +97,7 @@ const fogProvisionKeyEndPoint = function(req, res) {
 
   ], function(err, result) {
    
-   var successLabelArr,
+   let successLabelArr,
        successValueArr;
 
     if (params.fogData && params.newAccessToken){
@@ -119,7 +119,7 @@ const checkFogType = function(params, callback){
 /********* Delete Provision Key EndPoint (Post: /api/v2/authoring/fabric/provisioningkey/list/delete) *********/
 const deleteProvisionKeyEndPoint = function(req, res) {
   logger.info("Endpoint hit: "+ req.originalUrl);
-  var params = {},
+  let params = {},
       instanceProps = {
         instanceId: 'bodyParams.instanceId',
         setProperty: 'provisionData'
