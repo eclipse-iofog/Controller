@@ -39,8 +39,9 @@ const integratorInstanceCreateEndPoint = function(req, res){
     createFogProps = {
       name: 'bodyParams.name',
       location: 'bodyParams.location',
-      latitude: 'bodyParams.latitude',
-      longitude: 'bodyParams.longitude',
+        //TODO from MaksimChepelev: now lon and lat comes only from fog agent, but later it could comes from ui
+      // latitude: 'bodyParams.latitude',
+      // longitude: 'bodyParams.longitude',
       description: 'bodyParams.description',
       fogType: 'bodyParams.fabricType',
       setProperty: 'fogInstance'
@@ -111,13 +112,14 @@ const updateFogInstance = function(params, callback){
         updatedFog: {
           name : params.bodyParams.name,
           location : params.bodyParams.location,
-          latitude : params.bodyParams.latitude,
-          longitude : params.bodyParams.longitude,
+            //TODO from MaksimChepelev:now lon and lat comes only from fog agent, but later it could comes from ui
+          // latitude : params.bodyParams.latitude,
+          // longitude : params.bodyParams.longitude,
           description : params.bodyParams.description
         }
       };
   FogService.updateFogInstance(fogInstanceProps, params, callback);
-}
+};
 
 export default {
   integratorInstanceCreateEndPoint: integratorInstanceCreateEndPoint,

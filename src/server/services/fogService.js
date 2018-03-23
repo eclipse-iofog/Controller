@@ -7,16 +7,18 @@ const createFogInstance = function(props, params, callback) {
       instanceId = AppUtils.generateRandomString(32),
       name = AppUtils.getProperty(params, props.name),
       location = AppUtils.getProperty(params, props.location),
-      latitude = AppUtils.getProperty(params, props.latitude),
-      longitude = AppUtils.getProperty(params, props.longitude),
+      //TODO from MaksimChepelev: now lon and lat comes only from fog agent, but later it could comes from ui
+      // latitude = AppUtils.getProperty(params, props.latitude),
+      // longitude = AppUtils.getProperty(params, props.longitude),
       description = AppUtils.getProperty(params, props.description);
 
   let config = {
     uuid: instanceId,
     name: name,
     location: location,
-    latitude: latitude,
-    longitude: longitude,
+      //TODO from MaksimChepelev: now lon and lat comes only from fog agent, but later it could comes from ui
+    // latitude: latitude,
+    // longitude: longitude,
     description: description,
     typeKey: fogType
   };

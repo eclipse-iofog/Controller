@@ -26,6 +26,10 @@ const Fog = sequelize.define('iofogs', {
         type: Sequelize.TEXT,
         field: 'Location'
     },
+    gpsmode: {
+        type: Sequelize.TEXT,
+        field: 'GpsMode'
+    },
     latitude: {
         type: Sequelize.TEXT,
         field: 'Latitude'

@@ -91,8 +91,9 @@ const fogInstanceCreateEndPoint = function (req, res) {
     createFogProps = {
       name: 'bodyParams.name',
       location: 'bodyParams.location',
-      latitude: 'bodyParams.latitude',
-      longitude: 'bodyParams.longitude',
+        //TODO from MaksimChepelev: now lon and lat comes only from fog agent, but later it could comes from ui
+      // latitude: 'bodyParams.latitude',
+      // longitude: 'bodyParams.longitude',
       description: 'bodyParams.description',
       fogType: 'bodyParams.type',
       setProperty: 'fogInstance'
