@@ -8,7 +8,7 @@ import async from 'async';
 
 
 import ChangeTrackingService from '../../services/changeTrackingService';
-import ElementFogTypeService from '../../services/elementFogTypeService';
+import ElementImageService from '../../services/elementImageService';
 import ElementService from '../../services/elementService';
 import ElementInstanceService from '../../services/elementInstanceService';
 import ElementInstancePortService from '../../services/elementInstancePortService';
@@ -50,6 +50,7 @@ import logger from '../../utils/winstonLogs';
     AppUtils.sendResponse(res, err, 'module', params.elementData, result);
   });
 };
+
 /************ Create Element For User EndPoint (Post: /api/v2/authoring/element/module/create) ************/
  const createElementForUserEndPoint = function(req, res) {
   logger.info("Endpoint hit: "+ req.originalUrl);
@@ -58,37 +59,31 @@ import logger from '../../utils/winstonLogs';
       userProps = {
         userId: 'bodyParams.t',
         setProperty: 'user'
-      },
-      fogTypeProps = {
-        fogTypeId: 'bodyParams.fabricType',
-        setProperty: 'fogTypeData'
       };
+
   params.bodyParams = req.body;
   logger.info("Parameters:" + JSON.stringify(params.bodyParams));
 
   async.waterfall([
     async.apply(UserService.getUser, userProps, params),
-    async.apply(FogTypeService.getFogTypeDetail, fogTypeProps),
     createElementForUser,
-    createElementFogType,
     createElementInputType,
     createElementOutputType
 
   ], function(err, result) {
-   let successLabelArr,
-       successValueArr,
-       elementData = {};
+   let elementData = {};
 
-    if (params.element && params.elementFogData){
+    if (params.element){
       elementData.id = params.element.id;
-      successLabelArr= ['elementFogType', 'module'],
-      successValueArr= [params.elementFogData.iofog_type_id, elementData];
     }
-    AppUtils.sendMultipleResponse(res, err, successLabelArr, successValueArr, result);
+
+    AppUtils.sendResponse(res, err, 'module', elementData, 'unable to create new element instance');
   })
 };
 
-/*************** Create Element EndPoint (Post) *****************/
+/*
+//Deprecated code
+/!*************** Create Element EndPoint (Post) *****************!/
  const createElementEndPoint = function(req, res) {
   logger.info("Endpoint hit: "+ req.originalUrl);
 
@@ -102,16 +97,17 @@ import logger from '../../utils/winstonLogs';
 
   async.waterfall([
     async.apply(UserService.getUser, userProps, params),
-    checkFogTypes,
     createElement,
-    createElementFogTypes
 
   ], function(err, result) {
     AppUtils.sendResponse(res, err, 'element', params.element, result);
   })
 };
+*/
 
-/*************** Update Element EndPoint (Post) *****************/
+/*
+//Deprecated code
+/!*************** Update Element EndPoint (Post) *****************!/
  const updateElementEndPoint = function(req, res) {
   logger.info("Endpoint hit: "+ req.originalUrl);
 
@@ -138,13 +134,13 @@ import logger from '../../utils/winstonLogs';
     async.apply(ElementService.getNetworkElement, elementProps),
     checkFogTypes,
     updateElement,
-    async.apply(ElementFogTypeService.deleteElementFogType, fogTypeProps),
-    createElementFogTypes,
+    async.apply(ElementImageService.deleteElementImage, fogTypeProps),
 
   ], function(err, result) {
     AppUtils.sendResponse(res, err, 'element', params.bodyParams.id, result);
   })
 };
+*/
 
 const checkFogTypes = function(params, callback) {
  let fogTypeIds = [];
@@ -173,34 +169,6 @@ const checkFogTypes = function(params, callback) {
   }
 }
 
-const createElementFogTypes = function(params, callback) {
-  let fogTypeIds = [];
-  
-  if(params.bodyParams.fabricTypeIds){
-    fogTypeIds = params.bodyParams.fabricTypeIds.split(',')
-  }
-  if (fogTypeIds.length) {
-    async.eachOfSeries(fogTypeIds, function (value, key, cb) {
-      let elementFogTypeProps = {
-        elementType: {
-          element_id: params.element.id,
-          iofog_type_id: value
-        }
-      };
-      
-      ElementFogTypeService.createElementFogType(elementFogTypeProps, params, cb);
-    }, function (err) {
-      if(!err){
-        callback(null, params);
-      }else{
-        callback('Error', err);
-      }
-    });
-  }else{
-    callback(null, params);
-  }
-}
-
 /*************** Update Element For User EndPoint (Post: /api/v2/authoring/element/module/update) ***********************/
  const updateElementForUserEndPoint= function(req, res) {
   logger.info("Endpoint hit: "+ req.originalUrl);
@@ -215,7 +183,7 @@ const createElementFogTypes = function(params, callback) {
       setProperty: 'element'
     },
 
-    fogTypeProps = {
+    elementImageProps = {
       elementId: 'bodyParams.id',
     };
 
@@ -226,6 +194,7 @@ const createElementFogTypes = function(params, callback) {
     async.apply(UserService.getUser, userProps, params),
     async.apply(ElementService.getNetworkElement, elementProps),
     updateElement,
+    updateElementImages,
     updateElementInputType,
     updateElementOutputType
 
@@ -234,7 +203,9 @@ const createElementFogTypes = function(params, callback) {
   })
 };
 
-/*************** Delete Element EndPoint (Post: /api/v2/authoring/organization/element/delete) *****************/
+/*
+////Deprecated code
+/!*************** Delete Element EndPoint (Post: /api/v2/authoring/organization/element/delete) *****************!/
  const deleteElementEndPoint = function(req, res) {
   logger.info("Endpoint hit: "+ req.originalUrl);
   
@@ -264,6 +235,7 @@ const createElementFogTypes = function(params, callback) {
     AppUtils.sendResponse(res, err, 'elementId', params.bodyParams.id, result);
   })
 };
+*/
 
 /*************** Delete Element For User EndPoint (Get: /api/v2/authoring/element/module/delete/moduleid/:moduleId) **************/
  const deleteElementForUserEndPoint = function(req, res) {
@@ -295,7 +267,7 @@ const createElementFogTypes = function(params, callback) {
     async.apply(ElementService.getNetworkElement, elementKeyProps), 
     async.apply(ElementInstanceService.findElementInstancesByElementKey, elementProps),
     deleteElementInstanceData,
-    async.apply(ElementFogTypeService.deleteElementFogType, elementIdProps),
+    async.apply(ElementImageService.deleteElementImage, elementIdProps),
     async.apply(ElementInputTypeService.deleteElementInputType, elementProps),
     async.apply(ElementOutputTypeService.deleteElementOutputType, elementProps),
     async.apply(ElementService.deleteElementById, elementIdProps)
@@ -378,13 +350,12 @@ const createElement = function(params, callback) {
           description: params.bodyParams.description,
           config: params.bodyParams.config,
           category: params.bodyParams.category,
-          containerImage: params.bodyParams.containerImage,
-            registry: params.bodyParams.registry,
+          registry: params.bodyParams.registry,
           publisher: params.bodyParams.publisher,
           diskRequired: false,
           ramRequired: false,
           picture: params.bodyParams.picture,
-            isPublic: false
+          isPublic: false
         },
         setProperty: 'element'
       };
@@ -423,31 +394,17 @@ const createElementForUser = function(params, callback) {
           name: '',
           description: '',
           category: '',
-          containerImage: '',
           publisher: '',
           config: '',
           diskRequired: false,
           ramRequired: false,
           picture: 'images/shared/default.png',
           isPublic: false,
-            registryId: 1
+          registryId: 1
         },
         setProperty: 'element'
       };
   ElementService.createElement(elementProps, params, callback);
-}
-
-const createElementFogType = function(params, callback) {
-  if (params.bodyParams.fabricType){
-      let elementFogTypeProps = {
-            elementType: {
-              element_id: params.element.id,
-              iofog_type_id: params.bodyParams.fabricType
-            },
-            setProperty: 'elementFogData'
-          };
-      ElementFogTypeService.createElementFogType(elementFogTypeProps, params, callback);
-    }
 }
 
 const updateElement = function(params, callback) {
@@ -458,18 +415,43 @@ const updateElement = function(params, callback) {
           description: params.bodyParams.description,
           config: params.bodyParams.config,
           category: params.bodyParams.category,
-          containerImage: params.bodyParams.containerImage,
-            registryId: params.bodyParams.registry,
+          registryId: params.bodyParams.registry,
           publisher: params.bodyParams.publisher,
           diskRequired: params.bodyParams.diskRequired ? params.bodyParams.diskRequired : false,
           ramRequired: params.bodyParams.ramRequired ? params.bodyParams.ramRequired : false,
           picture: params.bodyParams.picture,
-            isPublic: false
+          isPublic: false
         }
       };
 
   ElementService.updateElement(elementProps, params, callback);
 }
+
+const updateElementImages = function(params, callback) {
+    let elementImages = [];
+
+    if(params.bodyParams.images){
+        elementImages = params.bodyParams.images
+    }
+    if (elementImages.length) {
+        async.eachOfSeries(elementImages, function (value, key, cb) {
+            let elementImage = {
+                element_id: params.bodyParams.id,
+                iofog_type_id: value.fogTypeId,
+                containerImage: value.image
+            };
+            ElementImageService.updateElementImages(elementImage, params, cb);
+        }, function (err) {
+            if(!err){
+                callback(null, params);
+            }else{
+                callback('Error', err);
+            }
+        });
+    }else{
+        callback(null, params);
+    }
+};
 
 const updateElementInputType = function(params, callback) {
   let elementInputTypeProps = {
@@ -535,11 +517,8 @@ const deleteElementInstanceData = function(params, callback) {
 }
 
 export default {
-  createElementEndPoint: createElementEndPoint,
   createElementForUserEndPoint: createElementForUserEndPoint,
-  updateElementEndPoint: updateElementEndPoint,
   updateElementForUserEndPoint: updateElementForUserEndPoint,
-  deleteElementEndPoint: deleteElementEndPoint,
   getCatalogOfElements: getCatalogOfElements,
   getElementsForPublishingEndPoint: getElementsForPublishingEndPoint,
   getElementDetailsEndPoint: getElementDetailsEndPoint,

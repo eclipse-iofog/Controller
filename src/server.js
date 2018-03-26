@@ -98,9 +98,9 @@ const initApp = function () {
 
   // app.get('/api/v2/instance/getfabriclist', fogController.getFogListEndPoint);
   app.get('/api/v2/authoring/element/get', elementController.getElementsForPublishingEndPoint);
-  app.post('/api/v2/authoring/organization/element/create', elementController.createElementEndPoint);
-  app.post('/api/v2/authoring/organization/element/update', elementController.updateElementEndPoint);
-  app.post('/api/v2/authoring/organization/element/delete', elementController.deleteElementEndPoint);
+  // app.post('/api/v2/authoring/organization/element/create', elementController.createElementEndPoint);
+  // app.post('/api/v2/authoring/organization/element/update', elementController.updateElementEndPoint);
+  // app.post('/api/v2/authoring/organization/element/delete', elementController.deleteElementEndPoint);
   app.get('/api/v2/authoring/element/catalog/get', elementController.getCatalogOfElements);
   app.post('/api/v2/authoring/element/instance/create', elementInstanceController.detailedElementInstanceCreateEndPoint);
   app.post('/api/v2/authoring/build/element/instance/create', elementInstanceController.elementInstanceCreateEndPoint);

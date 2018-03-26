@@ -26,6 +26,7 @@ import UserService from '../../services/userService';
 import AppUtils from '../../utils/appUtils';
 import logger from '../../utils/winstonLogs';
 import _ from 'underscore';
+import ArchitectureUtils from '../../utils/architectureUtils'
 
 /*********************************************** EndPoints ******************************************************/
 /***** Get Rebuild Status of Element Instance EndPoint (Get: /api/v2/authoring/element/instance/rebuild/status/elementid/:elementId *****/
@@ -1023,7 +1024,7 @@ const elementInstanceUpdateEndPoint = function(req, res) {
     async.waterfall([
       async.apply(UserService.getUser, userProps, params),
       getFogInstance,
-      async.apply(ElementInstanceService.getElementInstance, elementInstanceProps),
+      async.apply(ElementInstanceService.getElementInstanceWithImages, elementInstanceProps),
       updateElementInstance,
       updateChangeTracking,
       updateChange, 
@@ -1174,8 +1175,7 @@ const getOpenPorts = function(params, callback){
         volumeMappings: instance.volumeMappings,
         elementName: instance.elementName,
         picture: instance.elementPicture,
-        typeName: instance.Name,
-        typeId: instance.ID,
+        images: instance.elementImages,
         connections: getConnections(params, instance),
         ports: extractOpenPort(params, instance),
         debug: isDebugging(params, instance),
@@ -1259,6 +1259,13 @@ const updateElementInstance = function (params, callback) {
     if (params.bodyParams.fabricInstanceId != 'NONE'){
         fogInstanceId = params.bodyParams.fabricInstanceId;
       }
+
+    if (!ArchitectureUtils
+            .isExistsImageForFogType(params.fogData.typeKey, params.elementInstance.elementImages)) {
+
+      callback('error', "no container image for this fog type");
+      return;
+    }
 
     data = {
       iofog_uuid: fogInstanceId
@@ -1381,15 +1388,14 @@ const getElementInstanceProperties = function(params, callback) {
         elementName: instance.name,
         description: instance.description,
         category: instance.category,
-        containerImage: instance.container_image,
-          registryId: instance.registry,
+        images: instance.elementImages,
+        registryId: instance.registry,
         publisher: instance.publisher,
         diskRequired: instance.diskRequired,
         ramRequired: instance.ram_required,
         picture: instance.picture,
         volumeMappings: instance.volumeMappings,
         isPublic: instance.is_public,
-        typeId: instance.fogTypeID,
         ports: extractOpenPort(params, instance)
       };
       response.push(elementInstance);
@@ -1466,7 +1472,7 @@ const extractElementsForTrack = function(params, callback) {
         elementtypename: instance.element.name,
         category: instance.element.category,
         image: instance.element.containerImage,
-          registryId: instance.element.registry,
+        registryId: instance.element.registry,
         publisher: instance.element.publisher,
         advertisedports: _.where(params.elementAdvertisedPort, {
           element_id: instance.element_key
@@ -1537,7 +1543,7 @@ const getElementDetails = function(params, callback) {
     elementTypeName: params.element.name,
     category: params.element.category,
     image: params.element.containerImage,
-      registryId: params.element.registry,
+    registryId: params.element.registry,
     publisher: params.element.publisher,
     advertisedPorts: _.where(params.elementAdvertisedPort, {
       element_id: params.elementInstance[0].element_key

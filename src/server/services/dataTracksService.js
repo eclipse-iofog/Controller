@@ -79,7 +79,7 @@ const updateDataTrackByUserId = function(props, params, callback) {
 export default {
   createDataTrack: createDataTrack,
   deleteTrackById: deleteTrackById,
- findContainerListByInstanceId: findContainerListByInstanceId,
+  findContainerListByInstanceId: findContainerListByInstanceId,
   getDataTrackById: getDataTrackById,
   getTrackById: getTrackById,
   getDataTrackByInstanceId: getDataTrackByInstanceId,

@@ -102,28 +102,31 @@ CREATE TABLE iofog_users (
   UNIQUE (user_id, fog_id)
 );
 INSERT INTO iofog_users VALUES (193, 43, 'fVmnRpHgdNnDw7XJLJw7GV4NVRhjk4V3');
-CREATE TABLE element_fog_types (
+CREATE TABLE element_images (
   ID            INTEGER PRIMARY KEY AUTOINCREMENT,
   element_id    INTEGER REFERENCES element (ID)
     ON DELETE CASCADE
     ON UPDATE CASCADE,
   iofog_type_id INTEGER REFERENCES iofog_type (ID)
     ON DELETE SET NULL
-    ON UPDATE CASCADE
+    ON UPDATE CASCADE,
+  container_image TEXT
 );
-INSERT INTO element_fog_types VALUES (1, 1, 1);
-INSERT INTO element_fog_types VALUES (2, 2, 1);
-INSERT INTO element_fog_types VALUES (3, 3, 1);
-INSERT INTO element_fog_types VALUES (4, 4, 1);
-INSERT INTO element_fog_types VALUES (5, 5, 1);
-INSERT INTO element_fog_types VALUES (6, 6, 1);
-INSERT INTO element_fog_types VALUES (7, 7, 1);
-INSERT INTO element_fog_types VALUES (8, 8, 1);
-INSERT INTO element_fog_types VALUES (9, 9, 1);
-INSERT INTO element_fog_types VALUES (10, 10, 1);
-INSERT INTO element_fog_types VALUES (11, 11, 1);
-INSERT INTO element_fog_types VALUES (12, 49, 1);
-INSERT INTO element_fog_types VALUES (13, 58, 1);
+INSERT INTO element_images VALUES (1, 1, 1, 'iotracks/catalog:stream-viewer-1.0');
+INSERT INTO element_images VALUES (2, 2, 1, 'iotracks/catalog:debug');
+INSERT INTO element_images VALUES (3, 3, 1, 'iotracks/catalog:core-networking-1-12');
+INSERT INTO element_images VALUES (4, 4, 1, 'iotracks/catalog:hello-web-1');
+INSERT INTO element_images VALUES (5, 5, 1, 'iotracks/catalog:bluetooth-rest-api-v0.5');
+INSERT INTO element_images VALUES (6, 6, 1, 'iotracks/catalog:hal-0.1');
+INSERT INTO element_images VALUES (7, 6, 2, 'iotracks/catalog:hal-0.1-arm');
+INSERT INTO element_images VALUES (8, 8, 1, 'iotracks/catalog:open-weather-map-v1.06');
+INSERT INTO element_images VALUES (9, 9, 1, 'iotracks/catalog:mongodb');
+INSERT INTO element_images VALUES (10, 10, 1, 'iotracks/catalog:influxdb');
+INSERT INTO element_images VALUES (11, 11, 1, 'iotracks/catalog:grafana');
+INSERT INTO element_images VALUES (12, 49, 1, 'iotracks/catalog:json-rest-api-v1.04');
+INSERT INTO element_images VALUES (13, 58, 1, 'iotracks/catalog:temperature-conversion-v1.03');
+INSERT INTO element_images VALUES (14, 12, 1, 'iotracks/catalog:mongo-receiver-python');
+INSERT INTO element_images VALUES (15, 13, 1, 'iotracks/catalog:influx-receiver-python');
 CREATE TABLE network_pairing (
   ID                INTEGER PRIMARY KEY AUTOINCREMENT,
   IsPublicPort      TINYINT(1),
@@ -162,7 +165,6 @@ CREATE TABLE element (
   name            TEXT,
   description     TEXT,
   category        TEXT,
-  container_image TEXT,
   publisher       TEXT,
   diskRequired    BIGINT,
   ram_required    BIGINT,
@@ -176,45 +178,45 @@ CREATE TABLE element (
 );
 INSERT INTO element VALUES
   (1, 'Stream Viewer', 'The built-in stream viewer for ioIntegrator Linux edition', 'Utilities',
-      'iotracks/catalog:stream-viewer-1.0', 'SYSTEM', 0, 0, 'none.png', NULL, 1, 0, 1);
+      'SYSTEM', 0, 0, 'none.png', NULL, 1, 0, 1);
 INSERT INTO element VALUES
   (2, 'Debug Console', 'The built-in debug console for ioIntegrator Linux edition', 'Utilities',
-      'iotracks/catalog:debug', 'SYSTEM', 0, 0, 'none.png', NULL, 1, 0, 1);
+      'SYSTEM', 0, 0, 'none.png', NULL, 1, 0, 1);
 INSERT INTO element VALUES
   (3, 'Networking Tool', 'The built-in networking tool for ioIntegrator Linux edition', 'Utilities',
-      'iotracks/catalog:core-networking-1-12', 'SYSTEM', 0, 0, 'none.png', NULL, 1, 0, 1);
+      'SYSTEM', 0, 0, 'none.png', NULL, 1, 0, 1);
 INSERT INTO element VALUES
-  (4, 'Hello Web Demo', 'A simple web server for you to test your ioFog', 'Demos', 'iotracks/catalog:hello-web-1',
+  (4, 'Hello Web Demo', 'A simple web server for you to test your ioFog', 'Demos',
       'iotracks', 0, 0, 'images/build/4.png', NULL, 1, 0, 1);
 INSERT INTO element VALUES
-  (5, 'RESTBlue', 'Bluetooth RESTful API', 'Utilities', 'iotracks/catalog:bluetooth-rest-api-v0.5', 'SYSTEM', 0, 0,
+  (5, 'RESTBlue', 'Bluetooth RESTful API', 'Utilities', 'SYSTEM', 0, 0,
       'none.png', NULL, 1, 0, 1);
 INSERT INTO element VALUES
-  (6, 'HAL', 'HAL container', 'Utilities', 'iotracks/catalog:hal-0.1', 'SYSTEM', 0, 0, 'none.png', NULL, 1, 0, 1);
-INSERT INTO element VALUES
-  (7, 'HAL ARM', 'ARM HAL container', 'Utilities', 'iotracks/catalog:hal-0.1-arm', 'SYSTEM', 0, 0, 'none.png', NULL,
-      1, 0, 1);
+  (6, 'HAL', 'HAL container', 'Utilities', 'SYSTEM', 0, 0, 'none.png', NULL, 1, 0, 1);
 INSERT INTO element VALUES
   (8, 'Open Weather Map Data', 'A stream of data from the Open Weather Map API in JSON format', 'Sensors',
-      'iotracks/catalog:open-weather-map-v1.06', 'iotracks', 0, 0, 'images/build/8.png', NULL, 1, 0, 1);
-INSERT INTO element VALUES (49, 'JSON REST API', 'A configurable REST API that gives JSON output', 'Utilities',
-                                'iotracks/catalog:json-rest-api-v1.04', 'iotracks', 0, 0, 'images/build/49.png', NULL,
-                                1, 0, 1);
-INSERT INTO element VALUES (58, 'Temperature Converter', 'A simple temperature format converter', 'Utilities',
-                                'iotracks/catalog:temperature-conversion-v1.03', 'iotracks', 0, 0,
-                                'images/build/58.png', NULL, 1, 0, 1);
-
-INSERT INTO element VALUES (9, 'Mongo', 'MongoDB database', 'Utilities',
-                                '80444561333/alpine-mongo', 'SYSTEM', 0, 0,
-                                'none.png', NULL, 1, 0, 1);
-
-INSERT INTO element VALUES (10, 'Influx', 'InfluxDB database', 'Utilities',
-                                '80444561333/alpine-influx', 'SYSTEM', 0, 0,
-                                'none.png', NULL, 1, 0, 1);
-
-INSERT INTO element VALUES (11, 'Grafana', 'Grafana container', 'Utilities',
-                                '80444561333/grafana', 'SYSTEM', 0, 0,
-                                'none.png', NULL, 1, 0, 1);
+      'iotracks', 0, 0, 'images/build/8.png', NULL, 1, 0, 1);
+INSERT INTO element VALUES
+  (49, 'JSON REST API', 'A configurable REST API that gives JSON output', 'Utilities',
+       'iotracks', 0, 0, 'images/build/49.png', NULL, 1, 0, 1);
+INSERT INTO element VALUES
+  (58, 'Temperature Converter', 'A simple temperature format converter', 'Utilities',
+       'iotracks', 0, 0, 'images/build/58.png', NULL, 1, 0, 1);
+INSERT INTO element VALUES
+  (9, 'Mongo', 'MongoDB database', 'Utilities',
+      'SYSTEM', 0, 0, 'none.png', NULL, 1, 0, 1);
+INSERT INTO element VALUES
+  (10, 'Influx', 'InfluxDB database', 'Utilities',
+       'SYSTEM', 0, 0, 'none.png', NULL, 1, 0, 1);
+INSERT INTO element VALUES
+  (11, 'Grafana', 'Grafana container', 'Utilities',
+       'SYSTEM', 0, 0, 'none.png', NULL, 1, 0, 1);
+INSERT INTO element VALUES
+  (12, 'Mongo Adapter', 'Mongo adapter container', 'Utilities',
+       'SYSTEM', 0, 0, 'none.png', NULL, 1, 0, 1);
+INSERT INTO element VALUES
+  (13, 'Influx Adapter', 'Influx adapter container', 'Utilities',
+       'SYSTEM', 0, 0, 'none.png', NULL, 1, 0, 1);
 
 CREATE TABLE element_input_type (
   ID          INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -338,7 +340,7 @@ INSERT INTO iofog_type VALUES (1, 'Standard Linux (x86)', 'iointegrator1.png',
                                1, 2, 3, 6, 9, 10, 11, 5);
 INSERT INTO iofog_type VALUES (2, 'ARM Linux', 'iointegrator2.png',
                                'A version of ioFog meant to run on Linux systems with ARM processors. Microservices for this ioFog type will be tailored to ARM systems.',
-                               1, 2, 3, 7, 9, 10, 11, 5);
+                               1, 2, 3, 6, 9, 10, 11, 5);
 CREATE TABLE element_instance (
   ID                  INTEGER PRIMARY KEY AUTOINCREMENT,
   UUID                TEXT UNIQUE,
@@ -494,7 +496,7 @@ INSERT INTO sqlite_sequence VALUES ('stream_viewer', 257);
 INSERT INTO sqlite_sequence VALUES ('instance_track', 0);
 INSERT INTO sqlite_sequence VALUES ('element_advertised_port', 0);
 INSERT INTO sqlite_sequence VALUES ('iofog_users', 193);
-INSERT INTO sqlite_sequence VALUES ('element_fog_types', 181);
+INSERT INTO sqlite_sequence VALUES ('element_images', 181);
 INSERT INTO sqlite_sequence VALUES ('network_pairing', 644);
 INSERT INTO sqlite_sequence VALUES ('element_instance_connections', 68);
 INSERT INTO sqlite_sequence VALUES ('element', 226);
