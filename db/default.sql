@@ -120,11 +120,13 @@ INSERT INTO element_images VALUES (5, 5, 1, 'iotracks/catalog:bluetooth-rest-api
 INSERT INTO element_images VALUES (6, 6, 1, 'iotracks/catalog:hal-0.1');
 INSERT INTO element_images VALUES (7, 6, 2, 'iotracks/catalog:hal-0.1-arm');
 INSERT INTO element_images VALUES (8, 8, 1, 'iotracks/catalog:open-weather-map-v1.06');
-INSERT INTO element_images VALUES (9, 9, 1, '80444561333/alpine-mongo');
-INSERT INTO element_images VALUES (10, 10, 1, '80444561333/alpine-influx');
-INSERT INTO element_images VALUES (11, 11, 1, '80444561333/grafana');
+INSERT INTO element_images VALUES (9, 9, 1, 'iotracks/catalog:mongodb');
+INSERT INTO element_images VALUES (10, 10, 1, 'iotracks/catalog:influxdb');
+INSERT INTO element_images VALUES (11, 11, 1, 'iotracks/catalog:grafana');
 INSERT INTO element_images VALUES (12, 49, 1, 'iotracks/catalog:json-rest-api-v1.04');
 INSERT INTO element_images VALUES (13, 58, 1, 'iotracks/catalog:temperature-conversion-v1.03');
+INSERT INTO element_images VALUES (14, 12, 1, 'iotracks/catalog:mongo-receiver-python');
+INSERT INTO element_images VALUES (15, 13, 1, 'iotracks/catalog:influx-receiver-python');
 CREATE TABLE network_pairing (
   ID                INTEGER PRIMARY KEY AUTOINCREMENT,
   IsPublicPort      TINYINT(1),
@@ -202,16 +204,19 @@ INSERT INTO element VALUES
        'iotracks', 0, 0, 'images/build/58.png', NULL, 1, 0, 1);
 INSERT INTO element VALUES
   (9, 'Mongo', 'MongoDB database', 'Utilities',
-      'SYSTEM', 0, 0,
-      'none.png', NULL, 1, 0, 1);
+      'SYSTEM', 0, 0, 'none.png', NULL, 1, 0, 1);
 INSERT INTO element VALUES
   (10, 'Influx', 'InfluxDB database', 'Utilities',
-        'SYSTEM', 0, 0,
-        'none.png', NULL, 1, 0, 1);
+       'SYSTEM', 0, 0, 'none.png', NULL, 1, 0, 1);
 INSERT INTO element VALUES
   (11, 'Grafana', 'Grafana container', 'Utilities',
-        'SYSTEM', 0, 0,
-        'none.png', NULL, 1, 0, 1);
+       'SYSTEM', 0, 0, 'none.png', NULL, 1, 0, 1);
+INSERT INTO element VALUES
+  (12, 'Mongo Adapter', 'Mongo adapter container', 'Utilities',
+       'SYSTEM', 0, 0, 'none.png', NULL, 1, 0, 1);
+INSERT INTO element VALUES
+  (13, 'Influx Adapter', 'Influx adapter container', 'Utilities',
+       'SYSTEM', 0, 0, 'none.png', NULL, 1, 0, 1);
 
 CREATE TABLE element_input_type (
   ID          INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -331,10 +336,10 @@ CREATE TABLE iofog_type (
 );
 INSERT INTO iofog_type VALUES (1, 'Standard Linux (x86)', 'iointegrator1.png',
                                'A standard Linux server of at least moderate processing power and capacity. Compatible with common Linux types such as Ubuntu, Red Hat, and CentOS.',
-                               1, 2, 3, 6, 9, 10, 11, 5);
+                               1, 2, 3, 6, 9, 10, 11, 5, 12, 13);
 INSERT INTO iofog_type VALUES (2, 'ARM Linux', 'iointegrator2.png',
                                'A version of ioFog meant to run on Linux systems with ARM processors. Microservices for this ioFog type will be tailored to ARM systems.',
-                               1, 2, 3, 6, 9, 10, 11, 5);
+                               1, 2, 3, 6, 9, 10, 11, 5, 12, 13);
 CREATE TABLE element_instance (
   ID                  INTEGER PRIMARY KEY AUTOINCREMENT,
   UUID                TEXT UNIQUE,
