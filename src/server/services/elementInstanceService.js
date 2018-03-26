@@ -1,6 +1,7 @@
 import ElementInstanceManager from '../managers/elementInstanceManager';
 import AppUtils from '../utils/appUtils';
 import _ from 'underscore';
+import ElementImageService from "./elementImageService";
 
 const getDataTrackDetails = function(props, params, callback) {
   let elementInstanceData = AppUtils.getProperty(params, props.elementInstanceData);
@@ -22,16 +23,28 @@ const updateElementInstanceRebuild = function(props, params, callback) {
 const getElementInstanceProperties = function(props, params, callback) {
   let elementInstanceId = AppUtils.getProperty(params, props.elementInstanceId);
 
+  let imageProps = {
+      elementId: 'ID',
+      setProperty: 'elementImages'
+  };
+
   ElementInstanceManager
     .getElementInstanceProperties(elementInstanceId)
+    .then(ElementImageService.populateImagesForElements.bind(null, imageProps))
     .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Cannot find Element Instance', callback));
 }
 
 const getDetailedElementInstances = function(props, params, callback) {
   let trackId = AppUtils.getProperty(params, props.trackId);
 
+    let imageProps = {
+        elementId: 'elementKey',
+        setProperty: 'elementImages'
+    };
+
   ElementInstanceManager
     .getElementInstanceDetails(trackId)
+    .then(ElementImageService.populateImagesForElements.bind(null, imageProps))
     .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Cannot find Element Instance', callback));
 }
 
@@ -41,6 +54,20 @@ const getElementInstance = function(props, params, callback) {
   ElementInstanceManager
     .findByUuId(elementInstanceId)
     .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Cannot find Element Instance', callback));
+}
+
+const getElementInstanceWithImages = function(props, params, callback) {
+    let elementInstanceId = AppUtils.getProperty(params, props.elementInstanceId);
+
+    let imageProps = {
+        elementId: 'element_key',
+        setProperty: 'elementImages'
+    };
+
+    ElementInstanceManager
+        .findByUuId(elementInstanceId)
+        .then(ElementImageService.populateImagesForElement.bind(null, imageProps))
+        .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Cannot find Element Instance', callback));
 }
 
 const getElementInstanceOptional = function(props, params, callback) {
@@ -319,5 +346,6 @@ export default {
   getDetailedElementInstances:getDetailedElementInstances,
   getElementInstanceRouteDetails: getElementInstanceRouteDetails,
   getElementInstancesByFogId: getElementInstancesByFogId,
-  getElementInstancesByFogIdOptional: getElementInstancesByFogIdOptional
+  getElementInstancesByFogIdOptional: getElementInstancesByFogIdOptional,
+  getElementInstanceWithImages: getElementInstanceWithImages
 };

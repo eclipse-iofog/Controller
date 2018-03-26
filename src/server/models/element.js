@@ -31,14 +31,10 @@ const Element = sequelize.define('element', {
     type: Sequelize.TEXT,
     field: 'config'
   },
-  containerImage: {
-    type: Sequelize.TEXT,
-    field: 'container_image'
+  registryId: {
+      type: Sequelize.BIGINT,
+      field: 'registry_id'
   },
-    registryId: {
-        type: Sequelize.BIGINT,
-        field: 'registry_id'
-    },
   publisher: {
     type: Sequelize.TEXT,
     field: 'publisher'
