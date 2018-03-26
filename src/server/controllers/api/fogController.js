@@ -75,7 +75,10 @@ const fogInstancesListEndPoint = function (req, res) {
   })
 };
 
-/******************** Fog Instance Create EndPoint (Get: /api/v2/instance/create/type/:type) ******************/
+/**
+ ******************* Fog Instance Create EndPoint (Get: /api/v2/instance/create/type/:type) ****************
+ * @deprecated
+ **/
 const fogInstanceCreateEndPoint = function (req, res) {
   logger.info("Endpoint hit: " + req.originalUrl);
   let params = {},
@@ -91,9 +94,8 @@ const fogInstanceCreateEndPoint = function (req, res) {
     createFogProps = {
       name: 'bodyParams.name',
       location: 'bodyParams.location',
-        //TODO from MaksimChepelev: now lon and lat comes only from fog agent, but later it could comes from ui
-      // latitude: 'bodyParams.latitude',
-      // longitude: 'bodyParams.longitude',
+      latitude: 'bodyParams.latitude',
+      longitude: 'bodyParams.longitude',
       description: 'bodyParams.description',
       fogType: 'bodyParams.type',
       setProperty: 'fogInstance'
@@ -365,11 +367,22 @@ const updateFog = function (params, callback) {
       changefrequency: params.bodyParams.changeFrequency,
       scanfrequency: params.bodyParams.scanFrequency,
       proxy: params.bodyParams.proxy,
-      isolateddockercontainer: params.bodyParams.docker
+      isolateddockercontainer: params.bodyParams.docker,
+      /*latitude: params.bodyParams.lat,
+      longitude: params.bodyParams.lon*/
     }
   };
+  populateLatAndLonIfValid(fogProps.updatedFog, params.bodyParams.lat, params.bodyParams.lon);
   FogService.updateFogInstance(fogProps, params, callback);
-}
+};
+
+const populateLatAndLonIfValid = function (to, lat, lon) {
+    if( lat < 90 && lat > -90
+        && lon < 180 && lon > -180) {
+        to['latitude'] = lat;
+        to['longitude'] = lon;
+    }
+};
 
 const streamViewerForFog = function (params, callback) {
   if (params.bodyParams.viewer && (params.bodyParams.viewer != params.fogInstance.viewer)) {

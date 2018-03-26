@@ -71,7 +71,8 @@ const processConfigData = function(params, callback){
       poststatusfreq: params.fogData.statusfrequency.toString(),
       getchangesfreq: params.fogData.changefrequency.toString(),
       scandevicesfreq: params.fogData.scanfrequency.toString(),
-      isolateddockercontainer: params.fogData.isolateddockercontainer === 1 ? 'on' : 'off'
+      isolateddockercontainer: params.fogData.isolateddockercontainer === 1 ? 'on' : 'off',
+      gpscoordinates: params.fogData.latitude + ',' + params.fogData.longitude
     };
 
     params.config = config;

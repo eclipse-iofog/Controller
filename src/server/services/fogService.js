@@ -2,23 +2,24 @@ import FogManager from '../managers/fogManager';
 import AppUtils from '../utils/appUtils';
 import _ from 'underscore';
 
+/**
+ * @deprecated
+ */
 const createFogInstance = function(props, params, callback) {
   let fogType = AppUtils.getProperty(params, props.fogType),
       instanceId = AppUtils.generateRandomString(32),
       name = AppUtils.getProperty(params, props.name),
       location = AppUtils.getProperty(params, props.location),
-      //TODO from MaksimChepelev: now lon and lat comes only from fog agent, but later it could comes from ui
-      // latitude = AppUtils.getProperty(params, props.latitude),
-      // longitude = AppUtils.getProperty(params, props.longitude),
+      latitude = AppUtils.getProperty(params, props.latitude),
+      longitude = AppUtils.getProperty(params, props.longitude),
       description = AppUtils.getProperty(params, props.description);
 
   let config = {
     uuid: instanceId,
     name: name,
     location: location,
-      //TODO from MaksimChepelev: now lon and lat comes only from fog agent, but later it could comes from ui
-    // latitude: latitude,
-    // longitude: longitude,
+    latitude: latitude,
+    longitude: longitude,
     description: description,
     typeKey: fogType
   };
