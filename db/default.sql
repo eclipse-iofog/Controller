@@ -336,10 +336,10 @@ CREATE TABLE iofog_type (
 );
 INSERT INTO iofog_type VALUES (1, 'Standard Linux (x86)', 'iointegrator1.png',
                                'A standard Linux server of at least moderate processing power and capacity. Compatible with common Linux types such as Ubuntu, Red Hat, and CentOS.',
-                               1, 2, 3, 6, 9, 10, 11, 5, 12, 13);
+                               1, 2, 3, 6, 9, 10, 11, 5);
 INSERT INTO iofog_type VALUES (2, 'ARM Linux', 'iointegrator2.png',
                                'A version of ioFog meant to run on Linux systems with ARM processors. Microservices for this ioFog type will be tailored to ARM systems.',
-                               1, 2, 3, 6, 9, 10, 11, 5, 12, 13);
+                               1, 2, 3, 6, 9, 10, 11, 5);
 CREATE TABLE element_instance (
   ID                  INTEGER PRIMARY KEY AUTOINCREMENT,
   UUID                TEXT UNIQUE,
