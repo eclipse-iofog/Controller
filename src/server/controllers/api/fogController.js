@@ -367,9 +367,7 @@ const updateFog = function (params, callback) {
       changefrequency: params.bodyParams.changeFrequency,
       scanfrequency: params.bodyParams.scanFrequency,
       proxy: params.bodyParams.proxy,
-      isolateddockercontainer: params.bodyParams.docker,
-      /*latitude: params.bodyParams.lat,
-      longitude: params.bodyParams.lon*/
+      isolateddockercontainer: params.bodyParams.docker
     }
   };
   populateLatAndLonIfValid(fogProps.updatedFog, params.bodyParams.lat, params.bodyParams.lon);
