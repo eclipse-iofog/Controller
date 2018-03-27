@@ -6,7 +6,6 @@
 
 import Element from './../models/element';
 import BaseManager from './baseManager';
-import Registry from './../models/registry';
 import sequelize from './../utils/sequelize';
 
 class ElementManager extends BaseManager {

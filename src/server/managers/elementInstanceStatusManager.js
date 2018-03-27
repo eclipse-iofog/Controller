@@ -1,5 +1,6 @@
 import BaseManager from "./baseManager";
 import ElementInstanceStatus from "../models/elementInstanceStatus";
+import ElementInstanceManager from "../managers/elementInstanceManager";
 
 /**
  * @author elukashick
@@ -37,9 +38,12 @@ class ElementInstanceStatusManager extends BaseManager {
     }
 
     upsertStatus(obj) {
-        return this.findByInstanceId(obj.uuid)
-            .then((dbObj) => {
-                return null == dbObj ? this.create(obj) : this.update(obj)
+        return ElementInstanceManager.findByUuId(obj.uuid)
+            .then((elementInstanceObj) => {
+                return null == elementInstanceObj ? null :
+                    this.findByInstanceId(obj.uuid).then((dbObj) => {
+                        return null == dbObj ? this.create(obj) : this.update(obj)
+                    });
             });
     }
 }
