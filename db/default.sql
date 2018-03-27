@@ -367,6 +367,18 @@ CREATE TABLE element_instance (
     ON DELETE SET NULL
     ON UPDATE CASCADE
 );
+CREATE TABLE element_instance_status (
+  ID                    INTEGER PRIMARY KEY AUTOINCREMENT,
+  status                TEXT,
+  cpu_usage             FLOAT,
+  memory_usage          BIGINT,
+  container_id          BIGINT,
+  created_at            DATETIME NOT NULL,
+  updated_at            DATETIME NOT NULL,
+  element_instance_uuid INTEGER REFERENCES element_instance (UUID)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+);
 CREATE TABLE iofog_access_tokens (
   ID              INTEGER PRIMARY KEY AUTOINCREMENT,
   user_id         INTEGER,
