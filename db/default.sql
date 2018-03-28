@@ -113,20 +113,39 @@ CREATE TABLE element_images (
   container_image TEXT
 );
 INSERT INTO element_images VALUES (1, 1, 1, 'iotracks/catalog:stream-viewer-1.0');
-INSERT INTO element_images VALUES (2, 2, 1, 'iotracks/catalog:debug');
-INSERT INTO element_images VALUES (3, 3, 1, 'iotracks/catalog:core-networking-1-12');
-INSERT INTO element_images VALUES (4, 4, 1, 'iotracks/catalog:hello-web-1');
-INSERT INTO element_images VALUES (5, 5, 1, 'iotracks/catalog:bluetooth-rest-api-v0.5');
-INSERT INTO element_images VALUES (6, 6, 1, 'iotracks/catalog:hal-0.1');
-INSERT INTO element_images VALUES (7, 6, 2, 'iotracks/catalog:hal-0.1-arm');
-INSERT INTO element_images VALUES (8, 8, 1, 'iotracks/catalog:open-weather-map-v1.06');
-INSERT INTO element_images VALUES (9, 9, 1, 'iotracks/catalog:mongodb');
-INSERT INTO element_images VALUES (10, 10, 1, 'iotracks/catalog:influxdb');
-INSERT INTO element_images VALUES (11, 11, 1, 'iotracks/catalog:grafana');
-INSERT INTO element_images VALUES (12, 49, 1, 'iotracks/catalog:json-rest-api-v1.04');
-INSERT INTO element_images VALUES (13, 58, 1, 'iotracks/catalog:temperature-conversion-v1.03');
-INSERT INTO element_images VALUES (14, 12, 1, 'iotracks/catalog:mongo-receiver-python');
-INSERT INTO element_images VALUES (15, 13, 1, 'iotracks/catalog:influx-receiver-python');
+INSERT INTO element_images VALUES (2, 1, 2, 'iotracks/catalog:stream-viewer-1.0-arm');
+INSERT INTO element_images VALUES (3, 2, 1, 'iotracks/catalog:debug');
+INSERT INTO element_images VALUES (4, 2, 2, 'iotracks/catalog:debug-arm');
+INSERT INTO element_images VALUES (5, 3, 1, 'iotracks/catalog:core-networking-1-12');
+INSERT INTO element_images VALUES (6, 3, 2, 'iotracks/catalog:core-networking-1-12-arm');
+INSERT INTO element_images VALUES (7, 4, 1, 'iotracks/catalog:hello-web-1');
+INSERT INTO element_images VALUES (8, 4, 2, 'iotracks/catalog:hello-web-1-arm');
+INSERT INTO element_images VALUES (9, 5, 1, 'iotracks/catalog:bluetooth-rest-api-v0.5');
+INSERT INTO element_images VALUES (10, 5, 2, 'iotracks/catalog:bluetooth-rest-api-v0.5-arm');
+INSERT INTO element_images VALUES (11, 6, 1, 'iotracks/catalog:hal-0.1');
+INSERT INTO element_images VALUES (12, 6, 2, 'iotracks/catalog:hal-0.1-arm');
+INSERT INTO element_images VALUES (13, 8, 1, 'iotracks/catalog:open-weather-map-v1.06');
+INSERT INTO element_images VALUES (14, 8, 2, 'iotracks/catalog:open-weather-map-v1.06-arm');
+INSERT INTO element_images VALUES (15, 9, 1, 'iotracks/catalog:mongodb');
+INSERT INTO element_images VALUES (16, 9, 2, 'iotracks/catalog:mongodb-arm');
+INSERT INTO element_images VALUES (17, 10, 1, 'iotracks/catalog:influxdb');
+INSERT INTO element_images VALUES (18, 10, 2, 'iotracks/catalog:influxdb-arm');
+INSERT INTO element_images VALUES (19, 11, 1, 'iotracks/catalog:grafana');
+INSERT INTO element_images VALUES (20, 11, 2, 'iotracks/catalog:grafana-arm');
+INSERT INTO element_images VALUES (21, 49, 1, 'iotracks/catalog:json-rest-api-v1.04');
+INSERT INTO element_images VALUES (22, 49, 2, 'iotracks/catalog:json-rest-api-v1.04-arm');
+INSERT INTO element_images VALUES (23, 58, 1, 'iotracks/catalog:temperature-conversion-v1.03');
+INSERT INTO element_images VALUES (24, 58, 2, 'iotracks/catalog:temperature-conversion-v1.03-arm');
+INSERT INTO element_images VALUES (25, 12, 1, 'iotracks/catalog:mongo-receiver-python');
+INSERT INTO element_images VALUES (26, 12, 2, 'iotracks/catalog:mongo-receiver-python-arm');
+INSERT INTO element_images VALUES (27, 13, 1, 'iotracks/catalog:influx-receiver-python');
+INSERT INTO element_images VALUES (28, 13, 2, 'iotracks/catalog:influx-receiver-python-arm');
+INSERT INTO element_images VALUES (29, 14, 1, 'iotracks/catalog:json-subselect-go');
+INSERT INTO element_images VALUES (30, 14, 2, 'iotracks/catalog:json-subselect-go-arm');
+INSERT INTO element_images VALUES (31, 15, 1, 'iotracks/catalog:diagnostic-1.3');
+INSERT INTO element_images VALUES (32, 15, 2, 'iotracks/catalog:diagnostic-1.3-arm');
+INSERT INTO element_images VALUES (33, 16, 1, 'iofog/mqtt-client:0.2');
+INSERT INTO element_images VALUES (34, 16, 2, 'iofog/mqtt-client:0.2-arm');
 CREATE TABLE network_pairing (
   ID                INTEGER PRIMARY KEY AUTOINCREMENT,
   IsPublicPort      TINYINT(1),
@@ -217,6 +236,18 @@ INSERT INTO element VALUES
 INSERT INTO element VALUES
   (13, 'Influx Adapter', 'Influx adapter container', 'Utilities',
        'SYSTEM', 0, 0, 'none.png', NULL, 1, 0, 1);
+INSERT INTO element VALUES
+  (14, 'JSON Sub-Select', 'Performs sub-selection and transform operations on any JSON messages', 'Utilities',
+       'iotracks', 0, 0, 'images/build/59.png', NULL, 1, 0, 1);
+INSERT INTO element VALUES
+  (15, 'Diagnostics', 'Performs diagnostics of basic functionality to work with ioFog.  ' +
+                      'Use diagnostic container if something goes wrong on your machine with ioFog agent,' +
+                      ' e.g. Comsats are not available, a container cannot connect to ioFog host, ' +
+                      'ioFog client is not created, RestBlue or Log Container are not available and so on.',
+       'Utilities', 'iotracks', 0, 0, 'images/build/580.png', NULL, 1, 0, 1);
+INSERT INTO element VALUES
+  (16, 'MQTT Client', 'Converts MQTT-messages to ioMesage format and vice versa.', 'Utilities',
+       'iotracks', 0, 0, 'images/build/640.png', NULL, 1, 0, 1);
 
 CREATE TABLE element_input_type (
   ID          INTEGER PRIMARY KEY AUTOINCREMENT,
