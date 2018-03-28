@@ -8,6 +8,7 @@ import async from 'async';
 import BaseApiController from './baseApiController';
 import FogService from '../../services/fogService';
 import AppUtils from '../../utils/appUtils';
+import GpsUtils from '../../utils/gpsUtils';
 import logger from '../../utils/winstonLogs';
 import Constants from '../../constants.js';
 
@@ -70,12 +71,13 @@ const processConfigData = function(params, callback){
       poststatusfreq: params.fogData.statusfrequency.toString(),
       getchangesfreq: params.fogData.changefrequency.toString(),
       scandevicesfreq: params.fogData.scanfrequency.toString(),
-      isolateddockercontainer: params.fogData.isolateddockercontainer === 1 ? 'on' : 'off'
+      isolateddockercontainer: params.fogData.isolateddockercontainer === 1 ? 'on' : 'off',
+      gpscoordinates: params.fogData.latitude + ',' + params.fogData.longitude
     };
 
     params.config = config;
     callback (null, params);
-}
+};
 
 const updateFogInstance = function(params, callback){
 
@@ -93,12 +95,15 @@ const updateFogInstance = function(params, callback){
         logfilecount: params.bodyParams.logfilecount,
         statusfrequency: params.bodyParams.poststatusfreq,
         changefrequency: params.bodyParams.getchangesfreq,
-          scanfrequency: params.bodyParams.scandevicesfreq,
-        isolatedDockerContainer: params.bodyParams.isolateddockercontainer
+        scanfrequency: params.bodyParams.scandevicesfreq,
+        isolatedDockerContainer: params.bodyParams.isolateddockercontainer,
+        gpsmode: params.bodyParams.gpsmode,
+        latitude: GpsUtils.getGpsCoordinates(params.bodyParams.gpscoordinates).lat,
+        longitude: GpsUtils.getGpsCoordinates(params.bodyParams.gpscoordinates).lon,
       }
     };
   FogService.updateFogInstance(fogConfigProps, params, callback);
-}
+};
 
 export default {
   instanceConfigEndPoint: instanceConfigEndPoint,

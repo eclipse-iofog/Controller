@@ -75,7 +75,10 @@ const fogInstancesListEndPoint = function (req, res) {
   })
 };
 
-/******************** Fog Instance Create EndPoint (Get: /api/v2/instance/create/type/:type) ******************/
+/**
+ ******************* Fog Instance Create EndPoint (Get: /api/v2/instance/create/type/:type) ****************
+ * @deprecated
+ **/
 const fogInstanceCreateEndPoint = function (req, res) {
   logger.info("Endpoint hit: " + req.originalUrl);
   let params = {},
@@ -367,8 +370,17 @@ const updateFog = function (params, callback) {
       isolateddockercontainer: params.bodyParams.docker
     }
   };
+  populateLatAndLonIfValid(fogProps.updatedFog, params.bodyParams.lat, params.bodyParams.lon);
   FogService.updateFogInstance(fogProps, params, callback);
-}
+};
+
+const populateLatAndLonIfValid = function (to, lat, lon) {
+    if( lat < 90 && lat > -90
+        && lon < 180 && lon > -180) {
+        to['latitude'] = lat;
+        to['longitude'] = lon;
+    }
+};
 
 const streamViewerForFog = function (params, callback) {
   if (params.bodyParams.viewer && (params.bodyParams.viewer != params.fogInstance.viewer)) {

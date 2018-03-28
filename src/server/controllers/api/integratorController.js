@@ -23,6 +23,11 @@ import UserService from '../../services/userService';
 import AppUtils from '../../utils/appUtils';
 import logger from '../../utils/winstonLogs';
 
+/**
+ * @deprecated
+ */
+
+
 /********************************************* EndPoints ******************************************************/
 
 /*************** Integrator Instance Create EndPoint (Post: /api/v2/authoring/integrator/instance/create     
@@ -117,7 +122,7 @@ const updateFogInstance = function(params, callback){
         }
       };
   FogService.updateFogInstance(fogInstanceProps, params, callback);
-}
+};
 
 export default {
   integratorInstanceCreateEndPoint: integratorInstanceCreateEndPoint,

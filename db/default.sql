@@ -265,6 +265,7 @@ CREATE TABLE iofogs (
   UUID                    TEXT PRIMARY KEY,
   Name                    TEXT    DEFAULT ('Unnamed ioFog 1'),
   Location                TEXT,
+  GpsMode                 TEXT,
   Latitude                TEXT,
   Longitude               TEXT,
   OrgID                   BIGINT,

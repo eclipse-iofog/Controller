@@ -2,6 +2,9 @@ import FogManager from '../managers/fogManager';
 import AppUtils from '../utils/appUtils';
 import _ from 'underscore';
 
+/**
+ * @deprecated
+ */
 const createFogInstance = function(props, params, callback) {
   let fogType = AppUtils.getProperty(params, props.fogType),
       instanceId = AppUtils.generateRandomString(32),
