@@ -2,7 +2,7 @@
 
 1.&ensp;Install fog-controller
 
-	   npm install -g fog-controller
+	   npm install -g --unsafe-perm fog-controller
 
 2.&ensp;Create user
 
