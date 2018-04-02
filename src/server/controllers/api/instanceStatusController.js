@@ -9,6 +9,7 @@ import BaseApiController from './baseApiController';
 import FogService from '../../services/fogService';
 import AppUtils from '../../utils/appUtils';
 import logger from '../../utils/winstonLogs';
+import ElemetInstanceStatusService from "../../services/elementInstanceStatusService";
 
 
 /********************************************* EndPoints ******************************************************/
@@ -23,7 +24,7 @@ import logger from '../../utils/winstonLogs';
         fogId: 'bodyParams.instanceId',
         setProperty: 'fogInstance'
       };
- 
+
   params.bodyParams = req.body;
   params.bodyParams.instanceId = req.params.ID;
   logger.info("Parameters:" + JSON.stringify(params.bodyParams));
@@ -31,13 +32,23 @@ import logger from '../../utils/winstonLogs';
   async.waterfall([
     async.apply(BaseApiController.checkUserExistance, req, res),
     async.apply(FogService.getFogInstance, fogInstanceProps, params),
-    updateFogInstance
+      upsertStatus,
+      updateFogInstance,
   ], function(err, result) {
     AppUtils.sendResponse(res, err,'','', result);
   })
 };
 
 /*********************************** Extra Functions ***************************************************/
+const upsertStatus = function (params, callback) {
+    let statusObjArr = JSON.parse(params.bodyParams.elementstatus);
+    async.eachSeries(statusObjArr, function (statusObj, callback) {
+        ElemetInstanceStatusService.upsertStatus(statusObj, params, callback);
+    }, function (err, result) {
+        callback(null, params);
+    });
+};
+
 const updateFogInstance = function(params, callback){
 
   let proxyStatus = getProxyStatus(params);
@@ -52,16 +63,16 @@ const updateFogInstance = function(params, callback){
           diskusage : params.bodyParams.diskusage,
           cpuusage : params.bodyParams.cpuusage,
           memoryviolation : params.bodyParams.memoryviolation,
-          diskviolation : params.bodyParams.diskviolation, 
+            diskviolation: params.bodyParams.diskviolation,
           cpuviolation : params.bodyParams.cpuviolation,
-          elementstatus : params.bodyParams.elementstatus, 
+            elementstatus: params.bodyParams.elementstatus,
           repositorycount : params.bodyParams.repositorycount,
           repositorystatus : params.bodyParams.repositorystatus,
           systemtime : params.bodyParams.systemtime,
           laststatustime : params.bodyParams.laststatustime,
           ipaddress : params.bodyParams.ipaddress,
           processedmessages : params.bodyParams.processedmessages,
-          elementmessagecounts : params.bodyParams.elementmessagecounts, 
+            elementmessagecounts: params.bodyParams.elementmessagecounts,
           messagespeed : params.bodyParams.messagespeed,
           lastcommandtime : params.bodyParams.lastcommandtime,
           proxy : proxyStatus,
