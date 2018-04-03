@@ -11,7 +11,7 @@ stages:
 - name: dev_build
   if: branch = develop
 - name: package_build
-  if: branch = master
+  if: branch IN (master, dev_package)
   
 jobs:
   include:
@@ -25,6 +25,6 @@ jobs:
     - npm install -g fog-controller 
     - npm run build
     deploy:
-      provider: npmnode dist/daemonServer.js
+      provider: npm
       email: ${NPM_EMAIL_ADDRESS}
       api_key: ${NPM_AUTH_TOKEN}
