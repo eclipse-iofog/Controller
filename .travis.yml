@@ -1,5 +1,5 @@
+sudo: true
 language: node_js
-
 notifications:
   email: false  
   slack:
@@ -25,6 +25,8 @@ jobs:
     - npm install -g fog-controller 
     - npm run build
     deploy:
-      provider: npm
+      provider: npm 
       email: ${NPM_EMAIL_ADDRESS}
       api_key: ${NPM_AUTH_TOKEN}
+      on:
+        all_branches: true
