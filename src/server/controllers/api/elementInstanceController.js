@@ -1654,7 +1654,7 @@ const listElementInstanceWithStatusEndPoint = function (req, res) {
     logger.info("Parameters:" + JSON.stringify(params.bodyParams));
 
     async.waterfall([
-            //async.apply(UserService.getUser, userProps, params),
+            async.apply(UserService.getUser, userProps, params),
             async.apply(DataTracksService.findContainerListWithStatusByInstanceId, instanceProps, params)
         ],
         function (err, result) {
