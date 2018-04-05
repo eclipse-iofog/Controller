@@ -81,6 +81,37 @@ import logger from '../../utils/winstonLogs';
   })
 };
 
+/************ Import Element For User EndPoint (Post: /api/v2/authoring/element/module/import) ************/
+ const importElementForUserEndPoint = function(req, res) {
+  logger.info("Endpoint hit: "+ req.originalUrl);
+
+  let params = {},
+      userProps = {
+        userId: 'bodyParams.t',
+        setProperty: 'user'
+      };
+
+  params.bodyParams = req.body;
+  logger.info("Parameters:" + JSON.stringify(params.bodyParams));
+
+  async.waterfall([
+    async.apply(UserService.getUser, userProps, params),
+    createElementForUser,
+    createElementInputType,
+    createElementOutputType
+
+  ], function(err, result) {
+   let elementData = {};
+
+    if (params.element){
+      elementData.id = params.element.id;
+    }
+    // updateElementForUserEndPoint
+
+    AppUtils.sendResponse(res, err, 'module', elementData, 'unable to import new element instance');
+  })
+};
+
 /*
 //Deprecated code
 /!*************** Create Element EndPoint (Post) *****************!/
@@ -366,8 +397,8 @@ const createElementInputType = function(params, callback) {
   let elementInputTypeProps = {
         elementInputType : {
           elementKey: params.element.id,
-          infoType: '',
-          infoFormat: ''
+          infoType: params.bodyParams.infoType || '',
+          infoFormat: params.bodyParams.infoFormat || ''
         },
         setProperty: 'elementInputType'
       };
@@ -379,8 +410,8 @@ const createElementOutputType = function(params, callback) {
   let elementOutputTypeProps = {
         elementOutputType : {
           elementKey: params.element.id,
-          infoType: '',
-          infoFormat: ''
+          infoType: params.bodyParams.infoType || '',
+          infoFormat: params.bodyParams.infoFormat || ''
         },
         setProperty: 'elementOutputType'
       };
@@ -391,16 +422,16 @@ const createElementOutputType = function(params, callback) {
 const createElementForUser = function(params, callback) {
     let elementProps = {
         element : {
-          name: '',
-          description: '',
-          category: '',
-          publisher: '',
-          config: '',
-          diskRequired: false,
-          ramRequired: false,
-          picture: 'images/shared/default.png',
-          isPublic: false,
-          registryId: 1
+          name: params.bodyParams.name || '',
+          description: params.bodyParams.description || '',
+          category: params.bodyParams.category || '',
+          publisher: params.bodyParams.publisher || '',
+          config: params.bodyParams.config || '',
+          diskRequired: params.bodyParams.diskRequired || false,
+          ramRequired: params.bodyParams.ramRequired || false,
+          picture: params.bodyParams.picture || 'images/shared/default.png',
+          isPublic: !!params.bodyParams.isPublic,
+          registryId: params.bodyParams.registryId || 1,
         },
         setProperty: 'element'
       };
@@ -518,6 +549,7 @@ const deleteElementInstanceData = function(params, callback) {
 
 export default {
   createElementForUserEndPoint: createElementForUserEndPoint,
+  importElementForUserEndPoint: importElementForUserEndPoint,
   updateElementForUserEndPoint: updateElementForUserEndPoint,
   getCatalogOfElements: getCatalogOfElements,
   getElementsForPublishingEndPoint: getElementsForPublishingEndPoint,
