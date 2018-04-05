@@ -420,6 +420,18 @@ const elementInstanceDeleteEndPoint = function(req, res) {
 
     deleteElementProps = {
       elementId: 'bodyParams.elementId'
+    },
+
+    elementInstanceProps = {
+      setProperty: 'elementInstance',
+      elementInstanceId: 'bodyParams.elementId'
+    },
+
+    changeTrackingProps = {
+      fogInstanceId: 'elementInstance.iofog_uuid',
+      changeObject: {
+        'containerList': new Date().getTime(),
+      }
     };
 
   params.bodyParams = req.body;
@@ -436,6 +448,8 @@ const elementInstanceDeleteEndPoint = function(req, res) {
     ComsatService.closePortsOnComsat,
     async.apply(NetworkPairingService.deleteNetworkPairing, deleteElementProps),
     async.apply(SatellitePortService.deletePortsForNetworkElements, deleteElementProps),
+    async.apply(ElementInstanceService.getElementInstance, elementInstanceProps),
+    async.apply(ChangeTrackingService.updateChangeTracking, changeTrackingProps),
     async.apply(ElementInstanceService.deleteElementInstance, deleteElementProps)
   ], function(err, result) {
     let errMsg = 'Internal error: There was a problem deleting ioElement instance.' + result;
