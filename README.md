@@ -107,6 +107,8 @@ To setup HTTPS for fog controller, do following steps:
         fog-controller config -add ioauthoring_ip_address 127.0.0.1
         fog-controller config -add ioauthoring_protocol https
 
+Do not forget to update ioAuthoring configs and add certificates under /etc/iofog/ on the machine where fog agent is running! 
+
 To setup email sender, do following steps:
 
         fog-controller config -add email_address abc@xyz.com
