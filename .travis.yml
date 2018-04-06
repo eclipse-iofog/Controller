@@ -19,7 +19,7 @@ jobs:
     before_install:
     - sudo apt-get install sshpass
     script: 
-    - sshpass -p $DEV_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no -p $DEV_MACHINE_PORT $DEV_MACHINE_USERNAME@$DEV_MACHINE_IP "cd /iotracks/FogController;sudo -S npm i; sudo -S npm run build-dev; sudo -S pm2 restart FogController"
+    - sshpass -p $DEV_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no -p $DEV_MACHINE_PORT $DEV_MACHINE_USERNAME@$DEV_MACHINE_IP "cd /iotracks/FogController; echo ${DEV_MACHINE_PASSWORD} | sudo -S npm i; sudo -S npm run build-dev; sudo -S pm2 restart FogController"
   - stage: package_build
     script: 
     - npm run build
