@@ -81,37 +81,6 @@ import logger from '../../utils/winstonLogs';
   })
 };
 
-/************ Import Element For User EndPoint (Post: /api/v2/authoring/element/module/import) ************/
- const importElementForUserEndPoint = function(req, res) {
-  logger.info("Endpoint hit: "+ req.originalUrl);
-
-  let params = {},
-      userProps = {
-        userId: 'bodyParams.t',
-        setProperty: 'user'
-      };
-
-  params.bodyParams = req.body;
-  logger.info("Parameters:" + JSON.stringify(params.bodyParams));
-
-  async.waterfall([
-    async.apply(UserService.getUser, userProps, params),
-    createElementForUser,
-    createElementInputType,
-    createElementOutputType
-
-  ], function(err, result) {
-   let elementData = {};
-
-    if (params.element){
-      elementData.id = params.element.id;
-    }
-    // updateElementForUserEndPoint
-
-    AppUtils.sendResponse(res, err, 'module', elementData, 'unable to import new element instance');
-  })
-};
-
 /*
 //Deprecated code
 /!*************** Create Element EndPoint (Post) *****************!/
@@ -430,7 +399,7 @@ const createElementForUser = function(params, callback) {
           diskRequired: params.bodyParams.diskRequired || false,
           ramRequired: params.bodyParams.ramRequired || false,
           picture: params.bodyParams.picture || 'images/shared/default.png',
-          isPublic: !!params.bodyParams.isPublic,
+          isPublic: params.bodyParams.isPublic || false,
           registryId: params.bodyParams.registryId || 1,
         },
         setProperty: 'element'
@@ -549,7 +518,6 @@ const deleteElementInstanceData = function(params, callback) {
 
 export default {
   createElementForUserEndPoint: createElementForUserEndPoint,
-  importElementForUserEndPoint: importElementForUserEndPoint,
   updateElementForUserEndPoint: updateElementForUserEndPoint,
   getCatalogOfElements: getCatalogOfElements,
   getElementsForPublishingEndPoint: getElementsForPublishingEndPoint,
