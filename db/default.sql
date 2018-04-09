@@ -411,6 +411,16 @@ CREATE TABLE element_instance_status (
     ON DELETE CASCADE
     ON UPDATE CASCADE
 );
+
+CREATE TABLE strace_diagnostics (
+  ID                    INTEGER PRIMARY KEY AUTOINCREMENT,
+  element_instance_uuid INTEGER REFERENCES element_instance (UUID)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+  strace                BOOLEAN,
+  buffer                TEXT DEFAULT ''
+);
+
 CREATE TABLE iofog_access_tokens (
   ID              INTEGER PRIMARY KEY AUTOINCREMENT,
   user_id         INTEGER,
@@ -483,6 +493,7 @@ CREATE TABLE iofog_change_tracking (
 	`routing`	BIGINT,
 	`registries`	BIGINT,
 	`proxy` BIGINT,
+  `diagnostics` BIGINT,
 	`iofog_uuid`	TEXT,
 	FOREIGN KEY(`iofog_uuid`) REFERENCES iofogs ( UUID ) ON DELETE SET NULL ON UPDATE CASCADE
 );
@@ -527,7 +538,7 @@ CREATE TABLE iofog_version_commands (
   FOREIGN KEY(`iofog_uuid`) REFERENCES iofogs (UUID) ON DELETE SET NULL ON UPDATE CASCADE
 );
 
-INSERT INTO iofog_change_tracking VALUES(1, 1517401049283, 0, 1517401049283,1517472938429,1517472938429,1517401049283,1517401049283, 1517401049283, 'fVmnRpHgdNnDw7XJLJw7GV4NVRhjk4V3');
+INSERT INTO iofog_change_tracking VALUES(1, 1517401049283, 0, 1517401049283,1517472938429,1517472938429,1517401049283,1517401049283, 1517401049283, 1517401049283, 'fVmnRpHgdNnDw7XJLJw7GV4NVRhjk4V3');
 DELETE FROM sqlite_sequence;
 INSERT INTO sqlite_sequence VALUES ('config', 52);
 INSERT INTO sqlite_sequence VALUES ('satellite', 9);

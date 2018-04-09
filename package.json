@@ -38,6 +38,7 @@
     "es6-mixins": "^1.0.2",
     "express": "^4.16.2",
     "express-session": "^1.13.0",
+    "ftp": "^0.3.10",
     "keymirror": "0.1.1",
     "moment": "^2.12.0",
     "moment-timezone": "^0.5.4",

@@ -182,8 +182,8 @@ const onUpdate = function (params, errorMsg, callback, updatedModels) {
   }
 }
 
-const onUpdateOrCreate = function (params, paramName, errorMsg, callback, resultSet) {
-    if (resultSet) {
+const onUpdateOrCreate = function (params, paramName, errorMsg, callback, modelObject) {
+    if (modelObject) {
         if (paramName) {
             params[paramName] = modelObject;
         }
@@ -194,7 +194,7 @@ const onUpdateOrCreate = function (params, paramName, errorMsg, callback, result
     }
 }
 
-const onUpdateOptional = function (params, callback, deletedModels) {
+const onUpdateOptional = function (params, callback, updatedModels) {
   callback(null, params);
 }
 
