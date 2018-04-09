@@ -23,7 +23,7 @@ const findContainerListByInstanceId = function(props, params, callback) {
     .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Unable to find data tracks', callback));
 }
 
-const findContainerListWithStatusByInstanceId = function (props, params, callback) {
+const findContainerListWithStatusByInstanceId = function (props, params, param, callback) {
     let instanceId = AppUtils.getProperty(params, props.instanceId);
 
     DataTracksManager

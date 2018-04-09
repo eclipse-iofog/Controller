@@ -98,6 +98,7 @@ const initApp = function () {
   // app.post('/api/v2/authoring/organization/element/create', elementController.createElementEndPoint);
   // app.post('/api/v2/authoring/organization/element/update', elementController.updateElementEndPoint);
   // app.post('/api/v2/authoring/organization/element/delete', elementController.deleteElementEndPoint);
+    app.post('/api/v2/instance/list/element/instance/cleanup/id/:ID/token/:Token', elementInstanceController.listElementInstanceCleanUpEndPoint);
     app.post('/api/v2/authoring/list/element/instance/', elementInstanceController.listElementInstanceWithStatusEndPoint);
   app.get('/api/v2/authoring/element/catalog/get', elementController.getCatalogOfElements);
   app.post('/api/v2/authoring/element/instance/create', elementInstanceController.detailedElementInstanceCreateEndPoint);
@@ -159,7 +160,6 @@ const initApp = function () {
   app.post('/api/v2/authoring/fabric/track/update', trackController.fogTrackUpdateEndPoint);
   app.post('/api/v2/authoring/fabric/track/delete', trackController.fogTrackDeleteEndPoint);
   app.post('/api/v2/authoring/fabric/details', fogController.getFogDetailsEndpoint);
-
 
     app.post('/api/v2/instance/hw_info/id/:ID/token/:Token', instanceResourcesController.fogInstanceHWInfo);
     app.post('/api/v2/instance/usb_info/id/:ID/token/:Token', instanceResourcesController.fogInstanceUSBInfo);

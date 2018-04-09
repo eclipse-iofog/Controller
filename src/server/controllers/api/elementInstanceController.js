@@ -27,6 +27,8 @@ import AppUtils from '../../utils/appUtils';
 import logger from '../../utils/winstonLogs';
 import _ from 'underscore';
 import ArchitectureUtils from '../../utils/architectureUtils'
+import BaseApiController from "./baseApiController";
+import elementInstanceCleanUpService from "../../services/elementInstanceCleanUpService";
 
 /*********************************************** EndPoints ******************************************************/
 /***** Get Rebuild Status of Element Instance EndPoint (Get: /api/v2/authoring/element/instance/rebuild/status/elementid/:elementId *****/
@@ -406,33 +408,35 @@ logger.info("Endpoint hit: "+req.originalUrl);
 const elementInstanceDeleteEndPoint = function(req, res) {
   logger.info("Endpoint hit: "+ req.originalUrl);
 
-  let params = {},
+    let params = {},
 
-    userProps = {
-      userId: 'bodyParams.t',
-      setProperty: 'user'
-    },
-    
-    portPasscodeProps = {
-      elementId: 'bodyParams.elementId',
-      setProperty: 'portPasscode'
-    },
+        userProps = {
+            userId: 'bodyParams.t',
+            setProperty: 'user'
+        },
 
-    deleteElementProps = {
-      elementId: 'bodyParams.elementId'
-    },
+        portPasscodeProps = {
+            elementId: 'bodyParams.elementId',
+            setProperty: 'portPasscode'
+        },
 
-    elementInstanceProps = {
-      setProperty: 'elementInstance',
-      elementInstanceId: 'bodyParams.elementId'
-    },
+        deleteElementProps = {
+            elementId: 'bodyParams.elementId',
+            iofogUUID: 'elementInstance.iofog_uuid',
+            withCleanUp: 'bodyParams.withCleanUp'
+        },
 
-    changeTrackingProps = {
-      fogInstanceId: 'elementInstance.iofog_uuid',
-      changeObject: {
-        'containerList': new Date().getTime(),
-      }
-    };
+        elementInstanceProps = {
+            setProperty: 'elementInstance',
+            elementInstanceId: 'bodyParams.elementId'
+        },
+
+        changeTrackingProps = {
+            fogInstanceId: 'elementInstance.iofog_uuid',
+            changeObject: {
+                'containerList': new Date().getTime(),
+            }
+        };
 
   params.bodyParams = req.body;
   logger.info("Parameters:" + JSON.stringify(params.bodyParams));
@@ -450,7 +454,8 @@ const elementInstanceDeleteEndPoint = function(req, res) {
     async.apply(SatellitePortService.deletePortsForNetworkElements, deleteElementProps),
     async.apply(ElementInstanceService.getElementInstance, elementInstanceProps),
     async.apply(ChangeTrackingService.updateChangeTracking, changeTrackingProps),
-    async.apply(ElementInstanceService.deleteElementInstance, deleteElementProps)
+      async.apply(ElementInstanceService.createElementInstanceCleanUp, deleteElementProps),
+      async.apply(ElementInstanceService.deleteElementInstanceWithCleanUp, deleteElementProps)
   ], function(err, result) {
     let errMsg = 'Internal error: There was a problem deleting ioElement instance.' + result;
 
@@ -1676,6 +1681,38 @@ const listElementInstanceWithStatusEndPoint = function (req, res) {
         });
 };
 
+const listElementInstanceCleanUpEndPoint = function (req, res) {
+    logger.info("Endpoint hit: " + req.originalUrl);
+
+    let params = {},
+        fogParam = {
+            uuid: 'bodyParams.ID',
+            setProperty: 'cleanUpElements'
+        },
+        data = {
+            elementInstanceData: 'elementIds',
+            setProperty: 'elementIds'
+        };
+
+    params.body = req.body;
+    params.bodyParams = req.params;
+    logger.info("Parameters:" + JSON.stringify(params.bodyParams));
+
+    async.waterfall([
+            async.apply(BaseApiController.checkUserExistance, req, res),
+            async.apply(elementInstanceCleanUpService.listByFogUUID, fogParam, params),
+            async.apply(elementInstanceCleanUpService.deleteByFogUUID, fogParam, params),
+            async.apply(ElementInstanceService.deleteElementInstancesByUUID, data, params)
+        ],
+        function (err, result) {
+            let output;
+            if (!err) {
+                output = params.bodyParams.ID;
+            }
+            AppUtils.sendResponse(res, err, 'elementIds', result, "Can't get list Element Instance with CleanUp");
+        });
+};
+
 export default {
   createElementInstanceConnectionEndPoint:createElementInstanceConnectionEndPoint,
   deleteElementInstanceConnectionEndPoint: deleteElementInstanceConnectionEndPoint,
@@ -1693,5 +1730,6 @@ export default {
   getElementInstanceDetailsEndPoint: getElementInstanceDetailsEndPoint,
   getElementInstancePropertiesEndPoint: getElementInstancePropertiesEndPoint,
     trackElementListEndPoint: trackElementListEndPoint,
-    listElementInstanceWithStatusEndPoint: listElementInstanceWithStatusEndPoint
+    listElementInstanceWithStatusEndPoint: listElementInstanceWithStatusEndPoint,
+    listElementInstanceCleanUpEndPoint: listElementInstanceCleanUpEndPoint
 };
