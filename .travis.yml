@@ -1,5 +1,6 @@
 sudo: true
 language: node_js
+node_js: "9"
 notifications:
   email: false  
   slack:
@@ -24,6 +25,7 @@ jobs:
     script: 
     - npm run build
     deploy:
+      skip_cleanup: true
       provider: npm 
       email: ${NPM_EMAIL_ADDRESS}
       api_key: ${NPM_AUTH_TOKEN}
