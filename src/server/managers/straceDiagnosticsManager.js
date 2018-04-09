@@ -14,13 +14,12 @@ class StraceDiagnosticsManager extends BaseManager {
         return StraceDiagnostics
             .findOne(
                 {
-                    attributes: ['element_instance_uuid', 'strace']
-                },
-                {
+                    attributes: ['element_instance_uuid', 'strace'],
                     where: {
                         element_instance_uuid: data.element_instance_uuid,
                     }
-                })
+                }
+            )
             .then(function (obj) {
                 if (obj) { // update
                     return StraceDiagnostics.update(data, {
