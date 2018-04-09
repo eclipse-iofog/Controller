@@ -91,18 +91,23 @@ Note: Configuration keys can be one of following
 - ioauthoring\_ip\_address
 - ioauthoring\_protocol
 
-To setup HTTPS for fog controller, do following steps:
-
-        fog-controller config -add port 443
-        fog-controller config -add ssl_key '/home/certificates/key.pem'
-        fog-controller config -add intermediate_cert '/home/certificates/gs_intermediate_ca.crt'
-        fog-controller config -add ssl_cert '/home/certificates/certificate.pem'
-
 To setup ioauthoring configurations, do following steps:
 
         fog-controller config -add ioauthoring_port 4000
         fog-controller config -add ioauthoring_ip_address 127.0.0.1
         fog-controller config -add ioauthoring_protocol http 
+
+To setup HTTPS for fog controller, do following steps:
+
+        fog-controller config -add port 4443
+        fog-controller config -add ssl_key 'path_to_your_sertificates/key.pem'
+        fog-controller config -add intermediate_cert 'path_to_your_sertificates/gs_intermediate_ca.crt'
+        fog-controller config -add ssl_cert 'path_to_your_sertificates/certificate.pem'
+	fog-controller config -add ioauthoring_port 5443
+        fog-controller config -add ioauthoring_ip_address 127.0.0.1
+        fog-controller config -add ioauthoring_protocol https
+
+Do not forget to update ioAuthoring configs and add certificates under /etc/iofog/ on the machine where fog agent is running! 
 
 To setup email sender, do following steps:
 

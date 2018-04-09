@@ -420,6 +420,18 @@ const elementInstanceDeleteEndPoint = function(req, res) {
 
     deleteElementProps = {
       elementId: 'bodyParams.elementId'
+    },
+
+    elementInstanceProps = {
+      setProperty: 'elementInstance',
+      elementInstanceId: 'bodyParams.elementId'
+    },
+
+    changeTrackingProps = {
+      fogInstanceId: 'elementInstance.iofog_uuid',
+      changeObject: {
+        'containerList': new Date().getTime(),
+      }
     };
 
   params.bodyParams = req.body;
@@ -436,6 +448,8 @@ const elementInstanceDeleteEndPoint = function(req, res) {
     ComsatService.closePortsOnComsat,
     async.apply(NetworkPairingService.deleteNetworkPairing, deleteElementProps),
     async.apply(SatellitePortService.deletePortsForNetworkElements, deleteElementProps),
+    async.apply(ElementInstanceService.getElementInstance, elementInstanceProps),
+    async.apply(ChangeTrackingService.updateChangeTracking, changeTrackingProps),
     async.apply(ElementInstanceService.deleteElementInstance, deleteElementProps)
   ], function(err, result) {
     let errMsg = 'Internal error: There was a problem deleting ioElement instance.' + result;
@@ -762,7 +776,7 @@ const verifyPorts = function(params, callback){
   }else{
     callback('Error', 'You must enter a valid number for both the internal and external ports');
   }
-}
+};
 
 const createNetworkElementInstance = function (params, callback){
   let networkElementInstanceProps = {
@@ -780,7 +794,7 @@ const createNetworkElementInstance = function (params, callback){
     };
 
   ElementInstanceService.createNetworkElementInstance(networkElementInstanceProps, params, callback);
-}
+};
 
 /**** Element Instance Port Delete EndPoint (Post: '/api/v2/authoring/element/instance/port/delete') ****/
 const elementInstancePortDeleteEndPoint = function(req, res) {
@@ -1045,7 +1059,7 @@ const getFogInstance = function (params, callback){
   }else{
     callback(null, params);
   }
-}
+};
 
 /***** Update Rebuild of Element Instance EndPoint (Post: /api/v2/authoring/element/instance/rebuild *****/
  const elementInstanceRebuildUpdateEndPoint = function(req, res) {
@@ -1192,7 +1206,7 @@ const getOpenPorts = function(params, callback){
   }catch(e){
     logger.error(e);
   }
-}
+};
 
 const isViewer = function(params, elementInstance) {
    let elementInstanceViewer = _.where(params.isViewer, {
@@ -1204,7 +1218,7 @@ const isViewer = function(params, elementInstance) {
   }else{
     return 0;
   }
-}
+};
 
 const getConnections = function(params, elementInstance) {
   let connections = [];
@@ -1217,7 +1231,7 @@ const getConnections = function(params, elementInstance) {
     connections.push(instanceConnection.destinationElementInstance);
   });
   return connections;
-}
+};
 
 const updateChangeTrackingData = function(params, callback) {
   if (params.elementInstance.iofog_uuid){
@@ -1232,7 +1246,7 @@ const updateChangeTrackingData = function(params, callback) {
   }else{
     callback(null, params);
   }
-}
+};
 
 const updateRebuild = function (params, callback) {
   params.elementInstanceName = 'Network for Element ' + params.bodyParams.elementId;
@@ -1245,7 +1259,7 @@ const updateRebuild = function (params, callback) {
     };
 
   ElementInstanceService.updateElementInstanceRebuild(elementProps, params, callback);
-}
+};
 
 const updateElementInstance = function (params, callback) {
   try{
@@ -1280,7 +1294,7 @@ const updateElementInstance = function (params, callback) {
   }catch(e){
     logger.error(e);
   }
-}
+};
 
 const updateChangeTracking = function(params, callback) {
 
@@ -1327,7 +1341,7 @@ const updateChangeTracking = function(params, callback) {
   }else{
     callback(null, params);
   }
-}
+};
 
 const updateChange = function(params, callback) {
   if (params.updateChange.containerConfig || params.updateChange.containerList){
@@ -1340,7 +1354,7 @@ const updateChange = function(params, callback) {
   }else{
     callback(null, params);
   }
-}
+};
 
 const updateElement = function(params, callback) {
 
@@ -1349,7 +1363,7 @@ const updateElement = function(params, callback) {
     updatedData: params.updateElementObject
   };
   ElementInstanceService.updateElemInstance(elementInstanceProps, params, callback);
-}
+};
 
 const createElementInstanceConnection = function(params, callback) {
   if (params.bodyParams.sourceElementId && params.bodyParams.destinationElementId){
@@ -1369,7 +1383,7 @@ const createElementInstanceConnection = function(params, callback) {
   }else{
     callback('err', 'sourceElementId and destinationElementId cannot be empty');
   }
-}
+};
 
 const getElementInstanceProperties = function(params, callback) {
   let response = [];
@@ -1403,7 +1417,7 @@ const getElementInstanceProperties = function(params, callback) {
   });
   params.response = response;
   callback(null, params);
-}
+};
 
 const isDebugging = function(params, elementInstance) {
    let elementInstanceDebug = _.where(params.isDebug, {
@@ -1415,17 +1429,17 @@ const isDebugging = function(params, elementInstance) {
   }else{
     return 0;
   }
-}
+};
 
 const extractOpenPort = function(params, elementInstance) {
   let openports = [];
   let elementInstancePort = _.where(params.elementInstancePort, {
     elementId: elementInstance.uuid
-  })
+  });
   elementInstancePort.forEach((instancePort, index) => {
     let networkpairing = _.findWhere(params.networkPairing, {
       elemen1PortId: instancePort.id
-    })
+    });
     let accessurl, networkpairingid;
 
     if (networkpairing != null) {
@@ -1554,7 +1568,7 @@ const getElementDetails = function(params, callback) {
 
   params.elementInstanceDetails = elementInstanceDetails;
   callback(null, params);
-}
+};
 
 const updateConfigTracking = function(params, callback){
   if (params.isConfigChanged) {
@@ -1568,7 +1582,7 @@ const updateConfigTracking = function(params, callback){
   }else{
     callback(null, params);
   }
-}
+};
 
 const updateElementInstanceConfig = function(params, callback){
   let updatedData = {};
@@ -1589,7 +1603,7 @@ const updateElementInstanceConfig = function(params, callback){
   };
 
   ElementInstanceService.updateElemInstance(updateElementInstanceProps, params, callback);
-}
+};
 
 const createSatellitePort = function(params, callback){
   let satellitePortProps = {
@@ -1608,7 +1622,7 @@ const createSatellitePort = function(params, callback){
     setProperty: 'satellitePort'
   };
     SatellitePortService.createSatellitePort(satellitePortProps, params, callback);
-}
+};
 
 const updateElemInstance = function(params, callback) {
   let elementInstanceUpdateProps = {
@@ -1619,7 +1633,7 @@ const updateElemInstance = function(params, callback) {
       }
     };
   ElementInstanceService.updateElemInstance(elementInstanceUpdateProps, params, callback);
-}
+};
 
 const getOutputDetails = function(params, callback) {
   params.output = {
@@ -1635,7 +1649,32 @@ const getOutputDetails = function(params, callback) {
   }
 
   callback(null, params);
-}
+};
+
+const listElementInstanceWithStatusEndPoint = function (req, res) {
+    logger.info("Endpoint hit: " + req.originalUrl);
+
+    let params = {},
+        userProps = {
+            userId: 'bodyParams.t',
+            setProperty: 'user'
+        },
+        instanceProps = {
+            instanceId: 'bodyParams.instanceId',
+            setProperty: 'fogInstance'
+        };
+
+    params.bodyParams = req.body;
+    logger.info("Parameters:" + JSON.stringify(params.bodyParams));
+
+    async.waterfall([
+            async.apply(UserService.getUser, userProps, params),
+            async.apply(DataTracksService.findContainerListWithStatusByInstanceId, instanceProps, params)
+        ],
+        function (err, result) {
+            AppUtils.sendResponse(res, err, 'list', params.fogInstance, result);
+        });
+};
 
 export default {
   createElementInstanceConnectionEndPoint:createElementInstanceConnectionEndPoint,
@@ -1653,5 +1692,6 @@ export default {
   elementInstanceRebuildUpdateEndPoint: elementInstanceRebuildUpdateEndPoint,
   getElementInstanceDetailsEndPoint: getElementInstanceDetailsEndPoint,
   getElementInstancePropertiesEndPoint: getElementInstancePropertiesEndPoint,
-  trackElementListEndPoint: trackElementListEndPoint
+    trackElementListEndPoint: trackElementListEndPoint,
+    listElementInstanceWithStatusEndPoint: listElementInstanceWithStatusEndPoint
 };
