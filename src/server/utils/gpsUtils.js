@@ -6,7 +6,7 @@ const getGpsCoordinates = function (coordinatesString) {
         lon: ''
     };
 
-    if (coordinatesString !== '') {
+    if (coordinatesString && coordinatesString !== '') {
         let latLonArr = coordinatesString.split(',');
         gpsLatLon.lat = latLonArr[0];
         gpsLatLon.lon = latLonArr[1];
