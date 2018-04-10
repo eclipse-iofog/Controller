@@ -417,7 +417,7 @@ CREATE TABLE strace_diagnostics (
   element_instance_uuid INTEGER REFERENCES element_instance (UUID)
     ON DELETE CASCADE
     ON UPDATE CASCADE,
-  strace                BOOLEAN,
+  straceRun             BOOLEAN,
   buffer                TEXT DEFAULT ''
 );
 

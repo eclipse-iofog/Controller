@@ -9,9 +9,9 @@ const StraceDiagnostics = sequelize.define('strace_diagnostics', {
         autoIncrement: true,
         field: 'ID'
     },
-    strace: {
+    straceRun: {
         type: Sequelize.BOOLEAN,
-        field: 'strace'
+        field: 'straceRun'
     },
     buffer: {
         type: Sequelize.BIGINT,

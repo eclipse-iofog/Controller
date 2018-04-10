@@ -122,14 +122,17 @@ const popStraceDataAsFile = function (req, res) {
         fileConversionProps = {
             file: 'straceFile',
             setProperty: 'convertedFile'
+        },
+        deleteFileProps = {
+            file: 'straceFile'
         };
     params.bodyParams = req.body;
-    params.distDir = 'straceDiagnosticsFiles';
 
     async.waterfall([
         async.apply(UserService.getUser, userProps, params),
         async.apply(popBufferToFile),
-        async.apply(FileUtils.fileToBase64, fileConversionProps)
+        async.apply(FileUtils.fileToBase64, fileConversionProps),
+        async.apply(FileUtils.deleteFile, deleteFileProps)
     ], function (err, result) {
         AppUtils.sendResponse(res, err, 'convertedFile', params.convertedFile, result)
     });
@@ -150,14 +153,17 @@ const popStraceDataToFtp = function (req, res) {
             pass: 'bodyParams.ftpPass',
             destDir: 'bodyParams.ftpDestDir',
             file: 'straceFile'
+        },
+        deleteFileProps = {
+            file: 'straceFile'
         };
     params.bodyParams = req.body;
-    params.distDir = 'straceDiagnosticsFiles';
 
     async.waterfall([
         async.apply(UserService.getUser, userProps, params),
         async.apply(popBufferToFile),
-        async.apply(FtpUtils.sendToFtp, ftpProps)
+        async.apply(FtpUtils.sendToFtp, ftpProps),
+        async.apply(FileUtils.deleteFile, deleteFileProps)
     ], function (err, result) {
         AppUtils.sendResponse(res, err, 'sent', 'ok', result)
     });
@@ -173,7 +179,7 @@ const popBufferToFile = function (params, callback) {
         },
         dataFileProps = {
             fileName: 'bodyParams.elementInstanceId',
-            distDir: 'distDir',
+            distDir: STRACE_DIST_DIR,
             data: 'straceData.buffer',
             setProperty: 'straceFile'
         };
@@ -190,6 +196,8 @@ const popBufferToFile = function (params, callback) {
         }
     });
 };
+
+const STRACE_DIST_DIR = 'straceDiagnosticsFiles';
 
 export default {
     switchElementStrace: switchElementStrace,

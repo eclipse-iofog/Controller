@@ -1,7 +1,7 @@
 import AppUtils from "./appUtils";
 let ftpClient = require('ftp');
 let fs = require('fs');
-
+import logger from './winstonLogs';
 
 
 const sendToFtp = function (props, params, callback) {
@@ -27,14 +27,18 @@ const sendToFtp = function (props, params, callback) {
     client.on('ready', function() {
         client.put(filePath, destDir + '/' + filePath.split('/').pop(), function(err) {
             if (err) {
-                console.log(err);
+                logger.warn('Problem with ftp: ' + err);
                 client.end();
-                callback('error', 'ftp problem')
+                callback('error', 'ftp problem');
             } else {
                 client.end();
                 callback(null, params);
             }
         });
+    });
+    client.on('error', function (err) {
+        logger.warn('Problem with ftp: ' + err);
+        callback('error', 'ftp problem');
     });
 
     client.connect(connectionData);

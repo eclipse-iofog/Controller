@@ -14,7 +14,7 @@ class StraceDiagnosticsManager extends BaseManager {
         return StraceDiagnostics
             .findOne(
                 {
-                    attributes: ['element_instance_uuid', 'strace'],
+                    attributes: ['element_instance_uuid', 'straceRun'],
                     where: {
                         element_instance_uuid: data.element_instance_uuid,
                     }
@@ -38,9 +38,7 @@ class StraceDiagnosticsManager extends BaseManager {
                 return StraceDiagnostics
                     .findOne(
                         {
-                            attributes: ['element_instance_uuid', 'strace']
-                        },
-                        {
+                            attributes: ['element_instance_uuid', 'straceRun'],
                             where: {
                                 element_instance_uuid: data.element_instance_uuid,
                             }
@@ -58,7 +56,7 @@ class StraceDiagnosticsManager extends BaseManager {
 
     findStraceDiagnosticsStateByFogId(fogId) {
         const query = 'SELECT d.element_instance_uuid as elementId, ' +
-            'd.strace as strace ' +
+            'd.straceRun as straceRun ' +
             'FROM strace_diagnostics d ' +
             'LEFT JOIN element_instance i ON d.element_instance_uuid = i.UUID ' +
             'LEFT JOIN iofogs f ON i.iofog_uuid = f.UUID ' +
@@ -103,9 +101,6 @@ class StraceDiagnosticsManager extends BaseManager {
                         {transaction});
                     return data;
                 })
-                .then(function (data) {
-                    return data
-                })
         }).then((data) => {
             // Committed
             return data;
@@ -116,7 +111,7 @@ class StraceDiagnosticsManager extends BaseManager {
         });
     }
 
-    pushBufferByElementId(uuid, buffer) {
+    pushBufferByElementId(uuid, pushingData) {
         return StraceDiagnostics
             .findOne({
                 where: {
@@ -124,7 +119,7 @@ class StraceDiagnosticsManager extends BaseManager {
                 }
             })
             .then(function (el) {
-                    let newBuffer = el.buffer + buffer;
+                    let newBuffer = updateBuffer(el.buffer, pushingData);
                     return StraceDiagnostics.update({buffer: newBuffer}, {
                         where: {
                             element_instance_uuid: uuid,
@@ -143,6 +138,21 @@ class StraceDiagnosticsManager extends BaseManager {
     }
 
 }
+
+/********************************* Extra Functions *****************************************/
+const updateBuffer = function (oldBuf, pushingData) {
+    let newBuffer = oldBuf + pushingData;
+    let delta = newBuffer.length - maxBufferSize;
+    if (delta > 0) {
+        newBuffer = '[FogController Info] Buffer size is limited, so some of previous data was lost \n'
+            + newBuffer.substring(delta);
+    }
+    return newBuffer;
+};
+
+/********************************* Constants *****************************************/
+
+const maxBufferSize = 1e8;
 
 const instance = new StraceDiagnosticsManager();
 export default instance;

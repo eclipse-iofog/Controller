@@ -8,7 +8,7 @@ const switchStraceForElement = function (props, params, callback) {
 
     let elementData = {
         element_instance_uuid: AppUtils.getProperty(params, props.instanceId),
-        strace: AppUtils.getProperty(params, props.strace)
+        straceRun: AppUtils.getProperty(params, props.strace)
     };
 
     return StraceDiagnosticsManager
@@ -22,7 +22,7 @@ const pushBufferForElements = function (props, params, callback) {
         .forEach((elementId) => {
             StraceDiagnosticsManager.pushBufferByElementId(elementId, straceData[elementId])
         });
-    return callback();
+    callback(null, params);
 };
 
 const popBufferByElementId = function (props, params, callback) {
