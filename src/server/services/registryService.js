@@ -21,10 +21,13 @@ const listRegistry = function (props, params, callback) {
 const addRegistry = function (props, params, callback) {
     let url = AppUtils.getProperty(params, props.url),
         isPublic = AppUtils.getProperty(params, props.isPublic),
-        username = AppUtils.getProperty(params, props.username),
-        password = AppUtils.getProperty(params, props.password),
-        email = AppUtils.getProperty(params, props.email),
-        userId = AppUtils.getProperty(params, props.userId);
+        userId = AppUtils.getProperty(params, props.userId),
+        username = '', password = '', email = '';
+    if (!isPublic) {
+        username = AppUtils.getProperty(params, props.username);
+        password = AppUtils.getProperty(params, props.password);
+        email = AppUtils.getProperty(params, props.email);
+    }
 
     let registryObj = {
         url: url,
