@@ -366,8 +366,8 @@ const createElementInputType = function(params, callback) {
   let elementInputTypeProps = {
         elementInputType : {
           elementKey: params.element.id,
-          infoType: '',
-          infoFormat: ''
+          infoType: params.bodyParams.infoType || '',
+          infoFormat: params.bodyParams.infoFormat || ''
         },
         setProperty: 'elementInputType'
       };
@@ -379,8 +379,8 @@ const createElementOutputType = function(params, callback) {
   let elementOutputTypeProps = {
         elementOutputType : {
           elementKey: params.element.id,
-          infoType: '',
-          infoFormat: ''
+          infoType: params.bodyParams.infoType || '',
+          infoFormat: params.bodyParams.infoFormat || ''
         },
         setProperty: 'elementOutputType'
       };
@@ -391,16 +391,16 @@ const createElementOutputType = function(params, callback) {
 const createElementForUser = function(params, callback) {
     let elementProps = {
         element : {
-          name: '',
-          description: '',
-          category: '',
-          publisher: '',
-          config: '',
-          diskRequired: false,
-          ramRequired: false,
-          picture: 'images/shared/default.png',
-          isPublic: false,
-          registryId: 1
+          name: params.bodyParams.name || '',
+          description: params.bodyParams.description || '',
+          category: params.bodyParams.category || '',
+          publisher: params.bodyParams.publisher || '',
+          config: params.bodyParams.config || '',
+          diskRequired: params.bodyParams.diskRequired || false,
+          ramRequired: params.bodyParams.ramRequired || false,
+          picture: params.bodyParams.picture || 'images/shared/default.png',
+          isPublic: params.bodyParams.isPublic || false,
+          registryId: params.bodyParams.registryId || 1,
         },
         setProperty: 'element'
       };
