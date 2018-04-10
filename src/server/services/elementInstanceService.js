@@ -1,5 +1,5 @@
 import ElementInstanceManager from '../managers/elementInstanceManager';
-import ElementInstanceCleanUpManager from '../managers/elementInstanceCleanUpManager';
+import ElementInstanceToCleanUpManager from '../managers/elementInstanceToCleanUpManager';
 import DataTracksManager from '../managers/dataTracksManager';
 import AppUtils from '../utils/appUtils';
 import _ from 'underscore';
@@ -276,7 +276,7 @@ const deleteElementInstanceWithCleanUp = function (props, params, callback) {
     }
 }
 
-const createElementInstanceCleanUp = function (props, params, callback) {
+const createElementInstanceToCleanUp = function (props, params, callback) {
     let elementId = AppUtils.getProperty(params, props.elementId),
         withCleanUp = AppUtils.getProperty(params, props.withCleanUp),
         iofogUUID = AppUtils.getProperty(params, props.iofogUUID);
@@ -289,7 +289,7 @@ const createElementInstanceCleanUp = function (props, params, callback) {
                         elementInstanceUUID: elementId,
                         iofogUUID: iofogUUID
                     };
-                    ElementInstanceCleanUpManager
+                    ElementInstanceToCleanUpManager
                         .create(objToClean)
                         .then(AppUtils.onCreate.bind(null, params, null, 'Unable to create Element Instance To Clean Up', callback))
                 }
@@ -371,7 +371,7 @@ export default {
   deleteStreamViewerInstances: deleteStreamViewerInstances,
   deleteElementInstance: deleteElementInstance,
     deleteElementInstanceWithCleanUp: deleteElementInstanceWithCleanUp,
-    createElementInstanceCleanUp: createElementInstanceCleanUp,
+    createElementInstanceToCleanUp: createElementInstanceToCleanUp,
   deleteElementInstanceOptional: deleteElementInstanceOptional,
   deleteElementInstances: deleteElementInstances,
     deleteElementInstancesByUUID: deleteElementInstancesByUUID,

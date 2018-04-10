@@ -3,19 +3,19 @@
  */
 
 import BaseManager from "./baseManager";
-import ElementInstanceCleanUp from "../models/elementInstanceCleanUp";
+import ElementInstanceToCleanUp from "../models/elementInstanceToCleanUp";
 
 /**
  * @author elukashick
  */
 
-class ElementInstanceCleanUpManager extends BaseManager {
+class ElementInstanceToCleanUpManager extends BaseManager {
     getEntity() {
-        return ElementInstanceCleanUp;
+        return ElementInstanceToCleanUp;
     }
 
     findByInstanceId(uuid) {
-        return ElementInstanceCleanUp.find({
+        return ElementInstanceToCleanUp.find({
             where: {
                 element_instance_uuid: uuid
             }
@@ -23,14 +23,14 @@ class ElementInstanceCleanUpManager extends BaseManager {
     }
 
     create(obj) {
-        return ElementInstanceCleanUp.create({
+        return ElementInstanceToCleanUp.create({
             elementInstanceUUID: obj.elementInstanceUUID,
             iofogUUID: obj.iofogUUID
         });
     }
 
     listByFogUUID(ioFogUUID) {
-        return ElementInstanceCleanUp.findAll({
+        return ElementInstanceToCleanUp.findAll({
             where: {
                 iofog_uuid: ioFogUUID
             }
@@ -38,7 +38,7 @@ class ElementInstanceCleanUpManager extends BaseManager {
     }
 
     deleteByElementInstanceUUID(elementInstanceUUID) {
-        return ElementInstanceCleanUp.destroy({
+        return ElementInstanceToCleanUp.destroy({
             where: {
                 element_instance_uuid: elementInstanceUUID
             }
@@ -46,7 +46,7 @@ class ElementInstanceCleanUpManager extends BaseManager {
     }
 
     deleteByFogUUID(fogUUID) {
-        return ElementInstanceCleanUp.destroy({
+        return ElementInstanceToCleanUp.destroy({
             where: {
                 iofogUUID: fogUUID
             }
@@ -54,5 +54,5 @@ class ElementInstanceCleanUpManager extends BaseManager {
     }
 }
 
-const instance = new ElementInstanceCleanUpManager();
+const instance = new ElementInstanceToCleanUpManager();
 export default instance;

@@ -5,7 +5,7 @@
 import Sequelize from 'sequelize';
 import sequelize from './../utils/sequelize';
 
-const ElementInstanceCleanUp = sequelize.define('element_instance_clean_up', {
+const ElementInstanceToCleanUp = sequelize.define('element_instance_clean_up', {
     id: {
         type: Sequelize.INTEGER,
         primaryKey: true,
@@ -32,4 +32,4 @@ const ElementInstanceCleanUp = sequelize.define('element_instance_clean_up', {
     underscored: true
 });
 
-export default ElementInstanceCleanUp;
+export default ElementInstanceToCleanUp;

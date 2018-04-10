@@ -1,4 +1,4 @@
-CREATE TABLE element_instance_clean_up (
+CREATE TABLE element_instance_to_clean_up (
   ID                    INTEGER PRIMARY KEY AUTOINCREMENT,
   element_instance_uuid TEXT,
   iofog_uuid            TEXT,

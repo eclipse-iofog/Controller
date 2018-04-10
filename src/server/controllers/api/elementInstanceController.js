@@ -28,7 +28,7 @@ import logger from '../../utils/winstonLogs';
 import _ from 'underscore';
 import ArchitectureUtils from '../../utils/architectureUtils'
 import BaseApiController from "./baseApiController";
-import elementInstanceCleanUpService from "../../services/elementInstanceCleanUpService";
+import ElementInstanceToCleanUpService from "../../services/elementInstanceToCleanUpService";
 
 /*********************************************** EndPoints ******************************************************/
 /***** Get Rebuild Status of Element Instance EndPoint (Get: /api/v2/authoring/element/instance/rebuild/status/elementid/:elementId *****/
@@ -454,7 +454,7 @@ const elementInstanceDeleteEndPoint = function(req, res) {
     async.apply(SatellitePortService.deletePortsForNetworkElements, deleteElementProps),
     async.apply(ElementInstanceService.getElementInstance, elementInstanceProps),
     async.apply(ChangeTrackingService.updateChangeTracking, changeTrackingProps),
-      async.apply(ElementInstanceService.createElementInstanceCleanUp, deleteElementProps),
+      async.apply(ElementInstanceService.createElementInstanceToCleanUp, deleteElementProps),
       async.apply(ElementInstanceService.deleteElementInstanceWithCleanUp, deleteElementProps)
   ], function(err, result) {
     let errMsg = 'Internal error: There was a problem deleting ioElement instance.' + result;
@@ -1681,7 +1681,7 @@ const listElementInstanceWithStatusEndPoint = function (req, res) {
         });
 };
 
-const listElementInstanceCleanUpEndPoint = function (req, res) {
+const listElementInstanceToCleanUpEndPoint = function (req, res) {
     logger.info("Endpoint hit: " + req.originalUrl);
 
     let params = {},
@@ -1700,8 +1700,8 @@ const listElementInstanceCleanUpEndPoint = function (req, res) {
 
     async.waterfall([
             async.apply(BaseApiController.checkUserExistance, req, res),
-            async.apply(elementInstanceCleanUpService.listByFogUUID, fogParam, params),
-            async.apply(elementInstanceCleanUpService.deleteByFogUUID, fogParam, params),
+            async.apply(ElementInstanceToCleanUpService.listByFogUUID, fogParam, params),
+            async.apply(ElementInstanceToCleanUpService.deleteByFogUUID, fogParam, params),
             async.apply(ElementInstanceService.deleteElementInstancesByUUID, data, params)
         ],
         function (err, result) {
@@ -1731,5 +1731,5 @@ export default {
   getElementInstancePropertiesEndPoint: getElementInstancePropertiesEndPoint,
     trackElementListEndPoint: trackElementListEndPoint,
     listElementInstanceWithStatusEndPoint: listElementInstanceWithStatusEndPoint,
-    listElementInstanceCleanUpEndPoint: listElementInstanceCleanUpEndPoint
+    listElementInstanceToCleanUpEndPoint: listElementInstanceToCleanUpEndPoint
 };
