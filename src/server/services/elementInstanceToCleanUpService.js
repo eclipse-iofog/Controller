@@ -5,12 +5,20 @@ import AppUtils from "../utils/appUtils";
  * @author elukashick
  */
 
-const listByFogUUID = function (props, params, callback) {
+const listByFogUUID = function (props, params, param, callback) {
     let ioFogUUID = AppUtils.getProperty(params, props.uuid);
 
     ElementInstanceToCleanUpManager
         .listByFogUUID(ioFogUUID)
-        .then(AppUtils.onFindOptional.bind(null, params, props.setProperty, callback));
+        .then(result => {
+            params.elementToCleanUpIds = [];
+            if (result.length > 0) {
+                for (let i = 0, len = result.length; i < len; i++) {
+                    params.elementToCleanUpIds.push(result[i].elementInstanceUUID);
+                }
+            }
+            AppUtils.onFindOptional(params, props.setProperty, callback);
+        });
 };
 
 const deleteByElementInstanceId = function (statusObj, params, callback) {
@@ -22,18 +30,12 @@ const deleteByElementInstanceId = function (statusObj, params, callback) {
 };
 
 const deleteByFogUUID = function (props, params, param, callback) {
-    let ioFogUUID = AppUtils.getProperty(params, props.uuid),
-        cleanUpElements = params.cleanUpElements;
+    let ioFogUUID = AppUtils.getProperty(params, props.uuid);
 
-    let elementIds = [];
-    if (cleanUpElements.length > 0) {
-        for (let i = 0, len = cleanUpElements.length; i < len; i++) {
-            elementIds.push(cleanUpElements[i].elementInstanceUUID);
-        }
-
+    if (params.elementToCleanUpIds.length > 0) {
         ElementInstanceToCleanUpManager
             .deleteByFogUUID(ioFogUUID)
-            .then(AppUtils.onDelete.bind(null, elementIds, 'Unable to delete Clean Up Elements', callback));
+            .then(AppUtils.onDelete.bind(null, params.elementToCleanUpIds, 'Unable to delete Clean Up Elements', callback));
     }
 };
 

@@ -271,7 +271,9 @@ const deleteElementInstance = function(props, params, callback) {
 const deleteElementInstanceWithCleanUp = function (props, params, callback) {
     let withCleanUp = AppUtils.getProperty(params, props.withCleanUp);
 
-    if (!withCleanUp) {
+    if (withCleanUp) {
+        createElementInstanceToCleanUp(props, params, callback);
+    } else {
         deleteElementInstance(props, params, callback);
     }
 }
@@ -316,7 +318,7 @@ const deleteElementInstances = function(props, params, callback) {
 const deleteElementInstancesByUUID = function (props, params, elementIds, callback) {
     ElementInstanceManager
         .deleteByElementUUIDs(elementIds)
-        .then(AppUtils.onDelete.bind(null, elementIds, 'Unable to delete Element Instances With Clean Up', callback));
+        .then(AppUtils.onDelete.bind(null, params, 'Unable to delete Element Instances With Clean Up', callback));
 }
 
 const deleteElementInstancesByInstanceIdAndElementKey = function(props, params, callback) {

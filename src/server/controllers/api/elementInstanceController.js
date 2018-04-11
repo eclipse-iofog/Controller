@@ -454,7 +454,6 @@ const elementInstanceDeleteEndPoint = function(req, res) {
     async.apply(SatellitePortService.deletePortsForNetworkElements, deleteElementProps),
     async.apply(ElementInstanceService.getElementInstance, elementInstanceProps),
     async.apply(ChangeTrackingService.updateChangeTracking, changeTrackingProps),
-      async.apply(ElementInstanceService.createElementInstanceToCleanUp, deleteElementProps),
       async.apply(ElementInstanceService.deleteElementInstanceWithCleanUp, deleteElementProps)
   ], function(err, result) {
     let errMsg = 'Internal error: There was a problem deleting ioElement instance.' + result;
@@ -1681,38 +1680,6 @@ const listElementInstanceWithStatusEndPoint = function (req, res) {
         });
 };
 
-const listElementInstanceToCleanUpEndPoint = function (req, res) {
-    logger.info("Endpoint hit: " + req.originalUrl);
-
-    let params = {},
-        fogParam = {
-            uuid: 'bodyParams.ID',
-            setProperty: 'cleanUpElements'
-        },
-        data = {
-            elementInstanceData: 'elementIds',
-            setProperty: 'elementIds'
-        };
-
-    params.body = req.body;
-    params.bodyParams = req.params;
-    logger.info("Parameters:" + JSON.stringify(params.bodyParams));
-
-    async.waterfall([
-            async.apply(BaseApiController.checkUserExistance, req, res),
-            async.apply(ElementInstanceToCleanUpService.listByFogUUID, fogParam, params),
-            async.apply(ElementInstanceToCleanUpService.deleteByFogUUID, fogParam, params),
-            async.apply(ElementInstanceService.deleteElementInstancesByUUID, data, params)
-        ],
-        function (err, result) {
-            let output;
-            if (!err) {
-                output = params.bodyParams.ID;
-            }
-            AppUtils.sendResponse(res, err, 'elementIds', result, "Can't get list Element Instance with CleanUp");
-        });
-};
-
 export default {
   createElementInstanceConnectionEndPoint:createElementInstanceConnectionEndPoint,
   deleteElementInstanceConnectionEndPoint: deleteElementInstanceConnectionEndPoint,
@@ -1730,6 +1697,5 @@ export default {
   getElementInstanceDetailsEndPoint: getElementInstanceDetailsEndPoint,
   getElementInstancePropertiesEndPoint: getElementInstancePropertiesEndPoint,
     trackElementListEndPoint: trackElementListEndPoint,
-    listElementInstanceWithStatusEndPoint: listElementInstanceWithStatusEndPoint,
-    listElementInstanceToCleanUpEndPoint: listElementInstanceToCleanUpEndPoint
+    listElementInstanceWithStatusEndPoint: listElementInstanceWithStatusEndPoint
 };
