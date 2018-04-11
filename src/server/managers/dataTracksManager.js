@@ -11,71 +11,86 @@ import sequelize from './../utils/sequelize';
 
 class DataTracksManager extends BaseManager {
 
-  getEntity() {
-    return DataTracks;
-  }
+    getEntity() {
+        return DataTracks;
+    }
 
-  findByInstanceId(instanceId) {
-    return DataTracks.findAll({
-      where: {
-        instanceId: instanceId
-      },
-      attributes: ['id', 'name', 'description']
-    });
-  }
+    findByInstanceId(instanceId) {
+        return DataTracks.findAll({
+            where: {
+                instanceId: instanceId
+            },
+            attributes: ['id', 'name', 'description']
+        });
+    }
 
-  findById(trackId) {
-    return DataTracks.findOne({
-      where: {
-        'id': trackId
-      }
-    });
-  }
+    findById(trackId) {
+        return DataTracks.findOne({
+            where: {
+                'id': trackId
+            }
+        });
+    }
 
-  getTracksByUserId(userId) {
-    return DataTracks.findAll({
-      where: {
-        updatedBy: userId
-      }
-    });
-  }
+    getTracksByUserId(userId) {
+        return DataTracks.findAll({
+            where: {
+                updatedBy: userId
+            }
+        });
+    }
 
-  deleteByTrackId(trackId) {
-    return DataTracks.destroy({
-      where: {
-        id: trackId
-      }
-    });
-  }
+    deleteByTrackId(trackId) {
+        return DataTracks.destroy({
+            where: {
+                id: trackId
+            }
+        });
+    }
 
-  updateById(id, data) {
-    return DataTracks.update(data, {
-      where: {
-        id: id
-      }
-    });
-  }
+    updateById(id, data) {
+        return DataTracks.update(data, {
+            where: {
+                id: id
+            }
+        });
+    }
 
-  updateByUserId(userId, data){
-   return DataTracks.update(data, {
-      where: {
-        updatedBy: userId
-      }
-    });
-  }
+    updateByUserId(userId, data) {
+        return DataTracks.update(data, {
+            where: {
+                updatedBy: userId
+            }
+        });
+    }
 
-  // findContainerListByInstanceId(instanceId) {                                                         
-  //   var instanceTrackingQuery = "SELECT i.*, t.is_activated FROM element_instance i LEFT JOIN \
-  //   data_tracks t ON i.track_id = t.ID \
-  //   WHERE i.iofog_uuid in (:instanceId) AND (i.track_id = 0 OR t.is_activated = 1)";
+    findContainerListByInstanceId(instanceId) {
+        let instanceTrackingQuery = "SELECT i.*, t.is_activated FROM element_instance i LEFT JOIN \
+    data_tracks t ON i.track_id = t.ID \
+    WHERE i.iofog_uuid in (:instanceId) AND (i.track_id = 0 OR t.is_activated = 1)";
 
-  //   return sequelize.query(instanceTrackingQuery, {
-  //     replacements: {
-  //       instanceId: instanceId
-  //     },
-  //     type: sequelize.QueryTypes.SELECT
-  //   });
-  // }
+        return sequelize.query(instanceTrackingQuery, {
+            replacements: {
+                instanceId: instanceId
+            },
+            type: sequelize.QueryTypes.SELECT
+        });
+    }
+
+
+    findContainerListWithStatusByInstanceId(instanceId) {
+        let instanceTrackingQuery = "SELECT i.*, t.is_activated, s.* FROM element_instance i \
+    LEFT JOIN data_tracks t ON i.track_id = t.ID \
+    LEFT JOIN element_instance_status s ON i.uuid = s.element_instance_uuid \
+    WHERE i.iofog_uuid in (:instanceId) AND (i.track_id = 0 OR t.is_activated = 1)";
+
+        return sequelize.query(instanceTrackingQuery, {
+            replacements: {
+                instanceId: instanceId
+            },
+            type: sequelize.QueryTypes.SELECT
+        });
+    }
 }
 
 const instance = new DataTracksManager();

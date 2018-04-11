@@ -39,7 +39,7 @@ const get = (req, res, manager) => {
 };
 
 const checkUserExistance = (req, res, next) => {
-  var params = {},
+  let params = {},
 
     instanceProps = {
       token: 'bodyParams.Token',
@@ -77,7 +77,7 @@ const checkUserExistance = (req, res, next) => {
 }
 
 const checkfogExistance = (req, res, next) => {
-  var params = {},
+  let params = {},
 
     instanceProps = {
       fogId: 'bodyParams.instanceId'

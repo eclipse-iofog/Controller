@@ -15,7 +15,7 @@ class FogTypeManager extends BaseManager {
   }
 
   getFogTypes() {
-    var fogTypeQuery = "SELECT * from iofog_type";
+    let fogTypeQuery = "SELECT * from iofog_type";
     return sequelize.query(fogTypeQuery, { type: sequelize.QueryTypes.SELECT });
   }
 

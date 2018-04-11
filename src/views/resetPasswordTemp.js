@@ -1,4 +1,4 @@
-var emailResetTemplate = {
+let emailResetTemplate = {
 	p1: "<div>\
 	<table bgcolor='#f6f6f6' style = 'width:100%'>\
 		<tbody><tr>\
@@ -15,7 +15,7 @@ var emailResetTemplate = {
 										style = 'font-family: sans-serif; \
 										font-size: 14px; \
 										vertical-align: top; \
-										padding: 20px 20px 0px; width: 600px;'>\
+										padding: 20px 20px 0; width: 600px;'>\
 										Hi ",
 
 	p2:								"</td>\
@@ -29,7 +29,7 @@ var emailResetTemplate = {
 														font-family: sans-serif; \
 														font-size:14px;'>\
 													<td \
-														style = 'padding: 10px 20px 0px 20px;'>\
+														style = 'padding: 10px 20px 0 20px;'>\
 														It took like you were having some trouble with your password?\
 													</td>\
 												</tr>\
@@ -38,7 +38,7 @@ var emailResetTemplate = {
 														font-family: sans-serif; \
 														font-size:14px;'>\
 													<td \
-														style = 'padding:0px 20px'>\
+														style = 'padding:0 20px'>\
 														You can use the temporary password ",
 
 	p3:											 " to log in.\
@@ -46,7 +46,7 @@ var emailResetTemplate = {
 												</tr>\
 												<tr>\
 													<td \
-														style = 'padding:0px 20px 10; \
+														style = 'padding:0 20px 10px; \
 														font-family: sans-serif; \
 														font-size:14px;'>\
 														<a href ='",

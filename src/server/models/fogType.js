@@ -15,6 +15,10 @@ const FogType = sequelize.define('iofog_type', {
   streamViewerElementKey: {type: Sequelize.BIGINT, field: 'StreamViewerElementKey'},
   consoleElementKey: {type: Sequelize.BIGINT, field: 'consoleElementKey'},
   networkElementKey: {type: Sequelize.BIGINT, field: 'NetworkElementKey'},
+  halElementKey: {type: Sequelize.BIGINT, field: 'HalElementKey'},
+  mongoElementKey: {type: Sequelize.BIGINT, field: 'MongoElementKey'},
+  influxElementKey: {type: Sequelize.BIGINT, field: 'InfluxElementKey'},
+  grafanaElementKey: {type: Sequelize.BIGINT, field: 'GrafanaElementKey'},
   bluetoothElementKey: {type: Sequelize.BIGINT, field: 'BluetoothElementKey'},
 }, {
   // don't add the timestamp attributes (updatedAt, createdAt)

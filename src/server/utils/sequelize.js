@@ -5,12 +5,12 @@ import logger from './winstonLogs';
 
 let namespace = cls.createNamespace('fog-controller-namespace');
 
-Sequelize.cls = namespace;
+Sequelize.useCLS(namespace);
 
 //  `const` is a signal that the variable won’t be reassigned.
 //  `let`, is a signal that the variable may be reassigned, such as a counter in a loop, or a value swap in an algorithm.
 //  It also signals that the variable will be used only in the block it’s defined in, which is not always the entire containing function.
-//  `var` is now the weakest signal available when you define a variable in JavaScript.
+//  `let` is now the weakest signal available when you define a variable in JavaScript.
 //  The variable may or may not be reassigned, and the variable may or may not be used for an entire function, or just for the purpose of a block or loop.
 const sequelize = new Sequelize(null, null, null, {
   dialect: 'sqlite',

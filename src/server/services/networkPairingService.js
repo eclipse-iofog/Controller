@@ -19,7 +19,7 @@ const concatNetwotkElement2AndNormalElement = function(params, callback) {
 }
 
 const createNetworkPairing = function(props, params, callback) {
-  var networkPairingObj = {
+  let networkPairingObj = {
     instanceId1: AppUtils.getProperty(params, props.instanceId1),
     instanceId2: AppUtils.getProperty(params, props.instanceId2),
     elementId1: AppUtils.getProperty(params, props.elementId1),
@@ -37,7 +37,7 @@ const createNetworkPairing = function(props, params, callback) {
 }
 
 const deleteNetworkPairing = function(props, params, callback) {
-  var elementId = AppUtils.getProperty(params, props.elementId);
+  let elementId = AppUtils.getProperty(params, props.elementId);
 
   NetworkPairingManager
     .deleteByElementId(elementId)
@@ -45,7 +45,7 @@ const deleteNetworkPairing = function(props, params, callback) {
 }
 
 const deleteNetworkPairingByElementId1 = function(props, params, callback) {
-  var elementInstanceData = AppUtils.getProperty(params, props.elementInstanceData);
+  let elementInstanceData = AppUtils.getProperty(params, props.elementInstanceData);
 
   NetworkPairingManager
     .deleteByElementId1(_.pluck(elementInstanceData, props.field))
@@ -53,7 +53,7 @@ const deleteNetworkPairingByElementId1 = function(props, params, callback) {
 }
 
 const deleteNetworkPairingById = function(props, params, callback) {
-  var networkPairingId = AppUtils.getProperty(params, props.networkPairingId);
+  let networkPairingId = AppUtils.getProperty(params, props.networkPairingId);
 
   NetworkPairingManager
     .deleteById(networkPairingId)
@@ -61,7 +61,7 @@ const deleteNetworkPairingById = function(props, params, callback) {
 }
 
 const findByElementInstancePortId = function(props, params, callback) {
-  var elementInstancePortData = AppUtils.getProperty(params, props.elementInstancePortData);
+  let elementInstancePortData = AppUtils.getProperty(params, props.elementInstancePortData);
 
   NetworkPairingManager
     .findByElemen1PortIds(_.pluck(elementInstancePortData, props.field))
@@ -85,7 +85,7 @@ const findOutputOtherElementInfoByUuids = function(params, callback) {
 }
 
 const getNetworkPairing = function(props, params, callback) {
-  var networkPairingId = AppUtils.getProperty(params, props.networkPairingId);
+  let networkPairingId = AppUtils.getProperty(params, props.networkPairingId);
 
   NetworkPairingManager
     .findById(networkPairingId)
@@ -94,7 +94,7 @@ const getNetworkPairing = function(props, params, callback) {
 
 const getNetworkPairingByFogAndElement = function(props, params, callback) {
 
-  var instanceId1 = AppUtils.getProperty(params, props.instanceId1),
+  let instanceId1 = AppUtils.getProperty(params, props.instanceId1),
     instanceId2 = AppUtils.getProperty(params, props.instanceId2),
     elementId1 = AppUtils.getProperty(params, props.elementId1),
     elementId2 = AppUtils.getProperty(params, props.elementId2);
@@ -105,7 +105,7 @@ const getNetworkPairingByFogAndElement = function(props, params, callback) {
 }
 
 const findByElementInstanceIds = function(props, params, callback) {
-  var elementInstanceData = AppUtils.getProperty(params, props.elementInstanceData);
+  let elementInstanceData = AppUtils.getProperty(params, props.elementInstanceData);
 
   NetworkPairingManager
     .findByElementIds(_.pluck(elementInstanceData, props.field))

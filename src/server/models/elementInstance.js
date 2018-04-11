@@ -75,7 +75,7 @@ const ElementInstance = sequelize.define('element_instance', {
   volumeMappings: {
     type: Sequelize.TEXT,
     field: 'volume_mappings'
-  },
+  }
 }, {
   // don't add the timestamp attributes (updatedAt, createdAt)
   timestamps: true,

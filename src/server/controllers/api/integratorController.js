@@ -23,13 +23,18 @@ import UserService from '../../services/userService';
 import AppUtils from '../../utils/appUtils';
 import logger from '../../utils/winstonLogs';
 
+/**
+ * @deprecated
+ */
+
+
 /********************************************* EndPoints ******************************************************/
 
 /*************** Integrator Instance Create EndPoint (Post: /api/v2/authoring/integrator/instance/create     
                                                           : /api/v2/authoring/fabric/instance/create) ************/
 const integratorInstanceCreateEndPoint = function(req, res){
   logger.info("Endpoint hit: "+ req.originalUrl);
-  var params = {},
+  let params = {},
 
     userProps = {
       userId: 'bodyParams.t',
@@ -79,7 +84,7 @@ const integratorInstanceCreateEndPoint = function(req, res){
 /*********** Integrator Instance Update EndPoint (Post: /api/v2/authoring/integrator/instance/update) *********/
 const integratorInstanceUpdateEndPoint = function(req, res){
   logger.info("Endpoint hit: "+ req.originalUrl);
-  var params = {},
+  let params = {},
       userProps = {
         userId: 'bodyParams.t',
         setProperty: 'user'
@@ -99,14 +104,14 @@ const integratorInstanceUpdateEndPoint = function(req, res){
     updateFogInstance
 
   ], function(err, result) {
-    var errMsg = 'Internal error: There was a problem updating Fog instance.' + result
+    let errMsg = 'Internal error: There was a problem updating Fog instance.' + result
     AppUtils.sendResponse(res, err, 'instanceId', params.bodyParams.instanceId, errMsg);
   });
 };
 
 /************************************* Extra Functions **************************************************/
 const updateFogInstance = function(params, callback){
-  var fogInstanceProps = {
+  let fogInstanceProps = {
         instanceId: 'bodyParams.instanceId',
         updatedFog: {
           name : params.bodyParams.name,
@@ -117,7 +122,7 @@ const updateFogInstance = function(params, callback){
         }
       };
   FogService.updateFogInstance(fogInstanceProps, params, callback);
-}
+};
 
 export default {
   integratorInstanceCreateEndPoint: integratorInstanceCreateEndPoint,

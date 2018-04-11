@@ -9,7 +9,7 @@ const createElementInputType = function(props, params, callback) {
 }
 
 const updateElementInputType = function(props, params, callback) {
-  var elementKey = AppUtils.getProperty(params, props.elementKey);
+  let elementKey = AppUtils.getProperty(params, props.elementKey);
 
   ElementInputTypeManager
     .updateElementInputType(elementKey, props.updatedData)
@@ -17,7 +17,7 @@ const updateElementInputType = function(props, params, callback) {
 }
 
 const deleteElementInputType = function(props, params, callback) {
-  var elementKey = AppUtils.getProperty(params, props.elementKey);
+  let elementKey = AppUtils.getProperty(params, props.elementKey);
 
   ElementInputTypeManager
     .deleteByElementKey(elementKey)

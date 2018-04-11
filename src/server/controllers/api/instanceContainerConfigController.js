@@ -16,7 +16,7 @@ import logger from '../../utils/winstonLogs';
 /****** Instance Container Config EndPoint (Post: /api/v2/instance/containerconfig/id/:ID/token/:Token) *******/
 const containerConfigEndPoint = function(req, res){
   logger.info("Endpoint hit: "+ req.originalUrl);
-	var params = {},
+	let params = {},
 		instanceProps = {
 			fogId: 'bodyParams.ID',
 			setProperty: 'outputData'
@@ -38,9 +38,9 @@ const containerConfigEndPoint = function(req, res){
 /*********************************** Extra Functions ***************************************************/
 const processOutput = function (params, callback)
 {
-	var containerList = new Array();
-	for (var i = 0; i < params.outputData.length; i++) {
-		var container = params.outputData[i],
+	let containerList = new Array();
+	for (let i = 0; i < params.outputData.length; i++) {
+		let container = params.outputData[i],
 			containerId = container.uuid;
 
 		if (container.isStreamViewer > 0) {
@@ -49,7 +49,7 @@ const processOutput = function (params, callback)
 		if (container.isDebugConsole > 0) {
 			containerId = "debug";
 		}
-		var containerUpdated = container.configLastUpdated,
+		let containerUpdated = container.configLastUpdated,
 			containerConfig = container.config;
 			containerList.push({
 				'id': containerId,
