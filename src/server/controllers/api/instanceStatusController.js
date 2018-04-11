@@ -42,7 +42,7 @@ import ElemetInstanceStatusService from "../../services/elementInstanceStatusSer
 /*********************************** Extra Functions ***************************************************/
 const upsertStatus = function (params, callback) {
     let statusObjArr = JSON.parse(params.bodyParams.elementstatus);
-    async.eachSeries(statusObjArr, function (statusObj, callback) {
+    async.each(statusObjArr, function (statusObj, callback) {
         ElemetInstanceStatusService.upsertStatus(statusObj, params, callback);
     }, function (err, result) {
         callback(null, params);

@@ -23,6 +23,14 @@ const findContainerListByInstanceId = function(props, params, callback) {
     .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Unable to find data tracks', callback));
 }
 
+const findContainerListWithStatusByInstanceId = function (props, params, param, callback) {
+    let instanceId = AppUtils.getProperty(params, props.instanceId);
+
+    DataTracksManager
+        .findContainerListWithStatusByInstanceId(instanceId)
+        .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Unable to find docker container list', callback));
+}
+
 const getDataTrackById = function(props, params, callback) {
   let trackId = AppUtils.getProperty(params, props.trackId);
   let errorMsg = '';
@@ -85,5 +93,6 @@ export default {
   getDataTrackByInstanceId: getDataTrackByInstanceId,
   getTracksByUserId: getTracksByUserId,
   updateDataTrackById: updateDataTrackById,
-  updateDataTrackByUserId: updateDataTrackByUserId
+    updateDataTrackByUserId: updateDataTrackByUserId,
+    findContainerListWithStatusByInstanceId: findContainerListWithStatusByInstanceId
 };
