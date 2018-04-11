@@ -36,6 +36,8 @@ const deleteByFogUUID = function (props, params, param, callback) {
         ElementInstanceToCleanUpManager
             .deleteByFogUUID(ioFogUUID)
             .then(AppUtils.onDelete.bind(null, params.elementToCleanUpIds, 'Unable to delete Clean Up Elements', callback));
+    } else {
+        callback(null, params.elementToCleanUpIds);
     }
 };
 

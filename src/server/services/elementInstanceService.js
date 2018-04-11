@@ -318,7 +318,7 @@ const deleteElementInstances = function(props, params, callback) {
 const deleteElementInstancesByUUID = function (props, params, elementIds, callback) {
     ElementInstanceManager
         .deleteByElementUUIDs(elementIds)
-        .then(AppUtils.onDelete.bind(null, params, 'Unable to delete Element Instances With Clean Up', callback));
+        .then(AppUtils.onDeleteOptional.bind(null, params, 'Unable to delete Element Instances With Clean Up', callback));
 }
 
 const deleteElementInstancesByInstanceIdAndElementKey = function(props, params, callback) {
