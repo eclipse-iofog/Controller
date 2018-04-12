@@ -6,9 +6,12 @@
  
 import BaseManager from './../managers/baseManager';
 import Registry from './../models/registry';
-import sequelize from './../utils/sequelize';
 
 class RegistryManager extends BaseManager {
+
+    create(obj) {
+        return Registry.create(obj);
+    }
 
 	findByInstanceId(instanceId) {
     	return Registry.findAll({
