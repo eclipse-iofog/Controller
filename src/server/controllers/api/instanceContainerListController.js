@@ -45,7 +45,7 @@ const containerListEndPoint = function(req, res){
   ], function(err, result) {
       let containerList = [];
       for (let i = 0, len = params.containerList.length; i < len; i++) {
-          if (params.elementToCleanUpIds.includes(params.containerList[i].id)) {
+          if (!params.elementToCleanUpIds.includes(params.containerList[i].id)) {
               containerList.push(params.containerList[i])
           }
       }

@@ -271,7 +271,7 @@ const deleteElementInstance = function(props, params, callback) {
 const deleteElementInstanceWithCleanUp = function (props, params, callback) {
     let withCleanUp = AppUtils.getProperty(params, props.withCleanUp);
 
-    if (withCleanUp) {
+    if (withCleanUp && params.elementInstance.iofog_uuid != null) {
         createElementInstanceToCleanUp(props, params, callback);
     } else {
         deleteElementInstance(props, params, callback);
@@ -284,18 +284,13 @@ const createElementInstanceToCleanUp = function (props, params, callback) {
         iofogUUID = AppUtils.getProperty(params, props.iofogUUID);
 
     if (withCleanUp && iofogUUID != null) {
-        DataTracksManager.findActiveElementInstanceUUIDs(elementId)
-            .then((runningList) => {
-                if (runningList.length > 0) {
-                    let objToClean = {
-                        elementInstanceUUID: elementId,
-                        iofogUUID: iofogUUID
-                    };
-                    ElementInstanceToCleanUpManager
-                        .create(objToClean)
-                        .then(AppUtils.onCreate.bind(null, params, null, 'Unable to create Element Instance To Clean Up', callback))
-                }
-            });
+        let objToClean = {
+            elementInstanceUUID: elementId,
+            iofogUUID: iofogUUID
+        };
+        ElementInstanceToCleanUpManager
+            .create(objToClean)
+            .then(AppUtils.onCreate.bind(null, params, null, 'Unable to create Element Instance To Clean Up', callback))
 
     }
 }
@@ -315,10 +310,14 @@ const deleteElementInstances = function(props, params, callback) {
     .then(AppUtils.onDeleteOptional.bind(null, params, callback));
 }
 
-const deleteElementInstancesByUUID = function (props, params, elementIds, callback) {
-    ElementInstanceManager
-        .deleteByElementUUIDs(elementIds)
-        .then(AppUtils.onDeleteOptional.bind(null, params, 'Unable to delete Element Instances With Clean Up', callback));
+const deleteElementInstancesByUUIDs = function (props, params, elementIds, callback) {
+    if (elementIds.length > 0) {
+        ElementInstanceManager
+            .deleteByElementUUIDs(elementIds)
+            .then(AppUtils.onDelete.bind(null, params, 'Unable to delete Element Instances With Clean Up', callback));
+    } else {
+        callback(null, params);
+    }
 }
 
 const deleteElementInstancesByInstanceIdAndElementKey = function(props, params, callback) {
@@ -375,7 +374,7 @@ export default {
     createElementInstanceToCleanUp: createElementInstanceToCleanUp,
   deleteElementInstanceOptional: deleteElementInstanceOptional,
   deleteElementInstances: deleteElementInstances,
-    deleteElementInstancesByUUID: deleteElementInstancesByUUID,
+    deleteElementInstancesByUUID: deleteElementInstancesByUUIDs,
   deleteNetworkElementInstance: deleteNetworkElementInstance,
   deleteNetworkElementInstances: deleteNetworkElementInstances,
   deleteElementInstancesByInstanceIdAndElementKey: deleteElementInstancesByInstanceIdAndElementKey,
