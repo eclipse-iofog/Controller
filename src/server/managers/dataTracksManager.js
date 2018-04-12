@@ -91,6 +91,18 @@ class DataTracksManager extends BaseManager {
             type: sequelize.QueryTypes.SELECT
         });
     }
+
+    findActiveElementInstanceUUIDs(elementInstanceId) {
+        let query = "select ei.UUID from element_instance ei join data_tracks dt where ei.UUID=:elementInstanceId \
+        and (dt.is_activated=1 or ei.track_id==0)";
+
+        return sequelize.query(query, {
+            replacements: {
+                elementInstanceId: elementInstanceId
+            },
+            type: sequelize.QueryTypes.SELECT
+        });
+    }
 }
 
 const instance = new DataTracksManager();

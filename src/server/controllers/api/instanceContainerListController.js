@@ -12,27 +12,47 @@ import ElementInstancePortService from '../../services/elementInstancePortServic
 import ElementInstanceService from '../../services/elementInstanceService';
 import AppUtils from '../../utils/appUtils';
 import logger from '../../utils/winstonLogs';
+import ElementInstanceToCleanUpService from "../../services/elementInstanceToCleanUpService";
 
 
 /********************************************* EndPoints ******************************************************/
 const containerListEndPoint = function(req, res){
   logger.info("Endpoint hit: "+ req.originalUrl);
 
-  let params = {},
-      dataTrackProps = {
-        instanceId: 'bodyParams.ID',
-        setProperty: 'elementInstances'
-      };
+    let params = {},
+        dataTrackProps = {
+            instanceId: 'bodyParams.ID',
+            setProperty: 'elementInstances'
+        },
+        fogParam = {
+            uuid: 'bodyParams.ID',
+            setProperty: 'cleanUpElements'
+        },
+        data = {
+            elementInstanceData: 'elementIds',
+            setProperty: 'elementIds'
+        };
   params.bodyParams = req.params;
   logger.info("Parameters:" + JSON.stringify(params.bodyParams));
   
   async.waterfall([
     async.apply(BaseApiController.checkUserExistance, req, res),
     async.apply(DataTracksService.findContainerListByInstanceId, dataTrackProps, params),
-    processContainerList
-
+      processContainerList,
+      async.apply(ElementInstanceToCleanUpService.listByFogUUID, fogParam, params),
+      async.apply(ElementInstanceToCleanUpService.deleteByFogUUID, fogParam, params),
+      async.apply(ElementInstanceService.deleteElementInstancesByUUID, data, params)
   ], function(err, result) {
-      AppUtils.sendResponse(res, err, 'containerlist', params.containerList, result);
+      let containerList = [];
+      for (let i = 0, len = params.containerList.length; i < len; i++) {
+          if (!params.elementToCleanUpIds.includes(params.containerList[i].id)) {
+              containerList.push(params.containerList[i])
+          }
+      }
+      let successLabelArr = ['containerlist', 'elementToCleanUpIds'],
+          successValueArr = [containerList, params.elementToCleanUpIds];
+
+      AppUtils.sendMultipleResponse(res, err, successLabelArr, successValueArr, result);
   })
 }
 /************************************* Extra Functions **************************************************/
