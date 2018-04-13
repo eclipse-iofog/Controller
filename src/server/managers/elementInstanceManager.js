@@ -158,12 +158,13 @@ class ElementInstanceManager extends BaseManager {
 		return ElementInstance.create(elementInstance);
 	}
 
-	createNetworkInstance(element, userId, fogInstanceId, satelliteDomain, satellitePort1, passcode, name, localPort, isPublic, trackId) {
+	createNetworkInstance(element, userId, fogInstanceId, satelliteDomain, satellitePort1, satelliteCertificate, passcode, name, localPort, isPublic, trackId) {
 		let netConfig = {
 				'mode': isPublic ? 'public' : 'private',
 				'host': satelliteDomain,
 				'port': satellitePort1,
-				'connectioncount': 60,
+				'cert': satelliteCertificate,
+				'connectioncount': isPublic ? 60 : 1,
 				'passcode': passcode,
 				'localhost': 'iofog',
 				'localport': localPort,

@@ -78,6 +78,17 @@ const isValidName = function (name) {
   return re.test(name);
 }
 
+const isValidCertificate = function (cert) {
+  let re = /^(?:(?!-{3,}(?:BEGIN|END) CERTIFICATE)[\s\S])*(-{3,}BEGIN CERTIFICATE(?:(?!-{3,}END CERTIFICATE)[\s\S])*?-{3,}END CERTIFICATE-{3,})(?![\s\S]*?-{3,}BEGIN CERTIFICATE[\s\S]+?-{3,}END CERTIFICATE[\s\S]*?$)/;
+    return re.test(cert);
+}
+
+const trimCertificate = function (cert) {
+  let result = cert.replace(/(^[\s\S]*-{3,}BEGIN CERTIFICATE-{3,}[\s]*)/, "");
+  result = result.replace(/([\s]*-{3,}END CERTIFICATE-{3,}[\s\S]*$)/, "");
+  return result;
+}
+
 const isValidDomain = function (domain) {
   let re = /^((?:(?:(?:\w[\.\-\+]?)*)\w)+)((?:(?:(?:\w[\.\-\+]?){0,62})\w)+)\.(\w{2,6})$/;
   return re.test(domain);
@@ -259,6 +270,8 @@ export default {
   isValidDomain: isValidDomain,
   isValidPublicIP: isValidPublicIP,
   isValidProtocol: isValidProtocol,
+  isValidCertificate: isValidCertificate,
+  trimCertificate: trimCertificate,
   generateAccessToken: generateAccessToken,
   generateRandomString: generateRandomString,
   convertRelativePathToAbsolute: convertRelativePathToAbsolute,

@@ -199,17 +199,19 @@ const createNetworkElementInstance = function(props, params, callback) {
   let networkElement = AppUtils.getProperty(params, props.networkElement),
     fogInstanceId = AppUtils.getProperty(params, props.fogInstanceId),
     satellitePort = AppUtils.getProperty(params, props.satellitePort),
-    trackId = props.trackId ? AppUtils.getProperty(params, props.trackId) : 0,
+    trackId = AppUtils.getProperty(params, props.trackId) || 0,
     satelliteDomain = AppUtils.getProperty(params, props.satelliteDomain),
+    satelliteCertificate = AppUtils.getProperty(params, props.satelliteCertificate),
     passcode = AppUtils.getProperty(params, props.passcode),
-    userId = AppUtils.getProperty(params, props.userId);
+    userId = AppUtils.getProperty(params, props.userId),
+    networkPort = parseInt(AppUtils.getProperty(params, props.networkPort) || 0);
 
   if (!props.networkName) {
     props.networkName = 'Network for Element ' + networkElement.id;
   }
 
   ElementInstanceManager
-    .createNetworkInstance(networkElement, userId, fogInstanceId, satelliteDomain, satellitePort, passcode, props.networkName, props.networkPort, props.isPublic, trackId)
+    .createNetworkInstance(networkElement, userId, fogInstanceId, satelliteDomain, satellitePort, satelliteCertificate, passcode, props.networkName, networkPort, props.isPublic, trackId)
     .then(AppUtils.onCreate.bind(null, params, props.setProperty, 'Unable to create Network Element Instance', callback));
 }
 
