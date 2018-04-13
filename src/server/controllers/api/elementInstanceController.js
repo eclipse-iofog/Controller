@@ -784,10 +784,11 @@ const createNetworkElementInstance = function (params, callback){
       fogInstanceId: 'fogInstance.uuid',
       satellitePort: 'satellitePort.port1',
       satelliteDomain: 'satellite.domain',
+      satelliteCertificate: 'satellite.cert',
       trackId: null,
       userId: 'user.id',
       networkName: 'Network for Element '+ params.elementInstance.uuid,
-      networkPort: 0,
+      networkPort: 'bodyParams.externalPort',
       isPublic: true,
       passcode: 'comsatPort.passcode1',
       setProperty: 'networkElementInstance'
