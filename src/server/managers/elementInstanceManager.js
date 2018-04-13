@@ -306,6 +306,14 @@ class ElementInstanceManager extends BaseManager {
 		});
 	}
 
+    deleteByElementUUIDs(instanceIds) {
+        return ElementInstance.destroy({
+            where: {
+                uuid: instanceIds
+            }
+        });
+    }
+
 	findRealElementInstanceByTrackId(trackId) {
 		return ElementInstance.findAll({
 			where: {

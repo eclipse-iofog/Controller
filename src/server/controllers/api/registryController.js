@@ -57,7 +57,7 @@ const addRegistryEndPoint = function (req, res) {
             userId: 'user.id'
         };
 
-    params.bodyParams = req.params;
+    params.bodyParams = req.body;
     params.bodyParams.t = req.query.t;
     logger.info("Parameters:" + JSON.stringify(params.bodyParams));
 
