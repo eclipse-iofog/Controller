@@ -47,7 +47,7 @@ const changeVersionEndPoint = function (req, res) {
     });
 };
 
-/********** Instance Routing EndPoint (Get/Post: /api/v2/instance/version/id/:instanceId/token/:Token) ***************/
+/********** Instance Version EndPoint (Get/Post: /api/v2/instance/version/id/:instanceId/token/:Token) ***************/
 const instanceVersionEndPoint = function (req, res) {
     logger.info("Endpoint hit: " + req.originalUrl);
 

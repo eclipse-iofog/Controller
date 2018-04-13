@@ -407,7 +407,7 @@ class ElementInstanceManager extends BaseManager {
 		'on ei.element_key = e.id ' +
 		'left join iofogs f ' +
 		'on f.UUID = ei.iofog_uuid ' +
-		'where ei.UUID in (:uuid)'
+		'where ei.UUID in (:uuid)';
 
 		return sequelize.query(query, {
 			replacements: {

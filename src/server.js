@@ -31,6 +31,7 @@ import registryController from './server/controllers/api/registryController';
 import logger from './server/utils/winstonLogs';
 import proxyController from "./server/controllers/api/proxyController";
 import fogVersionCommandController from './server/controllers/api/fogVersionCommandController';
+import diagnosticsController from './server/controllers/api/diagnosticsController';
 
 const startServer = function (port) {
   let app,
@@ -178,6 +179,12 @@ const initApp = function () {
   app.get('/api/v2/instance/version/id/:instanceId/token/:Token', fogVersionCommandController.instanceVersionEndPoint);
   app.post('/api/v2/instance/version/id/:instanceId/token/:Token', fogVersionCommandController.instanceVersionEndPoint);
   // app.post('/api/v2/authoring/fabric/instance/bluebox/add', fogController.addBlueboxEndpoint);
+  app.post('/api/v2/authoring/element/diagnostics/strace/switch', diagnosticsController.switchElementStrace);
+  app.post('/api/v2/instance/strace/push/id/:instanceId/token/:Token', diagnosticsController.pushStraceData);
+  app.post('/api/v2/instance/diagnostics/id/:instanceId/token/:Token', diagnosticsController.getDiagnosticsInfo);
+  app.post('/api/v2/authoring/element/diagnostics/strace/pop/json', diagnosticsController.popStraceDataAsJson);
+  app.post('/api/v2/authoring/element/diagnostics/strace/pop/file/', diagnosticsController.popStraceDataAsFile);
+  app.post('/api/v2/authoring/element/diagnostics/strace/pop/ftp/', diagnosticsController.popStraceDataToFtp);
 
   app.get('/api/v2/get/user/data/:t', userController.getUserDetailsEndPoint);
   app.post('/api/v1/user/profile/update', userController.updateUserDetailsEndPoint);

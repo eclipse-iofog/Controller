@@ -48,6 +48,10 @@ const ChangeTracking = sequelize.define('iofog_change_tracking', {
   proxy: {
     type: Sequelize.BIGINT,
     field: 'proxy'
+  },
+  diagnostics: {
+    type: Sequelize.BIGINT,
+    field: 'diagnostics'
   }
 }, {
   // don't add the timestamp attributes (updatedAt, createdAt)
