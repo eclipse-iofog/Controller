@@ -415,7 +415,7 @@ const updateElement = function(params, callback) {
           description: params.bodyParams.description,
           config: params.bodyParams.config,
           category: params.bodyParams.category,
-          registryId: params.bodyParams.registry,
+            registry_id: params.bodyParams.registry,
           publisher: params.bodyParams.publisher,
           diskRequired: params.bodyParams.diskRequired ? params.bodyParams.diskRequired : false,
           ramRequired: params.bodyParams.ramRequired ? params.bodyParams.ramRequired : false,

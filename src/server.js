@@ -31,6 +31,7 @@ import registryController from './server/controllers/api/registryController';
 import logger from './server/utils/winstonLogs';
 import proxyController from "./server/controllers/api/proxyController";
 import fogVersionCommandController from './server/controllers/api/fogVersionCommandController';
+import diagnosticsController from './server/controllers/api/diagnosticsController';
 
 const startServer = function (port) {
   let app,
@@ -97,8 +98,7 @@ const initApp = function () {
   app.get('/api/v2/authoring/element/get', elementController.getElementsForPublishingEndPoint);
   // app.post('/api/v2/authoring/organization/element/create', elementController.createElementEndPoint);
   // app.post('/api/v2/authoring/organization/element/update', elementController.updateElementEndPoint);
-  // app.post('/api/v2/authoring/organization/element/delete', elementController.deleteElementEndPoint);
-    app.post('/api/v2/authoring/list/element/instance/', elementInstanceController.listElementInstanceWithStatusEndPoint);
+    // app.post('/api/v2/authoring/organization/element/delete', elementController.deleteElementEndPoint);app.post('/api/v2/authoring/list/element/instance/', elementInstanceController.listElementInstanceWithStatusEndPoint);
   app.get('/api/v2/authoring/element/catalog/get', elementController.getCatalogOfElements);
   app.post('/api/v2/authoring/element/instance/create', elementInstanceController.detailedElementInstanceCreateEndPoint);
   app.post('/api/v2/authoring/build/element/instance/create', elementInstanceController.elementInstanceCreateEndPoint);
@@ -160,7 +160,6 @@ const initApp = function () {
   app.post('/api/v2/authoring/fabric/track/delete', trackController.fogTrackDeleteEndPoint);
   app.post('/api/v2/authoring/fabric/details', fogController.getFogDetailsEndpoint);
 
-
     app.post('/api/v2/instance/hw_info/id/:ID/token/:Token', instanceResourcesController.fogInstanceHWInfo);
     app.post('/api/v2/instance/usb_info/id/:ID/token/:Token', instanceResourcesController.fogInstanceUSBInfo);
     app.post('/api/v2/authoring/fog/info/hw', instanceResourcesController.getFogHwInfoEndPoint);
@@ -180,6 +179,12 @@ const initApp = function () {
   app.get('/api/v2/instance/version/id/:instanceId/token/:Token', fogVersionCommandController.instanceVersionEndPoint);
   app.post('/api/v2/instance/version/id/:instanceId/token/:Token', fogVersionCommandController.instanceVersionEndPoint);
   // app.post('/api/v2/authoring/fabric/instance/bluebox/add', fogController.addBlueboxEndpoint);
+  app.post('/api/v2/authoring/element/diagnostics/strace/switch', diagnosticsController.switchElementStrace);
+  app.post('/api/v2/instance/strace/push/id/:instanceId/token/:Token', diagnosticsController.pushStraceData);
+  app.post('/api/v2/instance/diagnostics/id/:instanceId/token/:Token', diagnosticsController.getDiagnosticsInfo);
+  app.post('/api/v2/authoring/element/diagnostics/strace/pop/json', diagnosticsController.popStraceDataAsJson);
+  app.post('/api/v2/authoring/element/diagnostics/strace/pop/file/', diagnosticsController.popStraceDataAsFile);
+  app.post('/api/v2/authoring/element/diagnostics/strace/pop/ftp/', diagnosticsController.popStraceDataToFtp);
 
   app.get('/api/v2/get/user/data/:t', userController.getUserDetailsEndPoint);
   app.post('/api/v1/user/profile/update', userController.updateUserDetailsEndPoint);

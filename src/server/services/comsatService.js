@@ -44,9 +44,13 @@ const openPortOnRadomComsat = function(params, callback) {
 }
 
 const openPortsOnComsat = function(params, callback) {
-  let data = querystring.stringify({
-    mapping: '{"type":"public","maxconnections":60,"heartbeatabsencethreshold":200000}'
-  });
+
+    let data = params.bodyParams.publicAccess == 1
+        ? querystring.stringify({
+            mapping: '{"type":"public","maxconnections":60,"heartbeatabsencethreshold":200000}'})
+        : querystring.stringify({
+            mapping: '{"type":"private","maxconnectionsport1":1, "maxconnectionsport2":1, ' +
+            '"heartbeatabsencethresholdport1":200000, "heartbeatabsencethresholdport2":200000}'});
 
   let options = {
     host: params.satellite.domain,
@@ -197,7 +201,7 @@ const closePortOnComsat = function(params, callback) {
 const checkConnectionToComsat = function() {
   let params = {};
 
-  async.waterfall([        
+  async.waterfall([
     async.apply(getAllSatellites, params),
     verifyComsatConnections,
     displayComsatConnectionsStatus
@@ -211,7 +215,7 @@ const checkConnectionToComsat = function() {
 
 const getAllSatellites = function(params, callback){
   let satellite = [];
-  
+
   SatelliteManager.findAll().then(function(satellites){
     if (satellites.length){
       for (let i = 0; i < satellites.length; i++){
@@ -242,8 +246,8 @@ const verifyComsatConnections = function(params, callback){
 
     async.eachSeries(params.satellite, function(satellite, cb){
       count ++;
-      process.stdout.clearLine();  
-      process.stdout.cursorTo(0); 
+      process.stdout.clearLine();
+      process.stdout.cursorTo(0);
       percentage_done = Math.round((count / params.satellite.length) * 100);
 
       process.stdout.write('Percentage completed ' + percentage_done + '%');
@@ -266,11 +270,11 @@ const verifyComsatConnections = function(params, callback){
           response.on('data', function(chunk) {
             output += chunk;
           });
-          
+
           response.on('end', function() {
             validSatellites.push(satellite);
             cb();
-          });        
+          });
         }else{
           invalidSatellites.push(satellite);
           cb();
@@ -292,14 +296,14 @@ const verifyComsatConnections = function(params, callback){
     });
 }
 const displayComsatConnectionsStatus = function(params, callback) {
-  if(params.validSatellites.length){ 
+  if(params.validSatellites.length){
     console.log("\nConnection to following ComSat(s) was successful:");
     params.validSatellites.forEach((validSatellite) => {
       console.log(validSatellite.name + ' (' + validSatellite.domain + ')');
     });
   }
 
-  if(params.invalidSatellites.length){ 
+  if(params.invalidSatellites.length){
     console.log("\nConnection to following ComSat(s) failed:");
     params.invalidSatellites.forEach((invalidSatellite) => {
       console.log(invalidSatellite.name + ' (' + invalidSatellite.domain + ')');
