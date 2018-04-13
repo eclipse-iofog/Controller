@@ -27,9 +27,13 @@ function displayDatabaseStatus() {
   try {
     let databaseFile = fs.readFileSync(path.join(__dirname, '../../db/fog_controller.db'));
     console.log('Size of database file: ' + Math.round((databaseFile.toString().length / 1024) * 100) / 100 + ' KB');
-    ComsatService.checkConnectionToComsat();
   } catch (e) {
-    console.log('Error: "fog_controller.db" not found in "db" folder.');
+      console.log('Error: "fog_controller.db" not found in "db" folder.');
+  }
+    try {
+        ComsatService.checkConnectionToComsat();
+  } catch (e) {
+        console.log('Error: "fail to check connection to comsat');
   }
 }
 
