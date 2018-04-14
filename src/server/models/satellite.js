@@ -25,6 +25,10 @@ const Satellite = sequelize.define('satellite', {
   publicIP: {
     type: Sequelize.TEXT,
     field: 'public_ip'
+  },
+  cert: {
+    type: Sequelize.TEXT,
+    field: 'cert'
   }
 }, {
   // don't add the timestamp attributes (updatedAt, createdAt)

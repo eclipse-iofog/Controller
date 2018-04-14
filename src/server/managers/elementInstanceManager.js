@@ -158,12 +158,13 @@ class ElementInstanceManager extends BaseManager {
 		return ElementInstance.create(elementInstance);
 	}
 
-	createNetworkInstance(element, userId, fogInstanceId, satelliteDomain, satellitePort1, passcode, name, localPort, isPublic, trackId) {
+	createNetworkInstance(element, userId, fogInstanceId, satelliteDomain, satellitePort1, satelliteCertificate, passcode, name, localPort, isPublic, trackId) {
 		let netConfig = {
 				'mode': isPublic ? 'public' : 'private',
 				'host': satelliteDomain,
 				'port': satellitePort1,
-				'connectioncount': 60,
+				'cert': satelliteCertificate,
+				'connectioncount': isPublic ? 60 : 1,
 				'passcode': passcode,
 				'localhost': 'iofog',
 				'localport': localPort,
@@ -305,6 +306,14 @@ class ElementInstanceManager extends BaseManager {
 		});
 	}
 
+    deleteByElementUUIDs(instanceIds) {
+        return ElementInstance.destroy({
+            where: {
+                uuid: instanceIds
+            }
+        });
+    }
+
 	findRealElementInstanceByTrackId(trackId) {
 		return ElementInstance.findAll({
 			where: {
@@ -399,7 +408,7 @@ class ElementInstanceManager extends BaseManager {
 		'on ei.element_key = e.id ' +
 		'left join iofogs f ' +
 		'on f.UUID = ei.iofog_uuid ' +
-		'where ei.UUID in (:uuid)'
+		'where ei.UUID in (:uuid)';
 
 		return sequelize.query(query, {
 			replacements: {
