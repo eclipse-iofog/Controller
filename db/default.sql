@@ -18,10 +18,12 @@ CREATE TABLE satellite (
   `name`       TEXT,
   `domain`     TEXT,
   `public_ip`  TEXT,
+  `cert`       TEXT,
   `created_at` DATETIME NOT NULL,
   `updated_at` DATETIME NOT NULL
 );
-INSERT INTO satellite VALUES (2, 'ComSat4', 'comsat4.iotracks.com', '104.130.135.213', '2016-09-21 15:21:31.898 +00:00',
+
+INSERT INTO satellite VALUES (2, 'ComSat4', 'comsat4.iotracks.com', '104.130.135.213', '','2016-09-21 15:21:31.898 +00:00',
                               '2016-09-21 15:21:31.898 +00:00');
 CREATE TABLE data_tracks (
   `ID`           INTEGER PRIMARY KEY AUTOINCREMENT,
