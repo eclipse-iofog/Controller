@@ -13,20 +13,6 @@ class RegistryManager extends BaseManager {
         return Registry.create(obj);
     }
 
-	findByInstanceId(instanceId) {
-    	return Registry.findAll({
-    		where: {
-      			$or: [{
-          			iofog_uuid: instanceId
-        		}, {
-          			ispublic: {
-          				$gt: 0
-          			}
-        		}]
-	  		}
-    	});
- 	}
-
     findByUserId(userId) {
         return Registry.findAll({
             where: {
