@@ -10,7 +10,7 @@ import User from "./user";
 const Registry = sequelize.define('registry', {
   id: {type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true, field: 'ID'},
   url: {type: Sequelize.TEXT, field: 'url'},
-  ispublic: {type: Sequelize.INTEGER, field: 'is_public'},
+    ispublic: {type: Sequelize.BOOLEAN, field: 'is_public'},
   secure: {type: Sequelize.BOOLEAN, field: 'secure'},
   certificate: {type: Sequelize.TEXT, field: 'certificate'},
   requirescert: {type: Sequelize.BOOLEAN, field: 'requires_cert'},
