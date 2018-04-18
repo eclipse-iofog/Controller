@@ -1,5 +1,5 @@
 PRAGMA foreign_keys = OFF;
-BEGIN TRANSACTION;
+--BEGIN TRANSACTION;
 CREATE TABLE routing (
   `ID`                      INTEGER PRIMARY KEY AUTOINCREMENT,
   `publishing_instance_id`  TEXT,
@@ -540,6 +540,14 @@ CREATE TABLE iofog_version_commands (
   FOREIGN KEY(`iofog_uuid`) REFERENCES iofogs (UUID) ON DELETE SET NULL ON UPDATE CASCADE
 );
 
+CREATE TABLE element_instance_to_clean_up (
+  ID                    INTEGER PRIMARY KEY AUTOINCREMENT,
+  element_instance_uuid TEXT,
+  iofog_uuid            TEXT,
+  created_at            DATETIME NOT NULL,
+  updated_at            DATETIME NOT NULL
+);
+
 INSERT INTO iofog_change_tracking VALUES(1, 1517401049283, 0, 1517401049283,1517472938429,1517472938429,1517401049283,1517401049283, 1517401049283, 1517401049283, 'fVmnRpHgdNnDw7XJLJw7GV4NVRhjk4V3');
 DELETE FROM sqlite_sequence;
 INSERT INTO sqlite_sequence VALUES ('config', 52);
@@ -581,4 +589,4 @@ INSERT INTO config (key, value) VALUES ('ssl_key', 'privkey.pem');
 INSERT INTO config (key, value) VALUES ('intermediate_cert', 'my-private-root-ca.cert.pem');
 INSERT INTO config (key, value) VALUES ('ssl_cert', 'fullchain.pem');
 
-COMMIT;
+--COMMIT;
