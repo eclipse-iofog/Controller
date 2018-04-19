@@ -195,61 +195,64 @@ CREATE TABLE element (
   org_id          BIGINT,
   registry_id     INTEGER REFERENCES registry (ID)
     ON DELETE SET NULL
+    ON UPDATE CASCADE,
+  user_id        INTEGER REFERENCES users (ID)
     ON UPDATE CASCADE
+    ON DELETE CASCADE
 );
 INSERT INTO element VALUES
   (1, 'Stream Viewer', 'The built-in stream viewer for ioIntegrator Linux edition', 'Utilities',
-      'SYSTEM', 0, 0, 'none.png', NULL, 1, 0, 1);
+      'SYSTEM', 0, 0, 'none.png', NULL, 1, 0, 1, NULL);
 INSERT INTO element VALUES
   (2, 'Debug Console', 'The built-in debug console for ioIntegrator Linux edition', 'Utilities',
-      'SYSTEM', 0, 0, 'none.png', NULL, 1, 0, 1);
+      'SYSTEM', 0, 0, 'none.png', NULL, 1, 0, 1, NULL);
 INSERT INTO element VALUES
   (3, 'Networking Tool', 'The built-in networking tool for ioIntegrator Linux edition', 'Utilities',
-      'SYSTEM', 0, 0, 'none.png', NULL, 1, 0, 1);
+      'SYSTEM', 0, 0, 'none.png', NULL, 1, 0, 1, NULL);
 INSERT INTO element VALUES
   (4, 'Hello Web Demo', 'A simple web server for you to test your ioFog', 'Demos',
-      'iotracks', 0, 0, 'images/build/4.png', NULL, 1, 0, 1);
+      'iotracks', 0, 0, 'images/build/4.png', NULL, 1, 0, 1, NULL);
 INSERT INTO element VALUES
   (5, 'RESTBlue', 'Bluetooth RESTful API', 'Utilities', 'SYSTEM', 0, 0,
-      'none.png', NULL, 1, 0, 1);
+      'none.png', NULL, 1, 0, 1, NULL);
 INSERT INTO element VALUES
-  (6, 'HAL', 'HAL container', 'Utilities', 'SYSTEM', 0, 0, 'none.png', NULL, 1, 0, 1);
+  (6, 'HAL', 'HAL container', 'Utilities', 'SYSTEM', 0, 0, 'none.png', NULL, 1, 0, 1, NULL);
 INSERT INTO element VALUES
   (8, 'Open Weather Map Data', 'A stream of data from the Open Weather Map API in JSON format', 'Sensors',
-      'iotracks', 0, 0, 'images/build/8.png', NULL, 1, 0, 1);
+      'iotracks', 0, 0, 'images/build/8.png', NULL, 1, 0, 1, NULL);
 INSERT INTO element VALUES
   (49, 'JSON REST API', 'A configurable REST API that gives JSON output', 'Utilities',
-       'iotracks', 0, 0, 'images/build/49.png', NULL, 1, 0, 1);
+       'iotracks', 0, 0, 'images/build/49.png', NULL, 1, 0, 1, NULL);
 INSERT INTO element VALUES
   (58, 'Temperature Converter', 'A simple temperature format converter', 'Utilities',
-       'iotracks', 0, 0, 'images/build/58.png', NULL, 1, 0, 1);
+       'iotracks', 0, 0, 'images/build/58.png', NULL, 1, 0, 1, NULL);
 INSERT INTO element VALUES
   (9, 'Mongo', 'MongoDB database', 'Utilities',
-      'SYSTEM', 0, 0, 'none.png', NULL, 1, 0, 1);
+      'SYSTEM', 0, 0, 'none.png', NULL, 1, 0, 1, NULL);
 INSERT INTO element VALUES
   (10, 'Influx', 'InfluxDB database', 'Utilities',
-       'SYSTEM', 0, 0, 'none.png', NULL, 1, 0, 1);
+       'SYSTEM', 0, 0, 'none.png', NULL, 1, 0, 1, NULL);
 INSERT INTO element VALUES
   (11, 'Grafana', 'Grafana container', 'Utilities',
-       'SYSTEM', 0, 0, 'none.png', NULL, 1, 0, 1);
+       'SYSTEM', 0, 0, 'none.png', NULL, 1, 0, 1, NULL);
 INSERT INTO element VALUES
   (12, 'Mongo Adapter', 'Mongo adapter container', 'Utilities',
-       'SYSTEM', 0, 0, 'none.png', NULL, 1, 0, 1);
+       'SYSTEM', 0, 0, 'none.png', NULL, 1, 0, 1, NULL);
 INSERT INTO element VALUES
   (13, 'Influx Adapter', 'Influx adapter container', 'Utilities',
-       'SYSTEM', 0, 0, 'none.png', NULL, 1, 0, 1);
+       'SYSTEM', 0, 0, 'none.png', NULL, 1, 0, 1, NULL);
 INSERT INTO element VALUES
   (14, 'JSON Sub-Select', 'Performs sub-selection and transform operations on any JSON messages', 'Utilities',
-       'iotracks', 0, 0, 'images/build/59.png', NULL, 1, 0, 1);
+       'iotracks', 0, 0, 'images/build/59.png', NULL, 1, 0, 1, NULL);
 INSERT INTO element VALUES
   (15, 'Diagnostics', 'Performs diagnostics of basic functionality to work with ioFog.  ' +
                       'Use diagnostic container if something goes wrong on your machine with ioFog agent,' +
                       ' e.g. Comsats are not available, a container cannot connect to ioFog host, ' +
                       'ioFog client is not created, RestBlue or Log Container are not available and so on.',
-       'Utilities', 'iotracks', 0, 0, 'images/build/580.png', NULL, 1, 0, 1);
+       'Utilities', 'iotracks', 0, 0, 'images/build/580.png', NULL, 1, 0, 1, NULL);
 INSERT INTO element VALUES
   (16, 'MQTT Client', 'Converts MQTT-messages to ioMesage format and vice versa.', 'Utilities',
-       'iotracks', 0, 0, 'images/build/640.png', NULL, 1, 0, 1);
+       'iotracks', 0, 0, 'images/build/640.png', NULL, 1, 0, 1, NULL);
 
 CREATE TABLE element_input_type (
   ID          INTEGER PRIMARY KEY AUTOINCREMENT,
