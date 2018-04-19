@@ -18,7 +18,7 @@
   "homepage": "https://iotracks.com/",
   "scripts": {
     "test": "node ./dist/main.js",
-    "start": "babel-node ./dist/main",
+    "start": "node ./dist/main",
     "build": "cd db/ && sqlite3 fog_controller.db < default.sql && cd ../ && babel src -d dist --copy-files",
     "start-dev": "node ./dist/daemonServer",
     "build-dev": "babel src -d dist --copy-files",
