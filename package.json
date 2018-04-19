@@ -12,7 +12,7 @@
     "node"
   ],
   "author": "Zishan Iqbal",
-  "license": "Copyright (C) 2018 iofog, inc. \nEclipse ioFog is provided under the Eclipse Public License (EPL) \nhttps://www.eclipse.org/legal/epl-v10.html",
+  "license": "Copyright (C) 2018 Edgeworx, Inc. \nEclipse ioFog is provided under the Eclipse Public License (EPL) \nhttps://www.eclipse.org/legal/epl-v10.html",
   "bugs": {},
   "preferGlobal": true,
   "homepage": "https://iofog.org/",
