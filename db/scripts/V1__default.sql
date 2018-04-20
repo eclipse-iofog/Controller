@@ -1,5 +1,5 @@
 PRAGMA foreign_keys = OFF;
-BEGIN TRANSACTION;
+--BEGIN TRANSACTION;
 CREATE TABLE routing (
   `ID`                      INTEGER PRIMARY KEY AUTOINCREMENT,
   `publishing_instance_id`  TEXT,
@@ -23,7 +23,7 @@ CREATE TABLE satellite (
   `updated_at` DATETIME NOT NULL
 );
 
-INSERT INTO satellite VALUES (2, 'ComSat4', 'comsat4.iotracks.com', '104.130.135.213', '','2016-09-21 15:21:31.898 +00:00',
+INSERT INTO satellite VALUES (2, 'devcomsat1', 'comsat1-dev.iofog.org', '23.253.95.214', 'MIIEsTCCA5mgAwIBAgIQCKWiRs1LXIyD1wK0u6tTSTANBgkqhkiG9w0BAQsFADBhMQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMRkwFwYDVQQLExB3d3cuZGlnaWNlcnQuY29tMSAwHgYDVQQDExdEaWdpQ2VydCBHbG9iYWwgUm9vdCBDQTAeFw0xNzExMDYxMjIzMzNaFw0yNzExMDYxMjIzMzNaMF4xCzAJBgNVBAYTAlVTMRUwEwYDVQQKEwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xHTAbBgNVBAMTFFJhcGlkU1NMIFJTQSBDQSAyMDE4MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA5S2oihEo9nnpezoziDtx4WWLLCll/e0t1EYemE5n+MgP5viaHLy+VpHP+ndX5D18INIuuAV8wFq26KF5U0WNIZiQp6mLtIWjUeWDPA28OeyhTlj9TLk2beytbtFU6ypbpWUltmvY5V8ngspC7nFRNCjpfnDED2kRyJzO8yoKMFz4J4JE8N7NA1uJwUEFMUvHLs0scLoPZkKcewIRm1RV2AxmFQxJkdf7YN9Pckkif2Xgm3b48BZn0zf0qXsSeGu84ua9gwzjzI7tbTBjayTpT+/XpWuBVv6fvarI6bikKB859OSGQuw73XXgeuFwEPHTIRoUtkzu3/EQ+LtwznkkdQIDAQABo4IBZjCCAWIwHQYDVR0OBBYEFFPKF1n8a8ADIS8aruSqqByCVtp1MB8GA1UdIwQYMBaAFAPeUDVW0Uy7ZvCj4hsbw5eyPdFVMA4GA1UdDwEB/wQEAwIBhjAdBgNVHSUEFjAUBggrBgEFBQcDAQYIKwYBBQUHAwIwEgYDVR0TAQH/BAgwBgEB/wIBADA0BggrBgEFBQcBAQQoMCYwJAYIKwYBBQUHMAGGGGh0dHA6Ly9vY3NwLmRpZ2ljZXJ0LmNvbTBCBgNVHR8EOzA5MDegNaAzhjFodHRwOi8vY3JsMy5kaWdpY2VydC5jb20vRGlnaUNlcnRHbG9iYWxSb290Q0EuY3JsMGMGA1UdIARcMFowNwYJYIZIAYb9bAECMCowKAYIKwYBBQUHAgEWHGh0dHBzOi8vd3d3LmRpZ2ljZXJ0LmNvbS9DUFMwCwYJYIZIAYb9bAEBMAgGBmeBDAECATAIBgZngQwBAgIwDQYJKoZIhvcNAQELBQADggEBAH4jx/LKNW5ZklFcYWs8Ejbm0nyzKeZC2KOVYR7P8gevKyslWm4Xo4BSzKr235FsJ4aFt6yAiv1eY0tZ/ZN18bOGSGStoEc/JE4ocIzr8P5Mg11kRYHbmgYnr1Rxeki5mSeb39DGxTpJD4kGhs5lXNoo4conUiiJwKaqH7vh2baryd8pMISag83JUqyVGc2tWPpO0329/CWq2kryqv66OSMjwulUz0dXf4OHQasR7CNfIr+4KScc6ABlQ5RDF86PGeE6kdwSQkFiB/cQysNyq0jEDQTkfa2pjmuWtMCNbBnhFXBYejfubIhaUbEv2FOQB3dCav+FPg5eEveXTVyMnGo=','2016-09-21 15:21:31.898 +00:00',
                               '2016-09-21 15:21:31.898 +00:00');
 CREATE TABLE data_tracks (
   `ID`           INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -118,8 +118,8 @@ INSERT INTO element_images VALUES (1, 1, 1, 'iotracks/catalog:stream-viewer-1.0'
 INSERT INTO element_images VALUES (2, 1, 2, 'iotracks/catalog:stream-viewer-1.0-arm');
 INSERT INTO element_images VALUES (3, 2, 1, 'iotracks/catalog:debug');
 INSERT INTO element_images VALUES (4, 2, 2, 'iotracks/catalog:debug-arm');
-INSERT INTO element_images VALUES (5, 3, 1, 'iotracks/catalog:core-networking-1-12');
-INSERT INTO element_images VALUES (6, 3, 2, 'iotracks/catalog:core-networking-1-12-arm');
+INSERT INTO element_images VALUES (5, 3, 1, 'iotracks/catalog:core-networking-noack-go');
+INSERT INTO element_images VALUES (6, 3, 2, 'iotracks/catalog:core-networking-noack-go-arm');
 INSERT INTO element_images VALUES (7, 4, 1, 'iotracks/catalog:hello-web-1');
 INSERT INTO element_images VALUES (8, 4, 2, 'iotracks/catalog:hello-web-1-arm');
 INSERT INTO element_images VALUES (9, 5, 1, 'iotracks/catalog:bluetooth-rest-api-v0.5');
@@ -234,10 +234,10 @@ INSERT INTO element VALUES
        'SYSTEM', 0, 0, 'none.png', NULL, 1, 0, 1);
 INSERT INTO element VALUES
   (12, 'Mongo Adapter', 'Mongo adapter container', 'Utilities',
-       'SYSTEM', 0, 0, 'none.png', NULL, 1, 0, 1);
+       'iotracks', 0, 0, 'none.png', NULL, 1, 0, 1);
 INSERT INTO element VALUES
   (13, 'Influx Adapter', 'Influx adapter container', 'Utilities',
-       'SYSTEM', 0, 0, 'none.png', NULL, 1, 0, 1);
+       'iotracks', 0, 0, 'none.png', NULL, 1, 0, 1);
 INSERT INTO element VALUES
   (14, 'JSON Sub-Select', 'Performs sub-selection and transform operations on any JSON messages', 'Utilities',
        'iotracks', 0, 0, 'images/build/59.png', NULL, 1, 0, 1);
@@ -540,6 +540,14 @@ CREATE TABLE iofog_version_commands (
   FOREIGN KEY(`iofog_uuid`) REFERENCES iofogs (UUID) ON DELETE SET NULL ON UPDATE CASCADE
 );
 
+CREATE TABLE element_instance_to_clean_up (
+  ID                    INTEGER PRIMARY KEY AUTOINCREMENT,
+  element_instance_uuid TEXT,
+  iofog_uuid            TEXT,
+  created_at            DATETIME NOT NULL,
+  updated_at            DATETIME NOT NULL
+);
+
 INSERT INTO iofog_change_tracking VALUES(1, 1517401049283, 0, 1517401049283,1517472938429,1517472938429,1517401049283,1517401049283, 1517401049283, 1517401049283, 'fVmnRpHgdNnDw7XJLJw7GV4NVRhjk4V3');
 DELETE FROM sqlite_sequence;
 INSERT INTO sqlite_sequence VALUES ('config', 52);
@@ -581,4 +589,4 @@ INSERT INTO config (key, value) VALUES ('ssl_key', 'privkey.pem');
 INSERT INTO config (key, value) VALUES ('intermediate_cert', 'my-private-root-ca.cert.pem');
 INSERT INTO config (key, value) VALUES ('ssl_cert', 'fullchain.pem');
 
-COMMIT;
+--COMMIT;

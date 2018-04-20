@@ -19,9 +19,9 @@
   "scripts": {
     "test": "node ./dist/main.js",
     "start": "node ./dist/main",
-    "build": "cd db/ && sqlite3 fog_controller.db < default.sql && cd ../ && babel src -d dist --copy-files",
+    "build": "cd db/ && touch fog_controller.db && cd ../ && ./flyway-5.0.7/flyway -configFiles=./db/flyway.conf migrate && babel src -d dist --copy-files",
     "start-dev": "node ./dist/daemonServer",
-    "build-dev": "babel src -d dist --copy-files",
+    "build-dev": "./flyway-5.0.7/flyway -configFiles=./db/flyway.conf migrate && babel src -d dist --copy-files",
     "dev": "npm start stop && npm run build-dev && npm run start-dev"
   },
   "bin": {

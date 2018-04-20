@@ -7,7 +7,6 @@
 import Satellite from './../models/satellite';
 import BaseManager from './../managers/baseManager';
 import AppUtils from './../utils/appUtils';
-import Sequelize from 'sequelize';
 import fs from 'fs';
 
 class SatelliteManager extends BaseManager {
@@ -61,7 +60,7 @@ class SatelliteManager extends BaseManager {
         if(AppUtils.isValidDomain(domain)){
           if(AppUtils.isValidPublicIP(publicIP)){
               this.findBySatelliteNameDomainAndPublicIP(name, domain, publicIP)
-                .then(function(satellite) {
+                .then((satellite) => {
                   if (!satellite) {
                     if (!certFile) {
                       this.create({
