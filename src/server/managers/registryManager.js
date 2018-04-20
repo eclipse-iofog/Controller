@@ -6,7 +6,6 @@
  
 import BaseManager from './../managers/baseManager';
 import Registry from './../models/registry';
-import Sequelize from 'sequelize';
 
 class RegistryManager extends BaseManager {
 
@@ -17,11 +16,11 @@ class RegistryManager extends BaseManager {
 	findByInstanceId(instanceId) {
     	return Registry.findAll({
     		where: {
-      			[Sequelize.Op.or]: [{
+      			$or: [{
           			iofog_uuid: instanceId
         		}, {
           			ispublic: {
-          				[Sequelize.Op.gt]: 0
+          				$gt: 0
           			}
         		}]
 	  		}
