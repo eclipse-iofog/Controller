@@ -6,7 +6,6 @@
 
 import ElementAdvertisedPort from './../models/elementAdvertisedPort';
 import BaseManager from './baseManager';
-import Sequelize from 'sequelize';
 
 class ElementAdvertisedPortManager extends BaseManager {
   getEntity() {
@@ -17,7 +16,7 @@ class ElementAdvertisedPortManager extends BaseManager {
     return ElementAdvertisedPort.findAll({
       where: {
         element_id: {
-          [Sequelize.Op.in]: elementIds
+          $in: elementIds
         }
       }
     });
