@@ -1,6 +1,5 @@
 import BaseManager from './../managers/baseManager';
 import ElementInstanceConnections from './../models/elementInstanceConnections';
-import Sequelize from 'sequelize';
 
 class ElementInstanceConnectionsManager extends BaseManager {
 
@@ -28,7 +27,7 @@ class ElementInstanceConnectionsManager extends BaseManager {
 	deleteElementInstanceConnection(elementId) {
 	  return ElementInstanceConnections.destroy({
       where: {
-        [Sequelize.Op.or]: [{
+        $or: [{
     			sourceElementInstance: elementId
         }, {
           destinationElementInstance: elementId
