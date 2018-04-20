@@ -7,7 +7,7 @@
 import Routing from './../models/routing';
 import BaseManager from './../managers/baseManager';
 import sequelize from './../utils/sequelize';
-import logger from '../utils/winstonLogs';
+import Sequelize from 'sequelize';
 
 
 class RoutingManager extends BaseManager {
@@ -24,13 +24,13 @@ class RoutingManager extends BaseManager {
   findByInstanceId(instanceId) {
     return Routing.findAll({
       where: {
-        $or: [{
+        [Sequelize.Op.or]: [{
           publishing_instance_id: {
-            $eq: instanceId
+            [Sequelize.Op.eq]: instanceId
           }
         }, {
           destination_instance_id: {
-            $eq: instanceId
+            [Sequelize.Op.eq]: instanceId
           }
         }]
       }
@@ -40,7 +40,7 @@ class RoutingManager extends BaseManager {
   isDebugging(uuid, fogInstanceId) {
     return Routing.findAll({
       where: {
-        $and:[{
+        [Sequelize.Op.and]:[{
           publishing_instance_id: fogInstanceId,
           destination_instance_id: fogInstanceId,
           publishing_element_id: uuid,
@@ -53,7 +53,7 @@ class RoutingManager extends BaseManager {
   isViewer(uuid, fogInstanceId) {
     return Routing.findAll({
       where: {
-        $and:[{
+        [Sequelize.Op.and]:[{
           publishing_instance_id: fogInstanceId,
           destination_instance_id: fogInstanceId,
           publishing_element_id: uuid,
@@ -114,7 +114,7 @@ class RoutingManager extends BaseManager {
   deleteByPublishingOrDestinationElementId(elementId) {
     return Routing.destroy({
       where: {
-        $or: [{
+        [Sequelize.Op.or]: [{
           publishing_element_id: elementId
         }, {
           destination_element_id: elementId

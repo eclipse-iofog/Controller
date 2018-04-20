@@ -27,7 +27,7 @@ class DataTracksManager extends BaseManager {
     findById(trackId) {
         return DataTracks.findOne({
             where: {
-                'id': trackId
+                id: trackId
             }
         });
     }

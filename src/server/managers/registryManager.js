@@ -6,12 +6,27 @@
  
 import BaseManager from './../managers/baseManager';
 import Registry from './../models/registry';
+import Sequelize from 'sequelize';
 
 class RegistryManager extends BaseManager {
 
     create(obj) {
         return Registry.create(obj);
     }
+
+	findByInstanceId(instanceId) {
+    	return Registry.findAll({
+    		where: {
+      			[Sequelize.Op.or]: [{
+          			iofog_uuid: instanceId
+        		}, {
+          			ispublic: {
+          				[Sequelize.Op.gt]: 0
+          			}
+        		}]
+	  		}
+    	});
+ 	}
 
     findByUserId(userId) {
         return Registry.findAll({
