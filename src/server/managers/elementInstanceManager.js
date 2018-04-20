@@ -9,6 +9,7 @@ import Element from './../models/element';
 import ElementInstance from './../models/elementInstance';
 import sequelize from './../utils/sequelize';
 import AppUtils from '../utils/appUtils';
+import Sequelize from 'sequelize';
 
 class ElementInstanceManager extends BaseManager {
 
@@ -32,7 +33,7 @@ class ElementInstanceManager extends BaseManager {
 	updateByUUIDAndName(uuid, name, data) {
 		return ElementInstance.update(data, {
 			where: {
-				$or: [{
+				[Sequelize.Op.or]: [{
 					uuid: uuid
 				}, {
 					name: name
@@ -236,13 +237,13 @@ class ElementInstanceManager extends BaseManager {
 	deleteDebugConsoleInstances(instanceId){
 		return ElementInstance.destroy({
 			where: {
-				$and : [{
+				[Sequelize.Op.and] : [{
 					element_key: {
-						$lt : 5
+						[Sequelize.Op.lt]: 5
 					},
 				},{
 					name: {
-						$like: '%Debug Console'
+						[Sequelize.Op.like]: '%Debug Console'
 					}
 				},{
 					iofog_uuid: instanceId
@@ -256,11 +257,11 @@ class ElementInstanceManager extends BaseManager {
 			where: {
 				$and : [{
 					element_key: {
-						$lt : 5
+						[Sequelize.Op.lt] : 5
 					},
 				},{
 					name: {
-						$like: '%Stream Viewer'
+						[Sequelize.Op.like]: '%Stream Viewer'
 					}
 				},{
 					iofog_uuid: instanceId
@@ -272,7 +273,7 @@ class ElementInstanceManager extends BaseManager {
 	deleteNetworkElements(networkElementId1, networkElementId2) {
 		return ElementInstance.destroy({
 			where: {
-				$or: [{
+				[Sequelize.Op.or]: [{
 					uuid: networkElementId1
 				}, {
 					uuid: networkElementId2

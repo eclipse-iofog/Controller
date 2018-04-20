@@ -32,7 +32,7 @@ class SatelliteManager extends BaseManager {
     return Satellite.findAll({
       where: {
         id: {
-          $in: satelliteIds
+          [Sequelize.Op.in]: satelliteIds
         }
       }
     })
@@ -41,10 +41,10 @@ class SatelliteManager extends BaseManager {
   findBySatelliteNameDomainAndPublicIP(satelliteName, satelliteDomain, satellitePublicIP) {
     return Satellite.find({
       where: {
-        $or: [{
+        [Sequelize.Op.or]: [{
             name: 
               { 
-                $like: satelliteName
+                [Sequelize.Op.like]: satelliteName
               }
             }, {
             domain: satelliteDomain
