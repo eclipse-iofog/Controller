@@ -6,7 +6,6 @@
 
 import EmailActivationCode from './../models/emailActivationCode';
 import BaseManager from './baseManager';
-import Sequelize from 'sequelize';
 
 class EmailActivationCodeManager extends BaseManager {
 	getEntity() {
@@ -34,7 +33,7 @@ class EmailActivationCodeManager extends BaseManager {
 			where: {
 				activationCode: activationCode,
 				expirationTime:{
-          			[Sequelize.Op.gt]: new Date().getTime()
+          			$gt: new Date().getTime()
         		}
 			}
 		});
