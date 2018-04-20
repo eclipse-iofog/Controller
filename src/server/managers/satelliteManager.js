@@ -7,7 +7,6 @@
 import Satellite from './../models/satellite';
 import BaseManager from './../managers/baseManager';
 import AppUtils from './../utils/appUtils';
-import Sequelize from 'sequelize';
 import fs from 'fs';
 
 class SatelliteManager extends BaseManager {
@@ -32,7 +31,7 @@ class SatelliteManager extends BaseManager {
     return Satellite.findAll({
       where: {
         id: {
-          [Sequelize.Op.in]: satelliteIds
+          $in: satelliteIds
         }
       }
     })
@@ -41,10 +40,10 @@ class SatelliteManager extends BaseManager {
   findBySatelliteNameDomainAndPublicIP(satelliteName, satelliteDomain, satellitePublicIP) {
     return Satellite.find({
       where: {
-        [Sequelize.Op.or]: [{
+        $or: [{
             name: 
               { 
-                [Sequelize.Op.like]: satelliteName
+                $like: satelliteName
               }
             }, {
             domain: satelliteDomain
