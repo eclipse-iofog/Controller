@@ -7,7 +7,6 @@
 import SatellitePort from './../models/satellitePort';
 import BaseManager from './../managers/baseManager';
 import sequelize from './../utils/sequelize';
-import Sequelize from 'sequelize';
 
 class SatellitePortManager extends BaseManager {
 
@@ -39,7 +38,7 @@ class SatellitePortManager extends BaseManager {
     return SatellitePort.findAll({
       where: {
         id: {
-          [Sequelize.Op.in]: networkPairingIds
+          $in: networkPairingIds
         }
       }
     })
