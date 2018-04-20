@@ -6,7 +6,6 @@
 
 import ElementInstancePort from './../models/elementInstancePort';
 import BaseManager from './../managers/baseManager';
-import Sequelize from 'sequelize';
 
 class ElementInstancePortManager extends BaseManager {
 	getEntity() {
@@ -34,7 +33,7 @@ class ElementInstancePortManager extends BaseManager {
 		return ElementInstancePort.findAll({
 			where: {
 				elementId: {
-					[Sequelize.Op.in]: ids
+					$in: ids
 				}
 			}
 		});
