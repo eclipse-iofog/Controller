@@ -7,7 +7,6 @@
 import SatellitePort from './../models/satellitePort';
 import BaseManager from './../managers/baseManager';
 import sequelize from './../utils/sequelize';
-import AppUtils from './../utils/appUtils';
 
 class SatellitePortManager extends BaseManager {
 
