@@ -118,8 +118,8 @@ INSERT INTO element_images VALUES (1, 1, 1, 'iotracks/catalog:stream-viewer-1.0'
 INSERT INTO element_images VALUES (2, 1, 2, 'iotracks/catalog:stream-viewer-1.0-arm');
 INSERT INTO element_images VALUES (3, 2, 1, 'iotracks/catalog:debug');
 INSERT INTO element_images VALUES (4, 2, 2, 'iotracks/catalog:debug-arm');
-INSERT INTO element_images VALUES (5, 3, 1, 'iotracks/catalog:core-networking-1-12');
-INSERT INTO element_images VALUES (6, 3, 2, 'iotracks/catalog:core-networking-1-12-arm');
+INSERT INTO element_images VALUES (5, 3, 1, 'iotracks/catalog:core-networking-noack-go');
+INSERT INTO element_images VALUES (6, 3, 2, 'iotracks/catalog:core-networking-noack-go-arm');
 INSERT INTO element_images VALUES (7, 4, 1, 'iotracks/catalog:hello-web-1');
 INSERT INTO element_images VALUES (8, 4, 2, 'iotracks/catalog:hello-web-1-arm');
 INSERT INTO element_images VALUES (9, 5, 1, 'iotracks/catalog:bluetooth-rest-api-v0.5');
@@ -237,10 +237,10 @@ INSERT INTO element VALUES
        'SYSTEM', 0, 0, 'none.png', NULL, 1, 0, 1, NULL);
 INSERT INTO element VALUES
   (12, 'Mongo Adapter', 'Mongo adapter container', 'Utilities',
-       'SYSTEM', 0, 0, 'none.png', NULL, 1, 0, 1, NULL);
+       'iotracks', 0, 0, 'none.png', NULL, 1, 0, 1, NULL);
 INSERT INTO element VALUES
   (13, 'Influx Adapter', 'Influx adapter container', 'Utilities',
-       'SYSTEM', 0, 0, 'none.png', NULL, 1, 0, 1, NULL);
+       'iotracks', 0, 0, 'none.png', NULL, 1, 0, 1, NULL);
 INSERT INTO element VALUES
   (14, 'JSON Sub-Select', 'Performs sub-selection and transform operations on any JSON messages', 'Utilities',
        'iotracks', 0, 0, 'images/build/59.png', NULL, 1, 0, 1, NULL);

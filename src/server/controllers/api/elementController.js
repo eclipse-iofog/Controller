@@ -444,7 +444,7 @@ const updateElementImages = function(params, callback) {
             let elementImage = {
                 element_id: params.bodyParams.id,
                 iofog_type_id: value.fogTypeId,
-                containerImage: value.image
+                containerImage: value.image.trim()
             };
             ElementImageService.updateElementImages(elementImage, params, cb);
         }, function (err) {
