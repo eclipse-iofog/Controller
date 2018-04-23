@@ -7,8 +7,6 @@
 import Routing from './../models/routing';
 import BaseManager from './../managers/baseManager';
 import sequelize from './../utils/sequelize';
-import logger from '../utils/winstonLogs';
-
 
 class RoutingManager extends BaseManager {
 

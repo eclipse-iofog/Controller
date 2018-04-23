@@ -7,7 +7,6 @@
 import Satellite from './../models/satellite';
 import BaseManager from './../managers/baseManager';
 import AppUtils from './../utils/appUtils';
-import Sequelize from 'sequelize';
 import fs from 'fs';
 
 class SatelliteManager extends BaseManager {

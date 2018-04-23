@@ -6,7 +6,6 @@
 
 import EmailActivationCode from './../models/emailActivationCode';
 import BaseManager from './baseManager';
-import sequelize from './../utils/sequelize';
 
 class EmailActivationCodeManager extends BaseManager {
 	getEntity() {
