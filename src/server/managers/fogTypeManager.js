@@ -22,7 +22,7 @@ class FogTypeManager extends BaseManager {
   findFogTypeById(id) {
     return FogType.findOne({
       where: {
-        'ID': id
+        ID: id
       }
     });
   }

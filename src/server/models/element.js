@@ -7,6 +7,7 @@
 import Sequelize from 'sequelize';
 import sequelize from './../utils/sequelize';
 import Registry from './registry';
+import User from './user';
 
 const Element = sequelize.define('element', {
   id: {
@@ -67,6 +68,10 @@ const Element = sequelize.define('element', {
 
 Element.belongsTo(Registry, {
     foreignKey: 'registry_id'
+});
+
+Element.belongsTo(User, {
+    foreignKey: 'user_id'
 });
 
 export default Element;

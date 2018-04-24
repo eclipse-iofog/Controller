@@ -1,6 +1,5 @@
 import BaseManager from './../managers/baseManager';
 import ElementInstanceConnections from './../models/elementInstanceConnections';
-import sequelize from './../utils/sequelize';
 
 class ElementInstanceConnectionsManager extends BaseManager {
 
