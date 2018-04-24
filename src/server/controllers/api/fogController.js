@@ -76,7 +76,8 @@ const fogInstancesListEndPoint = function (req, res) {
 };
 
 const checkIfFogsConnected = function (params, callback) {
-    let arr = params.fogInstance,
+    let intervalInMs = 180000,
+        arr = params.fogInstance,
         fogUpdateProps = {
             instanceId: 'instanceId',
             updatedFog: {
@@ -85,7 +86,7 @@ const checkIfFogsConnected = function (params, callback) {
             }
         };
     async.each(arr, function (fogInstance, callback) {
-        if (fogInstance.DaemonStatus !== 'UNKNOWN' && moment() - fogInstance.LastStatusTime > fogInstance.StatusFrequency * 3) {
+        if (fogInstance.DaemonStatus !== 'UNKNOWN' && moment() - fogInstance.LastStatusTime > intervalInMs) {
             fogInstance.DaemonStatus = 'UNKNOWN';
             fogInstance.IPAddress = '0.0.0.0';
             let paramObj = {
