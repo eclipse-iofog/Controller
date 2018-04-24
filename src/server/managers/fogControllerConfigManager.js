@@ -23,7 +23,7 @@ class FogControllerConfigManager extends BaseManager {
   }
 
   setByKey(key, value) {
-    return this.getByKey(key).then(function(dbConfig) {
+    return this.getByKey(key).then((dbConfig) => {
       if (dbConfig) {
         dbConfig.value = value;
         dbConfig.save();
