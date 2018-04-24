@@ -40,24 +40,28 @@ const findElementImageAndRegistryByIdForFogInstance = function(props, params, ca
 }
 
 const getElementCatalog = function(props, params, callback) {
+  let userId = AppUtils.getProperty(params, props.userId);
+
   let imageProps = {
       elementId: 'ID',
       setProperty: 'elementImages'
   };
 
   ElementManager
-    .getElementCatalog()
+    .getElementCatalog(userId)
     .then(ElementImageService.populateImagesForElements.bind(null, imageProps))
     .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Error: Element catalog not found', callback));
 }
 
 const getElementForPublish = function(props, params, callback) {
+  let userId = AppUtils.getProperty(params, props.userId);
+
   let imageProps = {
       elementId: 'ID',
       setProperty: 'elementImages'
   };
   ElementManager
-    .getElementForPublish()
+    .getElementForPublish(userId)
     .then(ElementImageService.populateImagesForElements.bind(null, imageProps))
     .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Error: Element catalog not found', callback));
 }
