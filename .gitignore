@@ -25,3 +25,5 @@ dist
 
 # Database
 /db/*.db
+
+package-lock.json

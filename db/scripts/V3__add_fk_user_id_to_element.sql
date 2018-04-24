@@ -1,0 +1,4 @@
+ALTER TABLE element
+ADD user_id        INTEGER REFERENCES users (ID)
+    ON UPDATE CASCADE
+    ON DELETE CASCADE;
