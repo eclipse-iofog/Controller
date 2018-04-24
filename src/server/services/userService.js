@@ -3,28 +3,42 @@ let smtpTransport = require('nodemailer-smtp-transport');
 import UserManager from '../managers/userManager';
 import AppUtils from '../utils/appUtils';
 
-const userEmailSender = function (props, params, callback){
-  let service = AppUtils.getProperty(params, props.service),
-   email = AppUtils.getProperty(params, props.email),
-   password = AppUtils.getProperty(params, props.password);
-
-
-  let transporter = nodemailer.createTransport(smtpTransport({
-    service: service,
-    auth: {
-      user: email,
-      pass: password
-    }
-  }));
-
-  params.transporter = transporter;
-  callback(null, params);
-}
-
 const createUser = function(props, params, callback) {
   UserManager
     .addUser(props.user)
     .then(AppUtils.onCreate.bind(null, params, props.setProperty, 'Unable to create user', callback));
+}
+
+const userEmailSender = function (props, params, callback){
+    let service = AppUtils.getProperty(params, props.service),
+        host = AppUtils.getProperty(params, props.host),
+        port = AppUtils.getProperty(params, props.port),
+        email = AppUtils.getProperty(params, props.email),
+        password = AppUtils.getProperty(params, props.password);
+
+
+    let transporter;
+    if (service) {
+        transporter = nodemailer.createTransport(smtpTransport({
+            service: service,
+            auth: {
+                user: email,
+                pass: password
+            }
+        }));
+    } else {
+        transporter = nodemailer.createTransport(smtpTransport({
+            host: host,
+            port: port,
+            auth: {
+                user: email,
+                pass: password
+            }
+        }))
+    }
+
+    params.transporter = transporter;
+    callback(null, params);
 }
 
 const getUser = function(props, params, callback) {
