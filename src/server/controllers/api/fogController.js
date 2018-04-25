@@ -85,7 +85,8 @@ const checkIfFogsConnected = function (params, callback) {
             }
         };
     async.each(arr, function (fogInstance, callback) {
-        let intervalInMs = fogInstance.StatusFrequency + 60000;
+        let minInMs = 60000,
+            intervalInMs = fogInstance.StatusFrequency > minInMs ? fogInstance.StatusFrequency * 2 : minInMs;
         if (fogInstance.DaemonStatus !== 'UNKNOWN' && moment() - fogInstance.LastStatusTime > intervalInMs) {
             fogInstance.DaemonStatus = 'UNKNOWN';
             fogInstance.IPAddress = '0.0.0.0';
