@@ -49,7 +49,9 @@ class FogControllerConfigUtil {
                 throw 'Invalid value provided for key "' + key + '"';
             }
         } else {
-            throw '"' + key + '" is not a valid property. You can set properties like: \nport, ssl_key, ssl_cert, intermediate_cert, \nemail_address, email_password, email_service, \nioauthoring_port, ioauthoring_ip_address, ioauthoring_protocol';
+            throw '"' + key + '" is not a valid property. You can set properties like: \nport, ssl_key, ssl_cert, intermediate_cert, ' +
+            '\nemail_address, email_password, email_service, \nioauthoring_port, ioauthoring_ip_address, ioauthoring_protocol, ' +
+            '\nemail_activation [on | off]';
         }
     }
 
@@ -74,6 +76,12 @@ class FogControllerConfigUtil {
             return AppUtils.isValidPublicIP(value);
         } else if (key.toLowerCase() == Constants.CONFIG.ioauthoring_protocol) {
             return AppUtils.isValidProtocol(value);
+        } else if (key.toLowerCase() == Constants.CONFIG.email_activation) {
+            return AppUtils.isValidEmailActivation(value);
+        } else if (key.toLowerCase() == Constants.CONFIG.email_server) {
+            return AppUtils.isValidDomain(value);
+        } else if (key.toLowerCase() == Constants.CONFIG.email_serverport) {
+            return AppUtils.isValidPort(value);
         }
     }
 

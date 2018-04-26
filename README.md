@@ -109,11 +109,24 @@ To setup HTTPS for fog controller, do following steps:
 
 Do not forget to update ioAuthoring configs and add certificates under /etc/iofog/ on the machine where fog agent is running! 
 
+To enable email activation and password reset:
+        
+        fog-controller config -add email_activation on
+        
+To disable email activation and password reset: 
+
+        fog-controller config -add email_activation off
+
 To setup email sender, do following steps:
 
         fog-controller config -add email_address abc@xyz.com
         fog-controller config -add email_password abc123
         fog-controller config -add email_service xyz
+                    or
+        fog-controller config -add email_address abc@xyz.com
+        fog-controller config -add email_password abc12
+        fog-controller config -add email_server xyz
+        fog-controller config -add email_serverport 123
 
 3.&ensp;To remove a configuration
 
