@@ -25,6 +25,7 @@ import StreamViewerService from '../../services/streamViewerService';
 import UserService from '../../services/userService';
 
 import AppUtils from '../../utils/appUtils';
+import configUtil from '../../utils/configUtil';
 import logger from '../../utils/winstonLogs';
 
 
@@ -41,6 +42,18 @@ const getFogControllerStatusEndPoint = function (req, res) {
     "timestamp": milliseconds
   });
 };
+
+/******************* Fog-Controller Email Activation EndPoint (Get: /api/v2/emailActivation) ***********/
+const getEmailActivationEndPoint = function(req, res) {
+    logger.info("Endpoint hit: " + req.originalUrl);
+    let enableEmailActivation = configUtil.getConfigParam('email_activation') || 'off';
+    res.status(200);
+    res.send({
+        "status": "ok",
+        "emailActivation": enableEmailActivation
+    });
+};
+
 
 /******** Fog Instances List By UserID EndPoint (Get: /api/v2/authoring/integrator/instances/list/:t
  Post: /api/v2/authoring/fabric/instances/list  ) *******/
@@ -1257,6 +1270,7 @@ export default {
   //  addBlueboxEndpoint: addBlueboxEndpoint,
   getFogDetailsEndpoint: getFogDetailsEndpoint,
   getFogControllerStatusEndPoint: getFogControllerStatusEndPoint,
+  getEmailActivationEndPoint: getEmailActivationEndPoint,
   fogInstancesListEndPoint: fogInstancesListEndPoint,
   fogInstanceCreateEndPoint: fogInstanceCreateEndPoint,
   // getFogListEndPoint: getFogListEndPoint,

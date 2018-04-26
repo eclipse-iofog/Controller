@@ -99,11 +99,11 @@ const isValidPublicIP = function (publicIP) {
   return re.test(publicIP);
 }
 const isValidProtocol = function (protocol) {
-  if (protocol == 'http' || protocol == 'https') {
-    return true;
-  } else {
-    return false;
-  }
+  return protocol === 'http' || protocol === 'https';
+}
+
+const isValidEmailActivation = function (flag) {
+    return flag === 'on' || flag === 'off';
 }
 
 const convertRelativePathToAbsolute = function (filePath) {
@@ -272,6 +272,7 @@ export default {
   isValidProtocol: isValidProtocol,
   isValidCertificate: isValidCertificate,
   trimCertificate: trimCertificate,
+  isValidEmailActivation: isValidEmailActivation,
   generateAccessToken: generateAccessToken,
   generateRandomString: generateRandomString,
   convertRelativePathToAbsolute: convertRelativePathToAbsolute,

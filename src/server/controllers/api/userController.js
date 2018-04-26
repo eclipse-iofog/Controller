@@ -134,10 +134,10 @@ const updateUser = function(params, callback){
   params.bodyParams = req.body;
   logger.info("Parameters:" + JSON.stringify(params.bodyParams));
 
-  let enableEmailActivation = configUtil.getConfigParam('enable_email_activation');
+  let enableEmailActivation = configUtil.getConfigParam('email_activation') || 'off';
   params.emailActivation = enableEmailActivation;
 
-  if (enableEmailActivation === 'true') {
+  if (enableEmailActivation === 'on') {
       async.waterfall([
           async.apply(UserService.getUserByEmail, userProps, params),
           validateUserInfo,
@@ -150,7 +150,7 @@ const updateUser = function(params, callback){
           notifyUserAboutActivationCode
 
       ], function (err, result) {
-          AppUtils.sendResponse(res, err, '', '', result);
+          AppUtils.sendResponse(res, err, 'emailActivation', enableEmailActivation, result);
       })
   } else {
       async.waterfall([
@@ -158,7 +158,7 @@ const updateUser = function(params, callback){
           validateUserInfo,
           createNewUser
       ], function (err, result) {
-          AppUtils.sendResponse(res, err, '', '', result);
+          AppUtils.sendResponse(res, err, 'emailActivation', enableEmailActivation, result);
       })
   }
 };
@@ -513,8 +513,8 @@ const getEmailData = function(params, callback){
     let email = configUtil.getConfigParam('email_address'),
     password = configUtil.getConfigParam('email_password'),
     service = configUtil.getConfigParam('email_service'),
-    host = configUtil.getConfigParam('email_service_host'),
-    port = configUtil.getConfigParam('email_service_port');
+    host = configUtil.getConfigParam('email_server'),
+    port = configUtil.getConfigParam('email_serverport');
 
     params.emailSenderData = {
       email: email,
