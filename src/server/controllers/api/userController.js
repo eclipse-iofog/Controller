@@ -60,6 +60,8 @@ const updateUser = function(params, callback){
     },
     emailProps = {
       service: 'emailSenderData.service',
+      host: 'emailSenderData.host',
+      port: 'emailSenderData.port',
       email: 'emailSenderData.email',
       password: 'emailSenderData.password'
     },
@@ -118,6 +120,8 @@ const updateUser = function(params, callback){
     },
     emailProps = {
       service: 'emailSenderData.service',
+      host: 'emailSenderData.host',
+      port: 'emailSenderData.port',
       email: 'emailSenderData.email',
       password: 'emailSenderData.password'
     },
@@ -130,44 +134,44 @@ const updateUser = function(params, callback){
   params.bodyParams = req.body;
   logger.info("Parameters:" + JSON.stringify(params.bodyParams));
 
-  async.waterfall([
-    async.apply(UserService.getUserByEmail, userProps, params),
-    validateUserInfo,
-    createNewUser,
-    EmailActivationCodeService.generateActivationCode,
-    async.apply(EmailActivationCodeService.saveActivationCode, activationCodeProps),
-    getEmailData,
-    getIOAuthoringData,
-    async.apply(UserService.userEmailSender, emailProps),
-    notifyUserAboutActivationCode
+  let enableEmailActivation = configUtil.getConfigParam('email_activation') || 'off';
+  params.emailActivation = enableEmailActivation;
 
-  ], function(err, result) {
-    AppUtils.sendResponse(res, err, '', '', result);
-  })
+  const getUser = [async.apply(UserService.getUserByEmail, userProps, params), validateUserInfo, createNewUser];
+
+  if (enableEmailActivation === 'on') {
+      async.waterfall([
+          ...getUser,
+          EmailActivationCodeService.generateActivationCode,
+          async.apply(EmailActivationCodeService.saveActivationCode, activationCodeProps),
+          getEmailData,
+          getIOAuthoringData,
+          async.apply(UserService.userEmailSender, emailProps),
+          notifyUserAboutActivationCode
+
+      ], function (err, result) {
+          AppUtils.sendResponse(res, err, 'emailActivation', enableEmailActivation, result);
+      })
+  } else {
+      async.waterfall([
+          ...getUser
+      ], function (err, result) {
+          AppUtils.sendResponse(res, err, 'emailActivation', enableEmailActivation, result);
+      })
+  }
 };
+
 
 const getIOAuthoringData = function(params, callback){
   try{
     configUtil.getAllConfigs().then(() => {
-      let ioAuthoringProtocol = configUtil.getConfigParam('ioauthoring_protocol'),
-      ioAuthoringIPAddress = configUtil.getConfigParam('ioauthoring_ip_address'),
-      ioAuthoringPort = configUtil.getConfigParam('ioauthoring_port');
+      let ioAuthoringProtocol = configUtil.getConfigParam('ioauthoring_protocol') || appConfig.ioauthoringProtocol,
+      ioAuthoringIPAddress = configUtil.getConfigParam('ioauthoring_ip_address') || appConfig.ioauthoringIPAddress,
+      ioAuthoringPort = configUtil.getConfigParam('ioauthoring_port') || appConfig.ioauthoringPort;
 
       logger.info(ioAuthoringProtocol);
       logger.info(ioAuthoringIPAddress);
       logger.info(ioAuthoringPort);
-
-      if(ioAuthoringProtocol == null){
-        ioAuthoringProtocol = appConfig.ioauthoringProtocol
-      }
-
-      if(ioAuthoringIPAddress == null){
-        ioAuthoringIPAddress = appConfig.ioauthoringIPAddress
-      }
-
-      if(ioAuthoringPort == null){
-        ioAuthoringPort = appConfig.ioauthoringPort
-      }
 
       params.ioAuthoringConfigData = {
         ioAuthoringProtocol: ioAuthoringProtocol,
@@ -187,7 +191,7 @@ const notifyUserAboutActivationCode = function(params, callback){
     let ioAuthoringUrl = params.ioAuthoringConfigData.ioAuthoringProtocol + '://' + params.ioAuthoringConfigData.ioAuthoringIPAddress + ':' + params.ioAuthoringConfigData.ioAuthoringPort;
 
     let mailOptions = {
-      from: '"IOTRACKS" <' + params.emailSenderData.email + '>', // sender address
+      from: '"IOFOG" <' + params.emailSenderData.email + '>', // sender address
       to: params.bodyParams.email, // list of receivers
       subject: 'Activate Your Account', // Subject line
       html: emailActivationTemplate.p1 + ioAuthoringUrl + emailActivationTemplate.p2 + params.activationCodeData.activationCode + emailActivationTemplate.p3 + ioAuthoringUrl + emailActivationTemplate.p4 + params.activationCodeData.activationCode + emailActivationTemplate.p5 + ioAuthoringUrl + emailActivationTemplate.p6 + params.activationCodeData.activationCode + emailActivationTemplate.p7 // html body
@@ -212,7 +216,7 @@ const validateUserInfo = function(params, callback){
   if(!params.user){
     if(AppUtils.isValidEmail(params.bodyParams.email)){
       if(params.bodyParams.password.length > 7){
-        if(params.bodyParams.password == params.bodyParams.repeatPassword){
+        if(params.bodyParams.password === params.bodyParams.repeatPassword){
           if(params.bodyParams.firstName.length > 2){
             if(params.bodyParams.lastName.length > 2){
               callback(null, params)
@@ -243,7 +247,7 @@ const createNewUser = function (params, callback){
       password: params.bodyParams.password,
       firstName: params.bodyParams.firstName,
       lastName: params.bodyParams.lastName,
-      emailActivated: 0
+      emailActivated: params.emailActivation === 'on' ? 0 : 1
     },
     setProperty: 'newUser'
   };
@@ -268,6 +272,8 @@ const resetUserPasswordEndPoint = function(req, res){
     },
     emailProps = {
       service: 'emailSenderData.service',
+      host: 'emailSenderData.host',
+      port: 'emailSenderData.port',
       email: 'emailSenderData.email',
       password: 'emailSenderData.password'
     };
@@ -476,6 +482,8 @@ const logoutUserEndPoint = function(req, res){
     },
     emailProps = {
       service: 'emailSenderData.service',
+      host: 'emailSenderData.host',
+      port: 'emailSenderData.port',
       email: 'emailSenderData.email',
       password: 'emailSenderData.password'
     };
@@ -502,12 +510,16 @@ const getEmailData = function(params, callback){
   configUtil.getAllConfigs().then(() => {
     let email = configUtil.getConfigParam('email_address'),
     password = configUtil.getConfigParam('email_password'),
-    service = configUtil.getConfigParam('email_service');
+    service = configUtil.getConfigParam('email_service'),
+    host = configUtil.getConfigParam('email_server'),
+    port = configUtil.getConfigParam('email_serverport');
 
     params.emailSenderData = {
       email: email,
       password: password,
-      service: service
+      service: service,
+      host: host,
+      port: port
     };
     callback(null, params);
   });
