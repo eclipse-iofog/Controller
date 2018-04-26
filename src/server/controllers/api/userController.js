@@ -137,11 +137,11 @@ const updateUser = function(params, callback){
   let enableEmailActivation = configUtil.getConfigParam('email_activation') || 'off';
   params.emailActivation = enableEmailActivation;
 
+  const getUser = [async.apply(UserService.getUserByEmail, userProps, params), validateUserInfo, createNewUser];
+
   if (enableEmailActivation === 'on') {
       async.waterfall([
-          async.apply(UserService.getUserByEmail, userProps, params),
-          validateUserInfo,
-          createNewUser,
+          ...getUser,
           EmailActivationCodeService.generateActivationCode,
           async.apply(EmailActivationCodeService.saveActivationCode, activationCodeProps),
           getEmailData,
@@ -154,9 +154,7 @@ const updateUser = function(params, callback){
       })
   } else {
       async.waterfall([
-          async.apply(UserService.getUserByEmail, userProps, params),
-          validateUserInfo,
-          createNewUser
+          ...getUser
       ], function (err, result) {
           AppUtils.sendResponse(res, err, 'emailActivation', enableEmailActivation, result);
       })
@@ -218,7 +216,7 @@ const validateUserInfo = function(params, callback){
   if(!params.user){
     if(AppUtils.isValidEmail(params.bodyParams.email)){
       if(params.bodyParams.password.length > 7){
-        if(params.bodyParams.password == params.bodyParams.repeatPassword){
+        if(params.bodyParams.password === params.bodyParams.repeatPassword){
           if(params.bodyParams.firstName.length > 2){
             if(params.bodyParams.lastName.length > 2){
               callback(null, params)
@@ -249,7 +247,7 @@ const createNewUser = function (params, callback){
       password: params.bodyParams.password,
       firstName: params.bodyParams.firstName,
       lastName: params.bodyParams.lastName,
-      emailActivated: params.emailActivation === 'true' ? 0 : 1
+      emailActivated: params.emailActivation === 'on' ? 0 : 1
     },
     setProperty: 'newUser'
   };
