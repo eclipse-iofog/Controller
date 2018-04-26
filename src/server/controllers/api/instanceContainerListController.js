@@ -108,7 +108,8 @@ const processContainerData = function(params, callback) {
     logsize: parseFloat(params.container.log_size),
     imageid: params.elementData.containerImage,
     registryurl: params.elementData.registryUrl,
-    volumemappings: params.container.volume_mappings
+    volumemappings: params.container.volume_mappings,
+    imagesnapshot: params.container.image_snapshot
   };
   params.newContainerItem = newContainerItem;
   callback(null, params);

@@ -52,6 +52,10 @@ const ChangeTracking = sequelize.define('iofog_change_tracking', {
   diagnostics: {
     type: Sequelize.BIGINT,
     field: 'diagnostics'
+  },
+  isImageSnapshot: {
+    type: Sequelize.BIGINT,
+    field: 'is_image_snapshot'
   }
 }, {
   // don't add the timestamp attributes (updatedAt, createdAt)

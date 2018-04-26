@@ -52,7 +52,8 @@ const processChangeTrackingChanges = function(params, callback) {
       routing: false,
       registries: false,
       proxy: false,
-      diagnostics: false
+      diagnostics: false,
+      isimagesnapshot: false
     };
 
     if(params.changeTrackingData.config > params.bodyParams.TimeStamp) {
@@ -95,6 +96,10 @@ const processChangeTrackingChanges = function(params, callback) {
     if(params.changeTrackingData.diagnostics > params.bodyParams.TimeStamp) {
       changes.diagnostics = true;
     }
+
+    if(params.changeTrackingData.isImageSnapshot > params.bodyParams.TimeStamp) {
+      changes.isimagesnapshot = true;
+    }
     params.changes = changes;
     callback (null, params);
   }else{
@@ -102,13 +107,13 @@ const processChangeTrackingChanges = function(params, callback) {
   }
 };
 
-const updateChangeTracking = function (params, callback) {
-    var changeTrackingProps = {
+const updateChangeTrackingReboot = function (params, callback) {
+    let changeTrackingProps = {
         fogInstanceId: 'bodyParams.ID',
         changeObject: {
             reboot: false
         }
-    }
+    };
 
     ChangeTrackingService.updateChangeTracking(changeTrackingProps, params, callback);
 }

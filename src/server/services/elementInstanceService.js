@@ -58,6 +58,14 @@ const getElementInstance = function(props, params, callback) {
     .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Cannot find Element Instance', callback));
 }
 
+const getElementInstanceByIofogUuid = function(props, params, callback) {
+  let iofogUuid = AppUtils.getProperty(params, props.iofogUuid);
+
+  ElementInstanceManager
+    .findByIofogUuId(iofogUuid)
+    .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Cannot find Element Instance', callback));
+}
+
 const getElementInstanceWithImages = function(props, params, callback) {
     let elementInstanceId = AppUtils.getProperty(params, props.elementInstanceId);
 
@@ -382,6 +390,7 @@ export default {
   deleteElementInstancesByInstanceIdAndElementKey: deleteElementInstancesByInstanceIdAndElementKey,
   getDataTrackDetails: getDataTrackDetails,
   getElementInstance: getElementInstance,
+  getElementInstanceByIofogUuid: getElementInstanceByIofogUuid,
   getElementInstanceOptional: getElementInstanceOptional,
   getElementInstancesByTrackId: getElementInstancesByTrackId,
   getElementInstanceProperties: getElementInstanceProperties,
