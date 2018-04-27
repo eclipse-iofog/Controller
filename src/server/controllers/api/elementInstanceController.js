@@ -714,7 +714,7 @@ const elementInstancePortCreateEndPoint = function(req, res) {
       async.apply(ElementInstanceService.getElementInstance, elementInstanceProps),
       async.apply(FogService.getFogInstance, fogProps),
       async.apply(FogTypeService.getFogTypeDetail, fogTypeProps),
-      
+
       async.apply(ElementInstanceService.getElementInstancesByFogId, elementInstancesProps),
       async.apply(ElementInstancePortService.findElementInstancePortsByElementIds, elementInstancesPortProps),
       verifyPorts,
@@ -789,7 +789,7 @@ const createNetworkElementInstance = function (params, callback){
       satellitePort: 'satellitePort.port1',
       satelliteDomain: 'satellite.domain',
       satelliteCertificate: 'satellite.cert',
-      trackId: null,
+      trackId: 'bodyParams.trackId',
       userId: 'user.id',
       networkName: 'Network for Element '+ params.elementInstance.uuid,
       networkPort: 'bodyParams.externalPort',
