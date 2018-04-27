@@ -192,7 +192,7 @@ To setup email sender, do following steps:
 &ensp;&ensp;&ensp;- Save following text in the file:
 
         # fog-controller.conf
-        description "Fog Controller project @ iotracks.com"
+        description "Fog Controller project @ iofog.org"
         start on startup
         stop on shutdown
         post-start script
