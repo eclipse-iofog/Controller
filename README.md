@@ -93,17 +93,17 @@ Note: Configuration keys can be one of following
 
 To setup ioauthoring configurations, do following steps:
 
-        fog-controller config -add ioauthoring_port 4000
+        fog-controller config -add ioauthoring_port 54521
         fog-controller config -add ioauthoring_ip_address 127.0.0.1
-        fog-controller config -add ioauthoring_protocol http 
+        fog-controller config -add ioauthoring_protocol https 
 
 To setup HTTPS for fog controller, do following steps:
 
-        fog-controller config -add port 4443
+        fog-controller config -add port 54421
         fog-controller config -add ssl_key 'path_to_your_sertificates/key.pem'
         fog-controller config -add intermediate_cert 'path_to_your_sertificates/gs_intermediate_ca.crt'
         fog-controller config -add ssl_cert 'path_to_your_sertificates/certificate.pem'
-	fog-controller config -add ioauthoring_port 5443
+	fog-controller config -add ioauthoring_port 54521
         fog-controller config -add ioauthoring_ip_address 127.0.0.1
         fog-controller config -add ioauthoring_protocol https
 

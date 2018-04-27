@@ -484,7 +484,7 @@ CREATE TABLE registry (
   user_id       INTEGER REFERENCES users (ID)
 );
 INSERT INTO registry
-VALUES (1, 'registry.hub.docker.com', 1, 1, '', 0, 'iointegrator', '0nTh3Edge2015', 'admin@iotracks.com', NULL, NULL);
+VALUES (1, 'registry.hub.docker.com', 1, 1, '', 0, '', '', '', NULL, NULL);
 CREATE TABLE iofog_change_tracking (
 	`ID`	INTEGER PRIMARY KEY AUTOINCREMENT,
 	`container_config`	BIGINT,
