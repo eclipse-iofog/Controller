@@ -3,6 +3,6 @@
   "ioauthoringPort": "54521",
   "ioauthoringIPAddress": "127.0.0.1",
   "ioauthoringProtocol": "https",
-  "dbPath": "db/fog_controller.db",
+  "dbPath": "/etc/fog-controller/db/fog_controller.db",
   "loggingLevel": "debug"
 }
