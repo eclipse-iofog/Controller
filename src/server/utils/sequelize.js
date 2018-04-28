@@ -7,6 +7,44 @@ let namespace = cls.createNamespace('fog-controller-namespace');
 
 Sequelize.useCLS(namespace);
 
+const Op = Sequelize.Op;
+const operatorsAliases = {
+  $eq: Op.eq,
+  $ne: Op.ne,
+  $gte: Op.gte,
+  $gt: Op.gt,
+  $lte: Op.lte,
+  $lt: Op.lt,
+  $not: Op.not,
+  $in: Op.in,
+  $notIn: Op.notIn,
+  $is: Op.is,
+  $like: Op.like,
+  $notLike: Op.notLike,
+  $iLike: Op.iLike,
+  $notILike: Op.notILike,
+  $regexp: Op.regexp,
+  $notRegexp: Op.notRegexp,
+  $iRegexp: Op.iRegexp,
+  $notIRegexp: Op.notIRegexp,
+  $between: Op.between,
+  $notBetween: Op.notBetween,
+  $overlap: Op.overlap,
+  $contains: Op.contains,
+  $contained: Op.contained,
+  $adjacent: Op.adjacent,
+  $strictLeft: Op.strictLeft,
+  $strictRight: Op.strictRight,
+  $noExtendRight: Op.noExtendRight,
+  $noExtendLeft: Op.noExtendLeft,
+  $and: Op.and,
+  $or: Op.or,
+  $any: Op.any,
+  $all: Op.all,
+  $values: Op.values,
+  $col: Op.col
+};
+
 //  `const` is a signal that the variable won’t be reassigned.
 //  `let`, is a signal that the variable may be reassigned, such as a counter in a loop, or a value swap in an algorithm.
 //  It also signals that the variable will be used only in the block it’s defined in, which is not always the entire containing function.
@@ -14,13 +52,14 @@ Sequelize.useCLS(namespace);
 //  The variable may or may not be reassigned, and the variable may or may not be used for an entire function, or just for the purpose of a block or loop.
 const sequelize = new Sequelize(null, null, null, {
   dialect: 'sqlite',
-  storage: __dirname + '/../../../' + appConfig.dbPath, //TODO: needs to improve this line of code
+    storage: appConfig.dbPath,
   logging: logger.debug,
   pool: {
     max: 5,
     min: 0,
     idle: 10000
   },
+  operatorsAliases
 });
 
 sequelize

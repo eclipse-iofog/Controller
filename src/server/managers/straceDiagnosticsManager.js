@@ -49,7 +49,7 @@ class StraceDiagnosticsManager extends BaseManager {
     findStraceDiagnosticsByElementId(uuid) {
         return StraceDiagnostics.findOne({
             where: {
-                'element_instance_uuid': uuid
+                element_instance_uuid: uuid
             }
         });
     }
@@ -66,19 +66,6 @@ class StraceDiagnosticsManager extends BaseManager {
             replacements: {fogId: fogId},
             type: sequelize.QueryTypes.SELECT
         });
-
-        /*return StraceDiagnostics.find(
-            {
-                attributes: ['element_instance_uuid', 'strace'],
-                include: [
-                    {model: ElementInstance,
-                        through: {
-                            where: {UUID: {$col: 'StraceDiagnostics.element_instance_uuid'},
-                            include:[{model: Fog, where: {UUID: fogId}}]
-                            }
-                        }}]
-
-            })*/
     }
 
     findStraceDiagnosticsAndPopBufferByElementId(uuid) {
@@ -132,7 +119,7 @@ class StraceDiagnosticsManager extends BaseManager {
     deleteStraceDiagnosticsByelementId(uuid) {
         return StraceDiagnostics.destroy({
             where: {
-                'element_instance_uuid': uuid
+                element_instance_uuid: uuid
             }
         });
     }

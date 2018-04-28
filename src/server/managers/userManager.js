@@ -20,7 +20,7 @@ class UserManager extends BaseManager {
 
 	/**
 	 * @desc - finds the user based on the users email
-	 * @param String - email
+     * @param email - String
 	 * @return JSON - returns a JSON object of the user with the email
 	 */
 	findByEmail(email) {
@@ -81,9 +81,9 @@ class UserManager extends BaseManager {
 		});
 	}
 	/**
-	 * @desc - finds the user based on the users email
-	 * @param String - email
-	 * @return JSON - returns a JSON object of the user with the email
+     * @desc - finds the user based on the users token
+     * @param token - String
+     * @return JSON - returns a JSON object of the user with the token
 	 */
 	findByToken(token) {
 		return User.find({
@@ -92,15 +92,6 @@ class UserManager extends BaseManager {
 			}
 		});
 	}
-
-	findByEmail(email) {
-		return User.find({
-			where: {
-				email: email
-			}
-		});
-	}
-
 
 	deleteByUserId(userId) {
 		return User.destroy({
@@ -131,7 +122,7 @@ class UserManager extends BaseManager {
           if (!user) {  
 			if (AppUtils.isValidEmail(email)) {
 				if (password.length >= 8){
-					this.create({
+                    User.create({
 						firstName: firstName,
 						lastName: lastName,
 						email: email,
@@ -139,7 +130,7 @@ class UserManager extends BaseManager {
 						userAccessToken: AppUtils.generateAccessToken()
 					}).then(function(user) {
 					console.log('\nUser created successfully: ' + email);
-					console.log('userAccessToken: ' + this.userAccessToken);
+                        console.log('userAccessToken: ' + user.userAccessToken);
 					});
 				}else{
 					console.log('\nError: Password length should be at least 8 characters.');

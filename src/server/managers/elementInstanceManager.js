@@ -250,7 +250,7 @@ class ElementInstanceManager extends BaseManager {
 			where: {
 				$and : [{
 					element_key: {
-						$lt : 5
+						$lt: 5
 					},
 				},{
 					name: {

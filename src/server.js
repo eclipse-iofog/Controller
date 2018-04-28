@@ -1,10 +1,7 @@
 import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
-const express = require('express');
 import fs from 'fs';
 import https from 'https';
-const path = require('path');
-
 import appConfig from './config.json';
 import configUtil from './server/utils/configUtil';
 import constants from './server/constants.js';
@@ -33,6 +30,9 @@ import proxyController from "./server/controllers/api/proxyController";
 import fogVersionCommandController from './server/controllers/api/fogVersionCommandController';
 import diagnosticsController from './server/controllers/api/diagnosticsController';
 import imageSnapshotController from "./server/controllers/api/imageSnapshotController";
+
+const express = require('express');
+const path = require('path');
 
 const startServer = function (port) {
   let app,
@@ -99,7 +99,8 @@ const initApp = function () {
   app.get('/api/v2/authoring/element/get', elementController.getElementsForPublishingEndPoint);
   // app.post('/api/v2/authoring/organization/element/create', elementController.createElementEndPoint);
   // app.post('/api/v2/authoring/organization/element/update', elementController.updateElementEndPoint);
-    // app.post('/api/v2/authoring/organization/element/delete', elementController.deleteElementEndPoint);app.post('/api/v2/authoring/list/element/instance/', elementInstanceController.listElementInstanceWithStatusEndPoint);
+    // app.post('/api/v2/authoring/organization/element/delete', elementController.deleteElementEndPoint);
+    app.post('/api/v2/authoring/list/element/instance/', elementInstanceController.listElementInstanceWithStatusEndPoint);
   app.get('/api/v2/authoring/element/catalog/get', elementController.getCatalogOfElements);
   app.post('/api/v2/authoring/element/instance/create', elementInstanceController.detailedElementInstanceCreateEndPoint);
   app.post('/api/v2/authoring/build/element/instance/create', elementInstanceController.elementInstanceCreateEndPoint);
@@ -202,6 +203,7 @@ const initApp = function () {
   app.post('/api/v1/user/account/activate/resend', userController.resendEmailActivationEndPoint);
   app.get('/account/activate/code/:code', userController.activateUserAccountEndPoint);
   app.get('/api/v2/user/authenticate/:t', userController.authenticateUserEndPoint);
+  app.get('/api/v2/emailActivation', fogController.getEmailActivationEndPoint);
 
   //generic error handler
   app.use((err, req, res, next) => {
