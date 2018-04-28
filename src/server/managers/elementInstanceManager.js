@@ -120,9 +120,10 @@ class ElementInstanceManager extends BaseManager {
 			isNetwork: false,
 			registryId: element.registry_id,
 			rebuild: false,
+            needUpdate: false,
 			rootHostAccess: false,
 			logSize: logSize,
-			volumeMappings: '{"volumemappings": []}',
+			volumeMappings: '{"volumemappings":[]}',
 			iofog_uuid: fogInstanceId
 		};
 
@@ -152,7 +153,7 @@ class ElementInstanceManager extends BaseManager {
 				rootHostAccess: false,
 				logSize: 50,
 				iofog_uuid: fogInstanceId,
-				volumeMappings: '{"volumemappings": []}'
+				volumeMappings: '{"volumemappings":[]}'
 			};
 
 		return ElementInstance.create(elementInstance);
@@ -188,7 +189,7 @@ class ElementInstanceManager extends BaseManager {
 				rebuild: false,
 				rootHostAccess: false,
 				logSize: 50,
-				volumeMappings: '{"volumemappings": []}',
+				volumeMappings: '{"volumemappings":[]}',
 				iofog_uuid: fogInstanceId
 			};
 
@@ -218,7 +219,7 @@ class ElementInstanceManager extends BaseManager {
 				rootHostAccess: false,
 				logSize: 50,
 				iofog_uuid: fogInstanceId,
-				volumeMappings: '{"volumemappings": []}'
+				volumeMappings: '{"volumemappings":[]}'
 			};
 
 		return ElementInstance.create(elementInstance);
