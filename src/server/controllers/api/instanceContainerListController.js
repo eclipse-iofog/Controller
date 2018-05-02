@@ -68,7 +68,8 @@ const processContainerList = function(params, callback){
     let updateElementInstanceProps = {
           elementId: 'container.UUID',
           updatedData: {
-            rebuild: 0
+            rebuild: 0,
+            needUpdate: 0
           }
         },
         elementProps = {
@@ -108,7 +109,8 @@ const processContainerData = function(params, callback) {
     logsize: parseFloat(params.container.log_size),
     imageid: params.elementData.containerImage,
     registryurl: params.elementData.registryUrl,
-    volumemappings: params.container.volume_mappings
+    volumemappings: params.container.volume_mappings,
+    needupdate: params.container.need_update > 0
   };
   params.newContainerItem = newContainerItem;
   callback(null, params);
