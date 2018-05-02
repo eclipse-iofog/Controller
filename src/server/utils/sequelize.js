@@ -52,7 +52,7 @@ const operatorsAliases = {
 //  The variable may or may not be reassigned, and the variable may or may not be used for an entire function, or just for the purpose of a block or loop.
 const sequelize = new Sequelize(null, null, null, {
   dialect: 'sqlite',
-    storage: appConfig.dbPath,
+    storage: __dirname + '/../../../../' + appConfig.dbPath, //TODO: needs to improve this line of code,
   logging: logger.debug,
   pool: {
     max: 5,
