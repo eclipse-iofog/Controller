@@ -22,8 +22,10 @@ jobs:
     script: 
     - sshpass -p $DEV_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $DEV_MACHINE_USERNAME@$DEV_MACHINE_IP "cd /iotracks/FogController; git pull; npm i; npm run build-dev; pm2 restart FogController"
   - stage: package_build
+    before_install:
+    - sudo apt-get install sshpass
     script: 
-    - sudo npm run build
+    - sshpass -p $DEV_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $DEV_MACHINE_USERNAME@$DEV_MACHINE_IP "npm run build"
     deploy:
       skip_cleanup: true
       provider: npm 
