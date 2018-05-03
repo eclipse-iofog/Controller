@@ -23,7 +23,7 @@ jobs:
     - sshpass -p $DEV_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $DEV_MACHINE_USERNAME@$DEV_MACHINE_IP "cd /iotracks/FogController; git pull; npm i; npm run build-dev; pm2 restart FogController"
   - stage: package_build
     script: 
-    - npm run build
+    - sudo npm run build
     deploy:
       skip_cleanup: true
       provider: npm 
