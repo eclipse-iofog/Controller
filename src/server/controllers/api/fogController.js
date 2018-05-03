@@ -5,7 +5,6 @@
  */
 
 import async from 'async';
-import express from 'express';
 
 import ChangeTrackingService from '../../services/changeTrackingService';
 import ComsatService from '../../services/comsatService';
@@ -25,7 +24,9 @@ import StreamViewerService from '../../services/streamViewerService';
 import UserService from '../../services/userService';
 
 import AppUtils from '../../utils/appUtils';
+import configUtil from '../../utils/configUtil';
 import logger from '../../utils/winstonLogs';
+import moment from "moment";
 
 
 /********************************************* EndPoints ******************************************************/
@@ -42,21 +43,33 @@ const getFogControllerStatusEndPoint = function (req, res) {
   });
 };
 
+/******************* Fog-Controller Email Activation EndPoint (Get: /api/v2/emailActivation) ***********/
+const getEmailActivationEndPoint = function(req, res) {
+    logger.info("Endpoint hit: " + req.originalUrl);
+    let enableEmailActivation = configUtil.getConfigParam('email_activation') || 'off';
+    res.status(200);
+    res.send({
+        "status": "ok",
+        "emailActivation": enableEmailActivation
+    });
+};
+
+
 /******** Fog Instances List By UserID EndPoint (Get: /api/v2/authoring/integrator/instances/list/:t
  Post: /api/v2/authoring/fabric/instances/list  ) *******/
 const fogInstancesListEndPoint = function (req, res) {
   logger.info("Endpoint hit: " + req.originalUrl);
-  let params = {},
+    let params = {},
 
-    userProps = {
-      userId: 'bodyParams.t',
-      setProperty: 'user'
-    },
+        userProps = {
+            userId: 'bodyParams.t',
+            setProperty: 'user'
+        },
 
-    fogInstanceForUserProps = {
-      userId: 'user.id',
-      setProperty: 'fogInstance'
-    };
+        fogInstanceForUserProps = {
+            userId: 'user.id',
+            setProperty: 'fogInstance'
+        };
 
   params.bodyParams = req.params;
 
@@ -68,11 +81,39 @@ const fogInstancesListEndPoint = function (req, res) {
 
   async.waterfall([
     async.apply(UserService.getUser, userProps, params),
-    async.apply(FogService.getFogInstanceForUser, fogInstanceForUserProps)
-
+      async.apply(FogService.getFogInstanceForUser, fogInstanceForUserProps),
+      checkIfFogsConnected
   ], function (err, result) {
     AppUtils.sendResponse(res, err, 'instances', params.fogInstance, result);
   })
+};
+
+const checkIfFogsConnected = function (params, callback) {
+    let arr = params.fogInstance,
+        fogUpdateProps = {
+            instanceId: 'instanceId',
+            updatedFog: {
+                daemonstatus: params.daemonstatus,
+                ipaddress: params.ipaddress
+            }
+        };
+    async.each(arr, function (fogInstance, callback) {
+        let minInMs = 60000,
+            intervalInMs = fogInstance.StatusFrequency > minInMs ? fogInstance.StatusFrequency * 2 : minInMs;
+        if (fogInstance.DaemonStatus !== 'UNKNOWN' && moment() - fogInstance.LastStatusTime > intervalInMs) {
+            fogInstance.DaemonStatus = 'UNKNOWN';
+            fogInstance.IPAddress = '0.0.0.0';
+            let paramObj = {
+                instanceId: fogInstance.UUID,
+                updatedFog: fogInstance
+            };
+            FogService.updateFogInstance(fogUpdateProps, paramObj, callback);
+        } else {
+            callback(null, params);
+        }
+    }, function () {
+        callback(null, params);
+    });
 };
 
 /**
@@ -528,7 +569,7 @@ const createStreamViewerNetworkElementInstance = function (params, callback) {
         rootHostAccess: false,
         logSize: 50,
         iofog_uuid: params.bodyParams.instanceId,
-        volumeMappings: '{"volumemappings": []}'
+        volumeMappings: '{"volumemappings":[]}'
       },
       setProperty: 'newStreamViewerNetworkElementInstance'
     };
@@ -704,7 +745,7 @@ const createNetworkElementInstance = function (params, callback) {
         rootHostAccess: false,
         logSize: 50,
         iofog_uuid: params.bodyParams.instanceId,
-        volumeMappings: '{"volumemappings": []}'
+        volumeMappings: '{"volumemappings":[]}'
       },
       setProperty: 'newNetworkElementInstance'
     };
@@ -994,7 +1035,7 @@ const createBluetoothElementInstance = function (params, callback) {
       isNetwork: false,
       rootHostAccess: true,
       logSize: 50,
-      volumeMappings: '{"volumemappings": []}',
+      volumeMappings: '{"volumemappings":[]}',
       registryId: params.bluetoothElement.registry_id,
       rebuild: false
     },
@@ -1021,7 +1062,7 @@ const createHalElementInstance = function (params, callback) {
       isNetwork: false,
       rootHostAccess: true,
       logSize: 50,
-      volumeMappings: '{"volumemappings": []}',
+      volumeMappings: '{"volumemappings":[]}',
       registryId: params.halElement.registry_id,
       rebuild: false
     },
@@ -1048,7 +1089,7 @@ const createGrafanaElementInstance = function (params, callback) {
             isNetwork: false,
             rootHostAccess: true,
             logSize: 50,
-            volumeMappings: '{"volumemappings": []}',
+            volumeMappings: '{"volumemappings":[]}',
             registryId: params.grafanaElement.registry_id,
             rebuild: false
         },
@@ -1257,6 +1298,7 @@ export default {
   //  addBlueboxEndpoint: addBlueboxEndpoint,
   getFogDetailsEndpoint: getFogDetailsEndpoint,
   getFogControllerStatusEndPoint: getFogControllerStatusEndPoint,
+  getEmailActivationEndPoint: getEmailActivationEndPoint,
   fogInstancesListEndPoint: fogInstancesListEndPoint,
   fogInstanceCreateEndPoint: fogInstanceCreateEndPoint,
   // getFogListEndPoint: getFogListEndPoint,

@@ -196,6 +196,7 @@ const initApp = function () {
   app.post('/api/v1/user/account/activate/resend', userController.resendEmailActivationEndPoint);
   app.get('/account/activate/code/:code', userController.activateUserAccountEndPoint);
   app.get('/api/v2/user/authenticate/:t', userController.authenticateUserEndPoint);
+  app.get('/api/v2/emailActivation', fogController.getEmailActivationEndPoint);
 
   //generic error handler
   app.use((err, req, res, next) => {

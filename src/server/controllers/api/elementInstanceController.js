@@ -714,7 +714,7 @@ const elementInstancePortCreateEndPoint = function(req, res) {
       async.apply(ElementInstanceService.getElementInstance, elementInstanceProps),
       async.apply(FogService.getFogInstance, fogProps),
       async.apply(FogTypeService.getFogTypeDetail, fogTypeProps),
-      
+
       async.apply(ElementInstanceService.getElementInstancesByFogId, elementInstancesProps),
       async.apply(ElementInstancePortService.findElementInstancePortsByElementIds, elementInstancesPortProps),
       verifyPorts,
@@ -789,7 +789,7 @@ const createNetworkElementInstance = function (params, callback){
       satellitePort: 'satellitePort.port1',
       satelliteDomain: 'satellite.domain',
       satelliteCertificate: 'satellite.cert',
-      trackId: null,
+      trackId: 'bodyParams.trackId',
       userId: 'user.id',
       networkName: 'Network for Element '+ params.elementInstance.uuid,
       networkPort: 'bodyParams.externalPort',
@@ -1170,7 +1170,7 @@ const getFogInstance = function (params, callback){
     async.apply(RoutingService.isDebugging, debugProps),
     async.apply(RoutingService.isViewer, viewerProps),
     async.apply(ElementInstanceService.getDataTrackDetails, dataTrackProps),
-    getOpenPorts
+    getElementInstanceDetails
 
   ], function(err, result) {
     AppUtils.sendResponse(res, err, 'instance', params.response, result);
@@ -1178,7 +1178,7 @@ const getFogInstance = function (params, callback){
 };
 
 /********************************* Extra Functions *****************************************/
-const getOpenPorts = function(params, callback){
+const getElementInstanceDetails = function(params, callback){
   try{
     let response = [];
     async.eachSeries(params.elementInstance, function(instance, cb){
@@ -1188,6 +1188,7 @@ const getOpenPorts = function(params, callback){
         config: instance.config,
         fogInstanceId: instance.fogInstanceId != null ? instance.fogInstanceId :'NONE',
         rootHostAccess: instance.rootHostAccess,
+        strace: instance.strace,
         logSize: instance.logSize,
         viewerEnabled: instance.isStreamViewer,
         debugEnabled: instance.isDebugConsole,
@@ -1403,6 +1404,7 @@ const getElementInstanceProperties = function(params, callback) {
         fogInstanceId: instance.fogInstanceId != null ? instance.fogInstanceId :'NONE',
         rebuild: instance.rebuild,
         rootHostAccess: instance.rootHostAccess,
+        strace: instance.strace,
         logSize: instance.logSize,
         elementName: instance.name,
         description: instance.description,

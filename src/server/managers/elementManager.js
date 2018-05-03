@@ -64,24 +64,24 @@ class ElementManager extends BaseManager {
 			}
 		});
 	}
-	getElementCatalog() {
+	getElementCatalog(userId) {
 		const query = 'select e.*, ' +
 			'eit.info_type as inputType, eit.info_format as inputFormat, ' +
 			'eot.info_type as outputType, eot.info_format as outputFormat ' +
 			'from element e ' +
 			'left join element_input_type eit on e.id = eit.element_key ' +
 			'left join element_output_type eot on e.id = eot.element_key ' +
-			'where (e.publisher != "SYSTEM")';
+			'where e.publisher != "SYSTEM" AND (e.user_id == ' + userId + ' OR e.is_public = 1)';
 
 		return sequelize.query(query, {
 			type: sequelize.QueryTypes.SELECT
 		});
 	}
 
-	getElementForPublish(){
+	getElementForPublish(userId){
 		const query = 'select e.* ' +
 			'from element e ' +
-			'where (e.publisher != "SYSTEM" AND e.publisher != "iotracks")';
+			'where e.user_id ==' + userId;
 		return sequelize.query(query, {
 			type: sequelize.QueryTypes.SELECT
 		});

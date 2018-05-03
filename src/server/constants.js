@@ -35,9 +35,12 @@ const CONFIG = {
   email_address: 'email_address',
   email_password: 'email_password',
   email_service: 'email_service',
+  email_server: 'email_server',
+  email_serverport: 'email_serverport',
   ioauthoring_port: 'ioauthoring_port',
   ioauthoring_ip_address: 'ioauthoring_ip_address',
-  ioauthoring_protocol: 'ioauthoring_protocol'
+  ioauthoring_protocol: 'ioauthoring_protocol',
+  email_activation: 'email_activation'
 };
 
 export default {
