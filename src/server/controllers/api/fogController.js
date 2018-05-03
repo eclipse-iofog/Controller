@@ -569,7 +569,7 @@ const createStreamViewerNetworkElementInstance = function (params, callback) {
         rootHostAccess: false,
         logSize: 50,
         iofog_uuid: params.bodyParams.instanceId,
-        volumeMappings: '{"volumemappings": []}'
+        volumeMappings: '{"volumemappings":[]}'
       },
       setProperty: 'newStreamViewerNetworkElementInstance'
     };
@@ -745,7 +745,7 @@ const createNetworkElementInstance = function (params, callback) {
         rootHostAccess: false,
         logSize: 50,
         iofog_uuid: params.bodyParams.instanceId,
-        volumeMappings: '{"volumemappings": []}'
+        volumeMappings: '{"volumemappings":[]}'
       },
       setProperty: 'newNetworkElementInstance'
     };
@@ -1035,7 +1035,7 @@ const createBluetoothElementInstance = function (params, callback) {
       isNetwork: false,
       rootHostAccess: true,
       logSize: 50,
-      volumeMappings: '{"volumemappings": []}',
+      volumeMappings: '{"volumemappings":[]}',
       registryId: params.bluetoothElement.registry_id,
       rebuild: false
     },
@@ -1062,7 +1062,7 @@ const createHalElementInstance = function (params, callback) {
       isNetwork: false,
       rootHostAccess: true,
       logSize: 50,
-      volumeMappings: '{"volumemappings": []}',
+      volumeMappings: '{"volumemappings":[]}',
       registryId: params.halElement.registry_id,
       rebuild: false
     },
@@ -1089,7 +1089,7 @@ const createGrafanaElementInstance = function (params, callback) {
             isNetwork: false,
             rootHostAccess: true,
             logSize: 50,
-            volumeMappings: '{"volumemappings": []}',
+            volumeMappings: '{"volumemappings":[]}',
             registryId: params.grafanaElement.registry_id,
             rebuild: false
         },

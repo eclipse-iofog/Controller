@@ -99,19 +99,20 @@ class StraceDiagnosticsManager extends BaseManager {
     }
 
     pushBufferByElementId(uuid, pushingData) {
-        return StraceDiagnostics
-            .findOne({
-                where: {
-                    element_instance_uuid: uuid,
-                }
-            })
+        return StraceDiagnostics.findOne({
+            where: {
+                element_instance_uuid: uuid,
+            }
+        })
             .then(function (el) {
-                    let newBuffer = updateBuffer(el.buffer, pushingData);
-                    return StraceDiagnostics.update({buffer: newBuffer}, {
-                        where: {
-                            element_instance_uuid: uuid,
-                        }
-                    })
+                    if (el) {
+                        let newBuffer = updateBuffer(el.buffer, pushingData);
+                        return StraceDiagnostics.update({buffer: newBuffer}, {
+                            where: {
+                                element_instance_uuid: uuid,
+                            }
+                        })
+                    }
                 }
             )
     }
