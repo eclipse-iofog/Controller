@@ -16,7 +16,7 @@
 
 -  Create Fog
 
-&emsp;&emsp;&emsp;[http://localhost:3000/api/v2/instance/create/type/:type?t=:userAccessToken](http://localhost:3000/api/v2/instance/create/type/:type?t=:userAccessToken)
+&emsp;&emsp;&emsp;[http://localhost:54421/api/v2/instance/create/type/:type?t=:userAccessToken](http://localhost:54421/api/v2/instance/create/type/:type?t=:userAccessToken)
 
 &emsp;&emsp;&emsp;where &#39;:type&#39; is FogType which can be 1 for Standard Linux (x86) OR 2 for ARM Linux 
 
@@ -24,7 +24,7 @@
 
 - Fog provisioning
 
-&emsp;&emsp;&emsp;[http://localhost:3000/api/v2/authoring/fabric/provisioningkey/instanceid/:instanceId](http://localhost:3000/api/v2/authoring/fabric/provisionkey/instanceid/:instanceId)
+&emsp;&emsp;&emsp;[http://localhost:54421/api/v2/authoring/fabric/provisioningkey/instanceid/:instanceId](http://localhost:54421/api/v2/authoring/fabric/provisionkey/instanceid/:instanceId)
 
 &emsp;&emsp;&emsp;where  &#39;:instanceId&#39; is obtained by creating fog.
 
@@ -33,7 +33,7 @@
 
 - Create fog access token
 
-&emsp;&emsp;&emsp;[http://localhost:3000/api/v2/instance/provision/key/:provisionKey/fabrictype/:fabricType](http://localhost:3000/api/v2/instance/provision/key/:provisionKey/fabrictype/:fabricType)
+&emsp;&emsp;&emsp;[http://localhost:54421/api/v2/instance/provision/key/:provisionKey/fabrictype/:fabricType](http://localhost:54421/api/v2/instance/provision/key/:provisionKey/fabrictype/:fabricType)
 
 &emsp;&emsp;&emsp;where &#39;:provisionKey&#39; is obtained by provisioning fog                                                        
 
