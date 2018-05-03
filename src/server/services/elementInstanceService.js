@@ -1,6 +1,5 @@
 import ElementInstanceManager from '../managers/elementInstanceManager';
 import ElementInstanceToCleanUpManager from '../managers/elementInstanceToCleanUpManager';
-import DataTracksManager from '../managers/dataTracksManager';
 import AppUtils from '../utils/appUtils';
 import _ from 'underscore';
 import ElementImageService from "./elementImageService";
@@ -271,9 +270,9 @@ const deleteElementInstance = function(props, params, callback) {
 }
 
 const deleteElementInstanceWithCleanUp = function (props, params, callback) {
-    let withCleanUp = AppUtils.getProperty(params, props.withCleanUp);
+    let withCleanUp = AppUtils.getProperty(params, props.withCleanUp) === 'true';
 
-    if (withCleanUp && params.elementInstance.iofog_uuid != null) {
+    if (withCleanUp && params.elementInstance.iofog_uuid != null && params.fog.dataValues.daemonlaststart != null) {
         createElementInstanceToCleanUp(props, params, callback);
     } else {
         deleteElementInstance(props, params, callback);
@@ -282,7 +281,7 @@ const deleteElementInstanceWithCleanUp = function (props, params, callback) {
 
 const createElementInstanceToCleanUp = function (props, params, callback) {
     let elementId = AppUtils.getProperty(params, props.elementId),
-        withCleanUp = AppUtils.getProperty(params, props.withCleanUp),
+        withCleanUp = AppUtils.getProperty(params, props.withCleanUp) === 'true',
         iofogUUID = AppUtils.getProperty(params, props.iofogUUID);
 
     if (withCleanUp && iofogUUID != null) {

@@ -427,6 +427,11 @@ const elementInstanceDeleteEndPoint = function(req, res) {
             elementInstanceId: 'bodyParams.elementId'
         },
 
+        fogProps = {
+            setProperty: 'fog',
+            fogId: 'elementInstance.iofog_uuid'
+        },
+
         changeTrackingProps = {
             fogInstanceId: 'elementInstance.iofog_uuid',
             changeObject: {
@@ -449,6 +454,7 @@ const elementInstanceDeleteEndPoint = function(req, res) {
     async.apply(NetworkPairingService.deleteNetworkPairing, deleteElementProps),
     async.apply(SatellitePortService.deletePortsForNetworkElements, deleteElementProps),
     async.apply(ElementInstanceService.getElementInstance, elementInstanceProps),
+      async.apply(FogService.getFogInstanceOptional, fogProps),
     async.apply(ChangeTrackingService.updateChangeTracking, changeTrackingProps),
       async.apply(ElementInstanceService.deleteElementInstanceWithCleanUp, deleteElementProps)
   ], function(err, result) {
