@@ -18,7 +18,7 @@ import logger from '../../utils/winstonLogs';
 
 /**
  * ioAuthoring end point to create proxy for specific iofog instance
- * (Post: /api/v2/authoring/fabric/instance/proxy/createOrUpdate)
+ * (Post: /api/v2/authoring/fog/instance/proxy/createOrUpdate)
  * @param req request
  * @param res response
  */
@@ -59,7 +59,7 @@ const createOrUpdateProxyEndPoint = function(req, res) {
 
 /**
  * ioAuthoring end point to close proxy for specific iofog instance
- * (Post: /api/v2/authoring/fabric/instance/proxy/close)
+ * (Post: /api/v2/authoring/fog/instance/proxy/close)
  * @param req request
  * @param res response
  */
@@ -127,7 +127,7 @@ const getProxyEndPoint = function(req, res) {
 
 /**
  * ioAuthoring end point to retrieve proxy status
- * (Get: /api/v2/authoring/fabric/proxy/status)
+ * (Get: /api/v2/authoring/fog/proxy/status)
  * @param req request
  * @param res response
  */

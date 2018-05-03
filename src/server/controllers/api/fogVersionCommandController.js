@@ -10,7 +10,7 @@ import FogVersionCommand from "../../models/fogVersionCommand";
 
 
 /********************************************* EndPoints ******************************************************/
-/************* Change Version EndPoint (Get/Post: /api/v2/authoring/fabric/version/change) ******************/
+/************* Change Version EndPoint (Get/Post: /api/v2/authoring/fog/version/change) ******************/
 const changeVersionEndPoint = function (req, res) {
     logger.info("Endpoint hit: "+ req.originalUrl);
     var params = {},

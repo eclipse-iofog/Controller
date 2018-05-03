@@ -65,7 +65,7 @@ import ElementInstanceToCleanUpService from "../../services/elementInstanceToCle
   });
 };
 
-/***** Track Element List By TrackId EndPoint (Get: /api/v2/authoring/fabric/track/element/list/:trackId) *****/
+/***** Track Element List By TrackId EndPoint (Get: /api/v2/authoring/fog/track/element/list/:trackId) *****/
  const trackElementListEndPoint = function(req, res) {
   logger.info("Endpoint hit: "+ req.originalUrl);
 
@@ -195,11 +195,11 @@ import ElementInstanceToCleanUpService from "../../services/elementInstanceToCle
         name: 'bodyParams.name',
         logSize: 'bodyParams.logSize',
         config: 'bodyParams.config',
-        fogInstanceId: 'bodyParams.fabricInstanceId',
+        fogInstanceId: 'bodyParams.fogInstanceId',
         setProperty: 'newElementInstance'
       },  
       changeTrackingProps = {
-        fogInstanceId: 'bodyParams.fabricInstanceId',
+        fogInstanceId: 'bodyParams.fogInstanceId',
         changeObject: {
           containerConfig: new Date().getTime(),
           containerList: new Date().getTime()
@@ -216,7 +216,7 @@ import ElementInstanceToCleanUpService from "../../services/elementInstanceToCle
         setProperty: 'elementInstancePort'
       },
       fogProps = {
-        fogId: 'bodyParams.fabricInstanceId',
+        fogId: 'bodyParams.fogInstanceId',
         setProperty: 'fogInstance'
       },
       networkPortProps = {
@@ -1054,9 +1054,9 @@ const elementInstanceUpdateEndPoint = function(req, res) {
 };
 
 const getFogInstance = function (params, callback){
-  if (params.bodyParams.fabricInstanceId) {
+  if (params.bodyParams.fogInstanceId) {
     let fogProps = {
-      fogId: 'bodyParams.fabricInstanceId',
+      fogId: 'bodyParams.fogInstanceId',
       setProperty: 'fogData'
     };
     
@@ -1271,13 +1271,13 @@ const updateElementInstance = function (params, callback) {
   try{
   let data;
 
-  if (params.elementInstance.iofog_uuid == params.bodyParams.fabricInstanceId) {
+  if (params.elementInstance.iofog_uuid == params.bodyParams.fogInstanceId) {
     callback(null, params);
   } 
   else {
     let fogInstanceId = null;
-    if (params.bodyParams.fabricInstanceId != 'NONE'){
-        fogInstanceId = params.bodyParams.fabricInstanceId;
+    if (params.bodyParams.fogInstanceId != 'NONE'){
+        fogInstanceId = params.bodyParams.fogInstanceId;
       }
 
     if (!ArchitectureUtils
@@ -1321,7 +1321,7 @@ const updateChangeTracking = function(params, callback) {
     updateElementObject.configLastUpdated = new Date().getTime();
     updateChangeTracking.containerConfig = new Date().getTime();
   }
-  if (params.elementInstance.iofog_uuid != params.bodyParams.fabricInstanceId) {
+  if (params.elementInstance.iofog_uuid != params.bodyParams.fogInstanceId) {
 
     updateChangeTracking.containerList = new Date().getTime();
     updateChangeTracking.containerConfig = new Date().getTime();
@@ -1352,7 +1352,7 @@ const updateChangeTracking = function(params, callback) {
 const updateChange = function(params, callback) {
   if (params.updateChange.containerConfig || params.updateChange.containerList){
     let changeTrackingProps = {
-      fogInstanceId: 'bodyParams.fabricInstanceId',
+      fogInstanceId: 'bodyParams.fogInstanceId',
       changeObject: params.updateChange
     };
     

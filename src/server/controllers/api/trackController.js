@@ -63,7 +63,7 @@ const validateFogInstance = function(params, callback){
   }
 }
 
-/***************** Fog Track List EndPoint (Get: /api/v2/authoring/fabric/track/list/:instanceId) **************/
+/***************** Fog Track List EndPoint (Get: /api/v2/authoring/fog/track/list/:instanceId) **************/
 const fogTrackListEndPoint = function(req, res){
   logger.info("Endpoint hit: "+ req.originalUrl);
   let params = {},
@@ -96,7 +96,7 @@ const fogTrackListEndPoint = function(req, res){
   })
 };
 
-/***************** Fog Track Delete EndPoint (Post: /api/v2/authoring/fabric/track/delete) **************/
+/***************** Fog Track Delete EndPoint (Post: /api/v2/authoring/fog/track/delete) **************/
 const fogTrackDeleteEndPoint = function(req, res){
   logger.info("Endpoint hit: "+ req.originalUrl);
   let params = {},
@@ -158,7 +158,7 @@ const getTracksForUser = function(req, res) {
   })
 };
 
-/***************** Fog Track Update EndPoint (Post: /api/v2/authoring/fabric/track/update) **************/
+/***************** Fog Track Update EndPoint (Post: /api/v2/authoring/fog/track/update) **************/
 const fogTrackUpdateEndPoint = function(req, res){
   logger.info("Endpoint hit: "+ req.originalUrl);
   let params = {},
