@@ -56,6 +56,10 @@ const ElementInstance = sequelize.define('element_instance', {
     type: Sequelize.BOOLEAN,
     field: 'is_network'
   },
+  needUpdate: {
+      type: Sequelize.BOOLEAN,
+      field: 'need_update'
+  },
   registryId: {
     type: Sequelize.BIGINT,
     field: 'registry_id'

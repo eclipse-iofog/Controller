@@ -129,9 +129,10 @@ class ElementInstanceManager extends BaseManager {
 			isNetwork: false,
 			registryId: element.registry_id,
 			rebuild: false,
+            needUpdate: false,
 			rootHostAccess: false,
 			logSize: logSize,
-			volumeMappings: '{"volumemappings": []}',
+			volumeMappings: '{"volumemappings":[]}',
 			iofog_uuid: fogInstanceId
 		};
 
@@ -162,7 +163,7 @@ class ElementInstanceManager extends BaseManager {
 				rootHostAccess: false,
 				logSize: 50,
 				iofog_uuid: fogInstanceId,
-				volumeMappings: '{"volumemappings": []}'
+				volumeMappings: '{"volumemappings":[]}'
 			};
 
 		return ElementInstance.create(elementInstance);
@@ -199,7 +200,7 @@ class ElementInstanceManager extends BaseManager {
 				rebuild: false,
 				rootHostAccess: false,
 				logSize: 50,
-				volumeMappings: '{"volumemappings": []}',
+				volumeMappings: '{"volumemappings":[]}',
 				iofog_uuid: fogInstanceId
 			};
 
@@ -230,7 +231,7 @@ class ElementInstanceManager extends BaseManager {
 				rootHostAccess: false,
 				logSize: 50,
 				iofog_uuid: fogInstanceId,
-				volumeMappings: '{"volumemappings": []}'
+				volumeMappings: '{"volumemappings":[]}'
 			};
 
 		return ElementInstance.create(elementInstance);
@@ -391,12 +392,15 @@ class ElementInstanceManager extends BaseManager {
 		'ei.element_key as elementKey, ' +
 		'e.name as elementName, ' +
 		'e.picture as elementPicture, ' +
-		'f.DaemonStatus as daemonStatus ' +
+		'f.DaemonStatus as daemonStatus, ' +
+		's.straceRun as strace ' +
 		'from element_instance ei ' +
 		'inner join element e ' +
 		'on ei.element_key = e.id ' +
 		'left join iofogs f ' +
 		'on ei.iofog_uuid = f.UUID ' +
+		'left join strace_diagnostics s ' +
+		'on ei.UUID = s.element_instance_uuid ' +
 		'where ei.track_id = ' + trackId + ' AND e.publisher != "SYSTEM"';
 
 		return sequelize.query(query, {
@@ -414,12 +418,15 @@ class ElementInstanceManager extends BaseManager {
 		'ei.log_size as logSize, ' +
 		'ei.rebuild as rebuild, ' +
 		'ei.volume_mappings as volumeMappings, ' +
-		'e.* ' +
+		'e.*, ' +
+		's.straceRun as strace ' +
 		'from element_instance ei ' +
 		'left join element e ' +
 		'on ei.element_key = e.id ' +
 		'left join iofogs f ' +
 		'on f.UUID = ei.iofog_uuid ' +
+		'left join strace_diagnostics s ' +
+		'on ei.UUID = s.element_instance_uuid ' +
 		'where ei.UUID in (:uuid)';
 
 		return sequelize.query(query, {
