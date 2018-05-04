@@ -113,31 +113,6 @@ CREATE TABLE element_images (
   container_image TEXT
 );
 
-INSERT INTO element_images VALUES (1, 1, 1, 'iofog/core-networking');
-INSERT INTO element_images VALUES (2, 1, 2, 'iofog/core-networking-arm');
-INSERT INTO element_images VALUES (3, 2, 1, 'iofog/restblue');
-INSERT INTO element_images VALUES (4, 2, 2, 'iofog/restblue-arm');
-INSERT INTO element_images VALUES (5, 3, 1, 'iofog/hal');
-INSERT INTO element_images VALUES (6, 3, 2, 'iofog/hal-arm');
-INSERT INTO element_images VALUES (7, 4, 1, 'iofog/diagnostics');
-INSERT INTO element_images VALUES (8, 4, 2, 'iofog/diagnostics-arm');
-INSERT INTO element_images VALUES (9, 5, 1, 'iofog/hello-web');
-INSERT INTO element_images VALUES (10, 5, 2, 'iofog/hello-web-arm');
-INSERT INTO element_images VALUES (11, 6, 1, 'iofog/open-weather-map');
-INSERT INTO element_images VALUES (12, 6, 2, 'iofog/open-weather-map-arm');
-INSERT INTO element_images VALUES (13, 7, 1, 'iofog/json-rest-api');
-INSERT INTO element_images VALUES (14, 7, 2, 'iofog/json-rest-api-arm');
-INSERT INTO element_images VALUES (15, 8, 1, 'iofog/temperature-conversion');
-INSERT INTO element_images VALUES (16, 8, 2, 'iofog/temperature-conversion-arm');
-INSERT INTO element_images VALUES (17, 9, 1, 'iofog/json-subselect');
-INSERT INTO element_images VALUES (18, 9, 2, 'iofog/json-subselect-arm');
-INSERT INTO element_images VALUES (19, 10, 1, 'iofog/humidity-sensor-simulator');
-INSERT INTO element_images VALUES (20, 10, 2, 'iofog/humidity-sensor-simulator-arm');
-INSERT INTO element_images VALUES (21, 11, 1, 'iofog/seismic-sensor-simulator');
-INSERT INTO element_images VALUES (22, 11, 2, 'iofog/seismic-sensor-simulator-arm');
-INSERT INTO element_images VALUES (23, 12, 1, 'iofog/temperature-sensor-simulator');
-INSERT INTO element_images VALUES (24, 12, 2, 'iofog/temperature-sensor-simulator-arm');
-
 CREATE TABLE network_pairing (
   ID                INTEGER PRIMARY KEY AUTOINCREMENT,
   IsPublicPort      TINYINT(1),
@@ -187,34 +162,6 @@ CREATE TABLE element (
     ON DELETE SET NULL
     ON UPDATE CASCADE
 );
-
-INSERT INTO element VALUES (1, 'Networking Tool', 'The built-in networking tool for Eclipse ioFog.',
-      'SYSTEM', 'Eclipse ioFog', 0, 0, 'none.png', NULL, 1, 0, 1);
-INSERT INTO element VALUES (2, 'RESTBlue', 'REST API for Bluetooth Low Energy layer.',
-      'SYSTEM', 'Eclipse ioFog',  0, 0, 'none.png', NULL, 1, 0, 1);
-INSERT INTO element VALUES (3, 'HAL', 'REST API for Hardware Abstraction layer.',
-      'SYSTEM', 'Eclipse ioFog', 0, 0, 'none.png', NULL, 1, 0, 1);
-INSERT INTO element VALUES (4, 'Diagnostics', 'Performs diagnostics of basic functionality to work with ioFog.  ' +
-                      'Use diagnostic container if something goes wrong on your machine with ioFog agent,' +
-                      ' e.g. Comsats are not available, a container cannot connect to ioFog host, ' +
-                      'ioFog client is not created, RestBlue or Log Container are not available and so on.',
-       'UTILITIES', 'Eclipse ioFog', 0, 0, 'images/build/580.png', NULL, 1, 0, 1);
-INSERT INTO element VALUES (5, 'Hello Web Demo', 'A simple web server to test Eclipse ioFog.',
-      'UTILITIES', 'Eclipse ioFog', 0, 0, 'images/build/4.png', NULL, 1, 0, 1);
-INSERT INTO element VALUES (6, 'Open Weather Map Data', 'A stream of data from the Open Weather Map API in JSON format',
-      'SENSORS', 'Eclipse ioFog', 0, 0, 'images/build/8.png', NULL, 1, 0, 1);
-INSERT INTO element VALUES (7, 'JSON REST API', 'A configurable REST API that gives JSON output',
-      'UTILITIES', 'Eclipse ioFog', 0, 0, 'images/build/49.png', NULL, 1, 0, 1);
-INSERT INTO element VALUES (8, 'Temperature Converter', 'A simple temperature format converter',
-      'UTILITIES', 'Eclipse ioFog', 0, 0, 'images/build/58.png', NULL, 1, 0, 1);
-INSERT INTO element VALUES (9, 'JSON Sub-Select', 'Performs sub-selection and transform operations on any JSON messages',
-      'UTILITIES', 'Eclipse ioFog', 0, 0, 'images/build/59.png', NULL, 1, 0, 1);
-INSERT INTO element VALUES (10, 'Humidity Sensor Simulator', 'Humidity Sensor Simulator for Eclipse ioFog',
-      'SIMULATOR', 'Eclipse ioFog', 0, 0, 'none.png', NULL, 1, 0, 1);
-INSERT INTO element VALUES (11, 'Seismic Sensor Simulator', 'Seismic Sensor Simulator for Eclipse ioFog',
-      'SIMULATOR', 'Eclipse ioFog', 0, 0, 'none.png', NULL, 1, 0, 1);
-INSERT INTO element VALUES (12, 'Temperature Sensor Simulator', 'Temperature Sensor Simulator for Eclipse ioFog',
-      'SIMULATOR', 'Eclipse ioFog', 0, 0, 'none.png', NULL, 1, 0, 1);
 
 CREATE TABLE element_input_type (
   ID          INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -333,12 +280,7 @@ CREATE TABLE iofog_type (
   GrafanaElementKey      BIGINT,
   BluetoothElementKey    BIGINT
 );
-INSERT INTO iofog_type VALUES (1, 'Standard Linux (x86)', 'iointegrator1.png',
-                               'A standard Linux server of at least moderate processing power and capacity. Compatible with common Linux types such as Ubuntu, Red Hat, and CentOS.',
-                               1, 2, 3, 6, 9, 10, 11, 5);
-INSERT INTO iofog_type VALUES (2, 'ARM Linux', 'iointegrator2.png',
-                               'A version of ioFog meant to run on Linux systems with ARM processors. Microservices for this ioFog type will be tailored to ARM systems.',
-                               1, 2, 3, 6, 9, 10, 11, 5);
+
 CREATE TABLE element_instance (
   ID                  INTEGER PRIMARY KEY AUTOINCREMENT,
   UUID                TEXT UNIQUE,
@@ -431,8 +373,7 @@ CREATE TABLE registry (
   iofog_uuid    TEXT REFERENCES iofogs (UUID),
   user_id       INTEGER REFERENCES users (ID)
 );
-INSERT INTO registry
-VALUES (1, 'registry.hub.docker.com', 1, 1, '', 0, '', '', '', NULL, NULL);
+
 CREATE TABLE iofog_change_tracking (
 	`ID`	INTEGER PRIMARY KEY AUTOINCREMENT,
 	`container_config`	BIGINT,
@@ -495,5 +436,71 @@ CREATE TABLE element_instance_to_clean_up (
   created_at            DATETIME NOT NULL,
   updated_at            DATETIME NOT NULL
 );
+
+--- CREATE DEFAULT DATA
+
+INSERT INTO registry VALUES (1, 'registry.hub.docker.com', 1, 1, '', 0, '', '', '', NULL, NULL);
+
+INSERT INTO iofog_type VALUES (1, 'Standard Linux (x86)', 'iointegrator1.png',
+                               'A standard Linux server of at least moderate processing power and capacity. ' ||
+                                'Compatible with common Linux types such as Ubuntu, Red Hat, and CentOS.',
+                               1, 2, 3);
+INSERT INTO iofog_type VALUES (2, 'ARM Linux', 'iointegrator2.png',
+                               'A version of ioFog meant to run on Linux systems with ARM processors. Microservices ' ||
+                                'for this ioFog type will be tailored to ARM systems.',
+                               1, 2, 3);
+
+INSERT INTO element_images VALUES (1, 1, 1, 'iofog/core-networking');
+INSERT INTO element_images VALUES (2, 1, 2, 'iofog/core-networking-arm');
+INSERT INTO element_images VALUES (3, 2, 1, 'iofog/restblue');
+INSERT INTO element_images VALUES (4, 2, 2, 'iofog/restblue-arm');
+INSERT INTO element_images VALUES (5, 3, 1, 'iofog/hal');
+INSERT INTO element_images VALUES (6, 3, 2, 'iofog/hal-arm');
+INSERT INTO element_images VALUES (7, 4, 1, 'iofog/diagnostics');
+INSERT INTO element_images VALUES (8, 4, 2, 'iofog/diagnostics-arm');
+INSERT INTO element_images VALUES (9, 5, 1, 'iofog/hello-web');
+INSERT INTO element_images VALUES (10, 5, 2, 'iofog/hello-web-arm');
+INSERT INTO element_images VALUES (11, 6, 1, 'iofog/open-weather-map');
+INSERT INTO element_images VALUES (12, 6, 2, 'iofog/open-weather-map-arm');
+INSERT INTO element_images VALUES (13, 7, 1, 'iofog/json-rest-api');
+INSERT INTO element_images VALUES (14, 7, 2, 'iofog/json-rest-api-arm');
+INSERT INTO element_images VALUES (15, 8, 1, 'iofog/temperature-conversion');
+INSERT INTO element_images VALUES (16, 8, 2, 'iofog/temperature-conversion-arm');
+INSERT INTO element_images VALUES (17, 9, 1, 'iofog/json-subselect');
+INSERT INTO element_images VALUES (18, 9, 2, 'iofog/json-subselect-arm');
+INSERT INTO element_images VALUES (19, 10, 1, 'iofog/humidity-sensor-simulator');
+INSERT INTO element_images VALUES (20, 10, 2, 'iofog/humidity-sensor-simulator-arm');
+INSERT INTO element_images VALUES (21, 11, 1, 'iofog/seismic-sensor-simulator');
+INSERT INTO element_images VALUES (22, 11, 2, 'iofog/seismic-sensor-simulator-arm');
+INSERT INTO element_images VALUES (23, 12, 1, 'iofog/temperature-sensor-simulator');
+INSERT INTO element_images VALUES (24, 12, 2, 'iofog/temperature-sensor-simulator-arm');
+
+INSERT INTO element VALUES (1, 'Networking Tool', 'The built-in networking tool for Eclipse ioFog.',
+      'SYSTEM', 'Eclipse ioFog', 0, 0, 'none.png', NULL, 1, 0, 1);
+INSERT INTO element VALUES (2, 'RESTBlue', 'REST API for Bluetooth Low Energy layer.',
+      'SYSTEM', 'Eclipse ioFog',  0, 0, 'none.png', NULL, 1, 0, 1);
+INSERT INTO element VALUES (3, 'HAL', 'REST API for Hardware Abstraction layer.',
+      'SYSTEM', 'Eclipse ioFog', 0, 0, 'none.png', NULL, 1, 0, 1);
+INSERT INTO element VALUES (4, 'Diagnostics', 'Performs diagnostics of basic functionality to work with ioFog.  ' +
+                      'Use diagnostic container if something goes wrong on your machine with ioFog agent,' +
+                      ' e.g. Comsats are not available, a container cannot connect to ioFog host, ' +
+                      'ioFog client is not created, RestBlue or Log Container are not available and so on.',
+       'UTILITIES', 'Eclipse ioFog', 0, 0, 'images/build/580.png', NULL, 1, 0, 1);
+INSERT INTO element VALUES (5, 'Hello Web Demo', 'A simple web server to test Eclipse ioFog.',
+      'UTILITIES', 'Eclipse ioFog', 0, 0, 'images/build/4.png', NULL, 1, 0, 1);
+INSERT INTO element VALUES (6, 'Open Weather Map Data', 'A stream of data from the Open Weather Map API in JSON format',
+      'SENSORS', 'Eclipse ioFog', 0, 0, 'images/build/8.png', NULL, 1, 0, 1);
+INSERT INTO element VALUES (7, 'JSON REST API', 'A configurable REST API that gives JSON output',
+      'UTILITIES', 'Eclipse ioFog', 0, 0, 'images/build/49.png', NULL, 1, 0, 1);
+INSERT INTO element VALUES (8, 'Temperature Converter', 'A simple temperature format converter',
+      'UTILITIES', 'Eclipse ioFog', 0, 0, 'images/build/58.png', NULL, 1, 0, 1);
+INSERT INTO element VALUES (9, 'JSON Sub-Select', 'Performs sub-selection and transform operations on any JSON messages',
+      'UTILITIES', 'Eclipse ioFog', 0, 0, 'images/build/59.png', NULL, 1, 0, 1);
+INSERT INTO element VALUES (10, 'Humidity Sensor Simulator', 'Humidity Sensor Simulator for Eclipse ioFog',
+      'SIMULATOR', 'Eclipse ioFog', 0, 0, 'none.png', NULL, 1, 0, 1);
+INSERT INTO element VALUES (11, 'Seismic Sensor Simulator', 'Seismic Sensor Simulator for Eclipse ioFog',
+      'SIMULATOR', 'Eclipse ioFog', 0, 0, 'none.png', NULL, 1, 0, 1);
+INSERT INTO element VALUES (12, 'Temperature Sensor Simulator', 'Temperature Sensor Simulator for Eclipse ioFog',
+      'SIMULATOR', 'Eclipse ioFog', 0, 0, 'none.png', NULL, 1, 0, 1);
 
 --COMMIT;
