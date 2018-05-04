@@ -51,8 +51,8 @@ exports.MultipartParser = MultipartParser;
 
 MultipartParser.prototype.initWithBoundary = function(str) {
   this.boundary = new Buffer(str.length+4);
-  // this.boundary.write('\r\n--', 'ascii', 0);
-  this.boundary.write(str, 'ascii', 4);
+  this.boundary.write('\r\n--', 0);
+  this.boundary.write(str, 4);
   this.lookbehind = new Buffer(this.boundary.length+8);
   this.state = S.START;
 

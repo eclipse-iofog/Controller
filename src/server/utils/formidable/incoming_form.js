@@ -321,16 +321,7 @@ IncomingForm.prototype._initUrlencoded = function() {
 };
 
 IncomingForm.prototype._uploadPath = function(filename) {
-  var name = '';
-  for (i = 0; i < 32; i++) {
-    name += Math.floor(Math.random() * 16).toString(16);
-  }
-
-  if (this.keepExtensions) {
-    name += path.extname(filename);
-  }
-
-  return path.join(this.uploadDir, name);
+  return path.join(this.uploadDir, filename);
 };
 
 IncomingForm.prototype._maybeEnd = function() {
