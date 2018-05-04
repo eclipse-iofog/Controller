@@ -255,6 +255,14 @@ if (params.bodyParams.instanceId) {
     .then(AppUtils.onUpdate.bind(null, params, "Unable to update 'iofog_uuid' field for Element Instance", callback));
 }
 
+const updateElemInstanceByFogUuIdWithChanges = function(props, params, callback) {
+ let fogInstanceId = AppUtils.getProperty(params, props.fogInstanceId);
+
+ ElementInstanceManager
+    .updateByFogUuId(fogInstanceId, props.updatedData)
+    .then(AppUtils.onUpdate.bind(null, params, "Unable to update 'iofog_uuid' field for Element Instance", callback));
+}
+
 const deleteNetworkElementInstance = function(props, params, callback) {
   let elementId = AppUtils.getProperty(params, props.elementId);
 
@@ -396,6 +404,7 @@ export default {
   getElementInstanceProperties: getElementInstanceProperties,
   updateElemInstance: updateElemInstance,
   updateElemInstanceByFogUuId: updateElemInstanceByFogUuId,
+  updateElemInstanceByFogUuIdWithChanges: updateElemInstanceByFogUuIdWithChanges,
   updateElementInstanceRebuild: updateElementInstanceRebuild,
   getDetailedElementInstances:getDetailedElementInstances,
   getElementInstanceRouteDetails: getElementInstanceRouteDetails,

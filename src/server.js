@@ -162,8 +162,9 @@ const initApp = function () {
   app.post('/api/v2/authoring/fabric/track/delete', trackController.fogTrackDeleteEndPoint);
   app.post('/api/v2/authoring/fabric/details', fogController.getFogDetailsEndpoint);
 
-  app.post('/api/v2/authoring/element/imageSnapshot', imageSnapshotController.elementInstanceImageSnapshotStatusEndPoint);
-  app.post('/api/v2/authoring/element/imageSnapshot/status/:elementId', imageSnapshotController.getElementInstanceImageSnapshotEndPoint);
+  app.post('/api/v2/authoring/element/imageSnapshot/status', imageSnapshotController.elementInstanceImageSnapshotStatusEndPoint);
+  app.post('/api/v2/authoring/element/imageSnapshot', imageSnapshotController.getElementInstanceImageSnapshotEndPoint);
+  app.get('/api/v2/authoring/element/imageSnapshot', imageSnapshotController.getElementInstanceImageSnapshotEndPoint);
   app.post('/api/v2/instance/imageSnapshotPut/id/:ID/token/:Token', imageSnapshotController.instanceImageSnapshotUrlEndPoint);
   app.get('/api/v2/instance/imageSnapshotGet/id/:ID/token/:Token', imageSnapshotController.getImageSnapshotStatusEndPoint);
   app.post('/api/v2/instance/imageSnapshotGet/id/:ID/token/:Token', imageSnapshotController.getImageSnapshotStatusEndPoint);

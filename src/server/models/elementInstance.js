@@ -79,10 +79,6 @@ const ElementInstance = sequelize.define('element_instance', {
   imageSnapshot: {
     type: Sequelize.TEXT,
     field: 'image_snapshot'
-  },
-  imageDownloadRun: {
-    type: Sequelize.BOOLEAN,
-    field: 'image_download_run'
   }
 }, {
   // don't add the timestamp attributes (updatedAt, createdAt)
