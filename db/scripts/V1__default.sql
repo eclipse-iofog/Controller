@@ -8,6 +8,7 @@ CREATE TABLE routing (
   `destination_element_id`  TEXT,
   `is_network_connection`   TINYINT(1)
 );
+
 CREATE TABLE config (
   `ID`    INTEGER PRIMARY KEY AUTOINCREMENT,
   `key`   TEXT,
