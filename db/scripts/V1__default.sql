@@ -445,11 +445,11 @@ INSERT INTO registry VALUES (1, 'registry.hub.docker.com', 1, 1, '', 0, '', '', 
 INSERT INTO iofog_type VALUES (1, 'Standard Linux (x86)', 'iointegrator1.png',
                                'A standard Linux server of at least moderate processing power and capacity. ' ||
                                 'Compatible with common Linux types such as Ubuntu, Red Hat, and CentOS.',
-                               0, 0, 0, 1, 3, 0, 0, 0, 2);
+                               0, 0, 1, 3, 0, 0, 0, 2);
 INSERT INTO iofog_type VALUES (2, 'ARM Linux', 'iointegrator2.png',
                                'A version of ioFog meant to run on Linux systems with ARM processors. Microservices ' ||
                                 'for this ioFog type will be tailored to ARM systems.',
-                               0, 0, 0, 1, 3, 0, 0, 0, 2);
+                               0, 0, 1, 3, 0, 0, 0, 2);
 
 INSERT INTO element_images VALUES (1, 1, 1, 'iofog/core-networking');
 INSERT INTO element_images VALUES (2, 1, 2, 'iofog/core-networking-arm');
