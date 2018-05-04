@@ -1,2 +1,5 @@
 ALTER TABLE element_instance ADD image_snapshot	TEXT;
-ALTER TABLE iofog_change_tracking ADD `is_image_snapshot`BIGINT;
+ALTER TABLE iofog_change_tracking ADD `is_image_snapshot` BIGINT;
+
+DELETE FROM iofog_change_tracking
+INSERT INTO iofog_change_tracking VALUES(1, 1517401049283, 0, 1517401049283,1517472938429,1517472938429,1517401049283,1517401049283, 1517401049283, 1517401049283, 'fVmnRpHgdNnDw7XJLJw7GV4NVRhjk4V3', 1517401049283);

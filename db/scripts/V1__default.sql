@@ -394,7 +394,6 @@ CREATE TABLE element_instance (
   created_at          DATETIME NOT NULL,
   updated_at          DATETIME NOT NULL,
   volume_mappings     TEXT,
-  image_snapshot	    TEXT
   element_id          INTEGER REFERENCES element (ID)
     ON DELETE SET NULL
     ON UPDATE CASCADE,
@@ -498,7 +497,6 @@ CREATE TABLE iofog_change_tracking (
 	`proxy` BIGINT,
   `diagnostics` BIGINT,
 	`iofog_uuid`	TEXT,
-  `is_image_snapshot`   BIGINT,
 	FOREIGN KEY(`iofog_uuid`) REFERENCES iofogs ( UUID ) ON DELETE SET NULL ON UPDATE CASCADE
 );
 CREATE TABLE proxy (
@@ -550,7 +548,7 @@ CREATE TABLE element_instance_to_clean_up (
   updated_at            DATETIME NOT NULL
 );
 
-INSERT INTO iofog_change_tracking VALUES(1, 1517401049283, 0, 1517401049283,1517472938429,1517472938429,1517401049283,1517401049283, 1517401049283, 1517401049283, 'fVmnRpHgdNnDw7XJLJw7GV4NVRhjk4V3', 1517401049283);
+INSERT INTO iofog_change_tracking VALUES(1, 1517401049283, 0, 1517401049283,1517472938429,1517472938429,1517401049283,1517401049283, 1517401049283, 1517401049283, 'fVmnRpHgdNnDw7XJLJw7GV4NVRhjk4V3');
 DELETE FROM sqlite_sequence;
 INSERT INTO sqlite_sequence VALUES ('config', 52);
 INSERT INTO sqlite_sequence VALUES ('satellite', 9);
