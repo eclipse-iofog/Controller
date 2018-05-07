@@ -73,7 +73,10 @@ const elementInstanceImageSnapshotStatusEndPoint = function (req, res) {
 
         elementInstanceProps = {
             elementInstanceId: 'bodyParams.elementId',
-            setProperty: 'elementInstance'
+            setProperty: 'elementInstance',
+            updatedData: {
+                image_snapshot: 'get_image'
+            }
         },
 
         changeTrackingProps = {
@@ -89,6 +92,7 @@ const elementInstanceImageSnapshotStatusEndPoint = function (req, res) {
     async.waterfall([
         async.apply(UserService.getUser, userProps, params),
         async.apply(ElementInstanceService.getElementInstance, elementInstanceProps),
+        async.apply(ElementInstanceService.updateElemInstance, elementInstanceProps),
         async.apply(ChangeTrackingService.updateChangeTracking, changeTrackingProps)
 
     ], function(err, result) {
@@ -118,7 +122,8 @@ const instanceImageSnapshotUrlEndPoint = function (req, res) {
         let elementInstanceProps = {
             fogInstanceId: 'bodyParams.ID',
             updatedData: {
-                imageSnapshot: absolutePath
+                imageSnapshot: absolutePath,
+                // is_create_snapshot: false
             }
         };
 
@@ -153,7 +158,7 @@ const getImageSnapshotStatusEndPoint = function (req, res) {
 
     async.waterfall([
             async.apply(BaseApiController.checkUserExistance, req, res),
-            async.apply(ElementInstanceService.getElementInstanceByIofogUuid, elementInstanceProps, params)
+            async.apply(ElementInstanceService.getElementInstanceByIofogUuidForCreateSnapshot, elementInstanceProps, params)
         ],
         function (err, result) {
             let output;

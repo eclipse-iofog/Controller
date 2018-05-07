@@ -84,10 +84,11 @@ class ElementInstanceManager extends BaseManager {
 		});
 	}
 
-	findByIofogUuId(iofogUuid) {
+	findByIofogUuIdForCreateSnapshot(iofogUuid) {
 		return ElementInstance.find({
 			where: {
-                iofog_uuid: iofogUuid
+                iofog_uuid: iofogUuid,
+                image_snapshot: 'get_image'
 			}
 		});
 	}
