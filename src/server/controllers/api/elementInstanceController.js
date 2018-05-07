@@ -5,8 +5,6 @@
  */
 
 import async from 'async';
-
-import https from 'https';
 import ChangeTrackingService from '../../services/changeTrackingService';
 import ComsatService from '../../services/comsatService';
 import DataTracksService from '../../services/dataTracksService';
@@ -27,8 +25,6 @@ import AppUtils from '../../utils/appUtils';
 import logger from '../../utils/winstonLogs';
 import _ from 'underscore';
 import ArchitectureUtils from '../../utils/architectureUtils'
-import BaseApiController from "./baseApiController";
-import ElementInstanceToCleanUpService from "../../services/elementInstanceToCleanUpService";
 
 /*********************************************** EndPoints ******************************************************/
 /***** Get Rebuild Status of Element Instance EndPoint (Get: /api/v2/authoring/element/instance/rebuild/status/elementid/:elementId *****/
@@ -431,6 +427,11 @@ const elementInstanceDeleteEndPoint = function(req, res) {
             elementInstanceId: 'bodyParams.elementId'
         },
 
+        fogProps = {
+            setProperty: 'fog',
+            fogId: 'elementInstance.iofog_uuid'
+        },
+
         changeTrackingProps = {
             fogInstanceId: 'elementInstance.iofog_uuid',
             changeObject: {
@@ -453,6 +454,7 @@ const elementInstanceDeleteEndPoint = function(req, res) {
     async.apply(NetworkPairingService.deleteNetworkPairing, deleteElementProps),
     async.apply(SatellitePortService.deletePortsForNetworkElements, deleteElementProps),
     async.apply(ElementInstanceService.getElementInstance, elementInstanceProps),
+      async.apply(FogService.getFogInstanceOptional, fogProps),
     async.apply(ChangeTrackingService.updateChangeTracking, changeTrackingProps),
       async.apply(ElementInstanceService.deleteElementInstanceWithCleanUp, deleteElementProps)
   ], function(err, result) {
@@ -1054,7 +1056,7 @@ const elementInstanceUpdateEndPoint = function(req, res) {
 };
 
 const getFogInstance = function (params, callback){
-  if (params.bodyParams.fabricInstanceId) {
+    if (params.bodyParams.fabricInstanceId && params.bodyParams.fabricInstanceId !== "NONE") {
     let fogProps = {
       fogId: 'bodyParams.fabricInstanceId',
       setProperty: 'fogData'
@@ -1276,11 +1278,11 @@ const updateElementInstance = function (params, callback) {
   } 
   else {
     let fogInstanceId = null;
-    if (params.bodyParams.fabricInstanceId != 'NONE'){
+      if (params.bodyParams.fabricInstanceId !== 'NONE') {
         fogInstanceId = params.bodyParams.fabricInstanceId;
       }
 
-    if (!ArchitectureUtils
+      if (params.fogData !== undefined && !ArchitectureUtils
             .isExistsImageForFogType(params.fogData.typeKey, params.elementInstance.elementImages)) {
 
       callback('error', "no container image for this fog type");
