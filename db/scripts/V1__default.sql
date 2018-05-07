@@ -477,11 +477,11 @@ INSERT INTO element_images VALUES (23, 12, 1, 'iofog/temperature-sensor-simulato
 INSERT INTO element_images VALUES (24, 12, 2, 'iofog/temperature-sensor-simulator-arm');
 
 INSERT INTO element VALUES (1, 'Networking Tool', 'The built-in networking tool for Eclipse ioFog.',
-      'SYSTEM', 'Eclipse ioFog', 0, 0, 'none.png', NULL, 1, 0, 1);
+      'SYSTEM', 'Eclipse ioFog', 0, 0, 'none.png', NULL, 0, 0, 1);
 INSERT INTO element VALUES (2, 'RESTBlue', 'REST API for Bluetooth Low Energy layer.',
-      'SYSTEM', 'Eclipse ioFog',  0, 0, 'none.png', NULL, 1, 0, 1);
+      'SYSTEM', 'Eclipse ioFog',  0, 0, 'none.png', NULL, 0, 0, 1);
 INSERT INTO element VALUES (3, 'HAL', 'REST API for Hardware Abstraction layer.',
-      'SYSTEM', 'Eclipse ioFog', 0, 0, 'none.png', NULL, 1, 0, 1);
+      'SYSTEM', 'Eclipse ioFog', 0, 0, 'none.png', NULL, 0, 0, 1);
 INSERT INTO element VALUES (4, 'Diagnostics', 'Performs diagnostics of basic functionality to work with ioFog.  ' +
                       'Use diagnostic container if something goes wrong on your machine with ioFog agent,' +
                       ' e.g. Comsats are not available, a container cannot connect to ioFog host, ' +
