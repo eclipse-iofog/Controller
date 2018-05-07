@@ -107,13 +107,13 @@ const processChangeTrackingChanges = function(params, callback) {
   }
 };
 
-const updateChangeTrackingReboot = function (params, callback) {
-    let changeTrackingProps = {
+const updateChangeTracking = function (params, callback) {
+    var changeTrackingProps = {
         fogInstanceId: 'bodyParams.ID',
         changeObject: {
             reboot: false
         }
-    };
+    }
 
     ChangeTrackingService.updateChangeTracking(changeTrackingProps, params, callback);
 }

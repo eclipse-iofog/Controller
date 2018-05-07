@@ -60,11 +60,12 @@ const getElementInstanceImageSnapshotEndPoint = function (req, res) {
     });
 };
 
-/***** set Image Snapshot of Element Instance EndPoint (Get: /api/v2/authoring/element/imageSnapshot/status *****/
+/***** set flags in changeTracking and in elementInstance for create Image Snapshot of Element Instance EndPoint (Get: /api/v2/authoring/element/imageSnapshot/status *****/
 const elementInstanceImageSnapshotStatusEndPoint = function (req, res) {
     logger.info("Endpoint hit: "+ req.originalUrl);
 
     let params = {},
+        needImageSnapshot = 'get_image',
         currentTime = new Date().getTime(),
         userProps = {
             userId: 'bodyParams.t',
@@ -73,9 +74,13 @@ const elementInstanceImageSnapshotStatusEndPoint = function (req, res) {
 
         elementInstanceProps = {
             elementInstanceId: 'bodyParams.elementId',
-            setProperty: 'elementInstance',
+            setProperty: 'elementInstance'
+        },
+
+        elementInstanceUpdateProps = {
+            elementId: 'bodyParams.elementId',
             updatedData: {
-                image_snapshot: 'get_image'
+                imageSnapshot: needImageSnapshot
             }
         },
 
@@ -92,7 +97,7 @@ const elementInstanceImageSnapshotStatusEndPoint = function (req, res) {
     async.waterfall([
         async.apply(UserService.getUser, userProps, params),
         async.apply(ElementInstanceService.getElementInstance, elementInstanceProps),
-        async.apply(ElementInstanceService.updateElemInstance, elementInstanceProps),
+        async.apply(ElementInstanceService.updateElemInstance, elementInstanceUpdateProps),
         async.apply(ChangeTrackingService.updateChangeTracking, changeTrackingProps)
 
     ], function(err, result) {
@@ -100,7 +105,7 @@ const elementInstanceImageSnapshotStatusEndPoint = function (req, res) {
     });
 };
 
-/***** instance Image Snapshot of Element Instance EndPoint (Get: /api/v2/instance/imageSnapshotPut/id/:ID/token/:Token *****/
+/***** Create Image Snapshot and save link in db and save file in fc of Element Instance EndPoint (Get: /api/v2/instance/imageSnapshotPut/id/:ID/token/:Token *****/
 const instanceImageSnapshotUrlEndPoint = function (req, res) {
     logger.info("Endpoint hit: " + req.originalUrl);
 
@@ -122,8 +127,7 @@ const instanceImageSnapshotUrlEndPoint = function (req, res) {
         let elementInstanceProps = {
             fogInstanceId: 'bodyParams.ID',
             updatedData: {
-                imageSnapshot: absolutePath,
-                // is_create_snapshot: false
+                imageSnapshot: absolutePath
             }
         };
 
@@ -142,7 +146,7 @@ const instanceImageSnapshotUrlEndPoint = function (req, res) {
 };
 
 
-/***** instance Image Snapshot of Element Instance EndPoint (Get: /api/v2/instance/imageSnapshotGet/id/:ID/token/:Token *****/
+/***** get status to ioFog for create Image Snapshot of Element Instance EndPoint (Get: /api/v2/instance/imageSnapshotGet/id/:ID/token/:Token *****/
 const getImageSnapshotStatusEndPoint = function (req, res) {
     logger.info("Endpoint hit: " + req.originalUrl);
 

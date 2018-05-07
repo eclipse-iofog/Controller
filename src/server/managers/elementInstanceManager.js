@@ -49,6 +49,15 @@ class ElementInstanceManager extends BaseManager {
 		});
 	}
 
+    updateByIofogUuIdForCreateSnapshot(fog_uuid, data) {
+		return ElementInstance.update(data, {
+			where: {
+				iofog_uuid: fog_uuid,
+                image_snapshot: 'get_image'
+			}
+		});
+	}
+
 	getByFogId(fog_uuid) {
 		return ElementInstance.findAll({
 			where: {

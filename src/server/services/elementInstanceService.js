@@ -258,7 +258,7 @@ const updateElemInstanceByFogUuIdWithChanges = function(props, params, callback)
  let fogInstanceId = AppUtils.getProperty(params, props.fogInstanceId);
 
  ElementInstanceManager
-    .updateByFogUuId(fogInstanceId, props.updatedData)
+    .updateByIofogUuIdForCreateSnapshot(fogInstanceId, props.updatedData)
     .then(AppUtils.onUpdate.bind(null, params, "Unable to update 'iofog_uuid' field for Element Instance", callback));
 }
 
