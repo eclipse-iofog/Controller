@@ -1,6 +1,6 @@
 {
   "name": "@iofog/fog-controller",
-  "version": "0.1.36",
+  "version": "0.1.37",
   "description": "Fog Controller project @ iotracks.com",
   "main": "./src/main.js",
   "repository": {
