@@ -8,6 +8,7 @@ CREATE TABLE routing (
   `destination_element_id`  TEXT,
   `is_network_connection`   TINYINT(1)
 );
+
 CREATE TABLE config (
   `ID`    INTEGER PRIMARY KEY AUTOINCREMENT,
   `key`   TEXT,
@@ -23,8 +24,6 @@ CREATE TABLE satellite (
   `updated_at` DATETIME NOT NULL
 );
 
-INSERT INTO satellite VALUES (2, 'devcomsat1', 'comsat1-dev.iofog.org', '23.253.95.214', 'MIIEsTCCA5mgAwIBAgIQCKWiRs1LXIyD1wK0u6tTSTANBgkqhkiG9w0BAQsFADBhMQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMRkwFwYDVQQLExB3d3cuZGlnaWNlcnQuY29tMSAwHgYDVQQDExdEaWdpQ2VydCBHbG9iYWwgUm9vdCBDQTAeFw0xNzExMDYxMjIzMzNaFw0yNzExMDYxMjIzMzNaMF4xCzAJBgNVBAYTAlVTMRUwEwYDVQQKEwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xHTAbBgNVBAMTFFJhcGlkU1NMIFJTQSBDQSAyMDE4MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA5S2oihEo9nnpezoziDtx4WWLLCll/e0t1EYemE5n+MgP5viaHLy+VpHP+ndX5D18INIuuAV8wFq26KF5U0WNIZiQp6mLtIWjUeWDPA28OeyhTlj9TLk2beytbtFU6ypbpWUltmvY5V8ngspC7nFRNCjpfnDED2kRyJzO8yoKMFz4J4JE8N7NA1uJwUEFMUvHLs0scLoPZkKcewIRm1RV2AxmFQxJkdf7YN9Pckkif2Xgm3b48BZn0zf0qXsSeGu84ua9gwzjzI7tbTBjayTpT+/XpWuBVv6fvarI6bikKB859OSGQuw73XXgeuFwEPHTIRoUtkzu3/EQ+LtwznkkdQIDAQABo4IBZjCCAWIwHQYDVR0OBBYEFFPKF1n8a8ADIS8aruSqqByCVtp1MB8GA1UdIwQYMBaAFAPeUDVW0Uy7ZvCj4hsbw5eyPdFVMA4GA1UdDwEB/wQEAwIBhjAdBgNVHSUEFjAUBggrBgEFBQcDAQYIKwYBBQUHAwIwEgYDVR0TAQH/BAgwBgEB/wIBADA0BggrBgEFBQcBAQQoMCYwJAYIKwYBBQUHMAGGGGh0dHA6Ly9vY3NwLmRpZ2ljZXJ0LmNvbTBCBgNVHR8EOzA5MDegNaAzhjFodHRwOi8vY3JsMy5kaWdpY2VydC5jb20vRGlnaUNlcnRHbG9iYWxSb290Q0EuY3JsMGMGA1UdIARcMFowNwYJYIZIAYb9bAECMCowKAYIKwYBBQUHAgEWHGh0dHBzOi8vd3d3LmRpZ2ljZXJ0LmNvbS9DUFMwCwYJYIZIAYb9bAEBMAgGBmeBDAECATAIBgZngQwBAgIwDQYJKoZIhvcNAQELBQADggEBAH4jx/LKNW5ZklFcYWs8Ejbm0nyzKeZC2KOVYR7P8gevKyslWm4Xo4BSzKr235FsJ4aFt6yAiv1eY0tZ/ZN18bOGSGStoEc/JE4ocIzr8P5Mg11kRYHbmgYnr1Rxeki5mSeb39DGxTpJD4kGhs5lXNoo4conUiiJwKaqH7vh2baryd8pMISag83JUqyVGc2tWPpO0329/CWq2kryqv66OSMjwulUz0dXf4OHQasR7CNfIr+4KScc6ABlQ5RDF86PGeE6kdwSQkFiB/cQysNyq0jEDQTkfa2pjmuWtMCNbBnhFXBYejfubIhaUbEv2FOQB3dCav+FPg5eEveXTVyMnGo=','2016-09-21 15:21:31.898 +00:00',
-                              '2016-09-21 15:21:31.898 +00:00');
 CREATE TABLE data_tracks (
   `ID`           INTEGER PRIMARY KEY AUTOINCREMENT,
   `name`         TEXT,
@@ -103,7 +102,7 @@ CREATE TABLE iofog_users (
     ON UPDATE CASCADE,
   UNIQUE (user_id, fog_id)
 );
-INSERT INTO iofog_users VALUES (193, 43, 'fVmnRpHgdNnDw7XJLJw7GV4NVRhjk4V3');
+
 CREATE TABLE element_images (
   ID            INTEGER PRIMARY KEY AUTOINCREMENT,
   element_id    INTEGER REFERENCES element (ID)
@@ -114,40 +113,7 @@ CREATE TABLE element_images (
     ON UPDATE CASCADE,
   container_image TEXT
 );
-INSERT INTO element_images VALUES (1, 1, 1, 'iotracks/catalog:stream-viewer-1.0');
-INSERT INTO element_images VALUES (2, 1, 2, 'iotracks/catalog:stream-viewer-1.0-arm');
-INSERT INTO element_images VALUES (3, 2, 1, 'iotracks/catalog:debug');
-INSERT INTO element_images VALUES (4, 2, 2, 'iotracks/catalog:debug-arm');
-INSERT INTO element_images VALUES (5, 3, 1, 'iotracks/catalog:core-networking-noack-go');
-INSERT INTO element_images VALUES (6, 3, 2, 'iotracks/catalog:core-networking-noack-go-arm');
-INSERT INTO element_images VALUES (7, 4, 1, 'iotracks/catalog:hello-web-1');
-INSERT INTO element_images VALUES (8, 4, 2, 'iotracks/catalog:hello-web-1-arm');
-INSERT INTO element_images VALUES (9, 5, 1, 'iotracks/catalog:bluetooth-rest-api-v0.5');
-INSERT INTO element_images VALUES (10, 5, 2, 'iotracks/catalog:bluetooth-rest-api-v0.5-arm');
-INSERT INTO element_images VALUES (11, 6, 1, 'iotracks/catalog:hal-0.1');
-INSERT INTO element_images VALUES (12, 6, 2, 'iotracks/catalog:hal-0.1-arm');
-INSERT INTO element_images VALUES (13, 8, 1, 'iotracks/catalog:open-weather-map-v1.06');
-INSERT INTO element_images VALUES (14, 8, 2, 'iotracks/catalog:open-weather-map-v1.06-arm');
-INSERT INTO element_images VALUES (15, 9, 1, 'iotracks/catalog:mongodb');
-INSERT INTO element_images VALUES (16, 9, 2, 'iotracks/catalog:mongodb-arm');
-INSERT INTO element_images VALUES (17, 10, 1, 'iotracks/catalog:influxdb');
-INSERT INTO element_images VALUES (18, 10, 2, 'iotracks/catalog:influxdb-arm');
-INSERT INTO element_images VALUES (19, 11, 1, 'iotracks/catalog:grafana');
-INSERT INTO element_images VALUES (20, 11, 2, 'iotracks/catalog:grafana-arm');
-INSERT INTO element_images VALUES (21, 49, 1, 'iotracks/catalog:json-rest-api-v1.04');
-INSERT INTO element_images VALUES (22, 49, 2, 'iotracks/catalog:json-rest-api-v1.04-arm');
-INSERT INTO element_images VALUES (23, 58, 1, 'iotracks/catalog:temperature-conversion-v1.03');
-INSERT INTO element_images VALUES (24, 58, 2, 'iotracks/catalog:temperature-conversion-v1.03-arm');
-INSERT INTO element_images VALUES (25, 12, 1, 'iotracks/catalog:mongo-receiver-python');
-INSERT INTO element_images VALUES (26, 12, 2, 'iotracks/catalog:mongo-receiver-python-arm');
-INSERT INTO element_images VALUES (27, 13, 1, 'iotracks/catalog:influx-receiver-python');
-INSERT INTO element_images VALUES (28, 13, 2, 'iotracks/catalog:influx-receiver-python-arm');
-INSERT INTO element_images VALUES (29, 14, 1, 'iotracks/catalog:json-subselect-go');
-INSERT INTO element_images VALUES (30, 14, 2, 'iotracks/catalog:json-subselect-go-arm');
-INSERT INTO element_images VALUES (31, 15, 1, 'iotracks/catalog:diagnostic-1.3');
-INSERT INTO element_images VALUES (32, 15, 2, 'iotracks/catalog:diagnostic-1.3-arm');
-INSERT INTO element_images VALUES (33, 16, 1, 'iofog/mqtt-client:0.2');
-INSERT INTO element_images VALUES (34, 16, 2, 'iofog/mqtt-client:0.2-arm');
+
 CREATE TABLE network_pairing (
   ID                INTEGER PRIMARY KEY AUTOINCREMENT,
   IsPublicPort      TINYINT(1),
@@ -197,59 +163,6 @@ CREATE TABLE element (
     ON DELETE SET NULL
     ON UPDATE CASCADE
 );
-INSERT INTO element VALUES
-  (1, 'Stream Viewer', 'The built-in stream viewer for ioIntegrator Linux edition', 'Utilities',
-      'SYSTEM', 0, 0, 'none.png', NULL, 1, 0, 1);
-INSERT INTO element VALUES
-  (2, 'Debug Console', 'The built-in debug console for ioIntegrator Linux edition', 'Utilities',
-      'SYSTEM', 0, 0, 'none.png', NULL, 1, 0, 1);
-INSERT INTO element VALUES
-  (3, 'Networking Tool', 'The built-in networking tool for ioIntegrator Linux edition', 'Utilities',
-      'SYSTEM', 0, 0, 'none.png', NULL, 1, 0, 1);
-INSERT INTO element VALUES
-  (4, 'Hello Web Demo', 'A simple web server for you to test your ioFog', 'Demos',
-      'iotracks', 0, 0, 'images/build/4.png', NULL, 1, 0, 1);
-INSERT INTO element VALUES
-  (5, 'RESTBlue', 'Bluetooth RESTful API', 'Utilities', 'SYSTEM', 0, 0,
-      'none.png', NULL, 1, 0, 1);
-INSERT INTO element VALUES
-  (6, 'HAL', 'HAL container', 'Utilities', 'SYSTEM', 0, 0, 'none.png', NULL, 1, 0, 1);
-INSERT INTO element VALUES
-  (8, 'Open Weather Map Data', 'A stream of data from the Open Weather Map API in JSON format', 'Sensors',
-      'iotracks', 0, 0, 'images/build/8.png', NULL, 1, 0, 1);
-INSERT INTO element VALUES
-  (49, 'JSON REST API', 'A configurable REST API that gives JSON output', 'Utilities',
-       'iotracks', 0, 0, 'images/build/49.png', NULL, 1, 0, 1);
-INSERT INTO element VALUES
-  (58, 'Temperature Converter', 'A simple temperature format converter', 'Utilities',
-       'iotracks', 0, 0, 'images/build/58.png', NULL, 1, 0, 1);
-INSERT INTO element VALUES
-  (9, 'Mongo', 'MongoDB database', 'Utilities',
-      'SYSTEM', 0, 0, 'none.png', NULL, 1, 0, 1);
-INSERT INTO element VALUES
-  (10, 'Influx', 'InfluxDB database', 'Utilities',
-       'SYSTEM', 0, 0, 'none.png', NULL, 1, 0, 1);
-INSERT INTO element VALUES
-  (11, 'Grafana', 'Grafana container', 'Utilities',
-       'SYSTEM', 0, 0, 'none.png', NULL, 1, 0, 1);
-INSERT INTO element VALUES
-  (12, 'Mongo Adapter', 'Mongo adapter container', 'Utilities',
-       'iotracks', 0, 0, 'none.png', NULL, 1, 0, 1);
-INSERT INTO element VALUES
-  (13, 'Influx Adapter', 'Influx adapter container', 'Utilities',
-       'iotracks', 0, 0, 'none.png', NULL, 1, 0, 1);
-INSERT INTO element VALUES
-  (14, 'JSON Sub-Select', 'Performs sub-selection and transform operations on any JSON messages', 'Utilities',
-       'iotracks', 0, 0, 'images/build/59.png', NULL, 1, 0, 1);
-INSERT INTO element VALUES
-  (15, 'Diagnostics', 'Performs diagnostics of basic functionality to work with ioFog.  ' +
-                      'Use diagnostic container if something goes wrong on your machine with ioFog agent,' +
-                      ' e.g. Comsats are not available, a container cannot connect to ioFog host, ' +
-                      'ioFog client is not created, RestBlue or Log Container are not available and so on.',
-       'Utilities', 'iotracks', 0, 0, 'images/build/580.png', NULL, 1, 0, 1);
-INSERT INTO element VALUES
-  (16, 'MQTT Client', 'Converts MQTT-messages to ioMesage format and vice versa.', 'Utilities',
-       'iotracks', 0, 0, 'images/build/640.png', NULL, 1, 0, 1);
 
 CREATE TABLE element_input_type (
   ID          INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -293,7 +206,7 @@ CREATE TABLE iofog_provision_keys (
     ON DELETE SET NULL
     ON UPDATE CASCADE
 );
-INSERT INTO iofog_provision_keys VALUES (79, 'jX3QfQvQ', 1517402261932, 'fVmnRpHgdNnDw7XJLJw7GV4NVRhjk4V3');
+
 CREATE TABLE iofogs (
   UUID                    TEXT PRIMARY KEY,
   Name                    TEXT    DEFAULT ('Unnamed ioFog 1'),
@@ -368,12 +281,7 @@ CREATE TABLE iofog_type (
   GrafanaElementKey      BIGINT,
   BluetoothElementKey    BIGINT
 );
-INSERT INTO iofog_type VALUES (1, 'Standard Linux (x86)', 'iointegrator1.png',
-                               'A standard Linux server of at least moderate processing power and capacity. Compatible with common Linux types such as Ubuntu, Red Hat, and CentOS.',
-                               1, 2, 3, 6, 9, 10, 11, 5);
-INSERT INTO iofog_type VALUES (2, 'ARM Linux', 'iointegrator2.png',
-                               'A version of ioFog meant to run on Linux systems with ARM processors. Microservices for this ioFog type will be tailored to ARM systems.',
-                               1, 2, 3, 6, 9, 10, 11, 5);
+
 CREATE TABLE element_instance (
   ID                  INTEGER PRIMARY KEY AUTOINCREMENT,
   UUID                TEXT UNIQUE,
@@ -442,24 +350,7 @@ CREATE TABLE users (
   email_activated   INTEGER,
   user_access_token TEXT
 );
-INSERT INTO users VALUES (43, 'Admin', 'Admin', 'admin@admin.admin', 'admin', NULL, 1000,
-                          '6eb5117a227868387324017f64dc7e2b2ab299b10b5fc5927ba516fd4a6794b6');
-INSERT INTO users VALUES (44, 'Ivan', 'Panasuk', 'ivan@ivan.ivan', 'admin', NULL, 1000,
-                          '6eb5117a227868387324017f64dc7e2b2ab299b10b5fc5927ba516fd4a6794b7');
-INSERT INTO users VALUES (45, 'Artur', 'Artur', 'artur@artur.artur', 'admin', NULL, 1000,
-                          '6eb5117a227868387324017f64dc7e2b2ab299b10b5fc5927ba516fd4a6794b8');
-INSERT INTO users VALUES (46, 'Eugene', 'Eugene', 'eugene@eugene.eugene', 'admin', NULL, 1000,
-                          '6eb5117a227868387324017f64dc7e2b2ab299b10b5fc5927ba516fd4a6794b9');
-INSERT INTO users VALUES (47, 'Irina', 'Irina', 'irina@irina.irina', 'admin', NULL, 1000,
-                          '6eb5117a227868387324017f64dc7e2b2ab299b10b5fc5927ba516fd4a6794b1');
-INSERT INTO users VALUES (48, 'Katya', 'Katya', 'katya@katya.katya', 'admin', NULL, 1000,
-                          '6eb5117a227868387324017f64dc7e2b2ab299b10b5fc5927ba516fd4a6794b2');
-INSERT INTO users VALUES (49, 'Sasha', 'Sasha', 'sasha@sasha.sasha', 'admin', NULL, 1000,
-                          '6eb5117a227868387324017f64dc7e2b2ab299b10b5fc5927ba516fd4a6794b3');
-INSERT INTO users VALUES (50, 'Dima', 'Dima', 'dima@dima.dima', 'admin', NULL, 1000,
-                          '6eb5117a227868387324017f64dc7e2b2ab299b10b5fc5927ba516fd4a6794b4');
-INSERT INTO users VALUES (51, 'Egor', 'Egor', 'egor@povelitel.gor', 'admin', NULL, 1000,
-                          '6eb5117a227868387324017f64dc7e2b2ab299b10b5fc5927ba516fd4a6794b5');
+
 
 CREATE TABLE email_activation_code (
   ID              INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -469,7 +360,7 @@ CREATE TABLE email_activation_code (
   activation_code TEXT,
   expiration_time BIGINT
 );
-INSERT INTO email_activation_code VALUES (35, 43, 'XPMDjGP6fbQdB4py', 1517495034248);
+
 CREATE TABLE registry (
   ID            INTEGER PRIMARY KEY AUTOINCREMENT,
   url           TEXT,
@@ -483,8 +374,7 @@ CREATE TABLE registry (
   iofog_uuid    TEXT REFERENCES iofogs (UUID),
   user_id       INTEGER REFERENCES users (ID)
 );
-INSERT INTO registry
-VALUES (1, 'registry.hub.docker.com', 1, 1, '', 0, '', '', '', NULL, NULL);
+
 CREATE TABLE iofog_change_tracking (
 	`ID`	INTEGER PRIMARY KEY AUTOINCREMENT,
 	`container_config`	BIGINT,
@@ -548,45 +438,70 @@ CREATE TABLE element_instance_to_clean_up (
   updated_at            DATETIME NOT NULL
 );
 
-INSERT INTO iofog_change_tracking VALUES(1, 1517401049283, 0, 1517401049283,1517472938429,1517472938429,1517401049283,1517401049283, 1517401049283, 1517401049283, 'fVmnRpHgdNnDw7XJLJw7GV4NVRhjk4V3');
-DELETE FROM sqlite_sequence;
-INSERT INTO sqlite_sequence VALUES ('config', 52);
-INSERT INTO sqlite_sequence VALUES ('satellite', 9);
-INSERT INTO sqlite_sequence VALUES ('data_tracks', 90);
-INSERT INTO sqlite_sequence VALUES ('routing', 196);
-INSERT INTO sqlite_sequence VALUES ('element_instance_port', 650);
-INSERT INTO sqlite_sequence VALUES ('iofog_console', 256);
-INSERT INTO sqlite_sequence VALUES ('stream_viewer', 257);
-INSERT INTO sqlite_sequence VALUES ('instance_track', 0);
-INSERT INTO sqlite_sequence VALUES ('element_advertised_port', 0);
-INSERT INTO sqlite_sequence VALUES ('iofog_users', 193);
-INSERT INTO sqlite_sequence VALUES ('element_images', 181);
-INSERT INTO sqlite_sequence VALUES ('network_pairing', 644);
-INSERT INTO sqlite_sequence VALUES ('element_instance_connections', 68);
-INSERT INTO sqlite_sequence VALUES ('element', 226);
-INSERT INTO sqlite_sequence VALUES ('element_input_type', 100);
-INSERT INTO sqlite_sequence VALUES ('element_output_type', 92);
-INSERT INTO sqlite_sequence VALUES ('satellite_port', 639);
-INSERT INTO sqlite_sequence VALUES ('iofog_provision_keys', 79);
-INSERT INTO sqlite_sequence VALUES ('iofog_type', 2);
-INSERT INTO sqlite_sequence VALUES ('element_instance', 1048);
-INSERT INTO sqlite_sequence VALUES ('iofog_access_tokens', 21);
-INSERT INTO sqlite_sequence VALUES ('users', 43);
-INSERT INTO sqlite_sequence VALUES ('users', 44);
-INSERT INTO sqlite_sequence VALUES ('users', 45);
-INSERT INTO sqlite_sequence VALUES ('users', 46);
-INSERT INTO sqlite_sequence VALUES ('users', 47);
-INSERT INTO sqlite_sequence VALUES ('users', 48);
-INSERT INTO sqlite_sequence VALUES ('users', 49);
-INSERT INTO sqlite_sequence VALUES ('users', 50);
-INSERT INTO sqlite_sequence VALUES ('users', 51);
-INSERT INTO sqlite_sequence VALUES ('email_activation_code', 35);
-INSERT INTO sqlite_sequence VALUES ('registry', 1);
-INSERT INTO sqlite_sequence VALUES ('iofog_change_tracking', 1);
+--- CREATE DEFAULT DATA
 
-INSERT INTO config (key, value) VALUES ('port', '4443');
-INSERT INTO config (key, value) VALUES ('ssl_key', 'privkey.pem');
-INSERT INTO config (key, value) VALUES ('intermediate_cert', 'my-private-root-ca.cert.pem');
-INSERT INTO config (key, value) VALUES ('ssl_cert', 'fullchain.pem');
+INSERT INTO registry VALUES (1, 'registry.hub.docker.com', 1, 1, '', 0, '', '', '', NULL, NULL);
+
+INSERT INTO iofog_type VALUES (1, 'Standard Linux (x86)', 'iointegrator1.png',
+                               'A standard Linux server of at least moderate processing power and capacity. ' ||
+                                'Compatible with common Linux types such as Ubuntu, Red Hat, and CentOS.',
+                               0, 0, 1, 3, 0, 0, 0, 2);
+INSERT INTO iofog_type VALUES (2, 'ARM Linux', 'iointegrator2.png',
+                               'A version of ioFog meant to run on Linux systems with ARM processors. Microservices ' ||
+                                'for this ioFog type will be tailored to ARM systems.',
+                               0, 0, 1, 3, 0, 0, 0, 2);
+
+INSERT INTO element_images VALUES (1, 1, 1, 'iofog/core-networking');
+INSERT INTO element_images VALUES (2, 1, 2, 'iofog/core-networking-arm');
+INSERT INTO element_images VALUES (3, 2, 1, 'iofog/restblue');
+INSERT INTO element_images VALUES (4, 2, 2, 'iofog/restblue-arm');
+INSERT INTO element_images VALUES (5, 3, 1, 'iofog/hal');
+INSERT INTO element_images VALUES (6, 3, 2, 'iofog/hal-arm');
+INSERT INTO element_images VALUES (7, 4, 1, 'iofog/diagnostics');
+INSERT INTO element_images VALUES (8, 4, 2, 'iofog/diagnostics-arm');
+INSERT INTO element_images VALUES (9, 5, 1, 'iofog/hello-web');
+INSERT INTO element_images VALUES (10, 5, 2, 'iofog/hello-web-arm');
+INSERT INTO element_images VALUES (11, 6, 1, 'iofog/open-weather-map');
+INSERT INTO element_images VALUES (12, 6, 2, 'iofog/open-weather-map-arm');
+INSERT INTO element_images VALUES (13, 7, 1, 'iofog/json-rest-api');
+INSERT INTO element_images VALUES (14, 7, 2, 'iofog/json-rest-api-arm');
+INSERT INTO element_images VALUES (15, 8, 1, 'iofog/temperature-conversion');
+INSERT INTO element_images VALUES (16, 8, 2, 'iofog/temperature-conversion-arm');
+INSERT INTO element_images VALUES (17, 9, 1, 'iofog/json-subselect');
+INSERT INTO element_images VALUES (18, 9, 2, 'iofog/json-subselect-arm');
+INSERT INTO element_images VALUES (19, 10, 1, 'iofog/humidity-sensor-simulator');
+INSERT INTO element_images VALUES (20, 10, 2, 'iofog/humidity-sensor-simulator-arm');
+INSERT INTO element_images VALUES (21, 11, 1, 'iofog/seismic-sensor-simulator');
+INSERT INTO element_images VALUES (22, 11, 2, 'iofog/seismic-sensor-simulator-arm');
+INSERT INTO element_images VALUES (23, 12, 1, 'iofog/temperature-sensor-simulator');
+INSERT INTO element_images VALUES (24, 12, 2, 'iofog/temperature-sensor-simulator-arm');
+
+INSERT INTO element VALUES (1, 'Networking Tool', 'The built-in networking tool for Eclipse ioFog.',
+      'SYSTEM', 'Eclipse ioFog', 0, 0, 'none.png', NULL, 1, 0, 1);
+INSERT INTO element VALUES (2, 'RESTBlue', 'REST API for Bluetooth Low Energy layer.',
+      'SYSTEM', 'Eclipse ioFog',  0, 0, 'none.png', NULL, 1, 0, 1);
+INSERT INTO element VALUES (3, 'HAL', 'REST API for Hardware Abstraction layer.',
+      'SYSTEM', 'Eclipse ioFog', 0, 0, 'none.png', NULL, 1, 0, 1);
+INSERT INTO element VALUES (4, 'Diagnostics', 'Performs diagnostics of basic functionality to work with ioFog.  ' +
+                      'Use diagnostic container if something goes wrong on your machine with ioFog agent,' +
+                      ' e.g. Comsats are not available, a container cannot connect to ioFog host, ' +
+                      'ioFog client is not created, RestBlue or Log Container are not available and so on.',
+       'UTILITIES', 'Eclipse ioFog', 0, 0, 'images/build/580.png', NULL, 1, 0, 1);
+INSERT INTO element VALUES (5, 'Hello Web Demo', 'A simple web server to test Eclipse ioFog.',
+      'UTILITIES', 'Eclipse ioFog', 0, 0, 'images/build/4.png', NULL, 1, 0, 1);
+INSERT INTO element VALUES (6, 'Open Weather Map Data', 'A stream of data from the Open Weather Map API in JSON format',
+      'SENSORS', 'Eclipse ioFog', 0, 0, 'images/build/8.png', NULL, 1, 0, 1);
+INSERT INTO element VALUES (7, 'JSON REST API', 'A configurable REST API that gives JSON output',
+      'UTILITIES', 'Eclipse ioFog', 0, 0, 'images/build/49.png', NULL, 1, 0, 1);
+INSERT INTO element VALUES (8, 'Temperature Converter', 'A simple temperature format converter',
+      'UTILITIES', 'Eclipse ioFog', 0, 0, 'images/build/58.png', NULL, 1, 0, 1);
+INSERT INTO element VALUES (9, 'JSON Sub-Select', 'Performs sub-selection and transform operations on any JSON messages',
+      'UTILITIES', 'Eclipse ioFog', 0, 0, 'images/build/59.png', NULL, 1, 0, 1);
+INSERT INTO element VALUES (10, 'Humidity Sensor Simulator', 'Humidity Sensor Simulator for Eclipse ioFog',
+      'SIMULATOR', 'Eclipse ioFog', 0, 0, 'none.png', NULL, 1, 0, 1);
+INSERT INTO element VALUES (11, 'Seismic Sensor Simulator', 'Seismic Sensor Simulator for Eclipse ioFog',
+      'SIMULATOR', 'Eclipse ioFog', 0, 0, 'none.png', NULL, 1, 0, 1);
+INSERT INTO element VALUES (12, 'Temperature Sensor Simulator', 'Temperature Sensor Simulator for Eclipse ioFog',
+      'SIMULATOR', 'Eclipse ioFog', 0, 0, 'none.png', NULL, 1, 0, 1);
 
 --COMMIT;
