@@ -33,6 +33,13 @@ const getElementInstanceImageSnapshotEndPoint = function (req, res) {
         elementInstanceProps = {
             elementInstanceId: 'bodyParams.elementId',
             setProperty: 'elementInstance'
+        },
+
+        elementInstanceUpdateProps = {
+            elementId: 'bodyParams.elementId',
+            updatedData: {
+                imageSnapshot: ''
+            }
         };
 
     params.bodyParams = req.query;
@@ -58,10 +65,13 @@ const getElementInstanceImageSnapshotEndPoint = function (req, res) {
                 fs.unlink(params.elementInstance.imageSnapshot, (err) => {
                     if (err) throw err;
                     console.log('successfully deleted ' + params.elementInstance.imageSnapshot);
+                    ElementInstanceService.updateElemInstance(elementInstanceUpdateProps, params, () => {});
                 });
             }
         }
     });
+
+
 };
 
 /***** set flags in changeTracking and in elementInstance for create Image Snapshot of Element Instance EndPoint (Get: /api/v2/authoring/element/imageSnapshot/status *****/
