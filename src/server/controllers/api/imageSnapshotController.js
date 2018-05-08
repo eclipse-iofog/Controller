@@ -80,7 +80,6 @@ const elementInstanceImageSnapshotStatusEndPoint = function (req, res) {
 
     let params = {},
         needImageSnapshot = 'get_image',
-        currentTime = new Date().getTime(),
         userProps = {
             userId: 'bodyParams.t',
             setProperty: 'user'
@@ -101,7 +100,7 @@ const elementInstanceImageSnapshotStatusEndPoint = function (req, res) {
         changeTrackingProps = {
             fogInstanceId: 'elementInstance.iofog_uuid',
             changeObject: {
-                isImageSnapshot: currentTime
+                isImageSnapshot: new Date().getTime()
             }
         };
 
