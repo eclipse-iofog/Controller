@@ -55,6 +55,10 @@ const getElementInstanceImageSnapshotEndPoint = function (req, res) {
                     "Content-Type" : mimetype
                 });
                 fs.createReadStream(params.elementInstance.imageSnapshot).pipe(res);
+                fs.unlink(params.elementInstance.imageSnapshot, (err) => {
+                    if (err) throw err;
+                    console.log('successfully deleted ' + params.elementInstance.imageSnapshot);
+                });
             }
         }
     });
