@@ -64,7 +64,7 @@ const getElementInstanceImageSnapshotEndPoint = function (req, res) {
                 fs.createReadStream(params.elementInstance.imageSnapshot).pipe(res);
                 fs.unlink(params.elementInstance.imageSnapshot, (err) => {
                     if (err) throw err;
-                    console.log('successfully deleted ' + params.elementInstance.imageSnapshot);
+                    logger.info('successfully deleted ' + params.elementInstance.imageSnapshot);
                     ElementInstanceService.updateElemInstance(elementInstanceUpdateProps, params, () => {});
                 });
             }
