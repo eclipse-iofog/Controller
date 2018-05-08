@@ -39,11 +39,11 @@ function runListCommand(args) {
 }
 
 function runAddCommand(args) {
-  if (args.length < 4) return Help.displayUserCommandHelp();
-  if (args.length > 4) return Help.displayExtraArgumentHelp(args[4]);
+  if (args.length < 4) return Help.displayComsatAddHelp();
+  if (args.length > 5) return Help.displayExtraArgumentHelp(args[5]);
 
   try {
-    SatelliteManager.createSatellite(args[1], args[2], args[3]);
+    SatelliteManager.createSatellite(args[1], args[2], args[3], args[4]);
   } catch(e) {
     console.log(e);
   }

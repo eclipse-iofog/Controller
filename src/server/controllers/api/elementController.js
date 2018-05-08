@@ -298,6 +298,7 @@ const getCatalogOfElements = function(req, res) {
           setProperty: 'user'
       },
       getElementCatalogProps = {
+        userId: 'user.id',
         setProperty: 'elementCatalog'
       };
   
@@ -325,6 +326,7 @@ const getElementsForPublishingEndPoint = function(req, res) {
           setProperty: 'user'
       },
       elementProps = {
+        userId: 'user.id',
         setProperty: 'elementCatalog'
       };
   
@@ -401,6 +403,8 @@ const createElementForUser = function(params, callback) {
           picture: params.bodyParams.picture || 'images/shared/default.png',
           isPublic: params.bodyParams.isPublic || false,
           registryId: params.bodyParams.registryId || 1,
+
+          user_id: params.user.id
         },
         setProperty: 'element'
       };
@@ -415,12 +419,14 @@ const updateElement = function(params, callback) {
           description: params.bodyParams.description,
           config: params.bodyParams.config,
           category: params.bodyParams.category,
-          registryId: params.bodyParams.registry,
+          registry_id: params.bodyParams.registry,
           publisher: params.bodyParams.publisher,
           diskRequired: params.bodyParams.diskRequired ? params.bodyParams.diskRequired : false,
           ramRequired: params.bodyParams.ramRequired ? params.bodyParams.ramRequired : false,
           picture: params.bodyParams.picture,
-          isPublic: false
+          isPublic: false,
+
+          user_id: params.user.id
         }
       };
 
@@ -438,7 +444,7 @@ const updateElementImages = function(params, callback) {
             let elementImage = {
                 element_id: params.bodyParams.id,
                 iofog_type_id: value.fogTypeId,
-                containerImage: value.image
+                containerImage: value.image.trim()
             };
             ElementImageService.updateElementImages(elementImage, params, cb);
         }, function (err) {

@@ -286,6 +286,7 @@ const createPubNetworkElementInstance = function (params, callback){
       fogInstanceId: 'publishingFogInstance.uuid',
       satellitePort: 'satellitePort.port1',
       satelliteDomain: 'satellite.domain',
+      satelliteCertificate: 'satellite.cert',
       passcode: 'comsatPort.passcode1',
       trackId: 'bodyParams.publishingTrackId',
       userId: 'user.id',
@@ -302,8 +303,9 @@ const createDestNetworkElementInstance = function (params, callback){
   let networkElementInstanceProps = {
       networkElement: 'destNetworkElement',
       fogInstanceId: 'destinationFogInstance.uuid',
-      satellitePort: 'satellitePort.port1',
+      satellitePort: 'satellitePort.port2',
       satelliteDomain: 'satellite.domain',
+      satelliteCertificate: 'satellite.cert',
       passcode: 'comsatPort.passcode2',
       trackId: 'bodyParams.publishingTrackId',
       userId: 'user.id',

@@ -27,7 +27,7 @@ class DataTracksManager extends BaseManager {
     findById(trackId) {
         return DataTracks.findOne({
             where: {
-                'id': trackId
+                id: trackId
             }
         });
     }
@@ -79,7 +79,7 @@ class DataTracksManager extends BaseManager {
 
 
     findContainerListWithStatusByInstanceId(instanceId) {
-        let instanceTrackingQuery = "SELECT i.*, t.is_activated, s.* FROM element_instance i \
+        let instanceTrackingQuery = "SELECT i.name, s.status, s.cpu_usage, s.memory_usage, s.updated_at FROM element_instance i \
     LEFT JOIN data_tracks t ON i.track_id = t.ID \
     LEFT JOIN element_instance_status s ON i.uuid = s.element_instance_uuid \
     WHERE i.iofog_uuid in (:instanceId) AND (i.track_id = 0 OR t.is_activated = 1)";
@@ -87,6 +87,18 @@ class DataTracksManager extends BaseManager {
         return sequelize.query(instanceTrackingQuery, {
             replacements: {
                 instanceId: instanceId
+            },
+            type: sequelize.QueryTypes.SELECT
+        });
+    }
+
+    findActiveElementInstanceUUIDs(elementInstanceId) {
+        let query = "select ei.UUID from element_instance ei join data_tracks dt where ei.UUID=:elementInstanceId \
+        and (dt.is_activated=1 or ei.track_id==0)";
+
+        return sequelize.query(query, {
+            replacements: {
+                elementInstanceId: elementInstanceId
             },
             type: sequelize.QueryTypes.SELECT
         });

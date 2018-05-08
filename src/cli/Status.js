@@ -1,4 +1,5 @@
 const path = require('path');
+const fs = require('fs');
 import ComsatService from '../server/services/comsatService';
 
 class Status {
@@ -25,11 +26,15 @@ function displayMemoryStatus() {
 
 function displayDatabaseStatus() {
   try {
-    let databaseFile = fs.readFileSync(path.join(__dirname, '../../db/fog_controller.db'));
-    console.log('Size of database file: ' + Math.round((databaseFile.toString().length / 1024) * 100) / 100 + ' KB');
-    ComsatService.checkConnectionToComsat();
+      let databaseFileStats = fs.statSync(path.join(__dirname, '../../../fog-controller-db/fog_controller.db'));
+    console.log('Size of database file: ' + databaseFileStats.size/1024 + ' KB');
   } catch (e) {
-    console.log('Error: "fog_controller.db" not found in "db" folder.');
+      console.log('Error: "fog_controller.db" not found in ' + path.join(__dirname, '../../../fog-controller-db') + ' folder. ' + e);
+  }
+    try {
+        ComsatService.checkConnectionToComsat();
+  } catch (e) {
+        console.log('Error: "fail to check connection to comsat ' + e);
   }
 }
 

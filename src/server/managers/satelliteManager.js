@@ -7,7 +7,7 @@
 import Satellite from './../models/satellite';
 import BaseManager from './../managers/baseManager';
 import AppUtils from './../utils/appUtils';
-import Sequelize from 'sequelize';
+import fs from 'fs';
 
 class SatelliteManager extends BaseManager {
 
@@ -54,39 +54,58 @@ class SatelliteManager extends BaseManager {
     });
   }
 
-  createSatellite(name, domain, publicIP) {
+  createSatellite(name, domain, publicIP, certFile) {
     if (name && domain && publicIP) {
       if (AppUtils.isValidName(name)){
         if(AppUtils.isValidDomain(domain)){
           if(AppUtils.isValidPublicIP(publicIP)){
               this.findBySatelliteNameDomainAndPublicIP(name, domain, publicIP)
-                .then(function(satellite) {
-                  if (!satellite) {  
-                    this.create({
-                      name: name,
-                      domain: domain,
-                      publicIP: publicIP,
-                    }).then(function(satellite) {
-                    console.log('ComSat Created : '+satellite.name);
-                    });
+                .then((satellite) => {
+                  if (!satellite) {
+                    if (!certFile) {
+                      this.create({
+                        name: name,
+                        domain: domain,
+                        publicIP: publicIP,
+                        cert: '',
+                      }).then(function(satellite) {
+                      console.log('ComSat Created : '+satellite.name);
+                      });
+                    } else if (AppUtils.isFileExists(certFile)) {
+                      let cert = fs.readFileSync(certFile, "utf-8");
+                      if (AppUtils.isValidCertificate(cert)) {
+                          this.create({
+                              name: name,
+                              domain: domain,
+                              publicIP: publicIP,
+                              cert: AppUtils.trimCertificate(cert),
+                          }).then(function(satellite) {
+                              console.log('ComSat Created : '+satellite.name);
+                          });
+                      } else {
+                          console.log('Error: Provided certificate is invalid. Try again with correct certificate.');
+                      }
+                    } else {
+                      console.log('Error: Incorrect certificate file path. Try again with correct certificate file path');
+                    }
                   }else {
                     console.log('Error: Following ComSat already exists with similar configurations: \n ' + satellite.name + ' (' + satellite.domain + ') ' + satellite.publicIP);
                   }
                 });
             }else{
               console.log('ComSat publicIP is invalid. Try again with different ComSat publicIP.');
-              console.log('Please provide values in following order:\n fog-controller comsat -add <name> <domain> <publicIP>');
+              console.log('Please provide values in following order:\n fog-controller comsat -add <name> <domain> <publicIP> [<certFile>]');
             }
         }else{
           console.log('ComSat domain is invalid. Try again with different ComSat domain.');
-          console.log('Please provide values in following order:\n fog-controller comsat -add <name> <domain> <publicIP>');
+          console.log('Please provide values in following order:\n fog-controller comsat -add <name> <domain> <publicIP> [<certFile>]');
         }
       }else{
         console.log('ComSat name is invalid. Try again with different ComSat name.');
-        console.log('Please provide values in following order:\n fog-controller comsat -add <name> <domain> <publicIP>');
+        console.log('Please provide values in following order:\n fog-controller comsat -add <name> <domain> <publicIP> [<certFile>]');
       }
     }else { 
-      console.log('Please provide values in following order:\n fog-controller comsat -add <name> <domain> <publicIP>');
+      console.log('Please provide values in following order:\n fog-controller comsat -add <name> <domain> <publicIP> [<certFile>]');
     }
 }
 

@@ -2,12 +2,12 @@
 
 1.&ensp;Install fog-controller
 
-	   npm install -g --unsafe-perm fog-controller
+	   sudo npm install -g --unsafe-perm fog-controller
 
-2.&ensp;Create user
+2 &ensp;Create user
 
 	   fog-controller user -add <email> <firstName> <lastName> <password>
-
+	   
 3.&ensp;Start fog-controller
 
 	   fog-controller start
@@ -93,27 +93,40 @@ Note: Configuration keys can be one of following
 
 To setup ioauthoring configurations, do following steps:
 
-        fog-controller config -add ioauthoring_port 4000
+        fog-controller config -add ioauthoring_port 54521
         fog-controller config -add ioauthoring_ip_address 127.0.0.1
         fog-controller config -add ioauthoring_protocol http 
 
 To setup HTTPS for fog controller, do following steps:
 
-        fog-controller config -add port 4443
+        fog-controller config -add port 54421
         fog-controller config -add ssl_key 'path_to_your_sertificates/key.pem'
         fog-controller config -add intermediate_cert 'path_to_your_sertificates/gs_intermediate_ca.crt'
         fog-controller config -add ssl_cert 'path_to_your_sertificates/certificate.pem'
-	fog-controller config -add ioauthoring_port 5443
+	fog-controller config -add ioauthoring_port 54521
         fog-controller config -add ioauthoring_ip_address 127.0.0.1
         fog-controller config -add ioauthoring_protocol https
 
 Do not forget to update ioAuthoring configs and add certificates under /etc/iofog/ on the machine where fog agent is running! 
+
+To enable email activation and password reset:
+        
+        fog-controller config -add email_activation on
+        
+To disable email activation and password reset: 
+
+        fog-controller config -add email_activation off
 
 To setup email sender, do following steps:
 
         fog-controller config -add email_address abc@xyz.com
         fog-controller config -add email_password abc123
         fog-controller config -add email_service xyz
+                    or
+        fog-controller config -add email_address abc@xyz.com
+        fog-controller config -add email_password abc12
+        fog-controller config -add email_server xyz
+        fog-controller config -add email_serverport 123
 
 3.&ensp;To remove a configuration
 

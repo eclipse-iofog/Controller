@@ -2,25 +2,25 @@ import RegistryManager from '../managers/registryManager';
 import AppUtils from '../utils/appUtils';
 
 
-const findRegistriesByInstanceId = function(props, params, callback) {
-  let instanceId = AppUtils.getProperty(params, props.instanceId);
+const findRegistriesByUserId = function (props, params, param, callback) {
+    let userId = AppUtils.getProperty(params, props.userId);
 
-  RegistryManager
-    .findByInstanceId(instanceId)
-    .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Unable to find registries with instanceId: '+instanceId, callback));
+    RegistryManager
+        .findByUserId(userId)
+        .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Unable to find registries with userId: ' + userId, callback));
 };
 
 const listRegistry = function (props, params, callback) {
-    let user_id = AppUtils.getProperty(params, props.userId);
+    let userId = AppUtils.getProperty(params, props.userId);
 
     RegistryManager
-        .findByUserId(user_id)
+        .findByUserId(userId)
         .then(AppUtils.onFindOptional.bind(null, params, props.setProperty, callback));
 };
 
 const addRegistry = function (props, params, callback) {
     let url = AppUtils.getProperty(params, props.url),
-        isPublic = AppUtils.getProperty(params, props.isPublic),
+        isPublic = AppUtils.getProperty(params, props.isPublic) === 'true' ? 1 : 0,
         userId = AppUtils.getProperty(params, props.userId),
         username = '', password = '', email = '';
     if (!isPublic) {
@@ -33,9 +33,10 @@ const addRegistry = function (props, params, callback) {
         url: url,
         username: username,
         password: password,
-        email: email,
-        userId: userId,
-        isPublic: isPublic
+        useremail: email,
+        user_id: userId,
+        ispublic: isPublic,
+        requirescert: 0
     };
 
     RegistryManager
@@ -50,7 +51,7 @@ const deleteRegistry = function (props, params, callback) {
 };
 
 export default {
-    findRegistriesByInstanceId: findRegistriesByInstanceId,
+    findRegistriesByUserId: findRegistriesByUserId,
     listRegistry: listRegistry,
     addRegistry: addRegistry,
     deleteRegistry: deleteRegistry

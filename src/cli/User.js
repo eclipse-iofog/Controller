@@ -1,4 +1,5 @@
 const { Help } = require('./Help');
+import UserManager from '../server/managers/userManager';
 
 class User {
   constructor(args) {
@@ -64,7 +65,7 @@ function runGenerateTokenCommand(args) {
   if (args.length > 2) return Help.displayExtraArgumentHelp(args[2]);
 
   try {
-    UserManager.generateToken(args[1]);;
+      UserManager.generateToken(args[1]);
   } catch(e) {
     console.log(e);
   }

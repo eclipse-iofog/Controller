@@ -78,6 +78,17 @@ const isValidName = function (name) {
   return re.test(name);
 }
 
+const isValidCertificate = function (cert) {
+  let re = /^(?:(?!-{3,}(?:BEGIN|END) CERTIFICATE)[\s\S])*(-{3,}BEGIN CERTIFICATE(?:(?!-{3,}END CERTIFICATE)[\s\S])*?-{3,}END CERTIFICATE-{3,})(?![\s\S]*?-{3,}BEGIN CERTIFICATE[\s\S]+?-{3,}END CERTIFICATE[\s\S]*?$)/;
+    return re.test(cert);
+}
+
+const trimCertificate = function (cert) {
+  let result = cert.replace(/(^[\s\S]*-{3,}BEGIN CERTIFICATE-{3,}[\s]*)/, "");
+  result = result.replace(/([\s]*-{3,}END CERTIFICATE-{3,}[\s\S]*$)/, "");
+  return result;
+}
+
 const isValidDomain = function (domain) {
   let re = /^((?:(?:(?:\w[\.\-\+]?)*)\w)+)((?:(?:(?:\w[\.\-\+]?){0,62})\w)+)\.(\w{2,6})$/;
   return re.test(domain);
@@ -88,11 +99,11 @@ const isValidPublicIP = function (publicIP) {
   return re.test(publicIP);
 }
 const isValidProtocol = function (protocol) {
-  if (protocol == 'http' || protocol == 'https') {
-    return true;
-  } else {
-    return false;
-  }
+  return protocol === 'http' || protocol === 'https';
+}
+
+const isValidEmailActivation = function (flag) {
+    return flag === 'on' || flag === 'off';
 }
 
 const convertRelativePathToAbsolute = function (filePath) {
@@ -182,8 +193,8 @@ const onUpdate = function (params, errorMsg, callback, updatedModels) {
   }
 }
 
-const onUpdateOrCreate = function (params, paramName, errorMsg, callback, resultSet) {
-    if (resultSet) {
+const onUpdateOrCreate = function (params, paramName, errorMsg, callback, modelObject) {
+    if (modelObject) {
         if (paramName) {
             params[paramName] = modelObject;
         }
@@ -194,7 +205,7 @@ const onUpdateOrCreate = function (params, paramName, errorMsg, callback, result
     }
 }
 
-const onUpdateOptional = function (params, callback, deletedModels) {
+const onUpdateOptional = function (params, callback, updatedModels) {
   callback(null, params);
 }
 
@@ -259,6 +270,9 @@ export default {
   isValidDomain: isValidDomain,
   isValidPublicIP: isValidPublicIP,
   isValidProtocol: isValidProtocol,
+  isValidCertificate: isValidCertificate,
+  trimCertificate: trimCertificate,
+  isValidEmailActivation: isValidEmailActivation,
   generateAccessToken: generateAccessToken,
   generateRandomString: generateRandomString,
   convertRelativePathToAbsolute: convertRelativePathToAbsolute,
