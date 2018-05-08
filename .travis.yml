@@ -22,6 +22,8 @@ jobs:
     script: 
     - sshpass -p $DEV_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $DEV_MACHINE_USERNAME@$DEV_MACHINE_IP "cd /iotracks/FogController; git pull; npm i; npm run build-dev; pm2 restart FogController"
   - stage: package_build
+    before_install:
+    - sudo apt-get install sshpass
     script: 
     - npm run build
     deploy:
@@ -31,3 +33,8 @@ jobs:
       api_key: ${NPM_AUTH_TOKEN}
       on:
         all_branches: true
+    after_deploy:
+    - if [ "$TRAVIS_BRANCH" == "dev_package" ]; then sshpass -p $PRE_PROD_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no
+      $PRE_PROD_MACHINE_USERNAME@$PRE_PROD_MACHINE_IP "fog-controller stop; npm update -g --unsafe-perm @iofog/fog-controller; fog-controller start"; 
+      else sshpass -p $PROD_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no
+      $PROD_MACHINE_USERNAME@PROD_MACHINE_IP "fog-controller stop; npm update -g --unsafe-perm fog-controller; fog-controller start"; fi
