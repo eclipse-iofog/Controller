@@ -52,7 +52,8 @@ const processChangeTrackingChanges = function(params, callback) {
       routing: false,
       registries: false,
       proxy: false,
-      diagnostics: false
+      diagnostics: false,
+      isimagesnapshot: false
     };
 
     if(params.changeTrackingData.config > params.bodyParams.TimeStamp) {
@@ -94,6 +95,10 @@ const processChangeTrackingChanges = function(params, callback) {
 
     if(params.changeTrackingData.diagnostics > params.bodyParams.TimeStamp) {
       changes.diagnostics = true;
+    }
+
+    if(params.changeTrackingData.isImageSnapshot > params.bodyParams.TimeStamp) {
+      changes.isimagesnapshot = true;
     }
     params.changes = changes;
     callback (null, params);
