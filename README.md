@@ -30,7 +30,7 @@
 
 - Fog provisioning
 
-&emsp;&emsp;&emsp;[http://localhost:54421/api/v2/authoring/fabric/provisioningkey/instanceid/:instanceId](http://localhost:54421/api/v2/authoring/fabric/provisionkey/instanceid/:instanceId)
+&emsp;&emsp;&emsp;[http://localhost:54421/api/v2/authoring/fog/provisioningkey/instanceid/:instanceId](http://localhost:54421/api/v2/authoring/fog/provisionkey/instanceid/:instanceId)
 
 &emsp;&emsp;&emsp;where  &#39;:instanceId&#39; is obtained by creating fog.
 
@@ -39,11 +39,11 @@
 
 - Create fog access token
 
-&emsp;&emsp;&emsp;[http://localhost:54421/api/v2/instance/provision/key/:provisionKey/fabrictype/:fabricType](http://localhost:54421/api/v2/instance/provision/key/:provisionKey/fabrictype/:fabricType)
+&emsp;&emsp;&emsp;[http://localhost:54421/api/v2/instance/provision/key/:provisionKey/fogtype/:fogType](http://localhost:54421/api/v2/instance/provision/key/:provisionKey/fogtype/:fogType)
 
 &emsp;&emsp;&emsp;where &#39;:provisionKey&#39; is obtained by provisioning fog                                                        
 
-&emsp;&emsp;&emsp;and &#39;:fabricType&#39; is a FogType
+&emsp;&emsp;&emsp;and &#39;:fogType&#39; is a FogType
 
 
 **Usage**
