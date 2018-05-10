@@ -1,4 +1,4 @@
-var sys = require('sys')
+var util = require('util')
   , path = require('path')
   , WriteStream = require('fs').WriteStream
   , MultipartParser = require('./multipart_parser').MultipartParser
@@ -27,7 +27,7 @@ function IncomingForm() {
   this._flushing = 0;
   this._fieldsSize = 0;
 };
-sys.inherits(IncomingForm, EventEmitter);
+util.inherits(IncomingForm, EventEmitter);
 exports.IncomingForm = IncomingForm;
 
 IncomingForm.prototype.parse = function(req, cb) {
