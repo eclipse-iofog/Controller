@@ -2,6 +2,7 @@ const nodemailer = require('nodemailer');
 let smtpTransport = require('nodemailer-smtp-transport');
 import UserManager from '../managers/userManager';
 import AppUtils from '../utils/appUtils';
+import ConfigUtil from '../utils/configUtil';
 
 const createUser = function(props, params, callback) {
   UserManager
@@ -60,7 +61,8 @@ const getUserOptional = function(props, params, callback) {
  const verifyEmailActivation = function(props, params, callback){
    let emailActivated = AppUtils.getProperty(params, props.emailActivated);
 
-   if(emailActivated > 0){
+     let emailActivation = ConfigUtil.getConfigParam('email_activation');
+     if (emailActivation !== 'on' || emailActivated > 0) {
     callback(null, params);
    }else{
     callback('Error', 'Email is not activated. Please activate your account first.');

@@ -29,6 +29,7 @@ import logger from './server/utils/winstonLogs';
 import proxyController from "./server/controllers/api/proxyController";
 import fogVersionCommandController from './server/controllers/api/fogVersionCommandController';
 import diagnosticsController from './server/controllers/api/diagnosticsController';
+import imageSnapshotController from "./server/controllers/api/imageSnapshotController";
 
 const express = require('express');
 const path = require('path');
@@ -160,6 +161,13 @@ const initApp = function () {
   app.post('/api/v2/authoring/fog/track/update', trackController.fogTrackUpdateEndPoint);
   app.post('/api/v2/authoring/fog/track/delete', trackController.fogTrackDeleteEndPoint);
   app.post('/api/v2/authoring/fog/details', fogController.getFogDetailsEndpoint);
+
+  app.post('/api/v2/authoring/element/imageSnapshot/status', imageSnapshotController.elementInstanceImageSnapshotStatusEndPoint);
+  app.post('/api/v2/authoring/element/imageSnapshot', imageSnapshotController.getElementInstanceImageSnapshotEndPoint);
+  app.get('/api/v2/authoring/element/imageSnapshot', imageSnapshotController.getElementInstanceImageSnapshotEndPoint);
+  app.post('/api/v2/instance/imageSnapshotPut/id/:ID/token/:Token', imageSnapshotController.instanceImageSnapshotUrlEndPoint);
+  app.get('/api/v2/instance/imageSnapshotGet/id/:ID/token/:Token', imageSnapshotController.getImageSnapshotStatusEndPoint);
+  app.post('/api/v2/instance/imageSnapshotGet/id/:ID/token/:Token', imageSnapshotController.getImageSnapshotStatusEndPoint);
 
     app.post('/api/v2/instance/hw_info/id/:ID/token/:Token', instanceResourcesController.fogInstanceHWInfo);
     app.post('/api/v2/instance/usb_info/id/:ID/token/:Token', instanceResourcesController.fogInstanceUSBInfo);

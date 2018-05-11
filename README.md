@@ -4,15 +4,9 @@
 
 	   sudo npm install -g --unsafe-perm fog-controller
 
-2.1 &ensp;Create user
+2 &ensp;Create user
 
 	   fog-controller user -add <email> <firstName> <lastName> <password>
-
-2.2 &ensp;Add SLL config
-
-       fog-controller config -add ssl_key 'path_to_your_sertificates/key.pem'
-       fog-controller config -add intermediate_cert 'path_to_your_sertificates/gs_intermediate_ca.crt'
-       fog-controller config -add ssl_cert 'path_to_your_sertificates/certificate.pem'
 	   
 3.&ensp;Start fog-controller
 
@@ -101,7 +95,7 @@ To setup ioauthoring configurations, do following steps:
 
         fog-controller config -add ioauthoring_port 54521
         fog-controller config -add ioauthoring_ip_address 127.0.0.1
-        fog-controller config -add ioauthoring_protocol https 
+        fog-controller config -add ioauthoring_protocol http 
 
 To setup HTTPS for fog controller, do following steps:
 
