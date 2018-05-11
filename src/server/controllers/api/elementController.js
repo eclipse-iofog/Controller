@@ -145,8 +145,8 @@ import logger from '../../utils/winstonLogs';
 const checkFogTypes = function(params, callback) {
  let fogTypeIds = [];
   
-  if(params.bodyParams.fabricTypeIds){
-    fogTypeIds = params.bodyParams.fabricTypeIds.split(',')
+  if(params.bodyParams.fogTypeIds){
+    fogTypeIds = params.bodyParams.fogTypeIds.split(',')
   }
   params.fogTypeIds = fogTypeIds;
   if (fogTypeIds.length) {

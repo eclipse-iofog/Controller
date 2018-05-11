@@ -104,8 +104,8 @@ function displayHelpFooter() {
   \tversion\t\t\t\t\t\t\t\tDisplays Version and License
   
 
-  \tReport bugs to: bugs@iotracks.com
-  \tioFog home page: http://iofog.com
+  \tReport bugs to: edgemaster@iofog.org
+  \tioFog home page: http://iofog.org
   \tFor users with Eclipse accounts, report bugs to: https://bugs.eclipse.org/bugs/enter_bug.cgi?product=iofog
   `);
 }

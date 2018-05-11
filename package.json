@@ -1,7 +1,7 @@
 {
   "name": "fog-controller",
   "version": "0.1.34",
-  "description": "Fog Controller project @ iotracks.com",
+  "description": "Fog Controller project @ iofog.org",
   "main": "./src/main.js",
   "repository": {
     "type": "git",
@@ -12,10 +12,29 @@
     "node"
   ],
   "author": "Zishan Iqbal",
-  "license": "Copyright (C) 2017 iotracks, inc. \nEclipse ioFog is provided under the Eclipse Public License (EPL) \nhttps://www.eclipse.org/legal/epl-v10.html",
-  "bugs": {},
+  "contributors": [
+    "Kilton Hopkins <kilton@edgeworx.io>",
+    "Saeid Baghbidi",
+    "Pavel Kazlou",
+    "Egor Krylovich",
+    "Iryna Laryionava",
+    "Maryna Lipnitskaya",
+    "Dmitriy Kudasov",
+    "Dmitry Stolbunov",
+    "Darya Busel",
+    "Alexander Shpak",
+    "Kate Lukashick",
+    "Eugene Pankov",
+    "Maksim Chepelev",
+    "Ivan Panasiuk",
+    "Tetiana Yatsiuk"
+  ],
+  "license": "Copyright (c) 2018 Edgeworx, Inc. \nEclipse ioFog is provided under the Eclipse Public License 2.0 (EPL-2.0) \nhttps://www.eclipse.org/legal/epl-v20.html",
+  "bugs": {
+    "email": "edgemaster@iofog.org"
+  },
   "preferGlobal": true,
-  "homepage": "https://iotracks.com/",
+  "homepage": "https://iofog.org/",
   "scripts": {
     "test": "node ./dist/main.js",
     "start": "node ./dist/main",
