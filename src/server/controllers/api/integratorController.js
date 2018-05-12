@@ -31,7 +31,7 @@ import logger from '../../utils/winstonLogs';
 /********************************************* EndPoints ******************************************************/
 
 /*************** Integrator Instance Create EndPoint (Post: /api/v2/authoring/integrator/instance/create     
-                                                          : /api/v2/authoring/fabric/instance/create) ************/
+                                                          : /api/v2/authoring/fog/instance/create) ************/
 const integratorInstanceCreateEndPoint = function(req, res){
   logger.info("Endpoint hit: "+ req.originalUrl);
   let params = {},
@@ -47,7 +47,7 @@ const integratorInstanceCreateEndPoint = function(req, res){
       latitude: 'bodyParams.latitude',
       longitude: 'bodyParams.longitude',
       description: 'bodyParams.description',
-      fogType: 'bodyParams.fabricType',
+      fogType: 'bodyParams.fogType',
       setProperty: 'fogInstance'
     },
     
@@ -58,7 +58,7 @@ const integratorInstanceCreateEndPoint = function(req, res){
     },
 
     fogTypeProps = {
-      fogTypeId: 'bodyParams.fabricType',
+      fogTypeId: 'bodyParams.fogType',
       setProperty: 'fogType'
     },
     createChangeTrackingProps = {

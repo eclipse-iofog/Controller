@@ -49,6 +49,15 @@ class ElementInstanceManager extends BaseManager {
 		});
 	}
 
+    updateByIofogUuIdForCreateSnapshot(fog_uuid, data) {
+		return ElementInstance.update(data, {
+			where: {
+				iofog_uuid: fog_uuid,
+                image_snapshot: 'get_image'
+			}
+		});
+	}
+
 	getByFogId(fog_uuid) {
 		return ElementInstance.findAll({
 			where: {
@@ -80,6 +89,15 @@ class ElementInstanceManager extends BaseManager {
 		return ElementInstance.find({
 			where: {
 				uuid: uuid
+			}
+		});
+	}
+
+	findByIofogUuIdForCreateSnapshot(iofogUuid) {
+		return ElementInstance.find({
+			where: {
+                iofog_uuid: iofogUuid,
+                image_snapshot: 'get_image'
 			}
 		});
 	}
@@ -116,6 +134,7 @@ class ElementInstanceManager extends BaseManager {
 			configLastUpdated: new Date().getTime(),
 			isStreamViewer: false,
 			isDebugConsole: false,
+            imageDownloadRun: false,
 			isManager: false,
 			isNetwork: false,
 			registryId: element.registry_id,
@@ -146,6 +165,7 @@ class ElementInstanceManager extends BaseManager {
 				configLastUpdated: new Date().getTime(),
 				isStreamViewer: true,
 				isDebugConsole: false,
+                imageDownloadRun: false,
 				isManager: false,
 				isNetwork: false,
 				registryId: registryId,
@@ -183,6 +203,7 @@ class ElementInstanceManager extends BaseManager {
 				configLastUpdated: new Date().getTime(),
 				isStreamViewer: false,
 				isDebugConsole: false,
+                imageDownloadRun: false,
 				isManager: false,
 				isNetwork: true,
 				registryId: element.registry_id,
@@ -212,6 +233,7 @@ class ElementInstanceManager extends BaseManager {
 				configLastUpdated: new Date().getTime(),
 				isStreamViewer: false,
 				isDebugConsole: true,
+                imageDownloadRun: false,
 				isManager: false,
 				isNetwork: false,
 				registryId: registryId,

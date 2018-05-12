@@ -80,7 +80,7 @@ p7:														" class = 'btn' style='\
 														style ='font-family: sans-serif; \
 														font-size:14px; \
 														padding: 20px 0 20px 20px;'>\
-														— the IOTRACKS team\
+														— the IOFOG team\
 													</td>\
 												</tr>\
 												<tr></tr>\
@@ -103,8 +103,8 @@ p7:														" class = 'btn' style='\
 											Follow \
 											<a \
 												style = 'color:#999;' \
-												href='https://twitter.com/iotracks'>\
-												@iotracks\
+												href='https://twitter.com/EclipseioFog'>\
+												@EclipseioFog\
 											</a> \
 											on Twitter.\
 										</td>\

@@ -15,7 +15,7 @@ import logger from '../../utils/winstonLogs';
 
 /********************************************* EndPoints ******************************************************/
 
-/******************** Fog Viewer Access EndPoint (Get: /api/v2/authoring/fabric/viewer/access) ***************/
+/******************** Fog Viewer Access EndPoint (Get: /api/v2/authoring/fog/viewer/access) ***************/
 const fogViewerAccessEndPoint = function(req, res){
   logger.info("Endpoint hit: "+ req.originalUrl);
   let params = {},

@@ -68,7 +68,7 @@ let emailResetTemplate = {
 														style ='font-family: sans-serif; \
 														font-size:14px; \
 														padding:15px 20px'>\
-														— the IOTRACKS team\
+														— the IOFOG team\
 													</td>\
 												</tr>\
 												<tr></tr>\
@@ -91,8 +91,8 @@ let emailResetTemplate = {
 											Follow \
 											<a \
 												style = 'color:#999;' \
-												href='https://twitter.com/iotracks'>\
-												@iotracks\
+												href='https://twitter.com/EclipseioFog'>\
+												@EclipseioFog\
 											</a> \
 											on Twitter.\
 										</td>\

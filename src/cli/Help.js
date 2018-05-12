@@ -18,7 +18,7 @@ class Help {
   static displayConfigAddHelp = () => {
     console.log(`\t\t\t-add <key> <value>\t\t\t\tSet Configurations of fog-controller
                   \t\t\t\t\t\t\t\t(You can set one of these configurations: port, ssl_key, intermediate_cert, ssl_cert,
-                  \t\t\t\t\t\t\t\temail_address, email_password, email_service, ioauthoring_port, ioauthoring_ip_address,
+                  \t\t\t\t\t\t\t\temail_activation [on | off], email_address, email_password, email_service, ioauthoring_port, ioauthoring_ip_address,
                   \t\t\t\t\t\t\t\tioauthoring_protocal)`);
   }
 
@@ -104,8 +104,8 @@ function displayHelpFooter() {
   \tversion\t\t\t\t\t\t\t\tDisplays Version and License
   
 
-  \tReport bugs to: bugs@iotracks.com
-  \tioFog home page: http://iofog.com
+  \tReport bugs to: edgemaster@iofog.org
+  \tioFog home page: http://iofog.org
   \tFor users with Eclipse accounts, report bugs to: https://bugs.eclipse.org/bugs/enter_bug.cgi?product=iofog
   `);
 }

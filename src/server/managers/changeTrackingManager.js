@@ -25,7 +25,8 @@ class ChangeTrackingManager extends BaseManager {
 				registries: milliseconds,
 				proxy: milliseconds,
 				version: milliseconds,
-				diagnostics: milliseconds
+				diagnostics: milliseconds,
+                isImageSnapshot: milliseconds
 			});
 		}
 		/**

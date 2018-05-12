@@ -31,7 +31,7 @@ let emailRecoveryTemplate = {
 											</tr>\
 											<tr>\
 												<td style ='font-family: sans-serif; font-size:14px; padding:0 20px'>\
-													— the IOTRACKS team\
+													— the IOFOG team\
 												</td>\
 											</tr>\
 										</tbody>\
@@ -45,7 +45,7 @@ let emailRecoveryTemplate = {
 							<tbody>\
 								<tr>\
 									<td style='font-family: sans-serif; font-size:12px; vertical-align:top;color:#999;text-align:center;padding:20px 0 20px'>\
-										Follow <a style = 'color:#999;' href='https://twitter.com/iotracks'>@iotracks</a> on Twitter.\
+										Follow <a style = 'color:#999;' href='https://twitter.com/EclipseioFog'>@EclipseioFog</a> on Twitter.\
 									</td>\
 								</tr>\
 							</tbody>\

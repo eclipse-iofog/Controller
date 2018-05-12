@@ -79,6 +79,10 @@ const ElementInstance = sequelize.define('element_instance', {
   volumeMappings: {
     type: Sequelize.TEXT,
     field: 'volume_mappings'
+  },
+  imageSnapshot: {
+    type: Sequelize.TEXT,
+    field: 'image_snapshot'
   }
 }, {
   // don't add the timestamp attributes (updatedAt, createdAt)

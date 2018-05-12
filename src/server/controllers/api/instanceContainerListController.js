@@ -110,6 +110,7 @@ const processContainerData = function(params, callback) {
     imageid: params.elementData.containerImage,
     registryurl: params.elementData.registryUrl,
     volumemappings: params.container.volume_mappings,
+    imagesnapshot: params.container.image_snapshot,
     needupdate: params.container.need_update > 0
   };
   params.newContainerItem = newContainerItem;
