@@ -22,7 +22,7 @@ let emailActivationTemplate = {
 										font-size: 14px; \
 										vertical-align: top; \
 										padding: 20px 20px 0;'>\
-										Welcome to IOTRACKS!\
+										Welcome to Eclipse ioFog!\
 									</td>\
 								</tr>\
 								<tr>\
