@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 /*
  * *******************************************************************************
  *  * Copyright (c) 2018 Edgeworx, Inc.
@@ -11,7 +13,6 @@
  *
  */
 
-#!/usr/bin/env node
 const path = require('path');
 const fs = require('fs');
 
