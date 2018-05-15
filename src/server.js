@@ -66,6 +66,10 @@ const startServer = function (port) {
 };
 
 const initApp = function () {
+
+    const sourceDir = path.resolve(__dirname);
+    global.appRoot = sourceDir.endsWith('/dist')? sourceDir.substring(0, sourceDir.length - 4) : sourceDir;
+
   const app = express();
 
   // parse application/x-www-form-urlencoded
