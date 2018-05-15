@@ -130,7 +130,7 @@ const instanceImageSnapshotUrlEndPoint = function (req, res) {
     logger.info("Parameters:" + JSON.stringify(params.bodyParams));
 
     var form = new formidable.IncomingForm();
-    form.uploadDir = './imageSnapshot';
+    form.uploadDir = appRoot + '/imageSnapshot';
     form.keepExtensions = true;
 
     form.parse(req, function(error, fields, files) {
