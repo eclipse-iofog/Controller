@@ -38,11 +38,11 @@
   "scripts": {
     "test": "node ./dist/main.js",
     "start": "node ./dist/main",
-    "build": "mkdir -p ../fog-controller-db && touch ../fog-controller-db/fog_controller.db && ./flyway-5.0.7/flyway -configFiles=./db/flyway.conf migrate && babel src -d dist --copy-files",
+    "build": "mkdir -p ../fog-controller-db && touch ../fog-controller-db/fog_controller.db && ./flyway-5.0.7/flyway -configFiles=./db/flyway.conf migrate && babel src -d dist --copy-files && mkdir -p imageSnapshot",
     "start-dev": "node ./dist/daemonServer",
-    "build-dev": "mkdir -p ../fog-controller-db && touch ../fog-controller-db/fog_controller.db && ./flyway-5.0.7/flyway -configFiles=./db/flyway.conf migrate && babel src -d dist --copy-files",
+    "build-dev": "mkdir -p ../fog-controller-db && touch ../fog-controller-db/fog_controller.db && ./flyway-5.0.7/flyway -configFiles=./db/flyway.conf migrate && babel src -d dist --copy-files && mkdir -p imageSnapshot",
     "dev": "npm start stop && npm run build-dev && npm run start-dev",
-    "postinstall": "mkdir -p ../fog-controller-db && touch ../fog-controller-db/fog_controller.db && ./flyway-5.0.7/flyway -configFiles=./db/flyway.conf migrate"
+    "postinstall": "mkdir -p ../fog-controller-db && touch ../fog-controller-db/fog_controller.db && ./flyway-5.0.7/flyway -configFiles=./db/flyway.conf migrate && mkdir -p imageSnapshot"
   },
   "bin": {
     "fog-controller": "./dist/main.js"
