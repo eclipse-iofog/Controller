@@ -4,15 +4,6 @@ const fs = require('fs');
 
 const { CLI } = require('./cli');
 
-import FogControllerConfigService from './server/services/fogControllerConfigService';
-import ComsatService from './server/services/comsatService';
-import FogControllerConfigManager from './server/managers/fogControllerConfigManager';
-import SatelliteManager from './server/managers/satelliteManager';
-import UserManager from './server/managers/userManager';
-
-import Server from './server';
-import ConfigUtil from './server/utils/configUtil';
-import constants from './server/constants.js';
 import logger from './server/utils/winstonLogs';
 
 function main() {
