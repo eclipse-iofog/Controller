@@ -1,18 +1,23 @@
 #!/usr/bin/env node
+
+/*
+ * *******************************************************************************
+ *  * Copyright (c) 2018 Edgeworx, Inc.
+ *  *
+ *  * This program and the accompanying materials are made available under the
+ *  * terms of the Eclipse Public License v. 2.0 which is available at
+ *  * http://www.eclipse.org/legal/epl-2.0
+ *  *
+ *  * SPDX-License-Identifier: EPL-2.0
+ *  *******************************************************************************
+ *
+ */
+
 const path = require('path');
 const fs = require('fs');
 
 const { CLI } = require('./cli');
 
-import FogControllerConfigService from './server/services/fogControllerConfigService';
-import ComsatService from './server/services/comsatService';
-import FogControllerConfigManager from './server/managers/fogControllerConfigManager';
-import SatelliteManager from './server/managers/satelliteManager';
-import UserManager from './server/managers/userManager';
-
-import Server from './server';
-import ConfigUtil from './server/utils/configUtil';
-import constants from './server/constants.js';
 import logger from './server/utils/winstonLogs';
 
 function main() {
