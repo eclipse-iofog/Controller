@@ -20,7 +20,8 @@ class Version {
             Help.displayExtraArgumentHelp(args[1]);
         } else {
             console.log(`Version: ${packageJson.version}`);
-            console.log(`License: ${packageJson.license}`);
+            console.log(`License: ${packageJson.license.type} ( ${packageJson.license.url} )`);
+            console.log(`${packageJson.description}`);
         }
     }
 }
