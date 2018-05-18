@@ -2,21 +2,21 @@
 
 1.&ensp;Install fog-controller
 
-	   sudo npm install -g --unsafe-perm fog-controller
+	   sudo npm install -g --unsafe-perm iofogcontroller
 
 2 &ensp;Create user
 
-	   fog-controller user -add <email> <firstName> <lastName> <password>
+	   sudo fog-controller user -add <email> <firstName> <lastName> <password>
 	   
 3.&ensp;Start fog-controller
 
-	   fog-controller start
+	   sudo fog-controller start
 
 4.&ensp;Open your browser and hit following endpoints to setup IOFog, provision key and fog access token.
 
 -  Create Fog
 
-&emsp;&emsp;&emsp;[http://localhost:3000/api/v2/instance/create/type/:type?t=:userAccessToken](http://localhost:3000/api/v2/instance/create/type/:type?t=:userAccessToken)
+&emsp;&emsp;&emsp;[http://localhost:54421/api/v2/instance/create/type/:type?t=:userAccessToken](http://localhost:54421/api/v2/instance/create/type/:type?t=:userAccessToken)
 
 &emsp;&emsp;&emsp;where &#39;:type&#39; is FogType which can be 1 for Standard Linux (x86) OR 2 for ARM Linux 
 
@@ -24,7 +24,7 @@
 
 - Fog provisioning
 
-&emsp;&emsp;&emsp;[http://localhost:3000/api/v2/authoring/fabric/provisioningkey/instanceid/:instanceId](http://localhost:3000/api/v2/authoring/fabric/provisionkey/instanceid/:instanceId)
+&emsp;&emsp;&emsp;[http://localhost:54421/api/v2/authoring/fog/provisioningkey/instanceid/:instanceId](http://localhost:54421/api/v2/authoring/fog/provisionkey/instanceid/:instanceId)
 
 &emsp;&emsp;&emsp;where  &#39;:instanceId&#39; is obtained by creating fog.
 
@@ -33,26 +33,26 @@
 
 - Create fog access token
 
-&emsp;&emsp;&emsp;[http://localhost:3000/api/v2/instance/provision/key/:provisionKey/fabrictype/:fabricType](http://localhost:3000/api/v2/instance/provision/key/:provisionKey/fabrictype/:fabricType)
+&emsp;&emsp;&emsp;[http://localhost:54421/api/v2/instance/provision/key/:provisionKey/fogtype/:fogType](http://localhost:54421/api/v2/instance/provision/key/:provisionKey/fogtype/:fogType)
 
 &emsp;&emsp;&emsp;where &#39;:provisionKey&#39; is obtained by provisioning fog                                                        
 
-&emsp;&emsp;&emsp;and &#39;:fabricType&#39; is a FogType
+&emsp;&emsp;&emsp;and &#39;:fogType&#39; is a FogType
 
 
 **Usage**
 
 1.&ensp;To view help menu
 
-        fog-controller help
+        sudo fog-controller help
 
 2.&ensp;To view current status
 
-        fog-controller status   
+        sudo fog-controller status   
 
 3.&ensp;To view version and license
 
-        fog-controller version
+        sudo fog-controller version
  
 **Logs**
 - Log files are located at './node_modules/fog-controller-logs/'
@@ -73,11 +73,11 @@
 
 1.&ensp;To list configurations
 
-        fog-controller config -list
+        sudo fog-controller config -list
 
 2.&ensp;To add a configuration
 
-        fog-controller config -add <key> <value>
+        sudo fog-controller config -add <key> <value>
 
 Note: Configuration keys can be one of following
 - port
@@ -93,59 +93,60 @@ Note: Configuration keys can be one of following
 
 To setup ioauthoring configurations, do following steps:
 
-        fog-controller config -add ioauthoring_port 54521
-        fog-controller config -add ioauthoring_ip_address 127.0.0.1
-        fog-controller config -add ioauthoring_protocol http 
+        sudo fog-controller config -add ioauthoring_port 54521
+        sudo fog-controller config -add ioauthoring_ip_address 127.0.0.1
+        sudo fog-controller config -add ioauthoring_protocol http 
 
 To setup HTTPS for fog controller, do following steps:
 
-        fog-controller config -add port 54421
-        fog-controller config -add ssl_key 'path_to_your_sertificates/key.pem'
-        fog-controller config -add intermediate_cert 'path_to_your_sertificates/gs_intermediate_ca.crt'
-        fog-controller config -add ssl_cert 'path_to_your_sertificates/certificate.pem'
-	fog-controller config -add ioauthoring_port 54521
-        fog-controller config -add ioauthoring_ip_address 127.0.0.1
-        fog-controller config -add ioauthoring_protocol https
+        sudo fog-controller config -add port 54421
+        sudo fog-controller config -add ssl_key 'path_to_your_sertificates/key.pem'
+        sudo fog-controller config -add intermediate_cert 'path_to_your_sertificates/gs_intermediate_ca.crt'
+        sudo fog-controller config -add ssl_cert 'path_to_your_sertificates/certificate.pem'
+	
+	    sudo fog-controller config -add ioauthoring_port 54521
+        sudo fog-controller config -add ioauthoring_ip_address 127.0.0.1
+        sudo fog-controller config -add ioauthoring_protocol https
 
 Do not forget to update ioAuthoring configs and add certificates under /etc/iofog/ on the machine where fog agent is running! 
 
 To enable email activation and password reset:
         
-        fog-controller config -add email_activation on
+        sudo fog-controller config -add email_activation on
         
 To disable email activation and password reset: 
 
-        fog-controller config -add email_activation off
+        sudo fog-controller config -add email_activation off
 
 To setup email sender, do following steps:
 
-        fog-controller config -add email_address abc@xyz.com
-        fog-controller config -add email_password abc123
-        fog-controller config -add email_service xyz
+        sudo fog-controller config -add email_address abc@xyz.com
+        sudo fog-controller config -add email_password abc123
+        sudo fog-controller config -add email_service xyz
                     or
-        fog-controller config -add email_address abc@xyz.com
-        fog-controller config -add email_password abc12
-        fog-controller config -add email_server xyz
-        fog-controller config -add email_serverport 123
+        sudo fog-controller config -add email_address abc@xyz.com
+        sudo fog-controller config -add email_password abc12
+        sudo fog-controller config -add email_server xyz
+        sudo fog-controller config -add email_serverport 123
 
 3.&ensp;To remove a configuration
 
-        fog-controller config -remove <key>
+        sudo fog-controller config -remove <key>
 
 
 **User Managment**
 
 1.&ensp;To list users
 
-        fog-controller user -list
+        sudo fog-controller user -list
 
 2.&ensp;To add a user
 
-        fog-controller user -add <email> <firstName> <lastName> <password>
+        sudo fog-controller user -add <email> <firstName> <lastName> <password>
 
 3.&ensp;To remove a user
 
-        fog-controller user -remove <email>
+        sudo fog-controller user -remove <email>
 
 4.&ensp;To reset password
 
@@ -156,15 +157,15 @@ To setup email sender, do following steps:
 
 1.&ensp;To list all ComSat(s)
 
-        fog-controller comsat -list
+        sudo fog-controller comsat -list
 
 2.&ensp;To add a ComSat
 
-        fog-controller comsat -add <name> <domain> <publicIP>
+        sudo fog-controller comsat -add <name> <domain> <publicIP>
 
 3.&ensp;To remove a ComSat
 
-        fog-controller comsat -remove <ID>
+        sudo fog-controller comsat -remove <ID>
 
 **Execute Fog-Controller on startup**
 
@@ -174,7 +175,7 @@ To setup email sender, do following steps:
 
 &ensp;&ensp;&ensp;- Insert following line in it: 
 
-        fog-controller start
+        sudo fog-controller start
 
 &ensp;&ensp;&ensp;- Save text document with extension as ‘.bat’
 
@@ -192,7 +193,7 @@ To setup email sender, do following steps:
 &ensp;&ensp;&ensp;- Save following text in the file:
 
         # fog-controller.conf
-        description "Fog Controller project @ iotracks.com"
+        description "Fog Controller project @ iofog.org"
         start on startup
         stop on shutdown
         post-start script
@@ -201,3 +202,9 @@ To setup email sender, do following steps:
                 sudo fog-controller start
         end script
         respawn
+        
+&ensp;- FogController Update:
+
+        sudo fog-controller stop       
+        sudo npm update -g --unsafe-perm iofogcontroller        
+        sudo fog-controller start        

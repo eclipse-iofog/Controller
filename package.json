@@ -1,29 +1,51 @@
 {
-  "name": "@iofog/fog-controller",
-  "version": "0.1.41",
-  "description": "Fog Controller project @ iotracks.com",
+  "name": "iofogcontroller",
+  "version": "0.1.36",
+  "description": "Fog Controller project for Eclipse IoFog @ iofog.org \nCopyright (c) 2018 Edgeworx, Inc. ",
   "main": "./src/main.js",
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "https://github.com/ioFog/FogController"
   },
   "keywords": [
     "express",
     "node"
   ],
   "author": "Zishan Iqbal",
-  "license": "Copyright (C) 2017 iotracks, inc. \nEclipse ioFog is provided under the Eclipse Public License (EPL) \nhttps://www.eclipse.org/legal/epl-v10.html",
-  "bugs": {},
+  "contributors": [
+    "Kilton Hopkins <kilton@edgeworx.io>",
+    "Saeid Baghbidi",
+    "Pavel Kazlou",
+    "Egor Krylovich",
+    "Iryna Laryionava",
+    "Maryna Lipnitskaya",
+    "Dmitriy Kudasov",
+    "Dmitry Stolbunov",
+    "Darya Busel",
+    "Alexander Shpak",
+    "Kate Lukashick",
+    "Eugene Pankov",
+    "Maksim Chepelev",
+    "Ivan Panasiuk",
+    "Tetiana Yatsiuk"
+  ],
+  "license": {
+    "type": "EPL-2.0",
+    "url": "https://www.eclipse.org/legal/epl-v20.html"
+  },
+  "bugs": {
+    "email": "edgemaster@iofog.org"
+  },
   "preferGlobal": true,
-  "homepage": "https://iotracks.com/",
+  "homepage": "https://iofog.org/",
   "scripts": {
     "test": "node ./dist/main.js",
     "start": "node ./dist/main",
-    "build": "mkdir -p ../fog-controller-db && touch ../fog-controller-db/fog_controller.db && ./flyway-5.0.7/flyway -configFiles=./db/flyway.conf migrate && babel src -d dist --copy-files",
+    "build": "mkdir -p ../fog-controller-db && touch ../fog-controller-db/fog_controller.db && ./flyway-5.0.7/flyway -configFiles=./db/flyway.conf migrate && babel src -d dist --copy-files && mkdir -p imageSnapshot",
     "start-dev": "node ./dist/daemonServer",
-    "build-dev": "mkdir -p ../fog-controller-db && touch ../fog-controller-db/fog_controller.db && ./flyway-5.0.7/flyway -configFiles=./db/flyway.conf migrate && babel src -d dist --copy-files",
+    "build-dev": "mkdir -p ../fog-controller-db && touch ../fog-controller-db/fog_controller.db && ./flyway-5.0.7/flyway -configFiles=./db/flyway.conf migrate && babel src -d dist --copy-files && mkdir -p imageSnapshot",
     "dev": "npm start stop && npm run build-dev && npm run start-dev",
-    "postinstall": "mkdir -p ../fog-controller-db && touch ../fog-controller-db/fog_controller.db && ./flyway-5.0.7/flyway -configFiles=./db/flyway.conf migrate"
+    "postinstall": "mkdir -p ../fog-controller-db && touch ../fog-controller-db/fog_controller.db && ./flyway-5.0.7/flyway -configFiles=./db/flyway.conf migrate && mkdir -p imageSnapshot"
   },
   "bin": {
     "fog-controller": "./dist/main.js"

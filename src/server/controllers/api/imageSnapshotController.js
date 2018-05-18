@@ -1,3 +1,16 @@
+/*
+ * *******************************************************************************
+ *  * Copyright (c) 2018 Edgeworx, Inc.
+ *  *
+ *  * This program and the accompanying materials are made available under the
+ *  * terms of the Eclipse Public License v. 2.0 which is available at
+ *  * http://www.eclipse.org/legal/epl-2.0
+ *  *
+ *  * SPDX-License-Identifier: EPL-2.0
+ *  *******************************************************************************
+ *
+ */
+
 /**
  * @file imageSnapshotController.js
  * @author Alex Shpak
@@ -130,7 +143,7 @@ const instanceImageSnapshotUrlEndPoint = function (req, res) {
     logger.info("Parameters:" + JSON.stringify(params.bodyParams));
 
     var form = new formidable.IncomingForm();
-    form.uploadDir = './data';
+    form.uploadDir = appRoot + '/imageSnapshot';
     form.keepExtensions = true;
 
     form.parse(req, function(error, fields, files) {

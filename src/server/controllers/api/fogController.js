@@ -1,3 +1,16 @@
+/*
+ * *******************************************************************************
+ *  * Copyright (c) 2018 Edgeworx, Inc.
+ *  *
+ *  * This program and the accompanying materials are made available under the
+ *  * terms of the Eclipse Public License v. 2.0 which is available at
+ *  * http://www.eclipse.org/legal/epl-2.0
+ *  *
+ *  * SPDX-License-Identifier: EPL-2.0
+ *  *******************************************************************************
+ *
+ */
+
 /**
  * @file fogController.js
  * @author Zishan Iqbal
@@ -56,7 +69,7 @@ const getEmailActivationEndPoint = function(req, res) {
 
 
 /******** Fog Instances List By UserID EndPoint (Get: /api/v2/authoring/integrator/instances/list/:t
- Post: /api/v2/authoring/fabric/instances/list  ) *******/
+ Post: /api/v2/authoring/fog/instances/list  ) *******/
 const fogInstancesListEndPoint = function (req, res) {
   logger.info("Endpoint hit: " + req.originalUrl);
     let params = {},
@@ -172,7 +185,7 @@ const fogInstanceCreateEndPoint = function (req, res) {
     });
 };
 
-/******************** Get Fog List EndPoint (Get: /api/v2/instance/getfabriclist) ******************/
+/******************** Get Fog List EndPoint (Get: /api/v2/instance/getfoglist) ******************/
 // const getFogListEndPoint = function(req, res){
 //   logger.info("Endpoint hit: "+ req.originalUrl);
 // 	let params = {},
@@ -198,7 +211,7 @@ const fogInstanceCreateEndPoint = function (req, res) {
 // 	});
 // };
 
-/******************** Get Fog Types EndPoint (Get: /api/v2/authoring/fabric/types/list) ******************/
+/******************** Get Fog Types EndPoint (Get: /api/v2/authoring/fog/types/list) ******************/
 const getFogTypesEndPoint = function (req, res) {
   logger.info("Endpoint hit: " + req.originalUrl);
   let params = {},
@@ -225,7 +238,7 @@ const getFogTypesEndPoint = function (req, res) {
     });
 };
 
-/***************** Fog Instance Delete EndPoint (Post: /api/v2/authoring/fabric/instance/delete) *************/
+/***************** Fog Instance Delete EndPoint (Post: /api/v2/authoring/fog/instance/delete) *************/
 const fogInstanceDeleteEndPoint = function (req, res) {
   logger.info("Endpoint hit: " + req.originalUrl);
 
@@ -306,7 +319,7 @@ const integratorInstanceDeleteEndPoint = function (req, res) {
     });
 };
 
-/*********** Get Fog Details EndPoint (Post: /api/v2/authoring/fabric/details) **********/
+/*********** Get Fog Details EndPoint (Post: /api/v2/authoring/fog/details) **********/
 const getFogDetailsEndpoint = function (req, res) {
   logger.info("Endpoint hit: " + req.originalUrl);
 
@@ -332,7 +345,7 @@ const getFogDetailsEndpoint = function (req, res) {
     });
 };
 
-/*********** Update Fog settings EndPoint (Post: /api/v2/authoring/fabric/instances/settings/update) **********/
+/*********** Update Fog settings EndPoint (Post: /api/v2/authoring/fog/instances/settings/update) **********/
 const updateFogSettingsEndpoint = function (req, res) {
   logger.info("Endpoint hit: " + req.originalUrl);
 
@@ -1171,7 +1184,7 @@ const createInfluxElementInstance = function (params, callback) {
     ElementInstanceService.createElementInstanceObj(elementInstanceProps, params, callback);
 }
 
-/****************** Add Bluebox EndPoint (Post: /api/v2/authoring/fabric/instance/bluebox/add) ***************/
+/****************** Add Bluebox EndPoint (Post: /api/v2/authoring/fog/instance/bluebox/add) ***************/
 // const addBlueboxEndpoint = function (req, res){
 // 	logger.info("Endpoint hit: "+ req.originalUrl);
 

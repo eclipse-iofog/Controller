@@ -1,3 +1,16 @@
+/*
+ * *******************************************************************************
+ *  * Copyright (c) 2018 Edgeworx, Inc.
+ *  *
+ *  * This program and the accompanying materials are made available under the
+ *  * terms of the Eclipse Public License v. 2.0 which is available at
+ *  * http://www.eclipse.org/legal/epl-2.0
+ *  *
+ *  * SPDX-License-Identifier: EPL-2.0
+ *  *******************************************************************************
+ *
+ */
+
 /**
  * @file provisionKeyController.js
  * @author Zishan Iqbal
@@ -17,7 +30,7 @@ import AppUtils from '../../utils/appUtils';
 import logger from '../../utils/winstonLogs';
 
 /********************************************* EndPoints ******************************************************/
-/******* Get Provision Key EndPoint (Get: /api/v2/authoring/fabric/provisionkey/instanceid/:instanceId) ********/
+/******* Get Provision Key EndPoint (Get: /api/v2/authoring/fog/provisionkey/instanceid/:instanceId) ********/
  const getProvisionKeyEndPoint = function(req, res){
   logger.info("Endpoint hit: "+ req.originalUrl);
   let params = {},
@@ -50,7 +63,7 @@ import logger from '../../utils/winstonLogs';
   });
 };
 
-/** Fog Provisioning EndPoint (Get/Post: /api/v2/instance/provision/key/:provisionKey/fabrictype/:fabricType) **/
+/** Fog Provisioning EndPoint (Get/Post: /api/v2/instance/provision/key/:provisionKey/fogtype/:fogType) **/
 const fogProvisionKeyEndPoint = function(req, res) {
   logger.info("Endpoint hit: "+ req.originalUrl);
   let params = {},
@@ -66,7 +79,7 @@ const fogProvisionKeyEndPoint = function(req, res) {
         setProperty: 'fogData'
       },
       fogTypeProps = {
-        fogTypeId: 'bodyParams.fabricType',
+        fogTypeId: 'bodyParams.fogType',
         setProperty: 'fogTypeData'
       },
       fogUserProps = {
@@ -109,14 +122,14 @@ const fogProvisionKeyEndPoint = function(req, res) {
 };
 
 const checkFogType = function(params, callback){
-  if (params.bodyParams.fabricType == params.fogData.typeKey){
+  if (params.bodyParams.fogType == params.fogData.typeKey){
     callback(null, params);
   }else{
     callback('err', 'Provisioning failed - System error: Host architecture is different from selected fog instance.')
   }
 }
 
-/********* Delete Provision Key EndPoint (Post: /api/v2/authoring/fabric/provisioningkey/list/delete) *********/
+/********* Delete Provision Key EndPoint (Post: /api/v2/authoring/fog/provisioningkey/list/delete) *********/
 const deleteProvisionKeyEndPoint = function(req, res) {
   logger.info("Endpoint hit: "+ req.originalUrl);
   let params = {},

@@ -1,3 +1,16 @@
+/*
+ * *******************************************************************************
+ *  * Copyright (c) 2018 Edgeworx, Inc.
+ *  *
+ *  * This program and the accompanying materials are made available under the
+ *  * terms of the Eclipse Public License v. 2.0 which is available at
+ *  * http://www.eclipse.org/legal/epl-2.0
+ *  *
+ *  * SPDX-License-Identifier: EPL-2.0
+ *  *******************************************************************************
+ *
+ */
+
 /**
  * @file streamViewerController.js
  * @author Zishan Iqbal
@@ -15,7 +28,7 @@ import logger from '../../utils/winstonLogs';
 
 /********************************************* EndPoints ******************************************************/
 
-/******************** Fog Viewer Access EndPoint (Get: /api/v2/authoring/fabric/viewer/access) ***************/
+/******************** Fog Viewer Access EndPoint (Get: /api/v2/authoring/fog/viewer/access) ***************/
 const fogViewerAccessEndPoint = function(req, res){
   logger.info("Endpoint hit: "+ req.originalUrl);
   let params = {},

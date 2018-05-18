@@ -1,3 +1,16 @@
+/*
+ * *******************************************************************************
+ *  * Copyright (c) 2018 Edgeworx, Inc.
+ *  *
+ *  * This program and the accompanying materials are made available under the
+ *  * terms of the Eclipse Public License v. 2.0 which is available at
+ *  * http://www.eclipse.org/legal/epl-2.0
+ *  *
+ *  * SPDX-License-Identifier: EPL-2.0
+ *  *******************************************************************************
+ *
+ */
+
 /**
  * @file IntegratorController.js
  * @author Zishan Iqbal
@@ -31,7 +44,7 @@ import logger from '../../utils/winstonLogs';
 /********************************************* EndPoints ******************************************************/
 
 /*************** Integrator Instance Create EndPoint (Post: /api/v2/authoring/integrator/instance/create     
-                                                          : /api/v2/authoring/fabric/instance/create) ************/
+                                                          : /api/v2/authoring/fog/instance/create) ************/
 const integratorInstanceCreateEndPoint = function(req, res){
   logger.info("Endpoint hit: "+ req.originalUrl);
   let params = {},
@@ -47,7 +60,7 @@ const integratorInstanceCreateEndPoint = function(req, res){
       latitude: 'bodyParams.latitude',
       longitude: 'bodyParams.longitude',
       description: 'bodyParams.description',
-      fogType: 'bodyParams.fabricType',
+      fogType: 'bodyParams.fogType',
       setProperty: 'fogInstance'
     },
     
@@ -58,7 +71,7 @@ const integratorInstanceCreateEndPoint = function(req, res){
     },
 
     fogTypeProps = {
-      fogTypeId: 'bodyParams.fabricType',
+      fogTypeId: 'bodyParams.fogType',
       setProperty: 'fogType'
     },
     createChangeTrackingProps = {

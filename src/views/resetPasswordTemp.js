@@ -1,3 +1,16 @@
+/*
+ * *******************************************************************************
+ *  * Copyright (c) 2018 Edgeworx, Inc.
+ *  *
+ *  * This program and the accompanying materials are made available under the
+ *  * terms of the Eclipse Public License v. 2.0 which is available at
+ *  * http://www.eclipse.org/legal/epl-2.0
+ *  *
+ *  * SPDX-License-Identifier: EPL-2.0
+ *  *******************************************************************************
+ *
+ */
+
 let emailResetTemplate = {
 	p1: "<div>\
 	<table bgcolor='#f6f6f6' style = 'width:100%'>\
@@ -68,7 +81,7 @@ let emailResetTemplate = {
 														style ='font-family: sans-serif; \
 														font-size:14px; \
 														padding:15px 20px'>\
-														— the IOTRACKS team\
+														— the IOFOG team\
 													</td>\
 												</tr>\
 												<tr></tr>\
@@ -91,8 +104,8 @@ let emailResetTemplate = {
 											Follow \
 											<a \
 												style = 'color:#999;' \
-												href='https://twitter.com/iotracks'>\
-												@iotracks\
+												href='https://twitter.com/EclipseioFog'>\
+												@EclipseioFog\
 											</a> \
 											on Twitter.\
 										</td>\

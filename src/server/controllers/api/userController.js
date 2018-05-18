@@ -1,3 +1,16 @@
+/*
+ * *******************************************************************************
+ *  * Copyright (c) 2018 Edgeworx, Inc.
+ *  *
+ *  * This program and the accompanying materials are made available under the
+ *  * terms of the Eclipse Public License v. 2.0 which is available at
+ *  * http://www.eclipse.org/legal/epl-2.0
+ *  *
+ *  * SPDX-License-Identifier: EPL-2.0
+ *  *******************************************************************************
+ *
+ */
+
 import async from 'async';
 import https from 'https';
 //require('dotenv').config();
@@ -304,7 +317,7 @@ const notifyUserAboutPasswordReset = function(params, callback){
 
     if (params.user){
       let mailOptions = {
-        from: '"IOTRACKS" <' + params.emailSenderData.email + '>', // sender address
+        from: '"IOFOG" <' + params.emailSenderData.email + '>', // sender address
         to: params.user.email, // list of receivers
         subject: 'Password Reset Request', // Subject line
         html: emailResetTemplate.p1 + params.user.firstName + ' ' + params.user.lastName + emailResetTemplate.p2 +  params.tempPass + emailResetTemplate.p3 + ioAuthoringUrl + emailResetTemplate.p4// html body
@@ -532,7 +545,7 @@ const notifyUserAboutPasswordChange = function(params, callback){
 	try{
   if (params.user){
     let mailOptions = {
-      from: '"IOTRACKS" <' + params.emailSenderData.email + '>', // sender address
+      from: '"IOFOG" <' + params.emailSenderData.email + '>', // sender address
       to: params.user.email, // list of receivers
       subject: 'Password Change Notification', // Subject line
       html: emailRecoveryTemplate.p1+ params.user.firstName + ' ' + params.user.lastName + emailRecoveryTemplate.p2 // html body

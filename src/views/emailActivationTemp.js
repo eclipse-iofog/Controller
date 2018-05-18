@@ -1,3 +1,16 @@
+/*
+ * *******************************************************************************
+ *  * Copyright (c) 2018 Edgeworx, Inc.
+ *  *
+ *  * This program and the accompanying materials are made available under the
+ *  * terms of the Eclipse Public License v. 2.0 which is available at
+ *  * http://www.eclipse.org/legal/epl-2.0
+ *  *
+ *  * SPDX-License-Identifier: EPL-2.0
+ *  *******************************************************************************
+ *
+ */
+
 let emailActivationTemplate = {
 	p1: "\
 <div>\
@@ -22,7 +35,7 @@ let emailActivationTemplate = {
 										font-size: 14px; \
 										vertical-align: top; \
 										padding: 20px 20px 0;'>\
-										Welcome to IOTRACKS!\
+										Welcome to Eclipse ioFog!\
 									</td>\
 								</tr>\
 								<tr>\
@@ -80,7 +93,7 @@ p7:														" class = 'btn' style='\
 														style ='font-family: sans-serif; \
 														font-size:14px; \
 														padding: 20px 0 20px 20px;'>\
-														— the IOTRACKS team\
+														— the IOFOG team\
 													</td>\
 												</tr>\
 												<tr></tr>\
@@ -103,8 +116,8 @@ p7:														" class = 'btn' style='\
 											Follow \
 											<a \
 												style = 'color:#999;' \
-												href='https://twitter.com/iotracks'>\
-												@iotracks\
+												href='https://twitter.com/EclipseioFog'>\
+												@EclipseioFog\
 											</a> \
 											on Twitter.\
 										</td>\
