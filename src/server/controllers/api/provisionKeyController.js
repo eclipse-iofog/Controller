@@ -24,6 +24,7 @@ import FogProvisionKeyService from '../../services/fogProvisionKeyService';
 import FogService from '../../services/fogService';
 import FogTypeService from '../../services/fogTypeService';
 import FogUserService from '../../services/fogUserService';
+import ElementInstanceService from '../../services/elementInstanceService';
 import UserService from '../../services/userService';
 
 import AppUtils from '../../utils/appUtils';
@@ -82,6 +83,12 @@ const fogProvisionKeyEndPoint = function(req, res) {
         fogTypeId: 'bodyParams.fogType',
         setProperty: 'fogTypeData'
       },
+      fogTypeKeyProps = {
+        instanceId: 'fogProvision.iofog_uuid',
+        updatedFog: {
+            typeKey: req.params.fogType
+        }
+    },
       fogUserProps = {
         instanceId: 'fogData.uuid',
         setProperty: 'fogUser'
@@ -97,17 +104,17 @@ const fogProvisionKeyEndPoint = function(req, res) {
   logger.info("Parameters:" + JSON.stringify(params.bodyParams));
   
   async.waterfall([
-    async.apply(FogProvisionKeyService.getFogByProvisionKey, provisionProps, params),
-    async.apply(FogTypeService.getFogTypeDetail, fogTypeProps),
-    async.apply(FogProvisionKeyService.deleteByProvisionKey, provisionProps),
-    async.apply(FogProvisionKeyService.checkProvisionKeyExpiry, provisionKeyExpiryProps),
-    async.apply(FogService.getFogInstance, fogProps),
-    checkFogType,
-    async.apply(FogUserService.getFogUserByInstanceId, fogUserProps),
-    FogAccessTokenService.generateAccessToken,
-    async.apply(FogAccessTokenService.deleteFogAccessTokenByFogId, fogProps),
-    async.apply(FogAccessTokenService.saveFogAccessToken,saveFogAccessTokenProps)
-
+    async.apply(FogProvisionKeyService.getFogByProvisionKey, provisionProps, params), //get pk
+    async.apply(FogTypeService.getFogTypeDetail, fogTypeProps), //check new type
+    checkElementsForFogType,
+    async.apply(FogProvisionKeyService.deleteByProvisionKey, provisionProps), // pop pk in type correct
+    async.apply(FogProvisionKeyService.checkProvisionKeyExpiry, provisionKeyExpiryProps), // not pk expire
+    async.apply(FogService.getFogInstance, fogProps), // get fog
+    async.apply(FogUserService.getFogUserByInstanceId, fogUserProps), // get user
+    FogAccessTokenService.generateAccessToken, //update token
+    async.apply(FogAccessTokenService.deleteFogAccessTokenByFogId, fogProps), //update token
+    async.apply(FogAccessTokenService.saveFogAccessToken,saveFogAccessTokenProps), //update token
+    async.apply(FogService.updateFogInstance, fogTypeKeyProps)
   ], function(err, result) {
    
    let successLabelArr,
@@ -121,13 +128,50 @@ const fogProvisionKeyEndPoint = function(req, res) {
   })
 };
 
-const checkFogType = function(params, callback){
-  if (params.bodyParams.fogType == params.fogData.typeKey){
-    callback(null, params);
-  }else{
-    callback('err', 'Provisioning failed - System error: Host architecture is different from selected fog instance.')
-  }
-}
+const checkElementsForFogType = function (params, callback) {
+    let checkNewTypeProps = {
+        iofogUuid: 'fogProvision.iofog_uuid',
+        newFogType: 'bodyParams.fogType',
+        setProperty: 'fogElementInstances'
+    };
+
+    async.waterfall([
+        async.apply(ElementInstanceService.getElementInstanceImagesByFogIdAndNewFogType, checkNewTypeProps, params),
+        validateElementContainerImages
+    ], function(err, result) {
+        if (!err) {
+            callback(null, params);
+        } else {
+            callback(err, result)
+        }
+    });
+};
+
+const validateElementContainerImages = function (params, callback) {
+    let errorsElements = [];
+    if (params.fogElementInstances) {
+        params.fogElementInstances.forEach((instance) => {
+            if (!instance.containerImage) {
+                errorsElements.push(instance);
+            }
+        });
+    }
+
+    let errorMsg = 'Can\'t provision. Some of elements has\'t proper docker images for this fog type. ' +
+        'List of this elements and tracks:\n';
+    errorsElements.forEach((el) => {
+        errorMsg = errorMsg
+            + ' "' + el.elementName + '" element instances on the'
+            + ' "' + el.trackName + '" track \n';
+
+    });
+
+    if (errorsElements.length > 0) {
+        callback('error', errorMsg)
+    } else {
+        callback(null, params)
+    }
+};
 
 /********* Delete Provision Key EndPoint (Post: /api/v2/authoring/fog/provisioningkey/list/delete) *********/
 const deleteProvisionKeyEndPoint = function(req, res) {

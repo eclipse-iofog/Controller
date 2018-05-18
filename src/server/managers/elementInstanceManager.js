@@ -118,7 +118,7 @@ class ElementInstanceManager extends BaseManager {
 	findByElementKey(elementKey) {
 		return ElementInstance.findAll({
 			where: {
-				element_key: elementKey	
+				element_id: elementKey
 			}
 		});
 	}
@@ -139,7 +139,7 @@ class ElementInstanceManager extends BaseManager {
 		let elementInstance = {
 			uuid: AppUtils.generateInstanceId(32),
 			trackId: trackId,
-			element_key: element.id,
+			element_id: element.id,
 			config: config,
 			name: elementName,
 			last_updated: new Date().getTime(),
@@ -170,7 +170,7 @@ class ElementInstanceManager extends BaseManager {
 			elementInstance = {
 				uuid: AppUtils.generateInstanceId(32),
 				trackId: 0,
-				element_key: streamViewerElementKey,
+				element_id: streamViewerElementKey,
 				config: JSON.stringify(config),
 				name: 'Stream Viewer',
 				last_updated: new Date().getTime(),
@@ -208,7 +208,7 @@ class ElementInstanceManager extends BaseManager {
 			elementInstance = {
 				uuid: AppUtils.generateInstanceId(32),
 				trackId: trackId,
-				element_key: element.id,
+				element_id: element.id,
 				config: JSON.stringify(netConfig),
 				name: name,
 				last_updated: new Date().getTime(),
@@ -238,7 +238,7 @@ class ElementInstanceManager extends BaseManager {
 			elementInstance = {
 				uuid: AppUtils.generateInstanceId(32),
 				trackId: 0,
-				element_key: consoleElementKey,
+				element_id: consoleElementKey,
 				config: JSON.stringify(config),
 				name: 'Debug Console',
 				last_updated: new Date().getTime(),
@@ -264,7 +264,7 @@ class ElementInstanceManager extends BaseManager {
 		return ElementInstance.destroy({
 			where: {
 				iofog_uuid: instanceId,
-				element_key: elementKey
+				element_id: elementKey
 			}
 		});
 	}
@@ -273,7 +273,7 @@ class ElementInstanceManager extends BaseManager {
 		return ElementInstance.destroy({
 			where: {
 				$and : [{
-					element_key: {
+					element_id: {
 						$lt: 5
 					},
 				},{
@@ -291,7 +291,7 @@ class ElementInstanceManager extends BaseManager {
 		return ElementInstance.destroy({
 			where: {
 				$and : [{
-					element_key: {
+					element_id: {
 						$lt : 5
 					},
 				},{
@@ -369,7 +369,7 @@ class ElementInstanceManager extends BaseManager {
 
 	findIntraTrackByUuids(uuids) {
 		const query = 'select DISTINCT(ei.uuid) as elementid, ei.name as elementname, e.name as elementtypename from element_instance ' +
-			' ei join element e on e.id = ei.element_key where ei.uuid in (:uuids)';
+			' ei join element e on e.id = ei.element_id where ei.uuid in (:uuids)';
 		return sequelize.query(query, {
 			replacements: {
 				uuids: uuids
@@ -380,7 +380,7 @@ class ElementInstanceManager extends BaseManager {
 
 	findExtraTrackByUuids(uuids) {
 		const query = 'select DISTINCT(ei.uuid) as elementid, ei.name as elementname, e.name as elementtypename, ei.track_id as trackid, t.name as trackname ' +
-			' from element_instance ei join element e on e.id = ei.element_key join data_tracks t on t.id = ei.track_id where ei.uuid in (:uuids)';
+			' from element_instance ei join element e on e.id = ei.element_id join data_tracks t on t.id = ei.track_id where ei.uuid in (:uuids)';
 		return sequelize.query(query, {
 			replacements: {
 				uuids: uuids
@@ -391,7 +391,7 @@ class ElementInstanceManager extends BaseManager {
 
 	findOtherTrackDetailByUuids(uuids) {
 		const query = 'select DISTINCT(ei.uuid) as elementid, ei.name as elementname, e.name as elementtypename, ei.track_id as trackid, t.name as trackname, ' +
-			' ei.iofog_uuid as instanceId, f.name as instanceName from element_instance ei join element e on e.id = ei.element_key join data_tracks t ' +
+			' ei.iofog_uuid as instanceId, f.name as instanceName from element_instance ei join element e on e.id = ei.element_id join data_tracks t ' +
 			' on t.id = ei.track_id  join iofogs f on ei.iofog_uuid = f.uuid where ei.UUID in (:uuids)';
 		return sequelize.query(query, {
 			replacements: {
@@ -412,14 +412,14 @@ class ElementInstanceManager extends BaseManager {
 		'ei.volume_mappings as volumeMappings, ' +
 		'ei.is_stream_viewer as isStreamViewer, ' +
 		'ei.is_debug_console as isDebugConsole, ' +
-		'ei.element_key as elementKey, ' +
+		'ei.element_id as elementKey, ' +
 		'e.name as elementName, ' +
 		'e.picture as elementPicture, ' +
 		'f.DaemonStatus as daemonStatus, ' +
 		's.straceRun as strace ' +
 		'from element_instance ei ' +
 		'inner join element e ' +
-		'on ei.element_key = e.id ' +
+		'on ei.element_id = e.id ' +
 		'left join iofogs f ' +
 		'on ei.iofog_uuid = f.UUID ' +
 		'left join strace_diagnostics s ' +
@@ -433,7 +433,7 @@ class ElementInstanceManager extends BaseManager {
 
 	getElementInstanceProperties(uuid) {
 		const query = 'select ei.UUID as uuid, ' +
-		'ei.element_key as elementKey, ' +
+		'ei.element_id as elementKey, ' +
 		'ei.name as elementInstanceName, ' +
 		'ei.config as elementInstanceConfig, ' +
 		'ei.iofog_uuid as fogInstanceId, ' +
@@ -445,7 +445,7 @@ class ElementInstanceManager extends BaseManager {
 		's.straceRun as strace ' +
 		'from element_instance ei ' +
 		'left join element e ' +
-		'on ei.element_key = e.id ' +
+		'on ei.element_id = e.id ' +
 		'left join iofogs f ' +
 		'on f.UUID = ei.iofog_uuid ' +
 		'left join strace_diagnostics s ' +
@@ -463,7 +463,7 @@ class ElementInstanceManager extends BaseManager {
 	getElementInstanceRoute(uuid) {
 		const query = 'select ei.name as elementInstanceName, ei.track_id as trackId, ei.iofog_uuid as fogInstanceId, ' +
 					  'e.name as elementName, t.name as trackName from element_instance ei ' +
-					  'inner join element e on ei.element_key = e.id ' +
+					  'inner join element e on ei.element_id = e.id ' +
 					  'inner join data_tracks t on ei.track_id = t.ID ' +
 					  'where ei.UUID in (:uuid)';
 
@@ -486,6 +486,23 @@ class ElementInstanceManager extends BaseManager {
 			type: sequelize.QueryTypes.SELECT
 		});
 	}
+
+	getElementInstanceImagesByFogIdAndNewFogType(iofog_uuid, type_key) {
+        const query = 'SELECT t.name AS trackName, e.name AS elementName, eimg.container_image AS containerImage ' +
+                      'FROM element_instance ei ' +
+                      'LEFT JOIN element e ON ei.element_id = e.ID ' +
+                      'LEFT JOIN element_images eimg ON e.ID = eimg.element_id ' +
+                      'LEFT JOIN data_tracks t ON ei.track_id = t.ID ' +
+                      'WHERE ei.iofog_uuid = "' + iofog_uuid + '" AND eimg.iofog_type_id = ' + type_key;
+
+        return sequelize.query(query, {
+            /*replacements: {
+                iofog_uuid: iofog_uuid,
+                type_key: type_key
+            },*/
+            type: sequelize.QueryTypes.SELECT
+        });
+    }
 }
 const instance = new ElementInstanceManager();
 export default instance;

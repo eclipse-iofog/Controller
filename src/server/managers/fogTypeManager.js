@@ -39,6 +39,11 @@ class FogTypeManager extends BaseManager {
       }
     });
   }
+
+  getDirectlySelectionableFogTypes() {
+    let fogTypeQuery = "SELECT * from iofog_type where DirectlySelection = 1";
+    return sequelize.query(fogTypeQuery, { type: sequelize.QueryTypes.SELECT });
+  }
 }
 
 const instance = new FogTypeManager();

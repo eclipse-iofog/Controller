@@ -15,15 +15,16 @@ import FogTypeManager from '../managers/fogTypeManager';
 import AppUtils from '../utils/appUtils';
 
 const getFogTypeDetail = function(props, params, callback) {
-  let fogTypeId = AppUtils.getProperty(params, props.fogTypeId);
+  let fogTypeIdProp = AppUtils.getProperty(params, props.fogTypeId),
+      fogTypeId = Object.is(fogTypeIdProp, undefined) ? 0 : fogTypeIdProp;
 
   FogTypeManager
     .findFogTypeById(fogTypeId)
     .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Error: Unable to find fogType details', callback));
 }
 
+//TODO: it looks like this function is the same as previous. check it and delete if possible
 const getFogTypeDetails = function(props, params, callback) {
-
   FogTypeManager
     .findFogTypeById(props.fogTypeId)
     .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Error: Unable to find fogType details', callback));
@@ -32,12 +33,19 @@ const getFogTypeDetails = function(props, params, callback) {
 const getFogTypesList = function(props, params, callback) {
 
   FogTypeManager
-    .getFogTypes() 
+    .getFogTypes()
     .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Unable to get Fog Types List', callback));
 }
+
+const getFogTypesListForNodePage = function (props, params, callback) {
+  FogTypeManager
+    .getDirectlySelectionableFogTypes()
+    .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Unable to get Fog Types List', callback));
+};
 
 export default {
   getFogTypeDetail: getFogTypeDetail,
   getFogTypeDetails: getFogTypeDetails,
-  getFogTypesList: getFogTypesList
+  getFogTypesList: getFogTypesList,
+  getFogTypesListForNodePage: getFogTypesListForNodePage
 };

@@ -86,7 +86,7 @@ const processContainerList = function(params, callback){
           }
         },
         elementProps = {
-          elementId: 'container.element_key',
+          elementId: 'container.element_id',
           instanceId: 'bodyParams.ID',
           setProperty: 'elementData'
         },
