@@ -47,7 +47,7 @@ function checkDaemon(daemon, configuration) {
     iterationsCount++;
     let pid = daemon.status();
     if (pid === 0) {
-      console.log('Error: ssl_key or ssl_cert or intermediate_cert is either missing or invalid. Provide valid SSL configurations.');
+        console.log('Error: port is probably allocated, or ssl_key or ssl_cert or intermediate_cert is either missing or invalid.');
       clearInterval(intervalId);
     } else if (iterationsCount == 5) {
       checkServerProptocol(configuration);
