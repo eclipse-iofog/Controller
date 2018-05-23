@@ -79,10 +79,8 @@ class FogControllerConfigUtil {
     validateValue(key, value) {
         if (key == Constants.CONFIG.port || key == Constants.CONFIG.ioauthoring_port) {
             return AppUtils.isValidPort(value);
-        } else if (key.toLowerCase() == Constants.CONFIG.email_service || key.toLowerCase() == Constants.CONFIG.email_password) {
+        } else if (key.toLowerCase() == Constants.CONFIG.email_service || key.toLowerCase() == Constants.CONFIG.email_password || key.toLowerCase() == Constants.CONFIG.email_address) {
             return true;
-        } else if (key.toLowerCase() == Constants.CONFIG.email_address) {
-            return AppUtils.isValidEmail(value);
         } else if (key.toLowerCase() == Constants.CONFIG.ssl_key || key.toLowerCase() == Constants.CONFIG.ssl_cert || key.toLowerCase() == Constants.CONFIG.intermediate_cert) {
             return AppUtils.isFileExists(value);
         } else if (key.toLowerCase() == Constants.CONFIG.ioauthoring_ip_address) {
