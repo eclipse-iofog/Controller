@@ -230,7 +230,7 @@ const getFogTypesEndPoint = function (req, res) {
 
   async.waterfall([
       async.apply(UserService.getUser, userProps, params),
-      async.apply(FogTypeService.getFogTypesListForNodePage, fogTypesListProps)
+      async.apply(FogTypeService.getFogTypesList, fogTypesListProps)
     ],
     function (err, result) {
       let errMsg = 'Internal error: ' + result;
