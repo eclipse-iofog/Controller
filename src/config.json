@@ -1,6 +1,6 @@
 {
   "port": "54421",
-  "ioauthoringPort": "443",
+  "ioauthoringPort": "54521",
   "ioauthoringIPAddress": "127.0.0.1",
   "ioauthoringProtocol": "http",
   "dbPath": "fog-controller-db/fog_controller.db",
