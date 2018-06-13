@@ -424,7 +424,7 @@ class ElementInstanceManager extends BaseManager {
 		'on ei.iofog_uuid = f.UUID ' +
 		'left join strace_diagnostics s ' +
 		'on ei.UUID = s.element_instance_uuid ' +
-		'where ei.track_id = ' + trackId + ' AND e.publisher != "SYSTEM"';
+		'where ei.track_id = ' + trackId + ' AND e.category != "SYSTEM"' ;
 
 		return sequelize.query(query, {
 			type: sequelize.QueryTypes.SELECT
