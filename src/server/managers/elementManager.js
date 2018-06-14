@@ -84,7 +84,7 @@ class ElementManager extends BaseManager {
 			'from element e ' +
 			'left join element_input_type eit on e.id = eit.element_key ' +
 			'left join element_output_type eot on e.id = eot.element_key ' +
-			'where e.publisher != "SYSTEM" AND (e.user_id == ' + userId + ' OR e.is_public = 1)';
+			'where e.category != "SYSTEM" AND (e.user_id == ' + userId + ' OR e.is_public = 1)';
 
 		return sequelize.query(query, {
 			type: sequelize.QueryTypes.SELECT

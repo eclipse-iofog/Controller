@@ -1086,6 +1086,15 @@ const createHalElementInstance = function (params, callback) {
 }
 
 const createGrafanaElementInstance = function (params, callback) {
+    let volumeMappings = {
+        volumemappings: [
+            {
+                hostdestination: "/var/lib/grafana",
+                containerdestination: "/var/lib/influxdb",
+                accessmode: "rw"
+            }
+        ]
+    };
     let elementInstanceProps = {
         elementInstance: {
             uuid: AppUtils.generateInstanceId(32),
@@ -1102,7 +1111,7 @@ const createGrafanaElementInstance = function (params, callback) {
             isNetwork: false,
             rootHostAccess: true,
             logSize: 50,
-            volumeMappings: '{"volumemappings":[]}',
+            volumeMappings: JSON.stringify(volumeMappings),
             registryId: params.grafanaElement.registry_id,
             rebuild: false
         },
