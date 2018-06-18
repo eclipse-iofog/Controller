@@ -104,16 +104,16 @@ const fogProvisionKeyEndPoint = function(req, res) {
   logger.info("Parameters:" + JSON.stringify(params.bodyParams));
   
   async.waterfall([
-    async.apply(FogProvisionKeyService.getFogByProvisionKey, provisionProps, params), //get pk
-    async.apply(FogTypeService.getFogTypeDetail, fogTypeProps), //check new type
+    async.apply(FogProvisionKeyService.getFogByProvisionKey, provisionProps, params),
+    async.apply(FogTypeService.getFogTypeDetail, fogTypeProps),
     checkElementsForFogType,
-    async.apply(FogProvisionKeyService.deleteByProvisionKey, provisionProps), // pop pk in type correct
-    async.apply(FogProvisionKeyService.checkProvisionKeyExpiry, provisionKeyExpiryProps), // not pk expire
-    async.apply(FogService.getFogInstance, fogProps), // get fog
-    async.apply(FogUserService.getFogUserByInstanceId, fogUserProps), // get user
-    FogAccessTokenService.generateAccessToken, //update token
-    async.apply(FogAccessTokenService.deleteFogAccessTokenByFogId, fogProps), //update token
-    async.apply(FogAccessTokenService.saveFogAccessToken,saveFogAccessTokenProps), //update token
+    async.apply(FogProvisionKeyService.deleteByProvisionKey, provisionProps),
+    async.apply(FogProvisionKeyService.checkProvisionKeyExpiry, provisionKeyExpiryProps),
+    async.apply(FogService.getFogInstance, fogProps),
+    async.apply(FogUserService.getFogUserByInstanceId, fogUserProps),
+    FogAccessTokenService.generateAccessToken,
+    async.apply(FogAccessTokenService.deleteFogAccessTokenByFogId, fogProps),
+    async.apply(FogAccessTokenService.saveFogAccessToken,saveFogAccessTokenProps),
     async.apply(FogService.updateFogInstance, fogTypeKeyProps)
   ], function(err, result) {
    

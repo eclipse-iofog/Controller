@@ -496,10 +496,6 @@ class ElementInstanceManager extends BaseManager {
                       'WHERE ei.iofog_uuid = "' + iofog_uuid + '" AND eimg.iofog_type_id = ' + type_key;
 
         return sequelize.query(query, {
-            /*replacements: {
-                iofog_uuid: iofog_uuid,
-                type_key: type_key
-            },*/
             type: sequelize.QueryTypes.SELECT
         });
     }
