@@ -4,5 +4,5 @@
   "ioauthoringIPAddress": "127.0.0.1",
   "ioauthoringProtocol": "http",
   "dbPath": "fog-controller-db/fog_controller.db",
-  "loggingLevel": "debug"
+  "loggingLevel": "info"
 }

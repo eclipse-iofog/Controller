@@ -108,7 +108,7 @@ const ElementInstance = sequelize.define('element_instance', {
 });
 
 ElementInstance.belongsTo(Element, {
-  foreignKey: 'element_key'
+  foreignKey: 'element_id'
 });
 ElementInstance.belongsTo(Fog, {
   foreignKey: 'iofog_uuid'

@@ -97,10 +97,13 @@ const openPortsOnComsat = function(params, callback) {
     });
   });
 
-  httpreq.on('error', function(err) {
-    console.log(err);
-    params.errormessage = JSON.stringify(err);
-    callback(null, params);
+  httpreq.on('error', function (err) {
+      console.log(err);
+      if (err instanceof Error)
+          params.errormessage = err.message;
+      else
+          params.errormessage = JSON.stringify(err);
+      callback(null, params);
   });
 
   httpreq.write(data);
