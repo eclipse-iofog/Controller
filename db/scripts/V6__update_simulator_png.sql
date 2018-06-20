@@ -1,0 +1,1 @@
+UPDATE element SET picture = 'images/build/simulator.png' WHERE category = 'SIMULATOR';

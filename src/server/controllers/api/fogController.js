@@ -567,7 +567,7 @@ const createStreamViewerNetworkElementInstance = function (params, callback) {
       elementInstance: {
         uuid: AppUtils.generateInstanceId(32),
         trackId: 0,
-        element_key: params.fogTypeData.networkElementKey,
+        element_id: params.fogTypeData.networkElementKey,
         config: JSON.stringify(config),
         name: 'Network for Stream Viewer',
         last_updated: new Date().getTime(),
@@ -743,7 +743,7 @@ const createNetworkElementInstance = function (params, callback) {
       elementInstance: {
         uuid: AppUtils.generateInstanceId(32),
         trackId: 0,
-        element_key: params.fogTypeData.networkElementKey,
+        element_id: params.fogTypeData.networkElementKey,
         config: JSON.stringify(config),
         name: 'Network for Debug Console',
         last_updated: new Date().getTime(),
@@ -1036,7 +1036,7 @@ const createBluetoothElementInstance = function (params, callback) {
     elementInstance: {
       uuid: AppUtils.generateInstanceId(32),
       trackId: 0,
-      element_key: params.fogTypeData.bluetoothElementKey,
+      element_id: params.fogTypeData.bluetoothElementKey,
       config: '{}',
       configLastUpdated: new Date().getTime(),
       name: params.bluetoothElement.name,
@@ -1063,7 +1063,7 @@ const createHalElementInstance = function (params, callback) {
     elementInstance: {
       uuid: AppUtils.generateInstanceId(32),
       trackId: 0,
-      element_key: params.fogTypeData.halElementKey,
+      element_id: params.fogTypeData.halElementKey,
       config: '{}',
       configLastUpdated: new Date().getTime(),
       name: params.halElement.name,
@@ -1086,11 +1086,20 @@ const createHalElementInstance = function (params, callback) {
 }
 
 const createGrafanaElementInstance = function (params, callback) {
+    let volumeMappings = {
+        volumemappings: [
+            {
+                hostdestination: "/var/lib/grafana",
+                containerdestination: "/var/lib/influxdb",
+                accessmode: "rw"
+            }
+        ]
+    };
     let elementInstanceProps = {
         elementInstance: {
             uuid: AppUtils.generateInstanceId(32),
             trackId: 0,
-            element_key: params.fogTypeData.grafanaElementKey,
+            element_id: params.fogTypeData.grafanaElementKey,
             config: '{}',
             configLastUpdated: new Date().getTime(),
             name: params.grafanaElement.name,
@@ -1102,7 +1111,7 @@ const createGrafanaElementInstance = function (params, callback) {
             isNetwork: false,
             rootHostAccess: true,
             logSize: 50,
-            volumeMappings: '{"volumemappings":[]}',
+            volumeMappings: JSON.stringify(volumeMappings),
             registryId: params.grafanaElement.registry_id,
             rebuild: false
         },
@@ -1126,7 +1135,7 @@ const createMongoElementInstance = function (params, callback) {
         elementInstance: {
             uuid: AppUtils.generateInstanceId(32),
             trackId: 0,
-            element_key: params.fogTypeData.mongoElementKey,
+            element_id: params.fogTypeData.mongoElementKey,
             config: '{}',
             configLastUpdated: new Date().getTime(),
             name: params.mongoElement.name,
@@ -1162,7 +1171,7 @@ const createInfluxElementInstance = function (params, callback) {
         elementInstance: {
             uuid: AppUtils.generateInstanceId(32),
             trackId: 0,
-            element_key: params.fogTypeData.influxElementKey,
+            element_id: params.fogTypeData.influxElementKey,
             config: '{}',
             configLastUpdated: new Date().getTime(),
             name: params.influxElement.name,
