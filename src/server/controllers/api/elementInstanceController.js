@@ -89,7 +89,7 @@ import ArchitectureUtils from '../../utils/architectureUtils'
       },
       elementAdvertisedProps = {
         elementInstanceData: 'elementInstance',
-        field: 'element_key',
+        field: 'element_id',
         setProperty: 'elementAdvertisedPort'
       },
       elementInstancePortProps = {
@@ -216,7 +216,7 @@ import ArchitectureUtils from '../../utils/architectureUtils'
       },
       elementAdvertisedProps = {
         elementInstanceData: 'elementInstance',
-        field: 'element_key',
+        field: 'element_id',
         setProperty: 'elementAdvertisedPort'
       },
       elementInstancePortProps = {
@@ -1070,15 +1070,15 @@ const elementInstanceUpdateEndPoint = function(req, res) {
 
 const getFogInstance = function (params, callback){
     if (params.bodyParams.fogInstanceId && params.bodyParams.fogInstanceId !== "NONE") {
-    let fogProps = {
-      fogId: 'bodyParams.fogInstanceId',
-      setProperty: 'fogData'
-    };
-    
-    FogService.getFogInstance(fogProps, params, callback);
-  }else{
-    callback(null, params);
-  }
+        let fogProps = {
+            fogId: 'bodyParams.fogInstanceId',
+            setProperty: 'fogData'
+        };
+
+        FogService.getFogInstance(fogProps, params, callback);
+    } else {
+        callback(null, params);
+    }
 };
 
 /***** Update Rebuild of Element Instance EndPoint (Post: /api/v2/authoring/element/instance/rebuild *****/
@@ -1288,19 +1288,19 @@ const updateElementInstance = function (params, callback) {
 
   if (params.elementInstance.iofog_uuid == params.bodyParams.fogInstanceId) {
     callback(null, params);
-  } 
+  }
   else {
-    let fogInstanceId = null;
+      let fogInstanceId = null;
       if (params.bodyParams.fogInstanceId !== 'NONE') {
-        fogInstanceId = params.bodyParams.fogInstanceId;
+          fogInstanceId = params.bodyParams.fogInstanceId;
       }
 
       if (params.fogData !== undefined && !ArchitectureUtils
-            .isExistsImageForFogType(params.fogData.typeKey, params.elementInstance.elementImages)) {
+              .isExistsImageForFogType(params.fogData.typeKey, params.elementInstance.elementImages)) {
 
-      callback('error', "no container image for this fog type");
-      return;
-    }
+          callback('error', "no container image for this fog type");
+          return;
+      }
 
     data = {
       iofog_uuid: fogInstanceId
