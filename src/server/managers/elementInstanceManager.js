@@ -499,6 +499,16 @@ class ElementInstanceManager extends BaseManager {
             type: sequelize.QueryTypes.SELECT
         });
     }
+
+    getElementInstanceByNameOnTrackForUser(elementProps) {
+		return ElementInstance.findOne({
+			where: {
+				trackId: elementProps.trackId,
+				updatedBy: elementProps.userId,
+				name: elementProps.elementName
+			}
+		});
+	}
 }
 const instance = new ElementInstanceManager();
 export default instance;

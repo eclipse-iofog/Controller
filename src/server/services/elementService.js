@@ -19,7 +19,7 @@ const createElement = function(props, params, callback) {
   ElementManager
     .create(props.element)
     .then(AppUtils.onCreate.bind(null, params, props.setProperty, 'Unable to create Element object.', callback));
-}
+};
 
 const deleteElementById = function(props, params, callback) {
   let elementId = AppUtils.getProperty(params, props.elementId);
@@ -27,7 +27,7 @@ const deleteElementById = function(props, params, callback) {
   ElementManager
     .deleteElementById(elementId)
     .then(AppUtils.onDelete.bind(null, params, 'Unable to delete Element', callback));
-}
+};
 
 const getElementDetails = function(props, params, callback) {
   let elementId = AppUtils.getProperty(params, props.elementId);
@@ -41,7 +41,7 @@ const getElementDetails = function(props, params, callback) {
     .getElementDetails(elementId)
     .then(ElementImageService.populateImagesForElement.bind(null, imageProps))
     .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Unable to find Element details', callback));
-}
+};
 
 const findElementImageAndRegistryByIdForFogInstance = function(props, params, callback) {
   let elementId = AppUtils.getProperty(params, props.elementId);
@@ -50,7 +50,7 @@ const findElementImageAndRegistryByIdForFogInstance = function(props, params, ca
   ElementManager
     .findElementImageAndRegistryByIdForFogInstance(elementId, fogId)
     .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Unable to find Element Image or Registry for Element with id ' + elementId + ' and Fog with id ' + fogId, callback));
-}
+};
 
 const getElementCatalog = function(props, params, callback) {
   let userId = AppUtils.getProperty(params, props.userId);
@@ -64,7 +64,7 @@ const getElementCatalog = function(props, params, callback) {
     .getElementCatalog(userId)
     .then(ElementImageService.populateImagesForElements.bind(null, imageProps))
     .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Error: Element catalog not found', callback));
-}
+};
 
 const getElementForPublish = function(props, params, callback) {
   let userId = AppUtils.getProperty(params, props.userId);
@@ -77,7 +77,7 @@ const getElementForPublish = function(props, params, callback) {
     .getElementForPublish(userId)
     .then(ElementImageService.populateImagesForElements.bind(null, imageProps))
     .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Error: Element catalog not found', callback));
-}
+};
 
 const getNetworkElement = function(props, params, callback) {
   let networkElementId = AppUtils.getProperty(params, props.networkElementId);
@@ -85,7 +85,7 @@ const getNetworkElement = function(props, params, callback) {
   ElementManager
     .findElementById(networkElementId)
     .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Unable to find Element object with id ' + networkElementId, callback));
-}
+};
 
 const updateElement = function(props, params, callback) {
   let elementId = AppUtils.getProperty(params, props.elementId);
@@ -93,7 +93,22 @@ const updateElement = function(props, params, callback) {
   ElementManager
     .updateElementById(elementId, props.updatedElement)
     .then(AppUtils.onUpdate.bind(null, params, 'Unable to update Element object', callback));
-}
+};
+
+const getElementByNameForUser = function (props, params, callback) {
+    let elementName = AppUtils.getProperty(params, props.elementName),
+        userId = AppUtils.getProperty(params, props.userId);
+
+    let elementNameForUser = {
+        elementName: elementName,
+        userId: userId
+    };
+
+    let errMsg = 'Unable to find Element object with name ' + elementName;
+    ElementManager
+        .getElementByNameForUser(elementNameForUser)
+        .then(AppUtils.onFind.bind(null, params, props.setProperty, errMsg, callback))
+};
 
 export default {
   createElement: createElement,
@@ -103,5 +118,6 @@ export default {
   getElementDetails: getElementDetails,
   getElementForPublish: getElementForPublish,
   getNetworkElement: getNetworkElement,
-  updateElement: updateElement
+  updateElement: updateElement,
+  getElementByNameForUser: getElementByNameForUser
 };

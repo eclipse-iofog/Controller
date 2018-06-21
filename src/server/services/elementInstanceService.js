@@ -393,6 +393,23 @@ const getElementInstanceImagesByFogIdAndNewFogType = function (props, params, ca
         .then(AppUtils.onFindOptional.bind(null, params, props.setProperty, callback));
 };
 
+const getElementInstanceByNameOnTrackForUser = function (props, params, callback) {
+    let userId = AppUtils.getProperty(params, props.userId),
+        trackId = AppUtils.getProperty(params, props.trackId),
+        elementName = AppUtils.getProperty(params, props.elementName);
+
+    let queryProps = {
+        userId: userId,
+        trackId: trackId,
+        elementName: elementName
+    };
+
+    let errMsg = 'Unable to find Element Instance with name ' + elementName;
+    ElementInstanceManager
+        .getElementInstanceByNameOnTrackForUser(queryProps)
+        .then(AppUtils.onFind.bind(null, params, props.setProperty, errMsg, callback))
+};
+
 export default {
   createDebugConsole: createDebugConsole,
   createElementInstance: createElementInstance,
@@ -432,5 +449,6 @@ export default {
   getElementInstancesByFogId: getElementInstancesByFogId,
   getElementInstancesByFogIdOptional: getElementInstancesByFogIdOptional,
   getElementInstanceWithImages: getElementInstanceWithImages,
-  getElementInstanceImagesByFogIdAndNewFogType: getElementInstanceImagesByFogIdAndNewFogType
+  getElementInstanceImagesByFogIdAndNewFogType: getElementInstanceImagesByFogIdAndNewFogType,
+  getElementInstanceByNameOnTrackForUser: getElementInstanceByNameOnTrackForUser
 };

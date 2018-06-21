@@ -43,9 +43,18 @@ const createFogInstance = function(props, params, callback) {
 };
 
 const createFogInstanceWithUUID = function(props, params, callback) {
+  let fogType = AppUtils.getProperty(params, props.fogType),
+    instanceId = AppUtils.getProperty(params, props.uuid),
+    name = AppUtils.getProperty(params, props.name);
+
+  let config = {
+    uuid: instanceId,
+    name: name,
+    typeKey: fogType
+  };
 
   FogManager
-    .createFog(props.fogObj)
+    .createFog(config)
     .then(AppUtils.onCreate.bind(null, params, props.setProperty, 'Unable to create fog instance.', callback));
 };
 
