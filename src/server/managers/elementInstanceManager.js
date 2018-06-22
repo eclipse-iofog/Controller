@@ -135,7 +135,7 @@ class ElementInstanceManager extends BaseManager {
 		return ElementInstance.create(elementInstance);
 	}
 
-	createElementInstance(element, userId, trackId, config, elementName, logSize, fogInstanceId) {
+	createElementInstance(element, userId, trackId, config, elementName, logSize, fogInstanceId, volumeMappings) {
 		let elementInstance = {
 			uuid: AppUtils.generateInstanceId(32),
 			trackId: trackId,
@@ -155,7 +155,7 @@ class ElementInstanceManager extends BaseManager {
             needUpdate: false,
 			rootHostAccess: false,
 			logSize: logSize,
-			volumeMappings: '{"volumemappings":[]}',
+			volumeMappings: volumeMappings,
 			iofog_uuid: fogInstanceId
 		};
 

@@ -186,14 +186,16 @@ let userId = AppUtils.getProperty(params, props.userId),
     name= AppUtils.getProperty(params, props.name),
     logSize = AppUtils.getProperty(params, props.logSize),
     config = AppUtils.getProperty(params, props.config),
-    fogInstanceId = AppUtils.getProperty(params, props.fogInstanceId);
+    fogInstanceId = AppUtils.getProperty(params, props.fogInstanceId),
+    volumeMappings = AppUtils.getProperty(params, props.volumeMappings);
+    volumeMappings = Object.is(volumeMappings, undefined) ? '{"volumemappings":[]}' : volumeMappings;
 
     if(!config)
    {
      config = "{}";
    }
   ElementInstanceManager
-    .createElementInstance(params.element, userId, trackId, config, name, logSize, fogInstanceId)
+    .createElementInstance(params.element, userId, trackId, config, name, logSize, fogInstanceId, volumeMappings)
     .then(AppUtils.onCreate.bind(null, params, props.setProperty, 'Unable to create Element Instance', callback));
 }
 

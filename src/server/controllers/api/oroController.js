@@ -22,6 +22,7 @@ const setupCustomer = function (req, res) {
             userId: 'oroAdmin.id',
             logSize: 'bodyParams.wifiDataGeneratorLogSize',
             config: 'bodyParams.wifiDataGeneratorConfig',
+            volumeMappings: 'bodyParams.wifiDataGeneratorVolumeMappings',
             setProperty: 'wifiDataGeneratorElementInstance'
         },
         linksOro = [
@@ -39,6 +40,7 @@ const setupCustomer = function (req, res) {
         + ' ' + params.bodyParams.macAddress;
     params.bodyParams.wifiDataGeneratorLogSize = 10;
     params.bodyParams.wifiDataGeneratorConfig = '{"customerId": "' + params.bodyParams.customerId + '" }';
+    params.bodyParams.wifiDataGeneratorVolumeMappings = '{"volumemappings": [{"hostdestination": "' + params.bodyParams.wifiPath + '", "containerdestination": "/wifi/data", "accessmode": "ACCESS MODE"}]}';
 
 
 
@@ -132,7 +134,8 @@ const createOroElementInstance = function (props, params, callback) {
             fogInstanceId: props.fogInstanceId,
             logSize: props.logSize,
             config: props.config,
-            setProperty: props.setProperty
+            setProperty: props.setProperty,
+            volumeMappings: props.volumeMappings
         },
         elementProps = {
             userId: props.userId,
