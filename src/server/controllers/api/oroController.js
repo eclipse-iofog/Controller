@@ -48,7 +48,7 @@ const setupCustomer = function (req, res) {
         async.apply(prepareOroConstants, params),
         async.apply(createOroFog),
         async.apply(createOroElementInstance, wifiDataGeneratorProps),
-        async.apply(linkOroElementsInstances, linksOro)
+        // async.apply(linkOroElementsInstances, linksOro)
     ], function (err, result) {
         AppUtils.sendResponse(res, err, "tokenData", params.newAccessToken, result)
     });
