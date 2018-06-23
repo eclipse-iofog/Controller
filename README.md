@@ -209,8 +209,8 @@ To setup email sender, do following steps:
 
         sudo fog-controller stop       
         sudo npm update -g --unsafe-perm iofogcontroller
-	sudo fog-controller start
-	or
-	sudo fog-controller stop
-	sudo npm update -g --unsafe-perm @iofog/fog-controller (developer's version)
-	sudo fog-controller start        
+        sudo fog-controller start
+        or
+        sudo fog-controller stop
+        sudo npm update -g --unsafe-perm @iofog/fog-controller (developer's version)
+        sudo fog-controller start        
