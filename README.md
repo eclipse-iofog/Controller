@@ -3,6 +3,7 @@
 1.&ensp;Install fog-controller
 
 	   sudo npm install -g --unsafe-perm iofogcontroller
+	   or
 	   sudo npm install -g --unsafe-perm @iofog/fog-controller (developer's version)
 
 2 &ensp;Create user
@@ -208,5 +209,8 @@ To setup email sender, do following steps:
 
         sudo fog-controller stop       
         sudo npm update -g --unsafe-perm iofogcontroller
+	sudo fog-controller start
+	or
+	sudo fog-controller stop
 	sudo npm update -g --unsafe-perm @iofog/fog-controller (developer's version)
         sudo fog-controller start        
