@@ -336,10 +336,10 @@ const createNetworking = function (props, params, callback) {
         ];
     } else {
         watefallMethods = [
-            // async.apply(ComsatService.openPortOnRadomComsat, params),
-            // createSatellitePort,
+            async.apply(ComsatService.openPortOnRadomComsat, params),
+            createSatellitePort,
 
-            async.apply(ElementService.getNetworkElement, pubNetworkElementProps, params),
+            async.apply(ElementService.getNetworkElement, pubNetworkElementProps),
             async.apply(createPubNetworkElementInstance, pubNetworkElementInstanceProps),
 
             async.apply(ElementService.getNetworkElement, destNetworkElementProps),
@@ -369,16 +369,6 @@ const createNetworking = function (props, params, callback) {
     });
 };
 
-
-
-
-
-
-
-
-
-
-
 const createPubNetworkElementInstance = function (props, params, callback){
     let networkElementInstanceProps = {
         networkElement: 'pubNetworkElement',
@@ -401,7 +391,7 @@ const createPubNetworkElementInstance = function (props, params, callback){
 const createDestNetworkElementInstance = function (props, params, callback){
     let networkElementInstanceProps = {
         networkElement: 'destNetworkElement',
-        fogInstanceId: props.destFogInstance + '.uuid', //TODO: make like pub - uuid
+        fogInstanceId: props.destFogInstance + '.uuid',
         satellitePort: 'satellitePort.port2',
         satelliteDomain: 'satellite.domain',
         satelliteCertificate: 'satellite.cert',
