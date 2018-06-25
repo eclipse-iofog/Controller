@@ -126,6 +126,21 @@ const updateFogInstance = function(props, params, callback){
     .then(AppUtils.onUpdate.bind(null, params, 'Unable to update iofog instance', callback));
 };
 
+const getFogInstanceByNameForUser = function (props, params, callback) {
+
+  let userId = AppUtils.getProperty(params, props.userId),
+      fogName = AppUtils.getProperty(params, props.fogName);
+
+  let queryProps = {
+    userId: userId,
+    fogName: fogName
+  };
+
+  FogManager
+      .getFogInstanceByNameForUser(queryProps)
+      .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Cannot get iofog', callback));
+};
+
 export default {
   createFogInstance: createFogInstance,
   createFogInstanceWithUUID: createFogInstanceWithUUID,
@@ -136,5 +151,6 @@ export default {
   getFogInstanceDetails: getFogInstanceDetails,
   getFogList: getFogList,
   updateFogInstance: updateFogInstance,
-  findFogInstance: findFogInstance
+  findFogInstance: findFogInstance,
+  getFogInstanceByNameForUser: getFogInstanceByNameForUser
 };

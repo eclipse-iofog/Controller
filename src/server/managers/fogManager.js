@@ -99,6 +99,14 @@ class FogManager extends BaseManager {
       type: sequelize.QueryTypes.SELECT 
     });
   }
+
+  getFogInstanceByNameForUser(queryProps) {
+      let instanceQuery = 'SELECT i.*, i.UUID as uuid, t.id as typeId, t.name as typeName, t.image as typeImage, t.description as typeDescription, t.NetworkElementKey as networkElementKey FROM iofogs i JOIN iofog_type t ON (i.typeKey= t.ID)'+
+          ' JOIN iofog_users u ON (i.UUID = u.fog_id) WHERE u.user_id ='+ queryProps.userId + ' and i.Name ="' + queryProps.fogName + '"';
+
+      return sequelize.query(instanceQuery, { plain: true, type: sequelize.QueryTypes.SELECT });
+
+  }
 }
 
 const instance = new FogManager();
