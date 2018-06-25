@@ -23,17 +23,24 @@ const setupCustomer = function (req, res) {
             logSize: 'bodyParams.wifiDataGeneratorLogSize',
             config: 'bodyParams.wifiDataGeneratorConfig',
             volumeMappings: 'bodyParams.wifiDataGeneratorVolumeMappings',
+            elementSetProperty: 'wifiDataGeneratorElement',
             setProperty: 'wifiDataGeneratorElementInstance'
         },
         linksOro = [
             {
-                from: 'wifiDataGeneratorElementInstance',
-                to: 'oroDataReceiver'
+                fromElement: 'wifiDataGeneratorElementInstance',
+                toElement: 'oroDataReceiver',
+                fromFog: 'fogInstance',
+                toFog: 'rootFog',
+                fromFogNetworkingElementKey: 'bodyParams.x86NetworkingElementKey',
+                toFogNetworkingElementKey: 'bodyParams.x86NetworkingElementKey'
             }
+
         ];
     params.bodyParams = req.body;
     params.bodyParams.oroEmail = 'oro@oro.oro';
     params.bodyParams.oroTrackName = 'oro track';
+    params.bodyParams.rootElement = 'Wifi data receiver';
     params.bodyParams.rootElementInstanceName = 'oro data receiver';
     params.bodyParams.wifiDataGeneratorElementName = 'Wifi data generator';
     params.bodyParams.wifiDataGeneratorElementInstanceName = params.bodyParams.wifiDataGeneratorElementName
@@ -43,12 +50,14 @@ const setupCustomer = function (req, res) {
     params.bodyParams.wifiDataGeneratorVolumeMappings = '{"volumemappings": [{"hostdestination": "' + params.bodyParams.wifiPath + '", "containerdestination": "/wifi/data", "accessmode": "ACCESS MODE"}]}';
 
 
+    params.bodyParams.x86NetworkingElementKey = 1;
+
 
     async.waterfall([
         async.apply(prepareOroConstants, params),
         async.apply(createOroFog),
         async.apply(createOroElementInstance, wifiDataGeneratorProps),
-        // async.apply(linkOroElementsInstances, linksOro)
+        async.apply(linkOroElementsInstances, linksOro)
     ], function (err, result) {
         AppUtils.sendResponse(res, err, "tokenData", params.newAccessToken, result)
     });
@@ -74,6 +83,7 @@ const prepareOroConstants = function (params, callback) {
     async.waterfall([
         async.apply(UserService.getUserByEmail, oroUserProps, params),
         async.apply(DataTracksService.getDataTrackByNameAndUserId, trackProps),
+        async.apply(ElementService.getElementByNameForUser, elementProps),
         async.apply(ElementInstanceService.getElementInstanceByNameOnTrackForUser, rootElementInstanceProps),
     ], function (err, result) {
         if (err) {
@@ -134,13 +144,14 @@ const createOroElementInstance = function (props, params, callback) {
             fogInstanceId: props.fogInstanceId,
             logSize: props.logSize,
             config: props.config,
-            setProperty: props.setProperty,
-            volumeMappings: props.volumeMappings
+            volumeMappings: props.volumeMappings,
+            element: props.elementSetProperty,
+            setProperty: props.setProperty
         },
         elementProps = {
             userId: props.userId,
             elementName: props.elementName,
-            setProperty: 'element'
+            setProperty: props.elementSetProperty
         };
 
     async.waterfall([
@@ -158,14 +169,30 @@ const createOroElementInstance = function (props, params, callback) {
 const linkOroElementsInstances = function (linksArr, params, callback) {
     linksArr.forEach( (pair) => {
         let newElementInstanceConnectionProps = {
-            newConnectionObj: {
-                sourceElementInstance: AppUtils.getProperty(params, pair.from + '.uuid'),
-                destinationElementInstance: AppUtils.getProperty(params, pair.to + '.uuid')
+                newConnectionObj: {
+                    sourceElementInstance: AppUtils.getProperty(params, pair.fromElement + '.uuid'),
+                    destinationElementInstance: AppUtils.getProperty(params, pair.toElement + '.uuid')
+                },
+                setProperty: 'newElementInstanceConnection'
             },
-            setProperty: 'newElementInstanceConnection'
-        };
-
-        ElementInstanceConnectionsService.createElementInstanceConnection(newElementInstanceConnectionProps, params, callback);
+            newRouteProps = {
+                pubFogNetworkingElementKey: pair.fromFogNetworkingElementKey,
+                destFogNetworkingElementKey: pair.toFogNetworkingElementKey,
+                publishingFogInstance: pair.fromFog,
+                destinationFogInstance: pair.toFog,
+                publishingElement: pair.fromElement,
+                destinationElement: pair.toElement
+            };
+        async.waterfall([
+            async.apply(ElementInstanceConnectionsService.createElementInstanceConnection, newElementInstanceConnectionProps, params),
+            async.apply(createNetworking, newRouteProps)
+        ], function (err, result) {
+            if (err) {
+                callback(err, result)
+            } else {
+                callback(null, params)
+            }
+        });
     });
 
 };

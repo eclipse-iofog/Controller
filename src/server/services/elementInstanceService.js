@@ -181,7 +181,8 @@ const findOtherTrackDetailByUuids = function(props, params, callback) {
 }
 
 const createElementInstance = function(props, params, callback) {
-let userId = AppUtils.getProperty(params, props.userId),
+let element = AppUtils.getProperty(params, props.element),
+    userId = AppUtils.getProperty(params, props.userId),
     trackId = AppUtils.getProperty(params, props.trackId),
     name= AppUtils.getProperty(params, props.name),
     logSize = AppUtils.getProperty(params, props.logSize),
@@ -195,7 +196,7 @@ let userId = AppUtils.getProperty(params, props.userId),
      config = "{}";
    }
   ElementInstanceManager
-    .createElementInstance(params.element, userId, trackId, config, name, logSize, fogInstanceId, volumeMappings)
+    .createElementInstance(element, userId, trackId, config, name, logSize, fogInstanceId, volumeMappings)
     .then(AppUtils.onCreate.bind(null, params, props.setProperty, 'Unable to create Element Instance', callback));
 }
 
