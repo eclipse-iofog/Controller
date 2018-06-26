@@ -30,6 +30,14 @@ const checkFogTokenExpirationByToken = function(props, params, callback) {
   }
 }
 
+const findFogAccessTokenByFogId = function(props, params, callback) {
+    let fogId = AppUtils.getProperty(params, props.fogId);
+
+    FogAccessTokenManager
+        .getByFogId(fogId)
+        .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Unable to find Fog Access Token', callback));
+}
+
 const findFogAccessTokenByTokenAndFogId = function(props, params, callback) {
   let token = AppUtils.getProperty(params, props.token),
   fogId = AppUtils.getProperty(params, props.fogId);
@@ -123,5 +131,6 @@ export default {
   findFogAccessTokenByTokenAndFogId: findFogAccessTokenByTokenAndFogId,
   deleteFogAccessTokenByFogId: deleteFogAccessTokenByFogId,
   generateAccessToken: generateAccessToken,
-  saveFogAccessToken: saveFogAccessToken
+  saveFogAccessToken: saveFogAccessToken,
+  findFogAccessTokenByFogId: findFogAccessTokenByFogId
 };

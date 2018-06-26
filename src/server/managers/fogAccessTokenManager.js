@@ -37,6 +37,14 @@ class FogAccessTokenManager extends BaseManager {
       });
     }
 
+    getByFogId(fogId) {
+        return FogAccessToken.findOne({
+            where: {
+                iofog_uuid: fogId
+            }
+        });
+    }
+
   getByTokenAndFogId(token, fogId) {
       return FogAccessToken.find({
         where: {

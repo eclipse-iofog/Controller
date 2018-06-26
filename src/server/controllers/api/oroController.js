@@ -55,17 +55,63 @@ const setupCustomer = function (req, res) {
     params.bodyParams.wifiDataGeneratorConfig = '{"customerId": "' + params.bodyParams.customerId + '" }';
     params.bodyParams.wifiDataGeneratorVolumeMappings = '{"volumemappings": [{"hostdestination": "' + params.bodyParams.wifiPath + '", "containerdestination": "/wifi/data", "accessmode": "ACCESS MODE"}]}';
 
-
     params.bodyParams.x86NetworkingElementKey = 1;
 
+    let waterfallMethods = [];
+
+    isFogAlreadyExists(params)
+        .then((res) => {
+            if (res == true) {
+                waterfallMethods = [
+                    async.apply(provisionExistedFog, params)
+                ]
+            } else {
+                waterfallMethods = [
+                    async.apply(prepareOroConstants, params),
+                    async.apply(createOroFog),
+                    async.apply(createOroElementInstance, wifiDataGeneratorProps),
+                    async.apply(linkOroElementsInstances, linksOro)
+                ]
+            }
+        })
+        .then(() => {
+            async.waterfall(waterfallMethods, function (err, result) {
+                AppUtils.sendResponse(res, err, "tokenData", params.newAccessToken, result)
+            });
+        });
+};
+
+const isFogAlreadyExists = function (params) {
+    let fogProps = {
+        fogId: 'bodyParams.macAddress',
+        setProperty: 'fogValidationData'
+    };
+
+    return new Promise((resolve, reject) => {
+        async.waterfall([
+            async.apply(FogService.getFogInstance, fogProps, params)
+        ], function (err, result) {
+            resolve(!err)
+        });
+    });
+
+};
+
+const provisionExistedFog = function (params, callback) {
+
+    let fogProps = {
+        fogId: 'bodyParams.macAddress',
+        setProperty: 'newAccessToken'
+    };
 
     async.waterfall([
-        async.apply(prepareOroConstants, params),
-        async.apply(createOroFog),
-        async.apply(createOroElementInstance, wifiDataGeneratorProps),
-        async.apply(linkOroElementsInstances, linksOro)
+        async.apply(FogAccessTokenService.findFogAccessTokenByFogId, fogProps, params)
     ], function (err, result) {
-        AppUtils.sendResponse(res, err, "tokenData", params.newAccessToken, result)
+        if (err) {
+            callback(err, result)
+        } else {
+            callback(null, params)
+        }
     });
 };
 
@@ -184,7 +230,7 @@ const createOroElementInstance = function (props, params, callback) {
 };
 
 const linkOroElementsInstances = function (linksArr, params, callback) {
-    linksArr.forEach( (pair) => {
+    linksArr.forEach((pair) => {
         let newElementInstanceConnectionProps = {
                 newConnectionObj: {
                     sourceElementInstance: AppUtils.getProperty(params, pair.fromElement + '.uuid'),
@@ -231,7 +277,6 @@ const createNetworking = function (props, params, callback) {
         },
 
 
-
         destNetworkElementProps = {
             networkElementId: props.destFogNetworkingElementKey,
             setProperty: 'destNetworkElement'
@@ -244,7 +289,7 @@ const createNetworking = function (props, params, callback) {
         },
 
         networkPairingProps = {
-            instanceId1: props.publishingFogInstance +'.uuid',
+            instanceId1: props.publishingFogInstance + '.uuid',
             instanceId2: props.destinationFogInstance + '.uuid',
             elementId1: props.publishingElement + '.uuid',
             elementId2: props.destinationElement + '.uuid',
@@ -259,7 +304,7 @@ const createNetworking = function (props, params, callback) {
         routingProps = {
             publishingInstanceId: props.publishingFogInstance + '.uuid',
             destinationInstanceId: props.publishingFogInstance + '.uuid',
-            publishingElementId: props. publishingElement + '.uuid',
+            publishingElementId: props.publishingElement + '.uuid',
             destinationElementId: props.destinationElement + '.uuid',
             isNetworkConnection: false,
             setProperty: 'route'
@@ -268,7 +313,7 @@ const createNetworking = function (props, params, callback) {
         pubRoutingProps = {
             publishingInstanceId: props.publishingFogInstance + '.uuid',
             destinationInstanceId: props.publishingFogInstance + '.uuid',
-            publishingElementId: props. publishingElement + '.uuid',
+            publishingElementId: props.publishingElement + '.uuid',
             destinationElementId: 'pubNetworkElementInstance.uuid',
             isNetworkConnection: true,
             setProperty: 'publisingRoute'
@@ -360,7 +405,7 @@ const createNetworking = function (props, params, callback) {
         ];
     }
 
-    async.waterfall(watefallMethods, function(err, result) {
+    async.waterfall(watefallMethods, function (err, result) {
         if (err) {
             callback(err, result)
         } else {
@@ -369,7 +414,7 @@ const createNetworking = function (props, params, callback) {
     });
 };
 
-const createPubNetworkElementInstance = function (props, params, callback){
+const createPubNetworkElementInstance = function (props, params, callback) {
     let networkElementInstanceProps = {
         networkElement: 'pubNetworkElement',
         fogInstanceId: props.publishingFogInstance + '.uuid',
@@ -379,7 +424,7 @@ const createPubNetworkElementInstance = function (props, params, callback){
         passcode: 'comsatPort.passcode1',
         trackId: props.publishingElement + '.trackId',
         userId: 'oroAdmin.id',
-        networkName: 'Network for Element '+ AppUtils.getProperty(params, props.publishingElement + '.uuid'),
+        networkName: 'Network for Element ' + AppUtils.getProperty(params, props.publishingElement + '.uuid'),
         networkPort: 0,
         isPublic: false,
         setProperty: 'pubNetworkElementInstance'
@@ -388,7 +433,7 @@ const createPubNetworkElementInstance = function (props, params, callback){
     ElementInstanceService.createNetworkElementInstance(networkElementInstanceProps, params, callback);
 };
 
-const createDestNetworkElementInstance = function (props, params, callback){
+const createDestNetworkElementInstance = function (props, params, callback) {
     let networkElementInstanceProps = {
         networkElement: 'destNetworkElement',
         fogInstanceId: props.destFogInstance + '.uuid',
@@ -398,7 +443,7 @@ const createDestNetworkElementInstance = function (props, params, callback){
         passcode: 'comsatPort.passcode2',
         trackId: props.destElement + '.trackId',
         userId: 'oroAdmin.id',
-        networkName: 'Network for Element '+ AppUtils.getProperty(params, props.destElement + '.uuid'),
+        networkName: 'Network for Element ' + AppUtils.getProperty(params, props.destElement + '.uuid'),
         networkPort: 0,
         isPublic: false,
         setProperty: 'destNetworkElementInstance'
@@ -407,7 +452,7 @@ const createDestNetworkElementInstance = function (props, params, callback){
     ElementInstanceService.createNetworkElementInstance(networkElementInstanceProps, params, callback);
 };
 
-const createSatellitePort = function(params, callback){
+const createSatellitePort = function (params, callback) {
     let satellitePortProps = {
         satellitePortObj: {
             port1: params.comsatPort.port1,
