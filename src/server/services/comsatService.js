@@ -77,10 +77,10 @@ const openPortsOnComsat = function (params, callback) {
         }
     };
 
-    // if (params.satellite.cert) {
-    //     let ca = '-----BEGIN CERTIFICATE-----\n' + params.satellite.cert + '\n' + '-----END CERTIFICATE-----';
-    //     options.ca = new Buffer(ca);
-    // }
+    if (params.satellite.cert && params.satellite.selfSignedCerts === true) {
+        let ca = '-----BEGIN CERTIFICATE-----\n' + params.satellite.cert + '\n' + '-----END CERTIFICATE-----';
+        options.ca = new Buffer(ca);
+    }
 
     let httpreq = https.request(options, function (response) {
         console.log(response.statusCode);
@@ -137,10 +137,10 @@ const closePortsOnComsat = function (params, callback) {
                 }
             };
 
-            // if (obj.cert) {
-            //     let ca = '-----BEGIN CERTIFICATE-----\n' + obj.cert + '\n' + '-----END CERTIFICATE-----';
-            //     options.ca = new Buffer(ca);
-            // }
+            if (obj.cert && obj.self_signed_certs === true) {
+                let ca = '-----BEGIN CERTIFICATE-----\n' + obj.cert + '\n' + '-----END CERTIFICATE-----';
+                options.ca = new Buffer(ca);
+            }
 
             let httpreq = https.request(options, function (response) {
                 console.log(response.statusCode);
@@ -198,10 +198,10 @@ const closePortOnComsat = function (params, callback) {
         }
     };
 
-    // if (params.satellite.cert) {
-    //     let ca = '-----BEGIN CERTIFICATE-----\n' + params.satellite.cert + '\n' + '-----END CERTIFICATE-----';
-    //     options.ca = new Buffer(ca);
-    // }
+    if (params.satellite.cert && params.satellite.selfSignedCerts === true) {
+        let ca = '-----BEGIN CERTIFICATE-----\n' + params.satellite.cert + '\n' + '-----END CERTIFICATE-----';
+        options.ca = new Buffer(ca);
+    }
 
     let httpreq = https.request(options, function (response) {
         console.log(response.statusCode);
@@ -296,10 +296,10 @@ const verifyComsatConnections = function (params, callback) {
                 }
             };
 
-            // if (satellite.cert) {
-            //     let ca = '-----BEGIN CERTIFICATE-----\n' + satellite.cert + '\n' + '-----END CERTIFICATE-----';
-            //     options.ca = new Buffer(ca);
-            // }
+            if (satellite.cert && satellite.selfSignedCerts === true) {
+                let ca = '-----BEGIN CERTIFICATE-----\n' + satellite.cert + '\n' + '-----END CERTIFICATE-----';
+                options.ca = new Buffer(ca);
+            }
 
             let httpreq = https.request(options, function (response) {
                 if (response.statusCode == 200) {
