@@ -70,7 +70,7 @@ class SatelliteManager extends BaseManager {
   createSatellite(name, domain, publicIP, certFile, selfSignedCerts) {
     if (name && domain && publicIP) {
       if (AppUtils.isValidName(name)){
-        if(AppUtils.isValidDomain(domain)){
+        if(AppUtils.isValidDomain(domain) || AppUtils.isValidPublicIP()){
           if(AppUtils.isValidPublicIP(publicIP)){
               this.findBySatelliteNameDomainAndPublicIP(name, domain, publicIP)
                 .then((satellite) => {
