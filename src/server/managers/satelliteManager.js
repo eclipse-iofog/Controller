@@ -81,7 +81,7 @@ class SatelliteManager extends BaseManager {
                         domain: domain,
                         publicIP: publicIP,
                         cert: '',
-                        selfSignedCerts: ''
+                        selfSignedCerts: false
                       }).then(function(satellite) {
                       console.log('ComSat Created : '+satellite.name);
                       });
@@ -93,7 +93,7 @@ class SatelliteManager extends BaseManager {
                               domain: domain,
                               publicIP: publicIP,
                               cert: AppUtils.trimCertificate(cert),
-                              selfSignedCerts: selfSignedCerts || ''
+                              selfSignedCerts: selfSignedCerts || false
                           }).then(function(satellite) {
                               console.log('ComSat Created : '+satellite.name);
                           });
