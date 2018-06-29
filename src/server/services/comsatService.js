@@ -77,7 +77,7 @@ const openPortsOnComsat = function (params, callback) {
         }
     };
 
-    if (params.satellite.cert) {
+    if (params.satellite.cert && params.satellite.selfSignedCerts === true) {
         let ca = '-----BEGIN CERTIFICATE-----\n' + params.satellite.cert + '\n' + '-----END CERTIFICATE-----';
         options.ca = new Buffer(ca);
     }
@@ -137,7 +137,7 @@ const closePortsOnComsat = function (params, callback) {
                 }
             };
 
-            if (obj.cert) {
+            if (obj.cert && obj.self_signed_certs === true) {
                 let ca = '-----BEGIN CERTIFICATE-----\n' + obj.cert + '\n' + '-----END CERTIFICATE-----';
                 options.ca = new Buffer(ca);
             }
@@ -198,7 +198,7 @@ const closePortOnComsat = function (params, callback) {
         }
     };
 
-    if (params.satellite.cert) {
+    if (params.satellite.cert && params.satellite.selfSignedCerts === true) {
         let ca = '-----BEGIN CERTIFICATE-----\n' + params.satellite.cert + '\n' + '-----END CERTIFICATE-----';
         options.ca = new Buffer(ca);
     }
@@ -296,7 +296,7 @@ const verifyComsatConnections = function (params, callback) {
                 }
             };
 
-            if (satellite.cert) {
+            if (satellite.cert && satellite.selfSignedCerts === true) {
                 let ca = '-----BEGIN CERTIFICATE-----\n' + satellite.cert + '\n' + '-----END CERTIFICATE-----';
                 options.ca = new Buffer(ca);
             }
