@@ -1,6 +1,6 @@
 {
-  "name": "iofogcontroller",
-  "version": "0.1.39",
+  "name": "@iofog/fog-controller",
+  "version": "0.1.46",
   "description": "Fog Controller project for Eclipse IoFog @ iofog.org \nCopyright (c) 2018 Edgeworx, Inc. ",
   "main": "./src/main.js",
   "repository": {
@@ -75,7 +75,7 @@
     "portscanner": "^2.1.1",
     "q": "^1.4.1",
     "sequelize": "^4.33.1",
-    "sqlite3": "^4.0.0",
+    "sqlite3": "^3.1.13",
     "underscore": "^1.8.3",
     "uuid": "^2.0.2",
     "winston": "^2.3.1",
