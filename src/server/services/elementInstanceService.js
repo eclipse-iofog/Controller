@@ -82,7 +82,7 @@ const getElementInstanceWithImages = function(props, params, callback) {
     let elementInstanceId = AppUtils.getProperty(params, props.elementInstanceId);
 
     let imageProps = {
-        elementId: 'element_key',
+        elementId: 'element_id',
         setProperty: 'elementImages'
     };
 
@@ -382,7 +382,16 @@ const getElementInstanceRouteDetails = function(props, params, callback) {
   ElementInstanceManager
     .getElementInstanceRoute(elementInstanceId)
     .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Cannot find element Instance route.', callback));
-}
+};
+
+const getElementInstanceImagesByFogIdAndNewFogType = function (props, params, callback) {
+    let iofogUuid = AppUtils.getProperty(params, props.iofogUuid),
+        newFogType = AppUtils.getProperty(params, props.newFogType);
+
+    ElementInstanceManager
+        .getElementInstanceImagesByFogIdAndNewFogType(iofogUuid, newFogType)
+        .then(AppUtils.onFindOptional.bind(null, params, props.setProperty, callback));
+};
 
 export default {
   createDebugConsole: createDebugConsole,
@@ -422,5 +431,6 @@ export default {
   getElementInstanceRouteDetails: getElementInstanceRouteDetails,
   getElementInstancesByFogId: getElementInstancesByFogId,
   getElementInstancesByFogIdOptional: getElementInstancesByFogIdOptional,
-  getElementInstanceWithImages: getElementInstanceWithImages
+  getElementInstanceWithImages: getElementInstanceWithImages,
+  getElementInstanceImagesByFogIdAndNewFogType: getElementInstanceImagesByFogIdAndNewFogType
 };

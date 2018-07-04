@@ -73,7 +73,8 @@ class Help {
   }
 
   static displayComsatAddHelp = () => {
-    console.log(`\t\t\t-add <name> <domain> <publicIP> [<certFile>]\tCreates a new ComSat`);
+    console.log(`\t\t\t-add <name> <domain> <publicIP> [<certFile>] \tCreates a new ComSat`);
+	console.log(`\t\t\t\t\t\t [<selfSignedCerts>]`);
   }
 
   static displayComsatRemoveHelp = () => {

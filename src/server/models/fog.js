@@ -284,7 +284,8 @@ FogProvisionKey.belongsTo(Fog, {
 });
 
 Fog.belongsTo(FogType, {
-    foreignKey: 'typeKey'
+    foreignKey: 'typeKey',
+    defaultValue: 0
 });
 
 export default Fog;

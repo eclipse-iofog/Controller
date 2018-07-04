@@ -3,6 +3,8 @@
 1.&ensp;Install fog-controller
 
 	   sudo npm install -g --unsafe-perm iofogcontroller
+	   or
+	   sudo npm install -g --unsafe-perm @iofog/fog-controller (developer's version)
 
 2 &ensp;Create user
 
@@ -161,7 +163,12 @@ To setup email sender, do following steps:
 
 2.&ensp;To add a ComSat
 
-        sudo fog-controller comsat -add <name> <domain> <publicIP>
+        sudo fog-controller comsat -add <name> <domain> <publicIP> <cert> <selfSignedCerts>
+        
+&ensp;<cert> parameter is path to the certificate file (optional)
+&ensp;<selfSignedCerts is boolean value indicating if certificate is self signed or not.
+&ensp;If certificate is self signed then <selfSignedCerts> should be set to 'true', otherwise it should be set to any other value or not set at all.
+ 
 
 3.&ensp;To remove a ComSat
 
@@ -206,5 +213,9 @@ To setup email sender, do following steps:
 &ensp;- FogController Update:
 
         sudo fog-controller stop       
-        sudo npm update -g --unsafe-perm iofogcontroller        
+        sudo npm update -g --unsafe-perm iofogcontroller
+        sudo fog-controller start
+        or
+        sudo fog-controller stop
+        sudo npm update -g --unsafe-perm @iofog/fog-controller (developer's version)
         sudo fog-controller start        
