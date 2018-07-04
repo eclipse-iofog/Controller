@@ -1,6 +1,6 @@
 {
   "name": "@iofog/fog-controller",
-  "version": "0.1.47",
+  "version": "0.1.48",
   "description": "Fog Controller project for Eclipse IoFog @ iofog.org \nCopyright (c) 2018 Edgeworx, Inc. ",
   "main": "./src/main.js",
   "repository": {
