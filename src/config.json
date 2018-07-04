@@ -2,7 +2,7 @@
   "port": "54421",
   "ioauthoringPort": "54521",
   "ioauthoringIPAddress": "127.0.0.1",
-  "ioauthoringProtocol": "http",
+  "ioauthoringProtocol": "https",
   "dbPath": "fog-controller-db/fog_controller.db",
   "loggingLevel": "info"
 }

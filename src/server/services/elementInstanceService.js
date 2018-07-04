@@ -301,7 +301,12 @@ const deleteElementInstance = function(props, params, callback) {
 const deleteElementInstanceWithCleanUp = function (props, params, callback) {
     let withCleanUp = AppUtils.getProperty(params, props.withCleanUp) === 'true';
 
-    if (withCleanUp && params.elementInstance.iofog_uuid != null && params.fog.dataValues.daemonlaststart != null) {
+
+    let isCleanUpDeletion = withCleanUp
+                            && params.elementInstance.iofog_uuid != null
+                            && params.fog.dataValues.daemonlaststart != null
+                            && params.fog.dataValues.daemonstatus !== 'UNKNOWN';
+    if (isCleanUpDeletion) {
         createElementInstanceToCleanUp(props, params, callback);
     } else {
         deleteElementInstance(props, params, callback);
