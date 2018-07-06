@@ -63,7 +63,9 @@ const setupCustomer = function (req, res) {
         .then((res) => {
             if (res == true) {
                 waterfallMethods = [
-                    async.apply(provisionExistedFog, params)
+                    async.apply(prepareOroConstants, params),
+                    async.apply(provisionExistedFog),
+                    async.apply(updateOroElementInstance, wifiDataGeneratorProps)
                 ]
             } else {
                 waterfallMethods = [
@@ -106,6 +108,41 @@ const provisionExistedFog = function (params, callback) {
 
     async.waterfall([
         async.apply(FogAccessTokenService.findFogAccessTokenByFogId, fogProps, params)
+    ], function (err, result) {
+        if (err) {
+            callback(err, result)
+        } else {
+            callback(null, params)
+        }
+    });
+};
+
+const updateOroElementInstance = function (props, params, callback) {
+    let elementInstanceProps = {
+            userId: 'oroAdmin.id',
+            trackId: 'trackData.id',
+            elementName: props.elementInstanceName,
+            setProperty: props.setProperty
+        },
+        updateElementInstanceProps = {
+            elementId: props.setProperty + '.uuid',
+            updatedData: {
+                logSize: AppUtils.getProperty(params, props.logSize),
+                config: AppUtils.getProperty(params, props.config),
+                volumeMappings: AppUtils.getProperty(params, props.volumeMappings),
+                setProperty: AppUtils.getProperty(params, props.setPropert)
+            }
+        },
+        elementProps = {
+            userId: props.userId,
+            elementName: props.elementName,
+            setProperty: props.elementSetProperty
+        };
+
+    async.waterfall([
+        async.apply(ElementService.getElementByNameForUser, elementProps, params),
+        async.apply(ElementInstanceService.getElementInstanceByNameOnTrackForUser, elementInstanceProps),
+        async.apply(ElementInstanceService.updateElemInstance, updateElementInstanceProps),
     ], function (err, result) {
         if (err) {
             callback(err, result)
