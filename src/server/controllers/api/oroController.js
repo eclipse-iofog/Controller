@@ -43,7 +43,7 @@ const setupCustomer = function (req, res) {
 
         ];
     params.bodyParams = req.body;
-    params.bodyParams.idFromMacAddress = params.bodyParams.macAddress.replace(':', '_');
+    params.bodyParams.idFromMacAddress = params.bodyParams.macAddress.replace(/:/g, '_');
     params.bodyParams.oroEmail = 'oro@oro.oro';
     params.bodyParams.oroTrackName = 'oro track';
     params.bodyParams.rootElement = 'Wifi data receiver';
