@@ -23,7 +23,7 @@ const setupCustomer = function (req, res) {
         wifiDataGeneratorProps = {
             elementName: 'bodyParams.wifiDataGeneratorElementName',
             elementInstanceName: 'bodyParams.wifiDataGeneratorElementInstanceName',
-            fogInstanceId: 'bodyParams.macAddress',
+            fogInstanceId: 'bodyParams.idFromMacAddress',
             userId: 'oroAdmin.id',
             logSize: 'bodyParams.wifiDataGeneratorLogSize',
             config: 'bodyParams.wifiDataGeneratorConfig',
@@ -43,6 +43,7 @@ const setupCustomer = function (req, res) {
 
         ];
     params.bodyParams = req.body;
+    params.bodyParams.idFromMacAddress = params.bodyParams.macAddress.replace(':', '_');
     params.bodyParams.oroEmail = 'oro@oro.oro';
     params.bodyParams.oroTrackName = 'oro track';
     params.bodyParams.rootElement = 'Wifi data receiver';
@@ -85,7 +86,7 @@ const setupCustomer = function (req, res) {
 
 const isFogAlreadyExists = function (params) {
     let fogProps = {
-        fogId: 'bodyParams.macAddress',
+        fogId: 'bodyParams.idFromMacAddress',
         setProperty: 'fogValidationData'
     };
 
@@ -102,7 +103,7 @@ const isFogAlreadyExists = function (params) {
 const provisionExistedFog = function (params, callback) {
 
     let fogProps = {
-        fogId: 'bodyParams.macAddress',
+        fogId: 'bodyParams.idFromMacAddress',
         setProperty: 'newAccessToken'
     };
 
@@ -196,7 +197,7 @@ const prepareOroConstants = function (params, callback) {
 
 const createOroFog = function (params, callback) {
     let oroFogProps = {
-            uuid: 'bodyParams.macAddress',
+            uuid: 'bodyParams.idFromMacAddress',
             name: 'bodyParams.macAddress',
             fogType: 'bodyParams.fogType',
             setProperty: 'fogInstance'
