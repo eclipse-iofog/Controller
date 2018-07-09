@@ -30,7 +30,8 @@ const DataTracks = sequelize.define('data_tracks', {
   },
   name: {
     type: Sequelize.TEXT,
-    field: 'name'
+    field: 'name',
+    unique: true
   },
   instanceId: {
     type: Sequelize.TEXT,
