@@ -60,6 +60,7 @@ const processChangeTrackingChanges = function(params, callback) {
       config: false,
       version: false,
       reboot: false,
+      deletenode: false,
       containerlist: false,
       containerconfig: false,
       routing: false,
@@ -84,6 +85,10 @@ const processChangeTrackingChanges = function(params, callback) {
           ],
           function (err, result) {
           });
+    }
+
+    if (params.changeTrackingData.deletenode) {
+      changes.deletenode = true;
     }
     
     if(params.changeTrackingData.containerList > params.bodyParams.TimeStamp) {
