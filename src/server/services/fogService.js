@@ -45,12 +45,14 @@ const createFogInstance = function(props, params, callback) {
 const createFogInstanceWithUUID = function(props, params, callback) {
   let fogType = AppUtils.getProperty(params, props.fogType),
     instanceId = AppUtils.getProperty(params, props.uuid),
-    name = AppUtils.getProperty(params, props.name);
+    name = AppUtils.getProperty(params, props.name),
+    description = AppUtils.getProperty(params, props.description);
 
   let config = {
     uuid: instanceId,
     name: name,
-    typeKey: fogType
+    typeKey: fogType,
+    description: description ? description : ''
   };
 
   FogManager

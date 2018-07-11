@@ -31,6 +31,13 @@ const setupCustomer = function (req, res) {
             elementSetProperty: 'wifiDataGeneratorElement',
             setProperty: 'wifiDataGeneratorElementInstance'
         },
+        oroFogProps = {
+            uuid: 'bodyParams.idFromMacAddress',
+            name: 'bodyParams.macAddress',
+            fogType: 'bodyParams.fogType',
+            description: 'bodyParams.fogDescription',
+            setProperty: 'fogInstance'
+        },
         linksOro = [
             {
                 fromElement: 'wifiDataGeneratorElementInstance',
@@ -44,6 +51,7 @@ const setupCustomer = function (req, res) {
         ];
     params.bodyParams = req.body;
     params.bodyParams.idFromMacAddress = params.bodyParams.macAddress.replace(/:/g, '_');
+    params.bodyParams.fogDescription = 'customerId: ' + params.bodyParams.customerId;
     params.bodyParams.oroEmail = 'oro@oro.oro';
     params.bodyParams.oroTrackName = 'oro track';
     params.bodyParams.rootElement = 'Wifi data receiver';
@@ -66,12 +74,13 @@ const setupCustomer = function (req, res) {
                 waterfallMethods = [
                     async.apply(prepareOroConstants, params),
                     async.apply(provisionExistedFog),
+                    async.apply(updateExistedFog, oroFogProps),
                     async.apply(updateOroElementInstance, wifiDataGeneratorProps)
                 ]
             } else {
                 waterfallMethods = [
                     async.apply(prepareOroConstants, params),
-                    async.apply(createOroFog),
+                    async.apply(createOroFog, oroFogProps ),
                     async.apply(createOroElementInstance, wifiDataGeneratorProps),
                     async.apply(linkOroElementsInstances, linksOro)
                 ]
@@ -109,6 +118,25 @@ const provisionExistedFog = function (params, callback) {
 
     async.waterfall([
         async.apply(FogAccessTokenService.findFogAccessTokenByFogId, fogProps, params)
+    ], function (err, result) {
+        if (err) {
+            callback(err, result)
+        } else {
+            callback(null, params)
+        }
+    });
+};
+
+const updateExistedFog = function (props, params, callback) {
+    let updateFogProps = {
+        instanceId: props.uuid,
+        updatedFog: {
+            description: AppUtils.getProperty(params, props.description)
+        }
+    };
+
+    async.waterfall([
+        async.apply(FogService.updateFogInstance, updateFogProps, params)
     ], function (err, result) {
         if (err) {
             callback(err, result)
@@ -195,12 +223,13 @@ const prepareOroConstants = function (params, callback) {
     });
 };
 
-const createOroFog = function (params, callback) {
+const createOroFog = function (props, params, callback) {
     let oroFogProps = {
-            uuid: 'bodyParams.idFromMacAddress',
-            name: 'bodyParams.macAddress',
-            fogType: 'bodyParams.fogType',
-            setProperty: 'fogInstance'
+            uuid: props.uuid,
+            name: props.name,
+            fogType: props.fogType,
+            description: props.description,
+            setProperty: props.setProperty
         },
 
         oroFogUserProps = {
