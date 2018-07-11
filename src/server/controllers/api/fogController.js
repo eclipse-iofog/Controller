@@ -1228,7 +1228,7 @@ const processDeleteCommand = function (props, params, callback) {
     let instanceDaemonStatus = AppUtils.getProperty(params, props.fogInstance + '.daemonstatus');
     let waterfallMethods = [];
 
-    if (!instanceDaemonStatus || instanceDaemonStatus.toLowerCase() === 'undefined') {
+    if (!instanceDaemonStatus || instanceDaemonStatus.toLowerCase() === 'unknown') {
         waterfallMethods = [
             async.apply(deleteFogNode, instanceProps, params)
         ];
