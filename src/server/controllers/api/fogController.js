@@ -269,33 +269,22 @@ const fogInstanceDeleteEndPoint = function (req, res) {
             userId: 'bodyParams.t',
             setProperty: 'user'
         },
-        changeTrackingProps = {
-            fogInstanceId: 'bodyParams.instanceId',
-            changeObject: {
-                deletenode: true
-            }
-        },
         instanceProps = {
-            instanceId: 'bodyParams.instanceId'
+            fogId: 'bodyParams.instanceId',
+            setProperty: 'fogInstance'
+        },
+        deleteFogProps = {
+            fogInstance: instanceProps.setProperty
         };
 
     params.bodyParams = req.body;
     logger.info("Parameters:" + JSON.stringify(params.bodyParams));
 
-    let waterfallMethods = [];
-    if (params.bodyParams.force === 'true') {
-        waterfallMethods = [
-            async.apply(UserService.getUser, userProps, params),
-            async.apply(deleteFogNode, instanceProps)
-        ];
-    } else {
-        waterfallMethods = [
-            async.apply(UserService.getUser, userProps, params),
-            async.apply(ChangeTrackingService.updateChangeTracking, changeTrackingProps)
-        ];
-    }
-
-    async.waterfall(waterfallMethods, function (err, result) {
+    async.waterfall([
+        async.apply(UserService.getUser, userProps, params),
+        async.apply(FogService.getFogInstance, instanceProps),
+        async.apply(processDeleteCommand, deleteFogProps)
+    ], function (err, result) {
             let errMsg = 'Internal error: ' + result;
             AppUtils.sendResponse(res, err, 'instanceId', params.bodyParams.instanceId, errMsg);
         });
@@ -1225,6 +1214,39 @@ const createInfluxElementInstance = function (params, callback) {
 
     ElementInstanceService.createElementInstanceObj(elementInstanceProps, params, callback);
 }
+
+const processDeleteCommand = function (props, params, callback) {
+    let changeTrackingProps = {
+            fogInstanceId: props.fogInstance + '.uuid',
+            changeObject: {
+                deletenode: true
+            }
+        },
+        instanceProps = {
+            instanceId: props.fogInstance + '.uuid',
+        };
+    let instanceDaemonStatus = AppUtils.getProperty(params, props.fogInstance + '.daemonstatus');
+    let waterfallMethods = [];
+
+    if (!instanceDaemonStatus || instanceDaemonStatus.toLowerCase() === 'undefined') {
+        waterfallMethods = [
+            async.apply(deleteFogNode, instanceProps, params)
+        ];
+    } else {
+        waterfallMethods = [
+            async.apply(ChangeTrackingService.updateChangeTracking, changeTrackingProps, params)
+        ];
+    }
+
+    async.waterfall(waterfallMethods, function (err, result) {
+        if (err) {
+            callback(err, result)
+        } else {
+            callback(null, params)
+        }
+    });
+
+};
 
 const deleteFogNode = function (props, params, callback) {
     let instanceProps = {
