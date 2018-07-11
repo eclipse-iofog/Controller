@@ -174,6 +174,7 @@ const initApp = function () {
   app.post('/api/v2/authoring/user/track/delete', trackController.userTrackDeleteEndPoint);
   app.get('/api/v2/authoring/fog/track/element/list/:trackId', elementInstanceController.trackElementListEndPoint);
   app.post('/api/v2/authoring/fog/instance/delete', fogController.fogInstanceDeleteEndPoint);
+  app.post('/api/v2/instance/deleteNode/id/:ID/token/:Token', fogController.fogInstanceDeleteNodeEndPoint);
   app.post('/api/v2/authoring/fog/instances/settings/update', fogController.updateFogSettingsEndpoint);
   app.post('/api/v2/authoring/fog/track/update', trackController.fogTrackUpdateEndPoint);
   app.post('/api/v2/authoring/fog/track/delete', trackController.fogTrackDeleteEndPoint);

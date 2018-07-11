@@ -40,6 +40,7 @@ import AppUtils from '../../utils/appUtils';
 import configUtil from '../../utils/configUtil';
 import logger from '../../utils/winstonLogs';
 import moment from "moment";
+import BaseApiController from "./baseApiController";
 
 
 /********************************************* EndPoints ******************************************************/
@@ -238,35 +239,56 @@ const getFogTypesEndPoint = function (req, res) {
     });
 };
 
-/***************** Fog Instance Delete EndPoint (Post: /api/v2/authoring/fog/instance/delete) *************/
-const fogInstanceDeleteEndPoint = function (req, res) {
+/***************** Fog Instance DeleteNode EndPoint (Post: /api/v2/instance/deleteNode/id/:Id/token/:Token) *************/
+const fogInstanceDeleteNodeEndPoint = function (req, res) {
   logger.info("Endpoint hit: " + req.originalUrl);
 
   let params = {},
-    userProps = {
-      userId: 'bodyParams.t',
-      setProperty: 'user'
-    },
-    instanceProps = {
-      instanceId: 'bodyParams.instanceId'
-    };
+      instanceProps = {
+        instanceId: 'bodyParams.ID'
+      };
 
-  params.bodyParams = req.body;
+  params.bodyParams = req.params;
   logger.info("Parameters:" + JSON.stringify(params.bodyParams));
 
   async.waterfall([
-      async.apply(UserService.getUser, userProps, params),
-      async.apply(ChangeTrackingService.deleteChangeTracking, instanceProps),
-      async.apply(FogUserService.deleteFogUserByInstanceId, instanceProps),
-      async.apply(StreamViewerService.deleteStreamViewerByFogInstanceId, instanceProps),
-      async.apply(ConsoleService.deleteConsoleByFogInstanceId, instanceProps),
-      async.apply(FogProvisionKeyService.deleteProvisonKeyByInstanceId, instanceProps),
-      async.apply(FogService.deleteFogInstance, instanceProps)
+      async.apply(BaseApiController.checkUserExistance, req, res),
+      async.apply(deleteFogNode, instanceProps, params)
     ],
     function (err, result) {
       let errMsg = 'Internal error: ' + result;
-      AppUtils.sendResponse(res, err, 'instanceId', params.bodyParams.instanceId, errMsg);
+      AppUtils.sendResponse(res, err, 'instanceId', params.bodyParams.ID, errMsg);
     });
+};
+
+const fogInstanceDeleteEndPoint = function (req, res) {
+    logger.info("Endpoint hit: " + req.originalUrl);
+
+    let params = {},
+        userProps = {
+            userId: 'bodyParams.t',
+            setProperty: 'user'
+        },
+        instanceProps = {
+            fogId: 'bodyParams.instanceId',
+            setProperty: 'fogInstance'
+        },
+        deleteFogProps = {
+            fogInstance: instanceProps.setProperty
+        };
+
+    params.bodyParams = req.body;
+    logger.info("Parameters:" + JSON.stringify(params.bodyParams));
+
+    async.waterfall([
+        async.apply(UserService.getUser, userProps, params),
+        async.apply(FogService.getFogInstance, instanceProps),
+        async.apply(processDeleteCommand, deleteFogProps)
+    ], function (err, result) {
+            let errMsg = 'Internal error: ' + result;
+            AppUtils.sendResponse(res, err, 'instanceId', params.bodyParams.instanceId, errMsg);
+        });
+
 };
 
 /*********** Integrator Instance Delete EndPoint (Post: /api/v2/authoring/integrator/instance/delete) **********/
@@ -1193,6 +1215,60 @@ const createInfluxElementInstance = function (params, callback) {
     ElementInstanceService.createElementInstanceObj(elementInstanceProps, params, callback);
 }
 
+const processDeleteCommand = function (props, params, callback) {
+    let changeTrackingProps = {
+            fogInstanceId: props.fogInstance + '.uuid',
+            changeObject: {
+                deletenode: true
+            }
+        },
+        instanceProps = {
+            instanceId: props.fogInstance + '.uuid',
+        };
+    let instanceDaemonStatus = AppUtils.getProperty(params, props.fogInstance + '.daemonstatus');
+    let waterfallMethods = [];
+
+    if (!instanceDaemonStatus || instanceDaemonStatus.toLowerCase() === 'unknown') {
+        waterfallMethods = [
+            async.apply(deleteFogNode, instanceProps, params)
+        ];
+    } else {
+        waterfallMethods = [
+            async.apply(ChangeTrackingService.updateChangeTracking, changeTrackingProps, params)
+        ];
+    }
+
+    async.waterfall(waterfallMethods, function (err, result) {
+        if (err) {
+            callback(err, result)
+        } else {
+            callback(null, params)
+        }
+    });
+
+};
+
+const deleteFogNode = function (props, params, callback) {
+    let instanceProps = {
+            instanceId: props.instanceId
+        };
+    async.waterfall([
+            async.apply(ChangeTrackingService.deleteChangeTracking, instanceProps, params),
+            async.apply(FogUserService.deleteFogUserByInstanceId, instanceProps),
+            async.apply(StreamViewerService.deleteStreamViewerByFogInstanceId, instanceProps),
+            async.apply(ConsoleService.deleteConsoleByFogInstanceId, instanceProps),
+            async.apply(FogProvisionKeyService.deleteProvisonKeyByInstanceId, instanceProps),
+            async.apply(FogService.deleteFogInstance, instanceProps)
+        ],
+        function (err, result) {
+            if (err) {
+                callback(err, result)
+            } else {
+                callback(null, params)
+            }
+        });
+};
+
 /****************** Add Bluebox EndPoint (Post: /api/v2/authoring/fog/instance/bluebox/add) ***************/
 // const addBlueboxEndpoint = function (req, res){
 // 	logger.info("Endpoint hit: "+ req.originalUrl);
@@ -1326,6 +1402,7 @@ export default {
   // getFogListEndPoint: getFogListEndPoint,
   getFogTypesEndPoint: getFogTypesEndPoint,
   fogInstanceDeleteEndPoint: fogInstanceDeleteEndPoint,
+  fogInstanceDeleteNodeEndPoint: fogInstanceDeleteNodeEndPoint,
   integratorInstanceDeleteEndPoint: integratorInstanceDeleteEndPoint,
   updateFogSettingsEndpoint: updateFogSettingsEndpoint
 };
