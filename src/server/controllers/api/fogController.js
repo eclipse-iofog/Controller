@@ -83,6 +83,11 @@ const fogInstancesListEndPoint = function (req, res) {
         fogInstanceForUserProps = {
             userId: 'user.id',
             setProperty: 'fogInstance'
+        },
+        filterProps = {
+            instances: fogInstanceForUserProps.setProperty,
+            filters: 'bodyParams.filters',
+            setProperty: 'filteredFogInstances'
         };
 
   params.bodyParams = req.params;
@@ -95,15 +100,16 @@ const fogInstancesListEndPoint = function (req, res) {
 
   async.waterfall([
     async.apply(UserService.getUser, userProps, params),
-      async.apply(FogService.getFogInstanceForUser, fogInstanceForUserProps),
-      checkIfFogsConnected
+    async.apply(FogService.getFogInstanceForUser, fogInstanceForUserProps),
+    async.apply(filterFogs, filterProps),
+    checkIfFogsConnected
   ], function (err, result) {
-    AppUtils.sendResponse(res, err, 'instances', params.fogInstance, result);
+    AppUtils.sendResponse(res, err, 'instances', params.filteredFogInstances, result);
   })
 };
 
 const checkIfFogsConnected = function (params, callback) {
-    let arr = params.fogInstance,
+    let arr = params.filteredFogInstances,
         fogUpdateProps = {
             instanceId: 'instanceId',
             updatedFog: {
@@ -1267,6 +1273,39 @@ const deleteFogNode = function (props, params, callback) {
                 callback(null, params)
             }
         });
+};
+
+const filterFogs = function (props, params, callback) {
+        let instances = AppUtils.getProperty(params, props.instances),
+            filters = AppUtils.getProperty(params, props.filters);
+        let filteredInstances = [];
+
+        if (!filters) {
+            params[props.setProperty] = instances;
+        } else {
+            instances.forEach(instance => {
+                let isMatchInstance = true;
+                filters.forEach(filter => {
+                    let fldName = filter.key,
+                        searchVal = filter.value,
+                        condition = filter.condition;
+                    let isMatchField = (condition === 'equals' && instance[fldName] === searchVal)
+                        || (condition === 'has' && instance[fldName].includes(searchVal));
+                    if (!isMatchField) {
+                        isMatchInstance = false;
+                    }
+                });
+
+                if (isMatchInstance) {
+                    filteredInstances.push(instance)
+                }
+            });
+
+            params[props.setProperty] = filteredInstances;
+        }
+
+        callback(null, params)
+
 };
 
 /****************** Add Bluebox EndPoint (Post: /api/v2/authoring/fog/instance/bluebox/add) ***************/
