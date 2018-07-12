@@ -1289,8 +1289,8 @@ const filterFogs = function (props, params, callback) {
                     let fldName = filter.key,
                         searchVal = filter.value,
                         condition = filter.condition;
-                    let isMatchField = (condition === 'equals' && instance[fldName] === searchVal)
-                        || (condition === 'has' && instance[fldName].includes(searchVal));
+                    let isMatchField = (condition === 'equals' && instance[fldName] && instance[fldName] === searchVal)
+                        || (condition === 'has' && instance[fldName] && instance[fldName].includes(searchVal));
                     if (!isMatchField) {
                         isMatchInstance = false;
                     }
