@@ -43,6 +43,7 @@ import proxyController from "./server/controllers/api/proxyController";
 import fogVersionCommandController from './server/controllers/api/fogVersionCommandController';
 import diagnosticsController from './server/controllers/api/diagnosticsController';
 import imageSnapshotController from "./server/controllers/api/imageSnapshotController";
+import presetController from "./server/controllers/api/presetController";
 
 const express = require('express');
 const path = require('path');
@@ -222,6 +223,8 @@ const initApp = function () {
   app.get('/account/activate/code/:code', userController.activateUserAccountEndPoint);
   app.get('/api/v2/user/authenticate/:t', userController.authenticateUserEndPoint);
   app.get('/api/v2/emailActivation', fogController.getEmailActivationEndPoint);
+
+  app.post('/api/v2/testPreset', presetController.testPreset);
 
   //generic error handler
   app.use((err, req, res, next) => {

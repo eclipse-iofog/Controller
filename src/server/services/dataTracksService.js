@@ -97,6 +97,22 @@ const updateDataTrackByUserId = function(props, params, callback) {
     .then(AppUtils.onUpdateOptional.bind(null, params, callback));
 }
 
+const getDataTrackByNameAndUserId = function (props, params, callback) {
+
+  let userId = props.userId,
+    trackName = props.trackName;
+
+  let trackNameAndUser = {
+    userId: userId,
+    trackName: trackName
+  };
+
+  let errMsg = 'Unable to find Track with name ' + trackName;
+  DataTracksManager
+    .getDataTrackByNameAndUserId(trackNameAndUser)
+    .then(AppUtils.onFind.bind(null, params, props.setProperty, errMsg, callback));
+};
+
 export default {
   createDataTrack: createDataTrack,
   deleteTrackById: deleteTrackById,
@@ -106,6 +122,7 @@ export default {
   getDataTrackByInstanceId: getDataTrackByInstanceId,
   getTracksByUserId: getTracksByUserId,
   updateDataTrackById: updateDataTrackById,
-    updateDataTrackByUserId: updateDataTrackByUserId,
-    findContainerListWithStatusByInstanceId: findContainerListWithStatusByInstanceId
+  updateDataTrackByUserId: updateDataTrackByUserId,
+  findContainerListWithStatusByInstanceId: findContainerListWithStatusByInstanceId,
+  getDataTrackByNameAndUserId: getDataTrackByNameAndUserId
 };
