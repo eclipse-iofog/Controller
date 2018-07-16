@@ -15,9 +15,6 @@ import FogManager from '../managers/fogManager';
 import AppUtils from '../utils/appUtils';
 import _ from 'underscore';
 
-/**
- * @deprecated
- */
 const createFogInstance = function(props, params, callback) {
   let fogType = AppUtils.getProperty(params, props.fogType),
       instanceId = AppUtils.generateRandomString(32),
@@ -45,12 +42,14 @@ const createFogInstance = function(props, params, callback) {
 const createFogInstanceWithUUID = function(props, params, callback) {
   let fogType = AppUtils.getProperty(params, props.fogType),
     instanceId = AppUtils.getProperty(params, props.uuid),
-    name = AppUtils.getProperty(params, props.name);
+    name = AppUtils.getProperty(params, props.name),
+    description = AppUtils.getProperty(params, props.description);
 
   let config = {
     uuid: instanceId,
     name: name,
-    typeKey: fogType
+    typeKey: fogType,
+    description: description
   };
 
   FogManager
@@ -152,5 +151,5 @@ export default {
   getFogList: getFogList,
   updateFogInstance: updateFogInstance,
   findFogInstance: findFogInstance,
-  getFogInstanceForUser: getFogInstanceForUser
+  getFogInstanceByNameForUser: getFogInstanceByNameForUser
 };

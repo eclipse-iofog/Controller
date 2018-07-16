@@ -99,8 +99,8 @@ const updateDataTrackByUserId = function(props, params, callback) {
 
 const getDataTrackByNameAndUserId = function (props, params, callback) {
 
-  let userId = props.userId,
-    trackName = props.trackName;
+  let userId = AppUtils.getProperty(params, props.userId),
+    trackName = AppUtils.getProperty(params, props.trackName);
 
   let trackNameAndUser = {
     userId: userId,
