@@ -129,10 +129,7 @@ const checkIfFogsConnected = function (params, callback) {
     });
 };
 
-/**
- ******************* Fog Instance Create EndPoint (Get: /api/v2/instance/create/type/:type) ****************
- * @deprecated
- **/
+/********************* Fog Instance Create EndPoint (Get: /api/v2/instance/create/type/:type) ******************/
 const fogInstanceCreateEndPoint = function (req, res) {
   logger.info("Endpoint hit: " + req.originalUrl);
   let params = {},

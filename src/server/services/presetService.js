@@ -9,6 +9,11 @@ import ElementInstanceService from "./elementInstanceService";
 import ElementService from "./elementService";
 import DataTracksService from "./dataTracksService";
 import ElementInstanceConnectionsService from "./elementInstanceConnectionsService";
+import UserService from "./userService";
+import ConsoleService from "./consoleService";
+import StreamViewerService from "./streamViewerService";
+import logger from "../utils/winstonLogs";
+import FogProvisionKeyService from "./fogProvisionKeyService";
 
 
 
@@ -136,7 +141,7 @@ const processFogs = function (props, params, callback) {
     async.each(fogsCfg, function (fogCfg, next) {
 
             let waterfallMethods = [];
-            let fogProps = {};
+            let fogProps = {}, createFogProps = {};
             let unknownCommand = false;
             switch (fogCfg.action) {
                 case 'get':
@@ -161,16 +166,26 @@ const processFogs = function (props, params, callback) {
                     }
                     break;
                 case 'create':
-                    let createFogProps = {
+                    fogProps = {
                         userId: props.userId,
                         fogCfg: getObjectFieldPathInArray(fogCfg, fogsCfg, props.fogsConfig),
                         setProperty: fogCfg.localId
                     };
                     waterfallMethods = [
-                        async.apply(createFog, createFogProps, params)
+                        async.apply(createFog, fogProps, params)
                     ];
                     break;
-
+                case 'recreate':
+                    fogProps = {
+                        userId: props.userId,
+                        fogCfg: getObjectFieldPathInArray(fogCfg, fogsCfg, props.fogsConfig),
+                        setProperty: fogCfg.localId
+                    };
+                    waterfallMethods = [
+                        async.apply(deleteFog, fogProps, params),
+                        async.apply(createFog, fogProps)
+                    ];
+                    break;
                 default:
                     unknownCommand = true;
                     break;
@@ -196,6 +211,7 @@ const processFogs = function (props, params, callback) {
         })
 };
 
+//TODO: practically the same as fogController.fogInstanceCreateEndPoint and provisionKeuController.getProvisionKeyEndPoint
 const createFog = function (props, params, callback) {
     let fogProps = {
             uuid: props.fogCfg + '.uuid',
@@ -249,6 +265,28 @@ const createFog = function (props, params, callback) {
             callback(null, params)
         }
     });
+};
+
+const deleteFog = function (props, params, callback) {
+    let instanceProps = {
+            instanceId: props.fogCfg + '.uuid'
+        };
+
+    async.waterfall([
+            async.apply(ChangeTrackingService.deleteChangeTracking, instanceProps, params),
+            async.apply(FogUserService.deleteFogUserByInstanceId, instanceProps),
+            async.apply(StreamViewerService.deleteStreamViewerByFogInstanceId, instanceProps),
+            async.apply(ConsoleService.deleteConsoleByFogInstanceId, instanceProps),
+            async.apply(FogProvisionKeyService.deleteProvisonKeyByInstanceId, instanceProps),
+            async.apply(FogService.deleteFogInstance, instanceProps)
+        ],
+        function (err, result) {
+            if (err) {
+                callback(null, params) //ignore errors. errors if data not exists
+            } else {
+                callback(null, params)
+            }
+        });
 };
 
 
