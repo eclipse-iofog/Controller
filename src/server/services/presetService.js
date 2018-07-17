@@ -31,13 +31,18 @@ const presetEnv = function (props, params, callback) {
         fogsProps = {
             fogsConfig: 'config.fogNodes',
             userId: props.user + '.id'
+        },
+        elementsProps = {
+            elementsConfig: 'config.elements',
+            userId: props.user + '.id'
         };
 
 
     async.waterfall([
         async.apply(prepareConfig, prepareConfigProps, params),
         async.apply(processTracks, tracksProps),
-        async.apply(processFogs, fogsProps)
+        async.apply(processFogs, fogsProps),
+        async.apply(processElements, elementsProps)
     ], function (err, result) {
         if (!err) {
             callback(null, params)
@@ -283,6 +288,52 @@ const deleteFog = function (props, params, callback) {
         function (err, result) {
             if (err) {
                 callback(null, params) //ignore errors. errors if data not exists
+            } else {
+                callback(null, params)
+            }
+        });
+};
+
+const processElements = function (props, params, callback) {
+    let elementsCfg = AppUtils.getProperty(params, props.elementsConfig);
+
+    let userId = AppUtils.getProperty(params, props.userId);
+
+    let errMessages = [];
+
+    async.each(elementsCfg, function (elementCfg, next) {
+            let waterfallMethods = [];
+            let elementProps = {};
+            let unknownCommand = false;
+            switch (elementCfg.action) {
+                case 'get':
+                    elementProps = {
+                        userId: props.userId,
+                        elementName: getObjectFieldPathInArray(elementCfg, elementsCfg, props.elementsConfig, 'name'),
+                        setProperty: elementCfg.localId
+                    };
+                    waterfallMethods = [
+                        async.apply(ElementService.getElementByNameForUser, elementProps, params)
+                    ];
+                    break;
+                default:
+                    unknownCommand = true;
+                    break;
+            }
+            async.waterfall(waterfallMethods, function (err, result) {
+                if (err) {
+                    // callback(err, result)
+                    errMessages.push(result);
+                } else if (unknownCommand) {
+                    // callback('error', 'unknown command in tracks config')
+                    errMessages.push('unknown command in element config')
+                }
+                next();
+            });
+        },
+        function () {
+            if (errMessages.length !== 0) {
+                callback('error', errMessages)
             } else {
                 callback(null, params)
             }
