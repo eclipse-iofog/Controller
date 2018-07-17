@@ -35,6 +35,10 @@ const presetEnv = function (props, params, callback) {
         elementsProps = {
             elementsConfig: 'config.elements',
             userId: props.user + '.id'
+        },
+        elementInstancesProps = {
+            elementInstancesConfig: 'config.elementInstances',
+            userId: props.user + '.id'
         };
 
 
@@ -42,7 +46,8 @@ const presetEnv = function (props, params, callback) {
         async.apply(prepareConfig, prepareConfigProps, params),
         async.apply(processTracks, tracksProps),
         async.apply(processFogs, fogsProps),
-        async.apply(processElements, elementsProps)
+        async.apply(processElements, elementsProps),
+        async.apply(processElementInstances, elementInstancesProps)
     ], function (err, result) {
         if (!err) {
             callback(null, params)
@@ -327,6 +332,70 @@ const processElements = function (props, params, callback) {
                 } else if (unknownCommand) {
                     // callback('error', 'unknown command in tracks config')
                     errMessages.push('unknown command in element config')
+                }
+                next();
+            });
+        },
+        function () {
+            if (errMessages.length !== 0) {
+                callback('error', errMessages)
+            } else {
+                callback(null, params)
+            }
+        });
+};
+
+const processElementInstances = function (props, params, callback) {
+    let elementInstancesCfg = AppUtils.getProperty(params, props.elementInstancesConfig);
+
+    let userId = AppUtils.getProperty(params, props.userId);
+
+    let errMessages = [];
+
+    async.each(elementInstancesCfg, function (elementInstanceCfg, next) {
+            let waterfallMethods = [];
+            let elementInstanceProps = {};
+            let unknownCommand = false;
+            switch (elementInstanceCfg.action) {
+                case 'get':
+                    elementInstanceProps = {
+                        userId: props.userId,
+                        trackId: elementInstanceCfg.track + '.id',
+                        elementName: getObjectFieldPathInArray(elementInstanceCfg, elementInstancesCfg, props.elementInstancesConfig, 'name'),
+                        setProperty: elementInstanceCfg.localId
+                    };
+                    waterfallMethods = [
+                        async.apply(ElementInstanceService.getElementInstanceByNameOnTrackForUser, elementInstanceProps, params)
+                    ];
+                    break;
+                case 'create':
+                    elementInstanceProps = {
+                        userId: props.userId,
+                        trackId: elementInstanceCfg.track + '.id',
+                        name: getObjectFieldPathInArray(elementInstanceCfg, elementInstancesCfg, props.elementInstancesConfig, 'name'),
+                        fogInstanceId: elementInstanceCfg.fogNode + '.uuid',
+                        logSize: getObjectFieldPathInArray(elementInstanceCfg, elementInstancesCfg, props.elementInstancesConfig, 'logSize'),
+                        config: getObjectFieldPathInArray(elementInstanceCfg, elementInstancesCfg, props.elementInstancesConfig, 'config'),
+                        volumeMappings: getObjectFieldPathInArray(elementInstanceCfg, elementInstancesCfg, props.elementInstancesConfig, 'volumeMappings'),
+                        element: elementInstanceCfg.element,
+                        setProperty: elementInstanceCfg.localId
+                    };
+                    waterfallMethods = [
+                        async.apply(ElementInstanceService.createElementInstance, elementInstanceProps, params)
+                    ];
+                    break;
+
+                default:
+                    unknownCommand = true;
+                    break;
+            }
+            async.waterfall(waterfallMethods, function (err, result) {
+                if (err) {
+                    // callback(err, result)
+                    errMessages.push(result);
+                } else if (unknownCommand) {
+                    // callback('error', 'unknown command in tracks config')
+                    errMessages.push('unknown command in element instances config')
                 }
                 next();
             });
