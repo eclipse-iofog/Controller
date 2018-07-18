@@ -9,18 +9,14 @@ import ElementInstanceService from "./elementInstanceService";
 import ElementService from "./elementService";
 import DataTracksService from "./dataTracksService";
 import ElementInstanceConnectionsService from "./elementInstanceConnectionsService";
-import UserService from "./userService";
 import ConsoleService from "./consoleService";
 import StreamViewerService from "./streamViewerService";
-import logger from "../utils/winstonLogs";
 import FogProvisionKeyService from "./fogProvisionKeyService";
 import NetworkPairingService from "./networkPairingService";
-import FogTypeService from "./fogTypeService";
 import RoutingService from "./routingService";
 import ComsatService from "./comsatService";
 import SatellitePortService from "./satellitePortService";
 import ElementInstancePortService from "./elementInstancePortService";
-
 
 
 const presetEnv = function (props, params, callback) {
@@ -317,7 +313,7 @@ const deleteElements = function (props, params, callback) {
     let errMessages = [];
 
     async.each(elementInstances, function (instance, next) {
-        //TODO maksimchepelev: practically the same as elementInstanceController.elementInstanceDeleteEndPoint
+            //TODO maksimchepelev: practically the same as elementInstanceController.elementInstanceDeleteEndPoint
 
             let instancePath = getObjectFieldPathInArray(instance, elementInstances, props.elementInstances);
 
@@ -350,7 +346,7 @@ const deleteElements = function (props, params, callback) {
                 async.apply(SatellitePortService.deletePortsForNetworkElements, deleteElementProps),
                 async.apply(ChangeTrackingService.updateChangeTracking, changeTrackingProps),
                 async.apply(ElementInstanceService.deleteElementInstanceWithCleanUp, deleteElementProps)
-            ], function(err, result) {
+            ], function (err, result) {
                 if (err) {
                     // callback(err, result)
                     errMessages.push(result);
@@ -370,8 +366,8 @@ const deleteElements = function (props, params, callback) {
 
 const deleteFog = function (props, params, callback) {
     let instanceProps = {
-            instanceId: props.fogCfg + '.uuid'
-        };
+        instanceId: props.fogCfg + '.uuid'
+    };
 
     async.waterfall([
             async.apply(ChangeTrackingService.deleteChangeTracking, instanceProps, params),
@@ -559,13 +555,6 @@ const processRoutes = function (props, params, callback) {
             }
         });
 };
-
-
-
-
-
-
-
 
 
 const createNetworking = function (props, params, callback) {
@@ -780,27 +769,6 @@ const createSatellitePort = function (params, callback) {
     };
     SatellitePortService.createSatellitePort(satellitePortProps, params, callback);
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 const getObjectFieldPathInArray = function (object, array, arrayName, fieldName,) {
