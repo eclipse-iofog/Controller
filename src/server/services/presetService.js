@@ -19,6 +19,7 @@ import FogTypeService from "./fogTypeService";
 import RoutingService from "./routingService";
 import ComsatService from "./comsatService";
 import SatellitePortService from "./satellitePortService";
+import ElementInstancePortService from "./elementInstancePortService";
 
 
 
@@ -202,7 +203,8 @@ const processFogs = function (props, params, callback) {
                         setProperty: fogCfg.localId
                     };
                     waterfallMethods = [
-                        async.apply(deleteFog, fogProps, params),
+                        async.apply(deleteElementInstancesByFog, fogProps, params),
+                        async.apply(deleteFog, fogProps),
                         async.apply(createFog, fogProps)
                     ];
                     break;
@@ -231,7 +233,7 @@ const processFogs = function (props, params, callback) {
         })
 };
 
-//TODO maksimchepelev: practically the same as fogController.fogInstanceCreateEndPoint and provisionKeuController.getProvisionKeyEndPoint
+//TODO maksimchepelev: practically the same as fogController.fogInstanceCreateEndPoint and provisionKeyController.getProvisionKeyEndPoint
 const createFog = function (props, params, callback) {
     let fogProps = {
             uuid: props.fogCfg + '.uuid',
@@ -285,6 +287,85 @@ const createFog = function (props, params, callback) {
             callback(null, params)
         }
     });
+};
+
+const deleteElementInstancesByFog = function (props, params, callback) {
+
+    let fogProps = {
+            fogId: props.fogCfg + '.uuid',
+            setProperty: props.setProperty + '_elements_to_delete'
+        },
+        elementProps = {
+            elementInstances: fogProps.setProperty
+        };
+
+    async.waterfall([
+        async.apply(ElementInstanceService.getElementInstancesByFogId, fogProps, params),
+        async.apply(deleteElements, elementProps)
+    ], function (err, result) {
+        if (err) {
+            callback(null, params) // ignore errors. errors if no elements
+        } else {
+            callback(null, params)
+        }
+    });
+};
+
+const deleteElements = function (props, params, callback) {
+
+    let elementInstances = AppUtils.getProperty(params, props.elementInstances);
+    let errMessages = [];
+
+    async.each(elementInstances, function (instance, next) {
+        //TODO maksimchepelev: practically the same as elementInstanceController.elementInstanceDeleteEndPoint
+
+            let instancePath = getObjectFieldPathInArray(instance, elementInstances, props.elementInstances);
+
+            let portPasscodeProps = {
+                    elementId: instancePath + '.uuid',
+                    setProperty: 'portPasscode'
+                },
+                deleteElementProps = {
+                    elementId: instancePath + '.uuid',
+                    iofogUUID: instancePath + '.iofog_uuid',
+                    // withCleanUp: 'bodyParams.withCleanUp'
+                },
+                changeTrackingProps = {
+                    fogInstanceId: instancePath + '.iofog_uuid',
+                    changeObject: {
+                        'containerList': new Date().getTime(),
+                    }
+                };
+
+            params.milliseconds = new Date().getTime();
+
+            async.waterfall([
+                async.apply(ElementInstancePortService.deleteElementInstancePort, deleteElementProps, params),
+                async.apply(RoutingService.deleteElementInstanceRouting, deleteElementProps),
+                async.apply(RoutingService.deleteNetworkElementRouting, deleteElementProps),
+                async.apply(ElementInstanceService.deleteNetworkElementInstance, deleteElementProps),
+                async.apply(SatellitePortService.getPasscodeForNetworkElements, portPasscodeProps),
+                ComsatService.closePortsOnComsat,
+                async.apply(NetworkPairingService.deleteNetworkPairing, deleteElementProps),
+                async.apply(SatellitePortService.deletePortsForNetworkElements, deleteElementProps),
+                async.apply(ChangeTrackingService.updateChangeTracking, changeTrackingProps),
+                async.apply(ElementInstanceService.deleteElementInstanceWithCleanUp, deleteElementProps)
+            ], function(err, result) {
+                if (err) {
+                    // callback(err, result)
+                    errMessages.push(result);
+                }
+                next();
+            });
+        },
+        function () {
+            if (errMessages.length !== 0) {
+                callback('error', errMessages)
+            } else {
+                callback(null, params)
+            }
+        }
+    );
 };
 
 const deleteFog = function (props, params, callback) {
@@ -608,10 +689,12 @@ const createNetworking = function (props, params, callback) {
         ];
     } else {
         watefallMethods = [
-            async.apply(ComsatService.openPortOnRadomComsat, params),
-            createSatellitePort,
+            //TODO maksimchepelev: uncomment before merge
+            // async.apply(ComsatService.openPortOnRadomComsat, params),
+            // createSatellitePort,
 
-            async.apply(ElementService.getNetworkElement, pubNetworkElementProps),
+            //TODO maksimchepelev: delete params before merge
+            async.apply(ElementService.getNetworkElement, pubNetworkElementProps, params),
             async.apply(createPubNetworkElementInstance, pubNetworkElementInstanceProps),
 
             async.apply(ElementService.getNetworkElement, destNetworkElementProps),
