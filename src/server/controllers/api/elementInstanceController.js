@@ -199,6 +199,7 @@ import ArchitectureUtils from '../../utils/architectureUtils'
         setProperty: 'element'
       },
       newElementInstanceProps = {
+        element: 'element',
         userId: 'user.id',
         trackId: 'bodyParams.trackId',
         name: 'bodyParams.name',
@@ -338,6 +339,7 @@ const elementInstanceCreateEndPoint = function(req, res) {
     },
 
     elementInstanceProps = {
+      element: 'element',
       userId: 'user.id',
       trackId: 'bodyParams.trackId',
       name: 'bodyParams.name',
