@@ -224,7 +224,7 @@ const initApp = function () {
   app.get('/api/v2/user/authenticate/:t', userController.authenticateUserEndPoint);
   app.get('/api/v2/emailActivation', fogController.getEmailActivationEndPoint);
 
-  app.post('/api/v2/testPreset', presetController.testPreset);
+  app.post('/api/v2/authoring/preset/fromConfig', presetController.testPreset);
 
   //generic error handler
   app.use((err, req, res, next) => {

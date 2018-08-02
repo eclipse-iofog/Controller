@@ -86,13 +86,13 @@ const fillVariablesInString = function (variables, str) {
 };
 
 const processTracks = function (props, params, callback) {
-    let tracksCfg = AppUtils.getProperty(params, props.tracksConfig);
+    let tracksCfgArr = AppUtils.getProperty(params, props.tracksConfig);
 
     let userId = AppUtils.getProperty(params, props.userId);
 
     let errMessages = [];
 
-    async.each(tracksCfg, function (trackCfg, next) {
+    async.each(tracksCfgArr, function (trackCfg, next) {
             let waterfallMethods = [];
             let trackProps = {};
             let unknownCommand = false;
@@ -100,7 +100,7 @@ const processTracks = function (props, params, callback) {
                 case 'get':
                     trackProps = {
                         userId: props.userId,
-                        trackName: getObjectFieldPathInArray(trackCfg, tracksCfg, props.tracksConfig, 'name'),
+                        trackName: getObjectFieldPathInArray(trackCfg, tracksCfgArr, props.tracksConfig, 'name'),
                         setProperty: trackCfg.localId
                     };
                     waterfallMethods = [
@@ -130,17 +130,17 @@ const processTracks = function (props, params, callback) {
             }
             async.waterfall(waterfallMethods, function (err, result) {
                 if (err) {
-                    // callback(err, result)
+
                     errMessages.push(result);
                 } else if (unknownCommand) {
-                    // callback('error', 'unknown command in tracks config')
+
                     errMessages.push('unknown command in tracks config')
                 }
                 next();
             });
         },
         function () {
-            if (errMessages.length !== 0) {
+            if (errMessages.length > 0) {
                 callback('error', errMessages)
             } else {
                 callback(null, params)
@@ -149,13 +149,13 @@ const processTracks = function (props, params, callback) {
 };
 
 const processFogs = function (props, params, callback) {
-    let fogsCfg = AppUtils.getProperty(params, props.fogsConfig);
+    let fogsCfgArr = AppUtils.getProperty(params, props.fogsConfig);
 
     let userId = AppUtils.getProperty(params, props.userId);
 
     let errMessages = [];
 
-    async.each(fogsCfg, function (fogCfg, next) {
+    async.each(fogsCfgArr, function (fogCfg, next) {
 
             let waterfallMethods = [];
             let fogProps = {}, createFogProps = {};
@@ -164,7 +164,7 @@ const processFogs = function (props, params, callback) {
                 case 'get':
                     if (fogCfg.uuid) {
                         fogProps = {
-                            fogId: getObjectFieldPathInArray(fogCfg, fogsCfg, props.fogsConfig, 'uuid'),
+                            fogId: getObjectFieldPathInArray(fogCfg, fogsCfgArr, props.fogsConfig, 'uuid'),
                             setProperty: fogCfg.localId
                         };
 
@@ -174,7 +174,7 @@ const processFogs = function (props, params, callback) {
                     } else {
                         fogProps = {
                             userId: props.userId,
-                            fogName: getObjectFieldPathInArray(fogCfg, fogsCfg, props.fogsConfig, 'name'),
+                            fogName: getObjectFieldPathInArray(fogCfg, fogsCfgArr, props.fogsConfig, 'name'),
                             setProperty: fogCfg.localId
                         };
                         waterfallMethods = [
@@ -185,7 +185,7 @@ const processFogs = function (props, params, callback) {
                 case 'create':
                     fogProps = {
                         userId: props.userId,
-                        fogCfg: getObjectFieldPathInArray(fogCfg, fogsCfg, props.fogsConfig),
+                        fogCfg: getObjectFieldPathInArray(fogCfg, fogsCfgArr, props.fogsConfig),
                         setProperty: fogCfg.localId
                     };
                     waterfallMethods = [
@@ -195,7 +195,7 @@ const processFogs = function (props, params, callback) {
                 case 'recreate':
                     fogProps = {
                         userId: props.userId,
-                        fogCfg: getObjectFieldPathInArray(fogCfg, fogsCfg, props.fogsConfig),
+                        fogCfg: getObjectFieldPathInArray(fogCfg, fogsCfgArr, props.fogsConfig),
                         setProperty: fogCfg.localId
                     };
                     waterfallMethods = [
@@ -210,10 +210,10 @@ const processFogs = function (props, params, callback) {
             }
             async.waterfall(waterfallMethods, function (err, result) {
                 if (err) {
-                    // callback(err, result)
+
                     errMessages.push(result);
                 } else if (unknownCommand) {
-                    // callback('error', 'unknown command in tracks config')
+
                     errMessages.push('unknown command in fog config')
                 }
                 next();
@@ -221,7 +221,7 @@ const processFogs = function (props, params, callback) {
 
         },
         function () {
-            if (errMessages.length !== 0) {
+            if (errMessages.length > 0) {
                 callback('error', errMessages)
             } else {
                 callback(null, params)
@@ -231,29 +231,30 @@ const processFogs = function (props, params, callback) {
 
 //TODO maksimchepelev: practically the same as fogController.fogInstanceCreateEndPoint and provisionKeyController.getProvisionKeyEndPoint
 const createFog = function (props, params, callback) {
+    let fogIdProp = generateUuidProp(props.setProperty);
     let fogProps = {
-            uuid: props.fogCfg + '.uuid',
+            uuid: generateUuidProp(props.fogCfg),
             name: props.fogCfg + '.name',
             fogType: props.fogCfg + '.type',
             description: props.fogCfg + '.description',
             setProperty: props.setProperty
         },
         deleteAccesTokenProps = {
-            fogId: props.setProperty + '.uuid'
+            fogId: fogIdProp
         },
 
         fogUserProps = {
             userId: props.userId,
-            instanceId: props.setProperty + '.uuid',
+            instanceId: fogIdProp,
             setProperty: null
         },
         changeTrackingProps = {
-            fogInstanceId: props.setProperty + '.uuid',
+            fogInstanceId: fogIdProp,
             setProperty: null
         },
         saveFogAccessTokenProps = {
             userId: props.userId,
-            fogId: props.setProperty + '.uuid',
+            fogId: fogIdProp,
             expirationTime: 'tokenData.expirationTime',
             accessToken: 'tokenData.accessToken',
             setProperty: props.setProperty + '_fogTokenData'
@@ -261,7 +262,7 @@ const createFog = function (props, params, callback) {
 
     let waterfallMethods = [];
 
-    if (AppUtils.getProperty(params, props.fogCfg + '.uuid')) {
+    if (AppUtils.getProperty(params, generateUuidProp(props.fogCfg))) {
         waterfallMethods.push(async.apply(FogService.createFogInstanceWithUUID, fogProps, params))
     } else {
         waterfallMethods.push(async.apply(FogService.createFogInstance, fogProps, params))
@@ -288,7 +289,7 @@ const createFog = function (props, params, callback) {
 const deleteElementInstancesByFog = function (props, params, callback) {
 
     let fogProps = {
-            fogId: props.fogCfg + '.uuid',
+            fogId: generateUuidProp(props.fogCfg),
             setProperty: props.setProperty + '_elements_to_delete'
         },
         elementProps = {
@@ -299,11 +300,7 @@ const deleteElementInstancesByFog = function (props, params, callback) {
         async.apply(ElementInstanceService.getElementInstancesByFogId, fogProps, params),
         async.apply(deleteElements, elementProps)
     ], function (err, result) {
-        if (err) {
-            callback(null, params) // ignore errors. errors if no elements
-        } else {
-            callback(null, params)
-        }
+        callback(null, params); // ignore errors. errors if no elements
     });
 };
 
@@ -318,11 +315,11 @@ const deleteElements = function (props, params, callback) {
             let instancePath = getObjectFieldPathInArray(instance, elementInstances, props.elementInstances);
 
             let portPasscodeProps = {
-                    elementId: instancePath + '.uuid',
+                    elementId: generateUuidProp(instancePath),
                     setProperty: 'portPasscode'
                 },
                 deleteElementProps = {
-                    elementId: instancePath + '.uuid',
+                    elementId: generateUuidProp(instancePath),
                     iofogUUID: instancePath + '.iofog_uuid',
                     // withCleanUp: 'bodyParams.withCleanUp'
                 },
@@ -348,14 +345,14 @@ const deleteElements = function (props, params, callback) {
                 async.apply(ElementInstanceService.deleteElementInstanceWithCleanUp, deleteElementProps)
             ], function (err, result) {
                 if (err) {
-                    // callback(err, result)
+
                     errMessages.push(result);
                 }
                 next();
             });
         },
         function () {
-            if (errMessages.length !== 0) {
+            if (errMessages.length > 0) {
                 callback('error', errMessages)
             } else {
                 callback(null, params)
@@ -366,7 +363,7 @@ const deleteElements = function (props, params, callback) {
 
 const deleteFog = function (props, params, callback) {
     let instanceProps = {
-        instanceId: props.fogCfg + '.uuid'
+        instanceId: generateUuidProp(props.fogCfg)
     };
 
     async.waterfall([
@@ -378,22 +375,18 @@ const deleteFog = function (props, params, callback) {
             async.apply(FogService.deleteFogInstance, instanceProps)
         ],
         function (err, result) {
-            if (err) {
-                callback(null, params) //ignore errors. errors if data not exists
-            } else {
-                callback(null, params)
-            }
+            callback(null, params); //ignore errors. errors if data not exists
         });
 };
 
 const processElements = function (props, params, callback) {
-    let elementsCfg = AppUtils.getProperty(params, props.elementsConfig);
+    let elementsCfgArr = AppUtils.getProperty(params, props.elementsConfig);
 
     let userId = AppUtils.getProperty(params, props.userId);
 
     let errMessages = [];
 
-    async.each(elementsCfg, function (elementCfg, next) {
+    async.each(elementsCfgArr, function (elementCfg, next) {
             let waterfallMethods = [];
             let elementProps = {};
             let unknownCommand = false;
@@ -401,7 +394,7 @@ const processElements = function (props, params, callback) {
                 case 'get':
                     elementProps = {
                         userId: props.userId,
-                        elementName: getObjectFieldPathInArray(elementCfg, elementsCfg, props.elementsConfig, 'name'),
+                        elementName: getObjectFieldPathInArray(elementCfg, elementsCfgArr, props.elementsConfig, 'name'),
                         setProperty: elementCfg.localId
                     };
                     waterfallMethods = [
@@ -414,17 +407,17 @@ const processElements = function (props, params, callback) {
             }
             async.waterfall(waterfallMethods, function (err, result) {
                 if (err) {
-                    // callback(err, result)
+
                     errMessages.push(result);
                 } else if (unknownCommand) {
-                    // callback('error', 'unknown command in tracks config')
+
                     errMessages.push('unknown command in element config')
                 }
                 next();
             });
         },
         function () {
-            if (errMessages.length !== 0) {
+            if (errMessages.length > 0) {
                 callback('error', errMessages)
             } else {
                 callback(null, params)
@@ -433,13 +426,13 @@ const processElements = function (props, params, callback) {
 };
 
 const processElementInstances = function (props, params, callback) {
-    let elementInstancesCfg = AppUtils.getProperty(params, props.elementInstancesConfig);
+    let elementInstancesCfgArr = AppUtils.getProperty(params, props.elementInstancesConfig);
 
     let userId = AppUtils.getProperty(params, props.userId);
 
     let errMessages = [];
 
-    async.each(elementInstancesCfg, function (elementInstanceCfg, next) {
+    async.each(elementInstancesCfgArr, function (elementInstanceCfg, next) {
             let waterfallMethods = [];
             let elementInstanceProps = {};
             let unknownCommand = false;
@@ -448,7 +441,7 @@ const processElementInstances = function (props, params, callback) {
                     elementInstanceProps = {
                         userId: props.userId,
                         trackId: elementInstanceCfg.track + '.id',
-                        elementName: getObjectFieldPathInArray(elementInstanceCfg, elementInstancesCfg, props.elementInstancesConfig, 'name'),
+                        elementName: getObjectFieldPathInArray(elementInstanceCfg, elementInstancesCfgArr, props.elementInstancesConfig, 'name'),
                         setProperty: elementInstanceCfg.localId
                     };
                     waterfallMethods = [
@@ -459,11 +452,11 @@ const processElementInstances = function (props, params, callback) {
                     elementInstanceProps = {
                         userId: props.userId,
                         trackId: elementInstanceCfg.track + '.id',
-                        name: getObjectFieldPathInArray(elementInstanceCfg, elementInstancesCfg, props.elementInstancesConfig, 'name'),
-                        fogInstanceId: elementInstanceCfg.fogNode + '.uuid',
-                        logSize: getObjectFieldPathInArray(elementInstanceCfg, elementInstancesCfg, props.elementInstancesConfig, 'logSize'),
-                        config: getObjectFieldPathInArray(elementInstanceCfg, elementInstancesCfg, props.elementInstancesConfig, 'config'),
-                        volumeMappings: getObjectFieldPathInArray(elementInstanceCfg, elementInstancesCfg, props.elementInstancesConfig, 'volumeMappings'),
+                        name: getObjectFieldPathInArray(elementInstanceCfg, elementInstancesCfgArr, props.elementInstancesConfig, 'name'),
+                        fogInstanceId: generateUuidProp(elementInstanceCfg.fogNode),
+                        logSize: getObjectFieldPathInArray(elementInstanceCfg, elementInstancesCfgArr, props.elementInstancesConfig, 'logSize'),
+                        config: getObjectFieldPathInArray(elementInstanceCfg, elementInstancesCfgArr, props.elementInstancesConfig, 'config'),
+                        volumeMappings: getObjectFieldPathInArray(elementInstanceCfg, elementInstancesCfgArr, props.elementInstancesConfig, 'volumeMappings'),
                         element: elementInstanceCfg.element,
                         setProperty: elementInstanceCfg.localId
                     };
@@ -478,17 +471,17 @@ const processElementInstances = function (props, params, callback) {
             }
             async.waterfall(waterfallMethods, function (err, result) {
                 if (err) {
-                    // callback(err, result)
+
                     errMessages.push(result);
                 } else if (unknownCommand) {
-                    // callback('error', 'unknown command in tracks config')
+
                     errMessages.push('unknown command in element instances config')
                 }
                 next();
             });
         },
         function () {
-            if (errMessages.length !== 0) {
+            if (errMessages.length > 0) {
                 callback('error', errMessages)
             } else {
                 callback(null, params)
@@ -497,13 +490,13 @@ const processElementInstances = function (props, params, callback) {
 };
 
 const processRoutes = function (props, params, callback) {
-    let routesCfg = AppUtils.getProperty(params, props.routesConfig);
+    let routesCfgArr = AppUtils.getProperty(params, props.routesConfig);
 
     let userId = AppUtils.getProperty(params, props.userId);
 
     let errMessages = [];
 
-    async.each(routesCfg, function (routeCfg, next) {
+    async.each(routesCfgArr, function (routeCfg, next) {
             let waterfallMethods = [];
             let unknownCommand = false;
 
@@ -517,8 +510,8 @@ const processRoutes = function (props, params, callback) {
 
             let connectionProps = {
                     newConnectionObj: {
-                        sourceElementInstance: AppUtils.getProperty(params, routeCfg.from + '.uuid'),
-                        destinationElementInstance: AppUtils.getProperty(params, routeCfg.to + '.uuid')
+                        sourceElementInstance: AppUtils.getProperty(params, generateUuidProp(routeCfg.from)),
+                        destinationElementInstance: AppUtils.getProperty(params, generateUuidProp(routeCfg.to))
                     },
                     setProperty: 'connection_' + routeCfg.from + '_' + routeCfg.to
                 },
@@ -538,17 +531,17 @@ const processRoutes = function (props, params, callback) {
 
             async.waterfall(waterfallMethods, function (err, result) {
                 if (err) {
-                    // callback(err, result)
+
                     errMessages.push(result);
                 } else if (unknownCommand) {
-                    // callback('error', 'unknown command in tracks config')
+
                     errMessages.push('unknown command in element instances config')
                 }
                 next();
             });
         },
         function () {
-            if (errMessages.length !== 0) {
+            if (errMessages.length > 0) {
                 callback('error', errMessages)
             } else {
                 callback(null, params)
@@ -586,10 +579,10 @@ const createNetworking = function (props, params, callback) {
         },
 
         networkPairingProps = {
-            instanceId1: props.publishingFogInstance + '.uuid',
-            instanceId2: props.destinationFogInstance + '.uuid',
-            elementId1: props.publishingElement + '.uuid',
-            elementId2: props.destinationElement + '.uuid',
+            instanceId1: generateUuidProp(props.publishingFogInstance),
+            instanceId2: generateUuidProp(props.destinationFogInstance),
+            elementId1: generateUuidProp(props.publishingElement),
+            elementId2: generateUuidProp(props.destinationElement),
             networkElementId1: 'pubNetworkElementInstance.uuid',
             networkElementId2: 'destNetworkElementInstance.uuid',
             isPublic: false,
@@ -599,39 +592,39 @@ const createNetworking = function (props, params, callback) {
         },
         //
         routingProps = {
-            publishingInstanceId: props.publishingFogInstance + '.uuid',
-            destinationInstanceId: props.publishingFogInstance + '.uuid',
-            publishingElementId: props.publishingElement + '.uuid',
-            destinationElementId: props.destinationElement + '.uuid',
+            publishingInstanceId: generateUuidProp(props.publishingFogInstance),
+            destinationInstanceId: generateUuidProp(props.publishingFogInstance),
+            publishingElementId: generateUuidProp(props.publishingElement),
+            destinationElementId: generateUuidProp(props.destinationElement),
             isNetworkConnection: false,
             setProperty: 'route'
         },
 
         pubRoutingProps = {
-            publishingInstanceId: props.publishingFogInstance + '.uuid',
-            destinationInstanceId: props.publishingFogInstance + '.uuid',
-            publishingElementId: props.publishingElement + '.uuid',
+            publishingInstanceId: generateUuidProp(props.publishingFogInstance),
+            destinationInstanceId: generateUuidProp(props.publishingFogInstance),
+            publishingElementId: generateUuidProp(props.publishingElement),
             destinationElementId: 'pubNetworkElementInstance.uuid',
             isNetworkConnection: true,
             setProperty: 'publisingRoute'
         },
 
         destRoutingProps = {
-            publishingInstanceId: props.destinationFogInstance + '.uuid',
-            destinationInstanceId: props.destinationFogInstance + '.uuid',
+            publishingInstanceId: generateUuidProp(props.destinationFogInstance),
+            destinationInstanceId: generateUuidProp(props.destinationFogInstance),
             publishingElementId: 'destNetworkElementInstance.uuid',
-            destinationElementId: props.destinationElement + '.uuid',
+            destinationElementId: generateUuidProp(props.destinationElement),
             isNetworkConnection: true,
             setProperty: 'destinationRoute'
         },
 
         destElementProps = {
-            elementInstanceId: props.destinationElement + '.uuid',
+            elementInstanceId: generateUuidProp(props.destinationElement),
             setProperty: 'destinationElementInstance'
         },
 
         pubChangeTrackingProps = {
-            fogInstanceId: props.publishingFogInstance + '.uuid',
+            fogInstanceId: generateUuidProp(props.publishingFogInstance),
             changeObject: {
                 'containerList': currentTime,
                 'containerConfig': currentTime,
@@ -640,7 +633,7 @@ const createNetworking = function (props, params, callback) {
         },
 
         destChangeTrackingProps = {
-            fogInstanceId: props.destinationFogInstance + '.uuid',
+            fogInstanceId: generateUuidProp(props.destinationFogInstance),
             changeObject: {
                 'containerList': currentTime,
                 'containerConfig': currentTime,
@@ -654,21 +647,21 @@ const createNetworking = function (props, params, callback) {
         },
 
         updateRebuildPubProps = {
-            elementId: props.publishingElement + '.uuid',
+            elementId: generateUuidProp(props.publishingElement),
             updatedData: {
                 rebuild: 1
             }
         },
         updateRebuildDestProps = {
-            elementId: props.destinationElement + '.uuid',
+            elementId: generateUuidProp(props.destinationElement),
             updatedData: {
                 rebuild: 1
             }
         };
 
 
-    if (AppUtils.getProperty(params, props.publishingFogInstance + '.uuid')
-        === AppUtils.getProperty(params, props.destinationFogInstanceUUID + '.uuid')) {
+    if (AppUtils.getProperty(params, generateUuidProp(props.publishingFogInstance))
+        === AppUtils.getProperty(params, generateUuidProp(props.destinationFogInstanceUUID))) {
         watefallMethods = [
             async.apply(RoutingService.createRoute, routingProps, params),
             async.apply(ElementInstanceService.getElementInstanceRouteDetails, destElementProps),
@@ -678,12 +671,11 @@ const createNetworking = function (props, params, callback) {
         ];
     } else {
         watefallMethods = [
-            //TODO maksimchepelev: uncomment before merge
-            // async.apply(ComsatService.openPortOnRadomComsat, params),
-            // createSatellitePort,
 
-            //TODO maksimchepelev: delete params before merge
-            async.apply(ElementService.getNetworkElement, pubNetworkElementProps, params),
+            async.apply(ComsatService.openPortOnRadomComsat, params),
+            createSatellitePort,
+
+            async.apply(ElementService.getNetworkElement, pubNetworkElementProps),
             async.apply(createPubNetworkElementInstance, pubNetworkElementInstanceProps),
 
             async.apply(ElementService.getNetworkElement, destNetworkElementProps),
@@ -716,14 +708,14 @@ const createNetworking = function (props, params, callback) {
 const createPubNetworkElementInstance = function (props, params, callback) {
     let networkElementInstanceProps = {
         networkElement: 'pubNetworkElement',
-        fogInstanceId: props.publishingFogInstance + '.uuid',
+        fogInstanceId: generateUuidProp(props.publishingFogInstance),
         satellitePort: 'satellitePort.port1',
         satelliteDomain: 'satellite.domain',
         satelliteCertificate: 'satellite.cert',
         passcode: 'comsatPort.passcode1',
         trackId: props.publishingElement + '.trackId',
         userId: 'oroAdmin.id',
-        networkName: 'Network for Element ' + AppUtils.getProperty(params, props.publishingElement + '.uuid'),
+        networkName: 'Network for Element ' + AppUtils.getProperty(params, generateUuidProp(props.publishingElement)),
         networkPort: 0,
         isPublic: false,
         setProperty: 'pubNetworkElementInstance'
@@ -735,14 +727,14 @@ const createPubNetworkElementInstance = function (props, params, callback) {
 const createDestNetworkElementInstance = function (props, params, callback) {
     let networkElementInstanceProps = {
         networkElement: 'destNetworkElement',
-        fogInstanceId: props.destFogInstance + '.uuid',
+        fogInstanceId: generateUuidProp(props.destFogInstance),
         satellitePort: 'satellitePort.port2',
         satelliteDomain: 'satellite.domain',
         satelliteCertificate: 'satellite.cert',
         passcode: 'comsatPort.passcode2',
         trackId: props.destElement + '.trackId',
         userId: 'oroAdmin.id',
-        networkName: 'Network for Element ' + AppUtils.getProperty(params, props.destElement + '.uuid'),
+        networkName: 'Network for Element ' + AppUtils.getProperty(params, generateUuidProp(props.destElement)),
         networkPort: 0,
         isPublic: false,
         setProperty: 'destNetworkElementInstance'
@@ -771,7 +763,7 @@ const createSatellitePort = function (params, callback) {
 };
 
 
-const getObjectFieldPathInArray = function (object, array, arrayName, fieldName,) {
+const getObjectFieldPathInArray = function (object, array, arrayName, fieldName) {
     let index = array.indexOf(object);
     let path;
     if (fieldName) {
@@ -795,6 +787,10 @@ const getObjectInArrayByField = function (array, fieldName, fieldValue) {
     });
 
     return res;
+};
+
+const generateUuidProp = function(baseProp) {
+    return baseProp + '.uuid';
 };
 
 export default {
