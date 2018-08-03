@@ -17,7 +17,7 @@ import https from 'https';
 import SatelliteManager from '../managers/satelliteManager';
 import SatelliteService from '../services/satelliteService';
 
-const openPortOnRadomComsat = function (params, callback) {
+const openPortOnRandomComsat = function (params, callback) {
     let isComsatPortOpen = false,
         iterations = 0;
 
@@ -352,9 +352,9 @@ const displayComsatConnectionsStatus = function (params, callback) {
 }
 
 export default {
-    openPortOnRadomComsat: openPortOnRadomComsat,
-    closePortOnComsat: closePortOnComsat,
-    closePortsOnComsat: closePortsOnComsat,
-    openPortsOnComsat: openPortsOnComsat,
-    checkConnectionToComsat: checkConnectionToComsat
+  openPortOnRandomComsat: openPortOnRandomComsat,
+  closePortOnComsat: closePortOnComsat,
+  closePortsOnComsat: closePortsOnComsat,
+  openPortsOnComsat: openPortsOnComsat,
+  checkConnectionToComsat: checkConnectionToComsat
 };

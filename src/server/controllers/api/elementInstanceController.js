@@ -199,6 +199,7 @@ import ArchitectureUtils from '../../utils/architectureUtils'
         setProperty: 'element'
       },
       newElementInstanceProps = {
+        element: 'element',
         userId: 'user.id',
         trackId: 'bodyParams.trackId',
         name: 'bodyParams.name',
@@ -338,6 +339,7 @@ const elementInstanceCreateEndPoint = function(req, res) {
     },
 
     elementInstanceProps = {
+      element: 'element',
       userId: 'user.id',
       trackId: 'bodyParams.trackId',
       name: 'bodyParams.name',
@@ -559,7 +561,7 @@ const elementInstanceComsatPipeCreateEndPoint = function(req, res) {
     async.apply(ElementInstanceService.getElementInstance, elementInstanceProps),
     async.apply(FogTypeService.getFogTypeDetail, fogTypeProps),
     async.apply(ElementInstancePortService.getElementInstancePort, elementInstancePortProps),
-    ComsatService.openPortOnRadomComsat,
+    ComsatService.openPortOnRandomComsat,
     createSatellitePort,
     async.apply(ElementService.getNetworkElement, networkElementProps),
     createNetworkElementInstance,
@@ -737,7 +739,7 @@ const elementInstancePortCreateEndPoint = function(req, res) {
       async.apply(ChangeTrackingService.updateChangeTracking, changeTrackingProps),
       async.apply(ElementInstancePortService.createElementInstancePort, elementInstancePortProps),
       updateElemInstance,
-      ComsatService.openPortOnRadomComsat,
+      ComsatService.openPortOnRandomComsat,
       createSatellitePort,
       async.apply(ElementService.getNetworkElement, networkElementProps),
       createNetworkElementInstance,
