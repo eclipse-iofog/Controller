@@ -672,7 +672,7 @@ const createNetworking = function (props, params, callback) {
     } else {
         watefallMethods = [
 
-            async.apply(ComsatService.openPortOnRadomComsat, params),
+            async.apply(ComsatService.openPortOnRandomComsat, params),
             createSatellitePort,
 
             async.apply(ElementService.getNetworkElement, pubNetworkElementProps),
