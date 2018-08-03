@@ -53,10 +53,10 @@ function runListCommand(args) {
 
 function runAddCommand(args) {
   if (args.length < 4) return Help.displayComsatAddHelp();
-  if (args.length > 5) return Help.displayExtraArgumentHelp(args[5]);
+  if (args.length > 6) return Help.displayExtraArgumentHelp(args[6]);
 
   try {
-    SatelliteManager.createSatellite(args[1], args[2], args[3], args[4]);
+    SatelliteManager.createSatellite(args[1], args[2], args[3], args[4], args[5]);
   } catch(e) {
     console.log(e);
   }

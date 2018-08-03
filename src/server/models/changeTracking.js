@@ -38,6 +38,10 @@ const ChangeTracking = sequelize.define('iofog_change_tracking', {
     type: Sequelize.BOOLEAN,
     field: 'reboot'
   },
+  deletenode: {
+      type: Sequelize.BOOLEAN,
+      field: 'deletenode'
+  },
   version: {
       type: Sequelize.BIGINT,
       field: 'version'

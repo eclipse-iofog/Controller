@@ -42,6 +42,10 @@ const Satellite = sequelize.define('satellite', {
   cert: {
     type: Sequelize.TEXT,
     field: 'cert'
+  },
+  selfSignedCerts: {
+    type: Sequelize.BOOLEAN,
+    field: 'self_signed_certs'
   }
 }, {
   // don't add the timestamp attributes (updatedAt, createdAt)

@@ -163,7 +163,12 @@ To setup email sender, do following steps:
 
 2.&ensp;To add a ComSat
 
-        sudo fog-controller comsat -add <name> <domain> <publicIP>
+        sudo fog-controller comsat -add <name> <domain> <publicIP> <cert> <selfSignedCerts>
+        
+&ensp;<cert> parameter is path to the certificate file (optional)
+&ensp;<selfSignedCerts is boolean value indicating if certificate is self signed or not.
+&ensp;If certificate is self signed then <selfSignedCerts> should be set to 'true', otherwise it should be set to any other value or not set at all.
+ 
 
 3.&ensp;To remove a ComSat
 

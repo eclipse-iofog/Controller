@@ -175,6 +175,7 @@ const initApp = function () {
   app.post('/api/v2/authoring/user/track/delete', trackController.userTrackDeleteEndPoint);
   app.get('/api/v2/authoring/fog/track/element/list/:trackId', elementInstanceController.trackElementListEndPoint);
   app.post('/api/v2/authoring/fog/instance/delete', fogController.fogInstanceDeleteEndPoint);
+  app.post('/api/v2/instance/deleteNode/id/:ID/token/:Token', fogController.fogInstanceDeleteNodeEndPoint);
   app.post('/api/v2/authoring/fog/instances/settings/update', fogController.updateFogSettingsEndpoint);
   app.post('/api/v2/authoring/fog/track/update', trackController.fogTrackUpdateEndPoint);
   app.post('/api/v2/authoring/fog/track/delete', trackController.fogTrackDeleteEndPoint);
@@ -260,7 +261,7 @@ const startHttpsServer = function (app, port, sslKey, sslCert, intermedKey) {
       cert: fs.readFileSync(sslCert),
       ca: fs.readFileSync(intermedKey),
       requestCert: true,
-      rejectUnauthorized: false
+      rejectUnauthorized: false // currently for some reason iofog agent doesn't work without this option
     };
 
     https.createServer(sslOptions, app).listen(port, function onStart(err) {
