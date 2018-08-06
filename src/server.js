@@ -44,6 +44,10 @@ import fogVersionCommandController from './server/controllers/api/fogVersionComm
 import diagnosticsController from './server/controllers/api/diagnosticsController';
 import imageSnapshotController from "./server/controllers/api/imageSnapshotController";
 
+
+import testController from './server/controllers/api/testController';
+
+
 const express = require('express');
 const path = require('path');
 
@@ -223,6 +227,9 @@ const initApp = function () {
   app.get('/account/activate/code/:code', userController.activateUserAccountEndPoint);
   app.get('/api/v2/user/authenticate/:t', userController.authenticateUserEndPoint);
   app.get('/api/v2/emailActivation', fogController.getEmailActivationEndPoint);
+
+
+  app.post('/testEndPoint', testController.testEndPoint);
 
   //generic error handler
   app.use((err, req, res, next) => {
