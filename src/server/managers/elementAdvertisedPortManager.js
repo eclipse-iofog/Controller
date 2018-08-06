@@ -17,8 +17,8 @@
  * @description This file includes the CURD operations for the element Model.
  */
 
-import ElementAdvertisedPort from './../models/elementAdvertisedPort';
-import BaseManager from './baseManager';
+const ElementAdvertisedPort = require('./../models/elementAdvertisedPort');
+const BaseManager = require('./baseManager');
 
 class ElementAdvertisedPortManager extends BaseManager {
   getEntity() {
@@ -37,4 +37,4 @@ class ElementAdvertisedPortManager extends BaseManager {
 }
 
 const instance = new ElementAdvertisedPortManager();
-export default instance;
+module.exports =  instance;

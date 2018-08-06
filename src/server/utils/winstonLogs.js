@@ -11,7 +11,7 @@
  *
  */
 
-import appConfig from './../../config.json';
+const appConfig = require('./../../config.json');
 const winston = require('winston');
 const path = require('path');
 require('winston-daily-rotate-file');

@@ -11,41 +11,41 @@
  *
  */
 
-import bodyParser from 'body-parser';
-import cookieParser from 'cookie-parser';
-import fs from 'fs';
-import https from 'https';
-import appConfig from './config.json';
-import configUtil from './server/utils/configUtil';
-import constants from './server/constants.js';
+const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
+const fs = require('fs');
+const https = require('https');
+const appConfig = require('./config.json');
+const configUtil = require('./server/utils/configUtil');
+const constants = require('./server/constants.js');
 
-import baseController from './server/controllers/baseController';
-import elementInstanceController from './server/controllers/api/elementInstanceController';
-import elementController from './server/controllers/api/elementController';
-import fogController from './server/controllers/api/fogController';
-import instanceResourcesController from './server/controllers/api/instanceResourcesController';
-import instanceStatusController from './server/controllers/api/instanceStatusController';
-import instanceConfigController from './server/controllers/api/instanceConfigController';
-import instanceContainerListController from './server/controllers/api/instanceContainerListController';
-import instanceChangesController from './server/controllers/api/instanceChangesController';
-import instanceRegistriesController from './server/controllers/api/instanceRegistriesController';
-import instanceRoutingController from './server/controllers/api/instanceRoutingController';
-import instanceContainerConfigController from './server/controllers/api/instanceContainerConfigController';
-import integratorController from './server/controllers/api/integratorController';
-import provisionKeyController from './server/controllers/api/provisionKeyController';
-import streamViewerController from './server/controllers/api/streamViewerController';
-import trackController from './server/controllers/api/trackController';
-import userController from './server/controllers/api/userController';
-import registryController from './server/controllers/api/registryController';
+const baseController = require('./server/controllers/baseController');
+const elementInstanceController = require('./server/controllers/api/elementInstanceController');
+const elementController = require('./server/controllers/api/elementController');
+const fogController = require('./server/controllers/api/fogController');
+const instanceResourcesController = require('./server/controllers/api/instanceResourcesController');
+const instanceStatusController = require('./server/controllers/api/instanceStatusController');
+const instanceConfigController = require('./server/controllers/api/instanceConfigController');
+const instanceContainerListController = require('./server/controllers/api/instanceContainerListController');
+const instanceChangesController = require('./server/controllers/api/instanceChangesController');
+const instanceRegistriesController = require('./server/controllers/api/instanceRegistriesController');
+const instanceRoutingController = require('./server/controllers/api/instanceRoutingController');
+const instanceContainerConfigController = require('./server/controllers/api/instanceContainerConfigController');
+const integratorController = require('./server/controllers/api/integratorController');
+const provisionKeyController = require('./server/controllers/api/provisionKeyController');
+const streamViewerController = require('./server/controllers/api/streamViewerController');
+const trackController = require('./server/controllers/api/trackController');
+const userController = require('./server/controllers/api/userController');
+const registryController = require('./server/controllers/api/registryController');
 
-import logger from './server/utils/winstonLogs';
-import proxyController from "./server/controllers/api/proxyController";
-import fogVersionCommandController from './server/controllers/api/fogVersionCommandController';
-import diagnosticsController from './server/controllers/api/diagnosticsController';
-import imageSnapshotController from "./server/controllers/api/imageSnapshotController";
+const logger = require('./server/utils/winstonLogs');
+const proxyController = require('./server/controllers/api/proxyController');
+const fogVersionCommandController = require('./server/controllers/api/fogVersionCommandController');
+const diagnosticsController = require('./server/controllers/api/diagnosticsController');
+const imageSnapshotController = require('./server/controllers/api/imageSnapshotController');
 
 
-import testController from './server/controllers/api/testController';
+const testController = require('./server/controllers/api/testController');
 
 
 const express = require('express');
@@ -282,6 +282,6 @@ const startHttpsServer = function (app, port, sslKey, sslCert, intermedKey) {
   }
 };
 
-export default {
+module.exports =  {
   startServer: startServer
 };

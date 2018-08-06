@@ -16,14 +16,14 @@
  * @author Zishan Iqbal
  * @description This file includes the implementation of instance-config and config-changes end-points
  */
-import async from 'async';
+const async = require('async');
 
-import BaseApiController from './baseApiController';
-import FogService from '../../services/fogService';
-import AppUtils from '../../utils/appUtils';
-import GpsUtils from '../../utils/gpsUtils';
-import logger from '../../utils/winstonLogs';
-import Constants from '../../constants.js';
+const BaseApiController = require('./baseApiController');
+const FogService = require('../../services/fogService');
+const AppUtils = require('../../utils/appUtils');
+const GpsUtils = require('../../utils/gpsUtils');
+const logger = require('../../utils/winstonLogs');
+const Constants = require('../../constants.js');
 
 /********************************************* EndPoints ******************************************************/
 
@@ -118,7 +118,7 @@ const updateFogInstance = function(params, callback){
   FogService.updateFogInstance(fogConfigProps, params, callback);
 };
 
-export default {
+module.exports =  {
   instanceConfigEndPoint: instanceConfigEndPoint,
   instanceConfigChangesEndPoint: instanceConfigChangesEndPoint
 };

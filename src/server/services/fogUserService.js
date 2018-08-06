@@ -11,8 +11,8 @@
  *
  */
 
-import FogUserManager from '../managers/fogUserManager';
-import AppUtils from '../utils/appUtils';
+const FogUserManager = require('../managers/fogUserManager');
+const AppUtils = require('../utils/appUtils');
 
 const createFogUser = function(props, params, callback) {
   let userId = AppUtils.getProperty(params, props.userId),
@@ -57,7 +57,7 @@ const getFogUserByInstanceId = function(props, params, callback) {
     .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Cannot find Fog User', callback));
 }
 
-export default {
+module.exports =  {
   createFogUser: createFogUser,
   deleteFogUserByInstanceId: deleteFogUserByInstanceId,
   deleteFogUserByInstanceIdAndUserId: deleteFogUserByInstanceIdAndUserId,

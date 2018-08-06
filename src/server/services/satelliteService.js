@@ -11,9 +11,9 @@
  *
  */
 
-import SatelliteManager from '../managers/satelliteManager';
-import AppUtils from '../utils/appUtils';
-import _ from 'underscore';
+const SatelliteManager = require('../managers/satelliteManager');
+const AppUtils = require('../utils/appUtils');
+const _ = require('underscore');
 
 const findBySatelliteIds = function(props, params, callback) {
   let satellitePortData = AppUtils.getProperty(params, props.satellitePortData);
@@ -47,7 +47,7 @@ const getSatelliteById = function(props, params, callback) {
     .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Cannot find Satellite', callback));
 }
 
-export default {
+module.exports =  {
   findBySatelliteIds: findBySatelliteIds,
   getRandomSatellite: getRandomSatellite,
   getSatelliteById: getSatelliteById

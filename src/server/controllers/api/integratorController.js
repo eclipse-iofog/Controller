@@ -16,25 +16,25 @@
  * @author Zishan Iqbal
  * @description This file includes the implementation of the Integrator instance
  */
-import async from 'async';
+const async = require('async');
 
-import ChangeTrackingService from '../../services/changeTrackingService';
-import ComsatService from '../../services/comsatService';
-import ConsoleService from '../../services/consoleService';
-import ElementService from '../../services/elementService';
-import ElementInstancePortService from '../../services/elementInstancePortService';
-import ElementInstanceService from '../../services/elementInstanceService';
-import FogService from '../../services/fogService';
-import FogTypeService from '../../services/fogTypeService';
-import FogUserService from '../../services/fogUserService';
-import NetworkPairingService from '../../services/networkPairingService';
-import SatelliteService from '../../services/satelliteService';
-import SatellitePortService from '../../services/satellitePortService';
-import StreamViewerService from '../../services/streamViewerService';
-import UserService from '../../services/userService';
+const ChangeTrackingService = require('../../services/changeTrackingService');
+const ComsatService = require('../../services/comsatService');
+const ConsoleService = require('../../services/consoleService');
+const ElementService = require('../../services/elementService');
+const ElementInstancePortService = require('../../services/elementInstancePortService');
+const ElementInstanceService = require('../../services/elementInstanceService');
+const FogService = require('../../services/fogService');
+const FogTypeService = require('../../services/fogTypeService');
+const FogUserService = require('../../services/fogUserService');
+const NetworkPairingService = require('../../services/networkPairingService');
+const SatelliteService = require('../../services/satelliteService');
+const SatellitePortService = require('../../services/satellitePortService');
+const StreamViewerService = require('../../services/streamViewerService');
+const UserService = require('../../services/userService');
 
-import AppUtils from '../../utils/appUtils';
-import logger from '../../utils/winstonLogs';
+const AppUtils = require('../../utils/appUtils');
+const logger = require('../../utils/winstonLogs');
 
 /**
  * @deprecated
@@ -137,7 +137,7 @@ const updateFogInstance = function(params, callback){
   FogService.updateFogInstance(fogInstanceProps, params, callback);
 };
 
-export default {
+module.exports =  {
   integratorInstanceCreateEndPoint: integratorInstanceCreateEndPoint,
   integratorInstanceUpdateEndPoint: integratorInstanceUpdateEndPoint
 };

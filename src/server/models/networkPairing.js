@@ -17,12 +17,12 @@
  * @description This file includes a networkPairing model used by sequalize for ORM;
  */
 
-import Sequelize from 'sequelize';
-import sequelize from './../utils/sequelize';
-import Fog from './fog';
-import ElementInstance from './elementInstance';
-import ElementInstancePort from './elementInstancePort';
-import SatellitePort from './satellitePort';
+const Sequelize = require('sequelize');
+const sequelize = require('./../utils/sequelize');
+const Fog = require('./fog');
+const ElementInstance = require('./elementInstance');
+const ElementInstancePort = require('./elementInstancePort');
+const SatellitePort = require('./satellitePort');
 
 const NetworkPairing = sequelize.define('network_pairing', {
   id: {
@@ -82,4 +82,4 @@ NetworkPairing.belongsTo(SatellitePort, {
   as: 'SatellitePortId'
 });
 
-export default NetworkPairing;
+module.exports =  NetworkPairing;

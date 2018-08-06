@@ -17,14 +17,14 @@
  * @description This file includes the implementation of the end-points that deal with imageSnapshot
  */
 
-import async from 'async';
-import ChangeTrackingService from '../../services/changeTrackingService';
-import ElementInstanceService from '../../services/elementInstanceService';
-import UserService from '../../services/userService';
+const async = require('async');
+const ChangeTrackingService = require('../../services/changeTrackingService');
+const ElementInstanceService = require('../../services/elementInstanceService');
+const UserService = require('../../services/userService');
 
-import AppUtils from '../../utils/appUtils';
-import logger from '../../utils/winstonLogs';
-import BaseApiController from "./baseApiController";
+const AppUtils = require('../../utils/appUtils');
+const logger = require('../../utils/winstonLogs');
+const BaseApiController = require('./baseApiController');
 
 const formidable = require('../../utils/formidable');
 const fs = require('fs');
@@ -199,7 +199,7 @@ const getImageSnapshotStatusEndPoint = function (req, res) {
         });
 };
 
-export default {
+module.exports =  {
     getElementInstanceImageSnapshotEndPoint: getElementInstanceImageSnapshotEndPoint,
     elementInstanceImageSnapshotStatusEndPoint: elementInstanceImageSnapshotStatusEndPoint,
     instanceImageSnapshotUrlEndPoint: instanceImageSnapshotUrlEndPoint,

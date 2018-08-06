@@ -17,8 +17,8 @@
  * @description This file includes the CURD operations for the streamViewer Model.
  */
 
-import StreamViewer from './../models/streamViewer';
-import BaseManager from './../managers/baseManager';
+const StreamViewer = require('./../models/streamViewer');
+const BaseManager = require('./../managers/baseManager');
 
 class StreamViewerManager extends BaseManager {
 
@@ -52,4 +52,4 @@ class StreamViewerManager extends BaseManager {
 }
 
 const instance = new StreamViewerManager();
-export default instance;
+module.exports =  instance;

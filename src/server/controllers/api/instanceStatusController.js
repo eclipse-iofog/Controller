@@ -16,13 +16,13 @@
  * @author Zishan Iqbal
  * @description This file includes the implementation of the instance-status end-point
  */
-import async from 'async';
+const async = require('async');
 
-import BaseApiController from './baseApiController';
-import FogService from '../../services/fogService';
-import AppUtils from '../../utils/appUtils';
-import logger from '../../utils/winstonLogs';
-import ElemetInstanceStatusService from "../../services/elementInstanceStatusService";
+const BaseApiController = require('./baseApiController');
+const FogService = require('../../services/fogService');
+const AppUtils = require('../../utils/appUtils');
+const logger = require('../../utils/winstonLogs');
+const ElemetInstanceStatusService = require('../../services/elementInstanceStatusService');
 
 
 /********************************************* EndPoints ******************************************************/
@@ -113,6 +113,6 @@ const getProxyStatus = function(params) {
     return result;
 };
 
-export default {
+module.exports =  {
   instanceStatusEndPoint: instanceStatusEndPoint
 };

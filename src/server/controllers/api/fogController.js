@@ -17,30 +17,30 @@
  * @description This file includes the implementation of the status end-point
  */
 
-import async from 'async';
+const async = require('async');
 
-import ChangeTrackingService from '../../services/changeTrackingService';
-import ComsatService from '../../services/comsatService';
-import ConsoleService from '../../services/consoleService';
-import ElementService from '../../services/elementService'
-import ElementInstanceService from '../../services/elementInstanceService';
-import ElementInstancePortService from '../../services/elementInstancePortService';
-import FogAccessTokenService from '../../services/fogAccessTokenService';
-import FogProvisionKeyService from '../../services/fogProvisionKeyService';
-import FogService from '../../services/fogService';
-import FogTypeService from '../../services/fogTypeService';
-import FogUserService from '../../services/fogUserService';
-import NetworkPairingService from '../../services/networkPairingService';
-import SatelliteService from '../../services/satelliteService';
-import SatellitePortService from '../../services/satellitePortService';
-import StreamViewerService from '../../services/streamViewerService';
-import UserService from '../../services/userService';
+const ChangeTrackingService = require('../../services/changeTrackingService');
+const ComsatService = require('../../services/comsatService');
+const ConsoleService = require('../../services/consoleService');
+const ElementService = require('../../services/elementService');
+const ElementInstanceService = require('../../services/elementInstanceService');
+const ElementInstancePortService = require('../../services/elementInstancePortService');
+const FogAccessTokenService = require('../../services/fogAccessTokenService');
+const FogProvisionKeyService = require('../../services/fogProvisionKeyService');
+const FogService = require('../../services/fogService');
+const FogTypeService = require('../../services/fogTypeService');
+const FogUserService = require('../../services/fogUserService');
+const NetworkPairingService = require('../../services/networkPairingService');
+const SatelliteService = require('../../services/satelliteService');
+const SatellitePortService = require('../../services/satellitePortService');
+const StreamViewerService = require('../../services/streamViewerService');
+const UserService = require('../../services/userService');
 
-import AppUtils from '../../utils/appUtils';
-import configUtil from '../../utils/configUtil';
-import logger from '../../utils/winstonLogs';
-import moment from "moment";
-import BaseApiController from "./baseApiController";
+const AppUtils = require('../../utils/appUtils');
+const configUtil = require('../../utils/configUtil');
+const logger = require('../../utils/winstonLogs');
+const moment = require('moment');
+const BaseApiController = require('./baseApiController');
 
 
 /********************************************* EndPoints ******************************************************/
@@ -1431,7 +1431,7 @@ const filterFogs = function (props, params, callback) {
 // }
 
 
-export default {
+module.exports =  {
   //  addBlueboxEndpoint: addBlueboxEndpoint,
   getFogDetailsEndpoint: getFogDetailsEndpoint,
   getFogControllerStatusEndPoint: getFogControllerStatusEndPoint,

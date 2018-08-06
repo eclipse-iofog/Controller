@@ -11,13 +11,13 @@
  *
  */
 
-import logger from '../utils/winstonLogs';
+const logger = require('../utils/winstonLogs');
 
 const mainPageEndPoint = function(req, res) {
   logger.info("Endpoint hit: "+ req.originalUrl);
   res.render("controller-status")
 };
 
-export default {
+module.exports =  {
   mainPageEndPoint: mainPageEndPoint
 };

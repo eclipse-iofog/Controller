@@ -17,8 +17,8 @@
  * @description This file includes the CURD operations for the fogUser Model.
  */
 
-import FogUser from './../models/fogUser';
-import BaseManager from './../managers/baseManager';
+const FogUser = require('./../models/fogUser');
+const BaseManager = require('./../managers/baseManager');
 
 class FogUserManager extends BaseManager {
 
@@ -85,4 +85,4 @@ class FogUserManager extends BaseManager {
 }
 
 const instance = new FogUserManager();
-export default instance;
+module.exports =  instance;

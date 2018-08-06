@@ -17,9 +17,9 @@
  * @description This file includes the CURD operations for the element_input_type Model.
  */
 
-import ElementInputType from './../models/elementInputType';
-import BaseManager from './../managers/baseManager';
-import sequelize from './../utils/sequelize';
+const ElementInputType = require('./../models/elementInputType');
+const BaseManager = require('./../managers/baseManager');
+const sequelize = require('./../utils/sequelize');
 
 class ElementInputTypeManager extends BaseManager {
   getEntity() {
@@ -57,4 +57,4 @@ class ElementInputTypeManager extends BaseManager {
 }
 
 const instance = new ElementInputTypeManager();
-export default instance;
+module.exports =  instance;

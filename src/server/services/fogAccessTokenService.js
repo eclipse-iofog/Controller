@@ -11,12 +11,12 @@
  *
  */
 
-import async from 'async';
+const async = require('async');
 
-import FogAccessTokenManager from '../managers/fogAccessTokenManager';
-import UserService from './userService'
-import AppUtils from '../utils/appUtils';
-import Constants from '../constants.js';
+const FogAccessTokenManager = require('../managers/fogAccessTokenManager');
+const UserService = require('./userService');
+const AppUtils = require('../utils/appUtils');
+const Constants = require('../constants.js');
 
 const checkFogTokenExpirationByToken = function(props, params, callback) {
   let time =  new Date(),
@@ -117,7 +117,7 @@ const saveFogAccessToken = function(props, params, callback) {
     .then(AppUtils.onCreate.bind(null, params, props.setProperty, 'Unable to create Fog Access Token', callback));
 }
 
-export default {
+module.exports =  {
   checkFogTokenExpirationByToken: checkFogTokenExpirationByToken,
   findFogAccessTokenByToken: findFogAccessTokenByToken,
   findFogAccessTokenByTokenAndFogId: findFogAccessTokenByTokenAndFogId,

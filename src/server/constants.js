@@ -56,7 +56,7 @@ const CONFIG = {
   email_activation: 'email_activation'
 };
 
-export default {
+module.exports =  {
   ACCESS_TOKEN_EXPIRE_PERIOD: ACCESS_TOKEN_EXPIRE_PERIOD,
   MSG: MSG,
   CONFIG: CONFIG

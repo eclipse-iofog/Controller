@@ -11,8 +11,8 @@
  *
  */
 
-import ProxyManager from '../managers/proxyManager';
-import AppUtils from '../utils/appUtils'
+const ProxyManager = require('../managers/proxyManager');
+const AppUtils = require('../utils/appUtils');
 
 const createProxy = function(props, params, callback) {
     ProxyManager
@@ -48,7 +48,7 @@ const updateProxy = function(props, params, callback) {
         .then(AppUtils.onUpdate.bind(null, params, 'Unable to update Proxy', callback));
 };
 
-export default {
+module.exports =  {
     createProxy: createProxy,
     deleteProxy: deleteProxy,
     getProxyByInstanceId: getProxyByInstanceId,

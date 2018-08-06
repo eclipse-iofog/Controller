@@ -17,8 +17,8 @@
 * @description This file includes a system_access_tokens model used by sequalize for ORM;
 */
 
-import Sequelize from 'sequelize';
-import sequelize from './../utils/sequelize';
+const Sequelize = require('sequelize');
+const sequelize = require('./../utils/sequelize');
 
 const FogSystemAccessToken = sequelize.define('system_access_tokens', {
   id: {type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true, field: 'ID'},
@@ -36,4 +36,4 @@ const FogSystemAccessToken = sequelize.define('system_access_tokens', {
 });
 
 
-export default FogSystemAccessToken;
+module.exports =  FogSystemAccessToken;

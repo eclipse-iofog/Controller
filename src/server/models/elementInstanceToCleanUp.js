@@ -15,8 +15,8 @@
  * @author elukashick
  */
 
-import Sequelize from 'sequelize';
-import sequelize from './../utils/sequelize';
+const Sequelize = require('sequelize');
+const sequelize = require('./../utils/sequelize');
 
 const ElementInstanceToCleanUp = sequelize.define('element_instance_to_clean_up', {
     id: {
@@ -45,4 +45,4 @@ const ElementInstanceToCleanUp = sequelize.define('element_instance_to_clean_up'
     underscored: true
 });
 
-export default ElementInstanceToCleanUp;
+module.exports =  ElementInstanceToCleanUp;

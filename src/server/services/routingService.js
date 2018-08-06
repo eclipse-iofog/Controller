@@ -11,10 +11,10 @@
  *
  */
 
-import RoutingManager from '../managers/routingManager';
-import AppUtils from '../utils/appUtils';
-import _ from 'underscore';
-import logger from '../utils/winstonLogs';
+const RoutingManager = require('../managers/routingManager');
+const AppUtils = require('../utils/appUtils');
+const _ = require('underscore');
+const logger = require('../utils/winstonLogs');
 
 const isDebugging = function (props, params, callback){
   let elementInstanceData = AppUtils.getProperty(params, props.elementInstanceData);
@@ -165,7 +165,7 @@ const findOutputRoutingByElementInstanceUuidsAndRoutingPublishing = function(pro
     .then(AppUtils.onFind.bind(null, params, props.setProperty, 'outputRouting not found.', callback));
 }
 
-export default {
+module.exports =  {
   createRoute: createRoute,
   isDebugging: isDebugging,
   isViewer: isViewer,

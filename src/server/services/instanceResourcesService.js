@@ -15,9 +15,9 @@
  * @author elukashick
  */
 
-import HWInfoManager from '../managers/HWInfoManager';
-import USBInfoManager from '../managers/usbInfoManager';
-import AppUtils from "../utils/appUtils";
+const HWInfoManager = require('../managers/HWInfoManager');
+const USBInfoManager = require('../managers/usbInfoManager');
+const AppUtils = require('../utils/appUtils');
 
 const saveHWInfo = function (props, params, callback) {
 
@@ -65,7 +65,7 @@ const getFogUsbInfo = function (props, params, callback) {
         .then(AppUtils.onFindOptional.bind(null, params, props.setProperty, callback));
 };
 
-export default {
+module.exports =  {
     saveHWInfo: saveHWInfo,
     saveUSBInfo: saveUSBInfo,
     getFogHwInfo: getFogHwInfo,

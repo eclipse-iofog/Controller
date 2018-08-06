@@ -15,8 +15,8 @@
  * @author elukashick
  */
 
-import BaseManager from "./baseManager";
-import ElementInstanceToCleanUp from "../models/elementInstanceToCleanUp";
+const BaseManager = require('./baseManager');
+const ElementInstanceToCleanUp = require('../models/elementInstanceToCleanUp');
 
 class ElementInstanceToCleanUpManager extends BaseManager {
     getEntity() {
@@ -64,4 +64,4 @@ class ElementInstanceToCleanUpManager extends BaseManager {
 }
 
 const instance = new ElementInstanceToCleanUpManager();
-export default instance;
+module.exports =  instance;

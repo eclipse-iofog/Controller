@@ -11,9 +11,9 @@
  *
  */
 
-import SatellitePortManager from '../managers/satellitePortManager';
-import AppUtils from '../utils/appUtils';
-import _ from 'underscore';
+const SatellitePortManager = require('../managers/satellitePortManager');
+const AppUtils = require('../utils/appUtils');
+const _ = require('underscore');
 
 const createSatellitePort = function(props, params, callback) {
   SatellitePortManager
@@ -69,7 +69,7 @@ const getSatellitePort = function(props, params, callback) {
     .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Cannot find Satellite Port for Network Pairing Instance', callback));
 }
 
-export default {
+module.exports =  {
   createSatellitePort: createSatellitePort,
   deletePortsForNetworkElements: deletePortsForNetworkElements,
   deleteSatellitePort: deleteSatellitePort,

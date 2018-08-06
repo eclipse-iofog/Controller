@@ -17,9 +17,9 @@
  * @description This file includes the CURD operations for the routing Model.
  */
 
-import Routing from './../models/routing';
-import BaseManager from './../managers/baseManager';
-import sequelize from './../utils/sequelize';
+const Routing = require('./../models/routing');
+const BaseManager = require('./../managers/baseManager');
+const sequelize = require('./../utils/sequelize');
 
 class RoutingManager extends BaseManager {
 
@@ -176,4 +176,4 @@ class RoutingManager extends BaseManager {
 }
 
 const instance = new RoutingManager();
-export default instance;
+module.exports =  instance;

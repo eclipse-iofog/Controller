@@ -16,19 +16,19 @@
  * @author Zishan Iqbal
  * @description This file includes the implementation of the instance-provision key end-point
  */
-import async from 'async';
+const async = require('async');
 
-import BaseApiController from './baseApiController';
-import FogAccessTokenService from '../../services/fogAccessTokenService';
-import FogProvisionKeyService from '../../services/fogProvisionKeyService';
-import FogService from '../../services/fogService';
-import FogTypeService from '../../services/fogTypeService';
-import FogUserService from '../../services/fogUserService';
-import ElementInstanceService from '../../services/elementInstanceService';
-import UserService from '../../services/userService';
+const BaseApiController = require('./baseApiController');
+const FogAccessTokenService = require('../../services/fogAccessTokenService');
+const FogProvisionKeyService = require('../../services/fogProvisionKeyService');
+const FogService = require('../../services/fogService');
+const FogTypeService = require('../../services/fogTypeService');
+const FogUserService = require('../../services/fogUserService');
+const ElementInstanceService = require('../../services/elementInstanceService');
+const UserService = require('../../services/userService');
 
-import AppUtils from '../../utils/appUtils';
-import logger from '../../utils/winstonLogs';
+const AppUtils = require('../../utils/appUtils');
+const logger = require('../../utils/winstonLogs');
 
 /********************************************* EndPoints ******************************************************/
 /******* Get Provision Key EndPoint (Get: /api/v2/authoring/fog/provisionkey/instanceid/:instanceId) ********/
@@ -193,7 +193,7 @@ const deleteProvisionKeyEndPoint = function(req, res) {
   });
 };
 
-export default {
+module.exports =  {
   getProvisionKeyEndPoint: getProvisionKeyEndPoint,
   fogProvisionKeyEndPoint: fogProvisionKeyEndPoint,
   deleteProvisionKeyEndPoint: deleteProvisionKeyEndPoint

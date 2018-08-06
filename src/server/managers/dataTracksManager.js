@@ -17,9 +17,9 @@
  * @description This file includes the CURD operations for the dataTracks Model.
  */
 
-import BaseManager from './../managers/baseManager';
-import DataTracks from './../models/dataTracks';
-import sequelize from './../utils/sequelize';
+const BaseManager = require('./../managers/baseManager');
+const DataTracks = require('./../models/dataTracks');
+const sequelize = require('./../utils/sequelize');
 
 
 class DataTracksManager extends BaseManager {
@@ -119,4 +119,4 @@ class DataTracksManager extends BaseManager {
 }
 
 const instance = new DataTracksManager();
-export default instance;
+module.exports =  instance;

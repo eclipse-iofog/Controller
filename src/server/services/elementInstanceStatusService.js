@@ -11,8 +11,8 @@
  *
  */
 
-import AppUtils from "../utils/appUtils";
-import ElementInstanceStatusManager from "../managers/elementInstanceStatusManager";
+const AppUtils = require('../utils/appUtils');
+const ElementInstanceStatusManager = require('../managers/elementInstanceStatusManager');
 
 /**
  * @author elukashick
@@ -32,6 +32,6 @@ const upsertStatus = function (statusObj, params, callback) {
         .then(AppUtils.onUpdateOrCreate.bind(null, params, '', 'Unable to create or update Element Instance Status', callback));
 };
 
-export default {
+module.exports =  {
     upsertStatus: upsertStatus
 };

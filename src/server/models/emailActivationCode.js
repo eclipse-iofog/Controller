@@ -17,9 +17,9 @@
 * @description This file includes a email_activation_codes model used by sequalize for ORM;
 */
 
-import Sequelize from 'sequelize';
-import sequelize from './../utils/sequelize';
-import User from './user';
+const Sequelize = require('sequelize');
+const sequelize = require('./../utils/sequelize');
+const User = require('./user');
 
 const EmailActivationCode = sequelize.define('email_activation_code', {
   id: {type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true, field: 'ID'},
@@ -37,4 +37,4 @@ const EmailActivationCode = sequelize.define('email_activation_code', {
 
 User.hasMany(EmailActivationCode, { foreignKey: 'user_id' })
 
-export default EmailActivationCode;
+module.exports =  EmailActivationCode;

@@ -11,9 +11,9 @@
  *
  */
 
-import FogManager from '../managers/fogManager';
-import AppUtils from '../utils/appUtils';
-import _ from 'underscore';
+const FogManager = require('../managers/fogManager');
+const AppUtils = require('../utils/appUtils');
+const _ = require('underscore');
 
 /**
  * @deprecated
@@ -117,7 +117,7 @@ const updateFogInstance = function(props, params, callback){
     .then(AppUtils.onUpdate.bind(null, params, 'Unable to update iofog instance', callback));
 };
 
-export default {
+module.exports =  {
   createFogInstance: createFogInstance,
   createFogInstanceWithUUID: createFogInstanceWithUUID,
   deleteFogInstance: deleteFogInstance,

@@ -11,23 +11,23 @@
  *
  */
 
-import async from 'async';
-import https from 'https';
+const async = require('async');
+const https = require('https');
 //require('dotenv').config();
 
-import emailRecoveryTemplate from '../../../views/emailTemp';
-import emailResetTemplate from '../../../views/resetPasswordTemp';
-import emailActivationTemplate from '../../../views/emailActivationTemp';
+const emailRecoveryTemplate = require('../../../views/emailTemp');
+const emailResetTemplate = require('../../../views/resetPasswordTemp');
+const emailActivationTemplate = require('../../../views/emailActivationTemp');
 
-import EmailActivationCodeService from '../../services/emailActivationCodeService';
-import UserService from '../../services/userService';
-import FogAccessTokenService from '../../services/fogAccessTokenService';
+const EmailActivationCodeService = require('../../services/emailActivationCodeService');
+const UserService = require('../../services/userService');
+const FogAccessTokenService = require('../../services/fogAccessTokenService');
 
 //import transporter  from '../../utils/emailSender';
-import AppUtils from '../../utils/appUtils';
-import configUtil from '../../utils/configUtil';
-import logger from '../../utils/winstonLogs';
-import appConfig from './../../../config.json';
+const AppUtils = require('../../utils/appUtils');
+const configUtil = require('../../utils/configUtil');
+const logger = require('../../utils/winstonLogs');
+const appConfig = require('./../../../config.json');
 
 /**************************************** EndPoints *************************************************/
 /************ Activate User Account EndPoint (Get: /account/activate/code/:code) *******/
@@ -657,7 +657,7 @@ const notifyUserAboutPasswordChange = function(params, callback){
  }
  }
 
- export default {
+ module.exports =  {
   authenticateUserEndPoint: authenticateUserEndPoint,
  	getUserDetailsEndPoint: getUserDetailsEndPoint,
  	updateUserDetailsEndPoint: updateUserDetailsEndPoint,

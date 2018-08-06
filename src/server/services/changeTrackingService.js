@@ -11,9 +11,9 @@
  *
  */
 
-import ChangeTrackingManager from '../managers/changeTrackingManager';
-import AppUtils from '../utils/appUtils'
-import _ from 'underscore';
+const ChangeTrackingManager = require('../managers/changeTrackingManager');
+const AppUtils = require('../utils/appUtils');
+const _ = require('underscore');
 
 const createFogChangeTracking = function(props, params, callback) {
   let fogInstanceId = AppUtils.getProperty(params, props.fogInstanceId);
@@ -55,7 +55,7 @@ const updateChangeTrackingData = function(props, params, callback) {
     .then(AppUtils.onUpdate.bind(null, params, 'Unable to update Change Tracking', callback));
   };
 
-export default {
+module.exports =  {
   deleteChangeTracking: deleteChangeTracking,
   getChangeTrackingByInstanceId: getChangeTrackingByInstanceId,
   createFogChangeTracking: createFogChangeTracking,

@@ -17,10 +17,10 @@
  * @description This file includes a element model used by sequalize for ORM;
  */
 
-import Sequelize from 'sequelize';
-import sequelize from './../utils/sequelize';
-import Registry from './registry';
-import User from './user';
+const Sequelize = require('sequelize');
+const sequelize = require('./../utils/sequelize');
+const Registry = require('./registry');
+const User = require('./user');
 
 const Element = sequelize.define('element', {
   id: {
@@ -87,4 +87,4 @@ Element.belongsTo(User, {
     foreignKey: 'user_id'
 });
 
-export default Element;
+module.exports =  Element;

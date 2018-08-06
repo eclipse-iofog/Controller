@@ -11,9 +11,9 @@
  *
  */
 
-import ElementManager from '../managers/elementManager';
-import AppUtils from '../utils/appUtils';
-import ElementImageService from "./elementImageService";
+const ElementManager = require('../managers/elementManager');
+const AppUtils = require('../utils/appUtils');
+const ElementImageService = require('./elementImageService');
 
 const createElement = function(props, params, callback) {
   ElementManager
@@ -95,7 +95,7 @@ const updateElement = function(props, params, callback) {
     .then(AppUtils.onUpdate.bind(null, params, 'Unable to update Element object', callback));
 }
 
-export default {
+module.exports =  {
   createElement: createElement,
   deleteElementById: deleteElementById,
   findElementImageAndRegistryByIdForFogInstance: findElementImageAndRegistryByIdForFogInstance,

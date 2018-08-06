@@ -11,8 +11,8 @@
  *
  */
 
-import ConsoleManager from '../managers/consoleManager';
-import AppUtils from '../utils/appUtils';
+const ConsoleManager = require('../managers/consoleManager');
+const AppUtils = require('../utils/appUtils');
 
 const createConsole = function(props, params, callback) {
   ConsoleManager
@@ -36,7 +36,7 @@ const deleteConsoleByFogInstanceId = function(props, params, callback) {
     .then(AppUtils.onDeleteOptional.bind(null, params, callback));
 }
 
-export default {
+module.exports =  {
   createConsole: createConsole,
   getConsoleByFogInstanceId: getConsoleByFogInstanceId,
   deleteConsoleByFogInstanceId: deleteConsoleByFogInstanceId
