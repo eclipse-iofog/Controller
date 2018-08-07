@@ -1,6 +1,7 @@
 const logger = require('../../utils/winstonLogs');
 const async = require('async');
 const AppUtils = require('../../utils/appUtils');
+const TestService = require('../../services/testService');
 
 async function testEndPoint(req, res) {
     logger.info("Endpoint hit: "+ req.originalUrl);
@@ -10,17 +11,20 @@ async function testEndPoint(req, res) {
 
     logger.info("Parameters:" + JSON.stringify(params.bodyParams));
 
-    
-    let resObj = await doSmth();
-    if (resObj != null) {
-        AppUtils.sendResponse(res, null, 'res', resObj, "error");
+    let resObj,
+        err = false,
+        errMsg = '';
+
+    try {
+        resObj = await TestService.doSmth(1);
+    } catch (error) {
+        err = true;
+        errMsg = error;
     }
+
+    AppUtils.sendResponse(res, err, 'res', resObj, errMsg);
     
 }
-
-const doSmth = async function () {
-    return 1;
-};
 
 module.exports =  {
     testEndPoint: testEndPoint
