@@ -13,15 +13,16 @@ function checkUser(f) {
     }
 }
 
-/*function transactionWrapper(f) {
+function transactionWrapper(f) {
     return async function () {
+        let fArgs = Array.prototype.slice.call(arguments);
         return sequelize.transaction(async (t) => {
-            arguments[1] = t;
 
-            return await f.apply(this, arguments);
-        })
+            fArgs.push(t);
+            return await f.apply(this, fArgs);
+        }).catch(err => {console.log("err: " + err)})
     }
-}*/
+}
 
 module.exports = {
     checkUser: checkUser,
