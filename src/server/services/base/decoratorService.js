@@ -20,7 +20,7 @@ function transactionWrapper(f) {
 
             fArgs.push(t);
             return await f.apply(this, fArgs);
-        }).catch(err => {console.log("err: " + err)})
+        })
     }
 }
 

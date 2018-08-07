@@ -17,7 +17,7 @@ const doSmth = checkUserWrapper(
 
 async function longFunction(x) {
     return new Promise(resolve => {
-        setTimeout(resolve, 10000, x + 1)
+        setTimeout(resolve, 1000, x + 1)
     });
 }
 
