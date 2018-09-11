@@ -43,6 +43,7 @@ import proxyController from "./server/controllers/api/proxyController";
 import fogVersionCommandController from './server/controllers/api/fogVersionCommandController';
 import diagnosticsController from './server/controllers/api/diagnosticsController';
 import imageSnapshotController from "./server/controllers/api/imageSnapshotController";
+import presetController from "./server/controllers/api/presetController";
 
 const express = require('express');
 const path = require('path');
@@ -174,6 +175,7 @@ const initApp = function () {
   app.post('/api/v2/authoring/user/track/delete', trackController.userTrackDeleteEndPoint);
   app.get('/api/v2/authoring/fog/track/element/list/:trackId', elementInstanceController.trackElementListEndPoint);
   app.post('/api/v2/authoring/fog/instance/delete', fogController.fogInstanceDeleteEndPoint);
+  app.post('/api/v2/instance/deleteNode/id/:ID/token/:Token', fogController.fogInstanceDeleteNodeEndPoint);
   app.post('/api/v2/authoring/fog/instances/settings/update', fogController.updateFogSettingsEndpoint);
   app.post('/api/v2/authoring/fog/track/update', trackController.fogTrackUpdateEndPoint);
   app.post('/api/v2/authoring/fog/track/delete', trackController.fogTrackDeleteEndPoint);
@@ -222,6 +224,8 @@ const initApp = function () {
   app.get('/account/activate/code/:code', userController.activateUserAccountEndPoint);
   app.get('/api/v2/user/authenticate/:t', userController.authenticateUserEndPoint);
   app.get('/api/v2/emailActivation', fogController.getEmailActivationEndPoint);
+
+  app.post('/api/v2/authoring/preset/fromConfig', presetController.testPreset);
 
   //generic error handler
   app.use((err, req, res, next) => {

@@ -260,7 +260,7 @@ const instanceRouteCreateEndPoint = function (req, res){
       async.apply(DataTracksService.getDataTrackById, pubElementInstanceTrackProps),
       async.apply(DataTracksService.getDataTrackById, destElementInstanceTrackProps),
 
-      ComsatService.openPortOnRadomComsat,
+      ComsatService.openPortOnRandomComsat,
       createSatellitePort,
 
       async.apply(ElementService.getNetworkElement, pubNetworkElementProps),
