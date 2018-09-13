@@ -212,7 +212,7 @@ To setup email sender, do following steps:
         
 &ensp;- FogController Update:
 
-        sudo fog-controller stop       
+        sudo fog-controller stop      
         sudo npm update -g --unsafe-perm iofogcontroller
         sudo fog-controller start
         or

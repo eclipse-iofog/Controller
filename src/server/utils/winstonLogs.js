@@ -28,19 +28,39 @@ winston.emitErrs = true;
 let logger = new winston.Logger({
   transports: [
     new (winston.transports.DailyRotateFile)({
-      name: 'info-file',
-      filename: `${logDir}/FogController.log`,
-      level: appConfig.loggingLevel,
-      json: false,
-      //maxsize: 20971520, //20 MB,
-      maxFiles: 90,
-      datePattern: 'yyyy-MM-dd_',
-      timestamp: tsFormat,
-      localTime: true,
-      prepend: true
+        name: 'info-file',
+        filename: `${logDir}/FogController.log`,
+        level: appConfig.loggingLevel,
+        json: false,
+        //maxsize: 20971520, //20 MB,
+        maxFiles: 90,
+        datePattern: 'yyyy-MM-dd_',
+        timestamp: tsFormat,
+        localTime: true,
+        prepend: true
     })
+    // new (winston.transports.Console)({
+		// level: 'debug',
+		// handleExceptions: true,
+		// json: false,
+		// colorize: true,
+    // })
   ],
     exitOnError: false
 });
 
 module.exports = logger;
+
+// module.exports = function(moduleName) {
+// 	return {
+// 	    error: function (text) {
+// 		    logger.error(moduleName + ': ' + text)
+// 	    },
+// 	    info: function (text) {
+// 		    logger.info(moduleName + ': ' + text)
+// 	    },
+// 	    debug: function (text) {
+// 		    logger.debug(moduleName + ': ' + text)
+// 	    }
+//     }
+// }
