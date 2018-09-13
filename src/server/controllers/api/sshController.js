@@ -24,7 +24,6 @@ const validator = require('validator');
 const nodeRoot = path.dirname(require.main.filename);
 const publicPath = path.join(nodeRoot, 'sshClient', 'public');
 const auth = require('basic-auth');
-const colors = require('colors');
 /********************************************* EndPoints ******************************************************/
 
 /**
@@ -38,9 +37,9 @@ const basicAuth = function (req, res, next) {
 	if (sshAuth) {
 		req.session.username = sshAuth.name;
 		req.session.userpassword = sshAuth.pass;
-		logger.debug('sshAuth.name: ' + sshAuth.name.yellow.bold.underline +
-			' and password ' + ((sshAuth.pass) ? 'exists'.yellow.bold.underline
-				: 'is blank'.underline.red.bold));
+		logger.debug('sshAuth.name: ' + sshAuth.name +
+			' and password ' + ((sshAuth.pass) ? 'exists'
+				: 'is blank'));
 		next()
 	} else {
 		res.statusCode = 401;
