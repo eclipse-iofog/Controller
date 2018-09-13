@@ -64,6 +64,34 @@ class ProxyManager extends BaseManager {
             }
         });
     }
+
+	/**
+     * @desc - updates if proxy data exists in db otherwise creates it
+	 * @param uuid - instance id
+	 * @param data - json data
+	 * @returns JSON - return json proxy data
+	 */
+	upsert(uuid, data) {
+		return this.findByInstanceId(uuid)
+			.then((dbObj) => {
+				return null == dbObj ? this.create(data) : this.updateByUuid(uuid, data)
+			});
+	}
+
+	list() {
+		this.find()
+			.then(function(proxy) {
+				if (proxy && proxy.length > 0) {
+					console.log('\n\tID | Username | Password | Host | Local Port | Rsa key');
+					for (let i = 0; i < proxy.length; i++) {
+						console.log('\t' + proxy[i].id + ' | ' + satellite[i].username + ' | ' + satellite[i].password + ' | '
+							+ satellite[i].host + ' | ' + satellite[i].local_port + ' | ' + satellite[i].rsa_key);
+					}
+				} else {
+					console.log('No proxy configured');
+				}
+			});
+	}
 }
 
 const instance = new ProxyManager();

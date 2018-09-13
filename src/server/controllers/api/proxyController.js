@@ -26,8 +26,41 @@ const FogService = require('../../services/fogService');
 
 const AppUtils = require('../../utils/appUtils');
 const logger = require('../../utils/winstonLogs');
-
+const configUtil reuire('../../utils/configUtil');
 /********************************************* EndPoints ******************************************************/
+
+
+/**
+ * ioAuthoring end point to get proxy config
+ * (Post: /api/v2/authoring/fog/instance/proxy/data)
+ * @param req request
+ * @param res response
+ */
+const getProxyDataEndPoint = function(req, res) {
+	logger.info("Endpoint hit: "+ req.originalUrl);
+
+	let params = {},
+		userProps = {
+			userId : 'bodyParams.t',
+			setProperty: 'user'
+		},
+		fogProps = {
+			fogId: 'bodyParams.instanceId',
+			setProperty: 'fogInstance'
+		};
+
+	params.bodyParams = req.body;
+	logger.info("Parameters:" + JSON.stringify(params.bodyParams));
+
+	async.waterfall([
+		    async.apply(UserService.getUser, userProps, params),
+		    async.apply(FogService.getFogInstance, fogProps),
+            getProxyData
+	    ], function(err, result) {
+		AppUtils.sendResponse(res, err, 'proxyData', params.proxyData, result);
+	});
+
+}
 
 /**
  * ioAuthoring end point to create proxy for specific iofog instance
@@ -35,7 +68,7 @@ const logger = require('../../utils/winstonLogs');
  * @param req request
  * @param res response
  */
-const createOrUpdateProxyEndPoint = function(req, res) {
+const saveProxyEndPoint = function(req, res) {
     logger.info("Endpoint hit: "+ req.originalUrl);
 
     let params = {},
@@ -48,20 +81,15 @@ const createOrUpdateProxyEndPoint = function(req, res) {
             changeObject: {
                 proxy: new Date().getTime()
             }
-        },
-        proxyProps = {
-            fogInstanceId: 'bodyParams.instanceId',
-            setProperty: 'proxy'
-        };
+        }
 
     params.bodyParams = req.body;
     logger.info("Parameters:" + JSON.stringify(params.bodyParams));
 
     async.waterfall([
             async.apply(UserService.getUser, userProps, params),
-            async.apply(ProxyService.getProxyByInstanceId, proxyProps),
-            updateProxyStatusToPendingOpen,
-            createOrUpdateProxy,
+            getProxyConfigData,
+            saveProxy,
             async.apply(ChangeTrackingService.updateChangeTracking, changeTrackingProps)
         ],
         function(err, result) {
@@ -102,7 +130,6 @@ const closeProxyEndPoint = function(req, res) {
 
     async.waterfall([
             async.apply(UserService.getUser, userProps, params),
-            updateProxyStatusToPendingClose,
             async.apply(ProxyService.updateProxy, proxyProps),
             async.apply(ChangeTrackingService.updateChangeTracking, changeTrackingProps)
         ],
@@ -139,40 +166,34 @@ const getProxyEndPoint = function(req, res) {
 };
 
 /**
- * ioAuthoring end point to retrieve proxy status
- * (Get: /api/v2/authoring/fog/proxy/status)
+ * ioAuthoring end point to retrieve proxy close status for specific iofog instance
+ * (Post: /api/v2/authoring/fog/instance/proxy/closeStatus)
  * @param req request
  * @param res response
  */
-const getProxyStatusEndPoint = function(req, res) {
-    logger.info("Endpoint hit: " + req.originalUrl);
-    let params = {},
-        userProps = {
-            userId: 'bodyParams.t',
-            setProperty: 'user'
-        },
-        proxyProps = {
-            fogInstanceId: 'bodyParams.instanceId',
-            setProperty: 'proxy'
-        };
+const getProxyCloseStatusEndPoint = function(req, res) {
+	logger.info("Endpoint hit: "+ req.originalUrl);
 
-    params.bodyParams = req.params;
-    params.bodyParams.t = req.query.t;
-    logger.info("Parameters:" + JSON.stringify(params.bodyParams));
+	let params = {},
+		userProps = {
+			userId : 'bodyParams.t',
+			setProperty: 'user'
+		},
+		instanceProps = {
+		fogInstanceId: 'bodyParams.instanceId',
+		setProperty: 'proxyData'
+	};
 
-    async.waterfall([
-            async.apply(UserService.getUser, userProps, params),
-            async.apply(ProxyService.getProxyByInstanceId, proxyProps)
-        ],
-        function (err, result) {
-            let output;
-            if (!err) {
-                output = params.proxy;
-            }
-            // let errMsg = 'Internal error: ' + result;
-            // AppUtils.sendResponse(res, err, 'proxy', params.proxy, errMsg);
-            AppUtils.sendResponse(res, err, 'output', output, result);
-        });
+	params.bodyParams = req.body;
+	logger.info("Parameters:" + JSON.stringify(params.bodyParams));
+
+	async.waterfall([
+		async.apply(UserService.getUser, userProps, params),
+		async.apply(ProxyService.getProxyByInstanceId, instanceProps),
+		getProxyCloseStatus
+	], function(err, result) {
+		AppUtils.sendResponse(res, err, 'proxyCloseStatus', params.proxyCloseStatus, result);
+	})
 };
 
 /**
@@ -209,94 +230,78 @@ const updateProxyStatusEndPoint = function(req, res) {
  * @param params parameters
  * @param callback  waterfall callback
  */
-const createOrUpdateProxy = function(params, callback) {
+const saveProxy = function(params, callback) {
     let proxyProps;
     let proxyObject = {
-        username: params.bodyParams.username,
-        password: params.bodyParams.password,
-        host: params.bodyParams.host,
-        lport: params.bodyParams.lport,
-        rport: params.bodyParams.rport,
-        rsakey: params.bodyParams.rsakey,
+        username: params.proxyData.username,
+        password: params.proxyData.password,
+        host: params.proxyData.host,
+        lport: params.proxyData.lport,
+        rport: params.proxyData.rport,
+        rsakey: params.proxyData.rsaKey,
         close: false,
         iofog_uuid: params.bodyParams.instanceId
     };
 
-    if (params.proxy) {
-         proxyProps = {
-            fogInstanceId: 'bodyParams.instanceId',
-            changeObject: proxyObject
-        };
-        ProxyService.updateProxy(proxyProps, params, callback);
-    } else {
-        proxyProps = {
-            proxy : proxyObject,
-            setProperty: 'proxy'
-        };
-        ProxyService.createProxy(proxyProps, params, callback);
-    }
+	proxyProps = {
+		fogInstanceId: 'bodyParams.instanceId',
+	    proxy : proxyObject,
+		setProperty: 'proxy'
+	};
+
+	ProxyService.saveProxy(proxyProps, params, callback);
 };
 
-const updateProxyStatusToPendingOpen = function(params, callback) {
-
-    let proxyObj = {
-        username: params.bodyParams.username,
-        host: params.bodyParams.host,
-        lport: params.bodyParams.lport,
-        rport: params.bodyParams.rport,
-        status: "PENDING_OPEN",
-        errormessage: ""
+const getProxyData = function(params, callback) {
+    let proxyObj = JSON.parse(params.fogInstance.proxy);
+	params.proxyData = {
+	    host: proxyObj.host,
+		username: proxyObj.username,
+	    rport: proxyObj.rport,
+		lport: proxyObj.lport,
+		status: proxyObj.status
     };
-    let proxyStr = JSON.stringify(proxyObj);
-    let fogInstanceProps = {
-        instanceId: 'bodyParams.instanceId',
-        updatedFog: {
-            proxy: proxyStr
-        }
-    };
-    FogService.updateFogInstance(fogInstanceProps, params, callback);
-};
+    callback(null, params);
+}
 
-const updateProxyStatusToPendingClose = function(params, callback) {
-    let fogInstanceProps= {
-        fogId: 'bodyParams.instanceId',
-        setProperty: 'fogInstance'
-    };
-    async.waterfall([
-        async.apply(FogService.getFogInstance, fogInstanceProps, params),
-        updateProxyStatusObj
-    ], function(err, result) {
-        callback(null, params);
-    });
+const getProxyCloseStatus = function(params, callback) {
+	params.proxyCloseStatus = params.proxyData.close;
+	callback(null, params);
+}
 
-};
+const getProxyConfigData = function(params, callback) {
+	try{
+		configUtil.getAllConfigs().then(() => {
+			let proxyUsername = configUtil.getConfigParam('proxy_username'),
+				proxyPassword = configUtil.getConfigParam('proxy_password'),
+				proxyHost = configUtil.getConfigParam('proxy_host'),
+				proxyLocalPort = configUtil.getConfigParam('proxy_lport') || 22,
+                proxyRsaKey = configUtil.getConfigParam('proxy_rsa_key');
 
-const updateProxyStatusObj = function(params, callback) {
-    let oldProxyStr = params.fogInstance.proxy;
-    let oldProxyObj = JSON.parse(oldProxyStr);
-    let proxyObj = {
-        username: oldProxyObj.username,
-        host: oldProxyObj.host,
-        lport: oldProxyObj.lport,
-        rport: oldProxyObj.rport,
-        status: "PENDING_CLOSE",
-        errormessage: ""
-    };
-    let proxyStr = JSON.stringify(proxyObj);
-    let fogInstanceProps = {
-        instanceId: 'bodyParams.instanceId',
-        updatedFog: {
-            proxy: proxyStr
-        }
-    };
-    FogService.updateFogInstance(fogInstanceProps, params, callback);
-};
+			const cb  = function(port, params) {
+				params.proxyData = {
+					username: proxyUsername,
+					password: proxyPassword,
+					host: proxyHost,
+					lport: proxyLocalPort,
+					rport: port,
+					rsaKey: proxyRsaKey
+				};
+				callback(null, params);
+			}
 
+			AppUtils.findAvailablePort(proxyHost, params, cb);
+		});
+	}catch(e){
+		logger.error(e);
+	}
+}
 
 module.exports =  {
-    createOrUpdateProxyEndPoint: createOrUpdateProxyEndPoint,
+    saveProxyEndPoint: saveProxyEndPoint,
     closeProxyEndPoint: closeProxyEndPoint,
     getProxyEndPoint: getProxyEndPoint,
-    getProxyStatusEndPoint: getProxyStatusEndPoint,
-    updateProxyStatusEndPoint: updateProxyStatusEndPoint
+    updateProxyStatusEndPoint: updateProxyStatusEndPoint,
+	getProxyDataEndPoint: getProxyDataEndPoint,
+	getProxyCloseStatusEndPoint: getProxyCloseStatusEndPoint
 };

@@ -32,7 +32,8 @@ class Help {
     console.log(`\t\t\t-add <key> <value>\t\t\t\tSet Configurations of fog-controller
                   \t\t\t\t\t\t\t\t(You can set one of these configurations: port, ssl_key, intermediate_cert, ssl_cert,
                   \t\t\t\t\t\t\t\temail_activation [on | off], email_address, email_password, email_service, ioauthoring_port, ioauthoring_ip_address,
-                  \t\t\t\t\t\t\t\tioauthoring_protocal)`);
+                  \t\t\t\t\t\t\t\tioauthoring_protocal, proxy_username, proxy_password, proxy_host, proxy_lport, 
+                  \t\t\t\t\t\t\t\tproxy_rsa_key)`);
   }
 
   static displayConfigRemoveHelp = () => {

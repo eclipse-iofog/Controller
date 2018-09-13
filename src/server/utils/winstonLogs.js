@@ -28,16 +28,16 @@ winston.emitErrs = true;
 let logger = new winston.Logger({
   transports: [
     new (winston.transports.DailyRotateFile)({
-      name: 'info-file',
-      filename: `${logDir}/FogController.log`,
-      level: appConfig.loggingLevel,
-      json: false,
-      //maxsize: 20971520, //20 MB,
-      maxFiles: 90,
-      datePattern: 'yyyy-MM-dd_',
-      timestamp: tsFormat,
-      localTime: true,
-      prepend: true
+        name: 'info-file',
+        filename: `${logDir}/FogController.log`,
+        level: appConfig.loggingLevel,
+        json: false,
+        //maxsize: 20971520, //20 MB,
+        maxFiles: 90,
+        datePattern: 'yyyy-MM-dd_',
+        timestamp: tsFormat,
+        localTime: true,
+        prepend: true
     })
   ],
     exitOnError: false

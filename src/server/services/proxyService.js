@@ -20,10 +20,6 @@ const createProxy = function(props, params, callback) {
         .then(AppUtils.onCreate.bind(null, params, props.setProperty, 'Unable to create proxy for Fog Instance', callback));
 };
 
-const createOrUpdateExistingProxy = function(props, params, callback) {
-
-}
-
 const deleteProxy = function(props, params, callback) {
     let instanceId = AppUtils.getProperty(params, props.fogInstanceId);
 
@@ -48,9 +44,18 @@ const updateProxy = function(props, params, callback) {
         .then(AppUtils.onUpdate.bind(null, params, 'Unable to update Proxy', callback));
 };
 
+const saveProxy = function(props, params, callback) {
+	let fogInstanceId = AppUtils.getProperty(params, props.fogInstanceId);
+
+	ProxyManager
+        .upsert(fogInstanceId, props.proxy)
+        .then(AppUtils.onCreate.bind(null, params, props.setProperty, 'Unable to create proxy for Fog Instance', callback));
+}
+
 module.exports =  {
     createProxy: createProxy,
     deleteProxy: deleteProxy,
     getProxyByInstanceId: getProxyByInstanceId,
-    updateProxy: updateProxy
+    updateProxy: updateProxy,
+    saveProxy: saveProxy
 };

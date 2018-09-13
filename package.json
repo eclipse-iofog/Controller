@@ -52,7 +52,9 @@
   },
   "dependencies": {
     "async": "^2.0.1",
+    "basic-auth": "^2.0.0",
     "body-parser": "^1.18.2",
+    "compression": "^1.7.3",
     "continuation-local-storage": "^3.1.7",
     "cookie-parser": "^1.4.1",
     "daemonize2": "^0.4.2",
@@ -60,7 +62,7 @@
     "ejs": "^2.5.7",
     "es6-mixins": "^1.0.2",
     "express": "^4.16.2",
-    "express-session": "^1.13.0",
+    "express-session": "^1.15.6",
     "ftp": "^0.3.10",
     "keymirror": "0.1.1",
     "moment": "^2.12.0",
@@ -75,9 +77,12 @@
     "portscanner": "^2.1.1",
     "q": "^1.4.1",
     "sequelize": "^4.33.1",
+    "socket.io": "^2.1.1",
     "sqlite3": "^4.0.2",
+    "ssh2": "^0.6.1",
     "underscore": "^1.8.3",
     "uuid": "^2.0.2",
+    "validator": "^10.7.1",
     "winston": "^2.3.1",
     "winston-daily-rotate-file": "^1.4.3"
   }
