@@ -157,8 +157,8 @@ const validateElementContainerImages = function (params, callback) {
         });
     }
 
-    let errorMsg = 'Can\'t provision. Some of elements has\'t proper docker images for this fog type. ' +
-        'List of this elements and tracks:\n';
+    let errorMsg = 'Some of elements hasn\'t proper docker images for this fog type. ' +
+        'List of elements and tracks:\n';
     errorsElements.forEach((el) => {
         errorMsg = errorMsg
             + ' "' + el.elementName + '" element instances on the'
