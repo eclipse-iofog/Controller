@@ -17,8 +17,8 @@
  * @description This file includes the implementation of the ssh terminal end-point
  */
 
-import appConfig from './../../../config.json';
-import logger from '../../utils/winstonLogs';
+const appConfig = require('./../../../config.json');
+const logger = require('../../utils/winstonLogs');
 const path = require('path');
 const validator = require('validator');
 const nodeRoot = path.dirname(require.main.filename);
@@ -132,7 +132,7 @@ const reauthEndPoint = function (req, res) {
 	res.status(401).send('<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0; url=' + r + '"></head><body bgcolor="#000"></body></html>')
 }
 
-export default {
+module.exports = {
 	checkRemotePortMiddleware: checkRemotePortMiddleware,
 	openTerminalWindowEndPoint: openTerminalWindowEndPoint,
 	basicAuth: basicAuth,

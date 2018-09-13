@@ -15,7 +15,7 @@ const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const fs = require('fs');
 const https = require('https');
-const http = requre('http');
+const http = require('http');
 const appConfig = require('./config.json');
 const configUtil = require('./server/utils/configUtil');
 const constants = require('./server/constants.js');
@@ -41,23 +41,14 @@ const registryController = require('./server/controllers/api/registryController'
 
 const logger = require('./server/utils/winstonLogs');
 const proxyController = require('./server/controllers/api/proxyController');
-const fogVersionCommandController = require('./server/controllers/api/fogVersionCommandController');
-const diagnosticsController = require('./server/controllers/api/diagnosticsController');
-const imageSnapshotController = require('./server/controllers/api/imageSnapshotController');
-
-
-const presetController = require('./server/controllers/api/presetController');
-
-const logger = require('./server/utils/winstonLogs');
-const proxyController = require('./server/controllers/api/proxyController');
 const sshController = require('./server/controllers/api/sshController');
 const fogVersionCommandController = require('./server/controllers/api/fogVersionCommandController');
 const diagnosticsController = require('./server/controllers/api/diagnosticsController');
 const imageSnapshotController = require('./server/controllers/api/imageSnapshotController');
-const presetController = require('./server/controllers/api/presetController');
 const sshSocket = require('./sshServer/socket');
 const socketIO = require('socket.io');
 
+const presetController = require('./server/controllers/api/presetController');
 
 const testController = require('./server/controllers/api/testController');
 

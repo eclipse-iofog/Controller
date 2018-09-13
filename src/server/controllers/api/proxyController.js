@@ -26,7 +26,7 @@ const FogService = require('../../services/fogService');
 
 const AppUtils = require('../../utils/appUtils');
 const logger = require('../../utils/winstonLogs');
-const configUtil reuire('../../utils/configUtil');
+const configUtil = require('../../utils/configUtil');
 /********************************************* EndPoints ******************************************************/
 
 

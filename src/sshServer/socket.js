@@ -1,5 +1,5 @@
 // socket.js
-import logger from '../server/utils/winstonLogs';
+const logger = require('../server/utils/winstonLogs');
 
 const debugWebSSH2 = (text) => logger.info('WebSSH2: ' + text);
 const SSH = require('ssh2').Client
@@ -167,6 +167,6 @@ const socket = function (socket) {
   }
 }
 
-export default {
+module.exports = {
   socket: socket
 }

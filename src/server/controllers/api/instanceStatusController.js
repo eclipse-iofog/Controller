@@ -90,6 +90,6 @@ const updateFogInstance = function(params, callback){
     FogService.updateFogInstance(fogInstanceProps, params, callback);
 };
 
-module.exports {
+module.exports = {
   instanceStatusEndPoint: instanceStatusEndPoint
 };

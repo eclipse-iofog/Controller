@@ -1,8 +1,8 @@
-import async from 'async';
-import logger from '../../utils/winstonLogs';
-import AppUtils from '../../utils/appUtils';
-import PresetService from '../../services/presetService';
-import UserService from '../../services/userService';
+const async = require('async');
+const logger = require('../../utils/winstonLogs');
+const AppUtils = require('../../utils/appUtils');
+const PresetService = require('../../services/presetService');
+const UserService = require('../../services/userService');
 
 
 const testPreset = function (req, res) {
@@ -30,6 +30,6 @@ const testPreset = function (req, res) {
     })
 };
 
-export default {
+module.exports = {
     testPreset: testPreset
 }

@@ -20,7 +20,7 @@
 const fs = require('fs');
 const path = require('path');
 const logger = require('./winstonLogs');
-import appConfig from './../../config.json';
+const appConfig = require('./../../config.json');
 let portscanner = require('portscanner')
 
 // Checks the status of a single port
