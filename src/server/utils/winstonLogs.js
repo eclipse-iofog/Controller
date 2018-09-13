@@ -39,28 +39,8 @@ let logger = new winston.Logger({
         localTime: true,
         prepend: true
     })
-    // new (winston.transports.Console)({
-		// level: 'debug',
-		// handleExceptions: true,
-		// json: false,
-		// colorize: true,
-    // })
   ],
     exitOnError: false
 });
 
 module.exports = logger;
-
-// module.exports = function(moduleName) {
-// 	return {
-// 	    error: function (text) {
-// 		    logger.error(moduleName + ': ' + text)
-// 	    },
-// 	    info: function (text) {
-// 		    logger.info(moduleName + ': ' + text)
-// 	    },
-// 	    debug: function (text) {
-// 		    logger.debug(moduleName + ': ' + text)
-// 	    }
-//     }
-// }
