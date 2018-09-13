@@ -20,6 +20,7 @@
 import fs from 'fs';
 import path from 'path';
 import logger from './winstonLogs';
+import appConfig from './../../config.json';
 let portscanner = require('portscanner')
 
 // Checks the status of a single port
@@ -29,6 +30,17 @@ const checkPortAvailability = function (port) {
   return portscanner.checkPortStatus(port).then(function (status) {
     return status;
   });
+}
+
+const findAvailablePort = function (hostname, params, cb) {
+  try {
+	let portBounds = appConfig.proxy.portRange.split("-").map(i => parseInt(i));
+	return portscanner.findAPortNotInUse(portBounds[0], portBounds[1], hostname).then(function (port) {
+		cb(port, params);
+	});
+  } catch (e) {
+    logger.error(e);
+  }
 }
 
 
@@ -301,5 +313,6 @@ export default {
   onDeleteOptional: onDeleteOptional,
   sendResponse: sendResponse,
   sendMultipleResponse: sendMultipleResponse,
-  onUpdateOrCreate: onUpdateOrCreate
+  onUpdateOrCreate: onUpdateOrCreate,
+  findAvailablePort: findAvailablePort
 };
