@@ -45,14 +45,9 @@ const sshController = require('./server/controllers/api/sshController');
 const fogVersionCommandController = require('./server/controllers/api/fogVersionCommandController');
 const diagnosticsController = require('./server/controllers/api/diagnosticsController');
 const imageSnapshotController = require('./server/controllers/api/imageSnapshotController');
+const presetController = require('./server/controllers/api/presetController');
 const sshSocket = require('./sshServer/socket');
 const socketIO = require('socket.io');
-
-const presetController = require('./server/controllers/api/presetController');
-
-const testController = require('./server/controllers/api/testController');
-
-
 const express = require('express');
 const path = require('path');
 const session = require('express-session')({
@@ -263,9 +258,6 @@ const initApp = function () {
   app.get('/api/v2/emailActivation', fogController.getEmailActivationEndPoint);
 
   app.post('/api/v2/authoring/preset/fromConfig', presetController.testPreset);
-
-
-  app.post('/testEndPoint', testController.testEndPoint);
 
   //generic error handler
   app.use((err, req, res, next) => {
