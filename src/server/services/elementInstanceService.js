@@ -176,24 +176,27 @@ const findOtherTrackDetailByUuids = function(props, params, callback) {
   let otherTrackData = AppUtils.getProperty(params, props.otherTrackData);
 
   ElementInstanceManager
-   .findOtherTrackDetailByUuids(_.uniq(_.pluck(otherTrackData, props.field)))   
+   .findOtherTrackDetailByUuids(_.uniq(_.pluck(otherTrackData, props.field)))
    .then(AppUtils.onFind.bind(null, params, props.setProperty , 'otherTracksDetail not found', callback));
 }
 
 const createElementInstance = function(props, params, callback) {
-let userId = AppUtils.getProperty(params, props.userId),
+let element = AppUtils.getProperty(params, props.element),
+    userId = AppUtils.getProperty(params, props.userId),
     trackId = AppUtils.getProperty(params, props.trackId),
     name= AppUtils.getProperty(params, props.name),
     logSize = AppUtils.getProperty(params, props.logSize),
     config = AppUtils.getProperty(params, props.config),
-    fogInstanceId = AppUtils.getProperty(params, props.fogInstanceId);
+    fogInstanceId = AppUtils.getProperty(params, props.fogInstanceId),
+    volumeMappings = AppUtils.getProperty(params, props.volumeMappings);
+    volumeMappings = Object.is(volumeMappings, undefined) ? '{"volumemappings":[]}' : volumeMappings;
 
     if(!config)
    {
      config = "{}";
    }
   ElementInstanceManager
-    .createElementInstance(params.element, userId, trackId, config, name, logSize, fogInstanceId)
+    .createElementInstance(element, userId, trackId, config, name, logSize, fogInstanceId, volumeMappings)
     .then(AppUtils.onCreate.bind(null, params, props.setProperty, 'Unable to create Element Instance', callback));
 }
 
@@ -240,7 +243,7 @@ const createDebugConsole = function(props, params, callback) {
       userId = AppUtils.getProperty(params, props.userId),
       fogInstanceId = AppUtils.getProperty(params, props.fogInstanceId),
       registryId = AppUtils.getProperty(params, props.registryId);
-  
+
   ElementInstanceManager
     .createDebugConsoleInstance(elementKey, userId, fogInstanceId, registryId)
     .then(AppUtils.onCreate.bind(null, params, props.setProperty, 'Unable to createDebug console object', callback));
@@ -390,12 +393,29 @@ const getElementInstanceRouteDetails = function(props, params, callback) {
 };
 
 const getElementInstanceImagesByFogIdAndNewFogType = function (props, params, callback) {
-    let iofogUuid = AppUtils.getProperty(params, props.iofogUuid),
-        newFogType = AppUtils.getProperty(params, props.newFogType);
+  let iofogUuid = AppUtils.getProperty(params, props.iofogUuid),
+    newFogType = AppUtils.getProperty(params, props.newFogType);
 
-    ElementInstanceManager
-        .getElementInstanceImagesByFogIdAndNewFogType(iofogUuid, newFogType)
-        .then(AppUtils.onFindOptional.bind(null, params, props.setProperty, callback));
+  ElementInstanceManager
+    .getElementInstanceImagesByFogIdAndNewFogType(iofogUuid, newFogType)
+    .then(AppUtils.onFindOptional.bind(null, params, props.setProperty, callback));
+};
+
+const getElementInstanceByNameOnTrackForUser = function (props, params, callback) {
+  let userId = AppUtils.getProperty(params, props.userId),
+    trackId = AppUtils.getProperty(params, props.trackId),
+    elementName = AppUtils.getProperty(params, props.elementName);
+
+  let queryProps = {
+    userId: userId,
+    trackId: trackId,
+    elementName: elementName
+  };
+
+  let errMsg = 'Unable to find Element Instance with name ' + elementName;
+  ElementInstanceManager
+    .getElementInstanceByNameOnTrackForUser(queryProps)
+    .then(AppUtils.onFind.bind(null, params, props.setProperty, errMsg, callback))
 };
 
 module.exports =  {
@@ -437,5 +457,7 @@ module.exports =  {
   getElementInstancesByFogId: getElementInstancesByFogId,
   getElementInstancesByFogIdOptional: getElementInstancesByFogIdOptional,
   getElementInstanceWithImages: getElementInstanceWithImages,
-  getElementInstanceImagesByFogIdAndNewFogType: getElementInstanceImagesByFogIdAndNewFogType
+  getElementInstanceImagesByFogIdAndNewFogType: getElementInstanceImagesByFogIdAndNewFogType,
+  getElementInstanceByNameOnTrackForUser: getElementInstanceByNameOnTrackForUser
+
 };

@@ -17,7 +17,7 @@ const https = require('https');
 const SatelliteManager = require('../managers/satelliteManager');
 const SatelliteService = require('../services/satelliteService');
 
-const openPortOnRadomComsat = function (params, callback) {
+const openPortOnRandomComsat = function (params, callback) {
     let isComsatPortOpen = false,
         iterations = 0;
 
@@ -352,9 +352,9 @@ const displayComsatConnectionsStatus = function (params, callback) {
 }
 
 module.exports =  {
-    openPortOnRadomComsat: openPortOnRadomComsat,
-    closePortOnComsat: closePortOnComsat,
-    closePortsOnComsat: closePortsOnComsat,
-    openPortsOnComsat: openPortsOnComsat,
-    checkConnectionToComsat: checkConnectionToComsat
+  openPortOnRandomComsat: openPortOnRandomComsat,
+  closePortOnComsat: closePortOnComsat,
+  closePortsOnComsat: closePortsOnComsat,
+  openPortsOnComsat: openPortsOnComsat,
+  checkConnectionToComsat: checkConnectionToComsat
 };

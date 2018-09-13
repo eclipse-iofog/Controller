@@ -21,6 +21,8 @@ const Element = require('./../models/element');
 const BaseManager = require('./baseManager');
 const sequelize = require('./../utils/sequelize');
 
+const Op = sequelize.Op;
+
 class ElementManager extends BaseManager {
 	getEntity() {
 		return Element;
@@ -101,7 +103,7 @@ class ElementManager extends BaseManager {
 	}
 	
 	getElementDetails(elementId){
-	const query = 'select e.*, ' +
+		const query = 'select e.*, ' +
 			'it.info_type as inputInfoType, it.info_format as inputInfoFormat, ' +
 			'ot.info_type as outputInfoType, ot.info_format as outputInfoFormat ' +
 			'from element e ' +
@@ -112,6 +114,28 @@ class ElementManager extends BaseManager {
 			plain: true, type: sequelize.QueryTypes.SELECT
 		});
 	}
+
+    getElementByNameForUser(elementProps) {
+        return Element.findOne({
+            where: {
+                [Op.and]: [
+                    {
+                        name: elementProps.elementName
+                    },
+                    {
+                        [Op.or]: [
+                            {
+                                user_id: elementProps.userId
+                            },
+                            {
+                                isPublic: 1
+                            }
+                        ]
+                    }
+                ]
+            }
+        });
+    }
 }
 
 const instance = new ElementManager();

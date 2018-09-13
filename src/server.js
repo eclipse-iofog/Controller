@@ -45,6 +45,8 @@ const diagnosticsController = require('./server/controllers/api/diagnosticsContr
 const imageSnapshotController = require('./server/controllers/api/imageSnapshotController');
 
 
+const presetController = require("./server/controllers/api/presetController");
+
 const testController = require('./server/controllers/api/testController');
 
 
@@ -227,6 +229,8 @@ const initApp = function () {
   app.get('/account/activate/code/:code', userController.activateUserAccountEndPoint);
   app.get('/api/v2/user/authenticate/:t', userController.authenticateUserEndPoint);
   app.get('/api/v2/emailActivation', fogController.getEmailActivationEndPoint);
+
+  app.post('/api/v2/authoring/preset/fromConfig', presetController.testPreset);
 
 
   app.post('/testEndPoint', testController.testEndPoint);

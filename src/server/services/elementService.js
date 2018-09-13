@@ -95,6 +95,21 @@ const updateElement = function(props, params, callback) {
     .then(AppUtils.onUpdate.bind(null, params, 'Unable to update Element object', callback));
 }
 
+const getElementByNameForUser = function (props, params, callback) {
+    let elementName = AppUtils.getProperty(params, props.elementName),
+        userId = AppUtils.getProperty(params, props.userId);
+
+    let elementNameForUser = {
+        elementName: elementName,
+        userId: userId
+    };
+
+    let errMsg = 'Unable to find Element object with name ' + elementName;
+    ElementManager
+        .getElementByNameForUser(elementNameForUser)
+        .then(AppUtils.onFind.bind(null, params, props.setProperty, errMsg, callback))
+};
+
 module.exports =  {
   createElement: createElement,
   deleteElementById: deleteElementById,
@@ -103,5 +118,6 @@ module.exports =  {
   getElementDetails: getElementDetails,
   getElementForPublish: getElementForPublish,
   getNetworkElement: getNetworkElement,
-  updateElement: updateElement
+  updateElement: updateElement,
+  getElementByNameForUser: getElementByNameForUser
 };

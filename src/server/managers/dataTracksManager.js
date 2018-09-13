@@ -116,6 +116,15 @@ class DataTracksManager extends BaseManager {
             type: sequelize.QueryTypes.SELECT
         });
     }
+
+    getDataTrackByNameAndUserId(trackProps) {
+        return DataTracks.findOne({
+            where: {
+                name: trackProps.trackName,
+                user_id: trackProps.userId
+            }
+        });
+    }
 }
 
 const instance = new DataTracksManager();
