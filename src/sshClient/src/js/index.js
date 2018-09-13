@@ -5,13 +5,13 @@ import * as Terminal from 'xterm/dist/xterm'
 import * as fit from 'xterm/dist/addons/fit/fit'
 // fontawesome, individual icon imports reduces file size dramatically but it's
 // a little messy. this should be fixed by some updates with the fa library at some point
-const fontawesome = require('@fortawesome/fontawesome');
-const faBars = require('@fortawesome/fontawesome-free-solid/faBars');
+import fontawesome from '@fortawesome/fontawesome';
+import faBars from '@fortawesome/fontawesome-free-solid/faBars';
 // import faQuestion from '@fortawesome/fontawesome-free-solid/faQuestion'
-const faClipboard = require('@fortawesome/fontawesome-free-solid/faClipboard');
-const faDownload = require('@fortawesome/fontawesome-free-solid/faDownload');
-const faKey = require('@fortawesome/fontawesome-free-solid/faKey');
-const faCog = require('@fortawesome/fontawesome-free-solid/faCog');
+import faClipboard from '@fortawesome/fontawesome-free-solid/faClipboard';
+import faDownload from '@fortawesome/fontawesome-free-solid/faDownload';
+import faKey from '@fortawesome/fontawesome-free-solid/faKey';
+import faCog from '@fortawesome/fontawesome-free-solid/faCog';
 fontawesome.library.add(faBars, faClipboard, faDownload, faKey, faCog)
 
 require('xterm/dist/xterm.css')
