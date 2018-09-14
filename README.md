@@ -165,8 +165,8 @@ To setup email sender, do following steps:
 
         sudo fog-controller comsat -add <name> <domain> <publicIP> <cert> <selfSignedCerts>
         
-&ensp;<cert> parameter is path to the certificate file (optional)
-&ensp;<selfSignedCerts is boolean value indicating if certificate is self signed or not.
+&ensp; *cert* is path to the certificate file (optional)  
+&ensp; *selfSignedCerts* is boolean value indicating if certificate is self signed or not  
 &ensp;If certificate is self signed then <selfSignedCerts> should be set to 'true', otherwise it should be set to any other value or not set at all.
  
 
@@ -187,8 +187,8 @@ To setup email sender, do following steps:
   
         sudo fog-controller proxy -add <username> $pass <host> <rsaKey> [<lport>]
         
-&ensp;<rsaKey> parameter is path to the rsa key file
-&ensp;<lport> is optional local port parameter (defaults to 22)
+&ensp; *rsaKey* is path to the rsa key file  
+&ensp; *lport* is optional local port parameter (defaults to 22)  
 
 3.&ensp;To remove a proxy config
 
