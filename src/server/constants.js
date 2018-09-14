@@ -53,7 +53,12 @@ const CONFIG = {
   ioauthoring_port: 'ioauthoring_port',
   ioauthoring_ip_address: 'ioauthoring_ip_address',
   ioauthoring_protocol: 'ioauthoring_protocol',
-  email_activation: 'email_activation'
+  email_activation: 'email_activation',
+  proxy_username: 'proxy_username',
+  proxy_password: 'proxy_password',
+  proxy_host: 'proxy_host',
+  proxy_lport: 'proxy_lport',
+  proxy_rsa_key: 'proxy_rsa_key'
 };
 
 module.exports =  {

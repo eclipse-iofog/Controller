@@ -27,6 +27,7 @@ const FogService = require('../../services/fogService');
 const AppUtils = require('../../utils/appUtils');
 const logger = require('../../utils/winstonLogs');
 const configUtil = require('../../utils/configUtil');
+const constants = require('../../constants');
 /********************************************* EndPoints ******************************************************/
 
 
@@ -272,11 +273,11 @@ const getProxyCloseStatus = function(params, callback) {
 const getProxyConfigData = function(params, callback) {
 	try{
 		configUtil.getAllConfigs().then(() => {
-			let proxyUsername = configUtil.getConfigParam('proxy_username'),
-				proxyPassword = configUtil.getConfigParam('proxy_password'),
-				proxyHost = configUtil.getConfigParam('proxy_host'),
-				proxyLocalPort = configUtil.getConfigParam('proxy_lport') || 22,
-                proxyRsaKey = configUtil.getConfigParam('proxy_rsa_key');
+			let proxyUsername = configUtil.getConfigParam(constants.CONFIG.proxy_username),
+				proxyPassword = configUtil.getConfigParam(constants.CONFIG.proxy_password),
+				proxyHost = configUtil.getConfigParam(constants.CONFIG.proxy_host),
+				proxyLocalPort = configUtil.getConfigParam(constants.CONFIG.proxy_lport) || 22,
+                proxyRsaKey = configUtil.getConfigParam(constants.CONFIG.proxy_rsa_key);
 
 			const cb  = function(port, params) {
 				params.proxyData = {

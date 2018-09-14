@@ -17,6 +17,7 @@ const { Status } = require('./Status');
 const { Start } = require('./Start');
 const { User } = require('./User');
 const { Comsat } = require('./Comsat');
+const { Proxy } = require('./Proxy');
 const { Help } = require('./Help');
 
 class CLI {
@@ -43,6 +44,9 @@ class CLI {
       case 'comsat':
         let comsat = new Comsat(this.args.slice(1));
         return comsat.run();
+      case 'proxy':
+        let proxy = new Proxy(this.args.slice(1));
+        return proxy.run();
       case 'help':
       default:
         Help.displayGeneralHelp();

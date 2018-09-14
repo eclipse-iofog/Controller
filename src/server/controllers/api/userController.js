@@ -28,6 +28,7 @@ const AppUtils = require('../../utils/appUtils');
 const configUtil = require('../../utils/configUtil');
 const logger = require('../../utils/winstonLogs');
 const appConfig = require('./../../../config.json');
+const constants = require('../../constants');
 
 /**************************************** EndPoints *************************************************/
 /************ Activate User Account EndPoint (Get: /account/activate/code/:code) *******/
@@ -178,9 +179,9 @@ const updateUser = function(params, callback){
 const getIOAuthoringData = function(params, callback){
   try{
     configUtil.getAllConfigs().then(() => {
-      let ioAuthoringProtocol = configUtil.getConfigParam('ioauthoring_protocol') || appConfig.ioauthoringProtocol,
-      ioAuthoringIPAddress = configUtil.getConfigParam('ioauthoring_ip_address') || appConfig.ioauthoringIPAddress,
-      ioAuthoringPort = configUtil.getConfigParam('ioauthoring_port') || appConfig.ioauthoringPort;
+      let ioAuthoringProtocol = configUtil.getConfigParam(constants.CONFIG.ioauthoring_protocol) || appConfig.ioauthoringProtocol,
+      ioAuthoringIPAddress = configUtil.getConfigParam(constants.CONFIG.ioauthoring_ip_address) || appConfig.ioauthoringIPAddress,
+      ioAuthoringPort = configUtil.getConfigParam(constants.CONFIG.ioauthoring_port) || appConfig.ioauthoringPort;
 
       logger.info(ioAuthoringProtocol);
       logger.info(ioAuthoringIPAddress);
@@ -521,11 +522,11 @@ const logoutUserEndPoint = function(req, res){
 const getEmailData = function(params, callback){
   try{
   configUtil.getAllConfigs().then(() => {
-    let email = configUtil.getConfigParam('email_address'),
-    password = configUtil.getConfigParam('email_password'),
-    service = configUtil.getConfigParam('email_service'),
-    host = configUtil.getConfigParam('email_server'),
-    port = configUtil.getConfigParam('email_serverport');
+    let email = configUtil.getConfigParam(constants.CONFIG.email_address),
+    password = configUtil.getConfigParam(constants.CONFIG.email_password),
+    service = configUtil.getConfigParam(constants.CONFIG.email_service),
+    host = configUtil.getConfigParam(constants.CONFIG.email_server),
+    port = configUtil.getConfigParam(constants.CONFIG.email_serverport);
 
     params.emailSenderData = {
       email: email,

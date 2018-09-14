@@ -32,8 +32,7 @@ class Help {
     console.log(`\t\t\t-add <key> <value>\t\t\t\tSet Configurations of fog-controller
                   \t\t\t\t\t\t\t\t(You can set one of these configurations: port, ssl_key, intermediate_cert, ssl_cert,
                   \t\t\t\t\t\t\t\temail_activation [on | off], email_address, email_password, email_service, ioauthoring_port, ioauthoring_ip_address,
-                  \t\t\t\t\t\t\t\tioauthoring_protocal, proxy_username, proxy_password, proxy_host, proxy_lport, 
-                  \t\t\t\t\t\t\t\tproxy_rsa_key)`);
+                  \t\t\t\t\t\t\t\tioauthoring_protocal)`);
   }
 
   static displayConfigRemoveHelp = () => {
@@ -69,17 +68,35 @@ class Help {
     Help.displayComsatRemoveHelp();
   }
 
+  static displayProxyCommandHelp = () => {
+	  Help.displayProxyListHelp();
+	  Help.displayProxyAddHelp();
+	  Help.displayProxyRemoveHelp();
+  }
+
   static displayComsatListHelp = () => {
     console.log(`\t\t\t-list\t\t\t\t\t\tList down all ComSat(s)`);
   }
+
+	static displayProxyListHelp = () => {
+		console.log(`\t\t\t-list\t\t\t\t\t\t\tList down proxy config`);
+	}
 
   static displayComsatAddHelp = () => {
     console.log(`\t\t\t-add <name> <domain> <publicIP> [<certFile>] \tCreates a new ComSat`);
 	console.log(`\t\t\t\t\t\t [<selfSignedCerts>]`);
   }
 
+	static displayProxyAddHelp = () => {
+		console.log(`\t\t\t-add <username> <password> <host> <rsaKey> [<lport>] \tCreates proxy config`);
+	}
+
   static displayComsatRemoveHelp = () => {
-    console.log(`\t\t\t-remove <ID>\t\t\t\t\tDeletes a ComSat with corresponding ID`);
+      console.log(`\t\t\t-remove <ID>\t\t\t\t\tDeletes a ComSat with corresponding ID`);
+  }
+
+  static displayProxyRemoveHelp = () => {
+	  console.log(`\t\t\t-remove \t\t\t\t\t\tDeletes proxy config`);
   }
 
   static displayGeneralHelp = () => {
