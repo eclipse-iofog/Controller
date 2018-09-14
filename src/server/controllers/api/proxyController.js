@@ -27,6 +27,7 @@ import FogService from '../../services/fogService';
 import AppUtils from '../../utils/appUtils';
 import logger from '../../utils/winstonLogs';
 import configUtil from '../../utils/configUtil';
+import constants from '../../constants';
 /********************************************* EndPoints ******************************************************/
 
 
@@ -272,11 +273,11 @@ const getProxyCloseStatus = function(params, callback) {
 const getProxyConfigData = function(params, callback) {
 	try{
 		configUtil.getAllConfigs().then(() => {
-			let proxyUsername = configUtil.getConfigParam('proxy_username'),
-				proxyPassword = configUtil.getConfigParam('proxy_password'),
-				proxyHost = configUtil.getConfigParam('proxy_host'),
-				proxyLocalPort = configUtil.getConfigParam('proxy_lport') || 22,
-                proxyRsaKey = configUtil.getConfigParam('proxy_rsa_key');
+			let proxyUsername = configUtil.getConfigParam(constants.CONFIG.proxy_username),
+				proxyPassword = configUtil.getConfigParam(constants.CONFIG.proxy_password),
+				proxyHost = configUtil.getConfigParam(constants.CONFIG.proxy_host),
+				proxyLocalPort = configUtil.getConfigParam(constants.CONFIG.proxy_lport) || 22,
+                proxyRsaKey = configUtil.getConfigParam(constants.CONFIG.proxy_rsa_key);
 
 			const cb  = function(port, params) {
 				params.proxyData = {

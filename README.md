@@ -173,6 +173,26 @@ To setup email sender, do following steps:
 3.&ensp;To remove a ComSat
 
         sudo fog-controller comsat -remove <ID>
+        
+**Proxy Managment**
+
+1.&ensp;To list proxy config
+
+        sudo fog-controller proxy -list
+
+2.&ensp;To update proxy config
+            
+        read pass
+  &ensp;Enter password for proxy user
+  
+        sudo fog-controller proxy -add <username> $pass <host> <rsaKey> [<lport>]
+        
+&ensp;<rsaKey> parameter is path to the rsa key file
+&ensp;<lport> is optional local port parameter (defaults to 22)
+
+3.&ensp;To remove a proxy config
+
+        sudo fog-controller proxy -remove
 
 **Execute Fog-Controller on startup**
 
