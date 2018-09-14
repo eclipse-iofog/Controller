@@ -28,6 +28,6 @@ const getGpsCoordinates = function (coordinatesString) {
     return gpsLatLon;
 };
 
-export default {
+module.exports =  {
     getGpsCoordinates: getGpsCoordinates
 }

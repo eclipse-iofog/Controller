@@ -17,9 +17,9 @@
  * @description This file includes the CURD operations for the element_output_type Model.
  */
 
-import ElementOutputType from './../models/elementOutputType';
-import BaseManager from './../managers/baseManager';
-import sequelize from './../utils/sequelize';
+const ElementOutputType = require('./../models/elementOutputType');
+const BaseManager = require('./../managers/baseManager');
+const sequelize = require('./../utils/sequelize');
 
 class ElementOutputTypeManager extends BaseManager {
   getEntity() {
@@ -57,4 +57,4 @@ class ElementOutputTypeManager extends BaseManager {
 }
 
 const instance = new ElementOutputTypeManager();
-export default instance;
+module.exports =  instance;

@@ -17,9 +17,9 @@
  * @description This file includes the CURD operations for the element Model.
  */
 
-import Element from './../models/element';
-import BaseManager from './baseManager';
-import sequelize from './../utils/sequelize';
+const Element = require('./../models/element');
+const BaseManager = require('./baseManager');
+const sequelize = require('./../utils/sequelize');
 
 const Op = sequelize.Op;
 
@@ -139,4 +139,4 @@ class ElementManager extends BaseManager {
 }
 
 const instance = new ElementManager();
-export default instance;
+module.exports =  instance;

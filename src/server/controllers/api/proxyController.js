@@ -17,17 +17,17 @@
  * @description This file includes the implementation of the proxy end-point
  */
 
-import async from 'async';
-import BaseApiController from './baseApiController';
-import ChangeTrackingService from '../../services/changeTrackingService';
-import UserService from '../../services/userService';
-import ProxyService from '../../services/proxyService';
-import FogService from '../../services/fogService';
+const async = require('async');
+const BaseApiController = require('./baseApiController');
+const ChangeTrackingService = require('../../services/changeTrackingService');
+const UserService = require('../../services/userService');
+const ProxyService = require('../../services/proxyService');
+const FogService = require('../../services/fogService');
 
-import AppUtils from '../../utils/appUtils';
-import logger from '../../utils/winstonLogs';
-import configUtil from '../../utils/configUtil';
-import constants from '../../constants';
+const AppUtils = require('../../utils/appUtils');
+const logger = require('../../utils/winstonLogs');
+const configUtil = require('../../utils/configUtil');
+const constants = require('../../constants');
 /********************************************* EndPoints ******************************************************/
 
 
@@ -298,7 +298,7 @@ const getProxyConfigData = function(params, callback) {
 	}
 }
 
-export default {
+module.exports =  {
     saveProxyEndPoint: saveProxyEndPoint,
     closeProxyEndPoint: closeProxyEndPoint,
     getProxyEndPoint: getProxyEndPoint,

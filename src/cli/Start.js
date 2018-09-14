@@ -12,9 +12,9 @@
  */
 
 const defaultConfig = require('../config.json');
-import constants from '../server/constants';
+const constants = require('../server/constants');
 
-import ConfigUtil from '../server/utils/configUtil';
+const ConfigUtil = require('../server/utils/configUtil');
 
 class Start {
   static run = (daemon) => {

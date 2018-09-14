@@ -17,9 +17,9 @@
  * @description This file includes the CURD operations for the proxy Model.
  */
 
-import Proxy from './../models/proxy';
-import ChangeTracking from './../models/changeTracking';
-import BaseManager from './../managers/baseManager';
+const Proxy = require('./../models/proxy');
+const ChangeTracking = require('./../models/changeTracking');
+const BaseManager = require('./../managers/baseManager');
 
 class ProxyManager extends BaseManager {
     getEntity() {
@@ -95,4 +95,4 @@ class ProxyManager extends BaseManager {
 }
 
 const instance = new ProxyManager();
-export default instance;
+module.exports =  instance;

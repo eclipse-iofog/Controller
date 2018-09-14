@@ -11,9 +11,9 @@
  *
  */
 
-import ElementInstanceConnectionsManager from '../managers/elementInstanceConnectionsManager';
-import AppUtils from '../utils/appUtils';
-import _ from 'underscore';
+const ElementInstanceConnectionsManager = require('../managers/elementInstanceConnectionsManager');
+const AppUtils = require('../utils/appUtils');
+const _ = require('underscore');
 
 const createElementInstanceConnection = function(props, params, callback) {
 
@@ -56,7 +56,7 @@ const deleteBySourceAndDestinationElementInstance = function(props, params, call
     .then(AppUtils.onDelete.bind(null, params, 'There is no such element instance connection to delete.', callback));
 }
 
-export default {
+module.exports =  {
   createElementInstanceConnection: createElementInstanceConnection,
   findBySourceElementInstance: findBySourceElementInstance,
   findBySourceAndDestinationElementInstance: findBySourceAndDestinationElementInstance,

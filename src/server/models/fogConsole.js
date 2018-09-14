@@ -17,9 +17,9 @@
  * @description This file includes a iofog_console model used by sequalize for ORM;
  */
 
-import Sequelize from 'sequelize';
-import sequelize from './../utils/sequelize';
-import Fog from './fog'
+const Sequelize = require('sequelize');
+const sequelize = require('./../utils/sequelize');
+const Fog = require('./fog');
 
 const FogConsole = sequelize.define('iofog_console', {
   id: {
@@ -57,4 +57,4 @@ const FogConsole = sequelize.define('iofog_console', {
 FogConsole.belongsTo(Fog, {
   foreignKey: 'iofog_uuid'
 });
-export default FogConsole;
+module.exports =  FogConsole;

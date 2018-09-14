@@ -17,9 +17,9 @@
 * @description This file includes a instance_track model used by sequalize for ORM;
 */
 
-import Sequelize from 'sequelize';
-import sequelize from './../utils/sequelize';
-import ElementInstance from './elementInstance';
+const Sequelize = require('sequelize');
+const sequelize = require('./../utils/sequelize');
+const ElementInstance = require('./elementInstance');
 
 const InstanceTrack = sequelize.define('instance_track', {
   id: {type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true, field: 'ID'},
@@ -41,4 +41,4 @@ const InstanceTrack = sequelize.define('instance_track', {
 
 InstanceTrack.belongsTo(ElementInstance);
 
-export default InstanceTrack;
+module.exports =  InstanceTrack;

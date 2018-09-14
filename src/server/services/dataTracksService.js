@@ -11,8 +11,8 @@
  *
  */
 
-import DataTracksManager from '../managers/dataTracksManager';
-import AppUtils from '../utils/appUtils';
+const DataTracksManager = require('../managers/dataTracksManager');
+const AppUtils = require('../utils/appUtils');
 
 const createDataTrack = function(props, params, callback) {
   DataTracksManager
@@ -113,7 +113,7 @@ const getDataTrackByNameAndUserId = function (props, params, callback) {
     .then(AppUtils.onFind.bind(null, params, props.setProperty, errMsg, callback));
 };
 
-export default {
+module.exports =  {
   createDataTrack: createDataTrack,
   deleteTrackById: deleteTrackById,
   findContainerListByInstanceId: findContainerListByInstanceId,

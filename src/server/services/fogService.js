@@ -11,9 +11,9 @@
  *
  */
 
-import FogManager from '../managers/fogManager';
-import AppUtils from '../utils/appUtils';
-import _ from 'underscore';
+const FogManager = require('../managers/fogManager');
+const AppUtils = require('../utils/appUtils');
+const _ = require('underscore');
 
 const createFogInstance = function(props, params, callback) {
   let fogType = AppUtils.getProperty(params, props.fogType),
@@ -140,7 +140,7 @@ const getFogInstanceByNameForUser = function (props, params, callback) {
     .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Cannot get iofog', callback));
 };
 
-export default {
+module.exports =  {
   createFogInstance: createFogInstance,
   createFogInstanceWithUUID: createFogInstanceWithUUID,
   deleteFogInstance: deleteFogInstance,

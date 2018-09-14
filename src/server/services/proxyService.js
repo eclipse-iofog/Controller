@@ -11,8 +11,8 @@
  *
  */
 
-import ProxyManager from '../managers/proxyManager';
-import AppUtils from '../utils/appUtils'
+const ProxyManager = require('../managers/proxyManager');
+const AppUtils = require('../utils/appUtils');
 
 const createProxy = function(props, params, callback) {
     ProxyManager
@@ -52,7 +52,7 @@ const saveProxy = function(props, params, callback) {
         .then(AppUtils.onCreate.bind(null, params, props.setProperty, 'Unable to create proxy for Fog Instance', callback));
 }
 
-export default {
+module.exports =  {
     createProxy: createProxy,
     deleteProxy: deleteProxy,
     getProxyByInstanceId: getProxyByInstanceId,

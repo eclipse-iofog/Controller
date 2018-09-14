@@ -17,8 +17,8 @@
  * @description This file includes the CURD operations for the fogConsole Model.
  */
 
-import BaseManager from './../managers/baseManager';
-import FogConsole from './../models/fogConsole';
+const BaseManager = require('./../managers/baseManager');
+const FogConsole = require('./../models/fogConsole');
 
 class FogConsoleManager extends BaseManager {
 
@@ -53,4 +53,4 @@ class FogConsoleManager extends BaseManager {
 }
 
 const instance = new FogConsoleManager();
-export default instance;
+module.exports =  instance;

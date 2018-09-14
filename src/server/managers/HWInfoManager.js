@@ -17,9 +17,9 @@
  * @description
  */
 
-import HWInfo from './../models/hwInfo';
-import BaseManager from './../managers/baseManager';
-import sequelize from './../utils/sequelize';
+const HWInfo = require('./../models/hwInfo');
+const BaseManager = require('./../managers/baseManager');
+const sequelize = require('./../utils/sequelize');
 
 class HWInfoManager extends BaseManager {
     getEntity() {
@@ -88,4 +88,4 @@ class HWInfoManager extends BaseManager {
 }
 
 const instance = new HWInfoManager();
-export default instance;
+module.exports =  instance;

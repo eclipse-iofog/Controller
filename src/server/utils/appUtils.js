@@ -17,10 +17,10 @@
  * @description This file includes the utility functions relevant to IOFog;
  */
 
-import fs from 'fs';
-import path from 'path';
-import logger from './winstonLogs';
-import appConfig from './../../config.json';
+const fs = require('fs');
+const path = require('path');
+const logger = require('./winstonLogs');
+const appConfig = require('./../../config.json');
 let portscanner = require('portscanner')
 
 // Checks the status of a single port
@@ -286,7 +286,7 @@ const sendMultipleResponse = function (response, err, successLabelArr, successVa
   response.send(res);
 }
 
-export default {
+module.exports =  {
   isArray: isArray,
   isFileExists: isFileExists,
   isValidPort: isValidPort,

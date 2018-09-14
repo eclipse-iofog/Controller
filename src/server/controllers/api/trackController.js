@@ -16,22 +16,22 @@
  * @author Zishan Iqbal
  * @description This file includes the implementation of the status end-point
  */
-import async from 'async';
+const async = require('async');
 
-import ChangeTrackingService from '../../services/changeTrackingService';
-import ComsatService from '../../services/comsatService';
-import DataTracksService from '../../services/dataTracksService';
-import ElementInstanceConnectionsService from '../../services/elementInstanceConnectionsService';
-import ElementInstancePortService from '../../services/elementInstancePortService';
-import ElementInstanceService from '../../services/elementInstanceService';
-import FogService from '../../services/fogService';
-import NetworkPairingService from '../../services/networkPairingService';
-import RoutingService from '../../services/routingService';
-import SatellitePortService from '../../services/satellitePortService';
-import UserService from '../../services/userService';
+const ChangeTrackingService = require('../../services/changeTrackingService');
+const ComsatService = require('../../services/comsatService');
+const DataTracksService = require('../../services/dataTracksService');
+const ElementInstanceConnectionsService = require('../../services/elementInstanceConnectionsService');
+const ElementInstancePortService = require('../../services/elementInstancePortService');
+const ElementInstanceService = require('../../services/elementInstanceService');
+const FogService = require('../../services/fogService');
+const NetworkPairingService = require('../../services/networkPairingService');
+const RoutingService = require('../../services/routingService');
+const SatellitePortService = require('../../services/satellitePortService');
+const UserService = require('../../services/userService');
 
-import AppUtils from '../../utils/appUtils';
-import logger from '../../utils/winstonLogs';
+const AppUtils = require('../../utils/appUtils');
+const logger = require('../../utils/winstonLogs');
 
 /********************************************* EndPoints ******************************************************/
 
@@ -453,7 +453,7 @@ const deleteElementInstances = function(params, callback) {
   }
 }
 
-export default {
+module.exports =  {
   fogTrackListEndPoint: fogTrackListEndPoint,
   fogTrackUpdateEndPoint: fogTrackUpdateEndPoint,
   fogTrackDeleteEndPoint: fogTrackDeleteEndPoint,

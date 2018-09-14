@@ -61,7 +61,7 @@ const CONFIG = {
   proxy_rsa_key: 'proxy_rsa_key'
 };
 
-export default {
+module.exports =  {
   ACCESS_TOKEN_EXPIRE_PERIOD: ACCESS_TOKEN_EXPIRE_PERIOD,
   MSG: MSG,
   CONFIG: CONFIG

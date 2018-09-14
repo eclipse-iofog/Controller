@@ -17,27 +17,27 @@
  * @description This file includes the implementation of the instance-routing end-point
  */
 
-import async from 'async';
-import BaseApiController from './baseApiController';
+const async = require('async');
+const BaseApiController = require('./baseApiController');
 
-import ChangeTrackingService from '../../services/changeTrackingService';
-import ComsatService from '../../services/comsatService';
-import DataTracksService from '../../services/dataTracksService';
-import ElementService from '../../services/elementService';
-import ElementInstanceService from '../../services/elementInstanceService';
-import FogService from '../../services/fogService';
-import FogTypeService from '../../services/fogTypeService';
-import NetworkPairingService from '../../services/networkPairingService';
-import RoutingService from '../../services/routingService';
-import SatelliteService from '../../services/satelliteService';
-import SatellitePortService from '../../services/satellitePortService';
-import ConsoleService from '../../services/consoleService';
-import StreamViewerService from '../../services/streamViewerService';
-import UserService from '../../services/userService';
+const ChangeTrackingService = require('../../services/changeTrackingService');
+const ComsatService = require('../../services/comsatService');
+const DataTracksService = require('../../services/dataTracksService');
+const ElementService = require('../../services/elementService');
+const ElementInstanceService = require('../../services/elementInstanceService');
+const FogService = require('../../services/fogService');
+const FogTypeService = require('../../services/fogTypeService');
+const NetworkPairingService = require('../../services/networkPairingService');
+const RoutingService = require('../../services/routingService');
+const SatelliteService = require('../../services/satelliteService');
+const SatellitePortService = require('../../services/satellitePortService');
+const ConsoleService = require('../../services/consoleService');
+const StreamViewerService = require('../../services/streamViewerService');
+const UserService = require('../../services/userService');
 
-import AppUtils from '../../utils/appUtils';
-import logger from '../../utils/winstonLogs';
-import Constants from '../../constants.js';
+const AppUtils = require('../../utils/appUtils');
+const logger = require('../../utils/winstonLogs');
+const Constants = require('../../constants.js');
 
 /********************************************* EndPoints ******************************************************/
 
@@ -628,7 +628,7 @@ const getDeleteOutput = function(params, callback) {
   callback(null, params);
 }
 
-export default {
+module.exports =  {
   instanceRoutingEndPoint: instanceRoutingEndPoint,
   instanceRouteCreateEndPoint: instanceRouteCreateEndPoint,
   instanceRouteDeleteEndPoint: instanceRouteDeleteEndPoint
