@@ -501,7 +501,7 @@ paths:
             type: object
             properties:
               id:
-                type: number
+                type: string
           headers:
             X-Timestamp:
               type: number
@@ -528,7 +528,7 @@ paths:
           name: id
           description: Catalog Item Id
           required: true
-          type: number
+          type: string
       responses:
         200:
           description: Catalog Item Info
@@ -557,7 +557,7 @@ paths:
           name: id
           description: Catalog Item Id
           required: true
-          type: number
+          type: string
         - in: body
           name: UpdateCatalogItem
           description: Microservice Catalog Item Info
@@ -594,7 +594,7 @@ paths:
           name: id
           description: Catalog Item Id
           required: true
-          type: number
+          type: string
       responses:
         204:
           description: Success
@@ -653,7 +653,7 @@ paths:
             type: object
             properties:
               id:
-                type: number
+                type: string
           headers:
             X-Timestamp:
               type: number
@@ -678,7 +678,7 @@ paths:
           name: id
           description: Flow Id
           required: true
-          type: number
+          type: string
       responses:
         200:
           description: Success
@@ -707,7 +707,7 @@ paths:
           name: id
           description: Flow Id
           required: true
-          type: number
+          type: string
         - in: body
           name: NetFlowInfo
           description: New Flow Info
@@ -742,7 +742,7 @@ paths:
           name: id
           description: Flow Id
           required: true
-          type: number
+          type: string
       responses:
         204:
           description: Success
@@ -775,7 +775,7 @@ paths:
           name: flowId
           description: Flow Id
           required: false
-          type: number
+          type: string
       responses:
         200:
           description: Success
@@ -811,7 +811,7 @@ paths:
             type: object
             properties:
               id:
-                type: number
+                type: string
           headers:
             X-Timestamp:
               type: number
@@ -1380,7 +1380,7 @@ definitions:
     type: object
     properties:
       id:
-        type: number
+        type: string
       name:
         type: string
       description:
@@ -1495,7 +1495,7 @@ definitions:
     type: object
     properties:
       id:
-        type: number
+        type: string
       name:
         type: string
       updatedBy:
@@ -1511,7 +1511,7 @@ definitions:
       updatedAt:
         type: number
       userId:
-        type: number
+        type: string
   NewFlowRequest:
     type: object
     properties:
@@ -1556,9 +1556,9 @@ definitions:
       name:
         type: string
       catalogItemId:
-        type: number
+        type: string
       flowId:
-        type: number
+        type: string
       ioFogNodeId:
         type: string            
       config:
@@ -1581,7 +1581,7 @@ definitions:
       name:
         type: string
       ioFogNodeId:
-        type: number            
+        type: string            
       config:
         type: string
       volumeMappings:
