@@ -79,7 +79,7 @@ class Help {
   }
 
 	static displayProxyListHelp = () => {
-		console.log(`\t\t\t-list\t\t\t\t\t\t\tList down proxy config`);
+		console.log(`\t\t\t-list\t\t\t\t\t\tList down proxy config`);
 	}
 
   static displayComsatAddHelp = () => {
@@ -88,7 +88,8 @@ class Help {
   }
 
 	static displayProxyAddHelp = () => {
-		console.log(`\t\t\t-add <username> <password> <host> <rsaKey> [<lport>] \tCreates proxy config`);
+		console.log(`\t\t\t-add <username> <password> <host> <rsaKey> \tCreates proxy config`);
+		console.log(`\t\t\t\t\t\t [<lport>]`);
 	}
 
   static displayComsatRemoveHelp = () => {
@@ -96,7 +97,7 @@ class Help {
   }
 
   static displayProxyRemoveHelp = () => {
-	  console.log(`\t\t\t-remove \t\t\t\t\t\tDeletes proxy config`);
+	  console.log(`\t\t\t-remove \t\t\t\t\tDeletes proxy config`);
   }
 
   static displayGeneralHelp = () => {
@@ -109,6 +110,10 @@ class Help {
     Help.displayComsatListHelp();
     Help.displayComsatAddHelp();
     Help.displayComsatRemoveHelp();
+	console.log(`\tproxy`);
+	Help.displayProxyListHelp();
+	Help.displayProxyAddHelp();
+	Help.displayProxyRemoveHelp();
     console.log(`\tuser`);
     Help.displayUserListHelp();
     Help.displayUserAddHelp();
