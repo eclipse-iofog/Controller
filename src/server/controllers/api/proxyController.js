@@ -266,7 +266,7 @@ const getProxyData = function(params, callback) {
 }
 
 const getProxyCloseStatus = function(params, callback) {
-	params.proxyCloseStatus = params.proxyData.close;
+	params.proxyCloseStatus = params.proxyData ? params.proxyData.close : true;
 	callback(null, params);
 }
 
