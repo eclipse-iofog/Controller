@@ -16,7 +16,7 @@ const fs = require('fs');
 const ComsatService = require('../server/services/comsatService');
 
 class Status {
-  static display = (daemon) => {
+  static display(daemon) {
     displayDaemonStatus(daemon);
     displayDatabaseStatus();
   }

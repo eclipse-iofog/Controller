@@ -19,7 +19,7 @@ class User {
     this.args = args;
   }
 
-  run = () => {
+  run() {
     if (!this.args.length) {
       Help.displayUserCommandHelp();
     } else {

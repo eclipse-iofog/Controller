@@ -12,95 +12,95 @@
  */
 
 class Help {
-  static displayExtraArgumentHelp = (arg) => {
+  static displayExtraArgumentHelp(arg) {
     console.log(`
       \tUnrecognized command: ${arg}
       \tUse fog-controller help for more information`);
   }
 
-  static displayConfigCommandHelp = () => {
+  static displayConfigCommandHelp() {
     Help.displayConfigListHelp();
     Help.displayConfigAddHelp();
     Help.displayConfigRemoveHelp();
   }
 
-  static displayConfigListHelp = () => {
+  static displayConfigListHelp() {
     console.log(`\t\t\t-list\t\t\t\t\t\tDisplays Configuration information in CLI (config table content)`);
   }
 
-  static displayConfigAddHelp = () => {
+  static displayConfigAddHelp() {
     console.log(`\t\t\t-add <key> <value>\t\t\t\tSet Configurations of fog-controller
                   \t\t\t\t\t\t\t\t(You can set one of these configurations: port, ssl_key, intermediate_cert, ssl_cert,
                   \t\t\t\t\t\t\t\temail_activation [on | off], email_address, email_password, email_service, ioauthoring_port, ioauthoring_ip_address,
                   \t\t\t\t\t\t\t\tioauthoring_protocal)`);
   }
 
-  static displayConfigRemoveHelp = () => {
+  static displayConfigRemoveHelp() {
     console.log(`\t\t\t-remove <key>\t\t\t\t\tDeletes a Configuration with corresponding Key`);
   }
 
-  static displayUserCommandHelp = () => {
+  static displayUserCommandHelp(){
     Help.displayUserListHelp();
     Help.displayUserAddHelp();
     Help.displayUserRemoveHelp();
     Help.displayUserGenerateTokenHelp();
   }
 
-  static displayUserListHelp = () => {
+  static displayUserListHelp() {
     console.log(`\t\t\t-list\t\t\t\t\t\tList down all users`);
   }
 
-  static displayUserAddHelp = () => {
+  static displayUserAddHelp() {
     console.log(`\t\t\t-add <email> <firstName> <lastName> <password>\tCreates a new user`);
   }
 
-  static displayUserRemoveHelp = () => {
+  static displayUserRemoveHelp() {
     console.log(`\t\t\t-remove <email>\t\t\t\t\tDeletes a user with corresponding email`);
   }
 
-  static displayUserGenerateTokenHelp = () => {
+  static displayUserGenerateTokenHelp() {
     console.log(`\t\t\t-generateToken <email>\t\t\t\tResets User Access Token of corresponding email`);
   }
 
-  static displayComsatCommandHelp = () => {
+  static displayComsatCommandHelp() {
     Help.displayComsatListHelp();
     Help.displayComsatAddHelp();
     Help.displayComsatRemoveHelp();
   }
 
-  static displayProxyCommandHelp = () => {
+  static displayProxyCommandHelp() {
 	  Help.displayProxyListHelp();
 	  Help.displayProxyAddHelp();
 	  Help.displayProxyRemoveHelp();
   }
 
-  static displayComsatListHelp = () => {
+  static displayComsatListHelp() {
     console.log(`\t\t\t-list\t\t\t\t\t\tList down all ComSat(s)`);
   }
 
-	static displayProxyListHelp = () => {
+	static displayProxyListHelp(){
 		console.log(`\t\t\t-list\t\t\t\t\t\tList down proxy config`);
 	}
 
-  static displayComsatAddHelp = () => {
+  static displayComsatAddHelp(){
     console.log(`\t\t\t-add <name> <domain> <publicIP> [<certFile>] \tCreates a new ComSat`);
 	console.log(`\t\t\t\t\t\t [<selfSignedCerts>]`);
   }
 
-	static displayProxyAddHelp = () => {
+	static displayProxyAddHelp(){
 		console.log(`\t\t\t-add <username> <password> <host> <rsaKey> \tCreates proxy config`);
 		console.log(`\t\t\t\t\t\t [<lport>]`);
 	}
 
-  static displayComsatRemoveHelp = () => {
+  static displayComsatRemoveHelp(){
       console.log(`\t\t\t-remove <ID>\t\t\t\t\tDeletes a ComSat with corresponding ID`);
   }
 
-  static displayProxyRemoveHelp = () => {
+  static displayProxyRemoveHelp(){
 	  console.log(`\t\t\t-remove \t\t\t\t\tDeletes proxy config`);
   }
 
-  static displayGeneralHelp = () => {
+  static displayGeneralHelp(){
     displayHelpHeader();
     console.log(`\tconfig`);
     Help.displayConfigListHelp();
