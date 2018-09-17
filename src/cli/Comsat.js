@@ -19,7 +19,7 @@ class Comsat {
     this.args = args;
   }
 
-  run = () => {
+  run() {
     if (!this.args.length) {
       Help.displayComsatCommandHelp();
     } else {

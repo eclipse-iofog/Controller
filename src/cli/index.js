@@ -21,11 +21,11 @@ const { Proxy } = require('./Proxy');
 const { Help } = require('./Help');
 
 class CLI {
-  constructor(args) {
+  constructor(args){
     this.args = args;
   }
 
-  run = (daemon) => {
+  run(daemon) {
     switch (this.args[0]) {
       case 'version':
         return Version.display(this.args);

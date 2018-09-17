@@ -21,7 +21,7 @@ class Config {
     this.args = args;
   }
 
-  run = () => {
+  run() {
     if (!this.args.length) {
       Help.displayConfigCommandHelp();
     } else {

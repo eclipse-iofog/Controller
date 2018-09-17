@@ -17,7 +17,7 @@ const constants = require('../server/constants');
 const ConfigUtil = require('../server/utils/configUtil');
 
 class Start {
-  static run = (daemon) => {
+  static run(daemon){
     ConfigUtil.getAllConfigs().then(() => {
       let configuration = {
         dbPort: ConfigUtil.getConfigParam(constants.CONFIG.port) || defaultConfig.port,

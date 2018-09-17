@@ -12,18 +12,18 @@
  */
 
 const { Help } = require('./Help');
-import AppUtils from '../server/utils/appUtils';
-import FogControllerConfigManager from '../server/managers/fogControllerConfigManager';
-import ConfigUtil from '../server/utils/configUtil';
-import constants from '../server/constants';
-import fs from 'fs';
+const AppUtils = require('../server/utils/appUtils');
+const FogControllerConfigManager = require('../server/managers/fogControllerConfigManager');
+const ConfigUtil = require('../server/utils/configUtil');
+const constants = require('../server/constants');
+const fs = require('fs');
 
 class Proxy {
 	constructor(args) {
 		this.args = args;
 	}
 
-	run = () => {
+	run() {
 		if (!this.args.length) {
 			Help.displayProxyCommandHelp();
 		} else {

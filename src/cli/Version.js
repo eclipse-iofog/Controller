@@ -15,7 +15,7 @@ const packageJson = require('../../package.json');
 let {Help} = require('./Help');
 
 class Version {
-    static display = (args) => {
+    display(args) {
         if (args[1]) {
             Help.displayExtraArgumentHelp(args[1]);
         } else {
