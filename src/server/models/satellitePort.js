@@ -17,9 +17,9 @@
  * @description
  */
 
-import Sequelize from 'sequelize';
-import sequelize from './../utils/sequelize';
-import Satellite from './satellite';
+const Sequelize = require('sequelize');
+const sequelize = require('./../utils/sequelize');
+const Satellite = require('./satellite');
 
 const SatellitePort = sequelize.define('satellite_port', {
   id: {
@@ -80,4 +80,4 @@ const SatellitePort = sequelize.define('satellite_port', {
 
 SatellitePort.belongsTo(Satellite);
 
-export default SatellitePort;
+module.exports =  SatellitePort;

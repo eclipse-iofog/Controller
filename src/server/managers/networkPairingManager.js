@@ -17,9 +17,9 @@
  * @description
  */
 
-import NetworkPairing from './../models/networkPairing';
-import BaseManager from './../managers/baseManager';
-import sequelize from './../utils/sequelize';
+const NetworkPairing = require('./../models/networkPairing');
+const BaseManager = require('./../managers/baseManager');
+const sequelize = require('./../utils/sequelize');
 
 class NetworkPairingManager extends BaseManager {
 
@@ -106,4 +106,4 @@ class NetworkPairingManager extends BaseManager {
 }
 
 const instance = new NetworkPairingManager();
-export default instance;
+module.exports =  instance;

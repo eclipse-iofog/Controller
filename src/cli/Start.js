@@ -12,12 +12,12 @@
  */
 
 const defaultConfig = require('../config.json');
-import constants from '../server/constants';
+const constants = require('../server/constants');
 
-import ConfigUtil from '../server/utils/configUtil';
+const ConfigUtil = require('../server/utils/configUtil');
 
 class Start {
-  static run = (daemon) => {
+  static run(daemon){
     ConfigUtil.getAllConfigs().then(() => {
       let configuration = {
         dbPort: ConfigUtil.getConfigParam(constants.CONFIG.port) || defaultConfig.port,

@@ -11,7 +11,7 @@
  *
  */
 
-import _ from 'underscore';
+const _ = require('underscore');
 
 //src, destination
 //destination should be a sequzlize object
@@ -24,6 +24,6 @@ const updateObject  = (destination, source) => {
   });
 };
 
-export default {
+module.exports =  {
   updateObject: updateObject
 }

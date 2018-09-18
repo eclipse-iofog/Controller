@@ -11,16 +11,16 @@
  *
  */
 
-import async from 'async';
-import logger from "../../utils/winstonLogs";
-import BaseApiController from "./baseApiController";
-import AppUtils from "../../utils/appUtils";
-import ChangeTrackingService from "../../services/changeTrackingService";
-import UserService from "../../services/userService";
-import StraceDiagnosticsService from "../../services/straceDiagnosticsService";
-import ElementInstanceService from "../../services/elementInstanceService";
-import FileUtils from "../../utils/fileUtils";
-import FtpUtils from "../../utils/ftpUtils";
+const async = require('async');
+const logger = require('../../utils/winstonLogs');
+const BaseApiController = require('./baseApiController');
+const AppUtils = require('../../utils/appUtils');
+const ChangeTrackingService = require('../../services/changeTrackingService');
+const UserService = require('../../services/userService');
+const StraceDiagnosticsService = require('../../services/straceDiagnosticsService');
+const ElementInstanceService = require('../../services/elementInstanceService');
+const FileUtils = require('../../utils/fileUtils');
+const FtpUtils = require('../../utils/ftpUtils');
 
 /********************************************* EndPoints ******************************************************/
 /************* Switch Strace For Element EndPoint (Get/Post: /api/v2/authoring/element/diagnostics/strace) ******************/
@@ -212,7 +212,7 @@ const popBufferToFile = function (params, callback) {
 
 const STRACE_DIST_DIR = 'straceDiagnosticsFiles';
 
-export default {
+module.exports =  {
     switchElementStrace: switchElementStrace,
     pushStraceData: pushStraceData,
     popStraceDataAsJson: popStraceDataAsJson,

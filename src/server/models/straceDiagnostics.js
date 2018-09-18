@@ -11,9 +11,9 @@
  *
  */
 
-import Sequelize from "sequelize";
-import ElementInstance from "./elementInstance";
-import sequelize from "../utils/sequelize";
+const Sequelize = require('sequelize');
+const ElementInstance = require('./elementInstance');
+const sequelize = require('../utils/sequelize');
 
 const StraceDiagnostics = sequelize.define('strace_diagnostics', {
     id: {
@@ -44,4 +44,4 @@ const StraceDiagnostics = sequelize.define('strace_diagnostics', {
 StraceDiagnostics.belongsTo(ElementInstance, {
     foreignKey: 'element_instance_uuid'
 });
-export default StraceDiagnostics;
+module.exports =  StraceDiagnostics;

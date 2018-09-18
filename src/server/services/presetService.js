@@ -1,22 +1,22 @@
-import async from 'async';
-import AppUtils from '../utils/appUtils';
-import DataTrackService from './dataTracksService';
-import FogService from './fogService';
-import ChangeTrackingService from "./changeTrackingService";
-import FogUserService from "./fogUserService";
-import FogAccessTokenService from "./fogAccessTokenService";
-import ElementInstanceService from "./elementInstanceService";
-import ElementService from "./elementService";
-import DataTracksService from "./dataTracksService";
-import ElementInstanceConnectionsService from "./elementInstanceConnectionsService";
-import ConsoleService from "./consoleService";
-import StreamViewerService from "./streamViewerService";
-import FogProvisionKeyService from "./fogProvisionKeyService";
-import NetworkPairingService from "./networkPairingService";
-import RoutingService from "./routingService";
-import ComsatService from "./comsatService";
-import SatellitePortService from "./satellitePortService";
-import ElementInstancePortService from "./elementInstancePortService";
+const async = require('async');
+const AppUtils = require('../utils/appUtils');
+const DataTrackService = require('./dataTracksService');
+const FogService = require('./fogService');
+const ChangeTrackingService = require('./changeTrackingService');
+const FogUserService = require('./fogUserService');
+const FogAccessTokenService = require('./fogAccessTokenService');
+const ElementInstanceService = require('./elementInstanceService');
+const ElementService = require('./elementService');
+const DataTracksService = require('./dataTracksService');
+const ElementInstanceConnectionsService = require('./elementInstanceConnectionsService');
+const ConsoleService = require('./consoleService');
+const StreamViewerService = require('./streamViewerService');
+const FogProvisionKeyService = require('./fogProvisionKeyService');
+const NetworkPairingService = require('./networkPairingService');
+const RoutingService = require('./routingService');
+const ComsatService = require('./comsatService');
+const SatellitePortService = require('./satellitePortService');
+const ElementInstancePortService = require('./elementInstancePortService');
 
 
 const presetEnv = function (props, params, callback) {
@@ -793,6 +793,6 @@ const generateUuidProp = function(baseProp) {
     return baseProp + '.uuid';
 };
 
-export default {
+module.exports = {
     presetEnv: presetEnv
 }

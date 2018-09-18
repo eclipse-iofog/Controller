@@ -77,7 +77,7 @@ const AccessDeniedError = class AccessDeniedError extends Error {
   }
 };
 
-export default {
+module.exports =  {
   reportError : reportError,
   NotFoundError: NotFoundError,
   AccessDeniedError: AccessDeniedError,

@@ -17,9 +17,9 @@
  * @description This file includes a element_instance_port model used by sequalize for ORM;
  */
 
-import Sequelize from 'sequelize';
-import sequelize from './../utils/sequelize';
-import ElementInstance from './elementInstance';
+const Sequelize = require('sequelize');
+const sequelize = require('./../utils/sequelize');
+const ElementInstance = require('./elementInstance');
 
 const ElementInstancePort = sequelize.define('element_instance_port', {
   id: {
@@ -56,4 +56,4 @@ ElementInstancePort.belongsTo(ElementInstance, {
   targetKey: 'uuid'
 });
 
-export default ElementInstancePort;
+module.exports =  ElementInstancePort;

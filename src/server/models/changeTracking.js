@@ -17,63 +17,63 @@
  * @description This file includes a iofog_change_tracking model used by sequalize for ORM;
  */
 
-import Sequelize from 'sequelize';
-import sequelize from './../utils/sequelize';
+const Sequelize = require('sequelize');
+const sequelize = require('./../utils/sequelize');
 
-import Fog from './fog';
-import Registry from './registry';
+const Fog = require('./fog');
+const Registry = require('./registry');
 
 const ChangeTracking = sequelize.define('iofog_change_tracking', {
-  id: {
-    type: Sequelize.INTEGER,
-    primaryKey: true,
-    autoIncrement: true,
-    field: 'ID'
-  },
-  containerConfig: {
-    type: Sequelize.BIGINT,
-    field: 'container_config'
-  },
-  reboot: {
-    type: Sequelize.BOOLEAN,
-    field: 'reboot'
-  },
-  deletenode: {
-      type: Sequelize.BOOLEAN,
-      field: 'deletenode'
-  },
-  version: {
-      type: Sequelize.BIGINT,
-      field: 'version'
-  },
-  containerList: {
-    type: Sequelize.BIGINT,
-    field: 'container_list'
-  },
-  config: {
-    type: Sequelize.BIGINT,
-    field: 'config'
-  },
-  routing: {
-    type: Sequelize.BIGINT,
-    field: 'routing'
-  },
-  registries: {
-    type: Sequelize.BIGINT,
-    field: 'registries'
-  },
-  proxy: {
-    type: Sequelize.BIGINT,
-    field: 'proxy'
-  },
-  diagnostics: {
-    type: Sequelize.BIGINT,
-    field: 'diagnostics'
-  },
-  isImageSnapshot: {
-    type: Sequelize.BIGINT,
-    field: 'image_snapshot'
-  }
+    id: {
+        type: Sequelize.INTEGER,
+        primaryKey: true,
+        autoIncrement: true,
+        field: 'ID'
+    },
+    containerConfig: {
+        type: Sequelize.BIGINT,
+        field: 'container_config'
+    },
+    reboot: {
+        type: Sequelize.BOOLEAN,
+        field: 'reboot'
+    },
+    deletenode: {
+        type: Sequelize.BOOLEAN,
+        field: 'deletenode'
+    },
+    version: {
+        type: Sequelize.BIGINT,
+        field: 'version'
+    },
+    containerList: {
+        type: Sequelize.BIGINT,
+        field: 'container_list'
+    },
+    config: {
+        type: Sequelize.BIGINT,
+        field: 'config'
+    },
+    routing: {
+        type: Sequelize.BIGINT,
+        field: 'routing'
+    },
+    registries: {
+        type: Sequelize.BIGINT,
+        field: 'registries'
+    },
+    proxy: {
+        type: Sequelize.BIGINT,
+        field: 'proxy'
+    },
+    diagnostics: {
+        type: Sequelize.BIGINT,
+        field: 'diagnostics'
+    },
+    isImageSnapshot: {
+        type: Sequelize.BIGINT,
+        field: 'image_snapshot'
+    }
 }, {
   // don't add the timestamp attributes (updatedAt, createdAt)
   timestamps: false,
@@ -87,4 +87,4 @@ const ChangeTracking = sequelize.define('iofog_change_tracking', {
 ChangeTracking.belongsTo(Fog, {
   foreignKey: 'iofog_uuid'
 });
-export default ChangeTracking;
+module.exports =  ChangeTracking;

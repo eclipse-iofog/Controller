@@ -17,9 +17,9 @@
  * @description
  */
 
-import SatellitePort from './../models/satellitePort';
-import BaseManager from './../managers/baseManager';
-import sequelize from './../utils/sequelize';
+const SatellitePort = require('./../models/satellitePort');
+const BaseManager = require('./../managers/baseManager');
+const sequelize = require('./../utils/sequelize');
 
 class SatellitePortManager extends BaseManager {
 
@@ -88,4 +88,4 @@ class SatellitePortManager extends BaseManager {
 }
 
 const instance = new SatellitePortManager();
-export default instance;
+module.exports =  instance;

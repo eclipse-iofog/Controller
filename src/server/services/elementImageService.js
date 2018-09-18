@@ -11,10 +11,10 @@
  *
  */
 
-import ElementImageManager from '../managers/elementImageManager';
-import AppUtils from '../utils/appUtils';
-import async from "async";
-import ArchitectureUtils from '../utils/architectureUtils'
+const ElementImageManager = require('../managers/elementImageManager');
+const AppUtils = require('../utils/appUtils');
+const async = require('async');
+const ArchitectureUtils = require('../utils/architectureUtils');
 
 const createElementImage = function(props, params, callback) {
   ElementImageManager
@@ -79,7 +79,7 @@ const populateImagesForElements = function (imageProps, elements) {
     })
 };
 
-export default {
+module.exports =  {
   createElementImage: createElementImage,
   updateElementImages: updateElementImages,
   deleteElementImage: deleteElementImage,

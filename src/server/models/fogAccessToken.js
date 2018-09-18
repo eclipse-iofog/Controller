@@ -17,9 +17,9 @@
 * @description This file includes a iofog_access_tokens model used by sequalize for ORM;
 */
 
-import Sequelize from 'sequelize';
-import sequelize from './../utils/sequelize';
-import Fog from './fog';
+const Sequelize = require('sequelize');
+const sequelize = require('./../utils/sequelize');
+const Fog = require('./fog');
 
 const FogAccessToken = sequelize.define('iofog_access_tokens', {
   id: {type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true, field: 'ID'},
@@ -40,4 +40,4 @@ FogAccessToken.belongsTo(Fog, {
   foreignKey: 'iofog_uuid'
 });
 
-export default FogAccessToken;
+module.exports =  FogAccessToken;

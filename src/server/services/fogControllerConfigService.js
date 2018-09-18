@@ -11,7 +11,7 @@
  *
  */
 
-import fogControllerConfigManager from '../managers/fogControllerConfigManager';
+const fogControllerConfigManager = require('../managers/fogControllerConfigManager');
 
 const configList = function() {
   fogControllerConfigManager.list()
@@ -26,6 +26,6 @@ const configList = function() {
         }
     })
 }
-export default {
+module.exports =  {
 configList: configList
 }

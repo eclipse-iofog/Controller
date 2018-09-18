@@ -17,8 +17,8 @@
  * @description This file includes the CURD operations for the email_activation_codes Model.
  */
 
-import EmailActivationCode from './../models/emailActivationCode';
-import BaseManager from './baseManager';
+const EmailActivationCode = require('./../models/emailActivationCode');
+const BaseManager = require('./baseManager');
 
 class EmailActivationCodeManager extends BaseManager {
 	getEntity() {
@@ -54,4 +54,4 @@ class EmailActivationCodeManager extends BaseManager {
 }
 
 const instance = new EmailActivationCodeManager();
-export default instance;
+module.exports =  instance;

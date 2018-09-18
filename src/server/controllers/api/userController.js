@@ -11,23 +11,24 @@
  *
  */
 
-import async from 'async';
-import https from 'https';
+const async = require('async');
+const https = require('https');
 //require('dotenv').config();
 
-import emailRecoveryTemplate from '../../../views/emailTemp';
-import emailResetTemplate from '../../../views/resetPasswordTemp';
-import emailActivationTemplate from '../../../views/emailActivationTemp';
+const emailRecoveryTemplate = require('../../../views/emailTemp');
+const emailResetTemplate = require('../../../views/resetPasswordTemp');
+const emailActivationTemplate = require('../../../views/emailActivationTemp');
 
-import EmailActivationCodeService from '../../services/emailActivationCodeService';
-import UserService from '../../services/userService';
-import FogAccessTokenService from '../../services/fogAccessTokenService';
+const EmailActivationCodeService = require('../../services/emailActivationCodeService');
+const UserService = require('../../services/userService');
+const FogAccessTokenService = require('../../services/fogAccessTokenService');
 
 //import transporter  from '../../utils/emailSender';
-import AppUtils from '../../utils/appUtils';
-import configUtil from '../../utils/configUtil';
-import logger from '../../utils/winstonLogs';
-import appConfig from './../../../config.json';
+const AppUtils = require('../../utils/appUtils');
+const configUtil = require('../../utils/configUtil');
+const logger = require('../../utils/winstonLogs');
+const appConfig = require('./../../../config.json');
+const constants = require('../../constants');
 
 /**************************************** EndPoints *************************************************/
 /************ Activate User Account EndPoint (Get: /account/activate/code/:code) *******/
@@ -178,9 +179,9 @@ const updateUser = function(params, callback){
 const getIOAuthoringData = function(params, callback){
   try{
     configUtil.getAllConfigs().then(() => {
-      let ioAuthoringProtocol = configUtil.getConfigParam('ioauthoring_protocol') || appConfig.ioauthoringProtocol,
-      ioAuthoringIPAddress = configUtil.getConfigParam('ioauthoring_ip_address') || appConfig.ioauthoringIPAddress,
-      ioAuthoringPort = configUtil.getConfigParam('ioauthoring_port') || appConfig.ioauthoringPort;
+      let ioAuthoringProtocol = configUtil.getConfigParam(constants.CONFIG.ioauthoring_protocol) || appConfig.ioauthoringProtocol,
+      ioAuthoringIPAddress = configUtil.getConfigParam(constants.CONFIG.ioauthoring_ip_address) || appConfig.ioauthoringIPAddress,
+      ioAuthoringPort = configUtil.getConfigParam(constants.CONFIG.ioauthoring_port) || appConfig.ioauthoringPort;
 
       logger.info(ioAuthoringProtocol);
       logger.info(ioAuthoringIPAddress);
@@ -521,11 +522,11 @@ const logoutUserEndPoint = function(req, res){
 const getEmailData = function(params, callback){
   try{
   configUtil.getAllConfigs().then(() => {
-    let email = configUtil.getConfigParam('email_address'),
-    password = configUtil.getConfigParam('email_password'),
-    service = configUtil.getConfigParam('email_service'),
-    host = configUtil.getConfigParam('email_server'),
-    port = configUtil.getConfigParam('email_serverport');
+    let email = configUtil.getConfigParam(constants.CONFIG.email_address),
+    password = configUtil.getConfigParam(constants.CONFIG.email_password),
+    service = configUtil.getConfigParam(constants.CONFIG.email_service),
+    host = configUtil.getConfigParam(constants.CONFIG.email_server),
+    port = configUtil.getConfigParam(constants.CONFIG.email_serverport);
 
     params.emailSenderData = {
       email: email,
@@ -657,7 +658,7 @@ const notifyUserAboutPasswordChange = function(params, callback){
  }
  }
 
- export default {
+ module.exports =  {
   authenticateUserEndPoint: authenticateUserEndPoint,
  	getUserDetailsEndPoint: getUserDetailsEndPoint,
  	updateUserDetailsEndPoint: updateUserDetailsEndPoint,

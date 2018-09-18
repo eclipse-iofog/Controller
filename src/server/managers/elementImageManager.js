@@ -17,9 +17,9 @@
  * @description This file includes the CURD operations for the ioElementImage Model.
  */
 
-import ElementImage from '../models/elementImage';
-import BaseManager from './baseManager';
-import Element from "../models/element";
+const ElementImage = require('../models/elementImage');
+const BaseManager = require('./baseManager');
+const Element = require('../models/element');
 
 class ElementImageManager extends BaseManager {
   getEntity() {
@@ -80,4 +80,4 @@ class ElementImageManager extends BaseManager {
 }
 
 const instance = new ElementImageManager();
-export default instance;
+module.exports =  instance;

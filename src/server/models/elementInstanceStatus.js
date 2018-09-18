@@ -15,9 +15,9 @@
  * @author elukashick
  */
 
-import Sequelize from 'sequelize';
-import sequelize from './../utils/sequelize';
-import ElementInstance from './elementInstance'
+const Sequelize = require('sequelize');
+const sequelize = require('./../utils/sequelize');
+const ElementInstance = require('./elementInstance');
 
 const ElementInstanceStatus = sequelize.define('element_instance_status', {
     id: {
@@ -57,4 +57,4 @@ const ElementInstanceStatus = sequelize.define('element_instance_status', {
 ElementInstanceStatus.belongsTo(ElementInstance, {
     foreignKey: 'element_instance_uuid'
 });
-export default ElementInstanceStatus;
+module.exports =  ElementInstanceStatus;

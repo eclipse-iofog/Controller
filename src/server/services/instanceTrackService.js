@@ -11,8 +11,8 @@
  *
  */
 
-import InstanceTrackManager from '../managers/instanceTrackManager';
-import AppUtils from '../utils/appUtils';
+const InstanceTrackManager = require('../managers/instanceTrackManager');
+const AppUtils = require('../utils/appUtils');
 
 
 const getInstanceTrackByInstanceId = function(props, params, callback) {
@@ -23,6 +23,6 @@ const getInstanceTrackByInstanceId = function(props, params, callback) {
     .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Cannot find Instance Track', callback));
 }
 
-export default {
+module.exports =  {
   getInstanceTrackByInstanceId: getInstanceTrackByInstanceId
 };

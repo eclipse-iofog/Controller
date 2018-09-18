@@ -17,8 +17,8 @@
 * @description This file includes a fog_type model used by sequalize for ORM;
 */
 
-import Sequelize from 'sequelize';
-import sequelize from './../utils/sequelize';
+const Sequelize = require('sequelize');
+const sequelize = require('./../utils/sequelize');
 
 const FogType = sequelize.define('iofog_type', {
   id: {type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true, field: 'ID'},
@@ -43,4 +43,4 @@ const FogType = sequelize.define('iofog_type', {
   underscored: true
 });
 
-export default FogType;
+module.exports =  FogType;
