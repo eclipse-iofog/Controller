@@ -11,9 +11,9 @@
  *
  */
 
-import ElementManager from '../managers/elementManager';
-import AppUtils from '../utils/appUtils';
-import ElementImageService from "./elementImageService";
+const ElementManager = require('../managers/elementManager');
+const AppUtils = require('../utils/appUtils');
+const ElementImageService = require('./elementImageService');
 
 const createElement = function(props, params, callback) {
   ElementManager
@@ -110,7 +110,7 @@ const getElementByNameForUser = function (props, params, callback) {
         .then(AppUtils.onFind.bind(null, params, props.setProperty, errMsg, callback))
 };
 
-export default {
+module.exports =  {
   createElement: createElement,
   deleteElementById: deleteElementById,
   findElementImageAndRegistryByIdForFogInstance: findElementImageAndRegistryByIdForFogInstance,

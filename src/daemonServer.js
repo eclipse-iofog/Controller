@@ -11,7 +11,8 @@
  *
  */
 
-import Server from './server';
+// import Server from './server';
+let Server = require('./server')
 
  let args = process.argv.slice(2);
  Server.startServer(args[1]);

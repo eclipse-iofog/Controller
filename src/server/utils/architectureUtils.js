@@ -38,7 +38,7 @@ const fillImageField = function (arcTypeId, imageValue, imagesList) {
     imagesList[architecturesImagesFieldsNames[arcTypeId]] = imageValue;
 };
 
-export default {
+module.exports =  {
     architecturesList: architecturesImagesFieldsNames,
     isExistsImageForFogType: isExistsImageForFogType,
     createImagesListJsonTemplate: createImagesListJsonTemplate,

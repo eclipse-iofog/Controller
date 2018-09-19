@@ -11,9 +11,9 @@
  *
  */
 
-import ElementInstancePortManager from '../managers/elementInstancePortManager';
-import AppUtils from '../utils/appUtils';
-import _ from 'underscore';
+const ElementInstancePortManager = require('../managers/elementInstancePortManager');
+const AppUtils = require('../utils/appUtils');
+const _ = require('underscore');
 
 const createElementInstancePort = function(props, params, callback) {
   let userId = AppUtils.getProperty(params, props.userId),
@@ -85,7 +85,7 @@ const getPortsByElementId = function(props, params, callback) {
     .then(AppUtils.onFind.bind(null, params, props.setProperty, 'No Element Instance Port found', callback));
 }
 
-export default {
+module.exports =  {
   createElementInstancePort: createElementInstancePort,
   createElementInstancePortByPortValue: createElementInstancePortByPortValue,
   deleteElementInstancePort: deleteElementInstancePort,

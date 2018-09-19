@@ -17,8 +17,8 @@
 * @description This file includes a iofog_provision_keys model used by sequalize for ORM;
 */
 
-import Sequelize from 'sequelize';
-import sequelize from './../utils/sequelize';
+const Sequelize = require('sequelize');
+const sequelize = require('./../utils/sequelize');
 
 const FogProvisionKey = sequelize.define('iofog_provision_keys', {
   id: {type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true, field: 'ID'},
@@ -35,4 +35,4 @@ const FogProvisionKey = sequelize.define('iofog_provision_keys', {
   underscored: true
 });
 
-export default FogProvisionKey;
+module.exports =  FogProvisionKey;

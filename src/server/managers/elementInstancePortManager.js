@@ -17,8 +17,8 @@
  * @description This file includes the CURD operations for the elementInstancePort Model.
  */
 
-import ElementInstancePort from './../models/elementInstancePort';
-import BaseManager from './../managers/baseManager';
+const ElementInstancePort = require('./../models/elementInstancePort');
+const BaseManager = require('./../managers/baseManager');
 
 class ElementInstancePortManager extends BaseManager {
 	getEntity() {
@@ -63,4 +63,4 @@ class ElementInstancePortManager extends BaseManager {
 }
 
 const instance = new ElementInstancePortManager();
-export default instance;
+module.exports =  instance;

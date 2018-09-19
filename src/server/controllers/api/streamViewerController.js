@@ -17,13 +17,13 @@
  * @description This file includes the implementation of the StreamViewer related endpoints
  */
 
-import async from 'async';
+const async = require('async');
 
-import ConsoleService from '../../services/consoleService';
-import StreamViewerService from '../../services/streamViewerService';
-import UserService from '../../services/userService';
-import AppUtils from '../../utils/appUtils';
-import logger from '../../utils/winstonLogs';
+const ConsoleService = require('../../services/consoleService');
+const StreamViewerService = require('../../services/streamViewerService');
+const UserService = require('../../services/userService');
+const AppUtils = require('../../utils/appUtils');
+const logger = require('../../utils/winstonLogs');
 
 
 /********************************************* EndPoints ******************************************************/
@@ -78,6 +78,6 @@ const getResponse = function(params, callback) {
   });
 }
 
-export default {
+module.exports =  {
   fogViewerAccessEndPoint: fogViewerAccessEndPoint
 };

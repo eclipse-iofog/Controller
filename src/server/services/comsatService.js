@@ -11,11 +11,11 @@
  *
  */
 
-import async from 'async';
-import querystring from 'querystring';
-import https from 'https';
-import SatelliteManager from '../managers/satelliteManager';
-import SatelliteService from '../services/satelliteService';
+const async = require('async');
+const querystring = require('querystring');
+const https = require('https');
+const SatelliteManager = require('../managers/satelliteManager');
+const SatelliteService = require('../services/satelliteService');
 
 const openPortOnRandomComsat = function (params, callback) {
     let isComsatPortOpen = false,
@@ -356,7 +356,7 @@ const displayComsatConnectionsStatus = function (params, callback) {
     callback(null, params);
 }
 
-export default {
+module.exports =  {
   openPortOnRandomComsat: openPortOnRandomComsat,
   closePortOnComsat: closePortOnComsat,
   closePortsOnComsat: closePortsOnComsat,

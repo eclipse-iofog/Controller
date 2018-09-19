@@ -11,8 +11,8 @@
  *
  */
 
-import FogTypeManager from '../managers/fogTypeManager';
-import AppUtils from '../utils/appUtils';
+const FogTypeManager = require('../managers/fogTypeManager');
+const AppUtils = require('../utils/appUtils');
 
 const getFogTypeDetail = function(props, params, callback) {
   let fogTypeIdProp = AppUtils.getProperty(params, props.fogTypeId),
@@ -36,7 +36,7 @@ const getFogTypesList = function(props, params, callback) {
     .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Unable to get Fog Types List', callback));
 }
 
-export default {
+module.exports =  {
   getFogTypeDetail: getFogTypeDetail,
   getFogTypeDetails: getFogTypeDetails,
   getFogTypesList: getFogTypesList

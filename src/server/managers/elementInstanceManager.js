@@ -17,11 +17,11 @@
  * @description This file includes the CURD operations for the elementInstance Model.
  */
 
-import BaseManager from './../managers/baseManager';
-import Element from './../models/element';
-import ElementInstance from './../models/elementInstance';
-import sequelize from './../utils/sequelize';
-import AppUtils from '../utils/appUtils';
+const BaseManager = require('./../managers/baseManager');
+const Element = require('./../models/element');
+const ElementInstance = require('./../models/elementInstance');
+const sequelize = require('./../utils/sequelize');
+const AppUtils = require('../utils/appUtils');
 
 class ElementInstanceManager extends BaseManager {
 
@@ -511,4 +511,4 @@ class ElementInstanceManager extends BaseManager {
     }
 }
 const instance = new ElementInstanceManager();
-export default instance;
+module.exports =  instance;

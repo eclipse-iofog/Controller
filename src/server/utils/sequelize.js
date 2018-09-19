@@ -11,10 +11,10 @@
  *
  */
 
-import Sequelize from 'sequelize';
-import appConfig from './../../config.json';
-import cls from 'continuation-local-storage';
-import logger from './winstonLogs';
+const Sequelize = require('sequelize');
+const appConfig = require('./../../config.json');
+const cls = require('continuation-local-storage');
+const logger = require('./winstonLogs');
 
 let namespace = cls.createNamespace('fog-controller-namespace');
 
@@ -86,9 +86,9 @@ sequelize
   });
 
 
-//  export default is used in the case where a module exports a single value
+//  module.exports =  is used in the case where a module exports a single value
 //  hence import sequelize from 'sequelize' will return sequelize object
-export default sequelize;
+module.exports =  sequelize;
 
 /*
   FOR EXPORTING MORE THAN ONE VALUE FROM A MODULE

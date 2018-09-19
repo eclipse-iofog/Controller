@@ -17,10 +17,10 @@
  * @description This file includes the CURD operations for the instanceTrack Model.
  */
 
-import InstanceTrack from './../models/instanceTrack';
-import ElementInstance from './../models/elementInstance';
-import BaseManager from './../managers/baseManager';
-import sequelize from './../utils/sequelize';
+const InstanceTrack = require('./../models/instanceTrack');
+const ElementInstance = require('./../models/elementInstance');
+const BaseManager = require('./../managers/baseManager');
+const sequelize = require('./../utils/sequelize');
 
 class InstanceTrackManager extends BaseManager {
 
@@ -44,4 +44,4 @@ class InstanceTrackManager extends BaseManager {
 }
 
 const instance = new InstanceTrackManager();
-export default instance;
+module.exports =  instance;

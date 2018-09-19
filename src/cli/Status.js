@@ -13,10 +13,10 @@
 
 const path = require('path');
 const fs = require('fs');
-import ComsatService from '../server/services/comsatService';
+const ComsatService = require('../server/services/comsatService');
 
 class Status {
-  static display = (daemon) => {
+  static display(daemon) {
     displayDaemonStatus(daemon);
     displayDatabaseStatus();
   }

@@ -11,18 +11,14 @@
  *
  */
 
-import ProxyManager from '../managers/proxyManager';
-import AppUtils from '../utils/appUtils'
+const ProxyManager = require('../managers/proxyManager');
+const AppUtils = require('../utils/appUtils');
 
 const createProxy = function(props, params, callback) {
     ProxyManager
         .create(props.proxy)
         .then(AppUtils.onCreate.bind(null, params, props.setProperty, 'Unable to create proxy for Fog Instance', callback));
 };
-
-const createOrUpdateExistingProxy = function(props, params, callback) {
-
-}
 
 const deleteProxy = function(props, params, callback) {
     let instanceId = AppUtils.getProperty(params, props.fogInstanceId);
@@ -48,9 +44,18 @@ const updateProxy = function(props, params, callback) {
         .then(AppUtils.onUpdate.bind(null, params, 'Unable to update Proxy', callback));
 };
 
-export default {
+const saveProxy = function(props, params, callback) {
+	let fogInstanceId = AppUtils.getProperty(params, props.fogInstanceId);
+
+	ProxyManager
+        .upsert(fogInstanceId, props.proxy)
+        .then(AppUtils.onCreate.bind(null, params, props.setProperty, 'Unable to create proxy for Fog Instance', callback));
+}
+
+module.exports =  {
     createProxy: createProxy,
     deleteProxy: deleteProxy,
     getProxyByInstanceId: getProxyByInstanceId,
-    updateProxy: updateProxy
+    updateProxy: updateProxy,
+    saveProxy: saveProxy
 };

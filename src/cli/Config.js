@@ -12,16 +12,16 @@
  */
 
 const {Help} = require('./Help');
-import FogControllerConfigService from '../server/services/fogControllerConfigService';
-import FogControllerConfigManager from '../server/managers/fogControllerConfigManager';
-import ConfigUtil from '../server/utils/configUtil';
+const FogControllerConfigService = require('../server/services/fogControllerConfigService');
+const FogControllerConfigManager = require('../server/managers/fogControllerConfigManager');
+const ConfigUtil = require('../server/utils/configUtil');
 
 class Config {
   constructor(args) {
     this.args = args;
   }
 
-  run = () => {
+  run() {
     if (!this.args.length) {
       Help.displayConfigCommandHelp();
     } else {

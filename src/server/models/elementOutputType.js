@@ -17,9 +17,9 @@
  * @description This file includes a element_output_type model used by sequalize for ORM;
  */
 
-import Sequelize from 'sequelize';
-import sequelize from './../utils/sequelize';
-import Element from './element';
+const Sequelize = require('sequelize');
+const sequelize = require('./../utils/sequelize');
+const Element = require('./element');
 
 const ElementOutputType = sequelize.define('element_output_type', {
   id: {
@@ -53,4 +53,4 @@ const ElementOutputType = sequelize.define('element_output_type', {
 
 ElementOutputType.belongsTo(Element);
 
-export default ElementOutputType;
+module.exports =  ElementOutputType;

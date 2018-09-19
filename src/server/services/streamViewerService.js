@@ -11,8 +11,8 @@
  *
  */
 
-import StreamViewerManager from '../managers/streamViewerManager';
-import AppUtils from '../utils/appUtils';
+const StreamViewerManager = require('../managers/streamViewerManager');
+const AppUtils = require('../utils/appUtils');
 
 const createStreamViewer = function(props, params, callback) {
 
@@ -37,7 +37,7 @@ const deleteStreamViewerByFogInstanceId  = function(props, params, callback) {
     .then(AppUtils.onDeleteOptional.bind(null, params, callback));
 }
 
-export default {
+module.exports =  {
   createStreamViewer: createStreamViewer,
   getStreamViewerByFogInstanceId: getStreamViewerByFogInstanceId,
   deleteStreamViewerByFogInstanceId: deleteStreamViewerByFogInstanceId

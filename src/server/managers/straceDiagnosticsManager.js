@@ -11,11 +11,11 @@
  *
  */
 
-import BaseManager from "./baseManager";
-import StraceDiagnostics from "../models/straceDiagnostics";
-import sequelize from './../utils/sequelize';
-import ElementInstance from "../models/elementInstance";
-import Fog from "../models/fog";
+const BaseManager = require('./baseManager');
+const StraceDiagnostics = require('../models/straceDiagnostics');
+const sequelize = require('./../utils/sequelize');
+const ElementInstance = require('../models/elementInstance');
+const Fog = require('../models/fog');
 
 
 class StraceDiagnosticsManager extends BaseManager {
@@ -156,4 +156,4 @@ const updateBuffer = function (oldBuf, pushingData) {
 const maxBufferSize = 1e8;
 
 const instance = new StraceDiagnosticsManager();
-export default instance;
+module.exports =  instance;

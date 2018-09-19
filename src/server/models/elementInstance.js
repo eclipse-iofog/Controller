@@ -17,10 +17,10 @@
  * @description This file includes a element_instance model used by sequalize for ORM;
  */
 
-import Sequelize from 'sequelize';
-import sequelize from './../utils/sequelize';
-import Fog from './fog';
-import Element from './element'
+const Sequelize = require('sequelize');
+const sequelize = require('./../utils/sequelize');
+const Fog = require('./fog');
+const Element = require('./element');
 
 const ElementInstance = sequelize.define('element_instance', {
   id: {
@@ -113,4 +113,4 @@ ElementInstance.belongsTo(Element, {
 ElementInstance.belongsTo(Fog, {
   foreignKey: 'iofog_uuid'
 });
-export default ElementInstance;
+module.exports =  ElementInstance;

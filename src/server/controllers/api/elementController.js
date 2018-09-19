@@ -17,24 +17,24 @@
  * @description This file includes the implementation of the end-points that deal with elements
  */
 
-import async from 'async';
+const async = require('async');
 
 
-import ChangeTrackingService from '../../services/changeTrackingService';
-import ElementImageService from '../../services/elementImageService';
-import ElementService from '../../services/elementService';
-import ElementInstanceService from '../../services/elementInstanceService';
-import ElementInstancePortService from '../../services/elementInstancePortService';
-import ElementInstanceConnectionsService from '../../services/elementInstanceConnectionsService';
-import ElementInputTypeService from '../../services/elementInputTypeService';
-import ElementOutputTypeService from '../../services/elementOutputTypeService';
-import FogTypeService from '../../services/fogTypeService';
-import NetworkPairingService from '../../services/networkPairingService';
-import RoutingService from '../../services/routingService';
-import SatellitePortService from '../../services/satellitePortService';
-import UserService from '../../services/userService';
-import AppUtils from '../../utils/appUtils';
-import logger from '../../utils/winstonLogs';
+const ChangeTrackingService = require('../../services/changeTrackingService');
+const ElementImageService = require('../../services/elementImageService');
+const ElementService = require('../../services/elementService');
+const ElementInstanceService = require('../../services/elementInstanceService');
+const ElementInstancePortService = require('../../services/elementInstancePortService');
+const ElementInstanceConnectionsService = require('../../services/elementInstanceConnectionsService');
+const ElementInputTypeService = require('../../services/elementInputTypeService');
+const ElementOutputTypeService = require('../../services/elementOutputTypeService');
+const FogTypeService = require('../../services/fogTypeService');
+const NetworkPairingService = require('../../services/networkPairingService');
+const RoutingService = require('../../services/routingService');
+const SatellitePortService = require('../../services/satellitePortService');
+const UserService = require('../../services/userService');
+const AppUtils = require('../../utils/appUtils');
+const logger = require('../../utils/winstonLogs');
 
 
 /*********************************************** EndPoints **************************************************************/
@@ -535,7 +535,7 @@ const deleteElementInstanceData = function(params, callback) {
   }
 }
 
-export default {
+module.exports =  {
   createElementForUserEndPoint: createElementForUserEndPoint,
   updateElementForUserEndPoint: updateElementForUserEndPoint,
   getCatalogOfElements: getCatalogOfElements,

@@ -12,14 +12,14 @@
  */
 
 const { Help } = require('./Help');
-import UserManager from '../server/managers/userManager';
+const UserManager = require('../server/managers/userManager');
 
 class User {
   constructor(args) {
     this.args = args;
   }
 
-  run = () => {
+  run() {
     if (!this.args.length) {
       Help.displayUserCommandHelp();
     } else {
