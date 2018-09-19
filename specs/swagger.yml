@@ -11,13 +11,24 @@ paths:
     get:
       tags:
         - Health
-      description: Returns serviced health status
+      description: Returns service health status
       operationId: getServiceStatus
       responses:
         '200':
           description: Service status
           schema:
             $ref: '#/definitions/ServiceStatusResponse'
+  '/emailActivation':
+    get:
+      tags:
+        - Health
+      description: Returns email activation status
+      operationId: getEmailActivationStatus
+      responses:
+        '200':
+          description: Email activation status
+          schema:
+            $ref: '#/definitions/EmailActivationStatusResponse'
   /iofog/list:
     post:
       tags:
@@ -453,7 +464,7 @@ paths:
           description: Not Authorized
         '404':
           description: Invalid Node Id
-  '/iofog/{id}/agent/proxy/config':
+  '/iofog/{id}/agent/proxy':
     get:
       tags:
         - Agent
@@ -1010,28 +1021,26 @@ paths:
           description: Not Authorized
         '404':
           description: Not Found
-  '/iofog/proxy':
+  '/iofog/{id}/tunnel':
     post:
       tags:
-        - Proxy
-      description: Creates ioFog node proxy config
-      operationId: createIOFogNodeProxyConfig
+        - Tunnel
+      description: Opens ssh tunnel
+      operationId: openIOFogNodeSshTunnel
       parameters:
+        - in: path
+          name: id
+          description: ioFog node id
+          required: true
+          type: string
         - in: header
           name: Authorization
           description: User Token
           required: true
           type: string
-        - in: body
-          name: fogNodeInfo
-          required: true
-          schema:
-            $ref: '#/definitions/CreateIOFoNodeProxyRequestBody'
       responses:
         '201':
           description: Created
-          schema:
-            $ref: '#/definitions/IOFogNodeProxyResponse'
           headers:
             X-Timestamp:
               type: number
@@ -1040,12 +1049,13 @@ paths:
           description: Bad Request
         '401':
           description: Not Authorized
-  '/iofog/proxy/{id}':
+        '404':
+          description: Invalid Node Id
     patch:
       tags:
-        - Proxy
-      description: Updates existing ioFog node proxy config
-      operationId: updateIOFogNodeProxyConfig
+        - Tunnel
+      description: Closes ssh tunnel
+      operationId: closeIOFogNodeSshTunnel
       parameters:
         - in: path
           name: id
@@ -1057,11 +1067,6 @@ paths:
           description: User token
           required: true
           type: string
-        - in: body
-          name: ioFogNodeProxyInfo
-          required: true
-          schema:
-            $ref: '#/definitions/UpdateIOFoNodeProxyRequestBody'
       responses:
         '204':
           description: Updated
@@ -1077,9 +1082,9 @@ paths:
           description: Invalid Node Id
     get:
       tags:
-        - Proxy
-      description: Gets ioFog node proxy info
-      operationId: getIOFogNodeProxyInfo
+        - Tunnel
+      description: Gets ioFog node ssh tunnel info
+      operationId: getIOFogNodeSshTunnelInfo
       parameters:
         - in: path
           name: id
@@ -1095,7 +1100,7 @@ paths:
         '200':
           description: Success
           schema:
-            $ref: '#/definitions/IOFogNodeProxyInfoResponse'
+            $ref: '#/definitions/IOFogNodeTunnelInfoResponse'
           headers:
             X-Timestamp:
               type: number
@@ -1104,12 +1109,12 @@ paths:
           description: Not Authorized
         '404':
           description: Invalid Node Id
-  '/iofog/proxy/{id}/status':
+  '/iofog/{id}/tunnel/status':
     get:
       tags:
-        - Proxy
-      description: Gets ioFog node proxy status
-      operationId: getIOFogNodeProxyStatus
+        - Tunnel
+      description: Gets ioFog node ssh tunnel status
+      operationId: getIOFogNodeSshTunnelStatus
       parameters:
         - in: path
           name: id
@@ -1125,7 +1130,7 @@ paths:
         '200':
           description: Success
           schema:
-            $ref: '#/definitions/IOFogNodeProxyStatusResponse'
+            $ref: '#/definitions/IOFogNodeTunnelStatusResponse'
           headers:
             X-Timestamp:
               type: number
@@ -1141,6 +1146,13 @@ definitions:
       status:
         type: string
         example: ok
+      timestamp:
+        type: number
+  EmailActivationStatusResponse:
+    type: object
+    properties:
+      emailActivation:
+        type: string
       timestamp:
         type: number
   IOFogNodesListFilters:
@@ -1170,6 +1182,8 @@ definitions:
         type: string
       location:
         type: string
+      gpsMode:
+        type: string
       latitude:
         type: string
       longitude:
@@ -1179,9 +1193,9 @@ definitions:
       description:
         type: string
       createAt:
-        type: number
+        type: string
       updatedAt:
-        type: number
+        type: string
       lastActive:
         type: number
       token:
@@ -1219,7 +1233,7 @@ definitions:
       processedMessages:
         type: number
       microserviceMessageCounts:
-        type: number
+        type: string
       messageSpeed:
         type: number
       lastCommandTime:
@@ -1246,21 +1260,39 @@ definitions:
         type: boolean
       bluetooth:
         type: boolean
+      hal:
+        type: boolean
+      mongo:
+        type: boolean
+      influx:
+        type: boolean
+      grafana:
+        type: boolean
+      isolatedDockerContainer:
+        type: boolean
       logFileCount:
         type: number
       version:
         type: string
+      isReadyToUpgrade:
+        type: boolean
+      isReadyToRollback:
+        type: boolean
       statusFrequency:
         type: number
-      configFrequency:
+      changeFrequency:
         type: number
+      scanFrequency:
+        type: number
+      proxy:
+        type: string
       typeKey:
         type: number
       typeId:
         type: number
       typeName:
         type: string
-      typeimage:
+      typeImage:
         type: string
       typeDescription:
         type: string
@@ -1763,22 +1795,7 @@ definitions:
         $ref: '#/definitions/PortMappingsRequest'
       routes:
         $ref: '#/definitions/ReceiverMicroservices'
-  CreateIOFoNodeProxyRequestBody:
-    type: object
-    properties:
-      fogId:
-        type: string
-  UpdateIOFoNodeProxyRequestBody:
-    type: object
-    properties:
-      closed:
-        type: boolean
-  IOFogNodeProxyResponse:
-    type: object
-    properties:
-      fogId:
-        type: string
-  IOFogNodeProxyStatusResponse:
+  IOFogNodeTunnelStatusResponse:
     type: object
     properties:
       username:
@@ -1791,7 +1808,7 @@ definitions:
         type: number
       status:
         type: string
-  IOFogNodeProxyInfoResponse:
+  IOFogNodeTunnelInfoResponse:
     type: object
     properties:
       username:
