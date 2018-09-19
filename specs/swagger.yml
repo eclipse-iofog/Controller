@@ -1139,6 +1139,85 @@ paths:
           description: Not Authorized
         '404':
           description: Invalid Node Id
+  '/registry/list':
+    get:
+      tags:
+        - Registry
+      description: Gets list of registries
+      operationId: getRegistryList
+      parameters:
+        - in: header
+          name: Authorization
+          description: User token
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/RegistriesListResponse'
+          headers:
+            X-Timestamp:
+              type: number
+              description: FogController server timestamp
+        '401':
+          description: Not Authorized
+  '/registry':
+    post:
+      tags:
+        - Registry
+      description: Creates new registry
+      operationId: createRegistry
+      parameters:
+        - in: header
+          name: Authorization
+          description: User Token
+          required: true
+          type: string
+        - in: body
+          name: Filters
+          required: false
+          schema:
+            $ref: '#/definitions/RegistryBody'
+      responses:
+        '201':
+          description: Created
+          headers:
+            X-Timestamp:
+              type: number
+              description: FogController server timestamp
+        '400':
+          description: Bad Request
+        '401':
+          description: Not Authorized
+  '/registry/{id}':
+    delete:
+      tags:
+        - Registry
+      description: Deletes a registry
+      operationId: deleteRegistry
+      parameters:
+        - in: path
+          name: id
+          description: Registry id
+          required: true
+          type: string
+        - in: header
+          name: Authorization
+          description: User token
+          required: true
+          type: string
+      responses:
+        '204':
+          description: Deleted
+          headers:
+            X-Timestamp:
+              type: number
+              description: FogController server timestamp
+        '401':
+          description: Not Authorized
+        '404':
+          description: Invalid Node Id
 definitions:
   ServiceStatusResponse:
     type: object
@@ -1570,6 +1649,25 @@ definitions:
       username:
         type: string
       password:
+        type: string
+      useremail:
+        type: string
+      user_id:
+        type: string
+      iofog_uuid:
+        type: string
+  RegistryBody:
+    type: object
+    properties:
+      url:
+        type: string
+      isPublic:
+        type: boolean
+      username:
+        type: string
+      password:
+        type: string
+      email:
         type: string
   MicroservicesCatalogResponse:
     type: array
