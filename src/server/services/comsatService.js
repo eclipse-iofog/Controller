@@ -66,6 +66,7 @@ const openPortsOnComsat = function (params, callback) {
             '"heartbeatabsencethresholdport1":200000, "heartbeatabsencethresholdport2":200000}'
         });
 
+    // TODO: add dev mode
     let options = {
         host: params.satellite.domain,
         port: 443,
@@ -126,6 +127,7 @@ const closePortsOnComsat = function (params, callback) {
             });
             console.log(data);
 
+            // TODO: add dev mode
             let options = {
                 host: obj.domain,
                 port: 443,
@@ -187,6 +189,7 @@ const closePortOnComsat = function (params, callback) {
     });
     console.log(data);
 
+    // TODO: add dev mode
     let options = {
         host: params.satellite.domain,
         port: 443,
@@ -284,10 +287,11 @@ const verifyComsatConnections = function (params, callback) {
             process.stdout.cursorTo(0);
             percentage_done = Math.round((count / params.satellite.length) * 100);
 
+            // TODO: add dev mode
             process.stdout.write('Percentage completed ' + percentage_done + '%');
             let options = {
                 host: satellite.domain,
-                port: 443,
+                port: 8080,
                 path: '/api/v2/status',
                 method: 'POST',
                 headers: {
@@ -299,6 +303,7 @@ const verifyComsatConnections = function (params, callback) {
             if (satellite.cert && satellite.selfSignedCerts === true) {
                 let ca = '-----BEGIN CERTIFICATE-----\n' + satellite.cert + '\n' + '-----END CERTIFICATE-----';
                 options.ca = new Buffer(ca);
+                options.port = 443
             }
 
             let httpreq = https.request(options, function (response) {
