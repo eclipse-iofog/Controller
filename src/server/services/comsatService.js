@@ -65,8 +65,7 @@ const openPortsOnComsat = function (params, callback) {
             mapping: '{"type":"private","maxconnectionsport1":1, "maxconnectionsport2":1, ' +
             '"heartbeatabsencethresholdport1":200000, "heartbeatabsencethresholdport2":200000}'
         });
-
-    // TODO: add dev mode
+    
     let options = {
         host: params.satellite.domain,
         port: 8080,
@@ -128,7 +127,6 @@ const closePortsOnComsat = function (params, callback) {
             });
             console.log(data);
 
-            // TODO: add dev mode
             let options = {
                 host: obj.domain,
                 port: 8080,
@@ -190,8 +188,7 @@ const closePortOnComsat = function (params, callback) {
         mappingid: params.satellitePort.mappingId
     });
     console.log(data);
-
-    // TODO: add dev mode
+    
     let options = {
         host: params.satellite.domain,
         port: 8080,
@@ -290,7 +287,6 @@ const verifyComsatConnections = function (params, callback) {
             process.stdout.cursorTo(0);
             percentage_done = Math.round((count / params.satellite.length) * 100);
 
-            // TODO: add dev mode
             process.stdout.write('Percentage completed ' + percentage_done + '%');
             let options = {
                 host: satellite.domain,
