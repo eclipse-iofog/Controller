@@ -7,10 +7,10 @@ consumes:
 produces:
   - application/json
 paths:
-  /status:
+  '/status':
     get:
       tags:
-        - Health
+        - Controller
       description: Returns service health status
       operationId: getServiceStatus
       responses:
@@ -21,7 +21,7 @@ paths:
   '/emailActivation':
     get:
       tags:
-        - Health
+        - Controller
       description: Returns email activation status
       operationId: getEmailActivationStatus
       responses:
@@ -29,7 +29,30 @@ paths:
           description: Email activation status
           schema:
             $ref: '#/definitions/EmailActivationStatusResponse'
-  /iofog/list:
+  '/fogTypes':
+    get:
+      tags:
+        - Controller
+      description: Gets ioFog types list
+      operationId: getIOFogTypes
+      parameters:
+        - in: header
+          name: Authorization
+          description: User token
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/IOFogTypesResponse'
+          headers:
+            X-Timestamp:
+              type: number
+              description: FogController server timestamp
+        '401':
+          description: Not Authorized
+  '/iofog/list':
     post:
       tags:
         - ioFog
@@ -490,6 +513,67 @@ paths:
             X-Timestamp:
               type: number
               description: FogController server timestamp
+        '401':
+          description: Not Authorized
+        '404':
+          description: Invalid Node Id
+  '/iofog/{id}/agent/strace':
+    get:
+      tags:
+        - Agent
+      description: Get an ioFog node strace info
+      operationId: getIOFogNodeStraceInfo
+      parameters:
+        - in: path
+          required: true
+          name: id
+          description: ioFog node id
+          type: string
+        - in: header
+          name: Authorization
+          description: Agent Token
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/IOFogNodeStraceResponse'
+          headers:
+            X-Timestamp:
+              type: number
+              description: FogController server timestamp
+        '401':
+          description: Not Authorized
+        '404':
+          description: Invalid Node Id
+    put:
+      tags:
+        - Agent
+      description: Posts agent strace to ioFog node
+      operationId: postIOFogNodeStraceBuffer
+      parameters:
+        - in: path
+          required: true
+          name: id
+          description: ioFog node id
+          type: string
+        - in: header
+          name: Authorization
+          description: Agent Token
+          required: true
+          type: string
+      responses:
+        '204':
+          description: Success
+          schema:
+            $ref: '#/definitions/IOFogNodeStraceBufferResponse'
+          headers:
+            X-Timestamp:
+              type: number
+              description: FogController server timestamp
+        '400':
+          description: Bad Request
         '401':
           description: Not Authorized
         '404':
@@ -1021,6 +1105,169 @@ paths:
           description: Not Authorized
         '404':
           description: Not Found
+  '/iofog/microservices/{id}/strace':
+    post:
+      tags:
+        - Diagnostics
+      description: Enables Microservice Strace Option
+      operationId: enableMicroserviceStrace
+      parameters:
+        - in: header
+          name: Authorization
+          description: User Token
+          required: true
+          type: string
+        - in: path
+          name: id
+          description: Microservice Id
+          required: true
+          type: string
+      responses:
+        '201':
+          description: Created
+          schema:
+            type: object
+            properties:
+              id:
+                type: string
+          headers:
+            X-Timestamp:
+              type: number
+              description: FogController server timestamp
+        '400':
+          description: Bad Request
+        '401':
+          description: Not Authorized
+        '404':
+          description: Invalid Microservice Id
+    delete:
+      tags:
+        - Diagnostics
+      description: Disables Microservice Strace Option
+      operationId: disableMicroserviceStrace
+      parameters:
+        - in: header
+          name: Authorization
+          description: User Token
+          required: true
+          type: string
+        - in: path
+          name: id
+          description: Microservice Id
+          required: true
+          type: string
+      responses:
+        '204':
+          description: Success
+          headers:
+            X-Timestamp:
+              type: number
+              description: FogController server timestamp
+        '401':
+          description: Not Authorized
+        '404':
+          description: Invalid Microservice Id
+  '/iofog/microservices/{id}/strace/json':
+    get:
+      tags:
+        - Diagnostics
+      description: Gets Strace Data for Microservice As String
+      operationId: getMicroserviceStraceAsString
+      parameters:
+        - in: header
+          name: Authorization
+          description: User Token
+          required: true
+          type: string
+        - in: path
+          name: id
+          description: Microservice Id
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: object
+            properties:
+              buffer:
+                type: string
+          headers:
+            X-Timestamp:
+              type: number
+              description: FogController server timestamp
+        '401':
+          description: Not Authorized
+        '404':
+          description: Invalid Microservice Id
+  '/iofog/microservices/{id}/strace/file':
+    get:
+      tags:
+        - Diagnostics
+      description: Gets Strace Data for Microservice As File
+      operationId: getMicroserviceStraceAsFile
+      parameters:
+        - in: header
+          name: Authorization
+          description: User Token
+          required: true
+          type: string
+        - in: path
+          name: id
+          description: Microservice Id
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: object
+            properties:
+              file:
+                type: string
+          headers:
+            X-Timestamp:
+              type: number
+              description: FogController server timestamp
+        '401':
+          description: Not Authorized
+        '404':
+          description: Invalid Microservice Id
+  '/iofog/microservices/{id}/strace/ftp':
+    put:
+      tags:
+        - Diagnostics
+      description: Posts Microservice Strace file to FTP
+      operationId: postMicroserviceStraceToFTP
+      parameters:
+        - in: path
+          required: true
+          name: id
+          description: Microservice Id
+          type: string
+        - in: header
+          name: Authorization
+          description: User Token
+          required: true
+          type: string
+        - in: body
+          name: straceData
+          required: true
+          schema:
+            $ref: '#/definitions/MicroserviceStraceFTPBody'
+      responses:
+        '204':
+          description: Success
+          headers:
+            X-Timestamp:
+              type: number
+              description: FogController server timestamp
+        '400':
+          description: Bad Request
+        '401':
+          description: Not Authorized
+        '404':
+          description: Invalid Microservice Id
   '/iofog/{id}/tunnel':
     post:
       tags:
@@ -1051,7 +1298,36 @@ paths:
           description: Not Authorized
         '404':
           description: Invalid Node Id
-    patch:
+    get:
+      tags:
+        - Tunnel
+      description: Gets current info about ioFog node ssh tunnel status
+      operationId: getIOFogNodeSshTunnelStatusInfo
+      parameters:
+        - in: path
+          name: id
+          description: ioFog node id
+          required: true
+          type: string
+        - in: header
+          name: Authorization
+          description: User token
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/IOFogNodeTunnelStatusInfoResponse'
+          headers:
+            X-Timestamp:
+              type: number
+              description: FogController server timestamp
+        '401':
+          description: Not Authorized
+        '404':
+          description: Invalid Node Id
+    delete:
       tags:
         - Tunnel
       description: Closes ssh tunnel
@@ -1069,38 +1345,7 @@ paths:
           type: string
       responses:
         '204':
-          description: Updated
-          headers:
-            X-Timestamp:
-              type: number
-              description: FogController server timestamp
-        '400':
-          description: Bad Request
-        '401':
-          description: Not Authorized
-        '404':
-          description: Invalid Node Id
-    get:
-      tags:
-        - Tunnel
-      description: Gets ioFog node ssh tunnel info
-      operationId: getIOFogNodeSshTunnelInfo
-      parameters:
-        - in: path
-          name: id
-          description: ioFog node id
-          required: true
-          type: string
-        - in: header
-          name: Authorization
-          description: User token
-          required: true
-          type: string
-      responses:
-        '200':
-          description: Success
-          schema:
-            $ref: '#/definitions/IOFogNodeTunnelInfoResponse'
+          description: Deleted
           headers:
             X-Timestamp:
               type: number
@@ -1109,63 +1354,10 @@ paths:
           description: Not Authorized
         '404':
           description: Invalid Node Id
-  '/iofog/{id}/tunnel/status':
-    get:
-      tags:
-        - Tunnel
-      description: Gets ioFog node ssh tunnel status
-      operationId: getIOFogNodeSshTunnelStatus
-      parameters:
-        - in: path
-          name: id
-          description: ioFog node id
-          required: true
-          type: string
-        - in: header
-          name: Authorization
-          description: User token
-          required: true
-          type: string
-      responses:
-        '200':
-          description: Success
-          schema:
-            $ref: '#/definitions/IOFogNodeTunnelStatusResponse'
-          headers:
-            X-Timestamp:
-              type: number
-              description: FogController server timestamp
-        '401':
-          description: Not Authorized
-        '404':
-          description: Invalid Node Id
-  '/registry/list':
-    get:
-      tags:
-        - Registry
-      description: Gets list of registries
-      operationId: getRegistryList
-      parameters:
-        - in: header
-          name: Authorization
-          description: User token
-          required: true
-          type: string
-      responses:
-        '200':
-          description: Success
-          schema:
-            $ref: '#/definitions/RegistriesListResponse'
-          headers:
-            X-Timestamp:
-              type: number
-              description: FogController server timestamp
-        '401':
-          description: Not Authorized
-  '/registry':
+  '/registries':
     post:
       tags:
-        - Registry
+        - Registries
       description: Creates new registry
       operationId: createRegistry
       parameters:
@@ -1190,10 +1382,32 @@ paths:
           description: Bad Request
         '401':
           description: Not Authorized
-  '/registry/{id}':
+    get:
+      tags:
+        - Registries
+      description: Gets list of registries
+      operationId: getRegistryList
+      parameters:
+        - in: header
+          name: Authorization
+          description: User token
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/RegistriesListResponse'
+          headers:
+            X-Timestamp:
+              type: number
+              description: FogController server timestamp
+        '401':
+          description: Not Authorized
+  '/registries/{id}':
     delete:
       tags:
-        - Registry
+        - Registries
       description: Deletes a registry
       operationId: deleteRegistry
       parameters:
@@ -1234,6 +1448,24 @@ definitions:
         type: string
       timestamp:
         type: number
+  IOFogTypesResponse:
+    type: object
+    properties:
+      fogTypes:
+        type: array
+        items:
+          $ref: '#/definitions/IOFogType'
+  IOFogType:
+    type: object
+    properties:
+      id:
+        type: number
+      name:
+        type: string
+      image:
+        type: string
+      description:
+        type: string
   IOFogNodesListFilters:
     type: array
     items:
@@ -1267,8 +1499,6 @@ definitions:
         type: string
       longitude:
         type: string
-      orgId:
-        type: string
       description:
         type: string
       createAt:
@@ -1277,8 +1507,6 @@ definitions:
         type: string
       lastActive:
         type: number
-      token:
-        type: string
       daemonStatus:
         type: string
       daemonOperatingDuration:
@@ -1333,19 +1561,9 @@ definitions:
         type: number
       logDirectory:
         type: string
-      debug:
-        type: boolean
-      viewer:
-        type: boolean
       bluetooth:
         type: boolean
       hal:
-        type: boolean
-      mongo:
-        type: boolean
-      influx:
-        type: boolean
-      grafana:
         type: boolean
       isolatedDockerContainer:
         type: boolean
@@ -1439,6 +1657,11 @@ definitions:
       autoGPSEnabled:
         type: boolean
         default: false
+      reboot:
+        type: boolean
+        default: false
+      fogType:
+        type: number
   NewIOFogNodeResponse:
     type: object
     properties:
@@ -1449,6 +1672,8 @@ definitions:
     properties:
       key:
         type: string
+      expirationTime:
+        type: number
   AgentProvisioningRequest:
     type: object
     required:
@@ -1460,7 +1685,7 @@ definitions:
         enum:
           - 1
           - 2
-        description: |
+        description: >
           Architecture
            * '1': x86
            * '2': arm
@@ -1572,6 +1797,47 @@ definitions:
         type: string
       closed:
         type: boolean
+  IOFogNodeStraceResponse:
+    type: object
+    properties:
+      straceValues:
+        type: array
+        items:
+          $ref: '#/definitions/MicroserviceStrace'
+  MicroserviceStrace:
+    type: object
+    properties:
+      microserviceId:
+        type: string
+      straceRun:
+        type: boolean
+  IOFogNodeStraceBufferResponse:
+    type: object
+    properties:
+      straceData:
+        type: array
+        items:
+          $ref: '#/definitions/MicroserviceStraceBuffer'
+  MicroserviceStraceBuffer:
+    type: object
+    properties:
+      microserviceId:
+        type: string
+      buffer:
+        type: string
+  MicroserviceStraceFTPBody:
+    type: object
+    properties:
+      ftpHost:
+        type: string
+      ftpPort:
+        type: number
+      ftpUser:
+        type: string
+      ftpPass:
+        type: string
+      ftpDestDir:
+        type: string
   AgentMicroservicesListResponse:
     type: array
     items:
@@ -1893,7 +2159,7 @@ definitions:
         $ref: '#/definitions/PortMappingsRequest'
       routes:
         $ref: '#/definitions/ReceiverMicroservices'
-  IOFogNodeTunnelStatusResponse:
+  IOFogNodeTunnelStatusInfoResponse:
     type: object
     properties:
       username:
@@ -1906,19 +2172,6 @@ definitions:
         type: number
       status:
         type: string
-  IOFogNodeTunnelInfoResponse:
-    type: object
-    properties:
-      username:
-        type: string
-      host:
-        type: string
-      remotePort:
-        type: number
-      localPort:
-        type: number
-      closed:
-        type: boolean
 schemes:
   - http
   - https
