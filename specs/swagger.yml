@@ -1134,8 +1134,6 @@ paths:
             X-Timestamp:
               type: number
               description: FogController server timestamp
-        '400':
-          description: Bad Request
         '401':
           description: Not Authorized
         '404':
@@ -1167,12 +1165,11 @@ paths:
           description: Not Authorized
         '404':
           description: Invalid Microservice Id
-  '/iofog/microservices/{id}/strace/json':
     get:
       tags:
         - Diagnostics
-      description: Gets Strace Data for Microservice As String
-      operationId: getMicroserviceStraceAsString
+      description: Gets Strace Data for Microservice
+      operationId: getMicroserviceStrace
       parameters:
         - in: header
           name: Authorization
@@ -1184,13 +1181,20 @@ paths:
           description: Microservice Id
           required: true
           type: string
+        - in: query
+          name: format
+          required: true
+          type: string
+          enum:
+            - file
+            - string
       responses:
         '200':
           description: Success
           schema:
             type: object
             properties:
-              buffer:
+              data:
                 type: string
           headers:
             X-Timestamp:
@@ -1200,40 +1204,6 @@ paths:
           description: Not Authorized
         '404':
           description: Invalid Microservice Id
-  '/iofog/microservices/{id}/strace/file':
-    get:
-      tags:
-        - Diagnostics
-      description: Gets Strace Data for Microservice As File
-      operationId: getMicroserviceStraceAsFile
-      parameters:
-        - in: header
-          name: Authorization
-          description: User Token
-          required: true
-          type: string
-        - in: path
-          name: id
-          description: Microservice Id
-          required: true
-          type: string
-      responses:
-        '200':
-          description: Success
-          schema:
-            type: object
-            properties:
-              file:
-                type: string
-          headers:
-            X-Timestamp:
-              type: number
-              description: FogController server timestamp
-        '401':
-          description: Not Authorized
-        '404':
-          description: Invalid Microservice Id
-  '/iofog/microservices/{id}/strace/ftp':
     put:
       tags:
         - Diagnostics
@@ -1581,18 +1551,8 @@ definitions:
         type: number
       proxy:
         type: string
-      typeKey:
-        type: number
-      typeId:
-        type: number
-      typeName:
-        type: string
-      typeImage:
-        type: string
-      typeDescription:
-        type: string
-      fogType:
-        type: number
+      type:
+        $ref: '#/definitions/IOFogType'
   UpdateIOFogNodeRequestBody:
     type: object
     properties:
