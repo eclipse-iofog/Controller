@@ -430,7 +430,7 @@ paths:
         - Agent
       description: Gets list of Docker registries
       operationId: getRegistriesList
-      parameters: 
+      parameters:
         - in: path
           required: true
           name: id
@@ -452,7 +452,7 @@ paths:
               description: FogController server timestamp
         401:
           description: Not Authorized
-        404: 
+        404:
           description: Invalid Node Id
   /catalog/microservices:
     get:
@@ -460,7 +460,7 @@ paths:
         - Catalog
       description: Gets microservices catalog
       operationId: getMicroservicesCatalog
-      parameters: 
+      parameters:
         - in: header
           name: Authorization
           description: User Token
@@ -482,7 +482,7 @@ paths:
         - Catalog
       description: Creates a new microservice catalog item
       operationId: createMicroserviceCatalogItem
-      parameters: 
+      parameters:
         - in: header
           name: Authorization
           description: User Token
@@ -518,7 +518,7 @@ paths:
         - Catalog
       description: Gets microservice catalog item info
       operationId: getMicroserviceCatalogItem
-      parameters: 
+      parameters:
         - in: header
           name: Authorization
           description: User Token
@@ -547,7 +547,7 @@ paths:
         - Catalog
       description: Updates a microservice catalog item
       operationId: updateMicroserviceCatalogItem
-      parameters: 
+      parameters:
         - in: header
           name: Authorization
           description: User Token
@@ -584,7 +584,7 @@ paths:
         - Catalog
       description: Deletes a microservice catalog item
       operationId: deleteMicroserviceCatalogItem
-      parameters: 
+      parameters:
         - in: header
           name: Authorization
           description: User Token
@@ -612,7 +612,7 @@ paths:
         - Flow
       description: Gets list of flows
       operationId: getFlowsList
-      parameters: 
+      parameters:
         - in: header
           name: Authorization
           description: User Token
@@ -634,7 +634,7 @@ paths:
         - Flow
       description: Creates a new flow
       operationId: createFlow
-      parameters: 
+      parameters:
         - in: header
           name: Authorization
           description: User Token
@@ -668,7 +668,7 @@ paths:
         - Flow
       description: Gets flow info
       operationId: getFlowInfo
-      parameters: 
+      parameters:
         - in: header
           name: Authorization
           description: User Token
@@ -697,7 +697,7 @@ paths:
         - Flow
       description: Updates a flow
       operationId: updateFlow
-      parameters: 
+      parameters:
         - in: header
           name: Authorization
           description: User Token
@@ -732,7 +732,7 @@ paths:
         - Flow
       description: Deletes a flow
       operationId: deleteFlow
-      parameters: 
+      parameters:
         - in: header
           name: Authorization
           description: User Token
@@ -760,7 +760,7 @@ paths:
         - Microservices
       description: Gets list of microservices
       operationId: getMicroservicesList
-      parameters: 
+      parameters:
         - in: header
           name: Authorization
           description: User Token
@@ -792,7 +792,7 @@ paths:
         - Microservices
       description: Creates a new microservice on an ioFog node
       operationId: createMicroservice
-      parameters: 
+      parameters:
         - in: header
           name: Authorization
           description: User Token
@@ -826,7 +826,7 @@ paths:
         - Microservices
       description: Gets a microservice info
       operationId: getMicroserviceInfo
-      parameters: 
+      parameters:
         - in: header
           name: Authorization
           description: User Token
@@ -855,7 +855,7 @@ paths:
         - Microservices
       description: Updates a microservice
       operationId: updateMicroservice
-      parameters: 
+      parameters:
         - in: header
           name: Authorization
           description: User Token
@@ -890,7 +890,7 @@ paths:
         - Microservices
       description: Deletes a microservice
       operationId: deleteMicroservice
-      parameters: 
+      parameters:
         - in: header
           name: Authorization
           description: User Token
@@ -918,7 +918,7 @@ paths:
         - Microservices
       description: Creates a route from microservice to receiver
       operationId: createMicroserviceRoute
-      parameters: 
+      parameters:
         - in: header
           name: Authorization
           description: User Token
@@ -952,7 +952,7 @@ paths:
         - Microservices
       description: Deletes a route microservice
       operationId: deleteMicroserviceRoue
-      parameters: 
+      parameters:
         - in: header
           name: Authorization
           description: User Token
@@ -981,14 +981,248 @@ paths:
           description: Not Authorized
         404:
           description: Not Found
-      
+  '/user/login':
+    post:
+      tags:
+      - User
+      description: Login
+      operationId: login
+      parameters:
+      - in: body
+        name: credentials
+        required: true
+        schema:
+          $ref: '#/definitions/LoginRequest'
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/LoginSuccessResponse'
+          headers:
+            X-Timestamp:
+              type: number
+              description: FogController server timestamp
+        400:
+          description: incorrect credentials
+        404:
+          description: Not Found
+  '/user/logout':
+    post:
+      tags:
+      - User
+      description: Logout
+      operationId: logout
+      parameters:
+        - in: header
+          name: Authorization
+          description: User token
+          required: true
+          type: string
+      responses:
+        204:
+          description: Success
+        401:
+          description: Not Authorized
+        404:
+          description: Not Found
+  '/user/signup':
+    post:
+      tags:
+        - User
+      description: Signup
+      operationId: signup
+      parameters:
+        - in: body
+          name: user
+          description: new user data
+          required: true
+          schema:
+            $ref: '#/definitions/SignupRequest'
+      responses:
+        204:
+          description: Success
+          headers:
+            X-Timestamp:
+              type: number
+              description: FogController server timestamp
+        401:
+          description: Not Authorized
+        404:
+          description: Not Found
+  '/user/signup/resendActivation':
+    get:
+      tags:
+        - User
+      description: Resend activation email
+      operationId: resentActivationEmail
+      responses:
+        204:
+          description: Success
+          headers:
+            X-Timestamp:
+              type: number
+              description: FogController server timestamp
+        401:
+          description: Not Authorized
+        404:
+          description: Not Found
+  '/user/activate':
+    post:
+      tags:
+        - User
+      description: Activate account
+      operationId: activateAccount
+      parameters:
+        - in: query
+          name: activationCode
+          description: activation code
+          required: true
+          type: string
+      responses:
+        303:
+          description: Redirect to login page
+          headers:
+            X-Timestamp:
+              type: number
+              description: FogController server timestamp
+            Location:
+              description: Login page url
+              type: string
+        401:
+          description: Not Authorized
+        404:
+          description: Not Found
+  '/user/profile':
+    get:
+      tags:
+        - User
+      description: Get current user profile data
+      operationId: getUserProfile
+      parameters:
+        - in: header
+          name: Authorization
+          description: User token
+          required: true
+          type: string
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/UserProfileDetailsResponse'
+        401:
+          description: Not Authorized
+        404:
+          description: Not Found
+    patch:
+      tags:
+        - User
+      description: Update user profile
+      operationId: updateUserProfile
+      parameters:
+        - in: header
+          name: Authorization
+          description: User Token
+          required: true
+          type: string
+        - in: body
+          name: profileData
+          description: Updated profile data
+          required: true
+          schema:
+            $ref: '#/definitions/UserProfileUpdatesRequest'
+      responses:
+        200:
+          description: Updated user profile
+          schema:
+            $ref: '#/definitions/UserProfileDetailsResponse'
+          headers:
+            X-Timestamp:
+              type: number
+              description: FogController server timestamp
+        401:
+          description: Not Authorized
+        404:
+          description: Not Found
+    delete:
+      tags:
+        - User
+      description: Delete account
+      operationId: deleteAccount
+      parameters:
+        - in: header
+          name: Authorization
+          description: User Token
+          required: true
+          type: string
+      responses:
+        204:
+          description: Success
+          headers:
+            X-Timestamp:
+              type: number
+              description: FogController server timestamp
+        401:
+          description: Not Authorized
+        404:
+          description: Not Found
+  '/user/password':
+    patch:
+      tags:
+        - User
+      description: change password
+      operationId: changePassword
+      parameters:
+        - in: header
+          name: Authorization
+          description: User Token
+          required: true
+          type: string
+        - in: body
+          name: passwordUpdates
+          description: current and new password
+          required: true
+          schema:
+            $ref: '#/definitions/PasswordChangeRequest'
+      responses:
+        204:
+          description: Success
+          headers:
+            X-Timestamp:
+              type: number
+              description: FogController server timestamp
+        401:
+          description: Not Authorized
+        404:
+          description: Not Found
+    delete:
+      tags:
+        - User
+      description: Reset password
+      operationId: resetPassword
+      parameters:
+        - in: header
+          name: Authorization
+          description: User Token
+          required: true
+          type: string
+      responses:
+        204:
+          description: Success
+          headers:
+            X-Timestamp:
+              type: number
+              description: FogController server timestamp
+        401:
+          description: Not Authorized
+        404:
+          description: Not Found
 
 
 definitions:
   ServiceStatusResponse:
     type: object
     properties:
-      status: 
+      status:
         type: string
         example: ok
       timestamp:
@@ -1101,9 +1335,9 @@ definitions:
       version:
         type: string      
       statusFrequency:
-        type: number      
+        type: number
       configFrequency:
-        type: number      
+        type: number
       typeKey:
         type: number
       typeId:
@@ -1155,7 +1389,7 @@ definitions:
         type: number
         default: 10
       statusFrequency:
-        type: number      
+        type: number
         default: 10
         format: seconds
       changeFrequency:
@@ -1410,15 +1644,15 @@ definitions:
       fogTypeDescription:
         type: string
       inputType:
-        type: string    
+        type: string
       inputFormat:
-        type: string    
+        type: string
       outputType:
-        type: string    
+        type: string
       outputFormat:
-        type: string  
+        type: string
       configExample:
-        type: string  
+        type: string
   CreateCatalogItemRequestBody:
     type: object
     properties:
@@ -1445,15 +1679,15 @@ definitions:
       fogType:
         type: number
       inputType:
-        type: string    
+        type: string
       inputFormat:
-        type: string    
+        type: string
       outputType:
-        type: string    
+        type: string
       outputFormat:
-        type: string    
+        type: string
       configExample:
-        type: string    
+        type: string
   UpdateCatalogItemRequestBody:
     type: object
     properties:
@@ -1502,7 +1736,7 @@ definitions:
         type: number
       description:
         type: string
-      isSelected: 
+      isSelected:
         type: boolean
       isActivated:
         type: boolean
@@ -1519,7 +1753,7 @@ definitions:
         type: string
       description:
         type: string
-      isSelected: 
+      isSelected:
         type: boolean
       isActivated:
         type: boolean
@@ -1596,6 +1830,71 @@ definitions:
         $ref: "#/definitions/PortMappingsRequest"
       routes:
         $ref: '#/definitions/ReceiverMicroservices'
+  LoginRequest:
+    type: object
+    required:
+      - email
+      - password
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+  LoginSuccessResponse:
+    type: object
+    required:
+      - accesToken
+    properties:
+      accesToken:
+        type: string
+  UserProfileDetailsResponse:
+    type: object
+    required:
+      - firstName
+      - lastName
+      - email
+    properties:
+      firstName:
+        type: string
+      lastName:
+        type: string
+      email:
+        type: string
+  UserProfileUpdatesRequest:
+    type: object
+    properties:
+      firstName:
+        type: string
+      lastName:
+        type: string
+      email:
+        type: string
+  PasswordChangeRequest:
+    type: object
+    required:
+      - oldPassword
+      - newPassword
+    properties:
+      oldPassword:
+        type: string
+      newPassword:
+        type: string
+  SignupRequest:
+    type: object
+    required:
+      - firstName
+      - lastName
+      - email
+      - password
+    properties:
+      firstName:
+        type: string
+      lastName:
+        type: string
+      email:
+        type: string
+      password:
+        type: string
 
 schemes:
   - http
