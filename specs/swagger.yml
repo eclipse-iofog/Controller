@@ -1006,6 +1006,8 @@ paths:
           description: incorrect credentials
         404:
           description: Not Found
+        500:
+          description: Internal Server Error
   '/user/logout':
     post:
       tags:
@@ -1025,6 +1027,8 @@ paths:
           description: Not Authorized
         404:
           description: Not Found
+        500:
+          description: Internal Server Error
   '/user/signup':
     post:
       tags:
@@ -1049,6 +1053,8 @@ paths:
           description: Not Authorized
         404:
           description: Not Found
+        500:
+          description: Internal Server Error
   '/user/signup/resendActivation':
     get:
       tags:
@@ -1066,6 +1072,8 @@ paths:
           description: Not Authorized
         404:
           description: Not Found
+        500:
+          description: Internal Server Error
   '/user/activate':
     post:
       tags:
@@ -1092,6 +1100,8 @@ paths:
           description: Not Authorized
         404:
           description: Not Found
+        500:
+          description: Internal Server Error
   '/user/profile':
     get:
       tags:
@@ -1113,6 +1123,8 @@ paths:
           description: Not Authorized
         404:
           description: Not Found
+        500:
+          description: Internal Server Error
     patch:
       tags:
         - User
@@ -1143,6 +1155,8 @@ paths:
           description: Not Authorized
         404:
           description: Not Found
+        500:
+          description: Internal Server Error
     delete:
       tags:
         - User
@@ -1165,6 +1179,8 @@ paths:
           description: Not Authorized
         404:
           description: Not Found
+        500:
+          description: Internal Server Error
   '/user/password':
     patch:
       tags:
@@ -1194,6 +1210,8 @@ paths:
           description: Not Authorized
         404:
           description: Not Found
+        500:
+          description: Internal Server Error
     delete:
       tags:
         - User
@@ -1216,6 +1234,8 @@ paths:
           description: Not Authorized
         404:
           description: Not Found
+        500:
+          description: Internal Server Error
 
 
 definitions:
