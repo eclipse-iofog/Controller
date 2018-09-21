@@ -65,10 +65,10 @@ const openPortsOnComsat = function (params, callback) {
             mapping: '{"type":"private","maxconnectionsport1":1, "maxconnectionsport2":1, ' +
             '"heartbeatabsencethresholdport1":200000, "heartbeatabsencethresholdport2":200000}'
         });
-
+    
     let options = {
         host: params.satellite.domain,
-        port: 443,
+        port: 8080,
         path: '/api/v2/mapping/add',
         method: 'POST',
         headers: {
@@ -80,6 +80,7 @@ const openPortsOnComsat = function (params, callback) {
     if (params.satellite.cert && params.satellite.selfSignedCerts === true) {
         let ca = '-----BEGIN CERTIFICATE-----\n' + params.satellite.cert + '\n' + '-----END CERTIFICATE-----';
         options.ca = new Buffer(ca);
+        options.port = 443;
     }
 
     let httpreq = https.request(options, function (response) {
@@ -128,7 +129,7 @@ const closePortsOnComsat = function (params, callback) {
 
             let options = {
                 host: obj.domain,
-                port: 443,
+                port: 8080,
                 path: '/api/v2/mapping/remove',
                 method: 'POST',
                 headers: {
@@ -140,6 +141,7 @@ const closePortsOnComsat = function (params, callback) {
             if (obj.cert && obj.self_signed_certs === true) {
                 let ca = '-----BEGIN CERTIFICATE-----\n' + obj.cert + '\n' + '-----END CERTIFICATE-----';
                 options.ca = new Buffer(ca);
+                options.port = 443;
             }
 
             let httpreq = https.request(options, function (response) {
@@ -186,10 +188,10 @@ const closePortOnComsat = function (params, callback) {
         mappingid: params.satellitePort.mappingId
     });
     console.log(data);
-
+    
     let options = {
         host: params.satellite.domain,
-        port: 443,
+        port: 8080,
         path: '/api/v2/mapping/remove',
         method: 'POST',
         headers: {
@@ -201,6 +203,7 @@ const closePortOnComsat = function (params, callback) {
     if (params.satellite.cert && params.satellite.selfSignedCerts === true) {
         let ca = '-----BEGIN CERTIFICATE-----\n' + params.satellite.cert + '\n' + '-----END CERTIFICATE-----';
         options.ca = new Buffer(ca);
+        options.port = 443;
     }
 
     let httpreq = https.request(options, function (response) {
@@ -287,7 +290,7 @@ const verifyComsatConnections = function (params, callback) {
             process.stdout.write('Percentage completed ' + percentage_done + '%');
             let options = {
                 host: satellite.domain,
-                port: 443,
+                port: 8080,
                 path: '/api/v2/status',
                 method: 'POST',
                 headers: {
@@ -299,6 +302,7 @@ const verifyComsatConnections = function (params, callback) {
             if (satellite.cert && satellite.selfSignedCerts === true) {
                 let ca = '-----BEGIN CERTIFICATE-----\n' + satellite.cert + '\n' + '-----END CERTIFICATE-----';
                 options.ca = new Buffer(ca);
+                options.port = 443;
             }
 
             let httpreq = https.request(options, function (response) {
