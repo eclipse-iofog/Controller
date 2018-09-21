@@ -1446,8 +1446,6 @@ definitions:
     properties:
       emailActivation:
         type: string
-      timestamp:
-        type: number
   IOFogTypesResponse:
     type: object
     properties:
@@ -1502,9 +1500,9 @@ definitions:
       description:
         type: string
       createAt:
-        type: string
+        type: number
       updatedAt:
-        type: string
+        type: number
       lastActive:
         type: number
       daemonStatus:
@@ -1540,7 +1538,7 @@ definitions:
       processedMessages:
         type: number
       microserviceMessageCounts:
-        type: string
+        type: number
       messageSpeed:
         type: number
       lastCommandTime:
@@ -1593,6 +1591,8 @@ definitions:
         type: string
       typeDescription:
         type: string
+      fogType:
+        type: number
   UpdateIOFogNodeRequestBody:
     type: object
     properties:
@@ -1916,11 +1916,11 @@ definitions:
         type: string
       password:
         type: string
-      useremail:
+      userEmail:
         type: string
-      user_id:
+      userId:
         type: string
-      iofog_uuid:
+      ioFogId:
         type: string
   RegistryBody:
     type: object
