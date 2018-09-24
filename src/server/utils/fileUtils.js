@@ -11,9 +11,9 @@
  *
  */
 
-import AppUtils from "./appUtils";
+const AppUtils = require('./appUtils');
 let fs = require('fs');
-import logger from './winstonLogs';
+const logger = require('./winstonLogs');
 
 const createFile = function (props, params, callback) {
 
@@ -60,7 +60,7 @@ const deleteFile = function (props, params, callback) {
     });
 };
 
-export default {
+module.exports =  {
     createFile: createFile,
     createDirIfNotExists: createDirIfNotExists,
     fileToBase64: fileToBase64,

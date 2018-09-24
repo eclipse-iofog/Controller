@@ -11,9 +11,9 @@
  *
  */
 
-import BaseManager from "./baseManager";
-import ElementInstanceStatus from "../models/elementInstanceStatus";
-import ElementInstanceManager from "../managers/elementInstanceManager";
+const BaseManager = require('./baseManager');
+const ElementInstanceStatus = require('../models/elementInstanceStatus');
+const ElementInstanceManager = require('../managers/elementInstanceManager');
 
 /**
  * @author elukashick
@@ -62,4 +62,4 @@ class ElementInstanceStatusManager extends BaseManager {
 }
 
 const instance = new ElementInstanceStatusManager();
-export default instance;
+module.exports =  instance;

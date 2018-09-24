@@ -11,8 +11,8 @@
  *
  */
 
-import ElementInputTypeManager from '../managers/elementInputTypeManager';
-import AppUtils from '../utils/appUtils';
+const ElementInputTypeManager = require('../managers/elementInputTypeManager');
+const AppUtils = require('../utils/appUtils');
 
 const createElementInputType = function(props, params, callback) {
   
@@ -37,7 +37,7 @@ const deleteElementInputType = function(props, params, callback) {
     .then(AppUtils.onDeleteOptional.bind(null, params, callback));
 }
 
-export default {
+module.exports =  {
   createElementInputType: createElementInputType,
   updateElementInputType: updateElementInputType,
   deleteElementInputType: deleteElementInputType

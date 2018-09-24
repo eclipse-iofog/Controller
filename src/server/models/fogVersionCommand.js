@@ -17,10 +17,10 @@
  * @description This file includes a iofog_version_commands model used by sequalize for ORM;
  */
 
-import Sequelize from 'sequelize';
-import sequelize from './../utils/sequelize';
-import Fog from "./fog";
-import FogProvisionKey from "./fogProvisionKey";
+const Sequelize = require('sequelize');
+const sequelize = require('./../utils/sequelize');
+const Fog = require('./fog');
+const FogProvisionKey = require('./fogProvisionKey');
 
 const FogVersionCommand = sequelize.define('iofog_version_commands', {
     id: {type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true, field: 'ID'},
@@ -39,4 +39,4 @@ FogVersionCommand.belongsTo(Fog, {
     foreignKey: 'iofog_uuid'
 });
 
-export default FogVersionCommand;
+module.exports =  FogVersionCommand;

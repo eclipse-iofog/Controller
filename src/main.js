@@ -18,7 +18,7 @@ const fs = require('fs');
 
 const { CLI } = require('./cli');
 
-import logger from './server/utils/winstonLogs';
+const logger = require('./server/utils/winstonLogs');
 
 function main() {
     let key,

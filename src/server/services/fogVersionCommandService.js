@@ -11,9 +11,9 @@
  *
  */
 
-import FogVersionCommandManager from "../managers/fogVersionCommandManager"
-import AppUtils from '../utils/appUtils';
-import Constants from '../constants.js';
+const FogVersionCommandManager = require('../managers/fogVersionCommandManager');
+const AppUtils = require('../utils/appUtils');
+const Constants = require('../constants.js');
 
 const createVersionCommandByInstanceId = function(props, params, callback) {
     var instanceId = AppUtils.getProperty(params, props.instanceId),
@@ -45,7 +45,7 @@ const getVersionCommandByInstanceId = function (props, params, callback) {
 
 };
 
-export default {
+module.exports =  {
     createVersionCommandByInstanceId: createVersionCommandByInstanceId,
     deleteVersionCommandByInstanceId: deleteVersionCommandByInstanceId,
     getVersionCommandByInstanceId: getVersionCommandByInstanceId

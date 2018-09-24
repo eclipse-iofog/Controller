@@ -11,11 +11,11 @@
  *
  */
 
-import async from 'async';
-import logger from '../utils/winstonLogs';
+const async = require('async');
+const logger = require('../utils/winstonLogs');
 
-import EmailActivationCodeManager from '../managers/emailActivationCodeManager';
-import AppUtils from '../utils/appUtils';
+const EmailActivationCodeManager = require('../managers/emailActivationCodeManager');
+const AppUtils = require('../utils/appUtils');
 
 const generateActivationCode = function(params, callback) {
   let safeCode = false;
@@ -82,7 +82,7 @@ const saveActivationCode = function(props, params, callback){
 }
 
 
-export default {
+module.exports =  {
 	generateActivationCode: generateActivationCode,
 	saveActivationCode: saveActivationCode,
 	findEmailActivationCode: findEmailActivationCode,

@@ -17,9 +17,9 @@
  * @description This file includes the CURD operations for the sslFiles Model.
  */
 
-import FogControllerConfig from './../models/fogControllerConfig';
-import BaseManager from './../managers/baseManager';
-import sequelize from './../utils/sequelize';
+const FogControllerConfig = require('./../models/fogControllerConfig');
+const BaseManager = require('./../managers/baseManager');
+const sequelize = require('./../utils/sequelize');
 
 
 class FogControllerConfigManager extends BaseManager {
@@ -74,4 +74,4 @@ class FogControllerConfigManager extends BaseManager {
 }
 
 const instance = new FogControllerConfigManager();
-export default instance;
+module.exports =  instance;

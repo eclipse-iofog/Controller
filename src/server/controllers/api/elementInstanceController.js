@@ -17,27 +17,27 @@
  * @description This file includes the implementation of the end-points that deal with elements
  */
 
-import async from 'async';
-import ChangeTrackingService from '../../services/changeTrackingService';
-import ComsatService from '../../services/comsatService';
-import DataTracksService from '../../services/dataTracksService';
-import ElementService from '../../services/elementService';
-import ElementInstanceService from '../../services/elementInstanceService';
-import ElementInstancePortService from '../../services/elementInstancePortService';
-import ElementInstanceConnectionsService from '../../services/elementInstanceConnectionsService';
-import ElementAdvertisedPortService from '../../services/elementAdvertisedPortService';
-import FogService from '../../services/fogService';
-import FogTypeService from '../../services/fogTypeService';
-import NetworkPairingService from '../../services/networkPairingService';
-import RoutingService from '../../services/routingService';
-import SatellitePortService from '../../services/satellitePortService';
-import SatelliteService from '../../services/satelliteService';
-import UserService from '../../services/userService';
+const async = require('async');
+const ChangeTrackingService = require('../../services/changeTrackingService');
+const ComsatService = require('../../services/comsatService');
+const DataTracksService = require('../../services/dataTracksService');
+const ElementService = require('../../services/elementService');
+const ElementInstanceService = require('../../services/elementInstanceService');
+const ElementInstancePortService = require('../../services/elementInstancePortService');
+const ElementInstanceConnectionsService = require('../../services/elementInstanceConnectionsService');
+const ElementAdvertisedPortService = require('../../services/elementAdvertisedPortService');
+const FogService = require('../../services/fogService');
+const FogTypeService = require('../../services/fogTypeService');
+const NetworkPairingService = require('../../services/networkPairingService');
+const RoutingService = require('../../services/routingService');
+const SatellitePortService = require('../../services/satellitePortService');
+const SatelliteService = require('../../services/satelliteService');
+const UserService = require('../../services/userService');
 
-import AppUtils from '../../utils/appUtils';
-import logger from '../../utils/winstonLogs';
-import _ from 'underscore';
-import ArchitectureUtils from '../../utils/architectureUtils'
+const AppUtils = require('../../utils/appUtils');
+const logger = require('../../utils/winstonLogs');
+const _ = require('underscore');
+const ArchitectureUtils = require('../../utils/architectureUtils');
 
 /*********************************************** EndPoints ******************************************************/
 /***** Get Rebuild Status of Element Instance EndPoint (Get: /api/v2/authoring/element/instance/rebuild/status/elementid/:elementId *****/
@@ -1700,7 +1700,7 @@ const listElementInstanceWithStatusEndPoint = function (req, res) {
         });
 };
 
-export default {
+module.exports =  {
   createElementInstanceConnectionEndPoint:createElementInstanceConnectionEndPoint,
   deleteElementInstanceConnectionEndPoint: deleteElementInstanceConnectionEndPoint,
   detailedElementInstanceCreateEndPoint: detailedElementInstanceCreateEndPoint,

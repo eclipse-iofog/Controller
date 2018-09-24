@@ -11,10 +11,10 @@
  *
  */
 
-import AppUtils from "./appUtils";
+const AppUtils = require('./appUtils');
 let ftpClient = require('ftp');
 let fs = require('fs');
-import logger from './winstonLogs';
+const logger = require('./winstonLogs');
 
 
 const sendToFtp = function (props, params, callback) {
@@ -57,6 +57,6 @@ const sendToFtp = function (props, params, callback) {
     client.connect(connectionData);
 };
 
-export default {
+module.exports =  {
     sendToFtp: sendToFtp
 }

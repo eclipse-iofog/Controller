@@ -17,9 +17,9 @@
  * @description This file includes the CURD operations for the user Model.
  */
 
-import User from './../models/user';
-import BaseManager from './../managers/baseManager';
-import AppUtils from './../utils/appUtils';
+const User = require('./../models/user');
+const BaseManager = require('./../managers/baseManager');
+const AppUtils = require('./../utils/appUtils');
 
 class UserManager extends BaseManager {
 
@@ -195,4 +195,4 @@ class UserManager extends BaseManager {
 }
 
 const instance = new UserManager();
-export default instance;
+module.exports =  instance;

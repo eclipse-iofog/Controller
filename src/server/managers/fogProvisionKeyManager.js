@@ -16,10 +16,10 @@
  * @author Zishan Iqbal
  * @description This file includes the CURD operations for the fogProvisionKey Model.
  */
-import BaseManager from './../managers/baseManager';
+const BaseManager = require('./../managers/baseManager');
 
-import Fog from './../models/fog';
-import FogProvisionKey from './../models/fogProvisionKey';
+const Fog = require('./../models/fog');
+const FogProvisionKey = require('./../models/fogProvisionKey');
 
 class FogProvisionKeyManager extends BaseManager {
 
@@ -95,4 +95,4 @@ class FogProvisionKeyManager extends BaseManager {
 }
 
 const instance = new FogProvisionKeyManager();
-export default instance;
+module.exports =  instance;

@@ -16,13 +16,13 @@
 * @author Zishan Iqbal
 * @description This file includes the Middle-ware functions.
 */
-import async from 'async';
+const async = require('async');
 
-import FogService from '../../services/fogService';
-import FogAccessTokenService from '../../services/fogAccessTokenService';
-import FogUserService from '../../services/fogUserService';
-import AppUtils from '../../utils/appUtils';
-import ErrorUtils from './../../utils/errorUtils';
+const FogService = require('../../services/fogService');
+const FogAccessTokenService = require('../../services/fogAccessTokenService');
+const FogUserService = require('../../services/fogUserService');
+const AppUtils = require('../../utils/appUtils');
+const ErrorUtils = require('./../../utils/errorUtils');
 
 const get = (req, res, manager) => {
   const id = req.params.id;
@@ -111,7 +111,7 @@ const checkfogExistance = (req, res, next) => {
   })
 }
 
-export default {
+module.exports =  {
   get: get,
   checkUserExistance: checkUserExistance,
   checkfogExistance : checkfogExistance 

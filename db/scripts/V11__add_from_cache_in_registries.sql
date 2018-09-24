@@ -1,0 +1,1 @@
+INSERT INTO registry VALUES (2, 'from_cache', 1, 1, '', 0, '', '', '', NULL, NULL);

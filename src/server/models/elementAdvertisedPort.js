@@ -17,9 +17,9 @@
  * @description This file includes a element_advertised_port model used by sequalize for ORM;
  */
 
-import Sequelize from 'sequelize';
-import sequelize from './../utils/sequelize';
-import Element from './element';
+const Sequelize = require('sequelize');
+const sequelize = require('./../utils/sequelize');
+const Element = require('./element');
 
 const ElementAdvertisedPort = sequelize.define('element_advertised_port', {
   id: {
@@ -52,4 +52,4 @@ const ElementAdvertisedPort = sequelize.define('element_advertised_port', {
 
 ElementAdvertisedPort.belongsTo(Element);
 
-export default ElementAdvertisedPort;
+module.exports =  ElementAdvertisedPort;

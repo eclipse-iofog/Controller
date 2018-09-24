@@ -17,8 +17,8 @@
  * @description
  */
 
-import Sequelize from 'sequelize';
-import sequelize from './../utils/sequelize';
+const Sequelize = require('sequelize');
+const sequelize = require('./../utils/sequelize');
 
 const Satellite = sequelize.define('satellite', {
   id: {
@@ -57,4 +57,4 @@ const Satellite = sequelize.define('satellite', {
   underscored: true
 });
 
-export default Satellite;
+module.exports =  Satellite;

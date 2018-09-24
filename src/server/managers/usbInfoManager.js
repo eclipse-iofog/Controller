@@ -15,10 +15,10 @@
  * @author elukashick
  */
 
-import USBInfo from './../models/usbInfo';
-import BaseManager from './../managers/baseManager';
-import sequelize from './../utils/sequelize';
-import sequelizeUtils from "../utils/sequelizeUtils";
+const USBInfo = require('./../models/usbInfo');
+const BaseManager = require('./../managers/baseManager');
+const sequelize = require('./../utils/sequelize');
+const sequelizeUtils = require('../utils/sequelizeUtils');
 
 class USBInfoManager extends BaseManager {
     getEntity() {
@@ -87,4 +87,4 @@ class USBInfoManager extends BaseManager {
 }
 
 const instance = new USBInfoManager();
-export default instance;
+module.exports =  instance;

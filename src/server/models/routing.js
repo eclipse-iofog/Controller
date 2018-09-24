@@ -17,10 +17,10 @@
  * @description This file includes a routing model used by sequalize for ORM;
  */
 
-import Sequelize from 'sequelize';
-import sequelize from './../utils/sequelize';
-import Fog from './fog';
-import ElementInstance from './elementInstance';
+const Sequelize = require('sequelize');
+const sequelize = require('./../utils/sequelize');
+const Fog = require('./fog');
+const ElementInstance = require('./elementInstance');
 
 const Routing = sequelize.define('routing', {
   id: {
@@ -65,4 +65,4 @@ Routing.belongsTo(ElementInstance, {
   targetKey: 'uuid'
 });
 
-export default Routing;
+module.exports =  Routing;

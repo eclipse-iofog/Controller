@@ -12,14 +12,14 @@
  */
 
 const { Help } = require('./Help');
-import SatelliteManager from '../server/managers/satelliteManager';
+const SatelliteManager = require('../server/managers/satelliteManager');
 
 class Comsat {
   constructor(args) {
     this.args = args;
   }
 
-  run = () => {
+  run() {
     if (!this.args.length) {
       Help.displayComsatCommandHelp();
     } else {

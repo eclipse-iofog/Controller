@@ -13,9 +13,9 @@
 
 const nodemailer = require('nodemailer');
 let smtpTransport = require('nodemailer-smtp-transport');
-import UserManager from '../managers/userManager';
-import AppUtils from '../utils/appUtils';
-import ConfigUtil from '../utils/configUtil';
+const UserManager = require('../managers/userManager');
+const AppUtils = require('../utils/appUtils');
+const ConfigUtil = require('../utils/configUtil');
 
 const createUser = function(props, params, callback) {
   UserManager
@@ -149,7 +149,7 @@ const deleteByUserId = function(props, params, callback) {
     .then(AppUtils.onDelete.bind(null, params, 'Unable to delete User', callback));
 }
 
-export default {
+module.exports =  {
   createUser: createUser,
   getUser: getUser,
   updateUser: updateUser,

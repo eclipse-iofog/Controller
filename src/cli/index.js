@@ -17,14 +17,15 @@ const { Status } = require('./Status');
 const { Start } = require('./Start');
 const { User } = require('./User');
 const { Comsat } = require('./Comsat');
+const { Proxy } = require('./Proxy');
 const { Help } = require('./Help');
 
 class CLI {
-  constructor(args) {
+  constructor(args){
     this.args = args;
   }
 
-  run = (daemon) => {
+  run(daemon) {
     switch (this.args[0]) {
       case 'version':
         return Version.display(this.args);
@@ -43,6 +44,9 @@ class CLI {
       case 'comsat':
         let comsat = new Comsat(this.args.slice(1));
         return comsat.run();
+      case 'proxy':
+        let proxy = new Proxy(this.args.slice(1));
+        return proxy.run();
       case 'help':
       default:
         Help.displayGeneralHelp();

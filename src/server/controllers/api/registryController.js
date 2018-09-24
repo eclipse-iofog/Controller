@@ -15,15 +15,15 @@
  * @author elukashick
  */
 
-import async from 'async';
-import express from 'express';
+const async = require('async');
+const express = require('express');
 
 const router = express.Router();
 
-import AppUtils from '../../utils/appUtils';
-import logger from '../../utils/winstonLogs';
-import RegistryService from "../../services/registryService";
-import UserService from "../../services/userService";
+const AppUtils = require('../../utils/appUtils');
+const logger = require('../../utils/winstonLogs');
+const RegistryService = require('../../services/registryService');
+const UserService = require('../../services/userService');
 
 
 /********************************************* EndPoints ******************************************************/
@@ -109,7 +109,7 @@ const deleteRegistryEndPoint = function (req, res) {
 };
 
 
-export default {
+module.exports =  {
     listRegistryEndPoint: listRegistryEndPoint,
     addRegistryEndPoint: addRegistryEndPoint,
     deleteRegistryEndPoint: deleteRegistryEndPoint

@@ -11,8 +11,8 @@
  *
  */
 
-import StraceDiagnosticsManager from '../managers/straceDiagnosticsManager';
-import AppUtils from '../utils/appUtils'
+const StraceDiagnosticsManager = require('../managers/straceDiagnosticsManager');
+const AppUtils = require('../utils/appUtils');
 
 const switchStraceForElement = function (props, params, callback) {
     if (AppUtils.getProperty(params, props.fogId) == null) {
@@ -54,7 +54,7 @@ const getStraceValuesForFog = function (props, params, callback) {
         .then(AppUtils.onFindOptional.bind(null, params, props.setProperty, callback))
 };
 
-export default {
+module.exports =  {
     switchStraceForElement: switchStraceForElement,
     pushBufferForElements: pushBufferForElements,
     popBufferByElementId: popBufferByElementId,

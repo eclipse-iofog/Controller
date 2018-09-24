@@ -17,10 +17,10 @@
 * @description This file includes a iofog_users model used by sequalize for ORM;
 */
 
-import Sequelize from 'sequelize';
-import sequelize from './../utils/sequelize';
-import User from './user';
-import Fog from './fog';
+const Sequelize = require('sequelize');
+const sequelize = require('./../utils/sequelize');
+const User = require('./user');
+const Fog = require('./fog');
 
 const FogUser = sequelize.define('iofog_users', {
   id: {type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true, field: 'ID'}
@@ -37,5 +37,5 @@ const FogUser = sequelize.define('iofog_users', {
 User.belongsToMany(Fog, {through: FogUser, as: 'userId', foreignKey: 'user_id'});
 Fog.belongsToMany(User, {through: FogUser, as: 'fogId', foreignKey: 'fog_id' });
 
-export default FogUser;
+module.exports =  FogUser;
 

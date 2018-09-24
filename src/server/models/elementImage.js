@@ -17,10 +17,10 @@
  * @description This file includes a IOElementImage model used by sequalize for ORM;
  */
 
-import Sequelize from 'sequelize';
-import sequelize from './../utils/sequelize';
-import Element from './element';
-import FogType from './fogType';
+const Sequelize = require('sequelize');
+const sequelize = require('./../utils/sequelize');
+const Element = require('./element');
+const FogType = require('./fogType');
 
 const ElementImage = sequelize.define('element_images', {
   id: {
@@ -50,4 +50,4 @@ ElementImage.belongsTo(FogType, {
   foreignKey: 'iofog_type_id'
 });
 
-export default ElementImage;
+module.exports =  ElementImage;

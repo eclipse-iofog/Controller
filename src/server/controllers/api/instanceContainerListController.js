@@ -16,16 +16,16 @@
  * @author Zishan Iqbal
  * @description This file includes the implementation of the instance-containerList end-point
  */
-import async from 'async';
+const async = require('async');
 
-import BaseApiController from './baseApiController';
-import DataTracksService from '../../services/dataTracksService';
-import ElementService from '../../services/elementService';
-import ElementInstancePortService from '../../services/elementInstancePortService';
-import ElementInstanceService from '../../services/elementInstanceService';
-import AppUtils from '../../utils/appUtils';
-import logger from '../../utils/winstonLogs';
-import ElementInstanceToCleanUpService from "../../services/elementInstanceToCleanUpService";
+const BaseApiController = require('./baseApiController');
+const DataTracksService = require('../../services/dataTracksService');
+const ElementService = require('../../services/elementService');
+const ElementInstancePortService = require('../../services/elementInstancePortService');
+const ElementInstanceService = require('../../services/elementInstanceService');
+const AppUtils = require('../../utils/appUtils');
+const logger = require('../../utils/winstonLogs');
+const ElementInstanceToCleanUpService = require('../../services/elementInstanceToCleanUpService');
 
 
 /********************************************* EndPoints ******************************************************/
@@ -146,6 +146,6 @@ try{
   logger.error(e);
 }
 }
-export default {
+module.exports =  {
   containerListEndPoint: containerListEndPoint
 };

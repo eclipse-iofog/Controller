@@ -17,9 +17,9 @@
  * @description This file includes a proxy model used by sequalize for ORM;
  */
 
-import Sequelize from 'sequelize';
-import sequelize from './../utils/sequelize';
-import Fog from './fog';
+const Sequelize = require('sequelize');
+const sequelize = require('./../utils/sequelize');
+const Fog = require('./fog');
 
 const Proxy = sequelize.define('proxy', {
     id: {
@@ -72,4 +72,4 @@ Proxy.belongsTo(Fog, {
     foreignKey: 'iofog_uuid'
 });
 
-export default Proxy;
+module.exports =  Proxy;

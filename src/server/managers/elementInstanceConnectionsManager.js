@@ -11,8 +11,8 @@
  *
  */
 
-import BaseManager from './../managers/baseManager';
-import ElementInstanceConnections from './../models/elementInstanceConnections';
+const BaseManager = require('./../managers/baseManager');
+const ElementInstanceConnections = require('./../models/elementInstanceConnections');
 
 class ElementInstanceConnectionsManager extends BaseManager {
 
@@ -60,4 +60,4 @@ class ElementInstanceConnectionsManager extends BaseManager {
 }
 
 const instance = new ElementInstanceConnectionsManager();
-export default instance;
+module.exports =  instance;
