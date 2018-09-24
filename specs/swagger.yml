@@ -273,6 +273,9 @@ paths:
           description: change version command
           required: true
           type: string
+          enum:
+            - upgrade
+            - rollback
       responses:
         201:
           description: Success
