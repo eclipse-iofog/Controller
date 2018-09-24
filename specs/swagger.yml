@@ -18,6 +18,8 @@ paths:
           description: Service status
           schema:
             $ref: '#/definitions/ServiceStatusResponse'
+        '500':
+          description: Internal Server Error
   '/emailActivation':
     get:
       tags:
@@ -29,6 +31,8 @@ paths:
           description: Email activation status
           schema:
             $ref: '#/definitions/EmailActivationStatusResponse'
+        '500':
+            description: Internal Server Error
   '/fogTypes':
     get:
       tags:
@@ -52,6 +56,8 @@ paths:
               description: FogController server timestamp
         '401':
           description: Not Authorized
+        '500':
+          description: Internal Server Error
   '/iofog/list':
     post:
       tags:
@@ -82,6 +88,8 @@ paths:
           description: Bad Request
         '401':
           description: Not Authorized
+        '500':
+          description: Internal Server Error
   /iofog:
     post:
       tags:
@@ -112,6 +120,8 @@ paths:
           description: Bad Request
         '401':
           description: Not Authorized
+        '500':
+          description: Internal Server Error
   '/iofog/{id}':
     patch:
       tags:
@@ -147,6 +157,8 @@ paths:
           description: Not Authorized
         '404':
           description: Invalid Node Id
+        '500':
+          description: Internal Server Error
     delete:
       tags:
         - ioFog
@@ -174,6 +186,8 @@ paths:
           description: Not Authorized
         '404':
           description: Invalid Node Id
+        '500':
+          description: Internal Server Error
     get:
       tags:
         - ioFog
@@ -203,6 +217,8 @@ paths:
           description: Not Authorized
         '404':
           description: Invalid Node Id
+        '500':
+          description: Internal Server Error
   '/iofog/{id}/provisioning-key':
     get:
       tags:
@@ -233,6 +249,8 @@ paths:
           description: Not Authorized
         '404':
           description: Invalid Node Id
+        '500':
+          description: Internal Server Error
   /iofog/agent/provision:
     post:
       tags:
@@ -256,6 +274,8 @@ paths:
               description: FogController server timestamp
         '404':
           description: Invalid Provisioning Key
+        '500':
+          description: Internal Server Error
   '/iofog/{id}/agent/config':
     get:
       tags:
@@ -286,6 +306,8 @@ paths:
           description: Not Authorized
         '404':
           description: Invalid Node Id
+        '500':
+          description: Internal Server Error
     patch:
       tags:
         - Agent
@@ -320,6 +342,8 @@ paths:
           description: Not Authorized
         '404':
           description: Invalid Node Id
+        '500':
+          description: Internal Server Error
   '/iofog/{id}/agent/config/changes':
     get:
       tags:
@@ -357,6 +381,8 @@ paths:
           description: Not Authorized
         '404':
           description: Invalid Node Id
+        '500':
+          description: Internal Server Error
   '/iofog/{id}/agent/status':
     put:
       tags:
@@ -392,6 +418,8 @@ paths:
           description: Not Authorized
         '404':
           description: Invalid Node Id
+        '500':
+          description: Internal Server Error
   '/iofog/{id}/agent/microservices':
     get:
       tags:
@@ -422,6 +450,8 @@ paths:
           description: Not Authorized
         '404':
           description: Invalid Node Id
+        '500':
+          description: Internal Server Error
   '/iofog/{ioFogId}/agent/microservices/{microserviceId}':
     get:
       tags:
@@ -457,6 +487,8 @@ paths:
           description: Not Authorized
         '404':
           description: Invalid Node Id
+        '500':
+          description: Internal Server Error
   '/iofog/{id}/agent/registries':
     get:
       tags:
@@ -487,6 +519,8 @@ paths:
           description: Not Authorized
         '404':
           description: Invalid Node Id
+        '500':
+          description: Internal Server Error
   '/iofog/{id}/agent/proxy':
     get:
       tags:
@@ -517,6 +551,8 @@ paths:
           description: Not Authorized
         '404':
           description: Invalid Node Id
+        '500':
+          description: Internal Server Error
   '/iofog/{id}/agent/strace':
     get:
       tags:
@@ -547,6 +583,8 @@ paths:
           description: Not Authorized
         '404':
           description: Invalid Node Id
+        '500':
+          description: Internal Server Error
     put:
       tags:
         - Agent
@@ -563,11 +601,14 @@ paths:
           description: Agent Token
           required: true
           type: string
+        - in: body
+          name: AgentStraceBuffers
+          required: true
+          schema:
+            $ref: '#/definitions/IOFogNodeStraceBuffer'
       responses:
         '204':
           description: Success
-          schema:
-            $ref: '#/definitions/IOFogNodeStraceBufferResponse'
           headers:
             X-Timestamp:
               type: number
@@ -578,6 +619,8 @@ paths:
           description: Not Authorized
         '404':
           description: Invalid Node Id
+        '500':
+          description: Internal Server Error
   /catalog/microservices:
     get:
       tags:
@@ -601,6 +644,8 @@ paths:
               description: FogController server timestamp
         '401':
           description: Not Authorized
+        '500':
+          description: Internal Server Error
     post:
       tags:
         - Catalog
@@ -636,6 +681,8 @@ paths:
           description: Not Authorized
         '409':
           description: Duplicate Name
+        '500':
+          description: Internal Server Error
   '/catalog/microservices/{id}':
     get:
       tags:
@@ -666,6 +713,8 @@ paths:
           description: Not Authorized
         '404':
           description: Invalid Catalog Item Id
+        '500':
+          description: Internal Server Error
     patch:
       tags:
         - Catalog
@@ -703,6 +752,8 @@ paths:
           description: Invalid Catalog Item Id
         '409':
           description: Duplicate Name
+        '500':
+          description: Internal Server Error
     delete:
       tags:
         - Catalog
@@ -730,6 +781,8 @@ paths:
           description: Not Authorized
         '404':
           description: Invalid Catalog Item Id
+        '500':
+          description: Internal Server Error
   /flow:
     get:
       tags:
@@ -753,6 +806,8 @@ paths:
               description: FogController server timestamp
         '401':
           description: Not Authorized
+        '500':
+          description: Internal Server Error
     post:
       tags:
         - Flow
@@ -786,6 +841,8 @@ paths:
           description: Bad Request
         '401':
           description: Not Authorized
+        '500':
+          description: Internal Server Error
   '/flow/{id}':
     get:
       tags:
@@ -816,6 +873,8 @@ paths:
           description: Not Authorized
         '404':
           description: Invalid Flow Id
+        '500':
+          description: Internal Server Error
     patch:
       tags:
         - Flow
@@ -851,6 +910,8 @@ paths:
           description: Not Authorized
         '404':
           description: Invalid Flow Id
+        '500':
+          description: Internal Server Error
     delete:
       tags:
         - Flow
@@ -878,6 +939,8 @@ paths:
           description: Not Authorized
         '404':
           description: Invalid Flow Id
+        '500':
+          description: Internal Server Error
   /iofog/microservices:
     get:
       tags:
@@ -911,6 +974,8 @@ paths:
               description: FogController server timestamp
         '401':
           description: Not Authorized
+        '500':
+          description: Internal Server Error
     post:
       tags:
         - Microservices
@@ -944,6 +1009,8 @@ paths:
           description: Bad Request
         '401':
           description: Not Authorized
+        '500':
+          description: Internal Server Error
   '/iofog/microservices/{id}':
     get:
       tags:
@@ -974,6 +1041,8 @@ paths:
           description: Not Authorized
         '404':
           description: Not Found
+        '500':
+          description: Internal Server Error
     patch:
       tags:
         - Microservices
@@ -1009,6 +1078,8 @@ paths:
           description: Not Authorized
         '404':
           description: Not Found
+        '500':
+          description: Internal Server Error
     delete:
       tags:
         - Microservices
@@ -1036,6 +1107,8 @@ paths:
           description: Not Authorized
         '404':
           description: Not Found
+        '500':
+          description: Internal Server Error
   '/iofog/microservices/{id}/routes/{recieverId}':
     post:
       tags:
@@ -1071,6 +1144,8 @@ paths:
           description: Not Authorized
         '404':
           description: Not Found
+        '500':
+          description: Internal Server Error
     delete:
       tags:
         - Microservices
@@ -1105,6 +1180,8 @@ paths:
           description: Not Authorized
         '404':
           description: Not Found
+        '500':
+          description: Internal Server Error
   '/iofog/microservices/{id}/strace':
     post:
       tags:
@@ -1138,6 +1215,8 @@ paths:
           description: Not Authorized
         '404':
           description: Invalid Microservice Id
+        '500':
+          description: Internal Server Error
     delete:
       tags:
         - Diagnostics
@@ -1165,6 +1244,8 @@ paths:
           description: Not Authorized
         '404':
           description: Invalid Microservice Id
+        '500':
+          description: Internal Server Error
     get:
       tags:
         - Diagnostics
@@ -1204,6 +1285,8 @@ paths:
           description: Not Authorized
         '404':
           description: Invalid Microservice Id
+        '500':
+          description: Internal Server Error
     put:
       tags:
         - Diagnostics
@@ -1238,6 +1321,8 @@ paths:
           description: Not Authorized
         '404':
           description: Invalid Microservice Id
+        '500':
+          description: Internal Server Error
   '/iofog/{id}/tunnel':
     post:
       tags:
@@ -1268,6 +1353,8 @@ paths:
           description: Not Authorized
         '404':
           description: Invalid Node Id
+        '500':
+          description: Internal Server Error
     get:
       tags:
         - Tunnel
@@ -1297,6 +1384,8 @@ paths:
           description: Not Authorized
         '404':
           description: Invalid Node Id
+        '500':
+          description: Internal Server Error
     delete:
       tags:
         - Tunnel
@@ -1315,7 +1404,7 @@ paths:
           type: string
       responses:
         '204':
-          description: Deleted
+          description: Success
           headers:
             X-Timestamp:
               type: number
@@ -1324,6 +1413,8 @@ paths:
           description: Not Authorized
         '404':
           description: Invalid Node Id
+        '500':
+          description: Internal Server Error
   '/registries':
     post:
       tags:
@@ -1352,6 +1443,8 @@ paths:
           description: Bad Request
         '401':
           description: Not Authorized
+        '500':
+          description: Internal Server Error
     get:
       tags:
         - Registries
@@ -1374,6 +1467,8 @@ paths:
               description: FogController server timestamp
         '401':
           description: Not Authorized
+        '500':
+          description: Internal Server Error
   '/registries/{id}':
     delete:
       tags:
@@ -1402,6 +1497,8 @@ paths:
           description: Not Authorized
         '404':
           description: Invalid Node Id
+        '500':
+          description: Internal Server Error
 definitions:
   ServiceStatusResponse:
     type: object
@@ -1771,7 +1868,7 @@ definitions:
         type: string
       straceRun:
         type: boolean
-  IOFogNodeStraceBufferResponse:
+  IOFogNodeStraceBuffer:
     type: object
     properties:
       straceData:
