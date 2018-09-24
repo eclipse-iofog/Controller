@@ -20,7 +20,7 @@ jobs:
     before_install:
     - sudo apt-get install sshpass
     script: 
-    - sshpass -p $DEV_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $DEV_MACHINE_USERNAME@$DEV_MACHINE_IP "cd /iotracks/FogController; ./fog-controller stop; git pull; npm i; npm run build-dev; ./fog-controller start"
+    - sshpass -p $DEV_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $DEV_MACHINE_USERNAME@$DEV_MACHINE_IP "cd /iotracks/FogController; ./fog-controller stop; git pull origin develop; npm i; npm run build-dev; ./fog-controller start"
   - stage: package_build
     before_install:
     - sudo apt-get install sshpass
