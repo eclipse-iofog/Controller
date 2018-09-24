@@ -1114,6 +1114,10 @@ paths:
           description: Success
           schema:
             $ref: '#/definitions/UserProfileDetailsResponse'
+          headers:
+            X-Timestamp:
+              type: number
+              description: FogController server timestamp
         401:
           description: Not Authorized
         500:
