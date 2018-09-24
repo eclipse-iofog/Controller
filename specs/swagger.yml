@@ -1003,11 +1003,9 @@ paths:
               type: number
               description: FogController server timestamp
         400:
+          description: bad request
+        401:
           description: incorrect credentials
-        404:
-          description: Not Found
-        500:
-          description: Internal Server Error
   '/user/logout':
     post:
       tags:
@@ -1025,8 +1023,6 @@ paths:
           description: Success
         401:
           description: Not Authorized
-        404:
-          description: Not Found
         500:
           description: Internal Server Error
   '/user/signup':
@@ -1043,16 +1039,14 @@ paths:
           schema:
             $ref: '#/definitions/SignupRequest'
       responses:
-        204:
+        201:
           description: Success
           headers:
             X-Timestamp:
               type: number
               description: FogController server timestamp
-        401:
-          description: Not Authorized
-        404:
-          description: Not Found
+        400:
+          description: Bad Request
         500:
           description: Internal Server Error
   '/user/signup/resendActivation':
@@ -1060,7 +1054,12 @@ paths:
       tags:
         - User
       description: Resend activation email
-      operationId: resentActivationEmail
+      operationId: resendActivationEmail
+      parameters:
+        - in: query
+        name: email
+        required: true
+        type: string
       responses:
         204:
           description: Success
@@ -1068,10 +1067,8 @@ paths:
             X-Timestamp:
               type: number
               description: FogController server timestamp
-        401:
-          description: Not Authorized
-        404:
-          description: Not Found
+        400:
+          description: Bad Request
         500:
           description: Internal Server Error
   '/user/activate':
@@ -1096,8 +1093,6 @@ paths:
             Location:
               description: Login page url
               type: string
-        401:
-          description: Not Authorized
         404:
           description: Not Found
         500:
@@ -1121,8 +1116,6 @@ paths:
             $ref: '#/definitions/UserProfileDetailsResponse'
         401:
           description: Not Authorized
-        404:
-          description: Not Found
         500:
           description: Internal Server Error
     patch:
@@ -1151,10 +1144,10 @@ paths:
             X-Timestamp:
               type: number
               description: FogController server timestamp
+        400:
+          description: Bad Request
         401:
           description: Not Authorized
-        404:
-          description: Not Found
         500:
           description: Internal Server Error
     delete:
@@ -1177,8 +1170,6 @@ paths:
               description: FogController server timestamp
         401:
           description: Not Authorized
-        404:
-          description: Not Found
         500:
           description: Internal Server Error
   '/user/password':
@@ -1208,8 +1199,6 @@ paths:
               description: FogController server timestamp
         401:
           description: Not Authorized
-        404:
-          description: Not Found
         500:
           description: Internal Server Error
     delete:
@@ -1217,12 +1206,6 @@ paths:
         - User
       description: Reset password
       operationId: resetPassword
-      parameters:
-        - in: header
-          name: Authorization
-          description: User Token
-          required: true
-          type: string
       responses:
         204:
           description: Success
@@ -1230,10 +1213,6 @@ paths:
             X-Timestamp:
               type: number
               description: FogController server timestamp
-        401:
-          description: Not Authorized
-        404:
-          description: Not Found
         500:
           description: Internal Server Error
 
@@ -1863,9 +1842,9 @@ definitions:
   LoginSuccessResponse:
     type: object
     required:
-      - accesToken
+      - accessToken
     properties:
-      accesToken:
+      accessToken:
         type: string
   UserProfileDetailsResponse:
     type: object
