@@ -251,6 +251,39 @@ paths:
           description: Invalid Node Id
         '500':
           description: Internal Server Error
+  '/iofog/{id}/version/{versionCommand}':
+    post:
+      tags:
+        - ioFog
+      description: Set change version command
+      operationId: setVersionCommand
+      parameters:
+        - in: header
+          name: Authorization
+          description: User Token
+          required: true
+          type: string
+        - in: path
+          name: id
+          description: ioFog node id
+          required: true
+          type: string
+        - in: path
+          name: versionCommand
+          description: change version command
+          required: true
+          type: string
+      responses:
+        201:
+          description: Success
+          headers:
+            X-Timestamp:
+              type: number
+              description: FogController server timestamp
+        401:
+          description: Not Authorized
+        500:
+          description: Internal Server Error
   /iofog/agent/provision:
     post:
       tags:
@@ -620,6 +653,33 @@ paths:
         '404':
           description: Invalid Node Id
         '500':
+          description: Internal Server Error
+  '/iofog/agent/version':
+    get:
+      tags:
+        - Agent
+      description: Get change version command
+      operationId: getChangeVersion
+      parameters:
+        - in: header
+          name: Authorization
+          description: User Token
+          required: true
+          type: string
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/VersionCommandResponse'
+          headers:
+            X-Timestamp:
+              type: number
+              description: FogController server timestamp
+        401:
+          description: Not Authorized
+        404:
+          description: Not Found
+        500:
           description: Internal Server Error
   /catalog/microservices:
     get:
@@ -2229,6 +2289,20 @@ definitions:
         type: number
       status:
         type: string
+  VersionCommandResponse:
+    type: object
+    required:
+      - versionCommand
+      - provisionKey
+      - expirationTime
+    properties:
+      versionCommand:
+        type: string
+      provisionKey:
+        type: string
+      expirationTime:
+        type: string
+
 schemes:
   - http
   - https
