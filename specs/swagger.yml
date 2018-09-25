@@ -1573,9 +1573,9 @@ paths:
       operationId: resendActivationEmail
       parameters:
         - in: query
-        name: email
-        required: true
-        type: string
+          name: email
+          required: true
+          type: string
       responses:
         204:
           description: Success
