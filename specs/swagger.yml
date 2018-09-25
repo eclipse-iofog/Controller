@@ -2220,7 +2220,7 @@ definitions:
       updatedAt:
         type: number
       userId:
-        type: string
+        type: number
   NewFlowRequest:
     type: object
     properties:
