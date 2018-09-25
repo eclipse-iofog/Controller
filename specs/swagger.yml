@@ -952,11 +952,6 @@ paths:
           required: true
           type: string
         - in: query
-          name: fogId
-          description: ioFog Node Id
-          required: false
-          type: string
-        - in: query
           name: flowId
           description: Flow Id
           required: false
@@ -1107,7 +1102,7 @@ paths:
           description: Not Found
         '500':
           description: Internal Server Error
-  '/iofog/microservices/{id}/routes/{recieverId}':
+  '/iofog/microservices/{id}/routes/{receiverId}':
     post:
       tags:
         - Microservices
@@ -1125,7 +1120,7 @@ paths:
           required: true
           type: string
         - in: path
-          name: recieverId
+          name: receiverId
           description: Receiver Microservice Id
           required: true
           type: string
@@ -1137,7 +1132,7 @@ paths:
               type: number
               description: FogController server timestamp
         '400':
-          description: recieverId Is Not Valid
+          description: receiverId Is Not Valid
         '401':
           description: Not Authorized
         '404':
@@ -1148,7 +1143,7 @@ paths:
       tags:
         - Microservices
       description: Deletes a route microservice
-      operationId: deleteMicroserviceRoue
+      operationId: deleteMicroserviceRoute
       parameters:
         - in: header
           name: Authorization
@@ -1161,7 +1156,7 @@ paths:
           required: true
           type: string
         - in: path
-          name: recieverId
+          name: receiverId
           description: Receiver Microservice Id
           required: true
           type: string
@@ -1173,7 +1168,7 @@ paths:
               type: number
               description: FogController server timestamp
         '400':
-          description: recieverId Is Not Valid
+          description: receiverId Is Not Valid
         '401':
           description: Not Authorized
         '404':
@@ -2356,19 +2351,23 @@ definitions:
     properties:
       id:
         type: string
-      catalogItem:
-        $ref: '#/definitions/CatalogItemInfoResponse'
+      name:
+        type: string
       config:
         type: string
-      name:
+      images:
+        $ref: '#/definitions/ElementContainerImages'
+      picture:
+        type: string
+      status:
         type: string
       ioFogNodeId:
         type: string
-      rebuild:
-        type: boolean
       rootHostAccess:
         type: boolean
-      logSize:
+      strace:
+        type: boolean
+      logLimit:
         type: number
       ports:
         $ref: '#/definitions/PortMappingsResponse'
@@ -2379,20 +2378,22 @@ definitions:
     properties:
       name:
         type: string
+      config:
+        type: string
       catalogItemId:
         type: string
       flowId:
         type: string
       ioFogNodeId:
         type: string
-      config:
-        type: string
       volumeMappings:
         type: string
-      logLimit:
-        type: number
       rootHostAccess:
         type: boolean
+      strace:
+        type: boolean
+      logLimit:
+        type: number
       ports:
         $ref: '#/definitions/PortMappingsRequest'
       routes:
@@ -2404,18 +2405,18 @@ definitions:
     properties:
       name:
         type: string
-      ioFogNodeId:
-        type: string
       config:
+        type: string
+      ioFogNodeId:
         type: string
       volumeMappings:
         type: string
-      logLimit:
-        type: number
       rootHostAccess:
         type: boolean
-      rebuild:
+      strace:
         type: boolean
+      logLimit:
+        type: number
       ports:
         $ref: '#/definitions/PortMappingsRequest'
       routes:
