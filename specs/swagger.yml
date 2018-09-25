@@ -441,7 +441,7 @@ paths:
         '200':
           description: Success
           schema:
-            $ref: '#/definitions/AgentMicroservicesListsResponse'
+            $ref: '#/definitions/AgentMicroservicesListResponse'
           headers:
             X-Timestamp:
               type: number
@@ -1958,11 +1958,6 @@ definitions:
         type: string
       ftpDestDir:
         type: string
-  AgentMicroservicesListsResponse:
-    type: object
-    properties:
-      containerList:
-        $ref: '#/definitions/AgentMicroservicesListResponse'
   AgentMicroservicesListResponse:
     type: array
     items:
@@ -1998,6 +1993,12 @@ definitions:
         type: string
       removeWithCleanUp:
         type: boolean
+      routes:
+        $ref: '#/definitions/ReceiverMicroservices'
+  ReceiverMicroservices:
+      type: array
+      items:
+        type: string
   VolumeMappingAgentRequest:
     type: object
     properties:
@@ -2010,10 +2011,6 @@ definitions:
       accessMode:
         type: string
         example: rw
-  ReceiverMicroservices:
-    type: array
-    items:
-      type: string
   PortMappingsResponse:
     type: object
     properties:
