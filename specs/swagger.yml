@@ -1870,8 +1870,6 @@ definitions:
         type: string
       lastName:
         type: string
-      email:
-        type: string
   PasswordChangeRequest:
     type: object
     required:
