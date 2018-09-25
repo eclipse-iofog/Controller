@@ -662,7 +662,7 @@ paths:
           description: Microservice Catalog Item Info
           required: true
           schema:
-            $ref: '#/definitions/CreateCatalogItemRequestBody'
+            $ref: '#/definitions/CreateUpdateCatalogItemRequestBody'
       responses:
         '201':
           description: Created
@@ -736,7 +736,7 @@ paths:
           description: Microservice Catalog Item Info
           required: true
           schema:
-            $ref: '#/definitions/UpdateCatalogItemRequestBody'
+            $ref: '#/definitions/CreateUpdateCatalogItemRequestBody'
       responses:
         '204':
           description: Success
@@ -744,8 +744,6 @@ paths:
             X-Timestamp:
               type: number
               description: FogController server timestamp
-        '400':
-          description: Bad Request
         '401':
           description: Not Authorized
         '404':
@@ -2007,49 +2005,6 @@ definitions:
         type: string
       category:
         type: string
-      containerImage:
-        type: string
-      publisher:
-        type: string
-      diskRequired:
-        type: number
-      ramRequired:
-        type: number
-      picture:
-        type: string
-      isPublic:
-        type: boolean
-      orgId:
-        type: string
-      registryId:
-        type: number
-      fogTypeName:
-        type: string
-      fogTypeImage:
-        type: string
-      fogTypeDescription:
-        type: string
-      inputType:
-        type: string
-      inputFormat:
-        type: string
-      outputType:
-        type: string
-      outputFormat:
-        type: string
-      configExample:
-        type: string
-  CreateCatalogItemRequestBody:
-    type: object
-    properties:
-      name:
-        type: string
-      description:
-        type: string
-      category:
-        type: string
-      containerImage:
-        type: string
       publisher:
         type: string
       diskRequired:
@@ -2062,8 +2017,6 @@ definitions:
         type: boolean
       registryId:
         type: number
-      fogType:
-        type: number
       inputType:
         type: string
       inputFormat:
@@ -2074,7 +2027,17 @@ definitions:
         type: string
       configExample:
         type: string
-  UpdateCatalogItemRequestBody:
+      containersImages:
+        type: object
+        $ref: '#/definitions/ElementContainerImages'
+  ElementContainerImages:
+    type: object
+    properties:
+      x86ContainerImage:
+        type: string
+      armContainerImage:
+        type: string
+  CreateUpdateCatalogItemRequestBody:
     type: object
     properties:
       name:
@@ -2083,8 +2046,9 @@ definitions:
         type: string
       category:
         type: string
-      containerImage:
-        type: string
+      containersImages:
+        type: object
+        $ref: '#/definitions/ElementContainerImages'
       publisher:
         type: string
       diskRequired:
