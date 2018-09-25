@@ -723,7 +723,7 @@ paths:
           description: Microservice Catalog Item Info
           required: true
           schema:
-            $ref: '#/definitions/CreateCatalogItemRequestBody'
+            $ref: '#/definitions/CreateUpdateCatalogItemRequestBody'
       responses:
         '201':
           description: Created
@@ -797,7 +797,7 @@ paths:
           description: Microservice Catalog Item Info
           required: true
           schema:
-            $ref: '#/definitions/UpdateCatalogItemRequestBody'
+            $ref: '#/definitions/CreateUpdateCatalogItemRequestBody'
       responses:
         '204':
           description: Success
@@ -805,8 +805,6 @@ paths:
             X-Timestamp:
               type: number
               description: FogController server timestamp
-        '400':
-          description: Bad Request
         '401':
           description: Not Authorized
         '404':
@@ -1560,6 +1558,246 @@ paths:
           description: Invalid Node Id
         '500':
           description: Internal Server Error
+  '/user/login':
+    post:
+      tags:
+      - User
+      description: Login
+      operationId: login
+      parameters:
+      - in: body
+        name: credentials
+        required: true
+        schema:
+          $ref: '#/definitions/LoginRequest'
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/LoginSuccessResponse'
+          headers:
+            X-Timestamp:
+              type: number
+              description: FogController server timestamp
+        400:
+          description: bad request
+        401:
+          description: incorrect credentials
+  '/user/logout':
+    post:
+      tags:
+      - User
+      description: Logout
+      operationId: logout
+      parameters:
+        - in: header
+          name: Authorization
+          description: User token
+          required: true
+          type: string
+      responses:
+        204:
+          description: Success
+        401:
+          description: Not Authorized
+        500:
+          description: Internal Server Error
+  '/user/signup':
+    post:
+      tags:
+        - User
+      description: Signup
+      operationId: signup
+      parameters:
+        - in: body
+          name: user
+          description: new user data
+          required: true
+          schema:
+            $ref: '#/definitions/SignupRequest'
+      responses:
+        201:
+          description: Success
+          headers:
+            X-Timestamp:
+              type: number
+              description: FogController server timestamp
+        400:
+          description: Bad Request
+        500:
+          description: Internal Server Error
+  '/user/signup/resendActivation':
+    get:
+      tags:
+        - User
+      description: Resend activation email
+      operationId: resendActivationEmail
+      parameters:
+        - in: query
+          name: email
+          required: true
+          type: string
+      responses:
+        204:
+          description: Success
+          headers:
+            X-Timestamp:
+              type: number
+              description: FogController server timestamp
+        400:
+          description: Bad Request
+        500:
+          description: Internal Server Error
+  '/user/activate':
+    post:
+      tags:
+        - User
+      description: Activate account
+      operationId: activateAccount
+      parameters:
+        - in: query
+          name: activationCode
+          description: activation code
+          required: true
+          type: string
+      responses:
+        303:
+          description: Redirect to login page
+          headers:
+            X-Timestamp:
+              type: number
+              description: FogController server timestamp
+            Location:
+              description: Login page url
+              type: string
+        404:
+          description: Not Found
+        500:
+          description: Internal Server Error
+  '/user/profile':
+    get:
+      tags:
+        - User
+      description: Get current user profile data
+      operationId: getUserProfile
+      parameters:
+        - in: header
+          name: Authorization
+          description: User token
+          required: true
+          type: string
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/UserProfileDetailsResponse'
+          headers:
+            X-Timestamp:
+              type: number
+              description: FogController server timestamp
+        401:
+          description: Not Authorized
+        500:
+          description: Internal Server Error
+    patch:
+      tags:
+        - User
+      description: Update user profile
+      operationId: updateUserProfile
+      parameters:
+        - in: header
+          name: Authorization
+          description: User Token
+          required: true
+          type: string
+        - in: body
+          name: profileData
+          description: Updated profile data
+          required: true
+          schema:
+            $ref: '#/definitions/UserProfileUpdatesRequest'
+      responses:
+        200:
+          description: Updated user profile
+          schema:
+            $ref: '#/definitions/UserProfileDetailsResponse'
+          headers:
+            X-Timestamp:
+              type: number
+              description: FogController server timestamp
+        400:
+          description: Bad Request
+        401:
+          description: Not Authorized
+        500:
+          description: Internal Server Error
+    delete:
+      tags:
+        - User
+      description: Delete account
+      operationId: deleteAccount
+      parameters:
+        - in: header
+          name: Authorization
+          description: User Token
+          required: true
+          type: string
+      responses:
+        204:
+          description: Success
+          headers:
+            X-Timestamp:
+              type: number
+              description: FogController server timestamp
+        401:
+          description: Not Authorized
+        500:
+          description: Internal Server Error
+  '/user/password':
+    patch:
+      tags:
+        - User
+      description: change password
+      operationId: changePassword
+      parameters:
+        - in: header
+          name: Authorization
+          description: User Token
+          required: true
+          type: string
+        - in: body
+          name: passwordUpdates
+          description: current and new password
+          required: true
+          schema:
+            $ref: '#/definitions/PasswordChangeRequest'
+      responses:
+        204:
+          description: Success
+          headers:
+            X-Timestamp:
+              type: number
+              description: FogController server timestamp
+        401:
+          description: Not Authorized
+        500:
+          description: Internal Server Error
+    delete:
+      tags:
+        - User
+      description: Reset password
+      operationId: resetPassword
+      responses:
+        204:
+          description: Success
+          headers:
+            X-Timestamp:
+              type: number
+              description: FogController server timestamp
+        500:
+          description: Internal Server Error
+
+
 definitions:
   ServiceStatusResponse:
     type: object
@@ -2068,49 +2306,6 @@ definitions:
         type: string
       category:
         type: string
-      containerImage:
-        type: string
-      publisher:
-        type: string
-      diskRequired:
-        type: number
-      ramRequired:
-        type: number
-      picture:
-        type: string
-      isPublic:
-        type: boolean
-      orgId:
-        type: string
-      registryId:
-        type: number
-      fogTypeName:
-        type: string
-      fogTypeImage:
-        type: string
-      fogTypeDescription:
-        type: string
-      inputType:
-        type: string
-      inputFormat:
-        type: string
-      outputType:
-        type: string
-      outputFormat:
-        type: string
-      configExample:
-        type: string
-  CreateCatalogItemRequestBody:
-    type: object
-    properties:
-      name:
-        type: string
-      description:
-        type: string
-      category:
-        type: string
-      containerImage:
-        type: string
       publisher:
         type: string
       diskRequired:
@@ -2123,8 +2318,6 @@ definitions:
         type: boolean
       registryId:
         type: number
-      fogType:
-        type: number
       inputType:
         type: string
       inputFormat:
@@ -2135,7 +2328,17 @@ definitions:
         type: string
       configExample:
         type: string
-  UpdateCatalogItemRequestBody:
+      containersImages:
+        type: object
+        $ref: '#/definitions/ElementContainerImages'
+  ElementContainerImages:
+    type: object
+    properties:
+      x86ContainerImage:
+        type: string
+      armContainerImage:
+        type: string
+  CreateUpdateCatalogItemRequestBody:
     type: object
     properties:
       name:
@@ -2144,8 +2347,9 @@ definitions:
         type: string
       category:
         type: string
-      containerImage:
-        type: string
+      containersImages:
+        type: object
+        $ref: '#/definitions/ElementContainerImages'
       publisher:
         type: string
       diskRequired:
@@ -2290,6 +2494,70 @@ definitions:
         type: number
       status:
         type: string
+  LoginRequest:
+    type: object
+    required:
+      - email
+      - password
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+  LoginSuccessResponse:
+    type: object
+    required:
+      - accessToken
+    properties:
+      accessToken:
+        type: string
+  UserProfileDetailsResponse:
+    type: object
+    required:
+      - firstName
+      - lastName
+      - email
+    properties:
+      firstName:
+        type: string
+      lastName:
+        type: string
+      email:
+        type: string
+  UserProfileUpdatesRequest:
+    type: object
+    properties:
+      firstName:
+        type: string
+      lastName:
+        type: string
+  PasswordChangeRequest:
+    type: object
+    required:
+      - oldPassword
+      - newPassword
+    properties:
+      oldPassword:
+        type: string
+      newPassword:
+        type: string
+  SignupRequest:
+    type: object
+    required:
+      - firstName
+      - lastName
+      - email
+      - password
+    properties:
+      firstName:
+        type: string
+      lastName:
+        type: string
+      email:
+        type: string
+      password:
+        type: string
+
   VersionCommandResponse:
     type: object
     required:
