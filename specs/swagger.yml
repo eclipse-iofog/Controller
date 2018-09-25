@@ -260,7 +260,7 @@ paths:
       parameters:
         - in: header
           name: Authorization
-          description: User Token
+          description: User token
           required: true
           type: string
         - in: path
@@ -666,7 +666,7 @@ paths:
       parameters:
         - in: header
           name: Authorization
-          description: User Token
+          description: Agent Token
           required: true
           type: string
       responses:
@@ -680,8 +680,6 @@ paths:
               description: FogController server timestamp
         401:
           description: Not Authorized
-        404:
-          description: Not Found
         500:
           description: Internal Server Error
   /catalog/microservices:
