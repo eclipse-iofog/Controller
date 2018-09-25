@@ -521,38 +521,6 @@ paths:
           description: Invalid Node Id
         '500':
           description: Internal Server Error
-  '/iofog/{id}/agent/routing':
-    get:
-      tags:
-        - Agent
-      description: Gets microservice routing
-      operationId: getRoutingList
-      parameters:
-        - in: path
-          required: true
-          name: id
-          description: ioFog node id
-          type: string
-        - in: header
-          name: Authorization
-          description: Agent Token
-          required: true
-          type: string
-      responses:
-        '200':
-          description: Success
-          schema:
-            $ref: '#/definitions/AgentRoutingListResponse'
-          headers:
-            X-Timestamp:
-              type: number
-              description: FogController server timestamp
-        '401':
-          description: Not Authorized
-        '404':
-          description: Invalid Node Id
-        '500':
-          description: Internal Server Error
   '/iofog/{id}/agent/proxy':
     get:
       tags:
@@ -1630,8 +1598,6 @@ definitions:
         type: number
       repositoryStatus:
         type: string
-      systemTime:
-        type: number
       lastStatusTime:
         type: number
       ipAddress:
@@ -1743,9 +1709,6 @@ definitions:
         type: boolean
         default: true
       abstractedHardwareEnabled:
-        type: boolean
-        default: false
-      autoGPSEnabled:
         type: boolean
         default: false
       reboot:
@@ -2000,10 +1963,6 @@ definitions:
     properties:
       containerList:
         $ref: '#/definitions/AgentMicroservicesListResponse'
-      cleanUpListIds:
-        type: array
-        items:
-          type: number
   AgentMicroservicesListResponse:
     type: array
     items:
@@ -2037,6 +1996,8 @@ definitions:
           $ref: '#/definitions/VolumeMappingAgentRequest'
       imageSnapshot:
         type: string
+      removeWithCleanUp:
+        type: boolean
   VolumeMappingAgentRequest:
     type: object
     properties:
@@ -2120,21 +2081,6 @@ definitions:
         type: string
       email:
         type: string
-  AgentRoutingListResponse:
-    type: array
-    items:
-      $ref: '#/definitions/AgentRouting'
-  AgentRouting:
-    type: object
-    properties:
-      container:
-        type: string
-        example: BNMpbhcKKcdkwvhxtXtyt9Gft4t3Zmyj
-      receivers:
-        type: array
-        items:
-          type: string
-          example: YXD2YtCnK3GWKBrgWN9qPHfdpwVn9bcc
   MicroservicesCatalogResponse:
     type: array
     items:
