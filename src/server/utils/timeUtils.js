@@ -11,7 +11,7 @@
  *
  */
 
-import moment from 'moment';
+const moment = require('moment');
 
 //By default, moment parses and displays in local time.
 //If you want to parse or display a moment in UTC, you can use moment.utc() instead of moment().
@@ -33,7 +33,7 @@ const getEventEndTime = (event, timezone) => {
   return null == endMillis ? null : moment.tz(endMillis, timezone).format('h:mm a');      
 }
 
-export default{
+module.exports = {
   getUTCMillisFromDate: getUTCMillisFromDate,
   getEventEndTime: getEventEndTime,
   getEventStartTime: getEventStartTime,

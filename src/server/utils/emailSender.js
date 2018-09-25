@@ -12,7 +12,7 @@
  */
 
 'use strict';
-import appConfig from './../../config.json';
+const appConfig = require('./../../config.json');
 require('dotenv').config();
 const nodemailer = require('nodemailer');
 let smtpTransport = require('nodemailer-smtp-transport');

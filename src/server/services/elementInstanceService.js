@@ -11,11 +11,11 @@
  *
  */
 
-import ElementInstanceManager from '../managers/elementInstanceManager';
-import ElementInstanceToCleanUpManager from '../managers/elementInstanceToCleanUpManager';
-import AppUtils from '../utils/appUtils';
-import _ from 'underscore';
-import ElementImageService from "./elementImageService";
+const ElementInstanceManager = require('../managers/elementInstanceManager');
+const ElementInstanceToCleanUpManager = require('../managers/elementInstanceToCleanUpManager');
+const AppUtils = require('../utils/appUtils');
+const _ = require('underscore');
+const ElementImageService = require('./elementImageService');
 
 const getDataTrackDetails = function(props, params, callback) {
   let elementInstanceData = AppUtils.getProperty(params, props.elementInstanceData);
@@ -418,7 +418,7 @@ const getElementInstanceByNameOnTrackForUser = function (props, params, callback
     .then(AppUtils.onFind.bind(null, params, props.setProperty, errMsg, callback))
 };
 
-export default {
+module.exports =  {
   createDebugConsole: createDebugConsole,
   createElementInstance: createElementInstance,
   createElementInstanceObj: createElementInstanceObj,

@@ -17,8 +17,8 @@
  * @description This file includes the CURD operations for the changeTracking Model.
  */
 
-import ChangeTracking from './../models/changeTracking';
-import BaseManager from './../managers/baseManager';
+const ChangeTracking = require('./../models/changeTracking');
+const BaseManager = require('./../managers/baseManager');
 
 class ChangeTrackingManager extends BaseManager {
 
@@ -82,4 +82,4 @@ class ChangeTrackingManager extends BaseManager {
 }
 
 const instance = new ChangeTrackingManager();
-export default instance;
+module.exports =  instance;

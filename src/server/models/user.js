@@ -17,8 +17,8 @@
 * @description This file includes a users model used by sequalize for ORM;
 */
 
-import Sequelize from 'sequelize';
-import sequelize from './../utils/sequelize';
+const Sequelize = require('sequelize');
+const sequelize = require('./../utils/sequelize');
 
 const User = sequelize.define('users', {
   id: {type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true, field: 'ID'},
@@ -40,4 +40,4 @@ const User = sequelize.define('users', {
 });
 
 
-export default User;
+module.exports =  User;

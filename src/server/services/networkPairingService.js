@@ -11,9 +11,9 @@
  *
  */
 
-import NetworkPairingManager from '../managers/networkPairingManager';
-import AppUtils from '../utils/appUtils';
-import _ from 'underscore';
+const NetworkPairingManager = require('../managers/networkPairingManager');
+const AppUtils = require('../utils/appUtils');
+const _ = require('underscore');
 
 const concatNetwotkElementAndNormalElement = function(params, callback) {
   params.otherTrackElementIds = params.networkElementId.concat(_.uniq(_.pluck(_.filter(params.otherRoutingList,
@@ -125,7 +125,7 @@ const findByElementInstanceIds = function(props, params, callback) {
     .then(AppUtils.onFindOptional.bind(null, params, props.setProperty, callback));
 }
 
-export default {
+module.exports =  {
   concatNetwotkElementAndNormalElement: concatNetwotkElementAndNormalElement,
   concatNetwotkElement2AndNormalElement: concatNetwotkElement2AndNormalElement,
   createNetworkPairing: createNetworkPairing,

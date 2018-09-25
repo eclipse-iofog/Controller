@@ -11,42 +11,52 @@
  *
  */
 
-import bodyParser from 'body-parser';
-import cookieParser from 'cookie-parser';
-import fs from 'fs';
-import https from 'https';
-import appConfig from './config.json';
-import configUtil from './server/utils/configUtil';
-import constants from './server/constants.js';
+const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
+const fs = require('fs');
+const https = require('https');
+const http = require('http');
+const appConfig = require('./config.json');
+const configUtil = require('./server/utils/configUtil');
+const constants = require('./server/constants.js');
 
-import baseController from './server/controllers/baseController';
-import elementInstanceController from './server/controllers/api/elementInstanceController';
-import elementController from './server/controllers/api/elementController';
-import fogController from './server/controllers/api/fogController';
-import instanceResourcesController from './server/controllers/api/instanceResourcesController';
-import instanceStatusController from './server/controllers/api/instanceStatusController';
-import instanceConfigController from './server/controllers/api/instanceConfigController';
-import instanceContainerListController from './server/controllers/api/instanceContainerListController';
-import instanceChangesController from './server/controllers/api/instanceChangesController';
-import instanceRegistriesController from './server/controllers/api/instanceRegistriesController';
-import instanceRoutingController from './server/controllers/api/instanceRoutingController';
-import instanceContainerConfigController from './server/controllers/api/instanceContainerConfigController';
-import integratorController from './server/controllers/api/integratorController';
-import provisionKeyController from './server/controllers/api/provisionKeyController';
-import streamViewerController from './server/controllers/api/streamViewerController';
-import trackController from './server/controllers/api/trackController';
-import userController from './server/controllers/api/userController';
-import registryController from './server/controllers/api/registryController';
+const baseController = require('./server/controllers/baseController');
+const elementInstanceController = require('./server/controllers/api/elementInstanceController');
+const elementController = require('./server/controllers/api/elementController');
+const fogController = require('./server/controllers/api/fogController');
+const instanceResourcesController = require('./server/controllers/api/instanceResourcesController');
+const instanceStatusController = require('./server/controllers/api/instanceStatusController');
+const instanceConfigController = require('./server/controllers/api/instanceConfigController');
+const instanceContainerListController = require('./server/controllers/api/instanceContainerListController');
+const instanceChangesController = require('./server/controllers/api/instanceChangesController');
+const instanceRegistriesController = require('./server/controllers/api/instanceRegistriesController');
+const instanceRoutingController = require('./server/controllers/api/instanceRoutingController');
+const instanceContainerConfigController = require('./server/controllers/api/instanceContainerConfigController');
+const integratorController = require('./server/controllers/api/integratorController');
+const provisionKeyController = require('./server/controllers/api/provisionKeyController');
+const streamViewerController = require('./server/controllers/api/streamViewerController');
+const trackController = require('./server/controllers/api/trackController');
+const userController = require('./server/controllers/api/userController');
+const registryController = require('./server/controllers/api/registryController');
 
-import logger from './server/utils/winstonLogs';
-import proxyController from "./server/controllers/api/proxyController";
-import fogVersionCommandController from './server/controllers/api/fogVersionCommandController';
-import diagnosticsController from './server/controllers/api/diagnosticsController';
-import imageSnapshotController from "./server/controllers/api/imageSnapshotController";
-import presetController from "./server/controllers/api/presetController";
-
+const logger = require('./server/utils/winstonLogs');
+const proxyController = require('./server/controllers/api/proxyController');
+const sshController = require('./server/controllers/api/sshController');
+const fogVersionCommandController = require('./server/controllers/api/fogVersionCommandController');
+const diagnosticsController = require('./server/controllers/api/diagnosticsController');
+const imageSnapshotController = require('./server/controllers/api/imageSnapshotController');
+const presetController = require('./server/controllers/api/presetController');
+const sshSocket = require('./sshServer/socket');
+const socketIO = require('socket.io');
 const express = require('express');
 const path = require('path');
+const session = require('express-session')({
+	secret: appConfig.ssh2.session.secret,
+	name: appConfig.ssh2.session.name,
+	resave: true,
+	saveUninitialized: false
+});
+const compression = require('compression');
 
 const startServer = function (port) {
   let app,
@@ -91,7 +101,7 @@ const initApp = function () {
     extended: true
   }));
   // parse application/json
-    app.use(bodyParser.json());
+  app.use(bodyParser.json());
   app.engine('ejs', require('ejs').renderFile);
   app.set('view engine', 'ejs');
   app.use(cookieParser());
@@ -102,6 +112,23 @@ const initApp = function () {
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
     next();
   });
+
+  app.use(session);
+  app.use(compression({level: 9}));
+  if (appConfig.ssh2.accesslog) app.use(logger('common'));
+  app.disable('x-powered-by');
+  // static files
+  app.use(express.static(path.join(__dirname, 'sshClient', 'public'), {
+        dotfiles: 'ignore',
+        etag: false,
+        extensions: ['htm', 'html'],
+        index: false,
+        maxAge: '1s',
+        redirect: false,
+        setHeaders: function (res, path, stat) {
+            res.set('x-timestamp', Date.now())
+	  }
+  }));
 
   app.set('views', path.join(__dirname, 'views'));
 
@@ -167,7 +194,6 @@ const initApp = function () {
   app.get('/api/v2/authoring/element/instance/rebuild/status/elementid/:elementId', elementInstanceController.elementInstanceRebuildStatusEndPoint);
   app.get('/api/v2/authoring/user/track/list/:t', trackController.getTracksForUser);
   app.get('/api/v2/authoring/fog/types/list', fogController.getFogTypesEndPoint);
-  app.get('/api/v2/authoring/fog/proxy/status', proxyController.getProxyStatusEndPoint);
   app.get('/api/v2/authoring/element/instance/details/trackid/:trackId', elementInstanceController.getElementInstanceDetailsEndPoint);
   app.post('/api/v2/authoring/element/instance/details/trackid/:trackId', elementInstanceController.getElementInstanceDetailsEndPoint);
   app.post('/api/v2/authoring/build/properties/panel/get', elementInstanceController.getElementInstancePropertiesEndPoint);
@@ -201,8 +227,14 @@ const initApp = function () {
   app.post('/api/v2/authoring/element/module/update', elementController.updateElementForUserEndPoint);
   app.get('/api/v2/authoring/element/module/delete/moduleid/:moduleId', elementController.deleteElementForUserEndPoint);
   app.get('/api/v2/authoring/element/module/details/moduleid/:moduleId', elementController.getElementDetailsEndPoint);
-  app.post('/api/v2/authoring/fog/instance/proxy/createOrUpdate', proxyController.createOrUpdateProxyEndPoint);
+  app.post('/api/v2/authoring/fog/instance/proxy/createOrUpdate', proxyController.saveProxyEndPoint);
   app.post('/api/v2/authoring/fog/instance/proxy/close', proxyController.closeProxyEndPoint);
+  app.post('/api/v2/authoring/fog/instance/proxy/data', proxyController.getProxyDataEndPoint);
+  app.post('/api/v2/authoring/fog/instance/proxy/closeStatus', proxyController.getProxyCloseStatusEndPoint)
+    app.use('/api/v2/authoring/fog/instance/ssh/host/:host?', sshController.basicAuth);
+	app.use('/api/v2/authoring/fog/instance/ssh/host/:host?', sshController.checkRemotePortMiddleware);
+	app.get('/api/v2/authoring/fog/instance/ssh/host/:host?', sshController.openTerminalWindowEndPoint);
+	app.get('/api/v2/authoring/fog/instance/ssh/reauth', sshController.reauthEndPoint);
   app.post('/api/v2/authoring/fog/version/change', fogVersionCommandController.changeVersionEndPoint);
   app.get('/api/v2/instance/version/id/:instanceId/token/:Token', fogVersionCommandController.instanceVersionEndPoint);
   app.post('/api/v2/instance/version/id/:instanceId/token/:Token', fogVersionCommandController.instanceVersionEndPoint);
@@ -245,7 +277,9 @@ const startHttpServer = function (app, port) {
   console.log("| SSL not configured, starting HTTP server.|");
   console.log("------------------------------------------");
 
-  app.listen(port, function onStart(err) {
+  const server = http.createServer(app);
+  bindSshSocket(server);
+  server.listen(port, function onStart(err) {
     if (err) {
       console.log(err);
     }
@@ -264,7 +298,9 @@ const startHttpsServer = function (app, port, sslKey, sslCert, intermedKey) {
       rejectUnauthorized: false // currently for some reason iofog agent doesn't work without this option
     };
 
-    https.createServer(sslOptions, app).listen(port, function onStart(err) {
+    const server = https.createServer(sslOptions, app);
+    bindSshSocket(server);
+    server.listen(port, function onStart(err) {
       if (err) {
         logger.error(err);
         console.log(err);
@@ -278,6 +314,21 @@ const startHttpsServer = function (app, port, sslKey, sslCert, intermedKey) {
   }
 };
 
-export default {
+const bindSshSocket = function (server) {
+	const io = socketIO(server, { serveClient: false })
+	const socket = sshSocket.socket;
+
+	// socket.io
+    // expose express session with socket.request.session
+	io.use(function (socket, next) {
+		(socket.request.res) ? session(socket.request, socket.request.res, next)
+			: next(next)
+	})
+
+	// bring up socket
+	io.on('connection', socket)
+}
+
+module.exports =  {
   startServer: startServer
 };

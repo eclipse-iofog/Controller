@@ -16,13 +16,13 @@
  * @author Zishan Iqbal
  * @description This file includes the implementation of the instance-status end-point
  */
-import async from 'async';
+const async = require('async');
 
-import BaseApiController from './baseApiController';
-import FogService from '../../services/fogService';
-import AppUtils from '../../utils/appUtils';
-import logger from '../../utils/winstonLogs';
-import ElemetInstanceStatusService from "../../services/elementInstanceStatusService";
+const BaseApiController = require('./baseApiController');
+const FogService = require('../../services/fogService');
+const AppUtils = require('../../utils/appUtils');
+const logger = require('../../utils/winstonLogs');
+const ElemetInstanceStatusService = require('../../services/elementInstanceStatusService');
 
 
 /********************************************* EndPoints ******************************************************/
@@ -32,11 +32,7 @@ import ElemetInstanceStatusService from "../../services/elementInstanceStatusSer
 
   logger.info("Endpoint hit: "+ req.originalUrl);
 
-  let params = {},
-      fogInstanceProps= {
-        fogId: 'bodyParams.instanceId',
-        setProperty: 'fogInstance'
-      };
+  let params = {};
 
   params.bodyParams = req.body;
   params.bodyParams.instanceId = req.params.ID;
@@ -44,8 +40,7 @@ import ElemetInstanceStatusService from "../../services/elementInstanceStatusSer
 
   async.waterfall([
     async.apply(BaseApiController.checkUserExistance, req, res),
-    async.apply(FogService.getFogInstance, fogInstanceProps, params),
-      upsertStatus,
+      async.apply(upsertStatus, params),
       updateFogInstance,
   ], function(err, result) {
     AppUtils.sendResponse(res, err,'','', result);
@@ -64,8 +59,6 @@ const upsertStatus = function (params, callback) {
 
 const updateFogInstance = function(params, callback){
 
-  let proxyStatus = getProxyStatus(params);
-
   let fogInstanceProps = {
         instanceId: 'bodyParams.instanceId',
         updatedFog: {
@@ -76,19 +69,19 @@ const updateFogInstance = function(params, callback){
           diskusage : params.bodyParams.diskusage,
           cpuusage : params.bodyParams.cpuusage,
           memoryviolation : params.bodyParams.memoryviolation,
-            diskviolation: params.bodyParams.diskviolation,
+          diskviolation: params.bodyParams.diskviolation,
           cpuviolation : params.bodyParams.cpuviolation,
-            elementstatus: params.bodyParams.elementstatus,
+          elementstatus: params.bodyParams.elementstatus,
           repositorycount : params.bodyParams.repositorycount,
           repositorystatus : params.bodyParams.repositorystatus,
           systemtime : params.bodyParams.systemtime,
           laststatustime : params.bodyParams.laststatustime,
           ipaddress : params.bodyParams.ipaddress,
           processedmessages : params.bodyParams.processedmessages,
-            elementmessagecounts: params.bodyParams.elementmessagecounts,
+          elementmessagecounts: params.bodyParams.elementmessagecounts,
           messagespeed : params.bodyParams.messagespeed,
           lastcommandtime : params.bodyParams.lastcommandtime,
-          proxy : proxyStatus,
+          proxy : params.bodyParams.proxystatus,
           version: params.bodyParams.version || '1.0',
           isReadyToUpgrade: params.bodyParams.isreadytoupgrade,
           isReadyToRollback: params.bodyParams.isreadytorollback
@@ -97,22 +90,6 @@ const updateFogInstance = function(params, callback){
     FogService.updateFogInstance(fogInstanceProps, params, callback);
 };
 
-const getProxyStatus = function(params) {
-    let result;
-    let newProxyStr = params.bodyParams.proxystatus;
-    let oldProxyStr = params.fogInstance.proxy;
-
-    if (oldProxyStr) {
-        let oldProxyObj = JSON.parse(oldProxyStr);
-        result = oldProxyObj.status === 'PENDING_OPEN' || oldProxyObj.status === 'PENDING_CLOSE'
-            ? oldProxyStr : newProxyStr;
-    } else {
-        result = newProxyStr;
-    }
-
-    return result;
-};
-
-export default {
+module.exports = {
   instanceStatusEndPoint: instanceStatusEndPoint
 };

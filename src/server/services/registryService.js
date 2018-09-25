@@ -11,8 +11,8 @@
  *
  */
 
-import RegistryManager from '../managers/registryManager';
-import AppUtils from '../utils/appUtils';
+const RegistryManager = require('../managers/registryManager');
+const AppUtils = require('../utils/appUtils');
 
 
 const findRegistriesByUserId = function (props, params, param, callback) {
@@ -63,7 +63,7 @@ const deleteRegistry = function (props, params, callback) {
         .then(AppUtils.onDelete.bind(null, params, 'No Registry found', callback));
 };
 
-export default {
+module.exports =  {
     findRegistriesByUserId: findRegistriesByUserId,
     listRegistry: listRegistry,
     addRegistry: addRegistry,

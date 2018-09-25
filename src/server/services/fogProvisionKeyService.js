@@ -11,9 +11,9 @@
  *
  */
 
-import FogProvisionKeyManager from '../managers/fogProvisionKeyManager';
-import AppUtils from '../utils/appUtils';
-import Constants from '../constants.js';
+const FogProvisionKeyManager = require('../managers/fogProvisionKeyManager');
+const AppUtils = require('../utils/appUtils');
+const Constants = require('../constants.js');
 
 const checkProvisionKeyExpiry = function(props, params, callback) {
   let currentTime = new Date(),
@@ -82,7 +82,7 @@ const deleteExpiredProvisionKeys = function (params, callback){
 
 }
 
-export default {
+module.exports =  {
   checkProvisionKeyExpiry: checkProvisionKeyExpiry,
   createProvisonKeyByInstanceId: createProvisonKeyByInstanceId,
   deleteByProvisionKey: deleteByProvisionKey,

@@ -11,8 +11,8 @@
  *
  */
 
-import ElementOutputTypeManager from '../managers/elementOutputTypeManager';
-import AppUtils from '../utils/appUtils';
+const ElementOutputTypeManager = require('../managers/elementOutputTypeManager');
+const AppUtils = require('../utils/appUtils');
 
 const createElementOutputType = function(props, params, callback) {
   
@@ -37,7 +37,7 @@ const deleteElementOutputType = function(props, params, callback) {
     .then(AppUtils.onDeleteOptional.bind(null, params, callback));
 }
 
-export default {
+module.exports =  {
   createElementOutputType: createElementOutputType,
   updateElementOutputType: updateElementOutputType,
   deleteElementOutputType: deleteElementOutputType

@@ -16,13 +16,13 @@
  * @author Zishan Iqbal
  * @description This file includes the implementation of the instance-registries end-point
  */
-import async from 'async';
+const async = require('async');
 
-import BaseApiController from './baseApiController';
-import RegistryService from '../../services/registryService';
-import AppUtils from '../../utils/appUtils';
-import logger from '../../utils/winstonLogs';
-import FogAccessTokenService from "../../services/fogAccessTokenService";
+const BaseApiController = require('./baseApiController');
+const RegistryService = require('../../services/registryService');
+const AppUtils = require('../../utils/appUtils');
+const logger = require('../../utils/winstonLogs');
+const FogAccessTokenService = require('../../services/fogAccessTokenService');
 
 /********************************************* EndPoints ******************************************************/
 
@@ -52,6 +52,6 @@ const instanceRegistriesEndPoint = function (req, res){
   });
 };
 
-export default {
+module.exports =  {
   instanceRegistriesEndPoint: instanceRegistriesEndPoint
 };

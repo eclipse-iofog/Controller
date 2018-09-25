@@ -16,9 +16,9 @@
  * @description This file includes a hw_info model used by sequalize for ORM;
  */
 
-import Sequelize from 'sequelize';
-import sequelize from './../utils/sequelize';
-import Fog from './fog'
+const Sequelize = require('sequelize');
+const sequelize = require('./../utils/sequelize');
+const Fog = require('./fog');
 
 const HWInfo = sequelize.define('hw_info', {
 
@@ -51,4 +51,4 @@ HWInfo.belongsTo(Fog, {
     foreignKey: 'iofog_uuid'
 });
 
-export default HWInfo;
+module.exports =  HWInfo;

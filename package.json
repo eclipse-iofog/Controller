@@ -39,20 +39,22 @@
   "preferGlobal": true,
   "homepage": "https://iofog.org/",
   "scripts": {
-    "test": "node ./dist/main.js",
-    "start": "node ./dist/main",
-    "build": "mkdir -p ../fog-controller-db && touch ../fog-controller-db/fog_controller.db && ./flyway-5.0.7/flyway -configFiles=./db/flyway.conf migrate && babel src -d dist --copy-files && mkdir -p imageSnapshot",
-    "start-dev": "node ./dist/daemonServer",
-    "build-dev": "mkdir -p ../fog-controller-db && touch ../fog-controller-db/fog_controller.db && ./flyway-5.0.7/flyway -configFiles=./db/flyway.conf migrate && babel src -d dist --copy-files && mkdir -p imageSnapshot",
+    "test": "node ./src/main.js",
+    "start": "node ./src/main",
+    "build": "mkdir -p ../fog-controller-db && touch ../fog-controller-db/fog_controller.db && ./flyway-5.0.7/flyway -configFiles=./db/flyway.conf migrate  && mkdir -p imageSnapshot",
+    "start-dev": "node ./src/daemonServer",
+    "build-dev": "mkdir -p ../fog-controller-db && touch ../fog-controller-db/fog_controller.db && ./flyway-5.0.7/flyway -configFiles=./db/flyway.conf migrate && mkdir -p imageSnapshot",
     "dev": "npm start stop && npm run build-dev && npm run start-dev",
     "postinstall": "mkdir -p ../fog-controller-db && touch ../fog-controller-db/fog_controller.db && ./flyway-5.0.7/flyway -configFiles=./db/flyway.conf migrate && mkdir -p imageSnapshot"
   },
   "bin": {
-    "fog-controller": "./dist/main.js"
+    "fog-controller": "src/main.js"
   },
   "dependencies": {
     "async": "^2.0.1",
+    "basic-auth": "^2.0.0",
     "body-parser": "^1.18.2",
+    "compression": "^1.7.3",
     "continuation-local-storage": "^3.1.7",
     "cookie-parser": "^1.4.1",
     "daemonize2": "^0.4.2",
@@ -60,7 +62,7 @@
     "ejs": "^2.5.7",
     "es6-mixins": "^1.0.2",
     "express": "^4.16.2",
-    "express-session": "^1.13.0",
+    "express-session": "^1.15.6",
     "ftp": "^0.3.10",
     "keymirror": "0.1.1",
     "moment": "^2.12.0",
@@ -75,17 +77,13 @@
     "portscanner": "^2.1.1",
     "q": "^1.4.1",
     "sequelize": "^4.33.1",
-    "sqlite3": "^3.1.13",
+    "socket.io": "^2.1.1",
+    "sqlite3": "^4.0.2",
+    "ssh2": "^0.6.1",
     "underscore": "^1.8.3",
     "uuid": "^2.0.2",
+    "validator": "^10.7.1",
     "winston": "^2.3.1",
     "winston-daily-rotate-file": "^1.4.3"
-  },
-  "devDependencies": {
-    "babel-cli": "^6.14.0",
-    "babel-core": "^6.26.0",
-    "babel-preset-env": "^1.6.1",
-    "babel-preset-stage-0": "^6.24.1",
-    "babel-runtime": "6.6.1"
   }
 }

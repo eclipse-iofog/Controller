@@ -16,9 +16,9 @@
 * @author Zishan Iqbal
 * @description This file includes a registry model used by sequalize for ORM;
 */
-import Sequelize from 'sequelize';
-import sequelize from './../utils/sequelize';
-import User from "./user";
+const Sequelize = require('sequelize');
+const sequelize = require('./../utils/sequelize');
+const User = require('./user');
 
 const Registry = sequelize.define('registry', {
   id: {type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true, field: 'ID'},
@@ -45,4 +45,4 @@ Registry.belongsTo(User, {
     foreignKey: 'user_id'
 });
 
-export default Registry;
+module.exports =  Registry;

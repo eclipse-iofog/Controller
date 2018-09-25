@@ -17,12 +17,12 @@
  * @description This file includes the implementation of the instance-container-config end-point
  */
 
-import async from 'async';
+const async = require('async');
 
-import BaseApiController from './baseApiController';
-import ElementInstanceService from '../../services/elementInstanceService';
-import AppUtils from '../../utils/appUtils';
-import logger from '../../utils/winstonLogs';
+const BaseApiController = require('./baseApiController');
+const ElementInstanceService = require('../../services/elementInstanceService');
+const AppUtils = require('../../utils/appUtils');
+const logger = require('../../utils/winstonLogs');
 
 /********************************************* EndPoints ******************************************************/
 
@@ -74,6 +74,6 @@ const processOutput = function (params, callback)
 	callback (null, params);
 }
 
-export default {
+module.exports =  {
 	containerConfigEndPoint: containerConfigEndPoint
 };

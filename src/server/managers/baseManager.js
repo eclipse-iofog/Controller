@@ -11,11 +11,11 @@
  *
  */
 
-import moment from 'moment';
-import sequelizeUtils from './../utils/sequelizeUtils';
-import errorUtils from './../utils/errorUtils';
+const moment = require('moment');
+const sequelizeUtils = require('./../utils/sequelizeUtils');
+const errorUtils = require('./../utils/errorUtils');
 
-export default class BaseManager {
+module.exports =  class BaseManager {
 
   getEntity() {
     return null;

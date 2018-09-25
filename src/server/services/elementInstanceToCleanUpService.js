@@ -11,8 +11,8 @@
  *
  */
 
-import ElementInstanceToCleanUpManager from "../managers/elementInstanceToCleanUpManager";
-import AppUtils from "../utils/appUtils";
+const ElementInstanceToCleanUpManager = require('../managers/elementInstanceToCleanUpManager');
+const AppUtils = require('../utils/appUtils');
 
 /**
  * @author elukashick
@@ -54,7 +54,7 @@ const deleteByFogUUID = function (props, params, param, callback) {
     }
 };
 
-export default {
+module.exports =  {
     listByFogUUID: listByFogUUID,
     deleteByElementInstanceId: deleteByElementInstanceId,
     deleteByFogUUID: deleteByFogUUID

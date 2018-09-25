@@ -17,8 +17,8 @@
  * @description This file includes the CURD operations for the fogAccessToken Model.
  */
 
-import FogAccessToken from './../models/fogAccessToken';
-import BaseManager from './../managers/baseManager';
+const FogAccessToken = require('./../models/fogAccessToken');
+const BaseManager = require('./../managers/baseManager');
 
 class FogAccessTokenManager extends BaseManager {
   getEntity() {
@@ -68,4 +68,4 @@ class FogAccessTokenManager extends BaseManager {
 }
 
 const instance = new FogAccessTokenManager();
-export default instance;
+module.exports =  instance;

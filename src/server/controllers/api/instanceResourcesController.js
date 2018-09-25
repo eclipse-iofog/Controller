@@ -15,13 +15,13 @@
  * @author elukashick
  */
 
-import async from 'async';
+const async = require('async');
 
-import BaseApiController from './baseApiController';
-import AppUtils from '../../utils/appUtils';
-import logger from '../../utils/winstonLogs';
-import instanceResourcesService from "../../services/instanceResourcesService";
-import UserService from "../../services/userService";
+const BaseApiController = require('./baseApiController');
+const AppUtils = require('../../utils/appUtils');
+const logger = require('../../utils/winstonLogs');
+const instanceResourcesService = require('../../services/instanceResourcesService');
+const UserService = require('../../services/userService');
 
 
 /********************************************* EndPoints ******************************************************/
@@ -133,7 +133,7 @@ const getFogUsbInfoEndPoint = function (req, res) {
 };
 
 
-export default {
+module.exports =  {
     fogInstanceHWInfo: fogInstanceHWInfo,
     fogInstanceUSBInfo: fogInstanceUSBInfo,
     getFogHwInfoEndPoint: getFogHwInfoEndPoint,

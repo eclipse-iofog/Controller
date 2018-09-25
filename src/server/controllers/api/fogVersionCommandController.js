@@ -12,14 +12,14 @@
  *
  */
 
-import async from 'async';
-import logger from "../../utils/winstonLogs";
-import BaseApiController from "./baseApiController";
-import AppUtils from "../../utils/appUtils";
-import FogProvisionKeyService from "../../services/fogProvisionKeyService";
-import FogVersionCommandService from "../../services/fogVersionCommandService";
-import ChangeTrackingService from "../../services/changeTrackingService";
-import FogVersionCommand from "../../models/fogVersionCommand";
+const async = require('async');
+const logger = require('../../utils/winstonLogs');
+const BaseApiController = require('./baseApiController');
+const AppUtils = require('../../utils/appUtils');
+const FogProvisionKeyService = require('../../services/fogProvisionKeyService');
+const FogVersionCommandService = require('../../services/fogVersionCommandService');
+const ChangeTrackingService = require('../../services/changeTrackingService');
+const FogVersionCommand = require('../../models/fogVersionCommand');
 
 
 /********************************************* EndPoints ******************************************************/
@@ -103,7 +103,7 @@ const instanceVersionEndPoint = function (req, res) {
 
 };
 
-export default {
+module.exports =  {
     instanceVersionEndPoint: instanceVersionEndPoint,
     changeVersionEndPoint: changeVersionEndPoint
 };

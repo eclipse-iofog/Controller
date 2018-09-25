@@ -17,9 +17,9 @@
  * @description This file includes a element_input_type model used by sequalize for ORM;
  */
 
-import Sequelize from 'sequelize';
-import sequelize from './../utils/sequelize';
-import Element from './element';
+const Sequelize = require('sequelize');
+const sequelize = require('./../utils/sequelize');
+const Element = require('./element');
 
 const ElementInputType = sequelize.define('element_input_type', {
   id: {
@@ -53,4 +53,4 @@ const ElementInputType = sequelize.define('element_input_type', {
 
 ElementInputType.belongsTo(Element);
 
-export default ElementInputType;
+module.exports =  ElementInputType;

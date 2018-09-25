@@ -17,12 +17,12 @@
  * @description This file includes a iofogs model used by sequalize for ORM;
  */
 
-import Sequelize from 'sequelize';
-import sequelize from './../utils/sequelize';
-import Registry from './../models/registry';
-import FogProvisionKey from './fogProvisionKey';
-import ChangeTracking from './changeTracking';
-import FogType from './fogType';
+const Sequelize = require('sequelize');
+const sequelize = require('./../utils/sequelize');
+const Registry = require('./../models/registry');
+const FogProvisionKey = require('./fogProvisionKey');
+const ChangeTracking = require('./changeTracking');
+const FogType = require('./fogType');
 
 const Fog = sequelize.define('iofogs', {
     uuid: {
@@ -288,4 +288,4 @@ Fog.belongsTo(FogType, {
     defaultValue: 0
 });
 
-export default Fog;
+module.exports =  Fog;

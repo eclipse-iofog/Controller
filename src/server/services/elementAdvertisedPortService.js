@@ -11,9 +11,9 @@
  *
  */
 
-import ElementAdvertisedPortManager from '../managers/elementAdvertisedPortManager';
-import AppUtils from '../utils/appUtils';
-import _ from 'underscore';
+const ElementAdvertisedPortManager = require('../managers/elementAdvertisedPortManager');
+const AppUtils = require('../utils/appUtils');
+const _ = require('underscore');
 
 const findElementAdvertisedPortByElementIds = function(props, params, callback) {
   let elementInstanceData = AppUtils.getProperty(params, props.elementInstanceData);
@@ -23,6 +23,6 @@ const findElementAdvertisedPortByElementIds = function(props, params, callback) 
     .then(AppUtils.onFind.bind(null, params, props.setProperty, 'Element Advertised Port Not found', callback));
 }
 
-export default {
+module.exports =  {
   findElementAdvertisedPortByElementIds: findElementAdvertisedPortByElementIds,
 };

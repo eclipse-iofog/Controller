@@ -17,10 +17,10 @@
  * @description This file includes the CRUD operarions on ssl files.
  */
 
-import _ from 'underscore';
-import AppUtils from './appUtils';
-import FogControllerConfigManager from './../managers/fogControllerConfigManager';
-import Constants from './../constants';
+const _ = require('underscore');
+const AppUtils = require('./appUtils');
+const FogControllerConfigManager = require('./../managers/fogControllerConfigManager');
+const Constants = require('./../constants');
 
 class FogControllerConfigUtil {
 
@@ -106,4 +106,4 @@ class FogControllerConfigUtil {
 }
 
 const instance = new FogControllerConfigUtil();
-export default instance;
+module.exports =  instance;

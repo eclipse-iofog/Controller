@@ -17,8 +17,8 @@
  * @description This file includes the CURD operations for the registry Model.
  */
  
-import BaseManager from './../managers/baseManager';
-import Registry from './../models/registry';
+const BaseManager = require('./../managers/baseManager');
+const Registry = require('./../models/registry');
 
 class RegistryManager extends BaseManager {
 
@@ -40,4 +40,4 @@ class RegistryManager extends BaseManager {
 }
 
 const instance = new RegistryManager();
-export default instance;
+module.exports =  instance;

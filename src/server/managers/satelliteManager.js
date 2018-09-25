@@ -17,10 +17,10 @@
  * @description
  */
 
-import Satellite from './../models/satellite';
-import BaseManager from './../managers/baseManager';
-import AppUtils from './../utils/appUtils';
-import fs from 'fs';
+const Satellite = require('./../models/satellite');
+const BaseManager = require('./../managers/baseManager');
+const AppUtils = require('./../utils/appUtils');
+const fs = require('fs');
 
 class SatelliteManager extends BaseManager {
 
@@ -157,4 +157,4 @@ class SatelliteManager extends BaseManager {
 }
 
 const instance = new SatelliteManager();
-export default instance;
+module.exports =  instance;

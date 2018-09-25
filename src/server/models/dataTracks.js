@@ -17,9 +17,9 @@
  * @description This file includes a data_tracks model used by sequalize for ORM;
  */
 
-import Sequelize from 'sequelize';
-import sequelize from './../utils/sequelize';
-import User from './user';
+const Sequelize = require('sequelize');
+const sequelize = require('./../utils/sequelize');
+const User = require('./user');
 
 const DataTracks = sequelize.define('data_tracks', {
   id: {
@@ -64,4 +64,4 @@ const DataTracks = sequelize.define('data_tracks', {
 
 DataTracks.belongsTo(User);
 
-export default DataTracks;
+module.exports =  DataTracks;

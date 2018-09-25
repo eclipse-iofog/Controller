@@ -17,9 +17,9 @@
  * @description This file includes the CURD operations for the fog Model.
  */
 
-import Fog from './../models/fog';
-import BaseManager from './../managers/baseManager';
-import sequelize from './../utils/sequelize';
+const Fog = require('./../models/fog');
+const BaseManager = require('./../managers/baseManager');
+const sequelize = require('./../utils/sequelize');
 
 class FogManager extends BaseManager {
   getEntity() {
@@ -109,4 +109,4 @@ class FogManager extends BaseManager {
 }
 
 const instance = new FogManager();
-export default instance;
+module.exports =  instance;

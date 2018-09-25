@@ -17,8 +17,8 @@
  * @description This file includes a element_instance_connections model used by sequalize for ORM;
  */
 
-import Sequelize from 'sequelize';
-import sequelize from './../utils/sequelize';
+const Sequelize = require('sequelize');
+const sequelize = require('./../utils/sequelize');
 
 const ElementInstanceConnections = sequelize.define('element_instance_connections', {
   id: {
@@ -46,4 +46,4 @@ const ElementInstanceConnections = sequelize.define('element_instance_connection
 });
 
 
-export default ElementInstanceConnections;
+module.exports =  ElementInstanceConnections;
