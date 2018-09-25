@@ -2415,6 +2415,8 @@ definitions:
         type: boolean
       strace:
         type: boolean
+      rebuild:
+        type: boolean
       logLimit:
         type: number
       ports:
