@@ -18,7 +18,7 @@ class CLIHandler {
     const usage = [
       {
         header: 'FogController',
-        content: 'Generates something {italic very} important.',
+        content: 'Fog Controller project for Eclipse IoFog @ iofog.org \\nCopyright (c) 2018 Edgeworx, Inc.',
       }
     ].concat(sections)
     console.log(commandLineUsage(usage))

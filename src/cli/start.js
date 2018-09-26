@@ -2,7 +2,8 @@ const BaseCLIHandler = require('./base-cli-handler')
 const config = require('../config')
 
 class Start extends BaseCLIHandler {
-  run(daemon) {
+  run(args) {
+    const daemon = args.daemon
     const configuration = {
       port: config.get('Server:Port'),
       sslKey: config.get('Server:SslKey'),
