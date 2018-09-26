@@ -5,10 +5,10 @@ class Comsat extends BaseCLIHandler {
     super()
 
     this.commandDefinitions = [
-      { name: 'command', defaultOption: true, description: 'add, remove, update, list', group: ['command'] },
-      { name: 'name', alias: 'n', type: String, description: 'Comsat name', group: ['add', 'update'] },
-      { name: 'domain', alias: 'd', type: String, description: 'Comsat domain name', group: ['add', 'update'] },
-      { name: 'public-ip', alias: 'i', type: String, description: 'Comsat public IP address', group: ['add', 'update', 'remove'] },
+      { name: 'command', defaultOption: true, group: ['command'] },
+      { name: 'name', alias: 'n', type: String, description: 'ComSat name', group: ['add', 'update'] },
+      { name: 'domain', alias: 'd', type: String, description: 'ComSat domain name', group: ['add', 'update'] },
+      { name: 'public-ip', alias: 'i', type: String, description: 'ComSat public IP address', group: ['add', 'update', 'remove'] },
       { name: 'cert', alias: 'c', type: String, description: 'Path to certificate', group: ['add', 'update'] },
       { name: 'self-signed', alias: 's', type: Boolean, description: 'Is self-signed', group: ['add', 'update'] },
     ]
@@ -18,40 +18,53 @@ class Comsat extends BaseCLIHandler {
     const comsatCommand = this.parseCommandLineArgs(this.commandDefinitions, { argv: args.argv })
 
     switch (comsatCommand.command.command) {
+      case 'add':
+        return console.log(JSON.stringify(comsatCommand.add, null, 2))
+      case 'update':
+        return console.log(JSON.stringify(comsatCommand.update, null, 2))
+      case 'remove':
+        return console.log(JSON.stringify(comsatCommand.remove, null, 2))
+      case 'list':
+        return console.log('list :)')
       case 'help':
-        return this.help(
-          [
-            {
-              header: 'Usage',
-              content: '$ fog-controller comsat <command> <options>'
-            },
-            {
-              header: 'Command List',
-              content: [
-                { name: 'add', summary: 'Display help information about Git.' },
-                { name: 'update', summary: 'Record changes to the repository.' },
-                { name: 'remove', summary: 'Print the version.' },
-                { name: 'list', summary: 'Etc.' },
-              ],
-            },
-            {
-              header: 'add',
-              optionList: this.commandDefinitions,
-              group: ['add'],
-            },
-            {
-              header: 'remove',
-              optionList: this.commandDefinitions,
-              group: ['remove'],
-            },
-            {
-              header: 'update',
-              optionList: this.commandDefinitions,
-              group: ['update'],
-            },
-          ]
-        )
+      default:
+        return this.help()
     }
+  }
+
+  help() {
+    super.help(
+      [
+        {
+          header: 'Usage',
+          content: '$ fog-controller comsat <command> <options>'
+        },
+        {
+          header: 'Command List',
+          content: [
+            { name: 'add', summary: 'Add a new ComSat.' },
+            { name: 'update', summary: 'Update existing ComSat.' },
+            { name: 'remove', summary: 'Delete a ComSat.' },
+            { name: 'list', summary: 'List all ComSats.' },
+          ],
+        },
+        {
+          header: 'add',
+          optionList: this.commandDefinitions,
+          group: ['add'],
+        },
+        {
+          header: 'remove',
+          optionList: this.commandDefinitions,
+          group: ['remove'],
+        },
+        {
+          header: 'update',
+          optionList: this.commandDefinitions,
+          group: ['update'],
+        },
+      ]
+    )
   }
 }
 

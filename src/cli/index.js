@@ -34,29 +34,34 @@ class Cli extends BaseCLIHandler {
       case 'proxy':
         return Proxy.run({ argv })
       case 'help':
-        return this.help(
-          [
-            {
-              header: 'Usage',
-              content: '$ fog-controller <command> <options>'
-            },
-            {
-              header: 'Command List',
-              content: [
-                { name: 'start', summary: 'Display help information about Git.' },
-                { name: 'stop', summary: 'Record changes to the repository.' },
-                { name: 'status', summary: 'Print the version.' },
-                { name: 'help', summary: 'Etc.' },
-                { name: 'version', summary: 'Etc.' },
-                { name: 'user', summary: 'Etc.' },
-                { name: 'config', summary: 'Etc.' },
-                { name: 'comsat', summary: 'Etc.' },
-                { name: 'proxy', summary: 'Etc.' },
-              ]
-            }
-          ]
-        )
+      default:
+        return this.help()
     }
+  }
+
+  help() {
+    super.help(
+      [
+        {
+          header: 'Usage',
+          content: '$ fog-controller <command> <options>'
+        },
+        {
+          header: 'Command List',
+          content: [
+            { name: 'start', summary: 'Start fog-controller service.' },
+            { name: 'stop', summary: 'Stop fog-controller service.' },
+            { name: 'status', summary: 'Display fog-controller service status.' },
+            { name: 'help', summary: 'Display usage information.' },
+            { name: 'version', summary: 'Display fog-controller service version.' },
+            { name: 'user', summary: 'User operations.' },
+            { name: 'config', summary: 'Set/Display fog-controller service config.' },
+            { name: 'comsat', summary: 'ComSat operations.' },
+            { name: 'proxy', summary: 'Proxy operations.' },
+          ]
+        }
+      ]
+    )
   }
 }
 

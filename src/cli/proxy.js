@@ -18,39 +18,50 @@ class Proxy extends BaseCLIHandler {
     const proxyCommand = this.parseCommandLineArgs(this.commandDefinitions, { argv: args.argv })
 
     switch (proxyCommand.command.command) {
+      case 'add':
+        return console.log(JSON.stringify(proxyCommand.add, null, 2))
+      case 'update':
+        return console.log(JSON.stringify(proxyCommand.update, null, 2))
+      case 'remove':
+        return console.log(JSON.stringify(proxyCommand.remove, null, 2))
       case 'help':
-        return this.help(
-          [
-            {
-              header: 'Usage',
-              content: '$ fog-controller proxy <command> <options>'
-            },
-            {
-              header: 'Command List',
-              content: [
-                { name: 'add', summary: 'Display help information about Git.' },
-                { name: 'update', summary: 'Record changes to the repository.' },
-                { name: 'remove', summary: 'Print the version.' },
-              ],
-            },
-            {
-              header: 'add',
-              optionList: this.commandDefinitions,
-              group: ['add'],
-            },
-            {
-              header: 'remove',
-              optionList: this.commandDefinitions,
-              group: ['remove'],
-            },
-            {
-              header: 'update',
-              optionList: this.commandDefinitions,
-              group: ['update'],
-            },
-          ]
-        )
+      default:
+        return this.help()
     }
+  }
+
+  help() {
+    super.help(
+      [
+        {
+          header: 'Usage',
+          content: '$ fog-controller proxy <command> <options>'
+        },
+        {
+          header: 'Command List',
+          content: [
+            { name: 'add', summary: 'Add a new proxy.' },
+            { name: 'update', summary: 'Update existing proxy.' },
+            { name: 'remove', summary: 'Delete a proxy.' },
+          ],
+        },
+        {
+          header: 'add',
+          optionList: this.commandDefinitions,
+          group: ['add'],
+        },
+        {
+          header: 'remove',
+          optionList: this.commandDefinitions,
+          group: ['remove'],
+        },
+        {
+          header: 'update',
+          optionList: this.commandDefinitions,
+          group: ['update'],
+        },
+      ]
+    )
   }
 }
 

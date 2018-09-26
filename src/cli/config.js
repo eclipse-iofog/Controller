@@ -7,7 +7,7 @@ class Config extends BaseCLIHandler {
     this.commandDefinitions = [
       { name: 'command', defaultOption: true, group: 'command' },
       { name: 'list', alias: 'l', type: Boolean, description: 'Display current config', group: 'config' },
-      { name: 'port', alias: 'p', type: Number, description: 'Port', defaultOption: 54421, group: 'config' },
+      { name: 'port', alias: 'p', type: Number, description: 'Port', defaultValue: 54421, group: 'config' },
       { name: 'ssl-cert', alias: 'c', type: String, description: 'Path to SSL certificate file', group: 'config' },
       { name: 'ssl-key', alias: 'k', type: String, description: 'Path to SSL key file', group: 'config' },
       { name: 'intermediate-cert', alias: 'i', type: String, description: 'Path to SSL intermediate certificate file', group: 'config' },
@@ -21,22 +21,23 @@ class Config extends BaseCLIHandler {
   run(args) {
     const configCommand = this.parseCommandLineArgs(this.commandDefinitions, { argv: args.argv })
 
-    switch (configCommand.command.command) {
-      case 'help':
-        return this.help(
-          [
-            {
-              header: 'Usage',
-              content: '$ fog-controller config <options>'
-            },
-            {
-              header: ['Options'],
-              optionList: this.commandDefinitions,
-              group: ['config'],
-            },
-          ]
-        )
+    if (configCommand.command.command === 'help') {
+      return this.help(
+        [
+          {
+            header: 'Usage',
+            content: '$ fog-controller config <options>'
+          },
+          {
+            header: ['Options'],
+            optionList: this.commandDefinitions,
+            group: ['config'],
+          },
+        ]
+      )
     }
+
+    return console.log(JSON.stringify(configCommand.config, null, 2))
   }
 }
 
