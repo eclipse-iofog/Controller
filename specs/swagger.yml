@@ -328,7 +328,7 @@ paths:
           name: UpdateIOFogNodeConfigRequestBody
           required: true
           schema:
-            $ref: '#/definitions/IOFogNodeConfig'
+            $ref: '#/definitions/IOFogNodeConfigRequest'
       responses:
         '204':
           description: Success
@@ -1744,8 +1744,8 @@ definitions:
   EmailActivationStatusResponse:
     type: object
     properties:
-      emailActivation:
-        type: string
+      isEmailActivationEnabled:
+        type: boolean
   IOFogTypesResponse:
     type: object
     properties:
@@ -1829,8 +1829,6 @@ definitions:
         type: number
       repositoryStatus:
         type: string
-      systemTime:
-        type: number
       lastStatusTime:
         type: number
       ipAddress:
@@ -1944,9 +1942,6 @@ definitions:
       abstractedHardwareEnabled:
         type: boolean
         default: false
-      autoGPSEnabled:
-        type: boolean
-        default: false
       reboot:
         type: boolean
         default: false
@@ -1996,6 +1991,12 @@ definitions:
     properties:
       config:
         type: boolean
+      version:
+        type: boolean
+      reboot:
+        type: boolean
+      deleteNode:
+        type: boolean
       microservicesList:
         type: boolean
       microservicesConfig:
@@ -2004,30 +2005,82 @@ definitions:
         type: boolean
       registries:
         type: boolean
+      tunnel:
+        type: boolean
+      diagnostics:
+        type: boolean
+      isImageSnapshot:
+        type: boolean
   IOFogNodeConfig:
     type: object
     properties:
-      networkinterface:
+      networkInterface:
         type: string
-      dockerurl:
+      dockerUrl:
         type: string
-      disklimit:
+      diskLimit:
         type: number
-      diskdirectory:
+      diskDirectory:
         type: string
-      memorylimit:
+      memoryLimit:
         type: number
-      cpulimit:
+      cpuLimit:
         type: number
-      loglimit:
+      logLimit:
         type: number
-      logdirectory:
+      logDirectory:
         type: string
-      logfilecount:
+      logFileCount:
         type: number
-      statusfrequency:
+      postStatusFreq:
         type: number
-      changefrequency:
+      getChangesFreq:
+        type: number
+      scanDevicesFreq:
+        type: number
+      isolatedDockerContainer:
+        type: boolean
+      gpsCoordinates:
+        $ref: '#/definitions/GpsCoordinates'
+  IOFogNodeConfigRequest:
+    type: object
+    properties:
+      networkInterface:
+        type: string
+      dockerUrl:
+        type: string
+      diskLimit:
+        type: number
+      diskDirectory:
+        type: string
+      memoryLimit:
+        type: number
+      cpuLimit:
+        type: number
+      logLimit:
+        type: number
+      logDirectory:
+        type: string
+      logFileCount:
+        type: number
+      postStatusFreq:
+        type: number
+      getChangesFreq:
+        type: number
+      scanDevicesFreq:
+        type: number
+      isolatedDockerContainer:
+        type: boolean
+      gpsCoordinates:
+        $ref: '#/definitions/GpsCoordinates'
+      gpsMode:
+        type: string
+  GpsCoordinates:
+    type: object
+    properties:
+      lat:
+        type: number
+      lon:
         type: number
   AgentStatus:
     type: object
@@ -2070,6 +2123,14 @@ definitions:
         type: number
       lastCommandTime:
         type: number
+      tunnelStatus:
+        type: string
+      version:
+        type: string
+      isReadyToUpgrade:
+        type: boolean
+      isReadyToRollback:
+        type: boolean
   IOFogNodeProxyConfigResponse:
     type: object
     properties:
@@ -2139,8 +2200,8 @@ definitions:
         type: string
       lastModified:
         type: number
-      lastUpdated:
-        type: number
+      needUpdate:
+        type: boolean
       rebuild:
         type: boolean
       rootHostAccess:
@@ -2151,18 +2212,36 @@ definitions:
         type: string
       registryUrl:
         type: string
-      ports:
+      portMappings:
         type: array
         items:
-          $ref: '#/definitions/PortMappingsResponse'
-      config:
+          $ref: '#/definitions/PortMappingAgentRequest'
+      VolumeMappings:
+        type: array
+        items:
+          $ref: '#/definitions/VolumeMappingAgentRequest'
+      imageSnapshot:
         type: string
+      removeWithCleanUp:
+        type: boolean
       routes:
         $ref: '#/definitions/ReceiverMicroservices'
   ReceiverMicroservices:
-    type: array
-    items:
-      type: string
+      type: array
+      items:
+        type: string
+  VolumeMappingAgentRequest:
+    type: object
+    properties:
+      hostDestination:
+        type: string
+        example: /var/dest
+      containerDestination:
+        type: string
+        example: /var/dest
+      accessMode:
+        type: string
+        example: rw
   PortMappingsResponse:
     type: object
     properties:
@@ -2170,10 +2249,6 @@ definitions:
         type: number
       external:
         type: number
-      tunnel:
-        type: boolean
-      accessUrl:
-        type: string
   PortMappingsRequest:
     type: object
     properties:
@@ -2183,6 +2258,15 @@ definitions:
         type: number
       tunnel:
         type: boolean
+  PortMappingAgentRequest:
+    type: object
+    properties:
+      outsidecontainer:
+        type: string
+        example: 80
+      insidecontainer:
+        type: string
+        example: 80
   RegistriesListResponse:
     type: array
     items:
@@ -2330,7 +2414,7 @@ definitions:
       updatedAt:
         type: number
       userId:
-        type: string
+        type: number
   NewFlowRequest:
     type: object
     properties:
