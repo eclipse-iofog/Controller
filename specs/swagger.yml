@@ -1511,10 +1511,8 @@ definitions:
   EmailActivationStatusResponse:
     type: object
     properties:
-      emailActivation:
-        type: string
-        enum: [on, off]
-        example: on
+      isEmailActivationEnabled:
+        type: boolean
   IOFogTypesResponse:
     type: object
     properties:
