@@ -21,8 +21,7 @@ const appConfig = require('./../../../config.json');
 const logger = require('../../utils/winstonLogs');
 const path = require('path');
 const validator = require('validator');
-const nodeRoot = path.dirname(require.main.filename);
-const publicPath = path.join(nodeRoot, '../', 'client', 'public');
+const publicPath = path.join(__dirname, './../../../../', 'client', 'public');
 const auth = require('basic-auth');
 /********************************************* EndPoints ******************************************************/
 
