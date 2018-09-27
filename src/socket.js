@@ -1,5 +1,5 @@
 // socket.js
-const logger = require('../server/utils/winstonLogs');
+const logger = require('./server/utils/winstonLogs');
 
 const debugWebSSH2 = (text) => logger.info('WebSSH2: ' + text);
 const SSH = require('ssh2').Client
