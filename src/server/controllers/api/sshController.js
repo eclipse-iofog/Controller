@@ -22,7 +22,7 @@ const logger = require('../../utils/winstonLogs');
 const path = require('path');
 const validator = require('validator');
 const nodeRoot = path.dirname(require.main.filename);
-const publicPath = path.join(nodeRoot, 'sshClient', 'public');
+const publicPath = path.join(nodeRoot, '../', 'client', 'public');
 const auth = require('basic-auth');
 /********************************************* EndPoints ******************************************************/
 
@@ -58,9 +58,14 @@ const basicAuth = function (req, res, next) {
 const checkRemotePortMiddleware = function (req, res, next) {
 	// checks if remote port differs from the new one from request param
 	let areRemotePortsDifferent = req.session.rport != undefined && req.session.rport !== req.query.port;
+	// checks if last login was unsuccessful
+	let isLastLoginAttemptInvalid = req.session.isLastLoginUnsuccessful != undefined
+		? req.session.isLastLoginUnsuccessful
+		: false;
 	// update session with the latest remote port
 	req.session.rport = req.query.port;
-	if (areRemotePortsDifferent) {
+	req.session.isLastLoginUnsuccessful = false;
+	if (areRemotePortsDifferent || isLastLoginAttemptInvalid) {
 		let url = req.originalUrl || '/'
 		res.status(401).send('<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0; url=' + url + '"></head><body bgcolor="#000"></body></html>')
 	} else {
@@ -109,17 +114,9 @@ const openTerminalWindowEndPoint = function (req, res) {
 				? req.query.bellStyle
 				: appConfig.ssh2.terminal.bellStyle
 		},
-		allowreplay: appConfig.ssh2.options.challengeButton || (validator.isBoolean(req.headers.allowreplay + '')
-			? myutil.parseBool(req.headers.allowreplay)
-			: false),
-		allowreauth: appConfig.ssh2.options.allowreauth || false,
 		mrhsession: ((validator.isAlphanumeric(req.headers.mrhsession + '') && req.headers.mrhsession)
 			? req.headers.mrhsession
 			: 'none'),
-		serverlog: {
-			client: appConfig.ssh2.serverlog.client || false,
-			server: appConfig.ssh2.serverlog.server || false
-		},
 		readyTimeout: (validator.isInt(req.query.readyTimeout + '', {min: 1, max: 300000}) &&
 			req.query.readyTimeout) || appConfig.ssh2.ssh.readyTimeout
 	}
@@ -127,14 +124,8 @@ const openTerminalWindowEndPoint = function (req, res) {
 	if (req.session.ssh.header.background) validator.escape(req.session.ssh.header.background)
 }
 
-const reauthEndPoint = function (req, res) {
-	var r = req.headers.referer || '/'
-	res.status(401).send('<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0; url=' + r + '"></head><body bgcolor="#000"></body></html>')
-}
-
 module.exports = {
 	checkRemotePortMiddleware: checkRemotePortMiddleware,
 	openTerminalWindowEndPoint: openTerminalWindowEndPoint,
 	basicAuth: basicAuth,
-	reauthEndPoint: reauthEndPoint
 }
