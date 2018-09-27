@@ -32,10 +32,6 @@
         "name": "WebSSH2",
         "secret": "mysecret"
       },
-      "options": {
-        "challengeButton": true,
-        "allowreauth": true
-      },
       "algorithms": {
         "kex": [
           "ecdh-sha2-nistp256",

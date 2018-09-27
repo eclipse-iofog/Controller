@@ -56,6 +56,7 @@ const session = require('express-session')({
 	resave: true,
 	saveUninitialized: false
 });
+const sharedsession = require("express-socket.io-session");
 const compression = require('compression');
 
 const startServer = function (port) {
@@ -118,7 +119,7 @@ const initApp = function () {
   if (appConfig.ssh2.accesslog) app.use(logger('common'));
   app.disable('x-powered-by');
   // static files
-  app.use(express.static(path.join(__dirname, 'sshClient', 'public'), {
+  app.use(express.static(path.join(__dirname, '../', 'client', 'public'), {
         dotfiles: 'ignore',
         etag: false,
         extensions: ['htm', 'html'],
@@ -234,7 +235,6 @@ const initApp = function () {
     app.use('/api/v2/authoring/fog/instance/ssh/host/:host?', sshController.basicAuth);
 	app.use('/api/v2/authoring/fog/instance/ssh/host/:host?', sshController.checkRemotePortMiddleware);
 	app.get('/api/v2/authoring/fog/instance/ssh/host/:host?', sshController.openTerminalWindowEndPoint);
-	app.get('/api/v2/authoring/fog/instance/ssh/reauth', sshController.reauthEndPoint);
   app.post('/api/v2/authoring/fog/version/change', fogVersionCommandController.changeVersionEndPoint);
   app.get('/api/v2/instance/version/id/:instanceId/token/:Token', fogVersionCommandController.instanceVersionEndPoint);
   app.post('/api/v2/instance/version/id/:instanceId/token/:Token', fogVersionCommandController.instanceVersionEndPoint);
@@ -318,12 +318,9 @@ const bindSshSocket = function (server) {
 	const io = socketIO(server, { serveClient: false })
 	const socket = sshSocket.socket;
 
-	// socket.io
-    // expose express session with socket.request.session
-	io.use(function (socket, next) {
-		(socket.request.res) ? session(socket.request, socket.request.res, next)
-			: next(next)
-	})
+	io.use(sharedsession(session, {
+		autoSave:true
+	}));
 
 	// bring up socket
 	io.on('connection', socket)
