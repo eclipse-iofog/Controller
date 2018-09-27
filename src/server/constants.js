@@ -66,3 +66,6 @@ module.exports =  {
   MSG: MSG,
   CONFIG: CONFIG
 };
+
+const HTTP_PORT = 8080;
+const HTTPS_PORT = 443;

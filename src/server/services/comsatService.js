@@ -69,7 +69,7 @@ const openPortsOnComsat = function (params, callback) {
     
     let options = {
         host: params.satellite.domain,
-        port: 8080,
+        port: (params.satellite.devMode) ? constants.HTTP_PORT : constants.HTTPS_PORT,
         path: '/api/v2/mapping/add',
         method: 'POST',
         headers: {
@@ -78,56 +78,31 @@ const openPortsOnComsat = function (params, callback) {
         }
     };
 
-    let httpreq;
+    let httpreq = (params.satellite.devMode? http : https).request(options, function (response) {
+        console.log(response.statusCode);
+        let output = '';
+        response.setEncoding('utf8');
+
+        response.on('data', function (chunk) {
+            output += chunk;
+        });
+
+        response.on('end', function () {
+            let responseObj = JSON.parse(output);
+            console.log(responseObj);
+            if (responseObj.errormessage) {
+                params.errormessage = responseObj.errormessage;
+                callback('error', responseObj.errormessage);
+            } else {
+                params.comsatPort = responseObj;
+                callback(null, params);
+            }
+        });
+    });
 
     if (params.satellite.cert && params.satellite.selfSignedCerts === true) {
         let ca = '-----BEGIN CERTIFICATE-----\n' + params.satellite.cert + '\n' + '-----END CERTIFICATE-----';
         options.ca = new Buffer(ca);
-        options.port = 443;
-
-        httpreq = https.request(options, function (response) {
-            console.log(response.statusCode);
-            let output = '';
-            response.setEncoding('utf8');
-
-            response.on('data', function (chunk) {
-                output += chunk;
-            });
-
-            response.on('end', function () {
-                let responseObj = JSON.parse(output);
-                console.log(responseObj);
-                if (responseObj.errormessage) {
-                    params.errormessage = responseObj.errormessage;
-                    callback('error', responseObj.errormessage);
-                } else {
-                    params.comsatPort = responseObj;
-                    callback(null, params);
-                }
-            });
-        });
-    } else {
-        httpreq = http.request(options, function (response) {
-            console.log(response.statusCode);
-            let output = '';
-            response.setEncoding('utf8');
-
-            response.on('data', function (chunk) {
-                output += chunk;
-            });
-
-            response.on('end', function () {
-                let responseObj = JSON.parse(output);
-                console.log(responseObj);
-                if (responseObj.errormessage) {
-                    params.errormessage = responseObj.errormessage;
-                    callback('error', responseObj.errormessage);
-                } else {
-                    params.comsatPort = responseObj;
-                    callback(null, params);
-                }
-            });
-        });
     }
 
     httpreq.on('error', function (err) {
@@ -154,7 +129,7 @@ const closePortsOnComsat = function (params, callback) {
 
             let options = {
                 host: obj.domain,
-                port: 8080,
+                port: (obj.devMode) ? constants.HTTP_PORT : constants.HTTPS_PORT,
                 path: '/api/v2/mapping/remove',
                 method: 'POST',
                 headers: {
@@ -163,51 +138,28 @@ const closePortsOnComsat = function (params, callback) {
                 }
             };
 
-            let httpreq;
+            let httpreq = (obj.devMode ? http : https).request(options, function (response) {
+                console.log(response.statusCode);
+                let output = '';
+                response.setEncoding('utf8');
+
+                response.on('data', function (chunk) {
+                    output += chunk;
+                });
+
+                response.on('end', function () {
+                    let responseObj = JSON.parse(output);
+                    console.log(responseObj);
+                    if (responseObj.errormessage) {
+                        params.errormessage = responseObj.errormessage;
+                    }
+                    callback();
+                });
+            });
 
             if (obj.cert && obj.self_signed_certs === true) {
                 let ca = '-----BEGIN CERTIFICATE-----\n' + obj.cert + '\n' + '-----END CERTIFICATE-----';
                 options.ca = new Buffer(ca);
-                options.port = 443;
-
-
-                httpreq = https.request(options, function (response) {
-                    console.log(response.statusCode);
-                    let output = '';
-                    response.setEncoding('utf8');
-
-                    response.on('data', function (chunk) {
-                        output += chunk;
-                    });
-
-                    response.on('end', function () {
-                        let responseObj = JSON.parse(output);
-                        console.log(responseObj);
-                        if (responseObj.errormessage) {
-                            params.errormessage = responseObj.errormessage;
-                        }
-                        callback();
-                    });
-                });
-            } else {
-                httpreq = http.request(options, function (response) {
-                    console.log(response.statusCode);
-                    let output = '';
-                    response.setEncoding('utf8');
-
-                    response.on('data', function (chunk) {
-                        output += chunk;
-                    });
-
-                    response.on('end', function () {
-                        let responseObj = JSON.parse(output);
-                        console.log(responseObj);
-                        if (responseObj.errormessage) {
-                            params.errormessage = responseObj.errormessage;
-                        }
-                        callback();
-                    });
-                });
             }
 
             httpreq.on('error', function (err) {
@@ -238,7 +190,7 @@ const closePortOnComsat = function (params, callback) {
     
     let options = {
         host: params.satellite.domain,
-        port: 8080,
+        port: (params.satellite.devMode) ? constants.HTTP_PORT : constants.HTTPS_PORT,
         path: '/api/v2/mapping/remove',
         method: 'POST',
         headers: {
@@ -247,50 +199,28 @@ const closePortOnComsat = function (params, callback) {
         }
     };
 
-    let httpreq;
+    let httpreq = (params.satellite.devMode ? http : https).request(options, function (response) {
+        console.log(response.statusCode);
+        let output = '';
+        response.setEncoding('utf8');
+
+        response.on('data', function (chunk) {
+            output += chunk;
+        });
+
+        response.on('end', function () {
+            let responseObj = JSON.parse(output);
+            console.log(responseObj);
+            if (responseObj.errormessage) {
+                params.errormessage = responseObj.errormessage;
+            }
+            callback(null, params);
+        });
+    });
 
     if (params.satellite.cert && params.satellite.selfSignedCerts === true) {
         let ca = '-----BEGIN CERTIFICATE-----\n' + params.satellite.cert + '\n' + '-----END CERTIFICATE-----';
         options.ca = new Buffer(ca);
-        options.port = 443;
-
-        httpreq = https.request(options, function (response) {
-            console.log(response.statusCode);
-            let output = '';
-            response.setEncoding('utf8');
-
-            response.on('data', function (chunk) {
-                output += chunk;
-            });
-
-            response.on('end', function () {
-                let responseObj = JSON.parse(output);
-                console.log(responseObj);
-                if (responseObj.errormessage) {
-                    params.errormessage = responseObj.errormessage;
-                }
-                callback(null, params);
-            });
-        });
-    } else  {
-        httpreq = http.request(options, function (response) {
-            console.log(response.statusCode);
-            let output = '';
-            response.setEncoding('utf8');
-
-            response.on('data', function (chunk) {
-                output += chunk;
-            });
-
-            response.on('end', function () {
-                let responseObj = JSON.parse(output);
-                console.log(responseObj);
-                if (responseObj.errormessage) {
-                    params.errormessage = responseObj.errormessage;
-                }
-                callback(null, params);
-            });
-        });
     }
 
     httpreq.on('error', function (err) {
@@ -358,7 +288,7 @@ const verifyComsatConnections = function (params, callback) {
         process.stdout.write('Percentage completed ' + percentage_done + '%');
         let options = {
             host: satellite.domain,
-            port: 8080,
+            port: (satellite.devMode) ? constants.HTTP_PORT : constants.HTTPS_PORT,
             path: '/api/v2/status',
             method: 'POST',
             headers: {
@@ -367,50 +297,28 @@ const verifyComsatConnections = function (params, callback) {
             }
         };
 
-        let httpreq;
+        let httpreq = (satellite.devMode? http : https).request(options, function (response) {
+            if (response.statusCode == 200) {
+                let output = '';
+                response.setEncoding('utf8');
+
+                response.on('data', function (chunk) {
+                    output += chunk;
+                });
+
+                response.on('end', function () {
+                    validSatellites.push(satellite);
+                    cb();
+                });
+            } else {
+                invalidSatellites.push(satellite);
+                cb();
+            }
+        });
 
         if (satellite.cert && satellite.selfSignedCerts === true) {
             let ca = '-----BEGIN CERTIFICATE-----\n' + satellite.cert + '\n' + '-----END CERTIFICATE-----';
             options.ca = new Buffer(ca);
-            options.port = 443;
-
-            httpreq = https.request(options, function (response) {
-                if (response.statusCode == 200) {
-                    let output = '';
-                    response.setEncoding('utf8');
-
-                    response.on('data', function (chunk) {
-                        output += chunk;
-                    });
-
-                    response.on('end', function () {
-                        validSatellites.push(satellite);
-                        cb();
-                    });
-                } else {
-                    invalidSatellites.push(satellite);
-                    cb();
-                }
-            });
-        } else {
-            httpreq = http.request(options, function (response) {
-                if (response.statusCode == 200) {
-                    let output = '';
-                    response.setEncoding('utf8');
-
-                    response.on('data', function (chunk) {
-                        output += chunk;
-                    });
-
-                    response.on('end', function () {
-                        validSatellites.push(satellite);
-                        cb();
-                    });
-                } else {
-                    invalidSatellites.push(satellite);
-                    cb();
-                }
-            });
         }
 
         httpreq.on('error', function (err) {

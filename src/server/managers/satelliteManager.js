@@ -67,6 +67,7 @@ class SatelliteManager extends BaseManager {
     });
   }
 
+  // TODO set dev mode?
   createSatellite(name, domain, publicIP, certFile, selfSignedCerts) {
     if (name && domain && publicIP) {
       if (AppUtils.isValidName(name)){
@@ -80,6 +81,7 @@ class SatelliteManager extends BaseManager {
                         name: name,
                         domain: domain,
                         publicIP: publicIP,
+                        devMode: true,
                         cert: '',
                         selfSignedCerts: false
                       }).then(function(satellite) {
@@ -92,6 +94,7 @@ class SatelliteManager extends BaseManager {
                               name: name,
                               domain: domain,
                               publicIP: publicIP,
+                              devMode: false,
                               cert: AppUtils.trimCertificate(cert),
                               selfSignedCerts: selfSignedCerts || false
                           }).then(function(satellite) {
@@ -144,10 +147,10 @@ class SatelliteManager extends BaseManager {
     this.find()
       .then(function(satellite) {
         if (satellite && satellite.length > 0) {
-          console.log('\n\tID | ComSat Name | Domain | Public IP');
+          console.log('\n\tID | ComSat Name | Domain | Public IP | Dev');
           for (let i = 0; i < satellite.length; i++) {
             console.log('\t' + satellite[i].id + ' | ' + satellite[i].name + ' | ' + satellite[i].domain + ' | ' 
-                        + satellite[i].publicIP);
+                        + satellite[i].publicIP + satellite[i].devMode);
           }
         } else {
           console.log('No ComSat found');

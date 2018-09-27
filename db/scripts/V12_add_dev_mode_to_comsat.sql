@@ -1,0 +1,1 @@
+ALTER TABLE satellite ADD `dev_mode` TEXT;
