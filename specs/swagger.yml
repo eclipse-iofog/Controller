@@ -1236,6 +1236,75 @@ paths:
           description: Not Found
         '500':
           description: Internal Server Error
+  '/iofog/microservices/{id}/imageSnapshot':
+    post:
+      tags:
+        - Diagnostics
+      description: Send request to create image snapshot
+      operationId: createImageSnapshot
+      parameters:
+        - in: header
+          name: Authorization
+          description: User Token
+          required: true
+          type: string
+        - in: path
+          name: id
+          description: Microservice Id
+          required: true
+          type: string
+      responses:
+        '201':
+          description: Created
+          schema:
+            type: object
+            properties:
+              id:
+                type: string
+          headers:
+            X-Timestamp:
+              type: number
+              description: FogController server timestamp
+        '401':
+          description: Not Authorized
+        '404':
+          description: Invalid Microservice Id
+        '500':
+          description: Internal Server Error
+    get:
+      tags:
+        - Diagnostics
+      description: Download image snapshot
+      operationId: downloadImageSnapshot
+      parameters:
+        - in: header
+          name: Authorization
+          description: User Token
+          required: true
+          type: string
+        - in: path
+          name: id
+          description: Microservice Id
+          required: true
+          type: string
+      responses:
+        '201':
+          description: Created
+          schema:
+            type: object
+            properties:
+              id:
+                type: string
+          headers:
+            X-Timestamp:
+              type: number
+              description: FogController server timestamp
+        '401':
+          description: Not Authorized
+        '404':
+          description: Invalid Microservice Id
+        '500':
+          description: Internal Server Error
   '/iofog/microservices/{id}/strace':
     post:
       tags:
