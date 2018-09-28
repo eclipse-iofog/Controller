@@ -163,8 +163,9 @@ To setup email sender, do following steps:
 
 2.&ensp;To add a ComSat
 
-        sudo fog-controller comsat -add <name> <domain> <publicIP> <cert> <selfSignedCerts>
+        sudo fog-controller comsat -add <name> <domain> <publicIP> <devMode> <cert> <selfSignedCerts>
         
+&ensp; *devMode* is parameter to set secure or non secure connection. In order to set secure use 'false', else use 'true' 
 &ensp; *cert* is path to the certificate file (optional)  
 &ensp; *selfSignedCerts* is boolean value indicating if certificate is self signed or not  
 &ensp;If certificate is self signed then <selfSignedCerts> should be set to 'true', otherwise it should be set to any other value or not set at all.

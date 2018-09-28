@@ -83,8 +83,8 @@ class Help {
 	}
 
   static displayComsatAddHelp(){
-    console.log(`\t\t\t-add <name> <domain> <publicIP> [<certFile>] \tCreates a new ComSat`);
-	console.log(`\t\t\t\t\t\t [<selfSignedCerts>]`);
+    console.log(`\t\t\t-add <name> <domain> <publicIP> <devMode>  \tCreates a new ComSat`);
+	console.log(`\t\t\t\t\t\t [<certFile>] [<selfSignedCerts>]`);
   }
 
 	static displayProxyAddHelp(){
