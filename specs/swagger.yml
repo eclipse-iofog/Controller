@@ -1236,7 +1236,7 @@ paths:
           description: Not Found
         '500':
           description: Internal Server Error
-  '/iofog/microservices/{id}/imageSnapshot':
+  '/iofog/microservices/{id}/image-snapshot':
     post:
       tags:
         - Diagnostics
@@ -1288,13 +1288,13 @@ paths:
           required: true
           type: string
       responses:
-        '201':
-          description: Created
-          schema:
-            type: object
-            properties:
-              id:
+        '200':
+          description: Success
+          content:
+            application/gzip:
+              schema:
                 type: string
+                format: binary
           headers:
             X-Timestamp:
               type: number
