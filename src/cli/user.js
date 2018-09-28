@@ -18,13 +18,13 @@ class User extends BaseCLIHandler {
 
     switch (userCommand.command.command) {
       case 'add':
-        return console.log(JSON.stringify(userCommand.add, null, 2))
+        return
       case 'update':
-        return console.log(JSON.stringify(userCommand.update, null, 2))
+        return
       case 'remove':
-        return console.log(JSON.stringify(userCommand.remove, null, 2))
+        return
       case 'generate-token':
-        return console.log(JSON.stringify(userCommand['generate-token'], null, 2))
+        return
       case 'help':
       default:
         return this.help()

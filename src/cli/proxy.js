@@ -19,11 +19,11 @@ class Proxy extends BaseCLIHandler {
 
     switch (proxyCommand.command.command) {
       case 'add':
-        return console.log(JSON.stringify(proxyCommand.add, null, 2))
+        return
       case 'update':
-        return console.log(JSON.stringify(proxyCommand.update, null, 2))
+        return
       case 'remove':
-        return console.log(JSON.stringify(proxyCommand.remove, null, 2))
+        return
       case 'help':
       default:
         return this.help()

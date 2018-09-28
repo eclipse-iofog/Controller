@@ -1,5 +1,6 @@
 const daemonize = require('daemonize2')
 const Cli = require('./cli')
+const logger = require('./logger')
 
 function main() {
   const daemon = daemonize.setup({
@@ -13,22 +14,22 @@ function main() {
 
   daemon
     .on("starting", () => {
-      console.log("Starting fog-controller...")
+      logger.silly("Starting fog-controller...")
     })
     .on("stopping", () => {
-      console.log("Stopping fog-controller...")
+      logger.silly("Stopping fog-controller...")
     })
     .on("stopped", (pid) => {
-      console.log("fog-controller stopped.")
+      logger.silly("fog-controller stopped.")
     })
     .on("running", (pid) => {
-      console.log("fog-controller already running. PID: " + pid)
+      logger.silly("fog-controller already running. PID: " + pid)
     })
     .on("notrunning", () => {
-      console.log("fog-controller is not running")
+      logger.silly("fog-controller is not running")
     })
     .on("error", (err) => {
-      console.log("fog-controller failed to start:  " + err.message)
+      logger.silly("fog-controller failed to start:  " + err.message)
     })
 
   cli.run(daemon)
