@@ -67,10 +67,12 @@ const openPortsOnComsat = function (params, callback) {
             mapping: '{"type":"private","maxconnectionsport1":1, "maxconnectionsport2":1, ' +
             '"heartbeatabsencethresholdport1":200000, "heartbeatabsencethresholdport2":200000}'
         });
-    
+
+    let port = (params.satellite.devMode == 1) ? constants.HTTP_PORT : constants.HTTPS_PORT;
+
     let options = {
         host: params.satellite.domain,
-        port: (params.satellite.devMode == 1) ? constants.HTTP_PORT : constants.HTTPS_PORT,
+        port: port,
         path: '/api/v2/mapping/add',
         method: 'POST',
         headers: {
@@ -128,9 +130,11 @@ const closePortsOnComsat = function (params, callback) {
             });
             console.log(data);
 
+            let port = (obj.devMode == 1) ? constants.HTTP_PORT : constants.HTTPS_PORT;
+
             let options = {
                 host: obj.domain,
-                port: (obj.devMode == 1) ? constants.HTTP_PORT : constants.HTTPS_PORT,
+                port: port,
                 path: '/api/v2/mapping/remove',
                 method: 'POST',
                 headers: {
@@ -188,10 +192,12 @@ const closePortOnComsat = function (params, callback) {
         mappingid: params.satellitePort.mappingId
     });
     console.log(data);
-    
+
+    let port = (params.satellite.devMode == 1) ? constants.HTTP_PORT : constants.HTTPS_PORT;
+
     let options = {
         host: params.satellite.domain,
-        port: (params.satellite.devMode == 1) ? constants.HTTP_PORT : constants.HTTPS_PORT,
+        port: port,
         path: '/api/v2/mapping/remove',
         method: 'POST',
         headers: {
@@ -287,9 +293,11 @@ const verifyComsatConnections = function (params, callback) {
         percentage_done = Math.round((count / params.satellite.length) * 100);
         process.stdout.write('Percentage completed ' + percentage_done + '%');
 
+        let port = (satellite.devMode == 1) ? constants.HTTP_PORT : constants.HTTPS_PORT;
+
         let options = {
             host: satellite.domain,
-            port: (satellite.devMode == 1) ? constants.HTTP_PORT : constants.HTTPS_PORT,
+            port: port,
             path: '/api/v2/status',
             method: 'POST',
             headers: {

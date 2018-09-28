@@ -67,9 +67,8 @@ class SatelliteManager extends BaseManager {
     });
   }
 
-  // TODO set dev mode?
-  createSatellite(name, domain, publicIP, certFile, selfSignedCerts) {
-    if (name && domain && publicIP) {
+  createSatellite(name, domain, publicIP, devMode, certFile, selfSignedCerts) {
+    if (name && domain && publicIP & devMode) {
       if (AppUtils.isValidName(name)){
         if(AppUtils.isValidDomain(domain) || AppUtils.isValidPublicIP()){
           if(AppUtils.isValidPublicIP(publicIP)){
@@ -81,7 +80,7 @@ class SatelliteManager extends BaseManager {
                         name: name,
                         domain: domain,
                         publicIP: publicIP,
-                        devMode: true,
+                        devMode: devMode,
                         cert: '',
                         selfSignedCerts: false
                       }).then(function(satellite) {
@@ -94,7 +93,7 @@ class SatelliteManager extends BaseManager {
                               name: name,
                               domain: domain,
                               publicIP: publicIP,
-                              devMode: false,
+                              devMode: devMode,
                               cert: AppUtils.trimCertificate(cert),
                               selfSignedCerts: selfSignedCerts || false
                           }).then(function(satellite) {
@@ -112,18 +111,18 @@ class SatelliteManager extends BaseManager {
                 });
             }else{
               console.log('ComSat publicIP is invalid. Try again with different ComSat publicIP.');
-              console.log('Please provide values in following order:\n fog-controller comsat -add <name> <domain> <publicIP> [<certFile>] [<selfSignedCerts>]');
+              console.log('Please provide values in following order:\n fog-controller comsat -add <name> <domain> <publicIP> <devMode> [<certFile>] [<selfSignedCerts>]');
             }
         }else{
           console.log('ComSat domain is invalid. Try again with different ComSat domain.');
-          console.log('Please provide values in following order:\n fog-controller comsat -add <name> <domain> <publicIP> [<certFile>] [<selfSignedCerts>]');
+          console.log('Please provide values in following order:\n fog-controller comsat -add <name> <domain> <publicIP> <devMode> [<certFile>] [<selfSignedCerts>]');
         }
       }else{
         console.log('ComSat name is invalid. Try again with different ComSat name.');
-        console.log('Please provide values in following order:\n fog-controller comsat -add <name> <domain> <publicIP> [<certFile>] [<selfSignedCerts>]');
+        console.log('Please provide values in following order:\n fog-controller comsat -add <name> <domain> <publicIP> <devMode> [<certFile>] [<selfSignedCerts>]');
       }
     }else { 
-      console.log('Please provide values in following order:\n fog-controller comsat -add <name> <domain> <publicIP> [<certFile>] [<selfSignedCerts>]');
+      console.log('Please provide values in following order:\n fog-controller comsat -add <name> <domain> <publicIP> <devMode> [<certFile>] [<selfSignedCerts>]');
     }
 }
 
