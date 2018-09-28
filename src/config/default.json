@@ -1,5 +1,6 @@
 {
   "App": {
     "Name": "fog-controller"
-  }
+  },
+  "dbPath": "fog-controller-db/fog_controller_new.db"
 }
