@@ -297,7 +297,7 @@ const verifyComsatConnections = function (params, callback) {
                 'Content-Length': Buffer.byteLength(data)
             }
         };
-        console.log(options);
+
         let httpreq = ((satellite.devMode == 1)? http : https).request(options, function (response) {
             console.log(options);
             if (response.statusCode == 200) {
