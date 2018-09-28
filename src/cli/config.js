@@ -59,11 +59,11 @@ class Config extends BaseCLIHandler {
       config.set('Server:IntermediateCert', configCommand.config.intermediateCert)
     }
 
-    if (configCommand.emailActivationOn === true) {
+    if (configCommand.config.emailActivationOn === true && !config.get('Email:ActivationEnabled')) {
       config.set('Email:ActivationEnabled', true)
     }
 
-    if (configCommand.emailActivationOff === true) {
+    if (configCommand.config.emailActivationOff === true && config.get('Email:ActivationEnabled')) {
       config.set('Email:ActivationEnabled', false)
     }
 

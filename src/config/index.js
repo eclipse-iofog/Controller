@@ -1,22 +1,28 @@
 const nconf = require('nconf')
 const path = require('path')
 
-function Config() {
-  nconf.env({ separator: '_', })
-  const environment = nconf.get('NODE:ENV') || 'production'
-  nconf.file(environment, path.join(__dirname, process.env.NODE_ENV.toLowerCase() + '.json'))
-  nconf.file('default', path.join(__dirname, 'default.json'))
-}
+class Config {
+  constructor() {
+    nconf.env({ separator: '_', })
+    const environment = nconf.get('NODE:ENV') || 'production'
+    this.load(environment)
+  }
 
-Config.prototype.get = (key) => {
-  return nconf.get(key)
-}
+  get(key) {
+    return nconf.get(key)
+  }
 
-Config.prototype.set = (key, value) => {
-  const environment = nconf.get('NODE:ENV') || 'production'
+  set(key, value) {
+    const environment = nconf.get('NODE:ENV') || 'production'
 
-  nconf.set(key, value)
-  nconf.save(environment)
+    nconf.stores[environment].set(key, value)
+    nconf.stores[environment].saveSync()
+  }
+
+  load(environment) {
+    nconf.file(environment, path.join(__dirname, environment.toLowerCase() + '.json'))
+    nconf.file('default', path.join(__dirname, 'default.json'))
+  }
 }
 
 module.exports = new Config()
