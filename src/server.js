@@ -48,18 +48,17 @@ fs.readdirSync(path.join(__dirname, 'routes'))
   .forEach(setupMiddleware)
 
 function startHttpServer(app, port) {
-  logger.warn("| SSL not configured, starting HTTP server.|")
+  logger.silly("| SSL not configured, starting HTTP server.|")
 
-  console.log("------------------------------------------")
-  console.log("| SSL not configured, starting HTTP server.|")
-  console.log("------------------------------------------")
+  logger.silly("------------------------------------------")
+  logger.silly("| SSL not configured, starting HTTP server.|")
+  logger.silly("------------------------------------------")
 
   app.listen(port, function onStart(err) {
     if (err) {
-      console.log(err)
+      logger.error(err)
     }
-    logger.info('==> 🌎 Listening on port %s. Open up http://localhost:%s/ in your browser.', port, port)
-    console.log('==> 🌎 Listening on port %s. Open up http://localhost:%s/ in your browser.', port, port)
+    logger.silly(`==> 🌎 Listening on port ${port}. Open up http://localhost:${port}/ in your browser.`, port, port)
   })
 }
 
@@ -76,14 +75,11 @@ function startHttpsServer(app, port, sslKey, sslCert, intermedKey) {
     https.createServer(sslOptions, app).listen(port, function onStart(err) {
       if (err) {
         logger.error(err)
-        console.log(err)
       }
-      logger.info('==> 🌎 HTTPS server listening on port %s. Open up https://localhost:%s/ in your browser.', port, port)
-      console.log('==> 🌎 HTTPS server listening on port %s. Open up https://localhost:%s/ in your browser.', port, port)
+      logger.silly(`==> 🌎 HTTPS server listening on port ${port}. Open up https://localhost:${port}/ in your browser.`)
     })
   } catch (e) {
     logger.error('ssl_key or ssl_cert or intermediate_cert is either missing or invalid. Provide valid SSL configurations.')
-    console.log('ssl_key or ssl_cert or intermediate_cert is either missing or invalid. Provide valid SSL configurations.')
   }
 }
 

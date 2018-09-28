@@ -1,5 +1,11 @@
 {
+  "App": {
+    "Name": "fog-controller"
+  },
   "Server": {
     "Port": 51121
+  },
+  "Service": {
+    "LogsDirectory": "/Users/saeid/logs/fog-controller"
   }
 }
