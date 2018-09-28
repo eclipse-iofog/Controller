@@ -20,7 +20,7 @@ paths:
             $ref: '#/definitions/ServiceStatusResponse'
         '500':
           description: Internal Server Error
-  '/emailActivation':
+  '/email-activation':
     get:
       tags:
         - Controller
@@ -33,7 +33,7 @@ paths:
             $ref: '#/definitions/EmailActivationStatusResponse'
         '500':
             description: Internal Server Error
-  '/fogTypes':
+  '/fog-types':
     get:
       tags:
         - Controller
@@ -1690,7 +1690,7 @@ paths:
           description: Bad Request
         500:
           description: Internal Server Error
-  '/user/signup/resendActivation':
+  '/user/signup/resend-activation':
     get:
       tags:
         - User
