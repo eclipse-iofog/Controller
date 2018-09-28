@@ -299,7 +299,6 @@ const verifyComsatConnections = function (params, callback) {
         };
 
         let httpreq = ((satellite.devMode == 1)? http : https).request(options, function (response) {
-            console.log(options);
             if (response.statusCode == 200) {
                 let output = '';
                 response.setEncoding('utf8');
