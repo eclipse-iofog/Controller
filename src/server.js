@@ -12,6 +12,9 @@ const xss = require('xss-clean')
 
 const app = express()
 
+
+const Sequelize = require('./sequelize/models/index');
+
 app.use(helmet())
 app.use(xss())
 
