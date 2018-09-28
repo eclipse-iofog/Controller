@@ -1,25 +1,7 @@
 module.exports = [
     {
         method: 'post',
-        path: '/api/v3/user/login',
-        middleware: (req, res) => {
-            res
-                .status(200)
-                .send(req.body)
-        }
-    },
-    {
-        method: 'post',
-        path: '/api/v3/user/logout',
-        middleware: (req, res) => {
-            res
-                .status(200)
-                .send(req.body)
-        }
-    },
-    {
-        method: 'post',
-        path: '/api/v3/user/signup',
+        path: '/api/v3/iofog/agent/provision',
         middleware: (req, res) => {
             res
                 .status(200)
@@ -28,7 +10,7 @@ module.exports = [
     },
     {
         method: 'get',
-        path: '/api/v3/user/signup/resendActivation',
+        path: '/api/v3/iofog/:id/agent/config',
         middleware: (req, res) => {
             res
                 .status(200)
@@ -36,8 +18,8 @@ module.exports = [
         }
     },
     {
-        method: 'post',
-        path: '/api/v3/user/activate',
+        method: 'patch',
+        path: '/api/v3/iofog/:id/agent/config',
         middleware: (req, res) => {
             res
                 .status(200)
@@ -46,7 +28,7 @@ module.exports = [
     },
     {
         method: 'get',
-        path: '/api/v3/user/profile',
+        path: '/api/v3/iofog/:id/agent/config/changes',
         middleware: (req, res) => {
             res
                 .status(200)
@@ -54,8 +36,8 @@ module.exports = [
         }
     },
     {
-        method: 'patch',
-        path: '/api/v3/user/profile',
+        method: 'put',
+        path: '/api/v3/iofog/:id/agent/status',
         middleware: (req, res) => {
             res
                 .status(200)
@@ -63,8 +45,8 @@ module.exports = [
         }
     },
     {
-        method: 'delete',
-        path: '/api/v3/user/profile',
+        method: 'get',
+        path: '/api/v3/iofog/:id/agent/microservices',
         middleware: (req, res) => {
             res
                 .status(200)
@@ -72,8 +54,8 @@ module.exports = [
         }
     },
     {
-        method: 'patch',
-        path: '/api/v3/user/password',
+        method: 'get',
+        path: '/api/v3/iofog/:iofogId/agent/microservices/:microserviceId',
         middleware: (req, res) => {
             res
                 .status(200)
@@ -81,8 +63,44 @@ module.exports = [
         }
     },
     {
-        method: 'delete',
-        path: '/api/v3/user/password',
+        method: 'get',
+        path: '/api/v3/iofog/:id/agent/registries',
+        middleware: (req, res) => {
+            res
+                .status(200)
+                .send(req.body)
+        }
+    },
+    {
+        method: 'get',
+        path: '/api/v3/iofog/:id/agent/proxy',
+        middleware: (req, res) => {
+            res
+                .status(200)
+                .send(req.body)
+        }
+    },
+    {
+        method: 'get',
+        path: '/api/v3/iofog/:id/agent/strace',
+        middleware: (req, res) => {
+            res
+                .status(200)
+                .send(req.body)
+        }
+    },
+    {
+        method: 'put',
+        path: '/api/v3/iofog/:id/agent/strace',
+        middleware: (req, res) => {
+            res
+                .status(200)
+                .send(req.body)
+        }
+    },
+    {
+        method: 'get',
+        path: '/api/v3/iofog/agent/version',
         middleware: (req, res) => {
             res
                 .status(200)
