@@ -14,7 +14,8 @@ class Config extends BaseCLIHandler {
       { name: 'ssl-cert', alias: 'c', type: String, description: 'Path to SSL certificate file', group: 'config' },
       { name: 'ssl-key', alias: 'k', type: String, description: 'Path to SSL key file', group: 'config' },
       { name: 'intermediate-cert', alias: 'i', type: String, description: 'Path to SSL intermediate certificate file', group: 'config' },
-      { name: 'email-activation', alias: 'm', type: Boolean, description: 'Email activation required or not', group: 'config' },
+      { name: 'email-activation-on', alias: 'm', type: Boolean, description: 'Email activation required', group: 'config' },
+      { name: 'email-activation-off', alias: 'n', type: Boolean, description: 'Email activation not required', group: 'config' },
       { name: 'email-address', alias: 'a', type: String, description: 'Email address to send activations from', group: 'config' },
       { name: 'email-password', alias: 'w', type: String, description: 'Email password to send activations from', group: 'config' },
       { name: 'email-service', alias: 's', type: String, description: 'Email service to send activations', group: 'config' },
@@ -58,7 +59,13 @@ class Config extends BaseCLIHandler {
       config.set('Server:IntermediateCert', configCommand.config.intermediateCert)
     }
 
-    config.set('Email:ActivationEnabled', configCommand.config.emailActivation === true)
+    if (configCommand.emailActivationOn === true) {
+      config.set('Email:ActivationEnabled', true)
+    }
+
+    if (configCommand.emailActivationOff === true) {
+      config.set('Email:ActivationEnabled', false)
+    }
 
     if (configCommand.config.emailAddress != null && config.get('Email:Address') !== configCommand.config.emailAddress) {
       if (configCommand.config.emailPassword == null) {
@@ -82,6 +89,31 @@ class Config extends BaseCLIHandler {
     if (configCommand.config.logSize != null) {
       config.set('Service:LogsFileSize', configCommand.config.logSize * 1024)
     }
+
+    if (configCommand.config.list === true) {
+      this.listConfig()
+    }
+  }
+
+  listConfig() {
+    const configuration = {
+      'Port': config.get('Server:Port'),
+      'SSL key directory': config.get('Server:SslKey'),
+      'SSL certificate directory': config.get('Server:SslCert'),
+      'Intermediate key directory': config.get('Server:IntermediateCert'),
+      'Email activation': config.get('Email:ActivationEnabled') ? 'on' : 'off',
+      'Email address': config.get('Email:Address'),
+      'Email password': config.get('Email:Password'),
+      'Email service': config.get('Email:Service'),
+      'Log files directory': config.get('Service:LogsDirectory'),
+      'Log files size': config.get('Service:LogsFileSize'),
+    }
+
+    const result = Object.keys(configuration)
+      .filter(key => configuration[key] != null)
+      .map(key => `${key}: ${configuration[key]}`)
+      .join('\n')
+    console.log(result)
   }
 }
 

@@ -7,7 +7,10 @@ const logger = winston.createLogger({
   level: 'silly',
   transports: [
     new winston.transports.File({
-      format: winston.format.logstash(),
+      format: winston.format.combine(
+        winston.format.timestamp(),
+        winston.format.logstash()
+      ),
       filename: 'fog-controller.log',
       dirname: config.get('Service:LogsDirectory'),
       maxsize:  config.get('Service:LogsFileSize'),
