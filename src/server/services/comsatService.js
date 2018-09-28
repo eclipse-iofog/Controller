@@ -17,6 +17,7 @@ const https = require('https');
 const http = require('http');
 const SatelliteManager = require('../managers/satelliteManager');
 const SatelliteService = require('../services/satelliteService');
+const constants = require('../constants');
 
 const openPortOnRandomComsat = function (params, callback) {
     let isComsatPortOpen = false,
@@ -69,7 +70,7 @@ const openPortsOnComsat = function (params, callback) {
     
     let options = {
         host: params.satellite.domain,
-        port: (params.satellite.devMode) ? constants.HTTP_PORT : constants.HTTPS_PORT,
+        port: (params.satellite.devMode == 1) ? constants.HTTP_PORT : constants.HTTPS_PORT,
         path: '/api/v2/mapping/add',
         method: 'POST',
         headers: {
@@ -78,7 +79,7 @@ const openPortsOnComsat = function (params, callback) {
         }
     };
 
-    let httpreq = (params.satellite.devMode? http : https).request(options, function (response) {
+    let httpreq = ((params.satellite.devMode == 1)? http : https).request(options, function (response) {
         console.log(response.statusCode);
         let output = '';
         response.setEncoding('utf8');
@@ -129,7 +130,7 @@ const closePortsOnComsat = function (params, callback) {
 
             let options = {
                 host: obj.domain,
-                port: (obj.devMode) ? constants.HTTP_PORT : constants.HTTPS_PORT,
+                port: (obj.devMode == 1) ? constants.HTTP_PORT : constants.HTTPS_PORT,
                 path: '/api/v2/mapping/remove',
                 method: 'POST',
                 headers: {
@@ -138,7 +139,7 @@ const closePortsOnComsat = function (params, callback) {
                 }
             };
 
-            let httpreq = (obj.devMode ? http : https).request(options, function (response) {
+            let httpreq = ((obj.devMode == 1) ? http : https).request(options, function (response) {
                 console.log(response.statusCode);
                 let output = '';
                 response.setEncoding('utf8');
@@ -190,7 +191,7 @@ const closePortOnComsat = function (params, callback) {
     
     let options = {
         host: params.satellite.domain,
-        port: (params.satellite.devMode) ? constants.HTTP_PORT : constants.HTTPS_PORT,
+        port: (params.satellite.devMode == 1) ? constants.HTTP_PORT : constants.HTTPS_PORT,
         path: '/api/v2/mapping/remove',
         method: 'POST',
         headers: {
@@ -199,7 +200,7 @@ const closePortOnComsat = function (params, callback) {
         }
     };
 
-    let httpreq = (params.satellite.devMode ? http : https).request(options, function (response) {
+    let httpreq = ((params.satellite.devMode == 1) ? http : https).request(options, function (response) {
         console.log(response.statusCode);
         let output = '';
         response.setEncoding('utf8');
@@ -284,11 +285,11 @@ const verifyComsatConnections = function (params, callback) {
         process.stdout.clearLine();
         process.stdout.cursorTo(0);
         percentage_done = Math.round((count / params.satellite.length) * 100);
-
         process.stdout.write('Percentage completed ' + percentage_done + '%');
+
         let options = {
             host: satellite.domain,
-            port: (satellite.devMode) ? constants.HTTP_PORT : constants.HTTPS_PORT,
+            port: (satellite.devMode == 1) ? constants.HTTP_PORT : constants.HTTPS_PORT,
             path: '/api/v2/status',
             method: 'POST',
             headers: {
@@ -296,8 +297,9 @@ const verifyComsatConnections = function (params, callback) {
                 'Content-Length': Buffer.byteLength(data)
             }
         };
-
-        let httpreq = (satellite.devMode? http : https).request(options, function (response) {
+        console.log(options);
+        let httpreq = ((satellite.devMode == 1)? http : https).request(options, function (response) {
+            console.log(options);
             if (response.statusCode == 200) {
                 let output = '';
                 response.setEncoding('utf8');
@@ -325,7 +327,6 @@ const verifyComsatConnections = function (params, callback) {
                 invalidSatellites.push(satellite);
                 cb();
             });
-
             httpreq.write(data);
             httpreq.end();
         },

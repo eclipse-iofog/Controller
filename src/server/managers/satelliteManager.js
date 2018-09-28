@@ -150,7 +150,7 @@ class SatelliteManager extends BaseManager {
           console.log('\n\tID | ComSat Name | Domain | Public IP | Dev');
           for (let i = 0; i < satellite.length; i++) {
             console.log('\t' + satellite[i].id + ' | ' + satellite[i].name + ' | ' + satellite[i].domain + ' | ' 
-                        + satellite[i].publicIP + satellite[i].devMode);
+                        + satellite[i].publicIP + ' | ' + new Boolean(satellite[i].devMode));
           }
         } else {
           console.log('No ComSat found');

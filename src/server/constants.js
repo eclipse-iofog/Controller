@@ -18,6 +18,8 @@
  */
 
 const ACCESS_TOKEN_EXPIRE_PERIOD = 14 * (60 * 60 * 24);
+const HTTP_PORT = 8080;
+const HTTPS_PORT = 443;
 
 const MSG = {
   ERROR_INVALID_PROVISTION_KEY: 'Invalid key: The provisioning key you provided was not valid for granting access.',
@@ -64,8 +66,7 @@ const CONFIG = {
 module.exports =  {
   ACCESS_TOKEN_EXPIRE_PERIOD: ACCESS_TOKEN_EXPIRE_PERIOD,
   MSG: MSG,
-  CONFIG: CONFIG
+  CONFIG: CONFIG,
+  HTTP_PORT: HTTP_PORT,
+  HTTPS_PORT: HTTPS_PORT
 };
-
-const HTTP_PORT = 8080;
-const HTTPS_PORT = 443;
