@@ -34,6 +34,7 @@
     "helmet": "^3.13.0",
     "nconf": "^0.10.0",
     "path": "^0.12.7",
+    "winston": "^3.1.0",
     "xss-clean": "^0.1.1",
     "sequelize": "^4.39.0",
     "fs": "^0.0.1-security",

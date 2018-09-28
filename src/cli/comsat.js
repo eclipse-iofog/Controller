@@ -19,13 +19,13 @@ class Comsat extends BaseCLIHandler {
 
     switch (comsatCommand.command.command) {
       case 'add':
-        return console.log(JSON.stringify(comsatCommand.add, null, 2))
+        return
       case 'update':
-        return console.log(JSON.stringify(comsatCommand.update, null, 2))
+        return
       case 'remove':
-        return console.log(JSON.stringify(comsatCommand.remove, null, 2))
+        return
       case 'list':
-        return console.log('list :)')
+        return
       case 'help':
       default:
         return this.help()
