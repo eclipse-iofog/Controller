@@ -4,14 +4,28 @@ const User = require('./user')
 const Comsat = require('./comsat')
 const Config = require('./config')
 const Proxy = require('./proxy')
+const IOFog = require('./iofog')
+
+const constants = require('../helpers/constants')
 
 class Cli extends BaseCLIHandler {
   constructor() {
     super()
-
     this.commandDefinitions = [
       { name: 'command', defaultOption: true },
     ]
+    this.commands = {
+      [constants.CMD_START]: 'Start fog-controller service.',
+      [constants.CMD_STOP]: 'Stop fog-controller service.',
+      [constants.CMD_STATUS]: 'Display fog-controller service status.',
+      [constants.CMD_HELP]: 'Display usage information.',
+      [constants.CMD_VERSION]: 'Display fog-controller service version.',
+      [constants.CMD_USER]: 'User operations.',
+      [constants.CMD_CONFIG]: 'Set/Display fog-controller service config.',
+      [constants.CMD_COMSAT]: 'ComSat operations.',
+      [constants.CMD_PROXY]: 'Proxy operations.',
+      [constants.CMD_IOFOG]: 'ioFog nodes operations.',
+    }
   }
 
   run(daemon) {
@@ -19,49 +33,26 @@ class Cli extends BaseCLIHandler {
     const argv = mainCommand._unknown || []
 
     switch (mainCommand.command) {
-      case 'start':
+      case constants.CMD_START:
         return Start.run({ daemon })
-      case 'stop':
+      case constants.CMD_STOP:
         return daemon.stop()
-      case 'status':
+      case constants.CMD_STATUS:
         break
-      case 'user':
+      case constants.CMD_USER:
         return User.run({ argv })
-      case 'config':
+      case constants.CMD_CONFIG:
         return Config.run({ argv })
-      case 'comsat':
+      case constants.CMD_COMSAT:
         return Comsat.run({ argv })
-      case 'proxy':
+      case constants.CMD_PROXY:
         return Proxy.run({ argv })
-      case 'help':
+      case constants.CMD_IOFOG:
+        return IOFog.run({ argv })
+      case constants.CMD_HELP:
       default:
-        return this.help()
+        return this.help([], false)
     }
-  }
-
-  help() {
-    super.help(
-      [
-        {
-          header: 'Usage',
-          content: '$ fog-controller <command> <options>'
-        },
-        {
-          header: 'Command List',
-          content: [
-            { name: 'start', summary: 'Start fog-controller service.' },
-            { name: 'stop', summary: 'Stop fog-controller service.' },
-            { name: 'status', summary: 'Display fog-controller service status.' },
-            { name: 'help', summary: 'Display usage information.' },
-            { name: 'version', summary: 'Display fog-controller service version.' },
-            { name: 'user', summary: 'User operations.' },
-            { name: 'config', summary: 'Set/Display fog-controller service config.' },
-            { name: 'comsat', summary: 'ComSat operations.' },
-            { name: 'proxy', summary: 'Proxy operations.' },
-          ]
-        }
-      ]
-    )
   }
 }
 
