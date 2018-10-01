@@ -1,6 +1,6 @@
 'use strict';
 module.exports = (sequelize, DataTypes) => {
-  const Tunnel = sequelize.define('Tunnel', {
+  const FogAccessToken = sequelize.define('FogAccessToken', {
     id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
@@ -8,35 +8,13 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       field: 'id'
     },
-    username: {
+    expirationTime: {
+      type: DataTypes.BIGINT,
+      field: 'expiration_time'
+    },
+    token: {
       type: DataTypes.TEXT,
-      field: 'username'
-    },
-    password: {
-      type: DataTypes.TEXT,
-      field: 'password'
-    },
-    host: {
-      type: DataTypes.TEXT,
-      field: 'host'
-    },
-    rport: {
-      type: DataTypes.INTEGER,
-      field: 'remote_port'
-    },
-    lport: {
-      type: DataTypes.INTEGER,
-      defaultValue: 22,
-      field: 'local_port'
-    },
-    rsakey: {
-      type: DataTypes.TEXT,
-      field: 'rsa_key'
-    },
-    close: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false,
-      field: 'close'
+      field: 'token'
     }
   }, {
     // don't add the timestamp attributes (updatedAt, createdAt)
@@ -47,13 +25,19 @@ module.exports = (sequelize, DataTypes) => {
     // so updatedAt will be updated_at
     underscored: true
   });
-  Tunnel.associate = function(models) {
+  FogAccessToken.associate = function(models) {
     // associations can be defined here
-    Tunnel.belongsTo(models.Fog, {
+    FogAccessToken.belongsTo(models.User, {
+      foreignKey: 'user_id',
+      as: 'userId',
+      onDelete: 'cascade'
+    });
+
+    FogAccessToken.belongsTo(models.Fog, {
       foreignKey: 'iofog_uuid',
       as: 'iofogUuid',
       onDelete: 'cascade'
     });
   };
-  return Tunnel;
+  return FogAccessToken;
 };

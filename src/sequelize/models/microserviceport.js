@@ -1,29 +1,20 @@
 'use strict';
 module.exports = (sequelize, DataTypes) => {
-  const Flow = sequelize.define('Flow', {
+  const MicroservicePort = sequelize.define('MicroservicePort', {
     id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true,
       allowNull: false,
       field: 'id'
-
     },
-    name: {
-      type: DataTypes.TEXT,
-      field: 'name'
-    },
-    description: {
-      type: DataTypes.TEXT,
-      field: 'description'
-    },
-    isSelected: {
+    portInternal: {
       type: DataTypes.INTEGER,
-      field: 'is_selected'
+      field: 'port_internal'
     },
-    isActivated: {
+    portExternal: {
       type: DataTypes.INTEGER,
-      field: 'is_activated'
+      field: 'port_external'
     }
   }, {
     // don't add the timestamp attributes (updatedAt, createdAt)
@@ -34,19 +25,19 @@ module.exports = (sequelize, DataTypes) => {
     // so updatedAt will be updated_at
     underscored: true
   });
-  Flow.associate = function(models) {
+  MicroservicePort.associate = function(models) {
     // associations can be defined here
-    Flow.belongsTo(models.User, {
-      foreignKey: 'user_id',
-      as: 'userId',
+    MicroservicePort.belongsTo(models.Microservice, {
+      foreignKey: 'microservice_uuid',
+      as: 'microserviceUuid',
       onDelete: 'cascade'
     });
 
-    Flow.belongsTo(models.User, {
+    MicroservicePort.belongsTo(models.User, {
       foreignKey: 'updated_by',
       as: 'updatedBy',
-      onDelete: 'set null'
+      onDelete: 'cascade'
     });
   };
-  return Flow;
+  return MicroservicePort;
 };

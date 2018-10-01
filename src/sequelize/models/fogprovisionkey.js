@@ -1,6 +1,6 @@
 'use strict';
 module.exports = (sequelize, DataTypes) => {
-  const Satellite = sequelize.define('Satellite', {
+  const FogProvisionKey = sequelize.define('FogProvisionKey', {
     id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
@@ -8,37 +8,30 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       field: 'id'
     },
-    name: {
-      type: DataTypes.TEXT,
-      field: 'name'
+    provisionKey: {
+      type: DataTypes.STRING(100),
+      field: 'provisioning_string'
     },
-    domain: {
-      type: DataTypes.TEXT,
-      field: 'domain'
-    },
-    publicIP: {
-      type: DataTypes.TEXT,
-      field: 'public_ip'
-    },
-    cert: {
-      type: DataTypes.TEXT,
-      field: 'cert'
-    },
-    selfSignedCerts: {
-      type: DataTypes.BOOLEAN,
-      field: 'self_signed_certs'
+    expirationTime: {
+      type: DataTypes.BIGINT,
+      field: 'expiration_time'
     }
   }, {
     // don't add the timestamp attributes (updatedAt, createdAt)
-    timestamps: true,
+    timestamps: false,
     // disable the modification of table names
     freezeTableName: true,
     // don't use camelcase for automatically added attributes but underscore style
     // so updatedAt will be updated_at
     underscored: true
   });
-  Satellite.associate = function(models) {
+  FogProvisionKey.associate = function(models) {
     // associations can be defined here
+    FogProvisionKey.belongsTo(models.Fog, {
+      foreignKey: 'iofog_uuid',
+      as: 'iofogUuid',
+      onDelete: 'cascade'
+    });
   };
-  return Satellite;
+  return FogProvisionKey;
 };

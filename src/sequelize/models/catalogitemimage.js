@@ -1,52 +1,39 @@
 'use strict';
 module.exports = (sequelize, DataTypes) => {
-  const Flow = sequelize.define('Flow', {
+  const CatalogItemImage = sequelize.define('CatalogItemImage', {
     id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true,
       allowNull: false,
       field: 'id'
-
     },
-    name: {
+    containerImage: {
       type: DataTypes.TEXT,
-      field: 'name'
-    },
-    description: {
-      type: DataTypes.TEXT,
-      field: 'description'
-    },
-    isSelected: {
-      type: DataTypes.INTEGER,
-      field: 'is_selected'
-    },
-    isActivated: {
-      type: DataTypes.INTEGER,
-      field: 'is_activated'
+      field: 'container_image'
     }
   }, {
     // don't add the timestamp attributes (updatedAt, createdAt)
-    timestamps: true,
+    timestamps: false,
     // disable the modification of table names
     freezeTableName: true,
     // don't use camelcase for automatically added attributes but underscore style
     // so updatedAt will be updated_at
     underscored: true
   });
-  Flow.associate = function(models) {
+  CatalogItemImage.associate = function(models) {
     // associations can be defined here
-    Flow.belongsTo(models.User, {
-      foreignKey: 'user_id',
-      as: 'userId',
+    CatalogItemImage.belongsTo(models.CatalogItem, {
+      foreignKey: 'catalog_item_id',
+      as: 'catalogItemId',
+      onDelete: 'cascade'
+    });
+    CatalogItemImage.belongsTo(models.FogType, {
+      foreignKey: 'iofog_type_id',
+      as: 'fogTypeId',
       onDelete: 'cascade'
     });
 
-    Flow.belongsTo(models.User, {
-      foreignKey: 'updated_by',
-      as: 'updatedBy',
-      onDelete: 'set null'
-    });
   };
-  return Flow;
+  return CatalogItemImage;
 };

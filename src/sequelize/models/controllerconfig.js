@@ -1,52 +1,32 @@
 'use strict';
 module.exports = (sequelize, DataTypes) => {
-  const Flow = sequelize.define('Flow', {
+  const ControllerConfig = sequelize.define('ControllerConfig', {
     id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true,
       allowNull: false,
       field: 'id'
-
     },
-    name: {
+    key: {
       type: DataTypes.TEXT,
-      field: 'name'
+      field: 'key'
     },
-    description: {
+    value: {
       type: DataTypes.TEXT,
-      field: 'description'
-    },
-    isSelected: {
-      type: DataTypes.INTEGER,
-      field: 'is_selected'
-    },
-    isActivated: {
-      type: DataTypes.INTEGER,
-      field: 'is_activated'
+      field: 'value'
     }
   }, {
     // don't add the timestamp attributes (updatedAt, createdAt)
-    timestamps: true,
+    timestamps: false,
     // disable the modification of table names
     freezeTableName: true,
     // don't use camelcase for automatically added attributes but underscore style
     // so updatedAt will be updated_at
     underscored: true
   });
-  Flow.associate = function(models) {
+  ControllerConfig.associate = function(models) {
     // associations can be defined here
-    Flow.belongsTo(models.User, {
-      foreignKey: 'user_id',
-      as: 'userId',
-      onDelete: 'cascade'
-    });
-
-    Flow.belongsTo(models.User, {
-      foreignKey: 'updated_by',
-      as: 'updatedBy',
-      onDelete: 'set null'
-    });
   };
-  return Flow;
+  return ControllerConfig;
 };

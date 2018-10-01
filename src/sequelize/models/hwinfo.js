@@ -1,6 +1,6 @@
 'use strict';
 module.exports = (sequelize, DataTypes) => {
-  const Satellite = sequelize.define('Satellite', {
+  const HWInfo = sequelize.define('HWInfo', {
     id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
@@ -8,28 +8,13 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       field: 'id'
     },
-    name: {
+    info: {
       type: DataTypes.TEXT,
-      field: 'name'
-    },
-    domain: {
-      type: DataTypes.TEXT,
-      field: 'domain'
-    },
-    publicIP: {
-      type: DataTypes.TEXT,
-      field: 'public_ip'
-    },
-    cert: {
-      type: DataTypes.TEXT,
-      field: 'cert'
-    },
-    selfSignedCerts: {
-      type: DataTypes.BOOLEAN,
-      field: 'self_signed_certs'
+      defaultValue: " ",
+      field: 'info'
     }
   }, {
-    // don't add the timestamp attributes (updatedAt, createdAt)
+    // add the timestamp attributes (updatedAt, createdAt)
     timestamps: true,
     // disable the modification of table names
     freezeTableName: true,
@@ -37,8 +22,13 @@ module.exports = (sequelize, DataTypes) => {
     // so updatedAt will be updated_at
     underscored: true
   });
-  Satellite.associate = function(models) {
+  HWInfo.associate = function(models) {
     // associations can be defined here
+    HWInfo.belongsTo(models.Fog, {
+      foreignKey: 'iofog_uuid',
+      as: 'iofogUuid',
+      onDelete: 'cascade'
+    });
   };
-  return Satellite;
+  return HWInfo;
 };
