@@ -38,7 +38,6 @@ module.exports = (sequelize, DataTypes) => {
     }
   }, {
     timestamps: false,
-    freezeTableName: true,
     underscored: true
   });
   User.associate = function(models) {

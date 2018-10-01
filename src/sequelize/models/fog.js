@@ -215,7 +215,6 @@ module.exports = (sequelize, DataTypes) => {
     }
   }, {
     timestamps: true,
-    freezeTableName: true,
     underscored: true
   });
   Fog.associate = function(models) {

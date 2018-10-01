@@ -46,7 +46,6 @@ module.exports = (sequelize, DataTypes) => {
     }
   }, {
     timestamps: false,
-    freezeTableName: true,
     underscored: true
   });
   CatalogItem.associate = function(models) {
