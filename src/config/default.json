@@ -1,0 +1,16 @@
+{
+  "App": {
+    "Name": "fog-controller"
+  },
+  "Server": {
+    "Port": 54421
+  },
+  "Email": {
+    "ActivationEnabled": false
+  },
+  "Service": {
+    "LogsDirectory": "/var/log/fog-controller",
+    "LogsFileSize": 1048576
+  },
+  "dbPath": "fog-controller-db/fog_controller_new.db"
+}

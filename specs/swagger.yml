@@ -1276,6 +1276,8 @@ paths:
         - Diagnostics
       description: Download image snapshot
       operationId: downloadImageSnapshot
+      produces:
+        - application/gzip
       parameters:
         - in: header
           name: Authorization
@@ -1289,12 +1291,9 @@ paths:
           type: string
       responses:
         '200':
-          description: Success
-          content:
-            application/gzip:
-              schema:
-                type: string
-                format: binary
+          description: Created
+          schema:
+            type: file
           headers:
             X-Timestamp:
               type: number

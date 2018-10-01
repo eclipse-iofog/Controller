@@ -1,0 +1,47 @@
+'use strict';
+module.exports = {
+  up: (queryInterface, Sequelize) => {
+    return queryInterface.createTable('Satellites', {
+      id: {
+        type: Sequelize.INTEGER,
+        primaryKey: true,
+        autoIncrement: true,
+        allowNull: false,
+        field: 'id'
+      },
+      name: {
+        type: Sequelize.TEXT,
+        field: 'name'
+      },
+      domain: {
+        type: Sequelize.TEXT,
+        field: 'domain'
+      },
+      publicIP: {
+        type: Sequelize.TEXT,
+        field: 'public_ip'
+      },
+      cert: {
+        type: Sequelize.TEXT,
+        field: 'cert'
+      },
+      selfSignedCerts: {
+        type: Sequelize.BOOLEAN,
+        field: 'self_signed_certs'
+      },
+      createdAt: {
+        allowNull: false,
+        type: Sequelize.DATE,
+        field: 'created_at'
+      },
+      updatedAt: {
+        allowNull: false,
+        type: Sequelize.DATE,
+        field: 'updated_at'
+      }
+    });
+  },
+  down: (queryInterface, Sequelize) => {
+    return queryInterface.dropTable('Satellites');
+  }
+};
