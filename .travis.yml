@@ -1,0 +1,40 @@
+sudo: true
+language: node_js
+node_js: "9"
+notifications:
+  email: false  
+  slack:
+    rooms:
+      secure: taYfHvkkrx/6FbL2FURMvYuu2vUB9thEK2qIo4DZPOzlwdn5XpqzAFmMXD1kCqDLTPGnhsGknbqkx+zMWIjLg3RCsxNm+yPik98QO9NCMu9L+gjEmxt31m/WGfYyCQ0Gf1/cxvxtrC/TK5T1GzF6XKsRExmDctOexwWJIBnFLP77LbWhKKe3F8DAWtzs8$
+    on_success: change
+    on_failure: always
+stages:
+- name: dev_build
+  if: branch = develop
+- name: package_build
+  if: branch IN (master, dev_package)
+  
+jobs:
+  include:
+  - stage: dev_build
+    before_install:
+    - sudo apt-get install sshpass
+    script: 
+    - sshpass -p $DEV_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $DEV_MACHINE_USERNAME@$DEV_MACHINE_IP "cd /iotracks/FogController; git pull; npm i; npm run build-dev; pm2 restart FogController"
+  - stage: package_build
+    before_install:
+    - sudo apt-get install sshpass
+    script: 
+    - npm run build
+    deploy:
+      skip_cleanup: true
+      provider: npm 
+      email: ${NPM_EMAIL_ADDRESS}
+      api_key: ${NPM_AUTH_TOKEN}
+      on:
+        all_branches: true
+    after_deploy:
+    - if [ "$TRAVIS_BRANCH" == "dev_package" ]; then sshpass -p $PRE_PROD_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no
+      $PRE_PROD_MACHINE_USERNAME@$PRE_PROD_MACHINE_IP "fog-controller stop; npm update -g --unsafe-perm @iofog/fog-controller; fog-controller start"; 
+      else sshpass -p $PROD_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no
+      $PROD_MACHINE_USERNAME@$PROD_MACHINE_IP "fog-controller stop; npm update -g --unsafe-perm iofogcontroller; fog-controller start"; fi

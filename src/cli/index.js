@@ -1,68 +1,57 @@
-const BaseCLIHandler = require('./base-cli-handler')
-const Start = require('./start')
-const User = require('./user')
-const Comsat = require('./comsat')
-const Config = require('./config')
-const Proxy = require('./proxy')
+/*
+ * *******************************************************************************
+ *  * Copyright (c) 2018 Edgeworx, Inc.
+ *  *
+ *  * This program and the accompanying materials are made available under the
+ *  * terms of the Eclipse Public License v. 2.0 which is available at
+ *  * http://www.eclipse.org/legal/epl-2.0
+ *  *
+ *  * SPDX-License-Identifier: EPL-2.0
+ *  *******************************************************************************
+ *
+ */
 
-class Cli extends BaseCLIHandler {
-  constructor() {
-    super()
+const { Version } = require('./Version');
+const { Config } = require('./Config');
+const { Status } = require('./Status');
+const { Start } = require('./Start');
+const { User } = require('./User');
+const { Comsat } = require('./Comsat');
+const { Proxy } = require('./Proxy');
+const { Help } = require('./Help');
 
-    this.commandDefinitions = [
-      { name: 'command', defaultOption: true },
-    ]
+class CLI {
+  constructor(args){
+    this.args = args;
   }
 
   run(daemon) {
-    const mainCommand = this.parseCommandLineArgs(this.commandDefinitions)
-    const argv = mainCommand._unknown || []
-
-    switch (mainCommand.command) {
-      case 'start':
-        return Start.run({ daemon })
-      case 'stop':
-        return daemon.stop()
-      case 'status':
-        break
-      case 'user':
-        return User.run({ argv })
+    switch (this.args[0]) {
+      case 'version':
+        return Version.display(this.args);
       case 'config':
-        return Config.run({ argv })
+        let config = new Config(this.args.slice(1));
+        return config.run();
+      case 'status':
+        return Status.display(daemon);
+      case 'start':
+        return Start.run(daemon);
+      case 'stop':
+        return daemon.stop();
+      case 'user':
+        let user = new User(this.args.slice(1));
+        return user.run();
       case 'comsat':
-        return Comsat.run({ argv })
+        let comsat = new Comsat(this.args.slice(1));
+        return comsat.run();
       case 'proxy':
-        return Proxy.run({ argv })
+        let proxy = new Proxy(this.args.slice(1));
+        return proxy.run();
       case 'help':
       default:
-        return this.help()
+        Help.displayGeneralHelp();
     }
-  }
-
-  help() {
-    super.help(
-      [
-        {
-          header: 'Usage',
-          content: '$ fog-controller <command> <options>'
-        },
-        {
-          header: 'Command List',
-          content: [
-            { name: 'start', summary: 'Start fog-controller service.' },
-            { name: 'stop', summary: 'Stop fog-controller service.' },
-            { name: 'status', summary: 'Display fog-controller service status.' },
-            { name: 'help', summary: 'Display usage information.' },
-            { name: 'version', summary: 'Display fog-controller service version.' },
-            { name: 'user', summary: 'User operations.' },
-            { name: 'config', summary: 'Set/Display fog-controller service config.' },
-            { name: 'comsat', summary: 'ComSat operations.' },
-            { name: 'proxy', summary: 'Proxy operations.' },
-          ]
-        }
-      ]
-    )
   }
 }
 
-module.exports = Cli
+exports.CLI = CLI;

@@ -1,42 +1,63 @@
-const daemonize = require('daemonize2')
-const Cli = require('./cli')
-const logger = require('./logger')
+#!/usr/bin/env node
+
+/*
+ * *******************************************************************************
+ *  * Copyright (c) 2018 Edgeworx, Inc.
+ *  *
+ *  * This program and the accompanying materials are made available under the
+ *  * terms of the Eclipse Public License v. 2.0 which is available at
+ *  * http://www.eclipse.org/legal/epl-2.0
+ *  *
+ *  * SPDX-License-Identifier: EPL-2.0
+ *  *******************************************************************************
+ *
+ */
+
+const path = require('path');
+const fs = require('fs');
+
+const { CLI } = require('./cli');
+
+const logger = require('./server/utils/winstonLogs');
 
 function main() {
-    const daemon = daemonize.setup({
-        main: "server.js",
+    let key,
+        value,
+        args = process.argv.slice(2),
+        commandInserted = args.join(' ');
+
+    const cli = new CLI(args);
+
+    let daemon = require("daemonize2").setup({
+        main: "daemonServer.js",
         name: "fog-controller",
         pidfile: "fog-controller.pid",
-        silent: true,
-    })
-
-    const cli = new Cli()
+        silent: true
+    });
 
     daemon
         .on("starting", () => {
-            logger.silly("Starting fog-controller...")
+            console.log("Starting fog-controller...");
         })
         .on("stopping", () => {
-            logger.silly("Stopping fog-controller...")
+            console.log("Stopping fog-controller...");
         })
         .on("stopped", (pid) => {
-            logger.silly("fog-controller stopped.")
+            console.log("fog-controller stopped.");
         })
         .on("running", (pid) => {
-            logger.silly("fog-controller already running. PID: " + pid)
+            console.log("fog-controller already running. PID: " + pid);
         })
         .on("notrunning", () => {
-            logger.silly("fog-controller is not running")
+            console.log("fog-controller is not running");
         })
         .on("error", (err) => {
-            logger.silly("fog-controller failed to start:  " + err.message)
-        })
+            console.log("fog-controller failed to start:  " + err.message);
+        });
 
-    cli.run(daemon)
+    logger.info('Command inserted: fog-controller ' + commandInserted);
+
+    cli.run(daemon);
 }
 
-if (!process.env.NODE_ENV) {
-    process.env.NODE_ENV = 'production'
-}
-
-main()
+main();

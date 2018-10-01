@@ -1,3 +1,29 @@
+.DS_Store
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+
+# Dependency directories
 node_modules
+jspm_packages
+dist
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Environment variables
+.env
+
+# VS code
+.vscode/
+
+# Database
+/db/*.db
+
 package-lock.json
-.vscode

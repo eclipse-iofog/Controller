@@ -1,9 +1,34 @@
 {
-  "name": "fog-controller",
-  "version": "0.3.01",
-  "description": "Fog Controller project for Eclipse IoFog @ iofog.org \\nCopyright (c) 2018 Edgeworx, Inc.",
+  "name": "iofogcontroller",
+  "version": "0.1.47",
+  "description": "Fog Controller project for Eclipse IoFog @ iofog.org \nCopyright (c) 2018 Edgeworx, Inc. ",
   "main": "./src/main.js",
-  "author": "Saeid Baghbidi",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ioFog/FogController"
+  },
+  "keywords": [
+    "express",
+    "node"
+  ],
+  "author": "Zishan Iqbal",
+  "contributors": [
+    "Kilton Hopkins <kilton@edgeworx.io>",
+    "Saeid Baghbidi",
+    "Pavel Kazlou",
+    "Egor Krylovich",
+    "Iryna Laryionava",
+    "Maryna Lipnitskaya",
+    "Dmitriy Kudasov",
+    "Dmitry Stolbunov",
+    "Darya Busel",
+    "Alexander Shpak",
+    "Kate Lukashick",
+    "Eugene Pankov",
+    "Maksim Chepelev",
+    "Ivan Panasiuk",
+    "Tetiana Yatsiuk"
+  ],
   "license": {
     "type": "EPL-2.0",
     "url": "https://www.eclipse.org/legal/epl-v20.html"
@@ -11,35 +36,54 @@
   "bugs": {
     "email": "edgemaster@iofog.org"
   },
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/ioFog/FogController"
-  },
   "preferGlobal": true,
-  "bin": {
-    "fog-controller": "./dist/main.js"
+  "homepage": "https://iofog.org/",
+  "scripts": {
+    "test": "node ./src/main.js",
+    "start": "node ./src/main",
+    "build": "mkdir -p ../fog-controller-db && touch ../fog-controller-db/fog_controller.db && ./flyway-5.0.7/flyway -configFiles=./db/flyway.conf migrate  && mkdir -p imageSnapshot",
+    "start-dev": "node ./src/daemonServer",
+    "build-dev": "mkdir -p ../fog-controller-db && touch ../fog-controller-db/fog_controller.db && ./flyway-5.0.7/flyway -configFiles=./db/flyway.conf migrate && mkdir -p imageSnapshot",
+    "dev": "npm start stop && npm run build-dev && npm run start-dev",
+    "postinstall": "mkdir -p ../fog-controller-db && touch ../fog-controller-db/fog_controller.db && ./flyway-5.0.7/flyway -configFiles=./db/flyway.conf migrate && mkdir -p imageSnapshot"
   },
-  "homepage": "https://www.iofog.org",
+  "bin": {
+    "fog-controller": "src/main.js"
+  },
   "dependencies": {
-    "body-parser": "^1.18.3",
-    "command-line-args": "^5.0.2",
-    "command-line-usage": "^5.0.5",
-    "continuation-local-storage": "^3.2.1",
-    "cookie-parser": "^1.4.3",
+    "async": "^2.0.1",
+    "basic-auth": "^2.0.0",
+    "body-parser": "^1.18.2",
+    "compression": "^1.7.3",
+    "continuation-local-storage": "^3.1.7",
+    "cookie-parser": "^1.4.1",
     "daemonize2": "^0.4.2",
-    "ejs": "^2.6.1",
-    "express": "^4.16.3",
-    "fs": "^0.0.1-security",
-    "helmet": "^3.13.0",
-    "nconf": "^0.10.0",
+    "dotenv": "^4.0.0",
+    "ejs": "^2.5.7",
+    "es6-mixins": "^1.0.2",
+    "express": "^4.16.2",
+    "express-session": "^1.15.6",
+    "ftp": "^0.3.10",
+    "keymirror": "0.1.1",
+    "moment": "^2.12.0",
+    "moment-timezone": "^0.5.4",
+    "ms": "^2.1.1",
+    "multer": "^1.1.0",
+    "node-mailer": "^0.1.1",
+    "node-uuid": "^1.4.7",
+    "nodemailer": "^4.4.2",
+    "nodemailer-smtp-transport": "^2.7.4",
     "path": "^0.12.7",
-    "sequelize": "^4.39.0",
-    "sequelize-cli": "^4.1.1",
+    "portscanner": "^2.1.1",
+    "q": "^1.4.1",
+    "sequelize": "^4.33.1",
+    "socket.io": "^2.1.1",
     "sqlite3": "^4.0.2",
-    "winston": "^3.1.0",
-    "xss-clean": "^0.1.1"
+    "ssh2": "^0.6.1",
+    "underscore": "^1.8.3",
+    "uuid": "^2.0.2",
+    "validator": "^10.7.1",
+    "winston": "^2.3.1",
+    "winston-daily-rotate-file": "^1.4.3"
   }
 }
