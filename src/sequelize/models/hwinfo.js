@@ -16,7 +16,6 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     // add the timestamp attributes (updatedAt, createdAt)
     timestamps: true,
-    freezeTableName: true,
     underscored: true
   });
   HWInfo.associate = function(models) {
