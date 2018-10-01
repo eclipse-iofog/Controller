@@ -2,7 +2,7 @@
 
 module.exports = {
   up: (queryInterface, Sequelize) => {
-    return queryInterface.bulkInsert('CatalogItem', [
+    return queryInterface.bulkInsert('CatalogItems', [
       {
         ID: 1,
         name: 'Networking Tool',
@@ -176,7 +176,7 @@ module.exports = {
 
 
   down: (queryInterface, Sequelize) => {
-    return queryInterface.bulkDelete('CatalogItem', null, {});
+    return queryInterface.bulkDelete('CatalogItems', null, {});
   }
 };
 

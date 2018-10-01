@@ -16,25 +16,25 @@ module.exports = {
       publishingIofogId: {
         type: Sequelize.TEXT,
         field: 'publishing_iofog_uuid',
-        references: { model: 'Fog', key: 'uuid' },
+        references: { model: 'Fogs', key: 'uuid' },
         onDelete: 'cascade'
       },
       destinationIofogId: {
         type: Sequelize.TEXT,
         field: 'destination_iofog_uuid',
-        references: { model: 'Fog', key: 'uuid' },
+        references: { model: 'Fogs', key: 'uuid' },
         onDelete: 'cascade'
       },
       publishingMicroserviceUuid: {
         type: Sequelize.TEXT,
         field: 'publishing_microservice_uuid',
-        references: { model: 'Microservice', key: 'uuid' },
+        references: { model: 'Microservices', key: 'uuid' },
         onDelete: 'cascade'
       },
       destinationMicroserviceUuid: {
         type: Sequelize.TEXT,
         field: 'destination_microservice_uuid',
-        references: { model: 'Microservice', key: 'uuid' },
+        references: { model: 'Microservices', key: 'uuid' },
         onDelete: 'cascade'
       }
     });

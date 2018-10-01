@@ -20,6 +20,24 @@ module.exports = {
       description: {
         type: Sequelize.TEXT,
         field: 'description'
+      },
+      networkCatalogItemId: {
+        type: Sequelize.INTEGER,
+        field: 'network_catalog_item_id',
+        references: { model: 'CatalogItems', key: 'id' },
+        onDelete: 'cascade'
+      },
+      halCatalogItemId: {
+        type: Sequelize.INTEGER,
+        field: 'hal_catalog_item_id',
+        references: { model: 'CatalogItems', key: 'id' },
+        onDelete: 'cascade'
+      },
+      bluetoothCatalogItemId: {
+        type: Sequelize.INTEGER,
+        field: 'bluetooth_catalog_item_id',
+        references: { model: 'CatalogItems', key: 'id' },
+        onDelete: 'cascade'
       }
     });
   },

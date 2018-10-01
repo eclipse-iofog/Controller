@@ -16,49 +16,49 @@ module.exports = {
       iofogUuid1: {
         type: Sequelize.TEXT,
         field: 'iofog_uuid_1',
-        references: { model: 'Fog', key: 'uuid' },
+        references: { model: 'Fogs', key: 'uuid' },
         onDelete: 'cascade'
       },
       iofogUuid2: {
         type: Sequelize.TEXT,
         field: 'iofog_uuid_2',
-        references: { model: 'Fog', key: 'uuid' },
+        references: { model: 'Fogs', key: 'uuid' },
         onDelete: 'cascade'
       },
       microserviceUuid1: {
         type: Sequelize.TEXT,
         field: 'microservice_uuid_1',
-        references: { model: 'Microservice', key: 'uuid' },
+        references: { model: 'Microservices', key: 'uuid' },
         onDelete: 'cascade'
       },
       microserviceUuid2: {
         type: Sequelize.TEXT,
         field: 'microservice_uuid_2',
-        references: { model: 'Microservice', key: 'uuid' },
+        references: { model: 'Microservices', key: 'uuid' },
         onDelete: 'cascade'
       },
       networkMicroserviceUuid1: {
         type: Sequelize.TEXT,
         field: 'network_microservice_uuid_1',
-        references: { model: 'Microservice', key: 'uuid' },
+        references: { model: 'Microservices', key: 'uuid' },
         onDelete: 'cascade'
       },
       networkMicroserviceUuid2: {
         type: Sequelize.TEXT,
         field: 'network_microservice_uuid_2',
-        references: { model: 'Microservice', key: 'uuid' },
+        references: { model: 'Microservices', key: 'uuid' },
         onDelete: 'cascade'
       },
       microsevicePortId1: {
         type: Sequelize.INTEGER,
         field: 'microservice_port_id_1',
-        references: { model: 'MicroservicePort', key: 'uuid' },
+        references: { model: 'MicroservicePorts', key: 'uuid' },
         onDelete: 'cascade'
       },
       satellitePortId: {
         type: Sequelize.INTEGER,
         field: 'satellite_port_id',
-        references: { model: 'SatellitePort', key: 'uuid' },
+        references: { model: 'SatellitePorts', key: 'uuid' },
         onDelete: 'cascade'
       }
     });

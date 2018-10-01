@@ -16,13 +16,13 @@ module.exports = {
       catalogItemId: {
         type: Sequelize.INTEGER,
         field: 'catalog_item_id',
-        references: { model: 'CatalogItem', key: 'id' },
+        references: { model: 'CatalogItems', key: 'id' },
         onDelete: 'cascade'
       },
       fogTypeId: {
         type: Sequelize.INTEGER,
         field: 'iofog_type_id',
-        references: { model: 'FogType', key: 'id' },
+        references: { model: 'FogTypes', key: 'id' },
         onDelete: 'cascade'
       }
     });

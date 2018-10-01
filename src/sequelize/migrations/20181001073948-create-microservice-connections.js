@@ -11,13 +11,13 @@ module.exports = {
       sourceMicroservice: {
         type: Sequelize.TEXT,
         field: 'source_microservice',
-        references: { model: 'Microservice', key: 'uuid' },
+        references: { model: 'Microservices', key: 'uuid' },
         onDelete: 'cascade'
       },
       destinationMicroservice: {
         type: Sequelize.TEXT,
         field: 'destination_microservice',
-        references: { model: 'Microservice', key: 'uuid' },
+        references: { model: 'Microservices', key: 'uuid' },
         onDelete: 'cascade'
       }
     });
