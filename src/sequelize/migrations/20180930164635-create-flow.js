@@ -19,11 +19,11 @@ module.exports = {
         field: 'description'
       },
       isSelected: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.BOOLEAN,
         field: 'is_selected'
       },
       isActivated: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.BOOLEAN,
         field: 'is_activated'
       },
       createdAt: {

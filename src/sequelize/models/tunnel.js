@@ -33,10 +33,10 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.TEXT,
       field: 'rsa_key'
     },
-    close: {
+    closed: {
       type: DataTypes.BOOLEAN,
       defaultValue: false,
-      field: 'close'
+      field: 'closed'
     }
   }, {
     timestamps: false,

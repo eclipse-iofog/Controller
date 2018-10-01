@@ -34,10 +34,10 @@ module.exports = {
         type: Sequelize.TEXT,
         field: 'rsa_key'
       },
-      close: {
+      closed: {
         type: Sequelize.BOOLEAN,
         defaultValue: false,
-        field: 'close'
+        field: 'closed'
       },
       iofogUuid: {
         type: Sequelize.TEXT,
