@@ -30,7 +30,6 @@ module.exports = (sequelize, DataTypes) => {
     }
   }, {
     timestamps: true,
-    freezeTableName: true,
     underscored: true
   });
   Satellite.associate = function(models) {

@@ -13,7 +13,6 @@ module.exports = (sequelize, DataTypes) => {
     }
   }, {
     timestamps: false,
-    freezeTableName: true,
     underscored: true
   });
   FogVersionCommand.associate = function(models) {

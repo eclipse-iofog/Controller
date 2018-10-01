@@ -9,6 +9,10 @@ const config = require(__dirname + '/../config/config.json')[env];
 const db = {};
 
 let sequelize;
+
+//used because sequelize doesn't work with relative path correctly
+config.storage = path.resolve(__dirname, '../' + config.storage);
+
 if (config.use_env_variable) {
   sequelize = new Sequelize(process.env[config.use_env_variable], config);
 } else {

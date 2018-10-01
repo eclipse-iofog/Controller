@@ -53,7 +53,6 @@ module.exports = (sequelize, DataTypes) => {
     }
   }, {
     timestamps: true,
-    freezeTableName: true,
     underscored: true
   });
   Microservice.associate = function(models) {

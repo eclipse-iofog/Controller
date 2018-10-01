@@ -18,7 +18,6 @@ module.exports = (sequelize, DataTypes) => {
     }
   }, {
     timestamps: true,
-    freezeTableName: true,
     underscored: true
   });
   MicroservicePort.associate = function(models) {

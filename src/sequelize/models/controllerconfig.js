@@ -18,7 +18,6 @@ module.exports = (sequelize, DataTypes) => {
     }
   }, {
     timestamps: false,
-    freezeTableName: true,
     underscored: true
   });
   ControllerConfig.associate = function(models) {
