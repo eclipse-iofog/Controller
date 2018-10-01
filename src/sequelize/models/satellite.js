@@ -29,16 +29,12 @@ module.exports = (sequelize, DataTypes) => {
       field: 'self_signed_certs'
     }
   }, {
-    // don't add the timestamp attributes (updatedAt, createdAt)
     timestamps: true,
-    // disable the modification of table names
     freezeTableName: true,
-    // don't use camelcase for automatically added attributes but underscore style
-    // so updatedAt will be updated_at
     underscored: true
   });
   Satellite.associate = function(models) {
-    // associations can be defined here
+
   };
   return Satellite;
 };

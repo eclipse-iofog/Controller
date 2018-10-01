@@ -214,16 +214,12 @@ module.exports = (sequelize, DataTypes) => {
       field: 'isolated_docker_container'
     }
   }, {
-    // don't add the timestamp attributes (updatedAt, createdAt)
     timestamps: true,
-    // disable the modification of table names
     freezeTableName: true,
-    // don't use camelcase for automatically added attributes but underscore style
-    // so updatedAt will be updated_at
     underscored: true
   });
   Fog.associate = function(models) {
-    // associations can be defined here
+
     Fog.belongsTo(models.FogType, {
       foreignKey: 'fog_type_id',
       as: 'fogTypeId',

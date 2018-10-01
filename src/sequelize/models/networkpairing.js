@@ -13,16 +13,12 @@ module.exports = (sequelize, DataTypes) => {
       field: 'is_public_port'
     }
   }, {
-    // don't add the timestamp attributes (updatedAt, createdAt)
     timestamps: false,
-    // disable the modification of table names
     freezeTableName: true,
-    // don't use camelcase for automatically added attributes but underscore style
-    // so updatedAt will be updated_at
     underscored: true
   });
   NetworkPairing.associate = function(models) {
-    // associations can be defined here
+
     NetworkPairing.belongsTo(models.Fog, {
       foreignKey: 'iofog_uuid_1',
       as: 'iofogUuid1'

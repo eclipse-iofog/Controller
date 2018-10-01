@@ -53,16 +53,12 @@ module.exports = (sequelize, DataTypes) => {
       field: 'image_snapshot'
     }
   }, {
-    // don't add the timestamp attributes (updatedAt, createdAt)
     timestamps: false,
-    // disable the modification of table names
     freezeTableName: true,
-    // don't use camelcase for automatically added attributes but underscore style
-    // so updatedAt will be updated_at
     underscored: true
   });
   ChangeTracking.associate = function(models) {
-    // associations can be defined here
+
     ChangeTracking.belongsTo(models.Fog, {
       foreignKey: 'iofog_uuid',
       as: 'ioFogUuid',

@@ -39,16 +39,12 @@ module.exports = (sequelize, DataTypes) => {
       field: 'close'
     }
   }, {
-    // don't add the timestamp attributes (updatedAt, createdAt)
     timestamps: false,
-    // disable the modification of table names
     freezeTableName: true,
-    // don't use camelcase for automatically added attributes but underscore style
-    // so updatedAt will be updated_at
     underscored: true
   });
   Tunnel.associate = function(models) {
-    // associations can be defined here
+
     Tunnel.belongsTo(models.Fog, {
       foreignKey: 'iofog_uuid',
       as: 'iofogUuid',

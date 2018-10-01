@@ -37,16 +37,12 @@ module.exports = (sequelize, DataTypes) => {
       field: 'user_access_token'
     }
   }, {
-    // don't add the timestamp attributes (updatedAt, createdAt)
     timestamps: false,
-    // disable the modification of table names
     freezeTableName: true,
-    // don't use camelcase for automatically added attributes but underscore style
-    // so updatedAt will be updated_at
     underscored: true
   });
   User.associate = function(models) {
-    // associations can be defined here
+
 
   };
   return User;

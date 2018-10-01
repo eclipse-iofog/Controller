@@ -17,16 +17,12 @@ module.exports = (sequelize, DataTypes) => {
       field: 'port_external'
     }
   }, {
-    // don't add the timestamp attributes (updatedAt, createdAt)
     timestamps: true,
-    // disable the modification of table names
     freezeTableName: true,
-    // don't use camelcase for automatically added attributes but underscore style
-    // so updatedAt will be updated_at
     underscored: true
   });
   MicroservicePort.associate = function(models) {
-    // associations can be defined here
+
     MicroservicePort.belongsTo(models.Microservice, {
       foreignKey: 'microservice_uuid',
       as: 'microserviceUuid',

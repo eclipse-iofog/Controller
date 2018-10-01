@@ -45,16 +45,12 @@ module.exports = (sequelize, DataTypes) => {
       field: 'is_public'
     }
   }, {
-    // don't add the timestamp attributes (updatedAt, createdAt)
     timestamps: false,
-    // disable the modification of table names
     freezeTableName: true,
-    // don't use camelcase for automatically added attributes but underscore style
-    // so updatedAt will be updated_at
     underscored: true
   });
   CatalogItem.associate = function(models) {
-    // associations can be defined here
+
     CatalogItem.belongsTo(models.Registry, {
       foreignKey: 'registry_id',
       as: 'registryId',
