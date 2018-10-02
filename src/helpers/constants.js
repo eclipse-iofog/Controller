@@ -17,4 +17,13 @@ module.exports = {
   CMD_PROXY: 'proxy',
   CMD_IOFOG: 'iofog',
   CMD_GENERATE_TOKEN: 'generate-token',
+  CMD_CATALOG: 'catalog',
+  CMD_FLOW: 'flow',
+  CMD_MICROSERVICE: 'microservice',
+  CMD_ROUTE: 'route',
+  CMD_REGISTRY: 'registry',
+  CMD_ACTIVATE: 'activate',
+  CMD_SUSPEND: 'suspend',
+  CMD_STRACE: 'strace',
+  CMD_TUNNEL: 'tunnel',
 }

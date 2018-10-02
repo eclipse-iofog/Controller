@@ -5,6 +5,10 @@ const Comsat = require('./comsat')
 const Config = require('./config')
 const Proxy = require('./proxy')
 const IOFog = require('./iofog')
+const Catalog = require('./catalog')
+const Flow = require('./flow')
+const Microservice = require('./microservice')
+const Registry = require('./registry')
 
 const constants = require('../helpers/constants')
 
@@ -25,6 +29,10 @@ class Cli extends BaseCLIHandler {
       [constants.CMD_COMSAT]: 'ComSat operations.',
       [constants.CMD_PROXY]: 'Proxy operations.',
       [constants.CMD_IOFOG]: 'ioFog nodes operations.',
+      [constants.CMD_CATALOG]: 'Microservices catalog operations.',
+      [constants.CMD_FLOW]: 'Application flow operations.',
+      [constants.CMD_MICROSERVICE]: 'Microservice instance operations.',
+      [constants.CMD_REGISTRY]: 'Registries instance operations.',
     }
   }
 
@@ -49,6 +57,14 @@ class Cli extends BaseCLIHandler {
         return Proxy.run({ argv })
       case constants.CMD_IOFOG:
         return IOFog.run({ argv })
+      case constants.CMD_CATALOG:
+        return Catalog.run({ argv })
+      case constants.CMD_FLOW:
+        return Flow.run({ argv })
+      case constants.CMD_MICROSERVICE:
+        return Microservice.run({ argv })
+      case constants.CMD_REGISTRY:
+        return Registry.run({ argv })
       case constants.CMD_HELP:
       default:
         return this.help([], false)
