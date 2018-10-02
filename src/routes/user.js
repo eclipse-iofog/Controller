@@ -1,3 +1,9 @@
+const logger = require('./../logger');
+const config = require('./../config');
+const async = require('async');
+const userController = require('./../controllers/userController');
+
+
 module.exports = [
   {
     method: 'post',
@@ -21,9 +27,12 @@ module.exports = [
     method: 'post',
     path: '/api/v3/user/signup',
     middleware: (req, res) => {
-      res
-        .status(200)
-        .send(req.body)
+      userController.userSignupEndPoint(req, res)
+
+
+      // res
+      //   .status(200)
+      //   .send(req.body)
     }
   },
   {
