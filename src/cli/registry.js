@@ -27,6 +27,7 @@ class Registry extends BaseCLIHandler {
       { name: 'username', alias: 'l', type: String, description: 'Registry\'s user name', group: [constants.CMD_ADD] },
       { name: 'password', alias: 'p', type: String, description: 'Password', group: [constants.CMD_ADD] },
       { name: 'email', alias: 'e', type: String, description: 'Email address', group: [constants.CMD_ADD] },
+      { name: 'user-id', alias: 'u', type: Number, description: 'User\'s id', group: [constants.CMD_ADD] },
     ]
     this.commands = {
       [constants.CMD_ADD]: 'Add a new Registry.',

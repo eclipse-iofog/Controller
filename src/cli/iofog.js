@@ -76,6 +76,7 @@ class IOFog extends BaseCLIHandler {
       { name: 'enable', alias: 'e', type: Boolean, description: 'Enable tunnel', group: [constants.CMD_TUNNEL] },
       { name: 'disable', alias: 'S', type: Boolean, description: 'Disable tunnel', group: [constants.CMD_TUNNEL] },
       { name: 'info', alias: 'O', type: Boolean, description: 'Display tunnel info', group: [constants.CMD_TUNNEL] },
+      { name: 'user-id', alias: 'u', type: Number, description: 'User\'s id', group: [constants.CMD_ADD] },
     ]
     this.commands = {
       [constants.CMD_ADD]: 'Add a new ioFog node.',

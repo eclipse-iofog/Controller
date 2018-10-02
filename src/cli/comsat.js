@@ -26,6 +26,7 @@ class Comsat extends BaseCLIHandler {
       { name: 'public-ip', alias: 'i', type: String, description: 'ComSat public IP address', group: [constants.CMD_ADD, constants.CMD_UPDATE, constants.CMD_REMOVE] },
       { name: 'cert-dir', alias: 'c', type: String, description: 'Path to certificate', group: [constants.CMD_ADD, constants.CMD_UPDATE] },
       { name: 'self-signed', alias: 's', type: Boolean, description: 'Is self-signed', group: [constants.CMD_ADD, constants.CMD_UPDATE] },
+      { name: 'user-id', alias: 'u', type: Number, description: 'User\'s id', group: [constants.CMD_ADD] },
     ]
     this.commands = {
       [constants.CMD_ADD]: 'Add a new ComSat.',

@@ -108,6 +108,10 @@ class Microservice extends BaseCLIHandler {
         name: 'get', alias: 'G', type: String, description: 'Get strace data, formats: string,file',
         group: [constants.CMD_STRACE]
       },
+      {
+        name: 'user-id', alias: 'u', type: Number, description: 'User\'s id',
+        group: [constants.CMD_ADD]
+      },
     ]
     this.commands = {
       [constants.CMD_ADD]: 'Add a new microservice.',

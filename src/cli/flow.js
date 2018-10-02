@@ -32,6 +32,7 @@ class Flow extends BaseCLIHandler {
       { name: 'description', alias: 'd', type: String, description: 'Application flow description', group: [constants.CMD_UPDATE, constants.CMD_ADD] },
       { name: 'activate', alias: 'a', type: Boolean, description: 'Activate application flow', group: [constants.CMD_UPDATE, constants.CMD_ADD] },
       { name: 'deactivate', alias: 'D', type: Boolean, description: 'Deactivate application flow', group: [constants.CMD_UPDATE, constants.CMD_ADD] },
+      { name: 'user-id', alias: 'u', type: Number, description: 'User\'s id', group: [constants.CMD_ADD] },
     ]
     this.commands = {
       [constants.CMD_ADD]: 'Add a new flow.',

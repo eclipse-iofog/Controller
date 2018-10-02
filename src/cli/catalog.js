@@ -59,6 +59,7 @@ class Catalog extends BaseCLIHandler {
       { name: 'output-type', alias: 'O', type: String, description: 'Catalog item output type', group: [constants.CMD_UPDATE, constants.CMD_ADD] },
       { name: 'output-format', alias: 'T', type: String, description: 'Catalog item output format', group: [constants.CMD_UPDATE, constants.CMD_ADD] },
       { name: 'config-example', alias: 'X', type: String, description: 'Catalog item config example', group: [constants.CMD_UPDATE, constants.CMD_ADD] },
+      { name: 'user-id', alias: 'u', type: Number, description: 'User\'s id', group: [constants.CMD_ADD] },
     ]
     this.commands = {
       [constants.CMD_ADD]: 'Add a new catalog item.',
