@@ -7,11 +7,26 @@ class User extends BaseCLIHandler {
 
     this.name = constants.CMD_USER
     this.commandDefinitions = [
-      { name: 'command', defaultOption: true, description: 'add, remove, update, list, generate-token', group: constants.CMD, },
-      { name: 'first-name', alias: 'f', type: String, description: 'User\'s first name', group: [constants.CMD_ADD, constants.CMD_UPDATE], },
-      { name: 'last-name', alias: 'l', type: String, description: 'User\'s last name', group: [constants.CMD_ADD, constants.CMD_UPDATE], },
-      { name: 'email', alias: 'e', type: String, description: 'User\'s email address', group: [constants.CMD_ADD, constants.CMD_GENERATE_TOKEN, constants.CMD_REMOVE, constants.CMD_UPDATE], },
-      { name: 'password', alias: 'p', type: String, description: 'User\'s password', group: [constants.CMD_ADD, constants.CMD_UPDATE], },
+      {
+        name: 'command', defaultOption: true, description: 'add, remove, update, list, generate-token',
+        group: constants.CMD,
+      },
+      {
+        name: 'first-name', alias: 'f', type: String, description: 'User\'s first name',
+        group: [constants.CMD_ADD, constants.CMD_UPDATE],
+      },
+      {
+        name: 'last-name', alias: 'l', type: String, description: 'User\'s last name',
+        group: [constants.CMD_ADD, constants.CMD_UPDATE],
+      },
+      {
+        name: 'email', alias: 'e', type: String, description: 'User\'s email address',
+        group: [constants.CMD_ADD, constants.CMD_GENERATE_TOKEN, constants.CMD_REMOVE, constants.CMD_UPDATE, constants.CMD_ACTIVATE, constants.CMD_SUSPEND],
+      },
+      {
+        name: 'password', alias: 'p', type: String, description: 'User\'s password',
+        group: [constants.CMD_ADD, constants.CMD_UPDATE],
+      },
     ]
     this.commands = {
       [constants.CMD_ADD]: 'Add a new user.',
@@ -19,6 +34,8 @@ class User extends BaseCLIHandler {
       [constants.CMD_REMOVE]: 'Delete a user.',
       [constants.CMD_LIST]: 'List all users.',
       [constants.CMD_GENERATE_TOKEN]: 'Generate token for a user.',
+      [constants.CMD_ACTIVATE]: 'Activate a user.',
+      [constants.CMD_SUSPEND]: 'Suspend a user.',
     }
   }
 
