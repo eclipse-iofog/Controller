@@ -131,6 +131,10 @@ const isValidEmailActivation = function (flag) {
     return flag === 'on' || flag === 'off';
 }
 
+const isValidBoolean = function (flag) {
+  return flag === 'true' || flag === 'false';
+}
+
 const convertRelativePathToAbsolute = function (filePath) {
   if (path.isAbsolute(filePath)) {
     return filePath;
@@ -314,5 +318,6 @@ module.exports =  {
   sendResponse: sendResponse,
   sendMultipleResponse: sendMultipleResponse,
   onUpdateOrCreate: onUpdateOrCreate,
-  findAvailablePort: findAvailablePort
+  findAvailablePort: findAvailablePort,
+  isValidBoolean: isValidBoolean
 };
