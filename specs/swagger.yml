@@ -20,7 +20,7 @@ paths:
             $ref: '#/definitions/ServiceStatusResponse'
         '500':
           description: Internal Server Error
-  '/emailActivation':
+  '/email-activation':
     get:
       tags:
         - Controller
@@ -33,7 +33,7 @@ paths:
             $ref: '#/definitions/EmailActivationStatusResponse'
         '500':
             description: Internal Server Error
-  '/fogTypes':
+  '/fog-types':
     get:
       tags:
         - Controller
@@ -58,8 +58,8 @@ paths:
           description: Not Authorized
         '500':
           description: Internal Server Error
-  '/iofog/list':
-    post:
+  /iofog:
+    get:
       tags:
         - ioFog
       description: Returns list of ioFog nodes
@@ -70,11 +70,18 @@ paths:
           description: User token
           required: true
           type: string
-        - in: body
-          name: Filters
+        - in: query
+          name: filterBy
+          type: array
+          items:
+            type: string
           required: false
-          schema:
-            $ref: '#/definitions/IOFogNodesListFilters'
+        - in: query
+          name: filterValue
+          type: array
+          items:
+            type: string
+          required: false
       responses:
         '200':
           description: List of ioFog nodes
@@ -90,7 +97,6 @@ paths:
           description: Not Authorized
         '500':
           description: Internal Server Error
-  /iofog:
     post:
       tags:
         - ioFog
@@ -1565,7 +1571,7 @@ paths:
           description: Bad Request
         500:
           description: Internal Server Error
-  '/user/signup/resendActivation':
+  '/user/signup/resend-activation':
     get:
       tags:
         - User
@@ -1736,7 +1742,6 @@ paths:
         500:
           description: Internal Server Error
 
-
 definitions:
   ServiceStatusResponse:
     type: object
@@ -1769,17 +1774,6 @@ definitions:
         type: string
       description:
         type: string
-  IOFogNodesListFilters:
-    type: array
-    items:
-      type: object
-      properties:
-        key:
-          type: string
-        value:
-          type: string
-        condition:
-          type: string
   IOFogNodesListResponse:
     type: object
     properties:
