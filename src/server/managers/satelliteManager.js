@@ -68,47 +68,52 @@ class SatelliteManager extends BaseManager {
   }
 
   createSatellite(name, domain, publicIP, devMode, certFile, selfSignedCerts) {
-    if (name && domain && publicIP & devMode) {
+    if (name && domain && publicIP && devMode) {
       if (AppUtils.isValidName(name)){
         if(AppUtils.isValidDomain(domain) || AppUtils.isValidPublicIP()){
           if(AppUtils.isValidPublicIP(publicIP)){
-              this.findBySatelliteNameDomainAndPublicIP(name, domain, publicIP)
-                .then((satellite) => {
-                  if (!satellite) {
-                    if (!certFile) {
-                      this.create({
-                        name: name,
-                        domain: domain,
-                        publicIP: publicIP,
-                        devMode: devMode,
-                        cert: '',
-                        selfSignedCerts: false
-                      }).then(function(satellite) {
-                      console.log('ComSat Created : '+satellite.name);
-                      });
-                    } else if (AppUtils.isFileExists(certFile)) {
-                      let cert = fs.readFileSync(certFile, "utf-8");
-                      if (AppUtils.isValidCertificate(cert)) {
-                          this.create({
-                              name: name,
-                              domain: domain,
-                              publicIP: publicIP,
-                              devMode: devMode,
-                              cert: AppUtils.trimCertificate(cert),
-                              selfSignedCerts: selfSignedCerts || false
-                          }).then(function(satellite) {
-                              console.log('ComSat Created : '+satellite.name);
-                          });
-                      } else {
-                          console.log('Error: Provided certificate is invalid. Try again with correct certificate.');
-                      }
-                    } else {
-                      console.log('Error: Incorrect certificate file path. Try again with correct certificate file path');
-                    }
-                  }else {
-                    console.log('Error: Following ComSat already exists with similar configurations: \n ' + satellite.name + ' (' + satellite.domain + ') ' + satellite.publicIP);
-                  }
-                });
+              if(AppUtils.isValidBoolean(devMode)) {
+	              this.findBySatelliteNameDomainAndPublicIP(name, domain, publicIP)
+		              .then((satellite) => {
+			              if (!satellite) {
+				              if (!certFile) {
+					              this.create({
+						              name: name,
+						              domain: domain,
+						              publicIP: publicIP,
+						              devMode: devMode,
+						              cert: '',
+						              selfSignedCerts: false
+					              }).then(function(satellite) {
+						              console.log('ComSat Created : '+satellite.name);
+					              });
+				              } else if (AppUtils.isFileExists(certFile)) {
+					              let cert = fs.readFileSync(certFile, "utf-8");
+					              if (AppUtils.isValidCertificate(cert)) {
+						              this.create({
+							              name: name,
+							              domain: domain,
+							              publicIP: publicIP,
+							              devMode: devMode,
+							              cert: AppUtils.trimCertificate(cert),
+							              selfSignedCerts: selfSignedCerts || false
+						              }).then(function(satellite) {
+							              console.log('ComSat Created : '+satellite.name);
+						              });
+					              } else {
+						              console.log('Error: Provided certificate is invalid. Try again with correct certificate.');
+					              }
+				              } else {
+					              console.log('Error: Incorrect certificate file path. Try again with correct certificate file path');
+				              }
+			              }else {
+				              console.log('Error: Following ComSat already exists with similar configurations: \n ' + satellite.name + ' (' + satellite.domain + ') ' + satellite.publicIP);
+			              }
+		              });
+              }else{
+	              console.log('ComSat devMode flag is invalid. The value should be true or false.');
+	              console.log('Please provide values in following order:\n fog-controller comsat -add <name> <domain> <publicIP> <devMode> [<certFile>] [<selfSignedCerts>]');
+              }
             }else{
               console.log('ComSat publicIP is invalid. Try again with different ComSat publicIP.');
               console.log('Please provide values in following order:\n fog-controller comsat -add <name> <domain> <publicIP> <devMode> [<certFile>] [<selfSignedCerts>]');
