@@ -31,18 +31,19 @@ function handleErrors(f, successCode, errorsCodes) {
       }
 
       let code;
-      errorsCodes.some((errCodeDescr) => {
-        const isCurrentCode = errCodeDescr.errors.some((err) => {
-          if (errorObj instanceof  err) {
+      if (errorsCodes) {
+        errorsCodes.some((errCodeDescr) => {
+          const isCurrentCode = errCodeDescr.errors.some((err) => {
+            if (errorObj instanceof err) {
+              return true;
+            }
+          });
+          if (isCurrentCode) {
+            code = errCodeDescr.code;
             return true;
           }
         });
-        if (isCurrentCode) {
-          code = errCodeDescr.code;
-          return true;
-        }
-      });
-
+      }
       code = code ? code : 500;
 
       responseObject = {
