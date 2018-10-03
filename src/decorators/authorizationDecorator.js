@@ -10,29 +10,37 @@
  *  *******************************************************************************
  *
  */
-const logger = require('../logger/index');
+const logger = require('../logger');
+const config = require('../config');
 const UserManager = require('../sequelize/managers/userManager');
+const AccessTokenManager = require('../sequelize/managers/accessTokenManager');
+const Errors = require('../utils/errors');
 
-function checkUserExistance(f) {
+function checkAuthorization(f) {
   return async function() {
+
+    const fArgs = Array.prototype.slice.call(arguments);
+    const req = fArgs[0];
+    const token = req.headers.authorization;
 
     logger.info('checking user token: ' + token);
 
-    let fArgs = Array.prototype.slice.call(arguments);
-    let req = fArgs[0];
-    let token = req.headers.authorization;
+    const user = await UserManager.findByAccessToken(token);
 
-    let user = await UserManager.findByToken(token);
-
-    if (user) {
-      return await f.apply(this, arguments);
-    } else {
+    if (!user) {
       logger.error('token ' + token + ' incorrect');
-      throw 'authorization failed'
+      throw new Errors.AuthorizationError('authorization failed');
     }
+    if (Date.now() > user.accessToken.expirationTime) {
+      logger.error('token ' + token + ' expired');
+      throw new Errors.AuthorizationError('token expired');
+    }
+
+    AccessTokenManager.updateExpirationTime(user.accessToken.id, user.accessToken.expirationTime + config.get('Settings:UserTokenExpirationInterval') * 60 * 1000);
+    return await f.apply(this, arguments);
   }
 }
 
 module.exports = {
-  checkUserExistance: checkUserExistance
+  checkAuthorization: checkAuthorization
 };

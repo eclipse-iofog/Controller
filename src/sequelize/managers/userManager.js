@@ -1,13 +1,18 @@
 const BaseManager = require('./baseManager');
 const models = require('./../models');
 const User = models.User;
+const AccessToken = models.AccessToken;
 
 class UserManager extends BaseManager {
-  findByToken(token) {
+  findByAccessToken(token) {
     return User.find({
-      where: {
-        userAccessToken: token
-      }
+      include: [{
+        model: AccessToken,
+        as: 'accessToken',
+        where: {
+          token: token
+        }
+      }]
     });
   }
 }

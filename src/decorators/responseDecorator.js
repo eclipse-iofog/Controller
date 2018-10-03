@@ -10,14 +10,14 @@
  *  *******************************************************************************
  *
  */
-const logger = require('../logger/index');
+const logger = require('../logger');
 
-function handleErrors(f, msgCodes) {
+function handleErrors(f, errorsCodes) {
   return async function() {
 
     let responseObject = {};
     try {
-      let responseBody = await f.apply(this, arguments);
+      const responseBody = await f.apply(this, arguments);
       responseObject = {code: 200, body: responseBody}
     } catch (err) {
       logger.error('error: ' + err);
@@ -31,9 +31,9 @@ function handleErrors(f, msgCodes) {
       }
 
       let code;
-      msgCodes.some((errCodeDescr) => {
-        let isCurrentCode = errCodeDescr.messages.some((msg) => {
-          if (msg === errorObj.message) {
+      errorsCodes.some((errCodeDescr) => {
+        const isCurrentCode = errCodeDescr.errors.some((err) => {
+          if (errorObj instanceof  err) {
             return true;
           }
         });
@@ -45,7 +45,14 @@ function handleErrors(f, msgCodes) {
 
       code = code ? code : 500;
 
-      responseObject = {code: code, body: errorObj}
+      responseObject = {
+        code: code,
+        body: {
+          name: errorObj.name,
+          message: errorObj.message,
+          stack: errorObj.stack
+        }
+      }
     }
 
     return responseObject;
