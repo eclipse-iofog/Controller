@@ -18,10 +18,6 @@ module.exports = {
         type: Sequelize.TEXT,
         field: 'description'
       },
-      isSelected: {
-        type: Sequelize.BOOLEAN,
-        field: 'is_selected'
-      },
       isActivated: {
         type: Sequelize.BOOLEAN,
         field: 'is_activated'
