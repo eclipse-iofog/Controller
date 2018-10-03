@@ -17,9 +17,13 @@
  * @description This file includes the CURD operations for the user Model.
  */
 
-const User = require('./../sequelize/models/user');
+const models  = require('../sequelize/models');
+const User = models.User;
 const BaseManager = require('./../managers/baseManager');
 const AppUtils = require('./../utils/appUtils');
+const sequelize = require('sequelize');
+//const User = sequelize.import('./../sequelize/models/user');
+
 
 class UserManager extends BaseManager {
 
@@ -27,7 +31,7 @@ class UserManager extends BaseManager {
 		return User;
 	}
 
-	addUser(userData) {
+	async addUser(userData) {
 		return User.create(userData);
 	}
 
@@ -86,7 +90,7 @@ class UserManager extends BaseManager {
 		});
 	}
 
-	validateUserByEmail(email) {
+	async validateUserByEmail(email) {
 		return User.find({
 			where: {
 				email: email

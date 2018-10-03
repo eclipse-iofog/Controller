@@ -31,10 +31,6 @@ module.exports = (sequelize, DataTypes) => {
     emailActivated: {
       type: DataTypes.BOOLEAN,
       field: 'email_activated'
-    },
-    userAccessToken: {
-      type: DataTypes.TEXT,
-      field: 'user_access_token'
     }
   }, {
     timestamps: false,

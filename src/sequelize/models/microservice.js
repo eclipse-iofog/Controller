@@ -39,10 +39,6 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.BIGINT,
       field: 'log_size'
     },
-    volumeMappings: {
-      type: DataTypes.TEXT,
-      field: 'volume_mappings'
-    },
     imageSnapshot: {
       type: DataTypes.TEXT,
       field: 'image_snapshot'

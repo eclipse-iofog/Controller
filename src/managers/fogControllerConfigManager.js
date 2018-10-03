@@ -17,7 +17,8 @@
  * @description This file includes the CURD operations for the sslFiles Model.
  */
 
-const FogControllerConfig = require('./../sequelize/models/fogControllerConfig');
+const models = require('./../sequelize/models');
+const FogControllerConfig = models.ControllerConfig;
 const BaseManager = require('./../managers/baseManager');
 const sequelize = require('./../utils/sequelize');
 

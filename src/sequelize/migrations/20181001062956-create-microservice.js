@@ -40,10 +40,6 @@ module.exports = {
         type: Sequelize.BIGINT,
         field: 'log_size'
       },
-      volumeMappings: {
-        type: Sequelize.TEXT,
-        field: 'volume_mappings'
-      },
       imageSnapshot: {
         type: Sequelize.TEXT,
         field: 'image_snapshot'

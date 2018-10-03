@@ -40,6 +40,9 @@
     "sequelize-cli": "^4.1.1",
     "sqlite3": "^4.0.2",
     "winston": "^3.1.0",
-    "xss-clean": "^0.1.1"
+    "xss-clean": "^0.1.1",
+    "portscanner": "^2.2.0",
+    "nodemailer": "^4.6.8",
+    "nodemailer-smtp-transport": "^2.7.4"
   }
 }

@@ -17,7 +17,8 @@
  * @description This file includes the CURD operations for the email_activation_codes Model.
  */
 
-const EmailActivationCode = require('./../sequelize/models/emailActivationCode');
+const models = require('./../sequelize/models');
+const EmailActivationCode = models.EmailActivationCode;
 const BaseManager = require('./baseManager');
 
 class EmailActivationCodeManager extends BaseManager {
@@ -25,21 +26,21 @@ class EmailActivationCodeManager extends BaseManager {
 		return EmailActivationCode;
 	}
 
-	getByActivationCode(activationCode) {
+	async getByActivationCode(activationCode) {
 		return EmailActivationCode.find({
 			where: {
 				activationCode: activationCode
 			}
 		});
-	}
+	};
 
-	createActivationCode(userId, activationCode, expirationTime) {
+	async createActivationCode(userId, activationCode, expirationTime) {
 		return EmailActivationCode.create({
 			user_id: userId,
 			activationCode: activationCode,
 			expirationTime: expirationTime
 		});
-	}
+	};
 
 	verifyActivationCode(activationCode){
 		return EmailActivationCode.find({
