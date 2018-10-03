@@ -11,5 +11,6 @@
   "Service": {
     "LogsDirectory": "/var/log/fog-controller",
     "LogsFileSize": 1048576
-  }
+  },
+  "dbPath": "fog-controller-db/fog_controller_new.db"
 }

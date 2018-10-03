@@ -2,7 +2,7 @@
 
 module.exports = {
   up: (queryInterface, Sequelize) => {
-    return queryInterface.bulkInsert('Registry', [
+    return queryInterface.bulkInsert('Registries', [
       {
         ID: 1,
         url: 'registry.hub.docker.com',
@@ -13,7 +13,6 @@ module.exports = {
         user_name: '',
         password: '',
         user_email: '',
-        iofog_uuid: null,
         user_id: null
       },
       {
@@ -26,13 +25,12 @@ module.exports = {
         user_name: '',
         password: '',
         user_email: '',
-        iofog_uuid: null,
         user_id: null
       }
     ]);
   },
 
   down: (queryInterface, Sequelize) => {
-    return queryInterface.bulkDelete('Registry', null, {});
+    return queryInterface.bulkDelete('Registries', null, {});
   }
 };
