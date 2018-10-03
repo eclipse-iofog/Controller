@@ -12,13 +12,13 @@
  */
 const logger = require('../logger');
 
-function handleErrors(f, errorsCodes) {
+function handleErrors(f, successCode, errorsCodes) {
   return async function() {
 
     let responseObject = {};
     try {
       const responseBody = await f.apply(this, arguments);
-      responseObject = {code: 200, body: responseBody}
+      responseObject = {code: successCode, body: responseBody}
     } catch (err) {
       logger.error('error: ' + err);
 
