@@ -32,10 +32,6 @@ module.exports = {
       emailActivated: {
         type: Sequelize.BOOLEAN,
         field: 'email_activated'
-      },
-      userAccessToken: {
-        type: Sequelize.TEXT,
-        field: 'user_access_token'
       }
     });
   },
