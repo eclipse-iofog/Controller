@@ -29,11 +29,11 @@ function checkAuthorization(f) {
 
     if (!user) {
       logger.error('token ' + token + ' incorrect');
-      throw new Errors.AuthorizationError('authorization failed');
+      throw new Errors.AuthenticationError('authorization failed');
     }
     if (Date.now() > user.accessToken.expirationTime) {
       logger.error('token ' + token + ' expired');
-      throw new Errors.AuthorizationError('token expired');
+      throw new Errors.AuthenticationError('token expired');
     }
 
     AccessTokenManager.updateExpirationTime(user.accessToken.id, user.accessToken.expirationTime + config.get('Settings:UserTokenExpirationInterval') * 60 * 1000);

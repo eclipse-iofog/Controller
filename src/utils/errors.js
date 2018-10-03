@@ -11,14 +11,14 @@
  *
  */
 
-class AuthorizationError extends Error {
+class AuthenticationError extends Error {
   constructor(message) {
     super(message);
     this.message = message;
-    this.name = 'AuthorizationError';
+    this.name = 'AuthenticationError';
   }
 }
 
 module.exports = {
-  AuthorizationError: AuthorizationError
+  AuthenticationError: AuthenticationError
 };
