@@ -306,6 +306,7 @@ const createPubNetworkElementInstance = function (params, callback){
       networkName: 'Network for Element '+ params.bodyParams.publishingElementId,
       networkPort: 0,
       isPublic: false,
+	  devMode: 'satellite.devMode',
       setProperty: 'pubNetworkElementInstance'
     };
 
@@ -325,6 +326,7 @@ const createDestNetworkElementInstance = function (params, callback){
       networkName: 'Network for Element '+ params.bodyParams.destinationElementId,
       networkPort: 0,
       isPublic: false,
+	  devMode: 'satellite.devMode',
       setProperty: 'destNetworkElementInstance'
     };
 

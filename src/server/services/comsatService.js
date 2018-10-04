@@ -68,7 +68,7 @@ const openPortsOnComsat = function (params, callback) {
             '"heartbeatabsencethresholdport1":200000, "heartbeatabsencethresholdport2":200000}'
         });
 
-    let port = (params.satellite.devMode == 1) ? constants.HTTP_PORT : constants.HTTPS_PORT;
+    let port = params.satellite.devMode ? constants.HTTP_PORT : constants.HTTPS_PORT;
 
     let options = {
         host: params.satellite.domain,
@@ -81,7 +81,7 @@ const openPortsOnComsat = function (params, callback) {
         }
     };
 
-    let httpreq = ((params.satellite.devMode == 1)? http : https).request(options, function (response) {
+    let httpreq = (params.satellite.devMode ? http : https).request(options, function (response) {
         console.log(response.statusCode);
         let output = '';
         response.setEncoding('utf8');
@@ -130,7 +130,7 @@ const closePortsOnComsat = function (params, callback) {
             });
             console.log(data);
 
-            let port = (obj.devMode == 1) ? constants.HTTP_PORT : constants.HTTPS_PORT;
+            let port = (obj.dev_mode == 1) ? constants.HTTP_PORT : constants.HTTPS_PORT;
 
             let options = {
                 host: obj.domain,
@@ -143,7 +143,7 @@ const closePortsOnComsat = function (params, callback) {
                 }
             };
 
-            let httpreq = ((obj.devMode == 1) ? http : https).request(options, function (response) {
+            let httpreq = ((obj.dev_mode == 1) ? http : https).request(options, function (response) {
                 console.log(response.statusCode);
                 let output = '';
                 response.setEncoding('utf8');
@@ -193,7 +193,7 @@ const closePortOnComsat = function (params, callback) {
     });
     console.log(data);
 
-    let port = (params.satellite.devMode == 1) ? constants.HTTP_PORT : constants.HTTPS_PORT;
+    let port = params.satellite.devMode ? constants.HTTP_PORT : constants.HTTPS_PORT;
 
     let options = {
         host: params.satellite.domain,
@@ -206,7 +206,7 @@ const closePortOnComsat = function (params, callback) {
         }
     };
 
-    let httpreq = ((params.satellite.devMode == 1) ? http : https).request(options, function (response) {
+    let httpreq = (params.satellite.devMode ? http : https).request(options, function (response) {
         console.log(response.statusCode);
         let output = '';
         response.setEncoding('utf8');
@@ -293,7 +293,7 @@ const verifyComsatConnections = function (params, callback) {
         percentage_done = Math.round((count / params.satellite.length) * 100);
         process.stdout.write('Percentage completed ' + percentage_done + '%');
 
-        let port = (satellite.devMode == 1) ? constants.HTTP_PORT : constants.HTTPS_PORT;
+        let port = satellite.devMode ? constants.HTTP_PORT : constants.HTTPS_PORT;
 
         let options = {
             host: satellite.domain,
@@ -306,7 +306,7 @@ const verifyComsatConnections = function (params, callback) {
             }
         };
 
-        let httpreq = ((satellite.devMode == 1)? http : https).request(options, function (response) {
+        let httpreq = (satellite.devMode ? http : https).request(options, function (response) {
             if (response.statusCode == 200) {
                 let output = '';
                 response.setEncoding('utf8');

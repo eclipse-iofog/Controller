@@ -718,6 +718,7 @@ const createPubNetworkElementInstance = function (props, params, callback) {
         networkName: 'Network for Element ' + AppUtils.getProperty(params, generateUuidProp(props.publishingElement)),
         networkPort: 0,
         isPublic: false,
+	    devMode: 'satellite.devMode',
         setProperty: 'pubNetworkElementInstance'
     };
 
@@ -737,6 +738,7 @@ const createDestNetworkElementInstance = function (props, params, callback) {
         networkName: 'Network for Element ' + AppUtils.getProperty(params, generateUuidProp(props.destElement)),
         networkPort: 0,
         isPublic: false,
+	    devMode: 'satellite.devMode',
         setProperty: 'destNetworkElementInstance'
     };
 
