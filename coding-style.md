@@ -32,7 +32,7 @@ some.reallyLongFunctionCall(arg1, arg2, arg3)
 ## Switch statements
 As with any other block, the contents of a switch block are indented +2.
 
-###Example:
+### Example:
 ```
 switch (animal) {
   case Animal.BANDERSNATCH:
