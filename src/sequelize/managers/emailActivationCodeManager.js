@@ -11,13 +11,7 @@
  *
  */
 
-/**
- * @file emailActivationCodes.js
- * @author Zishan Iqbal
- * @description This file includes the CURD operations for the email_activation_codes Model.
- */
-
-const models = require('./../sequelize/models');
+const models = require('../models/index');
 const EmailActivationCode = models.EmailActivationCode;
 const BaseManager = require('./baseManager');
 

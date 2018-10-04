@@ -1,6 +1,6 @@
 const BaseCLIHandler = require('./base-cli-handler')
 const config = require('../config')
-const helpers = require('../helpers')
+const helpers = require('../helpers/appHelper')
 const logger = require('../logger')
 
 class Config extends BaseCLIHandler {

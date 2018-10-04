@@ -13,23 +13,20 @@
 
 const nodemailer = require('nodemailer');
 let smtpTransport = require('nodemailer-smtp-transport');
-const UserManager = require('../managers/userManager');
-const AppUtils = require('../utils/appUtils');
+const UserManager = require('../sequelize/managers/userManager');
+const AppHelper = require('../helpers/appHelper');
+const Errors = require('../helpers/errors');
 
 const emailActivationTemplate = require('../views/emailActivationTemp');
 
 const EmailActivationCodeService = require('../services/emailActivationCodeService');
 
-const configUtil = require('../utils/configUtil');
+const ConfigHelper = require('../helpers/configHelper');
 const logger = require('../logger');
 const constants = require('../constants');
 
 const createUser = async function (user) {
-  try {
-    return await UserManager.addUser(user)
-  } catch (errMsg) {
-    throw 'Unable to create user'
-  }
+  return await UserManager.addUser(user)
 };
 
 const getUserByEmail = async function (email) {
@@ -38,9 +35,9 @@ const getUserByEmail = async function (email) {
 
 const signUp = async function (user) {
 
-  let emailActivation = configUtil.getConfigParam('email_activation') || 'off';
+  let emailActivation = ConfigHelper.getConfigParam('email_activation') || 'off';
 
-  //validate();
+  _validate(user);
 
   if (emailActivation === 'on') {
 
@@ -58,6 +55,11 @@ const signUp = async function (user) {
   }
 };
 
+
+function _validate(user) {
+  AppHelper.validateFields(user, ["firstName", "lastName", "email", "password"]);
+  _validateUserInfo(user);
+}
 
 async function _userEmailSender(emailData) {
   let transporter;
@@ -86,20 +88,20 @@ async function _userEmailSender(emailData) {
 async function _handleCreateUser(user, emailActivation) {
   const existingUser = await getUserByEmail(user.email);
   if (existingUser)
-    throw('Registration failed: There is already an account associated with your email address. Please try logging in instead.');
-  await _validateUserInfo(user.email, user.password, user.firstName, user.lastName);
+    throw new Errors.ValidationError('Registration failed: There is already an account associated with your email address. Please try logging in instead.');
+  await _validateUserInfo(user);
   return await _createNewUser(user, emailActivation);
 }
 
-async function _validateUserInfo(email, password, firstName, lastName) {
-  if (!AppUtils.isValidEmail(email)) {
-    throw('Registration failed: Please enter a valid email address.');
-  } else if (password.length > 7) {
-    throw('Registration failed: Your password must have at least 8 characters.');
-  } else if (!firstName.length > 2) {
-    throw('Registration failed: First Name length should be at least 3 characters.');
-  } else if (!lastName.length > 2) {
-    throw ('Registration failed: Last Name length should be at least 3 characters.');
+function _validateUserInfo(user) {
+  if (!AppHelper.isValidEmail(user.email)) {
+    throw new Errors.ValidationError('Registration failed: Please enter a valid email address.');
+  } else if (!user.password.length > 7) {
+    throw new Errors.ValidationError('Registration failed: Your password must have at least 8 characters.');
+  } else if (!user.firstName.length > 2) {
+    throw new Errors.ValidationError('Registration failed: First Name length should be at least 3 characters.');
+  } else if (!user.lastName.length > 2) {
+    throw new Errors.ValidationError('Registration failed: Last Name length should be at least 3 characters.');
   }
 }
 
@@ -119,7 +121,7 @@ async function _notifyUserAboutActivationCode(email, url, emailSenderData, activ
   // send mail with defined transport object
   transporter.sendMail(mailOptions, (error, info) => {
     if (error) {
-      throw 'Email not sent due to technical reasons. Please try later.';
+      throw new Error('Email not sent due to technical reasons. Please try later.');
     } else {
       logger.info('Message %s sent: %s', info.messageId, info.response);
     }
@@ -128,12 +130,12 @@ async function _notifyUserAboutActivationCode(email, url, emailSenderData, activ
 
 async function _getEmailData() {
   const response = {};
-  await configUtil.getAllConfigs().then(async () => {
-    response.email = configUtil.getConfigParam(constants.CONFIG.email_address);
-    response.password = configUtil.getConfigParam(constants.CONFIG.email_password);
-    response.service = configUtil.getConfigParam(constants.CONFIG.email_service);
-    response.host = configUtil.getConfigParam(constants.CONFIG.email_server);
-    response.port = configUtil.getConfigParam(constants.CONFIG.email_serverport);
+  await ConfigHelper.getAllConfigs().then(async () => {
+    response.email = ConfigHelper.getConfigParam(constants.CONFIG.email_address);
+    response.password = ConfigHelper.getConfigParam(constants.CONFIG.email_password);
+    response.service = ConfigHelper.getConfigParam(constants.CONFIG.email_service);
+    response.host = ConfigHelper.getConfigParam(constants.CONFIG.email_server);
+    response.port = ConfigHelper.getConfigParam(constants.CONFIG.email_serverport);
   });
 
   return response;

@@ -4,6 +4,22 @@ const User = models.User;
 const AccessToken = models.AccessToken;
 
 class UserManager extends BaseManager {
+  getEntity() {
+    return User;
+  }
+
+  async addUser(userData) {
+    return User.create(userData);
+  }
+
+  async validateUserByEmail(email) {
+    return User.find({
+      where: {
+        email: email
+      }
+    });
+  }
+
   findByAccessToken(token) {
     return User.find({
       include: [{
@@ -18,4 +34,4 @@ class UserManager extends BaseManager {
 }
 
 const instance = new UserManager();
-module.exports =  instance;
+module.exports = instance;
