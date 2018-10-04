@@ -10,6 +10,7 @@
  *  *******************************************************************************
  *
  */
+const constants = require('../helpers/constants')
 
 module.exports = [
   {
@@ -17,7 +18,7 @@ module.exports = [
     path: '/api/v3/user/login',
     middleware: (req, res) => {
       res
-        .status(200)
+        .status(constants.HTTP_CODE_SUCCESS)
         .send(req.body)
     }
   },
@@ -26,7 +27,7 @@ module.exports = [
     path: '/api/v3/user/logout',
     middleware: (req, res) => {
       res
-        .status(200)
+        .status(constants.HTTP_CODE_SUCCESS)
         .send(req.body)
     }
   },
@@ -35,7 +36,7 @@ module.exports = [
     path: '/api/v3/user/signup',
     middleware: (req, res) => {
       res
-        .status(200)
+        .status(constants.HTTP_CODE_SUCCESS)
         .send(req.body)
     }
   },
@@ -44,7 +45,7 @@ module.exports = [
     path: '/api/v3/user/signup/resend-activation',
     middleware: (req, res) => {
       res
-        .status(200)
+        .status(constants.HTTP_CODE_SUCCESS)
         .send(req.body)
     }
   },
@@ -53,7 +54,7 @@ module.exports = [
     path: '/api/v3/user/activate',
     middleware: (req, res) => {
       res
-        .status(200)
+        .status(constants.HTTP_CODE_SUCCESS)
         .send(req.body)
     }
   },
@@ -62,7 +63,7 @@ module.exports = [
     path: '/api/v3/user/profile',
     middleware: (req, res) => {
       res
-        .status(200)
+        .status(constants.HTTP_CODE_SUCCESS)
         .send(req.body)
     }
   },
@@ -71,7 +72,7 @@ module.exports = [
     path: '/api/v3/user/profile',
     middleware: (req, res) => {
       res
-        .status(200)
+        .status(constants.HTTP_CODE_SUCCESS)
         .send(req.body)
     }
   },
@@ -80,7 +81,7 @@ module.exports = [
     path: '/api/v3/user/profile',
     middleware: (req, res) => {
       res
-        .status(200)
+        .status(constants.HTTP_CODE_SUCCESS)
         .send(req.body)
     }
   },
@@ -89,7 +90,7 @@ module.exports = [
     path: '/api/v3/user/password',
     middleware: (req, res) => {
       res
-        .status(200)
+        .status(constants.HTTP_CODE_SUCCESS)
         .send(req.body)
     }
   },
@@ -98,7 +99,7 @@ module.exports = [
     path: '/api/v3/user/password',
     middleware: (req, res) => {
       res
-        .status(200)
+        .status(constants.HTTP_CODE_SUCCESS)
         .send(req.body)
     }
   }
