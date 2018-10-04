@@ -16,7 +16,7 @@ const UserManager = require('../sequelize/managers/userManager');
 const AccessTokenManager = require('../sequelize/managers/accessTokenManager');
 const Errors = require('../utils/errors');
 
-function checkAuthorization(f) {
+function checkAuthToken(f) {
   return async function() {
 
     const fArgs = Array.prototype.slice.call(arguments);
@@ -36,11 +36,12 @@ function checkAuthorization(f) {
       throw new Errors.AuthenticationError('token expired');
     }
 
+    fArgs.push(user);
     AccessTokenManager.updateExpirationTime(user.accessToken.id, user.accessToken.expirationTime + config.get('Settings:UserTokenExpirationInterval') * 60 * 1000);
-    return await f.apply(this, arguments);
+    return await f.apply(this, fArgs);
   }
 }
 
 module.exports = {
-  checkAuthorization: checkAuthorization
+  checkAuthToken: checkAuthToken
 };
