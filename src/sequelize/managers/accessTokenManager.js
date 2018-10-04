@@ -28,4 +28,4 @@ class accessTokenManager extends BaseManager {
 }
 
 const instance = new accessTokenManager();
-module.exports =  instance;
+module.exports = instance;

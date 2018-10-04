@@ -10,6 +10,7 @@
  *  *******************************************************************************
  *
  */
+
 const logger = require('../logger');
 
 const UserService = require('../services/userService');

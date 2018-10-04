@@ -23,7 +23,7 @@ const EmailActivationCodeService = require('../services/emailActivationCodeServi
 
 const ConfigHelper = require('../helpers/configHelper');
 const logger = require('../logger');
-const constants = require('../constants');
+const constants = require('../helpers/constants');
 
 const createUser = async function (user) {
   return await UserManager.addUser(user)

@@ -1,9 +1,22 @@
+/*
+ *  *******************************************************************************
+ *  * Copyright (c) 2018 Edgeworx, Inc.
+ *  *
+ *  * This program and the accompanying materials are made available under the
+ *  * terms of the Eclipse Public License v. 2.0 which is available at
+ *  * http://www.eclipse.org/legal/epl-2.0
+ *  *
+ *  * SPDX-License-Identifier: EPL-2.0
+ *  *******************************************************************************
+ *
+ */
+
 const _ = require('underscore');
 const ConfigManager = require('../sequelize/managers/configManager');
 const AppHelper = require("../helpers/appHelper");
 const Errors = require("../helpers/errors");
 
-const Constants = require('./../constants');
+const Constants = require('../helpers/constants');
 
 
 class ConfigHelper {

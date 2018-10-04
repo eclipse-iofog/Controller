@@ -1,10 +1,19 @@
-const logger = require('./../logger');
-const config = require('./../config');
-const async = require('async');
+/*
+ *  *******************************************************************************
+ *  * Copyright (c) 2018 Edgeworx, Inc.
+ *  *
+ *  * This program and the accompanying materials are made available under the
+ *  * terms of the Eclipse Public License v. 2.0 which is available at
+ *  * http://www.eclipse.org/legal/epl-2.0
+ *  *
+ *  * SPDX-License-Identifier: EPL-2.0
+ *  *******************************************************************************
+ *
+ */
+
 const UserController = require('./../controllers/userController');
 const ResponseDecorator = require('./../decorators/responseDecorator');
 const Errors = require('../helpers/errors');
-
 
 module.exports = [
   {
