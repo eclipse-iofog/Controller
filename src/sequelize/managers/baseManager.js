@@ -43,30 +43,24 @@ module.exports = class BaseManager {
     });
   }
 
-  deleteById(id) {
-    return this.findById(id)
-      .then((object) => {
-        if (null == object)
-          return;
-        return object.destroy();
-      });
+  async deleteById(id) {
+    const object = await this.findById(id);
+    if (null == object)
+      return;
+
+    return object.destroy();
   }
 
-  update(newObject) {
-    //find the new content by id
-    return this.findById(newObject.id)
-      .then((dbObject) => {
-        //if id is invalid throw error
-        if (null == dbObject)
-          throw Error('invalid id');
-        //update the properties
-        this.updateObject(dbObject, newObject);
-        //if there are any updated properties
-        //save the changes, otherwise return the object as it is to next step
-        if (!dbObject.changed())
-          return dbObject;
-        return dbObject.save();
-      });
+  async update(newObject) {
+    let dbObject = await this.findById(newObject.id);
+    if (null == dbObject)
+      throw new Error('invalid id');
+
+    this.updateObject(dbObject, newObject);
+    if (!dbObject.changed())
+      return dbObject;
+
+    return dbObject.save();
   }
 
   //src, destination
