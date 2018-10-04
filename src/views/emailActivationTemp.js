@@ -12,7 +12,7 @@
  */
 
 let emailActivationTemplate = {
-	p1: "\
+  p1: "\
 <div>\
 	<table \
 		bgcolor='#f6f6f6' \
@@ -58,13 +58,13 @@ let emailActivationTemplate = {
 													<td style = 'padding:0 20px'>\
 														<a href=",
 
-p2:														"/account/activate/code/",
+  p2: "/account/activate/code/",
 
-p3:														">",														
+  p3: ">",
 
-p4:													"/account/activate/code/",
+  p4: "/account/activate/code/",
 
-p5:														"</a> \
+  p5: "</a> \
 													</td>\
 												</tr>\
 												<tr>\
@@ -74,9 +74,9 @@ p5:														"</a> \
 														font-size:14px;'>\
 														<a href =",
 
-p6:														"/account/activate/code/",
+  p6: "/account/activate/code/",
 
-p7:														" class = 'btn' style='\
+  p7: " class = 'btn' style='\
 															font-size: 14px;\
 														    color: #fff;\
 														    background: #348eda;\

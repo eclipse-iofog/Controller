@@ -17,7 +17,7 @@ const AccessTokenManager = require('../sequelize/managers/accessTokenManager');
 const Errors = require('../helpers/errors');
 
 function checkAuthorization(f) {
-  return async function () {
+  return async function() {
 
     const fArgs = Array.prototype.slice.call(arguments);
     const req = fArgs[0];

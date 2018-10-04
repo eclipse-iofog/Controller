@@ -16,37 +16,37 @@ const EmailActivationCode = models.EmailActivationCode;
 const BaseManager = require('./baseManager');
 
 class EmailActivationCodeManager extends BaseManager {
-	getEntity() {
-		return EmailActivationCode;
-	}
+  getEntity() {
+    return EmailActivationCode;
+  }
 
-	async getByActivationCode(activationCode) {
-		return EmailActivationCode.find({
-			where: {
-				activationCode: activationCode
-			}
-		});
-	};
+  async getByActivationCode(activationCode) {
+    return EmailActivationCode.find({
+      where: {
+        activationCode: activationCode
+      }
+    });
+  };
 
-	async createActivationCode(userId, activationCode, expirationTime) {
-		return EmailActivationCode.create({
-			user_id: userId,
-			activationCode: activationCode,
-			expirationTime: expirationTime
-		});
-	};
+  async createActivationCode(userId, activationCode, expirationTime) {
+    return EmailActivationCode.create({
+      user_id: userId,
+      activationCode: activationCode,
+      expirationTime: expirationTime
+    });
+  };
 
-	verifyActivationCode(activationCode){
-		return EmailActivationCode.find({
-			where: {
-				activationCode: activationCode,
-				expirationTime:{
-          			$gt: new Date().getTime()
-        		}
-			}
-		});
-	}
+  verifyActivationCode(activationCode) {
+    return EmailActivationCode.find({
+      where: {
+        activationCode: activationCode,
+        expirationTime: {
+          $gt: new Date().getTime()
+        }
+      }
+    });
+  }
 }
 
 const instance = new EmailActivationCodeManager();
-module.exports =  instance;
+module.exports = instance;

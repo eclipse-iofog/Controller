@@ -12,7 +12,7 @@
  */
 
 let emailResetTemplate = {
-	p1: "<div>\
+  p1: "<div>\
 	<table bgcolor='#f6f6f6' style = 'width:100%'>\
 		<tbody><tr>\
 				<td></td>\
@@ -31,7 +31,7 @@ let emailResetTemplate = {
 										padding: 20px 20px 0; width: 600px;'>\
 										Hi ",
 
-	p2:								"</td>\
+  p2: "</td>\
 								</tr>\
 								<tr>\
 									<td style='padding: 0 0 20px 0;'>\
@@ -54,7 +54,7 @@ let emailResetTemplate = {
 														style = 'padding:0 20px'>\
 														You can use the temporary password ",
 
-	p3:											 " to log in.\
+  p3: " to log in.\
 													</td>\
 												</tr>\
 												<tr>\
@@ -64,7 +64,7 @@ let emailResetTemplate = {
 														font-size:14px;'>\
 														<a href ='",
 
-	p4:													"/login' class = 'btn' style='\
+  p4: "/login' class = 'btn' style='\
 															font-size: 16px;\
 														    color: #fff;\
 														    background: #348eda;\
