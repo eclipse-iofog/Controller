@@ -812,6 +812,7 @@ const createNetworkElementInstance = function (params, callback){
       networkPort: 'bodyParams.externalPort',
       isPublic: true,
       passcode: 'comsatPort.passcode1',
+      devMode: 'satellite.devMode',
       setProperty: 'networkElementInstance'
     };
 
@@ -1668,7 +1669,8 @@ const getOutputDetails = function(params, callback) {
   };
 
   if (params.bodyParams.publicAccess == 1) {
-    params.output.accessUrl = "https://" + params.satellite.domain + ":" + params.satellitePort.port2;
+    const protocol = params.satellite.devMode ? "http" : "https";
+    params.output.accessUrl = protocol + "://" + params.satellite.domain + ":" + params.satellitePort.port2;
     params.output.networkPairingId = params.networkPairingObj.id;
   }
 

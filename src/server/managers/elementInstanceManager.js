@@ -192,7 +192,7 @@ class ElementInstanceManager extends BaseManager {
 		return ElementInstance.create(elementInstance);
 	}
 
-	createNetworkInstance(element, userId, fogInstanceId, satelliteDomain, satellitePort1, satelliteCertificate, passcode, name, localPort, isPublic, trackId) {
+	createNetworkInstance(element, userId, fogInstanceId, satelliteDomain, satellitePort1, satelliteCertificate, passcode, name, localPort, isPublic, trackId, devMode) {
 		let netConfig = {
 				'mode': isPublic ? 'public' : 'private',
 				'host': satelliteDomain,
@@ -203,7 +203,8 @@ class ElementInstanceManager extends BaseManager {
 				'localhost': 'iofog',
 				'localport': localPort,
 				'heartbeatfrequency': 20000,
-				'heartbeatabsencethreshold': 60000
+				'heartbeatabsencethreshold': 60000,
+				'devmode': devMode
 			},
 			elementInstance = {
 				uuid: AppUtils.generateInstanceId(32),

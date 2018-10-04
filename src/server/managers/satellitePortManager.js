@@ -59,7 +59,7 @@ class SatellitePortManager extends BaseManager {
 
   getPortPasscodeForNetworkElements(elementId) {
     let query = ' \
-      SELECT sp.passcode_port1, sp.mapping_id, s.domain, s.cert, s.self_signed_certs \
+      SELECT sp.passcode_port1, sp.mapping_id, s.domain, s.cert, s.self_signed_certs, s.dev_mode \
       FROM satellite_port sp, satellite s \
       WHERE sp.id IN ( \
         SELECT satellitePortId \
