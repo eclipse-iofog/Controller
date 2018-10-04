@@ -38,6 +38,10 @@ module.exports = (sequelize, DataTypes) => {
   });
   User.associate = function(models) {
 
+    User.hasOne(models.AccessToken, {
+      foreignKey: 'user_id',
+      as: 'accessToken'
+    });
 
   };
   return User;
