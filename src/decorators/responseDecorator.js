@@ -62,4 +62,4 @@ function handleErrors(f, successCode, errorsCodes) {
 
 module.exports = {
   handleErrors: handleErrors
-};
+}

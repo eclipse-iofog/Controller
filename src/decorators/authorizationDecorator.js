@@ -44,4 +44,4 @@ function checkAuthToken(f) {
 
 module.exports = {
   checkAuthToken: checkAuthToken
-};
+}

@@ -1,3 +1,16 @@
+/*
+ *  *******************************************************************************
+ *  * Copyright (c) 2018 Edgeworx, Inc.
+ *  *
+ *  * This program and the accompanying materials are made available under the
+ *  * terms of the Eclipse Public License v. 2.0 which is available at
+ *  * http://www.eclipse.org/legal/epl-2.0
+ *  *
+ *  * SPDX-License-Identifier: EPL-2.0
+ *  *******************************************************************************
+ *
+ */
+
 const config = require('./config')
 const logger = require('./logger')
 
@@ -6,14 +19,12 @@ const cookieParser = require('cookie-parser')
 const express = require('express')
 const fs = require('fs')
 const helmet = require('helmet')
+const https = require('https')
 const path = require('path')
 const { renderFile } = require('ejs')
 const xss = require('xss-clean')
 
 const app = express()
-
-
-const Sequelize = require('./sequelize/models/index');
 
 app.use(helmet())
 app.use(xss())
