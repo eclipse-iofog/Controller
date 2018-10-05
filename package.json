@@ -47,7 +47,6 @@
     "nodemailer": "^4.6.8",
     "nodemailer-smtp-transport": "^2.7.4",
     "morgan": "^1.9.1"
-    "xss-clean": "^0.1.1"
   },
   "devDependencies": {
     "eslint": "^5.6.1"
