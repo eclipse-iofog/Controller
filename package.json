@@ -51,12 +51,16 @@
     "fog-controller": "src/main.js"
   },
   "dependencies": {
+    "@fortawesome/fontawesome": "^1.1.8",
+    "@fortawesome/fontawesome-free-solid": "^5.0.13",
     "async": "^2.0.1",
     "basic-auth": "^2.0.0",
     "body-parser": "^1.18.2",
     "compression": "^1.7.3",
     "continuation-local-storage": "^3.1.7",
     "cookie-parser": "^1.4.1",
+    "copy-webpack-plugin": "^4.5.2",
+    "css-loader": "^1.0.0",
     "daemonize2": "^0.4.2",
     "dotenv": "^4.0.0",
     "ejs": "^2.5.7",
@@ -84,8 +88,13 @@
     "underscore": "^1.8.3",
     "uuid": "^2.0.2",
     "validator": "^10.7.1",
+    "webpack": "^4.16.5",
+    "webpack-cli": "^3.1.0",
+    "webpack-merge": "^4.1.4",
+    "webpack-stream": "^5.1.0",
     "winston": "^2.3.1",
     "winston-daily-rotate-file": "^1.4.3"
+    "xterm": "^3.5.1"
   },
   "devDependencies": {
     "@fortawesome/fontawesome": "^1.1.8",
