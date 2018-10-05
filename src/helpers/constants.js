@@ -39,4 +39,9 @@ module.exports = {
   CMD_SUSPEND: 'suspend',
   CMD_STRACE: 'strace',
   CMD_TUNNEL: 'tunnel',
+
+  HTTP_CODE_SUCCESS: 200,
+  HTTP_CODE_BAD_REQUEST: 400,
+  HTTP_CODE_NOT_FOUND: 404,
+  HTTP_CODE_INTERNAL_ERROR: 500,
 }

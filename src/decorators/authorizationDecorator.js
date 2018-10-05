@@ -43,4 +43,4 @@ function checkAuthorization(f) {
 
 module.exports = {
   checkAuthorization: checkAuthorization
-};
+}
