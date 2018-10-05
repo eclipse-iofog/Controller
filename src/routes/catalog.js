@@ -33,10 +33,15 @@ module.exports = [
           errors: [Errors.ValidationError]
         },
         {
-          code: 409,
+          code: 401,
           errors: [Errors.AuthenticationError]
+        },
+        {
+          code: 409,
+          errors: [Errors.DuplicatePropertyError]
         }
       ];
+
 
 
       res

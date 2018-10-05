@@ -35,8 +35,17 @@ class InvalidCredentialsError extends Error {
   }
 }
 
+class DuplicatePropertyError extends Error {
+	constructor(message) {
+		super(message);
+		this.message = message;
+		this.name = "DuplicatePropertyError";
+	}
+}
+
 module.exports = {
   AuthenticationError: AuthenticationError,
   ValidationError: ValidationError,
-  InvalidCredentialsError: InvalidCredentialsError
+  InvalidCredentialsError: InvalidCredentialsError,
+  DuplicatePropertyError: DuplicatePropertyError
 };

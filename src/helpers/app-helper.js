@@ -107,6 +107,19 @@ function generateAccessToken() {
   return token;
 }
 
+function isValidName(name) {
+	let re = /^([a-zA-Z0-9]+)$/;
+	return re.test(name);
+}
+
+function isValidNumber(num) {
+	return typeof num == "number";
+}
+
+function isValidBoolean(bool) {
+  return typeof bool == "boolean";
+}
+
 module.exports = {
   encryptText,
   decryptText,
@@ -118,5 +131,8 @@ module.exports = {
   isValidDomain,
   isValidEmailActivation,
   checkPortAvailability,
-  generateAccessToken
+  generateAccessToken,
+  isValidName,
+  isValidNumber,
+  isValidBoolean
 };
