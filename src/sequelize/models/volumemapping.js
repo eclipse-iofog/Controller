@@ -24,8 +24,7 @@ module.exports = (sequelize, DataTypes) => {
     timestamps: false,
     underscored: true
   });
-  VolumeMapping.associate = function(models) {
-
+  VolumeMapping.associate = function (models) {
     VolumeMapping.belongsTo(models.Microservice, {
       foreignKey: 'microservice_uuid',
       as: 'microserviceUuid',
@@ -34,4 +33,3 @@ module.exports = (sequelize, DataTypes) => {
   };
   return VolumeMapping;
 };
-

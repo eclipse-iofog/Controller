@@ -11,55 +11,58 @@
  *
  */
 
-const config = require('./config')
-const logger = require('./logger')
+const config = require('./config');
+const logger = require('./logger');
 
-const bodyParser = require('body-parser')
-const cookieParser = require('cookie-parser')
-const express = require('express')
-const fs = require('fs')
-const helmet = require('helmet')
+const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
+const express = require('express');
+const fs = require('fs');
+const helmet = require('helmet');
 const https = require('https')
-const path = require('path')
-const { renderFile } = require('ejs')
-const xss = require('xss-clean')
+const path = require('path');
+const {renderFile} = require('ejs');
+const xss = require('xss-clean');
+const morgan = require('morgan');
 
-const app = express()
+const app = express();
 
-app.use(helmet())
-app.use(xss())
+app.use(helmet());
+app.use(xss());
+
+app.use(morgan('combined'));
 
 app.use(bodyParser.urlencoded({
   extended: true,
-}))
-app.use(bodyParser.json())
+}));
+app.use(bodyParser.json());
 
-app.engine('ejs', renderFile)
-app.set('view engine', 'ejs')
-app.use(cookieParser())
+app.engine('ejs', renderFile);
+app.set('view engine', 'ejs');
+app.use(cookieParser());
 
-app.set('views', path.join(__dirname, 'views'))
+app.set('views', path.join(__dirname, 'views'));
 
 app.on('uncaughtException', (req, res, route, err) => {
   // TODO
-})
+});
 
 app.use((req, res, next) => {
-  res.append('X-Timestamp', Date.now())
+  res.append('X-Timestamp', Date.now());
   next()
-})
+});
 
 const registerRoute = (route) => {
   app[route.method.toLowerCase()](route.path, route.middleware)
-}
+};
 
 const setupMiddleware = function (routeName) {
   const routes = [].concat(require(path.join(__dirname, 'routes', routeName)) || [])
   routes.forEach(registerRoute)
-}
+};
 
 fs.readdirSync(path.join(__dirname, 'routes'))
-  .forEach(setupMiddleware)
+  .forEach(setupMiddleware);
 
 function startHttpServer(app, port) {
   logger.silly("| SSL not configured, starting HTTP server.|")
@@ -84,7 +87,7 @@ function startHttpsServer(app, port, sslKey, sslCert, intermedKey) {
       ca: fs.readFileSync(intermedKey),
       requestCert: true,
       rejectUnauthorized: false // currently for some reason iofog agent doesn't work without this option
-    }
+    };
 
     https.createServer(sslOptions, app).listen(port, function onStart(err) {
       if (err) {
@@ -97,7 +100,7 @@ function startHttpsServer(app, port, sslKey, sslCert, intermedKey) {
   }
 }
 
-const 
+const
   port = config.get('Server:Port'),
   sslKey = config.get('Server:SslKey'),
   sslCert = config.get('Server:SslCert'),

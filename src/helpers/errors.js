@@ -28,7 +28,25 @@ class TransactionError extends Error {
   }
 }
 
+class ValidationError extends Error {
+  constructor(message) {
+    super(message);
+    this.message = message;
+    this.name = "ValidationError";
+  }
+}
+
+class InvalidCredentialsError extends Error {
+  constructor(message) {
+    super(message);
+    this.message = message;
+    this.name = "InvalidCredentialsError";
+  }
+}
+
 module.exports = {
   AuthenticationError: AuthenticationError,
-  TransactionError: TransactionError
+  TransactionError: TransactionError,
+  ValidationError: ValidationError,
+  InvalidCredentialsError: InvalidCredentialsError
 }

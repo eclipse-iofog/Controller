@@ -1,16 +1,26 @@
-const BaseManager = require('./baseManager');
+const BaseManager = require('./base-manager');
 const models = require('./../models');
 const User = models.User;
 const AccessToken = models.AccessToken;
-const Errors = require('./../../utils/errors');
 
 class UserManager extends BaseManager {
-
   getEntity() {
     return User;
   }
 
-  findByAccessToken(token, transaction) {
+  async addUser(userData) {
+    return User.create(userData);
+  }
+
+  async validateUserByEmail(email) {
+    return User.find({
+      where: {
+        email: email
+      }
+    });
+  }
+
+  findByAccessToken(token) {
     return User.find({
       include: [{
         model: AccessToken,
@@ -18,21 +28,18 @@ class UserManager extends BaseManager {
         where: {
           token: token
         }
-      }],
-      transaction: transaction
+      }]
     });
   }
 
-
-  create(obj, transaction) {
-    if (!transaction) {
-      throw new Errors.TransactionError()
-    }
-
-    return User.create(obj, {
-        transaction: transaction
-      })
+  findByEmail(email) {
+    return User.find({
+      where: {
+        email: email
+      }
+    });
   }
+
 }
 
 const instance = new UserManager();

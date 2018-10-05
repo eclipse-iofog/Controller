@@ -12,9 +12,9 @@
  */
 const logger = require('../logger');
 const config = require('../config');
-const UserManager = require('../sequelize/managers/userManager');
-const AccessTokenManager = require('../sequelize/managers/accessTokenManager');
-const Errors = require('../utils/errors');
+const UserManager = require('../sequelize/managers/user-manager');
+const AccessTokenManager = require('../sequelize/managers/access-token-manager');
+const Errors = require('../helpers/errors');
 
 function checkAuthToken(f) {
   return async function() {
