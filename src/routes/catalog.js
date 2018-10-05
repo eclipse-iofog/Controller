@@ -25,6 +25,20 @@ module.exports = [
     method: 'post',
     path: '/api/v3/catalog/microservices',
     middleware: (req, res) => {
+
+      const successCode = 201;
+      const errorCodes = [
+        {
+          code: 400,
+          errors: [Errors.ValidationError]
+        },
+        {
+          code: 409,
+          errors: [Errors.AuthenticationError]
+        }
+      ];
+
+
       res
         .status(200)
         .send(req.body)
