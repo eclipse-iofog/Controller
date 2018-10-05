@@ -2,7 +2,7 @@ const BaseManager = require('./baseManager');
 const models = require('./../models');
 const User = models.User;
 const AccessToken = models.AccessToken;
-const TransactionDecorator = require('../../decorators/transactionDecorator');
+const Errors = require('./../../utils/errors');
 
 class UserManager extends BaseManager {
 
@@ -26,7 +26,7 @@ class UserManager extends BaseManager {
 
   create(obj, transaction) {
     if (!transaction) {
-      throw new Error('no transaction');
+      throw new Errors.TransactionError()
     }
 
     return User.create(obj, {

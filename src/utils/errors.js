@@ -19,6 +19,16 @@ class AuthenticationError extends Error {
   }
 }
 
+class TransactionError extends Error {
+  constructor() {
+    const message = 'Transaction not provided'
+    super(message)
+    this.message = message
+    this.name = 'TransactionError'
+  }
+}
+
 module.exports = {
-  AuthenticationError: AuthenticationError
+  AuthenticationError: AuthenticationError,
+  TransactionError: TransactionError
 }
