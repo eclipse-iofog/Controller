@@ -1,6 +1,6 @@
 var OFF = 0, WARN = 1, ERROR = 2;
 
-module.exports = exports = {
+module.exports = {
   'env': {
     'es6': true,
     'node': true,
@@ -70,7 +70,6 @@ module.exports = exports = {
       'no-implied-eval': ERROR,
       'no-invalid-this': ERROR,
       'no-iterator': ERROR,
-      'no-labels': WARN,
       'no-lone-blocks': WARN,
       'no-loop-func': ERROR,
       'no-magic-numbers': WARN,
@@ -139,7 +138,7 @@ module.exports = exports = {
       // ECMAScript 6 support
       'arrow-body-style': [ERROR, 'always'],
       'arrow-parens': [ERROR, 'always'],
-      'arrow-spacing': [ERROR, { 'before': true, 'after': true }],
+      'arrow-spacing': [ERROR, {'before': true, 'after': true}],
       'constructor-super': ERROR,
       'generator-star-spacing': [ERROR, 'before'],
       'no-confusing-arrow': ERROR,
@@ -157,20 +156,20 @@ module.exports = exports = {
       // Stylistic - everything here is a warning because of style.
       'array-bracket-spacing': [WARN, 'always'],
       'block-spacing': [WARN, 'always'],
-      'brace-style': [WARN, '1tbs', { 'allowSingleLine': false }],
+      'brace-style': [WARN, '1tbs', {'allowSingleLine': false}],
       'camelcase': WARN,
-      'comma-spacing': [WARN, { 'before': false, 'after': true }],
+      'comma-spacing': [WARN, {'before': false, 'after': true}],
       'comma-style': [WARN, 'last'],
       'computed-property-spacing': [WARN, 'never'],
       'consistent-this': [WARN, 'self'],
       'eol-last': WARN,
       'func-names': WARN,
       'func-style': [WARN, 'declaration'],
-      'id-length': [WARN, { 'min': 1, 'max': 32 }],
+      'id-length': [WARN, {'min': 1, 'max': 32}],
       'indent': [WARN, 2],
       'jsx-quotes': [WARN, 'prefer-double'],
       'linebreak-style': [WARN, 'unix'],
-      'lines-around-comment': [WARN, { 'beforeBlockComment': true }],
+      'lines-around-comment': [WARN, {'beforeBlockComment': true}],
       'max-depth': [WARN, 8],
       'max-len': [WARN, 132],
       'max-nested-callbacks': [WARN, 8],
@@ -207,7 +206,7 @@ module.exports = exports = {
           'ClassDeclaration': false
         }
       }],
-      'semi-spacing': [WARN, { 'before': false, 'after': true }],
+      'semi-spacing': [WARN, {'before': false, 'after': true}],
       'semi': [ERROR, 'never'],
       'sort-vars': OFF,
       'keyword-spacing': [WARN, {
@@ -217,9 +216,10 @@ module.exports = exports = {
       'space-before-blocks': [WARN, 'always'],
       'space-before-function-paren': [WARN, 'never'],
       'space-in-parens': [WARN, 'never'],
-      'space-infix-ops': [WARN, { 'int32Hint': true }],
+      'space-infix-ops': [WARN, {'int32Hint': true}],
       'space-unary-ops': ERROR,
       'spaced-comment': [WARN, 'always'],
       'wrap-regex': WARN
     }
-  };
+  }
+}
