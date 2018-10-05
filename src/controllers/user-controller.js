@@ -13,11 +13,9 @@
 
 const logger = require('../logger');
 
-const UserService = require('../services/userService');
+const UserService = require('../services/user-service');
 
 const userSignupEndPoint = async function (req) {
-  logger.info("Endpoint hit: " + req.originalUrl);
-
   logger.info("Parameters:" + JSON.stringify(req.body));
 
   const user = req.body;
@@ -25,6 +23,24 @@ const userSignupEndPoint = async function (req) {
   return await UserService.signUp(user);
 };
 
+const userLoginEndPoint = async function (req) {
+  logger.info("Parameters:" + JSON.stringify(req.body));
+
+  const user = req.body;
+
+  return await UserService.login(user);
+};
+
+const resendActivationEndPoint = async function (req) {
+  logger.info("Parameters:" + JSON.stringify(req.query));
+
+  const emailData = req.query;
+
+  return await UserService.resendActivation(emailData);
+};
+
 module.exports = {
-  userSignupEndPoint: userSignupEndPoint
+  userSignupEndPoint: userSignupEndPoint,
+  userLoginEndPoint: userLoginEndPoint,
+  resendActivationEndPoint: resendActivationEndPoint
 };

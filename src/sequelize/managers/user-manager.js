@@ -1,4 +1,4 @@
-const BaseManager = require('./baseManager');
+const BaseManager = require('./base-manager');
 const models = require('./../models');
 const User = models.User;
 const AccessToken = models.AccessToken;
@@ -31,6 +31,15 @@ class UserManager extends BaseManager {
       }]
     });
   }
+
+  findByEmail(email) {
+    return User.find({
+      where: {
+        email: email
+      }
+    });
+  }
+
 }
 
 const instance = new UserManager();

@@ -99,6 +99,14 @@ function isValidEmailActivation(flag) {
   return flag === 'on' || flag === 'off';
 }
 
+function generateAccessToken() {
+  let token = '', i;
+  for (i = 0; i < 8; i++) {
+    token += ((0 + (Math.floor(Math.random() * (Math.pow(2, 31))) + 1).toString(16)).slice(-8)).substr(-8);
+  }
+  return token;
+}
+
 module.exports = {
   encryptText,
   decryptText,
@@ -109,5 +117,6 @@ module.exports = {
   isValidPort,
   isValidDomain,
   isValidEmailActivation,
-  checkPortAvailability
+  checkPortAvailability,
+  generateAccessToken
 };

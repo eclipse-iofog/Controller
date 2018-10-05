@@ -27,7 +27,16 @@ class ValidationError extends Error {
   }
 }
 
+class InvalidCredentialsError extends Error {
+  constructor(message) {
+    super(message);
+    this.message = message;
+    this.name = "InvalidCredentialsError";
+  }
+}
+
 module.exports = {
   AuthenticationError: AuthenticationError,
-  ValidationError: ValidationError
+  ValidationError: ValidationError,
+  InvalidCredentialsError: InvalidCredentialsError
 };

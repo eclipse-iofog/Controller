@@ -12,8 +12,8 @@
  */
 const logger = require('../logger');
 const config = require('../config');
-const UserManager = require('../sequelize/managers/userManager');
-const AccessTokenManager = require('../sequelize/managers/accessTokenManager');
+const UserManager = require('../sequelize/managers/user-manager');
+const AccessTokenManager = require('../sequelize/managers/access-token-manager');
 const Errors = require('../helpers/errors');
 
 function checkAuthorization(f) {

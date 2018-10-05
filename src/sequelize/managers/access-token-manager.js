@@ -11,11 +11,20 @@
  *
  */
 
-const BaseManager = require('./baseManager');
+const BaseManager = require('./base-manager');
 const models = require('./../models');
 const AccessToken = models.AccessToken;
 
 class accessTokenManager extends BaseManager {
+
+  getEntity() {
+    return AccessToken;
+  }
+
+  createAccessToken(accessToken) {
+    return AccessToken.create(accessToken);
+  };
+
   updateExpirationTime(id, newTime) {
     return AccessToken.update({
       expirationTime: newTime

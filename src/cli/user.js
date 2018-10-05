@@ -13,7 +13,7 @@
 
 const BaseCLIHandler = require('./base-cli-handler');
 const constants = require('../helpers/constants');
-const UserService = require('../services/userService');
+const UserService = require('../services/user-service');
 const logger = require('../logger');
 
 class User extends BaseCLIHandler {

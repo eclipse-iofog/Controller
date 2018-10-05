@@ -13,7 +13,7 @@
 
 const models = require('../models/index');
 const ControllerConfig = models.ControllerConfig;
-const BaseManager = require('./baseManager');
+const BaseManager = require('./base-manager');
 
 class ConfigManager extends BaseManager {
   getEntity() {

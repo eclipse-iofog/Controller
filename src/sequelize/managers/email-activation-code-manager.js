@@ -13,7 +13,7 @@
 
 const models = require('../models/index');
 const EmailActivationCode = models.EmailActivationCode;
-const BaseManager = require('./baseManager');
+const BaseManager = require('./base-manager');
 
 class EmailActivationCodeManager extends BaseManager {
   getEntity() {

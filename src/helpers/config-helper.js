@@ -12,8 +12,8 @@
  */
 
 const _ = require('underscore');
-const ConfigManager = require('../sequelize/managers/configManager');
-const AppHelper = require("../helpers/appHelper");
+const ConfigManager = require('../sequelize/managers/config-manager');
+const AppHelper = require("./app-helper");
 const Errors = require("../helpers/errors");
 
 const Constants = require('../helpers/constants');

@@ -24,7 +24,7 @@ module.exports = class BaseManager {
 
     object = object || {};
 
-    if (object.limit && object.limit == -1)
+    if (object.limit && object.limit === -1)
       delete object.limit;
 
     return this.getEntity().findAll(object);

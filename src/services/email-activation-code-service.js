@@ -14,15 +14,15 @@
 const async = require('async');
 const logger = require('../logger');
 
-const EmailActivationCodeManager = require('../sequelize/managers/emailActivationCodeManager');
-const AppHelper = require('../helpers/appHelper');
+const EmailActivationCodeManager = require('../sequelize/managers/email-activation-code-manager');
+const AppHelper = require('../helpers/app-helper');
 
 const generateActivationCode = async function () {
   while (true) {
-    let newActivationCode = AppHelper.generateRandomString(16);
-    let exists = await findEmailActivationCode(newActivationCode);
+    const newActivationCode = AppHelper.generateRandomString(16);
+    const exists = await findEmailActivationCode(newActivationCode);
     if (!exists) {
-      let activationCodeExpiryTime = new Date().getTime() + ((60 * 60 * 24 * 3) * 1000);
+      const activationCodeExpiryTime = new Date().getTime() + ((60 * 60 * 24 * 3) * 1000);
       return {
         activationCode: newActivationCode,
         expirationTime: activationCodeExpiryTime
@@ -36,8 +36,8 @@ const findEmailActivationCode = async function (activationCode) {
 };
 
 const saveActivationCode = async function (userId, activationCodeData) {
-  let activationCode = activationCodeData.activationCode;
-  let expirationTime = activationCodeData.expirationTime;
+  const activationCode = activationCodeData.activationCode;
+  const expirationTime = activationCodeData.expirationTime;
 
   try {
     return await EmailActivationCodeManager.createActivationCode(userId, activationCode, expirationTime);
@@ -50,4 +50,4 @@ const saveActivationCode = async function (userId, activationCodeData) {
 module.exports = {
   generateActivationCode: generateActivationCode,
   saveActivationCode: saveActivationCode
-}
+};

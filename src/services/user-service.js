@@ -13,15 +13,16 @@
 
 const nodemailer = require('nodemailer');
 let smtpTransport = require('nodemailer-smtp-transport');
-const UserManager = require('../sequelize/managers/userManager');
-const AppHelper = require('../helpers/appHelper');
+const UserManager = require('../sequelize/managers/user-manager');
+const AppHelper = require('../helpers/app-helper');
 const Errors = require('../helpers/errors');
 
-const emailActivationTemplate = require('../views/emailActivationTemp');
+const emailActivationTemplate = require('../views/email-activation-temp');
+const EmailActivationCodeService = require('./email-activation-code-service');
 
-const EmailActivationCodeService = require('../services/emailActivationCodeService');
+const AccessTokenService = require('./access-token-service');
 
-const ConfigHelper = require('../helpers/configHelper');
+const ConfigHelper = require('../helpers/config-helper');
 const logger = require('../logger');
 const constants = require('../helpers/constants');
 
@@ -37,7 +38,8 @@ const signUp = async function (user) {
 
   let emailActivation = ConfigHelper.getConfigParam('email_activation') || 'off';
 
-  _validate(user);
+  AppHelper.validateFields(user, ["firstName", "lastName", "email", "password"]);
+  _validateUserInfo(user);
 
   if (emailActivation === 'on') {
 
@@ -55,11 +57,64 @@ const signUp = async function (user) {
   }
 };
 
+const login = async function (credentials) {
 
-function _validate(user) {
-  AppHelper.validateFields(user, ["firstName", "lastName", "email", "password"]);
-  _validateUserInfo(user);
+  AppHelper.validateFields(credentials, ["email", "password"]);
+  const user = await UserManager.findByEmail(credentials.email);
+  const validPassword = credentials.password === user.password || credentials.password === user.tempPassword;
+  if (!user || !validPassword) {
+    throw new Errors.InvalidCredentialsError();
+  }
+
+  _verifyEmailActivation(user.emailActivated);
+
+  const accessToken = await _generateAccessToken();
+  accessToken.user_id = user.id;
+
+  await AccessTokenService.createAccessToken(accessToken);
+
+  return {
+    accessToken: accessToken.token
+  }
+};
+
+const resendActivation = async function (emailObj) {
+
+  AppHelper.validateFields(emailObj, ["email"]);
+
+  const user = await UserManager.findByEmail(emailObj.email);
+  if (!user)
+    throw new Errors.ValidationError("Invalid user email.");
+
+  const activationCodeData = await EmailActivationCodeService.generateActivationCode();
+  await EmailActivationCodeService.saveActivationCode(user.id, activationCodeData);
+
+  const emailData = await _getEmailData();
+  const transporter = await _userEmailSender(emailData);
+  await _notifyUserAboutActivationCode(user.email, "https://google.com", emailData, activationCodeData, transporter);
+};
+
+async function _generateAccessToken() {
+  while (true) {
+    let newAccessToken = AppHelper.generateAccessToken();
+    const exists = await UserManager.findByAccessToken(newAccessToken);
+    if (!exists) {
+      let tokenExpiryTime = new Date().getTime() + (constants.ACCESS_TOKEN_EXPIRE_PERIOD * 1000);
+
+      return {
+        token: newAccessToken,
+        expirationTime: tokenExpiryTime
+      };
+    }
+  }
 }
+
+function _verifyEmailActivation(emailActivated) {
+  const emailActivation = ConfigHelper.getConfigParam('email_activation');
+  if (emailActivation === 'on' && emailActivated === 0)
+    throw new Error('Email is not activated. Please activate your account first.');
+}
+
 
 async function _userEmailSender(emailData) {
   let transporter;
@@ -144,5 +199,7 @@ async function _getEmailData() {
 module.exports = {
   createUser: createUser,
   getUserByEmail: getUserByEmail,
-  signUp: signUp
+  signUp: signUp,
+  login: login,
+  resendActivation: resendActivation
 };
