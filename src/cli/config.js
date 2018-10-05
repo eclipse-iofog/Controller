@@ -11,10 +11,10 @@
  *
  */
 
-const BaseCLIHandler = require('./base-cli-handler')
-const config = require('../config')
-const constants = require('../helpers/constants')
-const helpers = require('../helpers')
+const BaseCLIHandler = require('./base-cli-handler');
+const config = require('../config');
+const constants = require('../helpers/constants');
+const AppHelper = require('../helpers/app-helper');
 
 class Config extends BaseCLIHandler {
   constructor() {
@@ -79,7 +79,7 @@ class Config extends BaseCLIHandler {
     }
 
     if (configCommand.Options.emailPassword != null) {
-      config.set('Email:Password', helpers.encryptText(configCommand.Options.emailPassword, config.get('Email:Address')))
+      config.set('Email:Password', AppHelper.encryptText(configCommand.Options.emailPassword, config.get('Email:Address')))
     }
 
     if (configCommand.Options.emailService != null) {

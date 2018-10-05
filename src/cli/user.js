@@ -11,8 +11,10 @@
  *
  */
 
-const BaseCLIHandler = require('./base-cli-handler')
-const constants = require('../helpers/constants')
+const BaseCLIHandler = require('./base-cli-handler');
+const constants = require('../helpers/constants');
+const UserService = require('../services/user-service');
+const logger = require('../logger');
 
 class User extends BaseCLIHandler {
   constructor() {
@@ -52,12 +54,18 @@ class User extends BaseCLIHandler {
     }
   }
 
-  run(args) {
+  async run(args) {
     const userCommand = this.parseCommandLineArgs(this.commandDefinitions, { argv: args.argv, })
 
     switch (userCommand.command.command) {
       case constants.CMD_ADD:
-        return
+        try {
+          const user = userCommand[constants.CMD_ADD];
+          await UserService.signUp(user);
+          logger.info('User created successfully.')
+        } catch(error) {
+          logger.error(error.message)
+        }
       case constants.CMD_UPDATE:
         return
       case constants.CMD_REMOVE:

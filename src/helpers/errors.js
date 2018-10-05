@@ -19,6 +19,24 @@ class AuthenticationError extends Error {
   }
 }
 
-module.exports = {
-  AuthenticationError: AuthenticationError
+class ValidationError extends Error {
+  constructor(message) {
+    super(message);
+    this.message = message;
+    this.name = "ValidationError";
+  }
 }
+
+class InvalidCredentialsError extends Error {
+  constructor(message) {
+    super(message);
+    this.message = message;
+    this.name = "InvalidCredentialsError";
+  }
+}
+
+module.exports = {
+  AuthenticationError: AuthenticationError,
+  ValidationError: ValidationError,
+  InvalidCredentialsError: InvalidCredentialsError
+};

@@ -11,6 +11,27 @@
  *
  */
 
+
+const ACCESS_TOKEN_EXPIRE_PERIOD = 14 * (60 * 60 * 24);
+
+const CONFIG = {
+  port: 'port',
+  ssl_key: 'ssl_key',
+  ssl_cert: 'ssl_cert',
+  intermediate_cert: 'intermediate_cert',
+  email_address: 'email_address',
+  email_password: 'email_password',
+  email_service: 'email_service',
+  email_server: 'email_server',
+  email_serverport: 'email_serverport',
+  email_activation: 'email_activation',
+  proxy_username: 'proxy_username',
+  proxy_password: 'proxy_password',
+  proxy_host: 'proxy_host',
+  proxy_lport: 'proxy_lport',
+  proxy_rsa_key: 'proxy_rsa_key'
+};
+
 module.exports = {
   CMD: 'command',
   CMD_LIST: 'list',
@@ -39,9 +60,13 @@ module.exports = {
   CMD_SUSPEND: 'suspend',
   CMD_STRACE: 'strace',
   CMD_TUNNEL: 'tunnel',
-
+  CONFIG: CONFIG,
+  ACCESS_TOKEN_EXPIRE_PERIOD: ACCESS_TOKEN_EXPIRE_PERIOD
   HTTP_CODE_SUCCESS: 200,
+  HTTP_CODE_CREATED: 201,
+  HTTP_CODE_NO_CONTENT: 204,
   HTTP_CODE_BAD_REQUEST: 400,
+  HTTP_CODE_UNAUTHORIZED: 401,
   HTTP_CODE_NOT_FOUND: 404,
   HTTP_CODE_INTERNAL_ERROR: 500,
 }
