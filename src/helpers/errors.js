@@ -49,4 +49,4 @@ module.exports = {
   TransactionError: TransactionError,
   ValidationError: ValidationError,
   InvalidCredentialsError: InvalidCredentialsError
-}
+};

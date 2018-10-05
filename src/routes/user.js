@@ -21,14 +21,14 @@ module.exports = [
     method: 'post',
     path: '/api/v3/user/login',
     middleware: async (req, res) => {
-      const successCode = 200;
+      const successCode = constants.HTTP_CODE_SUCCESS;
       const errorCodes = [
         {
-          code: 400,
+          code: constants.HTTP_CODE_BAD_REQUEST,
           errors: [Errors.ValidationError]
         },
         {
-          code: 401,
+          code: constants.HTTP_CODE_UNAUTHORIZED,
           errors: [Errors.InvalidCredentialsError]
         }
       ];
@@ -55,10 +55,10 @@ module.exports = [
     path: '/api/v3/user/signup',
     middleware: async (req, res) => {
 
-      const successCode = 201;
+      const successCode = constants.HTTP_CODE_CREATED;
       const errorCodes = [
         {
-          code: 400,
+          code: constants.HTTP_CODE_BAD_REQUEST,
           errors: [Errors.ValidationError]
         }
       ];
@@ -76,10 +76,10 @@ module.exports = [
     path: '/api/v3/user/signup/resend-activation',
     middleware: async (req, res) => {
 
-      const successCode = 204;
+      const successCode = constants.HTTP_CODE_NO_CONTENT;
       const errorCodes = [
         {
-          code: 400,
+          code: constants.HTTP_CODE_BAD_REQUEST,
           errors: [Errors.ValidationError]
         }
       ];

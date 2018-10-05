@@ -1,18 +1,4 @@
 {
-  "browser": false,
-  "jquery": false,
-  "node": true,
   "esversion": 6,
-  "asi": true,
-  "camelcase": true,
-  "eqeqeq": true,
-  "indent": 2,
-  "latedef": true,
-  "maxlen": 100,
-  "newcap": true,
-  "quotmark": "single",
-  "strict": false,
-  "undef": true,
-  "unused": true,
-  "eqnull": true
+  "asi": true
 }

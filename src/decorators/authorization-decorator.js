@@ -37,7 +37,7 @@ function checkAuthToken(f) {
     }
 
     fArgs.push(user);
-    AccessTokenManager.updateExpirationTime(user.accessToken.id, user.accessToken.expirationTime + config.get('Settings:UserTokenExpirationInterval') * 60 * 1000);
+    AccessTokenManager.updateExpirationTime(user.accessToken.id, user.accessToken.expirationTime + config.get('Settings:UserTokenExpirationIntervalSeconds') * 1000);
     return await f.apply(this, fArgs);
   }
 }
