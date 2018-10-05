@@ -10,6 +10,7 @@
  *  *******************************************************************************
  *
  */
+const constants = require('../helpers/constants')
 
 const UserController = require('../controllers/user-controller');
 const ResponseDecorator = require('../decorators/response-decorator');
@@ -20,14 +21,14 @@ module.exports = [
     method: 'post',
     path: '/api/v3/user/login',
     middleware: async (req, res) => {
-      const successCode = 200;
+      const successCode = constants.HTTP_CODE_SUCCESS;
       const errorCodes = [
         {
-          code: 400,
+          code: constants.HTTP_CODE_BAD_REQUEST,
           errors: [Errors.ValidationError]
         },
         {
-          code: 401,
+          code: constants.HTTP_CODE_UNAUTHORIZED,
           errors: [Errors.InvalidCredentialsError]
         }
       ];
@@ -45,7 +46,7 @@ module.exports = [
     path: '/api/v3/user/logout',
     middleware: (req, res) => {
       res
-        .status(200)
+        .status(constants.HTTP_CODE_SUCCESS)
         .send(req.body)
     }
   },
@@ -54,10 +55,10 @@ module.exports = [
     path: '/api/v3/user/signup',
     middleware: async (req, res) => {
 
-      const successCode = 201;
+      const successCode = constants.HTTP_CODE_CREATED;
       const errorCodes = [
         {
-          code: 400,
+          code: constants.HTTP_CODE_BAD_REQUEST,
           errors: [Errors.ValidationError]
         }
       ];
@@ -75,10 +76,10 @@ module.exports = [
     path: '/api/v3/user/signup/resend-activation',
     middleware: async (req, res) => {
 
-      const successCode = 204;
+      const successCode = constants.HTTP_CODE_NO_CONTENT;
       const errorCodes = [
         {
-          code: 400,
+          code: constants.HTTP_CODE_BAD_REQUEST,
           errors: [Errors.ValidationError]
         }
       ];
@@ -96,7 +97,7 @@ module.exports = [
     path: '/api/v3/user/activate',
     middleware: (req, res) => {
       res
-        .status(200)
+        .status(constants.HTTP_CODE_SUCCESS)
         .send(req.body)
     }
   },
@@ -105,7 +106,7 @@ module.exports = [
     path: '/api/v3/user/profile',
     middleware: (req, res) => {
       res
-        .status(200)
+        .status(constants.HTTP_CODE_SUCCESS)
         .send(req.body)
     }
   },
@@ -114,7 +115,7 @@ module.exports = [
     path: '/api/v3/user/profile',
     middleware: (req, res) => {
       res
-        .status(200)
+        .status(constants.HTTP_CODE_SUCCESS)
         .send(req.body)
     }
   },
@@ -123,7 +124,7 @@ module.exports = [
     path: '/api/v3/user/profile',
     middleware: (req, res) => {
       res
-        .status(200)
+        .status(constants.HTTP_CODE_SUCCESS)
         .send(req.body)
     }
   },
@@ -132,7 +133,7 @@ module.exports = [
     path: '/api/v3/user/password',
     middleware: (req, res) => {
       res
-        .status(200)
+        .status(constants.HTTP_CODE_SUCCESS)
         .send(req.body)
     }
   },
@@ -141,7 +142,7 @@ module.exports = [
     path: '/api/v3/user/password',
     middleware: (req, res) => {
       res
-        .status(200)
+        .status(constants.HTTP_CODE_SUCCESS)
         .send(req.body)
     }
   }

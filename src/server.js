@@ -26,14 +26,10 @@ const morgan = require('morgan');
 
 const app = express();
 
-
-const Sequelize = require('./sequelize/models/index');
-
 app.use(helmet());
 app.use(xss());
 
 app.use(morgan('combined'));
-
 
 app.use(bodyParser.urlencoded({
   extended: true,
