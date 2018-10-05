@@ -17,6 +17,8 @@ const UserManager = require('../sequelize/managers/user-manager');
 const AppHelper = require('../helpers/app-helper');
 const Errors = require('../helpers/errors');
 
+const config = require('../config');
+
 const emailActivationTemplate = require('../views/email-activation-temp');
 const EmailActivationCodeService = require('./email-activation-code-service');
 
@@ -99,7 +101,7 @@ async function _generateAccessToken() {
     let newAccessToken = AppHelper.generateAccessToken();
     const exists = await UserManager.findByAccessToken(newAccessToken);
     if (!exists) {
-      let tokenExpiryTime = new Date().getTime() + (constants.ACCESS_TOKEN_EXPIRE_PERIOD * 1000);
+      let tokenExpiryTime = new Date().getTime() + (config.get('Settings:UserTokenExpirationIntervalSeconds') * 1000);
 
       return {
         token: newAccessToken,

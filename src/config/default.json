@@ -13,6 +13,6 @@
     "LogsFileSize": 1048576
   },
   "Settings": {
-    "UserTokenExpirationInterval": 60
+    "UserTokenExpirationIntervalSeconds": 3600
   }
 }
