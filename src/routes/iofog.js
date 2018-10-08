@@ -11,6 +11,9 @@
  *
  */
 const constants = require('../helpers/constants')
+const FogController = require('../controllers/iofog-controller')
+const ResponseDecorator = require('../decorators/response-decorator')
+const Errors = require('../helpers/errors')
 
 module.exports = [
   {
@@ -25,10 +28,26 @@ module.exports = [
   {
     method: 'post',
     path: '/api/v3/iofog',
-    middleware: (req, res) => {
+    middleware: async (req, res) => {
+      const successCode = constants.HTTP_CODE_CREATED
+      const errCodes = [
+        {
+          code: 400,
+          errors: [Errors.ValidationError]
+        },
+        {
+          code: 401,
+          errors: [Errors.AuthenticationError]
+        }
+      ]
+
+      const createFog = ResponseDecorator.handleErrors(FogController.createFog, successCode, errCodes)
+
+      const responseObject = await createFog(req)
+
       res
-        .status(constants.HTTP_CODE_SUCCESS)
-        .send(req.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
     }
   },
   {

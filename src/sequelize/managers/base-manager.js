@@ -1,18 +1,20 @@
 /*
- * *******************************************************************************
- *  * Copyright (c) 2018 Edgeworx, Inc.
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
+* *******************************************************************************
+*  * Copyright (c) 2018 Edgeworx, Inc.
+*  *
+*  * This program and the accompanying materials are made available under the
+*  * terms of the Eclipse Public License v. 2.0 which is available at
+*  * http://www.eclipse.org/legal/epl-2.0
+*  *
+*  * SPDX-License-Identifier: EPL-2.0
+*  *******************************************************************************
+*
+*/
 
 const moment = require('moment');
 const _ = require('underscore');
+
+const AppHelper = require('../../helpers/app-helper');
 
 module.exports = class BaseManager {
 
@@ -20,22 +22,41 @@ module.exports = class BaseManager {
     return null;
   }
 
-  find(object) {
+  findAll(object, transaction) {
+    AppHelper.checkTransaction(transaction);
 
     object = object || {};
 
     if (object.limit && object.limit === -1)
       delete object.limit;
 
-    return this.getEntity().findAll(object);
+    return this.getEntity().findAll({
+      where: object,
+      transaction: transaction
+    });
   }
 
-  create(object) {
+  findOne(object, transaction) {
+    AppHelper.checkTransaction(transaction);
+
+    object = object || {};
+
+    return this.getEntity().findOne({
+      where: object,
+      transaction: transaction
+    });
+  }
+
+  create(object, transaction) {
+    AppHelper.checkTransaction(transaction)
+
     if (this.getEntity().attributes.createdAt)
       object.createdAt = moment.utc().valueOf();
 
-    return this.getEntity().create(object);
+    return this.getEntity().create(object, {transaction: transaction});
   }
+
+  //TODO: add transactions for methods down
 
   findById(id, include) {
     return this.getEntity().findById(id, {

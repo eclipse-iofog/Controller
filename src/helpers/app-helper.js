@@ -107,6 +107,12 @@ function generateAccessToken() {
   return token;
 }
 
+function checkTransaction(transaction) {
+  if (!transaction) {
+    throw new Errors.TransactionError()
+  }
+}
+
 module.exports = {
   encryptText,
   decryptText,
@@ -118,5 +124,6 @@ module.exports = {
   isValidDomain,
   isValidEmailActivation,
   checkPortAvailability,
-  generateAccessToken
+  generateAccessToken,
+  checkTransaction
 };
