@@ -11,3 +11,10 @@
  *
  */
 
+const logger = require('../logger');
+
+const listMicroservicesEndPoint = async function (req) {
+	logger.info("Parameters:" + JSON.stringify(req.query));
+
+	return await CatalogService.listMicroservices();
+}

@@ -30,15 +30,15 @@ module.exports = [
       const successCode = 201;
       const errorCodes = [
         {
-          code: 400,
+          code: constants.HTTP_CODE_BAD_REQUEST,
           errors: [Errors.ValidationError]
         },
         {
-          code: 401,
+          code: constants.HTTP_CODE_UNAUTHORIZED,
           errors: [Errors.AuthenticationError]
         },
         {
-          code: 409,
+          code: constants.HTTP_CODE_DUPLICATE_PROPERTY,
           errors: [Errors.DuplicatePropertyError]
         }
       ];

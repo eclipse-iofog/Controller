@@ -12,6 +12,7 @@
  */
 
 const AppHelper = require('../helpers/app-helper');
+const Errors = require('../helpers/errors');
 
 const createCatalogItem = async function (req, user) {
 
