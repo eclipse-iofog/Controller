@@ -2475,7 +2475,7 @@ definitions:
         type: string
       configExample:
         type: string
-      containersImages:
+      containerImages:
         type: object
         $ref: '#/definitions/ElementContainerImages'
   ElementContainerImages:
@@ -2494,7 +2494,7 @@ definitions:
         type: string
       category:
         type: string
-      containersImages:
+      containerImages:
         type: object
         $ref: '#/definitions/ElementContainerImages'
       publisher:
