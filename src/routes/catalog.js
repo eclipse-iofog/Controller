@@ -10,7 +10,11 @@
  *  *******************************************************************************
  *
  */
-const constants = require('../helpers/constants')
+const constants = require('../helpers/constants');
+
+const CatalogController = require('../controllers/catalog-controller');
+const ResponseDecorator = require('../decorators/response-decorator');
+const Errors = require('../helpers/errors');
 
 module.exports = [
   {
@@ -25,7 +29,7 @@ module.exports = [
   {
     method: 'post',
     path: '/api/v3/catalog/microservices',
-    middleware: (req, res) => {
+    middleware: async (req, res) => {
 
       const successCode = 201;
       const errorCodes = [
@@ -43,11 +47,16 @@ module.exports = [
         }
       ];
 
-
+      const createCatalogItemEndpoint = ResponseDecorator.handleErrors(
+        CatalogController.createCatalogItemEndPoint,
+        successCode,
+        errorCodes
+      );
+      const response = await createCatalogItemEndpoint(req);
 
       res
-        .status(constants.HTTP_CODE_SUCCESS)
-        .send(req.body)
+        .status(response.code)
+        .send(response.body)
     }
   },
   {

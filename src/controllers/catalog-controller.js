@@ -13,6 +13,7 @@
 
 const logger = require('../logger');
 const CatalogService = require('../services/catalog-service');
+const AuthDecorator = require('./../decorators/authorization-decorator');
 
 // const listMicroservicesEndPoint = async function (req) {
 // 	logger.info("Parameters:" + JSON.stringify(req.query));
@@ -20,8 +21,13 @@ const CatalogService = require('../services/catalog-service');
 // 	return await CatalogService.listMicroservices();
 // }
 
-const createCatalogItemEndPoint = async function (req) {
+
+function _createCatalogItemEndPoint(req, user) {
 	logger.info("Parameters:" + JSON.stringify(req.body));
 
-	return await CatalogService.createCatalogItem(req.body)
+	return CatalogService.createCatalogItem(req.body, user);
+}
+
+module.exports = {
+	createCatalogItemEndPoint: AuthDecorator.checkAuthToken(_createCatalogItemEndPoint)
 }

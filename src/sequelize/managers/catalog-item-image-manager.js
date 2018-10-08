@@ -19,8 +19,7 @@ class CatalogItemImageManager extends BaseManager {
 	getEntity() {
 		return CatalogItemImage;
 	}
-
-	async createCatalogItemImage(catalogItemImage) {
-		return CatalogItemImage.create(catalogItemImage);
-	}
 }
+
+const instance = new CatalogItemImageManager();
+module.exports = instance;

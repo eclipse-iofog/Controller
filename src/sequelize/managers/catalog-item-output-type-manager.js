@@ -19,8 +19,7 @@ class CatalogItemOutputTypeManager extends BaseManager {
 	getEntity() {
 		return CatalogItemOutputType;
 	}
-
-	async createCatalogItemOutputType(catalogItemOutputType) {
-		return CatalogItemOutputType.create(catalogItemOutputType);
-	}
 }
+
+const instance = new CatalogItemOutputTypeManager();
+module.exports = instance;

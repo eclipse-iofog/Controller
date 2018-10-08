@@ -13,6 +13,7 @@
 
 const moment = require('moment');
 const _ = require('underscore');
+const AppHelper = require('../../helpers/app-helper');
 
 module.exports = class BaseManager {
 
@@ -30,11 +31,12 @@ module.exports = class BaseManager {
     return this.getEntity().findAll(object);
   }
 
-  create(object) {
+  create(object, transaction) {
+	  AppHelper.checkTransaction(transaction);
     if (this.getEntity().attributes.createdAt)
       object.createdAt = moment.utc().valueOf();
 
-    return this.getEntity().create(object);
+    return this.getEntity().create(object, {transaction: transaction});
   }
 
   findById(id, include) {

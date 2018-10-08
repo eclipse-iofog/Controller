@@ -19,8 +19,7 @@ class CatalogItemManager extends BaseManager {
 	getEntity() {
 		return CatalogItem;
 	}
-
-	async createCatalogItem(catalogItemData) {
-		return CatalogItem.create(catalogItemData);
-	}
 }
+
+const instance = new CatalogItemManager();
+module.exports = instance;

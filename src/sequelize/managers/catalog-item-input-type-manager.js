@@ -19,8 +19,7 @@ class CatalogItemInputTypeManager extends BaseManager {
 	getEntity() {
 		return CatalogItemInputType;
 	}
-
-	async createCatalogItemInputType(catalogItemInputType) {
-		return CatalogItemInputType.create(catalogItemInputType);
-	}
 }
+
+const instance = new CatalogItemInputTypeManager();
+module.exports = instance;

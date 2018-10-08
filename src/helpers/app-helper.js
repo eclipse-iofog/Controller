@@ -120,6 +120,12 @@ function isValidBoolean(bool) {
   return typeof bool == "boolean";
 }
 
+function checkTransaction(transaction) {
+	if (!transaction) {
+		throw new Errors.TransactionError()
+	}
+}
+
 module.exports = {
   encryptText,
   decryptText,
@@ -134,5 +140,6 @@ module.exports = {
   generateAccessToken,
   isValidName,
   isValidNumber,
-  isValidBoolean
+  isValidBoolean,
+  checkTransaction
 };
