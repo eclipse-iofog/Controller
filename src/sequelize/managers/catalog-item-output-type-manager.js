@@ -11,17 +11,16 @@
  *
  */
 
-const logger = require('../logger');
-const CatalogService = require('../services/catalog-service');
+const BaseManager = require('./base-manager');
+const models = require('./../models');
+const CatalogItemOutputType = models.CatalogItemOutputType;
 
-// const listMicroservicesEndPoint = async function (req) {
-// 	logger.info("Parameters:" + JSON.stringify(req.query));
-//
-// 	return await CatalogService.listMicroservices();
-// }
+class CatalogItemOutputTypeManager extends BaseManager {
+	getEntity() {
+		return CatalogItemOutputType;
+	}
 
-const createCatalogItemEndPoint = async function (req) {
-	logger.info("Parameters:" + JSON.stringify(req.body));
-
-	return await CatalogService.createCatalogItem(req.body)
+	async createCatalogItemOutputType(catalogItemOutputType) {
+		return CatalogItemOutputType.create(catalogItemOutputType);
+	}
 }
