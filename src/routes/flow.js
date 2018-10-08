@@ -10,6 +10,7 @@
  *  *******************************************************************************
  *
  */
+const constants = require('../helpers/constants')
 
 module.exports = [
   {
@@ -17,7 +18,7 @@ module.exports = [
     path: '/api/v3/flow',
     middleware: (req, res) => {
       res
-        .status(200)
+        .status(constants.HTTP_CODE_SUCCESS)
         .send(req.body)
     }
   },
@@ -26,7 +27,7 @@ module.exports = [
     path: '/api/v3/flow',
     middleware: (req, res) => {
       res
-        .status(200)
+        .status(constants.HTTP_CODE_SUCCESS)
         .send(req.body)
     }
   },
@@ -35,7 +36,7 @@ module.exports = [
     path: '/api/v3/flow/:id',
     middleware: (req, res) => {
       res
-        .status(200)
+        .status(constants.HTTP_CODE_SUCCESS)
         .send(req.body)
     }
   },
@@ -44,7 +45,7 @@ module.exports = [
     path: '/api/v3/flow/:id',
     middleware: (req, res) => {
       res
-        .status(200)
+        .status(constants.HTTP_CODE_SUCCESS)
         .send(req.body)
     }
   },
@@ -53,7 +54,7 @@ module.exports = [
     path: '/api/v3/flow/:id',
     middleware: (req, res) => {
       res
-        .status(200)
+        .status(constants.HTTP_CODE_SUCCESS)
         .send(req.body)
     }
   }
