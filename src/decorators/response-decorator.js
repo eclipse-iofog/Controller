@@ -51,7 +51,7 @@ function handleErrors(f, successCode, errorsCodes) {
         body: {
           name: errorObj.name,
           message: errorObj.message,
-          stack: errorObj.stack
+          stack: code === 500 ? errorObj.stack : null
         }
       }
     }

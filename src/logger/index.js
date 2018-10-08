@@ -11,10 +11,10 @@
  *
  */
 
-const winston = require('winston');
-const config = require('../config');
+const winston = require('winston')
+const config = require('../config')
 
-const MESSAGE = Symbol.for('message');
+const MESSAGE = Symbol.for('message')
 
 const logger = winston.createLogger({
   level: 'silly',
@@ -29,12 +29,12 @@ const logger = winston.createLogger({
       maxsize:  config.get('Service:LogsFileSize'),
     }),
   ],
-});
+})
 
 if (process.env.NODE_ENV !== 'production') {
   logger.add(new winston.transports.Console({
     format: winston.format((log) => {
-      log[MESSAGE] = log.message;
+      log[MESSAGE] = log.message
       return log
     })(),
   }))

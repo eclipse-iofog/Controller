@@ -19,6 +19,15 @@ class AuthenticationError extends Error {
   }
 }
 
+class TransactionError extends Error {
+  constructor() {
+    const message = 'Transaction not provided'
+    super(message)
+    this.message = message
+    this.name = 'TransactionError'
+  }
+}
+
 class ValidationError extends Error {
   constructor(message) {
     super(message);
@@ -37,6 +46,7 @@ class InvalidCredentialsError extends Error {
 
 module.exports = {
   AuthenticationError: AuthenticationError,
+  TransactionError: TransactionError,
   ValidationError: ValidationError,
   InvalidCredentialsError: InvalidCredentialsError
 };
