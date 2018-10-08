@@ -11,9 +11,6 @@
  *
  */
 
-
-const ACCESS_TOKEN_EXPIRE_PERIOD = 14 * (60 * 60 * 24);
-
 const CONFIG = {
   port: 'port',
   ssl_key: 'ssl_key',
@@ -61,7 +58,6 @@ module.exports = {
   CMD_STRACE: 'strace',
   CMD_TUNNEL: 'tunnel',
   CONFIG: CONFIG,
-  ACCESS_TOKEN_EXPIRE_PERIOD: ACCESS_TOKEN_EXPIRE_PERIOD
   HTTP_CODE_SUCCESS: 200,
   HTTP_CODE_CREATED: 201,
   HTTP_CODE_NO_CONTENT: 204,
