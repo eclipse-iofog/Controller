@@ -22,24 +22,20 @@ module.exports = [
     path: '/api/v3/flow',
     middleware: (req, res) => {
 
-        // add errors
-
         const successCode = constants.HTTP_CODE_SUCCESS;
         const errorCodes = [
             {
                 code: constants.HTTP_CODE_UNAUTHORIZED,
-                errors: []
+                errors: [Errors.AuthenticationError]
             },
             {
                 code: constants.HTTP_CODE_INTERNAL_ERROR,
-                errors: []
+                errors: [Errors.TransactionError]
             }
         ];
 
-        // add auth
-
-        const flowsByUserEndPoint = ResponseDecorator.handleErrors(FlowController.flowsByUserEndPoint(req), successCode, errorCodes);
-        const responseObject = await flowsByUserEndPoint(req);
+        const getFlowsByUserEndPoint = ResponseDecorator.handleErrors(FlowController.getFlowsByUserEndPoint(req), successCode, errorCodes);
+        const responseObject = await getFlowsByUserEndPoint(req);
 
         res
             .status(responseObject.code)
@@ -57,22 +53,20 @@ module.exports = [
         const errorCodes = [
             {
                 code: constants.HTTP_CODE_BAD_REQUEST,
-                errors: [Errors.ValidationError]
+                errors: []
             },
             {
                 code: constants.HTTP_CODE_UNAUTHORIZED,
-                errors: []
+                errors: [Errors.AuthenticationError]
             },
             {
                 code: constants.HTTP_CODE_INTERNAL_ERROR,
-                errors: []
+                errors: [Errors.TransactionError]
             }
         ];
 
-        // add auth
-
-        const flowCreateEndPoint = ResponseDecorator.handleErrors(FlowController.flowCreateEndPoint, successCode, errorCodes);
-        const responseObject = await flowCreateEndPoint(req);
+        const createFlowEndPoint = ResponseDecorator.handleErrors(FlowController.createFlowEndPoint, successCode, errorCodes);
+        const responseObject = await createFlowEndPoint(req);
 
         res
             .status(responseObject.code)
@@ -90,7 +84,7 @@ module.exports = [
         const errorCodes = [
             {
                 code: constants.HTTP_CODE_UNAUTHORIZED,
-                errors: []
+                errors: [Errors.AuthenticationError]
             },
             {
                 code: constants.HTTP_CODE_NOT_FOUND,
@@ -98,14 +92,12 @@ module.exports = [
             },
             {
                 code: constants.HTTP_CODE_INTERNAL_ERROR,
-                errors: []
+                errors: [Errors.TransactionError]
             }
         ];
 
-        // add auth
-
-        const flowGetEndPoint = ResponseDecorator.handleErrors(FlowController.flowGetEndPoint(req), successCode, errorCodes);
-        const responseObject = await flowGetEndPoint(req);
+        const getFlowEndPoint = ResponseDecorator.handleErrors(FlowController.getFlowEndPoint(req), successCode, errorCodes);
+        const responseObject = await getFlowEndPoint(req);
 
       res
         .status(responseObject.code)
@@ -127,7 +119,7 @@ module.exports = [
             },
             {
                 code: constants.HTTP_CODE_UNAUTHORIZED,
-                errors: []
+                errors: [Errors.AuthenticationError]
             },
             {
                 code: constants.HTTP_CODE_NOT_FOUND,
@@ -135,14 +127,12 @@ module.exports = [
             },
             {
                 code: constants.HTTP_CODE_INTERNAL_ERROR,
-                errors: []
+                errors: [Errors.TransactionError]
             }
         ];
 
-        // add auth
-
-        const flowUpdateEndPoint = ResponseDecorator.handleErrors(FlowController.flowUpdateEndPoint(req), successCode, errorCodes);
-        const responseObject = await flowUpdateEndPoint(req);
+        const updateFlowEndPoint = ResponseDecorator.handleErrors(FlowController.updateFlowEndPoint(req), successCode, errorCodes);
+        const responseObject = await updateFlowEndPoint(req);
 
         res
             .status(responseObject.code)
@@ -160,7 +150,7 @@ module.exports = [
         const errorCodes = [
             {
                 code: constants.HTTP_CODE_UNAUTHORIZED,
-                errors: []
+                errors: [Errors.AuthenticationError]
             },
             {
                 code: constants.HTTP_CODE_NOT_FOUND,
@@ -168,14 +158,12 @@ module.exports = [
             },
             {
                 code: constants.HTTP_CODE_INTERNAL_ERROR,
-                errors: []
+                errors: [Errors.TransactionError]
             }
         ];
 
-        // add auth
-
-        const flowDeleteEndPoint = ResponseDecorator.handleErrors(FlowController.flowDeleteEndPoint(req), successCode, errorCodes);
-        const responseObject = await flowDeleteEndPoint(req);
+        const deleteFlowEndPoint = ResponseDecorator.handleErrors(FlowController.deleteFlowEndPoint(req), successCode, errorCodes);
+        const responseObject = await deleteFlowEndPoint(req);
 
         res
             .status(responseObject.code)

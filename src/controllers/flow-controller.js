@@ -12,29 +12,24 @@
  */
 
 const logger = require('../logger');
-
+const AuthDecorator = require('./../decorators/authorization-decorator');
 const FlowService = require('../services/flow-service');
 
-const flowCreateEndPoint = async function (req) {
+const _createFlowEndPoint = async function (req, user) {
 
     logger.info("Parameters:" + JSON.stringify(req.body));
 
     const flow = req.body;
 
-    return await FlowService.createNewFlow(flow);
+    return await FlowService.createFlow(flow, user);
 };
 
-const flowsByUserEndPoint = async function (req) {
+const _getFlowsByUserEndPoint = async function (req, user) {
 
-    // get user id from header
-    logger.info("User id:" + JSON.stringify(req.header));
-
-    const token = req.header;
-
-    return await FlowService.getUserFlows(token);
+    return await FlowService.getUserFlows(user);
 };
 
-const flowGetEndPoint = async function (req) {
+const _getFlowEndPoint = async function (req, user) {
 
     // get flow id from path parameters
     logger.info("Flow id:" + JSON.stringify(req.params.id));
@@ -44,7 +39,7 @@ const flowGetEndPoint = async function (req) {
     return await FlowService.getFlow(flowId);
 };
 
-const flowUpdateEndPoint = async function (req) {
+const _updateFlowEndPoint = async function (req, user) {
 
     // get flow id from path parameters
     logger.info("Parameters:" + JSON.stringify(req.body));
@@ -53,10 +48,10 @@ const flowUpdateEndPoint = async function (req) {
     // add id to body
     const flow = req.body;
 
-    return await FlowService.updateFlow(flow);
+    return await FlowService.updateFlow(flow, user);
 };
 
-const flowDeleteEndPoint = async function (req) {
+const _deleteFlowEndPoint = async function (req, user) {
 
     // get flow id from path parameters
     logger.info("Flow id:" + JSON.stringify(req.params.id));
@@ -67,9 +62,9 @@ const flowDeleteEndPoint = async function (req) {
 };
 
 module.exports = {
-    flowCreateEndPoint: flowCreateEndPoint,
-    flowsByUserEndPoint: flowsByUserEndPoint,
-    flowGetEndPoint: flowGetEndPoint,
-    flowUpdateEndPoint: flowUpdateEndPoint,
-    flowDeleteEndPoint: flowDeleteEndPoint
+    createFlowEndPoint: AuthDecorator.checkAuthToken(_createFlowEndPoint),
+    getFlowsByUserEndPoint: AuthDecorator.checkAuthToken(_getFlowsByUserEndPoint),
+    getFlowEndPoint: AuthDecorator.checkAuthToken(_getFlowEndPoint),
+    updateFlowEndPoint: AuthDecorator.checkAuthToken(_updateFlowEndPoint),
+    deleteFlowEndPoint: AuthDecorator.checkAuthToken(_deleteFlowEndPoint)
 };
