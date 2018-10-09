@@ -19,26 +19,38 @@ module.exports = (sequelize, DataTypes) => {
   Routing.associate = function(models) {
 
     Routing.belongsTo(models.Fog, {
-      foreignKey: 'publishing_iofog_uuid',
-      as: 'publishingIofogId',
+      foreignKey: {
+        name: 'publishingIofogUuid',
+        field: 'publishing_iofog_uuid'
+      },
+      as: 'publishingIofog',
       onDelete: 'cascade'
     });
 
     Routing.belongsTo(models.Fog, {
-      foreignKey: 'destination_iofog_uuid',
-      as: 'destinationIofogId',
+      foreignKey: {
+        name: 'destinationIofogUuid',
+        field: 'destination_iofog_uuid'
+      },
+      as: 'destinationIofog',
       onDelete: 'cascade'
     });
 
     Routing.belongsTo(models.Microservice, {
-      foreignKey: 'publishing_microservice_uuid',
-      as: 'publishingMicroserviceUuid',
+      foreignKey: {
+        name: 'publishingMicroserviceUuid',
+        field: 'publishing_microservice_uuid'
+      },
+      as: 'publishingMicroservice',
       onDelete: 'cascade'
     });
 
     Routing.belongsTo(models.Microservice, {
-      foreignKey: 'destination_microservice_uuid',
-      as: 'destinationMicroserviceUuid',
+      foreignKey: {
+        name: 'destinationMicroserviceUuid',
+        field: 'destination_microservice_uuid'
+      },
+      as: 'destinationMicroservice',
       onDelete: 'cascade'
     });
   };

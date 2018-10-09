@@ -57,8 +57,11 @@ module.exports = (sequelize, DataTypes) => {
     });
 
     SatellitePort.belongsTo(models.Satellite, {
-      foreignKey: 'satellite_id',
-      as: 'satelliteId',
+      foreignKey: {
+        name: 'satelliteId',
+        field: 'satellite_id'
+      },
+      as: 'satellite',
       onDelete: 'cascade'
     });
   };

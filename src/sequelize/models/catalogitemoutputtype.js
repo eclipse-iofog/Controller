@@ -23,8 +23,11 @@ module.exports = (sequelize, DataTypes) => {
   CatalogItemOutputType.associate = function(models) {
 
     CatalogItemOutputType.belongsTo(models.CatalogItem, {
-      foreignKey: 'catalog_item_id',
-      as: 'catalogItemId'
+      foreignKey: {
+        name: 'catalogItemId',
+        field: 'catalog_item_id'
+      },
+      as: 'catalogItem'
     });
   };
   return CatalogItemOutputType;
