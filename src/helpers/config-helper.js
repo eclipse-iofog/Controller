@@ -89,8 +89,8 @@ class ConfigHelper {
     }
   }
 
-  async getAllConfigs() {
-    let configs = await ConfigManager.find();
+  async getAllConfigs(transaction) {
+    let configs = await ConfigManager.findAll({}, transaction);
     this.fogConfigs = configs;
     return configs;
   }

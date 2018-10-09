@@ -11,8 +11,7 @@
  *
  */
 
-const moment = require('moment');
-const _ = require('underscore');
+const AppHelper = require('../../helpers/app-helper');
 
 module.exports = class BaseManager {
 
@@ -20,58 +19,59 @@ module.exports = class BaseManager {
     return null;
   }
 
-  find(object) {
+  async findAll(object, transaction) {
+    AppHelper.checkTransaction(transaction);
+
+    return this.getEntity().findAll({
+      where: object,
+      transaction: transaction
+    });
+  }
+
+  async findOne(object, transaction) {
+    AppHelper.checkTransaction(transaction);
 
     object = object || {};
 
-    if (object.limit && object.limit === -1)
-      delete object.limit;
-
-    return this.getEntity().findAll(object);
-  }
-
-  create(object) {
-    if (this.getEntity().attributes.createdAt)
-      object.createdAt = moment.utc().valueOf();
-
-    return this.getEntity().create(object);
-  }
-
-  findById(id, include) {
-    return this.getEntity().findById(id, {
-      include: include
+    return this.getEntity().findOne({
+      where: object,
+      transaction: transaction
     });
   }
 
-  async deleteById(id) {
-    const object = await this.findById(id);
-    if (null == object)
-      return;
+  async create(object, transaction) {
+    AppHelper.checkTransaction(transaction);
 
-    return object.destroy();
+    return this.getEntity().create(object, {
+      transaction: transaction
+    });
   }
 
-  async update(newObject) {
-    let dbObject = await this.findById(newObject.id);
-    if (null == dbObject)
-      throw new Error('invalid id');
+  async delete(data, transaction) {
+    AppHelper.checkTransaction(transaction);
 
-    this.updateObject(dbObject, newObject);
-    if (!dbObject.changed())
-      return dbObject;
-
-    return dbObject.save();
+    return this.getEntity().destroy({
+      where: data,
+      transaction: transaction
+    })
   }
 
-  //src, destination
-  //destination should be a sequelize object
-  updateObject(destination, source) {
-    _.each(source, (value, key) => {
-      if (key !== 'id' && key !== 'createdAt' && _.has(destination.dataValues, key)) {
-        if (destination[key] !== source[key])
-          destination[key] = source[key];
+  async update(whereData, newData, transaction) {
+    AppHelper.checkTransaction(transaction);
+
+    return this.getEntity().update(newData, {
+      where: whereData,
+      transaction: transaction
+    });
+  }
+
+  async upsert(data, transaction) {
+    AppHelper.checkTransaction(transaction);
+
+    return this.getEntity().upsert(data, {
+        transaction: transaction
       }
-    });
-  };
+    )
+  }
 
 };

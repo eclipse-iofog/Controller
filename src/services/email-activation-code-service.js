@@ -17,10 +17,12 @@ const logger = require('../logger');
 const EmailActivationCodeManager = require('../sequelize/managers/email-activation-code-manager');
 const AppHelper = require('../helpers/app-helper');
 
-const generateActivationCode = async function () {
+const Errors = require('../helpers/errors');
+
+const generateActivationCode = async function (transaction) {
   while (true) {
     const newActivationCode = AppHelper.generateRandomString(16);
-    const exists = await findEmailActivationCode(newActivationCode);
+    const exists = await EmailActivationCodeManager.getByActivationCode(newActivationCode, transaction);
     if (!exists) {
       const activationCodeExpiryTime = new Date().getTime() + ((60 * 60 * 24 * 3) * 1000);
       return {
@@ -31,23 +33,35 @@ const generateActivationCode = async function () {
   }
 };
 
-const findEmailActivationCode = async function (activationCode) {
-  return await EmailActivationCodeManager.getByActivationCode(activationCode);
-};
-
-const saveActivationCode = async function (userId, activationCodeData) {
+const saveActivationCode = async function (userId, activationCodeData, transaction) {
   const activationCode = activationCodeData.activationCode;
   const expirationTime = activationCodeData.expirationTime;
 
   try {
-    return await EmailActivationCodeManager.createActivationCode(userId, activationCode, expirationTime);
+    return await EmailActivationCodeManager.createActivationCode(userId, activationCode, expirationTime, transaction);
   } catch (errMsg) {
     throw new Error('Unable to create activation code');
   }
 };
 
+const verifyActivationCode = async function (activationCode, transaction) {
+  try {
+    return await EmailActivationCodeManager.verifyActivationCode(activationCode, transaction)
+  } catch (errMsg) {
+    throw new Error('Unable to get activation code')
+  }
+};
+
+const deleteActivationCode = async function (activationCode, transaction) {
+  return await EmailActivationCodeManager.delete({
+    activationCode: activationCode
+  }, transaction)
+};
+
 
 module.exports = {
   generateActivationCode: generateActivationCode,
-  saveActivationCode: saveActivationCode
+  saveActivationCode: saveActivationCode,
+  verifyActivationCode: verifyActivationCode,
+  deleteActivationCode: deleteActivationCode
 };
