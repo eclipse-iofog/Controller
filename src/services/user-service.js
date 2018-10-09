@@ -190,7 +190,7 @@ async function _handleCreateUser(user, emailActivation, transaction) {
 function _validateUserInfo(user) {
   if (!AppHelper.isValidEmail(user.email)) {
     throw new Errors.ValidationError('Registration failed: Please enter a valid email address.');
-  } else if (!user.password.length > 7) {
+  } else if (user.password.length < 8) {
     throw new Errors.ValidationError('Registration failed: Your password must have at least 8 characters.');
   } else if (!user.firstName.length > 2) {
     throw new Errors.ValidationError('Registration failed: First Name length should be at least 3 characters.');
