@@ -61,26 +61,38 @@ module.exports = (sequelize, DataTypes) => {
     });
 
     Microservice.belongsTo(models.Fog, {
-      foreignKey: 'iofog_uuid',
-      as: 'iofoguuid',
+      foreignKey: {
+        name: 'iofogUuid',
+        field: 'iofog_uuid'
+      },
+      as: 'iofog',
       onDelete: 'set null'
     });
 
     Microservice.belongsTo(models.Registry, {
-      foreignKey: 'registry_id',
-      as: 'registryId',
+      foreignKey: {
+        name: 'registryId',
+        field: 'registry_id'
+      },
+      as: 'registry',
       onDelete: 'cascade'
     });
 
     Microservice.belongsTo(models.Flow, {
-      foreignKey: 'flow_id',
-      as: 'flowId',
+      foreignKey: {
+        name: 'flowId',
+        field: 'flow_id'
+      },
+      as: 'flow',
       onDelete: 'cascade'
     });
 
     Microservice.belongsTo(models.User, {
-      foreignKey: 'updated_by',
-      as: 'UpdatedBy',
+      foreignKey: {
+        name: 'updatedBy',
+        field: 'updated_by'
+      },
+      as: 'userUpdatedBy',
       onDelete: 'cascade'
     });
   };

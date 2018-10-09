@@ -23,14 +23,20 @@ module.exports = (sequelize, DataTypes) => {
   FogAccessToken.associate = function(models) {
 
     FogAccessToken.belongsTo(models.User, {
-      foreignKey: 'user_id',
-      as: 'userId',
+      foreignKey: {
+        name: 'userId',
+        field: 'user_id'
+      },
+      as: 'user',
       onDelete: 'cascade'
     });
 
     FogAccessToken.belongsTo(models.Fog, {
-      foreignKey: 'iofog_uuid',
-      as: 'iofogUuid',
+      foreignKey: {
+        name: 'iofogUuid',
+        field: 'iofog_uuid'
+      },
+      as: 'iofog',
       onDelete: 'cascade'
     });
   };

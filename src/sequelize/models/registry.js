@@ -47,8 +47,11 @@ module.exports = (sequelize, DataTypes) => {
   Registry.associate = function(models) {
 
     Registry.belongsTo(models.User, {
-      foreignKey: 'user_id',
-      as: 'userId'
+      foreignKey: {
+        name: 'userId',
+        field: 'user_id'
+      },
+      as: 'user',
     });
   };
   return Registry;

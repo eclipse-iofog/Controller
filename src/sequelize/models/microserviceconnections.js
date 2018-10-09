@@ -15,13 +15,19 @@ module.exports = (sequelize, DataTypes) => {
   MicroserviceConnections.associate = function(models) {
 
     MicroserviceConnections.belongsTo(models.Microservice, {
-      foreignKey: 'destination_microservice',
+      foreignKey: {
+        name: 'destinationMicroserviceUuid',
+        field: 'destination_microservice_uuid'
+      },
       as: 'destinationMicroservice',
       onDelete: 'cascade'
     });
 
     MicroserviceConnections.belongsTo(models.Microservice, {
-      foreignKey: 'source_microservice',
+      foreignKey: {
+        name: 'sourceMicroserviceUuid',
+        field: 'source_microservice_uuid'
+      },
       as: 'sourceMicroservice',
       onDelete: 'cascade'
     });

@@ -59,8 +59,11 @@ module.exports = (sequelize, DataTypes) => {
   ChangeTracking.associate = function(models) {
 
     ChangeTracking.belongsTo(models.Fog, {
-      foreignKey: 'iofog_uuid',
-      as: 'ioFogUuid',
+      foreignKey: {
+        name: 'iofogUuid',
+        field: 'iofog_uuid'
+      },
+      as: 'iofog',
       onDelete: 'cascade'
     });
   };
