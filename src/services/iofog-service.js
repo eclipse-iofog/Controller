@@ -17,13 +17,35 @@ const FogManager = require('../sequelize/managers/iofog-manager')
 
 async function _createFog(newFog, user, transaction) {
   AppHelper.validateFields(newFog, ['name', 'fogType'])
+  /* !!!!!TODO: validateFogType!!!!!!!*/
 
-  newFog.userId = user.id
-  if (!newFog.uuid) {
-    newFog.uuid = AppHelper.generateRandomString(32)
+  const createFogData = {
+    uuid: newFog.uuid ? newFog.uuid : AppHelper.generateRandomString(32),
+    name: newFog.name,
+    location: newFog.location,
+    latitude: newFog.latitude,
+    longitude: newFog.longitude,
+    gpsMode: newFog.latitude || newFog.longitude ? 'manual' : null,
+    description: newFog.description,
+    dockerUrl: newFog.dockerUrl,
+    diskLimit: newFog.diskLimit,
+    diskDirectory: newFog.diskDirectory,
+    memoryLimit: newFog.memoryLimit,
+    cpuLimit: newFog.cpuLimit,
+    logLimit: newFog.logLimit,
+    logDirectory: newFog.logDirectory,
+    logFileCount: newFog.logFileCount,
+    statusFrequency: newFog.statusFrequency,
+    changeFrequency: newFog.changeFrequency,
+    deviceScanFrequency: newFog.deviceScanFrequency,
+    bluetoothEnabled: newFog.bluetoothEnabled,
+    watchdogEnabled: newFog.watchdogEnabled,
+    abstractedHardwareEnabled: newFog.abstractedHardwareEnabled,
+    fogTypeId: newFog.fogType,
+    userId: user.id
   }
 
-  const fog = await FogManager.create(newFog, transaction)
+  const fog = await FogManager.create(createFogData, transaction)
 
   const res = {
     uuid: fog.uuid
@@ -32,7 +54,6 @@ async function _createFog(newFog, user, transaction) {
   return res
 }
 
-const createFogWithTransaction = TransactionDecorator.generateTransaction(_createFog)
 
 module.exports = {
   createFogWithTransaction: TransactionDecorator.generateTransaction(_createFog)

@@ -15,7 +15,7 @@ const BaseManager = require('../managers/base-manager')
 const models = require('./../models');
 const Fog = models.Fog;
 
-class FogManager extends BaseManager{
+class FogManager extends BaseManager {
   getEntity() {
     return Fog
   }
