@@ -126,6 +126,14 @@ function checkTransaction(transaction) {
 	}
 }
 
+function validateParameterId(id, errMsg) {
+  const parsedId = parseInt(id);
+  if (isNaN(parsedId)) {
+    throw new Errors.NotFoundError(errMsg);
+  }
+  return parsedId;
+}
+
 module.exports = {
   encryptText,
   decryptText,
@@ -141,5 +149,6 @@ module.exports = {
   isValidName,
   isValidNumber,
   isValidBoolean,
-  checkTransaction
+  checkTransaction,
+	validateParameterId
 };

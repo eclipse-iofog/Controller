@@ -20,7 +20,6 @@ const CatalogItemInputTypeManager = require('../sequelize/managers/catalog-item-
 const CatalogItemOutputTypeManager = require('../sequelize/managers/catalog-item-output-type-manager');
 
 const createCatalogItem = async function (data, user, transaction) {
-
 	AppHelper.validateFields(data,
 		["name", "description", "category", "containerImages", "publisher", "diskRequired", "ramRequired", "picture",
 			"isPublic", "registryId", "inputType", "inputFormat", "outputType", "outputFormat", "configExample"]);
@@ -38,6 +37,15 @@ const createCatalogItem = async function (data, user, transaction) {
 	}
 };
 
+const listCatalogItems = async function (user) {
+	return await CatalogItemManager.findAll(user.id);
+};
+
+const listCatalogItem = async function (catalogItemId, user) {
+	const id = AppHelper.validateParameterId(catalogItemId, "Invalid catalog item id");
+	return await CatalogItemManager.findOne(id, user.id);
+};
+
 const _createCatalogItem = async function (data, user, transaction) {
 	const catalogItem = {
 		name: data.name,
@@ -49,8 +57,8 @@ const _createCatalogItem = async function (data, user, transaction) {
 		ramRequired: data.ramRequired,
 		picture: data.picture,
 		isPublic: data.isPublic,
-		registry_id: data.registryId,
-		user_id: user.id
+		registryId: data.registryId,
+		userId: user.id
 	};
 
 	return await CatalogItemManager.create(catalogItem, transaction);
@@ -59,8 +67,8 @@ const _createCatalogItem = async function (data, user, transaction) {
 const _createX86CatalogImage = async function (data, catalogItem, transaction) {
 	const x86CatalogImage = {
 		containerImage: data.containerImages.x86ContainerImage,
-		catalog_item_id: catalogItem.id,
-		iofog_type_id: 1
+		catalogItemId: catalogItem.id,
+		iofogTypeId: 1
 	};
 
 	return await CatalogItemImageManager.create(x86CatalogImage, transaction);
@@ -69,8 +77,8 @@ const _createX86CatalogImage = async function (data, catalogItem, transaction) {
 const _createArmCatalogImage = async function (data, catalogItem, transaction) {
 	const x86CatalogImage = {
 		containerImage: data.containerImages.armContainerImage,
-		catalog_item_id: catalogItem.id,
-		iofog_type_id: 2
+		catalogItemId: catalogItem.id,
+		iofogTypeId: 2
 	};
 
 	return await CatalogItemImageManager.create(x86CatalogImage, transaction);
@@ -80,7 +88,7 @@ const _createCatalogItemInputType = async function (data, catalogItem, transacti
 	const catalogItemInputType = {
 		infoType: data.inputType,
 		infoFormat: data.inputFormat,
-		catalog_item_id: catalogItem.id
+		catalogItemId: catalogItem.id
 	};
 
 	return await CatalogItemInputTypeManager.create(catalogItemInputType, transaction);
@@ -90,7 +98,7 @@ const _createCatalogItemOutputType = async function (data, catalogItem, transact
 	const catalogItemOutputType = {
 		infoType: data.outputType,
 		infoFormat: data.outputFormat,
-		catalog_item_id: catalogItem.id
+		catalogItemId: catalogItem.id
 	};
 
 	return await CatalogItemOutputTypeManager.create(catalogItemOutputType, transaction);
@@ -113,5 +121,7 @@ const _validateCatalogItemInfo = function (data) {
 };
 
 module.exports = {
-	createCatalogItem: TransactionDecorator.generateTransaction(createCatalogItem)
+	createCatalogItem: TransactionDecorator.generateTransaction(createCatalogItem),
+	listCatalogItems: TransactionDecorator.generateTransaction(listCatalogItems),
+	listCatalogItem: TransactionDecorator.generateTransaction(listCatalogItem)
 };

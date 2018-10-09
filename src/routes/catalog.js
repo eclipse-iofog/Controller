@@ -20,10 +20,26 @@ module.exports = [
   {
     method: 'get',
     path: '/api/v3/catalog/microservices',
-    middleware: (req, res) => {
+    middleware: async (req, res) => {
+
+      const successCode = constants.HTTP_CODE_SUCCESS;
+      const errorCodes = [
+	      {
+		      code: constants.HTTP_CODE_UNAUTHORIZED,
+		      errors: [Errors.AuthenticationError]
+	      }
+      ];
+
+      const listCatalogItemsEndPoint = ResponseDecorator.handleErrors(
+        CatalogController.listCatalogItemsEndPoint,
+        successCode,
+        errorCodes
+      );
+      const response = await listCatalogItemsEndPoint(req);
+
       res
-        .status(constants.HTTP_CODE_SUCCESS)
-        .send(req.body)
+        .status(response.code)
+        .send(response.body)
     }
   },
   {
@@ -31,7 +47,7 @@ module.exports = [
     path: '/api/v3/catalog/microservices',
     middleware: async (req, res) => {
 
-      const successCode = 201;
+      const successCode = constants.HTTP_CODE_CREATED;
       const errorCodes = [
         {
           code: constants.HTTP_CODE_BAD_REQUEST,
@@ -62,10 +78,30 @@ module.exports = [
   {
     method: 'get',
     path: '/api/v3/catalog/microservices/:id',
-    middleware: (req, res) => {
+    middleware: async (req, res) => {
+
+	    const successCode = constants.HTTP_CODE_SUCCESS;
+	    const errorCodes = [
+		    {
+			    code: constants.HTTP_CODE_UNAUTHORIZED,
+			    errors: [Errors.AuthenticationError]
+		    },
+        {
+          code: constants.HTTP_CODE_NOT_FOUND,
+          errors: [Errors.NotFoundError]
+        }
+	    ];
+
+	    const listCatalogItemEndPoint = ResponseDecorator.handleErrors(
+		    CatalogController.listCatalogItemEndPoint,
+		    successCode,
+		    errorCodes
+	    );
+	    const response = await listCatalogItemEndPoint(req);
+
       res
-        .status(constants.HTTP_CODE_SUCCESS)
-        .send(req.body)
+        .status(response.code)
+        .send(response.body)
     }
   },
   {

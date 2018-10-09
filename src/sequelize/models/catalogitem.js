@@ -20,9 +20,9 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.TEXT,
       field: 'category'
     },
-    config: {
+    configExample: {
       type: DataTypes.TEXT,
-      field: 'config'
+      field: 'config_example'
     },
     publisher: {
       type: DataTypes.TEXT,
@@ -51,17 +51,37 @@ module.exports = (sequelize, DataTypes) => {
   CatalogItem.associate = function(models) {
 
     CatalogItem.belongsTo(models.Registry, {
-      foreignKey: 'registry_id',
-      as: 'registryId',
+      foreignKey: {
+        name: 'registryId',
+        field: 'registry_id'
+      },
+      as: 'registry',
       onDelete: 'set null'
     });
 
     CatalogItem.belongsTo(models.User, {
-      foreignKey: 'user_id',
-      as: 'userId',
+      foreignKey: {
+        name: 'userId',
+        field: 'user_id'
+      },
+      as: 'user',
       onDelete: 'cascade'
     });
 
+	  CatalogItem.hasMany(models.CatalogItemImage, {
+      foreignKey: 'catalog_item_id',
+      as: 'images'
+	  });
+
+	  CatalogItem.hasOne(models.CatalogItemInputType, {
+		  foreignKey: 'catalog_item_id',
+		  as: 'inputType'
+	  });
+
+	  CatalogItem.hasOne(models.CatalogItemOutputType, {
+		  foreignKey: 'catalog_item_id',
+		  as: 'outputType'
+	  });
   };
   return CatalogItem;
 };

@@ -52,10 +52,19 @@ class DuplicatePropertyError extends Error {
 	}
 }
 
+class NotFoundError extends Error {
+  constructor(message) {
+    super(message);
+    this.message = message;
+    this.name = "NotFoundError";
+  }
+}
+
 module.exports = {
   AuthenticationError: AuthenticationError,
   TransactionError: TransactionError,
   ValidationError: ValidationError,
   InvalidCredentialsError: InvalidCredentialsError,
-  DuplicatePropertyError: DuplicatePropertyError
+  DuplicatePropertyError: DuplicatePropertyError,
+  NotFoundError: NotFoundError
 };

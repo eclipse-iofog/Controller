@@ -15,19 +15,23 @@ const logger = require('../logger');
 const CatalogService = require('../services/catalog-service');
 const AuthDecorator = require('./../decorators/authorization-decorator');
 
-// const listMicroservicesEndPoint = async function (req) {
-// 	logger.info("Parameters:" + JSON.stringify(req.query));
-//
-// 	return await CatalogService.listMicroservices();
-// }
-
-
-function _createCatalogItemEndPoint(req, user) {
+const createCatalogItemEndPoint = async function (req, user) {
 	logger.info("Parameters:" + JSON.stringify(req.body));
+	return await CatalogService.createCatalogItem(req.body, user);
+};
 
-	return CatalogService.createCatalogItem(req.body, user);
-}
+const listCatalogItemsEndPoint = async function (req, user) {
+	logger.info("Parameters:" + JSON.stringify(req.query));
+	return await CatalogService.listCatalogItems(user);
+};
+
+const listCatalogItemEndPoint = async function (req, user) {
+	logger.info("Parameters:" + JSON.stringify(req.query));
+	return await CatalogService.listCatalogItem(req.params.id, user);
+};
 
 module.exports = {
-	createCatalogItemEndPoint: AuthDecorator.checkAuthToken(_createCatalogItemEndPoint)
-}
+	createCatalogItemEndPoint: AuthDecorator.checkAuthToken(createCatalogItemEndPoint),
+	listCatalogItemsEndPoint: AuthDecorator.checkAuthToken(listCatalogItemsEndPoint),
+	listCatalogItemEndPoint: AuthDecorator.checkAuthToken(listCatalogItemEndPoint)
+};
