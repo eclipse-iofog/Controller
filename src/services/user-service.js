@@ -28,15 +28,13 @@ const ConfigHelper = require('../helpers/config-helper');
 const logger = require('../logger');
 const constants = require('../helpers/constants');
 
-const createUser = async function (user) {
-  return await UserManager.addUser(user)
+const TransactionDecorator = require('../decorators/transaction-decorator');
+
+const createUser = async function (user, transaction) {
+  return await UserManager.create(user, transaction)
 };
 
-const getUserByEmail = async function (email) {
-  return UserManager.validateUserByEmail(email);
-};
-
-const signUp = async function (user) {
+const signUp = async function (user, transaction) {
 
   let emailActivation = ConfigHelper.getConfigParam('email_activation') || 'off';
 
@@ -45,24 +43,27 @@ const signUp = async function (user) {
 
   if (emailActivation === 'on') {
 
-    const newUser = await _handleCreateUser(user, emailActivation);
+    const newUser = await _handleCreateUser(user, emailActivation, transaction);
 
-    const activationCodeData = await EmailActivationCodeService.generateActivationCode();
-    await EmailActivationCodeService.saveActivationCode(newUser.id, activationCodeData);
+    const activationCodeData = await EmailActivationCodeService.generateActivationCode(transaction);
+    await EmailActivationCodeService.saveActivationCode(newUser.id, activationCodeData, transaction);
 
-    const emailData = await _getEmailData();
+    const emailData = await _getEmailData(transaction);
     const transporter = await _userEmailSender(emailData);
     await _notifyUserAboutActivationCode(user.email, "https://google.com", emailData, activationCodeData, transporter);
     return newUser;
   } else {
-    return await _handleCreateUser(user, emailActivation);
+    return await _handleCreateUser(user, emailActivation, transaction);
   }
 };
 
-const login = async function (credentials) {
+const login = async function (credentials, transaction) {
 
   AppHelper.validateFields(credentials, ["email", "password"]);
-  const user = await UserManager.findByEmail(credentials.email);
+  const user = await UserManager.findOne({
+    email: credentials.email
+  }, transaction);
+
   const validPassword = credentials.password === user.password || credentials.password === user.tempPassword;
   if (!user || !validPassword) {
     throw new Errors.InvalidCredentialsError();
@@ -70,36 +71,68 @@ const login = async function (credentials) {
 
   _verifyEmailActivation(user.emailActivated);
 
-  const accessToken = await _generateAccessToken();
+  const accessToken = await _generateAccessToken(transaction);
   accessToken.user_id = user.id;
 
-  await AccessTokenService.createAccessToken(accessToken);
+  await AccessTokenService.createAccessToken(accessToken, transaction);
 
   return {
     accessToken: accessToken.token
   }
 };
 
-const resendActivation = async function (emailObj) {
+const resendActivation = async function (emailObj, transaction) {
 
   AppHelper.validateFields(emailObj, ["email"]);
 
-  const user = await UserManager.findByEmail(emailObj.email);
+  const user = await UserManager.findOne({
+    email: emailObj.email
+  }, transaction);
   if (!user)
     throw new Errors.ValidationError("Invalid user email.");
 
-  const activationCodeData = await EmailActivationCodeService.generateActivationCode();
-  await EmailActivationCodeService.saveActivationCode(user.id, activationCodeData);
+  const activationCodeData = await EmailActivationCodeService.generateActivationCode(transaction);
+  await EmailActivationCodeService.saveActivationCode(user.id, activationCodeData, transaction);
 
-  const emailData = await _getEmailData();
+  const emailData = await _getEmailData(transaction);
   const transporter = await _userEmailSender(emailData);
   await _notifyUserAboutActivationCode(user.email, "https://google.com", emailData, activationCodeData, transporter);
 };
 
-async function _generateAccessToken() {
+const activateUser = async function (codeData, transaction) {
+
+  AppHelper.validateFields(codeData, ["activationCode"]);
+  const activationCode = await EmailActivationCodeService.verifyActivationCode(codeData.activationCode, transaction);
+  if (!activationCode) {
+    throw new Errors.NotFoundError('Activation code not found')
+  }
+
+  const updatedObj = {
+    emailActivated: 1
+  };
+
+  await _updateUser(activationCode.user_id, updatedObj, transaction);
+  await EmailActivationCodeService.deleteActivationCode(codeData.activationCode, transaction);
+};
+
+const logout = async function (user, transaction) {
+  return await AccessTokenService.removeAccessTokenByUserId(user.id, transaction)
+};
+
+async function _updateUser(userId, updatedUser,  transaction) {
+  try {
+    return await UserManager.update({
+      id: userId
+    }, updatedUser, transaction)
+  } catch (errMsg) {
+    throw new Error('User not updated')
+  }
+}
+
+async function _generateAccessToken(transaction) {
   while (true) {
     let newAccessToken = AppHelper.generateAccessToken();
-    const exists = await UserManager.findByAccessToken(newAccessToken);
+    const exists = await UserManager.findByAccessToken(newAccessToken, transaction);
     if (!exists) {
       let tokenExpiryTime = new Date().getTime() + (config.get('Settings:UserTokenExpirationIntervalSeconds') * 1000);
 
@@ -142,12 +175,16 @@ async function _userEmailSender(emailData) {
   return transporter
 }
 
-async function _handleCreateUser(user, emailActivation) {
-  const existingUser = await getUserByEmail(user.email);
-  if (existingUser)
+async function _handleCreateUser(user, emailActivation, transaction) {
+  const existingUser = await UserManager.findOne({
+    email: user.email
+  }, transaction);
+
+  if (existingUser) {
     throw new Errors.ValidationError('Registration failed: There is already an account associated with your email address. Please try logging in instead.');
+  }
   await _validateUserInfo(user);
-  return await _createNewUser(user, emailActivation);
+  return await _createNewUser(user, emailActivation, transaction);
 }
 
 function _validateUserInfo(user) {
@@ -162,9 +199,9 @@ function _validateUserInfo(user) {
   }
 }
 
-async function _createNewUser(user, emailActivation) {
+async function _createNewUser(user, emailActivation, transaction) {
   user.emailActivated = emailActivation === 'on' ? 0 : 1;
-  return await createUser(user)
+  return await createUser(user, transaction)
 }
 
 async function _notifyUserAboutActivationCode(email, url, emailSenderData, activationCodeData, transporter) {
@@ -185,9 +222,9 @@ async function _notifyUserAboutActivationCode(email, url, emailSenderData, activ
   });
 }
 
-async function _getEmailData() {
+async function _getEmailData(transaction) {
   const response = {};
-  await ConfigHelper.getAllConfigs().then(async () => {
+  await ConfigHelper.getAllConfigs(transaction).then(async () => {
     response.email = ConfigHelper.getConfigParam(constants.CONFIG.email_address);
     response.password = ConfigHelper.getConfigParam(constants.CONFIG.email_password);
     response.service = ConfigHelper.getConfigParam(constants.CONFIG.email_service);
@@ -199,9 +236,9 @@ async function _getEmailData() {
 }
 
 module.exports = {
-  createUser: createUser,
-  getUserByEmail: getUserByEmail,
-  signUp: signUp,
-  login: login,
-  resendActivation: resendActivation
+  signUp: TransactionDecorator.generateTransaction(signUp),
+  login: TransactionDecorator.generateTransaction(login),
+  resendActivation: TransactionDecorator.generateTransaction(resendActivation),
+  activateUser: TransactionDecorator.generateTransaction(activateUser),
+  logout: TransactionDecorator.generateTransaction(logout)
 };

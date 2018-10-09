@@ -21,9 +21,9 @@ class AuthenticationError extends Error {
 
 class TransactionError extends Error {
   constructor() {
-    const message = 'Transaction not provided'
-    super(message)
-    this.message = message
+    const message = 'Transaction not provided';
+    super(message);
+    this.message = message;
     this.name = 'TransactionError'
   }
 }
@@ -44,9 +44,18 @@ class InvalidCredentialsError extends Error {
   }
 }
 
+class NotFoundError extends Error {
+  constructor(message) {
+    super(message);
+    this.message = message;
+    this.name = "NotFoundError";
+  }
+}
+
 module.exports = {
   AuthenticationError: AuthenticationError,
   TransactionError: TransactionError,
   ValidationError: ValidationError,
-  InvalidCredentialsError: InvalidCredentialsError
+  InvalidCredentialsError: InvalidCredentialsError,
+  NotFoundError: NotFoundError
 };

@@ -44,10 +44,22 @@ module.exports = [
   {
     method: 'post',
     path: '/api/v3/user/logout',
-    middleware: (req, res) => {
+    middleware: async (req, res) => {
+
+      const successCode = constants.HTTP_CODE_NO_CONTENT;
+      const errorCodes = [
+        {
+          code: constants.HTTP_CODE_UNAUTHORIZED,
+          errors: [Errors.AuthenticationError]
+        }
+      ];
+
+      const userLogoutEndPoint = ResponseDecorator.handleErrors(UserController.userLogoutEndPoint, successCode, errorCodes);
+      const responseObject = await userLogoutEndPoint(req);
+
       res
-        .status(constants.HTTP_CODE_SUCCESS)
-        .send(req.body)
+        .status(responseObject.code)
+        .send()
     }
   },
   {
@@ -95,10 +107,28 @@ module.exports = [
   {
     method: 'post',
     path: '/api/v3/user/activate',
-    middleware: (req, res) => {
+    middleware: async (req, res) => {
+
+      const successCode = constants.HTTP_CODE_SEE_OTHER;
+      const errorCodes = [
+        {
+          code: constants.HTTP_CODE_NOT_FOUND,
+          errors: [Errors.NotFoundError]
+        }
+      ];
+
+      const activateUserEndPoint = ResponseDecorator.handleErrors(UserController.activateUserAccountEndPoint, successCode, errorCodes);
+      const responseObject = await activateUserEndPoint(req);
+
+      // redirect to login page
+      if (responseObject.code === successCode) {
+        res.setHeader('Location', 'https://google.com');
+      }
+
+
       res
-        .status(constants.HTTP_CODE_SUCCESS)
-        .send(req.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
     }
   },
   {

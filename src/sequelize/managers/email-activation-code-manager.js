@@ -11,32 +11,41 @@
  *
  */
 
-const models = require('../models/index');
+const models = require('../models');
 const EmailActivationCode = models.EmailActivationCode;
 const BaseManager = require('./base-manager');
+const AppHelper = require('../../helpers/app-helper');
 
 class EmailActivationCodeManager extends BaseManager {
   getEntity() {
     return EmailActivationCode;
   }
 
-  async getByActivationCode(activationCode) {
+  async getByActivationCode(activationCode, transaction) {
+    AppHelper.checkTransaction(transaction);
+
     return EmailActivationCode.find({
       where: {
         activationCode: activationCode
       }
+    }, {
+      transaction: transaction
     });
   };
 
-  async createActivationCode(userId, activationCode, expirationTime) {
+  async createActivationCode(userId, activationCode, expirationTime, transaction) {
+    AppHelper.checkTransaction(transaction);
+
     return EmailActivationCode.create({
       user_id: userId,
       activationCode: activationCode,
       expirationTime: expirationTime
+    }, {
+      transaction: transaction
     });
   };
 
-  verifyActivationCode(activationCode) {
+  async verifyActivationCode(activationCode, transaction) {
     return EmailActivationCode.find({
       where: {
         activationCode: activationCode,
@@ -44,6 +53,8 @@ class EmailActivationCodeManager extends BaseManager {
           $gt: new Date().getTime()
         }
       }
+    }, {
+      transaction: transaction
     });
   }
 }
