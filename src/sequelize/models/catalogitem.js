@@ -51,14 +51,20 @@ module.exports = (sequelize, DataTypes) => {
   CatalogItem.associate = function(models) {
 
     CatalogItem.belongsTo(models.Registry, {
-      foreignKey: 'registry_id',
-      as: 'registryId',
+      foreignKey: {
+        name: 'registryId',
+        field: 'registry_id'
+      },
+      as: 'registry',
       onDelete: 'set null'
     });
 
     CatalogItem.belongsTo(models.User, {
-      foreignKey: 'user_id',
-      as: 'userId',
+      foreignKey: {
+        name: 'userId',
+        field: 'user_id'
+      },
+      as: 'user',
       onDelete: 'cascade'
     });
 

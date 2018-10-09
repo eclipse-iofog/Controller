@@ -23,8 +23,11 @@ module.exports = (sequelize, DataTypes) => {
   EmailActivationCode.associate = function(models) {
 
     EmailActivationCode.belongsTo(models.User, {
-      foreignKey: 'user_id',
-      as: 'userId',
+      foreignKey: {
+        name: 'userId',
+        field: 'user_id'
+      },
+      as: 'user',
       onDelete: 'cascade'
     });
   };
