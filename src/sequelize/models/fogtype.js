@@ -26,18 +26,27 @@ module.exports = (sequelize, DataTypes) => {
   });
   FogType.associate = function(models) {
     FogType.belongsTo(models.CatalogItem, {
-      foreignKey: 'network_catalog_item_id',
-      as: 'networkCatalogItemId'
+      foreignKey: {
+        name: 'networkCatalogItemId',
+        field: 'network_catalog_item_id'
+      },
+      as: 'networkCatalogItem'
     });
 
     FogType.belongsTo(models.CatalogItem, {
-      foreignKey: 'hal_catalog_item_id',
-      as: 'halCatalogItemId'
+      foreignKey: {
+        name: 'halCatalogItemId',
+        field: 'hal_catalog_item_id'
+      },
+      as: 'halCatalogItem'
     });
 
     FogType.belongsTo(models.CatalogItem, {
-      foreignKey: 'bluetooth_catalog_item_id',
-      as: 'bluetoothCatalogItemId'
+      foreignKey: {
+        name: 'bluetoothCatalogItemId',
+        field: 'bluetooth_catalog_item_id'
+      },
+      as: 'bluetoothCatalogItem'
     });
   };
   return FogType;

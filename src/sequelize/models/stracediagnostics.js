@@ -24,8 +24,11 @@ module.exports = (sequelize, DataTypes) => {
   StraceDiagnostics.associate = function(models) {
 
     StraceDiagnostics.belongsTo(models.Microservice, {
-      foreignKey: 'microservice_uuid',
-      as: 'microserviceUuid',
+      foreignKey: {
+        name: 'microserviceUuid',
+        field: 'microservice_uuid'
+      },
+      as: 'microservice',
       onDelete: 'cascade'
 
     });

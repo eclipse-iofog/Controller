@@ -19,36 +19,60 @@ module.exports = (sequelize, DataTypes) => {
   NetworkPairing.associate = function(models) {
 
     NetworkPairing.belongsTo(models.Fog, {
-      foreignKey: 'iofog_uuid_1',
-      as: 'iofogUuid1'
+      foreignKey: {
+        name: 'iofogUuid1',
+        field: 'iofog_uuid_1'
+      },
+      as: 'iofog1'
     });
     NetworkPairing.belongsTo(models.Fog, {
-      foreignKey: 'iofog_uuid_2',
-      as: 'iofogUuid2'
+      foreignKey: {
+        name: 'iofogUuid2',
+        field: 'iofog_uuid_2'
+      },
+      as: 'iofog2'
     });
     NetworkPairing.belongsTo(models.Microservice, {
-      foreignKey: 'microservice_uuid_1',
-      as: 'microserviceUuid1',
+      foreignKey: {
+        name: 'microserviceUuid1',
+        field: 'microservice_uuid_1'
+      },
+      as: 'microservice1'
     });
     NetworkPairing.belongsTo(models.Microservice, {
-      foreignKey: 'microservice_uuid_2',
-      as: 'microserviceUuid2',
+      fforeignKey: {
+        name: 'microserviceUuid2',
+        field: 'microservice_uuid_2'
+      },
+      as: 'microservice2'
     });
     NetworkPairing.belongsTo(models.Microservice, {
-      foreignKey: 'network_microservice_uuid_1',
-      as: 'networkMicroserviceUuid1',
+      foreignKey: {
+        name: 'networkMicroserviceUuid1',
+        field: 'network_microservice_uuid_1'
+      },
+      as: 'networkMicroservice1'
     });
     NetworkPairing.belongsTo(models.Microservice, {
-      foreignKey: 'network_microservice_uuid_2',
-      as: 'networkMicroserviceUuid2',
+      foreignKey: {
+        name: 'networkMicroserviceUuid2',
+        field: 'network_microservice_uuid_2'
+      },
+      as: 'networkMicroservice2'
     });
     NetworkPairing.belongsTo(models.MicroservicePort, {
-      foreignKey: 'microservice_port_id_1',
-      as: 'microsevicePortId1'
+      foreignKey: {
+        name: 'microservicePortId1',
+        field: 'microservice_port_id_1'
+      },
+      as: 'microservicePort1'
     });
     NetworkPairing.belongsTo(models.SatellitePort, {
-      foreignKey: 'satellite_port_id',
-      as: 'satellitePortId'
+      foreignKey: {
+        name: 'satellitePortId',
+        field: 'satellite_port_id'
+      },
+      as: 'satellitePort'
     });
   };
   return NetworkPairing;

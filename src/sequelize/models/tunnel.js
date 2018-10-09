@@ -45,8 +45,11 @@ module.exports = (sequelize, DataTypes) => {
   Tunnel.associate = function(models) {
 
     Tunnel.belongsTo(models.Fog, {
-      foreignKey: 'iofog_uuid',
-      as: 'iofogUuid',
+      foreignKey: {
+        name: 'iofogUuid',
+        field: 'iofog_uuid'
+      },
+      as: 'iofog',
       onDelete: 'cascade'
     });
   };

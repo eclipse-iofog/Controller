@@ -19,13 +19,20 @@ module.exports = (sequelize, DataTypes) => {
   CatalogItemImage.associate = function(models) {
 
     CatalogItemImage.belongsTo(models.CatalogItem, {
-      foreignKey: 'catalog_item_id',
-      as: 'catalogItemId',
+      foreignKey: {
+        name: 'catalogItemId',
+        field: 'catalog_item_id'
+      },
+      as: 'catalogItem',
       onDelete: 'cascade'
     });
+
     CatalogItemImage.belongsTo(models.FogType, {
-      foreignKey: 'iofog_type_id',
-      as: 'fogTypeId',
+      foreignKey: {
+        name: 'fogTypeId',
+        field: 'iofog_type_id'
+      },
+      as: 'fogType',
       onDelete: 'cascade'
     });
 
