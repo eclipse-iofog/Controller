@@ -20,7 +20,7 @@ module.exports = [
   {
     method: 'get',
     path: '/api/v3/flow',
-    middleware: (req, res) => {
+    middleware: async (req, res) => {
 
         const successCode = constants.HTTP_CODE_SUCCESS;
         const errorCodes = [
@@ -45,7 +45,7 @@ module.exports = [
   {
     method: 'post',
     path: '/api/v3/flow',
-    middleware: (req, res) => {
+    middleware: async (req, res) => {
 
         // add errors
 
@@ -76,7 +76,7 @@ module.exports = [
   {
     method: 'get',
     path: '/api/v3/flow/:id',
-    middleware: (req, res) => {
+    middleware: async (req, res) => {
 
         // add errors
 
@@ -107,7 +107,7 @@ module.exports = [
   {
     method: 'patch',
     path: '/api/v3/flow/:id',
-    middleware: (req, res) => {
+    middleware: async (req, res) => {
 
         // add errors
 
@@ -142,7 +142,7 @@ module.exports = [
   {
     method: 'delete',
     path: '/api/v3/flow/:id',
-    middleware: (req, res) => {
+    middleware: async (req, res) => {
 
         // add errors
 
