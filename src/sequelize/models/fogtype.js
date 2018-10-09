@@ -43,7 +43,7 @@ module.exports = (sequelize, DataTypes) => {
 
     FogType.belongsTo(models.CatalogItem, {
       foreignKey: {
-        name: 'bluetoothCatalogItem',
+        name: 'bluetoothCatalogItemId',
         field: 'bluetooth_catalog_item_id'
       },
       as: 'bluetoothCatalogItem'

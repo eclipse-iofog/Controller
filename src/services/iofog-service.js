@@ -14,10 +14,11 @@
 const TransactionDecorator = require('../decorators/transaction-decorator')
 const AppHelper = require('../helpers/app-helper')
 const FogManager = require('../sequelize/managers/iofog-manager')
+const Errors = require('../helpers/errors')
 
 async function _createFog(newFog, user, transaction) {
   AppHelper.validateFields(newFog, ['name', 'fogType'])
-  /* !!!!!TODO: validateFogType!!!!!!!*/
+  _validateLatLon(newFog.latitude, newFog.longitude)
 
   const createFogData = {
     uuid: newFog.uuid ? newFog.uuid : AppHelper.generateRandomString(32),
@@ -54,6 +55,12 @@ async function _createFog(newFog, user, transaction) {
   return res
 }
 
+function _validateLatLon(lat, lon) {
+  if (lat > 90 || lat < -90
+    || lon > 180 || lon < -180 ) {
+    throw new Errors.ValidationError('incorrect gps coordinates')
+  }
+}
 
 module.exports = {
   createFogWithTransaction: TransactionDecorator.generateTransaction(_createFog)
