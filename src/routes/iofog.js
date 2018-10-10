@@ -127,11 +127,27 @@ module.exports = [
   },
   {
     method: 'get',
-    path: '/api/v3/iofog/:id/provisioning-key',
-    middleware: (req, res) => {
+    path: '/api/v3/iofog/:uuid/provisioning-key',
+    middleware: async (req, res) => {
+      const successCode = constants.HTTP_CODE_SUCCESS
+      const errCodes = [
+        {
+          code: 401,
+          errors: [Errors.AuthenticationError]
+        },
+        {
+          code: 404,
+          errors: [Errors.NotFoundError]
+        }
+      ]
+
+      const generateFogProvisioningKey= ResponseDecorator.handleErrors(FogController.generateProvisioningKey, successCode, errCodes)
+      const responseObject = await generateFogProvisioningKey(req)
+
       res
-        .status(constants.HTTP_CODE_SUCCESS)
-        .send(req.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
+
     }
   },
   {

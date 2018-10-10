@@ -14,38 +14,39 @@
 const TransactionDecorator = require('../decorators/transaction-decorator')
 const AppHelper = require('../helpers/app-helper')
 const FogManager = require('../sequelize/managers/iofog-manager')
+const FogProvisionKeyManager = require('../sequelize/managers/iofog-provision-key-manager')
 const Errors = require('../helpers/errors')
 const ObjBuilder = require('../helpers/object-builder')
 
-async function _createFog(newFog, user, transaction) {
-  AppHelper.validateFields(newFog, ['name', 'fogType'])
-  _validateLatLon(newFog.latitude, newFog.longitude)
+async function _createFog(fogData, user, transaction) {
+  AppHelper.validateFields(fogData, ['name', 'fogType'])
+  _validateLatLon(fogData.latitude, fogData.longitude)
 
   const ob = new ObjBuilder()
   const createFogData = ob
-    .pushRequiredFieldWithCondition('uuid', newFog.uuid, newFog.uuid, AppHelper.generateRandomString(32))
-    .pushFieldIfValExists('name', newFog.name)
-    .pushFieldIfValExists('location', newFog.location)
-    .pushFieldIfValExists('latitude', newFog.latitude)
-    .pushFieldIfValExists('longitude', newFog.longitude)
-    .pushOptionalFieldWithCondition('gpsMode', newFog.latitude || newFog.longitude, 'manual')
-    .pushFieldIfValExists('description', newFog.description)
-    .pushFieldIfValExists('dockerUrl', newFog.dockerUrl)
-    .pushFieldIfValExists('diskLimit', newFog.diskLimit)
-    .pushFieldIfValExists('diskDirectory', newFog.diskDirectory)
-    .pushFieldIfValExists('memoryLimit', newFog.memoryLimit)
-    .pushFieldIfValExists('cpuLimit', newFog.cpuLimit)
-    .pushFieldIfValExists('logLimit', newFog.logLimit)
-    .pushFieldIfValExists('logLimit', newFog.logLimit)
-    .pushFieldIfValExists('logDirectory', newFog.logDirectory)
-    .pushFieldIfValExists('logFileCount', newFog.logFileCount)
-    .pushFieldIfValExists('statusFrequency', newFog.statusFrequency)
-    .pushFieldIfValExists('changeFrequency', newFog.changeFrequency)
-    .pushFieldIfValExists('deviceScanFrequency', newFog.deviceScanFrequency)
-    .pushFieldIfValExists('bluetooth', newFog.bluetoothEnabled)
-    .pushFieldIfValExists('isolatedDockerContainer', newFog.watchdogEnabled)
-    .pushFieldIfValExists('hal', newFog.abstractedHardwareEnabled)
-    .pushFieldIfValExists('fogTypeId', newFog.fogType)
+    .pushRequiredFieldWithCondition('uuid', fogData.uuid, fogData.uuid, AppHelper.generateRandomString(32))
+    .pushFieldIfValExists('name', fogData.name)
+    .pushFieldIfValExists('location', fogData.location)
+    .pushFieldIfValExists('latitude', fogData.latitude)
+    .pushFieldIfValExists('longitude', fogData.longitude)
+    .pushOptionalFieldWithCondition('gpsMode', fogData.latitude || fogData.longitude, 'manual')
+    .pushFieldIfValExists('description', fogData.description)
+    .pushFieldIfValExists('dockerUrl', fogData.dockerUrl)
+    .pushFieldIfValExists('diskLimit', fogData.diskLimit)
+    .pushFieldIfValExists('diskDirectory', fogData.diskDirectory)
+    .pushFieldIfValExists('memoryLimit', fogData.memoryLimit)
+    .pushFieldIfValExists('cpuLimit', fogData.cpuLimit)
+    .pushFieldIfValExists('logLimit', fogData.logLimit)
+    .pushFieldIfValExists('logLimit', fogData.logLimit)
+    .pushFieldIfValExists('logDirectory', fogData.logDirectory)
+    .pushFieldIfValExists('logFileCount', fogData.logFileCount)
+    .pushFieldIfValExists('statusFrequency', fogData.statusFrequency)
+    .pushFieldIfValExists('changeFrequency', fogData.changeFrequency)
+    .pushFieldIfValExists('deviceScanFrequency', fogData.deviceScanFrequency)
+    .pushFieldIfValExists('bluetooth', fogData.bluetoothEnabled)
+    .pushFieldIfValExists('isolatedDockerContainer', fogData.watchdogEnabled)
+    .pushFieldIfValExists('hal', fogData.abstractedHardwareEnabled)
+    .pushFieldIfValExists('fogTypeId', fogData.fogType)
     .pushFieldIfValExists('userId', user.id)
     .popObj()
 
@@ -58,66 +59,60 @@ async function _createFog(newFog, user, transaction) {
   return res
 }
 
-async function _updateFog(updateFog, user, transaction) {
-  AppHelper.validateFields(updateFog, ['uuid'])
-  _validateLatLon(updateFog.latitude, updateFog.longitude)
+async function _updateFog(fogData, user, transaction) {
+  AppHelper.validateFields(fogData, ['uuid'])
+  _validateLatLon(fogData.latitude, fogData.longitude)
 
   const queryFogData = {
-    uuid: updateFog.uuid
+    uuid: fogData.uuid
   }
 
   const ob = new ObjBuilder()
   const updateFogData = ob
-    .pushFieldIfValExists('name', updateFog.name)
-    .pushFieldIfValExists('location', updateFog.location)
-    .pushFieldIfValExists('latitude', updateFog.latitude)
-    .pushFieldIfValExists('longitude', updateFog.longitude)
-    .pushOptionalFieldWithCondition('gpsMode', updateFog.latitude || updateFog.longitude, 'manual')
-    .pushFieldIfValExists('description', updateFog.description)
-    .pushFieldIfValExists('dockerUrl', updateFog.dockerUrl)
-    .pushFieldIfValExists('diskLimit', updateFog.diskLimit)
-    .pushFieldIfValExists('diskDirectory', updateFog.diskDirectory)
-    .pushFieldIfValExists('memoryLimit', updateFog.memoryLimit)
-    .pushFieldIfValExists('cpuLimit', updateFog.cpuLimit)
-    .pushFieldIfValExists('logLimit', updateFog.logLimit)
-    .pushFieldIfValExists('logLimit', updateFog.logLimit)
-    .pushFieldIfValExists('logDirectory', updateFog.logDirectory)
-    .pushFieldIfValExists('logFileCount', updateFog.logFileCount)
-    .pushFieldIfValExists('statusFrequency', updateFog.statusFrequency)
-    .pushFieldIfValExists('changeFrequency', updateFog.changeFrequency)
-    .pushFieldIfValExists('deviceScanFrequency', updateFog.deviceScanFrequency)
-    .pushFieldIfValExists('bluetooth', updateFog.bluetoothEnabled)
-    .pushFieldIfValExists('isolatedDockerContainer', updateFog.watchdogEnabled)
-    .pushFieldIfValExists('hal', updateFog.abstractedHardwareEnabled)
-    .pushFieldIfValExists('fogTypeId', updateFog.fogType)
+    .pushFieldIfValExists('name', fogData.name)
+    .pushFieldIfValExists('location', fogData.location)
+    .pushFieldIfValExists('latitude', fogData.latitude)
+    .pushFieldIfValExists('longitude', fogData.longitude)
+    .pushOptionalFieldWithCondition('gpsMode', fogData.latitude || fogData.longitude, 'manual')
+    .pushFieldIfValExists('description', fogData.description)
+    .pushFieldIfValExists('dockerUrl', fogData.dockerUrl)
+    .pushFieldIfValExists('diskLimit', fogData.diskLimit)
+    .pushFieldIfValExists('diskDirectory', fogData.diskDirectory)
+    .pushFieldIfValExists('memoryLimit', fogData.memoryLimit)
+    .pushFieldIfValExists('cpuLimit', fogData.cpuLimit)
+    .pushFieldIfValExists('logLimit', fogData.logLimit)
+    .pushFieldIfValExists('logLimit', fogData.logLimit)
+    .pushFieldIfValExists('logDirectory', fogData.logDirectory)
+    .pushFieldIfValExists('logFileCount', fogData.logFileCount)
+    .pushFieldIfValExists('statusFrequency', fogData.statusFrequency)
+    .pushFieldIfValExists('changeFrequency', fogData.changeFrequency)
+    .pushFieldIfValExists('deviceScanFrequency', fogData.deviceScanFrequency)
+    .pushFieldIfValExists('bluetooth', fogData.bluetoothEnabled)
+    .pushFieldIfValExists('isolatedDockerContainer', fogData.watchdogEnabled)
+    .pushFieldIfValExists('hal', fogData.abstractedHardwareEnabled)
+    .pushFieldIfValExists('fogTypeId', fogData.fogType)
     .pushFieldIfValExists('userId', user.id)
     .popObj()
 
-  try {
-    await FogManager.findOneAndUpdate(queryFogData, updateFogData, transaction)
-  } catch (e) {
-    if (e instanceof Errors.ModelNotFoundError) {
-      throw new Errors.NotFoundError('Invalid Fog Node Id')
-    }
-    throw e
+  const fog = await FogManager.findOne(queryFogData, transaction)
+  if (!fog) {
+    throw new Errors.NotFoundError('Invalid Fog Node Id')
   }
+  await FogManager.update(queryFogData, updateFogData, transaction)
 }
 
-async function _deleteFog(deleteFog, user, transaction) {
-  AppHelper.validateFields(deleteFog, ['uuid'])
+async function _deleteFog(fogData, user, transaction) {
+  AppHelper.validateFields(fogData, ['uuid'])
 
   const queryFogData = {
-    uuid: deleteFog.uuid
+    uuid: fogData.uuid
   }
 
-  try {
-    await FogManager.findOneAndDelete(queryFogData, transaction)
-  } catch (e) {
-    if (e instanceof Errors.ModelNotFoundError) {
-      throw new Errors.NotFoundError('Invalid Fog Node Id')
-    }
-    throw e
+  const fog = await FogManager.findOne(queryFogData, transaction)
+  if (!fog) {
+    throw new Errors.NotFoundError('Invalid Fog Node Id')
   }
+  await FogManager.delete(queryFogData, transaction)
 }
 
 async function _getFog(getFog, user, transaction) {
@@ -134,6 +129,33 @@ async function _getFog(getFog, user, transaction) {
   return fog
 }
 
+async function _generateProvisioningKey(fogData, user, transaction) {
+  AppHelper.validateFields(fogData, ['uuid'])
+
+  const queryFogData = {
+    uuid: fogData.uuid
+  }
+
+  const newProvision = {
+    iofogUuid: fogData.uuid,
+    provisionKey: AppHelper.generateRandomString(8),
+    expirationTime: new Date().getTime() + (20 * 60 * 1000)
+  }
+
+  const fog = await FogManager.findOne(queryFogData, transaction)
+  if (!fog) {
+    throw new Errors.NotFoundError('Invalid Fog Node Id')
+  }
+  const provisioningKeyData = await FogProvisionKeyManager.updateOrCreate({iofogUuid: fogData.uuid}, newProvision, transaction)
+
+  const res = {
+    key: provisioningKeyData.provisionKey,
+    expirationTime: provisioningKeyData.expirationTime
+  }
+
+  return res
+}
+
 function _validateLatLon(lat, lon) {
   if (lat && lon) {
     if (lat > 90 || lat < -90
@@ -148,4 +170,5 @@ module.exports = {
   updateFogWithTransaction: TransactionDecorator.generateTransaction(_updateFog),
   deleteFogWithTransaction: TransactionDecorator.generateTransaction(_deleteFog),
   getFogWithTransaction: TransactionDecorator.generateTransaction(_getFog),
+  generateProvisioningKeyWithTransaction: TransactionDecorator.generateTransaction(_generateProvisioningKey),
 }

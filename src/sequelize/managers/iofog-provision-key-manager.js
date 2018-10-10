@@ -13,13 +13,13 @@
 
 const BaseManager = require('../managers/base-manager')
 const models = require('./../models');
-const Fog = models.Fog
+const FogProvisionKey = models.FogProvisionKey
 
-class FogManager extends BaseManager {
+class FogProvisionKeyManager extends BaseManager {
   getEntity() {
-    return Fog
+    return FogProvisionKey
   }
 }
 
-const instance = new FogManager()
+const instance = new FogProvisionKeyManager()
 module.exports = instance

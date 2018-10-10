@@ -75,30 +75,16 @@ module.exports = class BaseManager {
     )
   }
 
-  findOneAndUpdate(whereData, newData, transaction) {
+  async updateOrCreate(whereData, data, transaction) {
     AppHelper.checkTransaction(transaction);
 
-    return this.findOne(whereData, transaction)
-      .then((obj) => {
-        if (obj) {
-          return this.update(whereData, newData, transaction);
-        } else {
-          throw new Errors.ModelNotFoundError()
-        }
-      })
+    const obj = await this.findOne(whereData, transaction)
+    if (obj) {
+      await this.update(whereData, data, transaction)
+      return this.findOne(whereData, transaction)
+    } else {
+      return this.create(data, transaction)
+    }
+
   }
-
-  findOneAndDelete(data, transaction) {
-    AppHelper.checkTransaction(transaction);
-
-    return this.findOne(data, transaction)
-      .then((obj) => {
-        if (obj) {
-          return this.delete(data, transaction);
-        } else {
-          throw new Errors.ModelNotFoundError()
-        }
-      })
-  }
-
 };
