@@ -37,7 +37,8 @@ class ValidationError extends Error {
 }
 
 class InvalidCredentialsError extends Error {
-  constructor(message) {
+  constructor() {
+    const message = 'Invalid credentials';
     super(message);
     this.message = message;
     this.name = "InvalidCredentialsError";
