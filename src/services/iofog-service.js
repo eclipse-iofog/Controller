@@ -103,6 +103,23 @@ async function _updateFog(updateFog, user, transaction) {
   }
 }
 
+async function _deleteFog(deleteFog, user, transaction) {
+  AppHelper.validateFields(deleteFog, ['uuid'])
+
+  const queryFogData = {
+    uuid: deleteFog.uuid
+  }
+
+  try {
+    await FogManager.findOneAndDelete(queryFogData, transaction)
+  } catch (e) {
+    if (e instanceof  Errors.ModelNotFoundError) {
+      throw new Errors.NotFoundError('Invalid Fog Node Id')
+    }
+    throw e
+  }
+}
+
 function _validateLatLon(lat, lon) {
   if (lat && lon) {
     if (lat > 90 || lat < -90
@@ -114,5 +131,6 @@ function _validateLatLon(lat, lon) {
 
 module.exports = {
   createFogWithTransaction: TransactionDecorator.generateTransaction(_createFog),
-  updateFogWithTransaction: TransactionDecorator.generateTransaction(_updateFog)
+  updateFogWithTransaction: TransactionDecorator.generateTransaction(_updateFog),
+  deleteFogWithTransaction: TransactionDecorator.generateTransaction(_deleteFog),
 }

@@ -48,22 +48,6 @@ module.exports = class BaseManager {
     });
   }
 
-  findOneAndUpdate(whereData, newData, transaction) {
-    AppHelper.checkTransaction(transaction);
-
-    return this.findOne(whereData, transaction)
-      .then((obj) => {
-        if (obj) {
-          return this.update(whereData, newData, transaction);
-        } else {
-          throw new Errors.ModelNotFoundError()
-        }
-      })
-  }
-
-
-  //TODO: add transactions for methods down
-
   async delete(data, transaction) {
     AppHelper.checkTransaction(transaction);
 
@@ -89,6 +73,32 @@ module.exports = class BaseManager {
         transaction: transaction
       }
     )
+  }
+
+  findOneAndUpdate(whereData, newData, transaction) {
+    AppHelper.checkTransaction(transaction);
+
+    return this.findOne(whereData, transaction)
+      .then((obj) => {
+        if (obj) {
+          return this.update(whereData, newData, transaction);
+        } else {
+          throw new Errors.ModelNotFoundError()
+        }
+      })
+  }
+
+  findOneAndDelete(data, transaction) {
+    AppHelper.checkTransaction(transaction);
+
+    return this.findOne(data, transaction)
+      .then((obj) => {
+        if (obj) {
+          return this.delete(data, transaction);
+        } else {
+          throw new Errors.ModelNotFoundError()
+        }
+      })
   }
 
 };

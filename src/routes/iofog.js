@@ -69,8 +69,8 @@ module.exports = [
         }
       ]
 
-      const createFog = ResponseDecorator.handleErrors(FogController.updateFog, successCode, errCodes)
-      const responseObject = await createFog(req)
+      const updateFog = ResponseDecorator.handleErrors(FogController.updateFog, successCode, errCodes)
+      const responseObject = await updateFog(req)
 
       res
         .status(responseObject.code)
@@ -79,11 +79,26 @@ module.exports = [
   },
   {
     method: 'delete',
-    path: '/api/v3/iofog/:id',
-    middleware: (req, res) => {
+    path: '/api/v3/iofog/:uuid',
+    middleware: async (req, res) => {
+      const successCode = constants.HTTP_CODE_NO_CONTENT
+      const errCodes = [
+        {
+          code: 401,
+          errors: [Errors.AuthenticationError]
+        },
+        {
+          code: 404,
+          errors: [Errors.NotFoundError]
+        }
+      ]
+
+      const deleteFog = ResponseDecorator.handleErrors(FogController.deleteFog, successCode, errCodes)
+      const responseObject = await deleteFog(req)
+
       res
-        .status(constants.HTTP_CODE_SUCCESS)
-        .send(req.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
     }
   },
   {
