@@ -14,6 +14,7 @@
 const logger = require('../logger');
 
 const UserService = require('../services/user-service');
+const AuthDecorator = require('../decorators/authorization-decorator');
 
 const userSignupEndPoint = async function (req) {
   logger.info("Parameters:" + JSON.stringify(req.body));
@@ -39,8 +40,22 @@ const resendActivationEndPoint = async function (req) {
   return await UserService.resendActivation(emailData);
 };
 
+const activateUserAccountEndPoint = async function (req) {
+  logger.info("Parameters:" + JSON.stringify(req.body));
+
+  const codeData = req.body;
+
+  return await UserService.activateUser(codeData);
+};
+
+const _userLogoutEndPoint = async function (req, user) {
+  return await UserService.logout(user);
+};
+
 module.exports = {
   userSignupEndPoint: userSignupEndPoint,
   userLoginEndPoint: userLoginEndPoint,
-  resendActivationEndPoint: resendActivationEndPoint
+  resendActivationEndPoint: resendActivationEndPoint,
+  activateUserAccountEndPoint: activateUserAccountEndPoint,
+  userLogoutEndPoint: AuthDecorator.checkAuthToken(_userLogoutEndPoint)
 };

@@ -11,9 +11,6 @@
 *
 */
 
-const moment = require('moment');
-const _ = require('underscore');
-
 const AppHelper = require('../../helpers/app-helper');
 const Errors = require('../../helpers/errors')
 
@@ -23,13 +20,8 @@ module.exports = class BaseManager {
     return null;
   }
 
-  findAll(object, transaction) {
+  async findAll(object, transaction) {
     AppHelper.checkTransaction(transaction);
-
-    object = object || {};
-
-    if (object.limit && object.limit === -1)
-      delete object.limit;
 
     return this.getEntity().findAll({
       where: object,
@@ -37,7 +29,7 @@ module.exports = class BaseManager {
     });
   }
 
-  findOne(object, transaction) {
+  async findOne(object, transaction) {
     AppHelper.checkTransaction(transaction);
 
     object = object || {};
@@ -48,20 +40,10 @@ module.exports = class BaseManager {
     });
   }
 
-  create(object, transaction) {
-    AppHelper.checkTransaction(transaction)
-
-    if (this.getEntity().attributes.createdAt)
-      object.createdAt = moment.utc().valueOf();
-
-    return this.getEntity().create(object, {transaction: transaction});
-  }
-
-  update(whereData, newData, transaction) {
+  async create(object, transaction) {
     AppHelper.checkTransaction(transaction);
 
-    return this.getEntity().update(newData, {
-      where: whereData,
+    return this.getEntity().create(object, {
       transaction: transaction
     });
   }
@@ -82,29 +64,31 @@ module.exports = class BaseManager {
 
   //TODO: add transactions for methods down
 
-  findById(id, include) {
-    return this.getEntity().findById(id, {
-      include: include
+  async delete(data, transaction) {
+    AppHelper.checkTransaction(transaction);
+
+    return this.getEntity().destroy({
+      where: data,
+      transaction: transaction
+    })
+  }
+
+  async update(whereData, newData, transaction) {
+    AppHelper.checkTransaction(transaction);
+
+    return this.getEntity().update(newData, {
+      where: whereData,
+      transaction: transaction
     });
   }
 
-  async deleteById(id) {
-    const object = await this.findById(id);
-    if (null == object)
-      return;
+  async upsert(data, transaction) {
+    AppHelper.checkTransaction(transaction);
 
-    return object.destroy();
-  }
-
-  //src, destination
-  //destination should be a sequelize object
-  updateObject(destination, source) {
-    _.each(source, (value, key) => {
-      if (key !== 'id' && key !== 'createdAt' && _.has(destination.dataValues, key)) {
-        if (destination[key] !== source[key])
-          destination[key] = source[key];
+    return this.getEntity().upsert(data, {
+        transaction: transaction
       }
-    });
-  };
+    )
+  }
 
 };
