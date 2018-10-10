@@ -16,6 +16,7 @@ const AppHelper = require('../helpers/app-helper')
 const FogManager = require('../sequelize/managers/iofog-manager')
 const FogProvisionKeyManager = require('../sequelize/managers/iofog-provision-key-manager')
 const FogVersionCommandManager = require('../sequelize/managers/iofog-version-command-manager')
+const ChangeTrackingManager = require('../sequelize/managers/change-tracking-manager')
 const Errors = require('../helpers/errors')
 const ObjBuilder = require('../helpers/object-builder')
 
@@ -181,6 +182,26 @@ async function _setFogVersionCommand(fogVersionData, user, transaction) {
   await FogVersionCommandManager.updateOrCreate({iofogUuid: fogVersionData.uuid}, newVersionCommand, transaction)
 }
 
+async function _setFogRebootCommand(fogData, user, transaction) {
+  AppHelper.validateFields(fogData, ['uuid'])
+
+  const queryFogData = {
+    uuid: fogData.uuid,
+    userId: user.id
+  }
+  const newRebootCommand = {
+    iofogUuid: fogData.uuid,
+    reboot: true
+  }
+
+  const fog = await FogManager.findOne(queryFogData, transaction)
+  if (!fog) {
+    throw new Errors.NotFoundError('Invalid Fog Node Id')
+  }
+
+  await ChangeTrackingManager.updateOrCreate({iofogUuid: fogData.uuid}, newRebootCommand, transaction)
+}
+
 function _validateLatLon(lat, lon) {
   if (lat && lon) {
     if (lat > 90 || lat < -90
@@ -202,5 +223,6 @@ module.exports = {
   deleteFogWithTransaction: TransactionDecorator.generateTransaction(_deleteFog),
   getFogWithTransaction: TransactionDecorator.generateTransaction(_getFog),
   generateProvisioningKeyWithTransaction: TransactionDecorator.generateTransaction(_generateProvisioningKey),
-  setFogVersionCommandWithTransaction: TransactionDecorator.generateTransaction(_setFogVersionCommand)
+  setFogVersionCommandWithTransaction: TransactionDecorator.generateTransaction(_setFogVersionCommand),
+  setFogRebootCommandWithTransaction: TransactionDecorator.generateTransaction(_setFogRebootCommand)
 }

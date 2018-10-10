@@ -57,11 +57,19 @@ async function _setFogVersionCommand(req, user) {
   return await FogService.setFogVersionCommandWithTransaction(fogVersionCommand, user)
 }
 
+async function _setFogRebootCommand(req, user) {
+  logger.info("Parameters:" + JSON.stringify(req.body));
+  const fog = {}
+  fog.uuid = req.params.uuid
+  return await FogService.setFogRebootCommandWithTransaction(fog, user)
+}
+
 module.exports = {
   createFog: AuthDecorator.checkAuthToken(_createFog),
   updateFog: AuthDecorator.checkAuthToken(_updateFog),
   deleteFog: AuthDecorator.checkAuthToken(_deleteFog),
   getFog: AuthDecorator.checkAuthToken(_getFog),
   generateProvisioningKey: AuthDecorator.checkAuthToken(_generateProvisioningKey),
-  setFogVersionCommand: AuthDecorator.checkAuthToken(_setFogVersionCommand)
+  setFogVersionCommand: AuthDecorator.checkAuthToken(_setFogVersionCommand),
+  setFogRebootCommand: AuthDecorator.checkAuthToken(_setFogRebootCommand),
 }

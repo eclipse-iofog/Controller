@@ -180,10 +180,30 @@ module.exports = [
   {
     method: 'post',
     path: '/api/v3/iofog/:uuid/reboot',
-    middleware: (req, res) => {
+    middleware: async (req, res) => {
+      const successCode = constants.HTTP_CODE_NO_CONTENT
+      const errCodes = [
+        {
+          code: 400,
+          errors: [Errors.ValidationError]
+        },
+        {
+          code: 401,
+          errors: [Errors.AuthenticationError]
+        },
+        {
+          code: 404,
+          errors: [Errors.NotFoundError]
+        }
+      ]
+
+
+      const setFogRebootCommand = ResponseDecorator.handleErrors(FogController.setFogRebootCommand, successCode, errCodes)
+      const responseObject = await setFogRebootCommand(req)
+
       res
-        .status(constants.HTTP_CODE_SUCCESS)
-        .send(req.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
     }
   }
 ]
