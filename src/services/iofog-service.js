@@ -64,7 +64,8 @@ async function _updateFog(fogData, user, transaction) {
   _validateLatLon(fogData.latitude, fogData.longitude)
 
   const queryFogData = {
-    uuid: fogData.uuid
+    uuid: fogData.uuid,
+    userId: user.id
   }
 
   const ob = new ObjBuilder()
@@ -91,7 +92,6 @@ async function _updateFog(fogData, user, transaction) {
     .pushFieldIfValExists('isolatedDockerContainer', fogData.watchdogEnabled)
     .pushFieldIfValExists('hal', fogData.abstractedHardwareEnabled)
     .pushFieldIfValExists('fogTypeId', fogData.fogType)
-    .pushFieldIfValExists('userId', user.id)
     .popObj()
 
   const fog = await FogManager.findOne(queryFogData, transaction)
@@ -105,7 +105,8 @@ async function _deleteFog(fogData, user, transaction) {
   AppHelper.validateFields(fogData, ['uuid'])
 
   const queryFogData = {
-    uuid: fogData.uuid
+    uuid: fogData.uuid,
+    userId: user.id
   }
 
   const fog = await FogManager.findOne(queryFogData, transaction)
@@ -119,7 +120,8 @@ async function _getFog(getFog, user, transaction) {
   AppHelper.validateFields(getFog, ['uuid'])
 
   const queryFogData = {
-    uuid: getFog.uuid
+    uuid: getFog.uuid,
+    userId: user.id
   }
 
   const fog = await FogManager.findOne(queryFogData, transaction)
