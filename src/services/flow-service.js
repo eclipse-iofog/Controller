@@ -11,82 +11,92 @@
  *
  */
 
-const TransactionDecorator = require('../decorators/transaction-decorator');
-const FlowManager = require('../sequelize/managers/flow-manager');
-const AppHelper = require('../helpers/app-helper');
+const TransactionDecorator = require('../decorators/transaction-decorator')
+const FlowManager = require('../sequelize/managers/flow-manager')
+const AppHelper = require('../helpers/app-helper')
+const Errors = require('../helpers/errors')
+const ObjBuilder = require('../helpers/object-builder')
 
 const _createFlow = async function (flowData, user, transaction) {
-    const flow = {
-        name: flowData.name,
-        description: flowData.description,
-        is_activated: flowData.isActivated,
-        user_id: user.id
-    };
+  const flowToCreate = {
+    name: flowData.name,
+    description: flowData.description,
+    is_activated: flowData.isActivated,
+    is_selected: flowData.isSelected,
+    user_id: user.id,
+    updated_by: user.id
+  };
 
-    return await FlowManager.create(flow, transaction)
+  const flow = await FlowManager.findOne({
+    name: flowData.name
+  }, transaction);
+
+  if (flow){
+    throw Errors.ValidationError("Bad Request: Flow with the same name already exists")
+  }
+
+  return await FlowManager.create(flowToCreate, transaction)
 };
 
 const createFlow = async function (flowData, user, transaction) {
-    AppHelper.validateFields(flowData, ["name", "description", "isActivated"]);
+  const flow = await _createFlow(flowData, user, transaction);
 
-    const flow = await _createFlow(flowData, user, transaction);
-
-    return {
-        id: flow.id
-    }
+  return {
+    id: flow.id
+   }
 };
 
 const _deleteFlow = async function (flowId, transaction) {
-    const flow = {
-        id: flowId
-    };
+  const flow = await _getFlow(flowId, transaction);
 
-    return await FlowManager.delete(flow, transaction)
+  return await FlowManager.delete(flow, transaction)
 };
 
 const deleteFlow = async function (flowId, transaction) {
-    return await _deleteFlow(flowId, transaction)
+  return await _deleteFlow(flowId, transaction)
 };
 
-const _updateFlow = async function (flowData, user, transaction) {
-    const flow = {
-        name: flowData.name,
-        description: flowData.description,
-        is_activated: flowData.isActivated,
-        user_id: user.id
-    };
+const _updateFlow = async function (flowData, flowId, transaction) {
+  const flow = await _getFlow(flowId, transaction);
 
-    return await FlowManager.upsert(flow, transaction)
+  return await FlowManager.update(flow, flowData, transaction)
 };
 
-const updateFlow = async function (flowData, user, transaction) {
-    AppHelper.validateFields(flowData, ["name", "description", "isActivated"]);
+const updateFlow = async function (flowData, flowId, user, transaction) {
+  const obj = new ObjBuilder()
+  const flow = obj
+    .pushFieldIfValExists('name', flowData.name)
+    .pushFieldIfValExists('description', flowData.description)
+    .pushFieldIfValExists('is_activated', AppHelper.validateFlowActive(flowData.isActivated))
+    .pushFieldIfValExists('is_selected', AppHelper.validateFlowSelected(flowData.isSelected))
+    .pushFieldIfValExists('updated_by', user.id)
+    .popObj()
 
-    return await _updateFlow(flowData, user, transaction);
+  return await _updateFlow(flow, flowId, transaction)
 };
 
 const _getFlow = async function (flowId, transaction) {
-    const flow = {
-        id: flowId
-    };
+  const flow = await FlowManager.findOne({
+    id: flowId
+  }, transaction)
 
-    return await FlowManager.findOne(flow, transaction)
+  if (!flow){
+    throw Errors.NotFoundError("Invalid Flow Id")
+  }
+
+  return flow
 };
 
 const getFlow = async function (flowId, transaction) {
-    return await _getFlow(flowId, transaction);
-};
-
-const _getUserFlows = async function (user, transaction) {
-    const flow = {
-        user_id: user.id
-    };
-
-    return await FlowManager.findAll(flow, transaction)
+  return await _getFlow(flowId, transaction)
 };
 
 const getUserFlows = async function (user, transaction) {
-    return await _getUserFlows(user, transaction);
+  const flow = {
+    user_id: user.id
+  };
+
+  return await FlowManager.findAll(flow, transaction)
 };
 
 module.exports = {

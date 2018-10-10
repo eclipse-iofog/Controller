@@ -99,6 +99,10 @@ function isValidEmailActivation(flag) {
   return flag === 'on' || flag === 'off';
 }
 
+function isValidBoolean (flag) {
+    return flag === 'true' || flag === 'false';
+}
+
 function generateAccessToken() {
   let token = '', i;
   for (i = 0; i < 8; i++) {
@@ -113,6 +117,22 @@ function checkTransaction(transaction) {
   }
 }
 
+function validateFlowActive(isActive) {
+  if (!isValidBoolean(isActive)) {
+    throw new Errors.ValidationError("Bad Request: Field \"isActivated\" permits only \"true\" or \"false\" values")
+  }
+
+  return isActive
+}
+
+function validateFlowSelected(isSelected) {
+  if (!isValidBoolean(isSelected)) {
+    throw new Errors.ValidationError("Bad Request: Field \"isSelected\" permits only \"true\" or \"false\" values")
+  }
+
+  return isSelected
+}
+
 module.exports = {
   encryptText,
   decryptText,
@@ -123,6 +143,9 @@ module.exports = {
   isValidPort,
   isValidDomain,
   isValidEmailActivation,
+  isValidBoolean,
+  validateFlowActive,
+  validateFlowSelected,
   checkPortAvailability,
   generateAccessToken,
   checkTransaction

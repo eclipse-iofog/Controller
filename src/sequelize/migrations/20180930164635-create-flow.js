@@ -22,6 +22,10 @@ module.exports = {
         type: Sequelize.BOOLEAN,
         field: 'is_activated'
       },
+      isSelected: {
+        type: Sequelize.BOOLEAN,
+        field: 'is_selected'
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE,
