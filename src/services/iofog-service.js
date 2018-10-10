@@ -96,7 +96,7 @@ async function _updateFog(updateFog, user, transaction) {
   try {
     await FogManager.findOneAndUpdate(queryFogData, updateFogData, transaction)
   } catch (e) {
-    if (e instanceof  Errors.ModelNotFoundError) {
+    if (e instanceof Errors.ModelNotFoundError) {
       throw new Errors.NotFoundError('Invalid Fog Node Id')
     }
     throw e
@@ -113,11 +113,25 @@ async function _deleteFog(deleteFog, user, transaction) {
   try {
     await FogManager.findOneAndDelete(queryFogData, transaction)
   } catch (e) {
-    if (e instanceof  Errors.ModelNotFoundError) {
+    if (e instanceof Errors.ModelNotFoundError) {
       throw new Errors.NotFoundError('Invalid Fog Node Id')
     }
     throw e
   }
+}
+
+async function _getFog(getFog, user, transaction) {
+  AppHelper.validateFields(getFog, ['uuid'])
+
+  const queryFogData = {
+    uuid: getFog.uuid
+  }
+
+  const fog = await FogManager.findOne(queryFogData, transaction)
+  if (!fog) {
+    throw new Errors.NotFoundError('Invalid Fog Node Id')
+  }
+  return fog
 }
 
 function _validateLatLon(lat, lon) {
@@ -133,4 +147,5 @@ module.exports = {
   createFogWithTransaction: TransactionDecorator.generateTransaction(_createFog),
   updateFogWithTransaction: TransactionDecorator.generateTransaction(_updateFog),
   deleteFogWithTransaction: TransactionDecorator.generateTransaction(_deleteFog),
+  getFogWithTransaction: TransactionDecorator.generateTransaction(_getFog),
 }

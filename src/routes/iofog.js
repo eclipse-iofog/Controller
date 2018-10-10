@@ -103,11 +103,26 @@ module.exports = [
   },
   {
     method: 'get',
-    path: '/api/v3/iofog/:id',
+    path: '/api/v3/iofog/:uuid',
     middleware: async (req, res) => {
+      const successCode = constants.HTTP_CODE_SUCCESS
+      const errCodes = [
+        {
+          code: 401,
+          errors: [Errors.AuthenticationError]
+        },
+        {
+          code: 404,
+          errors: [Errors.NotFoundError]
+        }
+      ]
+
+      const getFog = ResponseDecorator.handleErrors(FogController.getFog, successCode, errCodes)
+      const responseObject = await getFog(req)
+
       res
-        .status(constants.HTTP_CODE_SUCCESS)
-        .send(req.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
     }
   },
   {

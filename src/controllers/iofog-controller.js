@@ -35,8 +35,16 @@ async function _deleteFog(req, user) {
   return await FogService.deleteFogWithTransaction(deleteFog, user)
 }
 
+async function _getFog(req, user) {
+  logger.info("Parameters:" + JSON.stringify(req.body));
+  const getFog = {}
+  getFog.uuid = req.params.uuid
+  return await FogService.getFogWithTransaction(getFog, user)
+}
+
 module.exports = {
   createFog: AuthDecorator.checkAuthToken(_createFog),
   updateFog: AuthDecorator.checkAuthToken(_updateFog),
-  deleteFog: AuthDecorator.checkAuthToken(_deleteFog)
+  deleteFog: AuthDecorator.checkAuthToken(_deleteFog),
+  getFog: AuthDecorator.checkAuthToken(_getFog),
 }
