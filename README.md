@@ -4,43 +4,43 @@ $ fog-controller user <command> <options>
 
 **Command List**
 
- - add              Add a new user.
- - update           Update existing user.
- - remove           Delete a user.
- - list             List all users.
- - generate-token   Generate token for a user.
- - activate         Activate a user.
- - suspend          Suspend a user.
+ - add              -- Add a new user.
+ - update           -- Update existing user.
+ - remove           -- Delete a user.
+ - list             -- List all users.
+ - generate-token   -- Generate token for a user.
+ - activate         -- Activate a user.
+ - suspend          -- Suspend a user.
 
 *add*
 
- -f, --first-name string   User's first name
- -l, --last-name string    User's last name
- -e, --email string        User's email address
- -p, --password string     User's password
+ -f, --first-name string    (User's first name) <br>
+ -l, --last-name string     (User's last name) <br>
+ -e, --email string         (User's email address) <br>
+ -p, --password string      (User's password) <br>
 
 *update*
 
- -f, --first-name string   User's first name
- -l, --last-name string    User's last name
- -e, --email string        User's email address
- -p, --password string     User's password
+ -f, --first-name string   (User's first name) <br>
+ -l, --last-name string    (User's last name) <br>
+ -e, --email string        (User's email address) <br>
+ -p, --password string     (User's password) <br>
 
 *remove*
 
- -e, --email string   User's email address
+ -e, --email string   (User's email address)
 
 *generate-token*
 
- -e, --email string   User's email address
+ -e, --email string   (User's email address)
 
 *activate*
 
- -e, --email string   User's email address
+ -e, --email string   (User's email address)
 
 *suspend*
 
- -e, --email string   User's email address
+ -e, --email string   (User's email address)
  
  **Example**
  
