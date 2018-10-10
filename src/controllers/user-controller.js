@@ -49,8 +49,6 @@ const resendActivationEndPoint = async function (req) {
 };
 
 const activateUserAccountEndPoint = async function (req) {
-  logger.info("Parameters:" + JSON.stringify(req.body));
-
   const codeData = req.body;
 
   return await UserService.activateUser(codeData);
