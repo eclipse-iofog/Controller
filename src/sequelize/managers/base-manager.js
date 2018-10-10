@@ -56,6 +56,16 @@ module.exports = class BaseManager {
     return this.getEntity().create(object, {transaction: transaction});
   }
 
+  update(whereData, newData, transaction) {
+    AppHelper.checkTransaction(transaction);
+
+    return this.getEntity().update(newData, {
+      where: whereData,
+      transaction: transaction
+    });
+  }
+
+
   //TODO: add transactions for methods down
 
   findById(id, include) {
@@ -70,18 +80,6 @@ module.exports = class BaseManager {
       return;
 
     return object.destroy();
-  }
-
-  async update(newObject) {
-    let dbObject = await this.findById(newObject.id);
-    if (null == dbObject)
-      throw new Error('invalid id');
-
-    this.updateObject(dbObject, newObject);
-    if (!dbObject.changed())
-      return dbObject;
-
-    return dbObject.save();
   }
 
   //src, destination

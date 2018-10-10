@@ -17,10 +17,18 @@ const FogService = require('../services/iofog-service')
 
 async function _createFog(req, user) {
   logger.info("Parameters:" + JSON.stringify(req.body));
-  const newFog = req.body;
+  const newFog = req.body
   return await FogService.createFogWithTransaction(newFog, user)
 }
 
+async function _updateFog(req, user) {
+  logger.info("Parameters:" + JSON.stringify(req.body));
+  const updateFog = req.body
+  updateFog.uuid = req.params.uuid
+  return await FogService.updateFogWithTransaction(updateFog, user)
+}
+
 module.exports = {
-  createFog: AuthDecorator.checkAuthToken(_createFog)
+  createFog: AuthDecorator.checkAuthToken(_createFog),
+  updateFog: AuthDecorator.checkAuthToken(_updateFog)
 }

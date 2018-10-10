@@ -198,10 +198,10 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: 20,
       field: 'change_frequency'
     },
-    scanFrequency: {
+    deviceScanFrequency: {
       type: DataTypes.INTEGER,
       defaultValue: 20,
-      field: 'scan_frequency'
+      field: 'device_scan_frequency'
     },
     proxy: {
       type: DataTypes.TEXT,
