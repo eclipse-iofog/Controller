@@ -49,10 +49,19 @@ async function _generateProvisioningKey(req, user) {
   return await FogService.generateProvisioningKeyWithTransaction(fog, user)
 }
 
+async function _setFogVersionCommand(req, user) {
+  logger.info("Parameters:" + JSON.stringify(req.body));
+  const fogVersionCommand = {}
+  fogVersionCommand.uuid = req.params.uuid
+  fogVersionCommand.versionCommand = req.params.versionCommand
+  return await FogService.setFogVersionCommandWithTransaction(fogVersionCommand, user)
+}
+
 module.exports = {
   createFog: AuthDecorator.checkAuthToken(_createFog),
   updateFog: AuthDecorator.checkAuthToken(_updateFog),
   deleteFog: AuthDecorator.checkAuthToken(_deleteFog),
   getFog: AuthDecorator.checkAuthToken(_getFog),
   generateProvisioningKey: AuthDecorator.checkAuthToken(_generateProvisioningKey),
+  setFogVersionCommand: AuthDecorator.checkAuthToken(_setFogVersionCommand)
 }

@@ -15,6 +15,7 @@ const TransactionDecorator = require('../decorators/transaction-decorator')
 const AppHelper = require('../helpers/app-helper')
 const FogManager = require('../sequelize/managers/iofog-manager')
 const FogProvisionKeyManager = require('../sequelize/managers/iofog-provision-key-manager')
+const FogVersionCommandManager = require('../sequelize/managers/iofog-version-command-manager')
 const Errors = require('../helpers/errors')
 const ObjBuilder = require('../helpers/object-builder')
 
@@ -135,7 +136,8 @@ async function _generateProvisioningKey(fogData, user, transaction) {
   AppHelper.validateFields(fogData, ['uuid'])
 
   const queryFogData = {
-    uuid: fogData.uuid
+    uuid: fogData.uuid,
+    userId: user.id
   }
 
   const newProvision = {
@@ -158,6 +160,27 @@ async function _generateProvisioningKey(fogData, user, transaction) {
   return res
 }
 
+async function _setFogVersionCommand(fogVersionData, user, transaction) {
+  AppHelper.validateFields(fogVersionData, ['uuid', 'versionCommand'])
+  _validateVersionCommand(fogVersionData.versionCommand)
+
+  const queryFogData = {
+    uuid: fogVersionData.uuid,
+    userId: user.id
+  }
+  const newVersionCommand = {
+    iofogUuid: fogVersionData.uuid,
+    versionCommand: fogVersionData.versionCommand
+  }
+
+  const fog = await FogManager.findOne(queryFogData, transaction)
+  if (!fog) {
+    throw new Errors.NotFoundError('Invalid Fog Node Id')
+  }
+
+  await FogVersionCommandManager.updateOrCreate({iofogUuid: fogVersionData.uuid}, newVersionCommand, transaction)
+}
+
 function _validateLatLon(lat, lon) {
   if (lat && lon) {
     if (lat > 90 || lat < -90
@@ -167,10 +190,17 @@ function _validateLatLon(lat, lon) {
   }
 }
 
+function _validateVersionCommand(command) {
+  if (command !== 'upgrade' && command !== 'rollback') {
+    throw new Errors.ValidationError('incorrect version command')
+  }
+}
+
 module.exports = {
   createFogWithTransaction: TransactionDecorator.generateTransaction(_createFog),
   updateFogWithTransaction: TransactionDecorator.generateTransaction(_updateFog),
   deleteFogWithTransaction: TransactionDecorator.generateTransaction(_deleteFog),
   getFogWithTransaction: TransactionDecorator.generateTransaction(_getFog),
   generateProvisioningKeyWithTransaction: TransactionDecorator.generateTransaction(_generateProvisioningKey),
+  setFogVersionCommandWithTransaction: TransactionDecorator.generateTransaction(_setFogVersionCommand)
 }
