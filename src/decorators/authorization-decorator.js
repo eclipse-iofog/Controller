@@ -25,7 +25,7 @@ function checkAuthToken(f) {
 
     logger.info('checking user token: ' + token);
 
-    const user = await UserManager.findByAccessToken(token);
+    const user = await UserManager.checkAuthentication(token);
 
     if (!user) {
       logger.error('token ' + token + ' incorrect');

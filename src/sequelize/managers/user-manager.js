@@ -2,25 +2,39 @@ const BaseManager = require('./base-manager');
 const models = require('./../models');
 const User = models.User;
 const AccessToken = models.AccessToken;
+const AppHelper = require('../../helpers/app-helper');
 
 class UserManager extends BaseManager {
   getEntity() {
     return User;
   }
 
-  async addUser(userData) {
-    return User.create(userData);
-  }
+  findByAccessToken(token, transaction) {
+    AppHelper.checkTransaction(transaction);
 
-  async validateUserByEmail(email) {
     return User.find({
-      where: {
-        email: email
-      }
+      include: [{
+        model: AccessToken,
+        as: 'accessToken',
+        where: {
+          token: token
+        }
+      }],
+    }, {
+      transaction: transaction
     });
   }
 
-  findByAccessToken(token) {
+  findByEmail(email) {
+    return User.find({
+        where: {
+          email: email
+        }
+      });
+  }
+
+  // no transaction required here, used by auth decorator
+  checkAuthentication(token) {
     return User.find({
       include: [{
         model: AccessToken,
@@ -32,14 +46,27 @@ class UserManager extends BaseManager {
     });
   }
 
-  findByEmail(email) {
-    return User.find({
-      where: {
-        email: email
-      }
-    });
+  updateDetails(user, profileData, transaction) {
+    return this.update({
+      id: user.id
+    }, profileData, transaction);
   }
 
+  updatePassword(userId, newPassword, transaction) {
+    return this.update({
+      id: userId
+    }, {
+      password: newPassword
+    }, transaction)
+  }
+
+  updateTempPassword(userId, tempPassword, transaction) {
+    return this.update({
+      id: userId
+    }, {
+      tempPassword: tempPassword
+    }, transaction)
+  }
 }
 
 const instance = new UserManager();

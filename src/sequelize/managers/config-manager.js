@@ -20,26 +20,21 @@ class ConfigManager extends BaseManager {
     return ControllerConfig;
   }
 
-  getByKey(key) {
-    return ControllerConfig.find({
-      where: {
-        key: key
+  getByKey(key, transaction) {
+    return ControllerConfig.findOne({
+        where: {
+          key: key
+        }
+      }, {
+        transaction: transaction
       }
-    });
+    );
   }
 
-  setByKey(key, value) {
-    return this.getByKey(key).then((dbConfig) => {
-      if (dbConfig) {
-        dbConfig.value = value;
-        dbConfig.save();
-      } else {
-        this.create({
-          key: key,
-          value: value
-        });
-      }
-    });
+  setByKey(key, value, transaction) {
+    return this.upsert({
+      key: value
+    }, transaction)
   }
 }
 

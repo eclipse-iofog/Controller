@@ -16,6 +16,8 @@ const UserController = require('../controllers/user-controller');
 const ResponseDecorator = require('../decorators/response-decorator');
 const Errors = require('../helpers/errors');
 
+const Config = require('../config');
+
 module.exports = [
   {
     method: 'post',
@@ -44,10 +46,22 @@ module.exports = [
   {
     method: 'post',
     path: '/api/v3/user/logout',
-    middleware: (req, res) => {
+    middleware: async (req, res) => {
+
+      const successCode = constants.HTTP_CODE_NO_CONTENT;
+      const errorCodes = [
+        {
+          code: constants.HTTP_CODE_UNAUTHORIZED,
+          errors: [Errors.AuthenticationError]
+        }
+      ];
+
+      const userLogoutEndPoint = ResponseDecorator.handleErrors(UserController.userLogoutEndPoint, successCode, errorCodes);
+      const responseObject = await userLogoutEndPoint(req);
+
       res
-        .status(constants.HTTP_CODE_SUCCESS)
-        .send(req.body)
+        .status(responseObject.code)
+        .send()
     }
   },
   {
@@ -95,55 +109,137 @@ module.exports = [
   {
     method: 'post',
     path: '/api/v3/user/activate',
-    middleware: (req, res) => {
+    middleware: async (req, res) => {
+
+      const successCode = constants.HTTP_CODE_SEE_OTHER;
+      const errorCodes = [
+        {
+          code: constants.HTTP_CODE_NOT_FOUND,
+          errors: [Errors.NotFoundError]
+        }
+      ];
+
+      const activateUserEndPoint = ResponseDecorator.handleErrors(UserController.activateUserAccountEndPoint, successCode, errorCodes);
+      const responseObject = await activateUserEndPoint(req);
+
+      // redirect to login page
+      if (responseObject.code === successCode) {
+        res.setHeader('Location', Config.get('Email:HomeUrl'));
+      }
+
+
       res
-        .status(constants.HTTP_CODE_SUCCESS)
-        .send(req.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
     }
   },
   {
     method: 'get',
     path: '/api/v3/user/profile',
-    middleware: (req, res) => {
+    middleware: async (req, res) => {
+
+      const successCode = constants.HTTP_CODE_SUCCESS;
+      const errorCodes = [
+        {
+          code: constants.HTTP_CODE_UNAUTHORIZED,
+          errors: [Errors.AuthenticationError]
+        }
+      ];
+
+      const getUserProfileEndPoint = ResponseDecorator.handleErrors(UserController.getUserProfileEndPoint, successCode, errorCodes);
+      const responseObject = await getUserProfileEndPoint(req);
+
       res
-        .status(constants.HTTP_CODE_SUCCESS)
-        .send(req.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
     }
   },
   {
     method: 'patch',
     path: '/api/v3/user/profile',
-    middleware: (req, res) => {
+    middleware: async (req, res) => {
+
+      const successCode = constants.HTTP_CODE_SUCCESS;
+      const errorCodes = [
+        {
+          code: constants.HTTP_CODE_UNAUTHORIZED,
+          errors: [Errors.AuthenticationError]
+        },
+        {
+          code: constants.HTTP_CODE_BAD_REQUEST,
+          errors: [Errors.ValidationError]
+        }
+      ];
+
+      const updateUserProfileEndPoint = ResponseDecorator.handleErrors(UserController.updateUserProfileEndPoint, successCode, errorCodes);
+      const responseObject = await updateUserProfileEndPoint(req);
+
       res
-        .status(constants.HTTP_CODE_SUCCESS)
-        .send(req.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
     }
   },
   {
     method: 'delete',
     path: '/api/v3/user/profile',
-    middleware: (req, res) => {
+    middleware: async (req, res) => {
+
+      const successCode = constants.HTTP_CODE_NO_CONTENT;
+      const errorCodes = [
+        {
+          code: constants.HTTP_CODE_UNAUTHORIZED,
+          errors: [Errors.AuthenticationError]
+        }
+      ];
+
+      const deleteUserProfileEndPoint = ResponseDecorator.handleErrors(UserController.deleteUserProfileEndPoint, successCode, errorCodes);
+      const responseObject = await deleteUserProfileEndPoint(req);
+
       res
-        .status(constants.HTTP_CODE_SUCCESS)
-        .send(req.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
     }
   },
   {
     method: 'patch',
     path: '/api/v3/user/password',
-    middleware: (req, res) => {
+    middleware: async (req, res) => {
+
+      const successCode = constants.HTTP_CODE_NO_CONTENT;
+      const errorCodes = [
+        {
+          code: constants.HTTP_CODE_UNAUTHORIZED,
+          errors: [Errors.AuthenticationError]
+        }
+      ];
+
+      const updateUserPasswordEndPoint = ResponseDecorator.handleErrors(UserController.updateUserPasswordEndPoint, successCode, errorCodes);
+      const responseObject = await updateUserPasswordEndPoint(req);
+
       res
-        .status(constants.HTTP_CODE_SUCCESS)
-        .send(req.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
     }
   },
   {
     method: 'delete',
     path: '/api/v3/user/password',
-    middleware: (req, res) => {
+    middleware: async (req, res) => {
+
+      const successCode = constants.HTTP_CODE_NO_CONTENT;
+      const errorCodes = [
+        {
+          code: constants.HTTP_CODE_NOT_FOUND,
+          errors: [Errors.NotFoundError]
+        }
+      ];
+
+      const resetUserPasswordEndPoint = ResponseDecorator.handleErrors(UserController.resetUserPasswordEndPoint, successCode, errorCodes);
+      const responseObject = await resetUserPasswordEndPoint(req);
+
       res
-        .status(constants.HTTP_CODE_SUCCESS)
-        .send(req.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
     }
   }
 ];

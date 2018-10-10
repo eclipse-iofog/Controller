@@ -16,10 +16,17 @@ const AccessTokenManager = require('../sequelize/managers/access-token-manager')
 const AppHelper = require('../helpers/app-helper');
 const Constants = require('../helpers/constants');
 
-const createAccessToken = async function (accessToken) {
-  return await AccessTokenManager.createAccessToken(accessToken);
+const createAccessToken = async function (accessToken, transaction) {
+  return await AccessTokenManager.create(accessToken, transaction);
+};
+
+const removeAccessTokenByUserId = async function (userId, transaction) {
+  return await AccessTokenManager.delete({
+    userId: userId
+  }, transaction);
 };
 
 module.exports = {
-  createAccessToken: createAccessToken
+  createAccessToken: createAccessToken,
+  removeAccessTokenByUserId: removeAccessTokenByUserId
 };
