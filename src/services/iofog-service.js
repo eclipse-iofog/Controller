@@ -97,7 +97,7 @@ async function _updateFog(updateFog, user, transaction) {
     await FogManager.findOneAndUpdate(queryFogData, updateFogData, transaction)
   } catch (e) {
     if (e instanceof  Errors.ModelNotFoundError) {
-      throw new Errors.InvalidFogNodeIdError()
+      throw new Errors.NotFoundError('Invalid Fog Node Id')
     }
     throw e
   }

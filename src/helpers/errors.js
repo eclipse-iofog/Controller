@@ -53,15 +53,6 @@ class ModelNotFoundError extends Error {
   }
 }
 
-class InvalidFogNodeIdError extends Error {
-  constructor() {
-    const message = 'Invalid Fog Node Id'
-    super(message);
-    this.message = message;
-    this.name = "InvalidFogNodeIdError";
-  }
-}
-
 class NotFoundError extends Error {
   constructor(message) {
     super(message);
@@ -76,6 +67,5 @@ module.exports = {
   ValidationError: ValidationError,
   InvalidCredentialsError: InvalidCredentialsError,
   NotFoundError: NotFoundError,
-  ModelNotFoundError: ModelNotFoundError,
-  InvalidFogNodeIdError: InvalidFogNodeIdError
+  ModelNotFoundError: ModelNotFoundError
 };
