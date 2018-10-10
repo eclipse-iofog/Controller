@@ -152,7 +152,16 @@ module.exports = [
   },
   {
     method: 'post',
-    path: '/api/v3/iofog/:id/version/:versionCommand',
+    path: '/api/v3/iofog/:uuid/version/:versionCommand',
+    middleware: (req, res) => {
+      res
+        .status(constants.HTTP_CODE_SUCCESS)
+        .send(req.body)
+    }
+  },
+  {
+    method: 'post',
+    path: '/api/v3/iofog/:uuid/reboot',
     middleware: (req, res) => {
       res
         .status(constants.HTTP_CODE_SUCCESS)

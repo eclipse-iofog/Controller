@@ -122,7 +122,7 @@ paths:
           description: Not Authorized
         '500':
           description: Internal Server Error
-  '/iofog/{id}':
+  '/iofog/{uuid}':
     patch:
       tags:
       - ioFog
@@ -130,7 +130,7 @@ paths:
       operationId: updateIOFogNode
       parameters:
       - in: path
-        name: id
+        name: uuid
         description: ioFog node id
         required: true
         type: string
@@ -166,7 +166,7 @@ paths:
       operationId: deleteIOFogNode
       parameters:
       - in: path
-        name: id
+        name: uuid
         description: ioFog node id
         required: true
         type: string
@@ -195,7 +195,7 @@ paths:
       operationId: getIOFogNode
       parameters:
       - in: path
-        name: id
+        name: uuid
         description: ioFog node id
         required: true
         type: string
@@ -227,7 +227,7 @@ paths:
       operationId: generateProvisioningKey
       parameters:
       - in: path
-        name: id
+        name: uuid
         description: ioFog node id
         required: true
         type: string
@@ -264,7 +264,7 @@ paths:
         required: true
         type: string
       - in: path
-        name: id
+        name: uuid
         description: ioFog node id
         required: true
         type: string
@@ -300,7 +300,7 @@ paths:
         required: true
         type: string
       - in: path
-        name: id
+        name: uuid
         description: ioFog node id
         required: true
         type: string
@@ -349,7 +349,7 @@ paths:
       parameters:
       - in: path
         required: true
-        name: id
+        name: uuid
         description: ioFog node id
         type: string
       - in: header
@@ -380,7 +380,7 @@ paths:
       parameters:
       - in: path
         required: true
-        name: id
+        name: uuid
         description: ioFog node id
         type: string
       - in: header
@@ -417,7 +417,7 @@ paths:
       parameters:
       - in: path
         required: true
-        name: id
+        name: uuid
         description: ioFog node id
         type: string
       - in: header
@@ -456,7 +456,7 @@ paths:
       parameters:
       - in: path
         required: true
-        name: id
+        name: uuid
         description: ioFog node id
         type: string
       - in: header
@@ -493,7 +493,7 @@ paths:
       parameters:
       - in: path
         required: true
-        name: id
+        name: uuid
         description: ioFog node id
         type: string
       - in: header
@@ -562,7 +562,7 @@ paths:
       parameters:
       - in: path
         required: true
-        name: id
+        name: uuid
         description: ioFog node id
         type: string
       - in: header
@@ -594,7 +594,7 @@ paths:
       parameters:
       - in: path
         required: true
-        name: id
+        name: uuid
         description: ioFog node id
         type: string
       - in: header
@@ -626,7 +626,7 @@ paths:
       parameters:
       - in: path
         required: true
-        name: id
+        name: uuid
         description: ioFog node id
         type: string
       - in: header
@@ -657,7 +657,7 @@ paths:
       parameters:
       - in: path
         required: true
-        name: id
+        name: uuid
         description: ioFog node id
         type: string
       - in: header
@@ -1481,7 +1481,7 @@ paths:
       operationId: openIOFogNodeSshTunnel
       parameters:
       - in: path
-        name: id
+        name: uuid
         description: ioFog node id
         required: true
         type: string
@@ -1512,7 +1512,7 @@ paths:
       operationId: getIOFogNodeSshTunnelStatusInfo
       parameters:
       - in: path
-        name: id
+        name: uuid
         description: ioFog node id
         required: true
         type: string
@@ -1543,7 +1543,7 @@ paths:
       operationId: closeIOFogNodeSshTunnel
       parameters:
       - in: path
-        name: id
+        name: uuid
         description: ioFog node id
         required: true
         type: string
