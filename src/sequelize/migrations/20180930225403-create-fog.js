@@ -199,10 +199,10 @@ module.exports = {
         defaultValue: 20,
         field: 'change_frequency'
       },
-      scanFrequency: {
+      deviceScanFrequency: {
         type: Sequelize.INTEGER,
         defaultValue: 20,
-        field: 'scan_frequency'
+        field: 'device_scan_frequency'
       },
       proxy: {
         type: Sequelize.TEXT,

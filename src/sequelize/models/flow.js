@@ -32,14 +32,20 @@ module.exports = (sequelize, DataTypes) => {
   Flow.associate = function(models) {
 
     Flow.belongsTo(models.User, {
-      foreignKey: 'user_id',
-      as: 'userId',
+      foreignKey: {
+        name: 'userId',
+        field: 'user_id'
+      },
+      as: 'user',
       onDelete: 'cascade'
     });
 
     Flow.belongsTo(models.User, {
-      foreignKey: 'updated_by',
-      as: 'updatedBy',
+      foreignKey: {
+        name: 'updatedBy',
+        field: 'updated_by'
+      },
+      as: 'userUpdatedBy',
       onDelete: 'set null'
     });
   };

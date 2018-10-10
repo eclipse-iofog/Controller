@@ -23,8 +23,11 @@ module.exports = (sequelize, DataTypes) => {
   FogProvisionKey.associate = function(models) {
 
     FogProvisionKey.belongsTo(models.Fog, {
-      foreignKey: 'iofog_uuid',
-      as: 'iofogUuid',
+      foreignKey: {
+        name: 'iofogUuid',
+        field: 'iofog_uuid'
+      },
+      as: 'iofog',
       onDelete: 'cascade'
     });
   };

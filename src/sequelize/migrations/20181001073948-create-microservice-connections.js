@@ -8,15 +8,15 @@ module.exports = {
         autoIncrement: true,
         allowNull: false,
       },
-      sourceMicroservice: {
+      sourceMicroserviceUuid: {
         type: Sequelize.TEXT,
-        field: 'source_microservice',
+        field: 'source_microservice_uuid',
         references: { model: 'Microservices', key: 'uuid' },
         onDelete: 'cascade'
       },
-      destinationMicroservice: {
+      destinationMicroserviceUuid: {
         type: Sequelize.TEXT,
-        field: 'destination_microservice',
+        field: 'destination_microservice_uuid',
         references: { model: 'Microservices', key: 'uuid' },
         onDelete: 'cascade'
       }

@@ -198,10 +198,10 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: 20,
       field: 'change_frequency'
     },
-    scanFrequency: {
+    deviceScanFrequency: {
       type: DataTypes.INTEGER,
       defaultValue: 20,
-      field: 'scan_frequency'
+      field: 'device_scan_frequency'
     },
     proxy: {
       type: DataTypes.TEXT,
@@ -220,14 +220,20 @@ module.exports = (sequelize, DataTypes) => {
   Fog.associate = function(models) {
 
     Fog.belongsTo(models.FogType, {
-      foreignKey: 'fog_type_id',
-      as: 'fogTypeId',
+      foreignKey: {
+        name: 'fogTypeId',
+        field: 'fog_type_id'
+      },
+      as: 'fogType',
       defaultValue: 0
     });
 
     Fog.belongsTo(models.User, {
-      foreignKey: 'user_id',
-      as: 'userId',
+      foreignKey: {
+        name: 'userId',
+        field: 'user_id'
+      },
+      as: 'user',
       defaultValue: 0,
       onDelete: 'cascade'
     });

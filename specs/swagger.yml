@@ -122,7 +122,7 @@ paths:
           description: Not Authorized
         '500':
           description: Internal Server Error
-  '/iofog/{id}':
+  '/iofog/{uuid}':
     patch:
       tags:
       - ioFog
@@ -130,7 +130,7 @@ paths:
       operationId: updateIOFogNode
       parameters:
       - in: path
-        name: id
+        name: uuid
         description: ioFog node id
         required: true
         type: string
@@ -166,7 +166,7 @@ paths:
       operationId: deleteIOFogNode
       parameters:
       - in: path
-        name: id
+        name: uuid
         description: ioFog node id
         required: true
         type: string
@@ -195,7 +195,7 @@ paths:
       operationId: getIOFogNode
       parameters:
       - in: path
-        name: id
+        name: uuid
         description: ioFog node id
         required: true
         type: string
@@ -219,7 +219,7 @@ paths:
           description: Invalid Node Id
         '500':
           description: Internal Server Error
-  '/iofog/{id}/provisioning-key':
+  '/iofog/{uuid}/provisioning-key':
     get:
       tags:
       - ioFog
@@ -227,7 +227,7 @@ paths:
       operationId: generateProvisioningKey
       parameters:
       - in: path
-        name: id
+        name: uuid
         description: ioFog node id
         required: true
         type: string
@@ -251,7 +251,7 @@ paths:
           description: Invalid Node Id
         '500':
           description: Internal Server Error
-  '/iofog/{id}/version/{versionCommand}':
+  '/iofog/{uuid}/version/{versionCommand}':
     post:
       tags:
       - ioFog
@@ -264,7 +264,7 @@ paths:
         required: true
         type: string
       - in: path
-        name: id
+        name: uuid
         description: ioFog node id
         required: true
         type: string
@@ -276,6 +276,34 @@ paths:
         enum:
         - upgrade
         - rollback
+      responses:
+        201:
+          description: Success
+          headers:
+            X-Timestamp:
+              type: number
+              description: FogController server timestamp
+        401:
+          description: Not Authorized
+        500:
+          description: Internal Server Error
+  '/iofog/{uuid}/reboot':
+    post:
+      tags:
+      - ioFog
+      description: remote reboot fog agent
+      operationId: setRebootCommand
+      parameters:
+      - in: header
+        name: Authorization
+        description: User Token
+        required: true
+        type: string
+      - in: path
+        name: uuid
+        description: ioFog node id
+        required: true
+        type: string
       responses:
         201:
           description: Success
@@ -312,7 +340,7 @@ paths:
           description: Invalid Provisioning Key
         '500':
           description: Internal Server Error
-  '/iofog/{id}/agent/config':
+  '/iofog/{uuid}/agent/config':
     get:
       tags:
       - Agent
@@ -321,7 +349,7 @@ paths:
       parameters:
       - in: path
         required: true
-        name: id
+        name: uuid
         description: ioFog node id
         type: string
       - in: header
@@ -352,7 +380,7 @@ paths:
       parameters:
       - in: path
         required: true
-        name: id
+        name: uuid
         description: ioFog node id
         type: string
       - in: header
@@ -380,7 +408,7 @@ paths:
           description: Invalid Node Id
         '500':
           description: Internal Server Error
-  '/iofog/{id}/agent/config/changes':
+  '/iofog/{uuid}/agent/config/changes':
     get:
       tags:
       - Agent
@@ -389,7 +417,7 @@ paths:
       parameters:
       - in: path
         required: true
-        name: id
+        name: uuid
         description: ioFog node id
         type: string
       - in: header
@@ -419,7 +447,7 @@ paths:
           description: Invalid Node Id
         '500':
           description: Internal Server Error
-  '/iofog/{id}/agent/status':
+  '/iofog/{uuid}/agent/status':
     put:
       tags:
       - Agent
@@ -428,7 +456,7 @@ paths:
       parameters:
       - in: path
         required: true
-        name: id
+        name: uuid
         description: ioFog node id
         type: string
       - in: header
@@ -456,7 +484,7 @@ paths:
           description: Invalid Node Id
         '500':
           description: Internal Server Error
-  '/iofog/{id}/agent/microservices':
+  '/iofog/{uuid}/agent/microservices':
     get:
       tags:
       - Agent
@@ -465,7 +493,7 @@ paths:
       parameters:
       - in: path
         required: true
-        name: id
+        name: uuid
         description: ioFog node id
         type: string
       - in: header
@@ -525,7 +553,7 @@ paths:
           description: Invalid Node Id
         '500':
           description: Internal Server Error
-  '/iofog/{id}/agent/registries':
+  '/iofog/{uuid}/agent/registries':
     get:
       tags:
       - Agent
@@ -534,7 +562,7 @@ paths:
       parameters:
       - in: path
         required: true
-        name: id
+        name: uuid
         description: ioFog node id
         type: string
       - in: header
@@ -557,7 +585,7 @@ paths:
           description: Invalid Node Id
         '500':
           description: Internal Server Error
-  '/iofog/{id}/agent/proxy':
+  '/iofog/{uuid}/agent/proxy':
     get:
       tags:
       - Agent
@@ -566,7 +594,7 @@ paths:
       parameters:
       - in: path
         required: true
-        name: id
+        name: uuid
         description: ioFog node id
         type: string
       - in: header
@@ -589,7 +617,7 @@ paths:
           description: Invalid Node Id
         '500':
           description: Internal Server Error
-  '/iofog/{id}/agent/strace':
+  '/iofog/{uuid}/agent/strace':
     get:
       tags:
       - Agent
@@ -598,7 +626,7 @@ paths:
       parameters:
       - in: path
         required: true
-        name: id
+        name: uuid
         description: ioFog node id
         type: string
       - in: header
@@ -629,7 +657,7 @@ paths:
       parameters:
       - in: path
         required: true
-        name: id
+        name: uuid
         description: ioFog node id
         type: string
       - in: header
@@ -1445,7 +1473,7 @@ paths:
           description: Invalid Microservice Id
         '500':
           description: Internal Server Error
-  '/iofog/{id}/tunnel':
+  '/iofog/{uuid}/tunnel':
     post:
       tags:
       - Tunnel
@@ -1453,7 +1481,7 @@ paths:
       operationId: openIOFogNodeSshTunnel
       parameters:
       - in: path
-        name: id
+        name: uuid
         description: ioFog node id
         required: true
         type: string
@@ -1484,7 +1512,7 @@ paths:
       operationId: getIOFogNodeSshTunnelStatusInfo
       parameters:
       - in: path
-        name: id
+        name: uuid
         description: ioFog node id
         required: true
         type: string
@@ -1515,7 +1543,7 @@ paths:
       operationId: closeIOFogNodeSshTunnel
       parameters:
       - in: path
-        name: id
+        name: uuid
         description: ioFog node id
         required: true
         type: string
@@ -2065,13 +2093,7 @@ definitions:
       bluetoothEnabled:
         type: boolean
         default: false
-      watchdogEnabled:
-        type: boolean
-        default: true
       abstractedHardwareEnabled:
-        type: boolean
-        default: false
-      reboot:
         type: boolean
         default: false
       fogType:

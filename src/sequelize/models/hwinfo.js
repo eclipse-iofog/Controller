@@ -21,8 +21,11 @@ module.exports = (sequelize, DataTypes) => {
   HWInfo.associate = function(models) {
 
     HWInfo.belongsTo(models.Fog, {
-      foreignKey: 'iofog_uuid',
-      as: 'iofogUuid',
+      foreignKey: {
+        name: 'iofogUuid',
+        field: 'iofog_uuid'
+      },
+      as: 'iofog',
       onDelete: 'cascade'
     });
   };

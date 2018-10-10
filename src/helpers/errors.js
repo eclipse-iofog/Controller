@@ -44,6 +44,15 @@ class InvalidCredentialsError extends Error {
   }
 }
 
+class ModelNotFoundError extends Error {
+  constructor() {
+    const message = 'Model not found'
+    super(message);
+    this.message = message;
+    this.name = "ModelNotFoundError";
+  }
+}
+
 class NotFoundError extends Error {
   constructor(message) {
     super(message);
@@ -57,5 +66,6 @@ module.exports = {
   TransactionError: TransactionError,
   ValidationError: ValidationError,
   InvalidCredentialsError: InvalidCredentialsError,
-  NotFoundError: NotFoundError
+  NotFoundError: NotFoundError,
+  ModelNotFoundError: ModelNotFoundError
 };

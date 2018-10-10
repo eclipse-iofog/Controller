@@ -113,7 +113,7 @@ function generateAccessToken() {
 
 function checkTransaction(transaction) {
   if (!transaction) {
-    throw new Errors.TransactionError();
+    throw new Errors.TransactionError()
   }
 }
 
