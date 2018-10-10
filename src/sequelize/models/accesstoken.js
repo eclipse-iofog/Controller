@@ -22,8 +22,11 @@ module.exports = (sequelize, DataTypes) => {
   });
   AccessToken.associate = function (models) {
     AccessToken.belongsTo(models.User, {
-      foreignKey: 'user_id',
-      as: 'userId'
+      foreignKey: {
+        name: 'userId',
+        field: 'user_id'
+      },
+      as: 'user'
     });
   };
   return AccessToken;

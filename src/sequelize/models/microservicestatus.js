@@ -34,8 +34,11 @@ module.exports = (sequelize, DataTypes) => {
   MicroserviceStatus.associate = function(models) {
 
     MicroserviceStatus.belongsTo(models.Microservice, {
-      foreignKey: 'microservice_uuid',
-      as: 'microserviceUuid',
+      foreignKey: {
+        name: 'microserviceUuid',
+        field: 'microservice_uuid'
+      },
+      as: 'microservice',
       onDelete: 'cascade'
     });
   };
