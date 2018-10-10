@@ -1,34 +1,26 @@
 /*
-* *******************************************************************************
-*  * Copyright (c) 2018 Edgeworx, Inc.
-*  *
-*  * This program and the accompanying materials are made available under the
-*  * terms of the Eclipse Public License v. 2.0 which is available at
-*  * http://www.eclipse.org/legal/epl-2.0
-*  *
-*  * SPDX-License-Identifier: EPL-2.0
-*  *******************************************************************************
-*
-*/
-
-const moment = require('moment');
-const _ = require('underscore');
+ * *******************************************************************************
+ *  * Copyright (c) 2018 Edgeworx, Inc.
+ *  *
+ *  * This program and the accompanying materials are made available under the
+ *  * terms of the Eclipse Public License v. 2.0 which is available at
+ *  * http://www.eclipse.org/legal/epl-2.0
+ *  *
+ *  * SPDX-License-Identifier: EPL-2.0
+ *  *******************************************************************************
+ *
+ */
 
 const AppHelper = require('../../helpers/app-helper');
 
 module.exports = class BaseManager {
 
   getEntity() {
-    return null;
+    throw new Error("Not implemented getEntity method in manager");
   }
 
-  findAll(object, transaction) {
+  async findAll(object, transaction) {
     AppHelper.checkTransaction(transaction);
-
-    object = object || {};
-
-    if (object.limit && object.limit === -1)
-      delete object.limit;
 
     return this.getEntity().findAll({
       where: object,
@@ -36,7 +28,7 @@ module.exports = class BaseManager {
     });
   }
 
-  findOne(object, transaction) {
+  async findOne(object, transaction) {
     AppHelper.checkTransaction(transaction);
 
     object = object || {};
@@ -47,16 +39,24 @@ module.exports = class BaseManager {
     });
   }
 
-  create(object, transaction) {
-    AppHelper.checkTransaction(transaction)
+  async create(object, transaction) {
+    AppHelper.checkTransaction(transaction);
 
-    if (this.getEntity().attributes.createdAt)
-      object.createdAt = moment.utc().valueOf();
-
-    return this.getEntity().create(object, {transaction: transaction});
+    return this.getEntity().create(object, {
+      transaction: transaction
+    });
   }
 
-  update(whereData, newData, transaction) {
+  async delete(data, transaction) {
+    AppHelper.checkTransaction(transaction);
+
+    return this.getEntity().destroy({
+      where: data,
+      transaction: transaction
+    })
+  }
+
+  async update(whereData, newData, transaction) {
     AppHelper.checkTransaction(transaction);
 
     return this.getEntity().update(newData, {
@@ -65,32 +65,13 @@ module.exports = class BaseManager {
     });
   }
 
+  async upsert(data, transaction) {
+    AppHelper.checkTransaction(transaction);
 
-  //TODO: add transactions for methods down
-
-  findById(id, include) {
-    return this.getEntity().findById(id, {
-      include: include
-    });
-  }
-
-  async deleteById(id) {
-    const object = await this.findById(id);
-    if (null == object)
-      return;
-
-    return object.destroy();
-  }
-
-  //src, destination
-  //destination should be a sequelize object
-  updateObject(destination, source) {
-    _.each(source, (value, key) => {
-      if (key !== 'id' && key !== 'createdAt' && _.has(destination.dataValues, key)) {
-        if (destination[key] !== source[key])
-          destination[key] = source[key];
+    return this.getEntity().upsert(data, {
+        transaction: transaction
       }
-    });
-  };
+    )
+  }
 
 };
