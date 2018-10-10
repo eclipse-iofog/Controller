@@ -44,9 +44,29 @@ class InvalidCredentialsError extends Error {
   }
 }
 
+class ModelNotFoundError extends Error {
+  constructor() {
+    const message = 'Model not found'
+    super(message);
+    this.message = message;
+    this.name = "ModelNotFoundError";
+  }
+}
+
+class InvalidFogNodeIdError extends Error {
+  constructor() {
+    const message = 'Invalid Fog Node Id'
+    super(message);
+    this.message = message;
+    this.name = "InvalidFogNodeIdError";
+  }
+}
+
 module.exports = {
   AuthenticationError: AuthenticationError,
   TransactionError: TransactionError,
   ValidationError: ValidationError,
-  InvalidCredentialsError: InvalidCredentialsError
+  InvalidCredentialsError: InvalidCredentialsError,
+  ModelNotFoundError: ModelNotFoundError,
+  InvalidFogNodeIdError: InvalidFogNodeIdError
 };

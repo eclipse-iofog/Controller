@@ -62,6 +62,10 @@ module.exports = [
         {
           code: 401,
           errors: [Errors.AuthenticationError]
+        },
+        {
+          code: 404,
+          errors: [Errors.InvalidFogNodeIdError]
         }
       ]
 

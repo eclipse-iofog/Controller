@@ -15,6 +15,7 @@ const moment = require('moment');
 const _ = require('underscore');
 
 const AppHelper = require('../../helpers/app-helper');
+const Errors = require('../../helpers/errors')
 
 module.exports = class BaseManager {
 
@@ -63,6 +64,19 @@ module.exports = class BaseManager {
       where: whereData,
       transaction: transaction
     });
+  }
+
+  findOneAndUpdate(whereData, newData, transaction) {
+    AppHelper.checkTransaction(transaction);
+
+    return this.findOne(whereData, transaction)
+      .then((obj) => {
+        if (obj) {
+          return this.update(whereData, newData, transaction);
+        } else {
+          throw new Errors.ModelNotFoundError()
+        }
+      })
   }
 
 
