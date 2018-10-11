@@ -13,13 +13,13 @@
 
 const BaseManager = require('../managers/base-manager')
 const models = require('./../models');
-const Fog = models.Fog
+const ChangeTracking = models.ChangeTracking
 
-class FogManager extends BaseManager {
+class ChangeTrackingManager extends BaseManager {
   getEntity() {
-    return Fog
+    return ChangeTracking
   }
 }
 
-const instance = new FogManager()
+const instance = new ChangeTrackingManager()
 module.exports = instance

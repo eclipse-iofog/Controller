@@ -107,31 +107,32 @@ function generateAccessToken() {
   return token;
 }
 
-function isValidName(name) {
-	let re = /^([a-zA-Z0-9]+)$/;
-	return re.test(name);
-}
-
-function isValidNumber(num) {
-	return typeof num == "number";
-}
-
-function isValidBoolean(bool) {
-  return typeof bool == "boolean";
-}
-
 function checkTransaction(transaction) {
-	if (!transaction) {
-		throw new Errors.TransactionError()
-	}
+  if (!transaction) {
+    throw new Errors.TransactionError()
+  }
 }
 
 function validateParameterId(id, errMsg) {
-  const parsedId = parseInt(id);
-  if (isNaN(parsedId)) {
-    throw new Errors.NotFoundError(errMsg);
+	const parsedId = parseInt(id);
+	if (isNaN(parsedId)) {
+		throw new Errors.NotFoundError(errMsg);
+	}
+	return parsedId;
+}
+
+function deleteUndefinedFields(obj) {
+  if (!obj) {
+    return
   }
-  return parsedId;
+  Object.keys(obj).forEach((fld) => {
+    if (obj[fld] === undefined) {
+      delete  obj[fld]
+    } else if (obj[fld] instanceof Object) {
+      obj[fld] = deleteUndefinedFields(obj[fld])
+    }
+  })
+  return obj
 }
 
 module.exports = {
@@ -146,9 +147,7 @@ module.exports = {
   isValidEmailActivation,
   checkPortAvailability,
   generateAccessToken,
-  isValidName,
-  isValidNumber,
-  isValidBoolean,
   checkTransaction,
+  deleteUndefinedFields,
 	validateParameterId
 };

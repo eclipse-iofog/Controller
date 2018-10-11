@@ -12,11 +12,12 @@
  */
 
 const AppHelper = require('../../helpers/app-helper');
+const Errors = require('../../helpers/errors')
 
 module.exports = class BaseManager {
 
   getEntity() {
-    throw new Error("Not implemented getEntity method in manager");
+    return null;
   }
 
   async findAll(object, transaction) {
@@ -82,4 +83,16 @@ module.exports = class BaseManager {
     )
   }
 
+  async updateOrCreate(whereData, data, transaction) {
+    AppHelper.checkTransaction(transaction);
+
+    const obj = await this.findOne(whereData, transaction)
+    if (obj) {
+      await this.update(whereData, data, transaction)
+      return this.findOne(whereData, transaction)
+    } else {
+      return this.create(data, transaction)
+    }
+
+  }
 };

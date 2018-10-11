@@ -28,7 +28,55 @@ async function _updateFog(req, user) {
   return await FogService.updateFogWithTransaction(updateFog, user)
 }
 
+async function _deleteFog(req, user) {
+  logger.info("Parameters:" + JSON.stringify(req.body));
+  const deleteFog = {}
+  deleteFog.uuid = req.params.uuid
+  return await FogService.deleteFogWithTransaction(deleteFog, user)
+}
+
+async function _getFog(req, user) {
+  logger.info("Parameters:" + JSON.stringify(req.body));
+  const getFog = {}
+  getFog.uuid = req.params.uuid
+  return await FogService.getFogWithTransaction(getFog, user)
+}
+
+async function _getFogList(req, user) {
+  logger.info("Parameters:" + JSON.stringify(req.body));
+  const filters = Array.from(req.body)
+  return await FogService.getFogListWithTransaction(filters, user)
+}
+
+async function _generateProvisioningKey(req, user) {
+  logger.info("Parameters:" + JSON.stringify(req.body));
+  const fog = {}
+  fog.uuid = req.params.uuid
+  return await FogService.generateProvisioningKeyWithTransaction(fog, user)
+}
+
+async function _setFogVersionCommand(req, user) {
+  logger.info("Parameters:" + JSON.stringify(req.body));
+  const fogVersionCommand = {}
+  fogVersionCommand.uuid = req.params.uuid
+  fogVersionCommand.versionCommand = req.params.versionCommand
+  return await FogService.setFogVersionCommandWithTransaction(fogVersionCommand, user)
+}
+
+async function _setFogRebootCommand(req, user) {
+  logger.info("Parameters:" + JSON.stringify(req.body));
+  const fog = {}
+  fog.uuid = req.params.uuid
+  return await FogService.setFogRebootCommandWithTransaction(fog, user)
+}
+
 module.exports = {
   createFog: AuthDecorator.checkAuthToken(_createFog),
-  updateFog: AuthDecorator.checkAuthToken(_updateFog)
+  updateFog: AuthDecorator.checkAuthToken(_updateFog),
+  deleteFog: AuthDecorator.checkAuthToken(_deleteFog),
+  getFog: AuthDecorator.checkAuthToken(_getFog),
+  getFogList: AuthDecorator.checkAuthToken(_getFogList),
+  generateProvisioningKey: AuthDecorator.checkAuthToken(_generateProvisioningKey),
+  setFogVersionCommand: AuthDecorator.checkAuthToken(_setFogVersionCommand),
+  setFogRebootCommand: AuthDecorator.checkAuthToken(_setFogRebootCommand),
 }

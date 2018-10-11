@@ -3,14 +3,14 @@ info:
   version: 3.0.0
   title: FogController
 consumes:
-  - application/json
+- application/json
 produces:
-  - application/json
+- application/json
 paths:
   '/status':
     get:
       tags:
-        - Controller
+      - Controller
       description: Returns service health status
       operationId: getServiceStatus
       responses:
@@ -23,7 +23,7 @@ paths:
   '/email-activation':
     get:
       tags:
-        - Controller
+      - Controller
       description: Returns email activation status
       operationId: getEmailActivationStatus
       responses:
@@ -32,19 +32,19 @@ paths:
           schema:
             $ref: '#/definitions/EmailActivationStatusResponse'
         '500':
-            description: Internal Server Error
+          description: Internal Server Error
   '/fog-types':
     get:
       tags:
-        - Controller
+      - Controller
       description: Gets ioFog types list
       operationId: getIOFogTypes
       parameters:
-        - in: header
-          name: Authorization
-          description: User token
-          required: true
-          type: string
+      - in: header
+        name: Authorization
+        description: User token
+        required: true
+        type: string
       responses:
         '200':
           description: Success
@@ -58,23 +58,23 @@ paths:
           description: Not Authorized
         '500':
           description: Internal Server Error
-  '/iofog/list':
+  '/iofog-list':
     post:
       tags:
-        - ioFog
+      - ioFog
       description: Returns list of ioFog nodes
       operationId: getIOFogNodes
       parameters:
-        - in: header
-          name: Authorization
-          description: User token
-          required: true
-          type: string
-        - in: body
-          name: Filters
-          required: false
-          schema:
-            $ref: '#/definitions/IOFogNodesListFilters'
+      - in: header
+        name: Authorization
+        description: User token
+        required: true
+        type: string
+      - in: body
+        name: Filters
+        required: false
+        schema:
+          $ref: '#/definitions/IOFogNodesListFilters'
       responses:
         '200':
           description: List of ioFog nodes
@@ -93,20 +93,20 @@ paths:
   /iofog:
     post:
       tags:
-        - ioFog
+      - ioFog
       description: Creates a new ioFog node
       operationId: createIOFogNode
       parameters:
-        - in: header
-          name: Authorization
-          description: User token
-          required: true
-          type: string
-        - in: body
-          name: IOFogNodeInfo
-          required: true
-          schema:
-            $ref: '#/definitions/UpdateIOFogNodeRequestBody'
+      - in: header
+        name: Authorization
+        description: User token
+        required: true
+        type: string
+      - in: body
+        name: IOFogNodeInfo
+        required: true
+        schema:
+          $ref: '#/definitions/UpdateIOFogNodeRequestBody'
       responses:
         '201':
           description: Created
@@ -122,28 +122,28 @@ paths:
           description: Not Authorized
         '500':
           description: Internal Server Error
-  '/iofog/{id}':
+  '/iofog/{uuid}':
     patch:
       tags:
-        - ioFog
+      - ioFog
       description: Updates existing ioFog node
       operationId: updateIOFogNode
       parameters:
-        - in: path
-          name: id
-          description: ioFog node id
-          required: true
-          type: string
-        - in: header
-          name: Authorization
-          description: User token
-          required: true
-          type: string
-        - in: body
-          name: ioFogNodeInfo
-          required: true
-          schema:
-            $ref: '#/definitions/UpdateIOFogNodeRequestBody'
+      - in: path
+        name: uuid
+        description: ioFog node id
+        required: true
+        type: string
+      - in: header
+        name: Authorization
+        description: User token
+        required: true
+        type: string
+      - in: body
+        name: ioFogNodeInfo
+        required: true
+        schema:
+          $ref: '#/definitions/UpdateIOFogNodeRequestBody'
       responses:
         '204':
           description: Updated
@@ -161,20 +161,20 @@ paths:
           description: Internal Server Error
     delete:
       tags:
-        - ioFog
+      - ioFog
       description: Deletes an ioFog node
       operationId: deleteIOFogNode
       parameters:
-        - in: path
-          name: id
-          description: ioFog node id
-          required: true
-          type: string
-        - in: header
-          name: Authorization
-          description: User token
-          required: true
-          type: string
+      - in: path
+        name: uuid
+        description: ioFog node id
+        required: true
+        type: string
+      - in: header
+        name: Authorization
+        description: User token
+        required: true
+        type: string
       responses:
         '204':
           description: Deleted
@@ -190,20 +190,20 @@ paths:
           description: Internal Server Error
     get:
       tags:
-        - ioFog
+      - ioFog
       description: Gets ioFog node info
       operationId: getIOFogNode
       parameters:
-        - in: path
-          name: id
-          description: ioFog node id
-          required: true
-          type: string
-        - in: header
-          name: Authorization
-          description: User token
-          required: true
-          type: string
+      - in: path
+        name: uuid
+        description: ioFog node id
+        required: true
+        type: string
+      - in: header
+        name: Authorization
+        description: User token
+        required: true
+        type: string
       responses:
         '200':
           description: Success
@@ -219,23 +219,23 @@ paths:
           description: Invalid Node Id
         '500':
           description: Internal Server Error
-  '/iofog/{id}/provisioning-key':
+  '/iofog/{uuid}/provisioning-key':
     get:
       tags:
-        - ioFog
+      - ioFog
       description: Generates provisioning key for an ioFog node
       operationId: generateProvisioningKey
       parameters:
-        - in: path
-          name: id
-          description: ioFog node id
-          required: true
-          type: string
-        - in: header
-          name: Authorization
-          description: User token
-          required: true
-          type: string
+      - in: path
+        name: uuid
+        description: ioFog node id
+        required: true
+        type: string
+      - in: header
+        name: Authorization
+        description: User token
+        required: true
+        type: string
       responses:
         '201':
           description: Success
@@ -251,31 +251,63 @@ paths:
           description: Invalid Node Id
         '500':
           description: Internal Server Error
-  '/iofog/{id}/version/{versionCommand}':
+  '/iofog/{uuid}/version/{versionCommand}':
     post:
       tags:
-        - ioFog
+      - ioFog
       description: Set change version command
       operationId: setVersionCommand
       parameters:
-        - in: header
-          name: Authorization
-          description: User token
-          required: true
-          type: string
-        - in: path
-          name: id
-          description: ioFog node id
-          required: true
-          type: string
-        - in: path
-          name: versionCommand
-          description: change version command
-          required: true
-          type: string
-          enum:
-            - upgrade
-            - rollback
+      - in: header
+        name: Authorization
+        description: User token
+        required: true
+        type: string
+      - in: path
+        name: uuid
+        description: ioFog node id
+        required: true
+        type: string
+      - in: path
+        name: versionCommand
+        description: change version command
+        required: true
+        type: string
+        enum:
+        - upgrade
+        - rollback
+      responses:
+        201:
+          description: Success
+          headers:
+            X-Timestamp:
+              type: number
+              description: FogController server timestamp
+        400:
+          description: Bad Request
+        401:
+          description: Not Authorized
+        404:
+          description: Invalid Node Id
+        500:
+          description: Internal Server Error
+  '/iofog/{uuid}/reboot':
+    post:
+      tags:
+      - ioFog
+      description: remote reboot fog agent
+      operationId: setRebootCommand
+      parameters:
+      - in: header
+        name: Authorization
+        description: User Token
+        required: true
+        type: string
+      - in: path
+        name: uuid
+        description: ioFog node id
+        required: true
+        type: string
       responses:
         201:
           description: Success
@@ -285,20 +317,22 @@ paths:
               description: FogController server timestamp
         401:
           description: Not Authorized
+        404:
+          description: Invalid Node Id
         500:
           description: Internal Server Error
   /iofog/agent/provision:
     post:
       tags:
-        - Agent
+      - Agent
       description: Provision agent with an ioFog node
       operationId: agentProvision
       parameters:
-        - in: body
-          required: true
-          name: AgentProvisioningRequest
-          schema:
-            $ref: '#/definitions/AgentProvisioningRequest'
+      - in: body
+        required: true
+        name: AgentProvisioningRequest
+        schema:
+          $ref: '#/definitions/AgentProvisioningRequest'
       responses:
         '200':
           description: Success
@@ -312,23 +346,23 @@ paths:
           description: Invalid Provisioning Key
         '500':
           description: Internal Server Error
-  '/iofog/{id}/agent/config':
+  '/iofog/{uuid}/agent/config':
     get:
       tags:
-        - Agent
+      - Agent
       description: Get an ioFog node configuration
       operationId: getIOFogNodeConfig
       parameters:
-        - in: path
-          required: true
-          name: id
-          description: ioFog node id
-          type: string
-        - in: header
-          name: Authorization
-          description: Agent Token
-          required: true
-          type: string
+      - in: path
+        required: true
+        name: uuid
+        description: ioFog node id
+        type: string
+      - in: header
+        name: Authorization
+        description: Agent Token
+        required: true
+        type: string
       responses:
         '200':
           description: Success
@@ -346,25 +380,25 @@ paths:
           description: Internal Server Error
     patch:
       tags:
-        - Agent
+      - Agent
       description: Updates an ioFog node configuration
       operationId: updateIOFogNodeConfig
       parameters:
-        - in: path
-          required: true
-          name: id
-          description: ioFog node id
-          type: string
-        - in: header
-          name: Authorization
-          description: Agent Token
-          required: true
-          type: string
-        - in: body
-          name: UpdateIOFogNodeConfigRequestBody
-          required: true
-          schema:
-            $ref: '#/definitions/IOFogNodeConfigRequest'
+      - in: path
+        required: true
+        name: uuid
+        description: ioFog node id
+        type: string
+      - in: header
+        name: Authorization
+        description: Agent Token
+        required: true
+        type: string
+      - in: body
+        name: UpdateIOFogNodeConfigRequestBody
+        required: true
+        schema:
+          $ref: '#/definitions/IOFogNodeConfigRequest'
       responses:
         '204':
           description: Success
@@ -380,28 +414,28 @@ paths:
           description: Invalid Node Id
         '500':
           description: Internal Server Error
-  '/iofog/{id}/agent/config/changes':
+  '/iofog/{uuid}/agent/config/changes':
     get:
       tags:
-        - Agent
+      - Agent
       description: Gets ioFog node changes sinces provided timestamp
       operationId: getIOFogNodeChanges
       parameters:
-        - in: path
-          required: true
-          name: id
-          description: ioFog node id
-          type: string
-        - in: header
-          name: Authorization
-          description: Agent Token
-          required: true
-          type: string
-        - in: query
-          name: timestamp
-          required: false
-          type: number
-          default: 0
+      - in: path
+        required: true
+        name: uuid
+        description: ioFog node id
+        type: string
+      - in: header
+        name: Authorization
+        description: Agent Token
+        required: true
+        type: string
+      - in: query
+        name: timestamp
+        required: false
+        type: number
+        default: 0
       responses:
         '200':
           description: Success
@@ -419,28 +453,28 @@ paths:
           description: Invalid Node Id
         '500':
           description: Internal Server Error
-  '/iofog/{id}/agent/status':
+  '/iofog/{uuid}/agent/status':
     put:
       tags:
-        - Agent
+      - Agent
       description: Posts agent status to ioFog node
       operationId: postAgentStatus
       parameters:
-        - in: path
-          required: true
-          name: id
-          description: ioFog node id
-          type: string
-        - in: header
-          name: Authorization
-          description: Agent Token
-          required: true
-          type: string
-        - in: body
-          name: AgentStatus
-          required: true
-          schema:
-            $ref: '#/definitions/AgentStatus'
+      - in: path
+        required: true
+        name: uuid
+        description: ioFog node id
+        type: string
+      - in: header
+        name: Authorization
+        description: Agent Token
+        required: true
+        type: string
+      - in: body
+        name: AgentStatus
+        required: true
+        schema:
+          $ref: '#/definitions/AgentStatus'
       responses:
         '204':
           description: Success
@@ -456,23 +490,23 @@ paths:
           description: Invalid Node Id
         '500':
           description: Internal Server Error
-  '/iofog/{id}/agent/microservices':
+  '/iofog/{uuid}/agent/microservices':
     get:
       tags:
-        - Agent
+      - Agent
       description: Gets microservices running on an ioFog node
       operationId: getAgentMicroservicesList
       parameters:
-        - in: path
-          required: true
-          name: id
-          description: ioFog node id
-          type: string
-        - in: header
-          name: Authorization
-          description: Agent Token
-          required: true
-          type: string
+      - in: path
+        required: true
+        name: uuid
+        description: ioFog node id
+        type: string
+      - in: header
+        name: Authorization
+        description: Agent Token
+        required: true
+        type: string
       responses:
         '200':
           description: Success
@@ -491,25 +525,25 @@ paths:
   '/iofog/{ioFogId}/agent/microservices/{microserviceId}':
     get:
       tags:
-        - Agent
+      - Agent
       description: Gets microservices running on an ioFog node
       operationId: getAgentMicroserviceInfo
       parameters:
-        - in: path
-          required: true
-          name: ioFogId
-          description: ioFog node id
-          type: string
-        - in: path
-          required: true
-          name: microserviceId
-          description: Microservice id
-          type: string
-        - in: header
-          name: Authorization
-          description: Agent Token
-          required: true
-          type: string
+      - in: path
+        required: true
+        name: ioFogId
+        description: ioFog node id
+        type: string
+      - in: path
+        required: true
+        name: microserviceId
+        description: Microservice id
+        type: string
+      - in: header
+        name: Authorization
+        description: Agent Token
+        required: true
+        type: string
       responses:
         '200':
           description: Success
@@ -525,23 +559,23 @@ paths:
           description: Invalid Node Id
         '500':
           description: Internal Server Error
-  '/iofog/{id}/agent/registries':
+  '/iofog/{uuid}/agent/registries':
     get:
       tags:
-        - Agent
+      - Agent
       description: Gets list of Docker registries
       operationId: getRegistriesList
       parameters:
-        - in: path
-          required: true
-          name: id
-          description: ioFog node id
-          type: string
-        - in: header
-          name: Authorization
-          description: Agent Token
-          required: true
-          type: string
+      - in: path
+        required: true
+        name: uuid
+        description: ioFog node id
+        type: string
+      - in: header
+        name: Authorization
+        description: Agent Token
+        required: true
+        type: string
       responses:
         '200':
           description: Success
@@ -557,23 +591,23 @@ paths:
           description: Invalid Node Id
         '500':
           description: Internal Server Error
-  '/iofog/{id}/agent/proxy':
+  '/iofog/{uuid}/agent/proxy':
     get:
       tags:
-        - Agent
+      - Agent
       description: Get an ioFog node proxy configuration
       operationId: getIOFogNodeProxyConfig
       parameters:
-        - in: path
-          required: true
-          name: id
-          description: ioFog node id
-          type: string
-        - in: header
-          name: Authorization
-          description: Agent Token
-          required: true
-          type: string
+      - in: path
+        required: true
+        name: uuid
+        description: ioFog node id
+        type: string
+      - in: header
+        name: Authorization
+        description: Agent Token
+        required: true
+        type: string
       responses:
         '200':
           description: Success
@@ -589,23 +623,23 @@ paths:
           description: Invalid Node Id
         '500':
           description: Internal Server Error
-  '/iofog/{id}/agent/strace':
+  '/iofog/{uuid}/agent/strace':
     get:
       tags:
-        - Agent
+      - Agent
       description: Get an ioFog node strace info
       operationId: getIOFogNodeStraceInfo
       parameters:
-        - in: path
-          required: true
-          name: id
-          description: ioFog node id
-          type: string
-        - in: header
-          name: Authorization
-          description: Agent Token
-          required: true
-          type: string
+      - in: path
+        required: true
+        name: uuid
+        description: ioFog node id
+        type: string
+      - in: header
+        name: Authorization
+        description: Agent Token
+        required: true
+        type: string
       responses:
         '200':
           description: Success
@@ -623,25 +657,25 @@ paths:
           description: Internal Server Error
     put:
       tags:
-        - Agent
+      - Agent
       description: Posts agent strace to ioFog node
       operationId: postIOFogNodeStraceBuffer
       parameters:
-        - in: path
-          required: true
-          name: id
-          description: ioFog node id
-          type: string
-        - in: header
-          name: Authorization
-          description: Agent Token
-          required: true
-          type: string
-        - in: body
-          name: AgentStraceBuffers
-          required: true
-          schema:
-            $ref: '#/definitions/IOFogNodeStraceBuffer'
+      - in: path
+        required: true
+        name: uuid
+        description: ioFog node id
+        type: string
+      - in: header
+        name: Authorization
+        description: Agent Token
+        required: true
+        type: string
+      - in: body
+        name: AgentStraceBuffers
+        required: true
+        schema:
+          $ref: '#/definitions/IOFogNodeStraceBuffer'
       responses:
         '204':
           description: Success
@@ -660,15 +694,15 @@ paths:
   '/iofog/agent/version':
     get:
       tags:
-        - Agent
+      - Agent
       description: Get change version command
       operationId: getChangeVersion
       parameters:
-        - in: header
-          name: Authorization
-          description: Agent Token
-          required: true
-          type: string
+      - in: header
+        name: Authorization
+        description: Agent Token
+        required: true
+        type: string
       responses:
         200:
           description: Success
@@ -685,15 +719,15 @@ paths:
   /catalog/microservices:
     get:
       tags:
-        - Catalog
+      - Catalog
       description: Gets microservices catalog
       operationId: getMicroservicesCatalog
       parameters:
-        - in: header
-          name: Authorization
-          description: User Token
-          required: true
-          type: string
+      - in: header
+        name: Authorization
+        description: User Token
+        required: true
+        type: string
       responses:
         '200':
           description: Success
@@ -709,21 +743,21 @@ paths:
           description: Internal Server Error
     post:
       tags:
-        - Catalog
+      - Catalog
       description: Creates a new microservice catalog item
       operationId: createMicroserviceCatalogItem
       parameters:
-        - in: header
-          name: Authorization
-          description: User Token
-          required: true
-          type: string
-        - in: body
-          name: CreateCatalogItem
-          description: Microservice Catalog Item Info
-          required: true
-          schema:
-            $ref: '#/definitions/CreateUpdateCatalogItemRequestBody'
+      - in: header
+        name: Authorization
+        description: User Token
+        required: true
+        type: string
+      - in: body
+        name: CreateCatalogItem
+        description: Microservice Catalog Item Info
+        required: true
+        schema:
+          $ref: '#/definitions/CreateUpdateCatalogItemRequestBody'
       responses:
         '201':
           description: Created
@@ -747,20 +781,20 @@ paths:
   '/catalog/microservices/{id}':
     get:
       tags:
-        - Catalog
+      - Catalog
       description: Gets microservice catalog item info
       operationId: getMicroserviceCatalogItem
       parameters:
-        - in: header
-          name: Authorization
-          description: User Token
-          required: true
-          type: string
-        - in: path
-          name: id
-          description: Catalog Item Id
-          required: true
-          type: string
+      - in: header
+        name: Authorization
+        description: User Token
+        required: true
+        type: string
+      - in: path
+        name: id
+        description: Catalog Item Id
+        required: true
+        type: string
       responses:
         '200':
           description: Catalog Item Info
@@ -778,26 +812,26 @@ paths:
           description: Internal Server Error
     patch:
       tags:
-        - Catalog
+      - Catalog
       description: Updates a microservice catalog item
       operationId: updateMicroserviceCatalogItem
       parameters:
-        - in: header
-          name: Authorization
-          description: User Token
-          required: true
-          type: string
-        - in: path
-          name: id
-          description: Catalog Item Id
-          required: true
-          type: string
-        - in: body
-          name: UpdateCatalogItem
-          description: Microservice Catalog Item Info
-          required: true
-          schema:
-            $ref: '#/definitions/CreateUpdateCatalogItemRequestBody'
+      - in: header
+        name: Authorization
+        description: User Token
+        required: true
+        type: string
+      - in: path
+        name: id
+        description: Catalog Item Id
+        required: true
+        type: string
+      - in: body
+        name: UpdateCatalogItem
+        description: Microservice Catalog Item Info
+        required: true
+        schema:
+          $ref: '#/definitions/CreateUpdateCatalogItemRequestBody'
       responses:
         '204':
           description: Success
@@ -815,20 +849,20 @@ paths:
           description: Internal Server Error
     delete:
       tags:
-        - Catalog
+      - Catalog
       description: Deletes a microservice catalog item
       operationId: deleteMicroserviceCatalogItem
       parameters:
-        - in: header
-          name: Authorization
-          description: User Token
-          required: true
-          type: string
-        - in: path
-          name: id
-          description: Catalog Item Id
-          required: true
-          type: string
+      - in: header
+        name: Authorization
+        description: User Token
+        required: true
+        type: string
+      - in: path
+        name: id
+        description: Catalog Item Id
+        required: true
+        type: string
       responses:
         '204':
           description: Success
@@ -845,15 +879,15 @@ paths:
   /flow:
     get:
       tags:
-        - Flow
+      - Flow
       description: Gets list of flows
       operationId: getFlowsList
       parameters:
-        - in: header
-          name: Authorization
-          description: User Token
-          required: true
-          type: string
+      - in: header
+        name: Authorization
+        description: User Token
+        required: true
+        type: string
       responses:
         '200':
           description: Success
@@ -869,21 +903,21 @@ paths:
           description: Internal Server Error
     post:
       tags:
-        - Flow
+      - Flow
       description: Creates a new flow
       operationId: createFlow
       parameters:
-        - in: header
-          name: Authorization
-          description: User Token
-          required: true
-          type: string
-        - in: body
-          name: NetFlowInfo
-          description: New Flow Info
-          required: true
-          schema:
-            $ref: '#/definitions/NewFlowRequest'
+      - in: header
+        name: Authorization
+        description: User Token
+        required: true
+        type: string
+      - in: body
+        name: NetFlowInfo
+        description: New Flow Info
+        required: true
+        schema:
+          $ref: '#/definitions/NewFlowRequest'
       responses:
         '201':
           description: Created
@@ -905,20 +939,20 @@ paths:
   '/flow/{id}':
     get:
       tags:
-        - Flow
+      - Flow
       description: Gets flow info
       operationId: getFlowInfo
       parameters:
-        - in: header
-          name: Authorization
-          description: User Token
-          required: true
-          type: string
-        - in: path
-          name: id
-          description: Flow Id
-          required: true
-          type: string
+      - in: header
+        name: Authorization
+        description: User Token
+        required: true
+        type: string
+      - in: path
+        name: id
+        description: Flow Id
+        required: true
+        type: string
       responses:
         '200':
           description: Success
@@ -936,26 +970,26 @@ paths:
           description: Internal Server Error
     patch:
       tags:
-        - Flow
+      - Flow
       description: Updates a flow
       operationId: updateFlow
       parameters:
-        - in: header
-          name: Authorization
-          description: User Token
-          required: true
-          type: string
-        - in: path
-          name: id
-          description: Flow Id
-          required: true
-          type: string
-        - in: body
-          name: NetFlowInfo
-          description: New Flow Info
-          required: true
-          schema:
-            $ref: '#/definitions/NewFlowRequest'
+      - in: header
+        name: Authorization
+        description: User Token
+        required: true
+        type: string
+      - in: path
+        name: id
+        description: Flow Id
+        required: true
+        type: string
+      - in: body
+        name: NetFlowInfo
+        description: New Flow Info
+        required: true
+        schema:
+          $ref: '#/definitions/NewFlowRequest'
       responses:
         '204':
           description: Success
@@ -973,20 +1007,20 @@ paths:
           description: Internal Server Error
     delete:
       tags:
-        - Flow
+      - Flow
       description: Deletes a flow
       operationId: deleteFlow
       parameters:
-        - in: header
-          name: Authorization
-          description: User Token
-          required: true
-          type: string
-        - in: path
-          name: id
-          description: Flow Id
-          required: true
-          type: string
+      - in: header
+        name: Authorization
+        description: User Token
+        required: true
+        type: string
+      - in: path
+        name: id
+        description: Flow Id
+        required: true
+        type: string
       responses:
         '204':
           description: Success
@@ -1003,20 +1037,20 @@ paths:
   /iofog/microservices:
     get:
       tags:
-        - Microservices
+      - Microservices
       description: Gets list of microservices
       operationId: getMicroservicesList
       parameters:
-        - in: header
-          name: Authorization
-          description: User Token
-          required: true
-          type: string
-        - in: query
-          name: flowId
-          description: Flow Id
-          required: false
-          type: string
+      - in: header
+        name: Authorization
+        description: User Token
+        required: true
+        type: string
+      - in: query
+        name: flowId
+        description: Flow Id
+        required: false
+        type: string
       responses:
         '200':
           description: Success
@@ -1032,21 +1066,21 @@ paths:
           description: Internal Server Error
     post:
       tags:
-        - Microservices
+      - Microservices
       description: Creates a new microservice on an ioFog node
       operationId: createMicroservice
       parameters:
-        - in: header
-          name: Authorization
-          description: User Token
-          required: true
-          type: string
-        - in: body
-          name: NetMicroserviceInfo
-          description: New Microserviced Info
-          required: true
-          schema:
-            $ref: '#/definitions/NewMicroserviceRequest'
+      - in: header
+        name: Authorization
+        description: User Token
+        required: true
+        type: string
+      - in: body
+        name: NetMicroserviceInfo
+        description: New Microserviced Info
+        required: true
+        schema:
+          $ref: '#/definitions/NewMicroserviceRequest'
       responses:
         '201':
           description: Created
@@ -1068,20 +1102,20 @@ paths:
   '/iofog/microservices/{id}':
     get:
       tags:
-        - Microservices
+      - Microservices
       description: Gets a microservice info
       operationId: getMicroserviceInfo
       parameters:
-        - in: header
-          name: Authorization
-          description: User Token
-          required: true
-          type: string
-        - in: path
-          name: id
-          description: Microservice Id
-          required: true
-          type: string
+      - in: header
+        name: Authorization
+        description: User Token
+        required: true
+        type: string
+      - in: path
+        name: id
+        description: Microservice Id
+        required: true
+        type: string
       responses:
         '200':
           description: Success
@@ -1099,26 +1133,26 @@ paths:
           description: Internal Server Error
     patch:
       tags:
-        - Microservices
+      - Microservices
       description: Updates a microservice
       operationId: updateMicroservice
       parameters:
-        - in: header
-          name: Authorization
-          description: User Token
-          required: true
-          type: string
-        - in: path
-          name: id
-          description: Microservice Id
-          required: true
-          type: string
-        - in: body
-          name: UpdateMicroserviceInfo
-          description: Microservice Info
-          required: true
-          schema:
-            $ref: '#/definitions/UpdateMicroserviceRequest'
+      - in: header
+        name: Authorization
+        description: User Token
+        required: true
+        type: string
+      - in: path
+        name: id
+        description: Microservice Id
+        required: true
+        type: string
+      - in: body
+        name: UpdateMicroserviceInfo
+        description: Microservice Info
+        required: true
+        schema:
+          $ref: '#/definitions/UpdateMicroserviceRequest'
       responses:
         '204':
           description: Success
@@ -1136,20 +1170,20 @@ paths:
           description: Internal Server Error
     delete:
       tags:
-        - Microservices
+      - Microservices
       description: Deletes a microservice
       operationId: deleteMicroservice
       parameters:
-        - in: header
-          name: Authorization
-          description: User Token
-          required: true
-          type: string
-        - in: path
-          name: id
-          description: Microservice Id
-          required: true
-          type: string
+      - in: header
+        name: Authorization
+        description: User Token
+        required: true
+        type: string
+      - in: path
+        name: id
+        description: Microservice Id
+        required: true
+        type: string
       responses:
         '204':
           description: Success
@@ -1166,25 +1200,25 @@ paths:
   '/iofog/microservices/{id}/routes/{receiverId}':
     post:
       tags:
-        - Microservices
+      - Microservices
       description: Creates a route from microservice to receiver
       operationId: createMicroserviceRoute
       parameters:
-        - in: header
-          name: Authorization
-          description: User Token
-          required: true
-          type: string
-        - in: path
-          name: id
-          description: Microservice Id
-          required: true
-          type: string
-        - in: path
-          name: receiverId
-          description: Receiver Microservice Id
-          required: true
-          type: string
+      - in: header
+        name: Authorization
+        description: User Token
+        required: true
+        type: string
+      - in: path
+        name: id
+        description: Microservice Id
+        required: true
+        type: string
+      - in: path
+        name: receiverId
+        description: Receiver Microservice Id
+        required: true
+        type: string
       responses:
         '201':
           description: Created
@@ -1202,25 +1236,25 @@ paths:
           description: Internal Server Error
     delete:
       tags:
-        - Microservices
+      - Microservices
       description: Deletes a route microservice
       operationId: deleteMicroserviceRoute
       parameters:
-        - in: header
-          name: Authorization
-          description: User Token
-          required: true
-          type: string
-        - in: path
-          name: id
-          description: Microservice Id
-          required: true
-          type: string
-        - in: path
-          name: receiverId
-          description: Receiver Microservice Id
-          required: true
-          type: string
+      - in: header
+        name: Authorization
+        description: User Token
+        required: true
+        type: string
+      - in: path
+        name: id
+        description: Microservice Id
+        required: true
+        type: string
+      - in: path
+        name: receiverId
+        description: Receiver Microservice Id
+        required: true
+        type: string
       responses:
         '204':
           description: Success
@@ -1239,20 +1273,20 @@ paths:
   '/iofog/microservices/{id}/image-snapshot':
     post:
       tags:
-        - Diagnostics
+      - Diagnostics
       description: Send request to create image snapshot
       operationId: createImageSnapshot
       parameters:
-        - in: header
-          name: Authorization
-          description: User Token
-          required: true
-          type: string
-        - in: path
-          name: id
-          description: Microservice Id
-          required: true
-          type: string
+      - in: header
+        name: Authorization
+        description: User Token
+        required: true
+        type: string
+      - in: path
+        name: id
+        description: Microservice Id
+        required: true
+        type: string
       responses:
         '201':
           description: Created
@@ -1273,22 +1307,22 @@ paths:
           description: Internal Server Error
     get:
       tags:
-        - Diagnostics
+      - Diagnostics
       description: Download image snapshot
       operationId: downloadImageSnapshot
       produces:
-        - application/gzip
+      - application/gzip
       parameters:
-        - in: header
-          name: Authorization
-          description: User Token
-          required: true
-          type: string
-        - in: path
-          name: id
-          description: Microservice Id
-          required: true
-          type: string
+      - in: header
+        name: Authorization
+        description: User Token
+        required: true
+        type: string
+      - in: path
+        name: id
+        description: Microservice Id
+        required: true
+        type: string
       responses:
         '200':
           description: Created
@@ -1307,20 +1341,20 @@ paths:
   '/iofog/microservices/{id}/strace':
     post:
       tags:
-        - Diagnostics
+      - Diagnostics
       description: Enables Microservice Strace Option
       operationId: enableMicroserviceStrace
       parameters:
-        - in: header
-          name: Authorization
-          description: User Token
-          required: true
-          type: string
-        - in: path
-          name: id
-          description: Microservice Id
-          required: true
-          type: string
+      - in: header
+        name: Authorization
+        description: User Token
+        required: true
+        type: string
+      - in: path
+        name: id
+        description: Microservice Id
+        required: true
+        type: string
       responses:
         '201':
           description: Created
@@ -1341,20 +1375,20 @@ paths:
           description: Internal Server Error
     delete:
       tags:
-        - Diagnostics
+      - Diagnostics
       description: Disables Microservice Strace Option
       operationId: disableMicroserviceStrace
       parameters:
-        - in: header
-          name: Authorization
-          description: User Token
-          required: true
-          type: string
-        - in: path
-          name: id
-          description: Microservice Id
-          required: true
-          type: string
+      - in: header
+        name: Authorization
+        description: User Token
+        required: true
+        type: string
+      - in: path
+        name: id
+        description: Microservice Id
+        required: true
+        type: string
       responses:
         '204':
           description: Success
@@ -1370,27 +1404,27 @@ paths:
           description: Internal Server Error
     get:
       tags:
-        - Diagnostics
+      - Diagnostics
       description: Gets Strace Data for Microservice
       operationId: getMicroserviceStrace
       parameters:
-        - in: header
-          name: Authorization
-          description: User Token
-          required: true
-          type: string
-        - in: path
-          name: id
-          description: Microservice Id
-          required: true
-          type: string
-        - in: query
-          name: format
-          required: true
-          type: string
-          enum:
-            - file
-            - string
+      - in: header
+        name: Authorization
+        description: User Token
+        required: true
+        type: string
+      - in: path
+        name: id
+        description: Microservice Id
+        required: true
+        type: string
+      - in: query
+        name: format
+        required: true
+        type: string
+        enum:
+        - file
+        - string
       responses:
         '200':
           description: Success
@@ -1411,25 +1445,25 @@ paths:
           description: Internal Server Error
     put:
       tags:
-        - Diagnostics
+      - Diagnostics
       description: Posts Microservice Strace file to FTP
       operationId: postMicroserviceStraceToFTP
       parameters:
-        - in: path
-          required: true
-          name: id
-          description: Microservice Id
-          type: string
-        - in: header
-          name: Authorization
-          description: User Token
-          required: true
-          type: string
-        - in: body
-          name: straceData
-          required: true
-          schema:
-            $ref: '#/definitions/MicroserviceStraceFTPBody'
+      - in: path
+        required: true
+        name: id
+        description: Microservice Id
+        type: string
+      - in: header
+        name: Authorization
+        description: User Token
+        required: true
+        type: string
+      - in: body
+        name: straceData
+        required: true
+        schema:
+          $ref: '#/definitions/MicroserviceStraceFTPBody'
       responses:
         '204':
           description: Success
@@ -1445,23 +1479,23 @@ paths:
           description: Invalid Microservice Id
         '500':
           description: Internal Server Error
-  '/iofog/{id}/tunnel':
+  '/iofog/{uuid}/tunnel':
     post:
       tags:
-        - Tunnel
+      - Tunnel
       description: Opens ssh tunnel
       operationId: openIOFogNodeSshTunnel
       parameters:
-        - in: path
-          name: id
-          description: ioFog node id
-          required: true
-          type: string
-        - in: header
-          name: Authorization
-          description: User Token
-          required: true
-          type: string
+      - in: path
+        name: uuid
+        description: ioFog node id
+        required: true
+        type: string
+      - in: header
+        name: Authorization
+        description: User Token
+        required: true
+        type: string
       responses:
         '201':
           description: Created
@@ -1479,20 +1513,20 @@ paths:
           description: Internal Server Error
     get:
       tags:
-        - Tunnel
+      - Tunnel
       description: Gets current info about ioFog node ssh tunnel status
       operationId: getIOFogNodeSshTunnelStatusInfo
       parameters:
-        - in: path
-          name: id
-          description: ioFog node id
-          required: true
-          type: string
-        - in: header
-          name: Authorization
-          description: User token
-          required: true
-          type: string
+      - in: path
+        name: uuid
+        description: ioFog node id
+        required: true
+        type: string
+      - in: header
+        name: Authorization
+        description: User token
+        required: true
+        type: string
       responses:
         '200':
           description: Success
@@ -1510,20 +1544,20 @@ paths:
           description: Internal Server Error
     delete:
       tags:
-        - Tunnel
+      - Tunnel
       description: Closes ssh tunnel
       operationId: closeIOFogNodeSshTunnel
       parameters:
-        - in: path
-          name: id
-          description: ioFog node id
-          required: true
-          type: string
-        - in: header
-          name: Authorization
-          description: User token
-          required: true
-          type: string
+      - in: path
+        name: uuid
+        description: ioFog node id
+        required: true
+        type: string
+      - in: header
+        name: Authorization
+        description: User token
+        required: true
+        type: string
       responses:
         '204':
           description: Success
@@ -1540,20 +1574,20 @@ paths:
   '/registries':
     post:
       tags:
-        - Registries
+      - Registries
       description: Creates new registry
       operationId: createRegistry
       parameters:
-        - in: header
-          name: Authorization
-          description: User Token
-          required: true
-          type: string
-        - in: body
-          name: Filters
-          required: false
-          schema:
-            $ref: '#/definitions/RegistryBody'
+      - in: header
+        name: Authorization
+        description: User Token
+        required: true
+        type: string
+      - in: body
+        name: Filters
+        required: false
+        schema:
+          $ref: '#/definitions/RegistryBody'
       responses:
         '201':
           description: Created
@@ -1569,15 +1603,15 @@ paths:
           description: Internal Server Error
     get:
       tags:
-        - Registries
+      - Registries
       description: Gets list of registries
       operationId: getRegistryList
       parameters:
-        - in: header
-          name: Authorization
-          description: User token
-          required: true
-          type: string
+      - in: header
+        name: Authorization
+        description: User token
+        required: true
+        type: string
       responses:
         '200':
           description: Success
@@ -1594,20 +1628,20 @@ paths:
   '/registries/{id}':
     delete:
       tags:
-        - Registries
+      - Registries
       description: Deletes a registry
       operationId: deleteRegistry
       parameters:
-        - in: path
-          name: id
-          description: Registry id
-          required: true
-          type: string
-        - in: header
-          name: Authorization
-          description: User token
-          required: true
-          type: string
+      - in: path
+        name: id
+        description: Registry id
+        required: true
+        type: string
+      - in: header
+        name: Authorization
+        description: User token
+        required: true
+        type: string
       responses:
         '204':
           description: Deleted
@@ -1653,11 +1687,11 @@ paths:
       description: Logout
       operationId: logout
       parameters:
-        - in: header
-          name: Authorization
-          description: User token
-          required: true
-          type: string
+      - in: header
+        name: Authorization
+        description: User token
+        required: true
+        type: string
       responses:
         204:
           description: Success
@@ -1668,16 +1702,16 @@ paths:
   '/user/signup':
     post:
       tags:
-        - User
+      - User
       description: Signup
       operationId: signup
       parameters:
-        - in: body
-          name: user
-          description: new user data
-          required: true
-          schema:
-            $ref: '#/definitions/SignupRequest'
+      - in: body
+        name: user
+        description: new user data
+        required: true
+        schema:
+          $ref: '#/definitions/SignupRequest'
       responses:
         201:
           description: Success
@@ -1692,14 +1726,14 @@ paths:
   '/user/signup/resend-activation':
     get:
       tags:
-        - User
+      - User
       description: Resend activation email
       operationId: resendActivationEmail
       parameters:
-        - in: query
-          name: email
-          required: true
-          type: string
+      - in: query
+        name: email
+        required: true
+        type: string
       responses:
         204:
           description: Success
@@ -1714,15 +1748,15 @@ paths:
   '/user/activate':
     post:
       tags:
-        - User
+      - User
       description: Activate account
       operationId: activateAccount
       parameters:
-        - in: query
-          name: activationCode
-          description: activation code
-          required: true
-          type: string
+      - in: query
+        name: activationCode
+        description: activation code
+        required: true
+        type: string
       responses:
         303:
           description: Redirect to login page
@@ -1740,15 +1774,15 @@ paths:
   '/user/profile':
     get:
       tags:
-        - User
+      - User
       description: Get current user profile data
       operationId: getUserProfile
       parameters:
-        - in: header
-          name: Authorization
-          description: User token
-          required: true
-          type: string
+      - in: header
+        name: Authorization
+        description: User token
+        required: true
+        type: string
       responses:
         200:
           description: Success
@@ -1764,21 +1798,21 @@ paths:
           description: Internal Server Error
     patch:
       tags:
-        - User
+      - User
       description: Update user profile
       operationId: updateUserProfile
       parameters:
-        - in: header
-          name: Authorization
-          description: User Token
-          required: true
-          type: string
-        - in: body
-          name: profileData
-          description: Updated profile data
-          required: true
-          schema:
-            $ref: '#/definitions/UserProfileUpdatesRequest'
+      - in: header
+        name: Authorization
+        description: User Token
+        required: true
+        type: string
+      - in: body
+        name: profileData
+        description: Updated profile data
+        required: true
+        schema:
+          $ref: '#/definitions/UserProfileUpdatesRequest'
       responses:
         200:
           description: Updated user profile
@@ -1796,15 +1830,15 @@ paths:
           description: Internal Server Error
     delete:
       tags:
-        - User
+      - User
       description: Delete account
       operationId: deleteAccount
       parameters:
-        - in: header
-          name: Authorization
-          description: User Token
-          required: true
-          type: string
+      - in: header
+        name: Authorization
+        description: User Token
+        required: true
+        type: string
       responses:
         204:
           description: Success
@@ -1819,21 +1853,21 @@ paths:
   '/user/password':
     patch:
       tags:
-        - User
+      - User
       description: change password
       operationId: changePassword
       parameters:
-        - in: header
-          name: Authorization
-          description: User Token
-          required: true
-          type: string
-        - in: body
-          name: passwordUpdates
-          description: current and new password
-          required: true
-          schema:
-            $ref: '#/definitions/PasswordChangeRequest'
+      - in: header
+        name: Authorization
+        description: User Token
+        required: true
+        type: string
+      - in: body
+        name: passwordUpdates
+        description: current and new password
+        required: true
+        schema:
+          $ref: '#/definitions/PasswordChangeRequest'
       responses:
         204:
           description: Success
@@ -1847,7 +1881,7 @@ paths:
           description: Internal Server Error
     delete:
       tags:
-        - User
+      - User
       description: Reset password
       operationId: resetPassword
       responses:
@@ -2091,14 +2125,14 @@ definitions:
   AgentProvisioningRequest:
     type: object
     required:
-      - type
-      - key
+    - type
+    - key
     properties:
       type:
         type: number
         enum:
-          - 1
-          - 2
+        - 1
+        - 2
         description: >
           Architecture
            * '1': x86
@@ -2356,9 +2390,9 @@ definitions:
       routes:
         $ref: '#/definitions/ReceiverMicroservices'
   ReceiverMicroservices:
-      type: array
-      items:
-        type: string
+    type: array
+    items:
+      type: string
   VolumeMappingAgentRequest:
     type: object
     properties:
@@ -2618,7 +2652,7 @@ definitions:
   UpdateMicroserviceRequest:
     type: object
     required:
-      - name
+    - name
     properties:
       name:
         type: string
@@ -2656,8 +2690,8 @@ definitions:
   LoginRequest:
     type: object
     required:
-      - email
-      - password
+    - email
+    - password
     properties:
       email:
         type: string
@@ -2666,16 +2700,16 @@ definitions:
   LoginSuccessResponse:
     type: object
     required:
-      - accessToken
+    - accessToken
     properties:
       accessToken:
         type: string
   UserProfileDetailsResponse:
     type: object
     required:
-      - firstName
-      - lastName
-      - email
+    - firstName
+    - lastName
+    - email
     properties:
       firstName:
         type: string
@@ -2693,8 +2727,8 @@ definitions:
   PasswordChangeRequest:
     type: object
     required:
-      - oldPassword
-      - newPassword
+    - oldPassword
+    - newPassword
     properties:
       oldPassword:
         type: string
@@ -2703,10 +2737,10 @@ definitions:
   SignupRequest:
     type: object
     required:
-      - firstName
-      - lastName
-      - email
-      - password
+    - firstName
+    - lastName
+    - email
+    - password
     properties:
       firstName:
         type: string
@@ -2720,9 +2754,9 @@ definitions:
   VersionCommandResponse:
     type: object
     required:
-      - versionCommand
-      - provisionKey
-      - expirationTime
+    - versionCommand
+    - provisionKey
+    - expirationTime
     properties:
       versionCommand:
         type: string
@@ -2732,7 +2766,7 @@ definitions:
         type: string
 
 schemes:
-  - http
-  - https
+- http
+- https
 host: 'localhost:54421'
 basePath: /api/v3

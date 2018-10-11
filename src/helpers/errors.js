@@ -37,8 +37,7 @@ class ValidationError extends Error {
 }
 
 class InvalidCredentialsError extends Error {
-  constructor() {
-    const message = 'Invalid credentials';
+  constructor(message) {
     super(message);
     this.message = message;
     this.name = "InvalidCredentialsError";
@@ -50,6 +49,15 @@ class DuplicatePropertyError extends Error {
 		super(message);
 		this.message = message;
 		this.name = "DuplicatePropertyError";
+	}
+}
+
+class ModelNotFoundError extends Error {
+	constructor() {
+		const message = 'Model not found'
+		super(message);
+		this.message = message;
+		this.name = "ModelNotFoundError";
 	}
 }
 
@@ -66,6 +74,7 @@ module.exports = {
   TransactionError: TransactionError,
   ValidationError: ValidationError,
   InvalidCredentialsError: InvalidCredentialsError,
-	DuplicatePropertyError: DuplicatePropertyError,
-  NotFoundError: NotFoundError
+  NotFoundError: NotFoundError,
+  ModelNotFoundError: ModelNotFoundError,
+	DuplicatePropertyError: DuplicatePropertyError
 };
