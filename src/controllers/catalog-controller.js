@@ -14,9 +14,11 @@
 const logger = require('../logger');
 const CatalogService = require('../services/catalog-service');
 const AuthDecorator = require('./../decorators/authorization-decorator');
+const validator = require('../schemas/index');
 
 const createCatalogItemEndPoint = async function (req, user) {
 	logger.info("Parameters:" + JSON.stringify(req.body));
+	await validator.validate(req, validator.schemas.catalogItemCreate);
 	return await CatalogService.createCatalogItem(req.body, user);
 };
 
@@ -37,6 +39,7 @@ const deleteCatalogItemEndPoint = async function (req, user) {
 
 const updateCatalogItemEndPoint = async function (req, user) {
 	logger.info("Parameters:" + JSON.stringify(req.body));
+	await validator.validate(req, validator.schemas.catalogItemUpdate);
 	await CatalogService.updateCatalogItem(req.params.id, req.body, user);
 };
 
@@ -44,5 +47,6 @@ module.exports = {
 	createCatalogItemEndPoint: AuthDecorator.checkAuthToken(createCatalogItemEndPoint),
 	listCatalogItemsEndPoint: AuthDecorator.checkAuthToken(listCatalogItemsEndPoint),
 	listCatalogItemEndPoint: AuthDecorator.checkAuthToken(listCatalogItemEndPoint),
-	deleteCatalogItemEndPoint: AuthDecorator.checkAuthToken(deleteCatalogItemEndPoint)
+	deleteCatalogItemEndPoint: AuthDecorator.checkAuthToken(deleteCatalogItemEndPoint),
+	updateCatalogItemEndPoint: AuthDecorator.checkAuthToken(updateCatalogItemEndPoint)
 };

@@ -107,10 +107,38 @@ module.exports = [
   {
     method: 'patch',
     path: '/api/v3/catalog/microservices/:id',
-    middleware: (req, res) => {
+    middleware: async (req, res) => {
+
+	    const successCode = constants.HTTP_CODE_NO_CONTENT;
+	    const errorCodes = [
+		    {
+			    code: constants.HTTP_CODE_BAD_REQUEST,
+			    errors: [Errors.ValidationError]
+		    },
+		    {
+			    code: constants.HTTP_CODE_UNAUTHORIZED,
+			    errors: [Errors.AuthenticationError]
+		    },
+		    {
+			    code: constants.HTTP_CODE_DUPLICATE_PROPERTY,
+			    errors: [Errors.DuplicatePropertyError]
+		    },
+		    {
+		    	code: constants.HTTP_CODE_NOT_FOUND,
+			    errors: [Errors.NotFoundError]
+		    }
+	    ];
+
+	    const updateCatalogItemEndpoint = ResponseDecorator.handleErrors(
+		    CatalogController.updateCatalogItemEndPoint,
+		    successCode,
+		    errorCodes
+	    );
+	    const response = await updateCatalogItemEndpoint(req);
+
       res
-        .status(constants.HTTP_CODE_SUCCESS)
-        .send(req.body)
+        .status(response.code)
+        .send(response.body)
     }
   },
   {

@@ -14,21 +14,21 @@
 const TransactionDecorator = require('../decorators/transaction-decorator');
 const AppHelper = require('../helpers/app-helper');
 const Errors = require('../helpers/errors');
-const ObjBuilder = require('../helpers/object-builder');
 const CatalogItemManager = require('../sequelize/managers/catalog-item-manager');
 const CatalogItemImageManager = require('../sequelize/managers/catalog-item-image-manager');
 const CatalogItemInputTypeManager = require('../sequelize/managers/catalog-item-input-type-manager');
 const CatalogItemOutputTypeManager = require('../sequelize/managers/catalog-item-output-type-manager');
-const Validator = require('jsonschema').Validator;
-const v = new Validator();
+const Op = require('sequelize').Op;
 
 const createCatalogItem = async function (data, user, transaction) {
-	v.addSchema(image, "/image");
-	v.addSchema(type, "/type");
-	const validated = v.validate(data, catalogItemSchema);
-	if (!validated.valid) {
-		throw new Errors.ValidationError(validated.errors[0].stack)
-	}
+	await CatalogItemManager.findOne({
+		[Op.or]: [{userId: user.id}, {userId: null}],
+		name: data.name
+	}, transaction).then(item => {
+		if (item) {
+			throw new Errors.DuplicatePropertyError("Duplicate Name");
+		}
+	});
 
 	const catalogItem = await _createCatalogItem(data, user, transaction);
 	await _createCatalogImages(data, catalogItem, transaction);
@@ -40,51 +40,97 @@ const createCatalogItem = async function (data, user, transaction) {
 	}
 };
 
-const updateCatalogItem = async function (catalogItemId, data, user) {
+const updateCatalogItem = async function (catalogItemId, data, user, transaction) {
 	const id = AppHelper.validateParameterId(catalogItemId, "Invalid catalog item id");
-	_validateCatalogItemFields(data);
+	if (data.name) {
+		await CatalogItemManager.findOne({
+			[Op.or]: [{userId: user.id}, {userId: null}],
+			name: data.name,
+			id: {
+				[Op.ne]: catalogItemId
+			}
+		}, transaction).then(item => {
+			if (item) {
+				throw new Errors.DuplicatePropertyError("Duplicate Name");
+			}
+		});
+	}
+	const catalogItemWhereClause = {
+		id: id,
+		userId: user.id
+	};
 
-	const ob = new ObjBuilder();
-	const catalogItemData = ob
-		.pushFieldIfValExists('name', data.name)
-		.pushFieldIfValExists('description', data.description)
-		.pushFieldIfValExists('category', data.category)
-		.pushFieldIfValExists('publisher', data.publisher)
-		.pushFieldIfValExists('diskRequired', data.diskRequired)
-		.pushFieldIfValExists('ramRequired', data.ramRequired)
-		.pushFieldIfValExists('picture', data.picture)
-		.pushFieldIfValExists('isPublic', data.isPublic)
-		.pushFieldIfValExists('registryId', data.registryId)
-		.pushFieldIfValExists('configExample', data.configExample)
-		.popObj();
+	let catalogItem = {
+		name: data.name,
+		description: data.description,
+		category: data.category,
+		configExample: data.configExample,
+		publisher: data.publisher,
+		diskRequired: data.diskRequired,
+		ramRequired: data.ramRequired,
+		picture: data.picture,
+		isPublic: data.isPublic
+	};
 
-	const catalogItemImages = ob
-		.pushFieldIfValExists('images', data.images)
-		.popObj();
+	const item = await CatalogItemManager.findOne(catalogItemWhereClause, transaction)
+	if (!item) {
+		throw new Errors.NotFoundError('Invalid catalog item id')
+	}
+	catalogItem = AppHelper.deleteUndefinedFields(catalogItem);
+	await CatalogItemManager.update(catalogItemWhereClause, catalogItem, transaction);
 
-	const catalogItemInputType = ob
-		.pushFieldIfValExists('inputType', data.inputType)
-		.popObj();
-
-	const catalogItemOutputType = ob
-		.pushFieldIfValExists('outputType', data.outputType)
-		.popObj();
-
+	if (data.images) {
+		for (let image of data.images) {
+			switch (image.fogTypeId) {
+				case 1:
+					await CatalogItemImageManager.update({
+						catalogItemId: id,
+						fogTypeId: 1
+					}, image, transaction);
+					break;
+				case 2:
+					await CatalogItemImageManager.update({
+						catalogItemId: id,
+						fogTypeId: 2
+					}, image, transaction);
+					break;
+			}
+		}
+	}
+	if (data.inputType) {
+		await CatalogItemInputTypeManager.update({catalogItemId: id}, data.inputType, transaction);
+	}
+	if (data.outputType) {
+		await CatalogItemOutputTypeManager.update({catalogItemId: id}, data.outputType, transaction);
+	}
 };
 
-const listCatalogItems = async function (user) {
-	return await CatalogItemManager.findAll(user.id);
+const listCatalogItems = async function (user, transaction) {
+	return await CatalogItemManager.findAllWithDependencies(user.id, transaction);
 };
 
-const listCatalogItem = async function (catalogItemId, user) {
+const listCatalogItem = async function (catalogItemId, user, transaction) {
 	const id = AppHelper.validateParameterId(catalogItemId, "Invalid catalog item id");
-	return await CatalogItemManager.findOne(id, user.id);
+	return await CatalogItemManager.findOneWithDependencies(id, user.id, transaction).then(item => {
+		if (!item) {
+			throw new Errors.NotFoundError("Invalid catalog item id");
+		}
+		return item;
+	});
 };
 
 const deleteCatalogItem = async function (catalogItemId, user, transaction) {
 	const id = AppHelper.validateParameterId(catalogItemId, "Invalid catalog item id");
-	return await CatalogItemManager.deleteCatalogItemById(id, user.id, transaction);
-};
+	await CatalogItemManager.delete({
+		userId: user.id,
+		id: catalogItemId
+	}, transaction).then(affectedRows => {
+		if (affectedRows === 0) {
+			throw new Errors.NotFoundError("Invalid catalog item id");
+		}
+		return affectedRows;
+	});
+}
 
 const _createCatalogItem = async function (data, user, transaction) {
 	const catalogItem = {
@@ -163,56 +209,10 @@ const _createCatalogItemOutputType = async function (data, catalogItem, transact
 	return await CatalogItemOutputTypeManager.create(catalogItemOutputType, transaction);
 };
 
-const catalogItemSchema = {
-	"id": "/catalogItem",
-	"type": "object",
-	"properties": {
-		"name": {"type": "string"},
-		"description": {"type": "string"},
-		"category": {"type": "string"},
-		"publisher": {"type": "string"},
-		"diskRequired": {"type": "integer"},
-		"ramRequired": {"type": "integer"},
-		"picture": {"type": "string"},
-		"isPublic": {"type": "boolean"},
-		"registryId": {"type": "integer"},
-		"configExample": {"type": "string"},
-		"images": {
-			"type": "array",
-			"maxItems": 2,
-			"items": {"$ref": "/image"}},
-		"inputType": {"$ref": "/type"},
-		"outputType": {"$ref": "/type"}
-	}
-};
-
-const image = {
-	"id": "/image",
-	"type": "object",
-	"properties": {
-		"containerImage": {"type": "string"},
-		"fogTypeId":
-			{"type": "integer",
-				"minimum": 0,
-				"maximum": 2
-			}
-	},
-	"required": ["containerImage", "fogTypeId"]
-};
-
-const type = {
-	"id": "/type",
-	"type": "object",
-	"properties": {
-		"infoType": {"type": "string"},
-		"infoFormat": {"type": "string"}
-	},
-	"required": ["infoType", "infoFormat"]
-};
-
 module.exports = {
 	createCatalogItem: TransactionDecorator.generateTransaction(createCatalogItem),
 	listCatalogItems: TransactionDecorator.generateTransaction(listCatalogItems),
 	listCatalogItem: TransactionDecorator.generateTransaction(listCatalogItem),
-	deleteCatalogItem: TransactionDecorator.generateTransaction(deleteCatalogItem)
+	deleteCatalogItem: TransactionDecorator.generateTransaction(deleteCatalogItem),
+	updateCatalogItem: TransactionDecorator.generateTransaction(updateCatalogItem)
 };

@@ -839,6 +839,8 @@ paths:
             X-Timestamp:
               type: number
               description: FogController server timestamp
+        '400':
+              description: Bad Request
         '401':
           description: Not Authorized
         '404':

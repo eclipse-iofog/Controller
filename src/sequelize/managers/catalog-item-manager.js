@@ -12,8 +12,6 @@
  */
 
 const BaseManager = require('./base-manager');
-const Errors = require('../../helpers/errors');
-const AppHelper = require('../../helpers/app-helper');
 const models = require('./../models');
 const CatalogItem = models.CatalogItem;
 const CatalogItemImage = models.CatalogItemImage;
@@ -26,7 +24,7 @@ class CatalogItemManager extends BaseManager {
 		return CatalogItem;
 	}
 
-	findAll(userId) {
+	findAllWithDependencies(userId, transaction) {
 		return CatalogItem.findAll({
 			include: [
 				{
@@ -51,10 +49,10 @@ class CatalogItemManager extends BaseManager {
 				[Op.or]: [{user_id: userId}, {user_id: null}]
 			},
 			attributes: { exclude: ["userId"] }
-		})
+		}, transaction)
 	}
 
-	findOne(catalogItemId, userId) {
+	findOneWithDependencies(catalogItemId, userId, transaction) {
 		return CatalogItem.findOne({
 			include: [
 				{
@@ -80,27 +78,7 @@ class CatalogItemManager extends BaseManager {
 				id: catalogItemId
 			},
 			attributes: { exclude: ["userId"] }
-		}).then(item => {
-			if (!item) {
-				throw new Errors.NotFoundError("Invalid catalog item id");
-			}
-			return item;
-		})
-	}
-
-	deleteCatalogItemById(catalogItemId, userId, transaction) {
-		AppHelper.checkTransaction(transaction);
-		return CatalogItem.destroy({
-			where: {
-				user_id: userId,
-				id: catalogItemId
-			}
-		}, transaction).then(affectedRows => {
-			if (affectedRows === 0) {
-				throw new Errors.NotFoundError("Invalid catalog item id");
-			}
-			return affectedRows;
-		})
+		}, transaction)
 	}
 }
 
