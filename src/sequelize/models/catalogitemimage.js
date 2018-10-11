@@ -30,7 +30,7 @@ module.exports = (sequelize, DataTypes) => {
     CatalogItemImage.belongsTo(models.FogType, {
       foreignKey: {
         name: 'fogTypeId',
-        field: 'iofog_type_id'
+        field: 'fog_type_id'
       },
       as: 'fogType',
       onDelete: 'cascade'

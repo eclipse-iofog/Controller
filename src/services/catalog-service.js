@@ -14,18 +14,24 @@
 const TransactionDecorator = require('../decorators/transaction-decorator');
 const AppHelper = require('../helpers/app-helper');
 const Errors = require('../helpers/errors');
-const ObjBuilder = require('../helpers/object-builder')
+const ObjBuilder = require('../helpers/object-builder');
 const CatalogItemManager = require('../sequelize/managers/catalog-item-manager');
 const CatalogItemImageManager = require('../sequelize/managers/catalog-item-image-manager');
 const CatalogItemInputTypeManager = require('../sequelize/managers/catalog-item-input-type-manager');
 const CatalogItemOutputTypeManager = require('../sequelize/managers/catalog-item-output-type-manager');
+const Validator = require('jsonschema').Validator;
+const v = new Validator();
 
 const createCatalogItem = async function (data, user, transaction) {
-	_validateCatalogItemFields(data);
+	v.addSchema(image, "/image");
+	v.addSchema(type, "/type");
+	const validated = v.validate(data, catalogItemSchema);
+	if (!validated.valid) {
+		throw new Errors.ValidationError(validated.errors[0].stack)
+	}
 
 	const catalogItem = await _createCatalogItem(data, user, transaction);
-	await _createX86CatalogImage(data, catalogItem, transaction);
-	await _createArmCatalogImage(data, catalogItem, transaction);
+	await _createCatalogImages(data, catalogItem, transaction);
 	await _createCatalogItemInputType(data, catalogItem, transaction);
 	await _createCatalogItemOutputType(data, catalogItem, transaction);
 
@@ -82,98 +88,126 @@ const deleteCatalogItem = async function (catalogItemId, user, transaction) {
 
 const _createCatalogItem = async function (data, user, transaction) {
 	const catalogItem = {
-		name: data.name,
-		description: data.description,
-		category: data.category,
-		config: data.configExample,
-		publisher: data.publisher,
-		diskRequired: data.diskRequired,
-		ramRequired: data.ramRequired,
-		picture: data.picture,
-		isPublic: data.isPublic,
-		registryId: data.registryId,
+		name: data.name || 'New Catalog Item',
+		description: data.description || '',
+		category: data.category || '',
+		configExample: data.configExample || '',
+		publisher: data.publisher || '',
+		diskRequired: data.diskRequired || 0,
+		ramRequired: data.ramRequired || 0,
+		picture: data.picture || 'images/shared/default.png',
+		isPublic: data.isPublic || false,
+		registryId: data.registryId || 1,
 		userId: user.id
 	};
 
 	return await CatalogItemManager.create(catalogItem, transaction);
 };
 
-const _createX86CatalogImage = async function (data, catalogItem, transaction) {
-	const x86CatalogImage = {
-		containerImage: data.containerImages.x86ContainerImage,
-		catalogItemId: catalogItem.id,
-		iofogTypeId: 1
-	};
+const _createCatalogImages = async function (data, catalogItem, transaction) {
+	const catalogItemImages = [
+		{
+			containerImage: '',
+			fogTypeId: 1,
+			catalogItemId: catalogItem.id
+		},
+		{
+			containerImage: '',
+			fogTypeId: 2,
+			catalogItemId: catalogItem.id
+		}
+	];
+	if (data.images) {
+		for (let image of data.images) {
+			switch (image.fogTypeId) {
+				case 1:
+					catalogItemImages[0].containerImage = image.containerImage;
+					break;
+				case 2:
+					catalogItemImages[1].containerImage = image.containerImage;
+					break;
+			}
+		}
+	}
 
-	return await CatalogItemImageManager.create(x86CatalogImage, transaction);
-};
-
-const _createArmCatalogImage = async function (data, catalogItem, transaction) {
-	const x86CatalogImage = {
-		containerImage: data.containerImages.armContainerImage,
-		catalogItemId: catalogItem.id,
-		iofogTypeId: 2
-	};
-
-	return await CatalogItemImageManager.create(x86CatalogImage, transaction);
+	return await CatalogItemImageManager.bulkCreate(catalogItemImages, transaction);
 };
 
 const _createCatalogItemInputType = async function (data, catalogItem, transaction) {
 	const catalogItemInputType = {
-		infoType: data.inputType,
-		infoFormat: data.inputFormat,
+		infoType: '',
+		infoFormat: '',
 		catalogItemId: catalogItem.id
 	};
+
+	if (data.inputType) {
+		catalogItemInputType.infoType = data.inputType.infoType;
+		catalogItemInputType.infoFormat = data.inputType.infoFormat;
+	}
 
 	return await CatalogItemInputTypeManager.create(catalogItemInputType, transaction);
 };
 
 const _createCatalogItemOutputType = async function (data, catalogItem, transaction) {
 	const catalogItemOutputType = {
-		infoType: data.outputType,
-		infoFormat: data.outputFormat,
+		infoType: '',
+		infoFormat: '',
 		catalogItemId: catalogItem.id
 	};
+
+	if (data.outputType) {
+		catalogItemOutputType.infoType = data.outputType.infoType;
+		catalogItemOutputType.infoFormat = data.outputType.infoFormat;
+	}
 
 	return await CatalogItemOutputTypeManager.create(catalogItemOutputType, transaction);
 };
 
-const _validateCatalogItemFields = function (data) {
-	AppHelper.validateFields(data,
-		["name", "description", "category", "images", "publisher", "diskRequired", "ramRequired", "picture",
-			"isPublic", "registryId", "inputType", "outputType", "configExample"]);
-	for (let image of data.images) {
-		AppHelper.validateFields(image, "containerImage", "fogTypeId");
-	}
-	AppHelper.validateFields(data.inputType, "infoType", "infoFormat");
-	AppHelper.validateFields(data.outputType, "infoType", "infoFormat");
-	_validateCatalogItemInfo(data);
-};
-
-const _validateCatalogItemInfo = function (data) {
-	if (!AppHelper.isValidName(data.name)) {
-		throw new Errors.ValidationError('Invalid catalog item name.');
-	} else if (!AppHelper.isValidNumber(data.diskRequired)) {
-		throw new Errors.ValidationError('Property diskRequired should be of type Number.');
-	} else if (!AppHelper.isValidNumber(data.ramRequired)) {
-		throw new Errors.ValidationError('Property ramRequired should be of type Number.');
-	} else if (!AppHelper.isValidBoolean(data.isPublic)) {
-		throw new Errors.ValidationError('Property isPublic should be of type Boolean.');
-	} else if (!AppHelper.isValidName(data.registryId)) {
-		throw new Errors.ValidationError('Property registryId should be of type Number.');
-	} else {
-		for (let image in data.images) {
-			_validateFogTypeId(image.fogTypeId);
-		}
+const catalogItemSchema = {
+	"id": "/catalogItem",
+	"type": "object",
+	"properties": {
+		"name": {"type": "string"},
+		"description": {"type": "string"},
+		"category": {"type": "string"},
+		"publisher": {"type": "string"},
+		"diskRequired": {"type": "integer"},
+		"ramRequired": {"type": "integer"},
+		"picture": {"type": "string"},
+		"isPublic": {"type": "boolean"},
+		"registryId": {"type": "integer"},
+		"configExample": {"type": "string"},
+		"images": {
+			"type": "array",
+			"maxItems": 2,
+			"items": {"$ref": "/image"}},
+		"inputType": {"$ref": "/type"},
+		"outputType": {"$ref": "/type"}
 	}
 };
 
-const _validateFogTypeId = function (fogTypeId) {
-	if (!AppHelper.isValidNumber(fogTypeId)) {
-		throw new Errors.ValidationError('Property fogTypeId is of invalid typel')
-	}else if (fogTypeId < 0 || fogTypeId > 2) {
-		throw new Errors.ValidationError('Property fogTypeId is invalid.')
-	}
+const image = {
+	"id": "/image",
+	"type": "object",
+	"properties": {
+		"containerImage": {"type": "string"},
+		"fogTypeId":
+			{"type": "integer",
+				"minimum": 0,
+				"maximum": 2
+			}
+	},
+	"required": ["containerImage", "fogTypeId"]
+};
+
+const type = {
+	"id": "/type",
+	"type": "object",
+	"properties": {
+		"infoType": {"type": "string"},
+		"infoFormat": {"type": "string"}
+	},
+	"required": ["infoType", "infoFormat"]
 };
 
 module.exports = {
