@@ -37,7 +37,7 @@ class EmailActivationCodeManager extends BaseManager {
     AppHelper.checkTransaction(transaction);
 
     return EmailActivationCode.create({
-      user_id: userId,
+      userId: userId,
       activationCode: activationCode,
       expirationTime: expirationTime
     }, {
