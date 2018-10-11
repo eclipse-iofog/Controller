@@ -18,14 +18,15 @@ const Errors = require('../helpers/errors')
 const ObjBuilder = require('../helpers/object-builder')
 
 const _createFlow = async function (flowData, user, transaction) {
-  const flowToCreate = {
-    name: flowData.name,
-    description: flowData.description,
-    is_activated: flowData.isActivated,
-    is_selected: flowData.isSelected,
-    user_id: user.id,
-    updated_by: user.id
-  };
+  const obj = new ObjBuilder()
+  const flowToCreate = obj
+    .pushFieldIfValExists('name', flowData.name)
+    .pushFieldIfValExists('description', flowData.description)
+    .pushFieldIfValExists('isActivated', AppHelper.validateFlowActive(flowData.isActivated))
+    .pushFieldIfValExists('isSelected', AppHelper.validateFlowSelected(flowData.isSelected))
+    .pushFieldIfValExists('updatedBy', user.id)
+    .pushFieldIfValExists('userId', user.id)
+    .popObj()
 
   const flow = await FlowManager.findOne({
     name: flowData.name
@@ -47,9 +48,11 @@ const createFlow = async function (flowData, user, transaction) {
 };
 
 const _deleteFlow = async function (flowId, transaction) {
-  const flow = await _getFlow(flowId, transaction);
+  await _getFlow(flowId, transaction)
 
-  return await FlowManager.delete(flow, transaction)
+  return await FlowManager.delete({
+    id: flowId
+  }, transaction)
 };
 
 const deleteFlow = async function (flowId, transaction) {
@@ -57,9 +60,11 @@ const deleteFlow = async function (flowId, transaction) {
 };
 
 const _updateFlow = async function (flowData, flowId, transaction) {
-  const flow = await _getFlow(flowId, transaction);
+  await _getFlow(flowId, transaction)
 
-  return await FlowManager.update(flow, flowData, transaction)
+  return await FlowManager.update({
+    id: flowId
+  }, flowData, transaction)
 };
 
 const updateFlow = async function (flowData, flowId, user, transaction) {
@@ -67,9 +72,9 @@ const updateFlow = async function (flowData, flowId, user, transaction) {
   const flow = obj
     .pushFieldIfValExists('name', flowData.name)
     .pushFieldIfValExists('description', flowData.description)
-    .pushFieldIfValExists('is_activated', AppHelper.validateFlowActive(flowData.isActivated))
-    .pushFieldIfValExists('is_selected', AppHelper.validateFlowSelected(flowData.isSelected))
-    .pushFieldIfValExists('updated_by', user.id)
+    .pushFieldIfValExists('isActivated', AppHelper.validateFlowActive(flowData.isActivated))
+    .pushFieldIfValExists('isSelected', AppHelper.validateFlowSelected(flowData.isSelected))
+    .pushFieldIfValExists('updatedBy', user.id)
     .popObj()
 
   return await _updateFlow(flow, flowId, transaction)

@@ -19,7 +19,7 @@ module.exports = (sequelize, DataTypes) => {
     },
     isActivated: {
       type: DataTypes.BOOLEAN,
-      field: 'is_activated'
+      field: 'is_activated',
     },
     isSelected: {
       type: DataTypes.BOOLEAN,

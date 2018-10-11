@@ -33,7 +33,7 @@ module.exports = [
         }
       ];
 
-      const getFlowsByUserEndPoint = ResponseDecorator.handleErrors(FlowController.getFlowsByUserEndPoint(req), successCode, errorCodes)
+      const getFlowsByUserEndPoint = ResponseDecorator.handleErrors(FlowController.getFlowsByUserEndPoint, successCode, errorCodes)
       const responseObject = await getFlowsByUserEndPoint(req)
 
       res
@@ -91,7 +91,7 @@ module.exports = [
         }
       ];
 
-      const getFlowEndPoint = ResponseDecorator.handleErrors(FlowController.getFlowEndPoint(req), successCode, errorCodes)
+      const getFlowEndPoint = ResponseDecorator.handleErrors(FlowController.getFlowEndPoint, successCode, errorCodes)
       const responseObject = await getFlowEndPoint(req)
 
       res
@@ -124,12 +124,12 @@ module.exports = [
         }
       ];
 
-      const updateFlowEndPoint = ResponseDecorator.handleErrors(FlowController.updateFlowEndPoint(req), successCode, errorCodes)
+      const updateFlowEndPoint = ResponseDecorator.handleErrors(FlowController.updateFlowEndPoint, successCode, errorCodes)
       const responseObject = await updateFlowEndPoint(req)
 
       res
         .status(responseObject.code)
-        .send()
+        .send(responseObject.body)
     }
   },
   {
@@ -153,12 +153,12 @@ module.exports = [
         }
       ];
 
-      const deleteFlowEndPoint = ResponseDecorator.handleErrors(FlowController.deleteFlowEndPoint(req), successCode, errorCodes)
+      const deleteFlowEndPoint = ResponseDecorator.handleErrors(FlowController.deleteFlowEndPoint, successCode, errorCodes)
       const responseObject = await deleteFlowEndPoint(req)
 
       res
         .status(responseObject.code)
-        .send()
+        .send(responseObject.body)
     }
   }
 ];

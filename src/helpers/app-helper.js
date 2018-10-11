@@ -100,7 +100,7 @@ function isValidEmailActivation(flag) {
 }
 
 function isValidBoolean (flag) {
-    return flag === 'true' || flag === 'false';
+    return flag === true || flag === false;
 }
 
 function generateAccessToken() {
@@ -118,7 +118,7 @@ function checkTransaction(transaction) {
 }
 
 function validateFlowActive(isActive) {
-  if (!isValidBoolean(isActive)) {
+  if (isActive !== undefined && !isValidBoolean(isActive)) {
     throw new Errors.ValidationError("Bad Request: Field \"isActivated\" permits only \"true\" or \"false\" values")
   }
 
@@ -126,7 +126,7 @@ function validateFlowActive(isActive) {
 }
 
 function validateFlowSelected(isSelected) {
-  if (!isValidBoolean(isSelected)) {
+  if (isSelected !== undefined && !isValidBoolean(isSelected)) {
     throw new Errors.ValidationError("Bad Request: Field \"isSelected\" permits only \"true\" or \"false\" values")
   }
 
