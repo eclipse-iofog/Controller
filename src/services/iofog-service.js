@@ -130,6 +130,16 @@ async function _getFog(getFog, user, transaction) {
   return fog
 }
 
+async function _getFogList(filters, user, transaction) {
+  const queryFogData = {
+    userId: user.id
+  }
+
+  let fogs = await FogManager.findAll(queryFogData, transaction)
+  fogs = _filterFogs(fogs, filters)
+  return fogs
+}
+
 async function _generateProvisioningKey(fogData, user, transaction) {
   AppHelper.validateFields(fogData, ['uuid'])
 
@@ -199,6 +209,32 @@ async function _setFogRebootCommand(fogData, user, transaction) {
   await ChangeTrackingManager.updateOrCreate({iofogUuid: fogData.uuid}, newRebootCommand, transaction)
 }
 
+function _filterFogs(fogs, filters) {
+  if (!filters) {
+    return fogs
+  }
+
+  const filtered = []
+  fogs.forEach((fog) => {
+    let isMatchFog = true
+    filters.some((filter) => {
+      let fld = filter.key,
+          val = filter.value,
+          condition = filter.condition;
+      let isMatchField = (condition === 'equals' && fog[fld] && fog[fld] === val)
+        || (condition === 'has' && fog[fld] && fog[fld].includes(val));
+      if (!isMatchField) {
+        isMatchFog = false;
+        return false
+      }
+    })
+    if (isMatchFog) {
+      filtered.push(fog)
+    }
+  })
+  return filtered
+}
+
 function _validateLatLon(lat, lon) {
   if (lat && lon) {
     if (lat > 90 || lat < -90
@@ -219,6 +255,7 @@ module.exports = {
   updateFogWithTransaction: TransactionDecorator.generateTransaction(_updateFog),
   deleteFogWithTransaction: TransactionDecorator.generateTransaction(_deleteFog),
   getFogWithTransaction: TransactionDecorator.generateTransaction(_getFog),
+  getFogListWithTransaction: TransactionDecorator.generateTransaction(_getFogList),
   generateProvisioningKeyWithTransaction: TransactionDecorator.generateTransaction(_generateProvisioningKey),
   setFogVersionCommandWithTransaction: TransactionDecorator.generateTransaction(_setFogVersionCommand),
   setFogRebootCommandWithTransaction: TransactionDecorator.generateTransaction(_setFogRebootCommand)

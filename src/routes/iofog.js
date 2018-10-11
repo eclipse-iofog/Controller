@@ -18,11 +18,26 @@ const Errors = require('../helpers/errors')
 module.exports = [
   {
     method: 'post',
-    path: '/api/v3/iofog/list',
-    middleware: (req, res) => {
+    path: '/api/v3/iofog-list',
+    middleware: async (req, res) => {
+      const successCode = constants.HTTP_CODE_SUCCESS
+      const errCodes = [
+        {
+          code: 400,
+          errors: [Errors.ValidationError]
+        },
+        {
+          code: 401,
+          errors: [Errors.AuthenticationError]
+        }
+      ]
+
+      const getFogList = ResponseDecorator.handleErrors(FogController.getFogList, successCode, errCodes)
+      const responseObject = await getFogList(req)
+
       res
-        .status(constants.HTTP_CODE_SUCCESS)
-        .send(req.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
     }
   },
   {

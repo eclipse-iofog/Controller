@@ -58,7 +58,7 @@ paths:
           description: Not Authorized
         '500':
           description: Internal Server Error
-  '/iofog/list':
+  '/iofog-list':
     post:
       tags:
       - ioFog

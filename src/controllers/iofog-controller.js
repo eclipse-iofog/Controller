@@ -42,6 +42,12 @@ async function _getFog(req, user) {
   return await FogService.getFogWithTransaction(getFog, user)
 }
 
+async function _getFogList(req, user) {
+  logger.info("Parameters:" + JSON.stringify(req.body));
+  const filters = Array.from(req.body)
+  return await FogService.getFogListWithTransaction(filters, user)
+}
+
 async function _generateProvisioningKey(req, user) {
   logger.info("Parameters:" + JSON.stringify(req.body));
   const fog = {}
@@ -69,6 +75,7 @@ module.exports = {
   updateFog: AuthDecorator.checkAuthToken(_updateFog),
   deleteFog: AuthDecorator.checkAuthToken(_deleteFog),
   getFog: AuthDecorator.checkAuthToken(_getFog),
+  getFogList: AuthDecorator.checkAuthToken(_getFogList),
   generateProvisioningKey: AuthDecorator.checkAuthToken(_generateProvisioningKey),
   setFogVersionCommand: AuthDecorator.checkAuthToken(_setFogVersionCommand),
   setFogRebootCommand: AuthDecorator.checkAuthToken(_setFogRebootCommand),
