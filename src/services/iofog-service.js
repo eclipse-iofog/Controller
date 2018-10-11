@@ -18,10 +18,10 @@ const FogProvisionKeyManager = require('../sequelize/managers/iofog-provision-ke
 const FogVersionCommandManager = require('../sequelize/managers/iofog-version-command-manager')
 const ChangeTrackingManager = require('../sequelize/managers/change-tracking-manager')
 const Errors = require('../helpers/errors')
+const Validator = require('../schemas')
 
 async function _createFog(fogData, user, transaction) {
-  AppHelper.validateFields(fogData, ['name', 'fogType'])
-  _validateLatLon(fogData.latitude, fogData.longitude)
+  await Validator.validate(fogData, Validator.schemas.iofogCreate)
 
   let createFogData = {
     uuid: fogData.uuid ? fogData.uuid : AppHelper.generateRandomString(32),
@@ -60,8 +60,7 @@ async function _createFog(fogData, user, transaction) {
 }
 
 async function _updateFog(fogData, user, transaction) {
-  AppHelper.validateFields(fogData, ['uuid'])
-  _validateLatLon(fogData.latitude, fogData.longitude)
+  await Validator.validate(fogData, Validator.schemas.iofogUpdate)
 
   const queryFogData = {
     uuid: fogData.uuid,
@@ -101,7 +100,7 @@ async function _updateFog(fogData, user, transaction) {
 }
 
 async function _deleteFog(fogData, user, transaction) {
-  AppHelper.validateFields(fogData, ['uuid'])
+  await Validator.validate(fogData, Validator.schemas.iofogDelete)
 
   const queryFogData = {
     uuid: fogData.uuid,
@@ -115,11 +114,11 @@ async function _deleteFog(fogData, user, transaction) {
   await FogManager.delete(queryFogData, transaction)
 }
 
-async function _getFog(getFog, user, transaction) {
-  AppHelper.validateFields(getFog, ['uuid'])
+async function _getFog(fogData, user, transaction) {
+  await Validator.validate(fogData, Validator.schemas.iofogGet)
 
   const queryFogData = {
-    uuid: getFog.uuid,
+    uuid: fogData.uuid,
     userId: user.id
   }
 
@@ -131,6 +130,8 @@ async function _getFog(getFog, user, transaction) {
 }
 
 async function _getFogList(filters, user, transaction) {
+  await Validator.validate(filters, Validator.schemas.iofogFilters)
+
   const queryFogData = {
     userId: user.id
   }
@@ -141,7 +142,7 @@ async function _getFogList(filters, user, transaction) {
 }
 
 async function _generateProvisioningKey(fogData, user, transaction) {
-  AppHelper.validateFields(fogData, ['uuid'])
+  await Validator.validate(fogData, Validator.schemas.iofogGenerateProvision)
 
   const queryFogData = {
     uuid: fogData.uuid,
@@ -169,8 +170,7 @@ async function _generateProvisioningKey(fogData, user, transaction) {
 }
 
 async function _setFogVersionCommand(fogVersionData, user, transaction) {
-  AppHelper.validateFields(fogVersionData, ['uuid', 'versionCommand'])
-  _validateVersionCommand(fogVersionData.versionCommand)
+  await Validator.validate(fogVersionData, Validator.schemas.iofogSetVersionCommand)
 
   const queryFogData = {
     uuid: fogVersionData.uuid,
@@ -190,7 +190,7 @@ async function _setFogVersionCommand(fogVersionData, user, transaction) {
 }
 
 async function _setFogRebootCommand(fogData, user, transaction) {
-  AppHelper.validateFields(fogData, ['uuid'])
+  await Validator.validate(fogData, Validator.schemas.iofogReboot)
 
   const queryFogData = {
     uuid: fogData.uuid,
@@ -233,21 +233,6 @@ function _filterFogs(fogs, filters) {
     }
   })
   return filtered
-}
-
-function _validateLatLon(lat, lon) {
-  if (lat && lon) {
-    if (lat > 90 || lat < -90
-      || lon > 180 || lon < -180) {
-      throw new Errors.ValidationError('incorrect gps coordinates')
-    }
-  }
-}
-
-function _validateVersionCommand(command) {
-  if (command !== 'upgrade' && command !== 'rollback') {
-    throw new Errors.ValidationError('incorrect version command')
-  }
 }
 
 module.exports = {
