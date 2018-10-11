@@ -219,7 +219,7 @@ paths:
           description: Invalid Node Id
         '500':
           description: Internal Server Error
-  '/iofog/{uuid}/provisioning-key':
+  '/iofog/{id}/provisioning-key':
     get:
       tags:
         - ioFog
@@ -251,7 +251,7 @@ paths:
           description: Invalid Node Id
         '500':
           description: Internal Server Error
-  '/iofog/{uuid}/version/{versionCommand}':
+  '/iofog/{id}/version/{versionCommand}':
     post:
       tags:
         - ioFog
@@ -276,34 +276,6 @@ paths:
           enum:
             - upgrade
             - rollback
-      responses:
-        201:
-          description: Success
-          headers:
-            X-Timestamp:
-              type: number
-              description: FogController server timestamp
-        401:
-          description: Not Authorized
-        500:
-          description: Internal Server Error
-  '/iofog/{uuid}/reboot':
-    post:
-      tags:
-      - ioFog
-      description: remote reboot fog agent
-      operationId: setRebootCommand
-      parameters:
-      - in: header
-        name: Authorization
-        description: User Token
-        required: true
-        type: string
-      - in: path
-        name: id
-        description: ioFog node id
-        required: true
-        type: string
       responses:
         201:
           description: Success
@@ -340,7 +312,7 @@ paths:
           description: Invalid Provisioning Key
         '500':
           description: Internal Server Error
-  '/iofog/{uuid}/agent/config':
+  '/iofog/{id}/agent/config':
     get:
       tags:
         - Agent
@@ -408,7 +380,7 @@ paths:
           description: Invalid Node Id
         '500':
           description: Internal Server Error
-  '/iofog/{uuid}/agent/config/changes':
+  '/iofog/{id}/agent/config/changes':
     get:
       tags:
         - Agent
@@ -447,7 +419,7 @@ paths:
           description: Invalid Node Id
         '500':
           description: Internal Server Error
-  '/iofog/{uuid}/agent/status':
+  '/iofog/{id}/agent/status':
     put:
       tags:
         - Agent
@@ -484,7 +456,7 @@ paths:
           description: Invalid Node Id
         '500':
           description: Internal Server Error
-  '/iofog/{uuid}/agent/microservices':
+  '/iofog/{id}/agent/microservices':
     get:
       tags:
         - Agent
@@ -553,7 +525,7 @@ paths:
           description: Invalid Node Id
         '500':
           description: Internal Server Error
-  '/iofog/{uuid}/agent/registries':
+  '/iofog/{id}/agent/registries':
     get:
       tags:
         - Agent
@@ -585,7 +557,7 @@ paths:
           description: Invalid Node Id
         '500':
           description: Internal Server Error
-  '/iofog/{uuid}/agent/proxy':
+  '/iofog/{id}/agent/proxy':
     get:
       tags:
         - Agent
@@ -617,7 +589,7 @@ paths:
           description: Invalid Node Id
         '500':
           description: Internal Server Error
-  '/iofog/{uuid}/agent/strace':
+  '/iofog/{id}/agent/strace':
     get:
       tags:
         - Agent
@@ -1473,7 +1445,7 @@ paths:
           description: Invalid Microservice Id
         '500':
           description: Internal Server Error
-  '/iofog/{uuid}/tunnel':
+  '/iofog/{id}/tunnel':
     post:
       tags:
         - Tunnel
@@ -2093,7 +2065,13 @@ definitions:
       bluetoothEnabled:
         type: boolean
         default: false
+      watchdogEnabled:
+        type: boolean
+        default: true
       abstractedHardwareEnabled:
+        type: boolean
+        default: false
+      reboot:
         type: boolean
         default: false
       fogType:
@@ -2511,7 +2489,7 @@ definitions:
     properties:
       containerImage:
         type: string
-      iofogTypeId:
+      fogTypeId:
         type: number
         enum:
           - 1
@@ -2525,7 +2503,7 @@ definitions:
         type: string
       category:
         type: string
-      containerImages:
+      images:
         $ref: '#/definitions/ElementContainerImages'
       publisher:
         type: string
@@ -2540,13 +2518,9 @@ definitions:
       registryId:
         type: number
       inputType:
-        type: string
-      inputFormat:
-        type: string
+        $ref: '#/definitions/InfoTypeResponse'
       outputType:
-        type: string
-      outputFormat:
-        type: string
+        $ref: '#/definitions/InfoTypeResponse'
       configExample:
         type: string
   GetFlowsResponse:

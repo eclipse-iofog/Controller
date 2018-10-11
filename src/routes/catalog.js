@@ -116,10 +116,30 @@ module.exports = [
   {
     method: 'delete',
     path: '/api/v3/catalog/microservices/:id',
-    middleware: (req, res) => {
-      res
-        .status(constants.HTTP_CODE_SUCCESS)
-        .send(req.body)
+    middleware: async (req, res) => {
+
+	    const successCode = constants.HTTP_CODE_NO_CONTENT;
+	    const errorCodes = [
+		    {
+			    code: constants.HTTP_CODE_UNAUTHORIZED,
+			    errors: [Errors.AuthenticationError]
+		    },
+		    {
+			    code: constants.HTTP_CODE_NOT_FOUND,
+			    errors: [Errors.NotFoundError]
+		    }
+	    ];
+
+	    const deleteCatalogItemEndPoint = ResponseDecorator.handleErrors(
+		    CatalogController.deleteCatalogItemEndPoint,
+		    successCode,
+		    errorCodes
+	    );
+	    const response = await deleteCatalogItemEndPoint(req);
+
+	    res
+		    .status(response.code)
+		    .send(response.body)
     }
   }
 ]

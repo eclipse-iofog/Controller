@@ -12,8 +12,9 @@
  */
 
 const BaseManager = require('./base-manager');
-const models = require('./../models');
 const Errors = require('../../helpers/errors');
+const AppHelper = require('../../helpers/app-helper');
+const models = require('./../models');
 const CatalogItem = models.CatalogItem;
 const CatalogItemImage = models.CatalogItemImage;
 const CatalogItemInputType = models.CatalogItemInputType;
@@ -32,7 +33,7 @@ class CatalogItemManager extends BaseManager {
 					model: CatalogItemImage,
 					as: 'images',
 					required: false,
-					attributes: ['containerImage', 'iofogTypeId']
+					attributes: ['containerImage', 'fogTypeId']
 				},
 				{
 					model: CatalogItemInputType,
@@ -60,7 +61,7 @@ class CatalogItemManager extends BaseManager {
 					model: CatalogItemImage,
 					as: 'images',
 					required: false,
-					attributes: ['containerImage', 'iofogTypeId']
+					attributes: ['containerImage', 'fogTypeId']
 				},
 				{
 					model: CatalogItemInputType,
@@ -84,6 +85,21 @@ class CatalogItemManager extends BaseManager {
 				throw new Errors.NotFoundError("Invalid catalog item id");
 			}
 			return item;
+		})
+	}
+
+	deleteCatalogItemById(catalogItemId, userId, transaction) {
+		AppHelper.checkTransaction(transaction);
+		return CatalogItem.destroy({
+			where: {
+				user_id: userId,
+				id: catalogItemId
+			}
+		}, transaction).then(affectedRows => {
+			if (affectedRows === 0) {
+				throw new Errors.NotFoundError("Invalid catalog item id");
+			}
+			return affectedRows;
 		})
 	}
 }
