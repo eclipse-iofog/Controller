@@ -42,9 +42,9 @@ async function _createFog(fogData, user, transaction) {
     statusFrequency: fogData.statusFrequency,
     changeFrequency: fogData.changeFrequency,
     deviceScanFrequency: fogData.deviceScanFrequency,
-    bluetooth: fogData.bluetoothEnabled,
-    isolatedDockerContainer: fogData.watchdogEnabled,
-    hal: fogData.abstractedHardwareEnabled,
+    bluetoothEnabled: fogData.bluetoothEnabled,
+    watchdogEnabled: fogData.watchdogEnabled,
+    abstractedHardwareEnabled: fogData.abstractedHardwareEnabled,
     fogTypeId: fogData.fogType,
     userId: user.id
   }
@@ -86,9 +86,9 @@ async function _updateFog(fogData, user, transaction) {
     statusFrequency: fogData.statusFrequency,
     changeFrequency: fogData.changeFrequency,
     deviceScanFrequency: fogData.deviceScanFrequency,
-    bluetooth: fogData.bluetoothEnabled,
-    isolatedDockerContainer: fogData.watchdogEnabled,
-    hal: fogData.abstractedHardwareEnabled,
+    bluetoothEnabled: fogData.bluetoothEnabled,
+    watchdogEnabled: fogData.watchdogEnabled,
+    abstractedHardwareEnabled: fogData.abstractedHardwareEnabled,
     fogTypeId: fogData.fogType,
   }
   updateFogData = AppHelper.deleteUndefinedFields(updateFogData)

@@ -2020,11 +2020,11 @@ definitions:
         type: number
       logDirectory:
         type: string
-      bluetooth:
+      bluetoothEnabled:
         type: boolean
-      hal:
+      abstractedHardwareEnabled:
         type: boolean
-      isolatedDockerContainer:
+      watchdogEnabled:
         type: boolean
       logFileCount:
         type: number
@@ -2099,6 +2099,9 @@ definitions:
       bluetoothEnabled:
         type: boolean
         default: false
+      watchdogEnabled:
+        type: boolean
+        default: true
       abstractedHardwareEnabled:
         type: boolean
         default: false
@@ -2195,7 +2198,7 @@ definitions:
         type: number
       scanDevicesFreq:
         type: number
-      isolatedDockerContainer:
+      watchdogEnabled:
         type: boolean
       gpsCoordinates:
         $ref: '#/definitions/GpsCoordinates'
@@ -2226,7 +2229,7 @@ definitions:
         type: number
       scanDevicesFreq:
         type: number
-      isolatedDockerContainer:
+      watchdogEnabled:
         type: boolean
       gpsCoordinates:
         $ref: '#/definitions/GpsCoordinates'
