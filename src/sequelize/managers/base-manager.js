@@ -1,17 +1,18 @@
 /*
- * *******************************************************************************
- *  * Copyright (c) 2018 Edgeworx, Inc.
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
+* *******************************************************************************
+*  * Copyright (c) 2018 Edgeworx, Inc.
+*  *
+*  * This program and the accompanying materials are made available under the
+*  * terms of the Eclipse Public License v. 2.0 which is available at
+*  * http://www.eclipse.org/legal/epl-2.0
+*  *
+*  * SPDX-License-Identifier: EPL-2.0
+*  *******************************************************************************
+*
+*/
 
 const AppHelper = require('../../helpers/app-helper');
+const Errors = require('../../helpers/errors')
 
 module.exports = class BaseManager {
 
@@ -74,4 +75,16 @@ module.exports = class BaseManager {
     )
   }
 
+  async updateOrCreate(whereData, data, transaction) {
+    AppHelper.checkTransaction(transaction);
+
+    const obj = await this.findOne(whereData, transaction)
+    if (obj) {
+      await this.update(whereData, data, transaction)
+      return this.findOne(whereData, transaction)
+    } else {
+      return this.create(data, transaction)
+    }
+
+  }
 };
