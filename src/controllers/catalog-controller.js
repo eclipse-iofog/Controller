@@ -29,11 +29,7 @@ const createCatalogItemEndPoint = async function (req, user) {
 			"category": {"type": "string"},
 			"publisher": {"type": "string"},
 			"diskRequired": {"type": "integer"},
-			"ramRequired":
-				{
-					"type": "integer",
-					"required": true
-				},
+			"ramRequired": {"type": "integer"},
 			"picture": {"type": "string"},
 			"isPublic": {"type": "boolean"},
 			"registryId": {"type": "integer"},
@@ -45,7 +41,8 @@ const createCatalogItemEndPoint = async function (req, user) {
 				"items": {"$ref": "/image"}},
 			"inputType": {"$ref": "/type"},
 			"outputType": {"$ref": "/type"}
-		}
+		},
+		"required": ["name", ]
 	};
 
 	const image = {
