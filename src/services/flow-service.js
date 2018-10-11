@@ -39,7 +39,7 @@ const _createFlow = async function (flowData, user, transaction) {
 const _deleteFlow = async function (flowId, transaction) {
   await _getFlow(flowId, transaction);
 
-  return await FlowManager.delete({
+  await FlowManager.delete({
     id: flowId
   }, transaction)
 };
