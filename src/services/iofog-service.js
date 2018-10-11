@@ -18,7 +18,6 @@ const FogProvisionKeyManager = require('../sequelize/managers/iofog-provision-ke
 const FogVersionCommandManager = require('../sequelize/managers/iofog-version-command-manager')
 const ChangeTrackingManager = require('../sequelize/managers/change-tracking-manager')
 const Errors = require('../helpers/errors')
-const ObjBuilder = require('../helpers/object-builder')
 
 async function _createFog(fogData, user, transaction) {
   AppHelper.validateFields(fogData, ['name', 'fogType'])
