@@ -113,6 +113,20 @@ function checkTransaction(transaction) {
   }
 }
 
+function deleteUndefinedFields(obj) {
+  if (!obj) {
+    return
+  }
+  Object.keys(obj).forEach((fld) => {
+    if (obj[fld] === undefined) {
+      delete  obj[fld]
+    } else if (obj[fld] instanceof Object) {
+      obj[fld] = deleteUndefinedFields(obj[fld])
+    }
+  })
+  return obj
+}
+
 module.exports = {
   encryptText,
   decryptText,
@@ -125,5 +139,6 @@ module.exports = {
   isValidEmailActivation,
   checkPortAvailability,
   generateAccessToken,
-  checkTransaction
+  checkTransaction,
+  deleteUndefinedFields
 };

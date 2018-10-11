@@ -24,33 +24,32 @@ async function _createFog(fogData, user, transaction) {
   AppHelper.validateFields(fogData, ['name', 'fogType'])
   _validateLatLon(fogData.latitude, fogData.longitude)
 
-  const ob = new ObjBuilder()
-  const createFogData = ob
-    .pushRequiredFieldWithCondition('uuid', fogData.uuid, fogData.uuid, AppHelper.generateRandomString(32))
-    .pushFieldIfValExists('name', fogData.name)
-    .pushFieldIfValExists('location', fogData.location)
-    .pushFieldIfValExists('latitude', fogData.latitude)
-    .pushFieldIfValExists('longitude', fogData.longitude)
-    .pushOptionalFieldWithCondition('gpsMode', fogData.latitude || fogData.longitude, 'manual')
-    .pushFieldIfValExists('description', fogData.description)
-    .pushFieldIfValExists('dockerUrl', fogData.dockerUrl)
-    .pushFieldIfValExists('diskLimit', fogData.diskLimit)
-    .pushFieldIfValExists('diskDirectory', fogData.diskDirectory)
-    .pushFieldIfValExists('memoryLimit', fogData.memoryLimit)
-    .pushFieldIfValExists('cpuLimit', fogData.cpuLimit)
-    .pushFieldIfValExists('logLimit', fogData.logLimit)
-    .pushFieldIfValExists('logLimit', fogData.logLimit)
-    .pushFieldIfValExists('logDirectory', fogData.logDirectory)
-    .pushFieldIfValExists('logFileCount', fogData.logFileCount)
-    .pushFieldIfValExists('statusFrequency', fogData.statusFrequency)
-    .pushFieldIfValExists('changeFrequency', fogData.changeFrequency)
-    .pushFieldIfValExists('deviceScanFrequency', fogData.deviceScanFrequency)
-    .pushFieldIfValExists('bluetooth', fogData.bluetoothEnabled)
-    .pushFieldIfValExists('isolatedDockerContainer', fogData.watchdogEnabled)
-    .pushFieldIfValExists('hal', fogData.abstractedHardwareEnabled)
-    .pushFieldIfValExists('fogTypeId', fogData.fogType)
-    .pushFieldIfValExists('userId', user.id)
-    .popObj()
+  let createFogData = {
+    uuid: fogData.uuid ? fogData.uuid : AppHelper.generateRandomString(32),
+    name: fogData.name,
+    location: fogData.location,
+    latitude: fogData.latitude,
+    longitude: fogData.longitude,
+    gpsMode: fogData.latitude || fogData.longitude ? 'manual' : undefined,
+    description: fogData.description,
+    dockerUrl: fogData.dockerUrl,
+    diskLimit: fogData.diskLimit,
+    diskDirectory: fogData.diskDirectory,
+    memoryLimit: fogData.memoryLimit,
+    cpuLimit: fogData.cpuLimit,
+    logLimit: fogData.logLimit,
+    logDirectory: fogData.logDirectory,
+    logFileCount: fogData.logFileCount,
+    statusFrequency: fogData.statusFrequency,
+    changeFrequency: fogData.changeFrequency,
+    deviceScanFrequency: fogData.deviceScanFrequency,
+    bluetooth: fogData.bluetoothEnabled,
+    isolatedDockerContainer: fogData.watchdogEnabled,
+    hal: fogData.abstractedHardwareEnabled,
+    fogTypeId: fogData.fogType,
+    userId: user.id
+  }
+  createFogData = AppHelper.deleteUndefinedFields(createFogData)
 
   const fog = await FogManager.create(createFogData, transaction)
 
@@ -70,31 +69,30 @@ async function _updateFog(fogData, user, transaction) {
     userId: user.id
   }
 
-  const ob = new ObjBuilder()
-  const updateFogData = ob
-    .pushFieldIfValExists('name', fogData.name)
-    .pushFieldIfValExists('location', fogData.location)
-    .pushFieldIfValExists('latitude', fogData.latitude)
-    .pushFieldIfValExists('longitude', fogData.longitude)
-    .pushOptionalFieldWithCondition('gpsMode', fogData.latitude || fogData.longitude, 'manual')
-    .pushFieldIfValExists('description', fogData.description)
-    .pushFieldIfValExists('dockerUrl', fogData.dockerUrl)
-    .pushFieldIfValExists('diskLimit', fogData.diskLimit)
-    .pushFieldIfValExists('diskDirectory', fogData.diskDirectory)
-    .pushFieldIfValExists('memoryLimit', fogData.memoryLimit)
-    .pushFieldIfValExists('cpuLimit', fogData.cpuLimit)
-    .pushFieldIfValExists('logLimit', fogData.logLimit)
-    .pushFieldIfValExists('logLimit', fogData.logLimit)
-    .pushFieldIfValExists('logDirectory', fogData.logDirectory)
-    .pushFieldIfValExists('logFileCount', fogData.logFileCount)
-    .pushFieldIfValExists('statusFrequency', fogData.statusFrequency)
-    .pushFieldIfValExists('changeFrequency', fogData.changeFrequency)
-    .pushFieldIfValExists('deviceScanFrequency', fogData.deviceScanFrequency)
-    .pushFieldIfValExists('bluetooth', fogData.bluetoothEnabled)
-    .pushFieldIfValExists('isolatedDockerContainer', fogData.watchdogEnabled)
-    .pushFieldIfValExists('hal', fogData.abstractedHardwareEnabled)
-    .pushFieldIfValExists('fogTypeId', fogData.fogType)
-    .popObj()
+  let updateFogData = {
+    name: fogData.name,
+    location: fogData.location,
+    latitude: fogData.latitude,
+    longitude: fogData.longitude,
+    gpsMode: fogData.latitude || fogData.longitude ? 'manual' : undefined,
+    description: fogData.description,
+    dockerUrl: fogData.dockerUrl,
+    diskLimit: fogData.diskLimit,
+    diskDirectory: fogData.diskDirectory,
+    memoryLimit: fogData.memoryLimit,
+    cpuLimit: fogData.cpuLimit,
+    logLimit: fogData.logLimit,
+    logDirectory: fogData.logDirectory,
+    logFileCount: fogData.logFileCount,
+    statusFrequency: fogData.statusFrequency,
+    changeFrequency: fogData.changeFrequency,
+    deviceScanFrequency: fogData.deviceScanFrequency,
+    bluetooth: fogData.bluetoothEnabled,
+    isolatedDockerContainer: fogData.watchdogEnabled,
+    hal: fogData.abstractedHardwareEnabled,
+    fogTypeId: fogData.fogType,
+  }
+  updateFogData = AppHelper.deleteUndefinedFields(updateFogData)
 
   const fog = await FogManager.findOne(queryFogData, transaction)
   if (!fog) {
