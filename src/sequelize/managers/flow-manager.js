@@ -4,7 +4,7 @@ const Flow = models.Flow;
 
 class FlowManager extends BaseManager {
     getEntity() {
-        return Flow;
+        return Flow
     }
 }
 

@@ -117,6 +117,22 @@ function checkTransaction(transaction) {
   }
 }
 
+function deleteUndefinedFields(obj) {
+  if (!obj) {
+    return
+  }
+
+  Object.keys(obj).forEach((fld) => {
+    if (obj[fld] === undefined) {
+      delete  obj[fld]
+    } else if (obj[fld] instanceof Object) {
+      obj[fld] = deleteUndefinedFields(obj[fld])
+    }
+  })
+
+  return obj
+}
+
 function validateFlowActive(isActive) {
   if (isActive !== undefined && !isValidBoolean(isActive)) {
     throw new Errors.ValidationError("Bad Request: Field \"isActivated\" permits only \"true\" or \"false\" values")
@@ -148,5 +164,6 @@ module.exports = {
   validateFlowSelected,
   checkPortAvailability,
   generateAccessToken,
-  checkTransaction
+  checkTransaction,
+  deleteUndefinedFields
 };

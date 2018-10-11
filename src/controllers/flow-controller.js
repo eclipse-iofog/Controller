@@ -11,14 +11,14 @@
  *
  */
 
-const logger = require('../logger')
-const AuthDecorator = require('./../decorators/authorization-decorator')
-const FlowService = require('../services/flow-service')
+const logger = require('../logger');
+const AuthDecorator = require('./../decorators/authorization-decorator');
+const FlowService = require('../services/flow-service');
 
 const _createFlowEndPoint = async function (req, user) {
-  logger.info("Parameters:" + JSON.stringify(req.body))
+  logger.info("Parameters:" + JSON.stringify(req.body));
 
-  const flow = req.body
+  const flow = req.body;
 
   return await FlowService.createFlow(flow, user)
 };
@@ -30,7 +30,7 @@ const _getFlowsByUserEndPoint = async function (req, user) {
 const _getFlowEndPoint = async function (req, user) {
   logger.info("Flow id:" + JSON.stringify(req.params.id))
 
-  const flowId = req.params.id
+  const flowId = req.params.id;
 
   return await FlowService.getFlow(flowId)
 };
@@ -39,8 +39,8 @@ const _updateFlowEndPoint = async function (req, user) {
   logger.info("Parameters:" + JSON.stringify(req.body))
   logger.info("Flow id:" + JSON.stringify(req.params.id))
 
-  const flow = req.body
-  const flowId = req.params.id
+  const flow = req.body;
+  const flowId = req.params.id;
 
   return await FlowService.updateFlow(flow, flowId, user)
 };
@@ -48,7 +48,7 @@ const _updateFlowEndPoint = async function (req, user) {
 const _deleteFlowEndPoint = async function (req, user) {
   logger.info("Flow id:" + JSON.stringify(req.params.id))
 
-  const flowId = req.params.id
+  const flowId = req.params.id;
 
   return await FlowService.deleteFlow(flowId)
 };

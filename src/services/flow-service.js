@@ -11,32 +11,25 @@
  *
  */
 
-const TransactionDecorator = require('../decorators/transaction-decorator')
-const FlowManager = require('../sequelize/managers/flow-manager')
-const AppHelper = require('../helpers/app-helper')
-const Errors = require('../helpers/errors')
-const ObjBuilder = require('../helpers/object-builder')
+const TransactionDecorator = require('../decorators/transaction-decorator');
+const FlowManager = require('../sequelize/managers/flow-manager');
+const AppHelper = require('../helpers/app-helper');
+const Errors = require('../helpers/errors');
 
 const _createFlow = async function (flowData, user, transaction) {
-  const obj = new ObjBuilder();
-  const flowToCreate = obj
-    .pushFieldIfValExists('name', flowData.name)
-    .pushFieldIfValExists('description', flowData.description)
-    .pushFieldIfValExists('isActivated', AppHelper.validateFlowActive(flowData.isActivated))
-    .pushFieldIfValExists('isSelected', AppHelper.validateFlowSelected(flowData.isSelected))
-    .pushFieldIfValExists('updatedBy', user.id)
-    .pushFieldIfValExists('userId', user.id)
-    .popObj();
+  await isFlowExist(flowData.name);
 
-  const flowExists = await FlowManager.findOne({
-    name: flowData.name
-  }, transaction);
+  const flowToCreate = {
+    name: flowData.name,
+    description: flowData.description,
+    isActivated: flowData.isActivated ? AppHelper.validateFlowActive(flowData.isActivated) : false,
+    isSelected: flowData.isSelected ? AppHelper.validateFlowActive(flowData.isSelected) : false,
+    userId: user.id
+  };
 
-  if (flowExists){
-    throw new Errors.ValidationError("Bad Request: Flow with the same name already exists")
-  }
+  const flowDataCreate = AppHelper.deleteUndefinedFields(flowToCreate);
 
-  const flow = await FlowManager.create(flowToCreate, transaction);
+  const flow = await FlowManager.create(flowDataCreate, transaction);
 
   return {
     id: flow.id
@@ -52,20 +45,25 @@ const _deleteFlow = async function (flowId, transaction) {
 };
 
 const _updateFlow = async function (flowData, flowId, user, transaction) {
-  const obj = new ObjBuilder();
-  const flow = obj
-    .pushFieldIfValExists('name', flowData.name)
-    .pushFieldIfValExists('description', flowData.description)
-    .pushFieldIfValExists('isActivated', AppHelper.validateFlowActive(flowData.isActivated))
-    .pushFieldIfValExists('isSelected', AppHelper.validateFlowSelected(flowData.isSelected))
-    .pushFieldIfValExists('updatedBy', user.id)
-    .popObj();
+  if (flowData.name !== undefined){
+      await isFlowExist(flowData.name);
+  }
+
+  const flow = {
+      name: flowData.name,
+      description: flowData.description,
+      isActivated: AppHelper.validateFlowActive(flowData.isActivated),
+      isSelected: AppHelper.validateFlowSelected(flowData.isSelected),
+      updatedBy: user.id
+  };
+
+  const updateFlowData = AppHelper.deleteUndefinedFields(flow);
 
   await _getFlow(flowId, transaction);
 
   return await FlowManager.update({
       id: flowId
-    }, flow, transaction)
+    }, updateFlowData, transaction)
 };
 
 const _getFlow = async function (flowId, transaction) {
@@ -86,6 +84,16 @@ const _getUserFlows = async function (user, transaction) {
   };
 
   return await FlowManager.findAll(flow, transaction)
+};
+
+const isFlowExist = async function (flowName, transaction) {
+    const flow = await FlowManager.findOne({
+        name: flowName
+    }, transaction);
+
+    if (flow){
+        throw new Errors.ValidationError("Bad Request: Flow with the same name already exists")
+    }
 };
 
 module.exports = {

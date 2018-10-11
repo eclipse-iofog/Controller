@@ -10,10 +10,10 @@
  *  *******************************************************************************
  *
  */
-const constants = require('../helpers/constants')
-const FlowController = require('../controllers/flow-controller')
-const ResponseDecorator = require('../decorators/response-decorator')
-const Errors = require('../helpers/errors')
+const constants = require('../helpers/constants');
+const FlowController = require('../controllers/flow-controller');
+const ResponseDecorator = require('../decorators/response-decorator');
+const Errors = require('../helpers/errors');
 
 module.exports = [
   {
@@ -33,8 +33,8 @@ module.exports = [
         }
       ];
 
-      const getFlowsByUserEndPoint = ResponseDecorator.handleErrors(FlowController.getFlowsByUserEndPoint, successCode, errorCodes)
-      const responseObject = await getFlowsByUserEndPoint(req)
+      const getFlowsByUserEndPoint = ResponseDecorator.handleErrors(FlowController.getFlowsByUserEndPoint, successCode, errorCodes);
+      const responseObject = await getFlowsByUserEndPoint(req);
 
       res
         .status(responseObject.code)
@@ -62,8 +62,8 @@ module.exports = [
         }
       ];
 
-      const createFlowEndPoint = ResponseDecorator.handleErrors(FlowController.createFlowEndPoint, successCode, errorCodes)
-      const responseObject = await createFlowEndPoint(req)
+      const createFlowEndPoint = ResponseDecorator.handleErrors(FlowController.createFlowEndPoint, successCode, errorCodes);
+      const responseObject = await createFlowEndPoint(req);
 
       res
         .status(responseObject.code)
@@ -91,8 +91,8 @@ module.exports = [
         }
       ];
 
-      const getFlowEndPoint = ResponseDecorator.handleErrors(FlowController.getFlowEndPoint, successCode, errorCodes)
-      const responseObject = await getFlowEndPoint(req)
+      const getFlowEndPoint = ResponseDecorator.handleErrors(FlowController.getFlowEndPoint, successCode, errorCodes);
+      const responseObject = await getFlowEndPoint(req);
 
       res
         .status(responseObject.code)
@@ -124,8 +124,8 @@ module.exports = [
         }
       ];
 
-      const updateFlowEndPoint = ResponseDecorator.handleErrors(FlowController.updateFlowEndPoint, successCode, errorCodes)
-      const responseObject = await updateFlowEndPoint(req)
+      const updateFlowEndPoint = ResponseDecorator.handleErrors(FlowController.updateFlowEndPoint, successCode, errorCodes);
+      const responseObject = await updateFlowEndPoint(req);
 
       res
         .status(responseObject.code)
@@ -153,8 +153,8 @@ module.exports = [
         }
       ];
 
-      const deleteFlowEndPoint = ResponseDecorator.handleErrors(FlowController.deleteFlowEndPoint, successCode, errorCodes)
-      const responseObject = await deleteFlowEndPoint(req)
+      const deleteFlowEndPoint = ResponseDecorator.handleErrors(FlowController.deleteFlowEndPoint, successCode, errorCodes);
+      const responseObject = await deleteFlowEndPoint(req);
 
       res
         .status(responseObject.code)
