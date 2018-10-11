@@ -33,8 +33,8 @@ fs.readdirSync(__dirname)
   });
 
 
-async function validate(req, schema) {
-  const response = v.validate(req.body, schema);
+async function validate(object, schema) {
+  const response = v.validate(object, schema);
   if (!response.valid) {
     throw new Errors.ValidationError(response.errors[0].stack)
   }
