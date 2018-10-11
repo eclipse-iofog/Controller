@@ -17,7 +17,7 @@ const AppHelper = require('../helpers/app-helper');
 const Errors = require('../helpers/errors');
 
 const _createFlow = async function (flowData, user, transaction) {
-  await isFlowExist(flowData.name);
+  await isFlowExist(flowData.name, transaction);
 
   const flowToCreate = {
     name: flowData.name,
@@ -46,7 +46,7 @@ const _deleteFlow = async function (flowId, transaction) {
 
 const _updateFlow = async function (flowData, flowId, user, transaction) {
   if (flowData.name !== undefined){
-      await isFlowExist(flowData.name);
+      await isFlowExist(flowData.name, transaction);
   }
 
   const flow = {
