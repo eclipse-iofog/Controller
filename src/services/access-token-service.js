@@ -22,7 +22,7 @@ const createAccessToken = async function (accessToken, transaction) {
 
 const removeAccessTokenByUserId = async function (userId, transaction) {
   return await AccessTokenManager.delete({
-    user_id: userId
+    userId: userId
   }, transaction);
 };
 

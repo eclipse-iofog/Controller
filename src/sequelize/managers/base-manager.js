@@ -17,7 +17,7 @@ const Errors = require('../../helpers/errors')
 module.exports = class BaseManager {
 
   getEntity() {
-    return null;
+    throw new Error("Not implemented getEntity method in manager");
   }
 
   async findAll(object, transaction) {
