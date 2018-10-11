@@ -19,6 +19,8 @@ const AppHelper = require('../helpers/app-helper');
 
 const Errors = require('../helpers/errors');
 
+const TransactionDecorator = require('../decorators/transaction-decorator');
+
 const generateActivationCode = async function (transaction) {
   while (true) {
     const newActivationCode = AppHelper.generateRandomString(16);
@@ -58,10 +60,17 @@ const deleteActivationCode = async function (activationCode, transaction) {
   }, transaction)
 };
 
+const findActivationCodeByUserId = async function (userId, transaction) {
+  return await EmailActivationCodeManager.findOne({
+    userId: userId
+  }, transaction)
+};
+
 
 module.exports = {
   generateActivationCode: generateActivationCode,
   saveActivationCode: saveActivationCode,
   verifyActivationCode: verifyActivationCode,
-  deleteActivationCode: deleteActivationCode
+  deleteActivationCode: deleteActivationCode,
+  findActivationCodeByUserId: TransactionDecorator.generateTransaction(findActivationCodeByUserId)
 };

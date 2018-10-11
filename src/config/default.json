@@ -6,7 +6,8 @@
     "Port": 54421
   },
   "Email": {
-    "ActivationEnabled": false
+    "ActivationEnabled": false,
+    "HomeUrl": "https://google.com"
   },
   "Service": {
     "LogsDirectory": "/var/log/fog-controller",

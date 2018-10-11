@@ -25,6 +25,14 @@ class UserManager extends BaseManager {
     });
   }
 
+  findByEmail(email) {
+    return User.find({
+        where: {
+          email: email
+        }
+      });
+  }
+
   // no transaction required here, used by auth decorator
   checkAuthentication(token) {
     return User.find({
@@ -36,6 +44,28 @@ class UserManager extends BaseManager {
         }
       }]
     });
+  }
+
+  updateDetails(user, profileData, transaction) {
+    return this.update({
+      id: user.id
+    }, profileData, transaction);
+  }
+
+  updatePassword(userId, newPassword, transaction) {
+    return this.update({
+      id: userId
+    }, {
+      password: newPassword
+    }, transaction)
+  }
+
+  updateTempPassword(userId, tempPassword, transaction) {
+    return this.update({
+      id: userId
+    }, {
+      tempPassword: tempPassword
+    }, transaction)
   }
 }
 
