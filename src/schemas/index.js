@@ -1,3 +1,16 @@
+/*
+ *  *******************************************************************************
+ *  * Copyright (c) 2018 Edgeworx, Inc.
+ *  *
+ *  * This program and the accompanying materials are made available under the
+ *  * terms of the Eclipse Public License v. 2.0 which is available at
+ *  * http://www.eclipse.org/legal/epl-2.0
+ *  *
+ *  * SPDX-License-Identifier: EPL-2.0
+ *  *******************************************************************************
+ *
+ */
+
 const Validator = require('jsonschema').Validator;
 const fs = require('fs');
 const path = require('path');
@@ -5,6 +18,8 @@ const path = require('path');
 const basename = path.basename(__filename);
 
 const Errors = require('../helpers/errors');
+
+const Logger = require('../logger');
 
 const v = new Validator();
 const schemas = {};
@@ -37,9 +52,31 @@ fs.readdirSync(__dirname)
 async function validate(object, schema) {
   const response = v.validate(object, schema);
   if (!response.valid) {
-    throw new Errors.ValidationError(response.errors[0].stack)
+    Logger.info(JSON.stringify(response));
+    await handleValidationError(response.errors[0]);
   }
   return response
+}
+
+async function handleValidationError(error) {
+  let message;
+  switch (error.name) {
+    case "pattern":
+      message = "Invalid format for field '" + error.property.replace('instance.', '') + "'";
+      break;
+    case "required":
+      message = "Required field '" + error.argument + "' is missing";
+      break;
+    case "minLength":
+    case "maxLength":
+      message = 'Field ' + error.stack.replace('instance.', '');
+      break;
+    default:
+      message = JSON.stringify(error);
+      break;
+  }
+
+  throw new Errors.ValidationError(message)
 }
 
 module.exports = {
