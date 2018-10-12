@@ -16,7 +16,7 @@ const iofogCreate = {
   "type": "object",
   "properties": {
     "uuid": {"type": "string"},
-    "name": {"type": "string"},
+    "name": {"type": "string", "minLength": 1},
     "location": {"type": "string"},
     "latitude": {"type": "number", "minimum": -90, "maximum": 90},
     "longitude": {"type": "number", "minimum": -180, "maximum": 180},
@@ -45,7 +45,7 @@ const iofogUpdate = {
   "type": "object",
   "properties": {
     "uuid": {"type": "string"},
-    "name": {"type": "string"},
+    "name": {"type": "string", "minLength": 1},
     "location": {"type": "string"},
     "latitude": {"type": "number", "minimum": -90, "maximum": 90},
     "longitude": {"type": "number", "minimum": -180, "maximum": 180},
@@ -118,10 +118,7 @@ const iofogReboot = {
 const iofogFilters = {
   "id": "/iofogFilters",
   "type": "array",
-  "items": {
-    "type": ["object"],
-    "items": {"$ref": "/filter"}
-  },
+  "items": {"$ref": "/filter"},
   "required": []
 };
 
