@@ -58,7 +58,7 @@ paths:
           description: Not Authorized
         '500':
           description: Internal Server Error
-  '/iofog/list':
+  '/iofog-list':
     post:
       tags:
       - ioFog
@@ -283,8 +283,42 @@ paths:
             X-Timestamp:
               type: number
               description: FogController server timestamp
+        400:
+          description: Bad Request
         401:
           description: Not Authorized
+        404:
+          description: Invalid Node Id
+        500:
+          description: Internal Server Error
+  '/iofog/{uuid}/reboot':
+    post:
+      tags:
+      - ioFog
+      description: remote reboot fog agent
+      operationId: setRebootCommand
+      parameters:
+      - in: header
+        name: Authorization
+        description: User Token
+        required: true
+        type: string
+      - in: path
+        name: uuid
+        description: ioFog node id
+        required: true
+        type: string
+      responses:
+        201:
+          description: Success
+          headers:
+            X-Timestamp:
+              type: number
+              description: FogController server timestamp
+        401:
+          description: Not Authorized
+        404:
+          description: Invalid Node Id
         500:
           description: Internal Server Error
   '/iofog/{uuid}/reboot':
@@ -2014,11 +2048,11 @@ definitions:
         type: number
       logDirectory:
         type: string
-      bluetooth:
+      bluetoothEnabled:
         type: boolean
-      hal:
+      abstractedHardwareEnabled:
         type: boolean
-      isolatedDockerContainer:
+      watchdogEnabled:
         type: boolean
       logFileCount:
         type: number
@@ -2189,7 +2223,7 @@ definitions:
         type: number
       scanDevicesFreq:
         type: number
-      isolatedDockerContainer:
+      watchdogEnabled:
         type: boolean
       gpsCoordinates:
         $ref: '#/definitions/GpsCoordinates'
@@ -2220,7 +2254,7 @@ definitions:
         type: number
       scanDevicesFreq:
         type: number
-      isolatedDockerContainer:
+      watchdogEnabled:
         type: boolean
       gpsCoordinates:
         $ref: '#/definitions/GpsCoordinates'

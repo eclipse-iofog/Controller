@@ -18,11 +18,26 @@ const Errors = require('../helpers/errors')
 module.exports = [
   {
     method: 'post',
-    path: '/api/v3/iofog/list',
-    middleware: (req, res) => {
+    path: '/api/v3/iofog-list',
+    middleware: async (req, res) => {
+      const successCode = constants.HTTP_CODE_SUCCESS
+      const errCodes = [
+        {
+          code: 400,
+          errors: [Errors.ValidationError]
+        },
+        {
+          code: 401,
+          errors: [Errors.AuthenticationError]
+        }
+      ]
+
+      const getFogList = ResponseDecorator.handleErrors(FogController.getFogList, successCode, errCodes)
+      const responseObject = await getFogList(req)
+
       res
-        .status(constants.HTTP_CODE_SUCCESS)
-        .send(req.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
     }
   },
   {
@@ -141,31 +156,69 @@ module.exports = [
         }
       ]
 
-      const generateFogProvisioningKey= ResponseDecorator.handleErrors(FogController.generateProvisioningKey, successCode, errCodes)
+      const generateFogProvisioningKey = ResponseDecorator.handleErrors(FogController.generateProvisioningKey, successCode, errCodes)
       const responseObject = await generateFogProvisioningKey(req)
 
       res
         .status(responseObject.code)
         .send(responseObject.body)
-
     }
   },
   {
     method: 'post',
     path: '/api/v3/iofog/:uuid/version/:versionCommand',
-    middleware: (req, res) => {
+    middleware: async (req, res) => {
+      const successCode = constants.HTTP_CODE_NO_CONTENT
+      const errCodes = [
+        {
+          code: 400,
+          errors: [Errors.ValidationError]
+        },
+        {
+          code: 401,
+          errors: [Errors.AuthenticationError]
+        },
+        {
+          code: 404,
+          errors: [Errors.NotFoundError]
+        }
+      ]
+
+      const setFogVersionCommand = ResponseDecorator.handleErrors(FogController.setFogVersionCommand, successCode, errCodes)
+      const responseObject = await setFogVersionCommand(req)
+
       res
-        .status(constants.HTTP_CODE_SUCCESS)
-        .send(req.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
     }
   },
   {
     method: 'post',
     path: '/api/v3/iofog/:uuid/reboot',
-    middleware: (req, res) => {
+    middleware: async (req, res) => {
+      const successCode = constants.HTTP_CODE_NO_CONTENT
+      const errCodes = [
+        {
+          code: 400,
+          errors: [Errors.ValidationError]
+        },
+        {
+          code: 401,
+          errors: [Errors.AuthenticationError]
+        },
+        {
+          code: 404,
+          errors: [Errors.NotFoundError]
+        }
+      ]
+
+
+      const setFogRebootCommand = ResponseDecorator.handleErrors(FogController.setFogRebootCommand, successCode, errCodes)
+      const responseObject = await setFogRebootCommand(req)
+
       res
-        .status(constants.HTTP_CODE_SUCCESS)
-        .send(req.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
     }
   }
 ]
