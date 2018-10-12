@@ -398,9 +398,6 @@ $ fog-controller catalog <command> <options> <br>
  description: string<br>
  isActivated: boolean<br>
 
-**Example**<br>
-
-node src/main.js user add -f test1 -l test2 -e test@gmail.com -p password1<br>
 <br>
 <br>
 <br>
