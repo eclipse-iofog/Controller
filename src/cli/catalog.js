@@ -16,7 +16,7 @@ const constants = require('../helpers/constants');
 const logger = require('../logger');
 const CatalogItemService = require('../services/catalog-service');
 const fs = require('fs');
-const Errors = require('../helpers/errors');
+const AppHelper = require('../helpers/app-helper');
 const AuthDecorator = require('../decorators/cli-decorator');
 
 const JSON_SCHEMA =
@@ -140,10 +140,23 @@ const _createCatalogItemObject = function(catalogItem) {
 		diskRequired: catalogItem.disk-required,
 		ramRequired: catalogItem.ram-required,
 		picture: catalogItem.picture,
-		isPublic: catalogItem.public,
+		isPublic: AppHelper.validateBooleanCliOptions(catalogItem.public, catalogItem.private),
 		registryId: catalogItem.registry-id,
-		x86Image: catalogItem.x86-image,
-    armImage: catalogItem.arm-image,
+		images: [
+			{
+				containerImage: catalogItem.x86-image,
+				fogTypeId: 1
+			},
+			{
+				containerImage: catalogItem.arm-image,
+				fogTypeId: 2
+			}
+		],
+		inputType: {
+			infoType: catalogItem.input-type,
+			infoFormat: catalogItem.input-format
+		},
+
 		inputType: catalogItem.input-type,
     inputFormat: catalogItem.input-format,
     outputType: catalogItem.output-type,
