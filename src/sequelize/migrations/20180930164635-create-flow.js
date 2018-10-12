@@ -20,7 +20,13 @@ module.exports = {
       },
       isActivated: {
         type: Sequelize.BOOLEAN,
-        field: 'is_activated'
+        field: 'is_activated',
+        defaultValue: false
+      },
+      isSelected: {
+        type: Sequelize.BOOLEAN,
+        field: 'is_selected',
+        defaultValue: false
       },
       createdAt: {
         allowNull: false,

@@ -125,6 +125,7 @@ function deleteUndefinedFields(obj) {
   if (!obj) {
     return
   }
+
   Object.keys(obj).forEach((fld) => {
     if (obj[fld] === undefined) {
       delete  obj[fld]
@@ -132,6 +133,7 @@ function deleteUndefinedFields(obj) {
       obj[fld] = deleteUndefinedFields(obj[fld])
     }
   })
+
   return obj
 }
 

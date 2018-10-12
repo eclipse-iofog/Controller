@@ -317,8 +317,6 @@ paths:
               description: FogController server timestamp
         401:
           description: Not Authorized
-        404:
-          description: Invalid Node Id
         500:
           description: Internal Server Error
   /iofog/agent/provision:
