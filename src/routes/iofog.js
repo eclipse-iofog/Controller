@@ -168,7 +168,7 @@ module.exports = [
     method: 'post',
     path: '/api/v3/iofog/:uuid/version/:versionCommand',
     middleware: async (req, res) => {
-      const successCode = constants.HTTP_CODE_NO_CONTENT
+      const successCode = constants.HTTP_CODE_CREATED
       const errCodes = [
         {
           code: 400,
