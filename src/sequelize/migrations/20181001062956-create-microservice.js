@@ -61,31 +61,31 @@ module.exports = {
       iofogUuid: {
         type: Sequelize.TEXT,
         field: 'iofog_uuid',
-        references: { model: 'Fogs', key: 'uuid' },
+        references: {model: 'Fogs', key: 'uuid'},
         onDelete: 'set null'
       },
       updatedBy: {
         type: Sequelize.INTEGER,
         field: 'updated_by',
-        references: { model: 'Users', key: 'id' },
+        references: {model: 'Users', key: 'id'},
         onDelete: 'set null'
       },
       catalogItemId: {
         type: Sequelize.INTEGER,
         field: 'catalog_item_id',
-        references: { model: 'CatalogItems', key: 'id' },
+        references: {model: 'CatalogItems', key: 'id'},
         onDelete: 'cascade'
       },
       registryId: {
         type: Sequelize.INTEGER,
         field: 'registry_id',
-        references: { model: 'Registries', key: 'id' },
+        references: {model: 'Registries', key: 'id'},
         onDelete: 'cascade'
       },
       flowId: {
         type: Sequelize.INTEGER,
         field: 'flow_id',
-        references: { model: 'Flows', key: 'id' },
+        references: {model: 'Flows', key: 'id'},
         onDelete: 'cascade'
       }
     });

@@ -20,12 +20,42 @@ class Proxy extends BaseCLIHandler {
 
     this.name = constants.CMD_PROXY
     this.commandDefinitions = [
-      { name: 'command', defaultOption: true, description: 'add, remove, update, list', group: constants.CMD, },
-      { name: 'username', alias: 'u', type: String, description: 'Proxy username', group: [constants.CMD_ADD, constants.CMD_UPDATE] },
-      { name: 'password', alias: 'p', type: String, description: 'Proxy password', group: [constants.CMD_ADD, constants.CMD_UPDATE] },
-      { name: 'host', alias: 's', type: String, description: 'Proxy host address', group: [constants.CMD_ADD, constants.CMD_UPDATE, constants.CMD_REMOVE] },
-      { name: 'rsa-key', alias: 'k', type: String, description: 'Proxy RSA key', group: [constants.CMD_ADD, constants.CMD_UPDATE] },
-      { name: 'port', alias: 'o', type: Number, description: 'Proxy port', group: [constants.CMD_ADD, constants.CMD_UPDATE] },
+      {name: 'command', defaultOption: true, description: 'add, remove, update, list', group: constants.CMD,},
+      {
+        name: 'username',
+        alias: 'u',
+        type: String,
+        description: 'Proxy username',
+        group: [constants.CMD_ADD, constants.CMD_UPDATE]
+      },
+      {
+        name: 'password',
+        alias: 'p',
+        type: String,
+        description: 'Proxy password',
+        group: [constants.CMD_ADD, constants.CMD_UPDATE]
+      },
+      {
+        name: 'host',
+        alias: 's',
+        type: String,
+        description: 'Proxy host address',
+        group: [constants.CMD_ADD, constants.CMD_UPDATE, constants.CMD_REMOVE]
+      },
+      {
+        name: 'rsa-key',
+        alias: 'k',
+        type: String,
+        description: 'Proxy RSA key',
+        group: [constants.CMD_ADD, constants.CMD_UPDATE]
+      },
+      {
+        name: 'port',
+        alias: 'o',
+        type: Number,
+        description: 'Proxy port',
+        group: [constants.CMD_ADD, constants.CMD_UPDATE]
+      },
     ]
     this.commands = {
       [constants.CMD_ADD]: 'Add a new proxy.',
@@ -36,7 +66,7 @@ class Proxy extends BaseCLIHandler {
   }
 
   run(args) {
-    const proxyCommand = this.parseCommandLineArgs(this.commandDefinitions, { argv: args.argv })
+    const proxyCommand = this.parseCommandLineArgs(this.commandDefinitions, {argv: args.argv})
 
     switch (proxyCommand.command.command) {
       case constants.CMD_ADD:

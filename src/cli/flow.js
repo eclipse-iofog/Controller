@@ -25,14 +25,50 @@ class Flow extends BaseCLIHandler {
 
     this.name = constants.CMD_FLOW
     this.commandDefinitions = [
-      { name: 'command', defaultOption: true, group: [constants.CMD] },
-      { name: 'file', alias: 'f', type: String, description: 'Application flow settings JSON file', group: [constants.CMD_ADD, constants.CMD_UPDATE] },
-      { name: 'flow-id', alias: 'i', type: String, description: 'Application flow ID', group: [constants.CMD_UPDATE, constants.CMD_REMOVE, constants.CMD_INFO] },
-      { name: 'name', alias: 'n', type: String, description: 'Application flow name', group: [constants.CMD_UPDATE, constants.CMD_ADD] },
-      { name: 'description', alias: 'd', type: String, description: 'Application flow description', group: [constants.CMD_UPDATE, constants.CMD_ADD] },
-      { name: 'activate', alias: 'a', type: Boolean, description: 'Activate application flow', group: [constants.CMD_UPDATE, constants.CMD_ADD] },
-      { name: 'deactivate', alias: 'D', type: Boolean, description: 'Deactivate application flow', group: [constants.CMD_UPDATE, constants.CMD_ADD] },
-      { name: 'user-id', alias: 'u', type: Number, description: 'User\'s id', group: [constants.CMD_ADD] },
+      {name: 'command', defaultOption: true, group: [constants.CMD]},
+      {
+        name: 'file',
+        alias: 'f',
+        type: String,
+        description: 'Application flow settings JSON file',
+        group: [constants.CMD_ADD, constants.CMD_UPDATE]
+      },
+      {
+        name: 'flow-id',
+        alias: 'i',
+        type: String,
+        description: 'Application flow ID',
+        group: [constants.CMD_UPDATE, constants.CMD_REMOVE, constants.CMD_INFO]
+      },
+      {
+        name: 'name',
+        alias: 'n',
+        type: String,
+        description: 'Application flow name',
+        group: [constants.CMD_UPDATE, constants.CMD_ADD]
+      },
+      {
+        name: 'description',
+        alias: 'd',
+        type: String,
+        description: 'Application flow description',
+        group: [constants.CMD_UPDATE, constants.CMD_ADD]
+      },
+      {
+        name: 'activate',
+        alias: 'a',
+        type: Boolean,
+        description: 'Activate application flow',
+        group: [constants.CMD_UPDATE, constants.CMD_ADD]
+      },
+      {
+        name: 'deactivate',
+        alias: 'D',
+        type: Boolean,
+        description: 'Deactivate application flow',
+        group: [constants.CMD_UPDATE, constants.CMD_ADD]
+      },
+      {name: 'user-id', alias: 'u', type: Number, description: 'User\'s id', group: [constants.CMD_ADD]},
     ]
     this.commands = {
       [constants.CMD_ADD]: 'Add a new flow.',
@@ -44,7 +80,7 @@ class Flow extends BaseCLIHandler {
   }
 
   run(args) {
-    const flowCommand = this.parseCommandLineArgs(this.commandDefinitions, { argv: args.argv })
+    const flowCommand = this.parseCommandLineArgs(this.commandDefinitions, {argv: args.argv})
 
     switch (flowCommand.command.command) {
       case constants.CMD_ADD:

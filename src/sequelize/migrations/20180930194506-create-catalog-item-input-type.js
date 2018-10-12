@@ -20,7 +20,7 @@ module.exports = {
       catalogItemId: {
         type: Sequelize.INTEGER,
         field: 'catalog_item_id',
-        references: { model: 'CatalogItems', key: 'id' },
+        references: {model: 'CatalogItems', key: 'id'},
         onDelete: 'cascade'
       }
     });

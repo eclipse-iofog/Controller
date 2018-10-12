@@ -29,7 +29,7 @@ class Cli extends BaseCLIHandler {
   constructor() {
     super()
     this.commandDefinitions = [
-      { name: 'command', defaultOption: true },
+      {name: 'command', defaultOption: true},
     ]
     this.commands = {
       [constants.CMD_START]: 'Start fog-controller service.',
@@ -55,29 +55,29 @@ class Cli extends BaseCLIHandler {
 
     switch (mainCommand.command) {
       case constants.CMD_START:
-        return Start.run({ daemon })
+        return Start.run({daemon})
       case constants.CMD_STOP:
         return daemon.stop()
       case constants.CMD_STATUS:
         break
       case constants.CMD_USER:
-        return User.run({ argv })
+        return User.run({argv})
       case constants.CMD_CONFIG:
-        return Config.run({ argv })
+        return Config.run({argv})
       case constants.CMD_COMSAT:
-        return Comsat.run({ argv })
+        return Comsat.run({argv})
       case constants.CMD_PROXY:
-        return Proxy.run({ argv })
+        return Proxy.run({argv})
       case constants.CMD_IOFOG:
-        return IOFog.run({ argv })
+        return IOFog.run({argv})
       case constants.CMD_CATALOG:
-        return Catalog.run({ argv })
+        return Catalog.run({argv})
       case constants.CMD_FLOW:
-        return Flow.run({ argv })
+        return Flow.run({argv})
       case constants.CMD_MICROSERVICE:
-        return Microservice.run({ argv })
+        return Microservice.run({argv})
       case constants.CMD_REGISTRY:
-        return Registry.run({ argv })
+        return Registry.run({argv})
       case constants.CMD_HELP:
       default:
         return this.help([], false)

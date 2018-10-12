@@ -35,7 +35,7 @@ class Microservice extends BaseCLIHandler {
 
     this.name = constants.CMD_MICROSERVICE
     this.commandDefinitions = [
-      { name: 'command', defaultOption: true, group: [constants.CMD] },
+      {name: 'command', defaultOption: true, group: [constants.CMD]},
       {
         name: 'file', alias: 'f', type: String, description: 'Microservice settings JSON file',
         group: [constants.CMD_ADD, constants.CMD_UPDATE]
@@ -85,7 +85,11 @@ class Microservice extends BaseCLIHandler {
         group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
-        name: 'routes', alias: 't', type: String, description: 'Microservice route(s) (receiving microservices)', multiple: true,
+        name: 'routes',
+        alias: 't',
+        type: String,
+        description: 'Microservice route(s) (receiving microservices)',
+        multiple: true,
         group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
@@ -125,7 +129,7 @@ class Microservice extends BaseCLIHandler {
   }
 
   run(args) {
-    const microserviceCommand = this.parseCommandLineArgs(this.commandDefinitions, { argv: args.argv })
+    const microserviceCommand = this.parseCommandLineArgs(this.commandDefinitions, {argv: args.argv})
 
     switch (microserviceCommand.command.command) {
       case constants.CMD_ADD:

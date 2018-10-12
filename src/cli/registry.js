@@ -20,14 +20,20 @@ class Registry extends BaseCLIHandler {
 
     this.name = constants.CMD_REGISTRY
     this.commandDefinitions = [
-      { name: 'command', defaultOption: true, group: [constants.CMD] },
-      { name: 'uri', alias: 'u', type: String, description: 'Registry URI', group: [constants.CMD_ADD, constants.CMD_REMOVE] },
-      { name: 'public', alias: 'b', type: Boolean, description: 'Set registry as public', group: [constants.CMD_ADD] },
-      { name: 'private', alias: 'r', type: Boolean, description: 'Set registry as private', group: [constants.CMD_ADD] },
-      { name: 'username', alias: 'l', type: String, description: 'Registry\'s user name', group: [constants.CMD_ADD] },
-      { name: 'password', alias: 'p', type: String, description: 'Password', group: [constants.CMD_ADD] },
-      { name: 'email', alias: 'e', type: String, description: 'Email address', group: [constants.CMD_ADD] },
-      { name: 'user-id', alias: 'i', type: Number, description: 'User\'s id', group: [constants.CMD_ADD] },
+      {name: 'command', defaultOption: true, group: [constants.CMD]},
+      {
+        name: 'uri',
+        alias: 'u',
+        type: String,
+        description: 'Registry URI',
+        group: [constants.CMD_ADD, constants.CMD_REMOVE]
+      },
+      {name: 'public', alias: 'b', type: Boolean, description: 'Set registry as public', group: [constants.CMD_ADD]},
+      {name: 'private', alias: 'r', type: Boolean, description: 'Set registry as private', group: [constants.CMD_ADD]},
+      {name: 'username', alias: 'l', type: String, description: 'Registry\'s user name', group: [constants.CMD_ADD]},
+      {name: 'password', alias: 'p', type: String, description: 'Password', group: [constants.CMD_ADD]},
+      {name: 'email', alias: 'e', type: String, description: 'Email address', group: [constants.CMD_ADD]},
+      {name: 'user-id', alias: 'i', type: Number, description: 'User\'s id', group: [constants.CMD_ADD]},
     ]
     this.commands = {
       [constants.CMD_ADD]: 'Add a new Registry.',
@@ -37,7 +43,7 @@ class Registry extends BaseCLIHandler {
   }
 
   run(args) {
-    const registryCommand = this.parseCommandLineArgs(this.commandDefinitions, { argv: args.argv })
+    const registryCommand = this.parseCommandLineArgs(this.commandDefinitions, {argv: args.argv})
 
     switch (registryCommand.command.command) {
       case constants.CMD_ADD:

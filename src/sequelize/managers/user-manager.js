@@ -40,10 +40,10 @@ class UserManager extends BaseManager {
 
   findByEmail(email) {
     return User.find({
-        where: {
-          email: email
-        }
-      });
+      where: {
+        email: email
+      }
+    });
   }
 
   // no transaction required here, used by auth decorator

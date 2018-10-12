@@ -27,7 +27,7 @@ module.exports = {
       iofogUuid: {
         type: Sequelize.TEXT,
         field: 'iofog_uuid',
-        references: { model: 'Fogs', key: 'uuid' },
+        references: {model: 'Fogs', key: 'uuid'},
         onDelete: 'cascade'
       }
     });

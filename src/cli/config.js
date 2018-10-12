@@ -21,19 +21,55 @@ class Config extends BaseCLIHandler {
     super()
 
     this.commandDefinitions = [
-      { name: 'command', defaultOption: true, group: constants.CMD },
-      { name: 'list', alias: 'l', type: Boolean, description: 'Display current config', group: 'Options' },
-      { name: 'port', alias: 'p', type: Number, description: 'Port', group: 'Options' },
-      { name: 'ssl-cert', alias: 'c', type: String, description: 'Path to SSL certificate file', group: 'Options' },
-      { name: 'ssl-key', alias: 'k', type: String, description: 'Path to SSL key file', group: 'Options' },
-      { name: 'intermediate-cert', alias: 'i', type: String, description: 'Path to SSL intermediate certificate file', group: 'Options' },
-      { name: 'email-activation-on', alias: 'm', type: Boolean, description: 'Email activation required', group: 'Options' },
-      { name: 'email-activation-off', alias: 'n', type: Boolean, description: 'Email activation not required', group: 'Options' },
-      { name: 'email-address', alias: 'a', type: String, description: 'Email address to send activations from', group: 'Options' },
-      { name: 'email-password', alias: 'w', type: String, description: 'Email password to send activations from', group: 'Options' },
-      { name: 'email-service', alias: 's', type: String, description: 'Email service to send activations', group: 'Options' },
-      { name: 'log-dir', alias: 'd', type: String, description: 'Log files directory', group: 'Options' },
-      { name: 'log-size', alias: 'z', type: Number, description: 'Log files size (MB)', group: 'Options' },
+      {name: 'command', defaultOption: true, group: constants.CMD},
+      {name: 'list', alias: 'l', type: Boolean, description: 'Display current config', group: 'Options'},
+      {name: 'port', alias: 'p', type: Number, description: 'Port', group: 'Options'},
+      {name: 'ssl-cert', alias: 'c', type: String, description: 'Path to SSL certificate file', group: 'Options'},
+      {name: 'ssl-key', alias: 'k', type: String, description: 'Path to SSL key file', group: 'Options'},
+      {
+        name: 'intermediate-cert',
+        alias: 'i',
+        type: String,
+        description: 'Path to SSL intermediate certificate file',
+        group: 'Options'
+      },
+      {
+        name: 'email-activation-on',
+        alias: 'm',
+        type: Boolean,
+        description: 'Email activation required',
+        group: 'Options'
+      },
+      {
+        name: 'email-activation-off',
+        alias: 'n',
+        type: Boolean,
+        description: 'Email activation not required',
+        group: 'Options'
+      },
+      {
+        name: 'email-address',
+        alias: 'a',
+        type: String,
+        description: 'Email address to send activations from',
+        group: 'Options'
+      },
+      {
+        name: 'email-password',
+        alias: 'w',
+        type: String,
+        description: 'Email password to send activations from',
+        group: 'Options'
+      },
+      {
+        name: 'email-service',
+        alias: 's',
+        type: String,
+        description: 'Email service to send activations',
+        group: 'Options'
+      },
+      {name: 'log-dir', alias: 'd', type: String, description: 'Log files directory', group: 'Options'},
+      {name: 'log-size', alias: 'z', type: Number, description: 'Log files size (MB)', group: 'Options'},
     ]
     this.commands = {
       'Options': {},
@@ -41,7 +77,7 @@ class Config extends BaseCLIHandler {
   }
 
   run(args) {
-    const configCommand = this.parseCommandLineArgs(this.commandDefinitions, { argv: args.argv })
+    const configCommand = this.parseCommandLineArgs(this.commandDefinitions, {argv: args.argv})
 
     if (configCommand.command.command === constants.CMD_HELP) {
       return this.help([], true, false)

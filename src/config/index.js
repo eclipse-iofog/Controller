@@ -16,7 +16,7 @@ const path = require('path')
 
 class Config {
   constructor() {
-    nconf.env({ separator: '_', })
+    nconf.env({separator: '_',})
     const environment = nconf.get('NODE:ENV') || 'production'
     this.load(environment)
   }

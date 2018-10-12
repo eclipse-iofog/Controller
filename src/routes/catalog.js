@@ -24,10 +24,10 @@ module.exports = [
 
       const successCode = constants.HTTP_CODE_SUCCESS;
       const errorCodes = [
-	      {
-		      code: constants.HTTP_CODE_UNAUTHORIZED,
-		      errors: [Errors.AuthenticationError]
-	      }
+        {
+          code: constants.HTTP_CODE_UNAUTHORIZED,
+          errors: [Errors.AuthenticationError]
+        }
       ];
 
       const listCatalogItemsEndPoint = ResponseDecorator.handleErrors(
@@ -80,24 +80,24 @@ module.exports = [
     path: '/api/v3/catalog/microservices/:id',
     middleware: async (req, res) => {
 
-	    const successCode = constants.HTTP_CODE_SUCCESS;
-	    const errorCodes = [
-		    {
-			    code: constants.HTTP_CODE_UNAUTHORIZED,
-			    errors: [Errors.AuthenticationError]
-		    },
+      const successCode = constants.HTTP_CODE_SUCCESS;
+      const errorCodes = [
+        {
+          code: constants.HTTP_CODE_UNAUTHORIZED,
+          errors: [Errors.AuthenticationError]
+        },
         {
           code: constants.HTTP_CODE_NOT_FOUND,
           errors: [Errors.NotFoundError]
         }
-	    ];
+      ];
 
-	    const listCatalogItemEndPoint = ResponseDecorator.handleErrors(
-		    CatalogController.listCatalogItemEndPoint,
-		    successCode,
-		    errorCodes
-	    );
-	    const response = await listCatalogItemEndPoint(req);
+      const listCatalogItemEndPoint = ResponseDecorator.handleErrors(
+        CatalogController.listCatalogItemEndPoint,
+        successCode,
+        errorCodes
+      );
+      const response = await listCatalogItemEndPoint(req);
 
       res
         .status(response.code)
@@ -109,32 +109,32 @@ module.exports = [
     path: '/api/v3/catalog/microservices/:id',
     middleware: async (req, res) => {
 
-	    const successCode = constants.HTTP_CODE_NO_CONTENT;
-	    const errorCodes = [
-		    {
-			    code: constants.HTTP_CODE_BAD_REQUEST,
-			    errors: [Errors.ValidationError]
-		    },
-		    {
-			    code: constants.HTTP_CODE_UNAUTHORIZED,
-			    errors: [Errors.AuthenticationError]
-		    },
-		    {
-			    code: constants.HTTP_CODE_DUPLICATE_PROPERTY,
-			    errors: [Errors.DuplicatePropertyError]
-		    },
-		    {
-		    	code: constants.HTTP_CODE_NOT_FOUND,
-			    errors: [Errors.NotFoundError]
-		    }
-	    ];
+      const successCode = constants.HTTP_CODE_NO_CONTENT;
+      const errorCodes = [
+        {
+          code: constants.HTTP_CODE_BAD_REQUEST,
+          errors: [Errors.ValidationError]
+        },
+        {
+          code: constants.HTTP_CODE_UNAUTHORIZED,
+          errors: [Errors.AuthenticationError]
+        },
+        {
+          code: constants.HTTP_CODE_DUPLICATE_PROPERTY,
+          errors: [Errors.DuplicatePropertyError]
+        },
+        {
+          code: constants.HTTP_CODE_NOT_FOUND,
+          errors: [Errors.NotFoundError]
+        }
+      ];
 
-	    const updateCatalogItemEndpoint = ResponseDecorator.handleErrors(
-		    CatalogController.updateCatalogItemEndPoint,
-		    successCode,
-		    errorCodes
-	    );
-	    const response = await updateCatalogItemEndpoint(req);
+      const updateCatalogItemEndpoint = ResponseDecorator.handleErrors(
+        CatalogController.updateCatalogItemEndPoint,
+        successCode,
+        errorCodes
+      );
+      const response = await updateCatalogItemEndpoint(req);
 
       res
         .status(response.code)
@@ -146,28 +146,28 @@ module.exports = [
     path: '/api/v3/catalog/microservices/:id',
     middleware: async (req, res) => {
 
-	    const successCode = constants.HTTP_CODE_NO_CONTENT;
-	    const errorCodes = [
-		    {
-			    code: constants.HTTP_CODE_UNAUTHORIZED,
-			    errors: [Errors.AuthenticationError]
-		    },
-		    {
-			    code: constants.HTTP_CODE_NOT_FOUND,
-			    errors: [Errors.NotFoundError]
-		    }
-	    ];
+      const successCode = constants.HTTP_CODE_NO_CONTENT;
+      const errorCodes = [
+        {
+          code: constants.HTTP_CODE_UNAUTHORIZED,
+          errors: [Errors.AuthenticationError]
+        },
+        {
+          code: constants.HTTP_CODE_NOT_FOUND,
+          errors: [Errors.NotFoundError]
+        }
+      ];
 
-	    const deleteCatalogItemEndPoint = ResponseDecorator.handleErrors(
-		    CatalogController.deleteCatalogItemEndPoint,
-		    successCode,
-		    errorCodes
-	    );
-	    const response = await deleteCatalogItemEndPoint(req);
+      const deleteCatalogItemEndPoint = ResponseDecorator.handleErrors(
+        CatalogController.deleteCatalogItemEndPoint,
+        successCode,
+        errorCodes
+      );
+      const response = await deleteCatalogItemEndPoint(req);
 
-	    res
-		    .status(response.code)
-		    .send(response.body)
+      res
+        .status(response.code)
+        .send(response.body)
     }
   }
 ]
