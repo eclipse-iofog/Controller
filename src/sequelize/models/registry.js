@@ -44,7 +44,7 @@ module.exports = (sequelize, DataTypes) => {
     timestamps: false,
     underscored: true
   });
-  Registry.associate = function (models) {
+  Registry.associate = function(models) {
 
     Registry.belongsTo(models.User, {
       foreignKey: {

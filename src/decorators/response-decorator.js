@@ -13,7 +13,7 @@
 const logger = require('../logger');
 
 function handleErrors(f, successCode, errorsCodes) {
-  return async function () {
+  return async function() {
 
     let responseObject = {};
     try {

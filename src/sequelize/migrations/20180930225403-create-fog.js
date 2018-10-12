@@ -227,13 +227,13 @@ module.exports = {
       userId: {
         type: Sequelize.INTEGER,
         field: 'user_id',
-        references: {model: 'Users', key: 'id'},
+        references: { model: 'Users', key: 'id' },
         onDelete: 'cascade'
       },
       fogTypeId: {
         type: Sequelize.INTEGER,
         field: 'fog_type_id',
-        references: {model: 'FogTypes', key: 'id'},
+        references: { model: 'FogTypes', key: 'id' },
         onDelete: 'set null'
       }
     });

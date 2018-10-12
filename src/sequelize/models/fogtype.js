@@ -24,7 +24,7 @@ module.exports = (sequelize, DataTypes) => {
     timestamps: false,
     underscored: true
   });
-  FogType.associate = function (models) {
+  FogType.associate = function(models) {
     FogType.belongsTo(models.CatalogItem, {
       foreignKey: {
         name: 'networkCatalogItemId',

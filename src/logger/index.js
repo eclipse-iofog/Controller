@@ -26,7 +26,7 @@ const logger = winston.createLogger({
       ),
       filename: 'fog-controller.log',
       dirname: config.get('Service:LogsDirectory'),
-      maxsize: config.get('Service:LogsFileSize'),
+      maxsize:  config.get('Service:LogsFileSize'),
     }),
   ],
 })

@@ -18,7 +18,7 @@ module.exports = (sequelize, DataTypes) => {
     timestamps: true,
     underscored: true
   });
-  USBInfo.associate = function (models) {
+  USBInfo.associate = function(models) {
 
     USBInfo.belongsTo(models.Fog, {
       foreignKey: {

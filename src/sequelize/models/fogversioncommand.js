@@ -15,7 +15,7 @@ module.exports = (sequelize, DataTypes) => {
     timestamps: false,
     underscored: true
   });
-  FogVersionCommand.associate = function (models) {
+  FogVersionCommand.associate = function(models) {
 
     FogVersionCommand.belongsTo(models.Fog, {
       foreignKey: {

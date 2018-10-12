@@ -16,9 +16,9 @@ const models = require('./../models');
 const CatalogItemOutputType = models.CatalogItemOutputType;
 
 class CatalogItemOutputTypeManager extends BaseManager {
-  getEntity() {
-    return CatalogItemOutputType;
-  }
+	getEntity() {
+		return CatalogItemOutputType;
+	}
 }
 
 const instance = new CatalogItemOutputTypeManager();

@@ -58,13 +58,13 @@ module.exports = {
       updatedBy: {
         type: Sequelize.INTEGER,
         field: 'updated_by',
-        references: {model: 'Users', key: 'id'},
+        references: { model: 'Users', key: 'id' },
         onDelete: 'cascade'
       },
       satelliteId: {
         type: Sequelize.INTEGER,
         field: 'satellite_id',
-        references: {model: 'Satellites', key: 'id'},
+        references: { model: 'Satellites', key: 'id' },
         onDelete: 'cascade'
       }
     });

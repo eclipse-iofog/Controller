@@ -217,7 +217,7 @@ module.exports = (sequelize, DataTypes) => {
     timestamps: true,
     underscored: true
   });
-  Fog.associate = function (models) {
+  Fog.associate = function(models) {
 
     Fog.belongsTo(models.FogType, {
       foreignKey: {

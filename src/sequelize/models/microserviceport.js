@@ -20,7 +20,7 @@ module.exports = (sequelize, DataTypes) => {
     timestamps: true,
     underscored: true
   });
-  MicroservicePort.associate = function (models) {
+  MicroservicePort.associate = function(models) {
 
     MicroservicePort.belongsTo(models.Microservice, {
       foreignKey: {

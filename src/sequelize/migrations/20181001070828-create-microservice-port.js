@@ -30,13 +30,13 @@ module.exports = {
       microserviceUuid: {
         type: Sequelize.TEXT,
         field: 'microservice_uuid',
-        references: {model: 'Microservices', key: 'uuid'},
+        references: { model: 'Microservices', key: 'uuid' },
         onDelete: 'cascade'
       },
       updatedBy: {
         type: Sequelize.INTEGER,
         field: 'updated_by',
-        references: {model: 'Users', key: 'id'},
+        references: { model: 'Users', key: 'id' },
         onDelete: 'cascade'
       }
     });

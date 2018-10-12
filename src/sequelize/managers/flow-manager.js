@@ -3,9 +3,9 @@ const models = require('./../models');
 const Flow = models.Flow;
 
 class FlowManager extends BaseManager {
-  getEntity() {
-    return Flow
-  }
+    getEntity() {
+        return Flow
+    }
 }
 
 const instance = new FlowManager();

@@ -36,7 +36,7 @@ module.exports = (sequelize, DataTypes) => {
     timestamps: false,
     underscored: true
   });
-  User.associate = function (models) {
+  User.associate = function(models) {
 
     User.hasOne(models.AccessToken, {
       foreignKey: 'user_id',

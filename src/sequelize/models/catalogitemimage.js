@@ -16,7 +16,7 @@ module.exports = (sequelize, DataTypes) => {
     timestamps: false,
     underscored: true
   });
-  CatalogItemImage.associate = function (models) {
+  CatalogItemImage.associate = function(models) {
 
     CatalogItemImage.belongsTo(models.CatalogItem, {
       foreignKey: {

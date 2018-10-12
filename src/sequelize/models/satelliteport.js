@@ -48,7 +48,7 @@ module.exports = (sequelize, DataTypes) => {
     timestamps: true,
     underscored: true
   });
-  SatellitePort.associate = function (models) {
+  SatellitePort.associate = function(models) {
 
     SatellitePort.belongsTo(models.User, {
       foreignKey: 'updated_by',

@@ -15,7 +15,7 @@ const db = require('./../sequelize/models');
 const sequelize = db.sequelize;
 
 function generateTransaction(f) {
-  return async function () {
+  return async function() {
     const fArgs = Array.prototype.slice.call(arguments);
     return sequelize.transaction(async (t) => {
       fArgs.push(t);

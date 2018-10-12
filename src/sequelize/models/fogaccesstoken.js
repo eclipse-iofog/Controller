@@ -20,7 +20,7 @@ module.exports = (sequelize, DataTypes) => {
     timestamps: false,
     underscored: true
   });
-  FogAccessToken.associate = function (models) {
+  FogAccessToken.associate = function(models) {
 
     FogAccessToken.belongsTo(models.User, {
       foreignKey: {

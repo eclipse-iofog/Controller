@@ -20,66 +20,66 @@ const CatalogItemOutputType = models.CatalogItemOutputType;
 const Op = require('sequelize').Op;
 
 class CatalogItemManager extends BaseManager {
-  getEntity() {
-    return CatalogItem;
-  }
+	getEntity() {
+		return CatalogItem;
+	}
 
-  findAllWithDependencies(userId, transaction) {
-    return CatalogItem.findAll({
-      include: [
-        {
-          model: CatalogItemImage,
-          as: 'images',
-          required: false,
-          attributes: ['containerImage', 'fogTypeId']
-        },
-        {
-          model: CatalogItemInputType,
-          as: 'inputType',
-          required: false,
-          attributes: ['infoType', 'infoFormat']
-        },
-        {
-          model: CatalogItemOutputType,
-          as: 'outputType',
-          required: false,
-          attributes: ['infoType', 'infoFormat']
-        }],
-      where: {
-        [Op.or]: [{user_id: userId}, {user_id: null}]
-      },
-      attributes: {exclude: ["userId"]}
-    }, transaction)
-  }
+	findAllWithDependencies(userId, transaction) {
+		return CatalogItem.findAll({
+			include: [
+				{
+					model: CatalogItemImage,
+					as: 'images',
+					required: false,
+					attributes: ['containerImage', 'fogTypeId']
+				},
+				{
+					model: CatalogItemInputType,
+					as: 'inputType',
+					required: false,
+					attributes: ['infoType', 'infoFormat']
+				},
+				{
+					model: CatalogItemOutputType,
+					as: 'outputType',
+					required: false,
+					attributes: ['infoType', 'infoFormat']
+				}],
+			where: {
+				[Op.or]: [{user_id: userId}, {user_id: null}]
+			},
+			attributes: { exclude: ["userId"] }
+		}, transaction)
+	}
 
-  findOneWithDependencies(catalogItemId, userId, transaction) {
-    return CatalogItem.findOne({
-      include: [
-        {
-          model: CatalogItemImage,
-          as: 'images',
-          required: false,
-          attributes: ['containerImage', 'fogTypeId']
-        },
-        {
-          model: CatalogItemInputType,
-          as: 'inputType',
-          required: false,
-          attributes: ['infoType', 'infoFormat']
-        },
-        {
-          model: CatalogItemOutputType,
-          as: 'outputType',
-          required: false,
-          attributes: ['infoType', 'infoFormat']
-        }],
-      where: {
-        [Op.or]: [{user_id: userId}, {user_id: null}],
-        id: catalogItemId
-      },
-      attributes: {exclude: ["userId"]}
-    }, transaction)
-  }
+	findOneWithDependencies(catalogItemId, userId, transaction) {
+		return CatalogItem.findOne({
+			include: [
+				{
+					model: CatalogItemImage,
+					as: 'images',
+					required: false,
+					attributes: ['containerImage', 'fogTypeId']
+				},
+				{
+					model: CatalogItemInputType,
+					as: 'inputType',
+					required: false,
+					attributes: ['infoType', 'infoFormat']
+				},
+				{
+					model: CatalogItemOutputType,
+					as: 'outputType',
+					required: false,
+					attributes: ['infoType', 'infoFormat']
+				}],
+			where: {
+				[Op.or]: [{user_id: userId}, {user_id: null}],
+				id: catalogItemId
+			},
+			attributes: { exclude: ["userId"] }
+		}, transaction)
+	}
 }
 
 const instance = new CatalogItemManager();

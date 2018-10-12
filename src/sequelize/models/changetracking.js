@@ -56,7 +56,7 @@ module.exports = (sequelize, DataTypes) => {
     timestamps: false,
     underscored: true
   });
-  ChangeTracking.associate = function (models) {
+  ChangeTracking.associate = function(models) {
 
     ChangeTracking.belongsTo(models.Fog, {
       foreignKey: {

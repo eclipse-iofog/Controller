@@ -58,9 +58,9 @@ const _deleteFlowEndPoint = async function (req, user) {
 };
 
 module.exports = {
-  createFlowEndPoint: AuthDecorator.checkAuthToken(_createFlowEndPoint),
-  getFlowsByUserEndPoint: AuthDecorator.checkAuthToken(_getFlowsByUserEndPoint),
-  getFlowEndPoint: AuthDecorator.checkAuthToken(_getFlowEndPoint),
-  updateFlowEndPoint: AuthDecorator.checkAuthToken(_updateFlowEndPoint),
-  deleteFlowEndPoint: AuthDecorator.checkAuthToken(_deleteFlowEndPoint)
+    createFlowEndPoint: AuthDecorator.checkAuthToken(_createFlowEndPoint),
+    getFlowsByUserEndPoint: AuthDecorator.checkAuthToken(_getFlowsByUserEndPoint),
+    getFlowEndPoint: AuthDecorator.checkAuthToken(_getFlowEndPoint),
+    updateFlowEndPoint: AuthDecorator.checkAuthToken(_updateFlowEndPoint),
+    deleteFlowEndPoint: AuthDecorator.checkAuthToken(_deleteFlowEndPoint)
 };
