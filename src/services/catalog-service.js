@@ -123,7 +123,7 @@ const deleteCatalogItem = async function (catalogItemId, user, transaction) {
 	const id = AppHelper.validateParameterId(catalogItemId, "Invalid catalog item id");
 	await CatalogItemManager.delete({
 		userId: user.id,
-		id: catalogItemId
+		id: id
 	}, transaction).then(affectedRows => {
 		if (affectedRows === 0) {
 			throw new Errors.NotFoundError("Invalid catalog item id");
