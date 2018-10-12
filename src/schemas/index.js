@@ -26,10 +26,11 @@ fs.readdirSync(__dirname)
     mainSchemas.forEach(schema => {
       schemas[schema.id.replace('/', '')] = schema;
     });
-
-    innerSchemas.forEach(schema => {
-      registerSchema(schema, schema.id);
-    });
+    if (innerSchemas) {
+      innerSchemas.forEach(schema => {
+        registerSchema(schema, schema.id);
+      });
+    }
   });
 
 
