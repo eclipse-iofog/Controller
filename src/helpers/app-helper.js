@@ -114,11 +114,11 @@ function checkTransaction(transaction) {
 }
 
 function validateParameterId(id, errMsg) {
-	const parsedId = parseInt(id);
-	if (isNaN(parsedId)) {
-		throw new Errors.NotFoundError(errMsg);
-	}
-	return parsedId;
+  const parsedId = parseInt(id);
+  if (isNaN(parsedId)) {
+    throw new Errors.NotFoundError(errMsg);
+  }
+  return parsedId;
 }
 
 function deleteUndefinedFields(obj) {
@@ -138,10 +138,10 @@ function deleteUndefinedFields(obj) {
 }
 
 function validateBooleanCliOptions(option1, option2) {
-	if (option1 && option2) {
-		throw new Errors.ValidationError("Option " + option1 + " and " + option2 + " can not be used simultaneously");
-	}
-	return option1 ? option1 : (option2 ? option2 : undefined)
+  if (option1 && option2) {
+    throw new Errors.ValidationError("Option " + option1 + " and " + option2 + " can not be used simultaneously");
+  }
+  return option1 ? option1 : (option2 ? option2 : undefined)
 }
 
 module.exports = {
@@ -158,6 +158,6 @@ module.exports = {
   generateAccessToken,
   checkTransaction,
   deleteUndefinedFields,
-	validateParameterId,
-	validateBooleanCliOptions
+  validateParameterId,
+  validateBooleanCliOptions
 };

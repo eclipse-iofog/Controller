@@ -20,7 +20,7 @@ module.exports = (sequelize, DataTypes) => {
     timestamps: false,
     underscored: true
   });
-  ControllerConfig.associate = function(models) {
+  ControllerConfig.associate = function (models) {
 
   };
   return ControllerConfig;
