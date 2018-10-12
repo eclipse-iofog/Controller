@@ -2022,11 +2022,11 @@ definitions:
         type: number
       logDirectory:
         type: string
-      bluetooth:
+      bluetoothEnabled:
         type: boolean
-      hal:
+      abstractedHardwareEnabled:
         type: boolean
-      isolatedDockerContainer:
+      watchdogEnabled:
         type: boolean
       logFileCount:
         type: number
@@ -2105,9 +2105,6 @@ definitions:
         type: boolean
         default: true
       abstractedHardwareEnabled:
-        type: boolean
-        default: false
-      reboot:
         type: boolean
         default: false
       fogType:
@@ -2203,7 +2200,7 @@ definitions:
         type: number
       scanDevicesFreq:
         type: number
-      isolatedDockerContainer:
+      watchdogEnabled:
         type: boolean
       gpsCoordinates:
         $ref: '#/definitions/GpsCoordinates'
@@ -2234,7 +2231,7 @@ definitions:
         type: number
       scanDevicesFreq:
         type: number
-      isolatedDockerContainer:
+      watchdogEnabled:
         type: boolean
       gpsCoordinates:
         $ref: '#/definitions/GpsCoordinates'
