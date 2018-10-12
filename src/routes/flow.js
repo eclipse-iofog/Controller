@@ -10,52 +10,135 @@
  *  *******************************************************************************
  *
  */
-const constants = require('../helpers/constants')
+const constants = require('../helpers/constants');
+const FlowController = require('../controllers/flow-controller');
+const ResponseDecorator = require('../decorators/response-decorator');
+const Errors = require('../helpers/errors');
 
 module.exports = [
   {
     method: 'get',
     path: '/api/v3/flow',
-    middleware: (req, res) => {
+    middleware: async (req, res) => {
+
+      const successCode = constants.HTTP_CODE_SUCCESS;
+      const errorCodes = [
+        {
+          code: constants.HTTP_CODE_UNAUTHORIZED,
+          errors: [Errors.AuthenticationError]
+        }
+      ];
+
+      const getFlowsByUserEndPoint = ResponseDecorator.handleErrors(FlowController.getFlowsByUserEndPoint, successCode, errorCodes);
+      const responseObject = await getFlowsByUserEndPoint(req);
+
       res
-        .status(constants.HTTP_CODE_SUCCESS)
-        .send(req.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
     }
   },
   {
     method: 'post',
     path: '/api/v3/flow',
-    middleware: (req, res) => {
+    middleware: async (req, res) => {
+
+      const successCode = constants.HTTP_CODE_CREATED;
+      const errorCodes = [
+        {
+          code: constants.HTTP_CODE_BAD_REQUEST,
+          errors: [Errors.ValidationError]
+        },
+        {
+          code: constants.HTTP_CODE_UNAUTHORIZED,
+          errors: [Errors.AuthenticationError]
+        }
+      ];
+
+      const createFlowEndPoint = ResponseDecorator.handleErrors(FlowController.createFlowEndPoint, successCode, errorCodes);
+      const responseObject = await createFlowEndPoint(req);
+
       res
-        .status(constants.HTTP_CODE_SUCCESS)
-        .send(req.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
     }
   },
   {
     method: 'get',
     path: '/api/v3/flow/:id',
-    middleware: (req, res) => {
+    middleware: async (req, res) => {
+
+      const successCode = constants.HTTP_CODE_SUCCESS;
+      const errorCodes = [
+        {
+          code: constants.HTTP_CODE_UNAUTHORIZED,
+          errors: [Errors.AuthenticationError]
+        },
+        {
+          code: constants.HTTP_CODE_NOT_FOUND,
+          errors: [Errors.NotFoundError]
+        }
+      ];
+
+      const getFlowEndPoint = ResponseDecorator.handleErrors(FlowController.getFlowEndPoint, successCode, errorCodes);
+      const responseObject = await getFlowEndPoint(req);
+
       res
-        .status(constants.HTTP_CODE_SUCCESS)
-        .send(req.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
     }
   },
   {
     method: 'patch',
     path: '/api/v3/flow/:id',
-    middleware: (req, res) => {
+    middleware: async (req, res) => {
+
+      const successCode = constants.HTTP_CODE_NO_CONTENT;
+      const errorCodes = [
+        {
+          code: constants.HTTP_CODE_BAD_REQUEST,
+          errors: [Errors.ValidationError]
+        },
+        {
+          code: constants.HTTP_CODE_UNAUTHORIZED,
+          errors: [Errors.AuthenticationError]
+        },
+        {
+          code: constants.HTTP_CODE_NOT_FOUND,
+          errors: [Errors.NotFoundError]
+        }
+      ];
+
+      const updateFlowEndPoint = ResponseDecorator.handleErrors(FlowController.updateFlowEndPoint, successCode, errorCodes);
+      const responseObject = await updateFlowEndPoint(req);
+
       res
-        .status(constants.HTTP_CODE_SUCCESS)
-        .send(req.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
     }
   },
   {
     method: 'delete',
     path: '/api/v3/flow/:id',
-    middleware: (req, res) => {
+    middleware: async (req, res) => {
+
+      const successCode = constants.HTTP_CODE_NO_CONTENT;
+      const errorCodes = [
+        {
+          code: constants.HTTP_CODE_UNAUTHORIZED,
+          errors: [Errors.AuthenticationError]
+        },
+        {
+          code: constants.HTTP_CODE_NOT_FOUND,
+          errors: [Errors.NotFoundError]
+        }
+      ];
+
+      const deleteFlowEndPoint = ResponseDecorator.handleErrors(FlowController.deleteFlowEndPoint, successCode, errorCodes);
+      const responseObject = await deleteFlowEndPoint(req);
+
       res
-        .status(constants.HTTP_CODE_SUCCESS)
-        .send(req.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
     }
   }
 ];

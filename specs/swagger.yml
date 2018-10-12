@@ -321,6 +321,34 @@ paths:
           description: Invalid Node Id
         500:
           description: Internal Server Error
+  '/iofog/{uuid}/reboot':
+    post:
+      tags:
+      - ioFog
+      description: remote reboot fog agent
+      operationId: setRebootCommand
+      parameters:
+      - in: header
+        name: Authorization
+        description: User Token
+        required: true
+        type: string
+      - in: path
+        name: uuid
+        description: ioFog node id
+        required: true
+        type: string
+      responses:
+        201:
+          description: Success
+          headers:
+            X-Timestamp:
+              type: number
+              description: FogController server timestamp
+        401:
+          description: Not Authorized
+        500:
+          description: Internal Server Error
   /iofog/agent/provision:
     post:
       tags:
@@ -2099,9 +2127,6 @@ definitions:
       bluetoothEnabled:
         type: boolean
         default: false
-      watchdogEnabled:
-        type: boolean
-        default: true
       abstractedHardwareEnabled:
         type: boolean
         default: false

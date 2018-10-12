@@ -32,7 +32,6 @@ const JSON_SCHEMA =
   changeFrequency: number
   deviceScanFrequency: number
   bluetoothEnabled: boolean
-  watchdogEnabled: boolean
   abstractedHardwareEnabled: boolean
   autoGPSEnabled: boolean
   reboot: boolean
@@ -65,8 +64,6 @@ class IOFog extends BaseCLIHandler {
       { name: 'device-frequency', alias: 'Q', type: Number, description: 'ioFog node device scan frequency (seconds)', group: [constants.CMD_UPDATE, constants.CMD_ADD] },
       { name: 'blutooth-enable', alias: 'B', type: Boolean, description: 'Enable bluetoth on ioFog node', group: [constants.CMD_UPDATE, constants.CMD_ADD] },
       { name: 'blutooth-disable', alias: 'b', type: Boolean, description: 'Disable bluetoth on ioFog node', group: [constants.CMD_UPDATE, constants.CMD_ADD] },
-      { name: 'watchdog-enable', alias: 'W', type: Boolean, description: 'Enable watchdog on ioFog node', group: [constants.CMD_UPDATE, constants.CMD_ADD] },
-      { name: 'watchdog-disable', alias: 'w', type: Boolean, description: 'Disable watchdog on ioFog node', group: [constants.CMD_UPDATE, constants.CMD_ADD] },
       { name: 'abs-hw-enable', alias: 'a', type: Boolean, description: 'Enable hardware abstraction on ioFog node', group: [constants.CMD_UPDATE, constants.CMD_ADD] },
       { name: 'abs-hw-disable', alias: 'A', type: Boolean, description: 'Disable hardware abstraction on ioFog node', group: [constants.CMD_UPDATE, constants.CMD_ADD] },
       { name: 'gps-enable', alias: 'p', type: Boolean, description: 'Enable GPS on ioFog node', group: [constants.CMD_UPDATE, constants.CMD_ADD] },
