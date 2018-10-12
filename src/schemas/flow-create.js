@@ -1,8 +1,8 @@
-const flow = {
-  "id": "/flow",
+const flowCreate = {
+  "id": "/flowCreate",
   "type": "object",
   "properties": {
-     "name": {"type": "string", "required": true},
+     "name": {"type": "string"},
      "description": {"type": "string"},
      "isActive": {"type": "boolean"},
      "isSelected": {"type": "boolean"}
@@ -10,8 +10,7 @@ const flow = {
   "required": ["name"]
 };
 
-
 module.exports = {
-  mainSchemas: [flow],
-    innerSchemas: []
+  mainSchemas: [flowCreate],
+  innerSchemas: []
 };

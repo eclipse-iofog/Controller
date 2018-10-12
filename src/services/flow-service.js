@@ -36,11 +36,12 @@ const _createFlow = async function (flowData, user, transaction) {
   }
 };
 
-const _deleteFlow = async function (flowId, transaction) {
-  await _getFlow(flowId, transaction);
+const _deleteFlow = async function (flowId, user, transaction) {
+  await _getFlow(flowId, user, transaction);
 
   await FlowManager.delete({
-    id: flowId
+    id: flowId,
+    userId: user.id
   }, transaction)
 };
 
@@ -59,16 +60,18 @@ const _updateFlow = async function (flowData, flowId, user, transaction) {
 
   const updateFlowData = AppHelper.deleteUndefinedFields(flow);
 
-  await _getFlow(flowId, transaction);
+  await _getFlow(flowId, user, transaction);
 
   return await FlowManager.update({
-      id: flowId
+      id: flowId,
+      userId: user.id
     }, updateFlowData, transaction)
 };
 
-const _getFlow = async function (flowId, transaction) {
+const _getFlow = async function (flowId, user, transaction) {
   const flow = await FlowManager.findOne({
-    id: flowId
+    id: flowId,
+    userId: user.id
   }, transaction);
 
   if (!flow){

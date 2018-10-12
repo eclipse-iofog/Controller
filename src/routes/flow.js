@@ -14,7 +14,6 @@ const constants = require('../helpers/constants');
 const FlowController = require('../controllers/flow-controller');
 const ResponseDecorator = require('../decorators/response-decorator');
 const Errors = require('../helpers/errors');
-const Validation = require('../schemas');
 
 module.exports = [
   {
@@ -27,10 +26,6 @@ module.exports = [
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
           errors: [Errors.AuthenticationError]
-        },
-        {
-          code: constants.HTTP_CODE_INTERNAL_ERROR,
-          errors: [Errors.TransactionError]
         }
       ];
 
@@ -56,14 +51,8 @@ module.exports = [
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
           errors: [Errors.AuthenticationError]
-        },
-        {
-          code: constants.HTTP_CODE_INTERNAL_ERROR,
-          errors: [Errors.TransactionError]
         }
       ];
-
-      await Validation.validate(req, Validation.schemas.flow);
 
       const createFlowEndPoint = ResponseDecorator.handleErrors(FlowController.createFlowEndPoint, successCode, errorCodes);
       const responseObject = await createFlowEndPoint(req);
@@ -87,10 +76,6 @@ module.exports = [
         {
           code: constants.HTTP_CODE_NOT_FOUND,
           errors: [Errors.NotFoundError]
-        },
-        {
-          code: constants.HTTP_CODE_INTERNAL_ERROR,
-          errors: [Errors.TransactionError]
         }
       ];
 
@@ -120,10 +105,6 @@ module.exports = [
         {
           code: constants.HTTP_CODE_NOT_FOUND,
           errors: [Errors.NotFoundError]
-        },
-        {
-          code: constants.HTTP_CODE_INTERNAL_ERROR,
-          errors: [Errors.TransactionError]
         }
       ];
 
@@ -149,10 +130,6 @@ module.exports = [
         {
           code: constants.HTTP_CODE_NOT_FOUND,
           errors: [Errors.NotFoundError]
-        },
-        {
-          code: constants.HTTP_CODE_INTERNAL_ERROR,
-          errors: [Errors.TransactionError]
         }
       ];
 
