@@ -16,83 +16,83 @@ const Errors = require('../../helpers/errors')
 
 module.exports = class BaseManager {
 
-	getEntity() {
-		throw new Error("Not implemented getEntity method in manager");
-	}
+  getEntity() {
+    throw new Error("Not implemented getEntity method in manager");
+  }
 
-	async findAll(object, transaction) {
-		AppHelper.checkTransaction(transaction);
+  async findAll(object, transaction) {
+    AppHelper.checkTransaction(transaction);
 
-		return this.getEntity().findAll({
-			where: object,
-			transaction: transaction
-		});
-	}
+    return this.getEntity().findAll({
+      where: object,
+      transaction: transaction
+    });
+  }
 
-	async findOne(object, transaction) {
-		AppHelper.checkTransaction(transaction);
+  async findOne(object, transaction) {
+    AppHelper.checkTransaction(transaction);
 
-		object = object || {};
+    object = object || {};
 
-		return this.getEntity().findOne({
-			where: object,
-			transaction: transaction
-		});
-	}
+    return this.getEntity().findOne({
+      where: object,
+      transaction: transaction
+    });
+  }
 
-	async create(object, transaction) {
-		AppHelper.checkTransaction(transaction);
+  async create(object, transaction) {
+    AppHelper.checkTransaction(transaction);
 
-		return this.getEntity().create(object, {
-			transaction: transaction
-		});
-	}
+    return this.getEntity().create(object, {
+      transaction: transaction
+    });
+  }
 
-	async bulkCreate(arr, transaction) {
-		AppHelper.checkTransaction(transaction);
+  async bulkCreate(arr, transaction) {
+    AppHelper.checkTransaction(transaction);
 
-		return this.getEntity().bulkCreate(arr, {
-			transaction: transaction
-		});
-	}
+    return this.getEntity().bulkCreate(arr, {
+      transaction: transaction
+    });
+  }
 
-	async delete(data, transaction) {
-		AppHelper.checkTransaction(transaction);
+  async delete(data, transaction) {
+    AppHelper.checkTransaction(transaction);
 
-		return this.getEntity().destroy({
-			where: data,
-			transaction: transaction
-		})
-	}
+    return this.getEntity().destroy({
+      where: data,
+      transaction: transaction
+    })
+  }
 
-	async update(whereData, newData, transaction) {
-		AppHelper.checkTransaction(transaction);
+  async update(whereData, newData, transaction) {
+    AppHelper.checkTransaction(transaction);
 
-		return this.getEntity().update(newData, {
-			where: whereData,
-			transaction: transaction
-		});
-	}
+    return this.getEntity().update(newData, {
+      where: whereData,
+      transaction: transaction
+    });
+  }
 
-	async upsert(data, transaction) {
-		AppHelper.checkTransaction(transaction);
+  async upsert(data, transaction) {
+    AppHelper.checkTransaction(transaction);
 
-		return this.getEntity().upsert(data, {
-				transaction: transaction
-			}
-		)
-	}
+    return this.getEntity().upsert(data, {
+        transaction: transaction
+      }
+    )
+  }
 
-	async updateOrCreate(whereData, data, transaction) {
-		AppHelper.checkTransaction(transaction);
+  async updateOrCreate(whereData, data, transaction) {
+    AppHelper.checkTransaction(transaction);
 
-		const obj = await this.findOne(whereData, transaction)
-		if (obj) {
-			await this.update(whereData, data, transaction)
-			return this.findOne(whereData, transaction)
-		} else {
-			return this.create(data, transaction)
-		}
+    const obj = await this.findOne(whereData, transaction)
+    if (obj) {
+      await this.update(whereData, data, transaction)
+      return this.findOne(whereData, transaction)
+    } else {
+      return this.create(data, transaction)
+    }
 
-	}
+  }
 };
