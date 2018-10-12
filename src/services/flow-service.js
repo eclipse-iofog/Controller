@@ -53,8 +53,8 @@ const _updateFlow = async function (flowData, flowId, user, transaction) {
   const flow = {
       name: flowData.name,
       description: flowData.description,
-      isActivated: AppHelper.validateFlowActive(flowData.isActivated),
-      isSelected: AppHelper.validateFlowSelected(flowData.isSelected),
+      isActivated: flowData.isActivated,
+      isSelected: flowData.isSelected,
       updatedBy: user.id
   };
 
