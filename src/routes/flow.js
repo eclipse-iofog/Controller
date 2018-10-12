@@ -14,6 +14,7 @@ const constants = require('../helpers/constants');
 const FlowController = require('../controllers/flow-controller');
 const ResponseDecorator = require('../decorators/response-decorator');
 const Errors = require('../helpers/errors');
+const Validation = require('../schemas');
 
 module.exports = [
   {
@@ -61,6 +62,8 @@ module.exports = [
           errors: [Errors.TransactionError]
         }
       ];
+
+      await Validation.validate(req, Validation.schemas.flow);
 
       const createFlowEndPoint = ResponseDecorator.handleErrors(FlowController.createFlowEndPoint, successCode, errorCodes);
       const responseObject = await createFlowEndPoint(req);

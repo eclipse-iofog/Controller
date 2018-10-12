@@ -22,8 +22,8 @@ const _createFlow = async function (flowData, user, transaction) {
   const flowToCreate = {
     name: flowData.name,
     description: flowData.description,
-    isActivated: flowData.isActivated ? AppHelper.validateFlowActive(flowData.isActivated) : false,
-    isSelected: flowData.isSelected ? AppHelper.validateFlowActive(flowData.isSelected) : false,
+    isActivated: flowData.isActivated,
+    isSelected: flowData.isSelected,
     userId: user.id
   };
 

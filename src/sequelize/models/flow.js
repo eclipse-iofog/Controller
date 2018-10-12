@@ -20,10 +20,12 @@ module.exports = (sequelize, DataTypes) => {
     isActivated: {
       type: DataTypes.BOOLEAN,
       field: 'is_activated',
+      defaultValue: false
     },
     isSelected: {
       type: DataTypes.BOOLEAN,
-      field: 'is_selected'
+      field: 'is_selected',
+      defaultValue: false
     }
   }, {
     timestamps: true,
