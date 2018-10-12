@@ -15,40 +15,40 @@ const TransactionDecorator = require('../decorators/transaction-decorator')
 const AppHelper = require('../helpers/app-helper')
 const FogManager = require('../sequelize/managers/iofog-manager')
 const FogProvisionKeyManager = require('../sequelize/managers/iofog-provision-key-manager')
+const FogVersionCommandManager = require('../sequelize/managers/iofog-version-command-manager')
+const ChangeTrackingManager = require('../sequelize/managers/change-tracking-manager')
 const Errors = require('../helpers/errors')
-const ObjBuilder = require('../helpers/object-builder')
 
 async function _createFog(fogData, user, transaction) {
   AppHelper.validateFields(fogData, ['name', 'fogType'])
   _validateLatLon(fogData.latitude, fogData.longitude)
 
-  const ob = new ObjBuilder()
-  const createFogData = ob
-    .pushRequiredFieldWithCondition('uuid', fogData.uuid, fogData.uuid, AppHelper.generateRandomString(32))
-    .pushFieldIfValExists('name', fogData.name)
-    .pushFieldIfValExists('location', fogData.location)
-    .pushFieldIfValExists('latitude', fogData.latitude)
-    .pushFieldIfValExists('longitude', fogData.longitude)
-    .pushOptionalFieldWithCondition('gpsMode', fogData.latitude || fogData.longitude, 'manual')
-    .pushFieldIfValExists('description', fogData.description)
-    .pushFieldIfValExists('dockerUrl', fogData.dockerUrl)
-    .pushFieldIfValExists('diskLimit', fogData.diskLimit)
-    .pushFieldIfValExists('diskDirectory', fogData.diskDirectory)
-    .pushFieldIfValExists('memoryLimit', fogData.memoryLimit)
-    .pushFieldIfValExists('cpuLimit', fogData.cpuLimit)
-    .pushFieldIfValExists('logLimit', fogData.logLimit)
-    .pushFieldIfValExists('logLimit', fogData.logLimit)
-    .pushFieldIfValExists('logDirectory', fogData.logDirectory)
-    .pushFieldIfValExists('logFileCount', fogData.logFileCount)
-    .pushFieldIfValExists('statusFrequency', fogData.statusFrequency)
-    .pushFieldIfValExists('changeFrequency', fogData.changeFrequency)
-    .pushFieldIfValExists('deviceScanFrequency', fogData.deviceScanFrequency)
-    .pushFieldIfValExists('bluetooth', fogData.bluetoothEnabled)
-    .pushFieldIfValExists('isolatedDockerContainer', fogData.watchdogEnabled)
-    .pushFieldIfValExists('hal', fogData.abstractedHardwareEnabled)
-    .pushFieldIfValExists('fogTypeId', fogData.fogType)
-    .pushFieldIfValExists('userId', user.id)
-    .popObj()
+  let createFogData = {
+    uuid: fogData.uuid ? fogData.uuid : AppHelper.generateRandomString(32),
+    name: fogData.name,
+    location: fogData.location,
+    latitude: fogData.latitude,
+    longitude: fogData.longitude,
+    gpsMode: fogData.latitude || fogData.longitude ? 'manual' : undefined,
+    description: fogData.description,
+    dockerUrl: fogData.dockerUrl,
+    diskLimit: fogData.diskLimit,
+    diskDirectory: fogData.diskDirectory,
+    memoryLimit: fogData.memoryLimit,
+    cpuLimit: fogData.cpuLimit,
+    logLimit: fogData.logLimit,
+    logDirectory: fogData.logDirectory,
+    logFileCount: fogData.logFileCount,
+    statusFrequency: fogData.statusFrequency,
+    changeFrequency: fogData.changeFrequency,
+    deviceScanFrequency: fogData.deviceScanFrequency,
+    bluetoothEnabled: fogData.bluetoothEnabled,
+    watchdogEnabled: fogData.watchdogEnabled,
+    abstractedHardwareEnabled: fogData.abstractedHardwareEnabled,
+    fogTypeId: fogData.fogType,
+    userId: user.id
+  }
+  createFogData = AppHelper.deleteUndefinedFields(createFogData)
 
   const fog = await FogManager.create(createFogData, transaction)
 
@@ -68,31 +68,30 @@ async function _updateFog(fogData, user, transaction) {
     userId: user.id
   }
 
-  const ob = new ObjBuilder()
-  const updateFogData = ob
-    .pushFieldIfValExists('name', fogData.name)
-    .pushFieldIfValExists('location', fogData.location)
-    .pushFieldIfValExists('latitude', fogData.latitude)
-    .pushFieldIfValExists('longitude', fogData.longitude)
-    .pushOptionalFieldWithCondition('gpsMode', fogData.latitude || fogData.longitude, 'manual')
-    .pushFieldIfValExists('description', fogData.description)
-    .pushFieldIfValExists('dockerUrl', fogData.dockerUrl)
-    .pushFieldIfValExists('diskLimit', fogData.diskLimit)
-    .pushFieldIfValExists('diskDirectory', fogData.diskDirectory)
-    .pushFieldIfValExists('memoryLimit', fogData.memoryLimit)
-    .pushFieldIfValExists('cpuLimit', fogData.cpuLimit)
-    .pushFieldIfValExists('logLimit', fogData.logLimit)
-    .pushFieldIfValExists('logLimit', fogData.logLimit)
-    .pushFieldIfValExists('logDirectory', fogData.logDirectory)
-    .pushFieldIfValExists('logFileCount', fogData.logFileCount)
-    .pushFieldIfValExists('statusFrequency', fogData.statusFrequency)
-    .pushFieldIfValExists('changeFrequency', fogData.changeFrequency)
-    .pushFieldIfValExists('deviceScanFrequency', fogData.deviceScanFrequency)
-    .pushFieldIfValExists('bluetooth', fogData.bluetoothEnabled)
-    .pushFieldIfValExists('isolatedDockerContainer', fogData.watchdogEnabled)
-    .pushFieldIfValExists('hal', fogData.abstractedHardwareEnabled)
-    .pushFieldIfValExists('fogTypeId', fogData.fogType)
-    .popObj()
+  let updateFogData = {
+    name: fogData.name,
+    location: fogData.location,
+    latitude: fogData.latitude,
+    longitude: fogData.longitude,
+    gpsMode: fogData.latitude || fogData.longitude ? 'manual' : undefined,
+    description: fogData.description,
+    dockerUrl: fogData.dockerUrl,
+    diskLimit: fogData.diskLimit,
+    diskDirectory: fogData.diskDirectory,
+    memoryLimit: fogData.memoryLimit,
+    cpuLimit: fogData.cpuLimit,
+    logLimit: fogData.logLimit,
+    logDirectory: fogData.logDirectory,
+    logFileCount: fogData.logFileCount,
+    statusFrequency: fogData.statusFrequency,
+    changeFrequency: fogData.changeFrequency,
+    deviceScanFrequency: fogData.deviceScanFrequency,
+    bluetoothEnabled: fogData.bluetoothEnabled,
+    watchdogEnabled: fogData.watchdogEnabled,
+    abstractedHardwareEnabled: fogData.abstractedHardwareEnabled,
+    fogTypeId: fogData.fogType,
+  }
+  updateFogData = AppHelper.deleteUndefinedFields(updateFogData)
 
   const fog = await FogManager.findOne(queryFogData, transaction)
   if (!fog) {
@@ -131,11 +130,22 @@ async function _getFog(getFog, user, transaction) {
   return fog
 }
 
+async function _getFogList(filters, user, transaction) {
+  const queryFogData = {
+    userId: user.id
+  }
+
+  let fogs = await FogManager.findAll(queryFogData, transaction)
+  fogs = _filterFogs(fogs, filters)
+  return fogs
+}
+
 async function _generateProvisioningKey(fogData, user, transaction) {
   AppHelper.validateFields(fogData, ['uuid'])
 
   const queryFogData = {
-    uuid: fogData.uuid
+    uuid: fogData.uuid,
+    userId: user.id
   }
 
   const newProvision = {
@@ -158,6 +168,73 @@ async function _generateProvisioningKey(fogData, user, transaction) {
   return res
 }
 
+async function _setFogVersionCommand(fogVersionData, user, transaction) {
+  AppHelper.validateFields(fogVersionData, ['uuid', 'versionCommand'])
+  _validateVersionCommand(fogVersionData.versionCommand)
+
+  const queryFogData = {
+    uuid: fogVersionData.uuid,
+    userId: user.id
+  }
+  const newVersionCommand = {
+    iofogUuid: fogVersionData.uuid,
+    versionCommand: fogVersionData.versionCommand
+  }
+
+  const fog = await FogManager.findOne(queryFogData, transaction)
+  if (!fog) {
+    throw new Errors.NotFoundError('Invalid Fog Node Id')
+  }
+
+  await FogVersionCommandManager.updateOrCreate({iofogUuid: fogVersionData.uuid}, newVersionCommand, transaction)
+}
+
+async function _setFogRebootCommand(fogData, user, transaction) {
+  AppHelper.validateFields(fogData, ['uuid'])
+
+  const queryFogData = {
+    uuid: fogData.uuid,
+    userId: user.id
+  }
+  const newRebootCommand = {
+    iofogUuid: fogData.uuid,
+    reboot: true
+  }
+
+  const fog = await FogManager.findOne(queryFogData, transaction)
+  if (!fog) {
+    throw new Errors.NotFoundError('Invalid Fog Node Id')
+  }
+
+  await ChangeTrackingManager.updateOrCreate({iofogUuid: fogData.uuid}, newRebootCommand, transaction)
+}
+
+function _filterFogs(fogs, filters) {
+  if (!filters) {
+    return fogs
+  }
+
+  const filtered = []
+  fogs.forEach((fog) => {
+    let isMatchFog = true
+    filters.some((filter) => {
+      let fld = filter.key,
+          val = filter.value,
+          condition = filter.condition;
+      let isMatchField = (condition === 'equals' && fog[fld] && fog[fld] === val)
+        || (condition === 'has' && fog[fld] && fog[fld].includes(val));
+      if (!isMatchField) {
+        isMatchFog = false;
+        return false
+      }
+    })
+    if (isMatchFog) {
+      filtered.push(fog)
+    }
+  })
+  return filtered
+}
+
 function _validateLatLon(lat, lon) {
   if (lat && lon) {
     if (lat > 90 || lat < -90
@@ -167,10 +244,19 @@ function _validateLatLon(lat, lon) {
   }
 }
 
+function _validateVersionCommand(command) {
+  if (command !== 'upgrade' && command !== 'rollback') {
+    throw new Errors.ValidationError('incorrect version command')
+  }
+}
+
 module.exports = {
   createFogWithTransaction: TransactionDecorator.generateTransaction(_createFog),
   updateFogWithTransaction: TransactionDecorator.generateTransaction(_updateFog),
   deleteFogWithTransaction: TransactionDecorator.generateTransaction(_deleteFog),
   getFogWithTransaction: TransactionDecorator.generateTransaction(_getFog),
+  getFogListWithTransaction: TransactionDecorator.generateTransaction(_getFogList),
   generateProvisioningKeyWithTransaction: TransactionDecorator.generateTransaction(_generateProvisioningKey),
+  setFogVersionCommandWithTransaction: TransactionDecorator.generateTransaction(_setFogVersionCommand),
+  setFogRebootCommandWithTransaction: TransactionDecorator.generateTransaction(_setFogRebootCommand)
 }

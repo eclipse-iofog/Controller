@@ -42,6 +42,12 @@ async function _getFog(req, user) {
   return await FogService.getFogWithTransaction(getFog, user)
 }
 
+async function _getFogList(req, user) {
+  logger.info("Parameters:" + JSON.stringify(req.body));
+  const filters = Array.from(req.body)
+  return await FogService.getFogListWithTransaction(filters, user)
+}
+
 async function _generateProvisioningKey(req, user) {
   logger.info("Parameters:" + JSON.stringify(req.body));
   const fog = {}
@@ -49,10 +55,28 @@ async function _generateProvisioningKey(req, user) {
   return await FogService.generateProvisioningKeyWithTransaction(fog, user)
 }
 
+async function _setFogVersionCommand(req, user) {
+  logger.info("Parameters:" + JSON.stringify(req.body));
+  const fogVersionCommand = {}
+  fogVersionCommand.uuid = req.params.uuid
+  fogVersionCommand.versionCommand = req.params.versionCommand
+  return await FogService.setFogVersionCommandWithTransaction(fogVersionCommand, user)
+}
+
+async function _setFogRebootCommand(req, user) {
+  logger.info("Parameters:" + JSON.stringify(req.body));
+  const fog = {}
+  fog.uuid = req.params.uuid
+  return await FogService.setFogRebootCommandWithTransaction(fog, user)
+}
+
 module.exports = {
   createFog: AuthDecorator.checkAuthToken(_createFog),
   updateFog: AuthDecorator.checkAuthToken(_updateFog),
   deleteFog: AuthDecorator.checkAuthToken(_deleteFog),
   getFog: AuthDecorator.checkAuthToken(_getFog),
+  getFogList: AuthDecorator.checkAuthToken(_getFogList),
   generateProvisioningKey: AuthDecorator.checkAuthToken(_generateProvisioningKey),
+  setFogVersionCommand: AuthDecorator.checkAuthToken(_setFogVersionCommand),
+  setFogRebootCommand: AuthDecorator.checkAuthToken(_setFogRebootCommand),
 }

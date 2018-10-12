@@ -160,12 +160,12 @@ module.exports = {
         defaultValue: "/var/log/iofog/",
         field: 'log_directory'
       },
-      bluetooth: {
+      bluetoothEnabled: {
         type: Sequelize.INTEGER,
         defaultValue: 0,
         field: 'bluetooth'
       },
-      hal: {
+      abstractedHardwareEnabled: {
         type: Sequelize.INTEGER,
         defaultValue: 0,
         field: 'hal'
@@ -209,7 +209,7 @@ module.exports = {
         defaultValue: "",
         field: 'proxy'
       },
-      isolatedDockerContainer: {
+      watchdogEnabled: {
         type: Sequelize.BOOLEAN,
         defaultValue: 1,
         field: 'isolated_docker_container'
