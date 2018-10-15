@@ -83,20 +83,20 @@ const _getFlow = async function (flowId, user, transaction) {
 
 const _getUserFlows = async function (user, transaction) {
   const flow = {
-    user_id: user.id
+    userId: user.id
   };
 
   return await FlowManager.findAll(flow, transaction)
 };
 
 const isFlowExist = async function (flowName, transaction) {
-    const flow = await FlowManager.findOne({
-        name: flowName
-    }, transaction);
+  const flow = await FlowManager.findOne({
+    name: flowName
+  }, transaction);
 
-    if (flow){
-        throw new Errors.ValidationError("Bad Request: Flow with the same name already exists")
-    }
+  if (flow){
+    throw new Errors.ValidationError("Bad Request: Flow with the same name already exists")
+  }
 };
 
 module.exports = {
