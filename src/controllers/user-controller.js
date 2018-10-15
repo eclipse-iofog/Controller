@@ -19,10 +19,13 @@ const AppHelper = require('../helpers/app-helper');
 
 const Errors = require('../helpers/errors');
 
+const Validator = require('../schemas');
+
 const userSignupEndPoint = async function (req) {
   const user = req.body;
 
-  _validatePassword(user.password);
+  await Validator.validate(user, Validator.schemas.signUp);
+
   user.password = AppHelper.encryptText(user.password, user.email);
 
   logger.info("Parameters:" + JSON.stringify(user));
@@ -32,6 +35,8 @@ const userSignupEndPoint = async function (req) {
 
 const userLoginEndPoint = async function (req) {
   const user = req.body;
+
+  await Validator.validate(user, Validator.schemas.login);
 
   user.password = AppHelper.encryptText(user.password, user.email);
 
@@ -81,8 +86,8 @@ const deleteUserProfileEndPoint = async function (req, user) {
 const updateUserPasswordEndPoint = async function (req, user) {
   const passwordUpdates = req.body;
 
-  _validatePassword(passwordUpdates.oldPassword);
-  _validatePassword(passwordUpdates.newPassword);
+  await Validator.validate(passwordUpdates, Validator.schemas.updatePassword);
+
   passwordUpdates.oldPassword = AppHelper.encryptText(passwordUpdates.oldPassword, user.email);
   passwordUpdates.newPassword = AppHelper.encryptText(passwordUpdates.newPassword, user.email);
 
@@ -98,12 +103,6 @@ const resetUserPasswordEndPoint = async function (req) {
 
   return await UserService.resetUserPassword(emailObj);
 };
-
-function _validatePassword(password) {
-  if (password.length < 8) {
-    throw new Errors.ValidationError('Your password must have at least 8 characters.');
-  }
-}
 
 module.exports = {
   userSignupEndPoint: userSignupEndPoint,

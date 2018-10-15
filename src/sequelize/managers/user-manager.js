@@ -59,10 +59,10 @@ class UserManager extends BaseManager {
     });
   }
 
-  updateDetails(user, profileData, transaction) {
+  updateDetails(user, updateObject, transaction) {
     return this.update({
       id: user.id
-    }, profileData, transaction);
+    }, updateObject, transaction);
   }
 
   updatePassword(userId, newPassword, transaction) {

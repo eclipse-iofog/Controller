@@ -34,19 +34,6 @@ function decryptText(text, salt) {
   return dec
 }
 
-function validateFields(obj, fields) {
-  fields.forEach(function (field) {
-    if (obj[field] === undefined) {
-      throw new Errors.ValidationError("Field '" + field + "' is missing.")
-    }
-  })
-}
-
-function isValidEmail(email) {
-  const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-  return re.test(email);
-}
-
 function generateRandomString(size) {
 
   let randString = "";
@@ -147,8 +134,6 @@ function validateBooleanCliOptions(option1, option2) {
 module.exports = {
   encryptText,
   decryptText,
-  validateFields,
-  isValidEmail,
   generateRandomString,
   isFileExists,
   isValidPort,
