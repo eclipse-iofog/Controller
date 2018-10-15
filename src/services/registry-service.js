@@ -23,9 +23,8 @@ const createRegistry = async function (registry, user, transaction) {
       url: registry.url,
       username: registry.username,
       password: registry.password,
-      email: registry.email,
       isPublic: registry.isPublic,
-      userEmail: user.email,
+      userEmail: registry.email,
       userId: user.id
   };
   return await RegistryManager.create(registryCreate, transaction)
