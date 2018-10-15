@@ -45,7 +45,7 @@ function checkDaemon(daemon, configuration) {
     }
 
     if (iterationsCount === 5) {
-      checkServerProptocol(configuration)
+      checkServerProtocol(configuration)
       return logger.silly(`Fog-Controller has started at pid: ${pid}`)
     }
 
@@ -55,7 +55,7 @@ function checkDaemon(daemon, configuration) {
   setTimeout(check, 1000)
 }
 
-function checkServerProptocol(configuration) {
+function checkServerProtocol(configuration) {
   const { port, sslKey, sslCert, intermedKey } = configuration
   if (sslKey && sslCert && intermedKey) {
     logger.silly(`==> 🌎 HTTPS server listening on port ${port}. Open up https://localhost:${port}/ in your browser.`)

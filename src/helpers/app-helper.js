@@ -34,19 +34,6 @@ function decryptText(text, salt) {
   return dec
 }
 
-function validateFields(obj, fields) {
-  fields.forEach(function (field) {
-    if (obj[field] === undefined) {
-      throw new Errors.ValidationError("Field '" + field + "' is missing.")
-    }
-  })
-}
-
-function isValidEmail(email) {
-  const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-  return re.test(email);
-}
-
 function generateRandomString(size) {
 
   let randString = "";
@@ -113,6 +100,14 @@ function checkTransaction(transaction) {
   }
 }
 
+function validateParameterId(id, errMsg) {
+  const parsedId = parseInt(id);
+  if (isNaN(parsedId)) {
+    throw new Errors.NotFoundError(errMsg);
+  }
+  return parsedId;
+}
+
 function deleteUndefinedFields(obj) {
   if (!obj) {
     return
@@ -129,11 +124,16 @@ function deleteUndefinedFields(obj) {
   return obj
 }
 
+function validateBooleanCliOptions(option1, option2) {
+  if (option1 && option2) {
+    throw new Errors.ValidationError("Option " + option1 + " and " + option2 + " can not be used simultaneously");
+  }
+  return option1 ? option1 : (option2 ? option2 : undefined)
+}
+
 module.exports = {
   encryptText,
   decryptText,
-  validateFields,
-  isValidEmail,
   generateRandomString,
   isFileExists,
   isValidPort,
@@ -142,5 +142,7 @@ module.exports = {
   checkPortAvailability,
   generateAccessToken,
   checkTransaction,
-  deleteUndefinedFields
+  deleteUndefinedFields,
+  validateParameterId,
+  validateBooleanCliOptions
 };

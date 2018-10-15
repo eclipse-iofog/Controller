@@ -21,9 +21,9 @@ module.exports = {
         type: Sequelize.TEXT,
         field: 'category'
       },
-      config: {
+      configExample: {
         type: Sequelize.TEXT,
-        field: 'config'
+        field: 'config_example'
       },
       publisher: {
         type: Sequelize.TEXT,
@@ -54,6 +54,7 @@ module.exports = {
       registryId: {
         type: Sequelize.INTEGER,
         field: 'registry_id',
+        as: 'registryId',
         references: { model: 'Registries', key: 'id' },
         onDelete: 'set null'
       }

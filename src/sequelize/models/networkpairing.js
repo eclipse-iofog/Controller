@@ -16,7 +16,7 @@ module.exports = (sequelize, DataTypes) => {
     timestamps: false,
     underscored: true
   });
-  NetworkPairing.associate = function(models) {
+  NetworkPairing.associate = function (models) {
 
     NetworkPairing.belongsTo(models.Fog, {
       foreignKey: {

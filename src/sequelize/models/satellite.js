@@ -32,7 +32,7 @@ module.exports = (sequelize, DataTypes) => {
     timestamps: true,
     underscored: true
   });
-  Satellite.associate = function(models) {
+  Satellite.associate = function (models) {
 
   };
   return Satellite;

@@ -11,33 +11,40 @@
  *
  */
 
-const BaseCLIHandler = require('./base-cli-handler')
-const constants = require('../helpers/constants')
+const BaseCLIHandler = require('./base-cli-handler');
+const constants = require('../helpers/constants');
+const logger = require('../logger');
+const CatalogItemService = require('../services/catalog-service');
+const fs = require('fs');
+const AppHelper = require('../helpers/app-helper');
+const AuthDecorator = require('../decorators/cli-decorator');
 
 const JSON_SCHEMA =
   `  name: string
   description: string
   category: string
-  containersImages: object
-    x86ContainerImage: string
-    armContainerImage: string
   publisher: string
   diskRequired: number
   ramRequired: number
   picture: string
   isPublic: boolean
   registryId: number
-  inputType: string
-  inputFormat: string
-  outputType: string
-  outputFormat: string
-  configExample: string`
+  configExample: string
+  images: array of objects
+    containerImage: string
+    fogTypeId: number
+  inputType: object
+    infoType: string
+    infoFormat: string
+  outputType: object
+    infoType: string
+    infoFormat: string`;
 
 class Catalog extends BaseCLIHandler {
   constructor() {
-    super()
+    super();
 
-    this.name = constants.CMD_CATALOG
+    this.name = constants.CMD_CATALOG;
     this.commandDefinitions = [
       { name: 'command', defaultOption: true, group: [constants.CMD] },
       { name: 'file', alias: 'f', type: String, description: 'Catalog item settings JSON file', group: [constants.CMD_ADD, constants.CMD_UPDATE] },
@@ -70,20 +77,25 @@ class Catalog extends BaseCLIHandler {
     }
   }
 
-  run(args) {
-    const catalogCommand = this.parseCommandLineArgs(this.commandDefinitions, { argv: args.argv })
+  async run(args) {
+    const catalogCommand = this.parseCommandLineArgs(this.commandDefinitions, {argv: args.argv});
 
     switch (catalogCommand.command.command) {
       case constants.CMD_ADD:
-        return
+        await _executeCase(catalogCommand, constants.CMD_ADD, _createCatalogItem, true);
+        break;
       case constants.CMD_UPDATE:
-        return
+        await _executeCase(catalogCommand, constants.CMD_UPDATE, _updateCatalogItem, false);
+        break;
       case constants.CMD_REMOVE:
-        return
+        await _executeCase(catalogCommand, constants.CMD_REMOVE, _deleteCatalogItem, false);
+        break;
       case constants.CMD_LIST:
-        return
+        await _executeCase(catalogCommand, constants.CMD_LIST, _listCatalogItems, false);
+        break;
       case constants.CMD_INFO:
-        return
+        await _executeCase(catalogCommand, constants.CMD_INFO, _listCatalogItem, false);
+        break;
       case constants.CMD_HELP:
       default:
         return this.help()
@@ -103,4 +115,105 @@ class Catalog extends BaseCLIHandler {
   }
 }
 
-module.exports = new Catalog()
+const _executeCase  = async function (catalogCommand, commandName, f, isUserRequired) {
+  try {
+    const item = catalogCommand[commandName];
+
+    if (isUserRequired) {
+      const decoratedFunction = AuthDecorator.prepareUser(f);
+      decoratedFunction(item);
+    } else {
+      f(item);
+    }
+  } catch (error) {
+    logger.error(error.message);
+  }
+};
+
+const _createCatalogItem = async function (obj, user) {
+  const item = obj.file
+    ? JSON.parse(fs.readFileSync(obj.file, 'utf8'))
+    : _createCatalogItemObject(obj);
+
+  logger.info(JSON.stringify(item));
+
+  const result = await CatalogItemService.createCatalogItem(item, user);
+  logger.info(JSON.stringify(result));
+  logger.info('Catalog item has been created successfully.');
+};
+
+const _updateCatalogItem = async function (obj, user) {
+  const item = obj.file
+    ? JSON.parse(fs.readFileSync(obj.file, 'utf8'))
+    : _createCatalogItemObject(obj);
+
+  logger.info(JSON.stringify(item));
+
+  await CatalogItemService.updateCatalogItem(obj.itemId, item, user, true);
+  logger.info('Catalog item has been updated successfully.');
+};
+
+const _deleteCatalogItem = async function (obj, user) {
+  logger.info(JSON.stringify(obj));
+
+  await CatalogItemService.deleteCatalogItem(obj.itemId, user, true);
+  logger.info('Catalog item has been removed successfully');
+};
+
+const _listCatalogItems = async function (user) {
+  const result = await CatalogItemService.listCatalogItems(user, true);
+  logger.info(JSON.stringify(result));
+};
+
+const _listCatalogItem = async function (obj, user) {
+  logger.info(JSON.stringify(obj));
+
+  const result = await CatalogItemService.listCatalogItem(obj.itemId, user, true);
+  logger.info(JSON.stringify(result));
+}
+
+const _createCatalogItemObject = function (catalogItem) {
+  const catalogItemObj = {
+    name: catalogItem.name,
+    description: catalogItem.description,
+    category: catalogItem.category,
+    configExample: catalogItem.configExample,
+    publisher: catalogItem.publisher,
+    diskRequired: catalogItem.diskRequired,
+    ramRequired: catalogItem.ramRequired,
+    picture: catalogItem.picture,
+    isPublic: AppHelper.validateBooleanCliOptions(catalogItem.public, catalogItem.private),
+    registryId: catalogItem.registryId
+  };
+
+  if (catalogItem.images) {
+    catalogItemObj.images = [
+      {
+        containerImage: catalogItem.x86Image,
+        fogTypeId: 1
+      },
+      {
+        containerImage: catalogItem.armImage,
+        fogTypeId: 2
+      }
+    ];
+  }
+
+  if (catalogItem.inputType) {
+    catalogItemObj.inputType = {
+      infoType: catalogItem.inputType,
+      infoFormat: catalogItem.inputFormat
+    };
+  }
+
+  if (catalogItem.outputType) {
+    catalogItemObj.outputType = {
+      infoType: catalogItem.outputType,
+      infoFormat: catalogItem.outputFormat
+    };
+  }
+
+  return AppHelper.deleteUndefinedFields(catalogItemObj);
+};
+
+module.exports = new Catalog();

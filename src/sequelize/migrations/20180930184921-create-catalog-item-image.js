@@ -21,7 +21,7 @@ module.exports = {
       },
       fogTypeId: {
         type: Sequelize.INTEGER,
-        field: 'iofog_type_id',
+        field: 'fog_type_id',
         references: { model: 'FogTypes', key: 'id' },
         onDelete: 'cascade'
       }

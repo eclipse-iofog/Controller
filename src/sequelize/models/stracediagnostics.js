@@ -21,7 +21,7 @@ module.exports = (sequelize, DataTypes) => {
     timestamps: false,
     underscored: true
   });
-  StraceDiagnostics.associate = function(models) {
+  StraceDiagnostics.associate = function (models) {
 
     StraceDiagnostics.belongsTo(models.Microservice, {
       foreignKey: {
