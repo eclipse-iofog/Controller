@@ -59,6 +59,11 @@ class UserManager extends BaseManager {
     });
   }
 
+  // no transaction required here, used by cli decorator
+  findById(id) {
+    return User.find({id: id});
+  }
+
   updateDetails(user, updateObject, transaction) {
     return this.update({
       id: user.id
