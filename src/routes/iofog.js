@@ -144,7 +144,7 @@ module.exports = [
     method: 'get',
     path: '/api/v3/iofog/:uuid/provisioning-key',
     middleware: async (req, res) => {
-      const successCode = constants.HTTP_CODE_SUCCESS
+      const successCode = constants.HTTP_CODE_CREATED
       const errCodes = [
         {
           code: 401,
