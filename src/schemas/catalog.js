@@ -35,6 +35,7 @@ const catalogItemUpdate = {
     "ramRequired": {"type": "integer"},
     "picture": {"type": "string"},
     "isPublic": {"type": "boolean"},
+    "registryId": {"type": "integer"},
     "configExample": {"type": "string"},
     "images": {
       "type": "array",
@@ -54,7 +55,7 @@ const image = {
     "fogTypeId":
       {
         "type": "integer",
-        "minimum": 0,
+        "minimum": 1,
         "maximum": 2
       }
   },
@@ -67,8 +68,7 @@ const type = {
   "properties": {
     "infoType": {"type": "string"},
     "infoFormat": {"type": "string"}
-  },
-  "required": ["infoType", "infoFormat"]
+  }
 };
 
 module.exports = {

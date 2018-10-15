@@ -19,17 +19,11 @@ const CatalogItemImageManager = require('../sequelize/managers/catalog-item-imag
 const CatalogItemInputTypeManager = require('../sequelize/managers/catalog-item-input-type-manager');
 const CatalogItemOutputTypeManager = require('../sequelize/managers/catalog-item-output-type-manager');
 const Op = require('sequelize').Op;
+const validator = require('../schemas/index');
 
 const createCatalogItem = async function (data, user, transaction) {
-  await CatalogItemManager.findOne({
-    [Op.or]: [{userId: user.id}, {userId: null}],
-    name: data.name
-  }, transaction).then(item => {
-    if (item) {
-      throw new Errors.DuplicatePropertyError("Duplicate Name");
-    }
-  });
-
+  await validator.validate(data, validator.schemas.catalogItemCreate);
+  await _checkForDuplicateName(data.name, {userId: user.id}, transaction);
   const catalogItem = await _createCatalogItem(data, user, transaction);
   await _createCatalogImages(data, catalogItem, transaction);
   await _createCatalogItemInputType(data, catalogItem, transaction);
@@ -40,26 +34,20 @@ const createCatalogItem = async function (data, user, transaction) {
   }
 };
 
-const updateCatalogItem = async function (catalogItemId, data, user, transaction) {
+const updateCatalogItem = async function (catalogItemId, data, user, isCLI, transaction) {
   const id = AppHelper.validateParameterId(catalogItemId, "Invalid catalog item id");
-  if (data.name) {
-    await CatalogItemManager.findOne({
-      [Op.or]: [{userId: user.id}, {userId: null}],
-      name: data.name,
-      id: {
-        [Op.ne]: catalogItemId
-      }
-    }, transaction).then(item => {
-      if (item) {
-        throw new Errors.DuplicatePropertyError("Duplicate Name");
-      }
-    });
-  }
-  const catalogItemWhereClause = {
-    id: id,
-    userId: user.id
-  };
+  await validator.validate(data, validator.schemas.catalogItemUpdate);
 
+  const where = isCLI
+    ? {id: id}
+    : {id: id, userId: user.id};
+
+  await _updateCatalogItem(data, where, transaction);
+  await _updateCatalogItemImages(data, id, transaction);
+  await _updateCatalogItemIOTypes(data, id, where, transaction);
+};
+
+const _updateCatalogItem = async function (data, where, transaction) {
   let catalogItem = {
     name: data.name,
     description: data.description,
@@ -69,16 +57,18 @@ const updateCatalogItem = async function (catalogItemId, data, user, transaction
     diskRequired: data.diskRequired,
     ramRequired: data.ramRequired,
     picture: data.picture,
-    isPublic: data.isPublic
+    isPublic: data.isPublic,
+    registryId: data.registryId
   };
 
-  const item = await CatalogItemManager.findOne(catalogItemWhereClause, transaction)
-  if (!item) {
-    throw new Errors.NotFoundError('Invalid catalog item id')
-  }
   catalogItem = AppHelper.deleteUndefinedFields(catalogItem);
-  await CatalogItemManager.update(catalogItemWhereClause, catalogItem, transaction);
 
+  const item = await _checkIfItemExists(where, transaction);
+  await _checkForDuplicateName(data.name, item, transaction);
+  await CatalogItemManager.update(where, catalogItem, transaction);
+};
+
+const _updateCatalogItemImages = async function (data, id, transaction) {
   if (data.images) {
     for (let image of data.images) {
       switch (image.fogTypeId) {
@@ -97,40 +87,89 @@ const updateCatalogItem = async function (catalogItemId, data, user, transaction
       }
     }
   }
-  if (data.inputType) {
-    await CatalogItemInputTypeManager.update({catalogItemId: id}, data.inputType, transaction);
+};
+
+const _updateCatalogItemIOTypes = async function (data, id, where, transaction) {
+  if (data.inputType && data.inputType.length != 0) {
+    let inputType = {
+      infoType: data.inputType.infoType,
+      infoFormat: data.inputType.infoFormat
+    };
+    inputType = AppHelper.deleteUndefinedFields(inputType);
+    await CatalogItemInputTypeManager.update({catalogItemId: id}, inputType, transaction);
   }
-  if (data.outputType) {
-    await CatalogItemOutputTypeManager.update({catalogItemId: id}, data.outputType, transaction);
+  if (data.outputType && data.outputType.length !=0) {
+    let outputType = {
+      infoType: data.outputType.infoType,
+      infoFormat: data.outputType.infoFormat
+    };
+    outputType = AppHelper.deleteUndefinedFields(outputType);
+    await CatalogItemOutputTypeManager.update({catalogItemId: id}, outputType, transaction);
   }
 };
 
-const listCatalogItems = async function (user, transaction) {
-  return await CatalogItemManager.findAllWithDependencies(user.id, transaction);
+const listCatalogItems = async function (user, isCLI, transaction) {
+  const where = isCLI
+    ? {}
+    : {[Op.or]: [{userId: user.id}, {userId: null}]};
+
+  const attributes = isCLI
+    ? {}
+    : {exclude: ["userId"]};
+
+  return await CatalogItemManager.findAllWithDependencies(where, attributes, transaction);
 };
 
-const listCatalogItem = async function (catalogItemId, user, transaction) {
+const listCatalogItem = async function (catalogItemId, user, isCLI, transaction) {
   const id = AppHelper.validateParameterId(catalogItemId, "Invalid catalog item id");
-  return await CatalogItemManager.findOneWithDependencies(id, user.id, transaction).then(item => {
-    if (!item) {
-      throw new Errors.NotFoundError("Invalid catalog item id");
-    }
-    return item;
-  });
+  const where = isCLI
+    ? {id: id}
+    : {[Op.or]: [{userId: user.id}, {userId: null}], id: id};
+
+  const attributes = isCLI
+    ? {}
+    : {exclude: ["userId"]};
+
+  const item = CatalogItemManager.findOneWithDependencies(where, attributes, transaction)
+  if (!item) {
+    throw new Errors.NotFoundError("Invalid catalog item id");
+  }
+  return item;
 };
 
-const deleteCatalogItem = async function (catalogItemId, user, transaction) {
+const deleteCatalogItem = async function (catalogItemId, user, isCLI, transaction) {
   const id = AppHelper.validateParameterId(catalogItemId, "Invalid catalog item id");
-  await CatalogItemManager.delete({
-    userId: user.id,
-    id: id
-  }, transaction).then(affectedRows => {
-    if (affectedRows === 0) {
-      throw new Errors.NotFoundError("Invalid catalog item id");
+  const where = isCLI
+    ? {id: id}
+    : {userId: user.id, id: id};
+  const affectedRows = await CatalogItemManager.delete(where, transaction);
+  if (affectedRows === 0) {
+    throw new Errors.NotFoundError("Invalid catalog item id");
+  }
+  return affectedRows;
+};
+
+const _checkForDuplicateName = async function (name, item, transaction) {
+  if (name) {
+    const where = item.id
+      ? {[Op.or]: [{userId: item.userId}, {userId: null}], name: name, id: {[Op.ne]: item.id}}
+      : {[Op.or]: [{userId: item.userId}, {userId: null}], name: name};
+
+    const result = await CatalogItemManager.findOne(where, transaction);
+    if (result) {
+      throw new Errors.DuplicatePropertyError("Duplicate Name");
     }
-    return affectedRows;
-  });
-}
+  }
+};
+
+const _checkIfItemExists = async function (where, transaction) {
+  const item = await CatalogItemManager.findOne(where, transaction)
+  if (!item) {
+    throw new Errors.NotFoundError('Invalid catalog item id')
+
+  }
+  return item;
+};
 
 const _createCatalogItem = async function (data, user, transaction) {
   const catalogItem = {

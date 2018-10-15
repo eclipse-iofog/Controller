@@ -80,6 +80,11 @@ class UserManager extends BaseManager {
       tempPassword: tempPassword
     }, transaction)
   }
+
+// no transaction required here, used by cli decorator
+  findById(id) {
+    return User.find({where: {id: id}});
+  }
 }
 
 const instance = new UserManager();
