@@ -24,7 +24,7 @@ class CatalogItemManager extends BaseManager {
     return CatalogItem;
   }
 
-  findAllWithDependencies(userId, transaction) {
+  findAllWithDependencies(where, attributes, transaction) {
     return CatalogItem.findAll({
       include: [
         {
@@ -45,14 +45,12 @@ class CatalogItemManager extends BaseManager {
           required: false,
           attributes: ['infoType', 'infoFormat']
         }],
-      where: {
-        [Op.or]: [{user_id: userId}, {user_id: null}]
-      },
-      attributes: {exclude: ["userId"]}
+      where: where,
+      attributes: attributes
     }, transaction)
   }
 
-  findOneWithDependencies(catalogItemId, userId, transaction) {
+  findOneWithDependencies(where, attribures, transaction) {
     return CatalogItem.findOne({
       include: [
         {
@@ -73,11 +71,8 @@ class CatalogItemManager extends BaseManager {
           required: false,
           attributes: ['infoType', 'infoFormat']
         }],
-      where: {
-        [Op.or]: [{user_id: userId}, {user_id: null}],
-        id: catalogItemId
-      },
-      attributes: {exclude: ["userId"]}
+      where: where,
+      attributes: attribures
     }, transaction)
   }
 }

@@ -30,7 +30,7 @@ function prepareUserById(f) {
 
     if (!user) {
       logger.error('userId ' + userId + ' incorrect')
-      throw new Errors.AuthenticationError('user id not exists')
+      throw new Errors.AuthenticationError('user id does not exist')
     }
 
     delete  obj.userId
