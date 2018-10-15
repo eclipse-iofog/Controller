@@ -12,7 +12,7 @@ module.exports = (sequelize, DataTypes) => {
     timestamps: false,
     underscored: true
   });
-  MicroserviceConnections.associate = function(models) {
+  MicroserviceConnections.associate = function (models) {
 
     MicroserviceConnections.belongsTo(models.Microservice, {
       foreignKey: {

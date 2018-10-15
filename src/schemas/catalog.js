@@ -11,8 +11,8 @@
  *
  */
 
-const catalogItem = {
-  "id": "/catalogItem",
+const catalogItemCreate = {
+  "id": "/catalogItemCreate",
   "type": "object",
   "properties": {
     "name": {"type": "string"},
@@ -27,13 +27,36 @@ const catalogItem = {
     "configExample": {"type": "string"},
     "images": {
       "type": "array",
-      "minItems": 1,
       "maxItems": 2,
-      "items": {"$ref": "/image"}},
+      "items": {"$ref": "/image"}
+    },
     "inputType": {"$ref": "/type"},
     "outputType": {"$ref": "/type"}
   },
-  "required": ["name", ]
+  "required": ["name"]
+};
+
+const catalogItemUpdate = {
+  "id": "/catalogItemUpdate",
+  "type": "object",
+  "properties": {
+    "name": {"type": "string"},
+    "description": {"type": "string"},
+    "category": {"type": "string"},
+    "publisher": {"type": "string"},
+    "diskRequired": {"type": "integer"},
+    "ramRequired": {"type": "integer"},
+    "picture": {"type": "string"},
+    "isPublic": {"type": "boolean"},
+    "configExample": {"type": "string"},
+    "images": {
+      "type": "array",
+      "maxItems": 2,
+      "items": {"$ref": "/image"}
+    },
+    "inputType": {"$ref": "/type"},
+    "outputType": {"$ref": "/type"}
+  }
 };
 
 const image = {
@@ -47,7 +70,8 @@ const image = {
         "minimum": 0,
         "maximum": 2
       }
-  }
+  },
+  "required": ["containerImage", "fogTypeId"]
 };
 
 const type = {
@@ -56,10 +80,11 @@ const type = {
   "properties": {
     "infoType": {"type": "string"},
     "infoFormat": {"type": "string"}
-  }
+  },
+  "required": ["infoType", "infoFormat"]
 };
 
 module.exports = {
-  mainSchemas: [catalogItem],
+  mainSchemas: [catalogItemCreate, catalogItemUpdate],
   innerSchemas: [image, type]
 };

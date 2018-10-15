@@ -837,6 +837,8 @@ paths:
             X-Timestamp:
               type: number
               description: FogController server timestamp
+        '400':
+              description: Bad Request
         '401':
           description: Not Authorized
         '404':
@@ -2495,25 +2497,34 @@ definitions:
       registryId:
         type: number
       inputType:
-        type: string
-      inputFormat:
-        type: string
+        $ref: '#/definitions/InfoTypeResponse'
       outputType:
-        type: string
-      outputFormat:
-        type: string
+        $ref: '#/definitions/InfoTypeResponse'
       configExample:
         type: string
-      containersImages:
-        type: object
+      images:
         $ref: '#/definitions/ElementContainerImages'
-  ElementContainerImages:
+  InfoTypeResponse:
     type: object
     properties:
-      x86ContainerImage:
+      infoType:
         type: string
-      armContainerImage:
+      infoFormat:
         type: string
+  ElementContainerImages:
+    type: array
+    items:
+      $ref: '#/definitions/ElementContainerImage'
+  ElementContainerImage:
+    type: object
+    properties:
+      containerImage:
+        type: string
+      fogTypeId:
+        type: number
+        enum:
+          - 1
+          - 2
   CreateUpdateCatalogItemRequestBody:
     type: object
     properties:
@@ -2523,8 +2534,7 @@ definitions:
         type: string
       category:
         type: string
-      containersImages:
-        type: object
+      images:
         $ref: '#/definitions/ElementContainerImages'
       publisher:
         type: string
@@ -2539,13 +2549,9 @@ definitions:
       registryId:
         type: number
       inputType:
-        type: string
-      inputFormat:
-        type: string
+        $ref: '#/definitions/InfoTypeResponse'
       outputType:
-        type: string
-      outputFormat:
-        type: string
+        $ref: '#/definitions/InfoTypeResponse'
       configExample:
         type: string
   GetFlowsResponse:

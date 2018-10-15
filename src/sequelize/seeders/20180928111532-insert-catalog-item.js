@@ -12,7 +12,7 @@ module.exports = {
         disk_required: 0,
         ram_required: 0,
         picture: 'none.png',
-        config: null,
+        config_example: null,
         is_public: 0,
         registry_id: 1,
         user_id: null
@@ -26,7 +26,7 @@ module.exports = {
         disk_required: 0,
         ram_required: 0,
         picture: 'none.png',
-        config: null,
+        config_example: null,
         is_public: 0,
         registry_id: 1,
         user_id: null
@@ -40,7 +40,7 @@ module.exports = {
         disk_required: 0,
         ram_required: 0,
         picture: 'none.png',
-        config: null,
+        config_example: null,
         is_public: 0,
         registry_id: 1,
         user_id: null
@@ -54,7 +54,7 @@ module.exports = {
         disk_required: 0,
         ram_required: 0,
         picture: 'images/build/580.png',
-        config: null,
+        config_example: null,
         is_public: 1,
         registry_id: 1,
         user_id: null
@@ -68,7 +68,7 @@ module.exports = {
         disk_required: 0,
         ram_required: 0,
         picture: 'images/build/4.png',
-        config: null,
+        config_example: null,
         is_public: 1,
         registry_id: 1,
         user_id: null
@@ -82,7 +82,7 @@ module.exports = {
         disk_required: 0,
         ram_required: 0,
         picture: 'images/build/8.png',
-        config: null,
+        config_example: null,
         is_public: 1,
         registry_id: 1,
         user_id: null
@@ -96,7 +96,7 @@ module.exports = {
         disk_required: 0,
         ram_required: 0,
         picture: 'images/build/49.png',
-        config: null,
+        config_example: null,
         is_public: 1,
         registry_id: 1,
         user_id: null
@@ -110,7 +110,7 @@ module.exports = {
         disk_required: 0,
         ram_required: 0,
         picture: 'images/build/58.png',
-        config: null,
+        config_example: null,
         is_public: 1,
         registry_id: 1,
         user_id: null
@@ -124,7 +124,7 @@ module.exports = {
         disk_required: 0,
         ram_required: 0,
         picture: 'images/build/59.png',
-        config: null,
+        config_example: null,
         is_public: 1,
         registry_id: 1,
         user_id: null
@@ -138,7 +138,7 @@ module.exports = {
         disk_required: 0,
         ram_required: 0,
         picture: 'images/build/simulator.png',
-        config: null,
+        config_example: null,
         is_public: 1,
         registry_id: 1,
         user_id: null
@@ -152,7 +152,7 @@ module.exports = {
         disk_required: 0,
         ram_required: 0,
         picture: 'images/build/simulator.png',
-        config: null,
+        config_example: null,
         is_public: 1,
         registry_id: 1,
         user_id: null
@@ -166,7 +166,7 @@ module.exports = {
         disk_required: 0,
         ram_required: 0,
         picture: 'images/build/simulator.png',
-        config: null,
+        config_example: null,
         is_public: 1,
         registry_id: 1,
         user_id: null

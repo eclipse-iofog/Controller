@@ -42,7 +42,7 @@ module.exports = (sequelize, DataTypes) => {
     timestamps: false,
     underscored: true
   });
-  Tunnel.associate = function(models) {
+  Tunnel.associate = function (models) {
 
     Tunnel.belongsTo(models.Fog, {
       foreignKey: {
