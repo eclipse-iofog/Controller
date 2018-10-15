@@ -8,7 +8,7 @@ function prepareUserById(f) {
 
     const fArgs = Array.prototype.slice.call(arguments);
     const obj = fArgs[0];
-    const userId = obj.user_id;
+    const userId = obj.userId;
 
     logger.info('getting user by id: ' + userId)
 
@@ -16,7 +16,7 @@ function prepareUserById(f) {
 
     if (!user) {
       logger.error('userId ' + userId + ' incorrect')
-      throw new Errors.AuthenticationError('user id not exists')
+      throw new Errors.AuthenticationError('user id does not exist')
     }
 
     delete  obj.userId

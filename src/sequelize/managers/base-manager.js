@@ -23,6 +23,8 @@ module.exports = class BaseManager {
   async findAll(object, transaction) {
     AppHelper.checkTransaction(transaction);
 
+    object = object || {};
+
     return this.getEntity().findAll({
       where: object,
       transaction: transaction
@@ -59,6 +61,7 @@ module.exports = class BaseManager {
   async delete(data, transaction) {
     AppHelper.checkTransaction(transaction);
 
+    data = data || {};
     return this.getEntity().destroy({
       where: data,
       transaction: transaction
@@ -68,6 +71,7 @@ module.exports = class BaseManager {
   async update(whereData, newData, transaction) {
     AppHelper.checkTransaction(transaction);
 
+    whereData = whereData || {};
     return this.getEntity().update(newData, {
       where: whereData,
       transaction: transaction
