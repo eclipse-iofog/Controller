@@ -1752,11 +1752,12 @@ paths:
       description: Activate account
       operationId: activateAccount
       parameters:
-      - in: query
+      - in: body
         name: activationCode
         description: activation code
         required: true
-        type: string
+        schema:
+          $ref: '#/definitions/UserActivateRequest'
       responses:
         303:
           description: Redirect to login page
@@ -1884,6 +1885,13 @@ paths:
       - User
       description: Reset password
       operationId: resetPassword
+      parameters:
+      - in: body
+        name: email
+        description: email
+        required: true
+        schema:
+          $ref: '#/definitions/PasswordResetRequest'
       responses:
         204:
           description: Success
@@ -2720,6 +2728,20 @@ definitions:
       firstName:
         type: string
       lastName:
+        type: string
+  UserActivateRequest:
+    type: object
+    required:
+    - activationCode
+    properties:
+      activationCode:
+        type: string
+  PasswordResetRequest:
+    type: object
+    required:
+    - email
+    properties:
+      email:
         type: string
   PasswordChangeRequest:
     type: object
