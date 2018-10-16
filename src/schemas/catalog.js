@@ -40,6 +40,7 @@ const catalogItemUpdate = {
   "id": "/catalogItemUpdate",
   "type": "object",
   "properties": {
+    "id": {"type": "integer"},
     "name": {"type": "string"},
     "description": {"type": "string"},
     "category": {"type": "string"},
@@ -58,6 +59,15 @@ const catalogItemUpdate = {
     "inputType": {"$ref": "/type"},
     "outputType": {"$ref": "/type"}
   }
+};
+
+const catalogItemId = {
+  "id": "/catalogItemId",
+  "type": "object",
+  "properties": {
+    "id": {"type": "integer"}
+  },
+  "required": ["id"]
 };
 
 const image = {
@@ -85,6 +95,6 @@ const type = {
 };
 
 module.exports = {
-  mainSchemas: [catalogItemCreate, catalogItemUpdate],
+  mainSchemas: [catalogItemCreate, catalogItemUpdate, catalogItemId],
   innerSchemas: [image, type]
 };

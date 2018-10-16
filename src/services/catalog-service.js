@@ -34,17 +34,16 @@ const createCatalogItem = async function (data, user, transaction) {
   }
 };
 
-const updateCatalogItem = async function (catalogItemId, data, user, isCLI, transaction) {
-  const id = AppHelper.validateParameterId(catalogItemId, "Invalid catalog item id");
+const updateCatalogItem = async function (data, user, isCLI, transaction) {
   await validator.validate(data, validator.schemas.catalogItemUpdate);
 
   const where = isCLI
-    ? {id: id}
-    : {id: id, userId: user.id};
+    ? {id: data.id}
+    : {id: data.id, userId: user.id};
 
   await _updateCatalogItem(data, where, transaction);
-  await _updateCatalogItemImages(data, id, transaction);
-  await _updateCatalogItemIOTypes(data, id, where, transaction);
+  await _updateCatalogItemImages(data, transaction);
+  await _updateCatalogItemIOTypes(data, where, transaction);
 };
 
 const _updateCatalogItem = async function (data, where, transaction) {
@@ -68,19 +67,19 @@ const _updateCatalogItem = async function (data, where, transaction) {
   await CatalogItemManager.update(where, catalogItem, transaction);
 };
 
-const _updateCatalogItemImages = async function (data, id, transaction) {
+const _updateCatalogItemImages = async function (data, transaction) {
   if (data.images) {
     for (let image of data.images) {
       switch (image.fogTypeId) {
         case 1:
           await CatalogItemImageManager.update({
-            catalogItemId: id,
+            catalogItemId: data.id,
             fogTypeId: 1
           }, image, transaction);
           break;
         case 2:
           await CatalogItemImageManager.update({
-            catalogItemId: id,
+            catalogItemId: data.id,
             fogTypeId: 2
           }, image, transaction);
           break;
@@ -96,7 +95,7 @@ const _updateCatalogItemIOTypes = async function (data, id, where, transaction) 
       infoFormat: data.inputType.infoFormat
     };
     inputType = AppHelper.deleteUndefinedFields(inputType);
-    await CatalogItemInputTypeManager.update({catalogItemId: id}, inputType, transaction);
+    await CatalogItemInputTypeManager.update({catalogItemId: data.id}, inputType, transaction);
   }
   if (data.outputType && data.outputType.length !=0) {
     let outputType = {
@@ -104,7 +103,7 @@ const _updateCatalogItemIOTypes = async function (data, id, where, transaction) 
       infoFormat: data.outputType.infoFormat
     };
     outputType = AppHelper.deleteUndefinedFields(outputType);
-    await CatalogItemOutputTypeManager.update({catalogItemId: id}, outputType, transaction);
+    await CatalogItemOutputTypeManager.update({catalogItemId: data.id}, outputType, transaction);
   }
 };
 
@@ -120,11 +119,11 @@ const listCatalogItems = async function (user, isCLI, transaction) {
   return await CatalogItemManager.findAllWithDependencies(where, attributes, transaction);
 };
 
-const listCatalogItem = async function (catalogItemId, user, isCLI, transaction) {
-  const id = AppHelper.validateParameterId(catalogItemId, "Invalid catalog item id");
+const listCatalogItem = async function (data, user, isCLI, transaction) {
+  await validator.validate(data, validator.schemas.catalogItemId);
   const where = isCLI
-    ? {id: id}
-    : {[Op.or]: [{userId: user.id}, {userId: null}], id: id};
+    ? {id: data.id}
+    : {[Op.or]: [{userId: user.id}, {userId: null}], id: data.id};
 
   const attributes = isCLI
     ? {}
@@ -137,11 +136,11 @@ const listCatalogItem = async function (catalogItemId, user, isCLI, transaction)
   return item;
 };
 
-const deleteCatalogItem = async function (catalogItemId, user, isCLI, transaction) {
-  const id = AppHelper.validateParameterId(catalogItemId, "Invalid catalog item id");
+const deleteCatalogItem = async function (data, user, isCLI, transaction) {
+  await validator.validate(data, validator.schemas.catalogItemId);
   const where = isCLI
-    ? {id: id}
-    : {userId: user.id, id: id};
+    ? {id: data.id}
+    : {userId: user.id, id: data.id};
   const affectedRows = await CatalogItemManager.delete(where, transaction);
   if (affectedRows === 0) {
     throw new Errors.NotFoundError("Invalid catalog item id");
@@ -172,19 +171,21 @@ const _checkIfItemExists = async function (where, transaction) {
 };
 
 const _createCatalogItem = async function (data, user, transaction) {
-  const catalogItem = {
-    name: data.name || 'New Catalog Item',
-    description: data.description || '',
-    category: data.category || '',
-    configExample: data.configExample || '',
-    publisher: data.publisher || '',
-    diskRequired: data.diskRequired || 0,
-    ramRequired: data.ramRequired || 0,
-    picture: data.picture || 'images/shared/default.png',
-    isPublic: data.isPublic || false,
-    registryId: data.registryId || 1,
+  let catalogItem = {
+    name: data.name,
+    description: data.description,
+    category: data.category,
+    configExample: data.configExample,
+    publisher: data.publisher,
+    diskRequired: data.diskRequired,
+    ramRequired: data.ramRequired,
+    picture: data.picture,
+    isPublic: data.isPublic,
+    registryId: data.registryId,
     userId: user.id
   };
+
+  catalogItem = AppHelper.deleteUndefinedFields(catalogItem);
 
   return await CatalogItemManager.create(catalogItem, transaction);
 };
@@ -192,12 +193,10 @@ const _createCatalogItem = async function (data, user, transaction) {
 const _createCatalogImages = async function (data, catalogItem, transaction) {
   const catalogItemImages = [
     {
-      containerImage: '',
       fogTypeId: 1,
       catalogItemId: catalogItem.id
     },
     {
-      containerImage: '',
       fogTypeId: 2,
       catalogItemId: catalogItem.id
     }
@@ -219,9 +218,7 @@ const _createCatalogImages = async function (data, catalogItem, transaction) {
 };
 
 const _createCatalogItemInputType = async function (data, catalogItem, transaction) {
-  const catalogItemInputType = {
-    infoType: '',
-    infoFormat: '',
+  let catalogItemInputType = {
     catalogItemId: catalogItem.id
   };
 
@@ -230,13 +227,13 @@ const _createCatalogItemInputType = async function (data, catalogItem, transacti
     catalogItemInputType.infoFormat = data.inputType.infoFormat;
   }
 
+  catalogItemInputType = AppHelper.deleteUndefinedFields(catalogItemInputType);
+
   return await CatalogItemInputTypeManager.create(catalogItemInputType, transaction);
 };
 
 const _createCatalogItemOutputType = async function (data, catalogItem, transaction) {
-  const catalogItemOutputType = {
-    infoType: '',
-    infoFormat: '',
+  let catalogItemOutputType = {
     catalogItemId: catalogItem.id
   };
 
@@ -244,6 +241,8 @@ const _createCatalogItemOutputType = async function (data, catalogItem, transact
     catalogItemOutputType.infoType = data.outputType.infoType;
     catalogItemOutputType.infoFormat = data.outputType.infoFormat;
   }
+
+  catalogItemOutputType = AppHelper.deleteUndefinedFields(catalogItemOutputType);
 
   return await CatalogItemOutputTypeManager.create(catalogItemOutputType, transaction);
 };

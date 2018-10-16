@@ -100,14 +100,6 @@ function checkTransaction(transaction) {
   }
 }
 
-function validateParameterId(id, errMsg) {
-  const parsedId = parseInt(id);
-  if (isNaN(parsedId)) {
-    throw new Errors.NotFoundError(errMsg);
-  }
-  return parsedId;
-}
-
 function deleteUndefinedFields(obj) {
   if (!obj) {
     return
@@ -143,6 +135,5 @@ module.exports = {
   generateAccessToken,
   checkTransaction,
   deleteUndefinedFields,
-  validateParameterId,
   validateBooleanCliOptions
 };

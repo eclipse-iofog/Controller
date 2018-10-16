@@ -11,7 +11,8 @@ module.exports = {
       },
       name: {
         type: Sequelize.TEXT,
-        field: 'name'
+        field: 'name',
+        defaultValue: 'New Catalog Item'
       },
       description: {
         type: Sequelize.TEXT,
@@ -23,7 +24,8 @@ module.exports = {
       },
       configExample: {
         type: Sequelize.TEXT,
-        field: 'config_example'
+        field: 'config_example',
+        defaultValue: '{}'
       },
       publisher: {
         type: Sequelize.TEXT,
@@ -31,19 +33,23 @@ module.exports = {
       },
       diskRequired: {
         type: Sequelize.BIGINT,
-        field: 'disk_required'
+        field: 'disk_required',
+        defaultValue: 0
       },
       ramRequired: {
         type: Sequelize.BIGINT,
-        field: 'ram_required'
+        field: 'ram_required',
+        defaultValue: 0
       },
       picture: {
         type: Sequelize.TEXT,
-        field: 'picture'
+        field: 'picture',
+        defaultValue: 'images/shared/default.png'
       },
       isPublic: {
         type: Sequelize.BOOLEAN,
-        field: 'is_public'
+        field: 'is_public',
+        defaultValue: false
       },
       userId: {
         type: Sequelize.INTEGER,
@@ -56,7 +62,8 @@ module.exports = {
         field: 'registry_id',
         as: 'registryId',
         references: { model: 'Registries', key: 'id' },
-        onDelete: 'set null'
+        onDelete: 'set null',
+        defaultValue: 1
       }
     });
   },
