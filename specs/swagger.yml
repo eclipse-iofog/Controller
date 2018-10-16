@@ -277,7 +277,7 @@ paths:
         - upgrade
         - rollback
       responses:
-        201:
+        204:
           description: Success
           headers:
             X-Timestamp:
@@ -309,7 +309,7 @@ paths:
         required: true
         type: string
       responses:
-        201:
+        204:
           description: Success
           headers:
             X-Timestamp:
@@ -837,6 +837,8 @@ paths:
             X-Timestamp:
               type: number
               description: FogController server timestamp
+        '400':
+              description: Bad Request
         '401':
           description: Not Authorized
         '404':
@@ -1750,11 +1752,12 @@ paths:
       description: Activate account
       operationId: activateAccount
       parameters:
-      - in: query
+      - in: body
         name: activationCode
         description: activation code
         required: true
-        type: string
+        schema:
+          $ref: '#/definitions/UserActivateRequest'
       responses:
         303:
           description: Redirect to login page
@@ -1882,6 +1885,13 @@ paths:
       - User
       description: Reset password
       operationId: resetPassword
+      parameters:
+      - in: body
+        name: email
+        description: email
+        required: true
+        schema:
+          $ref: '#/definitions/PasswordResetRequest'
       responses:
         204:
           description: Success
@@ -2495,25 +2505,34 @@ definitions:
       registryId:
         type: number
       inputType:
-        type: string
-      inputFormat:
-        type: string
+        $ref: '#/definitions/InfoTypeResponse'
       outputType:
-        type: string
-      outputFormat:
-        type: string
+        $ref: '#/definitions/InfoTypeResponse'
       configExample:
         type: string
-      containersImages:
-        type: object
+      images:
         $ref: '#/definitions/ElementContainerImages'
-  ElementContainerImages:
+  InfoTypeResponse:
     type: object
     properties:
-      x86ContainerImage:
+      infoType:
         type: string
-      armContainerImage:
+      infoFormat:
         type: string
+  ElementContainerImages:
+    type: array
+    items:
+      $ref: '#/definitions/ElementContainerImage'
+  ElementContainerImage:
+    type: object
+    properties:
+      containerImage:
+        type: string
+      fogTypeId:
+        type: number
+        enum:
+          - 1
+          - 2
   CreateUpdateCatalogItemRequestBody:
     type: object
     properties:
@@ -2523,8 +2542,7 @@ definitions:
         type: string
       category:
         type: string
-      containersImages:
-        type: object
+      images:
         $ref: '#/definitions/ElementContainerImages'
       publisher:
         type: string
@@ -2539,13 +2557,9 @@ definitions:
       registryId:
         type: number
       inputType:
-        type: string
-      inputFormat:
-        type: string
+        $ref: '#/definitions/InfoTypeResponse'
       outputType:
-        type: string
-      outputFormat:
-        type: string
+        $ref: '#/definitions/InfoTypeResponse'
       configExample:
         type: string
   GetFlowsResponse:
@@ -2714,6 +2728,20 @@ definitions:
       firstName:
         type: string
       lastName:
+        type: string
+  UserActivateRequest:
+    type: object
+    required:
+    - activationCode
+    properties:
+      activationCode:
+        type: string
+  PasswordResetRequest:
+    type: object
+    required:
+    - email
+    properties:
+      email:
         type: string
   PasswordChangeRequest:
     type: object

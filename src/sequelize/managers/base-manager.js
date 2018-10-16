@@ -48,6 +48,14 @@ module.exports = class BaseManager {
     });
   }
 
+  async bulkCreate(arr, transaction) {
+    AppHelper.checkTransaction(transaction);
+
+    return this.getEntity().bulkCreate(arr, {
+      transaction: transaction
+    });
+  }
+
   async delete(data, transaction) {
     AppHelper.checkTransaction(transaction);
 

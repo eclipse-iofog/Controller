@@ -219,8 +219,8 @@ function _filterFogs(fogs, filters) {
     let isMatchFog = true
     filters.some((filter) => {
       let fld = filter.key,
-          val = filter.value,
-          condition = filter.condition;
+        val = filter.value,
+        condition = filter.condition;
       let isMatchField = (condition === 'equals' && fog[fld] && fog[fld] === val)
         || (condition === 'has' && fog[fld] && fog[fld].includes(val));
       if (!isMatchField) {

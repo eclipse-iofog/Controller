@@ -11,27 +11,34 @@
  *
  */
 
-const BaseCLIHandler = require('./base-cli-handler')
-const constants = require('../helpers/constants')
+const BaseCLIHandler = require('./base-cli-handler');
+const constants = require('../helpers/constants');
+const logger = require('../logger');
+const CatalogItemService = require('../services/catalog-service');
+const fs = require('fs');
+const AppHelper = require('../helpers/app-helper');
+const AuthDecorator = require('../decorators/cli-decorator');
 
 const JSON_SCHEMA =
   `  name: string
   description: string
   category: string
-  containersImages: object
-    x86ContainerImage: string
-    armContainerImage: string
   publisher: string
   diskRequired: number
   ramRequired: number
   picture: string
   isPublic: boolean
   registryId: number
-  inputType: string
-  inputFormat: string
-  outputType: string
-  outputFormat: string
-  configExample: string`
+  configExample: string
+  images: array of objects
+    containerImage: string
+    fogTypeId: number
+  inputType: object
+    infoType: string
+    infoFormat: string
+  outputType: object
+    infoType: string
+    infoFormat: string`
 
 class Catalog extends BaseCLIHandler {
   constructor() {
@@ -70,11 +77,20 @@ class Catalog extends BaseCLIHandler {
     }
   }
 
-  run(args) {
-    const catalogCommand = this.parseCommandLineArgs(this.commandDefinitions, { argv: args.argv })
+  async run(args) {
+    const catalogCommand = this.parseCommandLineArgs(this.commandDefinitions, {argv: args.argv})
 
     switch (catalogCommand.command.command) {
       case constants.CMD_ADD:
+        try {
+          const catalogItem = catalogCommand[constants.CMD_ADD];
+
+          const createCatalogItemWrapped = AuthDecorator.prepareUser(createCatalogItem);
+          createCatalogItemWrapped(catalogItem);
+
+        } catch (error) {
+          logger.error(error.message);
+        }
         return
       case constants.CMD_UPDATE:
         return
@@ -102,5 +118,51 @@ class Catalog extends BaseCLIHandler {
     ])
   }
 }
+
+const createCatalogItem = async function (obj, user) {
+  const item = obj.file
+    ? JSON.parse(fs.readFileSync('file', 'utf8'))
+    : _createCatalogItemObject(obj);
+
+  logger.info(JSON.stringify(item));
+
+  await CatalogItemService.createCatalogItem(item, user);
+  logger.info('Catalog item created successfully.');
+}
+
+const _createCatalogItemObject = function (catalogItem) {
+  return {
+    name: catalogItem.name,
+    description: catalogItem.description,
+    category: catalogItem.category,
+    configExample: catalogItem.config - example,
+    publisher: catalogItem.publisher,
+    diskRequired: catalogItem.disk - required,
+    ramRequired: catalogItem.ram - required,
+    picture: catalogItem.picture,
+    isPublic: AppHelper.validateBooleanCliOptions(catalogItem.public, catalogItem.private),
+    registryId: catalogItem.registry - id,
+    images: [
+      {
+        containerImage: catalogItem.x86 - image,
+        fogTypeId: 1
+      },
+      {
+        containerImage: catalogItem.arm - image,
+        fogTypeId: 2
+      }
+    ],
+    inputType: {
+      infoType: catalogItem.input - type,
+      infoFormat: catalogItem.input - format
+    },
+
+    inputType: catalogItem.input - type,
+    inputFormat: catalogItem.input - format,
+    outputType: catalogItem.output - type,
+    outputFormat: catalogItem.outputFormat
+  };
+};
+
 
 module.exports = new Catalog()
