@@ -15,7 +15,8 @@ module.exports = (sequelize, DataTypes) => {
     },
     description: {
       type: DataTypes.TEXT,
-      field: 'description'
+      field: 'description',
+      defaultValue: ''
     },
     category: {
       type: DataTypes.TEXT,

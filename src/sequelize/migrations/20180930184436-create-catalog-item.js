@@ -16,7 +16,8 @@ module.exports = {
       },
       description: {
         type: Sequelize.TEXT,
-        field: 'description'
+        field: 'description',
+        defaultValue: ''
       },
       category: {
         type: Sequelize.TEXT,
