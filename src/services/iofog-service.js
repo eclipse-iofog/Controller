@@ -20,7 +20,7 @@ const ChangeTrackingManager = require('../sequelize/managers/change-tracking-man
 const Errors = require('../helpers/errors')
 const Validator = require('../schemas')
 
-async function _createFog(fogData, user, transaction) {
+async function _createFog(fogData, user, isCli, transaction) {
   await Validator.validate(fogData, Validator.schemas.iofogCreate)
 
   let createFogData = {
@@ -59,13 +59,12 @@ async function _createFog(fogData, user, transaction) {
   return res
 }
 
-async function _updateFog(fogData, user, transaction) {
+async function _updateFog(fogData, user, isCli, transaction) {
   await Validator.validate(fogData, Validator.schemas.iofogUpdate)
 
-  const queryFogData = {
-    uuid: fogData.uuid,
-    userId: user.id
-  }
+  const queryFogData = isCli
+    ? { uuid: fogData.uuid }
+    : { uuid: fogData.uuid, userId: user.id }
 
   let updateFogData = {
     name: fogData.name,
@@ -99,13 +98,12 @@ async function _updateFog(fogData, user, transaction) {
   await FogManager.update(queryFogData, updateFogData, transaction)
 }
 
-async function _deleteFog(fogData, user, transaction) {
+async function _deleteFog(fogData, user, isCli, transaction) {
   await Validator.validate(fogData, Validator.schemas.iofogDelete)
 
-  const queryFogData = {
-    uuid: fogData.uuid,
-    userId: user.id
-  }
+  const queryFogData = isCli
+    ? { uuid: fogData.uuid }
+    : { uuid: fogData.uuid, userId: user.id }
 
   const fog = await FogManager.findOne(queryFogData, transaction)
   if (!fog) {
@@ -114,13 +112,12 @@ async function _deleteFog(fogData, user, transaction) {
   await FogManager.delete(queryFogData, transaction)
 }
 
-async function _getFog(fogData, user, transaction) {
+async function _getFog(fogData, user, isCli, transaction) {
   await Validator.validate(fogData, Validator.schemas.iofogGet)
 
-  const queryFogData = {
-    uuid: fogData.uuid,
-    userId: user.id
-  }
+  const queryFogData = isCli
+    ? { uuid: fogData.uuid }
+    : { uuid: fogData.uuid, userId: user.id }
 
   const fog = await FogManager.findOne(queryFogData, transaction)
   if (!fog) {
@@ -129,25 +126,24 @@ async function _getFog(fogData, user, transaction) {
   return fog
 }
 
-async function _getFogList(filters, user, transaction) {
+async function _getFogList(filters, user, isCli, transaction) {
   await Validator.validate(filters, Validator.schemas.iofogFilters)
 
-  const queryFogData = {
-    userId: user.id
-  }
+  const queryFogData = isCli
+    ? {}
+    : { userId: user.id }
 
   let fogs = await FogManager.findAll(queryFogData, transaction)
   fogs = _filterFogs(fogs, filters)
   return fogs
 }
 
-async function _generateProvisioningKey(fogData, user, transaction) {
+async function _generateProvisioningKey(fogData, user, isCli, transaction) {
   await Validator.validate(fogData, Validator.schemas.iofogGenerateProvision)
 
-  const queryFogData = {
-    uuid: fogData.uuid,
-    userId: user.id
-  }
+  const queryFogData = isCli
+    ? { uuid: fogData.uuid }
+    : { uuid: fogData.uuid, userId: user.id }
 
   const newProvision = {
     iofogUuid: fogData.uuid,
@@ -169,13 +165,13 @@ async function _generateProvisioningKey(fogData, user, transaction) {
   return res
 }
 
-async function _setFogVersionCommand(fogVersionData, user, transaction) {
+async function _setFogVersionCommand(fogVersionData, user, isCli, transaction) {
   await Validator.validate(fogVersionData, Validator.schemas.iofogSetVersionCommand)
 
-  const queryFogData = {
-    uuid: fogVersionData.uuid,
-    userId: user.id
-  }
+  const queryFogData = isCli
+    ? { uuid: fogVersionData.uuid }
+    : { uuid: fogVersionData.uuid, userId: user.id }
+
   const newVersionCommand = {
     iofogUuid: fogVersionData.uuid,
     versionCommand: fogVersionData.versionCommand
@@ -189,13 +185,13 @@ async function _setFogVersionCommand(fogVersionData, user, transaction) {
   await FogVersionCommandManager.updateOrCreate({iofogUuid: fogVersionData.uuid}, newVersionCommand, transaction)
 }
 
-async function _setFogRebootCommand(fogData, user, transaction) {
+async function _setFogRebootCommand(fogData, user, isCli, transaction) {
   await Validator.validate(fogData, Validator.schemas.iofogReboot)
 
-  const queryFogData = {
-    uuid: fogData.uuid,
-    userId: user.id
-  }
+  const queryFogData = isCli
+    ? { uuid: fogData.uuid }
+    : { uuid: fogData.uuid, userId: user.id }
+
   const newRebootCommand = {
     iofogUuid: fogData.uuid,
     reboot: true
@@ -218,9 +214,9 @@ function _filterFogs(fogs, filters) {
   fogs.forEach((fog) => {
     let isMatchFog = true
     filters.some((filter) => {
-      let fld = filter.key,
-        val = filter.value,
-        condition = filter.condition;
+      let fld       = filter.key,
+          val       = filter.value,
+          condition = filter.condition;
       let isMatchField = (condition === 'equals' && fog[fld] && fog[fld] === val)
         || (condition === 'has' && fog[fld] && fog[fld].includes(val));
       if (!isMatchField) {
