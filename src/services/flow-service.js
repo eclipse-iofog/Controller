@@ -37,12 +37,14 @@ const _createFlow = async function (flowData, user, transaction) {
 };
 
 const _deleteFlow = async function (flowId, user, transaction) {
-  await _getFlow(flowId, user, transaction);
 
-  await FlowManager.delete({
+  const affectedRows = await FlowManager.delete({
     id: flowId,
     userId: user.id
-  }, transaction)
+  }, transaction);
+  if (affectedRows === 0) {
+    throw new Errors.NotFoundError("Invalid catalog item id");
+  }
 };
 
 const _updateFlow = async function (flowData, flowId, user, transaction) {
@@ -60,12 +62,14 @@ const _updateFlow = async function (flowData, flowId, user, transaction) {
 
   const updateFlowData = AppHelper.deleteUndefinedFields(flow);
 
-  await _getFlow(flowId, user, transaction);
-
-  return await FlowManager.update({
+  const affectedRows = await FlowManager.update({
     id: flowId,
     userId: user.id
-  }, updateFlowData, transaction)
+  }, updateFlowData, transaction);
+
+  if (affectedRows === 0) {
+    throw new Errors.NotFoundError("Invalid catalog item id");
+  }
 };
 
 const _getFlow = async function (flowId, user, transaction) {
@@ -83,7 +87,7 @@ const _getFlow = async function (flowId, user, transaction) {
 
 const _getUserFlows = async function (user, transaction) {
   const flow = {
-    user_id: user.id
+    userId: user.id
   };
 
   return await FlowManager.findAll(flow, transaction)
@@ -95,7 +99,7 @@ const isFlowExist = async function (flowName, transaction) {
   }, transaction);
 
   if (flow) {
-    throw new Errors.ValidationError("Bad Request: Flow with the same name already exists")
+    throw new Errors.ValidationError("Bad Request: Flow with the name" + flowName + "already exists")
   }
 };
 

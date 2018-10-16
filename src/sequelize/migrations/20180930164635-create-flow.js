@@ -12,11 +12,13 @@ module.exports = {
       },
       name: {
         type: Sequelize.TEXT,
-        field: 'name'
+        field: 'name',
+        defaultValue: "New Flow"
       },
       description: {
         type: Sequelize.TEXT,
-        field: 'description'
+        field: 'description',
+        defaultValue: ""
       },
       isActivated: {
         type: Sequelize.BOOLEAN,
