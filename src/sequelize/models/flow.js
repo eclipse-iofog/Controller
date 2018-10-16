@@ -11,11 +11,13 @@ module.exports = (sequelize, DataTypes) => {
     },
     name: {
       type: DataTypes.TEXT,
-      field: 'name'
+      field: 'name',
+      defaultValue: "New Flow"
     },
     description: {
       type: DataTypes.TEXT,
-      field: 'description'
+      field: 'description',
+      defaultValue: ""
     },
     isActivated: {
       type: DataTypes.BOOLEAN,
