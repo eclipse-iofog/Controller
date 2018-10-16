@@ -16,7 +16,7 @@ let smtpTransport = require('nodemailer-smtp-transport');
 const UserManager = require('../sequelize/managers/user-manager');
 const AppHelper = require('../helpers/app-helper');
 const Errors = require('../helpers/errors');
-
+const ErrorMessages = require('../helpers/error-messages');
 const Config = require('../config');
 
 const emailActivationTemplate = require('../views/email-activation-temp');
@@ -91,7 +91,7 @@ const resendActivation = async function (emailObj, transaction) {
     email: emailObj.email
   }, transaction);
   if (!user) {
-    throw new Errors.ValidationError("Invalid user email.");
+    throw new Errors.ValidationError(ErrorMessages.INVALID_USER_EMAIL);
   }
 
   const activationCodeData = await EmailActivationCodeService.generateActivationCode(transaction);
@@ -107,7 +107,7 @@ const activateUser = async function (codeData, transaction) {
 
   const activationCode = await EmailActivationCodeService.verifyActivationCode(codeData.activationCode, transaction);
   if (!activationCode) {
-    throw new Errors.NotFoundError('Activation code not found')
+    throw new Errors.NotFoundError(ErrorMessages.ACTIVATION_CODE_NOT_FOUND);
   }
 
   const updatedObj = {
@@ -142,7 +142,7 @@ const deleteUser = async function (user, transaction) {
 
 const updateUserPassword = async function (passwordUpdates, user, transaction) {
   if (user.password !== passwordUpdates.oldPassword && user.tempPassword !== passwordUpdates.oldPassword) {
-    throw new Errors.ValidationError('Old password is incorrect')
+    throw new Errors.ValidationError(ErrorMessages.INVALID_OLD_PASSWORD);
   }
 
   const emailData = await _getEmailData(transaction);
@@ -159,7 +159,7 @@ const resetUserPassword = async function (emailObj, transaction) {
     email: emailObj.email
   }, transaction);
   if (!user) {
-    throw new Errors.NotFoundError("Account not found");
+    throw new Errors.NotFoundError(ErrorMessages.ACCOUNT_NOT_FOUND);
   }
 
   let tempPass = AppHelper.generateRandomString(2) + 'uL7';
@@ -181,7 +181,7 @@ async function _updateUser(userId, updatedUser, transaction) {
       id: userId
     }, updatedUser, transaction)
   } catch (errMsg) {
-    throw new Error('User not updated')
+    throw new Error(ErrorMessages.USER_NOT_UPDATED)
   }
 }
 
@@ -203,7 +203,7 @@ async function _generateAccessToken(transaction) {
 function _verifyEmailActivation(emailActivated) {
   const emailActivation = ConfigHelper.getConfigParam('email_activation');
   if (emailActivation === 'on' && emailActivated === 0)
-    throw new Error('Email is not activated. Please activate your account first.');
+    throw new Error(ErrorMessages.EMAIL_NOT_ACTIVATED);
 }
 
 

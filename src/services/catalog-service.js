@@ -14,6 +14,7 @@
 const TransactionDecorator = require('../decorators/transaction-decorator');
 const AppHelper = require('../helpers/app-helper');
 const Errors = require('../helpers/errors');
+const ErrorMessages = require('../helpers/error-messages');
 const CatalogItemManager = require('../sequelize/managers/catalog-item-manager');
 const CatalogItemImageManager = require('../sequelize/managers/catalog-item-image-manager');
 const CatalogItemInputTypeManager = require('../sequelize/managers/catalog-item-input-type-manager');
@@ -130,7 +131,7 @@ const listCatalogItem = async function (id, user, isCLI, transaction) {
 
   const item = CatalogItemManager.findOneWithDependencies(where, attributes, transaction)
   if (!item) {
-    throw new Errors.NotFoundError("Invalid catalog item id");
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_CATALOG_ITEM_ID, id));
   }
   return item;
 };
@@ -141,7 +142,7 @@ const deleteCatalogItem = async function (id, user, isCLI, transaction) {
     : {userId: user.id, id: id};
   const affectedRows = await CatalogItemManager.delete(where, transaction);
   if (affectedRows === 0) {
-    throw new Errors.NotFoundError("Invalid catalog item id");
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_CATALOG_ITEM_ID, id));
   }
   return affectedRows;
 };
@@ -154,7 +155,7 @@ const _checkForDuplicateName = async function (name, item, transaction) {
 
     const result = await CatalogItemManager.findOne(where, transaction);
     if (result) {
-      throw new Errors.DuplicatePropertyError("Duplicate Name");
+      throw new Errors.DuplicatePropertyError(AppHelper.formatMessage(ErrorMessages.DUPLICATE_NAME, name));
     }
   }
 };
@@ -162,7 +163,7 @@ const _checkForDuplicateName = async function (name, item, transaction) {
 const _checkIfItemExists = async function (where, transaction) {
   const item = await CatalogItemManager.findOne(where, transaction)
   if (!item) {
-    throw new Errors.NotFoundError('Invalid catalog item id')
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_CATALOG_ITEM_ID, id));
 
   }
   return item;
