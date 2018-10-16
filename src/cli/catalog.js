@@ -148,16 +148,14 @@ const _updateCatalogItem = async function (obj, user) {
     : _createCatalogItemObject(obj);
 
   logger.info(JSON.stringify(item));
-  item.id = parseInt(obj.itemId);
+  item.id = obj.itemId;
   await CatalogItemService.updateCatalogItem(item, user, true);
   logger.info('Catalog item has been updated successfully.');
 };
 
 const _deleteCatalogItem = async function (obj, user) {
   logger.info(JSON.stringify(obj));
-  const item = {};
-  item.id = parseInt(obj.itemId);
-  await CatalogItemService.deleteCatalogItem(item, user, true);
+  await CatalogItemService.deleteCatalogItem(obj.itemId, user, true);
   logger.info('Catalog item has been removed successfully');
 };
 
@@ -168,9 +166,7 @@ const _listCatalogItems = async function (user) {
 
 const _listCatalogItem = async function (obj, user) {
   logger.info(JSON.stringify(obj));
-  const item = {};
-  item.id = parseInt(obj.itemId);
-  const result = await CatalogItemService.listCatalogItem(item, user, true);
+  const result = await CatalogItemService.listCatalogItem(obj.itemId, user, true);
   logger.info(JSON.stringify(result));
 };
 

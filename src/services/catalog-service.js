@@ -119,11 +119,10 @@ const listCatalogItems = async function (user, isCLI, transaction) {
   return await CatalogItemManager.findAllWithDependencies(where, attributes, transaction);
 };
 
-const listCatalogItem = async function (data, user, isCLI, transaction) {
-  await validator.validate(data, validator.schemas.catalogItemId);
+const listCatalogItem = async function (id, user, isCLI, transaction) {
   const where = isCLI
-    ? {id: data.id}
-    : {[Op.or]: [{userId: user.id}, {userId: null}], id: data.id};
+    ? {id: id}
+    : {[Op.or]: [{userId: user.id}, {userId: null}], id: id};
 
   const attributes = isCLI
     ? {}
@@ -136,11 +135,10 @@ const listCatalogItem = async function (data, user, isCLI, transaction) {
   return item;
 };
 
-const deleteCatalogItem = async function (data, user, isCLI, transaction) {
-  await validator.validate(data, validator.schemas.catalogItemId);
+const deleteCatalogItem = async function (id, user, isCLI, transaction) {
   const where = isCLI
-    ? {id: data.id}
-    : {userId: user.id, id: data.id};
+    ? {id: id}
+    : {userId: user.id, id: id};
   const affectedRows = await CatalogItemManager.delete(where, transaction);
   if (affectedRows === 0) {
     throw new Errors.NotFoundError("Invalid catalog item id");

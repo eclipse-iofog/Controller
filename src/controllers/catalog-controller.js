@@ -27,22 +27,19 @@ const listCatalogItemsEndPoint = async function (req, user) {
 
 const listCatalogItemEndPoint = async function (req, user) {
   logger.info("Parameters:" + JSON.stringify(req.query));
-  const item = {};
-  item.id = parseInt(req.params.id);
-  return await CatalogService.listCatalogItem(item, user, false);
+  return await CatalogService.listCatalogItem(req.params.id, user, false);
 };
 
 const deleteCatalogItemEndPoint = async function (req, user) {
   logger.info("Parameters:" + JSON.stringify(req.query));
-  const item = {};
-  item.id = parseInt(req.params.id);
-  await CatalogService.deleteCatalogItem(item, user, false);
+  item.id = req.params.id;
+  await CatalogService.deleteCatalogItem(req.params.id, user, false);
 };
 
 const updateCatalogItemEndPoint = async function (req, user) {
   logger.info("Parameters:" + JSON.stringify(req.body));
   const item = req.body;
-  item.id = parseInt(req.params.id);
+  item.id = req.params.id;
   await CatalogService.updateCatalogItem(req.body, user, false);
 };
 
