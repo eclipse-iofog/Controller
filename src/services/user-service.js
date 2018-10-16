@@ -32,6 +32,8 @@ const constants = require('../helpers/constants');
 
 const TransactionDecorator = require('../decorators/transaction-decorator');
 
+const Validator = require('../schemas');
+
 const createUser = async function (user, transaction) {
   return await UserManager.create(user, transaction)
 };
@@ -39,9 +41,6 @@ const createUser = async function (user, transaction) {
 const signUp = async function (user, transaction) {
 
   let emailActivation = ConfigHelper.getConfigParam('email_activation') || 'off';
-
-  AppHelper.validateFields(user, ["firstName", "lastName", "email", "password"]);
-  _validateUserInfo(user);
 
   if (emailActivation === 'on') {
 
@@ -61,7 +60,6 @@ const signUp = async function (user, transaction) {
 
 const login = async function (credentials, transaction) {
 
-  AppHelper.validateFields(credentials, ["email", "password"]);
   const user = await UserManager.findOne({
     email: credentials.email
   }, transaction);
@@ -87,8 +85,7 @@ const login = async function (credentials, transaction) {
 };
 
 const resendActivation = async function (emailObj, transaction) {
-
-  AppHelper.validateFields(emailObj, ["email"]);
+  await Validator.validate(emailObj, Validator.schemas.resendActivation);
 
   const user = await UserManager.findOne({
     email: emailObj.email
@@ -106,8 +103,8 @@ const resendActivation = async function (emailObj, transaction) {
 };
 
 const activateUser = async function (codeData, transaction) {
+  await Validator.validate(codeData, Validator.schemas.activateUser);
 
-  AppHelper.validateFields(codeData, ["activationCode"]);
   const activationCode = await EmailActivationCodeService.verifyActivationCode(codeData.activationCode, transaction);
   if (!activationCode) {
     throw new Errors.NotFoundError('Activation code not found')
@@ -126,15 +123,15 @@ const logout = async function (user, transaction) {
 };
 
 const updateDetails = async function (user, profileData, transaction) {
-  AppHelper.validateFields(profileData, ["firstName", "lastName"]);
+  await Validator.validate(profileData, Validator.schemas.updateUserProfile);
 
-  if (profileData.firstName.length < 3) {
-    throw new Errors.ValidationError('First Name length should be at least 3 characters.');
-  } else if (profileData.lastName.length < 3) {
-    throw new Errors.ValidationError('Last Name length should be at least 3 characters.');
-  }
+  const updateObject = {
+    firstName: profileData.firstName,
+    lastName: profileData.lastName
+  };
+  AppHelper.deleteUndefinedFields(updateObject);
 
-  await UserManager.updateDetails(user, profileData, transaction);
+  await UserManager.updateDetails(user, updateObject, transaction);
 };
 
 const deleteUser = async function (user, transaction) {
@@ -144,8 +141,6 @@ const deleteUser = async function (user, transaction) {
 };
 
 const updateUserPassword = async function (passwordUpdates, user, transaction) {
-  AppHelper.validateFields(passwordUpdates, ["oldPassword", "newPassword"]);
-
   if (user.password !== passwordUpdates.oldPassword && user.tempPassword !== passwordUpdates.oldPassword) {
     throw new Errors.ValidationError('Old password is incorrect')
   }
@@ -158,7 +153,7 @@ const updateUserPassword = async function (passwordUpdates, user, transaction) {
 };
 
 const resetUserPassword = async function (emailObj, transaction) {
-  AppHelper.validateFields(emailObj, ["email"]);
+  await Validator.validate(emailObj, Validator.schemas.resetUserPassword);
 
   const user = await UserManager.findOne({
     email: emailObj.email
@@ -244,18 +239,10 @@ async function _handleCreateUser(user, emailActivation, transaction) {
   if (existingUser) {
     throw new Errors.ValidationError('Registration failed: There is already an account associated with your email address. Please try logging in instead.');
   }
-  await _validateUserInfo(user);
-  return await _createNewUser(user, emailActivation, transaction);
-}
 
-function _validateUserInfo(user) {
-  if (!AppHelper.isValidEmail(user.email)) {
-    throw new Errors.ValidationError('Registration failed: Please enter a valid email address.');
-  }  else if (user.firstName.length < 3) {
-    throw new Errors.ValidationError('Registration failed: First Name length should be at least 3 characters.');
-  } else if (user.lastName.length < 3) {
-    throw new Errors.ValidationError('Registration failed: Last Name length should be at least 3 characters.');
-  }
+  await _createNewUser(user, emailActivation, transaction);
+  delete user.password;
+  return user
 }
 
 async function _createNewUser(user, emailActivation, transaction) {

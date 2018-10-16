@@ -20,7 +20,7 @@ module.exports = (sequelize, DataTypes) => {
     timestamps: false,
     underscored: true
   });
-  CatalogItemOutputType.associate = function(models) {
+  CatalogItemOutputType.associate = function (models) {
 
     CatalogItemOutputType.belongsTo(models.CatalogItem, {
       foreignKey: {

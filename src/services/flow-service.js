@@ -46,16 +46,16 @@ const _deleteFlow = async function (flowId, user, transaction) {
 };
 
 const _updateFlow = async function (flowData, flowId, user, transaction) {
-  if (flowData.name !== undefined){
-      await isFlowExist(flowData.name, transaction);
+  if (flowData.name !== undefined) {
+    await isFlowExist(flowData.name, transaction);
   }
 
   const flow = {
-      name: flowData.name,
-      description: flowData.description,
-      isActivated: flowData.isActivated,
-      isSelected: flowData.isSelected,
-      updatedBy: user.id
+    name: flowData.name,
+    description: flowData.description,
+    isActivated: flowData.isActivated,
+    isSelected: flowData.isSelected,
+    updatedBy: user.id
   };
 
   const updateFlowData = AppHelper.deleteUndefinedFields(flow);
@@ -63,9 +63,9 @@ const _updateFlow = async function (flowData, flowId, user, transaction) {
   await _getFlow(flowId, user, transaction);
 
   return await FlowManager.update({
-      id: flowId,
-      userId: user.id
-    }, updateFlowData, transaction)
+    id: flowId,
+    userId: user.id
+  }, updateFlowData, transaction)
 };
 
 const _getFlow = async function (flowId, user, transaction) {
@@ -74,7 +74,7 @@ const _getFlow = async function (flowId, user, transaction) {
     userId: user.id
   }, transaction);
 
-  if (!flow){
+  if (!flow) {
     throw new Errors.NotFoundError("Invalid Flow Id")
   }
 
@@ -90,19 +90,19 @@ const _getUserFlows = async function (user, transaction) {
 };
 
 const isFlowExist = async function (flowName, transaction) {
-    const flow = await FlowManager.findOne({
-        name: flowName
-    }, transaction);
+  const flow = await FlowManager.findOne({
+    name: flowName
+  }, transaction);
 
-    if (flow){
-        throw new Errors.ValidationError("Bad Request: Flow with the same name already exists")
-    }
+  if (flow) {
+    throw new Errors.ValidationError("Bad Request: Flow with the same name already exists")
+  }
 };
 
 module.exports = {
-    createFlow: TransactionDecorator.generateTransaction(_createFlow),
-    deleteFlow: TransactionDecorator.generateTransaction(_deleteFlow),
-    updateFlow: TransactionDecorator.generateTransaction(_updateFlow),
-    getFlow: TransactionDecorator.generateTransaction(_getFlow),
-    getUserFlows: TransactionDecorator.generateTransaction(_getUserFlows)
+  createFlow: TransactionDecorator.generateTransaction(_createFlow),
+  deleteFlow: TransactionDecorator.generateTransaction(_deleteFlow),
+  updateFlow: TransactionDecorator.generateTransaction(_updateFlow),
+  getFlow: TransactionDecorator.generateTransaction(_getFlow),
+  getUserFlows: TransactionDecorator.generateTransaction(_getUserFlows)
 };

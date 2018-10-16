@@ -20,9 +20,9 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.TEXT,
       field: 'category'
     },
-    config: {
+    configExample: {
       type: DataTypes.TEXT,
-      field: 'config'
+      field: 'config_example'
     },
     publisher: {
       type: DataTypes.TEXT,
@@ -48,7 +48,7 @@ module.exports = (sequelize, DataTypes) => {
     timestamps: false,
     underscored: true
   });
-  CatalogItem.associate = function(models) {
+  CatalogItem.associate = function (models) {
 
     CatalogItem.belongsTo(models.Registry, {
       foreignKey: {
@@ -68,6 +68,20 @@ module.exports = (sequelize, DataTypes) => {
       onDelete: 'cascade'
     });
 
+    CatalogItem.hasMany(models.CatalogItemImage, {
+      foreignKey: 'catalog_item_id',
+      as: 'images'
+    });
+
+    CatalogItem.hasOne(models.CatalogItemInputType, {
+      foreignKey: 'catalog_item_id',
+      as: 'inputType'
+    });
+
+    CatalogItem.hasOne(models.CatalogItemOutputType, {
+      foreignKey: 'catalog_item_id',
+      as: 'outputType'
+    });
   };
   return CatalogItem;
 };

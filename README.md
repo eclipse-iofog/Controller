@@ -18,7 +18,9 @@
  flow           -- Application flow operations. <br>
  microservice   -- Microservice instance operations. <br>
  registry       -- Registries instance operations. <br>
-
+<br>
+<br>
+<br>
 
 **User**
 
@@ -67,7 +69,9 @@ $ fog-controller user <command> <options>
  **Example**
  
  node src/main.js user add -f test1 -l test2 -e test@gmail.com -p password1 <br>
- 
+<br>
+<br>
+<br>
  
  
 **ComSat** <br>
@@ -102,7 +106,9 @@ $ fog-controller comsat <command> <options>
 
  -i, --public-ip string   (ComSat public IP address)
  
- 
+<br>
+<br>
+<br> 
  
 **Proxy** <br>
 
@@ -135,7 +141,9 @@ $ fog-controller proxy <command> <options>
 
  -s, --host string   (Proxy host address)
  
-  
+<br>
+<br>
+<br>  
  
  **IoFog**
  
@@ -255,3 +263,263 @@ $ fog-controller proxy <command> <options>
   autoGPSEnabled: boolean <br>
   reboot: boolean <br>
   fogType: number <br>
+  
+<br>
+<br>
+<br>
+
+**Catalog**<br>
+
+$ fog-controller catalog <command> <options> <br>
+
+**Command List**<br>
+
+ add      -- Add a new catalog item.<br>
+ update   -- Update existing catalog item.<br>
+ remove   -- Delete a catalog item.<br>
+ list     -- List all catalog items.<br>
+ info     -- Get catalog item settings.<br>
+
+*add*
+
+ -f, --file string             (Catalog item settings JSON file)<br>
+ -n, --name string             (Catalog item name)<br>
+ -d, --description string      (Catalog item description)<br>
+ -c, --category string         (Catalog item category)<br>
+ -x, --x86-image string        (x86 docker image name)<br>
+ -a, --arm-image string        (ARM docker image name)<br>
+ -p, --publisher string        (Catalog item publisher name)<br>
+ -s, --disk-required number    (Amount of disk required to run the microservice (MB))<br>
+ -r, --ram-required number     (Amount of RAM required to run the microservice (MB))<br>
+ -t, --picture string          (Catalog item picture)<br>
+ -P, --public                  (Public catalog item)<br>
+ -V, --private                 (Private catalog item)<br>
+ -g, --registry-id number      (Catalog item docker registry ID)<br>
+ -I, --input-type string       (Catalog item input type)<br>
+ -F, --input-format string     (Catalog item input format)<br>
+ -O, --output-type string      (Catalog item output type)<br>
+ -T, --output-format string    (Catalog item output format)<br>
+ -X, --config-example string   (Catalog item config example)<br>
+ -u, --user-id number          (User's id)<br>
+
+*update*<br>
+
+ -f, --file string             (Catalog item settings JSON file)<br>
+ -i, --item-id string          (Catalog item ID)<br>
+ -n, --name string             (Catalog item name)<br>
+ -d, --description string      (Catalog item description)<br>
+ -c, --category string         (Catalog item category)<br>
+ -x, --x86-image string        (x86 docker image name)<br>
+ -a, --arm-image string        (ARM docker image name)<br>
+ -p, --publisher string        (Catalog item publisher name)<br>
+ -s, --disk-required number    (Amount of disk required to run the microservice (MB))<br>
+ -r, --ram-required number     (Amount of RAM required to run the microservice (MB))<br>
+ -t, --picture string          (Catalog item picture)<br>
+ -P, --public                  (Public catalog item)<br>
+ -V, --private                 (Private catalog item)<br>
+ -g, --registry-id number      (Catalog item docker registry ID)<br>
+ -I, --input-type string       (Catalog item input type)<br>
+ -F, --input-format string     (Catalog item input format)<br>
+ -O, --output-type string      (Catalog item output type)<br>
+ -T, --output-format string    (Catalog item output format)<br>
+ -X, --config-example string   (Catalog item config example)<br>
+
+*remove*<br>
+
+ -i, --item-id string   -- Catalog item ID<br>
+
+*info*<br>
+
+ -i, --item-id string   -- Catalog item ID<br>
+
+*JSON File Schema*<br>
+
+ name: string<br>
+ description: string<br>
+ category: string<br>
+ containersImages: object<br>
+   x86ContainerImage: string<br>
+   armContainerImage: string<br>
+ publisher: string<br>
+ diskRequired: number<br>
+ ramRequired: number<br>
+ picture: string<br>
+ isPublic: boolean<br>
+ registryId: number<br>
+ inputType: string<br>
+ inputFormat: string<br>
+ outputType: string<br>
+ outputFormat: string<br>
+ configExample: string<br>
+<br>
+<br>
+<br>
+**Flow**<br>
+
+ $ fog-controller flow <command> <options><br>
+
+*Command List*<br>
+
+ add      -- Add a new flow.<br>
+ update    -- Update existing flow.<br>
+ remove    -- Delete a flow.<br>
+ list      -- List all flows.<br>
+ info      -- Get flow settings.<br>
+
+*add*<br>
+
+ -f, --file string          (Application flow settings JSON file)<br>
+ -n, --name string          (Application flow name)<br>
+ -d, --description string   (Application flow description)<br>
+ -a, --activate             (Activate application flow)<br>
+ -D, --deactivate           (Deactivate application flow)<br>
+ -u, --user-id number       (User's id)<br>
+
+*update*<br>
+
+ -f, --file string          (Application flow settings JSON file)<br>
+ -i, --flow-id string       (Application flow ID)<br>
+ -n, --name string          (Application flow name)<br>
+ -d, --description string   (Application flow description)<br>
+ -a, --activate             (Activate application flow)<br>
+ -D, --deactivate           (Deactivate application flow)<br>
+
+*remove*<br>
+
+ -i, --flow-id string   -- Application flow ID
+
+*info*<br>
+
+ -i, --flow-id string   -- Application flow ID
+
+*JSON File Schema*<br>
+
+ name: string<br>
+ description: string<br>
+ isActivated: boolean<br>
+
+<br>
+<br>
+<br>
+
+ **Microservice**<br>
+ 
+ $ fog-controller microservice <command> <options><br>
+
+*Command List*<br>
+
+ add      -- Add a new microservice.<br>
+ update   -- Update existing microservice.<br>
+ remove   -- Delete a microservice.<br>
+ list     -- List all microservices.<br>
+ info     -- Get microservice settings.<br>
+ route    -- Add/Remove microservice route.<br>
+ strace   -- strace option operations.<br>
+
+*add*<br>
+
+ -f, --file string         (Microservice settings JSON file)<br>
+ -n, --name string         (Microservice name)<br>
+ -c, --catalog-id string   (Catalog item ID)<br>
+ -F, --flow-id string      (Application flow ID)<br>
+ -I, --iofog-id string     (ioFog node ID)<br>
+ -g, --config string       (Microservice config)<br>
+ -v, --volumes string[]    (Microservice volume mapping(s))<br>
+ -l, --log-limit number    (Log file size limit (MB))<br>
+ -r, --root-enable         (Enable root access)<br>
+ -R, --root-disable        (Disable root access)<br>
+ -p, --ports string[]      (Container ports)<br>
+ -t, --routes string[]     (Microservice route(s) (receiving microservices))<br>
+ -u, --user-id number      (User's id)<br>
+
+*update*<br>
+
+ -f, --file string              (Microservice settings JSON file)<br>
+ -i, --microservice-id string   (Microservice ID)<br>
+ -n, --name string              (Microservice name)<br>
+ -c, --catalog-id string        (Catalog item ID)<br>
+ -F, --flow-id string           (Application flow ID)<br>
+ -I, --iofog-id string          (ioFog node ID)<br>
+ -g, --config string            (Microservice config)<br>
+ -v, --volumes string[]         (Microservice volume mapping(s))<br>
+ -l, --log-limit number         (Log file size limit (MB))<br>
+ -r, --root-enable              (Enable root access)<br>
+ -R, --root-disable             (Disable root access)<br>
+ -p, --ports string[]           (Container ports)<br>
+ -t, --routes string[]          (Microservice route(s) (receiving microservices))<br>
+
+*remove*<br>
+
+ -i, --microservice-id string   (Microservice ID)<br>
+
+*info*<br>
+
+ -i, --microservice-id string   (Microservice ID)<br>
+
+*route*<br>
+
+ -i, --microservice-id string   (Microservice ID)<br>
+ -a, --add string[]             (Add new route(s))<br>
+ -m, --remove string[]          (Delete existing route(s))<br>
+
+*strace*<br>
+
+ -i, --microservice-id string   (Microservice ID)<br>
+ -e, --enable                   (Enable strace option)<br>
+ -d, --disable                  (Disable strace option)<br>
+ -G, --get string               (Get strace data, formats: string,file)<br>
+
+*JSON File Schema*<br>
+
+ name: string<br>
+ catalogItemId: string<br>
+ flowId: string<br>
+ ioFogNodeId: string<br>
+ config: string<br>
+ volumeMappings: string<br>
+ logLimit: number<br>
+ rootHostAccess: true<br>
+ ports: object<br>
+   internal: number<br>
+   external: number<br>
+   tunnel: boolean<br>
+ routes: array of strings<br>
+
+*Examples*
+
+ 1. Single mapping:                       $ fog-controller microservice add [other required options] --volumes
+                                       /host_src:/container_src<br>
+ 2. Multiple mappings:                   $ fog-controller microservice add [other required options] --volumes
+                                       /host_src:/container_src /host_bin:/container_bin<br>
+ 3. Ports (internal:external:tunnel):     $ fog-controller microservice add [other required options] --ports
+                                       80:8080:false 443:5443:true<br>
+ 4. Add routes:                           $ fog-controller microservice route -i ABCD --add DEF GHI<br>
+ 5. Delete route:                         $ fog-controller microservice route -i ABC --remove DEF<br>
+ 6. Get strace data:                      $ fog-controller microservice strace -i ABC --get file<br>
+<br>
+<br>
+<br>
+
+ **Registry**
+
+ $ fog-controller registry <command> <options><br>
+
+*Command List*<br>
+
+ add      -- Add a new Registry.<br>
+ remove   -- Delete a Registry.<br>
+ list     -- List all Registries.<br>
+
+*add*<br>
+
+ -u, --uri string        (Registry URI)<br>
+ -b, --public            (Set registry as public)<br>
+ -r, --private           (Set registry as private)<br>
+ -l, --username string   (Registry's user name)<br>
+ -p, --password string   (Password)<br>
+ -e, --email string      (Email address)<br>
+ -i, --user-id number    (User's id)<br>
+
+*remove*<br>
+
+ -u, --uri string   (Registry URI)

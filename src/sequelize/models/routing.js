@@ -16,7 +16,7 @@ module.exports = (sequelize, DataTypes) => {
     timestamps: false,
     underscored: true
   });
-  Routing.associate = function(models) {
+  Routing.associate = function (models) {
 
     Routing.belongsTo(models.Fog, {
       foreignKey: {

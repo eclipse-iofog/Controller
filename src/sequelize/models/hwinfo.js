@@ -18,7 +18,7 @@ module.exports = (sequelize, DataTypes) => {
     timestamps: true,
     underscored: true
   });
-  HWInfo.associate = function(models) {
+  HWInfo.associate = function (models) {
 
     HWInfo.belongsTo(models.Fog, {
       foreignKey: {
