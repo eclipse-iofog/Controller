@@ -13,15 +13,16 @@
 
 const TransactionDecorator = require('../decorators/transaction-decorator');
 const MicroserviceManager = require('../sequelize/managers/microservice-manager');
-const MicroservicePortManager = require('../sequelize/managers/microserviceport-manager');
+const MicroservicePortManager = require('../sequelize/managers/microservice-port-manager');
+const IOFogService = require('../services/iofog-service');
+const FlowService = require('../services/flow-service');
 const AppHelper = require('../helpers/app-helper');
 const Errors = require('../helpers/errors');
+const Op = require('sequelize').Op;
+const Validation = require('../schemas/index');
 
 const _getMicroserviceByFlow = async function (flowId, user, transaction) {
-  const flow = await FlowManager.findOne({
-    userId: user.id,
-    id: flowId
-  }, transaction);
+  const flow = await FlowService.getFlow(flowId, user);
 
   if (!flow){
     throw new Errors.ValidationError("Bad Request: Flow doesn't exists")
@@ -31,16 +32,40 @@ const _getMicroserviceByFlow = async function (flowId, user, transaction) {
     flowId: flowId
   };
 
-  //TODO: add info about ports
-
-  return await MicroserviceManager.findAll(microservice, transaction)
+  return await MicroserviceManager.findAllWithDependencies(microservice, transaction)
 };
 
 const _getMicroservice = async function (microserviceId, user, transaction) {
+  const microservice = await MicroserviceManager.findOneWithDependencies({
+    id: microserviceId
+  }, transaction);
 
+  const flow = await FlowService.getFlow(microservice.flowId, user);
+
+  const fogNode = await IOFogService.getFogWithTransaction({
+    uuid: microserviceDataUpdate.ioFogNodeId
+  }, user);
+
+  if(!flow || !fogNode){
+    throw new Errors.NotFoundError();
+  }
+
+  return microservice;
 };
 
 const _createMicroserviceOnFog = async function (microserviceData, user, transaction) {
+  await Validation.validate(microserviceData, Validation.schemas.microservice);
+
+  const microservice = await _createMicroservice(microserviceData, user, transaction);
+
+  await _createMicroservicePort(microserviceData, microservice.id, transaction);
+
+  return {
+    id: microservice.id
+  }
+};
+
+const _createMicroservice = async function (microserviceData, user, transaction) {
   const microserviceToCreate = {
     name: microserviceData.name,
     config: microserviceData.config,
@@ -56,34 +81,95 @@ const _createMicroserviceOnFog = async function (microserviceData, user, transac
 
   const microserviceDataCreate = AppHelper.deleteUndefinedFields(microserviceToCreate);
 
-  const microservice = await MicroserviceManager.create(microserviceDataCreate, transaction);
+  if (microserviceDataCreate.flowId) {
+    await FlowService.getFlow(microserviceDataUpdate.flowId, user);
+  }
 
+  if (microserviceDataCreate.ioFogNodeId) {
+    await IOFogService.getFogWithTransaction({
+      uuid: microserviceDataUpdate.ioFogNodeId
+    }, user);
+  }
+
+  return await MicroserviceManager.create(microserviceDataCreate, transaction);
+};
+
+const _createMicroservicePort = async function (microserviceData, microserviceId, transaction) {
   const microservicePortToCreate = {
     internal: microserviceData.ports.internal,
     external: microserviceData.ports.external,
     tunnel: microserviceData.ports.tunnel,
-    microserviceUuid: microservice.id
+    microserviceUuid: microserviceId
   };
 
   const microservicePortDataCreate = AppHelper.deleteUndefinedFields(microservicePortToCreate);
 
-  const microservicePort = await MicroservicePortManager.create(microservicePortDataCreate, transaction);
-
-  if (!microservicePort){
-    throw new Errors.ValidationError("Bad Request: Can't create ports for microservice")
-  }
-
-  return {
-    id: microservice.id
-  }
+  await MicroservicePortManager.create(microservicePortDataCreate, transaction);
 };
 
 const _updateMicroservice = async function (microserviceId, microserviceData, user, transaction) {
+  await Validation.validate(microserviceData, Validation.schemas.microservice);
 
+  const microserviceToUpdate = {
+    name: microserviceData.name,
+    config: microserviceData.config,
+    catalogItemId: microserviceData.catalogItemId,
+    flowId: microserviceData.flowId,
+    ioFogNodeId: microserviceData.ioFogNodeId,
+    volumeMappings: microserviceData.volumeMappings,
+    rootHostAccess: microserviceData.rootHostAccess,
+    strace: microserviceData.strace,
+    logLimit: microserviceData.logLimit,
+    routes: microserviceData.routes,
+    updatedBy: user.id
+  };
+
+  const microserviceDataUpdate = AppHelper.deleteUndefinedFields(microserviceToUpdate);
+
+  if (microserviceDataUpdate.flowId) {
+    await FlowService.getFlow(microserviceDataUpdate.flowId, user);
+  }
+
+  if (microserviceDataUpdate.ioFogNodeId) {
+    await IOFogService.getFogWithTransaction({
+      uuid: microserviceDataUpdate.ioFogNodeId
+    }, user);
+  }
+
+  const affectedRows = await MicroserviceManager.update({
+    id: microserviceId
+  }, microserviceDataUpdate, transaction);
+  if (affectedRows === 0) {
+    throw new Errors.NotFoundError("Invalid microservice id");
+  }
+
+  await _updateMicroservicePort(microserviceId, microserviceData, transaction);
+};
+
+const _updateMicroservicePort = async function (microserviceId, microserviceData, user, transaction) {
+  const microservicePortToUpdate = {
+    internal: microserviceData.ports.internal,
+    external: microserviceData.ports.external,
+    tunnel: microserviceData.ports.tunnel,
+    updatedBy: user.id
+  };
+
+  const microservicePortDataUpdate = AppHelper.deleteUndefinedFields(microservicePortToUpdate);
+  const affectedRows = await MicroserviceManager.update({
+    microserviceUuid: microserviceId
+  }, microservicePortDataUpdate, transaction);
+  if (affectedRows === 0) {
+    throw new Errors.NotFoundError("Invalid microservice id");
+  }
 };
 
 const _deleteMicroservice = async function (microserviceId, user, transaction) {
-
+  const affectedRows = await MicroserviceManager.delete({
+    id: microserviceId
+  }, transaction);
+  if (affectedRows === 0) {
+    throw new Errors.NotFoundError("Invalid microservice id");
+  }
 };
 
 module.exports = {

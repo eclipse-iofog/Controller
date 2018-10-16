@@ -18,7 +18,6 @@ const Validation = require('../schemas');
 
 const _createMicroservicesOnFogEndPoint = async function (req, user) {
   const microservice = req.body;
-  await Validation.validate(microservice, Validation.schemas.microservice);
 
   logger.info("Parameters:" + JSON.stringify(microservice));
 
@@ -36,8 +35,6 @@ const _getMicroserviceEndPoint = async function (req, user) {
 const _updateMicroserviceEndPoint = async function (req, user) {
   const microservice = req.body;
   const microserviceId = req.params.id;
-
-  await Validation.validate(microservice, Validation.schemas.microservice);
 
   logger.info("Parameters:" + JSON.stringify(microservice))
   logger.info("Microservice id:" + JSON.stringify(microserviceId))

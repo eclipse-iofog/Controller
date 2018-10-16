@@ -15,8 +15,11 @@ const TransactionDecorator = require('../decorators/transaction-decorator');
 const FlowManager = require('../sequelize/managers/flow-manager');
 const AppHelper = require('../helpers/app-helper');
 const Errors = require('../helpers/errors');
+const Validation = require('../schemas/index');
 
 const _createFlow = async function (flowData, user, transaction) {
+  await Validation.validate(flowData, Validation.schemas.flowCreate);
+
   await isFlowExist(flowData.name, transaction);
 
   const flowToCreate = {
@@ -46,6 +49,8 @@ const _deleteFlow = async function (flowId, user, transaction) {
 };
 
 const _updateFlow = async function (flowData, flowId, user, transaction) {
+  await Validation.validate(flowData, Validation.schemas.flowUpdate);
+
   if (flowData.name !== undefined) {
     await isFlowExist(flowData.name, transaction);
   }
