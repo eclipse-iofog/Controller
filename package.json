@@ -35,19 +35,20 @@
     "express": "^4.16.3",
     "fs": "^0.0.1-security",
     "helmet": "^3.13.0",
+    "jsonschema": "^1.2.4",
+    "morgan": "^1.9.1",
     "nconf": "^0.10.0",
+    "nodemailer": "^4.6.8",
+    "nodemailer-smtp-transport": "^2.7.4",
     "path": "^0.12.7",
+    "portscanner": "^2.2.0",
     "sequelize": "^4.39.0",
     "sequelize-cli": "^4.1.1",
     "sqlite3": "^4.0.2",
+    "string-format": "^2.0.0",
     "underscore": "^1.9.1",
     "winston": "^3.1.0",
-    "xss-clean": "^0.1.1",
-    "portscanner": "^2.2.0",
-    "nodemailer": "^4.6.8",
-    "nodemailer-smtp-transport": "^2.7.4",
-    "morgan": "^1.9.1",
-    "jsonschema": "^1.2.4"
+    "xss-clean": "^0.1.1"
   },
   "devDependencies": {
     "eslint": "^5.6.1"
