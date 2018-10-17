@@ -16,9 +16,7 @@ const logger = require('../logger');
 
 const EmailActivationCodeManager = require('../sequelize/managers/email-activation-code-manager');
 const AppHelper = require('../helpers/app-helper');
-
-const Errors = require('../helpers/errors');
-
+const ErrorMessages = require('../helpers/error-messages');
 const TransactionDecorator = require('../decorators/transaction-decorator');
 
 const generateActivationCode = async function (transaction) {
@@ -42,7 +40,7 @@ const saveActivationCode = async function (userId, activationCodeData, transacti
   try {
     return await EmailActivationCodeManager.createActivationCode(userId, activationCode, expirationTime, transaction);
   } catch (errMsg) {
-    throw new Error('Unable to create activation code');
+    throw new Error(ErrorMessages.UNABLE_TO_CREATE_ACTIVATION_CODE);
   }
 };
 
@@ -50,7 +48,7 @@ const verifyActivationCode = async function (activationCode, transaction) {
   try {
     return await EmailActivationCodeManager.verifyActivationCode(activationCode, transaction)
   } catch (errMsg) {
-    throw new Error('Unable to get activation code')
+    throw new Error(ErrorMessages.UNABLE_TO_GET_ACTIVATION_CODE);
   }
 };
 

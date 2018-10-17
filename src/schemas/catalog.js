@@ -15,7 +15,7 @@ const catalogItemCreate = {
   "id": "/catalogItemCreate",
   "type": "object",
   "properties": {
-    "name": {"type": "string"},
+    "name": {"type": "string", "minLength": 1},
     "description": {"type": "string"},
     "category": {"type": "string"},
     "publisher": {"type": "string"},
@@ -40,7 +40,8 @@ const catalogItemUpdate = {
   "id": "/catalogItemUpdate",
   "type": "object",
   "properties": {
-    "name": {"type": "string"},
+    "id": {"type": "string"},
+    "name": {"type": "string", "minLength": 1},
     "description": {"type": "string"},
     "category": {"type": "string"},
     "publisher": {"type": "string"},

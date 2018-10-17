@@ -10,11 +10,13 @@ module.exports = (sequelize, DataTypes) => {
     },
     name: {
       type: DataTypes.TEXT,
-      field: 'name'
+      field: 'name',
+      defaultValue: 'New Catalog Item'
     },
     description: {
       type: DataTypes.TEXT,
-      field: 'description'
+      field: 'description',
+      defaultValue: ''
     },
     category: {
       type: DataTypes.TEXT,
@@ -22,7 +24,8 @@ module.exports = (sequelize, DataTypes) => {
     },
     configExample: {
       type: DataTypes.TEXT,
-      field: 'config_example'
+      field: 'config_example',
+      defaultValue: '{}'
     },
     publisher: {
       type: DataTypes.TEXT,
@@ -30,19 +33,23 @@ module.exports = (sequelize, DataTypes) => {
     },
     diskRequired: {
       type: DataTypes.BIGINT,
-      field: 'disk_required'
+      field: 'disk_required',
+      defaultValue: 0
     },
     ramRequired: {
       type: DataTypes.BIGINT,
-      field: 'ram_required'
+      field: 'ram_required',
+      defaultValue: 0
     },
     picture: {
       type: DataTypes.TEXT,
-      field: 'picture'
+      field: 'picture',
+      defaultValue: 'images/shared/default.png'
     },
     isPublic: {
       type: DataTypes.BOOLEAN,
-      field: 'is_public'
+      field: 'is_public',
+      defaultValue: false
     }
   }, {
     timestamps: false,
@@ -56,7 +63,8 @@ module.exports = (sequelize, DataTypes) => {
         field: 'registry_id'
       },
       as: 'registry',
-      onDelete: 'set null'
+      onDelete: 'set null',
+      defaultValue: 1
     });
 
     CatalogItem.belongsTo(models.User, {

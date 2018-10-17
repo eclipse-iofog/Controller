@@ -16,7 +16,7 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.BOOLEAN,
       field: 'is_public'
     },
-    secure: {
+    isSecure: {
       type: DataTypes.BOOLEAN,
       field: 'secure'
     },

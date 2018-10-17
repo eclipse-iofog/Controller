@@ -2462,8 +2462,6 @@ definitions:
         type: string
       userId:
         type: string
-      ioFogId:
-        type: string
   RegistryBody:
     type: object
     properties:

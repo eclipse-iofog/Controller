@@ -32,12 +32,15 @@ const listCatalogItemEndPoint = async function (req, user) {
 
 const deleteCatalogItemEndPoint = async function (req, user) {
   logger.info("Parameters:" + JSON.stringify(req.query));
+  item.id = req.params.id;
   await CatalogService.deleteCatalogItem(req.params.id, user, false);
 };
 
 const updateCatalogItemEndPoint = async function (req, user) {
   logger.info("Parameters:" + JSON.stringify(req.body));
-  await CatalogService.updateCatalogItem(req.params.id, req.body, user, false);
+  const item = req.body;
+  item.id = req.params.id;
+  await CatalogService.updateCatalogItem(req.body, user, false);
 };
 
 module.exports = {
