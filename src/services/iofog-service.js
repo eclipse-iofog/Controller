@@ -97,11 +97,10 @@ async function _updateFog(fogData, user, isCli, transaction) {
     containerList: true
   }
 
-  const fog = await FogManager.findOne(queryFogData, transaction)
-  if (!fog) {
+  const affectedRows = await FogManager.update(queryFogData, updateFogData, transaction)
+  if (affectedRows === 0) {
     throw new Errors.NotFoundError('Invalid Fog Node Id')
   }
-  await FogManager.update(queryFogData, updateFogData, transaction)
   await ChangeTrackingManager.updateOrCreate({iofogUuid: fogData.uuid}, changeTrackingUpdates, transaction)
   //TODO: finish after microservices endpoints will be added. implement bluetooth, hal and watchdog
 }
@@ -254,7 +253,7 @@ function _filterFogs(fogs, filters) {
 
 async function _updateFogsConnectionStatus(fog, transaction) {
   const minInMs = 60000
-  const intervalInMs = fog.StatusFrequency > minInMs ? fog.statusFrequency * 2 : minInMs
+  const intervalInMs = fog.statusFrequency > minInMs ? fog.statusFrequency * 2 : minInMs
   if (fog.daemonStatus !== 'UNKNOWN' && Date.now() - fog.lastStatusTime > intervalInMs) {
     fog.daemonStatus = 'UNKNOWN'
     fog.ipAddress = '0.0.0.0'
