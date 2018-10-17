@@ -32,7 +32,6 @@ const listCatalogItemEndPoint = async function (req, user) {
 
 const deleteCatalogItemEndPoint = async function (req, user) {
   logger.info("Parameters:" + JSON.stringify(req.query));
-  item.id = req.params.id;
   await CatalogService.deleteCatalogItem(req.params.id, user, false);
 };
 
