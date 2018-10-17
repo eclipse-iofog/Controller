@@ -18,7 +18,6 @@ const Validation = require('../schemas');
 
 const _createFlowEndPoint = async function (req, user) {
   const flow = req.body;
-  await Validation.validate(flow, Validation.schemas.flowCreate);
 
   logger.info("Parameters:" + JSON.stringify(flow));
 
@@ -40,8 +39,6 @@ const _getFlowEndPoint = async function (req, user) {
 const _updateFlowEndPoint = async function (req, user) {
   const flow = req.body;
   const flowId = req.params.id;
-
-  await Validation.validate(flow, Validation.schemas.flowUpdate);
 
   logger.info("Parameters:" + JSON.stringify(flow))
   logger.info("Flow id:" + JSON.stringify(flowId))
