@@ -163,7 +163,7 @@ const _checkForDuplicateName = async function (name, item, transaction) {
 const _checkIfItemExists = async function (where, transaction) {
   const item = await CatalogItemManager.findOne(where, transaction)
   if (!item) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_CATALOG_ITEM_ID, id));
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_CATALOG_ITEM_ID, where.id));
 
   }
   return item;
