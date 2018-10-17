@@ -16,7 +16,7 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.BOOLEAN,
       field: 'reboot'
     },
-    deletenode: {
+    deleteNode: {
       type: DataTypes.BOOLEAN,
       field: 'deletenode'
     },
