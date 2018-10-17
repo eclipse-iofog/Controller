@@ -237,6 +237,18 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: 0,
       onDelete: 'cascade'
     });
+
+    Fog.hasOne(models.FogAccessToken, {
+      foreignKey: 'iofog_uuid',
+      as: 'accessToken'
+    });
+
+    Fog.hasMany(models.Microservice, {
+      foreignKey: 'iofog_uuid',
+      as: 'microservice'
+    });
+
   };
+
   return Fog;
 };

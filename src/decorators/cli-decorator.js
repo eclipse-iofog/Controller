@@ -40,7 +40,31 @@ function prepareUserById(f) {
   }
 }
 
+function prepareUserByEmail(f) {
+  return async function() {
+
+    const fArgs = Array.prototype.slice.call(arguments)
+    const obj = fArgs[0]
+    const email = obj.email
+
+    logger.info('getting user by email: ' + email)
+
+    const user = await UserManager.findByEmail(email)
+
+    if (!user) {
+      logger.error('user email ' + email + ' incorrect')
+      throw new Errors.AuthenticationError('user email does not exist')
+    }
+
+    delete  obj.email
+    fArgs.push(user)
+
+    return await f.apply(this, fArgs)
+  }
+}
+
 module.exports = {
-  prepareUser: prepareUserById,
+  prepareUserById: prepareUserById,
+  prepareUserByEmail: prepareUserByEmail
 
 }

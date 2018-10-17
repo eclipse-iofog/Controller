@@ -26,7 +26,6 @@ const EmailActivationCodeService = require('./email-activation-code-service');
 
 const AccessTokenService = require('./access-token-service');
 
-const ConfigHelper = require('../helpers/config-helper');
 const logger = require('../logger');
 const constants = require('../helpers/constants');
 
@@ -38,9 +37,9 @@ const createUser = async function (user, transaction) {
   return await UserManager.create(user, transaction)
 };
 
-const signUp = async function (user, transaction) {
+const signUp = async function (user, isCLI, transaction) {
 
-  let emailActivation = ConfigHelper.getConfigParam('email_activation') || 'off';
+  let emailActivation = Config.get("Email:ActivationEnabled") || 'off';
 
   if (emailActivation === 'on') {
 
@@ -49,7 +48,7 @@ const signUp = async function (user, transaction) {
     const activationCodeData = await EmailActivationCodeService.generateActivationCode(transaction);
     await EmailActivationCodeService.saveActivationCode(newUser.id, activationCodeData, transaction);
 
-    const emailData = await _getEmailData(transaction);
+    const emailData = await _getEmailData();
     const transporter = await _userEmailSender(emailData);
     await _notifyUserAboutActivationCode(user.email, Config.get('Email:HomeUrl'), emailData, activationCodeData, transporter);
     return newUser;
@@ -58,7 +57,7 @@ const signUp = async function (user, transaction) {
   }
 };
 
-const login = async function (credentials, transaction) {
+const login = async function (credentials, isCLI, transaction) {
 
   const user = await UserManager.findOne({
     email: credentials.email
@@ -84,7 +83,7 @@ const login = async function (credentials, transaction) {
   }
 };
 
-const resendActivation = async function (emailObj, transaction) {
+const resendActivation = async function (emailObj, isCLI, transaction) {
   await Validator.validate(emailObj, Validator.schemas.resendActivation);
 
   const user = await UserManager.findOne({
@@ -97,62 +96,80 @@ const resendActivation = async function (emailObj, transaction) {
   const activationCodeData = await EmailActivationCodeService.generateActivationCode(transaction);
   await EmailActivationCodeService.saveActivationCode(user.id, activationCodeData, transaction);
 
-  const emailData = await _getEmailData(transaction);
+  const emailData = await _getEmailData();
   const transporter = await _userEmailSender(emailData);
   await _notifyUserAboutActivationCode(user.email, Config.get('Email:HomeUrl'), emailData, activationCodeData, transporter);
 };
 
-const activateUser = async function (codeData, transaction) {
-  await Validator.validate(codeData, Validator.schemas.activateUser);
-
-  const activationCode = await EmailActivationCodeService.verifyActivationCode(codeData.activationCode, transaction);
-  if (!activationCode) {
-    throw new Errors.NotFoundError(ErrorMessages.ACTIVATION_CODE_NOT_FOUND);
-  }
-
+const activateUser = async function (codeData, isCLI, transaction) {
   const updatedObj = {
     emailActivated: 1
   };
 
-  await _updateUser(activationCode.userId, updatedObj, transaction);
-  await EmailActivationCodeService.deleteActivationCode(codeData.activationCode, transaction);
+  if (isCLI) {
+    await _updateUser(codeData.userId, updatedObj, transaction);
+  } else {
+    await Validator.validate(codeData, Validator.schemas.activateUser);
+
+    const activationCode = await EmailActivationCodeService.verifyActivationCode(codeData.activationCode, transaction);
+    if (!activationCode) {
+      throw new Errors.NotFoundError(ErrorMessages.ACTIVATION_CODE_NOT_FOUND);
+    }
+
+    await _updateUser(activationCode.userId, updatedObj, transaction);
+
+    await EmailActivationCodeService.deleteActivationCode(codeData.activationCode, transaction);
+  }
+
 };
 
-const logout = async function (user, transaction) {
+const logout = async function (user, isCLI, transaction) {
   return await AccessTokenService.removeAccessTokenByUserId(user.id, transaction)
 };
 
-const updateDetails = async function (user, profileData, transaction) {
-  await Validator.validate(profileData, Validator.schemas.updateUserProfile);
+const updateDetails = async function (user, profileData, isCLI, transaction) {
+  if (isCLI) {
+    await Validator.validate(profileData, Validator.schemas.updateUserProfileCLI);
+  } else {
+    await Validator.validate(profileData, Validator.schemas.updateUserProfile);
+  }
 
-  const updateObject = {
-    firstName: profileData.firstName,
-    lastName: profileData.lastName
-  };
+  const updateObject = isCLI ?
+    {
+      firstName: profileData.firstName,
+      lastName: profileData.lastName,
+      password: AppHelper.encryptText(profileData.password, user.email)
+    }
+    :
+    {
+      firstName: profileData.firstName,
+      lastName: profileData.lastName
+    };
+
   AppHelper.deleteUndefinedFields(updateObject);
 
   await UserManager.updateDetails(user, updateObject, transaction);
 };
 
-const deleteUser = async function (user, transaction) {
+const deleteUser = async function (user, isCLI, transaction) {
   await UserManager.delete({
     id: user.id
   }, transaction);
 };
 
-const updateUserPassword = async function (passwordUpdates, user, transaction) {
+const updateUserPassword = async function (passwordUpdates, user, isCLI, transaction) {
   if (user.password !== passwordUpdates.oldPassword && user.tempPassword !== passwordUpdates.oldPassword) {
     throw new Errors.ValidationError(ErrorMessages.INVALID_OLD_PASSWORD);
   }
 
-  const emailData = await _getEmailData(transaction);
+  const emailData = await _getEmailData();
   const transporter = await _userEmailSender(emailData);
 
   await UserManager.updatePassword(user.id, passwordUpdates.newPassword, transaction);
   await _notifyUserAboutPasswordChange(user, emailData, transporter);
 };
 
-const resetUserPassword = async function (emailObj, transaction) {
+const resetUserPassword = async function (emailObj, isCLI, transaction) {
   await Validator.validate(emailObj, Validator.schemas.resetUserPassword);
 
   const user = await UserManager.findOne({
@@ -166,13 +183,23 @@ const resetUserPassword = async function (emailObj, transaction) {
   let tempDbPass = AppHelper.encryptText(tempPass, user.email);
   await UserManager.updateTempPassword(user.id, tempDbPass, transaction);
 
-  const emailData = await _getEmailData(transaction);
+  const emailData = await _getEmailData();
   const transporter = await _userEmailSender(emailData);
   await _notifyUserAboutPasswordReset(user, Config.get('Email:HomeUrl'), emailData, tempPass, transporter);
 };
 
-const list = async function (transaction) {
+const list = async function (isCLI, transaction) {
   return await UserManager.findAll({}, transaction);
+};
+
+const suspendUser = async function (user, isCLI, transaction) {
+  const updatedObj = {
+    emailActivated: 0
+  };
+
+  await AccessTokenService.removeAccessTokenByUserId(user.id, transaction);
+
+  return await _updateUser(user.id, updatedObj, transaction);
 };
 
 async function _updateUser(userId, updatedUser, transaction) {
@@ -201,7 +228,7 @@ async function _generateAccessToken(transaction) {
 }
 
 function _verifyEmailActivation(emailActivated) {
-  const emailActivation = ConfigHelper.getConfigParam('email_activation');
+  const emailActivation = Config.get("Email:ActivationEnabled") || 'off';
   if (emailActivation === 'on' && emailActivated === 0)
     throw new Error(ErrorMessages.EMAIL_NOT_ACTIVATED);
 }
@@ -285,20 +312,19 @@ async function _notifyUserAboutPasswordReset(user, url, emailSenderData, tempPas
 }
 
 async function _sendEmail(transporter, mailOptions) {
-  await transporter.sendMail(mailOptions);
+  try {
+    await transporter.sendMail(mailOptions);
+  } catch (errMsg) {
+    throw new Error(ErrorMessages.EMAIL_SENDER_NOT_CONFIGURED);
+  }
 }
 
-async function _getEmailData(transaction) {
-  const response = {};
-  await ConfigHelper.getAllConfigs(transaction).then(async () => {
-    response.email = ConfigHelper.getConfigParam(constants.CONFIG.email_address);
-    response.password = ConfigHelper.getConfigParam(constants.CONFIG.email_password);
-    response.service = ConfigHelper.getConfigParam(constants.CONFIG.email_service);
-    response.host = ConfigHelper.getConfigParam(constants.CONFIG.email_server);
-    response.port = ConfigHelper.getConfigParam(constants.CONFIG.email_serverport);
-  });
-
-  return response;
+async function _getEmailData() {
+  return {
+    email: Config.get("Email:Address"),
+    password: Config.get("Email:Password"),
+    service: Config.get("Email:Service")
+  }
 }
 
 module.exports = {
@@ -311,5 +337,6 @@ module.exports = {
   deleteUser: TransactionDecorator.generateTransaction(deleteUser),
   updateUserPassword: TransactionDecorator.generateTransaction(updateUserPassword),
   resetUserPassword: TransactionDecorator.generateTransaction(resetUserPassword),
-  list: TransactionDecorator.generateTransaction(list)
+  list: TransactionDecorator.generateTransaction(list),
+  suspendUser: TransactionDecorator.generateTransaction(suspendUser)
 };
