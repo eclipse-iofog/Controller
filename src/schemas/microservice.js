@@ -3,17 +3,15 @@ const microservice = {
     "type": "object",
     "properties": {
         "name": {"type": "string"},
-        "confog": {"type": "string"},
-        "catalogItemId": {"type": "string"},
+        "config": {"type": "string"},
+        "catalogItemId": {"type": "integer"},
         "flowId": {"type": "integer"},
-        "ioFogNodeId": {"type": "integer"},
+        "ioFogNodeId": {"type": "string"},
         "volumeMappings": {"type": "string"},
         "rootHostAccess": {"type": "boolean"},
         "strace": {"type": "boolean"},
         "logLimit": {"type": "integer"},
-        "ports": {
-            "type": "array",
-            "items": {"$ref": "/ports"}},
+        "ports": {"$ref": "/ports"},
         "routes": {
             "type": "array",
             "items": {"type": "string"}}

@@ -35,9 +35,9 @@ const _getMicroserviceByFlow = async function (flowId, user, transaction) {
   return await MicroserviceManager.findAllWithDependencies(microservice, transaction)
 };
 
-const _getMicroservice = async function (microserviceId, user, transaction) {
+const _getMicroservice = async function (microserviceUuid, user, transaction) {
   const microservice = await MicroserviceManager.findOneWithDependencies({
-    id: microserviceId
+    uuid: microserviceUuid
   }, transaction);
 
   const flow = await FlowService.getFlow(microservice.flowId, user);
@@ -58,20 +58,21 @@ const _createMicroserviceOnFog = async function (microserviceData, user, transac
 
   const microservice = await _createMicroservice(microserviceData, user, transaction);
 
-  await _createMicroservicePort(microserviceData, microservice.id, transaction);
+  await _createMicroservicePort(microserviceData, microservice.uuid, transaction);
 
   return {
-    id: microservice.id
+    uuid: microservice.uuid
   }
 };
 
 const _createMicroservice = async function (microserviceData, user, transaction) {
   const microserviceToCreate = {
+    uuid: AppHelper.generateRandomString(32),
     name: microserviceData.name,
     config: microserviceData.config,
     catalogItemId: microserviceData.catalogItemId,
     flowId: microserviceData.flowId,
-    ioFogNodeId: microserviceData.ioFogNodeId,
+    iofogUuid: microserviceData.ioFogNodeId,
     volumeMappings: microserviceData.volumeMappings,
     rootHostAccess: microserviceData.rootHostAccess,
     strace: microserviceData.strace,
@@ -82,24 +83,24 @@ const _createMicroservice = async function (microserviceData, user, transaction)
   const microserviceDataCreate = AppHelper.deleteUndefinedFields(microserviceToCreate);
 
   if (microserviceDataCreate.flowId) {
-    await FlowService.getFlow(microserviceDataUpdate.flowId, user);
+    await FlowService.getFlow(microserviceDataCreate.flowId, user);
   }
 
-  if (microserviceDataCreate.ioFogNodeId) {
+  if (microserviceDataCreate.iofogUuid) {
     await IOFogService.getFogWithTransaction({
-      uuid: microserviceDataUpdate.ioFogNodeId
+      uuid: microserviceDataCreate.iofogUuid
     }, user);
   }
 
   return await MicroserviceManager.create(microserviceDataCreate, transaction);
 };
 
-const _createMicroservicePort = async function (microserviceData, microserviceId, transaction) {
+const _createMicroservicePort = async function (microserviceData, microserviceUuid, transaction) {
   const microservicePortToCreate = {
     internal: microserviceData.ports.internal,
     external: microserviceData.ports.external,
     tunnel: microserviceData.ports.tunnel,
-    microserviceUuid: microserviceId
+    microserviceUuid: microserviceUuid
   };
 
   const microservicePortDataCreate = AppHelper.deleteUndefinedFields(microservicePortToCreate);
@@ -107,7 +108,7 @@ const _createMicroservicePort = async function (microserviceData, microserviceId
   await MicroservicePortManager.create(microservicePortDataCreate, transaction);
 };
 
-const _updateMicroservice = async function (microserviceId, microserviceData, user, transaction) {
+const _updateMicroservice = async function (microserviceUuid, microserviceData, user, transaction) {
   await Validation.validate(microserviceData, Validation.schemas.microservice);
 
   const microserviceToUpdate = {
@@ -115,7 +116,7 @@ const _updateMicroservice = async function (microserviceId, microserviceData, us
     config: microserviceData.config,
     catalogItemId: microserviceData.catalogItemId,
     flowId: microserviceData.flowId,
-    ioFogNodeId: microserviceData.ioFogNodeId,
+    iofogUuid: microserviceData.ioFogNodeId,
     volumeMappings: microserviceData.volumeMappings,
     rootHostAccess: microserviceData.rootHostAccess,
     strace: microserviceData.strace,
@@ -130,23 +131,23 @@ const _updateMicroservice = async function (microserviceId, microserviceData, us
     await FlowService.getFlow(microserviceDataUpdate.flowId, user);
   }
 
-  if (microserviceDataUpdate.ioFogNodeId) {
+  if (microserviceDataUpdate.iofogUuid) {
     await IOFogService.getFogWithTransaction({
-      uuid: microserviceDataUpdate.ioFogNodeId
+      uuid: microserviceDataUpdate.iofogUuid
     }, user);
   }
 
   const affectedRows = await MicroserviceManager.update({
-    id: microserviceId
+    uuid: microserviceUuid
   }, microserviceDataUpdate, transaction);
   if (affectedRows === 0) {
-    throw new Errors.NotFoundError("Invalid microservice id");
+    throw new Errors.NotFoundError("Invalid microservice uuid");
   }
 
   await _updateMicroservicePort(microserviceId, microserviceData, transaction);
 };
 
-const _updateMicroservicePort = async function (microserviceId, microserviceData, user, transaction) {
+const _updateMicroservicePort = async function (microserviceUuid, microserviceData, user, transaction) {
   const microservicePortToUpdate = {
     internal: microserviceData.ports.internal,
     external: microserviceData.ports.external,
@@ -156,19 +157,19 @@ const _updateMicroservicePort = async function (microserviceId, microserviceData
 
   const microservicePortDataUpdate = AppHelper.deleteUndefinedFields(microservicePortToUpdate);
   const affectedRows = await MicroserviceManager.update({
-    microserviceUuid: microserviceId
+    microserviceUuid: microserviceUuid
   }, microservicePortDataUpdate, transaction);
   if (affectedRows === 0) {
-    throw new Errors.NotFoundError("Invalid microservice id");
+    throw new Errors.NotFoundError("Invalid microservice uuid");
   }
 };
 
-const _deleteMicroservice = async function (microserviceId, user, transaction) {
+const _deleteMicroservice = async function (microserviceUuid, user, transaction) {
   const affectedRows = await MicroserviceManager.delete({
-    id: microserviceId
+    uuid: microserviceUuid
   }, transaction);
   if (affectedRows === 0) {
-    throw new Errors.NotFoundError("Invalid microservice id");
+    throw new Errors.NotFoundError("Invalid microservice uuid");
   }
 };
 

@@ -13,8 +13,7 @@
 
 const logger = require('../logger');
 const AuthDecorator = require('./../decorators/authorization-decorator');
-const MicroservicesService = require('../services/micriservices-service');
-const Validation = require('../schemas');
+const MicroservicesService = require('../services/microservices-service');
 
 const _createMicroservicesOnFogEndPoint = async function (req, user) {
   const microservice = req.body;
