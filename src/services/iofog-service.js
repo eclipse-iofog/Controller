@@ -92,7 +92,7 @@ async function _updateFog(fogData, user, isCli, transaction) {
   updateFogData = AppHelper.deleteUndefinedFields(updateFogData)
 
   const changeTrackingUpdates = {
-    iofogUuid: fogVersionData.uuid,
+    iofogUuid: fogData.uuid,
     config: true,
     containerList: true
   }
