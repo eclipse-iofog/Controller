@@ -89,7 +89,7 @@ const _updateCatalogItemImages = async function (data, transaction) {
   }
 };
 
-const _updateCatalogItemIOTypes = async function (data, id, where, transaction) {
+const _updateCatalogItemIOTypes = async function (data, where, transaction) {
   if (data.inputType && data.inputType.length != 0) {
     let inputType = {
       infoType: data.inputType.infoType,
