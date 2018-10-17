@@ -117,11 +117,11 @@ function deleteUndefinedFields(obj) {
   return obj
 }
 
-function validateBooleanCliOptions(option1, option2) {
-  if (option1 && option2) {
-    throw new Errors.ValidationError("Option " + option1 + " and " + option2 + " can not be used simultaneously");
+function validateBooleanCliOptions(trueOption, falseOption) {
+  if (trueOption && falseOption) {
+    throw new Errors.ValidationError("Two opposite can not be used simultaneously");
   }
-  return option1 ? option1 : (option2 ? option2 : undefined)
+  return trueOption ? true : (falseOption ? false : undefined)
 }
 
 function formatMessage() {

@@ -21,7 +21,7 @@ const Errors = require('../helpers/errors')
 const ErrorMessages = require('../helpers/error-messages')
 const Validator = require('../schemas')
 
-async function _createFog(fogData, user, transaction) {
+async function _createFog(fogData, user, isCli, transaction) {
   await Validator.validate(fogData, Validator.schemas.iofogCreate)
 
   let createFogData = {
@@ -56,17 +56,16 @@ async function _createFog(fogData, user, transaction) {
   const res = {
     uuid: fog.uuid
   }
-
+  //TODO: finish after microservices endpoints will be added. implement bluetooth, hal and watchdog
   return res
 }
 
-async function _updateFog(fogData, user, transaction) {
+async function _updateFog(fogData, user, isCli, transaction) {
   await Validator.validate(fogData, Validator.schemas.iofogUpdate)
 
-  const queryFogData = {
-    uuid: fogData.uuid,
-    userId: user.id
-  }
+  const queryFogData = isCli
+    ? {uuid: fogData.uuid}
+    : {uuid: fogData.uuid, userId: user.id}
 
   let updateFogData = {
     name: fogData.name,
@@ -93,62 +92,72 @@ async function _updateFog(fogData, user, transaction) {
   }
   updateFogData = AppHelper.deleteUndefinedFields(updateFogData)
 
-  const fog = await FogManager.findOne(queryFogData, transaction)
-  if (!fog) {
+  const changeTrackingUpdates = {
+    iofogUuid: fogData.uuid,
+    config: true,
+    containerList: true
+  }
+
+  const affectedRows = await FogManager.update(queryFogData, updateFogData, transaction)
+  if (affectedRows === 0) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FOG_NODE_ID, fogData.uuid))
   }
-  await FogManager.update(queryFogData, updateFogData, transaction)
+  await ChangeTrackingManager.updateOrCreate({iofogUuid: fogData.uuid}, changeTrackingUpdates, transaction)
+  //TODO: finish after microservices endpoints will be added. implement bluetooth, hal and watchdog
 }
 
-async function _deleteFog(fogData, user, transaction) {
+async function _deleteFog(fogData, user, isCli, transaction) {
   await Validator.validate(fogData, Validator.schemas.iofogDelete)
 
-  const queryFogData = {
-    uuid: fogData.uuid,
-    userId: user.id
-  }
+  const queryFogData = isCli
+    ? {uuid: fogData.uuid}
+    : {uuid: fogData.uuid, userId: user.id}
 
   const fog = await FogManager.findOne(queryFogData, transaction)
   if (!fog) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FOG_NODE_ID, fogData.uuid))
   }
-  await FogManager.delete(queryFogData, transaction)
+  await _updateFogsConnectionStatus(fog, transaction)
+  await _processDeleteCommand(fog, transaction)
 }
 
-async function _getFog(fogData, user, transaction) {
+async function _getFog(fogData, user, isCli, transaction) {
   await Validator.validate(fogData, Validator.schemas.iofogGet)
 
-  const queryFogData = {
-    uuid: fogData.uuid,
-    userId: user.id
-  }
+  const queryFogData = isCli
+    ? {uuid: fogData.uuid}
+    : {uuid: fogData.uuid, userId: user.id}
 
   const fog = await FogManager.findOne(queryFogData, transaction)
   if (!fog) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FOG_NODE_ID, fogData.uuid))
   }
+  await _updateFogsConnectionStatus(fog, transaction)
+
   return fog
 }
 
-async function _getFogList(filters, user, transaction) {
+async function _getFogList(filters, user, isCli, transaction) {
   await Validator.validate(filters, Validator.schemas.iofogFilters)
 
-  const queryFogData = {
-    userId: user.id
-  }
+  const queryFogData = isCli
+    ? {}
+    : {userId: user.id}
 
   let fogs = await FogManager.findAll(queryFogData, transaction)
   fogs = _filterFogs(fogs, filters)
+  for (const fog of fogs) {
+    await _updateFogsConnectionStatus(fog, transaction)
+  }
   return fogs
 }
 
-async function _generateProvisioningKey(fogData, user, transaction) {
+async function _generateProvisioningKey(fogData, user, isCli, transaction) {
   await Validator.validate(fogData, Validator.schemas.iofogGenerateProvision)
 
-  const queryFogData = {
-    uuid: fogData.uuid,
-    userId: user.id
-  }
+  const queryFogData = isCli
+    ? {uuid: fogData.uuid}
+    : {uuid: fogData.uuid, userId: user.id}
 
   const newProvision = {
     iofogUuid: fogData.uuid,
@@ -170,16 +179,21 @@ async function _generateProvisioningKey(fogData, user, transaction) {
   return res
 }
 
-async function _setFogVersionCommand(fogVersionData, user, transaction) {
+async function _setFogVersionCommand(fogVersionData, user, isCli, transaction) {
   await Validator.validate(fogVersionData, Validator.schemas.iofogSetVersionCommand)
 
-  const queryFogData = {
-    uuid: fogVersionData.uuid,
-    userId: user.id
-  }
+  const queryFogData = isCli
+    ? {uuid: fogVersionData.uuid}
+    : {uuid: fogVersionData.uuid, userId: user.id}
+
   const newVersionCommand = {
     iofogUuid: fogVersionData.uuid,
     versionCommand: fogVersionData.versionCommand
+  }
+
+  const changeTrackingUpdates = {
+    iofogUuid: fogVersionData.uuid,
+    version: true
   }
 
   const fog = await FogManager.findOne(queryFogData, transaction)
@@ -187,16 +201,18 @@ async function _setFogVersionCommand(fogVersionData, user, transaction) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FOG_NODE_ID, fogData.uuid))
   }
 
+  await _generateProvisioningKey({uuid: fogVersionData.uuid}, user, isCli, transaction)
   await FogVersionCommandManager.updateOrCreate({iofogUuid: fogVersionData.uuid}, newVersionCommand, transaction)
+  await ChangeTrackingManager.updateOrCreate({iofogUuid: fogVersionData.uuid}, changeTrackingUpdates, transaction)
 }
 
-async function _setFogRebootCommand(fogData, user, transaction) {
+async function _setFogRebootCommand(fogData, user, isCli, transaction) {
   await Validator.validate(fogData, Validator.schemas.iofogReboot)
 
-  const queryFogData = {
-    uuid: fogData.uuid,
-    userId: user.id
-  }
+  const queryFogData = isCli
+    ? {uuid: fogData.uuid}
+    : {uuid: fogData.uuid, userId: user.id}
+
   const newRebootCommand = {
     iofogUuid: fogData.uuid,
     reboot: true
@@ -219,9 +235,9 @@ function _filterFogs(fogs, filters) {
   fogs.forEach((fog) => {
     let isMatchFog = true
     filters.some((filter) => {
-      let fld = filter.key,
-        val = filter.value,
-        condition = filter.condition;
+      let fld       = filter.key,
+          val       = filter.value,
+          condition = filter.condition;
       let isMatchField = (condition === 'equals' && fog[fld] && fog[fld] === val)
         || (condition === 'has' && fog[fld] && fog[fld].includes(val));
       if (!isMatchField) {
@@ -234,6 +250,29 @@ function _filterFogs(fogs, filters) {
     }
   })
   return filtered
+}
+
+async function _updateFogsConnectionStatus(fog, transaction) {
+  const minInMs = 60000
+  const intervalInMs = fog.statusFrequency > minInMs ? fog.statusFrequency * 2 : minInMs
+  if (fog.daemonStatus !== 'UNKNOWN' && Date.now() - fog.lastStatusTime > intervalInMs) {
+    fog.daemonStatus = 'UNKNOWN'
+    fog.ipAddress = '0.0.0.0'
+    const queryFogData = {uuid: fog.uuid}
+    const toUpdate = {daemonStatus: fog.daemonStatus, ipAddress: fog.ipAddress}
+    await FogManager.update(queryFogData, toUpdate, transaction)
+  }
+}
+
+async function _processDeleteCommand(fog, transaction) {
+  if (!fog.daemonStatus || fog.daemonStatus === 'UNKNOWN') {
+    await FogManager.delete({uuid: fog.uuid}, transaction)
+  } else {
+    await ChangeTrackingManager.updateOrCreate({iofogUuid: fog.uuid}, {
+      iofogUuid: fog.uuid,
+      deleteNode: true
+    }, transaction)
+  }
 }
 
 module.exports = {
