@@ -15,6 +15,7 @@ const TransactionDecorator = require('../decorators/transaction-decorator');
 const FlowManager = require('../sequelize/managers/flow-manager');
 const AppHelper = require('../helpers/app-helper');
 const Errors = require('../helpers/errors');
+const ErrorMessages = require('../helpers/error-messages');
 
 const _createFlow = async function (flowData, user, transaction) {
   await isFlowExist(flowData.name, transaction);
@@ -37,12 +38,14 @@ const _createFlow = async function (flowData, user, transaction) {
 };
 
 const _deleteFlow = async function (flowId, user, transaction) {
-  await _getFlow(flowId, user, transaction);
 
-  await FlowManager.delete({
+  const affectedRows = await FlowManager.delete({
     id: flowId,
     userId: user.id
-  }, transaction)
+  }, transaction);
+  if (affectedRows === 0) {
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_ID, flowId));
+  }
 };
 
 const _updateFlow = async function (flowData, flowId, user, transaction) {
@@ -60,12 +63,14 @@ const _updateFlow = async function (flowData, flowId, user, transaction) {
 
   const updateFlowData = AppHelper.deleteUndefinedFields(flow);
 
-  await _getFlow(flowId, user, transaction);
-
-  return await FlowManager.update({
+  const affectedRows = await FlowManager.update({
     id: flowId,
     userId: user.id
-  }, updateFlowData, transaction)
+  }, updateFlowData, transaction);
+
+  if (affectedRows === 0) {
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_ID, flowId));
+  }
 };
 
 const _getFlow = async function (flowId, user, transaction) {
@@ -75,7 +80,7 @@ const _getFlow = async function (flowId, user, transaction) {
   }, transaction);
 
   if (!flow) {
-    throw new Errors.NotFoundError("Invalid Flow Id")
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_ID, flowId))
   }
 
   return flow
@@ -83,7 +88,7 @@ const _getFlow = async function (flowId, user, transaction) {
 
 const _getUserFlows = async function (user, transaction) {
   const flow = {
-    user_id: user.id
+    userId: user.id
   };
 
   return await FlowManager.findAll(flow, transaction)
@@ -95,7 +100,7 @@ const isFlowExist = async function (flowName, transaction) {
   }, transaction);
 
   if (flow) {
-    throw new Errors.ValidationError("Bad Request: Flow with the same name already exists")
+    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.DUPLICATE_NAME, flowName));
   }
 };
 
