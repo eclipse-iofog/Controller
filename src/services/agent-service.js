@@ -21,15 +21,10 @@ const ChangeTrackingManager = require('../sequelize/managers/change-tracking-man
 const FogVersionCommandManager = require('../sequelize/managers/iofog-version-command-manager');
 const StraceManager = require('../sequelize/managers/strace-manager');
 const RegistryManager = require('../sequelize/managers/registry-manager');
-
 const Validator = require('../schemas');
-
 const Errors = require('../helpers/errors');
-
 const AppHelper = require('../helpers/app-helper');
-
 const ErrorMessages = require('../helpers/error-messages');
-
 
 const agentProvision = async function (provisionData, transaction) {
 
@@ -134,6 +129,25 @@ const getAgentConfigChanges = async function (fog, transaction) {
   if (!changeTracking) {
     throw new Errors.NotFoundError(ErrorMessages.INVALID_NODE_ID)
   }
+
+  const cleanTracking = {
+    config: false,
+    version: false,
+    reboot: false,
+    deleteNode: false,
+    microservicesList: false,
+    microservicesConfig: false,
+    routing: false,
+    registries: false,
+    tunnel: false,
+    diagnostics: false,
+    isImageSnapshot: false
+  };
+
+  await ChangeTrackingManager.update({
+    iofogUuid: fog.uuid
+  }, cleanTracking, transaction);
+
 
   return {
     config: changeTracking.config,

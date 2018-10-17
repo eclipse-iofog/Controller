@@ -34,18 +34,13 @@ const updateAgentConfig = {
     "logLimit": {"type": "integer", "minimum": 0},
     "logDirectory": {"type": "string"},
     "logFileCount": {"type": "integer", "minimum": 0},
-    "postStatusFreq": {"type": "integer", "minimum": 0},
-    "getChangesFreq": {"type": "integer", "minimum": 0},
-    "scanDevicesFreq": {"type": "integer", "minimum": 0},
+    "statusFrequency": {"type": "integer", "minimum": 0},
+    "changesFrequency": {"type": "integer", "minimum": 0},
+    "deviceScanFrequency": {"type": "integer", "minimum": 0},
     "watchdogEnabled": {"type": "boolean"},
-    "gpsMode": {"type": "string"},
-    "gpsCoordinates": {
-      "type": "object",
-      "properties": {
-        "latitude": {"type": "number", "minimum": -90, "maximum": 90},
-        "longitude": {"type": "number", "minimum": -180, "maximum": 180}
-      }
-    }
+    "latitude": {"type": "number", "minimum": -90, "maximum": 90},
+    "longitude": {"type": "number", "minimum": -180, "maximum": 180},
+    "gpsMode": {"type": "string"}
   }
 };
 

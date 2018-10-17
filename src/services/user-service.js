@@ -197,6 +197,8 @@ const suspendUser = async function (user, isCLI, transaction) {
     emailActivated: 0
   };
 
+  await AccessTokenService.removeAccessTokenByUserId(user.id, transaction);
+
   return await _updateUser(user.id, updatedObj, transaction);
 };
 
