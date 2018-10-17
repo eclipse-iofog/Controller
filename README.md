@@ -157,6 +157,8 @@ $ fog-controller proxy <command> <options>
   list               -- List all ioFog nodes. <br>
   info               -- Get ioFog node settings. <br>
   provisioning-key   -- Get provisioning key for an ioFog node. <br>
+  reboot             -- Reboot ioFog node. <br>             
+  version            -- Change agent version of ioFog node. <br>
   tunnel             -- Tunnel operations for an ioFog node. <br>
   
 *add*
@@ -174,18 +176,16 @@ $ fog-controller proxy <command> <options>
   -c, --cpu-limit number          (ioFog node CPU usage limit (%)) <br>
   -G, --log-limit number          (ioFog node log size limit (MB)) <br>
   -Y, --log-directory string      (ioFog node log files directory) <br>
-  -C, --log-count number          (ioFog node log files count) <br>
+  -C, --log-file-count number     (ioFog node log files count) <br>
   -s, --status-frequency number   (ioFog node status check frequency (seconds)) <br>
   -F, --change-frequency number   (ioFog node configuration change check frequency (seconds)) <br>
   -Q, --device-frequency number   (ioFog node device scan frequency (seconds)) <br>
-  -B, --blutooth-enable           (Enable bluetoth on ioFog node) <br>
-  -b, --blutooth-disable          (Disable bluetoth on ioFog node) <br>
+  -B, --bluetooth-enable          (Enable bluetooth on ioFog node) <br>
+  -b, --bluetooth-disable         (Disable bluetooth on ioFog node) <br>
   -W, --watchdog-enable           (Enable watchdog on ioFog node) <br>
   -w, --watchdog-disable          (Disable watchdog on ioFog node) <br>
   -a, --abs-hw-enable             (Enable hardware abstraction on ioFog node) <br>
   -A, --abs-hw-disable            (Disable hardware abstraction on ioFog node) <br>
-  -p, --gps-enable                (Enable GPS on ioFog node) <br> 
-  -P, --gps-disable               (Disable GPS on ioFog node) <br>
   -o, --reboot                    (Reboot ioFog node) <br>
   -y, --fog-type number           (ioFog node architecture type) <br>
   -u, --user-id number            (User's id) <br>
@@ -206,18 +206,16 @@ $ fog-controller proxy <command> <options>
   -c, --cpu-limit number          (ioFog node CPU usage limit (%)) <br>
   -G, --log-limit number          (ioFog node log size limit (MB)) <br>
   -Y, --log-directory string      (ioFog node log files directory)) <br>
-  -C, --log-count number          (ioFog node log files count) <br>
+  -C, --log-file-count number     (ioFog node log files count) <br>
   -s, --status-frequency number   (ioFog node status check frequency (seconds)) <br>
   -F, --change-frequency number   (ioFog node configuration change check frequency (seconds)) <br>
   -Q, --device-frequency number   (ioFog node device scan frequency (seconds)) <br>
-  -B, --blutooth-enable           (Enable bluetoth on ioFog node) <br>
-  -b, --blutooth-disable          (Disable bluetoth on ioFog node) <br>
+  -B, --bluetooth-enable          (Enable bluetooth on ioFog node) <br>
+  -b, --bluetooth-disable         (Disable bluetooth on ioFog node) <br>
   -W, --watchdog-enable           (Enable watchdog on ioFog node) <br>
   -w, --watchdog-disable          (Disable watchdog on ioFog node) <br>
   -a, --abs-hw-enable             (Enable hardware abstraction on ioFog node) <br>
   -A, --abs-hw-disable            (Disable hardware abstraction on ioFog node) <br>
-  -p, --gps-enable                (Enable GPS on ioFog node) <br>
-  -P, --gps-disable               (Disable GPS on ioFog node) <br>
   -o, --reboot                    (Reboot ioFog node) <br>
   -y, --fog-type number           (ioFog node architecture type) <br>
 
@@ -232,6 +230,15 @@ $ fog-controller proxy <command> <options>
 *provisioning-key*
 
   -i, --node-id string   (ioFog node ID)
+
+*reboot*
+
+  -i, --node-id string   (ioFog node ID) 
+
+*version*
+
+  -i, --node-id         string           (ioFog node ID)         
+  -v, --version-command string           (ioFog version command) 
 
 *tunnel*
 
@@ -260,7 +267,6 @@ $ fog-controller proxy <command> <options>
   bluetoothEnabled: boolean <br>
   watchdogEnabled: boolean <br>
   abstractedHardwareEnabled: boolean <br>
-  autoGPSEnabled: boolean <br>
   reboot: boolean <br>
   fogType: number <br>
   
