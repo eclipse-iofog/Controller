@@ -18,6 +18,7 @@ const FogProvisionKeyManager = require('../sequelize/managers/iofog-provision-ke
 const FogVersionCommandManager = require('../sequelize/managers/iofog-version-command-manager')
 const ChangeTrackingManager = require('../sequelize/managers/change-tracking-manager')
 const Errors = require('../helpers/errors')
+const ErrorMessages = require('../helpers/error-messages')
 const Validator = require('../schemas')
 
 async function _createFog(fogData, user, transaction) {
@@ -94,7 +95,7 @@ async function _updateFog(fogData, user, transaction) {
 
   const fog = await FogManager.findOne(queryFogData, transaction)
   if (!fog) {
-    throw new Errors.NotFoundError('Invalid Fog Node Id')
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FOG_NODE_ID, fogData.uuid))
   }
   await FogManager.update(queryFogData, updateFogData, transaction)
 }
@@ -109,7 +110,7 @@ async function _deleteFog(fogData, user, transaction) {
 
   const fog = await FogManager.findOne(queryFogData, transaction)
   if (!fog) {
-    throw new Errors.NotFoundError('Invalid Fog Node Id')
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FOG_NODE_ID, fogData.uuid))
   }
   await FogManager.delete(queryFogData, transaction)
 }
@@ -124,7 +125,7 @@ async function _getFog(fogData, user, transaction) {
 
   const fog = await FogManager.findOne(queryFogData, transaction)
   if (!fog) {
-    throw new Errors.NotFoundError('Invalid Fog Node Id')
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FOG_NODE_ID, fogData.uuid))
   }
   return fog
 }
@@ -157,7 +158,7 @@ async function _generateProvisioningKey(fogData, user, transaction) {
 
   const fog = await FogManager.findOne(queryFogData, transaction)
   if (!fog) {
-    throw new Errors.NotFoundError('Invalid Fog Node Id')
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FOG_NODE_ID, fogData.uuid))
   }
   const provisioningKeyData = await FogProvisionKeyManager.updateOrCreate({iofogUuid: fogData.uuid}, newProvision, transaction)
 
@@ -183,7 +184,7 @@ async function _setFogVersionCommand(fogVersionData, user, transaction) {
 
   const fog = await FogManager.findOne(queryFogData, transaction)
   if (!fog) {
-    throw new Errors.NotFoundError('Invalid Fog Node Id')
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FOG_NODE_ID, fogData.uuid))
   }
 
   await FogVersionCommandManager.updateOrCreate({iofogUuid: fogVersionData.uuid}, newVersionCommand, transaction)
@@ -203,7 +204,7 @@ async function _setFogRebootCommand(fogData, user, transaction) {
 
   const fog = await FogManager.findOne(queryFogData, transaction)
   if (!fog) {
-    throw new Errors.NotFoundError('Invalid Fog Node Id')
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FOG_NODE_ID, fogData.uuid))
   }
 
   await ChangeTrackingManager.updateOrCreate({iofogUuid: fogData.uuid}, newRebootCommand, transaction)

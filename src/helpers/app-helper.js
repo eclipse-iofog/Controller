@@ -17,6 +17,7 @@ const Errors = require('./errors');
 const fs = require('fs');
 const path = require('path');
 const portscanner = require('portscanner');
+const format = require('string-format');
 
 const ALGORITHM = 'aes-256-ctr';
 
@@ -100,14 +101,6 @@ function checkTransaction(transaction) {
   }
 }
 
-function validateParameterId(id, errMsg) {
-  const parsedId = parseInt(id);
-  if (isNaN(parsedId)) {
-    throw new Errors.NotFoundError(errMsg);
-  }
-  return parsedId;
-}
-
 function deleteUndefinedFields(obj) {
   if (!obj) {
     return
@@ -131,6 +124,11 @@ function validateBooleanCliOptions(option1, option2) {
   return option1 ? option1 : (option2 ? option2 : undefined)
 }
 
+function formatMessage() {
+  const argsArray = Array.prototype.slice.call(arguments);
+  return format.apply(null, argsArray);
+}
+
 module.exports = {
   encryptText,
   decryptText,
@@ -143,6 +141,6 @@ module.exports = {
   generateAccessToken,
   checkTransaction,
   deleteUndefinedFields,
-  validateParameterId,
-  validateBooleanCliOptions
+  validateBooleanCliOptions,
+  formatMessage
 };
