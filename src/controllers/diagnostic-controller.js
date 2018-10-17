@@ -15,14 +15,13 @@ const logger = require('../logger');
 const DiagnosticService = require('../services/diagnostic-service');
 const AuthDecorator = require('./../decorators/authorization-decorator');
 
-const enableMicroserviceStrace = async function (req, user) {
-  logger.info("Parameters:" + JSON.stringify(req.body));
-  return await DiagnosticService.enableMicroserviceStrace(req.parms.id, user);
-};
-
-const disableMicroserviceStrace = async function (req, user) {
+const changeMicroserviceStraceState = async function (req, user) {
   logger.info("Parameters:" + JSON.stringify(req.query));
-  return await DiagnosticService.disableMicroserviceStrace(req.parms.id, user);
+  const strace = {
+    id: req.params.id,
+    enable: req.query.enable
+  };
+  return await DiagnosticService.changeMicroserviceStraceState(strace, user);
 };
 
 const getMicroserviceStraceData = async function (req, user) {
@@ -38,8 +37,7 @@ const postMicroserviceStraceDataToFTP = async function (req, user) {
 };
 
 module.exports = {
-  enableMicroserviceStrace: AuthDecorator.checkAuthToken(enableMicroserviceStrace),
-  disableMicroserviceStrace: AuthDecorator.checkAuthToken(disableMicroserviceStrace),
+  changeMicroserviceStraceState: AuthDecorator.checkAuthToken(changeMicroserviceStraceState),
   getMicroserviceStraceData: AuthDecorator.checkAuthToken(getMicroserviceStraceData),
   postMicroserviceStraceDataToFTP: AuthDecorator.checkAuthToken(postMicroserviceStraceDataToFTP),
 };

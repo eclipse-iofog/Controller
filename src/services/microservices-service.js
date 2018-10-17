@@ -35,7 +35,7 @@ const _getMicroserviceByFlow = async function (flowId, user, transaction) {
   return await MicroserviceManager.findAllWithDependencies(microservice, transaction)
 };
 
-const _getMicroservice = async function (microserviceUuid, user, transaction) {
+const _getMicroservice = async function (microserviceUuid, user, isCLI, transaction) {
   const microservice = await MicroserviceManager.findOneWithDependencies({
     uuid: microserviceUuid
   }, transaction);
