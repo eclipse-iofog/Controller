@@ -17,7 +17,10 @@ const signUp = {
   "properties": {
     "firstName": {"type": "string", "minLength": 3},
     "lastName": {"type": "string", "minLength": 3},
-    "email": {"type": "string", "pattern": "^(([^<>()\\[\\]\\\\.,;:\\s@\"]+(\\.[^<>()\\[\\]\\\\.,;:\\s@\"]+)*)|(\".+\"))@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}])|(([a-zA-Z\\-0-9]+\\.)+[a-zA-Z]{2,}))$"},
+    "email": {
+      "type": "string",
+      "pattern": "^(([^<>()\\[\\]\\\\.,;:\\s@\"]+(\\.[^<>()\\[\\]\\\\.,;:\\s@\"]+)*)|(\".+\"))@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}])|(([a-zA-Z\\-0-9]+\\.)+[a-zA-Z]{2,}))$"
+    },
     "password": {"type": "string", "minLength": 8}
   },
   "required": ["email", "password", "firstName", "lastName"]
@@ -27,7 +30,10 @@ const login = {
   "id": "/login",
   "type": "object",
   "properties": {
-    "email": {"type": "string", "pattern": "^(([^<>()\\[\\]\\\\.,;:\\s@\"]+(\\.[^<>()\\[\\]\\\\.,;:\\s@\"]+)*)|(\".+\"))@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}])|(([a-zA-Z\\-0-9]+\\.)+[a-zA-Z]{2,}))$"},
+    "email": {
+      "type": "string",
+      "pattern": "^(([^<>()\\[\\]\\\\.,;:\\s@\"]+(\\.[^<>()\\[\\]\\\\.,;:\\s@\"]+)*)|(\".+\"))@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}])|(([a-zA-Z\\-0-9]+\\.)+[a-zA-Z]{2,}))$"
+    },
     "password": {"type": "string"}
   },
   "required": ["email", "password"]
@@ -37,7 +43,10 @@ const resendActivation = {
   "id": "/resendActivation",
   "type": "object",
   "properties": {
-    "email": {"type": "string", "pattern": "^(([^<>()\\[\\]\\\\.,;:\\s@\"]+(\\.[^<>()\\[\\]\\\\.,;:\\s@\"]+)*)|(\".+\"))@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}])|(([a-zA-Z\\-0-9]+\\.)+[a-zA-Z]{2,}))$"}
+    "email": {
+      "type": "string",
+      "pattern": "^(([^<>()\\[\\]\\\\.,;:\\s@\"]+(\\.[^<>()\\[\\]\\\\.,;:\\s@\"]+)*)|(\".+\"))@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}])|(([a-zA-Z\\-0-9]+\\.)+[a-zA-Z]{2,}))$"
+    }
   },
   "required": ["email"]
 };
@@ -51,6 +60,15 @@ const activateUser = {
   "required": ["activationCode"]
 };
 
+const activateUserCLI = {
+  "id": "/activateUserCLI",
+  "type": "object",
+  "properties": {
+    "email": {"type": "string"}
+  },
+  "required": ["email"]
+};
+
 const updateUserProfile = {
   "id": "/updateUserProfile",
   "type": "object",
@@ -58,7 +76,18 @@ const updateUserProfile = {
     "firstName": {"type": "string", "minLength": 3},
     "lastName": {"type": "string", "minLength": 3}
   },
-  "required": ["email", "password", "firstName", "lastName"]
+  "required": []
+};
+
+const updateUserProfileCLI = {
+  "id": "/updateUserProfileCLI",
+  "type": "object",
+  "properties": {
+    "firstName": {"type": "string", "minLength": 3},
+    "lastName": {"type": "string", "minLength": 3},
+    "password": {"type": "string", "minLength": 8}
+  },
+  "required": []
 };
 
 const updatePassword = {
@@ -75,14 +104,17 @@ const resetUserPassword = {
   "id": "/resetUserPassword",
   "type": "object",
   "properties": {
-    "email": {"type": "string", "pattern": "^(([^<>()\\[\\]\\\\.,;:\\s@\"]+(\\.[^<>()\\[\\]\\\\.,;:\\s@\"]+)*)|(\".+\"))@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}])|(([a-zA-Z\\-0-9]+\\.)+[a-zA-Z]{2,}))$"}
+    "email": {
+      "type": "string",
+      "pattern": "^(([^<>()\\[\\]\\\\.,;:\\s@\"]+(\\.[^<>()\\[\\]\\\\.,;:\\s@\"]+)*)|(\".+\"))@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}])|(([a-zA-Z\\-0-9]+\\.)+[a-zA-Z]{2,}))$"
+    }
   },
   "required": ["email"]
 };
 
 
 module.exports = {
-  mainSchemas: [signUp, login, resendActivation, activateUser, updateUserProfile, updatePassword,
-  resetUserPassword],
+  mainSchemas: [signUp, login, resendActivation, activateUser, activateUserCLI, updateUserProfile,
+    updateUserProfileCLI, updatePassword, resetUserPassword],
   innerSchemas: []
 };

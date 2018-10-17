@@ -24,5 +24,11 @@ module.exports = {
   ACCOUNT_NOT_FOUND: 'Account not found',
   USER_NOT_UPDATED: 'User not updated',
   EMAIL_NOT_ACTIVATED: 'Email is not activated. Please activate your account first.',
-  REGISTRATION_FAILED: 'Registration failed: There is already an account associated with your email address. Please try logging in instead.'
+  REGISTRATION_FAILED: 'Registration failed: There is already an account associated with your email address. Please try logging in instead.',
+  INVALID_NODE_ID: 'Invalid Node Id',
+  INVALID_PROVISIONING_KEY: 'Invalid Provisioning Key',
+  EMAIL_SENDER_NOT_CONFIGURED: 'Email sender not configured',
+  INVALID_PORT_FORMAT: 'Invalid port format',
+  INVALID_FILE_PATH: 'Invalid file path',
+  PORT_NOT_AVAILABLE: 'Port {} not available'
 };

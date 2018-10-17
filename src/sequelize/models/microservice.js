@@ -95,6 +95,13 @@ module.exports = (sequelize, DataTypes) => {
       as: 'userUpdatedBy',
       onDelete: 'cascade'
     });
+
+    Microservice.hasMany(models.StraceDiagnostics, {
+      foreignKey: 'microservice_uuid',
+      as: 'strace'
+    });
+
+
   };
   return Microservice;
 };

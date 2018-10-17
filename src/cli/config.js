@@ -15,6 +15,7 @@ const BaseCLIHandler = require('./base-cli-handler');
 const config = require('../config');
 const constants = require('../helpers/constants');
 const AppHelper = require('../helpers/app-helper');
+const ErrorMessages = require('../helpers/error-messages');
 
 class Config extends BaseCLIHandler {
   constructor() {
@@ -41,34 +42,71 @@ class Config extends BaseCLIHandler {
   }
 
   run(args) {
-    const configCommand = this.parseCommandLineArgs(this.commandDefinitions, { argv: args.argv })
+    const configCommand = this.parseCommandLineArgs(this.commandDefinitions, {argv: args.argv})
 
     if (configCommand.command.command === constants.CMD_HELP) {
       return this.help([], true, false)
     }
 
     if (configCommand.Options.port != null) {
-      config.set('Server:Port', configCommand.Options.port)
+      const port = configCommand.Options.port;
+      if (!AppHelper.isValidPort(port)) {
+        logger.error(ErrorMessages.INVALID_PORT_FORMAT);
+        return;
+      }
+      AppHelper.checkPortAvailability(value).then(availability => {
+        if (availability === 'closed') {
+          config.set('Server:Port', port);
+        }
+      else {
+          logger.error(AppHelper.formatMessage(ErrorMessages.PORT_NOT_AVAILABLE, value));
+        }
+      });
     }
 
     if (configCommand.Options.sslCert != null) {
-      config.set('Server:SslCert', configCommand.Options.sslCert)
+      const sslCert = configCommand.Options.sslCert;
+      if (!AppHelper.isFileExists(sslCert)) {
+        logger.error(ErrorMessages.INVALID_FILE_PATH);
+        return;
+      }
+      config.set('Server:SslCert', sslCert)
     }
 
     if (configCommand.Options.sslKey != null) {
-      config.set('Server:SslKey', configCommand.Options.sslKey)
+      const sslKey = configCommand.Options.sslKey;
+      if (!AppHelper.isFileExists(sslKey)) {
+        logger.error(ErrorMessages.INVALID_FILE_PATH);
+        return;
+      }
+      config.set('Server:SslKey', sslKey)
     }
 
     if (configCommand.Options.intermediateCert != null) {
-      config.set('Server:IntermediateCert', configCommand.Options.intermediateCert)
+      const intermediateCert = configCommand.Options.intermediateCert;
+      if (!AppHelper.isFileExists(intermediateCert)) {
+        logger.error(ErrorMessages.INVALID_FILE_PATH);
+        return;
+      }
+      config.set('Server:IntermediateCert', intermediateCert)
     }
 
-    if (configCommand.Options.emailActivationOn === true && !config.get('Email:ActivationEnabled')) {
-      config.set('Email:ActivationEnabled', true)
+    if (configCommand.Options.emailActivationOn != null) {
+      const emailActivationOn = configCommand.Options.emailActivationOn;
+      if (!AppHelper.isValidEmailActivation(emailActivationOn)) {
+        logger.error(ErrorMessages.INVALID_FILE_PATH);
+        return;
+      }
+      config.set('Server:ActivationEnabled', true)
     }
 
-    if (configCommand.Options.emailActivationOff === true && config.get('Email:ActivationEnabled')) {
-      config.set('Email:ActivationEnabled', false)
+    if (configCommand.Options.emailActivationOff != null) {
+      const emailActivationOff = configCommand.Options.emailActivationOff;
+      if (!AppHelper.isValidEmailActivation(emailActivationOff)) {
+        logger.error(ErrorMessages.INVALID_FILE_PATH);
+        return;
+      }
+      config.set('Server:ActivationEnabled', false)
     }
 
     if (configCommand.Options.emailAddress != null && config.get('Email:Address') !== configCommand.Options.emailAddress) {
