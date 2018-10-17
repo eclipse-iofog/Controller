@@ -129,7 +129,7 @@ const listCatalogItem = async function (id, user, isCLI, transaction) {
     ? {}
     : {exclude: ["userId"]};
 
-  const item = CatalogItemManager.findOneWithDependencies(where, attributes, transaction)
+  const item = await CatalogItemManager.findOneWithDependencies(where, attributes, transaction);
   if (!item) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_CATALOG_ITEM_ID, id));
   }
