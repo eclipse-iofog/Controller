@@ -489,7 +489,7 @@ paths:
           description: Invalid Node Id
         '500':
           description: Internal Server Error
-  '/iofog/agent/microservices/{microserviceId}':
+  '/iofog/agent/microservices/{microserviceUuid}':
     get:
       tags:
       - Agent
@@ -498,8 +498,8 @@ paths:
       parameters:
       - in: path
         required: true
-        name: microserviceId
-        description: Microservice id
+        name: microserviceUuid
+        description: Microservice Uuid
         type: string
       - in: header
         name: Authorization
@@ -994,7 +994,7 @@ paths:
         name: flowId
         description: Flow Id
         required: false
-        type: string
+        type: integer
       responses:
         '200':
           description: Success
@@ -1031,7 +1031,7 @@ paths:
           schema:
             type: object
             properties:
-              id:
+              uuid:
                 type: string
           headers:
             X-Timestamp:
@@ -1043,7 +1043,7 @@ paths:
           description: Not Authorized
         '500':
           description: Internal Server Error
-  '/iofog/microservices/{id}':
+  '/iofog/microservices/{uuid}':
     get:
       tags:
       - Microservices
@@ -1056,8 +1056,8 @@ paths:
         required: true
         type: string
       - in: path
-        name: id
-        description: Microservice Id
+        name: uuid
+        description: Microservice Uuid
         required: true
         type: string
       responses:
@@ -1087,8 +1087,8 @@ paths:
         required: true
         type: string
       - in: path
-        name: id
-        description: Microservice Id
+        name: uuid
+        description: Microservice Uuid
         required: true
         type: string
       - in: body
@@ -1124,8 +1124,8 @@ paths:
         required: true
         type: string
       - in: path
-        name: id
-        description: Microservice Id
+        name: uuid
+        description: Microservice Uuid
         required: true
         type: string
       responses:
@@ -1141,7 +1141,7 @@ paths:
           description: Not Found
         '500':
           description: Internal Server Error
-  '/iofog/microservices/{id}/routes/{receiverId}':
+  '/iofog/microservices/{uuid}/routes/{receiverId}':
     post:
       tags:
       - Microservices
@@ -1154,8 +1154,8 @@ paths:
         required: true
         type: string
       - in: path
-        name: id
-        description: Microservice Id
+        name: uuid
+        description: Microservice Uuid
         required: true
         type: string
       - in: path
@@ -1190,8 +1190,8 @@ paths:
         required: true
         type: string
       - in: path
-        name: id
-        description: Microservice Id
+        name: uuid
+        description: Microservice Uuid
         required: true
         type: string
       - in: path
@@ -2351,8 +2351,6 @@ definitions:
         type: number
       external:
         type: number
-      tunnel:
-        type: boolean
   PortMappingAgentRequest:
     type: object
     properties:
@@ -2530,7 +2528,7 @@ definitions:
   MicroserviceInfoResponse:
     type: object
     properties:
-      id:
+      uuid:
         type: string
       name:
         type: string
@@ -2544,12 +2542,26 @@ definitions:
         type: string
       ioFogNodeId:
         type: string
+      isNetwork:
+        type: boolean
+      needUpdate:
+        type: boolean
+      rebuild:
+        type: boolean
       rootHostAccess:
+        type: boolean
+      deleteWithCleanUp:
         type: boolean
       strace:
         type: boolean
+      imageSnapshot:
+        type: string
       logLimit:
         type: number
+      volumeMappings:
+         type: array
+         items:
+           $ref: '#/definitions/VolumeMappingAgentRequest'
       ports:
         $ref: '#/definitions/PortMappingsResponse'
       routes:
@@ -2563,18 +2575,28 @@ definitions:
         type: string
       catalogItemId:
         type: string
+      isNetwork:
+        type: boolean
+      needUpdate:
+        type: boolean
+      rebuild:
+        type: boolean
       flowId:
         type: string
       ioFogNodeId:
         type: string
-      volumeMappings:
-        type: string
       rootHostAccess:
         type: boolean
-      strace:
+      deleteWithCleanUp:
         type: boolean
       logLimit:
         type: number
+      imageSnapshot:
+        type: string
+      volumeMappings:
+         type: array
+         items:
+           $ref: '#/definitions/VolumeMappingAgentRequest'
       ports:
         $ref: '#/definitions/PortMappingsRequest'
       routes:
@@ -2588,18 +2610,26 @@ definitions:
         type: string
       config:
         type: string
-      ioFogNodeId:
-        type: string
-      volumeMappings:
-        type: string
-      rootHostAccess:
+      isNetwork:
         type: boolean
-      strace:
+      needUpdate:
         type: boolean
       rebuild:
         type: boolean
+      ioFogNodeId:
+        type: string
+      rootHostAccess:
+        type: boolean
+      deleteWithCleanUp:
+        type: boolean
       logLimit:
         type: number
+      imageSnapshot:
+        type: string
+      volumeMappings:
+         type: array
+         items:
+           $ref: '#/definitions/VolumeMappingAgentRequest'
       ports:
         $ref: '#/definitions/PortMappingsRequest'
       routes:

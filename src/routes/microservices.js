@@ -18,7 +18,7 @@ const Errors = require('../helpers/errors');
 module.exports = [
   {
     method: 'get',
-    path: '/api/v3/iofog/microservices',
+    path: '/api/v3/iofog/microservices?:flowId',
     middleware: async (req, res) => {
 
       const successCode = constants.HTTP_CODE_SUCCESS;
@@ -64,7 +64,7 @@ module.exports = [
   },
   {
     method: 'get',
-    path: '/api/v3/iofog/microservices/:id',
+    path: '/api/v3/iofog/microservices/:uuid',
     middleware: async (req, res) => {
 
       const successCode = constants.HTTP_CODE_SUCCESS;
@@ -90,7 +90,7 @@ module.exports = [
 
   {
     method: 'patch',
-    path: '/api/v3/iofog/microservices/:id',
+    path: '/api/v3/iofog/microservices/:uuid',
     middleware: async (req, res) => {
 
       const successCode = constants.HTTP_CODE_NO_CONTENT;
@@ -119,7 +119,7 @@ module.exports = [
   },
   {
     method: 'delete',
-    path: '/api/v3/iofog/microservices/:id',
+    path: '/api/v3/iofog/microservices/:uuid',
     middleware: async (req, res) => {
 
       const successCode = constants.HTTP_CODE_SUCCESS;
@@ -144,7 +144,7 @@ module.exports = [
   },
   {
     method: 'post',
-    path: '/api/v3/iofog/microservices/:id/routes/:receiverId',
+    path: '/api/v3/iofog/microservices/:uuid/routes/:receiverId',
     middleware: (req, res) => {
       res
         .status(constants.HTTP_CODE_SUCCESS)
@@ -153,7 +153,7 @@ module.exports = [
   },
   {
     method: 'delete',
-    path: '/api/v3/iofog/microservices/:id/routes/:receiverId',
+    path: '/api/v3/iofog/microservices/:uuid/routes/:receiverId',
     middleware: (req, res) => {
       res
         .status(constants.HTTP_CODE_SUCCESS)

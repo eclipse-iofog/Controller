@@ -1,35 +1,75 @@
-const microservice = {
-    "id": "/microservice",
-    "type": "object",
-    "properties": {
-        "name": {"type": "string"},
-        "config": {"type": "string"},
-        "catalogItemId": {"type": "integer"},
-        "flowId": {"type": "integer"},
-        "ioFogNodeId": {"type": "string"},
-        "volumeMappings": {"type": "string"},
-        "rootHostAccess": {"type": "boolean"},
-        "strace": {"type": "boolean"},
-        "logLimit": {"type": "integer"},
-        "ports": {"$ref": "/ports"},
-        "routes": {
-            "type": "array",
-            "items": {"type": "string"}}
+const microserviceCreate = {
+  "id": "/microserviceCreate",
+  "type": "object",
+  "properties": {
+    "name": {"type": "string"},
+    "config": {"type": "string"},
+    "catalogItemId": {"type": "integer"},
+    "isNetwork" : {"type": "boolean"},
+    "needUpdate" : {"type": "boolean"},
+    "rebuild": {"type": "boolean"},
+    "flowId": {"type": "integer"},
+    "ioFogNodeId": {"type": "string"},
+    "rootHostAccess": {"type": "boolean"},
+    "deleteWithCleanUp": {"type": "boolean"},
+    "logSize": {"type": "integer"},
+    "imageSnapshot": {"type": "string"},
+    "volumeMappings": {
+      "type": "array",
+      "items": {"$ref": "volumeMappings"}},
+    "ports": {"$ref": "/ports"},
+    "routes": {
+       "type": "array",
+       "items": {"type": "string"}}
     },
-    "required": ["name"]
+  "required": ["name"]
+};
+
+const microserviceUpdate = {
+  "id": "/microserviceUpdate",
+  "type": "object",
+  "properties": {
+    "name": {"type": "string"},
+    "config": {"type": "string"},
+    "isNetwork" : {"type": "boolean"},
+    "needUpdate" : {"type": "boolean"},
+    "rebuild": {"type": "boolean"},
+    "ioFogNodeId": {"type": "string"},
+    "rootHostAccess": {"type": "boolean"},
+    "deleteWithCleanUp": {"type": "boolean"},
+    "logSize": {"type": "integer"},
+    "imageSnapshot": {"type": "string"},
+    "volumeMappings": {
+      "type": "array",
+      "items": {"$ref": "volumeMappings"}},
+    "ports": {"$ref": "/ports"},
+    "routes": {
+      "type": "array",
+      "items": {"type": "string"}
+    }
+  }
 };
 
 const ports = {
-    "id": "/ports",
-    "type": "object",
-    "properties": {
-        "internal": {"type": "integer"},
-        "external": {"type": "integer"},
-        "tunnel": {"type": "boolean"}
-    }
+  "id": "/ports",
+  "type": "object",
+  "properties": {
+    "internal": {"type": "integer"},
+    "external": {"type": "integer"}
+  }
+};
+
+const volumeMappings = {
+  "id": "/volumeMappings",
+  "type": "object",
+  "properties": {
+    "hostDestination": {"type": "string"},
+    "containerDestination": {"type": "string"},
+    "accessMode": {"type": "string"}
+  }
 };
 
 module.exports = {
-    mainSchemas: [microservice],
-    innerSchemas: [ports]
+    mainSchemas: [microserviceCreate, microserviceUpdate],
+    innerSchemas: [ports, volumeMappings]
 };
