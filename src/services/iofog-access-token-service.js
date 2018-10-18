@@ -23,7 +23,7 @@ const generateAccessToken = async function (transaction) {
       token: newAccessToken
     }, transaction);
     if (!exists) {
-      const accessTokenExpiryTime = Config.get('Settings:FogTokenExpirationIntervalSeconds') * 1000;
+      const accessTokenExpiryTime = Date.now() + Config.get('Settings:FogTokenExpirationIntervalSeconds') * 1000;
       return {
         token: newAccessToken,
         expirationTime: accessTokenExpiryTime
