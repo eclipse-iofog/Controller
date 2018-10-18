@@ -21,7 +21,7 @@ class Connector extends BaseCLIHandler {
   constructor() {
     super()
 
-    this.name = constants.CMD_COMSAT
+    this.name = constants.CMD_CONNECTOR
     this.commandDefinitions = [
       { name: 'command', defaultOption: true, group: [constants.CMD] },
       { name: 'name', alias: 'n', type: String, description: 'Connector name', group: [constants.CMD_ADD, constants.CMD_UPDATE] },
