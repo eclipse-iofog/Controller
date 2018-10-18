@@ -14,7 +14,7 @@
 const BaseCLIHandler = require('./base-cli-handler')
 const Start = require('./start')
 const User = require('./user')
-const Comsat = require('./comsat')
+const Connector = require('./connector')
 const Config = require('./config')
 const Proxy = require('./proxy')
 const IOFog = require('./iofog')
@@ -40,7 +40,7 @@ class Cli extends BaseCLIHandler {
       [constants.CMD_VERSION]: 'Display fog-controller service version.',
       [constants.CMD_USER]: 'User operations.',
       [constants.CMD_CONFIG]: 'Set/Display fog-controller service config.',
-      [constants.CMD_COMSAT]: 'ComSat operations.',
+      [constants.CMD_COMSAT]: 'Connector operations.',
       [constants.CMD_PROXY]: 'Proxy operations.',
       [constants.CMD_IOFOG]: 'ioFog nodes operations.',
       [constants.CMD_CATALOG]: 'Microservices catalog operations.',
@@ -66,7 +66,7 @@ class Cli extends BaseCLIHandler {
       case constants.CMD_CONFIG:
         return Config.run({ argv })
       case constants.CMD_COMSAT:
-        return Comsat.run({ argv })
+        return Connector.run({ argv })
       case constants.CMD_PROXY:
         return Proxy.run({ argv })
       case constants.CMD_IOFOG:
