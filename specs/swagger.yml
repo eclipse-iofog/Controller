@@ -331,7 +331,7 @@ paths:
         required: true
         type: string
       responses:
-        '201':
+        '200':
           description: Success
           schema:
             $ref: '#/definitions/HalInfo'
@@ -363,7 +363,7 @@ paths:
         required: true
         type: string
       responses:
-        '201':
+        '200':
           description: Success
           schema:
             $ref: '#/definitions/HalInfo'
