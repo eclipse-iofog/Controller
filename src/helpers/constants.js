@@ -44,7 +44,7 @@ module.exports = {
   CMD_VERSION: 'version',
   CMD_USER: 'user',
   CMD_CONFIG: 'config',
-  CMD_COMSAT: 'connector',
+  CMD_CONNECTOR: 'connector',
   CMD_PROXY: 'proxy',
   CMD_IOFOG: 'iofog',
   CMD_GENERATE_TOKEN: 'generate-token',
