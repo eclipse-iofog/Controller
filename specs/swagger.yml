@@ -2520,8 +2520,6 @@ definitions:
         type: number
       description:
         type: string
-      isSelected:
-        type: boolean
       isActivated:
         type: boolean
       createdAt:
@@ -2537,8 +2535,6 @@ definitions:
         type: string
       description:
         type: string
-      isSelected:
-        type: boolean
       isActivated:
         type: boolean
   GetMicroservicesResponse:
