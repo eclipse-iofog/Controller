@@ -160,7 +160,6 @@ async function _createFog(obj, user) {
     ? JSON.parse(fs.readFileSync(obj.file, 'utf8'))
     : _createFogObject(obj);
 
-  fog.uuid = obj.nodeId
   logger.info(JSON.stringify(fog));
 
   const result = await FogService.createFogWithTransaction(fog, user, true);
@@ -173,6 +172,7 @@ async function _updateFog(obj, user) {
     ? JSON.parse(fs.readFileSync(obj.file, 'utf8'))
     : _createFogObject(obj);
 
+  fog.uuid = obj.nodeId
   logger.info(JSON.stringify(fog));
 
   await FogService.updateFogWithTransaction(fog, user, true);
