@@ -1,6 +1,6 @@
 'use strict';
 module.exports = (sequelize, DataTypes) => {
-  const Satellite = sequelize.define('Satellite', {
+  const Comsat = sequelize.define('Comsat', {
     id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
@@ -16,15 +16,15 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.TEXT,
       field: 'domain'
     },
-    publicIP: {
+    publicIp: {
       type: DataTypes.TEXT,
       field: 'public_ip'
     },
-    cert: {
+    certDir: {
       type: DataTypes.TEXT,
       field: 'cert'
     },
-    selfSignedCerts: {
+    isSelfSignedCert: {
       type: DataTypes.BOOLEAN,
       field: 'self_signed_certs'
     }
@@ -32,8 +32,8 @@ module.exports = (sequelize, DataTypes) => {
     timestamps: true,
     underscored: true
   });
-  Satellite.associate = function (models) {
+  Comsat.associate = function (models) {
 
   };
-  return Satellite;
+  return Comsat;
 };

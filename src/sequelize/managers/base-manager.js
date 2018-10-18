@@ -44,7 +44,6 @@ module.exports = class BaseManager {
 
   async create(object, transaction) {
     AppHelper.checkTransaction(transaction);
-
     return this.getEntity().create(object, {
       transaction: transaction
     });

@@ -1,7 +1,7 @@
 'use strict';
 module.exports = {
   up: (queryInterface, Sequelize) => {
-    return queryInterface.createTable('Satellites', {
+    return queryInterface.createTable('Comsats', {
       id: {
         type: Sequelize.INTEGER,
         primaryKey: true,
@@ -17,7 +17,7 @@ module.exports = {
         type: Sequelize.TEXT,
         field: 'domain'
       },
-      publicIP: {
+      publicIp: {
         type: Sequelize.TEXT,
         field: 'public_ip'
       },
@@ -42,6 +42,6 @@ module.exports = {
     });
   },
   down: (queryInterface, Sequelize) => {
-    return queryInterface.dropTable('Satellites');
+    return queryInterface.dropTable('Comsats');
   }
 };

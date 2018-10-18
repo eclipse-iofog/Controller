@@ -1,7 +1,7 @@
 'use strict';
 module.exports = {
   up: (queryInterface, Sequelize) => {
-    return queryInterface.createTable('SatellitePorts', {
+    return queryInterface.createTable('ComsatPorts', {
       id: {
         type: Sequelize.INTEGER,
         primaryKey: true,
@@ -61,15 +61,15 @@ module.exports = {
         references: { model: 'Users', key: 'id' },
         onDelete: 'cascade'
       },
-      satelliteId: {
+      comsatId: {
         type: Sequelize.INTEGER,
-        field: 'satellite_id',
-        references: { model: 'Satellites', key: 'id' },
+        field: 'comsat_id',
+        references: { model: 'Comsats', key: 'id' },
         onDelete: 'cascade'
       }
     });
   },
   down: (queryInterface, Sequelize) => {
-    return queryInterface.dropTable('SatellitePorts');
+    return queryInterface.dropTable('ComsatPorts');
   }
 };

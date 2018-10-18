@@ -1,6 +1,6 @@
 'use strict';
 module.exports = (sequelize, DataTypes) => {
-  const SatellitePort = sequelize.define('SatellitePort', {
+  const ComsatPort = sequelize.define('ComsatPort', {
     id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
@@ -48,22 +48,22 @@ module.exports = (sequelize, DataTypes) => {
     timestamps: true,
     underscored: true
   });
-  SatellitePort.associate = function (models) {
+  ComsatPort.associate = function (models) {
 
-    SatellitePort.belongsTo(models.User, {
+    ComsatPort.belongsTo(models.User, {
       foreignKey: 'updated_by',
       as: 'updatedBy',
       onDelete: 'cascade'
     });
 
-    SatellitePort.belongsTo(models.Satellite, {
+    ComsatPort.belongsTo(models.Comsat, {
       foreignKey: {
-        name: 'satelliteId',
-        field: 'satellite_id'
+        name: 'comsatId',
+        field: 'comsat_id'
       },
-      as: 'satellite',
+      as: 'comsat',
       onDelete: 'cascade'
     });
   };
-  return SatellitePort;
+  return ComsatPort;
 };
