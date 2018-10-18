@@ -26,7 +26,8 @@ const CONFIG = {
   proxy_password: 'proxy_password',
   proxy_host: 'proxy_host',
   proxy_lport: 'proxy_lport',
-  proxy_rsa_key: 'proxy_rsa_key'
+  proxy_rsa_key: 'proxy_rsa_key',
+  strace_diagnostics_dir: 'strace_diagnostics_dir'
 };
 
 module.exports = {

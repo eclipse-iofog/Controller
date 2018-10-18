@@ -15,29 +15,33 @@ const logger = require('../logger');
 const DiagnosticService = require('../services/diagnostic-service');
 const AuthDecorator = require('./../decorators/authorization-decorator');
 
-const changeMicroserviceStraceState = async function (req, user) {
+const changeMicroserviceStraceStateEndPoint = async function (req, user) {
   logger.info("Parameters:" + JSON.stringify(req.query));
-  const strace = {
+  const data = {
     id: req.params.id,
     enable: req.query.enable
   };
-  return await DiagnosticService.changeMicroserviceStraceState(strace, user);
+  return await DiagnosticService.changeMicroserviceStraceState(data, user);
 };
 
-const getMicroserviceStraceData = async function (req, user) {
+const getMicroserviceStraceDataEndPoint = async function (req, user) {
   logger.info("Parameters:" + JSON.stringify(req.query));
-  return await DiagnosticService.getMicroserviceStraceData(req.parms.id, req.query, user);
+  const data = {
+    id: req.params.id,
+    format: req.query.format
+  };
+  return await DiagnosticService.getMicroserviceStraceData(data, user);
 };
 
-const postMicroserviceStraceDataToFTP = async function (req, user) {
+const postMicroserviceStraceDataToFtpEndPoint = async function (req, user) {
   logger.info("Parameters:" + JSON.stringify(req.body));
   const straceData = req.body;
   straceData.id = req.params.id;
-  return await DiagnosticService.enableMicroserviceStrace(straceData, req.query, user);
+  return await DiagnosticService.postMicroserviceStraceDatatoFtp(straceData, req.query, user);
 };
 
 module.exports = {
-  changeMicroserviceStraceState: AuthDecorator.checkAuthToken(changeMicroserviceStraceState),
-  getMicroserviceStraceData: AuthDecorator.checkAuthToken(getMicroserviceStraceData),
-  postMicroserviceStraceDataToFTP: AuthDecorator.checkAuthToken(postMicroserviceStraceDataToFTP),
+  changeMicroserviceStraceStateEndPoint: AuthDecorator.checkAuthToken(changeMicroserviceStraceStateEndPoint),
+  getMicroserviceStraceDataEndPoint: AuthDecorator.checkAuthToken(getMicroserviceStraceDataEndPoint),
+  postMicroserviceStraceDataToFtpEndPoint: AuthDecorator.checkAuthToken(postMicroserviceStraceDataToFtpEndPoint),
 };
