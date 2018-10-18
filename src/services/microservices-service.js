@@ -16,39 +16,37 @@ const MicroserviceManager = require('../sequelize/managers/microservice-manager'
 const MicroservicePortManager = require('../sequelize/managers/microservice-port-manager');
 const IOFogService = require('../services/iofog-service');
 const FlowService = require('../services/flow-service');
+const CatalogItemService = require('../services/catalog-service');
 const AppHelper = require('../helpers/app-helper');
 const Errors = require('../helpers/errors');
 const Op = require('sequelize').Op;
 const Validation = require('../schemas/index');
 
 const _getMicroserviceByFlow = async function (flowId, user, transaction) {
-  const flow = await FlowService.getFlow(flowId, user);
-
-  if (!flow){
-    throw new Errors.ValidationError("Bad Request: Flow doesn't exists")
-  }
+  await FlowService.getFlow(flowId, user);
 
   const microservice = {
     flowId: flowId
   };
 
-  return await MicroserviceManager.findAllWithDependencies(microservice, transaction)
+  return await MicroserviceManager.findAllWithDependencies(microservice, {}, transaction)
 };
 
 const _getMicroservice = async function (microserviceUuid, user, transaction) {
   const microservice = await MicroserviceManager.findOneWithDependencies({
     uuid: microserviceUuid
-  }, transaction);
+  },
+  {}, transaction);
 
-  const flow = await FlowService.getFlow(microservice.flowId, user);
+  //const catalogItem = CatalogItemService.listCatalogItem(microservice.catalogItemId, user, false, transaction);
+  //microservice.images = catalogItem.images;
+  //microservice.picture = catalogItem.picture;
 
-  const fogNode = await IOFogService.getFogWithTransaction({
-    uuid: microserviceDataUpdate.ioFogNodeId
+  await FlowService.getFlow(microservice.flowId, user);
+
+  await IOFogService.getFogWithTransaction({
+    uuid: microservice.iofogUuid
   }, user);
-
-  if(!flow || !fogNode){
-    throw new Errors.NotFoundError();
-  }
 
   return microservice;
 };
@@ -165,6 +163,11 @@ const _updateMicroservicePort = async function (microserviceUuid, microserviceDa
 };
 
 const _deleteMicroservice = async function (microserviceUuid, user, transaction) {
+  const microservice = _getMicroservice(microserviceUuid, user, transaction);
+  if (!microservice){
+    throw new Errors.NotFoundError("Invalid microservice uuid");
+  }
+
   const affectedRows = await MicroserviceManager.delete({
     uuid: microserviceUuid
   }, transaction);

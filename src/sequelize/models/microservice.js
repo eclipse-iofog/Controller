@@ -54,8 +54,11 @@ module.exports = (sequelize, DataTypes) => {
   Microservice.associate = function (models) {
 
     Microservice.belongsTo(models.CatalogItem, {
-      foreignKey: 'catalog_item_id',
-      as: 'catalogItemId',
+      foreignKey: {
+        name: 'catalogItemId',
+        field: 'catalog_item_id'
+      },
+      as: 'catalogItem',
       onDelete: 'cascade'
 
     });
@@ -94,6 +97,11 @@ module.exports = (sequelize, DataTypes) => {
       },
       as: 'userUpdatedBy',
       onDelete: 'cascade'
+    });
+
+    Microservice.hasOne(models.MicroservicePort, {
+       foreignKey: 'microservice_uuid',
+       as: 'ports'
     });
   };
   return Microservice;

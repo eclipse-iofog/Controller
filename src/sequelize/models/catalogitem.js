@@ -90,6 +90,8 @@ module.exports = (sequelize, DataTypes) => {
       foreignKey: 'catalog_item_id',
       as: 'outputType'
     });
+
+    CatalogItem.hasOne(models.Microservice);
   };
   return CatalogItem;
 };

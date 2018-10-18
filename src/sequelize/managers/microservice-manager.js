@@ -2,6 +2,7 @@ const BaseManager = require('./base-manager');
 const models = require('./../models');
 const Microservice = models.Microservice;
 const MicroservicePort = models.MicroservicePort;
+const CatalogItem = models.CatalogItem;
 
 class MicroserviceManager extends BaseManager {
   getEntity() {
@@ -15,8 +16,21 @@ class MicroserviceManager extends BaseManager {
         model: MicroservicePort,
         as: 'ports',
           required: false,
-          attributes: ['internal', 'external']
-      }],
+          attributes: ['portInternal', 'portExternal']
+      },
+      {
+        model: CatalogItem,
+        as: 'images',
+          required: false,
+          attributes: ['images']
+      },
+      {
+        model: CatalogItem,
+        as: 'picture',
+          required: false,
+          attributes: ['picture']
+      }
+      ],
       where: where,
       attributes: attributes
     }, transaction)
@@ -29,7 +43,7 @@ class MicroserviceManager extends BaseManager {
         model: MicroservicePort,
         as: 'ports',
         required: false,
-        attributes: ['internal', 'external']
+        attributes: ['portInternal', 'portExternal']
       }],
       where: where,
       attributes: attribures
