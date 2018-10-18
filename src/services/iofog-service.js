@@ -99,7 +99,7 @@ async function _updateFog(fogData, user, isCli, transaction) {
   }
 
   const affectedRows = await FogManager.update(queryFogData, updateFogData, transaction)
-  if (affectedRows === 0) {
+  if (affectedRows[0] === 0) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FOG_NODE_ID, fogData.uuid))
   }
   await ChangeTrackingManager.updateOrCreate({iofogUuid: fogData.uuid}, changeTrackingUpdates, transaction)
