@@ -13,13 +13,13 @@
 
 const BaseManager = require('./base-manager');
 const models = require('./../models');
-const Flow = models.Flow;
+const USBInfo = models.USBInfo;
 
-class FlowManager extends BaseManager {
+class USBInfoManager extends BaseManager {
   getEntity() {
-    return Flow
+    return USBInfo;
   }
 }
 
-const instance = new FlowManager();
+const instance = new USBInfoManager();
 module.exports = instance;

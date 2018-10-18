@@ -25,6 +25,8 @@ const Validator = require('../schemas');
 const Errors = require('../helpers/errors');
 const AppHelper = require('../helpers/app-helper');
 const ErrorMessages = require('../helpers/error-messages');
+const HWInfoManager = require('../sequelize/managers/hw-info-manager');
+const USBInfoManager = require('../sequelize/managers/usb-info-manager');
 
 const agentProvision = async function (provisionData, transaction) {
 
@@ -251,6 +253,22 @@ const getAgentChangeVersionCommand = async function (fog, transaction) {
   }
 };
 
+const updateHalHardwareInfo = async function (hardwareData, fog, transaction) {
+  await Validator.validate(hardwareData, Validator.schemas.updateHardwareInfo);
+
+  await HWInfoManager.updateOrCreate({
+    iofogUuid: fog.uuid
+  }, hardwareData, transaction);
+};
+
+const updateHalUsbInfo = async function (usbData, fog, transaction) {
+  await Validator.validate(usbData, Validator.schemas.updateUsbInfo);
+
+  await USBInfoManager.updateOrCreate({
+    iofogUuid: fog.uuid
+  }, usbData, transaction);
+};
+
 async function _checkMicroservicesFogType(fogType) {
   // TODO with microservices
   return;
@@ -268,5 +286,7 @@ module.exports = {
   getAgentProxy: TransactionDecorator.generateTransaction(getAgentProxy),
   getAgentStrace: TransactionDecorator.generateTransaction(getAgentStrace),
   updateAgentStrace: TransactionDecorator.generateTransaction(updateAgentStrace),
-  getAgentChangeVersionCommand: TransactionDecorator.generateTransaction(getAgentChangeVersionCommand)
+  getAgentChangeVersionCommand: TransactionDecorator.generateTransaction(getAgentChangeVersionCommand),
+  updateHalHardwareInfo: TransactionDecorator.generateTransaction(updateHalHardwareInfo),
+  updateHalUsbInfo: TransactionDecorator.generateTransaction(updateHalUsbInfo)
 };

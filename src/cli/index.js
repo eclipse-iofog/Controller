@@ -22,6 +22,7 @@ const Catalog = require('./catalog')
 const Flow = require('./flow')
 const Microservice = require('./microservice')
 const Registry = require('./registry')
+const Controller = require('./controller')
 
 const constants = require('../helpers/constants')
 
@@ -34,7 +35,7 @@ class Cli extends BaseCLIHandler {
     this.commands = {
       [constants.CMD_START]: 'Start fog-controller service.',
       [constants.CMD_STOP]: 'Stop fog-controller service.',
-      [constants.CMD_STATUS]: 'Display fog-controller service status.',
+      [constants.CMD_CONTROLLER]: 'Display fog-controller service information.',
       [constants.CMD_HELP]: 'Display usage information.',
       [constants.CMD_VERSION]: 'Display fog-controller service version.',
       [constants.CMD_USER]: 'User operations.',
@@ -58,8 +59,8 @@ class Cli extends BaseCLIHandler {
         return Start.run({ daemon })
       case constants.CMD_STOP:
         return daemon.stop()
-      case constants.CMD_STATUS:
-        break
+      case constants.CMD_CONTROLLER:
+        return Controller.run({ argv })
       case constants.CMD_USER:
         return User.run({ argv })
       case constants.CMD_CONFIG:
