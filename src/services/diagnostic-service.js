@@ -25,6 +25,7 @@ const logger = require('../logger');
 const ftpClient = require('ftp');
 
 const changeMicroserviceStraceState = async function (data, user, isCLI, transaction) {
+  validator.validate(data, validator.schemas.straceStateUpdate);
   const microservice = await MicroserviceService.getMicroservice(data.id, user, isCLI);
   if (microservice.iofogUuid == null) {
     throw new Errors.ValidationError()
@@ -40,6 +41,7 @@ const changeMicroserviceStraceState = async function (data, user, isCLI, transac
 };
 
 const getMicroserviceStraceData = async function (data, user, isCLI, transaction) {
+  validator.validate(data, validator.schemas.straceGetData);
   const straceData = await StraceDiagnosticManager.findOne({microserviceUuid: data.id}, transaction);
   const dir = config.get('Diagnostics:DiagnosticDir');
   const filePath = dir + '/' + data.id;
@@ -59,6 +61,7 @@ const getMicroserviceStraceData = async function (data, user, isCLI, transaction
 };
 
 const postMicroserviceStraceDatatoFtp = async function (data, user, isCLI, transaction) {
+  validator.validate(data, validator.schemas.stracePostToFtp);
   const straceData = await StraceDiagnosticManager.findOne({microserviceUuid: data.id}, transaction);
   const dir = config.get('Diagnostics:DiagnosticDir');
   const filePath = dir + '/' + data.id;
