@@ -19,7 +19,6 @@ const FlowService = require('../services/flow-service');
 const CatalogItemService = require('../services/catalog-service');
 const AppHelper = require('../helpers/app-helper');
 const Errors = require('../helpers/errors');
-const Op = require('sequelize').Op;
 const Validation = require('../schemas/index');
 
 const _getMicroserviceByFlow = async function (flowId, user, transaction) {
@@ -68,14 +67,16 @@ const _createMicroservice = async function (microserviceData, user, transaction)
     uuid: AppHelper.generateRandomString(32),
     name: microserviceData.name,
     config: microserviceData.config,
+    isNetwork: microserviceData.isNetwork,
+    needUpdate: microserviceData.needUpdate,
     catalogItemId: microserviceData.catalogItemId,
     flowId: microserviceData.flowId,
     iofogUuid: microserviceData.ioFogNodeId,
-    volumeMappings: microserviceData.volumeMappings,
+    //volumeMappings: microserviceData.volumeMappings,
     rootHostAccess: microserviceData.rootHostAccess,
-    strace: microserviceData.strace,
-    logLimit: microserviceData.logLimit,
-    routes: microserviceData.routes
+    //strace: microserviceData.strace,
+    logSize: microserviceData.logLimit,
+    //routes: microserviceData.routes
   };
 
   const microserviceDataCreate = AppHelper.deleteUndefinedFields(microserviceToCreate);
@@ -95,9 +96,9 @@ const _createMicroservice = async function (microserviceData, user, transaction)
 
 const _createMicroservicePort = async function (microserviceData, microserviceUuid, transaction) {
   const microservicePortToCreate = {
-    internal: microserviceData.ports.internal,
-    external: microserviceData.ports.external,
-    tunnel: microserviceData.ports.tunnel,
+    portInternal: microserviceData.ports.internal,
+    portExternal: microserviceData.ports.external,
+    //tunnel: microserviceData.ports.tunnel,
     microserviceUuid: microserviceUuid
   };
 
@@ -147,9 +148,9 @@ const _updateMicroservice = async function (microserviceUuid, microserviceData, 
 
 const _updateMicroservicePort = async function (microserviceUuid, microserviceData, user, transaction) {
   const microservicePortToUpdate = {
-    internal: microserviceData.ports.internal,
-    external: microserviceData.ports.external,
-    tunnel: microserviceData.ports.tunnel,
+    portInternal: microserviceData.ports.internal,
+    portExternal: microserviceData.ports.external,
+    //tunnel: microserviceData.ports.tunnel,
     updatedBy: user.id
   };
 

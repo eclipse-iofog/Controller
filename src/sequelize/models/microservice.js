@@ -9,11 +9,13 @@ module.exports = (sequelize, DataTypes) => {
     },
     config: {
       type: DataTypes.TEXT,
-      field: 'config'
+      field: 'config',
+      defaultValue: ""
     },
     name: {
       type: DataTypes.TEXT,
-      field: 'name'
+      field: 'name',
+      defaultValue: "New Microservice"
     },
     configLastUpdated: {
       type: DataTypes.BIGINT,
@@ -21,23 +23,28 @@ module.exports = (sequelize, DataTypes) => {
     },
     isNetwork: {
       type: DataTypes.BOOLEAN,
-      field: 'is_network'
+      field: 'is_network',
+      defaultValue: false
     },
     needUpdate: {
       type: DataTypes.BOOLEAN,
-      field: 'need_update'
+      field: 'need_update',
+      defaultValue: false
     },
     rebuild: {
       type: DataTypes.BOOLEAN,
-      field: 'rebuild'
+      field: 'rebuild',
+      defaultValue: false
     },
     rootHostAccess: {
       type: DataTypes.BOOLEAN,
-      field: 'root_host_access'
+      field: 'root_host_access',
+      defaultValue: false
     },
     logSize: {
       type: DataTypes.BIGINT,
-      field: 'log_size'
+      field: 'log_size',
+      defaultValue: 0
     },
     imageSnapshot: {
       type: DataTypes.TEXT,
@@ -45,7 +52,8 @@ module.exports = (sequelize, DataTypes) => {
     },
     deleteWithCleanUp: {
       type: DataTypes.BOOLEAN,
-      field: 'delete_with_cleanup'
+      field: 'delete_with_cleanup',
+      defaultValue: false
     }
   }, {
     timestamps: true,
