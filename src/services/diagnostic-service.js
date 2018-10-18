@@ -24,27 +24,27 @@ const fs = require('fs');
 const logger = require('../logger');
 const ftpClient = require('ftp');
 
-const changeMicroserviceStraceState = async function (data, user, isCLI, transaction) {
+const changeMicroserviceStraceState = async function (id, data, user, isCLI, transaction) {
   validator.validate(data, validator.schemas.straceStateUpdate);
-  const microservice = await MicroserviceService.getMicroservice(data.id, user, isCLI);
+  const microservice = await MicroserviceService.getMicroservice(id, user, isCLI);
   if (microservice.iofogUuid == null) {
     throw new Errors.ValidationError()
   }
 
   const straceObj = {
     straceRun: data.enable,
-    microserviceUuid: data.id
+    microserviceUuid: id
   };
 
-  await StraceDiagnosticManager.updateOrCreate({microserviceUuid: data.id}, straceObj, transaction);
+  await StraceDiagnosticManager.updateOrCreate({microserviceUuid: id}, straceObj, transaction);
   await ChangeTrackingManager.updateOrCreate({iofogUuid: microservice.iofogUuid}, {diagnostics: true}, transaction)
 };
 
-const getMicroserviceStraceData = async function (data, user, isCLI, transaction) {
+const getMicroserviceStraceData = async function (id, data, user, isCLI, transaction) {
   validator.validate(data, validator.schemas.straceGetData);
-  const straceData = await StraceDiagnosticManager.findOne({microserviceUuid: data.id}, transaction);
+  const straceData = await StraceDiagnosticManager.findOne({microserviceUuid: id}, transaction);
   const dir = config.get('Diagnostics:DiagnosticDir');
-  const filePath = dir + '/' + data.id;
+  const filePath = dir + '/' + id;
 
   let result = straceData.buffer;
 
@@ -60,11 +60,11 @@ const getMicroserviceStraceData = async function (data, user, isCLI, transaction
   };
 };
 
-const postMicroserviceStraceDatatoFtp = async function (data, user, isCLI, transaction) {
+const postMicroserviceStraceDatatoFtp = async function (id, data, user, isCLI, transaction) {
   validator.validate(data, validator.schemas.stracePostToFtp);
-  const straceData = await StraceDiagnosticManager.findOne({microserviceUuid: data.id}, transaction);
+  const straceData = await StraceDiagnosticManager.findOne({microserviceUuid: id}, transaction);
   const dir = config.get('Diagnostics:DiagnosticDir');
-  const filePath = dir + '/' + data.id;
+  const filePath = dir + '/' + id;
 
   _createDirectoryIfNotExists(dir);
   _writeBufferToFile(filePath, straceData.buffer);

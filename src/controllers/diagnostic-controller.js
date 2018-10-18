@@ -16,28 +16,18 @@ const DiagnosticService = require('../services/diagnostic-service');
 const AuthDecorator = require('./../decorators/authorization-decorator');
 
 const changeMicroserviceStraceStateEndPoint = async function (req, user) {
-  logger.info("Parameters:" + JSON.stringify(req.query));
-  const data = {
-    id: req.params.id,
-    enable: req.query.enable
-  };
-  return await DiagnosticService.changeMicroserviceStraceState(data, user);
+  logger.info("Parameters:" + JSON.stringify(req.body));
+  return await DiagnosticService.changeMicroserviceStraceState(req.params.id, req.body, user);
 };
 
 const getMicroserviceStraceDataEndPoint = async function (req, user) {
   logger.info("Parameters:" + JSON.stringify(req.query));
-  const data = {
-    id: req.params.id,
-    format: req.query.format
-  };
-  return await DiagnosticService.getMicroserviceStraceData(data, user);
+  return await DiagnosticService.getMicroserviceStraceData(id, req.query.format, user);
 };
 
 const postMicroserviceStraceDataToFtpEndPoint = async function (req, user) {
   logger.info("Parameters:" + JSON.stringify(req.body));
-  const straceData = req.body;
-  straceData.id = req.params.id;
-  return await DiagnosticService.postMicroserviceStraceDatatoFtp(straceData, req.query, user);
+  return await DiagnosticService.postMicroserviceStraceDatatoFtp(id, req.body, req.query, user);
 };
 
 module.exports = {
