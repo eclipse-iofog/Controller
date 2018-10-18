@@ -106,7 +106,6 @@ const _createFlow = async function (flowData, user) {
     ? JSON.parse(fs.readFileSync(flowData.file, 'utf8'))
     : _createFlowObject(flowData);
 
-  flow.userId = user.id;
   logger.info(JSON.stringify(flow));
 
   await FlowService.createFlow(flow, user, true);
