@@ -13,13 +13,13 @@
 
 const BaseManager = require('../managers/base-manager')
 const models = require('./../models');
-const Comsat = models.Comsat
+const Connector = models.Connector
 
-class ComsatManager extends BaseManager {
+class ConnectorManager extends BaseManager {
   getEntity() {
-    return Comsat
+    return Connector
   }
 }
 
-const instance = new ComsatManager()
+const instance = new ConnectorManager()
 module.exports = instance

@@ -1,7 +1,7 @@
 'use strict';
 module.exports = {
   up: (queryInterface, Sequelize) => {
-    return queryInterface.createTable('ComsatPorts', {
+    return queryInterface.createTable('ConnectorPorts', {
       id: {
         type: Sequelize.INTEGER,
         primaryKey: true,
@@ -61,15 +61,15 @@ module.exports = {
         references: { model: 'Users', key: 'id' },
         onDelete: 'cascade'
       },
-      comsatId: {
+      connectorId: {
         type: Sequelize.INTEGER,
-        field: 'comsat_id',
-        references: { model: 'Comsats', key: 'id' },
+        field: 'connector_id',
+        references: { model: 'Connectors', key: 'id' },
         onDelete: 'cascade'
       }
     });
   },
   down: (queryInterface, Sequelize) => {
-    return queryInterface.dropTable('ComsatPorts');
+    return queryInterface.dropTable('ConnectorPorts');
   }
 };

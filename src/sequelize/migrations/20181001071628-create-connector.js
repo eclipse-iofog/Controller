@@ -1,7 +1,7 @@
 'use strict';
 module.exports = {
   up: (queryInterface, Sequelize) => {
-    return queryInterface.createTable('Comsats', {
+    return queryInterface.createTable('Connectors', {
       id: {
         type: Sequelize.INTEGER,
         primaryKey: true,
@@ -42,6 +42,6 @@ module.exports = {
     });
   },
   down: (queryInterface, Sequelize) => {
-    return queryInterface.dropTable('Comsats');
+    return queryInterface.dropTable('Connectors');
   }
 };

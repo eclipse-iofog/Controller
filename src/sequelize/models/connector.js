@@ -1,6 +1,6 @@
 'use strict';
 module.exports = (sequelize, DataTypes) => {
-  const Comsat = sequelize.define('Comsat', {
+  const Connector = sequelize.define('Connector', {
     id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
@@ -32,8 +32,8 @@ module.exports = (sequelize, DataTypes) => {
     timestamps: true,
     underscored: true
   });
-  Comsat.associate = function (models) {
+  Connector.associate = function (models) {
 
   };
-  return Comsat;
+  return Connector;
 };

@@ -13,36 +13,36 @@
 
 const TransactionDecorator = require('../decorators/transaction-decorator')
 const Validator = require('../schemas')
-const ComsatManager = require('../sequelize/managers/comsat-manager')
+const ConnectorManager = require('../sequelize/managers/connector-manager')
 
-async function _createComsat(comsatData, transaction) {
-  await Validator.validate(comsatData, Validator.schemas.comsatCreate)
-  await ComsatManager.create(comsatData, transaction)
+async function _createConnector(connectorData, transaction) {
+  await Validator.validate(connectorData, Validator.schemas.connectorCreate)
+  await ConnectorManager.create(connectorData, transaction)
 }
 
-async function _updateComsat(comsatData, transaction) {
-  await Validator.validate(comsatData, Validator.schemas.comsatUpdate)
-  const queryComsatData = {
-    publicIp: comsatData.publicIp
+async function _updateConnector(connectorData, transaction) {
+  await Validator.validate(connectorData, Validator.schemas.connectorUpdate)
+  const queryConnectorData = {
+    publicIp: connectorData.publicIp
   }
-  await ComsatManager.update(queryComsatData, comsatData, transaction)
+  await ConnectorManager.update(queryConnectorData, connectorData, transaction)
 }
 
-async function _deleteComsat(comsatData, transaction) {
-  await Validator.validate(comsatData, Validator.schemas.comsatDelete)
-  const queryComsatData = {
-    publicIp: comsatData.publicIp
+async function _deleteConnector(connectorData, transaction) {
+  await Validator.validate(connectorData, Validator.schemas.connectorDelete)
+  const queryConnectorData = {
+    publicIp: connectorData.publicIp
   }
-  await ComsatManager.delete(queryComsatData, transaction)
+  await ConnectorManager.delete(queryConnectorData, transaction)
 }
 
-async function _getComsatList(transaction) {
-  return await ComsatManager.findAll({}, transaction)
+async function _getConnectorList(transaction) {
+  return await ConnectorManager.findAll({}, transaction)
 }
 
 module.exports = {
-  createComsatWithTransaction: TransactionDecorator.generateTransaction(_createComsat),
-  updateComsatWithTransaction: TransactionDecorator.generateTransaction(_updateComsat),
-  deleteComsatWithTransaction: TransactionDecorator.generateTransaction(_deleteComsat),
-  getComsatListWithTransaction: TransactionDecorator.generateTransaction(_getComsatList)
+  createConnectorWithTransaction: TransactionDecorator.generateTransaction(_createConnector),
+  updateConnectorWithTransaction: TransactionDecorator.generateTransaction(_updateConnector),
+  deleteConnectorWithTransaction: TransactionDecorator.generateTransaction(_deleteConnector),
+  getConnectorListWithTransaction: TransactionDecorator.generateTransaction(_getConnectorList)
 }

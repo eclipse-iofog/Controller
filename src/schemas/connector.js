@@ -11,8 +11,8 @@
  *
  */
 
-const comsatCreate = {
-  "id": "/comsatCreate",
+const connectorCreate = {
+  "id": "/connectorCreate",
   "type": "object",
   "properties": {
     "name": {"type": "string", "minLength": 1},
@@ -24,8 +24,8 @@ const comsatCreate = {
   "required": ["publicIp", "name"]
 };
 
-const comsatUpdate = {
-  "id": "/comsatUpdate",
+const connectorUpdate = {
+  "id": "/connectorUpdate",
   "type": "object",
   "properties": {
     "name": {"type": "string", "minLength": 1},
@@ -37,8 +37,8 @@ const comsatUpdate = {
   "required": ["publicIp"]
 };
 
-const comsatDelete = {
-  "id": "/comsatDelete",
+const connectorDelete = {
+  "id": "/connectorDelete",
   "type": "object",
   "properties": {
     "publicIp": {"type": "string", "minLength": 7}
@@ -47,6 +47,6 @@ const comsatDelete = {
 };
 
 module.exports = {
-  mainSchemas: [comsatCreate, comsatUpdate, comsatDelete],
+  mainSchemas: [connectorCreate, connectorUpdate, connectorDelete],
   innerSchemas: []
 };

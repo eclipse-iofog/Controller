@@ -1,6 +1,6 @@
 'use strict';
 module.exports = (sequelize, DataTypes) => {
-  const ComsatPort = sequelize.define('ComsatPort', {
+  const ConnectorPort = sequelize.define('ConnectorPort', {
     id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
@@ -48,22 +48,22 @@ module.exports = (sequelize, DataTypes) => {
     timestamps: true,
     underscored: true
   });
-  ComsatPort.associate = function (models) {
+  ConnectorPort.associate = function (models) {
 
-    ComsatPort.belongsTo(models.User, {
+    ConnectorPort.belongsTo(models.User, {
       foreignKey: 'updated_by',
       as: 'updatedBy',
       onDelete: 'cascade'
     });
 
-    ComsatPort.belongsTo(models.Comsat, {
+    ConnectorPort.belongsTo(models.Connector, {
       foreignKey: {
-        name: 'comsatId',
-        field: 'comsat_id'
+        name: 'connectorId',
+        field: 'connector_id'
       },
-      as: 'comsat',
+      as: 'connector',
       onDelete: 'cascade'
     });
   };
-  return ComsatPort;
+  return ConnectorPort;
 };
