@@ -1,5 +1,5 @@
-const microservice = {
-  "id": "/microservice",
+const microserviceCreate = {
+  "id": "/microserviceCreate",
   "type": "object",
   "properties": {
     "name": {"type": "string"},
@@ -12,7 +12,7 @@ const microservice = {
     "ioFogNodeId": {"type": "string"},
     "rootHostAccess": {"type": "boolean"},
     "deleteWithCleanUp": {"type": "boolean"},
-    "logLimit": {"type": "integer"},
+    "logSize": {"type": "integer"},
     "imageSnapshot": {"type": "string"},
     "volumeMappings": {
       "type": "array",
@@ -23,6 +23,31 @@ const microservice = {
        "items": {"type": "string"}}
     },
   "required": ["name"]
+};
+
+const microserviceUpdate = {
+  "id": "/microserviceUpdate",
+  "type": "object",
+  "properties": {
+    "name": {"type": "string"},
+    "config": {"type": "string"},
+    "isNetwork" : {"type": "boolean"},
+    "needUpdate" : {"type": "boolean"},
+    "rebuild": {"type": "boolean"},
+    "ioFogNodeId": {"type": "string"},
+    "rootHostAccess": {"type": "boolean"},
+    "deleteWithCleanUp": {"type": "boolean"},
+    "logSize": {"type": "integer"},
+    "imageSnapshot": {"type": "string"},
+    "volumeMappings": {
+      "type": "array",
+      "items": {"$ref": "volumeMappings"}},
+    "ports": {"$ref": "/ports"},
+    "routes": {
+      "type": "array",
+      "items": {"type": "string"}
+    }
+  }
 };
 
 const ports = {
@@ -45,6 +70,6 @@ const volumeMappings = {
 };
 
 module.exports = {
-    mainSchemas: [microservice],
+    mainSchemas: [microserviceCreate, microserviceUpdate],
     innerSchemas: [ports, volumeMappings]
 };

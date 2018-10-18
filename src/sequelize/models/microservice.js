@@ -113,6 +113,11 @@ module.exports = (sequelize, DataTypes) => {
       as: 'ports'
     });
 
+    Microservice.hasMany(models.VolumeMapping, {
+      foreignKey: 'microservice_uuid',
+      as: 'volumeMappings'
+    });
+
     Microservice.hasMany(models.StraceDiagnostics, {
       foreignKey: 'microservice_uuid',
       as: 'strace'
