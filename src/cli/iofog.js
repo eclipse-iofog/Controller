@@ -50,7 +50,7 @@ class IOFog extends BaseCLIHandler {
     this.commandDefinitions = [
       { name: 'command', defaultOption: true, group: [constants.CMD] },
       { name: 'file', alias: 'f', type: String, description: 'ioFog settings JSON file', group: [constants.CMD_ADD, constants.CMD_UPDATE] },
-      { name: 'node-id', alias: 'i', type: String, description: 'ioFog node ID', group: [constants.CMD_UPDATE, constants.CMD_REMOVE, constants.CMD_INFO, constants.CMD_PROVISIONING_KEY, constants.CMD_IOFOG_REBOOT, constants.CMD_VERSION] },
+      { name: 'node-id', alias: 'i', type: String, description: 'ioFog node ID', group: [constants.CMD_UPDATE, constants.CMD_REMOVE, constants.CMD_INFO, constants.CMD_PROVISIONING_KEY, constants.CMD_IOFOG_REBOOT, constants.CMD_VERSION, constants.CMD_HAL_HW, constants.CMD_HAL_USB] },
       { name: 'name', alias: 'n', type: String, description: 'ioFog node name', group: [constants.CMD_UPDATE, constants.CMD_ADD] },
       { name: 'location', alias: 'l', type: String, description: 'ioFog node location', group: [constants.CMD_UPDATE, constants.CMD_ADD] },
       { name: 'latitude', alias: 't', type: Number, description: 'ioFog node latitude', group: [constants.CMD_UPDATE, constants.CMD_ADD] },
@@ -79,7 +79,7 @@ class IOFog extends BaseCLIHandler {
       { name: 'disable', alias: 'S', type: Boolean, description: 'Disable tunnel', group: [constants.CMD_TUNNEL] },
       { name: 'info', alias: 'O', type: Boolean, description: 'Display tunnel info', group: [constants.CMD_TUNNEL] },
       { name: 'version-command', alias: 'v', type: String, description: 'ioFog version command', group: [constants.CMD_VERSION] },
-      { name: 'user-id', alias: 'u', type: Number, description: 'User\'s id', group: [constants.CMD_ADD] },
+      { name: 'user-id', alias: 'u', type: Number, description: 'User\'s id', group: [constants.CMD_ADD] }
     ]
     this.commands = {
       [constants.CMD_ADD]: 'Add a new ioFog node.',
@@ -91,6 +91,8 @@ class IOFog extends BaseCLIHandler {
       [constants.CMD_IOFOG_REBOOT]: 'Reboot ioFog node',
       [constants.CMD_VERSION]: 'Change agent version of ioFog node',
       [constants.CMD_TUNNEL]: 'Tunnel operations for an ioFog node.',
+      [constants.CMD_HAL_HW]: 'Get HAL Hardware ioFog node data',
+      [constants.CMD_HAL_USB]: 'Get HAL USB ioFog node data'
     }
   }
 
@@ -122,6 +124,12 @@ class IOFog extends BaseCLIHandler {
       case constants.CMD_VERSION:
         await _executeCase(iofogCommand, constants.CMD_VERSION, _setFogVersionCommand, false)
         break
+      case constants.CMD_HAL_HW:
+        await _executeCase(iofogCommand, constants.CMD_HAL_HW, _getHalHardwareInfo, false);
+        break;
+      case constants.CMD_HAL_USB:
+        await _executeCase(iofogCommand, constants.CMD_HAL_USB, _getHalUsbInfo, false);
+        break;
       case constants.CMD_HELP:
       default:
         return this.help()
@@ -223,6 +231,28 @@ async function _setFogVersionCommand(obj, user) {
   logger.info(JSON.stringify(fog));
   await FogService.setFogVersionCommandWithTransaction(fog, user, true);
   logger.info('Fog version command has been set successfully');
+}
+
+async function _getHalHardwareInfo(obj) {
+  const uuidObj = {
+    uuid: obj.nodeId
+  };
+
+  logger.info("Parameters" + JSON.stringify(uuidObj));
+
+  const info = await FogService.getHalHardwareInfo(uuidObj, {}, true);
+  logger.info(JSON.stringify(info));
+}
+
+async function _getHalUsbInfo(obj) {
+  const uuidObj = {
+    uuid: obj.nodeId
+  };
+
+  logger.info("Parameters" + JSON.stringify(uuidObj));
+
+  const info = await FogService.getHalHardwareInfo(uuidObj, {}, true);
+  logger.info(JSON.stringify(info));
 }
 
 function _createFogObject(cliData) {

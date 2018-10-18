@@ -313,6 +313,70 @@ paths:
           description: Not Authorized
         500:
           description: Internal Server Error
+  '/iofog/{uuid}/hal/hw':
+    get:
+      tags:
+      - ioFog
+      description: Retrieves HAL hardware info
+      operationId: getFogHalHardwareInfo
+      parameters:
+      - in: path
+        name: uuid
+        description: ioFog node id
+        required: true
+        type: string
+      - in: header
+        name: Authorization
+        description: User token
+        required: true
+        type: string
+      responses:
+        '201':
+          description: Success
+          schema:
+            $ref: '#/definitions/HalInfo'
+          headers:
+            X-Timestamp:
+              type: number
+              description: FogController server timestamp
+        '401':
+          description: Not Authorized
+        '404':
+          description: Invalid Node Id
+        '500':
+          description: Internal Server Error
+  '/iofog/{uuid}/hal/usb':
+    get:
+      tags:
+      - ioFog
+      description: Retrieves HAL USB info
+      operationId: getFogHalUsbInfo
+      parameters:
+      - in: path
+        name: uuid
+        description: ioFog node id
+        required: true
+        type: string
+      - in: header
+        name: Authorization
+        description: User token
+        required: true
+        type: string
+      responses:
+        '201':
+          description: Success
+          schema:
+            $ref: '#/definitions/HalInfo'
+          headers:
+            X-Timestamp:
+              type: number
+              description: FogController server timestamp
+        '401':
+          description: Not Authorized
+        '404':
+          description: Invalid Node Id
+        '500':
+          description: Internal Server Error
   /iofog/agent/provision:
     post:
       tags:
