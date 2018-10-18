@@ -49,6 +49,8 @@ const _deleteFlow = async function (flowId, user, transaction) {
 };
 
 const _updateFlow = async function (flowData, flowId, user, transaction) {
+  await _getFlow(flowId, user, transaction);
+
   if (flowData.name !== undefined) {
     await isFlowExist(flowData.name, transaction);
   }
@@ -63,14 +65,10 @@ const _updateFlow = async function (flowData, flowId, user, transaction) {
 
   const updateFlowData = AppHelper.deleteUndefinedFields(flow);
 
-  const affectedRows = await FlowManager.update({
+  await FlowManager.update({
     id: flowId,
     userId: user.id
   }, updateFlowData, transaction);
-
-  if (affectedRows === 0) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_ID, flowId));
-  }
 };
 
 const _getFlow = async function (flowId, user, transaction) {
