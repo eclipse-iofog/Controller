@@ -13,9 +13,6 @@
 
 const AccessTokenManager = require('../sequelize/managers/access-token-manager');
 
-const AppHelper = require('../helpers/app-helper');
-const Constants = require('../helpers/constants');
-
 const createAccessToken = async function (accessToken, transaction) {
   return await AccessTokenManager.create(accessToken, transaction);
 };

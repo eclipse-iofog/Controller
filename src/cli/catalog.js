@@ -120,7 +120,7 @@ const _executeCase  = async function (catalogCommand, commandName, f, isUserRequ
     const item = catalogCommand[commandName];
 
     if (isUserRequired) {
-      const decoratedFunction = AuthDecorator.prepareUser(f);
+      const decoratedFunction = AuthDecorator.prepareUserById(f);
       decoratedFunction(item);
     } else {
       f(item);
