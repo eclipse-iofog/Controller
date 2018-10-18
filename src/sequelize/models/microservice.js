@@ -48,7 +48,8 @@ module.exports = (sequelize, DataTypes) => {
     },
     imageSnapshot: {
       type: DataTypes.TEXT,
-      field: 'image_snapshot'
+      field: 'image_snapshot',
+      defaultValue: ""
     },
     deleteWithCleanUp: {
       type: DataTypes.BOOLEAN,
