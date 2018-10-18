@@ -91,7 +91,8 @@ $ fog-controller comsat <command> <options>
  -d, --domain string      (ComSat domain name) <br>
  -i, --public-ip string   (ComSat public IP address) <br>
  -c, --cert-dir string    (Path to certificate) <br>
- -s, --self-signed        (Is self-signed) <br>
+ -S, --self-signed-on     (Switch on self-signed) <br>
+ -s, --self-signed-off    (Switch off self-signed) <br>
  -u, --user-id number     (User's id) <br>
 
 *update*

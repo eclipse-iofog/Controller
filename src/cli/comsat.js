@@ -28,8 +28,8 @@ class Comsat extends BaseCLIHandler {
       { name: 'domain', alias: 'd', type: String, description: 'ComSat domain name', group: [constants.CMD_ADD, constants.CMD_UPDATE] },
       { name: 'public-ip', alias: 'i', type: String, description: 'ComSat public IP address', group: [constants.CMD_ADD, constants.CMD_UPDATE, constants.CMD_REMOVE] },
       { name: 'cert-dir', alias: 'c', type: String, description: 'Path to certificate', group: [constants.CMD_ADD, constants.CMD_UPDATE] },
-      { name: 'self-signed-enable', alias: 'S', type: Boolean, description: 'Is self-signed enabled', group: [constants.CMD_ADD, constants.CMD_UPDATE] },
-      { name: 'self-signed-disable', alias: 's', type: Boolean, description: 'Is self-signed disabled', group: [constants.CMD_ADD, constants.CMD_UPDATE] },
+      { name: 'self-signed-on', alias: 'S', type: Boolean, description: 'Switch on self-signed enabled', group: [constants.CMD_ADD, constants.CMD_UPDATE] },
+      { name: 'self-signed-off', alias: 's', type: Boolean, description: 'Switch off self-signed disabled', group: [constants.CMD_ADD, constants.CMD_UPDATE] },
     ]
     this.commands = {
       [constants.CMD_ADD]: 'Add a new ComSat.',
