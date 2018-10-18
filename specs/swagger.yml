@@ -1828,6 +1828,8 @@ paths:
               description: FogController server timestamp
         401:
           description: Not Authorized
+        400:
+          description: Bad Request
         500:
           description: Internal Server Error
     delete:
@@ -1849,6 +1851,8 @@ paths:
             X-Timestamp:
               type: number
               description: FogController server timestamp
+        404:
+          description: Not Found
         500:
           description: Internal Server Error
 
