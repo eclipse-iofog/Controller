@@ -39,12 +39,6 @@ paths:
       - Controller
       description: Gets ioFog types list
       operationId: getIOFogTypes
-      parameters:
-      - in: header
-        name: Authorization
-        description: User token
-        required: true
-        type: string
       responses:
         '200':
           description: Success
