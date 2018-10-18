@@ -10,47 +10,58 @@ module.exports = (sequelize, DataTypes) => {
     },
     containerConfig: {
       type: DataTypes.BOOLEAN,
-      field: 'container_config'
+      field: 'container_config',
+      defaultValue: false
     },
     reboot: {
       type: DataTypes.BOOLEAN,
-      field: 'reboot'
+      field: 'reboot',
+      defaultValue: false
     },
-    deletenode: {
+    deleteNode: {
       type: DataTypes.BOOLEAN,
-      field: 'deletenode'
+      field: 'deletenode',
+      defaultValue: false
     },
     version: {
       type: DataTypes.BOOLEAN,
-      field: 'version'
+      field: 'version',
+      defaultValue: false
     },
     containerList: {
       type: DataTypes.BOOLEAN,
-      field: 'container_list'
+      field: 'container_list',
+      defaultValue: false
     },
     config: {
       type: DataTypes.BOOLEAN,
-      field: 'config'
+      field: 'config',
+      defaultValue: false
     },
     routing: {
       type: DataTypes.BOOLEAN,
-      field: 'routing'
+      field: 'routing',
+      defaultValue: false
     },
     registries: {
       type: DataTypes.BOOLEAN,
-      field: 'registries'
+      field: 'registries',
+      defaultValue: false
     },
     proxy: {
       type: DataTypes.BOOLEAN,
-      field: 'proxy'
+      field: 'proxy',
+      defaultValue: false
     },
     diagnostics: {
       type: DataTypes.BOOLEAN,
-      field: 'diagnostics'
+      field: 'diagnostics',
+      defaultValue: false
     },
     isImageSnapshot: {
       type: DataTypes.BOOLEAN,
-      field: 'image_snapshot'
+      field: 'image_snapshot',
+      defaultValue: false
     }
   }, {
     timestamps: false,

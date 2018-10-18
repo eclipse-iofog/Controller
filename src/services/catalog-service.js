@@ -89,7 +89,7 @@ const _updateCatalogItemImages = async function (data, transaction) {
   }
 };
 
-const _updateCatalogItemIOTypes = async function (data, id, where, transaction) {
+const _updateCatalogItemIOTypes = async function (data, where, transaction) {
   if (data.inputType && data.inputType.length != 0) {
     let inputType = {
       infoType: data.inputType.infoType,
@@ -129,7 +129,7 @@ const listCatalogItem = async function (id, user, isCLI, transaction) {
     ? {}
     : {exclude: ["userId"]};
 
-  const item = CatalogItemManager.findOneWithDependencies(where, attributes, transaction)
+  const item = await CatalogItemManager.findOneWithDependencies(where, attributes, transaction);
   if (!item) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_CATALOG_ITEM_ID, id));
   }
@@ -163,7 +163,7 @@ const _checkForDuplicateName = async function (name, item, transaction) {
 const _checkIfItemExists = async function (where, transaction) {
   const item = await CatalogItemManager.findOne(where, transaction)
   if (!item) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_CATALOG_ITEM_ID, id));
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_CATALOG_ITEM_ID, where.id));
 
   }
   return item;

@@ -57,6 +57,7 @@ module.exports = {
   CMD_SUSPEND: 'suspend',
   CMD_STRACE: 'strace',
   CMD_TUNNEL: 'tunnel',
+  CMD_IOFOG_REBOOT: 'reboot',
   CONFIG: CONFIG,
   HTTP_CODE_SUCCESS: 200,
   HTTP_CODE_CREATED: 201,

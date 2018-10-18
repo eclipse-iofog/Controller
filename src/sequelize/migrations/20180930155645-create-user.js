@@ -11,15 +11,18 @@ module.exports = {
       },
       firstName: {
         type: Sequelize.STRING(100),
-        field: 'first_name'
+        field: 'first_name',
+        defaultValue: ""
       },
       lastName: {
         type: Sequelize.STRING(100),
-        field: 'last_name'
+        field: 'last_name',
+        defaultValue: ""
       },
       email: {
         type: Sequelize.STRING(100),
-        field: 'email'
+        field: 'email',
+        defaultValue: ""
       },
       password: {
         type: Sequelize.STRING(100),
@@ -31,7 +34,8 @@ module.exports = {
       },
       emailActivated: {
         type: Sequelize.BOOLEAN,
-        field: 'email_activated'
+        field: 'email_activated',
+        defaultValue: false
       }
     });
   },

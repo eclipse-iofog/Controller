@@ -17,8 +17,6 @@ const UserService = require('../services/user-service');
 const AuthDecorator = require('../decorators/authorization-decorator');
 const AppHelper = require('../helpers/app-helper');
 
-const Errors = require('../helpers/errors');
-
 const Validator = require('../schemas');
 
 const userSignupEndPoint = async function (req) {
@@ -30,7 +28,7 @@ const userSignupEndPoint = async function (req) {
 
   logger.info("Parameters:" + JSON.stringify(user));
 
-  return await UserService.signUp(user);
+  return await UserService.signUp(user, false);
 };
 
 const userLoginEndPoint = async function (req) {
@@ -42,7 +40,7 @@ const userLoginEndPoint = async function (req) {
 
   logger.info("Parameters:" + JSON.stringify(user));
 
-  return await UserService.login(user);
+  return await UserService.login(user, false);
 };
 
 const resendActivationEndPoint = async function (req) {
@@ -50,17 +48,17 @@ const resendActivationEndPoint = async function (req) {
 
   const emailData = req.query;
 
-  return await UserService.resendActivation(emailData);
+  return await UserService.resendActivation(emailData, false);
 };
 
 const activateUserAccountEndPoint = async function (req) {
   const codeData = req.body;
 
-  return await UserService.activateUser(codeData);
+  return await UserService.activateUser(codeData, false);
 };
 
 const userLogoutEndPoint = async function (req, user) {
-  return await UserService.logout(user);
+  return await UserService.logout(user, false);
 };
 
 const getUserProfileEndPoint = async function (req, user) {
@@ -76,11 +74,11 @@ const updateUserProfileEndPoint = async function (req, user) {
 
   const profileData = req.body;
 
-  return await UserService.updateUserDetails(user, profileData);
+  return await UserService.updateUserDetails(user, profileData, false);
 };
 
 const deleteUserProfileEndPoint = async function (req, user) {
-  return await UserService.deleteUser(user);
+  return await UserService.deleteUser(user, false);
 };
 
 const updateUserPasswordEndPoint = async function (req, user) {
@@ -93,7 +91,7 @@ const updateUserPasswordEndPoint = async function (req, user) {
 
   logger.info("Parameters:" + JSON.stringify(passwordUpdates));
 
-  return await UserService.updateUserPassword(passwordUpdates, user);
+  return await UserService.updateUserPassword(passwordUpdates, user, false);
 };
 
 const resetUserPasswordEndPoint = async function (req) {
@@ -101,7 +99,7 @@ const resetUserPasswordEndPoint = async function (req) {
 
   const emailObj = req.body;
 
-  return await UserService.resetUserPassword(emailObj);
+  return await UserService.resetUserPassword(emailObj, false);
 };
 
 module.exports = {
