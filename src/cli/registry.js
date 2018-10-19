@@ -42,7 +42,7 @@ class Registry extends BaseCLIHandler {
 
     switch (registryCommand.command.command) {
       case constants.CMD_ADD:
-        return RegistryService.createRegistry
+        return
       case constants.CMD_REMOVE:
         return
       case constants.CMD_LIST:
