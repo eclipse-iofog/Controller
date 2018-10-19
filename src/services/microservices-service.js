@@ -21,8 +21,17 @@ const AppHelper = require('../helpers/app-helper');
 const Errors = require('../helpers/errors');
 const Validation = require('../schemas/index');
 
-const _getMicroservice = async function (microserviceUuid, user, transaction) {
+const _getMicroserviceByFlow = async function (flowId, user, transaction) {
+  await FlowService.getFlow(flowId, user, false, transaction);
 
+  const microservice = {
+    flowId: flowId
+  };
+
+  return await MicroserviceManager.findAllWithDependencies(microservice, {}, transaction)
+};
+
+const _getMicroservice = async function (microserviceUuid, user, transaction) {
   const microservice = await MicroserviceManager.findOneWithDependencies({
     uuid: microserviceUuid
   },
@@ -180,6 +189,7 @@ const _deleteMicroservice = async function (microserviceUuid, user, transaction)
 
 module.exports = {
   createMicroserviceOnFog: TransactionDecorator.generateTransaction(_createMicroserviceOnFog),
+  getMicroserviceByFlow: TransactionDecorator.generateTransaction(_getMicroserviceByFlow),
   getMicroservice: TransactionDecorator.generateTransaction(_getMicroservice),
   updateMicroservice: TransactionDecorator.generateTransaction(_updateMicroservice),
   deleteMicroservice: TransactionDecorator.generateTransaction(_deleteMicroservice)
