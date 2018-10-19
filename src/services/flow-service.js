@@ -13,6 +13,7 @@
 
 const TransactionDecorator = require('../decorators/transaction-decorator');
 const FlowManager = require('../sequelize/managers/flow-manager');
+const MicroserviceManager = require('../sequelize/managers/microservice-manager');
 const AppHelper = require('../helpers/app-helper');
 const Errors = require('../helpers/errors');
 const ErrorMessages = require('../helpers/error-messages');
@@ -102,10 +103,22 @@ const isFlowExist = async function (flowName, transaction) {
   }
 };
 
+const _getMicroservicesByFlow = async function (flowId, user, transaction) {
+    await _getFlow(flowId, user, transaction);
+
+    const microservice = {
+        flowId: flowId
+    };
+
+    return await MicroserviceManager.findAllWithDependencies(microservice, {}, transaction)
+};
+
+
 module.exports = {
   createFlow: TransactionDecorator.generateTransaction(_createFlow),
   deleteFlow: TransactionDecorator.generateTransaction(_deleteFlow),
   updateFlow: TransactionDecorator.generateTransaction(_updateFlow),
   getFlow: TransactionDecorator.generateTransaction(_getFlow),
-  getUserFlows: TransactionDecorator.generateTransaction(_getUserFlows)
+  getUserFlows: TransactionDecorator.generateTransaction(_getUserFlows),
+  getMicroservicesByFlow: TransactionDecorator.generateTransaction(_getMicroservicesByFlow)
 };

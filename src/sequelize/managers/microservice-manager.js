@@ -11,6 +11,26 @@ class MicroserviceManager extends BaseManager {
     return Microservice
   }
 
+    /* Return:
+   + uuid
+   + name
+   + config
+     images
+     picture
+     status
+   + ioFogNodeId
+   + isNetwork
+   + needUpdate
+   + rebuild
+   + rootHostAccess
+   + deleteWithCleanUp
+   + strace
+   + imageSnapshot
+   + logLimit
+   + volumeMappings
+   + ports
+     routes */
+
   findAllWithDependencies(where, attributes, transaction) {
     return Microservice.findAll({
       include: [
@@ -52,6 +72,26 @@ class MicroserviceManager extends BaseManager {
     }, transaction)
   }
 
+
+    /* Return:
+     + uuid
+     + name
+     + config
+       images
+       picture
+       status
+     + ioFogNodeId
+     + isNetwork
+     + needUpdate
+     + rebuild
+     + rootHostAccess
+     + deleteWithCleanUp
+     + strace
+     + imageSnapshot
+     + logLimit
+     + volumeMappings
+     + ports
+       routes */
   findOneWithDependencies(where, attribures, transaction) {
     return Microservice.findOne({
       include: [

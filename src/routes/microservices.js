@@ -17,27 +17,6 @@ const Errors = require('../helpers/errors');
 
 module.exports = [
   {
-    method: 'get',
-    path: '/api/v3/iofog/microservices?:flowId',
-    middleware: async (req, res) => {
-
-      const successCode = constants.HTTP_CODE_SUCCESS;
-      const errorCodes = [
-         {
-           code: constants.HTTP_CODE_UNAUTHORIZED,
-           errors: [Errors.AuthenticationError]
-         }
-      ];
-
-      const getMicroservicesByFlowEndPoint = ResponseDecorator.handleErrors(MicroservicesController.getMicroservicesByFlowEndPoint, successCode, errorCodes);
-      const responseObject = await getMicroservicesByFlowEndPoint(req);
-
-      res
-        .status(responseObject.code)
-        .send(responseObject.body)
-      }
-  },
-  {
     method: 'post',
     path: '/api/v3/iofog/microservices',
     middleware: async (req, res) => {

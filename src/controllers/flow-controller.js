@@ -54,10 +54,19 @@ const _deleteFlowEndPoint = async function (req, user) {
   return await FlowService.deleteFlow(flowId, user)
 };
 
+const _getMicroservicesByFlowEndPoint = async function (req, user) {
+    const flowId = req.params.id;
+
+    logger.info("Flow id:" + JSON.stringify(flowId))
+
+    return await FlowService.getMicroservicesByFlow(flowId, user)
+};
+
 module.exports = {
   createFlowEndPoint: AuthDecorator.checkAuthToken(_createFlowEndPoint),
   getFlowsByUserEndPoint: AuthDecorator.checkAuthToken(_getFlowsByUserEndPoint),
   getFlowEndPoint: AuthDecorator.checkAuthToken(_getFlowEndPoint),
   updateFlowEndPoint: AuthDecorator.checkAuthToken(_updateFlowEndPoint),
-  deleteFlowEndPoint: AuthDecorator.checkAuthToken(_deleteFlowEndPoint)
+  deleteFlowEndPoint: AuthDecorator.checkAuthToken(_deleteFlowEndPoint),
+  getMicroservicesByFlowEndPoint: AuthDecorator.checkAuthToken(_getMicroservicesByFlowEndPoint)
 };
