@@ -58,7 +58,7 @@ const _getMicroservicesByFlowEndPoint = async function (req, user) {
 
     logger.info("Flow id:" + JSON.stringify(flowId))
 
-    return await FlowService.getMicroservicesByFlow(flowId, user)
+    return await FlowService.getMicroservicesByFlow(flowId, user, false)
 };
 
 module.exports = {

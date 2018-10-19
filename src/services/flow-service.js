@@ -116,8 +116,8 @@ const isFlowExist = async function (flowName, transaction) {
   }
 };
 
-const _getMicroservicesByFlow = async function (flowId, user, transaction) {
-    await _getFlow(flowId, user, transaction);
+const _getMicroservicesByFlow = async function (flowId, user, isCLI,transaction) {
+    await _getFlow(flowId, user, isCLI, transaction);
 
     const microservice = {
         flowId: flowId
