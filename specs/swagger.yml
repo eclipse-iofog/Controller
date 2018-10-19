@@ -1038,7 +1038,7 @@ paths:
           description: Invalid Flow Id
         '500':
           description: Internal Server Error
-  /iofog/microservices:
+  /microservices:
     get:
       tags:
       - Microservices
@@ -1053,7 +1053,7 @@ paths:
       - in: query
         name: flowId
         description: Flow Id
-        required: false
+        required: true
         type: integer
       responses:
         '200':
@@ -1103,7 +1103,7 @@ paths:
           description: Not Authorized
         '500':
           description: Internal Server Error
-  '/iofog/microservices/{uuid}':
+  '/microservices/{uuid}':
     get:
       tags:
       - Microservices
@@ -1201,7 +1201,7 @@ paths:
           description: Not Found
         '500':
           description: Internal Server Error
-  '/iofog/microservices/{uuid}/routes/{receiverId}':
+  '/microservices/{uuid}/routes/{receiverId}':
     post:
       tags:
       - Microservices
@@ -2665,8 +2665,6 @@ definitions:
         type: boolean
       logLimit:
         type: number
-      imageSnapshot:
-        type: string
       volumeMappings:
          type: array
          items:
@@ -2698,8 +2696,6 @@ definitions:
         type: boolean
       logLimit:
         type: number
-      imageSnapshot:
-        type: string
       volumeMappings:
          type: array
          items:

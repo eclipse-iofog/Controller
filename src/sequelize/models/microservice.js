@@ -48,7 +48,8 @@ module.exports = (sequelize, DataTypes) => {
     },
     imageSnapshot: {
       type: DataTypes.TEXT,
-      field: 'image_snapshot'
+      field: 'image_snapshot',
+      defaultValue: ""
     },
     deleteWithCleanUp: {
       type: DataTypes.BOOLEAN,
@@ -112,7 +113,12 @@ module.exports = (sequelize, DataTypes) => {
       as: 'ports'
     });
 
-    Microservice.hasMany(models.StraceDiagnostics, {
+    Microservice.hasMany(models.VolumeMapping, {
+      foreignKey: 'microservice_uuid',
+      as: 'volumeMappings'
+    });
+
+    Microservice.hasOne(models.StraceDiagnostics, {
       foreignKey: 'microservice_uuid',
       as: 'strace'
     });

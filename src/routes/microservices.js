@@ -12,34 +12,35 @@
  */
 const constants = require('../helpers/constants');
 const MicroservicesController = require('../controllers/microservices-controller');
+const FlowController = require('../controllers/flow-controller');
 const ResponseDecorator = require('../decorators/response-decorator');
 const Errors = require('../helpers/errors');
 
 module.exports = [
   {
-    method: 'get',
-    path: '/api/v3/iofog/microservices?:flowId',
-    middleware: async (req, res) => {
+     method: 'get',
+     path: '/api/v3/microservices/',
+     middleware: async (req, res) => {
 
-      const successCode = constants.HTTP_CODE_SUCCESS;
-      const errorCodes = [
+       const successCode = constants.HTTP_CODE_SUCCESS;
+       const errorCodes = [
          {
            code: constants.HTTP_CODE_UNAUTHORIZED,
            errors: [Errors.AuthenticationError]
          }
-      ];
+       ];
 
-      const getMicroservicesByFlowEndPoint = ResponseDecorator.handleErrors(MicroservicesController.getMicroservicesByFlowEndPoint, successCode, errorCodes);
-      const responseObject = await getMicroservicesByFlowEndPoint(req);
+       const getMicroservicesByFlowEndPoint = ResponseDecorator.handleErrors(MicroservicesController.getMicroservicesByFlowEndPoint, successCode, errorCodes);
+       const responseObject = await getMicroservicesByFlowEndPoint(req);
 
-      res
-        .status(responseObject.code)
-        .send(responseObject.body)
+       res
+         .status(responseObject.code)
+         .send(responseObject.body)
       }
   },
   {
     method: 'post',
-    path: '/api/v3/iofog/microservices',
+    path: '/api/v3/microservices',
     middleware: async (req, res) => {
 
       const successCode = constants.HTTP_CODE_SUCCESS;
@@ -64,7 +65,7 @@ module.exports = [
   },
   {
     method: 'get',
-    path: '/api/v3/iofog/microservices/:uuid',
+    path: '/api/v3/microservices/:uuid',
     middleware: async (req, res) => {
 
       const successCode = constants.HTTP_CODE_SUCCESS;
@@ -90,7 +91,7 @@ module.exports = [
 
   {
     method: 'patch',
-    path: '/api/v3/iofog/microservices/:uuid',
+    path: '/api/v3/microservices/:uuid',
     middleware: async (req, res) => {
 
       const successCode = constants.HTTP_CODE_NO_CONTENT;
@@ -119,10 +120,10 @@ module.exports = [
   },
   {
     method: 'delete',
-    path: '/api/v3/iofog/microservices/:uuid',
+    path: '/api/v3/microservices/:uuid',
     middleware: async (req, res) => {
 
-      const successCode = constants.HTTP_CODE_SUCCESS;
+      const successCode = constants.HTTP_CODE_NO_CONTENT;
       const errorCodes = [
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
@@ -144,7 +145,7 @@ module.exports = [
   },
   {
     method: 'post',
-    path: '/api/v3/iofog/microservices/:uuid/routes/:receiverId',
+    path: '/api/v3/microservices/:uuid/routes/:receiverId',
     middleware: (req, res) => {
       res
         .status(constants.HTTP_CODE_SUCCESS)
@@ -153,7 +154,7 @@ module.exports = [
   },
   {
     method: 'delete',
-    path: '/api/v3/iofog/microservices/:uuid/routes/:receiverId',
+    path: '/api/v3/microservices/:uuid/routes/:receiverId',
     middleware: (req, res) => {
       res
         .status(constants.HTTP_CODE_SUCCESS)
