@@ -39,7 +39,7 @@ const updateChangeTracking = async function (user, transaction){
             iofogUuid: fog.uuid,
             registries: true
         }
-        await ChangeTrackingManager.updateOrCreate({iofogUuid: fog.uuid}, changeTrackingUpdates, transaction);
+        await ChangeTrackingManager.update({iofogUuid: fog.uuid}, changeTrackingUpdates, transaction);
     }
 };
 

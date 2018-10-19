@@ -47,7 +47,7 @@ const updateChangeTracking = async function (tunnelData, transaction){
         iofogUuid: tunnelData.iofogUuid,
         proxy: true
     }
-    await ChangeTrackingManager.updateOrCreate({iofogUuid: tunnelData.iofogUuid}, changeTrackingUpdates, transaction);
+    await ChangeTrackingManager.update({iofogUuid: tunnelData.iofogUuid}, changeTrackingUpdates, transaction);
 };
 
 const findTunnel = async function (tunnelData, user, transaction) {
