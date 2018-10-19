@@ -13,6 +13,7 @@
 
 const BaseCLIHandler = require('./base-cli-handler')
 const constants = require('../helpers/constants')
+const RegistryService = require('../services/registry-service');
 
 class Registry extends BaseCLIHandler {
   constructor() {
@@ -41,7 +42,7 @@ class Registry extends BaseCLIHandler {
 
     switch (registryCommand.command.command) {
       case constants.CMD_ADD:
-        return
+        return RegistryService.createRegistry
       case constants.CMD_REMOVE:
         return
       case constants.CMD_LIST:

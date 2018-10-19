@@ -14,8 +14,9 @@
 const RegistryManager = require('../sequelize/managers/registry-manager');
 const Validator = require('../schemas')
 const Errors = require('../helpers/errors')
-
+const ChangeTrackingManager = require('../sequelize/managers/change-tracking-manager')
 const TransactionDecorator = require('../decorators/transaction-decorator');
+const FogManager = require('../sequelize/managers/iofog-manager')
 
 const createRegistry = async function (registry, user, transaction) {
   await Validator.validate(registry, Validator.schemas.registryCreate);
@@ -27,7 +28,19 @@ const createRegistry = async function (registry, user, transaction) {
       userEmail: registry.email,
       userId: user.id
   };
-  return await RegistryManager.create(registryCreate, transaction)
+  await RegistryManager.create(registryCreate, transaction)
+  await updateChangeTracking(user, transaction);
+};
+
+const updateChangeTracking = async function (user, transaction){
+    let fogs = await FogManager.findAll({userId: user.id}, transaction);
+    for (fog of fogs) {
+        const changeTrackingUpdates = {
+            iofogUuid: fog.uuid,
+            registries: true
+        }
+        await ChangeTrackingManager.updateOrCreate({iofogUuid: fog.uuid}, changeTrackingUpdates, transaction);
+    }
 };
 
 const findAllRegistries = async function (user, transaction) {
@@ -51,6 +64,7 @@ const deleteRegistry = async function (registryData, user, transaction) {
       throw new Errors.NotFoundError('Invalid Registry Id');
   }
   await RegistryManager.delete(queryFogData, transaction);
+  await updateChangeTracking(user, transaction);
 };
 
 module.exports = {

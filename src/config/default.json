@@ -16,5 +16,13 @@
   "Settings": {
     "UserTokenExpirationIntervalSeconds": 3600,
     "FogTokenExpirationIntervalSeconds": 3600
+  },
+  "Proxy": {
+    "proxy_username": "username",
+    "proxy_password": "password",
+    "proxy_host": "127.0.0.1",
+    "proxy_rsa_key": "rsa",
+    "proxy_lport": 5000,
+    "portRange": "2000-10000"
   }
 }

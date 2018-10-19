@@ -15,6 +15,7 @@ const crypto = require('crypto');
 const Errors = require('./errors');
 
 const fs = require('fs');
+const Config = require('../config');
 const path = require('path');
 const portscanner = require('portscanner');
 const format = require('string-format');
@@ -55,6 +56,10 @@ function checkPortAvailability(port) {
   });
 }
 
+const findAvailablePort = async function (hostname) {
+  let portBounds = Config.get("Proxy:portRange").split("-").map(i => parseInt(i));
+  return await portscanner.findAPortNotInUse(portBounds[0], portBounds[1], hostname);
+}
 /**
  * @desc generates a random String of the size specified by the input param
  * @param Integer - size
@@ -142,5 +147,6 @@ module.exports = {
   checkTransaction,
   deleteUndefinedFields,
   validateBooleanCliOptions,
-  formatMessage
+  formatMessage,
+  findAvailablePort
 };
