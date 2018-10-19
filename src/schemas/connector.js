@@ -21,7 +21,8 @@ const connectorCreate = {
     "certDir": {"type": "string"},
     "isSelfSignedCert": {"type": "boolean"},
   },
-  "required": ["publicIp", "name"]
+  "required": ["publicIp", "name"],
+  "additionalProperties": false
 };
 
 const connectorUpdate = {
@@ -34,7 +35,8 @@ const connectorUpdate = {
     "certDir": {"type": "string"},
     "isSelfSignedCert": {"type": "boolean"},
   },
-  "required": ["publicIp"]
+  "required": ["publicIp"],
+  "additionalProperties": false
 };
 
 const connectorDelete = {
@@ -43,7 +45,8 @@ const connectorDelete = {
   "properties": {
     "publicIp": {"type": "string", "minLength": 7}
   },
-  "required": ["publicIp"]
+  "required": ["publicIp"],
+  "additionalProperties": false
 };
 
 module.exports = {
