@@ -314,5 +314,55 @@ module.exports = [
         .status(responseObject.code)
         .send(responseObject.body)
     }
+  },
+  {
+    method: 'put',
+    path: '/api/v3/iofog/agent/hal/hw',
+    middleware: async (req, res) => {
+      const successCode = constants.HTTP_CODE_NO_CONTENT;
+      const errorCodes = [
+        {
+          code: constants.HTTP_CODE_UNAUTHORIZED,
+          errors: [Errors.AuthenticationError]
+        },
+        {
+          code: constants.HTTP_CODE_BAD_REQUEST,
+          errors: [Errors.ValidationError]
+        }
+      ];
+
+      const updateHalHardwareInfoEndPoint = ResponseDecorator.handleErrors(AgentController.updateHalHardwareInfoEndPoint,
+        successCode, errorCodes);
+      const responseObject = await updateHalHardwareInfoEndPoint(req);
+
+      res
+        .status(responseObject.code)
+        .send(responseObject.body)
+    }
+  },
+  {
+    method: 'put',
+    path: '/api/v3/iofog/agent/hal/usb',
+    middleware: async (req, res) => {
+      const successCode = constants.HTTP_CODE_NO_CONTENT;
+      const errorCodes = [
+        {
+          code: constants.HTTP_CODE_UNAUTHORIZED,
+          errors: [Errors.AuthenticationError]
+        },
+        {
+          code: constants.HTTP_CODE_BAD_REQUEST,
+          errors: [Errors.ValidationError]
+        }
+      ];
+
+      const updateHalUsbInfoEndPoint = ResponseDecorator.handleErrors(AgentController.updateHalUsbInfoEndPoint,
+        successCode, errorCodes);
+      const responseObject = await updateHalUsbInfoEndPoint(req);
+
+      res
+        .status(responseObject.code)
+        .send(responseObject.body)
+    }
   }
-]
+];

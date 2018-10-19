@@ -48,8 +48,6 @@ paths:
             X-Timestamp:
               type: number
               description: FogController server timestamp
-        '401':
-          description: Not Authorized
         '500':
           description: Internal Server Error
   '/iofog-list':
@@ -657,6 +655,66 @@ paths:
         401:
           description: Not Authorized
         500:
+          description: Internal Server Error
+  '/iofog/agent/hal/hw':
+    put:
+      tags:
+      - Agent
+      description: Updates HAL hardware info
+      operationId: putHalHardwareInfo
+      parameters:
+      - in: header
+        name: Authorization
+        description: Agent Token
+        required: true
+        type: string
+      - in: body
+        name: HalInfo
+        required: true
+        schema:
+          $ref: '#/definitions/HalInfo'
+      responses:
+        '204':
+          description: Success
+          headers:
+            X-Timestamp:
+              type: number
+              description: FogController server timestamp
+        '400':
+          description: Bad Request
+        '401':
+          description: Not Authorized
+        '500':
+          description: Internal Server Error
+  '/iofog/agent/hal/usb':
+    put:
+      tags:
+      - Agent
+      description: Updates HAL USB info
+      operationId: putHalUsbInfo
+      parameters:
+      - in: header
+        name: Authorization
+        description: Agent Token
+        required: true
+        type: string
+      - in: body
+        name: HalInfo
+        required: true
+        schema:
+          $ref: '#/definitions/HalInfo'
+      responses:
+        '204':
+          description: Success
+          headers:
+            X-Timestamp:
+              type: number
+              description: FogController server timestamp
+        '400':
+          description: Bad Request
+        '401':
+          description: Not Authorized
+        '500':
           description: Internal Server Error
   /catalog/microservices:
     get:
@@ -2520,8 +2578,6 @@ definitions:
         type: number
       description:
         type: string
-      isSelected:
-        type: boolean
       isActivated:
         type: boolean
       createdAt:
@@ -2537,8 +2593,6 @@ definitions:
         type: string
       description:
         type: string
-      isSelected:
-        type: boolean
       isActivated:
         type: boolean
   GetMicroservicesResponse:
@@ -2725,6 +2779,13 @@ definitions:
       provisionKey:
         type: string
       expirationTime:
+        type: string
+  HalInfo:
+    type: object
+    required:
+    - info
+    properties:
+      info:
         type: string
 
 schemes:

@@ -25,11 +25,6 @@ module.exports = {
         field: 'is_activated',
         defaultValue: false
       },
-      isSelected: {
-        type: Sequelize.BOOLEAN,
-        field: 'is_selected',
-        defaultValue: false
-      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE,

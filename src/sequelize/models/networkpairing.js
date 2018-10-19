@@ -67,12 +67,12 @@ module.exports = (sequelize, DataTypes) => {
       },
       as: 'microservicePort1'
     });
-    NetworkPairing.belongsTo(models.SatellitePort, {
+    NetworkPairing.belongsTo(models.ConnectorPort, {
       foreignKey: {
-        name: 'satellitePortId',
-        field: 'satellite_port_id'
+        name: 'connectorPortId',
+        field: 'connector_port_id'
       },
-      as: 'satellitePort'
+      as: 'connectorPort'
     });
   };
   return NetworkPairing;
