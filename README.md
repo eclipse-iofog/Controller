@@ -11,7 +11,7 @@
  version        -- Display fog-controller service version. <br>
  user           -- User operations. <br>
  config         -- Set/Display fog-controller service config. <br>
- comsat         -- ComSat operations. <br>
+ connector      -- Connector operations. <br>
  proxy          -- Proxy operations. <br>
  iofog          -- ioFog nodes operations. <br>
  catalog        -- Microservices catalog operations. <br>
@@ -74,37 +74,38 @@ $ fog-controller user <command> <options>
 <br>
  
  
-**ComSat** <br>
+**Connector** <br>
 
-$ fog-controller comsat <command> <options>
+$ fog-controller connector <command> <options>
 
 **Command List**
 
- add      -- Add a new ComSat. <br>
- update   -- Update existing ComSat. <br>
- remove   -- Delete a ComSat. <br>
- list     -- List all ComSats. <br>
+ add      -- Add a new Connector. <br>
+ update   -- Update existing Connector. <br>
+ remove   -- Delete a Connector. <br>
+ list     -- List all Connectors. <br>
 
 *add*
 
- -n, --name string        (ComSat name) <br>
- -d, --domain string      (ComSat domain name) <br>
- -i, --public-ip string   (ComSat public IP address) <br>
+ -n, --name string        (Connector name) <br>
+ -d, --domain string      (Connector domain name) <br>
+ -i, --public-ip string   (Connector public IP address) <br>
  -c, --cert-dir string    (Path to certificate) <br>
- -s, --self-signed        (Is self-signed) <br>
+ -S, --self-signed-on     (Switch on self-signed) <br>
+ -s, --self-signed-off    (Switch off self-signed) <br>
  -u, --user-id number     (User's id) <br>
 
 *update*
 
- -n, --name string        (ComSat name) <br>
- -d, --domain string      (ComSat domain name) <br>
- -i, --public-ip string   (ComSat public IP address) <br>
+ -n, --name string        (Connector name) <br>
+ -d, --domain string      (Connector domain name) <br>
+ -i, --public-ip string   (Connector public IP address) <br>
  -c, --cert-dir string    (Path to certificate) <br>
  -s, --self-signed        (Is self-signed) <br>
 
 *remove*
 
- -i, --public-ip string   (ComSat public IP address)
+ -i, --public-ip string   (Connector public IP address)
  
 <br>
 <br>
@@ -157,6 +158,8 @@ $ fog-controller proxy <command> <options>
   list               -- List all ioFog nodes. <br>
   info               -- Get ioFog node settings. <br>
   provisioning-key   -- Get provisioning key for an ioFog node. <br>
+  reboot             -- Reboot ioFog node. <br>             
+  version            -- Change agent version of ioFog node. <br>
   tunnel             -- Tunnel operations for an ioFog node. <br>
   
 *add*
@@ -174,18 +177,16 @@ $ fog-controller proxy <command> <options>
   -c, --cpu-limit number          (ioFog node CPU usage limit (%)) <br>
   -G, --log-limit number          (ioFog node log size limit (MB)) <br>
   -Y, --log-directory string      (ioFog node log files directory) <br>
-  -C, --log-count number          (ioFog node log files count) <br>
+  -C, --log-file-count number     (ioFog node log files count) <br>
   -s, --status-frequency number   (ioFog node status check frequency (seconds)) <br>
   -F, --change-frequency number   (ioFog node configuration change check frequency (seconds)) <br>
   -Q, --device-frequency number   (ioFog node device scan frequency (seconds)) <br>
-  -B, --blutooth-enable           (Enable bluetoth on ioFog node) <br>
-  -b, --blutooth-disable          (Disable bluetoth on ioFog node) <br>
+  -B, --bluetooth-enable          (Enable bluetooth on ioFog node) <br>
+  -b, --bluetooth-disable         (Disable bluetooth on ioFog node) <br>
   -W, --watchdog-enable           (Enable watchdog on ioFog node) <br>
   -w, --watchdog-disable          (Disable watchdog on ioFog node) <br>
   -a, --abs-hw-enable             (Enable hardware abstraction on ioFog node) <br>
   -A, --abs-hw-disable            (Disable hardware abstraction on ioFog node) <br>
-  -p, --gps-enable                (Enable GPS on ioFog node) <br> 
-  -P, --gps-disable               (Disable GPS on ioFog node) <br>
   -o, --reboot                    (Reboot ioFog node) <br>
   -y, --fog-type number           (ioFog node architecture type) <br>
   -u, --user-id number            (User's id) <br>
@@ -206,18 +207,16 @@ $ fog-controller proxy <command> <options>
   -c, --cpu-limit number          (ioFog node CPU usage limit (%)) <br>
   -G, --log-limit number          (ioFog node log size limit (MB)) <br>
   -Y, --log-directory string      (ioFog node log files directory)) <br>
-  -C, --log-count number          (ioFog node log files count) <br>
+  -C, --log-file-count number     (ioFog node log files count) <br>
   -s, --status-frequency number   (ioFog node status check frequency (seconds)) <br>
   -F, --change-frequency number   (ioFog node configuration change check frequency (seconds)) <br>
   -Q, --device-frequency number   (ioFog node device scan frequency (seconds)) <br>
-  -B, --blutooth-enable           (Enable bluetoth on ioFog node) <br>
-  -b, --blutooth-disable          (Disable bluetoth on ioFog node) <br>
+  -B, --bluetooth-enable          (Enable bluetooth on ioFog node) <br>
+  -b, --bluetooth-disable         (Disable bluetooth on ioFog node) <br>
   -W, --watchdog-enable           (Enable watchdog on ioFog node) <br>
   -w, --watchdog-disable          (Disable watchdog on ioFog node) <br>
   -a, --abs-hw-enable             (Enable hardware abstraction on ioFog node) <br>
   -A, --abs-hw-disable            (Disable hardware abstraction on ioFog node) <br>
-  -p, --gps-enable                (Enable GPS on ioFog node) <br>
-  -P, --gps-disable               (Disable GPS on ioFog node) <br>
   -o, --reboot                    (Reboot ioFog node) <br>
   -y, --fog-type number           (ioFog node architecture type) <br>
 
@@ -232,6 +231,15 @@ $ fog-controller proxy <command> <options>
 *provisioning-key*
 
   -i, --node-id string   (ioFog node ID)
+
+*reboot*
+
+  -i, --node-id string   (ioFog node ID) 
+
+*version*
+
+  -i, --node-id         string           (ioFog node ID)         
+  -v, --version-command string           (ioFog version command) 
 
 *tunnel*
 
@@ -260,7 +268,6 @@ $ fog-controller proxy <command> <options>
   bluetoothEnabled: boolean <br>
   watchdogEnabled: boolean <br>
   abstractedHardwareEnabled: boolean <br>
-  autoGPSEnabled: boolean <br>
   reboot: boolean <br>
   fogType: number <br>
   

@@ -13,13 +13,13 @@
 
 const BaseManager = require('../managers/base-manager')
 const models = require('./../models');
-const FogVersionCommand = models.FogVersionCommand
+const Connector = models.Connector
 
-class FogVersionCommandManager extends BaseManager {
+class ConnectorManager extends BaseManager {
   getEntity() {
-    return FogVersionCommand
+    return Connector
   }
 }
 
-const instance = new FogVersionCommandManager()
+const instance = new ConnectorManager()
 module.exports = instance

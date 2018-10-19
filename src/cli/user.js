@@ -18,6 +18,9 @@ const UserManager = require('../sequelize/managers/user-manager');
 const logger = require('../logger');
 const AppHelper = require('../helpers/app-helper');
 const EmailActivationCodeService = require('../services/email-activation-code-service');
+const AuthDecorator = require('../decorators/cli-decorator');
+const Validator = require('../schemas');
+
 
 class User extends BaseCLIHandler {
   constructor() {
@@ -62,102 +65,101 @@ class User extends BaseCLIHandler {
 
     switch (userCommand.command.command) {
       case constants.CMD_ADD:
-        try {
-          const user = userCommand[constants.CMD_ADD];
-          user.password = AppHelper.encryptText(user.password, user.email);
-
-          logger.info(JSON.stringify(user));
-
-          await UserService.signUp(user);
-          logger.info('User created successfully.');
-        } catch (error) {
-          logger.error(error.message);
-        }
+        await _executeCase(userCommand, constants.CMD_ADD, _createUser, false);
         break;
       case constants.CMD_UPDATE:
-        try {
-          const userDetails = userCommand[constants.CMD_UPDATE];
-          userDetails.password = AppHelper.encryptText(userDetails.password, userDetails.email);
-
-          logger.info(JSON.stringify(userDetails));
-
-          const user = await UserManager.findByEmail(userDetails.email);
-
-          await UserService.updateUserDetails(user, userDetails);
-          logger.info('User updated successfully.');
-        } catch (error) {
-          logger.error(error.message);
-        }
+        await _executeCase(userCommand, constants.CMD_UPDATE, _updateUserDetails, true);
         break;
       case constants.CMD_REMOVE:
-        try {
-          const emailObj = userCommand[constants.CMD_REMOVE];
-          logger.info(JSON.stringify(emailObj));
-
-          const user = await UserManager.findByEmail(emailObj.email);
-
-          await UserService.deleteUser(user);
-          logger.info('User removed successfully.');
-        } catch (error) {
-          logger.error(error.message);
-        }
+        await _executeCase(userCommand, constants.CMD_REMOVE, _deleteUser, true);
         break;
       case constants.CMD_LIST:
-        try {
-          const users = await UserService.list();
-          logger.info(JSON.stringify(users));
-        } catch (error) {
-          logger.error(error.message);
-        }
+        await _executeCase(userCommand, constants.CMD_LIST, _getAllUsers, false);
         break;
       case constants.CMD_GENERATE_TOKEN:
-        try {
-          const emailObj = userCommand[constants.CMD_GENERATE_TOKEN];
-          logger.info(JSON.stringify(emailObj));
-
-          const user = await UserManager.findByEmail(emailObj.email);
-
-          await UserService.login(user);
-          logger.info('Access token created successfully.');
-        } catch (error) {
-          logger.error(error.message);
-        }
+        await _executeCase(userCommand, constants.CMD_GENERATE_TOKEN, _generateToken, true);
         break;
       case constants.CMD_ACTIVATE:
-        try {
-          const emailObj = userCommand[constants.CMD_ACTIVATE];
-          logger.info(JSON.stringify(emailObj));
-
-          const user = await UserManager.findByEmail(emailObj.email);
-
-          const activationCode = {
-            activationCode: EmailActivationCodeService.findActivationCodeByUserId(user.id)
-          }
-
-          await UserService.activateUser(activationCode);
-          logger.info('User activated successfully.');
-        } catch (error) {
-          logger.error(error.message)
-        }
+        await _executeCase(userCommand, constants.CMD_ACTIVATE, _activateUser, true);
         break;
       case constants.CMD_SUSPEND:
-        try {
-          const emailObj = userCommand[constants.CMD_SUSPEND];
-          logger.info(JSON.stringify(emailObj));
-
-          const user = await UserManager.findByEmail(emailObj.email);
-
-          await UserService.deleteUser(user);
-          logger.info('User suspended successfully.');
-        } catch (error) {
-          logger.error(error.message)
-        }
+        await _executeCase(userCommand, constants.CMD_SUSPEND, _suspendUser, true);
         break;
       case constants.CMD_HELP:
       default:
         return this.help([constants.CMD_LIST])
     }
   }
+
 }
+
+const _executeCase = async function (userCommand, commandName, f, isUserRequired) {
+  try {
+    const item = userCommand[commandName];
+
+    if (isUserRequired) {
+      const decoratedFunction = AuthDecorator.prepareUserByEmail(f);
+      decoratedFunction(item);
+    } else {
+      f(item);
+    }
+  } catch (error) {
+    logger.error(error.message);
+  }
+};
+
+const _createUser = async function (user) {
+  await Validator.validate(user, Validator.schemas.signUp);
+
+  user.password = AppHelper.encryptText(user.password, user.email);
+
+  logger.info(JSON.stringify(user));
+
+  await UserService.signUp(user, true);
+  logger.info('User created successfully.');
+};
+
+const _updateUserDetails = async function (userDetails, user) {
+  await UserService.updateUserDetails(user, userDetails, true);
+  logger.info('User updated successfully.');
+};
+
+const _deleteUser = async function (emailObj, user) {
+  logger.info(JSON.stringify(emailObj));
+
+  await UserService.deleteUser(user, true);
+  logger.info('User removed successfully.');
+};
+
+const _getAllUsers = async function (emptyObj) {
+  const users = await UserService.list(true);
+  logger.info(JSON.stringify(users));
+};
+
+const _generateToken = async function (emailObj, user) {
+  logger.info(JSON.stringify(emailObj));
+
+  const response = await UserService.login(user, true);
+  logger.info('Access token ' + response.accessToken + ' created successfully.');
+};
+
+const _activateUser = async function (emailObj, user) {
+  logger.info(JSON.stringify(emailObj));
+
+  const codeData = {
+    userId: user.id
+  };
+
+  await UserService.activateUser(codeData, true);
+  logger.info('User activated successfully.');
+};
+
+const _suspendUser = async function (emailObj, user) {
+  logger.info(JSON.stringify(emailObj));
+
+  await UserService.suspendUser(user, true);
+  logger.info('User suspended successfully.');
+};
+
 
 module.exports = new User()

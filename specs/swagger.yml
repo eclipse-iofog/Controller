@@ -39,12 +39,6 @@ paths:
       - Controller
       description: Gets ioFog types list
       operationId: getIOFogTypes
-      parameters:
-      - in: header
-        name: Authorization
-        description: User token
-        required: true
-        type: string
       responses:
         '200':
           description: Success
@@ -344,18 +338,13 @@ paths:
           description: Invalid Provisioning Key
         '500':
           description: Internal Server Error
-  '/iofog/{uuid}/agent/config':
+  '/iofog/agent/config':
     get:
       tags:
       - Agent
       description: Get an ioFog node configuration
       operationId: getIOFogNodeConfig
       parameters:
-      - in: path
-        required: true
-        name: uuid
-        description: ioFog node id
-        type: string
       - in: header
         name: Authorization
         description: Agent Token
@@ -382,11 +371,6 @@ paths:
       description: Updates an ioFog node configuration
       operationId: updateIOFogNodeConfig
       parameters:
-      - in: path
-        required: true
-        name: uuid
-        description: ioFog node id
-        type: string
       - in: header
         name: Authorization
         description: Agent Token
@@ -412,18 +396,13 @@ paths:
           description: Invalid Node Id
         '500':
           description: Internal Server Error
-  '/iofog/{uuid}/agent/config/changes':
+  '/iofog/agent/config/changes':
     get:
       tags:
       - Agent
       description: Gets ioFog node changes sinces provided timestamp
       operationId: getIOFogNodeChanges
       parameters:
-      - in: path
-        required: true
-        name: uuid
-        description: ioFog node id
-        type: string
       - in: header
         name: Authorization
         description: Agent Token
@@ -451,18 +430,13 @@ paths:
           description: Invalid Node Id
         '500':
           description: Internal Server Error
-  '/iofog/{uuid}/agent/status':
+  '/iofog/agent/status':
     put:
       tags:
       - Agent
       description: Posts agent status to ioFog node
       operationId: postAgentStatus
       parameters:
-      - in: path
-        required: true
-        name: uuid
-        description: ioFog node id
-        type: string
       - in: header
         name: Authorization
         description: Agent Token
@@ -488,18 +462,13 @@ paths:
           description: Invalid Node Id
         '500':
           description: Internal Server Error
-  '/iofog/{uuid}/agent/microservices':
+  '/iofog/agent/microservices':
     get:
       tags:
       - Agent
       description: Gets microservices running on an ioFog node
       operationId: getAgentMicroservicesList
       parameters:
-      - in: path
-        required: true
-        name: uuid
-        description: ioFog node id
-        type: string
       - in: header
         name: Authorization
         description: Agent Token
@@ -520,18 +489,13 @@ paths:
           description: Invalid Node Id
         '500':
           description: Internal Server Error
-  '/iofog/{ioFogId}/agent/microservices/{microserviceId}':
+  '/iofog/agent/microservices/{microserviceId}':
     get:
       tags:
       - Agent
       description: Gets microservices running on an ioFog node
       operationId: getAgentMicroserviceInfo
       parameters:
-      - in: path
-        required: true
-        name: ioFogId
-        description: ioFog node id
-        type: string
       - in: path
         required: true
         name: microserviceId
@@ -557,18 +521,13 @@ paths:
           description: Invalid Node Id
         '500':
           description: Internal Server Error
-  '/iofog/{uuid}/agent/registries':
+  '/iofog/agent/registries':
     get:
       tags:
       - Agent
       description: Gets list of Docker registries
       operationId: getRegistriesList
       parameters:
-      - in: path
-        required: true
-        name: uuid
-        description: ioFog node id
-        type: string
       - in: header
         name: Authorization
         description: Agent Token
@@ -589,18 +548,13 @@ paths:
           description: Invalid Node Id
         '500':
           description: Internal Server Error
-  '/iofog/{uuid}/agent/proxy':
+  '/iofog/agent/proxy':
     get:
       tags:
       - Agent
       description: Get an ioFog node proxy configuration
       operationId: getIOFogNodeProxyConfig
       parameters:
-      - in: path
-        required: true
-        name: uuid
-        description: ioFog node id
-        type: string
       - in: header
         name: Authorization
         description: Agent Token
@@ -621,18 +575,13 @@ paths:
           description: Invalid Node Id
         '500':
           description: Internal Server Error
-  '/iofog/{uuid}/agent/strace':
+  '/iofog/agent/strace':
     get:
       tags:
       - Agent
       description: Get an ioFog node strace info
       operationId: getIOFogNodeStraceInfo
       parameters:
-      - in: path
-        required: true
-        name: uuid
-        description: ioFog node id
-        type: string
       - in: header
         name: Authorization
         description: Agent Token
@@ -659,11 +608,6 @@ paths:
       description: Posts agent strace to ioFog node
       operationId: postIOFogNodeStraceBuffer
       parameters:
-      - in: path
-        required: true
-        name: uuid
-        description: ioFog node id
-        type: string
       - in: header
         name: Authorization
         description: Agent Token
@@ -713,6 +657,66 @@ paths:
         401:
           description: Not Authorized
         500:
+          description: Internal Server Error
+  '/iofog/agent/hal/hw':
+    put:
+      tags:
+      - Agent
+      description: Updates HAL hardware info
+      operationId: putHalHardwareInfo
+      parameters:
+      - in: header
+        name: Authorization
+        description: Agent Token
+        required: true
+        type: string
+      - in: body
+        name: HalInfo
+        required: true
+        schema:
+          $ref: '#/definitions/HalInfo'
+      responses:
+        '204':
+          description: Success
+          headers:
+            X-Timestamp:
+              type: number
+              description: FogController server timestamp
+        '400':
+          description: Bad Request
+        '401':
+          description: Not Authorized
+        '500':
+          description: Internal Server Error
+  '/iofog/agent/hal/usb':
+    put:
+      tags:
+      - Agent
+      description: Updates HAL USB info
+      operationId: putHalUsbInfo
+      parameters:
+      - in: header
+        name: Authorization
+        description: Agent Token
+        required: true
+        type: string
+      - in: body
+        name: HalInfo
+        required: true
+        schema:
+          $ref: '#/definitions/HalInfo'
+      responses:
+        '204':
+          description: Success
+          headers:
+            X-Timestamp:
+              type: number
+              description: FogController server timestamp
+        '400':
+          description: Bad Request
+        '401':
+          description: Not Authorized
+        '500':
           description: Internal Server Error
   /catalog/microservices:
     get:
@@ -1878,6 +1882,8 @@ paths:
               description: FogController server timestamp
         401:
           description: Not Authorized
+        400:
+          description: Bad Request
         500:
           description: Internal Server Error
     delete:
@@ -1899,6 +1905,8 @@ paths:
             X-Timestamp:
               type: number
               description: FogController server timestamp
+        404:
+          description: Not Found
         500:
           description: Internal Server Error
 
@@ -2200,16 +2208,18 @@ definitions:
         type: string
       logFileCount:
         type: number
-      postStatusFreq:
+      statusFrequency:
         type: number
-      getChangesFreq:
+      changesFrequency:
         type: number
-      scanDevicesFreq:
+      deviceScanFrequency:
         type: number
       watchdogEnabled:
         type: boolean
-      gpsCoordinates:
-        $ref: '#/definitions/GpsCoordinates'
+      latitude:
+        type: number
+      longitude:
+        type: number
   IOFogNodeConfigRequest:
     type: object
     properties:
@@ -2231,25 +2241,20 @@ definitions:
         type: string
       logFileCount:
         type: number
-      postStatusFreq:
+      statusFrequency:
         type: number
-      getChangesFreq:
+      changeFrequency:
         type: number
-      scanDevicesFreq:
+      scanFrequency:
         type: number
       watchdogEnabled:
         type: boolean
-      gpsCoordinates:
-        $ref: '#/definitions/GpsCoordinates'
+      latitude:
+        type: string
+      longitude:
+        type: string
       gpsMode:
         type: string
-  GpsCoordinates:
-    type: object
-    properties:
-      lat:
-        type: number
-      lon:
-        type: number
   AgentStatus:
     type: object
     properties:
@@ -2575,8 +2580,6 @@ definitions:
         type: number
       description:
         type: string
-      isSelected:
-        type: boolean
       isActivated:
         type: boolean
       createdAt:
@@ -2592,8 +2595,6 @@ definitions:
         type: string
       description:
         type: string
-      isSelected:
-        type: boolean
       isActivated:
         type: boolean
   GetMicroservicesResponse:
@@ -2780,6 +2781,13 @@ definitions:
       provisionKey:
         type: string
       expirationTime:
+        type: string
+  HalInfo:
+    type: object
+    required:
+    - info
+    properties:
+      info:
         type: string
 
 schemes:

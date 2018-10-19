@@ -51,8 +51,11 @@ function handleErrors(f, successCode, errorsCodes) {
         body: {
           name: errorObj.name,
           message: errorObj.message,
-          stack: code === 500 ? errorObj.stack : null
+          stack: errorObj.stack
         }
+      }
+      if (code !== 500) {
+        delete responseObject.body.stack
       }
     }
 

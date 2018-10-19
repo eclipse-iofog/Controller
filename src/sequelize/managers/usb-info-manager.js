@@ -1,5 +1,5 @@
 /*
- *  *******************************************************************************
+ * *******************************************************************************
  *  * Copyright (c) 2018 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
@@ -11,15 +11,15 @@
  *
  */
 
-const BaseManager = require('../managers/base-manager')
+const BaseManager = require('./base-manager');
 const models = require('./../models');
-const FogVersionCommand = models.FogVersionCommand
+const USBInfo = models.USBInfo;
 
-class FogVersionCommandManager extends BaseManager {
+class USBInfoManager extends BaseManager {
   getEntity() {
-    return FogVersionCommand
+    return USBInfo;
   }
 }
 
-const instance = new FogVersionCommandManager()
-module.exports = instance
+const instance = new USBInfoManager();
+module.exports = instance;
