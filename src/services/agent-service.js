@@ -41,7 +41,7 @@ const agentProvision = async function (provisionData, transaction) {
 
   let currentTime = new Date();
   if (provision.expirationTime < currentTime) {
-    throw new Error("Expired provision key")
+    throw new Errors.AuthenticationError(ErrorMessages.EXPIRED_PROVISION_KEY)
   }
 
   const fogType = await FogTypeManager.findOne({
