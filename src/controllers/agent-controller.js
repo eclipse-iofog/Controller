@@ -84,6 +84,24 @@ const getAgentChangeVersionCommandEndPoint = async function (req, fog) {
   return await AgentService.getAgentChangeVersionCommand(fog);
 };
 
+const updateHalHardwareInfoEndPoint = async function (req, fog) {
+  const hardwareData = req.body;
+
+  logger.info("Parameters:" + JSON.stringify(hardwareData));
+
+  return await AgentService.updateHalHardwareInfo(hardwareData, fog);
+};
+
+const updateHalUsbInfoEndPoint = async function (req, fog) {
+  const usbData = req.body;
+
+  logger.info("Parameters:" + JSON.stringify(usbData));
+
+  return await AgentService.updateHalUsbInfo(usbData, fog);
+};
+
+
+
 module.exports = {
   agentProvisionEndPoint: agentProvisionEndPoint,
   getAgentConfigEndPoint: AuthDecorator.checkFogToken(getAgentConfigEndPoint),
@@ -96,5 +114,7 @@ module.exports = {
   getAgentProxyEndPoint: AuthDecorator.checkFogToken(getAgentProxyEndPoint),
   getAgentStraceEndPoint: AuthDecorator.checkFogToken(getAgentStraceEndPoint),
   updateAgentStraceEndPoint: AuthDecorator.checkFogToken(updateAgentStraceEndPoint),
-  getAgentChangeVersionCommandEndPoint: AuthDecorator.checkFogToken(getAgentChangeVersionCommandEndPoint)
+  getAgentChangeVersionCommandEndPoint: AuthDecorator.checkFogToken(getAgentChangeVersionCommandEndPoint),
+  updateHalHardwareInfoEndPoint: AuthDecorator.checkFogToken(updateHalHardwareInfoEndPoint),
+  updateHalUsbInfoEndPoint: AuthDecorator.checkFogToken(updateHalUsbInfoEndPoint)
 };

@@ -11,7 +11,7 @@
  version        -- Display fog-controller service version. <br>
  user           -- User operations. <br>
  config         -- Set/Display fog-controller service config. <br>
- comsat         -- ComSat operations. <br>
+ connector      -- Connector operations. <br>
  proxy          -- Proxy operations. <br>
  iofog          -- ioFog nodes operations. <br>
  catalog        -- Microservices catalog operations. <br>
@@ -74,37 +74,38 @@ $ fog-controller user <command> <options>
 <br>
  
  
-**ComSat** <br>
+**Connector** <br>
 
-$ fog-controller comsat <command> <options>
+$ fog-controller connector <command> <options>
 
 **Command List**
 
- add      -- Add a new ComSat. <br>
- update   -- Update existing ComSat. <br>
- remove   -- Delete a ComSat. <br>
- list     -- List all ComSats. <br>
+ add      -- Add a new Connector. <br>
+ update   -- Update existing Connector. <br>
+ remove   -- Delete a Connector. <br>
+ list     -- List all Connectors. <br>
 
 *add*
 
- -n, --name string        (ComSat name) <br>
- -d, --domain string      (ComSat domain name) <br>
- -i, --public-ip string   (ComSat public IP address) <br>
+ -n, --name string        (Connector name) <br>
+ -d, --domain string      (Connector domain name) <br>
+ -i, --public-ip string   (Connector public IP address) <br>
  -c, --cert-dir string    (Path to certificate) <br>
- -s, --self-signed        (Is self-signed) <br>
+ -S, --self-signed-on     (Switch on self-signed) <br>
+ -s, --self-signed-off    (Switch off self-signed) <br>
  -u, --user-id number     (User's id) <br>
 
 *update*
 
- -n, --name string        (ComSat name) <br>
- -d, --domain string      (ComSat domain name) <br>
- -i, --public-ip string   (ComSat public IP address) <br>
+ -n, --name string        (Connector name) <br>
+ -d, --domain string      (Connector domain name) <br>
+ -i, --public-ip string   (Connector public IP address) <br>
  -c, --cert-dir string    (Path to certificate) <br>
  -s, --self-signed        (Is self-signed) <br>
 
 *remove*
 
- -i, --public-ip string   (ComSat public IP address)
+ -i, --public-ip string   (Connector public IP address)
  
 <br>
 <br>
