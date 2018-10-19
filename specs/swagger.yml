@@ -2609,8 +2609,6 @@ definitions:
         type: boolean
       logLimit:
         type: number
-      imageSnapshot:
-        type: string
       volumeMappings:
          type: array
          items:
@@ -2642,8 +2640,6 @@ definitions:
         type: boolean
       logLimit:
         type: number
-      imageSnapshot:
-        type: string
       volumeMappings:
          type: array
          items:

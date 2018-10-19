@@ -77,7 +77,6 @@ const _createMicroservice = async function (microserviceData, user, transaction)
     iofogUuid: microserviceData.ioFogNodeId,
     rootHostAccess: microserviceData.rootHostAccess,
     logSize: microserviceData.logLimit,
-    // imageSnapshot?
   };
 
   const microserviceDataCreate = AppHelper.deleteUndefinedFields(microserviceToCreate);
@@ -131,7 +130,6 @@ const _updateMicroservice = async function (microserviceUuid, microserviceData, 
     iofogUuid: microserviceData.ioFogNodeId,
     rootHostAccess: microserviceData.rootHostAccess,
     logSize: microserviceData.logLimit,
-    // imageSnapshot?
     updatedBy: user.id
   };
 
