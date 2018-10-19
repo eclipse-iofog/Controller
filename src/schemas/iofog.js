@@ -133,9 +133,18 @@ const filter = {
   "required": ["key", "value", "condition"]
 };
 
+const halGet = {
+  "id": "/halGet",
+  "type": "object",
+  "properties": {
+    "uuid": {"type": "string"}
+  },
+  "required": ["uuid"]
+};
+
 module.exports = {
   mainSchemas: [iofogCreate, iofogUpdate, iofogDelete,
     iofogGet, iofogGenerateProvision, iofogSetVersionCommand,
-    iofogReboot, iofogFilters],
+    iofogReboot, iofogFilters, halGet],
   innerSchemas: [filter]
 };

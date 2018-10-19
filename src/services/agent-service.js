@@ -256,6 +256,8 @@ const getAgentChangeVersionCommand = async function (fog, transaction) {
 const updateHalHardwareInfo = async function (hardwareData, fog, transaction) {
   await Validator.validate(hardwareData, Validator.schemas.updateHardwareInfo);
 
+  hardwareData.iofogUuid = fog.uuid;
+
   await HWInfoManager.updateOrCreate({
     iofogUuid: fog.uuid
   }, hardwareData, transaction);
@@ -263,6 +265,8 @@ const updateHalHardwareInfo = async function (hardwareData, fog, transaction) {
 
 const updateHalUsbInfo = async function (usbData, fog, transaction) {
   await Validator.validate(usbData, Validator.schemas.updateUsbInfo);
+
+  usbData.iofogUuid = fog.uuid;
 
   await USBInfoManager.updateOrCreate({
     iofogUuid: fog.uuid
