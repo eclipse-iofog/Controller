@@ -19,6 +19,7 @@ const IOFogService = require('../services/iofog-service');
 const FlowService = require('../services/flow-service');
 const AppHelper = require('../helpers/app-helper');
 const Errors = require('../helpers/errors');
+const ErrorMessages = require('../helpers/error-messages');
 const Validation = require('../schemas/index');
 
 const _getMicroserviceByFlow = async function (flowId, user, transaction) {
@@ -183,7 +184,7 @@ const _deleteMicroservice = async function (microserviceUuid, user, transaction)
     uuid: microserviceUuid
   }, transaction);
   if (affectedRows === 0) {
-    throw new Errors.NotFoundError("Invalid microservice uuid");
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, microserviceUuid));
   }
 };
 
