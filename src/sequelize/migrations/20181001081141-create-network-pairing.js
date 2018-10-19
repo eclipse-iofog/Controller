@@ -55,10 +55,10 @@ module.exports = {
         references: { model: 'MicroservicePorts', key: 'id' },
         onDelete: 'cascade'
       },
-      satellitePortId: {
+      connectorPortId: {
         type: Sequelize.INTEGER,
-        field: 'satellite_port_id',
-        references: { model: 'SatellitePorts', key: 'id' },
+        field: 'connector_port_id',
+        references: { model: 'ConnectorPorts', key: 'id' },
         onDelete: 'cascade'
       }
     });

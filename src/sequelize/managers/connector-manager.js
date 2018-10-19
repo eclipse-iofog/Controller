@@ -1,5 +1,5 @@
 /*
- * *******************************************************************************
+ *  *******************************************************************************
  *  * Copyright (c) 2018 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
@@ -11,15 +11,15 @@
  *
  */
 
-const BaseManager = require('./base-manager');
+const BaseManager = require('../managers/base-manager')
 const models = require('./../models');
-const Flow = models.Flow;
+const Connector = models.Connector
 
-class FlowManager extends BaseManager {
+class ConnectorManager extends BaseManager {
   getEntity() {
-    return Flow
+    return Connector
   }
 }
 
-const instance = new FlowManager();
-module.exports = instance;
+const instance = new ConnectorManager()
+module.exports = instance

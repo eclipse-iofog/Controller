@@ -15,7 +15,7 @@ const registryCreate = {
   "id": "/registryCreate",
   "type": "object",
   "properties": {
-    "url": {"type": "string"},
+    "url": {"type": "string", "minLength": 1},
     "isPublic": {"type": "boolean"},
     "username": {"type": "string", "minLength": 1},
     "password": {"type": "string"},
