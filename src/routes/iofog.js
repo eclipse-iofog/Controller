@@ -220,5 +220,53 @@ module.exports = [
         .status(responseObject.code)
         .send(responseObject.body)
     }
+  },
+  {
+    method: 'get',
+    path: '/api/v3/iofog/:uuid/hal/hw',
+    middleware: async (req, res) => {
+      const successCode = constants.HTTP_CODE_SUCCESS;
+      const errCodes = [
+        {
+          code: 401,
+          errors: [Errors.AuthenticationError]
+        },
+        {
+          code: 404,
+          errors: [Errors.NotFoundError]
+        }
+      ];
+
+      const getHalHardwareInfo = ResponseDecorator.handleErrors(FogController.getHalHardwareInfo, successCode, errCodes);
+      const responseObject = await getHalHardwareInfo(req);
+
+      res
+        .status(responseObject.code)
+        .send(responseObject.body)
+    }
+  },
+  {
+    method: 'get',
+    path: '/api/v3/iofog/:uuid/hal/usb',
+    middleware: async (req, res) => {
+      const successCode = constants.HTTP_CODE_SUCCESS;
+      const errCodes = [
+        {
+          code: 401,
+          errors: [Errors.AuthenticationError]
+        },
+        {
+          code: 404,
+          errors: [Errors.NotFoundError]
+        }
+      ];
+
+      const getHalUsbInfo = ResponseDecorator.handleErrors(FogController.getHalUsbInfo, successCode, errCodes);
+      const responseObject = await getHalUsbInfo(req);
+
+      res
+        .status(responseObject.code)
+        .send(responseObject.body)
+    }
   }
-]
+];

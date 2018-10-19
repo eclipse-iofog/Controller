@@ -11,15 +11,17 @@
  *
  */
 
-const TransactionDecorator = require('../decorators/transaction-decorator')
-const AppHelper = require('../helpers/app-helper')
-const FogManager = require('../sequelize/managers/iofog-manager')
-const FogProvisionKeyManager = require('../sequelize/managers/iofog-provision-key-manager')
-const FogVersionCommandManager = require('../sequelize/managers/iofog-version-command-manager')
-const ChangeTrackingManager = require('../sequelize/managers/change-tracking-manager')
-const Errors = require('../helpers/errors')
-const ErrorMessages = require('../helpers/error-messages')
-const Validator = require('../schemas')
+const TransactionDecorator = require('../decorators/transaction-decorator');
+const AppHelper = require('../helpers/app-helper');
+const FogManager = require('../sequelize/managers/iofog-manager');
+const FogProvisionKeyManager = require('../sequelize/managers/iofog-provision-key-manager');
+const FogVersionCommandManager = require('../sequelize/managers/iofog-version-command-manager');
+const ChangeTrackingManager = require('../sequelize/managers/change-tracking-manager');
+const Errors = require('../helpers/errors');
+const ErrorMessages = require('../helpers/error-messages');
+const Validator = require('../schemas');
+const HWInfoManager = require('../sequelize/managers/hw-info-manager');
+const USBInfoManager = require('../sequelize/managers/usb-info-manager');
 
 async function _createFog(fogData, user, isCli, transaction) {
   await Validator.validate(fogData, Validator.schemas.iofogCreate)
@@ -226,6 +228,36 @@ async function _setFogRebootCommand(fogData, user, isCli, transaction) {
   await ChangeTrackingManager.updateOrCreate({iofogUuid: fogData.uuid}, newRebootCommand, transaction)
 }
 
+async function _getHalHardwareInfo(uuidObj, user, isCLI, transaction) {
+  await Validator.validate(uuidObj, Validator.schemas.halGet);
+
+  const fog = await FogManager.findOne({
+    uuid: uuidObj.uuid
+  }, transaction);
+  if (!fog) {
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FOG_NODE_ID, uuidObj.uuid));
+  }
+
+  return await HWInfoManager.findOne({
+    iofogUuid: uuidObj.uuid
+  }, transaction);
+}
+
+async function _getHalUsbInfo(uuidObj, user, isCLI, transaction) {
+  await Validator.validate(uuidObj, Validator.schemas.halGet);
+
+  const fog = await FogManager.findOne({
+    uuid: uuidObj.uuid
+  }, transaction);
+  if (!fog) {
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FOG_NODE_ID, uuidObj.uuid));
+  }
+
+  return await USBInfoManager.findOne({
+    iofogUuid: uuidObj.uuid
+  }, transaction);
+}
+
 function _filterFogs(fogs, filters) {
   if (!filters) {
     return fogs
@@ -235,9 +267,9 @@ function _filterFogs(fogs, filters) {
   fogs.forEach((fog) => {
     let isMatchFog = true
     filters.some((filter) => {
-      let fld       = filter.key,
-          val       = filter.value,
-          condition = filter.condition;
+      let fld = filter.key,
+        val = filter.value,
+        condition = filter.condition;
       let isMatchField = (condition === 'equals' && fog[fld] && fog[fld] === val)
         || (condition === 'has' && fog[fld] && fog[fld].includes(val));
       if (!isMatchField) {
@@ -283,5 +315,7 @@ module.exports = {
   getFogListWithTransaction: TransactionDecorator.generateTransaction(_getFogList),
   generateProvisioningKeyWithTransaction: TransactionDecorator.generateTransaction(_generateProvisioningKey),
   setFogVersionCommandWithTransaction: TransactionDecorator.generateTransaction(_setFogVersionCommand),
-  setFogRebootCommandWithTransaction: TransactionDecorator.generateTransaction(_setFogRebootCommand)
-}
+  setFogRebootCommandWithTransaction: TransactionDecorator.generateTransaction(_setFogRebootCommand),
+  getHalHardwareInfo: TransactionDecorator.generateTransaction(_getHalHardwareInfo),
+  getHalUsbInfo: TransactionDecorator.generateTransaction(_getHalUsbInfo)
+};

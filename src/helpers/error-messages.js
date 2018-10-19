@@ -33,5 +33,6 @@ module.exports = {
   PORT_NOT_AVAILABLE: 'Port {} not available',
   UNABLE_TO_WRITE_STRACE: 'Error while writing strace data to file. File name: {}, err: {}',
   UNABLE_TO_DELETE_STRACE: 'Error while deleting strace data file. File name: {}, err: {}',
-  FTP_ERROR: 'Ftp error: {}'
+  FTP_ERROR: 'Ftp error: {}',
+  EXPIRED_PROVISION_KEY: 'Expired provision key'
 };

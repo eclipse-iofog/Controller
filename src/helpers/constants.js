@@ -11,25 +11,6 @@
  *
  */
 
-const CONFIG = {
-  port: 'port',
-  ssl_key: 'ssl_key',
-  ssl_cert: 'ssl_cert',
-  intermediate_cert: 'intermediate_cert',
-  email_address: 'email_address',
-  email_password: 'email_password',
-  email_service: 'email_service',
-  email_server: 'email_server',
-  email_serverport: 'email_serverport',
-  email_activation: 'email_activation',
-  proxy_username: 'proxy_username',
-  proxy_password: 'proxy_password',
-  proxy_host: 'proxy_host',
-  proxy_lport: 'proxy_lport',
-  proxy_rsa_key: 'proxy_rsa_key',
-  strace_diagnostics_dir: 'strace_diagnostics_dir'
-};
-
 module.exports = {
   CMD: 'command',
   CMD_LIST: 'list',
@@ -68,7 +49,8 @@ module.exports = {
   CMD_STRACE_FTP_POST: 'strace-ftp-post',
   CMD_IMAGE_SNAPSHOT_CREATE: 'image-snapshot-create',
   CMD_IMAGE_SNAPSHOT_GET: 'image-snapshot-get',
-  CONFIG: CONFIG,
+  CMD_HAL_HW: 'hal-hw',
+  CMD_HAL_USB: 'hal-usb',
   HTTP_CODE_SUCCESS: 200,
   HTTP_CODE_CREATED: 201,
   HTTP_CODE_NO_CONTENT: 204,
@@ -78,4 +60,4 @@ module.exports = {
   HTTP_CODE_NOT_FOUND: 404,
   HTTP_CODE_DUPLICATE_PROPERTY: 409,
   HTTP_CODE_INTERNAL_ERROR: 500,
-}
+};
