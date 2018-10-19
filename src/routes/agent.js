@@ -11,7 +11,7 @@
  *
  */
 
-const constants = require('../helpers/constants')
+const constants = require('../helpers/constants');
 const AgentController = require('../controllers/agent-controller');
 const ResponseDecorator = require('../decorators/response-decorator');
 
@@ -20,7 +20,7 @@ const Errors = require('../helpers/errors');
 module.exports = [
   {
     method: 'post',
-    path: '/api/v3/iofog/agent/provision',
+    path: '/api/v3/agent/provision',
     middleware: async (req, res) => {
       const successCode = constants.HTTP_CODE_SUCCESS;
       const errorCodes = [
@@ -48,7 +48,7 @@ module.exports = [
   },
   {
     method: 'get',
-    path: '/api/v3/iofog/agent/config',
+    path: '/api/v3/agent/config',
     middleware: async (req, res) => {
       const successCode = constants.HTTP_CODE_SUCCESS;
       const errorCodes = [
@@ -72,7 +72,7 @@ module.exports = [
   },
   {
     method: 'patch',
-    path: '/api/v3/iofog/agent/config',
+    path: '/api/v3/agent/config',
     middleware: async (req, res) => {
       const successCode = constants.HTTP_CODE_NO_CONTENT;
       const errorCodes = [
@@ -100,7 +100,7 @@ module.exports = [
   },
   {
     method: 'get',
-    path: '/api/v3/iofog/agent/config/changes',
+    path: '/api/v3/config/changes',
     middleware: async (req, res) => {
       const successCode = constants.HTTP_CODE_SUCCESS;
       const errorCodes = [
@@ -128,7 +128,7 @@ module.exports = [
   },
   {
     method: 'put',
-    path: '/api/v3/iofog/agent/status',
+    path: '/api/v3/agent/status',
     middleware: async (req, res) => {
       const successCode = constants.HTTP_CODE_NO_CONTENT;
       const errorCodes = [
@@ -156,7 +156,7 @@ module.exports = [
   },
   {
     method: 'get',
-    path: '/api/v3/iofog/agent/microservices',
+    path: '/api/v3/agent/microservices',
     middleware: async (req, res) => {
       const successCode = constants.HTTP_CODE_SUCCESS;
       const errorCodes = [
@@ -180,7 +180,7 @@ module.exports = [
   },
   {
     method: 'get',
-    path: '/api/v3/iofog/agent/microservices/:microserviceId',
+    path: '/api/v3/agent/microservices/:microserviceId',
     middleware: async (req, res) => {
       const successCode = constants.HTTP_CODE_SUCCESS;
       const errorCodes = [
@@ -204,7 +204,7 @@ module.exports = [
   },
   {
     method: 'get',
-    path: '/api/v3/iofog/agent/registries',
+    path: '/api/v3/agent/registries',
     middleware: async (req, res) => {
       const successCode = constants.HTTP_CODE_SUCCESS;
       const errorCodes = [
@@ -228,7 +228,7 @@ module.exports = [
   },
   {
     method: 'get',
-    path: '/api/v3/iofog/agent/proxy',
+    path: '/api/v3/agent/proxy',
     middleware: async (req, res) => {
       const successCode = constants.HTTP_CODE_SUCCESS;
       const errorCodes = [
@@ -252,7 +252,7 @@ module.exports = [
   },
   {
     method: 'get',
-    path: '/api/v3/iofog/agent/strace',
+    path: '/api/v3/agent/strace',
     middleware: async (req, res) => {
       const successCode = constants.HTTP_CODE_SUCCESS;
       const errorCodes = [
@@ -276,7 +276,7 @@ module.exports = [
   },
   {
     method: 'put',
-    path: '/api/v3/iofog/agent/strace',
+    path: '/api/v3/agent/strace',
     middleware: async (req, res) => {
       const successCode = constants.HTTP_CODE_SUCCESS;
       const errorCodes = [
@@ -304,13 +304,17 @@ module.exports = [
   },
   {
     method: 'get',
-    path: '/api/v3/iofog/agent/version',
+    path: '/api/v3/agent/version',
     middleware: async (req, res) => {
       const successCode = constants.HTTP_CODE_SUCCESS;
       const errorCodes = [
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
           errors: [Errors.AuthenticationError]
+        },
+        {
+          code: constants.HTTP_CODE_NOT_FOUND,
+          errors: [Errors.NotFoundError]
         }
       ];
 
@@ -325,7 +329,7 @@ module.exports = [
   },
   {
     method: 'put',
-    path: '/api/v3/iofog/agent/hal/hw',
+    path: '/api/v3/agent/hal/hw',
     middleware: async (req, res) => {
       const successCode = constants.HTTP_CODE_NO_CONTENT;
       const errorCodes = [
@@ -350,7 +354,7 @@ module.exports = [
   },
   {
     method: 'put',
-    path: '/api/v3/iofog/agent/hal/usb',
+    path: '/api/v3/agent/hal/usb',
     middleware: async (req, res) => {
       const successCode = constants.HTTP_CODE_NO_CONTENT;
       const errorCodes = [
@@ -372,5 +376,25 @@ module.exports = [
         .status(responseObject.code)
         .send(responseObject.body)
     }
-  }
+  },
+  {
+    method: 'delete',
+    path: '/api/v3/agent/delete-node',
+    middleware: async (req, res) => {
+      const successCode = constants.HTTP_CODE_NO_CONTENT;
+      const errCodes = [
+        {
+          code: 401,
+          errors: [Errors.AuthenticationError]
+        }
+      ];
+
+      const deleteNodeEndPoint = ResponseDecorator.handleErrors(AgentController.deleteNodeEndPoint, successCode, errCodes);
+      const responseObject = await deleteNodeEndPoint(req);
+
+      res
+        .status(responseObject.code)
+        .send(responseObject.body)
+    }
+  },
 ];
