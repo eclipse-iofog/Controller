@@ -99,12 +99,31 @@ const straceData = {
   "type": "object",
   "properties": {
     "microserviceId": {"type": "string"},
-    "buffer": {"type": "string"},
+    "buffer": {"type": "string"}
   },
   "required": ["microserviceId", "buffer"]
 };
 
+const updateHardwareInfo = {
+  "id": "/updateHardwareInfo",
+  "type": "object",
+  "properties": {
+    "info": {"type": "string"},
+  },
+  "required": ["info"]
+};
+
+const updateUsbInfo = {
+  "id": "/updateUsbInfo",
+  "type": "object",
+  "properties": {
+    "info": {"type": "string"},
+  },
+  "required": ["info"]
+};
+
 module.exports = {
-  mainSchemas: [agentProvision, updateAgentConfig, agentConfigChanges, updateAgentStatus, updateAgentStrace],
+  mainSchemas: [agentProvision, updateAgentConfig, agentConfigChanges, updateAgentStatus, updateAgentStrace,
+  updateHardwareInfo, updateUsbInfo],
   innerSchemas: [straceData]
 };

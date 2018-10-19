@@ -13,13 +13,13 @@
 
 const BaseManager = require('./base-manager');
 const models = require('./../models');
-const Flow = models.Flow;
+const HWInfo = models.HWInfo;
 
-class FlowManager extends BaseManager {
+class HWInfoManager extends BaseManager {
   getEntity() {
-    return Flow
+    return HWInfo;
   }
 }
 
-const instance = new FlowManager();
+const instance = new HWInfoManager();
 module.exports = instance;
