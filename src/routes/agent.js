@@ -27,6 +27,14 @@ module.exports = [
         {
           code: constants.HTTP_CODE_NOT_FOUND,
           errors: [Errors.NotFoundError]
+        },
+        {
+          code: constants.HTTP_CODE_UNAUTHORIZED,
+          errors: [Errors.AuthenticationError]
+        },
+        {
+          code: constants.HTTP_CODE_BAD_REQUEST,
+          errors: [Errors.ValidationError]
         }
       ];
 
