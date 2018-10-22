@@ -938,7 +938,7 @@ paths:
               type: number
               description: FogController server timestamp
         '400':
-              description: Bad Request
+          description: Bad Request
         '401':
           description: Not Authorized
         '404':
@@ -1439,7 +1439,7 @@ paths:
         '500':
           description: Internal Server Error
   '/iofog/microservices/{id}/strace':
-    post:
+    patch:
       tags:
       - Diagnostics
       description: Enables Microservice Strace Option
@@ -1455,8 +1455,17 @@ paths:
         description: Microservice Id
         required: true
         type: string
+      - in: body
+        name: EnableOption
+        description: Strace info to enable or disable feature
+        required: true
+        schema:
+          type: object
+          properties:
+            enable:
+              type: boolean
       responses:
-        '201':
+        '204':
           description: Created
           schema:
             type: object
@@ -1467,35 +1476,8 @@ paths:
             X-Timestamp:
               type: number
               description: FogController server timestamp
-        '401':
-          description: Not Authorized
-        '404':
-          description: Invalid Microservice Id
-        '500':
-          description: Internal Server Error
-    delete:
-      tags:
-      - Diagnostics
-      description: Disables Microservice Strace Option
-      operationId: disableMicroserviceStrace
-      parameters:
-      - in: header
-        name: Authorization
-        description: User Token
-        required: true
-        type: string
-      - in: path
-        name: id
-        description: Microservice Id
-        required: true
-        type: string
-      responses:
-        '204':
-          description: Success
-          headers:
-            X-Timestamp:
-              type: number
-              description: FogController server timestamp
+        '400':
+          description: Bad Request
         '401':
           description: Not Authorized
         '404':
@@ -2789,6 +2771,12 @@ definitions:
         type: boolean
       logLimit:
         type: number
+      volumeMappings:
+         type: array
+         items:
+           $ref: '#/definitions/VolumeMappingAgentRequest'
+      imageSnapshot:
+        type: string
       volumeMappings:
          type: array
          items:

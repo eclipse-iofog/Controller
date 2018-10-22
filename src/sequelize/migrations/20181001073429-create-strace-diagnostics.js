@@ -11,7 +11,7 @@ module.exports = {
       },
       straceRun: {
         type: Sequelize.BOOLEAN,
-        field: 'straceRun'
+        field: 'strace_run'
       },
       buffer: {
         type: Sequelize.TEXT,

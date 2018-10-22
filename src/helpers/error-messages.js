@@ -32,6 +32,10 @@ module.exports = {
   INVALID_PORT_FORMAT: 'Invalid port format',
   INVALID_FILE_PATH: 'Invalid file path',
   PORT_NOT_AVAILABLE: 'Port {} not available',
+  UNABLE_TO_WRITE_STRACE: 'Error while writing strace data to file. File name: {}, err: {}',
+  UNABLE_TO_DELETE_STRACE: 'Error while deleting strace data file. File name: {}, err: {}',
+  FTP_ERROR: 'Ftp error: {}',
   EXPIRED_PROVISION_KEY: 'Expired provision key',
-  VERSION_COMMAND_NOT_FOUND: 'Version command not found'
+  VERSION_COMMAND_NOT_FOUND: 'Version command not found',
+  STRACE_WITHOUT_FOG: 'Can not run strace for element without fog.'
 };
