@@ -6,12 +6,9 @@ const microserviceCreate = {
     "config": {"type": "string"},
     "catalogItemId": {"type": "integer"},
     "isNetwork" : {"type": "boolean"},
-    "needUpdate" : {"type": "boolean"},
-    "rebuild": {"type": "boolean"},
     "flowId": {"type": "integer"},
     "ioFogNodeId": {"type": "string"},
     "rootHostAccess": {"type": "boolean"},
-    "deleteWithCleanUp": {"type": "boolean"},
     "logSize": {"type": "integer"},
     "imageSnapshot": {"type": "string"},
     "volumeMappings": {

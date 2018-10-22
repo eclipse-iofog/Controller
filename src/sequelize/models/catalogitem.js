@@ -93,7 +93,7 @@ module.exports = (sequelize, DataTypes) => {
 
     CatalogItem.hasMany(models.Microservice, {
       foreignKey: 'catalog_item_id',
-      as: 'microservice'
+      as: 'microservices'
     });
   };
   return CatalogItem;

@@ -30,14 +30,31 @@ const _getMicroserviceByFlow = async function (flowId, user, transaction) {
     flowId: flowId
   };
 
-  return await MicroserviceManager.findAllWithDependencies(microservice, {}, transaction)
+  return await MicroserviceManager.findAllWithDependencies(microservice,
+  {
+    exclude: [
+      'configLastUpdated',
+      'created_at',
+      'updated_at',
+      'catalogItemId',
+      'updatedBy',
+      'flowId'
+    ]}, transaction);
 };
 
 const _getMicroservice = async function (microserviceUuid, user, transaction) {
   const microservice = await MicroserviceManager.findOneWithDependencies({
     uuid: microserviceUuid
   },
-  {include: catalogItem.picture}, transaction);
+  {
+    exclude: [
+      'configLastUpdated',
+      'created_at',
+      'updated_at',
+      'catalogItemId',
+      'updatedBy',
+      'flowId'
+    ]}, transaction);
 
   await FlowService.getFlow(microservice.flowId, user, transaction);
 
