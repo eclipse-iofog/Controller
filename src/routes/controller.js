@@ -49,12 +49,7 @@ module.exports = [
     path: '/api/v3/fog-types',
     middleware: async (req, res) => {
       const successCode = constants.HTTP_CODE_SUCCESS;
-      const errorCodes = [
-        {
-          code: constants.HTTP_CODE_NOT_FOUND,
-          errors: [Errors.NotFoundError]
-        }
-      ];
+      const errorCodes = [];
       const fogTypesEndPoint = ResponseDecorator.handleErrors(Controller.fogTypesEndPoint, successCode, errorCodes);
       const responseObject = await fogTypesEndPoint(req);
 

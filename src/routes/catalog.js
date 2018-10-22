@@ -11,7 +11,6 @@
  *
  */
 const constants = require('../helpers/constants');
-
 const CatalogController = require('../controllers/catalog-controller');
 const ResponseDecorator = require('../decorators/response-decorator');
 const Errors = require('../helpers/errors');
@@ -35,11 +34,11 @@ module.exports = [
         successCode,
         errorCodes
       );
-      const response = await listCatalogItemsEndPoint(req);
+      const responseObject = await listCatalogItemsEndPoint(req);
 
       res
-        .status(response.code)
-        .send(response.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
     }
   },
   {
@@ -68,11 +67,11 @@ module.exports = [
         successCode,
         errorCodes
       );
-      const response = await createCatalogItemEndpoint(req);
+      const responseObject = await createCatalogItemEndpoint(req);
 
       res
-        .status(response.code)
-        .send(response.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
     }
   },
   {
@@ -97,11 +96,11 @@ module.exports = [
         successCode,
         errorCodes
       );
-      const response = await listCatalogItemEndPoint(req);
+      const responseObject = await listCatalogItemEndPoint(req);
 
       res
-        .status(response.code)
-        .send(response.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
     }
   },
   {
@@ -134,11 +133,11 @@ module.exports = [
         successCode,
         errorCodes
       );
-      const response = await updateCatalogItemEndpoint(req);
+      const responseObject = await updateCatalogItemEndpoint(req);
 
       res
-        .status(response.code)
-        .send(response.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
     }
   },
   {
@@ -163,11 +162,11 @@ module.exports = [
         successCode,
         errorCodes
       );
-      const response = await deleteCatalogItemEndPoint(req);
+      const responseObject = await deleteCatalogItemEndPoint(req);
 
       res
-        .status(response.code)
-        .send(response.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
     }
   }
 ]

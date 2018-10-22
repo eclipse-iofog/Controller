@@ -35,7 +35,6 @@ module.exports = (sequelize, DataTypes) => {
       as: 'fogType',
       onDelete: 'cascade'
     });
-
   };
   return CatalogItemImage;
 };

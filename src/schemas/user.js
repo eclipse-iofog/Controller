@@ -23,7 +23,8 @@ const signUp = {
     },
     "password": {"type": "string", "minLength": 8}
   },
-  "required": ["email", "password", "firstName", "lastName"]
+  "required": ["email", "password", "firstName", "lastName"],
+  "additionalProperties": false
 };
 
 const login = {
@@ -36,7 +37,8 @@ const login = {
     },
     "password": {"type": "string"}
   },
-  "required": ["email", "password"]
+  "required": ["email", "password"],
+  "additionalProperties": false
 };
 
 const resendActivation = {
@@ -48,7 +50,8 @@ const resendActivation = {
       "pattern": "^(([^<>()\\[\\]\\\\.,;:\\s@\"]+(\\.[^<>()\\[\\]\\\\.,;:\\s@\"]+)*)|(\".+\"))@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}])|(([a-zA-Z\\-0-9]+\\.)+[a-zA-Z]{2,}))$"
     }
   },
-  "required": ["email"]
+  "required": ["email"],
+  "additionalProperties": false
 };
 
 const activateUser = {
@@ -57,7 +60,8 @@ const activateUser = {
   "properties": {
     "activationCode": {"type": "string"}
   },
-  "required": ["activationCode"]
+  "required": ["activationCode"],
+  "additionalProperties": false
 };
 
 const activateUserCLI = {
@@ -66,7 +70,8 @@ const activateUserCLI = {
   "properties": {
     "email": {"type": "string"}
   },
-  "required": ["email"]
+  "required": ["email"],
+  "additionalProperties": false
 };
 
 const updateUserProfile = {
@@ -76,7 +81,8 @@ const updateUserProfile = {
     "firstName": {"type": "string", "minLength": 3},
     "lastName": {"type": "string", "minLength": 3}
   },
-  "required": []
+  "required": [],
+  "additionalProperties": false
 };
 
 const updateUserProfileCLI = {
@@ -87,7 +93,8 @@ const updateUserProfileCLI = {
     "lastName": {"type": "string", "minLength": 3},
     "password": {"type": "string", "minLength": 8}
   },
-  "required": []
+  "required": [],
+  "additionalProperties": false
 };
 
 const updatePassword = {
@@ -97,7 +104,8 @@ const updatePassword = {
     "oldPassword": {"type": "string"},
     "newPassword": {"type": "string", "minLength": 8}
   },
-  "required": ["oldPassword", "newPassword"]
+  "required": ["oldPassword", "newPassword"],
+  "additionalProperties": false
 };
 
 const resetUserPassword = {
@@ -109,7 +117,8 @@ const resetUserPassword = {
       "pattern": "^(([^<>()\\[\\]\\\\.,;:\\s@\"]+(\\.[^<>()\\[\\]\\\\.,;:\\s@\"]+)*)|(\".+\"))@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}])|(([a-zA-Z\\-0-9]+\\.)+[a-zA-Z]{2,}))$"
     }
   },
-  "required": ["email"]
+  "required": ["email"],
+  "additionalProperties": false
 };
 
 
