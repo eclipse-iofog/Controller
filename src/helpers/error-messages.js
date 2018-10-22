@@ -31,5 +31,7 @@ module.exports = {
   EMAIL_SENDER_NOT_CONFIGURED: 'Email sender not configured',
   INVALID_PORT_FORMAT: 'Invalid port format',
   INVALID_FILE_PATH: 'Invalid file path',
-  PORT_NOT_AVAILABLE: 'Port {} not available'
+  PORT_NOT_AVAILABLE: 'Port {} not available',
+  EXPIRED_PROVISION_KEY: 'Expired provision key',
+  VERSION_COMMAND_NOT_FOUND: 'Version command not found'
 };
