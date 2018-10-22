@@ -15,12 +15,17 @@ const TransactionDecorator = require('../decorators/transaction-decorator');
 const MicroserviceManager = require('../sequelize/managers/microservice-manager');
 const MicroservicePortManager = require('../sequelize/managers/microservice-port-manager');
 const VolumeMappingManager = require('../sequelize/managers/volume-mapping-manager');
+const RoutingManager = require('../sequelize/managers/routing-manager')
+const ConnectorPortManager = require('../sequelize/managers/connector-port-manager')
+const ChangeTrackingManager = require('../sequelize/managers/change-tracking-manager')
 const IOFogService = require('../services/iofog-service');
 const FlowService = require('../services/flow-service');
 const AppHelper = require('../helpers/app-helper');
 const Errors = require('../helpers/errors');
 const ErrorMessages = require('../helpers/error-messages');
 const Validation = require('../schemas/index');
+const ConnectorService = require('../services/connector-service')
+const CatalogService = require('../services/catalog-service')
 
 const _getMicroserviceByFlow = async function (flowId, user, transaction) {
   await FlowService.getFlow(flowId, user, false, transaction);
@@ -87,7 +92,7 @@ const _createMicroservice = async function (microserviceData, user, transaction)
   }
 
   if (microserviceDataCreate.iofogUuid) {
-    await IOFogService.getFogWithTransaction({
+    await IOFogService.getFogWithTransaction({ //TODO do not use this method here it's only for endpoints
       uuid: microserviceDataCreate.iofogUuid
     }, user, transaction);
   }
@@ -188,10 +193,180 @@ const _deleteMicroservice = async function (microserviceUuid, user, transaction)
   }
 };
 
+async function _createRoute(sourceMicroserviceUuid, destMicroserviceUuid, user, transaction) {
+  const sourceMicroservice = await MicroserviceManager.findOne({uuid: sourceMicroserviceUuid}, transaction)
+  if (!sourceMicroservice) {
+    throw new Errors.ModelNotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, sourceMicroserviceUuid))
+  }
+
+  const destMicroservice = await MicroserviceManager.findOne({uuid: destMicroserviceUuid}, transaction)
+  if (!destMicroservice) {
+    throw new Errors.ModelNotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, destMicroserviceUuid))
+  }
+
+  if (!sourceMicroservice.iofogUuid || !destMicroservice.iofogUuid) {
+    throw new Errors.ValidationError('fog not set')
+  }
+  if (!sourceMicroservice.flowId || !destMicroservice.flowId) {
+    throw new Errors.ValidationError('microservices on different flows')
+  }
+
+
+  if (sourceMicroservice.iofogUuid === destMicroservice.iofogUuid) {
+    await _createSimpleRoute(sourceMicroservice, destMicroservice, transaction)
+  } else {
+    await _createRouteOverConnector(sourceMicroservice, destMicroservice, user, transaction)
+  }
+}
+
+/**
+ * use to create route between microservices on same fog
+ *
+ * @param sourceMicroservice
+ * @param destMicroservice
+ * @param transaction
+ * @returns {Promise<void>}
+ * @private
+ */
+async function _createSimpleRoute(sourceMicroservice, destMicroservice, transaction) {
+  //create new route
+  const routeData = {
+    isNetworkConnection: false,
+    sourceMicroserviceUuid: sourceMicroservice.uuid,
+    destMicroserviceUuid: destMicroservice.uuid,
+    sourceIofogUuid: sourceMicroservice.iofogUuid,
+    destIofogUuid: destMicroservice.iofogUuid //same as sourceIofogUuid
+  }
+
+  await RoutingManager.create(routeData, transaction)
+  await _switchOnUpdateFlagsForMicroservices(sourceMicroservice, transaction, destMicroservice)
+}
+
+async function _createRouteOverConnector(sourceMicroservice, destMicroservice, user, transaction) {
+  //open comsat
+  const connectorPorts = await ConnectorService.openPortOnRandomConnector(false, transaction)
+
+  const ports = connectorPorts.ports
+  const connector = connectorPorts.connector
+
+  const createConnectorPortData = {
+    port1: ports.port1,
+    port2: ports.port2,
+    maxConnectionsPort1: 60,
+    maxConnectionsPort2: 0,
+    passcodePort1: ports.passcode1,
+    passcodePort2: ports.passcode2,
+    heartBeatAbsenceThresholdPort1: 60000,
+    heartBeatAbsenceThresholdPort2: 0,
+    connectorId: ports.connectorId,
+    mappingId: ports.id
+  };
+  await ConnectorPortManager.create(createConnectorPortData, transaction)
+
+  const networkCatalogItem = CatalogService.getNetworkCatalogItem(transaction)
+
+  //create netw ms1
+  const sourceNetwMsConfig = {
+    'mode': 'private', //TODO: for public 'public'
+    'host': connector.domain,
+    'cert': connector.cert,
+    'port': ports.port1,
+    'passcode': ports.passcode1,
+    'connectioncount': 1, //TODO: for public 60
+    'localhost': 'iofog',
+    'localport': 0,
+    'heartbeatfrequency': 20000,
+    'heartbeatabsencethreshold': 60000,
+    'devmode': connector.devMode
+  }
+  const sourceNetworkMicroserviceData = {
+    uuid: AppHelper.generateRandomString(32),
+    name: `Network for Element ${sourceMicroservice.uuid}`,
+    config: JSON.stringify(sourceNetwMsConfig),
+    isNetwork: true,
+    catalogItemId: networkCatalogItem.id,
+    flowId: sourceMicroservice.flowId,
+    iofogUuid: sourceMicroservice.iofogUuid,
+    rootHostAccess: false,
+    logSize: 50,
+    updatedBy: user.id,
+
+    //TODO strange parameters
+    configLastUpdated: Date.now(), //TODO can be not setted, because it's creation
+    registryId: networkCatalogItem.registryId, //TODO redundant field in db. discuss with dbusel
+  }
+
+  const sourceNetworkMicroservice = await MicroserviceManager.create(sourceNetworkMicroserviceData, transaction);
+
+  //create netw ms2
+  const destNetwMsConfig = {
+    'mode': 'private', //TODO: for public 'public'
+    'host': connector.domain,
+    'cert': connector.cert,
+    'port': ports.port2,
+    'passcode': ports.passcode2,
+    'connectioncount': 1, //TODO: for public 60
+    'localhost': 'iofog',
+    'localport': 0,
+    'heartbeatfrequency': 20000,
+    'heartbeatabsencethreshold': 60000,
+    'devmode': connector.devMode
+  }
+  const destNetworkMicroserviceData = {
+    uuid: AppHelper.generateRandomString(32),
+    name: `Network for Element ${destMicroservice.uuid}`,
+    config: JSON.stringify(destNetwMsConfig),
+    isNetwork: true,
+    catalogItemId: networkCatalogItem.id,
+    flowId: destMicroservice.flowId,
+    iofogUuid: destMicroservice.iofogUuid,
+    rootHostAccess: false,
+    logSize: 50,
+    updatedBy: user.id,
+
+    //TODO strange parameters
+    configLastUpdated: Date.now(), //TODO can be not setted, because it's creation
+    registryId: networkCatalogItem.registryId, //TODO redundant field in db. discuss with dbusel
+  }
+
+  const destNetworkMicroservice = await MicroserviceManager.create(destNetworkMicroserviceData, transaction);
+
+  //create new route
+  const routeData = {
+    isNetworkConnection: true,
+    sourceMicroserviceUuid: sourceMicroservice.uuid,
+    destMicroserviceUuid: destMicroservice.uuid,
+    sourceIofogUuid: sourceMicroservice.iofogUuid,
+    destIofogUuid: destMicroservice.iofogUuid,
+    sourceNetworkMicroserviceUuid: sourceNetworkMicroservice.uuid,
+    destNetworkMicroserviceUuid: destNetworkMicroservice.uuid,
+  }
+  await RoutingManager.create(routeData, transaction)
+
+  await _switchOnUpdateFlagsForMicroservices(sourceMicroservice, transaction, destMicroservice)
+}
+
+async function _switchOnUpdateFlagsForMicroservices(sourceMicroservice, transaction, destMicroservice) {
+  const updateRebuildMs = {
+    rebuild: true
+  }
+  await MicroserviceManager.update({uuid: sourceMicroservice.uuid}, updateRebuildMs, transaction)
+  await MicroserviceManager.update({uuid: destMicroservice.uuid}, updateRebuildMs, transaction)
+
+  const updateChangeTrackingData = {
+    containerConfig: true,
+    containerList: true,
+    routing: true
+  }
+  await ChangeTrackingManager.update({iofogUuid: sourceMicroservice.iofogUuid}, updateChangeTrackingData, transaction)
+  await ChangeTrackingManager.update({iofogUuid: destMicroservice.iofogUuid}, updateChangeTrackingData, transaction)
+}
+
 module.exports = {
   createMicroserviceOnFog: TransactionDecorator.generateTransaction(_createMicroserviceOnFog),
   getMicroserviceByFlow: TransactionDecorator.generateTransaction(_getMicroserviceByFlow),
   getMicroservice: TransactionDecorator.generateTransaction(_getMicroservice),
   updateMicroservice: TransactionDecorator.generateTransaction(_updateMicroservice),
-  deleteMicroservice: TransactionDecorator.generateTransaction(_deleteMicroservice)
+  deleteMicroservice: TransactionDecorator.generateTransaction(_deleteMicroservice),
+  createRouteWithTransaction : TransactionDecorator.generateTransaction(_createRoute)
 };

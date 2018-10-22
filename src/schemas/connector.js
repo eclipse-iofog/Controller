@@ -20,6 +20,7 @@ const connectorCreate = {
     "publicIp": {"type": "string", "minLength": 7},
     "certDir": {"type": "string"},
     "isSelfSignedCert": {"type": "boolean"},
+    "devMode": {"type": "boolean"}
   },
   "required": ["publicIp", "name"]
 };
@@ -33,6 +34,7 @@ const connectorUpdate = {
     "publicIp": {"type": "string", "minLength": 7},
     "certDir": {"type": "string"},
     "isSelfSignedCert": {"type": "boolean"},
+    "devMode": {"type": "boolean"}
   },
   "required": ["publicIp"]
 };

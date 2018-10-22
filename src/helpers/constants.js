@@ -30,6 +30,9 @@ const CONFIG = {
 };
 
 module.exports = {
+  CONNECTOR_HTTP_PORT: 8080,
+  CONNECTOR_HTTPS_PORT: 443,
+
   CMD: 'command',
   CMD_LIST: 'list',
   CMD_ADD: 'add',

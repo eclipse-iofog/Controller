@@ -1201,7 +1201,7 @@ paths:
           description: Not Found
         '500':
           description: Internal Server Error
-  '/microservices/{uuid}/routes/{receiverId}':
+  '/microservices/{uuid}/routes/{receiverUuid}':
     post:
       tags:
       - Microservices
@@ -1219,8 +1219,8 @@ paths:
         required: true
         type: string
       - in: path
-        name: receiverId
-        description: Receiver Microservice Id
+        name: receiverUuid
+        description: Receiver Microservice Uuid
         required: true
         type: string
       responses:

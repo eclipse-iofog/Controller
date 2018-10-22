@@ -27,9 +27,11 @@ class Connector extends BaseCLIHandler {
       { name: 'name', alias: 'n', type: String, description: 'Connector name', group: [constants.CMD_ADD, constants.CMD_UPDATE] },
       { name: 'domain', alias: 'd', type: String, description: 'Connector domain name', group: [constants.CMD_ADD, constants.CMD_UPDATE] },
       { name: 'public-ip', alias: 'i', type: String, description: 'Connector public IP address', group: [constants.CMD_ADD, constants.CMD_UPDATE, constants.CMD_REMOVE] },
-      { name: 'cert-dir', alias: 'c', type: String, description: 'Path to certificate', group: [constants.CMD_ADD, constants.CMD_UPDATE] },
+      { name: 'cert', alias: 'c', type: String, description: 'Certificate', group: [constants.CMD_ADD, constants.CMD_UPDATE] },
       { name: 'self-signed-on', alias: 'S', type: Boolean, description: 'Switch on self-signed enabled', group: [constants.CMD_ADD, constants.CMD_UPDATE] },
       { name: 'self-signed-off', alias: 's', type: Boolean, description: 'Switch off self-signed disabled', group: [constants.CMD_ADD, constants.CMD_UPDATE] },
+      { name: 'dev-mode-on', alias: 'H', type: Boolean, description: 'Switch on dev mode', group: [constants.CMD_ADD, constants.CMD_UPDATE] },
+      { name: 'dev-mode-off', alias: 'h', type: Boolean, description: 'Switch off dev mode', group: [constants.CMD_ADD, constants.CMD_UPDATE] },
     ]
     this.commands = {
       [constants.CMD_ADD]: 'Add a new Connector.',
@@ -90,7 +92,7 @@ async function _updateConnector(obj) {
   const connector = _createConnectorObject(obj)
   logger.info(JSON.stringify(connector));
   await ConnectorService.updateConnectorWithTransaction(connector)
-  logger.info('Connector has been updagted successfully.');
+  logger.info('Connector has been updated successfully.');
 }
 
 async function _deleteConnector(obj) {
@@ -112,7 +114,8 @@ function _createConnectorObject(cliData) {
     domain: cliData.domain,
     publicIp: cliData.publicIp,
     certDir: cliData.certDir,
-    isSelfSignedCert: AppHelper.validateBooleanCliOptions(cliData.selfSignedEnable, cliData.selfSignedDisable)
+    isSelfSignedCert: AppHelper.validateBooleanCliOptions(cliData.selfSignedEnable, cliData.selfSignedDisable),
+    devMode: AppHelper.validateBooleanCliOptions(cliData.devModeOn, cliData.devModeOff)
   }
 
   return AppHelper.deleteUndefinedFields(connectorObj);

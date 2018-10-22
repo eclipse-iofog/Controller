@@ -246,10 +246,21 @@ const _createCatalogItemOutputType = async function (data, catalogItem, transact
   return await CatalogItemOutputTypeManager.create(catalogItemOutputType, transaction);
 };
 
+async function getNetworkCatalogItem(transaction) {
+  return await CatalogItemImageManager.findOne({
+    name: 'Networking Tool',
+    category: 'SYSTEM',
+    publisher: 'Eclipse ioFog',
+    registry_id: 1,
+    user_id: null
+  }, transaction)
+}
+
 module.exports = {
   createCatalogItem: TransactionDecorator.generateTransaction(createCatalogItem),
   listCatalogItems: TransactionDecorator.generateTransaction(listCatalogItems),
   listCatalogItem: TransactionDecorator.generateTransaction(listCatalogItem),
   deleteCatalogItem: TransactionDecorator.generateTransaction(deleteCatalogItem),
-  updateCatalogItem: TransactionDecorator.generateTransaction(updateCatalogItem)
+  updateCatalogItem: TransactionDecorator.generateTransaction(updateCatalogItem),
+  getNetworkCatalogItem: getNetworkCatalogItem
 };
