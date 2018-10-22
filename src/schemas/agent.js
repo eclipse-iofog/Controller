@@ -18,7 +18,8 @@ const agentProvision = {
     "type": {"type": "integer", "minimum": 0, "maximum": 2},
     "key": {"type": "string"}
   },
-  "required": ["type", "key"]
+  "required": ["type", "key"],
+  "additionalProperties": false
 };
 
 const updateAgentConfig = {
@@ -41,7 +42,8 @@ const updateAgentConfig = {
     "latitude": {"type": "number", "minimum": -90, "maximum": 90},
     "longitude": {"type": "number", "minimum": -180, "maximum": 180},
     "gpsMode": {"type": "string"}
-  }
+  },
+  "additionalProperties": false
 };
 
 const agentConfigChanges = {
@@ -49,7 +51,8 @@ const agentConfigChanges = {
   "type": "object",
   "properties": {
     "timestamp": {"type": "integer"}
-  }
+  },
+  "additionalProperties": false
 };
 
 const updateAgentStatus = {
@@ -78,7 +81,8 @@ const updateAgentStatus = {
     "version": {"type": "string"},
     "isReadyToUpgrade": {"type": "boolean"},
     "isReadyToRollback": {"type": "boolean"}
-  }
+  },
+  "additionalProperties": false
 };
 
 
@@ -91,7 +95,8 @@ const updateAgentStrace = {
       "items": {"$ref": "/straceData"},
       "required": []
     }
-  }
+  },
+  "additionalProperties": false
 };
 
 const straceData = {
@@ -101,7 +106,8 @@ const straceData = {
     "microserviceId": {"type": "string"},
     "buffer": {"type": "string"}
   },
-  "required": ["microserviceId", "buffer"]
+  "required": ["microserviceId", "buffer"],
+  "additionalProperties": false
 };
 
 const updateHardwareInfo = {
@@ -110,7 +116,8 @@ const updateHardwareInfo = {
   "properties": {
     "info": {"type": "string"},
   },
-  "required": ["info"]
+  "required": ["info"],
+  "additionalProperties": false
 };
 
 const updateUsbInfo = {
@@ -119,7 +126,8 @@ const updateUsbInfo = {
   "properties": {
     "info": {"type": "string"},
   },
-  "required": ["info"]
+  "required": ["info"],
+  "additionalProperties": false
 };
 
 module.exports = {
