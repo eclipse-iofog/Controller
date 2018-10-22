@@ -27,8 +27,8 @@ const ftpClient = require('ftp');
 const changeMicroserviceStraceState = async function (id, data, user, isCLI, transaction) {
   validator.validate(data, validator.schemas.straceStateUpdate);
   const microservice = await MicroserviceService.getMicroservice(id, user, isCLI, transaction);
-  if (microservice.iofogUuid == null) {
-    throw new Errors.ValidationError()
+  if (microservice.iofogUuid === null) {
+    throw new Errors.ValidationError(ErrorMessages.STRACE_WITHOUT_FOG);
   }
 
   const straceObj = {
@@ -37,7 +37,7 @@ const changeMicroserviceStraceState = async function (id, data, user, isCLI, tra
   };
 
   await StraceDiagnosticManager.updateOrCreate({microserviceUuid: id}, straceObj, transaction);
-  await ChangeTrackingManager.updateOrCreate({iofogUuid: microservice.iofogUuid}, {diagnostics: true}, transaction)
+  await ChangeTrackingManager.update({iofogUuid: microservice.iofogUuid}, {diagnostics: true}, transaction)
 };
 
 const getMicroserviceStraceData = async function (id, data, user, isCLI, transaction) {
@@ -48,7 +48,7 @@ const getMicroserviceStraceData = async function (id, data, user, isCLI, transac
 
   let result = straceData.buffer;
 
-  if (data.format == 'file') {
+  if (data.format === 'file') {
     _createDirectoryIfNotExists(dir);
     _writeBufferToFile(filePath, straceData.buffer);
     result = _converFileToBase64(filePath);

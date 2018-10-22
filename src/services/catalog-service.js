@@ -35,12 +35,12 @@ const createCatalogItem = async function (data, user, transaction) {
   }
 };
 
-const updateCatalogItem = async function (data, user, isCLI, transaction) {
+const updateCatalogItem = async function (id, data, user, isCLI, transaction) {
   await validator.validate(data, validator.schemas.catalogItemUpdate);
 
   const where = isCLI
-    ? {id: data.id}
-    : {id: data.id, userId: user.id};
+    ? {id: id}
+    : {id: id, userId: user.id};
 
   await _updateCatalogItem(data, where, transaction);
   await _updateCatalogItemImages(data, transaction);

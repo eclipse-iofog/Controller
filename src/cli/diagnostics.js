@@ -15,7 +15,6 @@ const BaseCLIHandler = require('./base-cli-handler');
 const constants = require('../helpers/constants');
 const logger = require('../logger');
 const DiagnosticService = require('../services/diagnostic-service');
-const fs = require('fs');
 const AppHelper = require('../helpers/app-helper');
 const AuthDecorator = require('../decorators/cli-decorator');
 
@@ -27,7 +26,7 @@ class Diagnostics extends BaseCLIHandler {
     this.name = constants.CMD_DIAGNOSTICS;
     this.commandDefinitions = [
       {
-        name: 'command', defaultOption: true, description: 'add, remove, update, list',
+        name: 'command', defaultOption: true,
         group: constants.CMD,
       },
       {
@@ -56,15 +55,15 @@ class Diagnostics extends BaseCLIHandler {
         group: [constants.CMD_STRACE_FTP_POST]
       },
       {
-        name: 'ftpUser', alias: 'u', type: Number, description: 'FTP user',
+        name: 'ftpUser', alias: 'u', type: String, description: 'FTP user',
         group: [constants.CMD_STRACE_FTP_POST]
       },
       {
-        name: 'ftpPass', alias: 's', type: Number, description: 'FTP user password',
+        name: 'ftpPass', alias: 's', type: String, description: 'FTP user password',
         group: [constants.CMD_STRACE_FTP_POST]
       },
       {
-        name: 'ftpDestDir', alias: 'd', type: Number, description: 'FTP destination directory',
+        name: 'ftpDestDir', alias: 'd', type: String, description: 'FTP destination directory',
         group: [constants.CMD_STRACE_FTP_POST]
       },
     ]
@@ -116,28 +115,27 @@ const _executeCase  = async function (diagnosticCommand, commandName, f, isUserR
   }
 };
 
-const _changeMicroserviceStraceState = async function (obj, user) {
+const _changeMicroserviceStraceState = async function (obj) {
   logger.info(JSON.stringify(obj));
 
   const enable = AppHelper.validateBooleanCliOptions(obj.disable, obj.enable);
-  await DiagnosticService.changeMicroserviceStraceState(obj.microserviceId, {enable: enable}, user, true);
+  await DiagnosticService.changeMicroserviceStraceState(obj.microserviceId, {enable: enable}, {}, true);
   const msg = enable ? 'Microservice strace has been enabled' : 'Microservice strace has been disabled';
   logger.info(msg);
 };
 
-const _getMicroserviceStraceData = async function (obj, user) {
+const _getMicroserviceStraceData = async function (obj) {
   logger.info(JSON.stringify(obj));
 
-  const result = await DiagnosticService.getMicroserviceStraceData(obj.microserviceId, {format: obj.format}, user, true);
+  const result = await DiagnosticService.getMicroserviceStraceData(obj.microserviceId, {format: obj.format}, {}, true);
   logger.info(JSON.stringify(result));
 };
 
-const _postMicroserviceStraceDataToFtp = async function (obj, user) {
+const _postMicroserviceStraceDataToFtp = async function (obj) {
   logger.info(JSON.stringify(obj));
 
-  const id = obj.id;
-  delete obj.id;
-  await DiagnosticService.postMicroserviceStraceDatatoFtp(id, obj, user, true);
+  await DiagnosticService.postMicroserviceStraceDatatoFtp(obj.microserviceId, obj, {}, true);
+  logger.info('Strace data has been posted to ftp successfully');
 };
 
 module.exports = new Diagnostics();
