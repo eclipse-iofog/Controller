@@ -20,9 +20,9 @@
   "Proxy": {
     "Username": "username",
     "Password": "password",
-    "Host": "127.0.0.1",
+    "Host": "23.253.111.231",
     "RsaKey": "rsa",
-    "Lport": 5000,
+    "Lport": 22,
     "PortRange": "2000-10000"
   }
 }

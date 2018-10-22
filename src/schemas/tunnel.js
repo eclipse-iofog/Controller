@@ -25,15 +25,6 @@ const tunnelCreate = {
   "required": ["iofogUuid", "username", "password", "lport", "rport"]
 };
 
-const tunnelFind = {
-  "id": "/tunnelFind",
-  "type": "object",
-  "properties": {
-    "iofogUuid": {"type": "string"}
-  },
-  "required": ["iofogUuid"]
-};
-
 module.exports = {
-  mainSchemas: [tunnelCreate, tunnelFind]
+  mainSchemas: [tunnelCreate]
 };

@@ -51,7 +51,6 @@ const updateChangeTracking = async function (tunnelData, transaction){
 };
 
 const findTunnel = async function (tunnelData, user, transaction) {
-  await Validator.validate(tunnelData, Validator.schemas.tunnelFind);
   const tunnel = await TunnelManager.findOne(tunnelData, transaction);
   if (!tunnel) {
     throw new Errors.NotFoundError('Invalid Tunnel Id');
