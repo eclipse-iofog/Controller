@@ -18,11 +18,11 @@
     "FogTokenExpirationIntervalSeconds": 3600
   },
   "Proxy": {
-    "proxy_username": "username",
-    "proxy_password": "password",
-    "proxy_host": "127.0.0.1",
-    "proxy_rsa_key": "rsa",
-    "proxy_lport": 5000,
-    "portRange": "2000-10000"
+    "Username": "username",
+    "Password": "password",
+    "Host": "127.0.0.1",
+    "RsaKey": "rsa",
+    "Lport": 5000,
+    "PortRange": "2000-10000"
   }
 }

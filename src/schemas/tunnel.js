@@ -19,8 +19,8 @@ const tunnelCreate = {
     "username": {"type": "string", "minLength": 1},
     "password": {"type": "string"},
     "rsakey": {"type": "string"},
-    "lport": {"type": "integer"},
-    "rport": {"type": "integer"}
+    "lport": {"type": "integer", "minimum" : 0},
+    "rport": {"type": "integer", "minimum" : 0}
   },
   "required": ["iofogUuid", "username", "password", "lport", "rport"]
 };

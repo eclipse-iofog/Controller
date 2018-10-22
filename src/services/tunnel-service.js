@@ -26,13 +26,13 @@ const openTunnel = async function (tunnelData, user, transaction) {
     if (!iofog) {
         throw new Errors.NotFoundError('Invalid Fog Id');
     }
-    const host = Config.get("Proxy:" + constants.CONFIG.proxy_host);
+    const host = Config.get("Proxy:Host");
     let tunnel = {
-        username: Config.get("Proxy:" + constants.CONFIG.proxy_username),
-        password: Config.get("Proxy:" + constants.CONFIG.proxy_password),
+        username: Config.get("Proxy:Username"),
+        password: Config.get("Proxy:Password"),
         host: host,
-        rsakey: Config.get("Proxy:" + constants.CONFIG.proxy_rsa_key),
-        lport: Config.get("Proxy:" + constants.CONFIG.proxy_lport),
+        rsakey: Config.get("Proxy:RsaKey"),
+        lport: Config.get("Proxy:Lport"),
         iofogUuid: iofog.uuid,
         closed: false,
         rport: await AppHelper.findAvailablePort(host)

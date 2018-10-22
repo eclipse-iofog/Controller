@@ -2461,6 +2461,9 @@ definitions:
     properties:
       action:
         type: string
+        enum:
+        - open
+        - close
   MicroservicesCatalogResponse:
     type: array
     items:
