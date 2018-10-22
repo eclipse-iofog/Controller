@@ -24,5 +24,8 @@
     "RsaKey": "rsa",
     "Lport": 22,
     "PortRange": "2000-10000"
+  },
+  "Diagnostics": {
+    "DiagnosticDir": "diagnostic"
   }
 }

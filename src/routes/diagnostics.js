@@ -10,7 +10,10 @@
  *  *******************************************************************************
  *
  */
-const constants = require('../helpers/constants')
+const constants = require('../helpers/constants');
+const DiagnosticController = require('../controllers/diagnostic-controller');
+const ResponseDecorator = require('../decorators/response-decorator');
+const Errors = require('../helpers/errors');
 
 module.exports = [
   {
@@ -32,39 +35,101 @@ module.exports = [
     }
   },
   {
-    method: 'post',
+    method: 'patch',
     path: '/api/v3/iofog/microservices/:id/strace',
-    middleware: (req, res) => {
+    middleware: async (req, res) => {
+
+      const successCode = constants.HTTP_CODE_NO_CONTENT;
+      const errorCodes = [
+        {
+          code: constants.HTTP_CODE_UNAUTHORIZED,
+          errors: [Errors.AuthenticationError]
+        },
+        {
+          code: constants.HTTP_CODE_NOT_FOUND,
+          errors: [Errors.NotFoundError]
+        },
+        {
+          code: constants.HTTP_CODE_BAD_REQUEST,
+          errors: [Errors.ValidationError]
+        }
+      ];
+
+      const changeMicroserviceStraceStateEndPoint = ResponseDecorator.handleErrors(
+        DiagnosticController.changeMicroserviceStraceStateEndPoint,
+        successCode,
+        errorCodes
+      );
+      const responseObject = await changeMicroserviceStraceStateEndPoint(req);
+
       res
-        .status(constants.HTTP_CODE_SUCCESS)
-        .send(req.body)
-    }
-  },
-  {
-    method: 'delete',
-    path: '/api/v3/iofog/microservices/:id/strace',
-    middleware: (req, res) => {
-      res
-        .status(constants.HTTP_CODE_SUCCESS)
-        .send(req.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
     }
   },
   {
     method: 'get',
     path: '/api/v3/iofog/microservices/:id/strace',
-    middleware: (req, res) => {
+    middleware: async (req, res) => {
+
+      const successCode = constants.HTTP_CODE_SUCCESS;
+      const errorCodes = [
+        {
+          code: constants.HTTP_CODE_UNAUTHORIZED,
+          errors: [Errors.AuthenticationError]
+        },
+        {
+          code: constants.HTTP_CODE_NOT_FOUND,
+          errors: [Errors.NotFoundError]
+        }
+      ];
+
+      const getMicroserviceStraceDataEndPoint = ResponseDecorator.handleErrors(
+        DiagnosticController.getMicroserviceStraceDataEndPoint,
+        successCode,
+        errorCodes
+      );
+      const responseObject = await getMicroserviceStraceDataEndPoint(req);
+
       res
-        .status(constants.HTTP_CODE_SUCCESS)
-        .send(req.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
     }
   },
   {
     method: 'put',
     path: '/api/v3/iofog/microservices/:id/strace',
-    middleware: (req, res) => {
+    middleware: async (req, res) => {
+      const successCode = constants.HTTP_CODE_NO_CONTENT;
+      const errorCodes = [
+        {
+          code: constants.HTTP_CODE_UNAUTHORIZED,
+          errors: [Errors.AuthenticationError]
+        },
+        {
+          code: constants.HTTP_CODE_NOT_FOUND,
+          errors: [Errors.NotFoundError]
+        },
+        {
+          code: constants.HTTP_CODE_BAD_REQUEST,
+          errors: [Errors.ValidationError]
+        },
+        {
+          code: constants.HTTP_CODE_INTERNAL_ERROR,
+          errors: [Errors.FtpError]
+        }
+      ];
+
+      const postMicroserviceStraceDataToFtpEndPoint = ResponseDecorator.handleErrors(
+        DiagnosticController.postMicroserviceStraceDataToFtpEndPoint,
+        successCode,
+        errorCodes
+      );
+      const responseObject = await postMicroserviceStraceDataToFtpEndPoint(req);
+
       res
-        .status(constants.HTTP_CODE_SUCCESS)
-        .send(req.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
     }
   }
 ]

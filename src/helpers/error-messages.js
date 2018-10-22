@@ -19,6 +19,7 @@ module.exports = {
   UNABLE_TO_GET_ACTIVATION_CODE: 'Unable to create activation code',
   INVALID_FOG_NODE_ID: 'Invalid fog node id {}',
   INVALID_USER_EMAIL: 'Invalid user email',
+  INVALID_MICROSERVICE_UUID: 'Invalid microservice uuid',
   ACTIVATION_CODE_NOT_FOUND: 'Activation code not found',
   INVALID_OLD_PASSWORD: 'Old password is incorrect',
   ACCOUNT_NOT_FOUND: 'Account not found',
@@ -30,5 +31,11 @@ module.exports = {
   EMAIL_SENDER_NOT_CONFIGURED: 'Email sender not configured',
   INVALID_PORT_FORMAT: 'Invalid port format',
   INVALID_FILE_PATH: 'Invalid file path',
-  PORT_NOT_AVAILABLE: 'Port {} not available'
+  PORT_NOT_AVAILABLE: 'Port {} not available',
+  UNABLE_TO_WRITE_STRACE: 'Error while writing strace data to file. File name: {}, err: {}',
+  UNABLE_TO_DELETE_STRACE: 'Error while deleting strace data file. File name: {}, err: {}',
+  FTP_ERROR: 'Ftp error: {}',
+  EXPIRED_PROVISION_KEY: 'Expired provision key',
+  VERSION_COMMAND_NOT_FOUND: 'Version command not found',
+  STRACE_WITHOUT_FOG: 'Can not run strace for element without fog.'
 };

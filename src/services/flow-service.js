@@ -55,8 +55,8 @@ const _deleteFlow = async function (flowId, user, isCLI, transaction) {
 
 const _updateFlow = async function (flowData, flowId, user, isCLI, transaction) {
   await Validation.validate(flowData, Validation.schemas.flowUpdate);
-
-  await _getFlow(flowId, user, transaction);
+  
+  await _getFlow(flowId, user, isCLI, transaction);
 
   if (flowData.name !== undefined) {
     await isFlowExist(flowData.name, transaction);
@@ -120,6 +120,5 @@ module.exports = {
   deleteFlow: TransactionDecorator.generateTransaction(_deleteFlow),
   updateFlow: TransactionDecorator.generateTransaction(_updateFlow),
   getFlow: TransactionDecorator.generateTransaction(_getFlow),
-  getUserFlows: TransactionDecorator.generateTransaction(_getUserFlows),
-  getAllFlows: TransactionDecorator.generateTransaction(_getAllFlows)
+  getUserFlows: TransactionDecorator.generateTransaction(_getUserFlows)
 };

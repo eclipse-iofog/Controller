@@ -70,6 +70,27 @@ async function _setFogRebootCommand(req, user) {
   return await FogService.setFogRebootCommandWithTransaction(fog, user, false)
 }
 
+async function _getHalHardwareInfo(req, user) {
+  const uuidObj = {
+    uuid: req.params.uuid
+  };
+
+  logger.info("Parameters" + JSON.stringify(uuidObj));
+
+  return await FogService.getHalHardwareInfo(uuidObj, user, false);
+}
+
+
+async function _getHalUsbInfo(req, user) {
+  const uuidObj = {
+    uuid: req.params.uuid
+  };
+
+  logger.info("Parameters" + JSON.stringify(uuidObj));
+
+  return await FogService.getHalUsbInfo(uuidObj, user, false);
+}
+
 module.exports = {
   createFog: AuthDecorator.checkAuthToken(_createFog),
   updateFog: AuthDecorator.checkAuthToken(_updateFog),
@@ -79,4 +100,6 @@ module.exports = {
   generateProvisioningKey: AuthDecorator.checkAuthToken(_generateProvisioningKey),
   setFogVersionCommand: AuthDecorator.checkAuthToken(_setFogVersionCommand),
   setFogRebootCommand: AuthDecorator.checkAuthToken(_setFogRebootCommand),
-}
+  getHalHardwareInfo: AuthDecorator.checkAuthToken(_getHalHardwareInfo),
+  getHalUsbInfo: AuthDecorator.checkAuthToken(_getHalUsbInfo)
+};

@@ -23,6 +23,7 @@ const Flow = require('./flow')
 const Microservice = require('./microservice')
 const Registry = require('./registry')
 const Controller = require('./controller')
+const Diagnostics = require('./diagnostics')
 
 const constants = require('../helpers/constants')
 
@@ -47,6 +48,7 @@ class Cli extends BaseCLIHandler {
       [constants.CMD_FLOW]: 'Application flow operations.',
       [constants.CMD_MICROSERVICE]: 'Microservice instance operations.',
       [constants.CMD_REGISTRY]: 'Registries instance operations.',
+      [constants.CMD_DIAGNOSTICS]: 'Diagnostic instance operations.',
     }
   }
 
@@ -79,6 +81,8 @@ class Cli extends BaseCLIHandler {
         return Microservice.run({ argv })
       case constants.CMD_REGISTRY:
         return Registry.run({ argv })
+      case constants.CMD_DIAGNOSTICS:
+        return Diagnostics.run({ argv })
       case constants.CMD_HELP:
       default:
         return this.help([], false)
