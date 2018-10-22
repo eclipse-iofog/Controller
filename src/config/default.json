@@ -16,5 +16,8 @@
   "Settings": {
     "UserTokenExpirationIntervalSeconds": 3600,
     "FogTokenExpirationIntervalSeconds": 3600
+  },
+  "Diagnostics": {
+    "DiagnosticDir": "diagnostic"
   }
 }

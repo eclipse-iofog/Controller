@@ -13,13 +13,13 @@
 
 const BaseManager = require('./base-manager');
 const models = require('./../models');
-const MicroservicePort = models.MicroservicePort;
+const VolumeMapping = models.VolumeMapping;
 
-class MicroservicePortManager extends BaseManager {
-  getEntity() {
-    return MicroservicePort
-  }
+class VolumeMappingManager extends BaseManager {
+    getEntity() {
+        return VolumeMapping
+    }
 }
 
-const instance = new MicroservicePortManager();
+const instance = new VolumeMappingManager();
 module.exports = instance;

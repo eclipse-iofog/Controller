@@ -15,34 +15,31 @@ const straceStateUpdate = {
   "id": "/straceStateUpdate",
   "type": "object",
   "properties": {
-    "id": {"type": "string"},
     "enable": {"type": "boolean"}
   },
-  "required": ["id","enable"]
+  "required": ["enable"]
 };
 
 const straceGetData = {
   "id": "/straceGetData",
   "type": "object",
   "properties": {
-    "id": {"type": "string"},
     "format": {"enum": ["string","file"]}
   },
-  "required": ["id","format"]
+  "required": ["format"]
 };
 
 const stracePostToFtp = {
   "id": "/stracePostToFtp",
   "type": "object",
   "properties": {
-    "id": {"type": "string"},
     "ftpHost": {"type": "string"},
     "ftpPort": {"type": "integer", "minimum": 0},
     "ftpUser": {"type": "string"},
     "ftpPass": {"type": "string"},
     "ftpDestDir": {"type": "string"},
   },
-  "required": ["id","ftpHost","ftpPort","ftpUser","ftpPass","ftpDestDir"]
+  "required": ["ftpHost","ftpPort","ftpUser","ftpPass","ftpDestDir"]
 };
 
 module.exports = {

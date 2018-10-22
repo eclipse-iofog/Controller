@@ -142,31 +142,31 @@ const _createCatalogItem = async function (obj, user) {
   logger.info('Catalog item has been created successfully.');
 };
 
-const _updateCatalogItem = async function (obj, user) {
+const _updateCatalogItem = async function (obj) {
   const item = obj.file
     ? JSON.parse(fs.readFileSync(obj.file, 'utf8'))
     : _createCatalogItemObject(obj);
 
+  logger.info('Item id: ' + obj.itemId);
   logger.info(JSON.stringify(item));
-  item.id = obj.itemId;
-  await CatalogItemService.updateCatalogItem(item, user, true);
+  await CatalogItemService.updateCatalogItem(obj.itemId, item, {}, true);
   logger.info('Catalog item has been updated successfully.');
 };
 
-const _deleteCatalogItem = async function (obj, user) {
+const _deleteCatalogItem = async function (obj) {
   logger.info(JSON.stringify(obj));
-  await CatalogItemService.deleteCatalogItem(obj.itemId, user, true);
+  await CatalogItemService.deleteCatalogItem(obj.itemId, {}, true);
   logger.info('Catalog item has been removed successfully');
 };
 
-const _listCatalogItems = async function (user) {
-  const result = await CatalogItemService.listCatalogItems(user, true);
+const _listCatalogItems = async function () {
+  const result = await CatalogItemService.listCatalogItems({}, true);
   logger.info(JSON.stringify(result));
 };
 
-const _listCatalogItem = async function (obj, user) {
+const _listCatalogItem = async function (obj) {
   logger.info(JSON.stringify(obj));
-  const result = await CatalogItemService.listCatalogItem(obj.itemId, user, true);
+  const result = await CatalogItemService.listCatalogItem(obj.itemId, {}, true);
   logger.info(JSON.stringify(result));
 };
 

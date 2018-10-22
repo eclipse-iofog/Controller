@@ -24,33 +24,33 @@ const _createMicroservicesOnFogEndPoint = async function (req, user) {
 };
 
 const _getMicroserviceEndPoint = async function (req, user) {
-  const microserviceId = req.params.id;
+  const microserviceUuid = req.params.uuid;
 
-  logger.info("Microservice id:" + JSON.stringify(microserviceId))
+  logger.info("Microservice uuid:" + JSON.stringify(microserviceUuid))
 
-  return await MicroservicesService.getMicroservice(microserviceId, user)
+  return await MicroservicesService.getMicroservice(microserviceUuid, user)
 };
 
 const _updateMicroserviceEndPoint = async function (req, user) {
   const microservice = req.body;
-  const microserviceId = req.params.id;
+  const microserviceUuid = req.params.uuid;
 
   logger.info("Parameters:" + JSON.stringify(microservice))
-  logger.info("Microservice id:" + JSON.stringify(microserviceId))
+  logger.info("Microservice uuid:" + JSON.stringify(microserviceUuid))
 
-  return await MicroservicesService.updateMicroservice(microservice, microserviceId, user)
+  return await MicroservicesService.updateMicroservice(microserviceUuid, microservice, user)
 };
 
 const _deleteMicroserviceEndPoint = async function (req, user) {
-  const microserviceId = req.params.id;
+  const microserviceUuid = req.params.uuid;
 
-  logger.info("Microservice id:" + JSON.stringify(microserviceId))
+  logger.info("Microservice uuid:" + JSON.stringify(microserviceUuid))
 
-  return await MicroservicesService.deleteMicroservice(microserviceId, user)
+  return await MicroservicesService.deleteMicroservice(microserviceUuid, user)
 };
 
 const _getMicroservicesByFlowEndPoint = async function (req, user) {
-  const flowId = req.body;
+  const flowId = req.query.flowId;
 
   logger.info("Flow id:" + JSON.stringify(flowId))
 
@@ -59,8 +59,8 @@ const _getMicroservicesByFlowEndPoint = async function (req, user) {
 
 module.exports = {
   createMicroservicesOnFogEndPoint: AuthDecorator.checkAuthToken(_createMicroservicesOnFogEndPoint),
-  getMicroservicesByFlowEndPoint: AuthDecorator.checkAuthToken(_getMicroservicesByFlowEndPoint),
   getMicroserviceEndPoint: AuthDecorator.checkAuthToken(_getMicroserviceEndPoint),
   updateMicroserviceEndPoint: AuthDecorator.checkAuthToken(_updateMicroserviceEndPoint),
   deleteMicroserviceEndPoint: AuthDecorator.checkAuthToken(_deleteMicroserviceEndPoint),
+  getMicroservicesByFlowEndPoint: AuthDecorator.checkAuthToken(_getMicroservicesByFlowEndPoint)
 };
