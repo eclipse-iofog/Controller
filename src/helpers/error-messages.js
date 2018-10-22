@@ -19,6 +19,7 @@ module.exports = {
   UNABLE_TO_GET_ACTIVATION_CODE: 'Unable to create activation code',
   INVALID_FOG_NODE_ID: 'Invalid fog node id {}',
   INVALID_USER_EMAIL: 'Invalid user email',
+  INVALID_MICROSERVICE_UUID: 'Invalid microservice uuid',
   ACTIVATION_CODE_NOT_FOUND: 'Activation code not found',
   INVALID_OLD_PASSWORD: 'Old password is incorrect',
   ACCOUNT_NOT_FOUND: 'Account not found',

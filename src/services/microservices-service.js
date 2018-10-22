@@ -15,27 +15,46 @@ const TransactionDecorator = require('../decorators/transaction-decorator');
 const MicroserviceManager = require('../sequelize/managers/microservice-manager');
 const MicroservicePortManager = require('../sequelize/managers/microservice-port-manager');
 const VolumeMappingManager = require('../sequelize/managers/volume-mapping-manager');
+const ChangeTrackingManager = require('../sequelize/managers/change-tracking-manager');
 const IOFogService = require('../services/iofog-service');
 const FlowService = require('../services/flow-service');
 const AppHelper = require('../helpers/app-helper');
 const Errors = require('../helpers/errors');
+const ErrorMessages = require('../helpers/error-messages');
 const Validation = require('../schemas/index');
 
 const _getMicroserviceByFlow = async function (flowId, user, transaction) {
-  await FlowService.getFlow(flowId, user, transaction);
+  await FlowService.getFlow(flowId, user, false, transaction);
 
   const microservice = {
     flowId: flowId
   };
 
-  return await MicroserviceManager.findAllWithDependencies(microservice, {}, transaction)
+  return await MicroserviceManager.findAllWithDependencies(microservice,
+  {
+    exclude: [
+      'configLastUpdated',
+      'created_at',
+      'updated_at',
+      'catalogItemId',
+      'updatedBy',
+      'flowId'
+    ]}, transaction);
 };
 
-const _getMicroservice = async function (microserviceUuid, user, isCLI, transaction) {
+const _getMicroservice = async function (microserviceUuid, user, transaction) {
   const microservice = await MicroserviceManager.findOneWithDependencies({
     uuid: microserviceUuid
   },
-  {}, transaction);
+  {
+    exclude: [
+      'configLastUpdated',
+      'created_at',
+      'updated_at',
+      'catalogItemId',
+      'updatedBy',
+      'flowId'
+    ]}, transaction);
 
   await FlowService.getFlow(microservice.flowId, user, transaction);
 
@@ -58,6 +77,7 @@ const _createMicroserviceOnFog = async function (microserviceData, user, transac
     await _createVolumeMappings(microserviceData, microservice.uuid, transaction);
   }
   // TODO: create routes
+  // TODO: update changeTracking
 
   return {
     uuid: microservice.uuid
@@ -77,7 +97,6 @@ const _createMicroservice = async function (microserviceData, user, transaction)
     iofogUuid: microserviceData.ioFogNodeId,
     rootHostAccess: microserviceData.rootHostAccess,
     logSize: microserviceData.logLimit,
-    // imageSnapshot?
   };
 
   const microserviceDataCreate = AppHelper.deleteUndefinedFields(microserviceToCreate);
@@ -131,7 +150,6 @@ const _updateMicroservice = async function (microserviceUuid, microserviceData, 
     iofogUuid: microserviceData.ioFogNodeId,
     rootHostAccess: microserviceData.rootHostAccess,
     logSize: microserviceData.logLimit,
-    // imageSnapshot?
     updatedBy: user.id
   };
 
@@ -141,6 +159,7 @@ const _updateMicroservice = async function (microserviceUuid, microserviceData, 
     await IOFogService.getFogWithTransaction({
       uuid: microserviceDataUpdate.iofogUuid
     }, user);
+    await _updateChangeTracking(microserviceData, )
   }
 
   await MicroserviceManager.update({
@@ -153,7 +172,9 @@ const _updateMicroservice = async function (microserviceUuid, microserviceData, 
   if (microserviceData.volumeMappings) {
     await _updateVolumeMappings(microserviceUuid, microserviceData, transaction);
   }
+
   // TODO: update routes
+  // TODO: update changeTracking
 };
 
 const _updateMicroservicePort = async function (microserviceUuid, microserviceData, user, transaction) {
@@ -180,12 +201,24 @@ const _updateVolumeMappings = async function (microserviceData, microserviceUuid
   }
 };
 
+const _updateChangeTracking = async function (microserviceData, fogNodeUuid, transaction) {
+  const trackingData = {
+    containerList: true,
+    containerConfig: microserviceData.config ? true : false,
+    iofogUuid: fogNodeUuid
+  };
+
+  await ChangeTrackingManager.create(trackingData, transaction);
+};
+
 const _deleteMicroservice = async function (microserviceUuid, user, transaction) {
+  // TODO: update changeTracking
+
   const affectedRows = await MicroserviceManager.delete({
     uuid: microserviceUuid
   }, transaction);
   if (affectedRows === 0) {
-    throw new Errors.NotFoundError("Invalid microservice uuid");
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, microserviceUuid));
   }
 };
 

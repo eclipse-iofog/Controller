@@ -59,8 +59,8 @@ const _getMicroservicesByFlowEndPoint = async function (req, user) {
 
 module.exports = {
   createMicroservicesOnFogEndPoint: AuthDecorator.checkAuthToken(_createMicroservicesOnFogEndPoint),
-  getMicroservicesByFlowEndPoint: AuthDecorator.checkAuthToken(_getMicroservicesByFlowEndPoint),
   getMicroserviceEndPoint: AuthDecorator.checkAuthToken(_getMicroserviceEndPoint),
   updateMicroserviceEndPoint: AuthDecorator.checkAuthToken(_updateMicroserviceEndPoint),
   deleteMicroserviceEndPoint: AuthDecorator.checkAuthToken(_deleteMicroserviceEndPoint),
+  getMicroservicesByFlowEndPoint: AuthDecorator.checkAuthToken(_getMicroservicesByFlowEndPoint)
 };

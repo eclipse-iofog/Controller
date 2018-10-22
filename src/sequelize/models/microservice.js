@@ -81,15 +81,6 @@ module.exports = (sequelize, DataTypes) => {
       onDelete: 'set null'
     });
 
-    Microservice.belongsTo(models.Registry, {
-      foreignKey: {
-        name: 'registryId',
-        field: 'registry_id'
-      },
-      as: 'registry',
-      onDelete: 'cascade'
-    });
-
     Microservice.belongsTo(models.Flow, {
       foreignKey: {
         name: 'flowId',
@@ -118,7 +109,7 @@ module.exports = (sequelize, DataTypes) => {
       as: 'volumeMappings'
     });
 
-    Microservice.hasMany(models.StraceDiagnostics, {
+    Microservice.hasOne(models.StraceDiagnostics, {
       foreignKey: 'microservice_uuid',
       as: 'strace'
     });

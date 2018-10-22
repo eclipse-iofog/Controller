@@ -555,7 +555,7 @@ paths:
           description: Invalid Node Id
         '500':
           description: Internal Server Error
-  '/agent/microservices/{microserviceId}':
+  '/iofog/agent/microservices/{microserviceUuid}':
     get:
       tags:
       - Agent
@@ -564,8 +564,8 @@ paths:
       parameters:
       - in: path
         required: true
-        name: microserviceId
-        description: Microservice id
+        name: microserviceUuid
+        description: Microservice Uuid
         type: string
       - in: header
         name: Authorization
@@ -1134,7 +1134,7 @@ paths:
           description: Invalid Flow Id
         '500':
           description: Internal Server Error
-  /iofog/microservices:
+  /microservices:
     get:
       tags:
       - Microservices
@@ -1149,7 +1149,7 @@ paths:
       - in: query
         name: flowId
         description: Flow Id
-        required: false
+        required: true
         type: integer
       responses:
         '200':
@@ -1199,7 +1199,7 @@ paths:
           description: Not Authorized
         '500':
           description: Internal Server Error
-  '/iofog/microservices/{uuid}':
+  '/microservices/{uuid}':
     get:
       tags:
       - Microservices
@@ -1297,7 +1297,7 @@ paths:
           description: Not Found
         '500':
           description: Internal Server Error
-  '/iofog/microservices/{uuid}/routes/{receiverId}':
+  '/microservices/{uuid}/routes/{receiverId}':
     post:
       tags:
       - Microservices
@@ -2686,10 +2686,13 @@ definitions:
         type: string
       config:
         type: string
-      images:
-        $ref: '#/definitions/ElementContainerImages'
-      picture:
-        type: string
+      catalogItem:
+        type: object
+        properties:
+          images:
+            $ref: '#/definitions/ElementContainerImages'
+          picture:
+            type: string
       status:
         type: string
       ioFogNodeId:
@@ -2729,22 +2732,14 @@ definitions:
         type: string
       isNetwork:
         type: boolean
-      needUpdate:
-        type: boolean
-      rebuild:
-        type: boolean
       flowId:
         type: string
       ioFogNodeId:
         type: string
       rootHostAccess:
         type: boolean
-      deleteWithCleanUp:
-        type: boolean
       logLimit:
         type: number
-      imageSnapshot:
-        type: string
       volumeMappings:
          type: array
          items:
@@ -2776,6 +2771,10 @@ definitions:
         type: boolean
       logLimit:
         type: number
+      volumeMappings:
+         type: array
+         items:
+           $ref: '#/definitions/VolumeMappingAgentRequest'
       imageSnapshot:
         type: string
       volumeMappings:
