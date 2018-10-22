@@ -2704,10 +2704,13 @@ definitions:
         type: string
       config:
         type: string
-      images:
-        $ref: '#/definitions/ElementContainerImages'
-      picture:
-        type: string
+      catalogItem:
+        type: object
+        properties:
+          images:
+            $ref: '#/definitions/ElementContainerImages'
+          picture:
+            type: string
       status:
         type: string
       ioFogNodeId:
@@ -2747,17 +2750,11 @@ definitions:
         type: string
       isNetwork:
         type: boolean
-      needUpdate:
-        type: boolean
-      rebuild:
-        type: boolean
       flowId:
         type: string
       ioFogNodeId:
         type: string
       rootHostAccess:
-        type: boolean
-      deleteWithCleanUp:
         type: boolean
       logLimit:
         type: number
