@@ -37,7 +37,8 @@ const iofogCreate = {
     "abstractedHardwareEnabled": {"type": "boolean"},
     "fogType": {"type": "integer", "minimum": 0, "maximum": 2}
   },
-  "required": ["name", "fogType"]
+  "required": ["name", "fogType"],
+  "additionalProperties": false
 };
 
 const iofogUpdate = {
@@ -66,7 +67,8 @@ const iofogUpdate = {
     "abstractedHardwareEnabled": {"type": "boolean"},
     "fogType": {"type": "integer", "minimum": 0, "maximum": 2}
   },
-  "required": ["uuid"]
+  "required": ["uuid"],
+  "additionalProperties": false
 };
 
 const iofogDelete = {
@@ -75,7 +77,8 @@ const iofogDelete = {
   "properties": {
     "uuid": {"type": "string"}
   },
-  "required": ["uuid"]
+  "required": ["uuid"],
+  "additionalProperties": false
 };
 
 const iofogGet = {
@@ -84,7 +87,8 @@ const iofogGet = {
   "properties": {
     "uuid": {"type": "string"}
   },
-  "required": ["uuid"]
+  "required": ["uuid"],
+  "additionalProperties": false
 };
 
 const iofogGenerateProvision = {
@@ -93,7 +97,8 @@ const iofogGenerateProvision = {
   "properties": {
     "uuid": {"type": "string"}
   },
-  "required": ["uuid"]
+  "required": ["uuid"],
+  "additionalProperties": false
 };
 
 const iofogSetVersionCommand = {
@@ -103,7 +108,8 @@ const iofogSetVersionCommand = {
     "uuid": {"type": "string"},
     "versionCommand": {"enum": ["upgrade", "rollback"]}
   },
-  "required": ["uuid", "versionCommand"]
+  "required": ["uuid", "versionCommand"],
+  "additionalProperties": false
 };
 
 const iofogReboot = {
@@ -112,14 +118,16 @@ const iofogReboot = {
   "properties": {
     "uuid": {"type": "string"}
   },
-  "required": ["uuid"]
+  "required": ["uuid"],
+  "additionalProperties": false
 };
 
 const iofogFilters = {
   "id": "/iofogFilters",
   "type": "array",
   "items": {"$ref": "/filter"},
-  "required": []
+  "required": [],
+  "additionalProperties": false
 };
 
 const filter = {
@@ -130,7 +138,8 @@ const filter = {
     "value": {"type": "string"},
     "condition": {"enum": ["has", "equals"]}
   },
-  "required": ["key", "value", "condition"]
+  "required": ["key", "value", "condition"],
+  "additionalProperties": false
 };
 
 const halGet = {
@@ -139,7 +148,8 @@ const halGet = {
   "properties": {
     "uuid": {"type": "string"}
   },
-  "required": ["uuid"]
+  "required": ["uuid"],
+  "additionalProperties": false
 };
 
 module.exports = {

@@ -241,6 +241,9 @@ const getAgentChangeVersionCommand = async function (fog, transaction) {
   const versionCommand = await FogVersionCommandManager.findOne({
     iofogUuid: fog.uuid
   }, transaction);
+  if (!versionCommand) {
+    throw new Errors.NotFoundError(ErrorMessages.VERSION_COMMAND_NOT_FOUND);
+  }
 
   const provision = FogProvisionKeyManager.findOne({
     iofogUuid: fog.uuid
@@ -273,6 +276,12 @@ const updateHalUsbInfo = async function (usbData, fog, transaction) {
   }, usbData, transaction);
 };
 
+const deleteNode = async function (fog, transaction) {
+  return await FogManager.delete({
+    uuid: fog.uuid
+  }, transaction);
+};
+
 async function _checkMicroservicesFogType(fogType) {
   // TODO with microservices
   return;
@@ -292,5 +301,6 @@ module.exports = {
   updateAgentStrace: TransactionDecorator.generateTransaction(updateAgentStrace),
   getAgentChangeVersionCommand: TransactionDecorator.generateTransaction(getAgentChangeVersionCommand),
   updateHalHardwareInfo: TransactionDecorator.generateTransaction(updateHalHardwareInfo),
-  updateHalUsbInfo: TransactionDecorator.generateTransaction(updateHalUsbInfo)
+  updateHalUsbInfo: TransactionDecorator.generateTransaction(updateHalUsbInfo),
+  deleteNode: TransactionDecorator.generateTransaction(deleteNode)
 };
