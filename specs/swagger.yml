@@ -2027,9 +2027,9 @@ definitions:
       gpsMode:
         type: string
       latitude:
-        type: string
+        type: number
       longitude:
-        type: string
+        type: number
       description:
         type: string
       createAt:
@@ -2108,7 +2108,7 @@ definitions:
         type: number
       changeFrequency:
         type: number
-      scanFrequency:
+      deviceScanFrequency:
         type: number
       proxy:
         type: string
@@ -2299,14 +2299,14 @@ definitions:
         type: number
       changeFrequency:
         type: number
-      scanFrequency:
+      deviceScanFrequency:
         type: number
       watchdogEnabled:
         type: boolean
       latitude:
-        type: string
+        type: number
       longitude:
-        type: string
+        type: number
       gpsMode:
         type: string
   AgentStatus:
