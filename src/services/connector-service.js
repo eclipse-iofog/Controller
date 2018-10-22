@@ -17,6 +17,8 @@ const ConnectorManager = require('../sequelize/managers/connector-manager')
 const https = require('https');
 const http = require('http');
 const constants = require('../helpers/constants')
+const logger = require('../logger')
+const querystring = require('querystring')
 
 async function _createConnector(connectorData, transaction) {
   await Validator.validate(connectorData, Validator.schemas.connectorCreate)
@@ -50,8 +52,8 @@ async function openPortOnRandomConnector(isPublicAccess, transaction) {
   const maxAttempts = 5
   for (let i = 0; i < maxAttempts; i++) {
     try {
-      const connector = await _getRandomConnector()
-      const ports = await openPortsOnConnector(connector, isPublicAccess, transaction)
+      connector = await _getRandomConnector(transaction)
+      ports = await openPortsOnConnector(connector, isPublicAccess, transaction)
       if (ports) {
         isConnectorPortOpen = true
         break;
@@ -70,10 +72,10 @@ async function openPortOnRandomConnector(isPublicAccess, transaction) {
 //TODO refactor this
 async function openPortsOnConnector(connector, isPublicAccess, transaction) {
   let data = isPublicAccess
-    ? querystring.stringify({
+    ? await querystring.stringify({
       mapping: '{"type":"public","maxconnections":60,"heartbeatabsencethreshold":200000}'
     })
-    : querystring.stringify({
+    : await querystring.stringify({
       mapping: '{"type":"private","maxconnectionsport1":1, "maxconnectionsport2":1, ' +
         '"heartbeatabsencethresholdport1":200000, "heartbeatabsencethresholdport2":200000}'
     });
@@ -92,7 +94,7 @@ async function openPortsOnConnector(connector, isPublicAccess, transaction) {
     }
   };
 
-  const makeRequest = function() {
+  const makeRequest = async function() {
     return new Promise((resolve, reject) => {
       let httpreq = (connector.devMode ? http : https).request(options, function(response) {
         console.log(response.statusCode);
@@ -132,11 +134,12 @@ async function openPortsOnConnector(connector, isPublicAccess, transaction) {
     })
   }
 
-  await makeRequest()
+  const ports = await makeRequest()
+  return ports
 }
 
 async function _getRandomConnector(transaction) {
-  const connectors = _getConnectorList(transaction)
+  const connectors = await _getConnectorList(transaction)
   if (connectors && connectors.length > 0) {
     const randomNumber = Math.round((Math.random() * (connectors.length - 1)));
     return connectors[randomNumber]

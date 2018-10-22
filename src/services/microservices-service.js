@@ -244,10 +244,10 @@ async function _createSimpleRoute(sourceMicroservice, destMicroservice, transact
 
 async function _createRouteOverConnector(sourceMicroservice, destMicroservice, user, transaction) {
   //open comsat
-  const connectorPorts = await ConnectorService.openPortOnRandomConnector(false, transaction)
+  const justOpenedConnectorsPorts = await ConnectorService.openPortOnRandomConnector(false, transaction)
 
-  const ports = connectorPorts.ports
-  const connector = connectorPorts.connector
+  const ports = justOpenedConnectorsPorts.ports
+  const connector = justOpenedConnectorsPorts.connector
 
   const createConnectorPortData = {
     port1: ports.port1,
@@ -261,9 +261,9 @@ async function _createRouteOverConnector(sourceMicroservice, destMicroservice, u
     connectorId: ports.connectorId,
     mappingId: ports.id
   };
-  await ConnectorPortManager.create(createConnectorPortData, transaction)
+  const connectorPort = await ConnectorPortManager.create(createConnectorPortData, transaction)
 
-  const networkCatalogItem = CatalogService.getNetworkCatalogItem(transaction)
+  const networkCatalogItem = await CatalogService.getNetworkCatalogItem(transaction)
 
   //create netw ms1
   const sourceNetwMsConfig = {
@@ -340,6 +340,7 @@ async function _createRouteOverConnector(sourceMicroservice, destMicroservice, u
     destIofogUuid: destMicroservice.iofogUuid,
     sourceNetworkMicroserviceUuid: sourceNetworkMicroservice.uuid,
     destNetworkMicroserviceUuid: destNetworkMicroservice.uuid,
+    connectorPortId: connectorPort.id
   }
   await RoutingManager.create(routeData, transaction)
 

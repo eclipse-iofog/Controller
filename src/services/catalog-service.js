@@ -247,7 +247,7 @@ const _createCatalogItemOutputType = async function (data, catalogItem, transact
 };
 
 async function getNetworkCatalogItem(transaction) {
-  return await CatalogItemImageManager.findOne({
+  return await CatalogItemManager.findOne({
     name: 'Networking Tool',
     category: 'SYSTEM',
     publisher: 'Eclipse ioFog',
