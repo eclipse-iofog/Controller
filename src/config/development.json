@@ -7,5 +7,8 @@
   },
   "Service": {
     "LogsDirectory": "/Users/saeid/logs/fog-controller"
+  },
+  "Diagnostics": {
+    "DiagnosticDir": "diagnostic"
   }
 }

@@ -17,17 +17,17 @@ const AuthDecorator = require('./../decorators/authorization-decorator');
 
 const changeMicroserviceStraceStateEndPoint = async function (req, user) {
   logger.info("Parameters:" + JSON.stringify(req.body));
-  return await DiagnosticService.changeMicroserviceStraceState(req.params.id, req.body, user);
+  return await DiagnosticService.changeMicroserviceStraceState(req.params.id, req.body, user, false);
 };
 
 const getMicroserviceStraceDataEndPoint = async function (req, user) {
   logger.info("Parameters:" + JSON.stringify(req.query));
-  return await DiagnosticService.getMicroserviceStraceData(id, req.query.format, user);
+  return await DiagnosticService.getMicroserviceStraceData(req.params.id, req.query, user, false);
 };
 
 const postMicroserviceStraceDataToFtpEndPoint = async function (req, user) {
   logger.info("Parameters:" + JSON.stringify(req.body));
-  return await DiagnosticService.postMicroserviceStraceDatatoFtp(id, req.body, req.query, user);
+  return await DiagnosticService.postMicroserviceStraceDatatoFtp(req.params.id, req.body, user, false);
 };
 
 module.exports = {

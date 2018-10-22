@@ -113,6 +113,10 @@ module.exports = [
         {
           code: constants.HTTP_CODE_BAD_REQUEST,
           errors: [Errors.ValidationError]
+        },
+        {
+          code: constants.HTTP_CODE_INTERNAL_ERROR,
+          errors: [Errors.FtpError]
         }
       ];
 

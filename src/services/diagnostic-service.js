@@ -26,7 +26,7 @@ const ftpClient = require('ftp');
 
 const changeMicroserviceStraceState = async function (id, data, user, isCLI, transaction) {
   validator.validate(data, validator.schemas.straceStateUpdate);
-  const microservice = await MicroserviceService.getMicroservice(id, user, isCLI);
+  const microservice = await MicroserviceService.getMicroservice(id, user, isCLI, transaction);
   if (microservice.iofogUuid == null) {
     throw new Errors.ValidationError()
   }
@@ -43,7 +43,7 @@ const changeMicroserviceStraceState = async function (id, data, user, isCLI, tra
 const getMicroserviceStraceData = async function (id, data, user, isCLI, transaction) {
   validator.validate(data, validator.schemas.straceGetData);
   const straceData = await StraceDiagnosticManager.findOne({microserviceUuid: id}, transaction);
-  const dir = config.get('Diagnostics:DiagnosticDir');
+  const dir = config.get('Diagnostics:DiagnosticDir') || 'diagnostics';
   const filePath = dir + '/' + id;
 
   let result = straceData.buffer;
@@ -68,12 +68,12 @@ const postMicroserviceStraceDatatoFtp = async function (id, data, user, isCLI, t
 
   _createDirectoryIfNotExists(dir);
   _writeBufferToFile(filePath, straceData.buffer);
-  _sendFileToFtp(data, filePath);
+  await _sendFileToFtp(data, filePath);
   _deleteFile(filePath);
 };
 
-const _sendFileToFtp = function (data, filePath) {
-  const client = new ftpClient();
+const _sendFileToFtp = async function (data, filePath) {
+
   const destDir = data.ftpDestDir;
   const connectionData = {
     host: data.ftpHost,
@@ -83,24 +83,35 @@ const _sendFileToFtp = function (data, filePath) {
     protocol: 'ftp'
   };
 
-  client.on('ready', function() {
-    client.put(filePath, destDir + '/' + filePath.split('/').pop(), function(err) {
-      if (err) {
-        client.end();
-        logger.warn(AppHelper.formatMessage(ErrorMessages.FTP_ERROR, err));
-        throw new Error(AppHelper.formatMessage(ErrorMessages.FTP_ERROR, err));
-      } else {
-        client.end();
-      }
-    });
-  });
-  client.on('error', function (err) {
-    logger.warn(AppHelper.formatMessage(ErrorMessages.FTP_ERROR, err));
-    throw new Error(AppHelper.formatMessage(ErrorMessages.FTP_ERROR, err));
-  });
-
-  client.connect(connectionData);
+  await writeFileToFtp(connectionData, filePath, destDir);
 };
+
+const writeFileToFtp = function (connectionData, filePath, destDir) {
+  return new Promise((resolve, reject) => {
+    const client = new ftpClient();
+
+    client.on('ready', () => {
+      client.put(filePath, destDir + '/' + filePath.split('/').pop(), err => {
+        if (err) {
+          client.end();
+          logger.warn(AppHelper.formatMessage(ErrorMessages.FTP_ERROR, err));
+          reject(new Errors.FtpError(AppHelper.formatMessage(ErrorMessages.FTP_ERROR, err)));
+        } else {
+          client.end();
+          resolve();
+        }
+      });
+    });
+
+    client.on('error', err => {
+      logger.warn(AppHelper.formatMessage(ErrorMessages.FTP_ERROR, err));
+      reject(new Errors.FtpError(AppHelper.formatMessage(ErrorMessages.FTP_ERROR, err)));
+    });
+
+    client.connect(connectionData);
+  })
+};
+
 
 const _createDirectoryIfNotExists = function (dir) {
   if (!fs.existsSync(dir)) {
@@ -123,7 +134,7 @@ const _converFileToBase64 = function (filePath) {
 };
 
 const _deleteFile = function (filePath) {
-  fs.unlink(filePath, (err) => {
+  fs.unlinkSync(filePath, (err) => {
     if (err) {
       logger.warn(AppHelper.formatMessage(ErrorMessages.UNABLE_TO_DELETE_STRACE, filePath, err));
     }

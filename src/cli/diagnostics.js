@@ -60,7 +60,7 @@ class Diagnostics extends BaseCLIHandler {
         group: [constants.CMD_STRACE_FTP_POST]
       },
       {
-        name: 'ftpPass', alias: 'p', type: Number, description: 'FTP user password',
+        name: 'ftpPass', alias: 's', type: Number, description: 'FTP user password',
         group: [constants.CMD_STRACE_FTP_POST]
       },
       {
@@ -85,10 +85,10 @@ class Diagnostics extends BaseCLIHandler {
         await _executeCase(diagnosticCommand, constants.CMD_STRACE_UPDATE, _changeMicroserviceStraceState, false);
         break;
       case constants.CMD_STRACE_INFO:
-        await _executeCase(diagnosticCommand, constants.CMD_STRACE_UPDATE, _getMicroserviceStraceData, false);
+        await _executeCase(diagnosticCommand, constants.CMD_STRACE_INFO, _getMicroserviceStraceData, false);
         break;
       case constants.CMD_STRACE_FTP_POST:
-        await _executeCase(diagnosticCommand, constants.CMD_STRACE_UPDATE, _postMicroserviceStraceDataToFtp, false);
+        await _executeCase(diagnosticCommand, constants.CMD_STRACE_FTP_POST, _postMicroserviceStraceDataToFtp, false);
         break;
       case constants.CMD_IMAGE_SNAPSHOT_CREATE:
         return
@@ -129,7 +129,7 @@ const _getMicroserviceStraceData = async function (obj, user) {
   logger.info(JSON.stringify(obj));
 
   const result = await DiagnosticService.getMicroserviceStraceData(obj.microserviceId, {format: obj.format}, user, true);
-  logger.info(result);
+  logger.info(JSON.stringify(result));
 };
 
 const _postMicroserviceStraceDataToFtp = async function (obj, user) {
