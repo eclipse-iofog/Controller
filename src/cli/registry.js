@@ -13,6 +13,7 @@
 
 const BaseCLIHandler = require('./base-cli-handler')
 const constants = require('../helpers/constants')
+const RegistryService = require('../services/registry-service');
 
 class Registry extends BaseCLIHandler {
   constructor() {
