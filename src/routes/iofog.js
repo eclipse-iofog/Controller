@@ -96,7 +96,7 @@ module.exports = [
     method: 'delete',
     path: '/api/v3/iofog/:uuid',
     middleware: async (req, res) => {
-      const successCode = constants.HTTP_CODE_NO_CONTENT
+      const successCode = constants.HTTP_CODE_ACCEPTED;
       const errCodes = [
         {
           code: 401,

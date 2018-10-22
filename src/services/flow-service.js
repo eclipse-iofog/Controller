@@ -55,8 +55,8 @@ const _deleteFlow = async function (flowId, user, isCLI, transaction) {
 
 const _updateFlow = async function (flowData, flowId, user, isCLI, transaction) {
   await Validation.validate(flowData, Validation.schemas.flowUpdate);
-
-  await _getFlow(flowId, user, transaction);
+  
+  await _getFlow(flowId, user, isCLI, transaction);
 
   if (flowData.name !== undefined) {
     await isFlowExist(flowData.name, transaction);

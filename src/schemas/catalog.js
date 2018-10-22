@@ -33,7 +33,8 @@ const catalogItemCreate = {
     "inputType": {"$ref": "/type"},
     "outputType": {"$ref": "/type"}
   },
-  "required": ["name"]
+  "required": ["name"],
+  "additionalProperties": false
 };
 
 const catalogItemUpdate = {
@@ -58,7 +59,8 @@ const catalogItemUpdate = {
     },
     "inputType": {"$ref": "/type"},
     "outputType": {"$ref": "/type"}
-  }
+  },
+  "additionalProperties": false
 };
 
 const image = {
@@ -73,7 +75,8 @@ const image = {
         "maximum": 2
       }
   },
-  "required": ["containerImage", "fogTypeId"]
+  "required": ["containerImage", "fogTypeId"],
+  "additionalProperties": false
 };
 
 const type = {
@@ -82,7 +85,8 @@ const type = {
   "properties": {
     "infoType": {"type": "string"},
     "infoFormat": {"type": "string"}
-  }
+  },
+  "additionalProperties": false
 };
 
 module.exports = {

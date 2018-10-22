@@ -168,8 +168,8 @@ paths:
         required: true
         type: string
       responses:
-        '204':
-          description: Deleted
+        '202':
+          description: Accepted
           headers:
             X-Timestamp:
               type: number
@@ -375,7 +375,7 @@ paths:
           description: Invalid Node Id
         '500':
           description: Internal Server Error
-  /iofog/agent/provision:
+  '/agent/provision':
     post:
       tags:
       - Agent
@@ -404,7 +404,7 @@ paths:
           description: Invalid Provisioning Key
         '500':
           description: Internal Server Error
-  '/iofog/agent/config':
+  '/agent/config':
     get:
       tags:
       - Agent
@@ -462,7 +462,7 @@ paths:
           description: Invalid Node Id
         '500':
           description: Internal Server Error
-  '/iofog/agent/config/changes':
+  '/agent/config/changes':
     get:
       tags:
       - Agent
@@ -496,7 +496,7 @@ paths:
           description: Invalid Node Id
         '500':
           description: Internal Server Error
-  '/iofog/agent/status':
+  '/agent/status':
     put:
       tags:
       - Agent
@@ -528,7 +528,7 @@ paths:
           description: Invalid Node Id
         '500':
           description: Internal Server Error
-  '/iofog/agent/microservices':
+  '/agent/microservices':
     get:
       tags:
       - Agent
@@ -555,7 +555,7 @@ paths:
           description: Invalid Node Id
         '500':
           description: Internal Server Error
-  '/iofog/agent/microservices/{microserviceUuid}':
+  '/agent/microservices/{microserviceId}':
     get:
       tags:
       - Agent
@@ -564,8 +564,8 @@ paths:
       parameters:
       - in: path
         required: true
-        name: microserviceUuid
-        description: Microservice Uuid
+        name: microserviceId
+        description: Microservice id
         type: string
       - in: header
         name: Authorization
@@ -587,7 +587,7 @@ paths:
           description: Invalid Node Id
         '500':
           description: Internal Server Error
-  '/iofog/agent/registries':
+  '/agent/registries':
     get:
       tags:
       - Agent
@@ -614,7 +614,7 @@ paths:
           description: Invalid Node Id
         '500':
           description: Internal Server Error
-  '/iofog/agent/proxy':
+  '/agent/proxy':
     get:
       tags:
       - Agent
@@ -641,7 +641,7 @@ paths:
           description: Invalid Node Id
         '500':
           description: Internal Server Error
-  '/iofog/agent/strace':
+  '/agent/strace':
     get:
       tags:
       - Agent
@@ -699,7 +699,7 @@ paths:
           description: Invalid Node Id
         '500':
           description: Internal Server Error
-  '/iofog/agent/version':
+  '/agent/version':
     get:
       tags:
       - Agent
@@ -722,9 +722,11 @@ paths:
               description: FogController server timestamp
         401:
           description: Not Authorized
+        404:
+          description: Version Command Not Found
         500:
           description: Internal Server Error
-  '/iofog/agent/hal/hw':
+  '/agent/hal/hw':
     put:
       tags:
       - Agent
@@ -754,7 +756,7 @@ paths:
           description: Not Authorized
         '500':
           description: Internal Server Error
-  '/iofog/agent/hal/usb':
+  '/agent/hal/usb':
     put:
       tags:
       - Agent
@@ -780,6 +782,34 @@ paths:
               description: FogController server timestamp
         '400':
           description: Bad Request
+        '401':
+          description: Not Authorized
+        '500':
+          description: Internal Server Error
+  '/agent/delete-node':
+    delete:
+      tags:
+      - Agent
+      description: Deletes an ioFog node
+      operationId: deleteAgentNode
+      parameters:
+      - in: path
+        name: uuid
+        description: ioFog node id
+        required: true
+        type: string
+      - in: header
+        name: Authorization
+        description: Agent token
+        required: true
+        type: string
+      responses:
+        '204':
+          description: No Content
+          headers:
+            X-Timestamp:
+              type: number
+              description: FogController server timestamp
         '401':
           description: Not Authorized
         '500':

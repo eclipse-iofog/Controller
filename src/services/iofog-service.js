@@ -58,6 +58,8 @@ async function _createFog(fogData, user, isCli, transaction) {
   const res = {
     uuid: fog.uuid
   }
+
+  await ChangeTrackingManager.create({iofogUuid: fog.uuid}, transaction)
   //TODO: finish after microservices endpoints will be added. implement bluetooth, hal and watchdog
   return res
 }
@@ -104,7 +106,7 @@ async function _updateFog(fogData, user, isCli, transaction) {
   if (affectedRows[0] === 0) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FOG_NODE_ID, fogData.uuid))
   }
-  await ChangeTrackingManager.updateOrCreate({iofogUuid: fogData.uuid}, changeTrackingUpdates, transaction)
+  await ChangeTrackingManager.update({iofogUuid: fogData.uuid}, changeTrackingUpdates, transaction)
   //TODO: finish after microservices endpoints will be added. implement bluetooth, hal and watchdog
 }
 
@@ -205,7 +207,7 @@ async function _setFogVersionCommand(fogVersionData, user, isCli, transaction) {
 
   await _generateProvisioningKey({uuid: fogVersionData.uuid}, user, isCli, transaction)
   await FogVersionCommandManager.updateOrCreate({iofogUuid: fogVersionData.uuid}, newVersionCommand, transaction)
-  await ChangeTrackingManager.updateOrCreate({iofogUuid: fogVersionData.uuid}, changeTrackingUpdates, transaction)
+  await ChangeTrackingManager.update({iofogUuid: fogVersionData.uuid}, changeTrackingUpdates, transaction)
 }
 
 async function _setFogRebootCommand(fogData, user, isCli, transaction) {
@@ -225,7 +227,7 @@ async function _setFogRebootCommand(fogData, user, isCli, transaction) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FOG_NODE_ID, fogData.uuid))
   }
 
-  await ChangeTrackingManager.updateOrCreate({iofogUuid: fogData.uuid}, newRebootCommand, transaction)
+  await ChangeTrackingManager.update({iofogUuid: fogData.uuid}, newRebootCommand, transaction)
 }
 
 async function _getHalHardwareInfo(uuidObj, user, isCLI, transaction) {
@@ -300,7 +302,7 @@ async function _processDeleteCommand(fog, transaction) {
   if (!fog.daemonStatus || fog.daemonStatus === 'UNKNOWN') {
     await FogManager.delete({uuid: fog.uuid}, transaction)
   } else {
-    await ChangeTrackingManager.updateOrCreate({iofogUuid: fog.uuid}, {
+    await ChangeTrackingManager.update({iofogUuid: fog.uuid}, {
       iofogUuid: fog.uuid,
       deleteNode: true
     }, transaction)
