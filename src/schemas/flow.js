@@ -4,7 +4,7 @@ const flowCreate = {
   "properties": {
     "name": {"type": "string", "minLength": 1},
     "description": {"type": "string"},
-    "isActive": {"type": "boolean"}
+    "isActivated": {"type": "boolean"}
   },
   "required": ["name"],
   "additionalProperties": false
@@ -16,7 +16,7 @@ const flowUpdate = {
   "properties": {
     "name": {"type": "string", "minLength": 1},
     "description": {"type": "string"},
-    "isActive": {"type": "boolean"}
+    "isActivated": {"type": "boolean"}
   },
   "additionalProperties": false
 };
