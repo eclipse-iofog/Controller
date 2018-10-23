@@ -21,10 +21,15 @@ const manageTunnelEndPoint = async function (req, user) {
   const tunnelData = {
       iofogUuid: req.params.id
   }
-  if(action == 'open'){
+  switch (action) {
+    case 'open':
       await TunnelService.openTunnel(tunnelData, user);
-  } else {
+      break;
+    case 'close':
       await TunnelService.closeTunnel(tunnelData, user);
+      break;
+    default:
+      throw new Error("Unknown action property. Action can be 'open' or 'close'");
   }
 };
 
