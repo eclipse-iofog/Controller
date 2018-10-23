@@ -2,16 +2,16 @@ const microserviceCreate = {
   "id": "/microserviceCreate",
   "type": "object",
   "properties": {
-    "name": {"type": "string"},
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
     "config": {"type": "string"},
     "catalogItemId": {"type": "integer"},
     "isNetwork" : {"type": "boolean"},
-    "needUpdate" : {"type": "boolean"},
-    "rebuild": {"type": "boolean"},
     "flowId": {"type": "integer"},
     "ioFogNodeId": {"type": "string"},
     "rootHostAccess": {"type": "boolean"},
-    "deleteWithCleanUp": {"type": "boolean"},
     "logSize": {"type": "integer"},
     "imageSnapshot": {"type": "string"},
     "volumeMappings": {
@@ -29,7 +29,10 @@ const microserviceUpdate = {
   "id": "/microserviceUpdate",
   "type": "object",
   "properties": {
-    "name": {"type": "string"},
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
     "config": {"type": "string"},
     "isNetwork" : {"type": "boolean"},
     "needUpdate" : {"type": "boolean"},
@@ -69,7 +72,27 @@ const volumeMappings = {
   }
 };
 
+const networkConfig = {
+  "id": "/networkConfig",
+  "type": "object",
+  "properties": {
+    "mode": {"enum": ["public", "private"]},
+    "host": {"type": "string"},
+    "port": {"type": "integer"},
+    "cert": {"type": "string"},
+    "connectioncount": {"enum": [1, 60]},
+    "passcode": {"type": "string"},
+    "localhost": {"enum": ["iofog"]},
+    "localport": {"type": "integer"},
+    "heartbeatfrequency": {"enum": [20000]},
+    "heartbeatabsencethreshold": {"enum": [60000]},
+    "devmode": {"type": "boolean"}
+    },
+  "required": ["mode", "host", "port", "cert", "connectioncount", "passcode", "localhost",
+               "localport", "heartbeatfrequency", "heartbeatabsencethreshold", "devmode"]
+};
+
 module.exports = {
-    mainSchemas: [microserviceCreate, microserviceUpdate],
+    mainSchemas: [microserviceCreate, microserviceUpdate, networkConfig],
     innerSchemas: [ports, volumeMappings]
 };

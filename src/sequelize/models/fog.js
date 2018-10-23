@@ -21,11 +21,11 @@ module.exports = (sequelize, DataTypes) => {
       field: 'gps_mode'
     },
     latitude: {
-      type: DataTypes.TEXT,
+      type: DataTypes.FLOAT,
       field: 'latitude'
     },
     longitude: {
-      type: DataTypes.TEXT,
+      type: DataTypes.FLOAT,
       field: 'longitude'
     },
     description: {

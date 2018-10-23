@@ -11,30 +11,20 @@
  *
  */
 
-const registryCreate = {
-  "id": "/registryCreate",
+const tunnelCreate = {
+  "id": "/tunnelCreate",
   "type": "object",
   "properties": {
-    "url": {"type": "string", "minLength": 1},
-    "isPublic": {"type": "boolean"},
+    "iofogUuid": {"type": "string"},
     "username": {"type": "string", "minLength": 1},
     "password": {"type": "string"},
-    "email": {"type": "string"}
+    "rsakey": {"type": "string"},
+    "lport": {"type": "integer", "minimum" : 0},
+    "rport": {"type": "integer", "minimum" : 0}
   },
-  "required": ["url", "isPublic", "username", "password", "email"],
-  "additionalProperties": false
-};
-
-const registryDelete = {
-  "id": "/registryDelete",
-  "type": "object",
-  "properties": {
-    "id": {"type": "integer"}
-  },
-  "required": ["id"],
-  "additionalProperties": false
+  "required": ["iofogUuid", "username", "password", "lport", "rport"]
 };
 
 module.exports = {
-  mainSchemas: [registryCreate, registryDelete]
+  mainSchemas: [tunnelCreate]
 };

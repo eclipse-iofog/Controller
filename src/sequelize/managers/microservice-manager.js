@@ -18,31 +18,12 @@ const MicroservicePort = models.MicroservicePort;
 const VolumeMapping = models.VolumeMapping;
 const StraceDiagnostics = models.StraceDiagnostics;
 const CatalogItem = models.CatalogItem;
+const CatalogItemImage = models.CatalogItemImage;
 
 class MicroserviceManager extends BaseManager {
   getEntity() {
     return Microservice
   }
-
-    /* Return:
-   + uuid
-   + name
-   + config
-     images
-     picture
-     status
-   + ioFogNodeId
-   + isNetwork
-   + needUpdate
-   + rebuild
-   + rootHostAccess
-   + deleteWithCleanUp
-   + strace
-   + imageSnapshot
-   + logLimit
-   + volumeMappings
-   + ports
-     routes */
 
   findAllWithDependencies(where, attributes, transaction) {
     return Microservice.findAll({
@@ -63,49 +44,28 @@ class MicroserviceManager extends BaseManager {
         model: StraceDiagnostics,
         as: 'strace',
         required: false,
-        attribures: ['straceRun']
-      }/*,
-      {
-        model: CatalogItem,
-        as: 'catalogItem',
-        required: false,
-        attributes: ['images']
+        attributes: ['straceRun']
       },
       {
         model: CatalogItem,
         as: 'catalogItem',
         required: false,
+        include: [{
+          model: CatalogItemImage,
+          as: 'images',
+          attributes: ['containerImage', 'fogTypeId']
+        }],
         attributes: ['picture']
-      }*/
+      }
 
-      // TODO: get images, picture, routes
+      // TODO: get routes, status
       ],
       where: where,
       attributes: attributes
-    }, transaction)
+    }, {transaction: transaction})
   }
 
-
-    /* Return:
-     + uuid
-     + name
-     + config
-       images
-       picture
-       status
-     + ioFogNodeId
-     + isNetwork
-     + needUpdate
-     + rebuild
-     + rootHostAccess
-     + deleteWithCleanUp
-     + strace
-     + imageSnapshot
-     + logLimit
-     + volumeMappings
-     + ports
-       routes */
-  findOneWithDependencies(where, attribures, transaction) {
+  findOneWithDependencies(where, attributes, transaction) {
     return Microservice.findOne({
       include: [
       {
@@ -124,25 +84,24 @@ class MicroserviceManager extends BaseManager {
         model: StraceDiagnostics,
         as: 'strace',
         required: false,
-        attribures: ['straceRun']
-      }/*,
-      {
-        model: CatalogItem,
-        as: 'catalogItem',
-        required: false,
-        attributes: ['images']
+        attributes: ['straceRun']
       },
       {
         model: CatalogItem,
         as: 'catalogItem',
         required: false,
+        include: [{
+          model: CatalogItemImage,
+          as: 'images',
+          attributes: ['containerImage', 'fogTypeId']
+          }],
         attributes: ['picture']
-      }*/
-      // TODO: get images, picture, routes
+      }
+      // TODO: get routes, status
       ],
       where: where,
-      attributes: attribures
-    }, transaction)
+      attributes: attributes
+    }, {transaction: transaction})
   }
 }
 

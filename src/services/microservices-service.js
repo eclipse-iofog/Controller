@@ -18,7 +18,8 @@ const VolumeMappingManager = require('../sequelize/managers/volume-mapping-manag
 const RoutingManager = require('../sequelize/managers/routing-manager')
 const ConnectorManager = require('../sequelize/managers/connector-manager')
 const ConnectorPortManager = require('../sequelize/managers/connector-port-manager')
-const ChangeTrackingManager = require('../sequelize/managers/change-tracking-manager')
+const ChangeTrackingManager = require('../sequelize/managers/change-tracking-manager');
+const UserManager = require('../sequelize/managers/user-manager');
 const IOFogService = require('../services/iofog-service');
 const FlowService = require('../services/flow-service');
 const AppHelper = require('../helpers/app-helper');
@@ -28,35 +29,46 @@ const Validation = require('../schemas/index');
 const ConnectorService = require('../services/connector-service')
 const CatalogService = require('../services/catalog-service')
 
-const _getMicroserviceByFlow = async function (flowId, user, transaction) {
-  await FlowService.getFlow(flowId, user, false, transaction);
+const _getMicroserviceByFlow = async function (flowId, user, isCLI, transaction) {
+  await FlowService.getFlow(flowId, user, isCLI, transaction);
 
   const microservice = {
     flowId: flowId
   };
 
-  return await MicroserviceManager.findAllWithDependencies(microservice, {}, transaction)
+  return await MicroserviceManager.findAllWithDependencies(microservice,
+  {
+    exclude: [
+      'configLastUpdated',
+      'created_at',
+      'updated_at',
+      'catalogItemId',
+      'updatedBy',
+      'flowId'
+    ]}, transaction);
 };
 
-const _getMicroservice = async function (microserviceUuid, user, transaction) {
-  const microservice = await MicroserviceManager.findOneWithDependencies({
+const _getMicroservice = async function (microserviceUuid, user, isCLI, transaction) {
+  await _checkIfMicroserviceIsValidOnGet(user.id, microserviceUuid, transaction);
+
+  return await MicroserviceManager.findOneWithDependencies({
     uuid: microserviceUuid
   },
-  {}, transaction);
-
-  await FlowService.getFlow(microservice.flowId, user, transaction);
-
-  await IOFogService.getFogWithTransaction({
-    uuid: microservice.iofogUuid
-  }, user, transaction);
-
-  return microservice;
+  {
+    exclude: [
+      'configLastUpdated',
+      'created_at',
+      'updated_at',
+      'catalogItemId',
+      'updatedBy',
+      'flowId'
+    ]}, transaction);
 };
 
-const _createMicroserviceOnFog = async function (microserviceData, user, transaction) {
+const _createMicroserviceOnFog = async function (microserviceData, user, isCLI, transaction) {
   await Validation.validate(microserviceData, Validation.schemas.microserviceCreate);
 
-  const microservice = await _createMicroservice(microserviceData, user, transaction);
+  const microservice = await _createMicroservice(microserviceData, user, isCLI, transaction);
 
   if (microserviceData.port) {
     await _createMicroservicePort(microserviceData, microservice.uuid, transaction);
@@ -66,19 +78,30 @@ const _createMicroserviceOnFog = async function (microserviceData, user, transac
   }
   // TODO: create routes
 
+  if(microserviceData.ioFogNodeId) {
+    await _updateChangeTracking(false, microserviceData.ioFogNodeId, transaction);
+  }
+
   return {
     uuid: microservice.uuid
   }
 };
 
 const _createMicroservice = async function (microserviceData, user, transaction) {
+
+  if(microserviceData.isNetwork) {
+    if (microserviceData.config !== undefined) {
+      await Validation.validate(JSON.parse(microserviceData.config), Validation.schemas.networkConfig)
+    } else {
+      throw new Errors.ValidationError(ErrorMessages.INVALID_MICROSERVICE_CONFIG)
+    }
+  }
+
   const microserviceToCreate = {
     uuid: AppHelper.generateRandomString(32),
     name: microserviceData.name,
     config: microserviceData.config,
     isNetwork: microserviceData.isNetwork,
-    needUpdate: microserviceData.needUpdate,
-    rebuild: microserviceData.rebuild,
     catalogItemId: microserviceData.catalogItemId,
     flowId: microserviceData.flowId,
     iofogUuid: microserviceData.ioFogNodeId,
@@ -88,15 +111,7 @@ const _createMicroservice = async function (microserviceData, user, transaction)
 
   const microserviceDataCreate = AppHelper.deleteUndefinedFields(microserviceToCreate);
 
-  if (microserviceDataCreate.flowId) {
-    await FlowService.getFlow(microserviceDataCreate.flowId, user, transaction);
-  }
-
-  if (microserviceDataCreate.iofogUuid) {
-    await IOFogService.getFogWithTransaction({
-      uuid: microserviceDataCreate.iofogUuid
-    }, user, transaction);
-  }
+  await _checkIfMicroserviceIsValidOnCreate(microserviceDataCreate, user.id, transaction);
 
   return await MicroserviceManager.create(microserviceDataCreate, transaction);
 };
@@ -123,10 +138,18 @@ const _createVolumeMappings = async function (microserviceData, microserviceUuid
   await VolumeMappingManager.bulkCreate(volumeMappings, transaction)
 };
 
-const _updateMicroservice = async function (microserviceUuid, microserviceData, user, transaction) {
-  await _getMicroservice(microserviceUuid, user, transaction);
+const _updateMicroservice = async function (microserviceUuid, microserviceData, user, isCLI, transaction) {
+  await _getMicroservice(microserviceUuid, user, isCLI, transaction);
 
   await Validation.validate(microserviceData, Validation.schemas.microserviceUpdate);
+
+  if(microserviceData.isNetwork) {
+    if (microserviceData.config !== undefined) {
+      await Validation.validate(JSON.parse(microserviceData.config), Validation.schemas.networkConfig)
+    } else {
+      throw new Errors.ValidationError(ErrorMessages.INVALID_MICROSERVICE_CONFIG)
+    }
+  }
 
   const microserviceToUpdate = {
     name: microserviceData.name,
@@ -142,11 +165,7 @@ const _updateMicroservice = async function (microserviceUuid, microserviceData, 
 
   const microserviceDataUpdate = AppHelper.deleteUndefinedFields(microserviceToUpdate);
 
-  if (microserviceDataUpdate.iofogUuid) {
-    await IOFogService.getFogWithTransaction({
-      uuid: microserviceDataUpdate.iofogUuid
-    }, user);
-  }
+  await _checkIfMicroserviceIsValidOnUpdate(user.id, microserviceUuid, microserviceDataUpdate, transaction);
 
   await MicroserviceManager.update({
     uuid: microserviceUuid
@@ -159,6 +178,10 @@ const _updateMicroservice = async function (microserviceUuid, microserviceData, 
     await _updateVolumeMappings(microserviceUuid, microserviceData, transaction);
   }
   // TODO: update routes
+
+  if(microserviceData.ioFogNodeId) {
+    await _updateChangeTracking(microserviceData.config ? true : false, microserviceData.ioFogNodeId, transaction);
+  }
 };
 
 const _updateMicroservicePort = async function (microserviceUuid, microserviceData, user, transaction) {
@@ -185,12 +208,80 @@ const _updateVolumeMappings = async function (microserviceData, microserviceUuid
   }
 };
 
-const _deleteMicroservice = async function (microserviceUuid, user, transaction) {
+const _updateChangeTracking = async function (configUpdated, fogNodeUuid, transaction) {
+  const trackingData = {
+    containerList: true,
+    containerConfig: configUpdated,
+    iofogUuid: fogNodeUuid
+  };
+
+  await ChangeTrackingManager.update({iofogUuid: fog.uuid}, trackingData, transaction);
+};
+
+const _deleteMicroservice = async function (microserviceUuid, user, isCLI, transaction) {
+  // TODO: update changeTracking
+
+  await _checkIfMicroserviceIsValidOnGet(user.id, microserviceUuid, transaction);
+
   const affectedRows = await MicroserviceManager.delete({
     uuid: microserviceUuid
   }, transaction);
   if (affectedRows === 0) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, microserviceUuid));
+  }
+};
+
+const _checkIfMicroserviceIsValidOnGet = async function (userId, microserviceUuid, transaction) {
+  const where = {
+    id: userId,
+    '$flow->microservice.uuid$': microserviceUuid
+  };
+  const user = await UserManager.findUserOnMicroserviceGet(where, transaction)
+  if (!user) {
+    throw new Errors.ValidationError(ErrorMessages.INVALID_MICROSERVICE);
+  }
+};
+
+const _checkIfMicroserviceIsValidOnUpdate = async function (userId, microserviceUuid, microserviceDataUpdate, transaction) {
+  let where;
+  if (microserviceDataUpdate.iofogUuid) {
+    where = {
+      id: userId,
+      '$flow->microservice.uuid$': microserviceUuid,
+      '$fog.uuid$': microserviceDataUpdate.iofogUuid
+    }
+  } else {
+    where = {
+      id: userId,
+      '$flow->microservice.uuid$': microserviceUuid,
+    }
+  }
+  const user = UserManager.findUserOnMicroserviceUpdate(where, transaction);
+  if (!user) {
+    throw new Errors.ValidationError(ErrorMessages.INVALID_MICROSERVICE);
+  }
+};
+
+const _checkIfMicroserviceIsValidOnCreate = async function (microserviceDataCreate, userId, transaction) {
+  let where;
+  if (microserviceDataCreate.iofogUuid) {
+    where = {
+      id: userId,
+      '$catalogItem.id$': microserviceDataCreate.catalogItemId,
+      '$flow.id$': microserviceDataCreate.flowId,
+      '$fog.uuid$': microserviceDataCreate.iofogUuid
+    }
+  } else {
+    where = {
+      id: userId,
+      '$catalogItem.id$': microserviceDataCreate.catalogItemId,
+      '$flow.id$': microserviceDataCreate.flowId
+    }
+  }
+
+  const user = await UserManager.findUserOnMicroserviceCreate(where, transaction);
+  if (!user) {
+    throw new Errors.ValidationError(ErrorMessages.INVALID_MICROSERVICE);
   }
 };
 
@@ -400,11 +491,11 @@ async function _deleteRouteOverConnector(route, transaction) {
 }
 
 module.exports = {
-  createMicroserviceOnFog: TransactionDecorator.generateTransaction(_createMicroserviceOnFog),
-  getMicroserviceByFlow: TransactionDecorator.generateTransaction(_getMicroserviceByFlow),
-  getMicroservice: TransactionDecorator.generateTransaction(_getMicroservice),
-  updateMicroservice: TransactionDecorator.generateTransaction(_updateMicroservice),
-  deleteMicroservice: TransactionDecorator.generateTransaction(_deleteMicroservice),
+  createMicroserviceOnFogWithTransaction: TransactionDecorator.generateTransaction(_createMicroserviceOnFog),
+  getMicroserviceByFlowWithTransaction: TransactionDecorator.generateTransaction(_getMicroserviceByFlow),
+  getMicroserviceWithTransaction: TransactionDecorator.generateTransaction(_getMicroservice),
+  updateMicroserviceWithTransaction: TransactionDecorator.generateTransaction(_updateMicroservice),
+  deleteMicroserviceWithTransaction: TransactionDecorator.generateTransaction(_deleteMicroservice),
   createRouteWithTransaction : TransactionDecorator.generateTransaction(_createRoute),
   deleteRouteWithTransaction: TransactionDecorator.generateTransaction(_deleteRoute)
 };
