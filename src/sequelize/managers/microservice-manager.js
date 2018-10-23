@@ -62,7 +62,7 @@ class MicroserviceManager extends BaseManager {
       ],
       where: where,
       attributes: attributes
-    }, transaction)
+    }, {transaction: transaction})
   }
 
   findOneWithDependencies(where, attributes, transaction) {
@@ -101,7 +101,7 @@ class MicroserviceManager extends BaseManager {
       ],
       where: where,
       attributes: attributes
-    }, transaction)
+    }, {transaction: transaction})
   }
 }
 

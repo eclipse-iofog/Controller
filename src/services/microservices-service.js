@@ -16,6 +16,7 @@ const MicroserviceManager = require('../sequelize/managers/microservice-manager'
 const MicroservicePortManager = require('../sequelize/managers/microservice-port-manager');
 const VolumeMappingManager = require('../sequelize/managers/volume-mapping-manager');
 const ChangeTrackingManager = require('../sequelize/managers/change-tracking-manager');
+const UserManager = require('../sequelize/managers/user-manager');
 const IOFogService = require('../services/iofog-service');
 const FlowService = require('../services/flow-service');
 const AppHelper = require('../helpers/app-helper');
@@ -84,16 +85,30 @@ const _createMicroserviceOnFog = async function (microserviceData, user, transac
   }
 };
 
-const _createMicroservice = async function (microserviceData, user, transaction) {
-  if (microserviceData.flowId) {
-    await FlowService.getFlow(microserviceData.flowId, user, transaction);
+const _checkIfMicroserviceIsValid = async function (microserviceDataCreate, userId, transaction) {
+  let where;
+  if (microserviceDataCreate.iofogUuid) {
+    where = {
+      id: userId,
+      '$catalogItem.id$': microserviceDataCreate.catalogItemId,
+      '$flow.id$': microserviceDataCreate.flowId,
+      '$fog.uuid$': microserviceDataCreate.iofogUuid
+    }
+  } else {
+    where = {
+      id: userId,
+      '$catalogItem.id$': microserviceDataCreate.catalogItemId,
+      '$flow.id$': microserviceDataCreate.flowId
+    }
   }
 
-  if (microserviceData.iofogUuid) {
-    await IOFogService.getFog({
-      uuid: microserviceData.iofogUuid
-    }, user, transaction);
+  const user = await UserManager.findUserForMicroservice(where, transaction);
+  if (!user) {
+    throw new Errors.ValidationError(ErrorMessages.INVALID_MICROSERVICE);
   }
+}
+
+const _createMicroservice = async function (microserviceData, user, transaction) {
 
   // TODO: check if isNetwork and validate
 
@@ -110,6 +125,8 @@ const _createMicroservice = async function (microserviceData, user, transaction)
   };
 
   const microserviceDataCreate = AppHelper.deleteUndefinedFields(microserviceToCreate);
+
+  await _checkIfMicroserviceIsValid(microserviceDataCreate, user.id, transaction);
 
   return await MicroserviceManager.create(microserviceDataCreate, transaction);
 };
