@@ -16,6 +16,9 @@ const models = require('./../models');
 const User = models.User;
 const AccessToken = models.AccessToken;
 const AppHelper = require('../../helpers/app-helper');
+const Flow = models.Flow;
+const Fog = models.Fog;
+const CatalogItem = models.CatalogItem;
 
 class UserManager extends BaseManager {
   getEntity() {
@@ -89,6 +92,33 @@ class UserManager extends BaseManager {
 // no transaction required here, used by cli decorator
   findById(id) {
     return User.find({where: {id: id}});
+  }
+
+  findUserForMicroservice(where, transaction) {
+    return User.findOne({
+      include: [
+        {
+          model: CatalogItem,
+          as: 'catalogItem',
+          required: true,
+          attributes: ['id']
+        },
+        {
+          model: Flow,
+          as: 'flow',
+          required: true,
+          attributes: ['id']
+        },
+        {
+          model: Fog,
+          as: 'fog',
+          required: false,
+          attributes: ['uuid']
+        }
+      ],
+      where: where,
+      attributes: ['id']
+    }, {transaction: transaction})
   }
 }
 
