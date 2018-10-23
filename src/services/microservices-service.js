@@ -214,7 +214,7 @@ const _updateChangeTracking = async function (configUpdated, fogNodeUuid, transa
     iofogUuid: fogNodeUuid
   };
 
-  await ChangeTrackingManager.create(trackingData, transaction);
+  await ChangeTrackingManager.update({iofogUuid: fog.uuid}, trackingData, transaction);
 };
 
 const _deleteMicroservice = async function (microserviceUuid, user, isCLI, transaction) {
