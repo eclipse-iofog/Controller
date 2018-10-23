@@ -43,27 +43,34 @@ const _getMicroserviceByFlow = async function (flowId, user, transaction) {
     ]}, transaction);
 };
 
+const _checkMicroserviceOnGet = async function (userId, microserviceUuid, transaction) {
+  const where = {
+    id: userId,
+    '$flow->microservice.uuid$': microserviceUuid
+  };
+  const user = await UserManager.findUserOnMicroserviceGet(where, transaction)
+  if (!user) {
+    throw new Errors.ValidationError(ErrorMessages.INVALID_MICROSERVICE);
+  }
+};
+
 const _getMicroservice = async function (microserviceUuid, user, transaction) {
-  const microservice = await MicroserviceManager.findOneWithDependencies({
-    uuid: microserviceUuid
-  },
-  {
-    exclude: [
-      'configLastUpdated',
-      'created_at',
-      'updated_at',
-      'catalogItemId',
-      'updatedBy',
-      'flowId'
-    ]}, transaction);
 
-  await FlowService.getFlow(microservice.flowId, user, transaction);
+  await _checkMicroserviceOnGet(user.id, microserviceUuid, transaction);
 
-  await IOFogService.getFog({
-    uuid: microservice.iofogUuid
-  }, user, transaction);
-
-  return microservice;
+  return await MicroserviceManager.findOneWithDependencies({
+      uuid: microserviceUuid
+    },
+    {
+      exclude: [
+        'configLastUpdated',
+        'created_at',
+        'updated_at',
+        'catalogItemId',
+        'updatedBy',
+        'flowId'
+      ]
+    }, transaction);
 };
 
 const _createMicroserviceOnFog = async function (microserviceData, user, transaction) {
@@ -85,7 +92,7 @@ const _createMicroserviceOnFog = async function (microserviceData, user, transac
   }
 };
 
-const _checkIfMicroserviceIsValid = async function (microserviceDataCreate, userId, transaction) {
+const _checkMicroserviceOnCreate = async function (microserviceDataCreate, userId, transaction) {
   let where;
   if (microserviceDataCreate.iofogUuid) {
     where = {
@@ -102,7 +109,7 @@ const _checkIfMicroserviceIsValid = async function (microserviceDataCreate, user
     }
   }
 
-  const user = await UserManager.findUserForMicroservice(where, transaction);
+  const user = await UserManager.findUserOnMicroserviceCreate(where, transaction);
   if (!user) {
     throw new Errors.ValidationError(ErrorMessages.INVALID_MICROSERVICE);
   }
@@ -126,7 +133,7 @@ const _createMicroservice = async function (microserviceData, user, transaction)
 
   const microserviceDataCreate = AppHelper.deleteUndefinedFields(microserviceToCreate);
 
-  await _checkIfMicroserviceIsValid(microserviceDataCreate, user.id, transaction);
+  await _checkMicroserviceOnCreate(microserviceDataCreate, user.id, transaction);
 
   return await MicroserviceManager.create(microserviceDataCreate, transaction);
 };
@@ -153,9 +160,27 @@ const _createVolumeMappings = async function (microserviceData, microserviceUuid
   await VolumeMappingManager.bulkCreate(volumeMappings, transaction)
 };
 
-const _updateMicroservice = async function (microserviceUuid, microserviceData, user, transaction) {
-  await _getMicroservice(microserviceUuid, user, transaction);
+const _checkMicroserviceOnUpdate = async function (userId, microserviceUuid, microserviceDataUpdate, transaction) {
+  let where;
+  if (microserviceDataUpdate.iofogUuid) {
+    where = {
+      id: userId,
+      '$flow->microservice.uuid$': microserviceUuid,
+      '$fog.uuid$': microserviceDataUpdate.iofogUuid
+    }
+  } else {
+    where = {
+      id: userId,
+      '$flow->microservice.uuid$': microserviceUuid,
+    }
+  }
+  const user = UserManager.findUserOnMicroserviceUpdate(where, transaction);
+  if (!user) {
+    throw new Errors.ValidationError(ErrorMessages.INVALID_MICROSERVICE);
+  }
+};
 
+const _updateMicroservice = async function (microserviceUuid, microserviceData, user, transaction) {
   await Validation.validate(microserviceData, Validation.schemas.microserviceUpdate);
 
   const microserviceToUpdate = {
@@ -172,11 +197,11 @@ const _updateMicroservice = async function (microserviceUuid, microserviceData, 
 
   const microserviceDataUpdate = AppHelper.deleteUndefinedFields(microserviceToUpdate);
 
+  await _checkMicroserviceOnUpdate(user.id, microserviceUuid, microserviceDataUpdate, transaction);
+
   if (microserviceDataUpdate.iofogUuid) {
-    await IOFogService.getFog({
-      uuid: microserviceDataUpdate.iofogUuid
-    }, user);
-    await _updateChangeTracking(microserviceData, )
+    //TODO: update change tracking
+    // await _updateChangeTracking(microserviceData, )
   }
 
   await MicroserviceManager.update({
@@ -230,6 +255,8 @@ const _updateChangeTracking = async function (microserviceData, fogNodeUuid, tra
 
 const _deleteMicroservice = async function (microserviceUuid, user, transaction) {
   // TODO: update changeTracking
+
+  await _checkMicroserviceOnGet(user.id, microserviceUuid, transaction);
 
   const affectedRows = await MicroserviceManager.delete({
     uuid: microserviceUuid

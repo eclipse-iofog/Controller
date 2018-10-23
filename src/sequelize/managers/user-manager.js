@@ -19,6 +19,7 @@ const AppHelper = require('../../helpers/app-helper');
 const Flow = models.Flow;
 const Fog = models.Fog;
 const CatalogItem = models.CatalogItem;
+const Microservice = models.Microservice;
 
 class UserManager extends BaseManager {
   getEntity() {
@@ -94,7 +95,7 @@ class UserManager extends BaseManager {
     return User.find({where: {id: id}});
   }
 
-  findUserForMicroservice(where, transaction) {
+  findUserOnMicroserviceCreate(where, transaction) {
     return User.findOne({
       include: [
         {
@@ -120,7 +121,60 @@ class UserManager extends BaseManager {
       attributes: ['id']
     }, {transaction: transaction})
   }
+
+  findUserOnMicroserviceGet(where, transaction) {
+    return User.findOne({
+      include: [
+        {
+          model: Flow,
+          as: 'flow',
+          required: true,
+          include: [
+            {
+              model: Microservice,
+              as: 'microservice',
+              required: true,
+              attributes: ['uuid']
+            }
+          ],
+          attributes: ['id']
+        }
+      ],
+      where: where,
+      attributes: ['id'],
+    }, {transaction: transaction})
+  }
+
+  findUserOnMicroserviceUpdate(where, transaction) {
+    return User.findOne({
+      include: [
+        {
+          model: Fog,
+          as: 'fog',
+          required: false,
+          attributes: ['uuid']
+        },
+        {
+          model: Flow,
+          as: 'flow',
+          required: true,
+          include: [
+            {
+              model: Microservice,
+              as: 'microservice',
+              required: true,
+              attributes: ['uuid']
+            }
+          ],
+          attributes: ['id']
+        }
+      ],
+      where: where,
+      attributes: ['id']
+    }, {transaction: transaction})
+  }
 }
+
 
 const instance = new UserManager();
 module.exports = instance;
