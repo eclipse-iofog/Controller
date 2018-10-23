@@ -16,6 +16,7 @@ const MicroserviceManager = require('../sequelize/managers/microservice-manager'
 const MicroservicePortManager = require('../sequelize/managers/microservice-port-manager');
 const VolumeMappingManager = require('../sequelize/managers/volume-mapping-manager');
 const RoutingManager = require('../sequelize/managers/routing-manager')
+const ConnectorManager = require('../sequelize/managers/connector-manager')
 const ConnectorPortManager = require('../sequelize/managers/connector-port-manager')
 const ChangeTrackingManager = require('../sequelize/managers/change-tracking-manager')
 const IOFogService = require('../services/iofog-service');
@@ -92,7 +93,7 @@ const _createMicroservice = async function (microserviceData, user, transaction)
   }
 
   if (microserviceDataCreate.iofogUuid) {
-    await IOFogService.getFogWithTransaction({ //TODO do not use this method here it's only for endpoints
+    await IOFogService.getFogWithTransaction({
       uuid: microserviceDataCreate.iofogUuid
     }, user, transaction);
   }
@@ -196,12 +197,12 @@ const _deleteMicroservice = async function (microserviceUuid, user, transaction)
 async function _createRoute(sourceMicroserviceUuid, destMicroserviceUuid, user, transaction) {
   const sourceMicroservice = await MicroserviceManager.findOne({uuid: sourceMicroserviceUuid}, transaction)
   if (!sourceMicroservice) {
-    throw new Errors.ModelNotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, sourceMicroserviceUuid))
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, sourceMicroserviceUuid))
   }
 
   const destMicroservice = await MicroserviceManager.findOne({uuid: destMicroserviceUuid}, transaction)
   if (!destMicroservice) {
-    throw new Errors.ModelNotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, destMicroserviceUuid))
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, destMicroserviceUuid))
   }
 
   if (!sourceMicroservice.iofogUuid || !destMicroservice.iofogUuid) {
@@ -318,14 +319,10 @@ async function _createNetworkMicroserviceForMaster(connector, ports, masterMicro
     rootHostAccess: false,
     logSize: 50,
     updatedBy: user.id,
-
-    //TODO strange parameters
-    configLastUpdated: Date.now(), //TODO can be not setted, because it's creation
-    registryId: networkCatalogItem.registryId, //TODO redundant field in db. discuss with dbusel
+    configLastUpdated: Date.now()
   }
 
-  const sourceNetworkMicroservice = await MicroserviceManager.create(sourceNetworkMicroserviceData, transaction);
-  return sourceNetworkMicroservice;
+  return await MicroserviceManager.create(sourceNetworkMicroserviceData, transaction);
 }
 
 async function _switchOnUpdateFlagsForMicroservices(sourceMicroservice, transaction, destMicroservice) {
@@ -344,11 +341,70 @@ async function _switchOnUpdateFlagsForMicroservices(sourceMicroservice, transact
   await ChangeTrackingManager.update({iofogUuid: destMicroservice.iofogUuid}, updateChangeTrackingData, transaction)
 }
 
+async function _deleteRoute(sourceMicroserviceUuid, destMicroserviceUuid, user, transaction) {
+  const sourceMicroservice = await MicroserviceManager.findOne({uuid: sourceMicroserviceUuid}, transaction)
+  if (!sourceMicroservice) {
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, sourceMicroserviceUuid))
+  }
+
+  const destMicroservice = await MicroserviceManager.findOne({uuid: destMicroserviceUuid}, transaction)
+  if (!destMicroservice) {
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, destMicroserviceUuid))
+  }
+
+  const route = await RoutingManager.findOne({
+    sourceMicroserviceUuid: sourceMicroserviceUuid,
+    destMicroserviceUuid: destMicroserviceUuid
+  }, transaction)
+  if (!route) {
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.ROUTE_NOT_FOUND))
+  }
+
+  if (route.isNetworkConnection) {
+    await _deleteRouteOverConnector(route, transaction)
+  } else {
+    await _deleteSimpleRoute(route, transaction)
+  }
+}
+
+async function _deleteSimpleRoute(route, transaction) {
+  await RoutingManager.delete({id: route.id}, transaction)
+
+  const updateChangeTrackingData = {
+    routing: true
+  }
+
+  await ChangeTrackingManager.update({iofogUuid: route.sourceIofogUuid}, updateChangeTrackingData, transaction)
+  await ChangeTrackingManager.update({iofogUuid: route.destIofogUuid}, updateChangeTrackingData, transaction)
+}
+
+async function _deleteRouteOverConnector(route, transaction) {
+  const ports = await ConnectorPortManager.findOne({id: route.connectorPortId}, transaction)
+  const connector = await ConnectorManager.findOne({id: ports.connectorId}, transaction)
+
+  await ConnectorService.closePortOnConnector(connector, ports, transaction)
+
+  await RoutingManager.delete({id: route.id}, transaction)
+  await ConnectorPortManager.delete({id: ports.id}, transaction)
+  await MicroserviceManager.delete({uuid: route.sourceNetworkMicroserviceUuid}, transaction)
+  await MicroserviceManager.delete({uuid: route.destNetworkMicroserviceUuid}, transaction)
+
+  const updateChangeTrackingData = {
+    containerConfig: true,
+    containerList: true,
+    routing: true
+  }
+
+  await ChangeTrackingManager.update({iofogUuid: route.sourceIofogUuid}, updateChangeTrackingData, transaction)
+  await ChangeTrackingManager.update({iofogUuid: route.destIofogUuid}, updateChangeTrackingData, transaction)
+}
+
 module.exports = {
   createMicroserviceOnFog: TransactionDecorator.generateTransaction(_createMicroserviceOnFog),
   getMicroserviceByFlow: TransactionDecorator.generateTransaction(_getMicroserviceByFlow),
   getMicroservice: TransactionDecorator.generateTransaction(_getMicroservice),
   updateMicroservice: TransactionDecorator.generateTransaction(_updateMicroservice),
   deleteMicroservice: TransactionDecorator.generateTransaction(_deleteMicroservice),
-  createRouteWithTransaction : TransactionDecorator.generateTransaction(_createRoute)
+  createRouteWithTransaction : TransactionDecorator.generateTransaction(_createRoute),
+  deleteRouteWithTransaction: TransactionDecorator.generateTransaction(_deleteRoute)
 };
