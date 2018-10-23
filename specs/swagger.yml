@@ -2761,10 +2761,6 @@ definitions:
            $ref: '#/definitions/VolumeMappingAgentRequest'
       imageSnapshot:
         type: string
-      volumeMappings:
-         type: array
-         items:
-           $ref: '#/definitions/VolumeMappingAgentRequest'
       ports:
         $ref: '#/definitions/PortMappingsRequest'
       routes:
