@@ -80,7 +80,7 @@ const _createMicroserviceOnFog = async function (microserviceData, user, isCLI, 
   // TODO: create routes
 
   if(microserviceData.ioFogNodeId) {
-    await _updateChangeTracking(microserviceData, microserviceData.ioFogNodeId, transaction);
+    await _updateChangeTracking(false, microserviceData.ioFogNodeId, transaction);
   }
 
   return {
@@ -179,7 +179,7 @@ const _updateMicroservice = async function (microserviceUuid, microserviceData, 
   // TODO: update routes
 
   if(microserviceData.ioFogNodeId) {
-    await _updateChangeTracking(microserviceData, microserviceData.ioFogNodeId, transaction);
+    await _updateChangeTracking(microserviceData.config ? true : false, microserviceData.ioFogNodeId, transaction);
   }
 };
 
@@ -207,10 +207,10 @@ const _updateVolumeMappings = async function (microserviceData, microserviceUuid
   }
 };
 
-const _updateChangeTracking = async function (microserviceData, fogNodeUuid, transaction) {
+const _updateChangeTracking = async function (configUpdated, fogNodeUuid, transaction) {
   const trackingData = {
     containerList: true,
-    containerConfig: microserviceData.config ? true : false,
+    containerConfig: configUpdated,
     iofogUuid: fogNodeUuid
   };
 
