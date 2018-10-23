@@ -36,7 +36,7 @@ module.exports = (sequelize, DataTypes) => {
         name: 'updatedBy',
         field: 'updated_by'
       },
-      as: 'userUpdatedBy',
+      as: 'user',
       onDelete: 'cascade'
     });
   };
