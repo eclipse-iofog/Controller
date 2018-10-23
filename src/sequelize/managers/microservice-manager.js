@@ -44,7 +44,7 @@ class MicroserviceManager extends BaseManager {
         model: StraceDiagnostics,
         as: 'strace',
         required: false,
-        attribures: ['straceRun']
+        attributes: ['straceRun']
       },
       {
         model: CatalogItem,

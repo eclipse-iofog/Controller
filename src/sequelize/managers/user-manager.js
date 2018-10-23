@@ -175,6 +175,5 @@ class UserManager extends BaseManager {
   }
 }
 
-
 const instance = new UserManager();
 module.exports = instance;
