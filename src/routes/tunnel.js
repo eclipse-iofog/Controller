@@ -24,7 +24,7 @@ module.exports = [
       const errorCodes = [
           {
               code: constants.HTTP_CODE_BAD_REQUEST,
-              errors: [Errors.ValidationError, Error]
+              errors: [Errors.ValidationError]
           },
           {
               code: constants.HTTP_CODE_UNAUTHORIZED,

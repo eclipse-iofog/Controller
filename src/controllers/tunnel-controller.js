@@ -14,6 +14,8 @@
 const logger = require('../logger');
 const AuthDecorator = require('../decorators/authorization-decorator');
 const TunnelService = require('../services/tunnel-service');
+const Errors = require('../helpers/errors');
+const ErrorMessages = require('../helpers/error-messages');
 
 const manageTunnelEndPoint = async function (req, user) {
   logger.info("Parameters:" + JSON.stringify(req.body));
@@ -29,7 +31,7 @@ const manageTunnelEndPoint = async function (req, user) {
       await TunnelService.closeTunnel(tunnelData, user);
       break;
     default:
-      throw new Error("Unknown action property. Action can be 'open' or 'close'");
+      throw new Errors.ValidationError(ErrorMessages.INVALID_ACTION_PROPERTY);
   }
 };
 
