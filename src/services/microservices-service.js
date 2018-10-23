@@ -58,7 +58,7 @@ const _getMicroservice = async function (microserviceUuid, user, transaction) {
 
   await FlowService.getFlow(microservice.flowId, user, transaction);
 
-  await IOFogService.getFogWithTransaction({
+  await IOFogService.getFog({
     uuid: microservice.iofogUuid
   }, user, transaction);
 
@@ -85,13 +85,23 @@ const _createMicroserviceOnFog = async function (microserviceData, user, transac
 };
 
 const _createMicroservice = async function (microserviceData, user, transaction) {
+  if (microserviceData.flowId) {
+    await FlowService.getFlow(microserviceData.flowId, user, transaction);
+  }
+
+  if (microserviceData.iofogUuid) {
+    await IOFogService.getFog({
+      uuid: microserviceData.iofogUuid
+    }, user, transaction);
+  }
+
+  // TODO: check if isNetwork and validate
+
   const microserviceToCreate = {
     uuid: AppHelper.generateRandomString(32),
     name: microserviceData.name,
     config: microserviceData.config,
     isNetwork: microserviceData.isNetwork,
-    needUpdate: microserviceData.needUpdate,
-    rebuild: microserviceData.rebuild,
     catalogItemId: microserviceData.catalogItemId,
     flowId: microserviceData.flowId,
     iofogUuid: microserviceData.ioFogNodeId,
@@ -100,16 +110,6 @@ const _createMicroservice = async function (microserviceData, user, transaction)
   };
 
   const microserviceDataCreate = AppHelper.deleteUndefinedFields(microserviceToCreate);
-
-  if (microserviceDataCreate.flowId) {
-    await FlowService.getFlow(microserviceDataCreate.flowId, user, transaction);
-  }
-
-  if (microserviceDataCreate.iofogUuid) {
-    await IOFogService.getFogWithTransaction({
-      uuid: microserviceDataCreate.iofogUuid
-    }, user, transaction);
-  }
 
   return await MicroserviceManager.create(microserviceDataCreate, transaction);
 };
@@ -156,7 +156,7 @@ const _updateMicroservice = async function (microserviceUuid, microserviceData, 
   const microserviceDataUpdate = AppHelper.deleteUndefinedFields(microserviceToUpdate);
 
   if (microserviceDataUpdate.iofogUuid) {
-    await IOFogService.getFogWithTransaction({
+    await IOFogService.getFog({
       uuid: microserviceDataUpdate.iofogUuid
     }, user);
     await _updateChangeTracking(microserviceData, )
