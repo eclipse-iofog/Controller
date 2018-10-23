@@ -43,32 +43,34 @@ const updateChangeTracking = async function (user, transaction){
     }
 };
 
-const findAllRegistries = async function (user, transaction) {
-  const queryRegistry = {
-      userId: user.id
-  };
+const findRegistries = async function (user, isCli, transaction) {
+  const queryRegistry = isCli
+      ? {}
+      : {userId: user.id}
   const registries = await RegistryManager.findAll(queryRegistry, transaction);
   return {
     registries: registries
   }
 };
 
-const deleteRegistry = async function (registryData, user, transaction) {
+const deleteRegistry = async function (registryData, user, isCli, transaction) {
   await Validator.validate(registryData, Validator.schemas.registryDelete)
-  const queryFogData = {
-    id: registryData.id,
-    userId: user.id
-  };
-  const registry = await RegistryManager.findOne(queryFogData, transaction);
+  const queryData = isCli
+    ? {id: registryData.id}
+    : {id: registryData.id, userId: user.id};
+  const registry = await RegistryManager.findOne(queryData, transaction);
   if (!registry) {
       throw new Errors.NotFoundError('Invalid Registry Id');
   }
-  await RegistryManager.delete(queryFogData, transaction);
+  if (isCli){
+      user = {id: registry.userId};
+  }
+  await RegistryManager.delete(queryData, transaction);
   await updateChangeTracking(user, transaction);
 };
 
 module.exports = {
-  findRegistries: TransactionDecorator.generateTransaction(findAllRegistries),
+  findRegistries: TransactionDecorator.generateTransaction(findRegistries),
   createRegistry: TransactionDecorator.generateTransaction(createRegistry),
   deleteRegistry: TransactionDecorator.generateTransaction(deleteRegistry)
 };
