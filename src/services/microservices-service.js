@@ -78,35 +78,15 @@ const _createMicroserviceOnFog = async function (microserviceData, user, isCLI, 
     await _createVolumeMappings(microserviceData, microservice.uuid, transaction);
   }
   // TODO: create routes
-  // TODO: update changeTracking
+
+  if(microserviceData.ioFogNodeId) {
+    await _updateChangeTracking(microserviceData, microserviceData.ioFogNodeId, transaction);
+  }
 
   return {
     uuid: microservice.uuid
   }
 };
-
-const _checkIfMicroserviceIsValid = async function (microserviceDataCreate, userId, transaction) {
-  let where;
-  if (microserviceDataCreate.iofogUuid) {
-    where = {
-      id: userId,
-      '$catalogItem.id$': microserviceDataCreate.catalogItemId,
-      '$flow.id$': microserviceDataCreate.flowId,
-      '$fog.uuid$': microserviceDataCreate.iofogUuid
-    }
-  } else {
-    where = {
-      id: userId,
-      '$catalogItem.id$': microserviceDataCreate.catalogItemId,
-      '$flow.id$': microserviceDataCreate.flowId
-    }
-  }
-
-  const user = await UserManager.findUserForMicroservice(where, transaction);
-  if (!user) {
-    throw new Errors.ValidationError(ErrorMessages.INVALID_MICROSERVICE);
-  }
-}
 
 const _createMicroservice = async function (microserviceData, user, transaction) {
 
@@ -163,7 +143,7 @@ const _updateMicroservice = async function (microserviceUuid, microserviceData, 
   await _getMicroservice(microserviceUuid, user, isCLI, transaction);
 
   await Validation.validate(microserviceData, Validation.schemas.microserviceUpdate);
-  
+
   if(microserviceData.isNetwork) {
     if (microserviceData.config !== undefined) {
       await Validation.validate(JSON.parse(microserviceData.config), Validation.schemas.networkConfig)
@@ -186,13 +166,6 @@ const _updateMicroservice = async function (microserviceUuid, microserviceData, 
 
   const microserviceDataUpdate = AppHelper.deleteUndefinedFields(microserviceToUpdate);
 
-  if (microserviceDataUpdate.iofogUuid) {
-    await IOFogService.getFog({
-      uuid: microserviceDataUpdate.iofogUuid
-    }, user);
-    await _updateChangeTracking(microserviceData, )
-  }
-
   await MicroserviceManager.update({
     uuid: microserviceUuid
   }, microserviceDataUpdate, transaction);
@@ -203,9 +176,11 @@ const _updateMicroservice = async function (microserviceUuid, microserviceData, 
   if (microserviceData.volumeMappings) {
     await _updateVolumeMappings(microserviceUuid, microserviceData, transaction);
   }
-
   // TODO: update routes
-  // TODO: update changeTracking
+
+  if(microserviceData.ioFogNodeId) {
+    await _updateChangeTracking(microserviceData, microserviceData.ioFogNodeId, transaction);
+  }
 };
 
 const _updateMicroservicePort = async function (microserviceUuid, microserviceData, user, transaction) {
@@ -250,6 +225,29 @@ const _deleteMicroservice = async function (microserviceUuid, user, isCLI, trans
   }, transaction);
   if (affectedRows === 0) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, microserviceUuid));
+  }
+};
+
+const _checkIfMicroserviceIsValid = async function (microserviceDataCreate, userId, transaction) {
+  let where;
+  if (microserviceDataCreate.iofogUuid) {
+    where = {
+      id: userId,
+      '$catalogItem.id$': microserviceDataCreate.catalogItemId,
+      '$flow.id$': microserviceDataCreate.flowId,
+      '$fog.uuid$': microserviceDataCreate.iofogUuid
+    }
+  } else {
+    where = {
+      id: userId,
+      '$catalogItem.id$': microserviceDataCreate.catalogItemId,
+      '$flow.id$': microserviceDataCreate.flowId
+    }
+  }
+
+  const user = await UserManager.findUserForMicroservice(where, transaction);
+  if (!user) {
+    throw new Errors.ValidationError(ErrorMessages.INVALID_MICROSERVICE);
   }
 };
 
