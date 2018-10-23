@@ -365,9 +365,36 @@ async function _createRouteOverConnector(sourceMicroservice, destMicroservice, u
   const networkCatalogItem = await CatalogService.getNetworkCatalogItem(transaction)
 
   //create netw ms1
-  const sourceNetworkMicroservice = await _createNetworkMicroserviceForMaster(connector, ports, sourceMicroservice, networkCatalogItem, user, transaction);
+  const sourceNetwMsConfig = {
+    'mode': 'private', //TODO: for public 'public'
+    'host': connector.domain,
+    'cert': connector.cert,
+    'port': ports.port1,
+    'passcode': ports.passcode1,
+    'connectioncount': 1, //TODO: for public 60
+    'localhost': 'iofog',
+    'localport': 0,
+    'heartbeatfrequency': 20000,
+    'heartbeatabsencethreshold': 60000,
+    'devmode': connector.devMode
+  }
+  const sourceNetworkMicroservice = await _createNetworkMicroserviceForMaster(connector, ports, sourceMicroservice, sourceNetwMsConfig,networkCatalogItem, user, transaction);
+
   //create netw ms2
-  const destNetworkMicroservice = await _createNetworkMicroserviceForMaster(connector, ports, destMicroservice, networkCatalogItem, user, transaction);
+  const destNetwMsConfig = {
+    'mode': 'private', //TODO: for public 'public'
+    'host': connector.domain,
+    'cert': connector.cert,
+    'port': ports.port2,
+    'passcode': ports.passcode2,
+    'connectioncount': 1, //TODO: for public 60
+    'localhost': 'iofog',
+    'localport': 0,
+    'heartbeatfrequency': 20000,
+    'heartbeatabsencethreshold': 60000,
+    'devmode': connector.devMode
+  }
+  const destNetworkMicroservice = await _createNetworkMicroserviceForMaster(connector, ports, destMicroservice, destNetwMsConfig,networkCatalogItem, user, transaction);
 
   //create new route
   const routeData = {
@@ -385,20 +412,7 @@ async function _createRouteOverConnector(sourceMicroservice, destMicroservice, u
   await _switchOnUpdateFlagsForMicroservices(sourceMicroservice, transaction, destMicroservice)
 }
 
-async function _createNetworkMicroserviceForMaster(connector, ports, masterMicroservice, networkCatalogItem, user, transaction) {
-  const sourceNetwMsConfig = {
-    'mode': 'private', //TODO: for public 'public'
-    'host': connector.domain,
-    'cert': connector.cert,
-    'port': ports.port1,
-    'passcode': ports.passcode1,
-    'connectioncount': 1, //TODO: for public 60
-    'localhost': 'iofog',
-    'localport': 0,
-    'heartbeatfrequency': 20000,
-    'heartbeatabsencethreshold': 60000,
-    'devmode': connector.devMode
-  }
+async function _createNetworkMicroserviceForMaster(connector, ports, masterMicroservice, sourceNetwMsConfig, networkCatalogItem, user, transaction) {
   const sourceNetworkMicroserviceData = {
     uuid: AppHelper.generateRandomString(32),
     name: `Network for Element ${masterMicroservice.uuid}`,
