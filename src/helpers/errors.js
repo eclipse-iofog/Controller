@@ -70,6 +70,14 @@ class NotFoundError extends Error {
   }
 }
 
+class FtpError extends Error {
+  constructor(message) {
+    super(message);
+    this.message = message;
+    this.name = "FtpError";
+  }
+}
+
 module.exports = {
   AuthenticationError: AuthenticationError,
   TransactionError: TransactionError,
@@ -77,5 +85,6 @@ module.exports = {
   InvalidCredentialsError: InvalidCredentialsError,
   NotFoundError: NotFoundError,
   ModelNotFoundError: ModelNotFoundError,
-  DuplicatePropertyError: DuplicatePropertyError
+  DuplicatePropertyError: DuplicatePropertyError,
+  FtpError: FtpError
 };

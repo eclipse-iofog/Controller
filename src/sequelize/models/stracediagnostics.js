@@ -10,7 +10,7 @@ module.exports = (sequelize, DataTypes) => {
     },
     straceRun: {
       type: DataTypes.BOOLEAN,
-      field: 'straceRun'
+      field: 'strace_run'
     },
     buffer: {
       type: DataTypes.TEXT,
