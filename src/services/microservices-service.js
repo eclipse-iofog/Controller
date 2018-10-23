@@ -110,7 +110,6 @@ const _checkIfMicroserviceIsValid = async function (microserviceDataCreate, user
 
 const _createMicroservice = async function (microserviceData, user, transaction) {
 
-  // TODO: check if isNetwork and validate
   if(microserviceData.isNetwork) {
     if (microserviceData.config !== undefined) {
       await Validation.validate(JSON.parse(microserviceData.config), Validation.schemas.networkConfig)
@@ -164,8 +163,7 @@ const _updateMicroservice = async function (microserviceUuid, microserviceData, 
   await _getMicroservice(microserviceUuid, user, isCLI, transaction);
 
   await Validation.validate(microserviceData, Validation.schemas.microserviceUpdate);
-
-  // TODO: check if isNetwork and validate
+  
   if(microserviceData.isNetwork) {
     if (microserviceData.config !== undefined) {
       await Validation.validate(JSON.parse(microserviceData.config), Validation.schemas.networkConfig)
@@ -256,9 +254,9 @@ const _deleteMicroservice = async function (microserviceUuid, user, isCLI, trans
 };
 
 module.exports = {
-  createMicroserviceOnFog: TransactionDecorator.generateTransaction(_createMicroserviceOnFog),
-  getMicroserviceByFlow: TransactionDecorator.generateTransaction(_getMicroserviceByFlow),
-  getMicroservice: TransactionDecorator.generateTransaction(_getMicroservice),
-  updateMicroservice: TransactionDecorator.generateTransaction(_updateMicroservice),
-  deleteMicroservice: TransactionDecorator.generateTransaction(_deleteMicroservice)
+  createMicroserviceOnFogWithTransaction: TransactionDecorator.generateTransaction(_createMicroserviceOnFog),
+  getMicroserviceByFlowWithTransaction: TransactionDecorator.generateTransaction(_getMicroserviceByFlow),
+  getMicroserviceWithTransaction: TransactionDecorator.generateTransaction(_getMicroservice),
+  updateMicroserviceWithTransaction: TransactionDecorator.generateTransaction(_updateMicroservice),
+  deleteMicroserviceWithTransaction: TransactionDecorator.generateTransaction(_deleteMicroservice)
 };
