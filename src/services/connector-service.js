@@ -59,11 +59,11 @@ async function openPortOnRandomConnector(isPublicAccess, transaction) {
         break;
       }
     } catch(e) {
-      logger.warn(`Failed to open ports on comsat. Attempts ${i}/${maxAttempts}`)
+      logger.warn(`Failed to open ports on comsat. Attempts ${i+1}/${maxAttempts}`)
     }
   }
   if (!isConnectorPortOpen) {
-    throw new Error('Not able to open port on remote CONNECTOR. Gave up after 5 tries.')
+    throw new Error('Not able to open port on remote CONNECTOR. Gave up after 5 attempts.')
   }
   ports.connectorId = connector.id
   return {ports: ports, connector: connector}
