@@ -1562,10 +1562,10 @@ paths:
         '500':
           description: Internal Server Error
   '/iofog/{uuid}/tunnel':
-    post:
+    patch:
       tags:
       - Tunnel
-      description: Opens ssh tunnel
+      description: Opens/closes ssh tunnel
       operationId: openIOFogNodeSshTunnel
       parameters:
       - in: path
@@ -1573,14 +1573,19 @@ paths:
         description: ioFog node id
         required: true
         type: string
+      - in: body
+        name: Action
+        required: true
+        schema:
+          $ref: '#/definitions/ActionBody'
       - in: header
         name: Authorization
         description: User Token
         required: true
         type: string
       responses:
-        '201':
-          description: Created
+        '204':
+          description: Success
           headers:
             X-Timestamp:
               type: number
@@ -1614,35 +1619,6 @@ paths:
           description: Success
           schema:
             $ref: '#/definitions/IOFogNodeTunnelStatusInfoResponse'
-          headers:
-            X-Timestamp:
-              type: number
-              description: FogController server timestamp
-        '401':
-          description: Not Authorized
-        '404':
-          description: Invalid Node Id
-        '500':
-          description: Internal Server Error
-    delete:
-      tags:
-      - Tunnel
-      description: Closes ssh tunnel
-      operationId: closeIOFogNodeSshTunnel
-      parameters:
-      - in: path
-        name: uuid
-        description: ioFog node id
-        required: true
-        type: string
-      - in: header
-        name: Authorization
-        description: User token
-        required: true
-        type: string
-      responses:
-        '204':
-          description: Success
           headers:
             X-Timestamp:
               type: number
@@ -2556,6 +2532,14 @@ definitions:
         type: string
       email:
         type: string
+  ActionBody:
+    type: object
+    properties:
+      action:
+        type: string
+        enum:
+        - open
+        - close
   MicroservicesCatalogResponse:
     type: array
     items:
