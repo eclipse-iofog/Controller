@@ -60,7 +60,7 @@ const updateAgentStatus = {
   "type": "object",
   "properties": {
     "daemonStatus": {"type": "string"},
-    "daemonOperationDuration": {"type": "integer", "minimum": 0},
+    "daemonOperatingDuration": {"type": "integer", "minimum": 0},
     "daemonLastStart": {"type": "integer", "minimum": 0},
     "memoryUsage": {"type": "integer", "minimum": 0},
     "diskUsage": {"type": "integer", "minimum": 0},
@@ -70,6 +70,7 @@ const updateAgentStatus = {
     "cpuViolation": {"type": "boolean"},
     "microservicesStatus": {"type": "string"},
     "repositoryCount": {"type": "integer", "minimum": 0},
+    "repositoryStatus": {"type": "string"},
     "systemTime": {"type": "integer", "minimum": 0},
     "lastStatusTime": {"type": "integer", "minimum": 0},
     "ipAddress": {"type": "string"},
