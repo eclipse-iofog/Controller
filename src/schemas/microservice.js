@@ -2,7 +2,10 @@ const microserviceCreate = {
   "id": "/microserviceCreate",
   "type": "object",
   "properties": {
-    "name": {"type": "string"},
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
     "config": {"type": "string"},
     "catalogItemId": {"type": "integer"},
     "isNetwork" : {"type": "boolean"},
@@ -26,7 +29,10 @@ const microserviceUpdate = {
   "id": "/microserviceUpdate",
   "type": "object",
   "properties": {
-    "name": {"type": "string"},
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
     "config": {"type": "string"},
     "isNetwork" : {"type": "boolean"},
     "needUpdate" : {"type": "boolean"},
