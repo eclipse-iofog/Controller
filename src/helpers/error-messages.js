@@ -39,7 +39,6 @@ module.exports = {
   VERSION_COMMAND_NOT_FOUND: 'Version command not found',
   STRACE_WITHOUT_FOG: 'Can not run strace for element without fog.',
   INVALID_MICROSERVICE: 'Microservice is not valid. Possible reasons: incorrect user, catalog item, flow or fog node.',
-  INVALID_MICROSERVICE_CONFIG: "Can't create network microservice without appropriate configuration."
-  PORT_NOT_AVAILABLE: 'Port {} not available',
+  INVALID_MICROSERVICE_CONFIG: "Can't create network microservice without appropriate configuration.",
   ROUTE_NOT_FOUND: 'Route not found'
 };
