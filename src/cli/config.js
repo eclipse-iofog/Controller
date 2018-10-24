@@ -36,10 +36,13 @@ class Config extends BaseCLIHandler {
       { name: 'email-service', alias: 's', type: String, description: 'Email service to send activations', group: constants.CMD_ADD },
       { name: 'log-dir', alias: 'd', type: String, description: 'Log files directory', group: constants.CMD_ADD },
       { name: 'log-size', alias: 'z', type: Number, description: 'Log files size (MB)', group: constants.CMD_ADD },
+      { name: 'enable', alias: 'o', type: Boolean, description: 'Enable dev mode', group: constants.CMD_DEV_MODE },
+      { name: 'disable', alias: 'f', type: Boolean, description: 'Disable dev mode', group: constants.CMD_DEV_MODE }
     ]
     this.commands = {
       [constants.CMD_ADD]: 'Add a new config value.',
-      [constants.CMD_LIST]: 'Display current config.'
+      [constants.CMD_LIST]: 'Display current config.',
+      [constants.CMD_DEV_MODE]: 'dev mode config.'
     }
   }
 
@@ -51,7 +54,10 @@ class Config extends BaseCLIHandler {
         await _executeCase(configCommand, constants.CMD_ADD, _addConfigOption);
         break;
       case constants.CMD_LIST:
-        await _executeCase(configCommand, constants.CMD_LIST, _listConfigOptions, false);
+        await _executeCase(configCommand, constants.CMD_LIST, _listConfigOptions);
+        break;
+      case constants.CMD_DEV_MODE:
+        await _executeCase(configCommand, constants.CMD_DEV_MODE, _changeDevModeState);
         break;
       case constants.CMD_HELP:
       default:
@@ -167,6 +173,7 @@ const _listConfigOptions = function () {
     'Email service': config.get('Email:Service'),
     'Log files directory': config.get('Service:LogsDirectory'),
     'Log files size': config.get('Service:LogsFileSize'),
+    'Dev mode': config.get('Server:DevMode')
   };
 
   const result = Object.keys(configuration)
@@ -174,6 +181,11 @@ const _listConfigOptions = function () {
     .map(key => `${key}: ${configuration[key]}`)
     .join('\n')
   console.log(result)
+};
+
+const _changeDevModeState = function (options) {
+  const enableDevMode = AppHelper.validateBooleanCliOptions(options.enable, options.disable);
+  config.set('Server:DevMode', enableDevMode)
 };
 
 module.exports = new Config();
