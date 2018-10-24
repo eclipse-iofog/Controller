@@ -14,6 +14,7 @@ const constants = require('../helpers/constants');
 const DiagnosticController = require('../controllers/diagnostic-controller');
 const ResponseDecorator = require('../decorators/response-decorator');
 const Errors = require('../helpers/errors');
+const ErrorMessages = require('../helpers/error-messages');
 const fs = require('fs');
 
 module.exports = [
@@ -80,6 +81,7 @@ module.exports = [
         } else {
           res.writeHead(400, {"Content-Type": "text/plain"});
           res.end("ERROR File does not exist");
+          res.end(ErrorMessages.FILE_DOES_NOT_EXIST);
         }
       });
     }

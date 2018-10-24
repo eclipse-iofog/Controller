@@ -144,14 +144,14 @@ const _postMicroserviceImageSnapshotCreate = async function (obj) {
   logger.info(JSON.stringify(obj));
 
   await DiagnosticService.postMicroserviceImageSnapshotCreate(obj.microserviceId, obj, {}, true);
-  logger.info('Create microservice image snapshot successfully');
+  logger.info('Microservice image snapshot has been created successfully');
 };
 
 const _getMicroserviceImageSnapshot = async function (obj) {
   logger.info(JSON.stringify(obj));
 
   await DiagnosticService.getMicroserviceImageSnapshot(obj.microserviceId, obj, {}, true);
-  logger.info('Get microservice image snapshot successfully');
+  logger.info('Microservice images snapshot has been downloaded successfully');
 };
 
 module.exports = new Diagnostics();
