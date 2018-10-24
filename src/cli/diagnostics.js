@@ -90,9 +90,11 @@ class Diagnostics extends BaseCLIHandler {
         await _executeCase(diagnosticCommand, constants.CMD_STRACE_FTP_POST, _postMicroserviceStraceDataToFtp, false);
         break;
       case constants.CMD_IMAGE_SNAPSHOT_CREATE:
-        return
+        await _executeCase(diagnosticCommand, constants.CMD_IMAGE_SNAPSHOT_CREATE, _postMicroserviceImageSnapshotCreate, false);
+        break;
       case constants.CMD_IMAGE_SNAPSHOT_GET:
-        return
+        await _executeCase(diagnosticCommand, constants.CMD_IMAGE_SNAPSHOT_GET, _getMicroserviceImageSnapshot, false);
+        break;
       case constants.CMD_HELP:
       default:
         return this.help([constants.CMD_LIST])
@@ -136,6 +138,20 @@ const _postMicroserviceStraceDataToFtp = async function (obj) {
 
   await DiagnosticService.postMicroserviceStraceDatatoFtp(obj.microserviceId, obj, {}, true);
   logger.info('Strace data has been posted to ftp successfully');
+};
+
+const _postMicroserviceImageSnapshotCreate = async function (obj) {
+  logger.info(JSON.stringify(obj));
+
+  await DiagnosticService.postMicroserviceImageSnapshotCreate(obj.microserviceId, obj, {}, true);
+  logger.info('Microservice image snapshot has been created successfully');
+};
+
+const _getMicroserviceImageSnapshot = async function (obj) {
+  logger.info(JSON.stringify(obj));
+
+  await DiagnosticService.getMicroserviceImageSnapshot(obj.microserviceId, obj, {}, true);
+  logger.info('Microservice images snapshot has been downloaded successfully');
 };
 
 module.exports = new Diagnostics();

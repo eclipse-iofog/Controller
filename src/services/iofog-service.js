@@ -319,5 +319,6 @@ module.exports = {
   setFogVersionCommandWithTransaction: TransactionDecorator.generateTransaction(_setFogVersionCommand),
   setFogRebootCommandWithTransaction: TransactionDecorator.generateTransaction(_setFogRebootCommand),
   getHalHardwareInfo: TransactionDecorator.generateTransaction(_getHalHardwareInfo),
-  getHalUsbInfo: TransactionDecorator.generateTransaction(_getHalUsbInfo)
+  getHalUsbInfo: TransactionDecorator.generateTransaction(_getHalUsbInfo),
+  getFog: _getFog
 };

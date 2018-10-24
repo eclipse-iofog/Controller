@@ -555,7 +555,7 @@ paths:
           description: Invalid Node Id
         '500':
           description: Internal Server Error
-  '/iofog/agent/microservices/{microserviceUuid}':
+  '/agent/microservices/{microserviceId}':
     get:
       tags:
       - Agent
@@ -564,8 +564,8 @@ paths:
       parameters:
       - in: path
         required: true
-        name: microserviceUuid
-        description: Microservice Uuid
+        name: microserviceId
+        description: Microservice id
         type: string
       - in: header
         name: Authorization
@@ -1297,7 +1297,7 @@ paths:
           description: Not Found
         '500':
           description: Internal Server Error
-  '/microservices/{uuid}/routes/{receiverId}':
+  '/microservices/{uuid}/routes/{receiverUuid}':
     post:
       tags:
       - Microservices
@@ -1315,8 +1315,8 @@ paths:
         required: true
         type: string
       - in: path
-        name: receiverId
-        description: Receiver Microservice Id
+        name: receiverUuid
+        description: Receiver Microservice Uuid
         required: true
         type: string
       responses:
@@ -1327,7 +1327,7 @@ paths:
               type: number
               description: FogController server timestamp
         '400':
-          description: receiverId Is Not Valid
+          description: Not Valid
         '401':
           description: Not Authorized
         '404':
@@ -1363,7 +1363,7 @@ paths:
               type: number
               description: FogController server timestamp
         '400':
-          description: receiverId Is Not Valid
+          description: Not Valid
         '401':
           description: Not Authorized
         '404':
