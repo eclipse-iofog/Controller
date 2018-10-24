@@ -20,13 +20,17 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.TEXT,
       field: 'public_ip'
     },
-    certDir: {
+    cert: {
       type: DataTypes.TEXT,
       field: 'cert'
     },
     isSelfSignedCert: {
       type: DataTypes.BOOLEAN,
       field: 'self_signed_certs'
+    },
+    devMode: {
+      type: DataTypes.BOOLEAN,
+      field: 'dev_mode'
     }
   }, {
     timestamps: true,

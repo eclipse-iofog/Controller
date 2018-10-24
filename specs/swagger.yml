@@ -1297,7 +1297,7 @@ paths:
           description: Not Found
         '500':
           description: Internal Server Error
-  '/microservices/{uuid}/routes/{receiverId}':
+  '/microservices/{uuid}/routes/{receiverUuid}':
     post:
       tags:
       - Microservices
@@ -1315,8 +1315,8 @@ paths:
         required: true
         type: string
       - in: path
-        name: receiverId
-        description: Receiver Microservice Id
+        name: receiverUuid
+        description: Receiver Microservice Uuid
         required: true
         type: string
       responses:
@@ -1327,7 +1327,7 @@ paths:
               type: number
               description: FogController server timestamp
         '400':
-          description: receiverId Is Not Valid
+          description: Not Valid
         '401':
           description: Not Authorized
         '404':
@@ -1363,7 +1363,7 @@ paths:
               type: number
               description: FogController server timestamp
         '400':
-          description: receiverId Is Not Valid
+          description: Not Valid
         '401':
           description: Not Authorized
         '404':
@@ -1562,10 +1562,10 @@ paths:
         '500':
           description: Internal Server Error
   '/iofog/{uuid}/tunnel':
-    post:
+    patch:
       tags:
       - Tunnel
-      description: Opens ssh tunnel
+      description: Opens/closes ssh tunnel
       operationId: openIOFogNodeSshTunnel
       parameters:
       - in: path
@@ -1573,14 +1573,19 @@ paths:
         description: ioFog node id
         required: true
         type: string
+      - in: body
+        name: Action
+        required: true
+        schema:
+          $ref: '#/definitions/ActionBody'
       - in: header
         name: Authorization
         description: User Token
         required: true
         type: string
       responses:
-        '201':
-          description: Created
+        '204':
+          description: Success
           headers:
             X-Timestamp:
               type: number
@@ -1614,35 +1619,6 @@ paths:
           description: Success
           schema:
             $ref: '#/definitions/IOFogNodeTunnelStatusInfoResponse'
-          headers:
-            X-Timestamp:
-              type: number
-              description: FogController server timestamp
-        '401':
-          description: Not Authorized
-        '404':
-          description: Invalid Node Id
-        '500':
-          description: Internal Server Error
-    delete:
-      tags:
-      - Tunnel
-      description: Closes ssh tunnel
-      operationId: closeIOFogNodeSshTunnel
-      parameters:
-      - in: path
-        name: uuid
-        description: ioFog node id
-        required: true
-        type: string
-      - in: header
-        name: Authorization
-        description: User token
-        required: true
-        type: string
-      responses:
-        '204':
-          description: Success
           headers:
             X-Timestamp:
               type: number
@@ -2051,9 +2027,9 @@ definitions:
       gpsMode:
         type: string
       latitude:
-        type: string
+        type: number
       longitude:
-        type: string
+        type: number
       description:
         type: string
       createAt:
@@ -2132,7 +2108,7 @@ definitions:
         type: number
       changeFrequency:
         type: number
-      scanFrequency:
+      deviceScanFrequency:
         type: number
       proxy:
         type: string
@@ -2323,14 +2299,14 @@ definitions:
         type: number
       changeFrequency:
         type: number
-      scanFrequency:
+      deviceScanFrequency:
         type: number
       watchdogEnabled:
         type: boolean
       latitude:
-        type: string
+        type: number
       longitude:
-        type: string
+        type: number
       gpsMode:
         type: string
   AgentStatus:
@@ -2556,6 +2532,14 @@ definitions:
         type: string
       email:
         type: string
+  ActionBody:
+    type: object
+    properties:
+      action:
+        type: string
+        enum:
+        - open
+        - close
   MicroservicesCatalogResponse:
     type: array
     items:
@@ -2777,10 +2761,6 @@ definitions:
            $ref: '#/definitions/VolumeMappingAgentRequest'
       imageSnapshot:
         type: string
-      volumeMappings:
-         type: array
-         items:
-           $ref: '#/definitions/VolumeMappingAgentRequest'
       ports:
         $ref: '#/definitions/PortMappingsRequest'
       routes:

@@ -22,11 +22,11 @@ module.exports = {
         field: 'gps_mode'
       },
       latitude: {
-        type: Sequelize.TEXT,
+        type: Sequelize.FLOAT,
         field: 'latitude'
       },
       longitude: {
-        type: Sequelize.TEXT,
+        type: Sequelize.FLOAT,
         field: 'longitude'
       },
       description: {

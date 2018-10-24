@@ -171,7 +171,7 @@ const updateAgentStatus = async function (agentStatus, fog, transaction) {
 
   let update = {
     daemonStatus: agentStatus.daemonStatus,
-    daemonOperationDuration: agentStatus.daemonOperatingDuration,
+    daemonOperatingDuration: agentStatus.daemonOperatingDuration,
     daemonLastStart: agentStatus.daemonLastStart,
     memoryUsage: agentStatus.memoryUsage,
     diskUsage: agentStatus.diskUsage,
@@ -181,6 +181,7 @@ const updateAgentStatus = async function (agentStatus, fog, transaction) {
     cpuViolation: agentStatus.cpuViolation,
     microservicesStatus: agentStatus.microservicesStatus,
     repositoryCount: agentStatus.repositoryCount,
+    repositoryStatus: agentStatus.repositoryStatus,
     systemTime: agentStatus.systemTime,
     lastStatusTime: agentStatus.lastStatusTime,
     ipAddress: agentStatus.ipAddress,
@@ -277,7 +278,7 @@ const updateHalUsbInfo = async function (usbData, fog, transaction) {
 };
 
 const deleteNode = async function (fog, transaction) {
-  return await FogManager.delete({
+  await FogManager.delete({
     uuid: fog.uuid
   }, transaction);
 };

@@ -14,8 +14,9 @@
 const RegistryManager = require('../sequelize/managers/registry-manager');
 const Validator = require('../schemas')
 const Errors = require('../helpers/errors')
-
+const ChangeTrackingManager = require('../sequelize/managers/change-tracking-manager')
 const TransactionDecorator = require('../decorators/transaction-decorator');
+const FogManager = require('../sequelize/managers/iofog-manager')
 
 const createRegistry = async function (registry, user, transaction) {
   await Validator.validate(registry, Validator.schemas.registryCreate);
@@ -27,34 +28,49 @@ const createRegistry = async function (registry, user, transaction) {
       userEmail: registry.email,
       userId: user.id
   };
-  return await RegistryManager.create(registryCreate, transaction)
+  await RegistryManager.create(registryCreate, transaction)
+  await updateChangeTracking(user, transaction);
 };
 
-const findAllRegistries = async function (user, transaction) {
-  const queryRegistry = {
-      userId: user.id
-  };
+const updateChangeTracking = async function (user, transaction){
+    let fogs = await FogManager.findAll({userId: user.id}, transaction);
+    for (fog of fogs) {
+        const changeTrackingUpdates = {
+            iofogUuid: fog.uuid,
+            registries: true
+        }
+        await ChangeTrackingManager.update({iofogUuid: fog.uuid}, changeTrackingUpdates, transaction);
+    }
+};
+
+const findRegistries = async function (user, isCli, transaction) {
+  const queryRegistry = isCli
+      ? {}
+      : {userId: user.id}
   const registries = await RegistryManager.findAll(queryRegistry, transaction);
   return {
     registries: registries
   }
 };
 
-const deleteRegistry = async function (registryData, user, transaction) {
+const deleteRegistry = async function (registryData, user, isCli, transaction) {
   await Validator.validate(registryData, Validator.schemas.registryDelete)
-  const queryFogData = {
-    id: registryData.id,
-    userId: user.id
-  };
-  const registry = await RegistryManager.findOne(queryFogData, transaction);
+  const queryData = isCli
+    ? {id: registryData.id}
+    : {id: registryData.id, userId: user.id};
+  const registry = await RegistryManager.findOne(queryData, transaction);
   if (!registry) {
       throw new Errors.NotFoundError('Invalid Registry Id');
   }
-  await RegistryManager.delete(queryFogData, transaction);
+  if (isCli){
+      user = {id: registry.userId};
+  }
+  await RegistryManager.delete(queryData, transaction);
+  await updateChangeTracking(user, transaction);
 };
 
 module.exports = {
-  findRegistries: TransactionDecorator.generateTransaction(findAllRegistries),
+  findRegistries: TransactionDecorator.generateTransaction(findRegistries),
   createRegistry: TransactionDecorator.generateTransaction(createRegistry),
   deleteRegistry: TransactionDecorator.generateTransaction(deleteRegistry)
 };
