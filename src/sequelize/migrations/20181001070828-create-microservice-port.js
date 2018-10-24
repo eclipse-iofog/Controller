@@ -17,6 +17,10 @@ module.exports = {
         type: Sequelize.INTEGER,
         field: 'port_external'
       },
+      isPublic: {
+        type: Sequelize.BOOLEAN,
+        field: 'is_public'
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE,

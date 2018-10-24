@@ -15,6 +15,10 @@ module.exports = (sequelize, DataTypes) => {
     portExternal: {
       type: DataTypes.INTEGER,
       field: 'port_external'
+    },
+    isPublic: {
+      type: DataTypes.BOOLEAN,
+      field: 'is_public'
     }
   }, {
     timestamps: true,
@@ -36,7 +40,7 @@ module.exports = (sequelize, DataTypes) => {
         name: 'updatedBy',
         field: 'updated_by'
       },
-      as: 'userUpdatedBy',
+      as: 'user',
       onDelete: 'cascade'
     });
   };

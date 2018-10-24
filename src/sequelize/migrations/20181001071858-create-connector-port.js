@@ -55,12 +55,6 @@ module.exports = {
         type: Sequelize.DATE,
         field: 'updated_at'
       },
-      updatedBy: {
-        type: Sequelize.INTEGER,
-        field: 'updated_by',
-        references: { model: 'Users', key: 'id' },
-        onDelete: 'cascade'
-      },
       connectorId: {
         type: Sequelize.INTEGER,
         field: 'connector_id',

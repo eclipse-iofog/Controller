@@ -33,8 +33,22 @@ const postMicroserviceStraceDataToFtpEndPoint = async function (req, user) {
   return await DiagnosticService.postMicroserviceStraceDatatoFtp(req.params.id, req.body, user, false);
 };
 
+const createMicroserviceImageSnapshotEndPoint = async function (req, user) {
+  logger.info("Parameters:" + JSON.stringify(req.body));
+  logger.info("Microservice id: " + req.params.id);
+  return await DiagnosticService.postMicroserviceImageSnapshotCreate(req.params.id, req.body, user, false);
+};
+
+const getMicroserviceImageSnapshotEndPoint = async function (req, user) {
+  logger.info("Parameters:" + JSON.stringify(req.body));
+  logger.info("Microservice id: " + req.params.id);
+  return await DiagnosticService.getMicroserviceImageSnapshot(req.params.id, req.body, user, false);
+};
+
 module.exports = {
   changeMicroserviceStraceStateEndPoint: AuthDecorator.checkAuthToken(changeMicroserviceStraceStateEndPoint),
   getMicroserviceStraceDataEndPoint: AuthDecorator.checkAuthToken(getMicroserviceStraceDataEndPoint),
   postMicroserviceStraceDataToFtpEndPoint: AuthDecorator.checkAuthToken(postMicroserviceStraceDataToFtpEndPoint),
+  createMicroserviceImageSnapshotEndPoint: AuthDecorator.checkAuthToken(createMicroserviceImageSnapshotEndPoint),
+  getMicroserviceImageSnapshotEndPoint: AuthDecorator.checkAuthToken(getMicroserviceImageSnapshotEndPoint),
 };

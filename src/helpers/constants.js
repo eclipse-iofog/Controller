@@ -12,6 +12,9 @@
  */
 
 module.exports = {
+  CONNECTOR_HTTP_PORT: 8080,
+  CONNECTOR_HTTPS_PORT: 443,
+
   CMD: 'command',
   CMD_LIST: 'list',
   CMD_ADD: 'add',
@@ -38,6 +41,7 @@ module.exports = {
   CMD_ACTIVATE: 'activate',
   CMD_SUSPEND: 'suspend',
   CMD_STRACE: 'strace',
+  CMD_DEV_MODE: 'dev-mode',
   CMD_TUNNEL: 'tunnel',
   CMD_IOFOG_REBOOT: 'reboot',
   CMD_CONTROLLER: 'controller',

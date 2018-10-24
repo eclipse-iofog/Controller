@@ -2,7 +2,10 @@ const microserviceCreate = {
   "id": "/microserviceCreate",
   "type": "object",
   "properties": {
-    "name": {"type": "string"},
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
     "config": {"type": "string"},
     "catalogItemId": {"type": "integer"},
     "isNetwork" : {"type": "boolean"},
@@ -13,8 +16,10 @@ const microserviceCreate = {
     "imageSnapshot": {"type": "string"},
     "volumeMappings": {
       "type": "array",
-      "items": {"$ref": "volumeMappings"}},
-    "ports": {"$ref": "/ports"},
+      "items": {"$ref": "/volumeMappings"}},
+    "ports": {
+      "type": "array",
+      "items": {"$ref": "/ports"}},
     "routes": {
        "type": "array",
        "items": {"type": "string"}}
@@ -26,7 +31,10 @@ const microserviceUpdate = {
   "id": "/microserviceUpdate",
   "type": "object",
   "properties": {
-    "name": {"type": "string"},
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
     "config": {"type": "string"},
     "isNetwork" : {"type": "boolean"},
     "needUpdate" : {"type": "boolean"},
@@ -38,12 +46,13 @@ const microserviceUpdate = {
     "imageSnapshot": {"type": "string"},
     "volumeMappings": {
       "type": "array",
-      "items": {"$ref": "volumeMappings"}},
-    "ports": {"$ref": "/ports"},
+      "items": {"$ref": "/volumeMappings"}},
+    "ports": {
+      "type": "array",
+      "items": {"$ref": "/ports"}},
     "routes": {
       "type": "array",
-      "items": {"type": "string"}
-    }
+      "items": {"type": "string"}}
   }
 };
 
@@ -52,8 +61,10 @@ const ports = {
   "type": "object",
   "properties": {
     "internal": {"type": "integer"},
-    "external": {"type": "integer"}
-  }
+    "external": {"type": "integer"},
+    "publicMode": {"enum": [false]}
+  },
+  "required": ["internal", "external"]
 };
 
 const volumeMappings = {
@@ -66,7 +77,27 @@ const volumeMappings = {
   }
 };
 
+const networkConfig = {
+  "id": "/networkConfig",
+  "type": "object",
+  "properties": {
+    "mode": {"enum": ["public", "private"]},
+    "host": {"type": "string"},
+    "port": {"type": "integer"},
+    "cert": {"type": "string"},
+    "connectioncount": {"enum": [1, 60]},
+    "passcode": {"type": "string"},
+    "localhost": {"enum": ["iofog"]},
+    "localport": {"type": "integer"},
+    "heartbeatfrequency": {"enum": [20000]},
+    "heartbeatabsencethreshold": {"enum": [60000]},
+    "devmode": {"type": "boolean"}
+    },
+  "required": ["mode", "host", "port", "cert", "connectioncount", "passcode", "localhost",
+               "localport", "heartbeatfrequency", "heartbeatabsencethreshold", "devmode"]
+};
+
 module.exports = {
-    mainSchemas: [microserviceCreate, microserviceUpdate],
-    innerSchemas: [ports, volumeMappings]
+    mainSchemas: [microserviceCreate, microserviceUpdate, networkConfig, ports],
+    innerSchemas: [volumeMappings, ports]
 };

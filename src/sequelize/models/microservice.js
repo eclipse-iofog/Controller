@@ -95,11 +95,11 @@ module.exports = (sequelize, DataTypes) => {
         name: 'updatedBy',
         field: 'updated_by'
       },
-      as: 'userUpdatedBy',
+      as: 'user',
       onDelete: 'cascade'
     });
 
-    Microservice.hasOne(models.MicroservicePort, {
+    Microservice.hasMany(models.MicroservicePort, {
       foreignKey: 'microservice_uuid',
       as: 'ports'
     });
@@ -113,6 +113,11 @@ module.exports = (sequelize, DataTypes) => {
       foreignKey: 'microservice_uuid',
       as: 'strace'
     });
+
+    Microservice.hasMany(models.Routing, {
+      foreignKey: 'source_microservice_uuid',
+      as: 'routes'
+    })
   };
   return Microservice;
 };
