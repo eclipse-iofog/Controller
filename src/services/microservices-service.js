@@ -78,7 +78,7 @@ const _createMicroserviceOnFog = async function (microserviceData, user, isCLI, 
   }
 
   if (microserviceData.routes){
-    await _createRoutes(microserviceData.routes, microservice.uuid, user, isCLI, transaction);
+    await _createRoutes(microserviceData.routes, microservice.uuid, user, transaction);
   }
 
   if(microserviceData.ioFogNodeId) {
@@ -123,6 +123,7 @@ const _createMicroservicePorts = async function (ports, microserviceUuid, transa
   const microservicePortToCreate = {
     portInternal: ports.internal,
     portExternal: ports.external,
+    publicMode: ports.publicMode,
     microserviceUuid: microserviceUuid
   };
 
@@ -140,26 +141,10 @@ const _createVolumeMappings = async function (volumeMappings, microserviceUuid, 
   await VolumeMappingManager.bulkCreate(volumeMappings, transaction)
 };
 
-const _createRoutes = async function (routes, microserviceUuid, user, isCLI, transaction) {
-  const routingObjArray = [];
-  const sourceMicroservice = await _getMicroservice(microserviceUuid, user, isCLI, transaction);
-
+const _createRoutes = async function (routes, microserviceUuid, user, transaction) {
   for (let route of routes){
-    const destinationMicroservice = _getMicroservice(route, user, isCLI, transaction);
-
-    const routeData = {
-      publishingMicroserviceUuid: microserviceUuid,
-      destinationMicroserviceUuid: route,
-      isNetworkConnection: (sourceMicroservice.isNetwork && destinationMicroservice.isNetwork) ? true : false,
-      publishingIofogUuid: sourceMicroservice.ioFogNodeId,
-      destinationIofogUuid: destinationMicroservice.ioFogNodeId
-    };
-
-    const routeDataCreate = AppHelper.deleteUndefinedFields(routeData);
-    routingObjArray.push(routeDataCreate);
+    await _createRoute(microserviceUuid, route, user, transaction)
   }
-
-  await RoutingManager.bulkCreate(routingObjArray, transaction)
 };
 
 const _updateMicroservice = async function (microserviceUuid, microserviceData, user, isCLI, transaction) {
@@ -201,7 +186,7 @@ const _updateMicroservice = async function (microserviceUuid, microserviceData, 
 
   if (microserviceData.ioFogNodeId){
     await _deleteRoutes(microserviceData.routes, microserviceUuid, transaction);
-    await _createRoutes(microserviceData.routes, microserviceUuid, user, isCLI, transaction);
+    await _createRoutes(microserviceData.routes, microserviceUuid, user, transaction);
   }
 
   await _updateChangeTracking(microserviceData.config ? true : false, microserviceUuid, user, isCLI, transaction);
@@ -245,19 +230,10 @@ const _deleteMicroservice = async function (microserviceUuid, deleteWithCleanUp,
   await _updateChangeTracking(false, microserviceUuid, user, isCLI, transaction)
 };
 
-const _deleteRoutes = async function (routes, microserviceUuid, transaction){
+const _deleteRoutes = async function(routes, microserviceUuid, user, transaction){
   for (let route of routes){
-    await RoutingManager.delete({
-      publishingMicroserviceUuid: microserviceUuid,
-      destinationMicroserviceUuid: route,
-    }, transaction);
+    await _deleteRoute(microserviceUuid, route, user, transaction)
   }
-};
-
-const _deleteMicroservicePorts = async function (microserviceUuid, transaction){
-  await MicroservicePortManager.delete({
-    microserviceUuid: microserviceUuid
-  }, transaction);
 };
 
 const _checkIfMicroserviceIsValidOnGet = async function (userId, microserviceUuid, transaction) {

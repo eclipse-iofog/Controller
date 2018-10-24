@@ -61,7 +61,8 @@ const ports = {
   "type": "object",
   "properties": {
     "internal": {"type": "integer"},
-    "external": {"type": "integer"}
+    "external": {"type": "integer"},
+    "publicMode": {"type": "boolean"}
   }
 };
 

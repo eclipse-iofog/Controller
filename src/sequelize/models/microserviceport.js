@@ -15,6 +15,10 @@ module.exports = (sequelize, DataTypes) => {
     portExternal: {
       type: DataTypes.INTEGER,
       field: 'port_external'
+    },
+    publicMode: {
+      type: DataTypes.BOOLEAN,
+      field: 'public_mode'
     }
   }, {
     timestamps: true,
