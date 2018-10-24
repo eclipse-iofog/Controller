@@ -81,7 +81,7 @@ const _createMicroserviceOnFog = async function (microserviceData, user, isCLI, 
   }
 
   if(microserviceData.ioFogNodeId) {
-    await _updateChangeTracking(false, microserviceData, user, isCLI, transaction);
+    await _updateChangeTracking(false, microservice.uuid, microserviceData.ioFogNodeId, user, isCLI, transaction);
   }
 
   return {
@@ -147,7 +147,7 @@ const _createRoutes = async function (routes, microserviceUuid, user, transactio
 };
 
 const _updateMicroservice = async function (microserviceUuid, microserviceData, user, isCLI, transaction) {
-  await _getMicroservice(microserviceUuid, user, isCLI, transaction);
+  const microservice = await _getMicroservice(microserviceUuid, user, isCLI, transaction);
 
   await Validation.validate(microserviceData, Validation.schemas.microserviceUpdate);
 
@@ -179,16 +179,17 @@ const _updateMicroservice = async function (microserviceUuid, microserviceData, 
     uuid: microserviceUuid
   }, microserviceDataUpdate, transaction);
 
-  if (microserviceData.volumeMappings) {
+  if (microserviceDataUpdate.volumeMappings) {
     await _updateVolumeMappings(microserviceUuid.volumeMappings, microserviceData, transaction);
   }
 
-  if (microserviceData.ioFogNodeId){
+  if (microserviceDataUpdate.ioFogNodeId){
     await _deleteRoutes(microserviceData.routes, microserviceUuid, transaction);
     await _createRoutes(microserviceData.routes, microserviceUuid, user, transaction);
+    await _updateChangeTracking(false, microserviceUuid, microserviceDataUpdate.ioFogNodeId, user, isCLI, transaction)
   }
 
-  await _updateChangeTracking(microserviceData.config ? true : false, microserviceUuid, user, isCLI, transaction);
+  await _updateChangeTracking(microserviceData.config ? true : false, microserviceUuid, microservice.ioFogNodeId, user, isCLI, transaction);
 };
 
 const _updateVolumeMappings = async function (volumeMappings, microserviceUuid, transaction) {
@@ -199,17 +200,15 @@ const _updateVolumeMappings = async function (volumeMappings, microserviceUuid, 
   }
 };
 
-const _updateChangeTracking = async function (configUpdated, microserviceUuid, user, isCLI, transaction) {
-
-  const microservice = await _getMicroservice(microserviceUuid, user, isCLI, transaction);
+const _updateChangeTracking = async function (configUpdated, microserviceUuid, fogNodeUuid, user, isCLI, transaction) {
 
   const trackingData = {
     containerList: true,
     containerConfig: configUpdated,
-    iofogUuid: microservice.fogNodeUuid
+    iofogUuid: fogNodeUuid
   };
 
-  await ChangeTrackingManager.update({iofogUuid: fog.uuid}, trackingData, transaction);
+  await ChangeTrackingManager.update({iofogUuid: fogNodeUuid}, trackingData, transaction);
 };
 
 const _deleteMicroservice = async function (microserviceUuid, deleteWithCleanUp, user, isCLI, transaction) {
@@ -217,7 +216,7 @@ const _deleteMicroservice = async function (microserviceUuid, deleteWithCleanUp,
     return await _updateMicroservice(microserviceUuid, {deleteWithCleanUp: deleteWithCleanUp}, user, isCLI, transaction);
   }
 
-  await _checkIfMicroserviceIsValidOnGet(user.id, microserviceUuid, transaction);
+  const microservice = await _getMicroservice(microserviceUuid, user, isCLI, transaction);
 
   const affectedRows = await MicroserviceManager.delete({
     uuid: microserviceUuid
@@ -226,7 +225,7 @@ const _deleteMicroservice = async function (microserviceUuid, deleteWithCleanUp,
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, microserviceUuid));
   }
 
-  await _updateChangeTracking(false, microserviceUuid, user, isCLI, transaction)
+  await _updateChangeTracking(false, microserviceUuid, microservice.ioFogNodeId, user, isCLI, transaction)
 };
 
 const _deleteRoutes = async function(routes, microserviceUuid, user, transaction){
