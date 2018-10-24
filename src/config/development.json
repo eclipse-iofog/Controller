@@ -3,7 +3,7 @@
     "Name": "fog-controller"
   },
   "Server": {
-    "Port": 54421
+    "Port": 51121
   },
   "Email": {
     "ActivationEnabled": false,
@@ -29,3 +29,4 @@
     "DiagnosticDir": "diagnostic"
   }
 }
+
