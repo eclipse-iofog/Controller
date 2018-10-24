@@ -70,7 +70,7 @@ const _createMicroserviceOnFog = async function (microserviceData, user, isCLI, 
   const microservice = await _createMicroservice(microserviceData, user, transaction);
 
   if (microserviceData.ports) {
-    //TODO switchOnPublicMode for each port pair
+    //TODO _createPortMapping for each port pair
     await _createMicroservicePorts(microserviceData.ports, microservice.uuid, transaction);
   }
   if (microserviceData.volumeMappings) {
@@ -371,12 +371,12 @@ async function _createRouteOverConnector(sourceMicroservice, destMicroservice, u
 
   //create netw ms1
   const sourceNetwMsConfig = {
-    'mode': 'private', //TODO: for public 'public'
+    'mode': 'private',
     'host': connector.domain,
     'cert': connector.cert,
     'port': ports.port1,
     'passcode': ports.passcode1,
-    'connectioncount': 1, //TODO: for public 60
+    'connectioncount': 1,
     'localhost': 'iofog',
     'localport': 0,
     'heartbeatfrequency': 20000,
@@ -387,12 +387,12 @@ async function _createRouteOverConnector(sourceMicroservice, destMicroservice, u
 
   //create netw ms2
   const destNetwMsConfig = {
-    'mode': 'private', //TODO: for public 'public'
+    'mode': 'private',
     'host': connector.domain,
     'cert': connector.cert,
     'port': ports.port2,
     'passcode': ports.passcode2,
-    'connectioncount': 1, //TODO: for public 60
+    'connectioncount': 1,
     'localhost': 'iofog',
     'localport': 0,
     'heartbeatfrequency': 20000,
