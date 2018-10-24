@@ -511,6 +511,7 @@ async function _deleteRouteOverConnector(route, transaction) {
 }
 
 async function _createPortMapping(microserviceUuid, portMappingData, user, transaction) {
+  await Validation.validate(portMappingData, Validation.schemas.ports);
   const microservice = await MicroserviceManager.findOne({uuid: microserviceUuid}, transaction)
   if (!microservice) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, microserviceUuid))

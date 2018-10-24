@@ -1356,7 +1356,86 @@ paths:
         required: true
         type: string
       - in: path
-        name: receiverId
+        name: receiverUuid
+        description: Receiver Microservice Uuid
+        required: true
+        type: string
+      responses:
+        '204':
+          description: Success
+          headers:
+            X-Timestamp:
+              type: number
+              description: FogController server timestamp
+        '400':
+          description: Not Valid
+        '401':
+          description: Not Authorized
+        '404':
+          description: Not Found
+        '500':
+          description: Internal Server Error
+
+
+  '/microservices/{uuid}/port-mapping':
+    post:
+      tags:
+      - Microservices
+      description: Creates a port mapping for microservice
+      operationId: createMicroservicePortMapping
+      parameters:
+      - in: header
+        name: Authorization
+        description: User Token
+        required: true
+        type: string
+      - in: path
+        name: uuid
+        description: Microservice Uuid
+        required: true
+        type: string
+      - in: body
+        name: portMappingData
+        description: information about port mapping
+        required: true
+        schema:
+          $ref: '#/definitions/PortMappingsRequest'
+      responses:
+        '201':
+          description: Created
+          schema:
+            $ref: '#/definitions/PortMappingsPublicResponse'
+          headers:
+            X-Timestamp:
+              type: number
+              description: FogController server timestamp
+        '400':
+          description: Not Valid
+        '401':
+          description: Not Authorized
+        '404':
+          description: Not Found
+        '500':
+          description: Internal Server Error
+  '/microservices/{uuid}/port-mapping/{internalPort}':
+    delete:
+      tags:
+      - Microservices
+      description: Deletes a prot mapping for microservice
+      operationId: deleteMicroservicePortMapping
+      parameters:
+      - in: header
+        name: Authorization
+        description: User Token
+        required: true
+        type: string
+      - in: path
+        name: uuid
+        description: Microservice Uuid
+        required: true
+        type: string
+      - in: path
+        name: internalPort
         description: Receiver Microservice Id
         required: true
         type: string
@@ -2492,6 +2571,13 @@ definitions:
         type: number
       publicMode:
         type: boolean
+  PortMappingsPublicResponse:
+    type: object
+    properties:
+      publicIp:
+        type: string
+      publicPort:
+        type: number
   PortMappingAgentRequest:
     type: object
     properties:
