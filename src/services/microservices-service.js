@@ -554,7 +554,8 @@ async function _createSimplePortMapping(microservice, portMappingData, user, tra
 }
 
 async function _createPortMappingOverConnector(microservice, portMappingData, user, transaction) {
-  //TODO: validation
+  await _validatePorts(portMappingData.internal, portMappingData.external)
+
   //open comsat
   const justOpenedConnectorsPorts = await ConnectorService.openPortOnRandomConnector(true, transaction)
 
@@ -615,7 +616,6 @@ async function _createPortMappingOverConnector(microservice, portMappingData, us
 
 
   await _switchOnUpdateFlagsForMicroservicesForPortMapping(microservice, true, transaction)
-  //TODO: return connector port2
   return {publicIp: connector.publicIp, publicPort: connectorPort.port2}
 }
 
@@ -694,6 +694,16 @@ async function _deletePortMappingOverConnector(microservice, msPorts, user, tran
     routing: true
   }
   await ChangeTrackingManager.update({iofogUuid: pubModeData.iofogUuid}, updateChangeTrackingData, transaction)
+}
+
+async function _validatePorts(internal, external) {
+  if (internal < 0 || internal > 65535
+    || external < 0 || external > 65535
+    //TODO find this ports in project. check is possible to delete some of them
+    || external === 60400 || external === 60401 || external === 10500 || external === 54321 || external === 55555) {
+
+    throw new Errors.ValidationError('incorrect port')
+  }
 }
 
 module.exports = {
