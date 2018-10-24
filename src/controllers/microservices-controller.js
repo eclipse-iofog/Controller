@@ -58,10 +58,26 @@ const _getMicroservicesByFlowEndPoint = async function (req, user) {
   return await MicroservicesService.getMicroserviceByFlowWithTransaction(flowId, user, false)
 };
 
+async function _createMicroserviceRoute(req, user) {
+  const sourceUuid = req.params.uuid
+  const distUuid = req.params.receiverUuid
+  logger.info(`Creating route from ${sourceUuid} to ${distUuid}`)
+  return await MicroservicesService.createRouteWithTransaction(sourceUuid, distUuid, user)
+}
+
+async function _deleteMicroserviceRoute(req, user) {
+  const sourceUuid = req.params.uuid
+  const distUuid = req.params.receiverUuid
+  logger.info(`Creating route from ${sourceUuid} to ${distUuid}`)
+  return await MicroservicesService.deleteRouteWithTransaction(sourceUuid, distUuid, user)
+}
+
 module.exports = {
   createMicroservicesOnFogEndPoint: AuthDecorator.checkAuthToken(_createMicroservicesOnFogEndPoint),
   getMicroserviceEndPoint: AuthDecorator.checkAuthToken(_getMicroserviceEndPoint),
   updateMicroserviceEndPoint: AuthDecorator.checkAuthToken(_updateMicroserviceEndPoint),
   deleteMicroserviceEndPoint: AuthDecorator.checkAuthToken(_deleteMicroserviceEndPoint),
-  getMicroservicesByFlowEndPoint: AuthDecorator.checkAuthToken(_getMicroservicesByFlowEndPoint)
+  getMicroservicesByFlowEndPoint: AuthDecorator.checkAuthToken(_getMicroservicesByFlowEndPoint),
+  createMicroserviceRoute: AuthDecorator.checkAuthToken(_createMicroserviceRoute),
+  deleteMicroserviceRoute: AuthDecorator.checkAuthToken(_deleteMicroserviceRoute)
 };

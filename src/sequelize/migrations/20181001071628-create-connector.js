@@ -29,6 +29,10 @@ module.exports = {
         type: Sequelize.BOOLEAN,
         field: 'self_signed_certs'
       },
+      devMode: {
+        type: Sequelize.BOOLEAN,
+        field: 'dev_mode'
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE,
