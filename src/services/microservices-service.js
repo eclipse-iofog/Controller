@@ -20,7 +20,6 @@ const ConnectorManager = require('../sequelize/managers/connector-manager')
 const ConnectorPortManager = require('../sequelize/managers/connector-port-manager')
 const MicroservicePublicModeManager = require('../sequelize/managers/microservice-public-mode-manager')
 const ChangeTrackingManager = require('../sequelize/managers/change-tracking-manager');
-const RoutingManager = require('../sequelize/managers/routing-manager');
 const UserManager = require('../sequelize/managers/user-manager');
 const FlowService = require('../services/flow-service');
 const AppHelper = require('../helpers/app-helper');
