@@ -20,7 +20,7 @@ const _createMicroservicesOnFogEndPoint = async function (req, user) {
 
   logger.info("Parameters:" + JSON.stringify(microservice));
 
-  return await MicroservicesService.createMicroserviceOnFog(microservice, user)
+  return await MicroservicesService.createMicroserviceOnFogWithTransaction(microservice, user, false)
 };
 
 const _getMicroserviceEndPoint = async function (req, user) {
@@ -28,7 +28,7 @@ const _getMicroserviceEndPoint = async function (req, user) {
 
   logger.info("Microservice uuid:" + JSON.stringify(microserviceUuid))
 
-  return await MicroservicesService.getMicroservice(microserviceUuid, user)
+  return await MicroservicesService.getMicroserviceWithTransaction(microserviceUuid, user, false)
 };
 
 const _updateMicroserviceEndPoint = async function (req, user) {
@@ -38,7 +38,7 @@ const _updateMicroserviceEndPoint = async function (req, user) {
   logger.info("Parameters:" + JSON.stringify(microservice))
   logger.info("Microservice uuid:" + JSON.stringify(microserviceUuid))
 
-  return await MicroservicesService.updateMicroservice(microserviceUuid, microservice, user)
+  return await MicroservicesService.updateMicroserviceWithTransaction(microserviceUuid, microservice, user, false)
 };
 
 const _deleteMicroserviceEndPoint = async function (req, user) {
@@ -46,7 +46,7 @@ const _deleteMicroserviceEndPoint = async function (req, user) {
 
   logger.info("Microservice uuid:" + JSON.stringify(microserviceUuid))
 
-  return await MicroservicesService.deleteMicroservice(microserviceUuid, user)
+  return await MicroservicesService.deleteMicroserviceWithTransaction(microserviceUuid, user, false)
 };
 
 const _getMicroservicesByFlowEndPoint = async function (req, user) {
@@ -54,13 +54,29 @@ const _getMicroservicesByFlowEndPoint = async function (req, user) {
 
   logger.info("Flow id:" + JSON.stringify(flowId))
 
-  return await MicroservicesService.getMicroserviceByFlow(flowId, user)
+  return await MicroservicesService.getMicroserviceByFlowWithTransaction(flowId, user, false)
 };
+
+async function _createMicroserviceRoute(req, user) {
+  const sourceUuid = req.params.uuid
+  const distUuid = req.params.receiverUuid
+  logger.info(`Creating route from ${sourceUuid} to ${distUuid}`)
+  return await MicroservicesService.createRouteWithTransaction(sourceUuid, distUuid, user)
+}
+
+async function _deleteMicroserviceRoute(req, user) {
+  const sourceUuid = req.params.uuid
+  const distUuid = req.params.receiverUuid
+  logger.info(`Creating route from ${sourceUuid} to ${distUuid}`)
+  return await MicroservicesService.deleteRouteWithTransaction(sourceUuid, distUuid, user)
+}
 
 module.exports = {
   createMicroservicesOnFogEndPoint: AuthDecorator.checkAuthToken(_createMicroservicesOnFogEndPoint),
   getMicroserviceEndPoint: AuthDecorator.checkAuthToken(_getMicroserviceEndPoint),
   updateMicroserviceEndPoint: AuthDecorator.checkAuthToken(_updateMicroserviceEndPoint),
   deleteMicroserviceEndPoint: AuthDecorator.checkAuthToken(_deleteMicroserviceEndPoint),
-  getMicroservicesByFlowEndPoint: AuthDecorator.checkAuthToken(_getMicroservicesByFlowEndPoint)
+  getMicroservicesByFlowEndPoint: AuthDecorator.checkAuthToken(_getMicroservicesByFlowEndPoint),
+  createMicroserviceRoute: AuthDecorator.checkAuthToken(_createMicroserviceRoute),
+  deleteMicroserviceRoute: AuthDecorator.checkAuthToken(_deleteMicroserviceRoute)
 };
