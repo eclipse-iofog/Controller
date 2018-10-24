@@ -99,7 +99,7 @@ module.exports = (sequelize, DataTypes) => {
       onDelete: 'cascade'
     });
 
-    Microservice.hasOne(models.MicroservicePort, {
+    Microservice.hasMany(models.MicroservicePort, {
       foreignKey: 'microservice_uuid',
       as: 'ports'
     });

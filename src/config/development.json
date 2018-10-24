@@ -3,12 +3,10 @@
     "Name": "fog-controller"
   },
   "Server": {
-    "Port": 51121
+    "Port": 51121,
+    "DevMode": true
   },
   "Service": {
     "LogsDirectory": "/Users/saeid/logs/fog-controller"
-  },
-  "Diagnostics": {
-    "DiagnosticDir": "diagnostic"
   }
 }

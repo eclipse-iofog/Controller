@@ -14,6 +14,8 @@
 const logger = require('../logger');
 const AuthDecorator = require('../decorators/authorization-decorator');
 const TunnelService = require('../services/tunnel-service');
+const Errors = require('../helpers/errors');
+const ErrorMessages = require('../helpers/error-messages');
 
 const manageTunnelEndPoint = async function (req, user) {
   logger.info("Parameters:" + JSON.stringify(req.body));
@@ -21,10 +23,15 @@ const manageTunnelEndPoint = async function (req, user) {
   const tunnelData = {
       iofogUuid: req.params.id
   }
-  if(action == 'open'){
-      await TunnelService.openTunnel(tunnelData, user);
-  } else {
+  switch (action) {
+    case 'open':
+      await TunnelService.openTunnel(tunnelData, user, false);
+      break;
+    case 'close':
       await TunnelService.closeTunnel(tunnelData, user);
+      break;
+    default:
+      throw new Errors.ValidationError(ErrorMessages.INVALID_ACTION_PROPERTY);
   }
 };
 

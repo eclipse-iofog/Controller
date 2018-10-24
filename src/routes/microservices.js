@@ -12,7 +12,6 @@
  */
 const constants = require('../helpers/constants');
 const MicroservicesController = require('../controllers/microservices-controller');
-const FlowController = require('../controllers/flow-controller');
 const ResponseDecorator = require('../decorators/response-decorator');
 const Errors = require('../helpers/errors');
 

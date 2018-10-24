@@ -17,7 +17,9 @@ const microserviceCreate = {
     "volumeMappings": {
       "type": "array",
       "items": {"$ref": "volumeMappings"}},
-    "ports": {"$ref": "/ports"},
+    "ports": {
+      "type": "array",
+      "items": {"$ref": "ports"}},
     "routes": {
        "type": "array",
        "items": {"type": "string"}}
@@ -45,11 +47,12 @@ const microserviceUpdate = {
     "volumeMappings": {
       "type": "array",
       "items": {"$ref": "volumeMappings"}},
-    "ports": {"$ref": "/ports"},
+    "ports": {
+      "type": "array",
+      "items": {"$ref": "ports"}},
     "routes": {
       "type": "array",
-      "items": {"type": "string"}
-    }
+      "items": {"type": "string"}}
   }
 };
 
@@ -58,7 +61,8 @@ const ports = {
   "type": "object",
   "properties": {
     "internal": {"type": "integer"},
-    "external": {"type": "integer"}
+    "external": {"type": "integer"},
+    "publicMode": {"type": "boolean"}
   }
 };
 

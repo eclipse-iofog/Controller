@@ -40,5 +40,8 @@ module.exports = {
   STRACE_WITHOUT_FOG: 'Can not run strace for element without fog.',
   INVALID_MICROSERVICE: 'Microservice is not valid. Possible reasons: incorrect user, catalog item, flow or fog node.',
   INVALID_MICROSERVICE_CONFIG: "Can't create network microservice without appropriate configuration.",
-  ROUTE_NOT_FOUND: 'Route not found'
+  ROUTE_NOT_FOUND: 'Route not found',
+  INVALID_ACTION_PROPERTY: 'Unknown action property. Action can be "open" or "close"',
+  IMAGE_SNAPSHOT_WITHOUT_FOG: 'Can not run image snapshot for element without fog.',
+  FILE_DOES_NOT_EXIST: 'File does not exist.'
 };

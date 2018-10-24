@@ -19,6 +19,7 @@ const VolumeMapping = models.VolumeMapping;
 const StraceDiagnostics = models.StraceDiagnostics;
 const CatalogItem = models.CatalogItem;
 const CatalogItemImage = models.CatalogItemImage;
+const Fog = models.Fog;
 
 class MicroserviceManager extends BaseManager {
   getEntity() {
@@ -56,9 +57,13 @@ class MicroserviceManager extends BaseManager {
           attributes: ['containerImage', 'fogTypeId']
         }],
         attributes: ['picture']
+      },
+      {
+        model: Fog,
+        as: 'iofog',
+        required: false,
+        attributes: ['daemonStatus']
       }
-
-      // TODO: get routes, status
       ],
       where: where,
       attributes: attributes
@@ -96,8 +101,13 @@ class MicroserviceManager extends BaseManager {
           attributes: ['containerImage', 'fogTypeId']
           }],
         attributes: ['picture']
+      },
+      {
+        model: Fog,
+        as: 'iofog',
+        required: false,
+        attributes: ['daemonStatus']
       }
-      // TODO: get routes, status
       ],
       where: where,
       attributes: attributes

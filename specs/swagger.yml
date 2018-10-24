@@ -555,7 +555,7 @@ paths:
           description: Invalid Node Id
         '500':
           description: Internal Server Error
-  '/iofog/agent/microservices/{microserviceUuid}':
+  '/agent/microservices/{microserviceId}':
     get:
       tags:
       - Agent
@@ -564,8 +564,8 @@ paths:
       parameters:
       - in: path
         required: true
-        name: microserviceUuid
-        description: Microservice Uuid
+        name: microserviceId
+        description: Microservice id
         type: string
       - in: header
         name: Authorization
@@ -1284,6 +1284,11 @@ paths:
         description: Microservice Uuid
         required: true
         type: string
+      - in: query
+        name: withCleanUp
+        description: Delete with cleanup
+        required: true
+        type: boolean
       responses:
         '204':
           description: Success
@@ -2476,6 +2481,8 @@ definitions:
         type: number
       external:
         type: number
+      publicMode:
+        type: boolean
   PortMappingsRequest:
     type: object
     properties:
@@ -2483,6 +2490,8 @@ definitions:
         type: number
       external:
         type: number
+      publicMode:
+        type: boolean
   PortMappingAgentRequest:
     type: object
     properties:
@@ -2670,13 +2679,10 @@ definitions:
         type: string
       config:
         type: string
-      catalogItem:
-        type: object
-        properties:
-          images:
-            $ref: '#/definitions/ElementContainerImages'
-          picture:
-            type: string
+      images:
+        $ref: '#/definitions/ElementContainerImages'
+      picture:
+        type: string
       status:
         type: string
       ioFogNodeId:
@@ -2698,11 +2704,13 @@ definitions:
       logLimit:
         type: number
       volumeMappings:
-         type: array
-         items:
-           $ref: '#/definitions/VolumeMappingAgentRequest'
+        type: array
+        items:
+          $ref: '#/definitions/VolumeMappingAgentRequest'
       ports:
-        $ref: '#/definitions/PortMappingsResponse'
+        type: array
+        items:
+          $ref: '#/definitions/PortMappingsResponse'
       routes:
         $ref: '#/definitions/ReceiverMicroservices'
   NewMicroserviceRequest:
@@ -2729,7 +2737,9 @@ definitions:
          items:
            $ref: '#/definitions/VolumeMappingAgentRequest'
       ports:
-        $ref: '#/definitions/PortMappingsRequest'
+        type: array
+        items:
+          $ref: '#/definitions/PortMappingsRequest'
       routes:
         $ref: '#/definitions/ReceiverMicroservices'
   UpdateMicroserviceRequest:
@@ -2755,20 +2765,12 @@ definitions:
         type: boolean
       logLimit:
         type: number
-      volumeMappings:
-         type: array
-         items:
-           $ref: '#/definitions/VolumeMappingAgentRequest'
       imageSnapshot:
         type: string
       volumeMappings:
          type: array
          items:
            $ref: '#/definitions/VolumeMappingAgentRequest'
-      ports:
-        $ref: '#/definitions/PortMappingsRequest'
-      routes:
-        $ref: '#/definitions/ReceiverMicroservices'
   IOFogNodeTunnelStatusInfoResponse:
     type: object
     properties:
