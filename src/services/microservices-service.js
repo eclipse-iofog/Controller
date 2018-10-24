@@ -214,7 +214,12 @@ const _updateChangeTracking = async function (configUpdated, microserviceUuid, f
 
 const _deleteMicroservice = async function (microserviceUuid, deleteWithCleanUp, user, isCLI, transaction) {
   if (deleteWithCleanUp){
-    return await _updateMicroservice(microserviceUuid, {deleteWithCleanUp: deleteWithCleanUp}, user, isCLI, transaction);
+    return await MicroserviceManager.update({
+      uuid: microserviceUuid
+    },
+    {
+      deleteWithCleanUp: deleteWithCleanUp
+    }, transaction);
   }
 
   const microservice = await _getMicroservice(microserviceUuid, user, isCLI, transaction);
