@@ -58,27 +58,6 @@ class Config extends BaseCLIHandler {
         return this.help([], true, false)
     }
   }
-
-  listConfig() {
-    const configuration = {
-      'Port': config.get('Server:Port'),
-      'SSL key directory': config.get('Server:SslKey'),
-      'SSL certificate directory': config.get('Server:SslCert'),
-      'Intermediate key directory': config.get('Server:IntermediateCert'),
-      'Email activation': config.get('Email:ActivationEnabled') ? 'on' : 'off',
-      'Email address': config.get('Email:Address'),
-      'Email password': config.get('Email:Password'),
-      'Email service': config.get('Email:Service'),
-      'Log files directory': config.get('Service:LogsDirectory'),
-      'Log files size': config.get('Service:LogsFileSize'),
-    }
-
-    const result = Object.keys(configuration)
-      .filter(key => configuration[key] != null)
-      .map(key => `${key}: ${configuration[key]}`)
-      .join('\n')
-    console.log(result)
-  }
 }
 
 const _executeCase  = async function (catalogCommand, commandName, f) {
