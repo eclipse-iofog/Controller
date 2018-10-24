@@ -1284,6 +1284,11 @@ paths:
         description: Microservice Uuid
         required: true
         type: string
+      - in: query
+        name: withCleanUp
+        description: Delete with cleanup
+        required: true
+        type: boolean
       responses:
         '204':
           description: Success
@@ -1351,7 +1356,86 @@ paths:
         required: true
         type: string
       - in: path
-        name: receiverId
+        name: receiverUuid
+        description: Receiver Microservice Uuid
+        required: true
+        type: string
+      responses:
+        '204':
+          description: Success
+          headers:
+            X-Timestamp:
+              type: number
+              description: FogController server timestamp
+        '400':
+          description: Not Valid
+        '401':
+          description: Not Authorized
+        '404':
+          description: Not Found
+        '500':
+          description: Internal Server Error
+
+
+  '/microservices/{uuid}/port-mapping':
+    post:
+      tags:
+      - Microservices
+      description: Creates a port mapping for microservice
+      operationId: createMicroservicePortMapping
+      parameters:
+      - in: header
+        name: Authorization
+        description: User Token
+        required: true
+        type: string
+      - in: path
+        name: uuid
+        description: Microservice Uuid
+        required: true
+        type: string
+      - in: body
+        name: portMappingData
+        description: information about port mapping
+        required: true
+        schema:
+          $ref: '#/definitions/PortMappingsRequest'
+      responses:
+        '201':
+          description: Created
+          schema:
+            $ref: '#/definitions/PortMappingsPublicResponse'
+          headers:
+            X-Timestamp:
+              type: number
+              description: FogController server timestamp
+        '400':
+          description: Not Valid
+        '401':
+          description: Not Authorized
+        '404':
+          description: Not Found
+        '500':
+          description: Internal Server Error
+  '/microservices/{uuid}/port-mapping/{internalPort}':
+    delete:
+      tags:
+      - Microservices
+      description: Deletes a prot mapping for microservice
+      operationId: deleteMicroservicePortMapping
+      parameters:
+      - in: header
+        name: Authorization
+        description: User Token
+        required: true
+        type: string
+      - in: path
+        name: uuid
+        description: Microservice Uuid
+        required: true
+        type: string
+      - in: path
+        name: internalPort
         description: Receiver Microservice Id
         required: true
         type: string
@@ -2476,12 +2560,23 @@ definitions:
         type: number
       external:
         type: number
+      publicMode:
+        type: boolean
   PortMappingsRequest:
     type: object
     properties:
       internal:
         type: number
       external:
+        type: number
+      publicMode:
+        type: boolean
+  PortMappingsPublicResponse:
+    type: object
+    properties:
+      publicIp:
+        type: string
+      publicPort:
         type: number
   PortMappingAgentRequest:
     type: object
@@ -2670,13 +2765,10 @@ definitions:
         type: string
       config:
         type: string
-      catalogItem:
-        type: object
-        properties:
-          images:
-            $ref: '#/definitions/ElementContainerImages'
-          picture:
-            type: string
+      images:
+        $ref: '#/definitions/ElementContainerImages'
+      picture:
+        type: string
       status:
         type: string
       ioFogNodeId:
@@ -2698,11 +2790,13 @@ definitions:
       logLimit:
         type: number
       volumeMappings:
-         type: array
-         items:
-           $ref: '#/definitions/VolumeMappingAgentRequest'
+        type: array
+        items:
+          $ref: '#/definitions/VolumeMappingAgentRequest'
       ports:
-        $ref: '#/definitions/PortMappingsResponse'
+        type: array
+        items:
+          $ref: '#/definitions/PortMappingsResponse'
       routes:
         $ref: '#/definitions/ReceiverMicroservices'
   NewMicroserviceRequest:
@@ -2729,7 +2823,9 @@ definitions:
          items:
            $ref: '#/definitions/VolumeMappingAgentRequest'
       ports:
-        $ref: '#/definitions/PortMappingsRequest'
+        type: array
+        items:
+          $ref: '#/definitions/PortMappingsRequest'
       routes:
         $ref: '#/definitions/ReceiverMicroservices'
   UpdateMicroserviceRequest:
@@ -2755,16 +2851,12 @@ definitions:
         type: boolean
       logLimit:
         type: number
+      imageSnapshot:
+        type: string
       volumeMappings:
          type: array
          items:
            $ref: '#/definitions/VolumeMappingAgentRequest'
-      imageSnapshot:
-        type: string
-      ports:
-        $ref: '#/definitions/PortMappingsRequest'
-      routes:
-        $ref: '#/definitions/ReceiverMicroservices'
   IOFogNodeTunnelStatusInfoResponse:
     type: object
     properties:
