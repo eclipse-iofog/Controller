@@ -55,7 +55,7 @@ class MicroserviceManager extends BaseManager {
           as: 'images',
           attributes: ['containerImage', 'fogTypeId']
         }],
-        attributes: ['picture']
+        attributes: ['picture', 'registryId']
       }
 
       // TODO: get routes, status
@@ -95,7 +95,7 @@ class MicroserviceManager extends BaseManager {
           as: 'images',
           attributes: ['containerImage', 'fogTypeId']
           }],
-        attributes: ['picture']
+        attributes: ['picture', 'registryId']
       }
       // TODO: get routes, status
       ],

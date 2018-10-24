@@ -2418,7 +2418,7 @@ definitions:
   AgentMicroservicesInfoResponse:
     type: object
     properties:
-      id:
+      uuid:
         type: string
       needUpdate:
         type: boolean

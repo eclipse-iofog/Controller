@@ -65,7 +65,7 @@ const agentProvision = async function (provisionData, transaction) {
   await FogManager.update({
     uuid: fog.uuid
   }, {
-    fogType: provisionData.type
+    fogTypeId: provisionData.type
   }, transaction);
 
   await FogProvisionKeyManager.delete({
@@ -141,8 +141,8 @@ const getAgentConfigChanges = async function (fog, transaction) {
     version: false,
     reboot: false,
     deleteNode: false,
-    microservicesList: false,
-    microservicesConfig: false,
+    microserviceList: false,
+    microserviceConfig: false,
     routing: false,
     registries: false,
     tunnel: false,
@@ -160,11 +160,11 @@ const getAgentConfigChanges = async function (fog, transaction) {
     version: changeTracking.version,
     reboot: changeTracking.reboot,
     deleteNode: changeTracking.deleteNode,
-    microservicesList: changeTracking.microservicesList,
-    microservicesConfig: changeTracking.microservicesConfig,
+    microserviceList: changeTracking.containerList,
+    microserviceConfig: changeTracking.containerConfig,
     routing: changeTracking.routing,
     registries: changeTracking.registries,
-    tunnel: changeTracking.tunnel,
+    tunnel: changeTracking.proxy,
     diagnostics: changeTracking.diagnostics,
     isImageSnapshot: changeTracking.isImageSnapshot
   };
@@ -223,14 +223,19 @@ const getAgentMicroservices = async function (fog, transaction) {
       }
     }
 
-    const registryUrl = "registry"; // TODO replace
+    const registry = await RegistryManager.findOne({
+      id: microservice.catalogItem.registryId
+    }, transaction);
+
+    const registryUrl = registry.url;
 
     const routes = []; // TODO replace
 
     const responseMicroservice = {
-      id: microservice.uuid,
+      uuid: microservice.uuid,
       imageId: imageId,
       needUpdate: microservice.needUpdate,
+      config: microservice.config,
       rebuild: microservice.rebuild,
       rootHostAccess: microservice.rootHostAccess,
       logSize: microservice.logSize,
@@ -262,7 +267,15 @@ const getAgentMicroservice = async function (microserviceId, fog, transaction) {
 
 const getAgentRegistries = async function (fog, transaction) {
   const registries = await RegistryManager.findAll({
-    userId: fog.userId
+    $or:
+      [
+        {
+          userId: fog.userId
+        },
+        {
+          isPublic: true
+        }
+      ]
   }, transaction);
   return {
     registries: registries
