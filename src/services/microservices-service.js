@@ -68,7 +68,7 @@ const _getMicroservice = async function (microserviceUuid, user, isCLI, transact
 const _createMicroserviceOnFog = async function (microserviceData, user, isCLI, transaction) {
   await Validation.validate(microserviceData, Validation.schemas.microserviceCreate);
 
-  const microservice = await _createMicroservice(microserviceData, user, transaction);
+  const microservice = await _createMicroservice(microserviceData, user, isCLI, transaction);
 
   if (microserviceData.ports) {
     await _createMicroservicePorts(microserviceData.ports, microservice.uuid, transaction);

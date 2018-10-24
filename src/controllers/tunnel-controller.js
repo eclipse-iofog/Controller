@@ -25,7 +25,7 @@ const manageTunnelEndPoint = async function (req, user) {
   }
   switch (action) {
     case 'open':
-      await TunnelService.openTunnel(tunnelData, user);
+      await TunnelService.openTunnel(tunnelData, user, false);
       break;
     case 'close':
       await TunnelService.closeTunnel(tunnelData, user);

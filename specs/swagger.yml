@@ -555,7 +555,7 @@ paths:
           description: Invalid Node Id
         '500':
           description: Internal Server Error
-  '/iofog/agent/microservices/{microserviceUuid}':
+  '/agent/microservices/{microserviceId}':
     get:
       tags:
       - Agent
@@ -564,8 +564,8 @@ paths:
       parameters:
       - in: path
         required: true
-        name: microserviceUuid
-        description: Microservice Uuid
+        name: microserviceId
+        description: Microservice id
         type: string
       - in: header
         name: Authorization

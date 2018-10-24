@@ -117,18 +117,8 @@ $ fog-controller proxy <command> <options>
 
 **Command List**
 
- add      -- Add a new proxy. <br>
- update   -- Update existing proxy. <br>
- remove   -- Delete a proxy. <br>
+ update   -- Update existing proxy or create a new one. <br>
  list     -- List all proxies. <br>
-
-*add*
-
- -u, --username string   (Proxy username) <br>
- -p, --password string   (Proxy password) <br>
- -s, --host string       (Proxy host address) <br>
- -k, --rsa-key string    (Proxy RSA key) <br>
- -o, --port number       (Proxy port) <br>
 
 *update*
 
@@ -137,11 +127,16 @@ $ fog-controller proxy <command> <options>
  -s, --host string       (Proxy host address) <br>
  -k, --rsa-key string    (Proxy RSA key) <br>
  -o, --port number       (Proxy port) <br>
+ -f, --iofogUuid string  (Fog UUID) <br>
+ -a, --action string     (Action: can be either 'open' or 'close')
 
-*remove*
-
- -s, --host string   (Proxy host address)
+**Example**<br>
+ proxy update -u dmitry -p dpass -s 127.12.14.52 -k /home/dmitrys/documents/rsa.txt -o 22 -f NH44VjVFnr8946Yr8HPRrJdFZgLN8k7j -a close<br>
  
+*list*<br>
+
+**Example**<br>
+proxy list
 <br>
 <br>
 <br>  

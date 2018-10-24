@@ -14,24 +14,76 @@ const constants = require('../helpers/constants');
 const DiagnosticController = require('../controllers/diagnostic-controller');
 const ResponseDecorator = require('../decorators/response-decorator');
 const Errors = require('../helpers/errors');
+const ErrorMessages = require('../helpers/error-messages');
+const fs = require('fs');
 
 module.exports = [
   {
     method: 'post',
-    path: '/api/v3/iofog/microservices/:id/image-snapshot',
-    middleware: (req, res) => {
+    path: '/api/v3/microservices/:id/image-snapshot',
+    middleware: async (req, res) => {
+
+      const successCode = constants.HTTP_CODE_NO_CONTENT;
+      const errorCodes = [
+        {
+          code: constants.HTTP_CODE_UNAUTHORIZED,
+          errors: [Errors.AuthenticationError]
+        },
+        {
+          code: constants.HTTP_CODE_NOT_FOUND,
+          errors: [Errors.NotFoundError]
+        }
+      ];
+
+      const createMicroserviceImageSnapshotEndPoint = ResponseDecorator.handleErrors(
+        DiagnosticController.createMicroserviceImageSnapshotEndPoint,
+        successCode,
+        errorCodes
+      );
+      const responseObject = await createMicroserviceImageSnapshotEndPoint(req);
+
       res
-        .status(constants.HTTP_CODE_SUCCESS)
-        .send(req.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
     }
   },
   {
     method: 'get',
-    path: '/api/v3/iofog/microservices/:id/image-snapshot',
-    middleware: (req, res) => {
-      res
-        .status(constants.HTTP_CODE_SUCCESS)
-        .send(req.body)
+    path: '/api/v3/microservices/:id/image-snapshot',
+    middleware: async (req, res) => {
+      const successCode = constants.HTTP_CODE_NO_CONTENT;
+      const errorCodes = [
+        {
+          code: constants.HTTP_CODE_UNAUTHORIZED,
+          errors: [Errors.AuthenticationError]
+        },
+        {
+          code: constants.HTTP_CODE_NOT_FOUND,
+          errors: [Errors.NotFoundError]
+        }
+      ];
+
+      const getMicroserviceImageSnapshotEndPoint = ResponseDecorator.handleErrors(
+        DiagnosticController.getMicroserviceImageSnapshotEndPoint,
+        successCode,
+        errorCodes
+      );
+      const responseObject = await getMicroserviceImageSnapshotEndPoint(req);
+
+      fs.exists(responseObject.body.filePath, function(exists){
+        if (exists) {
+          res.writeHead(200, {
+            "Content-Length": responseObject.body['Content-Length'],
+            "Content-Type": responseObject.body['Content-Type'],
+            "Content-Disposition": "attachment; filename=" + responseObject.body.fileName
+          });
+          fs.createReadStream(responseObject.body.filePath).pipe(res);
+        } else {
+          res.writeHead(400, {"Content-Type": "text/plain"});
+          res.end("ERROR File does not exist");
+          res.end(ErrorMessages.FILE_DOES_NOT_EXIST);
+        }
+      });
     }
   },
   {

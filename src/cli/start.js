@@ -19,6 +19,7 @@ class Start extends BaseCLIHandler {
   run(args) {
     const daemon = args.daemon
     const configuration = {
+      devMode: config.get('Server:DevMode'),
       port: config.get('Server:Port'),
       sslKey: config.get('Server:SslKey'),
       sslCert: config.get('Server:SslCert'),
@@ -56,8 +57,8 @@ function checkDaemon(daemon, configuration) {
 }
 
 function checkServerProtocol(configuration) {
-  const { port, sslKey, sslCert, intermedKey } = configuration
-  if (sslKey && sslCert && intermedKey) {
+  const { devMode, port, sslKey, sslCert, intermedKey } = configuration
+  if (!devMode && sslKey && sslCert && intermedKey) {
     logger.silly(`==> 🌎 HTTPS server listening on port ${port}. Open up https://localhost:${port}/ in your browser.`)
   } else {
     logger.silly(`==> 🌎 Listening on port ${port}. Open up http://localhost:${port}/ in your browser.`)
