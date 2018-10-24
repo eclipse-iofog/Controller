@@ -108,7 +108,7 @@ const _createFlow = async function (flowData, user) {
 
   logger.info(JSON.stringify(flow));
 
-  await FlowService.createFlow(flow, user, true);
+  await FlowService.createFlowWithTransaction(flow, user, true);
   logger.info('Flow created successfully.');
 };
 
@@ -120,7 +120,7 @@ const _updateFlow = async function (flowData) {
   logger.info(JSON.stringify(flow));
   const flowId = flowData.flowId;
 
-  await FlowService.updateFlow(flow, flowId, {}, true);
+  await FlowService.updateFlowWithTransaction(flow, flowId, {}, true);
   logger.info('Flow updated successfully.');
 };
 
@@ -129,12 +129,12 @@ const _deleteFlow = async function (flowData) {
 
   const flowId = flowData.flowId;
 
-  await FlowService.deleteFlow(flowId, {}, true);
+  await FlowService.deleteFlowWithTransaction(flowId, {}, true);
   logger.info('Flow removed successfully.');
 };
 
 const _getAllFlows = async function (emptyObj) {
-  const flows = await FlowService.getAllFlows(true);
+  const flows = await FlowService.getAllFlowsWithTransaction(true);
   logger.info(JSON.stringify(flows));
 };
 
@@ -143,7 +143,7 @@ const _getFlow = async function (flowData) {
 
   const flowId = flowData.flowId;
 
-  const flow = await FlowService.getFlow(flowId, {}, true);
+  const flow = await FlowService.getFlowWithTransaction(flowId, {}, true);
   logger.info(JSON.stringify(flow));
 };
 

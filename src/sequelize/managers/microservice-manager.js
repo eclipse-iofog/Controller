@@ -44,7 +44,7 @@ class MicroserviceManager extends BaseManager {
         model: StraceDiagnostics,
         as: 'strace',
         required: false,
-        attribures: ['straceRun']
+        attributes: ['straceRun']
       },
       {
         model: CatalogItem,
@@ -62,7 +62,7 @@ class MicroserviceManager extends BaseManager {
       ],
       where: where,
       attributes: attributes
-    }, transaction)
+    }, {transaction: transaction})
   }
 
   findOneWithDependencies(where, attributes, transaction) {
@@ -101,7 +101,7 @@ class MicroserviceManager extends BaseManager {
       ],
       where: where,
       attributes: attributes
-    }, transaction)
+    }, {transaction: transaction})
   }
 }
 
