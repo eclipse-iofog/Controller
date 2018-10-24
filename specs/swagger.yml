@@ -466,7 +466,7 @@ paths:
     get:
       tags:
       - Agent
-      description: Gets ioFog node changes sinces provided timestamp
+      description: Gets ioFog node changes
       operationId: getIOFogNodeChanges
       parameters:
       - in: header
@@ -474,11 +474,6 @@ paths:
         description: Agent Token
         required: true
         type: string
-      - in: query
-        name: timestamp
-        required: false
-        type: number
-        default: 0
       responses:
         '200':
           description: Success
@@ -2058,7 +2053,7 @@ definitions:
         type: boolean
       microserviceStatus:
         type: string
-      respositoryCount:
+      repositoryCount:
         type: number
       repositoryStatus:
         type: string
@@ -2264,7 +2259,7 @@ definitions:
         type: number
       statusFrequency:
         type: number
-      changesFrequency:
+      changeFrequency:
         type: number
       deviceScanFrequency:
         type: number
@@ -2330,9 +2325,9 @@ definitions:
         type: boolean
       cpuViolation:
         type: boolean
-      microservicesStatus:
+      microserviceStatus:
         type: string
-      respositoryCount:
+      repositoryCount:
         type: number
       repositoryStatus:
         type: string
@@ -2425,8 +2420,6 @@ definitions:
     properties:
       id:
         type: string
-      lastModified:
-        type: number
       needUpdate:
         type: boolean
       rebuild:

@@ -120,5 +120,6 @@ module.exports = {
   deleteFlow: TransactionDecorator.generateTransaction(_deleteFlow),
   updateFlow: TransactionDecorator.generateTransaction(_updateFlow),
   getFlow: TransactionDecorator.generateTransaction(_getFlow),
-  getUserFlows: TransactionDecorator.generateTransaction(_getUserFlows)
+  getUserFlows: TransactionDecorator.generateTransaction(_getUserFlows),
+  getAllFlows: TransactionDecorator.generateTransaction(_getAllFlows)
 };

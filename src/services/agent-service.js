@@ -27,6 +27,10 @@ const AppHelper = require('../helpers/app-helper');
 const ErrorMessages = require('../helpers/error-messages');
 const HWInfoManager = require('../sequelize/managers/hw-info-manager');
 const USBInfoManager = require('../sequelize/managers/usb-info-manager');
+const TunnelManager = require('../sequelize/managers/tunnel-manager');
+const MicroserviceManager = require('../sequelize/managers/microservice-manager');
+
+const logger = require('../logger');
 
 const agentProvision = async function (provisionData, transaction) {
 
@@ -48,11 +52,11 @@ const agentProvision = async function (provisionData, transaction) {
     id: provisionData.type
   }, transaction);
 
-  await _checkMicroservicesFogType(fogType);
-
   const fog = await FogManager.findOne({
     uuid: provision.iofogUuid
   }, transaction);
+
+  await _checkMicroservicesFogType(fog, fogType, transaction);
 
   const newAccessToken = await FogAccessTokenService.generateAccessToken(transaction);
 
@@ -87,7 +91,7 @@ const getAgentConfig = async function (fog) {
     logDirectory: fog.logDirectory,
     logFileCount: fog.logFileCount,
     statusFrequency: fog.statusFrequency,
-    changesFrequency: fog.changesFrequency,
+    changeFrequency: fog.changeFrequency,
     deviceScanFrequency: fog.deviceScanFrequency,
     watchdogEnabled: fog.watchdogEnabled,
     latitude: fog.latitude,
@@ -109,7 +113,7 @@ const updateAgentConfig = async function (updateData, fog, transaction) {
     logDirectory: updateData.logDirectory,
     logFileCount: updateData.logFileCount,
     statusFrequency: updateData.statusFrequency,
-    changesFrequency: updateData.changesFrequency,
+    changeFrequency: updateData.changeFrequency,
     deviceScanFrequency: updateData.deviceScanFrequency,
     watchdogEnabled: updateData.watchdogEnabled,
     latitude: updateData.latitude,
@@ -179,7 +183,7 @@ const updateAgentStatus = async function (agentStatus, fog, transaction) {
     memoryViolation: agentStatus.memoryViolation,
     diskViolation: agentStatus.diskViolation,
     cpuViolation: agentStatus.cpuViolation,
-    microservicesStatus: agentStatus.microservicesStatus,
+    microserviceStatus: agentStatus.microserviceStatus,
     repositoryCount: agentStatus.repositoryCount,
     repositoryStatus: agentStatus.repositoryStatus,
     systemTime: agentStatus.systemTime,
@@ -202,22 +206,76 @@ const updateAgentStatus = async function (agentStatus, fog, transaction) {
 };
 
 const getAgentMicroservices = async function (fog, transaction) {
-  // TODO with microservices
-  return;
+  const microservices = await MicroserviceManager.findAllWithDependencies({
+    iofogUuid: fog.uuid
+  }, {}, transaction);
+
+  const fogTypeId = fog.fogTypeId;
+
+  const response = [];
+  for (const microservice of microservices) {
+    let imageId = '';
+    const images = microservice.catalogItem.images;
+    for (const image of images) {
+      if (image.fogTypeId === fogTypeId) {
+        imageId = image.containerImage;
+        break;
+      }
+    }
+
+    const registryUrl = "registry"; // TODO replace
+
+    const routes = []; // TODO replace
+
+    const responseMicroservice = {
+      id: microservice.uuid,
+      imageId: imageId,
+      needUpdate: microservice.needUpdate,
+      rebuild: microservice.rebuild,
+      rootHostAccess: microservice.rootHostAccess,
+      logSize: microservice.logSize,
+      registryUrl: registryUrl,
+      portMappings: microservice.ports,
+      volumeMappings: microservice.volumeMappings,
+      imageSnapshot: microservice.imageSnapshot,
+      deleteWithCleanUp: microservice.deleteWithCleanUp,
+      routes: routes
+    };
+
+    response.push(responseMicroservice);
+  }
+
+  return {
+    microservices: response
+  }
 };
 
 const getAgentMicroservice = async function (microserviceId, fog, transaction) {
-  // TODO with microservices
+  const microservice = await MicroserviceManager.findOneWithDependencies({
+    uuid: microserviceId,
+    iofogUuid: fog.uuid
+  }, {}, transaction);
+  return {
+    microservice: microservice
+  }
 };
 
 const getAgentRegistries = async function (fog, transaction) {
-  return await RegistryManager.findAll({
+  const registries = await RegistryManager.findAll({
     userId: fog.userId
   }, transaction);
+  return {
+    registries: registries
+  }
 };
 
 const getAgentProxy = async function (fog, transaction) {
-  // TODO with tunnel
+  const proxy = TunnelManager.findOne({
+    iofogUuid: fog.uuid
+  }, transaction);
+  return {
+    proxy: proxy
+  }
 };
 
 const getAgentStrace = async function (fog, transaction) {
@@ -283,9 +341,30 @@ const deleteNode = async function (fog, transaction) {
   }, transaction);
 };
 
-async function _checkMicroservicesFogType(fogType) {
-  // TODO with microservices
-  return;
+async function _checkMicroservicesFogType(fog, fogType, transaction) {
+  const where = {
+    iofogUuid: fog.uuid
+  };
+  const microservices = MicroserviceManager.findAllWithDependencies(where, {}, transaction);
+  logger.info("Microservices: " + JSON.stringify(microservices));
+  let errorsElements = [];
+
+  // TODO finish
+  // for (const microservice of microservices) {
+  //   if (!microservice.containerImage) {
+  //     errorsElements.push(microservice);
+  //   }
+  // }
+  //
+  // if (errorsElements.length > 0) {
+  //   let errorMsg = 'Some of elements hasn\'t proper docker images for this fog type. ' +
+  //     'List of elements and tracks:\n';
+  //   for (error of errorElements) {
+  //     errorMsg = errorMsg
+  //       + ' "' + invalidMicroservice.elementName + '" microservice on the'
+  //       + ' "' + invalidMicroservice.trackName + '"  \n';
+  //   }
+  // }
 }
 
 module.exports = {

@@ -100,7 +100,7 @@ module.exports = [
   },
   {
     method: 'get',
-    path: '/api/v3/config/changes',
+    path: '/api/v3/agent/config/changes',
     middleware: async (req, res) => {
       const successCode = constants.HTTP_CODE_SUCCESS;
       const errorCodes = [
