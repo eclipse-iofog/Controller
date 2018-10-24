@@ -788,11 +788,6 @@ paths:
       description: Deletes an ioFog node
       operationId: deleteAgentNode
       parameters:
-      - in: path
-        name: uuid
-        description: ioFog node id
-        required: true
-        type: string
       - in: header
         name: Authorization
         description: Agent token
