@@ -16,10 +16,10 @@ const microserviceCreate = {
     "imageSnapshot": {"type": "string"},
     "volumeMappings": {
       "type": "array",
-      "items": {"$ref": "volumeMappings"}},
+      "items": {"$ref": "/volumeMappings"}},
     "ports": {
       "type": "array",
-      "items": {"$ref": "ports"}},
+      "items": {"$ref": "/ports"}},
     "routes": {
        "type": "array",
        "items": {"type": "string"}}
@@ -46,10 +46,10 @@ const microserviceUpdate = {
     "imageSnapshot": {"type": "string"},
     "volumeMappings": {
       "type": "array",
-      "items": {"$ref": "volumeMappings"}},
+      "items": {"$ref": "/volumeMappings"}},
     "ports": {
       "type": "array",
-      "items": {"$ref": "ports"}},
+      "items": {"$ref": "/ports"}},
     "routes": {
       "type": "array",
       "items": {"type": "string"}}
@@ -62,7 +62,7 @@ const ports = {
   "properties": {
     "internal": {"type": "integer"},
     "external": {"type": "integer"},
-    "publicMode": {"type": "boolean"}
+    "publicMode": {"enum": [false]}
   }
 };
 

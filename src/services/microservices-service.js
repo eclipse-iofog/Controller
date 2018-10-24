@@ -15,7 +15,6 @@ const TransactionDecorator = require('../decorators/transaction-decorator');
 const MicroserviceManager = require('../sequelize/managers/microservice-manager');
 const MicroservicePortManager = require('../sequelize/managers/microservice-port-manager');
 const VolumeMappingManager = require('../sequelize/managers/volume-mapping-manager');
-const RoutingManager = require('../sequelize/managers/routing-manager')
 const ConnectorManager = require('../sequelize/managers/connector-manager')
 const ConnectorPortManager = require('../sequelize/managers/connector-port-manager')
 const ChangeTrackingManager = require('../sequelize/managers/change-tracking-manager');
@@ -68,7 +67,7 @@ const _getMicroservice = async function (microserviceUuid, user, isCLI, transact
 const _createMicroserviceOnFog = async function (microserviceData, user, isCLI, transaction) {
   await Validation.validate(microserviceData, Validation.schemas.microserviceCreate);
 
-  const microservice = await _createMicroservice(microserviceData, user, isCLI, transaction);
+  const microservice = await _createMicroservice(microserviceData, user, transaction);
 
   if (microserviceData.ports) {
     await _createMicroservicePorts(microserviceData.ports, microservice.uuid, transaction);
