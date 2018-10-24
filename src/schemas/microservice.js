@@ -63,7 +63,8 @@ const ports = {
     "internal": {"type": "integer"},
     "external": {"type": "integer"},
     "publicMode": {"enum": [false]}
-  }
+  },
+  "required": ["internal", "external"]
 };
 
 const volumeMappings = {
@@ -97,6 +98,6 @@ const networkConfig = {
 };
 
 module.exports = {
-    mainSchemas: [microserviceCreate, microserviceUpdate, networkConfig],
-    innerSchemas: [ports, volumeMappings]
+    mainSchemas: [microserviceCreate, microserviceUpdate, networkConfig, ports],
+    innerSchemas: [volumeMappings]
 };

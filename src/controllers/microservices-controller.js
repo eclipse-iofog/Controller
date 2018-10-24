@@ -72,6 +72,20 @@ async function _deleteMicroserviceRoute(req, user) {
   return await MicroservicesService.deleteRouteWithTransaction(sourceUuid, distUuid, user)
 }
 
+async function _createMicroservicePortMapping(req, user) {
+  const uuid = req.params.uuid
+  const portMappingData = req.body
+  logger.info(`Creating port mapping for ${uuid}`)
+  return await MicroservicesService.createPortMappingWithTransaction(uuid, portMappingData, user)
+}
+
+async function _deleteMicroservicePortMapping(req, user) {
+  const uuid = req.params.uuid
+  const internalPort = req.params.internalPort
+  logger.info(`Creating port mapping for ${uuid}`)
+  return await MicroservicesService.deletePortMappingWithTransaction(uuid, internalPort, user)
+}
+
 module.exports = {
   createMicroservicesOnFogEndPoint: AuthDecorator.checkAuthToken(_createMicroservicesOnFogEndPoint),
   getMicroserviceEndPoint: AuthDecorator.checkAuthToken(_getMicroserviceEndPoint),
@@ -79,5 +93,7 @@ module.exports = {
   deleteMicroserviceEndPoint: AuthDecorator.checkAuthToken(_deleteMicroserviceEndPoint),
   getMicroservicesByFlowEndPoint: AuthDecorator.checkAuthToken(_getMicroservicesByFlowEndPoint),
   createMicroserviceRoute: AuthDecorator.checkAuthToken(_createMicroserviceRoute),
-  deleteMicroserviceRoute: AuthDecorator.checkAuthToken(_deleteMicroserviceRoute)
+  deleteMicroserviceRoute: AuthDecorator.checkAuthToken(_deleteMicroserviceRoute),
+  createMicroservicePortMapping: AuthDecorator.checkAuthToken(_createMicroservicePortMapping),
+  deleteMicroservicePortMapping: AuthDecorator.checkAuthToken(_deleteMicroservicePortMapping)
 };

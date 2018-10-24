@@ -7,11 +7,6 @@ module.exports = (sequelize, DataTypes) => {
       autoIncrement: true,
       allowNull: false,
       field: 'id'
-    },
-    isNetworkConnection: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false,
-      field: 'is_network_connection'
     }
   }, {
     timestamps: false,
