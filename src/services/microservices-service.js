@@ -533,9 +533,9 @@ async function _createPortMapping(microserviceUuid, portMappingData, user, trans
   }
 
   if (portMappingData.publicMode) {
-    await _createPortMappingOverConnector(microservice, portMappingData, user, transaction)
+    return await _createPortMappingOverConnector(microservice, portMappingData, user, transaction)
   } else {
-    await _createSimplePortMapping(microservice, portMappingData, user, transaction)
+    return await _createSimplePortMapping(microservice, portMappingData, user, transaction)
   }
 }
 
