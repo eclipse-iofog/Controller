@@ -809,6 +809,62 @@ paths:
           description: Not Authorized
         '500':
           description: Internal Server Error
+  '/agent/image-snapshot':
+    get:
+      tags:
+      - Agent
+      description: Get image snapshot info
+      operationId: getImageSnapshot
+      parameters:
+      - in: header
+        name: Authorization
+        description: Agent Token
+        required: true
+        type: string
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/ImageSnapshotResponse'
+          headers:
+            X-Timestamp:
+              type: number
+              description: FogController server timestamp
+        401:
+          description: Not Authorized
+        404:
+          description: Image Snapshot Not Found
+        500:
+          description: Internal Server Error
+    put:
+      tags:
+      - Agent
+      description: Put image snapshot info on controller
+      operationId: putImageSnapshot
+      parameters:
+      - in: header
+        name: Authorization
+        description: Agent Token
+        required: true
+        type: string
+      - in: body
+        name: ImageSnapshotRequest
+        required: true
+        schema:
+          $ref: '#/definitions/ImageSnapshotRequest'
+      responses:
+        '204':
+          description: Success
+          headers:
+            X-Timestamp:
+              type: number
+              description: FogController server timestamp
+        '400':
+          description: Bad Request
+        '401':
+          description: Not Authorized
+        '500':
+          description: Internal Server Error
   /catalog/microservices:
     get:
       tags:
@@ -2848,7 +2904,6 @@ definitions:
         type: string
       password:
         type: string
-
   VersionCommandResponse:
     type: object
     required:
@@ -2869,7 +2924,20 @@ definitions:
     properties:
       info:
         type: string
-
+  ImageSnapshotResponse:
+    type: object
+    required:
+    - uuid
+    properties:
+      uuid:
+        type: string
+  ImageSnapshotRequest:
+    type: object
+    required:
+    - upstream
+    properties:
+      upstream:
+        type: string
 schemes:
 - http
 - https

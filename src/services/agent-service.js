@@ -30,6 +30,8 @@ const USBInfoManager = require('../sequelize/managers/usb-info-manager');
 const TunnelManager = require('../sequelize/managers/tunnel-manager');
 const MicroserviceManager = require('../sequelize/managers/microservice-manager');
 
+const formidable = require('formidable');
+
 const logger = require('../logger');
 
 const agentProvision = async function (provisionData, transaction) {
@@ -48,15 +50,11 @@ const agentProvision = async function (provisionData, transaction) {
     throw new Errors.AuthenticationError(ErrorMessages.EXPIRED_PROVISION_KEY)
   }
 
-  const fogType = await FogTypeManager.findOne({
-    id: provisionData.type
-  }, transaction);
-
   const fog = await FogManager.findOne({
     uuid: provision.iofogUuid
   }, transaction);
 
-  await _checkMicroservicesFogType(fog, fogType, transaction);
+  await _checkMicroservicesFogType(fog, provisionData.type, transaction);
 
   const newAccessToken = await FogAccessTokenService.generateAccessToken(transaction);
 
@@ -354,30 +352,74 @@ const deleteNode = async function (fog, transaction) {
   }, transaction);
 };
 
-async function _checkMicroservicesFogType(fog, fogType, transaction) {
+const getImageSnapshot = async function (fog, transaction) {
+  const microservice = await MicroserviceManager.findOne({
+    iofogUuid: fog.uuid,
+    imageSnapshot: 'get_image'
+  }, transaction);
+  if (!microservice) {
+    throw new Errors.NotFoundError(ErrorMessages.IMAGE_SNAPSHOT_NOT_FOUND);
+  }
+
+  return {
+    uuid: microservice.uuid
+  }
+};
+
+const putImageSnapshot = async function (req, fog, transaction) {
+  const form = new formidable.IncomingForm();
+  form.uploadDir = appRoot + '/imageSnapshot';
+  form.keepExtensions = true;
+
+  await form.parse(req, async function (error, fields, files) {
+    if (error) {
+      throw new Errors.ValidationError()
+    }
+
+    const filePath = files['upstream']['path'];
+    const absolutePath = path.resolve(filePath);
+
+    await MicroserviceManager.update({
+      iofogUuid: fog.uuid,
+      imageSnapshot: 'get_image'
+    }, {
+      imageSnapshot: absolutePath
+    }, transaction);
+
+  });
+};
+
+async function _checkMicroservicesFogType(fog, fogTypeId, transaction) {
   const where = {
     iofogUuid: fog.uuid
   };
   const microservices = MicroserviceManager.findAllWithDependencies(where, {}, transaction);
-  logger.info("Microservices: " + JSON.stringify(microservices));
-  let errorsElements = [];
+  if (microservices) {
 
-  // TODO finish
-  // for (const microservice of microservices) {
-  //   if (!microservice.containerImage) {
-  //     errorsElements.push(microservice);
-  //   }
-  // }
-  //
-  // if (errorsElements.length > 0) {
-  //   let errorMsg = 'Some of elements hasn\'t proper docker images for this fog type. ' +
-  //     'List of elements and tracks:\n';
-  //   for (error of errorElements) {
-  //     errorMsg = errorMsg
-  //       + ' "' + invalidMicroservice.elementName + '" microservice on the'
-  //       + ' "' + invalidMicroservice.trackName + '"  \n';
-  //   }
-  // }
+    let invalidMicroservices = [];
+
+    for (const microservice of microservices) {
+      let exists = false;
+      for (const image of microservice.catalogItem.images) {
+        if (image.fogTypeId === fogTypeId) {
+          exists = true;
+          break;
+        }
+      }
+
+      if (!exists) {
+        invalidMicroservices.push(microservice);
+      }
+    }
+
+    if (invalidMicroservices.length > 0) {
+      let errorMsg = ErrorMessages.INVALID_MICROSERVICES_FOG_TYPE;
+      for (error of invalidMicroservices) {
+        errorMsg = errorMsg + ' "' + error.name + '" microservice\n';
+      }
+      throw new Errors.ValidationError(errorMsg);
+    }
+  }
 }
 
 module.exports = {
@@ -395,5 +437,7 @@ module.exports = {
   getAgentChangeVersionCommand: TransactionDecorator.generateTransaction(getAgentChangeVersionCommand),
   updateHalHardwareInfo: TransactionDecorator.generateTransaction(updateHalHardwareInfo),
   updateHalUsbInfo: TransactionDecorator.generateTransaction(updateHalUsbInfo),
-  deleteNode: TransactionDecorator.generateTransaction(deleteNode)
+  deleteNode: TransactionDecorator.generateTransaction(deleteNode),
+  getImageSnapshot: TransactionDecorator.generateTransaction(getImageSnapshot),
+  putImageSnapshot: TransactionDecorator.generateTransaction(putImageSnapshot)
 };

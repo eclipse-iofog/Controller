@@ -397,4 +397,54 @@ module.exports = [
         .send(responseObject.body)
     }
   },
+  {
+    method: 'get',
+    path: '/api/v3/agent/image-snapshot',
+    middleware: async (req, res) => {
+      const successCode = constants.HTTP_CODE_SUCCESS;
+      const errorCodes = [
+        {
+          code: constants.HTTP_CODE_UNAUTHORIZED,
+          errors: [Errors.AuthenticationError]
+        },
+        {
+          code: constants.HTTP_CODE_NOT_FOUND,
+          errors: [Errors.NotFoundError]
+        }
+      ];
+
+      const getImageSnapshotEndPoint = ResponseDecorator.handleErrors(AgentController.getImageSnapshotEndPoint,
+        successCode, errorCodes);
+      const responseObject = await getImageSnapshotEndPoint(req);
+
+      res
+        .status(responseObject.code)
+        .send(responseObject.body)
+    }
+  },
+  {
+    method: 'put',
+    path: '/api/v3/agent/image-snapshot',
+    middleware: async (req, res) => {
+      const successCode = constants.HTTP_CODE_SUCCESS;
+      const errorCodes = [
+        {
+          code: constants.HTTP_CODE_UNAUTHORIZED,
+          errors: [Errors.AuthenticationError]
+        },
+        {
+          code: constants.HTTP_CODE_BAD_REQUEST,
+          errors: [Errors.ValidationError]
+        }
+      ];
+
+      const putImageSnapshotEndPoint = ResponseDecorator.handleErrors(AgentController.putImageSnapshotEndPoint,
+        successCode, errorCodes);
+      const responseObject = await putImageSnapshotEndPoint(req);
+
+      res
+        .status(responseObject.code)
+        .send(responseObject.body)
+    }
+  }
 ];
