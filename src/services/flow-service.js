@@ -116,9 +116,11 @@ const isFlowExist = async function (flowName, transaction) {
 };
 
 module.exports = {
-  createFlow: TransactionDecorator.generateTransaction(_createFlow),
-  deleteFlow: TransactionDecorator.generateTransaction(_deleteFlow),
-  updateFlow: TransactionDecorator.generateTransaction(_updateFlow),
-  getFlow: TransactionDecorator.generateTransaction(_getFlow),
-  getUserFlows: TransactionDecorator.generateTransaction(_getUserFlows)
+  createFlowWithTransaction: TransactionDecorator.generateTransaction(_createFlow),
+  deleteFlowWithTransaction: TransactionDecorator.generateTransaction(_deleteFlow),
+  updateFlowWithTransaction: TransactionDecorator.generateTransaction(_updateFlow),
+  getFlowWithTransaction: TransactionDecorator.generateTransaction(_getFlow),
+  getUserFlowsWithTransaction: TransactionDecorator.generateTransaction(_getUserFlows),
+  getAllFlowsWithTransaction: TransactionDecorator.generateTransaction(_getAllFlows),
+  getFlow: _getFlow
 };

@@ -41,12 +41,20 @@ module.exports = (sequelize, DataTypes) => {
 
     Flow.belongsTo(models.User, {
       foreignKey: {
-        name: 'updatedBy',
+        name: 'updatedById',
         field: 'updated_by'
       },
-      as: 'userUpdatedBy',
+      as: 'updatedBy',
       onDelete: 'set null'
     });
+
+    Flow.hasMany(models.Microservice, {
+      foreignKey: {
+        name: 'flowId',
+        field: 'flow_id'
+      },
+      as: 'microservice'
+    })
   };
   return Flow;
 };

@@ -16,6 +16,10 @@ const models = require('./../models');
 const User = models.User;
 const AccessToken = models.AccessToken;
 const AppHelper = require('../../helpers/app-helper');
+const Flow = models.Flow;
+const Fog = models.Fog;
+const CatalogItem = models.CatalogItem;
+const Microservice = models.Microservice;
 
 class UserManager extends BaseManager {
   getEntity() {
@@ -89,6 +93,85 @@ class UserManager extends BaseManager {
 // no transaction required here, used by cli decorator
   findById(id) {
     return User.find({where: {id: id}});
+  }
+
+  findUserOnMicroserviceCreate(where, transaction) {
+    return User.findOne({
+      include: [
+        {
+          model: CatalogItem,
+          as: 'catalogItem',
+          required: true,
+          attributes: ['id']
+        },
+        {
+          model: Flow,
+          as: 'flow',
+          required: true,
+          attributes: ['id']
+        },
+        {
+          model: Fog,
+          as: 'fog',
+          required: false,
+          attributes: ['uuid']
+        }
+      ],
+      where: where,
+      attributes: ['id']
+    }, {transaction: transaction})
+  }
+
+  findUserOnMicroserviceGet(where, transaction) {
+    return User.findOne({
+      include: [
+        {
+          model: Flow,
+          as: 'flow',
+          required: true,
+          include: [
+            {
+              model: Microservice,
+              as: 'microservice',
+              required: true,
+              attributes: ['uuid']
+            }
+          ],
+          attributes: ['id']
+        }
+      ],
+      where: where,
+      attributes: ['id'],
+    }, {transaction: transaction})
+  }
+
+  findUserOnMicroserviceUpdate(where, transaction) {
+    return User.findOne({
+      include: [
+        {
+          model: Fog,
+          as: 'fog',
+          required: false,
+          attributes: ['uuid']
+        },
+        {
+          model: Flow,
+          as: 'flow',
+          required: true,
+          include: [
+            {
+              model: Microservice,
+              as: 'microservice',
+              required: true,
+              attributes: ['uuid']
+            }
+          ],
+          attributes: ['id']
+        }
+      ],
+      where: where,
+      attributes: ['id']
+    }, {transaction: transaction})
   }
 }
 
