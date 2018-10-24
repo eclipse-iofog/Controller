@@ -43,7 +43,8 @@ const _getMicroserviceByFlow = async function (flowId, user, isCLI, transaction)
       'updated_at',
       'catalogItemId',
       'updatedBy',
-      'flowId'
+      'flowId',
+      'registryId'
     ]}, transaction);
 };
 
@@ -60,7 +61,8 @@ const _getMicroservice = async function (microserviceUuid, user, isCLI, transact
        'updated_at',
        'catalogItemId',
        'updatedBy',
-       'flowId'
+       'flowId',
+       'registryId'
      ]}, transaction);
 };
 
