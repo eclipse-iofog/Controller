@@ -41,12 +41,12 @@ class MicroserviceManager extends BaseManager {
         required: false,
         attributes: ['hostDestination', 'containerDestination', 'accessMode']
       },
-      {
+      /*{
         model: StraceDiagnostics,
         as: 'strace',
         required: false,
         attributes: ['straceRun']
-      },
+      },*/
       {
         model: CatalogItem,
         as: 'catalogItem',
@@ -85,12 +85,12 @@ class MicroserviceManager extends BaseManager {
         required: false,
         attributes: ['hostDestination', 'containerDestination', 'accessMode']
       },
-      {
+      /*{
         model: StraceDiagnostics,
         as: 'strace',
         required: false,
         attributes: ['straceRun']
-      },
+      },*/
       {
         model: CatalogItem,
         as: 'catalogItem',
