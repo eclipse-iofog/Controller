@@ -41,7 +41,7 @@ const agentProvision = async function (provisionData, transaction) {
 
   let currentTime = new Date();
   if (provision.expirationTime < currentTime) {
-    throw new Error("Expired provision key")
+    throw new Errors.AuthenticationError(ErrorMessages.EXPIRED_PROVISION_KEY)
   }
 
   const fogType = await FogTypeManager.findOne({
@@ -171,7 +171,7 @@ const updateAgentStatus = async function (agentStatus, fog, transaction) {
 
   let update = {
     daemonStatus: agentStatus.daemonStatus,
-    daemonOperationDuration: agentStatus.daemonOperatingDuration,
+    daemonOperatingDuration: agentStatus.daemonOperatingDuration,
     daemonLastStart: agentStatus.daemonLastStart,
     memoryUsage: agentStatus.memoryUsage,
     diskUsage: agentStatus.diskUsage,
@@ -181,6 +181,7 @@ const updateAgentStatus = async function (agentStatus, fog, transaction) {
     cpuViolation: agentStatus.cpuViolation,
     microservicesStatus: agentStatus.microservicesStatus,
     repositoryCount: agentStatus.repositoryCount,
+    repositoryStatus: agentStatus.repositoryStatus,
     systemTime: agentStatus.systemTime,
     lastStatusTime: agentStatus.lastStatusTime,
     ipAddress: agentStatus.ipAddress,
@@ -241,6 +242,9 @@ const getAgentChangeVersionCommand = async function (fog, transaction) {
   const versionCommand = await FogVersionCommandManager.findOne({
     iofogUuid: fog.uuid
   }, transaction);
+  if (!versionCommand) {
+    throw new Errors.NotFoundError(ErrorMessages.VERSION_COMMAND_NOT_FOUND);
+  }
 
   const provision = FogProvisionKeyManager.findOne({
     iofogUuid: fog.uuid
@@ -256,6 +260,8 @@ const getAgentChangeVersionCommand = async function (fog, transaction) {
 const updateHalHardwareInfo = async function (hardwareData, fog, transaction) {
   await Validator.validate(hardwareData, Validator.schemas.updateHardwareInfo);
 
+  hardwareData.iofogUuid = fog.uuid;
+
   await HWInfoManager.updateOrCreate({
     iofogUuid: fog.uuid
   }, hardwareData, transaction);
@@ -264,9 +270,17 @@ const updateHalHardwareInfo = async function (hardwareData, fog, transaction) {
 const updateHalUsbInfo = async function (usbData, fog, transaction) {
   await Validator.validate(usbData, Validator.schemas.updateUsbInfo);
 
+  usbData.iofogUuid = fog.uuid;
+
   await USBInfoManager.updateOrCreate({
     iofogUuid: fog.uuid
   }, usbData, transaction);
+};
+
+const deleteNode = async function (fog, transaction) {
+  await FogManager.delete({
+    uuid: fog.uuid
+  }, transaction);
 };
 
 async function _checkMicroservicesFogType(fogType) {
@@ -288,5 +302,6 @@ module.exports = {
   updateAgentStrace: TransactionDecorator.generateTransaction(updateAgentStrace),
   getAgentChangeVersionCommand: TransactionDecorator.generateTransaction(getAgentChangeVersionCommand),
   updateHalHardwareInfo: TransactionDecorator.generateTransaction(updateHalHardwareInfo),
-  updateHalUsbInfo: TransactionDecorator.generateTransaction(updateHalUsbInfo)
+  updateHalUsbInfo: TransactionDecorator.generateTransaction(updateHalUsbInfo),
+  deleteNode: TransactionDecorator.generateTransaction(deleteNode)
 };

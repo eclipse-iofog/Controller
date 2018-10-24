@@ -11,25 +11,10 @@
  *
  */
 
-const CONFIG = {
-  port: 'port',
-  ssl_key: 'ssl_key',
-  ssl_cert: 'ssl_cert',
-  intermediate_cert: 'intermediate_cert',
-  email_address: 'email_address',
-  email_password: 'email_password',
-  email_service: 'email_service',
-  email_server: 'email_server',
-  email_serverport: 'email_serverport',
-  email_activation: 'email_activation',
-  proxy_username: 'proxy_username',
-  proxy_password: 'proxy_password',
-  proxy_host: 'proxy_host',
-  proxy_lport: 'proxy_lport',
-  proxy_rsa_key: 'proxy_rsa_key'
-};
-
 module.exports = {
+  CONNECTOR_HTTP_PORT: 8080,
+  CONNECTOR_HTTPS_PORT: 443,
+
   CMD: 'command',
   CMD_LIST: 'list',
   CMD_ADD: 'add',
@@ -56,14 +41,23 @@ module.exports = {
   CMD_ACTIVATE: 'activate',
   CMD_SUSPEND: 'suspend',
   CMD_STRACE: 'strace',
+  CMD_DEV_MODE: 'dev-mode',
   CMD_TUNNEL: 'tunnel',
   CMD_IOFOG_REBOOT: 'reboot',
   CMD_CONTROLLER: 'controller',
   CMD_EMAIL_ACTIVATION: 'email-activation',
   CMD_FOG_TYPES: 'fog-types',
-  CONFIG: CONFIG,
+  CMD_DIAGNOSTICS: 'diagnostics',
+  CMD_STRACE_UPDATE: 'strace-update',
+  CMD_STRACE_INFO: 'strace-info',
+  CMD_STRACE_FTP_POST: 'strace-ftp-post',
+  CMD_IMAGE_SNAPSHOT_CREATE: 'image-snapshot-create',
+  CMD_IMAGE_SNAPSHOT_GET: 'image-snapshot-get',
+  CMD_HAL_HW: 'hal-hw',
+  CMD_HAL_USB: 'hal-usb',
   HTTP_CODE_SUCCESS: 200,
   HTTP_CODE_CREATED: 201,
+  HTTP_CODE_ACCEPTED: 202,
   HTTP_CODE_NO_CONTENT: 204,
   HTTP_CODE_SEE_OTHER: 303,
   HTTP_CODE_BAD_REQUEST: 400,
@@ -71,4 +65,4 @@ module.exports = {
   HTTP_CODE_NOT_FOUND: 404,
   HTTP_CODE_DUPLICATE_PROPERTY: 409,
   HTTP_CODE_INTERNAL_ERROR: 500,
-}
+};

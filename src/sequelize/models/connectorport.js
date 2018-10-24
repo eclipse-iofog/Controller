@@ -50,12 +50,6 @@ module.exports = (sequelize, DataTypes) => {
   });
   ConnectorPort.associate = function (models) {
 
-    ConnectorPort.belongsTo(models.User, {
-      foreignKey: 'updated_by',
-      as: 'updatedBy',
-      onDelete: 'cascade'
-    });
-
     ConnectorPort.belongsTo(models.Connector, {
       foreignKey: {
         name: 'connectorId',

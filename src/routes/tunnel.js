@@ -11,33 +11,57 @@
  *
  */
 const constants = require('../helpers/constants')
+const TunnelController = require('../controllers/tunnel-controller');
+const ResponseDecorator = require('../decorators/response-decorator');
+const Errors = require('../helpers/errors');
 
 module.exports = [
   {
-    method: 'post',
+    method: 'patch',
     path: '/api/v3/iofog/:id/tunnel',
-    middleware: (req, res) => {
+    middleware: async (req, res) => {
+      const successCode = constants.HTTP_CODE_NO_CONTENT;
+      const errorCodes = [
+          {
+              code: constants.HTTP_CODE_BAD_REQUEST,
+              errors: [Errors.ValidationError]
+          },
+          {
+              code: constants.HTTP_CODE_UNAUTHORIZED,
+              errors: [Errors.AuthenticationError]
+          },
+          {
+              code: constants.HTTP_CODE_NOT_FOUND,
+              errors: [Errors.NotFoundError]
+          }
+      ];
+      const tunnelEndPoint = ResponseDecorator.handleErrors(TunnelController.manageTunnelEndPoint, successCode, errorCodes);
+      const responseObject = await tunnelEndPoint(req);
       res
-        .status(constants.HTTP_CODE_SUCCESS)
-        .send(req.body)
+          .status(responseObject.code)
+          .send(responseObject.body);
     }
   },
   {
     method: 'get',
     path: '/api/v3/iofog/:id/tunnel',
-    middleware: (req, res) => {
+    middleware: async (req, res) => {
+      const successCode = constants.HTTP_CODE_SUCCESS;
+      const errorCodes = [
+          {
+              code: constants.HTTP_CODE_UNAUTHORIZED,
+              errors: [Errors.AuthenticationError]
+          },
+          {
+              code: constants.HTTP_CODE_NOT_FOUND,
+              errors: [Errors.NotFoundError]
+          }
+      ];
+      const tunnelEndPoint = ResponseDecorator.handleErrors(TunnelController.getTunnelEndPoint, successCode, errorCodes);
+      const responseObject = await tunnelEndPoint(req);
       res
-        .status(constants.HTTP_CODE_SUCCESS)
-        .send(req.body)
-    }
-  },
-  {
-    method: 'delete',
-    path: '/api/v3/iofog/:id/tunnel',
-    middleware: (req, res) => {
-      res
-        .status(constants.HTTP_CODE_SUCCESS)
-        .send(req.body)
+          .status(responseObject.code)
+          .send(responseObject.body);
     }
   }
 ];
