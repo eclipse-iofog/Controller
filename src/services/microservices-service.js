@@ -115,7 +115,7 @@ const _createMicroservice = async function (microserviceData, user, isCLI, trans
   const microserviceDataCreate = AppHelper.deleteUndefinedFields(microserviceToCreate);
 
   //validate catalog item
-  await CatalogService.listCatalogItem(microserviceDataCreate.catalogItemId, user, isCLI, transaction);
+  await CatalogService.getCatalogItem(microserviceDataCreate.catalogItemId, user, isCLI, transaction);
   //validate flow
   await FlowService.getFlow(microserviceDataCreate.flowId, user, isCLI, transaction);
   //validate fog node

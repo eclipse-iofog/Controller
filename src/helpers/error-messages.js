@@ -39,7 +39,7 @@ module.exports = {
   VERSION_COMMAND_NOT_FOUND: 'Version command not found',
   STRACE_WITHOUT_FOG: 'Can not run strace for element without fog.',
   INVALID_MICROSERVICE_CONFIG: "Can't create network microservice without appropriate configuration.",
-  INVALID_MICROSERVICE_USER: 'Current user is not allowed to create this microservice on the flow',
+  INVALID_MICROSERVICE_USER: 'Invalid microservice user',
   ROUTE_NOT_FOUND: 'Route not found',
   INVALID_ACTION_PROPERTY: 'Unknown action property. Action can be "open" or "close"',
   IMAGE_SNAPSHOT_WITHOUT_FOG: 'Can not run image snapshot for element without fog.',
