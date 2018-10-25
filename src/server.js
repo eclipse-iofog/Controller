@@ -52,6 +52,8 @@ app.use((req, res, next) => {
   next()
 });
 
+global.appRoot = path.resolve(__dirname);
+
 const registerRoute = (route) => {
   app[route.method.toLowerCase()](route.path, route.middleware)
 };
