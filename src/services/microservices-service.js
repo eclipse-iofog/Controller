@@ -714,6 +714,32 @@ async function _validatePorts(internal, external) {
   }
 }
 
+async function _getPortMappingList(microserviceUuid, user, transaction) {
+  const microservice = await MicroserviceManager.findOne({uuid: microserviceUuid, updatedBy: user.id}, transaction)
+  if (!microservice) {
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, microserviceUuid))
+  }
+  let res = []
+  const portsPairs = await MicroservicePortManager.findAll({microserviceUuid: microserviceUuid}, transaction)
+  for (const ports of portsPairs) {
+    let portMappingResposeData = {
+      internal: ports.portInternal,
+      external: ports.portExternal,
+      publicMode: ports.isPublic
+    }
+    if (ports.isPublic) {
+      const pubMode = await MicroservicePublicModeManager.findOne({microservicePortId: ports.id}, transaction)
+      const ports = await ConnectorPortManager.findOne({id: pubMode.connectorPortId}, transaction)
+      const connector = await ConnectorManager.findOne({id: ports.connectorId}, transaction)
+
+      portMappingResposeData.publicIp = connector.publicIp
+      portMappingResposeData.publicPort = ports.port2
+    }
+    res.push(portMappingResposeData)
+  }
+  return res
+}
+
 module.exports = {
   createMicroserviceOnFogWithTransaction: TransactionDecorator.generateTransaction(_createMicroserviceOnFog),
   getMicroserviceByFlowWithTransaction: TransactionDecorator.generateTransaction(_getMicroserviceByFlow),
@@ -723,5 +749,6 @@ module.exports = {
   createRouteWithTransaction : TransactionDecorator.generateTransaction(_createRoute),
   deleteRouteWithTransaction: TransactionDecorator.generateTransaction(_deleteRoute),
   createPortMappingWithTransaction: TransactionDecorator.generateTransaction(_createPortMapping),
+  getMicroservicePortMappingListWithTransaction: TransactionDecorator.generateTransaction(_getPortMappingList),
   deletePortMappingWithTransaction: TransactionDecorator.generateTransaction(_deletePortMapping)
 };
