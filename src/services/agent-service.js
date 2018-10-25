@@ -139,11 +139,11 @@ const getAgentConfigChanges = async function (fog, transaction) {
     version: false,
     reboot: false,
     deleteNode: false,
-    microserviceList: false,
-    microserviceConfig: false,
+    containerList: false,
+    containerConfig: false,
     routing: false,
     registries: false,
-    tunnel: false,
+    proxy: false,
     diagnostics: false,
     isImageSnapshot: false
   };
