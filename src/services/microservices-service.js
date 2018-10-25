@@ -261,7 +261,7 @@ const _validateMicroserviceOnGet = async function (userId, microserviceUuid, tra
   };
   const microservice = await MicroserviceManager.findMicroserviceOnGet(where, transaction);
   if (!microservice) {
-    throw new Errors.ValidationError(ErrorMessages.INVALID_MICROSERVICE_USER);
+    throw new Errors.NotFoundError(ErrorMessages.INVALID_MICROSERVICE_USER);
   }
 };
 
