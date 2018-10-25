@@ -228,7 +228,7 @@ const getAgentMicroservices = async function (fog, transaction) {
 
     const registryUrl = registry.url;
 
-    const routes = MicroserviceService.getPhysicalConections(microservice, transaction); // TODO replace
+    const routes = MicroserviceService.getPhysicalConections(microservice, transaction);
 
     const responseMicroservice = {
       uuid: microservice.uuid,
