@@ -73,8 +73,9 @@ const _createMicroserviceOnFog = async function (microserviceData, user, isCLI, 
   const microservice = await _createMicroservice(microserviceData, user, isCLI, transaction);
 
   if (microserviceData.ports) {
-    //TODO _createPortMapping for each port pair
-    await _createMicroservicePorts(microserviceData.ports, microservice.uuid, transaction);
+    for (const port of microserviceData.ports) {
+      await _createPortMapping(microservice.uuid, port, user, transaction);
+    }
   }
   if (microserviceData.volumeMappings) {
     await _createVolumeMappings(microserviceData.volumeMappings, microservice.uuid, transaction);
@@ -113,6 +114,7 @@ const _createMicroservice = async function (microserviceData, user, isCLI, trans
     iofogUuid: microserviceData.ioFogNodeId,
     rootHostAccess: microserviceData.rootHostAccess,
     logSize: microserviceData.logLimit,
+    updatedBy: user.id
   };
 
   const microserviceDataCreate = AppHelper.deleteUndefinedFields(microserviceToCreate);
