@@ -393,7 +393,7 @@ async function _checkMicroservicesFogType(fog, fogTypeId, transaction) {
   const where = {
     iofogUuid: fog.uuid
   };
-  const microservices = MicroserviceManager.findAllWithDependencies(where, {}, transaction);
+  const microservices = await MicroserviceManager.findAllWithDependencies(where, {}, transaction);
   if (microservices) {
 
     let invalidMicroservices = [];
