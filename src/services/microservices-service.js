@@ -114,6 +114,8 @@ const _createMicroservice = async function (microserviceData, user, transaction)
 
   const microserviceDataCreate = AppHelper.deleteUndefinedFields(microserviceToCreate);
 
+  await isMicroserviceExist(microserviceDataCreate.name, transaction);
+
   await _checkIfMicroserviceIsValidOnCreate(microserviceDataCreate, user.id, transaction);
 
   return await MicroserviceManager.create(microserviceDataCreate, transaction);
@@ -173,6 +175,10 @@ const _updateMicroservice = async function (microserviceUuid, microserviceData, 
   };
 
   const microserviceDataUpdate = AppHelper.deleteUndefinedFields(microserviceToUpdate);
+
+  if(microserviceDataUpdate.name){
+    await isMicroserviceExist(microserviceDataUpdate.name, transaction);
+  }
 
   await _checkIfMicroserviceIsValidOnUpdate(user.id, microserviceUuid, microserviceDataUpdate, transaction);
 
@@ -713,6 +719,16 @@ async function _validatePorts(internal, external) {
     throw new Errors.ValidationError('incorrect port')
   }
 }
+
+const isMicroserviceExist = async function (microserviceName, transaction) {
+  const microservice = await MicroserviceManager.findOne({
+    name: microserviceName
+  }, transaction);
+
+  if (microservice) {
+    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.DUPLICATE_NAME, microserviceName));
+  }
+};
 
 module.exports = {
   createMicroserviceOnFogWithTransaction: TransactionDecorator.generateTransaction(_createMicroserviceOnFog),
