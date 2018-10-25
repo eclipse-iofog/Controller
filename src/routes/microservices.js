@@ -198,10 +198,6 @@ module.exports = [
         .send(responseObject.body)
     },
   },
-
-
-
-
   {
     method: 'post',
     path: '/api/v3/microservices/:uuid/port-mapping',
