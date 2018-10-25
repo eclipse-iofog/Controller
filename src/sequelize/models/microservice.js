@@ -113,6 +113,11 @@ module.exports = (sequelize, DataTypes) => {
       foreignKey: 'microservice_uuid',
       as: 'strace'
     });
+
+    Microservice.hasMany(models.Routing, {
+      foreignKey: 'source_microservice_uuid',
+      as: 'routes'
+    })
   };
   return Microservice;
 };

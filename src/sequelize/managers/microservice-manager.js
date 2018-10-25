@@ -20,6 +20,7 @@ const StraceDiagnostics = models.StraceDiagnostics;
 const CatalogItem = models.CatalogItem;
 const CatalogItemImage = models.CatalogItemImage;
 const Fog = models.Fog;
+const Routing = models.Routing;
 
 class MicroserviceManager extends BaseManager {
   getEntity() {
@@ -63,6 +64,19 @@ class MicroserviceManager extends BaseManager {
         as: 'iofog',
         required: false,
         attributes: ['daemonStatus']
+      },
+      {
+        model: Routing,
+        as: 'routes',
+        required: false,
+        include: [{
+          model: Microservice,
+          as: 'destMicroservice',
+          attributes: ['uuid']
+        }],
+        attributes: {exclude: ['id', 'source_microservice_uuid',
+            'sourceMicroserviceUuid', 'destMicroserviceUuid', 'sourceNetworkMicroserviceUuid',
+            'destNetworkMicroserviceUuid', 'sourceIofogUuid', 'destIofogUuid', 'connectorPortId']}
       }
       ],
       where: where,
@@ -107,6 +121,20 @@ class MicroserviceManager extends BaseManager {
         as: 'iofog',
         required: false,
         attributes: ['daemonStatus']
+      },
+      {
+        model: Routing,
+        as: 'routes',
+        required: false,
+        include: [{
+          model: Microservice,
+          as: 'destMicroservice',
+          attributes: ['uuid']
+        }],
+        attributes: {exclude: ['id', 'source_microservice_uuid',
+                'sourceMicroserviceUuid', 'destMicroserviceUuid',
+                'sourceNetworkMicroserviceUuid', 'destNetworkMicroserviceUuid',
+                'sourceIofogUuid', 'destIofogUuid', 'connectorPortId']}
       }
       ],
       where: where,

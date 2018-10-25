@@ -99,5 +99,5 @@ const networkConfig = {
 
 module.exports = {
     mainSchemas: [microserviceCreate, microserviceUpdate, networkConfig, ports],
-    innerSchemas: [volumeMappings]
+    innerSchemas: [volumeMappings, ports]
 };
