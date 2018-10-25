@@ -47,14 +47,6 @@ module.exports = (sequelize, DataTypes) => {
       as: 'accessToken'
     });
 
-    User.hasMany(models.CatalogItem, {
-      foreignKey: {
-        name: 'userId',
-        field: 'user_id'
-      },
-      as: 'catalogItem'
-    });
-
     User.hasMany(models.Flow, {
       foreignKey: {
         name: 'userId',

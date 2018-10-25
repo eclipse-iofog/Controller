@@ -20,6 +20,8 @@ const StraceDiagnostics = models.StraceDiagnostics;
 const CatalogItem = models.CatalogItem;
 const CatalogItemImage = models.CatalogItemImage;
 const Fog = models.Fog;
+const Flow = models.Flow;
+const User = models.User;
 const Routing = models.Routing;
 
 class MicroserviceManager extends BaseManager {
@@ -131,7 +133,7 @@ class MicroserviceManager extends BaseManager {
           as: 'destMicroservice',
           attributes: ['uuid']
         }],
-        attributes: {exclude: ['id', 'source_microservice_uuid',
+        attributes: {exclude: ['id',
                 'sourceMicroserviceUuid', 'destMicroserviceUuid',
                 'sourceNetworkMicroserviceUuid', 'destNetworkMicroserviceUuid',
                 'sourceIofogUuid', 'destIofogUuid', 'connectorPortId']}
@@ -139,6 +141,29 @@ class MicroserviceManager extends BaseManager {
       ],
       where: where,
       attributes: attributes
+    }, {transaction: transaction})
+  }
+
+  findMicroserviceOnGet(where, transaction) {
+    return Microservice.findOne({
+      include: [
+        {
+          model: Flow,
+          as: 'flow',
+          required: true,
+          include: [
+            {
+              model: User,
+              as: 'user',
+              required: true,
+              attributes: ['id']
+            }
+          ],
+          attributes: ['id']
+        }
+      ],
+      where: where,
+      attributes: ['uuid']
     }, {transaction: transaction})
   }
 }
