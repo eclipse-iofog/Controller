@@ -25,8 +25,9 @@ const AppHelper = require('../helpers/app-helper');
 const Errors = require('../helpers/errors');
 const ErrorMessages = require('../helpers/error-messages');
 const Validation = require('../schemas/index');
-const ConnectorService = require('../services/connector-service');
-const CatalogService = require('../services/catalog-service');
+const ConnectorService = require('../services/connector-service')
+const CatalogService = require('../services/catalog-service')
+const RoutingManager = require('../sequelize/managers/routing-manager')
 
 const _getMicroserviceByFlow = async function (flowId, user, isCLI, transaction) {
   await FlowService.getFlow(flowId, user, isCLI, transaction);
@@ -43,7 +44,8 @@ const _getMicroserviceByFlow = async function (flowId, user, isCLI, transaction)
       'updated_at',
       'catalogItemId',
       'updatedBy',
-      'flowId'
+      'flowId',
+      'registryId'
     ]}, transaction);
 };
 
@@ -60,7 +62,8 @@ const _getMicroservice = async function (microserviceUuid, user, isCLI, transact
        'updated_at',
        'catalogItemId',
        'updatedBy',
-       'flowId'
+       'flowId',
+       'registryId'
      ]}, transaction);
 };
 
@@ -685,6 +688,32 @@ async function _validatePorts(internal, external) {
   }
 }
 
+async function getPhysicalConections(microservice, transaction) {
+  let res = []
+  const pubModes = await MicroservicePublicModeManager.findAll({microserviceUuid: microservice.uuid}, transaction)
+  for (const pm of pubModes) {
+    res.push(pm.networkMicroserviceUuid)
+  }
+
+  const sourceRoutes = await RoutingManager.findAll({sourceMicroserviceUuid: microservice.uuid}, transaction)
+  for (const sr of sourceRoutes) {
+    if (!sr.sourceIofogUuid || !sr.destIofogUuid) {
+      break;
+    } else if (sr.sourceIofogUuid === sr.destIofogUuid) {
+      res.push(sr.destMicroserviceUuid)
+    } else if (sr.sourceIofogUuid !== sr.destIofogUuid) {
+      res.push(sr.sourceNetworkMicroserviceUuid)
+    }
+  }
+
+  const netwRoutes = await RoutingManager.findAll({destNetworkMicroserviceUuid: microservice.uuid}, transaction)
+  for (const nr of netwRoutes) {
+    res.push(nr.destMicroserviceUuid)
+  }
+
+  return res
+}
+
 module.exports = {
   createMicroserviceOnFogWithTransaction: TransactionDecorator.generateTransaction(_createMicroserviceOnFog),
   getMicroserviceByFlowWithTransaction: TransactionDecorator.generateTransaction(_getMicroserviceByFlow),
@@ -694,5 +723,6 @@ module.exports = {
   createRouteWithTransaction : TransactionDecorator.generateTransaction(_createRoute),
   deleteRouteWithTransaction: TransactionDecorator.generateTransaction(_deleteRoute),
   createPortMappingWithTransaction: TransactionDecorator.generateTransaction(_createPortMapping),
-  deletePortMappingWithTransaction: TransactionDecorator.generateTransaction(_deletePortMapping)
+  deletePortMappingWithTransaction: TransactionDecorator.generateTransaction(_deletePortMapping),
+  getPhysicalConections: getPhysicalConections
 };
