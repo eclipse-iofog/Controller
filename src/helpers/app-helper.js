@@ -96,9 +96,11 @@ function generateAccessToken() {
 }
 
 function checkTransaction(transaction) {
-  if (!transaction) {
-    throw new Errors.TransactionError()
-  }
+  // To be removed when transactions concurrency issue fixed
+  return
+  // if (!transaction) {
+  //   throw new Errors.TransactionError()
+  // }
 }
 
 function deleteUndefinedFields(obj) {

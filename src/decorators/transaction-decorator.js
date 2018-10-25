@@ -18,10 +18,12 @@ const sequelize = db.sequelize;
 function transaction(f) {
   return function() {
     const fArgs = Array.prototype.slice.call(arguments);
-    return sequelize.transaction(async (t) => {
-      fArgs.push(t);
-      return await f.apply(this, fArgs);
-    })
+    // To be removed when transactions concurrency issue fixed
+    return f.apply(this, fArgs)
+    // return sequelize.transaction(async (t) => {
+    //   fArgs.push(t);
+    //   return await f.apply(this, fArgs);
+    // })
   }
 }
 
