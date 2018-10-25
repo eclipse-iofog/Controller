@@ -114,6 +114,8 @@ const _createMicroservice = async function (microserviceData, user, transaction)
 
   const microserviceDataCreate = AppHelper.deleteUndefinedFields(microserviceToCreate);
 
+  await isMicroserviceExist(microserviceDataCreate.name, transaction);
+
   await _checkIfMicroserviceIsValidOnCreate(microserviceDataCreate, user.id, transaction);
 
   return await MicroserviceManager.create(microserviceDataCreate, transaction);
@@ -173,6 +175,10 @@ const _updateMicroservice = async function (microserviceUuid, microserviceData, 
   };
 
   const microserviceDataUpdate = AppHelper.deleteUndefinedFields(microserviceToUpdate);
+
+  if(microserviceDataUpdate.name){
+    await isMicroserviceExist(microserviceDataUpdate.name, transaction);
+  }
 
   await _checkIfMicroserviceIsValidOnUpdate(user.id, microserviceUuid, microserviceDataUpdate, transaction);
 
