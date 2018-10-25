@@ -82,7 +82,7 @@ const _createMicroserviceOnFog = async function (microserviceData, user, isCLI, 
   }
 
   if(microserviceData.ioFogNodeId) {
-    await _updateChangeTracking(false, microservice.uuid, microserviceData, user, isCLI, user, isCLI, transaction);
+    await _updateChangeTracking(false, microservice.uuid, microserviceData.ioFogNodeId, user, isCLI, transaction);
   }
 
   return {
@@ -206,7 +206,7 @@ const _updateChangeTracking = async function (configUpdated, microserviceUuid, f
   const trackingData = {
     containerList: true,
     containerConfig: configUpdated,
-    iofogUuid: microservice.fogNodeUuid
+    iofogUuid: fogNodeUuid
   };
 
   await ChangeTrackingManager.update({iofogUuid: fogNodeUuid}, trackingData, transaction);
