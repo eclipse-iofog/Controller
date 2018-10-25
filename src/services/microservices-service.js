@@ -66,6 +66,7 @@ const _getMicroservice = async function (microserviceUuid, user, isCLI, transact
   if (!microservice) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, microserviceUuid))
   }
+  return microservice;
 };
 
 const _createMicroserviceOnFog = async function (microserviceData, user, isCLI, transaction) {
@@ -185,13 +186,13 @@ const _updateMicroservice = async function (microserviceUuid, microserviceData, 
 
   const microservice = await _getMicroservice(microserviceUuid, user, isCLI, transaction);
 
-  if(microserviceDataUpdate.name){
-    await isMicroserviceExist(microserviceDataUpdate.name, transaction);
-  }
+  // if(microserviceDataUpdate.name){
+  //   await isMicroserviceExist(microserviceDataUpdate.name, transaction);
+  // }
 
   //validate fog node
-  if (microserviceDataCreate.iofogUuid) {
-    await IoFogService.getFog({uuid: microserviceDataCreate.iofogUuid}, user, isCLI, transaction);
+  if (microserviceDataUpdate.iofogUuid) {
+    await IoFogService.getFog({uuid: microserviceDataUpdate.iofogUuid}, user, isCLI, transaction);
   }
 
   await MicroserviceManager.update({
