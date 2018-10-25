@@ -1500,7 +1500,7 @@ paths:
           description: Not Found
         '500':
           description: Internal Server Error
-  '/iofog/microservices/{id}/image-snapshot':
+  '/microservices/{id}/image-snapshot':
     post:
       tags:
       - Diagnostics
@@ -1568,7 +1568,7 @@ paths:
           description: Invalid Microservice Id
         '500':
           description: Internal Server Error
-  '/iofog/microservices/{id}/strace':
+  '/microservices/{id}/strace':
     patch:
       tags:
       - Diagnostics
