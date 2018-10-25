@@ -29,6 +29,7 @@ const HWInfoManager = require('../sequelize/managers/hw-info-manager');
 const USBInfoManager = require('../sequelize/managers/usb-info-manager');
 const TunnelManager = require('../sequelize/managers/tunnel-manager');
 const MicroserviceManager = require('../sequelize/managers/microservice-manager');
+const MicroserviceService = require('../services/microservices-service');
 
 const formidable = require('formidable');
 
@@ -227,7 +228,7 @@ const getAgentMicroservices = async function (fog, transaction) {
 
     const registryUrl = registry.url;
 
-    const routes = []; // TODO replace
+    const routes = MicroserviceService.getPhysicalConections(microservice, transaction);
 
     const responseMicroservice = {
       uuid: microservice.uuid,
