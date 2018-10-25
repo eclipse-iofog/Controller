@@ -720,6 +720,16 @@ async function _validatePorts(internal, external) {
   }
 }
 
+const isMicroserviceExist = async function (microserviceName, transaction) {
+    const microservice = await MicroserviceManager.findOne({
+        name: microserviceName
+    }, transaction);
+
+    if (microservice) {
+        throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.DUPLICATE_NAME, microserviceName));
+    }
+};
+
 module.exports = {
   createMicroserviceOnFogWithTransaction: TransactionDecorator.generateTransaction(_createMicroserviceOnFog),
   getMicroserviceByFlowWithTransaction: TransactionDecorator.generateTransaction(_getMicroserviceByFlow),
