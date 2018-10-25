@@ -36,8 +36,8 @@ class Config extends BaseCLIHandler {
       { name: 'email-service', alias: 's', type: String, description: 'Email service to send activations', group: constants.CMD_ADD },
       { name: 'log-dir', alias: 'd', type: String, description: 'Log files directory', group: constants.CMD_ADD },
       { name: 'log-size', alias: 'z', type: Number, description: 'Log files size (MB)', group: constants.CMD_ADD },
-      { name: 'enable', alias: 'o', type: Boolean, description: 'Enable dev mode', group: constants.CMD_DEV_MODE },
-      { name: 'disable', alias: 'f', type: Boolean, description: 'Disable dev mode', group: constants.CMD_DEV_MODE }
+      { name: 'on', alias: 'o', type: Boolean, description: 'Enable dev mode', group: constants.CMD_DEV_MODE },
+      { name: 'off', alias: 'f', type: Boolean, description: 'Disable dev mode', group: constants.CMD_DEV_MODE }
     ]
     this.commands = {
       [constants.CMD_ADD]: 'Add a new config value.',
@@ -184,7 +184,7 @@ const _listConfigOptions = function () {
 };
 
 const _changeDevModeState = function (options) {
-  const enableDevMode = AppHelper.validateBooleanCliOptions(options.enable, options.disable);
+  const enableDevMode = AppHelper.validateBooleanCliOptions(options.on, options.off);
   config.set('Server:DevMode', enableDevMode)
 };
 

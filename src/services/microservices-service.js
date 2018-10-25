@@ -301,12 +301,12 @@ const _checkIfMicroserviceIsValidOnCreate = async function (microserviceDataCrea
 };
 
 async function _createRoute(sourceMicroserviceUuid, destMicroserviceUuid, user, transaction) {
-  const sourceMicroservice = await MicroserviceManager.findOne({uuid: sourceMicroserviceUuid}, transaction)
+  const sourceMicroservice = await MicroserviceManager.findOne({uuid: sourceMicroserviceUuid, updatedBy: user.id}, transaction)
   if (!sourceMicroservice) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, sourceMicroserviceUuid))
   }
 
-  const destMicroservice = await MicroserviceManager.findOne({uuid: destMicroserviceUuid}, transaction)
+  const destMicroservice = await MicroserviceManager.findOne({uuid: destMicroserviceUuid, updatedBy: user.id}, transaction)
   if (!destMicroservice) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, destMicroserviceUuid))
   }
@@ -462,12 +462,12 @@ async function _switchOnUpdateFlagsForMicroservicesInRoute(sourceMicroservice, d
 }
 
 async function _deleteRoute(sourceMicroserviceUuid, destMicroserviceUuid, user, transaction) {
-  const sourceMicroservice = await MicroserviceManager.findOne({uuid: sourceMicroserviceUuid}, transaction)
+  const sourceMicroservice = await MicroserviceManager.findOne({uuid: sourceMicroserviceUuid, updatedBy: user.id}, transaction)
   if (!sourceMicroservice) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, sourceMicroserviceUuid))
   }
 
-  const destMicroservice = await MicroserviceManager.findOne({uuid: destMicroserviceUuid}, transaction)
+  const destMicroservice = await MicroserviceManager.findOne({uuid: destMicroserviceUuid, updatedBy: user.id}, transaction)
   if (!destMicroservice) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, destMicroserviceUuid))
   }
@@ -521,7 +521,7 @@ async function _deleteRouteOverConnector(route, transaction) {
 
 async function _createPortMapping(microserviceUuid, portMappingData, user, transaction) {
   await Validation.validate(portMappingData, Validation.schemas.ports);
-  const microservice = await MicroserviceManager.findOne({uuid: microserviceUuid}, transaction)
+  const microservice = await MicroserviceManager.findOne({uuid: microserviceUuid, updatedBy: user.id}, transaction)
   if (!microservice) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, microserviceUuid))
   }
@@ -655,7 +655,7 @@ async function _switchOnUpdateFlagsForMicroservicesForPortMapping(microservice, 
 }
 
 async function _deletePortMapping(microserviceUuid, internalPort, user, transaction) {
-  const microservice = await MicroserviceManager.findOne({uuid: microserviceUuid}, transaction)
+  const microservice = await MicroserviceManager.findOne({uuid: microserviceUuid, updatedBy: user.id}, transaction)
   if (!microservice) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, microserviceUuid))
   }
@@ -719,16 +719,6 @@ async function _validatePorts(internal, external) {
     throw new Errors.ValidationError('incorrect port')
   }
 }
-
-const isMicroserviceExist = async function (microserviceName, transaction) {
-  const microservice = await MicroserviceManager.findOne({
-    name: microserviceName
-  }, transaction);
-
-  if (microservice) {
-    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.DUPLICATE_NAME, microserviceName));
-  }
-};
 
 module.exports = {
   createMicroserviceOnFogWithTransaction: TransactionDecorator.generateTransaction(_createMicroserviceOnFog),
