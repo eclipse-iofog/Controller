@@ -2851,11 +2851,11 @@ definitions:
       config:
         type: string
       catalogItemId:
-        type: string
+        type: integer
       isNetwork:
         type: boolean
       flowId:
-        type: string
+        type: integer
       ioFogNodeId:
         type: string
       rootHostAccess:
