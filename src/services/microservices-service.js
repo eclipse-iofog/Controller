@@ -50,7 +50,7 @@ const _getMicroserviceByFlow = async function (flowId, user, isCLI, transaction)
 const _getMicroservice = async function (microserviceUuid, user, isCLI, transaction) {
   await _checkIfMicroserviceIsValidOnGet(user.id, microserviceUuid, transaction);
 
-  const microservice = await MicroserviceManager.findOneWithDependencies({
+  return await MicroserviceManager.findOneWithDependencies({
     uuid: microserviceUuid
   },
   {
@@ -62,10 +62,6 @@ const _getMicroservice = async function (microserviceUuid, user, isCLI, transact
        'updatedBy',
        'flowId'
      ]}, transaction);
-
-  if (!microservice) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, microserviceUuid))
-  }
 };
 
 const _createMicroserviceOnFog = async function (microserviceData, user, isCLI, transaction) {
