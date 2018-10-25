@@ -42,7 +42,7 @@ module.exports = [
     path: '/api/v3/microservices',
     middleware: async (req, res) => {
 
-      const successCode = constants.HTTP_CODE_SUCCESS;
+      const successCode = constants.HTTP_CODE_CREATED;
       const errorCodes = [
         {
           code: constants.HTTP_CODE_BAD_REQUEST,
@@ -198,10 +198,6 @@ module.exports = [
         .send(responseObject.body)
     },
   },
-
-
-
-
   {
     method: 'post',
     path: '/api/v3/microservices/:uuid/port-mapping',

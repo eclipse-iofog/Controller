@@ -22,6 +22,8 @@ const ErrorMessages = require('../helpers/error-messages');
 const Validator = require('../schemas');
 const HWInfoManager = require('../sequelize/managers/hw-info-manager');
 const USBInfoManager = require('../sequelize/managers/usb-info-manager');
+const CatalogService = require('../services/catalog-service')
+const MicroserviceManager = require('../sequelize/managers/microservice-manager')
 
 async function _createFog(fogData, user, isCli, transaction) {
   await Validator.validate(fogData, Validator.schemas.iofogCreate)
@@ -60,7 +62,56 @@ async function _createFog(fogData, user, isCli, transaction) {
   }
 
   await ChangeTrackingManager.create({iofogUuid: fog.uuid}, transaction)
-  //TODO: finish after microservices endpoints will be added. implement bluetooth, hal and watchdog
+
+  //TODO: proccess watchdog flag
+
+  //TODO refactor. call MicroserviceService.createMicroservice
+  //TODO: refactor. to function
+  if (fogData.abstractedHardwareEnabled) {
+    const halItem = await CatalogService.getHalCatalogItem(transaction)
+
+    const halMicroserviceData = {
+      uuid: AppHelper.generateRandomString(32),
+      name: `HAL for Fog ${fog.uuid}`,
+      config: '{}',
+      catalogItemId: halItem.id,
+      iofogUuid: fog.uuid,
+      rootHostAccess: true,
+      logSize: 50,
+      updatedBy: user.id,
+      configLastUpdated: Date.now()
+    }
+
+    await MicroserviceManager.create(halMicroserviceData, transaction);
+  }
+
+  //TODO: refactor. to function
+  if (fogData.bluetoothEnabled) {
+    const bluetoothItem = await CatalogService.getBluetoothCatalogItem(transaction)
+
+    const bluetoothMicroserviceData = {
+      uuid: AppHelper.generateRandomString(32),
+      name: `Bluetooth for Fog ${fog.uuid}`,
+      config: '{}',
+      catalogItemId: bluetoothItem.id,
+      iofogUuid: fog.uuid,
+      rootHostAccess: true,
+      logSize: 50,
+      updatedBy: user.id,
+      configLastUpdated: Date.now()
+    }
+
+    await MicroserviceManager.create(bluetoothMicroserviceData, transaction);
+  }
+
+  const changeTrackingUpdates = {
+    iofogUuid: fogData.uuid,
+    config: true,
+    containerList: true
+  }
+
+  await ChangeTrackingManager.update({iofogUuid: fogData.uuid}, changeTrackingUpdates, transaction)
+
   return res
 }
 
@@ -96,18 +147,80 @@ async function _updateFog(fogData, user, isCli, transaction) {
   }
   updateFogData = AppHelper.deleteUndefinedFields(updateFogData)
 
+  const oldFog = await FogManager.findOne(queryFogData, transaction)
+  if (!oldFog) {
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FOG_NODE_ID, fogData.uuid))
+  }
+  await FogManager.update(queryFogData, updateFogData, transaction)
+
+  //TODO: refactor. to function
+  if (oldFog.bluetoothEnabled === true && fogData.bluetoothEnabled === false) {
+    const bluetoothItem = await CatalogService.getBluetoothCatalogItem(transaction)
+    const deleteBluetoothMicroserviceData = {
+      iofogUuid: fogData.uuid,
+      catalogItemId: bluetoothItem.id
+    }
+
+    await MicroserviceManager.delete(deleteBluetoothMicroserviceData, transaction)
+  }
+
+  //TODO: refactor. to function
+  if (oldFog.bluetoothEnabled === false && fogData.bluetoothEnabled === true) {
+    const bluetoothItem = await CatalogService.getBluetoothCatalogItem(transaction)
+
+    const bluetoothMicroserviceData = {
+      uuid: AppHelper.generateRandomString(32),
+      name: `Bluetooth for Fog ${fogData.uuid}`,
+      config: '{}',
+      catalogItemId: bluetoothItem.id,
+      iofogUuid: fogData.uuid,
+      rootHostAccess: true,
+      logSize: 50,
+      updatedBy: user.id,
+      configLastUpdated: Date.now()
+    }
+
+    await MicroserviceManager.create(bluetoothMicroserviceData, transaction);
+  }
+
+  //TODO: refactor. to function
+  if (oldFog.abstractedHardwareEnabled === true && fogData.abstractedHardwareEnabled === false) {
+    const halItem = await CatalogService.getHalCatalogItem(transaction)
+    const deleteHalMicroserviceData = {
+      iofogUuid: fogData.uuid,
+      catalogItemId: halItem.id
+    }
+
+    await MicroserviceManager.delete(deleteHalMicroserviceData, transaction)
+  }
+
+  //TODO: refactor. to function
+  if (oldFog.abstractedHardwareEnabled === false && fogData.abstractedHardwareEnabled === true) {
+    const halItem = await CatalogService.getHalCatalogItem(transaction)
+
+    const halMicroserviceData = {
+      uuid: AppHelper.generateRandomString(32),
+      name: `Hal for Fog ${fogData.uuid}`,
+      config: '{}',
+      catalogItemId: halItem.id,
+      iofogUuid: fogData.uuid,
+      rootHostAccess: true,
+      logSize: 50,
+      updatedBy: user.id,
+      configLastUpdated: Date.now()
+    }
+
+    await MicroserviceManager.create(halMicroserviceData, transaction);
+  }
+
+  //TODO: proccess watchdog
   const changeTrackingUpdates = {
     iofogUuid: fogData.uuid,
     config: true,
     containerList: true
   }
 
-  const affectedRows = await FogManager.update(queryFogData, updateFogData, transaction)
-  if (affectedRows[0] === 0) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FOG_NODE_ID, fogData.uuid))
-  }
   await ChangeTrackingManager.update({iofogUuid: fogData.uuid}, changeTrackingUpdates, transaction)
-  //TODO: finish after microservices endpoints will be added. implement bluetooth, hal and watchdog
 }
 
 async function _deleteFog(fogData, user, isCli, transaction) {

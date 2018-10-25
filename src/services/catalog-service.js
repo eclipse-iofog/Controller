@@ -256,11 +256,33 @@ async function getNetworkCatalogItem(transaction) {
   }, transaction)
 }
 
+async function getBluetoothCatalogItem(transaction) {
+  return await CatalogItemManager.findOne({
+    name: 'RESTBlue',
+    category: 'SYSTEM',
+    publisher: 'Eclipse ioFog',
+    registry_id: 1,
+    user_id: null
+  }, transaction)
+}
+
+async function getHalCatalogItem(transaction) {
+  return await CatalogItemManager.findOne({
+    name: 'HAL',
+    category: 'SYSTEM',
+    publisher: 'Eclipse ioFog',
+    registry_id: 1,
+    user_id: null
+  }, transaction)
+}
+
 module.exports = {
   createCatalogItem: TransactionDecorator.generateTransaction(createCatalogItem),
   listCatalogItems: TransactionDecorator.generateTransaction(listCatalogItems),
   listCatalogItem: TransactionDecorator.generateTransaction(listCatalogItem),
   deleteCatalogItem: TransactionDecorator.generateTransaction(deleteCatalogItem),
   updateCatalogItem: TransactionDecorator.generateTransaction(updateCatalogItem),
-  getNetworkCatalogItem: getNetworkCatalogItem
+  getNetworkCatalogItem: getNetworkCatalogItem,
+  getBluetoothCatalogItem: getBluetoothCatalogItem,
+  getHalCatalogItem: getHalCatalogItem
 };
