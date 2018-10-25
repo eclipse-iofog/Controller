@@ -54,27 +54,34 @@ const _deleteFlow = async function (flowId, user, isCLI, transaction) {
 };
 
 const _updateFlow = async function (flowData, flowId, user, isCLI, transaction) {
-  await Validation.validate(flowData, Validation.schemas.flowUpdate);
-  
-  await _getFlow(flowId, user, isCLI, transaction);
+    await Validation.validate(flowData, Validation.schemas.flowUpdate);
 
-  if (flowData.name !== undefined) {
-    await isFlowExist(flowData.name, transaction);
-  }
+    await _getFlow(flowId, user, isCLI, transaction);
 
-  const flow = {
-    name: flowData.name,
-    description: flowData.description,
-    isActivated: flowData.isActivated,
-    updatedBy: user.id
-  };
+    if (flowData.name !== undefined) {
+      await isFlowExist(flowData.name, transaction);
+    }
 
-  const updateFlowData = AppHelper.deleteUndefinedFields(flow);
+    const flow = {
+      name: flowData.name,
+      description: flowData.description,
+      isActivated: flowData.isActivated,
+      updatedBy: user.id
+    };
 
-  await FlowManager.update({
-    id: flowId,
-    userId: user.id
-  }, updateFlowData, transaction);
+    const updateFlowData = AppHelper.deleteUndefinedFields(flow);
+
+    const where = isCLI ?
+      {
+        id: flowId
+      }
+      :
+      {
+        id: flowId,
+        userId: user.id
+      };
+
+    await FlowManager.update(where, updateFlowData, transaction);
 };
 
 const _getFlow = async function (flowId, user, isCLI, transaction) {
