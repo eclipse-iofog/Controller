@@ -82,7 +82,7 @@ async function _createMicroservicePortMapping(req, user) {
 async function _deleteMicroservicePortMapping(req, user) {
   const uuid = req.params.uuid
   const internalPort = req.params.internalPort
-  logger.info(`Creating port mapping for ${uuid}`)
+  logger.info(`Deleting port mapping for ${uuid}`)
   return await MicroservicesService.deletePortMappingWithTransaction(uuid, internalPort, user)
 }
 
