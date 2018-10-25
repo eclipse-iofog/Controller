@@ -120,7 +120,7 @@ const listCatalogItems = async function (user, isCLI, transaction) {
   return await CatalogItemManager.findAllWithDependencies(where, attributes, transaction);
 };
 
-const listCatalogItem = async function (id, user, isCLI, transaction) {
+const getCatalogItem = async function (id, user, isCLI, transaction) {
   const where = isCLI
     ? {id: id}
     : {[Op.or]: [{userId: user.id}, {userId: null}], id: id};
@@ -279,7 +279,7 @@ async function getHalCatalogItem(transaction) {
 module.exports = {
   createCatalogItem: TransactionDecorator.generateTransaction(createCatalogItem),
   listCatalogItems: TransactionDecorator.generateTransaction(listCatalogItems),
-  listCatalogItem: TransactionDecorator.generateTransaction(listCatalogItem),
+  getCatalogItem: TransactionDecorator.generateTransaction(getCatalogItem),
   deleteCatalogItem: TransactionDecorator.generateTransaction(deleteCatalogItem),
   updateCatalogItem: TransactionDecorator.generateTransaction(updateCatalogItem),
   getNetworkCatalogItem: getNetworkCatalogItem,

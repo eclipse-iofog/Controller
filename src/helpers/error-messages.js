@@ -42,7 +42,7 @@ module.exports = {
   IMAGE_SNAPSHOT_NOT_FOUND: 'Image snapshot not found',
   INVALID_MICROSERVICES_FOG_TYPE: 'Some of microservices haven\'t proper docker images for this fog type. List of invalid microservices:\n',
   INVALID_MICROSERVICE_CONFIG: "Can't create network microservice without appropriate configuration.",
-  INVALID_MICROSERVICE_USER: 'Current user is not allowed to create this microservice on the flow',
+  INVALID_MICROSERVICE_USER: 'Invalid microservice user',
   ROUTE_NOT_FOUND: 'Route not found',
   IMAGE_SNAPSHOT_WITHOUT_FOG: 'Can not run image snapshot for element without fog.',
   FILE_DOES_NOT_EXIST: 'File does not exist.'
