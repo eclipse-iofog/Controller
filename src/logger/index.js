@@ -31,13 +31,13 @@ const logger = winston.createLogger({
   ],
 })
 
-if (process.env.NODE_ENV !== 'production') {
-  logger.add(new winston.transports.Console({
-    format: winston.format((log) => {
-      log[MESSAGE] = log.message
-      return log
-    })(),
-  }))
-}
+// if (process.env.NODE_ENV !== 'production') {
+logger.add(new winston.transports.Console({
+  format: winston.format((log) => {
+    log[MESSAGE] = log.message
+    return log
+  })(),
+}))
+// }
 
 module.exports = logger

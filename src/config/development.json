@@ -1,6 +1,6 @@
 {
   "App": {
-    "Name": "fog-controller"
+    "Name": "fog-controller-dev"
   },
   "Server": {
     "Port": 51121,
@@ -15,8 +15,8 @@
     "LogsFileSize": 1048576
   },
   "Settings": {
-    "UserTokenExpirationIntervalSeconds": 3600,
-    "FogTokenExpirationIntervalSeconds": 3600
+    "UserTokenExpirationIntervalSeconds": 360000,
+    "FogTokenExpirationIntervalSeconds": 3600000
   },
   "Proxy": {
     "Username": "username",
