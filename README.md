@@ -57,11 +57,10 @@ $ fog-controller user <*command*> <*options*>
  -e, --email string         (User's email address) <br>
  -p, --password string      (User's password) <br>
 
-*update*
+*update -e* <*email*>
 
  -f, --first-name string   (User's first name) <br>
  -l, --last-name string    (User's last name) <br>
- -e, --email string        (User's email address) <br>
  -p, --password string     (User's password) <br>
 
 *remove*
@@ -88,6 +87,7 @@ $ fog-controller user <*command*> <*options*>
 <br>
 
 **Config** <br>
+
 $ fog-controller config <*options*>
  
  *add*
@@ -137,11 +137,10 @@ $ fog-controller connector <*command*> <*options*>
  -H, --dev-mode-on        (Switch on dev mode) <br>
  -h, --dev-mode-off       (Switch off dev mode) <br>
 
-*update*
+*update -i* <*public-ip*>
 
  -n, --name string        (Connector name) <br>
  -d, --domain string      (Connector domain name) <br>
- -i, --public-ip string   (Connector public IP address) <br>
  -c, --cert string        (Certificate) <br>
  -S, --self-signed-on     (Switch on self-signed enabled) <br>
  -s, --self-signed-off    (Switch off self-signed disabled) <br>
@@ -233,10 +232,9 @@ proxy list
   -y, --fog-type number           (ioFog node architecture type) <br>
   -u, --user-id number            (User's id) <br>
 
-*update*
+*update -i* <*node-id*>
 
   -f, --file string               (ioFog settings JSON file) <br>
-  -i, --node-id string            (ioFog node ID) <br>
   -n, --name string               (ioFog node name) <br>
   -l, --location string           (ioFog node location) <br>
   -t, --latitude number           (ioFog node latitude) <br>
@@ -359,10 +357,9 @@ $ fog-controller catalog <*command*> <*options*> <br>
  -X, --config-example string   (Catalog item config example)<br>
  -u, --user-id number          (User's id)<br>
 
-*update*<br>
+*update -i* <*item-id*><br>
 
  -f, --file string             (Catalog item settings JSON file)<br>
- -i, --item-id string          (Catalog item ID)<br>
  -n, --name string             (Catalog item name)<br>
  -d, --description string      (Catalog item description)<br>
  -c, --category string         (Catalog item category)<br>
@@ -434,10 +431,9 @@ $ fog-controller catalog <*command*> <*options*> <br>
  -D, --deactivate           (Deactivate application flow)<br>
  -u, --user-id number       (User's id)<br>
 
-*update*<br>
+*update -i* <*flow-id*><br>
 
  -f, --file string          (Application flow settings JSON file)<br>
- -i, --flow-id string       (Application flow ID)<br>
  -n, --name string          (Application flow name)<br>
  -d, --description string   (Application flow description)<br>
  -a, --activate             (Activate application flow)<br>
@@ -491,10 +487,9 @@ $ fog-controller catalog <*command*> <*options*> <br>
  -t, --routes string[]     (Microservice route(s) (receiving microservices))<br>
  -u, --user-id number      (User's id)<br>
 
-*update*<br>
+*update -i* <*microservice-id*><br>
 
  -f, --file string              (Microservice settings JSON file)<br>
- -i, --microservice-id string   (Microservice ID)<br>
  -n, --name string              (Microservice name)<br>
  -c, --catalog-id string        (Catalog item ID)<br>
  -F, --flow-id string           (Application flow ID)<br>
@@ -598,20 +593,17 @@ $ fog-controller catalog <*command*> <*options*> <br>
  image-snapshot-create   -- Create microservice image snapshot.<br>
  image-snapshot-get      -- Get microservice image snapshot.<br>
 
-*strace-update*<br>
+*strace-update -i* <*microservice-id*><br>
 
  -e, --enable                   (Enable microservice strace)<br>
  -o, --disable                  (Disable microservice strace)<br>
- -i, --microservice-id string   (Microservice ID)<br>
 
-*strace-info*<br>
+*strace-info -i* <*microservice-id*><br>
 
- -i, --microservice-id string   (Microservice ID)<br>
  -f, --format string            (Format of strace data to receive)<br>
  
- *strace-ftp-post*
+ *strace-ftp-post -i* <*microservice-id*><br>
 
- -i, --microservice-id string   (Microservice ID)<br>
  -h, --ftpHost string           (FTP host)<br>
  -p, --ftpPort number           (FTP port)<br>
  -u, --ftpUser string           (FTP user)<br>
