@@ -1624,12 +1624,7 @@ paths:
               type: boolean
       responses:
         '204':
-          description: Created
-          schema:
-            type: object
-            properties:
-              id:
-                type: string
+          description: Success
           headers:
             X-Timestamp:
               type: number
