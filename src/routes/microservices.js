@@ -254,4 +254,28 @@ module.exports = [
         .send(responseObject.body)
     },
   },
+  {
+    method: 'get',
+    path: '/api/v3/microservices/:uuid/port-mapping-list',
+    middleware: async (req, res) => {
+      const successCode = constants.HTTP_CODE_SUCCESS;
+      const errorCodes = [
+        {
+          code: constants.HTTP_CODE_UNAUTHORIZED,
+          errors: [Errors.AuthenticationError]
+        },
+        {
+          code: constants.HTTP_CODE_NOT_FOUND,
+          errors: [Errors.NotFoundError]
+        }
+      ];
+
+      const getMicroservicePortMapping = ResponseDecorator.handleErrors(MicroservicesController.getMicroservicePortMappingList, successCode, errorCodes);
+      const responseObject = await getMicroservicePortMapping(req);
+
+      res
+        .status(responseObject.code)
+        .send(responseObject.body)
+    },
+  },
 ]

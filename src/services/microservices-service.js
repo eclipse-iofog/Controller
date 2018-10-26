@@ -502,7 +502,7 @@ async function _deleteRouteOverConnector(route, transaction) {
 }
 
 async function _createPortMapping(microserviceUuid, portMappingData, user, transaction) {
-  await Validation.validate(portMappingData, Validation.schemas.ports);
+  await Validation.validate(portMappingData, Validation.schemas.portsCreate);
   const microservice = await MicroserviceManager.findOne({uuid: microserviceUuid, updatedBy: user.id}, transaction)
   if (!microservice) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, microserviceUuid))
@@ -702,6 +702,32 @@ async function _validatePorts(internal, external) {
   }
 }
 
+async function _getPortMappingList(microserviceUuid, user, transaction) {
+  const microservice = await MicroserviceManager.findOne({uuid: microserviceUuid, updatedBy: user.id}, transaction)
+  if (!microservice) {
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, microserviceUuid))
+  }
+  let res = []
+  const portsPairs = await MicroservicePortManager.findAll({microserviceUuid: microserviceUuid}, transaction)
+  for (const ports of portsPairs) {
+    let portMappingResposeData = {
+      internal: ports.portInternal,
+      external: ports.portExternal,
+      publicMode: ports.isPublic
+    }
+    if (ports.isPublic) {
+      const pubMode = await MicroservicePublicModeManager.findOne({microservicePortId: ports.id}, transaction)
+      const ports = await ConnectorPortManager.findOne({id: pubMode.connectorPortId}, transaction)
+      const connector = await ConnectorManager.findOne({id: ports.connectorId}, transaction)
+
+      portMappingResposeData.publicIp = connector.publicIp
+      portMappingResposeData.publicPort = ports.port2
+    }
+    res.push(portMappingResposeData)
+  }
+  return res
+}
+
 async function getPhysicalConections(microservice, transaction) {
   let res = []
   const pubModes = await MicroservicePublicModeManager.findAll({microserviceUuid: microservice.uuid}, transaction)
@@ -737,6 +763,7 @@ module.exports = {
   createRouteWithTransaction : TransactionDecorator.generateTransaction(_createRoute),
   deleteRouteWithTransaction: TransactionDecorator.generateTransaction(_deleteRoute),
   createPortMappingWithTransaction: TransactionDecorator.generateTransaction(_createPortMapping),
+  getMicroservicePortMappingListWithTransaction: TransactionDecorator.generateTransaction(_getPortMappingList),
   deletePortMappingWithTransaction: TransactionDecorator.generateTransaction(_deletePortMapping),
   getPhysicalConections: getPhysicalConections
 };
