@@ -1,7 +1,7 @@
 'use strict';
 module.exports = {
   up: (queryInterface, Sequelize) => {
-    return queryInterface.createTable('Satellites', {
+    return queryInterface.createTable('Connectors', {
       id: {
         type: Sequelize.INTEGER,
         primaryKey: true,
@@ -17,7 +17,7 @@ module.exports = {
         type: Sequelize.TEXT,
         field: 'domain'
       },
-      publicIP: {
+      publicIp: {
         type: Sequelize.TEXT,
         field: 'public_ip'
       },
@@ -28,6 +28,10 @@ module.exports = {
       selfSignedCerts: {
         type: Sequelize.BOOLEAN,
         field: 'self_signed_certs'
+      },
+      devMode: {
+        type: Sequelize.BOOLEAN,
+        field: 'dev_mode'
       },
       createdAt: {
         allowNull: false,
@@ -42,6 +46,6 @@ module.exports = {
     });
   },
   down: (queryInterface, Sequelize) => {
-    return queryInterface.dropTable('Satellites');
+    return queryInterface.dropTable('Connectors');
   }
 };

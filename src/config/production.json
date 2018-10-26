@@ -1,5 +1,16 @@
 {
   "App": {
     "Name": "fog-controller"
+  },
+  "Server": {
+    "Port": 54421,
+    "DevMode": true
+  },
+  "Email": {
+    "ActivationEnabled": true
+  },
+  "Settings": {
+    "UserTokenExpirationIntervalSeconds": 3600,
+    "FogTokenExpirationIntervalSeconds": 3600
   }
 }

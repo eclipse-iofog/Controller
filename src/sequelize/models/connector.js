@@ -1,6 +1,6 @@
 'use strict';
 module.exports = (sequelize, DataTypes) => {
-  const Satellite = sequelize.define('Satellite', {
+  const Connector = sequelize.define('Connector', {
     id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
@@ -16,7 +16,7 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.TEXT,
       field: 'domain'
     },
-    publicIP: {
+    publicIp: {
       type: DataTypes.TEXT,
       field: 'public_ip'
     },
@@ -24,16 +24,20 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.TEXT,
       field: 'cert'
     },
-    selfSignedCerts: {
+    isSelfSignedCert: {
       type: DataTypes.BOOLEAN,
       field: 'self_signed_certs'
+    },
+    devMode: {
+      type: DataTypes.BOOLEAN,
+      field: 'dev_mode'
     }
   }, {
     timestamps: true,
     underscored: true
   });
-  Satellite.associate = function (models) {
+  Connector.associate = function (models) {
 
   };
-  return Satellite;
+  return Connector;
 };

@@ -22,14 +22,14 @@ const createRegistryEndPoint = async function (req, user) {
 };
 
 const getRegistriesEndPoint = async function (req, user) {
-  return await RegistryService.findRegistries(user);
+  return await RegistryService.findRegistries(user, false);
 };
 
 const deleteRegistryEndPoint = async function (req, user) {
   const deleteRegistry = {
       id: parseInt(req.params.id)
   }
-  return await RegistryService.deleteRegistry(deleteRegistry, user);
+  return await RegistryService.deleteRegistry(deleteRegistry, user, false);
 };
 
 module.exports = {

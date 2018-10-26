@@ -16,15 +16,17 @@ const FlowManager = require('../sequelize/managers/flow-manager');
 const AppHelper = require('../helpers/app-helper');
 const Errors = require('../helpers/errors');
 const ErrorMessages = require('../helpers/error-messages');
+const Validation = require('../schemas');
 
-const _createFlow = async function (flowData, user, transaction) {
+const _createFlow = async function (flowData, user, isCLI, transaction) {
+  await Validation.validate(flowData, Validation.schemas.flowCreate);
+
   await isFlowExist(flowData.name, transaction);
 
   const flowToCreate = {
     name: flowData.name,
     description: flowData.description,
     isActivated: flowData.isActivated,
-    isSelected: flowData.isSelected,
     userId: user.id
   };
 
@@ -37,47 +39,59 @@ const _createFlow = async function (flowData, user, transaction) {
   }
 };
 
-const _deleteFlow = async function (flowId, user, transaction) {
-
-  const affectedRows = await FlowManager.delete({
+const _deleteFlow = async function (flowId, user, isCLI, transaction) {
+  const whereObj = {
     id: flowId,
     userId: user.id
-  }, transaction);
-  if (affectedRows === 0) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_ID, flowId));
-  }
-};
-
-const _updateFlow = async function (flowData, flowId, user, transaction) {
-  if (flowData.name !== undefined) {
-    await isFlowExist(flowData.name, transaction);
-  }
-
-  const flow = {
-    name: flowData.name,
-    description: flowData.description,
-    isActivated: flowData.isActivated,
-    isSelected: flowData.isSelected,
-    updatedBy: user.id
   };
+  const where = AppHelper.deleteUndefinedFields(whereObj);
 
-  const updateFlowData = AppHelper.deleteUndefinedFields(flow);
-
-  const affectedRows = await FlowManager.update({
-    id: flowId,
-    userId: user.id
-  }, updateFlowData, transaction);
+  const affectedRows = await FlowManager.delete(where, transaction);
 
   if (affectedRows === 0) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_ID, flowId));
   }
 };
 
-const _getFlow = async function (flowId, user, transaction) {
-  const flow = await FlowManager.findOne({
+const _updateFlow = async function (flowData, flowId, user, isCLI, transaction) {
+    await Validation.validate(flowData, Validation.schemas.flowUpdate);
+
+    await _getFlow(flowId, user, isCLI, transaction);
+
+    if (flowData.name !== undefined) {
+      await isFlowExist(flowData.name, transaction);
+    }
+
+    const flow = {
+      name: flowData.name,
+      description: flowData.description,
+      isActivated: flowData.isActivated,
+      updatedBy: user.id
+    };
+
+    const updateFlowData = AppHelper.deleteUndefinedFields(flow);
+
+    const where = isCLI ?
+      {
+        id: flowId
+      }
+      :
+      {
+        id: flowId,
+        userId: user.id
+      };
+
+    await FlowManager.update(where, updateFlowData, transaction);
+};
+
+const _getFlow = async function (flowId, user, isCLI, transaction) {
+  const whereObj = {
     id: flowId,
     userId: user.id
-  }, transaction);
+  };
+  const where = AppHelper.deleteUndefinedFields(whereObj);
+
+  const flow = await FlowManager.findOne(where, transaction);
 
   if (!flow) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_ID, flowId))
@@ -86,12 +100,16 @@ const _getFlow = async function (flowId, user, transaction) {
   return flow
 };
 
-const _getUserFlows = async function (user, transaction) {
+const _getUserFlows = async function (user, isCLI, transaction) {
   const flow = {
     userId: user.id
   };
 
   return await FlowManager.findAll(flow, transaction)
+};
+
+const _getAllFlows = async function (isCLI, transaction) {
+  return await FlowManager.findAll({}, transaction);
 };
 
 const isFlowExist = async function (flowName, transaction) {
@@ -105,9 +123,11 @@ const isFlowExist = async function (flowName, transaction) {
 };
 
 module.exports = {
-  createFlow: TransactionDecorator.generateTransaction(_createFlow),
-  deleteFlow: TransactionDecorator.generateTransaction(_deleteFlow),
-  updateFlow: TransactionDecorator.generateTransaction(_updateFlow),
-  getFlow: TransactionDecorator.generateTransaction(_getFlow),
-  getUserFlows: TransactionDecorator.generateTransaction(_getUserFlows)
+  createFlowWithTransaction: TransactionDecorator.generateTransaction(_createFlow),
+  deleteFlowWithTransaction: TransactionDecorator.generateTransaction(_deleteFlow),
+  updateFlowWithTransaction: TransactionDecorator.generateTransaction(_updateFlow),
+  getFlowWithTransaction: TransactionDecorator.generateTransaction(_getFlow),
+  getUserFlowsWithTransaction: TransactionDecorator.generateTransaction(_getUserFlows),
+  getAllFlowsWithTransaction: TransactionDecorator.generateTransaction(_getAllFlows),
+  getFlow: _getFlow
 };

@@ -1,6 +1,6 @@
 'use strict';
 module.exports = (sequelize, DataTypes) => {
-  const SatellitePort = sequelize.define('SatellitePort', {
+  const ConnectorPort = sequelize.define('ConnectorPort', {
     id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
@@ -48,22 +48,16 @@ module.exports = (sequelize, DataTypes) => {
     timestamps: true,
     underscored: true
   });
-  SatellitePort.associate = function (models) {
+  ConnectorPort.associate = function (models) {
 
-    SatellitePort.belongsTo(models.User, {
-      foreignKey: 'updated_by',
-      as: 'updatedBy',
-      onDelete: 'cascade'
-    });
-
-    SatellitePort.belongsTo(models.Satellite, {
+    ConnectorPort.belongsTo(models.Connector, {
       foreignKey: {
-        name: 'satelliteId',
-        field: 'satellite_id'
+        name: 'connectorId',
+        field: 'connector_id'
       },
-      as: 'satellite',
+      as: 'connector',
       onDelete: 'cascade'
     });
   };
-  return SatellitePort;
+  return ConnectorPort;
 };

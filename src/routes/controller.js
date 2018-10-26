@@ -10,37 +10,52 @@
  *  *******************************************************************************
  *
  */
-const constants = require('../helpers/constants')
+const constants = require('../helpers/constants');
+const Controller = require('../controllers/controller');
+const ResponseDecorator = require('../decorators/response-decorator');
+const Errors = require('../helpers/errors');
 
 module.exports = [
   {
     method: 'get',
     path: '/api/v3/status',
-    middleware: (req, res) => {
+    middleware: async (req, res) => {
+      const successCode = constants.HTTP_CODE_SUCCESS;
+      const errorCodes = [];
+      const statusControllerEndPoint = ResponseDecorator.handleErrors(Controller.statusControllerEndPoint, successCode, errorCodes);
+      const responseObject = await statusControllerEndPoint(req);
+
       res
-        .status(constants.HTTP_CODE_SUCCESS)
-        .send({
-          "status": "ok",
-          "timestamp": Date.now(),
-        })
+        .status(responseObject.code)
+        .send(responseObject.body)
     }
   },
   {
     method: 'get',
     path: '/api/v3/email-activation',
-    middleware: (req, res) => {
+    middleware: async (req, res) => {
+      const successCode = constants.HTTP_CODE_SUCCESS;
+      const errorCodes = [];
+      const emailActivationEndPoint = ResponseDecorator.handleErrors(Controller.emailActivationEndPoint, successCode, errorCodes);
+      const responseObject = await emailActivationEndPoint(req);
+
       res
-        .status(constants.HTTP_CODE_SUCCESS)
-        .send(req.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
     }
   },
   {
     method: 'get',
     path: '/api/v3/fog-types',
-    middleware: (req, res) => {
+    middleware: async (req, res) => {
+      const successCode = constants.HTTP_CODE_SUCCESS;
+      const errorCodes = [];
+      const fogTypesEndPoint = ResponseDecorator.handleErrors(Controller.fogTypesEndPoint, successCode, errorCodes);
+      const responseObject = await fogTypesEndPoint(req);
+
       res
-        .status(constants.HTTP_CODE_SUCCESS)
-        .send(req.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
     }
   }
-]
+];

@@ -21,11 +21,11 @@ module.exports = (sequelize, DataTypes) => {
       field: 'gps_mode'
     },
     latitude: {
-      type: DataTypes.TEXT,
+      type: DataTypes.FLOAT,
       field: 'latitude'
     },
     longitude: {
-      type: DataTypes.TEXT,
+      type: DataTypes.FLOAT,
       field: 'longitude'
     },
     description: {
@@ -160,13 +160,13 @@ module.exports = (sequelize, DataTypes) => {
       field: 'log_directory'
     },
     bluetoothEnabled: {
-      type: DataTypes.INTEGER,
-      defaultValue: 0,
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
       field: 'bluetooth'
     },
     abstractedHardwareEnabled: {
-      type: DataTypes.INTEGER,
-      defaultValue: 0,
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
       field: 'hal'
     },
     logFileCount: {
@@ -180,12 +180,12 @@ module.exports = (sequelize, DataTypes) => {
     },
     isReadyToUpgrade: {
       type: DataTypes.BOOLEAN,
-      defaultValue: 1,
+      defaultValue: true,
       field: "is_ready_to_upgrade"
     },
     isReadyToRollback: {
       type: DataTypes.BOOLEAN,
-      defaultValue: 0,
+      defaultValue: false,
       field: "is_ready_to_rollback"
     },
     statusFrequency: {
@@ -210,7 +210,7 @@ module.exports = (sequelize, DataTypes) => {
     },
     watchdogEnabled: {
       type: DataTypes.BOOLEAN,
-      defaultValue: 1,
+      defaultValue: true,
       field: 'isolated_docker_container'
     }
   }, {
@@ -237,6 +237,18 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: 0,
       onDelete: 'cascade'
     });
+
+    Fog.hasOne(models.FogAccessToken, {
+      foreignKey: 'iofog_uuid',
+      as: 'accessToken'
+    });
+
+    Fog.hasMany(models.Microservice, {
+      foreignKey: 'iofog_uuid',
+      as: 'microservice'
+    });
+
   };
+
   return Fog;
 };

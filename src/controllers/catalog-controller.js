@@ -16,31 +16,28 @@ const CatalogService = require('../services/catalog-service');
 const AuthDecorator = require('./../decorators/authorization-decorator');
 
 const createCatalogItemEndPoint = async function (req, user) {
-  logger.info("Parameters:" + JSON.stringify(req.body));
+  logger.info("Parameters: " + JSON.stringify(req.body));
   return await CatalogService.createCatalogItem(req.body, user);
 };
 
 const listCatalogItemsEndPoint = async function (req, user) {
-  logger.info("Parameters:" + JSON.stringify(req.query));
   return await CatalogService.listCatalogItems(user, false);
 };
 
 const listCatalogItemEndPoint = async function (req, user) {
-  logger.info("Parameters:" + JSON.stringify(req.query));
-  return await CatalogService.listCatalogItem(req.params.id, user, false);
+  logger.info("Catalog item id: " + req.params.id);
+  return await CatalogService.getCatalogItem(req.params.id, user, false);
 };
 
 const deleteCatalogItemEndPoint = async function (req, user) {
-  logger.info("Parameters:" + JSON.stringify(req.query));
-  item.id = req.params.id;
+  logger.info("Catalog item id: " + req.params.id);
   await CatalogService.deleteCatalogItem(req.params.id, user, false);
 };
 
 const updateCatalogItemEndPoint = async function (req, user) {
-  logger.info("Parameters:" + JSON.stringify(req.body));
-  const item = req.body;
-  item.id = req.params.id;
-  await CatalogService.updateCatalogItem(req.body, user, false);
+  logger.info("Parameters: " + JSON.stringify(req.body));
+  logger.info("Catalog item id: " + req.params.id);
+  await CatalogService.updateCatalogItem(req.params.id, req.body, user, false);
 };
 
 module.exports = {

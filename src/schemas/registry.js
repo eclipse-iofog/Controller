@@ -15,13 +15,14 @@ const registryCreate = {
   "id": "/registryCreate",
   "type": "object",
   "properties": {
-    "url": {"type": "string"},
+    "url": {"type": "string", "minLength": 1},
     "isPublic": {"type": "boolean"},
     "username": {"type": "string", "minLength": 1},
     "password": {"type": "string"},
     "email": {"type": "string"}
   },
-  "required": ["url", "isPublic", "username", "password", "email"]
+  "required": ["url", "isPublic", "username", "password", "email"],
+  "additionalProperties": false
 };
 
 const registryDelete = {
@@ -30,7 +31,8 @@ const registryDelete = {
   "properties": {
     "id": {"type": "integer"}
   },
-  "required": ["id"]
+  "required": ["id"],
+  "additionalProperties": false
 };
 
 module.exports = {

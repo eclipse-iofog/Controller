@@ -1,7 +1,7 @@
 'use strict';
 module.exports = {
   up: (queryInterface, Sequelize) => {
-    return queryInterface.createTable('SatellitePorts', {
+    return queryInterface.createTable('ConnectorPorts', {
       id: {
         type: Sequelize.INTEGER,
         primaryKey: true,
@@ -55,21 +55,15 @@ module.exports = {
         type: Sequelize.DATE,
         field: 'updated_at'
       },
-      updatedBy: {
+      connectorId: {
         type: Sequelize.INTEGER,
-        field: 'updated_by',
-        references: { model: 'Users', key: 'id' },
-        onDelete: 'cascade'
-      },
-      satelliteId: {
-        type: Sequelize.INTEGER,
-        field: 'satellite_id',
-        references: { model: 'Satellites', key: 'id' },
+        field: 'connector_id',
+        references: { model: 'Connectors', key: 'id' },
         onDelete: 'cascade'
       }
     });
   },
   down: (queryInterface, Sequelize) => {
-    return queryInterface.dropTable('SatellitePorts');
+    return queryInterface.dropTable('ConnectorPorts');
   }
 };

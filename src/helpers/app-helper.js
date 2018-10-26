@@ -15,6 +15,7 @@ const crypto = require('crypto');
 const Errors = require('./errors');
 
 const fs = require('fs');
+const Config = require('../config');
 const path = require('path');
 const portscanner = require('portscanner');
 const format = require('string-format');
@@ -55,6 +56,10 @@ function checkPortAvailability(port) {
   });
 }
 
+const findAvailablePort = async function (hostname) {
+  let portBounds = Config.get("Proxy:PortRange").split("-").map(i => parseInt(i));
+  return await portscanner.findAPortNotInUse(portBounds[0], portBounds[1], hostname);
+}
 /**
  * @desc generates a random String of the size specified by the input param
  * @param Integer - size
@@ -119,11 +124,11 @@ function deleteUndefinedFields(obj) {
   return obj
 }
 
-function validateBooleanCliOptions(option1, option2) {
-  if (option1 && option2) {
-    throw new Errors.ValidationError("Option " + option1 + " and " + option2 + " can not be used simultaneously");
+function validateBooleanCliOptions(trueOption, falseOption) {
+  if (trueOption && falseOption) {
+    throw new Errors.ValidationError("Two opposite can not be used simultaneously");
   }
-  return option1 ? option1 : (option2 ? option2 : undefined)
+  return trueOption ? true : (falseOption ? false : undefined)
 }
 
 function formatMessage() {
@@ -144,5 +149,6 @@ module.exports = {
   checkTransaction,
   deleteUndefinedFields,
   validateBooleanCliOptions,
-  formatMessage
+  formatMessage,
+  findAvailablePort
 };

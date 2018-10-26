@@ -11,32 +11,15 @@
  *
  */
 
-const models = require('../models/index');
-const ControllerConfig = models.ControllerConfig;
 const BaseManager = require('./base-manager');
+const models = require('./../models');
+const HWInfo = models.HWInfo;
 
-class ConfigManager extends BaseManager {
+class HWInfoManager extends BaseManager {
   getEntity() {
-    return ControllerConfig;
-  }
-
-  getByKey(key, transaction) {
-    return ControllerConfig.findOne({
-        where: {
-          key: key
-        }
-      }, {
-        transaction: transaction
-      }
-    );
-  }
-
-  setByKey(key, value, transaction) {
-    return this.upsert({
-      key: value
-    }, transaction)
+    return HWInfo;
   }
 }
 
-const instance = new ConfigManager();
+const instance = new HWInfoManager();
 module.exports = instance;

@@ -10,15 +10,18 @@ module.exports = (sequelize, DataTypes) => {
     },
     firstName: {
       type: DataTypes.STRING(100),
-      field: 'first_name'
+      field: 'first_name',
+      defaultValue: ""
     },
     lastName: {
       type: DataTypes.STRING(100),
-      field: 'last_name'
+      field: 'last_name',
+      defaultValue: ""
     },
     email: {
       type: DataTypes.STRING(100),
-      field: 'email'
+      field: 'email',
+      defaultValue: ""
     },
     password: {
       type: DataTypes.STRING(100),
@@ -30,7 +33,8 @@ module.exports = (sequelize, DataTypes) => {
     },
     emailActivated: {
       type: DataTypes.BOOLEAN,
-      field: 'email_activated'
+      field: 'email_activated',
+      defaultValue: false
     }
   }, {
     timestamps: false,
@@ -41,6 +45,22 @@ module.exports = (sequelize, DataTypes) => {
     User.hasOne(models.AccessToken, {
       foreignKey: 'user_id',
       as: 'accessToken'
+    });
+
+    User.hasMany(models.Flow, {
+      foreignKey: {
+        name: 'userId',
+        field: 'user_id'
+      },
+      as: 'flow'
+    });
+
+    User.hasMany(models.Fog, {
+      foreignKey: {
+        name: 'userId',
+        field: 'user_id'
+      },
+      as: 'fog'
     });
 
   };

@@ -15,6 +15,8 @@ const models = require('../models');
 const EmailActivationCode = models.EmailActivationCode;
 const BaseManager = require('./base-manager');
 const AppHelper = require('../../helpers/app-helper');
+const Sequelize = require('sequelize');
+const Op = Sequelize.Op
 
 class EmailActivationCodeManager extends BaseManager {
   getEntity() {
@@ -50,7 +52,7 @@ class EmailActivationCodeManager extends BaseManager {
       where: {
         activationCode: activationCode,
         expirationTime: {
-          $gt: new Date().getTime()
+          [Op.gt]: new Date().getTime()
         }
       }
     }, {

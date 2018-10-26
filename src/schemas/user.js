@@ -17,29 +17,41 @@ const signUp = {
   "properties": {
     "firstName": {"type": "string", "minLength": 3},
     "lastName": {"type": "string", "minLength": 3},
-    "email": {"type": "string", "pattern": "^(([^<>()\\[\\]\\\\.,;:\\s@\"]+(\\.[^<>()\\[\\]\\\\.,;:\\s@\"]+)*)|(\".+\"))@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}])|(([a-zA-Z\\-0-9]+\\.)+[a-zA-Z]{2,}))$"},
+    "email": {
+      "type": "string",
+      "pattern": "^(([^<>()\\[\\]\\\\.,;:\\s@\"]+(\\.[^<>()\\[\\]\\\\.,;:\\s@\"]+)*)|(\".+\"))@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}])|(([a-zA-Z\\-0-9]+\\.)+[a-zA-Z]{2,}))$"
+    },
     "password": {"type": "string", "minLength": 8}
   },
-  "required": ["email", "password", "firstName", "lastName"]
+  "required": ["email", "password", "firstName", "lastName"],
+  "additionalProperties": false
 };
 
 const login = {
   "id": "/login",
   "type": "object",
   "properties": {
-    "email": {"type": "string", "pattern": "^(([^<>()\\[\\]\\\\.,;:\\s@\"]+(\\.[^<>()\\[\\]\\\\.,;:\\s@\"]+)*)|(\".+\"))@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}])|(([a-zA-Z\\-0-9]+\\.)+[a-zA-Z]{2,}))$"},
+    "email": {
+      "type": "string",
+      "pattern": "^(([^<>()\\[\\]\\\\.,;:\\s@\"]+(\\.[^<>()\\[\\]\\\\.,;:\\s@\"]+)*)|(\".+\"))@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}])|(([a-zA-Z\\-0-9]+\\.)+[a-zA-Z]{2,}))$"
+    },
     "password": {"type": "string"}
   },
-  "required": ["email", "password"]
+  "required": ["email", "password"],
+  "additionalProperties": false
 };
 
 const resendActivation = {
   "id": "/resendActivation",
   "type": "object",
   "properties": {
-    "email": {"type": "string", "pattern": "^(([^<>()\\[\\]\\\\.,;:\\s@\"]+(\\.[^<>()\\[\\]\\\\.,;:\\s@\"]+)*)|(\".+\"))@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}])|(([a-zA-Z\\-0-9]+\\.)+[a-zA-Z]{2,}))$"}
+    "email": {
+      "type": "string",
+      "pattern": "^(([^<>()\\[\\]\\\\.,;:\\s@\"]+(\\.[^<>()\\[\\]\\\\.,;:\\s@\"]+)*)|(\".+\"))@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}])|(([a-zA-Z\\-0-9]+\\.)+[a-zA-Z]{2,}))$"
+    }
   },
-  "required": ["email"]
+  "required": ["email"],
+  "additionalProperties": false
 };
 
 const activateUser = {
@@ -48,7 +60,18 @@ const activateUser = {
   "properties": {
     "activationCode": {"type": "string"}
   },
-  "required": ["activationCode"]
+  "required": ["activationCode"],
+  "additionalProperties": false
+};
+
+const activateUserCLI = {
+  "id": "/activateUserCLI",
+  "type": "object",
+  "properties": {
+    "email": {"type": "string"}
+  },
+  "required": ["email"],
+  "additionalProperties": false
 };
 
 const updateUserProfile = {
@@ -58,7 +81,20 @@ const updateUserProfile = {
     "firstName": {"type": "string", "minLength": 3},
     "lastName": {"type": "string", "minLength": 3}
   },
-  "required": ["email", "password", "firstName", "lastName"]
+  "required": [],
+  "additionalProperties": false
+};
+
+const updateUserProfileCLI = {
+  "id": "/updateUserProfileCLI",
+  "type": "object",
+  "properties": {
+    "firstName": {"type": "string", "minLength": 3},
+    "lastName": {"type": "string", "minLength": 3},
+    "password": {"type": "string", "minLength": 8}
+  },
+  "required": [],
+  "additionalProperties": false
 };
 
 const updatePassword = {
@@ -68,21 +104,26 @@ const updatePassword = {
     "oldPassword": {"type": "string"},
     "newPassword": {"type": "string", "minLength": 8}
   },
-  "required": ["oldPassword", "newPassword"]
+  "required": ["oldPassword", "newPassword"],
+  "additionalProperties": false
 };
 
 const resetUserPassword = {
   "id": "/resetUserPassword",
   "type": "object",
   "properties": {
-    "email": {"type": "string", "pattern": "^(([^<>()\\[\\]\\\\.,;:\\s@\"]+(\\.[^<>()\\[\\]\\\\.,;:\\s@\"]+)*)|(\".+\"))@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}])|(([a-zA-Z\\-0-9]+\\.)+[a-zA-Z]{2,}))$"}
+    "email": {
+      "type": "string",
+      "pattern": "^(([^<>()\\[\\]\\\\.,;:\\s@\"]+(\\.[^<>()\\[\\]\\\\.,;:\\s@\"]+)*)|(\".+\"))@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}])|(([a-zA-Z\\-0-9]+\\.)+[a-zA-Z]{2,}))$"
+    }
   },
-  "required": ["email"]
+  "required": ["email"],
+  "additionalProperties": false
 };
 
 
 module.exports = {
-  mainSchemas: [signUp, login, resendActivation, activateUser, updateUserProfile, updatePassword,
-  resetUserPassword],
+  mainSchemas: [signUp, login, resendActivation, activateUser, activateUserCLI, updateUserProfile,
+    updateUserProfileCLI, updatePassword, resetUserPassword],
   innerSchemas: []
 };

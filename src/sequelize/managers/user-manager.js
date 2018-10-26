@@ -16,6 +16,10 @@ const models = require('./../models');
 const User = models.User;
 const AccessToken = models.AccessToken;
 const AppHelper = require('../../helpers/app-helper');
+const Flow = models.Flow;
+const Fog = models.Fog;
+const CatalogItem = models.CatalogItem;
+const Microservice = models.Microservice;
 
 class UserManager extends BaseManager {
   getEntity() {
@@ -61,7 +65,7 @@ class UserManager extends BaseManager {
 
   // no transaction required here, used by cli decorator
   findById(id) {
-    return User.find({id: id});
+    return User.find({where: {id: id}});
   }
 
   updateDetails(user, updateObject, transaction) {
