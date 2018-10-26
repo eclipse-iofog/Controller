@@ -91,7 +91,7 @@ module.exports = [
     path: '/api/v3/microservices/:id/strace',
     middleware: async (req, res) => {
 
-      const successCode = constants.HTTP_CODE_NO_CONTENT;
+      const successCode = constants.HTTP_CODE_CREATED;
       const errorCodes = [
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,

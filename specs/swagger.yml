@@ -1522,8 +1522,6 @@ paths:
             X-Timestamp:
               type: number
               description: FogController server timestamp
-        '400':
-          description: Not Valid
         '401':
           description: Not Authorized
         '404':
@@ -1625,7 +1623,7 @@ paths:
             enable:
               type: boolean
       responses:
-        '204':
+        '201':
           description: Created
           schema:
             type: object
@@ -2899,8 +2897,6 @@ definitions:
         type: string
       catalogItemId:
         type: integer
-      isNetwork:
-        type: boolean
       flowId:
         type: integer
       ioFogNodeId:
@@ -2928,8 +2924,6 @@ definitions:
         type: string
       config:
         type: string
-      isNetwork:
-        type: boolean
       needUpdate:
         type: boolean
       rebuild:
@@ -2937,8 +2931,6 @@ definitions:
       ioFogNodeId:
         type: string
       rootHostAccess:
-        type: boolean
-      deleteWithCleanUp:
         type: boolean
       logLimit:
         type: number
