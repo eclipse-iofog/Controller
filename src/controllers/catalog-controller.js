@@ -26,7 +26,7 @@ const listCatalogItemsEndPoint = async function (req, user) {
 
 const listCatalogItemEndPoint = async function (req, user) {
   logger.info("Catalog item id: " + req.params.id);
-  return await CatalogService.listCatalogItem(req.params.id, user, false);
+  return await CatalogService.getCatalogItem(req.params.id, user, false);
 };
 
 const deleteCatalogItemEndPoint = async function (req, user) {
