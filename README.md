@@ -469,7 +469,7 @@ $ fog-controller catalog <*command*> <*options*> <br>
  list     -- List all microservices.<br>
  info     -- Get microservice settings.<br>
  route    -- Add/Remove microservice route.<br>
- strace   -- strace option operations.<br>
+ port-mapping   -- Create/Delete/List microservice port mapping.<br>
 
 *add*<br>
 
@@ -491,20 +491,18 @@ $ fog-controller catalog <*command*> <*options*> <br>
 
  -f, --file string              (Microservice settings JSON file)<br>
  -n, --name string              (Microservice name)<br>
- -c, --catalog-id string        (Catalog item ID)<br>
- -F, --flow-id string           (Application flow ID)<br>
  -I, --iofog-id string          (ioFog node ID)<br>
  -g, --config string            (Microservice config)<br>
  -v, --volumes string[]         (Microservice volume mapping(s))<br>
  -l, --log-limit number         (Log file size limit (MB))<br>
  -r, --root-enable              (Enable root access)<br>
  -R, --root-disable             (Disable root access)<br>
- -p, --ports string[]           (Container ports)<br>
- -t, --routes string[]          (Microservice route(s) (receiving microservices))<br>
+ -w, --rebuild                  (Rebuild microservice image on fog agent)<br>
 
 *remove*<br>
 
  -i, --microservice-id string   (Microservice ID)<br>
+ -z, --cleanUp                  (Delete microservice with cleanup)<br>
 
 *info*<br>
 
@@ -512,44 +510,22 @@ $ fog-controller catalog <*command*> <*options*> <br>
 
 *route*<br>
 
+ -D, --dest-microservice-id string     (Destination Microservice ID of route)<br>
+ -S, --source-microservice-id string   (Source Microservice ID of route)<br>
+ -a, --add                             (Add new route(s))<br>
+ -m, --remove                          (Delete existing route(s))<br>
+
+*port-mapping*<br>
+
  -i, --microservice-id string   (Microservice ID)<br>
- -a, --add string[]             (Add new route(s))<br>
- -m, --remove string[]          (Delete existing route(s))<br>
+ -b, --create                   (Add new port mapping(s))<br>
+ -B, --delete                   (Delete existing port mapping(s))<br>
+ -G, --list                     (List port mappings)<br>
+ -W, --internal number          (Internal port)<br>
+ -Y, --external number          (External port)<br>
+ -Z, --public                   (Public mode of connector)<br>
+ -K, --private                  (Private mode of connector)<br>
 
-*strace*<br>
-
- -i, --microservice-id string   (Microservice ID)<br>
- -e, --enable                   (Enable strace option)<br>
- -d, --disable                  (Disable strace option)<br>
- -G, --get string               (Get strace data, formats: string,file)<br>
-
-*JSON File Schema*<br>
-
- name: string<br>
- catalogItemId: string<br>
- flowId: string<br>
- ioFogNodeId: string<br>
- config: string<br>
- volumeMappings: string<br>
- logLimit: number<br>
- rootHostAccess: true<br>
- ports: object<br>
- internal: number<br>
- external: number<br>
- tunnel: boolean<br>
- routes: array of strings<br>
-
-*Examples*
-
- 1. Single mapping:                       $ fog-controller microservice add [other required options] --volumes
-                                       /host_src:/container_src<br>
- 2. Multiple mappings:                   $ fog-controller microservice add [other required options] --volumes
-                                       /host_src:/container_src /host_bin:/container_bin<br>
- 3. Ports (internal:external:tunnel):     $ fog-controller microservice add [other required options] --ports
-                                       80:8080:false 443:5443:true<br>
- 4. Add routes:                           $ fog-controller microservice route -i ABCD --add DEF GHI<br>
- 5. Delete route:                         $ fog-controller microservice route -i ABC --remove DEF<br>
- 6. Get strace data:                      $ fog-controller microservice strace -i ABC --get file<br>
 <br>
 <br>
 <br>
