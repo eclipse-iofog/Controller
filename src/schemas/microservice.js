@@ -8,7 +8,6 @@ const microserviceCreate = {
     },
     "config": {"type": "string"},
     "catalogItemId": {"type": "integer"},
-    "isNetwork" : {"type": "boolean"},
     "flowId": {"type": "integer"},
     "ioFogNodeId": {"type": "string"},
     "rootHostAccess": {"type": "boolean"},
@@ -36,7 +35,6 @@ const microserviceUpdate = {
       "minLength": 1
     },
     "config": {"type": "string"},
-    "isNetwork" : {"type": "boolean"},
     "needUpdate" : {"type": "boolean"},
     "rebuild": {"type": "boolean"},
     "ioFogNodeId": {"type": "string"},

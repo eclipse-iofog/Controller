@@ -11,8 +11,13 @@
  *
  */
 
-const BaseCLIHandler = require('./base-cli-handler')
-const constants = require('../helpers/constants')
+const BaseCLIHandler = require('./base-cli-handler');
+const constants = require('../helpers/constants');
+const logger = require('../logger');
+const MicroserviceService = require('../services/microservices-service');
+const fs = require('fs');
+const AppHelper = require('../helpers/app-helper');
+const AuthDecorator = require('../decorators/cli-decorator');
 
 const JSON_SCHEMA =
   `  name: string
@@ -111,7 +116,7 @@ class Microservice extends BaseCLIHandler {
       {
         name: 'user-id', alias: 'u', type: Number, description: 'User\'s id',
         group: [constants.CMD_ADD]
-      },
+      }
     ]
     this.commands = {
       [constants.CMD_ADD]: 'Add a new microservice.',
@@ -124,14 +129,16 @@ class Microservice extends BaseCLIHandler {
     }
   }
 
-  run(args) {
+  async run(args) {
     const microserviceCommand = this.parseCommandLineArgs(this.commandDefinitions, { argv: args.argv })
 
     switch (microserviceCommand.command.command) {
       case constants.CMD_ADD:
-        return
+        await _executeCase(microserviceCommand, constants.CMD_ADD, _createMicroservice, false);
+        break;
       case constants.CMD_UPDATE:
-        return
+        await _executeCase(microserviceCommand, constants.CMD_UPDATE, _updateMicroservice, false);
+        break;
       case constants.CMD_REMOVE:
         return
       case constants.CMD_LIST:
@@ -188,4 +195,73 @@ class Microservice extends BaseCLIHandler {
   }
 }
 
-module.exports = new Microservice()
+const _executeCase  = async function (microserviceCommand, commandName, f, isUserRequired) {
+  try {
+    const item = microserviceCommand[commandName];
+
+    if (isUserRequired) {
+      const decoratedFunction = AuthDecorator.prepareUserById(f);
+      decoratedFunction(item);
+    } else {
+      f(item);
+    }
+  } catch (error) {
+    logger.error(error.message);
+  }
+};
+
+const _createMicroservice = async function (obj) {
+  const microservice = obj.file
+    ? JSON.parse(fs.readFileSync(obj.file, 'utf8'))
+    : _createMicroserviceObject(obj);
+
+  logger.info(JSON.stringify(microservice));
+
+  const result = await MicroserviceService.createMicroserviceOnFogWithTransaction(microservice, {}, true);
+  logger.info(JSON.stringify(result));
+  logger.info('Microservice has been created successfully.');
+};
+
+const _updateMicroservice = async function (obj) {
+
+}
+
+const _createMicroserviceObject = function (obj) {
+  const microserviceObj = {
+    name: obj.name,
+    config: obj.config,
+    catalogItemId: parseInt(obj.catalogId),
+    flowId: parseInt(obj.flowId),
+    ioFogNodeId: obj.iofogId,
+    rootHostAccess: AppHelper.validateBooleanCliOptions(obj.rootEnable, obj.rootDisable),
+    logLimit: obj.logLimit,
+    routes: obj.routes
+  };
+
+  if (obj.volumes) {
+    microserviceObj.volumeMappings = parseObjectArray(obj.volumes, 'Error during parsing of volume mapping option.');
+  }
+  if (obj.ports) {
+    microserviceObj.ports = parseObjectArray(obj.ports, 'Error during parsing of port mapping option.');
+  }
+
+  return AppHelper.deleteUndefinedFields(microserviceObj);
+};
+
+
+
+const parseObjectArray = function (arr, errMsg) {
+  return arr.map(item => {
+    item = item.replace(/'/g, '"');
+    let result = {};
+    try {
+      result = JSON.parse(item);
+    } catch(e) {
+      logger.warn(errMsg);
+      logger.warn(e.message);
+    }
+    return result;
+  })
+}
+
+module.exports = new Microservice();
