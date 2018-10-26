@@ -134,11 +134,13 @@ const updateDetails = async function (user, profileData, isCLI, transaction) {
     await Validator.validate(profileData, Validator.schemas.updateUserProfile);
   }
 
+  const password = (profileData.password) ? AppHelper.encryptText(profileData.password, user.email) : undefined;
+
   const updateObject = isCLI ?
     {
       firstName: profileData.firstName,
       lastName: profileData.lastName,
-      password: AppHelper.encryptText(profileData.password, user.email)
+      password: password
     }
     :
     {
