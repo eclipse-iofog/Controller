@@ -47,7 +47,15 @@ class Microservice extends BaseCLIHandler {
       },
       {
         name: 'microservice-id', alias: 'i', type: String, description: 'Microservice ID',
-        group: [constants.CMD_UPDATE, constants.CMD_REMOVE, constants.CMD_INFO, constants.CMD_ROUTE, constants.CMD_STRACE]
+        group: [constants.CMD_UPDATE, constants.CMD_REMOVE, constants.CMD_INFO, constants.CMD_PORT_MAPPING]
+      },
+      {
+        name: 'dest-microservice-id', alias: 'D', type: String, description: 'Destination Microservice ID of route',
+        group: [constants.CMD_ROUTE]
+      },
+      {
+        name: 'source-microservice-id', alias: 'S', type: String, description: 'Source Microservice ID of route',
+        group: [constants.CMD_ROUTE]
       },
       {
         name: 'name', alias: 'n', type: String, description: 'Microservice name',
@@ -55,11 +63,11 @@ class Microservice extends BaseCLIHandler {
       },
       {
         name: 'catalog-id', alias: 'c', type: String, description: 'Catalog item ID',
-        group: [constants.CMD_UPDATE, constants.CMD_ADD]
+        group: [constants.CMD_ADD]
       },
       {
         name: 'flow-id', alias: 'F', type: String, description: 'Application flow ID',
-        group: [constants.CMD_UPDATE, constants.CMD_ADD]
+        group: [constants.CMD_ADD]
       },
       {
         name: 'iofog-id', alias: 'I', type: String, description: 'ioFog node ID',
@@ -94,24 +102,48 @@ class Microservice extends BaseCLIHandler {
         group: [constants.CMD_ADD]
       },
       {
-        name: 'add', alias: 'a', type: String, description: 'Add new route(s)', multiple: true,
+        name: 'add', alias: 'a', type: Boolean, description: 'Add new route(s)',
         group: [constants.CMD_ROUTE]
       },
       {
-        name: 'remove', alias: 'm', type: String, description: 'Delete existing route(s)', multiple: true,
+        name: 'remove', alias: 'm', type: Boolean, description: 'Delete existing route(s)',
         group: [constants.CMD_ROUTE]
       },
       {
-        name: 'enable', alias: 'e', type: Boolean, description: 'Enable strace option',
-        group: [constants.CMD_STRACE]
+        name: 'create', alias: 'b', type: Boolean, description: 'Add new port mapping(s)',
+        group: [constants.CMD_PORT_MAPPING]
       },
       {
-        name: 'disable', alias: 'd', type: Boolean, description: 'Disable strace option',
-        group: [constants.CMD_STRACE]
+        name: 'delete', alias: 'B', type: Boolean, description: 'Delete existing port mapping(s)',
+        group: [constants.CMD_PORT_MAPPING]
       },
       {
-        name: 'get', alias: 'G', type: String, description: 'Get strace data, formats: string,file',
-        group: [constants.CMD_STRACE]
+        name: 'list', alias: 'G', type: Boolean, description: 'List port mappings',
+        group: [constants.CMD_PORT_MAPPING]
+      },
+      {
+        name: 'internal', alias: 'W', type: Number, description: 'Internal port',
+        group: [constants.CMD_PORT_MAPPING]
+      },
+      {
+        name: 'external', alias: 'Y', type: Number, description: 'External port',
+        group: [constants.CMD_PORT_MAPPING]
+      },
+      {
+        name: 'public', alias: 'Z', type: Boolean, description: 'Public mode of connector',
+        group: [constants.CMD_PORT_MAPPING]
+      },
+      {
+        name: 'private', alias: 'K', type: Boolean, description: 'Private mode of connector',
+        group: [constants.CMD_PORT_MAPPING]
+      },
+      {
+        name: 'rebuild', alias: 'w', type: Boolean, description: 'Rebuild microservice image on fog agent',
+        group: [constants.CMD_UPDATE]
+      },
+      {
+        name: 'cleanUp', alias: 'z', type: Boolean, description: 'Delete microservice with cleanup',
+        group: [constants.CMD_REMOVE]
       },
       {
         name: 'user-id', alias: 'u', type: Number, description: 'User\'s id',
@@ -125,7 +157,7 @@ class Microservice extends BaseCLIHandler {
       [constants.CMD_LIST]: 'List all microservices.',
       [constants.CMD_INFO]: 'Get microservice settings.',
       [constants.CMD_ROUTE]: 'Add/Remove microservice route.',
-      [constants.CMD_STRACE]: 'strace option operations.',
+      [constants.CMD_PORT_MAPPING]: 'Add/Remove/List microservice port mapping.'
     }
   }
 
@@ -140,13 +172,20 @@ class Microservice extends BaseCLIHandler {
         await _executeCase(microserviceCommand, constants.CMD_UPDATE, _updateMicroservice, false);
         break;
       case constants.CMD_REMOVE:
-        return
+        await _executeCase(microserviceCommand, constants.CMD_REMOVE, _removeMicroservice, false);
+        break;
       case constants.CMD_LIST:
-        return
+        await _executeCase(microserviceCommand, constants.CMD_LIST, _listMicroservices, false);
+        break;
       case constants.CMD_INFO:
-        return
+        await _executeCase(microserviceCommand, constants.CMD_INFO, _getMicroservice, false);
+        break;
       case constants.CMD_ROUTE:
-        return
+        await _executeCase(microserviceCommand, constants.CMD_ROUTE, _executeRouteCommand, false);
+        break;
+      case constants.CMD_PORT_MAPPING:
+        await _executeCase(microserviceCommand, constants.CMD_PORT_MAPPING, _executePortMappingCommand, false);
+        break;
       case constants.CMD_HELP:
       default:
         return this.help()
@@ -197,7 +236,7 @@ class Microservice extends BaseCLIHandler {
 
 const _executeCase  = async function (microserviceCommand, commandName, f, isUserRequired) {
   try {
-    const item = microserviceCommand[commandName];
+    const item = microserviceCommand[commandName] || {};
 
     if (isUserRequired) {
       const decoratedFunction = AuthDecorator.prepareUserById(f);
@@ -208,6 +247,68 @@ const _executeCase  = async function (microserviceCommand, commandName, f, isUse
   } catch (error) {
     logger.error(error.message);
   }
+};
+
+const _executeRouteCommand = async function (obj) {
+  logger.info(JSON.stringify(obj));
+
+  if (obj.add) {
+    await MicroserviceService.createRouteWithTransaction(obj.sourceMicroserviceId, obj.destMicroserviceId, {}, true);
+    logger.info(`Microservice route with source microservice ${obj.sourceMicroserviceId} and dest microservice 
+                ${obj.destMicroserviceId} has been created successfully.`)
+  } else if (obj.remove) {
+    await MicroserviceService.deleteRouteWithTransaction(obj.sourceMicroserviceId, obj.destMicroserviceId, {}, true);
+    logger.info(`Microservice route with source microservice ${obj.sourceMicroserviceId} and dest microservice 
+                ${obj.destMicroserviceId} has been removed successfully.`)
+  } else if (obj.add && obj.remove) {
+    logger.info('Please specify either "add" or "remove" operation');
+  } else {
+    logger.info('No operation specified');
+  }
+};
+
+const _executePortMappingCommand = async function (obj) {
+  logger.info(JSON.stringify(obj));
+
+  if (obj.create) {
+
+    let mapping = {
+      internal: parseInt(obj.internal),
+      external: parseInt(obj.external),
+      publicMode: AppHelper.validateBooleanCliOptions(obj.public, obj.private)
+    };
+    mapping = AppHelper.deleteUndefinedFields(mapping);
+    await MicroserviceService.createPortMappingWithTransaction(obj.microserviceId, mapping, {}, true);
+    logger.info('Port mapping has been create successfully');
+
+  } else if (obj.delete) {
+    await MicroserviceService.deletePortMappingWithTransaction(obj.microserviceId, obj.internal, {}, true);
+    logger.info('Port mapping has been deleted successfully');
+  } else if (obj.list) {
+    await MicroserviceService.getMicroservicePortMappingListWithTransaction(obj.microserviceId, {}, true);
+    logger.info('Port mappings have been retrieved successfully');
+  } else {
+    logger.info('Incorrect command usage. Please specify only one command at once');
+  }
+};
+
+const _removeMicroservice = async function (obj) {
+  logger.info(JSON.stringify(obj));
+  await MicroserviceService.deleteMicroserviceWithTransaction(obj.microserviceId, obj.cleanUp, {}, true);
+  logger.info('Microservice has been removed successfully.')
+};
+
+const _listMicroservices = async function () {
+  const result = await MicroserviceService.listMicroservicesWithTransaction({}, {}, true);
+  logger.info(JSON.stringify(result));
+  logger.info('Microservices have been retrieved successfully.');
+};
+
+const _getMicroservice = async function (obj) {
+  logger.info(JSON.stringify(obj));
+  const result = await MicroserviceService.getMicroserviceWithTransaction(obj.microserviceId, {}, true);
+  logger.info(JSON.stringify(result));
+  logger.info('Microservice has been retrieved successfully.');
 };
 
 const _createMicroservice = async function (obj) {
@@ -223,18 +324,24 @@ const _createMicroservice = async function (obj) {
 };
 
 const _updateMicroservice = async function (obj) {
+  const microservice = obj.file
+    ? JSON.parse(fs.readFileSync(obj.file, 'utf8'))
+    : _updateMicroserviceObject(obj);
 
-}
+  logger.info(JSON.stringify(microservice));
 
-const _updateMicroserviceObject = async function (obj) {
+  await MicroserviceService.updateMicroserviceWithTransaction(obj.microserviceId, microservice, {}, true);
+  logger.info('Microservice has been updated successfully.');
+};
+
+const _updateMicroserviceObject = function (obj) {
   const microserviceObj = {
     name: obj.name,
     config: obj.config,
-    catalogItemId: parseInt(obj.catalogId),
-    flowId: parseInt(obj.flowId),
     ioFogNodeId: obj.iofogId,
     rootHostAccess: AppHelper.validateBooleanCliOptions(obj.rootEnable, obj.rootDisable),
     logLimit: obj.logLimit,
+    rebuild: obj.rebuild
   };
 
   if (obj.volumes) {
@@ -280,6 +387,6 @@ const parseObjectArray = function (arr, errMsg) {
     }
     return result;
   })
-}
+};
 
 module.exports = new Microservice();

@@ -35,22 +35,14 @@ const microserviceUpdate = {
       "minLength": 1
     },
     "config": {"type": "string"},
-    "needUpdate" : {"type": "boolean"},
     "rebuild": {"type": "boolean"},
     "ioFogNodeId": {"type": "string"},
     "rootHostAccess": {"type": "boolean"},
-    "deleteWithCleanUp": {"type": "boolean"},
     "logSize": {"type": "integer"},
-    "imageSnapshot": {"type": "string"},
     "volumeMappings": {
       "type": "array",
-      "items": {"$ref": "/volumeMappings"}},
-    "ports": {
-      "type": "array",
-      "items": {"$ref": "/ports"}},
-    "routes": {
-      "type": "array",
-      "items": {"type": "string"}}
+      "items": {"$ref": "/volumeMappings"}
+    }
   }
 };
 
