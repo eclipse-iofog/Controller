@@ -95,19 +95,10 @@ const _createMicroserviceOnFog = async function (microserviceData, user, isCLI, 
 
 const _createMicroservice = async function (microserviceData, user, isCLI, transaction) {
 
-  if(microserviceData.isNetwork) {
-    if (microserviceData.config !== undefined) {
-      await Validation.validate(JSON.parse(microserviceData.config), Validation.schemas.networkConfig)
-    } else {
-      throw new Errors.ValidationError(ErrorMessages.INVALID_MICROSERVICE_CONFIG)
-    }
-  }
-
   const microserviceToCreate = {
     uuid: AppHelper.generateRandomString(32),
     name: microserviceData.name,
     config: microserviceData.config,
-    isNetwork: microserviceData.isNetwork,
     catalogItemId: microserviceData.catalogItemId,
     flowId: microserviceData.flowId,
     iofogUuid: microserviceData.ioFogNodeId,
@@ -160,18 +151,9 @@ const _createRoutes = async function (routes, microserviceUuid, user, transactio
 const _updateMicroservice = async function (microserviceUuid, microserviceData, user, isCLI, transaction) {
   await Validation.validate(microserviceData, Validation.schemas.microserviceUpdate);
 
-  if(microserviceData.isNetwork) {
-    if (microserviceData.config !== undefined) {
-      await Validation.validate(JSON.parse(microserviceData.config), Validation.schemas.networkConfig)
-    } else {
-      throw new Errors.ValidationError(ErrorMessages.INVALID_MICROSERVICE_CONFIG)
-    }
-  }
-
   const microserviceToUpdate = {
     name: microserviceData.name,
     config: microserviceData.config,
-    isNetwork: microserviceData.isNetwork,
     needUpdate: microserviceData.needUpdate,
     rebuild: microserviceData.rebuild,
     iofogUuid: microserviceData.ioFogNodeId,

@@ -87,11 +87,11 @@ class Microservice extends BaseCLIHandler {
       },
       {
         name: 'ports', alias: 'p', type: String, description: 'Container ports', multiple: true,
-        group: [constants.CMD_UPDATE, constants.CMD_ADD]
+        group: [constants.CMD_ADD]
       },
       {
         name: 'routes', alias: 't', type: String, description: 'Microservice route(s) (receiving microservices)', multiple: true,
-        group: [constants.CMD_UPDATE, constants.CMD_ADD]
+        group: [constants.CMD_ADD]
       },
       {
         name: 'add', alias: 'a', type: String, description: 'Add new route(s)', multiple: true,
@@ -224,6 +224,24 @@ const _createMicroservice = async function (obj) {
 
 const _updateMicroservice = async function (obj) {
 
+}
+
+const _updateMicroserviceObject = async function (obj) {
+  const microserviceObj = {
+    name: obj.name,
+    config: obj.config,
+    catalogItemId: parseInt(obj.catalogId),
+    flowId: parseInt(obj.flowId),
+    ioFogNodeId: obj.iofogId,
+    rootHostAccess: AppHelper.validateBooleanCliOptions(obj.rootEnable, obj.rootDisable),
+    logLimit: obj.logLimit,
+  };
+
+  if (obj.volumes) {
+    microserviceObj.volumeMappings = parseObjectArray(obj.volumes, 'Error during parsing of volume mapping option.');
+  }
+
+  return AppHelper.deleteUndefinedFields(microserviceObj);
 }
 
 const _createMicroserviceObject = function (obj) {
