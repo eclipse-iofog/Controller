@@ -466,7 +466,7 @@ paths:
     get:
       tags:
       - Agent
-      description: Gets ioFog node changes sinces provided timestamp
+      description: Gets ioFog node changes
       operationId: getIOFogNodeChanges
       parameters:
       - in: header
@@ -474,11 +474,6 @@ paths:
         description: Agent Token
         required: true
         type: string
-      - in: query
-        name: timestamp
-        required: false
-        type: number
-        default: 0
       responses:
         '200':
           description: Success
@@ -793,11 +788,6 @@ paths:
       description: Deletes an ioFog node
       operationId: deleteAgentNode
       parameters:
-      - in: path
-        name: uuid
-        description: ioFog node id
-        required: true
-        type: string
       - in: header
         name: Authorization
         description: Agent token
@@ -810,6 +800,62 @@ paths:
             X-Timestamp:
               type: number
               description: FogController server timestamp
+        '401':
+          description: Not Authorized
+        '500':
+          description: Internal Server Error
+  '/agent/image-snapshot':
+    get:
+      tags:
+      - Agent
+      description: Get image snapshot info
+      operationId: getImageSnapshot
+      parameters:
+      - in: header
+        name: Authorization
+        description: Agent Token
+        required: true
+        type: string
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/ImageSnapshotResponse'
+          headers:
+            X-Timestamp:
+              type: number
+              description: FogController server timestamp
+        401:
+          description: Not Authorized
+        404:
+          description: Image Snapshot Not Found
+        500:
+          description: Internal Server Error
+    put:
+      tags:
+      - Agent
+      description: Put image snapshot info on controller
+      operationId: putImageSnapshot
+      parameters:
+      - in: header
+        name: Authorization
+        description: Agent Token
+        required: true
+        type: string
+      - in: body
+        name: ImageSnapshotRequest
+        required: true
+        schema:
+          $ref: '#/definitions/ImageSnapshotRequest'
+      responses:
+        '204':
+          description: Success
+          headers:
+            X-Timestamp:
+              type: number
+              description: FogController server timestamp
+        '400':
+          description: Bad Request
         '401':
           description: Not Authorized
         '500':
@@ -1484,7 +1530,7 @@ paths:
           description: Not Found
         '500':
           description: Internal Server Error
-  '/iofog/microservices/{id}/image-snapshot':
+  '/microservices/{id}/image-snapshot':
     post:
       tags:
       - Diagnostics
@@ -1552,7 +1598,7 @@ paths:
           description: Invalid Microservice Id
         '500':
           description: Internal Server Error
-  '/iofog/microservices/{id}/strace':
+  '/microservices/{id}/strace':
     patch:
       tags:
       - Diagnostics
@@ -2172,7 +2218,7 @@ definitions:
         type: boolean
       microserviceStatus:
         type: string
-      respositoryCount:
+      repositoryCount:
         type: number
       repositoryStatus:
         type: string
@@ -2378,7 +2424,7 @@ definitions:
         type: number
       statusFrequency:
         type: number
-      changesFrequency:
+      changeFrequency:
         type: number
       deviceScanFrequency:
         type: number
@@ -2444,9 +2490,9 @@ definitions:
         type: boolean
       cpuViolation:
         type: boolean
-      microservicesStatus:
+      microserviceStatus:
         type: string
-      respositoryCount:
+      repositoryCount:
         type: number
       repositoryStatus:
         type: string
@@ -2537,10 +2583,8 @@ definitions:
   AgentMicroservicesInfoResponse:
     type: object
     properties:
-      id:
+      uuid:
         type: string
-      lastModified:
-        type: number
       needUpdate:
         type: boolean
       rebuild:
@@ -2994,7 +3038,6 @@ definitions:
         type: string
       password:
         type: string
-
   VersionCommandResponse:
     type: object
     required:
@@ -3015,7 +3058,20 @@ definitions:
     properties:
       info:
         type: string
-
+  ImageSnapshotResponse:
+    type: object
+    required:
+    - uuid
+    properties:
+      uuid:
+        type: string
+  ImageSnapshotRequest:
+    type: object
+    required:
+    - upstream
+    properties:
+      upstream:
+        type: string
 schemes:
 - http
 - https

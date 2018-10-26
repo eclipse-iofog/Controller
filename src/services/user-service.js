@@ -322,7 +322,7 @@ async function _sendEmail(transporter, mailOptions) {
 async function _getEmailData() {
   return {
     email: Config.get("Email:Address"),
-    password: Config.get("Email:Password"),
+    password: AppHelper.decryptText(Config.get("Email:Password"), Config.get("Email:Address")),
     service: Config.get("Email:Service")
   }
 }
