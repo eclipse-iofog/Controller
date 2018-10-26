@@ -29,6 +29,7 @@ const ConnectorService = require('../services/connector-service');
 const CatalogService = require('../services/catalog-service');
 const RoutingManager = require('../sequelize/managers/routing-manager');
 const Op = require('sequelize').Op;
+const Sequelize = require('sequelize');
 
 const _listMicroservices = async function (data, user, isCLI, transaction) {
   if (!isCLI) {
@@ -538,7 +539,7 @@ async function _createPortMapping(microserviceUuid, portMappingData, user, isCLI
 
   const msPorts = await MicroservicePortManager.findOne({
     microserviceUuid: microserviceUuid,
-    $or:
+    [Op.or]:
       [
         {
           portInternal: portMappingData.internal
