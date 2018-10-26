@@ -119,14 +119,16 @@ const _createMicroservice = async function (microserviceData, user, isCLI, trans
 
   const microserviceDataCreate = AppHelper.deleteUndefinedFields(microserviceToCreate);
 
-  //validate catalog item
-  await CatalogService.getCatalogItem(microserviceDataCreate.catalogItemId, user, isCLI, transaction);
-  //validate flow
-  await FlowService.getFlow(microserviceDataCreate.flowId, user, isCLI, transaction);
-  //validate fog node
-  if (microserviceDataCreate.iofogUuid) {
-    await IoFogService.getFog({uuid: microserviceDataCreate.iofogUuid}, user, isCLI, transaction);
-  }
+  await isMicroserviceExist(microserviceDataCreate.name, transaction);
+
+    //validate catalog item
+    await CatalogService.getCatalogItem(microserviceDataCreate.catalogItemId, user, isCLI, transaction);
+    //validate flow
+    await FlowService.getFlow(microserviceDataCreate.flowId, user, isCLI, transaction);
+    //validate fog node
+    if (microserviceDataCreate.iofogUuid) {
+        await IoFogService.getFog({uuid: microserviceDataCreate.iofogUuid}, user, isCLI, transaction);
+    }
 
   return await MicroserviceManager.create(microserviceDataCreate, transaction);
 };
@@ -186,9 +188,9 @@ const _updateMicroservice = async function (microserviceUuid, microserviceData, 
 
   const microservice = await _getMicroservice(microserviceUuid, user, isCLI, transaction);
 
-  // if(microserviceDataUpdate.name){
-  //   await isMicroserviceExist(microserviceDataUpdate.name, transaction);
-  // }
+   if(microserviceDataUpdate.name){
+     await isMicroserviceExist(microserviceDataUpdate.name, transaction);
+   }
 
   //validate fog node
   if (microserviceDataUpdate.iofogUuid) {
@@ -251,6 +253,16 @@ const _deleteMicroservice = async function (microserviceUuid, deleteWithCleanUp,
   }
 
   await _updateChangeTracking(false, microserviceUuid, microservice.ioFogNodeId, user, isCLI, transaction)
+};
+
+const isMicroserviceExist = async function (microserviceName, transaction) {
+  const microservice = await MicroserviceManager.findOne({
+    name: microserviceName
+  }, transaction);
+
+  if (microservice) {
+    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.DUPLICATE_NAME, microserviceName));
+  }
 };
 
 const _deleteRoutes = async function(routes, microserviceUuid, user, transaction){
