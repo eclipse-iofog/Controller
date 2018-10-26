@@ -233,10 +233,6 @@ module.exports = [
       const successCode = constants.HTTP_CODE_NO_CONTENT;
       const errorCodes = [
         {
-          code: constants.HTTP_CODE_BAD_REQUEST,
-          errors: [Errors.ValidationError]
-        },
-        {
           code: constants.HTTP_CODE_UNAUTHORIZED,
           errors: [Errors.AuthenticationError]
         },
