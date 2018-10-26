@@ -1623,13 +1623,8 @@ paths:
             enable:
               type: boolean
       responses:
-        '201':
-          description: Created
-          schema:
-            type: object
-            properties:
-              id:
-                type: string
+        '204':
+          description: Success
           headers:
             X-Timestamp:
               type: number
