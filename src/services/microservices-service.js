@@ -255,6 +255,16 @@ const _deleteMicroservice = async function (microserviceUuid, deleteWithCleanUp,
   await _updateChangeTracking(false, microserviceUuid, microservice.ioFogNodeId, user, isCLI, transaction)
 };
 
+const isMicroserviceExist = async function (microserviceName, transaction) {
+  const microservice = await MicroserviceManager.findOne({
+    name: microserviceName
+  }, transaction);
+
+  if (microservice) {
+    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.DUPLICATE_NAME, microserviceName));
+  }
+};
+
 const _deleteRoutes = async function(routes, microserviceUuid, user, transaction){
   for (let route of routes){
     await _deleteRoute(microserviceUuid, route, user, transaction)
