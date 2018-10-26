@@ -28,6 +28,8 @@ const Validation = require('../schemas/index');
 const ConnectorService = require('../services/connector-service')
 const CatalogService = require('../services/catalog-service')
 const RoutingManager = require('../sequelize/managers/routing-manager')
+const Sequelize = require('sequelize');
+const Op = Sequelize.Op
 
 const _getMicroserviceByFlow = async function (flowId, user, isCLI, transaction) {
   await FlowService.getFlow(flowId, user, isCLI, transaction);
@@ -514,7 +516,7 @@ async function _createPortMapping(microserviceUuid, portMappingData, user, trans
 
   const msPorts = await MicroservicePortManager.findOne({
     microserviceUuid: microserviceUuid,
-    $or:
+    [Op.or]:
       [
         {
           portInternal: portMappingData.internal

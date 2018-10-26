@@ -30,10 +30,10 @@ const USBInfoManager = require('../sequelize/managers/usb-info-manager');
 const TunnelManager = require('../sequelize/managers/tunnel-manager');
 const MicroserviceManager = require('../sequelize/managers/microservice-manager');
 const MicroserviceService = require('../services/microservices-service');
-
 const formidable = require('formidable');
-
 const logger = require('../logger');
+const Sequelize = require('sequelize');
+const Op = Sequelize.Op
 
 const agentProvision = async function (provisionData, transaction) {
 
@@ -266,7 +266,7 @@ const getAgentMicroservice = async function (microserviceId, fog, transaction) {
 
 const getAgentRegistries = async function (fog, transaction) {
   const registries = await RegistryManager.findAll({
-    $or:
+    [Op.or]:
       [
         {
           userId: fog.userId
