@@ -2897,8 +2897,6 @@ definitions:
         type: string
       catalogItemId:
         type: integer
-      isNetwork:
-        type: boolean
       flowId:
         type: integer
       ioFogNodeId:
@@ -2926,8 +2924,6 @@ definitions:
         type: string
       config:
         type: string
-      isNetwork:
-        type: boolean
       needUpdate:
         type: boolean
       rebuild:
@@ -2935,8 +2931,6 @@ definitions:
       ioFogNodeId:
         type: string
       rootHostAccess:
-        type: boolean
-      deleteWithCleanUp:
         type: boolean
       logLimit:
         type: number
