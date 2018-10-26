@@ -43,10 +43,12 @@ const _updateMicroserviceEndPoint = async function (req, user) {
 
 const _deleteMicroserviceEndPoint = async function (req, user) {
   const microserviceUuid = req.params.uuid;
+  const deleteWithCleanUp = (req.query.withCleanUp == 'true');
 
   logger.info("Microservice uuid:" + JSON.stringify(microserviceUuid))
+  logger.info("Delete with cleanup:" + JSON.stringify(deleteWithCleanUp))
 
-  return await MicroservicesService.deleteMicroserviceWithTransaction(microserviceUuid, user, false)
+  return await MicroservicesService.deleteMicroserviceWithTransaction(microserviceUuid, deleteWithCleanUp, user, false)
 };
 
 const _getMicroservicesByFlowEndPoint = async function (req, user) {
@@ -71,6 +73,26 @@ async function _deleteMicroserviceRoute(req, user) {
   return await MicroservicesService.deleteRouteWithTransaction(sourceUuid, distUuid, user)
 }
 
+async function _createMicroservicePortMapping(req, user) {
+  const uuid = req.params.uuid
+  const portMappingData = req.body
+  logger.info(`Creating port mapping for ${uuid}`)
+  return await MicroservicesService.createPortMappingWithTransaction(uuid, portMappingData, user)
+}
+
+async function _deleteMicroservicePortMapping(req, user) {
+  const uuid = req.params.uuid
+  const internalPort = req.params.internalPort
+  logger.info(`Deleting port mapping for ${uuid}`)
+  return await MicroservicesService.deletePortMappingWithTransaction(uuid, internalPort, user)
+}
+
+async function _getMicroservicePortMappingList(req, user) {
+  const uuid = req.params.uuid
+  logger.info(`Getting all port mappings for ${uuid}`)
+  return await MicroservicesService.getMicroservicePortMappingListWithTransaction(uuid, user)
+}
+
 module.exports = {
   createMicroservicesOnFogEndPoint: AuthDecorator.checkAuthToken(_createMicroservicesOnFogEndPoint),
   getMicroserviceEndPoint: AuthDecorator.checkAuthToken(_getMicroserviceEndPoint),
@@ -78,5 +100,8 @@ module.exports = {
   deleteMicroserviceEndPoint: AuthDecorator.checkAuthToken(_deleteMicroserviceEndPoint),
   getMicroservicesByFlowEndPoint: AuthDecorator.checkAuthToken(_getMicroservicesByFlowEndPoint),
   createMicroserviceRoute: AuthDecorator.checkAuthToken(_createMicroserviceRoute),
-  deleteMicroserviceRoute: AuthDecorator.checkAuthToken(_deleteMicroserviceRoute)
+  deleteMicroserviceRoute: AuthDecorator.checkAuthToken(_deleteMicroserviceRoute),
+  createMicroservicePortMapping: AuthDecorator.checkAuthToken(_createMicroservicePortMapping),
+  deleteMicroservicePortMapping: AuthDecorator.checkAuthToken(_deleteMicroservicePortMapping),
+  getMicroservicePortMappingList: AuthDecorator.checkAuthToken(_getMicroservicePortMappingList)
 };

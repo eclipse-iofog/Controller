@@ -24,7 +24,7 @@ const _createFlowEndPoint = async function (req, user) {
 };
 
 const _getFlowsByUserEndPoint = async function (req, user) {
-  return await FlowService.getUserFlows(user, false)
+  return await FlowService.getUserFlowsWithTransaction(user, false)
 };
 
 const _getFlowEndPoint = async function (req, user) {

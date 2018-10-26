@@ -3,7 +3,8 @@
     "Name": "fog-controller"
   },
   "Server": {
-    "Port": 54421
+    "Port": 54421,
+    "DevMode": false
   },
   "Email": {
     "ActivationEnabled": false,
@@ -16,14 +17,6 @@
   "Settings": {
     "UserTokenExpirationIntervalSeconds": 3600,
     "FogTokenExpirationIntervalSeconds": 3600
-  },
-  "Proxy": {
-    "Username": "username",
-    "Password": "password",
-    "Host": "23.253.111.231",
-    "RsaKey": "rsa",
-    "Lport": 22,
-    "PortRange": "2000-10000"
   },
   "Diagnostics": {
     "DiagnosticDir": "diagnostic"

@@ -1,14 +1,33 @@
 {
   "App": {
-    "Name": "fog-controller"
+    "Name": "fog-controller-dev"
   },
   "Server": {
-    "Port": 51121
+    "Port": 51121,
+    "DevMode": true
+  },
+  "Email": {
+    "ActivationEnabled": false,
+    "HomeUrl": "https://google.com"
   },
   "Service": {
-    "LogsDirectory": "/Users/saeid/logs/fog-controller"
+    "LogsDirectory": "/var/log/fog-controller",
+    "LogsFileSize": 1048576
+  },
+  "Settings": {
+    "UserTokenExpirationIntervalSeconds": 360000,
+    "FogTokenExpirationIntervalSeconds": 3600000
+  },
+  "Proxy": {
+    "Username": "username",
+    "Password": "password",
+    "Host": "23.253.111.231",
+    "RsaKey": "rsa",
+    "Lport": 22,
+    "PortRange": "2000-10000"
   },
   "Diagnostics": {
     "DiagnosticDir": "diagnostic"
   }
 }
+

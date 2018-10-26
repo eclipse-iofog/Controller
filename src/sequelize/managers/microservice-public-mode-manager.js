@@ -8,18 +8,18 @@
  *  *
  *  * SPDX-License-Identifier: EPL-2.0
  *  *******************************************************************************
- *
+ *  
  */
 
-const BaseManager = require('./base-manager');
+const BaseManager = require('../managers/base-manager')
 const models = require('./../models');
-const Routing = models.Routing;
+const MicroservicePublicMode = models.MicroservicePublicMode
 
-class RoutingManager extends BaseManager {
+class MicroservicePublicModeManager extends BaseManager {
   getEntity() {
-    return Routing;
+    return MicroservicePublicMode
   }
 }
 
-const instance = new RoutingManager();
-module.exports = instance;
+const instance = new MicroservicePublicModeManager()
+module.exports = instance

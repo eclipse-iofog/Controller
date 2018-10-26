@@ -1,12 +1,12 @@
 **Fog Controller Usage**
 
- $ fog-controller  <command> <options>
+ $ fog-controller <*command*> <*options*>
 
 **Command List**
 
  start          -- Start fog-controller service. <br>
  stop           -- Stop fog-controller service. <br>
- status         -- Display fog-controller service status. <br>
+ controller     -- Display fog-controller service information. <br>
  help           -- Display usage information. <br>
  version        -- Display fog-controller service version. <br>
  user           -- User operations. <br>
@@ -18,13 +18,27 @@
  flow           -- Application flow operations. <br>
  microservice   -- Microservice instance operations. <br>
  registry       -- Registries instance operations. <br>
+ diagnostics    -- Diagnostic instance operations. <br>
+<br>
+<br>
+<br>
+
+**Controller**
+
+$ fog-controller controller <*command*> <*options*>
+
+**Command List**
+
+ - status             -- Display fog-controller service status.
+ - email-activation   -- Is email activation.
+ - fog-types          -- List all Fog-types.
 <br>
 <br>
 <br>
 
 **User**
 
-$ fog-controller user <command> <options>
+$ fog-controller user <*command*> <*options*>
 
 **Command List**
 
@@ -72,11 +86,38 @@ $ fog-controller user <command> <options>
 <br>
 <br>
 <br>
+
+**Config** <br>
+$ fog-controller config <*options*>
  
+ *add*
+
+ -p, --port number                (Port) <br>
+ -c, --ssl-cert string            (Path to SSL certificate file) <br>
+ -k, --ssl-key string             (Path to SSL key file) <br>
+ -i, --intermediate-cert string   (Path to SSL intermediate certificate file) <br>
+ -m, --email-activation-on        (Email activation required) <br>
+ -n, --email-activation-off       (Email activation not required) <br>
+ -a, --email-address string       (Email address to send activations from) <br>
+ -w, --email-password string      (Email password to send activations from) <br>
+ -s, --email-service string       (Email service to send activations) <br>
+ -d, --log-dir string             (Log files directory) <br>
+ -z, --log-size number            (Log files size (MB)) <br>
+ 
+ *list*<br>
+ 
+ *dev-mode*<br>
+
+ -o, --on     (Enable dev mode)<br>
+ -f, --off    (Disable dev mode)<br>
+ 
+<br>
+<br>
+<br>
  
 **Connector** <br>
 
-$ fog-controller connector <command> <options>
+$ fog-controller connector <*command*> <*options*>
 
 **Command List**
 
@@ -90,18 +131,22 @@ $ fog-controller connector <command> <options>
  -n, --name string        (Connector name) <br>
  -d, --domain string      (Connector domain name) <br>
  -i, --public-ip string   (Connector public IP address) <br>
- -c, --cert-dir string    (Path to certificate) <br>
- -S, --self-signed-on     (Switch on self-signed) <br>
- -s, --self-signed-off    (Switch off self-signed) <br>
- -u, --user-id number     (User's id) <br>
+ -c, --cert string        (Certificate) <br>
+ -S, --self-signed-on     (Switch on self-signed enabled) <br>
+ -s, --self-signed-off    (Switch off self-signed disabled) <br>
+ -H, --dev-mode-on        (Switch on dev mode) <br>
+ -h, --dev-mode-off       (Switch off dev mode) <br>
 
 *update*
 
  -n, --name string        (Connector name) <br>
  -d, --domain string      (Connector domain name) <br>
  -i, --public-ip string   (Connector public IP address) <br>
- -c, --cert-dir string    (Path to certificate) <br>
- -s, --self-signed        (Is self-signed) <br>
+ -c, --cert string        (Certificate) <br>
+ -S, --self-signed-on     (Switch on self-signed enabled) <br>
+ -s, --self-signed-off    (Switch off self-signed disabled) <br>
+ -H, --dev-mode-on        (Switch on dev mode) <br>
+ -h, --dev-mode-off       (Switch off dev mode) <br>
 
 *remove*
 
@@ -113,22 +158,12 @@ $ fog-controller connector <command> <options>
  
 **Proxy** <br>
 
-$ fog-controller proxy <command> <options>
+$ fog-controller proxy <*command*> <*options*>
 
 **Command List**
 
- add      -- Add a new proxy. <br>
- update   -- Update existing proxy. <br>
- remove   -- Delete a proxy. <br>
+ update   -- Update existing proxy or create a new one. <br>
  list     -- List all proxies. <br>
-
-*add*
-
- -u, --username string   (Proxy username) <br>
- -p, --password string   (Proxy password) <br>
- -s, --host string       (Proxy host address) <br>
- -k, --rsa-key string    (Proxy RSA key) <br>
- -o, --port number       (Proxy port) <br>
 
 *update*
 
@@ -137,18 +172,23 @@ $ fog-controller proxy <command> <options>
  -s, --host string       (Proxy host address) <br>
  -k, --rsa-key string    (Proxy RSA key) <br>
  -o, --port number       (Proxy port) <br>
+ -f, --iofogUuid string  (Fog UUID) <br>
+ -a, --action string     (Action: can be either 'open' or 'close')
 
-*remove*
-
- -s, --host string   (Proxy host address)
+**Example**<br>
+ proxy update -u dmitry -p dpass -s 127.12.14.52 -k /home/dmitrys/documents/rsa.txt -o 22 -f NH44VjVFnr8946Yr8HPRrJdFZgLN8k7j -a close<br>
  
+*list*<br>
+
+**Example**<br>
+proxy list
 <br>
 <br>
 <br>  
  
  **IoFog**
  
- $ fog-controller iofog <command> <options>
+ $ fog-controller iofog <*command*> <*options*>
 
 **Command List**
 
@@ -161,6 +201,8 @@ $ fog-controller proxy <command> <options>
   reboot             -- Reboot ioFog node. <br>             
   version            -- Change agent version of ioFog node. <br>
   tunnel             -- Tunnel operations for an ioFog node. <br>
+  hal-hw             -- Get HAL Hardware ioFog node data. <br>
+  hal-usb            -- Get HAL USB ioFog node data. <br>
   
 *add*
 
@@ -185,8 +227,8 @@ $ fog-controller proxy <command> <options>
   -b, --bluetooth-disable         (Disable bluetooth on ioFog node) <br>
   -W, --watchdog-enable           (Enable watchdog on ioFog node) <br>
   -w, --watchdog-disable          (Disable watchdog on ioFog node) <br>
-  -a, --abs-hw-enable             (Enable hardware abstraction on ioFog node) <br>
-  -A, --abs-hw-disable            (Disable hardware abstraction on ioFog node) <br>
+  -a, --abs-hw-disable            (Disable hardware abstraction on ioFog node) <br>
+  -A, --abs-hw-enable             (Enable hardware abstraction on ioFog node) <br>
   -o, --reboot                    (Reboot ioFog node) <br>
   -y, --fog-type number           (ioFog node architecture type) <br>
   -u, --user-id number            (User's id) <br>
@@ -215,8 +257,8 @@ $ fog-controller proxy <command> <options>
   -b, --bluetooth-disable         (Disable bluetooth on ioFog node) <br>
   -W, --watchdog-enable           (Enable watchdog on ioFog node) <br>
   -w, --watchdog-disable          (Disable watchdog on ioFog node) <br>
-  -a, --abs-hw-enable             (Enable hardware abstraction on ioFog node) <br>
-  -A, --abs-hw-disable            (Disable hardware abstraction on ioFog node) <br>
+  -a, --abs-hw-disable            (Disable hardware abstraction on ioFog node) <br>
+  -A, --abs-hw-enable             (Enable hardware abstraction on ioFog node) <br>
   -o, --reboot                    (Reboot ioFog node) <br>
   -y, --fog-type number           (ioFog node architecture type) <br>
 
@@ -246,6 +288,14 @@ $ fog-controller proxy <command> <options>
   -e, --enable     (Enable tunnel) <br>
   -S, --disable    (Disable tunnel) <br>
   -O, --info       (Display tunnel info) <br>
+  
+ *hal-hw*
+
+  -i, --node-id string   (ioFog node ID)<br>
+
+ *hal-usb*
+
+  -i, --node-id string   (ioFog node ID)<br>
 
 *JSON File Schema*
 
@@ -277,7 +327,7 @@ $ fog-controller proxy <command> <options>
 
 **Catalog**<br>
 
-$ fog-controller catalog <command> <options> <br>
+$ fog-controller catalog <*command*> <*options*> <br>
 
 **Command List**<br>
 
@@ -344,26 +394,28 @@ $ fog-controller catalog <command> <options> <br>
  name: string<br>
  description: string<br>
  category: string<br>
- containersImages: object<br>
-   x86ContainerImage: string<br>
-   armContainerImage: string<br>
  publisher: string<br>
  diskRequired: number<br>
  ramRequired: number<br>
  picture: string<br>
  isPublic: boolean<br>
  registryId: number<br>
- inputType: string<br>
- inputFormat: string<br>
- outputType: string<br>
- outputFormat: string<br>
  configExample: string<br>
+ images: array of objects<br>
+ containerImage: string<br>
+ fogTypeId: number<br>
+ inputType: object<br>
+ infoType: string<br>
+ infoFormat: string<br>
+ outputType: object<br>
+ infoType: string<br>
+ infoFormat: string<br>
 <br>
 <br>
 <br>
 **Flow**<br>
 
- $ fog-controller flow <command> <options><br>
+ $ fog-controller flow <*command*> <*options*><br>
 
 *Command List*<br>
 
@@ -411,7 +463,7 @@ $ fog-controller catalog <command> <options> <br>
 
  **Microservice**<br>
  
- $ fog-controller microservice <command> <options><br>
+ $ fog-controller microservice <*command*> <*options*><br>
 
 *Command List*<br>
 
@@ -487,9 +539,9 @@ $ fog-controller catalog <command> <options> <br>
  logLimit: number<br>
  rootHostAccess: true<br>
  ports: object<br>
-   internal: number<br>
-   external: number<br>
-   tunnel: boolean<br>
+ internal: number<br>
+ external: number<br>
+ tunnel: boolean<br>
  routes: array of strings<br>
 
 *Examples*
@@ -509,7 +561,7 @@ $ fog-controller catalog <command> <options> <br>
 
  **Registry**
 
- $ fog-controller registry <command> <options><br>
+ $ fog-controller registry <*command*> <*options*><br>
 
 *Command List*<br>
 
@@ -529,4 +581,47 @@ $ fog-controller catalog <command> <options> <br>
 
 *remove*<br>
 
- -u, --uri string   (Registry URI)
+ -d, --item-id number    (Item's id)
+<br>
+<br>
+<br>
+
+ **Diagnostics**
+
+ $ fog-controller diagnostics <*command*> <*options*><br>
+
+*Command List*<br>
+
+ strace-update           -- Change microservice strace status to enabled or disabled.<br>
+ strace-info             -- Get microservice strace data.<br>
+ strace-ftp-post         -- Post microservice strace data to ftp.<br>
+ image-snapshot-create   -- Create microservice image snapshot.<br>
+ image-snapshot-get      -- Get microservice image snapshot.<br>
+
+*strace-update*<br>
+
+ -e, --enable                   (Enable microservice strace)<br>
+ -o, --disable                  (Disable microservice strace)<br>
+ -i, --microservice-id string   (Microservice ID)<br>
+
+*strace-info*<br>
+
+ -i, --microservice-id string   (Microservice ID)<br>
+ -f, --format string            (Format of strace data to receive)<br>
+ 
+ *strace-ftp-post*
+
+ -i, --microservice-id string   (Microservice ID)<br>
+ -h, --ftpHost string           (FTP host)<br>
+ -p, --ftpPort number           (FTP port)<br>
+ -u, --ftpUser string           (FTP user)<br>
+ -s, --ftpPass string           (FTP user password)<br>
+ -d, --ftpDestDir string        (FTP destination directory)<br>
+
+*image-snapshot-create*
+
+ -i, --microservice-id string   (Microservice ID)<br>
+
+*image-snapshot-get*
+
+ -i, --microservice-id string   (Microservice ID)<br>

@@ -52,6 +52,8 @@ app.use((req, res, next) => {
   next()
 });
 
+global.appRoot = path.resolve(__dirname);
+
 const registerRoute = (route) => {
   app[route.method.toLowerCase()](route.path, route.middleware)
 };
@@ -101,12 +103,13 @@ function startHttpsServer(app, port, sslKey, sslCert, intermedKey) {
 }
 
 const
+  devMode = config.get('Server:DevMode'),
   port = config.get('Server:Port'),
   sslKey = config.get('Server:SslKey'),
   sslCert = config.get('Server:SslCert'),
   intermedKey = config.get('Server:IntermediateCert')
 
-if (sslKey && sslCert && intermedKey) {
+if (!devMode && sslKey && sslCert && intermedKey) {
   startHttpsServer(app, port, sslKey, sslCert, intermedKey)
 } else {
   startHttpServer(app, port)

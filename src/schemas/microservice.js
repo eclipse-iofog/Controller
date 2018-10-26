@@ -16,8 +16,10 @@ const microserviceCreate = {
     "imageSnapshot": {"type": "string"},
     "volumeMappings": {
       "type": "array",
-      "items": {"$ref": "volumeMappings"}},
-    "ports": {"$ref": "/ports"},
+      "items": {"$ref": "/volumeMappings"}},
+    "ports": {
+      "type": "array",
+      "items": {"$ref": "/ports"}},
     "routes": {
        "type": "array",
        "items": {"type": "string"}}
@@ -44,12 +46,13 @@ const microserviceUpdate = {
     "imageSnapshot": {"type": "string"},
     "volumeMappings": {
       "type": "array",
-      "items": {"$ref": "volumeMappings"}},
-    "ports": {"$ref": "/ports"},
+      "items": {"$ref": "/volumeMappings"}},
+    "ports": {
+      "type": "array",
+      "items": {"$ref": "/ports"}},
     "routes": {
       "type": "array",
-      "items": {"type": "string"}
-    }
+      "items": {"type": "string"}}
   }
 };
 
@@ -58,8 +61,21 @@ const ports = {
   "type": "object",
   "properties": {
     "internal": {"type": "integer"},
-    "external": {"type": "integer"}
-  }
+    "external": {"type": "integer"},
+    "publicMode": {"enum": [false]}
+  },
+  "required": ["internal", "external"]
+};
+
+const portsCreate = {
+  "id": "/portsCreate",
+  "type": "object",
+  "properties": {
+    "internal": {"type": "integer"},
+    "external": {"type": "integer"},
+    "publicMode": {"type": "boolean"}
+  },
+  "required": ["internal", "external"]
 };
 
 const volumeMappings = {
@@ -93,6 +109,6 @@ const networkConfig = {
 };
 
 module.exports = {
-    mainSchemas: [microserviceCreate, microserviceUpdate, networkConfig],
-    innerSchemas: [ports, volumeMappings]
+    mainSchemas: [microserviceCreate, microserviceUpdate, networkConfig, portsCreate],
+    innerSchemas: [volumeMappings, ports]
 };

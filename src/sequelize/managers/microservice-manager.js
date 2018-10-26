@@ -19,6 +19,10 @@ const VolumeMapping = models.VolumeMapping;
 const StraceDiagnostics = models.StraceDiagnostics;
 const CatalogItem = models.CatalogItem;
 const CatalogItemImage = models.CatalogItemImage;
+const Fog = models.Fog;
+const Flow = models.Flow;
+const User = models.User;
+const Routing = models.Routing;
 
 class MicroserviceManager extends BaseManager {
   getEntity() {
@@ -55,10 +59,27 @@ class MicroserviceManager extends BaseManager {
           as: 'images',
           attributes: ['containerImage', 'fogTypeId']
         }],
-        attributes: ['picture']
+        attributes: ['picture', 'registryId']
+      },
+      {
+        model: Fog,
+        as: 'iofog',
+        required: false,
+        attributes: ['daemonStatus']
+      },
+      {
+        model: Routing,
+        as: 'routes',
+        required: false,
+        include: [{
+          model: Microservice,
+          as: 'destMicroservice',
+          attributes: ['uuid']
+        }],
+        attributes: {exclude: ['id', 'source_microservice_uuid',
+            'sourceMicroserviceUuid', 'destMicroserviceUuid', 'sourceNetworkMicroserviceUuid',
+            'destNetworkMicroserviceUuid', 'sourceIofogUuid', 'destIofogUuid', 'connectorPortId']}
       }
-
-      // TODO: get routes, status
       ],
       where: where,
       attributes: attributes
@@ -95,12 +116,54 @@ class MicroserviceManager extends BaseManager {
           as: 'images',
           attributes: ['containerImage', 'fogTypeId']
           }],
-        attributes: ['picture']
+        attributes: ['picture', 'registryId']
+      },
+      {
+        model: Fog,
+        as: 'iofog',
+        required: false,
+        attributes: ['daemonStatus']
+      },
+      {
+        model: Routing,
+        as: 'routes',
+        required: false,
+        include: [{
+          model: Microservice,
+          as: 'destMicroservice',
+          attributes: ['uuid']
+        }],
+        attributes: {exclude: ['id',
+                'sourceMicroserviceUuid', 'destMicroserviceUuid',
+                'sourceNetworkMicroserviceUuid', 'destNetworkMicroserviceUuid',
+                'sourceIofogUuid', 'destIofogUuid', 'connectorPortId']}
       }
-      // TODO: get routes, status
       ],
       where: where,
       attributes: attributes
+    }, {transaction: transaction})
+  }
+
+  findMicroserviceOnGet(where, transaction) {
+    return Microservice.findOne({
+      include: [
+        {
+          model: Flow,
+          as: 'flow',
+          required: true,
+          include: [
+            {
+              model: User,
+              as: 'user',
+              required: true,
+              attributes: ['id']
+            }
+          ],
+          attributes: ['id']
+        }
+      ],
+      where: where,
+      attributes: ['uuid']
     }, {transaction: transaction})
   }
 }
