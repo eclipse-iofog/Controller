@@ -1243,6 +1243,8 @@ paths:
           description: Bad Request
         '401':
           description: Not Authorized
+        '409':
+          description: Duplicate Name
         '500':
           description: Internal Server Error
   '/microservices/{uuid}':
@@ -1312,6 +1314,8 @@ paths:
           description: Not Authorized
         '404':
           description: Not Found
+        '409':
+          description: Duplicate Name
         '500':
           description: Internal Server Error
     delete:
@@ -1497,7 +1501,7 @@ paths:
     delete:
       tags:
       - Microservices
-      description: Deletes a prot mapping for microservice
+      description: Deletes a port mapping for microservice
       operationId: deleteMicroservicePortMapping
       parameters:
       - in: header
@@ -2919,8 +2923,6 @@ definitions:
         type: string
       config:
         type: string
-      needUpdate:
-        type: boolean
       rebuild:
         type: boolean
       ioFogNodeId:
@@ -2929,8 +2931,6 @@ definitions:
         type: boolean
       logLimit:
         type: number
-      imageSnapshot:
-        type: string
       volumeMappings:
          type: array
          items:
