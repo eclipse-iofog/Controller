@@ -647,7 +647,7 @@ async function _deletePortMapping(microserviceUuid, internalPort, user, transact
     portInternal: internalPort
   }, transaction)
   if (!msPorts) {
-    throw new Errors.ValidationError('port mapping not exists')
+    throw new Errors.NotFoundError('port mapping not exists')
   }
 
   if (msPorts.isPublic) {
