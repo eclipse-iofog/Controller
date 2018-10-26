@@ -247,6 +247,13 @@ const getAgentMicroservices = async function (fog, transaction) {
     };
 
     response.push(responseMicroservice);
+
+    await MicroserviceManager.update({
+      uuid: microservice.uuid
+    }, {
+      rebuild: false
+    }, transaction);
+
   }
 
   return {
