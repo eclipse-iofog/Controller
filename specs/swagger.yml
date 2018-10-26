@@ -1421,8 +1421,6 @@ paths:
           description: Not Found
         '500':
           description: Internal Server Error
-
-
   '/microservices/{uuid}/port-mapping':
     post:
       tags:
@@ -1463,6 +1461,38 @@ paths:
           description: Not Found
         '500':
           description: Internal Server Error
+  '/microservices/{uuid}/port-mapping-list':
+    get:
+      tags:
+      - Microservices
+      description: Get a port mapping list for microservice
+      operationId: getMicroservicePortMapping
+      parameters:
+      - in: header
+        name: Authorization
+        description: User Token
+        required: true
+        type: string
+      - in: path
+        name: uuid
+        description: Microservice Uuid
+        required: true
+        type: string
+      responses:
+        '201':
+          description: Created
+          schema:
+            $ref: '#/definitions/PortMappingsListResponse'
+          headers:
+            X-Timestamp:
+              type: number
+              description: FogController server timestamp
+        '401':
+          description: Not Authorized
+        '404':
+          description: Not Found
+        '500':
+          description: Internal Server Error
   '/microservices/{uuid}/port-mapping/{internalPort}':
     delete:
       tags:
@@ -1492,8 +1522,6 @@ paths:
             X-Timestamp:
               type: number
               description: FogController server timestamp
-        '400':
-          description: Not Valid
         '401':
           description: Not Authorized
         '404':
@@ -2618,6 +2646,23 @@ definitions:
   PortMappingsPublicResponse:
     type: object
     properties:
+      publicIp:
+        type: string
+      publicPort:
+        type: number
+  PortMappingsListResponse:
+    type: array
+    items:
+      $ref: '#/definitions/PortMappingsItemResponse'
+  PortMappingsItemResponse:
+    type: object
+    properties:
+      internal:
+        type: number
+      external:
+        type: number
+      publicMode:
+        type: boolean
       publicIp:
         type: string
       publicPort:
