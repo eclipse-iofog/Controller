@@ -103,7 +103,7 @@ function _createTunnelObject(cliData) {
         username: cliData.username,
         password: cliData.password,
         rsakey: rsa,
-        lport: cliData.port ? cliData.port : 22,
+        lport: cliData.port,
         iofogUuid: cliData.iofogUuid
     }
     return tunnel;
