@@ -643,7 +643,8 @@ async function _createPortMappingOverConnector(microservice, portMappingData, us
 
 
   await _switchOnUpdateFlagsForMicroservicesForPortMapping(microservice, true, transaction)
-  return {publicIp: connector.publicIp, publicPort: connectorPort.port2}
+  const publicLink = await _buildLink(connector.devMode ? 'http' : 'https', connector.publicIp, connectorPort.port2)
+  return {publicLink: publicLink}
 }
 
 async function _switchOnUpdateFlagsForMicroservicesForPortMapping(microservice, isPublic, transaction) {
@@ -758,8 +759,7 @@ async function _getPortMappingList(microserviceUuid, user, isCLI, transaction) {
       const ports = await ConnectorPortManager.findOne({id: pubMode.connectorPortId}, transaction)
       const connector = await ConnectorManager.findOne({id: ports.connectorId}, transaction)
 
-      portMappingResposeData.publicIp = connector.publicIp
-      portMappingResposeData.publicPort = ports.port2
+      portMappingResposeData.publicLink = await _buildLink(connector.devMode ? 'http' : 'https', connector.publicIp, ports.port2)
     }
     res.push(portMappingResposeData)
   }
@@ -792,6 +792,10 @@ async function getPhysicalConections(microservice, transaction) {
   return res
 }
 
+async function _buildLink(protocol, ip, port) {
+  return `${protocol}://${ip}:${port}`
+}
+
 module.exports = {
   createMicroserviceOnFogWithTransaction: TransactionDecorator.generateTransaction(_createMicroserviceOnFog),
   listMicroservicesWithTransaction: TransactionDecorator.generateTransaction(_listMicroservices),
@@ -803,5 +807,6 @@ module.exports = {
   createPortMappingWithTransaction: TransactionDecorator.generateTransaction(_createPortMapping),
   getMicroservicePortMappingListWithTransaction: TransactionDecorator.generateTransaction(_getPortMappingList),
   deletePortMappingWithTransaction: TransactionDecorator.generateTransaction(_deletePortMapping),
-  getPhysicalConections: getPhysicalConections
+  getPhysicalConections: getPhysicalConections,
+  getListMicroservices:  _listMicroservices
 };
