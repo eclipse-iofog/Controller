@@ -17,6 +17,8 @@ const AppHelper = require('../helpers/app-helper');
 const Errors = require('../helpers/errors');
 const ErrorMessages = require('../helpers/error-messages');
 const Validation = require('../schemas');
+const MicroserviceService = require('./microservices-service')
+const ChangeTrackingManager = require('../sequelize/managers/change-tracking-manager')
 
 const _createFlow = async function (flowData, user, isCLI, transaction) {
   await Validation.validate(flowData, Validation.schemas.flowCreate);
@@ -56,8 +58,11 @@ const _deleteFlow = async function (flowId, user, isCLI, transaction) {
 const _updateFlow = async function (flowData, flowId, user, isCLI, transaction) {
     await Validation.validate(flowData, Validation.schemas.flowUpdate);
 
-    await _getFlow(flowId, user, isCLI, transaction);
+    const oldFlow = await _getFlow(flowId, user, isCLI, transaction);
 
+    if (!oldFlow) {
+      throw new Errors.NotFoundError(ErrorMessages.INVALID_FLOW_ID)
+    }
     if (flowData.name !== undefined) {
       await isFlowExist(flowData.name, transaction);
     }
@@ -82,6 +87,18 @@ const _updateFlow = async function (flowData, flowId, user, isCLI, transaction) 
       };
 
     await FlowManager.update(where, updateFlowData, transaction);
+
+    if (oldFlow.isActivated !== flowData.isActivated) {
+      const msList = await MicroserviceService.getListMicroservices({flowId: flowId}, user, isCLI, transaction)
+      for (const ms of msList) {
+        const updateChangeTrackingData = {
+          containerConfig: true,
+          containerList: true,
+          routing: true
+        }
+        await ChangeTrackingManager.update({iofogUuid: ms.iofogUuid}, updateChangeTrackingData, transaction);
+      }
+    }
 };
 
 const _getFlow = async function (flowId, user, isCLI, transaction) {
