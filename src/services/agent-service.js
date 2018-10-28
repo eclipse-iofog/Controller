@@ -30,10 +30,12 @@ const USBInfoManager = require('../sequelize/managers/usb-info-manager');
 const TunnelManager = require('../sequelize/managers/tunnel-manager');
 const MicroserviceManager = require('../sequelize/managers/microservice-manager');
 const MicroserviceService = require('../services/microservices-service');
-
+const path = require('path');
+const fs = require('fs');
 const formidable = require('formidable');
-
 const logger = require('../logger');
+const Sequelize = require('sequelize');
+const Op = Sequelize.Op
 
 const agentProvision = async function (provisionData, transaction) {
 
@@ -247,6 +249,13 @@ const getAgentMicroservices = async function (fog, transaction) {
     };
 
     response.push(responseMicroservice);
+
+    await MicroserviceManager.update({
+      uuid: microservice.uuid
+    }, {
+      rebuild: false
+    }, transaction);
+
   }
 
   return {
@@ -266,7 +275,7 @@ const getAgentMicroservice = async function (microserviceId, fog, transaction) {
 
 const getAgentRegistries = async function (fog, transaction) {
   const registries = await RegistryManager.findAll({
-    $or:
+    [Op.or]:
       [
         {
           userId: fog.userId
@@ -369,24 +378,33 @@ const getImageSnapshot = async function (fog, transaction) {
 
 const putImageSnapshot = async function (req, fog, transaction) {
   const form = new formidable.IncomingForm();
-  form.uploadDir = appRoot + '/imageSnapshot';
-  form.keepExtensions = true;
+  form.uploadDir = path.join(appRoot, '../') + 'data';
+  if (!fs.existsSync(form.uploadDir)) {
+    fs.mkdirSync(form.uploadDir);
+  }
+  const absolutePath = await saveSnapShot(req, form);
+  await MicroserviceManager.update({
+    iofogUuid: fog.uuid,
+    imageSnapshot: 'get_image'
+  }, {
+    imageSnapshot: absolutePath
+  }, transaction);
 
-  await form.parse(req, async function (error, fields, files) {
-    if (error) {
-      throw new Errors.ValidationError()
-    }
+};
 
-    const filePath = files['upstream']['path'];
-    const absolutePath = path.resolve(filePath);
+const saveSnapShot = function (req, form) {
+  return new Promise((resolve, reject) => {
+    form.parse(req, async function (error, fields, files) {
+      if (error) {
+        reject(new Errors.ValidationError());
+      }
 
-    await MicroserviceManager.update({
-      iofogUuid: fog.uuid,
-      imageSnapshot: 'get_image'
-    }, {
-      imageSnapshot: absolutePath
-    }, transaction);
+      const filePath = files['upstream']['path'];
 
+      let absolutePath = path.resolve(filePath);
+      fs.rename(absolutePath, absolutePath + '.tar.gz');
+      resolve(absolutePath + '.tar.gz');
+    });
   });
 };
 

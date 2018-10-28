@@ -162,12 +162,14 @@ const _deleteCatalogItem = async function (obj) {
 const _listCatalogItems = async function () {
   const result = await CatalogItemService.listCatalogItems({}, true);
   logger.info(JSON.stringify(result));
+  logger.info('Catalog items have been successfully retrieved.');
 };
 
 const _listCatalogItem = async function (obj) {
   logger.info(JSON.stringify(obj));
   const result = await CatalogItemService.getCatalogItem(obj.itemId, {}, true);
   logger.info(JSON.stringify(result));
+  logger.info('Catalog item has been successfully retrieved.');
 };
 
 const _createCatalogItemObject = function (catalogItem) {
