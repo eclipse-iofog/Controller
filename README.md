@@ -509,10 +509,8 @@ $ fog-controller catalog <*command*> <*options*> <br>
 
 *route*<br>
 
- -D, --dest-microservice-id string     (Destination Microservice ID of route)<br>
- -S, --source-microservice-id string   (Source Microservice ID of route)<br>
- -a, --add                             (Add new route(s))<br>
- -m, --remove                          (Delete existing route(s))<br>
+ -a, --add string                      (Add new route(s))<br>
+ -m, --remove string                   (Delete existing route(s))<br>
 
 *port-mapping*<br>
 
@@ -520,11 +518,74 @@ $ fog-controller catalog <*command*> <*options*> <br>
  -b, --create                   (Add new port mapping(s))<br>
  -B, --delete                   (Delete existing port mapping(s))<br>
  -G, --list                     (List port mappings)<br>
- -W, --internal number          (Internal port)<br>
- -Y, --external number          (External port)<br>
- -Z, --public                   (Public mode of connector)<br>
- -K, --private                  (Private mode of connector)<br>
 
+**JSON ADD File Schema**<br>
+
+{<br>
+  "name": "string",<br>
+  "config": "string",<br>
+  "catalogItemId": 0,<br>
+  "flowId": 0,<br>
+  "ioFogNodeId": "string",<br>
+  "rootHostAccess": true,<br>
+  "logLimit": 0,<br>
+  "volumeMappings": [<br>
+    {<br>
+      "hostDestination": "/var/dest",<br>
+      "containerDestination": "/var/dest",<br>
+      "accessMode": "rw"<br>
+    }<br>
+  ],<br>
+  "ports": [<br>
+    {<br>
+      "internal": 0,<br>
+      "external": 0,<br>
+      "publicMode": true<br>
+    }<br>
+  ],<br>
+  "routes": [<br>
+    "string"<br>
+  ]<br>
+}<br>
+
+**JSON UPDATE File Schema**<br>
+
+{<br>
+  "name": "string",<br>
+  "config": "string",<br>
+  "rebuild": true,<br>
+  "ioFogNodeId": "string",<br>
+  "rootHostAccess": true,<br>
+  "logLimit": 0,<br>
+  "volumeMappings": [<br>
+    {<br>
+      "hostDestination": "/var/dest",<br>
+      "containerDestination": "/var/dest",<br>
+      "accessMode": "rw"<br>
+    }<br>
+  ]<br>
+}<br>
+
+**Examples**<br>
+ 1. Single mapping                       ($ fog-controller microservice add     
+                                          [other required options] --volumes    
+                                          /host_src:/container_src)              
+  2. Multiple mappings                    ($ fog-controller microservice add     
+                                          [other required options] --volumes    
+                                          /host_src:/container_src              
+                                          /host_bin:/container_bin)              
+  3. Port mapping                         ($ fog-controller microservice add     
+  (internal:external:publicMode)          [other required options] --ports      
+                                          80:8080:false 443:5443:false)          
+  4. Add routes                           ($ fog-controller microservice route   
+                                          --add ABC:DEF)                         
+  5. Delete route                         ($ fog-controller microservice route   
+                                          --remove ABC:DEF)                      
+  6. Create port mapping                  ($ fog-controller microservice port-   
+                                          mapping --create 80:8080:false -i ABC) 
+  7. Delete port mapping                  ($ fog-controller microservice port-   
+                                          mapping --delete 80 -i ABC)    
+ 
 <br>
 <br>
 <br>
