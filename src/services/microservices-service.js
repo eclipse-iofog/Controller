@@ -729,8 +729,8 @@ async function _deletePortMappingOverConnector(microservice, msPorts, user, tran
 }
 
 async function _validatePorts(internal, external) {
-  if (internal < 0 || internal > 65535
-    || external < 0 || external > 65535
+  if (internal <= 0 || internal > 65535
+    || external <= 0 || external > 65535
     //TODO find this ports in project. check is possible to delete some of them
     || external === 60400 || external === 60401 || external === 10500 || external === 54321 || external === 55555) {
 
