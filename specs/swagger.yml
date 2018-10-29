@@ -1516,7 +1516,7 @@ paths:
         type: string
       - in: path
         name: internalPort
-        description: Receiver Microservice Id
+        description: Internal Port
         required: true
         type: string
       responses:

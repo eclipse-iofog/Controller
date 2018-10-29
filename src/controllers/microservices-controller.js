@@ -54,7 +54,7 @@ const _deleteMicroserviceEndPoint = async function (req, user) {
 const _getMicroservicesByFlowEndPoint = async function (req, user) {
   const flowId = req.query.flowId;
 
-  logger.info("Flow id:" + JSON.stringify(flowId))
+  logger.info("Flow id:" + flowId)
 
   return await MicroservicesService.listMicroservicesWithTransaction(flowId, user, false)
 };
