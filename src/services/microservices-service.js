@@ -31,11 +31,11 @@ const RoutingManager = require('../sequelize/managers/routing-manager');
 const Op = require('sequelize').Op;
 const Sequelize = require('sequelize');
 
-const _listMicroservices = async function (data, user, isCLI, transaction) {
+const _listMicroservices = async function (flowId, user, isCLI, transaction) {
   if (!isCLI) {
-    await FlowService.getFlow(data.flowId, user, isCLI, transaction);
+    await FlowService.getFlow(flowId, user, isCLI, transaction);
   }
-  const where = isCLI ? {} : {flowId: data.flowId};
+  const where = isCLI ? {} : {flowId: flowId};
 
   return await MicroserviceManager.findAllWithDependencies(where,
   {
