@@ -13,8 +13,10 @@
 
 module.exports = {
   DUPLICATE_NAME: 'Duplicate name {}',
+  ALREADY_EXISTS: 'Model already exists',
   INVALID_CATALOG_ITEM_ID: 'Invalid catalog item id {}',
   INVALID_FLOW_ID: 'Invalid flow id {}',
+  INVALID_CONNECTOR_IP: 'Invalid connector ip {}',
   UNABLE_TO_CREATE_ACTIVATION_CODE: 'Unable to create activation code',
   UNABLE_TO_GET_ACTIVATION_CODE: 'Unable to create activation code',
   INVALID_FOG_NODE_ID: 'Invalid fog node id {}',
