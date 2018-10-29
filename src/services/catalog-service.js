@@ -35,12 +35,12 @@ const createCatalogItem = async function (data, user, transaction) {
   }
 };
 
-const updateCatalogItem = async function (data, user, isCLI, transaction) {
+const updateCatalogItem = async function (id, data, user, isCLI, transaction) {
   await validator.validate(data, validator.schemas.catalogItemUpdate);
 
   const where = isCLI
-    ? {id: data.id}
-    : {id: data.id, userId: user.id};
+    ? {id: id}
+    : {id: id, userId: user.id};
 
   await _updateCatalogItem(data, where, transaction);
   await _updateCatalogItemImages(data, transaction);
@@ -120,7 +120,7 @@ const listCatalogItems = async function (user, isCLI, transaction) {
   return await CatalogItemManager.findAllWithDependencies(where, attributes, transaction);
 };
 
-const listCatalogItem = async function (id, user, isCLI, transaction) {
+const getCatalogItem = async function (id, user, isCLI, transaction) {
   const where = isCLI
     ? {id: id}
     : {[Op.or]: [{userId: user.id}, {userId: null}], id: id};
@@ -161,7 +161,7 @@ const _checkForDuplicateName = async function (name, item, transaction) {
 };
 
 const _checkIfItemExists = async function (where, transaction) {
-  const item = await CatalogItemManager.findOne(where, transaction)
+  const item = await CatalogItemManager.findOne(where, transaction);
   if (!item) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_CATALOG_ITEM_ID, where.id));
 
@@ -246,10 +246,43 @@ const _createCatalogItemOutputType = async function (data, catalogItem, transact
   return await CatalogItemOutputTypeManager.create(catalogItemOutputType, transaction);
 };
 
+async function getNetworkCatalogItem(transaction) {
+  return await CatalogItemManager.findOne({
+    name: 'Networking Tool',
+    category: 'SYSTEM',
+    publisher: 'Eclipse ioFog',
+    registry_id: 1,
+    user_id: null
+  }, transaction)
+}
+
+async function getBluetoothCatalogItem(transaction) {
+  return await CatalogItemManager.findOne({
+    name: 'RESTBlue',
+    category: 'SYSTEM',
+    publisher: 'Eclipse ioFog',
+    registry_id: 1,
+    user_id: null
+  }, transaction)
+}
+
+async function getHalCatalogItem(transaction) {
+  return await CatalogItemManager.findOne({
+    name: 'HAL',
+    category: 'SYSTEM',
+    publisher: 'Eclipse ioFog',
+    registry_id: 1,
+    user_id: null
+  }, transaction)
+}
+
 module.exports = {
   createCatalogItem: TransactionDecorator.generateTransaction(createCatalogItem),
   listCatalogItems: TransactionDecorator.generateTransaction(listCatalogItems),
-  listCatalogItem: TransactionDecorator.generateTransaction(listCatalogItem),
+  getCatalogItem: TransactionDecorator.generateTransaction(getCatalogItem),
   deleteCatalogItem: TransactionDecorator.generateTransaction(deleteCatalogItem),
-  updateCatalogItem: TransactionDecorator.generateTransaction(updateCatalogItem)
+  updateCatalogItem: TransactionDecorator.generateTransaction(updateCatalogItem),
+  getNetworkCatalogItem: getNetworkCatalogItem,
+  getBluetoothCatalogItem: getBluetoothCatalogItem,
+  getHalCatalogItem: getHalCatalogItem
 };

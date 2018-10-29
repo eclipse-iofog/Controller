@@ -71,6 +71,12 @@ async function handleValidationError(error) {
     case "maxLength":
       message = 'Field ' + error.stack.replace('instance.', '');
       break;
+    case "additionalProperties":
+      message = "Field '" + error.argument + "' not allowed";
+      break;
+    case "type":
+      message = "Field '" + error.property.replace('instance.', '') + "' " + error.message;
+      break;
     default:
       message = JSON.stringify(error);
       break;

@@ -100,7 +100,17 @@ const updateHalUsbInfoEndPoint = async function (req, fog) {
   return await AgentService.updateHalUsbInfo(usbData, fog);
 };
 
+const deleteNodeEndPoint = async function (req, fog) {
+  return await AgentService.deleteNode(fog);
+};
 
+const getImageSnapshotEndPoint = async function(req, fog) {
+  return await AgentService.getImageSnapshot(fog);
+};
+
+const putImageSnapshotEndPoint = async function (req, fog) {
+  return await AgentService.putImageSnapshot(req, fog);
+};
 
 module.exports = {
   agentProvisionEndPoint: agentProvisionEndPoint,
@@ -116,5 +126,8 @@ module.exports = {
   updateAgentStraceEndPoint: AuthDecorator.checkFogToken(updateAgentStraceEndPoint),
   getAgentChangeVersionCommandEndPoint: AuthDecorator.checkFogToken(getAgentChangeVersionCommandEndPoint),
   updateHalHardwareInfoEndPoint: AuthDecorator.checkFogToken(updateHalHardwareInfoEndPoint),
-  updateHalUsbInfoEndPoint: AuthDecorator.checkFogToken(updateHalUsbInfoEndPoint)
+  updateHalUsbInfoEndPoint: AuthDecorator.checkFogToken(updateHalUsbInfoEndPoint),
+  deleteNodeEndPoint: AuthDecorator.checkFogToken(deleteNodeEndPoint),
+  getImageSnapshotEndPoint: AuthDecorator.checkFogToken(getImageSnapshotEndPoint),
+  putImageSnapshotEndPoint: AuthDecorator.checkFogToken(putImageSnapshotEndPoint)
 };

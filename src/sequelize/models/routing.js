@@ -10,48 +10,76 @@ module.exports = (sequelize, DataTypes) => {
     },
     isNetworkConnection: {
       type: DataTypes.BOOLEAN,
+      defaultValue: false,
       field: 'is_network_connection'
     }
   }, {
     timestamps: false,
     underscored: true
   });
-  Routing.associate = function (models) {
+  Routing.associate = function(models) {
 
-    Routing.belongsTo(models.Fog, {
+    Routing.belongsTo(models.Microservice, {
       foreignKey: {
-        name: 'publishingIofogUuid',
-        field: 'publishing_iofog_uuid'
+        name: 'sourceMicroserviceUuid',
+        field: 'source_microservice_uuid'
       },
-      as: 'publishingIofog',
-      onDelete: 'cascade'
-    });
-
-    Routing.belongsTo(models.Fog, {
-      foreignKey: {
-        name: 'destinationIofogUuid',
-        field: 'destination_iofog_uuid'
-      },
-      as: 'destinationIofog',
+      as: 'sourceMicroservice',
       onDelete: 'cascade'
     });
 
     Routing.belongsTo(models.Microservice, {
       foreignKey: {
-        name: 'publishingMicroserviceUuid',
-        field: 'publishing_microservice_uuid'
+        name: 'destMicroserviceUuid',
+        field: 'dest_microservice_uuid'
       },
-      as: 'publishingMicroservice',
+      as: 'destMicroservice',
       onDelete: 'cascade'
     });
 
     Routing.belongsTo(models.Microservice, {
       foreignKey: {
-        name: 'destinationMicroserviceUuid',
-        field: 'destination_microservice_uuid'
+        name: 'sourceNetworkMicroserviceUuid',
+        field: 'source_network_microservice_uuid'
       },
-      as: 'destinationMicroservice',
-      onDelete: 'cascade'
+      as: 'sourceNetworkMicroservice',
+      onDelete: 'set null'
+    });
+
+    Routing.belongsTo(models.Microservice, {
+      foreignKey: {
+        name: 'destNetworkMicroserviceUuid',
+        field: 'dest_network_microservice_uuid'
+      },
+      as: 'destNetworkMicroservice',
+      onDelete: 'set null'
+    });
+
+    Routing.belongsTo(models.Fog, {
+      foreignKey: {
+        name: 'sourceIofogUuid',
+        field: 'source_iofog_uuid'
+      },
+      as: 'sourceIofog',
+      onDelete: 'set null'
+    });
+
+    Routing.belongsTo(models.Fog, {
+      foreignKey: {
+        name: 'destIofogUuid',
+        field: 'dest_iofog_uuid'
+      },
+      as: 'destIofog',
+      onDelete: 'set null'
+    });
+
+    Routing.belongsTo(models.ConnectorPort, {
+      foreignKey: {
+        name: 'connectorPortId',
+        field: 'connector_port_id'
+      },
+      as: 'connectorPort',
+      onDelete: 'set null'
     });
   };
   return Routing;

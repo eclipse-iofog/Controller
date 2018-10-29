@@ -140,5 +140,5 @@ module.exports = [
         .status(responseObject.code)
         .send(responseObject.body)
     }
-  }
+  },
 ];
