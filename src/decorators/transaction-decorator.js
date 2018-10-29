@@ -27,13 +27,20 @@ function transaction(f) {
   }
 }
 
+// function generateTransaction(f) {
+//   return function () {
+//     const args = Array.prototype.slice.call(arguments);
+//     return retry(() => {
+//       const t = transaction(f);
+//       return t.apply(this, args);
+//     }, 5)
+//   }
+// }
+
 function generateTransaction(f) {
-  return function () {
-    const args = Array.prototype.slice.call(arguments);
-    return retry(() => {
-      const t = transaction(f);
-      return t.apply(this, args);
-    }, 5)
+  return function() {
+    const fArgs = Array.prototype.slice.call(arguments);
+    return f.apply(this, fArgs);
   }
 }
 
