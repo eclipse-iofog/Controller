@@ -16,7 +16,7 @@ const Start = require('./start')
 const User = require('./user')
 const Connector = require('./connector')
 const Config = require('./config')
-const Proxy = require('./proxy')
+const Tunnel = require('./tunnel')
 const IOFog = require('./iofog')
 const Catalog = require('./catalog')
 const Flow = require('./flow')
@@ -41,7 +41,7 @@ class Cli extends BaseCLIHandler {
       [constants.CMD_USER]: 'User operations.',
       [constants.CMD_CONFIG]: 'Set/Display iofog-controller service config.',
       [constants.CMD_CONNECTOR]: 'Connector operations.',
-      [constants.CMD_PROXY]: 'Proxy operations.',
+      [constants.CMD_TUNNEL]: 'Tunnel operations.',
       [constants.CMD_IOFOG]: 'ioFog nodes operations.',
       [constants.CMD_CATALOG]: 'Microservices catalog operations.',
       [constants.CMD_FLOW]: 'Application flow operations.',
@@ -68,8 +68,8 @@ class Cli extends BaseCLIHandler {
         return Config.run({ argv })
       case constants.CMD_CONNECTOR:
         return Connector.run({ argv })
-      case constants.CMD_PROXY:
-        return Proxy.run({ argv })
+      case constants.CMD_TUNNEL:
+        return Tunnel.run({ argv })
       case constants.CMD_IOFOG:
         return IOFog.run({ argv })
       case constants.CMD_CATALOG:

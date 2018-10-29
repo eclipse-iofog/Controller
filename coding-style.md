@@ -89,7 +89,7 @@ doSomething(
 // If the argument list is longer, wrap at 80. Uses less vertical space,
 // but violates the rectangle rule and is thus not recommended.
 doSomething(veryDescriptiveArgumentNumberOne, veryDescriptiveArgumentTwo,
-    tableModelEventHandlerProxy, artichokeDescriptorAdapterIterator) {
+    tableModelEventHandlerTunnel, artichokeDescriptorAdapterIterator) {
   // …
 }
 
@@ -98,7 +98,7 @@ doSomething(veryDescriptiveArgumentNumberOne, veryDescriptiveArgumentTwo,
 doSomething(
     veryDescriptiveArgumentNumberOne,
     veryDescriptiveArgumentTwo,
-    tableModelEventHandlerProxy,
+    tableModelEventHandlerTunnel,
     artichokeDescriptorAdapterIterator) {
   // …
 }

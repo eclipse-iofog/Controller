@@ -609,12 +609,12 @@ paths:
           description: Invalid Node Id
         '500':
           description: Internal Server Error
-  '/agent/proxy':
+  '/agent/tunnel':
     get:
       tags:
       - Agent
-      description: Get an ioFog node proxy configuration
-      operationId: getIOFogNodeProxyConfig
+      description: Get an ioFog node tunnel configuration
+      operationId: getIOFogNodeTunnelConfig
       parameters:
       - in: header
         name: Authorization
@@ -625,7 +625,7 @@ paths:
         '200':
           description: Success
           schema:
-            $ref: '#/definitions/IOFogNodeProxyConfigResponse'
+            $ref: '#/definitions/IOFogNodeTunnelConfigResponse'
           headers:
             X-Timestamp:
               type: number
@@ -2267,7 +2267,7 @@ definitions:
         type: number
       deviceScanFrequency:
         type: number
-      proxy:
+      tunnel:
         type: string
       type:
         $ref: '#/definitions/IOFogType'
@@ -2515,7 +2515,7 @@ definitions:
         type: boolean
       isReadyToRollback:
         type: boolean
-  IOFogNodeProxyConfigResponse:
+  IOFogNodeTunnelConfigResponse:
     type: object
     properties:
       username:

@@ -20,36 +20,36 @@ const CliDecorator = require('../decorators/cli-decorator')
 const Errors = require('../helpers/errors')
 const ErrorMessages = require('../helpers/error-messages')
 
-class Proxy extends BaseCLIHandler {
+class Tunnel extends BaseCLIHandler {
   constructor() {
     super()
 
-    this.name = constants.CMD_PROXY
+    this.name = constants.CMD_TUNNEL
     this.commandDefinitions = [
       { name: 'command', defaultOption: true, description: 'update, list', group: constants.CMD, },
-      { name: 'username', alias: 'u', type: String, description: 'Proxy username', group: [constants.CMD_UPDATE] },
-      { name: 'password', alias: 'p', type: String, description: 'Proxy password', group: [constants.CMD_UPDATE] },
-      { name: 'host', alias: 's', type: String, description: 'Proxy host address', group: [constants.CMD_UPDATE] },
-      { name: 'rsa-key', alias: 'k', type: String, description: 'Proxy RSA key', group: [constants.CMD_UPDATE] },
-      { name: 'port', alias: 'o', type: Number, description: 'Proxy port', group: [constants.CMD_UPDATE] },
+      { name: 'username', alias: 'u', type: String, description: 'Tunnel username', group: [constants.CMD_UPDATE] },
+      { name: 'password', alias: 'p', type: String, description: 'Tunnel password', group: [constants.CMD_UPDATE] },
+      { name: 'host', alias: 's', type: String, description: 'Tunnel host address', group: [constants.CMD_UPDATE] },
+      { name: 'rsa-key', alias: 'k', type: String, description: 'Tunnel RSA key', group: [constants.CMD_UPDATE] },
+      { name: 'port', alias: 'o', type: Number, description: 'Tunnel port', group: [constants.CMD_UPDATE] },
       { name: 'iofogUuid', alias: 'f', type: String, description: 'Fog UUID', group: [constants.CMD_UPDATE] },
       { name: 'action', alias: 'a', type: String, description: 'Type of action. Can be "open" or "close"', group: [constants.CMD_UPDATE] }
     ]
     this.commands = {
-      [constants.CMD_UPDATE]: 'Update existing proxy.',
+      [constants.CMD_UPDATE]: 'Update existing tunnel.',
       [constants.CMD_LIST]: 'List all proxies.',
     }
   }
 
 async run(args) {
-    const proxyCommand = this.parseCommandLineArgs(this.commandDefinitions, { argv: args.argv })
+    const tunnelCommand = this.parseCommandLineArgs(this.commandDefinitions, { argv: args.argv })
 
-    switch (proxyCommand.command.command) {
+    switch (tunnelCommand.command.command) {
       case constants.CMD_UPDATE:
-          await _executeCase(proxyCommand, constants.CMD_UPDATE, _updateTunnel, false);
+          await _executeCase(tunnelCommand, constants.CMD_UPDATE, _updateTunnel, false);
           break;
       case constants.CMD_LIST:
-          await _executeCase(proxyCommand, constants.CMD_LIST, _tunnelList, false);
+          await _executeCase(tunnelCommand, constants.CMD_LIST, _tunnelList, false);
           break;
       default:
         return this.help([constants.CMD_HELP])
@@ -109,4 +109,4 @@ function _createTunnelObject(cliData) {
     return tunnel;
 }
 
-module.exports = new Proxy()
+module.exports = new Tunnel()
