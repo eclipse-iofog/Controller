@@ -83,14 +83,6 @@ class Microservice extends BaseCLIHandler {
         group: [constants.CMD_UPDATE, constants.CMD_REMOVE, constants.CMD_INFO, constants.CMD_PORT_MAPPING]
       },
       {
-        name: 'dest-microservice-id', alias: 'D', type: String, description: 'Destination Microservice ID of route',
-        group: [constants.CMD_ROUTE]
-      },
-      {
-        name: 'source-microservice-id', alias: 'S', type: String, description: 'Source Microservice ID of route',
-        group: [constants.CMD_ROUTE]
-      },
-      {
         name: 'name', alias: 'n', type: String, description: 'Microservice name',
         group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
@@ -135,11 +127,11 @@ class Microservice extends BaseCLIHandler {
         group: [constants.CMD_ADD]
       },
       {
-        name: 'add', alias: 'a', type: Boolean, description: 'Add new route(s)',
+        name: 'add', alias: 'a', type: String, description: 'Add new route(s)',
         group: [constants.CMD_ROUTE]
       },
       {
-        name: 'remove', alias: 'm', type: Boolean, description: 'Delete existing route(s)',
+        name: 'remove', alias: 'm', type: String, description: 'Delete existing route(s)',
         group: [constants.CMD_ROUTE]
       },
       {
