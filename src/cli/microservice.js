@@ -222,31 +222,31 @@ class Microservice extends BaseCLIHandler {
         content: [
           {
             desc: '1. Single mapping',
-            example: '$ fog-controller microservice add [other required options] --volumes /host_src:/container_src',
+            example: '$ iofog-controller microservice add [other required options] --volumes /host_src:/container_src',
           },
           {
             desc: '2. Multiple mappings',
-            example: '$ fog-controller microservice add [other required options] --volumes /host_src:/container_src /host_bin:/container_bin',
+            example: '$ iofog-controller microservice add [other required options] --volumes /host_src:/container_src /host_bin:/container_bin',
           },
           {
             desc: '3. Port mapping (internal:external:publicMode)',
-            example: '$ fog-controller microservice add [other required options] --ports 80:8080:false 443:5443:false',
+            example: '$ iofog-controller microservice add [other required options] --ports 80:8080:false 443:5443:false',
           },
           {
             desc: '4. Add routes',
-            example: '$ fog-controller microservice route --add ABC:DEF',
+            example: '$ iofog-controller microservice route --add ABC:DEF',
           },
           {
             desc: '5. Delete route',
-            example: '$ fog-controller microservice route --remove ABC:DEF',
+            example: '$ iofog-controller microservice route --remove ABC:DEF',
           },
           {
             desc: '6. Create port mapping',
-            example: '$ fog-controller microservice port-mapping --create 80:8080:false -i ABC'
+            example: '$ iofog-controller microservice port-mapping --create 80:8080:false -i ABC'
           },
           {
             desc: '7. Delete port mapping',
-            example: '$ fog-controller microservice port-mapping --delete 80 -i ABC'
+            example: '$ iofog-controller microservice port-mapping --delete 80 -i ABC'
           }
         ],
       },
