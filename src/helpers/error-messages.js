@@ -13,8 +13,10 @@
 
 module.exports = {
   DUPLICATE_NAME: 'Duplicate name {}',
+  ALREADY_EXISTS: 'Model already exists',
   INVALID_CATALOG_ITEM_ID: 'Invalid catalog item id {}',
   INVALID_FLOW_ID: 'Invalid flow id {}',
+  INVALID_CONNECTOR_IP: 'Invalid connector ip {}',
   UNABLE_TO_CREATE_ACTIVATION_CODE: 'Unable to create activation code',
   UNABLE_TO_GET_ACTIVATION_CODE: 'Unable to create activation code',
   INVALID_FOG_NODE_ID: 'Invalid fog node id {}',
@@ -45,5 +47,6 @@ module.exports = {
   INVALID_MICROSERVICE_USER: 'Invalid microservice user or uuid',
   ROUTE_NOT_FOUND: 'Route not found',
   IMAGE_SNAPSHOT_WITHOUT_FOG: 'Can not run image snapshot for element without fog.',
-  FILE_DOES_NOT_EXIST: 'File does not exist.'
+  FILE_DOES_NOT_EXIST: 'File does not exist.',
+  RESTRICTED_PUBLISHER: "You are not allowed to add catalog item as 'Eclipse ioFog' publisher"
 };

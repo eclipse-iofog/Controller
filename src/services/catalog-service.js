@@ -25,6 +25,7 @@ const validator = require('../schemas/index');
 const createCatalogItem = async function (data, user, transaction) {
   await validator.validate(data, validator.schemas.catalogItemCreate);
   await _checkForDuplicateName(data.name, {userId: user.id}, transaction);
+  await _checkForRestrictedPublisher(data.publisher);
   const catalogItem = await _createCatalogItem(data, user, transaction);
   await _createCatalogImages(data, catalogItem, transaction);
   await _createCatalogItemInputType(data, catalogItem, transaction);
@@ -157,6 +158,12 @@ const _checkForDuplicateName = async function (name, item, transaction) {
     if (result) {
       throw new Errors.DuplicatePropertyError(AppHelper.formatMessage(ErrorMessages.DUPLICATE_NAME, name));
     }
+  }
+};
+
+const _checkForRestrictedPublisher = async function(publisher) {
+  if (publisher === 'Eclipse ioFog') {
+    throw new Errors.ValidationError(ErrorMessages.RESTRICTED_PUBLISHER);
   }
 };
 

@@ -52,11 +52,11 @@ const _deleteMicroserviceEndPoint = async function (req, user) {
 };
 
 const _getMicroservicesByFlowEndPoint = async function (req, user) {
-  const data = req.query.flowId;
+  const flowId = req.query.flowId;
 
-  logger.info("Flow id:" + JSON.stringify(data.flowId))
+  logger.info("Flow id:" + JSON.stringify(flowId))
 
-  return await MicroservicesService.listMicroservicesWithTransaction(data, user, false)
+  return await MicroservicesService.listMicroservicesWithTransaction(flowId, user, false)
 };
 
 async function _createMicroserviceRoute(req, user) {
