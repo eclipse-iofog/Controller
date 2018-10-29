@@ -751,7 +751,7 @@ async function _buildPortsList(portsPairs, transaction) {
       const connectorPorts = await ConnectorPortManager.findOne({id: pubMode.connectorPortId}, transaction)
       const connector = await ConnectorManager.findOne({id: connectorPorts.connectorId}, transaction)
 
-      portMappingResposeData.publicLink = await _buildLink(connector.devMode ? 'http' : 'https', connector.publicIp, ports.port2)
+      portMappingResposeData.publicLink = await _buildLink(connector.devMode ? 'http' : 'https', connector.publicIp, connectorPorts.port2)
     }
     res.push(portMappingResposeData)
   }
