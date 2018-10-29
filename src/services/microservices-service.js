@@ -643,7 +643,8 @@ async function _createPortMappingOverConnector(microservice, portMappingData, us
 
 
   await _switchOnUpdateFlagsForMicroservicesForPortMapping(microservice, true, transaction)
-  return {publicIp: connector.publicIp, publicPort: connectorPort.port2}
+  const publicLink = await _buildLink(connector.devMode ? 'http' : 'https', connector.publicIp, connectorPort.port2)
+  return {publicLink: publicLink}
 }
 
 async function _switchOnUpdateFlagsForMicroservicesForPortMapping(microservice, isPublic, transaction) {
@@ -728,13 +729,33 @@ async function _deletePortMappingOverConnector(microservice, msPorts, user, tran
 }
 
 async function _validatePorts(internal, external) {
-  if (internal < 0 || internal > 65535
-    || external < 0 || external > 65535
+  if (internal <= 0 || internal > 65535
+    || external <= 0 || external > 65535
     //TODO find this ports in project. check is possible to delete some of them
     || external === 60400 || external === 60401 || external === 10500 || external === 54321 || external === 55555) {
 
     throw new Errors.ValidationError('incorrect port')
   }
+}
+
+async function _buildPortsList(portsPairs, transaction) {
+  const res = []
+  for (const ports of portsPairs) {
+    let portMappingResposeData = {
+      internal: ports.portInternal,
+      external: ports.portExternal,
+      publicMode: ports.isPublic
+    }
+    if (ports.isPublic) {
+      const pubMode = await MicroservicePublicModeManager.findOne({microservicePortId: ports.id}, transaction)
+      const connectorPorts = await ConnectorPortManager.findOne({id: pubMode.connectorPortId}, transaction)
+      const connector = await ConnectorManager.findOne({id: connectorPorts.connectorId}, transaction)
+
+      portMappingResposeData.publicLink = await _buildLink(connector.devMode ? 'http' : 'https', connector.publicIp, connectorPorts.port2)
+    }
+    res.push(portMappingResposeData)
+  }
+  return res
 }
 
 async function _getPortMappingList(microserviceUuid, user, isCLI, transaction) {
@@ -745,24 +766,9 @@ async function _getPortMappingList(microserviceUuid, user, isCLI, transaction) {
   if (!microservice) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, microserviceUuid))
   }
-  let res = []
-  const portsPairs = await MicroservicePortManager.findAll({microserviceUuid: microserviceUuid}, transaction)
-  for (const ports of portsPairs) {
-    let portMappingResposeData = {
-      internal: ports.portInternal,
-      external: ports.portExternal,
-      publicMode: ports.isPublic
-    }
-    if (ports.isPublic) {
-      const pubMode = await MicroservicePublicModeManager.findOne({microservicePortId: ports.id}, transaction)
-      const ports = await ConnectorPortManager.findOne({id: pubMode.connectorPortId}, transaction)
-      const connector = await ConnectorManager.findOne({id: ports.connectorId}, transaction)
 
-      portMappingResposeData.publicIp = connector.publicIp
-      portMappingResposeData.publicPort = ports.port2
-    }
-    res.push(portMappingResposeData)
-  }
+  const portsPairs = await MicroservicePortManager.findAll({microserviceUuid: microserviceUuid}, transaction)
+  const res = await _buildPortsList(portsPairs, transaction);
   return res
 }
 
@@ -792,6 +798,10 @@ async function getPhysicalConections(microservice, transaction) {
   return res
 }
 
+async function _buildLink(protocol, ip, port) {
+  return `${protocol}://${ip}:${port}`
+}
+
 module.exports = {
   createMicroserviceOnFogWithTransaction: TransactionDecorator.generateTransaction(_createMicroserviceOnFog),
   listMicroservicesWithTransaction: TransactionDecorator.generateTransaction(_listMicroservices),
@@ -803,5 +813,6 @@ module.exports = {
   createPortMappingWithTransaction: TransactionDecorator.generateTransaction(_createPortMapping),
   getMicroservicePortMappingListWithTransaction: TransactionDecorator.generateTransaction(_getPortMappingList),
   deletePortMappingWithTransaction: TransactionDecorator.generateTransaction(_deletePortMapping),
-  getPhysicalConections: getPhysicalConections
+  getPhysicalConections: getPhysicalConections,
+  getListMicroservices:  _listMicroservices
 };
