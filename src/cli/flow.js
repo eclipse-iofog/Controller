@@ -19,10 +19,11 @@ const AppHelper = require('../helpers/app-helper');
 const logger = require('../logger');
 const fs = require('fs');
 
-const JSON_SCHEMA =
-  `  name: string
-  description: string
-  isActivated: boolean`;
+const JSON_SCHEMA = AppHelper.stringifyCliJsonSchema({
+  name: "string",
+  description: "string",
+  isActivated: true
+});
 
 class Flow extends BaseCLIHandler {
   constructor() {

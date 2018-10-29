@@ -16,7 +16,7 @@ const retry = require('retry-as-promised');
 const sequelize = db.sequelize;
 
 function transaction(f) {
-  return function() {
+  return function () {
     const fArgs = Array.prototype.slice.call(arguments);
     // To be removed when transactions concurrency issue fixed
     return f.apply(this, fArgs)
@@ -33,7 +33,13 @@ function generateTransaction(f) {
     return retry(() => {
       const t = transaction(f);
       return t.apply(this, args);
-    }, 5)
+    }, {
+        max: 5,
+        match: [
+          sequelize.ConnectionError,
+          'SQLITE_BUSY',
+        ],
+      })
   }
 }
 

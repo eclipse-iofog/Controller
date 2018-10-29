@@ -81,7 +81,7 @@ const _createMicroserviceOnFog = async function (microserviceData, user, isCLI, 
 
   if (microserviceData.ports) {
     for (const port of microserviceData.ports) {
-      await _createPortMapping(microservice.uuid, port, user, transaction);
+      await _createPortMapping(microservice.uuid, port, user, isCLI, transaction);
     }
   }
   if (microserviceData.volumeMappings) {
@@ -523,6 +523,7 @@ async function _deleteRouteOverConnector(route, transaction) {
 
 async function _createPortMapping(microserviceUuid, portMappingData, user, isCLI, transaction) {
   await Validation.validate(portMappingData, Validation.schemas.portsCreate);
+  await _validatePorts(portMappingData.internal, portMappingData.external)
 
   const where = isCLI
     ? {uuid: microserviceUuid}
@@ -534,7 +535,7 @@ async function _createPortMapping(microserviceUuid, portMappingData, user, isCLI
   }
 
   if (!microservice.iofogUuid) {
-    throw new Errors.ValidationError('fog not set')
+    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.REQUIRED_FOG_NODE));
   }
 
   const msPorts = await MicroservicePortManager.findOne({
@@ -548,7 +549,7 @@ async function _createPortMapping(microserviceUuid, portMappingData, user, isCLI
           portExternal: portMappingData.external
         }
       ]
-  }, transaction)
+  }, transaction);
   if (msPorts) {
     throw new Errors.ValidationError('port mapping already exists')
   }
@@ -575,8 +576,6 @@ async function _createSimplePortMapping(microservice, portMappingData, user, tra
 }
 
 async function _createPortMappingOverConnector(microservice, portMappingData, user, transaction) {
-  await _validatePorts(portMappingData.internal, portMappingData.external)
-
   //open comsat
   const justOpenedConnectorsPorts = await ConnectorService.openPortOnRandomConnector(true, transaction)
 
@@ -608,7 +607,7 @@ async function _createPortMappingOverConnector(microservice, portMappingData, us
     'passcode': ports.passcode1,
     'connectioncount': 60,
     'localhost': 'iofog',
-    'localport': 0,
+    'localport': portMappingData.external,
     'heartbeatfrequency': 20000,
     'heartbeatabsencethreshold': 60000,
     'devmode': connector.devMode

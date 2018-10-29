@@ -70,7 +70,7 @@ async function _executeCase(commands, commandName, f, isUserRequired) {
     const obj = commands[commandName];
 
     if (isUserRequired) {
-      const decoratedFunction = CliDecorator.prepareUser(f);
+      const decoratedFunction = CliDecorator.prepareUserById(f);
       decoratedFunction(obj);
     } else {
       f(obj);
