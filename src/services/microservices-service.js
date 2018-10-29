@@ -738,16 +738,8 @@ async function _validatePorts(internal, external) {
   }
 }
 
-async function _getPortMappingList(microserviceUuid, user, isCLI, transaction) {
-  const where = isCLI
-    ? {uuid: microserviceUuid}
-    : {uuid: microserviceUuid, updatedBy: user.id};
-  const microservice = await MicroserviceManager.findOne(where, transaction)
-  if (!microservice) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, microserviceUuid))
-  }
-  let res = []
-  const portsPairs = await MicroservicePortManager.findAll({microserviceUuid: microserviceUuid}, transaction)
+async function _buildPortsList(portsPairs, transaction) {
+  const res = []
   for (const ports of portsPairs) {
     let portMappingResposeData = {
       internal: ports.portInternal,
@@ -756,13 +748,27 @@ async function _getPortMappingList(microserviceUuid, user, isCLI, transaction) {
     }
     if (ports.isPublic) {
       const pubMode = await MicroservicePublicModeManager.findOne({microservicePortId: ports.id}, transaction)
-      const ports = await ConnectorPortManager.findOne({id: pubMode.connectorPortId}, transaction)
-      const connector = await ConnectorManager.findOne({id: ports.connectorId}, transaction)
+      const connectorPorts = await ConnectorPortManager.findOne({id: pubMode.connectorPortId}, transaction)
+      const connector = await ConnectorManager.findOne({id: connectorPorts.connectorId}, transaction)
 
       portMappingResposeData.publicLink = await _buildLink(connector.devMode ? 'http' : 'https', connector.publicIp, ports.port2)
     }
     res.push(portMappingResposeData)
   }
+  return res
+}
+
+async function _getPortMappingList(microserviceUuid, user, isCLI, transaction) {
+  const where = isCLI
+    ? {uuid: microserviceUuid}
+    : {uuid: microserviceUuid, updatedBy: user.id};
+  const microservice = await MicroserviceManager.findOne(where, transaction)
+  if (!microservice) {
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, microserviceUuid))
+  }
+
+  const portsPairs = await MicroservicePortManager.findAll({microserviceUuid: microserviceUuid}, transaction)
+  const res = await _buildPortsList(portsPairs, transaction);
   return res
 }
 
