@@ -88,6 +88,7 @@ const _updateFlow = async function (flowData, flowId, user, isCLI, transaction) 
 
     await FlowManager.update(where, updateFlowData, transaction);
 
+    //TODO: simplify. use manager's join query
     if (oldFlow.isActivated !== flowData.isActivated) {
       const msList = await MicroserviceService.getListMicroservices({flowId: flowId}, user, isCLI, transaction)
       for (const ms of msList) {
