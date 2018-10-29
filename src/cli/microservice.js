@@ -206,27 +206,27 @@ class Microservice extends BaseCLIHandler {
         content: [
           {
             desc: '1. Single mapping',
-            example: '$ fog-controller microservice add [other required options] --volumes /host_src:/container_src',
+            example: '$ iofog-controller microservice add [other required options] --volumes /host_src:/container_src',
           },
           {
             desc: '2. Multiple mappings',
-            example: '$ fog-controller microservice add [other required options] --volumes /host_src:/container_src /host_bin:/container_bin',
+            example: '$ iofog-controller microservice add [other required options] --volumes /host_src:/container_src /host_bin:/container_bin',
           },
           {
             desc: '3. Ports (internal:external:tunnel)',
-            example: '$ fog-controller microservice add [other required options] --ports 80:8080:false 443:5443:true',
+            example: '$ iofog-controller microservice add [other required options] --ports 80:8080:false 443:5443:true',
           },
           {
             desc: '4. Add routes',
-            example: '$ fog-controller microservice route -i ABCD --add DEF GHI',
+            example: '$ iofog-controller microservice route -i ABCD --add DEF GHI',
           },
           {
             desc: '5. Delete route',
-            example: '$ fog-controller microservice route -i ABC --remove DEF',
+            example: '$ iofog-controller microservice route -i ABC --remove DEF',
           },
           {
             desc: '6. Get strace data',
-            example: '$ fog-controller microservice strace -i ABC --get file',
+            example: '$ iofog-controller microservice strace -i ABC --get file',
           },
         ],
       },

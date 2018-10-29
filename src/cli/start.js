@@ -31,7 +31,7 @@ class Start extends BaseCLIHandler {
       daemon.start()
       checkDaemon(daemon, configuration)
     } else {
-      logger.silly(`fog-controller already running. PID: ${pid}`)
+      logger.silly(`iofog-controller already running. PID: ${pid}`)
     }
   }
 }
@@ -47,7 +47,7 @@ function checkDaemon(daemon, configuration) {
 
     if (iterationsCount === 5) {
       checkServerProtocol(configuration)
-      return logger.silly(`Fog-Controller has started at pid: ${pid}`)
+      return logger.silly(`ioFog-Controller has started at pid: ${pid}`)
     }
 
     setTimeout(check, 1000)

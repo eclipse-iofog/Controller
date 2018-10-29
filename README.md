@@ -1,16 +1,15 @@
 **Fog Controller Usage**
 
- $ fog-controller <*command*> <*options*>
+ $ iofog-controller <*command*> <*options*>
 
 **Command List**
 
- start          -- Start fog-controller service. <br>
- stop           -- Stop fog-controller service. <br>
- controller     -- Display fog-controller service information. <br>
+ start          -- Start iofog-controller service. <br>
+ stop           -- Stop iofog-controller service. <br>
+ controller     -- Display iofog-controller service information. <br>
  help           -- Display usage information. <br>
- version        -- Display fog-controller service version. <br>
  user           -- User operations. <br>
- config         -- Set/Display fog-controller service config. <br>
+ config         -- Set/Display iofog-controller service config. <br>
  connector      -- Connector operations. <br>
  proxy          -- Proxy operations. <br>
  iofog          -- ioFog nodes operations. <br>
@@ -25,20 +24,21 @@
 
 **Controller**
 
-$ fog-controller controller <*command*> <*options*>
+$ iofog-controller controller <*command*> <*options*>
 
 **Command List**
 
- - status             -- Display fog-controller service status.
+ - status             -- Display iofog-controller service status.
  - email-activation   -- Is email activation.
  - fog-types          -- List all Fog-types.
+ - version            -- Display iofog-controller service version.
 <br>
 <br>
 <br>
 
 **User**
 
-$ fog-controller user <*command*> <*options*>
+$ iofog-controller user <*command*> <*options*>
 
 **Command List**
 
@@ -88,7 +88,7 @@ $ fog-controller user <*command*> <*options*>
 
 **Config** <br>
 
-$ fog-controller config <*options*>
+$ iofog-controller config <*options*>
  
  *add*
 
@@ -117,7 +117,7 @@ $ fog-controller config <*options*>
  
 **Connector** <br>
 
-$ fog-controller connector <*command*> <*options*>
+$ iofog-controller connector <*command*> <*options*>
 
 **Command List**
 
@@ -157,7 +157,7 @@ $ fog-controller connector <*command*> <*options*>
  
 **Proxy** <br>
 
-$ fog-controller proxy <*command*> <*options*>
+$ iofog-controller proxy <*command*> <*options*>
 
 **Command List**
 
@@ -186,7 +186,7 @@ proxy list
  
  **IoFog**
  
- $ fog-controller iofog <*command*> <*options*>
+ $ iofog-controller iofog <*command*> <*options*>
 
 **Command List**
 
@@ -323,7 +323,7 @@ proxy list
 
 **Catalog**<br>
 
-$ fog-controller catalog <*command*> <*options*> <br>
+$ iofog-controller catalog <*command*> <*options*> <br>
 
 **Command List**<br>
 
@@ -409,7 +409,7 @@ $ fog-controller catalog <*command*> <*options*> <br>
 <br>
 **Flow**<br>
 
- $ fog-controller flow <*command*> <*options*><br>
+ $ iofog-controller flow <*command*> <*options*><br>
 
 *Command List*<br>
 
@@ -455,7 +455,7 @@ $ fog-controller catalog <*command*> <*options*> <br>
 
  **Microservice**<br>
  
- $ fog-controller microservice <*command*> <*options*><br>
+ $ iofog-controller microservice <*command*> <*options*><br>
 
 *Command List*<br>
 
@@ -531,7 +531,7 @@ $ fog-controller catalog <*command*> <*options*> <br>
 
  **Registry**
 
- $ fog-controller registry <*command*> <*options*><br>
+ $ iofog-controller registry <*command*> <*options*><br>
 
 *Command List*<br>
 
@@ -557,7 +557,7 @@ $ fog-controller catalog <*command*> <*options*> <br>
 
  **Diagnostics**
 
- $ fog-controller diagnostics <*command*> <*options*><br>
+ $ iofog-controller diagnostics <*command*> <*options*><br>
 
 *Command List*<br>
 

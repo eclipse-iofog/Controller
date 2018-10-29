@@ -1,6 +1,6 @@
 {
   "App": {
-    "Name": "fog-controller"
+    "Name": "iofog-controller"
   },
   "Server": {
     "Port": 54421,
@@ -11,7 +11,7 @@
     "HomeUrl": "https://google.com"
   },
   "Service": {
-    "LogsDirectory": "/var/log/fog-controller",
+    "LogsDirectory": "/var/log/iofog-controller",
     "LogsFileSize": 1048576
   },
   "Settings": {

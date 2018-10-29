@@ -1,7 +1,7 @@
 {
-  "name": "fog-controller",
+  "name": "iofog-controller",
   "version": "0.3.01",
-  "description": "Fog Controller project for Eclipse IoFog @ iofog.org \\nCopyright (c) 2018 Edgeworx, Inc.",
+  "description": "ioFog Controller project for Eclipse IoFog @ iofog.org \\nCopyright (c) 2018 Edgeworx, Inc.",
   "main": "./src/main.js",
   "author": "Saeid Baghbidi",
   "license": {
@@ -21,7 +21,7 @@
   },
   "preferGlobal": true,
   "bin": {
-    "fog-controller": "./dist/main.js"
+    "iofog-controller": "./dist/main.js"
   },
   "homepage": "https://www.iofog.org",
   "dependencies": {

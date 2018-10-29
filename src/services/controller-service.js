@@ -49,7 +49,7 @@ const statusController = async function (isCLI) {
 };
 
 const getVersion = async function (isCLI) {
-  return "Iofog-Controller version: 1.0";
+  return "Iofog-Controller version: 1.0.0";
 };
 
 module.exports = {

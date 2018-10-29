@@ -46,7 +46,7 @@ class StraceManager extends BaseManager {
     let newBuffer = oldBuf + pushingData;
     let delta = newBuffer.length - maxBufferSize;
     if (delta > 0) {
-      newBuffer = '[FogController Info] Buffer size is limited, so some of previous data was lost \n'
+      newBuffer = '[ioFogController Info] Buffer size is limited, so some of previous data was lost \n'
         + newBuffer.substring(delta);
     }
     return newBuffer;
