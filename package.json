@@ -1,5 +1,5 @@
 {
-  "name": "iofog-controller",
+  "name": "iofogcontroller",
   "version": "0.9.0",
   "description": "ioFog Controller project for Eclipse IoFog @ iofog.org \\nCopyright (c) 2018 Edgeworx, Inc.",
   "main": "./src/main.js",
