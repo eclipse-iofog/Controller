@@ -233,19 +233,19 @@ class Microservice extends BaseCLIHandler {
             example: '$ fog-controller microservice add [other required options] --ports 80:8080:false 443:5443:false',
           },
           {
-            desc: '4. Add routes',
+            desc: '4. Add routes (sourceMicroserviceId:destMicroserviceId)',
             example: '$ fog-controller microservice route --add ABC:DEF',
           },
           {
-            desc: '5. Delete route',
+            desc: '5. Delete route (sourceMicroserviceId:destMicroserviceId)',
             example: '$ fog-controller microservice route --remove ABC:DEF',
           },
           {
-            desc: '6. Create port mapping',
+            desc: '6. Create port mapping (internal:external:publicMode)',
             example: '$ fog-controller microservice port-mapping --create 80:8080:false -i ABC'
           },
           {
-            desc: '7. Delete port mapping',
+            desc: '7. Delete port mapping (internal)',
             example: '$ fog-controller microservice port-mapping --delete 80 -i ABC'
           }
         ],
@@ -331,14 +331,14 @@ const _removeMicroservice = async function (obj) {
 
 const _listMicroservices = async function () {
   const result = await MicroserviceService.listMicroservicesWithTransaction({}, {}, true);
-  logger.info(JSON.stringify(result));
+  logger.info(JSON.stringify(result, null, 2));
   logger.info('Microservices have been retrieved successfully.');
 };
 
 const _getMicroservice = async function (obj) {
   logger.info(JSON.stringify(obj));
   const result = await MicroserviceService.getMicroserviceWithTransaction(obj.microserviceId, {}, true);
-  logger.info(JSON.stringify(result));
+  logger.info(JSON.stringify(result, null, 2));
   logger.info('Microservice has been retrieved successfully.');
 };
 
@@ -376,7 +376,7 @@ const _updateMicroserviceObject = function (obj) {
   };
 
   if (obj.volumes) {
-    microserviceObj.volumeMappings = parseObjectArray(obj.volumes, 'Error during parsing of volume mapping option.');
+    microserviceObj.volumeMappings = parseVolumes(obj.volumes, 'Error during parsing of volume mapping option.');
   }
 
   return AppHelper.deleteUndefinedFields(microserviceObj);
@@ -438,9 +438,7 @@ const parsePortMappingObject = function (obj, errMsg) {
 }
 
 const parsePortMappingArray = function (arr, errMsg) {
-  return arr.map(obj => {
-    parsePortMappingObject(obj, errMsg);
-  })
+  return arr.map(obj => parsePortMappingObject(obj, errMsg));
 };
 
 module.exports = new Microservice();
