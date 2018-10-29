@@ -75,9 +75,6 @@ class IOFog extends BaseCLIHandler {
       { name: 'abs-hw-disable', alias: 'a', type: Boolean, description: 'Disable hardware abstraction on ioFog node', group: [constants.CMD_UPDATE, constants.CMD_ADD] },
       { name: 'reboot', alias: 'o', type: Boolean, description: 'Reboot ioFog node', group: [constants.CMD_UPDATE, constants.CMD_ADD] },
       { name: 'fog-type', alias: 'y', type: Number, description: 'ioFog node architecture type', group: [constants.CMD_UPDATE, constants.CMD_ADD] },
-      { name: 'enable', alias: 'e', type: Boolean, description: 'Enable tunnel', group: [constants.CMD_TUNNEL] },
-      { name: 'disable', alias: 'S', type: Boolean, description: 'Disable tunnel', group: [constants.CMD_TUNNEL] },
-      { name: 'info', alias: 'O', type: Boolean, description: 'Display tunnel info', group: [constants.CMD_TUNNEL] },
       { name: 'version-command', alias: 'v', type: String, description: 'ioFog version command', group: [constants.CMD_VERSION] },
       { name: 'user-id', alias: 'u', type: Number, description: 'User\'s id', group: [constants.CMD_ADD] }
     ]
@@ -90,7 +87,6 @@ class IOFog extends BaseCLIHandler {
       [constants.CMD_PROVISIONING_KEY]: 'Get provisioning key for an ioFog node.',
       [constants.CMD_IOFOG_REBOOT]: 'Reboot ioFog node',
       [constants.CMD_VERSION]: 'Change agent version of ioFog node',
-      [constants.CMD_TUNNEL]: 'Tunnel operations for an ioFog node.',
       [constants.CMD_HAL_HW]: 'Get HAL Hardware ioFog node data',
       [constants.CMD_HAL_USB]: 'Get HAL USB ioFog node data'
     }

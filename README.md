@@ -12,7 +12,7 @@
  user           -- User operations. <br>
  config         -- Set/Display fog-controller service config. <br>
  connector      -- Connector operations. <br>
- proxy          -- Proxy operations. <br>
+ tunnel         -- Tunnel operations. <br>
  iofog          -- ioFog nodes operations. <br>
  catalog        -- Microservices catalog operations. <br>
  flow           -- Application flow operations. <br>
@@ -155,31 +155,31 @@ $ fog-controller connector <*command*> <*options*>
 <br>
 <br> 
  
-**Proxy** <br>
+**Tunnel** <br>
 
-$ fog-controller proxy <*command*> <*options*>
+$ fog-controller tunnel <*command*> <*options*>
 
 **Command List**
 
- update   -- Update existing proxy or create a new one. <br>
- list     -- List all proxies. <br>
+ update   -- Update existing tunnel or create a new one. <br>
+ list     -- List all tunnels. <br>
 
 *update -a* <*action*> (Action: can be either 'open' or 'close')
 
- -u, --username string   (Proxy username) <br>
- -p, --password string   (Proxy password) <br>
- -s, --host string       (Proxy host address) <br>
- -k, --rsa-key string    (Proxy RSA key) <br>
- -o, --port number       (Proxy port) <br>
+ -u, --username string   (Tunnel username) <br>
+ -p, --password string   (Tunnel password) <br>
+ -s, --host string       (Tunnel host address) <br>
+ -k, --rsa-key string    (Tunnel RSA key) <br>
+ -o, --port number       (Tunnel port) <br>
  -f, --iofogUuid string  (Fog UUID) <br>
 
 **Example**<br>
- proxy update -a close -u dmitry -p dpass -s 127.12.14.52 -k /home/dmitrys/documents/rsa.txt -o 22 -f NH44VjVFnr8946Yr8HPRrJdFZgLN8k7j <br>
+ tunnel update -a close -u dmitry -p dpass -s 127.12.14.52 -k /home/dmitrys/documents/rsa.txt -o 22 -f NH44VjVFnr8946Yr8HPRrJdFZgLN8k7j <br>
  
 *list*<br>
 
 **Example**<br>
-proxy list
+tunnel list
 <br>
 <br>
 <br>  
@@ -198,7 +198,6 @@ proxy list
   provisioning-key   -- Get provisioning key for an ioFog node. <br>
   reboot             -- Reboot ioFog node. <br>             
   version            -- Change agent version of ioFog node. <br>
-  tunnel             -- Tunnel operations for an ioFog node. <br>
   hal-hw             -- Get HAL Hardware ioFog node data. <br>
   hal-usb            -- Get HAL USB ioFog node data. <br>
   
@@ -278,12 +277,6 @@ proxy list
 
   -i, --node-id         string           (ioFog node ID)         
   -v, --version-command string           (ioFog version command) 
-
-*tunnel*
-
-  -e, --enable     (Enable tunnel) <br>
-  -S, --disable    (Disable tunnel) <br>
-  -O, --info       (Display tunnel info) <br>
   
  *hal-hw*
 

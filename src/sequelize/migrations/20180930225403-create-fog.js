@@ -204,10 +204,10 @@ module.exports = {
         defaultValue: 20,
         field: 'device_scan_frequency'
       },
-      proxy: {
+      tunnel: {
         type: Sequelize.TEXT,
         defaultValue: "",
-        field: 'proxy'
+        field: 'tunnel'
       },
       watchdogEnabled: {
         type: Sequelize.BOOLEAN,

@@ -41,9 +41,9 @@ module.exports = {
         type: Sequelize.BOOLEAN,
         field: 'registries'
       },
-      proxy: {
+      tunnel: {
         type: Sequelize.BOOLEAN,
-        field: 'proxy'
+        field: 'tunnel'
       },
       diagnostics: {
         type: Sequelize.BOOLEAN,
