@@ -291,7 +291,7 @@ const getAgentRegistries = async function (fog, transaction) {
 };
 
 const getAgentProxy = async function (fog, transaction) {
-  const proxy = TunnelManager.findOne({
+  const proxy = await TunnelManager.findOne({
     iofogUuid: fog.uuid
   }, transaction);
   return {
