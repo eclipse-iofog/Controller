@@ -146,7 +146,7 @@ const getAgentConfigChanges = async function (fog, transaction) {
     containerConfig: false,
     routing: false,
     registries: false,
-    proxy: false,
+    tunnel: false,
     diagnostics: false,
     isImageSnapshot: false
   };
@@ -165,7 +165,7 @@ const getAgentConfigChanges = async function (fog, transaction) {
     microserviceConfig: changeTracking.containerConfig,
     routing: changeTracking.routing,
     registries: changeTracking.registries,
-    tunnel: changeTracking.proxy,
+    tunnel: changeTracking.tunnel,
     diagnostics: changeTracking.diagnostics,
     isImageSnapshot: changeTracking.isImageSnapshot
   };
@@ -290,12 +290,12 @@ const getAgentRegistries = async function (fog, transaction) {
   }
 };
 
-const getAgentProxy = async function (fog, transaction) {
-  const proxy = await TunnelManager.findOne({
+const getAgentTunnel = async function (fog, transaction) {
+  const tunnel = await TunnelManager.findOne({
     iofogUuid: fog.uuid
   }, transaction);
   return {
-    proxy: proxy
+    tunnel: tunnel
   }
 };
 
@@ -450,7 +450,7 @@ module.exports = {
   getAgentMicroservices: TransactionDecorator.generateTransaction(getAgentMicroservices),
   getAgentMicroservice: TransactionDecorator.generateTransaction(getAgentMicroservice),
   getAgentRegistries: TransactionDecorator.generateTransaction(getAgentRegistries),
-  getAgentProxy: TransactionDecorator.generateTransaction(getAgentProxy),
+  getAgentTunnel: TransactionDecorator.generateTransaction(getAgentTunnel),
   getAgentStrace: TransactionDecorator.generateTransaction(getAgentStrace),
   updateAgentStrace: TransactionDecorator.generateTransaction(updateAgentStrace),
   getAgentChangeVersionCommand: TransactionDecorator.generateTransaction(getAgentChangeVersionCommand),

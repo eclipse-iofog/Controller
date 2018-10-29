@@ -57,7 +57,7 @@ function checkPortAvailability(port) {
 }
 
 const findAvailablePort = async function (hostname) {
-  let portBounds = Config.get("Proxy:PortRange").split("-").map(i => parseInt(i));
+  let portBounds = Config.get("Tunnel:PortRange").split("-").map(i => parseInt(i));
   return await portscanner.findAPortNotInUse(portBounds[0], portBounds[1], hostname);
 }
 /**
