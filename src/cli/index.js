@@ -34,13 +34,12 @@ class Cli extends BaseCLIHandler {
       { name: 'command', defaultOption: true },
     ]
     this.commands = {
-      [constants.CMD_START]: 'Start fog-controller service.',
-      [constants.CMD_STOP]: 'Stop fog-controller service.',
-      [constants.CMD_CONTROLLER]: 'Display fog-controller service information.',
+      [constants.CMD_START]: 'Start iofog-controller service.',
+      [constants.CMD_STOP]: 'Stop iofog-controller service.',
+      [constants.CMD_CONTROLLER]: 'Display iofog-controller service information.',
       [constants.CMD_HELP]: 'Display usage information.',
-      [constants.CMD_VERSION]: 'Display fog-controller service version.',
       [constants.CMD_USER]: 'User operations.',
-      [constants.CMD_CONFIG]: 'Set/Display fog-controller service config.',
+      [constants.CMD_CONFIG]: 'Set/Display iofog-controller service config.',
       [constants.CMD_CONNECTOR]: 'Connector operations.',
       [constants.CMD_PROXY]: 'Proxy operations.',
       [constants.CMD_IOFOG]: 'ioFog nodes operations.',

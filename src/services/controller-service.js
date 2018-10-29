@@ -48,8 +48,13 @@ const statusController = async function (isCLI) {
   }
 };
 
+const getVersion = async function (isCLI) {
+  return "Iofog-Controller version: 1.0";
+};
+
 module.exports = {
   getFogTypes: TransactionDecorator.generateTransaction(getFogTypes),
   emailActivation: emailActivation,
-  statusController: statusController
+  statusController: statusController,
+  getVersion: getVersion
 };

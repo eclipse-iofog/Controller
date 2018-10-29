@@ -24,14 +24,15 @@ class Controller extends BaseCLIHandler {
     this.name = constants.CMD_CONTROLLER;
     this.commandDefinitions = [
       {
-        name: 'command', defaultOption: true, description: 'status, email-activation, fog-types',
+        name: 'command', defaultOption: true, description: 'status, email-activation, fog-types, version',
         group: constants.CMD,
       }
     ];
     this.commands = {
-      [constants.CMD_STATUS]: 'Display fog-controller service status.',
+      [constants.CMD_STATUS]: 'Display iofog-controller service status.',
       [constants.CMD_EMAIL_ACTIVATION]: 'Is email activation.',
       [constants.CMD_FOG_TYPES]: 'List all Fog-types.',
+      [constants.CMD_VERSION]: 'Display iofog-controller service version.',
     }
   }
 
@@ -47,6 +48,9 @@ class Controller extends BaseCLIHandler {
         break;
       case constants.CMD_FOG_TYPES:
         await _executeCase(controllerCommand, constants.CMD_FOG_TYPES, _getFogTypes, false);
+        break;
+      case constants.CMD_VERSION:
+        await _executeCase(controllerCommand, constants.CMD_VERSION, _getVersion, false);
         break;
       case constants.CMD_HELP:
       default:
@@ -85,6 +89,11 @@ const _emailActivation = async function () {
 const _getFogTypes = async function () {
   const response =  await ControllerService.getFogTypes(true);
   logger.info(JSON.stringify(response));
+};
+
+const _getVersion = async function() {
+  const response = await ControllerService.getVersion(true);
+  logger.info(response);
 };
 
 module.exports = new Controller();
