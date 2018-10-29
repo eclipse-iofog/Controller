@@ -24,7 +24,7 @@ const logger = winston.createLogger({
         winston.format.timestamp(),
         winston.format.logstash()
       ),
-      filename: 'fog-controller.log',
+      filename: 'iofog-controller.log',
       dirname: config.get('Service:LogsDirectory'),
       maxsize:  config.get('Service:LogsFileSize'),
     }),
