@@ -29,6 +29,7 @@ class Config extends BaseCLIHandler {
       { name: 'ssl-cert', alias: 'c', type: String, description: 'Path to SSL certificate file', group: constants.CMD_ADD },
       { name: 'ssl-key', alias: 'k', type: String, description: 'Path to SSL key file', group: constants.CMD_ADD },
       { name: 'intermediate-cert', alias: 'i', type: String, description: 'Path to SSL intermediate certificate file', group: constants.CMD_ADD },
+      { name: 'home-url', alias: 'h', type: String, description: 'Home page url for email activation links', group: constants.CMD_ADD },
       { name: 'email-activation-on', alias: 'm', type: Boolean, description: 'Email activation required', group: constants.CMD_ADD },
       { name: 'email-activation-off', alias: 'n', type: Boolean, description: 'Email activation not required', group: constants.CMD_ADD },
       { name: 'email-address', alias: 'a', type: String, description: 'Email address to send activations from', group: constants.CMD_ADD },
@@ -137,6 +138,10 @@ const _addConfigOption = async function (options) {
     config.set('Server:ActivationEnabled', false)
   }
 
+  if (options.homeUrl != null && config.get('Email:HomeUrl') !== options.homeUrl) {
+    config.set('Email:HomeUrl', options.homeUrl)
+  }
+
   if (options.emailAddress != null && config.get('Email:Address') !== options.emailAddress) {
     if (options.emailPassword == null) {
       return console.log('When changing email address, password must be provided.')
@@ -167,6 +172,7 @@ const _listConfigOptions = function () {
     'SSL key directory': config.get('Server:SslKey'),
     'SSL certificate directory': config.get('Server:SslCert'),
     'Intermediate key directory': config.get('Server:IntermediateCert'),
+    'Home url': config.get('Email:HomeUrl'),
     'Email activation': config.get('Email:ActivationEnabled') ? 'on' : 'off',
     'Email address': config.get('Email:Address'),
     'Email password': config.get('Email:Password'),
