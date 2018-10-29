@@ -228,7 +228,7 @@ module.exports = [
   },
   {
     method: 'get',
-    path: '/api/v3/agent/proxy',
+    path: '/api/v3/agent/tunnel',
     middleware: async (req, res) => {
       const successCode = constants.HTTP_CODE_SUCCESS;
       const errorCodes = [
@@ -242,8 +242,8 @@ module.exports = [
         }
       ];
 
-      const getAgentProxyEndPoint = ResponseDecorator.handleErrors(AgentController.getAgentProxyEndPoint, successCode, errorCodes);
-      const responseObject = await getAgentProxyEndPoint(req);
+      const getAgentTunnelEndPoint = ResponseDecorator.handleErrors(AgentController.getAgentTunnelEndPoint, successCode, errorCodes);
+      const responseObject = await getAgentTunnelEndPoint(req);
 
       res
         .status(responseObject.code)

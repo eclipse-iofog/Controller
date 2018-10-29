@@ -1,17 +1,18 @@
 **Fog Controller Usage**
 
- $ iofog-controller <*command*> <*options*>
+ $ fog-controller <*command*> <*options*>
 
 **Command List**
 
- start          -- Start iofog-controller service. <br>
- stop           -- Stop iofog-controller service. <br>
- controller     -- Display iofog-controller service information. <br>
+ start          -- Start fog-controller service. <br>
+ stop           -- Stop fog-controller service. <br>
+ controller     -- Display fog-controller service information. <br>
  help           -- Display usage information. <br>
+ version        -- Display fog-controller service version. <br>
  user           -- User operations. <br>
- config         -- Set/Display iofog-controller service config. <br>
+ config         -- Set/Display fog-controller service config. <br>
  connector      -- Connector operations. <br>
- proxy          -- Proxy operations. <br>
+ tunnel         -- Tunnel operations. <br>
  iofog          -- ioFog nodes operations. <br>
  catalog        -- Microservices catalog operations. <br>
  flow           -- Application flow operations. <br>
@@ -24,21 +25,20 @@
 
 **Controller**
 
-$ iofog-controller controller <*command*> <*options*>
+$ fog-controller controller <*command*> <*options*>
 
 **Command List**
 
- - status             -- Display iofog-controller service status.
+ - status             -- Display fog-controller service status.
  - email-activation   -- Is email activation.
  - fog-types          -- List all Fog-types.
- - version            -- Display iofog-controller service version.
 <br>
 <br>
 <br>
 
 **User**
 
-$ iofog-controller user <*command*> <*options*>
+$ fog-controller user <*command*> <*options*>
 
 **Command List**
 
@@ -88,7 +88,7 @@ $ iofog-controller user <*command*> <*options*>
 
 **Config** <br>
 
-$ iofog-controller config <*options*>
+$ fog-controller config <*options*>
  
  *add*
 
@@ -117,7 +117,7 @@ $ iofog-controller config <*options*>
  
 **Connector** <br>
 
-$ iofog-controller connector <*command*> <*options*>
+$ fog-controller connector <*command*> <*options*>
 
 **Command List**
 
@@ -155,38 +155,38 @@ $ iofog-controller connector <*command*> <*options*>
 <br>
 <br> 
  
-**Proxy** <br>
+**Tunnel** <br>
 
-$ iofog-controller proxy <*command*> <*options*>
+$ fog-controller tunnel <*command*> <*options*>
 
 **Command List**
 
- update   -- Update existing proxy or create a new one. <br>
- list     -- List all proxies. <br>
+ update   -- Update existing tunnel or create a new one. <br>
+ list     -- List all tunnels. <br>
 
 *update -a* <*action*> (Action: can be either 'open' or 'close')
 
- -u, --username string   (Proxy username) <br>
- -p, --password string   (Proxy password) <br>
- -s, --host string       (Proxy host address) <br>
- -k, --rsa-key string    (Proxy RSA key) <br>
- -o, --port number       (Proxy port) <br>
+ -u, --username string   (Tunnel username) <br>
+ -p, --password string   (Tunnel password) <br>
+ -s, --host string       (Tunnel host address) <br>
+ -k, --rsa-key string    (Tunnel RSA key) <br>
+ -o, --port number       (Tunnel port) <br>
  -f, --iofogUuid string  (Fog UUID) <br>
 
 **Example**<br>
- proxy update -a close -u dmitry -p dpass -s 127.12.14.52 -k /home/dmitrys/documents/rsa.txt -o 22 -f NH44VjVFnr8946Yr8HPRrJdFZgLN8k7j <br>
+ tunnel update -a close -u dmitry -p dpass -s 127.12.14.52 -k /home/dmitrys/documents/rsa.txt -o 22 -f NH44VjVFnr8946Yr8HPRrJdFZgLN8k7j <br>
  
 *list*<br>
 
 **Example**<br>
-proxy list
+tunnel list
 <br>
 <br>
 <br>  
  
  **IoFog**
  
- $ iofog-controller iofog <*command*> <*options*>
+ $ fog-controller iofog <*command*> <*options*>
 
 **Command List**
 
@@ -198,7 +198,6 @@ proxy list
   provisioning-key   -- Get provisioning key for an ioFog node. <br>
   reboot             -- Reboot ioFog node. <br>             
   version            -- Change agent version of ioFog node. <br>
-  tunnel             -- Tunnel operations for an ioFog node. <br>
   hal-hw             -- Get HAL Hardware ioFog node data. <br>
   hal-usb            -- Get HAL USB ioFog node data. <br>
   
@@ -278,12 +277,6 @@ proxy list
 
   -i, --node-id         string           (ioFog node ID)         
   -v, --version-command string           (ioFog version command) 
-
-*tunnel*
-
-  -e, --enable     (Enable tunnel) <br>
-  -S, --disable    (Disable tunnel) <br>
-  -O, --info       (Display tunnel info) <br>
   
  *hal-hw*
 
@@ -323,7 +316,7 @@ proxy list
 
 **Catalog**<br>
 
-$ iofog-controller catalog <*command*> <*options*> <br>
+$ fog-controller catalog <*command*> <*options*> <br>
 
 **Command List**<br>
 
@@ -409,7 +402,7 @@ $ iofog-controller catalog <*command*> <*options*> <br>
 <br>
 **Flow**<br>
 
- $ iofog-controller flow <*command*> <*options*><br>
+ $ fog-controller flow <*command*> <*options*><br>
 
 *Command List*<br>
 
@@ -455,7 +448,7 @@ $ iofog-controller catalog <*command*> <*options*> <br>
 
  **Microservice**<br>
  
- $ iofog-controller microservice <*command*> <*options*><br>
+ $ fog-controller microservice <*command*> <*options*><br>
 
 *Command List*<br>
 
@@ -509,10 +502,8 @@ $ iofog-controller catalog <*command*> <*options*> <br>
 
 *route*<br>
 
- -D, --dest-microservice-id string     (Destination Microservice ID of route)<br>
- -S, --source-microservice-id string   (Source Microservice ID of route)<br>
- -a, --add                             (Add new route(s))<br>
- -m, --remove                          (Delete existing route(s))<br>
+ -a, --add string                      (Add new route(s))<br>
+ -m, --remove string                   (Delete existing route(s))<br>
 
 *port-mapping*<br>
 
@@ -520,18 +511,81 @@ $ iofog-controller catalog <*command*> <*options*> <br>
  -b, --create                   (Add new port mapping(s))<br>
  -B, --delete                   (Delete existing port mapping(s))<br>
  -G, --list                     (List port mappings)<br>
- -W, --internal number          (Internal port)<br>
- -Y, --external number          (External port)<br>
- -Z, --public                   (Public mode of connector)<br>
- -K, --private                  (Private mode of connector)<br>
 
+**JSON ADD File Schema**<br>
+
+{<br>
+  "name": "string",<br>
+  "config": "string",<br>
+  "catalogItemId": 0,<br>
+  "flowId": 0,<br>
+  "ioFogNodeId": "string",<br>
+  "rootHostAccess": true,<br>
+  "logLimit": 0,<br>
+  "volumeMappings": [<br>
+    {<br>
+      "hostDestination": "/var/dest",<br>
+      "containerDestination": "/var/dest",<br>
+      "accessMode": "rw"<br>
+    }<br>
+  ],<br>
+  "ports": [<br>
+    {<br>
+      "internal": 0,<br>
+      "external": 0,<br>
+      "publicMode": true<br>
+    }<br>
+  ],<br>
+  "routes": [<br>
+    "string"<br>
+  ]<br>
+}<br>
+
+**JSON UPDATE File Schema**<br>
+
+{<br>
+  "name": "string",<br>
+  "config": "string",<br>
+  "rebuild": true,<br>
+  "ioFogNodeId": "string",<br>
+  "rootHostAccess": true,<br>
+  "logLimit": 0,<br>
+  "volumeMappings": [<br>
+    {<br>
+      "hostDestination": "/var/dest",<br>
+      "containerDestination": "/var/dest",<br>
+      "accessMode": "rw"<br>
+    }<br>
+  ]<br>
+}<br>
+
+**Examples**<br>
+ 1. Single mapping                       ($ fog-controller microservice add     
+                                          [other required options] --volumes    
+                                          /host_src:/container_src)              
+  2. Multiple mappings                    ($ fog-controller microservice add     
+                                          [other required options] --volumes    
+                                          /host_src:/container_src              
+                                          /host_bin:/container_bin)              
+  3. Port mapping                         ($ fog-controller microservice add     
+  (internal:external:publicMode)          [other required options] --ports      
+                                          80:8080:false 443:5443:false)          
+  4. Add routes                           ($ fog-controller microservice route   
+                                          --add ABC:DEF)                         
+  5. Delete route                         ($ fog-controller microservice route   
+                                          --remove ABC:DEF)                      
+  6. Create port mapping                  ($ fog-controller microservice port-   
+                                          mapping --create 80:8080:false -i ABC) 
+  7. Delete port mapping                  ($ fog-controller microservice port-   
+                                          mapping --delete 80 -i ABC)    
+ 
 <br>
 <br>
 <br>
 
  **Registry**
 
- $ iofog-controller registry <*command*> <*options*><br>
+ $ fog-controller registry <*command*> <*options*><br>
 
 *Command List*<br>
 
@@ -557,7 +611,7 @@ $ iofog-controller catalog <*command*> <*options*> <br>
 
  **Diagnostics**
 
- $ iofog-controller diagnostics <*command*> <*options*><br>
+ $ fog-controller diagnostics <*command*> <*options*><br>
 
 *Command List*<br>
 

@@ -18,7 +18,7 @@
     "UserTokenExpirationIntervalSeconds": 360000,
     "FogTokenExpirationIntervalSeconds": 3600000
   },
-  "Proxy": {
+  "Tunnel": {
     "Username": "username",
     "Password": "password",
     "Host": "23.253.111.231",

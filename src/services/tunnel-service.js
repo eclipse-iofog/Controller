@@ -29,13 +29,13 @@ const openTunnel = async function (tunnelData, user, isCli, transaction) {
     if (isCli){
         tunnel.rport = await AppHelper.findAvailablePort(tunnelData.host);
     } else {
-        const host = Config.get("Proxy:Host");
+        const host = Config.get("Tunnel:Host");
         tunnel = {
-            username: Config.get("Proxy:Username"),
-            password: Config.get("Proxy:Password"),
+            username: Config.get("Tunnel:Username"),
+            password: Config.get("Tunnel:Password"),
             host: host,
-            rsakey: Config.get("Proxy:RsaKey"),
-            lport: Config.get("Proxy:Lport"),
+            rsakey: Config.get("Tunnel:RsaKey"),
+            lport: Config.get("Tunnel:Lport"),
             iofogUuid: iofog.uuid,
             closed: false,
             rport: await AppHelper.findAvailablePort(host)
@@ -49,7 +49,7 @@ const openTunnel = async function (tunnelData, user, isCli, transaction) {
 const updateChangeTracking = async function (tunnelData, transaction){
     const changeTrackingUpdates = {
         iofogUuid: tunnelData.iofogUuid,
-        proxy: true
+        tunnel: true
     }
     await ChangeTrackingManager.update({iofogUuid: tunnelData.iofogUuid}, changeTrackingUpdates, transaction);
 };
