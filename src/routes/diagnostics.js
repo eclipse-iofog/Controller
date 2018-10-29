@@ -88,7 +88,7 @@ module.exports = [
   },
   {
     method: 'patch',
-    path: '/api/v3/iofog/microservices/:id/strace',
+    path: '/api/v3/microservices/:id/strace',
     middleware: async (req, res) => {
 
       const successCode = constants.HTTP_CODE_NO_CONTENT;
@@ -121,7 +121,7 @@ module.exports = [
   },
   {
     method: 'get',
-    path: '/api/v3/iofog/microservices/:id/strace',
+    path: '/api/v3/microservices/:id/strace',
     middleware: async (req, res) => {
 
       const successCode = constants.HTTP_CODE_SUCCESS;
@@ -150,7 +150,7 @@ module.exports = [
   },
   {
     method: 'put',
-    path: '/api/v3/iofog/microservices/:id/strace',
+    path: '/api/v3/microservices/:id/strace',
     middleware: async (req, res) => {
       const successCode = constants.HTTP_CODE_NO_CONTENT;
       const errorCodes = [

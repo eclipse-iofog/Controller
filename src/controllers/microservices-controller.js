@@ -52,39 +52,45 @@ const _deleteMicroserviceEndPoint = async function (req, user) {
 };
 
 const _getMicroservicesByFlowEndPoint = async function (req, user) {
-  const flowId = req.query.flowId;
+  const data = req.query.flowId;
 
-  logger.info("Flow id:" + JSON.stringify(flowId))
+  logger.info("Flow id:" + JSON.stringify(data.flowId))
 
-  return await MicroservicesService.getMicroserviceByFlowWithTransaction(flowId, user, false)
+  return await MicroservicesService.listMicroservicesWithTransaction(data, user, false)
 };
 
 async function _createMicroserviceRoute(req, user) {
   const sourceUuid = req.params.uuid
   const distUuid = req.params.receiverUuid
   logger.info(`Creating route from ${sourceUuid} to ${distUuid}`)
-  return await MicroservicesService.createRouteWithTransaction(sourceUuid, distUuid, user)
+  return await MicroservicesService.createRouteWithTransaction(sourceUuid, distUuid, user, false)
 }
 
 async function _deleteMicroserviceRoute(req, user) {
   const sourceUuid = req.params.uuid
   const distUuid = req.params.receiverUuid
   logger.info(`Creating route from ${sourceUuid} to ${distUuid}`)
-  return await MicroservicesService.deleteRouteWithTransaction(sourceUuid, distUuid, user)
+  return await MicroservicesService.deleteRouteWithTransaction(sourceUuid, distUuid, user, false)
 }
 
 async function _createMicroservicePortMapping(req, user) {
   const uuid = req.params.uuid
   const portMappingData = req.body
   logger.info(`Creating port mapping for ${uuid}`)
-  return await MicroservicesService.createPortMappingWithTransaction(uuid, portMappingData, user)
+  return await MicroservicesService.createPortMappingWithTransaction(uuid, portMappingData, user, false)
 }
 
 async function _deleteMicroservicePortMapping(req, user) {
   const uuid = req.params.uuid
   const internalPort = req.params.internalPort
   logger.info(`Deleting port mapping for ${uuid}`)
-  return await MicroservicesService.deletePortMappingWithTransaction(uuid, internalPort, user)
+  return await MicroservicesService.deletePortMappingWithTransaction(uuid, internalPort, user, false)
+}
+
+async function _getMicroservicePortMappingList(req, user) {
+  const uuid = req.params.uuid
+  logger.info(`Getting all port mappings for ${uuid}`)
+  return await MicroservicesService.getMicroservicePortMappingListWithTransaction(uuid, user, false)
 }
 
 module.exports = {
@@ -96,5 +102,6 @@ module.exports = {
   createMicroserviceRoute: AuthDecorator.checkAuthToken(_createMicroserviceRoute),
   deleteMicroserviceRoute: AuthDecorator.checkAuthToken(_deleteMicroserviceRoute),
   createMicroservicePortMapping: AuthDecorator.checkAuthToken(_createMicroservicePortMapping),
-  deleteMicroservicePortMapping: AuthDecorator.checkAuthToken(_deleteMicroservicePortMapping)
+  deleteMicroservicePortMapping: AuthDecorator.checkAuthToken(_deleteMicroservicePortMapping),
+  getMicroservicePortMappingList: AuthDecorator.checkAuthToken(_getMicroservicePortMappingList)
 };

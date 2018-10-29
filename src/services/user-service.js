@@ -134,11 +134,13 @@ const updateDetails = async function (user, profileData, isCLI, transaction) {
     await Validator.validate(profileData, Validator.schemas.updateUserProfile);
   }
 
+  const password = (profileData.password) ? AppHelper.encryptText(profileData.password, user.email) : undefined;
+
   const updateObject = isCLI ?
     {
       firstName: profileData.firstName,
       lastName: profileData.lastName,
-      password: AppHelper.encryptText(profileData.password, user.email)
+      password: password
     }
     :
     {
@@ -322,7 +324,7 @@ async function _sendEmail(transporter, mailOptions) {
 async function _getEmailData() {
   return {
     email: Config.get("Email:Address"),
-    password: Config.get("Email:Password"),
+    password: AppHelper.decryptText(Config.get("Email:Password"), Config.get("Email:Address")),
     service: Config.get("Email:Service")
   }
 }

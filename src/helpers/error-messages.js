@@ -13,13 +13,15 @@
 
 module.exports = {
   DUPLICATE_NAME: 'Duplicate name {}',
+  ALREADY_EXISTS: 'Model already exists',
   INVALID_CATALOG_ITEM_ID: 'Invalid catalog item id {}',
   INVALID_FLOW_ID: 'Invalid flow id {}',
+  INVALID_CONNECTOR_IP: 'Invalid connector ip {}',
   UNABLE_TO_CREATE_ACTIVATION_CODE: 'Unable to create activation code',
   UNABLE_TO_GET_ACTIVATION_CODE: 'Unable to create activation code',
   INVALID_FOG_NODE_ID: 'Invalid fog node id {}',
   INVALID_USER_EMAIL: 'Invalid user email',
-  INVALID_MICROSERVICE_UUID: 'Invalid microservice uuid',
+  INVALID_MICROSERVICE_UUID: 'Invalid microservice uuid {}',
   ACTIVATION_CODE_NOT_FOUND: 'Activation code not found',
   INVALID_OLD_PASSWORD: 'Old password is incorrect',
   ACCOUNT_NOT_FOUND: 'Account not found',

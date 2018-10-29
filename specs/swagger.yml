@@ -1243,6 +1243,8 @@ paths:
           description: Bad Request
         '401':
           description: Not Authorized
+        '409':
+          description: Duplicate Name
         '500':
           description: Internal Server Error
   '/microservices/{uuid}':
@@ -1312,6 +1314,8 @@ paths:
           description: Not Authorized
         '404':
           description: Not Found
+        '409':
+          description: Duplicate Name
         '500':
           description: Internal Server Error
     delete:
@@ -1421,8 +1425,6 @@ paths:
           description: Not Found
         '500':
           description: Internal Server Error
-
-
   '/microservices/{uuid}/port-mapping':
     post:
       tags:
@@ -1463,11 +1465,43 @@ paths:
           description: Not Found
         '500':
           description: Internal Server Error
+  '/microservices/{uuid}/port-mapping-list':
+    get:
+      tags:
+      - Microservices
+      description: Get a port mapping list for microservice
+      operationId: getMicroservicePortMapping
+      parameters:
+      - in: header
+        name: Authorization
+        description: User Token
+        required: true
+        type: string
+      - in: path
+        name: uuid
+        description: Microservice Uuid
+        required: true
+        type: string
+      responses:
+        '201':
+          description: Created
+          schema:
+            $ref: '#/definitions/PortMappingsListResponse'
+          headers:
+            X-Timestamp:
+              type: number
+              description: FogController server timestamp
+        '401':
+          description: Not Authorized
+        '404':
+          description: Not Found
+        '500':
+          description: Internal Server Error
   '/microservices/{uuid}/port-mapping/{internalPort}':
     delete:
       tags:
       - Microservices
-      description: Deletes a prot mapping for microservice
+      description: Deletes a port mapping for microservice
       operationId: deleteMicroservicePortMapping
       parameters:
       - in: header
@@ -1492,8 +1526,6 @@ paths:
             X-Timestamp:
               type: number
               description: FogController server timestamp
-        '400':
-          description: Not Valid
         '401':
           description: Not Authorized
         '404':
@@ -1596,12 +1628,7 @@ paths:
               type: boolean
       responses:
         '204':
-          description: Created
-          schema:
-            type: object
-            properties:
-              id:
-                type: string
+          description: Success
           headers:
             X-Timestamp:
               type: number
@@ -2622,6 +2649,23 @@ definitions:
         type: string
       publicPort:
         type: number
+  PortMappingsListResponse:
+    type: array
+    items:
+      $ref: '#/definitions/PortMappingsItemResponse'
+  PortMappingsItemResponse:
+    type: object
+    properties:
+      internal:
+        type: number
+      external:
+        type: number
+      publicMode:
+        type: boolean
+      publicIp:
+        type: string
+      publicPort:
+        type: number
   PortMappingAgentRequest:
     type: object
     properties:
@@ -2852,8 +2896,6 @@ definitions:
         type: string
       catalogItemId:
         type: integer
-      isNetwork:
-        type: boolean
       flowId:
         type: integer
       ioFogNodeId:
@@ -2881,22 +2923,14 @@ definitions:
         type: string
       config:
         type: string
-      isNetwork:
-        type: boolean
-      needUpdate:
-        type: boolean
       rebuild:
         type: boolean
       ioFogNodeId:
         type: string
       rootHostAccess:
         type: boolean
-      deleteWithCleanUp:
-        type: boolean
       logLimit:
         type: number
-      imageSnapshot:
-        type: string
       volumeMappings:
          type: array
          items:
