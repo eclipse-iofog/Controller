@@ -48,7 +48,7 @@ class CLIHandler {
     const sections = [
       {
         header: 'Usage',
-        content: `$ fog-controller ${this.name}${hasCommands ? ' <command>' : ''} <options>`,
+        content: `$ iofog-controller ${this.name}${hasCommands ? ' <command>' : ''} <options>`,
       },
     ].concat(hasCommands ? commandsList : [])
       .concat(showOptions ? options : [])
@@ -56,7 +56,7 @@ class CLIHandler {
 
     const usage = [
       {
-        header: 'FogController',
+        header: 'ioFogController',
         content: 'Fog Controller project for Eclipse IoFog @ iofog.org \\nCopyright (c) 2018 Edgeworx, Inc.',
       }
     ].concat(sections)

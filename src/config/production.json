@@ -1,6 +1,6 @@
 {
   "App": {
-    "Name": "fog-controller"
+    "Name": "iofog-controller"
   },
   "Server": {
     "Port": 54421,
