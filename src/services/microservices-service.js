@@ -81,7 +81,7 @@ const _createMicroserviceOnFog = async function (microserviceData, user, isCLI, 
 
   if (microserviceData.ports) {
     for (const port of microserviceData.ports) {
-      await _createPortMapping(microservice.uuid, port, user, transaction);
+      await _createPortMapping(microservice.uuid, port, user, isCLI, transaction);
     }
   }
   if (microserviceData.volumeMappings) {
@@ -535,7 +535,7 @@ async function _createPortMapping(microserviceUuid, portMappingData, user, isCLI
   }
 
   if (!microservice.iofogUuid) {
-    throw new Errors.ValidationError('fog not set')
+    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.REQUIRED_FOG_NODE));
   }
 
   const msPorts = await MicroservicePortManager.findOne({
@@ -549,7 +549,7 @@ async function _createPortMapping(microserviceUuid, portMappingData, user, isCLI
           portExternal: portMappingData.external
         }
       ]
-  }, transaction)
+  }, transaction);
   if (msPorts) {
     throw new Errors.ValidationError('port mapping already exists')
   }
