@@ -83,23 +83,35 @@ async function _executeCase(commands, commandName, f, isUserRequired) {
 async function _createConnector(obj) {
   const connector = _createConnectorObject(obj)
   logger.info(JSON.stringify(connector));
-  const result = await ConnectorService.createConnectorWithTransaction(connector)
-  logger.info(JSON.stringify(result));
-  logger.info('Connector has been created successfully.');
+  try {
+    const result = await ConnectorService.createConnectorWithTransaction(connector)
+    logger.info(JSON.stringify(result));
+    logger.info('Connector has been created successfully.');
+  } catch (e) {
+    logger.info(e.message)
+  }
 }
 
 async function _updateConnector(obj) {
   const connector = _createConnectorObject(obj)
   logger.info(JSON.stringify(connector));
-  await ConnectorService.updateConnectorWithTransaction(connector)
-  logger.info('Connector has been updated successfully.');
+  try {
+    await ConnectorService.updateConnectorWithTransaction(connector)
+    logger.info('Connector has been updated successfully.');
+  } catch (e) {
+    logger.info(e.message)
+  }
 }
 
 async function _deleteConnector(obj) {
   const connector = _createConnectorObject(obj)
   logger.info(JSON.stringify(connector));
-  await ConnectorService.deleteConnectorWithTransaction(connector)
-  logger.info('Connector has been removed successfully.');
+  try {
+    await ConnectorService.deleteConnectorWithTransaction(connector)
+    logger.info('Connector has been removed successfully.');
+  } catch (e) {
+    logger.info(e.message)
+  }
 }
 
 async function _getConnectorList(obj) {
