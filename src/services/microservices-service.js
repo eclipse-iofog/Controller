@@ -523,6 +523,7 @@ async function _deleteRouteOverConnector(route, transaction) {
 
 async function _createPortMapping(microserviceUuid, portMappingData, user, isCLI, transaction) {
   await Validation.validate(portMappingData, Validation.schemas.portsCreate);
+  await _validatePorts(portMappingData.internal, portMappingData.external)
 
   const where = isCLI
     ? {uuid: microserviceUuid}
@@ -575,8 +576,6 @@ async function _createSimplePortMapping(microservice, portMappingData, user, tra
 }
 
 async function _createPortMappingOverConnector(microservice, portMappingData, user, transaction) {
-  await _validatePorts(portMappingData.internal, portMappingData.external)
-
   //open comsat
   const justOpenedConnectorsPorts = await ConnectorService.openPortOnRandomConnector(true, transaction)
 
