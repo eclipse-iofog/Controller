@@ -608,7 +608,7 @@ async function _createPortMappingOverConnector(microservice, portMappingData, us
     'passcode': ports.passcode1,
     'connectioncount': 60,
     'localhost': 'iofog',
-    'localport': 0,
+    'localport': portMappingData.external,
     'heartbeatfrequency': 20000,
     'heartbeatabsencethreshold': 60000,
     'devmode': connector.devMode
