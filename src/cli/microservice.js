@@ -376,7 +376,7 @@ const _updateMicroserviceObject = function (obj) {
   };
 
   if (obj.volumes) {
-    microserviceObj.volumeMappings = parseObjectArray(obj.volumes, 'Error during parsing of volume mapping option.');
+    microserviceObj.volumeMappings = parseVolumes(obj.volumes, 'Error during parsing of volume mapping option.');
   }
 
   return AppHelper.deleteUndefinedFields(microserviceObj);
