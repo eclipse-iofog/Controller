@@ -19,26 +19,32 @@ const fs = require('fs');
 const AppHelper = require('../helpers/app-helper');
 const AuthDecorator = require('../decorators/cli-decorator');
 
-const JSON_SCHEMA =
-  `  name: string
-  description: string
-  category: string
-  publisher: string
-  diskRequired: number
-  ramRequired: number
-  picture: string
-  isPublic: boolean
-  registryId: number
-  configExample: string
-  images: array of objects
-    containerImage: string
-    fogTypeId: number
-  inputType: object
-    infoType: string
-    infoFormat: string
-  outputType: object
-    infoType: string
-    infoFormat: string`;
+const JSON_SCHEMA = AppHelper.stringifyCliJsonSchema({
+  name: "string",
+  description: "string",
+  category: "string",
+  images: [
+    {
+      containerImage: "string",
+      fogTypeId: 1
+    }
+  ],
+  publisher: "string",
+  diskRequired: 0,
+  ramRequired: 0,
+  picture: "string",
+  isPublic: true,
+  registryId: 0,
+  inputType: {
+    infoType: "string",
+    infoFormat: "string"
+  },
+  outputType: {
+    infoType: "string",
+    infoFormat: "string"
+  },
+  configExample: "string"
+});
 
 class Catalog extends BaseCLIHandler {
   constructor() {

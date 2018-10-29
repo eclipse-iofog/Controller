@@ -48,5 +48,12 @@ module.exports = {
   ROUTE_NOT_FOUND: 'Route not found',
   IMAGE_SNAPSHOT_WITHOUT_FOG: 'Can not run image snapshot for element without fog.',
   FILE_DOES_NOT_EXIST: 'File does not exist.',
-  RESTRICTED_PUBLISHER: "You are not allowed to add catalog item as 'Eclipse ioFog' publisher"
+  RESTRICTED_PUBLISHER: "You are not allowed to add catalog item as 'Eclipse ioFog' publisher",
+  REQUIRED_FOG_NODE: 'fog node is required.',
+  CLI: {
+    INVALID_PORT_MAPPING: 'Port mapping parsing error. Please provide valid port mapping.',
+    INVALID_VOLUME_MAPPING: 'Volume mapping parsing error. Please provide valid volume mapping.',
+    INVALID_INTERNAL_PORT: 'Internal parsing error. Please provide valid internal port.',
+    INVALID_ROUTE: 'Route parsing error. Please provide valid route.'
+  }
 };

@@ -136,6 +136,12 @@ function formatMessage() {
   return format.apply(null, argsArray);
 }
 
+function stringifyCliJsonSchema(json) {
+  return JSON.stringify(json, null, 2)
+    .replace(/{/g, "\\{")
+    .replace(/}/g, "\\}");
+}
+
 module.exports = {
   encryptText,
   decryptText,
@@ -150,5 +156,6 @@ module.exports = {
   deleteUndefinedFields,
   validateBooleanCliOptions,
   formatMessage,
-  findAvailablePort
+  findAvailablePort,
+  stringifyCliJsonSchema
 };

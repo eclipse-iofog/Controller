@@ -19,28 +19,28 @@ const CliDecorator = require('../decorators/cli-decorator')
 const AppHelper = require('../helpers/app-helper')
 const FogService = require('../services/iofog-service')
 
-const JSON_SCHEMA =
-  `name: string
-  location: string
-  latitude: number
-  longitude: number
-  description: string
-  dockerUrl: string
-  diskLimit: number
-  diskDirectory: string
-  memoryLimit: number
-  cpuLimit: number
-  logLimit: number
-  logDirectory: string
-  logFileCount: number
-  statusFrequency: number
-  changeFrequency: number
-  deviceScanFrequency: number
-  bluetoothEnabled: boolean
-  watchdogEnabled: boolean
-  abstractedHardwareEnabled: boolean
-  reboot: boolean
-  fogType: number`
+const JSON_SCHEMA = AppHelper.stringifyCliJsonSchema({
+  name: "string",
+  location: "string",
+  latitude: 0,
+  longitude: 0,
+  description: "string",
+  dockerUrl: "string",
+  diskLimit: 0,
+  diskDirectory: "string",
+  memoryLimit: 0,
+  cpuLimit: 0,
+  logLimit: 0,
+  logDirectory: "string",
+  logFileCount: 0,
+  statusFrequency: 0,
+  changeFrequency: 0,
+  deviceScanFrequency: 0,
+  bluetoothEnabled: false,
+  watchdogEnabled: true,
+  abstractedHardwareEnabled: false,
+  fogType: 0
+});
 
 class IOFog extends BaseCLIHandler {
   constructor() {
