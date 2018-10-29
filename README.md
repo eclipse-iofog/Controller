@@ -164,7 +164,7 @@ $ fog-controller proxy <*command*> <*options*>
  update   -- Update existing proxy or create a new one. <br>
  list     -- List all proxies. <br>
 
-*update*
+*update -a* <*action*> (Action: can be either 'open' or 'close')
 
  -u, --username string   (Proxy username) <br>
  -p, --password string   (Proxy password) <br>
@@ -172,10 +172,9 @@ $ fog-controller proxy <*command*> <*options*>
  -k, --rsa-key string    (Proxy RSA key) <br>
  -o, --port number       (Proxy port) <br>
  -f, --iofogUuid string  (Fog UUID) <br>
- -a, --action string     (Action: can be either 'open' or 'close')
 
 **Example**<br>
- proxy update -u dmitry -p dpass -s 127.12.14.52 -k /home/dmitrys/documents/rsa.txt -o 22 -f NH44VjVFnr8946Yr8HPRrJdFZgLN8k7j -a close<br>
+ proxy update -a close -u dmitry -p dpass -s 127.12.14.52 -k /home/dmitrys/documents/rsa.txt -o 22 -f NH44VjVFnr8946Yr8HPRrJdFZgLN8k7j <br>
  
 *list*<br>
 
@@ -203,7 +202,7 @@ proxy list
   hal-hw             -- Get HAL Hardware ioFog node data. <br>
   hal-usb            -- Get HAL USB ioFog node data. <br>
   
-*add*
+*add -u* <*user-id*>
 
   -f, --file string               (ioFog settings JSON file) <br>
   -n, --name string               (ioFog node name) <br>
@@ -230,7 +229,6 @@ proxy list
   -A, --abs-hw-enable             (Enable hardware abstraction on ioFog node) <br>
   -o, --reboot                    (Reboot ioFog node) <br>
   -y, --fog-type number           (ioFog node architecture type) <br>
-  -u, --user-id number            (User's id) <br>
 
 *update -i* <*node-id*>
 
@@ -335,7 +333,7 @@ $ fog-controller catalog <*command*> <*options*> <br>
  list     -- List all catalog items.<br>
  info     -- Get catalog item settings.<br>
 
-*add*
+*add -u* <*user-id*>
 
  -f, --file string             (Catalog item settings JSON file)<br>
  -n, --name string             (Catalog item name)<br>
@@ -355,7 +353,6 @@ $ fog-controller catalog <*command*> <*options*> <br>
  -O, --output-type string      (Catalog item output type)<br>
  -T, --output-format string    (Catalog item output format)<br>
  -X, --config-example string   (Catalog item config example)<br>
- -u, --user-id number          (User's id)<br>
 
 *update -i* <*item-id*><br>
 
@@ -416,20 +413,19 @@ $ fog-controller catalog <*command*> <*options*> <br>
 
 *Command List*<br>
 
- add      -- Add a new flow.<br>
+ add       -- Add a new flow.<br>
  update    -- Update existing flow.<br>
  remove    -- Delete a flow.<br>
  list      -- List all flows.<br>
  info      -- Get flow settings.<br>
 
-*add*<br>
+*add -u* <*user-id*>
 
  -f, --file string          (Application flow settings JSON file)<br>
  -n, --name string          (Application flow name)<br>
  -d, --description string   (Application flow description)<br>
  -a, --activate             (Activate application flow)<br>
  -D, --deactivate           (Deactivate application flow)<br>
- -u, --user-id number       (User's id)<br>
 
 *update -i* <*flow-id*><br>
 
@@ -471,7 +467,7 @@ $ fog-controller catalog <*command*> <*options*> <br>
  route    -- Add/Remove microservice route.<br>
  port-mapping   -- Create/Delete/List microservice port mapping.<br>
 
-*add*<br>
+*add -u* <*user-id*>
 
  -f, --file string         (Microservice settings JSON file)<br>
  -n, --name string         (Microservice name)<br>
@@ -485,7 +481,6 @@ $ fog-controller catalog <*command*> <*options*> <br>
  -R, --root-disable        (Disable root access)<br>
  -p, --ports string[]      (Container ports)<br>
  -t, --routes string[]     (Microservice route(s) (receiving microservices))<br>
- -u, --user-id number      (User's id)<br>
 
 *update -i* <*microservice-id*><br>
 
@@ -498,6 +493,10 @@ $ fog-controller catalog <*command*> <*options*> <br>
  -r, --root-enable              (Enable root access)<br>
  -R, --root-disable             (Disable root access)<br>
  -w, --rebuild                  (Rebuild microservice image on fog agent)<br>
+ 
+ **Example**
+ 
+ update -i <*microservice-id*> -v{'hostDestination':'/var1/dest','containerDestination':'/var/dest','accessMode':'w'} -n testcli <br>
 
 *remove*<br>
 
@@ -540,7 +539,7 @@ $ fog-controller catalog <*command*> <*options*> <br>
  remove   -- Delete a Registry.<br>
  list     -- List all Registries.<br>
 
-*add*<br>
+*add -i* <*user-id*>
 
  -u, --uri string        (Registry URI)<br>
  -b, --public            (Set registry as public)<br>
@@ -548,7 +547,6 @@ $ fog-controller catalog <*command*> <*options*> <br>
  -l, --username string   (Registry's user name)<br>
  -p, --password string   (Password)<br>
  -e, --email string      (Email address)<br>
- -i, --user-id number    (User's id)<br>
 
 *remove*<br>
 
