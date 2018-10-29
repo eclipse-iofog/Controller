@@ -37,7 +37,7 @@ class Tunnel extends BaseCLIHandler {
     ]
     this.commands = {
       [constants.CMD_UPDATE]: 'Update existing tunnel.',
-      [constants.CMD_LIST]: 'List all proxies.',
+      [constants.CMD_LIST]: 'List all tunnels.',
     }
   }
 

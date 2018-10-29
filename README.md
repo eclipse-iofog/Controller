@@ -162,7 +162,7 @@ $ fog-controller tunnel <*command*> <*options*>
 **Command List**
 
  update   -- Update existing tunnel or create a new one. <br>
- list     -- List all proxies. <br>
+ list     -- List all tunnels. <br>
 
 *update -a* <*action*> (Action: can be either 'open' or 'close')
 
