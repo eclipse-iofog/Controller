@@ -27,6 +27,7 @@ const Sequelize = require('sequelize');
 
 async function _createConnector(connectorData, transaction) {
   await Validator.validate(connectorData, Validator.schemas.connectorCreate)
+  validateConnectorData(connectorData)
   const connector = await ConnectorManager.findOne({
     [Op.or]: [
       {name: connectorData.name},
@@ -42,10 +43,20 @@ async function _createConnector(connectorData, transaction) {
 
 async function _updateConnector(connectorData, transaction) {
   await Validator.validate(connectorData, Validator.schemas.connectorUpdate)
+  validateConnectorData(connectorData);
   const queryConnectorData = {
     publicIp: connectorData.publicIp
   }
   await ConnectorManager.update(queryConnectorData, connectorData, transaction)
+}
+
+function validateConnectorData(connectorData){
+    if (connectorData.domain && !AppHelper.isValidDomain(connectorData.domain)){
+        throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_CONNECTOR_DOMAIN, connectorData.domain));
+    }
+    if (!AppHelper.isValidPublicIP(connectorData.publicIp)){
+        throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_CONNECTOR_IP, connectorData.publicIp));
+    }
 }
 
 async function _deleteConnector(connectorData, transaction) {

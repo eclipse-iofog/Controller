@@ -70,7 +70,7 @@ class Config extends BaseCLIHandler {
 const _executeCase  = async function (catalogCommand, commandName, f) {
   try {
     const item = catalogCommand[commandName];
-    f(item);
+    await f(item);
   } catch (error) {
     logger.error(error.message);
   }

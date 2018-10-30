@@ -23,7 +23,7 @@ module.exports = [
     path: '/api/v3/microservices/:id/image-snapshot',
     middleware: async (req, res) => {
 
-      const successCode = constants.HTTP_CODE_NO_CONTENT;
+      const successCode = constants.HTTP_CODE_CREATED;
       const errorCodes = [
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
@@ -51,7 +51,7 @@ module.exports = [
     method: 'get',
     path: '/api/v3/microservices/:id/image-snapshot',
     middleware: async (req, res) => {
-      const successCode = constants.HTTP_CODE_NO_CONTENT;
+      const successCode = constants.HTTP_CODE_SUCCESS;
       const errorCodes = [
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
@@ -184,4 +184,4 @@ module.exports = [
         .send(responseObject.body)
     }
   }
-]
+];

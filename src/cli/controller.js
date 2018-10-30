@@ -66,9 +66,9 @@ const _executeCase = async function (userCommand, commandName, f, isUserRequired
 
     if (isUserRequired) {
       const decoratedFunction = AuthDecorator.prepareUserByEmail(f);
-      decoratedFunction(item);
+      await decoratedFunction(item);
     } else {
-      f(item);
+      await f(item);
     }
   } catch (error) {
     logger.error(error.message);

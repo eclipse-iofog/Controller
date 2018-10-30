@@ -1587,7 +1587,7 @@ paths:
         type: string
       responses:
         '200':
-          description: Created
+          description: Success
           schema:
             type: file
           headers:

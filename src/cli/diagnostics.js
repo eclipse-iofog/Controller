@@ -108,9 +108,9 @@ const _executeCase  = async function (diagnosticCommand, commandName, f, isUserR
 
     if (isUserRequired) {
       const decoratedFunction = AuthDecorator.prepareUserById(f);
-      decoratedFunction(item);
+      await decoratedFunction(item);
     } else {
-      f(item);
+      await f(item);
     }
   } catch (error) {
     logger.error(error.message);
