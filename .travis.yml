@@ -3,7 +3,7 @@ language: node_js
 node_js: "9"
 stages:
 - name: package_build
-  if: branch = new-fog-controller
+  if: branch = develop
 
 jobs:
   include:
