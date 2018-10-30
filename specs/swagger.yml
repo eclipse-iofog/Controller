@@ -609,12 +609,12 @@ paths:
           description: Invalid Node Id
         '500':
           description: Internal Server Error
-  '/agent/proxy':
+  '/agent/tunnel':
     get:
       tags:
       - Agent
-      description: Get an ioFog node proxy configuration
-      operationId: getIOFogNodeProxyConfig
+      description: Get an ioFog node tunnel configuration
+      operationId: getIOFogNodeTunnelConfig
       parameters:
       - in: header
         name: Authorization
@@ -625,7 +625,7 @@ paths:
         '200':
           description: Success
           schema:
-            $ref: '#/definitions/IOFogNodeProxyConfigResponse'
+            $ref: '#/definitions/IOFogNodeTunnelConfigResponse'
           headers:
             X-Timestamp:
               type: number
@@ -1243,6 +1243,8 @@ paths:
           description: Bad Request
         '401':
           description: Not Authorized
+        '409':
+          description: Duplicate Name
         '500':
           description: Internal Server Error
   '/microservices/{uuid}':
@@ -1312,6 +1314,8 @@ paths:
           description: Not Authorized
         '404':
           description: Not Found
+        '409':
+          description: Duplicate Name
         '500':
           description: Internal Server Error
     delete:
@@ -1497,7 +1501,7 @@ paths:
     delete:
       tags:
       - Microservices
-      description: Deletes a prot mapping for microservice
+      description: Deletes a port mapping for microservice
       operationId: deleteMicroservicePortMapping
       parameters:
       - in: header
@@ -1512,7 +1516,7 @@ paths:
         type: string
       - in: path
         name: internalPort
-        description: Receiver Microservice Id
+        description: Internal Port
         required: true
         type: string
       responses:
@@ -2263,7 +2267,7 @@ definitions:
         type: number
       deviceScanFrequency:
         type: number
-      proxy:
+      tunnel:
         type: string
       type:
         $ref: '#/definitions/IOFogType'
@@ -2511,7 +2515,7 @@ definitions:
         type: boolean
       isReadyToRollback:
         type: boolean
-  IOFogNodeProxyConfigResponse:
+  IOFogNodeTunnelConfigResponse:
     type: object
     properties:
       username:
@@ -2919,8 +2923,6 @@ definitions:
         type: string
       config:
         type: string
-      needUpdate:
-        type: boolean
       rebuild:
         type: boolean
       ioFogNodeId:
@@ -2929,8 +2931,6 @@ definitions:
         type: boolean
       logLimit:
         type: number
-      imageSnapshot:
-        type: string
       volumeMappings:
          type: array
          items:

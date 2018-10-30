@@ -1,9 +1,25 @@
 {
-  "name": "fog-controller",
-  "version": "0.3.01",
-  "description": "Fog Controller project for Eclipse IoFog @ iofog.org \\nCopyright (c) 2018 Edgeworx, Inc.",
+  "name": "iofogcontroller",
+  "version": "0.9.5",
+  "description": "ioFog Controller project for Eclipse IoFog @ iofog.org \\nCopyright (c) 2018 Edgeworx, Inc.",
   "main": "./src/main.js",
   "author": "Saeid Baghbidi",
+  "contributors": [
+    "Kilton Hopkins <kilton@edgeworx.io>",
+    "Saeid Baghbidi",
+    "Pavel Kazlou",
+    "Egor Krylovich",
+    "Iryna Laryionava",
+    "Maryna Lipnitskaya",
+    "Dmitriy Kudasov",
+    "Dmitry Stolbunov",
+    "Darya Busel",
+    "Alexander Shpak",
+    "Kate Lukashick",
+    "Eugene Pankov",
+    "Maksim Chepelev",
+    "Tetiana Yatsiuk"
+  ],
   "license": {
     "type": "EPL-2.0",
     "url": "https://www.eclipse.org/legal/epl-v20.html"
@@ -11,19 +27,23 @@
   "bugs": {
     "email": "edgemaster@iofog.org"
   },
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "lint": "./node_modules/.bin/eslint \"**/*.js\""
-  },
+  "homepage": "https://www.iofog.org",
   "repository": {
     "type": "git",
-    "url": "https://github.com/ioFog/FogController"
+    "url": "https://github.com/ioFog/Controller"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "NODE_ENV=production node ./src/main.js",
+    "build": "export NODE_ENV=production && cd src/sequelize && ../../node_modules/.bin/sequelize db:migrate && ../../node_modules/.bin/sequelize db:seed:all",
+    "start-dev": "NODE_ENV=development node ./src/main.js",
+    "build-dev": "export NODE_ENV=development && cd src/sequelize && ../../node_modules/.bin/sequelize db:migrate && ../../node_modules/.bin/sequelize db:seed:all",
+    "lint": "./node_modules/.bin/eslint \"**/*.js\""
   },
   "preferGlobal": true,
   "bin": {
-    "fog-controller": "./dist/main.js"
+    "iofog-controller": "src/main.js"
   },
-  "homepage": "https://www.iofog.org",
   "dependencies": {
     "body-parser": "^1.18.3",
     "command-line-args": "^5.0.2",
@@ -45,6 +65,7 @@
     "path": "^0.12.7",
     "portscanner": "^2.2.0",
     "querystring": "^0.2.0",
+    "retry-as-promised": "^3.1.0",
     "sequelize": "^4.39.0",
     "sequelize-cli": "^4.1.1",
     "sqlite3": "^4.0.2",

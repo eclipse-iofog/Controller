@@ -14,14 +14,29 @@
 const TransactionDecorator = require('../decorators/transaction-decorator')
 const Validator = require('../schemas')
 const ConnectorManager = require('../sequelize/managers/connector-manager')
+const Errors = require('../helpers/errors')
+const ErrorMessages = require('../helpers/error-messages')
+const AppHelper = require('../helpers/app-helper')
 const https = require('https');
 const http = require('http');
 const constants = require('../helpers/constants')
 const logger = require('../logger')
 const querystring = require('querystring')
+const Op = require('sequelize').Op;
+const Sequelize = require('sequelize');
 
 async function _createConnector(connectorData, transaction) {
   await Validator.validate(connectorData, Validator.schemas.connectorCreate)
+  const connector = await ConnectorManager.findOne({
+    [Op.or]: [
+      {name: connectorData.name},
+      {publicIp: connectorData.publicIp},
+      {domain: connectorData.domain}
+    ]
+  }, transaction)
+  if (connector) {
+    throw new Errors.ValidationError(ErrorMessages.ALREADY_EXISTS)
+  }
   await ConnectorManager.create(connectorData, transaction)
 }
 
@@ -38,7 +53,10 @@ async function _deleteConnector(connectorData, transaction) {
   const queryConnectorData = {
     publicIp: connectorData.publicIp
   }
-  await ConnectorManager.delete(queryConnectorData, transaction)
+  const affectedRows = await ConnectorManager.delete(queryConnectorData, transaction)
+  if (affectedRows === 0) {
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_CONNECTOR_IP, connectorData.publicIp))
+  }
 }
 
 async function _getConnectorList(transaction) {

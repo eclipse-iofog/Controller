@@ -13,13 +13,15 @@
 
 module.exports = {
   DUPLICATE_NAME: 'Duplicate name {}',
+  ALREADY_EXISTS: 'Model already exists',
   INVALID_CATALOG_ITEM_ID: 'Invalid catalog item id {}',
   INVALID_FLOW_ID: 'Invalid flow id {}',
+  INVALID_CONNECTOR_IP: 'Invalid connector ip {}',
   UNABLE_TO_CREATE_ACTIVATION_CODE: 'Unable to create activation code',
   UNABLE_TO_GET_ACTIVATION_CODE: 'Unable to create activation code',
   INVALID_FOG_NODE_ID: 'Invalid fog node id {}',
   INVALID_USER_EMAIL: 'Invalid user email',
-  INVALID_MICROSERVICE_UUID: 'Invalid microservice uuid',
+  INVALID_MICROSERVICE_UUID: 'Invalid microservice uuid {}',
   ACTIVATION_CODE_NOT_FOUND: 'Activation code not found',
   INVALID_OLD_PASSWORD: 'Old password is incorrect',
   ACCOUNT_NOT_FOUND: 'Account not found',
@@ -45,5 +47,13 @@ module.exports = {
   INVALID_MICROSERVICE_USER: 'Invalid microservice user or uuid',
   ROUTE_NOT_FOUND: 'Route not found',
   IMAGE_SNAPSHOT_WITHOUT_FOG: 'Can not run image snapshot for element without fog.',
-  FILE_DOES_NOT_EXIST: 'File does not exist.'
+  FILE_DOES_NOT_EXIST: 'File does not exist.',
+  RESTRICTED_PUBLISHER: "You are not allowed to add catalog item as 'Eclipse ioFog' publisher",
+  REQUIRED_FOG_NODE: 'fog node is required.',
+  CLI: {
+    INVALID_PORT_MAPPING: 'Port mapping parsing error. Please provide valid port mapping.',
+    INVALID_VOLUME_MAPPING: 'Volume mapping parsing error. Please provide valid volume mapping.',
+    INVALID_INTERNAL_PORT: 'Internal parsing error. Please provide valid internal port.',
+    INVALID_ROUTE: 'Route parsing error. Please provide valid route.'
+  }
 };

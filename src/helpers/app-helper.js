@@ -57,7 +57,7 @@ function checkPortAvailability(port) {
 }
 
 const findAvailablePort = async function (hostname) {
-  let portBounds = Config.get("Proxy:PortRange").split("-").map(i => parseInt(i));
+  let portBounds = Config.get("Tunnel:PortRange").split("-").map(i => parseInt(i));
   return await portscanner.findAPortNotInUse(portBounds[0], portBounds[1], hostname);
 }
 /**
@@ -101,9 +101,11 @@ function generateAccessToken() {
 }
 
 function checkTransaction(transaction) {
-  if (!transaction) {
-    throw new Errors.TransactionError()
-  }
+  // To be removed when transactions concurrency issue fixed
+  return
+  // if (!transaction) {
+  //   throw new Errors.TransactionError()
+  // }
 }
 
 function deleteUndefinedFields(obj) {
@@ -134,6 +136,12 @@ function formatMessage() {
   return format.apply(null, argsArray);
 }
 
+function stringifyCliJsonSchema(json) {
+  return JSON.stringify(json, null, 2)
+    .replace(/{/g, "\\{")
+    .replace(/}/g, "\\}");
+}
+
 module.exports = {
   encryptText,
   decryptText,
@@ -148,5 +156,6 @@ module.exports = {
   deleteUndefinedFields,
   validateBooleanCliOptions,
   formatMessage,
-  findAvailablePort
+  findAvailablePort,
+  stringifyCliJsonSchema
 };

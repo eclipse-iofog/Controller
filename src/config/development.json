@@ -1,6 +1,6 @@
 {
   "App": {
-    "Name": "fog-controller-dev"
+    "Name": "iofog-controller-dev"
   },
   "Server": {
     "Port": 51121,
@@ -11,14 +11,14 @@
     "HomeUrl": "https://google.com"
   },
   "Service": {
-    "LogsDirectory": "/var/log/fog-controller",
+    "LogsDirectory": "/var/log/iofog-controller",
     "LogsFileSize": 1048576
   },
   "Settings": {
     "UserTokenExpirationIntervalSeconds": 360000,
     "FogTokenExpirationIntervalSeconds": 3600000
   },
-  "Proxy": {
+  "Tunnel": {
     "Username": "username",
     "Password": "password",
     "Host": "23.253.111.231",

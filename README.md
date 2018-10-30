@@ -1,18 +1,17 @@
 **Fog Controller Usage**
 
- $ fog-controller <*command*> <*options*>
+ $ iofog-controller <*command*> <*options*>
 
 **Command List**
 
- start          -- Start fog-controller service. <br>
- stop           -- Stop fog-controller service. <br>
- controller     -- Display fog-controller service information. <br>
+ start          -- Start iofog-controller service. <br>
+ stop           -- Stop iofog-controller service. <br>
+ controller     -- Display iofog-controller service information. <br>
  help           -- Display usage information. <br>
- version        -- Display fog-controller service version. <br>
  user           -- User operations. <br>
- config         -- Set/Display fog-controller service config. <br>
+ config         -- Set/Display iofog-controller service config. <br>
  connector      -- Connector operations. <br>
- proxy          -- Proxy operations. <br>
+ tunnel         -- Tunnel operations. <br>
  iofog          -- ioFog nodes operations. <br>
  catalog        -- Microservices catalog operations. <br>
  flow           -- Application flow operations. <br>
@@ -25,20 +24,21 @@
 
 **Controller**
 
-$ fog-controller controller <*command*> <*options*>
+$ iofog-controller controller <*command*> <*options*>
 
 **Command List**
 
- - status             -- Display fog-controller service status.
+ - status             -- Display iofog-controller service status.
  - email-activation   -- Is email activation.
  - fog-types          -- List all Fog-types.
+ - version            -- Display iofog-controller service version.
 <br>
 <br>
 <br>
 
 **User**
 
-$ fog-controller user <*command*> <*options*>
+$ iofog-controller user <*command*> <*options*>
 
 **Command List**
 
@@ -57,11 +57,10 @@ $ fog-controller user <*command*> <*options*>
  -e, --email string         (User's email address) <br>
  -p, --password string      (User's password) <br>
 
-*update*
+*update -e* <*email*>
 
  -f, --first-name string   (User's first name) <br>
  -l, --last-name string    (User's last name) <br>
- -e, --email string        (User's email address) <br>
  -p, --password string     (User's password) <br>
 
 *remove*
@@ -88,7 +87,8 @@ $ fog-controller user <*command*> <*options*>
 <br>
 
 **Config** <br>
-$ fog-controller config <*options*>
+
+$ iofog-controller config <*options*>
  
  *add*
 
@@ -117,7 +117,7 @@ $ fog-controller config <*options*>
  
 **Connector** <br>
 
-$ fog-controller connector <*command*> <*options*>
+$ iofog-controller connector <*command*> <*options*>
 
 **Command List**
 
@@ -137,11 +137,10 @@ $ fog-controller connector <*command*> <*options*>
  -H, --dev-mode-on        (Switch on dev mode) <br>
  -h, --dev-mode-off       (Switch off dev mode) <br>
 
-*update*
+*update -i* <*public-ip*>
 
  -n, --name string        (Connector name) <br>
  -d, --domain string      (Connector domain name) <br>
- -i, --public-ip string   (Connector public IP address) <br>
  -c, --cert string        (Certificate) <br>
  -S, --self-signed-on     (Switch on self-signed enabled) <br>
  -s, --self-signed-off    (Switch off self-signed disabled) <br>
@@ -156,39 +155,38 @@ $ fog-controller connector <*command*> <*options*>
 <br>
 <br> 
  
-**Proxy** <br>
+**Tunnel** <br>
 
-$ fog-controller proxy <*command*> <*options*>
+$ iofog-controller tunnel <*command*> <*options*>
 
 **Command List**
 
- update   -- Update existing proxy or create a new one. <br>
- list     -- List all proxies. <br>
+ update   -- Update existing tunnel or create a new one. <br>
+ list     -- List all tunnels. <br>
 
-*update*
+*update -a* <*action*> (Action: can be either 'open' or 'close')
 
- -u, --username string   (Proxy username) <br>
- -p, --password string   (Proxy password) <br>
- -s, --host string       (Proxy host address) <br>
- -k, --rsa-key string    (Proxy RSA key) <br>
- -o, --port number       (Proxy port) <br>
+ -u, --username string   (Tunnel username) <br>
+ -p, --password string   (Tunnel password) <br>
+ -s, --host string       (Tunnel host address) <br>
+ -k, --rsa-key string    (Tunnel RSA key) <br>
+ -o, --port number       (Tunnel port) <br>
  -f, --iofogUuid string  (Fog UUID) <br>
- -a, --action string     (Action: can be either 'open' or 'close')
 
 **Example**<br>
- proxy update -u dmitry -p dpass -s 127.12.14.52 -k /home/dmitrys/documents/rsa.txt -o 22 -f NH44VjVFnr8946Yr8HPRrJdFZgLN8k7j -a close<br>
+ tunnel update -a close -u dmitry -p dpass -s 127.12.14.52 -k /home/dmitrys/documents/rsa.txt -o 22 -f NH44VjVFnr8946Yr8HPRrJdFZgLN8k7j <br>
  
 *list*<br>
 
 **Example**<br>
-proxy list
+tunnel list
 <br>
 <br>
 <br>  
  
  **IoFog**
  
- $ fog-controller iofog <*command*> <*options*>
+ $ iofog-controller iofog <*command*> <*options*>
 
 **Command List**
 
@@ -200,11 +198,10 @@ proxy list
   provisioning-key   -- Get provisioning key for an ioFog node. <br>
   reboot             -- Reboot ioFog node. <br>             
   version            -- Change agent version of ioFog node. <br>
-  tunnel             -- Tunnel operations for an ioFog node. <br>
   hal-hw             -- Get HAL Hardware ioFog node data. <br>
   hal-usb            -- Get HAL USB ioFog node data. <br>
   
-*add*
+*add -u* <*user-id*>
 
   -f, --file string               (ioFog settings JSON file) <br>
   -n, --name string               (ioFog node name) <br>
@@ -231,12 +228,10 @@ proxy list
   -A, --abs-hw-enable             (Enable hardware abstraction on ioFog node) <br>
   -o, --reboot                    (Reboot ioFog node) <br>
   -y, --fog-type number           (ioFog node architecture type) <br>
-  -u, --user-id number            (User's id) <br>
 
-*update*
+*update -i* <*node-id*>
 
   -f, --file string               (ioFog settings JSON file) <br>
-  -i, --node-id string            (ioFog node ID) <br>
   -n, --name string               (ioFog node name) <br>
   -l, --location string           (ioFog node location) <br>
   -t, --latitude number           (ioFog node latitude) <br>
@@ -282,12 +277,6 @@ proxy list
 
   -i, --node-id         string           (ioFog node ID)         
   -v, --version-command string           (ioFog version command) 
-
-*tunnel*
-
-  -e, --enable     (Enable tunnel) <br>
-  -S, --disable    (Disable tunnel) <br>
-  -O, --info       (Display tunnel info) <br>
   
  *hal-hw*
 
@@ -327,7 +316,7 @@ proxy list
 
 **Catalog**<br>
 
-$ fog-controller catalog <*command*> <*options*> <br>
+$ iofog-controller catalog <*command*> <*options*> <br>
 
 **Command List**<br>
 
@@ -337,7 +326,7 @@ $ fog-controller catalog <*command*> <*options*> <br>
  list     -- List all catalog items.<br>
  info     -- Get catalog item settings.<br>
 
-*add*
+*add -u* <*user-id*>
 
  -f, --file string             (Catalog item settings JSON file)<br>
  -n, --name string             (Catalog item name)<br>
@@ -357,12 +346,10 @@ $ fog-controller catalog <*command*> <*options*> <br>
  -O, --output-type string      (Catalog item output type)<br>
  -T, --output-format string    (Catalog item output format)<br>
  -X, --config-example string   (Catalog item config example)<br>
- -u, --user-id number          (User's id)<br>
 
-*update*<br>
+*update -i* <*item-id*><br>
 
  -f, --file string             (Catalog item settings JSON file)<br>
- -i, --item-id string          (Catalog item ID)<br>
  -n, --name string             (Catalog item name)<br>
  -d, --description string      (Catalog item description)<br>
  -c, --category string         (Catalog item category)<br>
@@ -415,29 +402,27 @@ $ fog-controller catalog <*command*> <*options*> <br>
 <br>
 **Flow**<br>
 
- $ fog-controller flow <*command*> <*options*><br>
+ $ iofog-controller flow <*command*> <*options*><br>
 
 *Command List*<br>
 
- add      -- Add a new flow.<br>
+ add       -- Add a new flow.<br>
  update    -- Update existing flow.<br>
  remove    -- Delete a flow.<br>
  list      -- List all flows.<br>
  info      -- Get flow settings.<br>
 
-*add*<br>
+*add -u* <*user-id*>
 
  -f, --file string          (Application flow settings JSON file)<br>
  -n, --name string          (Application flow name)<br>
  -d, --description string   (Application flow description)<br>
  -a, --activate             (Activate application flow)<br>
  -D, --deactivate           (Deactivate application flow)<br>
- -u, --user-id number       (User's id)<br>
 
-*update*<br>
+*update -i* <*flow-id*><br>
 
  -f, --file string          (Application flow settings JSON file)<br>
- -i, --flow-id string       (Application flow ID)<br>
  -n, --name string          (Application flow name)<br>
  -d, --description string   (Application flow description)<br>
  -a, --activate             (Activate application flow)<br>
@@ -463,7 +448,7 @@ $ fog-controller catalog <*command*> <*options*> <br>
 
  **Microservice**<br>
  
- $ fog-controller microservice <*command*> <*options*><br>
+ $ iofog-controller microservice <*command*> <*options*><br>
 
 *Command List*<br>
 
@@ -473,9 +458,9 @@ $ fog-controller catalog <*command*> <*options*> <br>
  list     -- List all microservices.<br>
  info     -- Get microservice settings.<br>
  route    -- Add/Remove microservice route.<br>
- strace   -- strace option operations.<br>
+ port-mapping   -- Create/Delete/List microservice port mapping.<br>
 
-*add*<br>
+*add -u* <*user-id*>
 
  -f, --file string         (Microservice settings JSON file)<br>
  -n, --name string         (Microservice name)<br>
@@ -489,27 +474,27 @@ $ fog-controller catalog <*command*> <*options*> <br>
  -R, --root-disable        (Disable root access)<br>
  -p, --ports string[]      (Container ports)<br>
  -t, --routes string[]     (Microservice route(s) (receiving microservices))<br>
- -u, --user-id number      (User's id)<br>
 
-*update*<br>
+*update -i* <*microservice-id*><br>
 
  -f, --file string              (Microservice settings JSON file)<br>
- -i, --microservice-id string   (Microservice ID)<br>
  -n, --name string              (Microservice name)<br>
- -c, --catalog-id string        (Catalog item ID)<br>
- -F, --flow-id string           (Application flow ID)<br>
  -I, --iofog-id string          (ioFog node ID)<br>
  -g, --config string            (Microservice config)<br>
  -v, --volumes string[]         (Microservice volume mapping(s))<br>
  -l, --log-limit number         (Log file size limit (MB))<br>
  -r, --root-enable              (Enable root access)<br>
  -R, --root-disable             (Disable root access)<br>
- -p, --ports string[]           (Container ports)<br>
- -t, --routes string[]          (Microservice route(s) (receiving microservices))<br>
+ -w, --rebuild                  (Rebuild microservice image on fog agent)<br>
+ 
+ **Example**
+ 
+ update -i <*microservice-id*> -v{'hostDestination':'/var1/dest','containerDestination':'/var/dest','accessMode':'w'} -n testcli <br>
 
 *remove*<br>
 
  -i, --microservice-id string   (Microservice ID)<br>
+ -z, --cleanUp                  (Delete microservice with cleanup)<br>
 
 *info*<br>
 
@@ -517,51 +502,90 @@ $ fog-controller catalog <*command*> <*options*> <br>
 
 *route*<br>
 
+ -a, --add string                      (Add new route(s))<br>
+ -m, --remove string                   (Delete existing route(s))<br>
+
+*port-mapping*<br>
+
  -i, --microservice-id string   (Microservice ID)<br>
- -a, --add string[]             (Add new route(s))<br>
- -m, --remove string[]          (Delete existing route(s))<br>
+ -b, --create                   (Add new port mapping(s))<br>
+ -B, --delete                   (Delete existing port mapping(s))<br>
+ -G, --list                     (List port mappings)<br>
 
-*strace*<br>
+**JSON ADD File Schema**<br>
 
- -i, --microservice-id string   (Microservice ID)<br>
- -e, --enable                   (Enable strace option)<br>
- -d, --disable                  (Disable strace option)<br>
- -G, --get string               (Get strace data, formats: string,file)<br>
+{<br>
+  "name": "string",<br>
+  "config": "string",<br>
+  "catalogItemId": 0,<br>
+  "flowId": 0,<br>
+  "ioFogNodeId": "string",<br>
+  "rootHostAccess": true,<br>
+  "logLimit": 0,<br>
+  "volumeMappings": [<br>
+    {<br>
+      "hostDestination": "/var/dest",<br>
+      "containerDestination": "/var/dest",<br>
+      "accessMode": "rw"<br>
+    }<br>
+  ],<br>
+  "ports": [<br>
+    {<br>
+      "internal": 0,<br>
+      "external": 0,<br>
+      "publicMode": true<br>
+    }<br>
+  ],<br>
+  "routes": [<br>
+    "string"<br>
+  ]<br>
+}<br>
 
-*JSON File Schema*<br>
+**JSON UPDATE File Schema**<br>
 
- name: string<br>
- catalogItemId: string<br>
- flowId: string<br>
- ioFogNodeId: string<br>
- config: string<br>
- volumeMappings: string<br>
- logLimit: number<br>
- rootHostAccess: true<br>
- ports: object<br>
- internal: number<br>
- external: number<br>
- tunnel: boolean<br>
- routes: array of strings<br>
+{<br>
+  "name": "string",<br>
+  "config": "string",<br>
+  "rebuild": true,<br>
+  "ioFogNodeId": "string",<br>
+  "rootHostAccess": true,<br>
+  "logLimit": 0,<br>
+  "volumeMappings": [<br>
+    {<br>
+      "hostDestination": "/var/dest",<br>
+      "containerDestination": "/var/dest",<br>
+      "accessMode": "rw"<br>
+    }<br>
+  ]<br>
+}<br>
 
-*Examples*
-
- 1. Single mapping:                       $ fog-controller microservice add [other required options] --volumes
-                                       /host_src:/container_src<br>
- 2. Multiple mappings:                   $ fog-controller microservice add [other required options] --volumes
-                                       /host_src:/container_src /host_bin:/container_bin<br>
- 3. Ports (internal:external:tunnel):     $ fog-controller microservice add [other required options] --ports
-                                       80:8080:false 443:5443:true<br>
- 4. Add routes:                           $ fog-controller microservice route -i ABCD --add DEF GHI<br>
- 5. Delete route:                         $ fog-controller microservice route -i ABC --remove DEF<br>
- 6. Get strace data:                      $ fog-controller microservice strace -i ABC --get file<br>
+**Examples**<br>
+ 1. Single mapping                       ($ iofog-controller microservice add
+                                          [other required options] --volumes    
+                                          /host_src:/container_src)              
+  2. Multiple mappings                    ($ iofog-controller microservice add
+                                          [other required options] --volumes    
+                                          /host_src:/container_src              
+                                          /host_bin:/container_bin)              
+  3. Port mapping                         ($ iofog-controller microservice add
+  (internal:external:publicMode)          [other required options] --ports      
+                                          80:8080:false 443:5443:false)          
+  4. Add routes                           ($ iofog-controller microservice route
+                                          --add ABC:DEF)                         
+  5. Delete route                         ($ iofog-controller microservice route
+                                          --remove ABC:DEF)                      
+  6. Create port mapping                  ($ iofog-controller microservice port-
+                                          mapping --create 80:8080:false -i ABC) 
+  7. Delete port mapping                  ($ iofog-controller microservice port-
+                                          mapping --delete 80 -i ABC)    
+ 
 <br>
 <br>
 <br>
 
  **Registry**
 
- $ fog-controller registry <*command*> <*options*><br>
+ $ iofog-controller registry <*command*> <*options*><br>
 
 *Command List*<br>
 
@@ -569,7 +593,7 @@ $ fog-controller catalog <*command*> <*options*> <br>
  remove   -- Delete a Registry.<br>
  list     -- List all Registries.<br>
 
-*add*<br>
+*add -i* <*user-id*>
 
  -u, --uri string        (Registry URI)<br>
  -b, --public            (Set registry as public)<br>
@@ -577,7 +601,6 @@ $ fog-controller catalog <*command*> <*options*> <br>
  -l, --username string   (Registry's user name)<br>
  -p, --password string   (Password)<br>
  -e, --email string      (Email address)<br>
- -i, --user-id number    (User's id)<br>
 
 *remove*<br>
 
@@ -588,7 +611,7 @@ $ fog-controller catalog <*command*> <*options*> <br>
 
  **Diagnostics**
 
- $ fog-controller diagnostics <*command*> <*options*><br>
+ $ iofog-controller diagnostics <*command*> <*options*><br>
 
 *Command List*<br>
 
@@ -598,20 +621,17 @@ $ fog-controller catalog <*command*> <*options*> <br>
  image-snapshot-create   -- Create microservice image snapshot.<br>
  image-snapshot-get      -- Get microservice image snapshot.<br>
 
-*strace-update*<br>
+*strace-update -i* <*microservice-id*><br>
 
  -e, --enable                   (Enable microservice strace)<br>
  -o, --disable                  (Disable microservice strace)<br>
- -i, --microservice-id string   (Microservice ID)<br>
 
-*strace-info*<br>
+*strace-info -i* <*microservice-id*><br>
 
- -i, --microservice-id string   (Microservice ID)<br>
  -f, --format string            (Format of strace data to receive)<br>
  
- *strace-ftp-post*
+ *strace-ftp-post -i* <*microservice-id*><br>
 
- -i, --microservice-id string   (Microservice ID)<br>
  -h, --ftpHost string           (FTP host)<br>
  -p, --ftpPort number           (FTP port)<br>
  -u, --ftpUser string           (FTP user)<br>

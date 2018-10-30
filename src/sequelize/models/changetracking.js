@@ -48,9 +48,9 @@ module.exports = (sequelize, DataTypes) => {
       field: 'registries',
       defaultValue: false
     },
-    proxy: {
+    tunnel: {
       type: DataTypes.BOOLEAN,
-      field: 'proxy',
+      field: 'tunnel',
       defaultValue: false
     },
     diagnostics: {

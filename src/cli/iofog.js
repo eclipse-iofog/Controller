@@ -19,28 +19,28 @@ const CliDecorator = require('../decorators/cli-decorator')
 const AppHelper = require('../helpers/app-helper')
 const FogService = require('../services/iofog-service')
 
-const JSON_SCHEMA =
-  `name: string
-  location: string
-  latitude: number
-  longitude: number
-  description: string
-  dockerUrl: string
-  diskLimit: number
-  diskDirectory: string
-  memoryLimit: number
-  cpuLimit: number
-  logLimit: number
-  logDirectory: string
-  logFileCount: number
-  statusFrequency: number
-  changeFrequency: number
-  deviceScanFrequency: number
-  bluetoothEnabled: boolean
-  watchdogEnabled: boolean
-  abstractedHardwareEnabled: boolean
-  reboot: boolean
-  fogType: number`
+const JSON_SCHEMA = AppHelper.stringifyCliJsonSchema({
+  name: "string",
+  location: "string",
+  latitude: 0,
+  longitude: 0,
+  description: "string",
+  dockerUrl: "string",
+  diskLimit: 0,
+  diskDirectory: "string",
+  memoryLimit: 0,
+  cpuLimit: 0,
+  logLimit: 0,
+  logDirectory: "string",
+  logFileCount: 0,
+  statusFrequency: 0,
+  changeFrequency: 0,
+  deviceScanFrequency: 0,
+  bluetoothEnabled: false,
+  watchdogEnabled: true,
+  abstractedHardwareEnabled: false,
+  fogType: 0
+});
 
 class IOFog extends BaseCLIHandler {
   constructor() {
@@ -75,9 +75,6 @@ class IOFog extends BaseCLIHandler {
       { name: 'abs-hw-disable', alias: 'a', type: Boolean, description: 'Disable hardware abstraction on ioFog node', group: [constants.CMD_UPDATE, constants.CMD_ADD] },
       { name: 'reboot', alias: 'o', type: Boolean, description: 'Reboot ioFog node', group: [constants.CMD_UPDATE, constants.CMD_ADD] },
       { name: 'fog-type', alias: 'y', type: Number, description: 'ioFog node architecture type', group: [constants.CMD_UPDATE, constants.CMD_ADD] },
-      { name: 'enable', alias: 'e', type: Boolean, description: 'Enable tunnel', group: [constants.CMD_TUNNEL] },
-      { name: 'disable', alias: 'S', type: Boolean, description: 'Disable tunnel', group: [constants.CMD_TUNNEL] },
-      { name: 'info', alias: 'O', type: Boolean, description: 'Display tunnel info', group: [constants.CMD_TUNNEL] },
       { name: 'version-command', alias: 'v', type: String, description: 'ioFog version command', group: [constants.CMD_VERSION] },
       { name: 'user-id', alias: 'u', type: Number, description: 'User\'s id', group: [constants.CMD_ADD] }
     ]
@@ -90,7 +87,6 @@ class IOFog extends BaseCLIHandler {
       [constants.CMD_PROVISIONING_KEY]: 'Get provisioning key for an ioFog node.',
       [constants.CMD_IOFOG_REBOOT]: 'Reboot ioFog node',
       [constants.CMD_VERSION]: 'Change agent version of ioFog node',
-      [constants.CMD_TUNNEL]: 'Tunnel operations for an ioFog node.',
       [constants.CMD_HAL_HW]: 'Get HAL Hardware ioFog node data',
       [constants.CMD_HAL_USB]: 'Get HAL USB ioFog node data'
     }
@@ -153,7 +149,7 @@ async function _executeCase(commands, commandName, f, isUserRequired) {
     const obj = commands[commandName];
 
     if (isUserRequired) {
-      const decoratedFunction = CliDecorator.prepareUser(f);
+      const decoratedFunction = CliDecorator.prepareUserById(f);
       decoratedFunction(obj);
     } else {
       f(obj);
