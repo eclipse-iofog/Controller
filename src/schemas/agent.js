@@ -76,7 +76,7 @@ const updateAgentStatus = {
     "ipAddress": {"type": "string"},
     "processedMessages": {"type": "integer", "minimum": 0},
     "microserviceMessageCounts": {"type": "string"},
-    "messageSpeed": {"type": "integer", "minimum": 0},
+    "messageSpeed": {"type": "number", "minimum": 0},
     "lastCommandTime": {"type": "integer", "minimum": 0},
     "tunnelStatus": {"type": "string"},
     "version": {"type": "string"},
