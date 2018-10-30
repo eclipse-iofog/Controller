@@ -55,5 +55,6 @@ module.exports = {
     INVALID_VOLUME_MAPPING: 'Volume mapping parsing error. Please provide valid volume mapping.',
     INVALID_INTERNAL_PORT: 'Internal parsing error. Please provide valid internal port.',
     INVALID_ROUTE: 'Route parsing error. Please provide valid route.'
-  }
+  },
+  INVALID_CONNECTOR_DOMAIN: 'Invalid connector domain {}'
 };
