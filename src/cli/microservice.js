@@ -80,7 +80,8 @@ class Microservice extends BaseCLIHandler {
       },
       {
         name: 'microservice-id', alias: 'i', type: String, description: 'Microservice ID',
-        group: [constants.CMD_UPDATE, constants.CMD_REMOVE, constants.CMD_INFO, constants.CMD_PORT_MAPPING_CREATE, constants.CMD_PORT_MAPPING_REMOVE]
+        group: [constants.CMD_UPDATE, constants.CMD_REMOVE, constants.CMD_INFO, constants.CMD_PORT_MAPPING_CREATE,
+          constants.CMD_PORT_MAPPING_REMOVE, constants.CMD_PORT_MAPPING_LIST]
       },
       {
         name: 'name', alias: 'n', type: String, description: 'Microservice name',
@@ -288,7 +289,7 @@ const _createRoute = async function (obj) {
 const _removeRoute = async function (obj) {
   logger.info(JSON.stringify(obj));
   try {
-    const arr = obj.port.split(':');
+    const arr = obj.route.split(':');
     const sourceMicroserviceId = arr[0];
     const destMicroserviceId = arr[1];
     await MicroserviceService.deleteRouteWithTransaction(sourceMicroserviceId, destMicroserviceId, {}, true);
@@ -309,7 +310,7 @@ const _createPortMapping = async function (obj) {
 const _removePortMapping = async function (obj) {
   logger.info(JSON.stringify(obj));
   try {
-    const internalPort = parseInt(obj.delete);
+    const internalPort = parseInt(obj.internalPort);
     await MicroserviceService.deletePortMappingWithTransaction(obj.microserviceId, internalPort, {}, true);
     logger.info('Port mapping has been deleted successfully');
   } catch(e) {
@@ -317,7 +318,7 @@ const _removePortMapping = async function (obj) {
   }
 };
 
-const _listPortMappings = async function () {
+const _listPortMappings = async function (obj) {
   const result = await MicroserviceService.getMicroservicePortMappingListWithTransaction(obj.microserviceId, {}, true);
   logger.info(JSON.stringify(result));
   logger.info('Port mappings have been retrieved successfully');
