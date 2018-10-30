@@ -14,12 +14,30 @@
 const BaseManager = require('./base-manager');
 const models = require('./../models');
 const Flow = models.Flow;
+const Microservice = models.Microservice;
+const sequelize = require('sequelize');
 
 class FlowManager extends BaseManager {
   getEntity() {
     return Flow
   }
+
+  async findFlowMicroservices(where, transaction) {
+    return Flow.findOne({
+      include: [
+        {
+          model: Microservice,
+          as: 'microservice',
+          required: false,
+          attributes: ['iofogUuid']
+        }
+      ],
+      where: where,
+      attributes: ['id']
+    }, {transaction: transaction})
+  }
 }
+
 
 const instance = new FlowManager();
 module.exports = instance;
