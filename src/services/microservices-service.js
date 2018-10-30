@@ -76,8 +76,6 @@ const _getMicroservice = async function (microserviceUuid, user, isCLI, transact
 const _createMicroserviceOnFog = async function (microserviceData, user, isCLI, transaction) {
   await Validation.validate(microserviceData, Validation.schemas.microserviceCreate);
 
-  await FlowService.getFlowWithTransaction(1, user, isCLI, transaction);
-
   const microservice = await _createMicroservice(microserviceData, user, isCLI, transaction);
 
   if (microserviceData.ports) {
@@ -104,7 +102,7 @@ const _createMicroserviceOnFog = async function (microserviceData, user, isCLI, 
 
 const _createMicroservice = async function (microserviceData, user, isCLI, transaction) {
 
-  let microservice = {
+  let newMicroservice = {
     uuid: AppHelper.generateRandomString(32),
     name: microserviceData.name,
     config: microserviceData.config,
@@ -116,20 +114,20 @@ const _createMicroservice = async function (microserviceData, user, isCLI, trans
     updatedBy: user.id
   };
 
-  microservice = AppHelper.deleteUndefinedFields(microservice);
+  newMicroservice = AppHelper.deleteUndefinedFields(newMicroservice);
 
-  await _checkForDuplicateName(microservice.name, {}, transaction);
+  await _checkForDuplicateName(newMicroservice.name, {}, transaction);
 
   //validate catalog item
-  await CatalogService.getCatalogItem(microservice.catalogItemId, user, isCLI, transaction);
+  await CatalogService.getCatalogItem(newMicroservice.catalogItemId, user, isCLI, transaction);
   //validate flow
-  await FlowService.getFlow(microservice.flowId, user, isCLI, transaction);
+  await FlowService.getFlow(newMicroservice.flowId, user, isCLI, transaction);
   //validate fog node
-  if (microservice.iofogUuid) {
-      await IoFogService.getFog({uuid: microservice.iofogUuid}, user, isCLI, transaction);
+  if (newMicroservice.iofogUuid) {
+      await IoFogService.getFog({uuid: newMicroservice.iofogUuid}, user, isCLI, transaction);
   }
 
-  return await MicroserviceManager.create(microservice, transaction);
+  return await MicroserviceManager.create(newMicroservice, transaction);
 };
 
 const _createMicroservicePorts = async function (ports, microserviceUuid, transaction) {
@@ -251,7 +249,7 @@ const _checkForDuplicateName = async function (name, item, transaction) {
       ? {name: name, uuid: {[Op.ne]: item.id}}
       : {name: name};
 
-    const result = await MicroserviceManager.findAnother(where);
+    const result = await MicroserviceManager.findOne(where, transaction);
     if (result) {
       throw new Errors.DuplicatePropertyError(AppHelper.formatMessage(ErrorMessages.DUPLICATE_NAME, name));
     }
@@ -814,5 +812,5 @@ module.exports = {
   getMicroservicePortMappingListWithTransaction: TransactionDecorator.generateTransaction(_getPortMappingList),
   deletePortMappingWithTransaction: TransactionDecorator.generateTransaction(_deletePortMapping),
   getPhysicalConections: getPhysicalConections,
-  getListMicroservices:  _listMicroservices,
+  getListMicroservices:  _listMicroservices
 };

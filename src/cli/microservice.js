@@ -80,7 +80,7 @@ class Microservice extends BaseCLIHandler {
       },
       {
         name: 'microservice-id', alias: 'i', type: String, description: 'Microservice ID',
-        group: [constants.CMD_UPDATE, constants.CMD_REMOVE, constants.CMD_INFO, constants.CMD_PORT_MAPPING]
+        group: [constants.CMD_UPDATE, constants.CMD_REMOVE, constants.CMD_INFO, constants.CMD_PORT_MAPPING_CREATE, constants.CMD_PORT_MAPPING_REMOVE]
       },
       {
         name: 'name', alias: 'n', type: String, description: 'Microservice name',
@@ -123,28 +123,20 @@ class Microservice extends BaseCLIHandler {
         group: [constants.CMD_ADD]
       },
       {
+        name: 'mapping', alias: 'P', type: String, description: 'Container port mapping',
+        group: [constants.CMD_PORT_MAPPING_CREATE]
+      },
+      {
         name: 'routes', alias: 't', type: String, description: 'Microservice route(s) (receiving microservices)', multiple: true,
         group: [constants.CMD_ADD]
       },
       {
-        name: 'add', alias: 'a', type: String, description: 'Add new route(s)',
-        group: [constants.CMD_ROUTE]
+        name: 'route', alias: 'T', type: String, description: 'Microservice route (receiving microservices)',
+        group: [constants.CMD_ROUTE_CREATE, constants.CMD_ROUTE_REMOVE]
       },
       {
-        name: 'remove', alias: 'm', type: String, description: 'Delete existing route(s)',
-        group: [constants.CMD_ROUTE]
-      },
-      {
-        name: 'create', alias: 'b', type: String, description: 'Add new port mapping(s)',
-        group: [constants.CMD_PORT_MAPPING]
-      },
-      {
-        name: 'delete', alias: 'B', type: String, description: 'Delete existing port mapping(s)',
-        group: [constants.CMD_PORT_MAPPING]
-      },
-      {
-        name: 'list', alias: 'G', type: Boolean, description: 'List port mappings',
-        group: [constants.CMD_PORT_MAPPING]
+        name: 'internal-port', alias: 'b', type: String, description: 'Internal port',
+        group: [constants.CMD_PORT_MAPPING_REMOVE]
       },
       {
         name: 'rebuild', alias: 'w', type: Boolean, description: 'Rebuild microservice image on fog agent',
@@ -165,8 +157,11 @@ class Microservice extends BaseCLIHandler {
       [constants.CMD_REMOVE]: 'Delete a microservice.',
       [constants.CMD_LIST]: 'List all microservices.',
       [constants.CMD_INFO]: 'Get microservice settings.',
-      [constants.CMD_ROUTE]: 'Add/Remove microservice route.',
-      [constants.CMD_PORT_MAPPING]: 'Create/Delete/List microservice port mapping.'
+      [constants.CMD_ROUTE_CREATE]: 'Create microservice route.',
+      [constants.CMD_ROUTE_REMOVE]: 'Remove microservice route.',
+      [constants.CMD_PORT_MAPPING_CREATE]: 'Create microservice port mapping.',
+      [constants.CMD_PORT_MAPPING_REMOVE]: 'Remove microservice port mapping.',
+      [constants.CMD_PORT_MAPPING_LIST]: 'List microservice port mapping.'
     }
   }
 
@@ -189,11 +184,20 @@ class Microservice extends BaseCLIHandler {
       case constants.CMD_INFO:
         await _executeCase(microserviceCommand, constants.CMD_INFO, _getMicroservice);
         break;
-      case constants.CMD_ROUTE:
-        await _executeCase(microserviceCommand, constants.CMD_ROUTE, _executeRouteCommand);
+      case constants.CMD_ROUTE_CREATE:
+        await _executeCase(microserviceCommand, constants.CMD_ROUTE_CREATE, _createRoute);
         break;
-      case constants.CMD_PORT_MAPPING:
-        await _executeCase(microserviceCommand, constants.CMD_PORT_MAPPING, _executePortMappingCommand);
+      case constants.CMD_ROUTE_REMOVE:
+        await _executeCase(microserviceCommand, constants.CMD_ROUTE_REMOVE, _removeRoute);
+        break;
+      case constants.CMD_PORT_MAPPING_CREATE:
+        await _executeCase(microserviceCommand, constants.CMD_PORT_MAPPING_CREATE, _createPortMapping);
+        break;
+      case constants.CMD_PORT_MAPPING_REMOVE:
+        await _executeCase(microserviceCommand, constants.CMD_PORT_MAPPING_REMOVE, _removePortMapping);
+        break;
+      case constants.CMD_PORT_MAPPING_LIST:
+        await _executeCase(microserviceCommand, constants.CMD_PORT_MAPPING_LIST, _listPortMappings);
         break;
       case constants.CMD_HELP:
       default:
@@ -229,24 +233,28 @@ class Microservice extends BaseCLIHandler {
             example: '$ iofog-controller microservice add [other required options] --volumes /host_src:/container_src /host_bin:/container_bin',
           },
           {
-            desc: '3. Port mapping (internal:external:publicMode)',
+            desc: '3. Port mapping (80:8080:false - internal port : external port : public mode)',
             example: '$ iofog-controller microservice add [other required options] --ports 80:8080:false 443:5443:false',
           },
           {
-            desc: '4. Add routes (sourceMicroserviceId:destMicroserviceId)',
-            example: '$ iofog-controller microservice route --add ABC:DEF',
+            desc: '4. Add routes (ABC:DEF - source microservice id : dest microservice id)',
+            example: '$ iofog-controller microservice add [other required options] --routes ABC:DEF RFG:HJK'
           },
           {
-            desc: '5. Delete route (sourceMicroserviceId:destMicroserviceId)',
-            example: '$ iofog-controller microservice route --remove ABC:DEF',
+            desc: '4. Add route (ABC:DEF - source microservice id : dest microservice id)',
+            example: '$ iofog-controller microservice route-create --route ABC:DEF',
           },
           {
-            desc: '6. Create port mapping (internal:external:publicMode)',
-            example: '$ iofog-controller microservice port-mapping --create 80:8080:false -i ABC'
+            desc: '5. Delete route (ABC:DEF - source microservice id : dest microservice id)',
+            example: '$ iofog-controller microservice route-remove --route ABC:DEF',
           },
           {
-            desc: '7. Delete port mapping (internal)',
-            example: '$ iofog-controller microservice port-mapping --delete 80 -i ABC'
+            desc: '6. Create port mapping (80:8080:false - internal port : external port : public mode, ABC - microservice)',
+            example: '$ iofog-controller microservice port-mapping-create --mapping 80:8080:false -i ABC'
+          },
+          {
+            desc: '7. Delete port mapping (80 - internal port, ABC - microservice id)',
+            example: '$ iofog-controller microservice port-mapping-remove --internal-port 80 -i ABC'
           }
         ],
       },
@@ -263,58 +271,56 @@ const _executeCase  = async function (microserviceCommand, commandName, f) {
   }
 };
 
-const _executeRouteCommand = async function (obj) {
+const _createRoute = async function (obj) {
   logger.info(JSON.stringify(obj));
-  if (obj.add) {
-    try {
-      const arr = obj.add.split(':');
-      const sourceMicroserviceId = arr[0];
-      const destMicroserviceId = arr[1];
-      await MicroserviceService.createRouteWithTransaction(sourceMicroserviceId, destMicroserviceId, {}, true);
-      logger.info(`Microservice route with source microservice ${sourceMicroserviceId} and dest microservice 
+  try {
+    const arr = obj.route.split(':');
+    const sourceMicroserviceId = arr[0];
+    const destMicroserviceId = arr[1];
+    await MicroserviceService.createRouteWithTransaction(sourceMicroserviceId, destMicroserviceId, {}, true);
+    logger.info(`Microservice route with source microservice ${sourceMicroserviceId} and dest microservice 
                 ${destMicroserviceId} has been created successfully.`)
-    } catch (e) {
-      logger.error(ErrorMessages.CLI.INVALID_ROUTE);
-    }
-  } else if (obj.remove) {
-    try {
-      const arr = obj.add.split(':');
-      const sourceMicroserviceId = arr[0];
-      const destMicroserviceId = arr[1];
-      await MicroserviceService.deleteRouteWithTransaction(sourceMicroserviceId, destMicroserviceId, {}, true);
-      logger.info(`Microservice route with source microservice ${obj.sourceMicroserviceId} and dest microservice 
-                ${obj.destMicroserviceId} has been removed successfully.`);
-    } catch (e) {
-      logger.error(ErrorMessages.CLI.INVALID_ROUTE);
-    }
-  } else if (obj.add && obj.remove) {
-    logger.info('Please specify either "add" or "remove" operation');
-  } else {
-    logger.info('No operation specified');
+  } catch (e) {
+    logger.error(ErrorMessages.CLI.INVALID_ROUTE);
   }
 };
 
-const _executePortMappingCommand = async function (obj) {
+const _removeRoute = async function (obj) {
   logger.info(JSON.stringify(obj));
-
-  if (obj.create) {
-    const mapping = parsePortMappingObject(obj.create, ErrorMessages.CLI.INVALID_PORT_MAPPING);
-    await MicroserviceService.createPortMappingWithTransaction(obj.microserviceId, mapping, {}, true);
-    logger.info('Port mapping has been create successfully');
-  } else if (obj.delete) {
-    try {
-      const internalPort = parseInt(obj.delete);
-      await MicroserviceService.deletePortMappingWithTransaction(obj.microserviceId, internalPort, {}, true);
-      logger.info('Port mapping has been deleted successfully');
-    } catch(e) {
-      logger.error(ErrorMessages.CLI.INVALID_INTERNAL_PORT);
-    }
-  } else if (obj.list) {
-    await MicroserviceService.getMicroservicePortMappingListWithTransaction(obj.microserviceId, {}, true);
-    logger.info('Port mappings have been retrieved successfully');
-  } else {
-    logger.info('Incorrect command usage. Please specify only one command at once');
+  try {
+    const arr = obj.port.split(':');
+    const sourceMicroserviceId = arr[0];
+    const destMicroserviceId = arr[1];
+    await MicroserviceService.deleteRouteWithTransaction(sourceMicroserviceId, destMicroserviceId, {}, true);
+    logger.info(`Microservice route with source microservice ${obj.sourceMicroserviceId} and dest microservice 
+                ${obj.destMicroserviceId} has been removed successfully.`);
+  } catch (e) {
+    logger.error(ErrorMessages.CLI.INVALID_ROUTE);
   }
+};
+
+const _createPortMapping = async function (obj) {
+  logger.info(JSON.stringify(obj));
+  const mapping = parsePortMappingObject(obj.mapping, ErrorMessages.CLI.INVALID_PORT_MAPPING);
+  await MicroserviceService.createPortMappingWithTransaction(obj.microserviceId, mapping, {}, true);
+  logger.info('Port mapping has been create successfully');
+};
+
+const _removePortMapping = async function (obj) {
+  logger.info(JSON.stringify(obj));
+  try {
+    const internalPort = parseInt(obj.delete);
+    await MicroserviceService.deletePortMappingWithTransaction(obj.microserviceId, internalPort, {}, true);
+    logger.info('Port mapping has been deleted successfully');
+  } catch(e) {
+    logger.error(ErrorMessages.CLI.INVALID_INTERNAL_PORT);
+  }
+};
+
+const _listPortMappings = async function () {
+  const result = await MicroserviceService.getMicroservicePortMappingListWithTransaction(obj.microserviceId, {}, true);
+  logger.info(JSON.stringify(result));
+  logger.info('Port mappings have been retrieved successfully');
 };
 
 const _removeMicroservice = async function (obj) {
@@ -325,7 +331,7 @@ const _removeMicroservice = async function (obj) {
 
 const _listMicroservices = async function () {
   const result = await MicroserviceService.listMicroservicesWithTransaction({}, {}, true);
-  logger.info(JSON.stringify(result, null, 2));
+  logger.info(JSON.stringify(result));
   logger.info('Microservices have been retrieved successfully.');
 };
 
