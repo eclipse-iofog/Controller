@@ -13,6 +13,10 @@
  *
  */
 
+if (!process.env.NODE_ENV) {
+  process.env.NODE_ENV = 'production'
+}
+
 const daemonize = require('daemonize2')
 const Cli = require('./cli')
 const logger = require('./logger')
@@ -48,10 +52,6 @@ function main() {
     })
 
   cli.run(daemon)
-}
-
-if (!process.env.NODE_ENV) {
-  process.env.NODE_ENV = 'production'
 }
 
 main()
