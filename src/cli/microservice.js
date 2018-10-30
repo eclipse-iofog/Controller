@@ -260,9 +260,9 @@ const _executeCase  = async function (microserviceCommand, commandName, f, isUse
 
     if (isUserRequired) {
       const decoratedFunction = AuthDecorator.prepareUserById(f);
-      decoratedFunction(item);
+      await decoratedFunction(item);
     } else {
-      f(item);
+      await f(item);
     }
   } catch (error) {
     logger.error(error.message);

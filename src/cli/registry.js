@@ -85,9 +85,9 @@ async function _executeCase(commands, commandName, f, isUserRequired) {
 
         if (isUserRequired) {
             const decoratedFunction = CliDecorator.prepareUserById(f);
-            decoratedFunction(obj);
+            await decoratedFunction(obj);
         } else {
-            f(obj);
+            await f(obj);
         }
     } catch (error) {
         logger.error(error.message);
