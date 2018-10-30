@@ -19,17 +19,16 @@ const ConnectorManager = require('../sequelize/managers/connector-manager');
 const ConnectorPortManager = require('../sequelize/managers/connector-port-manager');
 const MicroservicePublicModeManager = require('../sequelize/managers/microservice-public-mode-manager');
 const ChangeTrackingManager = require('../sequelize/managers/change-tracking-manager');
-const FlowService = require('../services/flow-service');
 const IoFogService = require('../services/iofog-service');
 const AppHelper = require('../helpers/app-helper');
 const Errors = require('../helpers/errors');
 const ErrorMessages = require('../helpers/error-messages');
 const Validation = require('../schemas/index');
 const ConnectorService = require('../services/connector-service');
+const FlowService = require('../services/flow-service');
 const CatalogService = require('../services/catalog-service');
 const RoutingManager = require('../sequelize/managers/routing-manager');
 const Op = require('sequelize').Op;
-const Sequelize = require('sequelize');
 
 const _listMicroservices = async function (flowId, user, isCLI, transaction) {
   if (!isCLI) {
@@ -77,6 +76,8 @@ const _getMicroservice = async function (microserviceUuid, user, isCLI, transact
 const _createMicroserviceOnFog = async function (microserviceData, user, isCLI, transaction) {
   await Validation.validate(microserviceData, Validation.schemas.microserviceCreate);
 
+  await FlowService.getFlowWithTransaction(1, user, isCLI, transaction);
+
   const microservice = await _createMicroservice(microserviceData, user, isCLI, transaction);
 
   if (microserviceData.ports) {
@@ -103,7 +104,7 @@ const _createMicroserviceOnFog = async function (microserviceData, user, isCLI, 
 
 const _createMicroservice = async function (microserviceData, user, isCLI, transaction) {
 
-  const microserviceToCreate = {
+  let microservice = {
     uuid: AppHelper.generateRandomString(32),
     name: microserviceData.name,
     config: microserviceData.config,
@@ -115,20 +116,20 @@ const _createMicroservice = async function (microserviceData, user, isCLI, trans
     updatedBy: user.id
   };
 
-  const microserviceDataCreate = AppHelper.deleteUndefinedFields(microserviceToCreate);
+  microservice = AppHelper.deleteUndefinedFields(microservice);
 
-  await _checkForDuplicateName(microserviceDataCreate.name, {}, transaction);
+  await _checkForDuplicateName(microservice.name, {}, transaction);
 
   //validate catalog item
-  await CatalogService.getCatalogItem(microserviceDataCreate.catalogItemId, user, isCLI, transaction);
+  await CatalogService.getCatalogItem(microservice.catalogItemId, user, isCLI, transaction);
   //validate flow
-  await FlowService.getFlow(microserviceDataCreate.flowId, user, isCLI, transaction);
+  await FlowService.getFlow(microservice.flowId, user, isCLI, transaction);
   //validate fog node
-  if (microserviceDataCreate.iofogUuid) {
-      await IoFogService.getFog({uuid: microserviceDataCreate.iofogUuid}, user, isCLI, transaction);
+  if (microservice.iofogUuid) {
+      await IoFogService.getFog({uuid: microservice.iofogUuid}, user, isCLI, transaction);
   }
 
-  return await MicroserviceManager.create(microserviceDataCreate, transaction);
+  return await MicroserviceManager.create(microservice, transaction);
 };
 
 const _createMicroservicePorts = async function (ports, microserviceUuid, transaction) {
@@ -250,7 +251,7 @@ const _checkForDuplicateName = async function (name, item, transaction) {
       ? {name: name, uuid: {[Op.ne]: item.id}}
       : {name: name};
 
-    const result = await MicroserviceManager.findOne(where, transaction);
+    const result = await MicroserviceManager.findAnother(where);
     if (result) {
       throw new Errors.DuplicatePropertyError(AppHelper.formatMessage(ErrorMessages.DUPLICATE_NAME, name));
     }
@@ -813,5 +814,5 @@ module.exports = {
   getMicroservicePortMappingListWithTransaction: TransactionDecorator.generateTransaction(_getPortMappingList),
   deletePortMappingWithTransaction: TransactionDecorator.generateTransaction(_deletePortMapping),
   getPhysicalConections: getPhysicalConections,
-  getListMicroservices:  _listMicroservices
+  getListMicroservices:  _listMicroservices,
 };

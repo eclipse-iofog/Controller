@@ -175,25 +175,25 @@ class Microservice extends BaseCLIHandler {
 
     switch (microserviceCommand.command.command) {
       case constants.CMD_ADD:
-        await _executeCase(microserviceCommand, constants.CMD_ADD, _createMicroservice, false);
+        await _executeCase(microserviceCommand, constants.CMD_ADD, _createMicroservice);
         break;
       case constants.CMD_UPDATE:
-        await _executeCase(microserviceCommand, constants.CMD_UPDATE, _updateMicroservice, false);
+        await _executeCase(microserviceCommand, constants.CMD_UPDATE, _updateMicroservice);
         break;
       case constants.CMD_REMOVE:
-        await _executeCase(microserviceCommand, constants.CMD_REMOVE, _removeMicroservice, false);
+        await _executeCase(microserviceCommand, constants.CMD_REMOVE, _removeMicroservice);
         break;
       case constants.CMD_LIST:
-        await _executeCase(microserviceCommand, constants.CMD_LIST, _listMicroservices, false);
+        await _executeCase(microserviceCommand, constants.CMD_LIST, _listMicroservices);
         break;
       case constants.CMD_INFO:
-        await _executeCase(microserviceCommand, constants.CMD_INFO, _getMicroservice, false);
+        await _executeCase(microserviceCommand, constants.CMD_INFO, _getMicroservice);
         break;
       case constants.CMD_ROUTE:
-        await _executeCase(microserviceCommand, constants.CMD_ROUTE, _executeRouteCommand, false);
+        await _executeCase(microserviceCommand, constants.CMD_ROUTE, _executeRouteCommand);
         break;
       case constants.CMD_PORT_MAPPING:
-        await _executeCase(microserviceCommand, constants.CMD_PORT_MAPPING, _executePortMappingCommand, false);
+        await _executeCase(microserviceCommand, constants.CMD_PORT_MAPPING, _executePortMappingCommand);
         break;
       case constants.CMD_HELP:
       default:
@@ -254,16 +254,10 @@ class Microservice extends BaseCLIHandler {
   }
 }
 
-const _executeCase  = async function (microserviceCommand, commandName, f, isUserRequired) {
+const _executeCase  = async function (microserviceCommand, commandName, f) {
   try {
     const item = microserviceCommand[commandName] || {};
-
-    if (isUserRequired) {
-      const decoratedFunction = AuthDecorator.prepareUserById(f);
-      decoratedFunction(item);
-    } else {
-      f(item);
-    }
+    await f(item);
   } catch (error) {
     logger.error(error.message);
   }

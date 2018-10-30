@@ -42,6 +42,13 @@ module.exports = class BaseManager {
     });
   }
 
+  async findAnother(object) {
+
+    return this.getEntity().findOne({
+      where: object
+    });
+  }
+
   async create(object, transaction) {
     AppHelper.checkTransaction(transaction);
     return this.getEntity().create(object, {

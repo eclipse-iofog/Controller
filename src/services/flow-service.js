@@ -17,7 +17,7 @@ const AppHelper = require('../helpers/app-helper');
 const Errors = require('../helpers/errors');
 const ErrorMessages = require('../helpers/error-messages');
 const Validation = require('../schemas');
-const MicroserviceService = require('./microservices-service')
+// const MicroserviceService = require('./microservices-service')
 const ChangeTrackingManager = require('../sequelize/managers/change-tracking-manager')
 
 const _createFlow = async function (flowData, user, isCLI, transaction) {
@@ -103,18 +103,15 @@ const _updateFlow = async function (flowData, flowId, user, isCLI, transaction) 
 };
 
 const _getFlow = async function (flowId, user, isCLI, transaction) {
-  const whereObj = {
-    id: flowId,
-    userId: user.id
-  };
-  const where = AppHelper.deleteUndefinedFields(whereObj);
+  const where = isCLI
+    ? {id: flowId}
+    : {id: flowId, userId: user.id};
 
   const flow = await FlowManager.findOne(where, transaction);
 
   if (!flow) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_ID, flowId))
   }
-
   return flow
 };
 
@@ -147,5 +144,5 @@ module.exports = {
   getFlowWithTransaction: TransactionDecorator.generateTransaction(_getFlow),
   getUserFlowsWithTransaction: TransactionDecorator.generateTransaction(_getUserFlows),
   getAllFlowsWithTransaction: TransactionDecorator.generateTransaction(_getAllFlows),
-  getFlow: _getFlow
+  getFlow: _getFlow,
 };
