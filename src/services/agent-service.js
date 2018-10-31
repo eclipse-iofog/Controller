@@ -235,7 +235,6 @@ const getAgentMicroservices = async function (fog, transaction) {
     const responseMicroservice = {
       uuid: microservice.uuid,
       imageId: imageId,
-      needUpdate: microservice.needUpdate,
       config: microservice.config,
       rebuild: microservice.rebuild,
       rootHostAccess: microservice.rootHostAccess,
