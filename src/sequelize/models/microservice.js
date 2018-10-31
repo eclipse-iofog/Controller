@@ -26,11 +26,6 @@ module.exports = (sequelize, DataTypes) => {
       field: 'is_network',
       defaultValue: false
     },
-    needUpdate: {
-      type: DataTypes.BOOLEAN,
-      field: 'need_update',
-      defaultValue: false
-    },
     rebuild: {
       type: DataTypes.BOOLEAN,
       field: 'rebuild',
