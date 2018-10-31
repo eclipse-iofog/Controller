@@ -2757,7 +2757,7 @@ definitions:
       configExample:
         type: string
       images:
-        $ref: '#/definitions/ElementContainerImages'
+        $ref: '#/definitions/MicroserviceContainerImages'
   InfoTypeResponse:
     type: object
     properties:
@@ -2765,11 +2765,11 @@ definitions:
         type: string
       infoFormat:
         type: string
-  ElementContainerImages:
+  MicroserviceContainerImages:
     type: array
     items:
-      $ref: '#/definitions/ElementContainerImage'
-  ElementContainerImage:
+      $ref: '#/definitions/MicroserviceContainerImage'
+  MicroserviceContainerImage:
     type: object
     properties:
       containerImage:
@@ -2789,7 +2789,7 @@ definitions:
       category:
         type: string
       images:
-        $ref: '#/definitions/ElementContainerImages'
+        $ref: '#/definitions/MicroserviceContainerImages'
       publisher:
         type: string
       diskRequired:
@@ -2854,7 +2854,7 @@ definitions:
       config:
         type: string
       images:
-        $ref: '#/definitions/ElementContainerImages'
+        $ref: '#/definitions/MicroserviceContainerImages'
       picture:
         type: string
       status:

@@ -423,7 +423,7 @@ async function _createRouteOverConnector(sourceMicroservice, destMicroservice, u
 async function _createNetworkMicroserviceForMaster(masterMicroservice, sourceNetwMsConfig, networkCatalogItem, user, transaction) {
   const sourceNetworkMicroserviceData = {
     uuid: AppHelper.generateRandomString(32),
-    name: `Network for Element ${masterMicroservice.uuid}`,
+    name: `Network for Microservice ${masterMicroservice.uuid}`,
     config: JSON.stringify(sourceNetwMsConfig),
     isNetwork: true,
     catalogItemId: networkCatalogItem.id,
