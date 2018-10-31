@@ -14,6 +14,7 @@
  */
 
 const daemonize = require('daemonize2')
+const db = require('./sequelize/models')
 const Cli = require('./cli')
 const logger = require('./logger')
 
@@ -50,8 +51,12 @@ function main() {
   cli.run(daemon)
 }
 
-if (!process.env.NODE_ENV) {
-  process.env.NODE_ENV = 'production'
-}
-
-main()
+db.sequelize
+  .sync()
+  .then(db.migrate)
+  .then(db.seed)
+  .then(main)
+  .catch((err) => {
+    logger.silly('Unable to initialize the database.', err)
+    process.exit(1)
+  })
