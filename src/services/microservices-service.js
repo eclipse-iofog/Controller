@@ -36,18 +36,7 @@ const _listMicroservices = async function (flowId, user, isCLI, transaction) {
   }
   const where = isCLI ? {} : {flowId: flowId};
 
-  return await MicroserviceManager.findAllWithDependencies(where,
-    {
-      exclude: [
-        'configLastUpdated',
-        'created_at',
-        'updated_at',
-        'catalogItemId',
-        'updatedBy',
-        'flowId',
-        'registryId'
-      ]
-    }, transaction);
+  return await MicroserviceManager.findAllExcludeFields(where, transaction);
 };
 
 const _getMicroservice = async function (microserviceUuid, user, isCLI, transaction) {
@@ -55,19 +44,9 @@ const _getMicroservice = async function (microserviceUuid, user, isCLI, transact
     await _validateMicroserviceOnGet(user.id, microserviceUuid, transaction);
   }
 
-  const microservice = await MicroserviceManager.findOneWithDependencies({
-      uuid: microserviceUuid
-    },
-    {
-      exclude: [
-        'configLastUpdated',
-        'created_at',
-        'updated_at',
-        'updatedBy',
-        'flowId',
-        'registryId'
-      ]
-    }, transaction);
+  const microservice = await MicroserviceManager.findOneExcludeFields({
+    uuid: microserviceUuid
+  }, transaction);
 
   if (!microservice) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, microserviceUuid));
@@ -176,7 +155,10 @@ const _updateMicroservice = async function (microserviceUuid, microserviceData, 
 
   const microserviceDataUpdate = AppHelper.deleteUndefinedFields(microserviceToUpdate);
 
-  const microservice = await _getMicroservice(microserviceUuid, user, isCLI, transaction);
+  const microservice = await MicroserviceManager.findOne({
+    uuid: microserviceUuid,
+    updatedBy: user.id
+  }, transaction);
 
   if (microserviceDataUpdate.name) {
     await _checkForDuplicateName(microserviceDataUpdate.name, {id: microserviceUuid}, user.id, transaction);
@@ -233,7 +215,10 @@ const _deleteMicroservice = async function (microserviceUuid, deleteWithCleanUp,
       }, transaction);
   }
 
-  const microservice = await _getMicroservice(microserviceUuid, user, isCLI, transaction);
+  const microservice = await MicroserviceManager.findOne({
+    uuid: microserviceUuid,
+    updatedBy: user.id
+  }, transaction);
 
   const affectedRows = await MicroserviceManager.delete({
     uuid: microserviceUuid

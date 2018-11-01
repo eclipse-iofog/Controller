@@ -22,7 +22,7 @@ const ChangeTrackingManager = require('../sequelize/managers/change-tracking-man
 const _createFlow = async function (flowData, user, isCLI, transaction) {
   await Validation.validate(flowData, Validation.schemas.flowCreate);
 
-  await _checkForDuplicateName(flowData.name, {}, transaction);
+  await _checkForDuplicateName(flowData.name, {}, user.id, transaction);
 
   const flowToCreate = {
     name: flowData.name,
@@ -62,7 +62,7 @@ const _updateFlow = async function (flowData, flowId, user, isCLI, transaction) 
     throw new Errors.NotFoundError(ErrorMessages.INVALID_FLOW_ID)
   }
   if (flowData.name) {
-    await _checkForDuplicateName(flowData.name, flowId, transaction);
+    await _checkForDuplicateName(flowData.name, flowId, user.id, transaction);
   }
 
   const flow = {
@@ -123,11 +123,11 @@ const _getAllFlows = async function (isCLI, transaction) {
   return await FlowManager.findAll({}, transaction);
 };
 
-const _checkForDuplicateName = async function (name, item, transaction) {
+const _checkForDuplicateName = async function (name, item, userId, transaction) {
   if (name) {
     const where = item.id
-      ? {name: name, id: {[Op.ne]: item.id}}
-      : {name: name};
+      ? {name: name, id: {[Op.ne]: item.id, userId: userId}}
+      : {name: name, userId: userId};
 
     const result = await FlowManager.findOne(where, transaction);
     if (result) {
