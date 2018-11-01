@@ -21,8 +21,7 @@ const ChangeTrackingManager = require('../sequelize/managers/change-tracking-man
 
 const _createFlow = async function (flowData, user, isCLI, transaction) {
   await Validation.validate(flowData, Validation.schemas.flowCreate);
-
-  //await isFlowExist(flowData.name, transaction);
+  
   await _checkForDuplicateName(flowData.name, {}, transaction);
 
   const flowToCreate = {
