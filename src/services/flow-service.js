@@ -116,7 +116,7 @@ const _getUserFlows = async function (user, isCLI, transaction) {
     userId: user.id
   };
 
-  return await FlowManager.findAll(flow, transaction)
+  return await FlowManager.findAllExcludeFields(flow, transaction)
 };
 
 const _getAllFlows = async function (isCLI, transaction) {
