@@ -2845,28 +2845,8 @@ definitions:
         type: string
       config:
         type: string
-      images:
-        $ref: '#/definitions/MicroserviceContainerImages'
-      picture:
-        type: string
-      status:
-        type: string
-      ioFogNodeId:
-        type: string
-      isNetwork:
-        type: boolean
-      needUpdate:
-        type: boolean
-      rebuild:
-        type: boolean
       rootHostAccess:
         type: boolean
-      deleteWithCleanUp:
-        type: boolean
-      strace:
-        type: boolean
-      imageSnapshot:
-        type: string
       logLimit:
         type: number
       volumeMappings:
