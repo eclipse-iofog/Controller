@@ -103,7 +103,7 @@ const resendActivation = async function (emailObj, isCLI, transaction) {
 
 const activateUser = async function (codeData, isCLI, transaction) {
   const updatedObj = {
-    emailActivated: 1
+    emailActivated: true
   };
 
   if (isCLI) {
@@ -196,7 +196,7 @@ const list = async function (isCLI, transaction) {
 
 const suspendUser = async function (user, isCLI, transaction) {
   const updatedObj = {
-    emailActivated: 0
+    emailActivated: false
   };
 
   await AccessTokenService.removeAccessTokenByUserId(user.id, transaction);
@@ -231,7 +231,7 @@ async function _generateAccessToken(transaction) {
 
 function _verifyEmailActivation(emailActivated) {
   const emailActivation = Config.get("Email:ActivationEnabled");
-  if (emailActivation && emailActivated === 0)
+  if (emailActivation && !emailActivated)
     throw new Error(ErrorMessages.EMAIL_NOT_ACTIVATED);
 }
 
@@ -280,7 +280,7 @@ async function _handleCreateUser(user, emailActivation, transaction) {
 }
 
 async function _createNewUser(user, emailActivation, transaction) {
-  user.emailActivated = emailActivation === 'on' ? 0 : 1;
+  user.emailActivated = !emailActivation;
   return await createUser(user, transaction)
 }
 
