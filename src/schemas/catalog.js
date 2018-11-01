@@ -33,7 +33,7 @@ const catalogItemCreate = {
     "inputType": {"$ref": "/type"},
     "outputType": {"$ref": "/type"}
   },
-  "required": ["name"],
+  "required": ["name", "registryId", "images"],
   "additionalProperties": false
 };
 

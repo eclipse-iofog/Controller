@@ -53,7 +53,7 @@ module.exports = (sequelize, DataTypes) => {
         name: 'flowId',
         field: 'flow_id'
       },
-      as: 'microservice'
+      as: 'microservices'
     })
   };
   return Flow;
