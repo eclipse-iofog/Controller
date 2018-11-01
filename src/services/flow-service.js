@@ -91,6 +91,7 @@ const _updateFlow = async function (flowData, flowId, user, isCLI, transaction) 
       const updateChangeTrackingData = {
         containerConfig: true,
         containerList: true,
+        routing: true
       };
       await ChangeTrackingManager.update({iofogUuid: iofogUuid}, updateChangeTrackingData, transaction);
     }
