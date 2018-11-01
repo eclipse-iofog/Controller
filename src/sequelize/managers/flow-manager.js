@@ -36,6 +36,18 @@ class FlowManager extends BaseManager {
       attributes: ['id']
     }, {transaction: transaction})
   }
+
+  async findAllExcludeFields(where, transaction) {
+    return Flow.findAll({
+      where: where,
+      attributes: {
+        exclude: [
+          'created_at',
+          'updated_at',
+          'updatedById',
+          'userId'
+        ]}}, {transaction: transaction})
+  }
 }
 
 
