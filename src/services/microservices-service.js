@@ -157,8 +157,8 @@ const _updateMicroservice = async function (microserviceUuid, microserviceData, 
 
   const microservice = await MicroserviceManager.findOne({
     uuid: microserviceUuid,
-    user: user.id
-  }, {transaction: transaction});
+    updatedBy: user.id
+  }, transaction);
 
    if (microserviceDataUpdate.name) {
      await _checkForDuplicateName(microserviceDataUpdate.name, {id: microserviceUuid}, transaction);
@@ -217,8 +217,8 @@ const _deleteMicroservice = async function (microserviceUuid, deleteWithCleanUp,
 
   const microservice = await MicroserviceManager.findOne({
     uuid: microserviceUuid,
-    user: user.id
-  }, {transaction: transaction});
+    updatedBy: user.id
+  }, transaction);
 
   const affectedRows = await MicroserviceManager.delete({
     uuid: microserviceUuid
