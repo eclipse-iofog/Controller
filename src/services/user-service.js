@@ -230,8 +230,8 @@ async function _generateAccessToken(transaction) {
 }
 
 function _verifyEmailActivation(emailActivated) {
-  const emailActivation = Config.get("Email:ActivationEnabled");
-  if (emailActivation && !emailActivated)
+  const isEmailActivationEnabled = Config.get("Email:ActivationEnabled");
+  if (isEmailActivationEnabled && !emailActivated)
     throw new Error(ErrorMessages.EMAIL_NOT_ACTIVATED);
 }
 
