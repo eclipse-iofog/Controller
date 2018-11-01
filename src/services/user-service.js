@@ -39,11 +39,11 @@ const createUser = async function (user, transaction) {
 
 const signUp = async function (user, isCLI, transaction) {
 
-  let emailActivation = Config.get("Email:ActivationEnabled");
+  let isEmailActivationEnabled = Config.get("Email:ActivationEnabled");
 
-  if (emailActivation) {
+  if (isEmailActivationEnabled) {
 
-    const newUser = await _handleCreateUser(user, emailActivation, transaction);
+    const newUser = await _handleCreateUser(user, isEmailActivationEnabled, transaction);
 
     const activationCodeData = await EmailActivationCodeService.generateActivationCode(transaction);
     await EmailActivationCodeService.saveActivationCode(newUser.id, activationCodeData, transaction);
@@ -53,7 +53,7 @@ const signUp = async function (user, isCLI, transaction) {
     await _notifyUserAboutActivationCode(user.email, Config.get('Email:HomeUrl'), emailData, activationCodeData, transporter);
     return newUser;
   } else {
-    return await _handleCreateUser(user, emailActivation, transaction);
+    return await _handleCreateUser(user, isEmailActivationEnabled, transaction);
   }
 };
 
@@ -260,7 +260,7 @@ async function _userEmailSender(emailData) {
   return transporter
 }
 
-async function _handleCreateUser(user, emailActivation, transaction) {
+async function _handleCreateUser(user, isEmailActivationEnabled, transaction) {
   const existingUser = await UserManager.findOne({
     email: user.email
   }, transaction);
@@ -269,7 +269,7 @@ async function _handleCreateUser(user, emailActivation, transaction) {
     throw new Errors.ValidationError('Registration failed: There is already an account associated with your email address. Please try logging in instead.');
   }
 
-  const newUser = await _createNewUser(user, emailActivation, transaction);
+  const newUser = await _createNewUser(user, isEmailActivationEnabled, transaction);
   return {
     userId: newUser.id,
     firstName: newUser.firstName,
@@ -279,8 +279,8 @@ async function _handleCreateUser(user, emailActivation, transaction) {
   }
 }
 
-async function _createNewUser(user, emailActivation, transaction) {
-  user.emailActivated = !emailActivation;
+async function _createNewUser(user, isEmailActivationEnabled, transaction) {
+  user.emailActivated = !isEmailActivationEnabled;
   return await createUser(user, transaction)
 }
 
