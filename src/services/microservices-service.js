@@ -105,7 +105,7 @@ const _createMicroservice = async function (microserviceData, user, isCLI, trans
   await FlowService.getFlow(newMicroservice.flowId, user, isCLI, transaction);
   //validate fog node
   if (newMicroservice.iofogUuid) {
-      await IoFogService.getFog({uuid: newMicroservice.iofogUuid}, user, isCLI, transaction);
+    await IoFogService.getFog({uuid: newMicroservice.iofogUuid}, user, isCLI, transaction);
   }
 
   return await MicroserviceManager.create(newMicroservice, transaction);
@@ -155,7 +155,10 @@ const _updateMicroservice = async function (microserviceUuid, microserviceData, 
 
   const microserviceDataUpdate = AppHelper.deleteUndefinedFields(microserviceToUpdate);
 
-  const microservice = await _getMicroservice(microserviceUuid, user, isCLI, transaction);
+  const microservice = await MicroserviceManager.findOne({
+    uuid: microserviceUuid,
+    user: user.id
+  }, {transaction: transaction});
 
    if (microserviceDataUpdate.name) {
      await _checkForDuplicateName(microserviceDataUpdate.name, {id: microserviceUuid}, transaction);
@@ -212,7 +215,10 @@ const _deleteMicroservice = async function (microserviceUuid, deleteWithCleanUp,
     }, transaction);
   }
 
-  const microservice = await _getMicroservice(microserviceUuid, user, isCLI, transaction);
+  const microservice = await MicroserviceManager.findOne({
+    uuid: microserviceUuid,
+    user: user.id
+  }, {transaction: transaction});
 
   const affectedRows = await MicroserviceManager.delete({
     uuid: microserviceUuid
