@@ -83,7 +83,7 @@ const _updateFlow = async function (flowData, flowId, user, isCLI, transaction) 
   if (oldFlow.isActivated !== flowData.isActivated) {
     const flowWithMicroservices = await FlowManager.findFlowMicroservices({id: flowId}, transaction);
     const onlyUnique = (value, index, self) => self.indexOf(value) === index;
-    const iofogUuids = flowWithMicroservices.microservice
+    const iofogUuids = flowWithMicroservices.microservices
       .map(obj => obj.iofogUuid)
       .filter(onlyUnique)
       .filter(val => val !== null);
