@@ -27,7 +27,7 @@ class FlowManager extends BaseManager {
       include: [
         {
           model: Microservice,
-          as: 'microservice',
+          as: 'microservices',
           required: false,
           attributes: ['iofogUuid']
         }
