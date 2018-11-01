@@ -36,17 +36,7 @@ const _listMicroservices = async function (flowId, user, isCLI, transaction) {
   }
   const where = isCLI ? {} : {flowId: flowId};
 
-  return await MicroserviceManager.findAllWithDependencies(where,
-  {
-    exclude: [
-      'configLastUpdated',
-      'created_at',
-      'updated_at',
-      'catalogItemId',
-      'updatedBy',
-      'flowId',
-      'registryId'
-    ]}, transaction);
+  return await MicroserviceManager.findAllExcludeFields(where, transaction);
 };
 
 const _getMicroservice = async function (microserviceUuid, user, isCLI, transaction) {
@@ -54,18 +44,9 @@ const _getMicroservice = async function (microserviceUuid, user, isCLI, transact
     await _validateMicroserviceOnGet(user.id, microserviceUuid, transaction);
   }
 
-  const microservice = await MicroserviceManager.findOneWithDependencies({
+  const microservice = await MicroserviceManager.findOneExcludeFields({
     uuid: microserviceUuid
-  },
-  {
-     exclude: [
-       'configLastUpdated',
-       'created_at',
-       'updated_at',
-       'updatedBy',
-       'flowId',
-       'registryId'
-     ]}, transaction);
+  }, transaction);
 
   if (!microservice) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, microserviceUuid));

@@ -166,6 +166,50 @@ class MicroserviceManager extends BaseManager {
       attributes: ['uuid']
     }, {transaction: transaction})
   }
+
+  async findOneExcludeFields(where, transaction) {
+    return Microservice.findOne({
+      where: where,
+      attributes: {
+        exclude: [
+          'configLastUpdated',
+          'created_at',
+          'updated_at',
+          'updatedBy',
+          'flowId',
+          'registryId',
+          'isNetwork',
+          'rebuild',
+          'deleteWithCleanUp',
+          'imageSnapshot',
+          'catalog_item_id',
+          'iofog_uuid',
+          'iofogUuid',
+          'catalogItemId'
+        ]}}, {transaction: transaction})
+  }
+
+  async findAllExcludeFields(where, transaction) {
+    return Microservice.findAll({
+      where: where,
+      attributes: {
+        exclude: [
+          'configLastUpdated',
+          'created_at',
+          'updated_at',
+          'updatedBy',
+          'flowId',
+          'registryId',
+          'isNetwork',
+          'rebuild',
+          'deleteWithCleanUp',
+          'imageSnapshot',
+          'catalog_item_id',
+          'iofog_uuid',
+          'iofogUuid',
+          'catalogItemId'
+        ]}}, {transaction: transaction})
+  }
 }
 
 const instance = new MicroserviceManager();
