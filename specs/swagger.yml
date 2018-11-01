@@ -2819,18 +2819,10 @@ definitions:
         type: string
       name:
         type: string
-      updatedBy:
-        type: number
       description:
         type: string
       isActivated:
         type: boolean
-      createdAt:
-        type: number
-      updatedAt:
-        type: number
-      userId:
-        type: number
   NewFlowRequest:
     type: object
     properties:
@@ -2853,28 +2845,8 @@ definitions:
         type: string
       config:
         type: string
-      images:
-        $ref: '#/definitions/MicroserviceContainerImages'
-      picture:
-        type: string
-      status:
-        type: string
-      ioFogNodeId:
-        type: string
-      isNetwork:
-        type: boolean
-      needUpdate:
-        type: boolean
-      rebuild:
-        type: boolean
       rootHostAccess:
         type: boolean
-      deleteWithCleanUp:
-        type: boolean
-      strace:
-        type: boolean
-      imageSnapshot:
-        type: string
       logLimit:
         type: number
       volumeMappings:
