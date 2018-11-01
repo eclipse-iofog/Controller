@@ -2819,18 +2819,10 @@ definitions:
         type: string
       name:
         type: string
-      updatedBy:
-        type: number
       description:
         type: string
       isActivated:
         type: boolean
-      createdAt:
-        type: number
-      updatedAt:
-        type: number
-      userId:
-        type: number
   NewFlowRequest:
     type: object
     properties:
