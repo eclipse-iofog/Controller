@@ -19,7 +19,9 @@ const registryCreate = {
     "isPublic": {"type": "boolean"},
     "username": {"type": "string", "minLength": 1},
     "password": {"type": "string"},
-    "email": {"type": "string"}
+    "email": {"type": "string"},
+    "requiresCert": {"type": "boolean"},
+    "certificate": {"type": "string"}
   },
   "required": ["url", "isPublic", "username", "password", "email"],
   "additionalProperties": false
