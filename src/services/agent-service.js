@@ -207,28 +207,15 @@ const updateAgentStatus = async function (agentStatus, fog, transaction) {
 };
 
 const getAgentMicroservices = async function (fog, transaction) {
-  const microservices = await MicroserviceManager.findAllWithDependencies({
-    iofogUuid: fog.uuid
-  }, {}, transaction);
+  const microservices = await MicroserviceManager.findAllActiveFlowMicroservices(fog.uuid, transaction);
 
   const fogTypeId = fog.fogTypeId;
 
   const response = [];
-  for (const microservice of microservices) {
-    let imageId = '';
+  for (let microservice of microservices) {
     const images = microservice.catalogItem.images;
-    for (const image of images) {
-      if (image.fogTypeId === fogTypeId) {
-        imageId = image.containerImage;
-        break;
-      }
-    }
-
-    const registry = await RegistryManager.findOne({
-      id: microservice.catalogItem.registryId
-    }, transaction);
-
-    const registryUrl = registry.url;
+    const image = images.find(image => image.fogTypeId === fogTypeId);
+    const imageId = image ? image.containerImage : '';
 
     const routes = await MicroserviceService.getPhysicalConections(microservice, transaction);
 
@@ -239,7 +226,7 @@ const getAgentMicroservices = async function (fog, transaction) {
       rebuild: microservice.rebuild,
       rootHostAccess: microservice.rootHostAccess,
       logSize: microservice.logSize,
-      registryUrl: registryUrl,
+      registryUrl: microservice.catalogItem.registry.url,
       portMappings: microservice.ports,
       volumeMappings: microservice.volumeMappings,
       imageSnapshot: microservice.imageSnapshot,
@@ -418,7 +405,7 @@ async function _checkMicroservicesFogType(fog, fogTypeId, transaction) {
 
     for (const microservice of microservices) {
       let exists = false;
-      for (const image of microservice.catalogItem.images) {
+      for (let image of microservice.catalogItem.images) {
         if (image.fogTypeId === fogTypeId) {
           exists = true;
           break;

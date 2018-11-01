@@ -27,7 +27,7 @@ class FlowManager extends BaseManager {
       include: [
         {
           model: Microservice,
-          as: 'microservice',
+          as: 'microservices',
           required: false,
           attributes: ['iofogUuid']
         }
@@ -48,6 +48,18 @@ class FlowManager extends BaseManager {
           'userId'
         ]}}, {transaction: transaction})
   }
+
+  async findOneExcludeFields(where, transaction) {
+    return Flow.findOne({
+      where: where,
+      attributes: {
+        exclude: [
+          'created_at',
+          'updated_at',
+          'updatedById',
+          'userId'
+        ]}}, {transaction: transaction})
+    }
 }
 
 

@@ -21,7 +21,7 @@ const ChangeTrackingManager = require('../sequelize/managers/change-tracking-man
 
 const _createFlow = async function (flowData, user, isCLI, transaction) {
   await Validation.validate(flowData, Validation.schemas.flowCreate);
-  
+
   await _checkForDuplicateName(flowData.name, {}, transaction);
 
   const flowToCreate = {
@@ -83,7 +83,7 @@ const _updateFlow = async function (flowData, flowId, user, isCLI, transaction) 
   if (oldFlow.isActivated !== flowData.isActivated) {
     const flowWithMicroservices = await FlowManager.findFlowMicroservices({id: flowId}, transaction);
     const onlyUnique = (value, index, self) => self.indexOf(value) === index;
-    const iofogUuids = flowWithMicroservices.microservice
+    const iofogUuids = flowWithMicroservices.microservices
       .map(obj => obj.iofogUuid)
       .filter(onlyUnique)
       .filter(val => val !== null);
@@ -103,7 +103,7 @@ const _getFlow = async function (flowId, user, isCLI, transaction) {
     ? {id: flowId}
     : {id: flowId, userId: user.id};
 
-  const flow = await FlowManager.findOne(where, transaction);
+  const flow = await FlowManager.findOneExcludeFields(where, transaction);
 
   if (!flow) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_ID, flowId))

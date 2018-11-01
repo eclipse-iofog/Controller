@@ -23,6 +23,7 @@ const Fog = models.Fog;
 const Flow = models.Flow;
 const User = models.User;
 const Routing = models.Routing;
+const Registry = models.Registry;
 
 class MicroserviceManager extends BaseManager {
   getEntity() {
@@ -53,7 +54,7 @@ class MicroserviceManager extends BaseManager {
       {
         model: CatalogItem,
         as: 'catalogItem',
-        required: false,
+        required: true,
         include: [{
           model: CatalogItemImage,
           as: 'images',
@@ -83,6 +84,55 @@ class MicroserviceManager extends BaseManager {
       ],
       where: where,
       attributes: attributes
+    }, {transaction: transaction})
+  }
+
+  findAllActiveFlowMicroservices(iofogUuid, transaction) {
+    return Microservice.findAll({
+      include: [
+        {
+          model: MicroservicePort,
+          as: 'ports',
+          required: false,
+          attributes: ['portInternal', 'portExternal']
+        },
+        {
+          model: VolumeMapping,
+          as: 'volumeMappings',
+          required: false,
+          attributes: ['hostDestination', 'containerDestination', 'accessMode']
+        },
+        {
+          model: CatalogItem,
+          as: 'catalogItem',
+          required: true,
+          include: [
+            {
+              model: CatalogItemImage,
+              as: 'images',
+              required: true,
+              attributes: ['containerImage', 'fogTypeId']
+            },
+            {
+              model: Registry,
+              as: 'registry',
+              required: true,
+              attributes: ['url']
+            }
+          ],
+          attributes: ['picture']
+        },
+        {
+          model: Flow,
+          as: 'flow',
+          required: true,
+          attributes: ['isActivated']
+        }
+      ],
+      where: {
+        iofogUuid: iofogUuid,
+        '$flow.is_activated$': true
+      }
     }, {transaction: transaction})
   }
 
