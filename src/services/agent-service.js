@@ -207,7 +207,7 @@ const updateAgentStatus = async function (agentStatus, fog, transaction) {
 };
 
 const getAgentMicroservices = async function (fog, transaction) {
-  const microservices = await MicroserviceManager.findAllActiveFlowMicroserivces(fog.uuid, transaction);
+  const microservices = await MicroserviceManager.findAllActiveFlowMicroservices(fog.uuid, transaction);
 
   const fogTypeId = fog.fogTypeId;
 

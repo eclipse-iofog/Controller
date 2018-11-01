@@ -242,19 +242,19 @@ class Microservice extends BaseCLIHandler {
             example: '$ iofog-controller microservice add [other required options] --routes ABC:DEF RFG:HJK'
           },
           {
-            desc: '4. Add route (ABC:DEF - source microservice id : dest microservice id)',
+            desc: '5. Add route (ABC:DEF - source microservice id : dest microservice id)',
             example: '$ iofog-controller microservice route-create --route ABC:DEF',
           },
           {
-            desc: '5. Delete route (ABC:DEF - source microservice id : dest microservice id)',
+            desc: '6. Delete route (ABC:DEF - source microservice id : dest microservice id)',
             example: '$ iofog-controller microservice route-remove --route ABC:DEF',
           },
           {
-            desc: '6. Create port mapping (80:8080:false - internal port : external port : public mode, ABC - microservice)',
+            desc: '7. Create port mapping (80:8080:false - internal port : external port : public mode, ABC - microservice)',
             example: '$ iofog-controller microservice port-mapping-create --mapping 80:8080:false -i ABC'
           },
           {
-            desc: '7. Delete port mapping (80 - internal port, ABC - microservice id)',
+            desc: '8. Delete port mapping (80 - internal port, ABC - microservice id)',
             example: '$ iofog-controller microservice port-mapping-remove --internal-port 80 -i ABC'
           }
         ],

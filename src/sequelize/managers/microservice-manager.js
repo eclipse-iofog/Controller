@@ -87,7 +87,7 @@ class MicroserviceManager extends BaseManager {
     }, {transaction: transaction})
   }
 
-  findAllActiveFlowMicroserivces(iofogUuid, transaction) {
+  findAllActiveFlowMicroservices(iofogUuid, transaction) {
     return Microservice.findAll({
       include: [
         {
