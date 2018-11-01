@@ -39,9 +39,9 @@ const createUser = async function (user, transaction) {
 
 const signUp = async function (user, isCLI, transaction) {
 
-  let emailActivation = Config.get("Email:ActivationEnabled") || 'off';
+  let emailActivation = Config.get("Email:ActivationEnabled");
 
-  if (emailActivation === 'on') {
+  if (emailActivation) {
 
     const newUser = await _handleCreateUser(user, emailActivation, transaction);
 
@@ -230,8 +230,8 @@ async function _generateAccessToken(transaction) {
 }
 
 function _verifyEmailActivation(emailActivated) {
-  const emailActivation = Config.get("Email:ActivationEnabled") || 'off';
-  if (emailActivation === 'on' && emailActivated === 0)
+  const emailActivation = Config.get("Email:ActivationEnabled");
+  if (emailActivation && emailActivated === 0)
     throw new Error(ErrorMessages.EMAIL_NOT_ACTIVATED);
 }
 
@@ -269,9 +269,14 @@ async function _handleCreateUser(user, emailActivation, transaction) {
     throw new Errors.ValidationError('Registration failed: There is already an account associated with your email address. Please try logging in instead.');
   }
 
-  await _createNewUser(user, emailActivation, transaction);
-  delete user.password;
-  return user
+  const newUser = await _createNewUser(user, emailActivation, transaction);
+  return {
+    userId: newUser.id,
+    firstName: newUser.firstName,
+    lastName: newUser.lastName,
+    email: newUser.email,
+    emailActivated: user.emailActivated
+  }
 }
 
 async function _createNewUser(user, emailActivation, transaction) {
@@ -322,11 +327,21 @@ async function _sendEmail(transporter, mailOptions) {
 }
 
 async function _getEmailData() {
-  return {
-    email: Config.get("Email:Address"),
-    password: AppHelper.decryptText(Config.get("Email:Password"), Config.get("Email:Address")),
-    service: Config.get("Email:Service")
+  try {
+    const email = Config.get("Email:Address");
+    const password = AppHelper.decryptText(Config.get("Email:Password"), Config.get("Email:Address"));
+    const service = Config.get("Email:Service");
+
+    return {
+      email: email,
+      password: password,
+      service: service
+    }
+
+  } catch(errMsg) {
+    throw new Errors.EmailActivationSetupError();
   }
+
 }
 
 module.exports = {
