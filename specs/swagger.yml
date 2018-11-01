@@ -1222,8 +1222,8 @@ paths:
         required: true
         type: string
       - in: body
-        name: NetMicroserviceInfo
-        description: New Microserviced Info
+        name: NewMicroserviceInfo
+        description: New Microservice Info
         required: true
         schema:
           $ref: '#/definitions/NewMicroserviceRequest'
@@ -2874,7 +2874,7 @@ definitions:
         type: string
       rootHostAccess:
         type: boolean
-      logLimit:
+      logSize:
         type: number
       volumeMappings:
          type: array
