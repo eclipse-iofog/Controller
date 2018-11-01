@@ -48,7 +48,7 @@ class FlowManager extends BaseManager {
           'userId'
         ]}}, {transaction: transaction})
   }
-  
+
   async findOneExcludeFields(where, transaction) {
     return Flow.findOne({
       where: where,
