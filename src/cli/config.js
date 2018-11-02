@@ -121,21 +121,11 @@ const _addConfigOption = async function (options) {
   }
 
   if (options.emailActivationOn != null) {
-    const emailActivationOn = options.emailActivationOn;
-    if (!AppHelper.isValidEmailActivation(emailActivationOn)) {
-      logger.error(ErrorMessages.INVALID_FILE_PATH);
-      return;
-    }
-    config.set('Server:ActivationEnabled', true)
+    config.set('Email:ActivationEnabled', true)
   }
 
   if (options.emailActivationOff != null) {
-    const emailActivationOff = options.emailActivationOff;
-    if (!AppHelper.isValidEmailActivation(emailActivationOff)) {
-      logger.error(ErrorMessages.INVALID_FILE_PATH);
-      return;
-    }
-    config.set('Server:ActivationEnabled', false)
+    config.set('Email:ActivationEnabled', false)
   }
 
   if (options.homeUrl != null && config.get('Email:HomeUrl') !== options.homeUrl) {
@@ -173,7 +163,7 @@ const _listConfigOptions = function () {
     'SSL certificate directory': config.get('Server:SslCert'),
     'Intermediate key directory': config.get('Server:IntermediateCert'),
     'Home url': config.get('Email:HomeUrl'),
-    'Email activation': config.get('Email:ActivationEnabled') ? 'on' : 'off',
+    'Email activation': config.get('Email:ActivationEnabled'),
     'Email address': config.get('Email:Address'),
     'Email password': config.get('Email:Password'),
     'Email service': config.get('Email:Service'),
