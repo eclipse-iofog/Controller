@@ -2,11 +2,14 @@ sudo: true
 language: node_js
 node_js: "9"
 stages:
+- name: build
+  if: branch IN (develop, master) AND type = pull_request
 - name: package_build
-  if: branch = new-fog-controller
+  if: (branch = develop AND type = cron) OR (branch = master and type = push)
 
 jobs:
   include:
+  - stage: build
   - stage: package_build
     script:
     - npm run build

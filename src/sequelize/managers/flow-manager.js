@@ -14,12 +14,54 @@
 const BaseManager = require('./base-manager');
 const models = require('./../models');
 const Flow = models.Flow;
+const Microservice = models.Microservice;
+const sequelize = require('sequelize');
 
 class FlowManager extends BaseManager {
   getEntity() {
     return Flow
   }
+
+  async findFlowMicroservices(where, transaction) {
+    return Flow.findOne({
+      include: [
+        {
+          model: Microservice,
+          as: 'microservices',
+          required: false,
+          attributes: ['iofogUuid']
+        }
+      ],
+      where: where,
+      attributes: ['id']
+    }, {transaction: transaction})
+  }
+
+  async findAllExcludeFields(where, transaction) {
+    return Flow.findAll({
+      where: where,
+      attributes: {
+        exclude: [
+          'created_at',
+          'updated_at',
+          'updatedById',
+          'userId'
+        ]}}, {transaction: transaction})
+  }
+
+  async findOneExcludeFields(where, transaction) {
+    return Flow.findOne({
+      where: where,
+      attributes: {
+        exclude: [
+          'created_at',
+          'updated_at',
+          'updatedById',
+          'userId'
+        ]}}, {transaction: transaction})
+    }
 }
+
 
 const instance = new FlowManager();
 module.exports = instance;
