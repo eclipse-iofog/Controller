@@ -34,7 +34,7 @@ const _listMicroservices = async function (flowId, user, isCLI, transaction) {
   if (!isCLI) {
     await FlowService.getFlow(flowId, user, isCLI, transaction);
   }
-  const where = isCLI ? {} : {flowId: flowId};
+  const where = isCLI ? {deleteWithCleanUp: false} : {flowId: flowId, deleteWithCleanUp: false};
 
   return await MicroserviceManager.findAllExcludeFields(where, transaction);
 };
@@ -45,7 +45,7 @@ const _getMicroservice = async function (microserviceUuid, user, isCLI, transact
   }
 
   const microservice = await MicroserviceManager.findOneExcludeFields({
-    uuid: microserviceUuid
+    uuid: microserviceUuid, deleteWithCleanUp: false
   }, transaction);
 
   if (!microservice) {
@@ -109,19 +109,6 @@ const _createMicroservice = async function (microserviceData, user, isCLI, trans
   }
 
   return await MicroserviceManager.create(newMicroservice, transaction);
-};
-
-const _createMicroservicePorts = async function (ports, microserviceUuid, transaction) {
-  const microservicePortToCreate = {
-    portInternal: ports.internal,
-    portExternal: ports.external,
-    publicMode: ports.publicMode,
-    microserviceUuid: microserviceUuid
-  };
-
-  const microservicePortDataCreate = AppHelper.deleteUndefinedFields(microservicePortToCreate);
-
-  await MicroservicePortManager.create(microservicePortDataCreate, transaction);
 };
 
 const _createVolumeMappings = async function (volumeMappings, microserviceUuid, transaction) {

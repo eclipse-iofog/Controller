@@ -21,6 +21,7 @@ const ChangeTrackingManager = require('../sequelize/managers/change-tracking-man
 const FogVersionCommandManager = require('../sequelize/managers/iofog-version-command-manager');
 const StraceManager = require('../sequelize/managers/strace-manager');
 const RegistryManager = require('../sequelize/managers/registry-manager');
+const MicrosreviceStatusManager = require('../sequelize/managers/microservice-status-manager')
 const Validator = require('../schemas');
 const Errors = require('../helpers/errors');
 const AppHelper = require('../helpers/app-helper');
@@ -174,7 +175,7 @@ const getAgentConfigChanges = async function (fog, transaction) {
 const updateAgentStatus = async function (agentStatus, fog, transaction) {
   await Validator.validate(agentStatus, Validator.schemas.updateAgentStatus);
 
-  let update = {
+  let fogStatus = {
     daemonStatus: agentStatus.daemonStatus,
     daemonOperatingDuration: agentStatus.daemonOperatingDuration,
     daemonLastStart: agentStatus.daemonLastStart,
@@ -184,7 +185,6 @@ const updateAgentStatus = async function (agentStatus, fog, transaction) {
     memoryViolation: agentStatus.memoryViolation,
     diskViolation: agentStatus.diskViolation,
     cpuViolation: agentStatus.cpuViolation,
-    microserviceStatus: agentStatus.microserviceStatus,
     repositoryCount: agentStatus.repositoryCount,
     repositoryStatus: agentStatus.repositoryStatus,
     systemTime: agentStatus.systemTime,
@@ -199,11 +199,32 @@ const updateAgentStatus = async function (agentStatus, fog, transaction) {
     isReadyToUpgrade: agentStatus.isReadyToUpgrade,
     isReadyToRollback: agentStatus.isReadyToRollback
   };
-  update = AppHelper.deleteUndefinedFields(update);
+
+  fogStatus = AppHelper.deleteUndefinedFields(fogStatus);
 
   await FogManager.update({
     uuid: fog.uuid
-  }, update, transaction);
+  }, fogStatus, transaction);
+
+  await _updateMicroserviceStatuses(agentStatus.microserviceStatus);
+};
+
+const _updateMicroserviceStatuses = async function (microserviceStatus) {
+  for (status of microserviceStatus) {
+    let microserviceStatus = {
+      containerId: status.containerId,
+      status: status.status,
+      startTime: status.startTime,
+      operationDuration: status.operationDuration,
+      cpuUsage: status.cpuUsage,
+      memoryUsage: status.memoryUsage
+    };
+    microserviceStatus = AppHelper.deleteUndefinedFields(microserviceStatus);
+
+    await MicrosreviceStatusManager.update({
+      microserviceUuid: status.id
+    }, microserviceStatus, transaction);
+  }
 };
 
 const getAgentMicroservices = async function (fog, transaction) {
