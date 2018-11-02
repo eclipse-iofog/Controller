@@ -77,6 +77,9 @@ async function handleValidationError(error) {
     case "type":
       message = "Field '" + error.property.replace('instance.', '') + "' " + error.message;
       break;
+    case "enum":
+      message = "Field " + error.stack.replace('instance.', '');
+      break;
     default:
       message = JSON.stringify(error);
       break;
