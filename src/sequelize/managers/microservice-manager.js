@@ -24,6 +24,7 @@ const Flow = models.Flow;
 const User = models.User;
 const Routing = models.Routing;
 const Registry = models.Registry;
+const MicroserviceStatus = models.MicroserviceStatus;
 
 class MicroserviceManager extends BaseManager {
   getEntity() {
@@ -192,6 +193,18 @@ class MicroserviceManager extends BaseManager {
       where: where,
       attributes: attributes
     }, {transaction: transaction})
+  }
+
+  findOneWithStatus(where, transaction) {
+    return Microservice.findOne({
+      include: [
+        {
+          model: MicroserviceStatus,
+          as: 'microserviceStatus',
+          required: true
+        }
+      ]
+    })
   }
 
   findMicroserviceOnGet(where, transaction) {

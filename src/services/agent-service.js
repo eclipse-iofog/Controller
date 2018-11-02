@@ -206,16 +206,16 @@ const updateAgentStatus = async function (agentStatus, fog, transaction) {
     uuid: fog.uuid
   }, fogStatus, transaction);
 
-  await _updateMicroserviceStatuses(agentStatus.microserviceStatus);
+  await _updateMicroserviceStatuses(JSON.parse(agentStatus.microserviceStatus), transaction);
 };
 
-const _updateMicroserviceStatuses = async function (microserviceStatus) {
+const _updateMicroserviceStatuses = async function (microserviceStatus, transaction) {
   for (status of microserviceStatus) {
     let microserviceStatus = {
       containerId: status.containerId,
       status: status.status,
       startTime: status.startTime,
-      operationDuration: status.operationDuration,
+      operatingDuration: status.operatingDuration,
       cpuUsage: status.cpuUsage,
       memoryUsage: status.memoryUsage
     };

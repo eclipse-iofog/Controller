@@ -2874,7 +2874,7 @@ definitions:
         type: integer
       flowId:
         type: integer
-      ioFogNodeId:
+      iofogUuid:
         type: string
       rootHostAccess:
         type: boolean
@@ -2901,7 +2901,7 @@ definitions:
         type: string
       rebuild:
         type: boolean
-      ioFogNodeId:
+      iofogUuid:
         type: string
       rootHostAccess:
         type: boolean

@@ -16,12 +16,12 @@ module.exports = (sequelize, DataTypes) => {
     operatingDuration: {
       type: DataTypes.BIGINT,
       defaultValue: 0,
-      field: operating_duration
+      field: 'operating_duration'
     },
     startTime: {
       type: DataTypes.BIGINT,
       defaultValue: 0,
-      field: start_time
+      field: 'start_time'
     },
     cpuUsage: {
       type: DataTypes.FLOAT,
