@@ -23,7 +23,7 @@ const microserviceCreate = {
        "type": "array",
        "items": {"type": "string"}}
     },
-  "required": ["name"]
+  "required": ["name", "flowId", "catalogItemId"]
 };
 
 const microserviceUpdate = {
@@ -38,7 +38,7 @@ const microserviceUpdate = {
     "rebuild": {"type": "boolean"},
     "ioFogNodeId": {"type": "string"},
     "rootHostAccess": {"type": "boolean"},
-    "logSize": {"type": "integer"},
+    "logSize": {"type": "integer", "minimum" : 0},
     "volumeMappings": {
       "type": "array",
       "items": {"$ref": "/volumeMappings"}
@@ -75,7 +75,8 @@ const volumeMappings = {
     "hostDestination": {"type": "string"},
     "containerDestination": {"type": "string"},
     "accessMode": {"type": "string"}
-  }
+  },
+  "required": ["hostDestination", "containerDestination", "accessMode"]
 };
 
 module.exports = {

@@ -34,11 +34,9 @@
     "url": "https://github.com/ioFog/Controller"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "NODE_ENV=production node ./src/main.js",
+    "start": "NODE_ENV=production node ./src/main.js start",
+    "start-dev": "NODE_ENV=development node ./src/main.js start",
     "build": "export NODE_ENV=production && cd src/sequelize && ../../node_modules/.bin/sequelize db:migrate && ../../node_modules/.bin/sequelize db:seed:all",
-    "start-dev": "NODE_ENV=development node ./src/main.js",
-    "build-dev": "export NODE_ENV=development && cd src/sequelize && ../../node_modules/.bin/sequelize db:migrate && ../../node_modules/.bin/sequelize db:seed:all",
     "postinstall": "export NODE_ENV=production && cd src/sequelize && ../../node_modules/.bin/sequelize db:migrate && ../../node_modules/.bin/sequelize db:seed:all",
     "lint": "./node_modules/.bin/eslint \"**/*.js\""
   },
@@ -72,6 +70,7 @@
     "sequelize-cli": "^4.1.1",
     "sqlite3": "^4.0.2",
     "string-format": "^2.0.0",
+    "umzug": "^2.1.0",
     "underscore": "^1.9.1",
     "winston": "^3.1.0",
     "xss-clean": "^0.1.1"

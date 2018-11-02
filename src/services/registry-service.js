@@ -12,24 +12,36 @@
  */
 
 const RegistryManager = require('../sequelize/managers/registry-manager');
-const Validator = require('../schemas')
-const Errors = require('../helpers/errors')
-const ChangeTrackingManager = require('../sequelize/managers/change-tracking-manager')
+const Validator = require('../schemas');
+const Errors = require('../helpers/errors');
+const ErrorMessages = require('../helpers/error-messages');
+const ChangeTrackingManager = require('../sequelize/managers/change-tracking-manager');
 const TransactionDecorator = require('../decorators/transaction-decorator');
-const FogManager = require('../sequelize/managers/iofog-manager')
+const FogManager = require('../sequelize/managers/iofog-manager');
 const Sequelize = require('sequelize');
 const Op = Sequelize.Op;
+const AppHelper = require('../helpers/app-helper');
+
 
 const createRegistry = async function (registry, user, transaction) {
   await Validator.validate(registry, Validator.schemas.registryCreate);
+  if (registry.requiresCert && registry.certificate === undefined) {
+    throw new Errors.ValidationError(ErrorMessages.CERT_PROPERTY_REQUIRED);
+  }
+
   let registryCreate = {
     url: registry.url,
     username: registry.username,
     password: registry.password,
     isPublic: registry.isPublic,
     userEmail: registry.email,
+    requiresCert: registry.requiresCert,
+    certificate: registry.certificate,
     userId: user.id
   };
+
+  registryCreate = AppHelper.deleteUndefinedFields(registryCreate);
+
   await RegistryManager.create(registryCreate, transaction)
   await updateChangeTracking(user, transaction);
 };
@@ -73,7 +85,7 @@ const deleteRegistry = async function (registryData, user, isCli, transaction) {
     : {id: registryData.id, userId: user.id};
   const registry = await RegistryManager.findOne(queryData, transaction);
   if (!registry) {
-    throw new Errors.NotFoundError('Invalid Registry Id');
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_REGISTRY_ID, registryData.id));
   }
   if (isCli) {
     user = {id: registry.userId};

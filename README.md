@@ -457,8 +457,11 @@ $ iofog-controller catalog <*command*> <*options*> <br>
  remove   -- Delete a microservice.<br>
  list     -- List all microservices.<br>
  info     -- Get microservice settings.<br>
- route    -- Add/Remove microservice route.<br>
- port-mapping   -- Create/Delete/List microservice port mapping.<br>
+ route-create          -- Create microservice route.  <br>      
+ route-remove          -- Remove microservice route. <br>       
+ port-mapping-create   -- Create microservice port mapping. <br>
+ port-mapping-remove   -- Remove microservice port mapping. <br>
+ port-mapping-list     -- List microservice port mapping.<br>
 
 *add -u* <*user-id*>
 
@@ -500,17 +503,25 @@ $ iofog-controller catalog <*command*> <*options*> <br>
 
  -i, --microservice-id string   (Microservice ID)<br>
 
-*route*<br>
+*route-create*<br>
 
- -a, --add string                      (Add new route(s))<br>
- -m, --remove string                   (Delete existing route(s))<br>
+  -T, --route string   (Microservice route (receiving microservices))<br>
 
-*port-mapping*<br>
+*route-remove*<br>
 
- -i, --microservice-id string   (Microservice ID)<br>
- -b, --create                   (Add new port mapping(s))<br>
- -B, --delete                   (Delete existing port mapping(s))<br>
- -G, --list                     (List port mappings)<br>
+  -T, --route string   (Microservice route (receiving microservices))<br> 
+
+*port-mapping-create*<br>
+
+  -i, --microservice-id string   (Microservice ID)<br>        
+  -P, --mapping string           (Container port mapping)<br> 
+
+*port-mapping-remove*<br>
+
+  -i, --microservice-id string   (Microservice ID)<br> 
+  -b, --internal-port string     (Internal port)<br>   
+
+*port-mapping-list*
 
 **JSON ADD File Schema**<br>
 
@@ -560,25 +571,35 @@ $ iofog-controller catalog <*command*> <*options*> <br>
 }<br>
 
 **Examples**<br>
- 1. Single mapping                       ($ iofog-controller microservice add
-                                          [other required options] --volumes    
-                                          /host_src:/container_src)              
-  2. Multiple mappings                    ($ iofog-controller microservice add
-                                          [other required options] --volumes    
-                                          /host_src:/container_src              
-                                          /host_bin:/container_bin)              
-  3. Port mapping                         ($ iofog-controller microservice add
-  (internal:external:publicMode)          [other required options] --ports      
-                                          80:8080:false 443:5443:false)          
-  4. Add routes                           ($ iofog-controller microservice route
-                                          --add ABC:DEF)                         
-  5. Delete route                         ($ iofog-controller microservice route
-                                          --remove ABC:DEF)                      
-  6. Create port mapping                  ($ iofog-controller microservice port-
-                                          mapping --create 80:8080:false -i ABC) 
-  7. Delete port mapping                  ($ iofog-controller microservice port-
-                                          mapping --delete 80 -i ABC)    
  
+ 1. Single mapping<br>
+ $ iofog-controller microservice add [other required options] --volumes <br>
+ /host_src:/container_src<br>
+ 
+ 2. Multiple mappings<br>
+ $ iofog-controller microservice add [other required options] --volumes<br>
+ /host_src:/container_src<br>
+ /host_bin:/container_bin<br>
+ 
+ 3. Port mapping (80:8080:false - internal port : external port : public mode)<br>
+  $ iofog-controller microservice add [other required options] --ports<br>
+  80:8080:false 443:5443:false<br>
+  
+ 4. Add routes (ABC:DEF - source microservice id : dest microservice id)<br>
+ $ iofog-controller microservice add [other required options] --routes<br>
+ ABC:DEF RFG:HJK<br>
+ 
+ 5. Add route (ABC:DEF - source microservice id : dest microservice id)<br>
+ $ iofog-controller microservice route-create --route ABC:DEF<br>
+ 
+ 6. Delete route (ABC:DEF - source microservice id : dest microservice id)<br>
+ $ iofog-controller microservice route-remove --route ABC:DEF<br>
+ 
+ 7. Create port mapping (80:8080:false - internal port : external port : public mode, ABC - microservice)<br>
+ $ iofog-controller microservice port-mapping-create --mapping 80:8080:false -i ABC<br>
+ 
+ 8. Delete port mapping (80 - internal port, ABC - microservice id)<br>
+ $ iofog-controller microservice port-mapping-remove --internal-port 80 -i ABC<br>
 <br>
 <br>
 <br>
