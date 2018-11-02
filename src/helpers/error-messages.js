@@ -16,6 +16,7 @@ module.exports = {
   ALREADY_EXISTS: 'Model already exists',
   INVALID_CATALOG_ITEM_ID: 'Invalid catalog item id {}',
   INVALID_FLOW_ID: 'Invalid flow id {}',
+  INVALID_REGISTRY_ID: 'Invalid registry id {}',
   INVALID_CONNECTOR_IP: 'Invalid connector IP {}',
   UNABLE_TO_CREATE_ACTIVATION_CODE: 'Unable to create activation code',
   UNABLE_TO_GET_ACTIVATION_CODE: 'Unable to create activation code',
@@ -50,11 +51,12 @@ module.exports = {
   FILE_DOES_NOT_EXIST: 'File does not exist.',
   RESTRICTED_PUBLISHER: "You are not allowed to add catalog item as 'Eclipse ioFog' publisher",
   REQUIRED_FOG_NODE: 'ioFog node is required.',
+  INVALID_CONNECTOR_DOMAIN: 'Invalid connector domain {}',
+  CERT_PROPERTY_REQUIRED: 'Property "certificate" is required if property "requiresCert" is set to true',
   CLI: {
     INVALID_PORT_MAPPING: 'Port mapping parsing error. Please provide valid port mapping.',
     INVALID_VOLUME_MAPPING: 'Volume mapping parsing error. Please provide valid volume mapping.',
     INVALID_INTERNAL_PORT: 'Internal parsing error. Please provide valid internal port.',
     INVALID_ROUTE: 'Route parsing error. Please provide valid route.'
-  },
-  INVALID_CONNECTOR_DOMAIN: 'Invalid connector domain {}'
+  }
 };

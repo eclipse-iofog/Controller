@@ -2715,6 +2715,10 @@ definitions:
         type: string
       email:
         type: string
+      requiresCert:
+        type: boolean
+      certificate:
+        type: string
   ActionBody:
     type: object
     properties:
