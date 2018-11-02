@@ -36,6 +36,7 @@
   "scripts": {
     "start": "NODE_ENV=production node ./src/main.js start",
     "start-dev": "NODE_ENV=development node ./src/main.js start",
+    "build": "export NODE_ENV=production && cd src/sequelize && ../../node_modules/.bin/sequelize db:migrate && ../../node_modules/.bin/sequelize db:seed:all",
     "lint": "./node_modules/.bin/eslint \"**/*.js\""
   },
   "preferGlobal": true,
