@@ -13,10 +13,14 @@
  *
  */
 
-const daemonize = require('daemonize2')
-const db = require('./sequelize/models')
-const Cli = require('./cli')
-const logger = require('./logger')
+if (!process.env.NODE_ENV) {
+  process.env.NODE_ENV = 'production'
+}
+
+const daemonize = require('daemonize2');
+const db = require('./sequelize/models');
+const Cli = require('./cli');
+const logger = require('./logger');
 
 function main() {
   const daemon = daemonize.setup({
@@ -24,9 +28,9 @@ function main() {
     name: 'iofog-controller',
     pidfile: 'iofog-controller.pid',
     silent: true,
-  })
+  });
 
-  const cli = new Cli()
+  const cli = new Cli();
 
   daemon
     .on('starting', () => {
@@ -46,7 +50,7 @@ function main() {
     })
     .on('error', (err) => {
       logger.silly('iofog-controller failed to start:  ' + err.message)
-    })
+    });
 
   cli.run(daemon)
 }
@@ -59,4 +63,4 @@ db.sequelize
   .catch((err) => {
     logger.silly('Unable to initialize the database.', err)
     process.exit(1)
-  })
+  });
