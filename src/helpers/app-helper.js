@@ -93,10 +93,6 @@ const isValidPublicIP = function (publicIP) {
   return re.test(publicIP);
 }
 
-function isValidEmailActivation(flag) {
-  return flag === 'on' || flag === 'off';
-}
-
 function generateAccessToken() {
   let token = '', i;
   for (i = 0; i < 8; i++) {
@@ -154,7 +150,6 @@ module.exports = {
   isFileExists,
   isValidPort,
   isValidDomain,
-  isValidEmailActivation,
   checkPortAvailability,
   generateAccessToken,
   checkTransaction,
