@@ -113,9 +113,9 @@ async function _makeRequest(connector, options, data) {
         let responseObj = JSON.parse(output);
         console.log(responseObj);
         if (responseObj.errormessage) {
-          reject(new Error(responseObj.errormessage));
+          return reject(new Error(responseObj.errormessage));
         } else {
-          resolve(responseObj);
+          return resolve(responseObj);
         }
       });
     })
@@ -128,9 +128,9 @@ async function _makeRequest(connector, options, data) {
     httpreq.on('error', function(err) {
       console.log(err);
       if (err instanceof Error)
-        reject(new Error(err.message));
+        return reject(new Error(err.message));
       else
-        reject(new Error(JSON.stringify(err)));
+        return reject(new Error(JSON.stringify(err)));
     });
 
     httpreq.write(data);

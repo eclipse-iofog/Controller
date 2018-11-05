@@ -18,7 +18,7 @@ const ErrorMessages = require('../helpers/error-messages');
 const validator = require('../schemas/index');
 const MicroserviceService = require('../services/microservices-service');
 const StraceDiagnosticManager = require('../sequelize/managers/strace-diagnostics-manager');
-const ChangeTrackingManager = require('../sequelize/managers/change-tracking-manager');
+const ChangeTrackingService = require('./change-tracking-service');
 const MicroserviceManager = require('../sequelize/managers/microservice-manager');
 const config = require('../config');
 const fs = require('fs');
@@ -41,7 +41,7 @@ const changeMicroserviceStraceState = async function (id, data, user, isCLI, tra
   };
 
   await StraceDiagnosticManager.updateOrCreate({microserviceUuid: id}, straceObj, transaction);
-  await ChangeTrackingManager.update({iofogUuid: microservice.iofogUuid}, {diagnostics: true}, transaction)
+  await ChangeTrackingService.update(microservice.iofogUuid, ChangeTrackingService.events.diagnostics, transaction)
 };
 
 const getMicroserviceStraceData = async function (id, data, user, isCLI, transaction) {
@@ -84,12 +84,8 @@ const postMicroserviceImageSnapshotCreate = async function (id, data, user, isCL
 
   let imageSnapshot = 'get_image';
 
-  const microserviceToUpdate = {
-    imageSnapshot: imageSnapshot
-  };
-
   await MicroserviceManager.update({uuid: microservice.uuid}, microserviceToUpdate, transaction);
-  await ChangeTrackingManager.update({iofogUuid: microservice.iofogUuid}, {isImageSnapshot: true}, transaction);
+  await ChangeTrackingService.update(microservice.iofogUuid, ChangeTrackingService.events.imageSnapshot, transaction);
 };
 
 const getMicroserviceImageSnapshot = async function (id, data, user, isCLI, transaction) {

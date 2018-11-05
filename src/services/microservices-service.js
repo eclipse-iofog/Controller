@@ -18,7 +18,7 @@ const VolumeMappingManager = require('../sequelize/managers/volume-mapping-manag
 const ConnectorManager = require('../sequelize/managers/connector-manager');
 const ConnectorPortManager = require('../sequelize/managers/connector-port-manager');
 const MicroservicePublicModeManager = require('../sequelize/managers/microservice-public-mode-manager');
-const ChangeTrackingManager = require('../sequelize/managers/change-tracking-manager');
+const ChangeTrackingService = require('./change-tracking-service');
 const IoFogService = require('../services/iofog-service');
 const AppHelper = require('../helpers/app-helper');
 const Errors = require('../helpers/errors');
@@ -73,7 +73,7 @@ const _createMicroserviceOnFog = async function (microserviceData, user, isCLI, 
   }
 
   if (microserviceData.ioFogNodeId) {
-    await _updateChangeTracking(false, microservice.uuid, microserviceData.ioFogNodeId, user, isCLI, transaction);
+    await _updateChangeTracking(false, microserviceData.ioFogNodeId, transaction);
   }
 
   return {
@@ -180,10 +180,10 @@ const _updateMicroservice = async function (microserviceUuid, microserviceData, 
   if (microserviceDataUpdate.ioFogNodeId) {
     await _deleteRoutes(microserviceData.routes, microserviceUuid, transaction);
     await _createRoutes(microserviceData.routes, microserviceUuid, user, transaction);
-    await _updateChangeTracking(false, microserviceUuid, microserviceDataUpdate.ioFogNodeId, user, isCLI, transaction)
+    await _updateChangeTracking(false, microserviceDataUpdate.ioFogNodeId, transaction)
   }
 
-  await _updateChangeTracking(microserviceData.config ? true : false, microserviceUuid, microservice.ioFogNodeId, user, isCLI, transaction);
+  await _updateChangeTracking(microserviceData.config ? true : false, microservice.ioFogNodeId, transaction);
 };
 
 const _updateVolumeMappings = async function (volumeMappings, microserviceUuid, transaction) {
@@ -194,15 +194,12 @@ const _updateVolumeMappings = async function (volumeMappings, microserviceUuid, 
   }
 };
 
-const _updateChangeTracking = async function (configUpdated, microserviceUuid, fogNodeUuid, user, isCLI, transaction) {
-
-  const trackingData = {
-    containerList: true,
-    containerConfig: configUpdated,
-    iofogUuid: fogNodeUuid
-  };
-
-  await ChangeTrackingManager.update({iofogUuid: fogNodeUuid}, trackingData, transaction);
+const _updateChangeTracking = async function (configUpdated, fogNodeUuid, transaction) {
+  if (configUpdated) {
+    await ChangeTrackingService.update(fogNodeUuid, ChangeTrackingService.events.microserviceCommon, transaction);
+  } else {
+    await ChangeTrackingService.update(fogNodeUuid, ChangeTrackingService.events.microserviceList, transaction);
+  }
 };
 
 const _deleteMicroservice = async function (microserviceUuid, deleteWithCleanUp, user, isCLI, transaction) {
@@ -227,7 +224,7 @@ const _deleteMicroservice = async function (microserviceUuid, deleteWithCleanUp,
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, microserviceUuid));
   }
 
-  await _updateChangeTracking(false, microserviceUuid, microservice.ioFogNodeId, user, isCLI, transaction)
+  await _updateChangeTracking(false, microservice.ioFogNodeId, transaction)
 };
 
 const _checkForDuplicateName = async function (name, item, userId, transaction) {
@@ -441,13 +438,8 @@ async function _switchOnUpdateFlagsForMicroservicesInRoute(sourceMicroservice, d
   await MicroserviceManager.update({uuid: sourceMicroservice.uuid}, updateRebuildMs, transaction)
   await MicroserviceManager.update({uuid: destMicroservice.uuid}, updateRebuildMs, transaction)
 
-  const updateChangeTrackingData = {
-    containerConfig: true,
-    containerList: true,
-    routing: true
-  }
-  await ChangeTrackingManager.update({iofogUuid: sourceMicroservice.iofogUuid}, updateChangeTrackingData, transaction)
-  await ChangeTrackingManager.update({iofogUuid: destMicroservice.iofogUuid}, updateChangeTrackingData, transaction)
+  await ChangeTrackingService.update(sourceMicroservice.iofogUuid, ChangeTrackingService.events.microserviceFull, transaction)
+  await ChangeTrackingService.update(destMicroservice.iofogUuid, ChangeTrackingService.events.microserviceFull, transaction)
 }
 
 async function _deleteRoute(sourceMicroserviceUuid, destMicroserviceUuid, user, isCLI, transaction) {
@@ -487,12 +479,8 @@ async function _deleteRoute(sourceMicroserviceUuid, destMicroserviceUuid, user, 
 async function _deleteSimpleRoute(route, transaction) {
   await RoutingManager.delete({id: route.id}, transaction)
 
-  const updateChangeTrackingData = {
-    routing: true
-  }
-
-  await ChangeTrackingManager.update({iofogUuid: route.sourceIofogUuid}, updateChangeTrackingData, transaction)
-  await ChangeTrackingManager.update({iofogUuid: route.destIofogUuid}, updateChangeTrackingData, transaction)
+  await ChangeTrackingService.update(route.sourceIofogUuid, ChangeTrackingService.events.microserviceRouting, transaction)
+  await ChangeTrackingService.update(route.destIofogUuid, ChangeTrackingService.events.microserviceRouting, transaction)
 }
 
 async function _deleteRouteOverConnector(route, transaction) {
@@ -506,14 +494,8 @@ async function _deleteRouteOverConnector(route, transaction) {
   await MicroserviceManager.delete({uuid: route.sourceNetworkMicroserviceUuid}, transaction)
   await MicroserviceManager.delete({uuid: route.destNetworkMicroserviceUuid}, transaction)
 
-  const updateChangeTrackingData = {
-    containerConfig: true,
-    containerList: true,
-    routing: true
-  }
-
-  await ChangeTrackingManager.update({iofogUuid: route.sourceIofogUuid}, updateChangeTrackingData, transaction)
-  await ChangeTrackingManager.update({iofogUuid: route.destIofogUuid}, updateChangeTrackingData, transaction)
+  await ChangeTrackingService.update(route.sourceIofogUuid, ChangeTrackingService.events.microserviceFull, transaction)
+  await ChangeTrackingService.update(route.destIofogUuid, ChangeTrackingService.events.microserviceFull, transaction)
 }
 
 async function _createPortMapping(microserviceUuid, portMappingData, user, isCLI, transaction) {
@@ -649,17 +631,10 @@ async function _switchOnUpdateFlagsForMicroservicesForPortMapping(microservice, 
 
   let updateChangeTrackingData = {}
   if (isPublic) {
-    updateChangeTrackingData = {
-      containerConfig: true,
-      containerList: true,
-      routing: true
-    }
+    await ChangeTrackingService.update(microservice.iofogUuid, ChangeTrackingService.events.microserviceFull, transaction)
   } else {
-    updateChangeTrackingData = {
-      containerConfig: true,
-    }
+    await ChangeTrackingService.update(microservice.iofogUuid, ChangeTrackingService.events.microserviceConfig, transaction)
   }
-  await ChangeTrackingManager.update({iofogUuid: microservice.iofogUuid}, updateChangeTrackingData, transaction)
 }
 
 async function _deletePortMapping(microserviceUuid, internalPort, user, isCLI, transaction) {
@@ -714,12 +689,7 @@ async function _deletePortMappingOverConnector(microservice, msPorts, user, tran
   }
   await MicroserviceManager.update({uuid: microservice.uuid}, updateRebuildMs, transaction)
 
-  const updateChangeTrackingData = {
-    containerConfig: true,
-    containerList: true,
-    routing: true
-  }
-  await ChangeTrackingManager.update({iofogUuid: pubModeData.iofogUuid}, updateChangeTrackingData, transaction)
+  await ChangeTrackingService.update(pubModeData.iofogUuid, ChangeTrackingService.events.microserviceFull, transaction)
 }
 
 async function _validatePorts(internal, external) {

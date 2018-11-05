@@ -9,7 +9,7 @@ module.exports = {
         allowNull: false,
         field: 'id'
       },
-      containerConfig: {
+      microserviceConfig: {
         type: Sequelize.BOOLEAN,
         field: 'container_config'
       },
@@ -25,7 +25,7 @@ module.exports = {
         type: Sequelize.BOOLEAN,
         field: 'version'
       },
-      containerList: {
+      microserviceList: {
         type: Sequelize.BOOLEAN,
         field: 'container_list'
       },
