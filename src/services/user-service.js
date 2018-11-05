@@ -151,6 +151,12 @@ const updateDetails = async function (user, profileData, isCLI, transaction) {
   AppHelper.deleteUndefinedFields(updateObject);
 
   await UserManager.updateDetails(user, updateObject, transaction);
+
+  return {
+    firstName: updateObject.firstName,
+    lastName: updateObject.lastName,
+    email: user.email
+  }
 };
 
 const deleteUser = async function (user, isCLI, transaction) {

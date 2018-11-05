@@ -1,0 +1,2891 @@
+{
+	"info": {
+		"_postman_id": "0c412a3a-7328-4c9e-8919-d2836adccfa1",
+		"name": "Controller Testing",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "User",
+			"item": [
+				{
+					"name": "Create user",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "954febdd-1a16-4db0-bdff-bd13fc50a451",
+								"exec": [
+									"tests[\"Status code is 201\"] = responseCode.code === 201;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response validation passed\"] = data.hasOwnProperty('userId') && data.firstName && data.lastName && data.email && data.hasOwnProperty('emailActivated');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"email\": \"user@domain.com\",\n  \"password\": \"#Bugs4Fun\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/user/signup",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"user",
+								"signup"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "4f7a9f52-12cc-49d0-9e2f-147b6f5cb6fa",
+								"exec": [
+									"tests[\"Status code is 200\"] = responseCode.code === 200;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response validation passed\"] = data.accessToken;",
+									"",
+									"",
+									"postman.setGlobalVariable(\"user-token\", data.accessToken);",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"user@domain.com\",\n  \"password\": \"#Bugs4Fun\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/user/login",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"user",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Activate user",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "954febdd-1a16-4db0-bdff-bd13fc50a451",
+								"exec": [
+									"tests[\"Status code is 404\"] = responseCode.code === 404;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Error message is valid\"] = data.name === \"NotFoundError\" && data.message === \"Activation code not found\";"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"activationCode\": \"string\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/user/activate",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"user",
+								"activate"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Resend activation email",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "954febdd-1a16-4db0-bdff-bd13fc50a451",
+								"exec": [
+									"tests[\"Status code is 204\"] = responseCode.code === 204;"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/user/signup/resend-activation?email=user@domain.com",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"user",
+								"signup",
+								"resend-activation"
+							],
+							"query": [
+								{
+									"key": "email",
+									"value": "user@domain.com"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get user profile",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "954febdd-1a16-4db0-bdff-bd13fc50a451",
+								"exec": [
+									"tests[\"Status code is 200\"] = responseCode.code === 200;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response validation passed\"] = data.firstName && data.lastName && data.email;"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{user-token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/user/profile",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"user",
+								"profile"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update user profile",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "954febdd-1a16-4db0-bdff-bd13fc50a451",
+								"exec": [
+									"tests[\"Status code is 200\"] = responseCode.code === 200;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response validation passed\"] = data.firstName && data.lastName && data.email;"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{user-token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"firstName\": \"Saeid\",\n  \"lastName\": \"Rezaei\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/user/profile",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"user",
+								"profile"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Change password",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "954febdd-1a16-4db0-bdff-bd13fc50a451",
+								"exec": [
+									"tests[\"Status code is 204\"] = responseCode.code === 204;"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{user-token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"oldPassword\": \"#Bugs4Fun\",\n  \"newPassword\": \"#Bugs4Fun\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/user/password",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"user",
+								"password"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Reset password",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "954febdd-1a16-4db0-bdff-bd13fc50a451",
+								"exec": [
+									"tests[\"Status code is 204\"] = responseCode.code === 204;"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"user@domain.com\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/user/password",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"user",
+								"password"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Logout",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "954febdd-1a16-4db0-bdff-bd13fc50a451",
+								"exec": [
+									"tests[\"Status code is 204\"] = responseCode.code === 204;"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{user-token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/user/logout",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"user",
+								"logout"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login 2",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "4f7a9f52-12cc-49d0-9e2f-147b6f5cb6fa",
+								"exec": [
+									"tests[\"Status code is 200\"] = responseCode.code === 200;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response validation passed\"] = data.accessToken;",
+									"",
+									"",
+									"postman.setGlobalVariable(\"user-token\", data.accessToken);",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"user@domain.com\",\n  \"password\": \"#Bugs4Fun\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/user/login",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"user",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete user",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "954febdd-1a16-4db0-bdff-bd13fc50a451",
+								"exec": [
+									"tests[\"Status code is 204\"] = responseCode.code === 204;"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{user-token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/user/profile",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"user",
+								"profile"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "General",
+			"item": [
+				{
+					"name": "Status",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "d674c862-a5e5-4034-95eb-c8c8830c54ab",
+								"exec": [
+									"tests[\"Status code is 200\"] = responseCode.code === 200;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response validation passed\"] = data.status && data.hasOwnProperty('timestamp');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/status",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"status"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get email activation setting",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "5c76f0c8-1e8c-4c59-a219-dfabe7d898cb",
+								"exec": [
+									"tests[\"Status code is 200\"] = responseCode.code === 200;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response validation passed\"] = data.hasOwnProperty('isEmailActivationEnabled');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/email-activation",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"email-activation"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Fog types",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "86f7b7e4-7841-4e57-b02a-ec3312a8e4ac",
+								"exec": [
+									"tests[\"Status code is 200\"] = responseCode.code === 200;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response validation passed\"] = data.fogTypes;"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/fog-types",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"fog-types"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Agent",
+			"item": [
+				{
+					"name": "Create user",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "954febdd-1a16-4db0-bdff-bd13fc50a451",
+								"exec": [
+									"tests[\"Status code is 201\"] = responseCode.code === 201;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response validation passed\"] = data.hasOwnProperty('userId') && data.firstName && data.lastName && data.email && data.hasOwnProperty('emailActivated');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"email\": \"user@domain.com\",\n  \"password\": \"#Bugs4Fun\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/user/signup",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"user",
+								"signup"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "4f7a9f52-12cc-49d0-9e2f-147b6f5cb6fa",
+								"exec": [
+									"tests[\"Status code is 200\"] = responseCode.code === 200;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response validation passed\"] = data.accessToken;",
+									"",
+									"",
+									"postman.setGlobalVariable(\"user-token\", data.accessToken);",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"user@domain.com\",\n  \"password\": \"#Bugs4Fun\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/user/login",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"user",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "New Node",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "4f7a9f52-12cc-49d0-9e2f-147b6f5cb6fa",
+								"exec": [
+									"tests[\"Status code is 201\"] = responseCode.code === 201;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response validation passed\"] = data.uuid;",
+									"",
+									"postman.setGlobalVariable(\"node-id\", data.uuid);",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"type": "text",
+								"value": "{{user-token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"string\",\n  \"location\": \"string\",\n  \"latitude\": 0,\n  \"longitude\": 0,\n  \"description\": \"string\",\n  \"dockerUrl\": \"string\",\n  \"diskLimit\": 0,\n  \"diskDirectory\": \"string\",\n  \"memoryLimit\": 0,\n  \"cpuLimit\": 0,\n  \"logLimit\": 0,\n  \"logDirectory\": \"string\",\n  \"logFileCount\": 0,\n  \"statusFrequency\": 0,\n  \"changeFrequency\": 0,\n  \"deviceScanFrequency\": 0,\n  \"bluetoothEnabled\": false,\n  \"watchdogEnabled\": true,\n  \"abstractedHardwareEnabled\": false,\n  \"fogType\": 0\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/iofog",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"iofog"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Provisioning Key",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "4f7a9f52-12cc-49d0-9e2f-147b6f5cb6fa",
+								"exec": [
+									"tests[\"Status code is 201\"] = responseCode.code === 201;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response validation passed\"] = data.key;",
+									"",
+									"postman.setGlobalVariable(\"provisioning-key\", data.key);",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"type": "text",
+								"value": "{{user-token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/iofog/{{node-id}}/provisioning-key",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"iofog",
+								"{{node-id}}",
+								"provisioning-key"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Agent provision",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "163b99b3-7e44-4550-95aa-ed1298f69b48",
+								"exec": [
+									"tests[\"Status code is 200\"] = responseCode.code === 200;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response validation passed\"] = data.token;",
+									"",
+									"postman.setGlobalVariable(\"agent-token\", data.token);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"disabled": false,
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"type\": 1,\n\t\"key\":\"{{provisioning-key}}\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/agent/provision",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"agent",
+								"provision"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get agent config",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "a54b1534-6e3d-4315-8eee-80aebecfe383",
+								"exec": [
+									"tests[\"Status code is 200\"] = responseCode.code === 200;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response validation passed\"] = data.networkInterface && data.dockerUrl && data.hasOwnProperty('diskLimit') && data.diskDirectory",
+									"&& data.hasOwnProperty('memoryLimit') && data.hasOwnProperty('cpuLimit') && data.hasOwnProperty('logLimit') ",
+									"&& data.logDirectory && data.hasOwnProperty('logFileCount') ",
+									"&& data.hasOwnProperty('statusFrequency') && data.hasOwnProperty('changeFrequency') && data.hasOwnProperty('deviceScanFrequency') && data.hasOwnProperty('watchdogEnabled')",
+									"&& data.hasOwnProperty('latitude') && data.hasOwnProperty('longitude')"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"disabled": false,
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"type": "text",
+								"value": "{{agent-token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"type\": 1,\n\t\"key\":\"testtesttest\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/agent/config",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"agent",
+								"config"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update agent config",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "c98e0ec6-82ab-4026-a355-11a245ee5824",
+								"exec": [
+									"tests[\"Status code is 204\"] = responseCode.code === 204;",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"disabled": false,
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"type": "text",
+								"value": "{{agent-token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"networkInterface\": \"wlan0\",\r\n  \"dockerUrl\": \"http://google.com\",\r\n  \"diskLimit\": 15,\r\n  \"diskDirectory\": \"testDirectoryPath\",\r\n  \"memoryLimit\": 150,\r\n  \"cpuLimit\": 17,\r\n  \"logLimit\": 16,\r\n  \"logDirectory\": \"testLogPath\",\r\n  \"logFileCount\": 7,\r\n  \"statusFrequency\": 35,\r\n  \"changeFrequency\": 36,\r\n  \"deviceScanFrequency\": 37,\r\n  \"watchdogEnabled\": true,\r\n  \"latitude\": 22,\r\n  \"longitude\": 66,\r\n  \"gpsMode\": \"manual\"\r\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/agent/config",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"agent",
+								"config"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get agent config changes",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "2dbf7447-aab4-4b4a-acd4-3083bc0f65d3",
+								"exec": [
+									"tests[\"Status code is 200\"] = responseCode.code === 200;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response validation passed\"] = data.hasOwnProperty('config') && data.hasOwnProperty('version') && data.hasOwnProperty('reboot')",
+									"&& data.hasOwnProperty('deleteNode') && data.hasOwnProperty('microserviceList') && data.hasOwnProperty('microserviceConfig')",
+									"&& data.hasOwnProperty('routing') && data.hasOwnProperty('registries') && data.hasOwnProperty('tunnel') && data.hasOwnProperty('diagnostics')",
+									"&& data.hasOwnProperty('isImageSnapshot');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"disabled": false,
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"type": "text",
+								"value": "{{agent-token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"type\": 1,\n\t\"key\":\"testtesttest\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/agent/config/changes",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"agent",
+								"config",
+								"changes"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update agent status",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "15295395-0fcd-4138-9f51-6fcd85e569b5",
+								"exec": [
+									"tests[\"Status code is 204\"] = responseCode.code === 204;",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"disabled": false,
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"type": "text",
+								"value": "{{agent-token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"daemonStatus\": \"RUNNING\",\r\n  \"daemonOperatingDuration\": 15,\r\n  \"daemonLastStart\": 25,\r\n  \"memoryUsage\": 16,\r\n  \"diskUsage\": 14,\r\n  \"cpuUsage\": 17,\r\n  \"memoryViolation\": true,\r\n  \"diskViolation\": true,\r\n  \"cpuViolation\": true,\r\n  \"microserviceStatus\": \"RUNNING\",\r\n  \"repositoryCount\": 5,\r\n  \"repositoryStatus\": \"RUNNING\",\r\n  \"systemTime\": 155,\r\n  \"lastStatusTime\": 166,\r\n  \"ipAddress\": \"192.168.0.1\",\r\n  \"processedMessages\": 255,\r\n  \"microserviceMessageCounts\": \"counts\",\r\n  \"messageSpeed\": 52,\r\n  \"lastCommandTime\": 57,\r\n  \"tunnelStatus\": \"on\",\r\n  \"version\": \"1\",\r\n  \"isReadyToUpgrade\": true,\r\n  \"isReadyToRollback\": true\r\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/agent/status",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"agent",
+								"status"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get agent microservices",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "40a4e202-0442-4c3d-b7f9-6b35f7e851c4",
+								"exec": [
+									"tests[\"Status code is 200\"] = responseCode.code === 200;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response validation passed\"] = data.microservices;"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"disabled": false,
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"type": "text",
+								"value": "{{agent-token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"type\": 1,\n\t\"key\":\"testtesttest\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/agent/microservices",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"agent",
+								"microservices"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get agent microservice",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "157595c7-1beb-4516-84d9-3def5142a50f",
+								"exec": [
+									"tests[\"Status code is 404\"] = responseCode.code === 404;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response error message is valid\"] = data.name === \"NotFoundError\" && data.message === \"Invalid microservice UUID 'abcedf'\""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"disabled": false,
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"type": "text",
+								"value": "{{agent-token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"type\": 1,\n\t\"key\":\"testtesttest\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/agent/microservices/abcedf",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"agent",
+								"microservices",
+								"abcedf"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get agent registries",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "039fc07b-463e-49b0-9996-f18edece7cd3",
+								"exec": [
+									"tests[\"Status code is 200\"] = responseCode.code === 200;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response validation passed\"] = data.registries;"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"disabled": false,
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"type": "text",
+								"value": "{{agent-token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"type\": 1,\n\t\"key\":\"testtesttest\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/agent/registries",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"agent",
+								"registries"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get agent tunnel",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "69a2995c-ae44-47d2-9831-dae9c3abfe9c",
+								"exec": [
+									"tests[\"Status code is 404\"] = responseCode.code === 404;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response error message is valid\"] = data.name === \"NotFoundError\" && data.message === \"Tunnel not found\""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"disabled": false,
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"type": "text",
+								"value": "{{agent-token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"type\": 1,\n\t\"key\":\"testtesttest\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/agent/tunnel",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"agent",
+								"tunnel"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get agent strace",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "6fb0a761-864d-4465-a6a2-276be8849d5b",
+								"exec": [
+									"tests[\"Status code is 200\"] = responseCode.code === 200;",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"disabled": false,
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"type": "text",
+								"value": "{{agent-token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"type\": 1,\n\t\"key\":\"testtesttest\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/agent/strace",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"agent",
+								"strace"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Put agent strace",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "20ad0ef9-f534-4013-a88a-f3642748f9ac",
+								"exec": [
+									"tests[\"Status code is 404\"] = responseCode.code === 404;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response error message is valid\"] = data.name === \"NotFoundError\" && data.message === \"Invalid ioFog UUID\""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"disabled": false,
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"type": "text",
+								"value": "{{agent-token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"straceData\": [\r\n    {\r\n      \"microserviceId\": \"abcdef\",\r\n      \"buffer\": \"test\"\r\n    }\r\n  ]\r\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/agent/strace",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"agent",
+								"strace"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get change version command",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "11230b41-dc3c-4202-8194-6a30ee5cafbe",
+								"exec": [
+									"tests[\"Status code is 404\"] = responseCode.code === 404;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response error message is valid\"] = data.name === \"NotFoundError\" && data.message === \"Version command not found\""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"disabled": false,
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"type": "text",
+								"value": "{{agent-token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"type\": 1,\n\t\"key\":\"testtesttest\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/agent/version",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"agent",
+								"version"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update hardware info",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "51994b21-ac38-40a8-ae08-4ac3bd40ac12",
+								"exec": [
+									"tests[\"Status code is 204\"] = responseCode.code === 204;",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"type": "text",
+								"value": "{{agent-token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"info\": \"testData\"\r\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/agent/hal/hw",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"agent",
+								"hal",
+								"hw"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update USB info",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "252f9f3b-f84b-46fd-b83b-dda45f5d493c",
+								"exec": [
+									"tests[\"Status code is 204\"] = responseCode.code === 204;",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"type": "text",
+								"value": "{{agent-token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"info\": \"testData2\"\r\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/agent/hal/usb",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"agent",
+								"hal",
+								"usb"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get image snapshot",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "c47b8a61-2386-4ecf-9d37-8a01ec1f5c49",
+								"exec": [
+									"tests[\"Status code is 404\"] = responseCode.code === 404;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response error message is valid\"] = data.name === \"NotFoundError\" && data.message === \"Image snapshot not found\""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"disabled": false,
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"type": "text",
+								"value": "{{agent-token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"type\": 1,\n\t\"key\":\"testtesttest\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/agent/image-snapshot",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"agent",
+								"image-snapshot"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update image snapshot",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "ce22d82d-556e-41d5-b665-353c3aae4b3d",
+								"exec": [
+									"tests[\"Status code is 400\"] = responseCode.code === 400;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response error message is valid\"] = data.name === \"ValidationError\" && data.message === \"Uploaded image snapshot file not found\""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/zip"
+							},
+							{
+								"key": "Authorization",
+								"type": "text",
+								"value": "{{agent-token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"info\": \"testData2\"\r\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/agent/image-snapshot",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"agent",
+								"image-snapshot"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete agent node",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "b803da95-63d7-40a2-b48e-640e0c73e0d5",
+								"exec": [
+									"tests[\"Status code is 204\"] = responseCode.code === 204;",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"disabled": false,
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"type": "text",
+								"value": "{{agent-token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"type\": 1,\n\t\"key\":\"testtesttest\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/agent/delete-node",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"agent",
+								"delete-node"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete user",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "954febdd-1a16-4db0-bdff-bd13fc50a451",
+								"exec": [
+									"tests[\"Status code is 204\"] = responseCode.code === 204;"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{user-token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/user/profile",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"user",
+								"profile"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Flow",
+			"item": [
+				{
+					"name": "Create user",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "954febdd-1a16-4db0-bdff-bd13fc50a451",
+								"exec": [
+									"tests[\"Status code is 201\"] = responseCode.code === 201;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response validation passed\"] = data.hasOwnProperty('userId') && data.firstName && data.lastName && data.email && data.hasOwnProperty('emailActivated');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"email\": \"user@domain.com\",\n  \"password\": \"#Bugs4Fun\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/user/signup",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"user",
+								"signup"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "4f7a9f52-12cc-49d0-9e2f-147b6f5cb6fa",
+								"exec": [
+									"tests[\"Status code is 200\"] = responseCode.code === 200;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response validation passed\"] = data.accessToken;",
+									"",
+									"",
+									"postman.setGlobalVariable(\"user-token\", data.accessToken);",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"user@domain.com\",\n  \"password\": \"#Bugs4Fun\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/user/login",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"user",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "New Flow",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "4f7a9f52-12cc-49d0-9e2f-147b6f5cb6fa",
+								"exec": [
+									"tests[\"Status code is 201\"] = responseCode.code === 201;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response validation passed\"] = data.hasOwnProperty('id');",
+									"",
+									"postman.setGlobalVariable(\"flow-id\", data.id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{user-token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Flow Name\",\n  \"description\": \"Description\",\n  \"isActivated\": true\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/flow",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"flow"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Flows",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "4f7a9f52-12cc-49d0-9e2f-147b6f5cb6fa",
+								"exec": [
+									"tests[\"Status code is 200\"] = responseCode.code === 200;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response validation passed\"] = data.hasOwnProperty('flows');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{user-token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/flow",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"flow"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Flow By Id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "4f7a9f52-12cc-49d0-9e2f-147b6f5cb6fa",
+								"exec": [
+									"tests[\"Status code is 200\"] = responseCode.code === 200;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response validation passed\"] = data.hasOwnProperty('id') && data.name && data.description && data.hasOwnProperty('isActivated');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{user-token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/flow/{{flow-id}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"flow",
+								"{{flow-id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Flow",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "4f7a9f52-12cc-49d0-9e2f-147b6f5cb6fa",
+								"exec": [
+									"tests[\"Status code is 204\"] = responseCode.code === 204;"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{user-token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Flow Name 22\",\n  \"description\": \"Description\",\n  \"isActivated\": true\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/flow/{{flow-id}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"flow",
+								"{{flow-id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Flow",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "4f7a9f52-12cc-49d0-9e2f-147b6f5cb6fa",
+								"exec": [
+									"tests[\"Status code is 204\"] = responseCode.code === 204;"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{user-token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/flow/{{flow-id}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"flow",
+								"{{flow-id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete user",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "954febdd-1a16-4db0-bdff-bd13fc50a451",
+								"exec": [
+									"tests[\"Status code is 204\"] = responseCode.code === 204;"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{user-token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/user/profile",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"user",
+								"profile"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Catalog",
+			"item": [
+				{
+					"name": "Create user",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "954febdd-1a16-4db0-bdff-bd13fc50a451",
+								"exec": [
+									"tests[\"Status code is 201\"] = responseCode.code === 201;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response validation passed\"] = data.hasOwnProperty('userId') && data.firstName && data.lastName && data.email && data.hasOwnProperty('emailActivated');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"email\": \"user@domain.com\",\n  \"password\": \"#Bugs4Fun\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/user/signup",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"user",
+								"signup"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "4f7a9f52-12cc-49d0-9e2f-147b6f5cb6fa",
+								"exec": [
+									"tests[\"Status code is 200\"] = responseCode.code === 200;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response validation passed\"] = data.accessToken;",
+									"",
+									"",
+									"postman.setGlobalVariable(\"user-token\", data.accessToken);",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"user@domain.com\",\n  \"password\": \"#Bugs4Fun\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/user/login",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"user",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "New Catalog Item",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "4f7a9f52-12cc-49d0-9e2f-147b6f5cb6fa",
+								"exec": [
+									"tests[\"Status code is 201\"] = responseCode.code === 201;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response validation passed\"] = data.hasOwnProperty('id');",
+									"",
+									"postman.setGlobalVariable(\"item-id\", data.id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{user-token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"string\",\n  \"description\": \"string\",\n  \"category\": \"string\",\n  \"images\": [\n    {\n      \"containerImage\": \"x86 docker image name\",\n      \"fogTypeId\": 1\n    },\n    {\n      \"containerImage\": \"ARM docker image name\",\n      \"fogTypeId\": 2\n    }\n  ],\n  \"publisher\": \"string\",\n  \"diskRequired\": 0,\n  \"ramRequired\": 0,\n  \"picture\": \"string\",\n  \"isPublic\": true,\n  \"registryId\": 1,\n  \"inputType\": {\n    \"infoType\": \"string\",\n    \"infoFormat\": \"string\"\n  },\n  \"outputType\": {\n    \"infoType\": \"string\",\n    \"infoFormat\": \"string\"\n  },\n  \"configExample\": \"string\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/catalog/microservices",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"catalog",
+								"microservices"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Catalog Items",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "4f7a9f52-12cc-49d0-9e2f-147b6f5cb6fa",
+								"exec": [
+									"tests[\"Status code is 200\"] = responseCode.code === 200;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response validation passed\"] = data.hasOwnProperty('catalogItems');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{user-token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/catalog/microservices",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"catalog",
+								"microservices"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Catalog Item By Id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "4f7a9f52-12cc-49d0-9e2f-147b6f5cb6fa",
+								"exec": [
+									"tests[\"Status code is 200\"] = responseCode.code === 200;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response validation passed\"] = data.hasOwnProperty('id') && data.name && data.description && data.category && data.configExample",
+									"&& data.publisher && data.hasOwnProperty('diskRequired') && data.hasOwnProperty('ramRequired') && data.picture && data.hasOwnProperty('isPublic')",
+									"&& data.hasOwnProperty('registryId') && data.hasOwnProperty('images') && data.hasOwnProperty('inputType') && data.hasOwnProperty('outputType');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{user-token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/catalog/microservices/{{item-id}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"catalog",
+								"microservices",
+								"{{item-id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Catalog Item",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "4f7a9f52-12cc-49d0-9e2f-147b6f5cb6fa",
+								"exec": [
+									"tests[\"Status code is 204\"] = responseCode.code === 204;",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{user-token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"string\",\n  \"description\": \"string\",\n  \"category\": \"string\",\n  \"images\": [\n    {\n      \"containerImage\": \"x86 docker image name\",\n      \"fogTypeId\": 1\n    },\n    {\n      \"containerImage\": \"ARM docker image name\",\n      \"fogTypeId\": 2\n    }\n  ],\n  \"publisher\": \"string\",\n  \"diskRequired\": 0,\n  \"ramRequired\": 0,\n  \"picture\": \"string\",\n  \"isPublic\": true,\n  \"registryId\": 1,\n  \"inputType\": {\n    \"infoType\": \"string\",\n    \"infoFormat\": \"string\"\n  },\n  \"outputType\": {\n    \"infoType\": \"string\",\n    \"infoFormat\": \"string\"\n  },\n  \"configExample\": \"string\"\n}\n"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/catalog/microservices/{{item-id}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"catalog",
+								"microservices",
+								"{{item-id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Catalog Item By Id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "4f7a9f52-12cc-49d0-9e2f-147b6f5cb6fa",
+								"exec": [
+									"tests[\"Status code is 204\"] = responseCode.code === 204;",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{user-token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/catalog/microservices/{{item-id}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"catalog",
+								"microservices",
+								"{{item-id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete user",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "954febdd-1a16-4db0-bdff-bd13fc50a451",
+								"exec": [
+									"tests[\"Status code is 204\"] = responseCode.code === 204;"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{user-token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/user/profile",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"user",
+								"profile"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Tunnel",
+			"item": [
+				{
+					"name": "Create user",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "954febdd-1a16-4db0-bdff-bd13fc50a451",
+								"exec": [
+									"tests[\"Status code is 201\"] = responseCode.code === 201;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response validation passed\"] = data.hasOwnProperty('userId') && data.firstName && data.lastName && data.email && data.hasOwnProperty('emailActivated');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"email\": \"user@domain.com\",\n  \"password\": \"#Bugs4Fun\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/user/signup",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"user",
+								"signup"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "4f7a9f52-12cc-49d0-9e2f-147b6f5cb6fa",
+								"exec": [
+									"tests[\"Status code is 200\"] = responseCode.code === 200;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response validation passed\"] = data.accessToken;",
+									"",
+									"",
+									"postman.setGlobalVariable(\"user-token\", data.accessToken);",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"user@domain.com\",\n  \"password\": \"#Bugs4Fun\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/user/login",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"user",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "New Node",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "4f7a9f52-12cc-49d0-9e2f-147b6f5cb6fa",
+								"exec": [
+									"tests[\"Status code is 201\"] = responseCode.code === 201;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response validation passed\"] = data.uuid;",
+									"",
+									"postman.setGlobalVariable(\"node-id\", data.uuid);",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"type": "text",
+								"value": "{{user-token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"string\",\n  \"location\": \"string\",\n  \"latitude\": 0,\n  \"longitude\": 0,\n  \"description\": \"string\",\n  \"dockerUrl\": \"string\",\n  \"diskLimit\": 0,\n  \"diskDirectory\": \"string\",\n  \"memoryLimit\": 0,\n  \"cpuLimit\": 0,\n  \"logLimit\": 0,\n  \"logDirectory\": \"string\",\n  \"logFileCount\": 0,\n  \"statusFrequency\": 0,\n  \"changeFrequency\": 0,\n  \"deviceScanFrequency\": 0,\n  \"bluetoothEnabled\": false,\n  \"watchdogEnabled\": true,\n  \"abstractedHardwareEnabled\": false,\n  \"fogType\": 0\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/iofog",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"iofog"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Open SSH Tunnel To ioFog Node",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "4f7a9f52-12cc-49d0-9e2f-147b6f5cb6fa",
+								"exec": [
+									"tests[\"Status code is 204\"] = responseCode.code === 204;",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{user-token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"action\": \"open\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/iofog/{{node-id}}/tunnel",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"iofog",
+								"{{node-id}}",
+								"tunnel"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Node SSH Tunnel Info",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "4f7a9f52-12cc-49d0-9e2f-147b6f5cb6fa",
+								"exec": [
+									"tests[\"Status code is 200\"] = responseCode.code === 200;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response validation passed\"] = data.username && data.host && data.hasOwnProperty('remotePort') && data.hasOwnProperty('localPort') && data.status;"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{user-token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/iofog/{{node-id}}/tunnel",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"iofog",
+								"{{node-id}}",
+								"tunnel"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Close SSH Tunnel To ioFog Node",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "4f7a9f52-12cc-49d0-9e2f-147b6f5cb6fa",
+								"exec": [
+									"tests[\"Status code is 204\"] = responseCode.code === 204;",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"type": "text",
+								"value": "{{user-token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"action\": \"close\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/iofog/{{node-id}}/tunnel",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"iofog",
+								"{{node-id}}",
+								"tunnel"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete user",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "954febdd-1a16-4db0-bdff-bd13fc50a451",
+								"exec": [
+									"tests[\"Status code is 204\"] = responseCode.code === 204;"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{user-token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/user/profile",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"user",
+								"profile"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "b36a00ce-1c45-40ae-989e-e80ea6c0a789",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "68c4eca9-f898-496e-853b-58b4bfa43f5b",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"id": "74c6e07c-13f3-4f95-a35c-2a138b6a04fc",
+			"key": "host",
+			"value": "localhost:51121",
+			"type": "string"
+		}
+	]
+}

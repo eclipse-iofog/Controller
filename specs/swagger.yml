@@ -550,7 +550,7 @@ paths:
           description: Invalid Node Id
         '500':
           description: Internal Server Error
-  '/agent/microservices/{microserviceId}':
+  '/agent/microservices/{microserviceUuid}':
     get:
       tags:
       - Agent
@@ -559,8 +559,8 @@ paths:
       parameters:
       - in: path
         required: true
-        name: microserviceId
-        description: Microservice id
+        name: microserviceUuid
+        description: Microservice UUID
         type: string
       - in: header
         name: Authorization
@@ -1930,6 +1930,8 @@ paths:
       responses:
         201:
           description: Success
+          schema:
+            $ref: '#/definitions/SignupSuccessResponse'
           headers:
             X-Timestamp:
               type: number
@@ -2941,6 +2943,25 @@ definitions:
     properties:
       accessToken:
         type: string
+  SignupSuccessResponse:
+    type: object
+    required:
+    - userId
+    - firstName
+    - lastName
+    - email
+    - emailActivated
+    properties:
+      userId:
+        type: number
+      firstName:
+        type: string
+      lastName:
+        type: string
+      email:
+        type: string
+      emailActivated:
+        type: boolean
   UserProfileDetailsResponse:
     type: object
     required:
