@@ -2513,6 +2513,349 @@
 					"response": []
 				}
 			]
+		},
+		{
+			"name": "Tunnel",
+			"item": [
+				{
+					"name": "Create user",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "954febdd-1a16-4db0-bdff-bd13fc50a451",
+								"exec": [
+									"tests[\"Status code is 201\"] = responseCode.code === 201;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response validation passed\"] = data.hasOwnProperty('userId') && data.firstName && data.lastName && data.email && data.hasOwnProperty('emailActivated');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"email\": \"user@domain.com\",\n  \"password\": \"#Bugs4Fun\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/user/signup",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"user",
+								"signup"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "4f7a9f52-12cc-49d0-9e2f-147b6f5cb6fa",
+								"exec": [
+									"tests[\"Status code is 200\"] = responseCode.code === 200;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response validation passed\"] = data.accessToken;",
+									"",
+									"",
+									"postman.setGlobalVariable(\"user-token\", data.accessToken);",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"user@domain.com\",\n  \"password\": \"#Bugs4Fun\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/user/login",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"user",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "New Node",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "4f7a9f52-12cc-49d0-9e2f-147b6f5cb6fa",
+								"exec": [
+									"tests[\"Status code is 201\"] = responseCode.code === 201;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response validation passed\"] = data.uuid;",
+									"",
+									"postman.setGlobalVariable(\"node-id\", data.uuid);",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"type": "text",
+								"value": "{{user-token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"string\",\n  \"location\": \"string\",\n  \"latitude\": 0,\n  \"longitude\": 0,\n  \"description\": \"string\",\n  \"dockerUrl\": \"string\",\n  \"diskLimit\": 0,\n  \"diskDirectory\": \"string\",\n  \"memoryLimit\": 0,\n  \"cpuLimit\": 0,\n  \"logLimit\": 0,\n  \"logDirectory\": \"string\",\n  \"logFileCount\": 0,\n  \"statusFrequency\": 0,\n  \"changeFrequency\": 0,\n  \"deviceScanFrequency\": 0,\n  \"bluetoothEnabled\": false,\n  \"watchdogEnabled\": true,\n  \"abstractedHardwareEnabled\": false,\n  \"fogType\": 0\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/iofog",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"iofog"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Open SSH Tunnel To ioFog Node",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "4f7a9f52-12cc-49d0-9e2f-147b6f5cb6fa",
+								"exec": [
+									"tests[\"Status code is 204\"] = responseCode.code === 204;",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{user-token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"action\": \"open\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/iofog/{{node-id}}/tunnel",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"iofog",
+								"{{node-id}}",
+								"tunnel"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Node SSH Tunnel Info",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "4f7a9f52-12cc-49d0-9e2f-147b6f5cb6fa",
+								"exec": [
+									"tests[\"Status code is 200\"] = responseCode.code === 200;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response validation passed\"] = data.username && data.host && data.hasOwnProperty('remotePort') && data.hasOwnProperty('localPort') && data.status;"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{user-token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/iofog/{{node-id}}/tunnel",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"iofog",
+								"{{node-id}}",
+								"tunnel"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Close SSH Tunnel To ioFog Node",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "4f7a9f52-12cc-49d0-9e2f-147b6f5cb6fa",
+								"exec": [
+									"tests[\"Status code is 204\"] = responseCode.code === 204;",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"type": "text",
+								"value": "{{user-token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"action\": \"close\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/iofog/{{node-id}}/tunnel",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"iofog",
+								"{{node-id}}",
+								"tunnel"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete user",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "954febdd-1a16-4db0-bdff-bd13fc50a451",
+								"exec": [
+									"tests[\"Status code is 204\"] = responseCode.code === 204;"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{user-token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/user/profile",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"user",
+								"profile"
+							]
+						}
+					},
+					"response": []
+				}
+			]
 		}
 	],
 	"event": [
@@ -2539,7 +2882,7 @@
 	],
 	"variable": [
 		{
-			"id": "828a5d14-b19c-440a-a801-d8651e8d975b",
+			"id": "74c6e07c-13f3-4f95-a35c-2a138b6a04fc",
 			"key": "host",
 			"value": "localhost:51121",
 			"type": "string"
