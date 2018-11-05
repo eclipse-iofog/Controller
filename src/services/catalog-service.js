@@ -99,7 +99,7 @@ const _updateCatalogItemIOTypes = async function (data, where, transaction) {
     inputType = AppHelper.deleteUndefinedFields(inputType);
     await CatalogItemInputTypeManager.update({catalogItemId: data.id}, inputType, transaction);
   }
-  if (data.outputType && data.outputType.length !=0) {
+  if (data.outputType && data.outputType.length !== 0) {
     let outputType = {
       infoType: data.outputType.infoType,
       infoFormat: data.outputType.infoFormat
@@ -118,7 +118,10 @@ const listCatalogItems = async function (user, isCLI, transaction) {
     ? {}
     : {exclude: ["userId"]};
 
-  return await CatalogItemManager.findAllWithDependencies(where, attributes, transaction);
+  const catalogItems = await CatalogItemManager.findAllWithDependencies(where, attributes, transaction);
+  return {
+    catalogItems: catalogItems
+  }
 };
 
 const getCatalogItem = async function (id, user, isCLI, transaction) {
