@@ -180,7 +180,7 @@ module.exports = [
   },
   {
     method: 'get',
-    path: '/api/v3/agent/microservices/:microserviceId',
+    path: '/api/v3/agent/microservices/:microserviceUuid',
     middleware: async (req, res) => {
       const successCode = constants.HTTP_CODE_SUCCESS;
       const errorCodes = [

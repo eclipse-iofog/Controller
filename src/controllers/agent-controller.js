@@ -53,11 +53,11 @@ const getAgentMicroservicesEndPoint = async function (req, fog) {
 };
 
 const getAgentMicroserviceEndPoint = async function (req, fog) {
-  const microserviceId = req.params.microserviceId;
+  const microserviceUuid = req.params.microserviceUuid;
 
-  logger.info("Microservice id:" + JSON.stringify(microserviceId));
+  logger.info("Microservice UUID:" + JSON.stringify(microserviceUuid));
 
-  return await AgentService.getAgentMicroservice(microserviceId, fog);
+  return await AgentService.getAgentMicroservice(microserviceUuid, fog);
 };
 
 const getAgentRegistriesEndPoint = async function (req, fog) {
