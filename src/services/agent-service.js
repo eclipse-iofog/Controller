@@ -249,11 +249,15 @@ const getAgentMicroservices = async function (fog, transaction) {
   }
 };
 
-const getAgentMicroservice = async function (microserviceId, fog, transaction) {
+const getAgentMicroservice = async function (microserviceUuid, fog, transaction) {
   const microservice = await MicroserviceManager.findOneWithDependencies({
-    uuid: microserviceId,
+    uuid: microserviceUuid,
     iofogUuid: fog.uuid
   }, {}, transaction);
+
+  if (!microservice) {
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, microserviceUuid));
+  }
   return {
     microservice: microservice
   }
@@ -280,16 +284,26 @@ const getAgentTunnel = async function (fog, transaction) {
   const tunnel = await TunnelManager.findOne({
     iofogUuid: fog.uuid
   }, transaction);
+
+  if (!tunnel) {
+    throw new Errors.NotFoundError(ErrorMessages.TUNNEL_NOT_FOUND);
+  }
+
   return {
     tunnel: tunnel
   }
 };
 
 const getAgentStrace = async function (fog, transaction) {
-  const fogWithDependencies = FogManager.findFogStraces({
+  const fogWithStrace = FogManager.findFogStraces({
     uuid: fog.uuid
   }, transaction);
-  return fogWithDependencies.strace;
+
+  if (!fogWithStrace) {
+    throw new Errors.NotFoundError(ErrorMessages.STRACE_NOT_FOUND);
+  }
+
+  return fogWithStrace.strace;
 };
 
 const updateAgentStrace = async function (straceData, fog, transaction) {
@@ -363,6 +377,10 @@ const getImageSnapshot = async function (fog, transaction) {
 };
 
 const putImageSnapshot = async function (req, fog, transaction) {
+  if (req.headers['content-type'] !== 'application/zip') {
+    throw new Errors.ValidationError(ErrorMessages.INVALID_CONTENT_TYPE);
+  }
+
   const form = new formidable.IncomingForm();
   form.uploadDir = path.join(appRoot, '../') + 'data';
   if (!fs.existsSync(form.uploadDir)) {
@@ -380,12 +398,17 @@ const putImageSnapshot = async function (req, fog, transaction) {
 
 const saveSnapShot = function (req, form) {
   return new Promise((resolve, reject) => {
+
     form.parse(req, async function (error, fields, files) {
-      if (error) {
-        reject(new Errors.ValidationError());
+      const file = files['upstream'];
+
+      if (file === undefined) {
+        reject(new Errors.ValidationError(ErrorMessages.UPLOADED_FILE_NOT_FOUND));
+        return;
       }
 
-      const filePath = files['upstream']['path'];
+      const filePath = file['path'];
+
 
       let absolutePath = path.resolve(filePath);
       fs.rename(absolutePath, absolutePath + '.tar.gz');

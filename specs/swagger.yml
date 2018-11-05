@@ -550,7 +550,7 @@ paths:
           description: Invalid Node Id
         '500':
           description: Internal Server Error
-  '/agent/microservices/{microserviceId}':
+  '/agent/microservices/{microserviceUuid}':
     get:
       tags:
       - Agent
@@ -559,8 +559,8 @@ paths:
       parameters:
       - in: path
         required: true
-        name: microserviceId
-        description: Microservice id
+        name: microserviceUuid
+        description: Microservice UUID
         type: string
       - in: header
         name: Authorization
