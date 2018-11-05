@@ -116,11 +116,17 @@ const _getUserFlows = async function (user, isCLI, transaction) {
     userId: user.id
   };
 
-  return await FlowManager.findAllExcludeFields(flow, transaction)
+  const flows = await FlowManager.findAllExcludeFields(flow, transaction);
+  return {
+    flows: flows
+  }
 };
 
 const _getAllFlows = async function (isCLI, transaction) {
-  return await FlowManager.findAll({}, transaction);
+  const flows = await FlowManager.findAll({}, transaction);
+  return {
+    flows: flows
+  }
 };
 
 const _checkForDuplicateName = async function (name, item, userId, transaction) {
