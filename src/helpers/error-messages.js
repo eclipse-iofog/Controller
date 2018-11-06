@@ -58,6 +58,7 @@ module.exports = {
   STRACE_NOT_FOUND: 'Strace not found',
   INVALID_CONTENT_TYPE: 'Invalid content type',
   UPLOADED_FILE_NOT_FOUND: 'Uploaded image snapshot file not found',
+  REGISTRY_NOT_FOUND: 'Registry not found',
   CLI: {
     INVALID_PORT_MAPPING: 'Port mapping parsing error. Please provide valid port mapping.',
     INVALID_VOLUME_MAPPING: 'Volume mapping parsing error. Please provide valid volume mapping.',
