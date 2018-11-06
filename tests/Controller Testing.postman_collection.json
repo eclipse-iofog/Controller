@@ -1,13 +1,12 @@
 {
 	"info": {
-		"_postman_id": "b585aece-cb86-4f3b-93f3-12552c1c90c5",
+		"_postman_id": "3f737064-1335-43ef-9b3c-f3f48558d42b",
 		"name": "Controller Testing",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
 		{
 			"name": "User",
-			"description": null,
 			"item": [
 				{
 					"name": "Create user",
@@ -510,7 +509,6 @@
 		},
 		{
 			"name": "General",
-			"description": null,
 			"item": [
 				{
 					"name": "Status",
@@ -633,7 +631,6 @@
 		},
 		{
 			"name": "Agent",
-			"description": null,
 			"item": [
 				{
 					"name": "Create user",
@@ -919,7 +916,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"type\": 1,\n\t\"key\":\"testtesttest\"\n}"
+							"raw": ""
 						},
 						"url": {
 							"raw": "{{host}}/api/v3/agent/config",
@@ -1019,7 +1016,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"type\": 1,\n\t\"key\":\"testtesttest\"\n}"
+							"raw": ""
 						},
 						"url": {
 							"raw": "{{host}}/api/v3/agent/config/changes",
@@ -1117,7 +1114,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"type\": 1,\n\t\"key\":\"testtesttest\"\n}"
+							"raw": ""
 						},
 						"url": {
 							"raw": "{{host}}/api/v3/agent/microservices",
@@ -1167,7 +1164,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"type\": 1,\n\t\"key\":\"testtesttest\"\n}"
+							"raw": ""
 						},
 						"url": {
 							"raw": "{{host}}/api/v3/agent/microservices/abcedf",
@@ -1218,7 +1215,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"type\": 1,\n\t\"key\":\"testtesttest\"\n}"
+							"raw": ""
 						},
 						"url": {
 							"raw": "{{host}}/api/v3/agent/registries",
@@ -1268,7 +1265,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"type\": 1,\n\t\"key\":\"testtesttest\"\n}"
+							"raw": ""
 						},
 						"url": {
 							"raw": "{{host}}/api/v3/agent/tunnel",
@@ -1315,7 +1312,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"type\": 1,\n\t\"key\":\"testtesttest\"\n}"
+							"raw": ""
 						},
 						"url": {
 							"raw": "{{host}}/api/v3/agent/strace",
@@ -1415,7 +1412,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"type\": 1,\n\t\"key\":\"testtesttest\"\n}"
+							"raw": ""
 						},
 						"url": {
 							"raw": "{{host}}/api/v3/agent/version",
@@ -1561,7 +1558,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"type\": 1,\n\t\"key\":\"testtesttest\"\n}"
+							"raw": ""
 						},
 						"url": {
 							"raw": "{{host}}/api/v3/agent/image-snapshot",
@@ -1724,7 +1721,6 @@
 		},
 		{
 			"name": "Flow",
-			"description": null,
 			"item": [
 				{
 					"name": "Create user",
@@ -2111,7 +2107,6 @@
 		},
 		{
 			"name": "Catalog",
-			"description": null,
 			"item": [
 				{
 					"name": "Create user",
@@ -2507,7 +2502,6 @@
 		},
 		{
 			"name": "Tunnel",
-			"description": null,
 			"item": [
 				{
 					"name": "Create user",
@@ -2851,7 +2845,6 @@
 		},
 		{
 			"name": "Microservices",
-			"description": null,
 			"item": [
 				{
 					"name": "Create user",
@@ -3788,7 +3781,6 @@
 		},
 		{
 			"name": "Diagnostics",
-			"description": null,
 			"item": [
 				{
 					"name": "Create user",
@@ -4145,7 +4137,11 @@
 							"script": {
 								"id": "4f7a9f52-12cc-49d0-9e2f-147b6f5cb6fa",
 								"exec": [
-									""
+									"tests[\"Status code is 500\"] = responseCode.code === 500;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Error message is valid\"] = data.name === 'ValidationError' && data.message === 'Image snapshot is not available for this microservice.';"
 								],
 								"type": "text/javascript"
 							}
@@ -4169,7 +4165,7 @@
 							"raw": ""
 						},
 						"url": {
-							"raw": "{{host}}/api/v3/microservices/{{ms-id}}/image-snapshotFIXIT",
+							"raw": "{{host}}/api/v3/microservices/{{ms-id}}/image-snapshot",
 							"host": [
 								"{{host}}"
 							],
@@ -4178,7 +4174,7 @@
 								"v3",
 								"microservices",
 								"{{ms-id}}",
-								"image-snapshotFIXIT"
+								"image-snapshot"
 							]
 						}
 					},
@@ -4583,7 +4579,6 @@
 		},
 		{
 			"name": "ioFog",
-			"description": null,
 			"item": [
 				{
 					"name": "Create user",
@@ -5290,7 +5285,6 @@
 		},
 		{
 			"name": "Registries",
-			"description": null,
 			"item": [
 				{
 					"name": "Create user",
