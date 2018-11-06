@@ -74,7 +74,7 @@ module.exports = [
           .status(responseObject.code)
           .send(responseObject.body)
       } else {
-        res.writeHead(200, {
+        res.writeHead(successCode, {
           "Content-Length": responseObject.body['Content-Length'],
           "Content-Type": responseObject.body['Content-Type'],
           "Content-Disposition": "attachment; filename=" + responseObject.body.fileName
