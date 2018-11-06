@@ -125,7 +125,7 @@ function _createConnectorObject(cliData) {
     name: cliData.name,
     domain: cliData.domain,
     publicIp: cliData.publicIp,
-    certDir: cliData.certDir,
+    cert: cliData.cert,
     isSelfSignedCert: AppHelper.validateBooleanCliOptions(cliData.selfSignedEnable, cliData.selfSignedDisable),
     devMode: AppHelper.validateBooleanCliOptions(cliData.devModeOn, cliData.devModeOff)
   }
