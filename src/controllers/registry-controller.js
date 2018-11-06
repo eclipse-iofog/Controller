@@ -18,7 +18,7 @@ const RegistryService = require('../services/registry-service');
 const createRegistryEndPoint = async function (req, user) {
   logger.info("Parameters:" + JSON.stringify(req.body));
   const registry = req.body;
-  await RegistryService.createRegistry(registry, user);
+  return await RegistryService.createRegistry(registry, user);
 };
 
 const getRegistriesEndPoint = async function (req, user) {

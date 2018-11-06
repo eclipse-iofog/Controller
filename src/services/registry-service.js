@@ -42,8 +42,11 @@ const createRegistry = async function (registry, user, transaction) {
 
   registryCreate = AppHelper.deleteUndefinedFields(registryCreate);
 
-  await RegistryManager.create(registryCreate, transaction)
+  const createdRegistry = await RegistryManager.create(registryCreate, transaction);
   await updateChangeTracking(user, transaction);
+  return {
+    id: createdRegistry.id
+  }
 };
 
 const updateChangeTracking = async function (user, transaction) {
@@ -52,7 +55,7 @@ const updateChangeTracking = async function (user, transaction) {
     const changeTrackingUpdates = {
       iofogUuid: fog.uuid,
       registries: true
-    }
+    };
     await ChangeTrackingManager.update({iofogUuid: fog.uuid}, changeTrackingUpdates, transaction);
   }
 };
