@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "3f737064-1335-43ef-9b3c-f3f48558d42b",
+		"_postman_id": "0c412a3a-7328-4c9e-8919-d2836adccfa1",
 		"name": "Controller Testing",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -856,6 +856,7 @@
 						"method": "POST",
 						"header": [
 							{
+								"disabled": false,
 								"key": "Content-Type",
 								"value": "application/json"
 							}
@@ -905,6 +906,7 @@
 						"method": "GET",
 						"header": [
 							{
+								"disabled": false,
 								"key": "Content-Type",
 								"value": "application/json"
 							},
@@ -916,7 +918,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": ""
+							"raw": "{\n\t\"type\": 1,\n\t\"key\":\"testtesttest\"\n}"
 						},
 						"url": {
 							"raw": "{{host}}/api/v3/agent/config",
@@ -952,6 +954,7 @@
 						"method": "PATCH",
 						"header": [
 							{
+								"disabled": false,
 								"key": "Content-Type",
 								"value": "application/json"
 							},
@@ -1005,6 +1008,7 @@
 						"method": "GET",
 						"header": [
 							{
+								"disabled": false,
 								"key": "Content-Type",
 								"value": "application/json"
 							},
@@ -1016,7 +1020,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": ""
+							"raw": "{\n\t\"type\": 1,\n\t\"key\":\"testtesttest\"\n}"
 						},
 						"url": {
 							"raw": "{{host}}/api/v3/agent/config/changes",
@@ -1053,6 +1057,7 @@
 						"method": "PUT",
 						"header": [
 							{
+								"disabled": false,
 								"key": "Content-Type",
 								"value": "application/json"
 							},
@@ -1103,6 +1108,7 @@
 						"method": "GET",
 						"header": [
 							{
+								"disabled": false,
 								"key": "Content-Type",
 								"value": "application/json"
 							},
@@ -1114,7 +1120,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": ""
+							"raw": "{\n\t\"type\": 1,\n\t\"key\":\"testtesttest\"\n}"
 						},
 						"url": {
 							"raw": "{{host}}/api/v3/agent/microservices",
@@ -1153,6 +1159,7 @@
 						"method": "GET",
 						"header": [
 							{
+								"disabled": false,
 								"key": "Content-Type",
 								"value": "application/json"
 							},
@@ -1164,7 +1171,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": ""
+							"raw": "{\n\t\"type\": 1,\n\t\"key\":\"testtesttest\"\n}"
 						},
 						"url": {
 							"raw": "{{host}}/api/v3/agent/microservices/abcedf",
@@ -1204,6 +1211,7 @@
 						"method": "GET",
 						"header": [
 							{
+								"disabled": false,
 								"key": "Content-Type",
 								"value": "application/json"
 							},
@@ -1215,7 +1223,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": ""
+							"raw": "{\n\t\"type\": 1,\n\t\"key\":\"testtesttest\"\n}"
 						},
 						"url": {
 							"raw": "{{host}}/api/v3/agent/registries",
@@ -1254,6 +1262,7 @@
 						"method": "GET",
 						"header": [
 							{
+								"disabled": false,
 								"key": "Content-Type",
 								"value": "application/json"
 							},
@@ -1265,7 +1274,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": ""
+							"raw": "{\n\t\"type\": 1,\n\t\"key\":\"testtesttest\"\n}"
 						},
 						"url": {
 							"raw": "{{host}}/api/v3/agent/tunnel",
@@ -1301,6 +1310,7 @@
 						"method": "GET",
 						"header": [
 							{
+								"disabled": false,
 								"key": "Content-Type",
 								"value": "application/json"
 							},
@@ -1312,7 +1322,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": ""
+							"raw": "{\n\t\"type\": 1,\n\t\"key\":\"testtesttest\"\n}"
 						},
 						"url": {
 							"raw": "{{host}}/api/v3/agent/strace",
@@ -1351,6 +1361,7 @@
 						"method": "PUT",
 						"header": [
 							{
+								"disabled": false,
 								"key": "Content-Type",
 								"value": "application/json"
 							},
@@ -1401,6 +1412,7 @@
 						"method": "GET",
 						"header": [
 							{
+								"disabled": false,
 								"key": "Content-Type",
 								"value": "application/json"
 							},
@@ -1412,7 +1424,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": ""
+							"raw": "{\n\t\"type\": 1,\n\t\"key\":\"testtesttest\"\n}"
 						},
 						"url": {
 							"raw": "{{host}}/api/v3/agent/version",
@@ -1547,6 +1559,7 @@
 						"method": "GET",
 						"header": [
 							{
+								"disabled": false,
 								"key": "Content-Type",
 								"value": "application/json"
 							},
@@ -1558,7 +1571,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": ""
+							"raw": "{\n\t\"type\": 1,\n\t\"key\":\"testtesttest\"\n}"
 						},
 						"url": {
 							"raw": "{{host}}/api/v3/agent/image-snapshot",
@@ -1644,6 +1657,7 @@
 						"method": "DELETE",
 						"header": [
 							{
+								"disabled": false,
 								"key": "Content-Type",
 								"value": "application/json"
 							},
@@ -5416,7 +5430,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"url\": \"string\",\n  \"isPublic\": true,\n  \"username\": \"string\",\n  \"password\": \"string\",\n  \"email\": \"string\"\n}"
+							"raw": "{\n  \"url\": \"string\",\n  \"isPublic\": true,\n  \"username\": \"string\",\n  \"password\": \"string\",\n  \"email\": \"string\",\n  \"requiresCert\": false,\n  \"certificate\": \"string\"\n}"
 						},
 						"url": {
 							"raw": "{{host}}/api/v3/registries",
@@ -5427,6 +5441,52 @@
 								"api",
 								"v3",
 								"registries"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Registry",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "4f7a9f52-12cc-49d0-9e2f-147b6f5cb6fa",
+								"exec": [
+									"tests[\"Status code is 204\"] = responseCode.code === 204;"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"type": "text",
+								"value": "{{user-token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"url\": \"string2\",\n  \"isPublic\": true,\n  \"username\": \"string3\",\n  \"password\": \"string4\",\n  \"email\": \"string5\",\n  \"requiresCert\": true,\n  \"certificate\": \"string6\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/registries/{{reg-id}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"registries",
+								"{{reg-id}}"
 							]
 						}
 					},
@@ -5599,7 +5659,7 @@
 	],
 	"variable": [
 		{
-			"id": "291501bd-8b27-45a8-9a93-e39a9f4146fa",
+			"id": "2fbdbf4f-879c-40bb-858a-82cb33c8a6e9",
 			"key": "host",
 			"value": "localhost:51121",
 			"type": "string"
