@@ -123,7 +123,7 @@ const getMicroserviceImageSnapshot = async function (microserviceUuid, user, isC
     imageSnapshot: ''
   };
 
-  if (!microservice.imageSnapshot) {
+  if (!microservice.imageSnapshot || microservice.imageSnapshot === 'get_image') {
     throw new Errors.ValidationError(ErrorMessages.IMAGE_SNAPSHOT_NOT_AVAILABLE)
   }
   let _path = microservice.imageSnapshot;
