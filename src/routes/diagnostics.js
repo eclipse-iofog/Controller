@@ -69,21 +69,18 @@ module.exports = [
         errorCodes
       );
       const responseObject = await getMicroserviceImageSnapshotEndPoint(req);
-
-      fs.exists(responseObject.body.filePath, function(exists){
-        if (exists) {
-          res.writeHead(200, {
-            "Content-Length": responseObject.body['Content-Length'],
-            "Content-Type": responseObject.body['Content-Type'],
-            "Content-Disposition": "attachment; filename=" + responseObject.body.fileName
-          });
-          fs.createReadStream(responseObject.body.filePath).pipe(res);
-        } else {
-          res.writeHead(400, {"Content-Type": "text/plain"});
-          res.end("ERROR File does not exist");
-          res.end(ErrorMessages.FILE_DOES_NOT_EXIST);
-        }
-      });
+      if (responseObject.code !== successCode) {
+        res
+          .status(responseObject.code)
+          .send(responseObject.body)
+      } else {
+        res.writeHead(200, {
+          "Content-Length": responseObject.body['Content-Length'],
+          "Content-Type": responseObject.body['Content-Type'],
+          "Content-Disposition": "attachment; filename=" + responseObject.body.fileName
+        });
+        fs.createReadStream(responseObject.body.filePath).pipe(res);
+      }
     }
   },
   {
