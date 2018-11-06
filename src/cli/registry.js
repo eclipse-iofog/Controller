@@ -11,15 +11,15 @@
  *
  */
 
-const BaseCLIHandler = require('./base-cli-handler')
-const constants = require('../helpers/constants')
-const logger = require('../logger')
-const CliDecorator = require('../decorators/cli-decorator')
+const BaseCLIHandler = require('./base-cli-handler');
+const constants = require('../helpers/constants');
+const logger = require('../logger');
+const CliDecorator = require('../decorators/cli-decorator');
 const RegistryService = require('../services/registry-service');
 
 class Registry extends BaseCLIHandler {
   constructor() {
-    super()
+    super();
 
     this.name = constants.CMD_REGISTRY
     this.commandDefinitions = [
@@ -32,7 +32,7 @@ class Registry extends BaseCLIHandler {
       { name: 'email', alias: 'e', type: String, description: 'Email address', group: [constants.CMD_ADD] },
       { name: 'user-id', alias: 'i', type: Number, description: 'User\'s id', group: [constants.CMD_ADD] },
       { name: 'item-id', alias: 'd', type: Number, description: 'Item\'s id', group: [constants.CMD_REMOVE] },
-    ]
+    ];
     this.commands = {
       [constants.CMD_ADD]: 'Add a new Registry.',
       [constants.CMD_REMOVE]: 'Delete a Registry.',
@@ -64,8 +64,9 @@ class Registry extends BaseCLIHandler {
 async function _createRegistry(obj, user) {
     const registry = _createRegistryObject(obj);
     logger.info(JSON.stringify(registry));
-    await RegistryService.createRegistry(registry, user);
+    const response = await RegistryService.createRegistry(registry, user);
     logger.info('Registry has been created successfully.');
+    logger.info('Registry id: ' + response.id);
 }
 
 async function _getRegistries(obj, user) {
@@ -75,7 +76,7 @@ async function _getRegistries(obj, user) {
 }
 
 async function _deleteRegistry(obj, user) {
-    await RegistryService.deleteRegistry({id: obj.itemId}, user, true)
+    await RegistryService.deleteRegistry({id: obj.itemId}, user, true);
     logger.info('Registry has been removed successfully.');
 }
 
@@ -101,8 +102,8 @@ function _createRegistryObject(cliData) {
         password: cliData.password,
         isPublic: cliData.public,
         email: cliData.email
-    }
+    };
     return registryObj;
 }
 
-module.exports = new Registry()
+module.exports = new Registry();
