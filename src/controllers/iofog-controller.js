@@ -14,6 +14,8 @@
 const logger = require('../logger');
 const AuthDecorator = require('../decorators/authorization-decorator');
 const FogService = require('../services/iofog-service');
+const querystring = require('querystring');
+const qs = require('qs');
 
 async function _createFog(req, user) {
   logger.info("Parameters:" + JSON.stringify(req.body));
@@ -43,9 +45,9 @@ async function _getFog(req, user) {
 }
 
 async function _getFogList(req, user) {
-  logger.info("Parameters:" + JSON.stringify(req.body));
-  const filters = Array.from(req.body);
-  return await FogService.getFogListWithTransaction(filters, user, false)
+  logger.info("Parameters:" + JSON.stringify(req.query));
+  const query = qs.parse(req.query)
+  return await FogService.getFogListWithTransaction(query.filters, user, false)
 }
 
 async function _generateProvisioningKey(req, user) {

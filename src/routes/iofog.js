@@ -17,7 +17,7 @@ const Errors = require('../helpers/errors');
 
 module.exports = [
   {
-    method: 'post',
+    method: 'get',
     path: '/api/v3/iofog-list',
     middleware: async (req, res) => {
       const successCode = constants.HTTP_CODE_SUCCESS;
@@ -154,7 +154,7 @@ module.exports = [
           code: 404,
           errors: [Errors.NotFoundError]
         }
-      ]
+      ];
 
       const generateFogProvisioningKey = ResponseDecorator.handleErrors(FogController.generateProvisioningKey, successCode, errCodes);
       const responseObject = await generateFogProvisioningKey(req);
