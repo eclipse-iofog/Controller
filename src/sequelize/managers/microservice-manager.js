@@ -203,8 +203,21 @@ class MicroserviceManager extends BaseManager {
           as: 'microserviceStatus',
           required: true
         }
+      ],
+      where: where
+    }, {transaction: transaction})
+  }
+
+  findAllWithStatuses(transaction) {
+    return Microservice.findAll({
+      include: [
+        {
+          model: MicroserviceStatus,
+          as: 'microserviceStatus',
+          required: true
+        }
       ]
-    })
+    }, {transaction: transaction})
   }
 
   findMicroserviceOnGet(where, transaction) {

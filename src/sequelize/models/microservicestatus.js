@@ -44,7 +44,6 @@ module.exports = (sequelize, DataTypes) => {
     underscored: true
   });
   MicroserviceStatus.associate = function (models) {
-
     MicroserviceStatus.belongsTo(models.Microservice, {
       foreignKey: {
         name: 'microserviceUuid',

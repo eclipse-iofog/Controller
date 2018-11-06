@@ -46,7 +46,12 @@ module.exports = (sequelize, DataTypes) => {
       field: 'image_snapshot',
       defaultValue: ""
     },
-    deleteWithCleanUp: {
+    delete: {
+      type: DataTypes.BOOLEAN,
+      field: 'delete',
+      defaultValue: false
+    },
+    deleteWithCleanup: {
       type: DataTypes.BOOLEAN,
       field: 'delete_with_cleanup',
       defaultValue: false

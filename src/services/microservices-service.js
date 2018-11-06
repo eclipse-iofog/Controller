@@ -230,13 +230,25 @@ const _deleteMicroservice = async function (microserviceUuid, deleteWithCleanUp,
         uuid: microserviceUuid
       },
       {
-        remove: true,
+        delete: true,
         deleteWithCleanUp: !!deleteWithCleanUp
       }, transaction);
   }
 
   await _updateChangeTracking(microservice.iofogUuid, transaction)
 };
+
+const _deleteNotRunningMicroservices = async function (transaction) {
+  const microservices = await MicroserviceManager.findAllWithStatuses(transaction);
+  microservices
+    .filter(microservice => !!microservice.delete)
+    .filter(microservice => microservice.microserviceStatus.status === MicroserviceStates.NOT_RUNNING)
+    .forEach(microservice => {
+      MicroserviceManager.delete({
+        uuid: microservice.uuid
+      }, transaction);
+    });
+}
 
 const _checkForDuplicateName = async function (name, item, userId, transaction) {
   if (name) {
@@ -816,5 +828,6 @@ module.exports = {
   getMicroservicePortMappingListWithTransaction: TransactionDecorator.generateTransaction(_getPortMappingList),
   deletePortMappingWithTransaction: TransactionDecorator.generateTransaction(_deletePortMapping),
   getPhysicalConections: getPhysicalConections,
-  getListMicroservices: _listMicroservices
+  getListMicroservices: _listMicroservices,
+  deleteNotRunningMicroservices: _deleteNotRunningMicroservices
 };

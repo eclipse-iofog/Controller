@@ -21,7 +21,7 @@ const ChangeTrackingManager = require('../sequelize/managers/change-tracking-man
 const FogVersionCommandManager = require('../sequelize/managers/iofog-version-command-manager');
 const StraceManager = require('../sequelize/managers/strace-manager');
 const RegistryManager = require('../sequelize/managers/registry-manager');
-const MicrosreviceStatusManager = require('../sequelize/managers/microservice-status-manager')
+const MicroserviceStatusManager = require('../sequelize/managers/microservice-status-manager')
 const Validator = require('../schemas');
 const Errors = require('../helpers/errors');
 const AppHelper = require('../helpers/app-helper');
@@ -207,7 +207,9 @@ const updateAgentStatus = async function (agentStatus, fog, transaction) {
   }, fogStatus, transaction);
 
   await _updateMicroserviceStatuses(JSON.parse(agentStatus.microserviceStatus), transaction);
+  await MicroserviceService.deleteNotRunningMicroservices(transaction);
 };
+
 
 const _updateMicroserviceStatuses = async function (microserviceStatus, transaction) {
   for (status of microserviceStatus) {
@@ -221,7 +223,7 @@ const _updateMicroserviceStatuses = async function (microserviceStatus, transact
     };
     microserviceStatus = AppHelper.deleteUndefinedFields(microserviceStatus);
 
-    await MicrosreviceStatusManager.update({
+    await MicroserviceStatusManager.update({
       microserviceUuid: status.id
     }, microserviceStatus, transaction);
   }
@@ -251,7 +253,8 @@ const getAgentMicroservices = async function (fog, transaction) {
       portMappings: microservice.ports,
       volumeMappings: microservice.volumeMappings,
       imageSnapshot: microservice.imageSnapshot,
-      deleteWithCleanUp: microservice.deleteWithCleanUp,
+      delete: microservice.delete,
+      deleteWithCleanup: microservice.deleteWithCleanup,
       routes: routes
     };
 
