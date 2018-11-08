@@ -174,7 +174,7 @@ const _listCatalogItems = async function () {
 const _listCatalogItem = async function (obj) {
   logger.info(JSON.stringify(obj));
   const result = await CatalogItemService.getCatalogItem(obj.itemId, {}, true);
-  logger.info(JSON.stringify(result));
+  logger.info(JSON.stringify(result, null, 2));
   logger.info('Catalog item has been successfully retrieved.');
 };
 

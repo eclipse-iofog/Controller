@@ -78,7 +78,7 @@ async function _createRegistry(obj, user) {
 
 async function _getRegistries(obj, user) {
   const result = await RegistryService.findRegistries(user, true);
-  logger.info(JSON.stringify(result));
+  logger.info(JSON.stringify(result, null, 2));
   logger.info('List of Registries has been received successfully.');
 }
 
