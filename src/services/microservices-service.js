@@ -13,7 +13,9 @@
 
 const TransactionDecorator = require('../decorators/transaction-decorator');
 const MicroserviceManager = require('../sequelize/managers/microservice-manager');
+const MicroserviceStatusManager = require('../sequelize/managers/microservice-status-manager');
 const MicroservicePortManager = require('../sequelize/managers/microservice-port-manager');
+const MicroserviceStates = require('../enums/microservice-state');
 const VolumeMappingManager = require('../sequelize/managers/volume-mapping-manager');
 const ConnectorManager = require('../sequelize/managers/connector-manager');
 const ConnectorPortManager = require('../sequelize/managers/connector-port-manager');
@@ -34,7 +36,7 @@ const _listMicroservices = async function (flowId, user, isCLI, transaction) {
   if (!isCLI) {
     await FlowService.getFlow(flowId, user, isCLI, transaction);
   }
-  const where = isCLI ? {} : {flowId: flowId};
+  const where = isCLI ? {delete: false} : {flowId: flowId, delete: false};
 
   const microservices = await MicroserviceManager.findAllExcludeFields(where, transaction);
   return {
@@ -48,7 +50,7 @@ const _getMicroservice = async function (microserviceUuid, user, isCLI, transact
   }
 
   const microservice = await MicroserviceManager.findOneExcludeFields({
-    uuid: microserviceUuid
+    uuid: microserviceUuid, delete: false
   }, transaction);
 
   if (!microservice) {
@@ -75,9 +77,11 @@ const _createMicroserviceOnFog = async function (microserviceData, user, isCLI, 
     await _createRoutes(microserviceData.routes, microservice.uuid, user, transaction);
   }
 
-  if (microserviceData.ioFogNodeId) {
-    await _updateChangeTracking(false, microserviceData.ioFogNodeId, transaction);
+  if (microserviceData.iofogUuid) {
+    await _updateChangeTracking(false, microserviceData.iofogUuid, transaction);
   }
+
+  await _createMicroserviceStatus(microservice.uuid, transaction);
 
   return {
     uuid: microservice.uuid
@@ -92,7 +96,7 @@ const _createMicroservice = async function (microserviceData, user, isCLI, trans
     config: microserviceData.config,
     catalogItemId: microserviceData.catalogItemId,
     flowId: microserviceData.flowId,
-    iofogUuid: microserviceData.ioFogNodeId,
+    iofogUuid: microserviceData.iofogUuid,
     rootHostAccess: microserviceData.rootHostAccess,
     logSize: microserviceData.logLimit,
     updatedBy: user.id
@@ -114,17 +118,10 @@ const _createMicroservice = async function (microserviceData, user, isCLI, trans
   return await MicroserviceManager.create(newMicroservice, transaction);
 };
 
-const _createMicroservicePorts = async function (ports, microserviceUuid, transaction) {
-  const microservicePortToCreate = {
-    portInternal: ports.internal,
-    portExternal: ports.external,
-    publicMode: ports.publicMode,
-    microserviceUuid: microserviceUuid
-  };
-
-  const microservicePortDataCreate = AppHelper.deleteUndefinedFields(microservicePortToCreate);
-
-  await MicroservicePortManager.create(microservicePortDataCreate, transaction);
+const _createMicroserviceStatus = function (uuid, transaction) {
+  return MicroserviceStatusManager.create({
+    microserviceUuid: uuid
+  }, transaction);
 };
 
 const _createVolumeMappings = async function (volumeMappings, microserviceUuid, transaction) {
@@ -149,7 +146,7 @@ const _updateMicroservice = async function (microserviceUuid, microserviceData, 
     name: microserviceData.name,
     config: microserviceData.config,
     rebuild: microserviceData.rebuild,
-    iofogUuid: microserviceData.ioFogNodeId,
+    iofogUuid: microserviceData.iofogUuid,
     rootHostAccess: microserviceData.rootHostAccess,
     logSize: microserviceData.logLimit,
     volumeMappings: microserviceData.volumeMappings,
@@ -180,13 +177,13 @@ const _updateMicroservice = async function (microserviceUuid, microserviceData, 
     await _updateVolumeMappings(microserviceDataUpdate.volumeMappings, microserviceUuid, transaction);
   }
 
-  if (microserviceDataUpdate.ioFogNodeId) {
+  if (microserviceDataUpdate.iofogUuid) {
     await _deleteRoutes(microserviceData.routes, microserviceUuid, transaction);
     await _createRoutes(microserviceData.routes, microserviceUuid, user, transaction);
-    await _updateChangeTracking(false, microserviceDataUpdate.ioFogNodeId, transaction)
+    await _updateChangeTracking(false, microserviceDataUpdate.iofogUuid, transaction)
   }
 
-  await _updateChangeTracking(microserviceData.config ? true : false, microservice.ioFogNodeId, transaction);
+  await _updateChangeTracking(microserviceData.config ? true : false, microservice.iofogUuid, transaction);
 };
 
 const _updateVolumeMappings = async function (volumeMappings, microserviceUuid, transaction) {
@@ -206,29 +203,52 @@ const _updateChangeTracking = async function (configUpdated, fogNodeUuid, transa
 };
 
 const _deleteMicroservice = async function (microserviceUuid, deleteWithCleanUp, user, isCLI, transaction) {
-  if (deleteWithCleanUp) {
-    return await MicroserviceManager.update({
+
+  const where = isCLI
+    ?
+    {
+      uuid: microserviceUuid,
+      updatedBy: user.id
+    }
+    :
+    {
+      uuid: microserviceUuid
+    };
+
+
+  const microservice = await MicroserviceManager.findOneWithStatus(where, transaction);
+
+  if (microservice.microserviceStatus.status === MicroserviceStates.NOT_RUNNING) {
+    const affectedRows = await MicroserviceManager.delete({
+      uuid: microserviceUuid
+    }, transaction);
+    if (affectedRows === 0) {
+      throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, microserviceUuid));
+    }
+  } else {
+    await MicroserviceManager.update({
         uuid: microserviceUuid
       },
       {
-        deleteWithCleanUp: deleteWithCleanUp
+        delete: true,
+        deleteWithCleanUp: !!deleteWithCleanUp
       }, transaction);
   }
 
-  const microservice = await MicroserviceManager.findOne({
-    uuid: microserviceUuid,
-    updatedBy: user.id
-  }, transaction);
-
-  const affectedRows = await MicroserviceManager.delete({
-    uuid: microserviceUuid
-  }, transaction);
-  if (affectedRows === 0) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, microserviceUuid));
-  }
-
-  await _updateChangeTracking(false, microservice.ioFogNodeId, transaction)
+  await _updateChangeTracking(false, microservice.iofogUuid, transaction)
 };
+
+const _deleteNotRunningMicroservices = async function (transaction) {
+  const microservices = await MicroserviceManager.findAllWithStatuses(transaction);
+  microservices
+    .filter(microservice => !!microservice.delete)
+    .filter(microservice => microservice.microserviceStatus.status === MicroserviceStates.NOT_RUNNING)
+    .forEach(microservice => {
+      MicroserviceManager.delete({
+        uuid: microservice.uuid
+      }, transaction);
+    });
+}
 
 const _checkForDuplicateName = async function (name, item, userId, transaction) {
   if (name) {
@@ -781,5 +801,6 @@ module.exports = {
   getMicroservicePortMappingListWithTransaction: TransactionDecorator.generateTransaction(_getPortMappingList),
   deletePortMappingWithTransaction: TransactionDecorator.generateTransaction(_deletePortMapping),
   getPhysicalConections: getPhysicalConections,
-  getListMicroservices: _listMicroservices
+  listMicroservices: _listMicroservices,
+  deleteNotRunningMicroservices: _deleteNotRunningMicroservices
 };

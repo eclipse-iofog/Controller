@@ -21,6 +21,7 @@ const ChangeTrackingService = require('./change-tracking-service');
 const FogVersionCommandManager = require('../sequelize/managers/iofog-version-command-manager');
 const StraceManager = require('../sequelize/managers/strace-manager');
 const RegistryManager = require('../sequelize/managers/registry-manager');
+const MicroserviceStatusManager = require('../sequelize/managers/microservice-status-manager')
 const Validator = require('../schemas');
 const Errors = require('../helpers/errors');
 const AppHelper = require('../helpers/app-helper');
@@ -155,7 +156,7 @@ const getAgentConfigChanges = async function (fog, transaction) {
 const updateAgentStatus = async function (agentStatus, fog, transaction) {
   await Validator.validate(agentStatus, Validator.schemas.updateAgentStatus);
 
-  let update = {
+  let fogStatus = {
     daemonStatus: agentStatus.daemonStatus,
     daemonOperatingDuration: agentStatus.daemonOperatingDuration,
     daemonLastStart: agentStatus.daemonLastStart,
@@ -165,7 +166,6 @@ const updateAgentStatus = async function (agentStatus, fog, transaction) {
     memoryViolation: agentStatus.memoryViolation,
     diskViolation: agentStatus.diskViolation,
     cpuViolation: agentStatus.cpuViolation,
-    microserviceStatus: agentStatus.microserviceStatus,
     repositoryCount: agentStatus.repositoryCount,
     repositoryStatus: agentStatus.repositoryStatus,
     systemTime: agentStatus.systemTime,
@@ -180,11 +180,34 @@ const updateAgentStatus = async function (agentStatus, fog, transaction) {
     isReadyToUpgrade: agentStatus.isReadyToUpgrade,
     isReadyToRollback: agentStatus.isReadyToRollback
   };
-  update = AppHelper.deleteUndefinedFields(update);
+
+  fogStatus = AppHelper.deleteUndefinedFields(fogStatus);
 
   await FogManager.update({
     uuid: fog.uuid
-  }, update, transaction);
+  }, fogStatus, transaction);
+
+  await _updateMicroserviceStatuses(JSON.parse(agentStatus.microserviceStatus), transaction);
+  await MicroserviceService.deleteNotRunningMicroservices(transaction);
+};
+
+
+const _updateMicroserviceStatuses = async function (microserviceStatus, transaction) {
+  for (status of microserviceStatus) {
+    let microserviceStatus = {
+      containerId: status.containerId,
+      status: status.status,
+      startTime: status.startTime,
+      operatingDuration: status.operatingDuration,
+      cpuUsage: status.cpuUsage,
+      memoryUsage: status.memoryUsage
+    };
+    microserviceStatus = AppHelper.deleteUndefinedFields(microserviceStatus);
+
+    await MicroserviceStatusManager.update({
+      microserviceUuid: status.id
+    }, microserviceStatus, transaction);
+  }
 };
 
 const getAgentMicroservices = async function (fog, transaction) {
@@ -211,7 +234,8 @@ const getAgentMicroservices = async function (fog, transaction) {
       portMappings: microservice.ports,
       volumeMappings: microservice.volumeMappings,
       imageSnapshot: microservice.imageSnapshot,
-      deleteWithCleanUp: microservice.deleteWithCleanUp,
+      delete: microservice.delete,
+      deleteWithCleanup: microservice.deleteWithCleanup,
       routes: routes
     };
 
