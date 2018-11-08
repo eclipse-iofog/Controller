@@ -36,7 +36,7 @@ const _listMicroservices = async function (flowId, user, isCLI, transaction) {
   if (!isCLI) {
     await FlowService.getFlow(flowId, user, isCLI, transaction);
   }
-  const where = isCLI ? {remove: false} : {flowId: flowId, remove: false};
+  const where = isCLI ? {delete: false} : {flowId: flowId, delete: false};
 
   const microservices = await MicroserviceManager.findAllExcludeFields(where, transaction);
   return {
@@ -50,7 +50,7 @@ const _getMicroservice = async function (microserviceUuid, user, isCLI, transact
   }
 
   const microservice = await MicroserviceManager.findOneExcludeFields({
-    uuid: microserviceUuid, remove: false
+    uuid: microserviceUuid, delete: false
   }, transaction);
 
   if (!microservice) {
