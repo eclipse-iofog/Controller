@@ -170,8 +170,8 @@ const updateConfig = async function (newConfigValue, cliConfigName, configName, 
   if (newConfigValue) {
     const oldConfigValue = config.get(configName);
     if (newConfigValue !== oldConfigValue) {
-      const currentConfigValue = config.get(configName);
       await fn(function() {
+        const currentConfigValue = config.get(configName);
         logger.info(`Config option ${cliConfigName} has been set to ${currentConfigValue}`);
       });
     } else {
