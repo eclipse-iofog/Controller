@@ -4145,7 +4145,11 @@
 							"script": {
 								"id": "4f7a9f52-12cc-49d0-9e2f-147b6f5cb6fa",
 								"exec": [
-									""
+									"tests[\"Status code is 500\"] = responseCode.code === 500;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Error message is valid\"] = data.name === 'ValidationError' && data.message === 'Image snapshot is not available for this microservice.';"
 								],
 								"type": "text/javascript"
 							}
@@ -4169,7 +4173,7 @@
 							"raw": ""
 						},
 						"url": {
-							"raw": "{{host}}/api/v3/microservices/{{ms-id}}/image-snapshotFIXIT",
+							"raw": "{{host}}/api/v3/microservices/{{ms-id}}/image-snapshot",
 							"host": [
 								"{{host}}"
 							],
@@ -4178,7 +4182,7 @@
 								"v3",
 								"microservices",
 								"{{ms-id}}",
-								"image-snapshotFIXIT"
+								"image-snapshot"
 							]
 						}
 					},
@@ -5422,7 +5426,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"url\": \"string\",\n  \"isPublic\": true,\n  \"username\": \"string\",\n  \"password\": \"string\",\n  \"email\": \"string\"\n}"
+							"raw": "{\n  \"url\": \"string\",\n  \"isPublic\": true,\n  \"username\": \"string\",\n  \"password\": \"string\",\n  \"email\": \"string\",\n  \"requiresCert\": false,\n  \"certificate\": \"string\"\n}"
 						},
 						"url": {
 							"raw": "{{host}}/api/v3/registries",
@@ -5433,6 +5437,52 @@
 								"api",
 								"v3",
 								"registries"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Registry",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "4f7a9f52-12cc-49d0-9e2f-147b6f5cb6fa",
+								"exec": [
+									"tests[\"Status code is 204\"] = responseCode.code === 204;"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"type": "text",
+								"value": "{{user-token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"url\": \"string2\",\n  \"isPublic\": true,\n  \"username\": \"string3\",\n  \"password\": \"string4\",\n  \"email\": \"string5\",\n  \"requiresCert\": true,\n  \"certificate\": \"string6\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/registries/{{reg-id}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"registries",
+								"{{reg-id}}"
 							]
 						}
 					},
@@ -5605,7 +5655,7 @@
 	],
 	"variable": [
 		{
-			"id": "291501bd-8b27-45a8-9a93-e39a9f4146fa",
+			"id": "2fbdbf4f-879c-40bb-858a-82cb33c8a6e9",
 			"key": "host",
 			"value": "localhost:51121",
 			"type": "string"

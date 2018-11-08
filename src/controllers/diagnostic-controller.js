@@ -36,13 +36,13 @@ const postMicroserviceStraceDataToFtpEndPoint = async function (req, user) {
 const createMicroserviceImageSnapshotEndPoint = async function (req, user) {
   logger.info("Parameters:" + JSON.stringify(req.body));
   logger.info("Microservice id: " + req.params.id);
-  return await DiagnosticService.postMicroserviceImageSnapshotCreate(req.params.id, req.body, user, false);
+  return await DiagnosticService.postMicroserviceImageSnapshotCreate(req.params.id, user, false);
 };
 
 const getMicroserviceImageSnapshotEndPoint = async function (req, user) {
   logger.info("Parameters:" + JSON.stringify(req.body));
   logger.info("Microservice id: " + req.params.id);
-  return await DiagnosticService.getMicroserviceImageSnapshot(req.params.id, req.body, user, false);
+  return await DiagnosticService.getMicroserviceImageSnapshot(req.params.id, user, false);
 };
 
 module.exports = {
