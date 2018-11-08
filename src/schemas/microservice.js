@@ -9,7 +9,7 @@ const microserviceCreate = {
     "config": {"type": "string"},
     "catalogItemId": {"type": "integer"},
     "flowId": {"type": "integer"},
-    "ioFogNodeId": {"type": "string"},
+    "iofogUuid": {"type": "string"},
     "rootHostAccess": {"type": "boolean"},
     "logSize": {"type": "integer"},
     "imageSnapshot": {"type": "string"},
@@ -36,7 +36,7 @@ const microserviceUpdate = {
     },
     "config": {"type": "string"},
     "rebuild": {"type": "boolean"},
-    "ioFogNodeId": {"type": "string"},
+    "iofogUuid": {"type": "string"},
     "rootHostAccess": {"type": "boolean"},
     "logSize": {"type": "integer", "minimum" : 0},
     "volumeMappings": {

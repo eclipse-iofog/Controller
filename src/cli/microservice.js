@@ -26,7 +26,7 @@ const JSON_SCHEMA_ADD = AppHelper.stringifyCliJsonSchema(
     config: "string",
     catalogItemId: 0,
     flowId: 0,
-    ioFogNodeId: "string",
+    iofogUuid: "string",
     rootHostAccess: true,
     logLimit: 0,
     volumeMappings: [
@@ -54,7 +54,7 @@ const JSON_SCHEMA_UPDATE = AppHelper.stringifyCliJsonSchema(
     name: "string",
     config: "string",
     rebuild: true,
-    ioFogNodeId: "string",
+    iofogUuid: "string",
     rootHostAccess: true,
     logLimit: 0,
     volumeMappings: [
@@ -370,7 +370,7 @@ const _updateMicroserviceObject = function (obj) {
   const microserviceObj = {
     name: obj.name,
     config: obj.config,
-    ioFogNodeId: obj.iofogId,
+    iofogUuid: obj.iofogId,
     rootHostAccess: AppHelper.validateBooleanCliOptions(obj.rootEnable, obj.rootDisable),
     logLimit: obj.logLimit,
     rebuild: obj.rebuild
@@ -389,7 +389,7 @@ const _createMicroserviceObject = function (obj) {
     config: obj.config,
     catalogItemId: parseInt(obj.catalogId),
     flowId: parseInt(obj.flowId),
-    ioFogNodeId: obj.iofogId,
+    iofogUuid: obj.iofogId,
     rootHostAccess: AppHelper.validateBooleanCliOptions(obj.rootEnable, obj.rootDisable),
     logLimit: obj.logLimit,
     routes: obj.routes
