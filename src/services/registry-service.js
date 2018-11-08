@@ -42,8 +42,11 @@ const createRegistry = async function (registry, user, transaction) {
 
   registryCreate = AppHelper.deleteUndefinedFields(registryCreate);
 
-  await RegistryManager.create(registryCreate, transaction)
+  const createdRegistry = await RegistryManager.create(registryCreate, transaction);
   await updateChangeTracking(user, transaction);
+  return {
+    id: createdRegistry.id
+  }
 };
 
 const updateChangeTracking = async function (user, transaction) {
@@ -52,7 +55,7 @@ const updateChangeTracking = async function (user, transaction) {
     const changeTrackingUpdates = {
       iofogUuid: fog.uuid,
       registries: true
-    }
+    };
     await ChangeTrackingManager.update({iofogUuid: fog.uuid}, changeTrackingUpdates, transaction);
   }
 };
@@ -94,8 +97,50 @@ const deleteRegistry = async function (registryData, user, isCli, transaction) {
   await updateChangeTracking(user, transaction);
 };
 
+const updateRegistry = async function (registry, registryId, user, isCLI, transaction) {
+  await Validator.validate(registry, Validator.schemas.registryUpdate);
+
+  if (registry.requiresCert && registry.certificate === undefined) {
+    throw new Errors.ValidationError(ErrorMessages.CERT_PROPERTY_REQUIRED);
+  }
+
+  const existingRegistry = await RegistryManager.findOne({
+    id: registryId
+  }, transaction);
+  if (!existingRegistry) {
+    throw new Errors.NotFoundError(ErrorMessages.REGISTRY_NOT_FOUND)
+  }
+
+  let registryUpdate = {
+    url: registry.url,
+    username: registry.username,
+    password: registry.password,
+    isPublic: registry.isPublic,
+    userEmail: registry.email,
+    requiresCert: registry.requiresCert,
+    certificate: registry.certificate
+  };
+
+  registryUpdate = AppHelper.deleteUndefinedFields(registryUpdate);
+
+  const where = isCLI ?
+    {
+      id: registryId
+    }
+    :
+    {
+      id: registryId,
+      userId: user.id
+    };
+
+  await RegistryManager.update(where, registryUpdate, transaction);
+
+  await updateChangeTracking(user, transaction);
+};
+
 module.exports = {
   findRegistries: TransactionDecorator.generateTransaction(findRegistries),
   createRegistry: TransactionDecorator.generateTransaction(createRegistry),
-  deleteRegistry: TransactionDecorator.generateTransaction(deleteRegistry)
+  deleteRegistry: TransactionDecorator.generateTransaction(deleteRegistry),
+  updateRegistry: TransactionDecorator.generateTransaction(updateRegistry)
 };

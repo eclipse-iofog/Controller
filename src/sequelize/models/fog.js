@@ -32,7 +32,7 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.TEXT,
       field: 'description'
     },
-    lastactive: {
+    lastActive: {
       type: DataTypes.BIGINT,
       field: 'last_active'
     },

@@ -37,7 +37,6 @@
     "start": "NODE_ENV=production node ./src/main.js start",
     "start-dev": "NODE_ENV=development node ./src/main.js start",
     "build": "export NODE_ENV=production && cd src/sequelize && ../../node_modules/.bin/sequelize db:migrate && ../../node_modules/.bin/sequelize db:seed:all",
-    "postinstall": "export NODE_ENV=production && cd src/sequelize && ../../node_modules/.bin/sequelize db:migrate && ../../node_modules/.bin/sequelize db:seed:all",
     "lint": "./node_modules/.bin/eslint \"**/*.js\""
   },
   "preferGlobal": true,
@@ -73,7 +72,8 @@
     "umzug": "^2.1.0",
     "underscore": "^1.9.1",
     "winston": "^3.1.0",
-    "xss-clean": "^0.1.1"
+    "xss-clean": "^0.1.1",
+    "qs": "^6.5.2"
   },
   "devDependencies": {
     "eslint": "^5.6.1"

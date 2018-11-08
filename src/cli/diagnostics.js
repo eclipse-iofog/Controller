@@ -143,15 +143,15 @@ const _postMicroserviceStraceDataToFtp = async function (obj) {
 const _postMicroserviceImageSnapshotCreate = async function (obj) {
   logger.info(JSON.stringify(obj));
 
-  await DiagnosticService.postMicroserviceImageSnapshotCreate(obj.microserviceId, obj, {}, true);
+  await DiagnosticService.postMicroserviceImageSnapshotCreate(obj.microserviceId, {}, true);
   logger.info('Microservice image snapshot has been created successfully');
 };
 
 const _getMicroserviceImageSnapshot = async function (obj) {
   logger.info(JSON.stringify(obj));
 
-  await DiagnosticService.getMicroserviceImageSnapshot(obj.microserviceId, obj, {}, true);
-  logger.info('Microservice images snapshot has been downloaded successfully');
+  const filePath = await DiagnosticService.getMicroserviceImageSnapshot(obj.microserviceId, {}, true);
+  logger.info('Microservice images path = ' + filePath);
 };
 
 module.exports = new Diagnostics();

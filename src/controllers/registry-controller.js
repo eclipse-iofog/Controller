@@ -18,7 +18,7 @@ const RegistryService = require('../services/registry-service');
 const createRegistryEndPoint = async function (req, user) {
   logger.info("Parameters:" + JSON.stringify(req.body));
   const registry = req.body;
-  await RegistryService.createRegistry(registry, user);
+  return await RegistryService.createRegistry(registry, user);
 };
 
 const getRegistriesEndPoint = async function (req, user) {
@@ -27,13 +27,24 @@ const getRegistriesEndPoint = async function (req, user) {
 
 const deleteRegistryEndPoint = async function (req, user) {
   const deleteRegistry = {
-      id: parseInt(req.params.id)
-  }
+    id: parseInt(req.params.id)
+  };
   return await RegistryService.deleteRegistry(deleteRegistry, user, false);
 };
 
+const updateRegistryEndPoint = async function (req, user) {
+  const registry = req.body;
+  const registryId = req.params.id;
+
+  logger.info("Parameters:" + JSON.stringify(registry));
+  logger.info("Registry id:" + JSON.stringify(registryId));
+
+  return await RegistryService.updateRegistry(registry, registryId, user, false)
+};
+
 module.exports = {
-    createRegistryEndPoint: AuthDecorator.checkAuthToken(createRegistryEndPoint),
-    getRegistriesEndPoint: AuthDecorator.checkAuthToken(getRegistriesEndPoint),
-    deleteRegistryEndPoint: AuthDecorator.checkAuthToken(deleteRegistryEndPoint)
+  createRegistryEndPoint: AuthDecorator.checkAuthToken(createRegistryEndPoint),
+  getRegistriesEndPoint: AuthDecorator.checkAuthToken(getRegistriesEndPoint),
+  deleteRegistryEndPoint: AuthDecorator.checkAuthToken(deleteRegistryEndPoint),
+  updateRegistryEndPoint: AuthDecorator.checkAuthToken(updateRegistryEndPoint)
 };

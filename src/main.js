@@ -34,7 +34,16 @@ function main() {
 
   daemon
     .on('starting', () => {
-      logger.silly('Starting iofog-controller...')
+      logger.silly('Starting iofog-controller...');
+
+      db.sequelize
+        .sync()
+        .then(db.migrate)
+        .then(db.seed)
+        .catch((err) => {
+          logger.silly('Unable to initialize the database.', err);
+          process.exit(1)
+        });
     })
     .on('stopping', () => {
       logger.silly('Stopping iofog-controller...')
@@ -55,12 +64,4 @@ function main() {
   cli.run(daemon)
 }
 
-db.sequelize
-  .sync()
-  .then(db.migrate)
-  .then(db.seed)
-  .then(main)
-  .catch((err) => {
-    logger.silly('Unable to initialize the database.', err)
-    process.exit(1)
-  });
+main();

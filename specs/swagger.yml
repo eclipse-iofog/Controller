@@ -1867,7 +1867,38 @@ paths:
         '401':
           description: Not Authorized
         '404':
-          description: Invalid Node Id
+          description: Invalid Registry Id
+        '500':
+          description: Internal Server Error
+    patch:
+      tags:
+      - Registries
+      description: Updates a registry
+      operationId: updateRegistry
+      parameters:
+      - in: path
+        name: id
+        description: Registry id
+        required: true
+        type: string
+      - in: header
+        name: Authorization
+        description: User token
+        required: true
+        type: string
+      responses:
+        '204':
+          description: Updated
+          headers:
+            X-Timestamp:
+              type: number
+              description: FogController server timestamp
+        '400':
+          description: Bad Request
+        '401':
+          description: Not Authorized
+        '404':
+          description: Invalid Registry Id
         '500':
           description: Internal Server Error
   '/user/login':
