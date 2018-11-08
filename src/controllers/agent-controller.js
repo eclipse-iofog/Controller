@@ -15,6 +15,7 @@ const logger = require('../logger');
 
 const AgentService = require('../services/agent-service');
 const AuthDecorator = require('../decorators/authorization-decorator');
+const AgentDecorator = require('../decorators/agent-last-active-decorator');
 
 const agentProvisionEndPoint = async function (req) {
   const provisionData = req.body;
@@ -114,20 +115,20 @@ const putImageSnapshotEndPoint = async function (req, fog) {
 
 module.exports = {
   agentProvisionEndPoint: agentProvisionEndPoint,
-  getAgentConfigEndPoint: AuthDecorator.checkFogToken(getAgentConfigEndPoint),
-  updateAgentConfigEndPoint: AuthDecorator.checkFogToken(updateAgentConfigEndPoint),
-  getAgentConfigChangesEndPoint: AuthDecorator.checkFogToken(getAgentConfigChangesEndPoint),
-  updateAgentStatusEndPoint: AuthDecorator.checkFogToken(updateAgentStatusEndPoint),
-  getAgentMicroservicesEndPoint: AuthDecorator.checkFogToken(getAgentMicroservicesEndPoint),
-  getAgentMicroserviceEndPoint: AuthDecorator.checkFogToken(getAgentMicroserviceEndPoint),
-  getAgentRegistriesEndPoint: AuthDecorator.checkFogToken(getAgentRegistriesEndPoint),
-  getAgentTunnelEndPoint: AuthDecorator.checkFogToken(getAgentTunnelEndPoint),
-  getAgentStraceEndPoint: AuthDecorator.checkFogToken(getAgentStraceEndPoint),
-  updateAgentStraceEndPoint: AuthDecorator.checkFogToken(updateAgentStraceEndPoint),
-  getAgentChangeVersionCommandEndPoint: AuthDecorator.checkFogToken(getAgentChangeVersionCommandEndPoint),
-  updateHalHardwareInfoEndPoint: AuthDecorator.checkFogToken(updateHalHardwareInfoEndPoint),
-  updateHalUsbInfoEndPoint: AuthDecorator.checkFogToken(updateHalUsbInfoEndPoint),
-  deleteNodeEndPoint: AuthDecorator.checkFogToken(deleteNodeEndPoint),
-  getImageSnapshotEndPoint: AuthDecorator.checkFogToken(getImageSnapshotEndPoint),
-  putImageSnapshotEndPoint: AuthDecorator.checkFogToken(putImageSnapshotEndPoint)
+  getAgentConfigEndPoint: AuthDecorator.checkFogToken(AgentDecorator.updateLastActive(getAgentConfigEndPoint)),
+  updateAgentConfigEndPoint: AuthDecorator.checkFogToken(AgentDecorator.updateLastActive(updateAgentConfigEndPoint)),
+  getAgentConfigChangesEndPoint: AuthDecorator.checkFogToken(AgentDecorator.updateLastActive(getAgentConfigChangesEndPoint)),
+  updateAgentStatusEndPoint: AuthDecorator.checkFogToken(AgentDecorator.updateLastActive(updateAgentStatusEndPoint)),
+  getAgentMicroservicesEndPoint: AuthDecorator.checkFogToken(AgentDecorator.updateLastActive(getAgentMicroservicesEndPoint)),
+  getAgentMicroserviceEndPoint: AuthDecorator.checkFogToken(AgentDecorator.updateLastActive(getAgentMicroserviceEndPoint)),
+  getAgentRegistriesEndPoint: AuthDecorator.checkFogToken(AgentDecorator.updateLastActive(getAgentRegistriesEndPoint)),
+  getAgentTunnelEndPoint: AuthDecorator.checkFogToken(AgentDecorator.updateLastActive(getAgentTunnelEndPoint)),
+  getAgentStraceEndPoint: AuthDecorator.checkFogToken(AgentDecorator.updateLastActive(getAgentStraceEndPoint)),
+  updateAgentStraceEndPoint: AuthDecorator.checkFogToken(AgentDecorator.updateLastActive(updateAgentStraceEndPoint)),
+  getAgentChangeVersionCommandEndPoint: AuthDecorator.checkFogToken(AgentDecorator.updateLastActive(getAgentChangeVersionCommandEndPoint)),
+  updateHalHardwareInfoEndPoint: AuthDecorator.checkFogToken(AgentDecorator.updateLastActive(updateHalHardwareInfoEndPoint)),
+  updateHalUsbInfoEndPoint: AuthDecorator.checkFogToken(AgentDecorator.updateLastActive(updateHalUsbInfoEndPoint)),
+  deleteNodeEndPoint: AuthDecorator.checkFogToken(AgentDecorator.updateLastActive(deleteNodeEndPoint)),
+  getImageSnapshotEndPoint: AuthDecorator.checkFogToken(AgentDecorator.updateLastActive(getImageSnapshotEndPoint)),
+  putImageSnapshotEndPoint: AuthDecorator.checkFogToken(AgentDecorator.updateLastActive(putImageSnapshotEndPoint))
 };

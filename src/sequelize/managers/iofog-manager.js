@@ -11,12 +11,12 @@
  *
  */
 
-const BaseManager = require('../managers/base-manager')
+const BaseManager = require('../managers/base-manager');
 const models = require('./../models');
-const Fog = models.Fog
-const Microservice = models.Microservice
-const FogAccessToken = models.FogAccessToken
-const Strace = models.StraceDiagnostics
+const Fog = models.Fog;
+const Microservice = models.Microservice;
+const FogAccessToken = models.FogAccessToken;
+const Strace = models.StraceDiagnostics;
 
 class FogManager extends BaseManager {
   getEntity() {
@@ -36,6 +36,18 @@ class FogManager extends BaseManager {
     });
   }
 
+
+  // no transaction required here, used by agent-last-active decorator
+  updateLastActive(uuid, timestamp) {
+    return Fog.update({
+      lastActive: timestamp
+    }, {
+      where: {
+        uuid: uuid
+      }
+    });
+  }
+
   findFogStraces(where, transaction) {
     return Fog.findOne({
       include: [
@@ -52,7 +64,9 @@ class FogManager extends BaseManager {
       where: where
     }, {transaction: transaction})
   }
+
+
 }
 
-const instance = new FogManager()
-module.exports = instance
+const instance = new FogManager();
+module.exports = instance;
