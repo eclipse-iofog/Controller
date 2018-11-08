@@ -1,13 +1,12 @@
 {
 	"info": {
-		"_postman_id": "b585aece-cb86-4f3b-93f3-12552c1c90c5",
+		"_postman_id": "0c412a3a-7328-4c9e-8919-d2836adccfa1",
 		"name": "Controller Testing",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
 		{
 			"name": "User",
-			"description": null,
 			"item": [
 				{
 					"name": "Create user",
@@ -510,7 +509,6 @@
 		},
 		{
 			"name": "General",
-			"description": null,
 			"item": [
 				{
 					"name": "Status",
@@ -633,7 +631,6 @@
 		},
 		{
 			"name": "Agent",
-			"description": null,
 			"item": [
 				{
 					"name": "Create user",
@@ -859,6 +856,7 @@
 						"method": "POST",
 						"header": [
 							{
+								"disabled": false,
 								"key": "Content-Type",
 								"value": "application/json"
 							}
@@ -908,6 +906,7 @@
 						"method": "GET",
 						"header": [
 							{
+								"disabled": false,
 								"key": "Content-Type",
 								"value": "application/json"
 							},
@@ -955,6 +954,7 @@
 						"method": "PATCH",
 						"header": [
 							{
+								"disabled": false,
 								"key": "Content-Type",
 								"value": "application/json"
 							},
@@ -1008,6 +1008,7 @@
 						"method": "GET",
 						"header": [
 							{
+								"disabled": false,
 								"key": "Content-Type",
 								"value": "application/json"
 							},
@@ -1056,6 +1057,7 @@
 						"method": "PUT",
 						"header": [
 							{
+								"disabled": false,
 								"key": "Content-Type",
 								"value": "application/json"
 							},
@@ -1106,6 +1108,7 @@
 						"method": "GET",
 						"header": [
 							{
+								"disabled": false,
 								"key": "Content-Type",
 								"value": "application/json"
 							},
@@ -1156,6 +1159,7 @@
 						"method": "GET",
 						"header": [
 							{
+								"disabled": false,
 								"key": "Content-Type",
 								"value": "application/json"
 							},
@@ -1207,6 +1211,7 @@
 						"method": "GET",
 						"header": [
 							{
+								"disabled": false,
 								"key": "Content-Type",
 								"value": "application/json"
 							},
@@ -1257,6 +1262,7 @@
 						"method": "GET",
 						"header": [
 							{
+								"disabled": false,
 								"key": "Content-Type",
 								"value": "application/json"
 							},
@@ -1304,6 +1310,7 @@
 						"method": "GET",
 						"header": [
 							{
+								"disabled": false,
 								"key": "Content-Type",
 								"value": "application/json"
 							},
@@ -1354,6 +1361,7 @@
 						"method": "PUT",
 						"header": [
 							{
+								"disabled": false,
 								"key": "Content-Type",
 								"value": "application/json"
 							},
@@ -1404,6 +1412,7 @@
 						"method": "GET",
 						"header": [
 							{
+								"disabled": false,
 								"key": "Content-Type",
 								"value": "application/json"
 							},
@@ -1550,6 +1559,7 @@
 						"method": "GET",
 						"header": [
 							{
+								"disabled": false,
 								"key": "Content-Type",
 								"value": "application/json"
 							},
@@ -1647,6 +1657,7 @@
 						"method": "DELETE",
 						"header": [
 							{
+								"disabled": false,
 								"key": "Content-Type",
 								"value": "application/json"
 							},
@@ -1724,7 +1735,6 @@
 		},
 		{
 			"name": "Flow",
-			"description": null,
 			"item": [
 				{
 					"name": "Create user",
@@ -2111,7 +2121,6 @@
 		},
 		{
 			"name": "Catalog",
-			"description": null,
 			"item": [
 				{
 					"name": "Create user",
@@ -2507,7 +2516,6 @@
 		},
 		{
 			"name": "Tunnel",
-			"description": null,
 			"item": [
 				{
 					"name": "Create user",
@@ -2851,7 +2859,6 @@
 		},
 		{
 			"name": "Microservices",
-			"description": null,
 			"item": [
 				{
 					"name": "Create user",
@@ -3788,7 +3795,6 @@
 		},
 		{
 			"name": "Diagnostics",
-			"description": null,
 			"item": [
 				{
 					"name": "Create user",
@@ -4587,7 +4593,6 @@
 		},
 		{
 			"name": "ioFog",
-			"description": null,
 			"item": [
 				{
 					"name": "Create user",
@@ -5294,7 +5299,6 @@
 		},
 		{
 			"name": "Registries",
-			"description": null,
 			"item": [
 				{
 					"name": "Create user",
