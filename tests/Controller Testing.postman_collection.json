@@ -1,13 +1,13 @@
 {
 	"info": {
-		"_postman_id": "b585aece-cb86-4f3b-93f3-12552c1c90c5",
+		"_postman_id": "5a9e5363-c42e-4cfe-ad53-4ba7f9594334",
 		"name": "Controller Testing",
+		"description": "iofog-controller collection",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
 		{
 			"name": "User",
-			"description": null,
 			"item": [
 				{
 					"name": "Create user",
@@ -506,11 +506,33 @@
 					},
 					"response": []
 				}
+			],
+			"description": "User collection",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "3e653bd9-8814-4b3c-ac4b-4d880264ac51",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "e7f8e2fe-9d1d-4368-8b85-3e279b3f79c9",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
 			]
 		},
 		{
 			"name": "General",
-			"description": null,
 			"item": [
 				{
 					"name": "Status",
@@ -629,11 +651,33 @@
 					},
 					"response": []
 				}
+			],
+			"description": "General collection",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "a9f31b5d-feea-4535-aa6d-dc3b4916f2c0",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "667d4cc7-d7fe-4fd5-b466-6c6cf566181e",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
 			]
 		},
 		{
 			"name": "Agent",
-			"description": null,
 			"item": [
 				{
 					"name": "Create user",
@@ -919,7 +963,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"type\": 1,\n\t\"key\":\"testtesttest\"\n}"
+							"raw": ""
 						},
 						"url": {
 							"raw": "{{host}}/api/v3/agent/config",
@@ -1019,7 +1063,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"type\": 1,\n\t\"key\":\"testtesttest\"\n}"
+							"raw": ""
 						},
 						"url": {
 							"raw": "{{host}}/api/v3/agent/config/changes",
@@ -1117,7 +1161,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"type\": 1,\n\t\"key\":\"testtesttest\"\n}"
+							"raw": ""
 						},
 						"url": {
 							"raw": "{{host}}/api/v3/agent/microservices",
@@ -1167,7 +1211,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"type\": 1,\n\t\"key\":\"testtesttest\"\n}"
+							"raw": ""
 						},
 						"url": {
 							"raw": "{{host}}/api/v3/agent/microservices/abcedf",
@@ -1218,7 +1262,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"type\": 1,\n\t\"key\":\"testtesttest\"\n}"
+							"raw": ""
 						},
 						"url": {
 							"raw": "{{host}}/api/v3/agent/registries",
@@ -1268,7 +1312,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"type\": 1,\n\t\"key\":\"testtesttest\"\n}"
+							"raw": ""
 						},
 						"url": {
 							"raw": "{{host}}/api/v3/agent/tunnel",
@@ -1315,7 +1359,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"type\": 1,\n\t\"key\":\"testtesttest\"\n}"
+							"raw": ""
 						},
 						"url": {
 							"raw": "{{host}}/api/v3/agent/strace",
@@ -1415,7 +1459,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"type\": 1,\n\t\"key\":\"testtesttest\"\n}"
+							"raw": ""
 						},
 						"url": {
 							"raw": "{{host}}/api/v3/agent/version",
@@ -1561,7 +1605,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"type\": 1,\n\t\"key\":\"testtesttest\"\n}"
+							"raw": ""
 						},
 						"url": {
 							"raw": "{{host}}/api/v3/agent/image-snapshot",
@@ -1720,11 +1764,33 @@
 					},
 					"response": []
 				}
+			],
+			"description": "Agent collection",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "9a24c940-df22-48f6-adb4-a87d0984ede4",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "09618b10-daee-4fc9-b1cc-f8c53e5dd44c",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
 			]
 		},
 		{
 			"name": "Flow",
-			"description": null,
 			"item": [
 				{
 					"name": "Create user",
@@ -2107,11 +2173,33 @@
 					},
 					"response": []
 				}
+			],
+			"description": "Flow collection",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "9bbd4e2b-52b4-459e-b897-da7c1b23bb67",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "b7c4da7e-1045-4b10-9512-01aa7a49939f",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
 			]
 		},
 		{
 			"name": "Catalog",
-			"description": null,
 			"item": [
 				{
 					"name": "Create user",
@@ -2503,11 +2591,33 @@
 					},
 					"response": []
 				}
+			],
+			"description": "Catalog collection",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "0d9a3e47-19ce-40ff-b759-1bb82e596471",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "a4a0c5c9-ec92-4f92-af24-3feb0dc1e1a1",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
 			]
 		},
 		{
 			"name": "Tunnel",
-			"description": null,
 			"item": [
 				{
 					"name": "Create user",
@@ -2847,11 +2957,33 @@
 					},
 					"response": []
 				}
+			],
+			"description": "Tunnel collection",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "40012762-3050-44e8-a4b2-5f73927f7ee4",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "18a2c8f2-143e-40d4-b2c5-73e65928cd0f",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
 			]
 		},
 		{
 			"name": "Microservices",
-			"description": null,
 			"item": [
 				{
 					"name": "Create user",
@@ -3137,7 +3269,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"name\": \"name2\",\n  \"config\": \"string\",\n  \"catalogItemId\": {{item-id}},\n  \"flowId\": {{flow-id}},\n  \"iofogUuid\": \"{{node-id}}\",\n  \"rootHostAccess\": true,\n  \"logLimit\": 0,\n  \"volumeMappings\": [\n    {\n      \"hostDestination\": \"/var/dest\",\n      \"containerDestination\": \"/var/dest\",\n      \"accessMode\": \"rw\"\n    }\n  ],\n  \"ports\": [\n    {\n      \"internal\": 1,\n      \"external\": 1,\n      \"publicMode\": false\n    }\n  ],\n  \"routes\": [\n  ]\n}\n"
+							"raw": "{\n  \"name\": \"name2\",\n  \"config\": \"string\",\n  \"catalogItemId\": {{item-id}},\n  \"flowId\": {{flow-id}},\n  \"iofogUuid\": \"{{node-id}}\",\n  \"rootHostAccess\": true,\n  \"logSize\": 0,\n  \"volumeMappings\": [\n    {\n      \"hostDestination\": \"/var/dest\",\n      \"containerDestination\": \"/var/dest\",\n      \"accessMode\": \"rw\"\n    }\n  ],\n  \"ports\": [\n    {\n      \"internal\": 1,\n      \"external\": 1,\n      \"publicMode\": false\n    }\n  ],\n  \"routes\": [\n  ]\n}\n"
 						},
 						"url": {
 							"raw": "{{host}}/api/v3/microservices",
@@ -3784,11 +3916,33 @@
 					},
 					"response": []
 				}
+			],
+			"description": "Microservices collection",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "5533a95b-87ad-44ce-bb0d-814f168232e4",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "6d066f42-9672-4132-9fc6-1c1f358aa7c4",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
 			]
 		},
 		{
 			"name": "Diagnostics",
-			"description": null,
 			"item": [
 				{
 					"name": "Create user",
@@ -4583,11 +4737,33 @@
 					},
 					"response": []
 				}
+			],
+			"description": "Diagnostics collection",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "2bd3ea6c-0644-4d20-af85-ad02d45b9680",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "c15f1694-b141-4e0d-a944-ab267b82676c",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
 			]
 		},
 		{
 			"name": "ioFog",
-			"description": null,
 			"item": [
 				{
 					"name": "Create user",
@@ -5290,11 +5466,33 @@
 					},
 					"response": []
 				}
+			],
+			"description": "ioFog collection",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "2ca5703b-9167-4292-b4fa-507bae7a371b",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "e7c20898-bdb2-4989-a0bb-d980b075bb00",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
 			]
 		},
 		{
 			"name": "Registries",
-			"description": null,
 			"item": [
 				{
 					"name": "Create user",
@@ -5627,6 +5825,29 @@
 						}
 					},
 					"response": []
+				}
+			],
+			"description": "Registries collection",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "77262f2d-e9f2-467d-a34f-49ba0ad7673d",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "6cf34135-001b-4782-b4c9-78c470b337cf",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
 				}
 			]
 		}
