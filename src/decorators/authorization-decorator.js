@@ -65,7 +65,13 @@ function checkFogToken(f) {
     }
 
     fArgs.push(fog);
+
     FogAccessTokenManager.updateExpirationTime(fog.accessToken.id, fog.accessToken.expirationTime + config.get('Settings:FogTokenExpirationIntervalSeconds') * 1000);
+
+    const timestamp = Date.now();
+    logger.info('updating agent lastActive timestamp: ' + timestamp);
+    await FogManager.updateLastActive(fog.uuid, timestamp);
+
     return await f.apply(this, fArgs);
   }
 }
