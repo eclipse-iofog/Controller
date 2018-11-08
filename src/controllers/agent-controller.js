@@ -104,7 +104,7 @@ const deleteNodeEndPoint = async function (req, fog) {
   return await AgentService.deleteNode(fog);
 };
 
-const getImageSnapshotEndPoint = async function(req, fog) {
+const getImageSnapshotEndPoint = async function (req, fog) {
   return await AgentService.getImageSnapshot(fog);
 };
 

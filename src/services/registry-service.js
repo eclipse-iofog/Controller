@@ -15,7 +15,7 @@ const RegistryManager = require('../sequelize/managers/registry-manager');
 const Validator = require('../schemas');
 const Errors = require('../helpers/errors');
 const ErrorMessages = require('../helpers/error-messages');
-const ChangeTrackingManager = require('../sequelize/managers/change-tracking-manager');
+const ChangeTrackingService = require('./change-tracking-service');
 const TransactionDecorator = require('../decorators/transaction-decorator');
 const FogManager = require('../sequelize/managers/iofog-manager');
 const Sequelize = require('sequelize');
@@ -52,11 +52,7 @@ const createRegistry = async function (registry, user, transaction) {
 const updateChangeTracking = async function (user, transaction) {
   let fogs = await FogManager.findAll({userId: user.id}, transaction);
   for (fog of fogs) {
-    const changeTrackingUpdates = {
-      iofogUuid: fog.uuid,
-      registries: true
-    };
-    await ChangeTrackingManager.update({iofogUuid: fog.uuid}, changeTrackingUpdates, transaction);
+    await ChangeTrackingService.update(fog.uuid, ChangeTrackingService.events.registries, transaction);
   }
 };
 

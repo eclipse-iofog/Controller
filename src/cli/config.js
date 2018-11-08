@@ -16,6 +16,7 @@ const config = require('../config');
 const constants = require('../helpers/constants');
 const AppHelper = require('../helpers/app-helper');
 const ErrorMessages = require('../helpers/error-messages');
+const Validator = require('../schemas');
 const logger = require('../logger');
 
 class Config extends BaseCLIHandler {
@@ -77,84 +78,107 @@ const _executeCase  = async function (catalogCommand, commandName, f) {
 };
 
 const _addConfigOption = async function (options) {
-  if (options.port != null) {
-    const port = options.port;
-    if (!AppHelper.isValidPort(port)) {
-      logger.error(ErrorMessages.INVALID_PORT_FORMAT);
-      return;
-    }
-    AppHelper.checkPortAvailability(port).then(availability => {
-      if (availability === 'closed') {
-        config.set('Server:Port', port);
-      }
-      else {
-        logger.error(AppHelper.formatMessage(ErrorMessages.PORT_NOT_AVAILABLE, port));
-      }
-    });
-  }
+  await Validator.validate(options, Validator.schemas.configUpdate);
 
-  if (options.sslCert != null) {
+  updateConfig(options.port, 'port', 'Server:Port', async (onSuccess) => {
+    const port = options.port;
+    const status = await AppHelper.checkPortAvailability(port);
+    if (status === 'closed') {
+      config.set('Server:Port', port);
+      onSuccess();
+    } else {
+      logger.error(AppHelper.formatMessage(ErrorMessages.PORT_NOT_AVAILABLE, port));
+    }
+  });
+
+  updateConfig(options.sslCert, 'ssl-cert', 'Server:SslCert', (onSuccess) => {
     const sslCert = options.sslCert;
     if (!AppHelper.isFileExists(sslCert)) {
       logger.error(ErrorMessages.INVALID_FILE_PATH);
       return;
     }
-    config.set('Server:SslCert', sslCert)
-  }
+    config.set('Server:SslCert', sslCert);
+    onSuccess();
+  });
 
-  if (options.sslKey != null) {
+  if (options.sslKey) {
     const sslKey = options.sslKey;
     if (!AppHelper.isFileExists(sslKey)) {
       logger.error(ErrorMessages.INVALID_FILE_PATH);
       return;
     }
-    config.set('Server:SslKey', sslKey)
+    config.set('Server:SslKey', sslKey);
+    logger.info('Config option ssl-key has been updated.');
   }
 
-  if (options.intermediateCert != null) {
+  updateConfig(options.intermediateCert, 'intermediate-cert', 'Server:IntermediateCert', (onSuccess) => {
     const intermediateCert = options.intermediateCert;
     if (!AppHelper.isFileExists(intermediateCert)) {
       logger.error(ErrorMessages.INVALID_FILE_PATH);
       return;
     }
-    config.set('Server:IntermediateCert', intermediateCert)
-  }
+    config.set('Server:IntermediateCert', intermediateCert);
+    onSuccess();
+  });
 
-  if (options.emailActivationOn != null) {
-    config.set('Email:ActivationEnabled', true)
-  }
+  updateConfig(options.emailActivationOn, 'email-activation-on', 'Email:ActivationEnabled', (onSuccess) => {
+    config.set('Email:ActivationEnabled', true);
+    onSuccess();
+  });
 
-  if (options.emailActivationOff != null) {
-    config.set('Email:ActivationEnabled', false)
-  }
+  updateConfig(options.emailActivationOff, 'email-activation-off', 'Email:ActivationEnabled', (onSuccess) => {
+    config.set('Email:ActivationEnabled', false);
+    onSuccess();
+  });
 
-  if (options.homeUrl != null && config.get('Email:HomeUrl') !== options.homeUrl) {
-    config.set('Email:HomeUrl', options.homeUrl)
-  }
+  updateConfig(options.homeUrl, 'home-url', 'Email:HomeUrl', (onSuccess) => {
+    config.set('Email:HomeUrl', options.homeUrl);
+    onSuccess();
+  });
 
-  if (options.emailAddress != null && config.get('Email:Address') !== options.emailAddress) {
-    if (options.emailPassword == null) {
-      return console.log('When changing email address, password must be provided.')
+  updateConfig(options.emailAddress, 'email-address', 'Email:Address', (onSuccess) => {
+    if (options.emailPassword) {
+      logger.info('When changing email address, password must be provided.');
+      return;
     }
-    config.set('Email:Address', options.emailAddress)
+    config.set('Email:Address', options.emailAddress);
+    onSuccess();
+  });
+
+  if (options.emailPassword) {
+    config.set('Email:Password', AppHelper.encryptText(options.emailPassword, config.get('Email:Address')));
+    logger.info('Config option email-password has been updated.');
   }
 
-  if (options.emailPassword != null) {
-    config.set('Email:Password', AppHelper.encryptText(options.emailPassword, config.get('Email:Address')))
-  }
+  updateConfig(options.emailService, 'email-service', 'Email:Service', (onSuccess) => {
+    config.set('Email:Service', options.emailService);
+    onSuccess();
+  });
 
-  if (options.emailService != null) {
-    config.set('Email:Service', options.emailService)
-  }
+  updateConfig(options.logDir, 'log-dir', 'Service:LogsDirectory', (onSuccess) => {
+    config.set('Service:LogsDirectory', options.logDir);
+    onSuccess();
+  });
 
-  if (options.logDir != null) {
-    config.set('Service:LogsDirectory', options.logDir)
-  }
+  updateConfig(options.logSize, 'log-size', 'Service:LogsFileSize', (onSuccess) => {
+    config.set('Service:LogsFileSize', options.logSize * 1024);
+    onSuccess();
+  })
+};
 
-  if (options.logSize != null) {
-    config.set('Service:LogsFileSize', options.logSize * 1024)
+const updateConfig = async function (newConfigValue, cliConfigName, configName, fn) {
+  if (newConfigValue) {
+    const oldConfigValue = config.get(configName);
+    if (newConfigValue !== oldConfigValue) {
+      await fn(function() {
+        const currentConfigValue = config.get(configName);
+        logger.info(`Config option ${cliConfigName} has been set to ${currentConfigValue}`);
+      });
+    } else {
+      logger.info(`Config option ${cliConfigName} is already set to ${newConfigValue}`);
+    }
   }
-}
+};
 
 const _listConfigOptions = function () {
   const configuration = {

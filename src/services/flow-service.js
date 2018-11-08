@@ -17,7 +17,7 @@ const AppHelper = require('../helpers/app-helper');
 const Errors = require('../helpers/errors');
 const ErrorMessages = require('../helpers/error-messages');
 const Validation = require('../schemas');
-const ChangeTrackingManager = require('../sequelize/managers/change-tracking-manager')
+const ChangeTrackingService = require('./change-tracking-service');
 
 const _createFlow = async function (flowData, user, isCLI, transaction) {
   await Validation.validate(flowData, Validation.schemas.flowCreate);
@@ -47,12 +47,27 @@ const _deleteFlow = async function (flowId, user, isCLI, transaction) {
   };
   const where = AppHelper.deleteUndefinedFields(whereObj);
 
+  await _updateChangeTrackingsByFlowId(flowId, transaction)
+
   const affectedRows = await FlowManager.delete(where, transaction);
 
   if (affectedRows === 0) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_ID, flowId));
   }
+
 };
+
+async function _updateChangeTrackingsByFlowId(flowId, transaction) {
+  const flowWithMicroservices = await FlowManager.findFlowMicroservices({id: flowId}, transaction);
+  const onlyUnique = (value, index, self) => self.indexOf(value) === index;
+  const iofogUuids = flowWithMicroservices.microservices
+    .map(obj => obj.iofogUuid)
+    .filter(onlyUnique)
+    .filter(val => val !== null);
+  for (let iofogUuid of iofogUuids) {
+    await ChangeTrackingService.update(iofogUuid, ChangeTrackingService.events.microserviceFull, transaction);
+  }
+}
 
 const _updateFlow = async function (flowData, flowId, user, isCLI, transaction) {
   await Validation.validate(flowData, Validation.schemas.flowUpdate);
@@ -81,20 +96,7 @@ const _updateFlow = async function (flowData, flowId, user, isCLI, transaction) 
   await FlowManager.update(where, updateFlowData, transaction);
 
   if (oldFlow.isActivated !== flowData.isActivated) {
-    const flowWithMicroservices = await FlowManager.findFlowMicroservices({id: flowId}, transaction);
-    const onlyUnique = (value, index, self) => self.indexOf(value) === index;
-    const iofogUuids = flowWithMicroservices.microservices
-      .map(obj => obj.iofogUuid)
-      .filter(onlyUnique)
-      .filter(val => val !== null);
-    for (let iofogUuid of iofogUuids) {
-      const updateChangeTrackingData = {
-        containerConfig: true,
-        containerList: true,
-        routing: true
-      };
-      await ChangeTrackingManager.update({iofogUuid: iofogUuid}, updateChangeTrackingData, transaction);
-    }
+    await _updateChangeTrackingsByFlowId(flowId, transaction);
   }
 };
 

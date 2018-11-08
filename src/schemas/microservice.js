@@ -23,7 +23,8 @@ const microserviceCreate = {
        "type": "array",
        "items": {"type": "string"}}
     },
-  "required": ["name", "flowId", "catalogItemId"]
+  "required": ["name", "flowId", "catalogItemId"],
+  "additionalProperties": false
 };
 
 const microserviceUpdate = {
@@ -43,7 +44,8 @@ const microserviceUpdate = {
       "type": "array",
       "items": {"$ref": "/volumeMappings"}
     }
-  }
+  },
+  "additionalProperties": false
 };
 
 const ports = {
@@ -54,7 +56,8 @@ const ports = {
     "external": {"type": "integer"},
     "publicMode": {"enum": [false]}
   },
-  "required": ["internal", "external"]
+  "required": ["internal", "external"],
+  "additionalProperties": false
 };
 
 const portsCreate = {
@@ -65,7 +68,8 @@ const portsCreate = {
     "external": {"type": "integer"},
     "publicMode": {"type": "boolean"}
   },
-  "required": ["internal", "external"]
+  "required": ["internal", "external"],
+  "additionalProperties": false
 };
 
 const volumeMappings = {
@@ -76,7 +80,8 @@ const volumeMappings = {
     "containerDestination": {"type": "string"},
     "accessMode": {"type": "string"}
   },
-  "required": ["hostDestination", "containerDestination", "accessMode"]
+  "required": ["hostDestination", "containerDestination", "accessMode"],
+  "additionalProperties": false
 };
 
 module.exports = {

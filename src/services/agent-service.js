@@ -17,7 +17,7 @@ const FogProvisionKeyManager = require('../sequelize/managers/iofog-provision-ke
 const FogTypeManager = require('../sequelize/managers/iofog-type-manager');
 const FogManager = require('../sequelize/managers/iofog-manager');
 const FogAccessTokenService = require('../services/iofog-access-token-service');
-const ChangeTrackingManager = require('../sequelize/managers/change-tracking-manager');
+const ChangeTrackingService = require('./change-tracking-service');
 const FogVersionCommandManager = require('../sequelize/managers/iofog-version-command-manager');
 const StraceManager = require('../sequelize/managers/strace-manager');
 const RegistryManager = require('../sequelize/managers/registry-manager');
@@ -131,39 +131,20 @@ const updateAgentConfig = async function (updateData, fog, transaction) {
 
 const getAgentConfigChanges = async function (fog, transaction) {
 
-  const changeTracking = await ChangeTrackingManager.findOne({
-    iofogUuid: fog.uuid
-  }, transaction);
+  const changeTracking = await ChangeTrackingService.getByFogId(fog.uuid, transaction);
   if (!changeTracking) {
     throw new Errors.NotFoundError(ErrorMessages.INVALID_NODE_ID)
   }
 
-  const cleanTracking = {
-    config: false,
-    version: false,
-    reboot: false,
-    deleteNode: false,
-    containerList: false,
-    containerConfig: false,
-    routing: false,
-    registries: false,
-    tunnel: false,
-    diagnostics: false,
-    isImageSnapshot: false
-  };
-
-  await ChangeTrackingManager.update({
-    iofogUuid: fog.uuid
-  }, cleanTracking, transaction);
-
+  await ChangeTrackingService.update(fog.uuid, ChangeTrackingService.events.clean, transaction);
 
   return {
     config: changeTracking.config,
     version: changeTracking.version,
     reboot: changeTracking.reboot,
     deleteNode: changeTracking.deleteNode,
-    microserviceList: changeTracking.containerList,
-    microserviceConfig: changeTracking.containerConfig,
+    microserviceList: changeTracking.microserviceList,
+    microserviceConfig: changeTracking.microserviceConfig,
     routing: changeTracking.routing,
     registries: changeTracking.registries,
     tunnel: changeTracking.tunnel,

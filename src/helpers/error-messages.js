@@ -34,7 +34,7 @@ module.exports = {
   EMAIL_SENDER_NOT_CONFIGURED: 'Email sender not configured',
   INVALID_PORT_FORMAT: 'Invalid port format',
   INVALID_FILE_PATH: 'Invalid file path',
-  PORT_NOT_AVAILABLE: 'Port {} not available',
+  PORT_NOT_AVAILABLE: 'Port {} is not available',
   UNABLE_TO_WRITE_STRACE: 'Error while writing strace data to file. File name: {}, err: {}',
   UNABLE_TO_DELETE_STRACE: 'Error while deleting strace data file. File name: {}, err: {}',
   FTP_ERROR: 'FTP error: {}',
