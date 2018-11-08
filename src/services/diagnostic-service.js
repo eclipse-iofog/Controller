@@ -76,8 +76,20 @@ const postMicroserviceStraceDatatoFtp = async function (id, data, user, isCLI, t
   _deleteFile(filePath);
 };
 
-const postMicroserviceImageSnapshotCreate = async function (id, data, user, isCLI, transaction) {
-  const microservice = await MicroserviceService.getMicroserviceWithTransaction(id, user, isCLI, transaction);
+const postMicroserviceImageSnapshotCreate = async function (microserviceUuid, user, isCLI, transaction) {
+  const where = isCLI ?
+    {
+      uuid: microserviceUuid
+    }
+    :
+    {
+      uuid: microserviceUuid,
+      updatedBy: user.id
+    };
+
+
+  const microservice = await MicroserviceManager.findOneWithDependencies(where, {}, transaction);
+
   if (microservice.iofogUuid === null) {
     throw new Errors.ValidationError(ErrorMessages.IMAGE_SNAPSHOT_WITHOUT_FOG);
   }
@@ -92,31 +104,45 @@ const postMicroserviceImageSnapshotCreate = async function (id, data, user, isCL
   await ChangeTrackingManager.update({iofogUuid: microservice.iofogUuid}, {isImageSnapshot: true}, transaction);
 };
 
-const getMicroserviceImageSnapshot = async function (id, data, user, isCLI, transaction) {
-  const microservice = await MicroserviceService.getMicroserviceWithTransaction(id, user, isCLI, transaction);
+const getMicroserviceImageSnapshot = async function (microserviceUuid, user, isCLI, transaction) {
+  const where = isCLI ?
+    {
+      uuid: microserviceUuid
+    }
+    :
+    {
+      uuid: microserviceUuid,
+      updatedBy: user.id
+    };
+  const microservice = await MicroserviceManager.findOneWithDependencies(where, {}, transaction);
   if (microservice.iofogUuid === null) {
     throw new Errors.ValidationError(ErrorMessages.IMAGE_SNAPSHOT_WITHOUT_FOG);
   }
 
   const microserviceToUpdate = {
-        imageSnapshot: ''
-    };
+    imageSnapshot: ''
+  };
 
-  if (microservice.imageSnapshot){
+  if (!microservice.imageSnapshot || microservice.imageSnapshot === 'get_image') {
+    throw new Errors.ValidationError(ErrorMessages.IMAGE_SNAPSHOT_NOT_AVAILABLE)
+  }
+  let _path = microservice.imageSnapshot;
+  logger.info('successfully deleted ' + microservice.imageSnapshot);
+  await MicroserviceManager.update({uuid: microservice.uuid}, microserviceToUpdate, transaction);
+  if (isCLI) {
+    return _path
+  } else {
     let mimetype = mime.lookup(microservice.imageSnapshot);
-    let _path = microservice.imageSnapshot;
     let stat = fs.statSync(_path);
     let fileSize = stat.size;
-    logger.info('successfully deleted ' + microservice.imageSnapshot);
-    await MicroserviceManager.update({uuid: microservice.uuid}, microserviceToUpdate, transaction);
-
     return {
       'Content-Length': fileSize,
-      'Content-Type' : mimetype,
+      'Content-Type': mimetype,
       fileName: _path.split(new RegExp('/'))[1],
       filePath: _path
     };
   }
+
 };
 
 const _sendFileToFtp = async function (data, filePath) {

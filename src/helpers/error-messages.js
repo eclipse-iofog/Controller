@@ -48,6 +48,7 @@ module.exports = {
   INVALID_MICROSERVICE_USER: 'Invalid microservice user or UUID',
   ROUTE_NOT_FOUND: 'Route not found',
   IMAGE_SNAPSHOT_WITHOUT_FOG: 'Can not run image snapshot for microservice without ioFog.',
+  IMAGE_SNAPSHOT_NOT_AVAILABLE: 'Image snapshot is not available for this microservice.',
   FILE_DOES_NOT_EXIST: 'File does not exist.',
   RESTRICTED_PUBLISHER: "You are not allowed to add catalog item as 'Eclipse ioFog' publisher",
   REQUIRED_FOG_NODE: 'ioFog node is required.',
@@ -57,6 +58,7 @@ module.exports = {
   STRACE_NOT_FOUND: 'Strace not found',
   INVALID_CONTENT_TYPE: 'Invalid content type',
   UPLOADED_FILE_NOT_FOUND: 'Uploaded image snapshot file not found',
+  REGISTRY_NOT_FOUND: 'Registry not found',
   CLI: {
     INVALID_PORT_MAPPING: 'Port mapping parsing error. Please provide valid port mapping.',
     INVALID_VOLUME_MAPPING: 'Volume mapping parsing error. Please provide valid volume mapping.',

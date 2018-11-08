@@ -37,6 +37,21 @@ const registryDelete = {
   "additionalProperties": false
 };
 
+const registryUpdate = {
+  "id": "/registryUpdate",
+  "type": "object",
+  "properties": {
+    "url": {"type": "string", "minLength": 1},
+    "isPublic": {"type": "boolean"},
+    "username": {"type": "string", "minLength": 1},
+    "password": {"type": "string"},
+    "email": {"type": "string"},
+    "requiresCert": {"type": "boolean"},
+    "certificate": {"type": "string"}
+  },
+  "additionalProperties": false
+};
+
 module.exports = {
-  mainSchemas: [registryCreate, registryDelete]
+  mainSchemas: [registryCreate, registryDelete, registryUpdate]
 };
