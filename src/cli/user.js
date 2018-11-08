@@ -14,10 +14,8 @@
 const BaseCLIHandler = require('./base-cli-handler');
 const constants = require('../helpers/constants');
 const UserService = require('../services/user-service');
-const UserManager = require('../sequelize/managers/user-manager');
 const logger = require('../logger');
 const AppHelper = require('../helpers/app-helper');
-const EmailActivationCodeService = require('../services/email-activation-code-service');
 const AuthDecorator = require('../decorators/cli-decorator');
 const Validator = require('../schemas');
 

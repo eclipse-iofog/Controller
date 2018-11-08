@@ -50,9 +50,9 @@ function generateRandomString(size) {
 // Checks the status of a single port
 // returns 'closed' if port is available
 // returns 'open' if port is not available
-function checkPortAvailability(port) {
-  return portscanner.checkPortStatus(port).then(function (status) {
-    return status;
+async function checkPortAvailability(port) {
+  return new Promise((resolve) => {
+    return resolve(portscanner.checkPortStatus(port));
   });
 }
 
