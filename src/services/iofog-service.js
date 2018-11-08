@@ -16,7 +16,7 @@ const AppHelper = require('../helpers/app-helper');
 const FogManager = require('../sequelize/managers/iofog-manager');
 const FogProvisionKeyManager = require('../sequelize/managers/iofog-provision-key-manager');
 const FogVersionCommandManager = require('../sequelize/managers/iofog-version-command-manager');
-const ChangeTrackingManager = require('../sequelize/managers/change-tracking-manager');
+const ChangeTrackingService = require('./change-tracking-service');
 const Errors = require('../helpers/errors');
 const ErrorMessages = require('../helpers/error-messages');
 const Validator = require('../schemas');
@@ -61,7 +61,7 @@ async function _createFog(fogData, user, isCli, transaction) {
     uuid: fog.uuid
   };
 
-  await ChangeTrackingManager.create({iofogUuid: fog.uuid}, transaction);
+  await ChangeTrackingService.create(fog.uuid, transaction);
 
   //TODO: proccess watchdog flag
 
@@ -104,13 +104,7 @@ async function _createFog(fogData, user, isCli, transaction) {
     await MicroserviceManager.create(bluetoothMicroserviceData, transaction);
   }
 
-  const changeTrackingUpdates = {
-    iofogUuid: fogData.uuid,
-    config: true,
-    containerList: true
-  };
-
-  await ChangeTrackingManager.update({iofogUuid: fogData.uuid}, changeTrackingUpdates, transaction);
+  await ChangeTrackingService.update(fogData.uuid, ChangeTrackingService.events.microserviceCommon, transaction)
 
   return res
 }
@@ -151,8 +145,11 @@ async function _updateFog(fogData, user, isCli, transaction) {
   if (!oldFog) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FOG_NODE_UUID, fogData.uuid))
   }
-  await FogManager.update(queryFogData, updateFogData, transaction);
 
+  await FogManager.update(queryFogData, updateFogData, transaction);
+  await ChangeTrackingService.update(fogData.uuid, ChangeTrackingService.events.config, transaction);
+
+  let msChanged = false;
   //TODO: refactor. to function
   if (oldFog.bluetoothEnabled === true && fogData.bluetoothEnabled === false) {
     const bluetoothItem = await CatalogService.getBluetoothCatalogItem(transaction);
@@ -162,6 +159,7 @@ async function _updateFog(fogData, user, isCli, transaction) {
     };
 
     await MicroserviceManager.delete(deleteBluetoothMicroserviceData, transaction)
+    msChanged = true;
   }
 
   //TODO: refactor. to function
@@ -181,6 +179,7 @@ async function _updateFog(fogData, user, isCli, transaction) {
     };
 
     await MicroserviceManager.create(bluetoothMicroserviceData, transaction);
+    msChanged = true;
   }
 
   //TODO: refactor. to function
@@ -192,6 +191,7 @@ async function _updateFog(fogData, user, isCli, transaction) {
     };
 
     await MicroserviceManager.delete(deleteHalMicroserviceData, transaction)
+    msChanged = true;
   }
 
   //TODO: refactor. to function
@@ -211,16 +211,12 @@ async function _updateFog(fogData, user, isCli, transaction) {
     };
 
     await MicroserviceManager.create(halMicroserviceData, transaction);
+    msChanged = true;
   }
 
-  //TODO: process watchdog
-  const changeTrackingUpdates = {
-    iofogUuid: fogData.uuid,
-    config: true,
-    containerList: true
-  };
-
-  await ChangeTrackingManager.update({iofogUuid: fogData.uuid}, changeTrackingUpdates, transaction)
+  if (msChanged) {
+    await ChangeTrackingService.update(fogData.uuid, ChangeTrackingService.events.microserviceCommon, transaction);
+  }
 }
 
 async function _deleteFog(fogData, user, isCli, transaction) {
@@ -310,11 +306,6 @@ async function _setFogVersionCommand(fogVersionData, user, isCli, transaction) {
     versionCommand: fogVersionData.versionCommand
   };
 
-  const changeTrackingUpdates = {
-    iofogUuid: fogVersionData.uuid,
-    version: true
-  };
-
   const fog = await FogManager.findOne(queryFogData, transaction);
   if (!fog) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FOG_NODE_UUID, fogData.uuid))
@@ -322,7 +313,7 @@ async function _setFogVersionCommand(fogVersionData, user, isCli, transaction) {
 
   await _generateProvisioningKey({uuid: fogVersionData.uuid}, user, isCli, transaction);
   await FogVersionCommandManager.updateOrCreate({iofogUuid: fogVersionData.uuid}, newVersionCommand, transaction);
-  await ChangeTrackingManager.update({iofogUuid: fogVersionData.uuid}, changeTrackingUpdates, transaction)
+  await ChangeTrackingService.update(fogVersionData.uuid, ChangeTrackingService.events.version, transaction)
 }
 
 async function _setFogRebootCommand(fogData, user, isCli, transaction) {
@@ -332,17 +323,12 @@ async function _setFogRebootCommand(fogData, user, isCli, transaction) {
     ? {uuid: fogData.uuid}
     : {uuid: fogData.uuid, userId: user.id};
 
-  const newRebootCommand = {
-    iofogUuid: fogData.uuid,
-    reboot: true
-  };
-
   const fog = await FogManager.findOne(queryFogData, transaction);
   if (!fog) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FOG_NODE_UUID, fogData.uuid))
   }
 
-  await ChangeTrackingManager.update({iofogUuid: fogData.uuid}, newRebootCommand, transaction)
+  await ChangeTrackingService.update(fogData.uuid, ChangeTrackingService.events.reboot, transaction)
 }
 
 async function _getHalHardwareInfo(uuidObj, user, isCLI, transaction) {
@@ -417,10 +403,7 @@ async function _processDeleteCommand(fog, transaction) {
   if (!fog.daemonStatus || fog.daemonStatus === 'UNKNOWN') {
     await FogManager.delete({uuid: fog.uuid}, transaction)
   } else {
-    await ChangeTrackingManager.update({iofogUuid: fog.uuid}, {
-      iofogUuid: fog.uuid,
-      deleteNode: true
-    }, transaction)
+    await ChangeTrackingService.update(fog.uuid, ChangeTrackingService.events.deleteNode, transaction)
   }
 }
 

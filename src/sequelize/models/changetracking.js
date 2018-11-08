@@ -1,3 +1,16 @@
+/*
+ *  *******************************************************************************
+ *  * Copyright (c) 2018 Edgeworx, Inc.
+ *  *
+ *  * This program and the accompanying materials are made available under the
+ *  * terms of the Eclipse Public License v. 2.0 which is available at
+ *  * http://www.eclipse.org/legal/epl-2.0
+ *  *
+ *  * SPDX-License-Identifier: EPL-2.0
+ *  *******************************************************************************
+ *
+ */
+
 'use strict';
 module.exports = (sequelize, DataTypes) => {
   const ChangeTracking = sequelize.define('ChangeTracking', {
@@ -8,9 +21,9 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       field: 'id'
     },
-    containerConfig: {
+    microserviceConfig: {
       type: DataTypes.BOOLEAN,
-      field: 'container_config',
+      field: 'microservice_config',
       defaultValue: false
     },
     reboot: {
@@ -28,9 +41,9 @@ module.exports = (sequelize, DataTypes) => {
       field: 'version',
       defaultValue: false
     },
-    containerList: {
+    microserviceList: {
       type: DataTypes.BOOLEAN,
-      field: 'container_list',
+      field: 'microservice_list',
       defaultValue: false
     },
     config: {
