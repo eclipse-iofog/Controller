@@ -408,14 +408,14 @@ async function _processDeleteCommand(fog, transaction) {
 }
 
 module.exports = {
-  createFogWithTransaction: TransactionDecorator.generateTransaction(_createFog),
-  updateFogWithTransaction: TransactionDecorator.generateTransaction(_updateFog),
-  deleteFogWithTransaction: TransactionDecorator.generateTransaction(_deleteFog),
+  createFog: TransactionDecorator.generateTransaction(_createFog),
+  updateFog: TransactionDecorator.generateTransaction(_updateFog),
+  deleteFog: TransactionDecorator.generateTransaction(_deleteFog),
   getFogWithTransaction: TransactionDecorator.generateTransaction(_getFog),
-  getFogListWithTransaction: TransactionDecorator.generateTransaction(_getFogList),
-  generateProvisioningKeyWithTransaction: TransactionDecorator.generateTransaction(_generateProvisioningKey),
-  setFogVersionCommandWithTransaction: TransactionDecorator.generateTransaction(_setFogVersionCommand),
-  setFogRebootCommandWithTransaction: TransactionDecorator.generateTransaction(_setFogRebootCommand),
+  getFogList: TransactionDecorator.generateTransaction(_getFogList),
+  generateProvisioningKey: TransactionDecorator.generateTransaction(_generateProvisioningKey),
+  setFogVersionCommand: TransactionDecorator.generateTransaction(_setFogVersionCommand),
+  setFogRebootCommand: TransactionDecorator.generateTransaction(_setFogRebootCommand),
   getHalHardwareInfo: TransactionDecorator.generateTransaction(_getHalHardwareInfo),
   getHalUsbInfo: TransactionDecorator.generateTransaction(_getHalUsbInfo),
   getFog: _getFog
