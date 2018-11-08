@@ -43,12 +43,11 @@ const _updateMicroserviceEndPoint = async function (req, user) {
 
 const _deleteMicroserviceEndPoint = async function (req, user) {
   const microserviceUuid = req.params.uuid;
-  const deleteWithCleanUp = (req.query.withCleanUp == 'true');
 
   logger.info("Microservice uuid:" + JSON.stringify(microserviceUuid));
-  logger.info("Delete with cleanup:" + JSON.stringify(deleteWithCleanUp));
+  logger.info("Request body:" + JSON.stringify(req.body));
 
-  return await MicroservicesService.deleteMicroserviceWithTransaction(microserviceUuid, deleteWithCleanUp, user, false)
+  return await MicroservicesService.deleteMicroserviceWithTransaction(microserviceUuid, req.body, user, false)
 };
 
 const _getMicroservicesByFlowEndPoint = async function (req, user) {

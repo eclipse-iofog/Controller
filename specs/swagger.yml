@@ -1532,6 +1532,117 @@ paths:
           description: Not Found
         '500':
           description: Internal Server Error
+  '/microservices/{uuid}/volume-mapping':
+    post:
+      tags:
+      - Microservices
+      description: Creates a volume mapping for microservice
+      operationId: createMicroserviceVolumeMapping
+      parameters:
+      - in: header
+        name: Authorization
+        description: User Token
+        required: true
+        type: string
+      - in: path
+        name: uuid
+        description: Microservice Uuid
+        required: true
+        type: string
+      - in: body
+        name: volumeMappingData
+        description: information about volume mapping
+        required: true
+        schema:
+          $ref: '#/definitions/VolumeMappingAgentRequest'
+      responses:
+        '201':
+          description: Created
+          schema:
+            type: object
+            properties:
+              id:
+                type: number
+          headers:
+            X-Timestamp:
+              type: number
+              description: FogController server timestamp
+        '400':
+          description: Not Valid
+        '401':
+          description: Not Authorized
+        '404':
+          description: Not Found
+        '500':
+          description: Internal Server Error
+    get:
+      tags:
+      - Microservices
+      description: Get a volume mapping list for microservice
+      operationId: getMicroserviceVolumeMapping
+      parameters:
+      - in: header
+        name: Authorization
+        description: User Token
+        required: true
+        type: string
+      - in: path
+        name: uuid
+        description: Microservice Uuid
+        required: true
+        type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/VolumeMappingAgentRequest'
+          headers:
+            X-Timestamp:
+              type: number
+              description: FogController server timestamp
+        '401':
+          description: Not Authorized
+        '404':
+          description: Not Found
+        '500':
+          description: Internal Server Error
+  '/microservices/{uuid}/volume-mapping/{id}':
+    delete:
+      tags:
+      - Microservices
+      description: Deletes a volume mapping for microservice
+      operationId: deleteMicroserviceVolumeMapping
+      parameters:
+      - in: header
+        name: Authorization
+        description: User Token
+        required: true
+        type: string
+      - in: path
+        name: uuid
+        description: Microservice Uuid
+        required: true
+        type: string
+      - in: path
+        name: id
+        description: Volume id
+        required: true
+        type: string
+      responses:
+        '204':
+          description: Success
+          headers:
+            X-Timestamp:
+              type: number
+              description: FogController server timestamp
+        '401':
+          description: Not Authorized
+        '404':
+          description: Not Found
+        '500':
+          description: Internal Server Error
   '/microservices/{id}/image-snapshot':
     post:
       tags:
