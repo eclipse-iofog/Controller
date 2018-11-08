@@ -86,4 +86,30 @@ module.exports = [
               .send(responseObject.body)
       }
   },
-]
+  {
+    method: 'patch',
+    path: '/api/v3/registries/:id',
+    middleware: async (req, res) => {
+      const successCode = constants.HTTP_CODE_NO_CONTENT;
+      const errorCodes = [
+        {
+          code: constants.HTTP_CODE_BAD_REQUEST,
+          errors: [Errors.ValidationError]
+        },
+        {
+          code: constants.HTTP_CODE_UNAUTHORIZED,
+          errors: [Errors.AuthenticationError]
+        },
+        {
+          code: constants.HTTP_CODE_NOT_FOUND,
+          errors: [Errors.NotFoundError]
+        }
+      ];
+      const updateRegistryEndPoint = ResponseDecorator.handleErrors(RegistryController.updateRegistryEndPoint, successCode, errorCodes);
+      const responseObject = await updateRegistryEndPoint(req);
+      res
+        .status(responseObject.code)
+        .send(responseObject.body)
+    }
+  }
+];

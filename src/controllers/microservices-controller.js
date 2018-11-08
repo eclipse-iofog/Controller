@@ -26,7 +26,7 @@ const _createMicroservicesOnFogEndPoint = async function (req, user) {
 const _getMicroserviceEndPoint = async function (req, user) {
   const microserviceUuid = req.params.uuid;
 
-  logger.info("Microservice uuid:" + JSON.stringify(microserviceUuid))
+  logger.info("Microservice uuid:" + JSON.stringify(microserviceUuid));
 
   return await MicroservicesService.getMicroserviceWithTransaction(microserviceUuid, user, false)
 };
@@ -35,8 +35,8 @@ const _updateMicroserviceEndPoint = async function (req, user) {
   const microservice = req.body;
   const microserviceUuid = req.params.uuid;
 
-  logger.info("Parameters:" + JSON.stringify(microservice))
-  logger.info("Microservice uuid:" + JSON.stringify(microserviceUuid))
+  logger.info("Parameters:" + JSON.stringify(microservice));
+  logger.info("Microservice uuid:" + JSON.stringify(microserviceUuid));
 
   return await MicroservicesService.updateMicroserviceWithTransaction(microserviceUuid, microservice, user, false)
 };
@@ -45,8 +45,8 @@ const _deleteMicroserviceEndPoint = async function (req, user) {
   const microserviceUuid = req.params.uuid;
   const deleteWithCleanUp = (req.query.withCleanUp == 'true');
 
-  logger.info("Microservice uuid:" + JSON.stringify(microserviceUuid))
-  logger.info("Delete with cleanup:" + JSON.stringify(deleteWithCleanUp))
+  logger.info("Microservice uuid:" + JSON.stringify(microserviceUuid));
+  logger.info("Delete with cleanup:" + JSON.stringify(deleteWithCleanUp));
 
   return await MicroservicesService.deleteMicroserviceWithTransaction(microserviceUuid, deleteWithCleanUp, user, false)
 };
@@ -54,43 +54,46 @@ const _deleteMicroserviceEndPoint = async function (req, user) {
 const _getMicroservicesByFlowEndPoint = async function (req, user) {
   const flowId = req.query.flowId;
 
-  logger.info("Flow id:" + flowId)
+  logger.info("Flow id:" + flowId);
 
   return await MicroservicesService.listMicroservicesWithTransaction(flowId, user, false)
 };
 
 async function _createMicroserviceRoute(req, user) {
-  const sourceUuid = req.params.uuid
-  const distUuid = req.params.receiverUuid
-  logger.info(`Creating route from ${sourceUuid} to ${distUuid}`)
+  const sourceUuid = req.params.uuid;
+  const distUuid = req.params.receiverUuid;
+  logger.info(`Creating route from ${sourceUuid} to ${distUuid}`);
   return await MicroservicesService.createRouteWithTransaction(sourceUuid, distUuid, user, false)
 }
 
 async function _deleteMicroserviceRoute(req, user) {
-  const sourceUuid = req.params.uuid
-  const distUuid = req.params.receiverUuid
-  logger.info(`Creating route from ${sourceUuid} to ${distUuid}`)
+  const sourceUuid = req.params.uuid;
+  const distUuid = req.params.receiverUuid;
+  logger.info(`Creating route from ${sourceUuid} to ${distUuid}`);
   return await MicroservicesService.deleteRouteWithTransaction(sourceUuid, distUuid, user, false)
 }
 
 async function _createMicroservicePortMapping(req, user) {
-  const uuid = req.params.uuid
-  const portMappingData = req.body
-  logger.info(`Creating port mapping for ${uuid}`)
+  const uuid = req.params.uuid;
+  const portMappingData = req.body;
+  logger.info(`Creating port mapping for ${uuid}`);
   return await MicroservicesService.createPortMappingWithTransaction(uuid, portMappingData, user, false)
 }
 
 async function _deleteMicroservicePortMapping(req, user) {
-  const uuid = req.params.uuid
-  const internalPort = req.params.internalPort
-  logger.info(`Deleting port mapping for ${uuid}`)
+  const uuid = req.params.uuid;
+  const internalPort = req.params.internalPort;
+  logger.info(`Deleting port mapping for ${uuid}`);
   return await MicroservicesService.deletePortMappingWithTransaction(uuid, internalPort, user, false)
 }
 
 async function _getMicroservicePortMappingList(req, user) {
-  const uuid = req.params.uuid
-  logger.info(`Getting all port mappings for ${uuid}`)
-  return await MicroservicesService.getMicroservicePortMappingListWithTransaction(uuid, user, false)
+  const uuid = req.params.uuid;
+  logger.info(`Getting all port mappings for ${uuid}`);
+  const ports = await MicroservicesService.getMicroservicePortMappingListWithTransaction(uuid, user, false);
+  return {
+    ports: ports
+  }
 }
 
 module.exports = {

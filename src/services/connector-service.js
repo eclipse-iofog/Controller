@@ -24,6 +24,7 @@ const logger = require('../logger')
 const querystring = require('querystring')
 const Op = require('sequelize').Op;
 const Sequelize = require('sequelize');
+const fs = require('fs');
 
 async function _createConnector(connectorData, transaction) {
   await Validator.validate(connectorData, Validator.schemas.connectorCreate)
@@ -121,7 +122,7 @@ async function _makeRequest(connector, options, data) {
     })
 
     if (connector.cert && connector.isSelfSignedCert === true) {
-      let ca = '-----BEGIN CERTIFICATE-----\n' + connector.cert + '\n' + '-----END CERTIFICATE-----';
+      const ca = fs.readFileSync(connector.cert);
       options.ca = new Buffer(ca);
     }
 
