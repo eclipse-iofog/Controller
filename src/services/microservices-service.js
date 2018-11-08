@@ -831,6 +831,6 @@ module.exports = {
   getMicroservicePortMappingListWithTransaction: TransactionDecorator.generateTransaction(_getPortMappingList),
   deletePortMappingWithTransaction: TransactionDecorator.generateTransaction(_deletePortMapping),
   getPhysicalConections: getPhysicalConections,
-  getListMicroservices: _listMicroservices,
+  listMicroservices: _listMicroservices,
   deleteNotRunningMicroservices: _deleteNotRunningMicroservices
 };
