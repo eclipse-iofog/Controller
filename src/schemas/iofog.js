@@ -15,7 +15,6 @@ const iofogCreate = {
   "id": "/iofogCreate",
   "type": "object",
   "properties": {
-    "uuid": {"type": "string"},
     "name": {"type": "string", "minLength": 1},
     "location": {"type": "string"},
     "latitude": {"type": "number", "minimum": -90, "maximum": 90},

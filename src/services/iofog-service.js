@@ -29,7 +29,7 @@ async function _createFog(fogData, user, isCli, transaction) {
   await Validator.validate(fogData, Validator.schemas.iofogCreate);
 
   let createFogData = {
-    uuid: fogData.uuid ? fogData.uuid : AppHelper.generateRandomString(32),
+    uuid: AppHelper.generateRandomString(32),
     name: fogData.name,
     location: fogData.location,
     latitude: fogData.latitude,
@@ -52,7 +52,7 @@ async function _createFog(fogData, user, isCli, transaction) {
     abstractedHardwareEnabled: fogData.abstractedHardwareEnabled,
     fogTypeId: fogData.fogType,
     userId: user.id
-  }
+  };
   createFogData = AppHelper.deleteUndefinedFields(createFogData);
 
   const fog = await FogManager.create(createFogData, transaction);
