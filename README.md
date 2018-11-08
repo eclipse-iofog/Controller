@@ -530,7 +530,7 @@ $ iofog-controller catalog <*command*> <*options*> <br>
   "config": "string",<br>
   "catalogItemId": 0,<br>
   "flowId": 0,<br>
-  "ioFogNodeId": "string",<br>
+  "iofogUuid": "string",<br>
   "rootHostAccess": true,<br>
   "logLimit": 0,<br>
   "volumeMappings": [<br>
@@ -558,7 +558,7 @@ $ iofog-controller catalog <*command*> <*options*> <br>
   "name": "string",<br>
   "config": "string",<br>
   "rebuild": true,<br>
-  "ioFogNodeId": "string",<br>
+  "iofogUuid": "string",<br>
   "rootHostAccess": true,<br>
   "logLimit": 0,<br>
   "volumeMappings": [<br>
