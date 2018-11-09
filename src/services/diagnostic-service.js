@@ -30,7 +30,7 @@ const mime = require('mime');
 
 const changeMicroserviceStraceState = async function (id, data, user, isCLI, transaction) {
   validator.validate(data, validator.schemas.straceStateUpdate);
-  const microservice = await MicroserviceService.getMicroserviceWithTransaction(id, user, isCLI, transaction);
+  const microservice = await MicroserviceService.getMicroservice(id, user, isCLI, transaction);
   if (microservice.iofogUuid === null) {
     throw new Errors.ValidationError(ErrorMessages.STRACE_WITHOUT_FOG);
   }

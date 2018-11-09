@@ -84,7 +84,7 @@ async function _createConnector(obj) {
   const connector = _createConnectorObject(obj)
   logger.info(JSON.stringify(connector));
   try {
-    const result = await ConnectorService.createConnectorWithTransaction(connector)
+    const result = await ConnectorService.createConnector(connector)
     logger.info(JSON.stringify(result));
     logger.info('Connector has been created successfully.');
   } catch (e) {
@@ -96,7 +96,7 @@ async function _updateConnector(obj) {
   const connector = _createConnectorObject(obj)
   logger.info(JSON.stringify(connector));
   try {
-    await ConnectorService.updateConnectorWithTransaction(connector)
+    await ConnectorService.updateConnector(connector)
     logger.info('Connector has been updated successfully.');
   } catch (e) {
     logger.info(e.message)
@@ -107,7 +107,7 @@ async function _deleteConnector(obj) {
   const connector = _createConnectorObject(obj)
   logger.info(JSON.stringify(connector));
   try {
-    await ConnectorService.deleteConnectorWithTransaction(connector)
+    await ConnectorService.deleteConnector(connector)
     logger.info('Connector has been removed successfully.');
   } catch (e) {
     logger.info(e.message)
@@ -115,7 +115,7 @@ async function _deleteConnector(obj) {
 }
 
 async function _getConnectorList(obj) {
-  const list = await ConnectorService.getConnectorListWithTransaction()
+  const list = await ConnectorService.getConnectorList()
   logger.info('Connector list has been gotten successfully');
   logger.info(JSON.stringify(list));
 }
