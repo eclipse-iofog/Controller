@@ -203,10 +203,10 @@ async function closePortOnConnector(connector, ports, transaction) {
 }
 
 module.exports = {
-  createConnectorWithTransaction: TransactionDecorator.generateTransaction(_createConnector),
-  updateConnectorWithTransaction: TransactionDecorator.generateTransaction(_updateConnector),
-  deleteConnectorWithTransaction: TransactionDecorator.generateTransaction(_deleteConnector),
-  getConnectorListWithTransaction: TransactionDecorator.generateTransaction(_getConnectorList),
+  createConnector: TransactionDecorator.generateTransaction(_createConnector),
+  updateConnector: TransactionDecorator.generateTransaction(_updateConnector),
+  deleteConnector: TransactionDecorator.generateTransaction(_deleteConnector),
+  getConnectorList: TransactionDecorator.generateTransaction(_getConnectorList),
   openPortOnRandomConnector: openPortOnRandomConnector,
   closePortOnConnector: closePortOnConnector
 }

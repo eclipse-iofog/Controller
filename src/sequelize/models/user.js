@@ -63,6 +63,14 @@ module.exports = (sequelize, DataTypes) => {
       as: 'fog'
     });
 
+    User.hasMany(models.Microservice, {
+      foreignKey: {
+        name: 'userId',
+        field: 'user_id'
+      },
+      as: 'microservice'
+    });
+
   };
   return User;
 };

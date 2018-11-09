@@ -36,7 +36,7 @@ const fs = require('fs');
 const formidable = require('formidable');
 const logger = require('../logger');
 const Sequelize = require('sequelize');
-const Op = Sequelize.Op
+const Op = Sequelize.Op;
 
 const agentProvision = async function (provisionData, transaction) {
 

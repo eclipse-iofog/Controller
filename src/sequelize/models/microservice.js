@@ -92,8 +92,8 @@ module.exports = (sequelize, DataTypes) => {
 
     Microservice.belongsTo(models.User, {
       foreignKey: {
-        name: 'updatedBy',
-        field: 'updated_by'
+        name: 'userId',
+        field: 'user_id'
       },
       as: 'user',
       onDelete: 'cascade'

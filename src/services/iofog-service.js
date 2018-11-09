@@ -78,7 +78,7 @@ async function _createFog(fogData, user, isCli, transaction) {
       iofogUuid: fog.uuid,
       rootHostAccess: true,
       logSize: 50,
-      updatedBy: user.id,
+      userId: user.id,
       configLastUpdated: Date.now()
     };
 
@@ -97,7 +97,7 @@ async function _createFog(fogData, user, isCli, transaction) {
       iofogUuid: fog.uuid,
       rootHostAccess: true,
       logSize: 50,
-      updatedBy: user.id,
+      userId: user.id,
       configLastUpdated: Date.now()
     };
 
@@ -174,7 +174,7 @@ async function _updateFog(fogData, user, isCli, transaction) {
       iofogUuid: fogData.uuid,
       rootHostAccess: true,
       logSize: 50,
-      updatedBy: user.id,
+      userId: user.id,
       configLastUpdated: Date.now()
     };
 
@@ -206,7 +206,7 @@ async function _updateFog(fogData, user, isCli, transaction) {
       iofogUuid: fogData.uuid,
       rootHostAccess: true,
       logSize: 50,
-      updatedBy: user.id,
+      userId: user.id,
       configLastUpdated: Date.now()
     };
 
@@ -247,7 +247,56 @@ async function _getFog(fogData, user, isCli, transaction) {
   }
   await _updateFogsConnectionStatus(fog, transaction);
 
-  return fog
+  return {
+    uuid: fog.uuid,
+    name: fog.name,
+    location: fog.location,
+    gpsMode: fog.gpsMode,
+    latitude: fog.latitude,
+    longitude: fog.longitude,
+    description: fog.description,
+    lastActive: fog.lastActive,
+    daemonStatus: fog.daemonStatus,
+    daemonOperatingDuration: fog.daemonOperatingDuration,
+    daemonLastStart: fog.daemonLastStart,
+    memoryUsage: fog.memoryUsage,
+    diskUsage: fog.diskUsage,
+    cpuUsage: fog.cpuUsage,
+    memoryViolation: fog.memoryViolation,
+    diskViolation: fog.diskViolation,
+    cpuViolation: fog.cpuViolation,
+    catalogItemStatus: fog.catalogItemStatus,
+    repositoryCount: fog.repositoryCount,
+    repositoryStatus: fog.repositoryStatus,
+    systemTime: fog.systemTime,
+    lastStatusTime: fog.lastStatusTime,
+    ipAddress: fog.ipAddress,
+    processedMessages: fog.processedMessages,
+    catalogItemMessageCounts: fog.catalogItemMessageCounts,
+    messageSpeed: fog.messageSpeed,
+    lastCommandTime: fog.lastCommandTime,
+    networkInterface: fog.networkInterface,
+    dockerUrl: fog.dockerUrl,
+    diskLimit: fog.diskLimit,
+    diskDirectory: fog.diskDirectory,
+    memoryLimit: fog.memoryLimit,
+    cpuLimit: fog.cpuLimit,
+    logLimit: fog.logLimit,
+    logDirectory: fog.logDirectory,
+    bluetoothEnabled: fog.bluetoothEnabled,
+    abstractedHardwareEnabled: fog.abstractedHardwareEnabled,
+    logFileCount: fog.logFileCount,
+    version: fog.version,
+    isReadyToUpgrade: fog.isReadyToUpgrade,
+    isReadyToRollback: fog.isReadyToRollback,
+    statusFrequency: fog.statusFrequency,
+    changeFrequency: fog.changeFrequency,
+    deviceScanFrequency: fog.deviceScanFrequency,
+    tunnel: fog.tunnel,
+    watchdogEnabled: fog.watchdogEnabled,
+    fogTypeId: fog.fogTypeId,
+    userId: fog.userId
+  };
 }
 
 async function _getFogList(filters, user, isCli, transaction) {
@@ -286,12 +335,10 @@ async function _generateProvisioningKey(fogData, user, isCli, transaction) {
   }
   const provisioningKeyData = await FogProvisionKeyManager.updateOrCreate({iofogUuid: fogData.uuid}, newProvision, transaction);
 
-  const res = {
+  return {
     key: provisioningKeyData.provisionKey,
     expirationTime: provisioningKeyData.expirationTime
-  };
-
-  return res
+  }
 }
 
 async function _setFogVersionCommand(fogVersionData, user, isCli, transaction) {
@@ -408,14 +455,14 @@ async function _processDeleteCommand(fog, transaction) {
 }
 
 module.exports = {
-  createFogWithTransaction: TransactionDecorator.generateTransaction(_createFog),
-  updateFogWithTransaction: TransactionDecorator.generateTransaction(_updateFog),
-  deleteFogWithTransaction: TransactionDecorator.generateTransaction(_deleteFog),
+  createFog: TransactionDecorator.generateTransaction(_createFog),
+  updateFog: TransactionDecorator.generateTransaction(_updateFog),
+  deleteFog: TransactionDecorator.generateTransaction(_deleteFog),
   getFogWithTransaction: TransactionDecorator.generateTransaction(_getFog),
-  getFogListWithTransaction: TransactionDecorator.generateTransaction(_getFogList),
-  generateProvisioningKeyWithTransaction: TransactionDecorator.generateTransaction(_generateProvisioningKey),
-  setFogVersionCommandWithTransaction: TransactionDecorator.generateTransaction(_setFogVersionCommand),
-  setFogRebootCommandWithTransaction: TransactionDecorator.generateTransaction(_setFogRebootCommand),
+  getFogList: TransactionDecorator.generateTransaction(_getFogList),
+  generateProvisioningKey: TransactionDecorator.generateTransaction(_generateProvisioningKey),
+  setFogVersionCommand: TransactionDecorator.generateTransaction(_setFogVersionCommand),
+  setFogRebootCommand: TransactionDecorator.generateTransaction(_setFogRebootCommand),
   getHalHardwareInfo: TransactionDecorator.generateTransaction(_getHalHardwareInfo),
   getHalUsbInfo: TransactionDecorator.generateTransaction(_getHalUsbInfo),
   getFog: _getFog

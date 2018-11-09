@@ -84,7 +84,6 @@ const _updateFlow = async function (flowData, flowId, user, isCLI, transaction) 
     name: flowData.name,
     description: flowData.description,
     isActivated: flowData.isActivated,
-    updatedBy: user.id
   };
 
   const updateFlowData = AppHelper.deleteUndefinedFields(flow);
@@ -145,11 +144,11 @@ const _checkForDuplicateName = async function (name, item, userId, transaction) 
 };
 
 module.exports = {
-  createFlowWithTransaction: TransactionDecorator.generateTransaction(_createFlow),
-  deleteFlowWithTransaction: TransactionDecorator.generateTransaction(_deleteFlow),
-  updateFlowWithTransaction: TransactionDecorator.generateTransaction(_updateFlow),
+  createFlow: TransactionDecorator.generateTransaction(_createFlow),
+  deleteFlow: TransactionDecorator.generateTransaction(_deleteFlow),
+  updateFlow: TransactionDecorator.generateTransaction(_updateFlow),
   getFlowWithTransaction: TransactionDecorator.generateTransaction(_getFlow),
-  getUserFlowsWithTransaction: TransactionDecorator.generateTransaction(_getUserFlows),
-  getAllFlowsWithTransaction: TransactionDecorator.generateTransaction(_getAllFlows),
+  getUserFlows: TransactionDecorator.generateTransaction(_getUserFlows),
+  getAllFlows: TransactionDecorator.generateTransaction(_getAllFlows),
   getFlow: _getFlow
 };

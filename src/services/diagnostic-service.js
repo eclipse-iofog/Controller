@@ -30,7 +30,7 @@ const mime = require('mime');
 
 const changeMicroserviceStraceState = async function (id, data, user, isCLI, transaction) {
   validator.validate(data, validator.schemas.straceStateUpdate);
-  const microservice = await MicroserviceService.getMicroserviceWithTransaction(id, user, isCLI, transaction);
+  const microservice = await MicroserviceService.getMicroservice(id, user, isCLI, transaction);
   if (microservice.iofogUuid === null) {
     throw new Errors.ValidationError(ErrorMessages.STRACE_WITHOUT_FOG);
   }
@@ -84,7 +84,7 @@ const postMicroserviceImageSnapshotCreate = async function (microserviceUuid, us
     :
     {
       uuid: microserviceUuid,
-      updatedBy: user.id
+      userId: user.id
     };
 
 
@@ -94,7 +94,9 @@ const postMicroserviceImageSnapshotCreate = async function (microserviceUuid, us
     throw new Errors.ValidationError(ErrorMessages.IMAGE_SNAPSHOT_WITHOUT_FOG);
   }
 
-  let imageSnapshot = 'get_image';
+  const microserviceToUpdate = {
+    imageSnapshot: 'get_image'
+  };
 
   await MicroserviceManager.update({uuid: microservice.uuid}, microserviceToUpdate, transaction);
   await ChangeTrackingService.update(microservice.iofogUuid, ChangeTrackingService.events.imageSnapshot, transaction);
@@ -108,7 +110,7 @@ const getMicroserviceImageSnapshot = async function (microserviceUuid, user, isC
     :
     {
       uuid: microserviceUuid,
-      updatedBy: user.id
+      userId: user.id
     };
   const microservice = await MicroserviceManager.findOneWithDependencies(where, {}, transaction);
   if (microservice.iofogUuid === null) {
