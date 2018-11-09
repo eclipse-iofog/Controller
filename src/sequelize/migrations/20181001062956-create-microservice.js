@@ -64,11 +64,11 @@ module.exports = {
         references: { model: 'Fogs', key: 'uuid' },
         onDelete: 'set null'
       },
-      updatedBy: {
+      userId: {
         type: Sequelize.INTEGER,
-        field: 'updated_by',
+        field: 'user_id',
         references: { model: 'Users', key: 'id' },
-        onDelete: 'set null'
+        onDelete: 'cascade'
       },
       catalogItemId: {
         type: Sequelize.INTEGER,

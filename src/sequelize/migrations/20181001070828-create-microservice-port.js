@@ -37,9 +37,9 @@ module.exports = {
         references: { model: 'Microservices', key: 'uuid' },
         onDelete: 'cascade'
       },
-      updatedBy: {
+      userId: {
         type: Sequelize.INTEGER,
-        field: 'updated_by',
+        field: 'user_id',
         references: { model: 'Users', key: 'id' },
         onDelete: 'cascade'
       }

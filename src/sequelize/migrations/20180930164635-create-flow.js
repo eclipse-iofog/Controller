@@ -40,12 +40,6 @@ module.exports = {
         field: 'user_id',
         references: { model: 'Users', key: 'id' },
         onDelete: 'cascade'
-      },
-      updatedBy: {
-        type: Sequelize.INTEGER,
-        field: 'updated_by',
-        references: { model: 'Users', key: 'id' },
-        onDelete: 'set null'
       }
     });
   },
