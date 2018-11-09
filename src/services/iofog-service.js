@@ -78,7 +78,7 @@ async function _createFog(fogData, user, isCli, transaction) {
       iofogUuid: fog.uuid,
       rootHostAccess: true,
       logSize: 50,
-      updatedBy: user.id,
+      userId: user.id,
       configLastUpdated: Date.now()
     };
 
@@ -97,7 +97,7 @@ async function _createFog(fogData, user, isCli, transaction) {
       iofogUuid: fog.uuid,
       rootHostAccess: true,
       logSize: 50,
-      updatedBy: user.id,
+      userId: user.id,
       configLastUpdated: Date.now()
     };
 
@@ -174,7 +174,7 @@ async function _updateFog(fogData, user, isCli, transaction) {
       iofogUuid: fogData.uuid,
       rootHostAccess: true,
       logSize: 50,
-      updatedBy: user.id,
+      userId: user.id,
       configLastUpdated: Date.now()
     };
 
@@ -206,7 +206,7 @@ async function _updateFog(fogData, user, isCli, transaction) {
       iofogUuid: fogData.uuid,
       rootHostAccess: true,
       logSize: 50,
-      updatedBy: user.id,
+      userId: user.id,
       configLastUpdated: Date.now()
     };
 

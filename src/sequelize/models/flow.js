@@ -39,15 +39,6 @@ module.exports = (sequelize, DataTypes) => {
       onDelete: 'cascade'
     });
 
-    Flow.belongsTo(models.User, {
-      foreignKey: {
-        name: 'updatedById',
-        field: 'updated_by'
-      },
-      as: 'updatedBy',
-      onDelete: 'set null'
-    });
-
     Flow.hasMany(models.Microservice, {
       foreignKey: {
         name: 'flowId',
