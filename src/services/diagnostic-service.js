@@ -94,7 +94,9 @@ const postMicroserviceImageSnapshotCreate = async function (microserviceUuid, us
     throw new Errors.ValidationError(ErrorMessages.IMAGE_SNAPSHOT_WITHOUT_FOG);
   }
 
-  let imageSnapshot = 'get_image';
+  const microserviceToUpdate = {
+    imageSnapshot: 'get_image'
+  };
 
   await MicroserviceManager.update({uuid: microservice.uuid}, microserviceToUpdate, transaction);
   await ChangeTrackingService.update(microservice.iofogUuid, ChangeTrackingService.events.imageSnapshot, transaction);
