@@ -14,16 +14,21 @@
 const db = require('./../sequelize/models');
 const retry = require('retry-as-promised');
 const sequelize = db.sequelize;
+// const Transaction = require('sequelize/lib/transaction');
 
 function transaction(f) {
-  return function () {
+  return async function() {
     const fArgs = Array.prototype.slice.call(arguments);
     // To be removed when transactions concurrency issue fixed
+    // if (fArgs[fArgs.length - 1] instanceof Transaction) {
+    //   return await  f.apply(this, fArgs);
+    // } else {
     return f.apply(this, fArgs)
-    // return sequelize.transaction(async (t) => {
-    //   fArgs.push(t);
-    //   return await f.apply(this, fArgs);
-    // })
+    //   return sequelize.transaction(async (t) => {
+    //     fArgs.push(t);
+    //     return await f.apply(this, fArgs);
+    //   })
+    // }
   }
 }
 

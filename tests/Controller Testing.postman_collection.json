@@ -3419,7 +3419,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"name\": \"name3\",\n  \"config\": \"string\",\n  \"needUpdate\": true,\n  \"rebuild\": true,\n  \"iofogUuid\": \"{{node-id}}\",\n  \"rootHostAccess\": true,\n  \"logLimit\": 0,\n  \"imageSnapshot\": \"string\",\n  \"volumeMappings\": [\n    {\n      \"hostDestination\": \"/var/dest\",\n      \"containerDestination\": \"/var/dest\",\n      \"accessMode\": \"rw\"\n    }\n  ]\n}\n"
+							"raw": "{\n  \"name\": \"name3\",\n  \"config\": \"string\",\n  \"rebuild\": true,\n  \"iofogUuid\": \"{{node-id}}\",\n  \"rootHostAccess\": true,\n  \"logSize\": 0,\n  \"volumeMappings\": [\n    {\n      \"hostDestination\": \"/var/dest\",\n      \"containerDestination\": \"/var/dest\",\n      \"accessMode\": \"rw\"\n    }\n  ]\n}"
 						},
 						"url": {
 							"raw": "{{host}}/api/v3/microservices/{{ms-id}}",
