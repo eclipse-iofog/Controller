@@ -84,7 +84,7 @@ const postMicroserviceImageSnapshotCreate = async function (microserviceUuid, us
     :
     {
       uuid: microserviceUuid,
-      updatedBy: user.id
+      userId: user.id
     };
 
 
@@ -108,7 +108,7 @@ const getMicroserviceImageSnapshot = async function (microserviceUuid, user, isC
     :
     {
       uuid: microserviceUuid,
-      updatedBy: user.id
+      userId: user.id
     };
   const microservice = await MicroserviceManager.findOneWithDependencies(where, {}, transaction);
   if (microservice.iofogUuid === null) {
