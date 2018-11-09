@@ -166,7 +166,7 @@ async function _createFog(obj, user) {
 
   logger.info(JSON.stringify(fog));
 
-  const result = await FogService.createFogWithTransaction(fog, user, true);
+  const result = await FogService.createFog(fog, user, true);
   logger.info(JSON.stringify(result));
   logger.info('Fog has been created successfully.');
 }
@@ -179,20 +179,20 @@ async function _updateFog(obj, user) {
   fog.uuid = obj.nodeId
   logger.info(JSON.stringify(fog));
 
-  await FogService.updateFogWithTransaction(fog, user, true);
+  await FogService.updateFog(fog, user, true);
   logger.info('Fog has been updated successfully.');
 }
 
 async function _deleteFog(obj, user) {
   const fog = _createFogObject(obj);
   logger.info(JSON.stringify(fog));
-  await FogService.deleteFogWithTransaction(fog, user, true);
+  await FogService.deleteFog(fog, user, true);
   logger.info('Fog has been removed successfully');
 }
 
 async function _getFogList(obj, user) {
   const emptyFilters = []
-  const list = await FogService.getFogListWithTransaction(emptyFilters, user, true);
+  const list = await FogService.getFogList(emptyFilters, user, true);
   logger.info('Fog list has been gotten successfully');
   logger.info(JSON.stringify(list));
 }
@@ -207,7 +207,7 @@ async function _getFog(obj, user) {
 async function _generateProvision(obj, user) {
   const fog = _createFogObject(obj);
   logger.info(JSON.stringify(fog));
-  const res = await FogService.generateProvisioningKeyWithTransaction(fog, user, true);
+  const res = await FogService.generateProvisioningKey(fog, user, true);
   logger.info('Fog provisioning key has been generated successfully');
   logger.info('Provisioning key: '+ JSON.stringify(res));
 }
@@ -215,7 +215,7 @@ async function _generateProvision(obj, user) {
 async function _setFogRebootCommand(obj, user) {
   const fog = _createFogObject(obj);
   logger.info(JSON.stringify(fog));
-  await FogService.setFogRebootCommandWithTransaction(fog, user, true);
+  await FogService.setFogRebootCommand(fog, user, true);
   logger.info('Fog reboot command has been set successfully');
 }
 
@@ -225,7 +225,7 @@ async function _setFogVersionCommand(obj, user) {
     versionCommand: obj.versionCommand
   };
   logger.info(JSON.stringify(fog));
-  await FogService.setFogVersionCommandWithTransaction(fog, user, true);
+  await FogService.setFogVersionCommand(fog, user, true);
   logger.info('Fog version command has been set successfully');
 }
 

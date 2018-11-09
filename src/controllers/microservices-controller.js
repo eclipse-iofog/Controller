@@ -20,7 +20,7 @@ const _createMicroservicesOnFogEndPoint = async function (req, user) {
 
   logger.info("Parameters:" + JSON.stringify(microservice));
 
-  return await MicroservicesService.createMicroserviceOnFogWithTransaction(microservice, user, false)
+  return await MicroservicesService.createMicroserviceOnFog(microservice, user, false)
 };
 
 const _getMicroserviceEndPoint = async function (req, user) {
@@ -28,7 +28,7 @@ const _getMicroserviceEndPoint = async function (req, user) {
 
   logger.info("Microservice uuid:" + JSON.stringify(microserviceUuid));
 
-  return await MicroservicesService.getMicroserviceWithTransaction(microserviceUuid, user, false)
+  return await MicroservicesService.getMicroservice(microserviceUuid, user, false)
 };
 
 const _updateMicroserviceEndPoint = async function (req, user) {
@@ -38,7 +38,7 @@ const _updateMicroserviceEndPoint = async function (req, user) {
   logger.info("Parameters:" + JSON.stringify(microservice));
   logger.info("Microservice uuid:" + JSON.stringify(microserviceUuid));
 
-  return await MicroservicesService.updateMicroserviceWithTransaction(microserviceUuid, microservice, user, false)
+  return await MicroservicesService.updateMicroservice(microserviceUuid, microservice, user, false)
 };
 
 const _deleteMicroserviceEndPoint = async function (req, user) {
@@ -48,7 +48,7 @@ const _deleteMicroserviceEndPoint = async function (req, user) {
   logger.info("Microservice uuid:" + JSON.stringify(microserviceUuid));
   logger.info("Delete with cleanup:" + JSON.stringify(deleteWithCleanUp));
 
-  return await MicroservicesService.deleteMicroserviceWithTransaction(microserviceUuid, deleteWithCleanUp, user, false)
+  return await MicroservicesService.deleteMicroservice(microserviceUuid, deleteWithCleanUp, user, false)
 };
 
 const _getMicroservicesByFlowEndPoint = async function (req, user) {
@@ -56,41 +56,41 @@ const _getMicroservicesByFlowEndPoint = async function (req, user) {
 
   logger.info("Flow id:" + flowId);
 
-  return await MicroservicesService.listMicroservicesWithTransaction(flowId, user, false)
+  return await MicroservicesService.listMicroservices(flowId, user, false)
 };
 
 async function _createMicroserviceRoute(req, user) {
   const sourceUuid = req.params.uuid;
   const distUuid = req.params.receiverUuid;
   logger.info(`Creating route from ${sourceUuid} to ${distUuid}`);
-  return await MicroservicesService.createRouteWithTransaction(sourceUuid, distUuid, user, false)
+  return await MicroservicesService.createRoute(sourceUuid, distUuid, user, false)
 }
 
 async function _deleteMicroserviceRoute(req, user) {
   const sourceUuid = req.params.uuid;
   const distUuid = req.params.receiverUuid;
   logger.info(`Creating route from ${sourceUuid} to ${distUuid}`);
-  return await MicroservicesService.deleteRouteWithTransaction(sourceUuid, distUuid, user, false)
+  return await MicroservicesService.deleteRoute(sourceUuid, distUuid, user, false)
 }
 
 async function _createMicroservicePortMapping(req, user) {
   const uuid = req.params.uuid;
   const portMappingData = req.body;
   logger.info(`Creating port mapping for ${uuid}`);
-  return await MicroservicesService.createPortMappingWithTransaction(uuid, portMappingData, user, false)
+  return await MicroservicesService.createPortMapping(uuid, portMappingData, user, false)
 }
 
 async function _deleteMicroservicePortMapping(req, user) {
   const uuid = req.params.uuid;
   const internalPort = req.params.internalPort;
   logger.info(`Deleting port mapping for ${uuid}`);
-  return await MicroservicesService.deletePortMappingWithTransaction(uuid, internalPort, user, false)
+  return await MicroservicesService.deletePortMapping(uuid, internalPort, user, false)
 }
 
 async function _getMicroservicePortMappingList(req, user) {
   const uuid = req.params.uuid;
   logger.info(`Getting all port mappings for ${uuid}`);
-  const ports = await MicroservicesService.getMicroservicePortMappingListWithTransaction(uuid, user, false);
+  const ports = await MicroservicesService.getMicroservicePortMappingList(uuid, user, false);
   return {
     ports: ports
   }

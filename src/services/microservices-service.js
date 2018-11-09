@@ -790,17 +790,16 @@ async function _buildLink(protocol, ip, port) {
 }
 
 module.exports = {
-  createMicroserviceOnFogWithTransaction: TransactionDecorator.generateTransaction(_createMicroserviceOnFog),
-  listMicroservicesWithTransaction: TransactionDecorator.generateTransaction(_listMicroservices),
-  getMicroserviceWithTransaction: TransactionDecorator.generateTransaction(_getMicroservice),
-  updateMicroserviceWithTransaction: TransactionDecorator.generateTransaction(_updateMicroservice),
-  deleteMicroserviceWithTransaction: TransactionDecorator.generateTransaction(_deleteMicroservice),
-  createRouteWithTransaction: TransactionDecorator.generateTransaction(_createRoute),
-  deleteRouteWithTransaction: TransactionDecorator.generateTransaction(_deleteRoute),
-  createPortMappingWithTransaction: TransactionDecorator.generateTransaction(_createPortMapping),
-  getMicroservicePortMappingListWithTransaction: TransactionDecorator.generateTransaction(_getPortMappingList),
-  deletePortMappingWithTransaction: TransactionDecorator.generateTransaction(_deletePortMapping),
+  createMicroserviceOnFog: TransactionDecorator.generateTransaction(_createMicroserviceOnFog),
+  listMicroservices: TransactionDecorator.generateTransaction(_listMicroservices),
+  getMicroservice: TransactionDecorator.generateTransaction(_getMicroservice),
+  updateMicroservice: TransactionDecorator.generateTransaction(_updateMicroservice),
+  deleteMicroservice: TransactionDecorator.generateTransaction(_deleteMicroservice),
+  createRoute: TransactionDecorator.generateTransaction(_createRoute),
+  deleteRoute: TransactionDecorator.generateTransaction(_deleteRoute),
+  createPortMapping: TransactionDecorator.generateTransaction(_createPortMapping),
+  getMicroservicePortMappingList: TransactionDecorator.generateTransaction(_getPortMappingList),
+  deletePortMapping: TransactionDecorator.generateTransaction(_deletePortMapping),
   getPhysicalConections: getPhysicalConections,
-  listMicroservices: _listMicroservices,
   deleteNotRunningMicroservices: _deleteNotRunningMicroservices
 };
