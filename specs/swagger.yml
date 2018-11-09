@@ -1334,11 +1334,15 @@ paths:
         description: Microservice Uuid
         required: true
         type: string
-      - in: query
-        name: withCleanUp
-        description: Delete with cleanup
-        required: true
-        type: boolean
+      - in: body
+        name: WithCleanupOption
+        description: Delete option
+        required: false
+        schema:
+          type: object
+          properties:
+            withCleanup:
+              type: boolean
       responses:
         '204':
           description: Success
@@ -1346,6 +1350,8 @@ paths:
             X-Timestamp:
               type: number
               description: FogController server timestamp
+        '400':
+          description: Bad Request
         '401':
           description: Not Authorized
         '404':
@@ -1637,6 +1643,8 @@ paths:
             X-Timestamp:
               type: number
               description: FogController server timestamp
+        '400':
+          description: Not Valid
         '401':
           description: Not Authorized
         '404':

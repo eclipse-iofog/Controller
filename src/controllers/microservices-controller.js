@@ -35,7 +35,7 @@ const _updateMicroserviceEndPoint = async function (req, user) {
   const microservice = req.body;
   const microserviceUuid = req.params.uuid;
 
-  logger.info("Parameters:" + JSON.stringify(microservice));
+  logger.info("Parameters: " + JSON.stringify(microservice));
   logger.info("Microservice uuid:" + JSON.stringify(microserviceUuid));
 
   return await MicroservicesService.updateMicroserviceWithTransaction(microserviceUuid, microservice, user, false)
@@ -43,11 +43,11 @@ const _updateMicroserviceEndPoint = async function (req, user) {
 
 const _deleteMicroserviceEndPoint = async function (req, user) {
   const microserviceUuid = req.params.uuid;
-
+  const microserviceData = req.body || {};
   logger.info("Microservice uuid:" + JSON.stringify(microserviceUuid));
-  logger.info("Request body:" + JSON.stringify(req.body));
+  logger.info("Parameters: " + JSON.stringify(microserviceData));
 
-  return await MicroservicesService.deleteMicroserviceWithTransaction(microserviceUuid, req.body, user, false)
+  return await MicroservicesService.deleteMicroserviceWithTransaction(microserviceUuid, microserviceData, user, false)
 };
 
 const _getMicroservicesByFlowEndPoint = async function (req, user) {
@@ -58,42 +58,65 @@ const _getMicroservicesByFlowEndPoint = async function (req, user) {
   return await MicroservicesService.listMicroservicesWithTransaction(flowId, user, false)
 };
 
-async function _createMicroserviceRoute(req, user) {
+const _createMicroserviceRouteEndPoint = async function (req, user) {
   const sourceUuid = req.params.uuid;
   const distUuid = req.params.receiverUuid;
   logger.info(`Creating route from ${sourceUuid} to ${distUuid}`);
   return await MicroservicesService.createRouteWithTransaction(sourceUuid, distUuid, user, false)
 }
 
-async function _deleteMicroserviceRoute(req, user) {
+const _deleteMicroserviceRouteEndPoint = async function (req, user) {
   const sourceUuid = req.params.uuid;
   const distUuid = req.params.receiverUuid;
   logger.info(`Creating route from ${sourceUuid} to ${distUuid}`);
   return await MicroservicesService.deleteRouteWithTransaction(sourceUuid, distUuid, user, false)
 }
 
-async function _createMicroservicePortMapping(req, user) {
+const _createMicroservicePortMappingEndPoint = async function (req, user) {
   const uuid = req.params.uuid;
   const portMappingData = req.body;
   logger.info(`Creating port mapping for ${uuid}`);
   return await MicroservicesService.createPortMappingWithTransaction(uuid, portMappingData, user, false)
 }
 
-async function _deleteMicroservicePortMapping(req, user) {
+const _deleteMicroservicePortMappingEndPoint = async function (req, user) {
   const uuid = req.params.uuid;
   const internalPort = req.params.internalPort;
   logger.info(`Deleting port mapping for ${uuid}`);
   return await MicroservicesService.deletePortMappingWithTransaction(uuid, internalPort, user, false)
 }
 
-async function _getMicroservicePortMappingList(req, user) {
+const _listMicroservicePortMappingsEndPoint = async function (req, user) {
   const uuid = req.params.uuid;
   logger.info(`Getting all port mappings for ${uuid}`);
   const ports = await MicroservicesService.getMicroservicePortMappingListWithTransaction(uuid, user, false);
   return {
     ports: ports
   }
-}
+};
+
+const _createMicroserviceVolumeMappingEndPoint = async function (req, user) {
+  const microserviceUuid = req.params.uuid;
+  const volumeMappingData = req.body;
+  logger.info(`Creating volume mapping for ${microserviceUuid}`);
+  const volumeMapping = await MicroservicesService.createVolumeMapping(microserviceUuid, volumeMappingData, user, false);
+  return {
+    id: volumeMapping.id
+  }
+};
+
+const _listMicroserviceVolumeMappingsEndPoint = async function (req, user) {
+  const uuid = req.params.uuid;
+  logger.info(`Getting all volume mappings for ${uuid}`);
+  return await MicroservicesService.listVolumeMappings(uuid, user, false);
+};
+
+const _deleteMicroserviceVolumeMappingEndPoint = async function (req, user) {
+  const uuid = req.params.uuid;
+  const id = req.params.id;
+  logger.info(`Deleting volume mapping ${id} for ${uuid}`);
+  return await MicroservicesService.deleteVolumeMapping(uuid, id, user, false);
+};
 
 module.exports = {
   createMicroservicesOnFogEndPoint: AuthDecorator.checkAuthToken(_createMicroservicesOnFogEndPoint),
@@ -101,9 +124,12 @@ module.exports = {
   updateMicroserviceEndPoint: AuthDecorator.checkAuthToken(_updateMicroserviceEndPoint),
   deleteMicroserviceEndPoint: AuthDecorator.checkAuthToken(_deleteMicroserviceEndPoint),
   getMicroservicesByFlowEndPoint: AuthDecorator.checkAuthToken(_getMicroservicesByFlowEndPoint),
-  createMicroserviceRoute: AuthDecorator.checkAuthToken(_createMicroserviceRoute),
-  deleteMicroserviceRoute: AuthDecorator.checkAuthToken(_deleteMicroserviceRoute),
-  createMicroservicePortMapping: AuthDecorator.checkAuthToken(_createMicroservicePortMapping),
-  deleteMicroservicePortMapping: AuthDecorator.checkAuthToken(_deleteMicroservicePortMapping),
-  getMicroservicePortMappingList: AuthDecorator.checkAuthToken(_getMicroservicePortMappingList)
+  createMicroserviceRouteEndPoint: AuthDecorator.checkAuthToken(_createMicroserviceRouteEndPoint),
+  deleteMicroserviceRouteEndPoint: AuthDecorator.checkAuthToken(_deleteMicroserviceRouteEndPoint),
+  createMicroservicePortMappingEndPoint: AuthDecorator.checkAuthToken(_createMicroservicePortMappingEndPoint),
+  deleteMicroservicePortMappingEndPoint: AuthDecorator.checkAuthToken(_deleteMicroservicePortMappingEndPoint),
+  getMicroservicePortMappingListEndPoint: AuthDecorator.checkAuthToken(_listMicroservicePortMappingsEndPoint),
+  createMicroserviceVolumeMappingEndPoint: AuthDecorator.checkAuthToken(_createMicroserviceVolumeMappingEndPoint),
+  listMicroserviceVolumeMappingsEndPoint: AuthDecorator.checkAuthToken(_listMicroserviceVolumeMappingsEndPoint),
+  deleteMicroserviceVolumeMappingEndPoint: AuthDecorator.checkAuthToken(_deleteMicroserviceVolumeMappingEndPoint)
 };
