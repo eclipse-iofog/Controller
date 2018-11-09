@@ -793,7 +793,7 @@ async function _createVolumeMapping(microserviceUuid, volumeMappingData, user, i
 
   const where = isCLI
     ? {uuid: microserviceUuid}
-    : {uuid: microserviceUuid, updatedBy: user.id};
+    : {uuid: microserviceUuid, userId: user.id};
 
   const microservice = await MicroserviceManager.findOne(where, transaction);
   if (!microservice) {
@@ -822,7 +822,7 @@ async function _createVolumeMapping(microserviceUuid, volumeMappingData, user, i
 async function _deleteVolumeMapping(microserviceUuid, volumeMappingUuid, user, isCLI, transaction) {
   const where = isCLI
     ? {uuid: microserviceUuid}
-    : {uuid: microserviceUuid, updatedBy: user.id};
+    : {uuid: microserviceUuid, userId: user.id};
 
   const microservice = await MicroserviceManager.findOne(where, transaction);
   if (!microservice) {
@@ -843,7 +843,7 @@ async function _deleteVolumeMapping(microserviceUuid, volumeMappingUuid, user, i
 async function _listVolumeMappings(microserviceUuid, user, isCLI, transaction) {
   const where = isCLI
     ? {uuid: microserviceUuid}
-    : {uuid: microserviceUuid, updatedBy: user.id};
+    : {uuid: microserviceUuid, userId: user.id};
   const microservice = await MicroserviceManager.findOne(where, transaction)
   if (!microservice) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, microserviceUuid))
@@ -864,7 +864,7 @@ module.exports = {
   createRoute: TransactionDecorator.generateTransaction(_createRoute),
   deleteRoute: TransactionDecorator.generateTransaction(_deleteRoute),
   createPortMapping: TransactionDecorator.generateTransaction(_createPortMapping),
-  listMicroservicePortMappings: TransactionDecorator.generateTransaction(_listMicroservicePortMappings),
+  listMicroservicePortMappings: TransactionDecorator.generateTransaction(_listPortMappings),
   deletePortMapping: TransactionDecorator.generateTransaction(_deletePortMapping),
   createVolumeMapping: TransactionDecorator.generateTransaction(_createVolumeMapping),
   deleteVolumeMapping: TransactionDecorator.generateTransaction(_deleteVolumeMapping),

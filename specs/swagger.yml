@@ -1560,7 +1560,7 @@ paths:
         description: information about volume mapping
         required: true
         schema:
-          $ref: '#/definitions/VolumeMappingAgentRequest'
+          $ref: '#/definitions/VolumeMapping'
       responses:
         '201':
           description: Created
@@ -1603,7 +1603,7 @@ paths:
           schema:
             type: array
             items:
-              $ref: '#/definitions/VolumeMappingAgentRequest'
+              $ref: '#/definitions/VolumeMappingRequest'
           headers:
             X-Timestamp:
               type: number
@@ -2753,7 +2753,7 @@ definitions:
       VolumeMappings:
         type: array
         items:
-          $ref: '#/definitions/VolumeMappingAgentRequest'
+          $ref: '#/definitions/VolumeMapping'
       imageSnapshot:
         type: string
       removeWithCleanUp:
@@ -2764,9 +2764,23 @@ definitions:
     type: array
     items:
       type: string
-  VolumeMappingAgentRequest:
+  VolumeMapping:
     type: object
     properties:
+      hostDestination:
+        type: string
+        example: /var/dest
+      containerDestination:
+        type: string
+        example: /var/dest
+      accessMode:
+        type: string
+        example: rw
+  VolumeMappingRequest:
+    type: object
+    properties:
+      id:
+        type: number
       hostDestination:
         type: string
         example: /var/dest
@@ -3008,7 +3022,7 @@ definitions:
       volumeMappings:
         type: array
         items:
-          $ref: '#/definitions/VolumeMappingAgentRequest'
+          $ref: '#/definitions/VolumeMappingRequest'
       ports:
         type: array
         items:
@@ -3035,7 +3049,7 @@ definitions:
       volumeMappings:
          type: array
          items:
-           $ref: '#/definitions/VolumeMappingAgentRequest'
+           $ref: '#/definitions/VolumeMapping'
       ports:
         type: array
         items:
@@ -3062,7 +3076,7 @@ definitions:
       volumeMappings:
          type: array
          items:
-           $ref: '#/definitions/VolumeMappingAgentRequest'
+           $ref: '#/definitions/VolumeMapping'
   IOFogNodeTunnelStatusInfoResponse:
     type: object
     properties:

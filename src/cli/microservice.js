@@ -302,7 +302,7 @@ const _createRoute = async function (obj) {
     const arr = obj.route.split(':');
     const sourceMicroserviceId = arr[0];
     const destMicroserviceId = arr[1];
-    await MicroserviceService.createRouteWithTransaction(sourceMicroserviceId, destMicroserviceId, {}, true);
+    await MicroserviceService.createRoute(sourceMicroserviceId, destMicroserviceId, {}, true);
     logger.info(`Microservice route with source microservice ${sourceMicroserviceId} and dest microservice 
                 ${destMicroserviceId} has been created successfully.`)
   } catch (e) {
@@ -316,7 +316,7 @@ const _removeRoute = async function (obj) {
     const arr = obj.route.split(':');
     const sourceMicroserviceId = arr[0];
     const destMicroserviceId = arr[1];
-    await MicroserviceService.deleteRouteWithTransaction(sourceMicroserviceId, destMicroserviceId, {}, true);
+    await MicroserviceService.deleteRoute(sourceMicroserviceId, destMicroserviceId, {}, true);
     logger.info(`Microservice route with source microservice ${obj.sourceMicroserviceId} and dest microservice 
                 ${obj.destMicroserviceId} has been removed successfully.`);
   } catch (e) {
@@ -327,7 +327,7 @@ const _removeRoute = async function (obj) {
 const _createPortMapping = async function (obj) {
   logger.info(JSON.stringify(obj));
   const mapping = parsePortMappingObject(obj.mapping, ErrorMessages.CLI.INVALID_PORT_MAPPING);
-  await MicroserviceService.createPortMappingWithTransaction(obj.microserviceId, mapping, {}, true);
+  await MicroserviceService.createPortMapping(obj.microserviceId, mapping, {}, true);
   logger.info('Port mapping has been create successfully.');
 };
 
@@ -343,7 +343,7 @@ const _removePortMapping = async function (obj) {
   logger.info(JSON.stringify(obj));
   try {
     const internalPort = parseInt(obj.internalPort);
-    await MicroserviceService.deletePortMappingWithTransaction(obj.microserviceId, internalPort, {}, true);
+    await MicroserviceService.deletePortMapping(obj.microserviceId, internalPort, {}, true);
     logger.info('Port mapping has been deleted successfully.');
   } catch(e) {
     logger.error(ErrorMessages.CLI.INVALID_INTERNAL_PORT);
@@ -361,7 +361,7 @@ const _removeVolumeMapping = async function (obj) {
 };
 
 const _listPortMappings = async function (obj) {
-  const result = await MicroserviceService.listMicroservicePortMappingsWithTransaction(obj.microserviceId, {}, true);
+  const result = await MicroserviceService.listMicroservicePortMappings(obj.microserviceId, {}, true);
   logger.info(JSON.stringify(result));
   logger.info('Port mappings have been retrieved successfully.');
 };
@@ -374,19 +374,19 @@ const _listVolumeMappings = async function (obj) {
 
 const _removeMicroservice = async function (obj) {
   logger.info(JSON.stringify(obj));
-  await MicroserviceService.deleteMicroserviceWithTransaction(obj.microserviceId, obj.cleanup, {}, true);
+  await MicroserviceService.deleteMicroservice(obj.microserviceId, obj.cleanup, {}, true);
   logger.info('Microservice has been removed successfully.')
 };
 
 const _listMicroservices = async function () {
-  const result = await MicroserviceService.listMicroservicesWithTransaction({}, {}, true);
+  const result = await MicroserviceService.listMicroservices({}, {}, true);
   logger.info(JSON.stringify(result));
   logger.info('Microservices have been retrieved successfully.');
 };
 
 const _getMicroservice = async function (obj) {
   logger.info(JSON.stringify(obj));
-  const result = await MicroserviceService.getMicroserviceWithTransaction(obj.microserviceId, {}, true);
+  const result = await MicroserviceService.getMicroservice(obj.microserviceId, {}, true);
   logger.info(JSON.stringify(result, null, 2));
   logger.info('Microservice has been retrieved successfully.');
 };
@@ -398,7 +398,7 @@ const _createMicroservice = async function (obj) {
 
   logger.info(JSON.stringify(microservice));
 
-  const result = await MicroserviceService.createMicroserviceOnFogWithTransaction(microservice, {}, true);
+  const result = await MicroserviceService.createMicroserviceOnFog(microservice, {}, true);
   logger.info(JSON.stringify(result));
   logger.info('Microservice has been created successfully.');
 };
@@ -410,7 +410,7 @@ const _updateMicroservice = async function (obj) {
 
   logger.info(JSON.stringify(microservice));
 
-  await MicroserviceService.updateMicroserviceWithTransaction(obj.microserviceId, microservice, {}, true);
+  await MicroserviceService.updateMicroservice(obj.microserviceId, microservice, {}, true);
   logger.info('Microservice has been updated successfully.');
 };
 
