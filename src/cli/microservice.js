@@ -73,7 +73,8 @@ class Microservice extends BaseCLIHandler {
     this.name = constants.CMD_MICROSERVICE;
     this.commandDefinitions = [
       {
-        name: 'command', defaultOption: true, group: [constants.CMD]
+        name: 'command', defaultOption: true,
+        group: [constants.CMD]
       },
       {
         name: 'file', alias: 'f', type: String, description: 'Microservice settings JSON file',

@@ -52,7 +52,10 @@ class Catalog extends BaseCLIHandler {
 
     this.name = constants.CMD_CATALOG;
     this.commandDefinitions = [
-      {name: 'command', defaultOption: true, group: [constants.CMD]},
+      {
+        name: 'command', defaultOption: true,
+        group: [constants.CMD]
+      },
       {
         name: 'file', alias: 'f', type: String, description: 'Catalog item settings JSON file',
         group: [constants.CMD_ADD, constants.CMD_UPDATE]
@@ -131,7 +134,10 @@ class Catalog extends BaseCLIHandler {
         name: 'config-example', alias: 'X', type: String, description: 'Catalog item config example',
         group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
-      {name: 'user-id', alias: 'u', type: Number, description: 'User\'s id', group: [constants.CMD_ADD]},
+      {
+        name: 'user-id', alias: 'u', type: Number, description: 'User\'s id',
+        group: [constants.CMD_ADD]
+      },
     ];
     this.commands = {
       [constants.CMD_ADD]: 'Add a new catalog item.',

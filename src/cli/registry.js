@@ -24,7 +24,10 @@ class Registry extends BaseCLIHandler {
 
     this.name = constants.CMD_REGISTRY;
     this.commandDefinitions = [
-      {name: 'command', defaultOption: true, group: [constants.CMD]},
+      {
+        name: 'command', defaultOption: true,
+        group: [constants.CMD]
+      },
       {
         name: 'uri', alias: 'u', type: String,
         description: 'Registry URI',

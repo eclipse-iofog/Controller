@@ -48,7 +48,9 @@ class IOFog extends BaseCLIHandler {
 
     this.name = constants.CMD_IOFOG;
     this.commandDefinitions = [
-      {name: 'command', defaultOption: true, group: [constants.CMD]},
+      {
+        name: 'command', defaultOption: true,
+        group: [constants.CMD]},
       {
         name: 'file', alias: 'f', type: String,
         description: 'ioFog settings JSON file',

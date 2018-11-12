@@ -25,7 +25,10 @@ class Connector extends BaseCLIHandler {
 
     this.name = constants.CMD_CONNECTOR;
     this.commandDefinitions = [
-      {name: 'command', defaultOption: true, group: [constants.CMD]},
+      {
+        name: 'command', defaultOption: true,
+        group: [constants.CMD]
+      },
       {
         name: 'name', alias: 'n', type: String,
         description: 'Connector name',
@@ -65,7 +68,7 @@ class Connector extends BaseCLIHandler {
         name: 'dev-mode-off', alias: 'h', type: Boolean,
         description: 'Switch off dev mode',
         group: [constants.CMD_ADD, constants.CMD_UPDATE]
-      },
+      }
     ];
     this.commands = {
       [constants.CMD_ADD]: 'Add a new Connector.',

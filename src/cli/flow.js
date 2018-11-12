@@ -31,7 +31,10 @@ class Flow extends BaseCLIHandler {
 
     this.name = constants.CMD_FLOW;
     this.commandDefinitions = [
-      {name: 'command', defaultOption: true, group: [constants.CMD]},
+      {
+        name: 'command', defaultOption: true,
+        group: [constants.CMD]
+      },
       {
         name: 'file', alias: 'f', type: String,
         description: 'Application flow settings JSON file',

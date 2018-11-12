@@ -27,7 +27,7 @@ class Controller extends BaseCLIHandler {
         name: 'command',
         defaultOption: true,
         description: 'status, email-activation, fog-types, version',
-        group: constants.CMD,
+        group: constants.CMD
       }
     ];
     this.commands = {

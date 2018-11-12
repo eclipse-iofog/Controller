@@ -51,7 +51,7 @@ class User extends BaseCLIHandler {
         name: 'password', alias: 'p', type: String,
         description: 'User\'s password',
         group: [constants.CMD_ADD, constants.CMD_UPDATE],
-      },
+      }
     ];
     this.commands = {
       [constants.CMD_ADD]: 'Add a new user.',

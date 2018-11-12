@@ -26,7 +26,8 @@ class Config extends BaseCLIHandler {
     this.name = constants.CMD_CONFIG;
     this.commandDefinitions = [
       {
-        name: 'command', defaultOption: true, group: constants.CMD
+        name: 'command', defaultOption: true,
+        group: constants.CMD
       },
       {
         name: 'port', alias: 'p', type: Number, description: 'Port',
