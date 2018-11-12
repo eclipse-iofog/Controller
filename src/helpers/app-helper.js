@@ -157,6 +157,12 @@ function handleCLIError(error) {
   }
 }
 
+function trimCertificate(cert) {
+  let result = cert.replace(/(^[\s\S]*-{3,}BEGIN CERTIFICATE-{3,}[\s]*)/, "");
+  result = result.replace(/([\s]*-{3,}END CERTIFICATE-{3,}[\s\S]*$)/, "");
+  return result;
+}
+
 module.exports = {
   encryptText,
   decryptText,
@@ -173,5 +179,6 @@ module.exports = {
   findAvailablePort,
   stringifyCliJsonSchema,
   isValidPublicIP,
-  handleCLIError
+  handleCLIError,
+  trimCertificate
 };
