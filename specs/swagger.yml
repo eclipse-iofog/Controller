@@ -1601,9 +1601,7 @@ paths:
         '200':
           description: Success
           schema:
-            type: array
-            items:
-              $ref: '#/definitions/VolumeMappingRequest'
+            $ref: '#/definitions/VolumeMappingResponse'
           headers:
             X-Timestamp:
               type: number
@@ -2776,6 +2774,13 @@ definitions:
       accessMode:
         type: string
         example: rw
+  VolumeMappingResponse:
+    type: object
+    properties:
+      volumeMappings:
+        type: array
+        items:
+          $ref: '#/definitions/VolumeMappingRequest'
   VolumeMappingRequest:
     type: object
     properties:

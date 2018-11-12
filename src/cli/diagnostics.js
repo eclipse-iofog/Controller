@@ -35,12 +35,12 @@ class Diagnostics extends BaseCLIHandler {
       },
       {
         name: 'disable', alias: 'o', type: Boolean, description: 'Disable microservice strace',
-        group: [constants.CMD_STRACE_UPDATE ]
+        group: [constants.CMD_STRACE_UPDATE]
       },
       {
         name: 'microservice-id', alias: 'i', type: String, description: 'Microservice ID',
         group: [constants.CMD_STRACE_UPDATE, constants.CMD_STRACE_INFO, constants.CMD_STRACE_FTP_POST,
-                constants.CMD_IMAGE_SNAPSHOT_CREATE, constants.CMD_IMAGE_SNAPSHOT_GET]
+          constants.CMD_IMAGE_SNAPSHOT_CREATE, constants.CMD_IMAGE_SNAPSHOT_GET]
       },
       {
         name: 'format', alias: 'f', type: String, description: 'Format of strace data to receive',
@@ -77,7 +77,7 @@ class Diagnostics extends BaseCLIHandler {
   }
 
   async run(args) {
-    const diagnosticCommand = this.parseCommandLineArgs(this.commandDefinitions, { argv: args.argv })
+    const diagnosticCommand = this.parseCommandLineArgs(this.commandDefinitions, {argv: args.argv})
 
     switch (diagnosticCommand.command.command) {
       case constants.CMD_STRACE_UPDATE:
@@ -102,7 +102,7 @@ class Diagnostics extends BaseCLIHandler {
   }
 }
 
-const _executeCase  = async function (diagnosticCommand, commandName, f, isUserRequired) {
+const _executeCase = async function (diagnosticCommand, commandName, f, isUserRequired) {
   try {
     const item = diagnosticCommand[commandName];
 

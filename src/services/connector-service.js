@@ -39,7 +39,7 @@ async function _createConnector(connectorData, transaction) {
   if (connector) {
     throw new Errors.ValidationError(ErrorMessages.ALREADY_EXISTS)
   }
-  await ConnectorManager.create(connectorData, transaction)
+  return await ConnectorManager.create(connectorData, transaction)
 }
 
 async function _updateConnector(connectorData, transaction) {

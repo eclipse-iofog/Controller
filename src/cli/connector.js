@@ -42,21 +42,21 @@ class Connector extends BaseCLIHandler {
   }
 
   async run(args) {
-    const connectorCommand = this.parseCommandLineArgs(this.commandDefinitions, { argv: args.argv })
+    const connectorCommand = this.parseCommandLineArgs(this.commandDefinitions, { argv: args.argv });
 
     switch (connectorCommand.command.command) {
       case constants.CMD_ADD:
-        await _executeCase(connectorCommand, constants.CMD_ADD, _createConnector, false)
-        break
+        await _executeCase(connectorCommand, constants.CMD_ADD, _createConnector, false);
+        break;
       case constants.CMD_UPDATE:
-        await _executeCase(connectorCommand, constants.CMD_UPDATE, _updateConnector, false)
-        break
+        await _executeCase(connectorCommand, constants.CMD_UPDATE, _updateConnector, false);
+        break;
       case constants.CMD_REMOVE:
-        await _executeCase(connectorCommand, constants.CMD_REMOVE, _deleteConnector, false)
-        break
+        await _executeCase(connectorCommand, constants.CMD_REMOVE, _deleteConnector, false);
+        break;
       case constants.CMD_LIST:
-        await _executeCase(connectorCommand, constants.CMD_LIST, _getConnectorList, false)
-        break
+        await _executeCase(connectorCommand, constants.CMD_LIST, _getConnectorList, false);
+        break;
       case constants.CMD_HELP:
       default:
         return this.help([constants.CMD_LIST])
@@ -81,7 +81,7 @@ async function _executeCase(commands, commandName, f, isUserRequired) {
 }
 
 async function _createConnector(obj) {
-  const connector = _createConnectorObject(obj)
+  const connector = _createConnectorObject(obj);
   logger.info(JSON.stringify(connector));
   try {
     const result = await ConnectorService.createConnector(connector)
@@ -114,7 +114,7 @@ async function _deleteConnector(obj) {
   }
 }
 
-async function _getConnectorList(obj) {
+async function _getConnectorList() {
   const list = await ConnectorService.getConnectorList()
   logger.info(JSON.stringify(list, null, 2));
   logger.info('Connector list has been gotten successfully');
@@ -126,7 +126,7 @@ function _createConnectorObject(cliData) {
     domain: cliData.domain,
     publicIp: cliData.publicIp,
     cert: cliData.cert,
-    isSelfSignedCert: AppHelper.validateBooleanCliOptions(cliData.selfSignedEnable, cliData.selfSignedDisable),
+    isSelfSignedCert: AppHelper.validateBooleanCliOptions(cliData.selfSignedOn, cliData.selfSignedOff),
     devMode: AppHelper.validateBooleanCliOptions(cliData.devModeOn, cliData.devModeOff)
   }
 
