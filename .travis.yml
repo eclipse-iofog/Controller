@@ -5,14 +5,15 @@ stages:
 - name: build
   if: branch IN (develop, master) AND type = pull_request
 - name: package_build
-  if: (branch = develop AND type = cron) OR (branch = master and type = push)
+  if: branch = dbusel/feature-automated-packaging
+  #if: (branch = develop AND type = cron) OR (branch = master and type = push)
 
 jobs:
   include:
   - stage: build
   - stage: package_build
     script:
-    - npm run build
+    - .travis/pu.sh
     deploy:
       skip_cleanup: true
       provider: npm
@@ -20,3 +21,4 @@ jobs:
       api_key: ${NPM_AUTH_TOKEN}
       on:
         all_branches: true
+        tags: false
