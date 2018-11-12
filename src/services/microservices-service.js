@@ -217,14 +217,14 @@ const _deleteMicroservice = async function (microserviceUuid, microserviceData, 
 
 
   const microservice = await MicroserviceManager.findOneWithStatus(where, transaction);
+  if (!microservice) {
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, microserviceUuid));
+  }
 
   if (microservice.microserviceStatus.status === MicroserviceStates.NOT_RUNNING) {
-    const affectedRows = await MicroserviceManager.delete({
+    await MicroserviceManager.delete({
       uuid: microserviceUuid
     }, transaction);
-    if (affectedRows === 0) {
-      throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, microserviceUuid));
-    }
   } else {
     await MicroserviceManager.update({
         uuid: microserviceUuid
