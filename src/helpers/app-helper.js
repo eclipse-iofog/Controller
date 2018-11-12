@@ -143,6 +143,20 @@ function stringifyCliJsonSchema(json) {
     .replace(/}/g, "\\}");
 }
 
+function handleCLIError(error) {
+  switch (error.name) {
+    case "UNKNOWN_OPTION":
+      console.log("Unknown parameter " + error.optionName);
+      break;
+    case "UNKNOWN_VALUE":
+      console.log("Unknown value " + error.value);
+      break;
+    default:
+      console.log(JSON.stringify(error));
+      break;
+  }
+}
+
 module.exports = {
   encryptText,
   decryptText,
@@ -158,5 +172,6 @@ module.exports = {
   formatMessage,
   findAvailablePort,
   stringifyCliJsonSchema,
-  isValidPublicIP
+  isValidPublicIP,
+  handleCLIError
 };
