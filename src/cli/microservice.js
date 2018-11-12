@@ -328,7 +328,7 @@ const _createPortMapping = async function (obj) {
   logger.info(JSON.stringify(obj));
   const mapping = parsePortMappingObject(obj.mapping, ErrorMessages.CLI.INVALID_PORT_MAPPING);
   await MicroserviceService.createPortMapping(obj.microserviceId, mapping, {}, true);
-  logger.info('Port mapping has been create successfully.');
+  logger.info('Port mapping has been created successfully.');
 };
 
 const _createVolumeMapping = async function (obj) {
