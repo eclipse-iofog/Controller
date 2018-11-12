@@ -411,16 +411,16 @@ const saveSnapShot = function (req, form, fog, transaction) {
       const filePath = file['path'];
 
       let absolutePath = path.resolve(filePath);
-      fs.rename(absolutePath, absolutePath + '.tar.gz', async function (error, fields, files) {
-        await MicroserviceManager.update({
-          iofogUuid: fog.uuid,
-          imageSnapshot: 'get_image'
-        }, {
-          imageSnapshot: absolutePath + '.tar.gz'
-        }, transaction);
+      fs.renameSync(absolutePath, absolutePath + '.tar.gz');
 
-        resolve();
-      });
+      await MicroserviceManager.update({
+        iofogUuid: fog.uuid,
+        imageSnapshot: 'get_image'
+      }, {
+        imageSnapshot: absolutePath + '.tar.gz'
+      }, transaction);
+
+      resolve();
 
     });
   });
