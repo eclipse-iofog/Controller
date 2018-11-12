@@ -12,8 +12,7 @@ jobs:
   include:
   - stage: build
   - stage: package_build
-    script:
-    - .travis/pu.sh
+    script: .travis/pu.sh
     deploy:
       skip_cleanup: true
       provider: npm
