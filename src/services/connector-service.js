@@ -47,7 +47,7 @@ async function _updateConnector(connectorData, transaction) {
   validateConnectorData(connectorData);
   const queryConnectorData = {
     publicIp: connectorData.publicIp
-  }
+  };
   await ConnectorManager.update(queryConnectorData, connectorData, transaction)
 }
 
@@ -55,7 +55,6 @@ function validateConnectorData(connectorData) {
   if (connectorData.domain) {
     const validDomain = AppHelper.isValidDomain(connectorData.domain) || AppHelper.isValidPublicIP(connectorData.domain);
     if (!validDomain) {
-      console.log(validDomain);
       throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_CONNECTOR_DOMAIN, connectorData.domain));
     }
   }
