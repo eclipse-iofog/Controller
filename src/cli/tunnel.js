@@ -74,11 +74,10 @@ async function _updateTunnel(obj, user) {
     logger.info('Tunnel has been updated successfully.');
 }
 
-async function _tunnelList(obj) {
+async function _tunnelList() {
     const tunnels = await TunnelService.findAll();
-    logger.info(JSON.stringify(tunnels));
+    logger.info(JSON.stringify(tunnels, null, 2));
     logger.info('Tunnels has been received successfully.');
-    return tunnels;
 }
 
 async function _executeCase(commands, commandName, f, isUserRequired) {
@@ -98,15 +97,14 @@ async function _executeCase(commands, commandName, f, isUserRequired) {
 
 function _createTunnelObject(cliData) {
     const rsa = cliData.rsaKey ? fs.readFileSync(cliData.rsaKey, 'utf8') : "";
-    const tunnel = {
-        host: cliData.host,
-        username: cliData.username,
-        password: cliData.password,
-        rsakey: rsa,
-        lport: cliData.port,
-        iofogUuid: cliData.iofogUuid
-    }
-    return tunnel;
+  return {
+      host: cliData.host,
+      username: cliData.username,
+      password: cliData.password,
+      rsakey: rsa,
+      lport: cliData.port,
+      iofogUuid: cliData.iofogUuid
+    };
 }
 
-module.exports = new Tunnel()
+module.exports = new Tunnel();

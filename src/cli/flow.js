@@ -134,9 +134,10 @@ const _deleteFlow = async function (flowData) {
   logger.info('Flow removed successfully.');
 };
 
-const _getAllFlows = async function (emptyObj) {
+const _getAllFlows = async function () {
   const flows = await FlowService.getAllFlows(true);
-  logger.info(JSON.stringify(flows));
+  logger.info(JSON.stringify(flows, null, 2));
+  logger.info('All flows have been retrieved successfully.');
 };
 
 const _getFlow = async function (flowData) {
@@ -145,7 +146,8 @@ const _getFlow = async function (flowData) {
   const flowId = flowData.flowId;
 
   const flow = await FlowService.getFlowWithTransaction(flowId, {}, true);
-  logger.info(JSON.stringify(flow));
+  logger.info(JSON.stringify(flow, null, 2));
+  logger.info(`Flow with id ${flowId} has been retrieved successfully.`)
 };
 
 function _createFlowObject(data) {

@@ -116,8 +116,8 @@ async function _deleteConnector(obj) {
 
 async function _getConnectorList(obj) {
   const list = await ConnectorService.getConnectorList()
+  logger.info(JSON.stringify(list, null, 2));
   logger.info('Connector list has been gotten successfully');
-  logger.info(JSON.stringify(list));
 }
 
 function _createConnectorObject(cliData) {

@@ -21,7 +21,7 @@ const logger = require('../logger');
 
 class Config extends BaseCLIHandler {
   constructor() {
-    super()
+    super();
 
     this.name = constants.CMD_CONFIG;
     this.commandDefinitions = [
@@ -31,20 +31,19 @@ class Config extends BaseCLIHandler {
       { name: 'ssl-key', alias: 'k', type: String, description: 'Path to SSL key file', group: constants.CMD_ADD },
       { name: 'intermediate-cert', alias: 'i', type: String, description: 'Path to SSL intermediate certificate file', group: constants.CMD_ADD },
       { name: 'home-url', alias: 'h', type: String, description: 'Home page url for email activation links', group: constants.CMD_ADD },
-      { name: 'email-activation-on', alias: 'm', type: Boolean, description: 'Email activation required', group: constants.CMD_ADD },
-      { name: 'email-activation-off', alias: 'n', type: Boolean, description: 'Email activation not required', group: constants.CMD_ADD },
       { name: 'email-address', alias: 'a', type: String, description: 'Email address to send activations from', group: constants.CMD_ADD },
       { name: 'email-password', alias: 'w', type: String, description: 'Email password to send activations from', group: constants.CMD_ADD },
       { name: 'email-service', alias: 's', type: String, description: 'Email service to send activations', group: constants.CMD_ADD },
       { name: 'log-dir', alias: 'd', type: String, description: 'Log files directory', group: constants.CMD_ADD },
       { name: 'log-size', alias: 'z', type: Number, description: 'Log files size (MB)', group: constants.CMD_ADD },
-      { name: 'on', alias: 'o', type: Boolean, description: 'Enable dev mode', group: constants.CMD_DEV_MODE },
-      { name: 'off', alias: 'f', type: Boolean, description: 'Disable dev mode', group: constants.CMD_DEV_MODE }
-    ]
+      { name: 'on', alias: 'o', type: Boolean, description: 'Enable', group: [constants.CMD_DEV_MODE, constants.CMD_EMAIL_ACTIVATION]  },
+      { name: 'off', alias: 'f', type: Boolean, description: 'Disable', group: [constants.CMD_DEV_MODE, constants.CMD_EMAIL_ACTIVATION] },
+    ];
     this.commands = {
       [constants.CMD_ADD]: 'Add a new config value.',
       [constants.CMD_LIST]: 'Display current config.',
-      [constants.CMD_DEV_MODE]: 'dev mode config.'
+      [constants.CMD_DEV_MODE]: 'Dev mode config.',
+      [constants.CMD_EMAIL_ACTIVATION]: 'Email activation config.',
     }
   }
 
@@ -60,6 +59,9 @@ class Config extends BaseCLIHandler {
         break;
       case constants.CMD_DEV_MODE:
         await _executeCase(configCommand, constants.CMD_DEV_MODE, _changeDevModeState);
+        break;
+      case constants.CMD_EMAIL_ACTIVATION:
+        await _executeCase(configCommand, constants.CMD_EMAIL_ACTIVATION, _changeEmailActivationState);
         break;
       case constants.CMD_HELP:
       default:
@@ -118,16 +120,6 @@ const _addConfigOption = async function (options) {
       return;
     }
     config.set('Server:IntermediateCert', intermediateCert);
-    onSuccess();
-  });
-
-  updateConfig(options.emailActivationOn, 'email-activation-on', 'Email:ActivationEnabled', (onSuccess) => {
-    config.set('Email:ActivationEnabled', true);
-    onSuccess();
-  });
-
-  updateConfig(options.emailActivationOff, 'email-activation-off', 'Email:ActivationEnabled', (onSuccess) => {
-    config.set('Email:ActivationEnabled', false);
     onSuccess();
   });
 
@@ -199,13 +191,20 @@ const _listConfigOptions = function () {
   const result = Object.keys(configuration)
     .filter(key => configuration[key] != null)
     .map(key => `${key}: ${configuration[key]}`)
-    .join('\n')
+    .join('\n');
   console.log(result)
 };
 
 const _changeDevModeState = function (options) {
   const enableDevMode = AppHelper.validateBooleanCliOptions(options.on, options.off);
   config.set('Server:DevMode', enableDevMode)
+  logger.info('Dev mode state updated successfully.')
+};
+
+const _changeEmailActivationState = function (options) {
+  const enableEmailActivation = AppHelper.validateBooleanCliOptions(options.on, options.off);
+  config.set('Email:ActivationEnabled', enableEmailActivation);
+  logger.info('Email activation state updated successfully.')
 };
 
 module.exports = new Config();

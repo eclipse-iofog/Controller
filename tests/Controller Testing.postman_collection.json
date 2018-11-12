@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "5a9e5363-c42e-4cfe-ad53-4ba7f9594334",
+		"_postman_id": "507ec948-6bd6-48ad-9272-ab609e6ce965",
 		"name": "Controller Testing",
 		"description": "iofog-controller collection",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -8,6 +8,7 @@
 	"item": [
 		{
 			"name": "User",
+			"description": "User collection",
 			"item": [
 				{
 					"name": "Create user",
@@ -507,7 +508,6 @@
 					"response": []
 				}
 			],
-			"description": "User collection",
 			"event": [
 				{
 					"listen": "prerequest",
@@ -533,6 +533,7 @@
 		},
 		{
 			"name": "General",
+			"description": "General collection",
 			"item": [
 				{
 					"name": "Status",
@@ -652,7 +653,6 @@
 					"response": []
 				}
 			],
-			"description": "General collection",
 			"event": [
 				{
 					"listen": "prerequest",
@@ -678,6 +678,7 @@
 		},
 		{
 			"name": "Agent",
+			"description": "Agent collection",
 			"item": [
 				{
 					"name": "Create user",
@@ -1765,7 +1766,6 @@
 					"response": []
 				}
 			],
-			"description": "Agent collection",
 			"event": [
 				{
 					"listen": "prerequest",
@@ -1791,6 +1791,7 @@
 		},
 		{
 			"name": "Flow",
+			"description": "Flow collection",
 			"item": [
 				{
 					"name": "Create user",
@@ -2174,7 +2175,6 @@
 					"response": []
 				}
 			],
-			"description": "Flow collection",
 			"event": [
 				{
 					"listen": "prerequest",
@@ -2200,6 +2200,7 @@
 		},
 		{
 			"name": "Catalog",
+			"description": "Catalog collection",
 			"item": [
 				{
 					"name": "Create user",
@@ -2592,7 +2593,6 @@
 					"response": []
 				}
 			],
-			"description": "Catalog collection",
 			"event": [
 				{
 					"listen": "prerequest",
@@ -2618,6 +2618,7 @@
 		},
 		{
 			"name": "Tunnel",
+			"description": "Tunnel collection",
 			"item": [
 				{
 					"name": "Create user",
@@ -2958,7 +2959,6 @@
 					"response": []
 				}
 			],
-			"description": "Tunnel collection",
 			"event": [
 				{
 					"listen": "prerequest",
@@ -2984,6 +2984,7 @@
 		},
 		{
 			"name": "Microservices",
+			"description": "Microservices collection",
 			"item": [
 				{
 					"name": "Create user",
@@ -3419,7 +3420,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"name\": \"name3\",\n  \"config\": \"string\",\n  \"needUpdate\": true,\n  \"rebuild\": true,\n  \"iofogUuid\": \"{{node-id}}\",\n  \"rootHostAccess\": true,\n  \"logLimit\": 0,\n  \"imageSnapshot\": \"string\",\n  \"volumeMappings\": [\n    {\n      \"hostDestination\": \"/var/dest\",\n      \"containerDestination\": \"/var/dest\",\n      \"accessMode\": \"rw\"\n    }\n  ]\n}\n"
+							"raw": "{\n  \"name\": \"name3\",\n  \"config\": \"string\",\n  \"rebuild\": true,\n  \"iofogUuid\": \"{{node-id}}\",\n  \"rootHostAccess\": true,\n  \"logSize\": 0,\n  \"volumeMappings\": [\n    {\n      \"hostDestination\": \"/var/dest\",\n      \"containerDestination\": \"/var/dest\",\n      \"accessMode\": \"rw\"\n    }\n  ]\n}"
 						},
 						"url": {
 							"raw": "{{host}}/api/v3/microservices/{{ms-id}}",
@@ -3679,6 +3680,150 @@
 					"response": []
 				},
 				{
+					"name": "Create volume mapping",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "df8a73e8-2b55-48f1-a143-0c243d787dac",
+								"type": "text/javascript",
+								"exec": [
+									"tests[\"Status code is 201\"] = responseCode.code === 201;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response validation passed\"] = data.hasOwnProperty('id');",
+									"",
+									"",
+									"postman.setGlobalVariable(\"volume-id\", data.id);",
+									""
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{user-token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": " {\n     \"hostDestination\": \"/var/dest7\",\n     \"containerDestination\": \"/var/dest\",\n     \"accessMode\": \"rw\"\n }"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/microservices/{{ms-id}}/volume-mapping",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"microservices",
+								"{{ms-id}}",
+								"volume-mapping"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List volume mappings",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "422b4beb-ae6e-4cfc-9656-5eee3c5e792f",
+								"type": "text/javascript",
+								"exec": [
+									"tests[\"Status code is 200\"] = responseCode.code === 200;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response validation passed\"] = data.hasOwnProperty('volumeMappings');"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{user-token}}"
+							}
+						],
+						"body": {},
+						"url": {
+							"raw": "{{host}}/api/v3/microservices/{{ms-id}}/volume-mapping",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"microservices",
+								"{{ms-id}}",
+								"volume-mapping"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete volume mapping",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "98751304-dec8-4149-99ec-e7e76c5ac9ea",
+								"type": "text/javascript",
+								"exec": [
+									"tests[\"Status code is 204\"] = responseCode.code === 204;"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{user-token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/microservices/{{ms-id}}/volume-mapping/{{volume-id}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"microservices",
+								"{{ms-id}}",
+								"volume-mapping",
+								"{{volume-id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Delete a Microservice",
 					"event": [
 						{
@@ -3917,7 +4062,6 @@
 					"response": []
 				}
 			],
-			"description": "Microservices collection",
 			"event": [
 				{
 					"listen": "prerequest",
@@ -3943,6 +4087,7 @@
 		},
 		{
 			"name": "Diagnostics",
+			"description": "Diagnostics collection",
 			"item": [
 				{
 					"name": "Create user",
@@ -4738,7 +4883,6 @@
 					"response": []
 				}
 			],
-			"description": "Diagnostics collection",
 			"event": [
 				{
 					"listen": "prerequest",
@@ -4764,6 +4908,7 @@
 		},
 		{
 			"name": "ioFog",
+			"description": "ioFog collection",
 			"item": [
 				{
 					"name": "Create user",
@@ -5467,7 +5612,6 @@
 					"response": []
 				}
 			],
-			"description": "ioFog collection",
 			"event": [
 				{
 					"listen": "prerequest",
@@ -5493,6 +5637,7 @@
 		},
 		{
 			"name": "Registries",
+			"description": "Registries collection",
 			"item": [
 				{
 					"name": "Create user",
@@ -5827,7 +5972,6 @@
 					"response": []
 				}
 			],
-			"description": "Registries collection",
 			"event": [
 				{
 					"listen": "prerequest",

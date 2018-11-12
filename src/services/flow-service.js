@@ -84,7 +84,6 @@ const _updateFlow = async function (flowData, flowId, user, isCLI, transaction) 
     name: flowData.name,
     description: flowData.description,
     isActivated: flowData.isActivated,
-    updatedBy: user.id
   };
 
   const updateFlowData = AppHelper.deleteUndefinedFields(flow);

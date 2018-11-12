@@ -48,6 +48,17 @@ const microserviceUpdate = {
   "additionalProperties": false
 };
 
+const microserviceDelete = {
+  "id": "/microserviceDelete",
+  "type": "object",
+  "properties": {
+    "withCleanup": {
+      "type": "boolean"
+    },
+    "additionalProperties": false
+  }
+};
+
 const ports = {
   "id": "/ports",
   "type": "object",
@@ -85,6 +96,6 @@ const volumeMappings = {
 };
 
 module.exports = {
-    mainSchemas: [microserviceCreate, microserviceUpdate, ports, portsCreate],
+    mainSchemas: [microserviceCreate, microserviceUpdate, ports, portsCreate, microserviceDelete, volumeMappings],
     innerSchemas: [volumeMappings, ports]
 };

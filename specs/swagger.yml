@@ -1334,11 +1334,15 @@ paths:
         description: Microservice Uuid
         required: true
         type: string
-      - in: query
-        name: withCleanUp
-        description: Delete with cleanup
-        required: true
-        type: boolean
+      - in: body
+        name: WithCleanupOption
+        description: Delete option
+        required: false
+        schema:
+          type: object
+          properties:
+            withCleanup:
+              type: boolean
       responses:
         '204':
           description: Success
@@ -1346,6 +1350,8 @@ paths:
             X-Timestamp:
               type: number
               description: FogController server timestamp
+        '400':
+          description: Bad Request
         '401':
           description: Not Authorized
         '404':
@@ -1526,6 +1532,119 @@ paths:
             X-Timestamp:
               type: number
               description: FogController server timestamp
+        '401':
+          description: Not Authorized
+        '404':
+          description: Not Found
+        '500':
+          description: Internal Server Error
+  '/microservices/{uuid}/volume-mapping':
+    post:
+      tags:
+      - Microservices
+      description: Creates a volume mapping for microservice
+      operationId: createMicroserviceVolumeMapping
+      parameters:
+      - in: header
+        name: Authorization
+        description: User Token
+        required: true
+        type: string
+      - in: path
+        name: uuid
+        description: Microservice Uuid
+        required: true
+        type: string
+      - in: body
+        name: volumeMappingData
+        description: information about volume mapping
+        required: true
+        schema:
+          $ref: '#/definitions/VolumeMapping'
+      responses:
+        '201':
+          description: Created
+          schema:
+            type: object
+            properties:
+              id:
+                type: number
+          headers:
+            X-Timestamp:
+              type: number
+              description: FogController server timestamp
+        '400':
+          description: Not Valid
+        '401':
+          description: Not Authorized
+        '404':
+          description: Not Found
+        '500':
+          description: Internal Server Error
+    get:
+      tags:
+      - Microservices
+      description: Get a volume mapping list for microservice
+      operationId: getMicroserviceVolumeMapping
+      parameters:
+      - in: header
+        name: Authorization
+        description: User Token
+        required: true
+        type: string
+      - in: path
+        name: uuid
+        description: Microservice Uuid
+        required: true
+        type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/VolumeMappingRequest'
+          headers:
+            X-Timestamp:
+              type: number
+              description: FogController server timestamp
+        '401':
+          description: Not Authorized
+        '404':
+          description: Not Found
+        '500':
+          description: Internal Server Error
+  '/microservices/{uuid}/volume-mapping/{id}':
+    delete:
+      tags:
+      - Microservices
+      description: Deletes a volume mapping for microservice
+      operationId: deleteMicroserviceVolumeMapping
+      parameters:
+      - in: header
+        name: Authorization
+        description: User Token
+        required: true
+        type: string
+      - in: path
+        name: uuid
+        description: Microservice Uuid
+        required: true
+        type: string
+      - in: path
+        name: id
+        description: Volume id
+        required: true
+        type: string
+      responses:
+        '204':
+          description: Success
+          headers:
+            X-Timestamp:
+              type: number
+              description: FogController server timestamp
+        '400':
+          description: Not Valid
         '401':
           description: Not Authorized
         '404':
@@ -2634,7 +2753,7 @@ definitions:
       VolumeMappings:
         type: array
         items:
-          $ref: '#/definitions/VolumeMappingAgentRequest'
+          $ref: '#/definitions/VolumeMapping'
       imageSnapshot:
         type: string
       removeWithCleanUp:
@@ -2645,9 +2764,23 @@ definitions:
     type: array
     items:
       type: string
-  VolumeMappingAgentRequest:
+  VolumeMapping:
     type: object
     properties:
+      hostDestination:
+        type: string
+        example: /var/dest
+      containerDestination:
+        type: string
+        example: /var/dest
+      accessMode:
+        type: string
+        example: rw
+  VolumeMappingRequest:
+    type: object
+    properties:
+      id:
+        type: number
       hostDestination:
         type: string
         example: /var/dest
@@ -2889,7 +3022,7 @@ definitions:
       volumeMappings:
         type: array
         items:
-          $ref: '#/definitions/VolumeMappingAgentRequest'
+          $ref: '#/definitions/VolumeMappingRequest'
       ports:
         type: array
         items:
@@ -2916,7 +3049,7 @@ definitions:
       volumeMappings:
          type: array
          items:
-           $ref: '#/definitions/VolumeMappingAgentRequest'
+           $ref: '#/definitions/VolumeMapping'
       ports:
         type: array
         items:
@@ -2943,7 +3076,7 @@ definitions:
       volumeMappings:
          type: array
          items:
-           $ref: '#/definitions/VolumeMappingAgentRequest'
+           $ref: '#/definitions/VolumeMapping'
   IOFogNodeTunnelStatusInfoResponse:
     type: object
     properties:
