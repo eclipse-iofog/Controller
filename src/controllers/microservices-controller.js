@@ -89,7 +89,7 @@ const _deleteMicroservicePortMappingEndPoint = async function (req, user) {
 const _listMicroservicePortMappingsEndPoint = async function (req, user) {
   const uuid = req.params.uuid;
   logger.info(`Getting all port mappings for ${uuid}`);
-  const ports = await MicroservicesService.getMicroservicePortMappingList(uuid, user, false);
+  const ports = await MicroservicesService.listMicroservicePortMappings(uuid, user, false);
   return {
     ports: ports
   }
@@ -108,7 +108,10 @@ const _createMicroserviceVolumeMappingEndPoint = async function (req, user) {
 const _listMicroserviceVolumeMappingsEndPoint = async function (req, user) {
   const uuid = req.params.uuid;
   logger.info(`Getting all volume mappings for ${uuid}`);
-  return await MicroservicesService.listVolumeMappings(uuid, user, false);
+  const volumeMappings = await MicroservicesService.listVolumeMappings(uuid, user, false);
+  return {
+    volumeMappings: volumeMappings
+  }
 };
 
 const _deleteMicroserviceVolumeMappingEndPoint = async function (req, user) {
