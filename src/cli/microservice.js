@@ -68,11 +68,14 @@ const JSON_SCHEMA_UPDATE = AppHelper.stringifyCliJsonSchema(
 
 class Microservice extends BaseCLIHandler {
   constructor() {
-    super()
+    super();
 
-    this.name = constants.CMD_MICROSERVICE
+    this.name = constants.CMD_MICROSERVICE;
     this.commandDefinitions = [
-      { name: 'command', defaultOption: true, group: [constants.CMD] },
+      {
+        name: 'command', defaultOption: true,
+        group: [constants.CMD]
+      },
       {
         name: 'file', alias: 'f', type: String, description: 'Microservice settings JSON file',
         group: [constants.CMD_ADD, constants.CMD_UPDATE]
@@ -128,7 +131,9 @@ class Microservice extends BaseCLIHandler {
         group: [constants.CMD_PORT_MAPPING_CREATE, constants.CMD_VOLUME_MAPPING_CREATE]
       },
       {
-        name: 'routes', alias: 't', type: String, description: 'Microservice route(s) (receiving microservices)', multiple: true,
+        name: 'routes', alias: 't', type: String,
+        description: 'Microservice route(s) (receiving microservices)',
+        multiple: true,
         group: [constants.CMD_ADD]
       },
       {
@@ -155,7 +160,7 @@ class Microservice extends BaseCLIHandler {
         name: 'mapping-id', alias: 'a', type: Number, description: 'Volume mapping id',
         group: [constants.CMD_VOLUME_MAPPING_REMOVE]
       }
-    ]
+    ];
     this.commands = {
       [constants.CMD_ADD]: 'Add a new microservice.',
       [constants.CMD_UPDATE]: 'Update existing microservice.',
@@ -174,51 +179,55 @@ class Microservice extends BaseCLIHandler {
   }
 
   async run(args) {
-    const microserviceCommand = this.parseCommandLineArgs(this.commandDefinitions, { argv: args.argv })
+    try {
+      const microserviceCommand = this.parseCommandLineArgs(this.commandDefinitions, {argv: args.argv, partial: false});
 
-    switch (microserviceCommand.command.command) {
-      case constants.CMD_ADD:
-        await _executeCase(microserviceCommand, constants.CMD_ADD, _createMicroservice);
-        break;
-      case constants.CMD_UPDATE:
-        await _executeCase(microserviceCommand, constants.CMD_UPDATE, _updateMicroservice);
-        break;
-      case constants.CMD_REMOVE:
-        await _executeCase(microserviceCommand, constants.CMD_REMOVE, _removeMicroservice);
-        break;
-      case constants.CMD_LIST:
-        await _executeCase(microserviceCommand, constants.CMD_LIST, _listMicroservices);
-        break;
-      case constants.CMD_INFO:
-        await _executeCase(microserviceCommand, constants.CMD_INFO, _getMicroservice);
-        break;
-      case constants.CMD_ROUTE_CREATE:
-        await _executeCase(microserviceCommand, constants.CMD_ROUTE_CREATE, _createRoute);
-        break;
-      case constants.CMD_ROUTE_REMOVE:
-        await _executeCase(microserviceCommand, constants.CMD_ROUTE_REMOVE, _removeRoute);
-        break;
-      case constants.CMD_PORT_MAPPING_CREATE:
-        await _executeCase(microserviceCommand, constants.CMD_PORT_MAPPING_CREATE, _createPortMapping);
-        break;
-      case constants.CMD_PORT_MAPPING_REMOVE:
-        await _executeCase(microserviceCommand, constants.CMD_PORT_MAPPING_REMOVE, _removePortMapping);
-        break;
-      case constants.CMD_PORT_MAPPING_LIST:
-        await _executeCase(microserviceCommand, constants.CMD_PORT_MAPPING_LIST, _listPortMappings);
-        break;
-      case constants.CMD_VOLUME_MAPPING_CREATE:
-        await _executeCase(microserviceCommand, constants.CMD_VOLUME_MAPPING_CREATE, _createVolumeMapping);
-        break;
-      case constants.CMD_VOLUME_MAPPING_REMOVE:
-        await _executeCase(microserviceCommand, constants.CMD_VOLUME_MAPPING_REMOVE, _removeVolumeMapping);
-        break;
-      case constants.CMD_VOLUME_MAPPING_LIST:
-        await _executeCase(microserviceCommand, constants.CMD_VOLUME_MAPPING_LIST, _listVolumeMappings);
-        break;
-      case constants.CMD_HELP:
-      default:
-        return this.help()
+      switch (microserviceCommand.command.command) {
+        case constants.CMD_ADD:
+          await _executeCase(microserviceCommand, constants.CMD_ADD, _createMicroservice);
+          break;
+        case constants.CMD_UPDATE:
+          await _executeCase(microserviceCommand, constants.CMD_UPDATE, _updateMicroservice);
+          break;
+        case constants.CMD_REMOVE:
+          await _executeCase(microserviceCommand, constants.CMD_REMOVE, _removeMicroservice);
+          break;
+        case constants.CMD_LIST:
+          await _executeCase(microserviceCommand, constants.CMD_LIST, _listMicroservices);
+          break;
+        case constants.CMD_INFO:
+          await _executeCase(microserviceCommand, constants.CMD_INFO, _getMicroservice);
+          break;
+        case constants.CMD_ROUTE_CREATE:
+          await _executeCase(microserviceCommand, constants.CMD_ROUTE_CREATE, _createRoute);
+          break;
+        case constants.CMD_ROUTE_REMOVE:
+          await _executeCase(microserviceCommand, constants.CMD_ROUTE_REMOVE, _removeRoute);
+          break;
+        case constants.CMD_PORT_MAPPING_CREATE:
+          await _executeCase(microserviceCommand, constants.CMD_PORT_MAPPING_CREATE, _createPortMapping);
+          break;
+        case constants.CMD_PORT_MAPPING_REMOVE:
+          await _executeCase(microserviceCommand, constants.CMD_PORT_MAPPING_REMOVE, _removePortMapping);
+          break;
+        case constants.CMD_PORT_MAPPING_LIST:
+          await _executeCase(microserviceCommand, constants.CMD_PORT_MAPPING_LIST, _listPortMappings);
+          break;
+        case constants.CMD_VOLUME_MAPPING_CREATE:
+          await _executeCase(microserviceCommand, constants.CMD_VOLUME_MAPPING_CREATE, _createVolumeMapping);
+          break;
+        case constants.CMD_VOLUME_MAPPING_REMOVE:
+          await _executeCase(microserviceCommand, constants.CMD_VOLUME_MAPPING_REMOVE, _removeVolumeMapping);
+          break;
+        case constants.CMD_VOLUME_MAPPING_LIST:
+          await _executeCase(microserviceCommand, constants.CMD_VOLUME_MAPPING_LIST, _listVolumeMappings);
+          break;
+        case constants.CMD_HELP:
+        default:
+          return this.help()
+      }
+    } catch (error) {
+      AppHelper.handleCLIError(error);
     }
   }
 
@@ -287,7 +296,7 @@ class Microservice extends BaseCLIHandler {
   }
 }
 
-const _executeCase  = async function (microserviceCommand, commandName, f) {
+const _executeCase = async function (microserviceCommand, commandName, f) {
   try {
     const item = microserviceCommand[commandName] || {};
     await f(item);
@@ -345,7 +354,7 @@ const _removePortMapping = async function (obj) {
     const internalPort = parseInt(obj.internalPort);
     await MicroserviceService.deletePortMapping(obj.microserviceId, internalPort, {}, true);
     logger.info('Port mapping has been deleted successfully.');
-  } catch(e) {
+  } catch (e) {
     logger.error(ErrorMessages.CLI.INVALID_INTERNAL_PORT);
   }
 };
@@ -355,7 +364,7 @@ const _removeVolumeMapping = async function (obj) {
   try {
     await MicroserviceService.deleteVolumeMapping(obj.microserviceId, obj.mappingId, {}, true);
     logger.info('Volume mapping has been deleted successfully.');
-  } catch(e) {
+  } catch (e) {
     logger.error(ErrorMessages.CLI.INVALID_VOLUME_MAPPING);
   }
 };
@@ -462,7 +471,7 @@ const parseVolumeMappingObject = function (obj, errMsg) {
       containerDestination: props[1],
       accessMode: props[2]
     }
-  } catch(e) {
+  } catch (e) {
     logger.warn(errMsg);
   }
   return result;
@@ -481,11 +490,11 @@ const parsePortMappingObject = function (obj, errMsg) {
       external: parseInt(props[1]),
       publicMode: props[2] === 'true'
     }
-  } catch(e) {
+  } catch (e) {
     logger.warn(errMsg);
   }
   return result;
-}
+};
 
 const parsePortMappingArray = function (arr, errMsg) {
   return arr.map(obj => parsePortMappingObject(obj, errMsg));

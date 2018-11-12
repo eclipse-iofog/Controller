@@ -24,8 +24,10 @@ class Controller extends BaseCLIHandler {
     this.name = constants.CMD_CONTROLLER;
     this.commandDefinitions = [
       {
-        name: 'command', defaultOption: true, description: 'status, email-activation, fog-types, version',
-        group: constants.CMD,
+        name: 'command',
+        defaultOption: true,
+        description: 'status, email-activation, fog-types, version',
+        group: constants.CMD
       }
     ];
     this.commands = {
@@ -37,24 +39,28 @@ class Controller extends BaseCLIHandler {
   }
 
   async run(args) {
-    const controllerCommand = this.parseCommandLineArgs(this.commandDefinitions, {argv: args.argv});
+    try {
+      const controllerCommand = this.parseCommandLineArgs(this.commandDefinitions, {argv: args.argv, partial: false});
 
-    switch (controllerCommand.command.command) {
-      case constants.CMD_STATUS:
-        await _executeCase(controllerCommand, constants.CMD_STATUS, _getStatus, false);
-        break;
-      case constants.CMD_EMAIL_ACTIVATION:
-        await _executeCase(controllerCommand, constants.CMD_EMAIL_ACTIVATION, _emailActivation, false);
-        break;
-      case constants.CMD_FOG_TYPES:
-        await _executeCase(controllerCommand, constants.CMD_FOG_TYPES, _getFogTypes, false);
-        break;
-      case constants.CMD_VERSION:
-        await _executeCase(controllerCommand, constants.CMD_VERSION, _getVersion, false);
-        break;
-      case constants.CMD_HELP:
-      default:
-        return this.help([constants.CMD_LIST])
+      switch (controllerCommand.command.command) {
+        case constants.CMD_STATUS:
+          await _executeCase(controllerCommand, constants.CMD_STATUS, _getStatus, false);
+          break;
+        case constants.CMD_EMAIL_ACTIVATION:
+          await _executeCase(controllerCommand, constants.CMD_EMAIL_ACTIVATION, _emailActivation, false);
+          break;
+        case constants.CMD_FOG_TYPES:
+          await _executeCase(controllerCommand, constants.CMD_FOG_TYPES, _getFogTypes, false);
+          break;
+        case constants.CMD_VERSION:
+          await _executeCase(controllerCommand, constants.CMD_VERSION, _getVersion, false);
+          break;
+        case constants.CMD_HELP:
+        default:
+          return this.help([constants.CMD_LIST])
+      }
+    } catch (error) {
+      AppHelper.handleCLIError(error);
     }
   }
 
@@ -82,16 +88,16 @@ const _getStatus = async function () {
 };
 
 const _emailActivation = async function () {
-  const response =  await ControllerService.emailActivation(true);
+  const response = await ControllerService.emailActivation(true);
   logger.info(JSON.stringify(response, null, 2));
 };
 
 const _getFogTypes = async function () {
-  const response =  await ControllerService.getFogTypes(true);
+  const response = await ControllerService.getFogTypes(true);
   logger.info(JSON.stringify(response, null, 2));
 };
 
-const _getVersion = async function() {
+const _getVersion = async function () {
   const response = await ControllerService.getVersion(true);
   logger.info(response, null, 2);
 };

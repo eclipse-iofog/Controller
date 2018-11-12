@@ -11,13 +11,13 @@
  *
  */
 
-const commandLineArgs = require('command-line-args')
-const commandLineUsage = require('command-line-usage')
+const commandLineArgs = require('command-line-args');
+const commandLineUsage = require('command-line-usage');
 
 class CLIHandler {
   constructor() {
-    this.commandDefinitions = []
-    this.commands = {}
+    this.commandDefinitions = [];
+    this.commands = {};
     this.name = ''
   }
 
@@ -36,14 +36,14 @@ class CLIHandler {
         header: key,
         optionList: this.commandDefinitions,
         group: [key],
-      }))
+      }));
     const commandsList = {
       header: 'Command List',
       content: Object.keys(this.commands).map((key) => ({
         name: key,
         summary: this.commands[key],
       })),
-    }
+    };
 
     const sections = [
       {
@@ -52,16 +52,16 @@ class CLIHandler {
       },
     ].concat(hasCommands ? commandsList : [])
       .concat(showOptions ? options : [])
-      .concat(additionalSection)
+      .concat(additionalSection);
 
     const usage = [
       {
         header: 'ioFogController',
         content: 'Fog Controller project for Eclipse IoFog @ iofog.org \\nCopyright (c) 2018 Edgeworx, Inc.',
       }
-    ].concat(sections)
+    ].concat(sections);
     console.log(commandLineUsage(usage))
   }
 }
 
-module.exports = CLIHandler
+module.exports = CLIHandler;
