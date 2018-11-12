@@ -3829,11 +3829,12 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "4f7a9f52-12cc-49d0-9e2f-147b6f5cb6fa",
+								"id": "6d078bca-3762-400b-bf9f-2701f7f5b01b",
+								"type": "text/javascript",
 								"exec": [
-									"tests[\"Status code is 204\"] = responseCode.code === 204;"
-								],
-								"type": "text/javascript"
+									"tests[\"Status code is 204\"] = responseCode.code === 204;",
+									""
+								]
 							}
 						}
 					],
@@ -3846,16 +3847,15 @@
 							},
 							{
 								"key": "Authorization",
-								"value": "{{user-token}}",
-								"type": "text"
+								"value": "{{user-token}}"
 							}
 						],
 						"body": {
 							"mode": "raw",
-							"raw": ""
+							"raw": "{\n\t\"withCleanup\": false\n}"
 						},
 						"url": {
-							"raw": "{{host}}/api/v3/microservices/{{ms-id}}?withCleanUp=true",
+							"raw": "{{host}}/api/v3/microservices/{{ms-id}}",
 							"host": [
 								"{{host}}"
 							],
@@ -3864,12 +3864,6 @@
 								"v3",
 								"microservices",
 								"{{ms-id}}"
-							],
-							"query": [
-								{
-									"key": "withCleanUp",
-									"value": "true"
-								}
 							]
 						}
 					},
