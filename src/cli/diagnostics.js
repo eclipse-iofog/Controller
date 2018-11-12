@@ -130,21 +130,22 @@ const _getMicroserviceStraceData = async function (obj) {
   logger.info(JSON.stringify(obj));
 
   const result = await DiagnosticService.getMicroserviceStraceData(obj.microserviceId, {format: obj.format}, {}, true);
-  logger.info(JSON.stringify(result));
+  logger.info(JSON.stringify(result, null, 2));
+  logger.info('Microservice strace data has been retrieved successfully.');
 };
 
 const _postMicroserviceStraceDataToFtp = async function (obj) {
   logger.info(JSON.stringify(obj));
 
   await DiagnosticService.postMicroserviceStraceDatatoFtp(obj.microserviceId, obj, {}, true);
-  logger.info('Strace data has been posted to ftp successfully');
+  logger.info('Strace data has been posted to ftp successfully.');
 };
 
 const _postMicroserviceImageSnapshotCreate = async function (obj) {
   logger.info(JSON.stringify(obj));
 
   await DiagnosticService.postMicroserviceImageSnapshotCreate(obj.microserviceId, {}, true);
-  logger.info('Microservice image snapshot has been created successfully');
+  logger.info('Microservice image snapshot has been created successfully.');
 };
 
 const _getMicroserviceImageSnapshot = async function (obj) {

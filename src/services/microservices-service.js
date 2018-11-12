@@ -202,7 +202,7 @@ const _updateChangeTracking = async function (configUpdated, fogNodeUuid, transa
   }
 };
 
-const _deleteMicroservice = async function (microserviceUuid, deleteWithCleanUp, user, isCLI, transaction) {
+const _deleteMicroservice = async function (microserviceUuid, microserviceData, user, isCLI, transaction) {
 
   const where = isCLI
     ?
@@ -231,7 +231,7 @@ const _deleteMicroservice = async function (microserviceUuid, deleteWithCleanUp,
       },
       {
         delete: true,
-        deleteWithCleanUp: !!deleteWithCleanUp
+        deleteWithCleanUp: !!microserviceData.withCleanup
       }, transaction);
   }
 
@@ -241,14 +241,14 @@ const _deleteMicroservice = async function (microserviceUuid, deleteWithCleanUp,
 const _deleteNotRunningMicroservices = async function (transaction) {
   const microservices = await MicroserviceManager.findAllWithStatuses(transaction);
   microservices
-    .filter(microservice => !!microservice.delete)
+    .filter(microservice => microservice.delete)
     .filter(microservice => microservice.microserviceStatus.status === MicroserviceStates.NOT_RUNNING)
     .forEach(microservice => {
       MicroserviceManager.delete({
         uuid: microservice.uuid
       }, transaction);
     });
-}
+};
 
 const _checkForDuplicateName = async function (name, item, userId, transaction) {
   if (name) {
@@ -551,7 +551,7 @@ async function _createPortMapping(microserviceUuid, portMappingData, user, isCLI
       ]
   }, transaction);
   if (msPorts) {
-    throw new Errors.ValidationError('port mapping already exists')
+    throw new Errors.ValidationError(ErrorMessages.PORT_MAPPING_ALREADY_EXISTS);
   }
 
   if (portMappingData.publicMode) {
@@ -745,7 +745,7 @@ async function _buildPortsList(portsPairs, transaction) {
   return res
 }
 
-async function _getPortMappingList(microserviceUuid, user, isCLI, transaction) {
+async function _listPortMappings(microserviceUuid, user, isCLI, transaction) {
   const where = isCLI
     ? {uuid: microserviceUuid}
     : {uuid: microserviceUuid, userId: user.id};
@@ -755,8 +755,7 @@ async function _getPortMappingList(microserviceUuid, user, isCLI, transaction) {
   }
 
   const portsPairs = await MicroservicePortManager.findAll({microserviceUuid: microserviceUuid}, transaction)
-  const res = await _buildPortsList(portsPairs, transaction);
-  return res
+  return await _buildPortsList(portsPairs, transaction)
 }
 
 async function getPhysicalConections(microservice, transaction) {
@@ -789,6 +788,73 @@ async function _buildLink(protocol, ip, port) {
   return `${protocol}://${ip}:${port}`
 }
 
+async function _createVolumeMapping(microserviceUuid, volumeMappingData, user, isCLI, transaction) {
+  await Validation.validate(volumeMappingData, Validation.schemas.volumeMappings);
+
+  const where = isCLI
+    ? {uuid: microserviceUuid}
+    : {uuid: microserviceUuid, userId: user.id};
+
+  const microservice = await MicroserviceManager.findOne(where, transaction);
+  if (!microservice) {
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, microserviceUuid))
+  }
+
+  const volueMapping = await VolumeMappingManager.findOne({
+    microserviceUuid: microserviceUuid,
+    hostDestination: volumeMappingData.hostDestination,
+    containerDestination: volumeMappingData.containerDestination
+  }, transaction);
+  if (volueMapping) {
+    throw new Errors.ValidationError(ErrorMessages.VOLUME_MAPPING_ALREADY_EXISTS);
+  }
+
+  const volumeMappingObj = {
+    microserviceUuid: microserviceUuid,
+    hostDestination: volumeMappingData.hostDestination,
+    containerDestination: volumeMappingData.containerDestination,
+    accessMode: volumeMappingData.accessMode
+  };
+
+  return await VolumeMappingManager.create(volumeMappingObj, transaction);
+}
+
+async function _deleteVolumeMapping(microserviceUuid, volumeMappingUuid, user, isCLI, transaction) {
+  const where = isCLI
+    ? {uuid: microserviceUuid}
+    : {uuid: microserviceUuid, userId: user.id};
+
+  const microservice = await MicroserviceManager.findOne(where, transaction);
+  if (!microservice) {
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, microserviceUuid))
+  }
+
+  const volumeMappingWhere = {
+    uuid: volumeMappingUuid,
+    microserviceUuid: microserviceUuid
+  };
+
+  const affectedRows = await VolumeMappingManager.delete(volumeMappingWhere, transaction);
+  if (affectedRows === 0) {
+    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_VOLUME_MAPPING_UUID, volumeMappingUuid));
+  }
+}
+
+async function _listVolumeMappings(microserviceUuid, user, isCLI, transaction) {
+  const where = isCLI
+    ? {uuid: microserviceUuid}
+    : {uuid: microserviceUuid, userId: user.id};
+  const microservice = await MicroserviceManager.findOne(where, transaction)
+  if (!microservice) {
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, microserviceUuid))
+  }
+
+  const volumeMappingWhere = {
+    microserviceUuid: microserviceUuid
+  };
+  return await VolumeMappingManager.findAll(volumeMappingWhere, transaction);
+}
+
 module.exports = {
   createMicroserviceOnFog: TransactionDecorator.generateTransaction(_createMicroserviceOnFog),
   listMicroservices: TransactionDecorator.generateTransaction(_listMicroservices),
@@ -798,8 +864,11 @@ module.exports = {
   createRoute: TransactionDecorator.generateTransaction(_createRoute),
   deleteRoute: TransactionDecorator.generateTransaction(_deleteRoute),
   createPortMapping: TransactionDecorator.generateTransaction(_createPortMapping),
-  getMicroservicePortMappingList: TransactionDecorator.generateTransaction(_getPortMappingList),
+  listMicroservicePortMappings: TransactionDecorator.generateTransaction(_listPortMappings),
   deletePortMapping: TransactionDecorator.generateTransaction(_deletePortMapping),
+  createVolumeMapping: TransactionDecorator.generateTransaction(_createVolumeMapping),
+  deleteVolumeMapping: TransactionDecorator.generateTransaction(_deleteVolumeMapping),
+  listVolumeMappings: TransactionDecorator.generateTransaction(_listVolumeMappings),
   getPhysicalConections: getPhysicalConections,
   deleteNotRunningMicroservices: _deleteNotRunningMicroservices
 };
