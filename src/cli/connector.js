@@ -155,7 +155,7 @@ async function _deleteConnector(obj) {
   }
 }
 
-async function _getConnectorList(obj) {
+async function _getConnectorList() {
   const list = await ConnectorService.getConnectorList();
   logger.info(JSON.stringify(list, null, 2));
   logger.info('Connector list has been gotten successfully');
@@ -167,7 +167,7 @@ function _createConnectorObject(cliData) {
     domain: cliData.domain,
     publicIp: cliData.publicIp,
     cert: cliData.cert,
-    isSelfSignedCert: AppHelper.validateBooleanCliOptions(cliData.selfSignedEnable, cliData.selfSignedDisable),
+    isSelfSignedCert: AppHelper.validateBooleanCliOptions(cliData.selfSignedOn, cliData.selfSignedOff),
     devMode: AppHelper.validateBooleanCliOptions(cliData.devModeOn, cliData.devModeOff)
   };
 
