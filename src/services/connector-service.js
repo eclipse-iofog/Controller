@@ -11,31 +11,31 @@
  *
  */
 
-const TransactionDecorator = require('../decorators/transaction-decorator')
-const Validator = require('../schemas')
-const ConnectorManager = require('../sequelize/managers/connector-manager')
-const Errors = require('../helpers/errors')
-const ErrorMessages = require('../helpers/error-messages')
-const AppHelper = require('../helpers/app-helper')
+const TransactionDecorator = require('../decorators/transaction-decorator');
+const Validator = require('../schemas');
+const ConnectorManager = require('../sequelize/managers/connector-manager');
+const Errors = require('../helpers/errors');
+const ErrorMessages = require('../helpers/error-messages');
+const AppHelper = require('../helpers/app-helper');
 const https = require('https');
 const http = require('http');
-const constants = require('../helpers/constants')
-const logger = require('../logger')
-const querystring = require('querystring')
+const constants = require('../helpers/constants');
+const logger = require('../logger');
+const querystring = require('querystring');
 const Op = require('sequelize').Op;
 const Sequelize = require('sequelize');
 const fs = require('fs');
 
 async function _createConnector(connectorData, transaction) {
-  await Validator.validate(connectorData, Validator.schemas.connectorCreate)
-  validateConnectorData(connectorData)
+  await Validator.validate(connectorData, Validator.schemas.connectorCreate);
+  validateConnectorData(connectorData);
   const connector = await ConnectorManager.findOne({
     [Op.or]: [
       {name: connectorData.name},
       {publicIp: connectorData.publicIp},
       {domain: connectorData.domain}
     ]
-  }, transaction)
+  }, transaction);
   if (connector) {
     throw new Errors.ValidationError(ErrorMessages.ALREADY_EXISTS)
   }
@@ -51,21 +51,26 @@ async function _updateConnector(connectorData, transaction) {
   await ConnectorManager.update(queryConnectorData, connectorData, transaction)
 }
 
-function validateConnectorData(connectorData){
-    if (connectorData.domain && !AppHelper.isValidDomain(connectorData.domain)){
-        throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_CONNECTOR_DOMAIN, connectorData.domain));
+function validateConnectorData(connectorData) {
+  if (connectorData.domain) {
+    const validDomain = AppHelper.isValidDomain(connectorData.domain) || AppHelper.isValidPublicIP(connectorData.domain);
+    if (!validDomain) {
+      console.log(validDomain);
+      throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_CONNECTOR_DOMAIN, connectorData.domain));
     }
-    if (!AppHelper.isValidPublicIP(connectorData.publicIp)){
-        throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_CONNECTOR_IP, connectorData.publicIp));
-    }
+  }
+
+  if (!AppHelper.isValidPublicIP(connectorData.publicIp)) {
+    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_CONNECTOR_IP, connectorData.publicIp));
+  }
 }
 
 async function _deleteConnector(connectorData, transaction) {
-  await Validator.validate(connectorData, Validator.schemas.connectorDelete)
+  await Validator.validate(connectorData, Validator.schemas.connectorDelete);
   const queryConnectorData = {
     publicIp: connectorData.publicIp
-  }
-  const affectedRows = await ConnectorManager.delete(queryConnectorData, transaction)
+  };
+  const affectedRows = await ConnectorManager.delete(queryConnectorData, transaction);
   if (affectedRows === 0) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_CONNECTOR_IP, connectorData.publicIp))
   }
@@ -76,41 +81,41 @@ async function _getConnectorList(transaction) {
 }
 
 async function openPortOnRandomConnector(isPublicAccess, transaction) {
-  let isConnectorPortOpen = false
+  let isConnectorPortOpen = false;
   let ports = null;
   let connector = null;
-  const maxAttempts = 5
+  const maxAttempts = 5;
   for (let i = 0; i < maxAttempts; i++) {
     try {
-      connector = await _getRandomConnector(transaction)
-      ports = await openPortsOnConnector(connector, isPublicAccess, transaction)
+      connector = await _getRandomConnector(transaction);
+      ports = await openPortsOnConnector(connector, isPublicAccess, transaction);
       if (ports) {
-        isConnectorPortOpen = true
+        isConnectorPortOpen = true;
         break;
       }
-    } catch(e) {
-      logger.warn(`Failed to open ports on comsat. Attempts ${i+1}/${maxAttempts}`)
+    } catch (e) {
+      logger.warn(`Failed to open ports on comsat. Attempts ${i + 1}/${maxAttempts}`)
     }
   }
   if (!isConnectorPortOpen) {
     throw new Error('Not able to open port on remote CONNECTOR. Gave up after 5 attempts.')
   }
-  ports.connectorId = connector.id
+  ports.connectorId = connector.id;
   return {ports: ports, connector: connector}
 }
 
 async function _makeRequest(connector, options, data) {
   return new Promise((resolve, reject) => {
-    let httpreq = (connector.devMode ? http : https).request(options, function(response) {
+    let httpreq = (connector.devMode ? http : https).request(options, function (response) {
       console.log(response.statusCode);
       let output = '';
       response.setEncoding('utf8');
 
-      response.on('data', function(chunk) {
+      response.on('data', function (chunk) {
         output += chunk;
       });
 
-      response.on('end', function() {
+      response.on('end', function () {
         let responseObj = JSON.parse(output);
         console.log(responseObj);
         if (responseObj.errormessage) {
@@ -119,14 +124,14 @@ async function _makeRequest(connector, options, data) {
           return resolve(responseObj);
         }
       });
-    })
+    });
 
     if (connector.cert && connector.isSelfSignedCert === true) {
       const ca = fs.readFileSync(connector.cert);
       options.ca = new Buffer(ca);
     }
 
-    httpreq.on('error', function(err) {
+    httpreq.on('error', function (err) {
       console.log(err);
       if (err instanceof Error)
         return reject(new Error(err.message));
@@ -147,7 +152,7 @@ async function openPortsOnConnector(connector, isPublicAccess, transaction) {
     })
     : await querystring.stringify({
       mapping: '{"type":"private","maxconnectionsport1":1, "maxconnectionsport2":1, ' +
-        '"heartbeatabsencethresholdport1":200000, "heartbeatabsencethresholdport2":200000}'
+      '"heartbeatabsencethresholdport1":200000, "heartbeatabsencethresholdport2":200000}'
     });
 
   let port = connector.devMode ? constants.CONNECTOR_HTTP_PORT : constants.CONNECTOR_HTTPS_PORT;
@@ -163,12 +168,12 @@ async function openPortsOnConnector(connector, isPublicAccess, transaction) {
     }
   };
 
-  const ports = await _makeRequest(connector, options, data)
+  const ports = await _makeRequest(connector, options, data);
   return ports
 }
 
 async function _getRandomConnector(transaction) {
-  const connectors = await _getConnectorList(transaction)
+  const connectors = await _getConnectorList(transaction);
   if (connectors && connectors.length > 0) {
     const randomNumber = Math.round((Math.random() * (connectors.length - 1)));
     return connectors[randomNumber]
