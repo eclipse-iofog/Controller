@@ -82,7 +82,7 @@ const _executeCase  = async function (catalogCommand, commandName, f) {
 const _addConfigOption = async function (options) {
   await Validator.validate(options, Validator.schemas.configUpdate);
 
-  updateConfig(options.port, 'port', 'Server:Port', async (onSuccess) => {
+  await updateConfig(options.port, 'port', 'Server:Port', async (onSuccess) => {
     const port = options.port;
     const status = await AppHelper.checkPortAvailability(port);
     if (status === 'closed') {
@@ -93,7 +93,7 @@ const _addConfigOption = async function (options) {
     }
   });
 
-  updateConfig(options.sslCert, 'ssl-cert', 'Server:SslCert', (onSuccess) => {
+  await updateConfig(options.sslCert, 'ssl-cert', 'Server:SslCert', (onSuccess) => {
     const sslCert = options.sslCert;
     if (!AppHelper.isFileExists(sslCert)) {
       logger.error(ErrorMessages.INVALID_FILE_PATH);
@@ -113,7 +113,7 @@ const _addConfigOption = async function (options) {
     logger.info('Config option ssl-key has been updated.');
   }
 
-  updateConfig(options.intermediateCert, 'intermediate-cert', 'Server:IntermediateCert', (onSuccess) => {
+  await updateConfig(options.intermediateCert, 'intermediate-cert', 'Server:IntermediateCert', (onSuccess) => {
     const intermediateCert = options.intermediateCert;
     if (!AppHelper.isFileExists(intermediateCert)) {
       logger.error(ErrorMessages.INVALID_FILE_PATH);
@@ -123,12 +123,12 @@ const _addConfigOption = async function (options) {
     onSuccess();
   });
 
-  updateConfig(options.homeUrl, 'home-url', 'Email:HomeUrl', (onSuccess) => {
+  await updateConfig(options.homeUrl, 'home-url', 'Email:HomeUrl', (onSuccess) => {
     config.set('Email:HomeUrl', options.homeUrl);
     onSuccess();
   });
 
-  updateConfig(options.emailAddress, 'email-address', 'Email:Address', (onSuccess) => {
+  await updateConfig(options.emailAddress, 'email-address', 'Email:Address', (onSuccess) => {
     if (options.emailPassword) {
       logger.info('When changing email address, password must be provided.');
       return;
@@ -142,17 +142,17 @@ const _addConfigOption = async function (options) {
     logger.info('Config option email-password has been updated.');
   }
 
-  updateConfig(options.emailService, 'email-service', 'Email:Service', (onSuccess) => {
+  await updateConfig(options.emailService, 'email-service', 'Email:Service', (onSuccess) => {
     config.set('Email:Service', options.emailService);
     onSuccess();
   });
 
-  updateConfig(options.logDir, 'log-dir', 'Service:LogsDirectory', (onSuccess) => {
+  await updateConfig(options.logDir, 'log-dir', 'Service:LogsDirectory', (onSuccess) => {
     config.set('Service:LogsDirectory', options.logDir);
     onSuccess();
   });
 
-  updateConfig(options.logSize, 'log-size', 'Service:LogsFileSize', (onSuccess) => {
+  await updateConfig(options.logSize, 'log-size', 'Service:LogsFileSize', (onSuccess) => {
     config.set('Service:LogsFileSize', options.logSize * 1024);
     onSuccess();
   })
