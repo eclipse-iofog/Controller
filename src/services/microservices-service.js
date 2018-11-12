@@ -31,6 +31,7 @@ const FlowService = require('../services/flow-service');
 const CatalogService = require('../services/catalog-service');
 const RoutingManager = require('../sequelize/managers/routing-manager');
 const Op = require('sequelize').Op;
+const fs = require('fs');
 
 const _listMicroservices = async function (flowId, user, isCLI, transaction) {
   if (!isCLI) {
@@ -602,7 +603,7 @@ async function _createPortMappingOverConnector(microservice, portMappingData, us
   const netwMsConfig = {
     'mode': 'public',
     'host': connector.domain,
-    'cert': connector.cert,
+    'cert': AppHelper.trimCertificate(fs.readFileSync(connector.cert, "utf-8")),
     'port': ports.port1,
     'passcode': ports.passcode1,
     'connectioncount': 60,
