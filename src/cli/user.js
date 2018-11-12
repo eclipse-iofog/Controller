@@ -129,9 +129,10 @@ const _deleteUser = async function (emailObj, user) {
   logger.info('User removed successfully.');
 };
 
-const _getAllUsers = async function (emptyObj) {
+const _getAllUsers = async function () {
   const users = await UserService.list(true);
-  logger.info(JSON.stringify(users));
+  logger.info(JSON.stringify(users, null, 2));
+  logger.info('All users have been retrieved successfully.')
 };
 
 const _generateToken = async function (emailObj, user) {

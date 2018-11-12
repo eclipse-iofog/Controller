@@ -193,23 +193,23 @@ async function _deleteFog(obj, user) {
 async function _getFogList(obj, user) {
   const emptyFilters = []
   const list = await FogService.getFogList(emptyFilters, user, true);
-  logger.info('Fog list has been gotten successfully');
-  logger.info(JSON.stringify(list));
+  logger.info(JSON.stringify(list, null, 2));
+  logger.info('Fog list has been gotten successfully.');
 }
 
 async function _getFog(obj, user) {
   const fog = _createFogObject(obj);
   const res = await FogService.getFogWithTransaction(fog, user, true);
-  logger.info('Fog has been gotten successfully');
-  logger.info(JSON.stringify(res));
+  logger.info(JSON.stringify(res, null, 2));
+  logger.info('Fog has been gotten successfully.');
 }
 
 async function _generateProvision(obj, user) {
   const fog = _createFogObject(obj);
   logger.info(JSON.stringify(fog));
   const res = await FogService.generateProvisioningKey(fog, user, true);
-  logger.info('Fog provisioning key has been generated successfully');
-  logger.info('Provisioning key: '+ JSON.stringify(res));
+  logger.info('Provisioning key: '+ JSON.stringify(res, null, 2));
+  logger.info('Fog provisioning key has been generated successfully.');
 }
 
 async function _setFogRebootCommand(obj, user) {
@@ -237,7 +237,8 @@ async function _getHalHardwareInfo(obj) {
   logger.info("Parameters" + JSON.stringify(uuidObj));
 
   const info = await FogService.getHalHardwareInfo(uuidObj, {}, true);
-  logger.info(JSON.stringify(info));
+  logger.info(JSON.stringify(info, null, 2));
+  logger.info('Hardware info has been retrieved successfully.')
 }
 
 async function _getHalUsbInfo(obj) {
@@ -248,7 +249,8 @@ async function _getHalUsbInfo(obj) {
   logger.info("Parameters" + JSON.stringify(uuidObj));
 
   const info = await FogService.getHalHardwareInfo(uuidObj, {}, true);
-  logger.info(JSON.stringify(info));
+  logger.info(JSON.stringify(info, null, 2));
+  logger.info('Usb info has been retrieved successfully.')
 }
 
 function _createFogObject(cliData) {

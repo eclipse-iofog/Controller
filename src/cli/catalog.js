@@ -167,7 +167,7 @@ const _deleteCatalogItem = async function (obj) {
 
 const _listCatalogItems = async function () {
   const result = await CatalogItemService.listCatalogItems({}, true);
-  logger.info(JSON.stringify(result));
+  logger.info(JSON.stringify(result, null, 2));
   logger.info('Catalog items have been successfully retrieved.');
 };
 

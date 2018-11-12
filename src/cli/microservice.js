@@ -362,7 +362,7 @@ const _removeVolumeMapping = async function (obj) {
 
 const _listPortMappings = async function (obj) {
   const result = await MicroserviceService.listMicroservicePortMappings(obj.microserviceId, {}, true);
-  logger.info(JSON.stringify(result));
+  logger.info(JSON.stringify(result, null, 2));
   logger.info('Port mappings have been retrieved successfully.');
 };
 
@@ -380,7 +380,7 @@ const _removeMicroservice = async function (obj) {
 
 const _listMicroservices = async function () {
   const result = await MicroserviceService.listMicroservices({}, {}, true);
-  logger.info(JSON.stringify(result));
+  logger.info(JSON.stringify(result, null, 2));
   logger.info('Microservices have been retrieved successfully.');
 };
 
