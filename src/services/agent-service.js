@@ -382,7 +382,7 @@ const getImageSnapshot = async function (fog, transaction) {
 };
 
 const putImageSnapshot = async function (req, fog, transaction) {
-  if (req.headers['content-type'] !== 'application/zip') {
+  if (req.headers['content-type'].includes('multipart/form-data')) {
     throw new Errors.ValidationError(ErrorMessages.INVALID_CONTENT_TYPE);
   }
 
