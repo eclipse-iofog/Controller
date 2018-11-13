@@ -106,13 +106,21 @@ module.exports = {
     (queryInterface, Sequelize) => {
 
     // for SQLite
-      return queryInterface.renameColumn('Flows', 'user_id', 'user_id')
+      return queryInterface.renameColumn('Flows', 'user_id', 'user_id1')
         .then(() => {
-          return queryInterface.renameColumn('Microservices', 'user_id', 'user_id')
+          return queryInterface.renameColumn('Flows', 'user_id1', 'user_id')
         }).then(() => {
-          return queryInterface.renameColumn('ChangeTrackings', 'iofog_uuid', 'iofog_uuid')
+          return queryInterface.renameColumn('Microservices', 'user_id', 'user_id1')
         }).then(() => {
-          return queryInterface.renameColumn('MicroservicePorts', 'user_id', 'user_id')
+          return queryInterface.renameColumn('Microservices', 'user_id1', 'user_id')
+        }).then(() => {
+          return queryInterface.renameColumn('ChangeTrackings', 'iofog_uuid', 'iofog_uuid1')
+        }).then(() => {
+          return queryInterface.renameColumn('ChangeTrackings', 'iofog_uuid1', 'iofog_uuid')
+        }).then(() => {
+          return queryInterface.renameColumn('MicroservicePorts', 'user_id', 'user_id1')
+        }).then(() => {
+          return queryInterface.renameColumn('MicroservicePorts', 'user_id1', 'user_id')
         })
 
       // for other DB
