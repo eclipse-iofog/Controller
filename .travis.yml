@@ -11,8 +11,7 @@ jobs:
   include:
   - stage: build
   - stage: package_build
-    script:
-    - npm run build
+    script: .travis/pu.sh
     deploy:
       skip_cleanup: true
       provider: npm
@@ -20,3 +19,4 @@ jobs:
       api_key: ${NPM_AUTH_TOKEN}
       on:
         all_branches: true
+        tags: false
