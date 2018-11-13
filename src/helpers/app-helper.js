@@ -22,6 +22,8 @@ const format = require('string-format');
 
 const ALGORITHM = 'aes-256-ctr';
 
+const Transaction = require('sequelize/lib/transaction');
+
 function encryptText(text, salt) {
   const cipher = crypto.createCipher(ALGORITHM, salt);
   let crypted = cipher.update(text, 'utf8', 'hex');
@@ -102,11 +104,10 @@ function generateAccessToken() {
 }
 
 function checkTransaction(transaction) {
-  // To be removed when transactions concurrency issue fixed
-  return
-  // if (!transaction) {
-  //   throw new Errors.TransactionError()
-  // }
+  //TODO [when transactions concurrency issue fixed]: Remove '!transaction.fakeTransaction'
+  if (!transaction || (!(transaction instanceof Transaction) && !transaction.fakeTransaction)) {
+    throw new Errors.TransactionError()
+  }
 }
 
 function deleteUndefinedFields(obj) {

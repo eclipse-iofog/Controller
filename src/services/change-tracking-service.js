@@ -75,6 +75,10 @@ async function update(fogId, data, transaction) {
   await ChangeTrackingManager.update({iofogUuid: fogId}, data, transaction);
 }
 
+async function updateIfChanged(fogId, data, transaction) {
+  await ChangeTrackingManager.updateIfChanged({iofogUuid: fogId}, data, transaction);
+}
+
 async function create(fogId, transaction) {
   await ChangeTrackingManager.create({iofogUuid: fogId}, transaction);
 }
@@ -87,5 +91,6 @@ module.exports = {
   events: events,
   create: create,
   update: update,
+  updateIfChanged: updateIfChanged,
   getByFogId: getByFogId
 };
