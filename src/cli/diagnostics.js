@@ -21,7 +21,7 @@ const AuthDecorator = require('../decorators/cli-decorator');
 
 class Diagnostics extends BaseCLIHandler {
   constructor() {
-    super()
+    super();
 
     this.name = constants.CMD_DIAGNOSTICS;
     this.commandDefinitions = [
@@ -35,12 +35,12 @@ class Diagnostics extends BaseCLIHandler {
       },
       {
         name: 'disable', alias: 'o', type: Boolean, description: 'Disable microservice strace',
-        group: [constants.CMD_STRACE_UPDATE ]
+        group: [constants.CMD_STRACE_UPDATE]
       },
       {
         name: 'microservice-id', alias: 'i', type: String, description: 'Microservice ID',
         group: [constants.CMD_STRACE_UPDATE, constants.CMD_STRACE_INFO, constants.CMD_STRACE_FTP_POST,
-                constants.CMD_IMAGE_SNAPSHOT_CREATE, constants.CMD_IMAGE_SNAPSHOT_GET]
+          constants.CMD_IMAGE_SNAPSHOT_CREATE, constants.CMD_IMAGE_SNAPSHOT_GET]
       },
       {
         name: 'format', alias: 'f', type: String, description: 'Format of strace data to receive',
@@ -66,7 +66,7 @@ class Diagnostics extends BaseCLIHandler {
         name: 'ftpDestDir', alias: 'd', type: String, description: 'FTP destination directory',
         group: [constants.CMD_STRACE_FTP_POST]
       },
-    ]
+    ];
     this.commands = {
       [constants.CMD_STRACE_UPDATE]: 'Change microservice strace status to enabled or disabled.',
       [constants.CMD_STRACE_INFO]: 'Get microservice strace data.',
@@ -77,32 +77,36 @@ class Diagnostics extends BaseCLIHandler {
   }
 
   async run(args) {
-    const diagnosticCommand = this.parseCommandLineArgs(this.commandDefinitions, { argv: args.argv })
+    try {
+      const diagnosticCommand = this.parseCommandLineArgs(this.commandDefinitions, {argv: args.argv, partial: false});
 
-    switch (diagnosticCommand.command.command) {
-      case constants.CMD_STRACE_UPDATE:
-        await _executeCase(diagnosticCommand, constants.CMD_STRACE_UPDATE, _changeMicroserviceStraceState, false);
-        break;
-      case constants.CMD_STRACE_INFO:
-        await _executeCase(diagnosticCommand, constants.CMD_STRACE_INFO, _getMicroserviceStraceData, false);
-        break;
-      case constants.CMD_STRACE_FTP_POST:
-        await _executeCase(diagnosticCommand, constants.CMD_STRACE_FTP_POST, _postMicroserviceStraceDataToFtp, false);
-        break;
-      case constants.CMD_IMAGE_SNAPSHOT_CREATE:
-        await _executeCase(diagnosticCommand, constants.CMD_IMAGE_SNAPSHOT_CREATE, _postMicroserviceImageSnapshotCreate, false);
-        break;
-      case constants.CMD_IMAGE_SNAPSHOT_GET:
-        await _executeCase(diagnosticCommand, constants.CMD_IMAGE_SNAPSHOT_GET, _getMicroserviceImageSnapshot, false);
-        break;
-      case constants.CMD_HELP:
-      default:
-        return this.help([constants.CMD_LIST])
+      switch (diagnosticCommand.command.command) {
+        case constants.CMD_STRACE_UPDATE:
+          await _executeCase(diagnosticCommand, constants.CMD_STRACE_UPDATE, _changeMicroserviceStraceState, false);
+          break;
+        case constants.CMD_STRACE_INFO:
+          await _executeCase(diagnosticCommand, constants.CMD_STRACE_INFO, _getMicroserviceStraceData, false);
+          break;
+        case constants.CMD_STRACE_FTP_POST:
+          await _executeCase(diagnosticCommand, constants.CMD_STRACE_FTP_POST, _postMicroserviceStraceDataToFtp, false);
+          break;
+        case constants.CMD_IMAGE_SNAPSHOT_CREATE:
+          await _executeCase(diagnosticCommand, constants.CMD_IMAGE_SNAPSHOT_CREATE, _postMicroserviceImageSnapshotCreate, false);
+          break;
+        case constants.CMD_IMAGE_SNAPSHOT_GET:
+          await _executeCase(diagnosticCommand, constants.CMD_IMAGE_SNAPSHOT_GET, _getMicroserviceImageSnapshot, false);
+          break;
+        case constants.CMD_HELP:
+        default:
+          return this.help([constants.CMD_LIST])
+      }
+    } catch (error) {
+      AppHelper.handleCLIError(error);
     }
   }
 }
 
-const _executeCase  = async function (diagnosticCommand, commandName, f, isUserRequired) {
+const _executeCase = async function (diagnosticCommand, commandName, f, isUserRequired) {
   try {
     const item = diagnosticCommand[commandName];
 

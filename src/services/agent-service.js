@@ -382,31 +382,27 @@ const getImageSnapshot = async function (fog, transaction) {
 };
 
 const putImageSnapshot = async function (req, fog, transaction) {
-  if (req.headers['content-type'].includes('multipart/form-data')) {
+  const opts = {
+    maxFieldsSize: 500 * 1024 * 1024,
+    maxFileSize: 500 * 1024 * 1024
+  };
+  if (!req.headers['content-type'].includes('multipart/form-data')) {
     throw new Errors.ValidationError(ErrorMessages.INVALID_CONTENT_TYPE);
   }
 
-  const form = new formidable.IncomingForm();
+  const form = new formidable.IncomingForm(opts);
   form.uploadDir = path.join(appRoot, '../') + 'data';
   if (!fs.existsSync(form.uploadDir)) {
     fs.mkdirSync(form.uploadDir);
   }
-  const absolutePath = await saveSnapShot(req, form);
-  await MicroserviceManager.update({
-    iofogUuid: fog.uuid,
-    imageSnapshot: 'get_image'
-  }, {
-    imageSnapshot: absolutePath
-  }, transaction);
+  await saveSnapShot(req, form,fog, transaction);
 
 };
 
-const saveSnapShot = function (req, form) {
+const saveSnapShot = function (req, form, fog, transaction) {
   return new Promise((resolve, reject) => {
-
     form.parse(req, async function (error, fields, files) {
       const file = files['upstream'];
-
       if (file === undefined) {
         reject(new Errors.ValidationError(ErrorMessages.UPLOADED_FILE_NOT_FOUND));
         return;
@@ -414,10 +410,18 @@ const saveSnapShot = function (req, form) {
 
       const filePath = file['path'];
 
-
       let absolutePath = path.resolve(filePath);
-      fs.rename(absolutePath, absolutePath + '.tar.gz');
-      resolve(absolutePath + '.tar.gz');
+      fs.renameSync(absolutePath, absolutePath + '.tar.gz');
+
+      await MicroserviceManager.update({
+        iofogUuid: fog.uuid,
+        imageSnapshot: 'get_image'
+      }, {
+        imageSnapshot: absolutePath + '.tar.gz'
+      }, transaction);
+
+      resolve();
+
     });
   });
 };

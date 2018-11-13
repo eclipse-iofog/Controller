@@ -52,7 +52,6 @@ fs.readdirSync(__dirname)
 async function validate(object, schema) {
   const response = v.validate(object, schema);
   if (!response.valid) {
-    Logger.info(JSON.stringify(response));
     await handleValidationError(response.errors[0]);
   }
   return response

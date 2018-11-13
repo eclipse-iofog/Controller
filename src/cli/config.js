@@ -25,19 +25,64 @@ class Config extends BaseCLIHandler {
 
     this.name = constants.CMD_CONFIG;
     this.commandDefinitions = [
-      { name: 'command', defaultOption: true, group: constants.CMD },
-      { name: 'port', alias: 'p', type: Number, description: 'Port', group: constants.CMD_ADD },
-      { name: 'ssl-cert', alias: 'c', type: String, description: 'Path to SSL certificate file', group: constants.CMD_ADD },
-      { name: 'ssl-key', alias: 'k', type: String, description: 'Path to SSL key file', group: constants.CMD_ADD },
-      { name: 'intermediate-cert', alias: 'i', type: String, description: 'Path to SSL intermediate certificate file', group: constants.CMD_ADD },
-      { name: 'home-url', alias: 'h', type: String, description: 'Home page url for email activation links', group: constants.CMD_ADD },
-      { name: 'email-address', alias: 'a', type: String, description: 'Email address to send activations from', group: constants.CMD_ADD },
-      { name: 'email-password', alias: 'w', type: String, description: 'Email password to send activations from', group: constants.CMD_ADD },
-      { name: 'email-service', alias: 's', type: String, description: 'Email service to send activations', group: constants.CMD_ADD },
-      { name: 'log-dir', alias: 'd', type: String, description: 'Log files directory', group: constants.CMD_ADD },
-      { name: 'log-size', alias: 'z', type: Number, description: 'Log files size (MB)', group: constants.CMD_ADD },
-      { name: 'on', alias: 'o', type: Boolean, description: 'Enable', group: [constants.CMD_DEV_MODE, constants.CMD_EMAIL_ACTIVATION]  },
-      { name: 'off', alias: 'f', type: Boolean, description: 'Disable', group: [constants.CMD_DEV_MODE, constants.CMD_EMAIL_ACTIVATION] },
+      {
+        name: 'command', defaultOption: true,
+        group: constants.CMD
+      },
+      {
+        name: 'port', alias: 'p', type: Number, description: 'Port',
+        group: constants.CMD_ADD
+      },
+      {
+        name: 'ssl-cert', alias: 'c', type: String,
+        description: 'Path to SSL certificate file',
+        group: constants.CMD_ADD
+      },
+      {
+        name: 'ssl-key', alias: 'k', type: String, description: 'Path to SSL key file',
+        group: constants.CMD_ADD
+      },
+      {
+        name: 'intermediate-cert', alias: 'i', type: String,
+        description: 'Path to SSL intermediate certificate file',
+        group: constants.CMD_ADD
+      },
+      {
+        name: 'home-url', alias: 'h', type: String,
+        description: 'Home page url for email activation links',
+        group: constants.CMD_ADD
+      },
+      {
+        name: 'email-address', alias: 'a', type: String,
+        description: 'Email address to send activations from',
+        group: constants.CMD_ADD
+      },
+      {
+        name: 'email-password', alias: 'w', type: String,
+        description: 'Email password to send activations from',
+        group: constants.CMD_ADD
+      },
+      {
+        name: 'email-service', alias: 's', type: String,
+        description: 'Email service to send activations',
+        group: constants.CMD_ADD
+      },
+      {
+        name: 'log-dir', alias: 'd', type: String, description: 'Log files directory',
+        group: constants.CMD_ADD
+      },
+      {
+        name: 'log-size', alias: 'z', type: Number,
+        description: 'Log files size (MB)', group: constants.CMD_ADD
+      },
+      {
+        name: 'on', alias: 'o', type: Boolean, description: 'Enable',
+        group: [constants.CMD_DEV_MODE, constants.CMD_EMAIL_ACTIVATION]
+      },
+      {
+        name: 'off', alias: 'f', type: Boolean, description: 'Disable',
+        group: [constants.CMD_DEV_MODE, constants.CMD_EMAIL_ACTIVATION]
+      },
     ];
     this.commands = {
       [constants.CMD_ADD]: 'Add a new config value.',
@@ -48,29 +93,33 @@ class Config extends BaseCLIHandler {
   }
 
   async run(args) {
-    const configCommand = this.parseCommandLineArgs(this.commandDefinitions, {argv: args.argv});
+    try {
+      const configCommand = this.parseCommandLineArgs(this.commandDefinitions, {argv: args.argv, partial: false});
 
-    switch (configCommand.command.command) {
-      case constants.CMD_ADD:
-        await _executeCase(configCommand, constants.CMD_ADD, _addConfigOption);
-        break;
-      case constants.CMD_LIST:
-        await _executeCase(configCommand, constants.CMD_LIST, _listConfigOptions);
-        break;
-      case constants.CMD_DEV_MODE:
-        await _executeCase(configCommand, constants.CMD_DEV_MODE, _changeDevModeState);
-        break;
-      case constants.CMD_EMAIL_ACTIVATION:
-        await _executeCase(configCommand, constants.CMD_EMAIL_ACTIVATION, _changeEmailActivationState);
-        break;
-      case constants.CMD_HELP:
-      default:
-        return this.help([], true, false)
+      switch (configCommand.command.command) {
+        case constants.CMD_ADD:
+          await _executeCase(configCommand, constants.CMD_ADD, _addConfigOption);
+          break;
+        case constants.CMD_LIST:
+          await _executeCase(configCommand, constants.CMD_LIST, _listConfigOptions);
+          break;
+        case constants.CMD_DEV_MODE:
+          await _executeCase(configCommand, constants.CMD_DEV_MODE, _changeDevModeState);
+          break;
+        case constants.CMD_EMAIL_ACTIVATION:
+          await _executeCase(configCommand, constants.CMD_EMAIL_ACTIVATION, _changeEmailActivationState);
+          break;
+        case constants.CMD_HELP:
+        default:
+          return this.help([], true, false)
+      }
+    } catch (error) {
+      AppHelper.handleCLIError(error);
     }
   }
 }
 
-const _executeCase  = async function (catalogCommand, commandName, f) {
+const _executeCase = async function (catalogCommand, commandName, f) {
   try {
     const item = catalogCommand[commandName];
     await f(item);
@@ -82,7 +131,7 @@ const _executeCase  = async function (catalogCommand, commandName, f) {
 const _addConfigOption = async function (options) {
   await Validator.validate(options, Validator.schemas.configUpdate);
 
-  updateConfig(options.port, 'port', 'Server:Port', async (onSuccess) => {
+  await updateConfig(options.port, 'port', 'Server:Port', async (onSuccess) => {
     const port = options.port;
     const status = await AppHelper.checkPortAvailability(port);
     if (status === 'closed') {
@@ -93,7 +142,7 @@ const _addConfigOption = async function (options) {
     }
   });
 
-  updateConfig(options.sslCert, 'ssl-cert', 'Server:SslCert', (onSuccess) => {
+  await updateConfig(options.sslCert, 'ssl-cert', 'Server:SslCert', (onSuccess) => {
     const sslCert = options.sslCert;
     if (!AppHelper.isFileExists(sslCert)) {
       logger.error(ErrorMessages.INVALID_FILE_PATH);
@@ -113,7 +162,7 @@ const _addConfigOption = async function (options) {
     logger.info('Config option ssl-key has been updated.');
   }
 
-  updateConfig(options.intermediateCert, 'intermediate-cert', 'Server:IntermediateCert', (onSuccess) => {
+  await updateConfig(options.intermediateCert, 'intermediate-cert', 'Server:IntermediateCert', (onSuccess) => {
     const intermediateCert = options.intermediateCert;
     if (!AppHelper.isFileExists(intermediateCert)) {
       logger.error(ErrorMessages.INVALID_FILE_PATH);
@@ -123,12 +172,12 @@ const _addConfigOption = async function (options) {
     onSuccess();
   });
 
-  updateConfig(options.homeUrl, 'home-url', 'Email:HomeUrl', (onSuccess) => {
+  await updateConfig(options.homeUrl, 'home-url', 'Email:HomeUrl', (onSuccess) => {
     config.set('Email:HomeUrl', options.homeUrl);
     onSuccess();
   });
 
-  updateConfig(options.emailAddress, 'email-address', 'Email:Address', (onSuccess) => {
+  await updateConfig(options.emailAddress, 'email-address', 'Email:Address', (onSuccess) => {
     if (options.emailPassword) {
       logger.info('When changing email address, password must be provided.');
       return;
@@ -142,17 +191,17 @@ const _addConfigOption = async function (options) {
     logger.info('Config option email-password has been updated.');
   }
 
-  updateConfig(options.emailService, 'email-service', 'Email:Service', (onSuccess) => {
+  await updateConfig(options.emailService, 'email-service', 'Email:Service', (onSuccess) => {
     config.set('Email:Service', options.emailService);
     onSuccess();
   });
 
-  updateConfig(options.logDir, 'log-dir', 'Service:LogsDirectory', (onSuccess) => {
+  await updateConfig(options.logDir, 'log-dir', 'Service:LogsDirectory', (onSuccess) => {
     config.set('Service:LogsDirectory', options.logDir);
     onSuccess();
   });
 
-  updateConfig(options.logSize, 'log-size', 'Service:LogsFileSize', (onSuccess) => {
+  await updateConfig(options.logSize, 'log-size', 'Service:LogsFileSize', (onSuccess) => {
     config.set('Service:LogsFileSize', options.logSize * 1024);
     onSuccess();
   })
@@ -162,7 +211,7 @@ const updateConfig = async function (newConfigValue, cliConfigName, configName, 
   if (newConfigValue) {
     const oldConfigValue = config.get(configName);
     if (newConfigValue !== oldConfigValue) {
-      await fn(function() {
+      await fn(function () {
         const currentConfigValue = config.get(configName);
         logger.info(`Config option ${cliConfigName} has been set to ${currentConfigValue}`);
       });
@@ -197,7 +246,7 @@ const _listConfigOptions = function () {
 
 const _changeDevModeState = function (options) {
   const enableDevMode = AppHelper.validateBooleanCliOptions(options.on, options.off);
-  config.set('Server:DevMode', enableDevMode)
+  config.set('Server:DevMode', enableDevMode);
   logger.info('Dev mode state updated successfully.')
 };
 

@@ -11,24 +11,24 @@
  *
  */
 
-const BaseCLIHandler = require('./base-cli-handler')
-const config = require('../config')
-const logger = require('../logger')
+const BaseCLIHandler = require('./base-cli-handler');
+const config = require('../config');
+const logger = require('../logger');
 
 class Start extends BaseCLIHandler {
   run(args) {
-    const daemon = args.daemon
+    const daemon = args.daemon;
     const configuration = {
       devMode: config.get('Server:DevMode'),
       port: config.get('Server:Port'),
       sslKey: config.get('Server:SslKey'),
       sslCert: config.get('Server:SslCert'),
       intermedKey: config.get('Server:IntermediateCert'),
-    }
-    const pid = daemon.status()
+    };
+    const pid = daemon.status();
 
-    if (pid == 0) {
-      daemon.start()
+    if (pid === 0) {
+      daemon.start();
       checkDaemon(daemon, configuration)
     } else {
       logger.silly(`iofog-controller already running. PID: ${pid}`)
@@ -37,27 +37,27 @@ class Start extends BaseCLIHandler {
 }
 
 function checkDaemon(daemon, configuration) {
-  let iterationsCount = 0
+  let iterationsCount = 0;
   const check = () => {
-    iterationsCount++
-    let pid = daemon.status()
+    iterationsCount++;
+    let pid = daemon.status();
     if (pid === 0) {
       return logger.error('Error: port is probably allocated, or ssl_key or ssl_cert or intermediate_cert is either missing or invalid.')
     }
 
     if (iterationsCount === 5) {
-      checkServerProtocol(configuration)
+      checkServerProtocol(configuration);
       return logger.silly(`ioFog-Controller has started at pid: ${pid}`)
     }
 
     setTimeout(check, 1000)
-  }
+  };
 
   setTimeout(check, 1000)
 }
 
 function checkServerProtocol(configuration) {
-  const { devMode, port, sslKey, sslCert, intermedKey } = configuration
+  const { devMode, port, sslKey, sslCert, intermedKey } = configuration;
   if (!devMode && sslKey && sslCert && intermedKey) {
     logger.silly(`==> 🌎 HTTPS server listening on port ${port}. Open up https://localhost:${port}/ in your browser.`)
   } else {
@@ -65,4 +65,4 @@ function checkServerProtocol(configuration) {
   }
 }
 
-module.exports = new Start()
+module.exports = new Start();
