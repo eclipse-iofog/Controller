@@ -396,7 +396,7 @@ const putImageSnapshot = async function (req, fog, transaction) {
     fs.mkdirSync(form.uploadDir);
   }
   await saveSnapShot(req, form,fog, transaction);
-
+  return {};
 };
 
 const saveSnapShot = function (req, form, fog, transaction) {
