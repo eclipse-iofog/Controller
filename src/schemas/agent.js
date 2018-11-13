@@ -68,11 +68,7 @@ const updateAgentStatus = {
     "memoryViolation": {"type": "boolean"},
     "diskViolation": {"type": "boolean"},
     "cpuViolation": {"type": "boolean"},
-    "microserviceStatus": {"type": "string"},/*{
-      "type": "array",
-      "items": {"$ref": "/microserviceStatus"},
-      "required": []
-    },*/
+    "microserviceStatus": {"type": "string"},
     "repositoryCount": {"type": "integer", "minimum": 0},
     "repositoryStatus": {"type": "string"},
     "systemTime": {"type": "integer", "minimum": 0},
