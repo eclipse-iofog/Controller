@@ -33,17 +33,16 @@ function main() {
   const cli = new Cli();
 
   daemon
-    .on('starting', () => {
+    .on('starting', async () => {
       logger.silly('Starting iofog-controller...');
 
-      db.sequelize
-        .sync()
-        .then(db.migrate)
-        .then(db.seed)
-        .catch((err) => {
-          logger.silly('Unable to initialize the database.', err);
-          process.exit(1)
-        });
+      try {
+        await db.migrate();
+        await db.seed();
+      } catch (err) {
+        logger.silly('Unable to initialize the database.', err);
+        process.exit(1)
+      }
     })
     .on('stopping', () => {
       logger.silly('Stopping iofog-controller...')

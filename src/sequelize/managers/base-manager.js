@@ -12,8 +12,11 @@
 */
 
 const AppHelper = require('../../helpers/app-helper');
-const Errors = require('../../helpers/errors')
+const Errors = require('../../helpers/errors');
 
+const ChangeTracking = require('./../models').ChangeTracking;
+
+//TODO [when transactions concurrency issue fixed]: Transactions should be used always
 module.exports = class BaseManager {
 
   getEntity() {
@@ -25,10 +28,16 @@ module.exports = class BaseManager {
 
     object = object || {};
 
-    return this.getEntity().findAll({
-      where: object,
-      transaction: transaction
-    });
+    const options = transaction.fakeTransaction
+      ? {
+        where: object,
+      }
+      : {
+        where: object,
+        transaction: transaction
+      };
+
+    return this.getEntity().findAll(options);
   }
 
   async findOne(object, transaction) {
@@ -36,54 +45,80 @@ module.exports = class BaseManager {
 
     object = object || {};
 
-    return this.getEntity().findOne({
-      where: object,
-      transaction: transaction
-    });
+    const options = transaction.fakeTransaction
+      ? {
+        where: object,
+      }
+      : {
+        where: object,
+        transaction: transaction
+      };
+
+    return this.getEntity().findOne(options);
   }
 
   async create(object, transaction) {
     AppHelper.checkTransaction(transaction);
-    return this.getEntity().create(object, {
-      transaction: transaction
-    });
+
+    const options = transaction.fakeTransaction
+      ? {}
+      : {transaction: transaction};
+
+    return this.getEntity().create(object, options);
   }
 
   async bulkCreate(arr, transaction) {
     AppHelper.checkTransaction(transaction);
 
-    return this.getEntity().bulkCreate(arr, {
-      transaction: transaction
-    });
+    const options = transaction.fakeTransaction
+      ? {}
+      : {transaction: transaction};
+
+    return this.getEntity().bulkCreate(arr, options);
   }
 
   async delete(data, transaction) {
     AppHelper.checkTransaction(transaction);
 
     data = data || {};
-    return this.getEntity().destroy({
-      where: data,
-      transaction: transaction
-    })
+
+    const options = transaction.fakeTransaction
+      ? {
+        where: data,
+      }
+      : {
+        where: data,
+        transaction: transaction
+      };
+
+    return this.getEntity().destroy(options);
   }
 
   async update(whereData, newData, transaction) {
     AppHelper.checkTransaction(transaction);
 
     whereData = whereData || {};
-    return this.getEntity().update(newData, {
-      where: whereData,
-      transaction: transaction
-    });
+
+    const options = transaction.fakeTransaction
+      ? {
+        where: whereData,
+      }
+      : {
+        where: whereData,
+        transaction: transaction
+      };
+
+    return this.getEntity().update(newData, options);
   }
 
   async upsert(data, transaction) {
     AppHelper.checkTransaction(transaction);
 
-    return this.getEntity().upsert(data, {
-        transaction: transaction
-      }
-    )
+    const options = transaction.fakeTransaction
+      ? {}
+      : {transaction: transaction};
+
+    return this.getEntity().upsert(data, options);
   }
 
   async updateOrCreate(whereData, data, transaction) {
@@ -96,6 +131,26 @@ module.exports = class BaseManager {
     } else {
       return this.create(data, transaction)
     }
+  }
 
+  async updateIfChanged(whereData, newData, transaction) {
+    AppHelper.checkTransaction(transaction);
+
+    const obj = await this.findOne(whereData, transaction)
+    if (!obj) {
+      throw new Errors.NotFoundError(`${this.getEntity().name} not found`)
+    }
+
+    let hasUpdates = false;
+    for (let fldName in newData) {
+      if (newData.hasOwnProperty(fldName) && obj.dataValues.hasOwnProperty(fldName) && newData[fldName] !== obj.dataValues[fldName]) {
+        hasUpdates = true;
+        break;
+      }
+    }
+
+    if (hasUpdates) {
+      return await this.update(whereData, newData, transaction)
+    }
   }
 };

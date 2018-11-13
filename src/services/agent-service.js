@@ -136,7 +136,7 @@ const getAgentConfigChanges = async function (fog, transaction) {
     throw new Errors.NotFoundError(ErrorMessages.INVALID_NODE_ID)
   }
 
-  await ChangeTrackingService.update(fog.uuid, ChangeTrackingService.events.clean, transaction);
+  await ChangeTrackingService.updateIfChanged(fog.uuid, ChangeTrackingService.events.clean, transaction);
 
   return {
     config: changeTracking.config,
@@ -460,21 +460,21 @@ async function _checkMicroservicesFogType(fog, fogTypeId, transaction) {
 }
 
 module.exports = {
-  agentProvision: TransactionDecorator.generateTransaction(agentProvision),
+  agentProvision: TransactionDecorator.generateFakeTransaction(agentProvision),
   getAgentConfig: getAgentConfig,
-  updateAgentConfig: TransactionDecorator.generateTransaction(updateAgentConfig),
-  getAgentConfigChanges: TransactionDecorator.generateTransaction(getAgentConfigChanges),
-  updateAgentStatus: TransactionDecorator.generateTransaction(updateAgentStatus),
-  getAgentMicroservices: TransactionDecorator.generateTransaction(getAgentMicroservices),
-  getAgentMicroservice: TransactionDecorator.generateTransaction(getAgentMicroservice),
-  getAgentRegistries: TransactionDecorator.generateTransaction(getAgentRegistries),
-  getAgentTunnel: TransactionDecorator.generateTransaction(getAgentTunnel),
-  getAgentStrace: TransactionDecorator.generateTransaction(getAgentStrace),
-  updateAgentStrace: TransactionDecorator.generateTransaction(updateAgentStrace),
-  getAgentChangeVersionCommand: TransactionDecorator.generateTransaction(getAgentChangeVersionCommand),
-  updateHalHardwareInfo: TransactionDecorator.generateTransaction(updateHalHardwareInfo),
-  updateHalUsbInfo: TransactionDecorator.generateTransaction(updateHalUsbInfo),
-  deleteNode: TransactionDecorator.generateTransaction(deleteNode),
-  getImageSnapshot: TransactionDecorator.generateTransaction(getImageSnapshot),
-  putImageSnapshot: TransactionDecorator.generateTransaction(putImageSnapshot)
+  updateAgentConfig: TransactionDecorator.generateFakeTransaction(updateAgentConfig),
+  getAgentConfigChanges: TransactionDecorator.generateFakeTransaction(getAgentConfigChanges),
+  updateAgentStatus: TransactionDecorator.generateFakeTransaction(updateAgentStatus),
+  getAgentMicroservices: TransactionDecorator.generateFakeTransaction(getAgentMicroservices),
+  getAgentMicroservice: TransactionDecorator.generateFakeTransaction(getAgentMicroservice),
+  getAgentRegistries: TransactionDecorator.generateFakeTransaction(getAgentRegistries),
+  getAgentTunnel: TransactionDecorator.generateFakeTransaction(getAgentTunnel),
+  getAgentStrace: TransactionDecorator.generateFakeTransaction(getAgentStrace),
+  updateAgentStrace: TransactionDecorator.generateFakeTransaction(updateAgentStrace),
+  getAgentChangeVersionCommand: TransactionDecorator.generateFakeTransaction(getAgentChangeVersionCommand),
+  updateHalHardwareInfo: TransactionDecorator.generateFakeTransaction(updateHalHardwareInfo),
+  updateHalUsbInfo: TransactionDecorator.generateFakeTransaction(updateHalUsbInfo),
+  deleteNode: TransactionDecorator.generateFakeTransaction(deleteNode),
+  getImageSnapshot: TransactionDecorator.generateFakeTransaction(getImageSnapshot),
+  putImageSnapshot: TransactionDecorator.generateFakeTransaction(putImageSnapshot)
 };
