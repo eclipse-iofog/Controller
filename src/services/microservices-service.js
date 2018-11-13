@@ -209,11 +209,11 @@ const _deleteMicroservice = async function (microserviceUuid, microserviceData, 
     ?
     {
       uuid: microserviceUuid,
-      userId: user.id
     }
     :
     {
-      uuid: microserviceUuid
+      uuid: microserviceUuid,
+      userId: user.id
     };
 
 
