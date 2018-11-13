@@ -1,6 +1,18 @@
 sudo: true
 language: node_js
 node_js: "9"
+notifications:
+  email: false
+  slack:
+    rooms:
+      - secure: T6GjQi6ap7dvARwdxo619XBUO8aXyzeP4wB8LRpnLKgDQtd+EVw3hwMcHEB7C5+KBC9D0LE0i5HjnLKj2T9ih1L1zKM0QDYFVO8jTt+zhWbEs9Famdq0kmfGiTCbiVG/vxr+9bvFF4QkFhzK8kV44uyqZkmQrHuFnrCpJivsg7dsqvxZ6iU3FV1lMOLU0SJTBHwjbVnIOEqbYcbXmuBJerLMqU7kSlGdlDgBMX8xnzPo/Ccqft+CHDSEl5XU2RZZo2kGSBApO0jpfl1r+7LzWBiwHbuIkFAR5/bVecyuCRpRB4EGEXD7cxCeNUHYjvdr/vaJwTCiPspvSOkJv5YDWgGl7V3WtCV0oPDcQGOU844nHxUTp9FPCQ1bfsPqJ13tCHgv177/Oku3xH22ex6rgTBI6kkVqP3QWTgVtRW91opaKLeBM0ZigQyxQ/hUvQKsMmXzqDrWELG2CuXt2cnNBQ5Hw9wvzEdyY/T4mkXHlbd1UMJ0PUuaymICusfzcErTTnNeByTDkSjrd4dudQtH3jg+Vn3BSQ1R1U1T6DdUhkV75tt37Ej/cbL9ZN8iey7gqx0N3nzqXA0JsBAsJspjCOZWZ0ODdI2XP9FiD+4TUj+HTBgwHtx5kUqf2uuGlKX0S74zN/RjEmHa2riviW3IVur16Vf33U8oiwY+ilht0Zo=
+    on_success: always
+    on_failure: always
+    template:
+    - Repo `%{repository_slug}` *%{result}* build (<%{build_url}|#%{build_number}>)
+      for commit (<%{compare_url}|%{commit}>) on branch `%{branch}`.
+    - 'Execution time: *%{duration}*'
+    - 'Message: %{message}'
 stages:
 - name: build
   if: branch IN (develop, master) AND type = pull_request
