@@ -20,7 +20,7 @@ function transaction(f) {
   return async function() {
     const fArgs = Array.prototype.slice.call(arguments);
     //TODO [when transactions concurrency issue fixed]: Remove 'fArgs[fArgs.length - 1].fakeTransaction'
-    if (fArgs[fArgs.length - 1] instanceof Transaction || fArgs[fArgs.length - 1].fakeTransaction) {
+    if (fArgs.length > 0 && (fArgs[fArgs.length - 1] instanceof Transaction || fArgs[fArgs.length - 1].fakeTransaction)) {
       return await  f.apply(this, fArgs);
     } else {
     //return f.apply(this, fArgs)
@@ -52,7 +52,7 @@ function fakeTransaction(f) {
   const fakeTransactionObject = {fakeTransaction: true}
   return async function() {
     const fArgs = Array.prototype.slice.call(arguments);
-    if (fArgs[fArgs.length - 1] instanceof Transaction) {
+    if (fArgs.length > 0 && fArgs[fArgs.length - 1] instanceof Transaction) {
       fArgs[fArgs.length - 1] = fakeTransactionObject;
       return await f.apply(this, fArgs);
     } else {
