@@ -15,13 +15,17 @@ notifications:
     - 'Message: %{message}'
 stages:
 - name: build
-  if: branch IN (develop, master) AND type = pull_request
+  if: branch = develop AND type = push
 - name: package_build
   if: (branch = develop AND type = cron) OR (branch = master and type = push)
 
 jobs:
   include:
   - stage: build
+    before_install:
+    - sudo apt-get install sshpass
+    script: 
+    - sshpass -p $DEV_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $DEV_MACHINE_USERNAME@$DEV_MACHINE_IP "cd /FogController; NODE_ENV=production node src/main.js stop; git pull; npm i; NODE_ENV=production node src/main.js start"
   - stage: package_build
     script: .travis/pu.sh
     deploy:
