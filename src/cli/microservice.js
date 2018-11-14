@@ -386,8 +386,11 @@ const _listVolumeMappings = async function (obj) {
 };
 
 const _removeMicroservice = async function (obj) {
-  logger.info(JSON.stringify(obj));
-  await MicroserviceService.deleteMicroservice(obj.microserviceId, obj.cleanup, {}, true);
+  const microserviceData = {
+    withCleanup: obj.cleanup
+  };
+
+  await MicroserviceService.deleteMicroservice(obj.microserviceId, microserviceData, {}, true);
   logger.info('Microservice has been removed successfully.')
 };
 
