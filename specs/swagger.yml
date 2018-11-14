@@ -1455,7 +1455,7 @@ paths:
         schema:
           $ref: '#/definitions/PortMappingsRequest'
       responses:
-        '204':
+        '201':
           description: Created
           schema:
             $ref: '#/definitions/PortMappingsPublicResponse'
