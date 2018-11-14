@@ -87,6 +87,14 @@ class EmailActivationSetupError extends Error {
   }
 }
 
+class InvalidArgumentError extends Error {
+  constructor(message) {
+    super(message);
+    this.message = message;
+    this.name = "InvalidArgumentError";
+  }
+}
+
 module.exports = {
   AuthenticationError: AuthenticationError,
   TransactionError: TransactionError,
@@ -96,5 +104,6 @@ module.exports = {
   ModelNotFoundError: ModelNotFoundError,
   DuplicatePropertyError: DuplicatePropertyError,
   FtpError: FtpError,
-  EmailActivationSetupError: EmailActivationSetupError
+  EmailActivationSetupError: EmailActivationSetupError,
+  InvalidArgumentError: InvalidArgumentError
 };

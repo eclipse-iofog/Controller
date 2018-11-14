@@ -96,7 +96,11 @@ class Config extends BaseCLIHandler {
     try {
       const configCommand = this.parseCommandLineArgs(this.commandDefinitions, {argv: args.argv, partial: false});
 
-      switch (configCommand.command.command) {
+      const command = configCommand.command.command;
+
+      AppHelper.validateParameters(command, this.commandDefinitions, args.argv);
+
+      switch (command) {
         case constants.CMD_ADD:
           await _executeCase(configCommand, constants.CMD_ADD, _addConfigOption);
           break;

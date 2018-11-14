@@ -84,7 +84,11 @@ class Flow extends BaseCLIHandler {
     try {
       const flowCommand = this.parseCommandLineArgs(this.commandDefinitions, {argv: args.argv, partial: false});
 
-      switch (flowCommand.command.command) {
+      const command = flowCommand.command.command;
+
+      AppHelper.validateParameters(command, this.commandDefinitions, args.argv);
+
+      switch (command) {
         case constants.CMD_ADD:
           await _executeCase(flowCommand, constants.CMD_ADD, _createFlow, true);
           break;
