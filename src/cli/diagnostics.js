@@ -80,7 +80,11 @@ class Diagnostics extends BaseCLIHandler {
     try {
       const diagnosticCommand = this.parseCommandLineArgs(this.commandDefinitions, {argv: args.argv, partial: false});
 
-      switch (diagnosticCommand.command.command) {
+      const command = diagnosticCommand.command.command;
+
+      AppHelper.validateParameters(command, this.commandDefinitions, args.argv);
+
+      switch (command) {
         case constants.CMD_STRACE_UPDATE:
           await _executeCase(diagnosticCommand, constants.CMD_STRACE_UPDATE, _changeMicroserviceStraceState, false);
           break;

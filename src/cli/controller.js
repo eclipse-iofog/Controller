@@ -15,6 +15,8 @@ const BaseCLIHandler = require('./base-cli-handler');
 const constants = require('../helpers/constants');
 const ControllerService = require('../services/controller-service');
 const logger = require('../logger');
+const AppHelper = require('../helpers/app-helper');
+
 
 
 class Controller extends BaseCLIHandler {
@@ -42,7 +44,11 @@ class Controller extends BaseCLIHandler {
     try {
       const controllerCommand = this.parseCommandLineArgs(this.commandDefinitions, {argv: args.argv, partial: false});
 
-      switch (controllerCommand.command.command) {
+      const command = controllerCommand.command.command;
+
+      AppHelper.validateParameters(command, this.commandDefinitions, args.argv);
+
+      switch (command) {
         case constants.CMD_STATUS:
           await _executeCase(controllerCommand, constants.CMD_STATUS, _getStatus, false);
           break;

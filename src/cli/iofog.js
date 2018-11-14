@@ -184,7 +184,7 @@ class IOFog extends BaseCLIHandler {
       },
       {
         name: 'version-command', alias: 'v', type: String,
-        description: 'ioFog version command',
+        description: 'ioFog version command <upgrade/rollback>',
         group: [constants.CMD_VERSION]
       },
       {
@@ -211,7 +211,11 @@ class IOFog extends BaseCLIHandler {
     try {
       const iofogCommand = this.parseCommandLineArgs(this.commandDefinitions, {argv: args.argv, partial: false});
 
-      switch (iofogCommand.command.command) {
+      const command = iofogCommand.command.command;
+
+      AppHelper.validateParameters(command, this.commandDefinitions, args.argv);
+
+      switch (command) {
         case constants.CMD_ADD:
           await _executeCase(iofogCommand, constants.CMD_ADD, _createFog, true);
           break;

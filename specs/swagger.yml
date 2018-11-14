@@ -1381,7 +1381,7 @@ paths:
         required: true
         type: string
       responses:
-        '201':
+        '204':
           description: Created
           headers:
             X-Timestamp:
@@ -1471,7 +1471,6 @@ paths:
           description: Not Found
         '500':
           description: Internal Server Error
-  '/microservices/{uuid}/port-mapping-list':
     get:
       tags:
       - Microservices
@@ -1489,7 +1488,7 @@ paths:
         required: true
         type: string
       responses:
-        '201':
+        '200':
           description: Created
           schema:
             $ref: '#/definitions/PortMappingsListResponse'

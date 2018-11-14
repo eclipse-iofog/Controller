@@ -22,6 +22,8 @@ const format = require('string-format');
 
 const ALGORITHM = 'aes-256-ctr';
 
+const Transaction = require('sequelize/lib/transaction');
+
 function encryptText(text, salt) {
   const cipher = crypto.createCipher(ALGORITHM, salt);
   let crypted = cipher.update(text, 'utf8', 'hex');
@@ -60,6 +62,7 @@ const findAvailablePort = async function (hostname) {
   let portBounds = Config.get("Tunnel:PortRange").split("-").map(i => parseInt(i));
   return await portscanner.findAPortNotInUse(portBounds[0], portBounds[1], hostname);
 }
+
 /**
  * @desc generates a random String of the size specified by the input param
  * @param Integer - size
@@ -102,11 +105,10 @@ function generateAccessToken() {
 }
 
 function checkTransaction(transaction) {
-  // To be removed when transactions concurrency issue fixed
-  return
-  // if (!transaction) {
-  //   throw new Errors.TransactionError()
-  // }
+  //TODO [when transactions concurrency issue fixed]: Remove '!transaction.fakeTransaction'
+  if (!transaction || (!(transaction instanceof Transaction) && !transaction.fakeTransaction)) {
+    throw new Errors.TransactionError()
+  }
 }
 
 function deleteUndefinedFields(obj) {
@@ -151,6 +153,9 @@ function handleCLIError(error) {
     case "UNKNOWN_VALUE":
       console.log("Unknown value " + error.value);
       break;
+    case "InvalidArgumentError":
+      console.log(error.message);
+      break;
     default:
       console.log(JSON.stringify(error));
       break;
@@ -162,6 +167,86 @@ function trimCertificate(cert) {
   result = result.replace(/([\s]*-{3,}END CERTIFICATE-{3,}[\s\S]*$)/, "");
   return result;
 }
+
+function validateParameters(command, commandDefinitions, args) {
+  // 1st argument = command
+  args.shift();
+  
+  const possibleAliasesList = _getPossibleAliasesList(command, commandDefinitions);
+  const possibleArgsList = _getPossibleArgsList(command, commandDefinitions);
+
+  for (let arg of args) {
+    // arg is [argument, alias, value]
+
+    if (arg.startsWith("--")) { // argument
+      // '--ssl-cert' format -> 'ssl-cert' format
+      const argument = arg.substr(2);
+      _validateArg(argument, possibleArgsList);
+    } else if (arg.startsWith("-")) { // alias
+      // '-q' format -> 'q' format
+      const alias = arg.substr(1);
+      _validateArg(alias, possibleAliasesList);
+    } else {
+      // value
+      continue;
+    }
+  }
+}
+
+function _validateArg(arg, aliasesList) {
+  const valid = aliasesList.includes(arg);
+  if (!valid) {
+    throw new Errors.InvalidArgumentError("Invalid argument '" + arg + "'");
+  }
+}
+
+
+function _getPossibleAliasesList(command, commandDefinitions) {
+  const possibleAliasesList = [];
+
+  for (const definition of commandDefinitions) {
+    const group = definition.group;
+    const isGroupArray = group.constructor === Array;
+    if (isGroupArray) {
+      for (const gr of group) {
+        if (gr === command) {
+          possibleAliasesList.push(definition.alias);
+          break;
+        }
+      }
+    } else {
+      if (group === command) {
+        possibleAliasesList.push(definition.alias);
+      }
+    }
+  }
+
+  return possibleAliasesList;
+}
+
+function _getPossibleArgsList(command, commandDefinitions) {
+  const possibleArgsList = [];
+
+  for (const definition of commandDefinitions) {
+    const group = definition.group;
+    const isGroupArray = group.constructor === Array;
+    if (isGroupArray) {
+      for (const gr of group) {
+        if (gr === command) {
+          possibleArgsList.push(definition.name);
+          break;
+        }
+      }
+    } else {
+      if (group === command) {
+        possibleArgsList.push(definition.name);
+      }
+    }
+  }
+
+  return possibleArgsList;
+}
+
 
 module.exports = {
   encryptText,
@@ -180,5 +265,6 @@ module.exports = {
   stringifyCliJsonSchema,
   isValidPublicIP,
   handleCLIError,
-  trimCertificate
+  trimCertificate,
+  validateParameters
 };

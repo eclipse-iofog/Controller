@@ -1112,7 +1112,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n  \"daemonStatus\": \"RUNNING\",\r\n  \"daemonOperatingDuration\": 15,\r\n  \"daemonLastStart\": 25,\r\n  \"memoryUsage\": 16,\r\n  \"diskUsage\": 14,\r\n  \"cpuUsage\": 17,\r\n  \"memoryViolation\": true,\r\n  \"diskViolation\": true,\r\n  \"cpuViolation\": true,\r\n  \"microserviceStatus\": \"RUNNING\",\r\n  \"repositoryCount\": 5,\r\n  \"repositoryStatus\": \"RUNNING\",\r\n  \"systemTime\": 155,\r\n  \"lastStatusTime\": 166,\r\n  \"ipAddress\": \"192.168.0.1\",\r\n  \"processedMessages\": 255,\r\n  \"microserviceMessageCounts\": \"counts\",\r\n  \"messageSpeed\": 52,\r\n  \"lastCommandTime\": 57,\r\n  \"tunnelStatus\": \"on\",\r\n  \"version\": \"1\",\r\n  \"isReadyToUpgrade\": true,\r\n  \"isReadyToRollback\": true\r\n}"
+							"raw": "{\r\n  \"daemonStatus\": \"RUNNING\",\r\n  \"daemonOperatingDuration\": 15,\r\n  \"daemonLastStart\": 25,\r\n  \"memoryUsage\": 16,\r\n  \"diskUsage\": 14,\r\n  \"cpuUsage\": 17,\r\n  \"memoryViolation\": true,\r\n  \"diskViolation\": true,\r\n  \"cpuViolation\": true,\r\n  \"microserviceStatus\": \"[]\",\r\n  \"repositoryCount\": 5,\r\n  \"repositoryStatus\": \"RUNNING\",\r\n  \"systemTime\": 155,\r\n  \"lastStatusTime\": 166,\r\n  \"ipAddress\": \"192.168.0.1\",\r\n  \"processedMessages\": 255,\r\n  \"microserviceMessageCounts\": \"counts\",\r\n  \"messageSpeed\": 52,\r\n  \"lastCommandTime\": 57,\r\n  \"tunnelStatus\": \"on\",\r\n  \"version\": \"1\",\r\n  \"isReadyToUpgrade\": true,\r\n  \"isReadyToRollback\": true\r\n}"
 						},
 						"url": {
 							"raw": "{{host}}/api/v3/agent/status",
@@ -3445,7 +3445,7 @@
 							"script": {
 								"id": "4f7a9f52-12cc-49d0-9e2f-147b6f5cb6fa",
 								"exec": [
-									"tests[\"Status code is 201\"] = responseCode.code === 201;"
+									"tests[\"Status code is 204\"] = responseCode.code === 204;"
 								],
 								"type": "text/javascript"
 							}
@@ -3616,7 +3616,7 @@
 							"raw": ""
 						},
 						"url": {
-							"raw": "{{host}}/api/v3/microservices/{{ms-id}}/port-mapping-list",
+							"raw": "{{host}}/api/v3/microservices/{{ms-id}}/port-mapping",
 							"host": [
 								"{{host}}"
 							],
@@ -3625,7 +3625,7 @@
 								"v3",
 								"microservices",
 								"{{ms-id}}",
-								"port-mapping-list"
+								"port-mapping"
 							]
 						}
 					},

@@ -182,7 +182,11 @@ class Microservice extends BaseCLIHandler {
     try {
       const microserviceCommand = this.parseCommandLineArgs(this.commandDefinitions, {argv: args.argv, partial: false});
 
-      switch (microserviceCommand.command.command) {
+      const command = microserviceCommand.command.command;
+
+      AppHelper.validateParameters(command, this.commandDefinitions, args.argv);
+
+      switch (command) {
         case constants.CMD_ADD:
           await _executeCase(microserviceCommand, constants.CMD_ADD, _createMicroservice);
           break;
@@ -382,8 +386,11 @@ const _listVolumeMappings = async function (obj) {
 };
 
 const _removeMicroservice = async function (obj) {
-  logger.info(JSON.stringify(obj));
-  await MicroserviceService.deleteMicroservice(obj.microserviceId, obj.cleanup, {}, true);
+  const microserviceData = {
+    withCleanup: obj.cleanup
+  };
+
+  await MicroserviceService.deleteMicroservice(obj.microserviceId, microserviceData, {}, true);
   logger.info('Microservice has been removed successfully.')
 };
 
