@@ -184,7 +184,7 @@ class IOFog extends BaseCLIHandler {
       },
       {
         name: 'version-command', alias: 'v', type: String,
-        description: 'ioFog version command',
+        description: 'ioFog version command <upgrade/rollback>',
         group: [constants.CMD_VERSION]
       },
       {

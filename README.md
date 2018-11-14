@@ -276,7 +276,7 @@ tunnel list
 *version*
 
   -i, --node-id         string           (ioFog node ID)         
-  -v, --version-command string           (ioFog version command) 
+  -v, --version-command string           (ioFog version command <upgrade/rollback>) 
   
  *hal-hw*
 
