@@ -152,7 +152,11 @@ class Catalog extends BaseCLIHandler {
     try {
       const catalogCommand = this.parseCommandLineArgs(this.commandDefinitions, {argv: args.argv, partial: false});
 
-      switch (catalogCommand.command.command) {
+      const command = catalogCommand.command.command;
+
+      AppHelper.validateParameters(command, this.commandDefinitions, args.argv);
+
+      switch (command) {
         case constants.CMD_ADD:
           await _executeCase(catalogCommand, constants.CMD_ADD, _createCatalogItem, true);
           break;

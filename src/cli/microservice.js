@@ -182,7 +182,11 @@ class Microservice extends BaseCLIHandler {
     try {
       const microserviceCommand = this.parseCommandLineArgs(this.commandDefinitions, {argv: args.argv, partial: false});
 
-      switch (microserviceCommand.command.command) {
+      const command = microserviceCommand.command.command;
+
+      AppHelper.validateParameters(command, this.commandDefinitions, args.argv);
+
+      switch (command) {
         case constants.CMD_ADD:
           await _executeCase(microserviceCommand, constants.CMD_ADD, _createMicroservice);
           break;

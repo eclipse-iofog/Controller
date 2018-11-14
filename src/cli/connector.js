@@ -82,7 +82,11 @@ class Connector extends BaseCLIHandler {
     try {
       const connectorCommand = this.parseCommandLineArgs(this.commandDefinitions, {argv: args.argv, partial: false});
 
-      switch (connectorCommand.command.command) {
+      const command = connectorCommand.command.command;
+
+      AppHelper.validateParameters(command, this.commandDefinitions, args.argv);
+
+      switch (command) {
         case constants.CMD_ADD:
           await _executeCase(connectorCommand, constants.CMD_ADD, _createConnector, false);
           break;

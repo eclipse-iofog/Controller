@@ -19,6 +19,8 @@ const TunnelService = require('../services/tunnel-service');
 const CliDecorator = require('../decorators/cli-decorator');
 const Errors = require('../helpers/errors');
 const ErrorMessages = require('../helpers/error-messages');
+const AppHelper = require('../helpers/app-helper');
+
 
 class Tunnel extends BaseCLIHandler {
   constructor() {
@@ -77,7 +79,11 @@ class Tunnel extends BaseCLIHandler {
     try {
       const tunnelCommand = this.parseCommandLineArgs(this.commandDefinitions, {argv: args.argv, partial: false});
 
-      switch (tunnelCommand.command.command) {
+      const command = tunnelCommand.command.command;
+
+      AppHelper.validateParameters(command, this.commandDefinitions, args.argv);
+
+      switch (command) {
         case constants.CMD_UPDATE:
           await _executeCase(tunnelCommand, constants.CMD_UPDATE, _updateTunnel, false);
           break;

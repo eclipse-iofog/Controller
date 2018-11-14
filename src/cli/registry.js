@@ -91,7 +91,11 @@ class Registry extends BaseCLIHandler {
     try {
       const registryCommand = this.parseCommandLineArgs(this.commandDefinitions, {argv: args.argv, partial: false});
 
-      switch (registryCommand.command.command) {
+      const command = registryCommand.command.command;
+
+      AppHelper.validateParameters(command, this.commandDefinitions, args.argv);
+
+      switch (command) {
         case constants.CMD_ADD:
           await _executeCase(registryCommand, constants.CMD_ADD, _createRegistry, true);
           break;

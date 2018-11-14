@@ -68,7 +68,11 @@ class User extends BaseCLIHandler {
     try {
       const userCommand = this.parseCommandLineArgs(this.commandDefinitions, {argv: args.argv, partial: false});
 
-      switch (userCommand.command.command) {
+      const command = userCommand.command.command;
+
+      AppHelper.validateParameters(command, this.commandDefinitions, args.argv);
+
+      switch (command) {
         case constants.CMD_ADD:
           await _executeCase(userCommand, constants.CMD_ADD, _createUser, false);
           break;
