@@ -146,7 +146,7 @@ module.exports = [
     method: 'post',
     path: '/api/v3/microservices/:uuid/routes/:receiverUuid',
     middleware: async (req, res) => {
-      const successCode = constants.HTTP_CODE_CREATED;
+      const successCode = constants.HTTP_CODE_NO_CONTENT;
       const errorCodes = [
         {
           code: constants.HTTP_CODE_BAD_REQUEST,
@@ -202,7 +202,7 @@ module.exports = [
     method: 'post',
     path: '/api/v3/microservices/:uuid/port-mapping',
     middleware: async (req, res) => {
-      const successCode = constants.HTTP_CODE_CREATED;
+      const successCode = constants.HTTP_CODE_NO_CONTENT;
       const errorCodes = [
         {
           code: constants.HTTP_CODE_BAD_REQUEST,
@@ -252,7 +252,7 @@ module.exports = [
   },
   {
     method: 'get',
-    path: '/api/v3/microservices/:uuid/port-mapping-list',
+    path: '/api/v3/microservices/:uuid/port-mapping',
     middleware: async (req, res) => {
       const successCode = constants.HTTP_CODE_SUCCESS;
       const errorCodes = [
