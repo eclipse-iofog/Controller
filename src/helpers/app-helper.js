@@ -171,22 +171,57 @@ function trimCertificate(cert) {
 function validateParameters(command, commandDefinitions, args) {
   // 1st argument = command
   args.shift();
-
+  
+  const possibleAliasesList = _getPossibleAliasesList(command, commandDefinitions);
   const possibleArgsList = _getPossibleArgsList(command, commandDefinitions);
 
   for (let arg of args) {
-    // '-q' format -> 'q' format
-    arg = arg.substr(1);
-    _validateArgument(arg, possibleArgsList);
-  }
+    // arg is [argument, alias, value]
 
+    if (arg.startsWith("--")) { // argument
+      // '--ssl-cert' format -> 'ssl-cert' format
+      const argument = arg.substr(2);
+      _validateArg(argument, possibleArgsList);
+    } else if (arg.startsWith("-")) { // alias
+      // '-q' format -> 'q' format
+      const alias = arg.substr(1);
+      _validateArg(alias, possibleAliasesList);
+    } else {
+      // value
+      continue;
+    }
+  }
 }
 
-function _validateArgument(arg, argsList) {
-  const valid = argsList.includes(arg);
+function _validateArg(arg, aliasesList) {
+  const valid = aliasesList.includes(arg);
   if (!valid) {
     throw new Errors.InvalidArgumentError("Invalid argument '" + arg + "'");
   }
+}
+
+
+function _getPossibleAliasesList(command, commandDefinitions) {
+  const possibleAliasesList = [];
+
+  for (const definition of commandDefinitions) {
+    const group = definition.group;
+    const isGroupArray = group.constructor === Array;
+    if (isGroupArray) {
+      for (const gr of group) {
+        if (gr === command) {
+          possibleAliasesList.push(definition.alias);
+          break;
+        }
+      }
+    } else {
+      if (group === command) {
+        possibleAliasesList.push(definition.alias);
+      }
+    }
+  }
+
+  return possibleAliasesList;
 }
 
 function _getPossibleArgsList(command, commandDefinitions) {
@@ -198,13 +233,13 @@ function _getPossibleArgsList(command, commandDefinitions) {
     if (isGroupArray) {
       for (const gr of group) {
         if (gr === command) {
-          possibleArgsList.push(definition.alias);
+          possibleArgsList.push(definition.name);
           break;
         }
       }
     } else {
       if (group === command) {
-        possibleArgsList.push(definition.alias);
+        possibleArgsList.push(definition.name);
       }
     }
   }
