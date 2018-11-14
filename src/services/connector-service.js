@@ -21,7 +21,7 @@ const https = require('https');
 const http = require('http');
 const constants = require('../helpers/constants');
 const logger = require('../logger');
-const querystring = require('querystring');
+const qs = require('qs');
 const Op = require('sequelize').Op;
 const Sequelize = require('sequelize');
 const fs = require('fs');
@@ -146,10 +146,10 @@ async function _makeRequest(connector, options, data) {
 //TODO refactor this
 async function openPortsOnConnector(connector, isPublicAccess, transaction) {
   let data = isPublicAccess
-    ? await querystring.stringify({
+    ? await qs.stringify({
       mapping: '{"type":"public","maxconnections":60,"heartbeatabsencethreshold":200000}'
     })
-    : await querystring.stringify({
+    : await qs.stringify({
       mapping: '{"type":"private","maxconnectionsport1":1, "maxconnectionsport2":1, ' +
       '"heartbeatabsencethresholdport1":200000, "heartbeatabsencethresholdport2":200000}'
     });
@@ -184,7 +184,7 @@ async function _getRandomConnector(transaction) {
 async function closePortOnConnector(connector, ports, transaction) {
   console.log(ports);
 
-  let data = querystring.stringify({
+  let data = qs.stringify({
     mappingid: ports.mappingId
   });
   console.log(data);

@@ -14,7 +14,6 @@
 const logger = require('../logger');
 const AuthDecorator = require('../decorators/authorization-decorator');
 const FogService = require('../services/iofog-service');
-const querystring = require('querystring');
 const qs = require('qs');
 
 async function _createFog(req, user) {
