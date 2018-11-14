@@ -111,6 +111,22 @@ const straceData = {
   "additionalProperties": false
 };
 
+const microserviceStatus = {
+  "id": "/microserviceStatus",
+  "type": "object",
+  "properties": {
+    "id": {"type": "string"},
+    "containerId": {"type": "string"},
+    "status": {"type": "string"},
+    "startTime": {"type": "integer"},
+    "operatingDuration": {"type": "integer"},
+    "cpuUsage": {"type": "number"},
+    "memoryUsage": {"type": "number"}
+  },
+  "required": ["id"],
+  "additionalProperties": false
+};
+
 const updateHardwareInfo = {
   "id": "/updateHardwareInfo",
   "type": "object",
@@ -134,5 +150,5 @@ const updateUsbInfo = {
 module.exports = {
   mainSchemas: [agentProvision, updateAgentConfig, agentConfigChanges, updateAgentStatus, updateAgentStrace,
   updateHardwareInfo, updateUsbInfo],
-  innerSchemas: [straceData]
+  innerSchemas: [straceData, microserviceStatus]
 };
