@@ -15,6 +15,8 @@ notifications:
     - 'Message: %{message}'
 stages:
 - name: build
+  if: type = pull_request
+- name: dev_deploy
   if: branch = develop AND type = push
 - name: package_build
   if: (branch = develop AND type = cron) OR (branch = master and type = push)
@@ -22,6 +24,7 @@ stages:
 jobs:
   include:
   - stage: build
+  - stage: dev_deploy
     before_install:
     - sudo apt-get install sshpass
     script: 
@@ -37,3 +40,9 @@ jobs:
       on:
         all_branches: true
         tags: false
+    after_deploy:
+    - if [ "$TRAVIS_BRANCH" == "develop" ]; then sshpass -p $PRE_PROD_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no
+      $PRE_PROD_MACHINE_USERNAME@$PRE_PROD_MACHINE_IP "iofog-controller stop; npm update -g --unsafe-perm iofogcontroller; iofog-controller start"; 
+      else sshpass -p $PROD_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no
+      $PROD_MACHINE_USERNAME@$PROD_MACHINE_IP "iofog-controller stop; npm update -g --unsafe-perm iofogcontroller; iofog-controller start"; fi
+
