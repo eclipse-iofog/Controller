@@ -174,7 +174,7 @@ async function _updateFog(fogData, user, isCli, transaction) {
       iofogUuid: fogData.uuid,
       rootHostAccess: true,
       logSize: 50,
-      userId: user.id,
+      userId: isCli ? oldFog.userId : user.id,
       configLastUpdated: Date.now()
     };
 
@@ -206,7 +206,7 @@ async function _updateFog(fogData, user, isCli, transaction) {
       iofogUuid: fogData.uuid,
       rootHostAccess: true,
       logSize: 50,
-      userId: user.id,
+      userId: isCli ? oldFog.userId : user.id,
       configLastUpdated: Date.now()
     };
 
