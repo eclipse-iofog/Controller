@@ -143,7 +143,6 @@ async function _makeRequest(connector, options, data) {
   })
 }
 
-//TODO refactor this
 async function openPortsOnConnector(connector, isPublicAccess, transaction) {
   let data = isPublicAccess
     ? await qs.stringify({
