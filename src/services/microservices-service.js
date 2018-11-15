@@ -178,13 +178,24 @@ const _updateMicroservice = async function (microserviceUuid, microserviceData, 
     await _updateVolumeMappings(microserviceDataUpdate.volumeMappings, microserviceUuid, transaction);
   }
 
-  if (microserviceDataUpdate.iofogUuid) {
-    await _deleteRoutes(microserviceData.routes, microserviceUuid, transaction);
-    await _createRoutes(microserviceData.routes, microserviceUuid, user, transaction);
-    await _updateChangeTracking(false, microserviceDataUpdate.iofogUuid, transaction)
+  if (microserviceDataUpdate.iofogUuid !== microservice.iofogUuid) {
+    const routes = await _getLogicalNetworkRoutesByFog(microservice.iofogUuid, transaction);
+    for (let route of routes) {
+      await _deleteRoute(route.sourceMicroserviceUuid, route.destMicroserviceUuid, user, isCLI, transaction);
+      await _createRoute(route.sourceMicroserviceUuid, route.destMicroserviceUuid, user, isCLI, transaction);
+      //update change tracking for another fog in route
+      if (microservice.iofogUuid === route.sourceIofogUuid) {
+        await _updateChangeTracking(false, route.destIofogUuid, transaction);
+      } else if (microservice.iofogUuid === route.destIofogUuid) {
+        await _updateChangeTracking(false, route.sourceIofogUuid, transaction);
+      }
+    }
+    //update change tracking for old fog
+    await _updateChangeTracking(false, microservice.iofogUuid, transaction);
   }
 
-  await _updateChangeTracking(microserviceData.config ? true : false, microservice.iofogUuid, transaction);
+  //update change tracking for new fog
+  await _updateChangeTracking(microserviceData.config ? true : false, microserviceDataUpdate.iofogUuid, transaction);
 };
 
 const _updateVolumeMappings = async function (volumeMappings, microserviceUuid, transaction) {
@@ -769,7 +780,7 @@ async function getPhysicalConections(microservice, transaction) {
   const sourceRoutes = await RoutingManager.findAll({sourceMicroserviceUuid: microservice.uuid}, transaction)
   for (const sr of sourceRoutes) {
     if (!sr.sourceIofogUuid || !sr.destIofogUuid) {
-      break;
+      continue;
     } else if (sr.sourceIofogUuid === sr.destIofogUuid) {
       res.push(sr.destMicroserviceUuid)
     } else if (sr.sourceIofogUuid !== sr.destIofogUuid) {
@@ -783,6 +794,28 @@ async function getPhysicalConections(microservice, transaction) {
   }
 
   return res
+}
+
+async function _getLogicalNetworkRoutesByFog(iofogUuid, transaction) {
+  let res = [];
+  const query = {
+    [Op.or]:
+      [
+        {
+          sourceIofogUuid: iofogUuid
+        },
+        {
+          destIofogUuid: iofogUuid
+        }
+      ]
+  };
+  const routes = await RoutingManager.findAll(query, transaction)
+  for (let route of routes) {
+    if (route.sourceIofogUuid && route.destIofogUuid && route.isNetworkConnection) {
+      res.push(route);
+    }
+  }
+  return res;
 }
 
 async function _buildLink(protocol, ip, port) {
