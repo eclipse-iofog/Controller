@@ -91,11 +91,11 @@ class Microservice extends BaseCLIHandler {
         group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
-        name: 'catalog-id', alias: 'c', type: String, description: 'Catalog item ID',
+        name: 'catalog-id', alias: 'c', type: Number, description: 'Catalog item ID',
         group: [constants.CMD_ADD]
       },
       {
-        name: 'flow-id', alias: 'F', type: String, description: 'Application flow ID',
+        name: 'flow-id', alias: 'F', type: Number, description: 'Application flow ID',
         group: [constants.CMD_ADD]
       },
       {
