@@ -27,7 +27,7 @@ const JSON_SCHEMA_ADD = AppHelper.stringifyCliJsonSchema(
     flowId: 0,
     iofogUuid: "string",
     rootHostAccess: true,
-    logLimit: 0,
+    logSize: 0,
     volumeMappings: [
       {
         hostDestination: "/var/dest",
@@ -55,7 +55,7 @@ const JSON_SCHEMA_UPDATE = AppHelper.stringifyCliJsonSchema(
     rebuild: true,
     iofogUuid: "string",
     rootHostAccess: true,
-    logLimit: 0,
+    logSize: 0,
     volumeMappings: [
       {
         hostDestination: "/var/dest",
@@ -436,7 +436,7 @@ const _updateMicroserviceObject = function (obj) {
     config: obj.config,
     iofogUuid: obj.iofogId,
     rootHostAccess: AppHelper.validateBooleanCliOptions(obj.rootEnable, obj.rootDisable),
-    logLimit: obj.logLimit,
+    logSize: obj.logSize,
     rebuild: obj.rebuild
   };
 
@@ -455,7 +455,7 @@ const _createMicroserviceObject = function (obj) {
     flowId: parseInt(obj.flowId),
     iofogUuid: obj.iofogId,
     rootHostAccess: AppHelper.validateBooleanCliOptions(obj.rootEnable, obj.rootDisable),
-    logLimit: obj.logLimit,
+    logSize: obj.logSize,
     routes: obj.routes
   };
 
