@@ -472,7 +472,7 @@ $ iofog-controller catalog <*command*> <*options*> <br>
  -I, --iofog-id string     (ioFog node ID)<br>
  -g, --config string       (Microservice config)<br>
  -v, --volumes string[]    (Microservice volume mapping(s))<br>
- -l, --log-limit number    (Log file size limit (MB))<br>
+ -l, --log-size number     (Log file size limit (MB))<br>
  -r, --root-enable         (Enable root access)<br>
  -R, --root-disable        (Disable root access)<br>
  -p, --ports string[]      (Container ports)<br>
@@ -485,7 +485,7 @@ $ iofog-controller catalog <*command*> <*options*> <br>
  -I, --iofog-id string          (ioFog node ID)<br>
  -g, --config string            (Microservice config)<br>
  -v, --volumes string[]         (Microservice volume mapping(s))<br>
- -l, --log-limit number         (Log file size limit (MB))<br>
+ -l, --log-size number          (Log file size limit (MB))<br>
  -r, --root-enable              (Enable root access)<br>
  -R, --root-disable             (Disable root access)<br>
  -w, --rebuild                  (Rebuild microservice image on fog agent)<br>
