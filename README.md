@@ -467,8 +467,8 @@ $ iofog-controller catalog <*command*> <*options*> <br>
 
  -f, --file string         (Microservice settings JSON file)<br>
  -n, --name string         (Microservice name)<br>
- -c, --catalog-id string   (Catalog item ID)<br>
- -F, --flow-id string      (Application flow ID)<br>
+ -c, --catalog-id number   (Catalog item ID)<br>
+ -F, --flow-id number      (Application flow ID)<br>
  -I, --iofog-id string     (ioFog node ID)<br>
  -g, --config string       (Microservice config)<br>
  -v, --volumes string[]    (Microservice volume mapping(s))<br>
