@@ -143,6 +143,17 @@ const _createRoutes = async function (routes, microserviceUuid, user, transactio
 const _updateMicroservice = async function (microserviceUuid, microserviceData, user, isCLI, transaction) {
   await Validation.validate(microserviceData, Validation.schemas.microserviceUpdate);
 
+  const query = isCLI
+    ?
+    {
+      uuid: microserviceUuid
+    }
+    :
+    {
+      uuid: microserviceUuid,
+      userId: user.id
+    };
+
   const microserviceToUpdate = {
     name: microserviceData.name,
     config: microserviceData.config,
@@ -150,19 +161,16 @@ const _updateMicroservice = async function (microserviceUuid, microserviceData, 
     iofogUuid: microserviceData.iofogUuid,
     rootHostAccess: microserviceData.rootHostAccess,
     logSize: microserviceData.logLimit,
-    volumeMappings: microserviceData.volumeMappings,
-    userId: user.id
+    volumeMappings: microserviceData.volumeMappings
   };
 
   const microserviceDataUpdate = AppHelper.deleteUndefinedFields(microserviceToUpdate);
 
-  const microservice = await MicroserviceManager.findOne({
-    uuid: microserviceUuid,
-    userId: user.id
-  }, transaction);
+  const microservice = await MicroserviceManager.findOne(query, transaction);
 
   if (microserviceDataUpdate.name) {
-    await _checkForDuplicateName(microserviceDataUpdate.name, {id: microserviceUuid}, user.id, transaction);
+    const userId = isCLI ? microservice.userId : user.id;
+    await _checkForDuplicateName(microserviceDataUpdate.name, {id: microserviceUuid}, userId, transaction);
   }
 
   //validate fog node
@@ -170,9 +178,7 @@ const _updateMicroservice = async function (microserviceUuid, microserviceData, 
     await IoFogService.getFog({uuid: microserviceDataUpdate.iofogUuid}, user, isCLI, transaction);
   }
 
-  await MicroserviceManager.update({
-    uuid: microserviceUuid
-  }, microserviceDataUpdate, transaction);
+  await MicroserviceManager.update(query, microserviceDataUpdate, transaction);
 
   if (microserviceDataUpdate.volumeMappings) {
     await _updateVolumeMappings(microserviceDataUpdate.volumeMappings, microserviceUuid, transaction);
