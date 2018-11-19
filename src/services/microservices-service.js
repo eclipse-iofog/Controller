@@ -398,7 +398,7 @@ async function _createRouteOverConnector(sourceMicroservice, destMicroservice, u
   const sourceNetwMsConfig = {
     'mode': 'private',
     'host': connector.domain,
-    'cert': connector.cert,
+    'cert': AppHelper.trimCertificate(fs.readFileSync(connector.cert, "utf-8")),
     'port': ports.port1,
     'passcode': ports.passcode1,
     'connectioncount': 1,
@@ -420,7 +420,7 @@ async function _createRouteOverConnector(sourceMicroservice, destMicroservice, u
   const destNetwMsConfig = {
     'mode': 'private',
     'host': connector.domain,
-    'cert': connector.cert,
+    'cert': AppHelper.trimCertificate(fs.readFileSync(connector.cert, "utf-8")),
     'port': ports.port2,
     'passcode': ports.passcode2,
     'connectioncount': 1,
