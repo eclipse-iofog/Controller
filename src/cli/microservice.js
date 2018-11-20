@@ -112,7 +112,7 @@ class Microservice extends BaseCLIHandler {
         group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
-        name: 'log-limit', alias: 'l', type: Number, description: 'Log file size limit (MB)',
+        name: 'log-size', alias: 'l', type: Number, description: 'Log file size limit (MB)',
         group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
