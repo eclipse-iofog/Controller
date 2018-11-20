@@ -247,6 +247,10 @@ function _getPossibleArgsList(command, commandDefinitions) {
   return possibleArgsList;
 }
 
+function isTest() {
+  return process.env.NODE_ENV === 'test'
+}
+
 
 module.exports = {
   encryptText,
@@ -266,5 +270,6 @@ module.exports = {
   isValidPublicIP,
   handleCLIError,
   trimCertificate,
-  validateParameters
+  validateParameters,
+  isTest,
 };
