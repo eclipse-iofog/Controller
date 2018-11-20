@@ -35,6 +35,25 @@ vercomp () {
     return
 }
 
+#START
+#restore db
+IOFOG_CONTROLLER_BIN_DIR=$(whereis iofog-controller | awk -F " " '{print $2}')
+IOFOG_CONTROLLER_BIN_DIR=${IOFOG_CONTROLLER_BIN_DIR%"iofog-controller"}
+IOFOG_CONTROLLER_SEQUELIZE_DIR=$IOFOG_CONTROLLER_BIN_DIR'../lib/node_modules/iofogcontroller/src/sequelize'
+
+DEV_DB_FILE=$IOFOG_CONTROLLER_SEQUELIZE_DIR'/dev_database.sqlite'
+DEV_DB_FILE_BACKUP='/tmp/dev_database.sqlite'
+if [ -f $DEV_DB_FILE_BACKUP ]; then
+    mv $DEV_DB_FILE_BACKUP $DEV_DB_FILE
+fi
+
+PROD_DB_FILE=$IOFOG_CONTROLLER_SEQUELIZE_DIR'/prod_database.sqlite'
+PROD_DB_FILE_BACKUP='/tmp/prod_database.sqlite'
+if [ -f $PROD_DB_FILE_BACKUP ]; then
+    mv $PROD_DB_FILE_BACKUP $PROD_DB_FILE
+fi
+
+#prev versions migrations
 PREV_IOFOG_CONTROLLER_VER=$(grep prev_ver /tmp/iofogcontroller_install_variables | awk '{print $2}')
 echo "Prev ver: "${PREV_IOFOG_CONTROLLER_VER}
 
