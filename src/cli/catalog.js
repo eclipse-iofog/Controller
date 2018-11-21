@@ -262,11 +262,8 @@ const _createCatalogItemObject = function (catalogItem) {
     ramRequired: catalogItem.ramRequired,
     picture: catalogItem.picture,
     isPublic: AppHelper.validateBooleanCliOptions(catalogItem.public, catalogItem.private),
-    registryId: catalogItem.registryId
-  };
-
-  if (catalogItem.images) {
-    catalogItemObj.images = [
+    registryId: catalogItem.registryId,
+    images: [
       {
         containerImage: catalogItem.x86Image,
         fogTypeId: 1
@@ -275,8 +272,8 @@ const _createCatalogItemObject = function (catalogItem) {
         containerImage: catalogItem.armImage,
         fogTypeId: 2
       }
-    ];
-  }
+    ]
+  };
 
   if (catalogItem.inputType) {
     catalogItemObj.inputType = {
