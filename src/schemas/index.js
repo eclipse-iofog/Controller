@@ -52,7 +52,6 @@ fs.readdirSync(__dirname)
 async function validate(object, schema) {
   const response = v.validate(object, schema);
   if (!response.valid) {
-    Logger.info(JSON.stringify(response));
     await handleValidationError(response.errors[0]);
   }
   return response
@@ -76,6 +75,9 @@ async function handleValidationError(error) {
       break;
     case "type":
       message = "Field '" + error.property.replace('instance.', '') + "' " + error.message;
+      break;
+    case "enum":
+      message = "Field " + error.stack.replace('instance.', '');
       break;
     default:
       message = JSON.stringify(error);

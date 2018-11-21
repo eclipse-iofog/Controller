@@ -550,7 +550,7 @@ paths:
           description: Invalid Node Id
         '500':
           description: Internal Server Error
-  '/agent/microservices/{microserviceId}':
+  '/agent/microservices/{microserviceUuid}':
     get:
       tags:
       - Agent
@@ -559,8 +559,8 @@ paths:
       parameters:
       - in: path
         required: true
-        name: microserviceId
-        description: Microservice id
+        name: microserviceUuid
+        description: Microservice UUID
         type: string
       - in: header
         name: Authorization
@@ -1222,8 +1222,8 @@ paths:
         required: true
         type: string
       - in: body
-        name: NetMicroserviceInfo
-        description: New Microserviced Info
+        name: NewMicroserviceInfo
+        description: New Microservice Info
         required: true
         schema:
           $ref: '#/definitions/NewMicroserviceRequest'
@@ -1334,11 +1334,15 @@ paths:
         description: Microservice Uuid
         required: true
         type: string
-      - in: query
-        name: withCleanUp
-        description: Delete with cleanup
-        required: true
-        type: boolean
+      - in: body
+        name: WithCleanupOption
+        description: Delete option
+        required: false
+        schema:
+          type: object
+          properties:
+            withCleanup:
+              type: boolean
       responses:
         '204':
           description: Success
@@ -1346,6 +1350,8 @@ paths:
             X-Timestamp:
               type: number
               description: FogController server timestamp
+        '400':
+          description: Bad Request
         '401':
           description: Not Authorized
         '404':
@@ -1375,7 +1381,7 @@ paths:
         required: true
         type: string
       responses:
-        '201':
+        '204':
           description: Created
           headers:
             X-Timestamp:
@@ -1465,7 +1471,6 @@ paths:
           description: Not Found
         '500':
           description: Internal Server Error
-  '/microservices/{uuid}/port-mapping-list':
     get:
       tags:
       - Microservices
@@ -1483,7 +1488,7 @@ paths:
         required: true
         type: string
       responses:
-        '201':
+        '200':
           description: Created
           schema:
             $ref: '#/definitions/PortMappingsListResponse'
@@ -1526,6 +1531,117 @@ paths:
             X-Timestamp:
               type: number
               description: FogController server timestamp
+        '401':
+          description: Not Authorized
+        '404':
+          description: Not Found
+        '500':
+          description: Internal Server Error
+  '/microservices/{uuid}/volume-mapping':
+    post:
+      tags:
+      - Microservices
+      description: Creates a volume mapping for microservice
+      operationId: createMicroserviceVolumeMapping
+      parameters:
+      - in: header
+        name: Authorization
+        description: User Token
+        required: true
+        type: string
+      - in: path
+        name: uuid
+        description: Microservice Uuid
+        required: true
+        type: string
+      - in: body
+        name: volumeMappingData
+        description: information about volume mapping
+        required: true
+        schema:
+          $ref: '#/definitions/VolumeMapping'
+      responses:
+        '201':
+          description: Created
+          schema:
+            type: object
+            properties:
+              id:
+                type: number
+          headers:
+            X-Timestamp:
+              type: number
+              description: FogController server timestamp
+        '400':
+          description: Not Valid
+        '401':
+          description: Not Authorized
+        '404':
+          description: Not Found
+        '500':
+          description: Internal Server Error
+    get:
+      tags:
+      - Microservices
+      description: Get a volume mapping list for microservice
+      operationId: getMicroserviceVolumeMapping
+      parameters:
+      - in: header
+        name: Authorization
+        description: User Token
+        required: true
+        type: string
+      - in: path
+        name: uuid
+        description: Microservice Uuid
+        required: true
+        type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/VolumeMappingResponse'
+          headers:
+            X-Timestamp:
+              type: number
+              description: FogController server timestamp
+        '401':
+          description: Not Authorized
+        '404':
+          description: Not Found
+        '500':
+          description: Internal Server Error
+  '/microservices/{uuid}/volume-mapping/{id}':
+    delete:
+      tags:
+      - Microservices
+      description: Deletes a volume mapping for microservice
+      operationId: deleteMicroserviceVolumeMapping
+      parameters:
+      - in: header
+        name: Authorization
+        description: User Token
+        required: true
+        type: string
+      - in: path
+        name: uuid
+        description: Microservice Uuid
+        required: true
+        type: string
+      - in: path
+        name: id
+        description: Volume id
+        required: true
+        type: string
+      responses:
+        '204':
+          description: Success
+          headers:
+            X-Timestamp:
+              type: number
+              description: FogController server timestamp
+        '400':
+          description: Not Valid
         '401':
           description: Not Authorized
         '404':
@@ -1867,7 +1983,38 @@ paths:
         '401':
           description: Not Authorized
         '404':
-          description: Invalid Node Id
+          description: Invalid Registry Id
+        '500':
+          description: Internal Server Error
+    patch:
+      tags:
+      - Registries
+      description: Updates a registry
+      operationId: updateRegistry
+      parameters:
+      - in: path
+        name: id
+        description: Registry id
+        required: true
+        type: string
+      - in: header
+        name: Authorization
+        description: User token
+        required: true
+        type: string
+      responses:
+        '204':
+          description: Updated
+          headers:
+            X-Timestamp:
+              type: number
+              description: FogController server timestamp
+        '400':
+          description: Bad Request
+        '401':
+          description: Not Authorized
+        '404':
+          description: Invalid Registry Id
         '500':
           description: Internal Server Error
   '/user/login':
@@ -1930,6 +2077,8 @@ paths:
       responses:
         201:
           description: Success
+          schema:
+            $ref: '#/definitions/SignupSuccessResponse'
           headers:
             X-Timestamp:
               type: number
@@ -2168,7 +2317,7 @@ definitions:
   IOFogNodesListResponse:
     type: object
     properties:
-      instances:
+      fogs:
         type: array
         items:
           $ref: '#/definitions/IOFogNodeInfoResponse'
@@ -2574,9 +2723,12 @@ definitions:
       ftpDestDir:
         type: string
   AgentMicroservicesListResponse:
-    type: array
-    items:
-      $ref: '#/definitions/AgentMicroservicesInfoResponse'
+    type: object
+    properties:
+      microservices:
+        type: array
+        items:
+          $ref: '#/definitions/AgentMicroservicesInfoResponse'
   AgentMicroservicesInfoResponse:
     type: object
     properties:
@@ -2601,7 +2753,7 @@ definitions:
       VolumeMappings:
         type: array
         items:
-          $ref: '#/definitions/VolumeMappingAgentRequest'
+          $ref: '#/definitions/VolumeMapping'
       imageSnapshot:
         type: string
       removeWithCleanUp:
@@ -2612,9 +2764,30 @@ definitions:
     type: array
     items:
       type: string
-  VolumeMappingAgentRequest:
+  VolumeMapping:
     type: object
     properties:
+      hostDestination:
+        type: string
+        example: /var/dest
+      containerDestination:
+        type: string
+        example: /var/dest
+      accessMode:
+        type: string
+        example: rw
+  VolumeMappingResponse:
+    type: object
+    properties:
+      volumeMappings:
+        type: array
+        items:
+          $ref: '#/definitions/VolumeMappingRequest'
+  VolumeMappingRequest:
+    type: object
+    properties:
+      id:
+        type: number
       hostDestination:
         type: string
         example: /var/dest
@@ -2650,9 +2823,12 @@ definitions:
       publicPort:
         type: number
   PortMappingsListResponse:
-    type: array
-    items:
-      $ref: '#/definitions/PortMappingsItemResponse'
+    type: object
+    properties:
+      ports:
+        type: array
+        items:
+          $ref: '#/definitions/PortMappingsItemResponse'
   PortMappingsItemResponse:
     type: object
     properties:
@@ -2676,9 +2852,12 @@ definitions:
         type: string
         example: 80
   RegistriesListResponse:
-    type: array
-    items:
-      $ref: '#/definitions/RegistryResponse'
+    type: object
+    properties:
+      registries:
+        type: array
+        items:
+          $ref: '#/definitions/RegistryResponse'
   RegistryResponse:
     type: object
     properties:
@@ -2715,6 +2894,10 @@ definitions:
         type: string
       email:
         type: string
+      requiresCert:
+        type: boolean
+      certificate:
+        type: string
   ActionBody:
     type: object
     properties:
@@ -2724,9 +2907,12 @@ definitions:
         - open
         - close
   MicroservicesCatalogResponse:
-    type: array
-    items:
-      $ref: '#/definitions/CatalogItemInfoResponse'
+    type: object
+    properties:
+      catalogItems:
+        type: array
+        items:
+          $ref: '#/definitions/CatalogItemInfoResponse'
   CatalogItemInfoResponse:
     type: object
     properties:
@@ -2757,7 +2943,7 @@ definitions:
       configExample:
         type: string
       images:
-        $ref: '#/definitions/ElementContainerImages'
+        $ref: '#/definitions/MicroserviceContainerImages'
   InfoTypeResponse:
     type: object
     properties:
@@ -2765,11 +2951,11 @@ definitions:
         type: string
       infoFormat:
         type: string
-  ElementContainerImages:
+  MicroserviceContainerImages:
     type: array
     items:
-      $ref: '#/definitions/ElementContainerImage'
-  ElementContainerImage:
+      $ref: '#/definitions/MicroserviceContainerImage'
+  MicroserviceContainerImage:
     type: object
     properties:
       containerImage:
@@ -2777,8 +2963,8 @@ definitions:
       fogTypeId:
         type: number
         enum:
-          - 1
-          - 2
+        - 1
+        - 2
   CreateUpdateCatalogItemRequestBody:
     type: object
     properties:
@@ -2789,7 +2975,7 @@ definitions:
       category:
         type: string
       images:
-        $ref: '#/definitions/ElementContainerImages'
+        $ref: '#/definitions/MicroserviceContainerImages'
       publisher:
         type: string
       diskRequired:
@@ -2809,9 +2995,12 @@ definitions:
       configExample:
         type: string
   GetFlowsResponse:
-    type: array
-    items:
-      $ref: '#/definitions/FlowInfoResponse'
+    type: object
+    properties:
+      flows:
+        type: array
+        items:
+          $ref: '#/definitions/FlowInfoResponse'
   FlowInfoResponse:
     type: object
     properties:
@@ -2819,18 +3008,10 @@ definitions:
         type: string
       name:
         type: string
-      updatedBy:
-        type: number
       description:
         type: string
       isActivated:
         type: boolean
-      createdAt:
-        type: number
-      updatedAt:
-        type: number
-      userId:
-        type: number
   NewFlowRequest:
     type: object
     properties:
@@ -2841,9 +3022,12 @@ definitions:
       isActivated:
         type: boolean
   GetMicroservicesResponse:
-    type: array
-    items:
-      $ref: '#/definitions/MicroserviceInfoResponse'
+    type: object
+    properties:
+      microservices:
+        type: array
+        items:
+          $ref: '#/definitions/MicroserviceInfoResponse'
   MicroserviceInfoResponse:
     type: object
     properties:
@@ -2853,34 +3037,14 @@ definitions:
         type: string
       config:
         type: string
-      images:
-        $ref: '#/definitions/ElementContainerImages'
-      picture:
-        type: string
-      status:
-        type: string
-      ioFogNodeId:
-        type: string
-      isNetwork:
-        type: boolean
-      needUpdate:
-        type: boolean
-      rebuild:
-        type: boolean
       rootHostAccess:
         type: boolean
-      deleteWithCleanUp:
-        type: boolean
-      strace:
-        type: boolean
-      imageSnapshot:
-        type: string
       logLimit:
         type: number
       volumeMappings:
         type: array
         items:
-          $ref: '#/definitions/VolumeMappingAgentRequest'
+          $ref: '#/definitions/VolumeMappingRequest'
       ports:
         type: array
         items:
@@ -2898,16 +3062,16 @@ definitions:
         type: integer
       flowId:
         type: integer
-      ioFogNodeId:
+      iofogUuid:
         type: string
       rootHostAccess:
         type: boolean
-      logLimit:
+      logSize:
         type: number
       volumeMappings:
-         type: array
-         items:
-           $ref: '#/definitions/VolumeMappingAgentRequest'
+        type: array
+        items:
+          $ref: '#/definitions/VolumeMapping'
       ports:
         type: array
         items:
@@ -2925,16 +3089,16 @@ definitions:
         type: string
       rebuild:
         type: boolean
-      ioFogNodeId:
+      iofogUuid:
         type: string
       rootHostAccess:
         type: boolean
       logLimit:
         type: number
       volumeMappings:
-         type: array
-         items:
-           $ref: '#/definitions/VolumeMappingAgentRequest'
+        type: array
+        items:
+          $ref: '#/definitions/VolumeMapping'
   IOFogNodeTunnelStatusInfoResponse:
     type: object
     properties:
@@ -2965,6 +3129,25 @@ definitions:
     properties:
       accessToken:
         type: string
+  SignupSuccessResponse:
+    type: object
+    required:
+    - userId
+    - firstName
+    - lastName
+    - email
+    - emailActivated
+    properties:
+      userId:
+        type: number
+      firstName:
+        type: string
+      lastName:
+        type: string
+      email:
+        type: string
+      emailActivated:
+        type: boolean
   UserProfileDetailsResponse:
     type: object
     required:

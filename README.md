@@ -96,8 +96,7 @@ $ iofog-controller config <*options*>
  -c, --ssl-cert string            (Path to SSL certificate file) <br>
  -k, --ssl-key string             (Path to SSL key file) <br>
  -i, --intermediate-cert string   (Path to SSL intermediate certificate file) <br>
- -m, --email-activation-on        (Email activation required) <br>
- -n, --email-activation-off       (Email activation not required) <br>
+ -h, --home-url string            (Home page url for email activation links) <br>
  -a, --email-address string       (Email address to send activations from) <br>
  -w, --email-password string      (Email password to send activations from) <br>
  -s, --email-service string       (Email service to send activations) <br>
@@ -110,6 +109,11 @@ $ iofog-controller config <*options*>
 
  -o, --on     (Enable dev mode)<br>
  -f, --off    (Disable dev mode)<br>
+ 
+ *email-activation*<br>
+
+ -o, --on     (Enable)<br>
+ -f, --off    (Disable)<br>
  
 <br>
 <br>
@@ -276,7 +280,7 @@ tunnel list
 *version*
 
   -i, --node-id         string           (ioFog node ID)         
-  -v, --version-command string           (ioFog version command) 
+  -v, --version-command string           (ioFog version command <upgrade/rollback>) 
   
  *hal-hw*
 
@@ -286,30 +290,30 @@ tunnel list
 
   -i, --node-id string   (ioFog node ID)<br>
 
-*JSON File Schema*
+*JSON File Schema*<br>
 
-  name: string <br>
-  location: string <br>
-  latitude: number <br>
-  longitude: number <br>
-  description: string <br>
-  dockerUrl: string <br>
-  diskLimit: number <br>
-  diskDirectory: string <br>
-  memoryLimit: number <br>
-  cpuLimit: number <br>
-  logLimit: number <br>
-  logDirectory: string <br>
-  logFileCount: number <br>
-  statusFrequency: number <br>
-  changeFrequency: number <br>
-  deviceScanFrequency: number <br>
-  bluetoothEnabled: boolean <br>
-  watchdogEnabled: boolean <br>
-  abstractedHardwareEnabled: boolean <br>
-  reboot: boolean <br>
-  fogType: number <br>
-  
+ {<br>
+  "name": "string",<br>
+  "location": "string",<br>
+  "latitude": 0,<br>
+  "longitude": 0,<br>
+  "description": "string",<br>
+  "dockerUrl": "string",<br>
+  "diskLimit": 0,<br>
+  "diskDirectory": "string",<br>
+  "memoryLimit": 0,<br>
+  "cpuLimit": 0,<br>
+  "logLimit": 0,<br>
+  "logDirectory": "string",<br>
+  "logFileCount": 0,<br>
+  "statusFrequency": 0,<br>
+  "changeFrequency": 0,<br>
+  "deviceScanFrequency": 0,<br>
+  "bluetoothEnabled": false,<br>
+  "watchdogEnabled": true,<br>
+  "abstractedHardwareEnabled": false,<br>
+  "fogType": 0<br>
+  }<br>
 <br>
 <br>
 <br>
@@ -378,28 +382,36 @@ $ iofog-controller catalog <*command*> <*options*> <br>
 
 *JSON File Schema*<br>
 
- name: string<br>
- description: string<br>
- category: string<br>
- publisher: string<br>
- diskRequired: number<br>
- ramRequired: number<br>
- picture: string<br>
- isPublic: boolean<br>
- registryId: number<br>
- configExample: string<br>
- images: array of objects<br>
- containerImage: string<br>
- fogTypeId: number<br>
- inputType: object<br>
- infoType: string<br>
- infoFormat: string<br>
- outputType: object<br>
- infoType: string<br>
- infoFormat: string<br>
+ {<br>
+ "name": "string",<br>
+ "description": "string",<br>
+ "category": "string",<br>
+ "images": [<br>
+   {<br>
+     "containerImage": "string",<br>
+     "fogTypeId": 1<br>
+   }<br>
+ ],<br>
+ "publisher": "string",<br>
+ "diskRequired": 0,<br>
+ "ramRequired": 0,<br>
+ "picture": "string",<br>
+ "isPublic": true,<br>
+ "registryId": 0,<br>
+ "inputType": {<br>
+   "infoType": "string",<br>
+   "infoFormat": "string"<br>
+ },<br>
+ "outputType": {<br>
+   "infoType": "string",<br>
+   "infoFormat": "string"<br>
+ },<br>
+ "configExample": "string"<br>
+}<br>
 <br>
 <br>
 <br>
+
 **Flow**<br>
 
  $ iofog-controller flow <*command*> <*options*><br>
@@ -438,9 +450,11 @@ $ iofog-controller catalog <*command*> <*options*> <br>
 
 *JSON File Schema*<br>
 
- name: string<br>
- description: string<br>
- isActivated: boolean<br>
+{<br>
+ "name": "string",<br>
+ "description": "string",<br>
+ "isActivated": true<br>
+}<br>
 
 <br>
 <br>
@@ -452,24 +466,30 @@ $ iofog-controller catalog <*command*> <*options*> <br>
 
 *Command List*<br>
 
- add      -- Add a new microservice.<br>
- update   -- Update existing microservice.<br>
- remove   -- Delete a microservice.<br>
- list     -- List all microservices.<br>
- info     -- Get microservice settings.<br>
- route    -- Add/Remove microservice route.<br>
- port-mapping   -- Create/Delete/List microservice port mapping.<br>
+  add                     -- Add a new microservice.<br>
+  update                  -- Update existing microservice.<br>
+  remove                  -- Delete a microservice.<br>
+  list                    -- List all microservices.<br>
+  info                    -- Get microservice settings.<br>
+  route-create            -- Create microservice route.<br>
+  route-remove            -- Remove microservice route.<br>
+  port-mapping-create     -- Create microservice port mapping.<br>
+  port-mapping-remove     -- Remove microservice port mapping.<br>
+  port-mapping-list       -- List microservice port mapping.<br>
+  volume-mapping-create   -- Create microservice volume mapping.<br>
+  volume-mapping-remove   -- Remove microservice volume mapping.<br>
+  volume-mapping-list     -- List microservice volume mapping.<br>
 
 *add -u* <*user-id*>
 
  -f, --file string         (Microservice settings JSON file)<br>
  -n, --name string         (Microservice name)<br>
- -c, --catalog-id string   (Catalog item ID)<br>
- -F, --flow-id string      (Application flow ID)<br>
+ -c, --catalog-id number   (Catalog item ID)<br>
+ -F, --flow-id number      (Application flow ID)<br>
  -I, --iofog-id string     (ioFog node ID)<br>
  -g, --config string       (Microservice config)<br>
  -v, --volumes string[]    (Microservice volume mapping(s))<br>
- -l, --log-limit number    (Log file size limit (MB))<br>
+ -l, --log-size number     (Log file size limit (MB))<br>
  -r, --root-enable         (Enable root access)<br>
  -R, --root-disable        (Disable root access)<br>
  -p, --ports string[]      (Container ports)<br>
@@ -482,7 +502,7 @@ $ iofog-controller catalog <*command*> <*options*> <br>
  -I, --iofog-id string          (ioFog node ID)<br>
  -g, --config string            (Microservice config)<br>
  -v, --volumes string[]         (Microservice volume mapping(s))<br>
- -l, --log-limit number         (Log file size limit (MB))<br>
+ -l, --log-size number          (Log file size limit (MB))<br>
  -r, --root-enable              (Enable root access)<br>
  -R, --root-disable             (Disable root access)<br>
  -w, --rebuild                  (Rebuild microservice image on fog agent)<br>
@@ -500,17 +520,41 @@ $ iofog-controller catalog <*command*> <*options*> <br>
 
  -i, --microservice-id string   (Microservice ID)<br>
 
-*route*<br>
+*route-create*<br>
 
- -a, --add string                      (Add new route(s))<br>
- -m, --remove string                   (Delete existing route(s))<br>
+  -T, --route string   (Microservice route (receiving microservices))<br>
 
-*port-mapping*<br>
+*route-remove*<br>
 
- -i, --microservice-id string   (Microservice ID)<br>
- -b, --create                   (Add new port mapping(s))<br>
- -B, --delete                   (Delete existing port mapping(s))<br>
- -G, --list                     (List port mappings)<br>
+  -T, --route string   (Microservice route (receiving microservices))<br> 
+
+*port-mapping-create*<br>
+
+  -i, --microservice-id string   (Microservice ID)<br>        
+  -P, --mapping string           (Container port mapping)<br> 
+
+*port-mapping-remove*<br>
+
+  -i, --microservice-id string   (Microservice ID)<br> 
+  -b, --internal-port string     (Internal port)<br>   
+
+*port-mapping-list*<br>
+
+-i, --microservice-id string   (Microservice ID)<br>
+
+*volume-mapping-create*<br>
+
+  -i, --microservice-id string   (Microservice ID)<br>
+  -P, --mapping string           (Container port mapping)<br>
+
+*volume-mapping-remove*<br>
+
+  -i, --microservice-id string   (Microservice ID)<br>
+  -a, --mapping-id number        (Volume mapping id)<br>
+
+*volume-mapping-list*<br>
+
+  -i, --microservice-id string   (Microservice ID)<br>
 
 **JSON ADD File Schema**<br>
 
@@ -519,7 +563,7 @@ $ iofog-controller catalog <*command*> <*options*> <br>
   "config": "string",<br>
   "catalogItemId": 0,<br>
   "flowId": 0,<br>
-  "ioFogNodeId": "string",<br>
+  "iofogUuid": "string",<br>
   "rootHostAccess": true,<br>
   "logLimit": 0,<br>
   "volumeMappings": [<br>
@@ -547,7 +591,7 @@ $ iofog-controller catalog <*command*> <*options*> <br>
   "name": "string",<br>
   "config": "string",<br>
   "rebuild": true,<br>
-  "ioFogNodeId": "string",<br>
+  "iofogUuid": "string",<br>
   "rootHostAccess": true,<br>
   "logLimit": 0,<br>
   "volumeMappings": [<br>
@@ -560,25 +604,41 @@ $ iofog-controller catalog <*command*> <*options*> <br>
 }<br>
 
 **Examples**<br>
- 1. Single mapping                       ($ iofog-controller microservice add
-                                          [other required options] --volumes    
-                                          /host_src:/container_src)              
-  2. Multiple mappings                    ($ iofog-controller microservice add
-                                          [other required options] --volumes    
-                                          /host_src:/container_src              
-                                          /host_bin:/container_bin)              
-  3. Port mapping                         ($ iofog-controller microservice add
-  (internal:external:publicMode)          [other required options] --ports      
-                                          80:8080:false 443:5443:false)          
-  4. Add routes                           ($ iofog-controller microservice route
-                                          --add ABC:DEF)                         
-  5. Delete route                         ($ iofog-controller microservice route
-                                          --remove ABC:DEF)                      
-  6. Create port mapping                  ($ iofog-controller microservice port-
-                                          mapping --create 80:8080:false -i ABC) 
-  7. Delete port mapping                  ($ iofog-controller microservice port-
-                                          mapping --delete 80 -i ABC)    
  
+ 1. Single mapping<br>
+ $ iofog-controller microservice add [other required options] --volumes <br>
+ /host_src:/container_src:rw<br>
+ 
+ 2. Multiple mappings<br>
+ $ iofog-controller microservice add [other required options] --volumes<br>
+ /host_src:/container_src:rw<br>
+ /host_bin:/container_bin:r<br>
+ 
+ 3. Port mapping (80:8080:false - internal port : external port : public mode)<br>
+  $ iofog-controller microservice add [other required options]<br>
+  --ports 80:8080:false 443:5443:false<br>
+  
+ 4. Add routes (ABC:DEF - source microservice id : dest microservice id)<br>
+ $ iofog-controller microservice add [other required options]<br>
+ --routes ABC:DEF RFG:HJK<br>
+ 
+ 5. Add route (ABC:DEF - source microservice id : dest microservice id)<br>
+ $ iofog-controller microservice route-create --route ABC:DEF<br>
+ 
+ 6. Delete route (ABC:DEF - source microservice id : dest microservice id)<br>
+ $ iofog-controller microservice route-remove --route ABC:DEF<br>
+ 
+ 7. Create port mapping (80:8080:false - internal port : external port : public mode, ABC - microservice)<br>
+ $ iofog-controller microservice port-mapping-create --mapping 80:8080:false -i ABC<br>
+ 
+ 8. Delete port mapping (80 - internal port, ABC - microservice id)<br>
+ $ iofog-controller microservice port-mapping-remove --internal-port 80 -i ABC<br>
+ 
+ 9. Create volume mapping<br>
+ $ iofog-controller microservice volume-mapping-create --mapping /host_src:/container_src:rw -i ABC<br>
+ 
+ 10. Delete volume mapping<br>
+ $ iofog-controller microservice volume-mapping-remove -i ABC -a 1<br>
 <br>
 <br>
 <br>
@@ -591,20 +651,34 @@ $ iofog-controller catalog <*command*> <*options*> <br>
 
  add      -- Add a new Registry.<br>
  remove   -- Delete a Registry.<br>
+ update   -- Update a Registry.<br>
  list     -- List all Registries.<br>
 
-*add -i* <*user-id*>
+*add -i* <*user-id*><br>
 
- -u, --uri string        (Registry URI)<br>
- -b, --public            (Set registry as public)<br>
- -r, --private           (Set registry as private)<br>
- -l, --username string   (Registry's user name)<br>
- -p, --password string   (Password)<br>
- -e, --email string      (Email address)<br>
+ -u, --uri string              (Registry URI)<br>
+ -b, --public                  (Set registry as public)<br>
+ -r, --private                 (Set registry as private)<br>
+ -l, --username string         (Registry's user name)<br>
+ -p, --password string         (Password)<br>
+ -c, --requires-certificate    (Requires certificate)<br>
+ -C, --certificate string      (Certificate)<br>
+ -e, --email string            (Email address)<br>
 
 *remove*<br>
 
  -d, --item-id number    (Item's id)
+ 
+*update -d* <*item-id*><br>
+
+ -u, --uri string              (Registry URI)<br>
+ -b, --public                  (Set registry as public)<br>
+ -r, --private                 (Set registry as private)<br>
+ -l, --username string         (Registry's user name)<br>
+ -p, --password string         (Password)<br>
+ -c, --requires-certificate    (Requires certificate)<br>
+ -C, --certificate string      (Certificate)<br>
+ -e, --email string            (Email address)<br>
 <br>
 <br>
 <br>

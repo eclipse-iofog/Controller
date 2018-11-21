@@ -17,10 +17,11 @@ const FogProvisionKeyManager = require('../sequelize/managers/iofog-provision-ke
 const FogTypeManager = require('../sequelize/managers/iofog-type-manager');
 const FogManager = require('../sequelize/managers/iofog-manager');
 const FogAccessTokenService = require('../services/iofog-access-token-service');
-const ChangeTrackingManager = require('../sequelize/managers/change-tracking-manager');
+const ChangeTrackingService = require('./change-tracking-service');
 const FogVersionCommandManager = require('../sequelize/managers/iofog-version-command-manager');
 const StraceManager = require('../sequelize/managers/strace-manager');
 const RegistryManager = require('../sequelize/managers/registry-manager');
+const MicroserviceStatusManager = require('../sequelize/managers/microservice-status-manager')
 const Validator = require('../schemas');
 const Errors = require('../helpers/errors');
 const AppHelper = require('../helpers/app-helper');
@@ -35,7 +36,7 @@ const fs = require('fs');
 const formidable = require('formidable');
 const logger = require('../logger');
 const Sequelize = require('sequelize');
-const Op = Sequelize.Op
+const Op = Sequelize.Op;
 
 const agentProvision = async function (provisionData, transaction) {
 
@@ -130,39 +131,20 @@ const updateAgentConfig = async function (updateData, fog, transaction) {
 
 const getAgentConfigChanges = async function (fog, transaction) {
 
-  const changeTracking = await ChangeTrackingManager.findOne({
-    iofogUuid: fog.uuid
-  }, transaction);
+  const changeTracking = await ChangeTrackingService.getByFogId(fog.uuid, transaction);
   if (!changeTracking) {
     throw new Errors.NotFoundError(ErrorMessages.INVALID_NODE_ID)
   }
 
-  const cleanTracking = {
-    config: false,
-    version: false,
-    reboot: false,
-    deleteNode: false,
-    containerList: false,
-    containerConfig: false,
-    routing: false,
-    registries: false,
-    tunnel: false,
-    diagnostics: false,
-    isImageSnapshot: false
-  };
-
-  await ChangeTrackingManager.update({
-    iofogUuid: fog.uuid
-  }, cleanTracking, transaction);
-
+  await ChangeTrackingService.updateIfChanged(fog.uuid, ChangeTrackingService.events.clean, transaction);
 
   return {
     config: changeTracking.config,
     version: changeTracking.version,
     reboot: changeTracking.reboot,
     deleteNode: changeTracking.deleteNode,
-    microserviceList: changeTracking.containerList,
-    microserviceConfig: changeTracking.containerConfig,
+    microserviceList: changeTracking.microserviceList,
+    microserviceConfig: changeTracking.microserviceConfig,
     routing: changeTracking.routing,
     registries: changeTracking.registries,
     tunnel: changeTracking.tunnel,
@@ -174,7 +156,7 @@ const getAgentConfigChanges = async function (fog, transaction) {
 const updateAgentStatus = async function (agentStatus, fog, transaction) {
   await Validator.validate(agentStatus, Validator.schemas.updateAgentStatus);
 
-  let update = {
+  let fogStatus = {
     daemonStatus: agentStatus.daemonStatus,
     daemonOperatingDuration: agentStatus.daemonOperatingDuration,
     daemonLastStart: agentStatus.daemonLastStart,
@@ -184,7 +166,6 @@ const updateAgentStatus = async function (agentStatus, fog, transaction) {
     memoryViolation: agentStatus.memoryViolation,
     diskViolation: agentStatus.diskViolation,
     cpuViolation: agentStatus.cpuViolation,
-    microserviceStatus: agentStatus.microserviceStatus,
     repositoryCount: agentStatus.repositoryCount,
     repositoryStatus: agentStatus.repositoryStatus,
     systemTime: agentStatus.systemTime,
@@ -199,52 +180,62 @@ const updateAgentStatus = async function (agentStatus, fog, transaction) {
     isReadyToUpgrade: agentStatus.isReadyToUpgrade,
     isReadyToRollback: agentStatus.isReadyToRollback
   };
-  update = AppHelper.deleteUndefinedFields(update);
+
+  fogStatus = AppHelper.deleteUndefinedFields(fogStatus);
 
   await FogManager.update({
     uuid: fog.uuid
-  }, update, transaction);
+  }, fogStatus, transaction);
+
+  await _updateMicroserviceStatuses(JSON.parse(agentStatus.microserviceStatus), transaction);
+  await MicroserviceService.deleteNotRunningMicroservices(transaction);
+};
+
+
+const _updateMicroserviceStatuses = async function (microserviceStatus, transaction) {
+  for (status of microserviceStatus) {
+    let microserviceStatus = {
+      containerId: status.containerId,
+      status: status.status,
+      startTime: status.startTime,
+      operatingDuration: status.operatingDuration,
+      cpuUsage: status.cpuUsage,
+      memoryUsage: status.memoryUsage
+    };
+    microserviceStatus = AppHelper.deleteUndefinedFields(microserviceStatus);
+
+    await MicroserviceStatusManager.update({
+      microserviceUuid: status.id
+    }, microserviceStatus, transaction);
+  }
 };
 
 const getAgentMicroservices = async function (fog, transaction) {
-  const microservices = await MicroserviceManager.findAllWithDependencies({
-    iofogUuid: fog.uuid
-  }, {}, transaction);
+  const microservices = await MicroserviceManager.findAllActiveFlowMicroservices(fog.uuid, transaction);
 
   const fogTypeId = fog.fogTypeId;
 
   const response = [];
-  for (const microservice of microservices) {
-    let imageId = '';
+  for (let microservice of microservices) {
     const images = microservice.catalogItem.images;
-    for (const image of images) {
-      if (image.fogTypeId === fogTypeId) {
-        imageId = image.containerImage;
-        break;
-      }
-    }
-
-    const registry = await RegistryManager.findOne({
-      id: microservice.catalogItem.registryId
-    }, transaction);
-
-    const registryUrl = registry.url;
+    const image = images.find(image => image.fogTypeId === fogTypeId);
+    const imageId = image ? image.containerImage : '';
 
     const routes = await MicroserviceService.getPhysicalConections(microservice, transaction);
 
     const responseMicroservice = {
       uuid: microservice.uuid,
       imageId: imageId,
-      needUpdate: microservice.needUpdate,
       config: microservice.config,
       rebuild: microservice.rebuild,
       rootHostAccess: microservice.rootHostAccess,
       logSize: microservice.logSize,
-      registryUrl: registryUrl,
+      registryUrl: microservice.catalogItem.registry.url,
       portMappings: microservice.ports,
       volumeMappings: microservice.volumeMappings,
       imageSnapshot: microservice.imageSnapshot,
-      deleteWithCleanUp: microservice.deleteWithCleanUp,
+      delete: microservice.delete,
+      deleteWithCleanup: microservice.deleteWithCleanup,
       routes: routes
     };
 
@@ -263,11 +254,15 @@ const getAgentMicroservices = async function (fog, transaction) {
   }
 };
 
-const getAgentMicroservice = async function (microserviceId, fog, transaction) {
+const getAgentMicroservice = async function (microserviceUuid, fog, transaction) {
   const microservice = await MicroserviceManager.findOneWithDependencies({
-    uuid: microserviceId,
+    uuid: microserviceUuid,
     iofogUuid: fog.uuid
   }, {}, transaction);
+
+  if (!microservice) {
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, microserviceUuid));
+  }
   return {
     microservice: microservice
   }
@@ -294,16 +289,26 @@ const getAgentTunnel = async function (fog, transaction) {
   const tunnel = await TunnelManager.findOne({
     iofogUuid: fog.uuid
   }, transaction);
+
+  if (!tunnel) {
+    throw new Errors.NotFoundError(ErrorMessages.TUNNEL_NOT_FOUND);
+  }
+
   return {
     tunnel: tunnel
   }
 };
 
 const getAgentStrace = async function (fog, transaction) {
-  const fogWithDependencies = FogManager.findFogStraces({
+  const fogWithStrace = FogManager.findFogStraces({
     uuid: fog.uuid
   }, transaction);
-  return fogWithDependencies.strace;
+
+  if (!fogWithStrace) {
+    throw new Errors.NotFoundError(ErrorMessages.STRACE_NOT_FOUND);
+  }
+
+  return fogWithStrace.strace;
 };
 
 const updateAgentStrace = async function (straceData, fog, transaction) {
@@ -377,33 +382,46 @@ const getImageSnapshot = async function (fog, transaction) {
 };
 
 const putImageSnapshot = async function (req, fog, transaction) {
-  const form = new formidable.IncomingForm();
+  const opts = {
+    maxFieldsSize: 500 * 1024 * 1024,
+    maxFileSize: 500 * 1024 * 1024
+  };
+  if (!req.headers['content-type'].includes('multipart/form-data')) {
+    throw new Errors.ValidationError(ErrorMessages.INVALID_CONTENT_TYPE);
+  }
+
+  const form = new formidable.IncomingForm(opts);
   form.uploadDir = path.join(appRoot, '../') + 'data';
   if (!fs.existsSync(form.uploadDir)) {
     fs.mkdirSync(form.uploadDir);
   }
-  const absolutePath = await saveSnapShot(req, form);
-  await MicroserviceManager.update({
-    iofogUuid: fog.uuid,
-    imageSnapshot: 'get_image'
-  }, {
-    imageSnapshot: absolutePath
-  }, transaction);
-
+  await saveSnapShot(req, form,fog, transaction);
+  return {};
 };
 
-const saveSnapShot = function (req, form) {
+const saveSnapShot = function (req, form, fog, transaction) {
   return new Promise((resolve, reject) => {
     form.parse(req, async function (error, fields, files) {
-      if (error) {
-        reject(new Errors.ValidationError());
+      const file = files['upstream'];
+      if (file === undefined) {
+        reject(new Errors.ValidationError(ErrorMessages.UPLOADED_FILE_NOT_FOUND));
+        return;
       }
 
-      const filePath = files['upstream']['path'];
+      const filePath = file['path'];
 
       let absolutePath = path.resolve(filePath);
-      fs.rename(absolutePath, absolutePath + '.tar.gz');
-      resolve(absolutePath + '.tar.gz');
+      fs.renameSync(absolutePath, absolutePath + '.tar.gz');
+
+      await MicroserviceManager.update({
+        iofogUuid: fog.uuid,
+        imageSnapshot: 'get_image'
+      }, {
+        imageSnapshot: absolutePath + '.tar.gz'
+      }, transaction);
+
+      resolve();
+
     });
   });
 };
@@ -419,7 +437,7 @@ async function _checkMicroservicesFogType(fog, fogTypeId, transaction) {
 
     for (const microservice of microservices) {
       let exists = false;
-      for (const image of microservice.catalogItem.images) {
+      for (let image of microservice.catalogItem.images) {
         if (image.fogTypeId === fogTypeId) {
           exists = true;
           break;
@@ -442,21 +460,21 @@ async function _checkMicroservicesFogType(fog, fogTypeId, transaction) {
 }
 
 module.exports = {
-  agentProvision: TransactionDecorator.generateTransaction(agentProvision),
+  agentProvision: TransactionDecorator.generateFakeTransaction(agentProvision),
   getAgentConfig: getAgentConfig,
-  updateAgentConfig: TransactionDecorator.generateTransaction(updateAgentConfig),
-  getAgentConfigChanges: TransactionDecorator.generateTransaction(getAgentConfigChanges),
-  updateAgentStatus: TransactionDecorator.generateTransaction(updateAgentStatus),
-  getAgentMicroservices: TransactionDecorator.generateTransaction(getAgentMicroservices),
-  getAgentMicroservice: TransactionDecorator.generateTransaction(getAgentMicroservice),
-  getAgentRegistries: TransactionDecorator.generateTransaction(getAgentRegistries),
-  getAgentTunnel: TransactionDecorator.generateTransaction(getAgentTunnel),
-  getAgentStrace: TransactionDecorator.generateTransaction(getAgentStrace),
-  updateAgentStrace: TransactionDecorator.generateTransaction(updateAgentStrace),
-  getAgentChangeVersionCommand: TransactionDecorator.generateTransaction(getAgentChangeVersionCommand),
-  updateHalHardwareInfo: TransactionDecorator.generateTransaction(updateHalHardwareInfo),
-  updateHalUsbInfo: TransactionDecorator.generateTransaction(updateHalUsbInfo),
-  deleteNode: TransactionDecorator.generateTransaction(deleteNode),
-  getImageSnapshot: TransactionDecorator.generateTransaction(getImageSnapshot),
-  putImageSnapshot: TransactionDecorator.generateTransaction(putImageSnapshot)
+  updateAgentConfig: TransactionDecorator.generateFakeTransaction(updateAgentConfig),
+  getAgentConfigChanges: TransactionDecorator.generateFakeTransaction(getAgentConfigChanges),
+  updateAgentStatus: TransactionDecorator.generateFakeTransaction(updateAgentStatus),
+  getAgentMicroservices: TransactionDecorator.generateFakeTransaction(getAgentMicroservices),
+  getAgentMicroservice: TransactionDecorator.generateFakeTransaction(getAgentMicroservice),
+  getAgentRegistries: TransactionDecorator.generateFakeTransaction(getAgentRegistries),
+  getAgentTunnel: TransactionDecorator.generateFakeTransaction(getAgentTunnel),
+  getAgentStrace: TransactionDecorator.generateFakeTransaction(getAgentStrace),
+  updateAgentStrace: TransactionDecorator.generateFakeTransaction(updateAgentStrace),
+  getAgentChangeVersionCommand: TransactionDecorator.generateFakeTransaction(getAgentChangeVersionCommand),
+  updateHalHardwareInfo: TransactionDecorator.generateFakeTransaction(updateHalHardwareInfo),
+  updateHalUsbInfo: TransactionDecorator.generateFakeTransaction(updateHalUsbInfo),
+  deleteNode: TransactionDecorator.generateFakeTransaction(deleteNode),
+  getImageSnapshot: TransactionDecorator.generateFakeTransaction(getImageSnapshot),
+  putImageSnapshot: TransactionDecorator.generateFakeTransaction(putImageSnapshot)
 };

@@ -14,11 +14,19 @@
 const BaseManager = require('./base-manager');
 const models = require('./../models');
 const VolumeMapping = models.VolumeMapping;
+const Microservice = models.Microservice;
 
 class VolumeMappingManager extends BaseManager {
-    getEntity() {
-        return VolumeMapping
-    }
+  getEntity() {
+    return VolumeMapping
+  }
+
+  findAll(where, transaction) {
+      return VolumeMapping.findAll({
+        where: where,
+        attributes: ['hostDestination', 'containerDestination', 'accessMode', 'id']
+      }, {transaction: transaction})
+  }
 }
 
 const instance = new VolumeMappingManager();

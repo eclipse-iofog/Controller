@@ -10,7 +10,18 @@ module.exports = (sequelize, DataTypes) => {
     },
     status: {
       type: DataTypes.TEXT,
+      defaultValue: 'NOT_RUNNING',
       field: 'status'
+    },
+    operatingDuration: {
+      type: DataTypes.BIGINT,
+      defaultValue: 0,
+      field: 'operating_duration'
+    },
+    startTime: {
+      type: DataTypes.BIGINT,
+      defaultValue: 0,
+      field: 'start_time'
     },
     cpuUsage: {
       type: DataTypes.FLOAT,
@@ -24,6 +35,7 @@ module.exports = (sequelize, DataTypes) => {
     },
     containerId: {
       type: DataTypes.TEXT,
+      defaultValue: '',
       field: 'container_id'
     }
   }, {
@@ -32,7 +44,6 @@ module.exports = (sequelize, DataTypes) => {
     underscored: true
   });
   MicroserviceStatus.associate = function (models) {
-
     MicroserviceStatus.belongsTo(models.Microservice, {
       foreignKey: {
         name: 'microserviceUuid',

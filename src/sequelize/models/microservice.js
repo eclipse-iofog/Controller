@@ -26,11 +26,6 @@ module.exports = (sequelize, DataTypes) => {
       field: 'is_network',
       defaultValue: false
     },
-    needUpdate: {
-      type: DataTypes.BOOLEAN,
-      field: 'need_update',
-      defaultValue: false
-    },
     rebuild: {
       type: DataTypes.BOOLEAN,
       field: 'rebuild',
@@ -51,7 +46,12 @@ module.exports = (sequelize, DataTypes) => {
       field: 'image_snapshot',
       defaultValue: ""
     },
-    deleteWithCleanUp: {
+    delete: {
+      type: DataTypes.BOOLEAN,
+      field: 'delete',
+      defaultValue: false
+    },
+    deleteWithCleanup: {
       type: DataTypes.BOOLEAN,
       field: 'delete_with_cleanup',
       defaultValue: false
@@ -92,8 +92,8 @@ module.exports = (sequelize, DataTypes) => {
 
     Microservice.belongsTo(models.User, {
       foreignKey: {
-        name: 'updatedBy',
-        field: 'updated_by'
+        name: 'userId',
+        field: 'user_id'
       },
       as: 'user',
       onDelete: 'cascade'
@@ -117,7 +117,12 @@ module.exports = (sequelize, DataTypes) => {
     Microservice.hasMany(models.Routing, {
       foreignKey: 'source_microservice_uuid',
       as: 'routes'
-    })
+    });
+
+    Microservice.hasOne(models.MicroserviceStatus, {
+      foreignKey: 'microservice_uuid',
+      as: 'microserviceStatus'
+    });
   };
   return Microservice;
 };

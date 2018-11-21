@@ -78,6 +78,23 @@ class FtpError extends Error {
   }
 }
 
+class EmailActivationSetupError extends Error {
+  constructor() {
+    const message = 'Email activation is not configured on Controller';
+    super(message);
+    this.message = message;
+    this.name = "EmailActivationSetupError";
+  }
+}
+
+class InvalidArgumentError extends Error {
+  constructor(message) {
+    super(message);
+    this.message = message;
+    this.name = "InvalidArgumentError";
+  }
+}
+
 module.exports = {
   AuthenticationError: AuthenticationError,
   TransactionError: TransactionError,
@@ -86,5 +103,7 @@ module.exports = {
   NotFoundError: NotFoundError,
   ModelNotFoundError: ModelNotFoundError,
   DuplicatePropertyError: DuplicatePropertyError,
-  FtpError: FtpError
+  FtpError: FtpError,
+  EmailActivationSetupError: EmailActivationSetupError,
+  InvalidArgumentError: InvalidArgumentError
 };

@@ -9,7 +9,7 @@ const microserviceCreate = {
     "config": {"type": "string"},
     "catalogItemId": {"type": "integer"},
     "flowId": {"type": "integer"},
-    "ioFogNodeId": {"type": "string"},
+    "iofogUuid": {"type": "string"},
     "rootHostAccess": {"type": "boolean"},
     "logSize": {"type": "integer"},
     "imageSnapshot": {"type": "string"},
@@ -23,7 +23,8 @@ const microserviceCreate = {
        "type": "array",
        "items": {"type": "string"}}
     },
-  "required": ["name"]
+  "required": ["name", "flowId", "catalogItemId"],
+  "additionalProperties": false
 };
 
 const microserviceUpdate = {
@@ -36,13 +37,25 @@ const microserviceUpdate = {
     },
     "config": {"type": "string"},
     "rebuild": {"type": "boolean"},
-    "ioFogNodeId": {"type": "string"},
+    "iofogUuid": {"type": "string"},
     "rootHostAccess": {"type": "boolean"},
-    "logSize": {"type": "integer"},
+    "logSize": {"type": "integer", "minimum" : 0},
     "volumeMappings": {
       "type": "array",
       "items": {"$ref": "/volumeMappings"}
     }
+  },
+  "additionalProperties": false
+};
+
+const microserviceDelete = {
+  "id": "/microserviceDelete",
+  "type": "object",
+  "properties": {
+    "withCleanup": {
+      "type": "boolean"
+    },
+    "additionalProperties": false
   }
 };
 
@@ -54,7 +67,8 @@ const ports = {
     "external": {"type": "integer"},
     "publicMode": {"enum": [false]}
   },
-  "required": ["internal", "external"]
+  "required": ["internal", "external"],
+  "additionalProperties": false
 };
 
 const portsCreate = {
@@ -65,7 +79,8 @@ const portsCreate = {
     "external": {"type": "integer"},
     "publicMode": {"type": "boolean"}
   },
-  "required": ["internal", "external"]
+  "required": ["internal", "external"],
+  "additionalProperties": false
 };
 
 const volumeMappings = {
@@ -75,10 +90,12 @@ const volumeMappings = {
     "hostDestination": {"type": "string"},
     "containerDestination": {"type": "string"},
     "accessMode": {"type": "string"}
-  }
+  },
+  "required": ["hostDestination", "containerDestination", "accessMode"],
+  "additionalProperties": false
 };
 
 module.exports = {
-    mainSchemas: [microserviceCreate, microserviceUpdate, ports, portsCreate],
+    mainSchemas: [microserviceCreate, microserviceUpdate, ports, portsCreate, microserviceDelete, volumeMappings],
     innerSchemas: [volumeMappings, ports]
 };

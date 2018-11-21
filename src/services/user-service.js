@@ -39,11 +39,11 @@ const createUser = async function (user, transaction) {
 
 const signUp = async function (user, isCLI, transaction) {
 
-  let emailActivation = Config.get("Email:ActivationEnabled") || 'off';
+  let isEmailActivationEnabled = Config.get("Email:ActivationEnabled");
 
-  if (emailActivation === 'on') {
+  if (isEmailActivationEnabled) {
 
-    const newUser = await _handleCreateUser(user, emailActivation, transaction);
+    const newUser = await _handleCreateUser(user, isEmailActivationEnabled, transaction);
 
     const activationCodeData = await EmailActivationCodeService.generateActivationCode(transaction);
     await EmailActivationCodeService.saveActivationCode(newUser.id, activationCodeData, transaction);
@@ -53,7 +53,7 @@ const signUp = async function (user, isCLI, transaction) {
     await _notifyUserAboutActivationCode(user.email, Config.get('Email:HomeUrl'), emailData, activationCodeData, transporter);
     return newUser;
   } else {
-    return await _handleCreateUser(user, emailActivation, transaction);
+    return await _handleCreateUser(user, isEmailActivationEnabled, transaction);
   }
 };
 
@@ -103,10 +103,18 @@ const resendActivation = async function (emailObj, isCLI, transaction) {
 
 const activateUser = async function (codeData, isCLI, transaction) {
   const updatedObj = {
-    emailActivated: 1
+    emailActivated: true
   };
 
   if (isCLI) {
+    const user = await UserManager.findOne({
+      id: codeData.userId
+    }, transaction);
+
+    if (user.emailActivated === true) {
+      throw new Error(ErrorMessages.USER_ALREADY_ACTIVATED)
+    }
+
     await _updateUser(codeData.userId, updatedObj, transaction);
   } else {
     await Validator.validate(codeData, Validator.schemas.activateUser);
@@ -151,6 +159,12 @@ const updateDetails = async function (user, profileData, isCLI, transaction) {
   AppHelper.deleteUndefinedFields(updateObject);
 
   await UserManager.updateDetails(user, updateObject, transaction);
+
+  return {
+    firstName: updateObject.firstName,
+    lastName: updateObject.lastName,
+    email: user.email
+  }
 };
 
 const deleteUser = async function (user, isCLI, transaction) {
@@ -195,8 +209,12 @@ const list = async function (isCLI, transaction) {
 };
 
 const suspendUser = async function (user, isCLI, transaction) {
+  if (user.emailActivated === false) {
+    throw new Error(ErrorMessages.USER_NOT_ACTIVATED_YET)
+  }
+
   const updatedObj = {
-    emailActivated: 0
+    emailActivated: false
   };
 
   await AccessTokenService.removeAccessTokenByUserId(user.id, transaction);
@@ -230,8 +248,8 @@ async function _generateAccessToken(transaction) {
 }
 
 function _verifyEmailActivation(emailActivated) {
-  const emailActivation = Config.get("Email:ActivationEnabled") || 'off';
-  if (emailActivation === 'on' && emailActivated === 0)
+  const isEmailActivationEnabled = Config.get("Email:ActivationEnabled");
+  if (isEmailActivationEnabled && !emailActivated)
     throw new Error(ErrorMessages.EMAIL_NOT_ACTIVATED);
 }
 
@@ -260,7 +278,7 @@ async function _userEmailSender(emailData) {
   return transporter
 }
 
-async function _handleCreateUser(user, emailActivation, transaction) {
+async function _handleCreateUser(user, isEmailActivationEnabled, transaction) {
   const existingUser = await UserManager.findOne({
     email: user.email
   }, transaction);
@@ -269,13 +287,18 @@ async function _handleCreateUser(user, emailActivation, transaction) {
     throw new Errors.ValidationError('Registration failed: There is already an account associated with your email address. Please try logging in instead.');
   }
 
-  await _createNewUser(user, emailActivation, transaction);
-  delete user.password;
-  return user
+  const newUser = await _createNewUser(user, isEmailActivationEnabled, transaction);
+  return {
+    userId: newUser.id,
+    firstName: newUser.firstName,
+    lastName: newUser.lastName,
+    email: newUser.email,
+    emailActivated: user.emailActivated
+  }
 }
 
-async function _createNewUser(user, emailActivation, transaction) {
-  user.emailActivated = emailActivation === 'on' ? 0 : 1;
+async function _createNewUser(user, isEmailActivationEnabled, transaction) {
+  user.emailActivated = !isEmailActivationEnabled;
   return await createUser(user, transaction)
 }
 
@@ -322,11 +345,21 @@ async function _sendEmail(transporter, mailOptions) {
 }
 
 async function _getEmailData() {
-  return {
-    email: Config.get("Email:Address"),
-    password: AppHelper.decryptText(Config.get("Email:Password"), Config.get("Email:Address")),
-    service: Config.get("Email:Service")
+  try {
+    const email = Config.get("Email:Address");
+    const password = AppHelper.decryptText(Config.get("Email:Password"), Config.get("Email:Address"));
+    const service = Config.get("Email:Service");
+
+    return {
+      email: email,
+      password: password,
+      service: service
+    }
+
+  } catch(errMsg) {
+    throw new Errors.EmailActivationSetupError();
   }
+
 }
 
 module.exports = {

@@ -54,7 +54,7 @@ const resendActivationEndPoint = async function (req) {
 const activateUserAccountEndPoint = async function (req) {
   const codeData = req.body;
 
-  return await UserService.activateUser(codeData, false);
+  await UserService.activateUser(codeData, false);
 };
 
 const userLogoutEndPoint = async function (req, user) {

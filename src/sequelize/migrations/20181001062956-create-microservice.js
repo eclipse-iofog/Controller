@@ -44,7 +44,7 @@ module.exports = {
         type: Sequelize.TEXT,
         field: 'image_snapshot'
       },
-      deleteWithCleanUp: {
+      deleteWithCleanup: {
         type: Sequelize.BOOLEAN,
         field: 'delete_with_cleanup'
       },

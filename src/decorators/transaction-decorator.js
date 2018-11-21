@@ -14,16 +14,21 @@
 const db = require('./../sequelize/models');
 const retry = require('retry-as-promised');
 const sequelize = db.sequelize;
+const Transaction = require('sequelize/lib/transaction');
 
 function transaction(f) {
-  return function () {
+  return async function() {
     const fArgs = Array.prototype.slice.call(arguments);
-    // To be removed when transactions concurrency issue fixed
-    return f.apply(this, fArgs)
-    // return sequelize.transaction(async (t) => {
-    //   fArgs.push(t);
-    //   return await f.apply(this, fArgs);
-    // })
+    //TODO [when transactions concurrency issue fixed]: Remove 'fArgs[fArgs.length - 1].fakeTransaction'
+    if (fArgs.length > 0 && (fArgs[fArgs.length - 1] instanceof Transaction || fArgs[fArgs.length - 1].fakeTransaction)) {
+      return await  f.apply(this, fArgs);
+    } else {
+    //return f.apply(this, fArgs)
+      return sequelize.transaction(async (t) => {
+        fArgs.push(t);
+        return await f.apply(this, fArgs);
+      })
+    }
   }
 }
 
@@ -43,6 +48,38 @@ function generateTransaction(f) {
   }
 }
 
+function fakeTransaction(f) {
+  const fakeTransactionObject = {fakeTransaction: true}
+  return async function() {
+    const fArgs = Array.prototype.slice.call(arguments);
+    if (fArgs.length > 0 && fArgs[fArgs.length - 1] instanceof Transaction) {
+      fArgs[fArgs.length - 1] = fakeTransactionObject;
+      return await f.apply(this, fArgs);
+    } else {
+      fArgs.push(fakeTransactionObject);
+      return await f.apply(this, fArgs);
+    }
+  }
+}
+
+//TODO [when transactions concurrency issue fixed]: Remove
+function generateFakeTransaction(f) {
+  return function () {
+    const args = Array.prototype.slice.call(arguments);
+    return retry(() => {
+      const t = fakeTransaction(f);
+      return t.apply(this, args);
+    }, {
+      max: 5,
+      match: [
+        sequelize.ConnectionError,
+        'SQLITE_BUSY',
+      ],
+    })
+  }
+}
+
 module.exports = {
   generateTransaction: generateTransaction,
+  generateFakeTransaction: generateFakeTransaction
 };

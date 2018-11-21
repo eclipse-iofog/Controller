@@ -11,63 +11,64 @@
  *
  */
 
-const logger = require('../logger')
+const logger = require('../logger');
 const AuthDecorator = require('../decorators/authorization-decorator');
-const FogService = require('../services/iofog-service')
+const FogService = require('../services/iofog-service');
+const qs = require('qs');
 
 async function _createFog(req, user) {
   logger.info("Parameters:" + JSON.stringify(req.body));
-  const newFog = req.body
-  return await FogService.createFogWithTransaction(newFog, user, false)
+  const newFog = req.body;
+  return await FogService.createFog(newFog, user, false)
 }
 
 async function _updateFog(req, user) {
   logger.info("Parameters:" + JSON.stringify(req.body));
-  const updateFog = req.body
-  updateFog.uuid = req.params.uuid
-  return await FogService.updateFogWithTransaction(updateFog, user, false)
+  const updateFog = req.body;
+  updateFog.uuid = req.params.uuid;
+  return await FogService.updateFog(updateFog, user, false)
 }
 
 async function _deleteFog(req, user) {
   logger.info("Parameters:" + JSON.stringify(req.body));
-  const deleteFog = {}
-  deleteFog.uuid = req.params.uuid
-  return await FogService.deleteFogWithTransaction(deleteFog, user, false)
+  const deleteFog = {};
+  deleteFog.uuid = req.params.uuid;
+  return await FogService.deleteFog(deleteFog, user, false)
 }
 
 async function _getFog(req, user) {
   logger.info("Parameters:" + JSON.stringify(req.body));
-  const getFog = {}
-  getFog.uuid = req.params.uuid
+  const getFog = {};
+  getFog.uuid = req.params.uuid;
   return await FogService.getFogWithTransaction(getFog, user, false)
 }
 
 async function _getFogList(req, user) {
-  logger.info("Parameters:" + JSON.stringify(req.body));
-  const filters = Array.from(req.body)
-  return await FogService.getFogListWithTransaction(filters, user, false)
+  logger.info("Parameters:" + JSON.stringify(req.query));
+  const query = qs.parse(req.query)
+  return await FogService.getFogList(query.filters, user, false)
 }
 
 async function _generateProvisioningKey(req, user) {
   logger.info("Parameters:" + JSON.stringify(req.body));
-  const fog = {}
-  fog.uuid = req.params.uuid
-  return await FogService.generateProvisioningKeyWithTransaction(fog, user, false)
+  const fog = {};
+  fog.uuid = req.params.uuid;
+  return await FogService.generateProvisioningKey(fog, user, false)
 }
 
 async function _setFogVersionCommand(req, user) {
   logger.info("Parameters:" + JSON.stringify(req.body));
-  const fogVersionCommand = {}
-  fogVersionCommand.uuid = req.params.uuid
-  fogVersionCommand.versionCommand = req.params.versionCommand
-  return await FogService.setFogVersionCommandWithTransaction(fogVersionCommand, user, false)
+  const fogVersionCommand = {};
+  fogVersionCommand.uuid = req.params.uuid;
+  fogVersionCommand.versionCommand = req.params.versionCommand;
+  return await FogService.setFogVersionCommand(fogVersionCommand, user, false)
 }
 
 async function _setFogRebootCommand(req, user) {
   logger.info("Parameters:" + JSON.stringify(req.body));
-  const fog = {}
-  fog.uuid = req.params.uuid
-  return await FogService.setFogRebootCommandWithTransaction(fog, user, false)
+  const fog = {};
+  fog.uuid = req.params.uuid;
+  return await FogService.setFogRebootCommand(fog, user, false)
 }
 
 async function _getHalHardwareInfo(req, user) {

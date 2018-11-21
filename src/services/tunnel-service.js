@@ -18,7 +18,7 @@ const AppHelper = require('../helpers/app-helper');
 const Validator = require('../schemas')
 const Errors = require('../helpers/errors')
 const TransactionDecorator = require('../decorators/transaction-decorator');
-const ChangeTrackingManager = require('../sequelize/managers/change-tracking-manager')
+const ChangeTrackingService = require('./change-tracking-service');
 
 const openTunnel = async function (tunnelData, user, isCli, transaction) {
     const iofog = await FogManager.findOne({uuid : tunnelData.iofogUuid}, transaction);
@@ -43,15 +43,7 @@ const openTunnel = async function (tunnelData, user, isCli, transaction) {
     }
     await Validator.validate(tunnel, Validator.schemas.tunnelCreate);
     await TunnelManager.updateOrCreate(tunnelData, tunnel, transaction);
-    await updateChangeTracking(tunnelData, transaction);
-};
-
-const updateChangeTracking = async function (tunnelData, transaction){
-    const changeTrackingUpdates = {
-        iofogUuid: tunnelData.iofogUuid,
-        tunnel: true
-    }
-    await ChangeTrackingManager.update({iofogUuid: tunnelData.iofogUuid}, changeTrackingUpdates, transaction);
+    await ChangeTrackingService.update(tunnelData.iofogUuid, ChangeTrackingService.events.tunnel, transaction);
 };
 
 const findTunnel = async function (tunnelData, user, transaction) {
@@ -78,7 +70,7 @@ const findAll = async function (transaction) {
 const closeTunnel = async function (tunnelData, user, transaction) {
   await findTunnel(tunnelData, user, transaction);
   await TunnelManager.update(tunnelData, {closed : true}, transaction);
-  await updateChangeTracking(tunnelData, transaction);
+  await ChangeTrackingService.update(tunnelData.iofogUuid, ChangeTrackingService.events.tunnel, transaction);
 };
 
 module.exports = {

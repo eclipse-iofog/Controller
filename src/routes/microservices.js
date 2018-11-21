@@ -146,7 +146,7 @@ module.exports = [
     method: 'post',
     path: '/api/v3/microservices/:uuid/routes/:receiverUuid',
     middleware: async (req, res) => {
-      const successCode = constants.HTTP_CODE_CREATED;
+      const successCode = constants.HTTP_CODE_NO_CONTENT;
       const errorCodes = [
         {
           code: constants.HTTP_CODE_BAD_REQUEST,
@@ -162,8 +162,8 @@ module.exports = [
         }
       ];
 
-      const createMicroserviceRoute = ResponseDecorator.handleErrors(MicroservicesController.createMicroserviceRoute, successCode, errorCodes);
-      const responseObject = await createMicroserviceRoute(req);
+      const createMicroserviceRouteEndPoint = ResponseDecorator.handleErrors(MicroservicesController.createMicroserviceRouteEndPoint, successCode, errorCodes);
+      const responseObject = await createMicroserviceRouteEndPoint(req);
 
       res
         .status(responseObject.code)
@@ -190,8 +190,8 @@ module.exports = [
         }
       ];
 
-      const deleteMicroserviceRoute = ResponseDecorator.handleErrors(MicroservicesController.deleteMicroserviceRoute, successCode, errorCodes);
-      const responseObject = await deleteMicroserviceRoute(req);
+      const deleteMicroserviceRouteEndPoint = ResponseDecorator.handleErrors(MicroservicesController.deleteMicroserviceRouteEndPoint, successCode, errorCodes);
+      const responseObject = await deleteMicroserviceRouteEndPoint(req);
 
       res
         .status(responseObject.code)
@@ -218,8 +218,8 @@ module.exports = [
         }
       ];
 
-      const createMicroservicePortMapping = ResponseDecorator.handleErrors(MicroservicesController.createMicroservicePortMapping, successCode, errorCodes);
-      const responseObject = await createMicroservicePortMapping(req);
+      const createMicroservicePortMappingEndPoint = ResponseDecorator.handleErrors(MicroservicesController.createMicroservicePortMappingEndPoint, successCode, errorCodes);
+      const responseObject = await createMicroservicePortMappingEndPoint(req);
 
       res
         .status(responseObject.code)
@@ -242,7 +242,7 @@ module.exports = [
         }
       ];
 
-      const deleteMicroservicePortMapping = ResponseDecorator.handleErrors(MicroservicesController.deleteMicroservicePortMapping, successCode, errorCodes);
+      const deleteMicroservicePortMapping = ResponseDecorator.handleErrors(MicroservicesController.deleteMicroservicePortMappingEndPoint, successCode, errorCodes);
       const responseObject = await deleteMicroservicePortMapping(req);
 
       res
@@ -252,7 +252,7 @@ module.exports = [
   },
   {
     method: 'get',
-    path: '/api/v3/microservices/:uuid/port-mapping-list',
+    path: '/api/v3/microservices/:uuid/port-mapping',
     middleware: async (req, res) => {
       const successCode = constants.HTTP_CODE_SUCCESS;
       const errorCodes = [
@@ -266,7 +266,7 @@ module.exports = [
         }
       ];
 
-      const getMicroservicePortMapping = ResponseDecorator.handleErrors(MicroservicesController.getMicroservicePortMappingList, successCode, errorCodes);
+      const getMicroservicePortMapping = ResponseDecorator.handleErrors(MicroservicesController.getMicroservicePortMappingListEndPoint, successCode, errorCodes);
       const responseObject = await getMicroservicePortMapping(req);
 
       res
@@ -274,4 +274,96 @@ module.exports = [
         .send(responseObject.body)
     },
   },
-]
+  {
+    method: 'get',
+    path: '/api/v3/microservices/:uuid/volume-mapping',
+    middleware: async (req, res) => {
+      const successCode = constants.HTTP_CODE_SUCCESS;
+      const errorCodes = [
+        {
+          code: constants.HTTP_CODE_UNAUTHORIZED,
+          errors: [Errors.AuthenticationError]
+        },
+        {
+          code: constants.HTTP_CODE_NOT_FOUND,
+          errors: [Errors.NotFoundError]
+        }
+      ];
+
+      const listMicroserviceVolumeMappingEndPoint = ResponseDecorator.handleErrors(
+        MicroservicesController.listMicroserviceVolumeMappingsEndPoint,
+        successCode,
+        errorCodes
+      );
+      const responseObject = await listMicroserviceVolumeMappingEndPoint(req);
+
+      res
+        .status(responseObject.code)
+        .send(responseObject.body)
+    },
+  },
+  {
+    method: 'post',
+    path: '/api/v3/microservices/:uuid/volume-mapping',
+    middleware: async (req, res) => {
+      const successCode = constants.HTTP_CODE_CREATED;
+      const errorCodes = [
+        {
+          code: constants.HTTP_CODE_BAD_REQUEST,
+          errors: [Errors.ValidationError]
+        },
+        {
+          code: constants.HTTP_CODE_UNAUTHORIZED,
+          errors: [Errors.AuthenticationError]
+        },
+        {
+          code: constants.HTTP_CODE_NOT_FOUND,
+          errors: [Errors.NotFoundError]
+        }
+      ];
+
+      const createMicroserviceVolumeMappingEndPoint = ResponseDecorator.handleErrors(
+        MicroservicesController.createMicroserviceVolumeMappingEndPoint,
+        successCode,
+        errorCodes
+      );
+      const responseObject = await createMicroserviceVolumeMappingEndPoint(req);
+
+      res
+        .status(responseObject.code)
+        .send(responseObject.body)
+    },
+  },
+  {
+    method: 'delete',
+    path: '/api/v3/microservices/:uuid/volume-mapping/:id',
+    middleware: async (req, res) => {
+      const successCode = constants.HTTP_CODE_NO_CONTENT;
+      const errorCodes = [
+        {
+          code: constants.HTTP_CODE_BAD_REQUEST,
+          errors: [Errors.ValidationError]
+        },
+        {
+          code: constants.HTTP_CODE_UNAUTHORIZED,
+          errors: [Errors.AuthenticationError]
+        },
+        {
+          code: constants.HTTP_CODE_NOT_FOUND,
+          errors: [Errors.NotFoundError]
+        }
+      ];
+
+      const deleteMicroserviceVolumeMappingEndPoint = ResponseDecorator.handleErrors(
+        MicroservicesController.deleteMicroserviceVolumeMappingEndPoint,
+        successCode,
+        errorCodes
+      );
+      const responseObject = await deleteMicroserviceVolumeMappingEndPoint(req);
+
+      res
+        .status(responseObject.code)
+        .send(responseObject.body)
+    },
+  },
+];
