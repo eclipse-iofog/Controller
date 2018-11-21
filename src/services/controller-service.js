@@ -14,6 +14,7 @@
 const FogTypesManager = require('../sequelize/managers/iofog-type-manager');
 const Config = require('../config');
 const TransactionDecorator = require('../decorators/transaction-decorator');
+const daemonize = require('daemonize2');
 
 const getFogTypes = async function (isCLI, transaction) {
   const fogTypes = await FogTypesManager.findAll({}, transaction);
@@ -42,8 +43,24 @@ const emailActivation = async function (isCLI) {
 };
 
 const statusController = async function (isCLI) {
+  const daemon = daemonize.setup({
+    main: 'server.js',
+    name: 'iofog-controller',
+    pidfile: 'iofog-controller.pid',
+    silent: true,
+  });
+
+  let status;
+
+  const pid = daemon.status();
+  if (pid === 0) {
+    status = 'offline';
+  } else {
+    status = 'online';
+  }
+
   return {
-    "status": "ok",
+    "status": status,
     "timestamp": Date.now(),
   }
 };
