@@ -18,7 +18,6 @@ if (!process.env.NODE_ENV) {
 }
 
 const daemonize = require('daemonize2');
-const db = require('./sequelize/models');
 const Cli = require('./cli');
 const logger = require('./logger');
 
@@ -35,14 +34,6 @@ function main() {
   daemon
     .on('starting', async () => {
       logger.silly('Starting iofog-controller...');
-
-      try {
-        await db.migrate();
-        await db.seed();
-      } catch (err) {
-        logger.silly('Unable to initialize the database.', err);
-        process.exit(1)
-      }
     })
     .on('stopping', () => {
       logger.silly('Stopping iofog-controller...')
