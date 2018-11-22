@@ -2277,7 +2277,7 @@ definitions:
     properties:
       status:
         type: string
-        example: online
+        example: ok
       timestamp:
         type: number
   EmailActivationStatusResponse:
