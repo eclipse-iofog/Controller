@@ -7,7 +7,7 @@
     "DevMode": true
   },
   "Email": {
-    "ActivationEnabled": true
+    "ActivationEnabled": false
   },
   "Settings": {
     "UserTokenExpirationIntervalSeconds": 3600,
