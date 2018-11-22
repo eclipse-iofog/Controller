@@ -394,11 +394,16 @@ async function _createRouteOverConnector(sourceMicroservice, destMicroservice, u
 
   const networkCatalogItem = await CatalogService.getNetworkCatalogItem(transaction)
 
+  let cert;
+  if (connector.cert) {
+    cert = AppHelper.trimCertificate(fs.readFileSync(connector.cert, "utf-8"))
+  }
+
   //create netw ms1
   const sourceNetwMsConfig = {
     'mode': 'private',
     'host': connector.domain,
-    'cert': AppHelper.trimCertificate(fs.readFileSync(connector.cert, "utf-8")),
+    'cert': cert,
     'port': ports.port1,
     'passcode': ports.passcode1,
     'connectioncount': 1,
@@ -420,7 +425,7 @@ async function _createRouteOverConnector(sourceMicroservice, destMicroservice, u
   const destNetwMsConfig = {
     'mode': 'private',
     'host': connector.domain,
-    'cert': AppHelper.trimCertificate(fs.readFileSync(connector.cert, "utf-8")),
+    'cert': cert,
     'port': ports.port2,
     'passcode': ports.passcode2,
     'connectioncount': 1,
@@ -616,11 +621,15 @@ async function _createPortMappingOverConnector(microservice, portMappingData, us
 
   const networkCatalogItem = await CatalogService.getNetworkCatalogItem(transaction)
 
+  let cert;
+  if (connector.cert) {
+    cert = AppHelper.trimCertificate(fs.readFileSync(connector.cert, "utf-8"));
+  }
   //create netw ms1
   const netwMsConfig = {
     'mode': 'public',
     'host': connector.domain,
-    'cert': AppHelper.trimCertificate(fs.readFileSync(connector.cert, "utf-8")),
+    'cert': cert,
     'port': ports.port1,
     'passcode': ports.passcode1,
     'connectioncount': 60,
