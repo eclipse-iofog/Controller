@@ -6,7 +6,6 @@
 
  start          -- Start iofog-controller service. <br>
  stop           -- Stop iofog-controller service. <br>
- init           -- Init sqlite db for iofog-controller. <br>
  controller     -- Display iofog-controller service information. <br>
  help           -- Display usage information. <br>
  user           -- User operations. <br>
