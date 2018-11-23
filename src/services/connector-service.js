@@ -125,11 +125,6 @@ async function _makeRequest(connector, options, data) {
       });
     });
 
-    if (connector.cert && connector.isSelfSignedCert === true) {
-      const ca = fs.readFileSync(connector.cert);
-      options.ca = new Buffer(ca);
-    }
-
     httpreq.on('error', function (err) {
       console.log(err);
       if (err instanceof Error)
@@ -143,7 +138,6 @@ async function _makeRequest(connector, options, data) {
   })
 }
 
-//TODO refactor this
 async function openPortsOnConnector(connector, isPublicAccess, transaction) {
   let data = isPublicAccess
     ? await qs.stringify({
@@ -166,6 +160,10 @@ async function openPortsOnConnector(connector, isPublicAccess, transaction) {
       'Content-Length': Buffer.byteLength(data)
     }
   };
+  if (connector.cert && connector.isSelfSignedCert === true) {
+    const ca = fs.readFileSync(connector.cert);
+    options.ca = new Buffer(ca);
+  }
 
   const ports = await _makeRequest(connector, options, data);
   return ports

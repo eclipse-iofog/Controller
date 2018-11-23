@@ -125,7 +125,6 @@ const getMicroserviceImageSnapshot = async function (microserviceUuid, user, isC
     throw new Errors.ValidationError(ErrorMessages.IMAGE_SNAPSHOT_NOT_AVAILABLE)
   }
   let _path = microservice.imageSnapshot;
-  logger.info('successfully deleted ' + microservice.imageSnapshot);
   await MicroserviceManager.update({uuid: microservice.uuid}, microserviceToUpdate, transaction);
   if (isCLI) {
     return _path

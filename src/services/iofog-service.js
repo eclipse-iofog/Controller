@@ -63,45 +63,12 @@ async function _createFog(fogData, user, isCli, transaction) {
 
   await ChangeTrackingService.create(fog.uuid, transaction);
 
-  //TODO: proccess watchdog flag
-
-  //TODO refactor. call MicroserviceService.createMicroservice
-  //TODO: refactor. to function
   if (fogData.abstractedHardwareEnabled) {
-    const halItem = await CatalogService.getHalCatalogItem(transaction);
-
-    const halMicroserviceData = {
-      uuid: AppHelper.generateRandomString(32),
-      name: `HAL for Fog ${fog.uuid}`,
-      config: '{}',
-      catalogItemId: halItem.id,
-      iofogUuid: fog.uuid,
-      rootHostAccess: true,
-      logSize: 50,
-      userId: user.id,
-      configLastUpdated: Date.now()
-    };
-
-    await MicroserviceManager.create(halMicroserviceData, transaction);
+    await _createHalMicroserviceForFog(fog, null, user, transaction);
   }
 
-  //TODO: refactor. to function
   if (fogData.bluetoothEnabled) {
-    const bluetoothItem = await CatalogService.getBluetoothCatalogItem(transaction);
-
-    const bluetoothMicroserviceData = {
-      uuid: AppHelper.generateRandomString(32),
-      name: `Bluetooth for Fog ${fog.uuid}`,
-      config: '{}',
-      catalogItemId: bluetoothItem.id,
-      iofogUuid: fog.uuid,
-      rootHostAccess: true,
-      logSize: 50,
-      userId: user.id,
-      configLastUpdated: Date.now()
-    };
-
-    await MicroserviceManager.create(bluetoothMicroserviceData, transaction);
+    await _createBluetoothMicroserviceForFog(fog, null, user, transaction);
   }
 
   await ChangeTrackingService.update(fogData.uuid, ChangeTrackingService.events.microserviceCommon, transaction)
@@ -150,67 +117,22 @@ async function _updateFog(fogData, user, isCli, transaction) {
   await ChangeTrackingService.update(fogData.uuid, ChangeTrackingService.events.config, transaction);
 
   let msChanged = false;
-  //TODO: refactor. to function
+
   if (oldFog.bluetoothEnabled === true && fogData.bluetoothEnabled === false) {
-    const bluetoothItem = await CatalogService.getBluetoothCatalogItem(transaction);
-    const deleteBluetoothMicroserviceData = {
-      iofogUuid: fogData.uuid,
-      catalogItemId: bluetoothItem.id
-    };
-
-    await MicroserviceManager.delete(deleteBluetoothMicroserviceData, transaction)
+    await _deleteBluetoothMicroserviceByFog(fogData, transaction);
     msChanged = true;
   }
-
-  //TODO: refactor. to function
   if (oldFog.bluetoothEnabled === false && fogData.bluetoothEnabled === true) {
-    const bluetoothItem = await CatalogService.getBluetoothCatalogItem(transaction);
-
-    const bluetoothMicroserviceData = {
-      uuid: AppHelper.generateRandomString(32),
-      name: `Bluetooth for Fog ${fogData.uuid}`,
-      config: '{}',
-      catalogItemId: bluetoothItem.id,
-      iofogUuid: fogData.uuid,
-      rootHostAccess: true,
-      logSize: 50,
-      userId: user.id,
-      configLastUpdated: Date.now()
-    };
-
-    await MicroserviceManager.create(bluetoothMicroserviceData, transaction);
+    await _createBluetoothMicroserviceForFog(fogData, oldFog, user, transaction);
     msChanged = true;
   }
 
-  //TODO: refactor. to function
   if (oldFog.abstractedHardwareEnabled === true && fogData.abstractedHardwareEnabled === false) {
-    const halItem = await CatalogService.getHalCatalogItem(transaction);
-    const deleteHalMicroserviceData = {
-      iofogUuid: fogData.uuid,
-      catalogItemId: halItem.id
-    };
-
-    await MicroserviceManager.delete(deleteHalMicroserviceData, transaction)
+    await _deleteHalMicroseviceByFog(fogData, transaction);
     msChanged = true;
   }
-
-  //TODO: refactor. to function
   if (oldFog.abstractedHardwareEnabled === false && fogData.abstractedHardwareEnabled === true) {
-    const halItem = await CatalogService.getHalCatalogItem(transaction);
-
-    const halMicroserviceData = {
-      uuid: AppHelper.generateRandomString(32),
-      name: `Hal for Fog ${fogData.uuid}`,
-      config: '{}',
-      catalogItemId: halItem.id,
-      iofogUuid: fogData.uuid,
-      rootHostAccess: true,
-      logSize: 50,
-      userId: user.id,
-      configLastUpdated: Date.now()
-    };
-
-    await MicroserviceManager.create(halMicroserviceData, transaction);
+    await _createHalMicroserviceForFog(fogData, oldFog, user, transaction);
     msChanged = true;
   }
 
@@ -452,6 +374,62 @@ async function _processDeleteCommand(fog, transaction) {
   } else {
     await ChangeTrackingService.update(fog.uuid, ChangeTrackingService.events.deleteNode, transaction)
   }
+}
+
+async function _createHalMicroserviceForFog(fogData, oldFog, user, transaction) {
+  const halItem = await CatalogService.getHalCatalogItem(transaction);
+
+  const halMicroserviceData = {
+    uuid: AppHelper.generateRandomString(32),
+    name: `Hal for Fog ${fogData.uuid}`,
+    config: '{}',
+    catalogItemId: halItem.id,
+    iofogUuid: fogData.uuid,
+    rootHostAccess: true,
+    logSize: 50,
+    userId: oldFog ? oldFog.userId : user.id,
+    configLastUpdated: Date.now()
+  };
+
+  await MicroserviceManager.create(halMicroserviceData, transaction);
+}
+
+async function _deleteHalMicroseviceByFog(fogData, transaction) {
+  const halItem = await CatalogService.getHalCatalogItem(transaction);
+  const deleteHalMicroserviceData = {
+    iofogUuid: fogData.uuid,
+    catalogItemId: halItem.id
+  };
+
+  await MicroserviceManager.delete(deleteHalMicroserviceData, transaction)
+}
+
+async function _createBluetoothMicroserviceForFog(fogData, oldFog, user, transaction) {
+  const bluetoothItem = await CatalogService.getBluetoothCatalogItem(transaction);
+
+  const bluetoothMicroserviceData = {
+    uuid: AppHelper.generateRandomString(32),
+    name: `Bluetooth for Fog ${fogData.uuid}`,
+    config: '{}',
+    catalogItemId: bluetoothItem.id,
+    iofogUuid: fogData.uuid,
+    rootHostAccess: true,
+    logSize: 50,
+    userId: oldFog ? oldFog.userId : user.id,
+    configLastUpdated: Date.now()
+  };
+
+  await MicroserviceManager.create(bluetoothMicroserviceData, transaction);
+}
+
+async function _deleteBluetoothMicroserviceByFog(fogData, transaction) {
+  const bluetoothItem = await CatalogService.getBluetoothCatalogItem(transaction);
+  const deleteBluetoothMicroserviceData = {
+    iofogUuid: fogData.uuid,
+    catalogItemId: bluetoothItem.id
+  };
+
+  await MicroserviceManager.delete(deleteBluetoothMicroserviceData, transaction)
 }
 
 module.exports = {

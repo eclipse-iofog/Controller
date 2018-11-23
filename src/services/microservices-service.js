@@ -143,6 +143,17 @@ const _createRoutes = async function (routes, microserviceUuid, user, transactio
 const _updateMicroservice = async function (microserviceUuid, microserviceData, user, isCLI, transaction) {
   await Validation.validate(microserviceData, Validation.schemas.microserviceUpdate);
 
+  const query = isCLI
+    ?
+    {
+      uuid: microserviceUuid
+    }
+    :
+    {
+      uuid: microserviceUuid,
+      userId: user.id
+    };
+
   const microserviceToUpdate = {
     name: microserviceData.name,
     config: microserviceData.config,
@@ -150,19 +161,16 @@ const _updateMicroservice = async function (microserviceUuid, microserviceData, 
     iofogUuid: microserviceData.iofogUuid,
     rootHostAccess: microserviceData.rootHostAccess,
     logSize: microserviceData.logLimit,
-    volumeMappings: microserviceData.volumeMappings,
-    userId: user.id
+    volumeMappings: microserviceData.volumeMappings
   };
 
   const microserviceDataUpdate = AppHelper.deleteUndefinedFields(microserviceToUpdate);
 
-  const microservice = await MicroserviceManager.findOne({
-    uuid: microserviceUuid,
-    userId: user.id
-  }, transaction);
+  const microservice = await MicroserviceManager.findOne(query, transaction);
 
   if (microserviceDataUpdate.name) {
-    await _checkForDuplicateName(microserviceDataUpdate.name, {id: microserviceUuid}, user.id, transaction);
+    const userId = isCLI ? microservice.userId : user.id;
+    await _checkForDuplicateName(microserviceDataUpdate.name, {id: microserviceUuid}, userId, transaction);
   }
 
   //validate fog node
@@ -170,21 +178,30 @@ const _updateMicroservice = async function (microserviceUuid, microserviceData, 
     await IoFogService.getFog({uuid: microserviceDataUpdate.iofogUuid}, user, isCLI, transaction);
   }
 
-  await MicroserviceManager.update({
-    uuid: microserviceUuid
-  }, microserviceDataUpdate, transaction);
+  await MicroserviceManager.update(query, microserviceDataUpdate, transaction);
 
   if (microserviceDataUpdate.volumeMappings) {
     await _updateVolumeMappings(microserviceDataUpdate.volumeMappings, microserviceUuid, transaction);
   }
 
-  if (microserviceDataUpdate.iofogUuid) {
-    await _deleteRoutes(microserviceData.routes, microserviceUuid, transaction);
-    await _createRoutes(microserviceData.routes, microserviceUuid, user, transaction);
-    await _updateChangeTracking(false, microserviceDataUpdate.iofogUuid, transaction)
+  if (microserviceDataUpdate.iofogUuid !== microservice.iofogUuid) {
+    const routes = await _getLogicalNetworkRoutesByFog(microservice.iofogUuid, transaction);
+    for (let route of routes) {
+      await _deleteRoute(route.sourceMicroserviceUuid, route.destMicroserviceUuid, user, isCLI, transaction);
+      await _createRoute(route.sourceMicroserviceUuid, route.destMicroserviceUuid, user, isCLI, transaction);
+      //update change tracking for another fog in route
+      if (microservice.iofogUuid === route.sourceIofogUuid) {
+        await _updateChangeTracking(false, route.destIofogUuid, transaction);
+      } else if (microservice.iofogUuid === route.destIofogUuid) {
+        await _updateChangeTracking(false, route.sourceIofogUuid, transaction);
+      }
+    }
+    //update change tracking for old fog
+    await _updateChangeTracking(false, microservice.iofogUuid, transaction);
   }
 
-  await _updateChangeTracking(microserviceData.config ? true : false, microservice.iofogUuid, transaction);
+  //update change tracking for new fog
+  await _updateChangeTracking(microserviceData.config ? true : false, microserviceDataUpdate.iofogUuid, transaction);
 };
 
 const _updateVolumeMappings = async function (volumeMappings, microserviceUuid, transaction) {
@@ -377,11 +394,16 @@ async function _createRouteOverConnector(sourceMicroservice, destMicroservice, u
 
   const networkCatalogItem = await CatalogService.getNetworkCatalogItem(transaction)
 
+  let cert;
+  if (connector.cert) {
+    cert = AppHelper.trimCertificate(fs.readFileSync(connector.cert, "utf-8"))
+  }
+
   //create netw ms1
   const sourceNetwMsConfig = {
     'mode': 'private',
     'host': connector.domain,
-    'cert': connector.cert,
+    'cert': cert,
     'port': ports.port1,
     'passcode': ports.passcode1,
     'connectioncount': 1,
@@ -403,7 +425,7 @@ async function _createRouteOverConnector(sourceMicroservice, destMicroservice, u
   const destNetwMsConfig = {
     'mode': 'private',
     'host': connector.domain,
-    'cert': connector.cert,
+    'cert': cert,
     'port': ports.port2,
     'passcode': ports.passcode2,
     'connectioncount': 1,
@@ -599,11 +621,15 @@ async function _createPortMappingOverConnector(microservice, portMappingData, us
 
   const networkCatalogItem = await CatalogService.getNetworkCatalogItem(transaction)
 
+  let cert;
+  if (connector.cert) {
+    cert = AppHelper.trimCertificate(fs.readFileSync(connector.cert, "utf-8"));
+  }
   //create netw ms1
   const netwMsConfig = {
     'mode': 'public',
     'host': connector.domain,
-    'cert': AppHelper.trimCertificate(fs.readFileSync(connector.cert, "utf-8")),
+    'cert': cert,
     'port': ports.port1,
     'passcode': ports.passcode1,
     'connectioncount': 60,
@@ -769,7 +795,7 @@ async function getPhysicalConections(microservice, transaction) {
   const sourceRoutes = await RoutingManager.findAll({sourceMicroserviceUuid: microservice.uuid}, transaction)
   for (const sr of sourceRoutes) {
     if (!sr.sourceIofogUuid || !sr.destIofogUuid) {
-      break;
+      continue;
     } else if (sr.sourceIofogUuid === sr.destIofogUuid) {
       res.push(sr.destMicroserviceUuid)
     } else if (sr.sourceIofogUuid !== sr.destIofogUuid) {
@@ -783,6 +809,28 @@ async function getPhysicalConections(microservice, transaction) {
   }
 
   return res
+}
+
+async function _getLogicalNetworkRoutesByFog(iofogUuid, transaction) {
+  let res = [];
+  const query = {
+    [Op.or]:
+      [
+        {
+          sourceIofogUuid: iofogUuid
+        },
+        {
+          destIofogUuid: iofogUuid
+        }
+      ]
+  };
+  const routes = await RoutingManager.findAll(query, transaction)
+  for (let route of routes) {
+    if (route.sourceIofogUuid && route.destIofogUuid && route.isNetworkConnection) {
+      res.push(route);
+    }
+  }
+  return res;
 }
 
 async function _buildLink(protocol, ip, port) {

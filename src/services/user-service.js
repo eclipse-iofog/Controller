@@ -107,6 +107,14 @@ const activateUser = async function (codeData, isCLI, transaction) {
   };
 
   if (isCLI) {
+    const user = await UserManager.findOne({
+      id: codeData.userId
+    }, transaction);
+
+    if (user.emailActivated === true) {
+      throw new Error(ErrorMessages.USER_ALREADY_ACTIVATED)
+    }
+
     await _updateUser(codeData.userId, updatedObj, transaction);
   } else {
     await Validator.validate(codeData, Validator.schemas.activateUser);
@@ -201,6 +209,10 @@ const list = async function (isCLI, transaction) {
 };
 
 const suspendUser = async function (user, isCLI, transaction) {
+  if (user.emailActivated === false) {
+    throw new Error(ErrorMessages.USER_NOT_ACTIVATED_YET)
+  }
+
   const updatedObj = {
     emailActivated: false
   };
