@@ -470,7 +470,7 @@ async function _createNetworkMicroserviceForMaster(masterMicroservice, sourceNet
     iofogUuid: masterMicroservice.iofogUuid,
     rootHostAccess: false,
     logSize: 50,
-    userId: user.id,
+    userId: masterMicroservice.userId,
     configLastUpdated: Date.now()
   };
 
