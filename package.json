@@ -39,7 +39,8 @@
     "build": "export NODE_ENV=production && cd src/sequelize && ../../node_modules/.bin/sequelize db:migrate && ../../node_modules/.bin/sequelize db:seed:all",
     "preuninstall": "bash scripts/preuninstall.sh",
     "postinstall": "bash scripts/postinstall.sh",
-    "lint": "./node_modules/.bin/eslint \"**/*.js\""
+    "lint": "./node_modules/.bin/eslint \"**/*.js\"",
+    "automatic-release": "automatic-release"
   },
   "preferGlobal": true,
   "bin": {
@@ -77,6 +78,7 @@
     "qs": "^6.5.2"
   },
   "devDependencies": {
+    "automatic-release": "^1.1.1",
     "eslint": "^5.6.1"
   }
 }
