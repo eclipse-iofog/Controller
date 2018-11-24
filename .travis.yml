@@ -31,9 +31,9 @@ jobs:
     - sshpass -p $DEV_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $DEV_MACHINE_USERNAME@$DEV_MACHINE_IP "cd /FogController; NODE_ENV=production node src/main.js stop; git pull; npm i; NODE_ENV=production node src/main.js start"
   - stage: package_build
     before_deploy:
-      - git config --global user.name "${GITHUB_USERNAME}";
+      - git config --global user.name "${GH_USERNAME}";
       - git config credential.helper "store --file=.git/credentials";
-      - echo "https://${GITHUB_API_KEY}:@github.com" > .git/credentials;
+      - echo "https://${GH_TOKEN}:@github.com" > .git/credentials;
       - npm run automatic-release
     deploy:
       skip_cleanup: true
