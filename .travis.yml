@@ -30,6 +30,11 @@ jobs:
     script: 
     - sshpass -p $DEV_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $DEV_MACHINE_USERNAME@$DEV_MACHINE_IP "cd /FogController; NODE_ENV=production node src/main.js stop; git pull; npm i; NODE_ENV=production node src/main.js start"
   - stage: package_build
+    before_install:
+      - git clone "https://github.com/$TRAVIS_REPO_SLUG.git" "$TRAVIS_REPO_SLUG";
+      - cd "$TRAVIS_REPO_SLUG";
+      - git checkout -qf "$TRAVIS_COMMIT";
+      - git checkout master
     before_deploy:
       - git config --global user.name "${GH_USERNAME}";
       - git config credential.helper "store --file=.git/credentials";
