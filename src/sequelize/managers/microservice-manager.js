@@ -271,7 +271,6 @@ class MicroserviceManager extends BaseManager {
           'created_at',
           'updated_at',
           'updatedBy',
-          'flowId',
           'registryId',
           'isNetwork',
           'rebuild',
@@ -279,8 +278,6 @@ class MicroserviceManager extends BaseManager {
           'imageSnapshot',
           'catalog_item_id',
           'iofog_uuid',
-          'iofogUuid',
-          'catalogItemId'
         ]}}, {transaction: transaction})
   }
 }
