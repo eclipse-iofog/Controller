@@ -42,8 +42,17 @@ const emailActivation = async function (isCLI) {
 };
 
 const statusController = async function (isCLI) {
+  const daemon = require('../daemon');
+
+  let pid = daemon.status();
+  if (pid === 0) {
+    status = 'offline'
+  } else {
+    status = 'online'
+  }
+
   return {
-    "status": "ok",
+    "status": status,
     "timestamp": Date.now(),
   }
 };

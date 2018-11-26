@@ -26,6 +26,20 @@ const Routing = models.Routing;
 const Registry = models.Registry;
 const MicroserviceStatus = models.MicroserviceStatus;
 
+const microserviceExcludedFields = [
+  'configLastUpdated',
+  'created_at',
+  'updated_at',
+  'updatedBy',
+  'registryId',
+  'isNetwork',
+  'rebuild',
+  'deleteWithCleanUp',
+  'imageSnapshot',
+  'catalog_item_id',
+  'iofog_uuid'
+];
+
 class MicroserviceManager extends BaseManager {
   getEntity() {
     return Microservice
@@ -247,41 +261,20 @@ class MicroserviceManager extends BaseManager {
     return Microservice.findOne({
       where: where,
       attributes: {
-        exclude: [
-          'configLastUpdated',
-          'created_at',
-          'updated_at',
-          'updatedBy',
-          'registryId',
-          'isNetwork',
-          'rebuild',
-          'deleteWithCleanUp',
-          'imageSnapshot',
-          'catalog_item_id',
-          'iofog_uuid'
-        ]}}, {transaction: transaction})
+        exclude: microserviceExcludedFields
+      }}, {
+      transaction: transaction
+    });
   }
 
   async findAllExcludeFields(where, transaction) {
     return Microservice.findAll({
       where: where,
       attributes: {
-        exclude: [
-          'configLastUpdated',
-          'created_at',
-          'updated_at',
-          'updatedBy',
-          'flowId',
-          'registryId',
-          'isNetwork',
-          'rebuild',
-          'deleteWithCleanUp',
-          'imageSnapshot',
-          'catalog_item_id',
-          'iofog_uuid',
-          'iofogUuid',
-          'catalogItemId'
-        ]}}, {transaction: transaction})
+        exclude: microserviceExcludedFields
+      }}, {
+      transaction: transaction
+    });
   }
 }
 

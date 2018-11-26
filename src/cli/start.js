@@ -29,17 +29,21 @@ class Start extends BaseCLIHandler {
     const pid = daemon.status();
 
     if (pid === 0) {
-      try {
-        await db.migrate();
-        await db.seed();
-      } catch (err) {
-        logger.silly('Unable to initialize the database.', err);
-        process.exit(1)
-      }
+      this.initDB();
       daemon.start();
       checkDaemon(daemon, configuration)
     } else {
       logger.silly(`iofog-controller already running. PID: ${pid}`)
+    }
+  }
+
+  async initDB() {
+    try {
+      await db.migrate();
+      await db.seed();
+    } catch (err) {
+      logger.silly('Unable to initialize the database.', err);
+      process.exit(1)
     }
   }
 }
