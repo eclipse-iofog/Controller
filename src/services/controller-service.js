@@ -14,6 +14,7 @@
 const FogTypesManager = require('../sequelize/managers/iofog-type-manager');
 const Config = require('../config');
 const TransactionDecorator = require('../decorators/transaction-decorator');
+const packageJson = require('../../package');
 
 const getFogTypes = async function (isCLI, transaction) {
   const fogTypes = await FogTypesManager.findAll({}, transaction);
@@ -58,7 +59,7 @@ const statusController = async function (isCLI) {
 };
 
 const getVersion = async function (isCLI) {
-  return "Iofog-Controller version: 1.0.0";
+  return `Iofog-Controller version: ${packageJson.version}`;
 };
 
 module.exports = {
