@@ -40,7 +40,8 @@
 		"preuninstall": "bash scripts/preuninstall.sh",
 		"postinstall": "bash scripts/postinstall.sh",
 		"lint": "./node_modules/.bin/eslint \"**/*.js\"",
-		"automatic-release": "automatic-release"
+		"automatic-release": "automatic-release",
+		"test": ""
 	},
 	"preferGlobal": true,
 	"bin": {

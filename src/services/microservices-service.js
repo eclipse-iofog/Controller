@@ -136,7 +136,7 @@ const _createVolumeMappings = async function (volumeMappings, microserviceUuid, 
 
 const _createRoutes = async function (routes, microserviceUuid, user, transaction) {
   for (let route of routes) {
-    await _createRoute(microserviceUuid, route, user, transaction)
+    await _createRoute(microserviceUuid, route, user, false, transaction)
   }
 };
 
