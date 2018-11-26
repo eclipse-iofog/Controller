@@ -25,6 +25,7 @@ module.exports = {
   CMD_HELP: 'help',
   CMD_START: 'start',
   CMD_STOP: 'stop',
+  CMD_INIT_DB: 'init',
   CMD_STATUS: 'status',
   CMD_VERSION: 'version',
   CMD_USER: 'user',

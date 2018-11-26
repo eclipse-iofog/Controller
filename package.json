@@ -38,7 +38,7 @@
 		"start-dev": "NODE_ENV=development node ./src/main.js start",
 		"build": "export NODE_ENV=production && cd src/sequelize && ../../node_modules/.bin/sequelize db:migrate && ../../node_modules/.bin/sequelize db:seed:all",
 		"preuninstall": "bash scripts/preuninstall.sh",
-		"postinstall": "bash scripts/postinstall.sh",
+		"postinstall": "bash scripts/postinstall.sh && NODE_ENV=production node ./src/main.js init",
 		"lint": "./node_modules/.bin/eslint \"**/*.js\"",
 		"automatic-release": "automatic-release",
 		"test": ""
