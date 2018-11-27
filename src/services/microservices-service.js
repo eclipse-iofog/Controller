@@ -590,7 +590,7 @@ async function _createSimplePortMapping(microservice, portMappingData, user, tra
     isPublic: false,
     portInternal: portMappingData.internal,
     portExternal: portMappingData.external,
-    userId: user.id,
+    userId: microservice.userId,
     microserviceUuid: microservice.uuid
   }
 
@@ -652,7 +652,7 @@ async function _createPortMappingOverConnector(microservice, portMappingData, us
     isPublic: true,
     portInternal: portMappingData.internal,
     portExternal: portMappingData.external,
-    userId: user.id,
+    userId: microservice.userId,
     microserviceUuid: microservice.uuid
   }
 
