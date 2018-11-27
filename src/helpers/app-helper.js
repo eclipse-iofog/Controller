@@ -105,6 +105,9 @@ function generateAccessToken() {
 }
 
 function checkTransaction(transaction) {
+  if (isTest()) {
+    return
+  }
   //TODO [when transactions concurrency issue fixed]: Remove '!transaction.fakeTransaction'
   if (!transaction || (!(transaction instanceof Transaction) && !transaction.fakeTransaction)) {
     throw new Errors.TransactionError()
@@ -247,6 +250,10 @@ function _getPossibleArgsList(command, commandDefinitions) {
   return possibleArgsList;
 }
 
+function isTest() {
+  return process.env.NODE_ENV === 'test'
+}
+
 
 module.exports = {
   encryptText,
@@ -266,5 +273,6 @@ module.exports = {
   isValidPublicIP,
   handleCLIError,
   trimCertificate,
-  validateParameters
+  validateParameters,
+  isTest,
 };

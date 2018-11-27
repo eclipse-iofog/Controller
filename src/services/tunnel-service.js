@@ -21,29 +21,29 @@ const TransactionDecorator = require('../decorators/transaction-decorator');
 const ChangeTrackingService = require('./change-tracking-service');
 
 const openTunnel = async function (tunnelData, user, isCli, transaction) {
-    const iofog = await FogManager.findOne({uuid : tunnelData.iofogUuid}, transaction);
-    if (!iofog) {
-        throw new Errors.NotFoundError('Invalid Fog Id');
-    }
-    let tunnel = tunnelData;
-    if (isCli){
-        tunnel.rport = await AppHelper.findAvailablePort(tunnelData.host);
-    } else {
-        const host = Config.get("Tunnel:Host");
-        tunnel = {
-            username: Config.get("Tunnel:Username"),
-            password: Config.get("Tunnel:Password"),
-            host: host,
-            rsakey: Config.get("Tunnel:RsaKey"),
-            lport: Config.get("Tunnel:Lport"),
-            iofogUuid: iofog.uuid,
-            closed: false,
-            rport: await AppHelper.findAvailablePort(host)
-        };
-    }
-    await Validator.validate(tunnel, Validator.schemas.tunnelCreate);
-    await TunnelManager.updateOrCreate(tunnelData, tunnel, transaction);
-    await ChangeTrackingService.update(tunnelData.iofogUuid, ChangeTrackingService.events.tunnel, transaction);
+  const iofog = await FogManager.findOne({ uuid: tunnelData.iofogUuid }, transaction);
+  if (!iofog) {
+    throw new Errors.NotFoundError('Invalid Fog Id');
+  }
+  let tunnel = tunnelData;
+  if (isCli) {
+    tunnel.rport = await AppHelper.findAvailablePort(tunnelData.host);
+  } else {
+    const host = Config.get("Tunnel:Host");
+    tunnel = {
+      username: Config.get("Tunnel:Username"),
+      password: Config.get("Tunnel:Password"),
+      host: host,
+      rsakey: Config.get("Tunnel:RsaKey"),
+      lport: Config.get("Tunnel:Lport"),
+      iofogUuid: iofog.uuid,
+      closed: false,
+      rport: await AppHelper.findAvailablePort(host)
+    };
+  }
+  await Validator.validate(tunnel, Validator.schemas.tunnelCreate);
+  await TunnelManager.updateOrCreate(tunnelData, tunnel, transaction);
+  await ChangeTrackingService.update(tunnelData.iofogUuid, ChangeTrackingService.events.tunnel, transaction);
 };
 
 const findTunnel = async function (tunnelData, user, transaction) {
@@ -52,24 +52,24 @@ const findTunnel = async function (tunnelData, user, transaction) {
     throw new Errors.NotFoundError('Invalid Tunnel Id');
   }
   return {
-      username: tunnel.username,
-      host: tunnel.host,
-      remotePort: tunnel.rport,
-      localPort: tunnel.lport,
-      status: tunnel.closed ? "closed" : "open"
-    };
+    username: tunnel.username,
+    host: tunnel.host,
+    remotePort: tunnel.rport,
+    localPort: tunnel.lport,
+    status: tunnel.closed ? "closed" : "open"
+  };
 };
 
 const findAll = async function (transaction) {
-    const tunnels = await TunnelManager.findAll({}, transaction);
-    return {
-        tunnels : tunnels
-    };
+  const tunnels = await TunnelManager.findAll({}, transaction);
+  return {
+    tunnels: tunnels
+  };
 };
 
 const closeTunnel = async function (tunnelData, user, transaction) {
-  await findTunnel(tunnelData, user, transaction);
-  await TunnelManager.update(tunnelData, {closed : true}, transaction);
+  await module.exports.findTunnel(tunnelData, user, transaction);
+  await TunnelManager.update(tunnelData, { closed: true }, transaction);
   await ChangeTrackingService.update(tunnelData.iofogUuid, ChangeTrackingService.events.tunnel, transaction);
 };
 
