@@ -14,6 +14,7 @@
 const FogTypesManager = require('../sequelize/managers/iofog-type-manager');
 const Config = require('../config');
 const TransactionDecorator = require('../decorators/transaction-decorator');
+const packageJson = require('../../package');
 
 const getFogTypes = async function (isCLI, transaction) {
   const fogTypes = await FogTypesManager.findAll({}, transaction);
@@ -42,14 +43,23 @@ const emailActivation = async function (isCLI) {
 };
 
 const statusController = async function (isCLI) {
+  const daemon = require('../daemon');
+
+  let pid = daemon.status();
+  if (pid === 0) {
+    status = 'offline'
+  } else {
+    status = 'online'
+  }
+
   return {
-    "status": "ok",
+    "status": status,
     "timestamp": Date.now(),
   }
 };
 
 const getVersion = async function (isCLI) {
-  return "Iofog-Controller version: 1.0.0";
+  return `Iofog-Controller version: ${packageJson.version}`;
 };
 
 module.exports = {

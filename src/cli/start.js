@@ -14,9 +14,10 @@
 const BaseCLIHandler = require('./base-cli-handler');
 const config = require('../config');
 const logger = require('../logger');
+const db = require('../sequelize/models');
 
 class Start extends BaseCLIHandler {
-  run(args) {
+  async run(args) {
     const daemon = args.daemon;
     const configuration = {
       devMode: config.get('Server:DevMode'),
@@ -28,10 +29,21 @@ class Start extends BaseCLIHandler {
     const pid = daemon.status();
 
     if (pid === 0) {
+      this.initDB();
       daemon.start();
       checkDaemon(daemon, configuration)
     } else {
       logger.silly(`iofog-controller already running. PID: ${pid}`)
+    }
+  }
+
+  async initDB() {
+    try {
+      await db.migrate();
+      await db.seed();
+    } catch (err) {
+      logger.silly('Unable to initialize the database.', err);
+      process.exit(1)
     }
   }
 }
