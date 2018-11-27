@@ -167,6 +167,9 @@ const _updateMicroservice = async function (microserviceUuid, microserviceData, 
   const microserviceDataUpdate = AppHelper.deleteUndefinedFields(microserviceToUpdate);
 
   const microservice = await MicroserviceManager.findOne(query, transaction);
+  if (!microservice) {
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, microserviceUuid))
+  }
 
   if (microserviceDataUpdate.name) {
     const userId = isCLI ? microservice.userId : user.id;
