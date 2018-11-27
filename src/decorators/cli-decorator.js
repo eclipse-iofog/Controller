@@ -16,9 +16,13 @@ const config = require('../config');
 const UserManager = require('../sequelize/managers/user-manager');
 const AccessTokenManager = require('../sequelize/managers/access-token-manager');
 const Errors = require('../helpers/errors');
+const { isTest } = require('../helpers/app-helper');
 
 function prepareUserById(f) {
   return async function() {
+    if (isTest()) {
+      return await f.apply(this, arguments);
+    }
 
     const fArgs = Array.prototype.slice.call(arguments)
     const obj = fArgs[0]
@@ -42,6 +46,9 @@ function prepareUserById(f) {
 
 function prepareUserByEmail(f) {
   return async function() {
+    if (isTest()) {
+      return await f.apply(this, arguments);
+    }
 
     const fArgs = Array.prototype.slice.call(arguments)
     const obj = fArgs[0]

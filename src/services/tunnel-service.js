@@ -74,8 +74,8 @@ const closeTunnel = async function (tunnelData, user, transaction) {
 };
 
 module.exports = {
-  findTunnel: AppHelper.isTest() ? findTunnel : TransactionDecorator.generateTransaction(findTunnel),
-  openTunnel: AppHelper.isTest() ? openTunnel : TransactionDecorator.generateTransaction(openTunnel),
-  closeTunnel: AppHelper.isTest() ? closeTunnel : TransactionDecorator.generateTransaction(closeTunnel),
-  findAll: AppHelper.isTest() ? findAll : TransactionDecorator.generateTransaction(findAll),
+  findTunnel: TransactionDecorator.generateTransaction(findTunnel),
+  openTunnel: TransactionDecorator.generateTransaction(openTunnel),
+  closeTunnel: TransactionDecorator.generateTransaction(closeTunnel),
+  findAll: TransactionDecorator.generateTransaction(findAll),
 };

@@ -17,9 +17,13 @@ const AccessTokenManager = require('../sequelize/managers/access-token-manager')
 const FogManager = require('../sequelize/managers/iofog-manager')
 const FogAccessTokenManager = require('../sequelize/managers/iofog-access-token-manager')
 const Errors = require('../helpers/errors')
+const { isTest } = require('../helpers/app-helper');
 
 function checkAuthToken(f) {
   return async function() {
+    if (isTest()) {
+      return await f.apply(this, arguments);
+    }
 
     const fArgs = Array.prototype.slice.call(arguments);
     const req = fArgs[0];
@@ -46,6 +50,9 @@ function checkAuthToken(f) {
 
 function checkFogToken(f) {
   return async function() {
+    if (isTest()) {
+      return await f.apply(this, arguments);
+    }
 
     const fArgs = Array.prototype.slice.call(arguments);
     const req = fArgs[0];

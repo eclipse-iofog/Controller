@@ -15,9 +15,14 @@ const db = require('./../sequelize/models');
 const retry = require('retry-as-promised');
 const sequelize = db.sequelize;
 const Transaction = require('sequelize/lib/transaction');
+const { isTest } = require('../helpers/app-helper');
 
 function transaction(f) {
   return async function() {
+    if (isTest()) {
+      return await f.apply(this, arguments);
+    }
+
     const fArgs = Array.prototype.slice.call(arguments);
     //TODO [when transactions concurrency issue fixed]: Remove 'fArgs[fArgs.length - 1].fakeTransaction'
     if (fArgs.length > 0 && (fArgs[fArgs.length - 1] instanceof Transaction || fArgs[fArgs.length - 1].fakeTransaction)) {
@@ -51,6 +56,10 @@ function generateTransaction(f) {
 function fakeTransaction(f) {
   const fakeTransactionObject = {fakeTransaction: true}
   return async function() {
+    if (isTest()) {
+      return await f.apply(this, arguments);
+    }
+
     const fArgs = Array.prototype.slice.call(arguments);
     if (fArgs.length > 0 && fArgs[fArgs.length - 1] instanceof Transaction) {
       fArgs[fArgs.length - 1] = fakeTransactionObject;
