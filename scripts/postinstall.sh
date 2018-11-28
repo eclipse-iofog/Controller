@@ -54,13 +54,15 @@ if [ -f $PROD_DB_FILE_BACKUP ]; then
 fi
 
 #prev versions migrations
-PREV_IOFOG_CONTROLLER_VER=$(grep prev_ver /tmp/iofogcontroller_install_variables | awk '{print $2}')
-echo "Prev ver: "${PREV_IOFOG_CONTROLLER_VER}
+if [ -f /tmp/iofogcontroller_install_variables ]; then
+    PREV_IOFOG_CONTROLLER_VER=$(grep prev_ver /tmp/iofogcontroller_install_variables | awk '{print $2}')
+fi
 
 if [[ -z "${PREV_IOFOG_CONTROLLER_VER// }" ]]
 then
     echo "No prev ver"
 else
+    echo "Prev ver: "${PREV_IOFOG_CONTROLLER_VER}
     if [[ $(vercomp $PREV_IOFOG_CONTROLLER_VER 1.0.0) = '<' ]] || [[ $(vercomp $PREV_IOFOG_CONTROLLER_VER 1.0.0) = '=' ]]
     then
         echo "Upgrading from ver 1.0.0"

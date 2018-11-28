@@ -5,9 +5,9 @@ export PREV_IOFOG_CONTROLLER_VER=$(npm list --depth=0 -g --silent | grep iofogco
 printf 'prev_ver: '$PREV_IOFOG_CONTROLLER_VER > /tmp/iofogcontroller_install_variables
 
 #backup db
-IOFOG_CONTROLLER_BIN_DIR=$(whereis iofog-controller | awk -F " " '{print $2}')
-IOFOG_CONTROLLER_BIN_DIR=${IOFOG_CONTROLLER_BIN_DIR%"iofog-controller"}
-IOFOG_CONTROLLER_SEQUELIZE_DIR=$IOFOG_CONTROLLER_BIN_DIR'../lib/node_modules/iofogcontroller/src/sequelize'
+IOFOG_CONTROLLER_NODE_MODULES=$(npm root -g iofog-controller)
+IOFOG_CONTROLLER_SEQUELIZE_DIR=$IOFOG_CONTROLLER_NODE_MODULES'/iofogcontroller/src/sequelize'
+echo $IOFOG_CONTROLLER_SEQUELIZE_DIR
 
 DEV_DB_FILE=$IOFOG_CONTROLLER_SEQUELIZE_DIR'/dev_database.sqlite'
 if [ -f $DEV_DB_FILE ]; then
