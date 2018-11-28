@@ -15,25 +15,22 @@ const configUpdate = {
   "id": "/configUpdate",
   "type": "object",
   "properties": {
-    "port": {"type": "integer", "minimum" : 0, "maximum" : 65535},
+    "port": {"type": "integer", "minimum": 0, "maximum": 65535},
     "sslCert": {"type": "string"},
     "sslKey": {"type": "string"},
     "intermediateCert": {"type": "string"},
     "emailActivationOn": {"type": "boolean"},
     "emailActivationOff": {"type": "boolean"},
     "homeUrl": {"type": "string"},
-    "emailAddress": {
-      "type": "string",
-      "pattern": "^(([^<>()\\[\\]\\\\.,;:\\s@\"]+(\\.[^<>()\\[\\]\\\\.,;:\\s@\"]+)*)|(\".+\"))@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}])|(([a-zA-Z\\-0-9]+\\.)+[a-zA-Z]{2,}))$"
-    },
+    "emailAddress": {"type": "string"},
     "emailPassword": {"type": "string", "minLength": 1},
     "emailService": {"type": "string"},
     "logDir": {"type": "string"},
     "logSize": {"type": "integer"}
   }
-}
+};
 
-  module.exports = {
+module.exports = {
   mainSchemas: [configUpdate],
   innerSchemas: []
 };
