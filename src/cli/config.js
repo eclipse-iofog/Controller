@@ -182,10 +182,6 @@ const _addConfigOption = async function (options) {
   });
 
   await updateConfig(options.emailAddress, 'email-address', 'Email:Address', (onSuccess) => {
-    if (options.emailPassword) {
-      logger.info('When changing email address, password must be provided.');
-      return;
-    }
     config.set('Email:Address', options.emailAddress);
     onSuccess();
   });
