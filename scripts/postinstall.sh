@@ -60,12 +60,12 @@ fi
 
 if [[ -z "${PREV_IOFOG_CONTROLLER_VER// }" ]]
 then
-    echo "No prev ver"
+    echo "No previous version"
 else
-    echo "Prev ver: "${PREV_IOFOG_CONTROLLER_VER}
+    echo "Previous version: "${PREV_IOFOG_CONTROLLER_VER}
     if [[ $(vercomp $PREV_IOFOG_CONTROLLER_VER 1.0.0) = '<' ]] || [[ $(vercomp $PREV_IOFOG_CONTROLLER_VER 1.0.0) = '=' ]]
     then
-        echo "Upgrading from ver 1.0.0"
+        echo "Upgrading from version 1.0.0"
         sqlite3 src/sequelize/prod_database.sqlite "insert into SequelizeMeta (name) values ('20180928110125-insert-registry.js');"
         sqlite3 src/sequelize/prod_database.sqlite "insert into SequelizeMeta (name) values ('20180928111532-insert-catalog-item.js');"
         sqlite3 src/sequelize/prod_database.sqlite "insert into SequelizeMeta (name) values ('20180928112152-insert-iofog-type.js');"
