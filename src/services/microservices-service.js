@@ -188,7 +188,7 @@ async function _updateMicroservice(microserviceUuid, microserviceData, user, isC
     await _updateVolumeMappings(microserviceDataUpdate.volumeMappings, microserviceUuid, transaction);
   }
 
-  if (microserviceDataUpdate.iofogUuid !== microservice.iofogUuid) {
+  if (microserviceDataUpdate.iofogUuid && microserviceDataUpdate.iofogUuid !== microservice.iofogUuid) {
     const routes = await _getLogicalNetworkRoutesByFog(microservice.iofogUuid, transaction);
     for (let route of routes) {
       await _deleteRoute(route.sourceMicroserviceUuid, route.destMicroserviceUuid, user, isCLI, transaction);
