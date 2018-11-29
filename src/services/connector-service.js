@@ -180,8 +180,6 @@ async function _getRandomConnector(transaction) {
 }
 
 async function closePortOnConnector(connector, ports, transaction) {
-  console.log(ports);
-
   let data = qs.stringify({
     mappingid: ports.mappingId
   });

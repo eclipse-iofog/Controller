@@ -11,6 +11,7 @@
  *
  */
 
+const logger = require('../logger')
 const TransactionDecorator = require('../decorators/transaction-decorator');
 const MicroserviceManager = require('../sequelize/managers/microservice-manager');
 const MicroserviceStatusManager = require('../sequelize/managers/microservice-status-manager');
