@@ -160,7 +160,7 @@ async function openPortsOnConnector(connector, isPublicAccess, transaction) {
       'Content-Length': Buffer.byteLength(data)
     }
   };
-  if (connector.cert && connector.isSelfSignedCert === true) {
+  if (!connector.devMode && connector.cert && connector.isSelfSignedCert === true) {
     const ca = fs.readFileSync(connector.cert);
     options.ca = new Buffer(ca);
   }

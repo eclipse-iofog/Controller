@@ -387,7 +387,7 @@ async function _createRouteOverConnector(sourceMicroservice, destMicroservice, u
   const networkCatalogItem = await CatalogService.getNetworkCatalogItem(transaction)
 
   let cert;
-  if (connector.cert) {
+  if (!connector.devMode && connector.cert) {
     cert = AppHelper.trimCertificate(fs.readFileSync(connector.cert, "utf-8"))
   }
 
@@ -618,7 +618,7 @@ async function _createPortMappingOverConnector(microservice, portMappingData, us
   const networkCatalogItem = await CatalogService.getNetworkCatalogItem(transaction)
 
   let cert;
-  if (connector.cert) {
+  if (!connector.devMode && connector.cert) {
     cert = AppHelper.trimCertificate(fs.readFileSync(connector.cert, "utf-8"));
   }
   //create netw ms1
