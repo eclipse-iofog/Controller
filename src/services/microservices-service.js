@@ -528,7 +528,7 @@ async function _deleteRouteOverConnector(route, transaction) {
   try {
     await ConnectorService.closePortOnConnector(connector, ports, transaction);
   } catch (e) {
-    logger.warn(`Can't close ports pair ${ports.mappingId} on connector ${connector.publicIp}. Delete manually in needed`);
+    logger.warn(`Can't close ports pair ${ports.mappingId} on connector ${connector.publicIp}. Delete manually if necessary`);
   }
 
   await RoutingManager.delete({id: route.id}, transaction)
