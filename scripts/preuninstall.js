@@ -26,7 +26,7 @@ if (os.type() === 'Linux') {
 } else if (os.type() === 'Darwin') {
   tempDir = '/tmp/';
 } else if (os.type() === 'Windows_NT') {
-  tempDir = process.env.APPDATA;
+  tempDir = `${process.env.APPDATA}/`;
 } else {
   throw new Error("Unsupported OS found: " + os.type());
 }
