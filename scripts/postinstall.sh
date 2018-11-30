@@ -37,9 +37,8 @@ vercomp () {
 
 #START
 #restore db
-IOFOG_CONTROLLER_BIN_DIR=$(whereis iofog-controller | awk -F " " '{print $2}')
-IOFOG_CONTROLLER_BIN_DIR=${IOFOG_CONTROLLER_BIN_DIR%"iofog-controller"}
-IOFOG_CONTROLLER_SEQUELIZE_DIR=$IOFOG_CONTROLLER_BIN_DIR'../lib/node_modules/iofogcontroller/src/sequelize'
+IOFOG_CONTROLLER_NODE_MODULES=$(npm root -g iofog-controller)
+IOFOG_CONTROLLER_SEQUELIZE_DIR=$IOFOG_CONTROLLER_NODE_MODULES'/iofogcontroller/src/sequelize'
 
 DEV_DB_FILE=$IOFOG_CONTROLLER_SEQUELIZE_DIR'/dev_database.sqlite'
 DEV_DB_FILE_BACKUP='/tmp/dev_database.sqlite'
