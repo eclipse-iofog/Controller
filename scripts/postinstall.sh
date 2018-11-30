@@ -1,5 +1,7 @@
 #!/bin/bash
 
+##TODO: remove after js scripts finished
+
 vercomp () {
     if [[ $1 == $2 ]]
     then
