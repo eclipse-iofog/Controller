@@ -11,9 +11,13 @@
  *
  */
 const logger = require('../logger');
+const { isTest } = require('../helpers/app-helper');
 
 function handleErrors(f, successCode, errorsCodes) {
   return async function() {
+    if (isTest()) {
+      return await f.apply(this, arguments);
+    }
 
     let responseObject = {};
     try {

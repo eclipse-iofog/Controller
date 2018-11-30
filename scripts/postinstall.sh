@@ -1,5 +1,7 @@
 #!/bin/bash
 
+##TODO: remove after js scripts finished
+
 vercomp () {
     if [[ $1 == $2 ]]
     then
@@ -37,9 +39,8 @@ vercomp () {
 
 #START
 #restore db
-IOFOG_CONTROLLER_BIN_DIR=$(whereis iofog-controller | awk -F " " '{print $2}')
-IOFOG_CONTROLLER_BIN_DIR=${IOFOG_CONTROLLER_BIN_DIR%"iofog-controller"}
-IOFOG_CONTROLLER_SEQUELIZE_DIR=$IOFOG_CONTROLLER_BIN_DIR'../lib/node_modules/iofogcontroller/src/sequelize'
+IOFOG_CONTROLLER_NODE_MODULES=$(npm root -g iofog-controller)
+IOFOG_CONTROLLER_SEQUELIZE_DIR=$IOFOG_CONTROLLER_NODE_MODULES'/iofogcontroller/src/sequelize'
 
 DEV_DB_FILE=$IOFOG_CONTROLLER_SEQUELIZE_DIR'/dev_database.sqlite'
 DEV_DB_FILE_BACKUP='/tmp/dev_database.sqlite'
@@ -54,16 +55,18 @@ if [ -f $PROD_DB_FILE_BACKUP ]; then
 fi
 
 #prev versions migrations
-PREV_IOFOG_CONTROLLER_VER=$(grep prev_ver /tmp/iofogcontroller_install_variables | awk '{print $2}')
-echo "Prev ver: "${PREV_IOFOG_CONTROLLER_VER}
+if [ -f /tmp/iofogcontroller_install_variables ]; then
+    PREV_IOFOG_CONTROLLER_VER=$(grep prev_ver /tmp/iofogcontroller_install_variables | awk '{print $2}')
+fi
 
 if [[ -z "${PREV_IOFOG_CONTROLLER_VER// }" ]]
 then
-    echo "No prev ver"
+    echo "No previous version"
 else
+    echo "Previous version: "${PREV_IOFOG_CONTROLLER_VER}
     if [[ $(vercomp $PREV_IOFOG_CONTROLLER_VER 1.0.0) = '<' ]] || [[ $(vercomp $PREV_IOFOG_CONTROLLER_VER 1.0.0) = '=' ]]
     then
-        echo "Upgrading from ver 1.0.0"
+        echo "Upgrading from version 1.0.0"
         sqlite3 src/sequelize/prod_database.sqlite "insert into SequelizeMeta (name) values ('20180928110125-insert-registry.js');"
         sqlite3 src/sequelize/prod_database.sqlite "insert into SequelizeMeta (name) values ('20180928111532-insert-catalog-item.js');"
         sqlite3 src/sequelize/prod_database.sqlite "insert into SequelizeMeta (name) values ('20180928112152-insert-iofog-type.js');"

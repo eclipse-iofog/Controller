@@ -156,15 +156,15 @@ const _addConfigOption = async function (options) {
     onSuccess();
   });
 
-  if (options.sslKey) {
+  await updateConfig(options.sslKey, 'ssl-key', 'Server:SslKey', (onSuccess) => {
     const sslKey = options.sslKey;
     if (!AppHelper.isFileExists(sslKey)) {
       logger.error(ErrorMessages.INVALID_FILE_PATH);
       return;
     }
     config.set('Server:SslKey', sslKey);
-    logger.info('Config option ssl-key has been updated.');
-  }
+    onSuccess();
+  });
 
   await updateConfig(options.intermediateCert, 'intermediate-cert', 'Server:IntermediateCert', (onSuccess) => {
     const intermediateCert = options.intermediateCert;
@@ -182,10 +182,6 @@ const _addConfigOption = async function (options) {
   });
 
   await updateConfig(options.emailAddress, 'email-address', 'Email:Address', (onSuccess) => {
-    if (options.emailPassword) {
-      logger.info('When changing email address, password must be provided.');
-      return;
-    }
     config.set('Email:Address', options.emailAddress);
     onSuccess();
   });
