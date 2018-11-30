@@ -156,15 +156,15 @@ const _addConfigOption = async function (options) {
     onSuccess();
   });
 
-  if (options.sslKey) {
+  await updateConfig(options.sslKey, 'ssl-key', 'Server:SslKey', (onSuccess) => {
     const sslKey = options.sslKey;
     if (!AppHelper.isFileExists(sslKey)) {
       logger.error(ErrorMessages.INVALID_FILE_PATH);
       return;
     }
     config.set('Server:SslKey', sslKey);
-    logger.info('Config option ssl-key has been updated.');
-  }
+    onSuccess();
+  });
 
   await updateConfig(options.intermediateCert, 'intermediate-cert', 'Server:IntermediateCert', (onSuccess) => {
     const intermediateCert = options.intermediateCert;

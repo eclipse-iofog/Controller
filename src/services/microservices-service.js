@@ -11,6 +11,7 @@
  *
  */
 
+const logger = require('../logger')
 const TransactionDecorator = require('../decorators/transaction-decorator');
 const MicroserviceManager = require('../sequelize/managers/microservice-manager');
 const MicroserviceStatusManager = require('../sequelize/managers/microservice-status-manager');
@@ -187,7 +188,7 @@ async function _updateMicroservice(microserviceUuid, microserviceData, user, isC
     await _updateVolumeMappings(microserviceDataUpdate.volumeMappings, microserviceUuid, transaction);
   }
 
-  if (microserviceDataUpdate.iofogUuid !== microservice.iofogUuid) {
+  if (microserviceDataUpdate.iofogUuid && microserviceDataUpdate.iofogUuid !== microservice.iofogUuid) {
     const routes = await _getLogicalNetworkRoutesByFog(microservice.iofogUuid, transaction);
     for (let route of routes) {
       await _deleteRoute(route.sourceMicroserviceUuid, route.destMicroserviceUuid, user, isCLI, transaction);
@@ -386,7 +387,7 @@ async function _createRouteOverConnector(sourceMicroservice, destMicroservice, u
   const networkCatalogItem = await CatalogService.getNetworkCatalogItem(transaction)
 
   let cert;
-  if (connector.cert) {
+  if (!connector.devMode && connector.cert) {
     cert = AppHelper.trimCertificate(fs.readFileSync(connector.cert, "utf-8"))
   }
 
@@ -527,7 +528,7 @@ async function _deleteRouteOverConnector(route, transaction) {
   try {
     await ConnectorService.closePortOnConnector(connector, ports, transaction);
   } catch (e) {
-    logger.warn(`Can't close ports pair ${ports.mappingId} on connector ${connector.publicIp}. Delete manually in needed`);
+    logger.warn(`Can't close ports pair ${ports.mappingId} on connector ${connector.publicIp}. Delete manually if necessary`);
   }
 
   await RoutingManager.delete({id: route.id}, transaction)
@@ -617,7 +618,7 @@ async function _createPortMappingOverConnector(microservice, portMappingData, us
   const networkCatalogItem = await CatalogService.getNetworkCatalogItem(transaction)
 
   let cert;
-  if (connector.cert) {
+  if (!connector.devMode && connector.cert) {
     cert = AppHelper.trimCertificate(fs.readFileSync(connector.cert, "utf-8"));
   }
   //create netw ms1

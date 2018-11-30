@@ -376,7 +376,7 @@ const _removeVolumeMapping = async function (obj, user) {
     await MicroserviceService.deleteVolumeMapping(obj.microserviceId, obj.mappingId, user, true);
     logger.info('Volume mapping has been deleted successfully.');
   } catch (e) {
-    logger.error(ErrorMessages.CLI.INVALID_VOLUME_MAPPING);
+    logger.error(e.message);
   }
 };
 
