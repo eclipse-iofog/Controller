@@ -4,6 +4,11 @@ Also see the **[release page](https://github.com/ioFog/Controller/releases)**.
 
 <br>
 
+## [1.0.26](https://github.com/ioFog/Controller/releases/tag/1.0.26) (2018-11-30)
+
+
+<br>
+
 ## [1.0.25](https://github.com/ioFog/Controller/releases/tag/1.0.25) (2018-11-30)
 
 
