@@ -22,7 +22,7 @@ const connectorCreate = {
     "isSelfSignedCert": {"type": "boolean"},
     "devMode": {"type": "boolean"}
   },
-  "required": ["publicIp", "name"],
+  "required": ["publicIp", "name", "devMode"],
   "additionalProperties": false
 };
 
