@@ -43,7 +43,7 @@ class Diagnostics extends BaseCLIHandler {
           constants.CMD_IMAGE_SNAPSHOT_CREATE, constants.CMD_IMAGE_SNAPSHOT_GET]
       },
       {
-        name: 'format', alias: 'f', type: String, description: 'Format of strace data to receive',
+        name: 'format', alias: 'f', type: String, description: 'Format of strace data to receivehas to be. Values can be: string, file',
         group: [constants.CMD_STRACE_INFO]
       },
       {

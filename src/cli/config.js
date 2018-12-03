@@ -68,7 +68,7 @@ class Config extends BaseCLIHandler {
         group: constants.CMD_ADD
       },
       {
-        name: 'log-dir', alias: 'd', type: String, description: 'Log files directory',
+        name: 'log-dir', alias: 'd', type: String, description: 'Path to log files directory',
         group: constants.CMD_ADD
       },
       {
