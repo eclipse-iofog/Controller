@@ -46,6 +46,15 @@ const changeMicroserviceStraceState = async function (id, data, user, isCLI, tra
 
 const getMicroserviceStraceData = async function (id, data, user, isCLI, transaction) {
   await Validator.validate(data, Validator.schemas.straceGetData);
+
+  const microserviceWhere = isCLI
+    ? {uuid: id}
+    : {uuid: id, userId: user.id};
+  const microservice = await MicroserviceManager.findOne(microserviceWhere, transaction);
+  if (!microservice) {
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, id))
+  }
+
   const straceData = await StraceDiagnosticManager.findOne({microserviceUuid: id}, transaction);
   const dir = config.get('Diagnostics:DiagnosticDir') || 'diagnostics';
   const filePath = dir + '/' + id;
