@@ -100,7 +100,7 @@ $ iofog-controller config <*options*>
  -a, --email-address string       (Email address to send activations from) <br>
  -w, --email-password string      (Email password to send activations from) <br>
  -s, --email-service string       (Email service to send activations) <br>
- -d, --log-dir string             (Log files directory) <br>
+ -d, --log-dir string             (Path to log files directory) <br>
  -z, --log-size number            (Log files size (MB)) <br>
  
  *list*<br>
@@ -135,7 +135,7 @@ $ iofog-controller connector <*command*> <*options*>
  -n, --name string        (Connector name) <br>
  -d, --domain string      (Connector domain name) <br>
  -i, --public-ip string   (Connector public IP address) <br>
- -c, --cert string        (Certificate) <br>
+ -c, --cert string        (Path to certificate file) <br>
  -S, --self-signed-on     (Switch on self-signed enabled) <br>
  -s, --self-signed-off    (Switch off self-signed disabled) <br>
  -H, --dev-mode-on        (Switch on dev mode) <br>
@@ -215,11 +215,11 @@ tunnel list
   -d, --description string        (ioFog node description) <br>
   -D, --docker-url string         (ioFog node docker url) <br>
   -M, --disk-limit number         (ioFog node disk usage limit (MB)) <br>
-  -T, --disk-directory string     (ioFog node disk directory) <br>
+  -T, --disk-directory string     (Path to ioFog node disk directory) <br>
   -m, --memory-limit number       (ioFog node memory usage limit (MB)) <br>
   -c, --cpu-limit number          (ioFog node CPU usage limit (%)) <br>
   -G, --log-limit number          (ioFog node log size limit (MB)) <br>
-  -Y, --log-directory string      (ioFog node log files directory) <br>
+  -Y, --log-directory string      (Path to ioFog node log files directory) <br>
   -C, --log-file-count number     (ioFog node log files count) <br>
   -s, --status-frequency number   (ioFog node status check frequency (seconds)) <br>
   -F, --change-frequency number   (ioFog node configuration change check frequency (seconds)) <br>
@@ -702,7 +702,7 @@ $ iofog-controller catalog <*command*> <*options*> <br>
 
 *strace-info -i* <*microservice-id*><br>
 
- -f, --format string            (Format of strace data to receive)<br>
+ -f, --format string            (Format of strace data to receive. Possible values: string, file)<br>
  
  *strace-ftp-post -i* <*microservice-id*><br>
 

@@ -25,7 +25,7 @@ class FogManager extends BaseManager {
 
   // no transaction required here, used by auth decorator
   checkToken(token) {
-    return Fog.find({
+    return Fog.findOne({
       include: [{
         model: FogAccessToken,
         as: 'accessToken',
