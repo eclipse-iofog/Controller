@@ -17,8 +17,8 @@ const fs = require('fs');
 const version = require('../package').version;
 
 const rootDir = `${__dirname}/../`;
-let installation_variables_file_name = 'iofogcontroller_install_variables';
-let installation_variables_file;
+let installationVariablesFileName = 'iofogcontroller_install_variables';
+let installationVariablesFile;
 let tempDir;
 
 if (os.type() === 'Linux') {
@@ -31,9 +31,13 @@ if (os.type() === 'Linux') {
   throw new Error("Unsupported OS found: " + os.type());
 }
 
-installation_variables_file = tempDir + installation_variables_file_name;
+installationVariablesFile = tempDir + installationVariablesFileName;
 
-fs.writeFileSync(installation_variables_file, `prev_ver: ${version}`);
+const instalationVars = {
+  prevVer: version
+};
+
+fs.writeFileSync(installationVariablesFile, JSON.stringify(instalationVars));
 
 const devDb = `${rootDir}/src/sequelize/dev_database.sqlite`;
 if (fs.existsSync(devDb)) {
