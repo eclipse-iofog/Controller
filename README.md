@@ -702,7 +702,7 @@ $ iofog-controller catalog <*command*> <*options*> <br>
 
 *strace-info -i* <*microservice-id*><br>
 
- -f, --format string            (Format of strace data to receivehas to be. Values can be: string, file)<br>
+ -f, --format string            (Format of strace data to receive. Possible values: string, file)<br>
  
  *strace-ftp-post -i* <*microservice-id*><br>
 
