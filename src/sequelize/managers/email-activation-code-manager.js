@@ -26,7 +26,7 @@ class EmailActivationCodeManager extends BaseManager {
   async getByActivationCode(activationCode, transaction) {
     AppHelper.checkTransaction(transaction);
 
-    return EmailActivationCode.find({
+    return EmailActivationCode.findOne({
       where: {
         activationCode: activationCode
       }
@@ -48,7 +48,7 @@ class EmailActivationCodeManager extends BaseManager {
   };
 
   async verifyActivationCode(activationCode, transaction) {
-    return EmailActivationCode.find({
+    return EmailActivationCode.findOne({
       where: {
         activationCode: activationCode,
         expirationTime: {
