@@ -99,6 +99,9 @@ const postMicroserviceImageSnapshotCreate = async function (microserviceUuid, us
 
   const microservice = await MicroserviceManager.findOneWithDependencies(where, {}, transaction);
 
+  if (!microservice) {
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, microserviceUuid));
+  }
   if (microservice.iofogUuid === null) {
     throw new Errors.ValidationError(ErrorMessages.IMAGE_SNAPSHOT_WITHOUT_FOG);
   }
@@ -122,6 +125,9 @@ const getMicroserviceImageSnapshot = async function (microserviceUuid, user, isC
       userId: user.id
     };
   const microservice = await MicroserviceManager.findOneWithDependencies(where, {}, transaction);
+  if (!microservice) {
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, microserviceUuid));
+  }
   if (microservice.iofogUuid === null) {
     throw new Errors.ValidationError(ErrorMessages.IMAGE_SNAPSHOT_WITHOUT_FOG);
   }
