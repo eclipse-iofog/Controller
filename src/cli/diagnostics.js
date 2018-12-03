@@ -128,7 +128,7 @@ const _executeCase = async function (diagnosticCommand, commandName, f, isUserRe
 const _changeMicroserviceStraceState = async function (obj) {
   logger.info(JSON.stringify(obj));
 
-  const enable = AppHelper.validateBooleanCliOptions(obj.disable, obj.enable);
+  const enable = AppHelper.validateBooleanCliOptions(obj.enable, obj.disable);
   await DiagnosticService.changeMicroserviceStraceState(obj.microserviceId, {enable: enable}, {}, true);
   const msg = enable ? 'Microservice strace has been enabled' : 'Microservice strace has been disabled';
   logger.info(msg);
