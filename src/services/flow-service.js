@@ -49,7 +49,7 @@ const _deleteFlow = async function (flowId, user, isCLI, transaction) {
 
   await _updateChangeTrackingsByFlowId(flowId, transaction)
 
-  const affectedRows = await FlowManager.delete(where, transaction);
+  await FlowManager.delete(where, transaction);
 };
 
 async function _updateChangeTrackingsByFlowId(flowId, transaction) {
