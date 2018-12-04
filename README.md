@@ -173,7 +173,7 @@ $ iofog-controller tunnel <*command*> <*options*>
  -u, --username string   (Tunnel username) <br>
  -p, --password string   (Tunnel password) <br>
  -s, --host string       (Tunnel host address) <br>
- -k, --rsa-key string    (Tunnel RSA key) <br>
+ -k, --rsa-key string    (Path to tunnel RSA key) <br>
  -o, --port number       (Tunnel port) <br>
  -f, --iofogUuid string  (Fog UUID) <br>
 
