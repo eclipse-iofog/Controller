@@ -59,7 +59,12 @@ async function checkPortAvailability(port) {
 }
 
 const findAvailablePort = async function (hostname) {
-  let portBounds = Config.get("Tunnel:PortRange").split("-").map(i => parseInt(i));
+  let portRange = Config.get("Tunnel:PortRange");
+  if (!portRange) {
+    logger.warn('Port range was\'n specified in config. Default range (2000-10000) will be used');
+    portRange = '2000-10000';
+  }
+  let portBounds = portRange.split("-").map(i => parseInt(i));
   return await portscanner.findAPortNotInUse(portBounds[0], portBounds[1], hostname);
 }
 
