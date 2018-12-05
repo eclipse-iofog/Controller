@@ -74,3 +74,14 @@ try {
 } catch (e) {
   console.log('no previous version')
 }
+
+//init db
+const options = {
+  env: {
+    'NODE_ENV': 'production',
+    "PATH": process.env.PATH
+  },
+  stdio: [process.stdin, process.stdout, process.stderr]
+};
+
+execSync('node ./src/main.js init', options);
