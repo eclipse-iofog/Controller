@@ -4367,7 +4367,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"name\": \"name2\",\n  \"config\": \"string\",\n  \"catalogItemId\": {{item-id}},\n  \"flowId\": {{flow-id}},\n  \"iofogUuid\": \"{{node-id}}\",\n  \"rootHostAccess\": true,\n  \"logLimit\": 0,\n  \"volumeMappings\": [\n    {\n      \"hostDestination\": \"/var/dest\",\n      \"containerDestination\": \"/var/dest\",\n      \"accessMode\": \"rw\"\n    }\n  ],\n  \"ports\": [\n    {\n      \"internal\": 1,\n      \"external\": 1,\n      \"publicMode\": false\n    }\n  ],\n  \"routes\": [\n  ]\n}\n"
+							"raw": "{\n  \"name\": \"name2\",\n  \"config\": \"string\",\n  \"catalogItemId\": {{item-id}},\n  \"flowId\": {{flow-id}},\n  \"iofogUuid\": \"{{node-id}}\",\n  \"rootHostAccess\": true,\n  \"logSize\": 0,\n  \"volumeMappings\": [\n    {\n      \"hostDestination\": \"/var/dest\",\n      \"containerDestination\": \"/var/dest\",\n      \"accessMode\": \"rw\"\n    }\n  ],\n  \"ports\": [\n    {\n      \"internal\": 1,\n      \"external\": 1,\n      \"publicMode\": false\n    }\n  ],\n  \"routes\": [\n  ]\n}\n"
 						},
 						"url": {
 							"raw": "{{host}}/api/v3/microservices",
