@@ -46,7 +46,7 @@ class Connector extends BaseCLIHandler {
       },
       {
         name: 'cert', alias: 'c', type: String,
-        description: 'Certificate',
+        description: 'Path to certificate file',
         group: [constants.CMD_ADD, constants.CMD_UPDATE]
       },
       {

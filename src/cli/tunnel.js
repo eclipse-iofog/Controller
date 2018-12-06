@@ -50,7 +50,7 @@ class Tunnel extends BaseCLIHandler {
       },
       {
         name: 'rsa-key', alias: 'k', type: String,
-        description: 'Tunnel RSA key',
+        description: 'Path to tunnel RSA key',
         group: [constants.CMD_UPDATE]
       },
       {

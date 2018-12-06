@@ -366,7 +366,7 @@ const _removePortMapping = async function (obj, user) {
     await MicroserviceService.deletePortMapping(obj.microserviceId, internalPort, user, true);
     logger.info('Port mapping has been deleted successfully.');
   } catch (e) {
-    logger.error(ErrorMessages.CLI.INVALID_INTERNAL_PORT);
+    logger.error(e.message);
   }
 };
 

@@ -11,14 +11,15 @@
  *  
  */
 
-
 const os = require('os');
 const execSync = require('child_process').execSync;
 const fs = require('fs');
+const semver = require('semver');
+const currentVersion = require('../package').version;
 
 const rootDir = `${__dirname}/../`;
-let installation_variables_file_name = 'iofogcontroller_install_variables';
-let installation_variables_file;
+let installationVariablesFileName = 'iofogcontroller_install_variables';
+let installationVariablesFile;
 let tempDir;
 
 if (os.type() === 'Linux') {
@@ -31,17 +32,56 @@ if (os.type() === 'Linux') {
   throw new Error("Unsupported OS found: " + os.type());
 }
 
-installation_variables_file = tempDir + installation_variables_file_name;
-
+installationVariablesFile = tempDir + installationVariablesFileName;
 
 const devDbBackup = `${tempDir}dev_database.sqlite`;
+const devDb = `${rootDir}/src/sequelize/dev_database.sqlite`;
 if (fs.existsSync(devDbBackup)) {
-  fs.renameSync(devDbBackup, `${rootDir}/src/sequelize/dev_database.sqlite`)
+  fs.renameSync(devDbBackup, devDb);
 }
 
 const prodDbBackup = `${tempDir}prod_database.sqlite`;
+const prodDb = `${rootDir}/src/sequelize/prod_database.sqlite`;
 if (fs.existsSync(prodDbBackup)) {
-  fs.renameSync(prodDbBackup, `${rootDir}/src/sequelize/prod_database.sqlite`)
+  fs.renameSync(prodDbBackup, prodDb);
 }
 
-//TODO: add version migrations
+try {
+  const instalationVarsStr = fs.readFileSync(installationVariablesFile);
+  const instalationVars = JSON.parse(instalationVarsStr);
+  const prevVersion = instalationVars.prevVer;
+
+  console.log(`previous version - ${prevVersion}`);
+  console.log(`new version - ${currentVersion}`);
+
+  if (semver.satisfies(prevVersion, '<=1.0.0')) {
+    console.log('upgrading from version <=1.0.0 :');
+    console.log('    inserting seeds meta info in db');
+    const options = {
+      env: {
+        "PATH": process.env.PATH
+      },
+      stdio: [process.stdin, process.stdout, process.stderr]
+    };
+
+    execSync(`sqlite3 ${prodDb} "insert into SequelizeMeta (name) values ('20180928110125-insert-registry.js');"`, options);
+    execSync(`sqlite3 ${prodDb} "insert into SequelizeMeta (name) values ('20180928111532-insert-catalog-item.js');"`, options);
+    execSync(`sqlite3 ${prodDb} "insert into SequelizeMeta (name) values ('20180928112152-insert-iofog-type.js');"`, options);
+    execSync(`sqlite3 ${prodDb} "insert into SequelizeMeta (name) values ('20180928121334-insert-catalog-item-image.js');"`, options);
+  }
+
+  fs.unlinkSync(installationVariablesFile);
+} catch (e) {
+  console.log('no previous version')
+}
+
+//init db
+const options = {
+  env: {
+    'NODE_ENV': 'production',
+    "PATH": process.env.PATH
+  },
+  stdio: [process.stdin, process.stdout, process.stderr]
+};
+
+execSync('node ./src/main.js init', options);

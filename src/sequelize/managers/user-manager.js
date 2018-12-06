@@ -29,7 +29,7 @@ class UserManager extends BaseManager {
   findByAccessToken(token, transaction) {
     AppHelper.checkTransaction(transaction);
 
-    return User.find({
+    return User.findOne({
       include: [{
         model: AccessToken,
         as: 'accessToken',
@@ -43,7 +43,7 @@ class UserManager extends BaseManager {
   }
 
   findByEmail(email) {
-    return User.find({
+    return User.findOne({
       where: {
         email: email
       }
@@ -52,7 +52,7 @@ class UserManager extends BaseManager {
 
   // no transaction required here, used by auth decorator
   checkAuthentication(token) {
-    return User.find({
+    return User.findOne({
       include: [{
         model: AccessToken,
         as: 'accessToken',
@@ -65,7 +65,7 @@ class UserManager extends BaseManager {
 
   // no transaction required here, used by cli decorator
   findById(id) {
-    return User.find({where: {id: id}});
+    return User.findOne({where: {id: id}});
   }
 
   updateDetails(user, updateObject, transaction) {
@@ -92,7 +92,7 @@ class UserManager extends BaseManager {
 
 // no transaction required here, used by cli decorator
   findById(id) {
-    return User.find({where: {id: id}});
+    return User.findOne({where: {id: id}});
   }
 }
 

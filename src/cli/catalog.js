@@ -263,17 +263,25 @@ const _createCatalogItemObject = function (catalogItem) {
     picture: catalogItem.picture,
     isPublic: AppHelper.validateBooleanCliOptions(catalogItem.public, catalogItem.private),
     registryId: catalogItem.registryId,
-    images: [
+    images: []
+  };
+
+  if (catalogItem.x86Image) {
+    catalogItemObj.images.push(
       {
         containerImage: catalogItem.x86Image,
         fogTypeId: 1
-      },
+      }
+    );
+  }
+  if (catalogItem.armImage) {
+    catalogItemObj.images.push(
       {
         containerImage: catalogItem.armImage,
         fogTypeId: 2
       }
-    ]
-  };
+    );
+  }
 
   if (catalogItem.inputType) {
     catalogItemObj.inputType = {

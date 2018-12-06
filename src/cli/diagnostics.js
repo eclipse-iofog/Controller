@@ -43,7 +43,7 @@ class Diagnostics extends BaseCLIHandler {
           constants.CMD_IMAGE_SNAPSHOT_CREATE, constants.CMD_IMAGE_SNAPSHOT_GET]
       },
       {
-        name: 'format', alias: 'f', type: String, description: 'Format of strace data to receive',
+        name: 'format', alias: 'f', type: String, description: 'Format of strace data to receive. Possible values: string, file',
         group: [constants.CMD_STRACE_INFO]
       },
       {
@@ -128,7 +128,7 @@ const _executeCase = async function (diagnosticCommand, commandName, f, isUserRe
 const _changeMicroserviceStraceState = async function (obj) {
   logger.info(JSON.stringify(obj));
 
-  const enable = AppHelper.validateBooleanCliOptions(obj.disable, obj.enable);
+  const enable = AppHelper.validateBooleanCliOptions(obj.enable, obj.disable);
   await DiagnosticService.changeMicroserviceStraceState(obj.microserviceId, {enable: enable}, {}, true);
   const msg = enable ? 'Microservice strace has been enabled' : 'Microservice strace has been disabled';
   logger.info(msg);

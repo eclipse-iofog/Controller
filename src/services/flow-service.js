@@ -49,16 +49,14 @@ const _deleteFlow = async function (flowId, user, isCLI, transaction) {
 
   await _updateChangeTrackingsByFlowId(flowId, transaction)
 
-  const affectedRows = await FlowManager.delete(where, transaction);
-
-  if (affectedRows === 0) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_ID, flowId));
-  }
-
+  await FlowManager.delete(where, transaction);
 };
 
 async function _updateChangeTrackingsByFlowId(flowId, transaction) {
   const flowWithMicroservices = await FlowManager.findFlowMicroservices({id: flowId}, transaction);
+  if (!flowWithMicroservices) {
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_ID, flowId));
+  }
   const onlyUnique = (value, index, self) => self.indexOf(value) === index;
   const iofogUuids = flowWithMicroservices.microservices
     .map(obj => obj.iofogUuid)

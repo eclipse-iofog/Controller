@@ -27,6 +27,7 @@ const catalogItemCreate = {
     "configExample": {"type": "string"},
     "images": {
       "type": "array",
+      "minItems": 1,
       "maxItems": 2,
       "items": {"$ref": "/image"}
     },

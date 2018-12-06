@@ -855,8 +855,11 @@ async function _deleteMicroserviceWithRoutes(microserviceUuid, transaction) {
   const routes = await _getLogicalRoutesByMicroservice(microserviceUuid, transaction);
   for (let route of routes) {
     //TODO: simplify after splitting all endpoints service functions to validation and request processing part
+    const userId = (await MicroserviceManager
+      .findOne({uuid: route.sourceMicroserviceUuid}, transaction))
+      .userId;
     const user = {
-      id: route.sourceMicroserviceUuid.userId
+      id: userId
     };
     await _deleteRoute(route.sourceMicroserviceUuid, route.destMicroserviceUuid, user, false, transaction);
   }

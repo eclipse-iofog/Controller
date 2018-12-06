@@ -99,7 +99,7 @@ class IOFog extends BaseCLIHandler {
       },
       {
         name: 'disk-directory', alias: 'T', type: String,
-        description: 'ioFog node disk directory',
+        description: 'Path to ioFog node disk directory',
         group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
@@ -119,7 +119,7 @@ class IOFog extends BaseCLIHandler {
       },
       {
         name: 'log-directory', alias: 'Y', type: String,
-        description: 'ioFog node log files directory',
+        description: 'Path to ioFog node log files directory',
         group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
