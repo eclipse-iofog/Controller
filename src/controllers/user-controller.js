@@ -24,11 +24,17 @@ const userSignupEndPoint = async function (req) {
 
   await Validator.validate(user, Validator.schemas.signUp);
 
-  user.password = AppHelper.encryptText(user.password, user.email);
+  const encryptedPassword = AppHelper.encryptText(user.password, user.email);
+  const newUser = {
+    firstName: user.firstName,
+    lastName: user.lastName,
+    email: user.email,
+    password: encryptedPassword
+  };
 
-  logger.info("Parameters:" + JSON.stringify(user));
+  logger.info("Parameters:" + JSON.stringify(newUser));
 
-  return await UserService.signUp(user, false);
+  return await UserService.signUp(newUser, false);
 };
 
 const userLoginEndPoint = async function (req) {
@@ -36,11 +42,15 @@ const userLoginEndPoint = async function (req) {
 
   await Validator.validate(user, Validator.schemas.login);
 
-  user.password = AppHelper.encryptText(user.password, user.email);
+  const encryptedPassword = AppHelper.encryptText(user.password, user.email);
+  const credentials = {
+    email: user.email,
+    password: encryptedPassword
+  };
 
-  logger.info("Parameters:" + JSON.stringify(user));
+  logger.info("Parameters:" + JSON.stringify(credentials));
 
-  return await UserService.login(user, false);
+  return await UserService.login(credentials, false);
 };
 
 const resendActivationEndPoint = async function (req) {
@@ -86,12 +96,17 @@ const updateUserPasswordEndPoint = async function (req, user) {
 
   await Validator.validate(passwordUpdates, Validator.schemas.updatePassword);
 
-  passwordUpdates.oldPassword = AppHelper.encryptText(passwordUpdates.oldPassword, user.email);
-  passwordUpdates.newPassword = AppHelper.encryptText(passwordUpdates.newPassword, user.email);
+  const encryptedOldPassword = AppHelper.encryptText(passwordUpdates.oldPassword, user.email);
+  const encryptedNewPassword = AppHelper.encryptText(passwordUpdates.newPassword, user.email);
 
-  logger.info("Parameters:" + JSON.stringify(passwordUpdates));
+  const encryptedPasswordUpdates = {
+    oldPassword: encryptedOldPassword,
+    newPassword: encryptedNewPassword
+  };
 
-  return await UserService.updateUserPassword(passwordUpdates, user, false);
+  logger.info("Parameters:" + JSON.stringify(encryptedPasswordUpdates));
+
+  return await UserService.updateUserPassword(encryptedPasswordUpdates, user, false);
 };
 
 const resetUserPasswordEndPoint = async function (req) {

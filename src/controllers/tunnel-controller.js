@@ -16,14 +16,14 @@ const AuthDecorator = require('../decorators/authorization-decorator');
 const TunnelService = require('../services/tunnel-service');
 const Errors = require('../helpers/errors');
 const ErrorMessages = require('../helpers/error-messages');
-const { isTest } = require('../helpers/app-helper');
 
 const manageTunnelEndPoint = async function (req, user) {
   logger.info("Parameters:" + JSON.stringify(req.body));
   const action = req.body.action;
   const tunnelData = {
     iofogUuid: req.params.id
-  }
+  };
+
   switch (action) {
     case 'open':
       await TunnelService.openTunnel(tunnelData, user, false);
