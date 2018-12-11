@@ -21,6 +21,7 @@ const CatalogItemInputTypeManager = require('../sequelize/managers/catalog-item-
 const CatalogItemOutputTypeManager = require('../sequelize/managers/catalog-item-output-type-manager');
 const Op = require('sequelize').Op;
 const validator = require('../schemas/index');
+const RegistryManager = require('../sequelize/managers/registry-manager');
 
 const createCatalogItem = async function (data, user, transaction) {
   await validator.validate(data, validator.schemas.catalogItemCreate);
@@ -43,6 +44,7 @@ const updateCatalogItem = async function (id, data, user, isCLI, transaction) {
     ? {id: id}
     : {id: id, userId: user.id};
 
+  data.id = id;
   await _updateCatalogItem(data, where, transaction);
   await _updateCatalogItemImages(data, transaction);
   await _updateCatalogItemIOTypes(data, where, transaction);
@@ -63,6 +65,13 @@ const _updateCatalogItem = async function (data, where, transaction) {
   };
 
   catalogItem = AppHelper.deleteUndefinedFields(catalogItem);
+  if (!catalogItem || AppHelper.isEmpty(catalogItem)) {
+    return
+  }
+  const registry = await RegistryManager.findOne({id: data.registryId}, transaction);
+  if (!registry) {
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_REGISTRY_ID, data.registryId));
+  }
 
   const item = await _checkIfItemExists(where, transaction);
   await _checkForDuplicateName(data.name, item, transaction);
@@ -74,13 +83,13 @@ const _updateCatalogItemImages = async function (data, transaction) {
     for (let image of data.images) {
       switch (image.fogTypeId) {
         case 1:
-          await CatalogItemImageManager.update({
+          await CatalogItemImageManager.updateOrCreate({
             catalogItemId: data.id,
             fogTypeId: 1
           }, image, transaction);
           break;
         case 2:
-          await CatalogItemImageManager.update({
+          await CatalogItemImageManager.updateOrCreate({
             catalogItemId: data.id,
             fogTypeId: 2
           }, image, transaction);
@@ -93,19 +102,21 @@ const _updateCatalogItemImages = async function (data, transaction) {
 const _updateCatalogItemIOTypes = async function (data, where, transaction) {
   if (data.inputType && data.inputType.length != 0) {
     let inputType = {
+      catalogItemId: data.id,
       infoType: data.inputType.infoType,
       infoFormat: data.inputType.infoFormat
     };
     inputType = AppHelper.deleteUndefinedFields(inputType);
-    await CatalogItemInputTypeManager.update({catalogItemId: data.id}, inputType, transaction);
+    await CatalogItemInputTypeManager.updateOrCreate({catalogItemId: data.id}, inputType, transaction);
   }
   if (data.outputType && data.outputType.length !== 0) {
     let outputType = {
+      catalogItemId: data.id,
       infoType: data.outputType.infoType,
       infoFormat: data.outputType.infoFormat
     };
     outputType = AppHelper.deleteUndefinedFields(outputType);
-    await CatalogItemOutputTypeManager.update({catalogItemId: data.id}, outputType, transaction);
+    await CatalogItemOutputTypeManager.updateOrCreate({catalogItemId: data.id}, outputType, transaction);
   }
 };
 
