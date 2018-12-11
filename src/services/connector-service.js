@@ -203,6 +203,10 @@ async function closePortOnConnector(connector, ports, transaction) {
       'Content-Length': Buffer.byteLength(data)
     }
   };
+  if (!connector.devMode && connector.cert && connector.isSelfSignedCert === true) {
+    const ca = fs.readFileSync(connector.cert);
+    options.ca = new Buffer(ca);
+  }
 
 
   await _makeRequest(connector, options, data)
