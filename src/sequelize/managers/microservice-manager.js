@@ -25,6 +25,7 @@ const User = models.User;
 const Routing = models.Routing;
 const Registry = models.Registry;
 const MicroserviceStatus = models.MicroserviceStatus;
+const Op = require('sequelize').Op;
 
 const microserviceExcludedFields = [
   'configLastUpdated',
@@ -135,18 +136,27 @@ class MicroserviceManager extends BaseManager {
               attributes: ['url']
             }
           ],
-          attributes: ['picture']
+          attributes: ['picture', 'category']
         },
         {
           model: Flow,
           as: 'flow',
-          required: true,
+          required: false,
           attributes: ['isActivated']
         }
       ],
       where: {
         iofogUuid: iofogUuid,
-        '$flow.is_activated$': true
+        [Op.or]:
+          [
+            {
+              '$flow.is_activated$': true
+            },
+            {
+              '$catalogItem.category$':  {[Op.eq]: 'SYSTEM'}
+            }
+          ]
+
       }
     }, {transaction: transaction})
   }
