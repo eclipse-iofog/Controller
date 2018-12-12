@@ -16,47 +16,47 @@ const AuthDecorator = require('../decorators/authorization-decorator');
 const FogService = require('../services/iofog-service');
 const qs = require('qs');
 
-async function _createFog(req, user) {
+async function createFogEndPoint(req, user) {
   logger.info("Parameters:" + JSON.stringify(req.body));
   const newFog = req.body;
   return await FogService.createFog(newFog, user, false)
 }
 
-async function _updateFog(req, user) {
+async function updateFogEndPoint(req, user) {
   logger.info("Parameters:" + JSON.stringify(req.body));
   const updateFog = req.body;
   updateFog.uuid = req.params.uuid;
   return await FogService.updateFog(updateFog, user, false)
 }
 
-async function _deleteFog(req, user) {
+async function deleteFogEndPoint(req, user) {
   logger.info("Parameters:" + JSON.stringify(req.body));
   const deleteFog = {};
   deleteFog.uuid = req.params.uuid;
   return await FogService.deleteFog(deleteFog, user, false)
 }
 
-async function _getFog(req, user) {
+async function getFogEndPoint(req, user) {
   logger.info("Parameters:" + JSON.stringify(req.body));
   const getFog = {};
   getFog.uuid = req.params.uuid;
   return await FogService.getFogWithTransaction(getFog, user, false)
 }
 
-async function _getFogList(req, user) {
+async function getFogListEndPoint(req, user) {
   logger.info("Parameters:" + JSON.stringify(req.query));
-  const query = qs.parse(req.query)
+  const query = qs.parse(req.query);
   return await FogService.getFogList(query.filters, user, false)
 }
 
-async function _generateProvisioningKey(req, user) {
+async function generateProvisionKeyEndPoint(req, user) {
   logger.info("Parameters:" + JSON.stringify(req.body));
   const fog = {};
   fog.uuid = req.params.uuid;
   return await FogService.generateProvisioningKey(fog, user, false)
 }
 
-async function _setFogVersionCommand(req, user) {
+async function setFogVersionCommandEndPoint(req, user) {
   logger.info("Parameters:" + JSON.stringify(req.body));
   const fogVersionCommand = {};
   fogVersionCommand.uuid = req.params.uuid;
@@ -64,14 +64,14 @@ async function _setFogVersionCommand(req, user) {
   return await FogService.setFogVersionCommand(fogVersionCommand, user, false)
 }
 
-async function _setFogRebootCommand(req, user) {
+async function setFogRebootCommandEndPoint(req, user) {
   logger.info("Parameters:" + JSON.stringify(req.body));
   const fog = {};
   fog.uuid = req.params.uuid;
   return await FogService.setFogRebootCommand(fog, user, false)
 }
 
-async function _getHalHardwareInfo(req, user) {
+async function getHalHardwareInfoEndPoint(req, user) {
   const uuidObj = {
     uuid: req.params.uuid
   };
@@ -82,7 +82,7 @@ async function _getHalHardwareInfo(req, user) {
 }
 
 
-async function _getHalUsbInfo(req, user) {
+async function getHalUsbInfoEndPoint(req, user) {
   const uuidObj = {
     uuid: req.params.uuid
   };
@@ -93,14 +93,14 @@ async function _getHalUsbInfo(req, user) {
 }
 
 module.exports = {
-  createFog: AuthDecorator.checkAuthToken(_createFog),
-  updateFog: AuthDecorator.checkAuthToken(_updateFog),
-  deleteFog: AuthDecorator.checkAuthToken(_deleteFog),
-  getFog: AuthDecorator.checkAuthToken(_getFog),
-  getFogList: AuthDecorator.checkAuthToken(_getFogList),
-  generateProvisioningKey: AuthDecorator.checkAuthToken(_generateProvisioningKey),
-  setFogVersionCommand: AuthDecorator.checkAuthToken(_setFogVersionCommand),
-  setFogRebootCommand: AuthDecorator.checkAuthToken(_setFogRebootCommand),
-  getHalHardwareInfo: AuthDecorator.checkAuthToken(_getHalHardwareInfo),
-  getHalUsbInfo: AuthDecorator.checkAuthToken(_getHalUsbInfo)
+  createFogEndPoint: AuthDecorator.checkAuthToken(createFogEndPoint),
+  updateFogEndPoint: AuthDecorator.checkAuthToken(updateFogEndPoint),
+  deleteFogEndPoint: AuthDecorator.checkAuthToken(deleteFogEndPoint),
+  getFogEndPoint: AuthDecorator.checkAuthToken(getFogEndPoint),
+  getFogListEndPoint: AuthDecorator.checkAuthToken(getFogListEndPoint),
+  generateProvisioningKeyEndPoint: AuthDecorator.checkAuthToken(generateProvisionKeyEndPoint),
+  setFogVersionCommandEndPoint: AuthDecorator.checkAuthToken(setFogVersionCommandEndPoint),
+  setFogRebootCommandEndPoint: AuthDecorator.checkAuthToken(setFogRebootCommandEndPoint),
+  getHalHardwareInfoEndPoint: AuthDecorator.checkAuthToken(getHalHardwareInfoEndPoint),
+  getHalUsbInfoEndPoint: AuthDecorator.checkAuthToken(getHalUsbInfoEndPoint)
 };
