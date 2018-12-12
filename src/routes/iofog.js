@@ -32,7 +32,7 @@ module.exports = [
         }
       ];
 
-      const getFogList = ResponseDecorator.handleErrors(FogController.getFogList, successCode, errCodes);
+      const getFogList = ResponseDecorator.handleErrors(FogController.getFogListEndPoint, successCode, errCodes);
       const responseObject = await getFogList(req);
 
       res
@@ -56,7 +56,7 @@ module.exports = [
         }
       ];
 
-      const createFog = ResponseDecorator.handleErrors(FogController.createFog, successCode, errCodes);
+      const createFog = ResponseDecorator.handleErrors(FogController.createFogEndPoint, successCode, errCodes);
       const responseObject = await createFog(req);
 
       res
@@ -84,7 +84,7 @@ module.exports = [
         }
       ];
 
-      const updateFog = ResponseDecorator.handleErrors(FogController.updateFog, successCode, errCodes);
+      const updateFog = ResponseDecorator.handleErrors(FogController.updateFogEndPoint, successCode, errCodes);
       const responseObject = await updateFog(req);
 
       res
@@ -108,7 +108,7 @@ module.exports = [
         }
       ];
 
-      const deleteFog = ResponseDecorator.handleErrors(FogController.deleteFog, successCode, errCodes);
+      const deleteFog = ResponseDecorator.handleErrors(FogController.deleteFogEndPoint, successCode, errCodes);
       const responseObject = await deleteFog(req);
 
       res
@@ -132,7 +132,7 @@ module.exports = [
         }
       ];
 
-      const getFog = ResponseDecorator.handleErrors(FogController.getFog, successCode, errCodes);
+      const getFog = ResponseDecorator.handleErrors(FogController.getFogEndPoint, successCode, errCodes);
       const responseObject = await getFog(req);
 
       res
@@ -156,7 +156,7 @@ module.exports = [
         }
       ];
 
-      const generateFogProvisioningKey = ResponseDecorator.handleErrors(FogController.generateProvisioningKey, successCode, errCodes);
+      const generateFogProvisioningKey = ResponseDecorator.handleErrors(FogController.generateProvisioningKeyEndPoint, successCode, errCodes);
       const responseObject = await generateFogProvisioningKey(req);
 
       res
@@ -184,7 +184,7 @@ module.exports = [
         }
       ];
 
-      const setFogVersionCommand = ResponseDecorator.handleErrors(FogController.setFogVersionCommand, successCode, errCodes);
+      const setFogVersionCommand = ResponseDecorator.handleErrors(FogController.setFogVersionCommandEndPoint, successCode, errCodes);
       const responseObject = await setFogVersionCommand(req);
 
       res
@@ -213,7 +213,7 @@ module.exports = [
       ];
 
 
-      const setFogRebootCommand = ResponseDecorator.handleErrors(FogController.setFogRebootCommand, successCode, errCodes);
+      const setFogRebootCommand = ResponseDecorator.handleErrors(FogController.setFogRebootCommandEndPoint, successCode, errCodes);
       const responseObject = await setFogRebootCommand(req);
 
       res
@@ -237,7 +237,7 @@ module.exports = [
         }
       ];
 
-      const getHalHardwareInfo = ResponseDecorator.handleErrors(FogController.getHalHardwareInfo, successCode, errCodes);
+      const getHalHardwareInfo = ResponseDecorator.handleErrors(FogController.getHalHardwareInfoEndPoint, successCode, errCodes);
       const responseObject = await getHalHardwareInfo(req);
 
       res
@@ -261,7 +261,7 @@ module.exports = [
         }
       ];
 
-      const getHalUsbInfo = ResponseDecorator.handleErrors(FogController.getHalUsbInfo, successCode, errCodes);
+      const getHalUsbInfo = ResponseDecorator.handleErrors(FogController.getHalUsbInfoEndPoint, successCode, errCodes);
       const responseObject = await getHalUsbInfo(req);
 
       res
