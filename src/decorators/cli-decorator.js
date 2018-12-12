@@ -28,12 +28,8 @@ function prepareUserById(f) {
     const obj = fArgs[0]
     const userId = obj.userId
 
-    logger.info('getting user by id: ' + userId)
-
     const user = await UserManager.findById(userId)
-
     if (!user) {
-      logger.error('userId ' + userId + ' incorrect')
       throw new Errors.AuthenticationError('user id does not exist')
     }
 

@@ -718,24 +718,27 @@ async function _deleteSimplePortMapping(microservice, msPorts, user, transaction
 }
 
 async function _deletePortMappingOverConnector(microservice, msPorts, user, transaction) {
-  const pubModeData = await MicroservicePublicModeManager.findOne({microservicePortId: msPorts.id}, transaction)
+  const pubModeData = await MicroservicePublicModeManager.findOne({microservicePortId: msPorts.id}, transaction);
 
-  const ports = await ConnectorPortManager.findOne({id: pubModeData.connectorPortId}, transaction)
-  const connector = await ConnectorManager.findOne({id: ports.connectorId}, transaction)
+  const ports = await ConnectorPortManager.findOne({id: pubModeData.connectorPortId}, transaction);
+  const connector = await ConnectorManager.findOne({id: ports.connectorId}, transaction);
 
-  await ConnectorService.closePortOnConnector(connector, ports, transaction)
-
-  await MicroservicePublicModeManager.delete({id: pubModeData.id}, transaction)
-  await MicroservicePortManager.delete({id: msPorts.id}, transaction)
-  await ConnectorPortManager.delete({id: ports.id}, transaction)
-  await MicroserviceManager.delete({uuid: pubModeData.networkMicroserviceUuid}, transaction)
+  try {
+    await ConnectorService.closePortOnConnector(connector, ports, transaction);
+  } catch (e) {
+    logger.warn(`Can't close ports pair ${ports.mappingId} on connector ${connector.publicIp}. Delete manually if necessary`);
+  }
+  await MicroservicePublicModeManager.delete({id: pubModeData.id}, transaction);
+  await MicroservicePortManager.delete({id: msPorts.id}, transaction);
+  await ConnectorPortManager.delete({id: ports.id}, transaction);
+  await MicroserviceManager.delete({uuid: pubModeData.networkMicroserviceUuid}, transaction);
 
   const updateRebuildMs = {
     rebuild: true
-  }
-  await MicroserviceManager.update({uuid: microservice.uuid}, updateRebuildMs, transaction)
+  };
+  await MicroserviceManager.update({uuid: microservice.uuid}, updateRebuildMs, transaction);
 
-  await ChangeTrackingService.update(pubModeData.iofogUuid, ChangeTrackingService.events.microserviceFull, transaction)
+  await ChangeTrackingService.update(pubModeData.iofogUuid, ChangeTrackingService.events.microserviceFull, transaction);
 }
 
 async function _validatePorts(internal, external) {
