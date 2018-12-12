@@ -70,5 +70,5 @@ module.exports = {
     INVALID_INTERNAL_PORT: 'Internal parsing error. Please provide valid internal port.',
     INVALID_ROUTE: 'Route parsing error. Please provide valid route.'
   },
-  CONNECTOR_IS_USING: 'You can\'t delete connector, because it is used for routing now.'
+  CONNECTOR_IS_IN_USE: 'You can\'t delete connector, because it is used for routing now.'
 };
