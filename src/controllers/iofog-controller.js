@@ -30,16 +30,17 @@ async function updateFogEndPoint(req, user) {
 }
 
 async function deleteFogEndPoint(req, user) {
-  logger.info("Parameters:" + JSON.stringify(req.body));
-  const deleteFog = {};
-  deleteFog.uuid = req.params.uuid;
+  const deleteFog = {
+    uuid: req.params.uuid
+  };
   return await FogService.deleteFog(deleteFog, user, false)
 }
 
 async function getFogEndPoint(req, user) {
-  logger.info("Parameters:" + JSON.stringify(req.body));
-  const getFog = {};
-  getFog.uuid = req.params.uuid;
+  const getFog = {
+    uuid: req.params.uuid
+  };
+
   return await FogService.getFogWithTransaction(getFog, user, false)
 }
 
@@ -50,24 +51,27 @@ async function getFogListEndPoint(req, user) {
 }
 
 async function generateProvisionKeyEndPoint(req, user) {
-  logger.info("Parameters:" + JSON.stringify(req.body));
-  const fog = {};
-  fog.uuid = req.params.uuid;
+  const fog = {
+    uuid:  req.params.uuid
+  };
+
   return await FogService.generateProvisioningKey(fog, user, false)
 }
 
 async function setFogVersionCommandEndPoint(req, user) {
-  logger.info("Parameters:" + JSON.stringify(req.body));
-  const fogVersionCommand = {};
-  fogVersionCommand.uuid = req.params.uuid;
-  fogVersionCommand.versionCommand = req.params.versionCommand;
+  const fogVersionCommand = {
+    uuid: req.params.uuid,
+    versionCommand: req.params.versionCommand
+  };
+
   return await FogService.setFogVersionCommand(fogVersionCommand, user, false)
 }
 
 async function setFogRebootCommandEndPoint(req, user) {
-  logger.info("Parameters:" + JSON.stringify(req.body));
-  const fog = {};
-  fog.uuid = req.params.uuid;
+  const fog = {
+    uuid: req.params.uuid
+  };
+
   return await FogService.setFogRebootCommand(fog, user, false)
 }
 
@@ -80,7 +84,6 @@ async function getHalHardwareInfoEndPoint(req, user) {
 
   return await FogService.getHalHardwareInfo(uuidObj, user, false);
 }
-
 
 async function getHalUsbInfoEndPoint(req, user) {
   const uuidObj = {
