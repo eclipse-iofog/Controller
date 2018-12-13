@@ -14,13 +14,12 @@ const constants = require('../helpers/constants');
 const DiagnosticController = require('../controllers/diagnostic-controller');
 const ResponseDecorator = require('../decorators/response-decorator');
 const Errors = require('../helpers/errors');
-const ErrorMessages = require('../helpers/error-messages');
 const fs = require('fs');
 
 module.exports = [
   {
     method: 'post',
-    path: '/api/v3/microservices/:id/image-snapshot',
+    path: '/api/v3/microservices/:uuid/image-snapshot',
     middleware: async (req, res) => {
 
       const successCode = constants.HTTP_CODE_CREATED;
@@ -49,7 +48,7 @@ module.exports = [
   },
   {
     method: 'get',
-    path: '/api/v3/microservices/:id/image-snapshot',
+    path: '/api/v3/microservices/:uuid/image-snapshot',
     middleware: async (req, res) => {
       const successCode = constants.HTTP_CODE_SUCCESS;
       const errorCodes = [
@@ -85,7 +84,7 @@ module.exports = [
   },
   {
     method: 'patch',
-    path: '/api/v3/microservices/:id/strace',
+    path: '/api/v3/microservices/:uuid/strace',
     middleware: async (req, res) => {
 
       const successCode = constants.HTTP_CODE_NO_CONTENT;
@@ -118,7 +117,7 @@ module.exports = [
   },
   {
     method: 'get',
-    path: '/api/v3/microservices/:id/strace',
+    path: '/api/v3/microservices/:uuid/strace',
     middleware: async (req, res) => {
 
       const successCode = constants.HTTP_CODE_SUCCESS;
@@ -147,7 +146,7 @@ module.exports = [
   },
   {
     method: 'put',
-    path: '/api/v3/microservices/:id/strace',
+    path: '/api/v3/microservices/:uuid/strace',
     middleware: async (req, res) => {
       const successCode = constants.HTTP_CODE_NO_CONTENT;
       const errorCodes = [
