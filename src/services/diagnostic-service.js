@@ -56,6 +56,10 @@ const getMicroserviceStraceData = async function (id, data, user, isCLI, transac
   }
 
   const straceData = await StraceDiagnosticManager.findOne({microserviceUuid: id}, transaction);
+  if (!straceData) {
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_STRACE, id))
+  }
+
   const dir = config.get('Diagnostics:DiagnosticDir') || 'diagnostics';
   const filePath = dir + '/' + id;
 

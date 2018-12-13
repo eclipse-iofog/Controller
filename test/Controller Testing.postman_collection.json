@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "507ec948-6bd6-48ad-9272-ab609e6ce965",
+		"_postman_id": "f26c12d6-fdb5-4606-841b-de7979fe33f5",
 		"name": "Controller Testing",
 		"description": "iofog-controller collection",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -8,7 +8,6 @@
 	"item": [
 		{
 			"name": "User",
-			"description": "User collection",
 			"item": [
 				{
 					"name": "Create user",
@@ -508,6 +507,7 @@
 					"response": []
 				}
 			],
+			"description": "User collection",
 			"event": [
 				{
 					"listen": "prerequest",
@@ -533,7 +533,6 @@
 		},
 		{
 			"name": "General",
-			"description": "General collection",
 			"item": [
 				{
 					"name": "Status",
@@ -653,6 +652,7 @@
 					"response": []
 				}
 			],
+			"description": "General collection",
 			"event": [
 				{
 					"listen": "prerequest",
@@ -678,7 +678,6 @@
 		},
 		{
 			"name": "Agent",
-			"description": "Agent collection",
 			"item": [
 				{
 					"name": "Create user",
@@ -1635,7 +1634,7 @@
 									"",
 									"var data = JSON.parse(responseBody);",
 									"",
-									"tests[\"Response error message is valid\"] = data.name === \"ValidationError\" && data.message === \"Uploaded image snapshot file not found\""
+									"tests[\"Response error message is valid\"] = data.name === \"ValidationError\" && data.message === \"Invalid content type\""
 								],
 								"type": "text/javascript"
 							}
@@ -1766,6 +1765,7 @@
 					"response": []
 				}
 			],
+			"description": "Agent collection",
 			"event": [
 				{
 					"listen": "prerequest",
@@ -1791,7 +1791,6 @@
 		},
 		{
 			"name": "Flow",
-			"description": "Flow collection",
 			"item": [
 				{
 					"name": "Create user",
@@ -2175,6 +2174,7 @@
 					"response": []
 				}
 			],
+			"description": "Flow collection",
 			"event": [
 				{
 					"listen": "prerequest",
@@ -2200,7 +2200,6 @@
 		},
 		{
 			"name": "Catalog",
-			"description": "Catalog collection",
 			"item": [
 				{
 					"name": "Create user",
@@ -2593,6 +2592,7 @@
 					"response": []
 				}
 			],
+			"description": "Catalog collection",
 			"event": [
 				{
 					"listen": "prerequest",
@@ -2618,7 +2618,6 @@
 		},
 		{
 			"name": "Tunnel",
-			"description": "Tunnel collection",
 			"item": [
 				{
 					"name": "Create user",
@@ -2959,6 +2958,7 @@
 					"response": []
 				}
 			],
+			"description": "Tunnel collection",
 			"event": [
 				{
 					"listen": "prerequest",
@@ -2984,7 +2984,6 @@
 		},
 		{
 			"name": "Microservices",
-			"description": "Microservices collection",
 			"item": [
 				{
 					"name": "Create user",
@@ -3759,7 +3758,10 @@
 								"value": "{{user-token}}"
 							}
 						],
-						"body": {},
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
 						"url": {
 							"raw": "{{host}}/api/v3/microservices/{{ms-id}}/volume-mapping",
 							"host": [
@@ -4056,6 +4058,7 @@
 					"response": []
 				}
 			],
+			"description": "Microservices collection",
 			"event": [
 				{
 					"listen": "prerequest",
@@ -4081,7 +4084,6 @@
 		},
 		{
 			"name": "Diagnostics",
-			"description": "Diagnostics collection",
 			"item": [
 				{
 					"name": "Create user",
@@ -4877,6 +4879,7 @@
 					"response": []
 				}
 			],
+			"description": "Diagnostics collection",
 			"event": [
 				{
 					"listen": "prerequest",
@@ -4902,7 +4905,6 @@
 		},
 		{
 			"name": "ioFog",
-			"description": "ioFog collection",
 			"item": [
 				{
 					"name": "Create user",
@@ -5606,6 +5608,7 @@
 					"response": []
 				}
 			],
+			"description": "ioFog collection",
 			"event": [
 				{
 					"listen": "prerequest",
@@ -5631,7 +5634,6 @@
 		},
 		{
 			"name": "Registries",
-			"description": "Registries collection",
 			"item": [
 				{
 					"name": "Create user",
@@ -5966,6 +5968,7 @@
 					"response": []
 				}
 			],
+			"description": "Registries collection",
 			"event": [
 				{
 					"listen": "prerequest",

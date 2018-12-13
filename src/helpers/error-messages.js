@@ -23,6 +23,7 @@ module.exports = {
   INVALID_FOG_NODE_UUID: 'Invalid ioFog UUID {}',
   INVALID_USER_EMAIL: 'Invalid user email',
   INVALID_MICROSERVICE_UUID: "Invalid microservice UUID '{}'",
+  INVALID_MICROSERVICE_STRACE: "Strace data for this microservice not found",
   INVALID_VOLUME_MAPPING_UUID: "Invalid volume mapping id '{}'",
   ACTIVATION_CODE_NOT_FOUND: 'Activation code not found',
   INVALID_OLD_PASSWORD: 'Old password is incorrect',
