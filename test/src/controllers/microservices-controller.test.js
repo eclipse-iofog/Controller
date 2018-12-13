@@ -322,7 +322,7 @@ describe('Microservices Controller', () => {
     })
   });
 
-  describe('deleteMicroserviceRouteEndPoint.()', () => {
+  describe('deleteMicroserviceRouteEndPoint()', () => {
     def('user', () => 'user!');
     def('uuid', () => 'testUuid');
     def('receiverUuid', () => 'testReceiverUuid');
@@ -452,7 +452,7 @@ describe('Microservices Controller', () => {
     })
   });
 
-  describe('getMicroservicePortMappingListEndPoint.()', () => {
+  describe('getMicroservicePortMappingListEndPoint()', () => {
     def('user', () => 'user!');
     def('uuid', () => 'testUuid');
 
@@ -490,7 +490,7 @@ describe('Microservices Controller', () => {
     })
   });
 
-  describe('createMicroserviceVolumeMappingEndPoint.()', () => {
+  describe('createMicroserviceVolumeMappingEndPoint()', () => {
     def('user', () => 'user!');
     def('uuid', () => 'testUuid');
 
@@ -541,7 +541,7 @@ describe('Microservices Controller', () => {
     })
   });
 
-  describe('listMicroserviceVolumeMappingsEndPoint.()', () => {
+  describe('listMicroserviceVolumeMappingsEndPoint()', () => {
     def('user', () => 'user!');
     def('uuid', () => 'testUuid');
 
@@ -579,7 +579,7 @@ describe('Microservices Controller', () => {
     })
   });
 
-  describe('deleteMicroserviceVolumeMappingEndPoint.()', () => {
+  describe('deleteMicroserviceVolumeMappingEndPoint()', () => {
     def('user', () => 'user!');
     def('uuid', () => 'testUuid');
     def('id', () => 35);
