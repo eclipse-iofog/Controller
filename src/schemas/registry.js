@@ -19,7 +19,10 @@ const registryCreate = {
     "isPublic": {"type": "boolean"},
     "username": {"type": "string", "minLength": 1},
     "password": {"type": "string"},
-    "email": {"type": "string"},
+    "email": {
+      "type": "string",
+      "pattern": "^(([^<>()\\[\\]\\\\.,;:\\s@\"]+(\\.[^<>()\\[\\]\\\\.,;:\\s@\"]+)*)|(\".+\"))@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}])|(([a-zA-Z\\-0-9]+\\.)+[a-zA-Z]{2,}))$"
+    },
     "requiresCert": {"type": "boolean"},
     "certificate": {"type": "string"}
   },
@@ -45,7 +48,10 @@ const registryUpdate = {
     "isPublic": {"type": "boolean"},
     "username": {"type": "string", "minLength": 1},
     "password": {"type": "string"},
-    "email": {"type": "string"},
+    "email": {
+      "type": "string",
+      "pattern": "^(([^<>()\\[\\]\\\\.,;:\\s@\"]+(\\.[^<>()\\[\\]\\\\.,;:\\s@\"]+)*)|(\".+\"))@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}])|(([a-zA-Z\\-0-9]+\\.)+[a-zA-Z]{2,}))$"
+    },
     "requiresCert": {"type": "boolean"},
     "certificate": {"type": "string"}
   },
