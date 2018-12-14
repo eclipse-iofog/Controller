@@ -394,7 +394,7 @@ function _createFogObject(cliData) {
     logFileCount: cliData.logFileCount,
     statusFrequency: cliData.statusFrequency,
     changeFrequency: cliData.changeFrequency,
-    deviceScanFrequency: cliData.deviceScanFrequency,
+    deviceScanFrequency: cliData.deviceFrequency,
     bluetoothEnabled: AppHelper.validateBooleanCliOptions(cliData.bluetoothEnable, cliData.bluetoothDisable),
     watchdogEnabled: AppHelper.validateBooleanCliOptions(cliData.watchdogEnable, cliData.watchdogDisable),
     abstractedHardwareEnabled: AppHelper.validateBooleanCliOptions(cliData.absHwEnable, cliData.absHwDisable),

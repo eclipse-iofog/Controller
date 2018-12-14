@@ -17,32 +17,30 @@ const AuthDecorator = require('./../decorators/authorization-decorator');
 
 const changeMicroserviceStraceStateEndPoint = async function (req, user) {
   logger.info("Parameters: " + JSON.stringify(req.body));
-  logger.info("Microservice id: " + req.params.id);
-  return await DiagnosticService.changeMicroserviceStraceState(req.params.id, req.body, user, false);
+  logger.info("Microservice UUID: " + req.params.uuid);
+  return await DiagnosticService.changeMicroserviceStraceState(req.params.uuid, req.body, user, false);
 };
 
 const getMicroserviceStraceDataEndPoint = async function (req, user) {
   logger.info("Parameters:" + JSON.stringify(req.query));
-  logger.info("Microservice id: " + req.params.id);
-  return await DiagnosticService.getMicroserviceStraceData(req.params.id, req.query, user, false);
+  logger.info("Microservice UUID: " + req.params.uuid);
+  return await DiagnosticService.getMicroserviceStraceData(req.params.uuid, req.query, user, false);
 };
 
 const postMicroserviceStraceDataToFtpEndPoint = async function (req, user) {
   logger.info("Parameters:" + JSON.stringify(req.body));
-  logger.info("Microservice id: " + req.params.id);
-  return await DiagnosticService.postMicroserviceStraceDatatoFtp(req.params.id, req.body, user, false);
+  logger.info("Microservice UUID: " + req.params.uuid);
+  return await DiagnosticService.postMicroserviceStraceDatatoFtp(req.params.uuid, req.body, user, false);
 };
 
 const createMicroserviceImageSnapshotEndPoint = async function (req, user) {
-  logger.info("Parameters:" + JSON.stringify(req.body));
-  logger.info("Microservice id: " + req.params.id);
-  return await DiagnosticService.postMicroserviceImageSnapshotCreate(req.params.id, user, false);
+  logger.info("Microservice UUID: " + req.params.uuid);
+  return await DiagnosticService.postMicroserviceImageSnapshotCreate(req.params.uuid, user, false);
 };
 
 const getMicroserviceImageSnapshotEndPoint = async function (req, user) {
-  logger.info("Parameters:" + JSON.stringify(req.body));
-  logger.info("Microservice id: " + req.params.id);
-  return await DiagnosticService.getMicroserviceImageSnapshot(req.params.id, user, false);
+  logger.info("Microservice UUID: " + req.params.uuid);
+  return await DiagnosticService.getMicroserviceImageSnapshot(req.params.uuid, user, false);
 };
 
 module.exports = {
@@ -50,5 +48,5 @@ module.exports = {
   getMicroserviceStraceDataEndPoint: AuthDecorator.checkAuthToken(getMicroserviceStraceDataEndPoint),
   postMicroserviceStraceDataToFtpEndPoint: AuthDecorator.checkAuthToken(postMicroserviceStraceDataToFtpEndPoint),
   createMicroserviceImageSnapshotEndPoint: AuthDecorator.checkAuthToken(createMicroserviceImageSnapshotEndPoint),
-  getMicroserviceImageSnapshotEndPoint: AuthDecorator.checkAuthToken(getMicroserviceImageSnapshotEndPoint),
+  getMicroserviceImageSnapshotEndPoint: AuthDecorator.checkAuthToken(getMicroserviceImageSnapshotEndPoint)
 };

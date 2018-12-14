@@ -54,7 +54,7 @@ module.exports = [
         }
       ];
 
-      const createMicroservicesOnFogEndPoint = ResponseDecorator.handleErrors(MicroservicesController.createMicroservicesOnFogEndPoint, successCode, errorCodes);
+      const createMicroservicesOnFogEndPoint = ResponseDecorator.handleErrors(MicroservicesController.createMicroserviceOnFogEndPoint, successCode, errorCodes);
       const responseObject = await createMicroservicesOnFogEndPoint(req);
 
       res

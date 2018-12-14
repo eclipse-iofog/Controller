@@ -25,6 +25,7 @@ const qs = require('qs');
 const Op = require('sequelize').Op;
 const Sequelize = require('sequelize');
 const fs = require('fs');
+const ConnectorPortManager = require('../sequelize/managers/connector-port-manager');
 
 async function _createConnector(connectorData, transaction) {
   await Validator.validate(connectorData, Validator.schemas.connectorCreate);
@@ -69,10 +70,15 @@ async function _deleteConnector(connectorData, transaction) {
   const queryConnectorData = {
     publicIp: connectorData.publicIp
   };
-  const affectedRows = await ConnectorManager.delete(queryConnectorData, transaction);
-  if (affectedRows === 0) {
+  const connector = await ConnectorManager.findOne(queryConnectorData, transaction);
+  if (!connector) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_CONNECTOR_IP, connectorData.publicIp))
   }
+  const ports = await ConnectorPortManager.findAll({connectorId: connector.id}, transaction);
+  if (ports) {
+    throw new Errors.ValidationError(ErrorMessages.CONNECTOR_IS_IN_USE)
+  }
+  await ConnectorManager.delete(queryConnectorData, transaction);
 }
 
 async function _getConnectorList(transaction) {
@@ -197,6 +203,10 @@ async function closePortOnConnector(connector, ports, transaction) {
       'Content-Length': Buffer.byteLength(data)
     }
   };
+  if (!connector.devMode && connector.cert && connector.isSelfSignedCert === true) {
+    const ca = fs.readFileSync(connector.cert);
+    options.ca = new Buffer(ca);
+  }
 
 
   await _makeRequest(connector, options, data)

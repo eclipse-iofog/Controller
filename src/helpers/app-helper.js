@@ -259,6 +259,14 @@ function isTest() {
   return process.env.NODE_ENV === 'test'
 }
 
+function isEmpty(obj) {
+  for(let key in obj) {
+    if(obj.hasOwnProperty(key))
+      return false;
+  }
+  return true;
+}
+
 
 module.exports = {
   encryptText,
@@ -280,4 +288,5 @@ module.exports = {
   trimCertificate,
   validateParameters,
   isTest,
+  isEmpty
 };

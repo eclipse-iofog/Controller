@@ -38,7 +38,7 @@ class Diagnostics extends BaseCLIHandler {
         group: [constants.CMD_STRACE_UPDATE]
       },
       {
-        name: 'microservice-id', alias: 'i', type: String, description: 'Microservice ID',
+        name: 'microservice-uuid', alias: 'i', type: String, description: 'Microservice UUID',
         group: [constants.CMD_STRACE_UPDATE, constants.CMD_STRACE_INFO, constants.CMD_STRACE_FTP_POST,
           constants.CMD_IMAGE_SNAPSHOT_CREATE, constants.CMD_IMAGE_SNAPSHOT_GET]
       },
@@ -128,16 +128,17 @@ const _executeCase = async function (diagnosticCommand, commandName, f, isUserRe
 const _changeMicroserviceStraceState = async function (obj) {
   logger.info(JSON.stringify(obj));
 
-  const enable = AppHelper.validateBooleanCliOptions(obj.enable, obj.disable);
-  await DiagnosticService.changeMicroserviceStraceState(obj.microserviceId, {enable: enable}, {}, true);
-  const msg = enable ? 'Microservice strace has been enabled' : 'Microservice strace has been disabled';
+  const isEnable = AppHelper.validateBooleanCliOptions(obj.enable, obj.disable);
+  await DiagnosticService.changeMicroserviceStraceState(obj.microserviceUuid, {enable: isEnable}, {}, true);
+  const msg = isEnable ? 'Microservice strace has been enabled' : 'Microservice strace has been disabled';
+
   logger.info(msg);
 };
 
 const _getMicroserviceStraceData = async function (obj) {
   logger.info(JSON.stringify(obj));
 
-  const result = await DiagnosticService.getMicroserviceStraceData(obj.microserviceId, {format: obj.format}, {}, true);
+  const result = await DiagnosticService.getMicroserviceStraceData(obj.microserviceUuid, {format: obj.format}, {}, true);
   logger.info(JSON.stringify(result, null, 2));
   logger.info('Microservice strace data has been retrieved successfully.');
 };
@@ -145,21 +146,21 @@ const _getMicroserviceStraceData = async function (obj) {
 const _postMicroserviceStraceDataToFtp = async function (obj) {
   logger.info(JSON.stringify(obj));
 
-  await DiagnosticService.postMicroserviceStraceDatatoFtp(obj.microserviceId, obj, {}, true);
+  await DiagnosticService.postMicroserviceStraceDatatoFtp(obj.microserviceUuid, obj, {}, true);
   logger.info('Strace data has been posted to ftp successfully.');
 };
 
 const _postMicroserviceImageSnapshotCreate = async function (obj) {
   logger.info(JSON.stringify(obj));
 
-  await DiagnosticService.postMicroserviceImageSnapshotCreate(obj.microserviceId, {}, true);
+  await DiagnosticService.postMicroserviceImageSnapshotCreate(obj.microserviceUuid, {}, true);
   logger.info('Microservice image snapshot has been created successfully.');
 };
 
 const _getMicroserviceImageSnapshot = async function (obj) {
   logger.info(JSON.stringify(obj));
 
-  const filePath = await DiagnosticService.getMicroserviceImageSnapshot(obj.microserviceId, {}, true);
+  const filePath = await DiagnosticService.getMicroserviceImageSnapshot(obj.microserviceUuid, {}, true);
   logger.info('Microservice images path = ' + filePath);
 };
 
