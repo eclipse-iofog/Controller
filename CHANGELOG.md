@@ -4,8 +4,27 @@ Also see the **[release page](https://github.com/ioFog/Controller/releases)**.
 
 <br>
 
+## [1.1.0](https://github.com/ioFog/Controller/releases/tag/1.1.0) (2018-12-14)
+
+
+<br>
+
+## [1.0.28](https://github.com/ioFog/Controller/releases/tag/1.0.28) (2018-12-14)
+
+
+<br>
+
 ## [1.0.27](https://github.com/ioFog/Controller/releases/tag/1.0.27) (2018-12-06)
 
+### Features
+
+* **npm-scripts:** allow to use only one image on catalog item creation ([#415](https://github.com/ioFog/Controller/issues/415)) ([2a3e5d4](https://github.com/ioFog/Controller/commit/2a3e5d4))
+* **npm-scripts:** init db automatically after installation ([#413](https://github.com/ioFog/Controller/issues/413)) ([a77bea3](https://github.com/ioFog/Controller/commit/a77bea3))
+
+### Bug Fixes
+
+* **tests:** rename logLimit -> logSize ([#416](https://github.com/ioFog/Controller/issues/416)) ([7b6b310](https://github.com/ioFog/Controller/commit/7b6b310))
+* **transactions:** fix transaction validation if last method's arg is undefined ([#414](https://github.com/ioFog/Controller/issues/414)) ([5369b05](https://github.com/ioFog/Controller/commit/5369b05))
 
 <br>
 
