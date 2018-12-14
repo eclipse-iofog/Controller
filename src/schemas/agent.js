@@ -104,10 +104,10 @@ const straceData = {
   "id": "/straceData",
   "type": "object",
   "properties": {
-    "microserviceId": {"type": "string"},
+    "microserviceUuid": {"type": "string"},
     "buffer": {"type": "string"}
   },
-  "required": ["microserviceId", "buffer"],
+  "required": ["microserviceUuid", "buffer"],
   "additionalProperties": false
 };
 
