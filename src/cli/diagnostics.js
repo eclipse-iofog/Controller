@@ -131,6 +131,7 @@ const _changeMicroserviceStraceState = async function (obj) {
   const isEnable = AppHelper.validateBooleanCliOptions(obj.enable, obj.disable);
   await DiagnosticService.changeMicroserviceStraceState(obj.microserviceUuid, {enable: isEnable}, {}, true);
   const msg = isEnable ? 'Microservice strace has been enabled' : 'Microservice strace has been disabled';
+
   logger.info(msg);
 };
 
