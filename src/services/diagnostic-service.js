@@ -82,7 +82,7 @@ const postMicroserviceStraceDatatoFtp = async function (id, data, user, isCLI, t
   const straceData = await StraceDiagnosticManager.findOne({microserviceUuid: id}, transaction);
 
   if (!straceData) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_STRACE_FTP, id))
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_STRACE, id))
   }
 
   const dir = config.get('Diagnostics:DiagnosticDir');
