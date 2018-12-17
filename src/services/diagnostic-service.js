@@ -79,6 +79,11 @@ const getMicroserviceStraceData = async function (id, data, user, isCLI, transac
 
 const postMicroserviceStraceDatatoFtp = async function (id, data, user, isCLI, transaction) {
   await Validator.validate(data, Validator.schemas.stracePostToFtp);
+
+  const microservice = await MicroserviceManager.findOne(microserviceWhere, transaction);
+  if (!microservice) {
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, id))
+  }
   const straceData = await StraceDiagnosticManager.findOne({microserviceUuid: id}, transaction);
 
   if (!straceData) {
