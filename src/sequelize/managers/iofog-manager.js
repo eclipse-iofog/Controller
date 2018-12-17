@@ -54,11 +54,11 @@ class FogManager extends BaseManager {
         {
           model: Microservice,
           as: 'microservice',
-          required: false,
+          required: true,
           include: [{
             model: Strace,
             as: 'strace',
-            required: false
+            required: true
           }]
         }],
       where: where

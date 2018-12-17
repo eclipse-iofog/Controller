@@ -300,7 +300,7 @@ const getAgentTunnel = async function (fog, transaction) {
 };
 
 const getAgentStrace = async function (fog, transaction) {
-  const fogWithStrace = FogManager.findFogStraces({
+  const fogWithStrace = await FogManager.findFogStraces({
     uuid: fog.uuid
   }, transaction);
 
@@ -308,16 +308,26 @@ const getAgentStrace = async function (fog, transaction) {
     throw new Errors.NotFoundError(ErrorMessages.STRACE_NOT_FOUND);
   }
 
-  return fogWithStrace.strace;
+  const straceArr = [];
+  for (let msData of fogWithStrace.microservice) {
+    straceArr.push({
+      microserviceUuid: msData.strace.microserviceUuid,
+      straceRun: msData.strace.straceRun
+    })
+  };
+
+  return {
+    straceValues: straceArr
+  }
 };
 
 const updateAgentStrace = async function (straceData, fog, transaction) {
   await Validator.validate(straceData, Validator.schemas.updateAgentStrace);
 
   for (const strace of straceData.straceData) {
-    const microserviceId = strace.microserviceId;
+    const microserviceUuid = strace.microserviceUuid;
     const buffer = strace.buffer;
-    await StraceManager.pushBufferByMicroserviceId(microserviceId, buffer, transaction)
+    await StraceManager.pushBufferByMicroserviceId(microserviceUuid, buffer, transaction)
   }
 
 };
