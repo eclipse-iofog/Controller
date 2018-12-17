@@ -66,7 +66,9 @@ const login = async function (credentials, isCLI, transaction) {
     throw new Errors.InvalidCredentialsError();
   }
 
-  const validPassword = credentials.password === user.password || credentials.password === user.tempPassword;
+  const pass = AppHelper.decryptText(user.password, user.email);
+
+  const validPassword = credentials.password === pass || credentials.password === user.tempPassword;
   if (!validPassword) {
     throw new Errors.InvalidCredentialsError();
   }
@@ -174,14 +176,18 @@ const deleteUser = async function (user, isCLI, transaction) {
 };
 
 const updateUserPassword = async function (passwordUpdates, user, isCLI, transaction) {
-  if (user.password !== passwordUpdates.oldPassword && user.tempPassword !== passwordUpdates.oldPassword) {
+  const pass = AppHelper.decryptText(user.password, user.email);
+
+  if (pass !== passwordUpdates.oldPassword && user.tempPassword !== passwordUpdates.oldPassword) {
     throw new Errors.ValidationError(ErrorMessages.INVALID_OLD_PASSWORD);
   }
 
   const emailData = await _getEmailData();
   const transporter = await _userEmailSender(emailData);
 
-  await UserManager.updatePassword(user.id, passwordUpdates.newPassword, transaction);
+  const newPass = AppHelper.encryptText(passwordUpdates.newPassword, user.email);
+
+  await UserManager.updatePassword(user.id, newPass, transaction);
   await _notifyUserAboutPasswordChange(user, emailData, transporter);
 };
 
