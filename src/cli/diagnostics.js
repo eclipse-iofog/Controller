@@ -131,7 +131,6 @@ const _changeMicroserviceStraceState = async function (obj) {
   const isEnable = AppHelper.validateBooleanCliOptions(obj.enable, obj.disable);
   await DiagnosticService.changeMicroserviceStraceState(obj.microserviceUuid, {enable: isEnable}, {}, true);
   const msg = isEnable ? 'Microservice strace has been enabled' : 'Microservice strace has been disabled';
-
   logger.info(msg);
 };
 
@@ -139,7 +138,8 @@ const _getMicroserviceStraceData = async function (obj) {
   logger.info(JSON.stringify(obj));
 
   const result = await DiagnosticService.getMicroserviceStraceData(obj.microserviceUuid, {format: obj.format}, {}, true);
-  logger.info(JSON.stringify(result, null, 2));
+  logger.info('Strace data:');
+  logger.info(result.data);
   logger.info('Microservice strace data has been retrieved successfully.');
 };
 
