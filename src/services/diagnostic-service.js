@@ -28,40 +28,40 @@ const path = require('path');
 const mime = require('mime');
 
 
-const changeMicroserviceStraceState = async function (id, data, user, isCLI, transaction) {
+const changeMicroserviceStraceState = async function (uuid, data, user, isCLI, transaction) {
   await Validator.validate(data, Validator.schemas.straceStateUpdate);
-  const microservice = await MicroserviceService.getMicroservice(id, user, isCLI, transaction);
+  const microservice = await MicroserviceService.getMicroservice(uuid, user, isCLI, transaction);
   if (microservice.iofogUuid === null) {
     throw new Errors.ValidationError(ErrorMessages.STRACE_WITHOUT_FOG);
   }
 
   const straceObj = {
     straceRun: data.enable,
-    microserviceUuid: id
+    microserviceUuid: uuid
   };
 
-  await StraceDiagnosticManager.updateOrCreate({microserviceUuid: id}, straceObj, transaction);
+  await StraceDiagnosticManager.updateOrCreate({microserviceUuid: uuid}, straceObj, transaction);
   await ChangeTrackingService.update(microservice.iofogUuid, ChangeTrackingService.events.diagnostics, transaction)
 };
 
-const getMicroserviceStraceData = async function (id, data, user, isCLI, transaction) {
+const getMicroserviceStraceData = async function (uuid, data, user, isCLI, transaction) {
   await Validator.validate(data, Validator.schemas.straceGetData);
 
   const microserviceWhere = isCLI
-    ? {uuid: id}
-    : {uuid: id, userId: user.id};
+    ? {uuid: uuid}
+    : {uuid: uuid, userId: user.id};
   const microservice = await MicroserviceManager.findOne(microserviceWhere, transaction);
   if (!microservice) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, id))
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, uuid))
   }
 
-  const straceData = await StraceDiagnosticManager.findOne({microserviceUuid: id}, transaction);
+  const straceData = await StraceDiagnosticManager.findOne({microserviceUuid: uuid}, transaction);
   if (!straceData) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_STRACE, id))
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_STRACE, uuid))
   }
 
   const dir = config.get('Diagnostics:DiagnosticDir') || 'diagnostics';
-  const filePath = dir + '/' + id;
+  const filePath = dir + '/' + uuid;
 
   let result = straceData.buffer;
 
@@ -77,24 +77,24 @@ const getMicroserviceStraceData = async function (id, data, user, isCLI, transac
   };
 };
 
-const postMicroserviceStraceDatatoFtp = async function (id, data, user, isCLI, transaction) {
+const postMicroserviceStraceDatatoFtp = async function (uuid, data, user, isCLI, transaction) {
   await Validator.validate(data, Validator.schemas.stracePostToFtp);
 
   const microserviceWhere = isCLI
-    ? {uuid: id}
-    : {uuid: id, userId: user.id};
+    ? {uuid: uuid}
+    : {uuid: uuid, userId: user.id};
   const microservice = await MicroserviceManager.findOne(microserviceWhere, transaction);
   if (!microservice) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, id))
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, uuid))
   }
-  const straceData = await StraceDiagnosticManager.findOne({microserviceUuid: id}, transaction);
+  const straceData = await StraceDiagnosticManager.findOne({microserviceUuid: uuid}, transaction);
 
   if (!straceData) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_STRACE, id))
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_STRACE, uuid))
   }
 
   const dir = config.get('Diagnostics:DiagnosticDir');
-  const filePath = dir + '/' + id;
+  const filePath = dir + '/' + uuid;
 
   _createDirectoryIfNotExists(dir);
   _writeBufferToFile(filePath, straceData.buffer);
