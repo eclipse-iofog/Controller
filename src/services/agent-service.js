@@ -325,7 +325,7 @@ const updateAgentStrace = async function (straceData, fog, transaction) {
   await Validator.validate(straceData, Validator.schemas.updateAgentStrace);
 
   for (const strace of straceData.straceData) {
-    const microserviceUuid = strace.microserviceUuid;
+    const microserviceId = strace.microserviceId;
     const buffer = strace.buffer;
     await StraceManager.pushBufferByMicroserviceId(microserviceUuid, buffer, transaction)
   }

@@ -26,7 +26,7 @@ class StraceManager extends BaseManager {
     return Strace
   }
 
-  async pushBufferByMicroserviceId(uuid, pushingData, transaction) {
+  async pushBufferByMicroserviceUuid(uuid, pushingData, transaction) {
     const strace = await this.findOne({
       microserviceUuid: uuid
     }, transaction);
