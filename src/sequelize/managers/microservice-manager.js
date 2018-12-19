@@ -153,7 +153,8 @@ class MicroserviceManager extends BaseManager {
               '$flow.is_activated$': true
             },
             {
-              '$catalogItem.category$':  {[Op.eq]: 'SYSTEM'}
+              '$catalogItem.category$':  {[Op.eq]: 'SYSTEM'},
+              '$catalogItem.id$': {[Op.ne]: 1}
             }
           ]
 
