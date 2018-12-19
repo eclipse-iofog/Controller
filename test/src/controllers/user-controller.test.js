@@ -113,14 +113,11 @@ describe('User Controller', () => {
       }
     }));
     def('response', () => Promise.resolve());
-    def('encryptedPassword', () => 'encryptedPassword');
     def('validatorResponse', () => Promise.resolve(true));
-    def('encryptTextResponse', () => $encryptedPassword);
     def('subject', () => $subject.userLoginEndPoint($req));
 
     beforeEach(() => {
       $sandbox.stub(Validator, 'validate').returns($validatorResponse);
-      $sandbox.stub(AppHelper, 'encryptText').returns($encryptTextResponse);
       $sandbox.stub(UserService, 'login').returns($response);
     });
 
@@ -141,42 +138,29 @@ describe('User Controller', () => {
     });
 
     context('when Validator#validate() succeeds', () => {
-      it('calls AppHelper#encryptText() with correct args', async () => {
+      it('calls UserService.login with correct args', async () => {
         await $subject;
-        expect(AppHelper.encryptText).to.have.been.calledWith($password, $email);
+        expect(UserService.login).to.have.been.calledWith({
+          email: $email,
+          password: $password
+        }, false)
       });
 
-      context('when AppHelper#encryptText() fails', () => {
-        it('fails', () => {
-          return expect($subject).to.eventually.equal(undefined);
-        });
-      });
+      context('when UserService#login fails', () => {
+        const error = 'Error!';
 
-      context('when AppHelper#encryptText() succeeds', () => {
-        it('calls UserService.login with correct args', async () => {
-          await $subject;
-          expect(UserService.login).to.have.been.calledWith({
-            email: $email,
-            password: $encryptedPassword
-          }, false)
-        });
+        def('response', () => Promise.reject(error));
 
-        context('when UserService#login fails', () => {
-          const error = 'Error!';
-
-          def('response', () => Promise.reject(error));
-
-          it(`fails with "${error}"`, () => {
-            return expect($subject).to.be.rejectedWith(error)
-          })
-        });
-
-        context('when UserService#login succeeds', () => {
-          it(`succeeds`, () => {
-            return expect($subject).to.eventually.equal(undefined)
-          })
+        it(`fails with "${error}"`, () => {
+          return expect($subject).to.be.rejectedWith(error)
         })
       });
+
+      context('when UserService#login succeeds', () => {
+        it(`succeeds`, () => {
+          return expect($subject).to.eventually.equal(undefined)
+        })
+      })
 
     });
   });
@@ -399,13 +383,10 @@ describe('User Controller', () => {
     }));
     def('response', () => Promise.resolve());
     def('validatorResponse', () => Promise.resolve(true));
-    def('encryptedPassword', () => 'encryptedPassword');
-    def('encryptTextResponse', () => $encryptedPassword);
     def('subject', () => $subject.updateUserPasswordEndPoint($req, $user));
 
     beforeEach(() => {
       $sandbox.stub(Validator, 'validate').returns($validatorResponse);
-      $sandbox.stub(AppHelper, 'encryptText').returns($encryptTextResponse);
       $sandbox.stub(UserService, 'updateUserPassword').returns($response);
     });
 
@@ -426,56 +407,29 @@ describe('User Controller', () => {
     });
 
     context('when Validator#validate() succeeds', () => {
-      it('calls AppHelper#encryptText() for old password with correct args', async () => {
+      it('calls UserService.updateUserPassword with correct args', async () => {
         await $subject;
-        expect(AppHelper.encryptText).to.have.been.calledWith($oldPassword, $user.email);
+        expect(UserService.updateUserPassword).to.have.been.calledWith({
+          oldPassword: $oldPassword,
+          newPassword: $newPassword
+        }, $user, false);
       });
 
-      context('when AppHelper#encryptText() for old password fails', () => {
-        it('fails', () => {
-          return expect($subject).to.eventually.equal(undefined);
-        });
+      context('when UserService#updateUserPassword fails', () => {
+        const error = 'Error!';
+
+        def('response', () => Promise.reject(error));
+
+        it(`fails with "${error}"`, () => {
+          return expect($subject).to.be.rejectedWith(error)
+        })
       });
 
-      context('when AppHelper#encryptText() for old password succeeds', () => {
-        it('calls AppHelper#encryptText() for new password with correct args', async () => {
-          await $subject;
-          expect(AppHelper.encryptText).to.have.been.calledWith($newPassword, $user.email);
-        });
-
-        context('when AppHelper#encryptText() for new password fails', () => {
-          it('fails', () => {
-            return expect($subject).to.eventually.equal(undefined);
-          });
-        });
-
-        context('when AppHelper#encryptText() for new password succeeds', () => {
-          it('calls UserService.updateUserPassword with correct args', async () => {
-            await $subject;
-            expect(UserService.updateUserPassword).to.have.been.calledWith({
-              oldPassword: $encryptedPassword,
-              newPassword: $encryptedPassword
-            }, $user, false);
-          });
-
-          context('when UserService#updateUserPassword fails', () => {
-            const error = 'Error!';
-
-            def('response', () => Promise.reject(error));
-
-            it(`fails with "${error}"`, () => {
-              return expect($subject).to.be.rejectedWith(error)
-            })
-          });
-
-          context('when UserService#updateUserPassword succeeds', () => {
-            it(`succeeds`, () => {
-              return expect($subject).to.eventually.equal(undefined)
-            })
-          })
-        });
-
-      });
+      context('when UserService#updateUserPassword succeeds', () => {
+        it(`succeeds`, () => {
+          return expect($subject).to.eventually.equal(undefined)
+        })
+      })
     });
   });
 

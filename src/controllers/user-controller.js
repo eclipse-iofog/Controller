@@ -42,13 +42,10 @@ const userLoginEndPoint = async function (req) {
 
   await Validator.validate(user, Validator.schemas.login);
 
-  const encryptedPassword = AppHelper.encryptText(user.password, user.email);
   const credentials = {
     email: user.email,
-    password: encryptedPassword
+    password: user.password
   };
-
-  logger.info("Parameters:" + JSON.stringify(credentials));
 
   return await UserService.login(credentials, false);
 };
@@ -96,17 +93,7 @@ const updateUserPasswordEndPoint = async function (req, user) {
 
   await Validator.validate(passwordUpdates, Validator.schemas.updatePassword);
 
-  const encryptedOldPassword = AppHelper.encryptText(passwordUpdates.oldPassword, user.email);
-  const encryptedNewPassword = AppHelper.encryptText(passwordUpdates.newPassword, user.email);
-
-  const encryptedPasswordUpdates = {
-    oldPassword: encryptedOldPassword,
-    newPassword: encryptedNewPassword
-  };
-
-  logger.info("Parameters:" + JSON.stringify(encryptedPasswordUpdates));
-
-  return await UserService.updateUserPassword(encryptedPasswordUpdates, user, false);
+  return await UserService.updateUserPassword(passwordUpdates, user, false);
 };
 
 const resetUserPasswordEndPoint = async function (req) {
