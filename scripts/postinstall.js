@@ -144,8 +144,6 @@ function updateEncryptionMethodForUsersPassword(decryptionFunc) {
         stdio: [process.stdin, process.stdout, process.stderr]
       };
       execSync(`sqlite3 ${prodDb} "update Users set password='${newEncryptedPassword}' where id=${id};"`, options);
-      console.log(`user id=${id} encryptedPassword updated: ${oldEncryptedPassword} -> ${newEncryptedPassword}`);
-
     } catch (e) {
       console.log('db problem');
     }
