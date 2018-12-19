@@ -349,7 +349,7 @@ describe('User Controller', () => {
 
     it('calls UserService.deleteUser with correct args', async () => {
       await $subject;
-      expect(UserService.deleteUser).to.have.been.calledWith($user, false);
+      expect(UserService.deleteUser).to.have.been.calledWith(true, $user, false);
     });
 
     context('when UserService#deleteUser fails', () => {
