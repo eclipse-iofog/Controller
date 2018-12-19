@@ -338,7 +338,9 @@ describe('User Controller', () => {
     def('user', () => 'user!');
 
     def('req', () => ({
-      body: {}
+      body: {
+        force: true
+      }
     }));
     def('response', () => Promise.resolve());
     def('subject', () => $subject.deleteUserProfileEndPoint($req, $user));
