@@ -338,7 +338,9 @@ describe('User Controller', () => {
     def('user', () => 'user!');
 
     def('req', () => ({
-      body: {}
+      body: {
+        force: true
+      }
     }));
     def('response', () => Promise.resolve());
     def('subject', () => $subject.deleteUserProfileEndPoint($req, $user));
@@ -349,7 +351,7 @@ describe('User Controller', () => {
 
     it('calls UserService.deleteUser with correct args', async () => {
       await $subject;
-      expect(UserService.deleteUser).to.have.been.calledWith($user, false);
+      expect(UserService.deleteUser).to.have.been.calledWith(true, $user, false);
     });
 
     context('when UserService#deleteUser fails', () => {

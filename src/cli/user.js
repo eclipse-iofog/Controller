@@ -51,6 +51,11 @@ class User extends BaseCLIHandler {
         name: 'password', alias: 'p', type: String,
         description: 'User\'s password',
         group: [constants.CMD_ADD, constants.CMD_UPDATE],
+      },
+      {
+        name: 'force', alias: 'F', type: Boolean,
+        description: 'User\'s force delete',
+        group: [constants.CMD_REMOVE],
       }
     ];
     this.commands = {
@@ -136,10 +141,10 @@ const _updateUserDetails = async function (userDetails, user) {
   logger.info('User updated successfully.');
 };
 
-const _deleteUser = async function (emailObj, user) {
-  logger.info(JSON.stringify(emailObj));
+const _deleteUser = async function (obj, user) {
+  logger.info(JSON.stringify(obj));
 
-  await UserService.deleteUser(user, true);
+  await UserService.deleteUser(obj.force, user, true);
   logger.info('User removed successfully.');
 };
 

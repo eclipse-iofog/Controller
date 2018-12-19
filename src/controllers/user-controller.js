@@ -85,7 +85,7 @@ const updateUserProfileEndPoint = async function (req, user) {
 };
 
 const deleteUserProfileEndPoint = async function (req, user) {
-  return await UserService.deleteUser(user, false);
+  return await UserService.deleteUser(req.body.force, user, false);
 };
 
 const updateUserPasswordEndPoint = async function (req, user) {

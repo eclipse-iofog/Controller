@@ -18,6 +18,7 @@ const AppHelper = require('../helpers/app-helper');
 const Errors = require('../helpers/errors');
 const ErrorMessages = require('../helpers/error-messages');
 const Config = require('../config');
+const ioFogManager = require('../sequelize/managers/iofog-manager');
 
 const emailActivationTemplate = require('../views/email-activation-temp');
 const emailRecoveryTemplate = require('../views/email-temp');
@@ -169,7 +170,22 @@ const updateDetails = async function (user, profileData, isCLI, transaction) {
   }
 };
 
-const deleteUser = async function (user, isCLI, transaction) {
+const deleteUser = async function (force, user, isCLI, transaction) {
+
+  if (!force) {
+    const ioFogArray = await ioFogManager.findAll({
+      userId: user.id
+    }, transaction);
+
+    if (!!ioFogArray) {
+      for (const ioFog of ioFogArray) {
+        if (ioFog.daemonStatus === 'RUNNING') {
+          throw new Errors.ValidationError(ErrorMessages.NEEDED_FORCE_DELETE_USER);
+        }
+      }
+    }
+  }
+
   await UserManager.delete({
     id: user.id
   }, transaction);
@@ -362,7 +378,7 @@ async function _getEmailData() {
       service: service
     }
 
-  } catch(errMsg) {
+  } catch (errMsg) {
     throw new Errors.EmailActivationSetupError();
   }
 
