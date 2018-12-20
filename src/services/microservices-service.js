@@ -709,12 +709,13 @@ async function _deletePortMapping(microserviceUuid, internalPort, user, isCLI, t
 }
 
 async function _deleteSimplePortMapping(microservice, msPorts, user, transaction) {
-  await MicroservicePortManager.delete({id: msPorts.id}, transaction)
+  await MicroservicePortManager.delete({id: msPorts.id}, transaction);
 
   const updateRebuildMs = {
     rebuild: true
-  }
-  await MicroserviceManager.update({uuid: microservice.uuid}, updateRebuildMs, transaction)
+  };
+  await MicroserviceManager.update({uuid: microservice.uuid}, updateRebuildMs, transaction);
+  await ChangeTrackingService.update(microservice.iofogUuid, ChangeTrackingService.events.microserviceCommon, transaction);
 }
 
 async function _deletePortMappingOverConnector(microservice, msPorts, user, transaction) {
