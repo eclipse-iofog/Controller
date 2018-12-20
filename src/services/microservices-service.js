@@ -265,7 +265,7 @@ async function _deletePortMappings(microservice, user, transaction) {
     microserviceUuid: microservice.uuid
   }, transaction);
 
-  for (let msPorts of msPortMappings) {
+  for (const msPorts of msPortMappings) {
     if (msPorts.isPublic) {
       await _deletePortMappingOverConnector(microservice, msPorts, user, transaction)
     } else {
