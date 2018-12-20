@@ -19,8 +19,6 @@ const basename = path.basename(__filename);
 
 const Errors = require('../helpers/errors');
 
-const Logger = require('../logger');
-
 const v = new Validator();
 const schemas = {};
 
