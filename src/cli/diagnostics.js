@@ -139,6 +139,7 @@ const _getMicroserviceStraceData = async function (obj) {
 
   const result = await DiagnosticService.getMicroserviceStraceData(obj.microserviceUuid, {format: obj.format}, {}, true);
   logger.info('Strace data:');
+  logger.info('=============================');
   logger.info(result.data);
   logger.info('Microservice strace data has been retrieved successfully.');
 };
