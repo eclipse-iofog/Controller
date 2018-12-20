@@ -27,6 +27,7 @@ module.exports = {
   INVALID_VOLUME_MAPPING_UUID: "Invalid volume mapping id '{}'",
   ACTIVATION_CODE_NOT_FOUND: 'Activation code not found',
   INVALID_OLD_PASSWORD: 'Old password is incorrect',
+  NEEDED_FORCE_DELETE_USER: "There are running iofog-agents, stop them before removal or pass 'force' parameter",
   ACCOUNT_NOT_FOUND: 'Account not found',
   USER_NOT_UPDATED: 'User not updated',
   EMAIL_NOT_ACTIVATED: 'Email is not activated. Please activate your account first.',

@@ -46,15 +46,6 @@ const updateAgentConfig = {
   "additionalProperties": false
 };
 
-const agentConfigChanges = {
-  "id": "/agentConfigChanges",
-  "type": "object",
-  "properties": {
-    "timestamp": {"type": "integer"}
-  },
-  "additionalProperties": false
-};
-
 const updateAgentStatus = {
   "id": "/updateAgentStatus",
   "type": "object",
@@ -104,10 +95,10 @@ const straceData = {
   "id": "/straceData",
   "type": "object",
   "properties": {
-    "microserviceId": {"type": "string"},
+    "microserviceUuid": {"type": "string"},
     "buffer": {"type": "string"}
   },
-  "required": ["microserviceId", "buffer"],
+  "required": ["microserviceUuid", "buffer"],
   "additionalProperties": false
 };
 
@@ -148,7 +139,7 @@ const updateUsbInfo = {
 };
 
 module.exports = {
-  mainSchemas: [agentProvision, updateAgentConfig, agentConfigChanges, updateAgentStatus, updateAgentStrace,
+  mainSchemas: [agentProvision, updateAgentConfig, updateAgentStatus, updateAgentStrace,
   updateHardwareInfo, updateUsbInfo],
   innerSchemas: [straceData, microserviceStatus]
 };

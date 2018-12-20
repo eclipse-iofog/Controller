@@ -21,19 +21,30 @@ const portscanner = require('portscanner');
 const format = require('string-format');
 
 const ALGORITHM = 'aes-256-ctr';
+const IV_LENGTH = 16;
+
 
 const Transaction = require('sequelize/lib/transaction');
 
 function encryptText(text, salt) {
-  const cipher = crypto.createCipher(ALGORITHM, salt);
+  const iv = crypto.randomBytes(IV_LENGTH);
+  const processedSalt = crypto.createHash('md5').update(salt).digest("hex");
+
+  const cipher = crypto.createCipheriv(ALGORITHM, processedSalt, iv);
   let crypted = cipher.update(text, 'utf8', 'hex');
   crypted += cipher.final('hex');
-  return crypted
+  return iv.toString('hex') + ':' + crypted.toString('hex');
 }
 
 function decryptText(text, salt) {
-  const decipher = crypto.createDecipher(ALGORITHM, salt);
-  let dec = decipher.update(text, 'hex', 'utf8');
+  const processedSalt = crypto.createHash('md5').update(salt).digest("hex");
+
+  const textParts = text.split(':');
+  const iv = new Buffer(textParts.shift(), 'hex');
+  let encryptedText = new Buffer(textParts.join(':'), 'hex');
+
+  const decipher = crypto.createDecipheriv(ALGORITHM, processedSalt, iv);
+  let dec = decipher.update(encryptedText, 'hex', 'utf8');
   dec += decipher.final('utf8');
   return dec
 }

@@ -278,7 +278,7 @@ module.exports = [
     method: 'put',
     path: '/api/v3/agent/strace',
     middleware: async (req, res) => {
-      const successCode = constants.HTTP_CODE_SUCCESS;
+      const successCode = constants.HTTP_CODE_NO_CONTENT;
       const errorCodes = [
         {
           code: constants.HTTP_CODE_NOT_FOUND,
