@@ -219,7 +219,7 @@ const getAgentMicroservices = async function (fog, transaction) {
     const image = images.find(image => image.fogTypeId === fogTypeId);
     const imageId = image ? image.containerImage : '';
 
-    const routes = await MicroserviceService.getPhysicalConections(microservice, transaction);
+    const routes = await MicroserviceService.getPhysicalConnections(microservice, transaction);
 
     const responseMicroservice = {
       uuid: microservice.uuid,
@@ -307,12 +307,12 @@ const getAgentStrace = async function (fog, transaction) {
   }
 
   const straceArr = [];
-  for (let msData of fogWithStrace.microservice) {
+  for (const msData of fogWithStrace.microservice) {
     straceArr.push({
       microserviceUuid: msData.strace.microserviceUuid,
       straceRun: msData.strace.straceRun
     })
-  };
+  }
 
   return {
     straceValues: straceArr
@@ -338,13 +338,13 @@ const getAgentChangeVersionCommand = async function (fog, transaction) {
     throw new Errors.NotFoundError(ErrorMessages.VERSION_COMMAND_NOT_FOUND);
   }
 
-  const provision = FogProvisionKeyManager.findOne({
+  const provision = await FogProvisionKeyManager.findOne({
     iofogUuid: fog.uuid
   }, transaction);
 
   return {
     versionCommand: versionCommand.versionCommand,
-    provisionKey: provision.key,
+    provisionKey: provision.provisionKey,
     expirationTime: provision.expirationTime
   }
 };

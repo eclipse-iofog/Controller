@@ -973,6 +973,6 @@ module.exports = {
   createVolumeMapping: TransactionDecorator.generateTransaction(_createVolumeMapping),
   deleteVolumeMapping: TransactionDecorator.generateTransaction(_deleteVolumeMapping),
   listVolumeMappings: TransactionDecorator.generateTransaction(_listVolumeMappings),
-  getPhysicalConections: getPhysicalConections,
+  getPhysicalConnections: getPhysicalConections,
   deleteNotRunningMicroservices: _deleteNotRunningMicroservices
 };

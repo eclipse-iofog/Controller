@@ -11,6 +11,15 @@ const AppHelper = require('../../../src/helpers/app-helper');
 const ChangeTrackingService = require('../../../src/services/change-tracking-service');
 const MicroserviceStatusManager = require('../../../src/sequelize/managers/microservice-status-manager');
 const MicroserviceService = require('../../../src/services/microservices-service');
+const RegistryManager = require('../../../src/sequelize/managers/registry-manager');
+const TunnelManager = require('../../../src/sequelize/managers/tunnel-manager');
+const StraceManager = require('../../../src/sequelize/managers/strace-manager');
+const ioFogVersionCommandManager = require('../../../src/sequelize/managers/iofog-version-command-manager');
+const ioFogProvisionKeyManager = require('../../../src/sequelize/managers/iofog-provision-key-manager');
+const BaseManager = require('../../../src/sequelize/managers/base-manager');
+const Sequelize = require('sequelize');
+const Op = Sequelize.Op;
+
 
 describe('Agent Service', () => {
   def('subject', () => AgentService);
@@ -614,6 +623,429 @@ describe('Agent Service', () => {
       })
     });
   });
+
+
+  describe('.getAgentMicroservices()', () => {
+    const transaction = {};
+    const error = 'Error!';
+
+    const routes = [];
+
+    const microservice = {
+      uuid: 'testMicroserviceUuid',
+      imageId: '',
+      config: '{}',
+      rebuild: false,
+      rootHostAccess: false,
+      logSize: 15,
+      ports: 'testPorts',
+      volumeMappings: 'testVolumeMappings',
+      imageSnapshot: 'testImageSnapshot',
+      delete: false,
+      deleteWithCleanup: false,
+      catalogItem: {
+        images: [{
+          fogTypeId: 1,
+          containerImage: 'testContainerImage'
+        }
+        ],
+        registry: {
+          url: 'testUrl'
+        }
+      },
+      routes: routes
+    };
+
+    const microserviceResponse = {
+      microservices: [{
+        uuid: 'testMicroserviceUuid',
+        imageId: 'testContainerImage',
+        config: '{}',
+        rebuild: false,
+        rootHostAccess: false,
+        logSize: 15,
+        portMappings: 'testPorts',
+        volumeMappings: 'testVolumeMappings',
+        imageSnapshot: 'testImageSnapshot',
+        delete: false,
+        deleteWithCleanup: false,
+        routes: routes,
+        registryUrl: 'testUrl'
+      }]
+    };
+
+    def('uuid', () => 'testUuid');
+    def('fogTypeId', () => 1);
+
+    def('fog', () => ({
+      uuid: $uuid,
+      fogTypeId: $fogTypeId
+    }));
+
+    def('token', () => 'testToken');
+
+    def('subject', () => $subject.getAgentMicroservices($fog, transaction));
+
+    def('findAllMicroservicesResponse', () => Promise.resolve([microservice]));
+    def('getPhysicalConnectionsResponse', () => Promise.resolve(routes));
+    def('updateResponse', () => Promise.resolve(microserviceResponse));
+
+    beforeEach(() => {
+      $sandbox.stub(MicroserviceManager, 'findAllActiveFlowMicroservices').returns($findAllMicroservicesResponse);
+      $sandbox.stub(MicroserviceService, 'getPhysicalConnections').returns($getPhysicalConnectionsResponse);
+      $sandbox.stub(MicroserviceManager, 'update').returns($updateResponse);
+    });
+
+    it('calls MicroserviceManager#findAllActiveFlowMicroservices() with correct args', async () => {
+      await $subject;
+      expect(MicroserviceManager.findAllActiveFlowMicroservices).to.have.been.calledWith($uuid, transaction);
+    });
+
+    context('when MicroserviceManager#findAllActiveFlowMicroservices() fails', () => {
+      def('findAllMicroservicesResponse', () => Promise.reject(error));
+
+      it(`fails with ${error}`, () => {
+        return expect($subject).to.be.rejectedWith(error);
+      })
+    });
+
+    context('when MicroserviceManager#findAllActiveFlowMicroservices() succeeds', () => {
+      it('calls MicroserviceService.getPhysicalConnections with correct args', async () => {
+        await $subject;
+        expect(MicroserviceService.getPhysicalConnections).to.have.been.calledWith(microservice, transaction);
+      });
+
+      context('when MicroserviceService#getPhysicalConnections fails', () => {
+        const error = 'Error!';
+
+        def('getPhysicalConnectionsResponse', () => error);
+
+        it(`fails with "${error}"`, () => {
+          return expect($subject).to.be.rejectedWith = (error)
+        })
+      });
+
+      context('when MicroserviceService#getPhysicalConnections succeeds', () => {
+        it('calls MicroserviceManager.update with correct args', async () => {
+          await $subject;
+          expect(MicroserviceManager.update).to.have.been.calledWith({
+            uuid: microservice.uuid
+          }, {
+            rebuild: false
+          }, transaction);
+        });
+
+        context('when MicroserviceManager#update fails', () => {
+          const error = 'Error!';
+
+          def('updateResponse', () => error);
+
+          it(`fails with "${error}"`, () => {
+            return expect($subject).to.be.rejectedWith = (error)
+          })
+        });
+
+        context('when MicroserviceManager#update succeeds', () => {
+          it(`succeeds`, () => {
+            return expect($subject).to.eventually.deep.equal(microserviceResponse);
+          })
+        })
+      })
+    });
+  });
+
+  describe('.getAgentMicroservice()', () => {
+    const transaction = {};
+    const error = 'Error!';
+
+    const routes = [];
+
+    const microservice = {
+      uuid: 'testMicroserviceUuid',
+      imageId: 'testContainerImage',
+      config: '{}',
+      rebuild: false,
+      rootHostAccess: false,
+      logSize: 15,
+      portMappings: 'testPorts',
+      volumeMappings: 'testVolumeMappings',
+      imageSnapshot: 'testImageSnapshot',
+      delete: false,
+      deleteWithCleanup: false,
+      routes: routes,
+      registryUrl: 'testUrl'
+    };
+
+    const microserviceResponse = {
+      microservice: microservice
+    };
+
+    def('uuid', () => 'testUuid');
+    def('microserviceUuid', () => 'testMicroserviceUuid');
+
+    def('fog', () => ({
+      uuid: $uuid
+    }));
+
+    def('token', () => 'testToken');
+
+    def('subject', () => $subject.getAgentMicroservice($microserviceUuid, $fog, transaction));
+
+    def('findMicroserviceResponse', () => Promise.resolve(microservice));
+
+    beforeEach(() => {
+      $sandbox.stub(MicroserviceManager, 'findOneWithDependencies').returns($findMicroserviceResponse);
+    });
+
+    it('calls MicroserviceManager#findOneWithDependencies() with correct args', async () => {
+      await $subject;
+      expect(MicroserviceManager.findOneWithDependencies).to.have.been.calledWith({
+        uuid: $microserviceUuid,
+        iofogUuid: $uuid
+      }, {}, transaction);
+    });
+
+    context('when MicroserviceManager#findOneWithDependencies() fails', () => {
+      def('findMicroserviceResponse', () => Promise.reject(error));
+
+      it(`fails with ${error}`, () => {
+        return expect($subject).to.be.rejectedWith(error);
+      })
+    });
+
+    context('when MicroserviceManager#findOneWithDependencies() succeeds', () => {
+      it(`succeeds`, () => {
+        return expect($subject).to.eventually.deep.equal(microserviceResponse);
+      })
+    });
+  });
+
+  describe('.getAgentRegistries()', () => {
+    const transaction = {};
+    const error = 'Error!';
+
+    def('uuid', () => 'testUuid');
+    def('userId', () => 15);
+
+    def('fog', () => ({
+      uuid: $uuid,
+      userId: $userId
+    }));
+
+    def('token', () => 'testToken');
+
+    def('subject', () => $subject.getAgentRegistries($fog, transaction));
+
+    def('getAgentRegistriesResponse', () => Promise.resolve());
+
+    beforeEach(() => {
+      $sandbox.stub(RegistryManager, 'findAll').returns($getAgentRegistriesResponse);
+    });
+
+    it('calls RegistryManager#findAll() with correct args', async () => {
+      await $subject;
+      expect(RegistryManager.findAll).to.have.been.calledWith({
+        [Op.or]:
+          [
+            {
+              userId: $userId
+            },
+            {
+              isPublic: true
+            }
+          ]
+      }, transaction);
+    });
+
+    context('when RegistryManager#findAll() fails', () => {
+      def('getAgentRegistriesResponse', () => Promise.reject(error));
+
+      it(`fails with ${error}`, () => {
+        return expect($subject).to.be.rejectedWith(error);
+      })
+    });
+
+    context('when RegistryManager#findAll() succeeds', () => {
+      it(`succeeds`, () => {
+        return expect($subject).to.eventually.have.property('registries');
+      })
+    });
+  });
+
+  describe('.getAgentTunnel()', () => {
+    const transaction = {};
+    const error = 'Error!';
+
+    def('uuid', () => 'testUuid');
+
+    def('fog', () => ({
+      uuid: $uuid
+    }));
+
+    def('token', () => 'testToken');
+
+    def('subject', () => $subject.getAgentTunnel($fog, transaction));
+
+    def('getTunnelResponse', () => Promise.resolve({}));
+
+    beforeEach(() => {
+      $sandbox.stub(TunnelManager, 'findOne').returns($getTunnelResponse);
+    });
+
+    it('calls TunnelManager#findOne() with correct args', async () => {
+      await $subject;
+      expect(TunnelManager.findOne).to.have.been.calledWith({
+        iofogUuid: $uuid
+      }, transaction);
+    });
+
+    context('when TunnelManager#findOne() fails', () => {
+      def('getTunnelResponse', () => Promise.reject(error));
+
+      it(`fails with ${error}`, () => {
+        return expect($subject).to.be.rejectedWith(error);
+      })
+    });
+
+    context('when TunnelManager#findOne() succeeds', () => {
+      it(`succeeds`, () => {
+        return expect($subject).to.eventually.have.property('tunnel');
+      })
+    });
+  });
+
+  describe('.getAgentStrace()', () => {
+    const transaction = {};
+    const error = 'Error!';
+
+    def('uuid', () => 'testUuid');
+
+    def('fog', () => ({
+      uuid: $uuid
+    }));
+
+    def('microserviceUuid', () => 'testMicroserviceUuid');
+    def('straceRun', () => 'testStraceRun');
+
+    def('strace', () => ({
+      microserviceUuid: $microserviceUuid,
+      straceRun: $straceRun
+    }));
+
+    def('getStracesData', () => ({
+      microservice: [{
+        strace: $strace
+      }]
+    }));
+
+    def('straceResponse', () => ({
+      straceValues: [$strace]
+    }));
+
+    def('subject', () => $subject.getAgentStrace($fog, transaction));
+
+    def('getStracesResponse', () => Promise.resolve($getStracesData));
+
+    beforeEach(() => {
+      $sandbox.stub(ioFogManager, 'findFogStraces').returns($getStracesResponse);
+    });
+
+    it('calls ioFogManager#findFogStraces() with correct args', async () => {
+      await $subject;
+      expect(ioFogManager.findFogStraces).to.have.been.calledWith({
+        uuid: $uuid
+      }, transaction);
+    });
+
+    context('when ioFogManager#findFogStraces() fails', () => {
+      def('getStracesResponse', () => Promise.reject(error));
+
+      it(`fails with ${error}`, () => {
+        return expect($subject).to.be.rejectedWith(error);
+      })
+    });
+
+    context('when ioFogManager#findFogStraces() succeeds', () => {
+      it(`succeeds`, () => {
+        return expect($subject).to.eventually.deep.equal($straceResponse);
+      })
+    });
+  });
+
+  describe('.updateAgentStrace()', () => {
+
+    const transaction = {};
+    const error = 'Error!';
+
+    def('uuid', () => 'testUuid');
+
+    def('fog', () => ({
+      uuid: $uuid
+    }));
+
+    def('microserviceUuid', () => 'testMicroserviceUuid');
+    def('buffer', () => 'testBuffer');
+
+    def('strace', () => ({
+      microserviceUuid: $microserviceUuid,
+      buffer: $buffer
+    }));
+
+    def('straceData', () => ({
+      straceData: [$strace]
+    }));
+
+    def('straceResponse', () => ({
+      straceValues: [$strace]
+    }));
+
+    def('subject', () => $subject.updateAgentStrace($straceData, $fog, transaction));
+
+    def('validatorResponse', () => Promise.resolve(true));
+    def('pushBufferResponse', () => Promise.resolve());
+
+
+    beforeEach(() => {
+      $sandbox.stub(Validator, 'validate').returns($validatorResponse);
+      $sandbox.stub(StraceManager, 'pushBufferByMicroserviceUuid').returns($pushBufferResponse);
+    });
+
+    it('calls Validator#validate() with correct args', async () => {
+      await $subject;
+      expect(Validator.validate).to.have.been.calledWith($straceData, Validator.schemas.updateAgentStrace);
+    });
+
+    context('when Validator#validate() fails', () => {
+      def('validatorResponse', () => Promise.reject(error));
+
+      it(`fails with ${error}`, () => {
+        return expect($subject).to.be.rejectedWith(error);
+      })
+    });
+
+    context('when Validator#validate() succeeds', () => {
+      it('calls StraceManager#pushBufferByMicroserviceUuid() with correct args', async () => {
+        await $subject;
+        expect(StraceManager.pushBufferByMicroserviceUuid).to.have.been.calledWith($microserviceUuid, $buffer,
+          transaction);
+      });
+
+      context('when StraceManager#pushBufferByMicroserviceUuid() fails', () => {
+        def('pushBufferResponse', () => Promise.reject(error));
+
+        it(`fails with ${error}`, () => {
+          return expect($subject).to.be.rejectedWith(error);
+        })
+      });
+
+      context('when StraceManager#pushBufferByMicroserviceUuid() succeeds', () => {
+        it(`succeeds`, () => {
+          return expect($subject).to.eventually.equal(undefined);
+        })
+      });
+    });
+  });
+
 
 
 });
