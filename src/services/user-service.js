@@ -68,6 +68,9 @@ const login = async function (credentials, isCLI, transaction) {
   }
 
   const pass = AppHelper.decryptText(user.password, user.email);
+  if (isCLI) {
+    credentials.password = AppHelper.decryptText(credentials.password, credentials.email);
+  }
 
   const validPassword = credentials.password === pass || credentials.password === user.tempPassword;
   if (!validPassword) {
