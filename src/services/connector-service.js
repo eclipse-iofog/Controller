@@ -168,7 +168,7 @@ async function openPortsOnConnector(connector, isPublicAccess, transaction) {
   };
   if (!connector.devMode && connector.cert && connector.isSelfSignedCert === true) {
     const ca = fs.readFileSync(connector.cert);
-    options.ca = new Buffer(ca);
+    options.ca = new Buffer.from(ca);
   }
 
   const ports = await _makeRequest(connector, options, data);
@@ -205,7 +205,7 @@ async function closePortOnConnector(connector, ports, transaction) {
   };
   if (!connector.devMode && connector.cert && connector.isSelfSignedCert === true) {
     const ca = fs.readFileSync(connector.cert);
-    options.ca = new Buffer(ca);
+    options.ca = new Buffer.from(ca);
   }
 
 

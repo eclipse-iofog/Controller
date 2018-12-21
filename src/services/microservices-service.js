@@ -243,6 +243,8 @@ async function _deleteMicroservice(microserviceUuid, microserviceData, user, isC
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, microserviceUuid));
   }
 
+  await _deletePortMappings(microservice, user, transaction);
+
   if (microservice.microserviceStatus.status === MicroserviceStates.NOT_RUNNING) {
     await _deleteMicroserviceWithRoutes(microserviceUuid, transaction);
   } else {
@@ -256,6 +258,20 @@ async function _deleteMicroservice(microserviceUuid, microserviceData, user, isC
   }
 
   await _updateChangeTracking(false, microservice.iofogUuid, transaction)
+}
+
+async function _deletePortMappings(microservice, user, transaction) {
+  const msPortMappings = await MicroservicePortManager.findAll({
+    microserviceUuid: microservice.uuid
+  }, transaction);
+
+  for (const msPorts of msPortMappings) {
+    if (msPorts.isPublic) {
+      await _deletePortMappingOverConnector(microservice, msPorts, user, transaction)
+    } else {
+      await _deleteSimplePortMapping(microservice, msPorts, user, transaction)
+    }
+  }
 }
 
 async function _deleteNotRunningMicroservices(transaction) {
@@ -709,12 +725,13 @@ async function _deletePortMapping(microserviceUuid, internalPort, user, isCLI, t
 }
 
 async function _deleteSimplePortMapping(microservice, msPorts, user, transaction) {
-  await MicroservicePortManager.delete({id: msPorts.id}, transaction)
+  await MicroservicePortManager.delete({id: msPorts.id}, transaction);
 
   const updateRebuildMs = {
     rebuild: true
-  }
-  await MicroserviceManager.update({uuid: microservice.uuid}, updateRebuildMs, transaction)
+  };
+  await MicroserviceManager.update({uuid: microservice.uuid}, updateRebuildMs, transaction);
+  await ChangeTrackingService.update(microservice.iofogUuid, ChangeTrackingService.events.microserviceCommon, transaction);
 }
 
 async function _deletePortMappingOverConnector(microservice, msPorts, user, transaction) {
@@ -956,6 +973,6 @@ module.exports = {
   createVolumeMapping: TransactionDecorator.generateTransaction(_createVolumeMapping),
   deleteVolumeMapping: TransactionDecorator.generateTransaction(_deleteVolumeMapping),
   listVolumeMappings: TransactionDecorator.generateTransaction(_listVolumeMappings),
-  getPhysicalConections: getPhysicalConections,
+  getPhysicalConnections: getPhysicalConections,
   deleteNotRunningMicroservices: _deleteNotRunningMicroservices
 };

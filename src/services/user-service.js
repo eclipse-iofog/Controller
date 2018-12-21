@@ -18,6 +18,7 @@ const AppHelper = require('../helpers/app-helper');
 const Errors = require('../helpers/errors');
 const ErrorMessages = require('../helpers/error-messages');
 const Config = require('../config');
+const ioFogManager = require('../sequelize/managers/iofog-manager');
 
 const emailActivationTemplate = require('../views/email-activation-temp');
 const emailRecoveryTemplate = require('../views/email-temp');
@@ -66,7 +67,12 @@ const login = async function (credentials, isCLI, transaction) {
     throw new Errors.InvalidCredentialsError();
   }
 
-  const validPassword = credentials.password === user.password || credentials.password === user.tempPassword;
+  const pass = AppHelper.decryptText(user.password, user.email);
+  if (isCLI) {
+    credentials.password = AppHelper.decryptText(credentials.password, credentials.email);
+  }
+
+  const validPassword = credentials.password === pass || credentials.password === user.tempPassword;
   if (!validPassword) {
     throw new Errors.InvalidCredentialsError();
   }
@@ -167,21 +173,40 @@ const updateDetails = async function (user, profileData, isCLI, transaction) {
   }
 };
 
-const deleteUser = async function (user, isCLI, transaction) {
+const deleteUser = async function (force, user, isCLI, transaction) {
+
+  if (!force) {
+    const ioFogArray = await ioFogManager.findAll({
+      userId: user.id
+    }, transaction);
+
+    if (!!ioFogArray) {
+      for (const ioFog of ioFogArray) {
+        if (ioFog.daemonStatus === 'RUNNING') {
+          throw new Errors.ValidationError(ErrorMessages.NEEDED_FORCE_DELETE_USER);
+        }
+      }
+    }
+  }
+
   await UserManager.delete({
     id: user.id
   }, transaction);
 };
 
 const updateUserPassword = async function (passwordUpdates, user, isCLI, transaction) {
-  if (user.password !== passwordUpdates.oldPassword && user.tempPassword !== passwordUpdates.oldPassword) {
+  const pass = AppHelper.decryptText(user.password, user.email);
+
+  if (pass !== passwordUpdates.oldPassword && user.tempPassword !== passwordUpdates.oldPassword) {
     throw new Errors.ValidationError(ErrorMessages.INVALID_OLD_PASSWORD);
   }
 
   const emailData = await _getEmailData();
   const transporter = await _userEmailSender(emailData);
 
-  await UserManager.updatePassword(user.id, passwordUpdates.newPassword, transaction);
+  const newPass = AppHelper.encryptText(passwordUpdates.newPassword, user.email);
+
+  await UserManager.updatePassword(user.id, newPass, transaction);
   await _notifyUserAboutPasswordChange(user, emailData, transporter);
 };
 
@@ -356,7 +381,7 @@ async function _getEmailData() {
       service: service
     }
 
-  } catch(errMsg) {
+  } catch (errMsg) {
     throw new Errors.EmailActivationSetupError();
   }
 

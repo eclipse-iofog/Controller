@@ -1,93 +1,88 @@
-const crypto = require('crypto')
-const { expect } = require('chai')
-const fs = require('fs')
-const path = require('path')
-const portscanner = require('portscanner')
-const sinon = require('sinon')
+const crypto = require('crypto');
+const { expect } = require('chai');
+const fs = require('fs');
+const path = require('path');
+const portscanner = require('portscanner');
+const sinon = require('sinon');
 
-const AppHelpers = require('../../../src/helpers/app-helper')
-const Config = require('../../../src/config')
+const AppHelpers = require('../../../src/helpers/app-helper');
+const Config = require('../../../src/config');
 
 describe('App Helpers', () => {
-  const text = 'some-text'
-  const salt = 'kosher-salt'
-  const encrypted = '17f4faa5c532708c8f'
+  const text = 'some-text';
+  const salt = 'kosher-salt';
+  const encrypted = '18f4faa5c532708c8f';
+  const processedSalt = 'c2cd22c1a8133704f09fc8a218088b1b';
+  const encryptedPasswordLine = '17f4faa5c532708c8f:18f4faa5c532708c8f';
 
-  def('subject', () => AppHelpers)
-  def('sandbox', () => sinon.createSandbox())
+  def('subject', () => AppHelpers);
+  def('sandbox', () => sinon.createSandbox());
   def('cipher', () => ({
     update: $sandbox.stub().returns(''),
     final: $sandbox.stub().returns(encrypted)
-  }))
+  }));
   def('decipher', () => ({
     update: $sandbox.stub().returns(''),
     final: $sandbox.stub().returns(text)
-  }))
+  }));
 
-  afterEach(() => $sandbox.restore())
+  afterEach(() => $sandbox.restore());
 
   describe('.encryptText()', () => {
-    def('subject', () => $subject.encryptText(text, salt))
+    def('subject', () => $subject.encryptText(text, salt));
+    def('iv', () => '17f4faa5c532708c8f');
 
     beforeEach(() => {
-      $sandbox.stub(crypto, 'createCipher').returns($cipher)
-    })
+      $sandbox.stub(crypto, 'randomBytes').returns($iv);
+      $sandbox.stub(crypto, 'createCipheriv').returns($cipher);
+    });
 
-    it('calls crypto#createCipher() with correct args', () => {
+    it('calls crypto#createCipheriv() with correct args', () => {
       $subject
-      expect(crypto.createCipher).to.have.been.calledWith('aes-256-ctr', salt)
-    })
+      expect(crypto.createCipheriv).to.have.been.calledWith('aes-256-ctr', processedSalt, $iv)
+    });
 
     it('calls crypto.cipher#update() with correct args', () => {
       $subject
       expect($cipher.update).to.have.been.calledWith(text, 'utf8', 'hex')
-    })
+    });
 
     it('calls crypto.cipher#final() with correct args', () => {
       $subject
       expect($cipher.final).to.have.been.calledWith('hex')
-    })
+    });
 
     it('returns the encrypted text', () => {
-      expect($subject).to.equal(encrypted)
+      expect($subject).to.equal(encryptedPasswordLine)
     })
-  })
+  });
 
   describe('.decryptText()', () => {
-    def('subject', () => $subject.decryptText(encrypted, salt))
+    def('iv', () => '17f4faa5c532708c8f');
+    def('subject', () => $subject.decryptText(encryptedPasswordLine, salt));
 
     beforeEach(() => {
-      $sandbox.stub(crypto, 'createDecipher').returns($decipher)
-    })
-
-    it('calls crypto#createDecipher() with correct args', () => {
-      $subject
-      expect(crypto.createDecipher).to.have.been.calledWith('aes-256-ctr', salt)
-    })
-
-    it('calls crypto.decipher#update() with correct args', () => {
-      $subject
-      expect($decipher.update).to.have.been.calledWith(encrypted, 'hex', 'utf8')
-    })
+      $sandbox.stub(crypto, 'createDecipheriv').returns($decipher);
+    });
 
     it('calls crypto.decipher#final() with correct args', () => {
       $subject
       expect($decipher.final).to.have.been.calledWith('utf8')
-    })
+    });
 
     it('returns the decrypted text', () => {
       expect($subject).to.equal(text)
     })
-  })
+  });
 
   describe('.generateRandomString()', () => {
-    def('size', () => 12)
+    def('size', () => 12);
 
     context('when size is greater than zero', () => {
       it('returns a random string with length of size', () => {
         expect(AppHelpers.generateRandomString($size)).to.have.lengthOf($size)
       })
-    })
+    });
 
     context('when size is zero', () => {
       def('size', () => 0)
