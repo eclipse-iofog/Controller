@@ -232,7 +232,7 @@ const _writeBufferToFile = function (filePath, data) {
 
 const _converFileToBase64 = function (filePath) {
   const bitmap = fs.readFileSync(filePath);
-  return new Buffer(bitmap).toString('base64');
+  return new Buffer.from(bitmap).toString('base64');
 };
 
 const _deleteFile = function (filePath) {
