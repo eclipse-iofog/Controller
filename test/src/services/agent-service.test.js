@@ -1352,4 +1352,7 @@ describe('Agent Service', () => {
     });
   });
 
+  // TODO
+  // describe('.putImageSnapshot()', () => {
+
 });
