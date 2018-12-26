@@ -53,7 +53,7 @@ class IOFog extends BaseCLIHandler {
         group: [constants.CMD]},
       {
         name: 'file', alias: 'f', type: String,
-        description: 'ioFog settings JSON file',
+        description: 'Path to ioFog settings JSON file',
         group: [constants.CMD_ADD, constants.CMD_UPDATE]
       },
       {
