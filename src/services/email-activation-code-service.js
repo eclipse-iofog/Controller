@@ -11,9 +11,6 @@
  *
  */
 
-const async = require('async');
-const logger = require('../logger');
-
 const EmailActivationCodeManager = require('../sequelize/managers/email-activation-code-manager');
 const AppHelper = require('../helpers/app-helper');
 const ErrorMessages = require('../helpers/error-messages');

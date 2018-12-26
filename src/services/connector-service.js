@@ -23,7 +23,6 @@ const constants = require('../helpers/constants');
 const logger = require('../logger');
 const qs = require('qs');
 const Op = require('sequelize').Op;
-const Sequelize = require('sequelize');
 const fs = require('fs');
 const ConnectorPortManager = require('../sequelize/managers/connector-port-manager');
 
