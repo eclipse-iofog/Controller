@@ -280,9 +280,11 @@ async function _setFogVersionCommand(fogVersionData, user, isCli, transaction) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FOG_NODE_UUID, fogData.uuid))
   }
 
-  if ((!fog.isReadyToRollback && fogVersionData.versionCommand === 'rollback')
-    || (!fog.isReadyToUpgrade && fogVersionData.versionCommand === 'upgrade')) {
-    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_VERSION_COMMAND, fogVersionData.versionCommand))
+  if (!fog.isReadyToRollback && fogVersionData.versionCommand === 'rollback') {
+    throw new Errors.ValidationError(ErrorMessages.INVALID_VERSION_COMMAND_ROLLBACK)
+  }
+  if (!fog.isReadyToUpgrade && fogVersionData.versionCommand === 'upgrade') {
+    throw new Errors.ValidationError(ErrorMessages.INVALID_VERSION_COMMAND_UPGRADE)
   }
 
   await _generateProvisioningKey({uuid: fogVersionData.uuid}, user, isCli, transaction);
