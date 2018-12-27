@@ -27,9 +27,6 @@ const EmailActivationCodeService = require('./email-activation-code-service');
 
 const AccessTokenService = require('./access-token-service');
 
-const logger = require('../logger');
-const constants = require('../helpers/constants');
-
 const TransactionDecorator = require('../decorators/transaction-decorator');
 
 const Validator = require('../schemas');
