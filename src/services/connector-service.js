@@ -26,14 +26,20 @@ const Op = require('sequelize').Op;
 const fs = require('fs');
 const ConnectorPortManager = require('../sequelize/managers/connector-port-manager');
 
-async function _createConnector(connectorData, transaction) {
+async function createConnector(connectorData, transaction) {
   await Validator.validate(connectorData, Validator.schemas.connectorCreate);
-  validateConnectorData(connectorData);
+  _validateConnectorData(connectorData);
   const connector = await ConnectorManager.findOne({
     [Op.or]: [
-      {name: connectorData.name},
-      {publicIp: connectorData.publicIp},
-      {domain: connectorData.domain}
+      {
+        name: connectorData.name
+      },
+      {
+        publicIp: connectorData.publicIp
+      },
+      {
+        domain: connectorData.domain
+      }
     ]
   }, transaction);
   if (connector) {
@@ -42,29 +48,16 @@ async function _createConnector(connectorData, transaction) {
   return await ConnectorManager.create(connectorData, transaction)
 }
 
-async function _updateConnector(connectorData, transaction) {
-  await Validator.validate(connectorData, Validator.schemas.connectorUpdate)
-  validateConnectorData(connectorData);
+async function updateConnector(connectorData, transaction) {
+  await Validator.validate(connectorData, Validator.schemas.connectorUpdate);
+  _validateConnectorData(connectorData);
   const queryConnectorData = {
     publicIp: connectorData.publicIp
   };
   await ConnectorManager.update(queryConnectorData, connectorData, transaction)
 }
 
-function validateConnectorData(connectorData) {
-  if (connectorData.domain) {
-    const validDomain = AppHelper.isValidDomain(connectorData.domain) || AppHelper.isValidPublicIP(connectorData.domain);
-    if (!validDomain) {
-      throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_CONNECTOR_DOMAIN, connectorData.domain));
-    }
-  }
-
-  if (!AppHelper.isValidPublicIP(connectorData.publicIp)) {
-    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_CONNECTOR_IP, connectorData.publicIp));
-  }
-}
-
-async function _deleteConnector(connectorData, transaction) {
+async function deleteConnector(connectorData, transaction) {
   await Validator.validate(connectorData, Validator.schemas.connectorDelete);
   const queryConnectorData = {
     publicIp: connectorData.publicIp
@@ -80,7 +73,7 @@ async function _deleteConnector(connectorData, transaction) {
   await ConnectorManager.delete(queryConnectorData, transaction);
 }
 
-async function _getConnectorList(transaction) {
+async function getConnectorList(transaction) {
   return await ConnectorManager.findAll({}, transaction)
 }
 
@@ -92,17 +85,17 @@ async function openPortOnRandomConnector(isPublicAccess, transaction) {
   for (let i = 0; i < maxAttempts; i++) {
     try {
       connector = await _getRandomConnector(transaction);
-      ports = await openPortsOnConnector(connector, isPublicAccess, transaction);
+      ports = await _openPortsOnConnector(connector, isPublicAccess);
       if (ports) {
         isConnectorPortOpen = true;
         break;
       }
     } catch (e) {
-      logger.warn(`Failed to open ports on comsat. Attempts ${i + 1}/${maxAttempts}`)
+      logger.warn(`Failed to open ports on Connector. Attempts ${i + 1}/${maxAttempts}`)
     }
   }
   if (!isConnectorPortOpen) {
-    throw new Error('Not able to open port on remote CONNECTOR. Gave up after 5 attempts.')
+    throw new Error('Not able to open port on remote Connector. Gave up after 5 attempts.')
   }
   ports.connectorId = connector.id;
   return {ports: ports, connector: connector}
@@ -143,7 +136,47 @@ async function _makeRequest(connector, options, data) {
   })
 }
 
-async function openPortsOnConnector(connector, isPublicAccess, transaction) {
+async function closePortOnConnector(connector, ports) {
+  let data = qs.stringify({
+    mappingid: ports.mappingId
+  });
+  console.log(data);
+
+  let port = connector.devMode ? constants.CONNECTOR_HTTP_PORT : constants.CONNECTOR_HTTPS_PORT;
+
+  let options = {
+    host: connector.domain,
+    port: port,
+    path: '/api/v2/mapping/remove',
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Content-Length': Buffer.byteLength(data)
+    }
+  };
+  if (!connector.devMode && connector.cert && connector.isSelfSignedCert === true) {
+    const ca = fs.readFileSync(connector.cert);
+    options.ca = new Buffer.from(ca);
+  }
+
+
+  await _makeRequest(connector, options, data)
+}
+
+function _validateConnectorData(connectorData) {
+  if (connectorData.domain) {
+    const validDomain = AppHelper.isValidDomain(connectorData.domain) || AppHelper.isValidPublicIP(connectorData.domain);
+    if (!validDomain) {
+      throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_CONNECTOR_DOMAIN, connectorData.domain));
+    }
+  }
+
+  if (!AppHelper.isValidPublicIP(connectorData.publicIp)) {
+    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_CONNECTOR_IP, connectorData.publicIp));
+  }
+}
+
+async function _openPortsOnConnector(connector, isPublicAccess) {
   let data = isPublicAccess
     ? await qs.stringify({
       mapping: '{"type":"public","maxconnections":60,"heartbeatabsencethreshold":200000}'
@@ -175,7 +208,8 @@ async function openPortsOnConnector(connector, isPublicAccess, transaction) {
 }
 
 async function _getRandomConnector(transaction) {
-  const connectors = await _getConnectorList(transaction);
+  const connectors = await ConnectorManager.findAll({}, transaction);
+
   if (connectors && connectors.length > 0) {
     const randomNumber = Math.round((Math.random() * (connectors.length - 1)));
     return connectors[randomNumber]
@@ -184,38 +218,11 @@ async function _getRandomConnector(transaction) {
   }
 }
 
-async function closePortOnConnector(connector, ports, transaction) {
-  let data = qs.stringify({
-    mappingid: ports.mappingId
-  });
-  console.log(data);
-
-  let port = connector.devMode ? constants.CONNECTOR_HTTP_PORT : constants.CONNECTOR_HTTPS_PORT;
-
-  let options = {
-    host: connector.domain,
-    port: port,
-    path: '/api/v2/mapping/remove',
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-      'Content-Length': Buffer.byteLength(data)
-    }
-  };
-  if (!connector.devMode && connector.cert && connector.isSelfSignedCert === true) {
-    const ca = fs.readFileSync(connector.cert);
-    options.ca = new Buffer.from(ca);
-  }
-
-
-  await _makeRequest(connector, options, data)
-}
-
 module.exports = {
-  createConnector: TransactionDecorator.generateTransaction(_createConnector),
-  updateConnector: TransactionDecorator.generateTransaction(_updateConnector),
-  deleteConnector: TransactionDecorator.generateTransaction(_deleteConnector),
-  getConnectorList: TransactionDecorator.generateTransaction(_getConnectorList),
+  createConnector: TransactionDecorator.generateTransaction(createConnector),
+  updateConnector: TransactionDecorator.generateTransaction(updateConnector),
+  deleteConnector: TransactionDecorator.generateTransaction(deleteConnector),
+  getConnectorList: TransactionDecorator.generateTransaction(getConnectorList),
   openPortOnRandomConnector: openPortOnRandomConnector,
   closePortOnConnector: closePortOnConnector
-}
+};
