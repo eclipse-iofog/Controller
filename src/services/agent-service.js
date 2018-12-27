@@ -131,7 +131,7 @@ const updateAgentConfig = async function (updateData, fog, transaction) {
 
 const getAgentConfigChanges = async function (fog, transaction) {
 
-  const changeTracking = await ChangeTrackingService.getByFogId(fog.uuid, transaction);
+  const changeTracking = await ChangeTrackingService.getByIoFogUuid(fog.uuid, transaction);
   if (!changeTracking) {
     throw new Errors.NotFoundError(ErrorMessages.INVALID_NODE_ID)
   }

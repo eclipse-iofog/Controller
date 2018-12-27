@@ -364,16 +364,16 @@ describe('Agent Service', () => {
     def('updateIfChangedResponse', () => Promise.resolve());
 
     beforeEach(() => {
-      $sandbox.stub(ChangeTrackingService, 'getByFogId').returns($getByFogIdResponse);
+      $sandbox.stub(ChangeTrackingService, 'getByIoFogUuid').returns($getByFogIdResponse);
       $sandbox.stub(ChangeTrackingService, 'updateIfChanged').returns($updateIfChangedResponse);
     });
 
-    it('calls ChangeTrackingService#getByFogId() with correct args', async () => {
+    it('calls ChangeTrackingService#getByIoFogUuid() with correct args', async () => {
       await $subject;
-      expect(ChangeTrackingService.getByFogId).to.have.been.calledWith($uuid, transaction);
+      expect(ChangeTrackingService.getByIoFogUuid).to.have.been.calledWith($uuid, transaction);
     });
 
-    context('when ChangeTrackingService#getByFogId() fails', () => {
+    context('when ChangeTrackingService#getByIoFogUuid() fails', () => {
       def('getByFogIdResponse', () => Promise.reject(error));
 
       it(`fails with ${error}`, () => {
@@ -381,7 +381,7 @@ describe('Agent Service', () => {
       })
     });
 
-    context('when ChangeTrackingService#getByFogId() succeeds', () => {
+    context('when ChangeTrackingService#getByIoFogUuid() succeeds', () => {
       it('calls ChangeTrackingService.updateIfChanged with correct args', async () => {
         await $subject;
         expect(ChangeTrackingService.updateIfChanged).to.have.been.calledWith($uuid,
