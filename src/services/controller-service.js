@@ -11,26 +11,26 @@
  *
  */
 
-const FogTypesManager = require('../sequelize/managers/iofog-type-manager');
+const ioFogTypesManager = require('../sequelize/managers/iofog-type-manager');
 const Config = require('../config');
 const TransactionDecorator = require('../decorators/transaction-decorator');
 const packageJson = require('../../package');
 
 const getFogTypes = async function (isCLI, transaction) {
-  const fogTypes = await FogTypesManager.findAll({}, transaction);
-  let res = [];
+  const ioFogTypes = await ioFogTypesManager.findAll({}, transaction);
+  let response = [];
 
-  for (fogType of fogTypes) {
-    res.push({
-      id: fogType.id,
-      name: fogType.name,
-      image: fogType.image,
-      description: fogType.description
+  for (ioFogType of ioFogTypes) {
+    response.push({
+      id: ioFogType.id,
+      name: ioFogType.name,
+      image: ioFogType.image,
+      description: ioFogType.description
     })
   }
 
   return {
-    fogTypes: res
+    fogTypes: response
   }
 
 };
@@ -59,7 +59,7 @@ const statusController = async function (isCLI) {
 };
 
 const getVersion = async function (isCLI) {
-  return `Iofog-Controller version: ${packageJson.version}`;
+  return `ioFog-Controller version: ${packageJson.version}`;
 };
 
 module.exports = {

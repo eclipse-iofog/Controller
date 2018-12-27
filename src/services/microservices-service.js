@@ -380,7 +380,7 @@ async function _createSimpleRoute(sourceMicroservice, destMicroservice, transact
 }
 
 async function _createRouteOverConnector(sourceMicroservice, destMicroservice, user, transaction) {
-  //open comsat
+  //open connector
   const justOpenedConnectorsPorts = await ConnectorService.openPortOnRandomConnector(false, transaction)
 
   const ports = justOpenedConnectorsPorts.ports
@@ -542,7 +542,7 @@ async function _deleteRouteOverConnector(route, transaction) {
   const connector = await ConnectorManager.findOne({id: ports.connectorId}, transaction)
 
   try {
-    await ConnectorService.closePortOnConnector(connector, ports, transaction);
+    await ConnectorService.closePortOnConnector(connector, ports);
   } catch (e) {
     logger.warn(`Can't close ports pair ${ports.mappingId} on connector ${connector.publicIp}. Delete manually if necessary`);
   }
@@ -611,7 +611,7 @@ async function _createSimplePortMapping(microservice, portMappingData, user, tra
 }
 
 async function _createPortMappingOverConnector(microservice, portMappingData, user, transaction) {
-  //open comsat
+  //open connector
   const justOpenedConnectorsPorts = await ConnectorService.openPortOnRandomConnector(true, transaction)
 
   const ports = justOpenedConnectorsPorts.ports
@@ -741,7 +741,7 @@ async function _deletePortMappingOverConnector(microservice, msPorts, user, tran
   const connector = await ConnectorManager.findOne({id: ports.connectorId}, transaction);
 
   try {
-    await ConnectorService.closePortOnConnector(connector, ports, transaction);
+    await ConnectorService.closePortOnConnector(connector, ports);
   } catch (e) {
     logger.warn(`Can't close ports pair ${ports.mappingId} on connector ${connector.publicIp}. Delete manually if necessary`);
   }
