@@ -16,9 +16,15 @@ const TunnelManager = require('../../../src/sequelize/managers/tunnel-manager');
 const StraceManager = require('../../../src/sequelize/managers/strace-manager');
 const ioFogVersionCommandManager = require('../../../src/sequelize/managers/iofog-version-command-manager');
 const ioFogProvisionKeyManager = require('../../../src/sequelize/managers/iofog-provision-key-manager');
-const BaseManager = require('../../../src/sequelize/managers/base-manager');
+const HWInfoManager = require('../../../src/sequelize/managers/hw-info-manager');
+const USBInfoManager = require('../../../src/sequelize/managers/usb-info-manager');
 const Sequelize = require('sequelize');
 const Op = Sequelize.Op;
+const path = require('path');
+const formidable = ('./incoming_form');
+const IncomingForm = formidable.IncomingForm;
+
+global.appRoot = path.resolve(__dirname);
 
 
 describe('Agent Service', () => {
@@ -358,16 +364,16 @@ describe('Agent Service', () => {
     def('updateIfChangedResponse', () => Promise.resolve());
 
     beforeEach(() => {
-      $sandbox.stub(ChangeTrackingService, 'getByFogId').returns($getByFogIdResponse);
+      $sandbox.stub(ChangeTrackingService, 'getByIoFogUuid').returns($getByFogIdResponse);
       $sandbox.stub(ChangeTrackingService, 'updateIfChanged').returns($updateIfChangedResponse);
     });
 
-    it('calls ChangeTrackingService#getByFogId() with correct args', async () => {
+    it('calls ChangeTrackingService#getByIoFogUuid() with correct args', async () => {
       await $subject;
-      expect(ChangeTrackingService.getByFogId).to.have.been.calledWith($uuid, transaction);
+      expect(ChangeTrackingService.getByIoFogUuid).to.have.been.calledWith($uuid, transaction);
     });
 
-    context('when ChangeTrackingService#getByFogId() fails', () => {
+    context('when ChangeTrackingService#getByIoFogUuid() fails', () => {
       def('getByFogIdResponse', () => Promise.reject(error));
 
       it(`fails with ${error}`, () => {
@@ -375,7 +381,7 @@ describe('Agent Service', () => {
       })
     });
 
-    context('when ChangeTrackingService#getByFogId() succeeds', () => {
+    context('when ChangeTrackingService#getByIoFogUuid() succeeds', () => {
       it('calls ChangeTrackingService.updateIfChanged with correct args', async () => {
         await $subject;
         expect(ChangeTrackingService.updateIfChanged).to.have.been.calledWith($uuid,
@@ -1046,6 +1052,307 @@ describe('Agent Service', () => {
     });
   });
 
+  describe('.getAgentChangeVersionCommand()', () => {
+    const transaction = {};
+    const error = 'Error!';
 
+    def('uuid', () => 'testUuid');
+
+    def('fog', () => ({
+      uuid: $uuid
+    }));
+
+    def('versionCommandLine', () => 'testVersionCommand');
+    def('versionCommand', () => ({
+      versionCommand: $versionCommandLine
+    }));
+
+    def('provisionKey', () => 'testKey');
+    def('expirationTime', () => 12535352525);
+    def('provision', () => ({
+      provisionKey: $provisionKey,
+      expirationTime: $expirationTime
+    }));
+
+    def('response', () => ({
+      versionCommand: $versionCommandLine,
+      provisionKey: $provisionKey,
+      expirationTime: $expirationTime
+    }));
+
+    def('subject', () => $subject.getAgentChangeVersionCommand($fog, transaction));
+
+    def('findCommandResponse', () => Promise.resolve($versionCommand));
+    def('findProvisionResponse', () => Promise.resolve($provision));
+
+    beforeEach(() => {
+      $sandbox.stub(ioFogVersionCommandManager, 'findOne').returns($findCommandResponse);
+      $sandbox.stub(ioFogProvisionKeyManager, 'findOne').returns($findProvisionResponse);
+    });
+
+    it('calls ioFogVersionCommandManager#findOne() with correct args', async () => {
+      await $subject;
+      expect(ioFogVersionCommandManager.findOne).to.have.been.calledWith({
+        iofogUuid: $uuid
+      }, transaction);
+    });
+
+    context('when ioFogVersionCommandManager#findOne() fails', () => {
+      def('findCommandResponse', () => Promise.reject(error));
+
+      it(`fails with ${error}`, () => {
+        return expect($subject).to.be.rejectedWith(error);
+      })
+    });
+
+    context('when ioFogVersionCommandManager#findOne() succeeds', () => {
+      it('calls ioFogProvisionKeyManager#findOne() with correct args', async () => {
+        await $subject;
+        expect(ioFogProvisionKeyManager.findOne).to.have.been.calledWith({
+          iofogUuid: $uuid
+        }, transaction);
+
+        context('when ioFogProvisionKeyManager#findOne() fails', () => {
+          def('findProvisionResponse', () => Promise.reject(error));
+
+          it(`fails with ${error}`, () => {
+            return expect($subject).to.be.equal(undefined);
+          })
+        });
+
+        context('when ioFogProvisionKeyManager#findOne() succeeds', () => {
+          it(`succeeds`, () => {
+            return expect($subject).to.equal($response);
+          })
+        });
+      });
+    });
+  });
+
+  describe('.updateHalHardwareInfo()', () => {
+    const transaction = {};
+    const error = 'Error!';
+
+    def('uuid', () => 'testUuid');
+
+    def('fog', () => ({
+      uuid: $uuid
+    }));
+
+    def('info', () => 'testInfo');
+    def('hardwareData', () => ({
+      info: $info
+    }));
+
+    def('response', () => ({
+      versionCommand: $versionCommandLine,
+      provisionKey: $provisionKey,
+      expirationTime: $expirationTime
+    }));
+
+    def('subject', () => $subject.updateHalHardwareInfo($hardwareData, $fog, transaction));
+
+    def('validatorResponse', () => Promise.resolve(true));
+    def('hwResponse', () => Promise.resolve());
+
+    beforeEach(() => {
+      $sandbox.stub(Validator, 'validate').returns($validatorResponse);
+      $sandbox.stub(HWInfoManager, 'updateOrCreate').returns($hwResponse);
+    });
+
+    it('calls Validator#validate() with correct args', async () => {
+      await $subject;
+      expect(Validator.validate).to.have.been.calledWith($hardwareData, Validator.schemas.updateHardwareInfo);
+    });
+
+    context('when Validator#validate() fails', () => {
+      def('validatorResponse', () => Promise.reject(error));
+
+      it(`fails with ${error}`, () => {
+        return expect($subject).to.be.rejectedWith(error);
+      })
+    });
+
+    context('when Validator#validate() succeeds', () => {
+      it('calls HWInfoManager#updateOrCreate() with correct args', async () => {
+        await $subject;
+        expect(HWInfoManager.updateOrCreate).to.have.been.calledWith({
+          iofogUuid: $uuid
+        }, $hardwareData, transaction);
+
+        context('when HWInfoManager#updateOrCreate() fails', () => {
+          def('hwResponse', () => Promise.reject(error));
+
+          it(`fails with ${error}`, () => {
+            return expect($subject).to.be.equal(undefined);
+          })
+        });
+
+        context('when HWInfoManager#updateOrCreate() succeeds', () => {
+          it(`succeeds`, () => {
+            return expect($subject).to.equal(undefined);
+          })
+        });
+      });
+    });
+  });
+
+  describe('.updateHalUsbInfo()', () => {
+    const transaction = {};
+    const error = 'Error!';
+
+    def('uuid', () => 'testUuid');
+
+    def('fog', () => ({
+      uuid: $uuid
+    }));
+
+    def('info', () => 'testInfo');
+    def('usbData', () => ({
+      info: $info
+    }));
+
+    def('response', () => ({
+      versionCommand: $versionCommandLine,
+      provisionKey: $provisionKey,
+      expirationTime: $expirationTime
+    }));
+
+    def('subject', () => $subject.updateHalUsbInfo($usbData, $fog, transaction));
+
+    def('validatorResponse', () => Promise.resolve(true));
+    def('usbResponse', () => Promise.resolve());
+
+    beforeEach(() => {
+      $sandbox.stub(Validator, 'validate').returns($validatorResponse);
+      $sandbox.stub(USBInfoManager, 'updateOrCreate').returns($usbResponse);
+    });
+
+    it('calls Validator#validate() with correct args', async () => {
+      await $subject;
+      expect(Validator.validate).to.have.been.calledWith($usbData, Validator.schemas.updateUsbInfo);
+    });
+
+    context('when Validator#validate() fails', () => {
+      def('validatorResponse', () => Promise.reject(error));
+
+      it(`fails with ${error}`, () => {
+        return expect($subject).to.be.rejectedWith(error);
+      })
+    });
+
+    context('when Validator#validate() succeeds', () => {
+      it('calls USBInfoManager#updateOrCreate() with correct args', async () => {
+        await $subject;
+        expect(USBInfoManager.updateOrCreate).to.have.been.calledWith({
+          iofogUuid: $uuid
+        }, $usbData, transaction);
+
+        context('when USBInfoManager#updateOrCreate() fails', () => {
+          def('usbResponse', () => Promise.reject(error));
+
+          it(`fails with ${error}`, () => {
+            return expect($subject).to.be.equal(undefined);
+          })
+        });
+
+        context('when USBInfoManager#updateOrCreate() succeeds', () => {
+          it(`succeeds`, () => {
+            return expect($subject).to.equal(undefined);
+          })
+        });
+      });
+    });
+  });
+
+  describe('.deleteNode()', () => {
+    const transaction = {};
+    const error = 'Error!';
+
+    def('uuid', () => 'testUuid');
+
+    def('fog', () => ({
+      uuid: $uuid
+    }));
+
+    def('subject', () => $subject.deleteNode($fog, transaction));
+
+    def('deleteResponse', () => Promise.resolve($getStracesData));
+
+    beforeEach(() => {
+      $sandbox.stub(ioFogManager, 'delete').returns($deleteResponse);
+    });
+
+    it('calls ioFogManager#delete() with correct args', async () => {
+      await $subject;
+      expect(ioFogManager.delete).to.have.been.calledWith({
+        uuid: $uuid
+      }, transaction);
+    });
+
+    context('when ioFogManager#delete() fails', () => {
+      def('deleteResponse', () => Promise.reject(error));
+
+      it(`fails with ${error}`, () => {
+        return expect($subject).to.be.rejectedWith(error);
+      })
+    });
+
+    context('when ioFogManager#delete() succeeds', () => {
+      it(`succeeds`, () => {
+        return expect($subject).to.eventually.equal(undefined);
+      })
+    });
+  });
+
+  describe('.getImageSnapshot()', () => {
+    const transaction = {};
+    const error = 'Error!';
+
+    def('uuid', () => 'testUuid');
+
+    def('fog', () => ({
+      uuid: $uuid
+    }));
+
+    def('microserviceUuid', () => 'testMicroserviceUuid');
+
+    def('microserviceResponse', () => ({
+      uuid: $microserviceUuid
+    }));
+
+    def('subject', () => $subject.getImageSnapshot($fog, transaction));
+
+    def('findResponse', () => Promise.resolve($microserviceResponse));
+
+    beforeEach(() => {
+      $sandbox.stub(MicroserviceManager, 'findOne').returns($findResponse);
+    });
+
+    it('calls MicroserviceManager#delete() with correct args', async () => {
+      await $subject;
+      expect(MicroserviceManager.findOne).to.have.been.calledWith({
+        iofogUuid: $uuid,
+        imageSnapshot: 'get_image'
+      }, transaction);
+    });
+
+    context('when MicroserviceManager#delete() fails', () => {
+      def('findResponse', () => Promise.reject(error));
+
+      it(`fails with ${error}`, () => {
+        return expect($subject).to.be.rejectedWith(error);
+      })
+    });
+
+    context('when MicroserviceManager#delete() succeeds', () => {
+      it(`succeeds`, () => {
+        return expect($subject).to.eventually.have.property('uuid');
+      })
+    });
+  });
+
+  // TODO
+  // describe('.putImageSnapshot()', () => {
 
 });
