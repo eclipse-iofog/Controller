@@ -37,11 +37,11 @@ class Flow extends BaseCLIHandler {
       },
       {
         name: 'file', alias: 'f', type: String,
-        description: 'Application flow settings JSON file',
+        description: 'Path to application flow settings JSON file',
         group: [constants.CMD_ADD, constants.CMD_UPDATE]
       },
       {
-        name: 'flow-id', alias: 'i', type: String,
+        name: 'flow-id', alias: 'i', type: Number,
         description: 'Application flow ID',
         group: [constants.CMD_UPDATE, constants.CMD_REMOVE, constants.CMD_INFO]
       },

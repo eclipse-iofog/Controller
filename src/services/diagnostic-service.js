@@ -68,7 +68,7 @@ const getMicroserviceStraceData = async function (uuid, data, user, isCLI, trans
   if (data.format === 'file') {
     _createDirectoryIfNotExists(dir);
     _writeBufferToFile(filePath, straceData.buffer);
-    result = _converFileToBase64(filePath);
+    result = _convertFileToBase64(filePath);
     _deleteFile(filePath);
   }
 
@@ -230,9 +230,9 @@ const _writeBufferToFile = function (filePath, data) {
   });
 };
 
-const _converFileToBase64 = function (filePath) {
-  const bitmap = fs.readFileSync(filePath);
-  return new Buffer(bitmap).toString('base64');
+const _convertFileToBase64 = function (filePath) {
+  const file = fs.readFileSync(filePath);
+  return new Buffer.from(file).toString('base64');
 };
 
 const _deleteFile = function (filePath) {

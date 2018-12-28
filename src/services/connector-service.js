@@ -23,7 +23,6 @@ const constants = require('../helpers/constants');
 const logger = require('../logger');
 const qs = require('qs');
 const Op = require('sequelize').Op;
-const Sequelize = require('sequelize');
 const fs = require('fs');
 const ConnectorPortManager = require('../sequelize/managers/connector-port-manager');
 
@@ -75,7 +74,7 @@ async function _deleteConnector(connectorData, transaction) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_CONNECTOR_IP, connectorData.publicIp))
   }
   const ports = await ConnectorPortManager.findAll({connectorId: connector.id}, transaction);
-  if (ports) {
+  if (ports && ports.length > 0) {
     throw new Errors.ValidationError(ErrorMessages.CONNECTOR_IS_IN_USE)
   }
   await ConnectorManager.delete(queryConnectorData, transaction);

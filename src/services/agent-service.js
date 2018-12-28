@@ -36,6 +36,8 @@ const formidable = require('formidable');
 const Sequelize = require('sequelize');
 const Op = Sequelize.Op;
 
+const IncomingForm = formidable.IncomingForm;
+
 const agentProvision = async function (provisionData, transaction) {
 
   await Validator.validate(provisionData, Validator.schemas.agentProvision);
@@ -129,7 +131,7 @@ const updateAgentConfig = async function (updateData, fog, transaction) {
 
 const getAgentConfigChanges = async function (fog, transaction) {
 
-  const changeTracking = await ChangeTrackingService.getByFogId(fog.uuid, transaction);
+  const changeTracking = await ChangeTrackingService.getByIoFogUuid(fog.uuid, transaction);
   if (!changeTracking) {
     throw new Errors.NotFoundError(ErrorMessages.INVALID_NODE_ID)
   }
@@ -398,16 +400,16 @@ const putImageSnapshot = async function (req, fog, transaction) {
     throw new Errors.ValidationError(ErrorMessages.INVALID_CONTENT_TYPE);
   }
 
-  const form = new formidable.IncomingForm(opts);
+  const form = new IncomingForm(opts);
   form.uploadDir = path.join(appRoot, '../') + 'data';
   if (!fs.existsSync(form.uploadDir)) {
     fs.mkdirSync(form.uploadDir);
   }
-  await saveSnapShot(req, form,fog, transaction);
+  await _saveSnapShot(req, form, fog, transaction);
   return {};
 };
 
-const saveSnapShot = function (req, form, fog, transaction) {
+const _saveSnapShot = function (req, form, fog, transaction) {
   return new Promise((resolve, reject) => {
     form.parse(req, async function (error, fields, files) {
       const file = files['upstream'];

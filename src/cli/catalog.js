@@ -57,11 +57,11 @@ class Catalog extends BaseCLIHandler {
         group: [constants.CMD]
       },
       {
-        name: 'file', alias: 'f', type: String, description: 'Catalog item settings JSON file',
+        name: 'file', alias: 'f', type: String, description: 'Path to catalog item settings JSON file',
         group: [constants.CMD_ADD, constants.CMD_UPDATE]
       },
       {
-        name: 'item-id', alias: 'i', type: String, description: 'Catalog item ID',
+        name: 'item-id', alias: 'i', type: Number, description: 'Catalog item ID',
         group: [constants.CMD_UPDATE, constants.CMD_REMOVE, constants.CMD_INFO]
       },
       {

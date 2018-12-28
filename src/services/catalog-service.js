@@ -20,11 +20,11 @@ const CatalogItemImageManager = require('../sequelize/managers/catalog-item-imag
 const CatalogItemInputTypeManager = require('../sequelize/managers/catalog-item-input-type-manager');
 const CatalogItemOutputTypeManager = require('../sequelize/managers/catalog-item-output-type-manager');
 const Op = require('sequelize').Op;
-const validator = require('../schemas/index');
+const Validator = require('../schemas/index');
 const RegistryManager = require('../sequelize/managers/registry-manager');
 
 const createCatalogItem = async function (data, user, transaction) {
-  await validator.validate(data, validator.schemas.catalogItemCreate);
+  await Validator.validate(data, Validator.schemas.catalogItemCreate);
   await _checkForDuplicateName(data.name, {userId: user.id}, transaction);
   await _checkForRestrictedPublisher(data.publisher);
   const catalogItem = await _createCatalogItem(data, user, transaction);
@@ -38,7 +38,7 @@ const createCatalogItem = async function (data, user, transaction) {
 };
 
 const updateCatalogItem = async function (id, data, user, isCLI, transaction) {
-  await validator.validate(data, validator.schemas.catalogItemUpdate);
+  await Validator.validate(data, Validator.schemas.catalogItemUpdate);
 
   const where = isCLI
     ? {id: id}
@@ -48,76 +48,6 @@ const updateCatalogItem = async function (id, data, user, isCLI, transaction) {
   await _updateCatalogItem(data, where, transaction);
   await _updateCatalogItemImages(data, transaction);
   await _updateCatalogItemIOTypes(data, where, transaction);
-};
-
-const _updateCatalogItem = async function (data, where, transaction) {
-  let catalogItem = {
-    name: data.name,
-    description: data.description,
-    category: data.category,
-    configExample: data.configExample,
-    publisher: data.publisher,
-    diskRequired: data.diskRequired,
-    ramRequired: data.ramRequired,
-    picture: data.picture,
-    isPublic: data.isPublic,
-    registryId: data.registryId
-  };
-
-  catalogItem = AppHelper.deleteUndefinedFields(catalogItem);
-  if (!catalogItem || AppHelper.isEmpty(catalogItem)) {
-    return
-  }
-  const registry = await RegistryManager.findOne({id: data.registryId}, transaction);
-  if (!registry) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_REGISTRY_ID, data.registryId));
-  }
-
-  const item = await _checkIfItemExists(where, transaction);
-  await _checkForDuplicateName(data.name, item, transaction);
-  await CatalogItemManager.update(where, catalogItem, transaction);
-};
-
-const _updateCatalogItemImages = async function (data, transaction) {
-  if (data.images) {
-    for (let image of data.images) {
-      switch (image.fogTypeId) {
-        case 1:
-          await CatalogItemImageManager.updateOrCreate({
-            catalogItemId: data.id,
-            fogTypeId: 1
-          }, image, transaction);
-          break;
-        case 2:
-          await CatalogItemImageManager.updateOrCreate({
-            catalogItemId: data.id,
-            fogTypeId: 2
-          }, image, transaction);
-          break;
-      }
-    }
-  }
-};
-
-const _updateCatalogItemIOTypes = async function (data, where, transaction) {
-  if (data.inputType && data.inputType.length != 0) {
-    let inputType = {
-      catalogItemId: data.id,
-      infoType: data.inputType.infoType,
-      infoFormat: data.inputType.infoFormat
-    };
-    inputType = AppHelper.deleteUndefinedFields(inputType);
-    await CatalogItemInputTypeManager.updateOrCreate({catalogItemId: data.id}, inputType, transaction);
-  }
-  if (data.outputType && data.outputType.length !== 0) {
-    let outputType = {
-      catalogItemId: data.id,
-      infoType: data.outputType.infoType,
-      infoFormat: data.outputType.infoFormat
-    };
-    outputType = AppHelper.deleteUndefinedFields(outputType);
-    await CatalogItemOutputTypeManager.updateOrCreate({catalogItemId: data.id}, outputType, transaction);
-  }
 };
 
 const listCatalogItems = async function (user, isCLI, transaction) {
@@ -162,6 +92,37 @@ const deleteCatalogItem = async function (id, user, isCLI, transaction) {
   return affectedRows;
 };
 
+async function getNetworkCatalogItem(transaction) {
+  return await CatalogItemManager.findOne({
+    name: 'Networking Tool',
+    category: 'SYSTEM',
+    publisher: 'Eclipse ioFog',
+    registry_id: 1,
+    user_id: null
+  }, transaction)
+}
+
+async function getBluetoothCatalogItem(transaction) {
+  return await CatalogItemManager.findOne({
+    name: 'RESTBlue',
+    category: 'SYSTEM',
+    publisher: 'Eclipse ioFog',
+    registry_id: 1,
+    user_id: null
+  }, transaction)
+}
+
+async function getHalCatalogItem(transaction) {
+  return await CatalogItemManager.findOne({
+    name: 'HAL',
+    category: 'SYSTEM',
+    publisher: 'Eclipse ioFog',
+    registry_id: 1,
+    user_id: null
+  }, transaction)
+}
+
+
 const _checkForDuplicateName = async function (name, item, transaction) {
   if (name) {
     const where = item.id
@@ -175,7 +136,7 @@ const _checkForDuplicateName = async function (name, item, transaction) {
   }
 };
 
-const _checkForRestrictedPublisher = async function(publisher) {
+const _checkForRestrictedPublisher = async function (publisher) {
   if (publisher === 'Eclipse ioFog') {
     throw new Errors.ValidationError(ErrorMessages.RESTRICTED_PUBLISHER);
   }
@@ -267,35 +228,66 @@ const _createCatalogItemOutputType = async function (data, catalogItem, transact
   return await CatalogItemOutputTypeManager.create(catalogItemOutputType, transaction);
 };
 
-async function getNetworkCatalogItem(transaction) {
-  return await CatalogItemManager.findOne({
-    name: 'Networking Tool',
-    category: 'SYSTEM',
-    publisher: 'Eclipse ioFog',
-    registry_id: 1,
-    user_id: null
-  }, transaction)
-}
 
-async function getBluetoothCatalogItem(transaction) {
-  return await CatalogItemManager.findOne({
-    name: 'RESTBlue',
-    category: 'SYSTEM',
-    publisher: 'Eclipse ioFog',
-    registry_id: 1,
-    user_id: null
-  }, transaction)
-}
+const _updateCatalogItem = async function (data, where, transaction) {
+  let catalogItem = {
+    name: data.name,
+    description: data.description,
+    category: data.category,
+    configExample: data.configExample,
+    publisher: data.publisher,
+    diskRequired: data.diskRequired,
+    ramRequired: data.ramRequired,
+    picture: data.picture,
+    isPublic: data.isPublic,
+    registryId: data.registryId
+  };
 
-async function getHalCatalogItem(transaction) {
-  return await CatalogItemManager.findOne({
-    name: 'HAL',
-    category: 'SYSTEM',
-    publisher: 'Eclipse ioFog',
-    registry_id: 1,
-    user_id: null
-  }, transaction)
-}
+  catalogItem = AppHelper.deleteUndefinedFields(catalogItem);
+  if (!catalogItem || AppHelper.isEmpty(catalogItem)) {
+    return
+  }
+  const registry = await RegistryManager.findOne({id: data.registryId}, transaction);
+  if (!registry) {
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_REGISTRY_ID, data.registryId));
+  }
+
+  const item = await _checkIfItemExists(where, transaction);
+  await _checkForDuplicateName(data.name, item, transaction);
+  await CatalogItemManager.update(where, catalogItem, transaction);
+};
+
+const _updateCatalogItemImages = async function (data, transaction) {
+  if (data.images) {
+    for (const image of data.images) {
+      await CatalogItemImageManager.updateOrCreate({
+        catalogItemId: data.id,
+        fogTypeId: image.fogTypeId
+      }, image, transaction);
+    }
+  }
+};
+
+const _updateCatalogItemIOTypes = async function (data, where, transaction) {
+  if (data.inputType && data.inputType.length !== 0) {
+    let inputType = {
+      catalogItemId: data.id,
+      infoType: data.inputType.infoType,
+      infoFormat: data.inputType.infoFormat
+    };
+    inputType = AppHelper.deleteUndefinedFields(inputType);
+    await CatalogItemInputTypeManager.updateOrCreate({catalogItemId: data.id}, inputType, transaction);
+  }
+  if (data.outputType && data.outputType.length !== 0) {
+    let outputType = {
+      catalogItemId: data.id,
+      infoType: data.outputType.infoType,
+      infoFormat: data.outputType.infoFormat
+    };
+    outputType = AppHelper.deleteUndefinedFields(outputType);
+    await CatalogItemOutputTypeManager.updateOrCreate({catalogItemId: data.id}, outputType, transaction);
+  }
+};
 
 module.exports = {
   createCatalogItem: TransactionDecorator.generateTransaction(createCatalogItem),
