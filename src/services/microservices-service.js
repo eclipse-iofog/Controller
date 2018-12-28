@@ -275,7 +275,7 @@ async function _deletePortMappings(microservice, user, transaction) {
   }
 }
 
-async function deleteNotRunningMicroservices(transaction) {
+async function _deleteNotRunningMicroservices(transaction) {
   const microservices = await MicroserviceManager.findAllWithStatuses(transaction);
   microservices
     .filter(microservice => microservice.delete)
@@ -418,7 +418,7 @@ async function updateRouteOverConnector(connector, transaction) {
 }
 
 async function _createRouteOverConnector(sourceMicroservice, destMicroservice, user, transaction) {
-  //open comsat
+  //open connector
   const justOpenedConnectorsPorts = await ConnectorService.openPortOnRandomConnector(false, transaction)
 
   const ports = justOpenedConnectorsPorts.ports;
@@ -580,7 +580,7 @@ async function _deleteRouteOverConnector(route, transaction) {
   const connector = await ConnectorManager.findOne({id: ports.connectorId}, transaction)
 
   try {
-    await ConnectorService.closePortOnConnector(connector, ports, transaction);
+    await ConnectorService.closePortOnConnector(connector, ports);
   } catch (e) {
     logger.warn(`Can't close ports pair ${ports.mappingId} on connector ${connector.publicIp}. Delete manually if necessary`);
   }
@@ -682,7 +682,7 @@ async function updatePortMappingOverConnector(connector, transaction) {
 }
 
 async function _createPortMappingOverConnector(microservice, portMappingData, user, transaction) {
-  //open comsat
+  //open connector
   const justOpenedConnectorsPorts = await ConnectorService.openPortOnRandomConnector(true, transaction)
 
   const ports = justOpenedConnectorsPorts.ports
@@ -796,12 +796,13 @@ async function _deletePortMapping(microserviceUuid, internalPort, user, isCLI, t
 }
 
 async function _deleteSimplePortMapping(microservice, msPorts, user, transaction) {
-  await MicroservicePortManager.delete({id: msPorts.id}, transaction)
+  await MicroservicePortManager.delete({id: msPorts.id}, transaction);
 
   const updateRebuildMs = {
     rebuild: true
-  }
-  await MicroserviceManager.update({uuid: microservice.uuid}, updateRebuildMs, transaction)
+  };
+  await MicroserviceManager.update({uuid: microservice.uuid}, updateRebuildMs, transaction);
+  await ChangeTrackingService.update(microservice.iofogUuid, ChangeTrackingService.events.microserviceCommon, transaction);
 }
 
 async function _deletePortMappingOverConnector(microservice, msPorts, user, transaction) {
@@ -811,7 +812,7 @@ async function _deletePortMappingOverConnector(microservice, msPorts, user, tran
   const connector = await ConnectorManager.findOne({id: ports.connectorId}, transaction);
 
   try {
-    await ConnectorService.closePortOnConnector(connector, ports, transaction);
+    await ConnectorService.closePortOnConnector(connector, ports);
   } catch (e) {
     logger.warn(`Can't close ports pair ${ports.mappingId} on connector ${connector.publicIp}. Delete manually if necessary`);
   }
@@ -1043,8 +1044,8 @@ module.exports = {
   createVolumeMapping: TransactionDecorator.generateTransaction(_createVolumeMapping),
   deleteVolumeMapping: TransactionDecorator.generateTransaction(_deleteVolumeMapping),
   listVolumeMappings: TransactionDecorator.generateTransaction(_listVolumeMappings),
-  getPhysicalConections: getPhysicalConections,
-  deleteNotRunningMicroservices: deleteNotRunningMicroservices,
+  getPhysicalConnections: getPhysicalConections,
+  deleteNotRunningMicroservices: _deleteNotRunningMicroservices,
   updateRouteOverConnector: updateRouteOverConnector,
   updatePortMappingOverConnector: updatePortMappingOverConnector
 };

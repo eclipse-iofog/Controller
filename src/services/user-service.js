@@ -27,9 +27,6 @@ const EmailActivationCodeService = require('./email-activation-code-service');
 
 const AccessTokenService = require('./access-token-service');
 
-const logger = require('../logger');
-const constants = require('../helpers/constants');
-
 const TransactionDecorator = require('../decorators/transaction-decorator');
 
 const Validator = require('../schemas');
@@ -68,6 +65,9 @@ const login = async function (credentials, isCLI, transaction) {
   }
 
   const pass = AppHelper.decryptText(user.password, user.email);
+  if (isCLI) {
+    credentials.password = AppHelper.decryptText(credentials.password, credentials.email);
+  }
 
   const validPassword = credentials.password === pass || credentials.password === user.tempPassword;
   if (!validPassword) {

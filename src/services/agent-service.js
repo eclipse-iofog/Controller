@@ -36,6 +36,8 @@ const formidable = require('formidable');
 const Sequelize = require('sequelize');
 const Op = Sequelize.Op;
 
+const IncomingForm = formidable.IncomingForm;
+
 const agentProvision = async function (provisionData, transaction) {
 
   await Validator.validate(provisionData, Validator.schemas.agentProvision);
@@ -129,7 +131,7 @@ const updateAgentConfig = async function (updateData, fog, transaction) {
 
 const getAgentConfigChanges = async function (fog, transaction) {
 
-  const changeTracking = await ChangeTrackingService.getByFogId(fog.uuid, transaction);
+  const changeTracking = await ChangeTrackingService.getByIoFogUuid(fog.uuid, transaction);
   if (!changeTracking) {
     throw new Errors.NotFoundError(ErrorMessages.INVALID_NODE_ID)
   }
@@ -219,7 +221,7 @@ const getAgentMicroservices = async function (fog, transaction) {
     const image = images.find(image => image.fogTypeId === fogTypeId);
     const imageId = image ? image.containerImage : '';
 
-    const routes = await MicroserviceService.getPhysicalConections(microservice, transaction);
+    const routes = await MicroserviceService.getPhysicalConnections(microservice, transaction);
 
     const responseMicroservice = {
       uuid: microservice.uuid,
@@ -307,12 +309,12 @@ const getAgentStrace = async function (fog, transaction) {
   }
 
   const straceArr = [];
-  for (let msData of fogWithStrace.microservice) {
+  for (const msData of fogWithStrace.microservice) {
     straceArr.push({
       microserviceUuid: msData.strace.microserviceUuid,
       straceRun: msData.strace.straceRun
     })
-  };
+  }
 
   return {
     straceValues: straceArr
@@ -338,13 +340,13 @@ const getAgentChangeVersionCommand = async function (fog, transaction) {
     throw new Errors.NotFoundError(ErrorMessages.VERSION_COMMAND_NOT_FOUND);
   }
 
-  const provision = FogProvisionKeyManager.findOne({
+  const provision = await FogProvisionKeyManager.findOne({
     iofogUuid: fog.uuid
   }, transaction);
 
   return {
     versionCommand: versionCommand.versionCommand,
-    provisionKey: provision.key,
+    provisionKey: provision.provisionKey,
     expirationTime: provision.expirationTime
   }
 };
@@ -398,16 +400,16 @@ const putImageSnapshot = async function (req, fog, transaction) {
     throw new Errors.ValidationError(ErrorMessages.INVALID_CONTENT_TYPE);
   }
 
-  const form = new formidable.IncomingForm(opts);
+  const form = new IncomingForm(opts);
   form.uploadDir = path.join(appRoot, '../') + 'data';
   if (!fs.existsSync(form.uploadDir)) {
     fs.mkdirSync(form.uploadDir);
   }
-  await saveSnapShot(req, form,fog, transaction);
+  await _saveSnapShot(req, form, fog, transaction);
   return {};
 };
 
-const saveSnapShot = function (req, form, fog, transaction) {
+const _saveSnapShot = function (req, form, fog, transaction) {
   return new Promise((resolve, reject) => {
     form.parse(req, async function (error, fields, files) {
       const file = files['upstream'];

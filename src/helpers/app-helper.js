@@ -14,6 +14,7 @@
 const crypto = require('crypto');
 const Errors = require('./errors');
 
+const logger = require('../logger');
 const fs = require('fs');
 const Config = require('../config');
 const path = require('path');

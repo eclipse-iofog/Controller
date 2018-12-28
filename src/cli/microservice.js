@@ -78,7 +78,7 @@ class Microservice extends BaseCLIHandler {
         group: [constants.CMD]
       },
       {
-        name: 'file', alias: 'f', type: String, description: 'Microservice settings JSON file',
+        name: 'file', alias: 'f', type: String, description: 'Path to microservice settings JSON file',
         group: [constants.CMD_ADD, constants.CMD_UPDATE]
       },
       {
