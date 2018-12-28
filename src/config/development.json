@@ -4,7 +4,10 @@
   },
   "Server": {
     "Port": 51121,
-    "DevMode": true
+    "DevMode": true,
+    "SslCert": "/home/owner/Downloads/iofog_certs/iofog.org/ssl_certificate.crt",
+    "SslKey": "/home/owner/Downloads/iofog_certs/iofog.org/server-key.pem",
+    "IntermediateCert": "/home/owner/Downloads/iofog_certs/iofog.org/IntermediateCA.crt"
   },
   "Email": {
     "ActivationEnabled": false,
@@ -30,4 +33,3 @@
     "DiagnosticDir": "diagnostic"
   }
 }
-

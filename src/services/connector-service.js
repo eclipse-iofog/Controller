@@ -26,6 +26,7 @@ const Op = require('sequelize').Op;
 const Sequelize = require('sequelize');
 const fs = require('fs');
 const ConnectorPortManager = require('../sequelize/managers/connector-port-manager');
+const MicroserviceService = require('../services/microservices-service');
 
 async function _createConnector(connectorData, transaction) {
   await Validator.validate(connectorData, Validator.schemas.connectorCreate);
@@ -44,12 +45,15 @@ async function _createConnector(connectorData, transaction) {
 }
 
 async function _updateConnector(connectorData, transaction) {
-  await Validator.validate(connectorData, Validator.schemas.connectorUpdate)
+  await Validator.validate(connectorData, Validator.schemas.connectorUpdate);
   validateConnectorData(connectorData);
   const queryConnectorData = {
     publicIp: connectorData.publicIp
   };
-  await ConnectorManager.update(queryConnectorData, connectorData, transaction)
+  await ConnectorManager.update(queryConnectorData, connectorData, transaction);
+  const connector = await ConnectorManager.findOne({name: connectorData.name}, transaction);
+  await MicroserviceService.updateRouteOverConnector(connector, transaction);
+  await MicroserviceService.updatePortMappingOverConnector(connector, transaction);
 }
 
 function validateConnectorData(connectorData) {

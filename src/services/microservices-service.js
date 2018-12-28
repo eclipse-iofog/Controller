@@ -33,6 +33,7 @@ const CatalogService = require('../services/catalog-service');
 const RoutingManager = require('../sequelize/managers/routing-manager');
 const Op = require('sequelize').Op;
 const fs = require('fs');
+const _ = require('underscore');
 
 async function _listMicroservices(flowId, user, isCLI, transaction) {
   if (!isCLI) {
@@ -274,7 +275,7 @@ async function _deletePortMappings(microservice, user, transaction) {
   }
 }
 
-async function _deleteNotRunningMicroservices(transaction) {
+async function deleteNotRunningMicroservices(transaction) {
   const microservices = await MicroserviceManager.findAllWithStatuses(transaction);
   microservices
     .filter(microservice => microservice.delete)
@@ -379,12 +380,49 @@ async function _createSimpleRoute(sourceMicroservice, destMicroservice, transact
   await _switchOnUpdateFlagsForMicroservicesInRoute(sourceMicroservice, destMicroservice, transaction)
 }
 
+async function updateRouteOverConnector(connector, transaction) {
+  const routes = await RoutingManager.findAllRoutesByConnectorId(connector.id, transaction);
+  const networkMicroserviceUuids = _.flatten(_.map(
+    routes, route => [route.sourceNetworkMicroserviceUuid, route.destNetworkMicroserviceUuid]
+  ));
+  const microservices = await MicroserviceManager.findAll({uuid: networkMicroserviceUuids}, transaction);
+
+  let cert;
+  if (!connector.devMode && connector.cert) {
+    cert = AppHelper.trimCertificate(fs.readFileSync(connector.cert, "utf-8"))
+  }
+
+  for (const microservice of microservices) {
+    const msConfig = JSON.parse(microservice.config);
+    msConfig.host = connector.domain;
+    msConfig.cert = cert;
+    msConfig.devmode = connector.devMode;
+    const newConfig = {
+      config: JSON.stringify(msConfig),
+      rebuild: true
+    };
+    await MicroserviceManager.update({
+      uuid: microservice.uuid
+    }, newConfig, transaction);
+  }
+
+  const onlyUnique = (value, index, self) => self.indexOf(value) === index;
+  const iofogUuids = microservices
+    .map(obj => obj.iofogUuid)
+    .filter(onlyUnique)
+    .filter(val => val !== null);
+
+  for (const iofogUuid of iofogUuids) {
+    await ChangeTrackingService.update(iofogUuid, ChangeTrackingService.events.microserviceCommon, transaction);
+  }
+}
+
 async function _createRouteOverConnector(sourceMicroservice, destMicroservice, user, transaction) {
   //open comsat
   const justOpenedConnectorsPorts = await ConnectorService.openPortOnRandomConnector(false, transaction)
 
-  const ports = justOpenedConnectorsPorts.ports
-  const connector = justOpenedConnectorsPorts.connector
+  const ports = justOpenedConnectorsPorts.ports;
+  const connector = justOpenedConnectorsPorts.connector;
 
   const createConnectorPortData = {
     port1: ports.port1,
@@ -398,9 +436,9 @@ async function _createRouteOverConnector(sourceMicroservice, destMicroservice, u
     connectorId: ports.connectorId,
     mappingId: ports.id
   };
-  const connectorPort = await ConnectorPortManager.create(createConnectorPortData, transaction)
+  const connectorPort = await ConnectorPortManager.create(createConnectorPortData, transaction);
 
-  const networkCatalogItem = await CatalogService.getNetworkCatalogItem(transaction)
+  const networkCatalogItem = await CatalogService.getNetworkCatalogItem(transaction);
 
   let cert;
   if (!connector.devMode && connector.cert) {
@@ -608,6 +646,39 @@ async function _createSimplePortMapping(microservice, portMappingData, user, tra
 
   await MicroservicePortManager.create(mappingData, transaction)
   await _switchOnUpdateFlagsForMicroservicesForPortMapping(microservice, false, transaction)
+}
+
+async function updatePortMappingOverConnector(connector, transaction) {
+  const microservicePublicModes = await MicroservicePublicModeManager.findAllMicroservicePublicModesByConnectorId(connector.id, transaction);
+  const networkMicroserviceUuids = microservicePublicModes.map(obj => obj.networkMicroserviceUuid);
+  const microservices = await MicroserviceManager.findAll({uuid: networkMicroserviceUuids}, transaction);
+
+  let cert;
+  if (!connector.devMode && connector.cert) {
+    cert = AppHelper.trimCertificate(fs.readFileSync(connector.cert, "utf-8"))
+  }
+
+  for (const microservice of microservices) {
+    const msConfig = JSON.parse(microservice.config);
+    msConfig.host = connector.domain;
+    msConfig.cert = cert;
+    msConfig.devmode = connector.devMode;
+    const newConfig = {
+      config: JSON.stringify(msConfig),
+      rebuild: true
+    };
+    await MicroserviceManager.update({uuid: microservice.uuid}, newConfig, transaction);
+  }
+
+  const onlyUnique = (value, index, self) => self.indexOf(value) === index;
+  const iofogUuids = microservices
+    .map(obj => obj.iofogUuid)
+    .filter(onlyUnique)
+    .filter(val => val !== null);
+
+  for (const iofogUuid of iofogUuids) {
+    await ChangeTrackingService.update(iofogUuid, ChangeTrackingService.events.microserviceCommon, transaction);
+  }
 }
 
 async function _createPortMappingOverConnector(microservice, portMappingData, user, transaction) {
@@ -973,5 +1044,7 @@ module.exports = {
   deleteVolumeMapping: TransactionDecorator.generateTransaction(_deleteVolumeMapping),
   listVolumeMappings: TransactionDecorator.generateTransaction(_listVolumeMappings),
   getPhysicalConections: getPhysicalConections,
-  deleteNotRunningMicroservices: _deleteNotRunningMicroservices
+  deleteNotRunningMicroservices: deleteNotRunningMicroservices,
+  updateRouteOverConnector: updateRouteOverConnector,
+  updatePortMappingOverConnector: updatePortMappingOverConnector
 };
