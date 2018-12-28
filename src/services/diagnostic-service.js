@@ -20,11 +20,10 @@ const MicroserviceService = require('../services/microservices-service');
 const StraceDiagnosticManager = require('../sequelize/managers/strace-diagnostics-manager');
 const ChangeTrackingService = require('./change-tracking-service');
 const MicroserviceManager = require('../sequelize/managers/microservice-manager');
-const config = require('../config');
+const Config = require('../config');
 const fs = require('fs');
 const logger = require('../logger');
 const ftpClient = require('ftp');
-const path = require('path');
 const mime = require('mime');
 
 
@@ -60,7 +59,7 @@ const getMicroserviceStraceData = async function (uuid, data, user, isCLI, trans
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_STRACE, uuid))
   }
 
-  const dir = config.get('Diagnostics:DiagnosticDir') || 'diagnostics';
+  const dir = Config.get('Diagnostics:DiagnosticDir') || 'diagnostics';
   const filePath = dir + '/' + uuid;
 
   let result = straceData.buffer;
@@ -93,7 +92,7 @@ const postMicroserviceStraceDatatoFtp = async function (uuid, data, user, isCLI,
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_STRACE, uuid))
   }
 
-  const dir = config.get('Diagnostics:DiagnosticDir');
+  const dir = Config.get('Diagnostics:DiagnosticDir');
   const filePath = dir + '/' + uuid;
 
   _createDirectoryIfNotExists(dir);
