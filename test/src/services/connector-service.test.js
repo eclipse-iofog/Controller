@@ -2,6 +2,7 @@ const {expect} = require('chai');
 const sinon = require('sinon');
 
 const ConnectorManager = require('../../../src/sequelize/managers/connector-manager');
+const MicroserviceService = require('../../../src/services/microservices-service');
 const ConnectorService = require('../../../src/services/connector-service');
 const Validator = require('../../../src/schemas');
 const AppHelper = require('../../../src/helpers/app-helper');
@@ -167,12 +168,17 @@ describe('Connector Service', () => {
       devMode: true
     };
 
+    const connector = {};
+
     def('subject', () => $subject.updateConnector(connectorData, transaction));
     def('validatorResponse', () => Promise.resolve(true));
     def('isValidDomainResponse', () => false);
     def('isValidPublicIpResponse', () => true);
     def('isValidPublicIpResponse2', () => true);
     def('updateConnectorResponse', () => Promise.resolve());
+    def('findOneConnectorResponse', () => Promise.resolve(connector));
+    def('updateRouteOverConnectorResponse', () => Promise.resolve());
+    def('updatePortMappingOverConnectorResponse', () => Promise.resolve());
 
     const queryConnectorData = {
       publicIp: connectorData.publicIp
@@ -185,6 +191,9 @@ describe('Connector Service', () => {
         .onFirstCall().returns($isValidPublicIpResponse)
         .onSecondCall().returns($isValidPublicIpResponse2);
       $sandbox.stub(ConnectorManager, 'update').returns($updateConnectorResponse);
+      $sandbox.stub(ConnectorManager, 'findOne').returns($findOneConnectorResponse);
+      $sandbox.stub(MicroserviceService, 'updateRouteOverConnector').returns($updateRouteOverConnectorResponse);
+      $sandbox.stub(MicroserviceService, 'updatePortMappingOverConnector').returns($updatePortMappingOverConnectorResponse);
     });
 
     it('calls Validator#validate() with correct args', async () => {
@@ -257,8 +266,55 @@ describe('Connector Service', () => {
             });
 
             context('when ConnectorManager#update() succeeds', () => {
-              it('fulfills the promise', () => {
-                return expect($subject).to.eventually.equal(undefined)
+              it('calls ConnectorManager#findOne() with correct args', async () => {
+                await $subject;
+                expect(ConnectorManager.findOne).to.have.been.calledWith({
+                  name: connectorData.name
+                }, transaction);
+              });
+
+              context('when ConnectorManager#findOne() fails', () => {
+                def('findOneConnectorResponse', () => Promise.reject(error));
+
+                it(`fails with ${error}`, () => {
+                  return expect($subject).to.be.rejectedWith(error)
+                })
+              });
+
+              context('when ConnectorManager#findOne() succeeds', () => {
+                it('calls MicroserviceService#updateRouteOverConnector() with correct args', async () => {
+                  await $subject;
+                  expect(MicroserviceService.updateRouteOverConnector).to.have.been.calledWith(connector, transaction);
+                });
+
+                context('when MicroserviceService#updateRouteOverConnector() fails', () => {
+                  def('updateRouteOverConnectorResponse', () => Promise.reject(error));
+
+                  it(`fails with ${error}`, () => {
+                    return expect($subject).to.be.rejectedWith(error)
+                  })
+                });
+
+                context('when MicroserviceService#updateRouteOverConnector() succeeds', () => {
+                  it('calls MicroserviceService#updatePortMappingOverConnector() with correct args', async () => {
+                    await $subject;
+                    expect(MicroserviceService.updatePortMappingOverConnector).to.have.been.calledWith(connector, transaction);
+                  });
+
+                  context('when MicroserviceService#updatePortMappingOverConnector() fails', () => {
+                    def('updatePortMappingOverConnectorResponse', () => Promise.reject(error));
+
+                    it(`fails with ${error}`, () => {
+                      return expect($subject).to.be.rejectedWith(error)
+                    })
+                  });
+
+                  context('when MicroserviceService#updatePortMappingOverConnector() succeeds', () => {
+                    it('fulfills the promise', () => {
+                      return expect($subject).to.eventually.equal(undefined)
+                    })
+                  })
+                })
               })
             })
           })
@@ -399,69 +455,4 @@ describe('Connector Service', () => {
       })
     })
   });
-
-
-  // TODO finish with qs.stringify mock EWC-452
-  // describe('.openPortOnRandomConnector()', () => {
-  //   const transaction = {};
-  //   const error = 'Error!';
-  //
-  //   const isPublicAccess = false;
-  //
-  //   const connectors = [
-  //     {
-  //       id: 15
-  //     },
-  //     {
-  //       id: 16
-  //     }
-  //   ];
-  //
-  //   def('subject', () => $subject.openPortOnRandomConnector(isPublicAccess, transaction));
-  //   def('findConnectorsResponse', () => Promise.resolve(connectors));
-  //   def('stringifyResponse', () => Promise.resolve());
-  //
-  //   beforeEach(() => {
-  //     $sandbox.stub(ConnectorManager, 'findAll').returns($findConnectorsResponse);
-  //     $sandbox.stub(qs, 'stringify').returns($stringifyResponse);
-  //   });
-  //
-  //   it('calls ConnectorManager#findAll() with correct args', async () => {
-  //     await $subject;
-  //     expect(ConnectorManager.findAll).to.have.been.calledWith({}, transaction);
-  //   });
-  //
-  //   context('when ConnectorManager#findAll() fails', () => {
-  //     def('findConnectorsResponse', () => Promise.reject(error));
-  //
-  //     it(`fails with ${error}`, () => {
-  //       return expect($subject).to.be.rejectedWith(error)
-  //     })
-  //   });
-  //
-  //   context('when ConnectorManager#findAll() succeeds', () => {
-  //     it('calls qs#stringify() with correct args', async () => {
-  //       await $subject;
-  //       expect(qs.stringify).to.have.been.calledWith({
-  //         mapping: '{"type":"public","maxconnections":60,"heartbeatabsencethreshold":200000}'
-  //       });
-  //     });
-  //
-  //     context('when qs#stringify() fails', () => {
-  //       def('stringifyResponse', () => error);
-  //
-  //       it(`fails with ${error}`, () => {
-  //         return expect($subject).to.eventually.equal(undefined)
-  //       })
-  //     });
-  //
-  //     context('when qs#stringify() succeeds', () => {
-  //       it('fulfills the promise', () => {
-  //         return expect($subject).to.eventually.equal(undefined)
-  //       })
-  //     })
-  //   })
-  // });
-
-
 });

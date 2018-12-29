@@ -279,7 +279,6 @@ function isEmpty(obj) {
   return true;
 }
 
-
 module.exports = {
   encryptText,
   decryptText,

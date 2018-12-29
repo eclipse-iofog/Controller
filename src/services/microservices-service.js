@@ -22,17 +22,18 @@ const ConnectorManager = require('../sequelize/managers/connector-manager');
 const ConnectorPortManager = require('../sequelize/managers/connector-port-manager');
 const MicroservicePublicModeManager = require('../sequelize/managers/microservice-public-mode-manager');
 const ChangeTrackingService = require('./change-tracking-service');
+const ConnectorPortService = require('./connector-port-service');
 const IoFogService = require('../services/iofog-service');
 const AppHelper = require('../helpers/app-helper');
 const Errors = require('../helpers/errors');
 const ErrorMessages = require('../helpers/error-messages');
 const Validation = require('../schemas/index');
-const ConnectorService = require('../services/connector-service');
 const FlowService = require('../services/flow-service');
 const CatalogService = require('../services/catalog-service');
 const RoutingManager = require('../sequelize/managers/routing-manager');
 const Op = require('sequelize').Op;
 const fs = require('fs');
+const _ = require('underscore');
 
 async function _listMicroservices(flowId, user, isCLI, transaction) {
   if (!isCLI) {
@@ -379,12 +380,53 @@ async function _createSimpleRoute(sourceMicroservice, destMicroservice, transact
   await _switchOnUpdateFlagsForMicroservicesInRoute(sourceMicroservice, destMicroservice, transaction)
 }
 
+async function updateRouteOverConnector(connector, transaction) {
+  const routes = await RoutingManager.findAllRoutesByConnectorId(connector.id, transaction);
+  const networkMicroserviceUuids = _.flatten(_.map(
+    routes, route => [route.sourceNetworkMicroserviceUuid, route.destNetworkMicroserviceUuid]
+  ));
+  await _updateNetworkMicroserviceConfigs(networkMicroserviceUuids, connector, transaction);
+}
+
+async function _updateNetworkMicroserviceConfigs(networkMicroserviceUuids, connector, transaction) {
+  const microservices = await MicroserviceManager.findAll({uuid: networkMicroserviceUuids}, transaction);
+
+  let cert;
+  if (!connector.devMode && connector.cert) {
+    cert = AppHelper.trimCertificate(fs.readFileSync(connector.cert, "utf-8"))
+  }
+
+  for (const microservice of microservices) {
+    const msConfig = JSON.parse(microservice.config);
+    msConfig.host = connector.domain;
+    msConfig.cert = cert;
+    msConfig.devmode = connector.devMode;
+    const newConfig = {
+      config: JSON.stringify(msConfig),
+      rebuild: true
+    };
+    await MicroserviceManager.update({
+      uuid: microservice.uuid
+    }, newConfig, transaction);
+  }
+
+  const onlyUnique = (value, index, self) => self.indexOf(value) === index;
+  const iofogUuids = microservices
+    .map(obj => obj.iofogUuid)
+    .filter(onlyUnique)
+    .filter(val => val !== null);
+
+  for (const iofogUuid of iofogUuids) {
+    await ChangeTrackingService.update(iofogUuid, ChangeTrackingService.events.microserviceCommon, transaction);
+  }
+}
+
 async function _createRouteOverConnector(sourceMicroservice, destMicroservice, user, transaction) {
   //open connector
-  const justOpenedConnectorsPorts = await ConnectorService.openPortOnRandomConnector(false, transaction)
+  const justOpenedConnectorsPorts = await ConnectorPortService.openPortOnRandomConnector(false, transaction)
 
-  const ports = justOpenedConnectorsPorts.ports
-  const connector = justOpenedConnectorsPorts.connector
+  const ports = justOpenedConnectorsPorts.ports;
+  const connector = justOpenedConnectorsPorts.connector;
 
   const createConnectorPortData = {
     port1: ports.port1,
@@ -398,9 +440,9 @@ async function _createRouteOverConnector(sourceMicroservice, destMicroservice, u
     connectorId: ports.connectorId,
     mappingId: ports.id
   };
-  const connectorPort = await ConnectorPortManager.create(createConnectorPortData, transaction)
+  const connectorPort = await ConnectorPortManager.create(createConnectorPortData, transaction);
 
-  const networkCatalogItem = await CatalogService.getNetworkCatalogItem(transaction)
+  const networkCatalogItem = await CatalogService.getNetworkCatalogItem(transaction);
 
   let cert;
   if (!connector.devMode && connector.cert) {
@@ -542,7 +584,7 @@ async function _deleteRouteOverConnector(route, transaction) {
   const connector = await ConnectorManager.findOne({id: ports.connectorId}, transaction)
 
   try {
-    await ConnectorService.closePortOnConnector(connector, ports);
+    await ConnectorPortService.closePortOnConnector(connector, ports);
   } catch (e) {
     logger.warn(`Can't close ports pair ${ports.mappingId} on connector ${connector.publicIp}. Delete manually if necessary`);
   }
@@ -610,9 +652,15 @@ async function _createSimplePortMapping(microservice, portMappingData, user, tra
   await _switchOnUpdateFlagsForMicroservicesForPortMapping(microservice, false, transaction)
 }
 
+async function updatePortMappingOverConnector(connector, transaction) {
+  const microservicePublicModes = await MicroservicePublicModeManager.findAllMicroservicePublicModesByConnectorId(connector.id, transaction);
+  const networkMicroserviceUuids = microservicePublicModes.map(obj => obj.networkMicroserviceUuid);
+  await _updateNetworkMicroserviceConfigs(networkMicroserviceUuids, connector, transaction);
+}
+
 async function _createPortMappingOverConnector(microservice, portMappingData, user, transaction) {
   //open connector
-  const justOpenedConnectorsPorts = await ConnectorService.openPortOnRandomConnector(true, transaction)
+  const justOpenedConnectorsPorts = await ConnectorPortService.openPortOnRandomConnector(true, transaction)
 
   const ports = justOpenedConnectorsPorts.ports
   const connector = justOpenedConnectorsPorts.connector
@@ -741,7 +789,7 @@ async function _deletePortMappingOverConnector(microservice, msPorts, user, tran
   const connector = await ConnectorManager.findOne({id: ports.connectorId}, transaction);
 
   try {
-    await ConnectorService.closePortOnConnector(connector, ports);
+    await ConnectorPortService.closePortOnConnector(connector, ports);
   } catch (e) {
     logger.warn(`Can't close ports pair ${ports.mappingId} on connector ${connector.publicIp}. Delete manually if necessary`);
   }
@@ -974,5 +1022,7 @@ module.exports = {
   deleteVolumeMapping: TransactionDecorator.generateTransaction(_deleteVolumeMapping),
   listVolumeMappings: TransactionDecorator.generateTransaction(_listVolumeMappings),
   getPhysicalConnections: getPhysicalConections,
-  deleteNotRunningMicroservices: _deleteNotRunningMicroservices
+  deleteNotRunningMicroservices: _deleteNotRunningMicroservices,
+  updateRouteOverConnector: updateRouteOverConnector,
+  updatePortMappingOverConnector: updatePortMappingOverConnector
 };
