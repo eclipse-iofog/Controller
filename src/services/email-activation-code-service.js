@@ -14,7 +14,6 @@
 const EmailActivationCodeManager = require('../sequelize/managers/email-activation-code-manager');
 const AppHelper = require('../helpers/app-helper');
 const ErrorMessages = require('../helpers/error-messages');
-const TransactionDecorator = require('../decorators/transaction-decorator');
 
 const generateActivationCode = async function (transaction) {
   while (true) {
@@ -52,20 +51,12 @@ const verifyActivationCode = async function (activationCode, transaction) {
 const deleteActivationCode = async function (activationCode, transaction) {
   return await EmailActivationCodeManager.delete({
     activationCode: activationCode
-  }, transaction)
+  }, transaction);
 };
-
-const findActivationCodeByUserId = async function (userId, transaction) {
-  return await EmailActivationCodeManager.findOne({
-    userId: userId
-  }, transaction)
-};
-
 
 module.exports = {
   generateActivationCode: generateActivationCode,
   saveActivationCode: saveActivationCode,
   verifyActivationCode: verifyActivationCode,
-  deleteActivationCode: deleteActivationCode,
-  findActivationCodeByUserId: TransactionDecorator.generateTransaction(findActivationCodeByUserId)
+  deleteActivationCode: deleteActivationCode
 };
