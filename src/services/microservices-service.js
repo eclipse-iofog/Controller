@@ -22,12 +22,12 @@ const ConnectorManager = require('../sequelize/managers/connector-manager');
 const ConnectorPortManager = require('../sequelize/managers/connector-port-manager');
 const MicroservicePublicModeManager = require('../sequelize/managers/microservice-public-mode-manager');
 const ChangeTrackingService = require('./change-tracking-service');
+const ConnectorPortService = require('./connector-port-service');
 const IoFogService = require('../services/iofog-service');
 const AppHelper = require('../helpers/app-helper');
 const Errors = require('../helpers/errors');
 const ErrorMessages = require('../helpers/error-messages');
 const Validation = require('../schemas/index');
-const ConnectorService = require('../services/connector-service');
 const FlowService = require('../services/flow-service');
 const CatalogService = require('../services/catalog-service');
 const RoutingManager = require('../sequelize/managers/routing-manager');
@@ -419,7 +419,7 @@ async function updateRouteOverConnector(connector, transaction) {
 
 async function _createRouteOverConnector(sourceMicroservice, destMicroservice, user, transaction) {
   //open connector
-  const justOpenedConnectorsPorts = await ConnectorService.openPortOnRandomConnector(false, transaction)
+  const justOpenedConnectorsPorts = await ConnectorPortService.openPortOnRandomConnector(false, transaction)
 
   const ports = justOpenedConnectorsPorts.ports;
   const connector = justOpenedConnectorsPorts.connector;
@@ -580,7 +580,7 @@ async function _deleteRouteOverConnector(route, transaction) {
   const connector = await ConnectorManager.findOne({id: ports.connectorId}, transaction)
 
   try {
-    await ConnectorService.closePortOnConnector(connector, ports);
+    await ConnectorPortService.closePortOnConnector(connector, ports);
   } catch (e) {
     logger.warn(`Can't close ports pair ${ports.mappingId} on connector ${connector.publicIp}. Delete manually if necessary`);
   }
@@ -683,7 +683,7 @@ async function updatePortMappingOverConnector(connector, transaction) {
 
 async function _createPortMappingOverConnector(microservice, portMappingData, user, transaction) {
   //open connector
-  const justOpenedConnectorsPorts = await ConnectorService.openPortOnRandomConnector(true, transaction)
+  const justOpenedConnectorsPorts = await ConnectorPortService.openPortOnRandomConnector(true, transaction)
 
   const ports = justOpenedConnectorsPorts.ports
   const connector = justOpenedConnectorsPorts.connector
@@ -812,7 +812,7 @@ async function _deletePortMappingOverConnector(microservice, msPorts, user, tran
   const connector = await ConnectorManager.findOne({id: ports.connectorId}, transaction);
 
   try {
-    await ConnectorService.closePortOnConnector(connector, ports);
+    await ConnectorPortService.closePortOnConnector(connector, ports);
   } catch (e) {
     logger.warn(`Can't close ports pair ${ports.mappingId} on connector ${connector.publicIp}. Delete manually if necessary`);
   }
