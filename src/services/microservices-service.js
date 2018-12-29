@@ -385,6 +385,10 @@ async function updateRouteOverConnector(connector, transaction) {
   const networkMicroserviceUuids = _.flatten(_.map(
     routes, route => [route.sourceNetworkMicroserviceUuid, route.destNetworkMicroserviceUuid]
   ));
+  await _updateNetworkMicroserviceConfigs(networkMicroserviceUuids, connector, transaction);
+}
+
+async function _updateNetworkMicroserviceConfigs(networkMicroserviceUuids, connector, transaction) {
   const microservices = await MicroserviceManager.findAll({uuid: networkMicroserviceUuids}, transaction);
 
   let cert;
@@ -651,34 +655,7 @@ async function _createSimplePortMapping(microservice, portMappingData, user, tra
 async function updatePortMappingOverConnector(connector, transaction) {
   const microservicePublicModes = await MicroservicePublicModeManager.findAllMicroservicePublicModesByConnectorId(connector.id, transaction);
   const networkMicroserviceUuids = microservicePublicModes.map(obj => obj.networkMicroserviceUuid);
-  const microservices = await MicroserviceManager.findAll({uuid: networkMicroserviceUuids}, transaction);
-
-  let cert;
-  if (!connector.devMode && connector.cert) {
-    cert = AppHelper.trimCertificate(fs.readFileSync(connector.cert, "utf-8"))
-  }
-
-  for (const microservice of microservices) {
-    const msConfig = JSON.parse(microservice.config);
-    msConfig.host = connector.domain;
-    msConfig.cert = cert;
-    msConfig.devmode = connector.devMode;
-    const newConfig = {
-      config: JSON.stringify(msConfig),
-      rebuild: true
-    };
-    await MicroserviceManager.update({uuid: microservice.uuid}, newConfig, transaction);
-  }
-
-  const onlyUnique = (value, index, self) => self.indexOf(value) === index;
-  const iofogUuids = microservices
-    .map(obj => obj.iofogUuid)
-    .filter(onlyUnique)
-    .filter(val => val !== null);
-
-  for (const iofogUuid of iofogUuids) {
-    await ChangeTrackingService.update(iofogUuid, ChangeTrackingService.events.microserviceCommon, transaction);
-  }
+  await _updateNetworkMicroserviceConfigs(networkMicroserviceUuids, connector, transaction);
 }
 
 async function _createPortMappingOverConnector(microservice, portMappingData, user, transaction) {
