@@ -26,7 +26,6 @@ const IncomingForm = formidable.IncomingForm;
 
 global.appRoot = path.resolve(__dirname);
 
-
 describe('Agent Service', () => {
   def('subject', () => AgentService);
   def('sandbox', () => sinon.createSandbox());
