@@ -18,6 +18,7 @@ const Errors = require('../helpers/errors');
 const ErrorMessages = require('../helpers/error-messages');
 const Validation = require('../schemas');
 const ChangeTrackingService = require('./change-tracking-service');
+const Op = require('sequelize').Op;
 
 const _createFlow = async function (flowData, user, isCLI, transaction) {
   await Validation.validate(flowData, Validation.schemas.flowCreate);
