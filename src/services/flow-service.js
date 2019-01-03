@@ -16,14 +16,15 @@ const FlowManager = require('../sequelize/managers/flow-manager');
 const AppHelper = require('../helpers/app-helper');
 const Errors = require('../helpers/errors');
 const ErrorMessages = require('../helpers/error-messages');
-const Validation = require('../schemas');
+const Validator = require('../schemas');
 const ChangeTrackingService = require('./change-tracking-service');
-const Op = require('sequelize').Op;
+const Sequelize = require('sequelize');
+const Op = Sequelize.Op;
 
-const _createFlow = async function (flowData, user, isCLI, transaction) {
-  await Validation.validate(flowData, Validation.schemas.flowCreate);
+const createFlow = async function (flowData, user, isCLI, transaction) {
+  await Validator.validate(flowData, Validator.schemas.flowCreate);
 
-  await _checkForDuplicateName(flowData.name, {}, user.id, transaction);
+  await _checkForDuplicateName(flowData.name, null, user.id, transaction);
 
   const flowToCreate = {
     name: flowData.name,
@@ -41,7 +42,7 @@ const _createFlow = async function (flowData, user, isCLI, transaction) {
   }
 };
 
-const _deleteFlow = async function (flowId, user, isCLI, transaction) {
+const deleteFlow = async function (flowId, user, isCLI, transaction) {
   const whereObj = {
     id: flowId,
     userId: user.id
@@ -53,25 +54,10 @@ const _deleteFlow = async function (flowId, user, isCLI, transaction) {
   await FlowManager.delete(where, transaction);
 };
 
-async function _updateChangeTrackingsByFlowId(flowId, transaction) {
-  const flowWithMicroservices = await FlowManager.findFlowMicroservices({id: flowId}, transaction);
-  if (!flowWithMicroservices) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_ID, flowId));
-  }
-  const onlyUnique = (value, index, self) => self.indexOf(value) === index;
-  const iofogUuids = flowWithMicroservices.microservices
-    .map(obj => obj.iofogUuid)
-    .filter(onlyUnique)
-    .filter(val => val !== null);
-  for (let iofogUuid of iofogUuids) {
-    await ChangeTrackingService.update(iofogUuid, ChangeTrackingService.events.microserviceFull, transaction);
-  }
-}
+const updateFlow = async function (flowData, flowId, user, isCLI, transaction) {
+  await Validator.validate(flowData, Validator.schemas.flowUpdate);
 
-const _updateFlow = async function (flowData, flowId, user, isCLI, transaction) {
-  await Validation.validate(flowData, Validation.schemas.flowUpdate);
-
-  const oldFlow = await _getFlow(flowId, user, isCLI, transaction);
+  const oldFlow = await getFlow(flowId, user, isCLI, transaction);
   if (!oldFlow) {
     throw new Errors.NotFoundError(ErrorMessages.INVALID_FLOW_ID)
   }
@@ -98,7 +84,25 @@ const _updateFlow = async function (flowData, flowId, user, isCLI, transaction) 
   }
 };
 
-const _getFlow = async function (flowId, user, isCLI, transaction) {
+const getUserFlows = async function (user, isCLI, transaction) {
+  const flow = {
+    userId: user.id
+  };
+
+  const flows = await FlowManager.findAllExcludeFields(flow, transaction);
+  return {
+    flows: flows
+  }
+};
+
+const getAllFlows = async function (isCLI, transaction) {
+  const flows = await FlowManager.findAll({}, transaction);
+  return {
+    flows: flows
+  }
+};
+
+const getFlow = async function (flowId, user, isCLI, transaction) {
   const where = isCLI
     ? {id: flowId}
     : {id: flowId, userId: user.id};
@@ -111,28 +115,11 @@ const _getFlow = async function (flowId, user, isCLI, transaction) {
   return flow
 };
 
-const _getUserFlows = async function (user, isCLI, transaction) {
-  const flow = {
-    userId: user.id
-  };
 
-  const flows = await FlowManager.findAllExcludeFields(flow, transaction);
-  return {
-    flows: flows
-  }
-};
-
-const _getAllFlows = async function (isCLI, transaction) {
-  const flows = await FlowManager.findAll({}, transaction);
-  return {
-    flows: flows
-  }
-};
-
-const _checkForDuplicateName = async function (name, item, userId, transaction) {
+const _checkForDuplicateName = async function (name, flowId, userId, transaction) {
   if (name) {
-    const where = item.id
-      ? {name: name, id: {[Op.ne]: item.id, userId: userId}}
+    const where = flowId
+      ? {name: name, id: {[Op.ne]: flowId, userId: userId}}
       : {name: name, userId: userId};
 
     const result = await FlowManager.findOne(where, transaction);
@@ -142,12 +129,27 @@ const _checkForDuplicateName = async function (name, item, userId, transaction) 
   }
 };
 
+async function _updateChangeTrackingsByFlowId(flowId, transaction) {
+  const flowWithMicroservices = await FlowManager.findFlowMicroservices({id: flowId}, transaction);
+  if (!flowWithMicroservices) {
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_ID, flowId));
+  }
+  const onlyUnique = (value, index, self) => self.indexOf(value) === index;
+  const iofogUuids = flowWithMicroservices.microservices
+    .map(obj => obj.iofogUuid)
+    .filter(onlyUnique)
+    .filter(val => val !== null);
+  for (const iofogUuid of iofogUuids) {
+    await ChangeTrackingService.update(iofogUuid, ChangeTrackingService.events.microserviceFull, transaction);
+  }
+}
+
 module.exports = {
-  createFlow: TransactionDecorator.generateTransaction(_createFlow),
-  deleteFlow: TransactionDecorator.generateTransaction(_deleteFlow),
-  updateFlow: TransactionDecorator.generateTransaction(_updateFlow),
-  getFlowWithTransaction: TransactionDecorator.generateTransaction(_getFlow),
-  getUserFlows: TransactionDecorator.generateTransaction(_getUserFlows),
-  getAllFlows: TransactionDecorator.generateTransaction(_getAllFlows),
-  getFlow: _getFlow
+  createFlow: TransactionDecorator.generateTransaction(createFlow),
+  deleteFlow: TransactionDecorator.generateTransaction(deleteFlow),
+  updateFlow: TransactionDecorator.generateTransaction(updateFlow),
+  getUserFlows: TransactionDecorator.generateTransaction(getUserFlows),
+  getAllFlows: TransactionDecorator.generateTransaction(getAllFlows),
+  getFlowWithTransaction: TransactionDecorator.generateTransaction(getFlow),
+  getFlow: getFlow
 };

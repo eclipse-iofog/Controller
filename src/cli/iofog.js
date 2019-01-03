@@ -314,7 +314,7 @@ async function _deleteFog(obj, user) {
 }
 
 async function _getFogList(obj, user) {
-  const emptyFilters = []
+  const emptyFilters = [];
   const list = await FogService.getFogList(emptyFilters, user, true);
   logger.info(JSON.stringify(list, null, 2));
   logger.info('Fog list has been gotten successfully.');
