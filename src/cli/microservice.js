@@ -421,7 +421,7 @@ const _createMicroservice = async function (obj, user) {
 
   logger.info(JSON.stringify(microservice));
 
-  const result = await MicroserviceService.createMicroserviceOnFog(microservice, user, true);
+  const result = await MicroserviceService.createMicroservice(microservice, user, true);
   logger.info(JSON.stringify(result));
   logger.info('Microservice has been created successfully.');
 };

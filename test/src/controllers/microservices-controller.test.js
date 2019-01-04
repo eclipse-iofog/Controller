@@ -55,12 +55,12 @@ describe('Microservices Controller', () => {
     def('subject', () => $subject.createMicroserviceOnFogEndPoint($req, $user));
 
     beforeEach(() => {
-      $sandbox.stub(MicroservicesService, 'createMicroserviceOnFog').returns($response);
+      $sandbox.stub(MicroservicesService, 'createMicroservice').returns($response);
     });
 
-    it('calls MicroservicesService.createMicroserviceOnFog with correct args', async () => {
+    it('calls MicroservicesService.createMicroservice with correct args', async () => {
       await $subject;
-      expect(MicroservicesService.createMicroserviceOnFog).to.have.been.calledWith({
+      expect(MicroservicesService.createMicroservice).to.have.been.calledWith({
         name: $name,
         config: $config,
         catalogItemId: $catalogItemId,
@@ -74,7 +74,7 @@ describe('Microservices Controller', () => {
       }, $user, false);
     });
 
-    context('when MicroservicesService#createMicroserviceOnFog fails', () => {
+    context('when MicroservicesService#createMicroservice fails', () => {
       const error = 'Error!';
 
       def('response', () => Promise.reject(error));
@@ -84,7 +84,7 @@ describe('Microservices Controller', () => {
       })
     });
 
-    context('when MicroservicesService#createMicroserviceOnFog succeeds', () => {
+    context('when MicroservicesService#createMicroservice succeeds', () => {
       it(`succeeds`, () => {
         return expect($subject).to.eventually.equal(undefined)
       })

@@ -73,5 +73,6 @@ module.exports = {
     INVALID_ROUTE: 'Route parsing error. Please provide valid route.'
   },
   CONNECTOR_IS_IN_USE: 'You can\'t delete connector, because it is used for routing now.',
-  INVALID_VERSION_COMMAND: 'Can\'t {} version now.'
+  INVALID_VERSION_COMMAND_UPGRADE: 'Can\'t upgrade version now. Latest is already installed',
+  INVALID_VERSION_COMMAND_ROLLBACK: 'Can\'t rollback version now. There are no backups on agent'
 };

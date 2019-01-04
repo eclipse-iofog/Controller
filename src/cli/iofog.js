@@ -314,7 +314,7 @@ async function _deleteFog(obj, user) {
 }
 
 async function _getFogList(obj, user) {
-  const emptyFilters = []
+  const emptyFilters = [];
   const list = await FogService.getFogList(emptyFilters, user, true);
   logger.info(JSON.stringify(list, null, 2));
   logger.info('Fog list has been gotten successfully.');
@@ -359,8 +359,11 @@ async function _getHalHardwareInfo(obj) {
 
   logger.info("Parameters" + JSON.stringify(uuidObj));
 
-  const info = await FogService.getHalHardwareInfo(uuidObj, {}, true);
-  logger.info(JSON.stringify(info, null, 2));
+  const data = await FogService.getHalHardwareInfo(uuidObj, {}, true);
+  if (data.info) {
+    data.info = JSON.parse(data.info);
+  }
+  logger.info(JSON.stringify(data, null, 2));
   logger.info('Hardware info has been retrieved successfully.')
 }
 
@@ -371,8 +374,11 @@ async function _getHalUsbInfo(obj) {
 
   logger.info("Parameters" + JSON.stringify(uuidObj));
 
-  const info = await FogService.getHalHardwareInfo(uuidObj, {}, true);
-  logger.info(JSON.stringify(info, null, 2));
+  const data = await FogService.getHalUsbInfo(uuidObj, {}, true);
+  if (data.info) {
+    data.info = JSON.parse(data.info);
+  }
+  logger.info(JSON.stringify(data, null, 2));
   logger.info('Usb info has been retrieved successfully.')
 }
 
