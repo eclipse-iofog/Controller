@@ -20,7 +20,7 @@ const createMicroserviceOnFogEndPoint = async function (req, user) {
 
   logger.info("Parameters:" + JSON.stringify(microservice));
 
-  return await MicroservicesService.createMicroserviceOnFog(microservice, user, false)
+  return await MicroservicesService.createMicroservice(microservice, user, false)
 };
 
 const getMicroserviceEndPoint = async function (req, user) {

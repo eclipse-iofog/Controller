@@ -28,7 +28,6 @@ const FogStates = require('../../../src/enums/fog-state');
 
 global.appRoot = path.resolve(__dirname);
 
-
 describe('Agent Service', () => {
   def('subject', () => AgentService);
   def('sandbox', () => sinon.createSandbox());

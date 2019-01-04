@@ -18,6 +18,7 @@ const Errors = require('../helpers/errors');
 const ErrorMessages = require('../helpers/error-messages');
 const AppHelper = require('../helpers/app-helper');
 const Op = require('sequelize').Op;
+
 const ConnectorPortManager = require('../sequelize/managers/connector-port-manager');
 const MicroserviceService = require('../services/microservices-service');
 
@@ -50,7 +51,7 @@ async function updateConnector(connectorData, transaction) {
     publicIp: connectorData.publicIp
   };
   await ConnectorManager.update(queryConnectorData, connectorData, transaction);
-  const connector = await ConnectorManager.findOne({name: connectorData.name}, transaction);
+  const connector = await ConnectorManager.findOne({publicIp: connectorData.publicIp}, transaction);
   await MicroserviceService.updateRouteOverConnector(connector, transaction);
   await MicroserviceService.updatePortMappingOverConnector(connector, transaction);
 }
