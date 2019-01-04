@@ -24,6 +24,7 @@ const emailRecoveryTemplate = require('../views/email-temp');
 const emailResetTemplate = require('../views/reset-password-temp');
 const EmailActivationCodeService = require('./email-activation-code-service');
 const AccessTokenService = require('./access-token-service');
+
 const TransactionDecorator = require('../decorators/transaction-decorator');
 const Validator = require('../schemas');
 

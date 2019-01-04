@@ -18,6 +18,7 @@ const Errors = require('../helpers/errors');
 const ErrorMessages = require('../helpers/error-messages');
 const AppHelper = require('../helpers/app-helper');
 const Op = require('sequelize').Op;
+
 const ConnectorPortManager = require('../sequelize/managers/connector-port-manager');
 const MicroserviceService = require('../services/microservices-service');
 
