@@ -41,7 +41,7 @@
 		"postinstall": "node scripts/postinstall.js",
 		"lint": "./node_modules/.bin/eslint \"**/*.js\"",
 		"automatic-release": "automatic-release",
-		"test": "node scripts/test.js",
+		"test": "node scripts/test.js && node scripts/postmantest.js",
 		"coverage": "node scripts/coverage.js"
 	},
 	"preferGlobal": true,
@@ -80,7 +80,8 @@
 		"qs": "^6.5.2",
 		"child_process": "^1.0.2",
 		"os": "^0.1.1",
-		"semver": "^5.6.0"
+		"semver": "^5.6.0",
+		"newman" "^4.0"
 	},
 	"devDependencies": {
 		"automatic-release": "^1.1.1",
@@ -92,6 +93,7 @@
 		"mocha": "^5.2.0",
 		"nyc": "^13.1.0",
 		"sinon": "^7.1.1",
-		"sinon-chai": "^3.2.0"
+		"sinon-chai": "^3.2.0",
+		"newman" "^4.0"
 	}
 }
