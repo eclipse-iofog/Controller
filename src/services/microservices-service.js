@@ -1002,7 +1002,7 @@ async function _deleteMicroserviceWithRoutesAndPortMappings(microserviceUuid, tr
   }
 
   const portMappings = await MicroservicePortManager.findAll({microserviceUuid: microserviceUuid}, transaction);
-  for (let ports of portMappings) {
+  for (const ports of portMappings) {
     const userId = (await MicroserviceManager
       .findOne({uuid: ports.microserviceUuid}, transaction))
       .userId;
