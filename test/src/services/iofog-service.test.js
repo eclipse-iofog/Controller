@@ -764,18 +764,12 @@ describe('ioFog Service', () => {
     def('subject', () => $subject.deleteFog(fogData, user, isCLI, transaction));
     def('validatorResponse', () => Promise.resolve(true));
     def('findIoFogResponse', () => Promise.resolve(fog));
-    def('updateIoFogResponse', () => Promise.resolve());
     def('updateChangeTrackingResponse', () => Promise.resolve());
-
-    def('dateResponse', () => date);
 
     beforeEach(() => {
       $sandbox.stub(Validator, 'validate').returns($validatorResponse);
       $sandbox.stub(ioFogManager, 'findOne').returns($findIoFogResponse);
-      $sandbox.stub(ioFogManager, 'update').returns($updateIoFogResponse);
       $sandbox.stub(ChangeTrackingService, 'update').returns($updateChangeTrackingResponse);
-
-      $sandbox.stub(Date, 'now').returns($dateResponse);
     });
 
     it('calls Validator#validate() with correct args', async () => {
@@ -807,42 +801,23 @@ describe('ioFog Service', () => {
       });
 
       context('when ioFogManager#findOne() succeeds', () => {
-        it('calls ioFogManager#update() with correct args', async () => {
+        it('calls ChangeTrackingService#update() with correct args', async () => {
           await $subject;
-          const query = {
-            uuid: uuid
-          };
-          expect(ioFogManager.update).to.have.been.calledWith(query,
-            toUpdate, transaction);
+
+          expect(ChangeTrackingService.update).to.have.been.calledWith(uuid, ChangeTrackingService.events.deleteNode, transaction);
         });
 
-        context('when ioFogManager#update() fails', () => {
-          def('updateIoFogResponse', () => Promise.reject(error));
+        context('when ChangeTrackingService#update() fails', () => {
+          def('updateChangeTrackingResponse', () => Promise.reject(error));
 
           it(`fails with ${error}`, () => {
             return expect($subject).to.be.rejectedWith(error);
           })
         });
 
-        context('when ioFogManager#update() succeeds', () => {
-          it('calls ChangeTrackingService#update() with correct args', async () => {
-            await $subject;
-
-            expect(ChangeTrackingService.update).to.have.been.calledWith(uuid, ChangeTrackingService.events.deleteNode, transaction);
-          });
-
-          context('when ChangeTrackingService#update() fails', () => {
-            def('updateChangeTrackingResponse', () => Promise.reject(error));
-
-            it(`fails with ${error}`, () => {
-              return expect($subject).to.be.rejectedWith(error);
-            })
-          });
-
-          context('when ChangeTrackingService#update() succeeds', () => {
-            it('fulfills the promise', () => {
-              return expect($subject).to.eventually.equal(undefined);
-            })
+        context('when ChangeTrackingService#update() succeeds', () => {
+          it('fulfills the promise', () => {
+            return expect($subject).to.eventually.equal(undefined);
           })
         })
       })
@@ -909,7 +884,7 @@ describe('ioFog Service', () => {
       longitude: fog.longitude,
       description: fog.description,
       lastActive: fog.lastActive,
-      daemonStatus: 'UNKNOWN',
+      daemonStatus: fog.daemonStatus,
       daemonOperatingDuration: fog.daemonOperatingDuration,
       daemonLastStart: fog.daemonLastStart,
       memoryUsage: fog.memoryUsage,
@@ -923,7 +898,7 @@ describe('ioFog Service', () => {
       repositoryStatus: fog.repositoryStatus,
       systemTime: fog.systemTime,
       lastStatusTime: fog.lastStatusTime,
-      ipAddress: '0.0.0.0',
+      ipAddress: fog.ipAddress,
       processedMessages: fog.processedMessages,
       catalogItemMessageCounts: fog.catalogItemMessageCounts,
       messageSpeed: fog.messageSpeed,
@@ -954,16 +929,10 @@ describe('ioFog Service', () => {
     def('subject', () => $subject.getFog(fogData, user, isCLI, transaction));
     def('validatorResponse', () => Promise.resolve(true));
     def('findIoFogResponse', () => Promise.resolve(fog));
-    def('updateIoFogResponse', () => Promise.resolve());
-
-    def('dateResponse', () => date);
 
     beforeEach(() => {
       $sandbox.stub(Validator, 'validate').returns($validatorResponse);
       $sandbox.stub(ioFogManager, 'findOne').returns($findIoFogResponse);
-      $sandbox.stub(ioFogManager, 'update').returns($updateIoFogResponse);
-
-      $sandbox.stub(Date, 'now').returns($dateResponse);
     });
 
     it('calls Validator#validate() with correct args', async () => {
@@ -995,27 +964,8 @@ describe('ioFog Service', () => {
       });
 
       context('when ioFogManager#findOne() succeeds', () => {
-        it('calls ioFogManager#update() with correct args', async () => {
-          await $subject;
-          const query = {
-            uuid: uuid
-          };
-          expect(ioFogManager.update).to.have.been.calledWith(query,
-            toUpdate, transaction);
-        });
-
-        context('when ioFogManager#update() fails', () => {
-          def('updateIoFogResponse', () => Promise.reject(error));
-
-          it(`fails with ${error}`, () => {
-            return expect($subject).to.be.rejectedWith(error);
-          })
-        });
-
-        context('when ioFogManager#update() succeeds', () => {
-          it('fulfills the promise', () => {
-            return expect($subject).to.eventually.deep.equal(fogResponse);
-          })
+        it('fulfills the promise', () => {
+          return expect($subject).to.eventually.deep.equal(fogResponse);
         })
       })
     })
@@ -1075,16 +1025,10 @@ describe('ioFog Service', () => {
     def('subject', () => $subject.getFogList(filters, user, isCLI, transaction));
     def('validatorResponse', () => Promise.resolve(true));
     def('findAllIoFogResponse', () => Promise.resolve(fogs));
-    def('updateIoFogResponse', () => Promise.resolve());
-
-    def('dateResponse', () => date);
 
     beforeEach(() => {
       $sandbox.stub(Validator, 'validate').returns($validatorResponse);
       $sandbox.stub(ioFogManager, 'findAll').returns($findAllIoFogResponse);
-      $sandbox.stub(ioFogManager, 'update').returns($updateIoFogResponse);
-
-      $sandbox.stub(Date, 'now').returns($dateResponse);
     });
 
     it('calls Validator#validate() with correct args', async () => {
@@ -1116,27 +1060,8 @@ describe('ioFog Service', () => {
       });
 
       context('when ioFogManager#findAll() succeeds', () => {
-        it('calls ioFogManager#update() with correct args', async () => {
-          await $subject;
-          const query = {
-            uuid: uuid
-          };
-          expect(ioFogManager.update).to.have.been.calledWith(query,
-            toUpdate, transaction);
-        });
-
-        context('when ioFogManager#update() fails', () => {
-          def('updateIoFogResponse', () => Promise.reject(error));
-
-          it(`fails with ${error}`, () => {
-            return expect($subject).to.be.rejectedWith(error);
-          })
-        });
-
-        context('when ioFogManager#update() succeeds', () => {
-          it('fulfills the promise', () => {
-            return expect($subject).to.eventually.have.property('fogs');
-          })
+        it('fulfills the promise', () => {
+          return expect($subject).to.eventually.have.property('fogs');
         })
       })
     })

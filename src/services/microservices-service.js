@@ -247,7 +247,7 @@ async function _deleteMicroservice(microserviceUuid, microserviceData, user, isC
   await _deletePortMappings(microservice, user, transaction);
 
   if (microservice.microserviceStatus.status === MicroserviceStates.NOT_RUNNING) {
-    await _deleteMicroserviceWithRoutes(microserviceUuid, transaction);
+    await deleteMicroserviceWithRoutes(microserviceUuid, transaction);
   } else {
     await MicroserviceManager.update({
         uuid: microserviceUuid
@@ -275,12 +275,12 @@ async function _deletePortMappings(microservice, user, transaction) {
   }
 }
 
-async function _deleteNotRunningMicroservices(transaction) {
-  const microservices = await MicroserviceManager.findAllWithStatuses(transaction);
+async function deleteNotRunningMicroservices(fog, transaction) {
+  const microservices = await MicroserviceManager.findAllWithStatuses({iofogUuid: fog.uuid}, transaction);
   microservices
     .filter(microservice => microservice.delete)
     .filter(microservice => microservice.microserviceStatus.status === MicroserviceStates.NOT_RUNNING)
-    .forEach(microservice => _deleteMicroserviceWithRoutes(microservice.uuid, transaction));
+    .forEach(microservice => deleteMicroserviceWithRoutes(microservice.uuid, transaction));
 }
 
 async function _checkForDuplicateName(name, item, userId, transaction) {
@@ -850,7 +850,7 @@ async function _listPortMappings(microserviceUuid, user, isCLI, transaction) {
 }
 
 async function getPhysicalConections(microservice, transaction) {
-  let res = []
+  let res = [];
   const pubModes = await MicroservicePublicModeManager.findAll({microserviceUuid: microservice.uuid}, transaction)
   for (const pm of pubModes) {
     res.push(pm.networkMicroserviceUuid)
@@ -919,7 +919,7 @@ async function _getLogicalRoutesByMicroservice(microserviceUuid, transaction) {
   return res;
 }
 
-async function _deleteMicroserviceWithRoutes(microserviceUuid, transaction) {
+async function deleteMicroserviceWithRoutes(microserviceUuid, transaction) {
   const routes = await _getLogicalRoutesByMicroservice(microserviceUuid, transaction);
   for (let route of routes) {
     //TODO: simplify after splitting all endpoints service functions to validation and request processing part
@@ -1022,7 +1022,8 @@ module.exports = {
   deleteVolumeMapping: TransactionDecorator.generateTransaction(_deleteVolumeMapping),
   listVolumeMappings: TransactionDecorator.generateTransaction(_listVolumeMappings),
   getPhysicalConnections: getPhysicalConections,
-  deleteNotRunningMicroservices: _deleteNotRunningMicroservices,
+  deleteNotRunningMicroservices: deleteNotRunningMicroservices,
   updateRouteOverConnector: updateRouteOverConnector,
-  updatePortMappingOverConnector: updatePortMappingOverConnector
+  updatePortMappingOverConnector: updatePortMappingOverConnector,
+  deleteMicroserviceWithRoutes: deleteMicroserviceWithRoutes
 };

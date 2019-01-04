@@ -23,6 +23,8 @@ const Op = Sequelize.Op;
 const path = require('path');
 const formidable = ('./incoming_form');
 const IncomingForm = formidable.IncomingForm;
+const MicroserviceStates = require('../../../src/enums/microservice-state');
+const FogStates = require('../../../src/enums/fog-state');
 
 global.appRoot = path.resolve(__dirname);
 
@@ -229,6 +231,97 @@ describe('Agent Service', () => {
       })
     });
   });
+
+
+  describe('.agentDeprovision()', () => {
+
+    const deprovisionData = {microserviceUuids:["uuid"]};
+    const fogManagerUpdateData = {daemonStatus: FogStates.UNKNOWN, ipAddress: '0.0.0.0'};
+
+    const transaction = {};
+    const error = 'Error!';
+
+    def('fog', () => ({
+      uuid: $uuid
+    }));
+
+    def('updateAgentResponse', () => 'updateAgentResponse');
+
+    def('subject', () => $subject.agentDeprovision(deprovisionData, $fog, transaction));
+
+    def('validatorResponse', () => Promise.resolve(true));
+    def('microserviceStatusUpdateResponse', () => Promise.resolve());
+    def('iofogManagerUpdateResponse', () => Promise.resolve());
+
+    beforeEach(() => {
+      $sandbox.stub(Validator, 'validate').returns($validatorResponse);
+      $sandbox.stub(MicroserviceStatusManager, 'update').returns($microserviceStatusUpdateResponse);
+      $sandbox.stub(ioFogManager, 'update').returns($iofogManagerUpdateResponse);
+    });
+
+    it('calls Validator#validate() with correct args', async () => {
+      await $subject;
+      expect(Validator.validate).to.have.been.calledWith(deprovisionData, Validator.schemas.agentDeprovision);
+    });
+
+    context('when Validator#validate() fails', () => {
+      def('validatorResponse', () => Promise.reject(error));
+
+      it(`fails with ${error}`, () => {
+        return expect($subject).to.be.rejectedWith(error);
+      })
+    });
+
+    context('when Validator#validate() succeeds', () => {
+      it('calls MicroserviceStatusManager.update with correct args', async () => {
+        await $subject;
+        expect(MicroserviceStatusManager.update).to.have.been.calledWith(
+          {microserviceUuid: deprovisionData.microserviceUuids},
+          {status: MicroserviceStates.NOT_RUNNING},
+          transaction
+        );
+      });
+
+      context('when MicroserviceStatusManager#update fails', () => {
+        const error = 'Error!';
+
+        def('microserviceStatusUpdateResponse', () => Promise.reject(error));
+
+        it(`fails with "${error}"`, () => {
+          return expect($subject).to.be.rejectedWith = (error)
+        })
+      });
+
+      context('when MicroserviceStatusManager#update succeeds', () => {
+        it('calls ioFogManager.update with correct args', async () => {
+          await $subject;
+          expect(ioFogManager.update).to.have.been.calledWith({
+            uuid: $uuid
+          }, fogManagerUpdateData, transaction);
+        });
+
+        context('when ioFogManager#update fails', () => {
+          const error = 'Error!';
+
+          def('iofogManagerUpdateResponse', () => Promise.reject(error));
+
+          it(`fails with "${error}"`, () => {
+            return expect($subject).to.be.rejectedWith(error)
+          })
+        });
+
+        context('when ioFogManager#update succeeds', () => {
+          it(`succeeds`, () => {
+            return expect($subject).to.eventually.equal(undefined);
+          })
+        })
+
+      })
+    });
+  });
+
+
+
 
   describe('.updateAgentConfig()', () => {
     const agentConfig = {
@@ -604,7 +697,7 @@ describe('Agent Service', () => {
               context('when MicroserviceStatusManager#update succeeds', () => {
                 it('calls MicroserviceService.deleteNotRunningMicroservices with correct args', async () => {
                   await $subject;
-                  expect(MicroserviceService.deleteNotRunningMicroservices).to.have.been.calledWith(transaction);
+                  expect(MicroserviceService.deleteNotRunningMicroservices).to.have.been.calledWith($fog, transaction);
                 });
 
                 context('when MicroserviceService#deleteNotRunningMicroservices fails', () => {

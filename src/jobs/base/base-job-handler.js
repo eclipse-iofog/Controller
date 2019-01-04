@@ -11,12 +11,16 @@
  *
  */
 
-const microserviceState = {
-  NOT_RUNNING: 'NOT_RUNNING',
-  RUNNING: 'RUNNING',
-  RESTARTING: 'RESTARTING',
-  STUCK_IN_RESTART: 'STUCK_IN_RESTART',
-};
+const Config = require('../../config');
 
-module.exports = microserviceState;
+class BaseJobHandler {
+  constructor() {
+    this.scheduleTime = Config.get('Settings:FogStatusUpdateIntervalSeconds') * 1000;
+  }
 
+  run() {
+    throw new Error('Not Implemented');
+  }
+}
+
+module.exports = BaseJobHandler;
