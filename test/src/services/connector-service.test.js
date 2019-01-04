@@ -269,7 +269,7 @@ describe('Connector Service', () => {
               it('calls ConnectorManager#findOne() with correct args', async () => {
                 await $subject;
                 expect(ConnectorManager.findOne).to.have.been.calledWith({
-                  name: connectorData.name
+                  publicIp: connectorData.publicIp
                 }, transaction);
               });
 
