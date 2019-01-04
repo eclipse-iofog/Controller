@@ -175,10 +175,8 @@ async function deleteMicroservice(microserviceUuid, microserviceData, user, isCL
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, microserviceUuid));
   }
 
-  await _deletePortMappings(microservice, user, transaction);
-
   if (microservice.microserviceStatus.status === MicroserviceStates.NOT_RUNNING) {
-    await _deleteMicroserviceWithRoutes(microserviceUuid, transaction);
+    await _deleteMicroserviceWithRoutesAndPortMappings(microserviceUuid, transaction);
   } else {
     await MicroserviceManager.update({
         uuid: microserviceUuid
@@ -197,7 +195,7 @@ async function deleteNotRunningMicroservices(transaction) {
   microservices
     .filter(microservice => microservice.delete)
     .filter(microservice => microservice.microserviceStatus.status === MicroserviceStates.NOT_RUNNING)
-    .forEach(microservice => _deleteMicroserviceWithRoutes(microservice.uuid, transaction));
+    .forEach(microservice => _deleteMicroserviceWithRoutesAndPortMappings(microservice.uuid, transaction));
 }
 
 async function createRoute(sourceMicroserviceUuid, destMicroserviceUuid, user, isCLI, transaction) {
@@ -530,6 +528,7 @@ async function _updateChangeTracking(configUpdated, fogNodeUuid, transaction) {
   }
 }
 
+//TODO use in _deleteMicroserviceWithRoutesAndPortMappings
 async function _deletePortMappings(microservice, user, transaction) {
   const msPortMappings = await MicroservicePortManager.findAll({
     microserviceUuid: microservice.uuid
@@ -989,7 +988,7 @@ async function _getLogicalRoutesByMicroservice(microserviceUuid, transaction) {
   return res;
 }
 
-async function _deleteMicroserviceWithRoutes(microserviceUuid, transaction) {
+async function _deleteMicroserviceWithRoutesAndPortMappings(microserviceUuid, transaction) {
   const routes = await _getLogicalRoutesByMicroservice(microserviceUuid, transaction);
   for (let route of routes) {
     //TODO: simplify after splitting all endpoints service functions to validation and request processing part
@@ -1000,6 +999,17 @@ async function _deleteMicroserviceWithRoutes(microserviceUuid, transaction) {
       id: userId
     };
     await deleteRoute(route.sourceMicroserviceUuid, route.destMicroserviceUuid, user, false, transaction);
+  }
+
+  const portMappings = await MicroservicePortManager.findAll({microserviceUuid: microserviceUuid}, transaction);
+  for (let ports of portMappings) {
+    const userId = (await MicroserviceManager
+      .findOne({uuid: ports.microserviceUuid}, transaction))
+      .userId;
+    const user = {
+      id: userId
+    };
+    await deletePortMapping(ports.microserviceUuid, ports.portInternal, user, false, transaction);
   }
   await MicroserviceManager.delete({
     uuid: microserviceUuid
