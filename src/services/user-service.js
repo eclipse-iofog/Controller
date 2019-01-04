@@ -19,28 +19,18 @@ const Errors = require('../helpers/errors');
 const ErrorMessages = require('../helpers/error-messages');
 const Config = require('../config');
 const ioFogManager = require('../sequelize/managers/iofog-manager');
-
 const emailActivationTemplate = require('../views/email-activation-temp');
 const emailRecoveryTemplate = require('../views/email-temp');
 const emailResetTemplate = require('../views/reset-password-temp');
 const EmailActivationCodeService = require('./email-activation-code-service');
-
 const AccessTokenService = require('./access-token-service');
-
 const TransactionDecorator = require('../decorators/transaction-decorator');
-
 const Validator = require('../schemas');
 
-const createUser = async function (user, transaction) {
-  return await UserManager.create(user, transaction)
-};
-
 const signUp = async function (user, isCLI, transaction) {
-
   let isEmailActivationEnabled = Config.get("Email:ActivationEnabled");
 
   if (isEmailActivationEnabled) {
-
     const newUser = await _handleCreateUser(user, isEmailActivationEnabled, transaction);
 
     const activationCodeData = await EmailActivationCodeService.generateActivationCode(transaction);
@@ -56,7 +46,6 @@ const signUp = async function (user, isCLI, transaction) {
 };
 
 const login = async function (credentials, isCLI, transaction) {
-
   const user = await UserManager.findOne({
     email: credentials.email
   }, transaction);
@@ -138,7 +127,7 @@ const logout = async function (user, isCLI, transaction) {
   return await AccessTokenService.removeAccessTokenByUserId(user.id, transaction)
 };
 
-const updateDetails = async function (user, profileData, isCLI, transaction) {
+const updateUserDetails = async function (user, profileData, isCLI, transaction) {
   if (isCLI) {
     await Validator.validate(profileData, Validator.schemas.updateUserProfileCLI);
   } else {
@@ -147,7 +136,7 @@ const updateDetails = async function (user, profileData, isCLI, transaction) {
 
   const password = (profileData.password) ? AppHelper.encryptText(profileData.password, user.email) : undefined;
 
-  const updateObject = isCLI ?
+  let updateObject = isCLI ?
     {
       firstName: profileData.firstName,
       lastName: profileData.lastName,
@@ -159,7 +148,7 @@ const updateDetails = async function (user, profileData, isCLI, transaction) {
       lastName: profileData.lastName
     };
 
-  AppHelper.deleteUndefinedFields(updateObject);
+  updateObject = AppHelper.deleteUndefinedFields(updateObject);
 
   await UserManager.updateDetails(user, updateObject, transaction);
 
@@ -171,7 +160,6 @@ const updateDetails = async function (user, profileData, isCLI, transaction) {
 };
 
 const deleteUser = async function (force, user, isCLI, transaction) {
-
   if (!force) {
     const ioFogArray = await ioFogManager.findAll({
       userId: user.id
@@ -321,7 +309,7 @@ async function _handleCreateUser(user, isEmailActivationEnabled, transaction) {
 
 async function _createNewUser(user, isEmailActivationEnabled, transaction) {
   user.emailActivated = !isEmailActivationEnabled;
-  return await createUser(user, transaction)
+  return await UserManager.create(user, transaction);
 }
 
 async function _notifyUserAboutActivationCode(email, url, emailSenderData, activationCodeData, transporter) {
@@ -390,7 +378,7 @@ module.exports = {
   resendActivation: TransactionDecorator.generateTransaction(resendActivation),
   activateUser: TransactionDecorator.generateTransaction(activateUser),
   logout: TransactionDecorator.generateTransaction(logout),
-  updateUserDetails: TransactionDecorator.generateTransaction(updateDetails),
+  updateUserDetails: TransactionDecorator.generateTransaction(updateUserDetails),
   deleteUser: TransactionDecorator.generateTransaction(deleteUser),
   updateUserPassword: TransactionDecorator.generateTransaction(updateUserPassword),
   resetUserPassword: TransactionDecorator.generateTransaction(resetUserPassword),
