@@ -15,7 +15,7 @@
  
 // call newman.run to pass `options` object and wait for callback
 newman.run({
-    collection: require('test/postman_collection.json.'),
+    collection: require('../test/postman_collection.json'),
     reporters: 'cli'
 }, function (err) {
     if (err) { throw err; }
