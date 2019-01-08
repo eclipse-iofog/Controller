@@ -24,6 +24,7 @@ newman.run({
 }).on('done', function (err, summary) {
     if (err || summary.error) {
         console.error('collection run encountered an error.');
+        console.log(summary);
         process.exit(1);
     }
     else {
