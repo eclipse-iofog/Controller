@@ -253,9 +253,11 @@ const _updateCatalogItem = async function (data, where, transaction) {
   if (!catalogItem || AppHelper.isEmpty(catalogItem)) {
     return
   }
-  const registry = await RegistryManager.findOne({id: data.registryId}, transaction);
-  if (!registry) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_REGISTRY_ID, data.registryId));
+  if (data.registryId) {
+    const registry = await RegistryManager.findOne({id: data.registryId}, transaction);
+    if (!registry) {
+      throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_REGISTRY_ID, data.registryId));
+    }
   }
 
   const item = await _checkIfItemExists(where, transaction);
