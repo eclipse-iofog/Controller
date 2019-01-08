@@ -22,6 +22,8 @@ const CatalogItemOutputTypeManager = require('../sequelize/managers/catalog-item
 const Op = require('sequelize').Op;
 const Validator = require('../schemas/index');
 const RegistryManager = require('../sequelize/managers/registry-manager');
+const MicroserviceManager = require('../sequelize/managers/microservice-manager');
+const ChangeTrackingService = require('./change-tracking-service');
 
 const createCatalogItem = async function (data, user, transaction) {
   await Validator.validate(data, Validator.schemas.catalogItemCreate);
@@ -267,11 +269,22 @@ const _updateCatalogItem = async function (data, where, transaction) {
 
 const _updateCatalogItemImages = async function (data, transaction) {
   if (data.images) {
+    let fogUuids = new Set();
+
     for (const image of data.images) {
       await CatalogItemImageManager.updateOrCreate({
         catalogItemId: data.id,
         fogTypeId: image.fogTypeId
       }, image, transaction);
+
+      const microservices = await MicroserviceManager.findAll({catalogItemId: data.id}, transaction);
+      for (const ms of microservices) {
+        fogUuids.add(ms.iofogUuid)
+      }
+    }
+
+    for (const uuid of fogUuids) {
+      await ChangeTrackingService.update(uuid, ChangeTrackingService.events.microserviceCommon, transaction)
     }
   }
 };
