@@ -64,7 +64,7 @@ async function _updateMicroserviceStatus(unknownFogUuids, transaction) {
 async function _deleteNotRunningMicroservices(microservices, transaction) {
   for (microservice of microservices) {
     if (microservice.delete) {
-      await MicroserviceService.deleteMicroserviceWithRoutes(microservice.uuid, transaction)
+      await MicroserviceService.deleteMicroserviceWithRoutesAndPortMappings(microservice.uuid, transaction)
     }
   }
 }

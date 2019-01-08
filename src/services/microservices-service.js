@@ -176,7 +176,7 @@ async function deleteMicroservice(microserviceUuid, microserviceData, user, isCL
   }
 
   if (microservice.microserviceStatus.status === MicroserviceStates.NOT_RUNNING) {
-    await _deleteMicroserviceWithRoutesAndPortMappings(microserviceUuid, transaction);
+    await deleteMicroserviceWithRoutesAndPortMappings(microserviceUuid, transaction);
   } else {
     await MicroserviceManager.update({
         uuid: microserviceUuid
@@ -190,29 +190,12 @@ async function deleteMicroservice(microserviceUuid, microserviceData, user, isCL
   await _updateChangeTracking(false, microservice.iofogUuid, transaction)
 }
 
-async function deleteMicroserviceWithRoutes(microserviceUuid, transaction) {
-  const routes = await _getLogicalRoutesByMicroservice(microserviceUuid, transaction);
-  for (let route of routes) {
-    //TODO: simplify after splitting all endpoints service functions to validation and request processing part
-    const userId = (await MicroserviceManager
-      .findOne({uuid: route.sourceMicroserviceUuid}, transaction))
-      .userId;
-    const user = {
-      id: userId
-    };
-    await _deleteRoute(route.sourceMicroserviceUuid, route.destMicroserviceUuid, user, false, transaction);
-  }
-  await MicroserviceManager.delete({
-    uuid: microserviceUuid
-  }, transaction);
-}
-
 async function deleteNotRunningMicroservices(transaction) {
   const microservices = await MicroserviceManager.findAllWithStatuses(transaction);
   microservices
     .filter(microservice => microservice.delete)
     .filter(microservice => microservice.microserviceStatus.status === MicroserviceStates.NOT_RUNNING)
-    .forEach(microservice => _deleteMicroserviceWithRoutesAndPortMappings(microservice.uuid, transaction));
+    .forEach(microservice => deleteMicroserviceWithRoutesAndPortMappings(microservice.uuid, transaction));
 }
 
 async function createRoute(sourceMicroserviceUuid, destMicroserviceUuid, user, isCLI, transaction) {
@@ -1005,7 +988,7 @@ async function _getLogicalRoutesByMicroservice(microserviceUuid, transaction) {
   return res;
 }
 
-async function _deleteMicroserviceWithRoutesAndPortMappings(microserviceUuid, transaction) {
+async function deleteMicroserviceWithRoutesAndPortMappings(microserviceUuid, transaction) {
   const routes = await _getLogicalRoutesByMicroservice(microserviceUuid, transaction);
   for (let route of routes) {
     //TODO: simplify after splitting all endpoints service functions to validation and request processing part
@@ -1055,5 +1038,5 @@ module.exports = {
   deleteNotRunningMicroservices: deleteNotRunningMicroservices,
   updateRouteOverConnector: updateRouteOverConnector,
   updatePortMappingOverConnector: updatePortMappingOverConnector,
-  deleteMicroserviceWithRoutes: deleteMicroserviceWithRoutes
+  deleteMicroserviceWithRoutesAndPortMappings: deleteMicroserviceWithRoutesAndPortMappings
 };
