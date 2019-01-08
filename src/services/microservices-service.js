@@ -176,7 +176,7 @@ async function deleteMicroservice(microserviceUuid, microserviceData, user, isCL
   }
 
   if (microservice.microserviceStatus.status === MicroserviceStates.NOT_RUNNING) {
-    await _deleteMicroserviceWithRoutesAndPortMappings(microserviceUuid, transaction);
+    await deleteMicroserviceWithRoutesAndPortMappings(microserviceUuid, transaction);
   } else {
     await MicroserviceManager.update({
         uuid: microserviceUuid
@@ -195,7 +195,7 @@ async function deleteNotRunningMicroservices(transaction) {
   microservices
     .filter(microservice => microservice.delete)
     .filter(microservice => microservice.microserviceStatus.status === MicroserviceStates.NOT_RUNNING)
-    .forEach(microservice => _deleteMicroserviceWithRoutesAndPortMappings(microservice.uuid, transaction));
+    .forEach(microservice => deleteMicroserviceWithRoutesAndPortMappings(microservice.uuid, transaction));
 }
 
 async function createRoute(sourceMicroserviceUuid, destMicroserviceUuid, user, isCLI, transaction) {
@@ -988,7 +988,7 @@ async function _getLogicalRoutesByMicroservice(microserviceUuid, transaction) {
   return res;
 }
 
-async function _deleteMicroserviceWithRoutesAndPortMappings(microserviceUuid, transaction) {
+async function deleteMicroserviceWithRoutesAndPortMappings(microserviceUuid, transaction) {
   const routes = await _getLogicalRoutesByMicroservice(microserviceUuid, transaction);
   for (let route of routes) {
     //TODO: simplify after splitting all endpoints service functions to validation and request processing part
@@ -1037,5 +1037,6 @@ module.exports = {
   getPhysicalConnections: getPhysicalConnections,
   deleteNotRunningMicroservices: deleteNotRunningMicroservices,
   updateRouteOverConnector: updateRouteOverConnector,
-  updatePortMappingOverConnector: updatePortMappingOverConnector
+  updatePortMappingOverConnector: updatePortMappingOverConnector,
+  deleteMicroserviceWithRoutesAndPortMappings: deleteMicroserviceWithRoutesAndPortMappings
 };

@@ -47,15 +47,35 @@ module.exports = [
     }
   },
   {
+    method: 'post',
+    path: '/api/v3/agent/deprovision',
+    middleware: async (req, res) => {
+      const successCode = constants.HTTP_CODE_NO_CONTENT;
+      const errorCodes = [
+        {
+          code: constants.HTTP_CODE_UNAUTHORIZED,
+          errors: [Errors.AuthenticationError]
+        },
+        {
+          code: constants.HTTP_CODE_BAD_REQUEST,
+          errors: [Errors.ValidationError]
+        }
+      ];
+
+      const agentDeprovisionEndPoint = ResponseDecorator.handleErrors(AgentController.agentDeprovisionEndPoint, successCode, errorCodes);
+      const responseObject = await agentDeprovisionEndPoint(req);
+
+      res
+        .status(responseObject.code)
+        .send(responseObject.body)
+    }
+  },
+  {
     method: 'get',
     path: '/api/v3/agent/config',
     middleware: async (req, res) => {
       const successCode = constants.HTTP_CODE_SUCCESS;
       const errorCodes = [
-        {
-          code: constants.HTTP_CODE_NOT_FOUND,
-          errors: [Errors.NotFoundError]
-        },
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
           errors: [Errors.AuthenticationError]
@@ -76,10 +96,6 @@ module.exports = [
     middleware: async (req, res) => {
       const successCode = constants.HTTP_CODE_NO_CONTENT;
       const errorCodes = [
-        {
-          code: constants.HTTP_CODE_NOT_FOUND,
-          errors: [Errors.NotFoundError]
-        },
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
           errors: [Errors.AuthenticationError]
@@ -105,10 +121,6 @@ module.exports = [
       const successCode = constants.HTTP_CODE_SUCCESS;
       const errorCodes = [
         {
-          code: constants.HTTP_CODE_NOT_FOUND,
-          errors: [Errors.NotFoundError]
-        },
-        {
           code: constants.HTTP_CODE_UNAUTHORIZED,
           errors: [Errors.AuthenticationError]
         },
@@ -133,10 +145,6 @@ module.exports = [
       const successCode = constants.HTTP_CODE_NO_CONTENT;
       const errorCodes = [
         {
-          code: constants.HTTP_CODE_NOT_FOUND,
-          errors: [Errors.NotFoundError]
-        },
-        {
           code: constants.HTTP_CODE_UNAUTHORIZED,
           errors: [Errors.AuthenticationError]
         },
@@ -160,10 +168,6 @@ module.exports = [
     middleware: async (req, res) => {
       const successCode = constants.HTTP_CODE_SUCCESS;
       const errorCodes = [
-        {
-          code: constants.HTTP_CODE_NOT_FOUND,
-          errors: [Errors.NotFoundError]
-        },
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
           errors: [Errors.AuthenticationError]
@@ -208,10 +212,6 @@ module.exports = [
     middleware: async (req, res) => {
       const successCode = constants.HTTP_CODE_SUCCESS;
       const errorCodes = [
-        {
-          code: constants.HTTP_CODE_NOT_FOUND,
-          errors: [Errors.NotFoundError]
-        },
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
           errors: [Errors.AuthenticationError]

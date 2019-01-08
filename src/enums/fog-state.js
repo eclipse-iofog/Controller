@@ -11,12 +11,9 @@
  *
  */
 
-const microserviceState = {
-  NOT_RUNNING: 'NOT_RUNNING',
-  RUNNING: 'RUNNING',
-  RESTARTING: 'RESTARTING',
-  STUCK_IN_RESTART: 'STUCK_IN_RESTART',
+const fogState = {
+  UNKNOWN: 'UNKNOWN',
+  RUNNING: 'RUNNING'
 };
 
-module.exports = microserviceState;
-
+module.exports = fogState;

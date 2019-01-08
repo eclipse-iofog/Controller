@@ -22,6 +22,19 @@ const agentProvision = {
   "additionalProperties": false
 };
 
+const agentDeprovision = {
+  "id": "/agentDeprovision",
+  "type": "object",
+  "properties": {
+    "microserviceUuids": {
+      "type": "array",
+      "items": {"type": "string"}
+    }
+  },
+  "required": ["microserviceUuids"],
+  "additionalProperties": false
+};
+
 const updateAgentConfig = {
   "id": "/updateAgentConfig",
   "type": "object",
@@ -139,7 +152,7 @@ const updateUsbInfo = {
 };
 
 module.exports = {
-  mainSchemas: [agentProvision, updateAgentConfig, updateAgentStatus, updateAgentStrace,
+  mainSchemas: [agentProvision, agentDeprovision, updateAgentConfig, updateAgentStatus, updateAgentStrace,
   updateHardwareInfo, updateUsbInfo],
   innerSchemas: [straceData, microserviceStatus]
 };
