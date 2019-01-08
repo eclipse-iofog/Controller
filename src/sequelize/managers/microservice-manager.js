@@ -233,7 +233,7 @@ class MicroserviceManager extends BaseManager {
     }, {transaction: transaction})
   }
 
-  findAllWithStatuses(transaction) {
+  findAllWithStatuses(where, transaction) {
     return Microservice.findAll({
       include: [
         {
@@ -241,7 +241,8 @@ class MicroserviceManager extends BaseManager {
           as: 'microserviceStatus',
           required: true
         }
-      ]
+      ],
+      where: where
     }, {transaction: transaction})
   }
 
