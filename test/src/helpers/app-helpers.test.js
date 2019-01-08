@@ -1,5 +1,5 @@
 const crypto = require('crypto');
-const { expect } = require('chai');
+const {expect} = require('chai');
 const fs = require('fs');
 const path = require('path');
 const portscanner = require('portscanner');
@@ -279,19 +279,111 @@ describe('App Helpers', () => {
     })
   })
 
-  // TODO:
-  // generateAccessToken
-  // checkTransaction
-  // deleteUndefinedFields
-  // validateBooleanCliOptions
-  // formatMessage
-  // stringifyCliJsonSchema
-  // handleCLIError
-  // trimCertificate
-  // validateParameters
-  // _validateArg
-  // _getPossibleAliasesList
-  // _getPossibleArgsList
-  // isTest
+  describe('.deleteUndefinedFields()', () => {
+    const input = {
+      name: undefined,
+      id: undefined,
+      ioFogUuid: 'testIoFogUuid',
+      location: 'testLocation'
+    };
 
-})
+    const output = {
+      ioFogUuid: 'testIoFogUuid',
+      location: 'testLocation'
+    };
+
+    def('subject', () => $subject.deleteUndefinedFields(input));
+
+    context('passing input object', () => {
+      it('returns output without undefined values', () => {
+        expect($subject).to.be.deep.equal(output);
+      })
+    });
+  });
+
+  describe('.validateBooleanCliOptions()', () => {
+    def('trueOption', () => 'testOption');
+    def('falseOption', () => 'testOption2');
+    def('subject', () => $subject.validateBooleanCliOptions($trueOption, $falseOption));
+
+    context('when true option is true and false option is false', () => {
+      def('trueOption', () => 'testOption');
+      def('falseOption', () => undefined);
+
+      it('returns true', () => {
+        expect($subject).to.be.equal(true);
+      })
+    });
+
+    context('when true option is false and false option is true', () => {
+      def('trueOption', () => undefined);
+      def('falseOption', () => 'testOption');
+
+      it('returns false', () => {
+        expect($subject).to.be.equal(false);
+      })
+    });
+  });
+
+  describe('.formatMessage()', () => {
+    def('input', () => 'testOption {}');
+    def('argument', () => 'test');
+    def('output', () => 'testOption test');
+    def('subject', () => $subject.formatMessage($input, $argument));
+
+    context('when input and argument passed', () => {
+      it('returns output with argument', () => {
+        expect($subject).to.be.equal($output);
+      })
+    });
+  });
+
+  describe('.stringifyCliJsonSchema()', () => {
+    def('json', () => ({
+      id: 15,
+      name: 'testName'
+    }));
+    def('output', () => '\\{\n  "id": 15,\n  "name": "testName"\n\\}');
+    def('subject', () => $subject.stringifyCliJsonSchema($json));
+
+    context('when json passed', () => {
+      it('returns json as formatted string', () => {
+        expect($subject).to.be.equal($output);
+      })
+    });
+
+  });
+
+  describe('.handleCLIError()', () => {
+    def('error', () => ({
+      id: 15,
+      name: 'UNKNOWN_OPTION',
+      optionName: 'testOption',
+      value: 'testValue',
+      message: 'Test error occurred'
+    }));
+    def('errorMessage', () => "Unknown parameter " + $error.optionName);
+    def('subject', () => $subject.handleCLIError($error));
+
+    context('when error received', () => {
+      it('displays error message', () => {
+        expect($subject).to.be.equal(undefined);
+      })
+    });
+
+  });
+
+  describe('.trimCertificate()', () => {
+    def('certificate', () => '-----BEGIN CERTIFICATE-----\n' +
+      'testttt' +
+      '-----END CERTIFICATE-----');
+    def('output', () => 'testttt');
+    def('subject', () => $subject.trimCertificate($certificate));
+
+    context('when called with certificate', () => {
+      it('returns trimmed certificate', () => {
+        expect($subject).to.be.equal($output);
+      })
+    });
+  });
+});
