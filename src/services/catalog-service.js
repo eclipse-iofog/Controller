@@ -52,8 +52,11 @@ const updateCatalogItem = async function (id, data, user, isCLI, transaction) {
 
 const listCatalogItems = async function (user, isCLI, transaction) {
   const where = isCLI
-    ? {category: {[Op.ne]: 'SYSTEM'}}
-    : {[Op.or]: [{userId: user.id}, {userId: null}], category: {[Op.ne]: 'SYSTEM'}};
+    ? {[Op.or]: [{category: {[Op.ne]: 'SYSTEM'}}, {category: null}]}
+    : {
+      [Op.or]: [{userId: user.id}, {userId: null}],
+      [Op.or]: [{category: {[Op.ne]: 'SYSTEM'}}, {category: null}]
+    };
 
   const attributes = isCLI
     ? {}
@@ -67,8 +70,11 @@ const listCatalogItems = async function (user, isCLI, transaction) {
 
 const getCatalogItem = async function (id, user, isCLI, transaction) {
   const where = isCLI
-    ? {id: id, category: {[Op.ne]: 'SYSTEM'}}
-    : {[Op.or]: [{userId: user.id}, {userId: null}], id: id, category: {[Op.ne]: 'SYSTEM'}};
+    ? {[Op.or]: [{category: {[Op.ne]: 'SYSTEM'}}, {category: null}]}
+    : {
+      [Op.or]: [{userId: user.id}, {userId: null}],
+      [Op.or]: [{category: {[Op.ne]: 'SYSTEM'}}, {category: null}]
+    };
 
   const attributes = isCLI
     ? {}
@@ -247,9 +253,11 @@ const _updateCatalogItem = async function (data, where, transaction) {
   if (!catalogItem || AppHelper.isEmpty(catalogItem)) {
     return
   }
-  const registry = await RegistryManager.findOne({id: data.registryId}, transaction);
-  if (!registry) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_REGISTRY_ID, data.registryId));
+  if (data.registryId) {
+    const registry = await RegistryManager.findOne({id: data.registryId}, transaction);
+    if (!registry) {
+      throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_REGISTRY_ID, data.registryId));
+    }
   }
 
   const item = await _checkIfItemExists(where, transaction);
