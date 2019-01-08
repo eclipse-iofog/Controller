@@ -70,8 +70,11 @@ const listCatalogItems = async function (user, isCLI, transaction) {
 
 const getCatalogItem = async function (id, user, isCLI, transaction) {
   const where = isCLI
-    ? {id: id, category: {[Op.ne]: 'SYSTEM'}}
-    : {[Op.or]: [{userId: user.id}, {userId: null}], id: id, category: {[Op.ne]: 'SYSTEM'}};
+    ? {[Op.or]: [{category: {[Op.ne]: 'SYSTEM'}}, {category: null}]}
+    : {
+      [Op.or]: [{userId: user.id}, {userId: null}],
+      [Op.or]: [{category: {[Op.ne]: 'SYSTEM'}}, {category: null}]
+    };
 
   const attributes = isCLI
     ? {}
