@@ -43,21 +43,16 @@ const createRegistry = async function (registry, user, transaction) {
   registryCreate = AppHelper.deleteUndefinedFields(registryCreate);
 
   const createdRegistry = await RegistryManager.create(registryCreate, transaction);
-  await updateChangeTracking(user, transaction);
+
+  await _updateChangeTracking(user, transaction);
+
   return {
     id: createdRegistry.id
   }
 };
 
-const updateChangeTracking = async function (user, transaction) {
-  let fogs = await FogManager.findAll({userId: user.id}, transaction);
-  for (fog of fogs) {
-    await ChangeTrackingService.update(fog.uuid, ChangeTrackingService.events.registries, transaction);
-  }
-};
-
-const findRegistries = async function (user, isCli, transaction) {
-  const queryRegistry = isCli
+const findRegistries = async function (user, isCLI, transaction) {
+  const queryRegistry = isCLI
     ? {}
     : {
       [Op.or]:
@@ -77,20 +72,20 @@ const findRegistries = async function (user, isCli, transaction) {
   }
 };
 
-const deleteRegistry = async function (registryData, user, isCli, transaction) {
-  await Validator.validate(registryData, Validator.schemas.registryDelete)
-  const queryData = isCli
+const deleteRegistry = async function (registryData, user, isCLI, transaction) {
+  await Validator.validate(registryData, Validator.schemas.registryDelete);
+  const queryData = isCLI
     ? {id: registryData.id}
     : {id: registryData.id, userId: user.id};
   const registry = await RegistryManager.findOne(queryData, transaction);
   if (!registry) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_REGISTRY_ID, registryData.id));
   }
-  if (isCli) {
+  if (isCLI) {
     user = {id: registry.userId};
   }
   await RegistryManager.delete(queryData, transaction);
-  await updateChangeTracking(user, transaction);
+  await _updateChangeTracking(user, transaction);
 };
 
 const updateRegistry = async function (registry, registryId, user, isCLI, transaction) {
@@ -131,12 +126,20 @@ const updateRegistry = async function (registry, registryId, user, isCLI, transa
 
   await RegistryManager.update(where, registryUpdate, transaction);
 
-  await updateChangeTracking(user, transaction);
+  await _updateChangeTracking(user, transaction);
+};
+
+
+const _updateChangeTracking = async function (user, transaction) {
+  let fogs = await FogManager.findAll({userId: user.id}, transaction);
+  for (fog of fogs) {
+    await ChangeTrackingService.update(fog.uuid, ChangeTrackingService.events.registries, transaction);
+  }
 };
 
 module.exports = {
-  findRegistries: TransactionDecorator.generateTransaction(findRegistries),
   createRegistry: TransactionDecorator.generateTransaction(createRegistry),
+  findRegistries: TransactionDecorator.generateTransaction(findRegistries),
   deleteRegistry: TransactionDecorator.generateTransaction(deleteRegistry),
   updateRegistry: TransactionDecorator.generateTransaction(updateRegistry)
 };
