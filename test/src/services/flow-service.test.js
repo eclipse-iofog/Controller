@@ -323,7 +323,7 @@ describe('Flow Service', () => {
           await $subject;
 
           const where = flowId
-            ? {name: flowData.name, id: {[Op.ne]: flowId, userId: user.id}}
+            ? {name: flowData.name, userId: user.id, id: {[Op.ne]: flowId}}
             : {name: flowData.name, userId: user.id};
           expect(FlowManager.findOne).to.have.been.calledWith(where, transaction);
         });

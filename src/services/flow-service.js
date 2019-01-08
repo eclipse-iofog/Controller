@@ -119,7 +119,7 @@ const getFlow = async function (flowId, user, isCLI, transaction) {
 const _checkForDuplicateName = async function (name, flowId, userId, transaction) {
   if (name) {
     const where = flowId
-      ? {name: name, id: {[Op.ne]: flowId, userId: userId}}
+      ? {name: name, userId: userId, id: {[Op.ne]: flowId}}
       : {name: name, userId: userId};
 
     const result = await FlowManager.findOne(where, transaction);
