@@ -23,7 +23,7 @@ const MicroserviceManager = require('../sequelize/managers/microservice-manager'
 const Config = require('../config');
 const fs = require('fs');
 const logger = require('../logger');
-const ftpClient = require('ftp');
+const FtpClient = require('ftp');
 const mime = require('mime');
 
 
@@ -189,7 +189,7 @@ const _sendFileToFtp = async function (data, filePath) {
 
 const writeFileToFtp = function (connectionData, filePath, destDir) {
   return new Promise((resolve, reject) => {
-    const client = new ftpClient();
+    const client = new FtpClient();
 
     client.on('ready', () => {
       client.put(filePath, destDir + '/' + filePath.split('/').pop(), err => {
@@ -235,7 +235,7 @@ const _convertFileToBase64 = function (filePath) {
 };
 
 const _deleteFile = function (filePath) {
-  fs.unlinkSync(filePath, (err) => {
+  fs.unlink(filePath, (err) => {
     if (err) {
       logger.warn(AppHelper.formatMessage(ErrorMessages.UNABLE_TO_DELETE_STRACE, filePath, err));
     }
