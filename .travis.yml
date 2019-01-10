@@ -28,7 +28,7 @@ jobs:
   - stage: build
     script:
     - NODE_ENV=production node /home/travis/build/ioFog/Controller/src/main.js start
-    - npm postman_test
+    - npm run postman_test
   - stage: dev_deploy
     before_install:
     - sudo apt-get install sshpass
