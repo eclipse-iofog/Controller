@@ -50,8 +50,6 @@ function prepareUserByEmail(f) {
     const obj = fArgs[0]
     const email = obj.email
 
-    logger.info('getting user by email: ' + email)
-
     const user = await UserManager.findByEmail(email)
 
     if (!user) {

@@ -22,6 +22,9 @@ const CatalogItemOutputTypeManager = require('../sequelize/managers/catalog-item
 const Op = require('sequelize').Op;
 const Validator = require('../schemas/index');
 const RegistryManager = require('../sequelize/managers/registry-manager');
+const MicroserviceManager = require('../sequelize/managers/microservice-manager');
+const ChangeTrackingService = require('./change-tracking-service');
+const MicroseriveStates = require('../enums/microservice-state');
 
 const createCatalogItem = async function (data, user, transaction) {
   await Validator.validate(data, Validator.schemas.catalogItemCreate);
@@ -267,6 +270,13 @@ const _updateCatalogItem = async function (data, where, transaction) {
 
 const _updateCatalogItemImages = async function (data, transaction) {
   if (data.images) {
+    const microservices = await MicroserviceManager.findAllWithStatuses({catalogItemId: data.id}, transaction);
+    for (const ms of microservices) {
+      if (ms.microserviceStatus.status === MicroseriveStates.RUNNING) {
+        throw new Errors.ValidationError(ErrorMessages.CATALOG_ITEM_IMAGES_IS_FROZEN)
+      }
+    }
+
     for (const image of data.images) {
       await CatalogItemImageManager.updateOrCreate({
         catalogItemId: data.id,

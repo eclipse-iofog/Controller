@@ -29,8 +29,6 @@ function checkAuthToken(f) {
     const req = fArgs[0];
     const token = req.headers.authorization;
 
-    logger.info('checking user token: ' + token);
-
     const user = await UserManager.checkAuthentication(token);
 
     if (!user) {
@@ -58,8 +56,6 @@ function checkFogToken(f) {
     const req = fArgs[0];
     const token = req.headers.authorization;
 
-    logger.info('checking fog token: ' + token);
-
     const fog = await FogManager.checkToken(token);
 
     if (!fog) {
@@ -76,7 +72,6 @@ function checkFogToken(f) {
     FogAccessTokenManager.updateExpirationTime(fog.accessToken.id, fog.accessToken.expirationTime + config.get('Settings:FogTokenExpirationIntervalSeconds') * 1000);
 
     const timestamp = Date.now();
-    logger.info('updating agent lastActive timestamp: ' + timestamp);
     await FogManager.updateLastActive(fog.uuid, timestamp);
 
     return await f.apply(this, fArgs);

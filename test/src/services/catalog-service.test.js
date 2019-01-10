@@ -11,6 +11,8 @@ const RegistryManager = require('../../../src/sequelize/managers/registry-manage
 const AppHelper = require('../../../src/helpers/app-helper');
 const Sequelize = require('sequelize');
 const Op = Sequelize.Op;
+const MicroserviceManager = require('../../../src/sequelize/managers/microservice-manager');
+const ChangeTrackingService = require('../../../src/services/change-tracking-service');
 
 describe('Catalog Service', () => {
   def('subject', () => CatalogService);
@@ -410,6 +412,7 @@ describe('Catalog Service', () => {
     def('catalogItemImageUpdateOrCreateResponse', () => Promise.resolve());
     def('catalogItemInputTypeUpdateOrCreateResponse', () => Promise.resolve());
     def('catalogItemOutputTypeUpdateOrCreateResponse', () => Promise.resolve({}));
+    def('microservicesResponse', () => Promise.resolve([]));
 
 
     beforeEach(() => {
@@ -429,6 +432,8 @@ describe('Catalog Service', () => {
       $sandbox.stub(CatalogItemImageManager, 'updateOrCreate').returns($catalogItemImageUpdateOrCreateResponse); // twice
       $sandbox.stub(CatalogItemInputTypeManager, 'updateOrCreate').returns($catalogItemInputTypeUpdateOrCreateResponse);
       $sandbox.stub(CatalogItemOutputTypeManager, 'updateOrCreate').returns($catalogItemOutputTypeUpdateOrCreateResponse);
+      //TODO test success fail and arguments
+      $sandbox.stub(MicroserviceManager, 'findAllWithStatuses').returns($microservicesResponse);
     });
 
     it('calls Validator#validate() with correct args', async () => {
