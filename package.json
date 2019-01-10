@@ -41,7 +41,8 @@
 		"postinstall": "node scripts/postinstall.js",
 		"lint": "./node_modules/.bin/eslint \"**/*.js\"",
 		"automatic-release": "automatic-release",
-		"test": "node scripts/test.js && node scripts/postmantest.js",
+		"test": "node scripts/test.js",
+		"postman_test": "node scripts/postmantest.js",
 		"coverage": "node scripts/coverage.js"
 	},
 	"preferGlobal": true,
