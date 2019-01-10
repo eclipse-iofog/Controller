@@ -26,6 +26,9 @@ stages:
 jobs:
   include:
   - stage: build
+    script:
+    - iofog-controller start
+    - npm postman_test
   - stage: dev_deploy
     before_install:
     - sudo apt-get install sshpass
