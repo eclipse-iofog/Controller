@@ -212,7 +212,13 @@ function validateParameters(command, commandDefinitions, args) {
       currentArgType = _getValType(alias, commandDefinitions);
     } else {
       // value
-      const valType = typeof arg;
+      let valType;
+      const nArg = new Number(arg);
+      if (nArg === Number.NaN) {
+        valType = "string"
+      } else {
+        valType = "number"
+      }
       if (valType !== currentArgType) {
         throw new Errors.InvalidArgumentTypeError(formatMessage(ErrorMessages.INVALID_CLI_ARGUMENT_TYPE, currwentArgName, currentArgType))
       }
