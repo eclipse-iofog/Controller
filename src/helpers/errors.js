@@ -95,6 +95,14 @@ class InvalidArgumentError extends Error {
   }
 }
 
+class InvalidArgumentTypeError extends Error {
+  constructor(message) {
+    super(message);
+    this.message = message;
+    this.name = "InvalidArgumentTypeError";
+  }
+}
+
 module.exports = {
   AuthenticationError: AuthenticationError,
   TransactionError: TransactionError,
@@ -105,5 +113,7 @@ module.exports = {
   DuplicatePropertyError: DuplicatePropertyError,
   FtpError: FtpError,
   EmailActivationSetupError: EmailActivationSetupError,
-  InvalidArgumentError: InvalidArgumentError
+  InvalidArgumentError: InvalidArgumentError,
+  InvalidArgumentTypeError: InvalidArgumentTypeError
+
 };
