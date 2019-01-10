@@ -413,7 +413,6 @@ describe('Catalog Service', () => {
     def('catalogItemInputTypeUpdateOrCreateResponse', () => Promise.resolve());
     def('catalogItemOutputTypeUpdateOrCreateResponse', () => Promise.resolve({}));
     def('microservicesResponse', () => Promise.resolve([]));
-    def('changeTrackingResponse', () => Promise.resolve({}));
 
 
     beforeEach(() => {
@@ -433,8 +432,8 @@ describe('Catalog Service', () => {
       $sandbox.stub(CatalogItemImageManager, 'updateOrCreate').returns($catalogItemImageUpdateOrCreateResponse); // twice
       $sandbox.stub(CatalogItemInputTypeManager, 'updateOrCreate').returns($catalogItemInputTypeUpdateOrCreateResponse);
       $sandbox.stub(CatalogItemOutputTypeManager, 'updateOrCreate').returns($catalogItemOutputTypeUpdateOrCreateResponse);
-      $sandbox.stub(MicroserviceManager, 'findAll').returns($microservicesResponse);
-      $sandbox.stub(ChangeTrackingService, 'update').returns($changeTrackingResponse);
+      //TODO test success fail and arguments
+      $sandbox.stub(MicroserviceManager, 'findAllWithStatuses').returns($microservicesResponse);
     });
 
     it('calls Validator#validate() with correct args', async () => {
