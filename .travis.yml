@@ -33,12 +33,12 @@ jobs:
     before_install:
     - sudo apt-get install sshpass
     script: 
-    - sshpass -p $DEV_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $DEV_MACHINE_USERNAME@$DEV_MACHINE_IP "cd /FogController; NODE_ENV=production node src/main.js stop; git pull; npm i; NODE_ENV=production node src/main.js start"
+    - sshpass -p $DEV_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $DEV_MACHINE_USERNAME@$DEV_MACHINE_IP "cd /FogController; NODE_ENV=production node src/main.js stop; git pull; npm i; NODE_ENV=production node src/main.js start; npm run postman_test"
   - stage: prod_deploy
     before_install:
     - sudo apt-get install sshpass
     script: 
-    - sshpass -p $PROD_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $PROD_MACHINE_USERNAME@$PROD_MACHINE_IP "cd /Controller; NODE_ENV=production node src/main.js stop; git pull; npm i; NODE_ENV=production node src/main.js start"
+    - sshpass -p $PROD_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $PROD_MACHINE_USERNAME@$PROD_MACHINE_IP "cd /Controller; NODE_ENV=production node src/main.js stop; git pull; npm i; NODE_ENV=production node src/main.js start; npm run postman_test"
   - stage: release
     #before_install:
       #- git clone "https://github.com/$TRAVIS_REPO_SLUG.git" "$TRAVIS_REPO_SLUG";
