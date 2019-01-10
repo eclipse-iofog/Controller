@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "f26c12d6-fdb5-4606-841b-de7979fe33f5",
+		"_postman_id": "f6f55915-03c9-4758-afb2-80734c2e9e01",
 		"name": "Controller Testing",
 		"description": "iofog-controller collection",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -156,7 +156,7 @@
 							"script": {
 								"id": "954febdd-1a16-4db0-bdff-bd13fc50a451",
 								"exec": [
-									"tests[\"Status code is 204\"] = responseCode.code === 204;"
+									""
 								],
 								"type": "text/javascript"
 							}
@@ -293,7 +293,7 @@
 							"script": {
 								"id": "954febdd-1a16-4db0-bdff-bd13fc50a451",
 								"exec": [
-									"tests[\"Status code is 204\"] = responseCode.code === 204;"
+									""
 								],
 								"type": "text/javascript"
 							}
@@ -338,7 +338,7 @@
 							"script": {
 								"id": "954febdd-1a16-4db0-bdff-bd13fc50a451",
 								"exec": [
-									"tests[\"Status code is 204\"] = responseCode.code === 204;"
+									""
 								],
 								"type": "text/javascript"
 							}
@@ -1337,7 +1337,7 @@
 							"script": {
 								"id": "6fb0a761-864d-4465-a6a2-276be8849d5b",
 								"exec": [
-									"tests[\"Status code is 200\"] = responseCode.code === 200;",
+									"tests[\"Status code is 404\"] = responseCode.code === 404;",
 									""
 								],
 								"type": "text/javascript"
@@ -1409,7 +1409,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n  \"straceData\": [\r\n    {\r\n      \"microserviceId\": \"abcdef\",\r\n      \"buffer\": \"test\"\r\n    }\r\n  ]\r\n}"
+							"raw": "{\r\n  \"straceData\": [\r\n    {\r\n      \"microserviceUuid\": \"abcdef\",\r\n      \"buffer\": \"test\"\r\n    }\r\n  ]\r\n}"
 						},
 						"url": {
 							"raw": "{{host}}/api/v3/agent/strace",
@@ -2409,7 +2409,7 @@
 									"",
 									"var data = JSON.parse(responseBody);",
 									"",
-									"tests[\"Response validation passed\"] = data.hasOwnProperty('id') && data.name && data.description && data.category && data.configExample",
+									"tests[\"Response validation passed\"] = data.hasOwnProperty('id') && data.name && data.description && data.category && data.hasOwnProperty('configExample')",
 									"&& data.publisher && data.hasOwnProperty('diskRequired') && data.hasOwnProperty('ramRequired') && data.picture && data.hasOwnProperty('isPublic')",
 									"&& data.hasOwnProperty('registryId') && data.hasOwnProperty('images') && data.hasOwnProperty('inputType') && data.hasOwnProperty('outputType');"
 								],
@@ -4597,11 +4597,7 @@
 							"script": {
 								"id": "4f7a9f52-12cc-49d0-9e2f-147b6f5cb6fa",
 								"exec": [
-									"tests[\"Status code is 500\"] = responseCode.code === 500;",
-									"",
-									"var data = JSON.parse(responseBody);",
-									"",
-									"tests[\"Response error message is valid\"] = data.name === 'FtpError' && data.message === 'FTP error: Error: Timeout while connecting to server';"
+									"tests[\"Status code is 500\"] = responseCode.code === 500;"
 								],
 								"type": "text/javascript"
 							}
@@ -5283,7 +5279,11 @@
 							"script": {
 								"id": "4f7a9f52-12cc-49d0-9e2f-147b6f5cb6fa",
 								"exec": [
-									"tests[\"Status code is 204\"] = responseCode.code === 204;"
+									"tests[\"Status code is 204\"] = responseCode.code === 400;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response error message is valid\"] = data.name === 'ValidationError' && data.message === 'Can\\'t rollback version now. There are no backups on agent';"
 								],
 								"type": "text/javascript"
 							}
@@ -5765,7 +5765,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"url\": \"string\",\n  \"isPublic\": true,\n  \"username\": \"string\",\n  \"password\": \"string\",\n  \"email\": \"string\",\n  \"requiresCert\": false,\n  \"certificate\": \"string\"\n}"
+							"raw": "{\n  \"url\": \"string\",\n  \"isPublic\": true,\n  \"username\": \"string\",\n  \"password\": \"string\",\n  \"email\": \"test@gmail.com\",\n  \"requiresCert\": false,\n  \"certificate\": \"string\"\n}"
 						},
 						"url": {
 							"raw": "{{host}}/api/v3/registries",
@@ -5810,7 +5810,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"url\": \"string2\",\n  \"isPublic\": true,\n  \"username\": \"string3\",\n  \"password\": \"string4\",\n  \"email\": \"string5\",\n  \"requiresCert\": true,\n  \"certificate\": \"string6\"\n}"
+							"raw": "{\n  \"url\": \"string2\",\n  \"isPublic\": true,\n  \"username\": \"string3\",\n  \"password\": \"string4\",\n  \"email\": \"test2@gmail.com\",\n  \"requiresCert\": true,\n  \"certificate\": \"string6\"\n}"
 						},
 						"url": {
 							"raw": "{{host}}/api/v3/registries/{{reg-id}}",
