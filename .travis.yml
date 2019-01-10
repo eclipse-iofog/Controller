@@ -27,7 +27,7 @@ jobs:
   include:
   - stage: build
     script:
-    - iofog-controller start
+    - NODE_ENV=production node /home/travis/build/ioFog/Controller/src/main.js start
     - npm postman_test
   - stage: dev_deploy
     before_install:
