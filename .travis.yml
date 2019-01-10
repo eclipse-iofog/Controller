@@ -34,7 +34,7 @@ jobs:
     - sudo apt-get install sshpass
     script: 
     - sshpass -p $DEV_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $DEV_MACHINE_USERNAME@$DEV_MACHINE_IP "cd /FogController; NODE_ENV=production node src/main.js stop; git pull; npm i; NODE_ENV=production node src/main.js start; npm run postman_test"
-  - stage: prod_deploy
+  - stage: pre_release
     before_install:
     - sudo apt-get install sshpass
     script: 
