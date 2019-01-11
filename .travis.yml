@@ -27,18 +27,19 @@ jobs:
   include:
   - stage: build
     script:
+    - npm test
     - NODE_ENV=production node /home/travis/build/ioFog/Controller/src/main.js start
     - npm run postman_test
   - stage: dev_deploy
     before_install:
     - sudo apt-get install sshpass
     script: 
-    - sshpass -p $DEV_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $DEV_MACHINE_USERNAME@$DEV_MACHINE_IP "cd /FogController; NODE_ENV=production node src/main.js stop; git pull; npm i; NODE_ENV=production node src/main.js start; npm run postman_test"
+    - sshpass -p $DEV_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $DEV_MACHINE_USERNAME@$DEV_MACHINE_IP "cd /FogController; NODE_ENV=production node src/main.js stop; git pull; npm i; npm test; NODE_ENV=production node src/main.js start; npm run postman_test"
   - stage: pre_release
     before_install:
     - sudo apt-get install sshpass
     script: 
-    - sshpass -p $PREPROD_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $PREPROD_MACHINE_USERNAME@$PREPROD_MACHINE_IP "cd /Controller; NODE_ENV=production node src/main.js stop; git pull; npm i; NODE_ENV=production node src/main.js start; npm run postman_test"
+    - sshpass -p $PREPROD_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $PREPROD_MACHINE_USERNAME@$PREPROD_MACHINE_IP "cd /Controller; NODE_ENV=production node src/main.js stop; git pull; npm i; npm test; NODE_ENV=production node src/main.js start; npm run postman_test"
   - stage: release
     #before_install:
       #- git clone "https://github.com/$TRAVIS_REPO_SLUG.git" "$TRAVIS_REPO_SLUG";
