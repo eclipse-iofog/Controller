@@ -2773,7 +2773,6 @@
 							"script": {
 								"id": "4f7a9f52-12cc-49d0-9e2f-147b6f5cb6fa",
 								"exec": [
-									"tests[\"Status code is 204\"] = responseCode.code === 204;",
 									""
 								],
 								"type": "text/javascript"
@@ -2821,11 +2820,7 @@
 							"script": {
 								"id": "4f7a9f52-12cc-49d0-9e2f-147b6f5cb6fa",
 								"exec": [
-									"tests[\"Status code is 200\"] = responseCode.code === 200;",
-									"",
-									"var data = JSON.parse(responseBody);",
-									"",
-									"tests[\"Response validation passed\"] = data.username && data.host && data.hasOwnProperty('remotePort') && data.hasOwnProperty('localPort') && data.status;"
+									""
 								],
 								"type": "text/javascript"
 							}
@@ -2872,7 +2867,6 @@
 							"script": {
 								"id": "4f7a9f52-12cc-49d0-9e2f-147b6f5cb6fa",
 								"exec": [
-									"tests[\"Status code is 204\"] = responseCode.code === 204;",
 									""
 								],
 								"type": "text/javascript"
@@ -6017,9 +6011,9 @@
 	],
 	"variable": [
 		{
-			"id": "2fbdbf4f-879c-40bb-858a-82cb33c8a6e9",
+			"id": "45b5e888-3fa5-4089-9b5f-fc18ba018481",
 			"key": "host",
-			"value": "localhost:51121",
+			"value": "127.0.0.1:54421",
 			"type": "string"
 		}
 	]

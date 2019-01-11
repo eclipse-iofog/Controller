@@ -12,7 +12,7 @@
  */
 
 const nodemailer = require('nodemailer');
-let smtpTransport = require('nodemailer-smtp-transport');
+const smtpTransport = require('nodemailer-smtp-transport');
 const UserManager = require('../sequelize/managers/user-manager');
 const AppHelper = require('../helpers/app-helper');
 const Errors = require('../helpers/errors');

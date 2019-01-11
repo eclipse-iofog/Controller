@@ -18,24 +18,27 @@ stages:
   if: type = pull_request
 - name: dev_deploy
   if: branch = develop AND type = push
-- name: prod_deploy
-  if: branch = release AND type = push
+- name: pre_release
+  if: branch = /^release-.*$/ AND type = push
 - name: release
   if: branch = master and type = push
 
 jobs:
   include:
   - stage: build
+    script:
+    - NODE_ENV=production node /home/travis/build/ioFog/Controller/src/main.js start
+    - npm run postman_test
   - stage: dev_deploy
     before_install:
     - sudo apt-get install sshpass
     script: 
-    - sshpass -p $DEV_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $DEV_MACHINE_USERNAME@$DEV_MACHINE_IP "cd /FogController; NODE_ENV=production node src/main.js stop; git pull; npm i; NODE_ENV=production node src/main.js start"
-  - stage: prod_deploy
+    - sshpass -p $DEV_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $DEV_MACHINE_USERNAME@$DEV_MACHINE_IP "cd /FogController; NODE_ENV=production node src/main.js stop; git pull; npm i; NODE_ENV=production node src/main.js start; npm run postman_test"
+  - stage: pre_release
     before_install:
     - sudo apt-get install sshpass
     script: 
-    - sshpass -p $PROD_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $PROD_MACHINE_USERNAME@$PROD_MACHINE_IP "cd /Controller; NODE_ENV=production node src/main.js stop; git pull; npm i; NODE_ENV=production node src/main.js start"
+    - sshpass -p $PREPROD_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $PREPROD_MACHINE_USERNAME@$PREPROD_MACHINE_IP "cd /Controller; NODE_ENV=production node src/main.js stop; git pull; npm i; NODE_ENV=production node src/main.js start; npm run postman_test"
   - stage: release
     #before_install:
       #- git clone "https://github.com/$TRAVIS_REPO_SLUG.git" "$TRAVIS_REPO_SLUG";
@@ -54,3 +57,5 @@ jobs:
       api_key: ${NPM_AUTH_TOKEN}
       on:
         tags: false
+    after_deploy:
+    - sshpass -p $PROD_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $PROD_MACHINE_USERNAME@$PROD_MACHINE_IP "iofog-controller stop; npm update -g iofogcontroller; iofog-controller start"
