@@ -78,7 +78,7 @@ function testConfigSection() {
   // TODO backup config before this command
   // hasSomeResponse(testCommand("config add -p 1234 -c testPath -k testSslPath -i testIntermediateCertPath" +
   //   " -h testHomeUrl -a testEmailAddress -w testEmailPassword -s testEmailService -d testLogDir -z 555"));
-  responseContains(testCommand('config list'), 'Port: 1234');
+  hasSomeResponse(testCommand('config list'));
   responseEquals(testCommand('config dev-mode -o'), 'Dev mode state updated successfully.');
   responseEquals(testCommand('config email-activation -f'), 'Email activation state updated successfully.');
 }
@@ -298,7 +298,7 @@ function testDiagnosticsSection() {
     "-C 15 -s 25 -F 27 -Q 26 -B -W -A -y 1 -u " + userId), ioFogCreateFields);
   const ioFogUuid = ioFogCreateResponse.uuid;
 
-  const microserviceCreateResponse = responseHasFields(testCommand("microservice add -n microserviceName1" +
+  const microserviceCreateResponse = responseHasFields(executeCommand("microservice add -n microserviceName1" +
     " -c " + catalogId + " -F " + flowId + " -I " + ioFogUuid + " -g '{}' -v /host_src:/container_src:rw -l 15 -R" +
     " -p 80:8080:false -u " + userId), microserviceCreateFields);
   const microserviceUuid = microserviceCreateResponse.uuid;
