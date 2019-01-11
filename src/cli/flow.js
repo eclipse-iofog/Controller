@@ -146,10 +146,10 @@ const _createFlow = async function (flowData, user) {
     ? JSON.parse(fs.readFileSync(flowData.file, 'utf8'))
     : _createFlowObject(flowData);
 
-  logger.info(JSON.stringify(flow));
-
-  await FlowService.createFlow(flow, user, true);
-  logger.info('Flow created successfully.');
+  const createdFlow = await FlowService.createFlow(flow, user, true);
+  logger.info(JSON.stringify({
+    id: createdFlow.id
+  }, null, 2));
 };
 
 const _updateFlow = async function (flowData) {
@@ -157,7 +157,6 @@ const _updateFlow = async function (flowData) {
     ? JSON.parse(fs.readFileSync(flowData.file, 'utf8'))
     : _createFlowObject(flowData);
 
-  logger.info(JSON.stringify(flow));
   const flowId = flowData.flowId;
 
   await FlowService.updateFlow(flow, flowId, {}, true);
@@ -165,8 +164,6 @@ const _updateFlow = async function (flowData) {
 };
 
 const _deleteFlow = async function (flowData) {
-  logger.info(JSON.stringify(flowData));
-
   const flowId = flowData.flowId;
 
   await FlowService.deleteFlow(flowId, {}, true);
@@ -176,17 +173,13 @@ const _deleteFlow = async function (flowData) {
 const _getAllFlows = async function () {
   const flows = await FlowService.getAllFlows(true);
   logger.info(JSON.stringify(flows, null, 2));
-  logger.info('All flows have been retrieved successfully.');
 };
 
 const _getFlow = async function (flowData) {
-  logger.info(JSON.stringify(flowData));
-
   const flowId = flowData.flowId;
 
   const flow = await FlowService.getFlowWithTransaction(flowId, {}, true);
   logger.info(JSON.stringify(flow, null, 2));
-  logger.info(`Flow with id ${flowId} has been retrieved successfully.`)
 };
 
 function _createFlowObject(data) {

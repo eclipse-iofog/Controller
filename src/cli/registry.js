@@ -29,7 +29,7 @@ class Registry extends BaseCLIHandler {
         group: [constants.CMD]
       },
       {
-        name: 'uri', alias: 'u', type: String,
+        name: 'uri', alias: 'U', type: String,
         description: 'Registry URI',
         group: [constants.CMD_ADD, constants.CMD_UPDATE]
       },
@@ -69,12 +69,12 @@ class Registry extends BaseCLIHandler {
         group: [constants.CMD_ADD, constants.CMD_UPDATE]
       },
       {
-        name: 'user-id', alias: 'i', type: Number,
+        name: 'user-id', alias: 'u', type: Number,
         description: 'User\'s id',
         group: [constants.CMD_ADD]
       },
       {
-        name: 'item-id', alias: 'd', type: Number,
+        name: 'item-id', alias: 'i', type: Number,
         description: 'Item\'s id',
         group: [constants.CMD_REMOVE, constants.CMD_UPDATE]
       }
@@ -121,16 +121,15 @@ class Registry extends BaseCLIHandler {
 
 async function _createRegistry(obj, user) {
   const registry = _createRegistryObject(obj);
-  logger.info(JSON.stringify(registry));
   const response = await RegistryService.createRegistry(registry, user);
-  logger.info('Registry has been created successfully.');
-  logger.info('Registry id: ' + response.id);
+  logger.info(JSON.stringify({
+    id: response.id
+  }, null, 2));
 }
 
 async function _getRegistries(obj, user) {
   const result = await RegistryService.findRegistries(user, true);
   logger.info(JSON.stringify(result, null, 2));
-  logger.info('List of Registries has been received successfully.');
 }
 
 async function _deleteRegistry(obj, user) {
@@ -140,7 +139,6 @@ async function _deleteRegistry(obj, user) {
 
 async function _updateRegistry(obj) {
   const registry = _createRegistryObject(obj);
-  logger.info(JSON.stringify(registry));
   await RegistryService.updateRegistry(registry, obj.itemId, {}, true);
   logger.info('Registry has been updated successfully.');
 }

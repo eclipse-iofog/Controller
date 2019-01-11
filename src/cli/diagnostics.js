@@ -126,8 +126,6 @@ const _executeCase = async function (diagnosticCommand, commandName, f, isUserRe
 };
 
 const _changeMicroserviceStraceState = async function (obj) {
-  logger.info(JSON.stringify(obj));
-
   const isEnable = AppHelper.validateBooleanCliOptions(obj.enable, obj.disable);
   await DiagnosticService.changeMicroserviceStraceState(obj.microserviceUuid, {enable: isEnable}, {}, true);
   const msg = isEnable ? 'Microservice strace has been enabled' : 'Microservice strace has been disabled';
@@ -135,8 +133,6 @@ const _changeMicroserviceStraceState = async function (obj) {
 };
 
 const _getMicroserviceStraceData = async function (obj) {
-  logger.info(JSON.stringify(obj));
-
   const result = await DiagnosticService.getMicroserviceStraceData(obj.microserviceUuid, {format: obj.format}, {}, true);
   logger.info('Strace data:');
   logger.info('=============================');
@@ -145,22 +141,16 @@ const _getMicroserviceStraceData = async function (obj) {
 };
 
 const _postMicroserviceStraceDataToFtp = async function (obj) {
-  logger.info(JSON.stringify(obj));
-
   await DiagnosticService.postMicroserviceStraceDatatoFtp(obj.microserviceUuid, obj, {}, true);
-  logger.info('Strace data has been posted to ftp successfully.');
+  logger.info('Strace data has been posted to FTP successfully.');
 };
 
 const _postMicroserviceImageSnapshotCreate = async function (obj) {
-  logger.info(JSON.stringify(obj));
-
   await DiagnosticService.postMicroserviceImageSnapshotCreate(obj.microserviceUuid, {}, true);
   logger.info('Microservice image snapshot has been created successfully.');
 };
 
 const _getMicroserviceImageSnapshot = async function (obj) {
-  logger.info(JSON.stringify(obj));
-
   const filePath = await DiagnosticService.getMicroserviceImageSnapshot(obj.microserviceUuid, {}, true);
   logger.info('Microservice images path = ' + filePath);
 };
