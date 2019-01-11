@@ -217,12 +217,12 @@ function validateParameters(command, commandDefinitions, args) {
       // value
       let valType;
       const nArg = new Number(arg);
-      if (nArg === Number.NaN) {
-        valType = "string"
+      if (isNaN(nArg)) {
+        valType = 'string';
       } else {
-        valType = "number"
+        valType = 'number';
       }
-      if (valType !== currentArgType) {
+      if (valType !== currentArgType && currentArgType !== 'string') {
         throw new Errors.InvalidArgumentTypeError(formatMessage(ErrorMessages.INVALID_CLI_ARGUMENT_TYPE, currwentArgName, currentArgType))
       }
     }
