@@ -13,6 +13,7 @@
 
 const crypto = require('crypto');
 const Errors = require('./errors');
+const ErrorMessages = require('./error-messages');
 
 const logger = require('../logger');
 const fs = require('fs');
@@ -170,6 +171,9 @@ function handleCLIError(error) {
     case "InvalidArgumentError":
       console.log(error.message);
       break;
+    case "InvalidArgumentTypeError":
+      console.log(error.message);
+      break;
     case "ALREADY_SET":
       console.log("Parameter '" + error.optionName + "' is used multiple times");
       break;
@@ -192,6 +196,8 @@ function validateParameters(command, commandDefinitions, args) {
   const possibleAliasesList = _getPossibleAliasesList(command, commandDefinitions);
   const possibleArgsList = _getPossibleArgsList(command, commandDefinitions);
 
+  let currentArgType;
+  let currwentArgName;
   for (const arg of args) {
     // arg is [argument, alias, value]
 
@@ -199,13 +205,26 @@ function validateParameters(command, commandDefinitions, args) {
       // '--ssl-cert' format -> 'ssl-cert' format
       const argument = arg.substr(2);
       _validateArg(argument, possibleArgsList);
+      currwentArgName = argument;
+      currentArgType = _getValType(argument, commandDefinitions);
     } else if (arg.startsWith("-")) { // alias
       // '-q' format -> 'q' format
       const alias = arg.substr(1);
       _validateArg(alias, possibleAliasesList);
+      currwentArgName = alias;
+      currentArgType = _getValType(alias, commandDefinitions);
     } else {
       // value
-      continue;
+      let valType;
+      const nArg = new Number(arg);
+      if (nArg === Number.NaN) {
+        valType = "string"
+      } else {
+        valType = "number"
+      }
+      if (valType !== currentArgType) {
+        throw new Errors.InvalidArgumentTypeError(formatMessage(ErrorMessages.INVALID_CLI_ARGUMENT_TYPE, currwentArgName, currentArgType))
+      }
     }
   }
 }
@@ -262,6 +281,12 @@ function _getPossibleArgsList(command, commandDefinitions) {
   }
 
   return possibleArgsList;
+}
+
+function _getValType(arg, commandDefinitions) {
+  const command = commandDefinitions
+    .filter(def => def.name === arg || def.alias === arg)[0];
+  return command.type.name.toLowerCase();
 }
 
 function isTest() {
