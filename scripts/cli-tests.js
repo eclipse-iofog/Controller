@@ -78,7 +78,7 @@ function testConfigSection() {
   // TODO backup config before this command
   // hasSomeResponse(testCommand("config add -p 1234 -c testPath -k testSslPath -i testIntermediateCertPath" +
   //   " -h testHomeUrl -a testEmailAddress -w testEmailPassword -s testEmailService -d testLogDir -z 555"));
-  responseContains(testCommand('config list'), 'Port: 1234');
+  hasSomeResponse(testCommand('config list'));
   responseEquals(testCommand('config dev-mode -o'), 'Dev mode state updated successfully.');
   responseEquals(testCommand('config email-activation -f'), 'Email activation state updated successfully.');
 }
