@@ -1,8 +1,9 @@
 const {expect} = require('chai');
 const sinon = require('sinon');
-
 const StraceDiagnosticManager = require('../../../src/sequelize/managers/strace-diagnostics-manager');
 const DiagnosticService = require('../../../src/services/diagnostic-service');
+const FtpClient = require('ftp');
+const fs = require('fs');
 const MicroserviceService = require('../../../src/services/microservices-service');
 const ChangeTrackingService = require('../../../src/services/change-tracking-service');
 const Validator = require('../../../src/schemas');
@@ -223,113 +224,137 @@ describe('DiagnosticService Service', () => {
     })
   });
 
-  // TODO handle FTP stuff
-  // describe('.postMicroserviceStraceDatatoFtp()', () => {
-  //   const transaction = {};
-  //   const error = 'Error!';
-  //
-  //   const user = {
-  //     id: 15
-  //   };
-  //
-  //   const uuid = 'testUuid';
-  //
-  //   const data = {
-  //     ftpHost: 'testHost',
-  //     ftpPort: 5555,
-  //     ftpUser: 'testUser',
-  //     ftpPass: 'testPass',
-  //     ftpDestDir: 'testDir'
-  //   };
-  //
-  //   const microservice = {
-  //     iofogUuid: 'testIoFogUuid'
-  //   };
-  //
-  //   def('subject', () => $subject.postMicroserviceStraceDatatoFtp(uuid, data, user, isCLI, transaction));
-  //   def('validatorResponse', () => Promise.resolve(true));
-  //   def('getMicroserviceResponse', () => Promise.resolve(microservice));
-  //   def('findStraceResponse', () => Promise.resolve({}));
-  //   def('configGetResponse', () => Promise.resolve());
-  //
-  //
-  //   beforeEach(() => {
-  //     $sandbox.stub(Validator, 'validate').returns($validatorResponse);
-  //     $sandbox.stub(MicroserviceManager, 'findOne').returns($getMicroserviceResponse);
-  //     $sandbox.stub(StraceDiagnosticManager, 'findOne').returns($findStraceResponse);
-  //     $sandbox.stub(Config, 'get').returns($configGetResponse);
-  //   });
-  //
-  //   it('calls Validator#validate() with correct args', async () => {
-  //     await $subject;
-  //     expect(Validator.validate).to.have.been.calledWith(data, Validator.schemas.stracePostToFtp);
-  //   });
-  //
-  //   context('when Validator#validate() fails', () => {
-  //     def('validatorResponse', () => Promise.reject(error));
-  //
-  //     it(`fails with ${error}`, () => {
-  //       return expect($subject).to.be.rejectedWith(error)
-  //     })
-  //   });
-  //
-  //   context('when Validator#validate() succeeds', () => {
-  //     it('calls MicroserviceManager#findOne() with correct args', async () => {
-  //       await $subject;
-  //       const microserviceWhere = isCLI
-  //         ? {uuid: uuid}
-  //         : {uuid: uuid, userId: user.id};
-  //       expect(MicroserviceManager.findOne).to.have.been.calledWith(microserviceWhere, transaction);
-  //     });
-  //
-  //
-  //     context('when MicroserviceManager#findOne() fails', () => {
-  //       def('getMicroserviceResponse', () => Promise.reject(error));
-  //
-  //       it(`fails with ${error}`, () => {
-  //         return expect($subject).to.be.rejectedWith(error)
-  //       })
-  //     });
-  //
-  //     context('when MicroserviceManager#findOne() succeeds', () => {
-  //       it('calls StraceDiagnosticManager#findOne() with correct args', async () => {
-  //         await $subject;
-  //         expect(StraceDiagnosticManager.findOne).to.have.been.calledWith({
-  //           microserviceUuid: uuid
-  //         }, transaction);
-  //       });
-  //
-  //       context('when StraceDiagnosticManager#findOne() fails', () => {
-  //         def('findStraceResponse', () => Promise.reject(error));
-  //
-  //         it(`fails with ${error}`, () => {
-  //           return expect($subject).to.be.rejectedWith(error)
-  //         })
-  //       });
-  //
-  //       context('when StraceDiagnosticManager#findOne() succeeds', () => {
-  //         it('calls Config#get() with correct args', async () => {
-  //           await $subject;
-  //           expect(Config.get).to.have.been.calledWith('Diagnostics:DiagnosticDir');
-  //         });
-  //
-  //         context('when Config#get() fails', () => {
-  //           def('configGetResponse', () => error);
-  //
-  //           it(`fails with ${error}`, () => {
-  //             return expect($subject).to.be.eventually.have.property('data')
-  //           })
-  //         });
-  //
-  //         context('when Config#get() succeeds', () => {
-  //           it('fulfills the promise', () => {
-  //             return expect($subject).to.eventually.have.property('data')
-  //           })
-  //         })
-  //       })
-  //     })
-  //   })
-  // });
+  describe('.postMicroserviceStraceDatatoFtp()', () => {
+    const transaction = {};
+    const error = 'Error!';
+
+    const user = {
+      id: 15
+    };
+
+    const uuid = 'testUuid';
+
+    const data = {
+      ftpHost: 'testHost',
+      ftpPort: 5555,
+      ftpUser: 'testUser',
+      ftpPass: 'testPass',
+      ftpDestDir: 'testDir'
+    };
+
+    const connectionData = {
+      host: data.ftpHost,
+      port: data.ftpPort,
+      user: data.ftpUser,
+      password: data.ftpPass,
+      protocol: 'ftp'
+    };
+
+    const microservice = {
+      iofogUuid: 'testIoFogUuid'
+    };
+
+    const dirPath = '/somewhere/on/the/disk';
+    const fPath = dirPath + '/' + uuid;
+    const straceData = {
+      buffer: 'data'
+    };
+
+    def('subject', () => $subject.postMicroserviceStraceDatatoFtp(uuid, data, user, isCLI, transaction));
+    def('validatorResponse', () => Promise.resolve(true));
+    def('getMicroserviceResponse', () => Promise.resolve(microservice));
+    def('findStraceResponse', () => Promise.resolve(straceData));
+    def('configGetResponse', () => dirPath);
+
+    beforeEach(() => {
+      $sandbox.stub(Validator, 'validate').returns($validatorResponse);
+      $sandbox.stub(MicroserviceManager, 'findOne').returns($getMicroserviceResponse);
+      $sandbox.stub(StraceDiagnosticManager, 'findOne').returns($findStraceResponse);
+      $sandbox.stub(Config, 'get').returns($configGetResponse);
+      $sandbox.stub(fs, 'existsSync').returns(true);
+      $sandbox.stub(fs, 'mkdirSync').callsFake(function (dir) {});
+      $sandbox.stub(fs, 'writeFileSync').callsFake(function (filePath, data, cb) {});
+      $sandbox.stub(fs, 'unlink').callsFake(function (filePath) {});
+      $sandbox.stub(FtpClient.prototype, 'connect').withArgs(connectionData).callsFake(function (options) {
+        this.emit('ready');
+      });
+      $sandbox.stub(FtpClient.prototype, 'put').callsFake((filePath, anotherPath, callback) => {
+        callback(undefined)
+      });
+      $sandbox.stub(FtpClient.prototype, 'end').callsFake(function (options) {});
+    });
+
+    it('calls Validator#validate() with correct args', async () => {
+      await $subject;
+      expect(Validator.validate).to.have.been.calledWith(data, Validator.schemas.stracePostToFtp);
+    });
+
+    context('when Validator#validate() fails', () => {
+      def('validatorResponse', () => Promise.reject(error));
+
+      it(`fails with ${error}`, () => {
+        return expect($subject).to.be.rejectedWith(error)
+      })
+    });
+
+    context('when Validator#validate() succeeds', () => {
+      it('calls MicroserviceManager#findOne() with correct args', async () => {
+        await $subject;
+        const microserviceWhere = isCLI
+          ? {uuid: uuid}
+          : {uuid: uuid, userId: user.id};
+        expect(MicroserviceManager.findOne).to.have.been.calledWith(microserviceWhere, transaction);
+      });
+
+
+      context('when MicroserviceManager#findOne() fails', () => {
+        def('getMicroserviceResponse', () => Promise.reject(error));
+
+        it(`fails with ${error}`, () => {
+          return expect($subject).to.be.rejectedWith(error)
+        })
+      });
+
+      context('when MicroserviceManager#findOne() succeeds', () => {
+        it('calls StraceDiagnosticManager#findOne() with correct args', async () => {
+          await $subject;
+          expect(StraceDiagnosticManager.findOne).to.have.been.calledWith({
+            microserviceUuid: uuid
+          }, transaction);
+        });
+
+        context('when StraceDiagnosticManager#findOne() fails', () => {
+          def('findStraceResponse', () => Promise.reject(error));
+
+          it(`fails with ${error}`, () => {
+            return expect($subject).to.be.rejectedWith(error)
+          })
+        });
+
+        context('when StraceDiagnosticManager#findOne() succeeds', () => {
+          it('calls Config#get() with correct args', async () => {
+            await $subject;
+            expect(Config.get).to.have.been.calledWith('Diagnostics:DiagnosticDir');
+          });
+
+          context('when Config#get() fails', () => {
+            def('configGetResponse', () => error);
+
+            it(`fails with ${error}`, () => {
+              return expect($subject).to.eventually.equal(undefined)
+            });
+          });
+
+          context('when Config#get() succeeds', () => {
+            it('calls FtpClient#connect() with correct args', async () => {
+              await $subject;
+              expect(FtpClient.prototype.connect).to.have.been.calledWith(connectionData);
+            })
+          })
+        })
+      })
+    })
+  });
 
   describe('.postMicroserviceImageSnapshotCreate()', () => {
     const transaction = {};
