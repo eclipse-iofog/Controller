@@ -217,7 +217,7 @@ function validateParameters(command, commandDefinitions, args) {
       // value
       let valType;
       const nArg = new Number(arg);
-      if (nArg === Number.NaN) {
+      if (isNaN(nArg)) {
         valType = "string"
       } else {
         valType = "number"
