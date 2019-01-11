@@ -17,8 +17,8 @@
 newman.run({
     collection: require('../test/postman_collection.json'),
     reporters: 'cli',
-    abortOnError: true,
-    abortOnFailure: true
+    //abortOnError: true,
+    //abortOnFailure: true
 }).on('start', function (err, args) { // on start of run, log to console
     console.log('running a collection...');
 }).on('done', function (err, summary) {
