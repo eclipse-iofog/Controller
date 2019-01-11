@@ -9,6 +9,9 @@ const ChangeTrackingService = require('../../../src/services/change-tracking-ser
 const Sequelize = require('sequelize');
 const Op = Sequelize.Op;
 const ErrorMessages = require('../../../src/helpers/error-messages');
+const MicroserviceManager = require('../../../src/sequelize/managers/microservice-manager');
+const MicroserviceStatusManager = require('../../../src/sequelize/managers/microservice-status-manager');
+const MicroserviceStates = require('../../../src/enums/microservice-state');
 
 describe('Flow Service', () => {
   def('subject', () => FlowService);
@@ -268,6 +271,8 @@ describe('Flow Service', () => {
       ]
     };
 
+    const microservicesToUpdate = [{uuid: 12}];
+
     def('subject', () => $subject.updateFlow(flowData, flowId, user, isCLI, transaction));
     def('validatorResponse', () => Promise.resolve(true));
     def('findExcludedFlowResponse', () => Promise.resolve(oldFlowData));
@@ -276,6 +281,8 @@ describe('Flow Service', () => {
     def('updateFlowResponse', () => Promise.resolve());
     def('findFlowMicroservicesResponse', () => Promise.resolve(flowWithMicroservices));
     def('updateChangeTrackingResponse', () => Promise.resolve());
+    def('findAllMicroserviceResponse', () => Promise.resolve(microservicesToUpdate));
+    def('updateMicroservicestatusResponse', () => Promise.resolve());
 
     beforeEach(() => {
       $sandbox.stub(Validator, 'validate').returns($validatorResponse);
@@ -285,6 +292,8 @@ describe('Flow Service', () => {
       $sandbox.stub(FlowManager, 'update').returns($updateFlowResponse);
       $sandbox.stub(FlowManager, 'findFlowMicroservices').returns($findFlowMicroservicesResponse);
       $sandbox.stub(ChangeTrackingService, 'update').returns($updateChangeTrackingResponse);
+      $sandbox.stub(MicroserviceManager, 'findAll').returns($findAllMicroserviceResponse);
+      $sandbox.stub(MicroserviceStatusManager, 'update').returns($updateMicroservicestatusResponse);
     });
 
     it('calls Validator#validate() with correct args', async () => {
@@ -405,8 +414,46 @@ describe('Flow Service', () => {
                 });
 
                 context('when ChangeTrackingService#update() succeeds', () => {
-                  it('fulfills the promise', () => {
-                    return expect($subject).to.eventually.equal(undefined)
+                  it('calls MicroserviceManager#findAll() with correct args', async () => {
+                    await $subject;
+
+                    expect(MicroserviceManager.findAll).to.have.been.calledWith({
+                      flowId: flowId
+                    }, transaction);
+                  });
+
+                  context('when MicroserviceManager#findAll() fails', () => {
+                    def('findAllMicroserviceResponse', () => error);
+
+                    it(`fails with ${error}`, () => {
+                      return expect($subject).to.eventually.equal(undefined);
+                    })
+                  });
+
+                  context('when MicroserviceManager#findAll() succeeds', () => {
+                    it('calls MicroserviceStatusManager#update() with correct args', async () => {
+                      await $subject;
+
+                      expect(MicroserviceStatusManager.update).to.have.been.calledWith(
+                        {microserviceUuid: microservicesToUpdate[0].uuid},
+                        {status: MicroserviceStates.NOT_RUNNING},
+                        transaction
+                      );
+                    });
+
+                    context('when MicroserviceStatusManager#update() fails', () => {
+                      def('updateMicroservicestatusResponse', () => error);
+
+                      it(`fails with ${error}`, () => {
+                        return expect($subject).to.eventually.equal(undefined);
+                      })
+                    });
+
+                    context('when MicroserviceStatusManager#update() succeeds', () => {
+                      it('fulfills the promise', () => {
+                        return expect($subject).to.eventually.equal(undefined)
+                      })
+                    })
                   })
                 })
               })
