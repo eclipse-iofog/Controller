@@ -127,10 +127,8 @@ async function _executeCase(commands, commandName, f, isUserRequired) {
 
 async function _createConnector(obj) {
   const connector = _createConnectorObject(obj);
-  logger.info(JSON.stringify(connector));
   try {
-    const result = await ConnectorService.createConnector(connector);
-    logger.info(JSON.stringify(result));
+    await ConnectorService.createConnector(connector);
     logger.info('Connector has been created successfully.');
   } catch (e) {
     logger.info(e.message)
@@ -139,7 +137,6 @@ async function _createConnector(obj) {
 
 async function _updateConnector(obj) {
   const connector = _createConnectorObject(obj);
-  logger.info(JSON.stringify(connector));
   try {
     await ConnectorService.updateConnector(connector);
     logger.info('Connector has been updated successfully.');
@@ -150,7 +147,6 @@ async function _updateConnector(obj) {
 
 async function _deleteConnector(obj) {
   const connector = _createConnectorObject(obj);
-  logger.info(JSON.stringify(connector));
   try {
     await ConnectorService.deleteConnector(connector);
     logger.info('Connector has been removed successfully.');
@@ -162,7 +158,6 @@ async function _deleteConnector(obj) {
 async function _getConnectorList() {
   const list = await ConnectorService.getConnectorList();
   logger.info(JSON.stringify(list, null, 2));
-  logger.info('Connector list has been gotten successfully');
 }
 
 function _createConnectorObject(cliData) {

@@ -16,10 +16,6 @@ const models = require('./../models');
 const User = models.User;
 const AccessToken = models.AccessToken;
 const AppHelper = require('../../helpers/app-helper');
-const Flow = models.Flow;
-const Fog = models.Fog;
-const CatalogItem = models.CatalogItem;
-const Microservice = models.Microservice;
 
 class UserManager extends BaseManager {
   getEntity() {

@@ -130,10 +130,10 @@ const _createUser = async function (user) {
 
   user.password = AppHelper.encryptText(user.password, user.email);
 
-  logger.info(JSON.stringify(user));
-
-  await UserService.signUp(user, true);
-  logger.info('User created successfully.');
+  const response = await UserService.signUp(user, true);
+  logger.info(JSON.stringify({
+    id: response.userId
+  }), null, 2)
 };
 
 const _updateUserDetails = async function (userDetails, user) {
@@ -142,8 +142,6 @@ const _updateUserDetails = async function (userDetails, user) {
 };
 
 const _deleteUser = async function (obj, user) {
-  logger.info(JSON.stringify(obj));
-
   await UserService.deleteUser(obj.force, user, true);
   logger.info('User removed successfully.');
 };
@@ -151,19 +149,14 @@ const _deleteUser = async function (obj, user) {
 const _getAllUsers = async function () {
   const users = await UserService.list(true);
   logger.info(JSON.stringify(users, null, 2));
-  logger.info('All users have been retrieved successfully.')
 };
 
 const _generateToken = async function (emailObj, user) {
-  logger.info(JSON.stringify(emailObj));
-
   const response = await UserService.login(user, true);
-  logger.info('Access token ' + response.accessToken + ' created successfully.');
+  logger.info(JSON.stringify(response, null, 2));
 };
 
 const _activateUser = async function (emailObj, user) {
-  logger.info(JSON.stringify(emailObj));
-
   const codeData = {
     userId: user.id
   };
@@ -173,8 +166,6 @@ const _activateUser = async function (emailObj, user) {
 };
 
 const _suspendUser = async function (emailObj, user) {
-  logger.info(JSON.stringify(emailObj));
-
   await UserService.suspendUser(user, true);
   logger.info('User suspended successfully.');
 };

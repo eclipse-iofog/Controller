@@ -403,12 +403,12 @@ async function createVolumeMapping(microserviceUuid, volumeMappingData, user, is
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, microserviceUuid))
   }
 
-  const volueMapping = await VolumeMappingManager.findOne({
+  const volumeMapping = await VolumeMappingManager.findOne({
     microserviceUuid: microserviceUuid,
     hostDestination: volumeMappingData.hostDestination,
     containerDestination: volumeMappingData.containerDestination
   }, transaction);
-  if (volueMapping) {
+  if (volumeMapping) {
     throw new Errors.ValidationError(ErrorMessages.VOLUME_MAPPING_ALREADY_EXISTS);
   }
 

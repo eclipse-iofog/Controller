@@ -43,6 +43,7 @@
 		"automatic-release": "automatic-release",
 		"test": "node scripts/test.js",
 		"postman_test": "node scripts/postmantest.js",
+		"cli-tests": "node scripts/cli-tests.js",
 		"coverage": "node scripts/coverage.js"
 	},
 	"preferGlobal": true,

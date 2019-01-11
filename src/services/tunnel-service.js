@@ -23,7 +23,7 @@ const ChangeTrackingService = require('./change-tracking-service');
 const openTunnel = async function (tunnelData, user, isCli, transaction) {
   const iofog = await FogManager.findOne({ uuid: tunnelData.iofogUuid }, transaction);
   if (!iofog) {
-    throw new Errors.NotFoundError('Invalid Fog Id');
+    throw new Errors.NotFoundError('Invalid ioFog UUID');
   }
   let tunnel = tunnelData;
   if (isCli) {

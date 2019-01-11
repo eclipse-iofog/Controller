@@ -14,7 +14,6 @@
 const BaseManager = require('./base-manager');
 const models = require('./../models');
 const VolumeMapping = models.VolumeMapping;
-const Microservice = models.Microservice;
 
 class VolumeMappingManager extends BaseManager {
   getEntity() {
