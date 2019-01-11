@@ -142,7 +142,7 @@ class Microservice extends BaseCLIHandler {
         group: [constants.CMD_ROUTE_CREATE, constants.CMD_ROUTE_REMOVE]
       },
       {
-        name: 'internal-port', alias: 'b', type: String, description: 'Internal port',
+        name: 'internal-port', alias: 'b', type: Number, description: 'Internal port',
         group: [constants.CMD_PORT_MAPPING_REMOVE]
       },
       {
