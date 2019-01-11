@@ -23,7 +23,7 @@ newman.run({
     console.log('running a collection...');
 }).on('done', function (err, summary) {
     if (err || summary.error || summary.run.failures) {
-        //console.error('collection run encountered an error.');
+        console.error('collection run encountered an error. tests did not pass.');
         process.exitCode = 1;
     }
     else {
