@@ -64,7 +64,7 @@ describe('Tunnel Service', () => {
         def('fog', () => null)
 
         it('fails with error', () => {
-          return expect($subject).to.be.rejectedWith('Invalid Fog Id')
+          return expect($subject).to.be.rejectedWith('Invalid ioFog UUID')
         })
       })
 

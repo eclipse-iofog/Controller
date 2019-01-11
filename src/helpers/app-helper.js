@@ -174,6 +174,9 @@ function handleCLIError(error) {
     case "InvalidArgumentTypeError":
       console.log(error.message);
       break;
+    case "ALREADY_SET":
+      console.log("Parameter '" + error.optionName + "' is used multiple times");
+      break;
     default:
       console.log(JSON.stringify(error));
       break;
