@@ -298,7 +298,7 @@ function testDiagnosticsSection() {
     "-C 15 -s 25 -F 27 -Q 26 -B -W -A -y 1 -u " + userId), ioFogCreateFields);
   const ioFogUuid = ioFogCreateResponse.uuid;
 
-  const microserviceCreateResponse = responseHasFields(testCommand("microservice add -n microserviceName1" +
+  const microserviceCreateResponse = responseHasFields(executeCommand("microservice add -n microserviceName1" +
     " -c " + catalogId + " -F " + flowId + " -I " + ioFogUuid + " -g '{}' -v /host_src:/container_src:rw -l 15 -R" +
     " -p 80:8080:false -u " + userId), microserviceCreateFields);
   const microserviceUuid = microserviceCreateResponse.uuid;

@@ -27,7 +27,6 @@ jobs:
   include:
   - stage: build
     script:
-    - npm run cli-tests
     - NODE_ENV=production node /home/travis/build/ioFog/Controller/src/main.js start
     - npm run postman_test
   - stage: dev_deploy
