@@ -20,9 +20,6 @@ const Validator = require('../schemas');
 const ChangeTrackingService = require('./change-tracking-service');
 const Sequelize = require('sequelize');
 const Op = Sequelize.Op;
-const MicroserviceManager = require('../sequelize/managers/microservice-manager');
-const MicroserviceStatusManager = require('../sequelize/managers/microservice-status-manager');
-const MicroserviceStates = require('../enums/microservice-state');
 
 const createFlow = async function (flowData, user, isCLI, transaction) {
   await Validator.validate(flowData, Validator.schemas.flowCreate);
@@ -84,16 +81,6 @@ const updateFlow = async function (flowData, flowId, user, isCLI, transaction) {
 
   if (oldFlow.isActivated !== flowData.isActivated) {
     await _updateChangeTrackingsByFlowId(flowId, transaction);
-  }
-  if (oldFlow.isActivated && !flowData.isActivated) {
-    const microservices = await MicroserviceManager.findAll({flowId: flowId}, transaction);
-    for(const ms of microservices) {
-      await MicroserviceStatusManager.update(
-        {microserviceUuid: ms.uuid},
-        {status: MicroserviceStates.NOT_RUNNING},
-        transaction
-      );
-    }
   }
 };
 
