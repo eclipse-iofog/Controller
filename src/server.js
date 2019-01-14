@@ -25,8 +25,18 @@ const {renderFile} = require('ejs');
 const xss = require('xss-clean');
 const morgan = require('morgan');
 const fogStatusJob = require('./jobs/fog-status-job');
+const packageJson = require('../package');
 
 const app = express();
+const Sentry = require('@sentry/node');
+
+Sentry.init({ dsn: 'https://c11e5b7b9e9f46539d3c15bb0d2adddc@sentry.io/1370861' });
+Sentry.configureScope(scope => {
+  scope.setExtra('version', packageJson.version);
+});
+
+app.use(Sentry.Handlers.requestHandler());
+app.use(Sentry.Handlers.errorHandler());
 
 app.use(helmet());
 app.use(xss());
