@@ -102,6 +102,10 @@ class Tunnel extends BaseCLIHandler {
 async function _updateTunnel(obj, user) {
   const action = obj.action;
   const tunnel = _createTunnelObject(obj);
+  if (tunnel.iofogUuid === undefined) {
+    throw new Error("Required field 'ioFog UUID' is missing.");
+  }
+
   switch (action) {
     case 'open':
       await TunnelService.openTunnel(tunnel, user, true);
