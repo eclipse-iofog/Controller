@@ -17,6 +17,7 @@ const Strace = models.StraceDiagnostics;
 
 const Errors = require('../../helpers/errors');
 const ErrorMessages = require('../../helpers/error-messages');
+const AppHelper = require('../../helpers/app-helper');
 
 const maxBufferSize = 1e8;
 
@@ -31,7 +32,7 @@ class StraceManager extends BaseManager {
       microserviceUuid: uuid
     }, transaction);
     if (!strace) {
-      throw new Errors.NotFoundError(ErrorMessages.INVALID_NODE_ID)
+      throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, uuid));
     }
 
     let newBuffer = this._updateBuffer(strace.buffer, pushingData);

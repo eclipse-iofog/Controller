@@ -111,7 +111,7 @@ async function updateFog(fogData, user, isCLI, transaction) {
 
   const oldFog = await FogManager.findOne(queryFogData, transaction);
   if (!oldFog) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FOG_NODE_UUID, fogData.uuid))
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, fogData.uuid))
   }
 
   await FogManager.update(queryFogData, updateFogData, transaction);
@@ -151,7 +151,7 @@ async function deleteFog(fogData, user, isCLI, transaction) {
 
   const fog = await FogManager.findOne(queryFogData, transaction);
   if (!fog) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FOG_NODE_UUID, fogData.uuid))
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, fogData.uuid))
   }
   await _processDeleteCommand(fog, transaction)
 }
@@ -165,7 +165,7 @@ async function getFog(fogData, user, isCLI, transaction) {
 
   const fog = await FogManager.findOne(queryFogData, transaction);
   if (!fog) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FOG_NODE_UUID, fogData.uuid))
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, fogData.uuid))
   }
 
   return {
@@ -249,7 +249,7 @@ async function generateProvisioningKey(fogData, user, isCLI, transaction) {
 
   const fog = await FogManager.findOne(queryFogData, transaction);
   if (!fog) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FOG_NODE_UUID, fogData.uuid))
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, fogData.uuid))
   }
   const provisioningKeyData = await FogProvisionKeyManager.updateOrCreate({iofogUuid: fogData.uuid}, newProvision, transaction);
 
@@ -273,7 +273,7 @@ async function setFogVersionCommand(fogVersionData, user, isCLI, transaction) {
 
   const fog = await FogManager.findOne(queryFogData, transaction);
   if (!fog) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FOG_NODE_UUID, fogData.uuid))
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, fogData.uuid))
   }
 
   if (!fog.isReadyToRollback && fogVersionData.versionCommand === 'rollback') {
@@ -297,7 +297,7 @@ async function setFogRebootCommand(fogData, user, isCLI, transaction) {
 
   const fog = await FogManager.findOne(queryFogData, transaction);
   if (!fog) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FOG_NODE_UUID, fogData.uuid))
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, fogData.uuid))
   }
 
   await ChangeTrackingService.update(fogData.uuid, ChangeTrackingService.events.reboot, transaction)
@@ -310,7 +310,7 @@ async function getHalHardwareInfo(uuidObj, user, isCLI, transaction) {
     uuid: uuidObj.uuid
   }, transaction);
   if (!fog) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FOG_NODE_UUID, uuidObj.uuid));
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, uuidObj.uuid));
   }
 
   return await HWInfoManager.findOne({
@@ -325,7 +325,7 @@ async function getHalUsbInfo(uuidObj, user, isCLI, transaction) {
     uuid: uuidObj.uuid
   }, transaction);
   if (!fog) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FOG_NODE_UUID, uuidObj.uuid));
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, uuidObj.uuid));
   }
 
   return await USBInfoManager.findOne({

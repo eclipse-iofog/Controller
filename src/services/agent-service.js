@@ -152,14 +152,14 @@ const updateAgentConfig = async function (updateData, fog, transaction) {
   }, update, transaction);
 };
 
-const getAgentConfigChanges = async function (fog, transaction) {
+const getAgentConfigChanges = async function (ioFog, transaction) {
 
-  const changeTracking = await ChangeTrackingService.getByIoFogUuid(fog.uuid, transaction);
+  const changeTracking = await ChangeTrackingService.getByIoFogUuid(ioFog.uuid, transaction);
   if (!changeTracking) {
-    throw new Errors.NotFoundError(ErrorMessages.INVALID_NODE_ID)
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID), ioFog.uuid);
   }
 
-  await ChangeTrackingService.updateIfChanged(fog.uuid, ChangeTrackingService.events.clean, transaction);
+  await ChangeTrackingService.updateIfChanged(ioFog.uuid, ChangeTrackingService.events.clean, transaction);
 
   return {
     config: changeTracking.config,

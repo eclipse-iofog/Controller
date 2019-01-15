@@ -1388,7 +1388,7 @@
 									"",
 									"var data = JSON.parse(responseBody);",
 									"",
-									"tests[\"Response error message is valid\"] = data.name === \"NotFoundError\" && data.message === \"Invalid ioFog UUID\""
+									"tests[\"Response error message is valid\"] = data.name === \"NotFoundError\""
 								],
 								"type": "text/javascript"
 							}
