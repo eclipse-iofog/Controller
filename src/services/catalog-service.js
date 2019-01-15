@@ -44,8 +44,15 @@ const updateCatalogItem = async function (id, data, user, isCLI, transaction) {
   await Validator.validate(data, Validator.schemas.catalogItemUpdate);
 
   const where = isCLI
-    ? {id: id}
-    : {id: id, userId: user.id};
+    ? {
+         id: id,
+         [Op.or]: [{category: {[Op.ne]: 'SYSTEM'}}, {category: null}]
+      }
+    : {
+         id: id,
+         userId: user.id,
+         [Op.or]: [{category: {[Op.ne]: 'SYSTEM'}}, {category: null}]
+      };
 
   data.id = id;
   await _updateCatalogItem(data, where, transaction);
@@ -55,7 +62,7 @@ const updateCatalogItem = async function (id, data, user, isCLI, transaction) {
 
 const listCatalogItems = async function (user, isCLI, transaction) {
   const where = isCLI
-    ? {[Op.or]: [{category: {[Op.ne]: 'SYSTEM'}}, {category: null}]}
+    ? {}
     : {
       [Op.or]: [{userId: user.id}, {userId: null}],
       [Op.or]: [{category: {[Op.ne]: 'SYSTEM'}}, {category: null}]
@@ -73,7 +80,7 @@ const listCatalogItems = async function (user, isCLI, transaction) {
 
 const getCatalogItem = async function (id, user, isCLI, transaction) {
   const where = isCLI
-    ? {[Op.or]: [{category: {[Op.ne]: 'SYSTEM'}}, {category: null}]}
+    ? {}
     : {
       [Op.or]: [{userId: user.id}, {userId: null}],
       [Op.or]: [{category: {[Op.ne]: 'SYSTEM'}}, {category: null}]
@@ -92,8 +99,15 @@ const getCatalogItem = async function (id, user, isCLI, transaction) {
 
 const deleteCatalogItem = async function (id, user, isCLI, transaction) {
   const where = isCLI
-    ? {id: id}
-    : {userId: user.id, id: id};
+    ? {
+         id: id,
+         [Op.or]: [{category: {[Op.ne]: 'SYSTEM'}}, {category: null}]
+      }
+    : {
+        userId: user.id,
+        id: id,
+        [Op.or]: [{category: {[Op.ne]: 'SYSTEM'}}, {category: null}]
+      };
   const affectedRows = await CatalogItemManager.delete(where, transaction);
   if (affectedRows === 0) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_CATALOG_ITEM_ID, id));
