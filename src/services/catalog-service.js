@@ -191,6 +191,13 @@ const _createCatalogItem = async function (data, user, transaction) {
 
   catalogItem = AppHelper.deleteUndefinedFields(catalogItem);
 
+  if (catalogItem.registryId) {
+      const registry = await RegistryManager.findOne({id: catalogItem.registryId}, transaction);
+      if (!registry) {
+          throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_REGISTRY_ID, data.registryId));
+      }
+  }
+
   return await CatalogItemManager.create(catalogItem, transaction);
 };
 

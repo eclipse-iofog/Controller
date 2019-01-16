@@ -121,6 +121,7 @@ describe('Catalog Service', () => {
     def('deleteUndefinedFieldsResponse1', () => catalogItem);
     def('deleteUndefinedFieldsResponse2', () => catalogItemInputType);
     def('deleteUndefinedFieldsResponse3', () => catalogItemOutputType);
+    def('registryFindResponse', () => Promise.resolve({}));
     def('catalogItemCreateResponse', () => Promise.resolve(catalogItem));
     def('catalogItemImageCreateResponse', () => Promise.resolve());
     def('catalogItemInputTypeCreateResponse', () => Promise.resolve());
@@ -134,6 +135,7 @@ describe('Catalog Service', () => {
         .onFirstCall().returns($deleteUndefinedFieldsResponse1)
         .onSecondCall().returns($deleteUndefinedFieldsResponse2)
         .onThirdCall().returns($deleteUndefinedFieldsResponse3);
+      $sandbox.stub(RegistryManager, 'findOne').returns($registryFindResponse);
       $sandbox.stub(CatalogItemManager, 'create').returns($catalogItemCreateResponse);
       $sandbox.stub(CatalogItemImageManager, 'bulkCreate').returns($catalogItemImageCreateResponse);
       $sandbox.stub(CatalogItemInputTypeManager, 'create').returns($catalogItemInputTypeCreateResponse);
@@ -227,7 +229,23 @@ describe('Catalog Service', () => {
               });
 
               context('when AppHelper#deleteUndefinedFields() succeeds', () => {
-                it('calls CatalogItemInputTypeManager#create() with correct args', async () => {
+                  it('calls RegistryManager#findOne() with correct args', async () => {
+                    await $subject;
+                    expect(RegistryManager.findOne).to.have.been.calledWith({
+                      id: data.registryId
+                    }, transaction)
+                  });
+
+              context('when RegistryManager#findOne() fails', () => {
+                def('registryFindResponse', () => Promise.reject(error));
+
+                it(`fails with ${error}`, () => {
+                  return expect($subject).to.be.rejectedWith(error)
+                })
+              });
+
+              context('when RegistryManager#findOne() succeeds', () => {
+                it('calls CatalogItemInputTypeManager#create() with correct args', async() => {
                   await $subject;
                   expect(CatalogItemInputTypeManager.create).to.have.been.calledWith(catalogItemInputType);
                 });
@@ -281,6 +299,7 @@ describe('Catalog Service', () => {
         })
       })
     })
+  })
   });
 
   describe('.updateCatalogItem()', () => {
