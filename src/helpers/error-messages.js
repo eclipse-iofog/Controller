@@ -75,5 +75,7 @@ module.exports = {
   CONNECTOR_IS_IN_USE: 'You can\'t delete connector, because it is used for routing now.',
   INVALID_VERSION_COMMAND_UPGRADE: 'Can\'t upgrade version now. Latest is already installed',
   INVALID_VERSION_COMMAND_ROLLBACK: 'Can\'t rollback version now. There are no backups on agent',
-  CATALOG_ITEM_IMAGES_IS_FROZEN: 'Can\'t update catalog item images for item used for running microservices'
+  CATALOG_ITEM_IMAGES_IS_FROZEN: 'Can\'t update catalog item images for item used for running microservices',
+  SYSTEM_CATALOG_ITEM_UPDATE: 'Catalog item id {} is systemic and can\'t be updated',
+  SYSTEM_CATALOG_ITEM_DELETE: 'Catalog item id {} is systemic and can\'t be deleted'
 };
