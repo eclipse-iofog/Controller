@@ -34,6 +34,8 @@ const RoutingManager = require('../sequelize/managers/routing-manager');
 const Op = require('sequelize').Op;
 const fs = require('fs');
 const _ = require('underscore');
+const TrackingDecorator = require('../decorators/tracking-decorator');
+const TrackingEventType = require('../enums/tracking-event-type');
 
 async function listMicroservices(flowId, user, isCLI, transaction) {
   if (!isCLI) {
@@ -1020,8 +1022,11 @@ async function _buildLink(protocol, ip, port) {
   return `${protocol}://${ip}:${port}`
 }
 
+//decorated functions
+const  createMicroserviceWithTracking = TrackingDecorator.trackEvent(createMicroservice, TrackingEventType.MICROSERVICE_CREATED);
+
 module.exports = {
-  createMicroservice: TransactionDecorator.generateTransaction(createMicroservice),
+  createMicroservice: TransactionDecorator.generateTransaction(createMicroserviceWithTracking),
   listMicroservices: TransactionDecorator.generateTransaction(listMicroservices),
   getMicroservice: TransactionDecorator.generateTransaction(getMicroservice),
   updateMicroservice: TransactionDecorator.generateTransaction(updateMicroservice),

@@ -25,6 +25,8 @@ const RegistryManager = require('../sequelize/managers/registry-manager');
 const MicroserviceManager = require('../sequelize/managers/microservice-manager');
 const ChangeTrackingService = require('./change-tracking-service');
 const MicroseriveStates = require('../enums/microservice-state');
+const TrackingDecorator = require('../decorators/tracking-decorator');
+const TrackingEventType = require('../enums/tracking-event-type');
 
 const createCatalogItem = async function (data, user, transaction) {
   await Validator.validate(data, Validator.schemas.catalogItemCreate);
@@ -307,8 +309,11 @@ const _updateCatalogItemIOTypes = async function (data, where, transaction) {
   }
 };
 
+//decorated functions
+const  createCatalogItemWithTracking = TrackingDecorator.trackEvent(createCatalogItem, TrackingEventType.CATALOG_CREATED);
+
 module.exports = {
-  createCatalogItem: TransactionDecorator.generateTransaction(createCatalogItem),
+  createCatalogItem: TransactionDecorator.generateTransaction(createCatalogItemWithTracking),
   listCatalogItems: TransactionDecorator.generateTransaction(listCatalogItems),
   getCatalogItem: TransactionDecorator.generateTransaction(getCatalogItem),
   deleteCatalogItem: TransactionDecorator.generateTransaction(deleteCatalogItem),

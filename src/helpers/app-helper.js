@@ -301,6 +301,17 @@ function isEmpty(obj) {
   return true;
 }
 
+function isOnline() {
+  const daemon = require('../daemon');
+
+  let pid = daemon.status();
+  if (pid === 0) {
+    return false;
+  } else {
+    return true;
+  }
+}
+
 module.exports = {
   encryptText,
   decryptText,
@@ -321,5 +332,6 @@ module.exports = {
   trimCertificate,
   validateParameters,
   isTest,
-  isEmpty
+  isEmpty,
+  isOnline
 };

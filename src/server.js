@@ -30,6 +30,9 @@ const packageJson = require('../package');
 const app = express();
 const Sentry = require('@sentry/node');
 
+const Tracking = require('./tracking');
+const TrackingEventType = require('./enums/tracking-event-type');
+
 Sentry.init({ dsn: 'https://c11e5b7b9e9f46539d3c15bb0d2adddc@sentry.io/1370861' });
 Sentry.configureScope(scope => {
   scope.setExtra('version', packageJson.version);
@@ -139,3 +142,6 @@ if (!devMode && sslKey && sslCert && intermedKey) {
 } else {
   startHttpServer(app, port, jobs)
 }
+
+const event = Tracking.buildEvent(TrackingEventType.START, null, `devMode is ${devMode}`, null);
+Tracking.processEvent(event);

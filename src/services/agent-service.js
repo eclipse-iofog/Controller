@@ -37,6 +37,8 @@ const fs = require('fs');
 const formidable = require('formidable');
 const Sequelize = require('sequelize');
 const Op = Sequelize.Op;
+const TrackingDecorator = require('../decorators/tracking-decorator');
+const TrackingEventType = require('../enums/tracking-event-type');
 
 const IncomingForm = formidable.IncomingForm;
 
@@ -491,8 +493,12 @@ async function _checkMicroservicesFogType(fog, fogTypeId, transaction) {
   }
 }
 
+//decorated functions
+const  agentProvisionWithTracking = TrackingDecorator.trackEvent(agentProvision, TrackingEventType.IOFOG_PROVISION);
+
+
 module.exports = {
-  agentProvision: TransactionDecorator.generateFakeTransaction(agentProvision),
+  agentProvision: TransactionDecorator.generateFakeTransaction(agentProvisionWithTracking),
   agentDeprovision: TransactionDecorator.generateFakeTransaction(agentDeprovision),
   getAgentConfig: getAgentConfig,
   updateAgentConfig: TransactionDecorator.generateFakeTransaction(updateAgentConfig),
