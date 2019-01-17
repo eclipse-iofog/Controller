@@ -77,6 +77,9 @@ async function handleValidationError(error) {
     case "enum":
       message = "Field " + error.stack.replace('instance.', '');
       break;
+    case "minimum":
+      message = error.stack.replace('instance.', '');
+      break;
     default:
       message = JSON.stringify(error);
       break;

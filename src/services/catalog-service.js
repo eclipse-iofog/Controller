@@ -45,13 +45,11 @@ const updateCatalogItem = async function (id, data, user, isCLI, transaction) {
 
   const where = isCLI
     ? {
-         id: id,
-         [Op.or]: [{category: {[Op.ne]: 'SYSTEM'}}, {category: null}]
+         id: id
       }
     : {
          id: id,
-         userId: user.id,
-         [Op.or]: [{category: {[Op.ne]: 'SYSTEM'}}, {category: null}]
+         userId: user.id
       };
 
   data.id = id;
@@ -98,16 +96,22 @@ const getCatalogItem = async function (id, user, isCLI, transaction) {
 };
 
 const deleteCatalogItem = async function (id, user, isCLI, transaction) {
+
   const where = isCLI
     ? {
-         id: id,
-         [Op.or]: [{category: {[Op.ne]: 'SYSTEM'}}, {category: null}]
+         id: id
       }
     : {
         userId: user.id,
-        id: id,
-        [Op.or]: [{category: {[Op.ne]: 'SYSTEM'}}, {category: null}]
+        id: id
       };
+
+  const item = await _checkIfItemExists(where, transaction);
+
+  if (item.category == "SYSTEM"){
+    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.SYSTEM_CATALOG_ITEM_DELETE, id));
+  }
+
   const affectedRows = await CatalogItemManager.delete(where, transaction);
   if (affectedRows === 0) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_CATALOG_ITEM_ID, id));
@@ -285,6 +289,11 @@ const _updateCatalogItem = async function (data, where, transaction) {
   }
 
   const item = await _checkIfItemExists(where, transaction);
+
+  if (item.category == "SYSTEM"){
+    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.SYSTEM_CATALOG_ITEM_UPDATE, data.id));
+  }
+
   await _checkForDuplicateName(data.name, item, transaction);
   await CatalogItemManager.update(where, catalogItem, transaction);
 };
