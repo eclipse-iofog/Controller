@@ -785,33 +785,57 @@ describe('Catalog Service', () => {
 
     def('subject', () => $subject.deleteCatalogItem(id, user, isCLI, transaction));
 
+    def('catalogItemFindResponse', () => Promise.resolve({}));
     def('response', () => 1);
     def('catalogItemDeleteResponse', () => Promise.resolve($response));
 
     beforeEach(() => {
+      $sandbox.stub(CatalogItemManager, 'findOne').returns($catalogItemFindResponse);
       $sandbox.stub(CatalogItemManager, 'delete').returns($catalogItemDeleteResponse);
     });
 
-    it('calls CatalogItemManager#delete() with correct args', async () => {
+    it('calls CatalogItemManager#findOne() with correct args', async () => {
       await $subject;
-      expect(CatalogItemManager.delete).to.have.been.calledWith(where, transaction);
+      whereFind = isCLI
+      ? {
+        id: id
+      }
+      : {
+        userId: user.id,
+        id: id
+      };
+      expect(CatalogItemManager.findOne).to.have.been.calledWith(whereFind, transaction)
     });
 
-    context('when CatalogItemManager#delete() fails', () => {
-      def('catalogItemDeleteResponse', () => Promise.reject(error));
+    context('when CatalogItemManager#findOne() fails', () => {
+      def('catalogItemFindResponse', () => Promise.reject(error));
 
       it(`fails with ${error}`, () => {
-        return expect($subject).to.be.rejectedWith(error);
+        return expect($subject).to.be.rejectedWith(error)
       })
     });
 
-    context('when CatalogItemManager#delete() succeeds', () => {
-      it('succeeds', () => {
-        return expect($subject).to.eventually.deep.equal($response)
-      })
-    })
+    context('when CatalogItemManager#findOne() succeeds', () => {
 
-  });
+      it('calls CatalogItemManager#delete() with correct args', async () => {
+        await $subject;
+        expect(CatalogItemManager.delete).to.have.been.calledWith(where, transaction);
+      });
+
+      context('when CatalogItemManager#delete() fails', () => {
+        def('catalogItemDeleteResponse', () => Promise.reject(error));
+
+        it(`fails with ${error}`, () => {
+          return expect($subject).to.be.rejectedWith(error);
+        })
+      });
+
+      context('when CatalogItemManager#delete() succeeds', () => {
+        it('succeeds', () => {
+          return expect($subject).to.eventually.deep.equal($response)
+        })
+      })
+    })});
 
   describe('.getNetworkCatalogItem()', () => {
     const transaction = {};
