@@ -82,20 +82,7 @@ function sendEvents(events) {
     }
   };
 
-  const request = https.request(options, (response) => {
-    //TODO: proccess response (?)
-    console.log(response.statusCode);
-    let output = '';
-    response.setEncoding('utf8');
-
-    response.on('data', function(chunk) {
-      output += chunk;
-    });
-
-    response.on('end', function() {
-      console.log(output);
-    });
-  });
+  const request = https.request(options, ()=>{});
   request.write(data);
   request.end();
 }
