@@ -39,6 +39,7 @@ const Sequelize = require('sequelize');
 const Op = Sequelize.Op;
 const TrackingDecorator = require('../decorators/tracking-decorator');
 const TrackingEventType = require('../enums/tracking-event-type');
+const TrackingEventManager = require('../sequelize/managers/tracking-event-manager');
 
 const IncomingForm = formidable.IncomingForm;
 
@@ -493,6 +494,11 @@ async function _checkMicroservicesFogType(fog, fogTypeId, transaction) {
   }
 }
 
+async function postTracking(events, fog, transaction) {
+  await TrackingEventManager.bulkCreate(events, transaction);
+  return {};
+}
+
 //decorated functions
 const  agentProvisionWithTracking = TrackingDecorator.trackEvent(agentProvision, TrackingEventType.IOFOG_PROVISION);
 
@@ -515,5 +521,6 @@ module.exports = {
   updateHalUsbInfo: TransactionDecorator.generateFakeTransaction(updateHalUsbInfo),
   deleteNode: TransactionDecorator.generateFakeTransaction(deleteNode),
   getImageSnapshot: TransactionDecorator.generateFakeTransaction(getImageSnapshot),
-  putImageSnapshot: TransactionDecorator.generateFakeTransaction(putImageSnapshot)
+  putImageSnapshot: TransactionDecorator.generateFakeTransaction(putImageSnapshot),
+  postTracking: TransactionDecorator.generateFakeTransaction(postTracking),
 };
