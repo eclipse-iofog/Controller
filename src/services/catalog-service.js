@@ -46,8 +46,13 @@ const updateCatalogItem = async function (id, data, user, isCLI, transaction) {
   await Validator.validate(data, Validator.schemas.catalogItemUpdate);
 
   const where = isCLI
-    ? {id: id}
-    : {id: id, userId: user.id};
+    ? {
+         id: id
+      }
+    : {
+         id: id,
+         userId: user.id
+      };
 
   data.id = id;
   await _updateCatalogItem(data, where, transaction);
@@ -57,7 +62,7 @@ const updateCatalogItem = async function (id, data, user, isCLI, transaction) {
 
 const listCatalogItems = async function (user, isCLI, transaction) {
   const where = isCLI
-    ? {[Op.or]: [{category: {[Op.ne]: 'SYSTEM'}}, {category: null}]}
+    ? {}
     : {
       [Op.or]: [{userId: user.id}, {userId: null}],
       [Op.or]: [{category: {[Op.ne]: 'SYSTEM'}}, {category: null}]
@@ -75,7 +80,7 @@ const listCatalogItems = async function (user, isCLI, transaction) {
 
 const getCatalogItem = async function (id, user, isCLI, transaction) {
   const where = isCLI
-    ? {[Op.or]: [{category: {[Op.ne]: 'SYSTEM'}}, {category: null}]}
+    ? {}
     : {
       [Op.or]: [{userId: user.id}, {userId: null}],
       [Op.or]: [{category: {[Op.ne]: 'SYSTEM'}}, {category: null}]
@@ -93,9 +98,22 @@ const getCatalogItem = async function (id, user, isCLI, transaction) {
 };
 
 const deleteCatalogItem = async function (id, user, isCLI, transaction) {
+
   const where = isCLI
-    ? {id: id}
-    : {userId: user.id, id: id};
+    ? {
+         id: id
+      }
+    : {
+        userId: user.id,
+        id: id
+      };
+
+  const item = await _checkIfItemExists(where, transaction);
+
+  if (item.category == "SYSTEM"){
+    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.SYSTEM_CATALOG_ITEM_DELETE, id));
+  }
+
   const affectedRows = await CatalogItemManager.delete(where, transaction);
   if (affectedRows === 0) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_CATALOG_ITEM_ID, id));
@@ -178,6 +196,13 @@ const _createCatalogItem = async function (data, user, transaction) {
   };
 
   catalogItem = AppHelper.deleteUndefinedFields(catalogItem);
+
+  if (catalogItem.registryId) {
+      const registry = await RegistryManager.findOne({id: catalogItem.registryId}, transaction);
+      if (!registry) {
+          throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_REGISTRY_ID, data.registryId));
+      }
+  }
 
   return await CatalogItemManager.create(catalogItem, transaction);
 };
@@ -266,6 +291,11 @@ const _updateCatalogItem = async function (data, where, transaction) {
   }
 
   const item = await _checkIfItemExists(where, transaction);
+
+  if (item.category == "SYSTEM"){
+    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.SYSTEM_CATALOG_ITEM_UPDATE, data.id));
+  }
+
   await _checkForDuplicateName(data.name, item, transaction);
   await CatalogItemManager.update(where, catalogItem, transaction);
 };
