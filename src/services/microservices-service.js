@@ -49,10 +49,10 @@ async function listMicroservices(flowId, user, isCLI, transaction) {
     const volumeMappings = await VolumeMappingManager.findAll({microserviceUuid: microserviceUuid}, transaction);
     const routes = await RoutingManager.findAll({sourceMicroserviceUuid: microserviceUuid}, transaction);
 
-    const fullMs = Object.assign(microservice.dataValues);
-    fullMs.ports = Object.assign(portMappings.map((pm) =>  {return {internal: pm.portInternal, external: pm.portExternal, publicMode: pm.isPublic}}));
-    fullMs.volumeMappings = Object.assign(volumeMappings.map(vm => vm.dataValues));
-    fullMs.routes = Object.assign(routes.map(r => r.destMicroserviceUuid));
+    const fullMs = microservice.dataValues;
+    fullMs.ports = portMappings.map((pm) =>  {return {internal: pm.portInternal, external: pm.portExternal, publicMode: pm.isPublic}});
+    fullMs.volumeMappings = volumeMappings.map(vm => vm.dataValues);
+    fullMs.routes = routes.map(r => r.destMicroserviceUuid);
 
     return fullMs;
   }));
@@ -78,10 +78,10 @@ async function getMicroservice(microserviceUuid, user, isCLI, transaction) {
   const volumeMappings = await VolumeMappingManager.findAll({microserviceUuid: microserviceUuid}, transaction);
   const routes = await RoutingManager.findAll({sourceMicroserviceUuid: microserviceUuid}, transaction);
 
-  const res = Object.assign(microservice.dataValues);
-  res.ports = Object.assign(portMappings.map((pm) =>  {return {internal: pm.portInternal, external: pm.portExternal, publicMode: pm.isPublic}}));
-  res.volumeMappings = Object.assign(volumeMappings.map(vm => vm.dataValues));
-  res.routes = Object.assign(routes.map(r => r.destMicroserviceUuid));
+  const res = microservice.dataValues;
+  res.ports = portMappings.map((pm) =>  {return {internal: pm.portInternal, external: pm.portExternal, publicMode: pm.isPublic}});
+  res.volumeMappings = volumeMappings.map(vm => vm.dataValues);
+  res.routes = routes.map(r => r.destMicroserviceUuid);
   return res;
 }
 
