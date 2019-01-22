@@ -73,8 +73,8 @@ function sendEvents(events) {
   }
   const data = JSON.stringify(body);
   let options = {
-    host: 'k71j0cv81j.execute-api.us-east-2.amazonaws.com',
-    path: '/dev',
+    host: 'kf6v825xpc.execute-api.us-west-2.amazonaws.com',
+    path: '/dev3/post',
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -82,7 +82,10 @@ function sendEvents(events) {
     }
   };
 
-  const request = https.request(options, ()=>{});
+  const request = https.request(options, (response)=>{
+    //only for debug. comment before commit
+    // console.log(response.statusCode);
+  });
   request.write(data);
   request.end();
 }
