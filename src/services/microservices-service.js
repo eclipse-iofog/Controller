@@ -107,7 +107,7 @@ async function updateMicroservice(microserviceUuid, microserviceData, user, isCL
 
   const microserviceToUpdate = {
     name: microserviceData.name,
-    config: microserviceData.config,
+    config: microserviceData.config.replace('"', '\"'),
     rebuild: microserviceData.rebuild,
     iofogUuid: microserviceData.iofogUuid,
     rootHostAccess: microserviceData.rootHostAccess,
@@ -463,7 +463,7 @@ async function _createMicroservice(microserviceData, user, isCLI, transaction) {
   let newMicroservice = {
     uuid: AppHelper.generateRandomString(32),
     name: microserviceData.name,
-    config: microserviceData.config,
+    config: microserviceData.config.replace('"', '\"'),
     catalogItemId: microserviceData.catalogItemId,
     flowId: microserviceData.flowId,
     iofogUuid: microserviceData.iofogUuid,
