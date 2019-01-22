@@ -41,9 +41,15 @@ describe('Microservices Service', () => {
 
     def('subject', () => $subject.listMicroservices(flowId, user, isCLI, transaction));
     def('findMicroservicesResponse', () => Promise.resolve(response));
+    def('findPortMappingsResponse', () => Promise.resolve([]));
+    def('findVolumeMappingsResponse', () => Promise.resolve([]));
+    def('findRoutesResponse', () => Promise.resolve([]));
 
     beforeEach(() => {
       $sandbox.stub(MicroserviceManager, 'findAllExcludeFields').returns($findMicroservicesResponse);
+      $sandbox.stub(MicroservicePortManager, 'findAll').returns($findPortMappingsResponse);
+      $sandbox.stub(VolumeMappingManager, 'findAll').returns($findVolumeMappingsResponse);
+      $sandbox.stub(RoutingManager, 'findAll').returns($findRoutesResponse);
     });
 
     it('calls MicroserviceManager#findAllExcludeFields() with correct args', async () => {
@@ -79,14 +85,22 @@ describe('Microservices Service', () => {
     const microserviceUuid = 'testMicroserviceUuid';
 
     const response = {
-      uuid: 'testUuid'
+      dataValues: {
+        uuid: 'testUuid'
+      }
     };
 
     def('subject', () => $subject.getMicroservice(microserviceUuid, user, isCLI, transaction));
     def('findMicroserviceResponse', () => Promise.resolve(response));
+    def('findPortMappingsResponse', () => Promise.resolve([]));
+    def('findVolumeMappingsResponse', () => Promise.resolve([]));
+    def('findRoutesResponse', () => Promise.resolve([]));
 
     beforeEach(() => {
       $sandbox.stub(MicroserviceManager, 'findOneExcludeFields').returns($findMicroserviceResponse);
+      $sandbox.stub(MicroservicePortManager, 'findAll').returns($findPortMappingsResponse);
+      $sandbox.stub(VolumeMappingManager, 'findAll').returns($findVolumeMappingsResponse);
+      $sandbox.stub(RoutingManager, 'findAll').returns($findRoutesResponse);
     });
 
     it('calls MicroserviceManager#findOneExcludeFields() with correct args', async () => {
