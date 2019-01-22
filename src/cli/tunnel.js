@@ -59,8 +59,8 @@ class Tunnel extends BaseCLIHandler {
         group: [constants.CMD_UPDATE]
       },
       {
-        name: 'iofogUuid', alias: 'i', type: String,
-        description: 'ioFog UUID',
+        name: 'iofog-uuid', alias: 'i', type: String,
+        description: 'ioFog node UUID',
         group: [constants.CMD_UPDATE]
       },
       {
