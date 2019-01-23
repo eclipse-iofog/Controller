@@ -105,8 +105,7 @@ async function updateMicroservice(microserviceUuid, microserviceData, user, isCL
       userId: user.id
     };
 
-  let config = microserviceData.config.split('\\"').join('"');
-  config = config.split('"').join('\"');
+  let config = _validateMicroserviceConfig(microserviceData.config);
 
   const microserviceToUpdate = {
     name: microserviceData.name,
@@ -461,10 +460,13 @@ async function listVolumeMappings(microserviceUuid, user, isCLI, transaction) {
   return await VolumeMappingManager.findAll(volumeMappingWhere, transaction);
 }
 
+function _validateMicroserviceConfig(config) {
+  return config.split('\\"').join('"').split('"').join('\"');
+}
+
 async function _createMicroservice(microserviceData, user, isCLI, transaction) {
 
-  let config = microserviceData.config.split('\\"').join('"');
-  config = config.split('"').join('\"');
+  let config = _validateMicroserviceConfig(microserviceData.config);
 
   let newMicroservice = {
     uuid: AppHelper.generateRandomString(32),
