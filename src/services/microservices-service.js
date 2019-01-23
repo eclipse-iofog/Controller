@@ -463,10 +463,13 @@ async function listVolumeMappings(microserviceUuid, user, isCLI, transaction) {
 
 async function _createMicroservice(microserviceData, user, isCLI, transaction) {
 
+  let config = microserviceData.config.split('\\"').join('"');
+  config = config.split('"').join('\"');
+
   let newMicroservice = {
     uuid: AppHelper.generateRandomString(32),
     name: microserviceData.name,
-    config: microserviceData.config.replace('\\', '').replace('"', '\"'),
+    config: config,
     catalogItemId: microserviceData.catalogItemId,
     flowId: microserviceData.flowId,
     iofogUuid: microserviceData.iofogUuid,
