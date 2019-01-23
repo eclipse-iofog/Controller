@@ -460,6 +460,7 @@ async function listVolumeMappings(microserviceUuid, user, isCLI, transaction) {
   return await VolumeMappingManager.findAll(volumeMappingWhere, transaction);
 }
 
+// escape/unescape config json
 function _validateMicroserviceConfig(config) {
   return config.split('\\"').join('"').split('"').join('\"');
 }
