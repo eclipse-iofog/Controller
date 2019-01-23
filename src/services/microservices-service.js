@@ -105,7 +105,7 @@ async function updateMicroservice(microserviceUuid, microserviceData, user, isCL
       userId: user.id
     };
 
-  let config = _validateMicroserviceConfig(microserviceData.config);
+  const config = _validateMicroserviceConfig(microserviceData.config);
 
   const microserviceToUpdate = {
     name: microserviceData.name,
@@ -466,7 +466,7 @@ function _validateMicroserviceConfig(config) {
 
 async function _createMicroservice(microserviceData, user, isCLI, transaction) {
 
-  let config = _validateMicroserviceConfig(microserviceData.config);
+  const config = _validateMicroserviceConfig(microserviceData.config);
 
   let newMicroservice = {
     uuid: AppHelper.generateRandomString(32),
