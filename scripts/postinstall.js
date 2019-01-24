@@ -10,7 +10,7 @@
  *  *******************************************************************************
  *  
  */
-const sqlite3 = require('sqlite3').verbose();
+const sqlite3 = require('sqlite3');//.verbose(); //use verbose in dev to get stack traces
 const os = require('os');
 const execSync = require('child_process').execSync;
 const fs = require('fs');
@@ -118,7 +118,7 @@ function insertSeeds() {
 }
 
 function updateEncryptionMethodForUsersPassword(decryptionFunc) {
-  console.log('    updating passwords in db');
+  console.log('    updating encryption in DB');
   const sqlite3ProdDb = new sqlite3.Database(prodDb);
   sqlite3ProdDb.all('select id, email, password from Users', function(err, rows) {
     const stmt = sqlite3ProdDb.prepare('update Users set password=? where id=?');
