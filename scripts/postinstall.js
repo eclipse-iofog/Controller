@@ -10,7 +10,7 @@
  *  *******************************************************************************
  *  
  */
-
+const sqlite3 = require('sqlite3').verbose();
 const os = require('os');
 const execSync = require('child_process').execSync;
 const fs = require('fs');
@@ -64,7 +64,7 @@ try {
 
   fs.unlinkSync(installationVariablesFile);
 } catch (e) {
-  console.log('no previous version')
+  console.log(e);
 }
 
 //init db
@@ -102,52 +102,46 @@ function moveFileIfExists(from, to) {
 
 function insertSeeds() {
   console.log('    inserting seeds meta info in db');
-  const options = {
-    env: {
-      "PATH": process.env.PATH
-    },
-    stdio: [process.stdin, process.stdout, process.stderr]
-  };
-
-  execSync(`sqlite3 ${prodDb} "insert into SequelizeMeta (name) values ('20180928110125-insert-registry.js');"`, options);
-  execSync(`sqlite3 ${prodDb} "insert into SequelizeMeta (name) values ('20180928111532-insert-catalog-item.js');"`, options);
-  execSync(`sqlite3 ${prodDb} "insert into SequelizeMeta (name) values ('20180928112152-insert-iofog-type.js');"`, options);
-  execSync(`sqlite3 ${prodDb} "insert into SequelizeMeta (name) values ('20180928121334-insert-catalog-item-image.js');"`, options);
+  const sqlite3ProdDb = new sqlite3.Database(prodDb);
+  const seeds = [
+    '20180928110125-insert-registry.js',
+    '20180928111532-insert-catalog-item.js',
+    '20180928112152-insert-iofog-type.js',
+    '20180928121334-insert-catalog-item-image.js'
+  ];
+  sqlite3ProdDb.serialize(function() {
+    const stmt = sqlite3ProdDb.prepare("INSERT INTO SequelizeMeta (name) VALUES (?)");
+    seeds.map(s => stmt.run(s));
+    stmt.finalize();
+  });
+  sqlite3ProdDb.close();
 }
 
 function updateEncryptionMethodForUsersPassword(decryptionFunc) {
-  const options = {
-    env: {
-      "PATH": process.env.PATH
-    }
-  };
+  console.log('    updating passwords in db');
+  const sqlite3ProdDb = new sqlite3.Database(prodDb);
+  sqlite3ProdDb.all('select id, email, password from Users', function(err, rows) {
+    const stmt = sqlite3ProdDb.prepare('update Users set password=? where id=?');
 
-  const usersOutput = execSync(`sqlite3 ${prodDb} "select id, email, password from Users;"`, options).toString();
-  const usersLines = usersOutput.match(/[^\r\n]+/g);
-  for (let line of usersLines) {
-    let id, email, oldEncryptedPassword;
-    try {
-      const vals = line.split('|');
-      id = vals[0];
-      email = vals[1];
-      oldEncryptedPassword = vals[2];
+    rows.map(user => {
+      try {
+        const id = user.id;
+        const email = user.email;
+        const oldEncryptedPassword = user.password;
 
-      const decryptedPassword = decryptionFunc(oldEncryptedPassword, email);
+        const decryptedPassword = decryptionFunc(oldEncryptedPassword, email);
+        const AppHelper = require('../src/helpers/app-helper');
+        const newEncryptedPassword = AppHelper.encryptText(decryptedPassword, email);
 
-      const AppHelper = require('../src/helpers/app-helper');
-      const newEncryptedPassword = AppHelper.encryptText(decryptedPassword, email);
-
-      const options = {
-        env: {
-          "PATH": process.env.PATH
-        },
-        stdio: [process.stdin, process.stdout, process.stderr]
-      };
-      execSync(`sqlite3 ${prodDb} "update Users set password='${newEncryptedPassword}' where id=${id};"`, options);
-    } catch (e) {
-      console.log('db problem');
-    }
-  }
+        stmt.run(newEncryptedPassword, id);
+      } catch (e) {
+        console.log('db problem');
+        console.log(e);
+      }
+    });
+    stmt.finalize();
+  });
+  sqlite3ProdDb.close();
 }
 
 function updateEncryptionMethodForEmailService(configFile, decryptionFunc) {
@@ -191,6 +185,7 @@ function updateEncryptionMethod() {
   }
 
   updateEncryptionMethodForUsersPassword(decryptTextVer30);
+  console.log('    updating encryption  for email services in configs');
   updateEncryptionMethodForEmailService(defConfig, decryptTextVer30);
   updateEncryptionMethodForEmailService(devConfig, decryptTextVer30);
   updateEncryptionMethodForEmailService(prodConfig, decryptTextVer30);
