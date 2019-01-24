@@ -12,16 +12,16 @@
  */
 
 const trackingEventType = Object.freeze({
-  USER_CREATED: 'USER_CREATED',
-  RUNNING_TIME: 'RUNNING_TIME',
-  INIT: 'INIT',
-  START: 'START',
-  IOFOG_CREATED: 'IOFOG_CREATED',
-  IOFOG_PROVISION: 'IOFOG_PROVISION',
-  MICROSERVICE_CREATED: 'MICROSERVICE_CREATED',
-  CATALOG_CREATED: 'CATALOG_CREATED',
-  CONFIG_CHANGED: 'CONFIG_CHANGED',
-  OTHER: 'OTHER',
+  USER_CREATED: 'user created',
+  RUNNING_TIME: 'running time',
+  INIT: 'init',
+  START: 'start',
+  IOFOG_CREATED: 'iofog created',
+  IOFOG_PROVISION: 'iofog provision',
+  MICROSERVICE_CREATED: 'microservice created',
+  CATALOG_CREATED: 'catalog created',
+  CONFIG_CHANGED: 'config changed',
+  OTHER: 'other',
 });
 
 module.exports = trackingEventType;

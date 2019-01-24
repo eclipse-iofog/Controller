@@ -37,31 +37,31 @@ function buildEvent(eventType, args, res, functionName) {
       eventInfo.value = 'controller inited';
       break;
     case EventTypes.START:
-      eventInfo.value = `controller started: ${res}`;
+      eventInfo.data = {event: `controller started: ${res}`};
       break;
     case EventTypes.USER_CREATED:
-      eventInfo.value = 'user created';
+      eventInfo.data = {event: 'user created'};
       break;
     case EventTypes.RUNNING_TIME:
-      eventInfo.value = `${res} min`;
+      eventInfo.data = {event: `${res} min`};
       break;
     case EventTypes.IOFOG_CREATED:
-      eventInfo.value = 'iofog agent created';
+      eventInfo.data = {event: 'iofog agent created'};
       break;
     case EventTypes.IOFOG_PROVISION:
-      eventInfo.value = 'iofog agent provisioned';
+      eventInfo.data = {event: 'iofog agent provisioned'};
       break;
     case EventTypes.CATALOG_CREATED:
-      eventInfo.value = 'catalog item was created';
+      eventInfo.data = {event: 'catalog item was created'};
       break;
     case EventTypes.MICROSERVICE_CREATED:
-      eventInfo.value = 'microservice created';
+      eventInfo.data = {event: 'microservice created'};
       break;
     case EventTypes.CONFIG_CHANGED:
-      eventInfo.value = `new config property '${res}'`;
+      eventInfo.data = {event: `new config property '${res}'`};
       break;
     case EventTypes.OTHER:
-      eventInfo.value = `function ${functionName} was executed`;
+      eventInfo.data = {event: `function ${functionName} was executed`};
       break;
   }
   return eventInfo;
