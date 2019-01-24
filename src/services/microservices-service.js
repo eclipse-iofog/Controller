@@ -460,7 +460,7 @@ async function listVolumeMappings(microserviceUuid, user, isCLI, transaction) {
   return await VolumeMappingManager.findAll(volumeMappingWhere, transaction);
 }
 
-// that function works with escape and unescape config, in the case of a unescape config, the first split will not work,
+// this function works with escape and unescape config, in case of unescaped config, the first split will not work,
 // but the second will work
 function _validateMicroserviceConfig(config) {
   return config.split('\\"').join('"').split('"').join('\"');
