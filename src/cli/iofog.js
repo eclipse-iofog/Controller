@@ -58,7 +58,7 @@ class IOFog extends BaseCLIHandler {
         group: [constants.CMD_ADD, constants.CMD_UPDATE]
       },
       {
-        name: 'node-uuid', alias: 'i', type: String,
+        name: 'iofog-uuid', alias: 'i', type: String,
         description: 'ioFog node UUID',
         group: [constants.CMD_UPDATE, constants.CMD_REMOVE, constants.CMD_INFO, constants.CMD_PROVISIONING_KEY,
           constants.CMD_IOFOG_REBOOT, constants.CMD_VERSION, constants.CMD_HAL_HW, constants.CMD_HAL_USB]
@@ -299,7 +299,7 @@ async function _updateFog(obj, user) {
     ? JSON.parse(fs.readFileSync(obj.file, 'utf8'))
     : _createFogObject(obj);
 
-  fog.uuid = obj.nodeUuid;
+  fog.uuid = obj.iofogUuid;
 
   await FogService.updateFog(fog, user, true);
   logger.info('ioFog node has been updated successfully.');
@@ -337,7 +337,7 @@ async function _setFogRebootCommand(obj, user) {
 
 async function _setFogVersionCommand(obj, user) {
   const fog = {
-    uuid: obj.nodeUuid,
+    uuid: obj.iofogUuid,
     versionCommand: obj.versionCommand
   };
   await FogService.setFogVersionCommand(fog, user, true);
@@ -346,7 +346,7 @@ async function _setFogVersionCommand(obj, user) {
 
 async function _getHalHardwareInfo(obj) {
   const uuidObj = {
-    uuid: obj.nodeUuid
+    uuid: obj.iofogUuid
   };
 
   const data = await FogService.getHalHardwareInfo(uuidObj, {}, true);
@@ -361,7 +361,7 @@ async function _getHalHardwareInfo(obj) {
 
 async function _getHalUsbInfo(obj) {
   const uuidObj = {
-    uuid: obj.nodeUuid
+    uuid: obj.iofogUuid
   };
 
   const data = await FogService.getHalUsbInfo(uuidObj, {}, true);
@@ -376,7 +376,7 @@ async function _getHalUsbInfo(obj) {
 
 function _createFogObject(cliData) {
   const fogObj = {
-    uuid: cliData.nodeUuid,
+    uuid: cliData.iofogUuid,
     name: cliData.name,
     location: cliData.location,
     latitude: cliData.latitude,
