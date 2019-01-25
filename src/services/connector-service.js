@@ -50,10 +50,18 @@ async function updateConnector(connectorData, transaction) {
   const queryConnectorData = {
     publicIp: connectorData.publicIp
   };
+
+  const connector = await ConnectorManager.findOne({
+      publicIp: connectorData.publicIp
+    }, transaction);
+  if (!connector) {
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_CONNECTOR_IP, connectorData.publicIp))
+  }
+
   await ConnectorManager.update(queryConnectorData, connectorData, transaction);
-  const connector = await ConnectorManager.findOne({publicIp: connectorData.publicIp}, transaction);
-  await MicroserviceService.updateRouteOverConnector(connector, transaction);
-  await MicroserviceService.updatePortMappingOverConnector(connector, transaction);
+  const updatedConnector = await ConnectorManager.findOne({publicIp: connectorData.publicIp}, transaction);
+  await MicroserviceService.updateRouteOverConnector(updatedConnector, transaction);
+  await MicroserviceService.updatePortMappingOverConnector(updatedConnector, transaction);
 }
 
 async function deleteConnector(connectorData, transaction) {

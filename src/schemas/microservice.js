@@ -7,7 +7,10 @@ const microserviceCreate = {
       "minLength": 1
     },
     "config": {"type": "string"},
-    "catalogItemId": {"type": "integer"},
+    "catalogItemId": {
+      "type": "integer",
+      "minimum": 4
+    },
     "flowId": {"type": "integer"},
     "iofogUuid": {"type": "string"},
     "rootHostAccess": {"type": "boolean"},

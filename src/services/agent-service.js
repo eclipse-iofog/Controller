@@ -21,6 +21,8 @@ const FogVersionCommandManager = require('../sequelize/managers/iofog-version-co
 const StraceManager = require('../sequelize/managers/strace-manager');
 const RegistryManager = require('../sequelize/managers/registry-manager');
 const MicroserviceStatusManager = require('../sequelize/managers/microservice-status-manager')
+const MicroserviceStates = require('../enums/microservice-state');
+const FogStates = require('../enums/fog-state');
 const Validator = require('../schemas');
 const Errors = require('../helpers/errors');
 const AppHelper = require('../helpers/app-helper');
@@ -39,7 +41,6 @@ const Op = Sequelize.Op;
 const IncomingForm = formidable.IncomingForm;
 
 const agentProvision = async function (provisionData, transaction) {
-
   await Validator.validate(provisionData, Validator.schemas.agentProvision);
 
   const provision = await FogProvisionKeyManager.findOne({
@@ -79,6 +80,28 @@ const agentProvision = async function (provisionData, transaction) {
     token: newAccessToken.token
   };
 
+};
+
+const agentDeprovision = async function (deprovisionData, fog, transaction) {
+  await Validator.validate(deprovisionData, Validator.schemas.agentDeprovision);
+
+  await MicroserviceStatusManager.update(
+    {microserviceUuid: deprovisionData.microserviceUuids},
+    {status: MicroserviceStates.NOT_RUNNING},
+    transaction
+  );
+
+  await _invalidateFogNode(fog, transaction);
+};
+
+const _invalidateFogNode = async function (fog, transaction) {
+  const where = {uuid: fog.uuid};
+  const data = {daemonStatus: FogStates.UNKNOWN, ipAddress: '0.0.0.0'};
+  await FogManager.update(where, data, transaction);
+  const updatedFog = Object.assign({}, fog);
+  updatedFog.daemonStatus = FogStates.UNKNOWN;
+  updatedFog.ipAddress = '0.0.0.0';
+  return updatedFog;
 };
 
 const getAgentConfig = async function (fog) {
@@ -129,14 +152,14 @@ const updateAgentConfig = async function (updateData, fog, transaction) {
   }, update, transaction);
 };
 
-const getAgentConfigChanges = async function (fog, transaction) {
+const getAgentConfigChanges = async function (ioFog, transaction) {
 
-  const changeTracking = await ChangeTrackingService.getByIoFogUuid(fog.uuid, transaction);
+  const changeTracking = await ChangeTrackingService.getByIoFogUuid(ioFog.uuid, transaction);
   if (!changeTracking) {
-    throw new Errors.NotFoundError(ErrorMessages.INVALID_NODE_ID)
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID), ioFog.uuid);
   }
 
-  await ChangeTrackingService.updateIfChanged(fog.uuid, ChangeTrackingService.events.clean, transaction);
+  await ChangeTrackingService.updateIfChanged(ioFog.uuid, ChangeTrackingService.events.clean, transaction);
 
   return {
     config: changeTracking.config,
@@ -188,7 +211,7 @@ const updateAgentStatus = async function (agentStatus, fog, transaction) {
   }, fogStatus, transaction);
 
   await _updateMicroserviceStatuses(JSON.parse(agentStatus.microserviceStatus), transaction);
-  await MicroserviceService.deleteNotRunningMicroservices(transaction);
+  await MicroserviceService.deleteNotRunningMicroservices(fog, transaction);
 };
 
 
@@ -329,7 +352,6 @@ const updateAgentStrace = async function (straceData, fog, transaction) {
     const buffer = strace.buffer;
     await StraceManager.pushBufferByMicroserviceUuid(microserviceUuid, buffer, transaction)
   }
-
 };
 
 const getAgentChangeVersionCommand = async function (fog, transaction) {
@@ -471,6 +493,7 @@ async function _checkMicroservicesFogType(fog, fogTypeId, transaction) {
 
 module.exports = {
   agentProvision: TransactionDecorator.generateFakeTransaction(agentProvision),
+  agentDeprovision: TransactionDecorator.generateFakeTransaction(agentDeprovision),
   getAgentConfig: getAgentConfig,
   updateAgentConfig: TransactionDecorator.generateFakeTransaction(updateAgentConfig),
   getAgentConfigChanges: TransactionDecorator.generateFakeTransaction(getAgentConfigChanges),

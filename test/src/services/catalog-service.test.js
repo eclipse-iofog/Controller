@@ -11,6 +11,10 @@ const RegistryManager = require('../../../src/sequelize/managers/registry-manage
 const AppHelper = require('../../../src/helpers/app-helper');
 const Sequelize = require('sequelize');
 const Op = Sequelize.Op;
+const MicroserviceManager = require('../../../src/sequelize/managers/microservice-manager');
+const ChangeTrackingService = require('../../../src/services/change-tracking-service');
+const Errors = require('../../../src/helpers/errors');
+const ErrorMessages = require('../../../src/helpers/error-messages');
 
 describe('Catalog Service', () => {
   def('subject', () => CatalogService);
@@ -119,6 +123,7 @@ describe('Catalog Service', () => {
     def('deleteUndefinedFieldsResponse1', () => catalogItem);
     def('deleteUndefinedFieldsResponse2', () => catalogItemInputType);
     def('deleteUndefinedFieldsResponse3', () => catalogItemOutputType);
+    def('registryFindResponse', () => Promise.resolve({}));
     def('catalogItemCreateResponse', () => Promise.resolve(catalogItem));
     def('catalogItemImageCreateResponse', () => Promise.resolve());
     def('catalogItemInputTypeCreateResponse', () => Promise.resolve());
@@ -132,6 +137,7 @@ describe('Catalog Service', () => {
         .onFirstCall().returns($deleteUndefinedFieldsResponse1)
         .onSecondCall().returns($deleteUndefinedFieldsResponse2)
         .onThirdCall().returns($deleteUndefinedFieldsResponse3);
+      $sandbox.stub(RegistryManager, 'findOne').returns($registryFindResponse);
       $sandbox.stub(CatalogItemManager, 'create').returns($catalogItemCreateResponse);
       $sandbox.stub(CatalogItemImageManager, 'bulkCreate').returns($catalogItemImageCreateResponse);
       $sandbox.stub(CatalogItemInputTypeManager, 'create').returns($catalogItemInputTypeCreateResponse);
@@ -225,7 +231,23 @@ describe('Catalog Service', () => {
               });
 
               context('when AppHelper#deleteUndefinedFields() succeeds', () => {
-                it('calls CatalogItemInputTypeManager#create() with correct args', async () => {
+                  it('calls RegistryManager#findOne() with correct args', async () => {
+                    await $subject;
+                    expect(RegistryManager.findOne).to.have.been.calledWith({
+                      id: data.registryId
+                    }, transaction)
+                  });
+
+              context('when RegistryManager#findOne() fails', () => {
+                def('registryFindResponse', () => Promise.reject(error));
+
+                it(`fails with ${error}`, () => {
+                  return expect($subject).to.be.rejectedWith(error)
+                })
+              });
+
+              context('when RegistryManager#findOne() succeeds', () => {
+                it('calls CatalogItemInputTypeManager#create() with correct args', async() => {
                   await $subject;
                   expect(CatalogItemInputTypeManager.create).to.have.been.calledWith(catalogItemInputType);
                 });
@@ -279,6 +301,7 @@ describe('Catalog Service', () => {
         })
       })
     })
+  })
   });
 
   describe('.updateCatalogItem()', () => {
@@ -410,6 +433,7 @@ describe('Catalog Service', () => {
     def('catalogItemImageUpdateOrCreateResponse', () => Promise.resolve());
     def('catalogItemInputTypeUpdateOrCreateResponse', () => Promise.resolve());
     def('catalogItemOutputTypeUpdateOrCreateResponse', () => Promise.resolve({}));
+    def('microservicesResponse', () => Promise.resolve([]));
 
 
     beforeEach(() => {
@@ -429,6 +453,8 @@ describe('Catalog Service', () => {
       $sandbox.stub(CatalogItemImageManager, 'updateOrCreate').returns($catalogItemImageUpdateOrCreateResponse); // twice
       $sandbox.stub(CatalogItemInputTypeManager, 'updateOrCreate').returns($catalogItemInputTypeUpdateOrCreateResponse);
       $sandbox.stub(CatalogItemOutputTypeManager, 'updateOrCreate').returns($catalogItemOutputTypeUpdateOrCreateResponse);
+      //TODO test success fail and arguments
+      $sandbox.stub(MicroserviceManager, 'findAllWithStatuses').returns($microservicesResponse);
     });
 
     it('calls Validator#validate() with correct args', async () => {
@@ -465,10 +491,11 @@ describe('Catalog Service', () => {
         });
 
         context('when AppHelper#isEmpty() fails', () => {
-          def('isEmptyResponse', () => error);
+          const err = new Errors.NotFoundError(ErrorMessages.CATALOG_UPDATE_NO_FIELDS);
+          def('isEmptyResponse', () => err);
 
-          it(`fails with ${error}`, () => {
-            return expect($subject).to.eventually.equal(undefined)
+          it(`fails with ${err}`, () => {
+            return expect($subject).to.be.rejectedWith(ErrorMessages.CATALOG_UPDATE_NO_FIELDS);
           })
         });
 
@@ -652,8 +679,11 @@ describe('Catalog Service', () => {
     const isCLI = false;
 
     const where = isCLI
-      ? {category: {[Op.ne]: 'SYSTEM'}}
-      : {[Op.or]: [{userId: user.id}, {userId: null}], category: {[Op.ne]: 'SYSTEM'}};
+      ? {[Op.or]: [{category: {[Op.ne]: 'SYSTEM'}}, {category: null}]}
+      : {
+        [Op.or]: [{userId: user.id}, {userId: null}],
+        [Op.or]: [{category: {[Op.ne]: 'SYSTEM'}}, {category: null}]
+      };
 
     const attributes = isCLI
       ? {}
@@ -701,8 +731,12 @@ describe('Catalog Service', () => {
     const id = 5;
 
     const where = isCLI
-      ? {id: id, category: {[Op.ne]: 'SYSTEM'}}
-      : {[Op.or]: [{userId: user.id}, {userId: null}], id: id, category: {[Op.ne]: 'SYSTEM'}};
+      ? {id: id}
+      : {
+        id: id,
+        [Op.or]: [{userId: user.id}, {userId: null}],
+        [Op.or]: [{category: {[Op.ne]: 'SYSTEM'}}, {category: null}]
+      };
 
     const attributes = isCLI
       ? {}
@@ -755,33 +789,57 @@ describe('Catalog Service', () => {
 
     def('subject', () => $subject.deleteCatalogItem(id, user, isCLI, transaction));
 
+    def('catalogItemFindResponse', () => Promise.resolve({}));
     def('response', () => 1);
     def('catalogItemDeleteResponse', () => Promise.resolve($response));
 
     beforeEach(() => {
+      $sandbox.stub(CatalogItemManager, 'findOne').returns($catalogItemFindResponse);
       $sandbox.stub(CatalogItemManager, 'delete').returns($catalogItemDeleteResponse);
     });
 
-    it('calls CatalogItemManager#delete() with correct args', async () => {
+    it('calls CatalogItemManager#findOne() with correct args', async () => {
       await $subject;
-      expect(CatalogItemManager.delete).to.have.been.calledWith(where, transaction);
+      whereFind = isCLI
+      ? {
+        id: id
+      }
+      : {
+        userId: user.id,
+        id: id
+      };
+      expect(CatalogItemManager.findOne).to.have.been.calledWith(whereFind, transaction)
     });
 
-    context('when CatalogItemManager#delete() fails', () => {
-      def('catalogItemDeleteResponse', () => Promise.reject(error));
+    context('when CatalogItemManager#findOne() fails', () => {
+      def('catalogItemFindResponse', () => Promise.reject(error));
 
       it(`fails with ${error}`, () => {
-        return expect($subject).to.be.rejectedWith(error);
+        return expect($subject).to.be.rejectedWith(error)
       })
     });
 
-    context('when CatalogItemManager#delete() succeeds', () => {
-      it('succeeds', () => {
-        return expect($subject).to.eventually.deep.equal($response)
-      })
-    })
+    context('when CatalogItemManager#findOne() succeeds', () => {
 
-  });
+      it('calls CatalogItemManager#delete() with correct args', async () => {
+        await $subject;
+        expect(CatalogItemManager.delete).to.have.been.calledWith(where, transaction);
+      });
+
+      context('when CatalogItemManager#delete() fails', () => {
+        def('catalogItemDeleteResponse', () => Promise.reject(error));
+
+        it(`fails with ${error}`, () => {
+          return expect($subject).to.be.rejectedWith(error);
+        })
+      });
+
+      context('when CatalogItemManager#delete() succeeds', () => {
+        it('succeeds', () => {
+          return expect($subject).to.eventually.deep.equal($response)
+        })
+      })
+    })});
 
   describe('.getNetworkCatalogItem()', () => {
     const transaction = {};

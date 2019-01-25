@@ -50,15 +50,16 @@ class IOFog extends BaseCLIHandler {
     this.commandDefinitions = [
       {
         name: 'command', defaultOption: true,
-        group: [constants.CMD]},
+        group: [constants.CMD]
+      },
       {
         name: 'file', alias: 'f', type: String,
         description: 'Path to ioFog settings JSON file',
         group: [constants.CMD_ADD, constants.CMD_UPDATE]
       },
       {
-        name: 'node-id', alias: 'i', type: String,
-        description: 'ioFog node ID',
+        name: 'iofog-uuid', alias: 'i', type: String,
+        description: 'ioFog node UUID',
         group: [constants.CMD_UPDATE, constants.CMD_REMOVE, constants.CMD_INFO, constants.CMD_PROVISIONING_KEY,
           constants.CMD_IOFOG_REBOOT, constants.CMD_VERSION, constants.CMD_HAL_HW, constants.CMD_HAL_USB]
       },
@@ -287,11 +288,10 @@ async function _createFog(obj, user) {
     ? JSON.parse(fs.readFileSync(obj.file, 'utf8'))
     : _createFogObject(obj);
 
-  logger.info(JSON.stringify(fog));
-
   const result = await FogService.createFog(fog, user, true);
-  logger.info(JSON.stringify(result));
-  logger.info('Fog has been created successfully.');
+  logger.info(JSON.stringify({
+    uuid: result.uuid
+  }, null, 2));
 }
 
 async function _updateFog(obj, user) {
@@ -299,92 +299,85 @@ async function _updateFog(obj, user) {
     ? JSON.parse(fs.readFileSync(obj.file, 'utf8'))
     : _createFogObject(obj);
 
-  fog.uuid = obj.nodeId
-  logger.info(JSON.stringify(fog));
+  fog.uuid = obj.iofogUuid;
 
   await FogService.updateFog(fog, user, true);
-  logger.info('Fog has been updated successfully.');
+  logger.info('ioFog node has been updated successfully.');
 }
 
 async function _deleteFog(obj, user) {
   const fog = _createFogObject(obj);
-  logger.info(JSON.stringify(fog));
   await FogService.deleteFog(fog, user, true);
-  logger.info('Fog has been removed successfully');
+  logger.info('ioFog node has been removed successfully');
 }
 
 async function _getFogList(obj, user) {
   const emptyFilters = [];
   const list = await FogService.getFogList(emptyFilters, user, true);
   logger.info(JSON.stringify(list, null, 2));
-  logger.info('Fog list has been gotten successfully.');
 }
 
 async function _getFog(obj, user) {
   const fog = _createFogObject(obj);
   const res = await FogService.getFogWithTransaction(fog, user, true);
   logger.info(JSON.stringify(res, null, 2));
-  logger.info('Fog has been gotten successfully.');
 }
 
 async function _generateProvision(obj, user) {
   const fog = _createFogObject(obj);
-  logger.info(JSON.stringify(fog));
-  const res = await FogService.generateProvisioningKey(fog, user, true);
-  logger.info('Provisioning key: ' + JSON.stringify(res, null, 2));
-  logger.info('Fog provisioning key has been generated successfully.');
+  const response = await FogService.generateProvisioningKey(fog, user, true);
+  logger.info(JSON.stringify(response), null, 2);
 }
 
 async function _setFogRebootCommand(obj, user) {
   const fog = _createFogObject(obj);
-  logger.info(JSON.stringify(fog));
   await FogService.setFogRebootCommand(fog, user, true);
-  logger.info('Fog reboot command has been set successfully');
+  logger.info('ioFog reboot command has been set successfully');
 }
 
 async function _setFogVersionCommand(obj, user) {
   const fog = {
-    uuid: obj.nodeId,
+    uuid: obj.iofogUuid,
     versionCommand: obj.versionCommand
   };
-  logger.info(JSON.stringify(fog));
   await FogService.setFogVersionCommand(fog, user, true);
-  logger.info('Fog version command has been set successfully');
+  logger.info('ioFog version command has been set successfully');
 }
 
 async function _getHalHardwareInfo(obj) {
   const uuidObj = {
-    uuid: obj.nodeId
+    uuid: obj.iofogUuid
   };
 
-  logger.info("Parameters" + JSON.stringify(uuidObj));
-
   const data = await FogService.getHalHardwareInfo(uuidObj, {}, true);
-  if (data.info) {
-    data.info = JSON.parse(data.info);
+  if (data) {
+    if (data.hasOwnProperty('info')) {
+      data.info = JSON.parse(data.info);
+    }
+
+    logger.info(JSON.stringify(data, null, 2));
   }
-  logger.info(JSON.stringify(data, null, 2));
-  logger.info('Hardware info has been retrieved successfully.')
+
 }
 
 async function _getHalUsbInfo(obj) {
   const uuidObj = {
-    uuid: obj.nodeId
+    uuid: obj.iofogUuid
   };
 
-  logger.info("Parameters" + JSON.stringify(uuidObj));
-
   const data = await FogService.getHalUsbInfo(uuidObj, {}, true);
-  if (data.info) {
-    data.info = JSON.parse(data.info);
+  if (data) {
+    if (data.hasOwnProperty('info')) {
+      data.info = JSON.parse(data.info);
+    }
+
+    logger.info(JSON.stringify(data, null, 2));
   }
-  logger.info(JSON.stringify(data, null, 2));
-  logger.info('Usb info has been retrieved successfully.')
 }
 
 function _createFogObject(cliData) {
   const fogObj = {
-    uuid: cliData.nodeId,
+    uuid: cliData.iofogUuid,
     name: cliData.name,
     location: cliData.location,
     latitude: cliData.latitude,

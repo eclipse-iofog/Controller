@@ -8,11 +8,8 @@ const AccessTokenService = require('../../../src/services/access-token-service')
 const Validator = require('../../../src/schemas');
 const AppHelper = require('../../../src/helpers/app-helper');
 const ioFogManager = require('../../../src/sequelize/managers/iofog-manager');
-const ChangeTrackingService = require('../../../src/services/change-tracking-service');
 const EmailActivationCodeService = require('../../../src/services/email-activation-code-service');
 const Sequelize = require('sequelize');
-const Op = Sequelize.Op;
-const ErrorMessages = require('../../../src/helpers/error-messages');
 const nodemailer = require('nodemailer');
 
 describe('User Service', () => {
@@ -274,23 +271,28 @@ describe('User Service', () => {
       id: 15
     };
 
-    const configGet2 = 155;
-
     const emailObj = {
       email: 'testEmail'
+    };
+
+    const activationCodeData = {};
+
+    const mailer = {
+      sendMail: function (options) {
+      }
     };
 
     def('subject', () => $subject.resendActivation(emailObj, isCLI, transaction));
     def('validatorResponse', () => Promise.resolve(true));
     def('findUserResponse', () => Promise.resolve(user));
-    def('generateActivationCodeResponse', () => Promise.resolve());
+    def('generateActivationCodeResponse', () => Promise.resolve({}));
     def('saveActivationCodeResponse', () => Promise.resolve());
-    def('getConfigResponse', () => false);
-    def('getConfigResponse2', () => configGet2);
-    def('getConfigResponse3', () => configGet2);
-    def('getConfigResponse4', () => configGet2);
-    def('decryptTextResponse', () => 'testPassword');
-    def('createTransportResponse', () => Promise.resolve());
+    def('getEmailAddressResponse', () => "test@test.com");
+    def('getEmailPasswordResponse', () => "test");
+    def('getEmailServiceResponse', () => "SendGrid");
+    def('getEmailHomeUrlResponse', () => "test");
+    def('decryptTextResponse', () => 'test');
+    def('createTransportResponse', () => mailer);
     def('sendMailResponse', () => Promise.resolve());
 
     beforeEach(() => {
@@ -299,18 +301,136 @@ describe('User Service', () => {
       $sandbox.stub(EmailActivationCodeService, 'generateActivationCode').returns($generateActivationCodeResponse);
       $sandbox.stub(EmailActivationCodeService, 'saveActivationCode').returns($saveActivationCodeResponse);
       $sandbox.stub(Config, 'get')
-        .onCall(0).returns($getConfigResponse)
-        .onCall(1).returns($getConfigResponse2)
-        .onCall(2).returns($getConfigResponse3)
-        .onCall(3).returns($getConfigResponse4);
+        .onCall(0).returns($getEmailAddressResponse)
+        .onCall(1).returns($getEmailPasswordResponse)
+        .onCall(2).returns($getEmailAddressResponse)
+        .onCall(3).returns($getEmailServiceResponse)
+        .onCall(4).returns($getEmailHomeUrlResponse);
       $sandbox.stub(AppHelper, 'decryptText').returns($decryptTextResponse);
-      // TODO with rewire
-      // $sandbox.stub(nodemailer, 'createTransport').returns($createTransportResponse);
-      // $sandbox.stub(transporter, 'sendmail').returns($sendMailResponse);
+      $sandbox.stub(nodemailer, 'createTransport').returns($createTransportResponse);
     });
 
-    // TODO finish
+    it('calls Validator#validate() with correct args', async () => {
+      await $subject;
+      expect(Validator.validate).to.have.been.calledWith(emailObj, Validator.schemas.resendActivation);
+    });
 
+    context('when Validator#validate() fails', () => {
+      def('validatorResponse', () => Promise.reject(error));
+
+      it(`fails with ${error}`, () => {
+        return expect($subject).to.be.rejectedWith(error);
+      })
+    });
+
+    context('when Validator#validate() succeeds', () => {
+      it('calls UserManager#findOne() with correct args', async () => {
+        await $subject;
+        expect(UserManager.findOne).to.have.been.calledWith(emailObj, transaction);
+      });
+
+      context('when UserManager#findOne() fails', () => {
+        def('findUserResponse', () => Promise.reject(error));
+
+        it(`fails with ${error}`, () => {
+          return expect($subject).to.be.rejectedWith(error);
+        })
+      });
+
+      context('when UserManager#findOne() succeeds', () => {
+        it('calls EmailActivationCodeService#generateActivationCode() with correct args', async () => {
+          await $subject;
+          expect(EmailActivationCodeService.generateActivationCode).to.have.been.calledWith(transaction);
+        });
+        context('when EmailActivationCodeService#generateActivationCode() fails', () => {
+          def('generateActivationCodeResponse', () => Promise.reject(error));
+
+          it(`fails with ${error}`, () => {
+            return expect($subject).to.be.rejectedWith(error);
+          })
+        });
+
+        context('when EmailActivationCodeService#generateActivationCode() succeeds', () => {
+          it('calls EmailActivationCodeService#saveActivationCode() with correct args', async () => {
+            await $subject;
+            expect(EmailActivationCodeService.saveActivationCode).to.have.been.calledWith(
+              user.id,
+              activationCodeData,
+              transaction);
+          });
+
+          context('when EmailActivationCodeService#saveActivationCode() fails', () => {
+            def('saveActivationCodeResponse', () => Promise.reject(error));
+
+            it(`fails with ${error}`, () => {
+              return expect($subject).to.be.rejectedWith(error);
+            })
+          });
+
+          context('when EmailActivationCodeService#saveActivationCode() succeeds', () => {
+            it('calls Config#get() with correct args', async () => {
+              await $subject;
+              expect(Config.get).to.have.been.calledWith("Email:Address");
+            });
+
+            context('when Config#get() fails', () => {
+              def('getEmailAddressResponse', Promise.reject(error));
+
+              it(`fails with ${error}`, () => {
+                return expect($subject).to.eventually.equal(undefined);
+              })
+            });
+            context('when Config#get() succeeds', () => {
+              it('calls Config#get() with correct args', async () => {
+                await $subject;
+                expect(Config.get).to.have.been.calledWith("Email:Password");
+              });
+
+              context('when Config#get() fails', () => {
+                def('getEmailPasswordResponse', () => error);
+
+                it(`fails with ${error}`, () => {
+                  return expect($subject).to.eventually.equal(undefined);
+                })
+              });
+              context('when Config#get() succeeds', () => {
+                it('calls Config#get() with correct args', async () => {
+                  await $subject;
+                  expect(Config.get).to.have.been.calledWith("Email:Address");
+                });
+
+                context('when Config#get() fails', () => {
+                  def('getEmailAddressResponse', () => error);
+
+                  it(`fails with ${error}`, () => {
+                    return expect($subject).to.eventually.equal(undefined);
+                  })
+                });
+                context('when Config#get() succeeds', () => {
+                  it('calls Config#get() with correct args', async () => {
+                    await $subject;
+                    expect(Config.get).to.have.been.calledWith("Email:Service");
+                  });
+
+                  context('when Config#get() fails', () => {
+                    def('getEmailServiceResponse', () => error);
+
+                    it(`fails with ${error}`, () => {
+                      return expect($subject).to.eventually.equal(undefined);
+                    })
+                  });
+                  context('when Config#get() succeeds', () => {
+                    it('fulfills the promise', () => {
+                      return expect($subject).to.eventually.equal(undefined);
+                    })
+                  });
+                });
+              });
+            });
+          })
+        })
+      })
+    })
   });
 
 

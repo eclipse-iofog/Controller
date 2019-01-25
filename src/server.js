@@ -24,8 +24,19 @@ const path = require('path');
 const {renderFile} = require('ejs');
 const xss = require('xss-clean');
 const morgan = require('morgan');
+const fogStatusJob = require('./jobs/fog-status-job');
+const packageJson = require('../package');
 
 const app = express();
+const Sentry = require('@sentry/node');
+
+Sentry.init({ dsn: 'https://a15f11352d404c2aa4c8f321ad9e759a@sentry.io/1378602' });
+Sentry.configureScope(scope => {
+  scope.setExtra('version', packageJson.version);
+});
+
+app.use(Sentry.Handlers.requestHandler());
+app.use(Sentry.Handlers.errorHandler());
 
 app.use(helmet());
 app.use(xss());
@@ -66,22 +77,35 @@ const setupMiddleware = function (routeName) {
 fs.readdirSync(path.join(__dirname, 'routes'))
   .forEach(setupMiddleware);
 
-function startHttpServer(app, port) {
-  logger.silly("| SSL not configured, starting HTTP server.|")
+let jobs = [];
 
-  logger.silly("------------------------------------------")
-  logger.silly("| SSL not configured, starting HTTP server.|")
-  logger.silly("------------------------------------------")
+const setupJobs = function (file) {
+  jobs.push((require(path.join(__dirname, 'jobs', file)) || []));
+};
+
+fs.readdirSync(path.join(__dirname, 'jobs'))
+  .filter(file => {
+    return (file.indexOf('.') !== 0) && (file.slice(-3) === '.js');
+  })
+  .forEach(setupJobs);
+
+function startHttpServer(app, port, jobs) {
+  logger.silly("| SSL not configured, starting HTTP server.|");
+
+  logger.silly("------------------------------------------");
+  logger.silly("| SSL not configured, starting HTTP server.|");
+  logger.silly("------------------------------------------");
 
   app.listen(port, function onStart(err) {
     if (err) {
       logger.error(err)
     }
-    logger.silly(`==> 🌎 Listening on port ${port}. Open up http://localhost:${port}/ in your browser.`, port, port)
+    logger.silly(`==> 🌎 Listening on port ${port}. Open up http://localhost:${port}/ in your browser.`, port, port);
+    jobs.forEach(job => job.run());
   })
 }
 
-function startHttpsServer(app, port, sslKey, sslCert, intermedKey) {
+function startHttpsServer(app, port, sslKey, sslCert, intermedKey, jobs) {
   try {
     let sslOptions = {
       key: fs.readFileSync(sslKey),
@@ -95,7 +119,8 @@ function startHttpsServer(app, port, sslKey, sslCert, intermedKey) {
       if (err) {
         logger.error(err)
       }
-      logger.silly(`==> 🌎 HTTPS server listening on port ${port}. Open up https://localhost:${port}/ in your browser.`)
+      logger.silly(`==> 🌎 HTTPS server listening on port ${port}. Open up https://localhost:${port}/ in your browser.`);
+      jobs.forEach(job => job.run());
     })
   } catch (e) {
     logger.error('ssl_key or ssl_cert or intermediate_cert is either missing or invalid. Provide valid SSL configurations.')
@@ -107,10 +132,10 @@ const
   port = config.get('Server:Port'),
   sslKey = config.get('Server:SslKey'),
   sslCert = config.get('Server:SslCert'),
-  intermedKey = config.get('Server:IntermediateCert')
+  intermedKey = config.get('Server:IntermediateCert');
 
 if (!devMode && sslKey && sslCert && intermedKey) {
-  startHttpsServer(app, port, sslKey, sslCert, intermedKey)
+  startHttpsServer(app, port, sslKey, sslCert, intermedKey, jobs)
 } else {
-  startHttpServer(app, port)
+  startHttpServer(app, port, jobs)
 }

@@ -18,6 +18,8 @@ const CatalogItemService = require('../services/catalog-service');
 const fs = require('fs');
 const AppHelper = require('../helpers/app-helper');
 const AuthDecorator = require('../decorators/cli-decorator');
+const Errors = require('../helpers/errors');
+const ErrorMessages = require('../helpers/error-messages');
 
 const JSON_SCHEMA = AppHelper.stringifyCliJsonSchema({
   name: "string",
@@ -214,11 +216,10 @@ const _createCatalogItem = async function (obj, user) {
     ? JSON.parse(fs.readFileSync(obj.file, 'utf8'))
     : _createCatalogItemObject(obj);
 
-  logger.info(JSON.stringify(item));
-
-  const result = await CatalogItemService.createCatalogItem(item, user);
-  logger.info(JSON.stringify(result));
-  logger.info('Catalog item has been created successfully.');
+  const catalogItemIdObject = await CatalogItemService.createCatalogItem(item, user);
+  logger.info(JSON.stringify({
+    id: catalogItemIdObject.id
+  }, null, 2));
 };
 
 const _updateCatalogItem = async function (obj) {
@@ -226,14 +227,15 @@ const _updateCatalogItem = async function (obj) {
     ? JSON.parse(fs.readFileSync(obj.file, 'utf8'))
     : _createCatalogItemObject(obj);
 
-  logger.info('Item id: ' + obj.itemId);
-  logger.info(JSON.stringify(item));
+  if (obj.itemId === undefined) {
+    throw new Errors.NotFoundError(ErrorMessages.CATALOG_UPDATE_REQUIRES_ID);
+  }
+
   await CatalogItemService.updateCatalogItem(obj.itemId, item, {}, true);
   logger.info('Catalog item has been updated successfully.');
 };
 
 const _deleteCatalogItem = async function (obj) {
-  logger.info(JSON.stringify(obj));
   await CatalogItemService.deleteCatalogItem(obj.itemId, {}, true);
   logger.info('Catalog item has been removed successfully');
 };
@@ -241,14 +243,11 @@ const _deleteCatalogItem = async function (obj) {
 const _listCatalogItems = async function () {
   const result = await CatalogItemService.listCatalogItems({}, true);
   logger.info(JSON.stringify(result, null, 2));
-  logger.info('Catalog items have been successfully retrieved.');
 };
 
 const _listCatalogItem = async function (obj) {
-  logger.info(JSON.stringify(obj));
   const result = await CatalogItemService.getCatalogItem(obj.itemId, {}, true);
   logger.info(JSON.stringify(result, null, 2));
-  logger.info('Catalog item has been successfully retrieved.');
 };
 
 const _createCatalogItemObject = function (catalogItem) {

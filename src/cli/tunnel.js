@@ -59,8 +59,8 @@ class Tunnel extends BaseCLIHandler {
         group: [constants.CMD_UPDATE]
       },
       {
-        name: 'iofogUuid', alias: 'f', type: String,
-        description: 'Fog UUID',
+        name: 'iofog-uuid', alias: 'i', type: String,
+        description: 'ioFog node UUID',
         group: [constants.CMD_UPDATE]
       },
       {
@@ -102,7 +102,10 @@ class Tunnel extends BaseCLIHandler {
 async function _updateTunnel(obj, user) {
   const action = obj.action;
   const tunnel = _createTunnelObject(obj);
-  logger.info(JSON.stringify(tunnel));
+  if (tunnel.iofogUuid === undefined) {
+    throw new Error("Required field 'ioFog UUID' is missing.");
+  }
+
   switch (action) {
     case 'open':
       await TunnelService.openTunnel(tunnel, user, true);
@@ -119,7 +122,6 @@ async function _updateTunnel(obj, user) {
 async function _tunnelList() {
   const tunnels = await TunnelService.findAll();
   logger.info(JSON.stringify(tunnels, null, 2));
-  logger.info('Tunnels has been received successfully.');
 }
 
 async function _executeCase(commands, commandName, f, isUserRequired) {

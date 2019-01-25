@@ -22,6 +22,9 @@ const CatalogItemOutputTypeManager = require('../sequelize/managers/catalog-item
 const Op = require('sequelize').Op;
 const Validator = require('../schemas/index');
 const RegistryManager = require('../sequelize/managers/registry-manager');
+const MicroserviceManager = require('../sequelize/managers/microservice-manager');
+const ChangeTrackingService = require('./change-tracking-service');
+const MicroseriveStates = require('../enums/microservice-state');
 
 const createCatalogItem = async function (data, user, transaction) {
   await Validator.validate(data, Validator.schemas.catalogItemCreate);
@@ -41,8 +44,13 @@ const updateCatalogItem = async function (id, data, user, isCLI, transaction) {
   await Validator.validate(data, Validator.schemas.catalogItemUpdate);
 
   const where = isCLI
-    ? {id: id}
-    : {id: id, userId: user.id};
+    ? {
+         id: id
+      }
+    : {
+         id: id,
+         userId: user.id
+      };
 
   data.id = id;
   await _updateCatalogItem(data, where, transaction);
@@ -52,8 +60,11 @@ const updateCatalogItem = async function (id, data, user, isCLI, transaction) {
 
 const listCatalogItems = async function (user, isCLI, transaction) {
   const where = isCLI
-    ? {category: {[Op.ne]: 'SYSTEM'}}
-    : {[Op.or]: [{userId: user.id}, {userId: null}], category: {[Op.ne]: 'SYSTEM'}};
+    ? {}
+    : {
+      [Op.or]: [{userId: user.id}, {userId: null}],
+      [Op.or]: [{category: {[Op.ne]: 'SYSTEM'}}, {category: null}]
+    };
 
   const attributes = isCLI
     ? {}
@@ -67,8 +78,12 @@ const listCatalogItems = async function (user, isCLI, transaction) {
 
 const getCatalogItem = async function (id, user, isCLI, transaction) {
   const where = isCLI
-    ? {id: id, category: {[Op.ne]: 'SYSTEM'}}
-    : {[Op.or]: [{userId: user.id}, {userId: null}], id: id, category: {[Op.ne]: 'SYSTEM'}};
+    ? {id: id}
+    : {
+      id: id,
+      [Op.or]: [{userId: user.id}, {userId: null}],
+      [Op.or]: [{category: {[Op.ne]: 'SYSTEM'}}, {category: null}]
+    };
 
   const attributes = isCLI
     ? {}
@@ -82,9 +97,22 @@ const getCatalogItem = async function (id, user, isCLI, transaction) {
 };
 
 const deleteCatalogItem = async function (id, user, isCLI, transaction) {
+
   const where = isCLI
-    ? {id: id}
-    : {userId: user.id, id: id};
+    ? {
+         id: id
+      }
+    : {
+        userId: user.id,
+        id: id
+      };
+
+  const item = await _checkIfItemExists(where, transaction);
+
+  if (item.category == "SYSTEM"){
+    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.SYSTEM_CATALOG_ITEM_DELETE, id));
+  }
+
   const affectedRows = await CatalogItemManager.delete(where, transaction);
   if (affectedRows === 0) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_CATALOG_ITEM_ID, id));
@@ -168,6 +196,13 @@ const _createCatalogItem = async function (data, user, transaction) {
 
   catalogItem = AppHelper.deleteUndefinedFields(catalogItem);
 
+  if (catalogItem.registryId) {
+      const registry = await RegistryManager.findOne({id: catalogItem.registryId}, transaction);
+      if (!registry) {
+          throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_REGISTRY_ID, data.registryId));
+      }
+  }
+
   return await CatalogItemManager.create(catalogItem, transaction);
 };
 
@@ -245,20 +280,34 @@ const _updateCatalogItem = async function (data, where, transaction) {
 
   catalogItem = AppHelper.deleteUndefinedFields(catalogItem);
   if (!catalogItem || AppHelper.isEmpty(catalogItem)) {
-    return
+    throw new Errors.NotFoundError(ErrorMessages.CATALOG_UPDATE_NO_FIELDS);
   }
-  const registry = await RegistryManager.findOne({id: data.registryId}, transaction);
-  if (!registry) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_REGISTRY_ID, data.registryId));
+  if (data.registryId) {
+    const registry = await RegistryManager.findOne({id: data.registryId}, transaction);
+    if (!registry) {
+      throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_REGISTRY_ID, data.registryId));
+    }
   }
 
   const item = await _checkIfItemExists(where, transaction);
+
+  if (item.category === "SYSTEM"){
+    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.SYSTEM_CATALOG_ITEM_UPDATE, data.id));
+  }
+
   await _checkForDuplicateName(data.name, item, transaction);
   await CatalogItemManager.update(where, catalogItem, transaction);
 };
 
 const _updateCatalogItemImages = async function (data, transaction) {
   if (data.images) {
+    const microservices = await MicroserviceManager.findAllWithStatuses({catalogItemId: data.id}, transaction);
+    for (const ms of microservices) {
+      if (ms.microserviceStatus.status === MicroseriveStates.RUNNING) {
+        throw new Errors.ValidationError(ErrorMessages.CATALOG_ITEM_IMAGES_IS_FROZEN)
+      }
+    }
+
     for (const image of data.images) {
       await CatalogItemImageManager.updateOrCreate({
         catalogItemId: data.id,

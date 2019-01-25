@@ -82,7 +82,7 @@ class Microservice extends BaseCLIHandler {
         group: [constants.CMD_ADD, constants.CMD_UPDATE]
       },
       {
-        name: 'microservice-id', alias: 'i', type: String, description: 'Microservice ID',
+        name: 'microservice-uuid', alias: 'i', type: String, description: 'Microservice UUID',
         group: [constants.CMD_UPDATE, constants.CMD_REMOVE, constants.CMD_INFO, constants.CMD_PORT_MAPPING_CREATE,
           constants.CMD_PORT_MAPPING_REMOVE, constants.CMD_PORT_MAPPING_LIST, constants.CMD_VOLUME_MAPPING_CREATE,
           constants.CMD_VOLUME_MAPPING_REMOVE, constants.CMD_VOLUME_MAPPING_LIST]
@@ -100,7 +100,7 @@ class Microservice extends BaseCLIHandler {
         group: [constants.CMD_ADD]
       },
       {
-        name: 'iofog-id', alias: 'I', type: String, description: 'ioFog node ID',
+        name: 'iofog-uuid', alias: 'I', type: String, description: 'ioFog node UUID',
         group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
@@ -142,7 +142,7 @@ class Microservice extends BaseCLIHandler {
         group: [constants.CMD_ROUTE_CREATE, constants.CMD_ROUTE_REMOVE]
       },
       {
-        name: 'internal-port', alias: 'b', type: String, description: 'Internal port',
+        name: 'internal-port', alias: 'b', type: Number, description: 'Internal port',
         group: [constants.CMD_PORT_MAPPING_REMOVE]
       },
       {
@@ -268,15 +268,15 @@ class Microservice extends BaseCLIHandler {
             example: '$ iofog-controller microservice add [other required options] --ports 80:8080:false 443:5443:false',
           },
           {
-            desc: '4. Add routes (ABC:DEF - source microservice id : dest microservice id)',
+            desc: '4. Add routes (ABC:DEF - source microservice uuid : dest microservice uuid)',
             example: '$ iofog-controller microservice add [other required options] --routes ABC:DEF RFG:HJK'
           },
           {
-            desc: '5. Add route (ABC:DEF - source microservice id : dest microservice id)',
+            desc: '5. Add route (ABC:DEF - source microservice uuid : dest microservice uuid)',
             example: '$ iofog-controller microservice route-create --route ABC:DEF',
           },
           {
-            desc: '6. Delete route (ABC:DEF - source microservice id : dest microservice id)',
+            desc: '6. Delete route (ABC:DEF - source microservice uuid : dest microservice uuid)',
             example: '$ iofog-controller microservice route-remove --route ABC:DEF',
           },
           {
@@ -284,7 +284,7 @@ class Microservice extends BaseCLIHandler {
             example: '$ iofog-controller microservice port-mapping-create --mapping 80:8080:false -i ABC'
           },
           {
-            desc: '8. Delete port mapping (80 - internal port, ABC - microservice id)',
+            desc: '8. Delete port mapping (80 - internal port, ABC - microservice uuid)',
             example: '$ iofog-controller microservice port-mapping-remove --internal-port 80 -i ABC'
           },
           {
@@ -317,63 +317,58 @@ async function _executeCase(commands, commandName, f, isUserRequired) {
 }
 
 const _createRoute = async function (obj, user) {
-  logger.info(JSON.stringify(obj));
   try {
     const arr = obj.route.split(':');
-    const sourceMicroserviceId = arr[0];
-    const destMicroserviceId = arr[1];
-    await MicroserviceService.createRoute(sourceMicroserviceId, destMicroserviceId, user, true);
-    logger.info(`Microservice route with source microservice ${sourceMicroserviceId} and dest microservice 
-                ${destMicroserviceId} has been created successfully.`)
+    const sourceMicroserviceUuid = arr[0];
+    const destMicroserviceUuid = arr[1];
+    await MicroserviceService.createRoute(sourceMicroserviceUuid, destMicroserviceUuid, user, true);
+    logger.info(`Microservice route with source microservice ${sourceMicroserviceUuid} and dest microservice 
+                ${destMicroserviceUuid} has been created successfully.`)
   } catch (e) {
     logger.error(ErrorMessages.CLI.INVALID_ROUTE);
   }
 };
 
 const _removeRoute = async function (obj, user) {
-  logger.info(JSON.stringify(obj));
   try {
     const arr = obj.route.split(':');
-    const sourceMicroserviceId = arr[0];
-    const destMicroserviceId = arr[1];
-    await MicroserviceService.deleteRoute(sourceMicroserviceId, destMicroserviceId, user, true);
-    logger.info(`Microservice route with source microservice ${obj.sourceMicroserviceId} and dest microservice 
-                ${obj.destMicroserviceId} has been removed successfully.`);
+    const sourceMicroserviceUuid = arr[0];
+    const destMicroserviceUuid = arr[1];
+    await MicroserviceService.deleteRoute(sourceMicroserviceUuid, destMicroserviceUuid, user, true);
+    logger.info('Microservice route with source microservice ' + sourceMicroserviceUuid +
+      ' and dest microservice ' + destMicroserviceUuid + 'has been removed successfully.');
   } catch (e) {
     logger.error(ErrorMessages.CLI.INVALID_ROUTE);
   }
 };
 
 const _createPortMapping = async function (obj, user) {
-  logger.info(JSON.stringify(obj));
   const mapping = parsePortMappingObject(obj.mapping, ErrorMessages.CLI.INVALID_PORT_MAPPING);
-  await MicroserviceService.createPortMapping(obj.microserviceId, mapping, user, true);
+  await MicroserviceService.createPortMapping(obj.microserviceUuid, mapping, user, true);
   logger.info('Port mapping has been created successfully.');
 };
 
 const _createVolumeMapping = async function (obj, user) {
-  logger.info(JSON.stringify(obj));
   const mapping = parseVolumeMappingObject(obj.mapping, ErrorMessages.CLI.INVALID_VOLUME_MAPPING);
-  const result = await MicroserviceService.createVolumeMapping(obj.microserviceId, mapping, user, true);
-  logger.info(JSON.stringify(result, null, 2));
-  logger.info('Volume mapping has been created successfully.')
+  const result = await MicroserviceService.createVolumeMapping(obj.microserviceUuid, mapping, user, true);
+  logger.info(JSON.stringify({
+    id: result.id
+  }, null, 2));
 };
 
 const _removePortMapping = async function (obj, user) {
-  logger.info(JSON.stringify(obj));
   try {
     const internalPort = parseInt(obj.internalPort);
-    await MicroserviceService.deletePortMapping(obj.microserviceId, internalPort, user, true);
-    logger.info('Port mapping has been deleted successfully.');
+    await MicroserviceService.deletePortMapping(obj.microserviceUuid, internalPort, user, true);
+    logger.info('Port mapping has been removed successfully.');
   } catch (e) {
     logger.error(e.message);
   }
 };
 
 const _removeVolumeMapping = async function (obj, user) {
-  logger.info(JSON.stringify(obj));
   try {
-    await MicroserviceService.deleteVolumeMapping(obj.microserviceId, obj.mappingId, user, true);
+    await MicroserviceService.deleteVolumeMapping(obj.microserviceUuid, obj.mappingId, user, true);
     logger.info('Volume mapping has been deleted successfully.');
   } catch (e) {
     logger.error(e.message);
@@ -381,15 +376,13 @@ const _removeVolumeMapping = async function (obj, user) {
 };
 
 const _listPortMappings = async function (obj, user) {
-  const result = await MicroserviceService.listMicroservicePortMappings(obj.microserviceId, user, true);
+  const result = await MicroserviceService.listMicroservicePortMappings(obj.microserviceUuid, user, true);
   logger.info(JSON.stringify(result, null, 2));
-  logger.info('Port mappings have been retrieved successfully.');
 };
 
 const _listVolumeMappings = async function (obj, user) {
-  const result = await MicroserviceService.listVolumeMappings(obj.microserviceId, user, true);
+  const result = await MicroserviceService.listVolumeMappings(obj.microserviceUuid, user, true);
   logger.info(JSON.stringify(result, null, 2));
-  logger.info('Volume mappings have been retrieved successfully.');
 };
 
 const _removeMicroservice = async function (obj, user) {
@@ -397,21 +390,18 @@ const _removeMicroservice = async function (obj, user) {
     withCleanup: obj.cleanup
   };
 
-  await MicroserviceService.deleteMicroservice(obj.microserviceId, microserviceData, user, true);
+  await MicroserviceService.deleteMicroservice(obj.microserviceUuid, microserviceData, user, true);
   logger.info('Microservice has been removed successfully.')
 };
 
 const _listMicroservices = async function () {
   const result = await MicroserviceService.listMicroservices({}, {}, true);
   logger.info(JSON.stringify(result, null, 2));
-  logger.info('Microservices have been retrieved successfully.');
 };
 
 const _getMicroservice = async function (obj, user) {
-  logger.info(JSON.stringify(obj));
-  const result = await MicroserviceService.getMicroservice(obj.microserviceId, user, true);
+  const result = await MicroserviceService.getMicroservice(obj.microserviceUuid, user, true);
   logger.info(JSON.stringify(result, null, 2));
-  logger.info('Microservice has been retrieved successfully.');
 };
 
 const _createMicroservice = async function (obj, user) {
@@ -419,11 +409,10 @@ const _createMicroservice = async function (obj, user) {
     ? JSON.parse(fs.readFileSync(obj.file, 'utf8'))
     : _createMicroserviceObject(obj);
 
-  logger.info(JSON.stringify(microservice));
-
   const result = await MicroserviceService.createMicroservice(microservice, user, true);
-  logger.info(JSON.stringify(result));
-  logger.info('Microservice has been created successfully.');
+  logger.info(JSON.stringify({
+    uuid: result.uuid
+  }, null, 2))
 };
 
 const _updateMicroservice = async function (obj, user) {
@@ -431,9 +420,7 @@ const _updateMicroservice = async function (obj, user) {
     ? JSON.parse(fs.readFileSync(obj.file, 'utf8'))
     : _updateMicroserviceObject(obj);
 
-  logger.info(JSON.stringify(microservice));
-
-  await MicroserviceService.updateMicroservice(obj.microserviceId, microservice, user, true);
+  await MicroserviceService.updateMicroservice(obj.microserviceUuid, microservice, user, true);
   logger.info('Microservice has been updated successfully.');
 };
 
@@ -441,7 +428,7 @@ const _updateMicroserviceObject = function (obj) {
   const microserviceObj = {
     name: obj.name,
     config: obj.config,
-    iofogUuid: obj.iofogId,
+    iofogUuid: obj.iofogUuid,
     rootHostAccess: AppHelper.validateBooleanCliOptions(obj.rootEnable, obj.rootDisable),
     logSize: obj.logSize,
     rebuild: obj.rebuild
@@ -460,7 +447,7 @@ const _createMicroserviceObject = function (obj) {
     config: obj.config,
     catalogItemId: parseInt(obj.catalogId),
     flowId: parseInt(obj.flowId),
-    iofogUuid: obj.iofogId,
+    iofogUuid: obj.iofogUuid,
     rootHostAccess: AppHelper.validateBooleanCliOptions(obj.rootEnable, obj.rootDisable),
     logSize: obj.logSize,
     routes: obj.routes

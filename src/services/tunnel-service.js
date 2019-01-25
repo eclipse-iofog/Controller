@@ -15,15 +15,16 @@ const TunnelManager = require('../sequelize/managers/tunnel-manager');
 const FogManager = require('../sequelize/managers/iofog-manager');
 const Config = require('../config');
 const AppHelper = require('../helpers/app-helper');
-const Validator = require('../schemas')
-const Errors = require('../helpers/errors')
+const Validator = require('../schemas');
+const Errors = require('../helpers/errors');
+const ErrorMessages = require('../helpers/error-messages');
 const TransactionDecorator = require('../decorators/transaction-decorator');
 const ChangeTrackingService = require('./change-tracking-service');
 
 const openTunnel = async function (tunnelData, user, isCli, transaction) {
   const iofog = await FogManager.findOne({ uuid: tunnelData.iofogUuid }, transaction);
   if (!iofog) {
-    throw new Errors.NotFoundError('Invalid Fog Id');
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, tunnelData.iofogUuid));
   }
   let tunnel = tunnelData;
   if (isCli) {

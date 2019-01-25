@@ -53,6 +53,43 @@ describe('Agent Controller', () => {
     })
   });
 
+  describe('.agentDeprovisionEndPoint()', () => {
+    def('fog', () => 'fog!');
+    const deprovisionData = {microserviceUuids:["uuid"]};
+
+    def('req', () => ({
+      body: deprovisionData
+    }));
+
+    def('response', () => Promise.resolve());
+    def('subject', () => $subject.agentDeprovisionEndPoint($req, $fog));
+
+    beforeEach(() => {
+      $sandbox.stub(AgentService, 'agentDeprovision').returns($response);
+    });
+
+    it('calls AgentService.agentDeprovision with correct args', async () => {
+      await $subject;
+      expect(AgentService.agentDeprovision).to.have.been.calledWith(deprovisionData, $fog);
+    });
+
+    context('when AgentService#agentDeprovision fails', () => {
+      const error = 'Error!';
+
+      def('response', () => Promise.reject(error));
+
+      it(`fails with "${error}"`, () => {
+        return expect($subject).to.be.rejectedWith(error)
+      })
+    });
+
+    context('when AgentService#agentDeprovision succeeds', () => {
+      it(`succeeds`, () => {
+        return expect($subject).to.eventually.equal(undefined)
+      })
+    })
+  });
+
   describe('.getAgentConfigEndPoint()', () => {
     def('fog', () => 'fog!');
 

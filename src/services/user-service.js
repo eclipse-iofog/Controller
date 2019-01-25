@@ -12,13 +12,14 @@
  */
 
 const nodemailer = require('nodemailer');
-let smtpTransport = require('nodemailer-smtp-transport');
+const smtpTransport = require('nodemailer-smtp-transport');
 const UserManager = require('../sequelize/managers/user-manager');
 const AppHelper = require('../helpers/app-helper');
 const Errors = require('../helpers/errors');
 const ErrorMessages = require('../helpers/error-messages');
 const Config = require('../config');
 const ioFogManager = require('../sequelize/managers/iofog-manager');
+const FogStates = require('../enums/fog-state');
 const emailActivationTemplate = require('../views/email-activation-temp');
 const emailRecoveryTemplate = require('../views/email-temp');
 const emailResetTemplate = require('../views/reset-password-temp');
@@ -168,7 +169,7 @@ const deleteUser = async function (force, user, isCLI, transaction) {
 
     if (!!ioFogArray) {
       for (const ioFog of ioFogArray) {
-        if (ioFog.daemonStatus === 'RUNNING') {
+        if (ioFog.daemonStatus === FogStates.RUNNING) {
           throw new Errors.ValidationError(ErrorMessages.NEEDED_FORCE_DELETE_USER);
         }
       }
