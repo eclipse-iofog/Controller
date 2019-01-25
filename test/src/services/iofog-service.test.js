@@ -814,7 +814,6 @@ describe('ioFog Service', () => {
             return expect($subject).to.be.rejectedWith(error);
           })
         });
-        
         context('when ChangeTrackingService#update() succeeds', () => {
           it('fulfills the promise', () => {
             return expect($subject).to.eventually.equal(undefined);

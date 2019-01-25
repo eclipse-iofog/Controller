@@ -354,7 +354,7 @@ async function _getHalHardwareInfo(obj) {
     if (data.hasOwnProperty('info')) {
       data.info = JSON.parse(data.info);
     }
-
+    
     logger.info(JSON.stringify(data, null, 2));
   }
 
