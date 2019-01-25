@@ -89,14 +89,16 @@ const getUserFlows = async function (user, isCLI, transaction) {
     userId: user.id
   };
 
-  const flows = await FlowManager.findAllExcludeFields(flow, transaction);
+  const attributes = {exclude: ["created_at", "updated_at"]};
+  const flows = await FlowManager.findAllWithAttributes(flow, attributes, transaction);
   return {
     flows: flows
   }
 };
 
 const getAllFlows = async function (isCLI, transaction) {
-  const flows = await FlowManager.findAll({}, transaction);
+  const attributes = {exclude: ['created_at', 'updated_at']};
+  const flows = await FlowManager.findAllWithAttributes({}, attributes, transaction);
   return {
     flows: flows
   }
@@ -107,7 +109,9 @@ const getFlow = async function (flowId, user, isCLI, transaction) {
     ? {id: flowId}
     : {id: flowId, userId: user.id};
 
-  const flow = await FlowManager.findOneExcludeFields(where, transaction);
+  const attributes = {exclude: ["created_at", "updated_at"]};
+
+  const flow = await FlowManager.findOneWithAttributes(where, attributes, transaction);
 
   if (!flow) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_ID, flowId))
