@@ -357,6 +357,7 @@ async function _getHalHardwareInfo(obj) {
 
     logger.info(JSON.stringify(data, null, 2));
   }
+
 }
 
 async function _getHalUsbInfo(obj) {
