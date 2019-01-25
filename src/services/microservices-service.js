@@ -128,9 +128,11 @@ async function updateMicroservice(microserviceUuid, microserviceData, user, isCL
       userId: user.id
     };
 
+  const config = _validateMicroserviceConfig(microserviceData.config);
+
   const microserviceToUpdate = {
     name: microserviceData.name,
-    config: microserviceData.config,
+    config: config,
     rebuild: microserviceData.rebuild,
     iofogUuid: microserviceData.iofogUuid,
     rootHostAccess: microserviceData.rootHostAccess,
@@ -481,12 +483,20 @@ async function listVolumeMappings(microserviceUuid, user, isCLI, transaction) {
   return await VolumeMappingManager.findAll(volumeMappingWhere, transaction);
 }
 
+// this function works with escape and unescape config, in case of unescaped config, the first split will not work,
+// but the second will work
+function _validateMicroserviceConfig(config) {
+  return config.split('\\"').join('"').split('"').join('\"');
+}
+
 async function _createMicroservice(microserviceData, user, isCLI, transaction) {
+
+  const config = _validateMicroserviceConfig(microserviceData.config);
 
   let newMicroservice = {
     uuid: AppHelper.generateRandomString(32),
     name: microserviceData.name,
-    config: microserviceData.config,
+    config: config,
     catalogItemId: microserviceData.catalogItemId,
     flowId: microserviceData.flowId,
     iofogUuid: microserviceData.iofogUuid,

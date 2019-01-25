@@ -64,7 +64,7 @@ try {
 
   fs.unlinkSync(installationVariablesFile);
 } catch (e) {
-  console.log('no previous version')
+  console.log(e);
 }
 
 //init db
