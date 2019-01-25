@@ -42,8 +42,8 @@ function decryptText(text, salt) {
   const processedSalt = crypto.createHash('md5').update(salt).digest("hex");
 
   const textParts = text.split(':');
-  const iv = new Buffer(textParts.shift(), 'hex');
-  let encryptedText = new Buffer(textParts.join(':'), 'hex');
+  const iv = Buffer.from(textParts.shift(), 'hex');
+  let encryptedText = Buffer.from(textParts.join(':'), 'hex');
 
   const decipher = crypto.createDecipheriv(ALGORITHM, processedSalt, iv);
   let dec = decipher.update(encryptedText, 'hex', 'utf8');
