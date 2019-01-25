@@ -19,7 +19,7 @@ stages:
 - name: dev_deploy
   if: branch = develop AND type = push
 - name: pre_release
-  if: branch = /^release-.*$/ AND type = push
+  if: branch =~ /^release-.*$/ AND type = push
 - name: release
   if: branch = master and type = push
 
@@ -39,7 +39,7 @@ jobs:
     before_install:
     - sudo apt-get install sshpass
     script: 
-    - sshpass -p $PREPROD_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $PREPROD_MACHINE_USERNAME@$PREPROD_MACHINE_IP "cd /Controller; NODE_ENV=production node src/main.js stop; git pull; npm i; npm test; NODE_ENV=production node src/main.js start; npm run postman_test"
+    - sshpass -p $PREPROD_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $PREPROD_MACHINE_USERNAME@$PREPROD_MACHINE_IP "cd /Controller; NODE_ENV=production node src/main.js stop; git pull; git checkout ${TRAVIS_BRANCH}; npm i; npm test; NODE_ENV=production node src/main.js start; npm run postman_test"
   - stage: release
     #before_install:
       #- git clone "https://github.com/$TRAVIS_REPO_SLUG.git" "$TRAVIS_REPO_SLUG";
