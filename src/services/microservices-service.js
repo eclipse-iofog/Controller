@@ -128,11 +128,9 @@ async function updateMicroservice(microserviceUuid, microserviceData, user, isCL
       userId: user.id
     };
 
-  const config = _validateMicroserviceConfig(microserviceData.config);
-
   const microserviceToUpdate = {
     name: microserviceData.name,
-    config: config,
+    config: microserviceData.config ? _validateMicroserviceConfig(microserviceData.config) : null,
     rebuild: microserviceData.rebuild,
     iofogUuid: microserviceData.iofogUuid,
     rootHostAccess: microserviceData.rootHostAccess,
@@ -142,9 +140,13 @@ async function updateMicroservice(microserviceUuid, microserviceData, user, isCL
 
   const microserviceDataUpdate = AppHelper.deleteUndefinedFields(microserviceToUpdate);
 
-  const microservice = await MicroserviceManager.findOne(query, transaction);
+  const microservice = await MicroserviceManager.findOneWithCategory(query, transaction);
   if (!microservice) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, microserviceUuid))
+  }
+
+  if (microservice.catalogItem.category === "SYSTEM") {
+    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.SYSTEM_MICROSERVICE_UPDATE, microserviceUuid))
   }
 
   if (microserviceDataUpdate.name) {
@@ -195,11 +197,6 @@ async function deleteMicroservice(microserviceUuid, microserviceData, user, isCL
       userId: user.id
     };
 
-  const microservice = await MicroserviceManager.findOneWithStatus(where, transaction);
-  if (!microservice) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, microserviceUuid));
-  }
-
   if (microservice.microserviceStatus.status === MicroserviceStates.NOT_RUNNING) {
     await deleteMicroserviceWithRoutesAndPortMappings(microserviceUuid, transaction);
   } else {
@@ -216,10 +213,11 @@ async function deleteMicroservice(microserviceUuid, microserviceData, user, isCL
 }
 
 async function deleteNotRunningMicroservices(transaction) {
-  const microservices = await MicroserviceManager.findAllWithStatuses(transaction);
+  const microservices = await MicroserviceManager.findAllWithStatusesAndCategory(transaction);
   microservices
     .filter(microservice => microservice.delete)
     .filter(microservice => microservice.microserviceStatus.status === MicroserviceStates.NOT_RUNNING)
+    .filter(microservice => microservice.catalogItem.category != "SYSTEM")
     .forEach(microservice => deleteMicroserviceWithRoutesAndPortMappings(microservice.uuid, transaction));
 }
 
@@ -230,7 +228,7 @@ async function createRoute(sourceMicroserviceUuid, destMicroserviceUuid, user, i
 
   const sourceMicroservice = await MicroserviceManager.findOne(sourceWhere, transaction);
   if (!sourceMicroservice) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, sourceMicroserviceUuid))
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_SOURCE_MICROSERVICE_UUID, sourceMicroserviceUuid))
   }
 
   const destWhere = isCLI
@@ -239,7 +237,7 @@ async function createRoute(sourceMicroserviceUuid, destMicroserviceUuid, user, i
 
   const destMicroservice = await MicroserviceManager.findOne(destWhere, transaction);
   if (!destMicroservice) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, destMicroserviceUuid))
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_DEST_MICROSERVICE_UUID, destMicroserviceUuid))
   }
 
   if (!sourceMicroservice.iofogUuid || !destMicroservice.iofogUuid) {
@@ -279,7 +277,7 @@ async function deleteRoute(sourceMicroserviceUuid, destMicroserviceUuid, user, i
 
   const sourceMicroservice = await MicroserviceManager.findOne(sourceWhere, transaction);
   if (!sourceMicroservice) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, sourceMicroserviceUuid))
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_SOURCE_MICROSERVICE_UUID, sourceMicroserviceUuid))
   }
 
   const destWhere = isCLI
@@ -288,7 +286,7 @@ async function deleteRoute(sourceMicroserviceUuid, destMicroserviceUuid, user, i
 
   const destMicroservice = await MicroserviceManager.findOne(destWhere, transaction);
   if (!destMicroservice) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, destMicroserviceUuid))
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_DEST_MICROSERVICE_UUID, destMicroserviceUuid))
   }
 
   const route = await RoutingManager.findOne({

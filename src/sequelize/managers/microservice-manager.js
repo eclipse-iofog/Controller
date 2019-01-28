@@ -220,19 +220,6 @@ class MicroserviceManager extends BaseManager {
     }, {transaction: transaction})
   }
 
-  findOneWithStatus(where, transaction) {
-    return Microservice.findOne({
-      include: [
-        {
-          model: MicroserviceStatus,
-          as: 'microserviceStatus',
-          required: true
-        }
-      ],
-      where: where
-    }, {transaction: transaction})
-  }
-
   findAllWithStatuses(where, transaction) {
     return Microservice.findAll({
       include: [
@@ -287,6 +274,39 @@ class MicroserviceManager extends BaseManager {
       }}, {
       transaction: transaction
     });
+  }
+
+  findOneWithCategory(where, transaction) {
+    return Microservice.findOne({
+      include: [
+        {
+          model: CatalogItem,
+          as: 'catalogItem',
+          required: true,
+          attributes: ['category']
+        }
+      ],
+      where: where
+    }, {transaction: transaction})
+  }
+
+  findAllWithStatusesAndCategory(where, transaction) {
+    return Microservice.findAll({
+      include: [
+        {
+          model: MicroserviceStatus,
+          as: 'microserviceStatus',
+          required: true
+        },
+        {
+          model: CatalogItem,
+          as: 'catalogItem',
+          required: true,
+          attributes: ['category']
+        }
+      ],
+      where: where
+    }, {transaction: transaction})
   }
 }
 
