@@ -29,7 +29,7 @@ const packageJson = require('./../../package');
 const constants = require('../helpers/constants');
 
 const Sentry = require('@sentry/node');
-Sentry.init({ dsn: 'https://de6fe4cabab4409abff3be134b258fe0@sentry.io/1370876' });
+Sentry.init({ dsn: 'https://3213bc0b88db47ffb103075d7e1e254f@sentry.io/1378606' });
 Sentry.configureScope(scope => {
   scope.setExtra('version', packageJson.version);
 });
