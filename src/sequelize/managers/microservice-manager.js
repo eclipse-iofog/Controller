@@ -288,6 +288,20 @@ class MicroserviceManager extends BaseManager {
       transaction: transaction
     });
   }
+
+  findOneWithCategory(where, transaction) {
+    return Microservice.findOne({
+      include: [
+        {
+          model: CatalogItem,
+          as: 'catalogItem',
+          required: true,
+          attributes: ['category']
+        }
+      ],
+      where: where
+    }, {transaction: transaction})
+  }
 }
 
 const instance = new MicroserviceManager();
