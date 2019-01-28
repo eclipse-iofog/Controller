@@ -18,6 +18,8 @@ const CatalogItemService = require('../services/catalog-service');
 const fs = require('fs');
 const AppHelper = require('../helpers/app-helper');
 const AuthDecorator = require('../decorators/cli-decorator');
+const Errors = require('../helpers/errors');
+const ErrorMessages = require('../helpers/error-messages');
 
 const JSON_SCHEMA = AppHelper.stringifyCliJsonSchema({
   name: "string",
@@ -224,6 +226,10 @@ const _updateCatalogItem = async function (obj) {
   const item = obj.file
     ? JSON.parse(fs.readFileSync(obj.file, 'utf8'))
     : _createCatalogItemObject(obj);
+
+  if (obj.itemId === undefined) {
+    throw new Errors.NotFoundError(ErrorMessages.CATALOG_UPDATE_REQUIRES_ID);
+  }
 
   await CatalogItemService.updateCatalogItem(obj.itemId, item, {}, true);
   logger.info('Catalog item has been updated successfully.');

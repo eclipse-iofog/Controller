@@ -229,6 +229,7 @@ async function getFogList(filters, user, isCLI, transaction) {
 
   let fogs = await FogManager.findAll(queryFogData, transaction);
   fogs = _filterFogs(fogs, filters);
+
   return {
     fogs: fogs
   }

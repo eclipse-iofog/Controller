@@ -13,6 +13,8 @@ const Sequelize = require('sequelize');
 const Op = Sequelize.Op;
 const MicroserviceManager = require('../../../src/sequelize/managers/microservice-manager');
 const ChangeTrackingService = require('../../../src/services/change-tracking-service');
+const Errors = require('../../../src/helpers/errors');
+const ErrorMessages = require('../../../src/helpers/error-messages');
 
 describe('Catalog Service', () => {
   def('subject', () => CatalogService);
@@ -489,10 +491,11 @@ describe('Catalog Service', () => {
         });
 
         context('when AppHelper#isEmpty() fails', () => {
-          def('isEmptyResponse', () => error);
+          const err = new Errors.NotFoundError(ErrorMessages.CATALOG_UPDATE_NO_FIELDS);
+          def('isEmptyResponse', () => err);
 
-          it(`fails with ${error}`, () => {
-            return expect($subject).to.eventually.equal(undefined)
+          it(`fails with ${err}`, () => {
+            return expect($subject).to.be.rejectedWith(ErrorMessages.CATALOG_UPDATE_NO_FIELDS);
           })
         });
 
@@ -728,8 +731,9 @@ describe('Catalog Service', () => {
     const id = 5;
 
     const where = isCLI
-      ? {[Op.or]: [{category: {[Op.ne]: 'SYSTEM'}}, {category: null}]}
+      ? {id: id}
       : {
+        id: id,
         [Op.or]: [{userId: user.id}, {userId: null}],
         [Op.or]: [{category: {[Op.ne]: 'SYSTEM'}}, {category: null}]
       };
