@@ -198,6 +198,7 @@ function validateParameters(command, commandDefinitions, args) {
 
   let currentArgType;
   let currwentArgName;
+
   for (const arg of args) {
     // arg is [argument, alias, value]
 
