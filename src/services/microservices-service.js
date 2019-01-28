@@ -215,12 +215,12 @@ async function deleteMicroservice(microserviceUuid, microserviceData, user, isCL
   await _updateChangeTracking(false, microservice.iofogUuid, transaction)
 }
 
-async function deleteNotRunningMicroservices(transaction) {
-  const microservices = await MicroserviceManager.findAllWithStatuses(transaction);
+async function deleteNotRunningMicroservices(fog, transaction) {
+  const microservices = await MicroserviceManager.findAllWithStatuses({iofogUuid: fog.uuid}, transaction);
   microservices
     .filter(microservice => microservice.delete)
     .filter(microservice => microservice.microserviceStatus.status === MicroserviceStates.NOT_RUNNING)
-    .forEach(microservice => deleteMicroserviceWithRoutesAndPortMappings(microservice.uuid, transaction));
+    .forEach(async microservice => await deleteMicroserviceWithRoutesAndPortMappings(microservice.uuid, transaction));
 }
 
 async function createRoute(sourceMicroserviceUuid, destMicroserviceUuid, user, isCLI, transaction) {
@@ -486,6 +486,10 @@ async function listVolumeMappings(microserviceUuid, user, isCLI, transaction) {
 // this function works with escape and unescape config, in case of unescaped config, the first split will not work,
 // but the second will work
 function _validateMicroserviceConfig(config) {
+  if (config === undefined || config === '{}') {
+    return '{}';
+  }
+
   return config.split('\\"').join('"').split('"').join('\"');
 }
 

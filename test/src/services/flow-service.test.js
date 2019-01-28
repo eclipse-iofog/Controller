@@ -279,7 +279,7 @@ describe('Flow Service', () => {
 
     beforeEach(() => {
       $sandbox.stub(Validator, 'validate').returns($validatorResponse);
-      $sandbox.stub(FlowManager, 'findOneExcludeFields').returns($findExcludedFlowResponse);
+      $sandbox.stub(FlowManager, 'findOneWithAttributes').returns($findExcludedFlowResponse);
       $sandbox.stub(FlowManager, 'findOne').returns($findFlowResponse);
       $sandbox.stub(AppHelper, 'deleteUndefinedFields').returns($deleteUndefinedFieldsResponse);
       $sandbox.stub(FlowManager, 'update').returns($updateFlowResponse);
@@ -301,16 +301,17 @@ describe('Flow Service', () => {
     });
 
     context('when Validator#validate() succeeds', () => {
-      it('calls FlowManager#findOneExcludeFields() with correct args', async () => {
+      it('calls FlowManager#findOneWithAttributes() with correct args', async () => {
         await $subject;
 
         const where = isCLI
           ? {id: flowId}
           : {id: flowId, userId: user.id};
-        expect(FlowManager.findOneExcludeFields).to.have.been.calledWith(where, transaction);
+        const attributes = {exclude: ["created_at", "updated_at"]};
+        expect(FlowManager.findOneWithAttributes).to.have.been.calledWith(where, attributes, transaction);
       });
 
-      context('when FlowManager#findOneExcludeFields() fails', () => {
+      context('when FlowManager#findOneWithAttributes() fails', () => {
         def('findExcludedFlowResponse', () => Promise.reject(error));
 
         it(`fails with ${error}`, () => {
@@ -318,7 +319,7 @@ describe('Flow Service', () => {
         })
       });
 
-      context('when FlowManager#findOneExcludeFields() succeeds', () => {
+      context('when FlowManager#findOneWithAttributes() succeeds', () => {
         it('calls FlowManager#findOne() with correct args', async () => {
           await $subject;
 
@@ -433,15 +434,16 @@ describe('Flow Service', () => {
     def('findExcludedFlowResponse', () => Promise.resolve());
 
     beforeEach(() => {
-      $sandbox.stub(FlowManager, 'findAllExcludeFields').returns($findExcludedFlowResponse);
+      $sandbox.stub(FlowManager, 'findAllWithAttributes').returns($findExcludedFlowResponse);
     });
 
-    it('calls FlowManager#findAllExcludeFields() with correct args', async () => {
+    it('calls FlowManager#findAllWithAttributes() with correct args', async () => {
       await $subject;
-      expect(FlowManager.findAllExcludeFields).to.have.been.calledWith(flow, transaction);
+      const attributes = {exclude: ["created_at", "updated_at"]};
+      expect(FlowManager.findAllWithAttributes).to.have.been.calledWith(flow, attributes, transaction);
     });
 
-    context('when FlowManager#findAllExcludeFields() fails', () => {
+    context('when FlowManager#findAllWithAttributes() fails', () => {
       def('findExcludedFlowResponse', () => Promise.reject(error));
 
       it(`fails with ${error}`, () => {
@@ -449,7 +451,7 @@ describe('Flow Service', () => {
       })
     });
 
-    context('when FlowManager#findAllExcludeFields() succeeds', () => {
+    context('when FlowManager#findAllWithAttributes() succeeds', () => {
       it('fulfills the promise', () => {
         return expect($subject).to.eventually.have.property('flows');
       })
@@ -465,15 +467,16 @@ describe('Flow Service', () => {
     def('findAllFlowsResponse', () => Promise.resolve());
 
     beforeEach(() => {
-      $sandbox.stub(FlowManager, 'findAll').returns($findAllFlowsResponse);
+      $sandbox.stub(FlowManager, 'findAllWithAttributes').returns($findAllFlowsResponse);
     });
 
-    it('calls FlowManager#findAll() with correct args', async () => {
+    it('calls FlowManager#findAllWithAttributes() with correct args', async () => {
       await $subject;
-      expect(FlowManager.findAll).to.have.been.calledWith({}, transaction);
+      const attributes = {exclude: ['created_at', 'updated_at']};
+      expect(FlowManager.findAllWithAttributes).to.have.been.calledWith({}, attributes, transaction);
     });
 
-    context('when FlowManager#findAll() fails', () => {
+    context('when FlowManager#findAllWithAttributes() fails', () => {
       def('findAllFlowsResponse', () => Promise.reject(error));
 
       it(`fails with ${error}`, () => {
@@ -481,7 +484,7 @@ describe('Flow Service', () => {
       })
     });
 
-    context('when FlowManager#findAll() succeeds', () => {
+    context('when FlowManager#findAllWithAttributes() succeeds', () => {
       it('fulfills the promise', () => {
         return expect($subject).to.eventually.have.property('flows');
       })
@@ -502,18 +505,19 @@ describe('Flow Service', () => {
     def('findFlowResponse', () => Promise.resolve({}));
 
     beforeEach(() => {
-      $sandbox.stub(FlowManager, 'findOneExcludeFields').returns($findFlowResponse);
+      $sandbox.stub(FlowManager, 'findOneWithAttributes').returns($findFlowResponse);
     });
 
-    it('calls FlowManager#findOneExcludeFields() with correct args', async () => {
+    it('calls FlowManager#findOneWithAttributes() with correct args', async () => {
       await $subject;
       const where = isCLI
         ? {id: flowId}
         : {id: flowId, userId: user.id};
-      expect(FlowManager.findOneExcludeFields).to.have.been.calledWith(where, transaction);
+      const attributes = {exclude: ["created_at", "updated_at"]};
+      expect(FlowManager.findOneWithAttributes).to.have.been.calledWith(where, attributes, transaction);
     });
 
-    context('when FlowManager#findOneExcludeFields() fails', () => {
+    context('when FlowManager#findOneWithAttributes() fails', () => {
       def('findFlowResponse', () => Promise.reject(error));
 
       it(`fails with ${error}`, () => {
@@ -521,7 +525,7 @@ describe('Flow Service', () => {
       })
     });
 
-    context('when FlowManager#findOneExcludeFields() succeeds', () => {
+    context('when FlowManager#findOneWithAttributes() succeeds', () => {
       it('fulfills the promise', () => {
         return expect($subject).to.eventually.deep.equal({});
       })
