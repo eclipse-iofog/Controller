@@ -73,8 +73,8 @@ function sendEvents(events) {
   }
   const data = JSON.stringify(body);
   let options = {
-    host: 'kf6v825xpc.execute-api.us-west-2.amazonaws.com',
-    path: '/dev3/post',
+    host: 'analytics.iofog.org',
+    path: '/post',
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
