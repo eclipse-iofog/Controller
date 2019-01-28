@@ -80,8 +80,9 @@ const listCatalogItems = async function (user, isCLI, transaction) {
 
 const getCatalogItem = async function (id, user, isCLI, transaction) {
   const where = isCLI
-    ? {}
+    ? {id: id}
     : {
+      id: id,
       [Op.or]: [{userId: user.id}, {userId: null}],
       [Op.or]: [{category: {[Op.ne]: 'SYSTEM'}}, {category: null}]
     };
@@ -281,7 +282,7 @@ const _updateCatalogItem = async function (data, where, transaction) {
 
   catalogItem = AppHelper.deleteUndefinedFields(catalogItem);
   if (!catalogItem || AppHelper.isEmpty(catalogItem)) {
-    return
+    throw new Errors.NotFoundError(ErrorMessages.CATALOG_UPDATE_NO_FIELDS);
   }
   if (data.registryId) {
     const registry = await RegistryManager.findOne({id: data.registryId}, transaction);
@@ -292,7 +293,7 @@ const _updateCatalogItem = async function (data, where, transaction) {
 
   const item = await _checkIfItemExists(where, transaction);
 
-  if (item.category == "SYSTEM"){
+  if (item.category === "SYSTEM"){
     throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.SYSTEM_CATALOG_ITEM_UPDATE, data.id));
   }
 
