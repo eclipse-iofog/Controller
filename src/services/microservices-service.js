@@ -128,9 +128,11 @@ async function updateMicroservice(microserviceUuid, microserviceData, user, isCL
       userId: user.id
     };
 
+  const config = _validateMicroserviceConfig(microserviceData.config);
+
   const microserviceToUpdate = {
     name: microserviceData.name,
-    config: microserviceData.config ? _validateMicroserviceConfig(microserviceData.config) : null,
+    config: config,
     rebuild: microserviceData.rebuild,
     iofogUuid: microserviceData.iofogUuid,
     rootHostAccess: microserviceData.rootHostAccess,
