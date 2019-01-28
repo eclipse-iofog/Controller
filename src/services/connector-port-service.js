@@ -125,7 +125,6 @@ async function _makeRequest(connector, options, data) {
 
       response.on('end', function () {
         let responseObj = JSON.parse(output);
-        console.log(responseObj);
         if (responseObj.errormessage) {
           return reject(new Error(responseObj.errormessage));
         } else {
