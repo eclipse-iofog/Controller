@@ -302,25 +302,6 @@ class MicroserviceManager extends BaseManager {
       where: where
     }, {transaction: transaction})
   }
-
-  findAllWithStatusesAndCategory(where, transaction) {
-    return Microservice.findAll({
-      include: [
-        {
-          model: MicroserviceStatus,
-          as: 'microserviceStatus',
-          required: true
-        },
-        {
-          model: CatalogItem,
-          as: 'catalogItem',
-          required: true,
-          attributes: ['category']
-        }
-      ],
-      where: where
-    }, {transaction: transaction})
-  }
 }
 
 const instance = new MicroserviceManager();

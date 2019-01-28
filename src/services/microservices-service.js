@@ -218,11 +218,10 @@ async function deleteMicroservice(microserviceUuid, microserviceData, user, isCL
 }
 
 async function deleteNotRunningMicroservices(transaction) {
-  const microservices = await MicroserviceManager.findAllWithStatusesAndCategory(transaction);
+  const microservices = await MicroserviceManager.findAllWithStatuses(transaction);
   microservices
     .filter(microservice => microservice.delete)
     .filter(microservice => microservice.microserviceStatus.status === MicroserviceStates.NOT_RUNNING)
-    .filter(microservice => microservice.catalogItem.category != "SYSTEM")
     .forEach(microservice => deleteMicroserviceWithRoutesAndPortMappings(microservice.uuid, transaction));
 }
 
