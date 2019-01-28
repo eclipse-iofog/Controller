@@ -217,7 +217,7 @@ async function deleteMicroservice(microserviceUuid, microserviceData, user, isCL
 
 async function deleteNotRunningMicroservices(fog, transaction) {
   const microservices = await MicroserviceManager.findAllWithStatuses({iofogUuid: fog.uuid}, transaction);
-  await microservices
+  microservices
     .filter(microservice => microservice.delete)
     .filter(microservice => microservice.microserviceStatus.status === MicroserviceStates.NOT_RUNNING)
     .forEach(async microservice => await deleteMicroserviceWithRoutesAndPortMappings(microservice.uuid, transaction));
