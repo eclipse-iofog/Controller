@@ -34,7 +34,7 @@ function buildEvent(eventType, args, res, functionName) {
   };
   switch (eventType) {
     case EventTypes.INIT:
-      eventInfo.data = 'controller inited';
+      eventInfo.data = {event: 'controller inited'};
       break;
     case EventTypes.START:
       eventInfo.data = {event: `controller started: ${res}`};
