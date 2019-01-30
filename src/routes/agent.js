@@ -463,7 +463,7 @@ module.exports = [
         }
       ];
 
-      const postTracking = ResponseDecorator.handleErrors(AgentController.postTracking,
+      const postTracking = ResponseDecorator.handleErrors(AgentController.postTrackingEndPoint,
         successCode, errorCodes);
       const responseObject = await postTracking(req);
 

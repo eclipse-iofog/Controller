@@ -146,5 +146,5 @@ module.exports = {
   deleteNodeEndPoint: AuthDecorator.checkFogToken(deleteNodeEndPoint),
   getImageSnapshotEndPoint: AuthDecorator.checkFogToken(getImageSnapshotEndPoint),
   putImageSnapshotEndPoint: AuthDecorator.checkFogToken(putImageSnapshotEndPoint),
-  postTracking: AuthDecorator.checkFogToken(postTrackingEndPoint)
+  postTrackingEndPoint: AuthDecorator.checkFogToken(postTrackingEndPoint)
 };

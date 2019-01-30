@@ -801,4 +801,40 @@ describe('Agent Controller', () => {
     })
   });
 
+
+  describe('postTrackingEndPoint()', () => {
+    def('fog', () => 'fog!');
+
+    def('req', () => ({
+      body: {events: []}
+    }));
+    def('response', () => Promise.resolve());
+    def('subject', () => $subject.postTrackingEndPoint($req, $fog));
+
+    beforeEach(() => {
+      $sandbox.stub(AgentService, 'postTracking').returns($response);
+    });
+
+    it('calls AgentService.postTrackingEndPoint with correct args', async () => {
+      await $subject;
+      expect(AgentService.postTracking).to.have.been.calledWith($req.body.events, $fog);
+    });
+
+    context('when AgentService#postTrackingEndPoint fails', () => {
+      const error = 'Error!';
+
+      def('response', () => Promise.reject(error));
+
+      it(`fails with "${error}"`, () => {
+        return expect($subject).to.be.rejectedWith(error)
+      })
+    });
+
+    context('when AgentService#postTrackingEndPoint succeeds', () => {
+      it(`succeeds`, () => {
+        return expect($subject).to.eventually.equal(undefined)
+      })
+    })
+  });
+
 });
