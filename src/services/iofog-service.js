@@ -25,6 +25,8 @@ const USBInfoManager = require('../sequelize/managers/usb-info-manager');
 const CatalogService = require('../services/catalog-service');
 const MicroserviceManager = require('../sequelize/managers/microservice-manager');
 const FogStates = require('../enums/fog-state');
+const TrackingDecorator = require('../decorators/tracking-decorator');
+const TrackingEventType = require('../enums/tracking-event-type');
 
 async function createFog(fogData, user, isCLI, transaction) {
   await Validator.validate(fogData, Validator.schemas.iofogCreate);
@@ -424,8 +426,11 @@ async function _deleteBluetoothMicroserviceByFog(fogData, transaction) {
   await MicroserviceManager.delete(deleteBluetoothMicroserviceData, transaction)
 }
 
+//decorated functions
+const  createFogWithTracking = TrackingDecorator.trackEvent(createFog, TrackingEventType.IOFOG_CREATED);
+
 module.exports = {
-  createFog: TransactionDecorator.generateTransaction(createFog),
+  createFog: TransactionDecorator.generateTransaction(createFogWithTracking),
   updateFog: TransactionDecorator.generateTransaction(updateFog),
   deleteFog: TransactionDecorator.generateTransaction(deleteFog),
   getFogWithTransaction: TransactionDecorator.generateTransaction(getFog),

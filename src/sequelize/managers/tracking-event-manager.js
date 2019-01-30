@@ -11,16 +11,21 @@
  *
  */
 
-const Config = require('../../config');
+const BaseManager = require('./base-manager');
+const models = require('./../models');
+const TrackingEvent = models.TrackingEvent;
 
-class BaseJobHandler {
-  constructor() {
-    this.scheduleTime = Config.get('Settings:DefaultJobIntervalSeconds') * 1000;
+class TrackingEventManager extends BaseManager {
+  getEntity() {
+    return TrackingEvent;
   }
 
-  run() {
-    throw new Error('Not Implemented');
+  async popAll(transaction) {
+    const res = await this.findAll({}, transaction);
+    await this.delete({} ,transaction);
+    return res;
   }
 }
 
-module.exports = BaseJobHandler;
+const instance = new TrackingEventManager();
+module.exports = instance;

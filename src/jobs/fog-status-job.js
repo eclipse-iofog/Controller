@@ -24,7 +24,8 @@ const Config = require('../config');
 
 class FogStatusJob extends BaseJobHandler {
   constructor() {
-    super()
+    super();
+    this.scheduleTime = Config.get('Settings:FogStatusUpdateIntervalSeconds') * 1000;
   }
 
   run() {

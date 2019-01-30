@@ -446,5 +446,30 @@ module.exports = [
         .status(responseObject.code)
         .send(responseObject.body)
     }
+  },
+  {
+    method: 'post',
+    path: '/api/v3/agent/tracking',
+    middleware: async (req, res) => {
+      const successCode = constants.HTTP_CODE_SUCCESS;
+      const errorCodes = [
+        {
+          code: constants.HTTP_CODE_UNAUTHORIZED,
+          errors: [Errors.AuthenticationError]
+        },
+        {
+          code: constants.HTTP_CODE_BAD_REQUEST,
+          errors: [Errors.ValidationError]
+        }
+      ];
+
+      const postTracking = ResponseDecorator.handleErrors(AgentController.postTrackingEndPoint,
+        successCode, errorCodes);
+      const responseObject = await postTracking(req);
+
+      res
+        .status(responseObject.code)
+        .send(responseObject.body)
+    }
   }
 ];
