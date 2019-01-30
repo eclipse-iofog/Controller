@@ -25,7 +25,16 @@ const fakeTransactionObject = {fakeTransaction: true};
 
 const trackingUuid = getUniqueTrackingUuid();
 
-function buildEvent(eventType, args, res, functionName) {
+/**
+ * generate tracking event after service function was executed
+ *
+ * @param eventType - @see src/enum/tracking-event-type.js
+ * @param res - response of service function
+ * @param args - arguments of service function
+ * @param functionName - name of service function
+ * @returns {{sourceType: string, type: string, uuid: string, timestamp: number}}
+ */
+function buildEvent(eventType, res, args, functionName) {
   let eventInfo = {
     uuid: trackingUuid,
     sourceType: 'controller',
@@ -82,10 +91,7 @@ function sendEvents(events) {
     }
   };
 
-  const request = https.request(options, (response)=>{
-    //only for debug. comment before commit
-    // console.log(response.statusCode);
-  });
+  const request = https.request(options);
   request.write(data);
   request.end();
 }
@@ -96,10 +102,9 @@ function getUniqueTrackingUuid() {
     let allMacs = '';
     const interfaces = os.networkInterfaces();
     for (const i in interfaces) {
-      if (i.internal) {
-        continue;
+      if (!i.internal) {
+        allMacs += i.mac + '-'
       }
-      allMacs += i.mac + '-'
     }
     uuid = crypto.createHash('md5').update(allMacs).digest("hex");
   } catch (e) {
@@ -121,7 +126,7 @@ async function processEvent(event, fArgs) {
     try {
       sendEvents([event]);
     } catch (e) {
-      //ignore
+      //TODO log only in file. add after logging will fixed
     }
   }
 }

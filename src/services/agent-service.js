@@ -495,8 +495,9 @@ async function _checkMicroservicesFogType(fog, fogTypeId, transaction) {
 }
 
 async function postTracking(events, fog, transaction) {
+  await Validator.validate(events, Validator.schemas.trackingArray);
+
   await TrackingEventManager.bulkCreate(events, transaction);
-  return {};
 }
 
 //decorated functions

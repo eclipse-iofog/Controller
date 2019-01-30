@@ -33,7 +33,7 @@ const intervalMin = 5;
 async function trackTime() {
   iteration++;
   const runningTime = iteration * intervalMin;
-  const event = Tracking.buildEvent(TrackingEventType.RUNNING_TIME, null, runningTime);
+  const event = Tracking.buildEvent(TrackingEventType.RUNNING_TIME, runningTime,);
   await Tracking.processEvent(event);
 }
 

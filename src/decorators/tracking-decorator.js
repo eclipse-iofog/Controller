@@ -19,15 +19,13 @@ function trackEvent(f, eventType) {
     if (isTest()) {
       return await f.apply(this, arguments);
     }
-    try {
-      const fArgs = Array.prototype.slice.call(arguments); // TODO can be used later
-      const res = await f.apply(this, arguments);
-      const event = Tracking.buildEvent(eventType, fArgs, res, f.name);
-      await Tracking.processEvent(event, fArgs, res);
-      return res;
-    } catch (e) {
-      throw e;
-    }
+
+    const fArgs = Array.prototype.slice.call(arguments);
+    const res = await f.apply(this, arguments);
+    const event = Tracking.buildEvent(eventType, res, fArgs, f.name);
+    await Tracking.processEvent(event, fArgs, res);
+    return res;
+
   }
 }
 

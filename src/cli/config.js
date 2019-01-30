@@ -251,8 +251,8 @@ const _changeDevModeState = async function (options) {
   config.set('Server:DevMode', enableDevMode);
   logger.info('Dev mode state updated successfully.');
 
-  //TODO add same for other config props
-  const event = Tracking.buildEvent(TrackingEventType.CONFIG_CHANGED, null, `devMode was set to ${enableDevMode}`, null);
+  //example of tracking  for other config
+  const event = Tracking.buildEvent(TrackingEventType.CONFIG_CHANGED, `devMode was set to ${enableDevMode}`);
   await Tracking.processEvent(event);
 };
 

@@ -143,5 +143,5 @@ if (!devMode && sslKey && sslCert && intermedKey) {
   startHttpServer(app, port, jobs)
 }
 
-const event = Tracking.buildEvent(TrackingEventType.START, null, `devMode is ${devMode}`, null);
+const event = Tracking.buildEvent(TrackingEventType.START, `devMode is ${devMode}`);
 Tracking.processEvent(event);

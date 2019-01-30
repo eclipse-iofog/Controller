@@ -151,8 +151,36 @@ const updateUsbInfo = {
   "additionalProperties": false
 };
 
+const trackingArray = {
+  "id": "/trackingArray",
+  "type": "array",
+  "items": {"$ref": "/trackingMessage"}
+};
+
+const trackingMessage = {
+  "id": "/trackingMessage",
+  "type": "object",
+  "properties": {
+    "uuid": {"type": "string"},
+    "sourceType": {"type": "string"},
+    "timestamp": {"type": "number"},
+    "type": {"type": "string"},
+    "data": {"$ref": "/trackingData"},
+  },
+  "required": ["uuid", "sourceType", "timestamp", "type", "data"],
+  "additionalProperties": false
+};
+
+const trackingData = {
+  "id": "/trackingData",
+  "type": "object",
+  "properties": {
+  },
+  "additionalProperties": true
+};
+
 module.exports = {
   mainSchemas: [agentProvision, agentDeprovision, updateAgentConfig, updateAgentStatus, updateAgentStrace,
-  updateHardwareInfo, updateUsbInfo],
-  innerSchemas: [straceData, microserviceStatus]
+  updateHardwareInfo, updateUsbInfo, trackingArray],
+  innerSchemas: [straceData, microserviceStatus, trackingData, trackingMessage]
 };

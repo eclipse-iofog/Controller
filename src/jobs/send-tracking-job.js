@@ -36,7 +36,7 @@ async function sendTracking() {
   try {
     Tracking.sendEvents(events);
   } catch (e) {
-    //ignore
+    //TODO log only in file. add after logging will fixed
   }
 }
 

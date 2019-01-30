@@ -456,6 +456,10 @@ module.exports = [
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
           errors: [Errors.AuthenticationError]
+        },
+        {
+          code: constants.HTTP_CODE_BAD_REQUEST,
+          errors: [Errors.ValidationError]
         }
       ];
 

@@ -306,11 +306,7 @@ function isOnline() {
   const daemon = require('../daemon');
 
   let pid = daemon.status();
-  if (pid === 0) {
-    return false;
-  } else {
-    return true;
-  }
+  return pid !== 0;
 }
 
 module.exports = {
