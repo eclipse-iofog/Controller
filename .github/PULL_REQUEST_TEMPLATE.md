@@ -7,7 +7,7 @@ Thank you for your contribution!
 Code of Conduct: https://iofog.org/docs/contributing/code-of-conduct.html
 -->
 
-- [ ] Does the iofog.org or README.md documentation need to change?
+- Does the iofog.org or README.md documentation need to change?
   - [ ] Yes <!-- include PR link -->
   - [ ] No
 
