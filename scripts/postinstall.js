@@ -16,36 +16,15 @@ const execSync = require('child_process').execSync;
 const fs = require('fs');
 const semver = require('semver');
 const currentVersion = require('../package').version;
-
-const rootDir = `${__dirname}/..`;
-let installationVariablesFileName = 'iofogcontroller_install_variables';
-let tempDir = getTempDirLocation();
-const installationVariablesFile = tempDir + '/' + installationVariablesFileName;
+const {restoreDBs, restoreConfigs, INSTALLATION_VARIABLES_FILE} = require('./util');
 
 //restore all files
-const devDbBackup = `${tempDir}/dev_database.sqlite`;
-const devDb = `${rootDir}/src/sequelize/dev_database.sqlite`;
-moveFileIfExists(devDbBackup, devDb);
-
-const prodDbBackup = `${tempDir}/prod_database.sqlite`;
-const prodDb = `${rootDir}/src/sequelize/prod_database.sqlite`;
-moveFileIfExists(prodDbBackup, prodDb);
-
-const defConfigBackup = `${tempDir}/default_iofog_backup.json`;
-const defConfig = `${rootDir}/src/config/default.json`;
-moveFileIfExists(defConfigBackup, defConfig);
-
-const prodConfigBackup = `${tempDir}/production_iofog_backup.json`;
-const prodConfig = `${rootDir}/src/config/production.json`;
-moveFileIfExists(prodConfigBackup, prodConfig);
-
-const devConfigBackup = `${tempDir}/development_iofog_backup.json`;
-const devConfig = `${rootDir}/src/config/development.json`;
-moveFileIfExists(devConfigBackup, devConfig);
+restoreDBs();
+restoreConfigs();
 
 //process migrations
 try {
-  const installationVarsStr = fs.readFileSync(installationVariablesFile);
+  const installationVarsStr = fs.readFileSync(INSTALLATION_VARIABLES_FILE);
   const installationVars = JSON.parse(installationVarsStr);
   const prevVersion = installationVars.prevVer;
 
@@ -62,7 +41,7 @@ try {
     updateEncryptionMethod();
   }
 
-  fs.unlinkSync(installationVariablesFile);
+  fs.unlinkSync(INSTALLATION_VARIABLES_FILE );
 } catch (e) {
   console.log('no previous version');
 }
@@ -92,12 +71,6 @@ function getTempDirLocation() {
     throw new Error("Unsupported OS found: " + os.type());
   }
   return tempDir;
-}
-
-function moveFileIfExists(from, to) {
-  if (fs.existsSync(from)) {
-    fs.renameSync(from, to);
-  }
 }
 
 function insertSeeds() {

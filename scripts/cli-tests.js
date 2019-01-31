@@ -12,6 +12,8 @@
  */
 
 const execSync = require('child_process').execSync;
+const {init} = require('./init');
+const {restoreDBs, backupDBs} = require('./util');
 
 const options = {
   env: {
@@ -395,6 +397,10 @@ function responseContains(response, expectedResponsePart) {
 }
 
 try {
+  backupDBs();
+  //create new DBs
+  init();
+
   testControllerSection();
   testUserSection();
   testConfigSection();
@@ -406,7 +412,11 @@ try {
   testMicroserviceSection();
   testRegistrySection();
   testDiagnosticsSection();
+
+  restoreDBs();
 } catch (exception) {
+  restoreDBs();
+
   console.log("\nException during execution: ");
   console.error(exception);
   process.exit(1);
