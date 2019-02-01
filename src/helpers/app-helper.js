@@ -234,10 +234,12 @@ function validateParameters(command, commandDefinitions, args) {
         valType = 'number';
       }
       if (valType !== currentArgType && currentArgType !== 'string' && valType !== numberType) {
-        if (valType !== 'number' && numberType) {
-          currentArgType = numberType;
+        if (valType !== 'integer' && numberType !== 'float') {
+          if (valType !== 'number' && numberType) {
+            currentArgType = numberType;
+          }
+          throw new Errors.InvalidArgumentTypeError(formatMessage(ErrorMessages.INVALID_CLI_ARGUMENT_TYPE, currentArgName, currentArgType))
         }
-        throw new Errors.InvalidArgumentTypeError(formatMessage(ErrorMessages.INVALID_CLI_ARGUMENT_TYPE, currentArgName, currentArgType))
       }
     }
   }
