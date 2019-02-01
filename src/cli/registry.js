@@ -69,12 +69,12 @@ class Registry extends BaseCLIHandler {
         group: [constants.CMD_ADD, constants.CMD_UPDATE]
       },
       {
-        name: 'user-id', alias: 'u', type: Number,
+        name: 'user-id', alias: 'u', type: Number, numberType: 'integer',
         description: 'User\'s id',
         group: [constants.CMD_ADD]
       },
       {
-        name: 'item-id', alias: 'i', type: Number,
+        name: 'item-id', alias: 'i', type: Number, numberType: 'integer',
         description: 'Item\'s id',
         group: [constants.CMD_REMOVE, constants.CMD_UPDATE]
       }

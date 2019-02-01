@@ -63,7 +63,7 @@ class Catalog extends BaseCLIHandler {
         group: [constants.CMD_ADD, constants.CMD_UPDATE]
       },
       {
-        name: 'item-id', alias: 'i', type: Number, description: 'Catalog item ID',
+        name: 'item-id', alias: 'i', type: Number, numberType: 'integer', description: 'Catalog item ID',
         group: [constants.CMD_UPDATE, constants.CMD_REMOVE, constants.CMD_INFO]
       },
       {
@@ -91,12 +91,12 @@ class Catalog extends BaseCLIHandler {
         group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
-        name: 'disk-required', alias: 's', type: Number,
+        name: 'disk-required', alias: 's', type: Number, numberType: 'integer',
         description: 'Amount of disk required to run the microservice (MB)',
         group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
-        name: 'ram-required', alias: 'r', type: Number,
+        name: 'ram-required', alias: 'r', type: Number, numberType: 'integer',
         description: 'Amount of RAM required to run the microservice (MB)',
         group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
@@ -113,7 +113,8 @@ class Catalog extends BaseCLIHandler {
         group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
-        name: 'registry-id', alias: 'g', type: Number, description: 'Catalog item docker registry ID',
+        name: 'registry-id', alias: 'g', type: Number, numberType: 'integer',
+        description: 'Catalog item docker registry ID',
         group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
@@ -137,7 +138,7 @@ class Catalog extends BaseCLIHandler {
         group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
-        name: 'user-id', alias: 'u', type: Number, description: 'User\'s id',
+        name: 'user-id', alias: 'u', type: Number, numberType: 'integer', description: 'User\'s id',
         group: [constants.CMD_ADD]
       },
     ];
