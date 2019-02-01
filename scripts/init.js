@@ -26,8 +26,6 @@ function init() {
   execSync('node ./src/main.js init', options);
 }
 
-init();
-
 module.exports = {
   init: init
 };

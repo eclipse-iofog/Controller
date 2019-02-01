@@ -17,13 +17,17 @@ const fs = require('fs');
 const version = require('../package').version;
 const {backupDBs, backupConfigs, INSTALLATION_VARIABLES_FILE} = require('./util');
 
+function preuninstall() {
+  const instalationVars = {
+    prevVer: version
+  };
 
-const instalationVars = {
-  prevVer: version
-};
+  fs.writeFileSync(INSTALLATION_VARIABLES_FILE, JSON.stringify(instalationVars));
 
-fs.writeFileSync(INSTALLATION_VARIABLES_FILE, JSON.stringify(instalationVars));
+  backupDBs();
+  backupConfigs();
+}
 
-backupDBs();
-backupConfigs();
-
+module.exports = {
+  preuninstall: preuninstall
+}

@@ -396,35 +396,41 @@ function responseContains(response, expectedResponsePart) {
   }
 }
 
-try {
-  backupDBs();
-  //create new DBs
-  init();
+function cliTest() {
+  try {
+    backupDBs();
+    //create new DBs
+    init();
 
-  testControllerSection();
-  testUserSection();
-  testConfigSection();
-  testConnectorSection();
-  testTunnelSection();
-  testIoFogSection();
-  testCatalogSection();
-  testFlowSection();
-  testMicroserviceSection();
-  testRegistrySection();
-  testDiagnosticsSection();
+    testControllerSection();
+    testUserSection();
+    testConfigSection();
+    testConnectorSection();
+    testTunnelSection();
+    testIoFogSection();
+    testCatalogSection();
+    testFlowSection();
+    testMicroserviceSection();
+    testRegistrySection();
+    testDiagnosticsSection();
 
-  restoreDBs();
-} catch (exception) {
-  restoreDBs();
+    restoreDBs();
+  } catch (exception) {
+    restoreDBs();
 
-  console.log("\nException during execution: ");
-  console.error(exception);
-  process.exit(1);
+    console.log("\nException during execution: ");
+    console.error(exception);
+    process.exit(1);
+  }
+
+  if (testsFailed > 0) {
+    console.log("\nFailed tests count: " + testsFailed);
+    process.exit(1);
+  } else {
+    console.log("\nCLI Tests passed successfully.");
+  }
 }
 
-if (testsFailed > 0) {
-  console.log("\nFailed tests count: " + testsFailed);
-  process.exit(1);
-} else {
-  console.log("\nCLI Tests passed successfully.");
-}
+module.exports = {
+  cliTest: cliTest
+};

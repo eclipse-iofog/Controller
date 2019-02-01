@@ -18,60 +18,47 @@ const semver = require('semver');
 const currentVersion = require('../package').version;
 const {restoreDBs, restoreConfigs, INSTALLATION_VARIABLES_FILE} = require('./util');
 
+function postinstall() {
 //restore all files
-restoreDBs();
-restoreConfigs();
+  restoreDBs();
+  restoreConfigs();
 
 //process migrations
-try {
-  const installationVarsStr = fs.readFileSync(INSTALLATION_VARIABLES_FILE);
-  const installationVars = JSON.parse(installationVarsStr);
-  const prevVersion = installationVars.prevVer;
+  try {
+    const installationVarsStr = fs.readFileSync(INSTALLATION_VARIABLES_FILE);
+    const installationVars = JSON.parse(installationVarsStr);
+    const prevVersion = installationVars.prevVer;
 
-  console.log(`previous version - ${prevVersion}`);
-  console.log(`new version - ${currentVersion}`);
+    console.log(`previous version - ${prevVersion}`);
+    console.log(`new version - ${currentVersion}`);
 
-  if (semver.satisfies(prevVersion, '<=1.0.0')) {
-    console.log('upgrading from version <= 1.0.0 :');
-    insertSeeds();
+    if (semver.satisfies(prevVersion, '<=1.0.0')) {
+      console.log('upgrading from version <= 1.0.0 :');
+      insertSeeds();
+    }
+
+    if (semver.satisfies(prevVersion, '<=1.0.30')) {
+      console.log('upgrading from version <= 1.0.30 :');
+      updateEncryptionMethod();
+    }
+
+    fs.unlinkSync(INSTALLATION_VARIABLES_FILE);
+  } catch (e) {
+    console.log('no previous version');
   }
-
-  if (semver.satisfies(prevVersion, '<=1.0.30')) {
-    console.log('upgrading from version <= 1.0.30 :');
-    updateEncryptionMethod();
-  }
-
-  fs.unlinkSync(INSTALLATION_VARIABLES_FILE );
-} catch (e) {
-  console.log('no previous version');
-}
 
 //init db
-const options = {
-  env: {
-    'NODE_ENV': 'production',
-    "PATH": process.env.PATH
-  },
-  stdio: [process.stdin, process.stdout, process.stderr]
-};
+  const options = {
+    env: {
+      'NODE_ENV': 'production',
+      "PATH": process.env.PATH
+    },
+    stdio: [process.stdin, process.stdout, process.stderr]
+  };
 
-execSync('node ./src/main.js init', options);
-
-//other functions definitions
-
-function getTempDirLocation() {
-  let tempDir;
-  if (os.type() === 'Linux') {
-    tempDir = '/tmp';
-  } else if (os.type() === 'Darwin') {
-    tempDir = '/tmp';
-  } else if (os.type() === 'Windows_NT') {
-    tempDir = `${process.env.APPDATA}`;
-  } else {
-    throw new Error("Unsupported OS found: " + os.type());
-  }
-  return tempDir;
+  execSync('node ./src/main.js init', options);
 }
+//other functions definitions
 
 function insertSeeds() {
   console.log('    inserting seeds meta info in db');
@@ -163,3 +150,7 @@ function updateEncryptionMethod() {
   updateEncryptionMethodForEmailService(devConfig, decryptTextVer30);
   updateEncryptionMethodForEmailService(prodConfig, decryptTextVer30);
 }
+
+module.exports = {
+  postinstall: postinstall
+};

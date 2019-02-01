@@ -13,7 +13,7 @@
 
 const execSync = require('child_process').execSync;
 
-function start() {
+function stop() {
   const options = {
     env: {
       'NODE_ENV': 'production',
@@ -22,9 +22,9 @@ function start() {
     stdio: [process.stdin, process.stdout, process.stderr]
   };
 
-  execSync('node ./src/main.js start', options);
+  execSync('node ./src/main.js stop', options);
 }
 
 module.exports = {
-  start: start
+  stop: stop
 };
