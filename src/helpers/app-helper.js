@@ -226,10 +226,14 @@ function validateParameters(command, commandDefinitions, args) {
       const nArg = new Number(arg);
       if (isNaN(nArg)) {
         valType = 'string';
+      } else if (_isInt(arg)){
+        valType = 'integer';
+      } else if (_isFloat(arg)){
+        valType = 'float';
       } else {
         valType = 'number';
       }
-      if (valType !== currentArgType && currentArgType !== 'string') {
+      if (valType !== currentArgType && currentArgType !== 'string' && valType !== numberType) {
         if (valType !== 'number' && numberType) {
           currentArgType = numberType;
         }
@@ -237,6 +241,14 @@ function validateParameters(command, commandDefinitions, args) {
       }
     }
   }
+}
+
+function _isInt(n){
+  return Number(n) % 1 === 0;
+}
+
+function _isFloat(n){
+  return Number(n) % 1 !== 0;
 }
 
 function _validateArg(arg, aliasesList) {
