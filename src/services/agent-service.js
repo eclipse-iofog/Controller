@@ -496,6 +496,9 @@ async function _checkMicroservicesFogType(fog, fogTypeId, transaction) {
 
 async function postTracking(events, fog, transaction) {
   await Validator.validate(events, Validator.schemas.trackingArray);
+  for (const event of events) {
+    event.data = JSON.stringify(event.data)
+  }
 
   await TrackingEventManager.bulkCreate(events, transaction);
 }
