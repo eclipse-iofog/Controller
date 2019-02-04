@@ -22,13 +22,13 @@ const DEV_DB_BACKUP = `${TEMP_DIR}/dev_database.sqlite`;
 const PROD_DB = `${ROOT_DIR}/src/sequelize/prod_database.sqlite`;
 const PROD_DB_BACKUP = `${TEMP_DIR}/prod_database.sqlite`;
 
-const DEF_CONFIG = `${ROOT_DIR}/src/config/default.json`;
-const DEV_CONFIG = `${ROOT_DIR}/src/config/development.json`;
-const PROD_CONFIG = `${ROOT_DIR}/src/config/production.json`;
+const DEFAULT_CONFIG = `${ROOT_DIR}/src/config/default.json`;
+const DEVELOP_CONFIG = `${ROOT_DIR}/src/config/development.json`;
+const PRODUCTION_CONFIG = `${ROOT_DIR}/src/config/production.json`;
 
-const DEF_CONFIG_BACKUP = `${TEMP_DIR}/default_iofog_backup.json`;
-const DEV_CONFIG_BACKUP = `${TEMP_DIR}/development_iofog_backup.json`;
-const PROD_CONFIG_BACKUP = `${TEMP_DIR}/production_iofog_backup.json`;
+const DEFAULT_CONFIG_BACKUP = `${TEMP_DIR}/default_iofog_backup.json`;
+const DEVELOP_CONFIG_BACKUP = `${TEMP_DIR}/development_iofog_backup.json`;
+const PRODUCTION_CONFIG_BACKUP = `${TEMP_DIR}/production_iofog_backup.json`;
 
 const INSTALLATION_VARIABLES_FILE = TEMP_DIR + '/iofogcontroller_install_variables';
 
@@ -66,15 +66,15 @@ function getTempDir() {
 }
 
 function backupConfigs() {
-  renameFile(DEF_CONFIG, DEF_CONFIG_BACKUP);
-  renameFile(DEV_CONFIG, DEV_CONFIG_BACKUP);
-  renameFile(PROD_CONFIG, PROD_CONFIG_BACKUP);
+  renameFile(DEFAULT_CONFIG, DEFAULT_CONFIG_BACKUP);
+  renameFile(DEVELOP_CONFIG, DEVELOP_CONFIG_BACKUP);
+  renameFile(PRODUCTION_CONFIG, PRODUCTION_CONFIG_BACKUP);
 }
 
 function restoreConfigs() {
-  renameFile(DEF_CONFIG_BACKUP, DEF_CONFIG,);
-  renameFile(DEV_CONFIG_BACKUP, DEV_CONFIG);
-  renameFile(PROD_CONFIG_BACKUP, PROD_CONFIG);
+  renameFile(DEFAULT_CONFIG_BACKUP, DEFAULT_CONFIG);
+  renameFile(DEVELOP_CONFIG_BACKUP, DEVELOP_CONFIG);
+  renameFile(PRODUCTION_CONFIG_BACKUP, PRODUCTION_CONFIG);
 }
 
 module.exports = {
