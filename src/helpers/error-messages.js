@@ -12,7 +12,7 @@
  */
 
 module.exports = {
-  INVALID_CLI_ARGUMENT_TYPE: 'Type of argument "{}" should be a {}',
+  INVALID_CLI_ARGUMENT_TYPE: 'Field "{}" is not of type(s) {}',
   DUPLICATE_NAME: "Duplicate name '{}'",
   ALREADY_EXISTS: 'Model already exists',
   INVALID_CATALOG_ITEM_ID: "Invalid catalog item id '{}'",

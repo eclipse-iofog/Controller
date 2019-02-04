@@ -163,10 +163,10 @@ function stringifyCliJsonSchema(json) {
 function handleCLIError(error) {
   switch (error.name) {
     case "UNKNOWN_OPTION":
-      console.log("Unknown parameter " + error.optionName);
+      console.log("Invalid argument '" + error.optionName.split('-').join('') + "'");
       break;
     case "UNKNOWN_VALUE":
-      console.log("Unknown value " + error.value);
+      console.log("Invalid value " + error.value);
       break;
     case "InvalidArgumentError":
       console.log(error.message);
@@ -197,8 +197,8 @@ function validateParameters(command, commandDefinitions, args) {
   const possibleArgsList = _getPossibleArgsList(command, commandDefinitions);
 
   let currentArgType;
-  let currwentArgName;
-
+  let currentArgName;
+  let numberType;
   for (const arg of args) {
     // arg is [argument, alias, value]
 
@@ -206,28 +206,51 @@ function validateParameters(command, commandDefinitions, args) {
       // '--ssl-cert' format -> 'ssl-cert' format
       const argument = arg.substr(2);
       _validateArg(argument, possibleArgsList);
-      currwentArgName = argument;
+      currentArgName = argument;
       currentArgType = _getValType(argument, commandDefinitions);
+      if (currentArgType === 'number') {
+        numberType = commandDefinitions.filter(command => command.name === currentArgName)[0].numberType
+      }
     } else if (arg.startsWith("-")) { // alias
       // '-q' format -> 'q' format
       const alias = arg.substr(1);
       _validateArg(alias, possibleAliasesList);
-      currwentArgName = alias;
+      currentArgName = alias;
       currentArgType = _getValType(alias, commandDefinitions);
+      if (currentArgType === 'number') {
+        numberType = commandDefinitions.filter(command => command.alias === currentArgName)[0].numberType
+      }
     } else {
       // value
       let valType;
       const nArg = new Number(arg);
       if (isNaN(nArg)) {
         valType = 'string';
+      } else if (_isInt(arg)){
+        valType = 'integer';
+      } else if (_isFloat(arg)){
+        valType = 'float';
       } else {
         valType = 'number';
       }
-      if (valType !== currentArgType && currentArgType !== 'string') {
-        throw new Errors.InvalidArgumentTypeError(formatMessage(ErrorMessages.INVALID_CLI_ARGUMENT_TYPE, currwentArgName, currentArgType))
+      if (valType !== currentArgType && currentArgType !== 'string' && valType !== numberType) {
+        if (valType !== 'integer' && numberType !== 'float') {
+          if (valType !== 'number' && numberType) {
+            currentArgType = numberType;
+          }
+          throw new Errors.InvalidArgumentTypeError(formatMessage(ErrorMessages.INVALID_CLI_ARGUMENT_TYPE, currentArgName, currentArgType))
+        }
       }
     }
   }
+}
+
+function _isInt(n){
+  return Number(n) % 1 === 0;
+}
+
+function _isFloat(n){
+  return Number(n) % 1 !== 0;
 }
 
 function _validateArg(arg, aliasesList) {

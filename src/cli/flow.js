@@ -41,7 +41,7 @@ class Flow extends BaseCLIHandler {
         group: [constants.CMD_ADD, constants.CMD_UPDATE]
       },
       {
-        name: 'flow-id', alias: 'i', type: Number,
+        name: 'flow-id', alias: 'i', type: Number, numberType: 'integer',
         description: 'Application flow ID',
         group: [constants.CMD_UPDATE, constants.CMD_REMOVE, constants.CMD_INFO]
       },
@@ -66,7 +66,7 @@ class Flow extends BaseCLIHandler {
         group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
-        name: 'user-id', alias: 'u', type: Number,
+        name: 'user-id', alias: 'u', type: Number, numberType: 'integer',
         description: 'User\'s id',
         group: [constants.CMD_ADD]
       }
