@@ -26,9 +26,9 @@ module.exports = {
         type: Sequelize.TEXT,
         field: 'type'
       },
-      value: {
+      data: {
         type: Sequelize.TEXT,
-        field: 'value'
+        field: 'data'
       },
     });
   },
