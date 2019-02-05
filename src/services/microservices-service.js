@@ -201,12 +201,15 @@ async function deleteMicroservice(microserviceUuid, microserviceData, user, isCL
       userId: user.id
     };
 
-  const microservice = await MicroserviceManager.findOneWithStatus(where, transaction);
+  const microservice = await MicroserviceManager.findOneWithStatusAndCategory(where, transaction);
   if (!microservice) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, microserviceUuid));
   }
+  if (!isCLI && microservice.catalogItem.category === "SYSTEM") {
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.SYSTEM_MICROSERVICE_DELETE, microserviceUuid))
+  }
 
-  if (microservice.microserviceStatus.status === MicroserviceStates.NOT_RUNNING) {
+  if (!microservice.microserviceStatus || microservice.microserviceStatus.status === MicroserviceStates.NOT_RUNNING) {
     await deleteMicroserviceWithRoutesAndPortMappings(microserviceUuid, transaction);
   } else {
     await MicroserviceManager.update({

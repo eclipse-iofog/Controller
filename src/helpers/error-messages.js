@@ -82,5 +82,6 @@ module.exports = {
   CATALOG_UPDATE_REQUIRES_ID: "Parameter '--item-id' is missing, update requires Catalog id.",
   SYSTEM_CATALOG_ITEM_UPDATE: 'Catalog item id {} is system and can\'t be updated',
   SYSTEM_CATALOG_ITEM_DELETE: 'Catalog item id {} is system and can\'t be deleted',
-  SYSTEM_MICROSERVICE_UPDATE: 'Microservice uuid {} is system and can\'t be updated'
+  SYSTEM_MICROSERVICE_UPDATE: 'Microservice uuid {} is system and can\'t be updated',
+  SYSTEM_MICROSERVICE_DELETE: 'Microservice uuid {} is system and can\'t be deleted'
 };
