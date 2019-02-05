@@ -54,7 +54,7 @@ class Tunnel extends BaseCLIHandler {
         group: [constants.CMD_UPDATE]
       },
       {
-        name: 'port', alias: 'o', type: Number,
+        name: 'port', alias: 'o', type: Number, numberType: 'integer',
         description: 'Tunnel port',
         group: [constants.CMD_UPDATE]
       },

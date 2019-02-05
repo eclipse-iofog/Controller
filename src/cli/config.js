@@ -32,7 +32,7 @@ class Config extends BaseCLIHandler {
         group: constants.CMD
       },
       {
-        name: 'port', alias: 'p', type: Number, description: 'Port',
+        name: 'port', alias: 'p', type: Number, numberType: 'integer', description: 'Port',
         group: constants.CMD_ADD
       },
       {
@@ -74,7 +74,7 @@ class Config extends BaseCLIHandler {
         group: constants.CMD_ADD
       },
       {
-        name: 'log-size', alias: 'z', type: Number,
+        name: 'log-size', alias: 'z', type: Number, numberType: 'integer',
         description: 'Log files size (MB)', group: constants.CMD_ADD
       },
       {

@@ -25,9 +25,9 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.TEXT,
       field: 'type'
     },
-    value: {
+    data: {
       type: DataTypes.TEXT,
-      field: 'value'
+      field: 'data'
     }
   }, {
     timestamps: false,

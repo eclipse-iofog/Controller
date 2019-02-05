@@ -51,7 +51,7 @@ class Diagnostics extends BaseCLIHandler {
         group: [constants.CMD_STRACE_FTP_POST]
       },
       {
-        name: 'ftpPort', alias: 'p', type: Number, description: 'FTP port',
+        name: 'ftpPort', alias: 'p', type: Number, numberType: 'integer', description: 'FTP port',
         group: [constants.CMD_STRACE_FTP_POST]
       },
       {

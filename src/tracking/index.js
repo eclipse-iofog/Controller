@@ -77,6 +77,9 @@ function buildEvent(eventType, res, args, functionName) {
 }
 
 function sendEvents(events) {
+  for (const event of events) {
+    event.data = JSON.parse(event.data)
+  }
   const body = {
     events: events
   }
@@ -114,6 +117,7 @@ function getUniqueTrackingUuid() {
 }
 
 async function processEvent(event, fArgs) {
+  event.data = JSON.stringify(event.data);
   if (isOnline()) {
     //save in db, and send later by job
     if (fArgs && fArgs.length > 0 && fArgs[fArgs.length - 1] instanceof Transaction) {
