@@ -1039,7 +1039,7 @@ describe('Microservices Service', () => {
 //     def('updateChangeTrackingResponse', () => Promise.resolve());
 //
 //     beforeEach(() => {
-//       $sandbox.stub(MicroserviceManager, 'findOneWithStatus').returns($findMicroserviceResponse);
+//       $sandbox.stub(MicroserviceManager, 'findOneWithStatusAndCategory').returns($findMicroserviceResponse);
 //       $sandbox.stub(MicroservicePortManager, 'findAll').returns($findMicroservicePortResponse);
 //       $sandbox.stub(MicroservicePortManager, 'delete').returns($deleteMicroservicePortResponse);
 //       $sandbox.stub(MicroserviceManager, 'update').returns($updateMicroserviceResponse);
