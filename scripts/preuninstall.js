@@ -15,52 +15,19 @@ const os = require('os');
 const execSync = require('child_process').execSync;
 const fs = require('fs');
 const version = require('../package').version;
+const {backupDBs, backupConfigs, INSTALLATION_VARIABLES_FILE} = require('./util');
 
-const rootDir = `${__dirname}/..`;
-let installationVariablesFileName = 'iofogcontroller_install_variables';
-let installationVariablesFile;
-let tempDir;
+function preuninstall() {
+  const instalationVars = {
+    prevVer: version
+  };
 
-if (os.type() === 'Linux') {
-  tempDir = '/tmp';
-} else if (os.type() === 'Darwin') {
-  tempDir = '/tmp';
-} else if (os.type() === 'Windows_NT') {
-  tempDir = `${process.env.APPDATA}`;
-} else {
-  throw new Error("Unsupported OS found: " + os.type());
+  fs.writeFileSync(INSTALLATION_VARIABLES_FILE, JSON.stringify(instalationVars));
+
+  backupDBs();
+  backupConfigs();
 }
 
-installationVariablesFile = tempDir + '/' + installationVariablesFileName;
-
-const instalationVars = {
-  prevVer: version
-};
-
-fs.writeFileSync(installationVariablesFile, JSON.stringify(instalationVars));
-
-const devDb = `${rootDir}/src/sequelize/dev_database.sqlite`;
-if (fs.existsSync(devDb)) {
-  fs.renameSync(devDb, `${tempDir}/dev_database.sqlite`)
+module.exports = {
+  preuninstall: preuninstall
 }
-
-const prodDb = `${rootDir}/src/sequelize/prod_database.sqlite`;
-if (fs.existsSync(prodDb)) {
-  fs.renameSync(prodDb, `${tempDir}/prod_database.sqlite`)
-}
-
-const defConfig = `${rootDir}/src/config/default.json`;
-if (fs.existsSync(defConfig)) {
-  fs.renameSync(defConfig, `${tempDir}/default_iofog_backup.json`)
-}
-
-const devConfig = `${rootDir}/src/config/development.json`;
-if (fs.existsSync(devConfig)) {
-  fs.renameSync(devConfig, `${tempDir}/development_iofog_backup.json`)
-}
-
-const prodConfig = `${rootDir}/src/config/production.json`;
-if (fs.existsSync(prodConfig)) {
-  fs.renameSync(prodConfig, `${tempDir}/production_iofog_backup.json`)
-}
-

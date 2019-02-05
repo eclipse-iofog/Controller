@@ -12,6 +12,8 @@
  */
 
 const execSync = require('child_process').execSync;
+const {init} = require('./init');
+const {restoreDBs, backupDBs} = require('./util');
 
 const options = {
   env: {
@@ -394,27 +396,41 @@ function responseContains(response, expectedResponsePart) {
   }
 }
 
-try {
-  testControllerSection();
-  testUserSection();
-  testConfigSection();
-  testConnectorSection();
-  testTunnelSection();
-  testIoFogSection();
-  testCatalogSection();
-  testFlowSection();
-  testMicroserviceSection();
-  testRegistrySection();
-  testDiagnosticsSection();
-} catch (exception) {
-  console.log("\nException during execution: ");
-  console.error(exception);
-  process.exit(1);
+function cliTest() {
+  try {
+    backupDBs();
+    //create new DBs
+    init();
+
+    testControllerSection();
+    testUserSection();
+    testConfigSection();
+    testConnectorSection();
+    testTunnelSection();
+    testIoFogSection();
+    testCatalogSection();
+    testFlowSection();
+    testMicroserviceSection();
+    testRegistrySection();
+    testDiagnosticsSection();
+
+    restoreDBs();
+  } catch (exception) {
+    restoreDBs();
+
+    console.log("\nException during execution: ");
+    console.error(exception);
+    process.exit(1);
+  }
+
+  if (testsFailed > 0) {
+    console.log("\nFailed tests count: " + testsFailed);
+    process.exit(1);
+  } else {
+    console.log("\nCLI Tests passed successfully.");
+  }
 }
 
-if (testsFailed > 0) {
-  console.log("\nFailed tests count: " + testsFailed);
-  process.exit(1);
-} else {
-  console.log("\nCLI Tests passed successfully.");
-}
+module.exports = {
+  cliTest: cliTest
+};

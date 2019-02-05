@@ -34,17 +34,17 @@
 		"url": "https://github.com/ioFog/Controller"
 	},
 	"scripts": {
-		"start": "node scripts/start.js",
-		"start-dev": "node scripts/start-dev.js",
-		"build": "node scripts/init.js",
-		"preuninstall": "node scripts/preuninstall.js",
-		"postinstall": "node scripts/postinstall.js",
+		"start": "node scripts/scripts-api.js start",
+		"start-dev": "node scripts/scripts-api.js start-dev",
+		"build": "node scripts/scripts-api.js init",
+		"preuninstall": "node scripts/scripts-api.js preuninstall",
+		"postinstall": "node scripts/scripts-api.js postinstall",
 		"lint": "./node_modules/.bin/eslint \"**/*.js\"",
 		"automatic-release": "automatic-release",
-		"test": "node scripts/test.js && node scripts/cli-tests.js",
-		"postman_test": "node scripts/postmantest.js",
-		"cli-tests": "node scripts/cli-tests.js",
-		"coverage": "node scripts/coverage.js"
+		"test": "node scripts/scripts-api.js test",
+		"postman_test": "node scripts/scripts-api.js postmantest",
+		"cli-tests": "node scripts/scripts-api.js cli-tests",
+		"coverage": "node scripts/scripts-api.js coverage"
 	},
 	"preferGlobal": true,
 	"bin": {
