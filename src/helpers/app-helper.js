@@ -190,7 +190,7 @@ function trimCertificate(cert) {
 }
 
 function argsArrayAsMap(args) {
-  let argsVars = args.join(' ').split(/(?=[^-]-)/);
+  let argsVars = args.join(' ').split(/(?= -{1,2}[^-]+)/);
   const argsMap = new Map();
   argsVars
     .map(pair => pair.trim())
