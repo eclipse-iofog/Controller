@@ -17,6 +17,7 @@ const logger = require('../logger');
 const DiagnosticService = require('../services/diagnostic-service');
 const AppHelper = require('../helpers/app-helper');
 const AuthDecorator = require('../decorators/cli-decorator');
+const CliDataTypes = require('./cli-data-types');
 
 
 class Diagnostics extends BaseCLIHandler {
@@ -51,7 +52,7 @@ class Diagnostics extends BaseCLIHandler {
         group: [constants.CMD_STRACE_FTP_POST]
       },
       {
-        name: 'ftpPort', alias: 'p', type: Number, numberType: 'integer', description: 'FTP port',
+        name: 'ftpPort', alias: 'p', type: CliDataTypes.Integer, description: 'FTP port',
         group: [constants.CMD_STRACE_FTP_POST]
       },
       {

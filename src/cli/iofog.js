@@ -18,6 +18,7 @@ const fs = require('fs');
 const CliDecorator = require('../decorators/cli-decorator');
 const AppHelper = require('../helpers/app-helper');
 const FogService = require('../services/iofog-service');
+const CliDataTypes = require('./cli-data-types');
 
 const JSON_SCHEMA = AppHelper.stringifyCliJsonSchema({
   name: "string",
@@ -74,12 +75,12 @@ class IOFog extends BaseCLIHandler {
         group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
-        name: 'latitude', alias: 't', type: Number, numberType: 'float',
+        name: 'latitude', alias: 't', type: CliDataTypes.Float,
         description: 'ioFog node latitude',
         group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
-        name: 'longitude', alias: 'g', type: Number, numberType: 'float',
+        name: 'longitude', alias: 'g', type: CliDataTypes.Float,
         description: 'ioFog node longitude',
         group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
@@ -94,7 +95,7 @@ class IOFog extends BaseCLIHandler {
         group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
-        name: 'disk-limit', alias: 'M', type: Number, numberType: 'float',
+        name: 'disk-limit', alias: 'M', type: CliDataTypes.Float,
         description: 'ioFog node disk usage limit (MB)',
         group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
@@ -104,17 +105,17 @@ class IOFog extends BaseCLIHandler {
         group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
-        name: 'memory-limit', alias: 'm', type: Number, numberType: 'float',
+        name: 'memory-limit', alias: 'm', type: CliDataTypes.Float,
         description: 'ioFog node memory usage limit (MB)',
         group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
-        name: 'cpu-limit', alias: 'c', type: Number, numberType: 'float',
+        name: 'cpu-limit', alias: 'c', type: CliDataTypes.Float,
         description: 'ioFog node CPU usage limit (%)',
         group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
-        name: 'log-limit', alias: 'G', type: Number, numberType: 'float',
+        name: 'log-limit', alias: 'G', type: CliDataTypes.Float,
         description: 'ioFog node log size limit (MB)',
         group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
@@ -124,22 +125,22 @@ class IOFog extends BaseCLIHandler {
         group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
-        name: 'log-file-count', alias: 'C', type: Number, numberType: 'integer',
+        name: 'log-file-count', alias: 'C', type: CliDataTypes.Integer,
         description: 'ioFog node log files count',
         group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
-        name: 'status-frequency', alias: 's', type: Number, numberType: 'integer',
+        name: 'status-frequency', alias: 's', type: CliDataTypes.Integer,
         description: 'ioFog node status check frequency (seconds)',
         group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
-        name: 'change-frequency', alias: 'F', type: Number, numberType: 'integer',
+        name: 'change-frequency', alias: 'F', type: CliDataTypes.Integer,
         description: 'ioFog node configuration change check frequency (seconds)',
         group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
-        name: 'device-frequency', alias: 'Q', type: Number, numberType: 'integer',
+        name: 'device-frequency', alias: 'Q', type: CliDataTypes.Integer,
         description: 'ioFog node device scan frequency (seconds)',
         group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
@@ -179,7 +180,7 @@ class IOFog extends BaseCLIHandler {
         group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
-        name: 'fog-type', alias: 'y', type: Number, numberType: 'integer',
+        name: 'fog-type', alias: 'y', type: CliDataTypes.Integer,
         description: 'ioFog node architecture type',
         group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
@@ -189,7 +190,7 @@ class IOFog extends BaseCLIHandler {
         group: [constants.CMD_VERSION]
       },
       {
-        name: 'user-id', alias: 'u', type: Number, numberType: 'integer',
+        name: 'user-id', alias: 'u', type: CliDataTypes.Integer,
         description: 'User\'s id',
         group: [constants.CMD_ADD]
       }

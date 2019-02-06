@@ -18,6 +18,7 @@ const FlowService = require('../services/flow-service');
 const AppHelper = require('../helpers/app-helper');
 const logger = require('../logger');
 const fs = require('fs');
+const CliDataTypes = require('./cli-data-types');
 
 const JSON_SCHEMA = AppHelper.stringifyCliJsonSchema({
   name: "string",
@@ -41,7 +42,7 @@ class Flow extends BaseCLIHandler {
         group: [constants.CMD_ADD, constants.CMD_UPDATE]
       },
       {
-        name: 'flow-id', alias: 'i', type: Number, numberType: 'integer',
+        name: 'flow-id', alias: 'i', type: CliDataTypes.Integer,
         description: 'Application flow ID',
         group: [constants.CMD_UPDATE, constants.CMD_REMOVE, constants.CMD_INFO]
       },
@@ -66,7 +67,7 @@ class Flow extends BaseCLIHandler {
         group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
-        name: 'user-id', alias: 'u', type: Number, numberType: 'integer',
+        name: 'user-id', alias: 'u', type: CliDataTypes.Integer,
         description: 'User\'s id',
         group: [constants.CMD_ADD]
       }

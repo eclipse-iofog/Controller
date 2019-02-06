@@ -199,7 +199,7 @@ function argsArrayAsMap(args) {
       let key, values;
       if (spaceIndex !== -1) {
         key = pair.substr(0, pair.indexOf(' '));
-        values = pair.substr(pair.indexOf(' ')+1)/*.split(' ')*/;
+        values = pair.substr(pair.indexOf(' ')+1).split(' ');
         argsMap.set(key, values);
       } else {
         key = pair;
@@ -245,20 +245,33 @@ function validateParameters(command, commandDefinitions, args) {
       valType = 'boolean';
     } else if (values.length === 1) {
       const firstVal = new Number(values[0]);
-      if (isNaN(firstVal)) {
+      if (Number.isNaN(firstVal)) {
         valType = 'string';
+      } else if (Number.isInteger(firstVal.valueOf())) {
+        valType = 'integer';
       } else {
-        valType = 'number';
+        valType = 'float'
       }
     }
-    //TODO else validate multiply parameters
+    //TODO else validate multiply parameters. Add after multiply parameters will be used in cli api
 
-    if (valType !== expectedValueType && expectedValueType !== 'string') {
-        throw new Errors.InvalidArgumentTypeError(formatMessage(ErrorMessages.INVALID_CLI_ARGUMENT_TYPE, currentArgName, expectedValueType))
+    let isValidType = true;
+    if (expectedValueType === 'string' && valType === 'boolean') {
+      isValidType = false;
+    } else if ((expectedValueType === 'float' || expectedValueType === 'number')
+      && (valType !== 'float' && valType !== 'number' && valType !== 'integer')) {
+      isValidType = false;
+    } else if (expectedValueType === 'integer' && valType !== 'integer') {
+      isValidType = false;
+    } else if (expectedValueType === 'boolean' && valType !== 'boolean') {
+      isValidType = false;
+    }
+
+    if (!isValidType) {
+      throw new Errors.InvalidArgumentTypeError(formatMessage(ErrorMessages.INVALID_CLI_ARGUMENT_TYPE, currentArgName, expectedValueType));
     }
   })
 }
-
 
 function _validateArg(arg, aliasesList) {
   const valid = aliasesList.includes(arg);
