@@ -282,7 +282,7 @@ const _updateCatalogItem = async function (data, where, transaction) {
 
   catalogItem = AppHelper.deleteUndefinedFields(catalogItem);
   if (!catalogItem || AppHelper.isEmpty(catalogItem)) {
-    throw new Errors.NotFoundError(ErrorMessages.CATALOG_UPDATE_NO_FIELDS);
+    return
   }
   if (data.registryId) {
     const registry = await RegistryManager.findOne({id: data.registryId}, transaction);
@@ -314,7 +314,11 @@ const _updateCatalogItemImages = async function (data, transaction) {
       await CatalogItemImageManager.updateOrCreate({
         catalogItemId: data.id,
         fogTypeId: image.fogTypeId
-      }, image, transaction);
+      }, {
+        catalogItemId: data.id,
+        fogTypeId: image.fogTypeId,
+        containerImage: image.containerImage
+      }, transaction);
     }
   }
 };

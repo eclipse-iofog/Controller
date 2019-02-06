@@ -491,11 +491,10 @@ describe('Catalog Service', () => {
         });
 
         context('when AppHelper#isEmpty() fails', () => {
-          const err = new Errors.NotFoundError(ErrorMessages.CATALOG_UPDATE_NO_FIELDS);
-          def('isEmptyResponse', () => err);
+          def('isEmptyResponse', () => error);
 
-          it(`fails with ${err}`, () => {
-            return expect($subject).to.be.rejectedWith(ErrorMessages.CATALOG_UPDATE_NO_FIELDS);
+          it(`fails with ${error}`, () => {
+            return expect($subject).to.eventually.equal(undefined)
           })
         });
 
@@ -561,7 +560,11 @@ describe('Catalog Service', () => {
                     expect(CatalogItemImageManager.updateOrCreate).to.have.been.calledWith({
                       catalogItemId: data.id,
                       fogTypeId: image1.fogTypeId
-                    }, updatedImage1, transaction);
+                    }, {
+                      catalogItemId: data.id,
+                      fogTypeId: image1.fogTypeId,
+                      containerImage: updatedImage1.containerImage
+                    }, transaction);
                   });
 
                   context('when CatalogItemImageManager#updateOrCreate() fails', () => {
@@ -578,7 +581,11 @@ describe('Catalog Service', () => {
                       expect(CatalogItemImageManager.updateOrCreate).to.have.been.calledWith({
                         catalogItemId: id,
                         fogTypeId: image2.fogTypeId
-                      }, updatedImage2, transaction);
+                      }, {
+                        catalogItemId: id,
+                        fogTypeId: image2.fogTypeId,
+                        containerImage: updatedImage2.containerImage
+                      }, transaction);
                     });
 
                     context('when CatalogItemImageManager#updateOrCreate() fails', () => {
