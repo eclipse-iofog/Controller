@@ -20,7 +20,7 @@ const CliDecorator = require('../decorators/cli-decorator');
 const Errors = require('../helpers/errors');
 const ErrorMessages = require('../helpers/error-messages');
 const AppHelper = require('../helpers/app-helper');
-
+const CliDataTypes = require('./cli-data-types');
 
 class Tunnel extends BaseCLIHandler {
   constructor() {
@@ -54,7 +54,7 @@ class Tunnel extends BaseCLIHandler {
         group: [constants.CMD_UPDATE]
       },
       {
-        name: 'port', alias: 'o', type: Number, numberType: 'integer',
+        name: 'port', alias: 'o', type: CliDataTypes.Integer,
         description: 'Tunnel port',
         group: [constants.CMD_UPDATE]
       },

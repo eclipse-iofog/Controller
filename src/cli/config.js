@@ -20,6 +20,7 @@ const Validator = require('../schemas');
 const logger = require('../logger');
 const Tracking = require('../tracking');
 const TrackingEventType = require('../enums/tracking-event-type');
+const CliDataTypes = require('./cli-data-types');
 
 class Config extends BaseCLIHandler {
   constructor() {
@@ -32,7 +33,7 @@ class Config extends BaseCLIHandler {
         group: constants.CMD
       },
       {
-        name: 'port', alias: 'p', type: Number, numberType: 'integer', description: 'Port',
+        name: 'port', alias: 'p', type: CliDataTypes.Integer, description: 'Port',
         group: constants.CMD_ADD
       },
       {
@@ -74,7 +75,7 @@ class Config extends BaseCLIHandler {
         group: constants.CMD_ADD
       },
       {
-        name: 'log-size', alias: 'z', type: Number, numberType: 'integer',
+        name: 'log-size', alias: 'z', type: CliDataTypes.Integer,
         description: 'Log files size (MB)', group: constants.CMD_ADD
       },
       {

@@ -17,6 +17,7 @@ const logger = require('../logger');
 const CliDecorator = require('../decorators/cli-decorator');
 const RegistryService = require('../services/registry-service');
 const AppHelper = require('../helpers/app-helper');
+const CliDataTypes = require('./cli-data-types');
 
 class Registry extends BaseCLIHandler {
   constructor() {
@@ -69,12 +70,12 @@ class Registry extends BaseCLIHandler {
         group: [constants.CMD_ADD, constants.CMD_UPDATE]
       },
       {
-        name: 'user-id', alias: 'u', type: Number, numberType: 'integer',
+        name: 'user-id', alias: 'u', type: CliDataTypes.Integer,
         description: 'User\'s id',
         group: [constants.CMD_ADD]
       },
       {
-        name: 'item-id', alias: 'i', type: Number, numberType: 'integer',
+        name: 'item-id', alias: 'i', type: CliDataTypes.Integer,
         description: 'Item\'s id',
         group: [constants.CMD_REMOVE, constants.CMD_UPDATE]
       }

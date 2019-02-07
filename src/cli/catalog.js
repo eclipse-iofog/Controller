@@ -20,6 +20,7 @@ const AppHelper = require('../helpers/app-helper');
 const AuthDecorator = require('../decorators/cli-decorator');
 const Errors = require('../helpers/errors');
 const ErrorMessages = require('../helpers/error-messages');
+const CliDataTypes = require('./cli-data-types');
 
 const JSON_SCHEMA = AppHelper.stringifyCliJsonSchema({
   name: "string",
@@ -63,7 +64,7 @@ class Catalog extends BaseCLIHandler {
         group: [constants.CMD_ADD, constants.CMD_UPDATE]
       },
       {
-        name: 'item-id', alias: 'i', type: Number, numberType: 'integer', description: 'Catalog item ID',
+        name: 'item-id', alias: 'i', type: CliDataTypes.Integer, description: 'Catalog item ID',
         group: [constants.CMD_UPDATE, constants.CMD_REMOVE, constants.CMD_INFO]
       },
       {
@@ -91,12 +92,12 @@ class Catalog extends BaseCLIHandler {
         group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
-        name: 'disk-required', alias: 's', type: Number, numberType: 'integer',
+        name: 'disk-required', alias: 's', type: CliDataTypes.Integer,
         description: 'Amount of disk required to run the microservice (MB)',
         group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
-        name: 'ram-required', alias: 'r', type: Number, numberType: 'integer',
+        name: 'ram-required', alias: 'r', type: CliDataTypes.Integer,
         description: 'Amount of RAM required to run the microservice (MB)',
         group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
@@ -113,7 +114,7 @@ class Catalog extends BaseCLIHandler {
         group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
-        name: 'registry-id', alias: 'g', type: Number, numberType: 'integer',
+        name: 'registry-id', alias: 'g', type: CliDataTypes.Integer,
         description: 'Catalog item docker registry ID',
         group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
@@ -138,7 +139,7 @@ class Catalog extends BaseCLIHandler {
         group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
-        name: 'user-id', alias: 'u', type: Number, numberType: 'integer', description: 'User\'s id',
+        name: 'user-id', alias: 'u', type: CliDataTypes.Integer, description: 'User\'s id',
         group: [constants.CMD_ADD]
       },
     ];
