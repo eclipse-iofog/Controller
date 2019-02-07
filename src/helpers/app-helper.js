@@ -232,6 +232,7 @@ function validateParameters(command, commandDefinitions, args) {
       const argument = key.substr(2);
       _validateArg(argument, possibleArgsList);
       currentArgName = argument;
+      expectedValueType = _getValType(argument, commandDefinitions);
     } else if (key.startsWith("-")) { // alias
       // '-q' format -> 'q' format
       const alias = key.substr(1);
@@ -244,8 +245,8 @@ function validateParameters(command, commandDefinitions, args) {
     if (values.length === 0) {
       valType = 'boolean';
     } else if (values.length === 1) {
-      const firstVal = new Number(values[0]);
-      if (Number.isNaN(firstVal)) {
+      const firstVal = Number(values[0]);
+      if (Number.isNaN(firstVal.valueOf())) {
         valType = 'string';
       } else if (Number.isInteger(firstVal.valueOf())) {
         valType = 'integer';
