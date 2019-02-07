@@ -58,6 +58,7 @@ module.exports = {
   RESTRICTED_PUBLISHER: "You are not allowed to add catalog item as 'Eclipse ioFog' publisher",
   REQUIRED_FOG_NODE: 'ioFog node is required.',
   PORT_MAPPING_ALREADY_EXISTS: 'Port mapping already exists',
+  PORT_MAPPING_INTERNAL_PORT_NOT_PROVIDED: 'Internal port wasn\'t provided',
   VOLUME_MAPPING_ALREADY_EXISTS: 'Volume mapping already exists',
   INVALID_CONNECTOR_DOMAIN: 'Invalid connector domain {}',
   CERT_PROPERTY_REQUIRED: 'Property "certificate" is required if property "requiresCert" is set to true',
