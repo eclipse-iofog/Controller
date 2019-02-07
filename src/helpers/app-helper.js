@@ -189,6 +189,28 @@ function trimCertificate(cert) {
   return result;
 }
 
+function argsArrayAsMap(args) {
+  let argsVars = args.join(' ').split(/(?= -{1,2}[^-]+)/);
+  const argsMap = new Map();
+  argsVars
+    .map(pair => pair.trim())
+    .map(pair => {
+      const spaceIndex = pair.indexOf(' ');
+      let key, values;
+      if (spaceIndex !== -1) {
+        key = pair.substr(0, pair.indexOf(' '));
+        values = pair.substr(pair.indexOf(' ')+1).split(' ');
+        argsMap.set(key, values);
+      } else {
+        key = pair;
+        values = [];
+      }
+      argsMap.set(key, values);
+
+    });
+  return argsMap;
+}
+
 function validateParameters(command, commandDefinitions, args) {
   // 1st argument = command
   args.shift();
@@ -196,61 +218,60 @@ function validateParameters(command, commandDefinitions, args) {
   const possibleAliasesList = _getPossibleAliasesList(command, commandDefinitions);
   const possibleArgsList = _getPossibleArgsList(command, commandDefinitions);
 
-  let currentArgType;
+  let expectedValueType;
   let currentArgName;
-  let numberType;
-  for (const arg of args) {
-    // arg is [argument, alias, value]
 
-    if (arg.startsWith("--")) { // argument
+  if (args.length === 0) {
+    return
+  }
+  const argsMap = argsArrayAsMap(args);
+
+  argsMap.forEach((values, key) => {
+    if (key.startsWith("--")) { // argument
       // '--ssl-cert' format -> 'ssl-cert' format
-      const argument = arg.substr(2);
+      const argument = key.substr(2);
       _validateArg(argument, possibleArgsList);
       currentArgName = argument;
-      currentArgType = _getValType(argument, commandDefinitions);
-      if (currentArgType === 'number') {
-        numberType = commandDefinitions.filter(command => command.name === currentArgName)[0].numberType
-      }
-    } else if (arg.startsWith("-")) { // alias
+      expectedValueType = _getValType(argument, commandDefinitions);
+    } else if (key.startsWith("-")) { // alias
       // '-q' format -> 'q' format
-      const alias = arg.substr(1);
+      const alias = key.substr(1);
       _validateArg(alias, possibleAliasesList);
       currentArgName = alias;
-      currentArgType = _getValType(alias, commandDefinitions);
-      if (currentArgType === 'number') {
-        numberType = commandDefinitions.filter(command => command.alias === currentArgName)[0].numberType
-      }
-    } else {
-      // value
-      let valType;
-      const nArg = new Number(arg);
-      if (isNaN(nArg)) {
+      expectedValueType = _getValType(alias, commandDefinitions);
+    }
+
+    let valType;
+    if (values.length === 0) {
+      valType = 'boolean';
+    } else if (values.length === 1) {
+      const firstVal = Number(values[0]);
+      if (Number.isNaN(firstVal.valueOf())) {
         valType = 'string';
-      } else if (_isInt(arg)){
+      } else if (Number.isInteger(firstVal.valueOf())) {
         valType = 'integer';
-      } else if (_isFloat(arg)){
-        valType = 'float';
       } else {
-        valType = 'number';
-      }
-      if (valType !== currentArgType && currentArgType !== 'string' && valType !== numberType) {
-        if (valType !== 'integer' && numberType !== 'float') {
-          if (valType !== 'number' && numberType) {
-            currentArgType = numberType;
-          }
-          throw new Errors.InvalidArgumentTypeError(formatMessage(ErrorMessages.INVALID_CLI_ARGUMENT_TYPE, currentArgName, currentArgType))
-        }
+        valType = 'float'
       }
     }
-  }
-}
+    //TODO else validate multiply parameters. Add after multiply parameters will be used in cli api
 
-function _isInt(n){
-  return Number(n) % 1 === 0;
-}
+    let isValidType = true;
+    if (expectedValueType === 'string' && valType === 'boolean') {
+      isValidType = false;
+    } else if ((expectedValueType === 'float' || expectedValueType === 'number')
+      && (valType !== 'float' && valType !== 'number' && valType !== 'integer')) {
+      isValidType = false;
+    } else if (expectedValueType === 'integer' && valType !== 'integer') {
+      isValidType = false;
+    } else if (expectedValueType === 'boolean' && valType !== 'boolean') {
+      isValidType = false;
+    }
 
-function _isFloat(n){
-  return Number(n) % 1 !== 0;
+    if (!isValidType) {
+      throw new Errors.InvalidArgumentTypeError(formatMessage(ErrorMessages.INVALID_CLI_ARGUMENT_TYPE, currentArgName, expectedValueType));
+    }
+  })
 }
 
 function _validateArg(arg, aliasesList) {
