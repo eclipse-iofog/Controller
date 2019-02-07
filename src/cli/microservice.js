@@ -359,8 +359,7 @@ const _createVolumeMapping = async function (obj, user) {
 
 const _removePortMapping = async function (obj, user) {
   try {
-    const internalPort = parseInt(obj.internalPort);
-    await MicroserviceService.deletePortMapping(obj.microserviceUuid, internalPort, user, true);
+    await MicroserviceService.deletePortMapping(obj.microserviceUuid, obj.internalPort, user, true);
     logger.info('Port mapping has been removed successfully.');
   } catch (e) {
     logger.error(e.message);
