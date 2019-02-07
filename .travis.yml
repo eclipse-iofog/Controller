@@ -41,7 +41,8 @@ jobs:
       "cd /Controller; NODE_ENV=production node src/main.js stop; git checkout $TRAVIS_BRANCH; npm i;
       npm test; npm run postman_test; NODE_ENV=production node src/main.js start;"
   - stage: release
-    #before_install:
+    before_install:
+      - sudo apt-get install sshpass
       #- git clone "https://github.com/$TRAVIS_REPO_SLUG.git" "$TRAVIS_REPO_SLUG";
       #- cd "$TRAVIS_REPO_SLUG";
       #- git checkout -qf "$TRAVIS_COMMIT";
