@@ -89,7 +89,6 @@ async function closePortOnConnector(connector, ports) {
   let data = qs.stringify({
     mappingid: ports.mappingId
   });
-  console.log(data);
 
   let port = connector.devMode ? constants.CONNECTOR_HTTP_PORT : constants.CONNECTOR_HTTPS_PORT;
 
@@ -115,7 +114,6 @@ async function closePortOnConnector(connector, ports) {
 async function _makeRequest(connector, options, data) {
   return new Promise((resolve, reject) => {
     let httpreq = (connector.devMode ? http : https).request(options, function (response) {
-      console.log(response.statusCode);
       let output = '';
       response.setEncoding('utf8');
 
@@ -134,7 +132,6 @@ async function _makeRequest(connector, options, data) {
     });
 
     httpreq.on('error', function (err) {
-      console.log(err);
       if (err instanceof Error)
         return reject(new Error(err.message));
       else
