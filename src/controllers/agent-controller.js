@@ -120,6 +120,13 @@ const putImageSnapshotEndPoint = async function (req, fog) {
   return await AgentService.putImageSnapshot(req, fog);
 };
 
+async function postTrackingEndPoint(req, fog) {
+  const events = req.body.events;
+
+  logger.info("Parameters: " + JSON.stringify(events));
+  return await AgentService.postTracking(events, fog)
+}
+
 module.exports = {
   agentProvisionEndPoint: agentProvisionEndPoint,
   agentDeprovisionEndPoint: AuthDecorator.checkFogToken(agentDeprovisionEndPoint),
@@ -138,5 +145,6 @@ module.exports = {
   updateHalUsbInfoEndPoint: AuthDecorator.checkFogToken(updateHalUsbInfoEndPoint),
   deleteNodeEndPoint: AuthDecorator.checkFogToken(deleteNodeEndPoint),
   getImageSnapshotEndPoint: AuthDecorator.checkFogToken(getImageSnapshotEndPoint),
-  putImageSnapshotEndPoint: AuthDecorator.checkFogToken(putImageSnapshotEndPoint)
+  putImageSnapshotEndPoint: AuthDecorator.checkFogToken(putImageSnapshotEndPoint),
+  postTrackingEndPoint: AuthDecorator.checkFogToken(postTrackingEndPoint)
 };

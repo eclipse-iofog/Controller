@@ -11,20 +11,17 @@
  *
  */
 
-const execSync = require('child_process').execSync;
+const trackingEventType = Object.freeze({
+  USER_CREATED: 'user created',
+  RUNNING_TIME: 'running time',
+  INIT: 'init',
+  START: 'start',
+  IOFOG_CREATED: 'iofog created',
+  IOFOG_PROVISION: 'iofog provision',
+  MICROSERVICE_CREATED: 'microservice created',
+  CATALOG_CREATED: 'catalog created',
+  CONFIG_CHANGED: 'config changed',
+  OTHER: 'other',
+});
 
-function start() {
-  const options = {
-    env: {
-      'NODE_ENV': 'production',
-      "PATH": process.env.PATH
-    },
-    stdio: [process.stdin, process.stdout, process.stderr]
-  };
-
-  execSync('node ./src/main.js start', options);
-}
-
-module.exports = {
-  start: start
-};
+module.exports = trackingEventType;

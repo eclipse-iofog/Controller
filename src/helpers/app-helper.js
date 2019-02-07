@@ -163,10 +163,10 @@ function stringifyCliJsonSchema(json) {
 function handleCLIError(error) {
   switch (error.name) {
     case "UNKNOWN_OPTION":
-      console.log("Unknown parameter " + error.optionName);
+      console.log("Invalid argument '" + error.optionName.split('-').join('') + "'");
       break;
     case "UNKNOWN_VALUE":
-      console.log("Unknown value " + error.value);
+      console.log("Invalid value " + error.value);
       break;
     case "InvalidArgumentError":
       console.log(error.message);
@@ -189,6 +189,28 @@ function trimCertificate(cert) {
   return result;
 }
 
+function argsArrayAsMap(args) {
+  let argsVars = args.join(' ').split(/(?= -{1,2}[^-]+)/);
+  const argsMap = new Map();
+  argsVars
+    .map(pair => pair.trim())
+    .map(pair => {
+      const spaceIndex = pair.indexOf(' ');
+      let key, values;
+      if (spaceIndex !== -1) {
+        key = pair.substr(0, pair.indexOf(' '));
+        values = pair.substr(pair.indexOf(' ')+1).split(' ');
+        argsMap.set(key, values);
+      } else {
+        key = pair;
+        values = [];
+      }
+      argsMap.set(key, values);
+
+    });
+  return argsMap;
+}
+
 function validateParameters(command, commandDefinitions, args) {
   // 1st argument = command
   args.shift();
@@ -196,38 +218,60 @@ function validateParameters(command, commandDefinitions, args) {
   const possibleAliasesList = _getPossibleAliasesList(command, commandDefinitions);
   const possibleArgsList = _getPossibleArgsList(command, commandDefinitions);
 
-  let currentArgType;
-  let currwentArgName;
+  let expectedValueType;
+  let currentArgName;
 
-  for (const arg of args) {
-    // arg is [argument, alias, value]
+  if (args.length === 0) {
+    return
+  }
+  const argsMap = argsArrayAsMap(args);
 
-    if (arg.startsWith("--")) { // argument
+  argsMap.forEach((values, key) => {
+    if (key.startsWith("--")) { // argument
       // '--ssl-cert' format -> 'ssl-cert' format
-      const argument = arg.substr(2);
+      const argument = key.substr(2);
       _validateArg(argument, possibleArgsList);
-      currwentArgName = argument;
-      currentArgType = _getValType(argument, commandDefinitions);
-    } else if (arg.startsWith("-")) { // alias
+      currentArgName = argument;
+      expectedValueType = _getValType(argument, commandDefinitions);
+    } else if (key.startsWith("-")) { // alias
       // '-q' format -> 'q' format
-      const alias = arg.substr(1);
+      const alias = key.substr(1);
       _validateArg(alias, possibleAliasesList);
-      currwentArgName = alias;
-      currentArgType = _getValType(alias, commandDefinitions);
-    } else {
-      // value
-      let valType;
-      const nArg = new Number(arg);
-      if (isNaN(nArg)) {
+      currentArgName = alias;
+      expectedValueType = _getValType(alias, commandDefinitions);
+    }
+
+    let valType;
+    if (values.length === 0) {
+      valType = 'boolean';
+    } else if (values.length === 1) {
+      const firstVal = Number(values[0]);
+      if (Number.isNaN(firstVal.valueOf())) {
         valType = 'string';
+      } else if (Number.isInteger(firstVal.valueOf())) {
+        valType = 'integer';
       } else {
-        valType = 'number';
-      }
-      if (valType !== currentArgType && currentArgType !== 'string') {
-        throw new Errors.InvalidArgumentTypeError(formatMessage(ErrorMessages.INVALID_CLI_ARGUMENT_TYPE, currwentArgName, currentArgType))
+        valType = 'float'
       }
     }
-  }
+    //TODO else validate multiply parameters. Add after multiply parameters will be used in cli api
+
+    let isValidType = true;
+    if (expectedValueType === 'string' && valType === 'boolean') {
+      isValidType = false;
+    } else if ((expectedValueType === 'float' || expectedValueType === 'number')
+      && (valType !== 'float' && valType !== 'number' && valType !== 'integer')) {
+      isValidType = false;
+    } else if (expectedValueType === 'integer' && valType !== 'integer') {
+      isValidType = false;
+    } else if (expectedValueType === 'boolean' && valType !== 'boolean') {
+      isValidType = false;
+    }
+
+    if (!isValidType) {
+      throw new Errors.InvalidArgumentTypeError(formatMessage(ErrorMessages.INVALID_CLI_ARGUMENT_TYPE, currentArgName, expectedValueType));
+    }
+  })
 }
 
 function _validateArg(arg, aliasesList) {
@@ -302,6 +346,13 @@ function isEmpty(obj) {
   return true;
 }
 
+function isOnline() {
+  const daemon = require('../daemon');
+
+  let pid = daemon.status();
+  return pid !== 0;
+}
+
 module.exports = {
   encryptText,
   decryptText,
@@ -322,5 +373,6 @@ module.exports = {
   trimCertificate,
   validateParameters,
   isTest,
-  isEmpty
+  isEmpty,
+  isOnline
 };

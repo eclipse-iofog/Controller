@@ -5,14 +5,11 @@ notifications:
   email: false
   slack:
     rooms:
-      - secure: T6GjQi6ap7dvARwdxo619XBUO8aXyzeP4wB8LRpnLKgDQtd+EVw3hwMcHEB7C5+KBC9D0LE0i5HjnLKj2T9ih1L1zKM0QDYFVO8jTt+zhWbEs9Famdq0kmfGiTCbiVG/vxr+9bvFF4QkFhzK8kV44uyqZkmQrHuFnrCpJivsg7dsqvxZ6iU3FV1lMOLU0SJTBHwjbVnIOEqbYcbXmuBJerLMqU7kSlGdlDgBMX8xnzPo/Ccqft+CHDSEl5XU2RZZo2kGSBApO0jpfl1r+7LzWBiwHbuIkFAR5/bVecyuCRpRB4EGEXD7cxCeNUHYjvdr/vaJwTCiPspvSOkJv5YDWgGl7V3WtCV0oPDcQGOU844nHxUTp9FPCQ1bfsPqJ13tCHgv177/Oku3xH22ex6rgTBI6kkVqP3QWTgVtRW91opaKLeBM0ZigQyxQ/hUvQKsMmXzqDrWELG2CuXt2cnNBQ5Hw9wvzEdyY/T4mkXHlbd1UMJ0PUuaymICusfzcErTTnNeByTDkSjrd4dudQtH3jg+Vn3BSQ1R1U1T6DdUhkV75tt37Ej/cbL9ZN8iey7gqx0N3nzqXA0JsBAsJspjCOZWZ0ODdI2XP9FiD+4TUj+HTBgwHtx5kUqf2uuGlKX0S74zN/RjEmHa2riviW3IVur16Vf33U8oiwY+ilht0Zo=
+      - secure: amP0nLt6NoTtatbxzq1DXpkyVWCmwasGVrzwtyeTEkz/A4H8rA6nAOHdBIIiIVBySaTBVpR2uar9MFWTVy7kWuzRDnBLlkjuXia0Paykv9ENf8CysW0bddhRZNz0zp3SKjjCUCPXe5bmEszQjGKCBOj2XJrkpdnYQdk0L+AqNMGcI2xhu8/RSlww6Ld7OsnkvDyVvOnriclXinZu3V3f6mY7GuXcRva/qowIE8RMGmH70DPBOkCbo7D8g6WtGXcT7sgJVsTOiqPknmQRHJcHi9d55J1fr2cRNRxOCi3pz6B8jwx9BLxKbSttEAO9r9634/Yx6GByE8JaidgVkIm6OTvi6fkCHZZWJGgyxRke/EOOjhdMHSuhVQtBX6RQ4ADRs4Ja4+g9EplXsPaxY4KI7E5jV0HuBn5M7m8RrZ2npP36kqc5/T87tDrocQVKTw5TxYiHUh2GHVw90eA5XFS5eYxT/Ts39n+Jk0CznBQsV47xcUi78OdajP8dAHu/6uC8+xTuN3A00KodH+8H0rQIq6GemMF9FbqRZDjb5ouGu5sI2aiTamKomn1XkBQkDkkrRXLbFg1xfG2XwQHuT7+rBrLqc9QSS+55hz3YDoHvs2EGoYjHLbs/5N25V24LbFJfbg1dF5PxVQ4L58NR5A23zNduElWgzsME8UDtgT9/lac=
     on_success: always
     on_failure: always
     template:
-    - Repo `%{repository_slug}` *%{result}* build (<%{build_url}|#%{build_number}>)
-      for commit (<%{compare_url}|%{commit}>) on branch `%{branch}`.
-    - 'Execution time: *%{duration}*'
-    - 'Message: %{message}'
+      - "Build <%{build_url}|#%{build_number}> (<%{compare_url}|%{commit}>) of %{repository_slug}@%{branch} in PR <%{pull_request_url}|#%{pull_request_number}> by %{author} %{result} in %{duration}"
 stages:
 - name: build
   if: type = pull_request
@@ -28,18 +25,21 @@ jobs:
   - stage: build
     script:
     - npm test
-    - NODE_ENV=production node /home/travis/build/ioFog/Controller/src/main.js start
     - npm run postman_test
   - stage: dev_deploy
     before_install:
     - sudo apt-get install sshpass
     script: 
-    - sshpass -p $DEV_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $DEV_MACHINE_USERNAME@$DEV_MACHINE_IP "cd /FogController; NODE_ENV=production node src/main.js stop; git pull; npm i; npm test; NODE_ENV=production node src/main.js start; npm run postman_test"
+    - sshpass -p $DEV_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $DEV_MACHINE_USERNAME@$DEV_MACHINE_IP
+      "cd /FogController; NODE_ENV=production node src/main.js stop; git pull; npm
+      i; npm test; npm run postman_test; NODE_ENV=production node src/main.js start;"
   - stage: pre_release
     before_install:
     - sudo apt-get install sshpass
     script: 
-    - sshpass -p $PREPROD_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $PREPROD_MACHINE_USERNAME@$PREPROD_MACHINE_IP "cd /Controller; NODE_ENV=production node src/main.js stop; git pull; git checkout ${TRAVIS_BRANCH}; npm i; npm test; NODE_ENV=production node src/main.js start; npm run postman_test"
+    - sshpass -p $PREPROD_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $PREPROD_MACHINE_USERNAME@$PREPROD_MACHINE_IP
+      "cd /Controller; NODE_ENV=production node src/main.js stop; git checkout $TRAVIS_BRANCH; npm i;
+      npm test; npm run postman_test; NODE_ENV=production node src/main.js start;"
   - stage: release
     #before_install:
       #- git clone "https://github.com/$TRAVIS_REPO_SLUG.git" "$TRAVIS_REPO_SLUG";
@@ -54,9 +54,10 @@ jobs:
     deploy:
       skip_cleanup: true
       provider: npm
-      email: ${NPM_EMAIL_ADDRESS}
-      api_key: ${NPM_AUTH_TOKEN}
+      email: "${NPM_EMAIL_ADDRESS}"
+      api_key: "${NPM_AUTH_TOKEN}"
       on:
         tags: false
     after_deploy:
-    - sshpass -p $PROD_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $PROD_MACHINE_USERNAME@$PROD_MACHINE_IP "iofog-controller stop; npm update -g iofogcontroller; iofog-controller start"
+    - sshpass -p $PROD_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $PROD_MACHINE_USERNAME@$PROD_MACHINE_IP
+      "iofog-controller stop; npm update -g iofogcontroller; iofog-controller start"

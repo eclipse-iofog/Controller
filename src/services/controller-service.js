@@ -15,6 +15,7 @@ const ioFogTypesManager = require('../sequelize/managers/iofog-type-manager');
 const Config = require('../config');
 const TransactionDecorator = require('../decorators/transaction-decorator');
 const packageJson = require('../../package');
+const AppHelper = require('../helpers/app-helper');
 
 const getFogTypes = async function (isCLI, transaction) {
   const ioFogTypes = await ioFogTypesManager.findAll({}, transaction);
@@ -43,13 +44,12 @@ const emailActivation = async function (isCLI) {
 };
 
 const statusController = async function (isCLI) {
-  const daemon = require('../daemon');
+  let status;
 
-  let pid = daemon.status();
-  if (pid === 0) {
-    status = 'offline'
-  } else {
+  if (AppHelper.isOnline()) {
     status = 'online'
+  } else {
+    status = 'offline'
   }
 
   return {

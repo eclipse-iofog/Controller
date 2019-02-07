@@ -12,7 +12,7 @@
  */
 
 module.exports = {
-  INVALID_CLI_ARGUMENT_TYPE: 'Type of argument "{}" should be a {}',
+  INVALID_CLI_ARGUMENT_TYPE: 'Field "{}" is not of type(s) {}',
   DUPLICATE_NAME: "Duplicate name '{}'",
   ALREADY_EXISTS: 'Model already exists',
   INVALID_CATALOG_ITEM_ID: "Invalid catalog item id '{}'",
@@ -24,6 +24,8 @@ module.exports = {
   INVALID_IOFOG_UUID: "Invalid ioFog UUID '{}'",
   INVALID_USER_EMAIL: 'Invalid user email',
   INVALID_MICROSERVICE_UUID: "Invalid microservice UUID '{}'",
+  INVALID_SOURCE_MICROSERVICE_UUID: "Invalid source microservice UUID '{}'",
+  INVALID_DEST_MICROSERVICE_UUID: "Invalid destination microservice UUID '{}'",
   INVALID_MICROSERVICE_STRACE: "Strace data for this microservice not found",
   INVALID_VOLUME_MAPPING_UUID: "Invalid volume mapping id '{}'",
   ACTIVATION_CODE_NOT_FOUND: 'Activation code not found',
@@ -56,6 +58,7 @@ module.exports = {
   RESTRICTED_PUBLISHER: "You are not allowed to add catalog item as 'Eclipse ioFog' publisher",
   REQUIRED_FOG_NODE: 'ioFog node is required.',
   PORT_MAPPING_ALREADY_EXISTS: 'Port mapping already exists',
+  PORT_MAPPING_INTERNAL_PORT_NOT_PROVIDED: 'Internal port wasn\'t provided',
   VOLUME_MAPPING_ALREADY_EXISTS: 'Volume mapping already exists',
   INVALID_CONNECTOR_DOMAIN: 'Invalid connector domain {}',
   CERT_PROPERTY_REQUIRED: 'Property "certificate" is required if property "requiresCert" is set to true',
@@ -76,8 +79,10 @@ module.exports = {
   INVALID_VERSION_COMMAND_UPGRADE: 'Can\'t upgrade version now. Latest is already installed',
   INVALID_VERSION_COMMAND_ROLLBACK: 'Can\'t rollback version now. There are no backups on agent',
   CATALOG_ITEM_IMAGES_IS_FROZEN: 'Can\'t update catalog item images for item used for running microservices',
-  SYSTEM_CATALOG_ITEM_UPDATE: 'Catalog item id {} is systemic and can\'t be updated',
-  SYSTEM_CATALOG_ITEM_DELETE: 'Catalog item id {} is systemic and can\'t be deleted',
   CATALOG_UPDATE_NO_FIELDS: 'Add some parameters which should be updated.',
-  CATALOG_UPDATE_REQUIRES_ID: "Parameter '--item-id' is missing, update requires Catalog id."
+  CATALOG_UPDATE_REQUIRES_ID: "Parameter '--item-id' is missing, update requires Catalog id.",
+  SYSTEM_CATALOG_ITEM_UPDATE: 'Catalog item id {} is system and can\'t be updated',
+  SYSTEM_CATALOG_ITEM_DELETE: 'Catalog item id {} is system and can\'t be deleted',
+  SYSTEM_MICROSERVICE_UPDATE: 'Microservice uuid {} is system and can\'t be updated',
+  SYSTEM_MICROSERVICE_DELETE: 'Microservice uuid {} is system and can\'t be deleted'
 };

@@ -15,6 +15,7 @@
     "LogsFileSize": 1048576
   },
   "Settings": {
+    "DefaultJobIntervalSeconds": 120,
     "UserTokenExpirationIntervalSeconds": 3600,
     "FogTokenExpirationIntervalSeconds": 3600,
     "FogStatusUpdateIntervalSeconds": 120,

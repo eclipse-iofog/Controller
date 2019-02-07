@@ -15,7 +15,7 @@ const Config = require('../../config');
 
 class BaseJobHandler {
   constructor() {
-    this.scheduleTime = Config.get('Settings:FogStatusUpdateIntervalSeconds') * 1000;
+    this.scheduleTime = Config.get('Settings:DefaultJobIntervalSeconds') * 1000;
   }
 
   run() {

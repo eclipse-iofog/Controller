@@ -25,6 +25,8 @@ const RegistryManager = require('../sequelize/managers/registry-manager');
 const MicroserviceManager = require('../sequelize/managers/microservice-manager');
 const ChangeTrackingService = require('./change-tracking-service');
 const MicroseriveStates = require('../enums/microservice-state');
+const TrackingDecorator = require('../decorators/tracking-decorator');
+const TrackingEventType = require('../enums/tracking-event-type');
 
 const createCatalogItem = async function (data, user, transaction) {
   await Validator.validate(data, Validator.schemas.catalogItemCreate);
@@ -280,7 +282,7 @@ const _updateCatalogItem = async function (data, where, transaction) {
 
   catalogItem = AppHelper.deleteUndefinedFields(catalogItem);
   if (!catalogItem || AppHelper.isEmpty(catalogItem)) {
-    throw new Errors.NotFoundError(ErrorMessages.CATALOG_UPDATE_NO_FIELDS);
+    return
   }
   if (data.registryId) {
     const registry = await RegistryManager.findOne({id: data.registryId}, transaction);
@@ -312,7 +314,11 @@ const _updateCatalogItemImages = async function (data, transaction) {
       await CatalogItemImageManager.updateOrCreate({
         catalogItemId: data.id,
         fogTypeId: image.fogTypeId
-      }, image, transaction);
+      }, {
+        catalogItemId: data.id,
+        fogTypeId: image.fogTypeId,
+        containerImage: image.containerImage
+      }, transaction);
     }
   }
 };
@@ -338,8 +344,11 @@ const _updateCatalogItemIOTypes = async function (data, where, transaction) {
   }
 };
 
+//decorated functions
+const  createCatalogItemWithTracking = TrackingDecorator.trackEvent(createCatalogItem, TrackingEventType.CATALOG_CREATED);
+
 module.exports = {
-  createCatalogItem: TransactionDecorator.generateTransaction(createCatalogItem),
+  createCatalogItem: TransactionDecorator.generateTransaction(createCatalogItemWithTracking),
   listCatalogItems: TransactionDecorator.generateTransaction(listCatalogItems),
   getCatalogItem: TransactionDecorator.generateTransaction(getCatalogItem),
   deleteCatalogItem: TransactionDecorator.generateTransaction(deleteCatalogItem),

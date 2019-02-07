@@ -19,6 +19,7 @@ const MicroserviceService = require('../services/microservices-service');
 const fs = require('fs');
 const AppHelper = require('../helpers/app-helper');
 const CliDecorator = require('../decorators/cli-decorator');
+const CliDataTypes = require('./cli-data-types');
 
 const JSON_SCHEMA_ADD = AppHelper.stringifyCliJsonSchema(
   {
@@ -92,11 +93,11 @@ class Microservice extends BaseCLIHandler {
         group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
-        name: 'catalog-id', alias: 'c', type: Number, description: 'Catalog item ID',
+        name: 'catalog-id', alias: 'c', type: CliDataTypes.Integer,  description: 'Catalog item ID',
         group: [constants.CMD_ADD]
       },
       {
-        name: 'flow-id', alias: 'F', type: Number, description: 'Application flow ID',
+        name: 'flow-id', alias: 'F', type: CliDataTypes.Integer, description: 'Application flow ID',
         group: [constants.CMD_ADD]
       },
       {
@@ -112,7 +113,7 @@ class Microservice extends BaseCLIHandler {
         group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
-        name: 'log-size', alias: 'l', type: Number, description: 'Log file size limit (MB)',
+        name: 'log-size', alias: 'l', type: CliDataTypes.Integer,  description: 'Log file size limit (MB)',
         group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
@@ -142,7 +143,7 @@ class Microservice extends BaseCLIHandler {
         group: [constants.CMD_ROUTE_CREATE, constants.CMD_ROUTE_REMOVE]
       },
       {
-        name: 'internal-port', alias: 'b', type: Number, description: 'Internal port',
+        name: 'internal-port', alias: 'b', type: CliDataTypes.Integer, description: 'Internal port',
         group: [constants.CMD_PORT_MAPPING_REMOVE]
       },
       {
@@ -154,11 +155,11 @@ class Microservice extends BaseCLIHandler {
         group: [constants.CMD_REMOVE]
       },
       {
-        name: 'user-id', alias: 'u', type: Number, description: 'User\'s id',
+        name: 'user-id', alias: 'u', type: CliDataTypes.Integer, description: 'User\'s id',
         group: [constants.CMD_ADD]
       },
       {
-        name: 'mapping-id', alias: 'a', type: Number, description: 'Volume mapping id',
+        name: 'mapping-id', alias: 'a', type: CliDataTypes.Integer, description: 'Volume mapping id',
         group: [constants.CMD_VOLUME_MAPPING_REMOVE]
       }
     ];
@@ -358,8 +359,7 @@ const _createVolumeMapping = async function (obj, user) {
 
 const _removePortMapping = async function (obj, user) {
   try {
-    const internalPort = parseInt(obj.internalPort);
-    await MicroserviceService.deletePortMapping(obj.microserviceUuid, internalPort, user, true);
+    await MicroserviceService.deletePortMapping(obj.microserviceUuid, obj.internalPort, user, true);
     logger.info('Port mapping has been removed successfully.');
   } catch (e) {
     logger.error(e.message);

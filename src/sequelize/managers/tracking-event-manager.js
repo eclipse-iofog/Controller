@@ -11,20 +11,21 @@
  *
  */
 
-const execSync = require('child_process').execSync;
+const BaseManager = require('./base-manager');
+const models = require('./../models');
+const TrackingEvent = models.TrackingEvent;
 
-function start() {
-  const options = {
-    env: {
-      'NODE_ENV': 'production',
-      "PATH": process.env.PATH
-    },
-    stdio: [process.stdin, process.stdout, process.stderr]
-  };
+class TrackingEventManager extends BaseManager {
+  getEntity() {
+    return TrackingEvent;
+  }
 
-  execSync('node ./src/main.js start', options);
+  async popAll(transaction) {
+    const res = await this.findAll({}, transaction);
+    await this.delete({} ,transaction);
+    return res;
+  }
 }
 
-module.exports = {
-  start: start
-};
+const instance = new TrackingEventManager();
+module.exports = instance;

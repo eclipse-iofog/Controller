@@ -13,12 +13,19 @@
 
 const execSync = require('child_process').execSync;
 
-const options = {
-  env: {
-    'NODE_ENV': 'production',
-    "PATH": process.env.PATH
-  },
-  stdio: [process.stdin, process.stdout, process.stderr]
-};
 
-execSync('node ./src/main.js init', options);
+function init() {
+  const options = {
+    env: {
+      'NODE_ENV': 'production',
+      "PATH": process.env.PATH
+    },
+    stdio: [process.stdin, process.stdout, process.stderr]
+  };
+
+  execSync('node ./src/main.js init', options);
+}
+
+module.exports = {
+  init: init
+};
