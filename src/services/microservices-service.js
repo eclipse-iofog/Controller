@@ -366,6 +366,9 @@ async function deletePortMapping(microserviceUuid, internalPort, user, isCLI, tr
     ? {uuid: microserviceUuid}
     : {uuid: microserviceUuid, userId: user.id};
 
+  if (!internalPort) {
+    throw new Errors.ValidationError(ErrorMessages.PORT_MAPPING_INTERNAL_PORT_NOT_PROVIDED);
+  }
   const microservice = await MicroserviceManager.findOne(where, transaction);
   if (!microservice) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, microserviceUuid))
