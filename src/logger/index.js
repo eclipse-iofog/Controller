@@ -22,7 +22,7 @@ const logger = winston.createLogger({
     new winston.transports.File({
       format: winston.format.combine(
         winston.format.timestamp(),
-        winston.format.logstash()
+        winston.format.json()
       ),
       filename: 'iofog-controller.log',
       dirname: config.get('Service:LogsDirectory'),
