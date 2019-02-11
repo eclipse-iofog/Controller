@@ -11,10 +11,19 @@
  *
  */
 
-const winston = require('winston')
-const config = require('../config')
+const winston = require('winston');
+const config = require('../config');
 
-const MESSAGE = Symbol.for('message')
+const MESSAGE = Symbol.for('message');
+
+const formattedJson = winston.format((log) => {
+  let sortedFields = ['level', 'timestamp', 'message'];
+  if (log.args) {
+    sortedFields = sortedFields.concat(['args']).concat(Object.keys(log.args));
+  }
+  log[MESSAGE] = JSON.stringify(log, sortedFields);
+  return log;
+});
 
 const logger = winston.createLogger({
   level: 'silly',
@@ -22,21 +31,26 @@ const logger = winston.createLogger({
     new winston.transports.File({
       format: winston.format.combine(
         winston.format.timestamp(),
-        winston.format.json()
+        formattedJson()
       ),
       filename: 'iofog-controller.log',
       dirname: config.get('Service:LogsDirectory'),
       maxsize:  config.get('Service:LogsFileSize'),
     }),
   ],
-})
+});
 
 logger.add(new winston.transports.Console({
   level: 'info',
   format: winston.format((log) => {
-    log[MESSAGE] = log.message
-    return log
+    let message = `[${log.level}] ${log.message}`;
+    if (log.args) {
+      message += ` / args: ${JSON.stringify(log.args)}`
+    }
+    log[MESSAGE] = message;
+    return log;
   })(),
-}))
+}));
 
-module.exports = logger
+
+module.exports = logger;
