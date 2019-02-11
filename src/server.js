@@ -44,7 +44,8 @@ app.use(Sentry.Handlers.errorHandler());
 app.use(helmet());
 app.use(xss());
 
-app.use(morgan('combined'));
+//express logs
+// app.use(morgan('combined'));
 
 app.use(bodyParser.urlencoded({
   extended: true,
