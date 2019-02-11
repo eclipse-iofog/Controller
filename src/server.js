@@ -93,17 +93,13 @@ fs.readdirSync(path.join(__dirname, 'jobs'))
   .forEach(setupJobs);
 
 function startHttpServer(app, port, jobs) {
-  logger.silly("| SSL not configured, starting HTTP server.|");
-
-  logger.silly("------------------------------------------");
-  logger.silly("| SSL not configured, starting HTTP server.|");
-  logger.silly("------------------------------------------");
+  logger.info("SSL not configured, starting HTTP server.");
 
   app.listen(port, function onStart(err) {
     if (err) {
       logger.error(err)
     }
-    logger.silly(`==> 🌎 Listening on port ${port}. Open up http://localhost:${port}/ in your browser.`, port, port);
+    logger.info(`==> 🌎 Listening on port ${port}. Open up http://localhost:${port}/ in your browser.`, port, port);
     jobs.forEach(job => job.run());
   })
 }
@@ -122,7 +118,7 @@ function startHttpsServer(app, port, sslKey, sslCert, intermedKey, jobs) {
       if (err) {
         logger.error(err)
       }
-      logger.silly(`==> 🌎 HTTPS server listening on port ${port}. Open up https://localhost:${port}/ in your browser.`);
+      logger.info(`==> 🌎 HTTPS server listening on port ${port}. Open up https://localhost:${port}/ in your browser.`);
       jobs.forEach(job => job.run());
     })
   } catch (e) {

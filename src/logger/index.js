@@ -32,6 +32,7 @@ const logger = winston.createLogger({
 })
 
 logger.add(new winston.transports.Console({
+  level: 'info',
   format: winston.format((log) => {
     log[MESSAGE] = log.message
     return log
