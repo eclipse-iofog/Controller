@@ -19,7 +19,7 @@ const MESSAGE = Symbol.for('message');
 const formattedJson = winston.format((log) => {
   let sortedFields = ['level', 'timestamp', 'message'];
   if (log.args) {
-    sortedFields = sortedFields.concat(['args']).concat(Object.keys(log.args));
+    sortedFields = sortedFields.concat(['args']).concat(getAllObjKeys(log.args));
   }
   log[MESSAGE] = JSON.stringify(log, sortedFields);
   return log;
@@ -52,5 +52,16 @@ logger.add(new winston.transports.Console({
   })(),
 }));
 
+function getAllObjKeys(obj) {
+  let keys = [];
+  for (const key in obj) {
+    keys.push(key);
+    if (obj[key] instanceof Object) {
+      const innerKeys = getAllObjKeys(obj[key]);
+      keys = keys.concat(innerKeys);
+    }
+  }
+  return keys;
+}
 
 module.exports = logger;
