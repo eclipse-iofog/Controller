@@ -29,6 +29,7 @@ jobs:
   - stage: dev_deploy
     before_install:
     - sudo apt-get install sshpass
+    script: skip
     before_deploy:
     - npm pack
     - export VERSION=`npm view iofogcontroller version`
@@ -46,6 +47,7 @@ jobs:
   - stage: pre_release_deploy
     before_install:
     - sudo apt-get install sshpass
+    script: skip
     before_deploy:
     - npm version --no-git-tag-version prerelease -preid=prerelease -m "upgrade to %s for prerelease package"
     deploy:
@@ -62,6 +64,7 @@ jobs:
   - stage: release_deploy
     before_install:
     - sudo apt-get install sshpass
+    script: skip
     before_deploy:
     - npm version patch -m "upgrade to %s for release"
     deploy:
