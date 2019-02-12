@@ -11,7 +11,7 @@ notifications:
     template:
       - "Build <%{build_url}|#%{build_number}> (<%{compare_url}|%{commit}>) of %{repository_slug}@%{branch} in PR <%{pull_request_url}|#%{pull_request_number}> by %{author} %{result} in %{duration}"
 stages:
-- name: build
+- name: test
 - name: dev_deploy
   if: branch = develop AND type = push
 - name: pre_release_deploy
@@ -21,10 +21,9 @@ stages:
 
 jobs:
   include:
-  - stage: build
-    script:
-    - npm test
-    - npm run postman_test
+  - stage: test
+    script: npm test
+    script: npm run postman_test
   - stage: dev_deploy
     before_install:
     - sudo apt-get install sshpass
