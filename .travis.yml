@@ -35,10 +35,10 @@ jobs:
       provider: script
       script: 
       - sshpass -p $DEV_MACHINE_PASSWORD scp -o StrictHostKeyChecking=no iofogcontroller-${VERSION}.tgz 
-        $DEV_MACHINE_USERNAME@$DEV_MACHINE_IP:/
+        $DEV_MACHINE_USERNAME@$DEV_MACHINE_IP:/iofogcontroller
     after_deploy:
     - sshpass -p $DEV_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $DEV_MACHINE_USERNAME@$DEV_MACHINE_IP
-      "iofog-controller stop; npm install iofogcontroller-${VERSION}.tgz; iofog-controller start;"
+      "iofog-controller stop; npm install /iofogcontroller/iofogcontroller-${VERSION}.tgz; iofog-controller start;"
   - stage: pre_release_deploy
     before_install:
     - sudo apt-get install sshpass
