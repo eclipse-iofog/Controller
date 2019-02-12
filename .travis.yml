@@ -11,6 +11,8 @@ notifications:
     template:
       - "Build <%{build_url}|#%{build_number}> (<%{compare_url}|%{commit}>) of %{repository_slug}@%{branch} in PR <%{pull_request_url}|#%{pull_request_number}> by %{author} %{result} in %{duration}"
 stages:
+- name: test
+  if: branch =~ /^release-.*$/ OR branch IN (develop, master)
 - name: dev_deploy
   if: branch = develop AND type = push
 - name: pre_release_deploy
@@ -20,9 +22,10 @@ stages:
 
 jobs:
   include:
-  - script: 
+  - stage: test 
+    script:
     - npm test
-  - script: 
+    script: 
     - npm run postman_test
   - stage: dev_deploy
     before_install:
@@ -38,7 +41,7 @@ jobs:
         $DEV_MACHINE_USERNAME@$DEV_MACHINE_IP:/iofogcontroller
     after_deploy:
     - sshpass -p $DEV_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $DEV_MACHINE_USERNAME@$DEV_MACHINE_IP
-      "iofog-controller stop; npm install /iofogcontroller/iofogcontroller-${VERSION}.tgz; iofog-controller start;"
+      "iofog-controller stop; npm i --unsafe-perm -g /iofogcontroller/iofogcontroller-${VERSION}.tgz; iofog-controller start"
   - stage: pre_release_deploy
     before_install:
     - sudo apt-get install sshpass
@@ -52,7 +55,7 @@ jobs:
       tag: dev
     after_deploy:
     - sshpass -p $PREPROD_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $PREPROD_MACHINE_USERNAME@$PREPROD_MACHINE_IP
-      "iofog-controller stop; npm update -g iofogcontroller@dev; npm test; npm run postman_test; iofog-controller start;"
+      "iofog-controller stop; npm update --unsafe-perm -g iofogcontroller@dev; iofog-controller start"
   - stage: release_deploy
     before_install:
     - sudo apt-get install sshpass
@@ -66,4 +69,4 @@ jobs:
       tag: latest
     after_deploy:
     - sshpass -p $PROD_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $PROD_MACHINE_USERNAME@$PROD_MACHINE_IP
-      "iofog-controller stop; npm update -g iofogcontroller; iofog-controller start"
+      "iofog-controller stop; npm update --unsafe-perm -g iofogcontroller; iofog-controller start"
