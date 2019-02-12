@@ -37,13 +37,13 @@ jobs:
       skip_cleanup: true
       provider: script
       script: 
-      - sshpass -p $DEV_MACHINE_PASSWORD scp -o StrictHostKeyChecking=no iofogcontroller-${VERSION}.tgz 
-        $DEV_MACHINE_USERNAME@$DEV_MACHINE_IP:/iofogcontroller 
       - sshpass -p $EDGEWORX_PASSWORD scp -o StrictHostKeyChecking=no iofogcontroller-${VERSION}.tgz 
         $EDGEWORX_USERNAME@$EDGEWORX_IP:/var/www/vhosts/edgeworx.io/downloads/builds/iofogcontroller.tgz  
       on:
         branch: develop  
     after_deploy:
+    - sshpass -p $DEV_MACHINE_PASSWORD scp -o StrictHostKeyChecking=no iofogcontroller-${VERSION}.tgz 
+      $DEV_MACHINE_USERNAME@$DEV_MACHINE_IP:/iofogcontroller 
     - sshpass -p $DEV_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $DEV_MACHINE_USERNAME@$DEV_MACHINE_IP
       "iofog-controller stop; npm i --unsafe-perm -g /iofogcontroller/iofogcontroller-${VERSION}.tgz; iofog-controller start"
   - stage: pre_release_deploy
