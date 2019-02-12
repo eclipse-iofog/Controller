@@ -11,7 +11,6 @@ notifications:
     template:
       - "Build <%{build_url}|#%{build_number}> (<%{compare_url}|%{commit}>) of %{repository_slug}@%{branch} in PR <%{pull_request_url}|#%{pull_request_number}> by %{author} %{result} in %{duration}"
 stages:
-#- name: test
 - name: dev_deploy
   if: branch = develop AND type = push
 - name: pre_release_deploy
@@ -21,8 +20,10 @@ stages:
 
 jobs:
   include:
-  - script: npm test
-  - script: npm run postman_test
+  - script: 
+    - npm test
+  - script: 
+    - npm run postman_test
   - stage: dev_deploy
     before_install:
     - sudo apt-get install sshpass
@@ -32,8 +33,9 @@ jobs:
     deploy:
       skip_cleanup: true
       provider: script
-      script: sshpass -p $DEV_MACHINE_PASSWORD scp -o StrictHostKeyChecking=no iofogcontroller-${VERSION}.tgz 
-      $DEV_MACHINE_USERNAME@$DEV_MACHINE_IP:/
+      script: 
+      - sshpass -p $DEV_MACHINE_PASSWORD scp -o StrictHostKeyChecking=no iofogcontroller-${VERSION}.tgz 
+        $DEV_MACHINE_USERNAME@$DEV_MACHINE_IP:/
     after_deploy:
     - sshpass -p $DEV_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $DEV_MACHINE_USERNAME@$DEV_MACHINE_IP
       "iofog-controller stop; npm install iofogcontroller-${VERSION}.tgz; iofog-controller start;"
