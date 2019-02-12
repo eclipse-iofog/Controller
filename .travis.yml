@@ -21,8 +21,7 @@ stages:
   if: branch = master and type = push
 
 jobs:
-  include:
-  - stage: test 
+  include: 
     script:
     - npm test
     script: 
