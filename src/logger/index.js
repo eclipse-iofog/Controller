@@ -16,6 +16,19 @@ const config = require('../config');
 
 const MESSAGE = Symbol.for('message');
 
+const levels = {
+  error: 0,
+  warn: 1,
+  cliReq: 2,
+  cliRes: 3,
+  apiReq: 4,
+  apiRes: 5,
+  info: 6,
+  verbose: 7,
+  debug: 8,
+  silly: 9
+};
+
 const formattedJson = winston.format((log) => {
   let sortedFields = ['level', 'timestamp', 'message'];
   if (log.args) {
@@ -26,6 +39,7 @@ const formattedJson = winston.format((log) => {
 });
 
 const logger = winston.createLogger({
+  levels: levels,
   level: 'silly',
   transports: [
     new winston.transports.File({
@@ -43,7 +57,11 @@ const logger = winston.createLogger({
 logger.add(new winston.transports.Console({
   level: 'info',
   format: winston.format((log) => {
-    let message = `[${log.level}] ${log.message}`;
+    if (log.level === 'cliReq') {
+      return
+    }
+    let message = log.level === 'cliRes' ? `${log.message}` : `[${log.level}] ${log.message}`;
+
     if (log.args) {
       message += ` / args: ${JSON.stringify(log.args)}`
     }
