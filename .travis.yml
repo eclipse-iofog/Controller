@@ -21,11 +21,12 @@ stages:
   if: branch = master and type = push
 
 jobs:
-  include: 
-  env:
-    - TEST_TYPE=test
-    - TEST_TYPE=postman_test
-  script: "npm run $TEST_TYPE"
+  include:
+  - stage: test
+    env:
+      - TEST_TYPE=test
+      - TEST_TYPE=postman_test
+    script: "npm run $TEST_TYPE"
   - stage: dev_deploy
     before_install:
     - sudo apt-get install sshpass
