@@ -73,6 +73,9 @@ logger.add(new winston.transports.Console({
 function getAllObjKeys(obj) {
   let keys = [];
   for (const key in obj) {
+    if (!obj.hasOwnProperty(key)) {
+      continue;
+    }
     keys.push(key);
     if (obj[key] instanceof Object) {
       const innerKeys = getAllObjKeys(obj[key]);

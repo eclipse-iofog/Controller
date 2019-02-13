@@ -33,7 +33,7 @@ class Start extends BaseCLIHandler {
       daemon.start();
       checkDaemon(daemon, configuration)
     } else {
-      logger.info(`iofog-controller already running. PID: ${pid}`)
+      logger.cliRes(`iofog-controller already running. PID: ${pid}`)
     }
   }
 
@@ -59,7 +59,7 @@ function checkDaemon(daemon, configuration) {
 
     if (iterationsCount === 5) {
       checkServerProtocol(configuration);
-      return logger.info(`ioFog-Controller has started at pid: ${pid}`)
+      return logger.cliRes(`ioFog-Controller has started at pid: ${pid}`)
     }
 
     setTimeout(check, 1000)
@@ -71,9 +71,9 @@ function checkDaemon(daemon, configuration) {
 function checkServerProtocol(configuration) {
   const { devMode, port, sslKey, sslCert, intermedKey } = configuration;
   if (!devMode && sslKey && sslCert && intermedKey) {
-    logger.info(`==> 🌎 HTTPS server listening on port ${port}. Open up https://localhost:${port}/ in your browser.`)
+    logger.cliRes(`==> 🌎 HTTPS server listening on port ${port}. Open up https://localhost:${port}/ in your browser.`)
   } else {
-    logger.info(`==> 🌎 Listening on port ${port}. Open up http://localhost:${port}/ in your browser.`)
+    logger.cliRes(`==> 🌎 Listening on port ${port}. Open up http://localhost:${port}/ in your browser.`)
   }
 }
 

@@ -191,7 +191,7 @@ const _addConfigOption = async function (options) {
 
   if (options.emailPassword) {
     config.set('Email:Password', AppHelper.encryptText(options.emailPassword, config.get('Email:Address')));
-    logger.info('Config option email-password has been updated.');
+    logger.cliRes('Config option email-password has been updated.');
   }
 
   await updateConfig(options.emailService, 'email-service', 'Email:Service', (onSuccess) => {
@@ -216,10 +216,10 @@ const updateConfig = async function (newConfigValue, cliConfigName, configName, 
     if (newConfigValue !== oldConfigValue) {
       await fn(function () {
         const currentConfigValue = config.get(configName);
-        logger.info(`Config option ${cliConfigName} has been set to ${currentConfigValue}`);
+        logger.cliRes(`Config option ${cliConfigName} has been set to ${currentConfigValue}`);
       });
     } else {
-      logger.info(`Config option ${cliConfigName} is already set to ${newConfigValue}`);
+      logger.cliRes(`Config option ${cliConfigName} is already set to ${newConfigValue}`);
     }
   }
 };
@@ -250,7 +250,7 @@ const _listConfigOptions = function () {
 const _changeDevModeState = async function (options) {
   const enableDevMode = AppHelper.validateBooleanCliOptions(options.on, options.off);
   config.set('Server:DevMode', enableDevMode);
-  logger.info('Dev mode state updated successfully.');
+  logger.cliRes('Dev mode state updated successfully.');
 
   //example of tracking  for other config
   const event = Tracking.buildEvent(TrackingEventType.CONFIG_CHANGED, `devMode was set to ${enableDevMode}`);
@@ -260,7 +260,7 @@ const _changeDevModeState = async function (options) {
 const _changeEmailActivationState = function (options) {
   const enableEmailActivation = AppHelper.validateBooleanCliOptions(options.on, options.off);
   config.set('Email:ActivationEnabled', enableEmailActivation);
-  logger.info('Email activation state updated successfully.')
+  logger.cliRes('Email activation state updated successfully.')
 };
 
 module.exports = new Config();

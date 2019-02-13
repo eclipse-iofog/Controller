@@ -90,22 +90,25 @@ const _executeCase = async function (userCommand, commandName, f, isUserRequired
 
 const _getStatus = async function () {
   const response = await ControllerService.statusController(true);
-  logger.info(JSON.stringify(response, null, 2));
+  logger.cliRes(JSON.stringify(response, null, 2));
 };
 
 const _emailActivation = async function () {
+  logger.cliReq('controller email-activation');
   const response = await ControllerService.emailActivation(true);
-  logger.info(JSON.stringify(response, null, 2));
+  logger.cliRes(JSON.stringify(response, null, 2));
 };
 
 const _getFogTypes = async function () {
+  logger.cliReq('controller fog-types');
   const response = await ControllerService.getFogTypes(true);
-  logger.info(JSON.stringify(response, null, 2));
+  logger.cliRes(JSON.stringify(response, null, 2));
 };
 
 const _getVersion = async function () {
+  logger.cliReq('controller version');
   const response = await ControllerService.getVersion(true);
-  logger.info(response, null, 2);
+  logger.cliRes(response, null, 2);
 };
 
 module.exports = new Controller();
