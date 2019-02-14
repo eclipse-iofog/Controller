@@ -14,12 +14,14 @@ const constants = require('../helpers/constants');
 const CatalogController = require('../controllers/catalog-controller');
 const ResponseDecorator = require('../decorators/response-decorator');
 const Errors = require('../helpers/errors');
+const logger = require('../logger');
 
 module.exports = [
   {
     method: 'get',
     path: '/api/v3/catalog/microservices',
     middleware: async (req, res) => {
+      logger.apiReq(req);
 
       const successCode = constants.HTTP_CODE_SUCCESS;
       const errorCodes = [
@@ -38,13 +40,16 @@ module.exports = [
 
       res
         .status(responseObject.code)
-        .send(responseObject.body)
+        .send(responseObject.body);
+
+      logger.apiRes({req: req, res: responseObject});
     }
   },
   {
     method: 'post',
     path: '/api/v3/catalog/microservices',
     middleware: async (req, res) => {
+      logger.apiReq(req);
 
       const successCode = constants.HTTP_CODE_CREATED;
       const errorCodes = [
@@ -71,13 +76,16 @@ module.exports = [
 
       res
         .status(responseObject.code)
-        .send(responseObject.body)
+        .send(responseObject.body);
+
+      logger.apiRes({req: req, res: responseObject});
     }
   },
   {
     method: 'get',
     path: '/api/v3/catalog/microservices/:id',
     middleware: async (req, res) => {
+      logger.apiReq(req);
 
       const successCode = constants.HTTP_CODE_SUCCESS;
       const errorCodes = [
@@ -100,13 +108,16 @@ module.exports = [
 
       res
         .status(responseObject.code)
-        .send(responseObject.body)
+        .send(responseObject.body);
+
+      logger.apiRes({req: req, res: responseObject});
     }
   },
   {
     method: 'patch',
     path: '/api/v3/catalog/microservices/:id',
     middleware: async (req, res) => {
+      logger.apiReq(req);
 
       const successCode = constants.HTTP_CODE_NO_CONTENT;
       const errorCodes = [
@@ -137,13 +148,16 @@ module.exports = [
 
       res
         .status(responseObject.code)
-        .send(responseObject.body)
+        .send(responseObject.body);
+
+      logger.apiRes({req: req, res: responseObject});
     }
   },
   {
     method: 'delete',
     path: '/api/v3/catalog/microservices/:id',
     middleware: async (req, res) => {
+      logger.apiReq(req);
 
       const successCode = constants.HTTP_CODE_NO_CONTENT;
       const errorCodes = [
@@ -166,7 +180,9 @@ module.exports = [
 
       res
         .status(responseObject.code)
-        .send(responseObject.body)
+        .send(responseObject.body);
+
+      logger.apiRes({req: req, res: responseObject});
     }
   }
 ]

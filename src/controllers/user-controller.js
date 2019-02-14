@@ -11,8 +11,6 @@
  *
  */
 
-const logger = require('../logger');
-
 const UserService = require('../services/user-service');
 const AuthDecorator = require('../decorators/authorization-decorator');
 const AppHelper = require('../helpers/app-helper');
@@ -31,9 +29,6 @@ const userSignupEndPoint = async function (req) {
     email: user.email,
     password: encryptedPassword
   };
-
-  logger.info("Parameters:" + JSON.stringify(newUser));
-
   return await UserService.signUp(newUser, false);
 };
 
@@ -51,10 +46,7 @@ const userLoginEndPoint = async function (req) {
 };
 
 const resendActivationEndPoint = async function (req) {
-  logger.info("Parameters:" + JSON.stringify(req.query));
-
   const emailData = req.query;
-
   return await UserService.resendActivation(emailData, false);
 };
 
@@ -77,10 +69,7 @@ const getUserProfileEndPoint = async function (req, user) {
 };
 
 const updateUserProfileEndPoint = async function (req, user) {
-  logger.info("Parameters:" + JSON.stringify(req.body));
-
   const profileData = req.body;
-
   return await UserService.updateUserDetails(user, profileData, false);
 };
 
@@ -97,10 +86,7 @@ const updateUserPasswordEndPoint = async function (req, user) {
 };
 
 const resetUserPasswordEndPoint = async function (req) {
-  logger.info("Parameters:" + JSON.stringify(req.body));
-
   const emailObj = req.body;
-
   return await UserService.resetUserPassword(emailObj, false);
 };
 

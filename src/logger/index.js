@@ -38,6 +38,25 @@ const formattedJson = winston.format((log) => {
   return log;
 });
 
+const prepareObjectLogs = winston.format((log) => {
+  if (!(log.message instanceof Object)) {
+    return log;
+  }
+
+  if (log.level === 'apiReq' && log.message instanceof Object) {
+    const req = log.message;
+    log.message = `${req.method} ${req.originalUrl}`;
+    log.args = {params: req.params, query: req.query, body: req.body}
+  }
+  if (log.level === 'apiRes' && log.message instanceof Object) {
+    const req = log.message.req;
+    const res = log.message.res;
+    log.message = `${req.method} ${req.originalUrl}`;
+    log.args = res
+  }
+  return log;
+});
+
 const logger = winston.createLogger({
   levels: levels,
   level: 'silly',
@@ -45,6 +64,7 @@ const logger = winston.createLogger({
     new winston.transports.File({
       format: winston.format.combine(
         winston.format.timestamp(),
+        prepareObjectLogs(),
         formattedJson()
       ),
       filename: 'iofog-controller.log',
@@ -60,10 +80,21 @@ logger.add(new winston.transports.Console({
     if (log.level === 'cliReq') {
       return
     }
+    if (log.level === 'apiReq' && log.message instanceof Object) {
+      const req = log.message;
+      log.message = `${req.method} ${req.originalUrl}`;
+      log.args = {params: req.params, query: req.query, body: req.body}
+    }
+    if (log.level === 'apiRes' && log.message instanceof Object) {
+      const req = log.message.req;
+      const res = log.message.res;
+      log.message = `${req.method} ${req.originalUrl}`;
+      log.args = res
+    }
     let message = log.level === 'cliRes' ? `${log.message}` : `[${log.level}] ${log.message}`;
 
     if (log.args) {
-      message += ` / args: ${JSON.stringify(log.args)}`
+      message += ` | args: ${JSON.stringify(log.args)}`
     }
     log[MESSAGE] = message;
     return log;

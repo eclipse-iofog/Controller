@@ -11,23 +11,17 @@
  *
  */
 
-const logger = require('../logger');
-
 const AgentService = require('../services/agent-service');
 const AuthDecorator = require('../decorators/authorization-decorator');
 
 const agentProvisionEndPoint = async function (req) {
   const provisionData = req.body;
 
-  logger.info("Parameters: " + JSON.stringify(provisionData));
-
   return await AgentService.agentProvision(provisionData);
 };
 
 const agentDeprovisionEndPoint = async function (req, fog) {
   const deprovisionData = req.body;
-
-  logger.info("Parameters: " + JSON.stringify(deprovisionData));
 
   return await AgentService.agentDeprovision(deprovisionData, fog);
 };
@@ -39,8 +33,6 @@ const getAgentConfigEndPoint = async function (req, fog) {
 const updateAgentConfigEndPoint = async function (req, fog) {
   const updateData = req.body;
 
-  logger.info("Parameters: " + JSON.stringify(updateData));
-
   return await AgentService.updateAgentConfig(updateData, fog);
 };
 
@@ -51,8 +43,6 @@ const getAgentConfigChangesEndPoint = async function (req, fog) {
 const updateAgentStatusEndPoint = async function (req, fog) {
   const agentStatus = req.body;
 
-  logger.info("Parameters: " + JSON.stringify(agentStatus));
-
   return await AgentService.updateAgentStatus(agentStatus, fog);
 };
 
@@ -62,8 +52,6 @@ const getAgentMicroservicesEndPoint = async function (req, fog) {
 
 const getAgentMicroserviceEndPoint = async function (req, fog) {
   const microserviceUuid = req.params.microserviceUuid;
-
-  logger.info("Microservice UUID:" + JSON.stringify(microserviceUuid));
 
   return await AgentService.getAgentMicroservice(microserviceUuid, fog);
 };
@@ -83,8 +71,6 @@ const getAgentStraceEndPoint = async function (req, fog) {
 const updateAgentStraceEndPoint = async function (req, fog) {
   const straceData = req.body;
 
-  logger.info("Parameters: " + JSON.stringify(straceData));
-
   return await AgentService.updateAgentStrace(straceData, fog);
 };
 
@@ -95,15 +81,11 @@ const getAgentChangeVersionCommandEndPoint = async function (req, fog) {
 const updateHalHardwareInfoEndPoint = async function (req, fog) {
   const hardwareData = req.body;
 
-  logger.info("Parameters: " + JSON.stringify(hardwareData));
-
   return await AgentService.updateHalHardwareInfo(hardwareData, fog);
 };
 
 const updateHalUsbInfoEndPoint = async function (req, fog) {
   const usbData = req.body;
-
-  logger.info("Parameters: " + JSON.stringify(usbData));
 
   return await AgentService.updateHalUsbInfo(usbData, fog);
 };
@@ -122,8 +104,6 @@ const putImageSnapshotEndPoint = async function (req, fog) {
 
 async function postTrackingEndPoint(req, fog) {
   const events = req.body.events;
-
-  logger.info("Parameters: " + JSON.stringify(events));
   return await AgentService.postTracking(events, fog)
 }
 

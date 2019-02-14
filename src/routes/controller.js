@@ -14,12 +14,15 @@ const constants = require('../helpers/constants');
 const Controller = require('../controllers/controller');
 const ResponseDecorator = require('../decorators/response-decorator');
 const Errors = require('../helpers/errors');
+const logger = require('../logger');
 
 module.exports = [
   {
     method: 'get',
     path: '/api/v3/status',
     middleware: async (req, res) => {
+      logger.apiReq(req);
+
       const successCode = constants.HTTP_CODE_SUCCESS;
       const errorCodes = [];
       const statusControllerEndPoint = ResponseDecorator.handleErrors(Controller.statusControllerEndPoint, successCode, errorCodes);
@@ -27,13 +30,17 @@ module.exports = [
 
       res
         .status(responseObject.code)
-        .send(responseObject.body)
+        .send(responseObject.body);
+
+      logger.apiRes({req: req, res: responseObject});
     }
   },
   {
     method: 'get',
     path: '/api/v3/email-activation',
     middleware: async (req, res) => {
+      logger.apiReq(req);
+
       const successCode = constants.HTTP_CODE_SUCCESS;
       const errorCodes = [];
       const emailActivationEndPoint = ResponseDecorator.handleErrors(Controller.emailActivationEndPoint, successCode, errorCodes);
@@ -41,13 +48,17 @@ module.exports = [
 
       res
         .status(responseObject.code)
-        .send(responseObject.body)
+        .send(responseObject.body);
+
+      logger.apiRes({req: req, res: responseObject});
     }
   },
   {
     method: 'get',
-    path: '/api/v3/fog-types',
+    path: '/api/v3/fog-types/',
     middleware: async (req, res) => {
+      logger.apiReq(req);
+
       const successCode = constants.HTTP_CODE_SUCCESS;
       const errorCodes = [];
       const fogTypesEndPoint = ResponseDecorator.handleErrors(Controller.fogTypesEndPoint, successCode, errorCodes);
@@ -55,7 +66,9 @@ module.exports = [
 
       res
         .status(responseObject.code)
-        .send(responseObject.body)
+        .send(responseObject.body);
+
+      logger.apiRes({req: req, res: responseObject});
     }
   }
 ];

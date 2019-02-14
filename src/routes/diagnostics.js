@@ -15,12 +15,14 @@ const DiagnosticController = require('../controllers/diagnostic-controller');
 const ResponseDecorator = require('../decorators/response-decorator');
 const Errors = require('../helpers/errors');
 const fs = require('fs');
+const logger = require('../logger');
 
 module.exports = [
   {
     method: 'post',
     path: '/api/v3/microservices/:uuid/image-snapshot',
     middleware: async (req, res) => {
+      logger.apiReq(req);
 
       const successCode = constants.HTTP_CODE_CREATED;
       const errorCodes = [
@@ -43,13 +45,17 @@ module.exports = [
 
       res
         .status(responseObject.code)
-        .send(responseObject.body)
+        .send(responseObject.body);
+
+      logger.apiRes({req: req, res: responseObject});
     }
   },
   {
     method: 'get',
     path: '/api/v3/microservices/:uuid/image-snapshot',
     middleware: async (req, res) => {
+      logger.apiReq(req);
+
       const successCode = constants.HTTP_CODE_SUCCESS;
       const errorCodes = [
         {
@@ -70,8 +76,10 @@ module.exports = [
       const responseObject = await getMicroserviceImageSnapshotEndPoint(req);
       if (responseObject.code !== successCode) {
         res
-          .status(responseObject.code)
-          .send(responseObject.body)
+        .status(responseObject.code)
+        .send(responseObject.body);
+
+      logger.apiRes({req: req, res: responseObject});
       } else {
         res.writeHead(successCode, {
           "Content-Length": responseObject.body['Content-Length'],
@@ -86,6 +94,7 @@ module.exports = [
     method: 'patch',
     path: '/api/v3/microservices/:uuid/strace',
     middleware: async (req, res) => {
+      logger.apiReq(req);
 
       const successCode = constants.HTTP_CODE_NO_CONTENT;
       const errorCodes = [
@@ -112,13 +121,16 @@ module.exports = [
 
       res
         .status(responseObject.code)
-        .send(responseObject.body)
+        .send(responseObject.body);
+
+      logger.apiRes({req: req, res: responseObject});
     }
   },
   {
     method: 'get',
     path: '/api/v3/microservices/:uuid/strace',
     middleware: async (req, res) => {
+      logger.apiReq(req);
 
       const successCode = constants.HTTP_CODE_SUCCESS;
       const errorCodes = [
@@ -141,13 +153,17 @@ module.exports = [
 
       res
         .status(responseObject.code)
-        .send(responseObject.body)
+        .send(responseObject.body);
+
+      logger.apiRes({req: req, res: responseObject});
     }
   },
   {
     method: 'put',
     path: '/api/v3/microservices/:uuid/strace',
     middleware: async (req, res) => {
+      logger.apiReq(req);
+
       const successCode = constants.HTTP_CODE_NO_CONTENT;
       const errorCodes = [
         {
@@ -177,7 +193,9 @@ module.exports = [
 
       res
         .status(responseObject.code)
-        .send(responseObject.body)
+        .send(responseObject.body);
+
+      logger.apiRes({req: req, res: responseObject});
     }
   }
 ];
