@@ -75,7 +75,7 @@ class User extends BaseCLIHandler {
 
       const command = userCommand.command.command;
 
-      AppHelper.validateParameters(command, this.commandDefinitions, args.argv);
+      this.validateParameters(command, this.commandDefinitions, args.argv);
 
       switch (command) {
         case constants.CMD_ADD:
@@ -104,7 +104,7 @@ class User extends BaseCLIHandler {
           return this.help([constants.CMD_LIST])
       }
     } catch (error) {
-      AppHelper.handleCLIError(error);
+      this.handleCLIError(error);
     }
   }
 

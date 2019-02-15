@@ -186,7 +186,7 @@ class Microservice extends BaseCLIHandler {
 
       const command = microserviceCommand.command.command;
 
-      AppHelper.validateParameters(command, this.commandDefinitions, args.argv);
+      this.validateParameters(command, this.commandDefinitions, args.argv);
 
       switch (command) {
         case constants.CMD_ADD:
@@ -233,12 +233,12 @@ class Microservice extends BaseCLIHandler {
           return this.help()
       }
     } catch (error) {
-      AppHelper.handleCLIError(error);
+      this.handleCLIError(error);
     }
   }
 
   help() {
-    super.help([constants.CMD_LIST], true, true, [
+    super.help([], true, true, [
       {
         header: 'JSON ADD File Schema',
         content: [
