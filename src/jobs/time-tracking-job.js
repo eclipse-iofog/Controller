@@ -21,17 +21,18 @@ const TrackingEventType = require('../enums/tracking-event-type');
 const TransactionDecorator = require('../decorators/transaction-decorator');
 
 
-const INTERVAL = 5 * 60 * 1000;
+const INTERVAL_MIN = 5;
 
 class TimeTrackingJob extends BaseJobHandler {
 
   constructor() {
     super();
+    this.scheduleTime = INTERVAL_MIN * 60 * 1000;
     this.startTime = moment.now();
   }
 
   run() {
-    setTimeout(this.trackTime, INTERVAL);
+    setTimeout(this.trackTime, this.scheduleTime);
   }
 
   async trackTime() {
@@ -43,15 +44,11 @@ class TimeTrackingJob extends BaseJobHandler {
       logger.warn('Unable to count ioFog agents')
     }
 
-    try {
-      const runningTime = moment().diff(this.startTime, 'minutes');
-      const event = Tracking.buildEvent(TrackingEventType.RUNNING_TIME, { runningTime, agentsCount });
-      await Tracking.processEvent(event);
-    } catch (err) {
-      logger.error(`Unable to send "${TrackingEventType.RUNNING_TIME}" tracking info`);
-    } finally {
-      setTimeout(this.trackTime, INTERVAL);
-    }
+    const runningTime = moment().diff(this.startTime, 'minutes');
+    const event = Tracking.buildEvent(TrackingEventType.RUNNING_TIME, { runningTime, agentsCount });
+    await Tracking.processEvent(event);
+
+    setTimeout(this.trackTime, this.scheduleTime);
   }
 }
 
