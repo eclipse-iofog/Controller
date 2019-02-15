@@ -103,6 +103,14 @@ class InvalidArgumentTypeError extends Error {
   }
 }
 
+class CliAgrsNotProvidedError extends Error {
+  constructor() {
+    super('Empty args');
+    this.message = 'Empty args';
+    this.name = 'CliAgrsNotProvidedError';
+  }
+}
+
 module.exports = {
   AuthenticationError: AuthenticationError,
   TransactionError: TransactionError,
@@ -114,6 +122,6 @@ module.exports = {
   FtpError: FtpError,
   EmailActivationSetupError: EmailActivationSetupError,
   InvalidArgumentError: InvalidArgumentError,
-  InvalidArgumentTypeError: InvalidArgumentTypeError
-
+  InvalidArgumentTypeError: InvalidArgumentTypeError,
+  CliAgrsNotProvidedError: CliAgrsNotProvidedError
 };

@@ -94,7 +94,7 @@ class Tunnel extends BaseCLIHandler {
           return this.help([constants.CMD_HELP])
       }
     } catch (error) {
-      this.handleCLIError(error);
+      this.handleCLIError(error, args.argv);
     }
   }
 }

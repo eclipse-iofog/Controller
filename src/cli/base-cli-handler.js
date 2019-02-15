@@ -16,6 +16,7 @@ const commandLineUsage = require('command-line-usage');
 const AppHelper = require('../helpers/app-helper');
 const Errors = require('../helpers/errors');
 const ErrorMessages = require('../helpers/error-messages');
+const constants = require('../helpers/constants');
 
 class CLIHandler {
   constructor() {
@@ -101,12 +102,15 @@ class CLIHandler {
     console.log(commandLineUsage(usage))
   }
 
-  handleCLIError(error) {
+  handleCLIError(error, args) {
     switch (error.name) {
       case "UNKNOWN_OPTION":
         console.log("Invalid argument '" + error.optionName.split('-').join('') + "'");
         break;
       case "UNKNOWN_VALUE":
+        if (this.commands[args[0]] && args[1] === 'help') {
+          return this.helpSome([args[0]]);
+        }
         console.log("Invalid value " + error.value);
         break;
       case "InvalidArgumentError":
@@ -118,14 +122,23 @@ class CLIHandler {
       case "ALREADY_SET":
         console.log("Parameter '" + error.optionName + "' is used multiple times");
         break;
+      case 'CliAgrsNotProvidedError':
+        if (this.commands[args[0]]) {
+          return this.helpSome([args[0]]);
+        }
+        break;
       default:
         console.log(JSON.stringify(error));
         break;
     }
   }
 
-  validateParameters(command, commandDefinitions, args) {
+  validateParameters(command, commandDefinitions, pArgs) {
     // 1st argument = command
+    let args = pArgs.slice();
+    if (args[0] === constants.CMD_HELP || args[0] === constants.CMD_LIST) {
+      return
+    }
     args.shift();
 
     const possibleAliasesList = _getPossibleAliasesList(command, commandDefinitions);
@@ -135,7 +148,7 @@ class CLIHandler {
     let currentArgName;
 
     if (args.length === 0) {
-      return
+      throw new Errors.CliAgrsNotProvidedError();
     }
     const argsMap = argsArrayAsMap(args);
 

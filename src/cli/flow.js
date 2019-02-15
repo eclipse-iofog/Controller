@@ -110,7 +110,7 @@ class Flow extends BaseCLIHandler {
           return this.help([constants.CMD_LIST])
       }
     } catch (error) {
-      this.handleCLIError(error);
+      this.handleCLIError(error, args.argv);
     }
   }
 

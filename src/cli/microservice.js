@@ -233,7 +233,7 @@ class Microservice extends BaseCLIHandler {
           return this.help()
       }
     } catch (error) {
-      this.handleCLIError(error);
+      this.handleCLIError(error, args.argv);
     }
   }
 
