@@ -163,22 +163,22 @@ function stringifyCliJsonSchema(json) {
 function handleCLIError(error) {
   switch (error.name) {
     case "UNKNOWN_OPTION":
-      console.log("Invalid argument '" + error.optionName.split('-').join('') + "'");
+      logger.error("Invalid argument '" + error.optionName.split('-').join('') + "'");
       break;
     case "UNKNOWN_VALUE":
-      console.log("Invalid value " + error.value);
+      logger.error("Invalid value " + error.value);
       break;
     case "InvalidArgumentError":
-      console.log(error.message);
+      logger.error(error.message);
       break;
     case "InvalidArgumentTypeError":
-      console.log(error.message);
+      logger.error(error.message);
       break;
     case "ALREADY_SET":
-      console.log("Parameter '" + error.optionName + "' is used multiple times");
+      logger.error("Parameter '" + error.optionName + "' is used multiple times");
       break;
     default:
-      console.log(JSON.stringify(error));
+      logger.error(JSON.stringify(error));
       break;
   }
 }

@@ -11,19 +11,16 @@
  *
  */
 
-const logger = require('../logger');
 const AuthDecorator = require('../decorators/authorization-decorator');
 const FogService = require('../services/iofog-service');
 const qs = require('qs');
 
 async function createFogEndPoint(req, user) {
-  logger.info("Parameters:" + JSON.stringify(req.body));
   const newFog = req.body;
   return await FogService.createFog(newFog, user, false)
 }
 
 async function updateFogEndPoint(req, user) {
-  logger.info("Parameters:" + JSON.stringify(req.body));
   const updateFog = req.body;
   updateFog.uuid = req.params.uuid;
   return await FogService.updateFog(updateFog, user, false)
@@ -45,7 +42,6 @@ async function getFogEndPoint(req, user) {
 }
 
 async function getFogListEndPoint(req, user) {
-  logger.info("Parameters:" + JSON.stringify(req.query));
   const query = qs.parse(req.query);
   return await FogService.getFogList(query.filters, user, false)
 }
@@ -79,9 +75,6 @@ async function getHalHardwareInfoEndPoint(req, user) {
   const uuidObj = {
     uuid: req.params.uuid
   };
-
-  logger.info("Parameters" + JSON.stringify(uuidObj));
-
   return await FogService.getHalHardwareInfo(uuidObj, user, false);
 }
 
@@ -89,9 +82,6 @@ async function getHalUsbInfoEndPoint(req, user) {
   const uuidObj = {
     uuid: req.params.uuid
   };
-
-  logger.info("Parameters" + JSON.stringify(uuidObj));
-
   return await FogService.getHalUsbInfo(uuidObj, user, false);
 }
 

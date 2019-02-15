@@ -127,37 +127,41 @@ async function _executeCase(commands, commandName, f, isUserRequired) {
 
 async function _createConnector(obj) {
   const connector = _createConnectorObject(obj);
+  logger.cliReq('connector add', {args: connector});
   try {
     await ConnectorService.createConnector(connector);
-    logger.info('Connector has been created successfully.');
+    logger.cliRes('Connector has been created successfully.');
   } catch (e) {
-    logger.info(e.message)
+    logger.error(e.message)
   }
 }
 
 async function _updateConnector(obj) {
   const connector = _createConnectorObject(obj);
+  logger.cliReq('connector update', {args: connector});
   try {
     await ConnectorService.updateConnector(connector);
-    logger.info('Connector has been updated successfully.');
+    logger.cliRes('Connector has been updated successfully.');
   } catch (e) {
-    logger.info(e.message)
+    logger.error(e.message)
   }
 }
 
 async function _deleteConnector(obj) {
   const connector = _createConnectorObject(obj);
+  logger.cliReq('connector remove', {args: connector});
   try {
     await ConnectorService.deleteConnector(connector);
-    logger.info('Connector has been removed successfully.');
+    logger.cliRes('Connector has been removed successfully.');
   } catch (e) {
-    logger.info(e.message)
+    logger.error(e.message)
   }
 }
 
 async function _getConnectorList() {
+  logger.cliReq('connector list');
   const list = await ConnectorService.getConnectorList();
-  logger.info(JSON.stringify(list, null, 2));
+  logger.cliRes(JSON.stringify(list, null, 2));
 }
 
 function _createConnectorObject(cliData) {

@@ -14,12 +14,15 @@ const constants = require('../helpers/constants');
 const FogController = require('../controllers/iofog-controller');
 const ResponseDecorator = require('../decorators/response-decorator');
 const Errors = require('../helpers/errors');
+const logger = require('../logger');
 
 module.exports = [
   {
     method: 'get',
     path: '/api/v3/iofog-list',
     middleware: async (req, res) => {
+      logger.apiReq(req);
+
       const successCode = constants.HTTP_CODE_SUCCESS;
       const errCodes = [
         {
@@ -37,13 +40,17 @@ module.exports = [
 
       res
         .status(responseObject.code)
-        .send(responseObject.body)
+        .send(responseObject.body);
+
+      logger.apiRes({req: req, res: responseObject});
     }
   },
   {
     method: 'post',
     path: '/api/v3/iofog',
     middleware: async (req, res) => {
+      logger.apiReq(req);
+
       const successCode = constants.HTTP_CODE_CREATED;
       const errCodes = [
         {
@@ -61,13 +68,17 @@ module.exports = [
 
       res
         .status(responseObject.code)
-        .send(responseObject.body)
+        .send(responseObject.body);
+
+      logger.apiRes({req: req, res: responseObject});
     }
   },
   {
     method: 'patch',
     path: '/api/v3/iofog/:uuid',
     middleware: async (req, res) => {
+      logger.apiReq(req);
+
       const successCode = constants.HTTP_CODE_NO_CONTENT;
       const errCodes = [
         {
@@ -89,13 +100,17 @@ module.exports = [
 
       res
         .status(responseObject.code)
-        .send(responseObject.body)
+        .send(responseObject.body);
+
+      logger.apiRes({req: req, res: responseObject});
     }
   },
   {
     method: 'delete',
     path: '/api/v3/iofog/:uuid',
     middleware: async (req, res) => {
+      logger.apiReq(req);
+
       const successCode = constants.HTTP_CODE_ACCEPTED;
       const errCodes = [
         {
@@ -113,13 +128,17 @@ module.exports = [
 
       res
         .status(responseObject.code)
-        .send(responseObject.body)
+        .send(responseObject.body);
+
+      logger.apiRes({req: req, res: responseObject});
     }
   },
   {
     method: 'get',
     path: '/api/v3/iofog/:uuid',
     middleware: async (req, res) => {
+      logger.apiReq(req);
+
       const successCode = constants.HTTP_CODE_SUCCESS;
       const errCodes = [
         {
@@ -137,13 +156,17 @@ module.exports = [
 
       res
         .status(responseObject.code)
-        .send(responseObject.body)
+        .send(responseObject.body);
+
+      logger.apiRes({req: req, res: responseObject});
     }
   },
   {
     method: 'get',
     path: '/api/v3/iofog/:uuid/provisioning-key',
     middleware: async (req, res) => {
+      logger.apiReq(req);
+
       const successCode = constants.HTTP_CODE_CREATED;
       const errCodes = [
         {
@@ -161,13 +184,17 @@ module.exports = [
 
       res
         .status(responseObject.code)
-        .send(responseObject.body)
+        .send(responseObject.body);
+
+      logger.apiRes({req: req, res: responseObject});
     }
   },
   {
     method: 'post',
     path: '/api/v3/iofog/:uuid/version/:versionCommand',
     middleware: async (req, res) => {
+      logger.apiReq(req);
+
       const successCode = constants.HTTP_CODE_NO_CONTENT;
       const errCodes = [
         {
@@ -189,13 +216,17 @@ module.exports = [
 
       res
         .status(responseObject.code)
-        .send(responseObject.body)
+        .send(responseObject.body);
+
+      logger.apiRes({req: req, res: responseObject});
     }
   },
   {
     method: 'post',
     path: '/api/v3/iofog/:uuid/reboot',
     middleware: async (req, res) => {
+      logger.apiReq(req);
+
       const successCode = constants.HTTP_CODE_NO_CONTENT;
       const errCodes = [
         {
@@ -218,13 +249,17 @@ module.exports = [
 
       res
         .status(responseObject.code)
-        .send(responseObject.body)
+        .send(responseObject.body);
+
+      logger.apiRes({req: req, res: responseObject});
     }
   },
   {
     method: 'get',
     path: '/api/v3/iofog/:uuid/hal/hw',
     middleware: async (req, res) => {
+      logger.apiReq(req);
+
       const successCode = constants.HTTP_CODE_SUCCESS;
       const errCodes = [
         {
@@ -242,13 +277,17 @@ module.exports = [
 
       res
         .status(responseObject.code)
-        .send(responseObject.body)
+        .send(responseObject.body);
+
+      logger.apiRes({req: req, res: responseObject});
     }
   },
   {
     method: 'get',
     path: '/api/v3/iofog/:uuid/hal/usb',
     middleware: async (req, res) => {
+      logger.apiReq(req);
+
       const successCode = constants.HTTP_CODE_SUCCESS;
       const errCodes = [
         {
@@ -266,7 +305,9 @@ module.exports = [
 
       res
         .status(responseObject.code)
-        .send(responseObject.body)
+        .send(responseObject.body);
+
+      logger.apiRes({req: req, res: responseObject});
     }
   }
 ];

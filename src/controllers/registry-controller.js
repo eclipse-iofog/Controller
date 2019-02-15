@@ -11,12 +11,10 @@
  *
  */
 
-const logger = require('../logger');
 const AuthDecorator = require('../decorators/authorization-decorator');
 const RegistryService = require('../services/registry-service');
 
 const createRegistryEndPoint = async function (req, user) {
-  logger.info("Parameters:" + JSON.stringify(req.body));
   const registry = req.body;
   return await RegistryService.createRegistry(registry, user);
 };
@@ -35,10 +33,6 @@ const deleteRegistryEndPoint = async function (req, user) {
 const updateRegistryEndPoint = async function (req, user) {
   const registry = req.body;
   const registryId = req.params.id;
-
-  logger.info("Parameters:" + JSON.stringify(registry));
-  logger.info("Registry id:" + JSON.stringify(registryId));
-
   return await RegistryService.updateRegistry(registry, registryId, user, false)
 };
 

@@ -36,7 +36,7 @@ async function sendTracking() {
   try {
     Tracking.sendEvents(events);
   } catch (e) {
-    //TODO log only in file. add after logging will fixed
+    logger.silly(`tracking sending failed with error ${e.message}`);
   }
 }
 

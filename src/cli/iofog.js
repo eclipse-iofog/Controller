@@ -289,8 +289,9 @@ async function _createFog(obj, user) {
     ? JSON.parse(fs.readFileSync(obj.file, 'utf8'))
     : _createFogObject(obj);
 
+  logger.cliReq('fog add', {args: fog});
   const result = await FogService.createFog(fog, user, true);
-  logger.info(JSON.stringify({
+  logger.cliRes(JSON.stringify({
     uuid: result.uuid
   }, null, 2));
 }
@@ -302,38 +303,44 @@ async function _updateFog(obj, user) {
 
   fog.uuid = obj.iofogUuid;
 
+  logger.cliReq('fog update', {args: fog});
   await FogService.updateFog(fog, user, true);
-  logger.info('ioFog node has been updated successfully.');
+  logger.cliRes('ioFog node has been updated successfully.');
 }
 
 async function _deleteFog(obj, user) {
   const fog = _createFogObject(obj);
+  logger.cliReq('fog remove', {args: fog});
   await FogService.deleteFog(fog, user, true);
-  logger.info('ioFog node has been removed successfully');
+  logger.cliRes('ioFog node has been removed successfully');
 }
 
 async function _getFogList(obj, user) {
+  logger.cliReq('fog list');
   const emptyFilters = [];
   const list = await FogService.getFogList(emptyFilters, user, true);
-  logger.info(JSON.stringify(list, null, 2));
+  logger.cliRes(JSON.stringify(list, null, 2));
 }
 
 async function _getFog(obj, user) {
   const fog = _createFogObject(obj);
+  logger.cliReq('fog info', {args: fog});
   const res = await FogService.getFogWithTransaction(fog, user, true);
-  logger.info(JSON.stringify(res, null, 2));
+  logger.cliRes(JSON.stringify(res, null, 2));
 }
 
 async function _generateProvision(obj, user) {
   const fog = _createFogObject(obj);
+  logger.cliReq('fog provisioning-key', {args: fog});
   const response = await FogService.generateProvisioningKey(fog, user, true);
-  logger.info(JSON.stringify(response), null, 2);
+  logger.cliRes(JSON.stringify(response), null, 2);
 }
 
 async function _setFogRebootCommand(obj, user) {
   const fog = _createFogObject(obj);
+  logger.cliReq('fog reboot', {args: fog});
   await FogService.setFogRebootCommand(fog, user, true);
-  logger.info('ioFog reboot command has been set successfully');
+  logger.cliRes('ioFog reboot command has been set successfully');
 }
 
 async function _setFogVersionCommand(obj, user) {
@@ -341,22 +348,23 @@ async function _setFogVersionCommand(obj, user) {
     uuid: obj.iofogUuid,
     versionCommand: obj.versionCommand
   };
+  logger.cliReq('fog version', {args: fog});
   await FogService.setFogVersionCommand(fog, user, true);
-  logger.info('ioFog version command has been set successfully');
+  logger.cliRes('ioFog version command has been set successfully');
 }
 
 async function _getHalHardwareInfo(obj) {
   const uuidObj = {
     uuid: obj.iofogUuid
   };
-
+  logger.cliReq('fog hal-hw', {args: uuidObj});
   const data = await FogService.getHalHardwareInfo(uuidObj, {}, true);
   if (data) {
     if (data.hasOwnProperty('info')) {
       data.info = JSON.parse(data.info);
     }
     
-    logger.info(JSON.stringify(data, null, 2));
+    logger.cliRes(JSON.stringify(data, null, 2));
   }
 
 }
@@ -365,14 +373,14 @@ async function _getHalUsbInfo(obj) {
   const uuidObj = {
     uuid: obj.iofogUuid
   };
-
+  logger.cliReq('fog hal-usb', {args: uuidObj});
   const data = await FogService.getHalUsbInfo(uuidObj, {}, true);
   if (data) {
     if (data.hasOwnProperty('info')) {
       data.info = JSON.parse(data.info);
     }
 
-    logger.info(JSON.stringify(data, null, 2));
+    logger.cliRes(JSON.stringify(data, null, 2));
   }
 }
 
