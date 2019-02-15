@@ -104,7 +104,7 @@ function sendEvents(events) {
 
 function getUniqueTrackingUuid() {
   let uuid;
-  debugger
+
   try {
     let allMacs = '';
     const interfaces = os.networkInterfaces();
