@@ -104,20 +104,21 @@ function sendEvents(events) {
 
 function getUniqueTrackingUuid() {
   let uuid;
+  debugger
   try {
     let allMacs = '';
     const interfaces = os.networkInterfaces();
     for (const i in interfaces) {
-      const networkInterface = interfaces[i];
-      if (networkInterface.internal) {
+      let networkInterface = interfaces[i];
+      if (Array.isArray(networkInterface)) {
+        networkInterface = networkInterface.length > 0 ? networkInterface[0] : null;
+      }
+
+      if (!networkInterface || networkInterface.internal) {
         continue;
       }
 
-      if (!Array.isArray(networkInterface)) {
-        allMacs += networkInterface.mac + '-';
-      } else if (networkInterface.length > 0) {
-        allMacs += networkInterface[0].mac + '-';
-      }
+      allMacs += networkInterface.mac + '-';
     }
     uuid = crypto.createHash('md5').update(allMacs).digest("hex");
   } catch (e) {
