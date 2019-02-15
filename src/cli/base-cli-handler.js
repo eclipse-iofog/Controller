@@ -136,13 +136,13 @@ class CLIHandler {
   validateParameters(command, commandDefinitions, pArgs) {
     // 1st argument = command
     let args = pArgs.slice();
-    if (args[0] === constants.CMD_HELP || args[0] === constants.CMD_LIST) {
-      return
-    }
     args.shift();
 
     const possibleAliasesList = _getPossibleAliasesList(command, commandDefinitions);
     const possibleArgsList = _getPossibleArgsList(command, commandDefinitions);
+    if (possibleAliasesList.length === 0 && possibleArgsList.length === 0) {
+      return
+    }
 
     let expectedValueType;
     let currentArgName;
