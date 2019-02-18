@@ -81,7 +81,7 @@ class Tunnel extends BaseCLIHandler {
 
       const command = tunnelCommand.command.command;
 
-      AppHelper.validateParameters(command, this.commandDefinitions, args.argv);
+      this.validateParameters(command, this.commandDefinitions, args.argv);
 
       switch (command) {
         case constants.CMD_UPDATE:
@@ -94,7 +94,7 @@ class Tunnel extends BaseCLIHandler {
           return this.help([constants.CMD_HELP])
       }
     } catch (error) {
-      AppHelper.handleCLIError(error);
+      this.handleCLIError(error, args.argv);
     }
   }
 }

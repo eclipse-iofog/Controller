@@ -101,7 +101,7 @@ class Config extends BaseCLIHandler {
 
       const command = configCommand.command.command;
 
-      AppHelper.validateParameters(command, this.commandDefinitions, args.argv);
+      this.validateParameters(command, this.commandDefinitions, args.argv);
 
       switch (command) {
         case constants.CMD_ADD:
@@ -121,7 +121,7 @@ class Config extends BaseCLIHandler {
           return this.help([], true, false)
       }
     } catch (error) {
-      AppHelper.handleCLIError(error);
+      this.handleCLIError(error, args.argv);
     }
   }
 }

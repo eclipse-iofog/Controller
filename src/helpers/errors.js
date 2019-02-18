@@ -103,6 +103,14 @@ class InvalidArgumentTypeError extends Error {
   }
 }
 
+class CLIArgsNotProvidedError extends Error {
+  constructor() {
+    super('Empty args');
+    this.message = 'Empty args';
+    this.name = 'CLIArgsNotProvidedError';
+  }
+}
+
 module.exports = {
   AuthenticationError: AuthenticationError,
   TransactionError: TransactionError,
@@ -114,6 +122,6 @@ module.exports = {
   FtpError: FtpError,
   EmailActivationSetupError: EmailActivationSetupError,
   InvalidArgumentError: InvalidArgumentError,
-  InvalidArgumentTypeError: InvalidArgumentTypeError
-
+  InvalidArgumentTypeError: InvalidArgumentTypeError,
+  CLIArgsNotProvidedError: CLIArgsNotProvidedError
 };

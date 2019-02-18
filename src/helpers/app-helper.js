@@ -160,178 +160,10 @@ function stringifyCliJsonSchema(json) {
     .replace(/}/g, "\\}");
 }
 
-function handleCLIError(error) {
-  switch (error.name) {
-    case "UNKNOWN_OPTION":
-      logger.error("Invalid argument '" + error.optionName.split('-').join('') + "'");
-      break;
-    case "UNKNOWN_VALUE":
-      logger.error("Invalid value " + error.value);
-      break;
-    case "InvalidArgumentError":
-      logger.error(error.message);
-      break;
-    case "InvalidArgumentTypeError":
-      logger.error(error.message);
-      break;
-    case "ALREADY_SET":
-      logger.error("Parameter '" + error.optionName + "' is used multiple times");
-      break;
-    default:
-      logger.error(JSON.stringify(error));
-      break;
-  }
-}
-
 function trimCertificate(cert) {
   let result = cert.replace(/(^[\s\S]*-{3,}BEGIN CERTIFICATE-{3,}[\s]*)/, "");
   result = result.replace(/([\s]*-{3,}END CERTIFICATE-{3,}[\s\S]*$)/, "");
   return result;
-}
-
-function argsArrayAsMap(args) {
-  let argsVars = args.join(' ').split(/(?= -{1,2}[^-]+)/);
-  const argsMap = new Map();
-  argsVars
-    .map(pair => pair.trim())
-    .map(pair => {
-      const spaceIndex = pair.indexOf(' ');
-      let key, values;
-      if (spaceIndex !== -1) {
-        key = pair.substr(0, pair.indexOf(' '));
-        values = pair.substr(pair.indexOf(' ')+1).split(' ');
-        argsMap.set(key, values);
-      } else {
-        key = pair;
-        values = [];
-      }
-      argsMap.set(key, values);
-
-    });
-  return argsMap;
-}
-
-function validateParameters(command, commandDefinitions, args) {
-  // 1st argument = command
-  args.shift();
-
-  const possibleAliasesList = _getPossibleAliasesList(command, commandDefinitions);
-  const possibleArgsList = _getPossibleArgsList(command, commandDefinitions);
-
-  let expectedValueType;
-  let currentArgName;
-
-  if (args.length === 0) {
-    return
-  }
-  const argsMap = argsArrayAsMap(args);
-
-  argsMap.forEach((values, key) => {
-    if (key.startsWith("--")) { // argument
-      // '--ssl-cert' format -> 'ssl-cert' format
-      const argument = key.substr(2);
-      _validateArg(argument, possibleArgsList);
-      currentArgName = argument;
-      expectedValueType = _getValType(argument, commandDefinitions);
-    } else if (key.startsWith("-")) { // alias
-      // '-q' format -> 'q' format
-      const alias = key.substr(1);
-      _validateArg(alias, possibleAliasesList);
-      currentArgName = alias;
-      expectedValueType = _getValType(alias, commandDefinitions);
-    }
-
-    let valType;
-    if (values.length === 0) {
-      valType = 'boolean';
-    } else if (values.length === 1) {
-      const firstVal = Number(values[0]);
-      if (Number.isNaN(firstVal.valueOf())) {
-        valType = 'string';
-      } else if (Number.isInteger(firstVal.valueOf())) {
-        valType = 'integer';
-      } else {
-        valType = 'float'
-      }
-    }
-    //TODO else validate multiply parameters. Add after multiply parameters will be used in cli api
-
-    let isValidType = true;
-    if (expectedValueType === 'string' && valType === 'boolean') {
-      isValidType = false;
-    } else if ((expectedValueType === 'float' || expectedValueType === 'number')
-      && (valType !== 'float' && valType !== 'number' && valType !== 'integer')) {
-      isValidType = false;
-    } else if (expectedValueType === 'integer' && valType !== 'integer') {
-      isValidType = false;
-    } else if (expectedValueType === 'boolean' && valType !== 'boolean') {
-      isValidType = false;
-    }
-
-    if (!isValidType) {
-      throw new Errors.InvalidArgumentTypeError(formatMessage(ErrorMessages.INVALID_CLI_ARGUMENT_TYPE, currentArgName, expectedValueType));
-    }
-  })
-}
-
-function _validateArg(arg, aliasesList) {
-  const valid = aliasesList.includes(arg);
-  if (!valid) {
-    throw new Errors.InvalidArgumentError("Invalid argument '" + arg + "'");
-  }
-}
-
-
-function _getPossibleAliasesList(command, commandDefinitions) {
-  const possibleAliasesList = [];
-
-  for (const definition of commandDefinitions) {
-    const group = definition.group;
-    const isGroupArray = group.constructor === Array;
-    if (isGroupArray) {
-      for (const gr of group) {
-        if (gr === command) {
-          possibleAliasesList.push(definition.alias);
-          break;
-        }
-      }
-    } else {
-      if (group === command) {
-        possibleAliasesList.push(definition.alias);
-      }
-    }
-  }
-
-  return possibleAliasesList;
-}
-
-function _getPossibleArgsList(command, commandDefinitions) {
-  const possibleArgsList = [];
-
-  for (const definition of commandDefinitions) {
-    const group = definition.group;
-    const isGroupArray = group.constructor === Array;
-    if (isGroupArray) {
-      for (const gr of group) {
-        if (gr === command) {
-          possibleArgsList.push(definition.name);
-          break;
-        }
-      }
-    } else {
-      if (group === command) {
-        possibleArgsList.push(definition.name);
-      }
-    }
-  }
-
-  return possibleArgsList;
-}
-
-function _getValType(arg, commandDefinitions) {
-  const command = commandDefinitions
-    .filter(def => def.name === arg || def.alias === arg)[0];
-  return command.type.name.toLowerCase();
 }
 
 function isTest() {
@@ -369,9 +201,7 @@ module.exports = {
   findAvailablePort,
   stringifyCliJsonSchema,
   isValidPublicIP,
-  handleCLIError,
   trimCertificate,
-  validateParameters,
   isTest,
   isEmpty,
   isOnline

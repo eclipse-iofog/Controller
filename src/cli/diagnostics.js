@@ -83,7 +83,7 @@ class Diagnostics extends BaseCLIHandler {
 
       const command = diagnosticCommand.command.command;
 
-      AppHelper.validateParameters(command, this.commandDefinitions, args.argv);
+      this.validateParameters(command, this.commandDefinitions, args.argv);
 
       switch (command) {
         case constants.CMD_STRACE_UPDATE:
@@ -106,7 +106,7 @@ class Diagnostics extends BaseCLIHandler {
           return this.help([constants.CMD_LIST])
       }
     } catch (error) {
-      AppHelper.handleCLIError(error);
+      this.handleCLIError(error, args.argv);
     }
   }
 }

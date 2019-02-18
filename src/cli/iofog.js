@@ -215,7 +215,7 @@ class IOFog extends BaseCLIHandler {
 
       const command = iofogCommand.command.command;
 
-      AppHelper.validateParameters(command, this.commandDefinitions, args.argv);
+      this.validateParameters(command, this.commandDefinitions, args.argv);
 
       switch (command) {
         case constants.CMD_ADD:
@@ -253,12 +253,12 @@ class IOFog extends BaseCLIHandler {
           return this.help()
       }
     } catch (error) {
-      AppHelper.handleCLIError(error);
+      this.handleCLIError(error, args.argv);
     }
   }
 
   help() {
-    super.help([constants.CMD_LIST], true, true, [
+    super.help([], true, true, [
       {
         header: 'JSON File Schema',
         content: [

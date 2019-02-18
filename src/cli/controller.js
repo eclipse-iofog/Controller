@@ -46,7 +46,7 @@ class Controller extends BaseCLIHandler {
 
       const command = controllerCommand.command.command;
 
-      AppHelper.validateParameters(command, this.commandDefinitions, args.argv);
+      this.validateParameters(command, this.commandDefinitions, args.argv);
 
       switch (command) {
         case constants.CMD_STATUS:
@@ -66,7 +66,7 @@ class Controller extends BaseCLIHandler {
           return this.help([constants.CMD_LIST])
       }
     } catch (error) {
-      AppHelper.handleCLIError(error);
+      this.handleCLIError(error, args.argv);
     }
   }
 

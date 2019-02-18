@@ -354,25 +354,6 @@ describe('App Helpers', () => {
 
   });
 
-  describe('.handleCLIError()', () => {
-    def('error', () => ({
-      id: 15,
-      name: 'UNKNOWN_OPTION',
-      optionName: 'testOption',
-      value: 'testValue',
-      message: 'Test error occurred'
-    }));
-    def('errorMessage', () => "Unknown parameter " + $error.optionName);
-    def('subject', () => $subject.handleCLIError($error));
-
-    context('when error received', () => {
-      it('displays error message', () => {
-        expect($subject).to.be.equal(undefined);
-      })
-    });
-
-  });
-
   describe('.trimCertificate()', () => {
     def('certificate', () => '-----BEGIN CERTIFICATE-----\n' +
       'testttt' +
