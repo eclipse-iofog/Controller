@@ -11,30 +11,45 @@
  *
  */
 
+const moment = require('moment');
+
 const BaseJobHandler = require('./base/base-job-handler');
+const FogAccessTokenService = require('../services/iofog-access-token-service');
+const logger = require('../logger');
 const Tracking = require('../tracking');
 const TrackingEventType = require('../enums/tracking-event-type');
+const TransactionDecorator = require('../decorators/transaction-decorator');
+
+
+const INTERVAL_MIN = 5;
 
 class TimeTrackingJob extends BaseJobHandler {
 
   constructor() {
     super();
-    this.scheduleTime = intervalMin * 60 * 1000;
+    this.scheduleTime = INTERVAL_MIN * 60 * 1000;
+    this.startTime = moment.now();
   }
 
   run() {
-    setInterval(trackTime, this.scheduleTime);
+    setTimeout(this.trackTime, this.scheduleTime);
   }
-}
 
-let iteration = 0;
-const intervalMin = 5;
+  async trackTime() {
+    let agentsCount = 0
+    try {
+      const agents = await TransactionDecorator.generateFakeTransaction(FogAccessTokenService.all)();
+      agentsCount = (agents || []).length;
+    } catch (e) {
+      logger.warn('Unable to count ioFog agents')
+    }
 
-async function trackTime() {
-  iteration++;
-  const runningTime = iteration * intervalMin;
-  const event = Tracking.buildEvent(TrackingEventType.RUNNING_TIME, runningTime,);
-  await Tracking.processEvent(event);
+    const runningTime = moment().diff(this.startTime, 'minutes');
+    const event = Tracking.buildEvent(TrackingEventType.RUNNING_TIME, { runningTime, agentsCount });
+    await Tracking.processEvent(event);
+
+    setTimeout(this.trackTime, this.scheduleTime);
+  }
 }
 
 module.exports = new TimeTrackingJob();

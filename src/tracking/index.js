@@ -52,7 +52,10 @@ function buildEvent(eventType, res, args, functionName) {
       eventInfo.data = {event: 'user created'};
       break;
     case EventTypes.RUNNING_TIME:
-      eventInfo.data = {event: `${res} min`};
+      eventInfo.data = {
+        event: `${res.runningTime} min`,
+        agentsCount: res.agentsCount,
+      };
       break;
     case EventTypes.IOFOG_CREATED:
       eventInfo.data = {event: 'iofog agent created'};
@@ -101,13 +104,21 @@ function sendEvents(events) {
 
 function getUniqueTrackingUuid() {
   let uuid;
+
   try {
     let allMacs = '';
     const interfaces = os.networkInterfaces();
     for (const i in interfaces) {
-      if (!i.internal) {
-        allMacs += i.mac + '-'
+      let networkInterface = interfaces[i];
+      if (Array.isArray(networkInterface)) {
+        networkInterface = networkInterface.length > 0 ? networkInterface[0] : null;
       }
+
+      if (!networkInterface || networkInterface.internal) {
+        continue;
+      }
+
+      allMacs += networkInterface.mac + '-';
     }
     uuid = crypto.createHash('md5').update(allMacs).digest("hex");
   } catch (e) {

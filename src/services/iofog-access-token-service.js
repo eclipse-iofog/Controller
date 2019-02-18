@@ -42,7 +42,12 @@ async function updateAccessToken(fogUuid, newAccessToken, transaction) {
   }, transaction);
 }
 
+async function all(transaction) {
+  return FogAccessTokenManager.findAll(null, transaction);
+}
+
 module.exports = {
-  generateAccessToken: generateAccessToken,
-  updateAccessToken: updateAccessToken
+  generateAccessToken,
+  updateAccessToken,
+  all,
 };
