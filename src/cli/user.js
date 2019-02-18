@@ -126,48 +126,54 @@ const _executeCase = async function (userCommand, commandName, f, isUserRequired
 };
 
 const _createUser = async function (user) {
+  logger.cliReq('user add', {args: user});
   await Validator.validate(user, Validator.schemas.signUp);
 
   user.password = AppHelper.encryptText(user.password, user.email);
 
   const response = await UserService.signUp(user, true);
-  logger.info(JSON.stringify({
+  logger.cliRes(JSON.stringify({
     id: response.userId
   }), null, 2)
 };
 
 const _updateUserDetails = async function (userDetails, user) {
+  logger.cliReq('user update', {args: userDetails});
   await UserService.updateUserDetails(user, userDetails, true);
-  logger.info('User updated successfully.');
+  logger.cliRes('User updated successfully.');
 };
 
 const _deleteUser = async function (obj, user) {
+  logger.cliReq('user remove', {args: {user: user.dataValues, force: obj.force}});
   await UserService.deleteUser(obj.force, user, true);
-  logger.info('User removed successfully.');
+  logger.cliRes('User removed successfully.');
 };
 
 const _getAllUsers = async function () {
+  logger.cliReq('user list');
   const users = await UserService.list(true);
-  logger.info(JSON.stringify(users, null, 2));
+  logger.cliRes(JSON.stringify(users, null, 2));
 };
 
 const _generateToken = async function (emailObj, user) {
+  logger.cliReq('user generate-token', {args: user.dataValues});
   const response = await UserService.login(user, true);
-  logger.info(JSON.stringify(response, null, 2));
+  logger.cliRes(JSON.stringify(response, null, 2));
 };
 
 const _activateUser = async function (emailObj, user) {
   const codeData = {
     userId: user.id
   };
-
+  logger.cliReq('user activate', {args: codeData});
   await UserService.activateUser(codeData, true);
-  logger.info('User activated successfully.');
+  logger.cliRes('User activated successfully.');
 };
 
 const _suspendUser = async function (emailObj, user) {
+  logger.cliReq('user suspend', {args: user.dataValues});
   await UserService.suspendUser(user, true);
-  logger.info('User suspended successfully.');
+  logger.cliRes('User suspended successfully.');
 };
 
 

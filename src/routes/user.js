@@ -17,12 +17,15 @@ const ResponseDecorator = require('../decorators/response-decorator');
 const Errors = require('../helpers/errors');
 
 const Config = require('../config');
+const logger = require('../logger');
 
 module.exports = [
   {
     method: 'post',
     path: '/api/v3/user/login',
     middleware: async (req, res) => {
+      logger.apiReq('POST /api/v3/user/login'); //don't use req as arg, because password not encrypted
+
       const successCode = constants.HTTP_CODE_SUCCESS;
       const errorCodes = [
         {
@@ -40,13 +43,16 @@ module.exports = [
 
       res
         .status(responseObject.code)
-        .send(responseObject.body)
+        .send(responseObject.body);
+
+      logger.apiRes('POST /api/v3/user/login', {args: {statusCode: responseObject.code}}); //don't use req and responseObject as args, because they have password and token
     }
   },
   {
     method: 'post',
     path: '/api/v3/user/logout',
     middleware: async (req, res) => {
+      logger.apiReq(req);
 
       const successCode = constants.HTTP_CODE_NO_CONTENT;
       const errorCodes = [
@@ -68,6 +74,7 @@ module.exports = [
     method: 'post',
     path: '/api/v3/user/signup',
     middleware: async (req, res) => {
+      logger.apiReq('POST /api/v3/user/signup'); //don't use req as arg, because password not encrypted
 
       const successCode = constants.HTTP_CODE_CREATED;
       const errorCodes = [
@@ -82,13 +89,16 @@ module.exports = [
 
       res
         .status(responseObject.code)
-        .send(responseObject.body)
+        .send(responseObject.body);
+
+      logger.apiRes({req: req, res: responseObject});
     }
   },
   {
     method: 'get',
     path: '/api/v3/user/signup/resend-activation',
     middleware: async (req, res) => {
+      logger.apiReq(req);
 
       const successCode = constants.HTTP_CODE_NO_CONTENT;
       const errorCodes = [
@@ -103,13 +113,16 @@ module.exports = [
 
       res
         .status(responseObject.code)
-        .send(responseObject.body)
+        .send(responseObject.body);
+
+      logger.apiRes({req: req, res: responseObject});
     }
   },
   {
     method: 'post',
     path: '/api/v3/user/activate',
     middleware: async (req, res) => {
+      logger.apiReq(req);
 
       const successCode = constants.HTTP_CODE_SEE_OTHER;
       const errorCodes = [
@@ -130,13 +143,16 @@ module.exports = [
 
       res
         .status(responseObject.code)
-        .send(responseObject.body)
+        .send(responseObject.body);
+
+      logger.apiRes({req: req, res: responseObject});
     }
   },
   {
     method: 'get',
     path: '/api/v3/user/profile',
     middleware: async (req, res) => {
+      logger.apiReq(req);
 
       const successCode = constants.HTTP_CODE_SUCCESS;
       const errorCodes = [
@@ -151,13 +167,16 @@ module.exports = [
 
       res
         .status(responseObject.code)
-        .send(responseObject.body)
+        .send(responseObject.body);
+
+      logger.apiRes({req: req, res: responseObject});
     }
   },
   {
     method: 'patch',
     path: '/api/v3/user/profile',
     middleware: async (req, res) => {
+      logger.apiReq(req);
 
       const successCode = constants.HTTP_CODE_SUCCESS;
       const errorCodes = [
@@ -176,13 +195,16 @@ module.exports = [
 
       res
         .status(responseObject.code)
-        .send(responseObject.body)
+        .send(responseObject.body);
+
+      logger.apiRes({req: req, res: responseObject});
     }
   },
   {
     method: 'delete',
     path: '/api/v3/user/profile',
     middleware: async (req, res) => {
+      logger.apiReq(req);
 
       const successCode = constants.HTTP_CODE_NO_CONTENT;
       const errorCodes = [
@@ -197,13 +219,16 @@ module.exports = [
 
       res
         .status(responseObject.code)
-        .send(responseObject.body)
+        .send(responseObject.body);
+
+      logger.apiRes({req: req, res: responseObject});
     }
   },
   {
     method: 'patch',
     path: '/api/v3/user/password',
     middleware: async (req, res) => {
+      logger.apiReq(req);
 
       const successCode = constants.HTTP_CODE_NO_CONTENT;
       const errorCodes = [
@@ -222,13 +247,16 @@ module.exports = [
 
       res
         .status(responseObject.code)
-        .send(responseObject.body)
+        .send(responseObject.body);
+
+      logger.apiRes({req: req, res: responseObject});
     }
   },
   {
     method: 'delete',
     path: '/api/v3/user/password',
     middleware: async (req, res) => {
+      logger.apiReq(req);
 
       const successCode = constants.HTTP_CODE_NO_CONTENT;
       const errorCodes = [
@@ -243,7 +271,9 @@ module.exports = [
 
       res
         .status(responseObject.code)
-        .send(responseObject.body)
+        .send(responseObject.body);
+
+      logger.apiRes({req: req, res: responseObject});
     }
   }
 ];

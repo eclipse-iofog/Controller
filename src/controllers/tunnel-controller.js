@@ -11,14 +11,12 @@
  *
  */
 
-const logger = require('../logger');
 const AuthDecorator = require('../decorators/authorization-decorator');
 const TunnelService = require('../services/tunnel-service');
 const Errors = require('../helpers/errors');
 const ErrorMessages = require('../helpers/error-messages');
 
 const manageTunnelEndPoint = async function (req, user) {
-  logger.info("Parameters:" + JSON.stringify(req.body));
   const action = req.body.action;
   const tunnelData = {
     iofogUuid: req.params.id
@@ -37,7 +35,6 @@ const manageTunnelEndPoint = async function (req, user) {
 };
 
 const getTunnelEndPoint = async function (req, user) {
-  logger.info("Parameters:" + JSON.stringify(req.body));
   const tunnelData = {
     iofogUuid: req.params.id
   };

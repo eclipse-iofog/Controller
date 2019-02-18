@@ -16,12 +16,15 @@ const AgentController = require('../controllers/agent-controller');
 const ResponseDecorator = require('../decorators/response-decorator');
 
 const Errors = require('../helpers/errors');
+const logger = require('../logger');
 
 module.exports = [
   {
     method: 'post',
     path: '/api/v3/agent/provision',
     middleware: async (req, res) => {
+      logger.apiReq(req);
+
       const successCode = constants.HTTP_CODE_SUCCESS;
       const errorCodes = [
         {
@@ -43,13 +46,17 @@ module.exports = [
 
       res
         .status(responseObject.code)
-        .send(responseObject.body)
+        .send(responseObject.body);
+
+      logger.apiRes({req: req, res: responseObject});
     }
   },
   {
     method: 'post',
     path: '/api/v3/agent/deprovision',
     middleware: async (req, res) => {
+      logger.apiReq(req);
+
       const successCode = constants.HTTP_CODE_NO_CONTENT;
       const errorCodes = [
         {
@@ -67,13 +74,17 @@ module.exports = [
 
       res
         .status(responseObject.code)
-        .send(responseObject.body)
+        .send(responseObject.body);
+
+      logger.apiRes({req: req, res: responseObject});
     }
   },
   {
     method: 'get',
     path: '/api/v3/agent/config',
     middleware: async (req, res) => {
+      logger.apiReq(req);
+
       const successCode = constants.HTTP_CODE_SUCCESS;
       const errorCodes = [
         {
@@ -87,13 +98,17 @@ module.exports = [
 
       res
         .status(responseObject.code)
-        .send(responseObject.body)
+        .send(responseObject.body);
+
+      logger.apiRes({req: req, res: responseObject});
     }
   },
   {
     method: 'patch',
     path: '/api/v3/agent/config',
     middleware: async (req, res) => {
+      logger.apiReq(req);
+
       const successCode = constants.HTTP_CODE_NO_CONTENT;
       const errorCodes = [
         {
@@ -111,13 +126,17 @@ module.exports = [
 
       res
         .status(responseObject.code)
-        .send(responseObject.body)
+        .send(responseObject.body);
+
+      logger.apiRes({req: req, res: responseObject});
     }
   },
   {
     method: 'get',
     path: '/api/v3/agent/config/changes',
     middleware: async (req, res) => {
+      logger.apiReq(req);
+
       const successCode = constants.HTTP_CODE_SUCCESS;
       const errorCodes = [
         {
@@ -135,13 +154,17 @@ module.exports = [
 
       res
         .status(responseObject.code)
-        .send(responseObject.body)
+        .send(responseObject.body);
+
+      logger.apiRes({req: req, res: responseObject});
     }
   },
   {
     method: 'put',
     path: '/api/v3/agent/status',
     middleware: async (req, res) => {
+      logger.apiReq(req);
+
       const successCode = constants.HTTP_CODE_NO_CONTENT;
       const errorCodes = [
         {
@@ -159,13 +182,17 @@ module.exports = [
 
       res
         .status(responseObject.code)
-        .send(responseObject.body)
+        .send(responseObject.body);
+
+      logger.apiRes({req: req, res: responseObject});
     }
   },
   {
     method: 'get',
     path: '/api/v3/agent/microservices',
     middleware: async (req, res) => {
+      logger.apiReq(req);
+
       const successCode = constants.HTTP_CODE_SUCCESS;
       const errorCodes = [
         {
@@ -179,13 +206,17 @@ module.exports = [
 
       res
         .status(responseObject.code)
-        .send(responseObject.body)
+        .send(responseObject.body);
+
+      logger.apiRes({req: req, res: responseObject});
     }
   },
   {
     method: 'get',
     path: '/api/v3/agent/microservices/:microserviceUuid',
     middleware: async (req, res) => {
+      logger.apiReq(req);
+
       const successCode = constants.HTTP_CODE_SUCCESS;
       const errorCodes = [
         {
@@ -203,13 +234,17 @@ module.exports = [
 
       res
         .status(responseObject.code)
-        .send(responseObject.body)
+        .send(responseObject.body);
+
+      logger.apiRes({req: req, res: responseObject});
     }
   },
   {
     method: 'get',
     path: '/api/v3/agent/registries',
     middleware: async (req, res) => {
+      logger.apiReq(req);
+
       const successCode = constants.HTTP_CODE_SUCCESS;
       const errorCodes = [
         {
@@ -223,13 +258,17 @@ module.exports = [
 
       res
         .status(responseObject.code)
-        .send(responseObject.body)
+        .send(responseObject.body);
+
+      logger.apiRes({req: req, res: responseObject});
     }
   },
   {
     method: 'get',
     path: '/api/v3/agent/tunnel',
     middleware: async (req, res) => {
+      logger.apiReq(req);
+
       const successCode = constants.HTTP_CODE_SUCCESS;
       const errorCodes = [
         {
@@ -247,13 +286,17 @@ module.exports = [
 
       res
         .status(responseObject.code)
-        .send(responseObject.body)
+        .send(responseObject.body);
+
+      logger.apiRes({req: req, res: responseObject});
     }
   },
   {
     method: 'get',
     path: '/api/v3/agent/strace',
     middleware: async (req, res) => {
+      logger.apiReq(req);
+
       const successCode = constants.HTTP_CODE_SUCCESS;
       const errorCodes = [
         {
@@ -271,13 +314,17 @@ module.exports = [
 
       res
         .status(responseObject.code)
-        .send(responseObject.body)
+        .send(responseObject.body);
+
+      logger.apiRes({req: req, res: responseObject});
     }
   },
   {
     method: 'put',
     path: '/api/v3/agent/strace',
     middleware: async (req, res) => {
+      logger.apiReq(req);
+
       const successCode = constants.HTTP_CODE_NO_CONTENT;
       const errorCodes = [
         {
@@ -299,13 +346,17 @@ module.exports = [
 
       res
         .status(responseObject.code)
-        .send(responseObject.body)
+        .send(responseObject.body);
+
+      logger.apiRes({req: req, res: responseObject});
     }
   },
   {
     method: 'get',
     path: '/api/v3/agent/version',
     middleware: async (req, res) => {
+      logger.apiReq(req);
+
       const successCode = constants.HTTP_CODE_SUCCESS;
       const errorCodes = [
         {
@@ -324,13 +375,17 @@ module.exports = [
 
       res
         .status(responseObject.code)
-        .send(responseObject.body)
+        .send(responseObject.body);
+
+      logger.apiRes({req: req, res: responseObject});
     }
   },
   {
     method: 'put',
     path: '/api/v3/agent/hal/hw',
     middleware: async (req, res) => {
+      logger.apiReq(req);
+
       const successCode = constants.HTTP_CODE_NO_CONTENT;
       const errorCodes = [
         {
@@ -349,13 +404,17 @@ module.exports = [
 
       res
         .status(responseObject.code)
-        .send(responseObject.body)
+        .send(responseObject.body);
+
+      logger.apiRes({req: req, res: responseObject});
     }
   },
   {
     method: 'put',
     path: '/api/v3/agent/hal/usb',
     middleware: async (req, res) => {
+      logger.apiReq(req);
+
       const successCode = constants.HTTP_CODE_NO_CONTENT;
       const errorCodes = [
         {
@@ -374,13 +433,17 @@ module.exports = [
 
       res
         .status(responseObject.code)
-        .send(responseObject.body)
+        .send(responseObject.body);
+
+      logger.apiRes({req: req, res: responseObject});
     }
   },
   {
     method: 'delete',
     path: '/api/v3/agent/delete-node',
     middleware: async (req, res) => {
+      logger.apiReq(req);
+
       const successCode = constants.HTTP_CODE_NO_CONTENT;
       const errCodes = [
         {
@@ -394,13 +457,17 @@ module.exports = [
 
       res
         .status(responseObject.code)
-        .send(responseObject.body)
+        .send(responseObject.body);
+
+      logger.apiRes({req: req, res: responseObject});
     }
   },
   {
     method: 'get',
     path: '/api/v3/agent/image-snapshot',
     middleware: async (req, res) => {
+      logger.apiReq(req);
+
       const successCode = constants.HTTP_CODE_SUCCESS;
       const errorCodes = [
         {
@@ -419,13 +486,17 @@ module.exports = [
 
       res
         .status(responseObject.code)
-        .send(responseObject.body)
+        .send(responseObject.body);
+
+      logger.apiRes({req: req, res: responseObject});
     }
   },
   {
     method: 'put',
     path: '/api/v3/agent/image-snapshot',
     middleware: async (req, res) => {
+      logger.apiReq(req);
+
       const successCode = constants.HTTP_CODE_SUCCESS;
       const errorCodes = [
         {
@@ -444,13 +515,17 @@ module.exports = [
 
       res
         .status(responseObject.code)
-        .send(responseObject.body)
+        .send(responseObject.body);
+
+      logger.apiRes({req: req, res: responseObject});
     }
   },
   {
     method: 'post',
     path: '/api/v3/agent/tracking',
     middleware: async (req, res) => {
+      logger.apiReq(req);
+
       const successCode = constants.HTTP_CODE_NO_CONTENT;
       const errorCodes = [
         {
@@ -469,7 +544,9 @@ module.exports = [
 
       res
         .status(responseObject.code)
-        .send(responseObject.body)
+        .send(responseObject.body);
+
+      logger.apiRes({req: req, res: responseObject});
     }
   }
 ];

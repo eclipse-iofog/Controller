@@ -23,22 +23,22 @@ const daemon = daemonize.setup({
 
 daemon
   .on('starting', async () => {
-    logger.silly('Starting iofog-controller...');
+    logger.info('Starting iofog-controller...');
   })
   .on('stopping', () => {
-    logger.silly('Stopping iofog-controller...')
+    logger.info('Stopping iofog-controller...')
   })
   .on('stopped', (pid) => {
-    logger.silly('iofog-controller stopped.')
+    logger.info('iofog-controller stopped.')
   })
   .on('running', (pid) => {
-    logger.silly('iofog-controller already running. PID: ' + pid)
+    logger.info('iofog-controller already running. PID: ' + pid)
   })
   .on('notrunning', () => {
-    logger.silly('iofog-controller is not running')
+    logger.info('iofog-controller is not running')
   })
   .on('error', (err) => {
-    logger.silly('iofog-controller failed to start:  ' + err.message)
+    logger.error('iofog-controller failed to start:  ' + err.message)
   });
 
 
