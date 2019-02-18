@@ -41,7 +41,7 @@ class Cli extends BaseCLIHandler {
       { name: 'command', defaultOption: true },
     ];
     this.commands = {
-      [constants.CMD_START]: 'Start iofog-controller service.',
+      [constants.CMD_START]: 'Start iofog-controller123 service.',
       [constants.CMD_STOP]: 'Stop iofog-controller service.',
       //init db is hidden command
       // [constants.CMD_INIT_DB]: 'Init sqlite db for iofog-controller.',
