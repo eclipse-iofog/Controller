@@ -103,11 +103,11 @@ class InvalidArgumentTypeError extends Error {
   }
 }
 
-class CliAgrsNotProvidedError extends Error {
+class CLIArgsNotProvidedError extends Error {
   constructor() {
     super('Empty args');
     this.message = 'Empty args';
-    this.name = 'CliAgrsNotProvidedError';
+    this.name = 'CLIArgsNotProvidedError';
   }
 }
 
@@ -123,5 +123,5 @@ module.exports = {
   EmailActivationSetupError: EmailActivationSetupError,
   InvalidArgumentError: InvalidArgumentError,
   InvalidArgumentTypeError: InvalidArgumentTypeError,
-  CliAgrsNotProvidedError: CliAgrsNotProvidedError
+  CLIArgsNotProvidedError: CLIArgsNotProvidedError
 };

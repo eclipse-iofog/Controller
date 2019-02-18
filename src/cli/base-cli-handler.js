@@ -122,7 +122,7 @@ class CLIHandler {
       case "ALREADY_SET":
         console.log("Parameter '" + error.optionName + "' is used multiple times");
         break;
-      case 'CliAgrsNotProvidedError':
+      case 'CLIArgsNotProvidedError':
         if (this.commands[args[0]]) {
           return this.helpSome([args[0]]);
         }
@@ -148,7 +148,7 @@ class CLIHandler {
     let currentArgName;
 
     if (args.length === 0) {
-      throw new Errors.CliAgrsNotProvidedError();
+      throw new Errors.CLIArgsNotProvidedError();
     }
     const argsMap = argsArrayAsMap(args);
 
@@ -167,32 +167,10 @@ class CLIHandler {
         expectedValueType = _getValType(alias, commandDefinitions);
       }
 
-      let valType;
-      if (values.length === 0) {
-        valType = 'boolean';
-      } else if (values.length === 1) {
-        const firstVal = Number(values[0]);
-        if (Number.isNaN(firstVal.valueOf())) {
-          valType = 'string';
-        } else if (Number.isInteger(firstVal.valueOf())) {
-          valType = 'integer';
-        } else {
-          valType = 'float'
-        }
-      }
+      const valType = _getCurrentValType(values);
       //TODO else validate multiply parameters. Add after multiply parameters will be used in cli api
 
-      let isValidType = true;
-      if (expectedValueType === 'string' && valType === 'boolean') {
-        isValidType = false;
-      } else if ((expectedValueType === 'float' || expectedValueType === 'number')
-        && (valType !== 'float' && valType !== 'number' && valType !== 'integer')) {
-        isValidType = false;
-      } else if (expectedValueType === 'integer' && valType !== 'integer') {
-        isValidType = false;
-      } else if (expectedValueType === 'boolean' && valType !== 'boolean') {
-        isValidType = false;
-      }
+      let isValidType = _validateType(expectedValueType, valType);
 
       if (!isValidType) {
         throw new Errors.InvalidArgumentTypeError(AppHelper.formatMessage(ErrorMessages.INVALID_CLI_ARGUMENT_TYPE, currentArgName, expectedValueType));
@@ -280,6 +258,38 @@ function _getValType(arg, commandDefinitions) {
   const command = commandDefinitions
     .filter(def => def.name === arg || def.alias === arg)[0];
   return command.type.name.toLowerCase();
+}
+
+function _getCurrentValType(values) {
+  let valType;
+  if (values.length === 0) {
+    valType = 'boolean';
+  } else if (values.length === 1) {
+    const firstVal = Number(values[0]);
+    if (Number.isNaN(firstVal.valueOf())) {
+      valType = 'string';
+    } else if (Number.isInteger(firstVal.valueOf())) {
+      valType = 'integer';
+    } else {
+      valType = 'float'
+    }
+  }
+  return valType;
+}
+
+function _validateType(expectedValueType, valType) {
+  let isValidType = true;
+  if (expectedValueType === 'string' && valType === 'boolean') {
+    isValidType = false;
+  } else if ((expectedValueType === 'float' || expectedValueType === 'number')
+    && (valType !== 'float' && valType !== 'number' && valType !== 'integer')) {
+    isValidType = false;
+  } else if (expectedValueType === 'integer' && valType !== 'integer') {
+    isValidType = false;
+  } else if (expectedValueType === 'boolean' && valType !== 'boolean') {
+    isValidType = false;
+  }
+  return isValidType;
 }
 
 module.exports = CLIHandler;
