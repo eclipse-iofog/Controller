@@ -228,7 +228,7 @@ module.exports = [
     method: 'patch',
     path: '/api/v3/user/password',
     middleware: async (req, res) => {
-      logger.apiReq(req);
+      logger.apiReq('PATCH /api/v3/user/password'); //don't use req as arg, because password not encrypted
 
       const successCode = constants.HTTP_CODE_NO_CONTENT;
       const errorCodes = [
