@@ -90,7 +90,7 @@ const logger = winston.createLogger({
 
 // logFileName pattern similar to agent
 function getFormattedLogName() {
-  try {
+  if (fs.existsSync(dirname)) {
     fs.readdirSync(dirname).reverse().forEach(file => {
       const path = dirname + '/' + file
       if (fs.existsSync(path)) {
@@ -99,8 +99,6 @@ function getFormattedLogName() {
         fs.renameSync(path, path.replace(strNumber, number))
       }
     });
-  } catch (e) {
-    // can't initialize log folder
   }
   return ''
 }
