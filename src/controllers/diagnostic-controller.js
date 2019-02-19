@@ -11,33 +11,33 @@
  *
  */
 
-const DiagnosticService = require('../services/diagnostic-service');
-const AuthDecorator = require('./../decorators/authorization-decorator');
+const DiagnosticService = require('../services/diagnostic-service')
+const AuthDecorator = require('./../decorators/authorization-decorator')
 
-const changeMicroserviceStraceStateEndPoint = async function (req, user) {
-  return await DiagnosticService.changeMicroserviceStraceState(req.params.uuid, req.body, user, false);
-};
+const changeMicroserviceStraceStateEndPoint = async function(req, user) {
+  return await DiagnosticService.changeMicroserviceStraceState(req.params.uuid, req.body, user, false)
+}
 
-const getMicroserviceStraceDataEndPoint = async function (req, user) {
-  return await DiagnosticService.getMicroserviceStraceData(req.params.uuid, req.query, user, false);
-};
+const getMicroserviceStraceDataEndPoint = async function(req, user) {
+  return await DiagnosticService.getMicroserviceStraceData(req.params.uuid, req.query, user, false)
+}
 
-const postMicroserviceStraceDataToFtpEndPoint = async function (req, user) {
-  return await DiagnosticService.postMicroserviceStraceDatatoFtp(req.params.uuid, req.body, user, false);
-};
+const postMicroserviceStraceDataToFtpEndPoint = async function(req, user) {
+  return await DiagnosticService.postMicroserviceStraceDatatoFtp(req.params.uuid, req.body, user, false)
+}
 
-const createMicroserviceImageSnapshotEndPoint = async function (req, user) {
-  return await DiagnosticService.postMicroserviceImageSnapshotCreate(req.params.uuid, user, false);
-};
+const createMicroserviceImageSnapshotEndPoint = async function(req, user) {
+  return await DiagnosticService.postMicroserviceImageSnapshotCreate(req.params.uuid, user, false)
+}
 
-const getMicroserviceImageSnapshotEndPoint = async function (req, user) {
-  return await DiagnosticService.getMicroserviceImageSnapshot(req.params.uuid, user, false);
-};
+const getMicroserviceImageSnapshotEndPoint = async function(req, user) {
+  return await DiagnosticService.getMicroserviceImageSnapshot(req.params.uuid, user, false)
+}
 
 module.exports = {
   changeMicroserviceStraceStateEndPoint: AuthDecorator.checkAuthToken(changeMicroserviceStraceStateEndPoint),
   getMicroserviceStraceDataEndPoint: AuthDecorator.checkAuthToken(getMicroserviceStraceDataEndPoint),
   postMicroserviceStraceDataToFtpEndPoint: AuthDecorator.checkAuthToken(postMicroserviceStraceDataToFtpEndPoint),
   createMicroserviceImageSnapshotEndPoint: AuthDecorator.checkAuthToken(createMicroserviceImageSnapshotEndPoint),
-  getMicroserviceImageSnapshotEndPoint: AuthDecorator.checkAuthToken(getMicroserviceImageSnapshotEndPoint)
-};
+  getMicroserviceImageSnapshotEndPoint: AuthDecorator.checkAuthToken(getMicroserviceImageSnapshotEndPoint),
+}

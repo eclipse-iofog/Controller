@@ -11,21 +11,21 @@
  *
  */
 
-const BaseManager = require('./base-manager');
-const models = require('./../models');
-const Microservice = models.Microservice;
-const MicroservicePort = models.MicroservicePort;
-const VolumeMapping = models.VolumeMapping;
-const StraceDiagnostics = models.StraceDiagnostics;
-const CatalogItem = models.CatalogItem;
-const CatalogItemImage = models.CatalogItemImage;
-const Fog = models.Fog;
-const Flow = models.Flow;
-const User = models.User;
-const Routing = models.Routing;
-const Registry = models.Registry;
-const MicroserviceStatus = models.MicroserviceStatus;
-const Op = require('sequelize').Op;
+const BaseManager = require('./base-manager')
+const models = require('./../models')
+const Microservice = models.Microservice
+const MicroservicePort = models.MicroservicePort
+const VolumeMapping = models.VolumeMapping
+const StraceDiagnostics = models.StraceDiagnostics
+const CatalogItem = models.CatalogItem
+const CatalogItemImage = models.CatalogItemImage
+const Fog = models.Fog
+const Flow = models.Flow
+const User = models.User
+const Routing = models.Routing
+const Registry = models.Registry
+const MicroserviceStatus = models.MicroserviceStatus
+const Op = require('sequelize').Op
 
 const microserviceExcludedFields = [
   'configLastUpdated',
@@ -38,8 +38,8 @@ const microserviceExcludedFields = [
   'deleteWithCleanUp',
   'imageSnapshot',
   'catalog_item_id',
-  'iofog_uuid'
-];
+  'iofog_uuid',
+]
 
 class MicroserviceManager extends BaseManager {
   getEntity() {
@@ -49,57 +49,57 @@ class MicroserviceManager extends BaseManager {
   findAllWithDependencies(where, attributes, transaction) {
     return Microservice.findAll({
       include: [
-      {
-        model: MicroservicePort,
-        as: 'ports',
-        required: false,
-        attributes: ['portInternal', 'portExternal']
-      },
-      {
-        model: VolumeMapping,
-        as: 'volumeMappings',
-        required: false,
-        attributes: ['hostDestination', 'containerDestination', 'accessMode']
-      },
-      {
-        model: StraceDiagnostics,
-        as: 'strace',
-        required: false,
-        attributes: ['straceRun']
-      },
-      {
-        model: CatalogItem,
-        as: 'catalogItem',
-        required: true,
-        include: [{
-          model: CatalogItemImage,
-          as: 'images',
-          attributes: ['containerImage', 'fogTypeId']
-        }],
-        attributes: ['picture', 'registryId']
-      },
-      {
-        model: Fog,
-        as: 'iofog',
-        required: false,
-        attributes: ['daemonStatus']
-      },
-      {
-        model: Routing,
-        as: 'routes',
-        required: false,
-        include: [{
-          model: Microservice,
-          as: 'destMicroservice',
-          attributes: ['uuid']
-        }],
-        attributes: {exclude: ['id', 'source_microservice_uuid',
+        {
+          model: MicroservicePort,
+          as: 'ports',
+          required: false,
+          attributes: ['portInternal', 'portExternal'],
+        },
+        {
+          model: VolumeMapping,
+          as: 'volumeMappings',
+          required: false,
+          attributes: ['hostDestination', 'containerDestination', 'accessMode'],
+        },
+        {
+          model: StraceDiagnostics,
+          as: 'strace',
+          required: false,
+          attributes: ['straceRun'],
+        },
+        {
+          model: CatalogItem,
+          as: 'catalogItem',
+          required: true,
+          include: [{
+            model: CatalogItemImage,
+            as: 'images',
+            attributes: ['containerImage', 'fogTypeId'],
+          }],
+          attributes: ['picture', 'registryId'],
+        },
+        {
+          model: Fog,
+          as: 'iofog',
+          required: false,
+          attributes: ['daemonStatus'],
+        },
+        {
+          model: Routing,
+          as: 'routes',
+          required: false,
+          include: [{
+            model: Microservice,
+            as: 'destMicroservice',
+            attributes: ['uuid'],
+          }],
+          attributes: {exclude: ['id', 'source_microservice_uuid',
             'sourceMicroserviceUuid', 'destMicroserviceUuid', 'sourceNetworkMicroserviceUuid',
-            'destNetworkMicroserviceUuid', 'sourceIofogUuid', 'destIofogUuid', 'connectorPortId']}
-      }
+            'destNetworkMicroserviceUuid', 'sourceIofogUuid', 'destIofogUuid', 'connectorPortId']},
+        },
       ],
       where: where,
-      attributes: attributes
+      attributes: attributes,
     }, {transaction: transaction})
   }
 
@@ -110,13 +110,13 @@ class MicroserviceManager extends BaseManager {
           model: MicroservicePort,
           as: 'ports',
           required: false,
-          attributes: ['portInternal', 'portExternal']
+          attributes: ['portInternal', 'portExternal'],
         },
         {
           model: VolumeMapping,
           as: 'volumeMappings',
           required: false,
-          attributes: ['hostDestination', 'containerDestination', 'accessMode']
+          attributes: ['hostDestination', 'containerDestination', 'accessMode'],
         },
         {
           model: CatalogItem,
@@ -127,96 +127,96 @@ class MicroserviceManager extends BaseManager {
               model: CatalogItemImage,
               as: 'images',
               required: true,
-              attributes: ['containerImage', 'fogTypeId']
+              attributes: ['containerImage', 'fogTypeId'],
             },
             {
               model: Registry,
               as: 'registry',
               required: true,
-              attributes: ['url']
-            }
+              attributes: ['url'],
+            },
           ],
-          attributes: ['picture', 'category']
+          attributes: ['picture', 'category'],
         },
         {
           model: Flow,
           as: 'flow',
           required: false,
-          attributes: ['isActivated']
-        }
+          attributes: ['isActivated'],
+        },
       ],
       where: {
         iofogUuid: iofogUuid,
         [Op.or]:
           [
             {
-              '$flow.is_activated$': true
+              '$flow.is_activated$': true,
             },
             {
-              '$catalogItem.category$':  {[Op.eq]: 'SYSTEM'},
-              '$catalogItem.id$': {[Op.ne]: 1}
-            }
-          ]
+              '$catalogItem.category$': {[Op.eq]: 'SYSTEM'},
+              '$catalogItem.id$': {[Op.ne]: 1},
+            },
+          ],
 
-      }
+      },
     }, {transaction: transaction})
   }
 
   findOneWithDependencies(where, attributes, transaction) {
     return Microservice.findOne({
       include: [
-      {
-        model: MicroservicePort,
-        as: 'ports',
-        required: false,
-        attributes: ['portInternal', 'portExternal']
-      },
-      {
-        model: VolumeMapping,
-        as: 'volumeMappings',
-        required: false,
-        attributes: ['hostDestination', 'containerDestination', 'accessMode']
-      },
-      {
-        model: StraceDiagnostics,
-        as: 'strace',
-        required: false,
-        attributes: ['straceRun']
-      },
-      {
-        model: CatalogItem,
-        as: 'catalogItem',
-        required: false,
-        include: [{
-          model: CatalogItemImage,
-          as: 'images',
-          attributes: ['containerImage', 'fogTypeId']
+        {
+          model: MicroservicePort,
+          as: 'ports',
+          required: false,
+          attributes: ['portInternal', 'portExternal'],
+        },
+        {
+          model: VolumeMapping,
+          as: 'volumeMappings',
+          required: false,
+          attributes: ['hostDestination', 'containerDestination', 'accessMode'],
+        },
+        {
+          model: StraceDiagnostics,
+          as: 'strace',
+          required: false,
+          attributes: ['straceRun'],
+        },
+        {
+          model: CatalogItem,
+          as: 'catalogItem',
+          required: false,
+          include: [{
+            model: CatalogItemImage,
+            as: 'images',
+            attributes: ['containerImage', 'fogTypeId'],
           }],
-        attributes: ['picture', 'registryId']
-      },
-      {
-        model: Fog,
-        as: 'iofog',
-        required: false,
-        attributes: ['daemonStatus']
-      },
-      {
-        model: Routing,
-        as: 'routes',
-        required: false,
-        include: [{
-          model: Microservice,
-          as: 'destMicroservice',
-          attributes: ['uuid']
-        }],
-        attributes: {exclude: ['id',
-                'sourceMicroserviceUuid', 'destMicroserviceUuid',
-                'sourceNetworkMicroserviceUuid', 'destNetworkMicroserviceUuid',
-                'sourceIofogUuid', 'destIofogUuid', 'connectorPortId']}
-      }
+          attributes: ['picture', 'registryId'],
+        },
+        {
+          model: Fog,
+          as: 'iofog',
+          required: false,
+          attributes: ['daemonStatus'],
+        },
+        {
+          model: Routing,
+          as: 'routes',
+          required: false,
+          include: [{
+            model: Microservice,
+            as: 'destMicroservice',
+            attributes: ['uuid'],
+          }],
+          attributes: {exclude: ['id',
+            'sourceMicroserviceUuid', 'destMicroserviceUuid',
+            'sourceNetworkMicroserviceUuid', 'destNetworkMicroserviceUuid',
+            'sourceIofogUuid', 'destIofogUuid', 'connectorPortId']},
+        },
       ],
       where: where,
-      attributes: attributes
+      attributes: attributes,
     }, {transaction: transaction})
   }
 
@@ -226,16 +226,16 @@ class MicroserviceManager extends BaseManager {
         {
           model: MicroserviceStatus,
           as: 'microserviceStatus',
-          required: false
+          required: false,
         },
         {
           model: CatalogItem,
           as: 'catalogItem',
           required: true,
-          attributes: ['category']
-        }
+          attributes: ['category'],
+        },
       ],
-      where: where
+      where: where,
     }, {transaction: transaction})
   }
 
@@ -245,10 +245,10 @@ class MicroserviceManager extends BaseManager {
         {
           model: MicroserviceStatus,
           as: 'microserviceStatus',
-          required: false
-        }
+          required: false,
+        },
       ],
-      where: where
+      where: where,
     }, {transaction: transaction})
   }
 
@@ -264,14 +264,14 @@ class MicroserviceManager extends BaseManager {
               model: User,
               as: 'user',
               required: true,
-              attributes: ['id']
-            }
+              attributes: ['id'],
+            },
           ],
-          attributes: ['id']
-        }
+          attributes: ['id'],
+        },
       ],
       where: where,
-      attributes: ['uuid']
+      attributes: ['uuid'],
     }, {transaction: transaction})
   }
 
@@ -279,20 +279,20 @@ class MicroserviceManager extends BaseManager {
     return Microservice.findOne({
       where: where,
       attributes: {
-        exclude: microserviceExcludedFields
+        exclude: microserviceExcludedFields,
       }}, {
-      transaction: transaction
-    });
+      transaction: transaction,
+    })
   }
 
   async findAllExcludeFields(where, transaction) {
     return Microservice.findAll({
       where: where,
       attributes: {
-        exclude: microserviceExcludedFields
+        exclude: microserviceExcludedFields,
       }}, {
-      transaction: transaction
-    });
+      transaction: transaction,
+    })
   }
 
   findOneWithCategory(where, transaction) {
@@ -302,13 +302,13 @@ class MicroserviceManager extends BaseManager {
           model: CatalogItem,
           as: 'catalogItem',
           required: true,
-          attributes: ['category']
-        }
+          attributes: ['category'],
+        },
       ],
-      where: where
+      where: where,
     }, {transaction: transaction})
   }
 }
 
-const instance = new MicroserviceManager();
-module.exports = instance;
+const instance = new MicroserviceManager()
+module.exports = instance

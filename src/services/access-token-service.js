@@ -11,19 +11,19 @@
  *
  */
 
-const AccessTokenManager = require('../sequelize/managers/access-token-manager');
+const AccessTokenManager = require('../sequelize/managers/access-token-manager')
 
-const createAccessToken = async function (accessToken, transaction) {
-  return await AccessTokenManager.create(accessToken, transaction);
-};
+const createAccessToken = async function(accessToken, transaction) {
+  return await AccessTokenManager.create(accessToken, transaction)
+}
 
-const removeAccessTokenByUserId = async function (userId, transaction) {
+const removeAccessTokenByUserId = async function(userId, transaction) {
   return await AccessTokenManager.delete({
-    userId: userId
-  }, transaction);
-};
+    userId: userId,
+  }, transaction)
+}
 
 module.exports = {
   createAccessToken: createAccessToken,
-  removeAccessTokenByUserId: removeAccessTokenByUserId
-};
+  removeAccessTokenByUserId: removeAccessTokenByUserId,
+}

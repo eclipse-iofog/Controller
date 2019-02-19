@@ -11,20 +11,20 @@
  *
  */
 
-const execSync = require('child_process').execSync;
+const execSync = require('child_process').execSync
 
 function coverage() {
   const options = {
     env: {
       'NODE_ENV': 'test',
-      "PATH": process.env.PATH
+      'PATH': process.env.PATH,
     },
-    stdio: [process.stdin, process.stdout, process.stderr]
-  };
+    stdio: [process.stdin, process.stdout, process.stderr],
+  }
 
-  execSync('nyc mocha', options);
+  execSync('nyc mocha', options)
 }
 
 module.exports = {
-  coverage: coverage
-};
+  coverage: coverage,
+}

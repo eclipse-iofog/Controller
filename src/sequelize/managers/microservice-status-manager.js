@@ -12,14 +12,14 @@
  */
 
 const BaseManager = require('../managers/base-manager')
-const models = require('./../models');
-const MicroserviceStatus = models.MicroserviceStatus;
+const models = require('./../models')
+const MicroserviceStatus = models.MicroserviceStatus
 
 class MicroserviceStatusManager extends BaseManager {
   getEntity() {
-    return MicroserviceStatus;
+    return MicroserviceStatus
   }
 }
 
-const instance = new MicroserviceStatusManager();
-module.exports = instance;
+const instance = new MicroserviceStatusManager()
+module.exports = instance

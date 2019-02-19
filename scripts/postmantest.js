@@ -10,42 +10,41 @@
  *  *******************************************************************************
  *
  */
- 
-const newman = require('newman');
-const {init} = require('./init');
-const {restoreDBs, backupDBs} = require('./util');
-const {start} = require('./start');
-const {stop} = require('./stop');
+
+const newman = require('newman')
+const {init} = require('./init')
+const {restoreDBs, backupDBs} = require('./util')
+const {start} = require('./start')
+const {stop} = require('./stop')
 
 function postmanTest() {
-    stop();
-    backupDBs();
-//create new DBs
-    init();
-    start();
-// call newman.run to pass `options` object and wait for callback
-    newman.run({
-        collection: require('../test/postman_collection.json'),
-        reporters: 'cli',
-        //abortOnError: true,
-        //abortOnFailure: true
-    }).on('start', function (err, args) { // on start of run, log to console
-        console.log('running a collection...');
-    }).on('done', function (err, summary) {
-        if (err || summary.error || summary.run.failures.length != 0) {
-            restoreDBs();
-            stop();
-            console.error('collection run encountered an error. tests did not pass.');
-            process.exitCode = 1;
-        }
-        else {
-            restoreDBs();
-            stop();
-            console.log('collection run completed.');
-        }
-    });
+  stop()
+  backupDBs()
+  // create new DBs
+  init()
+  start()
+  // call newman.run to pass `options` object and wait for callback
+  newman.run({
+    collection: require('../test/postman_collection.json'),
+    reporters: 'cli',
+    // abortOnError: true,
+    // abortOnFailure: true
+  }).on('start', function(err, args) { // on start of run, log to console
+    console.log('running a collection...')
+  }).on('done', function(err, summary) {
+    if (err || summary.error || summary.run.failures.length != 0) {
+      restoreDBs()
+      stop()
+      console.error('collection run encountered an error. tests did not pass.')
+      process.exitCode = 1
+    } else {
+      restoreDBs()
+      stop()
+      console.log('collection run completed.')
+    }
+  })
 }
 
 module.exports = {
-    postmanTest: postmanTest
-};
+  postmanTest: postmanTest,
+}

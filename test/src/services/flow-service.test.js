@@ -1,124 +1,124 @@
-const {expect} = require('chai');
-const sinon = require('sinon');
+const {expect} = require('chai')
+const sinon = require('sinon')
 
-const FlowManager = require('../../../src/sequelize/managers/flow-manager');
-const FlowService = require('../../../src/services/flow-service');
-const AppHelper = require('../../../src/helpers/app-helper');
-const Validator = require('../../../src/schemas');
-const ChangeTrackingService = require('../../../src/services/change-tracking-service');
-const Sequelize = require('sequelize');
-const Op = Sequelize.Op;
-const ErrorMessages = require('../../../src/helpers/error-messages');
+const FlowManager = require('../../../src/sequelize/managers/flow-manager')
+const FlowService = require('../../../src/services/flow-service')
+const AppHelper = require('../../../src/helpers/app-helper')
+const Validator = require('../../../src/schemas')
+const ChangeTrackingService = require('../../../src/services/change-tracking-service')
+const Sequelize = require('sequelize')
+const Op = Sequelize.Op
+const ErrorMessages = require('../../../src/helpers/error-messages')
 
 describe('Flow Service', () => {
-  def('subject', () => FlowService);
-  def('sandbox', () => sinon.createSandbox());
+  def('subject', () => FlowService)
+  def('sandbox', () => sinon.createSandbox())
 
-  const isCLI = false;
+  const isCLI = false
 
-  afterEach(() => $sandbox.restore());
+  afterEach(() => $sandbox.restore())
 
   describe('.createFlow()', () => {
-    const transaction = {};
-    const error = 'Error!';
+    const transaction = {}
+    const error = 'Error!'
 
     const user = {
-      id: 15
-    };
+      id: 15,
+    }
 
-    const flowId = null;
+    const flowId = null
 
     const flowData = {
       name: 'testName',
       description: 'testDescription',
-      isActivated: false
-    };
+      isActivated: false,
+    }
 
     const flowToCreate = {
       name: flowData.name,
       description: flowData.description,
       isActivated: flowData.isActivated,
-      userId: user.id
-    };
+      userId: user.id,
+    }
 
     const response = {
-      id: 25
-    };
+      id: 25,
+    }
 
-    def('subject', () => $subject.createFlow(flowData, user, isCLI, transaction));
-    def('validatorResponse', () => Promise.resolve(true));
-    def('findFlowResponse', () => Promise.resolve());
-    def('deleteUndefinedFieldsResponse', () => flowToCreate);
-    def('createFlowResponse', () => Promise.resolve(response));
+    def('subject', () => $subject.createFlow(flowData, user, isCLI, transaction))
+    def('validatorResponse', () => Promise.resolve(true))
+    def('findFlowResponse', () => Promise.resolve())
+    def('deleteUndefinedFieldsResponse', () => flowToCreate)
+    def('createFlowResponse', () => Promise.resolve(response))
 
 
     beforeEach(() => {
-      $sandbox.stub(Validator, 'validate').returns($validatorResponse);
-      $sandbox.stub(FlowManager, 'findOne').returns($findFlowResponse);
-      $sandbox.stub(AppHelper, 'deleteUndefinedFields').returns($deleteUndefinedFieldsResponse);
-      $sandbox.stub(FlowManager, 'create').returns($createFlowResponse);
-    });
+      $sandbox.stub(Validator, 'validate').returns($validatorResponse)
+      $sandbox.stub(FlowManager, 'findOne').returns($findFlowResponse)
+      $sandbox.stub(AppHelper, 'deleteUndefinedFields').returns($deleteUndefinedFieldsResponse)
+      $sandbox.stub(FlowManager, 'create').returns($createFlowResponse)
+    })
 
     it('calls Validator#validate() with correct args', async () => {
-      await $subject;
-      expect(Validator.validate).to.have.been.calledWith(flowData, Validator.schemas.flowCreate);
-    });
+      await $subject
+      expect(Validator.validate).to.have.been.calledWith(flowData, Validator.schemas.flowCreate)
+    })
 
     context('when Validator#validate() fails', () => {
-      def('validatorResponse', () => Promise.reject(error));
+      def('validatorResponse', () => Promise.reject(error))
 
       it(`fails with ${error}`, () => {
-        return expect($subject).to.be.rejectedWith(error);
+        return expect($subject).to.be.rejectedWith(error)
       })
-    });
+    })
 
     context('when Validator#validate() succeeds', () => {
       it('calls FlowManager#findOne() with correct args', async () => {
-        await $subject;
+        await $subject
         const where = flowId
           ? {name: flowData.name, id: {[Op.ne]: flowId, userId: user.id}}
-          : {name: flowData.name, userId: user.id};
+          : {name: flowData.name, userId: user.id}
 
-        expect(FlowManager.findOne).to.have.been.calledWith(where, transaction);
-      });
+        expect(FlowManager.findOne).to.have.been.calledWith(where, transaction)
+      })
 
       context('when FlowManager#findOne() fails', () => {
-        def('findFlowResponse', () => Promise.reject(error));
+        def('findFlowResponse', () => Promise.reject(error))
 
         it(`fails with ${error}`, () => {
           return expect($subject).to.be.rejectedWith(error)
         })
-      });
+      })
 
       context('when FlowManager#findOne() succeeds', () => {
         it('calls AppHelper#deleteUndefinedFields() with correct args', async () => {
-          await $subject;
+          await $subject
 
-          expect(AppHelper.deleteUndefinedFields).to.have.been.calledWith(flowToCreate);
-        });
+          expect(AppHelper.deleteUndefinedFields).to.have.been.calledWith(flowToCreate)
+        })
 
         context('when AppHelper#deleteUndefinedFields() fails', () => {
-          def('deleteUndefinedFieldsResponse', () => error);
+          def('deleteUndefinedFieldsResponse', () => error)
 
           it(`fails with ${error}`, () => {
             return expect($subject).to.eventually.have.property('id')
           })
-        });
+        })
 
         context('when AppHelper#deleteUndefinedFields() succeeds', () => {
           it('calls FlowManager#create() with correct args', async () => {
-            await $subject;
+            await $subject
 
-            expect(FlowManager.create).to.have.been.calledWith(flowToCreate);
-          });
+            expect(FlowManager.create).to.have.been.calledWith(flowToCreate)
+          })
 
           context('when FlowManager#create() fails', () => {
-            def('createFlowResponse', () => error);
+            def('createFlowResponse', () => error)
 
             it(`fails with ${error}`, () => {
               return expect($subject).to.eventually.have.property('id')
             })
-          });
+          })
 
           context('when FlowManager#create() succeeds', () => {
             it('fulfills the promise', () => {
@@ -128,104 +128,104 @@ describe('Flow Service', () => {
         })
       })
     })
-  });
+  })
 
   describe('.deleteFlow()', () => {
-    const transaction = {};
-    const error = 'Error!';
+    const transaction = {}
+    const error = 'Error!'
 
     const user = {
-      id: 15
-    };
+      id: 15,
+    }
 
-    const flowId = 75;
+    const flowId = 75
 
     const whereObj = {
       id: flowId,
-      userId: user.id
-    };
+      userId: user.id,
+    }
 
     const flowWithMicroservices = {
       microservices: [
         {
-          iofogUuid: 15
-        }
-      ]
-    };
+          iofogUuid: 15,
+        },
+      ],
+    }
 
-    def('subject', () => $subject.deleteFlow(flowId, user, isCLI, transaction));
-    def('deleteUndefinedFieldsResponse', () => whereObj);
-    def('findFlowMicroservicesResponse', () => Promise.resolve(flowWithMicroservices));
-    def('updateChangeTrackingResponse', () => Promise.resolve());
-    def('deleteFlowResponse', () => Promise.resolve());
+    def('subject', () => $subject.deleteFlow(flowId, user, isCLI, transaction))
+    def('deleteUndefinedFieldsResponse', () => whereObj)
+    def('findFlowMicroservicesResponse', () => Promise.resolve(flowWithMicroservices))
+    def('updateChangeTrackingResponse', () => Promise.resolve())
+    def('deleteFlowResponse', () => Promise.resolve())
 
     beforeEach(() => {
-      $sandbox.stub(AppHelper, 'deleteUndefinedFields').returns($deleteUndefinedFieldsResponse);
-      $sandbox.stub(FlowManager, 'findFlowMicroservices').returns($findFlowMicroservicesResponse);
-      $sandbox.stub(ChangeTrackingService, 'update').returns($updateChangeTrackingResponse);
-      $sandbox.stub(FlowManager, 'delete').returns($deleteFlowResponse);
-    });
+      $sandbox.stub(AppHelper, 'deleteUndefinedFields').returns($deleteUndefinedFieldsResponse)
+      $sandbox.stub(FlowManager, 'findFlowMicroservices').returns($findFlowMicroservicesResponse)
+      $sandbox.stub(ChangeTrackingService, 'update').returns($updateChangeTrackingResponse)
+      $sandbox.stub(FlowManager, 'delete').returns($deleteFlowResponse)
+    })
 
     it('calls AppHelper#deleteUndefinedFields() with correct args', async () => {
-      await $subject;
-      expect(AppHelper.deleteUndefinedFields).to.have.been.calledWith(whereObj);
-    });
+      await $subject
+      expect(AppHelper.deleteUndefinedFields).to.have.been.calledWith(whereObj)
+    })
 
     context('when AppHelper#deleteUndefinedFields() fails', () => {
-      def('deleteUndefinedFieldsResponse', () => Promise.reject(error));
+      def('deleteUndefinedFieldsResponse', () => Promise.reject(error))
 
       it(`fails with ${error}`, () => {
-        return expect($subject).to.eventually.equal(undefined);
+        return expect($subject).to.eventually.equal(undefined)
       })
-    });
+    })
 
     context('when AppHelper#deleteUndefinedFields() succeeds', () => {
       it('calls FlowManager#findFlowMicroservices() with correct args', async () => {
-        await $subject;
+        await $subject
 
         expect(FlowManager.findFlowMicroservices).to.have.been.calledWith({
-          id: flowId
-        }, transaction);
-      });
+          id: flowId,
+        }, transaction)
+      })
 
       context('when FlowManager#findFlowMicroservices() fails', () => {
-        def('findFlowMicroservicesResponse', () => Promise.reject(error));
+        def('findFlowMicroservicesResponse', () => Promise.reject(error))
 
         it(`fails with ${error}`, () => {
-          return expect($subject).to.be.rejectedWith(error);
+          return expect($subject).to.be.rejectedWith(error)
         })
-      });
+      })
 
       context('when FlowManager#findFlowMicroservices() succeeds', () => {
         it('calls ChangeTrackingService#update() with correct args', async () => {
-          await $subject;
+          await $subject
 
           expect(ChangeTrackingService.update).to.have.been.calledWith(flowWithMicroservices.microservices[0].iofogUuid,
-            ChangeTrackingService.events.microserviceFull, transaction);
-        });
+              ChangeTrackingService.events.microserviceFull, transaction)
+        })
 
         context('when ChangeTrackingService#update() fails', () => {
-          def('updateChangeTrackingResponse', () => error);
+          def('updateChangeTrackingResponse', () => error)
 
           it(`fails with ${error}`, () => {
-            return expect($subject).to.eventually.equal(undefined);
+            return expect($subject).to.eventually.equal(undefined)
           })
-        });
+        })
 
         context('when ChangeTrackingService#update() succeeds', () => {
           it('calls FlowManager#delete() with correct args', async () => {
-            await $subject;
+            await $subject
 
-            expect(FlowManager.delete).to.have.been.calledWith(whereObj, transaction);
-          });
+            expect(FlowManager.delete).to.have.been.calledWith(whereObj, transaction)
+          })
 
           context('when FlowManager#delete() fails', () => {
-            def('deleteFlowResponse', () => Promise.reject(error));
+            def('deleteFlowResponse', () => Promise.reject(error))
 
             it(`fails with ${error}`, () => {
-              return expect($subject).to.be.rejectedWith(error);
+              return expect($subject).to.be.rejectedWith(error)
             })
-          });
+          })
 
           context('when FlowManager#delete() succeeds', () => {
             it('fulfills the promise', () => {
@@ -235,175 +235,175 @@ describe('Flow Service', () => {
         })
       })
     })
-  });
+  })
 
 
   describe('.updateFlow()', () => {
-    const transaction = {};
-    const error = 'Error!';
+    const transaction = {}
+    const error = 'Error!'
 
     const user = {
-      id: 15
-    };
+      id: 15,
+    }
 
-    const flowId = 75;
+    const flowId = 75
 
     const oldFlowData = {
       name: 'testName',
       description: 'testDescription',
-      isActivated: true
-    };
+      isActivated: true,
+    }
 
     const flowData = {
       name: 'testName',
       description: 'testDescription',
-      isActivated: false
-    };
+      isActivated: false,
+    }
 
     const flowWithMicroservices = {
       microservices: [
         {
-          iofogUuid: 15
-        }
-      ]
-    };
+          iofogUuid: 15,
+        },
+      ],
+    }
 
-    def('subject', () => $subject.updateFlow(flowData, flowId, user, isCLI, transaction));
-    def('validatorResponse', () => Promise.resolve(true));
-    def('findExcludedFlowResponse', () => Promise.resolve(oldFlowData));
-    def('findFlowResponse', () => Promise.resolve());
-    def('deleteUndefinedFieldsResponse', () => flowData);
-    def('updateFlowResponse', () => Promise.resolve());
-    def('findFlowMicroservicesResponse', () => Promise.resolve(flowWithMicroservices));
-    def('updateChangeTrackingResponse', () => Promise.resolve());
+    def('subject', () => $subject.updateFlow(flowData, flowId, user, isCLI, transaction))
+    def('validatorResponse', () => Promise.resolve(true))
+    def('findExcludedFlowResponse', () => Promise.resolve(oldFlowData))
+    def('findFlowResponse', () => Promise.resolve())
+    def('deleteUndefinedFieldsResponse', () => flowData)
+    def('updateFlowResponse', () => Promise.resolve())
+    def('findFlowMicroservicesResponse', () => Promise.resolve(flowWithMicroservices))
+    def('updateChangeTrackingResponse', () => Promise.resolve())
 
     beforeEach(() => {
-      $sandbox.stub(Validator, 'validate').returns($validatorResponse);
-      $sandbox.stub(FlowManager, 'findOneWithAttributes').returns($findExcludedFlowResponse);
-      $sandbox.stub(FlowManager, 'findOne').returns($findFlowResponse);
-      $sandbox.stub(AppHelper, 'deleteUndefinedFields').returns($deleteUndefinedFieldsResponse);
-      $sandbox.stub(FlowManager, 'update').returns($updateFlowResponse);
-      $sandbox.stub(FlowManager, 'findFlowMicroservices').returns($findFlowMicroservicesResponse);
-      $sandbox.stub(ChangeTrackingService, 'update').returns($updateChangeTrackingResponse);
-    });
+      $sandbox.stub(Validator, 'validate').returns($validatorResponse)
+      $sandbox.stub(FlowManager, 'findOneWithAttributes').returns($findExcludedFlowResponse)
+      $sandbox.stub(FlowManager, 'findOne').returns($findFlowResponse)
+      $sandbox.stub(AppHelper, 'deleteUndefinedFields').returns($deleteUndefinedFieldsResponse)
+      $sandbox.stub(FlowManager, 'update').returns($updateFlowResponse)
+      $sandbox.stub(FlowManager, 'findFlowMicroservices').returns($findFlowMicroservicesResponse)
+      $sandbox.stub(ChangeTrackingService, 'update').returns($updateChangeTrackingResponse)
+    })
 
     it('calls Validator#validate() with correct args', async () => {
-      await $subject;
-      expect(Validator.validate).to.have.been.calledWith(flowData, Validator.schemas.flowUpdate);
-    });
+      await $subject
+      expect(Validator.validate).to.have.been.calledWith(flowData, Validator.schemas.flowUpdate)
+    })
 
     context('when Validator#validate() fails', () => {
-      def('validatorResponse', () => Promise.reject(error));
+      def('validatorResponse', () => Promise.reject(error))
 
       it(`fails with ${error}`, () => {
-        return expect($subject).to.be.rejectedWith(error);
+        return expect($subject).to.be.rejectedWith(error)
       })
-    });
+    })
 
     context('when Validator#validate() succeeds', () => {
       it('calls FlowManager#findOneWithAttributes() with correct args', async () => {
-        await $subject;
+        await $subject
 
         const where = isCLI
           ? {id: flowId}
-          : {id: flowId, userId: user.id};
-        const attributes = {exclude: ["created_at", "updated_at"]};
-        expect(FlowManager.findOneWithAttributes).to.have.been.calledWith(where, attributes, transaction);
-      });
+          : {id: flowId, userId: user.id}
+        const attributes = {exclude: ['created_at', 'updated_at']}
+        expect(FlowManager.findOneWithAttributes).to.have.been.calledWith(where, attributes, transaction)
+      })
 
       context('when FlowManager#findOneWithAttributes() fails', () => {
-        def('findExcludedFlowResponse', () => Promise.reject(error));
+        def('findExcludedFlowResponse', () => Promise.reject(error))
 
         it(`fails with ${error}`, () => {
-          return expect($subject).to.be.rejectedWith(error);
+          return expect($subject).to.be.rejectedWith(error)
         })
-      });
+      })
 
       context('when FlowManager#findOneWithAttributes() succeeds', () => {
         it('calls FlowManager#findOne() with correct args', async () => {
-          await $subject;
+          await $subject
 
           const where = flowId
             ? {name: flowData.name, userId: user.id, id: {[Op.ne]: flowId}}
-            : {name: flowData.name, userId: user.id};
-          expect(FlowManager.findOne).to.have.been.calledWith(where, transaction);
-        });
+            : {name: flowData.name, userId: user.id}
+          expect(FlowManager.findOne).to.have.been.calledWith(where, transaction)
+        })
 
         context('when FlowManager#findOne() fails', () => {
           def('findFlowResponse', () => Promise.reject(AppHelper.formatMessage(ErrorMessages.DUPLICATE_NAME,
-            flowData.name)));
+              flowData.name)))
 
           it(`fails with ${error}`, () => {
             return expect($subject).to.be.rejectedWith(AppHelper.formatMessage(ErrorMessages.DUPLICATE_NAME,
-              flowData.name));
+                flowData.name))
           })
-        });
+        })
 
         context('when FlowManager#findOne() succeeds', () => {
           it('calls AppHelper#deleteUndefinedFields() with correct args', async () => {
-            await $subject;
+            await $subject
 
-            expect(AppHelper.deleteUndefinedFields).to.have.been.calledWith(flowData);
-          });
+            expect(AppHelper.deleteUndefinedFields).to.have.been.calledWith(flowData)
+          })
 
           context('when AppHelper#deleteUndefinedFields() fails', () => {
-            def('deleteUndefinedFieldsResponse', () => Promise.reject(error));
+            def('deleteUndefinedFieldsResponse', () => Promise.reject(error))
 
             it(`fails with ${error}`, () => {
-              return expect($subject).to.eventually.equal(undefined);
+              return expect($subject).to.eventually.equal(undefined)
             })
-          });
+          })
 
           context('when AppHelper#deleteUndefinedFields() succeeds', () => {
             it('calls FlowManager#update() with correct args', async () => {
-              await $subject;
+              await $subject
 
               const where = isCLI
                 ? {id: flowId}
-                : {id: flowId, userId: user.id};
-              expect(FlowManager.update).to.have.been.calledWith(where, flowData, transaction);
-            });
+                : {id: flowId, userId: user.id}
+              expect(FlowManager.update).to.have.been.calledWith(where, flowData, transaction)
+            })
 
             context('when FlowManager#update() fails', () => {
-              def('updateFlowResponse', () => Promise.reject(error));
+              def('updateFlowResponse', () => Promise.reject(error))
 
               it(`fails with ${error}`, () => {
-                return expect($subject).to.be.rejectedWith(error);
+                return expect($subject).to.be.rejectedWith(error)
               })
-            });
+            })
 
             context('when FlowManager#update() succeeds', () => {
               it('calls FlowManager#findFlowMicroservices() with correct args', async () => {
-                await $subject;
+                await $subject
 
                 expect(FlowManager.findFlowMicroservices).to.have.been.calledWith({
-                  id: flowId
-                }, transaction);
-              });
+                  id: flowId,
+                }, transaction)
+              })
 
               context('when FlowManager#findFlowMicroservices() fails', () => {
-                def('findFlowMicroservicesResponse', () => Promise.reject(error));
+                def('findFlowMicroservicesResponse', () => Promise.reject(error))
 
                 it(`fails with ${error}`, () => {
-                  return expect($subject).to.be.rejectedWith(error);
+                  return expect($subject).to.be.rejectedWith(error)
                 })
-              });
+              })
 
               context('when FlowManager#findFlowMicroservices() succeeds', () => {
                 it('calls ChangeTrackingService#update() with correct args', async () => {
-                  await $subject;
+                  await $subject
 
                   expect(ChangeTrackingService.update).to.have.been.calledWith(flowWithMicroservices.microservices[0].iofogUuid,
-                    ChangeTrackingService.events.microserviceFull, transaction);
-                });
+                      ChangeTrackingService.events.microserviceFull, transaction)
+                })
 
                 context('when ChangeTrackingService#update() fails', () => {
-                  def('updateChangeTrackingResponse', () => error);
+                  def('updateChangeTrackingResponse', () => error)
 
                   it(`fails with ${error}`, () => {
-                    return expect($subject).to.eventually.equal(undefined);
+                    return expect($subject).to.eventually.equal(undefined)
                   })
-                });
+                })
 
                 context('when ChangeTrackingService#update() succeeds', () => {
                   it('fulfills the promise', () => {
@@ -416,120 +416,119 @@ describe('Flow Service', () => {
         })
       })
     })
-  });
+  })
 
   describe('.getUserFlows()', () => {
-    const transaction = {};
-    const error = 'Error!';
+    const transaction = {}
+    const error = 'Error!'
 
     const user = {
-      id: 15
-    };
+      id: 15,
+    }
 
     const flow = {
-      userId: user.id
-    };
+      userId: user.id,
+    }
 
-    def('subject', () => $subject.getUserFlows(user, isCLI, transaction));
-    def('findExcludedFlowResponse', () => Promise.resolve());
+    def('subject', () => $subject.getUserFlows(user, isCLI, transaction))
+    def('findExcludedFlowResponse', () => Promise.resolve())
 
     beforeEach(() => {
-      $sandbox.stub(FlowManager, 'findAllWithAttributes').returns($findExcludedFlowResponse);
-    });
+      $sandbox.stub(FlowManager, 'findAllWithAttributes').returns($findExcludedFlowResponse)
+    })
 
     it('calls FlowManager#findAllWithAttributes() with correct args', async () => {
-      await $subject;
-      const attributes = {exclude: ["created_at", "updated_at"]};
-      expect(FlowManager.findAllWithAttributes).to.have.been.calledWith(flow, attributes, transaction);
-    });
+      await $subject
+      const attributes = {exclude: ['created_at', 'updated_at']}
+      expect(FlowManager.findAllWithAttributes).to.have.been.calledWith(flow, attributes, transaction)
+    })
 
     context('when FlowManager#findAllWithAttributes() fails', () => {
-      def('findExcludedFlowResponse', () => Promise.reject(error));
+      def('findExcludedFlowResponse', () => Promise.reject(error))
 
       it(`fails with ${error}`, () => {
-        return expect($subject).to.be.rejectedWith(error);
+        return expect($subject).to.be.rejectedWith(error)
       })
-    });
+    })
 
     context('when FlowManager#findAllWithAttributes() succeeds', () => {
       it('fulfills the promise', () => {
-        return expect($subject).to.eventually.have.property('flows');
+        return expect($subject).to.eventually.have.property('flows')
       })
     })
-  });
+  })
 
 
   describe('.getAllFlows()', () => {
-    const transaction = {};
-    const error = 'Error!';
+    const transaction = {}
+    const error = 'Error!'
 
-    def('subject', () => $subject.getAllFlows(isCLI, transaction));
-    def('findAllFlowsResponse', () => Promise.resolve());
+    def('subject', () => $subject.getAllFlows(isCLI, transaction))
+    def('findAllFlowsResponse', () => Promise.resolve())
 
     beforeEach(() => {
-      $sandbox.stub(FlowManager, 'findAllWithAttributes').returns($findAllFlowsResponse);
-    });
+      $sandbox.stub(FlowManager, 'findAllWithAttributes').returns($findAllFlowsResponse)
+    })
 
     it('calls FlowManager#findAllWithAttributes() with correct args', async () => {
-      await $subject;
-      const attributes = {exclude: ['created_at', 'updated_at']};
-      expect(FlowManager.findAllWithAttributes).to.have.been.calledWith({}, attributes, transaction);
-    });
+      await $subject
+      const attributes = {exclude: ['created_at', 'updated_at']}
+      expect(FlowManager.findAllWithAttributes).to.have.been.calledWith({}, attributes, transaction)
+    })
 
     context('when FlowManager#findAllWithAttributes() fails', () => {
-      def('findAllFlowsResponse', () => Promise.reject(error));
+      def('findAllFlowsResponse', () => Promise.reject(error))
 
       it(`fails with ${error}`, () => {
-        return expect($subject).to.be.rejectedWith(error);
+        return expect($subject).to.be.rejectedWith(error)
       })
-    });
+    })
 
     context('when FlowManager#findAllWithAttributes() succeeds', () => {
       it('fulfills the promise', () => {
-        return expect($subject).to.eventually.have.property('flows');
+        return expect($subject).to.eventually.have.property('flows')
       })
     })
-  });
+  })
 
   describe('.getFlow()', () => {
-    const transaction = {};
-    const error = 'Error!';
+    const transaction = {}
+    const error = 'Error!'
 
-    const flowId = 75;
+    const flowId = 75
 
     const user = {
-      id: 15
-    };
+      id: 15,
+    }
 
-    def('subject', () => $subject.getFlow(flowId, user, isCLI, transaction));
-    def('findFlowResponse', () => Promise.resolve({}));
+    def('subject', () => $subject.getFlow(flowId, user, isCLI, transaction))
+    def('findFlowResponse', () => Promise.resolve({}))
 
     beforeEach(() => {
-      $sandbox.stub(FlowManager, 'findOneWithAttributes').returns($findFlowResponse);
-    });
+      $sandbox.stub(FlowManager, 'findOneWithAttributes').returns($findFlowResponse)
+    })
 
     it('calls FlowManager#findOneWithAttributes() with correct args', async () => {
-      await $subject;
+      await $subject
       const where = isCLI
         ? {id: flowId}
-        : {id: flowId, userId: user.id};
-      const attributes = {exclude: ["created_at", "updated_at"]};
-      expect(FlowManager.findOneWithAttributes).to.have.been.calledWith(where, attributes, transaction);
-    });
+        : {id: flowId, userId: user.id}
+      const attributes = {exclude: ['created_at', 'updated_at']}
+      expect(FlowManager.findOneWithAttributes).to.have.been.calledWith(where, attributes, transaction)
+    })
 
     context('when FlowManager#findOneWithAttributes() fails', () => {
-      def('findFlowResponse', () => Promise.reject(error));
+      def('findFlowResponse', () => Promise.reject(error))
 
       it(`fails with ${error}`, () => {
-        return expect($subject).to.be.rejectedWith(error);
+        return expect($subject).to.be.rejectedWith(error)
       })
-    });
+    })
 
     context('when FlowManager#findOneWithAttributes() succeeds', () => {
       it('fulfills the promise', () => {
-        return expect($subject).to.eventually.deep.equal({});
+        return expect($subject).to.eventually.deep.equal({})
       })
     })
-  });
-
-});
+  })
+})

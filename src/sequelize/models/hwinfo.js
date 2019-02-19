@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 module.exports = (sequelize, DataTypes) => {
   const HWInfo = sequelize.define('HWInfo', {
     id: {
@@ -6,28 +6,27 @@ module.exports = (sequelize, DataTypes) => {
       primaryKey: true,
       autoIncrement: true,
       allowNull: false,
-      field: 'id'
+      field: 'id',
     },
     info: {
       type: DataTypes.TEXT,
-      defaultValue: " ",
-      field: 'info'
-    }
+      defaultValue: ' ',
+      field: 'info',
+    },
   }, {
     // add the timestamp attributes (updatedAt, createdAt)
     timestamps: true,
-    underscored: true
-  });
-  HWInfo.associate = function (models) {
-
+    underscored: true,
+  })
+  HWInfo.associate = function(models) {
     HWInfo.belongsTo(models.Fog, {
       foreignKey: {
         name: 'iofogUuid',
-        field: 'iofog_uuid'
+        field: 'iofog_uuid',
       },
       as: 'iofog',
-      onDelete: 'cascade'
-    });
-  };
-  return HWInfo;
-};
+      onDelete: 'cascade',
+    })
+  }
+  return HWInfo
+}

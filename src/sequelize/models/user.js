@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 module.exports = (sequelize, DataTypes) => {
   const User = sequelize.define('User', {
     id: {
@@ -6,71 +6,69 @@ module.exports = (sequelize, DataTypes) => {
       autoIncrement: true,
       primaryKey: true,
       type: DataTypes.INTEGER,
-      field: 'id'
+      field: 'id',
     },
     firstName: {
       type: DataTypes.STRING(100),
       field: 'first_name',
-      defaultValue: ""
+      defaultValue: '',
     },
     lastName: {
       type: DataTypes.STRING(100),
       field: 'last_name',
-      defaultValue: ""
+      defaultValue: '',
     },
     email: {
       type: DataTypes.STRING(100),
       field: 'email',
-      defaultValue: ""
+      defaultValue: '',
     },
     password: {
       type: DataTypes.STRING(100),
-      field: 'password'
+      field: 'password',
     },
     tempPassword: {
       type: DataTypes.STRING(100),
-      field: 'temp_password'
+      field: 'temp_password',
     },
     emailActivated: {
       type: DataTypes.BOOLEAN,
       field: 'email_activated',
-      defaultValue: false
-    }
+      defaultValue: false,
+    },
   }, {
     timestamps: false,
-    underscored: true
-  });
-  User.associate = function (models) {
-
+    underscored: true,
+  })
+  User.associate = function(models) {
     User.hasOne(models.AccessToken, {
       foreignKey: 'user_id',
-      as: 'accessToken'
-    });
+      as: 'accessToken',
+    })
 
     User.hasMany(models.Flow, {
       foreignKey: {
         name: 'userId',
-        field: 'user_id'
+        field: 'user_id',
       },
-      as: 'flow'
-    });
+      as: 'flow',
+    })
 
     User.hasMany(models.Fog, {
       foreignKey: {
         name: 'userId',
-        field: 'user_id'
+        field: 'user_id',
       },
-      as: 'fog'
-    });
+      as: 'fog',
+    })
 
     User.hasMany(models.Microservice, {
       foreignKey: {
         name: 'userId',
-        field: 'user_id'
+        field: 'user_id',
       },
-      as: 'microservice'
-    });
-
-  };
-  return User;
-};
+      as: 'microservice',
+    })
+  }
+  return User
+}
