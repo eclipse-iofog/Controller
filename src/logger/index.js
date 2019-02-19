@@ -19,8 +19,12 @@ const MESSAGE = Symbol.for('message');
 const dirname = config.get('Service:LogsDirectory')
 
 // Create the log directory if it does not exist
-if (!fs.existsSync(dirname)) {
-  fs.mkdirSync(dirname);
+try {
+  if (!fs.existsSync(dirname)) {
+    fs.mkdirSync(dirname);
+  }
+} catch (e) {
+  // can't initialize log folder
 }
 
 const levels = {
