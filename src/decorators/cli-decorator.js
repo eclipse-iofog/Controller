@@ -11,17 +11,17 @@
  *
  */
 
-const logger = require('../logger');
-const config = require('../config');
-const UserManager = require('../sequelize/managers/user-manager');
-const AccessTokenManager = require('../sequelize/managers/access-token-manager');
-const Errors = require('../helpers/errors');
-const { isTest } = require('../helpers/app-helper');
+const logger = require('../logger')
+const config = require('../config')
+const UserManager = require('../sequelize/managers/user-manager')
+const AccessTokenManager = require('../sequelize/managers/access-token-manager')
+const Errors = require('../helpers/errors')
+const {isTest} = require('../helpers/app-helper')
 
 function prepareUserById(f) {
   return async function() {
     if (isTest()) {
-      return await f.apply(this, arguments);
+      return await f.apply(this, arguments)
     }
 
     const fArgs = Array.prototype.slice.call(arguments)
@@ -33,7 +33,7 @@ function prepareUserById(f) {
       throw new Errors.AuthenticationError('user id does not exist')
     }
 
-    delete  obj.userId
+    delete obj.userId
     fArgs.push(user)
 
     return await f.apply(this, fArgs)
@@ -43,7 +43,7 @@ function prepareUserById(f) {
 function prepareUserByEmail(f) {
   return async function() {
     if (isTest()) {
-      return await f.apply(this, arguments);
+      return await f.apply(this, arguments)
     }
 
     const fArgs = Array.prototype.slice.call(arguments)
@@ -57,7 +57,7 @@ function prepareUserByEmail(f) {
       throw new Errors.AuthenticationError('user email does not exist')
     }
 
-    delete  obj.email
+    delete obj.email
     fArgs.push(user)
 
     return await f.apply(this, fArgs)
@@ -66,6 +66,6 @@ function prepareUserByEmail(f) {
 
 module.exports = {
   prepareUserById: prepareUserById,
-  prepareUserByEmail: prepareUserByEmail
+  prepareUserByEmail: prepareUserByEmail,
 
 }

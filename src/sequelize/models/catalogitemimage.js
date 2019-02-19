@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 module.exports = (sequelize, DataTypes) => {
   const CatalogItemImage = sequelize.define('CatalogItemImage', {
     id: {
@@ -6,35 +6,34 @@ module.exports = (sequelize, DataTypes) => {
       primaryKey: true,
       autoIncrement: true,
       allowNull: false,
-      field: 'id'
+      field: 'id',
     },
     containerImage: {
       type: DataTypes.TEXT,
-      field: 'container_image'
-    }
+      field: 'container_image',
+    },
   }, {
     timestamps: false,
-    underscored: true
-  });
-  CatalogItemImage.associate = function (models) {
-
+    underscored: true,
+  })
+  CatalogItemImage.associate = function(models) {
     CatalogItemImage.belongsTo(models.CatalogItem, {
       foreignKey: {
         name: 'catalogItemId',
-        field: 'catalog_item_id'
+        field: 'catalog_item_id',
       },
       as: 'catalogItem',
-      onDelete: 'cascade'
-    });
+      onDelete: 'cascade',
+    })
 
     CatalogItemImage.belongsTo(models.FogType, {
       foreignKey: {
         name: 'fogTypeId',
-        field: 'fog_type_id'
+        field: 'fog_type_id',
       },
       as: 'fogType',
-      onDelete: 'cascade'
-    });
-  };
-  return CatalogItemImage;
-};
+      onDelete: 'cascade',
+    })
+  }
+  return CatalogItemImage
+}

@@ -11,45 +11,45 @@
  *
  */
 
-const db = require('./../sequelize/models');
-const retry = require('retry-as-promised');
-const sequelize = db.sequelize;
-const Transaction = require('sequelize/lib/transaction');
-const { isTest } = require('../helpers/app-helper');
+const db = require('./../sequelize/models')
+const retry = require('retry-as-promised')
+const sequelize = db.sequelize
+const Transaction = require('sequelize/lib/transaction')
+const {isTest} = require('../helpers/app-helper')
 
 function transaction(f) {
   return async function() {
     if (isTest()) {
-      return await f.apply(this, arguments);
+      return await f.apply(this, arguments)
     }
 
-    const fArgs = Array.prototype.slice.call(arguments);
-    //TODO [when transactions concurrency issue fixed]: Remove 'fArgs[fArgs.length - 1].fakeTransaction'
+    const fArgs = Array.prototype.slice.call(arguments)
+    // TODO [when transactions concurrency issue fixed]: Remove 'fArgs[fArgs.length - 1].fakeTransaction'
     if (fArgs.length > 0 && fArgs[fArgs.length - 1] && (fArgs[fArgs.length - 1] instanceof Transaction || fArgs[fArgs.length - 1].fakeTransaction)) {
-      return await  f.apply(this, fArgs);
+      return await f.apply(this, fArgs)
     } else {
-    //return f.apply(this, fArgs)
+    // return f.apply(this, fArgs)
       return sequelize.transaction(async (t) => {
-        fArgs.push(t);
-        return await f.apply(this, fArgs);
+        fArgs.push(t)
+        return await f.apply(this, fArgs)
       })
     }
   }
 }
 
 function generateTransaction(f) {
-  return function () {
-    const args = Array.prototype.slice.call(arguments);
+  return function() {
+    const args = Array.prototype.slice.call(arguments)
     return retry(() => {
-      const t = transaction(f);
-      return t.apply(this, args);
+      const t = transaction(f)
+      return t.apply(this, args)
     }, {
-        max: 5,
-        match: [
-          sequelize.ConnectionError,
-          'SQLITE_BUSY',
-        ],
-      })
+      max: 5,
+      match: [
+        sequelize.ConnectionError,
+        'SQLITE_BUSY',
+      ],
+    })
   }
 }
 
@@ -57,27 +57,27 @@ function fakeTransaction(f) {
   const fakeTransactionObject = {fakeTransaction: true}
   return async function() {
     if (isTest()) {
-      return await f.apply(this, arguments);
+      return await f.apply(this, arguments)
     }
 
-    const fArgs = Array.prototype.slice.call(arguments);
+    const fArgs = Array.prototype.slice.call(arguments)
     if (fArgs.length > 0 && fArgs[fArgs.length - 1] instanceof Transaction) {
-      fArgs[fArgs.length - 1] = fakeTransactionObject;
-      return await f.apply(this, fArgs);
+      fArgs[fArgs.length - 1] = fakeTransactionObject
+      return await f.apply(this, fArgs)
     } else {
-      fArgs.push(fakeTransactionObject);
-      return await f.apply(this, fArgs);
+      fArgs.push(fakeTransactionObject)
+      return await f.apply(this, fArgs)
     }
   }
 }
 
-//TODO [when transactions concurrency issue fixed]: Remove
+// TODO [when transactions concurrency issue fixed]: Remove
 function generateFakeTransaction(f) {
-  return function () {
-    const args = Array.prototype.slice.call(arguments);
+  return function() {
+    const args = Array.prototype.slice.call(arguments)
     return retry(() => {
-      const t = fakeTransaction(f);
-      return t.apply(this, args);
+      const t = fakeTransaction(f)
+      return t.apply(this, args)
     }, {
       max: 5,
       match: [
@@ -90,5 +90,5 @@ function generateFakeTransaction(f) {
 
 module.exports = {
   generateTransaction: generateTransaction,
-  generateFakeTransaction: generateFakeTransaction
-};
+  generateFakeTransaction: generateFakeTransaction,
+}

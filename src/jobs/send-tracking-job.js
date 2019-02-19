@@ -11,33 +11,32 @@
  *
  */
 
-const BaseJobHandler = require('./base/base-job-handler');
-const Tracking = require('../tracking');
-const TrackingEventType = require('../enums/tracking-event-type');
-const TrackingEventManager = require('../sequelize/managers/tracking-event-manager');
+const BaseJobHandler = require('./base/base-job-handler')
+const Tracking = require('../tracking')
+const TrackingEventType = require('../enums/tracking-event-type')
+const TrackingEventManager = require('../sequelize/managers/tracking-event-manager')
 
 class SendTrackingJob extends BaseJobHandler {
-
   constructor() {
-    super();
-    this.scheduleTime = intervalMin * 60 * 1000;
+    super()
+    this.scheduleTime = intervalMin * 60 * 1000
   }
 
   run() {
-    setInterval(sendTracking, this.scheduleTime);
+    setInterval(sendTracking, this.scheduleTime)
   }
 }
 
-const intervalMin = 5;
+const intervalMin = 5
 
 async function sendTracking() {
-  const fakeTransactionObject = {fakeTransaction: true};
-  const events = await TrackingEventManager.popAll(fakeTransactionObject);
+  const fakeTransactionObject = {fakeTransaction: true}
+  const events = await TrackingEventManager.popAll(fakeTransactionObject)
   try {
-    Tracking.sendEvents(events);
+    Tracking.sendEvents(events)
   } catch (e) {
-    logger.silly(`tracking sending failed with error ${e.message}`);
+    logger.silly(`tracking sending failed with error ${e.message}`)
   }
 }
 
-module.exports = new SendTrackingJob();
+module.exports = new SendTrackingJob()

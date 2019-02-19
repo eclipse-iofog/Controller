@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 module.exports = (sequelize, DataTypes) => {
   const Connector = sequelize.define('Connector', {
     id: {
@@ -6,38 +6,38 @@ module.exports = (sequelize, DataTypes) => {
       primaryKey: true,
       autoIncrement: true,
       allowNull: false,
-      field: 'id'
+      field: 'id',
     },
     name: {
       type: DataTypes.TEXT,
-      field: 'name'
+      field: 'name',
     },
     domain: {
       type: DataTypes.TEXT,
-      field: 'domain'
+      field: 'domain',
     },
     publicIp: {
       type: DataTypes.TEXT,
-      field: 'public_ip'
+      field: 'public_ip',
     },
     cert: {
       type: DataTypes.TEXT,
-      field: 'cert'
+      field: 'cert',
     },
     isSelfSignedCert: {
       type: DataTypes.BOOLEAN,
-      field: 'self_signed_certs'
+      field: 'self_signed_certs',
     },
     devMode: {
       type: DataTypes.BOOLEAN,
-      field: 'dev_mode'
-    }
+      field: 'dev_mode',
+    },
   }, {
     timestamps: true,
-    underscored: true
-  });
-  Connector.associate = function (models) {
+    underscored: true,
+  })
+  Connector.associate = function(models) {
 
-  };
-  return Connector;
-};
+  }
+  return Connector
+}

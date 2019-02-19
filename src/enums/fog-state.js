@@ -13,7 +13,7 @@
 
 const fogState = {
   UNKNOWN: 'UNKNOWN',
-  RUNNING: 'RUNNING'
-};
+  RUNNING: 'RUNNING',
+}
 
-module.exports = fogState;
+module.exports = fogState

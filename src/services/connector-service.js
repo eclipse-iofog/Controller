@@ -11,33 +11,33 @@
  *
  */
 
-const TransactionDecorator = require('../decorators/transaction-decorator');
-const Validator = require('../schemas');
-const ConnectorManager = require('../sequelize/managers/connector-manager');
-const Errors = require('../helpers/errors');
-const ErrorMessages = require('../helpers/error-messages');
-const AppHelper = require('../helpers/app-helper');
-const Op = require('sequelize').Op;
+const TransactionDecorator = require('../decorators/transaction-decorator')
+const Validator = require('../schemas')
+const ConnectorManager = require('../sequelize/managers/connector-manager')
+const Errors = require('../helpers/errors')
+const ErrorMessages = require('../helpers/error-messages')
+const AppHelper = require('../helpers/app-helper')
+const Op = require('sequelize').Op
 
-const ConnectorPortManager = require('../sequelize/managers/connector-port-manager');
-const MicroserviceService = require('../services/microservices-service');
+const ConnectorPortManager = require('../sequelize/managers/connector-port-manager')
+const MicroserviceService = require('../services/microservices-service')
 
 async function createConnector(connectorData, transaction) {
-  await Validator.validate(connectorData, Validator.schemas.connectorCreate);
-  _validateConnectorData(connectorData);
+  await Validator.validate(connectorData, Validator.schemas.connectorCreate)
+  _validateConnectorData(connectorData)
   const connector = await ConnectorManager.findOne({
     [Op.or]: [
       {
-        name: connectorData.name
+        name: connectorData.name,
       },
       {
-        publicIp: connectorData.publicIp
+        publicIp: connectorData.publicIp,
       },
       {
-        domain: connectorData.domain
-      }
-    ]
-  }, transaction);
+        domain: connectorData.domain,
+      },
+    ],
+  }, transaction)
   if (connector) {
     throw new Errors.ValidationError(ErrorMessages.ALREADY_EXISTS)
   }
@@ -45,39 +45,39 @@ async function createConnector(connectorData, transaction) {
 }
 
 async function updateConnector(connectorData, transaction) {
-  await Validator.validate(connectorData, Validator.schemas.connectorUpdate);
-  _validateConnectorData(connectorData);
+  await Validator.validate(connectorData, Validator.schemas.connectorUpdate)
+  _validateConnectorData(connectorData)
   const queryConnectorData = {
-    publicIp: connectorData.publicIp
-  };
+    publicIp: connectorData.publicIp,
+  }
 
   const connector = await ConnectorManager.findOne({
-      publicIp: connectorData.publicIp
-    }, transaction);
+    publicIp: connectorData.publicIp,
+  }, transaction)
   if (!connector) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_CONNECTOR_IP, connectorData.publicIp))
   }
 
-  await ConnectorManager.update(queryConnectorData, connectorData, transaction);
-  const updatedConnector = await ConnectorManager.findOne({publicIp: connectorData.publicIp}, transaction);
-  await MicroserviceService.updateRouteOverConnector(updatedConnector, transaction);
-  await MicroserviceService.updatePortMappingOverConnector(updatedConnector, transaction);
+  await ConnectorManager.update(queryConnectorData, connectorData, transaction)
+  const updatedConnector = await ConnectorManager.findOne({publicIp: connectorData.publicIp}, transaction)
+  await MicroserviceService.updateRouteOverConnector(updatedConnector, transaction)
+  await MicroserviceService.updatePortMappingOverConnector(updatedConnector, transaction)
 }
 
 async function deleteConnector(connectorData, transaction) {
-  await Validator.validate(connectorData, Validator.schemas.connectorDelete);
+  await Validator.validate(connectorData, Validator.schemas.connectorDelete)
   const queryConnectorData = {
-    publicIp: connectorData.publicIp
-  };
-  const connector = await ConnectorManager.findOne(queryConnectorData, transaction);
+    publicIp: connectorData.publicIp,
+  }
+  const connector = await ConnectorManager.findOne(queryConnectorData, transaction)
   if (!connector) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_CONNECTOR_IP, connectorData.publicIp))
   }
-  const ports = await ConnectorPortManager.findAll({connectorId: connector.id}, transaction);
+  const ports = await ConnectorPortManager.findAll({connectorId: connector.id}, transaction)
   if (ports && ports.length > 0) {
     throw new Errors.ValidationError(ErrorMessages.CONNECTOR_IS_IN_USE)
   }
-  await ConnectorManager.delete(queryConnectorData, transaction);
+  await ConnectorManager.delete(queryConnectorData, transaction)
 }
 
 async function getConnectorList(transaction) {
@@ -86,14 +86,14 @@ async function getConnectorList(transaction) {
 
 function _validateConnectorData(connectorData) {
   if (connectorData.domain) {
-    const validDomain = AppHelper.isValidDomain(connectorData.domain) || AppHelper.isValidPublicIP(connectorData.domain);
+    const validDomain = AppHelper.isValidDomain(connectorData.domain) || AppHelper.isValidPublicIP(connectorData.domain)
     if (!validDomain) {
-      throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_CONNECTOR_DOMAIN, connectorData.domain));
+      throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_CONNECTOR_DOMAIN, connectorData.domain))
     }
   }
 
   if (!AppHelper.isValidPublicIP(connectorData.publicIp)) {
-    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_CONNECTOR_IP, connectorData.publicIp));
+    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_CONNECTOR_IP, connectorData.publicIp))
   }
 }
 
@@ -101,5 +101,5 @@ module.exports = {
   createConnector: TransactionDecorator.generateTransaction(createConnector),
   updateConnector: TransactionDecorator.generateTransaction(updateConnector),
   deleteConnector: TransactionDecorator.generateTransaction(deleteConnector),
-  getConnectorList: TransactionDecorator.generateTransaction(getConnectorList)
-};
+  getConnectorList: TransactionDecorator.generateTransaction(getConnectorList),
+}

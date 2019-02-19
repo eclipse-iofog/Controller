@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 module.exports = {
   up: (queryInterface, Sequelize) => {
     return queryInterface.createTable('Connectors', {
@@ -7,45 +7,45 @@ module.exports = {
         primaryKey: true,
         autoIncrement: true,
         allowNull: false,
-        field: 'id'
+        field: 'id',
       },
       name: {
         type: Sequelize.TEXT,
-        field: 'name'
+        field: 'name',
       },
       domain: {
         type: Sequelize.TEXT,
-        field: 'domain'
+        field: 'domain',
       },
       publicIp: {
         type: Sequelize.TEXT,
-        field: 'public_ip'
+        field: 'public_ip',
       },
       cert: {
         type: Sequelize.TEXT,
-        field: 'cert'
+        field: 'cert',
       },
       selfSignedCerts: {
         type: Sequelize.BOOLEAN,
-        field: 'self_signed_certs'
+        field: 'self_signed_certs',
       },
       devMode: {
         type: Sequelize.BOOLEAN,
-        field: 'dev_mode'
+        field: 'dev_mode',
       },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE,
-        field: 'created_at'
+        field: 'created_at',
       },
       updatedAt: {
         allowNull: false,
         type: Sequelize.DATE,
-        field: 'updated_at'
-      }
-    });
+        field: 'updated_at',
+      },
+    })
   },
   down: (queryInterface, Sequelize) => {
-    return queryInterface.dropTable('Connectors');
-  }
-};
+    return queryInterface.dropTable('Connectors')
+  },
+}

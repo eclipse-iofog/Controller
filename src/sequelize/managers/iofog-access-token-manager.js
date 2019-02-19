@@ -11,9 +11,9 @@
  *
  */
 
-const BaseManager = require('./base-manager');
-const models = require('./../models');
-const FogAccessToken = models.FogAccessToken;
+const BaseManager = require('./base-manager')
+const models = require('./../models')
+const FogAccessToken = models.FogAccessToken
 
 class FogAccessTokenManager extends BaseManager {
   getEntity() {
@@ -23,14 +23,14 @@ class FogAccessTokenManager extends BaseManager {
   // no transaction required here, used by auth decorator
   updateExpirationTime(id, newTime) {
     return FogAccessToken.update({
-      expirationTime: newTime
+      expirationTime: newTime,
     }, {
       where: {
-        id: id
-      }
+        id: id,
+      },
     })
   }
 }
 
-const instance = new FogAccessTokenManager();
-module.exports = instance;
+const instance = new FogAccessTokenManager()
+module.exports = instance

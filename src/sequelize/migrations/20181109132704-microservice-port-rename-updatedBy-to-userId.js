@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 
 module.exports = {
   up: (queryInterface, Sequelize) => {
@@ -7,5 +7,5 @@ module.exports = {
 
   down: (queryInterface, Sequelize) => {
     return queryInterface.renameColumn('MicroservicePorts', 'user_id', 'updated_by')
-  }
-};
+  },
+}

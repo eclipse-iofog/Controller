@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 module.exports = (sequelize, DataTypes) => {
   const FogProvisionKey = sequelize.define('FogProvisionKey', {
     id: {
@@ -6,30 +6,29 @@ module.exports = (sequelize, DataTypes) => {
       primaryKey: true,
       autoIncrement: true,
       allowNull: false,
-      field: 'id'
+      field: 'id',
     },
     provisionKey: {
       type: DataTypes.STRING(100),
-      field: 'provisioning_string'
+      field: 'provisioning_string',
     },
     expirationTime: {
       type: DataTypes.BIGINT,
-      field: 'expiration_time'
-    }
+      field: 'expiration_time',
+    },
   }, {
     timestamps: false,
-    underscored: true
-  });
-  FogProvisionKey.associate = function (models) {
-
+    underscored: true,
+  })
+  FogProvisionKey.associate = function(models) {
     FogProvisionKey.belongsTo(models.Fog, {
       foreignKey: {
         name: 'iofogUuid',
-        field: 'iofog_uuid'
+        field: 'iofog_uuid',
       },
       as: 'iofog',
-      onDelete: 'cascade'
-    });
-  };
-  return FogProvisionKey;
-};
+      onDelete: 'cascade',
+    })
+  }
+  return FogProvisionKey
+}

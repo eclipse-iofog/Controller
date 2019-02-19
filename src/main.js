@@ -17,14 +17,14 @@ if (!process.env.NODE_ENV) {
   process.env.NODE_ENV = 'production'
 }
 
-const Cli = require('./cli');
-const logger = require('./logger');
-const daemon = require('./daemon');
+const Cli = require('./cli')
+const logger = require('./logger')
+const daemon = require('./daemon')
 
 function main() {
-  const cli = new Cli();
+  const cli = new Cli()
 
   cli.run(daemon)
 }
 
-main();
+main()

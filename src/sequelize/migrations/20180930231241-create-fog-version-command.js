@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 module.exports = {
   up: (queryInterface, Sequelize) => {
     return queryInterface.createTable('FogVersionCommands', {
@@ -6,21 +6,21 @@ module.exports = {
         type: Sequelize.INTEGER,
         primaryKey: true,
         autoIncrement: true,
-        field: 'id'
+        field: 'id',
       },
       versionCommand: {
         type: Sequelize.STRING(100),
-        field: 'version_command'
+        field: 'version_command',
       },
       iofogUuid: {
         type: Sequelize.TEXT,
         field: 'iofog_uuid',
-        references: { model: 'Fogs', key: 'uuid' },
-        onDelete: 'cascade'
-      }
-    });
+        references: {model: 'Fogs', key: 'uuid'},
+        onDelete: 'cascade',
+      },
+    })
   },
   down: (queryInterface, Sequelize) => {
-    return queryInterface.dropTable('FogVersionCommands');
-  }
-};
+    return queryInterface.dropTable('FogVersionCommands')
+  },
+}

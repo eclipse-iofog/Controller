@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 module.exports = (sequelize, DataTypes) => {
   const FogType = sequelize.define('FogType', {
     id: {
@@ -6,48 +6,48 @@ module.exports = (sequelize, DataTypes) => {
       primaryKey: true,
       autoIncrement: true,
       allowNull: false,
-      field: 'id'
+      field: 'id',
     },
     name: {
       type: DataTypes.TEXT,
-      field: 'name'
+      field: 'name',
     },
     image: {
       type: DataTypes.TEXT,
-      field: 'image'
+      field: 'image',
     },
     description: {
       type: DataTypes.TEXT,
-      field: 'description'
-    }
+      field: 'description',
+    },
   }, {
     timestamps: false,
-    underscored: true
-  });
-  FogType.associate = function (models) {
+    underscored: true,
+  })
+  FogType.associate = function(models) {
     FogType.belongsTo(models.CatalogItem, {
       foreignKey: {
         name: 'networkCatalogItemId',
-        field: 'network_catalog_item_id'
+        field: 'network_catalog_item_id',
       },
-      as: 'networkCatalogItem'
-    });
+      as: 'networkCatalogItem',
+    })
 
     FogType.belongsTo(models.CatalogItem, {
       foreignKey: {
         name: 'halCatalogItemId',
-        field: 'hal_catalog_item_id'
+        field: 'hal_catalog_item_id',
       },
-      as: 'halCatalogItem'
-    });
+      as: 'halCatalogItem',
+    })
 
     FogType.belongsTo(models.CatalogItem, {
       foreignKey: {
         name: 'bluetoothCatalogItemId',
-        field: 'bluetooth_catalog_item_id'
+        field: 'bluetooth_catalog_item_id',
       },
-      as: 'bluetoothCatalogItem'
-    });
-  };
-  return FogType;
-};
+      as: 'bluetoothCatalogItem',
+    })
+  }
+  return FogType
+}

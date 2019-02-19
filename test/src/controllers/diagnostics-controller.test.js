@@ -1,238 +1,235 @@
-const {expect} = require('chai');
-const sinon = require('sinon');
+const {expect} = require('chai')
+const sinon = require('sinon')
 
-const DiagnosticController = require('../../../src/controllers/diagnostic-controller');
-const DiagnosticService = require('../../../src/services/diagnostic-service');
+const DiagnosticController = require('../../../src/controllers/diagnostic-controller')
+const DiagnosticService = require('../../../src/services/diagnostic-service')
 
 describe('Diagnostic Controller', () => {
-  def('subject', () => DiagnosticController);
-  def('sandbox', () => sinon.createSandbox());
+  def('subject', () => DiagnosticController)
+  def('sandbox', () => sinon.createSandbox())
 
-  afterEach(() => $sandbox.restore());
+  afterEach(() => $sandbox.restore())
 
   describe('.changeMicroserviceStraceStateEndPoint()', () => {
-    def('user', () => 'user!');
-    def('uuid', () => 'testUuid');
+    def('user', () => 'user!')
+    def('uuid', () => 'testUuid')
 
-    def('enable', () => true);
+    def('enable', () => true)
 
     def('req', () => ({
       params: {
-        uuid: $uuid
+        uuid: $uuid,
       },
       body: {
-        enable: $enable
-      }
-    }));
+        enable: $enable,
+      },
+    }))
 
-    def('response', () => Promise.resolve());
-    def('subject', () => $subject.changeMicroserviceStraceStateEndPoint($req, $user));
+    def('response', () => Promise.resolve())
+    def('subject', () => $subject.changeMicroserviceStraceStateEndPoint($req, $user))
 
     beforeEach(() => {
-      $sandbox.stub(DiagnosticService, 'changeMicroserviceStraceState').returns($response);
-    });
+      $sandbox.stub(DiagnosticService, 'changeMicroserviceStraceState').returns($response)
+    })
 
     it('calls DiagnosticService.changeMicroserviceStraceState with correct args', async () => {
-      await $subject;
+      await $subject
       expect(DiagnosticService.changeMicroserviceStraceState).to.have.been.calledWith($uuid, {
-        enable: $enable
-      }, $user, false);
-    });
+        enable: $enable,
+      }, $user, false)
+    })
 
     context('when DiagnosticService#changeMicroserviceStraceState fails', () => {
-      const error = 'Error!';
+      const error = 'Error!'
 
-      def('response', () => Promise.reject(error));
+      def('response', () => Promise.reject(error))
 
       it(`fails with "${error}"`, () => {
         return expect($subject).to.be.rejectedWith(error)
       })
-    });
+    })
 
     context('when DiagnosticService#changeMicroserviceStraceState succeeds', () => {
       it(`succeeds`, () => {
         return expect($subject).to.eventually.equal(undefined)
       })
     })
-  });
+  })
 
   describe('.getMicroserviceStraceDataEndPoint()', () => {
-    def('user', () => 'user!');
-    def('uuid', () => 'testUuid');
-    def('format', () => 'string');
+    def('user', () => 'user!')
+    def('uuid', () => 'testUuid')
+    def('format', () => 'string')
 
     def('req', () => ({
       params: {
-        uuid: $uuid
+        uuid: $uuid,
       },
       query: {
-        format: $format
-      }
-    }));
-    def('response', () => Promise.resolve());
-    def('subject', () => $subject.getMicroserviceStraceDataEndPoint($req, $user));
+        format: $format,
+      },
+    }))
+    def('response', () => Promise.resolve())
+    def('subject', () => $subject.getMicroserviceStraceDataEndPoint($req, $user))
 
     beforeEach(() => {
-      $sandbox.stub(DiagnosticService, 'getMicroserviceStraceData').returns($response);
-    });
+      $sandbox.stub(DiagnosticService, 'getMicroserviceStraceData').returns($response)
+    })
 
     it('calls DiagnosticService.getMicroserviceStraceData with correct args', async () => {
-      await $subject;
+      await $subject
       expect(DiagnosticService.getMicroserviceStraceData).to.have.been.calledWith($uuid, {
-        format: $format
+        format: $format,
       }, $user, false)
-    });
+    })
 
     context('when DiagnosticService#getMicroserviceStraceData fails', () => {
-      const error = 'Error!';
+      const error = 'Error!'
 
-      def('response', () => Promise.reject(error));
+      def('response', () => Promise.reject(error))
 
       it(`fails with "${error}"`, () => {
         return expect($subject).to.be.rejectedWith(error)
       })
-    });
+    })
 
     context('when DiagnosticService#getMicroserviceStraceData succeeds', () => {
       it(`succeeds`, () => {
         return expect($subject).to.eventually.equal(undefined)
       })
     })
-
-  });
+  })
 
   describe('.postMicroserviceStraceDataToFtpEndPoint()', () => {
-    def('user', () => 'user!');
-    def('uuid', () => 'testUuid');
+    def('user', () => 'user!')
+    def('uuid', () => 'testUuid')
 
-    def('ftpHost', () => 'testHost');
-    def('ftpPort', () => 15);
-    def('ftpPass', () => 'ftpPass');
-    def('ftpDestDir', () => 'ftpDestDirectory');
+    def('ftpHost', () => 'testHost')
+    def('ftpPort', () => 15)
+    def('ftpPass', () => 'ftpPass')
+    def('ftpDestDir', () => 'ftpDestDirectory')
 
     def('req', () => ({
       params: {
-        uuid: $uuid
+        uuid: $uuid,
       },
       body: {
         ftpHost: $ftpHost,
         ftpPort: $ftpPort,
         ftpPass: $ftpPass,
-        ftpDestDir: $ftpDestDir
-      }
-    }));
+        ftpDestDir: $ftpDestDir,
+      },
+    }))
 
-    def('response', () => Promise.resolve());
-    def('subject', () => $subject.postMicroserviceStraceDataToFtpEndPoint($req, $user));
+    def('response', () => Promise.resolve())
+    def('subject', () => $subject.postMicroserviceStraceDataToFtpEndPoint($req, $user))
 
     beforeEach(() => {
-      $sandbox.stub(DiagnosticService, 'postMicroserviceStraceDatatoFtp').returns($response);
-    });
+      $sandbox.stub(DiagnosticService, 'postMicroserviceStraceDatatoFtp').returns($response)
+    })
 
     it('calls DiagnosticService.postMicroserviceStraceDatatoFtp with correct args', async () => {
-      await $subject;
+      await $subject
       expect(DiagnosticService.postMicroserviceStraceDatatoFtp).to.have.been.calledWith($uuid, {
         ftpHost: $ftpHost,
         ftpPort: $ftpPort,
         ftpPass: $ftpPass,
-        ftpDestDir: $ftpDestDir
-      }, $user, false);
-    });
+        ftpDestDir: $ftpDestDir,
+      }, $user, false)
+    })
 
     context('when DiagnosticService#postMicroserviceStraceDatatoFtp fails', () => {
-      const error = 'Error!';
+      const error = 'Error!'
 
-      def('response', () => Promise.reject(error));
+      def('response', () => Promise.reject(error))
 
       it(`fails with "${error}"`, () => {
         return expect($subject).to.be.rejectedWith(error)
       })
-    });
+    })
 
     context('when DiagnosticService#postMicroserviceStraceDatatoFtp succeeds', () => {
       it(`succeeds`, () => {
         return expect($subject).to.eventually.equal(undefined)
       })
     })
-  });
+  })
 
   describe('.createMicroserviceImageSnapshotEndPoint()', () => {
-    def('user', () => 'user!');
-    def('uuid', () => 'testUuid');
+    def('user', () => 'user!')
+    def('uuid', () => 'testUuid')
 
     def('req', () => ({
       params: {
-        uuid: $uuid
-      }
-    }));
+        uuid: $uuid,
+      },
+    }))
 
-    def('response', () => Promise.resolve());
-    def('subject', () => $subject.createMicroserviceImageSnapshotEndPoint($req, $user));
+    def('response', () => Promise.resolve())
+    def('subject', () => $subject.createMicroserviceImageSnapshotEndPoint($req, $user))
 
     beforeEach(() => {
-      $sandbox.stub(DiagnosticService, 'postMicroserviceImageSnapshotCreate').returns($response);
-    });
+      $sandbox.stub(DiagnosticService, 'postMicroserviceImageSnapshotCreate').returns($response)
+    })
 
     it('calls DiagnosticService.postMicroserviceImageSnapshotCreate with correct args', async () => {
-      await $subject;
-      expect(DiagnosticService.postMicroserviceImageSnapshotCreate).to.have.been.calledWith($uuid, $user, false);
-    });
+      await $subject
+      expect(DiagnosticService.postMicroserviceImageSnapshotCreate).to.have.been.calledWith($uuid, $user, false)
+    })
 
     context('when DiagnosticService#postMicroserviceImageSnapshotCreate fails', () => {
-      const error = 'Error!';
+      const error = 'Error!'
 
-      def('response', () => Promise.reject(error));
+      def('response', () => Promise.reject(error))
 
       it(`fails with "${error}"`, () => {
         return expect($subject).to.be.rejectedWith(error)
       })
-    });
+    })
 
     context('when DiagnosticService#postMicroserviceImageSnapshotCreate succeeds', () => {
       it(`succeeds`, () => {
         return expect($subject).to.eventually.equal(undefined)
       })
     })
-  });
+  })
 
   describe('.getMicroserviceImageSnapshotEndPoint()', () => {
-    def('user', () => 'user!');
-    def('uuid', () => 'testUuid');
+    def('user', () => 'user!')
+    def('uuid', () => 'testUuid')
 
     def('req', () => ({
       params: {
-        uuid: $uuid
-      }
-    }));
+        uuid: $uuid,
+      },
+    }))
 
-    def('response', () => Promise.resolve());
-    def('subject', () => $subject.getMicroserviceImageSnapshotEndPoint($req, $user));
+    def('response', () => Promise.resolve())
+    def('subject', () => $subject.getMicroserviceImageSnapshotEndPoint($req, $user))
 
     beforeEach(() => {
-      $sandbox.stub(DiagnosticService, 'getMicroserviceImageSnapshot').returns($response);
-    });
+      $sandbox.stub(DiagnosticService, 'getMicroserviceImageSnapshot').returns($response)
+    })
 
     it('calls DiagnosticService.getMicroserviceImageSnapshot with correct args', async () => {
-      await $subject;
-      expect(DiagnosticService.getMicroserviceImageSnapshot).to.have.been.calledWith($uuid, $user, false);
-    });
+      await $subject
+      expect(DiagnosticService.getMicroserviceImageSnapshot).to.have.been.calledWith($uuid, $user, false)
+    })
 
     context('when DiagnosticService.getMicroserviceImageSnapshot fails', () => {
-      const error = 'Error!';
+      const error = 'Error!'
 
-      def('response', () => Promise.reject(error));
+      def('response', () => Promise.reject(error))
 
       it(`fails with "${error}"`, () => {
         return expect($subject).to.be.rejectedWith(error)
       })
-    });
+    })
 
     context('when DiagnosticService.getMicroserviceImageSnapshot succeeds', () => {
       it(`succeeds`, () => {
         return expect($subject).to.eventually.equal(undefined)
       })
     })
-
-  });
-
-});
+  })
+})

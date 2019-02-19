@@ -11,28 +11,27 @@
  *
  */
 
-const BaseManager = require('./base-manager');
-const models = require('./../models');
-const AccessToken = models.AccessToken;
-const AppHelper = require('../../helpers/app-helper');
+const BaseManager = require('./base-manager')
+const models = require('./../models')
+const AccessToken = models.AccessToken
+const AppHelper = require('../../helpers/app-helper')
 
 class accessTokenManager extends BaseManager {
-
   getEntity() {
-    return AccessToken;
+    return AccessToken
   }
 
   // no transaction required here, used by auth decorator
   updateExpirationTime(id, newTime) {
     return AccessToken.update({
-      expirationTime: newTime
+      expirationTime: newTime,
     }, {
       where: {
-        id: id
-      }
+        id: id,
+      },
     })
   }
 }
 
-const instance = new accessTokenManager();
-module.exports = instance;
+const instance = new accessTokenManager()
+module.exports = instance

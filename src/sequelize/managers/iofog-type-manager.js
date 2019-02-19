@@ -11,9 +11,9 @@
  *
  */
 
-const BaseManager = require('../managers/base-manager');
-const models = require('./../models');
-const FogType = models.FogType;
+const BaseManager = require('../managers/base-manager')
+const models = require('./../models')
+const FogType = models.FogType
 
 class FogTypeManager extends BaseManager {
   getEntity() {
@@ -21,5 +21,5 @@ class FogTypeManager extends BaseManager {
   }
 }
 
-const instance = new FogTypeManager();
-module.exports = instance;
+const instance = new FogTypeManager()
+module.exports = instance

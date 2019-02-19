@@ -12,46 +12,46 @@
  */
 
 const connectorCreate = {
-  "id": "/connectorCreate",
-  "type": "object",
-  "properties": {
-    "name": {"type": "string", "minLength": 1},
-    "domain": {"type": "string", "minLength": 4},
-    "publicIp": {"type": "string", "minLength": 7},
-    "cert": {"type": "string"},
-    "isSelfSignedCert": {"type": "boolean"},
-    "devMode": {"type": "boolean"}
+  'id': '/connectorCreate',
+  'type': 'object',
+  'properties': {
+    'name': {'type': 'string', 'minLength': 1},
+    'domain': {'type': 'string', 'minLength': 4},
+    'publicIp': {'type': 'string', 'minLength': 7},
+    'cert': {'type': 'string'},
+    'isSelfSignedCert': {'type': 'boolean'},
+    'devMode': {'type': 'boolean'},
   },
-  "required": ["publicIp", "name", "devMode"],
-  "additionalProperties": false
-};
+  'required': ['publicIp', 'name', 'devMode'],
+  'additionalProperties': false,
+}
 
 const connectorUpdate = {
-  "id": "/connectorUpdate",
-  "type": "object",
-  "properties": {
-    "name": {"type": "string", "minLength": 1},
-    "domain": {"type": "string", "minLength": 4},
-    "publicIp": {"type": "string", "minLength": 7},
-    "cert": {"type": "string"},
-    "isSelfSignedCert": {"type": "boolean"},
-    "devMode": {"type": "boolean"}
+  'id': '/connectorUpdate',
+  'type': 'object',
+  'properties': {
+    'name': {'type': 'string', 'minLength': 1},
+    'domain': {'type': 'string', 'minLength': 4},
+    'publicIp': {'type': 'string', 'minLength': 7},
+    'cert': {'type': 'string'},
+    'isSelfSignedCert': {'type': 'boolean'},
+    'devMode': {'type': 'boolean'},
   },
-  "required": ["publicIp"],
-  "additionalProperties": false
-};
+  'required': ['publicIp'],
+  'additionalProperties': false,
+}
 
 const connectorDelete = {
-  "id": "/connectorDelete",
-  "type": "object",
-  "properties": {
-    "publicIp": {"type": "string", "minLength": 7}
+  'id': '/connectorDelete',
+  'type': 'object',
+  'properties': {
+    'publicIp': {'type': 'string', 'minLength': 7},
   },
-  "required": ["publicIp"],
-  "additionalProperties": false
-};
+  'required': ['publicIp'],
+  'additionalProperties': false,
+}
 
 module.exports = {
   mainSchemas: [connectorCreate, connectorUpdate, connectorDelete],
-  innerSchemas: []
-};
+  innerSchemas: [],
+}

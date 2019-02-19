@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 
 module.exports = {
   up: (queryInterface, Sequelize) => {
@@ -10,7 +10,7 @@ module.exports = {
         description: 'Unspecified device. Fog Type will be selected on provision',
         network_catalog_item_id: 1,
         hal_catalog_item_id: 3,
-        bluetooth_catalog_item_id: 2
+        bluetooth_catalog_item_id: 2,
       },
       {
         ID: 1,
@@ -19,7 +19,7 @@ module.exports = {
         description: 'A standard Linux server of at least moderate processing power and capacity. Compatible with common Linux types such as Ubuntu, Red Hat, and CentOS.',
         network_catalog_item_id: 1,
         hal_catalog_item_id: 3,
-        bluetooth_catalog_item_id: 2
+        bluetooth_catalog_item_id: 2,
       },
       {
         ID: 2,
@@ -28,12 +28,12 @@ module.exports = {
         description: 'A version of ioFog meant to run on Linux systems with ARM processors. Microservices for this ioFog type will be tailored to ARM systems.',
         network_catalog_item_id: 1,
         hal_catalog_item_id: 3,
-        bluetooth_catalog_item_id: 2
-      }
-    ]);
+        bluetooth_catalog_item_id: 2,
+      },
+    ])
   },
 
   down: (queryInterface, Sequelize) => {
-    return queryInterface.bulkDelete('FogTypes', null, {});
-  }
-};
+    return queryInterface.bulkDelete('FogTypes', null, {})
+  },
+}
