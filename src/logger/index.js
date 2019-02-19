@@ -78,23 +78,24 @@ const logger = winston.createLogger({
       dirname: dirname,
       maxsize:  config.get('Service:LogsFileSize'),
       rotationFormat: function() {
-        // logFileName pattern similar to agent
-        return getFormattedDate();
-        function getFormattedDate() {
-          fs.readdirSync(dirname).reverse().forEach(file => {
-            let path = dirname + '/' + file
-            if (fs.existsSync(path)) {
-              const strNumber = file.replace('iofog-controller.', '').replace('.log', '')
-              let number = parseInt(strNumber) + 1
-              fs.renameSync(path, path.replace(strNumber, number))
-            }
-          });
-          return ''
-        }
+        return getFormattedLogName();
       }
     }),
   ],
 });
+
+// logFileName pattern similar to agent
+function getFormattedLogName() {
+  fs.readdirSync(dirname).reverse().forEach(file => {
+    let path = dirname + '/' + file
+    if (fs.existsSync(path)) {
+      const strNumber = file.replace('iofog-controller.', '').replace('.log', '')
+      let number = parseInt(strNumber) + 1
+      fs.renameSync(path, path.replace(strNumber, number))
+    }
+  });
+  return ''
+}
 
 logger.add(new winston.transports.Console({
   level: 'info',
