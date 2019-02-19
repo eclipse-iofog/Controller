@@ -87,10 +87,10 @@ const logger = winston.createLogger({
 // logFileName pattern similar to agent
 function getFormattedLogName() {
   fs.readdirSync(dirname).reverse().forEach(file => {
-    let path = dirname + '/' + file
+    const path = dirname + '/' + file
     if (fs.existsSync(path)) {
       const strNumber = file.replace('iofog-controller.', '').replace('.log', '')
-      let number = parseInt(strNumber) + 1
+      const number = parseInt(strNumber) + 1
       fs.renameSync(path, path.replace(strNumber, number))
     }
   });
