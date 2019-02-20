@@ -44,7 +44,7 @@
 		"test": "node scripts/scripts-api.js test",
 		"postman_test": "node scripts/scripts-api.js postmantest",
 		"cli-tests": "node scripts/scripts-api.js cli-tests",
-		"coverage": "node scripts/scripts-api.js coverage",
+		"coverage": "node scripts/scripts-api.js coverage"
 	},
 	"preferGlobal": true,
 	"bin": {
