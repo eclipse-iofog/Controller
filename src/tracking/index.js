@@ -25,15 +25,6 @@ const fakeTransactionObject = {fakeTransaction: true}
 
 const trackingUuid = getUniqueTrackingUuid()
 
-/**
- * generate tracking event after service function was executed
- *
- * @param eventType - @see src/enum/tracking-event-type.js
- * @param res - response of service function
- * @param args - arguments of service function
- * @param functionName - name of service function
- * @return {{sourceType: string, type: string, uuid: string, timestamp: number}}
- */
 function buildEvent(eventType, res, args, functionName) {
   const eventInfo = {
     uuid: trackingUuid,

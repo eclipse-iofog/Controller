@@ -69,7 +69,8 @@ module.exports = [
         },
       ]
 
-      const agentDeprovisionEndPoint = ResponseDecorator.handleErrors(AgentController.agentDeprovisionEndPoint, successCode, errorCodes)
+      const agentDeprovisionEndPoint = ResponseDecorator.handleErrors(AgentController.agentDeprovisionEndPoint,
+          successCode, errorCodes)
       const responseObject = await agentDeprovisionEndPoint(req)
 
       res
@@ -121,7 +122,8 @@ module.exports = [
         },
       ]
 
-      const updateAgentConfigEndPoint = ResponseDecorator.handleErrors(AgentController.updateAgentConfigEndPoint, successCode, errorCodes)
+      const updateAgentConfigEndPoint = ResponseDecorator.handleErrors(AgentController.updateAgentConfigEndPoint,
+          successCode, errorCodes)
       const responseObject = await updateAgentConfigEndPoint(req)
 
       res
@@ -149,7 +151,8 @@ module.exports = [
         },
       ]
 
-      const getAgentConfigChangesEndPoint = ResponseDecorator.handleErrors(AgentController.getAgentConfigChangesEndPoint, successCode, errorCodes)
+      const getAgentConfigChangesEndPoint = ResponseDecorator.handleErrors(AgentController.getAgentConfigChangesEndPoint,
+          successCode, errorCodes)
       const responseObject = await getAgentConfigChangesEndPoint(req)
 
       res
@@ -177,7 +180,8 @@ module.exports = [
         },
       ]
 
-      const updateAgentStatusEndPoint = ResponseDecorator.handleErrors(AgentController.updateAgentStatusEndPoint, successCode, errorCodes)
+      const updateAgentStatusEndPoint = ResponseDecorator.handleErrors(AgentController.updateAgentStatusEndPoint,
+          successCode, errorCodes)
       const responseObject = await updateAgentStatusEndPoint(req)
 
       res
@@ -201,7 +205,8 @@ module.exports = [
         },
       ]
 
-      const getAgentMicroservicesEndPoint = ResponseDecorator.handleErrors(AgentController.getAgentMicroservicesEndPoint, successCode, errorCodes)
+      const getAgentMicroservicesEndPoint = ResponseDecorator.handleErrors(AgentController.getAgentMicroservicesEndPoint,
+          successCode, errorCodes)
       const responseObject = await getAgentMicroservicesEndPoint(req)
 
       res
@@ -229,7 +234,8 @@ module.exports = [
         },
       ]
 
-      const getAgentMicroserviceEndPoint = ResponseDecorator.handleErrors(AgentController.getAgentMicroserviceEndPoint, successCode, errorCodes)
+      const getAgentMicroserviceEndPoint = ResponseDecorator.handleErrors(AgentController.getAgentMicroserviceEndPoint,
+          successCode, errorCodes)
       const responseObject = await getAgentMicroserviceEndPoint(req)
 
       res
@@ -253,7 +259,8 @@ module.exports = [
         },
       ]
 
-      const getAgentRegistriesEndPoint = ResponseDecorator.handleErrors(AgentController.getAgentRegistriesEndPoint, successCode, errorCodes)
+      const getAgentRegistriesEndPoint = ResponseDecorator.handleErrors(AgentController.getAgentRegistriesEndPoint,
+          successCode, errorCodes)
       const responseObject = await getAgentRegistriesEndPoint(req)
 
       res
@@ -281,7 +288,8 @@ module.exports = [
         },
       ]
 
-      const getAgentTunnelEndPoint = ResponseDecorator.handleErrors(AgentController.getAgentTunnelEndPoint, successCode, errorCodes)
+      const getAgentTunnelEndPoint = ResponseDecorator.handleErrors(AgentController.getAgentTunnelEndPoint,
+          successCode, errorCodes)
       const responseObject = await getAgentTunnelEndPoint(req)
 
       res
@@ -309,7 +317,8 @@ module.exports = [
         },
       ]
 
-      const getAgentStraceEndPoint = ResponseDecorator.handleErrors(AgentController.getAgentStraceEndPoint, successCode, errorCodes)
+      const getAgentStraceEndPoint = ResponseDecorator.handleErrors(AgentController.getAgentStraceEndPoint,
+          successCode, errorCodes)
       const responseObject = await getAgentStraceEndPoint(req)
 
       res
@@ -341,7 +350,8 @@ module.exports = [
         },
       ]
 
-      const updateAgentStraceEndPoint = ResponseDecorator.handleErrors(AgentController.updateAgentStraceEndPoint, successCode, errorCodes)
+      const updateAgentStraceEndPoint = ResponseDecorator.handleErrors(AgentController.updateAgentStraceEndPoint,
+          successCode, errorCodes)
       const responseObject = await updateAgentStraceEndPoint(req)
 
       res
@@ -369,8 +379,8 @@ module.exports = [
         },
       ]
 
-      const getAgentChangeVersionCommandEndPoint = ResponseDecorator.handleErrors(AgentController.getAgentChangeVersionCommandEndPoint,
-          successCode, errorCodes)
+      const getAgentChangeVersionCommandEndPoint = ResponseDecorator.handleErrors(
+          AgentController.getAgentChangeVersionCommandEndPoint, successCode, errorCodes)
       const responseObject = await getAgentChangeVersionCommandEndPoint(req)
 
       res
@@ -452,7 +462,8 @@ module.exports = [
         },
       ]
 
-      const deleteNodeEndPoint = ResponseDecorator.handleErrors(AgentController.deleteNodeEndPoint, successCode, errCodes)
+      const deleteNodeEndPoint = ResponseDecorator.handleErrors(AgentController.deleteNodeEndPoint,
+          successCode, errCodes)
       const responseObject = await deleteNodeEndPoint(req)
 
       res

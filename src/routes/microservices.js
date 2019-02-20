@@ -31,7 +31,8 @@ module.exports = [
         },
       ]
 
-      const getMicroservicesByFlowEndPoint = ResponseDecorator.handleErrors(MicroservicesController.getMicroservicesByFlowEndPoint, successCode, errorCodes)
+      const getMicroservicesByFlowEndPoint = ResponseDecorator.handleErrors(MicroservicesController.getMicroservicesByFlowEndPoint,
+          successCode, errorCodes)
       const responseObject = await getMicroservicesByFlowEndPoint(req)
 
       res
@@ -59,7 +60,8 @@ module.exports = [
         },
       ]
 
-      const createMicroservicesOnFogEndPoint = ResponseDecorator.handleErrors(MicroservicesController.createMicroserviceOnFogEndPoint, successCode, errorCodes)
+      const createMicroservicesOnFogEndPoint = ResponseDecorator.handleErrors(
+          MicroservicesController.createMicroserviceOnFogEndPoint, successCode, errorCodes)
       const responseObject = await createMicroservicesOnFogEndPoint(req)
 
       res
@@ -87,7 +89,8 @@ module.exports = [
         },
       ]
 
-      const getMicroserviceEndPoint = ResponseDecorator.handleErrors(MicroservicesController.getMicroserviceEndPoint, successCode, errorCodes)
+      const getMicroserviceEndPoint = ResponseDecorator.handleErrors(MicroservicesController.getMicroserviceEndPoint,
+          successCode, errorCodes)
       const responseObject = await getMicroserviceEndPoint(req)
 
       res
@@ -120,7 +123,8 @@ module.exports = [
         },
       ]
 
-      const updateMicroserviceEndPoint = ResponseDecorator.handleErrors(MicroservicesController.updateMicroserviceEndPoint, successCode, errorCodes)
+      const updateMicroserviceEndPoint = ResponseDecorator.handleErrors(MicroservicesController.updateMicroserviceEndPoint,
+          successCode, errorCodes)
       const responseObject = await updateMicroserviceEndPoint(req)
 
       res
@@ -148,7 +152,8 @@ module.exports = [
         },
       ]
 
-      const deleteMicroserviceEndPoint = ResponseDecorator.handleErrors(MicroservicesController.deleteMicroserviceEndPoint, successCode, errorCodes)
+      const deleteMicroserviceEndPoint = ResponseDecorator.handleErrors(MicroservicesController.deleteMicroserviceEndPoint,
+          successCode, errorCodes)
       const responseObject = await deleteMicroserviceEndPoint(req)
 
       res
@@ -180,7 +185,8 @@ module.exports = [
         },
       ]
 
-      const createMicroserviceRouteEndPoint = ResponseDecorator.handleErrors(MicroservicesController.createMicroserviceRouteEndPoint, successCode, errorCodes)
+      const createMicroserviceRouteEndPoint = ResponseDecorator.handleErrors(
+          MicroservicesController.createMicroserviceRouteEndPoint, successCode, errorCodes)
       const responseObject = await createMicroserviceRouteEndPoint(req)
 
       res
@@ -212,7 +218,8 @@ module.exports = [
         },
       ]
 
-      const deleteMicroserviceRouteEndPoint = ResponseDecorator.handleErrors(MicroservicesController.deleteMicroserviceRouteEndPoint, successCode, errorCodes)
+      const deleteMicroserviceRouteEndPoint = ResponseDecorator.handleErrors(
+          MicroservicesController.deleteMicroserviceRouteEndPoint, successCode, errorCodes)
       const responseObject = await deleteMicroserviceRouteEndPoint(req)
 
       res
@@ -244,7 +251,8 @@ module.exports = [
         },
       ]
 
-      const createMicroservicePortMappingEndPoint = ResponseDecorator.handleErrors(MicroservicesController.createMicroservicePortMappingEndPoint, successCode, errorCodes)
+      const createMicroservicePortMappingEndPoint = ResponseDecorator.handleErrors(
+          MicroservicesController.createMicroservicePortMappingEndPoint, successCode, errorCodes)
       const responseObject = await createMicroservicePortMappingEndPoint(req)
 
       res
@@ -272,7 +280,8 @@ module.exports = [
         },
       ]
 
-      const deleteMicroservicePortMapping = ResponseDecorator.handleErrors(MicroservicesController.deleteMicroservicePortMappingEndPoint, successCode, errorCodes)
+      const deleteMicroservicePortMapping = ResponseDecorator.handleErrors(
+          MicroservicesController.deleteMicroservicePortMappingEndPoint, successCode, errorCodes)
       const responseObject = await deleteMicroservicePortMapping(req)
 
       res
@@ -300,7 +309,8 @@ module.exports = [
         },
       ]
 
-      const getMicroservicePortMapping = ResponseDecorator.handleErrors(MicroservicesController.getMicroservicePortMappingListEndPoint, successCode, errorCodes)
+      const getMicroservicePortMapping = ResponseDecorator.handleErrors(
+          MicroservicesController.getMicroservicePortMappingListEndPoint, successCode, errorCodes)
       const responseObject = await getMicroservicePortMapping(req)
 
       res

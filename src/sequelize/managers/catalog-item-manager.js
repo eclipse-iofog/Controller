@@ -17,7 +17,6 @@ const CatalogItem = models.CatalogItem
 const CatalogItemImage = models.CatalogItemImage
 const CatalogItemInputType = models.CatalogItemInputType
 const CatalogItemOutputType = models.CatalogItemOutputType
-const Op = require('sequelize').Op
 
 class CatalogItemManager extends BaseManager {
   getEntity() {

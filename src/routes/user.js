@@ -45,7 +45,8 @@ module.exports = [
           .status(responseObject.code)
           .send(responseObject.body)
 
-      logger.apiRes('POST /api/v3/user/login', {args: {statusCode: responseObject.code}}) // don't use req and responseObject as args, because they have password and token
+      logger.apiRes('POST /api/v3/user/login', {args: {statusCode: responseObject.code}})
+      // don't use req and responseObject as args, because they have password and token
     },
   },
   {
@@ -108,7 +109,8 @@ module.exports = [
         },
       ]
 
-      const resendActivationEndPoint = ResponseDecorator.handleErrors(UserController.resendActivationEndPoint, successCode, errorCodes)
+      const resendActivationEndPoint = ResponseDecorator.handleErrors(UserController.resendActivationEndPoint,
+          successCode, errorCodes)
       const responseObject = await resendActivationEndPoint(req)
 
       res
@@ -132,7 +134,8 @@ module.exports = [
         },
       ]
 
-      const activateUserEndPoint = ResponseDecorator.handleErrors(UserController.activateUserAccountEndPoint, successCode, errorCodes)
+      const activateUserEndPoint = ResponseDecorator.handleErrors(UserController.activateUserAccountEndPoint,
+          successCode, errorCodes)
       const responseObject = await activateUserEndPoint(req)
 
       // redirect to login page
@@ -190,7 +193,8 @@ module.exports = [
         },
       ]
 
-      const updateUserProfileEndPoint = ResponseDecorator.handleErrors(UserController.updateUserProfileEndPoint, successCode, errorCodes)
+      const updateUserProfileEndPoint = ResponseDecorator.handleErrors(UserController.updateUserProfileEndPoint,
+          successCode, errorCodes)
       const responseObject = await updateUserProfileEndPoint(req)
 
       res
@@ -214,7 +218,8 @@ module.exports = [
         },
       ]
 
-      const deleteUserProfileEndPoint = ResponseDecorator.handleErrors(UserController.deleteUserProfileEndPoint, successCode, errorCodes)
+      const deleteUserProfileEndPoint = ResponseDecorator.handleErrors(UserController.deleteUserProfileEndPoint,
+          successCode, errorCodes)
       const responseObject = await deleteUserProfileEndPoint(req)
 
       res
@@ -242,7 +247,8 @@ module.exports = [
         },
       ]
 
-      const updateUserPasswordEndPoint = ResponseDecorator.handleErrors(UserController.updateUserPasswordEndPoint, successCode, errorCodes)
+      const updateUserPasswordEndPoint = ResponseDecorator.handleErrors(UserController.updateUserPasswordEndPoint,
+          successCode, errorCodes)
       const responseObject = await updateUserPasswordEndPoint(req)
 
       res
@@ -266,7 +272,8 @@ module.exports = [
         },
       ]
 
-      const resetUserPasswordEndPoint = ResponseDecorator.handleErrors(UserController.resetUserPasswordEndPoint, successCode, errorCodes)
+      const resetUserPasswordEndPoint = ResponseDecorator.handleErrors(UserController.resetUserPasswordEndPoint,
+          successCode, errorCodes)
       const responseObject = await resetUserPasswordEndPoint(req)
 
       res

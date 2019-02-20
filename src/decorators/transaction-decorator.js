@@ -25,7 +25,8 @@ function transaction(f) {
 
     const fArgs = Array.prototype.slice.call(arguments)
     // TODO [when transactions concurrency issue fixed]: Remove 'fArgs[fArgs.length - 1].fakeTransaction'
-    if (fArgs.length > 0 && fArgs[fArgs.length - 1] && (fArgs[fArgs.length - 1] instanceof Transaction || fArgs[fArgs.length - 1].fakeTransaction)) {
+    if (fArgs.length > 0 && fArgs[fArgs.length - 1] && (fArgs[fArgs.length - 1] instanceof Transaction ||
+        fArgs[fArgs.length - 1].fakeTransaction)) {
       return await f.apply(this, fArgs)
     } else {
     // return f.apply(this, fArgs)

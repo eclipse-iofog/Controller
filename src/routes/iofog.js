@@ -179,7 +179,8 @@ module.exports = [
         },
       ]
 
-      const generateFogProvisioningKey = ResponseDecorator.handleErrors(FogController.generateProvisioningKeyEndPoint, successCode, errCodes)
+      const generateFogProvisioningKey = ResponseDecorator.handleErrors(FogController.generateProvisioningKeyEndPoint,
+          successCode, errCodes)
       const responseObject = await generateFogProvisioningKey(req)
 
       res
@@ -211,7 +212,8 @@ module.exports = [
         },
       ]
 
-      const setFogVersionCommand = ResponseDecorator.handleErrors(FogController.setFogVersionCommandEndPoint, successCode, errCodes)
+      const setFogVersionCommand = ResponseDecorator.handleErrors(FogController.setFogVersionCommandEndPoint,
+          successCode, errCodes)
       const responseObject = await setFogVersionCommand(req)
 
       res
@@ -244,7 +246,8 @@ module.exports = [
       ]
 
 
-      const setFogRebootCommand = ResponseDecorator.handleErrors(FogController.setFogRebootCommandEndPoint, successCode, errCodes)
+      const setFogRebootCommand = ResponseDecorator.handleErrors(FogController.setFogRebootCommandEndPoint,
+          successCode, errCodes)
       const responseObject = await setFogRebootCommand(req)
 
       res
@@ -272,7 +275,8 @@ module.exports = [
         },
       ]
 
-      const getHalHardwareInfo = ResponseDecorator.handleErrors(FogController.getHalHardwareInfoEndPoint, successCode, errCodes)
+      const getHalHardwareInfo = ResponseDecorator.handleErrors(FogController.getHalHardwareInfoEndPoint,
+          successCode, errCodes)
       const responseObject = await getHalHardwareInfo(req)
 
       res

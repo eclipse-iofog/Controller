@@ -14,8 +14,6 @@
 const AppHelper = require('../../helpers/app-helper')
 const Errors = require('../../helpers/errors')
 
-const ChangeTracking = require('./../models').ChangeTracking
-
 // TODO [when transactions concurrency issue fixed]: Transactions should be used always
 module.exports = class BaseManager {
   getEntity() {
@@ -142,7 +140,8 @@ module.exports = class BaseManager {
 
     let hasUpdates = false
     for (const fldName in newData) {
-      if (newData.hasOwnProperty(fldName) && obj.dataValues.hasOwnProperty(fldName) && newData[fldName] !== obj.dataValues[fldName]) {
+      if (newData.hasOwnProperty(fldName) && obj.dataValues.hasOwnProperty(fldName) &&
+          newData[fldName] !== obj.dataValues[fldName]) {
         hasUpdates = true
         break
       }

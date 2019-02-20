@@ -18,7 +18,6 @@ if (!process.env.NODE_ENV) {
 }
 
 const Cli = require('./cli')
-const logger = require('./logger')
 const daemon = require('./daemon')
 
 function main() {

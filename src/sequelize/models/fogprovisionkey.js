@@ -9,6 +9,7 @@ module.exports = (sequelize, DataTypes) => {
       field: 'id',
     },
     provisionKey: {
+      /* eslint-disable new-cap */
       type: DataTypes.STRING(100),
       field: 'provisioning_string',
     },

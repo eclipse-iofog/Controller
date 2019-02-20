@@ -23,8 +23,6 @@ const https = require('https')
 const path = require('path')
 const {renderFile} = require('ejs')
 const xss = require('xss-clean')
-const morgan = require('morgan')
-const fogStatusJob = require('./jobs/fog-status-job')
 const packageJson = require('../package')
 
 const app = express()

@@ -67,6 +67,7 @@ async function _openPortsOnConnector(connector, isPublicAccess) {
   }
   if (!connector.devMode && connector.cert && connector.isSelfSignedCert === true) {
     const ca = fs.readFileSync(connector.cert)
+    /* eslint-disable new-cap */
     options.ca = new Buffer.from(ca)
   }
 
@@ -104,6 +105,7 @@ async function closePortOnConnector(connector, ports) {
   }
   if (!connector.devMode && connector.cert && connector.isSelfSignedCert === true) {
     const ca = fs.readFileSync(connector.cert)
+    /* eslint-disable new-cap */
     options.ca = new Buffer.from(ca)
   }
 

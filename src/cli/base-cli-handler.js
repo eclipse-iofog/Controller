@@ -16,7 +16,6 @@ const commandLineUsage = require('command-line-usage')
 const AppHelper = require('../helpers/app-helper')
 const Errors = require('../helpers/errors')
 const ErrorMessages = require('../helpers/error-messages')
-const constants = require('../helpers/constants')
 
 class CLIHandler {
   constructor() {
@@ -172,7 +171,8 @@ class CLIHandler {
       const isValidType = _validateType(expectedValueType, valType)
 
       if (!isValidType) {
-        throw new Errors.InvalidArgumentTypeError(AppHelper.formatMessage(ErrorMessages.INVALID_CLI_ARGUMENT_TYPE, currentArgName, expectedValueType))
+        throw new Errors.InvalidArgumentTypeError(AppHelper.formatMessage(ErrorMessages.INVALID_CLI_ARGUMENT_TYPE,
+            currentArgName, expectedValueType))
       }
     })
   }

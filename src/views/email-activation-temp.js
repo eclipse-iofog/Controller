@@ -48,7 +48,9 @@ const emailActivationTemplate = {
                             font-size:14px;\'>\
                           <td \
                             style = \'padding:20px 20px\'>\
-                            Before we can get started, you need to click this button to activate your account. If clicking the button doesn\'t work, copy and paste copy and paste this link into your web browser address bar.<br>\
+                            Before we can get started, you need to click this button to activate your account. \
+                            If clicking the button doesn\'t work, copy and paste copy and paste this link into your web browser \
+                            address bar.<br>\
                           </td>\
                         </tr>\
                         <tr \

@@ -41,7 +41,8 @@ function checkAuthToken(f) {
     }
 
     fArgs.push(user)
-    AccessTokenManager.updateExpirationTime(user.accessToken.id, user.accessToken.expirationTime + config.get('Settings:UserTokenExpirationIntervalSeconds') * 1000)
+    AccessTokenManager.updateExpirationTime(user.accessToken.id, user.accessToken.expirationTime
+        + config.get('Settings:UserTokenExpirationIntervalSeconds') * 1000)
     return await f.apply(this, fArgs)
   }
 }
@@ -69,7 +70,8 @@ function checkFogToken(f) {
 
     fArgs.push(fog)
 
-    FogAccessTokenManager.updateExpirationTime(fog.accessToken.id, fog.accessToken.expirationTime + config.get('Settings:FogTokenExpirationIntervalSeconds') * 1000)
+    FogAccessTokenManager.updateExpirationTime(fog.accessToken.id, fog.accessToken.expirationTime
+        + config.get('Settings:FogTokenExpirationIntervalSeconds') * 1000)
 
     const timestamp = Date.now()
     await FogManager.updateLastActive(fog.uuid, timestamp)
