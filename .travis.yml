@@ -22,8 +22,7 @@ stages:
 
 jobs:
   include: 
-  - script: "npm test"
-  - script: "npm run postman_test"
+  - script: ./scripts/testscript.sh
   - stage: dev_deploy
     before_install:
     - sudo apt-get install sshpass
