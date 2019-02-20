@@ -45,7 +45,7 @@
 		"postman_test": "node scripts/scripts-api.js postmantest",
 		"cli-tests": "node scripts/scripts-api.js cli-tests",
 		"coverage": "node scripts/scripts-api.js coverage",
-		"postversion": "git push"
+		"postversion": "git push origin $TRAVIS_BRANCH"
 	},
 	"preferGlobal": true,
 	"bin": {
