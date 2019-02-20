@@ -91,7 +91,7 @@ class Tunnel extends BaseCLIHandler {
           await _executeCase(tunnelCommand, constants.CMD_LIST, _tunnelList, false);
           break;
         default:
-          return this.help([constants.CMD_HELP])
+          return this.help([])
       }
     } catch (error) {
       this.handleCLIError(error, args.argv);

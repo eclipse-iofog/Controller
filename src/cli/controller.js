@@ -63,7 +63,7 @@ class Controller extends BaseCLIHandler {
           break;
         case constants.CMD_HELP:
         default:
-          return this.help([constants.CMD_LIST])
+          return this.help([])
       }
     } catch (error) {
       this.handleCLIError(error, args.argv);
