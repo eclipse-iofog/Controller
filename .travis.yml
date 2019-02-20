@@ -49,7 +49,7 @@ jobs:
     - sudo apt-get install sshpass
     script: skip
     before_deploy:
-    - npm version --no-git-tag-version prerelease -preid=prerelease -m "upgrade to %s for prerelease package"
+    - npm version prerelease --preid=prerelease -m "upgrade to %s for prerelease package"
     deploy:
       skip_cleanup: true
       provider: npm
