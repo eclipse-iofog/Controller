@@ -255,7 +255,6 @@ describe('DiagnosticService Service', () => {
     }
 
     const dirPath = '/somewhere/on/the/disk'
-    const fPath = dirPath + '/' + uuid
     const straceData = {
       buffer: 'data',
     }

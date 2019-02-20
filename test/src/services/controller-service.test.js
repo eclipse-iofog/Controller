@@ -80,6 +80,7 @@ describe('Controller Service', () => {
   })
 
 
+  /*
   describe('.statusController()', () => {
     const error = 'Error!'
 
@@ -96,4 +97,5 @@ describe('Controller Service', () => {
     //     expect($subject).to.have.property('timestamp')
     // })
   })
+  */
 })

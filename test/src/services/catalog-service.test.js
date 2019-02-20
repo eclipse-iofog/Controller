@@ -12,9 +12,6 @@ const AppHelper = require('../../../src/helpers/app-helper')
 const Sequelize = require('sequelize')
 const Op = Sequelize.Op
 const MicroserviceManager = require('../../../src/sequelize/managers/microservice-manager')
-const ChangeTrackingService = require('../../../src/services/change-tracking-service')
-const Errors = require('../../../src/helpers/errors')
-const ErrorMessages = require('../../../src/helpers/error-messages')
 
 describe('Catalog Service', () => {
   def('subject', () => CatalogService)

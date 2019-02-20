@@ -717,8 +717,6 @@ describe('ioFog Service', () => {
       id: 15,
     }
 
-    const date = 155555555
-
     const uuid = 'testUuid'
 
     const fogData = {
@@ -755,10 +753,6 @@ describe('ioFog Service', () => {
     const queryFogData = isCLI
       ? {uuid: fogData.uuid}
       : {uuid: fogData.uuid, userId: user.id}
-
-    const toUpdate = {
-      daemonStatus: 'UNKNOWN', ipAddress: '0.0.0.0',
-    }
 
     def('subject', () => $subject.deleteFog(fogData, user, isCLI, transaction))
     def('validatorResponse', () => Promise.resolve(true))
@@ -830,8 +824,6 @@ describe('ioFog Service', () => {
       id: 15,
     }
 
-    const date = 155555555
-
     const uuid = 'testUuid'
 
     const fogData = {
@@ -868,10 +860,6 @@ describe('ioFog Service', () => {
     const queryFogData = isCLI
       ? {uuid: fogData.uuid}
       : {uuid: fogData.uuid, userId: user.id}
-
-    const toUpdate = {
-      daemonStatus: 'UNKNOWN', ipAddress: '0.0.0.0',
-    }
 
     const fogResponse = {
       uuid: fog.uuid,
@@ -977,8 +965,6 @@ describe('ioFog Service', () => {
       id: 15,
     }
 
-    const date = 155555555
-
     const uuid = 'testUuid'
 
     const fog = {
@@ -1013,10 +999,6 @@ describe('ioFog Service', () => {
     const queryFogData = isCLI
       ? {}
       : {userId: user.id}
-
-    const toUpdate = {
-      daemonStatus: 'UNKNOWN', ipAddress: '0.0.0.0',
-    }
 
     const filters = []
 
