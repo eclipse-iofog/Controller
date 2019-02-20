@@ -13,8 +13,6 @@
 
 const nconf = require('nconf')
 const path = require('path')
-
-
 const constants = require('./constants');
 
 class Config {
