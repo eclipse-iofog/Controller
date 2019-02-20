@@ -47,8 +47,7 @@ jobs:
   - stage: pre_release_deploy
     before_install:
     - sudo apt-get install sshpass
-    script: skip
-    before_deploy:
+    script:
     - npm version prerelease --preid=prerelease -m "upgrade to %s for prerelease package"
     deploy:
       skip_cleanup: true
@@ -64,8 +63,7 @@ jobs:
   - stage: release_deploy
     before_install:
     - sudo apt-get install sshpass
-    script: skip
-    before_deploy:
+    script: 
     - npm version patch -m "upgrade to %s for release"
     deploy:
       skip_cleanup: true
