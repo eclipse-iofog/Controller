@@ -22,6 +22,7 @@ const options = {
   },
 }
 
+/* eslint-disable no-unused-vars */
 let testsCounter = 0
 let testsFailed = 0
 
