@@ -17,12 +17,12 @@ const Errors = require('../helpers/errors')
 const {isTest} = require('../helpers/app-helper')
 
 function prepareUserById(f) {
-  return async function() {
+  return async function(...args) {
     if (isTest()) {
-      return await f.apply(this, arguments)
+      return await f.apply(this, args)
     }
 
-    const fArgs = Array.prototype.slice.call(arguments)
+    const fArgs = Array.prototype.slice.call(args)
     const obj = fArgs[0]
     const userId = obj.userId
 
@@ -39,12 +39,12 @@ function prepareUserById(f) {
 }
 
 function prepareUserByEmail(f) {
-  return async function() {
+  return async function(...args) {
     if (isTest()) {
-      return await f.apply(this, arguments)
+      return await f.apply(this, args)
     }
 
-    const fArgs = Array.prototype.slice.call(arguments)
+    const fArgs = Array.prototype.slice.call(args)
     const obj = fArgs[0]
     const email = obj.email
 

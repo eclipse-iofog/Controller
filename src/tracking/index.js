@@ -100,16 +100,18 @@ function getUniqueTrackingUuid() {
     let allMacs = ''
     const interfaces = os.networkInterfaces()
     for (const i in interfaces) {
-      let networkInterface = interfaces[i]
-      if (Array.isArray(networkInterface)) {
-        networkInterface = networkInterface.length > 0 ? networkInterface[0] : null
-      }
+      if (interfaces.hasOwnProperty(i)) {
+        let networkInterface = interfaces[i]
+        if (Array.isArray(networkInterface)) {
+          networkInterface = networkInterface.length > 0 ? networkInterface[0] : null
+        }
 
-      if (!networkInterface || networkInterface.internal) {
-        continue
-      }
+        if (!networkInterface || networkInterface.internal) {
+          continue
+        }
 
-      allMacs += networkInterface.mac + '-'
+        allMacs += networkInterface.mac + '-'
+      }
     }
     uuid = crypto.createHash('md5').update(allMacs).digest('hex')
   } catch (e) {

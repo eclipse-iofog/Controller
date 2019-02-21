@@ -150,9 +150,8 @@ function validateBooleanCliOptions(trueOption, falseOption) {
   return trueOption ? true : (falseOption ? false : undefined)
 }
 
-function formatMessage() {
-  const argsArray = Array.prototype.slice.call(arguments)
-  return format.apply(null, argsArray)
+function formatMessage(...args) {
+  return format(...args)
 }
 
 function stringifyCliJsonSchema(json) {

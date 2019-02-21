@@ -20,12 +20,11 @@ const Errors = require('../helpers/errors')
 const {isTest} = require('../helpers/app-helper')
 
 function checkAuthToken(f) {
-  return async function() {
+  return async function(...fArgs) {
     if (isTest()) {
-      return await f.apply(this, arguments)
+      return await f.apply(this, fArgs)
     }
 
-    const fArgs = Array.prototype.slice.call(arguments)
     const req = fArgs[0]
     const token = req.headers.authorization
 
@@ -48,12 +47,11 @@ function checkAuthToken(f) {
 }
 
 function checkFogToken(f) {
-  return async function() {
+  return async function(...fArgs) {
     if (isTest()) {
-      return await f.apply(this, arguments)
+      return await f.apply(this, fArgs)
     }
 
-    const fArgs = Array.prototype.slice.call(arguments)
     const req = fArgs[0]
     const token = req.headers.authorization
 
