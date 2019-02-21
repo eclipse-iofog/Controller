@@ -59,7 +59,7 @@ jobs:
         all_branches: true
     after_deploy:
     - sshpass -p $PREPROD_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $PREPROD_MACHINE_USERNAME@$PREPROD_MACHINE_IP
-      "iofog-controller stop; npm update --unsafe-perm -g iofogcontroller@dev; iofog-controller start"
+      "iofog-controller stop; npm i --unsafe-perm -g iofogcontroller@dev; iofog-controller start"
   - stage: release_deploy
     before_install:
     - sudo apt-get install sshpass
