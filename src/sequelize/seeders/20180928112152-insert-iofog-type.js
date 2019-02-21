@@ -30,10 +30,19 @@ module.exports = {
         hal_catalog_item_id: 3,
         bluetooth_catalog_item_id: 2
       }
-    ]);
+    ]).then(() => {
+      return queryInterface.bulkUpdate('Fogs',
+        {
+          fog_type_id: 0
+        },
+        {
+          fog_type_id: null
+        }
+      )
+    });
   },
 
   down: (queryInterface, Sequelize) => {
-    return queryInterface.bulkDelete('FogTypes', null, {});
+    return queryInterface.bulkDelete('FogTypes', null, {})
   }
 };
