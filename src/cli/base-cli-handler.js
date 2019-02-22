@@ -13,9 +13,11 @@
 
 const commandLineArgs = require('command-line-args')
 const commandLineUsage = require('command-line-usage')
-const AppHelper = require('../helpers/app-helper')
-const Errors = require('../helpers/errors')
+const AppHelper = require('../helpers/app-helper');
+const Errors = require('../helpers/errors');
 const ErrorMessages = require('../helpers/error-messages')
+const constants = require('../helpers/constants')
+const logger = require('../logger')
 
 class CLIHandler {
   constructor() {
@@ -63,8 +65,8 @@ class CLIHandler {
         header: 'ioFogController',
         content: 'Fog Controller project for Eclipse IoFog @ iofog.org \\nCopyright (c) 2018 Edgeworx, Inc.',
       },
-    ].concat(sections)
-    console.log(commandLineUsage(usage))
+    ].concat(sections);
+    logger.cliRes(commandLineUsage(usage))
   }
 
   helpAll(show = [], showOptions = true, hasCommands = true, additionalSection = []) {
@@ -96,29 +98,29 @@ class CLIHandler {
         header: 'ioFogController',
         content: 'Fog Controller project for Eclipse IoFog @ iofog.org \\nCopyright (c) 2018 Edgeworx, Inc.',
       },
-    ].concat(sections)
-    console.log(commandLineUsage(usage))
+    ].concat(sections);
+    logger.cliRes(commandLineUsage(usage))
   }
 
   handleCLIError(error, args) {
     switch (error.name) {
-      case 'UNKNOWN_OPTION':
-        console.log('Invalid argument \'' + error.optionName.split('-').join('') + '\'')
-        break
-      case 'UNKNOWN_VALUE':
+      case "UNKNOWN_OPTION":
+        logger.error("Invalid argument '" + error.optionName.split('-').join('') + "'");
+        break;
+      case "UNKNOWN_VALUE":
         if (this.commands[args[0]] && args[1] === 'help') {
           return this.helpSome([args[0]])
         }
-        console.log('Invalid value ' + error.value)
+        logger.error("Invalid value " + error.value);
         break
-      case 'InvalidArgumentError':
-        console.log(error.message)
+      case "InvalidArgumentError":
+        logger.error(error.message)
         break
-      case 'InvalidArgumentTypeError':
-        console.log(error.message)
+      case "InvalidArgumentTypeError":
+        logger.error(error.message)
         break
-      case 'ALREADY_SET':
-        console.log('Parameter \'' + error.optionName + '\' is used multiple times')
+      case "ALREADY_SET":
+        logger.error("Parameter '" + error.optionName + "' is used multiple times")
         break
       case 'CLIArgsNotProvidedError':
         if (this.commands[args[0]]) {
@@ -126,7 +128,7 @@ class CLIHandler {
         }
         break
       default:
-        console.log(JSON.stringify(error))
+        logger.error(JSON.stringify(error))
         break
     }
   }
@@ -277,9 +279,7 @@ function _getCurrentValType(values) {
 
 function _validateType(expectedValueType, valType) {
   let isValidType = true
-  if (expectedValueType === 'string' && valType === 'boolean') {
-    isValidType = false
-  } else if ((expectedValueType === 'float' || expectedValueType === 'number')
+  if ((expectedValueType === 'float' || expectedValueType === 'number')
     && (valType !== 'float' && valType !== 'number' && valType !== 'integer')) {
     isValidType = false
   } else if (expectedValueType === 'integer' && valType !== 'integer') {

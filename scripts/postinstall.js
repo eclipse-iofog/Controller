@@ -10,10 +10,13 @@
  *  *******************************************************************************
  *
  */
-const sqlite3 = require('sqlite3')// .verbose(); //use verbose in dev to get stack traces
+
+const sqlite3 = require('sqlite3') //.verbose() //use verbose in dev to get stack traces
+const os = require('os')
 const execSync = require('child_process').execSync
 const fs = require('fs')
 const semver = require('semver')
+const config = require('../src/config')
 const currentVersion = require('../package').version
 const {restoreDBs, restoreConfigs, INSTALLATION_VARIABLES_FILE} = require('./util')
 
@@ -39,6 +42,10 @@ function postinstall() {
     if (semver.satisfies(prevVersion, '<=1.0.30')) {
       console.log('upgrading from version <= 1.0.30 :')
       updateEncryptionMethod()
+    }
+    if (semver.satisfies(prevVersion, '<=1.0.37')) {
+      console.log('upgrading from version <= 1.0.37 :');
+      updateLogName();
     }
 
     fs.unlinkSync(INSTALLATION_VARIABLES_FILE)
@@ -148,6 +155,24 @@ function updateEncryptionMethod() {
   updateEncryptionMethodForEmailService(defConfig, decryptTextVer30)
   updateEncryptionMethodForEmailService(devConfig, decryptTextVer30)
   updateEncryptionMethodForEmailService(prodConfig, decryptTextVer30)
+}
+
+function updateLogName() {
+  console.log('    updating log name in ');
+  const dirname = config.get('Service:LogsDirectory')
+
+  if (fs.existsSync(dirname)) {
+    fs.readdirSync(dirname).forEach(file => {
+      const path = dirname + '/' + file
+      if (fs.existsSync(path)) {
+        fs.unlinkSync(path, function(err) {
+          if (err) return console.log(err);
+          console.log('log deleted successfully');
+        })
+      }
+    });
+  }
+
 }
 
 module.exports = {

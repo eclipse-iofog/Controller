@@ -13,6 +13,7 @@
 
 const nconf = require('nconf')
 const path = require('path')
+const constants = require('./constants');
 
 class Config {
   constructor() {
@@ -22,7 +23,7 @@ class Config {
   }
 
   get(key) {
-    return nconf.get(key)
+    return nconf.get(key) || constants[key]
   }
 
   set(key, value) {
