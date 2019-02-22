@@ -749,7 +749,7 @@ describe('Agent Service', () => {
         }
         ],
         registry: {
-          url: 'testUrl'
+          id: 10
         }
       },
       routes: routes
@@ -769,7 +769,7 @@ describe('Agent Service', () => {
         delete: false,
         deleteWithCleanup: false,
         routes: routes,
-        registryUrl: 'testUrl'
+        registryId: 10
       }]
     };
 
@@ -872,7 +872,7 @@ describe('Agent Service', () => {
       delete: false,
       deleteWithCleanup: false,
       routes: routes,
-      registryUrl: 'testUrl'
+      registryId: 10
     };
 
     const microserviceResponse = {
