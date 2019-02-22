@@ -16,7 +16,7 @@ const microserviceState = {
   RUNNING: 'RUNNING',
   RESTARTING: 'RESTARTING',
   STUCK_IN_RESTART: 'STUCK_IN_RESTART',
-};
+}
 
-module.exports = microserviceState;
+module.exports = microserviceState
 

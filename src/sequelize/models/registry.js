@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 module.exports = (sequelize, DataTypes) => {
   const Registry = sequelize.define('Registry', {
     id: {
@@ -6,53 +6,52 @@ module.exports = (sequelize, DataTypes) => {
       primaryKey: true,
       autoIncrement: true,
       allowNull: false,
-      field: 'id'
+      field: 'id',
     },
     url: {
       type: DataTypes.TEXT,
-      field: 'url'
+      field: 'url',
     },
     isPublic: {
       type: DataTypes.BOOLEAN,
-      field: 'is_public'
+      field: 'is_public',
     },
     isSecure: {
       type: DataTypes.BOOLEAN,
-      field: 'secure'
+      field: 'secure',
     },
     certificate: {
       type: DataTypes.TEXT,
-      field: 'certificate'
+      field: 'certificate',
     },
     requiresCert: {
       type: DataTypes.BOOLEAN,
-      field: 'requires_cert'
+      field: 'requires_cert',
     },
     username: {
       type: DataTypes.TEXT,
-      field: 'user_name'
+      field: 'user_name',
     },
     password: {
       type: DataTypes.TEXT,
-      field: 'password'
+      field: 'password',
     },
     userEmail: {
       type: DataTypes.TEXT,
-      field: 'user_email'
-    }
+      field: 'user_email',
+    },
   }, {
     timestamps: false,
-    underscored: true
-  });
-  Registry.associate = function (models) {
-
+    underscored: true,
+  })
+  Registry.associate = function(models) {
     Registry.belongsTo(models.User, {
       foreignKey: {
         name: 'userId',
-        field: 'user_id'
+        field: 'user_id',
       },
       as: 'user',
-    });
-  };
-  return Registry;
-};
+    })
+  }
+  return Registry
+}

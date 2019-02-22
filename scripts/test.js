@@ -11,20 +11,20 @@
  *
  */
 
-const execSync = require('child_process').execSync;
+const execSync = require('child_process').execSync
 
 function test() {
   const options = {
     env: {
       'NODE_ENV': 'test',
-      "PATH": process.env.PATH
+      'PATH': process.env.PATH,
     },
-    stdio: [process.stdin, process.stdout, process.stderr]
-  };
+    stdio: [process.stdin, process.stdout, process.stderr],
+  }
 
-  execSync('mocha', options);
+  execSync('mocha', options)
 }
 
 module.exports = {
-  test: test
-};
+  test: test,
+}

@@ -22,6 +22,6 @@ const trackingEventType = Object.freeze({
   CATALOG_CREATED: 'catalog created',
   CONFIG_CHANGED: 'config changed',
   OTHER: 'other',
-});
+})
 
-module.exports = trackingEventType;
+module.exports = trackingEventType

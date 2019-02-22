@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 module.exports = {
   up: (queryInterface, Sequelize) => {
     return queryInterface.createTable('USBInfos', {
@@ -7,32 +7,32 @@ module.exports = {
         primaryKey: true,
         autoIncrement: true,
         allowNull: false,
-        field: 'id'
+        field: 'id',
       },
       info: {
         type: Sequelize.TEXT,
-        defaultValue: " ",
-        field: 'info'
+        defaultValue: ' ',
+        field: 'info',
       },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE,
-        field: 'created_at'
+        field: 'created_at',
       },
       updatedAt: {
         allowNull: false,
         type: Sequelize.DATE,
-        field: 'updated_at'
+        field: 'updated_at',
       },
       iofogUuid: {
         type: Sequelize.TEXT,
         field: 'iofog_uuid',
-        references: { model: 'Fogs', key: 'uuid' },
-        onDelete: 'cascade'
-      }
-    });
+        references: {model: 'Fogs', key: 'uuid'},
+        onDelete: 'cascade',
+      },
+    })
   },
   down: (queryInterface, Sequelize) => {
-    return queryInterface.dropTable('USBInfos');
-  }
-};
+    return queryInterface.dropTable('USBInfos')
+  },
+}

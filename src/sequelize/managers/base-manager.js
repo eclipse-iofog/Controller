@@ -11,22 +11,19 @@
 *
 */
 
-const AppHelper = require('../../helpers/app-helper');
-const Errors = require('../../helpers/errors');
+const AppHelper = require('../../helpers/app-helper')
+const Errors = require('../../helpers/errors')
 
-const ChangeTracking = require('./../models').ChangeTracking;
-
-//TODO [when transactions concurrency issue fixed]: Transactions should be used always
+// TODO [when transactions concurrency issue fixed]: Transactions should be used always
 module.exports = class BaseManager {
-
   getEntity() {
-    throw new Error("Not implemented getEntity method in manager");
+    throw new Error('Not implemented getEntity method in manager')
   }
 
   async findAll(object, transaction) {
-    AppHelper.checkTransaction(transaction);
+    AppHelper.checkTransaction(transaction)
 
-    object = object || {};
+    object = object || {}
 
     const options = transaction.fakeTransaction
       ? {
@@ -34,16 +31,16 @@ module.exports = class BaseManager {
       }
       : {
         where: object,
-        transaction: transaction
-      };
+        transaction: transaction,
+      }
 
-    return this.getEntity().findAll(options);
+    return this.getEntity().findAll(options)
   }
 
   async findOne(object, transaction) {
-    AppHelper.checkTransaction(transaction);
+    AppHelper.checkTransaction(transaction)
 
-    object = object || {};
+    object = object || {}
 
     const options = transaction.fakeTransaction
       ? {
@@ -51,36 +48,36 @@ module.exports = class BaseManager {
       }
       : {
         where: object,
-        transaction: transaction
-      };
+        transaction: transaction,
+      }
 
-    return this.getEntity().findOne(options);
+    return this.getEntity().findOne(options)
   }
 
   async create(object, transaction) {
-    AppHelper.checkTransaction(transaction);
+    AppHelper.checkTransaction(transaction)
 
     const options = transaction.fakeTransaction
       ? {}
-      : {transaction: transaction};
+      : {transaction: transaction}
 
-    return this.getEntity().create(object, options);
+    return this.getEntity().create(object, options)
   }
 
   async bulkCreate(arr, transaction) {
-    AppHelper.checkTransaction(transaction);
+    AppHelper.checkTransaction(transaction)
 
     const options = transaction.fakeTransaction
       ? {}
-      : {transaction: transaction};
+      : {transaction: transaction}
 
-    return this.getEntity().bulkCreate(arr, options);
+    return this.getEntity().bulkCreate(arr, options)
   }
 
   async delete(data, transaction) {
-    AppHelper.checkTransaction(transaction);
+    AppHelper.checkTransaction(transaction)
 
-    data = data || {};
+    data = data || {}
 
     const options = transaction.fakeTransaction
       ? {
@@ -88,16 +85,16 @@ module.exports = class BaseManager {
       }
       : {
         where: data,
-        transaction: transaction
-      };
+        transaction: transaction,
+      }
 
-    return this.getEntity().destroy(options);
+    return this.getEntity().destroy(options)
   }
 
   async update(whereData, newData, transaction) {
-    AppHelper.checkTransaction(transaction);
+    AppHelper.checkTransaction(transaction)
 
-    whereData = whereData || {};
+    whereData = whereData || {}
 
     const options = transaction.fakeTransaction
       ? {
@@ -105,24 +102,24 @@ module.exports = class BaseManager {
       }
       : {
         where: whereData,
-        transaction: transaction
-      };
+        transaction: transaction,
+      }
 
-    return this.getEntity().update(newData, options);
+    return this.getEntity().update(newData, options)
   }
 
   async upsert(data, transaction) {
-    AppHelper.checkTransaction(transaction);
+    AppHelper.checkTransaction(transaction)
 
     const options = transaction.fakeTransaction
       ? {}
-      : {transaction: transaction};
+      : {transaction: transaction}
 
-    return this.getEntity().upsert(data, options);
+    return this.getEntity().upsert(data, options)
   }
 
   async updateOrCreate(whereData, data, transaction) {
-    AppHelper.checkTransaction(transaction);
+    AppHelper.checkTransaction(transaction)
 
     const obj = await this.findOne(whereData, transaction)
     if (obj) {
@@ -134,18 +131,19 @@ module.exports = class BaseManager {
   }
 
   async updateIfChanged(whereData, newData, transaction) {
-    AppHelper.checkTransaction(transaction);
+    AppHelper.checkTransaction(transaction)
 
     const obj = await this.findOne(whereData, transaction)
     if (!obj) {
       throw new Errors.NotFoundError(`${this.getEntity().name} not found`)
     }
 
-    let hasUpdates = false;
-    for (let fldName in newData) {
-      if (newData.hasOwnProperty(fldName) && obj.dataValues.hasOwnProperty(fldName) && newData[fldName] !== obj.dataValues[fldName]) {
-        hasUpdates = true;
-        break;
+    let hasUpdates = false
+    for (const fldName in newData) {
+      if (newData.hasOwnProperty(fldName) && obj.dataValues.hasOwnProperty(fldName) &&
+          newData[fldName] !== obj.dataValues[fldName]) {
+        hasUpdates = true
+        break
       }
     }
 
@@ -153,4 +151,4 @@ module.exports = class BaseManager {
       return await this.update(whereData, newData, transaction)
     }
   }
-};
+}

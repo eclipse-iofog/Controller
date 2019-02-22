@@ -13,30 +13,29 @@ module.exports = {
         config_example: '{}',
         is_public: 1,
         registry_id: 1,
-        user_id: null
+        user_id: null,
       }]
     ).then(() => {
       return queryInterface.bulkInsert('CatalogItemImages', [
-          {
-            ID: 103,
-            catalog_item_id: 101,
-            fog_type_id: 1,
-            container_image: 'iofog/json-generator'
-          },
-          {
-            ID: 104,
-            catalog_item_id: 101,
-            fog_type_id: 2,
-            container_image: 'iofog/json-generator-arm'
-          }
-        ]
-      )
-    });
+        {
+          ID: 103,
+          catalog_item_id: 101,
+          fog_type_id: 1,
+          container_image: 'iofog/json-generator',
+        },
+        {
+          ID: 104,
+          catalog_item_id: 101,
+          fog_type_id: 2,
+          container_image: 'iofog/json-generator-arm',
+        },
+      ])
+    })
   },
 
   down: (queryInterface, Sequelize) => {
     return queryInterface.bulkDelete('CatalogItems', {ID: 101}, {}).then(() => {
       return queryInterface.bulkDelete('CatalogItemImages', {catalog_item_id: 101})
-    });
-  }
-};
+    })
+  },
+}

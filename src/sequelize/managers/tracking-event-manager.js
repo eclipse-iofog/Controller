@@ -11,21 +11,21 @@
  *
  */
 
-const BaseManager = require('./base-manager');
-const models = require('./../models');
-const TrackingEvent = models.TrackingEvent;
+const BaseManager = require('./base-manager')
+const models = require('./../models')
+const TrackingEvent = models.TrackingEvent
 
 class TrackingEventManager extends BaseManager {
   getEntity() {
-    return TrackingEvent;
+    return TrackingEvent
   }
 
   async popAll(transaction) {
-    const res = await this.findAll({}, transaction);
-    await this.delete({} ,transaction);
-    return res;
+    const res = await this.findAll({}, transaction)
+    await this.delete({}, transaction)
+    return res
   }
 }
 
-const instance = new TrackingEventManager();
-module.exports = instance;
+const instance = new TrackingEventManager()
+module.exports = instance

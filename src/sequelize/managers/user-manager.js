@@ -11,39 +11,39 @@
  *
  */
 
-const BaseManager = require('./base-manager');
-const models = require('./../models');
-const User = models.User;
-const AccessToken = models.AccessToken;
-const AppHelper = require('../../helpers/app-helper');
+const BaseManager = require('./base-manager')
+const models = require('./../models')
+const User = models.User
+const AccessToken = models.AccessToken
+const AppHelper = require('../../helpers/app-helper')
 
 class UserManager extends BaseManager {
   getEntity() {
-    return User;
+    return User
   }
 
   findByAccessToken(token, transaction) {
-    AppHelper.checkTransaction(transaction);
+    AppHelper.checkTransaction(transaction)
 
     return User.findOne({
       include: [{
         model: AccessToken,
         as: 'accessToken',
         where: {
-          token: token
-        }
+          token: token,
+        },
       }],
     }, {
-      transaction: transaction
-    });
+      transaction: transaction,
+    })
   }
 
   findByEmail(email) {
     return User.findOne({
       where: {
-        email: email
-      }
-    });
+        email: email,
+      },
+    })
   }
 
   // no transaction required here, used by auth decorator
@@ -53,44 +53,44 @@ class UserManager extends BaseManager {
         model: AccessToken,
         as: 'accessToken',
         where: {
-          token: token
-        }
-      }]
-    });
+          token: token,
+        },
+      }],
+    })
   }
 
   // no transaction required here, used by cli decorator
   findById(id) {
-    return User.findOne({where: {id: id}});
+    return User.findOne({where: {id: id}})
   }
 
   updateDetails(user, updateObject, transaction) {
     return this.update({
-      id: user.id
-    }, updateObject, transaction);
+      id: user.id,
+    }, updateObject, transaction)
   }
 
   updatePassword(userId, newPassword, transaction) {
     return this.update({
-      id: userId
+      id: userId,
     }, {
-      password: newPassword
+      password: newPassword,
     }, transaction)
   }
 
   updateTempPassword(userId, tempPassword, transaction) {
     return this.update({
-      id: userId
+      id: userId,
     }, {
-      tempPassword: tempPassword
+      tempPassword: tempPassword,
     }, transaction)
   }
 
-// no transaction required here, used by cli decorator
+  // no transaction required here, used by cli decorator
   findById(id) {
-    return User.findOne({where: {id: id}});
+    return User.findOne({where: {id: id}})
   }
 }
 
-const instance = new UserManager();
-module.exports = instance;
+const instance = new UserManager()
+module.exports = instance

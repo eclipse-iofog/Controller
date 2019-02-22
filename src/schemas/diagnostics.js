@@ -12,37 +12,37 @@
  */
 
 const straceStateUpdate = {
-  "id": "/straceStateUpdate",
-  "type": "object",
-  "properties": {
-    "enable": {"type": "boolean"}
+  'id': '/straceStateUpdate',
+  'type': 'object',
+  'properties': {
+    'enable': {'type': 'boolean'},
   },
-  "required": ["enable"]
-};
+  'required': ['enable'],
+}
 
 const straceGetData = {
-  "id": "/straceGetData",
-  "type": "object",
-  "properties": {
-    "format": {"enum": ["string","file"]}
+  'id': '/straceGetData',
+  'type': 'object',
+  'properties': {
+    'format': {'enum': ['string', 'file']},
   },
-  "required": ["format"]
-};
+  'required': ['format'],
+}
 
 const stracePostToFtp = {
-  "id": "/stracePostToFtp",
-  "type": "object",
-  "properties": {
-    "ftpHost": {"type": "string"},
-    "ftpPort": {"type": "integer", "minimum": 0},
-    "ftpUser": {"type": "string"},
-    "ftpPass": {"type": "string"},
-    "ftpDestDir": {"type": "string"},
+  'id': '/stracePostToFtp',
+  'type': 'object',
+  'properties': {
+    'ftpHost': {'type': 'string'},
+    'ftpPort': {'type': 'integer', 'minimum': 0},
+    'ftpUser': {'type': 'string'},
+    'ftpPass': {'type': 'string'},
+    'ftpDestDir': {'type': 'string'},
   },
-  "required": ["ftpHost","ftpPort","ftpUser","ftpPass","ftpDestDir"]
-};
+  'required': ['ftpHost', 'ftpPort', 'ftpUser', 'ftpPass', 'ftpDestDir'],
+}
 
 module.exports = {
   mainSchemas: [straceStateUpdate, straceGetData, stracePostToFtp],
-  innerSchemas: []
-};
+  innerSchemas: [],
+}

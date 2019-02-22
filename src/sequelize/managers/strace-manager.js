@@ -11,48 +11,47 @@
  *
  */
 
-const BaseManager = require('../managers/base-manager');
-const models = require('./../models');
-const Strace = models.StraceDiagnostics;
+const BaseManager = require('../managers/base-manager')
+const models = require('./../models')
+const Strace = models.StraceDiagnostics
 
-const Errors = require('../../helpers/errors');
-const ErrorMessages = require('../../helpers/error-messages');
-const AppHelper = require('../../helpers/app-helper');
+const Errors = require('../../helpers/errors')
+const ErrorMessages = require('../../helpers/error-messages')
+const AppHelper = require('../../helpers/app-helper')
 
-const maxBufferSize = 1e8;
+const maxBufferSize = 1e8
 
 class StraceManager extends BaseManager {
-
   getEntity() {
     return Strace
   }
 
   async pushBufferByMicroserviceUuid(uuid, pushingData, transaction) {
     const strace = await this.findOne({
-      microserviceUuid: uuid
-    }, transaction);
+      microserviceUuid: uuid,
+    }, transaction)
     if (!strace) {
-      throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, uuid));
+      throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, uuid))
     }
 
-    let newBuffer = this._updateBuffer(strace.buffer, pushingData);
+    const newBuffer = this._updateBuffer(strace.buffer, pushingData)
     return await this.update({
-      microserviceUuid: uuid
+      microserviceUuid: uuid,
     }, {
-      buffer: newBuffer
-    }, transaction);
+      buffer: newBuffer,
+    }, transaction)
   }
 
   _updateBuffer(oldBuf, pushingData) {
-    let newBuffer = oldBuf + pushingData;
-    let delta = newBuffer.length - maxBufferSize;
+    let newBuffer = oldBuf + pushingData
+    const delta = newBuffer.length - maxBufferSize
     if (delta > 0) {
       newBuffer = '[ioFogController Info] Buffer size is limited, so some of previous data was lost \n'
-        + newBuffer.substring(delta);
+        + newBuffer.substring(delta)
     }
-    return newBuffer;
+    return newBuffer
   };
 }
 
-const instance = new StraceManager();
-module.exports = instance;
+const instance = new StraceManager()
+module.exports = instance

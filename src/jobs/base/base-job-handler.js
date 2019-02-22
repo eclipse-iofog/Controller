@@ -11,16 +11,16 @@
  *
  */
 
-const Config = require('../../config');
+const Config = require('../../config')
 
 class BaseJobHandler {
   constructor() {
-    this.scheduleTime = Config.get('Settings:DefaultJobIntervalSeconds') * 1000;
+    this.scheduleTime = Config.get('Settings:DefaultJobIntervalSeconds') * 1000
   }
 
   run() {
-    throw new Error('Not Implemented');
+    throw new Error('Not Implemented')
   }
 }
 
-module.exports = BaseJobHandler;
+module.exports = BaseJobHandler

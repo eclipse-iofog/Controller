@@ -11,14 +11,14 @@
  *
  */
 
-const BaseManager = require('./base-manager');
-const models = require('./../models');
-const Routing = models.Routing;
-const ConnectorPort = models.ConnectorPort;
+const BaseManager = require('./base-manager')
+const models = require('./../models')
+const Routing = models.Routing
+const ConnectorPort = models.ConnectorPort
 
 class RoutingManager extends BaseManager {
   getEntity() {
-    return Routing;
+    return Routing
   }
 
   findAllRoutesByConnectorId(connectorId, transaction) {
@@ -27,15 +27,15 @@ class RoutingManager extends BaseManager {
         {
           model: ConnectorPort,
           as: 'connectorPort',
-          required: true
-        }
+          required: true,
+        },
       ],
       where: {
-        '$connectorPort.connector_id$': connectorId
-      }
+        '$connectorPort.connector_id$': connectorId,
+      },
     }, {transaction: transaction})
   }
 }
 
-const instance = new RoutingManager();
-module.exports = instance;
+const instance = new RoutingManager()
+module.exports = instance

@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 module.exports = (sequelize, DataTypes) => {
   const CatalogItemInputType = sequelize.define('CatalogItemInputType', {
     id: {
@@ -6,29 +6,28 @@ module.exports = (sequelize, DataTypes) => {
       primaryKey: true,
       autoIncrement: true,
       allowNull: false,
-      field: 'id'
+      field: 'id',
     },
     infoType: {
       type: DataTypes.TEXT,
-      field: 'info_type'
+      field: 'info_type',
     },
     infoFormat: {
       type: DataTypes.TEXT,
-      field: 'info_format'
-    }
+      field: 'info_format',
+    },
   }, {
     timestamps: false,
-    underscored: true
-  });
-  CatalogItemInputType.associate = function (models) {
-
+    underscored: true,
+  })
+  CatalogItemInputType.associate = function(models) {
     CatalogItemInputType.belongsTo(models.CatalogItem, {
       foreignKey: {
         name: 'catalogItemId',
-        field: 'catalog_item_id'
+        field: 'catalog_item_id',
       },
-      as: 'catalogItem'
-    });
-  };
-  return CatalogItemInputType;
-};
+      as: 'catalogItem',
+    })
+  }
+  return CatalogItemInputType
+}

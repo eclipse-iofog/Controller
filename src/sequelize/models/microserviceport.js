@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 module.exports = (sequelize, DataTypes) => {
   const MicroservicePort = sequelize.define('MicroservicePort', {
     id: {
@@ -6,43 +6,42 @@ module.exports = (sequelize, DataTypes) => {
       primaryKey: true,
       autoIncrement: true,
       allowNull: false,
-      field: 'id'
+      field: 'id',
     },
     portInternal: {
       type: DataTypes.INTEGER,
-      field: 'port_internal'
+      field: 'port_internal',
     },
     portExternal: {
       type: DataTypes.INTEGER,
-      field: 'port_external'
+      field: 'port_external',
     },
     isPublic: {
       type: DataTypes.BOOLEAN,
-      field: 'is_public'
-    }
+      field: 'is_public',
+    },
   }, {
     timestamps: true,
-    underscored: true
-  });
-  MicroservicePort.associate = function (models) {
-
+    underscored: true,
+  })
+  MicroservicePort.associate = function(models) {
     MicroservicePort.belongsTo(models.Microservice, {
       foreignKey: {
         name: 'microserviceUuid',
-        field: 'microservice_uuid'
+        field: 'microservice_uuid',
       },
       as: 'microservice',
-      onDelete: 'cascade'
-    });
+      onDelete: 'cascade',
+    })
 
     MicroservicePort.belongsTo(models.User, {
       foreignKey: {
         name: 'userId',
-        field: 'user_id'
+        field: 'user_id',
       },
       as: 'user',
-      onDelete: 'cascade'
-    });
-  };
-  return MicroservicePort;
-};
+      onDelete: 'cascade',
+    })
+  }
+  return MicroservicePort
+}

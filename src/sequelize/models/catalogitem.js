@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 module.exports = (sequelize, DataTypes) => {
   const CatalogItem = sequelize.define('CatalogItem', {
     id: {
@@ -6,95 +6,94 @@ module.exports = (sequelize, DataTypes) => {
       primaryKey: true,
       autoIncrement: true,
       allowNull: false,
-      field: 'id'
+      field: 'id',
     },
     name: {
       type: DataTypes.TEXT,
       field: 'name',
-      defaultValue: 'New Catalog Item'
+      defaultValue: 'New Catalog Item',
     },
     description: {
       type: DataTypes.TEXT,
       field: 'description',
-      defaultValue: ''
+      defaultValue: '',
     },
     category: {
       type: DataTypes.TEXT,
-      field: 'category'
+      field: 'category',
     },
     configExample: {
       type: DataTypes.TEXT,
       field: 'config_example',
-      defaultValue: '{}'
+      defaultValue: '{}',
     },
     publisher: {
       type: DataTypes.TEXT,
-      field: 'publisher'
+      field: 'publisher',
     },
     diskRequired: {
       type: DataTypes.BIGINT,
       field: 'disk_required',
-      defaultValue: 0
+      defaultValue: 0,
     },
     ramRequired: {
       type: DataTypes.BIGINT,
       field: 'ram_required',
-      defaultValue: 0
+      defaultValue: 0,
     },
     picture: {
       type: DataTypes.TEXT,
       field: 'picture',
-      defaultValue: 'images/shared/default.png'
+      defaultValue: 'images/shared/default.png',
     },
     isPublic: {
       type: DataTypes.BOOLEAN,
       field: 'is_public',
-      defaultValue: false
-    }
+      defaultValue: false,
+    },
   }, {
     timestamps: false,
-    underscored: true
-  });
-  CatalogItem.associate = function (models) {
-
+    underscored: true,
+  })
+  CatalogItem.associate = function(models) {
     CatalogItem.belongsTo(models.Registry, {
       foreignKey: {
         name: 'registryId',
-        field: 'registry_id'
+        field: 'registry_id',
       },
       as: 'registry',
       onDelete: 'set null',
-      defaultValue: 1
-    });
+      defaultValue: 1,
+    })
 
     CatalogItem.belongsTo(models.User, {
       foreignKey: {
         name: 'userId',
-        field: 'user_id'
+        field: 'user_id',
       },
       as: 'user',
-      onDelete: 'cascade'
-    });
+      onDelete: 'cascade',
+    })
 
     CatalogItem.hasMany(models.CatalogItemImage, {
       foreignKey: 'catalog_item_id',
-      as: 'images'
-    });
+      as: 'images',
+    })
 
     CatalogItem.hasOne(models.CatalogItemInputType, {
       foreignKey: 'catalog_item_id',
-      as: 'inputType'
-    });
+      as: 'inputType',
+    })
 
     CatalogItem.hasOne(models.CatalogItemOutputType, {
       foreignKey: 'catalog_item_id',
-      as: 'outputType'
-    });
+      as: 'outputType',
+    })
 
     CatalogItem.hasMany(models.Microservice, {
       foreignKey: 'catalog_item_id',
-      as: 'microservices'
-    });
-  };
-  return CatalogItem;
-};
+      as: 'microservices',
+    })
+  }
+  return CatalogItem
+}

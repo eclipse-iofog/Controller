@@ -11,10 +11,10 @@
  *
  */
 
-const winston = require('winston');
-const config = require('../config');
-const fs = require('fs');
-const MESSAGE = Symbol.for('message');
+const winston = require('winston')
+const config = require('../config')
+const fs = require('fs')
+const MESSAGE = Symbol.for('message')
 
 const dirname = config.get('Service:LogsDirectory')
 const maxsize = config.get('Service:LogsFileSize')
@@ -22,7 +22,7 @@ const maxsize = config.get('Service:LogsFileSize')
 // Create the log directory if it does not exist
 try {
   if (!fs.existsSync(dirname)) {
-    fs.mkdirSync(dirname);
+    fs.mkdirSync(dirname)
   }
 } catch (e) {
   // can't initialize log folder
@@ -38,36 +38,36 @@ const levels = {
   info: 6,
   verbose: 7,
   debug: 8,
-  silly: 9
-};
+  silly: 9,
+}
 
 const formattedJson = winston.format((log) => {
-  let sortedFields = ['level', 'timestamp', 'message'];
+  let sortedFields = ['level', 'timestamp', 'message']
   if (log.args) {
-    sortedFields = sortedFields.concat(['args']).concat(getAllObjKeys(log.args));
+    sortedFields = sortedFields.concat(['args']).concat(getAllObjKeys(log.args))
   }
-  log[MESSAGE] = JSON.stringify(log, sortedFields);
-  return log;
-});
+  log[MESSAGE] = JSON.stringify(log, sortedFields)
+  return log
+})
 
 const prepareObjectLogs = winston.format((log) => {
   if (!(log.message instanceof Object)) {
-    return log;
+    return log
   }
 
   if (log.level === 'apiReq' && log.message instanceof Object) {
-    const req = log.message;
-    log.message = `${req.method} ${req.originalUrl}`;
+    const req = log.message
+    log.message = `${req.method} ${req.originalUrl}`
     log.args = {params: req.params, query: req.query, body: req.body}
   }
   if (log.level === 'apiRes' && log.message instanceof Object) {
-    const req = log.message.req;
-    const res = log.message.res;
-    log.message = `${req.method} ${req.originalUrl}`;
+    const req = log.message.req
+    const res = log.message.res
+    log.message = `${req.method} ${req.originalUrl}`
     log.args = res
   }
-  return log;
-});
+  return log
+})
 
 const logger = winston.createLogger({
   levels: levels,
@@ -75,19 +75,19 @@ const logger = winston.createLogger({
   transports: [
     new winston.transports.File({
       format: winston.format.combine(
-        winston.format.timestamp(),
-        prepareObjectLogs(),
-        formattedJson()
+          winston.format.timestamp(),
+          prepareObjectLogs(),
+          formattedJson()
       ),
       filename: 'iofog-controller.0.log',
       dirname: dirname,
-      maxsize:  maxsize,
+      maxsize: maxsize,
       rotationFormat: function() {
-        return getFormattedLogName();
-      }
+        return getFormattedLogName()
+      },
     }),
   ],
-});
+})
 
 // logFileName pattern similar to agent
 function getFormattedLogName() {
@@ -99,14 +99,14 @@ function getFormattedLogName() {
       return ''
     }
 
-    files.reverse().forEach(file => {
+    files.reverse().forEach((file) => {
       const path = dirname + '/' + file
       if (fs.existsSync(path)) {
         const strNumber = file.replace('iofog-controller.', '').replace('.log', '')
         const number = parseInt(strNumber) + 1
         fs.renameSync(path, path.replace(strNumber, number))
       }
-    });
+    })
   }
   return ''
 }
@@ -118,39 +118,39 @@ logger.add(new winston.transports.Console({
       return
     }
     if (log.level === 'apiReq' && log.message instanceof Object) {
-      const req = log.message;
-      log.message = `${req.method} ${req.originalUrl}`;
+      const req = log.message
+      log.message = `${req.method} ${req.originalUrl}`
       log.args = {params: req.params, query: req.query, body: req.body}
     }
     if (log.level === 'apiRes' && log.message instanceof Object) {
-      const req = log.message.req;
-      const res = log.message.res;
-      log.message = `${req.method} ${req.originalUrl}`;
+      const req = log.message.req
+      const res = log.message.res
+      log.message = `${req.method} ${req.originalUrl}`
       log.args = res
     }
-    let message = log.level === 'cliRes' ? `${log.message}` : `[${log.level}] ${log.message}`;
+    let message = log.level === 'cliRes' ? `${log.message}` : `[${log.level}] ${log.message}`
 
     if (log.args) {
       message += ` | args: ${JSON.stringify(log.args)}`
     }
-    log[MESSAGE] = message;
-    return log;
+    log[MESSAGE] = message
+    return log
   })(),
-}));
+}))
 
 function getAllObjKeys(obj) {
-  let keys = [];
+  let keys = []
   for (const key in obj) {
     if (!obj.hasOwnProperty(key)) {
-      continue;
+      continue
     }
-    keys.push(key);
+    keys.push(key)
     if (obj[key] instanceof Object) {
-      const innerKeys = getAllObjKeys(obj[key]);
-      keys = keys.concat(innerKeys);
+      const innerKeys = getAllObjKeys(obj[key])
+      keys = keys.concat(innerKeys)
     }
   }
-  return keys;
+  return keys
 }
 
-module.exports = logger;
+module.exports = logger

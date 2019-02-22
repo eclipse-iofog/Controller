@@ -11,39 +11,39 @@
  *
  */
 
-const BaseCLIHandler = require('./base-cli-handler');
-const Start = require('./start');
-const User = require('./user');
-const Connector = require('./connector');
-const Config = require('./config');
-const Tunnel = require('./tunnel');
-const IOFog = require('./iofog');
-const Catalog = require('./catalog');
-const Flow = require('./flow');
-const Microservice = require('./microservice');
-const Registry = require('./registry');
-const Controller = require('./controller');
-const Diagnostics = require('./diagnostics');
-const packageJson = require('./../../package');
+const BaseCLIHandler = require('./base-cli-handler')
+const Start = require('./start')
+const User = require('./user')
+const Connector = require('./connector')
+const Config = require('./config')
+const Tunnel = require('./tunnel')
+const IOFog = require('./iofog')
+const Catalog = require('./catalog')
+const Flow = require('./flow')
+const Microservice = require('./microservice')
+const Registry = require('./registry')
+const Controller = require('./controller')
+const Diagnostics = require('./diagnostics')
+const packageJson = require('./../../package')
 
-const constants = require('../helpers/constants');
+const constants = require('../helpers/constants')
 
-const Sentry = require('@sentry/node');
-Sentry.init({ dsn: 'https://3213bc0b88db47ffb103075d7e1e254f@sentry.io/1378606' });
-Sentry.configureScope(scope => {
-  scope.setExtra('version', packageJson.version);
-});
+const Sentry = require('@sentry/node')
+Sentry.init({dsn: 'https://3213bc0b88db47ffb103075d7e1e254f@sentry.io/1378606'})
+Sentry.configureScope((scope) => {
+  scope.setExtra('version', packageJson.version)
+})
 
 class Cli extends BaseCLIHandler {
   constructor() {
-    super();
+    super()
     this.commandDefinitions = [
-      { name: 'command', defaultOption: true },
-    ];
+      {name: 'command', defaultOption: true},
+    ]
     this.commands = {
       [constants.CMD_START]: 'Start iofog-controller service.',
       [constants.CMD_STOP]: 'Stop iofog-controller service.',
-      //init db is hidden command
+      // init db is hidden command
       // [constants.CMD_INIT_DB]: 'Init sqlite db for iofog-controller.',
       [constants.CMD_CONTROLLER]: 'Display iofog-controller service information.',
       [constants.CMD_HELP]: 'Display usage information.',
@@ -61,38 +61,38 @@ class Cli extends BaseCLIHandler {
   }
 
   run(daemon) {
-    const mainCommand = this.parseCommandLineArgs(this.commandDefinitions);
-    const argv = mainCommand._unknown || [];
+    const mainCommand = this.parseCommandLineArgs(this.commandDefinitions)
+    const argv = mainCommand._unknown || []
 
     switch (mainCommand.command) {
       case constants.CMD_START:
-        return Start.run({ daemon });
+        return Start.run({daemon})
       case constants.CMD_STOP:
-        return daemon.stop();
+        return daemon.stop()
       case constants.CMD_INIT_DB:
-        return Start.initDB();
+        return Start.initDB()
       case constants.CMD_CONTROLLER:
-        return Controller.run({ argv });
+        return Controller.run({argv})
       case constants.CMD_USER:
-        return User.run({ argv });
+        return User.run({argv})
       case constants.CMD_CONFIG:
-        return Config.run({ argv });
+        return Config.run({argv})
       case constants.CMD_CONNECTOR:
-        return Connector.run({ argv });
+        return Connector.run({argv})
       case constants.CMD_TUNNEL:
-        return Tunnel.run({ argv });
+        return Tunnel.run({argv})
       case constants.CMD_IOFOG:
-        return IOFog.run({ argv });
+        return IOFog.run({argv})
       case constants.CMD_CATALOG:
-        return Catalog.run({ argv });
+        return Catalog.run({argv})
       case constants.CMD_FLOW:
-        return Flow.run({ argv });
+        return Flow.run({argv})
       case constants.CMD_MICROSERVICE:
-        return Microservice.run({ argv });
+        return Microservice.run({argv})
       case constants.CMD_REGISTRY:
-        return Registry.run({ argv });
+        return Registry.run({argv})
       case constants.CMD_DIAGNOSTICS:
-        return Diagnostics.run({ argv });
+        return Diagnostics.run({argv})
       case constants.CMD_HELP:
       default:
         return this.help([], false)
@@ -100,4 +100,4 @@ class Cli extends BaseCLIHandler {
   }
 }
 
-module.exports = Cli;
+module.exports = Cli

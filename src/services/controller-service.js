@@ -11,40 +11,39 @@
  *
  */
 
-const ioFogTypesManager = require('../sequelize/managers/iofog-type-manager');
-const Config = require('../config');
-const TransactionDecorator = require('../decorators/transaction-decorator');
-const packageJson = require('../../package');
-const AppHelper = require('../helpers/app-helper');
+const ioFogTypesManager = require('../sequelize/managers/iofog-type-manager')
+const Config = require('../config')
+const TransactionDecorator = require('../decorators/transaction-decorator')
+const packageJson = require('../../package')
+const AppHelper = require('../helpers/app-helper')
 
-const getFogTypes = async function (isCLI, transaction) {
-  const ioFogTypes = await ioFogTypesManager.findAll({}, transaction);
-  let response = [];
+const getFogTypes = async function(isCLI, transaction) {
+  const ioFogTypes = await ioFogTypesManager.findAll({}, transaction)
+  const response = []
 
   for (ioFogType of ioFogTypes) {
     response.push({
       id: ioFogType.id,
       name: ioFogType.name,
       image: ioFogType.image,
-      description: ioFogType.description
+      description: ioFogType.description,
     })
   }
 
   return {
-    fogTypes: response
+    fogTypes: response,
   }
+}
 
-};
-
-const emailActivation = async function (isCLI) {
-  const emailActivation = await Config.get('Email:ActivationEnabled');
+const emailActivation = async function(isCLI) {
+  const emailActivation = await Config.get('Email:ActivationEnabled')
   return {
-    isEmailActivationEnabled: emailActivation
+    isEmailActivationEnabled: emailActivation,
   }
-};
+}
 
-const statusController = async function (isCLI) {
-  let status;
+const statusController = async function(isCLI) {
+  let status
 
   if (AppHelper.isOnline()) {
     status = 'online'
@@ -53,18 +52,18 @@ const statusController = async function (isCLI) {
   }
 
   return {
-    "status": status,
-    "timestamp": Date.now(),
+    'status': status,
+    'timestamp': Date.now(),
   }
-};
+}
 
-const getVersion = async function (isCLI) {
-  return `ioFog-Controller version: ${packageJson.version}`;
-};
+const getVersion = async function(isCLI) {
+  return `ioFog-Controller version: ${packageJson.version}`
+}
 
 module.exports = {
   getFogTypes: TransactionDecorator.generateTransaction(getFogTypes),
   emailActivation: emailActivation,
   statusController: statusController,
-  getVersion: getVersion
-};
+  getVersion: getVersion,
+}

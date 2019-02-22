@@ -10,65 +10,64 @@
  *  *******************************************************************************
  *
  */
-const constants = require('../helpers/constants');
-const Controller = require('../controllers/controller');
-const ResponseDecorator = require('../decorators/response-decorator');
-const Errors = require('../helpers/errors');
-const logger = require('../logger');
+const constants = require('../helpers/constants')
+const Controller = require('../controllers/controller')
+const ResponseDecorator = require('../decorators/response-decorator')
+const logger = require('../logger')
 
 module.exports = [
   {
     method: 'get',
     path: '/api/v3/status',
     middleware: async (req, res) => {
-      logger.apiReq(req);
+      logger.apiReq(req)
 
-      const successCode = constants.HTTP_CODE_SUCCESS;
-      const errorCodes = [];
-      const statusControllerEndPoint = ResponseDecorator.handleErrors(Controller.statusControllerEndPoint, successCode, errorCodes);
-      const responseObject = await statusControllerEndPoint(req);
+      const successCode = constants.HTTP_CODE_SUCCESS
+      const errorCodes = []
+      const statusControllerEndPoint = ResponseDecorator.handleErrors(Controller.statusControllerEndPoint, successCode, errorCodes)
+      const responseObject = await statusControllerEndPoint(req)
 
       res
-        .status(responseObject.code)
-        .send(responseObject.body);
+          .status(responseObject.code)
+          .send(responseObject.body)
 
-      logger.apiRes({req: req, res: responseObject});
-    }
+      logger.apiRes({req: req, res: responseObject})
+    },
   },
   {
     method: 'get',
     path: '/api/v3/email-activation',
     middleware: async (req, res) => {
-      logger.apiReq(req);
+      logger.apiReq(req)
 
-      const successCode = constants.HTTP_CODE_SUCCESS;
-      const errorCodes = [];
-      const emailActivationEndPoint = ResponseDecorator.handleErrors(Controller.emailActivationEndPoint, successCode, errorCodes);
-      const responseObject = await emailActivationEndPoint(req);
+      const successCode = constants.HTTP_CODE_SUCCESS
+      const errorCodes = []
+      const emailActivationEndPoint = ResponseDecorator.handleErrors(Controller.emailActivationEndPoint, successCode, errorCodes)
+      const responseObject = await emailActivationEndPoint(req)
 
       res
-        .status(responseObject.code)
-        .send(responseObject.body);
+          .status(responseObject.code)
+          .send(responseObject.body)
 
-      logger.apiRes({req: req, res: responseObject});
-    }
+      logger.apiRes({req: req, res: responseObject})
+    },
   },
   {
     method: 'get',
     path: '/api/v3/fog-types/',
     middleware: async (req, res) => {
-      logger.apiReq(req);
+      logger.apiReq(req)
 
-      const successCode = constants.HTTP_CODE_SUCCESS;
-      const errorCodes = [];
-      const fogTypesEndPoint = ResponseDecorator.handleErrors(Controller.fogTypesEndPoint, successCode, errorCodes);
-      const responseObject = await fogTypesEndPoint(req);
+      const successCode = constants.HTTP_CODE_SUCCESS
+      const errorCodes = []
+      const fogTypesEndPoint = ResponseDecorator.handleErrors(Controller.fogTypesEndPoint, successCode, errorCodes)
+      const responseObject = await fogTypesEndPoint(req)
 
       res
-        .status(responseObject.code)
-        .send(responseObject.body);
+          .status(responseObject.code)
+          .send(responseObject.body)
 
-      logger.apiRes({req: req, res: responseObject});
-    }
-  }
-];
+      logger.apiRes({req: req, res: responseObject})
+    },
+  },
+]

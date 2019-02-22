@@ -11,52 +11,52 @@
  *
  */
 
-const EmailActivationCodeManager = require('../sequelize/managers/email-activation-code-manager');
-const AppHelper = require('../helpers/app-helper');
-const ErrorMessages = require('../helpers/error-messages');
+const EmailActivationCodeManager = require('../sequelize/managers/email-activation-code-manager')
+const AppHelper = require('../helpers/app-helper')
+const ErrorMessages = require('../helpers/error-messages')
 
-const generateActivationCode = async function (transaction) {
+const generateActivationCode = async function(transaction) {
   while (true) {
-    const newActivationCode = AppHelper.generateRandomString(16);
-    const exists = await EmailActivationCodeManager.getByActivationCode(newActivationCode, transaction);
+    const newActivationCode = AppHelper.generateRandomString(16)
+    const exists = await EmailActivationCodeManager.getByActivationCode(newActivationCode, transaction)
     if (!exists) {
-      const activationCodeExpiryTime = new Date().getTime() + ((60 * 60 * 24 * 3) * 1000);
+      const activationCodeExpiryTime = new Date().getTime() + ((60 * 60 * 24 * 3) * 1000)
       return {
         activationCode: newActivationCode,
-        expirationTime: activationCodeExpiryTime
+        expirationTime: activationCodeExpiryTime,
       }
     }
   }
-};
+}
 
-const saveActivationCode = async function (userId, activationCodeData, transaction) {
-  const activationCode = activationCodeData.activationCode;
-  const expirationTime = activationCodeData.expirationTime;
+const saveActivationCode = async function(userId, activationCodeData, transaction) {
+  const activationCode = activationCodeData.activationCode
+  const expirationTime = activationCodeData.expirationTime
 
   try {
-    return await EmailActivationCodeManager.createActivationCode(userId, activationCode, expirationTime, transaction);
+    return await EmailActivationCodeManager.createActivationCode(userId, activationCode, expirationTime, transaction)
   } catch (errMsg) {
-    throw new Error(ErrorMessages.UNABLE_TO_CREATE_ACTIVATION_CODE);
+    throw new Error(ErrorMessages.UNABLE_TO_CREATE_ACTIVATION_CODE)
   }
-};
+}
 
-const verifyActivationCode = async function (activationCode, transaction) {
+const verifyActivationCode = async function(activationCode, transaction) {
   try {
     return await EmailActivationCodeManager.verifyActivationCode(activationCode, transaction)
   } catch (errMsg) {
-    throw new Error(ErrorMessages.UNABLE_TO_GET_ACTIVATION_CODE);
+    throw new Error(ErrorMessages.UNABLE_TO_GET_ACTIVATION_CODE)
   }
-};
+}
 
-const deleteActivationCode = async function (activationCode, transaction) {
+const deleteActivationCode = async function(activationCode, transaction) {
   return await EmailActivationCodeManager.delete({
-    activationCode: activationCode
-  }, transaction);
-};
+    activationCode: activationCode,
+  }, transaction)
+}
 
 module.exports = {
   generateActivationCode: generateActivationCode,
   saveActivationCode: saveActivationCode,
   verifyActivationCode: verifyActivationCode,
-  deleteActivationCode: deleteActivationCode
-};
+  deleteActivationCode: deleteActivationCode,
+}

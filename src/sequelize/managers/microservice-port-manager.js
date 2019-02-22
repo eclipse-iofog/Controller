@@ -11,9 +11,9 @@
  *
  */
 
-const BaseManager = require('./base-manager');
-const models = require('./../models');
-const MicroservicePort = models.MicroservicePort;
+const BaseManager = require('./base-manager')
+const models = require('./../models')
+const MicroservicePort = models.MicroservicePort
 
 class MicroservicePortManager extends BaseManager {
   getEntity() {
@@ -21,5 +21,5 @@ class MicroservicePortManager extends BaseManager {
   }
 }
 
-const instance = new MicroservicePortManager();
-module.exports = instance;
+const instance = new MicroservicePortManager()
+module.exports = instance
