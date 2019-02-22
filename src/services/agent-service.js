@@ -246,7 +246,7 @@ const getAgentMicroservices = async function (fog, transaction) {
     const images = microservice.catalogItem.images;
     const image = images.find(image => image.fogTypeId === fogTypeId);
     const imageId = image ? image.containerImage : '';
-    if (imageId === undefined || imageId === '') {
+    if (!imageId || imageId === '') {
       continue;
     }
 
