@@ -133,7 +133,7 @@ class MicroserviceManager extends BaseManager {
               model: Registry,
               as: 'registry',
               required: true,
-              attributes: ['id']
+              attributes: ['id'],
             },
           ],
           attributes: ['picture', 'category'],

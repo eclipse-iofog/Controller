@@ -7,7 +7,7 @@ module.exports = {
           config_example: '{"citycode":"5391997","apikey":"6141811a6136148a00133488eadff0fb","frequency":1000}',
         },
         {
-          name: 'Open Weather Map Data'
+          name: 'Open Weather Map Data',
         },
     ).then(() => {
       return queryInterface.bulkUpdate('CatalogItems',

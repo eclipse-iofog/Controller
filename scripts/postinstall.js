@@ -11,8 +11,7 @@
  *
  */
 
-const sqlite3 = require('sqlite3') //.verbose() //use verbose in dev to get stack traces
-const os = require('os')
+const sqlite3 = require('sqlite3') // .verbose() //use verbose in dev to get stack traces
 const execSync = require('child_process').execSync
 const fs = require('fs')
 const semver = require('semver')
@@ -44,8 +43,8 @@ function postinstall() {
       updateEncryptionMethod()
     }
     if (semver.satisfies(prevVersion, '<=1.0.37')) {
-      console.log('upgrading from version <= 1.0.37 :');
-      updateLogName();
+      console.log('upgrading from version <= 1.0.37 :')
+      updateLogName()
     }
 
     fs.unlinkSync(INSTALLATION_VARIABLES_FILE)
@@ -158,21 +157,20 @@ function updateEncryptionMethod() {
 }
 
 function updateLogName() {
-  console.log('    updating log name in ');
+  console.log('    updating log name in ')
   const dirname = config.get('Service:LogsDirectory')
 
   if (fs.existsSync(dirname)) {
-    fs.readdirSync(dirname).forEach(file => {
+    fs.readdirSync(dirname).forEach((file) => {
       const path = dirname + '/' + file
       if (fs.existsSync(path)) {
         fs.unlinkSync(path, function(err) {
-          if (err) return console.log(err);
-          console.log('log deleted successfully');
+          if (err) return console.log(err)
+          console.log('log deleted successfully')
         })
       }
-    });
+    })
   }
-
 }
 
 module.exports = {

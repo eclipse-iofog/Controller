@@ -81,10 +81,10 @@ const logger = winston.createLogger({
       ),
       filename: 'iofog-controller.0.log',
       dirname: dirname,
-      maxsize:  maxsize,
+      maxsize: maxsize,
       rotationFormat: function() {
         return getFormattedLogName()
-      }
+      },
     }),
   ],
 })
@@ -99,14 +99,14 @@ function getFormattedLogName() {
       return ''
     }
 
-    files.reverse().forEach(file => {
+    files.reverse().forEach((file) => {
       const path = dirname + '/' + file
       if (fs.existsSync(path)) {
         const strNumber = file.replace('iofog-controller.', '').replace('.log', '')
         const number = parseInt(strNumber) + 1
         fs.renameSync(path, path.replace(strNumber, number))
       }
-    });
+    })
   }
   return ''
 }

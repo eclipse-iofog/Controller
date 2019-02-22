@@ -763,16 +763,15 @@ describe('Agent Service', () => {
       catalogItem: {
         images: [{
           fogTypeId: 3,
-          containerImage: 'testContainerImage'
-        }
+          containerImage: 'testContainerImage',
+        },
         ],
         registry: {
-          id: 10
-        }
+          id: 10,
+        },
       },
-      routes: routes
-    };
-
+      routes: routes,
+    }
 
 
     const microserviceResponse = {
@@ -791,7 +790,7 @@ describe('Agent Service', () => {
         routes: routes,
         registryId: 10,
       }],
-    };
+    }
 
     def('uuid', () => 'testUuid')
     def('fogTypeId', () => 1)

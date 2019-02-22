@@ -13,10 +13,9 @@
 
 const commandLineArgs = require('command-line-args')
 const commandLineUsage = require('command-line-usage')
-const AppHelper = require('../helpers/app-helper');
-const Errors = require('../helpers/errors');
+const AppHelper = require('../helpers/app-helper')
+const Errors = require('../helpers/errors')
 const ErrorMessages = require('../helpers/error-messages')
-const constants = require('../helpers/constants')
 const logger = require('../logger')
 
 class CLIHandler {
@@ -65,7 +64,7 @@ class CLIHandler {
         header: 'ioFogController',
         content: 'Fog Controller project for Eclipse IoFog @ iofog.org \\nCopyright (c) 2018 Edgeworx, Inc.',
       },
-    ].concat(sections);
+    ].concat(sections)
     logger.cliRes(commandLineUsage(usage))
   }
 
@@ -98,29 +97,29 @@ class CLIHandler {
         header: 'ioFogController',
         content: 'Fog Controller project for Eclipse IoFog @ iofog.org \\nCopyright (c) 2018 Edgeworx, Inc.',
       },
-    ].concat(sections);
+    ].concat(sections)
     logger.cliRes(commandLineUsage(usage))
   }
 
   handleCLIError(error, args) {
     switch (error.name) {
-      case "UNKNOWN_OPTION":
-        logger.error("Invalid argument '" + error.optionName.split('-').join('') + "'");
-        break;
-      case "UNKNOWN_VALUE":
+      case 'UNKNOWN_OPTION':
+        logger.error('Invalid argument \'' + error.optionName.split('-').join('') + '\'')
+        break
+      case 'UNKNOWN_VALUE':
         if (this.commands[args[0]] && args[1] === 'help') {
           return this.helpSome([args[0]])
         }
-        logger.error("Invalid value " + error.value);
+        logger.error('Invalid value ' + error.value)
         break
-      case "InvalidArgumentError":
+      case 'InvalidArgumentError':
         logger.error(error.message)
         break
-      case "InvalidArgumentTypeError":
+      case 'InvalidArgumentTypeError':
         logger.error(error.message)
         break
-      case "ALREADY_SET":
-        logger.error("Parameter '" + error.optionName + "' is used multiple times")
+      case 'ALREADY_SET':
+        logger.error('Parameter \'' + error.optionName + '\' is used multiple times')
         break
       case 'CLIArgsNotProvidedError':
         if (this.commands[args[0]]) {
