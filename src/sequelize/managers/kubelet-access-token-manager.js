@@ -19,17 +19,6 @@ class KubeletAccessTokenManager extends BaseManager {
   getEntity() {
     return KubeletAccessToken
   }
-
-  // no transaction required here, used by auth decorator
-  updateExpirationTime(id, newTime) {
-    return KubeletAccessToken.update({
-      expirationTime: newTime
-    }, {
-      where: {
-        id: id
-      }
-    })
-  }
 }
 
 const instance = new KubeletAccessTokenManager();

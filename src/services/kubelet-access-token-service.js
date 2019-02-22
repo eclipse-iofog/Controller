@@ -42,12 +42,8 @@ async function updateAccessToken(fogUuid, newAccessToken, transaction) {
   }, transaction);
 }
 
-async function all(transaction) {
-  return KubeletAccessTokenManager.findAll(null, transaction);
-}
 
 module.exports = {
   generateAccessToken,
   updateAccessToken,
-  all,
 };
