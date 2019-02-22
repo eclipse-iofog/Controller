@@ -13,16 +13,16 @@
 
 const BaseManager = require('./base-manager');
 const models = require('./../models');
-const FogAccessToken = models.FogAccessToken;
+const KubeletAccessToken = models.KubeletAccessToken;
 
 class KubeletAccessTokenManager extends BaseManager {
   getEntity() {
-    return FogAccessToken
+    return KubeletAccessToken
   }
 
   // no transaction required here, used by auth decorator
   updateExpirationTime(id, newTime) {
-    return FogAccessToken.update({
+    return KubeletAccessToken.update({
       expirationTime: newTime
     }, {
       where: {
