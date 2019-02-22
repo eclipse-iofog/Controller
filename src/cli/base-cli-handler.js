@@ -17,6 +17,7 @@ const AppHelper = require('../helpers/app-helper');
 const Errors = require('../helpers/errors');
 const ErrorMessages = require('../helpers/error-messages');
 const constants = require('../helpers/constants');
+const logger = require('../logger')
 
 class CLIHandler {
   constructor() {
@@ -66,7 +67,7 @@ class CLIHandler {
         content: 'Fog Controller project for Eclipse IoFog @ iofog.org \\nCopyright (c) 2018 Edgeworx, Inc.',
       }
     ].concat(sections);
-    console.log(commandLineUsage(usage))
+    logger.cliRes(commandLineUsage(usage))
   }
 
   helpAll(show = [], showOptions = true, hasCommands = true, additionalSection = []) {
@@ -99,28 +100,28 @@ class CLIHandler {
         content: 'Fog Controller project for Eclipse IoFog @ iofog.org \\nCopyright (c) 2018 Edgeworx, Inc.',
       }
     ].concat(sections);
-    console.log(commandLineUsage(usage))
+    logger.cliRes(commandLineUsage(usage))
   }
 
   handleCLIError(error, args) {
     switch (error.name) {
       case "UNKNOWN_OPTION":
-        console.log("Invalid argument '" + error.optionName.split('-').join('') + "'");
+        logger.error("Invalid argument '" + error.optionName.split('-').join('') + "'");
         break;
       case "UNKNOWN_VALUE":
         if (this.commands[args[0]] && args[1] === 'help') {
           return this.helpSome([args[0]]);
         }
-        console.log("Invalid value " + error.value);
+        logger.error("Invalid value " + error.value);
         break;
       case "InvalidArgumentError":
-        console.log(error.message);
+        logger.error(error.message);
         break;
       case "InvalidArgumentTypeError":
-        console.log(error.message);
+        logger.error(error.message);
         break;
       case "ALREADY_SET":
-        console.log("Parameter '" + error.optionName + "' is used multiple times");
+        logger.error("Parameter '" + error.optionName + "' is used multiple times");
         break;
       case 'CLIArgsNotProvidedError':
         if (this.commands[args[0]]) {
@@ -128,7 +129,7 @@ class CLIHandler {
         }
         break;
       default:
-        console.log(JSON.stringify(error));
+        logger.error(JSON.stringify(error));
         break;
     }
   }
