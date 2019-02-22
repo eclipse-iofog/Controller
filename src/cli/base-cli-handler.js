@@ -280,9 +280,7 @@ function _getCurrentValType(values) {
 
 function _validateType(expectedValueType, valType) {
   let isValidType = true;
-  if (expectedValueType === 'string' && valType === 'boolean') {
-    isValidType = false;
-  } else if ((expectedValueType === 'float' || expectedValueType === 'number')
+  if ((expectedValueType === 'float' || expectedValueType === 'number')
     && (valType !== 'float' && valType !== 'number' && valType !== 'integer')) {
     isValidType = false;
   } else if (expectedValueType === 'integer' && valType !== 'integer') {
