@@ -83,8 +83,9 @@ const kubeletGetNodeAddressesEndPoint = async function (req) {
   return await KubeletService.kubeletGetNodeAddresses(createPodData, fogNodeUuid)
 }
 
-const kubeletGetVkTokenEndPoint = async function () {
-  return await KubeletService.kubeletGetVkToken()
+const kubeletGetVkTokenEndPoint = async function (req) {
+  const fogNodeUuid = req.params.nodeName
+  return await KubeletService.kubeletGetVkToken(fogNodeUuid)
 }
 
 const kubeletGetSchedulerTokenEndPoint = async function () {

@@ -11,6 +11,9 @@
  *
  */
 
+const KubeletAccessTokenService = require('./kubelet-access-token-service')
+const TransactionDecorator = require('../decorators/transaction-decorator')
+
 const kubeletCreatePod = async function (createPodData, fogNodeUuid, transaction) {
   //TODO: to implement
 }
@@ -41,8 +44,14 @@ const kubeletGetNodeConditions = async function (fogNodeUuid, transaction) {
 const kubeletGetNodeAddresses = async function (fogNodeUuid, transaction) {
   //TODO: to implement
 }
-const kubeletGetVkToken = async function (transaction) {
-  //TODO: to implement
+const kubeletGetVkToken = async function (fogNodeUuid, transaction) {
+  const newAccessToken = await KubeletAccessTokenService.generateAccessToken(transaction)
+  await KubeletAccessTokenService.updateAccessToken(fogNodeUuid, newAccessToken, transaction)
+
+  return {
+    uuid: fogNodeUuid,
+    token: newAccessToken.token
+  }
 }
 const kubeletGetSchedulerToken = async function (transaction) {
   //TODO: to implement
