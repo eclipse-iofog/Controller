@@ -242,10 +242,13 @@ const getAgentMicroservices = async function (fog, transaction) {
   const fogTypeId = fog.fogTypeId;
 
   const response = [];
-  for (let microservice of microservices) {
+  for (const microservice of microservices) {
     const images = microservice.catalogItem.images;
     const image = images.find(image => image.fogTypeId === fogTypeId);
     const imageId = image ? image.containerImage : '';
+    if (imageId === undefined || imageId === '') {
+      continue;
+    }
 
     const routes = await MicroserviceService.getPhysicalConnections(microservice, transaction);
 
