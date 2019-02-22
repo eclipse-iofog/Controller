@@ -723,7 +723,7 @@ describe('Agent Service', () => {
 
     const routes = []
 
-    const microservice = {
+    const microserviceWithValidImage = {
       uuid: 'testMicroserviceUuid',
       imageId: '',
       config: '{}',
@@ -747,6 +747,33 @@ describe('Agent Service', () => {
       },
       routes: routes,
     }
+
+    const microserviceWithInvalidImage = {
+      uuid: 'testMicroserviceUuid',
+      imageId: '',
+      config: '{}',
+      rebuild: false,
+      rootHostAccess: false,
+      logSize: 15,
+      ports: 'testPorts',
+      volumeMappings: 'testVolumeMappings',
+      imageSnapshot: 'testImageSnapshot',
+      delete: false,
+      deleteWithCleanup: false,
+      catalogItem: {
+        images: [{
+          fogTypeId: 3,
+          containerImage: 'testContainerImage'
+        }
+        ],
+        registry: {
+          id: 10
+        }
+      },
+      routes: routes
+    };
+
+
 
     const microserviceResponse = {
       microservices: [{
@@ -778,7 +805,7 @@ describe('Agent Service', () => {
 
     def('subject', () => $subject.getAgentMicroservices($fog, transaction))
 
-    def('findAllMicroservicesResponse', () => Promise.resolve([microservice]))
+    def('findAllMicroservicesResponse', () => Promise.resolve([microserviceWithValidImage, microserviceWithInvalidImage]))
     def('getPhysicalConnectionsResponse', () => Promise.resolve(routes))
     def('updateResponse', () => Promise.resolve(microserviceResponse))
 
@@ -804,7 +831,7 @@ describe('Agent Service', () => {
     context('when MicroserviceManager#findAllActiveFlowMicroservices() succeeds', () => {
       it('calls MicroserviceService.getPhysicalConnections with correct args', async () => {
         await $subject
-        expect(MicroserviceService.getPhysicalConnections).to.have.been.calledWith(microservice, transaction)
+        expect(MicroserviceService.getPhysicalConnections).to.have.been.calledWith(microserviceWithValidImage, transaction)
       })
 
       context('when MicroserviceService#getPhysicalConnections fails', () => {
@@ -821,7 +848,7 @@ describe('Agent Service', () => {
         it('calls MicroserviceManager.update with correct args', async () => {
           await $subject
           expect(MicroserviceManager.update).to.have.been.calledWith({
-            uuid: microservice.uuid,
+            uuid: microserviceWithValidImage.uuid,
           }, {
             rebuild: false,
           }, transaction)
