@@ -19,7 +19,6 @@ const TunnelService = require('../services/tunnel-service')
 const CliDecorator = require('../decorators/cli-decorator')
 const Errors = require('../helpers/errors')
 const ErrorMessages = require('../helpers/error-messages')
-const AppHelper = require('../helpers/app-helper')
 const CliDataTypes = require('./cli-data-types')
 
 class Tunnel extends BaseCLIHandler {

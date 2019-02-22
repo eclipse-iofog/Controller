@@ -15,7 +15,6 @@ const BaseCLIHandler = require('./base-cli-handler')
 const constants = require('../helpers/constants')
 const ControllerService = require('../services/controller-service')
 const logger = require('../logger')
-const AppHelper = require('../helpers/app-helper')
 
 
 class Controller extends BaseCLIHandler {

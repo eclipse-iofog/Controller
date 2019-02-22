@@ -54,7 +54,8 @@ function checkDaemon(daemon, configuration) {
     iterationsCount++
     const pid = daemon.status()
     if (pid === 0) {
-      return logger.error('Error: port is probably allocated, or ssl_key or ssl_cert or intermediate_cert is either missing or invalid.')
+      return logger.error('Error: port is probably allocated, or ssl_key or ssl_cert or intermediate_cert ' +
+          'is either missing or invalid.')
     }
 
     if (iterationsCount === 5) {

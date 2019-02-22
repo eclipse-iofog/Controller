@@ -8,6 +8,7 @@ module.exports = (sequelize, DataTypes) => {
       field: 'id',
     },
     versionCommand: {
+      /* eslint-disable new-cap */
       type: DataTypes.STRING(100),
       field: 'version_command',
     },

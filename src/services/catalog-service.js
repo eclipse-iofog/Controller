@@ -23,7 +23,6 @@ const Op = require('sequelize').Op
 const Validator = require('../schemas/index')
 const RegistryManager = require('../sequelize/managers/registry-manager')
 const MicroserviceManager = require('../sequelize/managers/microservice-manager')
-const ChangeTrackingService = require('./change-tracking-service')
 const MicroseriveStates = require('../enums/microservice-state')
 const TrackingDecorator = require('../decorators/tracking-decorator')
 const TrackingEventType = require('../enums/tracking-event-type')

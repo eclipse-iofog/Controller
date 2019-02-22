@@ -298,7 +298,8 @@ async function _handleCreateUser(user, isEmailActivationEnabled, transaction) {
   }, transaction)
 
   if (existingUser) {
-    throw new Errors.ValidationError('Registration failed: There is already an account associated with your email address. Please try logging in instead.')
+    throw new Errors.ValidationError('Registration failed: There is already an account associated with your email address. ' +
+        'Please try logging in instead.')
   }
 
   const newUser = await _createNewUser(user, isEmailActivationEnabled, transaction)
@@ -321,7 +322,9 @@ async function _notifyUserAboutActivationCode(email, url, emailSenderData, activ
     from: '"IOFOG" <' + emailSenderData.email + '>',
     to: email,
     subject: 'Activate Your Account',
-    html: emailActivationTemplate.p1 + url + emailActivationTemplate.p2 + activationCodeData.activationCode + emailActivationTemplate.p3 + url + emailActivationTemplate.p4 + activationCodeData.activationCode + emailActivationTemplate.p5 + url + emailActivationTemplate.p6 + activationCodeData.activationCode + emailActivationTemplate.p7,
+    html: emailActivationTemplate.p1 + url + emailActivationTemplate.p2 + activationCodeData.activationCode +
+    emailActivationTemplate.p3 + url + emailActivationTemplate.p4 + activationCodeData.activationCode +
+    emailActivationTemplate.p5 + url + emailActivationTemplate.p6 + activationCodeData.activationCode + emailActivationTemplate.p7,
   }
 
   await _sendEmail(transporter, mailOptions)
@@ -344,7 +347,8 @@ async function _notifyUserAboutPasswordReset(user, url, emailSenderData, tempPas
     from: '"IOFOG" <' + emailSenderData.email + '>',
     to: user.email,
     subject: 'Password Reset Request',
-    html: emailResetTemplate.p1 + user.firstName + ' ' + user.lastName + emailResetTemplate.p2 + tempPass + emailResetTemplate.p3 + url + emailResetTemplate.p4,
+    html: emailResetTemplate.p1 + user.firstName + ' ' + user.lastName + emailResetTemplate.p2 + tempPass + emailResetTemplate.p3
+    + url + emailResetTemplate.p4,
   }
 
   await _sendEmail(transporter, mailOptions)

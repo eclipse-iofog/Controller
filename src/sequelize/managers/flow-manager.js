@@ -15,7 +15,6 @@ const BaseManager = require('./base-manager')
 const models = require('./../models')
 const Flow = models.Flow
 const Microservice = models.Microservice
-const sequelize = require('sequelize')
 
 class FlowManager extends BaseManager {
   getEntity() {

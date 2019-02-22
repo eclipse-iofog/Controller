@@ -13,7 +13,6 @@
 const constants = require('../helpers/constants')
 const Controller = require('../controllers/controller')
 const ResponseDecorator = require('../decorators/response-decorator')
-const Errors = require('../helpers/errors')
 const logger = require('../logger')
 
 module.exports = [

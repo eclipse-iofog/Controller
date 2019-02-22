@@ -16,7 +16,8 @@ module.exports = {
         ID: 1,
         name: 'Standard Linux (x86)',
         image: 'iointegrator1.png',
-        description: 'A standard Linux server of at least moderate processing power and capacity. Compatible with common Linux types such as Ubuntu, Red Hat, and CentOS.',
+        description: 'A standard Linux server of at least moderate processing power and capacity. ' +
+        'Compatible with common Linux types such as Ubuntu, Red Hat, and CentOS.',
         network_catalog_item_id: 1,
         hal_catalog_item_id: 3,
         bluetooth_catalog_item_id: 2,
@@ -25,7 +26,8 @@ module.exports = {
         ID: 2,
         name: 'ARM Linux',
         image: 'iointegrator2.png',
-        description: 'A version of ioFog meant to run on Linux systems with ARM processors. Microservices for this ioFog type will be tailored to ARM systems.',
+        description: 'A version of ioFog meant to run on Linux systems with ARM processors. ' +
+        'Microservices for this ioFog type will be tailored to ARM systems.',
         network_catalog_item_id: 1,
         hal_catalog_item_id: 3,
         bluetooth_catalog_item_id: 2,

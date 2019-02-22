@@ -360,7 +360,8 @@ async function createPortMapping(microserviceUuid, portMappingData, user, isCLI,
 }
 
 async function updatePortMappingOverConnector(connector, transaction) {
-  const microservicePublicModes = await MicroservicePublicModeManager.findAllMicroservicePublicModesByConnectorId(connector.id, transaction)
+  const microservicePublicModes = await MicroservicePublicModeManager.findAllMicroservicePublicModesByConnectorId(connector.id,
+      transaction)
   const networkMicroserviceUuids = microservicePublicModes.map((obj) => obj.networkMicroserviceUuid)
   await _updateNetworkMicroserviceConfigs(networkMicroserviceUuids, connector, transaction)
 }
@@ -579,7 +580,7 @@ async function _updateChangeTracking(configUpdated, fogNodeUuid, transaction) {
   }
 }
 
-// TODO use in _deleteMicroserviceWithRoutesAndPortMappings
+/* TODO use in _deleteMicroserviceWithRoutesAndPortMappings
 async function _deletePortMappings(microservice, user, transaction) {
   const msPortMappings = await MicroservicePortManager.findAll({
     microserviceUuid: microservice.uuid,
@@ -592,7 +593,7 @@ async function _deletePortMappings(microservice, user, transaction) {
       await _deleteSimplePortMapping(microservice, msPorts, user, transaction)
     }
   }
-}
+}*/
 
 async function _checkForDuplicateName(name, item, userId, transaction) {
   if (name) {
@@ -627,15 +628,6 @@ async function _validateMicroserviceOnGet(userId, microserviceUuid, transaction)
   }
 }
 
-/**
- * use to create route between microservices on same fog
- *
- * @param sourceMicroservice
- * @param destMicroservice
- * @param transaction
- * @return {Promise<void>}
- * @private
- */
 async function _createSimpleRoute(sourceMicroservice, destMicroservice, transaction) {
   // create new route
   const routeData = {
@@ -987,7 +979,8 @@ async function _buildPortsList(portsPairs, transaction) {
       const connectorPorts = await ConnectorPortManager.findOne({id: pubMode.connectorPortId}, transaction)
       const connector = await ConnectorManager.findOne({id: connectorPorts.connectorId}, transaction)
 
-      portMappingResposeData.publicLink = await _buildLink(connector.devMode ? 'http' : 'https', connector.publicIp, connectorPorts.port2)
+      portMappingResposeData.publicLink = await _buildLink(connector.devMode ? 'http' : 'https',
+          connector.publicIp, connectorPorts.port2)
     }
     res.push(portMappingResposeData)
   }

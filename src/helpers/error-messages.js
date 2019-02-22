@@ -34,7 +34,8 @@ module.exports = {
   ACCOUNT_NOT_FOUND: 'Account not found',
   USER_NOT_UPDATED: 'User not updated',
   EMAIL_NOT_ACTIVATED: 'Email is not activated. Please activate your account first.',
-  REGISTRATION_FAILED: 'Registration failed: There is already an account associated with your email address. Please try logging in instead.',
+  REGISTRATION_FAILED: 'Registration failed: There is already an account associated with your email address. ' +
+  'Please try logging in instead.',
   INVALID_PROVISIONING_KEY: 'Invalid Provisioning Key',
   EMAIL_SENDER_NOT_CONFIGURED: 'Email sender not configured',
   INVALID_PORT_FORMAT: 'Invalid port format',
@@ -48,7 +49,8 @@ module.exports = {
   STRACE_WITHOUT_FOG: 'Can\'t run strace for microservice without ioFog.',
   INVALID_ACTION_PROPERTY: 'Unknown action property. Action can be "open" or "close"',
   IMAGE_SNAPSHOT_NOT_FOUND: 'Image snapshot not found',
-  INVALID_MICROSERVICES_FOG_TYPE: 'Some of microservices haven\'t proper docker images for this ioFog type. List of invalid microservices:\n',
+  INVALID_MICROSERVICES_FOG_TYPE: 'Some of microservices haven\'t proper docker images for this ioFog type. ' +
+  'List of invalid microservices:\n',
   INVALID_MICROSERVICE_CONFIG: 'Can\'t create network microservice without appropriate configuration.',
   INVALID_MICROSERVICE_USER: 'Invalid microservice user or UUID',
   ROUTE_NOT_FOUND: 'Route not found',

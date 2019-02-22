@@ -15,13 +15,12 @@ const {isTest} = require('../helpers/app-helper')
 const Tracking = require('../tracking')
 
 function trackEvent(f, eventType) {
-  return async function() {
+  return async function(...fArgs) {
     if (isTest()) {
-      return await f.apply(this, arguments)
+      return await f.apply(this, fArgs)
     }
 
-    const fArgs = Array.prototype.slice.call(arguments)
-    const res = await f.apply(this, arguments)
+    const res = await f.apply(this, fArgs)
     const event = Tracking.buildEvent(eventType, res, fArgs, f.name)
     await Tracking.processEvent(event, fArgs, res)
     return res

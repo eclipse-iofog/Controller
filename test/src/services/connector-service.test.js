@@ -9,7 +9,6 @@ const AppHelper = require('../../../src/helpers/app-helper')
 const ConnectorPortManager = require('../../../src/sequelize/managers/connector-port-manager')
 const Sequelize = require('sequelize')
 const Op = Sequelize.Op
-const qs = require('qs')
 
 describe('Connector Service', () => {
   def('subject', () => ConnectorService)

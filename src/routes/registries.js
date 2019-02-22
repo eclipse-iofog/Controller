@@ -120,7 +120,8 @@ module.exports = [
           errors: [Errors.NotFoundError],
         },
       ]
-      const updateRegistryEndPoint = ResponseDecorator.handleErrors(RegistryController.updateRegistryEndPoint, successCode, errorCodes)
+      const updateRegistryEndPoint = ResponseDecorator.handleErrors(RegistryController.updateRegistryEndPoint,
+          successCode, errorCodes)
       const responseObject = await updateRegistryEndPoint(req)
       res
           .status(responseObject.code)

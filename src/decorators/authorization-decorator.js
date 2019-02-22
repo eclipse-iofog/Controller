@@ -20,12 +20,11 @@ const Errors = require('../helpers/errors')
 const {isTest} = require('../helpers/app-helper')
 
 function checkAuthToken(f) {
-  return async function() {
+  return async function(...fArgs) {
     if (isTest()) {
-      return await f.apply(this, arguments)
+      return await f.apply(this, fArgs)
     }
 
-    const fArgs = Array.prototype.slice.call(arguments)
     const req = fArgs[0]
     const token = req.headers.authorization
 
@@ -41,18 +40,18 @@ function checkAuthToken(f) {
     }
 
     fArgs.push(user)
-    AccessTokenManager.updateExpirationTime(user.accessToken.id, user.accessToken.expirationTime + config.get('Settings:UserTokenExpirationIntervalSeconds') * 1000)
+    AccessTokenManager.updateExpirationTime(user.accessToken.id, user.accessToken.expirationTime
+        + config.get('Settings:UserTokenExpirationIntervalSeconds') * 1000)
     return await f.apply(this, fArgs)
   }
 }
 
 function checkFogToken(f) {
-  return async function() {
+  return async function(...fArgs) {
     if (isTest()) {
-      return await f.apply(this, arguments)
+      return await f.apply(this, fArgs)
     }
 
-    const fArgs = Array.prototype.slice.call(arguments)
     const req = fArgs[0]
     const token = req.headers.authorization
 
@@ -69,7 +68,8 @@ function checkFogToken(f) {
 
     fArgs.push(fog)
 
-    FogAccessTokenManager.updateExpirationTime(fog.accessToken.id, fog.accessToken.expirationTime + config.get('Settings:FogTokenExpirationIntervalSeconds') * 1000)
+    FogAccessTokenManager.updateExpirationTime(fog.accessToken.id, fog.accessToken.expirationTime
+        + config.get('Settings:FogTokenExpirationIntervalSeconds') * 1000)
 
     const timestamp = Date.now()
     await FogManager.updateLastActive(fog.uuid, timestamp)

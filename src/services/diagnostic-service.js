@@ -228,6 +228,7 @@ const _writeBufferToFile = function(filePath, data) {
 
 const _convertFileToBase64 = function(filePath) {
   const file = fs.readFileSync(filePath)
+  /* eslint-disable new-cap */
   return new Buffer.from(file).toString('base64')
 }
 

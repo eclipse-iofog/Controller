@@ -262,7 +262,8 @@ class Microservice extends BaseCLIHandler {
           },
           {
             desc: '2. Multiple mappings',
-            example: '$ iofog-controller microservice add [other required options] --volumes /host_src:/container_src:rw /host_bin:/container_bin:r',
+            example: '$ iofog-controller microservice add [other required options] --volumes /host_src:/container_src:rw ' +
+            '/host_bin:/container_bin:r',
           },
           {
             desc: '3. Port mapping (80:8080:false - internal port : external port : public mode)',

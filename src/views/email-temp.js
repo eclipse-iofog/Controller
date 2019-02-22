@@ -21,7 +21,8 @@ const emailRecoveryTemplate = {
           <table cellspacing=\'0\' style=\'border:1px solid #e9e9e9\' bgcolor=\'#fff\'>\
             <tbody>\
               <tr>\
-                <td style=\'font-family: sans-serif; font-size:16px; vertical-align:top;color:#fff;text-align:center;background-color:#ff9f00; padding:20px\' align=\'center\'>\
+                <td style=\'font-family: sans-serif; font-size:16px; vertical-align:top;color:#fff;text-align:center;\
+                background-color:#ff9f00; padding:20px\' align=\'center\'>\
                   Hi, ',
 
   p2: '</td>\
@@ -57,7 +58,8 @@ const emailRecoveryTemplate = {
             <table width=\'100%\'>\
               <tbody>\
                 <tr>\
-                  <td style=\'font-family: sans-serif; font-size:12px; vertical-align:top;color:#999;text-align:center;padding:20px 0 20px\'>\
+                  <td style=\'font-family: sans-serif; font-size:12px; vertical-align:top;color:#999;text-align:center;\
+                  padding:20px 0 20px\'>\
                     Follow <a style = \'color:#999;\' href=\'https://twitter.com/EclipseioFog\'>@EclipseioFog</a> on Twitter.\
                   </td>\
                 </tr>\

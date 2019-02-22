@@ -9,7 +9,6 @@ const Validator = require('../../../src/schemas')
 const AppHelper = require('../../../src/helpers/app-helper')
 const ioFogManager = require('../../../src/sequelize/managers/iofog-manager')
 const EmailActivationCodeService = require('../../../src/services/email-activation-code-service')
-const Sequelize = require('sequelize')
 const nodemailer = require('nodemailer')
 
 describe('User Service', () => {

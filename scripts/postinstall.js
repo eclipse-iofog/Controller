@@ -11,7 +11,6 @@
  *
  */
 const sqlite3 = require('sqlite3')// .verbose(); //use verbose in dev to get stack traces
-const os = require('os')
 const execSync = require('child_process').execSync
 const fs = require('fs')
 const semver = require('semver')

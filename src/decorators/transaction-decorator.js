@@ -18,14 +18,14 @@ const Transaction = require('sequelize/lib/transaction')
 const {isTest} = require('../helpers/app-helper')
 
 function transaction(f) {
-  return async function() {
+  return async function(...fArgs) {
     if (isTest()) {
-      return await f.apply(this, arguments)
+      return await f.apply(this, fArgs)
     }
 
-    const fArgs = Array.prototype.slice.call(arguments)
     // TODO [when transactions concurrency issue fixed]: Remove 'fArgs[fArgs.length - 1].fakeTransaction'
-    if (fArgs.length > 0 && fArgs[fArgs.length - 1] && (fArgs[fArgs.length - 1] instanceof Transaction || fArgs[fArgs.length - 1].fakeTransaction)) {
+    if (fArgs.length > 0 && fArgs[fArgs.length - 1]
+      && (fArgs[fArgs.length - 1] instanceof Transaction || fArgs[fArgs.length - 1].fakeTransaction)) {
       return await f.apply(this, fArgs)
     } else {
     // return f.apply(this, fArgs)
@@ -38,8 +38,7 @@ function transaction(f) {
 }
 
 function generateTransaction(f) {
-  return function() {
-    const args = Array.prototype.slice.call(arguments)
+  return function(...args) {
     return retry(() => {
       const t = transaction(f)
       return t.apply(this, args)
@@ -55,12 +54,11 @@ function generateTransaction(f) {
 
 function fakeTransaction(f) {
   const fakeTransactionObject = {fakeTransaction: true}
-  return async function() {
+  return async function(...fArgs) {
     if (isTest()) {
-      return await f.apply(this, arguments)
+      return await f.apply(this, fArgs)
     }
 
-    const fArgs = Array.prototype.slice.call(arguments)
     if (fArgs.length > 0 && fArgs[fArgs.length - 1] instanceof Transaction) {
       fArgs[fArgs.length - 1] = fakeTransactionObject
       return await f.apply(this, fArgs)
@@ -73,8 +71,7 @@ function fakeTransaction(f) {
 
 // TODO [when transactions concurrency issue fixed]: Remove
 function generateFakeTransaction(f) {
-  return function() {
-    const args = Array.prototype.slice.call(arguments)
+  return function(...args) {
     return retry(() => {
       const t = fakeTransaction(f)
       return t.apply(this, args)
