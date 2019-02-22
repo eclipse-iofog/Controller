@@ -17,6 +17,7 @@ const fs = require('fs');
 const MESSAGE = Symbol.for('message');
 
 const dirname = config.get('Service:LogsDirectory')
+const maxsize = config.get('Service:LogsFileSize')
 
 // Create the log directory if it does not exist
 try {
@@ -80,7 +81,7 @@ const logger = winston.createLogger({
       ),
       filename: 'iofog-controller.0.log',
       dirname: dirname,
-      maxsize:  config.get('Service:LogsFileSize'),
+      maxsize:  maxsize,
       rotationFormat: function() {
         return getFormattedLogName();
       }
@@ -91,7 +92,14 @@ const logger = winston.createLogger({
 // logFileName pattern similar to agent
 function getFormattedLogName() {
   if (fs.existsSync(dirname)) {
-    fs.readdirSync(dirname).reverse().forEach(file => {
+    const files = fs.readdirSync(dirname)
+    const latestFilePath = dirname + '/' + files[0]
+
+    if (files.length === 0 || fs.statSync(latestFilePath).size <= maxsize) {
+      return ''
+    }
+
+    files.reverse().forEach(file => {
       const path = dirname + '/' + file
       if (fs.existsSync(path)) {
         const strNumber = file.replace('iofog-controller.', '').replace('.log', '')
