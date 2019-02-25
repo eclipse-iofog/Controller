@@ -89,8 +89,9 @@ const kubeletGetVkTokenEndPoint = async function(req, user) {
   return await KubeletService.kubeletGetVkToken(userId)
 }
 
-const kubeletGetSchedulerTokenEndPoint = async function() {
-  return await KubeletService.kubeletGetSchedulerToken()
+const kubeletGetSchedulerTokenEndPoint = async function(req, user) {
+  const userId = user.id
+  return await KubeletService.kubeletGetSchedulerToken(userId)
 }
 
 module.exports = {
@@ -105,5 +106,5 @@ module.exports = {
   kubeletGetNodeConditionsEndPoint: kubeletGetNodeConditionsEndPoint,
   kubeletGetNodeAddressesEndPoint: kubeletGetNodeAddressesEndPoint,
   kubeletGetVkTokenEndPoint: AuthDecorator.checkAuthToken(kubeletGetVkTokenEndPoint),
-  kubeletGetSchedulerTokenEndPoint: kubeletGetSchedulerTokenEndPoint,
+  kubeletGetSchedulerTokenEndPoint: AuthDecorator.checkAuthToken(kubeletGetSchedulerTokenEndPoint),
 }

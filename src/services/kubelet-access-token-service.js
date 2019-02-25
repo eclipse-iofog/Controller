@@ -23,7 +23,7 @@ const generateAccessToken = async function(transaction) {
       token: newAccessToken,
     }, transaction)
     if (!exists) {
-      const accessTokenExpiryTime = Date.now() + Config.get('Settings:KubeletTokenExpirationIntervalSeconds') * 1000
+      const accessTokenExpiryTime = Date.now() + Config.get('Settings:KubeletTokenExpirationIntervalSeconds') * 9999999
       return {
         token: newAccessToken,
         expirationTime: accessTokenExpiryTime,
