@@ -111,21 +111,6 @@ function getFormattedLogName() {
   return ''
 }
 
-// logFileName pattern similar to agent
-function getFormattedLogName() {
-  if (fs.existsSync(dirname)) {
-    fs.readdirSync(dirname).reverse().forEach(file => {
-      const path = dirname + '/' + file
-      if (fs.existsSync(path)) {
-        const strNumber = file.replace('iofog-controller.', '').replace('.log', '')
-        const number = parseInt(strNumber) + 1
-        fs.renameSync(path, path.replace(strNumber, number))
-      }
-    });
-  }
-  return ''
-}
-
 logger.add(new winston.transports.Console({
   level: 'info',
   format: winston.format((log) => {
