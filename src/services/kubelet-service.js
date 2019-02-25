@@ -49,7 +49,7 @@ const kubeletGetVkToken = async function(userId, transaction) {
   await KubeletAccessTokenService.updateAccessToken(userId, newAccessToken, transaction)
 
   return {
-    uuid: fogNodeUuid,
+    userId: userId,
     token: newAccessToken.token,
   }
 }
