@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 module.exports = (sequelize, DataTypes) => {
   const TrackingEvent = sequelize.define('TrackingEvent', {
     id: {
@@ -6,35 +6,35 @@ module.exports = (sequelize, DataTypes) => {
       primaryKey: true,
       autoIncrement: true,
       allowNull: false,
-      field: 'id'
+      field: 'id',
     },
     uuid: {
       type: DataTypes.TEXT,
       allowNull: false,
-      field: 'uuid'
+      field: 'uuid',
     },
     sourceType: {
       type: DataTypes.TEXT,
-      field: 'source_type'
+      field: 'source_type',
     },
     timestamp: {
       type: DataTypes.BIGINT,
-      field: 'timestamp'
+      field: 'timestamp',
     },
     type: {
       type: DataTypes.TEXT,
-      field: 'type'
+      field: 'type',
     },
     data: {
       type: DataTypes.TEXT,
-      field: 'data'
-    }
+      field: 'data',
+    },
   }, {
     timestamps: false,
-    underscored: true
-  });
+    underscored: true,
+  })
   TrackingEvent.associate = function(models) {
     // associations can be defined here
-  };
-  return TrackingEvent;
-};
+  }
+  return TrackingEvent
+}

@@ -11,40 +11,40 @@
  *
  */
 
-const models = require('../models');
-const EmailActivationCode = models.EmailActivationCode;
-const BaseManager = require('./base-manager');
-const AppHelper = require('../../helpers/app-helper');
-const Sequelize = require('sequelize');
+const models = require('../models')
+const EmailActivationCode = models.EmailActivationCode
+const BaseManager = require('./base-manager')
+const AppHelper = require('../../helpers/app-helper')
+const Sequelize = require('sequelize')
 const Op = Sequelize.Op
 
 class EmailActivationCodeManager extends BaseManager {
   getEntity() {
-    return EmailActivationCode;
+    return EmailActivationCode
   }
 
   async getByActivationCode(activationCode, transaction) {
-    AppHelper.checkTransaction(transaction);
+    AppHelper.checkTransaction(transaction)
 
     return EmailActivationCode.findOne({
       where: {
-        activationCode: activationCode
-      }
+        activationCode: activationCode,
+      },
     }, {
-      transaction: transaction
-    });
+      transaction: transaction,
+    })
   };
 
   async createActivationCode(userId, activationCode, expirationTime, transaction) {
-    AppHelper.checkTransaction(transaction);
+    AppHelper.checkTransaction(transaction)
 
     return EmailActivationCode.create({
       userId: userId,
       activationCode: activationCode,
-      expirationTime: expirationTime
+      expirationTime: expirationTime,
     }, {
-      transaction: transaction
-    });
+      transaction: transaction,
+    })
   };
 
   async verifyActivationCode(activationCode, transaction) {
@@ -52,14 +52,14 @@ class EmailActivationCodeManager extends BaseManager {
       where: {
         activationCode: activationCode,
         expirationTime: {
-          [Op.gt]: new Date().getTime()
-        }
-      }
+          [Op.gt]: new Date().getTime(),
+        },
+      },
     }, {
-      transaction: transaction
-    });
+      transaction: transaction,
+    })
   }
 }
 
-const instance = new EmailActivationCodeManager();
-module.exports = instance;
+const instance = new EmailActivationCodeManager()
+module.exports = instance

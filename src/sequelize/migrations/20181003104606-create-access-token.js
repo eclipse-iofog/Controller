@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 module.exports = {
   up: (queryInterface, Sequelize) => {
     return queryInterface.createTable('AccessTokens', {
@@ -7,25 +7,25 @@ module.exports = {
         primaryKey: true,
         autoIncrement: true,
         allowNull: false,
-        field: 'id'
+        field: 'id',
       },
       token: {
         type: Sequelize.STRING,
-        field: 'token'
+        field: 'token',
       },
       expirationTime: {
         type: Sequelize.BIGINT,
-        field: 'expiration_time'
+        field: 'expiration_time',
       },
       userId: {
         type: Sequelize.INTEGER,
         field: 'user_id',
         references: {model: 'Users', key: 'id'},
-        onDelete: 'cascade'
-      }
-    });
+        onDelete: 'cascade',
+      },
+    })
   },
   down: (queryInterface, Sequelize) => {
-    return queryInterface.dropTable('AccessTokens');
-  }
-};
+    return queryInterface.dropTable('AccessTokens')
+  },
+}

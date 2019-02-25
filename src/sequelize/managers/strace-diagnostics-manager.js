@@ -11,16 +11,15 @@
  *
  */
 
-const BaseManager = require('./base-manager');
-const models = require('./../models');
-const StraceDiagnostics = models.StraceDiagnostics;
+const BaseManager = require('./base-manager')
+const models = require('./../models')
+const StraceDiagnostics = models.StraceDiagnostics
 
 class StraceDiagnosticsManager extends BaseManager {
   getEntity() {
-    return StraceDiagnostics;
+    return StraceDiagnostics
   }
-
 }
 
-const instance = new StraceDiagnosticsManager();
-module.exports = instance;
+const instance = new StraceDiagnosticsManager()
+module.exports = instance

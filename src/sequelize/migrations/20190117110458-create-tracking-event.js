@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 module.exports = {
   up: (queryInterface, Sequelize) => {
     return queryInterface.createTable('TrackingEvents', {
@@ -7,32 +7,32 @@ module.exports = {
         primaryKey: true,
         autoIncrement: true,
         allowNull: false,
-        field: 'id'
+        field: 'id',
       },
       uuid: {
         type: Sequelize.TEXT,
         allowNull: false,
-        field: 'uuid'
+        field: 'uuid',
       },
       sourceType: {
         type: Sequelize.TEXT,
-        field: 'source_type'
+        field: 'source_type',
       },
       timestamp: {
         type: Sequelize.BIGINT,
-        field: 'timestamp'
+        field: 'timestamp',
       },
       type: {
         type: Sequelize.TEXT,
-        field: 'type'
+        field: 'type',
       },
       data: {
         type: Sequelize.TEXT,
-        field: 'data'
+        field: 'data',
       },
-    });
+    })
   },
   down: (queryInterface, Sequelize) => {
-    return queryInterface.dropTable('TrackingEvents');
-  }
-};
+    return queryInterface.dropTable('TrackingEvents')
+  },
+}

@@ -12,7 +12,7 @@
  */
 
 const BaseManager = require('../managers/base-manager')
-const models = require('./../models');
+const models = require('./../models')
 const Connector = models.Connector
 
 class ConnectorManager extends BaseManager {

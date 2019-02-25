@@ -11,17 +11,16 @@
  *
  */
 
-const BaseManager = require('./base-manager');
-const models = require('./../models');
-const CatalogItem = models.CatalogItem;
-const CatalogItemImage = models.CatalogItemImage;
-const CatalogItemInputType = models.CatalogItemInputType;
-const CatalogItemOutputType = models.CatalogItemOutputType;
-const Op = require('sequelize').Op;
+const BaseManager = require('./base-manager')
+const models = require('./../models')
+const CatalogItem = models.CatalogItem
+const CatalogItemImage = models.CatalogItemImage
+const CatalogItemInputType = models.CatalogItemInputType
+const CatalogItemOutputType = models.CatalogItemOutputType
 
 class CatalogItemManager extends BaseManager {
   getEntity() {
-    return CatalogItem;
+    return CatalogItem
   }
 
   findAllWithDependencies(where, attributes, transaction) {
@@ -31,22 +30,22 @@ class CatalogItemManager extends BaseManager {
           model: CatalogItemImage,
           as: 'images',
           required: false,
-          attributes: ['containerImage', 'fogTypeId']
+          attributes: ['containerImage', 'fogTypeId'],
         },
         {
           model: CatalogItemInputType,
           as: 'inputType',
           required: false,
-          attributes: ['infoType', 'infoFormat']
+          attributes: ['infoType', 'infoFormat'],
         },
         {
           model: CatalogItemOutputType,
           as: 'outputType',
           required: false,
-          attributes: ['infoType', 'infoFormat']
+          attributes: ['infoType', 'infoFormat'],
         }],
       where: where,
-      attributes: attributes
+      attributes: attributes,
     }, {transaction: transaction})
   }
 
@@ -57,25 +56,25 @@ class CatalogItemManager extends BaseManager {
           model: CatalogItemImage,
           as: 'images',
           required: false,
-          attributes: ['containerImage', 'fogTypeId']
+          attributes: ['containerImage', 'fogTypeId'],
         },
         {
           model: CatalogItemInputType,
           as: 'inputType',
           required: false,
-          attributes: ['infoType', 'infoFormat']
+          attributes: ['infoType', 'infoFormat'],
         },
         {
           model: CatalogItemOutputType,
           as: 'outputType',
           required: false,
-          attributes: ['infoType', 'infoFormat']
+          attributes: ['infoType', 'infoFormat'],
         }],
       where: where,
-      attributes: attribures
+      attributes: attribures,
     }, {transaction: transaction})
   }
 }
 
-const instance = new CatalogItemManager();
-module.exports = instance;
+const instance = new CatalogItemManager()
+module.exports = instance

@@ -11,25 +11,25 @@
  *
  */
 
-const TransactionDecorator = require('../decorators/transaction-decorator');
-const AppHelper = require('../helpers/app-helper');
-const FogManager = require('../sequelize/managers/iofog-manager');
-const FogProvisionKeyManager = require('../sequelize/managers/iofog-provision-key-manager');
-const FogVersionCommandManager = require('../sequelize/managers/iofog-version-command-manager');
-const ChangeTrackingService = require('./change-tracking-service');
-const Errors = require('../helpers/errors');
-const ErrorMessages = require('../helpers/error-messages');
-const Validator = require('../schemas');
-const HWInfoManager = require('../sequelize/managers/hw-info-manager');
-const USBInfoManager = require('../sequelize/managers/usb-info-manager');
-const CatalogService = require('../services/catalog-service');
-const MicroserviceManager = require('../sequelize/managers/microservice-manager');
-const FogStates = require('../enums/fog-state');
-const TrackingDecorator = require('../decorators/tracking-decorator');
-const TrackingEventType = require('../enums/tracking-event-type');
+const TransactionDecorator = require('../decorators/transaction-decorator')
+const AppHelper = require('../helpers/app-helper')
+const FogManager = require('../sequelize/managers/iofog-manager')
+const FogProvisionKeyManager = require('../sequelize/managers/iofog-provision-key-manager')
+const FogVersionCommandManager = require('../sequelize/managers/iofog-version-command-manager')
+const ChangeTrackingService = require('./change-tracking-service')
+const Errors = require('../helpers/errors')
+const ErrorMessages = require('../helpers/error-messages')
+const Validator = require('../schemas')
+const HWInfoManager = require('../sequelize/managers/hw-info-manager')
+const USBInfoManager = require('../sequelize/managers/usb-info-manager')
+const CatalogService = require('../services/catalog-service')
+const MicroserviceManager = require('../sequelize/managers/microservice-manager')
+const FogStates = require('../enums/fog-state')
+const TrackingDecorator = require('../decorators/tracking-decorator')
+const TrackingEventType = require('../enums/tracking-event-type')
 
 async function createFog(fogData, user, isCLI, transaction) {
-  await Validator.validate(fogData, Validator.schemas.iofogCreate);
+  await Validator.validate(fogData, Validator.schemas.iofogCreate)
 
   let createFogData = {
     uuid: AppHelper.generateRandomString(32),
@@ -54,37 +54,37 @@ async function createFog(fogData, user, isCLI, transaction) {
     watchdogEnabled: fogData.watchdogEnabled,
     abstractedHardwareEnabled: fogData.abstractedHardwareEnabled,
     fogTypeId: fogData.fogType,
-    userId: user.id
-  };
-  createFogData = AppHelper.deleteUndefinedFields(createFogData);
+    userId: user.id,
+  }
+  createFogData = AppHelper.deleteUndefinedFields(createFogData)
 
-  const fog = await FogManager.create(createFogData, transaction);
+  const fog = await FogManager.create(createFogData, transaction)
 
   const res = {
-    uuid: fog.uuid
-  };
+    uuid: fog.uuid,
+  }
 
-  await ChangeTrackingService.create(fog.uuid, transaction);
+  await ChangeTrackingService.create(fog.uuid, transaction)
 
   if (fogData.abstractedHardwareEnabled) {
-    await _createHalMicroserviceForFog(fog, null, user, transaction);
+    await _createHalMicroserviceForFog(fog, null, user, transaction)
   }
 
   if (fogData.bluetoothEnabled) {
-    await _createBluetoothMicroserviceForFog(fog, null, user, transaction);
+    await _createBluetoothMicroserviceForFog(fog, null, user, transaction)
   }
 
-  await ChangeTrackingService.update(createFogData.uuid, ChangeTrackingService.events.microserviceCommon, transaction);
+  await ChangeTrackingService.update(createFogData.uuid, ChangeTrackingService.events.microserviceCommon, transaction)
 
   return res
 }
 
 async function updateFog(fogData, user, isCLI, transaction) {
-  await Validator.validate(fogData, Validator.schemas.iofogUpdate);
+  await Validator.validate(fogData, Validator.schemas.iofogUpdate)
 
   const queryFogData = isCLI
     ? {uuid: fogData.uuid}
-    : {uuid: fogData.uuid, userId: user.id};
+    : {uuid: fogData.uuid, userId: user.id}
 
   let updateFogData = {
     name: fogData.name,
@@ -108,50 +108,50 @@ async function updateFog(fogData, user, isCLI, transaction) {
     watchdogEnabled: fogData.watchdogEnabled,
     abstractedHardwareEnabled: fogData.abstractedHardwareEnabled,
     fogTypeId: fogData.fogType,
-  };
-  updateFogData = AppHelper.deleteUndefinedFields(updateFogData);
+  }
+  updateFogData = AppHelper.deleteUndefinedFields(updateFogData)
 
-  const oldFog = await FogManager.findOne(queryFogData, transaction);
+  const oldFog = await FogManager.findOne(queryFogData, transaction)
   if (!oldFog) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, fogData.uuid))
   }
 
-  await FogManager.update(queryFogData, updateFogData, transaction);
-  await ChangeTrackingService.update(fogData.uuid, ChangeTrackingService.events.config, transaction);
+  await FogManager.update(queryFogData, updateFogData, transaction)
+  await ChangeTrackingService.update(fogData.uuid, ChangeTrackingService.events.config, transaction)
 
-  let msChanged = false;
+  let msChanged = false
 
   if (oldFog.abstractedHardwareEnabled === true && fogData.abstractedHardwareEnabled === false) {
-    await _deleteHalMicroserviceByFog(fogData, transaction);
-    msChanged = true;
+    await _deleteHalMicroserviceByFog(fogData, transaction)
+    msChanged = true
   }
   if (oldFog.abstractedHardwareEnabled === false && fogData.abstractedHardwareEnabled === true) {
-    await _createHalMicroserviceForFog(fogData, oldFog, user, transaction);
-    msChanged = true;
+    await _createHalMicroserviceForFog(fogData, oldFog, user, transaction)
+    msChanged = true
   }
 
   if (oldFog.bluetoothEnabled === true && fogData.bluetoothEnabled === false) {
-    await _deleteBluetoothMicroserviceByFog(fogData, transaction);
-    msChanged = true;
+    await _deleteBluetoothMicroserviceByFog(fogData, transaction)
+    msChanged = true
   }
   if (oldFog.bluetoothEnabled === false && fogData.bluetoothEnabled === true) {
-    await _createBluetoothMicroserviceForFog(fogData, oldFog, user, transaction);
-    msChanged = true;
+    await _createBluetoothMicroserviceForFog(fogData, oldFog, user, transaction)
+    msChanged = true
   }
 
   if (msChanged) {
-    await ChangeTrackingService.update(fogData.uuid, ChangeTrackingService.events.microserviceCommon, transaction);
+    await ChangeTrackingService.update(fogData.uuid, ChangeTrackingService.events.microserviceCommon, transaction)
   }
 }
 
 async function deleteFog(fogData, user, isCLI, transaction) {
-  await Validator.validate(fogData, Validator.schemas.iofogDelete);
+  await Validator.validate(fogData, Validator.schemas.iofogDelete)
 
   const queryFogData = isCLI
     ? {uuid: fogData.uuid}
-    : {uuid: fogData.uuid, userId: user.id};
+    : {uuid: fogData.uuid, userId: user.id}
 
-  const fog = await FogManager.findOne(queryFogData, transaction);
+  const fog = await FogManager.findOne(queryFogData, transaction)
   if (!fog) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, fogData.uuid))
   }
@@ -159,13 +159,13 @@ async function deleteFog(fogData, user, isCLI, transaction) {
 }
 
 async function getFog(fogData, user, isCLI, transaction) {
-  await Validator.validate(fogData, Validator.schemas.iofogGet);
+  await Validator.validate(fogData, Validator.schemas.iofogGet)
 
   const queryFogData = isCLI
     ? {uuid: fogData.uuid}
-    : {uuid: fogData.uuid, userId: user.id};
+    : {uuid: fogData.uuid, userId: user.id}
 
-  const fog = await FogManager.findOne(queryFogData, transaction);
+  const fog = await FogManager.findOne(queryFogData, transaction)
   if (!fog) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, fogData.uuid))
   }
@@ -218,63 +218,63 @@ async function getFog(fogData, user, isCLI, transaction) {
     tunnel: fog.tunnel,
     watchdogEnabled: fog.watchdogEnabled,
     fogTypeId: fog.fogTypeId,
-    userId: fog.userId
-  };
+    userId: fog.userId,
+  }
 }
 
 async function getFogList(filters, user, isCLI, transaction) {
-  await Validator.validate(filters, Validator.schemas.iofogFilters);
+  await Validator.validate(filters, Validator.schemas.iofogFilters)
 
   const queryFogData = isCLI
     ? {}
-    : {userId: user.id};
+    : {userId: user.id}
 
-  let fogs = await FogManager.findAll(queryFogData, transaction);
-  fogs = _filterFogs(fogs, filters);
+  let fogs = await FogManager.findAll(queryFogData, transaction)
+  fogs = _filterFogs(fogs, filters)
 
   return {
-    fogs: fogs
+    fogs: fogs,
   }
 }
 
 async function generateProvisioningKey(fogData, user, isCLI, transaction) {
-  await Validator.validate(fogData, Validator.schemas.iofogGenerateProvision);
+  await Validator.validate(fogData, Validator.schemas.iofogGenerateProvision)
 
   const queryFogData = isCLI
     ? {uuid: fogData.uuid}
-    : {uuid: fogData.uuid, userId: user.id};
+    : {uuid: fogData.uuid, userId: user.id}
 
   const newProvision = {
     iofogUuid: fogData.uuid,
     provisionKey: AppHelper.generateRandomString(8),
-    expirationTime: new Date().getTime() + (20 * 60 * 1000)
-  };
+    expirationTime: new Date().getTime() + (20 * 60 * 1000),
+  }
 
-  const fog = await FogManager.findOne(queryFogData, transaction);
+  const fog = await FogManager.findOne(queryFogData, transaction)
   if (!fog) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, fogData.uuid))
   }
-  const provisioningKeyData = await FogProvisionKeyManager.updateOrCreate({iofogUuid: fogData.uuid}, newProvision, transaction);
+  const provisioningKeyData = await FogProvisionKeyManager.updateOrCreate({iofogUuid: fogData.uuid}, newProvision, transaction)
 
   return {
     key: provisioningKeyData.provisionKey,
-    expirationTime: provisioningKeyData.expirationTime
+    expirationTime: provisioningKeyData.expirationTime,
   }
 }
 
 async function setFogVersionCommand(fogVersionData, user, isCLI, transaction) {
-  await Validator.validate(fogVersionData, Validator.schemas.iofogSetVersionCommand);
+  await Validator.validate(fogVersionData, Validator.schemas.iofogSetVersionCommand)
 
   const queryFogData = isCLI
     ? {uuid: fogVersionData.uuid}
-    : {uuid: fogVersionData.uuid, userId: user.id};
+    : {uuid: fogVersionData.uuid, userId: user.id}
 
   const newVersionCommand = {
     iofogUuid: fogVersionData.uuid,
-    versionCommand: fogVersionData.versionCommand
-  };
+    versionCommand: fogVersionData.versionCommand,
+  }
 
-  const fog = await FogManager.findOne(queryFogData, transaction);
+  const fog = await FogManager.findOne(queryFogData, transaction)
   if (!fog) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, fogData.uuid))
   }
@@ -286,19 +286,19 @@ async function setFogVersionCommand(fogVersionData, user, isCLI, transaction) {
     throw new Errors.ValidationError(ErrorMessages.INVALID_VERSION_COMMAND_UPGRADE)
   }
 
-  await generateProvisioningKey({uuid: fogVersionData.uuid}, user, isCLI, transaction);
-  await FogVersionCommandManager.updateOrCreate({iofogUuid: fogVersionData.uuid}, newVersionCommand, transaction);
+  await generateProvisioningKey({uuid: fogVersionData.uuid}, user, isCLI, transaction)
+  await FogVersionCommandManager.updateOrCreate({iofogUuid: fogVersionData.uuid}, newVersionCommand, transaction)
   await ChangeTrackingService.update(fogVersionData.uuid, ChangeTrackingService.events.version, transaction)
 }
 
 async function setFogRebootCommand(fogData, user, isCLI, transaction) {
-  await Validator.validate(fogData, Validator.schemas.iofogReboot);
+  await Validator.validate(fogData, Validator.schemas.iofogReboot)
 
   const queryFogData = isCLI
     ? {uuid: fogData.uuid}
-    : {uuid: fogData.uuid, userId: user.id};
+    : {uuid: fogData.uuid, userId: user.id}
 
-  const fog = await FogManager.findOne(queryFogData, transaction);
+  const fog = await FogManager.findOne(queryFogData, transaction)
   if (!fog) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, fogData.uuid))
   }
@@ -307,33 +307,33 @@ async function setFogRebootCommand(fogData, user, isCLI, transaction) {
 }
 
 async function getHalHardwareInfo(uuidObj, user, isCLI, transaction) {
-  await Validator.validate(uuidObj, Validator.schemas.halGet);
+  await Validator.validate(uuidObj, Validator.schemas.halGet)
 
   const fog = await FogManager.findOne({
-    uuid: uuidObj.uuid
-  }, transaction);
+    uuid: uuidObj.uuid,
+  }, transaction)
   if (!fog) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, uuidObj.uuid));
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, uuidObj.uuid))
   }
 
   return await HWInfoManager.findOne({
-    iofogUuid: uuidObj.uuid
-  }, transaction);
+    iofogUuid: uuidObj.uuid,
+  }, transaction)
 }
 
 async function getHalUsbInfo(uuidObj, user, isCLI, transaction) {
-  await Validator.validate(uuidObj, Validator.schemas.halGet);
+  await Validator.validate(uuidObj, Validator.schemas.halGet)
 
   const fog = await FogManager.findOne({
-    uuid: uuidObj.uuid
-  }, transaction);
+    uuid: uuidObj.uuid,
+  }, transaction)
   if (!fog) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, uuidObj.uuid));
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, uuidObj.uuid))
   }
 
   return await USBInfoManager.findOne({
-    iofogUuid: uuidObj.uuid
-  }, transaction);
+    iofogUuid: uuidObj.uuid,
+  }, transaction)
 }
 
 function _filterFogs(fogs, filters) {
@@ -341,24 +341,24 @@ function _filterFogs(fogs, filters) {
     return fogs
   }
 
-  const filtered = [];
+  const filtered = []
   fogs.forEach((fog) => {
-    let isMatchFog = true;
+    let isMatchFog = true
     filters.some((filter) => {
-      let fld = filter.key,
-        val = filter.value,
-        condition = filter.condition;
-      let isMatchField = (condition === 'equals' && fog[fld] && fog[fld] === val)
-        || (condition === 'has' && fog[fld] && fog[fld].includes(val));
+      const fld = filter.key
+      const val = filter.value
+      const condition = filter.condition
+      const isMatchField = (condition === 'equals' && fog[fld] && fog[fld] === val)
+        || (condition === 'has' && fog[fld] && fog[fld].includes(val))
       if (!isMatchField) {
-        isMatchFog = false;
+        isMatchFog = false
         return false
       }
-    });
+    })
     if (isMatchFog) {
       filtered.push(fog)
     }
-  });
+  })
   return filtered
 }
 
@@ -371,7 +371,7 @@ async function _processDeleteCommand(fog, transaction) {
 }
 
 async function _createHalMicroserviceForFog(fogData, oldFog, user, transaction) {
-  const halItem = await CatalogService.getHalCatalogItem(transaction);
+  const halItem = await CatalogService.getHalCatalogItem(transaction)
 
   const halMicroserviceData = {
     uuid: AppHelper.generateRandomString(32),
@@ -382,24 +382,24 @@ async function _createHalMicroserviceForFog(fogData, oldFog, user, transaction) 
     rootHostAccess: true,
     logSize: 50,
     userId: oldFog ? oldFog.userId : user.id,
-    configLastUpdated: Date.now()
-  };
+    configLastUpdated: Date.now(),
+  }
 
-  await MicroserviceManager.create(halMicroserviceData, transaction);
+  await MicroserviceManager.create(halMicroserviceData, transaction)
 }
 
 async function _deleteHalMicroserviceByFog(fogData, transaction) {
-  const halItem = await CatalogService.getHalCatalogItem(transaction);
+  const halItem = await CatalogService.getHalCatalogItem(transaction)
   const deleteHalMicroserviceData = {
     iofogUuid: fogData.uuid,
-    catalogItemId: halItem.id
-  };
+    catalogItemId: halItem.id,
+  }
 
   await MicroserviceManager.delete(deleteHalMicroserviceData, transaction)
 }
 
 async function _createBluetoothMicroserviceForFog(fogData, oldFog, user, transaction) {
-  const bluetoothItem = await CatalogService.getBluetoothCatalogItem(transaction);
+  const bluetoothItem = await CatalogService.getBluetoothCatalogItem(transaction)
 
   const bluetoothMicroserviceData = {
     uuid: AppHelper.generateRandomString(32),
@@ -410,24 +410,24 @@ async function _createBluetoothMicroserviceForFog(fogData, oldFog, user, transac
     rootHostAccess: true,
     logSize: 50,
     userId: oldFog ? oldFog.userId : user.id,
-    configLastUpdated: Date.now()
-  };
+    configLastUpdated: Date.now(),
+  }
 
-  await MicroserviceManager.create(bluetoothMicroserviceData, transaction);
+  await MicroserviceManager.create(bluetoothMicroserviceData, transaction)
 }
 
 async function _deleteBluetoothMicroserviceByFog(fogData, transaction) {
-  const bluetoothItem = await CatalogService.getBluetoothCatalogItem(transaction);
+  const bluetoothItem = await CatalogService.getBluetoothCatalogItem(transaction)
   const deleteBluetoothMicroserviceData = {
     iofogUuid: fogData.uuid,
-    catalogItemId: bluetoothItem.id
-  };
+    catalogItemId: bluetoothItem.id,
+  }
 
   await MicroserviceManager.delete(deleteBluetoothMicroserviceData, transaction)
 }
 
-//decorated functions
-const  createFogWithTracking = TrackingDecorator.trackEvent(createFog, TrackingEventType.IOFOG_CREATED);
+// decorated functions
+const createFogWithTracking = TrackingDecorator.trackEvent(createFog, TrackingEventType.IOFOG_CREATED)
 
 module.exports = {
   createFog: TransactionDecorator.generateTransaction(createFogWithTracking),
@@ -440,5 +440,5 @@ module.exports = {
   setFogRebootCommand: TransactionDecorator.generateTransaction(setFogRebootCommand),
   getHalHardwareInfo: TransactionDecorator.generateTransaction(getHalHardwareInfo),
   getHalUsbInfo: TransactionDecorator.generateTransaction(getHalUsbInfo),
-  getFog: getFog
-};
+  getFog: getFog,
+}
