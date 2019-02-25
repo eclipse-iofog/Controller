@@ -28,17 +28,6 @@ try {
   // can't initialize log folder
 }
 
-const dirname = config.get('Service:LogsDirectory')
-
-// Create the log directory if it does not exist
-try {
-  if (!fs.existsSync(dirname)) {
-    fs.mkdirSync(dirname);
-  }
-} catch (e) {
-  // can't initialize log folder
-}
-
 const levels = {
   error: 0,
   warn: 1,
@@ -92,7 +81,8 @@ const logger = winston.createLogger({
       ),
       filename: 'iofog-controller.0.log',
       dirname: dirname,
-      maxsize: maxsize,
+      
+      : maxsize,
       rotationFormat: function() {
         return getFormattedLogName()
       },
