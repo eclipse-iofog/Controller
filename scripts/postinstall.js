@@ -46,10 +46,6 @@ function postinstall() {
       console.log('upgrading from version <= 1.0.37 :')
       updateLogName()
     }
-    if (semver.satisfies(prevVersion, '<=1.0.37')) {
-      console.log('upgrading from version <= 1.0.37 :');
-      updateLogName();
-    }
 
     fs.unlinkSync(INSTALLATION_VARIABLES_FILE)
   } catch (e) {
