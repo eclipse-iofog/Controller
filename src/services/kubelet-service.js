@@ -41,7 +41,7 @@ const kubeletGetCapacity = async function(fogNodeUuid, transaction) {
 const kubeletGetNodeConditions = async function(fogNodeUuid, transaction) {
   // TODO: to implement
 }
-const kubeletGetNodeAddresses = async function (fogNodeUuid, transaction) {
+const kubeletGetNodeAddresses = async function(fogNodeUuid, transaction) {
   // TODO: to implement
 }
 const kubeletGetVkToken = async function(userId, transaction) {
