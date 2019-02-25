@@ -14,47 +14,47 @@
 const KubeletAccessTokenService = require('./kubelet-access-token-service')
 const TransactionDecorator = require('../decorators/transaction-decorator')
 
-const kubeletCreatePod = async function (createPodData, fogNodeUuid, transaction) {
-  //TODO: to implement
+const kubeletCreatePod = async function(createPodData, fogNodeUuid, transaction) {
+  // TODO: to implement
 }
-const kubeletUploadPod = async function (uploadPodData, fogNodeUuid, transaction) {
-  //TODO: to implement
+const kubeletUploadPod = async function(uploadPodData, fogNodeUuid, transaction) {
+  // TODO: to implement
 }
-const kubeletDeletePod = async function (fogNodeUuid, transaction) {
-  //TODO: to implement
+const kubeletDeletePod = async function(fogNodeUuid, transaction) {
+  // TODO: to implement
 }
-const kubeletGetPod = async function (namespace, name, fogNodeUuid, transaction) {
-  //TODO: to implement
+const kubeletGetPod = async function(namespace, name, fogNodeUuid, transaction) {
+  // TODO: to implement
 }
-const kubeletGetContainerLogs = async function (namespace, podName, containerName, tail, fogNodeUuid, transaction) {
-  //TODO: to implement
+const kubeletGetContainerLogs = async function(namespace, podName, containerName, tail, fogNodeUuid, transaction) {
+  // TODO: to implement
 }
-const kubeletGetPodStatus = async function (namespace, name, fogNodeUuid, transaction) {
-  //TODO: to implement
+const kubeletGetPodStatus = async function(namespace, name, fogNodeUuid, transaction) {
+  // TODO: to implement
 }
-const kubeletGetPods = async function (fogNodeUuid, transaction) {
-  //TODO: to implement
+const kubeletGetPods = async function(fogNodeUuid, transaction) {
+  // TODO: to implement
 }
-const kubeletGetCapacity = async function (fogNodeUuid, transaction) {
-  //TODO: to implement
+const kubeletGetCapacity = async function(fogNodeUuid, transaction) {
+  // TODO: to implement
 }
-const kubeletGetNodeConditions = async function (fogNodeUuid, transaction) {
-  //TODO: to implement
+const kubeletGetNodeConditions = async function(fogNodeUuid, transaction) {
+  // TODO: to implement
 }
 const kubeletGetNodeAddresses = async function (fogNodeUuid, transaction) {
-  //TODO: to implement
+  // TODO: to implement
 }
-const kubeletGetVkToken = async function (fogNodeUuid, transaction) {
+const kubeletGetVkToken = async function(userId, transaction) {
   const newAccessToken = await KubeletAccessTokenService.generateAccessToken(transaction)
-  await KubeletAccessTokenService.updateAccessToken(fogNodeUuid, newAccessToken, transaction)
+  await KubeletAccessTokenService.updateAccessToken(userId, newAccessToken, transaction)
 
   return {
     uuid: fogNodeUuid,
-    token: newAccessToken.token
+    token: newAccessToken.token,
   }
 }
-const kubeletGetSchedulerToken = async function (transaction) {
-  //TODO: to implement
+const kubeletGetSchedulerToken = async function(transaction) {
+  // TODO: to implement
 }
 
 module.exports = {

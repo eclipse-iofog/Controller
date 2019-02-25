@@ -11,9 +11,9 @@
  *
  */
 
-const BaseManager = require('./base-manager');
-const models = require('./../models');
-const KubeletAccessToken = models.KubeletAccessToken;
+const BaseManager = require('./base-manager')
+const models = require('./../models')
+const KubeletAccessToken = models.KubeletAccessToken
 
 class KubeletAccessTokenManager extends BaseManager {
   getEntity() {
@@ -21,5 +21,5 @@ class KubeletAccessTokenManager extends BaseManager {
   }
 }
 
-const instance = new KubeletAccessTokenManager();
-module.exports = instance;
+const instance = new KubeletAccessTokenManager()
+module.exports = instance

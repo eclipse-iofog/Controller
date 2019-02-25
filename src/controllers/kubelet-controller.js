@@ -12,28 +12,29 @@
  */
 
 const KubeletService = require('../services/kubelet-service')
+const AuthDecorator = require('../decorators/authorization-decorator')
 
-const kubeletCreatePodEndPoint = async function (req) {
+const kubeletCreatePodEndPoint = async function(req) {
   const createPodData = req.body
   const fogNodeUuid = req.params.nodeName
 
   return await KubeletService.kubeletCreatePod(createPodData, fogNodeUuid)
 }
 
-const kubeletUploadPodEndPoint = async function (req) {
+const kubeletUploadPodEndPoint = async function(req) {
   const uploadPodData = req.body
   const fogNodeUuid = req.params.nodeName
 
   return await KubeletService.kubeletUploadPod(uploadPodData, fogNodeUuid)
 }
 
-const kubeletDeletePodEndPoint = async function (req) {
+const kubeletDeletePodEndPoint = async function(req) {
   const fogNodeUuid = req.params.nodeName
 
-  return await KubeletService.kubeletDeletePod(fogNodeUuid);
+  return await KubeletService.kubeletDeletePod(fogNodeUuid)
 }
 
-const kubeletGetPodEndPoint = async function (req) {
+const kubeletGetPodEndPoint = async function(req) {
   const namespace = req.params.namespace
   const name = req.params.name
   const fogNodeUuid = req.params.nodeName
@@ -41,7 +42,7 @@ const kubeletGetPodEndPoint = async function (req) {
   return await KubeletService.kubeletGetPod(namespace, name, fogNodeUuid)
 }
 
-const kubeletGetContainerLogsEndPoint = async function (req) {
+const kubeletGetContainerLogsEndPoint = async function(req) {
   const namespace = req.params.namespace
   const podName = req.params.podName
   const containerName = req.params.containerName
@@ -51,7 +52,7 @@ const kubeletGetContainerLogsEndPoint = async function (req) {
   return await KubeletService.kubeletGetContainerLogs(namespace, podName, containerName, tail, fogNodeUuid)
 }
 
-const kubeletGetPodStatusEndPoint = async function (req) {
+const kubeletGetPodStatusEndPoint = async function(req) {
   const namespace = req.params.namespace
   const name = req.params.name
   const fogNodeUuid = req.params.nodeName
@@ -59,36 +60,36 @@ const kubeletGetPodStatusEndPoint = async function (req) {
   return await KubeletService.kubeletGetPodStatus(namespace, name, fogNodeUuid)
 }
 
-const kubeletGetPodsEndPoint = async function (req) {
+const kubeletGetPodsEndPoint = async function(req) {
   const fogNodeUuid = req.params.nodeName
 
   return await KubeletService.kubeletGetPods(createPodData, fogNodeUuid)
 }
 
-const kubeletGetCapacityEndPoint = async function (req) {
+const kubeletGetCapacityEndPoint = async function(req) {
   const fogNodeUuid = req.params.nodeName
 
   return await KubeletService.kubeletGetCapacity(createPodData, fogNodeUuid)
 }
 
-const kubeletGetNodeConditionsEndPoint = async function (req) {
+const kubeletGetNodeConditionsEndPoint = async function(req) {
   const fogNodeUuid = req.params.nodeName
 
   return await KubeletService.kubeletGetNodeConditions(createPodData, fogNodeUuid)
 }
 
-const kubeletGetNodeAddressesEndPoint = async function (req) {
+const kubeletGetNodeAddressesEndPoint = async function(req) {
   const fogNodeUuid = req.params.nodeName
 
   return await KubeletService.kubeletGetNodeAddresses(createPodData, fogNodeUuid)
 }
 
-const kubeletGetVkTokenEndPoint = async function (req) {
-  const fogNodeUuid = req.params.nodeName
-  return await KubeletService.kubeletGetVkToken(fogNodeUuid)
+const kubeletGetVkTokenEndPoint = async function(req, user) {
+  const userId = user.id
+  return await KubeletService.kubeletGetVkToken(userId)
 }
 
-const kubeletGetSchedulerTokenEndPoint = async function () {
+const kubeletGetSchedulerTokenEndPoint = async function() {
   return await KubeletService.kubeletGetSchedulerToken()
 }
 
@@ -103,6 +104,6 @@ module.exports = {
   kubeletGetCapacityEndPoint: kubeletGetCapacityEndPoint,
   kubeletGetNodeConditionsEndPoint: kubeletGetNodeConditionsEndPoint,
   kubeletGetNodeAddressesEndPoint: kubeletGetNodeAddressesEndPoint,
-  kubeletGetVkTokenEndPoint: kubeletGetVkTokenEndPoint,
+  kubeletGetVkTokenEndPoint: AuthDecorator.checkAuthToken(kubeletGetVkTokenEndPoint),
   kubeletGetSchedulerTokenEndPoint: kubeletGetSchedulerTokenEndPoint,
 }

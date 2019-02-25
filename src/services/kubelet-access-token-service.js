@@ -11,39 +11,38 @@
  *
  */
 
-const AppHelper = require('../helpers/app-helper');
-const KubeletAccessTokenManager = require('../sequelize/managers/kubelet-access-token-manager');
+const AppHelper = require('../helpers/app-helper')
+const KubeletAccessTokenManager = require('../sequelize/managers/kubelet-access-token-manager')
 
-const Config = require('../config');
+const Config = require('../config')
 
-const generateAccessToken = async function (transaction) {
+const generateAccessToken = async function(transaction) {
   while (true) {
-    const newAccessToken = AppHelper.generateAccessToken();
+    const newAccessToken = AppHelper.generateAccessToken()
     const exists = await KubeletAccessTokenManager.findOne({
-      token: newAccessToken
-    }, transaction);
+      token: newAccessToken,
+    }, transaction)
     if (!exists) {
-      const accessTokenExpiryTime = Date.now() + Config.get('Settings:KubeletTokenExpirationIntervalSeconds') * 1000;
+      const accessTokenExpiryTime = Date.now() + Config.get('Settings:KubeletTokenExpirationIntervalSeconds') * 1000
       return {
         token: newAccessToken,
-        expirationTime: accessTokenExpiryTime
+        expirationTime: accessTokenExpiryTime,
       }
     }
   }
-};
-
-async function updateAccessToken(fogUuid, newAccessToken, transaction) {
-  return KubeletAccessTokenManager.updateOrCreate({
-    iofogUuid: fogUuid
-  }, {
-    iofogUuid: fogUuid,
-    token: newAccessToken.token,
-    expirationTime: newAccessToken.expirationTime
-  }, transaction);
 }
 
+async function updateAccessToken(userId, newAccessToken, transaction) {
+  return KubeletAccessTokenManager.updateOrCreate({
+    userId: userId,
+  }, {
+    userId: userId,
+    token: newAccessToken.token,
+    expirationTime: newAccessToken.expirationTime,
+  }, transaction)
+}
 
 module.exports = {
   generateAccessToken,
   updateAccessToken,
-};
+}

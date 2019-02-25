@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 module.exports = {
   up: (queryInterface, Sequelize) => {
     return queryInterface.createTable('KubeletAccessTokens', {
@@ -7,31 +7,25 @@ module.exports = {
         primaryKey: true,
         autoIncrement: true,
         allowNull: false,
-        field: 'id'
+        field: 'id',
       },
       expirationTime: {
         type: Sequelize.BIGINT,
-        field: 'expiration_time'
+        field: 'expiration_time',
       },
       token: {
         type: Sequelize.TEXT,
-        field: 'token'
-      },
-      iofogUuid: {
-        type: Sequelize.TEXT,
-        field: 'iofog_uuid',
-        references: { model: 'Fogs', key: 'uuid' },
-        onDelete: 'cascade'
+        field: 'token',
       },
       userId: {
         type: Sequelize.INTEGER,
         field: 'user_id',
-        references: { model: 'Users', key: 'id' },
-        onDelete: 'cascade'
+        references: {model: 'Users', key: 'id'},
+        onDelete: 'cascade',
       }
-    });
+    })
   },
   down: (queryInterface, Sequelize) => {
-    return queryInterface.dropTable('KubeletAccessTokens');
+    return queryInterface.dropTable('KubeletAccessTokens')
   }
 };
