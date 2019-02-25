@@ -60,7 +60,7 @@ module.exports = [
         {
           code: constants.HTTP_CODE_NOT_FOUND,
           errors: [Errors.AuthenticationError],
-        }
+        },
       ]
 
       const kubeletUploadPodEndPoint = ResponseDecorator
@@ -72,7 +72,7 @@ module.exports = [
           .send(responseObject.body)
 
       logger.apiRes({req: req, res: responseObject})
-    }
+    },
   },
   {
     method: 'delete',
@@ -87,7 +87,7 @@ module.exports = [
         {
           code: constants.HTTP_CODE_NOT_FOUND,
           errors: [Errors.AuthenticationError],
-        }
+        },
       ]
 
       const kubeletDeletePodEndPoint = ResponseDecorator
@@ -96,10 +96,10 @@ module.exports = [
 
       res
           .status(responseObject.code)
-          .send(responseObject.body);
+          .send(responseObject.body)
 
       logger.apiRes({req: req, res: responseObject})
-    }
+    },
   },
   {
     method: 'get',
@@ -114,7 +114,7 @@ module.exports = [
         {
           code: constants.HTTP_CODE_NOT_FOUND,
           errors: [Errors.AuthenticationError],
-        }
+        },
       ]
 
       const kubeletGetPodEndPoint = ResponseDecorator
@@ -133,24 +133,24 @@ module.exports = [
     path: '/api/v3/k8s/getContainerLogs',
     middleware: async (req, res) => {
       res
-        .status(constants.HTTP_CODE_SUCCESS)
-        .send(req.body)
+          .status(constants.HTTP_CODE_SUCCESS)
+          .send(req.body)
 
       const successCode = constants.HTTP_CODE_SUCCESS
       const errorCodes = [
         {
           code: constants.HTTP_CODE_NOT_FOUND,
           errors: [Errors.AuthenticationError],
-        }
+        },
       ]
 
       const kubeletGetContainerLogsEndPoint = ResponseDecorator
-        .handleErrors(KubeletController.kubeletGetContainerLogsEndPoint, successCode, errorCodes)
+          .handleErrors(KubeletController.kubeletGetContainerLogsEndPoint, successCode, errorCodes)
       const responseObject = await kubeletGetContainerLogsEndPoint(req)
 
       res
-        .status(responseObject.code)
-        .send(responseObject.body)
+          .status(responseObject.code)
+          .send(responseObject.body)
 
       logger.apiRes({req: req, res: responseObject})
     },
@@ -168,7 +168,7 @@ module.exports = [
         {
           code: constants.HTTP_CODE_NOT_FOUND,
           errors: [Errors.AuthenticationError],
-        }
+        },
       ]
 
       const kubeletGetPodStatusEndPoint = ResponseDecorator
@@ -187,15 +187,15 @@ module.exports = [
     path: '/api/v3/k8s/getPods',
     middleware: async (req, res) => {
       res
-        .status(constants.HTTP_CODE_SUCCESS)
-        .send(req.body)
+          .status(constants.HTTP_CODE_SUCCESS)
+          .send(req.body)
 
       const successCode = constants.HTTP_CODE_SUCCESS
       const errorCodes = [
         {
           code: constants.HTTP_CODE_NOT_FOUND,
           errors: [Errors.AuthenticationError],
-        }
+        },
       ]
 
       const kubeletGetPodsEndPoint = ResponseDecorator
@@ -204,7 +204,7 @@ module.exports = [
 
       res
           .status(responseObject.code)
-          .send(responseObject.body);
+          .send(responseObject.body)
 
       logger.apiRes({req: req, res: responseObject})
     },
@@ -222,7 +222,7 @@ module.exports = [
         {
           code: constants.HTTP_CODE_NOT_FOUND,
           errors: [Errors.AuthenticationError],
-        }
+        },
       ]
       const kubeletGetCapacityEndPoint = ResponseDecorator
           .handleErrors(KubeletController.kubeletGetCapacityEndPoint, successCode, errorCodes)
@@ -248,7 +248,7 @@ module.exports = [
         {
           code: constants.HTTP_CODE_NOT_FOUND,
           errors: [Errors.AuthenticationError],
-        }
+        },
       ]
 
       const kubeletGetNodeConditionsEndPoint = ResponseDecorator
@@ -267,15 +267,15 @@ module.exports = [
     path: '/api/v3/k8s/nodeAddresses',
     middleware: async (req, res) => {
       res
-        .status(constants.HTTP_CODE_SUCCESS)
-        .send(req.body)
+          .status(constants.HTTP_CODE_SUCCESS)
+          .send(req.body)
 
       const successCode = constants.HTTP_CODE_SUCCESS
       const errorCodes = [
         {
           code: constants.HTTP_CODE_NOT_FOUND,
           errors: [Errors.AuthenticationError],
-        }
+        },
       ]
 
       const kubeletGetNodeAddressesEndPoint = ResponseDecorator
@@ -302,7 +302,7 @@ module.exports = [
         {
           code: constants.HTTP_CODE_NOT_FOUND,
           errors: [Errors.AuthenticationError],
-        }
+        },
       ]
 
       const kubeletGetVkTokenEndPoint = ResponseDecorator
@@ -310,8 +310,8 @@ module.exports = [
       const responseObject = await kubeletGetVkTokenEndPoint()
 
       res
-        .status(responseObject.code)
-        .send(responseObject.body)
+          .status(responseObject.code)
+          .send(responseObject.body)
 
       logger.apiRes({req: req, res: responseObject})
     },
@@ -329,7 +329,7 @@ module.exports = [
         {
           code: constants.HTTP_CODE_NOT_FOUND,
           errors: [Errors.AuthenticationError],
-        }
+        },
       ]
 
       const kubeletGetSchedulerTokenEndPoint = ResponseDecorator

@@ -22,10 +22,10 @@ module.exports = {
         field: 'user_id',
         references: {model: 'Users', key: 'id'},
         onDelete: 'cascade',
-      }
+      },
     })
   },
   down: (queryInterface, Sequelize) => {
     return queryInterface.dropTable('KubeletAccessTokens')
-  }
-};
+  },
+}
