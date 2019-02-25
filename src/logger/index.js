@@ -81,8 +81,7 @@ const logger = winston.createLogger({
       ),
       filename: 'iofog-controller.0.log',
       dirname: dirname,
-      
-      : maxsize,
+      maxsize: maxsize,
       rotationFormat: function() {
         return getFormattedLogName()
       },
