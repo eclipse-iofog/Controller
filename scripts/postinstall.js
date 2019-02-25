@@ -177,24 +177,6 @@ function updateLogName() {
   }
 }
 
-function updateLogName() {
-  console.log('    updating log name in ');
-  const dirname = config.get('Service:LogsDirectory')
-
-  if (fs.existsSync(dirname)) {
-    fs.readdirSync(dirname).forEach(file => {
-      const path = dirname + '/' + file
-      if (fs.existsSync(path)) {
-        fs.unlinkSync(path, function(err) {
-          if (err) return console.log(err);
-          console.log('log deleted successfully');
-        })
-      }
-    });
-  }
-
-}
-
 module.exports = {
   postinstall: postinstall,
 }
