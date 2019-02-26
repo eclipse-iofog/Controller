@@ -218,7 +218,11 @@ const resetUserPassword = async function(emailObj, isCLI, transaction) {
 }
 
 const list = async function(isCLI, transaction) {
-  return await UserManager.findAll({}, transaction)
+  const users = await UserManager.findAll({}, transaction)
+  users.forEach((u) => {
+    delete u.dataValues.password
+  })
+  return users
 }
 
 const suspendUser = async function(user, isCLI, transaction) {

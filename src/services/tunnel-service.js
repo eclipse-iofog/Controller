@@ -63,6 +63,9 @@ const findTunnel = async function(tunnelData, user, transaction) {
 
 const findAll = async function(transaction) {
   const tunnels = await TunnelManager.findAll({}, transaction)
+  tunnels.forEach((t) => {
+    delete t.dataValues.password
+  })
   return {
     tunnels: tunnels,
   }
