@@ -21,7 +21,7 @@ module.exports = [
     method: 'patch',
     path: '/api/v3/iofog/:id/tunnel',
     middleware: async (req, res) => {
-      logger.apiReq(req)
+      logger.apiReq('POST /api/v3/iofog/:id/tunnel') // don't use req as arg, because password not encrypted
 
       const successCode = constants.HTTP_CODE_NO_CONTENT
       const errorCodes = [
