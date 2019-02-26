@@ -228,20 +228,21 @@ describe('Tunnel Service', () => {
     const tunnel = [{}]
     const transaction = {}
     const error = 'Error!'
+    const attributes = {exclude: ['password']}
 
     def('subject', () => $subject.findAll(transaction))
     def('tunnelManagerResponse', () => Promise.resolve(tunnel))
 
     beforeEach(() => {
-      $sandbox.stub(TunnelManager, 'findAll').returns($tunnelManagerResponse)
+      $sandbox.stub(TunnelManager, 'findAllWithAttributes').returns($tunnelManagerResponse)
     })
 
-    it('calls TunnelManager#findAll() with correct args', async () => {
+    it('calls TunnelManager#findAllWithAttributes() with correct args', async () => {
       await $subject
-      expect(TunnelManager.findAll).to.have.been.calledWith({}, transaction)
+      expect(TunnelManager.findAllWithAttributes).to.have.been.calledWith({}, attributes, transaction)
     })
 
-    context('when TunnelManager#findAll() fails', () => {
+    context('when TunnelManager#findAllWithAttributes() fails', () => {
       def('tunnelManagerResponse', () => Promise.reject(error))
 
       it(`fails with ${error}`, () => {
@@ -249,7 +250,7 @@ describe('Tunnel Service', () => {
       })
     })
 
-    context('when tunnelManagerResponse#findAll() succeeds', () => {
+    context('when tunnelManagerResponse#findAllWithAttributes() succeeds', () => {
       it('resolves with tunnel info', () => {
         return expect($subject).to.eventually.eql({tunnels: tunnel})
       })

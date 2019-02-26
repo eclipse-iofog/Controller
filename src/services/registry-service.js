@@ -66,7 +66,7 @@ const findRegistries = async function(user, isCLI, transaction) {
         ],
     }
 
-  const registries = await RegistryManager.findAll(queryRegistry, transaction)
+  const registries = await RegistryManager.findAllWithAttributes(queryRegistry, {exclude: ['password']}, transaction)
   return {
     registries: registries,
   }

@@ -121,7 +121,11 @@ class Registry extends BaseCLIHandler {
 
 async function _createRegistry(obj, user) {
   const registry = _createRegistryObject(obj)
-  logger.cliReq('registry add', {args: registry})
+
+  const logRegistry = Object.assign({}, registry)
+  delete logRegistry.password
+  logger.cliReq('registry add', {args: logRegistry})
+
   const response = await RegistryService.createRegistry(registry, user)
   logger.cliRes(JSON.stringify({
     id: response.id,
@@ -142,7 +146,11 @@ async function _deleteRegistry(obj, user) {
 
 async function _updateRegistry(obj) {
   const registry = _createRegistryObject(obj)
-  logger.cliReq('registry update', {args: registry})
+
+  const logRegistry = Object.assign({}, registry)
+  delete logRegistry.password
+  logger.cliReq('registry update', {args: logRegistry})
+
   await RegistryService.updateRegistry(registry, obj.itemId, {}, true)
   logger.cliRes('Registry has been updated successfully.')
 }
