@@ -173,20 +173,20 @@ describe('Registry Service', () => {
             },
           ],
       }
-
+    const attributes = {exclude: ['password']}
     def('subject', () => $subject.findRegistries(user, isCLI, transaction))
     def('findRegistriesResponse', () => Promise.resolve([]))
 
     beforeEach(() => {
-      $sandbox.stub(RegistryManager, 'findAll').returns($findRegistriesResponse)
+      $sandbox.stub(RegistryManager, 'findAllWithAttributes').returns($findRegistriesResponse)
     })
 
-    it('calls RegistryManager#findAll() with correct args', async () => {
+    it('calls RegistryManager#findAllWithAttributes() with correct args', async () => {
       await $subject
-      expect(RegistryManager.findAll).to.have.been.calledWith(queryRegistry, transaction)
+      expect(RegistryManager.findAllWithAttributes).to.have.been.calledWith(queryRegistry, attributes, transaction)
     })
 
-    context('when RegistryManager#findAll() fails', () => {
+    context('when RegistryManager#findAllWithAttributes() fails', () => {
       def('findRegistriesResponse', () => Promise.reject(error))
 
       it(`fails with ${error}`, () => {
@@ -194,7 +194,7 @@ describe('Registry Service', () => {
       })
     })
 
-    context('when RegistryManager#findAll() succeeds', () => {
+    context('when RegistryManager#findAllWithAttributes() succeeds', () => {
       it('fulfills the promise', () => {
         return expect($subject).to.eventually.have.property('registries')
       })

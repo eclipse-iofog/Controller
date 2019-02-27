@@ -725,19 +725,21 @@ describe('User Service', () => {
       id: user.id,
     }]
 
+    const attributes = {exclude: ['password']}
+
     def('subject', () => $subject.list(isCLI, transaction))
     def('findAllResponse', () => Promise.resolve(response))
 
     beforeEach(() => {
-      $sandbox.stub(UserManager, 'findAll').returns($findAllResponse)
+      $sandbox.stub(UserManager, 'findAllWithAttributes').returns($findAllResponse)
     })
 
-    it('calls UserManager#findAll() with correct args', async () => {
+    it('calls UserManager#findAllWithAttributes() with correct args', async () => {
       await $subject
-      expect(UserManager.findAll).to.have.been.calledWith({}, transaction)
+      expect(UserManager.findAllWithAttributes).to.have.been.calledWith({}, attributes, transaction)
     })
 
-    context('when UserManager#findAll() fails', () => {
+    context('when UserManager#findAllWithAttributes() fails', () => {
       def('findAllResponse', () => Promise.reject(error))
 
       it(`fails with ${error}`, () => {
@@ -745,7 +747,7 @@ describe('User Service', () => {
       })
     })
 
-    context('when UserManager#findAll() succeeds', () => {
+    context('when UserManager#findAllWithAttributes() succeeds', () => {
       it('fulfills the promise', () => {
         return expect($subject).to.eventually.equal(response)
       })

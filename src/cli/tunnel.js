@@ -102,7 +102,9 @@ async function _updateTunnel(obj, user) {
   const action = obj.action
   const tunnel = _createTunnelObject(obj)
 
-  logger.cliReq('tunnel update', {args: tunnel})
+  const logTunnel = Object.assign({}, tunnel)
+  delete logTunnel.password
+  logger.cliReq('tunnel update', {args: logTunnel})
 
   if (tunnel.iofogUuid === undefined) {
     throw new Error('Required field \'ioFog UUID\' is missing.')

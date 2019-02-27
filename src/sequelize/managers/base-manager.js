@@ -37,6 +37,13 @@ module.exports = class BaseManager {
     return this.getEntity().findAll(options)
   }
 
+  findAllWithAttributes(where, attributes, transaction) {
+    return this.getEntity().findAll({
+      where: where,
+      attributes: attributes},
+    {transaction: transaction})
+  }
+
   async findOne(object, transaction) {
     AppHelper.checkTransaction(transaction)
 
