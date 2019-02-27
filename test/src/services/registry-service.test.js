@@ -173,7 +173,7 @@ describe('Registry Service', () => {
             },
           ],
       }
-
+    
     const attributes = {exclude: ['password']}
 
     def('subject', () => $subject.findRegistries(user, isCLI, transaction))
