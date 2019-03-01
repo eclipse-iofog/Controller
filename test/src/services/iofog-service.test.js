@@ -861,56 +861,6 @@ describe('ioFog Service', () => {
       ? {uuid: fogData.uuid}
       : {uuid: fogData.uuid, userId: user.id}
 
-    const fogResponse = {
-      uuid: fog.uuid,
-      name: fog.name,
-      location: fog.location,
-      gpsMode: fog.gpsMode,
-      latitude: fog.latitude,
-      longitude: fog.longitude,
-      description: fog.description,
-      lastActive: fog.lastActive,
-      daemonStatus: fog.daemonStatus,
-      daemonOperatingDuration: fog.daemonOperatingDuration,
-      daemonLastStart: fog.daemonLastStart,
-      memoryUsage: fog.memoryUsage,
-      diskUsage: fog.diskUsage,
-      cpuUsage: fog.cpuUsage,
-      memoryViolation: fog.memoryViolation,
-      diskViolation: fog.diskViolation,
-      cpuViolation: fog.cpuViolation,
-      catalogItemStatus: fog.catalogItemStatus,
-      repositoryCount: fog.repositoryCount,
-      repositoryStatus: fog.repositoryStatus,
-      systemTime: fog.systemTime,
-      lastStatusTime: fog.lastStatusTime,
-      ipAddress: fog.ipAddress,
-      processedMessages: fog.processedMessages,
-      catalogItemMessageCounts: fog.catalogItemMessageCounts,
-      messageSpeed: fog.messageSpeed,
-      lastCommandTime: fog.lastCommandTime,
-      networkInterface: fog.networkInterface,
-      dockerUrl: fog.dockerUrl,
-      diskLimit: fog.diskLimit,
-      diskDirectory: fog.diskDirectory,
-      memoryLimit: fog.memoryLimit,
-      cpuLimit: fog.cpuLimit,
-      logLimit: fog.logLimit,
-      logDirectory: fog.logDirectory,
-      bluetoothEnabled: fog.bluetoothEnabled,
-      abstractedHardwareEnabled: fog.abstractedHardwareEnabled,
-      logFileCount: fog.logFileCount,
-      version: fog.version,
-      isReadyToUpgrade: fog.isReadyToUpgrade,
-      isReadyToRollback: fog.isReadyToRollback,
-      statusFrequency: fog.statusFrequency,
-      changeFrequency: fog.changeFrequency,
-      deviceScanFrequency: fog.deviceScanFrequency,
-      tunnel: fog.tunnel,
-      watchdogEnabled: fog.watchdogEnabled,
-      fogTypeId: fog.fogTypeId,
-      userId: fog.userId,
-    }
 
     def('subject', () => $subject.getFog(fogData, user, isCLI, transaction))
     def('validatorResponse', () => Promise.resolve(true))
@@ -951,7 +901,7 @@ describe('ioFog Service', () => {
 
       context('when ioFogManager#findOne() succeeds', () => {
         it('fulfills the promise', () => {
-          return expect($subject).to.eventually.deep.equal(fogResponse)
+          return expect($subject).to.eventually.deep.equal(fog)
         })
       })
     })
