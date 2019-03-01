@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 
 module.exports = {
   up: (queryInterface, Sequelize) => {
@@ -13,7 +13,7 @@ module.exports = {
         user_name: '',
         password: '',
         user_email: '',
-        user_id: null
+        user_id: null,
       },
       {
         ID: 2,
@@ -25,12 +25,12 @@ module.exports = {
         user_name: '',
         password: '',
         user_email: '',
-        user_id: null
-      }
-    ]);
+        user_id: null,
+      },
+    ])
   },
 
   down: (queryInterface, Sequelize) => {
-    return queryInterface.bulkDelete('Registries', null, {});
-  }
-};
+    return queryInterface.bulkDelete('Registries', null, {})
+  },
+}

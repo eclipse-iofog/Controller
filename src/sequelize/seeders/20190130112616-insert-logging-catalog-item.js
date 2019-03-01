@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 
 module.exports = {
   up: (queryInterface, Sequelize) => {
@@ -16,30 +16,30 @@ module.exports = {
         config_example: '{"access_tokens": ["Some_Access_Token"], "cleanfrequency": "1h40m", "ttl": "24h"}',
         is_public: 0,
         registry_id: 1,
-        user_id: null
+        user_id: null,
       }]
     ).then(() => {
       return queryInterface.bulkInsert('CatalogItemImages', [
-          {
-            ID: 101,
-            catalog_item_id: 100,
-            fog_type_id: 1,
-            container_image: 'iofog/common-logging'
-          },
-          {
-            ID: 102,
-            catalog_item_id: 100,
-            fog_type_id: 2,
-            container_image: 'iofog/common-logging-arm'
-          }
-        ]
+        {
+          ID: 101,
+          catalog_item_id: 100,
+          fog_type_id: 1,
+          container_image: 'iofog/common-logging',
+        },
+        {
+          ID: 102,
+          catalog_item_id: 100,
+          fog_type_id: 2,
+          container_image: 'iofog/common-logging-arm',
+        },
+      ]
       )
-    });
+    })
   },
 
   down: (queryInterface, Sequelize) => {
     return queryInterface.bulkDelete('CatalogItems', {ID: 100}, {}).then(() => {
       return queryInterface.bulkDelete('CatalogItemImages', {catalog_item_id: 100})
-    });
-  }
-};
+    })
+  },
+}

@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 module.exports = (sequelize, DataTypes) => {
   const StraceDiagnostics = sequelize.define('StraceDiagnostics', {
     id: {
@@ -6,32 +6,31 @@ module.exports = (sequelize, DataTypes) => {
       primaryKey: true,
       autoIncrement: true,
       allowNull: false,
-      field: 'id'
+      field: 'id',
     },
     straceRun: {
       type: DataTypes.BOOLEAN,
-      field: 'strace_run'
+      field: 'strace_run',
     },
     buffer: {
       type: DataTypes.TEXT,
       field: 'buffer',
       defaultValue: '',
-    }
+    },
   }, {
     timestamps: false,
-    underscored: true
-  });
-  StraceDiagnostics.associate = function (models) {
-
+    underscored: true,
+  })
+  StraceDiagnostics.associate = function(models) {
     StraceDiagnostics.belongsTo(models.Microservice, {
       foreignKey: {
         name: 'microserviceUuid',
-        field: 'microservice_uuid'
+        field: 'microservice_uuid',
       },
       as: 'microservice',
-      onDelete: 'cascade'
+      onDelete: 'cascade',
 
-    });
-  };
-  return StraceDiagnostics;
-};
+    })
+  }
+  return StraceDiagnostics
+}

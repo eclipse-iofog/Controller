@@ -11,53 +11,70 @@ notifications:
     template:
       - "Build <%{build_url}|#%{build_number}> (<%{compare_url}|%{commit}>) of %{repository_slug}@%{branch} in PR <%{pull_request_url}|#%{pull_request_number}> by %{author} %{result} in %{duration}"
 stages:
-- name: build
-  if: type = pull_request
+- name: test
+  if: branch =~ /^release-.*$/ OR branch IN (develop, master)
 - name: dev_deploy
   if: branch = develop AND type = push
-- name: pre_release
+- name: pre_release_deploy
   if: branch =~ /^release-.*$/ AND type = push
-- name: release
+- name: release_deploy
   if: branch = master and type = push
 
 jobs:
-  include:
-  - stage: build
-    script:
-    - npm test
-    - npm run postman_test
+  include: 
+  - script: "npm test"
+  - script: "npm run postman_test"
   - stage: dev_deploy
     before_install:
     - sudo apt-get install sshpass
-    script: 
+    script: skip
+    before_deploy:
+    - npm pack
+    #- export VERSION=`npm view iofogcontroller version`  
+    deploy:
+      skip_cleanup: true
+      provider: script
+      script: 
+      - sshpass -p $EDGEWORX_PASSWORD scp -o StrictHostKeyChecking=no iofogcontroller-*.tgz 
+        $EDGEWORX_USERNAME@$EDGEWORX_IP:/var/www/vhosts/edgeworx.io/downloads/builds/iofogcontroller.tgz  
+      on:
+        branch: develop  
+    after_deploy:
     - sshpass -p $DEV_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $DEV_MACHINE_USERNAME@$DEV_MACHINE_IP
-      "cd /FogController; NODE_ENV=production node src/main.js stop; git pull; npm
-      i; npm test; npm run postman_test; NODE_ENV=production node src/main.js start;"
-  - stage: pre_release
+      "iofog-controller stop; rm -f /iofogcontroller/*"
+    - sshpass -p $DEV_MACHINE_PASSWORD scp -o StrictHostKeyChecking=no iofogcontroller-*.tgz 
+      $DEV_MACHINE_USERNAME@$DEV_MACHINE_IP:/iofogcontroller 
+    - sshpass -p $DEV_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $DEV_MACHINE_USERNAME@$DEV_MACHINE_IP
+      "npm i --unsafe-perm -g /iofogcontroller/iofogcontroller-*.tgz; iofog-controller start"
+  - stage: pre_release_deploy
     before_install:
     - sudo apt-get install sshpass
-    script: 
-    - sshpass -p $PREPROD_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $PREPROD_MACHINE_USERNAME@$PREPROD_MACHINE_IP
-      "cd /Controller; NODE_ENV=production node src/main.js stop; git checkout $TRAVIS_BRANCH; npm i;
-      npm test; npm run postman_test; NODE_ENV=production node src/main.js start;"
-  - stage: release
-    #before_install:
-      #- git clone "https://github.com/$TRAVIS_REPO_SLUG.git" "$TRAVIS_REPO_SLUG";
-      #- cd "$TRAVIS_REPO_SLUG";
-      #- git checkout -qf "$TRAVIS_COMMIT";
-      #- git checkout master
-    #before_deploy:
-      #- git config --global user.name "${GH_USERNAME}";
-      #- git config credential.helper "store --file=.git/credentials";
-      #- echo "https://${GH_TOKEN}:@github.com" > .git/credentials;
-      #- npm run automatic-release
+    script: skip
+    #- npm version prerelease --preid=prerelease -m "upgrade to %s for prerelease package"
     deploy:
       skip_cleanup: true
       provider: npm
       email: "${NPM_EMAIL_ADDRESS}"
       api_key: "${NPM_AUTH_TOKEN}"
+      tag: dev
       on:
-        tags: false
+        all_branches: true
+    after_deploy:
+    - sshpass -p $PREPROD_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $PREPROD_MACHINE_USERNAME@$PREPROD_MACHINE_IP
+      "iofog-controller stop; npm i --unsafe-perm -g iofogcontroller@dev; iofog-controller start"
+  - stage: release_deploy
+    before_install:
+    - sudo apt-get install sshpass
+    script: skip
+    #- npm version patch -m "upgrade to %s for release"
+    deploy:
+      skip_cleanup: true
+      provider: npm
+      email: "${NPM_EMAIL_ADDRESS}"
+      api_key: "${NPM_AUTH_TOKEN}"
+      tag: latest
+      on:
+        branch: master
     after_deploy:
     - sshpass -p $PROD_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $PROD_MACHINE_USERNAME@$PROD_MACHINE_IP
-      "iofog-controller stop; npm update -g iofogcontroller; iofog-controller start"
+      "iofog-controller stop; npm update --unsafe-perm -g iofogcontroller; iofog-controller start"

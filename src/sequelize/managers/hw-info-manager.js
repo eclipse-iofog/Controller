@@ -11,15 +11,15 @@
  *
  */
 
-const BaseManager = require('./base-manager');
-const models = require('./../models');
-const HWInfo = models.HWInfo;
+const BaseManager = require('./base-manager')
+const models = require('./../models')
+const HWInfo = models.HWInfo
 
 class HWInfoManager extends BaseManager {
   getEntity() {
-    return HWInfo;
+    return HWInfo
   }
 }
 
-const instance = new HWInfoManager();
-module.exports = instance;
+const instance = new HWInfoManager()
+module.exports = instance

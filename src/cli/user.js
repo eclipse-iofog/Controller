@@ -11,20 +11,20 @@
  *
  */
 
-const BaseCLIHandler = require('./base-cli-handler');
-const constants = require('../helpers/constants');
-const UserService = require('../services/user-service');
-const logger = require('../logger');
-const AppHelper = require('../helpers/app-helper');
-const AuthDecorator = require('../decorators/cli-decorator');
-const Validator = require('../schemas');
+const BaseCLIHandler = require('./base-cli-handler')
+const constants = require('../helpers/constants')
+const UserService = require('../services/user-service')
+const logger = require('../logger')
+const AppHelper = require('../helpers/app-helper')
+const AuthDecorator = require('../decorators/cli-decorator')
+const Validator = require('../schemas')
 
 
 class User extends BaseCLIHandler {
   constructor() {
-    super();
+    super()
 
-    this.name = constants.CMD_USER;
+    this.name = constants.CMD_USER
     this.commandDefinitions = [
       {
         name: 'command', defaultOption: true,
@@ -56,8 +56,8 @@ class User extends BaseCLIHandler {
         name: 'force', alias: 'F', type: Boolean,
         description: 'User\'s force delete',
         group: [constants.CMD_REMOVE],
-      }
-    ];
+      },
+    ]
     this.commands = {
       [constants.CMD_ADD]: 'Add a new user.',
       [constants.CMD_UPDATE]: 'Update existing user.',
@@ -71,104 +71,109 @@ class User extends BaseCLIHandler {
 
   async run(args) {
     try {
-      const userCommand = this.parseCommandLineArgs(this.commandDefinitions, {argv: args.argv, partial: false});
+      const userCommand = this.parseCommandLineArgs(this.commandDefinitions, {argv: args.argv, partial: false})
 
-      const command = userCommand.command.command;
+      const command = userCommand.command.command
 
-      AppHelper.validateParameters(command, this.commandDefinitions, args.argv);
+      this.validateParameters(command, this.commandDefinitions, args.argv)
 
       switch (command) {
         case constants.CMD_ADD:
-          await _executeCase(userCommand, constants.CMD_ADD, _createUser, false);
-          break;
+          await _executeCase(userCommand, constants.CMD_ADD, _createUser, false)
+          break
         case constants.CMD_UPDATE:
-          await _executeCase(userCommand, constants.CMD_UPDATE, _updateUserDetails, true);
-          break;
+          await _executeCase(userCommand, constants.CMD_UPDATE, _updateUserDetails, true)
+          break
         case constants.CMD_REMOVE:
-          await _executeCase(userCommand, constants.CMD_REMOVE, _deleteUser, true);
-          break;
+          await _executeCase(userCommand, constants.CMD_REMOVE, _deleteUser, true)
+          break
         case constants.CMD_LIST:
-          await _executeCase(userCommand, constants.CMD_LIST, _getAllUsers, false);
-          break;
+          await _executeCase(userCommand, constants.CMD_LIST, _getAllUsers, false)
+          break
         case constants.CMD_GENERATE_TOKEN:
-          await _executeCase(userCommand, constants.CMD_GENERATE_TOKEN, _generateToken, true);
-          break;
+          await _executeCase(userCommand, constants.CMD_GENERATE_TOKEN, _generateToken, true)
+          break
         case constants.CMD_ACTIVATE:
-          await _executeCase(userCommand, constants.CMD_ACTIVATE, _activateUser, true);
-          break;
+          await _executeCase(userCommand, constants.CMD_ACTIVATE, _activateUser, true)
+          break
         case constants.CMD_SUSPEND:
-          await _executeCase(userCommand, constants.CMD_SUSPEND, _suspendUser, true);
-          break;
+          await _executeCase(userCommand, constants.CMD_SUSPEND, _suspendUser, true)
+          break
         case constants.CMD_HELP:
         default:
-          return this.help([constants.CMD_LIST])
+          return this.help([])
       }
     } catch (error) {
-      AppHelper.handleCLIError(error);
+      this.handleCLIError(error, args.argv)
     }
   }
-
 }
 
-const _executeCase = async function (userCommand, commandName, f, isUserRequired) {
+const _executeCase = async function(userCommand, commandName, f, isUserRequired) {
   try {
-    const item = userCommand[commandName];
+    const item = userCommand[commandName]
 
     if (isUserRequired) {
-      const decoratedFunction = AuthDecorator.prepareUserByEmail(f);
-      await decoratedFunction(item);
+      const decoratedFunction = AuthDecorator.prepareUserByEmail(f)
+      await decoratedFunction(item)
     } else {
-      await f(item);
+      await f(item)
     }
   } catch (error) {
-    logger.error(error.message);
+    logger.error(error.message)
   }
-};
+}
 
-const _createUser = async function (user) {
-  await Validator.validate(user, Validator.schemas.signUp);
+const _createUser = async function(user) {
+  logger.cliReq('user add', {args: user})
+  await Validator.validate(user, Validator.schemas.signUp)
 
-  user.password = AppHelper.encryptText(user.password, user.email);
+  user.password = AppHelper.encryptText(user.password, user.email)
 
-  const response = await UserService.signUp(user, true);
-  logger.info(JSON.stringify({
-    id: response.userId
+  const response = await UserService.signUp(user, true)
+  logger.cliRes(JSON.stringify({
+    id: response.userId,
   }), null, 2)
-};
+}
 
-const _updateUserDetails = async function (userDetails, user) {
-  await UserService.updateUserDetails(user, userDetails, true);
-  logger.info('User updated successfully.');
-};
+const _updateUserDetails = async function(userDetails, user) {
+  logger.cliReq('user update', {args: userDetails})
+  await UserService.updateUserDetails(user, userDetails, true)
+  logger.cliRes('User updated successfully.')
+}
 
-const _deleteUser = async function (obj, user) {
-  await UserService.deleteUser(obj.force, user, true);
-  logger.info('User removed successfully.');
-};
+const _deleteUser = async function(obj, user) {
+  logger.cliReq('user remove', {args: {user: user.dataValues, force: obj.force}})
+  await UserService.deleteUser(obj.force, user, true)
+  logger.cliRes('User removed successfully.')
+}
 
-const _getAllUsers = async function () {
-  const users = await UserService.list(true);
-  logger.info(JSON.stringify(users, null, 2));
-};
+const _getAllUsers = async function() {
+  logger.cliReq('user list')
+  const users = await UserService.list(true)
+  logger.cliRes(JSON.stringify(users, null, 2))
+}
 
-const _generateToken = async function (emailObj, user) {
-  const response = await UserService.login(user, true);
-  logger.info(JSON.stringify(response, null, 2));
-};
+const _generateToken = async function(emailObj, user) {
+  logger.cliReq('user generate-token', {args: user.dataValues})
+  const response = await UserService.login(user, true)
+  logger.cliRes(JSON.stringify(response, null, 2))
+}
 
-const _activateUser = async function (emailObj, user) {
+const _activateUser = async function(emailObj, user) {
   const codeData = {
-    userId: user.id
-  };
+    userId: user.id,
+  }
+  logger.cliReq('user activate', {args: codeData})
+  await UserService.activateUser(codeData, true)
+  logger.cliRes('User activated successfully.')
+}
 
-  await UserService.activateUser(codeData, true);
-  logger.info('User activated successfully.');
-};
-
-const _suspendUser = async function (emailObj, user) {
-  await UserService.suspendUser(user, true);
-  logger.info('User suspended successfully.');
-};
+const _suspendUser = async function(emailObj, user) {
+  logger.cliReq('user suspend', {args: user.dataValues})
+  await UserService.suspendUser(user, true)
+  logger.cliRes('User suspended successfully.')
+}
 
 
-module.exports = new User();
+module.exports = new User()

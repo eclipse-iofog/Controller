@@ -10,63 +10,63 @@
  *  *******************************************************************************
  *
  */
-const logger = require('../logger');
-const { isTest } = require('../helpers/app-helper');
+const logger = require('../logger')
+const {isTest} = require('../helpers/app-helper')
 
 function handleErrors(f, successCode, errorsCodes) {
-  return async function() {
+  return async function(...args) {
     if (isTest()) {
-      return await f.apply(this, arguments);
+      return await f.apply(this, args)
     }
 
-    let responseObject = {};
+    let responseObject = {}
     try {
-      const responseBody = await f.apply(this, arguments);
+      const responseBody = await f.apply(this, args)
       responseObject = {code: successCode, body: responseBody}
     } catch (err) {
-      logger.error('error: ' + err);
+      logger.error('error: ' + err)
 
-      //checking is err just string or Error object and wrapping it by new obj
-      let errorObj = {};
+      // checking is err just string or Error object and wrapping it by new obj
+      let errorObj = {}
       if (!err.message) {
-        errorObj.message = err;
+        errorObj.message = err
       } else {
-        errorObj = err;
+        errorObj = err
       }
 
-      let code;
+      let code
       if (errorsCodes) {
         errorsCodes.some((errCodeDescr) => {
           const isCurrentCode = errCodeDescr.errors.some((err) => {
             if (errorObj instanceof err) {
-              return true;
+              return true
             }
-          });
+          })
           if (isCurrentCode) {
-            code = errCodeDescr.code;
-            return true;
+            code = errCodeDescr.code
+            return true
           }
-        });
+        })
       }
-      code = code ? code : 500;
+      code = code ? code : 500
 
       responseObject = {
         code: code,
         body: {
           name: errorObj.name,
           message: errorObj.message,
-          stack: errorObj.stack
-        }
+          stack: errorObj.stack,
+        },
       }
       if (code !== 500) {
         delete responseObject.body.stack
       }
     }
 
-    return responseObject;
+    return responseObject
   }
 }
 
 module.exports = {
-  handleErrors: handleErrors
+  handleErrors: handleErrors,
 }

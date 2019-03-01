@@ -11,46 +11,46 @@
  *
  */
 
-const {start} = require('./start');
-const {startDev} = require('./start-dev');
-const {init} = require('./init');
-const {preuninstall} = require('./preuninstall');
-const {postinstall} = require('./postinstall');
-const {test} = require('./test');
-const {cliTest} = require('./cli-tests');
-const {postmanTest} = require('./postmantest');
-const {coverage} = require('./coverage');
+const {start} = require('./start')
+const {startDev} = require('./start-dev')
+const {init} = require('./init')
+const {preuninstall} = require('./preuninstall')
+const {postinstall} = require('./postinstall')
+const {test} = require('./test')
+const {cliTest} = require('./cli-tests')
+const {postmanTest} = require('./postmantest')
+const {coverage} = require('./coverage')
 
 switch (process.argv[2]) {
   case 'start':
-    start();
-    break;
+    start()
+    break
   case 'start-dev':
-    startDev();
-    break;
+    startDev()
+    break
   case 'init':
-    init();
-    break;
+    init()
+    break
   case 'preuninstall':
-    preuninstall();
-    break;
+    preuninstall()
+    break
   case 'postinstall':
-    postinstall();
-    break;
+    postinstall()
+    break
   case 'test':
-    test();
-    cliTest();
-    break;
+    test()
+    cliTest()
+    break
   case 'postmantest':
-    postmanTest();
-    break;
+    postmanTest()
+    break
   case 'cli-tests':
-    cliTest();
-    break;
+    cliTest()
+    break
   case 'coverage':
-    coverage();
-    break;
+    coverage()
+    break
   default:
-    console.log('no script for this command');
-    break;
+    console.log('no script for this command')
+    break
 }

@@ -11,11 +11,10 @@
  *
  */
 
-const BaseManager = require('./base-manager');
-const models = require('./../models');
-const Flow = models.Flow;
-const Microservice = models.Microservice;
-const sequelize = require('sequelize');
+const BaseManager = require('./base-manager')
+const models = require('./../models')
+const Flow = models.Flow
+const Microservice = models.Microservice
 
 class FlowManager extends BaseManager {
   getEntity() {
@@ -29,11 +28,11 @@ class FlowManager extends BaseManager {
           model: Microservice,
           as: 'microservices',
           required: false,
-          attributes: ['iofogUuid']
-        }
+          attributes: ['iofogUuid'],
+        },
       ],
       where: where,
-      attributes: ['id']
+      attributes: ['id'],
     }, {transaction: transaction})
   }
 
@@ -41,18 +40,18 @@ class FlowManager extends BaseManager {
     return Flow.findAll({
       where: where,
       attributes: attributes},
-      {transaction: transaction})
+    {transaction: transaction})
   }
 
   async findOneWithAttributes(where, attributes, transaction) {
     return Flow.findOne({
       where: where,
-      attributes: attributes
-      },
-      {transaction: transaction})
-    }
+      attributes: attributes,
+    },
+    {transaction: transaction})
+  }
 }
 
 
-const instance = new FlowManager();
-module.exports = instance;
+const instance = new FlowManager()
+module.exports = instance

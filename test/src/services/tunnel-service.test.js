@@ -1,4 +1,4 @@
-const { expect } = require('chai')
+const {expect} = require('chai')
 const sinon = require('sinon')
 
 const AppHelper = require('../../../src/helpers/app-helper')
@@ -30,7 +30,7 @@ describe('Tunnel Service', () => {
     }))
     def('user', () => 'user')
     def('cli', () => false)
-    def('fog', () => ({ uuid }))
+    def('fog', () => ({uuid}))
     def('fogResponse', () => Promise.resolve($fog))
     def('portResponse', () => Promise.resolve(port))
     def('validatorResponse', () => Promise.resolve(true))
@@ -48,7 +48,7 @@ describe('Tunnel Service', () => {
 
     it('calls FogManager#findOne() with correct args', async () => {
       await $subject
-      expect(FogManager.findOne).to.have.been.calledWith({ uuid }, transaction)
+      expect(FogManager.findOne).to.have.been.calledWith({uuid}, transaction)
     })
 
     context('when FogManager#findOne() fails', () => {
@@ -64,26 +64,26 @@ describe('Tunnel Service', () => {
         def('fog', () => null)
 
         it('fails with error', () => {
-          return expect($subject).to.be.rejectedWith("Invalid ioFog UUID 'abcd'")
+          return expect($subject).to.be.rejectedWith('Invalid ioFog UUID \'abcd\'')
         })
       })
 
       context('when FogManager#findOne() returns a Fog instance', () => {
-        const testOpenTunnel = function (cli) {
+        const testOpenTunnel = function(cli) {
           const tunnel = cli ? {
             host: tunnelHost,
             iofogUuid: uuid,
             rport: port,
           } : {
-              closed: false,
-              host: config,
-              iofogUuid: uuid,
-              lport: config,
-              password: config,
-              rport: port,
-              rsakey: config,
-              username: config,
-            }
+            closed: false,
+            host: config,
+            iofogUuid: uuid,
+            lport: config,
+            password: config,
+            rport: port,
+            rsakey: config,
+            username: config,
+          }
 
           it('calls Validator#validate() with correct args', async () => {
             await $subject
@@ -228,20 +228,21 @@ describe('Tunnel Service', () => {
     const tunnel = [{}]
     const transaction = {}
     const error = 'Error!'
+    const attributes = {exclude: ['password']}
 
     def('subject', () => $subject.findAll(transaction))
     def('tunnelManagerResponse', () => Promise.resolve(tunnel))
 
     beforeEach(() => {
-      $sandbox.stub(TunnelManager, 'findAll').returns($tunnelManagerResponse)
+      $sandbox.stub(TunnelManager, 'findAllWithAttributes').returns($tunnelManagerResponse)
     })
 
-    it('calls TunnelManager#findAll() with correct args', async () => {
+    it('calls TunnelManager#findAllWithAttributes() with correct args', async () => {
       await $subject
-      expect(TunnelManager.findAll).to.have.been.calledWith({}, transaction)
+      expect(TunnelManager.findAllWithAttributes).to.have.been.calledWith({}, attributes, transaction)
     })
 
-    context('when TunnelManager#findAll() fails', () => {
+    context('when TunnelManager#findAllWithAttributes() fails', () => {
       def('tunnelManagerResponse', () => Promise.reject(error))
 
       it(`fails with ${error}`, () => {
@@ -249,9 +250,9 @@ describe('Tunnel Service', () => {
       })
     })
 
-    context('when tunnelManagerResponse#findAll() succeeds', () => {
+    context('when tunnelManagerResponse#findAllWithAttributes() succeeds', () => {
       it('resolves with tunnel info', () => {
-        return expect($subject).to.eventually.eql({ tunnels: tunnel })
+        return expect($subject).to.eventually.eql({tunnels: tunnel})
       })
     })
   })
@@ -295,7 +296,7 @@ describe('Tunnel Service', () => {
     context('when TunnelService#findTunnel() succeeds', () => {
       it('calls TunnelManager#update() with correct args', async () => {
         await $subject
-        expect(TunnelManager.update).to.have.been.calledWith($tunnelData, { closed: true }, transaction)
+        expect(TunnelManager.update).to.have.been.calledWith($tunnelData, {closed: true}, transaction)
       })
 
       context('when TunnelManager#updateOrCreate() fails', () => {

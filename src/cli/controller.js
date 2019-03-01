@@ -11,27 +11,25 @@
  *
  */
 
-const BaseCLIHandler = require('./base-cli-handler');
-const constants = require('../helpers/constants');
-const ControllerService = require('../services/controller-service');
-const logger = require('../logger');
-const AppHelper = require('../helpers/app-helper');
-
+const BaseCLIHandler = require('./base-cli-handler')
+const constants = require('../helpers/constants')
+const ControllerService = require('../services/controller-service')
+const logger = require('../logger')
 
 
 class Controller extends BaseCLIHandler {
   constructor() {
-    super();
+    super()
 
-    this.name = constants.CMD_CONTROLLER;
+    this.name = constants.CMD_CONTROLLER
     this.commandDefinitions = [
       {
         name: 'command',
         defaultOption: true,
         description: 'status, email-activation, fog-types, version',
-        group: constants.CMD
-      }
-    ];
+        group: constants.CMD,
+      },
+    ]
     this.commands = {
       [constants.CMD_STATUS]: 'Display iofog-controller service status.',
       [constants.CMD_EMAIL_ACTIVATION]: 'Is email activation.',
@@ -42,70 +40,72 @@ class Controller extends BaseCLIHandler {
 
   async run(args) {
     try {
-      const controllerCommand = this.parseCommandLineArgs(this.commandDefinitions, {argv: args.argv, partial: false});
+      const controllerCommand = this.parseCommandLineArgs(this.commandDefinitions, {argv: args.argv, partial: false})
 
-      const command = controllerCommand.command.command;
+      const command = controllerCommand.command.command
 
-      AppHelper.validateParameters(command, this.commandDefinitions, args.argv);
+      this.validateParameters(command, this.commandDefinitions, args.argv)
 
       switch (command) {
         case constants.CMD_STATUS:
-          await _executeCase(controllerCommand, constants.CMD_STATUS, _getStatus, false);
-          break;
+          await _executeCase(controllerCommand, constants.CMD_STATUS, _getStatus, false)
+          break
         case constants.CMD_EMAIL_ACTIVATION:
-          await _executeCase(controllerCommand, constants.CMD_EMAIL_ACTIVATION, _emailActivation, false);
-          break;
+          await _executeCase(controllerCommand, constants.CMD_EMAIL_ACTIVATION, _emailActivation, false)
+          break
         case constants.CMD_FOG_TYPES:
-          await _executeCase(controllerCommand, constants.CMD_FOG_TYPES, _getFogTypes, false);
-          break;
+          await _executeCase(controllerCommand, constants.CMD_FOG_TYPES, _getFogTypes, false)
+          break
         case constants.CMD_VERSION:
-          await _executeCase(controllerCommand, constants.CMD_VERSION, _getVersion, false);
-          break;
+          await _executeCase(controllerCommand, constants.CMD_VERSION, _getVersion, false)
+          break
         case constants.CMD_HELP:
         default:
-          return this.help([constants.CMD_LIST])
+          return this.help([])
       }
     } catch (error) {
-      AppHelper.handleCLIError(error);
+      this.handleCLIError(error, args.argv)
     }
   }
-
 }
 
-const _executeCase = async function (userCommand, commandName, f, isUserRequired) {
+const _executeCase = async function(userCommand, commandName, f, isUserRequired) {
   try {
-    const item = userCommand[commandName];
+    const item = userCommand[commandName]
 
     if (isUserRequired) {
-      const decoratedFunction = AuthDecorator.prepareUserByEmail(f);
-      await decoratedFunction(item);
+      const decoratedFunction = AuthDecorator.prepareUserByEmail(f)
+      await decoratedFunction(item)
     } else {
-      await f(item);
+      await f(item)
     }
   } catch (error) {
-    logger.error(error.message);
+    logger.error(error.message)
   }
-};
+}
 
 
-const _getStatus = async function () {
-  const response = await ControllerService.statusController(true);
-  logger.info(JSON.stringify(response, null, 2));
-};
+const _getStatus = async function() {
+  const response = await ControllerService.statusController(true)
+  logger.cliRes(JSON.stringify(response, null, 2))
+}
 
-const _emailActivation = async function () {
-  const response = await ControllerService.emailActivation(true);
-  logger.info(JSON.stringify(response, null, 2));
-};
+const _emailActivation = async function() {
+  logger.cliReq('controller email-activation')
+  const response = await ControllerService.emailActivation(true)
+  logger.cliRes(JSON.stringify(response, null, 2))
+}
 
-const _getFogTypes = async function () {
-  const response = await ControllerService.getFogTypes(true);
-  logger.info(JSON.stringify(response, null, 2));
-};
+const _getFogTypes = async function() {
+  logger.cliReq('controller fog-types')
+  const response = await ControllerService.getFogTypes(true)
+  logger.cliRes(JSON.stringify(response, null, 2))
+}
 
-const _getVersion = async function () {
-  const response = await ControllerService.getVersion(true);
-  logger.info(response, null, 2);
-};
+const _getVersion = async function() {
+  logger.cliReq('controller version')
+  const response = await ControllerService.getVersion(true)
+  logger.cliRes(response, null, 2)
+}
 
-module.exports = new Controller();
+module.exports = new Controller()

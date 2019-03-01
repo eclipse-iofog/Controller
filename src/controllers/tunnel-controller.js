@@ -11,40 +11,37 @@
  *
  */
 
-const logger = require('../logger');
-const AuthDecorator = require('../decorators/authorization-decorator');
-const TunnelService = require('../services/tunnel-service');
-const Errors = require('../helpers/errors');
-const ErrorMessages = require('../helpers/error-messages');
+const AuthDecorator = require('../decorators/authorization-decorator')
+const TunnelService = require('../services/tunnel-service')
+const Errors = require('../helpers/errors')
+const ErrorMessages = require('../helpers/error-messages')
 
-const manageTunnelEndPoint = async function (req, user) {
-  logger.info("Parameters:" + JSON.stringify(req.body));
-  const action = req.body.action;
+const manageTunnelEndPoint = async function(req, user) {
+  const action = req.body.action
   const tunnelData = {
-    iofogUuid: req.params.id
-  };
+    iofogUuid: req.params.id,
+  }
 
   switch (action) {
     case 'open':
-      await TunnelService.openTunnel(tunnelData, user, false);
-      break;
+      await TunnelService.openTunnel(tunnelData, user, false)
+      break
     case 'close':
-      await TunnelService.closeTunnel(tunnelData, user);
-      break;
+      await TunnelService.closeTunnel(tunnelData, user)
+      break
     default:
-      throw new Errors.ValidationError(ErrorMessages.INVALID_ACTION_PROPERTY);
+      throw new Errors.ValidationError(ErrorMessages.INVALID_ACTION_PROPERTY)
   }
-};
+}
 
-const getTunnelEndPoint = async function (req, user) {
-  logger.info("Parameters:" + JSON.stringify(req.body));
+const getTunnelEndPoint = async function(req, user) {
   const tunnelData = {
-    iofogUuid: req.params.id
-  };
-  return await TunnelService.findTunnel(tunnelData, user);
-};
+    iofogUuid: req.params.id,
+  }
+  return await TunnelService.findTunnel(tunnelData, user)
+}
 
 module.exports = {
   manageTunnelEndPoint: AuthDecorator.checkAuthToken(manageTunnelEndPoint),
   getTunnelEndPoint: AuthDecorator.checkAuthToken(getTunnelEndPoint),
-};
+}

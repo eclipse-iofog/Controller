@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 module.exports = (sequelize, DataTypes) => {
   const VolumeMapping = sequelize.define('VolumeMapping', {
     id: {
@@ -6,33 +6,33 @@ module.exports = (sequelize, DataTypes) => {
       primaryKey: true,
       autoIncrement: true,
       allowNull: false,
-      field: 'uuid'
+      field: 'uuid',
     },
     hostDestination: {
       type: DataTypes.TEXT,
-      field: 'host_destination'
+      field: 'host_destination',
     },
     containerDestination: {
       type: DataTypes.TEXT,
-      field: 'container_destination'
+      field: 'container_destination',
     },
     accessMode: {
       type: DataTypes.TEXT,
-      field: 'access_mode'
-    }
+      field: 'access_mode',
+    },
   }, {
     timestamps: false,
-    underscored: true
-  });
-  VolumeMapping.associate = function (models) {
+    underscored: true,
+  })
+  VolumeMapping.associate = function(models) {
     VolumeMapping.belongsTo(models.Microservice, {
       foreignKey: {
         name: 'microserviceUuid',
-        field: 'microservice_uuid'
+        field: 'microservice_uuid',
       },
       as: 'microservice',
-      onDelete: 'cascade'
-    });
-  };
-  return VolumeMapping;
-};
+      onDelete: 'cascade',
+    })
+  }
+  return VolumeMapping
+}

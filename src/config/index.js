@@ -13,16 +13,17 @@
 
 const nconf = require('nconf')
 const path = require('path')
+const constants = require('./constants')
 
 class Config {
   constructor() {
-    nconf.env({ separator: '_', })
+    nconf.env({separator: '_'})
     const environment = nconf.get('NODE:ENV') || 'production'
     this.load(environment)
   }
 
   get(key) {
-    return nconf.get(key)
+    return nconf.get(key) || constants[key]
   }
 
   set(key, value) {

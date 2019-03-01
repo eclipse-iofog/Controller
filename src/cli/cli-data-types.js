@@ -11,21 +11,15 @@
  *
  */
 
-/**
- * @return {number}
- */
 function Integer(value) {
   return Number(value)
 }
 
-/**
- * @return {number}
- */
 function Float(value) {
   return Number(value)
 }
 
 module.exports = {
   Integer: Integer,
-  Float: Float
+  Float: Float,
 }

@@ -11,15 +11,15 @@
  *
  */
 
-const BaseManager = require('./base-manager');
-const models = require('./../models');
-const USBInfo = models.USBInfo;
+const BaseManager = require('./base-manager')
+const models = require('./../models')
+const USBInfo = models.USBInfo
 
 class USBInfoManager extends BaseManager {
   getEntity() {
-    return USBInfo;
+    return USBInfo
   }
 }
 
-const instance = new USBInfoManager();
-module.exports = instance;
+const instance = new USBInfoManager()
+module.exports = instance

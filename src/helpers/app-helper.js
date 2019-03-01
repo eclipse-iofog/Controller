@@ -11,55 +11,54 @@
  *
  */
 
-const crypto = require('crypto');
-const Errors = require('./errors');
-const ErrorMessages = require('./error-messages');
+const crypto = require('crypto')
+const Errors = require('./errors')
 
-const logger = require('../logger');
-const fs = require('fs');
-const Config = require('../config');
-const path = require('path');
-const portscanner = require('portscanner');
-const format = require('string-format');
+const logger = require('../logger')
+const fs = require('fs')
+const Config = require('../config')
+const path = require('path')
+const portscanner = require('portscanner')
+const format = require('string-format')
 
-const ALGORITHM = 'aes-256-ctr';
-const IV_LENGTH = 16;
+const ALGORITHM = 'aes-256-ctr'
+const IV_LENGTH = 16
 
 
-const Transaction = require('sequelize/lib/transaction');
+const Transaction = require('sequelize/lib/transaction')
 
 function encryptText(text, salt) {
-  const iv = crypto.randomBytes(IV_LENGTH);
-  const processedSalt = crypto.createHash('md5').update(salt).digest("hex");
+  const iv = crypto.randomBytes(IV_LENGTH)
+  const processedSalt = crypto.createHash('md5').update(salt).digest('hex')
 
-  const cipher = crypto.createCipheriv(ALGORITHM, processedSalt, iv);
-  let crypted = cipher.update(text, 'utf8', 'hex');
-  crypted += cipher.final('hex');
-  return iv.toString('hex') + ':' + crypted.toString('hex');
+  const cipher = crypto.createCipheriv(ALGORITHM, processedSalt, iv)
+  let crypted = cipher.update(text, 'utf8', 'hex')
+  crypted += cipher.final('hex')
+  return iv.toString('hex') + ':' + crypted.toString('hex')
 }
 
 function decryptText(text, salt) {
-  const processedSalt = crypto.createHash('md5').update(salt).digest("hex");
+  const processedSalt = crypto.createHash('md5').update(salt).digest('hex')
 
-  const textParts = text.split(':');
-  const iv = Buffer.from(textParts.shift(), 'hex');
-  let encryptedText = Buffer.from(textParts.join(':'), 'hex');
+  const textParts = text.split(':')
+  const iv = Buffer.from(textParts.shift(), 'hex')
+  const encryptedText = Buffer.from(textParts.join(':'), 'hex')
 
-  const decipher = crypto.createDecipheriv(ALGORITHM, processedSalt, iv);
-  let dec = decipher.update(encryptedText, 'hex', 'utf8');
-  dec += decipher.final('utf8');
+  const decipher = crypto.createDecipheriv(ALGORITHM, processedSalt, iv)
+  let dec = decipher.update(encryptedText, 'hex', 'utf8')
+  dec += decipher.final('utf8')
   return dec
 }
 
 function generateRandomString(size) {
+  let randString = ''
+  const possible = '2346789bcdfghjkmnpqrtvwxyzBCDFGHJKLMNPQRTVWXYZ'
 
-  let randString = "";
-  const possible = "2346789bcdfghjkmnpqrtvwxyzBCDFGHJKLMNPQRTVWXYZ";
+  for (let i = 0; i < size; i++) {
+    randString += possible.charAt(Math.floor(Math.random() * possible.length))
+  }
 
-  for (let i = 0; i < size; i++)
-    randString += possible.charAt(Math.floor(Math.random() * possible.length));
-
-  return randString;
+  return randString
 }
 
 // Checks the status of a single port
@@ -67,60 +66,62 @@ function generateRandomString(size) {
 // returns 'open' if port is not available
 async function checkPortAvailability(port) {
   return new Promise((resolve) => {
-    return resolve(portscanner.checkPortStatus(port));
-  });
+    return resolve(portscanner.checkPortStatus(port))
+  })
 }
 
-const findAvailablePort = async function (hostname) {
-  let portRange = Config.get("Tunnel:PortRange");
+const findAvailablePort = async function(hostname) {
+  let portRange = Config.get('Tunnel:PortRange')
   if (!portRange) {
-    logger.warn('Port range was\'n specified in config. Default range (2000-10000) will be used');
-    portRange = '2000-10000';
+    logger.warn('Port range was\'n specified in config. Default range (2000-10000) will be used')
+    portRange = '2000-10000'
   }
-  let portBounds = portRange.split("-").map(i => parseInt(i));
-  return await portscanner.findAPortNotInUse(portBounds[0], portBounds[1], hostname);
-};
+  const portBounds = portRange.split('-').map((i) => parseInt(i))
+  return await portscanner.findAPortNotInUse(portBounds[0], portBounds[1], hostname)
+}
 
 function isFileExists(filePath) {
-  if (path.extname(filePath).indexOf(".") >= 0) {
-    return fs.existsSync(filePath);
+  if (path.extname(filePath).indexOf('.') >= 0) {
+    return fs.existsSync(filePath)
   } else {
-    return false;
+    return false
   }
 }
 
 function isValidPort(port) {
-  port = Number(port);
+  port = Number(port)
   if (Number.isInteger(port)) {
-    if (port >= 0 && port < 65535)
-      return true;
+    if (port >= 0 && port < 65535) {
+      return true
+    }
   }
-  return false;
+  return false
 }
 
 function isValidDomain(domain) {
-  const re = /^((?:(?:(?:\w[\.\-\+]?)*)\w)+)((?:(?:(?:\w[\.\-\+]?){0,62})\w)+)\.(\w{2,6})$/;
-  return re.test(domain);
+  const re = /^((?:(?:(?:\w[\.\-\+]?)*)\w)+)((?:(?:(?:\w[\.\-\+]?){0,62})\w)+)\.(\w{2,6})$/
+  return re.test(domain)
 }
 
-const isValidPublicIP = function (publicIP) {
-  const re = /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$|^(([a-zA-Z]|[a-zA-Z][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])$|^\s*((([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})|((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})|((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})|((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})|((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(:(((:[0-9A-Fa-f]{1,4}){1,7})|((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:)))(%.+)?\s*$/;
-  return re.test(publicIP);
-};
+const isValidPublicIP = function(publicIP) {
+  /* eslint-disable max-len */
+  const re = /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$|^(([a-zA-Z]|[a-zA-Z][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])$|^\s*((([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})|((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})|((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})|((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})|((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(:(((:[0-9A-Fa-f]{1,4}){1,7})|((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:)))(%.+)?\s*$/
+  return re.test(publicIP)
+}
 
 function generateAccessToken() {
-  let token = '', i;
+  let token = ''; let i
   for (i = 0; i < 8; i++) {
-    token += ((0 + (Math.floor(Math.random() * (Math.pow(2, 31))) + 1).toString(16)).slice(-8)).substr(-8);
+    token += ((0 + (Math.floor(Math.random() * (Math.pow(2, 31))) + 1).toString(16)).slice(-8)).substr(-8)
   }
-  return token;
+  return token
 }
 
 function checkTransaction(transaction) {
   if (isTest()) {
     return
   }
-  //TODO [when transactions concurrency issue fixed]: Remove '!transaction.fakeTransaction'
+  // TODO [when transactions concurrency issue fixed]: Remove '!transaction.fakeTransaction'
   if (!transaction || (!(transaction instanceof Transaction) && !transaction.fakeTransaction)) {
     throw new Errors.TransactionError()
   }
@@ -133,205 +134,36 @@ function deleteUndefinedFields(obj) {
 
   Object.keys(obj).forEach((fld) => {
     if (obj[fld] === undefined) {
-      delete  obj[fld]
+      delete obj[fld]
     } else if (obj[fld] instanceof Object) {
       obj[fld] = deleteUndefinedFields(obj[fld])
     }
-  });
+  })
 
   return obj
 }
 
 function validateBooleanCliOptions(trueOption, falseOption) {
   if (trueOption && falseOption) {
-    throw new Errors.ValidationError("Two opposite can not be used simultaneously");
+    throw new Errors.ValidationError('Two opposite can not be used simultaneously')
   }
   return trueOption ? true : (falseOption ? false : undefined)
 }
 
-function formatMessage() {
-  const argsArray = Array.prototype.slice.call(arguments);
-  return format.apply(null, argsArray);
+function formatMessage(...args) {
+  return format(...args)
 }
 
 function stringifyCliJsonSchema(json) {
   return JSON.stringify(json, null, 2)
-    .replace(/{/g, "\\{")
-    .replace(/}/g, "\\}");
-}
-
-function handleCLIError(error) {
-  switch (error.name) {
-    case "UNKNOWN_OPTION":
-      console.log("Invalid argument '" + error.optionName.split('-').join('') + "'");
-      break;
-    case "UNKNOWN_VALUE":
-      console.log("Invalid value " + error.value);
-      break;
-    case "InvalidArgumentError":
-      console.log(error.message);
-      break;
-    case "InvalidArgumentTypeError":
-      console.log(error.message);
-      break;
-    case "ALREADY_SET":
-      console.log("Parameter '" + error.optionName + "' is used multiple times");
-      break;
-    default:
-      console.log(JSON.stringify(error));
-      break;
-  }
+      .replace(/{/g, '\\{')
+      .replace(/}/g, '\\}')
 }
 
 function trimCertificate(cert) {
-  let result = cert.replace(/(^[\s\S]*-{3,}BEGIN CERTIFICATE-{3,}[\s]*)/, "");
-  result = result.replace(/([\s]*-{3,}END CERTIFICATE-{3,}[\s\S]*$)/, "");
-  return result;
-}
-
-function argsArrayAsMap(args) {
-  let argsVars = args.join(' ').split(/(?= -{1,2}[^-]+)/);
-  const argsMap = new Map();
-  argsVars
-    .map(pair => pair.trim())
-    .map(pair => {
-      const spaceIndex = pair.indexOf(' ');
-      let key, values;
-      if (spaceIndex !== -1) {
-        key = pair.substr(0, pair.indexOf(' '));
-        values = pair.substr(pair.indexOf(' ')+1).split(' ');
-        argsMap.set(key, values);
-      } else {
-        key = pair;
-        values = [];
-      }
-      argsMap.set(key, values);
-
-    });
-  return argsMap;
-}
-
-function validateParameters(command, commandDefinitions, args) {
-  // 1st argument = command
-  args.shift();
-
-  const possibleAliasesList = _getPossibleAliasesList(command, commandDefinitions);
-  const possibleArgsList = _getPossibleArgsList(command, commandDefinitions);
-
-  let expectedValueType;
-  let currentArgName;
-
-  if (args.length === 0) {
-    return
-  }
-  const argsMap = argsArrayAsMap(args);
-
-  argsMap.forEach((values, key) => {
-    if (key.startsWith("--")) { // argument
-      // '--ssl-cert' format -> 'ssl-cert' format
-      const argument = key.substr(2);
-      _validateArg(argument, possibleArgsList);
-      currentArgName = argument;
-      expectedValueType = _getValType(argument, commandDefinitions);
-    } else if (key.startsWith("-")) { // alias
-      // '-q' format -> 'q' format
-      const alias = key.substr(1);
-      _validateArg(alias, possibleAliasesList);
-      currentArgName = alias;
-      expectedValueType = _getValType(alias, commandDefinitions);
-    }
-
-    let valType;
-    if (values.length === 0) {
-      valType = 'boolean';
-    } else if (values.length === 1) {
-      const firstVal = Number(values[0]);
-      if (Number.isNaN(firstVal.valueOf())) {
-        valType = 'string';
-      } else if (Number.isInteger(firstVal.valueOf())) {
-        valType = 'integer';
-      } else {
-        valType = 'float'
-      }
-    }
-    //TODO else validate multiply parameters. Add after multiply parameters will be used in cli api
-
-    let isValidType = true;
-    if (expectedValueType === 'string' && valType === 'boolean') {
-      isValidType = false;
-    } else if ((expectedValueType === 'float' || expectedValueType === 'number')
-      && (valType !== 'float' && valType !== 'number' && valType !== 'integer')) {
-      isValidType = false;
-    } else if (expectedValueType === 'integer' && valType !== 'integer') {
-      isValidType = false;
-    } else if (expectedValueType === 'boolean' && valType !== 'boolean') {
-      isValidType = false;
-    }
-
-    if (!isValidType) {
-      throw new Errors.InvalidArgumentTypeError(formatMessage(ErrorMessages.INVALID_CLI_ARGUMENT_TYPE, currentArgName, expectedValueType));
-    }
-  })
-}
-
-function _validateArg(arg, aliasesList) {
-  const valid = aliasesList.includes(arg);
-  if (!valid) {
-    throw new Errors.InvalidArgumentError("Invalid argument '" + arg + "'");
-  }
-}
-
-
-function _getPossibleAliasesList(command, commandDefinitions) {
-  const possibleAliasesList = [];
-
-  for (const definition of commandDefinitions) {
-    const group = definition.group;
-    const isGroupArray = group.constructor === Array;
-    if (isGroupArray) {
-      for (const gr of group) {
-        if (gr === command) {
-          possibleAliasesList.push(definition.alias);
-          break;
-        }
-      }
-    } else {
-      if (group === command) {
-        possibleAliasesList.push(definition.alias);
-      }
-    }
-  }
-
-  return possibleAliasesList;
-}
-
-function _getPossibleArgsList(command, commandDefinitions) {
-  const possibleArgsList = [];
-
-  for (const definition of commandDefinitions) {
-    const group = definition.group;
-    const isGroupArray = group.constructor === Array;
-    if (isGroupArray) {
-      for (const gr of group) {
-        if (gr === command) {
-          possibleArgsList.push(definition.name);
-          break;
-        }
-      }
-    } else {
-      if (group === command) {
-        possibleArgsList.push(definition.name);
-      }
-    }
-  }
-
-  return possibleArgsList;
-}
-
-function _getValType(arg, commandDefinitions) {
-  const command = commandDefinitions
-    .filter(def => def.name === arg || def.alias === arg)[0];
-  return command.type.name.toLowerCase();
+  let result = cert.replace(/(^[\s\S]*-{3,}BEGIN CERTIFICATE-{3,}[\s]*)/, '')
+  result = result.replace(/([\s]*-{3,}END CERTIFICATE-{3,}[\s\S]*$)/, '')
+  return result
 }
 
 function isTest() {
@@ -340,17 +172,18 @@ function isTest() {
 
 function isEmpty(obj) {
   for (const key in obj) {
-    if (obj.hasOwnProperty(key))
-      return false;
+    if (obj.hasOwnProperty(key)) {
+      return false
+    }
   }
-  return true;
+  return true
 }
 
 function isOnline() {
-  const daemon = require('../daemon');
+  const daemon = require('../daemon')
 
-  let pid = daemon.status();
-  return pid !== 0;
+  const pid = daemon.status()
+  return pid !== 0
 }
 
 module.exports = {
@@ -369,10 +202,8 @@ module.exports = {
   findAvailablePort,
   stringifyCliJsonSchema,
   isValidPublicIP,
-  handleCLIError,
   trimCertificate,
-  validateParameters,
   isTest,
   isEmpty,
-  isOnline
-};
+  isOnline,
+}

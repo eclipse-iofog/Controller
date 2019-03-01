@@ -8,18 +8,18 @@
  *  *
  *  * SPDX-License-Identifier: EPL-2.0
  *  *******************************************************************************
- *  
+ *
  */
 
-const BaseManager = require('./base-manager');
-const models = require('./../models');
-const ConnectorPort = models.ConnectorPort;
+const BaseManager = require('./base-manager')
+const models = require('./../models')
+const ConnectorPort = models.ConnectorPort
 
 class ConnectorPortManager extends BaseManager {
   getEntity() {
-    return ConnectorPort;
+    return ConnectorPort
   }
 }
 
-const instance = new ConnectorPortManager();
-module.exports = instance;
+const instance = new ConnectorPortManager()
+module.exports = instance

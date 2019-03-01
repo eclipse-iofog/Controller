@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 module.exports = {
   up: (queryInterface, Sequelize) => {
     return queryInterface.createTable('Registries', {
@@ -7,49 +7,49 @@ module.exports = {
         primaryKey: true,
         autoIncrement: true,
         allowNull: false,
-        field: 'id'
+        field: 'id',
       },
       url: {
         type: Sequelize.TEXT,
-        field: 'url'
+        field: 'url',
       },
       isPublic: {
         type: Sequelize.BOOLEAN,
-        field: 'is_public'
+        field: 'is_public',
       },
       secure: {
         type: Sequelize.BOOLEAN,
-        field: 'secure'
+        field: 'secure',
       },
       certificate: {
         type: Sequelize.TEXT,
-        field: 'certificate'
+        field: 'certificate',
       },
       requiresCert: {
         type: Sequelize.BOOLEAN,
-        field: 'requires_cert'
+        field: 'requires_cert',
       },
       username: {
         type: Sequelize.TEXT,
-        field: 'user_name'
+        field: 'user_name',
       },
       password: {
         type: Sequelize.TEXT,
-        field: 'password'
+        field: 'password',
       },
       userEmail: {
         type: Sequelize.TEXT,
-        field: 'user_email'
+        field: 'user_email',
       },
       userId: {
         type: Sequelize.INTEGER,
         field: 'user_id',
-        references: { model: 'Users', key: 'id' },
-        onDelete: 'cascade'
-      }
-    });
+        references: {model: 'Users', key: 'id'},
+        onDelete: 'cascade',
+      },
+    })
   },
   down: (queryInterface, Sequelize) => {
-    return queryInterface.dropTable('Registries');
-  }
-};
+    return queryInterface.dropTable('Registries')
+  },
+}
