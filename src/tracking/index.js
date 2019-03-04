@@ -14,16 +14,17 @@
 const {isOnline} = require('../helpers/app-helper')
 const https = require('https')
 const EventTypes = require('../enums/tracking-event-type')
-const os = require('os')
+const fs = require('fs')
 const AppHelper = require('../helpers/app-helper')
-const crypto = require('crypto')
+const Constants = require('../helpers/constants')
+const logger = require('../logger')
 
 const TrackingEventManager = require('../sequelize/managers/tracking-event-manager')
 const Transaction = require('sequelize/lib/transaction')
 
 const fakeTransactionObject = {fakeTransaction: true}
 
-const trackingUuid = getUniqueTrackingUuid()
+const trackingUuid = initTrackingUuid()
 
 function buildEvent(eventType, res, args, functionName) {
   const eventInfo = {
@@ -93,30 +94,29 @@ function sendEvents(events) {
   request.end()
 }
 
-function getUniqueTrackingUuid() {
+function initTrackingUuid() {
   let uuid
-
+  const path = `${Constants.ROOT_DIR}/src/config/tracking-uuid`
   try {
-    let allMacs = ''
-    const interfaces = os.networkInterfaces()
-    for (const i in interfaces) {
-      if (interfaces.hasOwnProperty(i)) {
-        let networkInterface = interfaces[i]
-        if (Array.isArray(networkInterface)) {
-          networkInterface = networkInterface.length > 0 ? networkInterface[0] : null
-        }
-
-        if (!networkInterface || networkInterface.internal) {
-          continue
-        }
-
-        allMacs += networkInterface.mac + '-'
-      }
+    if (!fs.existsSync(path)) {
+      return createTrackingUuidFile(path)
     }
-    uuid = crypto.createHash('md5').update(allMacs).digest('hex')
+
+    uuid = fs.readFileSync(path).toString('utf8')
+    if (uuid.length < 32) {
+      return createTrackingUuidFile(path)
+    }
   } catch (e) {
-    uuid = 'random_' + AppHelper.generateRandomString(32)
+    logger.silly('Error while getting tracking UUID')
+    uuid = `temp_${AppHelper.generateRandomString(32)}`
   }
+  return uuid
+}
+
+function createTrackingUuidFile(path) {
+  const uuid = AppHelper.generateRandomString(32)
+  fs.writeFileSync(path, uuid)
+
   return uuid
 }
 
@@ -140,7 +140,6 @@ async function processEvent(event, fArgs) {
 }
 
 module.exports = {
-  trackingUuid: trackingUuid,
   buildEvent: buildEvent,
   sendEvents: sendEvents,
   processEvent: processEvent,
