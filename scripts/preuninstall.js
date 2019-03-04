@@ -13,7 +13,7 @@
 
 const fs = require('fs')
 const version = require('../package').version
-const {backupDBs, backupConfigs, INSTALLATION_VARIABLES_FILE} = require('./util')
+const {backupDBs, backupConfigs, backupTrackingUuid, INSTALLATION_VARIABLES_FILE} = require('./util')
 
 function preuninstall() {
   const instalationVars = {
@@ -24,6 +24,7 @@ function preuninstall() {
 
   backupDBs()
   backupConfigs()
+  backupTrackingUuid()
 }
 
 module.exports = {
