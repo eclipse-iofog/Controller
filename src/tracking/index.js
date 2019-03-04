@@ -102,7 +102,7 @@ function initTrackingUuid() {
       return createTrackingUuidFile(path)
     }
 
-    const uuid = fs.readFileSync(path).toString('utf8')
+    uuid = fs.readFileSync(path).toString('utf8')
     if (uuid.length < 32) {
       return createTrackingUuidFile(path)
     }
@@ -140,7 +140,6 @@ async function processEvent(event, fArgs) {
 }
 
 module.exports = {
-  trackingUuid: trackingUuid,
   buildEvent: buildEvent,
   sendEvents: sendEvents,
   processEvent: processEvent,
