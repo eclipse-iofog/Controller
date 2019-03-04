@@ -17,6 +17,7 @@ const EventTypes = require('../enums/tracking-event-type')
 const fs = require('fs')
 const AppHelper = require('../helpers/app-helper')
 const Constants = require('../helpers/constants')
+const logger = require('../logger')
 
 const TrackingEventManager = require('../sequelize/managers/tracking-event-manager')
 const Transaction = require('sequelize/lib/transaction')
@@ -106,7 +107,7 @@ function initTrackingUuid() {
       return createTrackingUuidFile(path)
     }
   } catch (e) {
-    logSilly('Error while getting tracking UUID')
+    logger.silly('Error while getting tracking UUID')
     uuid = `temp_${AppHelper.generateRandomString(32)}`
   }
   return uuid
