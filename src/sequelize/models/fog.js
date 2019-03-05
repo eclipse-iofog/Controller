@@ -89,6 +89,16 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.FLOAT,
       field: 'system-total-cpu',
     },
+    securityStatus: {
+      type: DataTypes.TEXT,
+      defaultValue: 'OK',
+      field: 'security_status',
+    },
+    securityViolationInfo: {
+      type: DataTypes.TEXT,
+      defaultValue: 'No violation',
+      field: 'security_violation_info',
+    },
     catalogItemStatus: {
       type: DataTypes.TEXT,
       field: 'catalog_item_status',
