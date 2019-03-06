@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "f6f55915-03c9-4758-afb2-80734c2e9e01",
+		"_postman_id": "632bbd85-6e5a-47f1-8fae-d2dad798f7ef",
 		"name": "Controller Testing",
 		"description": "iofog-controller collection",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -1667,6 +1667,54 @@
 								"v3",
 								"agent",
 								"image-snapshot"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Tracking",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "8774bfa2-c3f6-46e1-8965-cedd4322ccf2",
+								"exec": [
+									"tests[\"Status code is 204\"] = responseCode.code === 204;"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{agent-token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"events\": [\n        {\n            \"uuid\": \"test_tracking\",\n            \"sourceType\": \"agent\",\n            \"timestamp\": 1551694999,\n            \"type\": \"test\",\n            \"data\": {\n                \"event\":\"test\"\n            }\n        }\n    ]\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/agent/tracking",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"agent",
+								"tracking"
 							]
 						}
 					},
