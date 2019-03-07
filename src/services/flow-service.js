@@ -119,6 +119,19 @@ const getFlow = async function(flowId, user, isCLI, transaction) {
   return flow
 }
 
+const getFlowByName = async function(flowName, user, transaction) {
+  const where = {name: flowName, userId: user.id}
+
+  const attributes = {exclude: ['created_at', 'updated_at']}
+
+  const flow = await FlowManager.findOneWithAttributes(where, attributes, transaction)
+
+  if (!flow) {
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_NAME, flowName))
+  }
+  return flow
+}
+
 
 const _checkForDuplicateName = async function(name, flowId, userId, transaction) {
   if (name) {
@@ -154,6 +167,7 @@ module.exports = {
   updateFlow: TransactionDecorator.generateTransaction(updateFlow),
   getUserFlows: TransactionDecorator.generateTransaction(getUserFlows),
   getAllFlows: TransactionDecorator.generateTransaction(getAllFlows),
+  getFlowByName: TransactionDecorator.generateTransaction(getFlowByName),
   getFlowWithTransaction: TransactionDecorator.generateTransaction(getFlow),
   getFlow: getFlow,
 }

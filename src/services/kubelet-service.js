@@ -83,11 +83,7 @@ const kubeletUpdatePod = async function(uploadPodData, fogNodeUuid, user, transa
 const kubeletDeletePod = async function(podData, fogNodeUuid, user, transaction) {
   const flowName = podData.metadata.name
 
-  const flows = await FlowService.getAllFlows(false, transaction)
-  const flow = flows.flows.find((flow) => flow.name === flowName)
-  if (!flow) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, fogNodeUuid))
-  }
+  const flow = await FlowService.getFlowByName(flowName, user, transaction)
 
   const existingMicroservices = await MicroservicesService.listMicroservices(flow.id, user, false, transaction)
   existingMicroservices.microservices.forEach(async (ms) => {
@@ -98,11 +94,7 @@ const kubeletDeletePod = async function(podData, fogNodeUuid, user, transaction)
 }
 
 const kubeletGetPod = async function(namespace, name, fogNodeUuid, user, transaction) {
-  const flows = await FlowService.getAllFlows(false, transaction)
-  const flow = flows.flows.find((flow) => flow.name === name)
-  if (!flow) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, fogNodeUuid))
-  }
+  const flow = await FlowService.getFlowByName(name, user, transaction)
 
   return JSON.parse(flow.description)
 }
@@ -113,11 +105,7 @@ const kubeletGetContainerLogs = async function(namespace, podName, containerName
 }
 
 const kubeletGetPodStatus = async function(namespace, name, fogNodeUuid, user, transaction) {
-  const flows = await FlowService.getAllFlows(false, transaction)
-  const flow = flows.flows.find((flow) => flow.name === name)
-  if (!flow) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, fogNodeUuid))
-  }
+  await FlowService.getFlowByName(name, transaction)
 
   const pod = await kubeletGetPod(namespace, name, fogNodeUuid, user, transaction)
   const status = {
