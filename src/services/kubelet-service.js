@@ -13,9 +13,6 @@
 
 const moment = require('moment')
 
-const AppHelper = require('../helpers/app-helper')
-const ErrorMessages = require('../helpers/error-messages')
-const Errors = require('../helpers/errors')
 const FlowService = require('./flow-service')
 const IOFogService = require('./iofog-service')
 const KubeletAccessTokenService = require('./kubelet-access-token-service')
@@ -31,7 +28,7 @@ const kubeletCreatePod = async function(createPodData, fogNodeUuid, user, transa
     isActivated: true,
     description: JSON.stringify(createPodData),
   }
-  const flow = await FlowService.getFlowByName(flowData.name)
+  const flow = await FlowService.getFlowByName(flowData.name, user, transaction)
 
   const existingMicroservices = await MicroservicesService.listMicroservices(flow.id, user, false, transaction)
 
@@ -101,7 +98,7 @@ const kubeletGetContainerLogs = async function(namespace, podName, containerName
 }
 
 const kubeletGetPodStatus = async function(namespace, name, fogNodeUuid, user, transaction) {
-  await FlowService.getFlowByName(name, transaction)
+  await FlowService.getFlowByName(name, user, transaction)
 
   const pod = await kubeletGetPod(namespace, name, fogNodeUuid, user, transaction)
   const status = {
