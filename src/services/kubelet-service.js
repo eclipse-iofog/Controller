@@ -31,11 +31,7 @@ const kubeletCreatePod = async function(createPodData, fogNodeUuid, user, transa
     isActivated: true,
     description: JSON.stringify(createPodData),
   }
-  const flows = await FlowService.getAllFlows(false, transaction)
-  let flow = flows.flows.find((flow) => flow.name === flowData.name)
-  if (!flow) {
-    flow = await FlowService.createFlow(flowData, user, false, transaction)
-  }
+  const flow = await FlowService.getFlowByName(flowData.name)
 
   const existingMicroservices = await MicroservicesService.listMicroservices(flow.id, user, false, transaction)
 
