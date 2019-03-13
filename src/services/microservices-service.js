@@ -503,11 +503,11 @@ async function listVolumeMappings(microserviceUuid, user, isCLI, transaction) {
 // this function works with escape and unescape config, in case of unescaped config, the first split will not work,
 // but the second will work
 function _validateMicroserviceConfig(config) {
-  if (config === undefined || config === '{}') {
-    return '{}'
+  let result
+  if (config) {
+    result = config.split('\\"').join('"').split('"').join('\"')
   }
-
-  return config.split('\\"').join('"').split('"').join('\"')
+  return result
 }
 
 async function _createMicroservice(microserviceData, user, isCLI, transaction) {
