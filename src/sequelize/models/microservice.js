@@ -10,7 +10,7 @@ module.exports = (sequelize, DataTypes) => {
     config: {
       type: DataTypes.TEXT,
       field: 'config',
-      defaultValue: '',
+      defaultValue: '{}',
     },
     name: {
       type: DataTypes.TEXT,
