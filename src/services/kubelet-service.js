@@ -12,6 +12,8 @@
  */
 
 const moment = require('moment')
+const config = require('../config')
+const request = require('request-promise')
 
 const FlowService = require('./flow-service')
 const IOFogService = require('./iofog-service')
@@ -29,7 +31,7 @@ const kubeletCreatePod = async function(createPodData, fogNodeUuid, user, transa
     description: JSON.stringify(createPodData),
   }
   try {
-    const flow = await FlowService.getFlowByName(flowData.name, user, transaction)
+    await FlowService.getFlowByName(flowData.name, user, transaction)
   } catch (e) {
     flow = await FlowService.createFlow(flowData, user, false, transaction)
   }
@@ -288,6 +290,19 @@ const microservicesTopologicalOrder = function(msMetadata) {
   return microservices.map((idx) => Object.assign({originalIndex: idx}, msMetadata[idx]))
 }
 
+async function informKublete(iofogUuid, method) {
+  const kubleteUri = config.get('Kubelete:Uri')
+  const options = {
+    uri: kubleteUri + '/node',
+    qs: {
+      uuid: iofogUuid,
+    },
+    method: method,
+  }
+
+  await request(options)
+}
+
 module.exports = {
   kubeletCreatePod: TransactionDecorator.generateFakeTransaction(kubeletCreatePod),
   kubeletUpdatePod: TransactionDecorator.generateFakeTransaction(kubeletUpdatePod),
@@ -301,4 +316,5 @@ module.exports = {
   kubeletGetNodeAddresses: TransactionDecorator.generateFakeTransaction(kubeletGetNodeAddresses),
   kubeletGetVkToken: TransactionDecorator.generateFakeTransaction(kubeletGetVkToken),
   kubeletGetSchedulerToken: TransactionDecorator.generateFakeTransaction(kubeletGetSchedulerToken),
+  informKublete: informKublete,
 }
