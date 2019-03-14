@@ -21,7 +21,7 @@ const ChangeTrackingService = require('./change-tracking-service')
 const Sequelize = require('sequelize')
 const Op = Sequelize.Op
 
-const createFlow = async function(flowData, user, isCLI, transaction) {
+const createFlowEndPoint = async function(flowData, user, isCLI, transaction) {
   await Validator.validate(flowData, Validator.schemas.flowCreate)
 
   await _checkForDuplicateName(flowData.name, null, user.id, transaction)
@@ -42,7 +42,7 @@ const createFlow = async function(flowData, user, isCLI, transaction) {
   }
 }
 
-const deleteFlow = async function(flowId, user, isCLI, transaction) {
+const deleteFlowEndPoint = async function(flowId, user, isCLI, transaction) {
   const whereObj = {
     id: flowId,
     userId: user.id,
@@ -54,10 +54,10 @@ const deleteFlow = async function(flowId, user, isCLI, transaction) {
   await FlowManager.delete(where, transaction)
 }
 
-const updateFlow = async function(flowData, flowId, user, isCLI, transaction) {
+const updateFlowEndPoint = async function(flowData, flowId, user, isCLI, transaction) {
   await Validator.validate(flowData, Validator.schemas.flowUpdate)
 
-  const oldFlow = await getFlow(flowId, user, isCLI, transaction)
+  const oldFlow = await getFlowEndPoint(flowId, user, isCLI, transaction)
   if (!oldFlow) {
     throw new Errors.NotFoundError(ErrorMessages.INVALID_FLOW_ID)
   }
@@ -84,7 +84,7 @@ const updateFlow = async function(flowData, flowId, user, isCLI, transaction) {
   }
 }
 
-const getUserFlows = async function(user, isCLI, transaction) {
+const getUserFlowsEndPoint = async function(user, isCLI, transaction) {
   const flow = {
     userId: user.id,
   }
@@ -96,7 +96,7 @@ const getUserFlows = async function(user, isCLI, transaction) {
   }
 }
 
-const getAllFlows = async function(isCLI, transaction) {
+const getAllFlowsEndPoint = async function(isCLI, transaction) {
   const attributes = {exclude: ['created_at', 'updated_at']}
   const flows = await FlowManager.findAllWithAttributes({}, attributes, transaction)
   return {
@@ -104,7 +104,7 @@ const getAllFlows = async function(isCLI, transaction) {
   }
 }
 
-const getFlow = async function(flowId, user, isCLI, transaction) {
+async function getFlow(flowId, user, isCLI, transaction) {
   const where = isCLI
     ? {id: flowId}
     : {id: flowId, userId: user.id}
@@ -117,6 +117,10 @@ const getFlow = async function(flowId, user, isCLI, transaction) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_ID, flowId))
   }
   return flow
+}
+
+const getFlowEndPoint = async function(flowId, user, isCLI, transaction) {
+  return await getFlow(flowId, user, isCLI, transaction)
 }
 
 
@@ -149,11 +153,11 @@ async function _updateChangeTrackingsByFlowId(flowId, transaction) {
 }
 
 module.exports = {
-  createFlow: TransactionDecorator.generateTransaction(createFlow),
-  deleteFlow: TransactionDecorator.generateTransaction(deleteFlow),
-  updateFlow: TransactionDecorator.generateTransaction(updateFlow),
-  getUserFlows: TransactionDecorator.generateTransaction(getUserFlows),
-  getAllFlows: TransactionDecorator.generateTransaction(getAllFlows),
-  getFlowWithTransaction: TransactionDecorator.generateTransaction(getFlow),
+  createFlowEndPoint: TransactionDecorator.generateTransaction(createFlowEndPoint),
+  deleteFlowEndPoint: TransactionDecorator.generateTransaction(deleteFlowEndPoint),
+  updateFlowEndPoint: TransactionDecorator.generateTransaction(updateFlowEndPoint),
+  getUserFlowsEndPoint: TransactionDecorator.generateTransaction(getUserFlowsEndPoint),
+  getAllFlowsEndPoint: TransactionDecorator.generateTransaction(getAllFlowsEndPoint),
+  getFlowEndPoint: TransactionDecorator.generateTransaction(getFlowEndPoint),
   getFlow: getFlow,
 }

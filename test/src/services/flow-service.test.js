@@ -18,7 +18,7 @@ describe('Flow Service', () => {
 
   afterEach(() => $sandbox.restore())
 
-  describe('.createFlow()', () => {
+  describe('.createFlowEndPoint()', () => {
     const transaction = {}
     const error = 'Error!'
 
@@ -45,7 +45,7 @@ describe('Flow Service', () => {
       id: 25,
     }
 
-    def('subject', () => $subject.createFlow(flowData, user, isCLI, transaction))
+    def('subject', () => $subject.createFlowEndPoint(flowData, user, isCLI, transaction))
     def('validatorResponse', () => Promise.resolve(true))
     def('findFlowResponse', () => Promise.resolve())
     def('deleteUndefinedFieldsResponse', () => flowToCreate)
@@ -130,7 +130,7 @@ describe('Flow Service', () => {
     })
   })
 
-  describe('.deleteFlow()', () => {
+  describe('.deleteFlowEndPoint()', () => {
     const transaction = {}
     const error = 'Error!'
 
@@ -153,7 +153,7 @@ describe('Flow Service', () => {
       ],
     }
 
-    def('subject', () => $subject.deleteFlow(flowId, user, isCLI, transaction))
+    def('subject', () => $subject.deleteFlowEndPoint(flowId, user, isCLI, transaction))
     def('deleteUndefinedFieldsResponse', () => whereObj)
     def('findFlowMicroservicesResponse', () => Promise.resolve(flowWithMicroservices))
     def('updateChangeTrackingResponse', () => Promise.resolve())
@@ -238,7 +238,7 @@ describe('Flow Service', () => {
   })
 
 
-  describe('.updateFlow()', () => {
+  describe('.updateFlowEndPoint()', () => {
     const transaction = {}
     const error = 'Error!'
 
@@ -268,7 +268,7 @@ describe('Flow Service', () => {
       ],
     }
 
-    def('subject', () => $subject.updateFlow(flowData, flowId, user, isCLI, transaction))
+    def('subject', () => $subject.updateFlowEndPoint(flowData, flowId, user, isCLI, transaction))
     def('validatorResponse', () => Promise.resolve(true))
     def('findExcludedFlowResponse', () => Promise.resolve(oldFlowData))
     def('findFlowResponse', () => Promise.resolve())
@@ -418,7 +418,7 @@ describe('Flow Service', () => {
     })
   })
 
-  describe('.getUserFlows()', () => {
+  describe('.getUserFlowsEndPoint()', () => {
     const transaction = {}
     const error = 'Error!'
 
@@ -430,7 +430,7 @@ describe('Flow Service', () => {
       userId: user.id,
     }
 
-    def('subject', () => $subject.getUserFlows(user, isCLI, transaction))
+    def('subject', () => $subject.getUserFlowsEndPoint(user, isCLI, transaction))
     def('findExcludedFlowResponse', () => Promise.resolve())
 
     beforeEach(() => {
@@ -459,11 +459,11 @@ describe('Flow Service', () => {
   })
 
 
-  describe('.getAllFlows()', () => {
+  describe('.getAllFlowsEndPoint()', () => {
     const transaction = {}
     const error = 'Error!'
 
-    def('subject', () => $subject.getAllFlows(isCLI, transaction))
+    def('subject', () => $subject.getAllFlowsEndPoint(isCLI, transaction))
     def('findAllFlowsResponse', () => Promise.resolve())
 
     beforeEach(() => {

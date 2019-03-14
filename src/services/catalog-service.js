@@ -27,7 +27,7 @@ const MicroseriveStates = require('../enums/microservice-state')
 const TrackingDecorator = require('../decorators/tracking-decorator')
 const TrackingEventType = require('../enums/tracking-event-type')
 
-const createCatalogItem = async function(data, user, transaction) {
+const createCatalogItemEndPoint = async function(data, user, transaction) {
   await Validator.validate(data, Validator.schemas.catalogItemCreate)
   await _checkForDuplicateName(data.name, {userId: user.id}, transaction)
   await _checkForRestrictedPublisher(data.publisher)
@@ -41,7 +41,7 @@ const createCatalogItem = async function(data, user, transaction) {
   }
 }
 
-const updateCatalogItem = async function(id, data, user, isCLI, transaction) {
+const updateCatalogItemEndPoint = async function(id, data, user, isCLI, transaction) {
   await Validator.validate(data, Validator.schemas.catalogItemUpdate)
 
   const where = isCLI
@@ -59,7 +59,7 @@ const updateCatalogItem = async function(id, data, user, isCLI, transaction) {
   await _updateCatalogItemIOTypes(data, where, transaction)
 }
 
-const listCatalogItems = async function(user, isCLI, transaction) {
+const listCatalogItemsEndPoint = async function(user, isCLI, transaction) {
   const where = isCLI
     ? {}
     : {
@@ -77,7 +77,7 @@ const listCatalogItems = async function(user, isCLI, transaction) {
   }
 }
 
-const getCatalogItem = async function(id, user, isCLI, transaction) {
+async function getCatalogItem(id, user, isCLI, transaction) {
   const where = isCLI
     ? {id: id}
     : {
@@ -97,7 +97,11 @@ const getCatalogItem = async function(id, user, isCLI, transaction) {
   return item
 }
 
-const deleteCatalogItem = async function(id, user, isCLI, transaction) {
+const getCatalogItemEndPoint = async function(id, user, isCLI, transaction) {
+  return await getCatalogItem(id, user, isCLI, transaction)
+}
+
+const deleteCatalogItemEndPoint = async function(id, user, isCLI, transaction) {
   const where = isCLI
     ? {
       id: id,
@@ -342,14 +346,15 @@ const _updateCatalogItemIOTypes = async function(data, where, transaction) {
 }
 
 // decorated functions
-const createCatalogItemWithTracking = TrackingDecorator.trackEvent(createCatalogItem, TrackingEventType.CATALOG_CREATED)
+const createCatalogItemWithTracking = TrackingDecorator.trackEvent(createCatalogItemEndPoint, TrackingEventType.CATALOG_CREATED)
 
 module.exports = {
-  createCatalogItem: TransactionDecorator.generateTransaction(createCatalogItemWithTracking),
-  listCatalogItems: TransactionDecorator.generateTransaction(listCatalogItems),
-  getCatalogItem: TransactionDecorator.generateTransaction(getCatalogItem),
-  deleteCatalogItem: TransactionDecorator.generateTransaction(deleteCatalogItem),
-  updateCatalogItem: TransactionDecorator.generateTransaction(updateCatalogItem),
+  createCatalogItemEndPoint: TransactionDecorator.generateTransaction(createCatalogItemWithTracking),
+  listCatalogItemsEndPoint: TransactionDecorator.generateTransaction(listCatalogItemsEndPoint),
+  getCatalogItemEndPoint: TransactionDecorator.generateTransaction(getCatalogItemEndPoint),
+  deleteCatalogItemEndPoint: TransactionDecorator.generateTransaction(deleteCatalogItemEndPoint),
+  updateCatalogItemEndPoint: TransactionDecorator.generateTransaction(updateCatalogItemEndPoint),
+  getCatalogItem: getCatalogItem,
   getNetworkCatalogItem: getNetworkCatalogItem,
   getBluetoothCatalogItem: getBluetoothCatalogItem,
   getHalCatalogItem: getHalCatalogItem,

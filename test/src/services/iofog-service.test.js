@@ -21,7 +21,7 @@ describe('ioFog Service', () => {
 
   afterEach(() => $sandbox.restore())
 
-  describe('.createFog()', () => {
+  describe('.createFogEndPoint()', () => {
     const transaction = {}
     const error = 'Error!'
 
@@ -122,7 +122,7 @@ describe('ioFog Service', () => {
       uuid: uuid,
     }
 
-    def('subject', () => $subject.createFog(fogData, user, isCLI, transaction))
+    def('subject', () => $subject.createFogEndPoint(fogData, user, isCLI, transaction))
     def('validatorResponse', () => Promise.resolve(true))
     def('generateRandomStringResponse', () => uuid)
     def('generateRandomStringResponse2', () => uuid2)
@@ -353,7 +353,7 @@ describe('ioFog Service', () => {
     })
   })
 
-  describe('.updateFog()', () => {
+  describe('.updateFogEndPoint()', () => {
     const transaction = {}
     const error = 'Error!'
 
@@ -474,7 +474,7 @@ describe('ioFog Service', () => {
       configLastUpdated: date,
     }
 
-    def('subject', () => $subject.updateFog(fogData, user, isCLI, transaction))
+    def('subject', () => $subject.updateFogEndPoint(fogData, user, isCLI, transaction))
     def('validatorResponse', () => Promise.resolve(true))
     def('deleteUndefinedFieldsResponse', () => updateFogData)
     def('findIoFogResponse', () => Promise.resolve(oldFog))
@@ -709,7 +709,7 @@ describe('ioFog Service', () => {
     })
   })
 
-  describe('.deleteFog()', () => {
+  describe('.deleteFogEndPoint()', () => {
     const transaction = {}
     const error = 'Error!'
 
@@ -754,7 +754,7 @@ describe('ioFog Service', () => {
       ? {uuid: fogData.uuid}
       : {uuid: fogData.uuid, userId: user.id}
 
-    def('subject', () => $subject.deleteFog(fogData, user, isCLI, transaction))
+    def('subject', () => $subject.deleteFogEndPoint(fogData, user, isCLI, transaction))
     def('validatorResponse', () => Promise.resolve(true))
     def('findIoFogResponse', () => Promise.resolve(fog))
     def('updateChangeTrackingResponse', () => Promise.resolve())
@@ -907,7 +907,7 @@ describe('ioFog Service', () => {
     })
   })
 
-  describe('.getFogList()', () => {
+  describe('.getFogListEndPoint()', () => {
     const transaction = {}
     const error = 'Error!'
 
@@ -952,7 +952,7 @@ describe('ioFog Service', () => {
 
     const filters = []
 
-    def('subject', () => $subject.getFogList(filters, user, isCLI, transaction))
+    def('subject', () => $subject.getFogListEndPoint(filters, user, isCLI, transaction))
     def('validatorResponse', () => Promise.resolve(true))
     def('findAllIoFogResponse', () => Promise.resolve(fogs))
 
@@ -997,7 +997,7 @@ describe('ioFog Service', () => {
     })
   })
 
-  describe('.generateProvisioningKey()', () => {
+  describe('.generateProvisioningKeyEndPoint()', () => {
     const transaction = {}
     const error = 'Error!'
 
@@ -1026,7 +1026,7 @@ describe('ioFog Service', () => {
       expirationTime: expirationTime,
     }
 
-    def('subject', () => $subject.generateProvisioningKey(fogData, user, isCLI, transaction))
+    def('subject', () => $subject.generateProvisioningKeyEndPoint(fogData, user, isCLI, transaction))
     def('validatorResponse', () => Promise.resolve(true))
     def('generateRandomStringResponse', () => provisionKey)
     def('findIoFogResponse', () => Promise.resolve({}))
@@ -1114,7 +1114,7 @@ describe('ioFog Service', () => {
     })
   })
 
-  describe('.setFogVersionCommand()', () => {
+  describe('.setFogVersionCommandEndPoint()', () => {
     const transaction = {}
     const error = 'Error!'
 
@@ -1155,7 +1155,7 @@ describe('ioFog Service', () => {
       expirationTime: expirationTime,
     }
 
-    def('subject', () => $subject.setFogVersionCommand(fogVersionData, user, isCLI, transaction))
+    def('subject', () => $subject.setFogVersionCommandEndPoint(fogVersionData, user, isCLI, transaction))
     def('validatorResponse', () => Promise.resolve(true))
     def('findIoFogResponse', () => Promise.resolve(ioFog))
     def('generateRandomStringResponse', () => provisionKey)
@@ -1309,7 +1309,7 @@ describe('ioFog Service', () => {
     })
   })
 
-  describe('.setFogRebootCommand()', () => {
+  describe('.setFogRebootCommandEndPoint()', () => {
     const transaction = {}
     const error = 'Error!'
 
@@ -1329,7 +1329,7 @@ describe('ioFog Service', () => {
       ? {uuid: fogData.uuid}
       : {uuid: fogData.uuid, userId: user.id}
 
-    def('subject', () => $subject.setFogRebootCommand(fogData, user, isCLI, transaction))
+    def('subject', () => $subject.setFogRebootCommandEndPoint(fogData, user, isCLI, transaction))
     def('validatorResponse', () => Promise.resolve(true))
     def('findIoFogResponse', () => Promise.resolve({}))
     def('updateChangeTrackingResponse', () => Promise.resolve())
@@ -1393,7 +1393,7 @@ describe('ioFog Service', () => {
     })
   })
 
-  describe('.getHalHardwareInfo()', () => {
+  describe('.getHalHardwareInfoEndPoint()', () => {
     const transaction = {}
     const error = 'Error!'
 
@@ -1409,7 +1409,7 @@ describe('ioFog Service', () => {
       uuid: uuid,
     }
 
-    def('subject', () => $subject.getHalHardwareInfo(uuidObj, user, isCLI, transaction))
+    def('subject', () => $subject.getHalHardwareInfoEndPoint(uuidObj, user, isCLI, transaction))
     def('validatorResponse', () => Promise.resolve(true))
     def('findIoFogResponse', () => Promise.resolve({}))
     def('findHalHardwareResponse', () => Promise.resolve())
@@ -1476,7 +1476,7 @@ describe('ioFog Service', () => {
     })
   })
 
-  describe('.getHalUsbInfo()', () => {
+  describe('.getHalUsbInfoEndPoint()', () => {
     const transaction = {}
     const error = 'Error!'
 
@@ -1492,7 +1492,7 @@ describe('ioFog Service', () => {
       uuid: uuid,
     }
 
-    def('subject', () => $subject.getHalUsbInfo(uuidObj, user, isCLI, transaction))
+    def('subject', () => $subject.getHalUsbInfoEndPoint(uuidObj, user, isCLI, transaction))
     def('validatorResponse', () => Promise.resolve(true))
     def('findIoFogResponse', () => Promise.resolve({}))
     def('findHalUsbResponse', () => Promise.resolve())
