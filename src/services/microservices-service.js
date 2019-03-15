@@ -521,7 +521,6 @@ function _validateMicroserviceConfig(config) {
     result = config.split('\\"').join('"').split('"').join('\"')
   }
   return result
-
 }
 
 async function _createMicroservice(microserviceData, user, isCLI, transaction) {
