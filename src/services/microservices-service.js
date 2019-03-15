@@ -145,35 +145,48 @@ async function updateMicroserviceEndPoint(microserviceUuid, microserviceData, us
     await IoFogService.getFog({uuid: microserviceDataUpdate.iofogUuid}, user, isCLI, transaction)
   }
 
-  await MicroserviceManager.update(query, microserviceDataUpdate, transaction)
+  const updatedMicroservice = await MicroserviceManager.updateAndFind(query, microserviceDataUpdate, transaction)
 
   if (microserviceDataUpdate.volumeMappings) {
     await _updateVolumeMappings(microserviceDataUpdate.volumeMappings, microserviceUuid, transaction)
   }
 
   if (microserviceDataUpdate.iofogUuid && microserviceDataUpdate.iofogUuid !== microservice.iofogUuid) {
-    await _moveRoutesToNewFog(microservice, user, transaction)
+    await _moveRoutesToNewFog(updatedMicroservice, microservice.iofogUuid, user, transaction)
+    await _movePublicModesToNewFog(updatedMicroservice, microservice.iofogUuid, user, transaction)
   }
 
   // update change tracking for new fog
   await _updateChangeTracking(!!microserviceData.config, microserviceDataUpdate.iofogUuid, transaction)
 }
 
-async function _moveRoutesToNewFog(microservice, user, transaction) {
+async function _moveRoutesToNewFog(microservice, oldFogUuid, user, transaction) {
   const routes = await _getLogicalNetworkRoutesByMicroservice(microservice.uuid, transaction)
 
   for (const route of routes.sourceRoutes) {
     await _recreateRoute(route, user, transaction)
-    await _updateChangeTracking(false, route.sourceMicroserviceUuid, transaction)
+    await _updateChangeTracking(false, route.sourceIofogUuid, transaction)
   }
 
   for (const route of routes.destRoutes) {
     await _recreateRoute(route, user, transaction)
-    await _updateChangeTracking(false, route.destMicroserviceUuid, transaction)
+    await _updateChangeTracking(false, route.destIofogUuid, transaction)
   }
 
   // update change tracking for old fog
-  await _updateChangeTracking(false, microservice.iofogUuid, transaction)
+  await _updateChangeTracking(false, oldFogUuid, transaction)
+}
+
+async function _movePublicModesToNewFog(microservice, oldIofogUuid, user, transaction) {
+  const publicModes = await _getPublicModesByMicroservice(microservice.uuid, transaction)
+
+  for (const pub of publicModes) {
+    await _recreatePublicMode(microservice, pub, user, transaction)
+    await _updateChangeTracking(false, pub.iofogUuid, transaction)
+  }
+
+  // update change tracking for old fog
+  await _updateChangeTracking(false, oldIofogUuid, transaction)
 }
 
 async function deleteMicroserviceEndPoint(microserviceUuid, microserviceData, user, isCLI, transaction) {
@@ -508,6 +521,8 @@ function _validateMicroserviceConfig(config) {
   }
 
   return config.split('\\"').join('"').split('"').join('\"')
+
+
 }
 
 async function _createMicroservice(microserviceData, user, isCLI, transaction) {
@@ -574,10 +589,18 @@ async function _createRoutes(sourceMicroservice, destMsUuidArr, user, transactio
 }
 
 async function _updateVolumeMappings(volumeMappings, microserviceUuid, transaction) {
+  await VolumeMappingManager.delete({
+    microserviceUuid: microserviceUuid,
+  }, transaction)
   for (const volumeMapping of volumeMappings) {
-    await VolumeMappingManager.update({
+    const volumeMappingObj = {
       microserviceUuid: microserviceUuid,
-    }, volumeMapping, transaction)
+      hostDestination: volumeMapping.hostDestination,
+      containerDestination: volumeMapping.containerDestination,
+      accessMode: volumeMapping.accessMode,
+    }
+
+    await VolumeMappingManager.create(volumeMappingObj, transaction)
   }
 }
 
@@ -1019,6 +1042,18 @@ async function _getLogicalNetworkRoutesByMicroservice(microserviceUuid, transact
   return res
 }
 
+async function _getPublicModesByMicroservice(microserviceUuid, transaction) {
+  const res = []
+  const query = {
+    microserviceUuid: microserviceUuid,
+  }
+  const pubMods = await MicroservicePublicModeManager.findAll(query, transaction)
+  for (const pub of pubMods) {
+    res.push(pub)
+  }
+  return res
+}
+
 async function _getLogicalRoutesByMicroservice(microserviceUuid, transaction) {
   const res = []
   const query = {
@@ -1084,6 +1119,17 @@ async function _buildGetMicroserviceResponse(microservice, transaction) {
 async function _recreateRoute(route, user, transaction) {
   await _deleteRoute(route, transaction)
   await _createRoute(route.sourceMicroserviceUuid, route.destMicroserviceUuid, user, transaction)
+}
+
+async function _recreatePublicMode(microservice, publicMode, user, transaction) {
+  const portMapping = await MicroservicePortManager.findOne({id: publicMode.microservicePortId}, transaction)
+  const portMappingData = {
+    internal: portMapping.portInternal,
+    external: portMapping.portExternal,
+    publicMode: portMapping.isPublic,
+  }
+  await _deletePortMappingOverConnector(microservice, portMapping, user, transaction)
+  await _createPortMappingOverConnector(microservice, portMappingData, user, transaction)
 }
 
 // decorated functions
