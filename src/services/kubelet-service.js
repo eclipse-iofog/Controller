@@ -290,10 +290,10 @@ const microservicesTopologicalOrder = function(msMetadata) {
   return microservices.map((idx) => Object.assign({originalIndex: idx}, msMetadata[idx]))
 }
 
-async function informKublete(iofogUuid, method) {
-  const kubleteUri = config.get('Kubelete:Uri')
+async function informKubelet(iofogUuid, method) {
+  const kubeletUri = config.get('Kubelet:Uri')
   const options = {
-    uri: kubleteUri + '/node',
+    uri: kubeletUri + '/node',
     qs: {
       uuid: iofogUuid,
     },
@@ -316,5 +316,5 @@ module.exports = {
   kubeletGetNodeAddresses: TransactionDecorator.generateFakeTransaction(kubeletGetNodeAddresses),
   kubeletGetVkToken: TransactionDecorator.generateFakeTransaction(kubeletGetVkToken),
   kubeletGetSchedulerToken: TransactionDecorator.generateFakeTransaction(kubeletGetSchedulerToken),
-  informKublete: informKublete,
+  informKubelet: informKubelet,
 }

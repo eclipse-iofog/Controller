@@ -27,7 +27,7 @@ const MicroserviceManager = require('../sequelize/managers/microservice-manager'
 const FogStates = require('../enums/fog-state')
 const TrackingDecorator = require('../decorators/tracking-decorator')
 const TrackingEventType = require('../enums/tracking-event-type')
-const KubeleteService = require('../services/kubelet-service')
+const KubeletService = require('../services/kubelet-service')
 
 async function createFog(fogData, user, isCLI, transaction) {
   await Validator.validate(fogData, Validator.schemas.iofogCreate)
@@ -77,7 +77,7 @@ async function createFog(fogData, user, isCLI, transaction) {
 
   await ChangeTrackingService.update(createFogData.uuid, ChangeTrackingService.events.microserviceCommon, transaction)
 
-  await KubeleteService.informKublete(fog.uuid, 'POST')
+  await KubeletService.informKubelet(fog.uuid, 'POST')
 
   return res
 }
@@ -160,7 +160,7 @@ async function deleteFog(fogData, user, isCLI, transaction) {
   }
   await _processDeleteCommand(fog, transaction)
 
-  await KubeleteService.informKublete(fog.uuid, 'DELETE')
+  await KubeletService.informKubelet(fog.uuid, 'DELETE')
 }
 
 async function getFog(fogData, user, isCLI, transaction) {
