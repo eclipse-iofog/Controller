@@ -164,12 +164,18 @@ async function _moveRoutesToNewFog(microservice, oldFogUuid, user, transaction) 
   const routes = await _getLogicalNetworkRoutesByMicroservice(microservice.uuid, transaction)
 
   for (const route of routes.sourceRoutes) {
-    await _recreateRoute(route, user, transaction)
+    const sourceWhere = {uuid: route.sourceMicroserviceUuid, userId: user.id}
+    const sourceMicroservice = await MicroserviceManager.findOne(sourceWhere, transaction)
+
+    await _recreateRoute(route, sourceMicroservice, microservice, user, transaction)
     await _updateChangeTracking(false, route.sourceIofogUuid, transaction)
   }
 
   for (const route of routes.destRoutes) {
-    await _recreateRoute(route, user, transaction)
+    const destWhere = {uuid: route.destMicroserviceUuid, userId: user.id}
+    const destMicroservice = await MicroserviceManager.findOne(destWhere, transaction)
+
+    await _recreateRoute(route, microservice, destMicroservice, user, transaction)
     await _updateChangeTracking(false, route.destIofogUuid, transaction)
   }
 
@@ -1114,9 +1120,9 @@ async function _buildGetMicroserviceResponse(microservice, transaction) {
   return res
 }
 
-async function _recreateRoute(route, user, transaction) {
+async function _recreateRoute(route, sourceMicroservice, destMicroservice, user, transaction) {
   await _deleteRoute(route, transaction)
-  await _createRoute(route.sourceMicroserviceUuid, route.destMicroserviceUuid, user, transaction)
+  await _createRoute(sourceMicroservice, destMicroservice, user, transaction)
 }
 
 async function _recreatePublicMode(microservice, publicMode, user, transaction) {
