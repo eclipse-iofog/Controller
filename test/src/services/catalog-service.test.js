@@ -19,7 +19,7 @@ describe('Catalog Service', () => {
 
   afterEach(() => $sandbox.restore())
 
-  describe('.createCatalogItem()', () => {
+  describe('.createCatalogItemEndPoint()', () => {
     const transaction = {}
     const error = 'Error!'
 
@@ -113,7 +113,7 @@ describe('Catalog Service', () => {
       catalogItemOutputType.infoFormat = data.outputType.infoFormat
     }
 
-    def('subject', () => $subject.createCatalogItem(data, user, transaction))
+    def('subject', () => $subject.createCatalogItemEndPoint(data, user, transaction))
 
     def('validatorResponse', () => Promise.resolve(true))
     def('catalogItemFindResponse', () => Promise.resolve())
@@ -301,7 +301,7 @@ describe('Catalog Service', () => {
     })
   })
 
-  describe('.updateCatalogItem()', () => {
+  describe('.updateCatalogItemEndPoint()', () => {
     const transaction = {}
     const error = 'Error!'
 
@@ -416,7 +416,7 @@ describe('Catalog Service', () => {
       catalogItemOutputType.infoFormat = data.outputType.infoFormat
     }
 
-    def('subject', () => $subject.updateCatalogItem(id, data, user, isCLI, transaction))
+    def('subject', () => $subject.updateCatalogItemEndPoint(id, data, user, isCLI, transaction))
 
     def('validatorResponse', () => Promise.resolve(true))
     def('deleteUndefinedFieldsResponse1', () => catalogItem)
@@ -672,7 +672,7 @@ describe('Catalog Service', () => {
     })
   })
 
-  describe('.listCatalogItems()', () => {
+  describe('.listCatalogItemsEndPoint()', () => {
     const transaction = {}
     const error = 'Error!'
 
@@ -693,7 +693,7 @@ describe('Catalog Service', () => {
       ? {}
       : {exclude: ['userId']}
 
-    def('subject', () => $subject.listCatalogItems(user, isCLI, transaction))
+    def('subject', () => $subject.listCatalogItemsEndPoint(user, isCLI, transaction))
 
     def('catalogItemsFindResponse', () => Promise.resolve())
 
@@ -721,7 +721,7 @@ describe('Catalog Service', () => {
     })
   })
 
-  describe('.getCatalogItem()', () => {
+  describe('.getCatalogItemEndPoint()', () => {
     const transaction = {}
     const error = 'Error!'
 
@@ -745,7 +745,7 @@ describe('Catalog Service', () => {
       ? {}
       : {exclude: ['userId']}
 
-    def('subject', () => $subject.getCatalogItem(id, user, isCLI, transaction))
+    def('subject', () => $subject.getCatalogItemEndPoint(id, user, isCLI, transaction))
 
     def('catalogItemFindResponse', () => Promise.resolve({}))
 
@@ -773,7 +773,7 @@ describe('Catalog Service', () => {
     })
   })
 
-  describe('.deleteCatalogItem()', () => {
+  describe('.deleteCatalogItemEndPoint()', () => {
     const transaction = {}
     const error = 'Error!'
 
@@ -789,7 +789,7 @@ describe('Catalog Service', () => {
       ? {id: id}
       : {userId: user.id, id: id}
 
-    def('subject', () => $subject.deleteCatalogItem(id, user, isCLI, transaction))
+    def('subject', () => $subject.deleteCatalogItemEndPoint(id, user, isCLI, transaction))
 
     def('catalogItemFindResponse', () => Promise.resolve({}))
     def('response', () => 1)

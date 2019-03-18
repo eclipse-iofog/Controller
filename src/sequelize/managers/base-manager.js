@@ -158,4 +158,14 @@ module.exports = class BaseManager {
       return await this.update(whereData, newData, transaction)
     }
   }
+
+  async updateAndFind(whereData, data, transaction) {
+    AppHelper.checkTransaction(transaction)
+
+    const obj = await this.findOne(whereData, transaction)
+    if (obj) {
+      await this.update(whereData, data, transaction)
+      return this.findOne(whereData, transaction)
+    }
+  }
 }

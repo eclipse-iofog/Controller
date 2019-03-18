@@ -29,19 +29,19 @@ describe('Flow Controller', () => {
     def('subject', () => $subject.createFlowEndPoint($req, $user))
 
     beforeEach(() => {
-      $sandbox.stub(FlowService, 'createFlow').returns($response)
+      $sandbox.stub(FlowService, 'createFlowEndPoint').returns($response)
     })
 
-    it('calls FlowService.createFlow with correct args', async () => {
+    it('calls FlowService.createFlowEndPoint with correct args', async () => {
       await $subject
-      expect(FlowService.createFlow).to.have.been.calledWith({
+      expect(FlowService.createFlowEndPoint).to.have.been.calledWith({
         name: $name,
         description: $description,
         isActivated: $isActivated,
       }, $user, false)
     })
 
-    context('when FlowService#createFlow fails', () => {
+    context('when FlowService#createFlowEndPoint fails', () => {
       const error = 'Error!'
 
       def('response', () => Promise.reject(error))
@@ -51,7 +51,7 @@ describe('Flow Controller', () => {
       })
     })
 
-    context('when FlowService#createFlow succeeds', () => {
+    context('when FlowService#createFlowEndPoint succeeds', () => {
       it(`succeeds`, () => {
         return expect($subject).to.eventually.equal(undefined)
       })
@@ -68,15 +68,15 @@ describe('Flow Controller', () => {
     def('subject', () => $subject.getFlowsByUserEndPoint($req, $user))
 
     beforeEach(() => {
-      $sandbox.stub(FlowService, 'getUserFlows').returns($response)
+      $sandbox.stub(FlowService, 'getUserFlowsEndPoint').returns($response)
     })
 
-    it('calls FlowService.getUserFlows with correct args', async () => {
+    it('calls FlowService.getUserFlowsEndPoint with correct args', async () => {
       await $subject
-      expect(FlowService.getUserFlows).to.have.been.calledWith($user, false)
+      expect(FlowService.getUserFlowsEndPoint).to.have.been.calledWith($user, false)
     })
 
-    context('when FlowService#getUserFlows fails', () => {
+    context('when FlowService#getUserFlowsEndPoint fails', () => {
       const error = 'Error!'
 
       def('response', () => Promise.reject(error))
@@ -86,7 +86,7 @@ describe('Flow Controller', () => {
       })
     })
 
-    context('when FlowService#getUserFlows succeeds', () => {
+    context('when FlowService#getUserFlowsEndPoint succeeds', () => {
       it(`succeeds`, () => {
         return expect($subject).to.eventually.equal(undefined)
       })
@@ -107,15 +107,15 @@ describe('Flow Controller', () => {
     def('subject', () => $subject.getFlowEndPoint($req, $user))
 
     beforeEach(() => {
-      $sandbox.stub(FlowService, 'getFlowWithTransaction').returns($response)
+      $sandbox.stub(FlowService, 'getFlowEndPoint').returns($response)
     })
 
-    it('calls FlowService.getFlowWithTransaction with correct args', async () => {
+    it('calls FlowService.getFlowEndPoint with correct args', async () => {
       await $subject
-      expect(FlowService.getFlowWithTransaction).to.have.been.calledWith($id, $user, false)
+      expect(FlowService.getFlowEndPoint).to.have.been.calledWith($id, $user, false)
     })
 
-    context('when FlowService#getFlowWithTransaction fails', () => {
+    context('when FlowService#getFlowEndPoint fails', () => {
       const error = 'Error!'
 
       def('response', () => Promise.reject(error))
@@ -125,7 +125,7 @@ describe('Flow Controller', () => {
       })
     })
 
-    context('when FlowService#getFlowWithTransaction succeeds', () => {
+    context('when FlowService#getFlowEndPoint succeeds', () => {
       it(`succeeds`, () => {
         return expect($subject).to.eventually.equal(undefined)
       })
@@ -155,19 +155,19 @@ describe('Flow Controller', () => {
     def('subject', () => $subject.updateFlowEndPoint($req, $user))
 
     beforeEach(() => {
-      $sandbox.stub(FlowService, 'updateFlow').returns($response)
+      $sandbox.stub(FlowService, 'updateFlowEndPoint').returns($response)
     })
 
-    it('calls FlowService.updateFlow with correct args', async () => {
+    it('calls FlowService.updateFlowEndPoint with correct args', async () => {
       await $subject
-      expect(FlowService.updateFlow).to.have.been.calledWith({
+      expect(FlowService.updateFlowEndPoint).to.have.been.calledWith({
         name: $name,
         description: $description,
         isActivated: $isActivated,
       }, $id, $user, false)
     })
 
-    context('when FlowService#updateFlow fails', () => {
+    context('when FlowService#updateFlowEndPoint fails', () => {
       const error = 'Error!'
 
       def('response', () => Promise.reject(error))
@@ -177,7 +177,7 @@ describe('Flow Controller', () => {
       })
     })
 
-    context('when FlowService#updateFlow succeeds', () => {
+    context('when FlowService#updateFlowEndPoint succeeds', () => {
       it(`succeeds`, () => {
         return expect($subject).to.eventually.equal(undefined)
       })
@@ -198,15 +198,15 @@ describe('Flow Controller', () => {
     def('subject', () => $subject.deleteFlowEndPoint($req, $user))
 
     beforeEach(() => {
-      $sandbox.stub(FlowService, 'deleteFlow').returns($response)
+      $sandbox.stub(FlowService, 'deleteFlowEndPoint').returns($response)
     })
 
-    it('calls FlowService.deleteFlow with correct args', async () => {
+    it('calls FlowService.deleteFlowEndPoint with correct args', async () => {
       await $subject
-      expect(FlowService.deleteFlow).to.have.been.calledWith($id, $user, false)
+      expect(FlowService.deleteFlowEndPoint).to.have.been.calledWith($id, $user, false)
     })
 
-    context('when FlowService.deleteFlow fails', () => {
+    context('when FlowService.deleteFlowEndPoint fails', () => {
       const error = 'Error!'
 
       def('response', () => Promise.reject(error))
@@ -216,7 +216,7 @@ describe('Flow Controller', () => {
       })
     })
 
-    context('when FlowService.deleteFlow succeeds', () => {
+    context('when FlowService.deleteFlowEndPoint succeeds', () => {
       it(`succeeds`, () => {
         return expect($subject).to.eventually.equal(undefined)
       })

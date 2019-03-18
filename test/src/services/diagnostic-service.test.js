@@ -48,7 +48,7 @@ describe('DiagnosticService Service', () => {
 
     beforeEach(() => {
       $sandbox.stub(Validator, 'validate').returns($validatorResponse)
-      $sandbox.stub(MicroserviceService, 'getMicroservice').returns($getMicroserviceResponse)
+      $sandbox.stub(MicroserviceService, 'getMicroserviceEndPoint').returns($getMicroserviceResponse)
       $sandbox.stub(StraceDiagnosticManager, 'updateOrCreate').returns($updateOrCreateDiagnosticResponse)
       $sandbox.stub(ChangeTrackingService, 'update').returns($updateChangeTrackingResponse)
     })
@@ -67,12 +67,12 @@ describe('DiagnosticService Service', () => {
     })
 
     context('when Validator#validate() succeeds', () => {
-      it('calls MicroserviceService#getMicroservice() with correct args', async () => {
+      it('calls MicroserviceService#getMicroserviceEndPoint() with correct args', async () => {
         await $subject
-        expect(MicroserviceService.getMicroservice).to.have.been.calledWith(uuid, user, isCLI, transaction)
+        expect(MicroserviceService.getMicroserviceEndPoint).to.have.been.calledWith(uuid, user, isCLI, transaction)
       })
 
-      context('when MicroserviceService#getMicroservice() fails', () => {
+      context('when MicroserviceService#getMicroserviceEndPoint() fails', () => {
         def('getMicroserviceResponse', () => Promise.reject(error))
 
         it(`fails with ${error}`, () => {
@@ -80,7 +80,7 @@ describe('DiagnosticService Service', () => {
         })
       })
 
-      context('when MicroserviceService#getMicroservice() succeeds', () => {
+      context('when MicroserviceService#getMicroserviceEndPoint() succeeds', () => {
         it('calls StraceDiagnosticManager#updateOrCreate() with correct args', async () => {
           await $subject
           expect(StraceDiagnosticManager.updateOrCreate).to.have.been.calledWith({

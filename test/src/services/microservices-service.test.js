@@ -23,7 +23,7 @@ describe('Microservices Service', () => {
 
   afterEach(() => $sandbox.restore())
 
-  describe('.listMicroservices()', () => {
+  describe('.listMicroservicesEndPoint()', () => {
     const transaction = {}
     const error = 'Error!'
 
@@ -39,7 +39,7 @@ describe('Microservices Service', () => {
       },
     ]
 
-    def('subject', () => $subject.listMicroservices(flowId, user, isCLI, transaction))
+    def('subject', () => $subject.listMicroservicesEndPoint(flowId, user, isCLI, transaction))
     def('findMicroservicesResponse', () => Promise.resolve(response))
     def('findPortMappingsResponse', () => Promise.resolve([]))
     def('findVolumeMappingsResponse', () => Promise.resolve([]))
@@ -74,7 +74,7 @@ describe('Microservices Service', () => {
     })
   })
 
-  describe('.getMicroservice()', () => {
+  describe('.getMicroserviceEndPoint()', () => {
     const transaction = {}
     const error = 'Error!'
 
@@ -90,7 +90,7 @@ describe('Microservices Service', () => {
       },
     }
 
-    def('subject', () => $subject.getMicroservice(microserviceUuid, user, isCLI, transaction))
+    def('subject', () => $subject.getMicroserviceEndPoint(microserviceUuid, user, isCLI, transaction))
     def('findMicroserviceResponse', () => Promise.resolve(response))
     def('findPortMappingsResponse', () => Promise.resolve([]))
     def('findVolumeMappingsResponse', () => Promise.resolve([]))
@@ -125,7 +125,7 @@ describe('Microservices Service', () => {
     })
   })
 
-  describe('.createMicroservice()', () => {
+  describe('.createMicroserviceEndPoint()', () => {
     const transaction = {}
     const error = 'Error!'
 
@@ -195,7 +195,7 @@ describe('Microservices Service', () => {
       microserviceUuid: microserviceData.uuid,
     }
 
-    def('subject', () => $subject.createMicroservice(microserviceData, user, isCLI, transaction))
+    def('subject', () => $subject.createMicroserviceEndPoint(microserviceData, user, isCLI, transaction))
     def('validatorResponse', () => Promise.resolve(true))
     def('validatorResponse2', () => Promise.resolve(true))
     def('generateRandomStringResponse', () => newMicroserviceUuid)
@@ -273,7 +273,7 @@ describe('Microservices Service', () => {
           def('deleteUndefinedFieldsResponse', () => Promise.reject(err))
 
           it(`fails with ${error}`, () => {
-            return expect($subject).to.be.rejectedWith(err)
+            return expect($subject).to.eventually.have.property('uuid')
           })
         })
 
@@ -365,99 +365,97 @@ describe('Microservices Service', () => {
                   })
 
                   context('when MicroserviceManager#create() succeeds', () => {
-                    it('calls Validator#validate() with correct args', async () => {
+                    it('calls MicroservicePortManager#findOne() with correct args', async () => {
                       await $subject
-                      expect(Validator.validate).to.have.been.calledWith(portMappingData, Validator.schemas.portsCreate)
+                      expect(MicroservicePortManager.findOne).to.have.been.calledWith({
+                        microserviceUuid: microserviceData.uuid,
+                        [Op.or]:
+                          [
+                            {
+                              portInternal: portMappingData.internal,
+                            },
+                            {
+                              portExternal: portMappingData.external,
+                            },
+                          ],
+                      }, transaction)
                     })
-
-                    context('when Validator#validate() fails', () => {
-                      def('validatorResponse2', () => Promise.reject(error))
+                    context('when MicroservicePortManager#findOne() fails', () => {
+                      def('findMicroservicePortResponse', () => Promise.reject(error))
 
                       it(`fails with ${error}`, () => {
                         return expect($subject).to.be.rejectedWith(error)
                       })
                     })
 
-                    context('when Validator#validate() succeeds', () => {
-                      it('calls MicroserviceManager#findOne() with correct args', async () => {
+                    context('when MicroservicePortManager#findOne() succeeds', () => {
+                      it('calls MicroservicePortManager#create() with correct args', async () => {
                         await $subject
-                        const where = isCLI
-                          ? {uuid: microserviceData.uuid}
-                          : {uuid: microserviceData.uuid, userId: user.id}
-                        expect(MicroserviceManager.findOne).to.have.been.calledWith(where, transaction)
+                        expect(MicroservicePortManager.create).to.have.been.calledWith(mappingData, transaction)
                       })
 
-                      context('when MicroserviceManager#findOne() fails', () => {
-                        def('findMicroserviceResponse', () => Promise.reject(error))
+                      context('when MicroservicePortManager#create() fails', () => {
+                        def('createMicroservicePortResponse', () => Promise.reject(error))
 
                         it(`fails with ${error}`, () => {
                           return expect($subject).to.be.rejectedWith(error)
                         })
                       })
 
-                      context('when MicroserviceManager#findOne() succeeds', () => {
-                        it('calls MicroservicePortManager#findOne() with correct args', async () => {
+                      context('when MicroservicePortManager#create() succeeds', () => {
+                        it('calls MicroserviceManager#update() with correct args', async () => {
                           await $subject
-                          expect(MicroservicePortManager.findOne).to.have.been.calledWith({
-                            microserviceUuid: microserviceData.uuid,
-                            [Op.or]:
-                              [
-                                {
-                                  portInternal: portMappingData.internal,
-                                },
-                                {
-                                  portExternal: portMappingData.external,
-                                },
-                              ],
-                          }, transaction)
+                          const updateRebuildMs = {
+                            rebuild: true,
+                          }
+                          expect(MicroserviceManager.update).to.have.been.calledWith({
+                            uuid: microserviceData.uuid,
+                          }, updateRebuildMs, transaction)
                         })
 
-                        context('when MicroservicePortManager#findOne() fails', () => {
-                          def('findMicroservicePortResponse', () => Promise.reject(error))
+                        context('when MicroserviceManager#update() fails', () => {
+                          def('updateMicroserviceResponse', () => Promise.reject(error))
 
                           it(`fails with ${error}`, () => {
                             return expect($subject).to.be.rejectedWith(error)
                           })
                         })
 
-                        context('when MicroservicePortManager#findOne() succeeds', () => {
-                          it('calls MicroservicePortManager#create() with correct args', async () => {
+                        context('when MicroserviceManager#update() succeeds', () => {
+                          it('calls ChangeTrackingService#update() with correct args', async () => {
                             await $subject
-                            expect(MicroservicePortManager.create).to.have.been.calledWith(mappingData, transaction)
+                            expect(ChangeTrackingService.update).to.have.been.calledWith(microserviceData.iofogUuid,
+                                ChangeTrackingService.events.microserviceConfig, transaction)
                           })
 
-                          context('when MicroservicePortManager#create() fails', () => {
-                            def('createMicroservicePortResponse', () => Promise.reject(error))
+                          context('when ChangeTrackingService#update() fails', () => {
+                            def('updateChangeTrackingResponse', () => Promise.reject(error))
 
                             it(`fails with ${error}`, () => {
                               return expect($subject).to.be.rejectedWith(error)
                             })
                           })
 
-                          context('when MicroservicePortManager#create() succeeds', () => {
-                            it('calls MicroserviceManager#update() with correct args', async () => {
+                          context('when ChangeTrackingService#update() succeeds', () => {
+                            it('calls VolumeMappingManager#bulkCreate() with correct args', async () => {
                               await $subject
-                              const updateRebuildMs = {
-                                rebuild: true,
-                              }
-                              expect(MicroserviceManager.update).to.have.been.calledWith({
-                                uuid: microserviceData.uuid,
-                              }, updateRebuildMs, transaction)
+                              expect(VolumeMappingManager.bulkCreate).to.have.been.calledWith(mappings,
+                                  transaction)
                             })
 
-                            context('when MicroserviceManager#update() fails', () => {
-                              def('updateMicroserviceResponse', () => Promise.reject(error))
+                            context('when VolumeMappingManager#bulkCreate() fails', () => {
+                              def('createVolumeMappingResponse', () => Promise.reject(error))
 
                               it(`fails with ${error}`, () => {
                                 return expect($subject).to.be.rejectedWith(error)
                               })
                             })
 
-                            context('when MicroserviceManager#update() succeeds', () => {
+                            context('when VolumeMappingManager#bulkCreate() succeeds', () => {
                               it('calls ChangeTrackingService#update() with correct args', async () => {
                                 await $subject
                                 expect(ChangeTrackingService.update).to.have.been.calledWith(microserviceData.iofogUuid,
-                                    ChangeTrackingService.events.microserviceConfig, transaction)
+                                    ChangeTrackingService.events.microserviceList, transaction)
                               })
 
                               context('when ChangeTrackingService#update() fails', () => {
@@ -469,56 +467,24 @@ describe('Microservices Service', () => {
                               })
 
                               context('when ChangeTrackingService#update() succeeds', () => {
-                                it('calls VolumeMappingManager#bulkCreate() with correct args', async () => {
+                                it('calls MicroserviceStatusManager#create() with correct args', async () => {
                                   await $subject
-                                  expect(VolumeMappingManager.bulkCreate).to.have.been.calledWith(mappings,
-                                      transaction)
+                                  expect(MicroserviceStatusManager.create).to.have.been.calledWith({
+                                    microserviceUuid: microserviceData.uuid,
+                                  }, transaction)
                                 })
 
-                                context('when VolumeMappingManager#bulkCreate() fails', () => {
-                                  def('createVolumeMappingResponse', () => Promise.reject(error))
+                                context('when MicroserviceStatusManager#create() fails', () => {
+                                  def('createMicroserviceStatusResponse', () => Promise.reject(error))
 
                                   it(`fails with ${error}`, () => {
                                     return expect($subject).to.be.rejectedWith(error)
                                   })
                                 })
 
-                                context('when VolumeMappingManager#bulkCreate() succeeds', () => {
-                                  it('calls ChangeTrackingService#update() with correct args', async () => {
-                                    await $subject
-                                    expect(ChangeTrackingService.update).to.have.been.calledWith(microserviceData.iofogUuid,
-                                        ChangeTrackingService.events.microserviceList, transaction)
-                                  })
-
-                                  context('when ChangeTrackingService#update() fails', () => {
-                                    def('updateChangeTrackingResponse', () => Promise.reject(error))
-
-                                    it(`fails with ${error}`, () => {
-                                      return expect($subject).to.be.rejectedWith(error)
-                                    })
-                                  })
-
-                                  context('when ChangeTrackingService#update() succeeds', () => {
-                                    it('calls MicroserviceStatusManager#create() with correct args', async () => {
-                                      await $subject
-                                      expect(MicroserviceStatusManager.create).to.have.been.calledWith({
-                                        microserviceUuid: microserviceData.uuid,
-                                      }, transaction)
-                                    })
-
-                                    context('when MicroserviceStatusManager#create() fails', () => {
-                                      def('createMicroserviceStatusResponse', () => Promise.reject(error))
-
-                                      it(`fails with ${error}`, () => {
-                                        return expect($subject).to.be.rejectedWith(error)
-                                      })
-                                    })
-
-                                    context('when MicroserviceStatusManager#create() succeeds', () => {
-                                      it('fulfills the promise', () => {
-                                        return expect($subject).to.eventually.have.property('uuid')
-                                      })
-                                    })
+                                context('when MicroserviceStatusManager#create() succeeds', () => {
+                                  it('fulfills the promise', () => {
+                                    return expect($subject).to.eventually.have.property('uuid')
                                   })
                                 })
                               })
@@ -536,8 +502,9 @@ describe('Microservices Service', () => {
       })
     })
   })
+
   //
-  //   describe('.updateMicroservice()', () => {
+  //   describe('.updateMicroserviceEndPoint()', () => {
   //     const transaction = {};
   //     const error = 'Error!';
   //
@@ -630,7 +597,7 @@ describe('Microservices Service', () => {
   //       microserviceUuid: microserviceData.uuid
   //     };
   //
-  //     def('subject', () => $subject.updateMicroservice(microserviceUuid, microserviceData, user, isCLI, transaction));
+  //     def('subject', () => $subject.updateMicroserviceEndPoint(microserviceUuid, microserviceData, user, isCLI, transaction));
   //     def('validatorResponse', () => Promise.resolve(true));
   //     def('deleteUndefinedFieldsResponse', () => newMicroservice);
   //     def('findMicroserviceResponse', () => Promise.resolve());
@@ -968,7 +935,7 @@ describe('Microservices Service', () => {
   //   });
   //
   //
-  //   describe('.deleteMicroservice()', () => {
+  //   describe('.deleteMicroserviceEndPoint()', () => {
   //     const transaction = {};
   //     const error = 'Error!';
   //
@@ -1031,7 +998,7 @@ describe('Microservices Service', () => {
   //       microserviceUuid: microserviceData.uuid
   //     };
   //
-  //     def('subject', () => $subject.deleteMicroservice(microserviceUuid, microserviceData, user, isCLI, transaction));
+  //     def('subject', () => $subject.deleteMicroserviceEndPoint(microserviceUuid, microserviceData, user, isCLI, transaction));
   //     def('findMicroserviceResponse', () => Promise.resolve(microserviceData));
   //     def('findMicroservicePortResponse', () => Promise.resolve());
   //     def('deleteMicroservicePortResponse', () => Promise.resolve());
@@ -1161,7 +1128,7 @@ describe('Microservices Service', () => {
   // });
   //
 
-  describe('.createPortMapping()', () => {
+  describe('.createPortMappingEndPoint()', () => {
     const transaction = {}
     const error = 'Error!'
 
@@ -1172,6 +1139,7 @@ describe('Microservices Service', () => {
     const microserviceUuid = 'testMicroserviceUuid'
 
     const microserviceData = {
+      'uuid': microserviceUuid,
       'name': 'name2',
       'config': 'string',
       'catalogItemId': 15,
@@ -1216,7 +1184,7 @@ describe('Microservices Service', () => {
       microserviceUuid: microserviceData.uuid,
     }
 
-    def('subject', () => $subject.createPortMapping(microserviceUuid, portMappingData, user, isCLI, transaction))
+    def('subject', () => $subject.createPortMappingEndPoint(microserviceUuid, portMappingData, user, isCLI, transaction))
     def('validatorResponse', () => Promise.resolve(true))
     def('findMicroserviceResponse', () => Promise.resolve(microserviceData))
     def('findMicroservicePortResponse', () => Promise.resolve())

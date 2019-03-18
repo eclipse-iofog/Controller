@@ -15,23 +15,23 @@ const CatalogService = require('../services/catalog-service')
 const AuthDecorator = require('./../decorators/authorization-decorator')
 
 const createCatalogItemEndPoint = async function(req, user) {
-  return await CatalogService.createCatalogItem(req.body, user)
+  return await CatalogService.createCatalogItemEndPoint(req.body, user)
 }
 
 const listCatalogItemsEndPoint = async function(req, user) {
-  return await CatalogService.listCatalogItems(user, false)
+  return await CatalogService.listCatalogItemsEndPoint(user, false)
 }
 
 const listCatalogItemEndPoint = async function(req, user) {
-  return await CatalogService.getCatalogItem(req.params.id, user, false)
+  return await CatalogService.getCatalogItemEndPoint(req.params.id, user, false)
 }
 
 const deleteCatalogItemEndPoint = async function(req, user) {
-  await CatalogService.deleteCatalogItem(req.params.id, user, false)
+  await CatalogService.deleteCatalogItemEndPoint(req.params.id, user, false)
 }
 
 const updateCatalogItemEndPoint = async function(req, user) {
-  await CatalogService.updateCatalogItem(req.params.id, req.body, user, false)
+  await CatalogService.updateCatalogItemEndPoint(req.params.id, req.body, user, false)
 }
 
 module.exports = {

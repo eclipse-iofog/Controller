@@ -17,20 +17,20 @@ const qs = require('qs')
 
 async function createFogEndPoint(req, user) {
   const newFog = req.body
-  return await FogService.createFog(newFog, user, false)
+  return await FogService.createFogEndPoint(newFog, user, false)
 }
 
 async function updateFogEndPoint(req, user) {
   const updateFog = req.body
   updateFog.uuid = req.params.uuid
-  return await FogService.updateFog(updateFog, user, false)
+  return await FogService.updateFogEndPoint(updateFog, user, false)
 }
 
 async function deleteFogEndPoint(req, user) {
   const deleteFog = {
     uuid: req.params.uuid,
   }
-  return await FogService.deleteFog(deleteFog, user, false)
+  return await FogService.deleteFogEndPoint(deleteFog, user, false)
 }
 
 async function getFogEndPoint(req, user) {
@@ -38,12 +38,12 @@ async function getFogEndPoint(req, user) {
     uuid: req.params.uuid,
   }
 
-  return await FogService.getFogWithTransaction(getFog, user, false)
+  return await FogService.getFogEndPoint(getFog, user, false)
 }
 
 async function getFogListEndPoint(req, user) {
   const query = qs.parse(req.query)
-  return await FogService.getFogList(query.filters, user, false)
+  return await FogService.getFogListEndPoint(query.filters, user, false)
 }
 
 async function generateProvisionKeyEndPoint(req, user) {
@@ -51,7 +51,7 @@ async function generateProvisionKeyEndPoint(req, user) {
     uuid: req.params.uuid,
   }
 
-  return await FogService.generateProvisioningKey(fog, user, false)
+  return await FogService.generateProvisioningKeyEndPoint(fog, user, false)
 }
 
 async function setFogVersionCommandEndPoint(req, user) {
@@ -60,7 +60,7 @@ async function setFogVersionCommandEndPoint(req, user) {
     versionCommand: req.params.versionCommand,
   }
 
-  return await FogService.setFogVersionCommand(fogVersionCommand, user, false)
+  return await FogService.setFogVersionCommandEndPoint(fogVersionCommand, user, false)
 }
 
 async function setFogRebootCommandEndPoint(req, user) {
@@ -68,21 +68,21 @@ async function setFogRebootCommandEndPoint(req, user) {
     uuid: req.params.uuid,
   }
 
-  return await FogService.setFogRebootCommand(fog, user, false)
+  return await FogService.setFogRebootCommandEndPoint(fog, user, false)
 }
 
 async function getHalHardwareInfoEndPoint(req, user) {
   const uuidObj = {
     uuid: req.params.uuid,
   }
-  return await FogService.getHalHardwareInfo(uuidObj, user, false)
+  return await FogService.getHalHardwareInfoEndPoint(uuidObj, user, false)
 }
 
 async function getHalUsbInfoEndPoint(req, user) {
   const uuidObj = {
     uuid: req.params.uuid,
   }
-  return await FogService.getHalUsbInfo(uuidObj, user, false)
+  return await FogService.getHalUsbInfoEndPoint(uuidObj, user, false)
 }
 
 module.exports = {
