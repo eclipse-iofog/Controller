@@ -8,6 +8,7 @@ module.exports = {
 
   'extends': 'google',
   'rules': {
+    "linebreak-style": 0,
     'require-jsdoc': [OFF, {
       'require': {
         'FunctionDeclaration': true,

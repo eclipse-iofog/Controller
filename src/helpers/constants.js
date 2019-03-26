@@ -12,6 +12,7 @@
  */
 
 module.exports = {
+  ROOT_DIR: `${__dirname}/../..`,
   CONNECTOR_HTTP_PORT: 8080,
   CONNECTOR_HTTPS_PORT: 443,
 

@@ -324,7 +324,7 @@ const _createRoute = async function(obj, user) {
     const sourceMicroserviceUuid = arr[0]
     const destMicroserviceUuid = arr[1]
     logger.cliReq('microservice route-create', {args: {source: sourceMicroserviceUuid, dest: destMicroserviceUuid}})
-    await MicroserviceService.createRoute(sourceMicroserviceUuid, destMicroserviceUuid, user, true)
+    await MicroserviceService.createRouteEndPoint(sourceMicroserviceUuid, destMicroserviceUuid, user, true)
     logger.cliRes(`Microservice route with source microservice ${sourceMicroserviceUuid} and dest microservice 
                 ${destMicroserviceUuid} has been created successfully.`)
   } catch (e) {
@@ -338,7 +338,7 @@ const _removeRoute = async function(obj, user) {
     const sourceMicroserviceUuid = arr[0]
     const destMicroserviceUuid = arr[1]
     logger.cliReq('microservice route-remove', {args: {source: sourceMicroserviceUuid, dest: destMicroserviceUuid}})
-    await MicroserviceService.deleteRoute(sourceMicroserviceUuid, destMicroserviceUuid, user, true)
+    await MicroserviceService.deleteRouteEndPoint(sourceMicroserviceUuid, destMicroserviceUuid, user, true)
     logger.cliRes('Microservice route with source microservice ' + sourceMicroserviceUuid +
       ' and dest microservice ' + destMicroserviceUuid + 'has been removed successfully.')
   } catch (e) {
@@ -349,14 +349,14 @@ const _removeRoute = async function(obj, user) {
 const _createPortMapping = async function(obj, user) {
   const mapping = parsePortMappingObject(obj.mapping, ErrorMessages.CLI.INVALID_PORT_MAPPING)
   logger.cliReq('microservice port-mapping-create', {args: mapping})
-  await MicroserviceService.createPortMapping(obj.microserviceUuid, mapping, user, true)
+  await MicroserviceService.createPortMappingEndPoint(obj.microserviceUuid, mapping, user, true)
   logger.cliRes('Port mapping has been created successfully.')
 }
 
 const _createVolumeMapping = async function(obj, user) {
   const mapping = parseVolumeMappingObject(obj.mapping, ErrorMessages.CLI.INVALID_VOLUME_MAPPING)
   logger.cliReq('microservice volume-mapping-create', {args: mapping})
-  const result = await MicroserviceService.createVolumeMapping(obj.microserviceUuid, mapping, user, true)
+  const result = await MicroserviceService.createVolumeMappingEndPoint(obj.microserviceUuid, mapping, user, true)
   logger.cliRes(JSON.stringify({
     id: result.id,
   }, null, 2))
@@ -365,7 +365,7 @@ const _createVolumeMapping = async function(obj, user) {
 const _removePortMapping = async function(obj, user) {
   try {
     logger.cliReq('microservice port-mapping-remove', {args: obj})
-    await MicroserviceService.deletePortMapping(obj.microserviceUuid, obj.internalPort, user, true)
+    await MicroserviceService.deletePortMappingEndPoint(obj.microserviceUuid, obj.internalPort, user, true)
     logger.cliRes('Port mapping has been removed successfully.')
   } catch (e) {
     logger.error(e.message)
@@ -375,7 +375,7 @@ const _removePortMapping = async function(obj, user) {
 const _removeVolumeMapping = async function(obj, user) {
   try {
     logger.cliReq('microservice volume-mapping-remove', {args: obj})
-    await MicroserviceService.deleteVolumeMapping(obj.microserviceUuid, obj.mappingId, user, true)
+    await MicroserviceService.deleteVolumeMappingEndPoint(obj.microserviceUuid, obj.mappingId, user, true)
     logger.cliRes('Volume mapping has been deleted successfully.')
   } catch (e) {
     logger.error(e.message)
@@ -384,13 +384,13 @@ const _removeVolumeMapping = async function(obj, user) {
 
 const _listPortMappings = async function(obj, user) {
   logger.cliReq('microservice port-mapping-list', {args: {microserviceUuid: obj.microserviceUuid}})
-  const result = await MicroserviceService.listMicroservicePortMappings(obj.microserviceUuid, user, true)
+  const result = await MicroserviceService.listMicroservicePortMappingsEndPoint(obj.microserviceUuid, user, true)
   logger.cliRes(JSON.stringify(result, null, 2))
 }
 
 const _listVolumeMappings = async function(obj, user) {
   logger.cliReq('microservice volume-mapping-list', {args: {microserviceUuid: obj.microserviceUuid}})
-  const result = await MicroserviceService.listVolumeMappings(obj.microserviceUuid, user, true)
+  const result = await MicroserviceService.listVolumeMappingsEndPoint(obj.microserviceUuid, user, true)
   logger.cliRes(JSON.stringify(result, null, 2))
 }
 
@@ -400,19 +400,19 @@ const _removeMicroservice = async function(obj, user) {
   }
 
   logger.cliReq('microservice remove', {args: {microserviceUuid: obj.microserviceUuid, withCleanup: obj.cleanup}})
-  await MicroserviceService.deleteMicroservice(obj.microserviceUuid, microserviceData, user, true)
+  await MicroserviceService.deleteMicroserviceEndPoint(obj.microserviceUuid, microserviceData, user, true)
   logger.cliRes('Microservice has been removed successfully.')
 }
 
 const _listMicroservices = async function() {
   logger.cliReq('microservice list')
-  const result = await MicroserviceService.listMicroservices({}, {}, true)
+  const result = await MicroserviceService.listMicroservicesEndPoint({}, {}, true)
   logger.cliRes(JSON.stringify(result, null, 2))
 }
 
 const _getMicroservice = async function(obj, user) {
   logger.cliReq('microservice info', {args: {microserviceUuid: obj.microserviceUuid}})
-  const result = await MicroserviceService.getMicroservice(obj.microserviceUuid, user, true)
+  const result = await MicroserviceService.getMicroserviceEndPoint(obj.microserviceUuid, user, true)
   logger.cliRes(JSON.stringify(result, null, 2))
 }
 
@@ -422,7 +422,7 @@ const _createMicroservice = async function(obj, user) {
     : _createMicroserviceObject(obj)
 
   logger.cliReq('microservice add', {args: microservice})
-  const result = await MicroserviceService.createMicroservice(microservice, user, true)
+  const result = await MicroserviceService.createMicroserviceEndPoint(microservice, user, true)
   logger.cliRes(JSON.stringify({
     uuid: result.uuid,
   }, null, 2))
@@ -434,7 +434,7 @@ const _updateMicroservice = async function(obj, user) {
     : _updateMicroserviceObject(obj)
 
   logger.cliReq('microservice update', {args: microservice})
-  await MicroserviceService.updateMicroservice(obj.microserviceUuid, microservice, user, true)
+  await MicroserviceService.updateMicroserviceEndPoint(obj.microserviceUuid, microservice, user, true)
   logger.cliRes('Microservice has been updated successfully.')
 }
 

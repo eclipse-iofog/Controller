@@ -193,6 +193,8 @@ const updateAgentStatus = async function(agentStatus, fog, transaction) {
     systemAvailableDisk: agentStatus.systemAvailableDisk,
     systemAvailableMemory: agentStatus.systemAvailableMemory,
     systemTotalCpu: agentStatus.systemTotalCpu,
+    securityStatus: agentStatus.securityStatus,
+    securityViolationInfo: agentStatus.securityViolationInfo,
     repositoryCount: agentStatus.repositoryCount,
     repositoryStatus: agentStatus.repositoryStatus,
     systemTime: agentStatus.systemTime,

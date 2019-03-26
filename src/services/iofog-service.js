@@ -32,7 +32,7 @@ const TrackingDecorator = require('../decorators/tracking-decorator')
 const TrackingEventType = require('../enums/tracking-event-type')
 const logger = require('../logger')
 
-async function createFog(fogData, user, isCLI, transaction) {
+async function createFogEndPoint(fogData, user, isCLI, transaction) {
   await Validator.validate(fogData, Validator.schemas.iofogCreate)
 
   let createFogData = {
@@ -89,7 +89,7 @@ async function createFog(fogData, user, isCLI, transaction) {
   return res
 }
 
-async function updateFog(fogData, user, isCLI, transaction) {
+async function updateFogEndPoint(fogData, user, isCLI, transaction) {
   await Validator.validate(fogData, Validator.schemas.iofogUpdate)
 
   const queryFogData = isCLI
@@ -154,7 +154,7 @@ async function updateFog(fogData, user, isCLI, transaction) {
   }
 }
 
-async function deleteFog(fogData, user, isCLI, transaction) {
+async function deleteFogEndPoint(fogData, user, isCLI, transaction) {
   await Validator.validate(fogData, Validator.schemas.iofogDelete)
 
   const queryFogData = isCLI
@@ -189,7 +189,11 @@ async function getFog(fogData, user, isCLI, transaction) {
   return fog
 }
 
-async function getFogList(filters, user, isCLI, transaction) {
+async function getFogEndPoint(fogData, user, isCLI, transaction) {
+  return await getFog(fogData, user, isCLI, transaction)
+}
+
+async function getFogListEndPoint(filters, user, isCLI, transaction) {
   await Validator.validate(filters, Validator.schemas.iofogFilters)
 
   const queryFogData = isCLI
@@ -204,7 +208,7 @@ async function getFogList(filters, user, isCLI, transaction) {
   }
 }
 
-async function generateProvisioningKey(fogData, user, isCLI, transaction) {
+async function generateProvisioningKeyEndPoint(fogData, user, isCLI, transaction) {
   await Validator.validate(fogData, Validator.schemas.iofogGenerateProvision)
 
   const queryFogData = isCLI
@@ -229,7 +233,7 @@ async function generateProvisioningKey(fogData, user, isCLI, transaction) {
   }
 }
 
-async function setFogVersionCommand(fogVersionData, user, isCLI, transaction) {
+async function setFogVersionCommandEndPoint(fogVersionData, user, isCLI, transaction) {
   await Validator.validate(fogVersionData, Validator.schemas.iofogSetVersionCommand)
 
   const queryFogData = isCLI
@@ -253,12 +257,12 @@ async function setFogVersionCommand(fogVersionData, user, isCLI, transaction) {
     throw new Errors.ValidationError(ErrorMessages.INVALID_VERSION_COMMAND_UPGRADE)
   }
 
-  await generateProvisioningKey({uuid: fogVersionData.uuid}, user, isCLI, transaction)
+  await generateProvisioningKeyEndPoint({uuid: fogVersionData.uuid}, user, isCLI, transaction)
   await FogVersionCommandManager.updateOrCreate({iofogUuid: fogVersionData.uuid}, newVersionCommand, transaction)
   await ChangeTrackingService.update(fogVersionData.uuid, ChangeTrackingService.events.version, transaction)
 }
 
-async function setFogRebootCommand(fogData, user, isCLI, transaction) {
+async function setFogRebootCommandEndPoint(fogData, user, isCLI, transaction) {
   await Validator.validate(fogData, Validator.schemas.iofogReboot)
 
   const queryFogData = isCLI
@@ -273,7 +277,7 @@ async function setFogRebootCommand(fogData, user, isCLI, transaction) {
   await ChangeTrackingService.update(fogData.uuid, ChangeTrackingService.events.reboot, transaction)
 }
 
-async function getHalHardwareInfo(uuidObj, user, isCLI, transaction) {
+async function getHalHardwareInfoEndPoint(uuidObj, user, isCLI, transaction) {
   await Validator.validate(uuidObj, Validator.schemas.halGet)
 
   const fog = await FogManager.findOne({
@@ -288,7 +292,7 @@ async function getHalHardwareInfo(uuidObj, user, isCLI, transaction) {
   }, transaction)
 }
 
-async function getHalUsbInfo(uuidObj, user, isCLI, transaction) {
+async function getHalUsbInfoEndPoint(uuidObj, user, isCLI, transaction) {
   await Validator.validate(uuidObj, Validator.schemas.halGet)
 
   const fog = await FogManager.findOne({
@@ -394,7 +398,7 @@ async function _deleteBluetoothMicroserviceByFog(fogData, transaction) {
 }
 
 // decorated functions
-const createFogWithTracking = TrackingDecorator.trackEvent(createFog, TrackingEventType.IOFOG_CREATED)
+const createFogWithTracking = TrackingDecorator.trackEvent(createFogEndPoint, TrackingEventType.IOFOG_CREATED)
 
 const informKubelet = function(iofogUuid, method) {
   const kubeletUri = config.get('Kubelet:Uri')
@@ -410,15 +414,15 @@ const informKubelet = function(iofogUuid, method) {
 }
 
 module.exports = {
-  createFog: TransactionDecorator.generateTransaction(createFogWithTracking),
-  updateFog: TransactionDecorator.generateTransaction(updateFog),
-  deleteFog: TransactionDecorator.generateTransaction(deleteFog),
-  getFogWithTransaction: TransactionDecorator.generateTransaction(getFog),
-  getFogList: TransactionDecorator.generateTransaction(getFogList),
-  generateProvisioningKey: TransactionDecorator.generateTransaction(generateProvisioningKey),
-  setFogVersionCommand: TransactionDecorator.generateTransaction(setFogVersionCommand),
-  setFogRebootCommand: TransactionDecorator.generateTransaction(setFogRebootCommand),
-  getHalHardwareInfo: TransactionDecorator.generateTransaction(getHalHardwareInfo),
-  getHalUsbInfo: TransactionDecorator.generateTransaction(getHalUsbInfo),
-  getFog: TransactionDecorator.generateTransaction(getFog),
+  createFogEndPoint: TransactionDecorator.generateTransaction(createFogWithTracking),
+  updateFogEndPoint: TransactionDecorator.generateTransaction(updateFogEndPoint),
+  deleteFogEndPoint: TransactionDecorator.generateTransaction(deleteFogEndPoint),
+  getFogEndPoint: TransactionDecorator.generateTransaction(getFogEndPoint),
+  getFogListEndPoint: TransactionDecorator.generateTransaction(getFogListEndPoint),
+  generateProvisioningKeyEndPoint: TransactionDecorator.generateTransaction(generateProvisioningKeyEndPoint),
+  setFogVersionCommandEndPoint: TransactionDecorator.generateTransaction(setFogVersionCommandEndPoint),
+  setFogRebootCommandEndPoint: TransactionDecorator.generateTransaction(setFogRebootCommandEndPoint),
+  getHalHardwareInfoEndPoint: TransactionDecorator.generateTransaction(getHalHardwareInfoEndPoint),
+  getHalUsbInfoEndPoint: TransactionDecorator.generateTransaction(getHalUsbInfoEndPoint),
+  getFog: getFog,
 }

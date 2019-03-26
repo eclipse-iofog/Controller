@@ -30,6 +30,9 @@ const DEFAULT_CONFIG_BACKUP = `${TEMP_DIR}/default_iofog_backup.json`
 const DEVELOP_CONFIG_BACKUP = `${TEMP_DIR}/development_iofog_backup.json`
 const PRODUCTION_CONFIG_BACKUP = `${TEMP_DIR}/production_iofog_backup.json`
 
+const TRACKING_UUID_FILE = `${ROOT_DIR}/src/config/tracking-uuid`
+const TRACKING_UUID_FILE_BACKUP = `${TEMP_DIR}/tracking-uuid_backup`
+
 const INSTALLATION_VARIABLES_FILE = TEMP_DIR + '/iofogcontroller_install_variables'
 
 
@@ -77,11 +80,21 @@ function restoreConfigs() {
   renameFile(PRODUCTION_CONFIG_BACKUP, PRODUCTION_CONFIG)
 }
 
+function backupTrackingUuid() {
+  renameFile(TRACKING_UUID_FILE, TRACKING_UUID_FILE_BACKUP)
+}
+
+function restoreTrackingUuid() {
+  renameFile(TRACKING_UUID_FILE_BACKUP, TRACKING_UUID_FILE)
+}
+
 module.exports = {
   backupDBs: backupDBs,
   restoreDBs: restoreDBs,
   backupConfigs: backupConfigs,
   restoreConfigs: restoreConfigs,
+  backupTrackingUuid: backupTrackingUuid,
+  restoreTrackingUuid: restoreTrackingUuid,
   renameFile: renameFile,
   getTempDir: getTempDir,
 

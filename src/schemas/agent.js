@@ -75,6 +75,8 @@ const updateAgentStatus = {
     'systemAvailableDisk': {'type': 'integer'},
     'systemAvailableMemory': {'type': 'integer'},
     'systemTotalCpu': {'type': 'number'},
+    'securityStatus': {'type': 'string'},
+    'securityViolationInfo': {'type': 'string'},
     'microserviceStatus': {'type': 'string'},
     'repositoryCount': {'type': 'integer', 'minimum': 0},
     'repositoryStatus': {'type': 'string'},
