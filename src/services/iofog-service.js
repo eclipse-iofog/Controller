@@ -11,6 +11,9 @@
  *
  */
 
+const config = require('../config')
+const request = require('request-promise')
+
 const TransactionDecorator = require('../decorators/transaction-decorator')
 const AppHelper = require('../helpers/app-helper')
 const FogManager = require('../sequelize/managers/iofog-manager')
@@ -27,6 +30,7 @@ const MicroserviceManager = require('../sequelize/managers/microservice-manager'
 const FogStates = require('../enums/fog-state')
 const TrackingDecorator = require('../decorators/tracking-decorator')
 const TrackingEventType = require('../enums/tracking-event-type')
+const logger = require('../logger')
 
 async function createFog(fogData, user, isCLI, transaction) {
   await Validator.validate(fogData, Validator.schemas.iofogCreate)
@@ -75,6 +79,12 @@ async function createFog(fogData, user, isCLI, transaction) {
   }
 
   await ChangeTrackingService.update(createFogData.uuid, ChangeTrackingService.events.microserviceCommon, transaction)
+
+  try {
+    await informKubelet(fog.uuid, 'POST')
+  } catch (e) {
+    logger.error('unable to create node in kubernetes')
+  }
 
   return res
 }
@@ -156,6 +166,12 @@ async function deleteFog(fogData, user, isCLI, transaction) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, fogData.uuid))
   }
   await _processDeleteCommand(fog, transaction)
+
+  try {
+    await informKubelet(fog.uuid, 'DELETE')
+  } catch (e) {
+    logger.error('unable to delete node from kubernetes')
+  }
 }
 
 async function getFog(fogData, user, isCLI, transaction) {
@@ -380,6 +396,19 @@ async function _deleteBluetoothMicroserviceByFog(fogData, transaction) {
 // decorated functions
 const createFogWithTracking = TrackingDecorator.trackEvent(createFog, TrackingEventType.IOFOG_CREATED)
 
+const informKubelet = function(iofogUuid, method) {
+  const kubeletUri = config.get('Kubelet:Uri')
+  const options = {
+    uri: kubeletUri + '/node',
+    qs: {
+      uuid: iofogUuid,
+    },
+    method: method,
+  }
+
+  return request(options)
+}
+
 module.exports = {
   createFog: TransactionDecorator.generateTransaction(createFogWithTracking),
   updateFog: TransactionDecorator.generateTransaction(updateFog),
@@ -391,5 +420,5 @@ module.exports = {
   setFogRebootCommand: TransactionDecorator.generateTransaction(setFogRebootCommand),
   getHalHardwareInfo: TransactionDecorator.generateTransaction(getHalHardwareInfo),
   getHalUsbInfo: TransactionDecorator.generateTransaction(getHalUsbInfo),
-  getFog: getFog,
+  getFog: TransactionDecorator.generateTransaction(getFog),
 }

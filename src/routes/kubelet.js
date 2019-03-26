@@ -284,6 +284,39 @@ module.exports = [
   },
   {
     method: 'get',
+    path: '/api/v3/k8s/allocatable',
+    middleware: async (req, res) => {
+      logger.apiReq(req)
+
+      const successCode = constants.HTTP_CODE_SUCCESS
+      const errorCodes = [
+        {
+          code: constants.HTTP_CODE_BAD_REQUEST,
+          errors: [Errors.ValidationError],
+        },
+        {
+          code: constants.HTTP_CODE_UNAUTHORIZED,
+          errors: [Errors.AuthenticationError],
+        },
+        {
+          code: constants.HTTP_CODE_NOT_FOUND,
+          errors: [Errors.NotFoundError],
+        },
+      ]
+
+      const kubeletGetAllocatableEndPoint = ResponseDecorator
+          .handleErrors(KubeletController.kubeletGetAllocatableEndPoint, successCode, errorCodes)
+      const responseObject = await kubeletGetAllocatableEndPoint(req)
+
+      res
+          .status(responseObject.code)
+          .send(responseObject.body)
+
+      logger.apiRes({req: req, res: responseObject})
+    },
+  },
+  {
+    method: 'get',
     path: '/api/v3/k8s/nodeConditions',
     middleware: async (req, res) => {
       logger.apiReq(req)

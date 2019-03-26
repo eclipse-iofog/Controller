@@ -17,19 +17,27 @@ const AppHelper = require('../helpers/app-helper')
 const ErrorMessages = require('../helpers/error-messages')
 const Errors = require('../helpers/errors')
 const FlowService = require('./flow-service')
+const FogManager = require('../sequelize/managers/iofog-manager')
 const IOFogService = require('./iofog-service')
 const KubeletAccessTokenService = require('./kubelet-access-token-service')
 const MicroservicesService = require('./microservices-service')
+const MicroserviceStatusManager = require('../sequelize/managers/microservice-status-manager')
 const SchedulerAccessTokenService = require('./scheduler-access-token-service')
 const TransactionDecorator = require('../decorators/transaction-decorator')
 
+const NODE_CAPACITY = 100
+
 const kubeletCreatePod = async function(createPodData, fogNodeUuid, user, transaction) {
   const msMetadata = JSON.parse(createPodData.metadata.annotations.microservices)
+  const flowDescription = {
+    metadata: createPodData,
+    node: fogNodeUuid,
+  }
 
   const flowData = {
     name: createPodData.metadata.name,
     isActivated: true,
-    description: JSON.stringify(createPodData),
+    description: Buffer.from(JSON.stringify(flowDescription)).toString('base64'),
   }
   const flows = await FlowService.getAllFlows(false, transaction)
   let flow = flows.flows.find((flow) => flow.name === flowData.name)
@@ -77,7 +85,6 @@ const kubeletCreatePod = async function(createPodData, fogNodeUuid, user, transa
 
 const kubeletUpdatePod = async function(uploadPodData, fogNodeUuid, user, transaction) {
   // TODO: to implement
-  // debugger
 }
 
 const kubeletDeletePod = async function(podData, fogNodeUuid, user, transaction) {
@@ -98,33 +105,34 @@ const kubeletDeletePod = async function(podData, fogNodeUuid, user, transaction)
 }
 
 const kubeletGetPod = async function(namespace, name, fogNodeUuid, user, transaction) {
-  const flows = await FlowService.getAllFlows(false, transaction)
-  const flow = flows.flows.find((flow) => flow.name === name)
-  if (!flow) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, fogNodeUuid))
-  }
+  const flow = await FlowService.getFlowByName(name, user, false, transaction)
 
-  return JSON.parse(flow.description)
+  return JSON.parse(Buffer.from(flow.description, 'base64').toString('utf8')).metadata
 }
 
 const kubeletGetContainerLogs = async function(namespace, podName, containerName, tail, fogNodeUuid, user, transaction) {
-  // TODO: to implement
-  // debugger
+  // Not supported yet
 }
 
 const kubeletGetPodStatus = async function(namespace, name, fogNodeUuid, user, transaction) {
-  const flows = await FlowService.getAllFlows(false, transaction)
-  const flow = flows.flows.find((flow) => flow.name === name)
-  if (!flow) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, fogNodeUuid))
+  const fog = await FogManager.findOne({uuid: fogNodeUuid}, transaction)
+  const changeFrequency = (fog && fog.changeFrequency) || 60
+
+  const flow = await FlowService.getFlowByName(name, user, false, transaction)
+  const microservices = await MicroservicesService.listMicroservices(flow.id, user, false, transaction)
+  const pod = JSON.parse(Buffer.from(flow.description, 'base64').toString('utf8')).metadata
+
+  for (const ms of microservices.microservices) {
+    const status = await MicroserviceStatusManager.findOne({microserviceUuid: ms.uuid}, transaction)
+    ms.status = status.dataValues
+    ms.status.alive = moment().diff(moment(ms.status.updated_at), 'seconds') <= (changeFrequency * 2)
   }
 
-  const pod = await kubeletGetPod(namespace, name, fogNodeUuid, user, transaction)
+  const phase = microservices.microservices.every((ms) => ms.status.status === 'RUNNING') ? 'Running' : 'Pending'
+  const alive = microservices.microservices.every((ms) => ms.status.alive)
   const status = {
-    phase: 'Running',
-    hostIP: '1.2.3.4',
-    podIP: '5.6.7.8',
-    startTime: moment.utc(),
+    phase: phase,
+    startTime: (alive && phase === 'Running') ? moment(microservices.microservices[0].startTime).utc().toISOString() : null,
     conditions: [
       {
         Type: 'PodInitialized',
@@ -132,7 +140,7 @@ const kubeletGetPodStatus = async function(namespace, name, fogNodeUuid, user, t
       },
       {
         Type: 'PodReady',
-        Status: 'True',
+        Status: (alive && phase === 'Running') ? 'True' : 'False',
       },
       {
         Type: 'PodScheduled',
@@ -141,33 +149,61 @@ const kubeletGetPodStatus = async function(namespace, name, fogNodeUuid, user, t
     ],
     containerStatuses: [],
   }
-  status.containerStatuses = pod.spec.containers.map((c) => ({
-    name: c.name,
-    image: c.image,
-    ready: true,
-    restartCount: 0,
-    state: {
-      running: {
-        startedAt: moment.utc(),
-      },
-    },
-  }))
+
+  status.containerStatuses = pod.spec.containers.map((c) => {
+    const microservice = microservices.microservices.find((ms) => ms.name === `${name}-${c.name}`)
+
+    const containerState = {}
+    if (!microservice.status.alive) {
+      containerState.waiting = {reason: 'NOT_RESPONSIVE'}
+    } else if (microservice.status.status === 'RUNNING') {
+      containerState.running = {startedAt: moment(microservice.status.startTime).utc().toISOString()}
+    } else {
+      containerState.waiting = {reason: microservice.status.status}
+    }
+
+    return {
+      name: c.name,
+      image: microservice.status.microserviceUuid,
+      ready: alive && microservice.status.status === 'RUNNING',
+      restartCount: 0,
+      state: containerState,
+      containerId: microservice.status.containerId,
+    }
+  })
 
   return status
 }
 
 const kubeletGetPods = async function(fogNodeUuid, user, transaction) {
-  // TODO: to implement
-  // debugger
-  return []
+  const flows = await FlowService.getAllFlows(transaction)
+  const pods = flows.flows
+      .filter((flow) => JSON.parse(Buffer.from(flow.description, 'base64').toString('utf8')).node === fogNodeUuid)
+      .map((flow) => JSON.parse(Buffer.from(flow.description, 'base64').toString('utf8')).metadata)
+
+  return pods
 }
 
 const kubeletGetCapacity = async function(fogNodeUuid, user, transaction) {
   const node = await IOFogService.getFog({uuid: fogNodeUuid}, user, false, transaction)
+
+  return {
+    cpu: node.cpuLimit,
+    memory: `${(node.memoryLimit).toFixed(0)}Mi`,
+    pods: `${NODE_CAPACITY}`,
+  }
+}
+
+const kubeletGetAllocatable = async function(fogNodeUuid, user, transaction) {
+  const node = await IOFogService.getFog({uuid: fogNodeUuid}, user, false, transaction)
+
+  const pods = await kubeletGetPods(fogNodeUuid, user, transaction)
+  const allocatablePods = NODE_CAPACITY - pods.length
+
   return {
     cpu: node.cpuLimit - node.cpuUsage,
     memory: `${(node.memoryLimit - node.memoryUsage).toFixed(0)}Mi`,
-    pods: '1',
+    pods: allocatablePods < 0 ? 0 : allocatablePods,
   }
 }
 
@@ -178,7 +214,7 @@ const kubeletGetNodeConditions = async function(fogNodeUuid, user, transaction) 
   return [
     {
       type: 'Ready',
-      status: 'True', // node.daemonStatus === 'RUNNING' ? 'True' : 'False',
+      status: node.daemonStatus === 'RUNNING' ? 'True' : 'False',
       lastHeartbeatTime: lastStatusTime,
       lastTransitionTime: now,
       reason: '',
@@ -312,6 +348,7 @@ module.exports = {
   kubeletGetPodStatus: TransactionDecorator.generateFakeTransaction(kubeletGetPodStatus),
   kubeletGetPods: TransactionDecorator.generateFakeTransaction(kubeletGetPods),
   kubeletGetCapacity: TransactionDecorator.generateFakeTransaction(kubeletGetCapacity),
+  kubeletGetAllocatable: TransactionDecorator.generateFakeTransaction(kubeletGetAllocatable),
   kubeletGetNodeConditions: TransactionDecorator.generateFakeTransaction(kubeletGetNodeConditions),
   kubeletGetNodeAddresses: TransactionDecorator.generateFakeTransaction(kubeletGetNodeAddresses),
   kubeletGetVkToken: TransactionDecorator.generateFakeTransaction(kubeletGetVkToken),

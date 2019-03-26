@@ -2,3 +2,4 @@ node_modules
 .vscode
 *.sqlite
 .nyc_output
+/.idea
