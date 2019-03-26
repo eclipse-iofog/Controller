@@ -84,7 +84,7 @@ async function createMicroserviceEndPoint(microserviceData, user, isCLI, transac
   }
 
   if (microserviceData.routes) {
-    await _createRoutes(microservice, microserviceData.routes, user, transaction)
+    await _createRoutes(microservice, microserviceData.routes, user, isCLI, transaction)
   }
 
   if (microserviceData.iofogUuid) {
@@ -577,7 +577,7 @@ async function _createVolumeMappings(microservice, volumeMappings, transaction) 
   await VolumeMappingManager.bulkCreate(mappings, transaction)
 }
 
-async function _createRoutes(sourceMicroservice, destMsUuidArr, user, transaction) {
+async function _createRoutes(sourceMicroservice, destMsUuidArr, user, isCLI, transaction) {
   for (const destUuid of destMsUuidArr) {
     const destWhere = isCLI
       ? {uuid: destUuid}

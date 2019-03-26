@@ -39,13 +39,14 @@ const kubeletCreatePod = async function(createPodData, fogNodeUuid, user, transa
     isActivated: true,
     description: Buffer.from(JSON.stringify(flowDescription)).toString('base64'),
   }
-  const flows = await FlowService.getAllFlows(false, transaction)
+
+  const flows = await FlowService.getAllFlowsEndPoint(false, transaction)
   let flow = flows.flows.find((flow) => flow.name === flowData.name)
   if (!flow) {
-    flow = await FlowService.createFlow(flowData, user, false, transaction)
+    flow = await FlowService.createFlowEndPoint(flowData, user, false, transaction)
   }
 
-  const existingMicroservices = await MicroservicesService.listMicroservices(flow.id, user, false, transaction)
+  const existingMicroservices = await MicroservicesService.listMicroservicesEndPoint(flow.id, user, false, transaction)
 
   const microservices = microservicesTopologicalOrder(msMetadata)
   const microservicesIds = []
@@ -78,7 +79,11 @@ const kubeletCreatePod = async function(createPodData, fogNodeUuid, user, transa
       ports: ms.ports || [],
       routes: ms.routes || [],
     }
-    microservice = await MicroservicesService.createMicroservice(microserviceData, user, false, transaction)
+    try {
+      microservice = await MicroservicesService.createMicroserviceEndPoint(microserviceData, user, false, transaction)
+    } catch (e) {
+      debugger
+    }
     microservicesIds.push(microservice.uuid)
   }
 }
@@ -90,18 +95,18 @@ const kubeletUpdatePod = async function(uploadPodData, fogNodeUuid, user, transa
 const kubeletDeletePod = async function(podData, fogNodeUuid, user, transaction) {
   const flowName = podData.metadata.name
 
-  const flows = await FlowService.getAllFlows(false, transaction)
+  const flows = await FlowService.getAllFlowsEndPoint(false, transaction)
   const flow = flows.flows.find((flow) => flow.name === flowName)
   if (!flow) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, fogNodeUuid))
   }
 
-  const existingMicroservices = await MicroservicesService.listMicroservices(flow.id, user, false, transaction)
+  const existingMicroservices = await MicroservicesService.listMicroservicesEndPoint(flow.id, user, false, transaction)
   existingMicroservices.microservices.forEach(async (ms) => {
-    await MicroservicesService.deleteMicroservice(ms.uuid, {withCleanup: true}, user, false, transaction)
+    await MicroservicesService.deleteMicroserviceEndPoint(ms.uuid, {withCleanup: true}, user, false, transaction)
   })
 
-  await FlowService.deleteFlow(flow.id, user, false, transaction)
+  await FlowService.deleteFlowEndPoint(flow.id, user, false, transaction)
 }
 
 const kubeletGetPod = async function(namespace, name, fogNodeUuid, user, transaction) {
@@ -119,7 +124,7 @@ const kubeletGetPodStatus = async function(namespace, name, fogNodeUuid, user, t
   const changeFrequency = (fog && fog.changeFrequency) || 60
 
   const flow = await FlowService.getFlowByName(name, user, false, transaction)
-  const microservices = await MicroservicesService.listMicroservices(flow.id, user, false, transaction)
+  const microservices = await MicroservicesService.listMicroservicesEndPoint(flow.id, user, false, transaction)
   const pod = JSON.parse(Buffer.from(flow.description, 'base64').toString('utf8')).metadata
 
   for (const ms of microservices.microservices) {
@@ -176,7 +181,7 @@ const kubeletGetPodStatus = async function(namespace, name, fogNodeUuid, user, t
 }
 
 const kubeletGetPods = async function(fogNodeUuid, user, transaction) {
-  const flows = await FlowService.getAllFlows(transaction)
+  const flows = await FlowService.getAllFlowsEndPoint(false, transaction)
   const pods = flows.flows
       .filter((flow) => JSON.parse(Buffer.from(flow.description, 'base64').toString('utf8')).node === fogNodeUuid)
       .map((flow) => JSON.parse(Buffer.from(flow.description, 'base64').toString('utf8')).metadata)
@@ -185,7 +190,7 @@ const kubeletGetPods = async function(fogNodeUuid, user, transaction) {
 }
 
 const kubeletGetCapacity = async function(fogNodeUuid, user, transaction) {
-  const node = await IOFogService.getFog({uuid: fogNodeUuid}, user, false, transaction)
+  const node = await IOFogService.getFogEndPoint({uuid: fogNodeUuid}, user, false, transaction)
 
   return {
     cpu: node.cpuLimit,
@@ -195,7 +200,7 @@ const kubeletGetCapacity = async function(fogNodeUuid, user, transaction) {
 }
 
 const kubeletGetAllocatable = async function(fogNodeUuid, user, transaction) {
-  const node = await IOFogService.getFog({uuid: fogNodeUuid}, user, false, transaction)
+  const node = await IOFogService.getFogEndPoint({uuid: fogNodeUuid}, user, false, transaction)
 
   const pods = await kubeletGetPods(fogNodeUuid, user, transaction)
   const allocatablePods = NODE_CAPACITY - pods.length
@@ -208,7 +213,7 @@ const kubeletGetAllocatable = async function(fogNodeUuid, user, transaction) {
 }
 
 const kubeletGetNodeConditions = async function(fogNodeUuid, user, transaction) {
-  const node = await IOFogService.getFog({uuid: fogNodeUuid}, user, false, transaction)
+  const node = await IOFogService.getFogEndPoint({uuid: fogNodeUuid}, user, false, transaction)
   const now = moment().utc().toISOString()
   const lastStatusTime = node.lastStatusTime ? moment(node.lastStatusTime).utc().toISOString() : null
   return [
@@ -256,7 +261,7 @@ const kubeletGetNodeConditions = async function(fogNodeUuid, user, transaction) 
 }
 
 const kubeletGetNodeAddresses = async function(fogNodeUuid, user, transaction) {
-  const node = await IOFogService.getFog({uuid: fogNodeUuid}, user, false, transaction)
+  const node = await IOFogService.getFogEndPoint({uuid: fogNodeUuid}, user, false, transaction)
   if (!node.ipAddress || node.ipAddress === '0.0.0.0') {
     return []
   }
