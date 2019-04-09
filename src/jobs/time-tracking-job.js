@@ -46,7 +46,7 @@ class TimeTrackingJob extends BaseJobHandler {
     }
 
     const runningTime = moment().diff(timerThis.startTime, 'minutes')
-    const event = Tracking.buildEvent(TrackingEventType.RUNNING_TIME, {runningTime, agentsCount})
+    const event = Tracking.buildEvent(TrackingEventType.RUNNING_TIME, { runningTime, agentsCount })
     await Tracking.processEvent(event)
 
     setTimeout(timerThis.trackTime, timerThis.scheduleTime)

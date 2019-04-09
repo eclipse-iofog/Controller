@@ -74,8 +74,8 @@ const updateFlowEndPoint = async function(flowData, flowId, user, isCLI, transac
   const updateFlowData = AppHelper.deleteUndefinedFields(flow)
 
   const where = isCLI
-    ? {id: flowId}
-    : {id: flowId, userId: user.id}
+    ? { id: flowId }
+    : { id: flowId, userId: user.id }
 
   await FlowManager.update(where, updateFlowData, transaction)
 
@@ -89,7 +89,7 @@ const getUserFlowsEndPoint = async function(user, isCLI, transaction) {
     userId: user.id,
   }
 
-  const attributes = {exclude: ['created_at', 'updated_at']}
+  const attributes = { exclude: ['created_at', 'updated_at'] }
   const flows = await FlowManager.findAllWithAttributes(flow, attributes, transaction)
   return {
     flows: flows,
@@ -97,7 +97,7 @@ const getUserFlowsEndPoint = async function(user, isCLI, transaction) {
 }
 
 const getAllFlowsEndPoint = async function(isCLI, transaction) {
-  const attributes = {exclude: ['created_at', 'updated_at']}
+  const attributes = { exclude: ['created_at', 'updated_at'] }
   const flows = await FlowManager.findAllWithAttributes({}, attributes, transaction)
   return {
     flows: flows,
@@ -106,10 +106,10 @@ const getAllFlowsEndPoint = async function(isCLI, transaction) {
 
 async function getFlow(flowId, user, isCLI, transaction) {
   const where = isCLI
-    ? {id: flowId}
-    : {id: flowId, userId: user.id}
+    ? { id: flowId }
+    : { id: flowId, userId: user.id }
 
-  const attributes = {exclude: ['created_at', 'updated_at']}
+  const attributes = { exclude: ['created_at', 'updated_at'] }
 
   const flow = await FlowManager.findOneWithAttributes(where, attributes, transaction)
 
@@ -121,10 +121,10 @@ async function getFlow(flowId, user, isCLI, transaction) {
 
 const getFlowByName = async function(flowName, user, isCLI, transaction) {
   const where = isCLI
-    ? {name: flowName}
-    : {name: flowName, userId: user.id}
+    ? { name: flowName }
+    : { name: flowName, userId: user.id }
 
-  const attributes = {exclude: ['created_at', 'updated_at']}
+  const attributes = { exclude: ['created_at', 'updated_at'] }
 
   const flow = await FlowManager.findOneWithAttributes(where, attributes, transaction)
 
@@ -141,8 +141,8 @@ const getFlowEndPoint = async function(flowId, user, isCLI, transaction) {
 const _checkForDuplicateName = async function(name, flowId, userId, transaction) {
   if (name) {
     const where = flowId
-      ? {name: name, userId: userId, id: {[Op.ne]: flowId}}
-      : {name: name, userId: userId}
+      ? { name: name, userId: userId, id: { [Op.ne]: flowId } }
+      : { name: name, userId: userId }
 
     const result = await FlowManager.findOne(where, transaction)
     if (result) {
@@ -152,7 +152,7 @@ const _checkForDuplicateName = async function(name, flowId, userId, transaction)
 }
 
 async function _updateChangeTrackingsByFlowId(flowId, transaction) {
-  const flowWithMicroservices = await FlowManager.findFlowMicroservices({id: flowId}, transaction)
+  const flowWithMicroservices = await FlowManager.findFlowMicroservices({ id: flowId }, transaction)
   if (!flowWithMicroservices) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_ID, flowId))
   }

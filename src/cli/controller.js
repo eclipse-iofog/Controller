@@ -40,7 +40,7 @@ class Controller extends BaseCLIHandler {
 
   async run(args) {
     try {
-      const controllerCommand = this.parseCommandLineArgs(this.commandDefinitions, {argv: args.argv, partial: false})
+      const controllerCommand = this.parseCommandLineArgs(this.commandDefinitions, { argv: args.argv, partial: false })
 
       const command = controllerCommand.command.command
 

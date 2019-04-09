@@ -88,8 +88,8 @@ const agentDeprovision = async function(deprovisionData, fog, transaction) {
   await Validator.validate(deprovisionData, Validator.schemas.agentDeprovision)
 
   await MicroserviceStatusManager.update(
-      {microserviceUuid: deprovisionData.microserviceUuids},
-      {status: MicroserviceStates.NOT_RUNNING},
+      { microserviceUuid: deprovisionData.microserviceUuids },
+      { status: MicroserviceStates.NOT_RUNNING },
       transaction
   )
 
@@ -97,8 +97,8 @@ const agentDeprovision = async function(deprovisionData, fog, transaction) {
 }
 
 const _invalidateFogNode = async function(fog, transaction) {
-  const where = {uuid: fog.uuid}
-  const data = {daemonStatus: FogStates.UNKNOWN, ipAddress: '0.0.0.0'}
+  const where = { uuid: fog.uuid }
+  const data = { daemonStatus: FogStates.UNKNOWN, ipAddress: '0.0.0.0' }
   await FogManager.update(where, data, transaction)
   const updatedFog = Object.assign({}, fog)
   updatedFog.daemonStatus = FogStates.UNKNOWN

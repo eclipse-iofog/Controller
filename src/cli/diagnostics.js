@@ -79,7 +79,7 @@ class Diagnostics extends BaseCLIHandler {
 
   async run(args) {
     try {
-      const diagnosticCommand = this.parseCommandLineArgs(this.commandDefinitions, {argv: args.argv, partial: false})
+      const diagnosticCommand = this.parseCommandLineArgs(this.commandDefinitions, { argv: args.argv, partial: false })
 
       const command = diagnosticCommand.command.command
 
@@ -128,15 +128,15 @@ const _executeCase = async function(diagnosticCommand, commandName, f, isUserReq
 
 const _changeMicroserviceStraceState = async function(obj) {
   const isEnable = AppHelper.validateBooleanCliOptions(obj.enable, obj.disable)
-  logger.cliReq('diagnostics strace-update', {args: {isEnable: isEnable}})
-  await DiagnosticService.changeMicroserviceStraceState(obj.microserviceUuid, {enable: isEnable}, {}, true)
+  logger.cliReq('diagnostics strace-update', { args: { isEnable: isEnable } })
+  await DiagnosticService.changeMicroserviceStraceState(obj.microserviceUuid, { enable: isEnable }, {}, true)
   const msg = isEnable ? 'Microservice strace has been enabled' : 'Microservice strace has been disabled'
   logger.cliRes(msg)
 }
 
 const _getMicroserviceStraceData = async function(obj) {
-  logger.cliReq('diagnostics strace-info', {args: obj})
-  const result = await DiagnosticService.getMicroserviceStraceData(obj.microserviceUuid, {format: obj.format}, {}, true)
+  logger.cliReq('diagnostics strace-info', { args: obj })
+  const result = await DiagnosticService.getMicroserviceStraceData(obj.microserviceUuid, { format: obj.format }, {}, true)
   logger.cliRes('Strace data:')
   logger.cliRes('=============================')
   logger.cliRes(result.data)
@@ -144,7 +144,7 @@ const _getMicroserviceStraceData = async function(obj) {
 }
 
 const _postMicroserviceStraceDataToFtp = async function(obj) {
-  logger.cliReq('diagnostics strace-ftp-post', {args: obj})
+  logger.cliReq('diagnostics strace-ftp-post', { args: obj })
   await DiagnosticService.postMicroserviceStraceDatatoFtp(obj.microserviceUuid, obj, {}, true)
   logger.cliRes('Strace data has been posted to FTP successfully.')
 }

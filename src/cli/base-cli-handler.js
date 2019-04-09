@@ -30,7 +30,7 @@ class CLIHandler {
   }
 
   parseCommandLineArgs(commandDefinitions, options = {}) {
-    return commandLineArgs(commandDefinitions, Object.assign({camelCase: true, partial: true}, options))
+    return commandLineArgs(commandDefinitions, Object.assign({ camelCase: true, partial: true }, options))
   }
 
   help(show = [], showOptions = true, hasCommands = true, additionalSection = []) {

@@ -20,6 +20,8 @@ module.exports = {
     'no-invalid-this': OFF,
     'no-multi-str': OFF,
     'semi': [ERROR, 'never'],
+    'space-before-function-paren': OFF,
+    'object-curly-spacing': ['error', 'always'],
   },
 
   'parserOptions': {

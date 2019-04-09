@@ -59,7 +59,7 @@ async function updateConnector(connectorData, transaction) {
   }
 
   await ConnectorManager.update(queryConnectorData, connectorData, transaction)
-  const updatedConnector = await ConnectorManager.findOne({publicIp: connectorData.publicIp}, transaction)
+  const updatedConnector = await ConnectorManager.findOne({ publicIp: connectorData.publicIp }, transaction)
   await MicroserviceService.updateRouteOverConnector(updatedConnector, transaction)
   await MicroserviceService.updatePortMappingOverConnector(updatedConnector, transaction)
 }
@@ -73,7 +73,7 @@ async function deleteConnector(connectorData, transaction) {
   if (!connector) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_CONNECTOR_IP, connectorData.publicIp))
   }
-  const ports = await ConnectorPortManager.findAll({connectorId: connector.id}, transaction)
+  const ports = await ConnectorPortManager.findAll({ connectorId: connector.id }, transaction)
   if (ports && ports.length > 0) {
     throw new Errors.ValidationError(ErrorMessages.CONNECTOR_IS_IN_USE)
   }

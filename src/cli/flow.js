@@ -83,7 +83,7 @@ class Flow extends BaseCLIHandler {
 
   async run(args) {
     try {
-      const flowCommand = this.parseCommandLineArgs(this.commandDefinitions, {argv: args.argv, partial: false})
+      const flowCommand = this.parseCommandLineArgs(this.commandDefinitions, { argv: args.argv, partial: false })
 
       const command = flowCommand.command.command
 
@@ -146,7 +146,7 @@ const _createFlow = async function(flowData, user) {
   const flow = flowData.file
     ? JSON.parse(fs.readFileSync(flowData.file, 'utf8'))
     : _createFlowObject(flowData)
-  logger.cliReq('flow add', {args: flow})
+  logger.cliReq('flow add', { args: flow })
   const createdFlow = await FlowService.createFlowEndPoint(flow, user, true)
   logger.cliRes(JSON.stringify({
     id: createdFlow.id,
@@ -159,14 +159,14 @@ const _updateFlow = async function(flowData) {
     : _createFlowObject(flowData)
 
   const flowId = flowData.flowId
-  logger.cliReq('flow update', {args: flow})
+  logger.cliReq('flow update', { args: flow })
   await FlowService.updateFlowEndPoint(flow, flowId, {}, true)
   logger.cliRes('Flow updated successfully.')
 }
 
 const _deleteFlow = async function(flowData) {
   const flowId = flowData.flowId
-  logger.cliReq('flow remove', {args: {flowId: flowId}})
+  logger.cliReq('flow remove', { args: { flowId: flowId } })
   await FlowService.deleteFlowEndPoint(flowId, {}, true)
   logger.cliRes('Flow removed successfully.')
 }
@@ -179,7 +179,7 @@ const _getAllFlows = async function() {
 
 const _getFlow = async function(flowData) {
   const flowId = flowData.flowId
-  logger.cliReq('flow info', {args: {flowId: flowId}})
+  logger.cliReq('flow info', { args: { flowId: flowId } })
   const flow = await FlowService.getFlowEndPoint(flowId, {}, true)
   logger.cliRes(JSON.stringify(flow, null, 2))
 }

@@ -14,7 +14,7 @@
 const logger = require('../logger')
 const UserManager = require('../sequelize/managers/user-manager')
 const Errors = require('../helpers/errors')
-const {isTest} = require('../helpers/app-helper')
+const { isTest } = require('../helpers/app-helper')
 
 function prepareUserById(f) {
   return async function(...args) {

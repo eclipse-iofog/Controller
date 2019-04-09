@@ -101,7 +101,7 @@ class Config extends BaseCLIHandler {
 
   async run(args) {
     try {
-      const configCommand = this.parseCommandLineArgs(this.commandDefinitions, {argv: args.argv, partial: false})
+      const configCommand = this.parseCommandLineArgs(this.commandDefinitions, { argv: args.argv, partial: false })
 
       const command = configCommand.command.command
 

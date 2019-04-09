@@ -70,7 +70,7 @@ function checkDaemon(daemon, configuration) {
 }
 
 function checkServerProtocol(configuration) {
-  const {devMode, port, sslKey, sslCert, intermedKey} = configuration
+  const { devMode, port, sslKey, sslCert, intermedKey } = configuration
   if (!devMode && sslKey && sslCert && intermedKey) {
     logger.cliRes(`==> 🌎 HTTPS server listening on port ${port}. Open up https://localhost:${port}/ in your browser.`)
   } else {

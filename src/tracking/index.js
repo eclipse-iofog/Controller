@@ -11,7 +11,7 @@
  *
  */
 
-const {isOnline} = require('../helpers/app-helper')
+const { isOnline } = require('../helpers/app-helper')
 const https = require('https')
 const EventTypes = require('../enums/tracking-event-type')
 const fs = require('fs')
@@ -22,7 +22,7 @@ const logger = require('../logger')
 const TrackingEventManager = require('../sequelize/managers/tracking-event-manager')
 const Transaction = require('sequelize/lib/transaction')
 
-const fakeTransactionObject = {fakeTransaction: true}
+const fakeTransactionObject = { fakeTransaction: true }
 
 const trackingUuid = initTrackingUuid()
 
@@ -35,13 +35,13 @@ function buildEvent(eventType, res, args, functionName) {
   }
   switch (eventType) {
     case EventTypes.INIT:
-      eventInfo.data = {event: 'controller inited'}
+      eventInfo.data = { event: 'controller inited' }
       break
     case EventTypes.START:
-      eventInfo.data = {event: `controller started: ${res}`}
+      eventInfo.data = { event: `controller started: ${res}` }
       break
     case EventTypes.USER_CREATED:
-      eventInfo.data = {event: 'user created'}
+      eventInfo.data = { event: 'user created' }
       break
     case EventTypes.RUNNING_TIME:
       eventInfo.data = {
@@ -50,22 +50,22 @@ function buildEvent(eventType, res, args, functionName) {
       }
       break
     case EventTypes.IOFOG_CREATED:
-      eventInfo.data = {event: 'iofog agent created'}
+      eventInfo.data = { event: 'iofog agent created' }
       break
     case EventTypes.IOFOG_PROVISION:
-      eventInfo.data = {event: 'iofog agent provisioned'}
+      eventInfo.data = { event: 'iofog agent provisioned' }
       break
     case EventTypes.CATALOG_CREATED:
-      eventInfo.data = {event: 'catalog item was created'}
+      eventInfo.data = { event: 'catalog item was created' }
       break
     case EventTypes.MICROSERVICE_CREATED:
-      eventInfo.data = {event: 'microservice created'}
+      eventInfo.data = { event: 'microservice created' }
       break
     case EventTypes.CONFIG_CHANGED:
-      eventInfo.data = {event: `new config property '${res}'`}
+      eventInfo.data = { event: `new config property '${res}'` }
       break
     case EventTypes.OTHER:
-      eventInfo.data = {event: `function ${functionName} was executed`}
+      eventInfo.data = { event: `function ${functionName} was executed` }
       break
   }
   return eventInfo
