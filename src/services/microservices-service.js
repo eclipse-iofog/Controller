@@ -15,6 +15,8 @@ const logger = require('../logger')
 const TransactionDecorator = require('../decorators/transaction-decorator')
 const MicroserviceManager = require('../sequelize/managers/microservice-manager')
 const MicroserviceStatusManager = require('../sequelize/managers/microservice-status-manager')
+const MicroserviceArgManager = require('../sequelize/managers/microservice-arg-manager')
+const MicroserviceEnvManager = require('../sequelize/managers/microservice-env-manager')
 const MicroservicePortManager = require('../sequelize/managers/microservice-port-manager')
 const MicroserviceStates = require('../enums/microservice-state')
 const VolumeMappingManager = require('../sequelize/managers/volume-mapping-manager')
@@ -79,6 +81,16 @@ async function createMicroserviceEndPoint(microserviceData, user, isCLI, transac
       await _createPortMapping(microservice, mapping, user, transaction)
     }
   }
+  if (microserviceData.env) {
+    for (const env of microserviceData.env) {
+      await _createEnv(microservice, env, user, transaction)
+    }
+  }
+  if (microserviceData.arg) {
+    for (const arg of microserviceData.arg) {
+      await _createArg(microservice, arg, user, transaction)
+    }
+  }
   if (microserviceData.volumeMappings) {
     await _createVolumeMappings(microservice, microserviceData.volumeMappings, transaction)
   }
@@ -122,6 +134,8 @@ async function updateMicroserviceEndPoint(microserviceUuid, microserviceData, us
     rootHostAccess: microserviceData.rootHostAccess,
     logSize: microserviceData.logLimit,
     volumeMappings: microserviceData.volumeMappings,
+    env: microserviceData.env,
+    arg: microserviceData.arg,
   }
 
   const microserviceDataUpdate = AppHelper.deleteUndefinedFields(microserviceToUpdate)
@@ -149,6 +163,14 @@ async function updateMicroserviceEndPoint(microserviceUuid, microserviceData, us
 
   if (microserviceDataUpdate.volumeMappings) {
     await _updateVolumeMappings(microserviceDataUpdate.volumeMappings, microserviceUuid, transaction)
+  }
+
+  if (microserviceDataUpdate.env) {
+    await _updateEnv(microserviceDataUpdate.env, microserviceUuid, transaction)
+  }
+
+  if (microserviceDataUpdate.arg) {
+    await _updateArg(microserviceDataUpdate.arg, microserviceUuid, transaction)
   }
 
   if (microserviceDataUpdate.iofogUuid && microserviceDataUpdate.iofogUuid !== microservice.iofogUuid) {
@@ -371,6 +393,36 @@ async function _createPortMapping(microservice, portMappingData, user, transacti
   } else {
     return await _createSimplePortMapping(microservice, portMappingData, user, transaction)
   }
+}
+
+async function _createEnv(microservice, envData, user, transaction) {
+  if (!microservice.iofogUuid) {
+    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.REQUIRED_FOG_NODE))
+  }
+
+  const msEnvData = {
+    key: envData.key,
+    value: envData.value,
+    userId: microservice.userId,
+    microserviceUuid: microservice.uuid,
+  }
+
+  await MicroserviceEnvManager.create(msEnvData, transaction)
+  await _switchOnUpdateFlagsForMicroservicesForPortMapping(microservice, false, transaction)
+}
+
+async function _createArg(microservice, arg, user, transaction) {
+  if (!microservice.iofogUuid) {
+    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.REQUIRED_FOG_NODE))
+  }
+
+  const msArgData = {
+    arg: arg,
+    microserviceUuid: microservice.uuid,
+  }
+
+  await MicroserviceArgManager.create(msArgData, transaction)
+  await _switchOnUpdateFlagsForMicroservicesForPortMapping(microservice, false, transaction)
 }
 
 async function updatePortMappingOverConnector(connector, transaction) {
@@ -605,6 +657,35 @@ async function _updateVolumeMappings(volumeMappings, microserviceUuid, transacti
     }
 
     await VolumeMappingManager.create(volumeMappingObj, transaction)
+  }
+}
+
+async function _updateEnv(env, microserviceUuid, transaction) {
+  await MicroserviceEnvManager.delete({
+    microserviceUuid: microserviceUuid,
+  }, transaction)
+  for (const envData of env) {
+    const envObj = {
+      microserviceUuid: microserviceUuid,
+      key: envData.key,
+      value: envData.value,
+    }
+
+    await MicroserviceEnvManager.create(envObj, transaction)
+  }
+}
+
+async function _updateArg(arg, microserviceUuid, transaction) {
+  await MicroserviceArgManager.delete({
+    microserviceUuid: microserviceUuid,
+  }, transaction)
+  for (const argData of arg) {
+    const envObj = {
+      microserviceUuid: microserviceUuid,
+      arg: argData,
+    }
+
+    await MicroserviceArgManager.create(envObj, transaction)
   }
 }
 
@@ -1109,6 +1190,10 @@ async function _buildGetMicroserviceResponse(microservice, transaction) {
   const portMappings = await MicroservicePortManager.findAll({ microserviceUuid: microserviceUuid }, transaction)
   const volumeMappings = await VolumeMappingManager.findAll({ microserviceUuid: microserviceUuid }, transaction)
   const routes = await RoutingManager.findAll({ sourceMicroserviceUuid: microserviceUuid }, transaction)
+  const env = await MicroserviceEnvManager.findAllExcludeFields({ microserviceUuid: microserviceUuid }, transaction)
+  const arg = await MicroserviceArgManager
+      .findAllExcludeFields({ microserviceUuid: microserviceUuid }, transaction)
+      .map((it) => it.arg)
 
   // build microservice response
   const res = Object.assign({}, microservice.dataValues)
@@ -1117,6 +1202,9 @@ async function _buildGetMicroserviceResponse(microservice, transaction) {
   })
   res.volumeMappings = volumeMappings.map((vm) => vm.dataValues)
   res.routes = routes.map((r) => r.destMicroserviceUuid)
+  res.env = env
+  res.arg = arg
+
   return res
 }
 

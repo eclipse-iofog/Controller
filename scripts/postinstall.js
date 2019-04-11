@@ -17,7 +17,7 @@ const fs = require('fs')
 const semver = require('semver')
 const config = require('../src/config')
 const currentVersion = require('../package').version
-const {restoreDBs, restoreConfigs, restoreTrackingUuid, INSTALLATION_VARIABLES_FILE} = require('./util')
+const { restoreDBs, restoreConfigs, restoreTrackingUuid, INSTALLATION_VARIABLES_FILE } = require('./util')
 
 function postinstall() {
 // restore all files

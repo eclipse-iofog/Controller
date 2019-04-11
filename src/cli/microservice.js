@@ -47,6 +47,15 @@ const JSON_SCHEMA_ADD = AppHelper.stringifyCliJsonSchema(
       routes: [
         'string',
       ],
+      env: [
+        {
+          key: 'string',
+          value: 'string',
+        },
+      ],
+      arg: [
+        'string',
+      ],
     }
 )
 
@@ -161,6 +170,14 @@ class Microservice extends BaseCLIHandler {
       {
         name: 'mapping-id', alias: 'a', type: CliDataTypes.Integer, description: 'Volume mapping id',
         group: [constants.CMD_VOLUME_MAPPING_REMOVE],
+      },
+      {
+        name: 'env', alias: 'e', type: String, description: 'Microservice environemnt variable(s)', multiple: true,
+        group: [constants.CMD_UPDATE, constants.CMD_ADD],
+      },
+      {
+        name: 'arg', alias: 'A', type: String, description: 'Microservice command-line argument(s)', multiple: true,
+        group: [constants.CMD_UPDATE, constants.CMD_ADD],
       },
     ]
     this.commands = {
@@ -456,6 +473,19 @@ const _updateMicroserviceObject = function(obj) {
 }
 
 const _createMicroserviceObject = function(obj) {
+  const envVars = obj.env || []
+  const env = envVars.map((it) => {
+    const split = it.split('=')
+    if (!split || split.length < 2) {
+      return
+    }
+
+    return {
+      key: split[0],
+      value: split.slice(1).join('='),
+    }
+  }).filter((it) => !!it)
+
   const microserviceObj = {
     name: obj.name,
     config: obj.config,
@@ -465,6 +495,8 @@ const _createMicroserviceObject = function(obj) {
     rootHostAccess: AppHelper.validateBooleanCliOptions(obj.rootEnable, obj.rootDisable),
     logSize: obj.logSize,
     routes: obj.routes,
+    arg: obj.arg,
+    env,
   }
 
   if (obj.volumes) {

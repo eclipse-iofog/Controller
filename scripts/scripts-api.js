@@ -11,15 +11,15 @@
  *
  */
 
-const {start} = require('./start')
-const {startDev} = require('./start-dev')
-const {init} = require('./init')
-const {preuninstall} = require('./preuninstall')
-const {postinstall} = require('./postinstall')
-const {test} = require('./test')
-const {cliTest} = require('./cli-tests')
-const {postmanTest} = require('./postmantest')
-const {coverage} = require('./coverage')
+const { start } = require('./start')
+const { startDev } = require('./start-dev')
+const { init } = require('./init')
+const { preuninstall } = require('./preuninstall')
+const { postinstall } = require('./postinstall')
+const { test } = require('./test')
+const { cliTest } = require('./cli-tests')
+const { postmanTest } = require('./postmantest')
+const { coverage } = require('./coverage')
 
 switch (process.argv[2]) {
   case 'start':

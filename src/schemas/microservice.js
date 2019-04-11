@@ -25,6 +25,12 @@ const microserviceCreate = {
     'routes': {
       'type': 'array',
       'items': { 'type': 'string' } },
+    'env': {
+      'type': 'array',
+      'items': { '$ref': '/env' } },
+    'arg': {
+      'type': 'array',
+      'items': { 'type': 'string' } },
   },
   'required': ['name', 'flowId', 'catalogItemId'],
   'additionalProperties': false,
@@ -47,6 +53,12 @@ const microserviceUpdate = {
       'type': 'array',
       'items': { '$ref': '/volumeMappings' },
     },
+    'env': {
+      'type': 'array',
+      'items': { '$ref': '/env' } },
+    'arg': {
+      'type': 'array',
+      'items': { 'type': 'string' } },
   },
   'additionalProperties': false,
 }
@@ -60,6 +72,17 @@ const microserviceDelete = {
     },
     'additionalProperties': false,
   },
+}
+
+const env = {
+  'id': '/env',
+  'type': 'object',
+  'properties': {
+    'key': { 'type': 'string' },
+    'value': { 'type': 'string' },
+  },
+  'required': ['key', 'value'],
+  'additionalProperties': false,
 }
 
 const ports = {
@@ -99,6 +122,6 @@ const volumeMappings = {
 }
 
 module.exports = {
-  mainSchemas: [microserviceCreate, microserviceUpdate, ports, portsCreate, microserviceDelete, volumeMappings],
-  innerSchemas: [volumeMappings, ports],
+  mainSchemas: [microserviceCreate, microserviceUpdate, env, ports, portsCreate, microserviceDelete, volumeMappings],
+  innerSchemas: [volumeMappings, ports, env],
 }

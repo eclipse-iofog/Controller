@@ -43,7 +43,7 @@ class CLIHandler {
     }
   }
 
-  helpSome(show = [], showOptions = true,) {
+  helpSome(show = [], showOptions = true, ) {
     const options = Object.keys(this.commands)
         .filter((key) => show.indexOf(key) !== -1)
         .map((key) => ({

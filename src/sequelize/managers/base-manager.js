@@ -40,8 +40,8 @@ module.exports = class BaseManager {
   findAllWithAttributes(where, attributes, transaction) {
     return this.getEntity().findAll({
       where: where,
-      attributes: attributes},
-    {transaction: transaction})
+      attributes: attributes },
+    { transaction: transaction })
   }
 
   async findOne(object, transaction) {
@@ -66,7 +66,7 @@ module.exports = class BaseManager {
 
     const options = transaction.fakeTransaction
       ? {}
-      : {transaction: transaction}
+      : { transaction: transaction }
 
     return this.getEntity().create(object, options)
   }
@@ -76,7 +76,7 @@ module.exports = class BaseManager {
 
     const options = transaction.fakeTransaction
       ? {}
-      : {transaction: transaction}
+      : { transaction: transaction }
 
     return this.getEntity().bulkCreate(arr, options)
   }

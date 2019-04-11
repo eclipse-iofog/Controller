@@ -15,6 +15,8 @@ const BaseManager = require('./base-manager')
 const models = require('./../models')
 const Microservice = models.Microservice
 const MicroservicePort = models.MicroservicePort
+const MicroserviceEnv = models.MicroserviceEnv
+const MicroserviceArg = models.MicroserviceArg
 const VolumeMapping = models.VolumeMapping
 const StraceDiagnostics = models.StraceDiagnostics
 const CatalogItem = models.CatalogItem
@@ -49,6 +51,18 @@ class MicroserviceManager extends BaseManager {
   findAllWithDependencies(where, attributes, transaction) {
     return Microservice.findAll({
       include: [
+        {
+          model: MicroserviceEnv,
+          as: 'env',
+          required: false,
+          attributes: ['key', 'value'],
+        },
+        {
+          model: MicroserviceArg,
+          as: 'arg',
+          required: false,
+          attributes: ['arg'],
+        },
         {
           model: MicroservicePort,
           as: 'ports',
@@ -106,6 +120,18 @@ class MicroserviceManager extends BaseManager {
   findAllActiveFlowMicroservices(iofogUuid, transaction) {
     return Microservice.findAll({
       include: [
+        {
+          model: MicroserviceEnv,
+          as: 'env',
+          required: false,
+          attributes: ['key', 'value'],
+        },
+        {
+          model: MicroserviceArg,
+          as: 'arg',
+          required: false,
+          attributes: ['arg'],
+        },
         {
           model: MicroservicePort,
           as: 'ports',
@@ -165,6 +191,18 @@ class MicroserviceManager extends BaseManager {
   findOneWithDependencies(where, attributes, transaction) {
     return Microservice.findOne({
       include: [
+        {
+          model: MicroserviceEnv,
+          as: 'env',
+          required: false,
+          attributes: ['key', 'value'],
+        },
+        {
+          model: MicroserviceArg,
+          as: 'arg',
+          required: false,
+          attributes: ['arg'],
+        },
         {
           model: MicroservicePort,
           as: 'ports',
