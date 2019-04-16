@@ -58,7 +58,7 @@ module.exports = {
       connectorId: {
         type: Sequelize.INTEGER,
         field: 'connector_id',
-        references: {model: 'Connectors', key: 'id'},
+        references: { model: 'Connectors', key: 'id' },
         onDelete: 'cascade',
       },
     })

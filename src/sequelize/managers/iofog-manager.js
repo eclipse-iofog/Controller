@@ -62,7 +62,7 @@ class FogManager extends BaseManager {
           }],
         }],
       where: where,
-    }, {transaction: transaction})
+    }, { transaction: transaction })
   }
 }
 

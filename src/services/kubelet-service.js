@@ -120,7 +120,7 @@ const kubeletUpdatePod = async function (uploadPodData, fogNodeUuid, user, trans
     }
   })
 
-  const toAdd = msDup.map((ms) => {
+  msDup.map((ms) => {
     const name = `${flowData.name}-${ms.name}`
 
     return {

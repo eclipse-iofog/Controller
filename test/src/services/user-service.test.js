@@ -1,4 +1,4 @@
-const {expect} = require('chai')
+const { expect } = require('chai')
 const sinon = require('sinon')
 
 const UserManager = require('../../../src/sequelize/managers/user-manager')
@@ -725,7 +725,7 @@ describe('User Service', () => {
       id: user.id,
     }]
 
-    const attributes = {exclude: ['password']}
+    const attributes = { exclude: ['password'] }
 
     def('subject', () => $subject.list(isCLI, transaction))
     def('findAllResponse', () => Promise.resolve(response))

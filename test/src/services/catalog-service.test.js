@@ -1,4 +1,4 @@
-const {expect} = require('chai')
+const { expect } = require('chai')
 const sinon = require('sinon')
 
 const CatalogItemManager = require('../../../src/sequelize/managers/catalog-item-manager')
@@ -158,8 +158,8 @@ describe('Catalog Service', () => {
       it('calls CatalogItemManager#findOne() with correct args', async () => {
         await $subject
         const where = catalogItem.id
-          ? {[Op.or]: [{userId: catalogItem.userId}, {userId: null}], name: data.name, id: {[Op.ne]: catalogItem.id}}
-          : {[Op.or]: [{userId: catalogItem.userId}, {userId: null}], name: data.name}
+          ? { [Op.or]: [{ userId: catalogItem.userId }, { userId: null }], name: data.name, id: { [Op.ne]: catalogItem.id } }
+          : { [Op.or]: [{ userId: catalogItem.userId }, { userId: null }], name: data.name }
         expect(CatalogItemManager.findOne).to.have.been.calledWith(where, transaction)
       })
 
@@ -344,8 +344,8 @@ describe('Catalog Service', () => {
 
     const isCLI = false
     const where = isCLI
-      ? {id: id}
-      : {id: id, userId: user.id}
+      ? { id: id }
+      : { id: id, userId: user.id }
 
     data.id = id
 
@@ -516,11 +516,11 @@ describe('Catalog Service', () => {
               await $subject
               const whereFind = catalogItem.id
                 ? {
-                  [Op.or]: [{userId: catalogItem.userId}, {userId: null}],
+                  [Op.or]: [{ userId: catalogItem.userId }, { userId: null }],
                   name: data.name,
-                  id: {[Op.ne]: catalogItem.id},
+                  id: { [Op.ne]: catalogItem.id },
                 }
-                : {[Op.or]: [{userId: catalogItem.userId}, {userId: null}], name: data.name}
+                : { [Op.or]: [{ userId: catalogItem.userId }, { userId: null }], name: data.name }
               expect(CatalogItemManager.findOne).to.have.been.calledWith(whereFind, transaction)
             })
 
@@ -529,11 +529,11 @@ describe('Catalog Service', () => {
                 await $subject
                 const whereFind = catalogItem.id
                   ? {
-                    [Op.or]: [{userId: catalogItem.userId}, {userId: null}],
+                    [Op.or]: [{ userId: catalogItem.userId }, { userId: null }],
                     name: data.name,
-                    id: {[Op.ne]: catalogItem.id},
+                    id: { [Op.ne]: catalogItem.id },
                   }
-                  : {[Op.or]: [{userId: catalogItem.userId}, {userId: null}], name: data.name}
+                  : { [Op.or]: [{ userId: catalogItem.userId }, { userId: null }], name: data.name }
                 expect(CatalogItemManager.findOne).to.have.been.calledWith(whereFind, transaction)
               })
 
@@ -683,15 +683,15 @@ describe('Catalog Service', () => {
     const isCLI = false
 
     const where = isCLI
-      ? {[Op.or]: [{category: {[Op.ne]: 'SYSTEM'}}, {category: null}]}
+      ? { [Op.or]: [{ category: { [Op.ne]: 'SYSTEM' } }, { category: null }] }
       : {
-        [Op.or]: [{userId: user.id}, {userId: null}],
-        [Op.or]: [{category: {[Op.ne]: 'SYSTEM'}}, {category: null}],
+        [Op.or]: [{ userId: user.id }, { userId: null }],
+        [Op.or]: [{ category: { [Op.ne]: 'SYSTEM' } }, { category: null }],
       }
 
     const attributes = isCLI
       ? {}
-      : {exclude: ['userId']}
+      : { exclude: ['userId'] }
 
     def('subject', () => $subject.listCatalogItemsEndPoint(user, isCLI, transaction))
 
@@ -734,16 +734,16 @@ describe('Catalog Service', () => {
     const id = 5
 
     const where = isCLI
-      ? {id: id}
+      ? { id: id }
       : {
         id: id,
-        [Op.or]: [{userId: user.id}, {userId: null}],
-        [Op.or]: [{category: {[Op.ne]: 'SYSTEM'}}, {category: null}],
+        [Op.or]: [{ userId: user.id }, { userId: null }],
+        [Op.or]: [{ category: { [Op.ne]: 'SYSTEM' } }, { category: null }],
       }
 
     const attributes = isCLI
       ? {}
-      : {exclude: ['userId']}
+      : { exclude: ['userId'] }
 
     def('subject', () => $subject.getCatalogItemEndPoint(id, user, isCLI, transaction))
 
@@ -786,8 +786,8 @@ describe('Catalog Service', () => {
     const id = 5
 
     const where = isCLI
-      ? {id: id}
-      : {userId: user.id, id: id}
+      ? { id: id }
+      : { userId: user.id, id: id }
 
     def('subject', () => $subject.deleteCatalogItemEndPoint(id, user, isCLI, transaction))
 

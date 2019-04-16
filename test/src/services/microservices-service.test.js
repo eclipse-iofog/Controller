@@ -1,4 +1,4 @@
-const {expect} = require('chai')
+const { expect } = require('chai')
 const sinon = require('sinon')
 
 const MicroserviceManager = require('../../../src/sequelize/managers/microservice-manager')
@@ -54,7 +54,7 @@ describe('Microservices Service', () => {
 
     it('calls MicroserviceManager#findAllExcludeFields() with correct args', async () => {
       await $subject
-      const where = isCLI ? {delete: false} : {flowId: flowId, delete: false}
+      const where = isCLI ? { delete: false } : { flowId: flowId, delete: false }
 
       expect(MicroserviceManager.findAllExcludeFields).to.have.been.calledWith(where, transaction)
     })
@@ -284,7 +284,7 @@ describe('Microservices Service', () => {
               ?
               {
                 name: microserviceData.name,
-                uuid: {[Op.ne]: item.id},
+                uuid: { [Op.ne]: item.id },
                 userId: user.id,
               }
               :
@@ -1173,8 +1173,8 @@ describe('Microservices Service', () => {
     ]
 
     const where = isCLI
-      ? {uuid: microserviceUuid}
-      : {uuid: microserviceUuid, userId: user.id}
+      ? { uuid: microserviceUuid }
+      : { uuid: microserviceUuid, userId: user.id }
 
     const mappingData = {
       isPublic: false,

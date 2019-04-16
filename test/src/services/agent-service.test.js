@@ -1,4 +1,4 @@
-const {expect} = require('chai')
+const { expect } = require('chai')
 const sinon = require('sinon')
 
 const AgentService = require('../../../src/services/agent-service')
@@ -232,8 +232,8 @@ describe('Agent Service', () => {
 
 
   describe('.agentDeprovision()', () => {
-    const deprovisionData = {microserviceUuids: ['uuid']}
-    const fogManagerUpdateData = {daemonStatus: FogStates.UNKNOWN, ipAddress: '0.0.0.0'}
+    const deprovisionData = { microserviceUuids: ['uuid'] }
+    const fogManagerUpdateData = { daemonStatus: FogStates.UNKNOWN, ipAddress: '0.0.0.0' }
 
     const transaction = {}
     const error = 'Error!'
@@ -273,8 +273,8 @@ describe('Agent Service', () => {
       it('calls MicroserviceStatusManager.update with correct args', async () => {
         await $subject
         expect(MicroserviceStatusManager.update).to.have.been.calledWith(
-            {microserviceUuid: deprovisionData.microserviceUuids},
-            {status: MicroserviceStates.NOT_RUNNING},
+            { microserviceUuid: deprovisionData.microserviceUuids },
+            { status: MicroserviceStates.NOT_RUNNING },
             transaction
         )
       })

@@ -61,7 +61,7 @@ class UserManager extends BaseManager {
 
   // no transaction required here, used by cli decorator
   findById(id) {
-    return User.findOne({where: {id: id}})
+    return User.findOne({ where: { id: id } })
   }
 
   updateDetails(user, updateObject, transaction) {
@@ -88,7 +88,7 @@ class UserManager extends BaseManager {
 
   // no transaction required here, used by cli decorator
   findById(id) {
-    return User.findOne({where: {id: id}})
+    return User.findOne({ where: { id: id } })
   }
 }
 

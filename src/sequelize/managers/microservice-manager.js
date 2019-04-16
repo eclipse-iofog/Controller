@@ -107,14 +107,14 @@ class MicroserviceManager extends BaseManager {
             as: 'destMicroservice',
             attributes: ['uuid'],
           }],
-          attributes: {exclude: ['id', 'source_microservice_uuid',
+          attributes: { exclude: ['id', 'source_microservice_uuid',
             'sourceMicroserviceUuid', 'destMicroserviceUuid', 'sourceNetworkMicroserviceUuid',
-            'destNetworkMicroserviceUuid', 'sourceIofogUuid', 'destIofogUuid', 'connectorPortId']},
+            'destNetworkMicroserviceUuid', 'sourceIofogUuid', 'destIofogUuid', 'connectorPortId'] },
         },
       ],
       where: where,
       attributes: attributes,
-    }, {transaction: transaction})
+    }, { transaction: transaction })
   }
 
   findAllActiveFlowMicroservices(iofogUuid, transaction) {
@@ -179,13 +179,13 @@ class MicroserviceManager extends BaseManager {
               '$flow.is_activated$': true,
             },
             {
-              '$catalogItem.category$': {[Op.eq]: 'SYSTEM'},
-              '$catalogItem.id$': {[Op.ne]: 1},
+              '$catalogItem.category$': { [Op.eq]: 'SYSTEM' },
+              '$catalogItem.id$': { [Op.ne]: 1 },
             },
           ],
 
       },
-    }, {transaction: transaction})
+    }, { transaction: transaction })
   }
 
   findOneWithDependencies(where, attributes, transaction) {
@@ -247,15 +247,15 @@ class MicroserviceManager extends BaseManager {
             as: 'destMicroservice',
             attributes: ['uuid'],
           }],
-          attributes: {exclude: ['id',
+          attributes: { exclude: ['id',
             'sourceMicroserviceUuid', 'destMicroserviceUuid',
             'sourceNetworkMicroserviceUuid', 'destNetworkMicroserviceUuid',
-            'sourceIofogUuid', 'destIofogUuid', 'connectorPortId']},
+            'sourceIofogUuid', 'destIofogUuid', 'connectorPortId'] },
         },
       ],
       where: where,
       attributes: attributes,
-    }, {transaction: transaction})
+    }, { transaction: transaction })
   }
 
   findOneWithStatusAndCategory(where, transaction) {
@@ -274,7 +274,7 @@ class MicroserviceManager extends BaseManager {
         },
       ],
       where: where,
-    }, {transaction: transaction})
+    }, { transaction: transaction })
   }
 
   findAllWithStatuses(where, transaction) {
@@ -287,7 +287,7 @@ class MicroserviceManager extends BaseManager {
         },
       ],
       where: where,
-    }, {transaction: transaction})
+    }, { transaction: transaction })
   }
 
   findMicroserviceOnGet(where, transaction) {
@@ -310,7 +310,7 @@ class MicroserviceManager extends BaseManager {
       ],
       where: where,
       attributes: ['uuid'],
-    }, {transaction: transaction})
+    }, { transaction: transaction })
   }
 
   async findOneExcludeFields(where, transaction) {
@@ -318,7 +318,7 @@ class MicroserviceManager extends BaseManager {
       where: where,
       attributes: {
         exclude: microserviceExcludedFields,
-      }}, {
+      } }, {
       transaction: transaction,
     })
   }
@@ -328,7 +328,7 @@ class MicroserviceManager extends BaseManager {
       where: where,
       attributes: {
         exclude: microserviceExcludedFields,
-      }}, {
+      } }, {
       transaction: transaction,
     })
   }
@@ -344,7 +344,7 @@ class MicroserviceManager extends BaseManager {
         },
       ],
       where: where,
-    }, {transaction: transaction})
+    }, { transaction: transaction })
   }
 }
 

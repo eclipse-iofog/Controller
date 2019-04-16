@@ -120,7 +120,7 @@ module.exports = class BaseManager {
 
     const options = transaction.fakeTransaction
       ? {}
-      : {transaction: transaction}
+      : { transaction: transaction }
 
     return this.getEntity().upsert(data, options)
   }

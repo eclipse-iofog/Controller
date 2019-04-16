@@ -1,4 +1,4 @@
-const {expect} = require('chai')
+const { expect } = require('chai')
 const sinon = require('sinon')
 
 const FlowManager = require('../../../src/sequelize/managers/flow-manager')
@@ -76,8 +76,8 @@ describe('Flow Service', () => {
       it('calls FlowManager#findOne() with correct args', async () => {
         await $subject
         const where = flowId
-          ? {name: flowData.name, id: {[Op.ne]: flowId, userId: user.id}}
-          : {name: flowData.name, userId: user.id}
+          ? { name: flowData.name, id: { [Op.ne]: flowId, userId: user.id } }
+          : { name: flowData.name, userId: user.id }
 
         expect(FlowManager.findOne).to.have.been.calledWith(where, transaction)
       })
@@ -305,9 +305,9 @@ describe('Flow Service', () => {
         await $subject
 
         const where = isCLI
-          ? {id: flowId}
-          : {id: flowId, userId: user.id}
-        const attributes = {exclude: ['created_at', 'updated_at']}
+          ? { id: flowId }
+          : { id: flowId, userId: user.id }
+        const attributes = { exclude: ['created_at', 'updated_at'] }
         expect(FlowManager.findOneWithAttributes).to.have.been.calledWith(where, attributes, transaction)
       })
 
@@ -324,8 +324,8 @@ describe('Flow Service', () => {
           await $subject
 
           const where = flowId
-            ? {name: flowData.name, userId: user.id, id: {[Op.ne]: flowId}}
-            : {name: flowData.name, userId: user.id}
+            ? { name: flowData.name, userId: user.id, id: { [Op.ne]: flowId } }
+            : { name: flowData.name, userId: user.id }
           expect(FlowManager.findOne).to.have.been.calledWith(where, transaction)
         })
 
@@ -359,8 +359,8 @@ describe('Flow Service', () => {
               await $subject
 
               const where = isCLI
-                ? {id: flowId}
-                : {id: flowId, userId: user.id}
+                ? { id: flowId }
+                : { id: flowId, userId: user.id }
               expect(FlowManager.update).to.have.been.calledWith(where, flowData, transaction)
             })
 
@@ -439,7 +439,7 @@ describe('Flow Service', () => {
 
     it('calls FlowManager#findAllWithAttributes() with correct args', async () => {
       await $subject
-      const attributes = {exclude: ['created_at', 'updated_at']}
+      const attributes = { exclude: ['created_at', 'updated_at'] }
       expect(FlowManager.findAllWithAttributes).to.have.been.calledWith(flow, attributes, transaction)
     })
 
@@ -472,7 +472,7 @@ describe('Flow Service', () => {
 
     it('calls FlowManager#findAllWithAttributes() with correct args', async () => {
       await $subject
-      const attributes = {exclude: ['created_at', 'updated_at']}
+      const attributes = { exclude: ['created_at', 'updated_at'] }
       expect(FlowManager.findAllWithAttributes).to.have.been.calledWith({}, attributes, transaction)
     })
 
@@ -511,9 +511,9 @@ describe('Flow Service', () => {
     it('calls FlowManager#findOneWithAttributes() with correct args', async () => {
       await $subject
       const where = isCLI
-        ? {id: flowId}
-        : {id: flowId, userId: user.id}
-      const attributes = {exclude: ['created_at', 'updated_at']}
+        ? { id: flowId }
+        : { id: flowId, userId: user.id }
+      const attributes = { exclude: ['created_at', 'updated_at'] }
       expect(FlowManager.findOneWithAttributes).to.have.been.calledWith(where, attributes, transaction)
     })
 

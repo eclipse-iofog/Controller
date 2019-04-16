@@ -1,4 +1,4 @@
-const {expect} = require('chai')
+const { expect } = require('chai')
 const sinon = require('sinon')
 
 const ioFogController = require('../../../src/controllers/iofog-controller')
@@ -233,7 +233,7 @@ describe('ioFog Controller', () => {
 
     it('calls ioFogService.deleteFogEndPoint with correct args', async () => {
       await $subject
-      expect(ioFogService.deleteFogEndPoint).to.have.been.calledWith({uuid: $uuid}, $user, false)
+      expect(ioFogService.deleteFogEndPoint).to.have.been.calledWith({ uuid: $uuid }, $user, false)
     })
 
     context('when ioFogService#deleteFogEndPoint fails', () => {
@@ -271,7 +271,7 @@ describe('ioFog Controller', () => {
 
     it('calls ioFogService.getFogEndPoint with correct args', async () => {
       await $subject
-      expect(ioFogService.getFogEndPoint).to.have.been.calledWith({uuid: $uuid}, $user, false)
+      expect(ioFogService.getFogEndPoint).to.have.been.calledWith({ uuid: $uuid }, $user, false)
     })
 
     context('when ioFogService#getFogEndPoint fails', () => {
@@ -368,7 +368,7 @@ describe('ioFog Controller', () => {
 
     it('calls ioFogService.generateProvisioningKeyEndPoint with correct args', async () => {
       await $subject
-      expect(ioFogService.generateProvisioningKeyEndPoint).to.have.been.calledWith({uuid: $uuid}, $user, false)
+      expect(ioFogService.generateProvisioningKeyEndPoint).to.have.been.calledWith({ uuid: $uuid }, $user, false)
     })
 
     context('when ioFogService#generateProvisioningKeyEndPoint fails', () => {
@@ -449,7 +449,7 @@ describe('ioFog Controller', () => {
 
     it('calls ioFogService.setFogRebootCommandEndPoint with correct args', async () => {
       await $subject
-      expect(ioFogService.setFogRebootCommandEndPoint).to.have.been.calledWith({uuid: $uuid}, $user, false)
+      expect(ioFogService.setFogRebootCommandEndPoint).to.have.been.calledWith({ uuid: $uuid }, $user, false)
     })
 
     context('when ioFogService#setFogRebootCommandEndPoint fails', () => {
@@ -487,7 +487,7 @@ describe('ioFog Controller', () => {
 
     it('calls ioFogService.getHalHardwareInfoEndPoint with correct args', async () => {
       await $subject
-      expect(ioFogService.getHalHardwareInfoEndPoint).to.have.been.calledWith({uuid: $uuid}, $user, false)
+      expect(ioFogService.getHalHardwareInfoEndPoint).to.have.been.calledWith({ uuid: $uuid }, $user, false)
     })
 
     context('when ioFogService#getHalHardwareInfoEndPoint fails', () => {
@@ -516,7 +516,7 @@ describe('ioFog Controller', () => {
         uuid: $uuid,
       },
     }))
-    def('response', () => Promise.resolve({info: undefined}))
+    def('response', () => Promise.resolve({ info: undefined }))
     def('subject', () => $subject.getHalUsbInfoEndPoint($req, $user))
 
     beforeEach(() => {
@@ -525,7 +525,7 @@ describe('ioFog Controller', () => {
 
     it('calls ioFogService.getHalUsbInfoEndPoint with correct args', async () => {
       await $subject
-      expect(ioFogService.getHalUsbInfoEndPoint).to.have.been.calledWith({uuid: $uuid}, $user, false)
+      expect(ioFogService.getHalUsbInfoEndPoint).to.have.been.calledWith({ uuid: $uuid }, $user, false)
     })
 
     context('when ioFogService#getHalUsbInfoEndPoint fails', () => {

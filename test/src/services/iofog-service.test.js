@@ -1,4 +1,4 @@
-const {expect} = require('chai')
+const { expect } = require('chai')
 const sinon = require('sinon')
 
 const ioFogManager = require('../../../src/sequelize/managers/iofog-manager')
@@ -416,8 +416,8 @@ describe('ioFog Service', () => {
     }
 
     const queryFogData = isCLI
-      ? {uuid: fogData.uuid}
-      : {uuid: fogData.uuid, userId: user.id}
+      ? { uuid: fogData.uuid }
+      : { uuid: fogData.uuid, userId: user.id }
 
     const updateFogData = {
       name: fogData.name,
@@ -751,8 +751,8 @@ describe('ioFog Service', () => {
     }
 
     const queryFogData = isCLI
-      ? {uuid: fogData.uuid}
-      : {uuid: fogData.uuid, userId: user.id}
+      ? { uuid: fogData.uuid }
+      : { uuid: fogData.uuid, userId: user.id }
 
     def('subject', () => $subject.deleteFogEndPoint(fogData, user, isCLI, transaction))
     def('validatorResponse', () => Promise.resolve(true))
@@ -858,8 +858,8 @@ describe('ioFog Service', () => {
     }
 
     const queryFogData = isCLI
-      ? {uuid: fogData.uuid}
-      : {uuid: fogData.uuid, userId: user.id}
+      ? { uuid: fogData.uuid }
+      : { uuid: fogData.uuid, userId: user.id }
 
 
     def('subject', () => $subject.getFog(fogData, user, isCLI, transaction))
@@ -948,7 +948,7 @@ describe('ioFog Service', () => {
 
     const queryFogData = isCLI
       ? {}
-      : {userId: user.id}
+      : { userId: user.id }
 
     const filters = []
 
@@ -1014,8 +1014,8 @@ describe('ioFog Service', () => {
     }
 
     const queryFogData = isCLI
-      ? {uuid: fogData.uuid}
-      : {uuid: fogData.uuid, userId: user.id}
+      ? { uuid: fogData.uuid }
+      : { uuid: fogData.uuid, userId: user.id }
 
     const provisionKey = 'tttttttt'
     const expirationTime = date + (20 * 60 * 1000)
@@ -1132,8 +1132,8 @@ describe('ioFog Service', () => {
     }
 
     const queryFogData = isCLI
-      ? {uuid: fogVersionData.uuid}
-      : {uuid: fogVersionData.uuid, userId: user.id}
+      ? { uuid: fogVersionData.uuid }
+      : { uuid: fogVersionData.uuid, userId: user.id }
 
     const ioFog = {
       uuid: uuid,
@@ -1326,8 +1326,8 @@ describe('ioFog Service', () => {
     }
 
     const queryFogData = isCLI
-      ? {uuid: fogData.uuid}
-      : {uuid: fogData.uuid, userId: user.id}
+      ? { uuid: fogData.uuid }
+      : { uuid: fogData.uuid, userId: user.id }
 
     def('subject', () => $subject.setFogRebootCommandEndPoint(fogData, user, isCLI, transaction))
     def('validatorResponse', () => Promise.resolve(true))
