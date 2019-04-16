@@ -59,9 +59,9 @@ class MicroserviceManager extends BaseManager {
         },
         {
           model: MicroserviceArg,
-          as: 'arg',
+          as: 'cmd',
           required: false,
-          attributes: ['arg'],
+          attributes: ['cmd'],
         },
         {
           model: MicroservicePort,
@@ -128,9 +128,9 @@ class MicroserviceManager extends BaseManager {
         },
         {
           model: MicroserviceArg,
-          as: 'arg',
+          as: 'cmd',
           required: false,
-          attributes: ['arg'],
+          attributes: ['cmd', 'id'],
         },
         {
           model: MicroservicePort,
@@ -199,9 +199,9 @@ class MicroserviceManager extends BaseManager {
         },
         {
           model: MicroserviceArg,
-          as: 'arg',
+          as: 'cmd',
           required: false,
-          attributes: ['arg'],
+          attributes: ['cmd'],
         },
         {
           model: MicroservicePort,

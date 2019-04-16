@@ -130,7 +130,7 @@ module.exports = (sequelize, DataTypes) => {
 
     Microservice.hasMany(models.MicroserviceArg, {
       foreignKey: 'microservice_uuid',
-      as: 'arg',
+      as: 'cmd',
     })
   }
 

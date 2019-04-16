@@ -86,8 +86,8 @@ async function createMicroserviceEndPoint(microserviceData, user, isCLI, transac
       await _createEnv(microservice, env, user, transaction)
     }
   }
-  if (microserviceData.arg) {
-    for (const arg of microserviceData.arg) {
+  if (microserviceData.cmd) {
+    for (const arg of microserviceData.cmd) {
       await _createArg(microservice, arg, user, transaction)
     }
   }
@@ -135,7 +135,7 @@ async function updateMicroserviceEndPoint(microserviceUuid, microserviceData, us
     logSize: microserviceData.logLimit,
     volumeMappings: microserviceData.volumeMappings,
     env: microserviceData.env,
-    arg: microserviceData.arg,
+    cmd: microserviceData.cmd,
   }
 
   const microserviceDataUpdate = AppHelper.deleteUndefinedFields(microserviceToUpdate)
@@ -169,8 +169,8 @@ async function updateMicroserviceEndPoint(microserviceUuid, microserviceData, us
     await _updateEnv(microserviceDataUpdate.env, microserviceUuid, transaction)
   }
 
-  if (microserviceDataUpdate.arg) {
-    await _updateArg(microserviceDataUpdate.arg, microserviceUuid, transaction)
+  if (microserviceDataUpdate.cmd) {
+    await _updateArg(microserviceDataUpdate.cmd, microserviceUuid, transaction)
   }
 
   if (microserviceDataUpdate.iofogUuid && microserviceDataUpdate.iofogUuid !== microservice.iofogUuid) {
@@ -417,7 +417,7 @@ async function _createArg(microservice, arg, user, transaction) {
   }
 
   const msArgData = {
-    arg: arg,
+    cmd: arg,
     microserviceUuid: microservice.uuid,
   }
 
@@ -682,7 +682,7 @@ async function _updateArg(arg, microserviceUuid, transaction) {
   for (const argData of arg) {
     const envObj = {
       microserviceUuid: microserviceUuid,
-      arg: argData,
+      cmd: argData,
     }
 
     await MicroserviceArgManager.create(envObj, transaction)
@@ -1193,7 +1193,7 @@ async function _buildGetMicroserviceResponse(microservice, transaction) {
   const env = await MicroserviceEnvManager.findAllExcludeFields({ microserviceUuid: microserviceUuid }, transaction)
   const arg = await MicroserviceArgManager
       .findAllExcludeFields({ microserviceUuid: microserviceUuid }, transaction)
-      .map((it) => it.arg)
+      .map((it) => it.cmd)
 
   // build microservice response
   const res = Object.assign({}, microservice.dataValues)
@@ -1203,7 +1203,7 @@ async function _buildGetMicroserviceResponse(microservice, transaction) {
   res.volumeMappings = volumeMappings.map((vm) => vm.dataValues)
   res.routes = routes.map((r) => r.destMicroserviceUuid)
   res.env = env
-  res.arg = arg
+  res.cmd = arg
 
   return res
 }

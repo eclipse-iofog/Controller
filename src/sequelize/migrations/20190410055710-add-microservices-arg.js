@@ -9,9 +9,9 @@ module.exports = {
         allowNull: false,
         field: 'id',
       },
-      arg: {
+      cmd: {
         type: Sequelize.TEXT,
-        field: 'arg',
+        field: 'cmd',
       },
       microserviceUuid: {
         type: Sequelize.TEXT,

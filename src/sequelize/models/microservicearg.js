@@ -8,9 +8,9 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       field: 'id',
     },
-    arg: {
+    cmd: {
       type: DataTypes.TEXT,
-      field: 'arg',
+      field: 'cmd',
     },
   }, {
     timestamps: false,

@@ -125,8 +125,7 @@ function startHttpsServer(app, port, sslKey, sslCert, intermedKey, jobs) {
   }
 }
 
-const
-  devMode = config.get('Server:DevMode')
+const devMode = config.get('Server:DevMode')
 const port = config.get('Server:Port')
 const sslKey = config.get('Server:SslKey')
 const sslCert = config.get('Server:SslCert')

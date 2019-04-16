@@ -28,7 +28,7 @@ const microserviceCreate = {
     'env': {
       'type': 'array',
       'items': { '$ref': '/env' } },
-    'arg': {
+    'cmd': {
       'type': 'array',
       'items': { 'type': 'string' } },
   },
@@ -56,7 +56,7 @@ const microserviceUpdate = {
     'env': {
       'type': 'array',
       'items': { '$ref': '/env' } },
-    'arg': {
+    'cmd': {
       'type': 'array',
       'items': { 'type': 'string' } },
   },

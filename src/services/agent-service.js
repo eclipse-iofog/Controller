@@ -254,6 +254,13 @@ const getAgentMicroservices = async function(fog, transaction) {
     }
 
     const routes = await MicroserviceService.getPhysicalConnections(microservice, transaction)
+    const env = microservice.env && microservice.env.map((it) => {
+      return {
+        key: it.key,
+        value: it.value,
+      }
+    })
+    const cmd = microservice.cmd && microservice.cmd.sort((a, b) => a.id > b.id).map((it) => it.cmd)
 
     const responseMicroservice = {
       uuid: microservice.uuid,
@@ -269,6 +276,8 @@ const getAgentMicroservices = async function(fog, transaction) {
       delete: microservice.delete,
       deleteWithCleanup: microservice.deleteWithCleanup,
       routes: routes,
+      env: env,
+      cmd: cmd,
     }
 
     response.push(responseMicroservice)

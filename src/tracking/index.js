@@ -11,16 +11,17 @@
  *
  */
 
-const { isOnline } = require('../helpers/app-helper')
-const https = require('https')
-const EventTypes = require('../enums/tracking-event-type')
 const fs = require('fs')
+const request = require('request-promise')
+const { isOnline } = require('../helpers/app-helper')
+
 const AppHelper = require('../helpers/app-helper')
 const Constants = require('../helpers/constants')
+const EventTypes = require('../enums/tracking-event-type')
 const logger = require('../logger')
-
 const TrackingEventManager = require('../sequelize/managers/tracking-event-manager')
 const Transaction = require('sequelize/lib/transaction')
+
 
 const fakeTransactionObject = { fakeTransaction: true }
 
@@ -78,20 +79,20 @@ function sendEvents(events) {
   const body = {
     events: events,
   }
-  const data = JSON.stringify(body)
+
   const options = {
-    host: 'analytics.iofog.org',
-    path: '/post',
+    uri: 'https://analytics.iofog.org/post',
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Content-Length': Buffer.byteLength(data),
-    },
+    body,
+    json: true,
   }
 
-  const request = https.request(options)
-  request.write(data)
-  request.end()
+  request(options)
+      .then(() => {
+        logger.info('events posted successfully')
+      }).catch((e) => {
+        logger.debug('unable to send events:', e)
+      })
 }
 
 function initTrackingUuid() {

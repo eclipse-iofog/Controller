@@ -53,7 +53,7 @@ const JSON_SCHEMA_ADD = AppHelper.stringifyCliJsonSchema(
           value: 'string',
         },
       ],
-      arg: [
+      cmd: [
         'string',
       ],
     }
@@ -73,6 +73,15 @@ const JSON_SCHEMA_UPDATE = AppHelper.stringifyCliJsonSchema(
           containerDestination: '/var/dest',
           accessMode: 'rw',
         },
+      ],
+      env: [
+        {
+          key: 'string',
+          value: 'string',
+        },
+      ],
+      cmd: [
+        'string',
       ],
     }
 )
@@ -176,7 +185,7 @@ class Microservice extends BaseCLIHandler {
         group: [constants.CMD_UPDATE, constants.CMD_ADD],
       },
       {
-        name: 'arg', alias: 'A', type: String, description: 'Microservice command-line argument(s)', multiple: true,
+        name: 'cmd', alias: 'C', type: String, description: 'Microservice container command and argument(s)', multiple: true,
         group: [constants.CMD_UPDATE, constants.CMD_ADD],
       },
     ]
@@ -456,6 +465,19 @@ const _updateMicroservice = async function(obj, user) {
 }
 
 const _updateMicroserviceObject = function(obj) {
+  const envVars = obj.env || []
+  const env = envVars.map((it) => {
+    const split = it.split('=')
+    if (!split || split.length < 2) {
+      return
+    }
+
+    return {
+      key: split[0],
+      value: split.slice(1).join('='),
+    }
+  }).filter((it) => !!it)
+
   const microserviceObj = {
     name: obj.name,
     config: obj.config,
@@ -463,6 +485,8 @@ const _updateMicroserviceObject = function(obj) {
     rootHostAccess: AppHelper.validateBooleanCliOptions(obj.rootEnable, obj.rootDisable),
     logSize: obj.logSize,
     rebuild: obj.rebuild,
+    arg: obj.cmd,
+    env,
   }
 
   if (obj.volumes) {
@@ -495,7 +519,7 @@ const _createMicroserviceObject = function(obj) {
     rootHostAccess: AppHelper.validateBooleanCliOptions(obj.rootEnable, obj.rootDisable),
     logSize: obj.logSize,
     routes: obj.routes,
-    arg: obj.arg,
+    arg: obj.cmd,
     env,
   }
 
