@@ -1191,9 +1191,8 @@ async function _buildGetMicroserviceResponse(microservice, transaction) {
   const volumeMappings = await VolumeMappingManager.findAll({ microserviceUuid: microserviceUuid }, transaction)
   const routes = await RoutingManager.findAll({ sourceMicroserviceUuid: microserviceUuid }, transaction)
   const env = await MicroserviceEnvManager.findAllExcludeFields({ microserviceUuid: microserviceUuid }, transaction)
-  const arg = await MicroserviceArgManager
-      .findAllExcludeFields({ microserviceUuid: microserviceUuid }, transaction)
-      .map((it) => it.cmd)
+  const cmd = await MicroserviceArgManager.findAllExcludeFields({ microserviceUuid: microserviceUuid }, transaction)
+  const arg = cmd.map((it) => it.cmd)
 
   // build microservice response
   const res = Object.assign({}, microservice.dataValues)

@@ -756,6 +756,22 @@ describe('Agent Service', () => {
         },
       },
       routes: routes,
+      env: [
+        {
+          key: 'ENV_VAR1',
+          value: 'value1',
+        },
+      ],
+      cmd: [
+        {
+          id: 1,
+          cmd: 'ls',
+        },
+        {
+          id: 1,
+          cmd: '-l',
+        },
+      ],
     }
 
     const microserviceWithInvalidImage = {
@@ -799,6 +815,16 @@ describe('Agent Service', () => {
         deleteWithCleanup: false,
         routes: routes,
         registryId: 10,
+        env: [
+          {
+            key: 'ENV_VAR1',
+            value: 'value1',
+          },
+        ],
+        cmd: [
+          'ls',
+          '-l',
+        ],
       }],
     }
 
@@ -1481,7 +1507,7 @@ describe('Agent Service', () => {
 
     def('fog', () => 'fog!')
     def('events', () => [])
-    def('transaction', () => {})
+    def('transaction', () => { })
 
     def('subject', () => $subject.postTracking($events, $fog, $transaction))
 

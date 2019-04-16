@@ -73,6 +73,10 @@ function buildEvent(eventType, res, args, functionName) {
 }
 
 function sendEvents(events) {
+  if (process.env.NODE_ENV != 'test') {
+    return
+  }
+
   for (const event of events) {
     event.data = JSON.parse(event.data)
   }
@@ -87,12 +91,7 @@ function sendEvents(events) {
     json: true,
   }
 
-  request(options)
-      .then(() => {
-        logger.info('events posted successfully')
-      }).catch((e) => {
-        logger.debug('unable to send events:', e)
-      })
+  request(options).catch((e) => {})
 }
 
 function initTrackingUuid() {

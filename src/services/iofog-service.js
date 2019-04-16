@@ -30,7 +30,6 @@ const MicroserviceManager = require('../sequelize/managers/microservice-manager'
 const FogStates = require('../enums/fog-state')
 const TrackingDecorator = require('../decorators/tracking-decorator')
 const TrackingEventType = require('../enums/tracking-event-type')
-const logger = require('../logger')
 
 async function createFogEndPoint(fogData, user, isCLI, transaction) {
   await Validator.validate(fogData, Validator.schemas.iofogCreate)
@@ -82,9 +81,7 @@ async function createFogEndPoint(fogData, user, isCLI, transaction) {
 
   try {
     await informKubelet(fog.uuid, 'POST')
-  } catch (e) {
-    logger.error('unable to create node in kubernetes')
-  }
+  } catch (e) {}
 
   return res
 }
@@ -169,9 +166,7 @@ async function deleteFogEndPoint(fogData, user, isCLI, transaction) {
 
   try {
     await informKubelet(fog.uuid, 'DELETE')
-  } catch (e) {
-    logger.error('unable to delete node from kubernetes')
-  }
+  } catch (e) {}
 }
 
 async function getFog(fogData, user, isCLI, transaction) {
