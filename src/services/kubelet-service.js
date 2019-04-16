@@ -135,8 +135,6 @@ const kubeletUpdatePod = async function (uploadPodData, fogNodeUuid, user, trans
       routes: ms.routes || [],
     }
   })
-
-  debugger
 }
 
 const kubeletDeletePod = async function (podData, fogNodeUuid, user, transaction) {
@@ -261,7 +259,6 @@ const kubeletGetAllocatable = async function (fogNodeUuid, user, transaction) {
 
 const kubeletGetNodeConditions = async function (fogNodeUuid, user, transaction) {
   const node = await IOFogService.getFogEndPoint({ uuid: fogNodeUuid }, user, false, transaction)
-  console.log(fogNodeUuid, node.daemonStatus)
   const now = moment().utc().toISOString()
   const lastStatusTime = node.lastStatusTime ? moment(node.lastStatusTime).utc().toISOString() : null
   return [
