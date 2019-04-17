@@ -90,6 +90,13 @@ const kubeletCreatePod = async function (createPodData, fogNodeUuid, user, trans
       ports: ms.ports || [],
       routes: ms.routes || [],
     }
+    if (ms.env && ms.env.length > 0) {
+      microserviceData.env = ms.env
+    }
+    if (ms.cmd && ms.cmd.length > 0) {
+      microserviceData.cmd = ms.cmd
+    }
+
     microservice = await MicroservicesService.createMicroserviceEndPoint(microserviceData, user, false, transaction)
     microservicesIds.push(microservice.uuid)
   }
@@ -123,7 +130,7 @@ const kubeletUpdatePod = async function (uploadPodData, fogNodeUuid, user, trans
   msDup.map((ms) => {
     const name = `${flowData.name}-${ms.name}`
 
-    return {
+    const microserviceData = {
       name: name,
       config: ms.config,
       catalogItemId: ms['catalog-item-id'],
@@ -134,6 +141,14 @@ const kubeletUpdatePod = async function (uploadPodData, fogNodeUuid, user, trans
       ports: ms.ports || [],
       routes: ms.routes || [],
     }
+    if (ms.env && ms.env.length > 0) {
+      microserviceData.env = ms.env
+    }
+    if (ms.cmd && ms.cmd.length > 0) {
+      microserviceData.cmd = ms.cmd
+    }
+
+    return microserviceData
   })
 }
 
