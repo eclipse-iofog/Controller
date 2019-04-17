@@ -11,7 +11,7 @@
  *
  */
 const logger = require('../logger')
-const {isTest} = require('../helpers/app-helper')
+const { isTest } = require('../helpers/app-helper')
 
 function handleErrors(f, successCode, errorsCodes) {
   return async function(...args) {
@@ -22,7 +22,7 @@ function handleErrors(f, successCode, errorsCodes) {
     let responseObject = {}
     try {
       const responseBody = await f.apply(this, args)
-      responseObject = {code: successCode, body: responseBody}
+      responseObject = { code: successCode, body: responseBody }
     } catch (err) {
       logger.error('error: ' + err)
 

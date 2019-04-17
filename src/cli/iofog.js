@@ -211,7 +211,7 @@ class IOFog extends BaseCLIHandler {
 
   async run(args) {
     try {
-      const iofogCommand = this.parseCommandLineArgs(this.commandDefinitions, {argv: args.argv, partial: false})
+      const iofogCommand = this.parseCommandLineArgs(this.commandDefinitions, { argv: args.argv, partial: false })
 
       const command = iofogCommand.command.command
 
@@ -289,7 +289,7 @@ async function _createFog(obj, user) {
     ? JSON.parse(fs.readFileSync(obj.file, 'utf8'))
     : _createFogObject(obj)
 
-  logger.cliReq('fog add', {args: fog})
+  logger.cliReq('fog add', { args: fog })
   const result = await FogService.createFogEndPoint(fog, user, true)
   logger.cliRes(JSON.stringify({
     uuid: result.uuid,
@@ -303,14 +303,14 @@ async function _updateFog(obj, user) {
 
   fog.uuid = obj.iofogUuid
 
-  logger.cliReq('fog update', {args: fog})
+  logger.cliReq('fog update', { args: fog })
   await FogService.updateFogEndPoint(fog, user, true)
   logger.cliRes('ioFog node has been updated successfully.')
 }
 
 async function _deleteFog(obj, user) {
   const fog = _createFogObject(obj)
-  logger.cliReq('fog remove', {args: fog})
+  logger.cliReq('fog remove', { args: fog })
   await FogService.deleteFogEndPoint(fog, user, true)
   logger.cliRes('ioFog node has been removed successfully')
 }
@@ -324,21 +324,21 @@ async function _getFogList(obj, user) {
 
 async function _getFog(obj, user) {
   const fog = _createFogObject(obj)
-  logger.cliReq('fog info', {args: fog})
+  logger.cliReq('fog info', { args: fog })
   const res = await FogService.getFogEndPoint(fog, user, true)
   logger.cliRes(JSON.stringify(res, null, 2))
 }
 
 async function _generateProvision(obj, user) {
   const fog = _createFogObject(obj)
-  logger.cliReq('fog provisioning-key', {args: fog})
+  logger.cliReq('fog provisioning-key', { args: fog })
   const response = await FogService.generateProvisioningKeyEndPoint(fog, user, true)
   logger.cliRes(JSON.stringify(response), null, 2)
 }
 
 async function _setFogRebootCommand(obj, user) {
   const fog = _createFogObject(obj)
-  logger.cliReq('fog reboot', {args: fog})
+  logger.cliReq('fog reboot', { args: fog })
   await FogService.setFogRebootCommandEndPoint(fog, user, true)
   logger.cliRes('ioFog reboot command has been set successfully')
 }
@@ -348,7 +348,7 @@ async function _setFogVersionCommand(obj, user) {
     uuid: obj.iofogUuid,
     versionCommand: obj.versionCommand,
   }
-  logger.cliReq('fog version', {args: fog})
+  logger.cliReq('fog version', { args: fog })
   await FogService.setFogVersionCommandEndPoint(fog, user, true)
   logger.cliRes('ioFog version command has been set successfully')
 }
@@ -357,7 +357,7 @@ async function _getHalHardwareInfo(obj) {
   const uuidObj = {
     uuid: obj.iofogUuid,
   }
-  logger.cliReq('fog hal-hw', {args: uuidObj})
+  logger.cliReq('fog hal-hw', { args: uuidObj })
   const data = await FogService.getHalHardwareInfoEndPoint(uuidObj, {}, true)
   if (data) {
     if (data.hasOwnProperty('info')) {
@@ -372,7 +372,7 @@ async function _getHalUsbInfo(obj) {
   const uuidObj = {
     uuid: obj.iofogUuid,
   }
-  logger.cliReq('fog hal-usb', {args: uuidObj})
+  logger.cliReq('fog hal-usb', { args: uuidObj })
   const data = await FogService.getHalUsbInfoEndPoint(uuidObj, {}, true)
   if (data) {
     if (data.hasOwnProperty('info')) {

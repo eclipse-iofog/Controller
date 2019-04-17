@@ -72,19 +72,19 @@ const events = Object.freeze({
 })
 
 async function create(ioFogUuid, transaction) {
-  await ChangeTrackingManager.create({iofogUuid: ioFogUuid}, transaction)
+  await ChangeTrackingManager.create({ iofogUuid: ioFogUuid }, transaction)
 }
 
 async function update(ioFogUuid, data, transaction) {
-  await ChangeTrackingManager.update({iofogUuid: ioFogUuid}, data, transaction)
+  await ChangeTrackingManager.update({ iofogUuid: ioFogUuid }, data, transaction)
 }
 
 async function updateIfChanged(ioFogUuid, data, transaction) {
-  await ChangeTrackingManager.updateIfChanged({iofogUuid: ioFogUuid}, data, transaction)
+  await ChangeTrackingManager.updateIfChanged({ iofogUuid: ioFogUuid }, data, transaction)
 }
 
 async function getByIoFogUuid(ioFogUuid, transaction) {
-  return await ChangeTrackingManager.findOne({iofogUuid: ioFogUuid}, transaction)
+  return await ChangeTrackingManager.findOne({ iofogUuid: ioFogUuid }, transaction)
 }
 
 module.exports = {

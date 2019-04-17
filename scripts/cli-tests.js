@@ -12,8 +12,8 @@
  */
 
 const execSync = require('child_process').execSync
-const {init} = require('./init')
-const {restoreDBs, backupDBs} = require('./util')
+const { init } = require('./init')
+const { restoreDBs, backupDBs } = require('./util')
 
 const options = {
   env: {

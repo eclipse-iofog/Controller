@@ -88,8 +88,8 @@ const agentDeprovision = async function(deprovisionData, fog, transaction) {
   await Validator.validate(deprovisionData, Validator.schemas.agentDeprovision)
 
   await MicroserviceStatusManager.update(
-      {microserviceUuid: deprovisionData.microserviceUuids},
-      {status: MicroserviceStates.NOT_RUNNING},
+      { microserviceUuid: deprovisionData.microserviceUuids },
+      { status: MicroserviceStates.NOT_RUNNING },
       transaction
   )
 
@@ -97,8 +97,8 @@ const agentDeprovision = async function(deprovisionData, fog, transaction) {
 }
 
 const _invalidateFogNode = async function(fog, transaction) {
-  const where = {uuid: fog.uuid}
-  const data = {daemonStatus: FogStates.UNKNOWN, ipAddress: '0.0.0.0'}
+  const where = { uuid: fog.uuid }
+  const data = { daemonStatus: FogStates.UNKNOWN, ipAddress: '0.0.0.0' }
   await FogManager.update(where, data, transaction)
   const updatedFog = Object.assign({}, fog)
   updatedFog.daemonStatus = FogStates.UNKNOWN
@@ -254,6 +254,13 @@ const getAgentMicroservices = async function(fog, transaction) {
     }
 
     const routes = await MicroserviceService.getPhysicalConnections(microservice, transaction)
+    const env = microservice.env && microservice.env.map((it) => {
+      return {
+        key: it.key,
+        value: it.value,
+      }
+    })
+    const cmd = microservice.cmd && microservice.cmd.sort((a, b) => a.id > b.id).map((it) => it.cmd)
 
     const responseMicroservice = {
       uuid: microservice.uuid,
@@ -269,6 +276,8 @@ const getAgentMicroservices = async function(fog, transaction) {
       delete: microservice.delete,
       deleteWithCleanup: microservice.deleteWithCleanup,
       routes: routes,
+      env: env,
+      cmd: cmd,
     }
 
     response.push(responseMicroservice)

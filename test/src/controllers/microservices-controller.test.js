@@ -1,4 +1,4 @@
-const {expect} = require('chai')
+const { expect } = require('chai')
 const sinon = require('sinon')
 
 const MicroservicesController = require('../../../src/controllers/microservices-controller')
@@ -507,7 +507,7 @@ describe('Microservices Controller', () => {
         accessMode: $accessMode,
       },
     }))
-    def('response', () => Promise.resolve({id: 15}))
+    def('response', () => Promise.resolve({ id: 15 }))
     def('subject', () => $subject.createMicroserviceVolumeMappingEndPoint($req, $user))
 
     beforeEach(() => {

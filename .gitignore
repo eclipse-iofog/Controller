@@ -2,3 +2,5 @@ node_modules
 .vscode
 *.sqlite
 .nyc_output
+/.idea
+/src/config/tracking-uuid

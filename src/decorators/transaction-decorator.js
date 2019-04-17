@@ -15,7 +15,7 @@ const db = require('./../sequelize/models')
 const retry = require('retry-as-promised')
 const sequelize = db.sequelize
 const Transaction = require('sequelize/lib/transaction')
-const {isTest} = require('../helpers/app-helper')
+const { isTest } = require('../helpers/app-helper')
 
 function transaction(f) {
   return async function(...fArgs) {
@@ -53,7 +53,7 @@ function generateTransaction(f) {
 }
 
 function fakeTransaction(f) {
-  const fakeTransactionObject = {fakeTransaction: true}
+  const fakeTransactionObject = { fakeTransaction: true }
   return async function(...fArgs) {
     if (isTest()) {
       return await f.apply(this, fArgs)

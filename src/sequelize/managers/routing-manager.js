@@ -33,7 +33,7 @@ class RoutingManager extends BaseManager {
       where: {
         '$connectorPort.connector_id$': connectorId,
       },
-    }, {transaction: transaction})
+    }, { transaction: transaction })
   }
 }
 

@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "632bbd85-6e5a-47f1-8fae-d2dad798f7ef",
+		"_postman_id": "b729b57d-2b43-4f3e-a4ce-3e98b534baba",
 		"name": "Controller Testing",
 		"description": "iofog-controller collection",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -3311,7 +3311,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"name\": \"name2\",\n  \"config\": \"string\",\n  \"catalogItemId\": {{item-id}},\n  \"flowId\": {{flow-id}},\n  \"iofogUuid\": \"{{node-id}}\",\n  \"rootHostAccess\": true,\n  \"logSize\": 0,\n  \"volumeMappings\": [\n    {\n      \"hostDestination\": \"/var/dest\",\n      \"containerDestination\": \"/var/dest\",\n      \"accessMode\": \"rw\"\n    }\n  ],\n  \"ports\": [\n    {\n      \"internal\": 1,\n      \"external\": 1,\n      \"publicMode\": false\n    }\n  ],\n  \"routes\": [\n  ]\n}\n"
+							"raw": "{\n  \"name\": \"name2\",\n  \"config\": \"string\",\n  \"catalogItemId\": {{item-id}},\n  \"flowId\": {{flow-id}},\n  \"iofogUuid\": \"{{node-id}}\",\n  \"rootHostAccess\": true,\n  \"logSize\": 0,\n  \"volumeMappings\": [\n    {\n      \"hostDestination\": \"/var/dest\",\n      \"containerDestination\": \"/var/dest\",\n      \"accessMode\": \"rw\"\n    }\n  ],\n  \"ports\": [\n    {\n      \"internal\": 1,\n      \"external\": 1,\n      \"publicMode\": false\n    }\n  ],\n  \"routes\": [\n  ],\n  \"env\": [\n    {\n      \"key\": \"KEY1\",\n      \"value\": \"value1\"\n    },\n    {\n      \"key\": \"KEY2\",\n      \"value\": \"value2\"\n    }\n  ],\n  \"cmd\": [\n  \t\"test\",\n  \t\"--arg1\",\n  \t\"--arg2\"\n  ]\n}\n"
 						},
 						"url": {
 							"raw": "{{host}}/api/v3/microservices",
@@ -3394,7 +3394,7 @@
 									"",
 									"var data = JSON.parse(responseBody);",
 									"",
-									"tests[\"Response validation passed\"] = data.uuid && data.config && data.name && data.hasOwnProperty('rootHostAccess') && data.hasOwnProperty('logSize');"
+									"tests[\"Response validation passed\"] = data.uuid && data.config && data.name && data.hasOwnProperty('rootHostAccess') && data.hasOwnProperty('logSize') && data.hasOwnProperty('env') && data.env.length === 2 && data.hasOwnProperty('cmd') && data.cmd.length === 3;"
 								],
 								"type": "text/javascript"
 							}

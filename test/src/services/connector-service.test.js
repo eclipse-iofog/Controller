@@ -1,4 +1,4 @@
-const {expect} = require('chai')
+const { expect } = require('chai')
 const sinon = require('sinon')
 
 const ConnectorManager = require('../../../src/sequelize/managers/connector-manager')

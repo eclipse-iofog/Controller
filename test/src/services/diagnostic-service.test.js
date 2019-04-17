@@ -1,4 +1,4 @@
-const {expect} = require('chai')
+const { expect } = require('chai')
 const sinon = require('sinon')
 const StraceDiagnosticManager = require('../../../src/sequelize/managers/strace-diagnostics-manager')
 const DiagnosticService = require('../../../src/services/diagnostic-service')
@@ -170,8 +170,8 @@ describe('DiagnosticService Service', () => {
       it('calls MicroserviceManager#findOne() with correct args', async () => {
         await $subject
         const microserviceWhere = isCLI
-          ? {uuid: uuid}
-          : {uuid: uuid, userId: user.id}
+          ? { uuid: uuid }
+          : { uuid: uuid, userId: user.id }
         expect(MicroserviceManager.findOne).to.have.been.calledWith(microserviceWhere, transaction)
       })
 
@@ -300,8 +300,8 @@ describe('DiagnosticService Service', () => {
       it('calls MicroserviceManager#findOne() with correct args', async () => {
         await $subject
         const microserviceWhere = isCLI
-          ? {uuid: uuid}
-          : {uuid: uuid, userId: user.id}
+          ? { uuid: uuid }
+          : { uuid: uuid, userId: user.id }
         expect(MicroserviceManager.findOne).to.have.been.calledWith(microserviceWhere, transaction)
       })
 

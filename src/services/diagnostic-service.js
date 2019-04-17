@@ -39,7 +39,7 @@ const changeMicroserviceStraceState = async function(uuid, data, user, isCLI, tr
     microserviceUuid: uuid,
   }
 
-  await StraceDiagnosticManager.updateOrCreate({microserviceUuid: uuid}, straceObj, transaction)
+  await StraceDiagnosticManager.updateOrCreate({ microserviceUuid: uuid }, straceObj, transaction)
   await ChangeTrackingService.update(microservice.iofogUuid, ChangeTrackingService.events.diagnostics, transaction)
 }
 
@@ -47,14 +47,14 @@ const getMicroserviceStraceData = async function(uuid, data, user, isCLI, transa
   await Validator.validate(data, Validator.schemas.straceGetData)
 
   const microserviceWhere = isCLI
-    ? {uuid: uuid}
-    : {uuid: uuid, userId: user.id}
+    ? { uuid: uuid }
+    : { uuid: uuid, userId: user.id }
   const microservice = await MicroserviceManager.findOne(microserviceWhere, transaction)
   if (!microservice) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, uuid))
   }
 
-  const straceData = await StraceDiagnosticManager.findOne({microserviceUuid: uuid}, transaction)
+  const straceData = await StraceDiagnosticManager.findOne({ microserviceUuid: uuid }, transaction)
   if (!straceData) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_STRACE, uuid))
   }
@@ -80,13 +80,13 @@ const postMicroserviceStraceDatatoFtp = async function(uuid, data, user, isCLI, 
   await Validator.validate(data, Validator.schemas.stracePostToFtp)
 
   const microserviceWhere = isCLI
-    ? {uuid: uuid}
-    : {uuid: uuid, userId: user.id}
+    ? { uuid: uuid }
+    : { uuid: uuid, userId: user.id }
   const microservice = await MicroserviceManager.findOne(microserviceWhere, transaction)
   if (!microservice) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, uuid))
   }
-  const straceData = await StraceDiagnosticManager.findOne({microserviceUuid: uuid}, transaction)
+  const straceData = await StraceDiagnosticManager.findOne({ microserviceUuid: uuid }, transaction)
 
   if (!straceData) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_STRACE, uuid))
@@ -126,7 +126,7 @@ const postMicroserviceImageSnapshotCreate = async function(microserviceUuid, use
     imageSnapshot: 'get_image',
   }
 
-  await MicroserviceManager.update({uuid: microservice.uuid}, microserviceToUpdate, transaction)
+  await MicroserviceManager.update({ uuid: microservice.uuid }, microserviceToUpdate, transaction)
   await ChangeTrackingService.update(microservice.iofogUuid, ChangeTrackingService.events.imageSnapshot, transaction)
 }
 
@@ -156,7 +156,7 @@ const getMicroserviceImageSnapshot = async function(microserviceUuid, user, isCL
     throw new Errors.ValidationError(ErrorMessages.IMAGE_SNAPSHOT_NOT_AVAILABLE)
   }
   const _path = microservice.imageSnapshot
-  await MicroserviceManager.update({uuid: microservice.uuid}, microserviceToUpdate, transaction)
+  await MicroserviceManager.update({ uuid: microservice.uuid }, microserviceToUpdate, transaction)
   if (isCLI) {
     return _path
   } else {

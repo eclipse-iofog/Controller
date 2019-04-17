@@ -1,7 +1,7 @@
 'use strict'
 module.exports = {
   up: (queryInterface, Sequelize) => {
-    return queryInterface.createTable('StraceDiagnostics', {
+    return queryInterface.createTable('MicroserviceArgs', {
       id: {
         type: Sequelize.INTEGER,
         primaryKey: true,
@@ -9,14 +9,9 @@ module.exports = {
         allowNull: false,
         field: 'id',
       },
-      straceRun: {
-        type: Sequelize.BOOLEAN,
-        field: 'strace_run',
-      },
-      buffer: {
+      cmd: {
         type: Sequelize.TEXT,
-        field: 'buffer',
-        defaultValue: '',
+        field: 'cmd',
       },
       microserviceUuid: {
         type: Sequelize.TEXT,
@@ -27,6 +22,6 @@ module.exports = {
     })
   },
   down: (queryInterface, Sequelize) => {
-    return queryInterface.dropTable('StraceDiagnostics')
+    return queryInterface.dropTable('MicroserviceArgs')
   },
 }

@@ -12,21 +12,24 @@
  */
 
 const BaseManager = require('./base-manager')
-const models = require('./../models')
-const VolumeMapping = models.VolumeMapping
+const models = require('../models')
+const MicroserviceEnv = models.MicroserviceEnv
 
-class VolumeMappingManager extends BaseManager {
+const microserviceEnvExcludedFields = [
+  'id',
+  'microservice_uuid',
+  'microserviceUuid',
+]
+
+class MicroserviceEnvManager extends BaseManager {
   getEntity() {
-    return VolumeMapping
+    return MicroserviceEnv
   }
 
-  findAll(where, transaction) {
-    return VolumeMapping.findAll({
-      where: where,
-      attributes: ['hostDestination', 'containerDestination', 'accessMode', 'id'],
-    }, { transaction: transaction })
+  findAllExcludeFields(where, transaction) {
+    return this.findAllWithAttributes(where, { exclude: microserviceEnvExcludedFields }, transaction)
   }
 }
 
-const instance = new VolumeMappingManager()
+const instance = new MicroserviceEnvManager()
 module.exports = instance

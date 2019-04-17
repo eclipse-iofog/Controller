@@ -11,18 +11,19 @@
  *
  */
 
-const {isOnline} = require('../helpers/app-helper')
-const https = require('https')
-const EventTypes = require('../enums/tracking-event-type')
 const fs = require('fs')
+const request = require('request-promise')
+const { isOnline } = require('../helpers/app-helper')
+
 const AppHelper = require('../helpers/app-helper')
 const Constants = require('../helpers/constants')
+const EventTypes = require('../enums/tracking-event-type')
 const logger = require('../logger')
-
 const TrackingEventManager = require('../sequelize/managers/tracking-event-manager')
 const Transaction = require('sequelize/lib/transaction')
 
-const fakeTransactionObject = {fakeTransaction: true}
+
+const fakeTransactionObject = { fakeTransaction: true }
 
 const trackingUuid = initTrackingUuid()
 
@@ -35,13 +36,13 @@ function buildEvent(eventType, res, args, functionName) {
   }
   switch (eventType) {
     case EventTypes.INIT:
-      eventInfo.data = {event: 'controller inited'}
+      eventInfo.data = { event: 'controller inited' }
       break
     case EventTypes.START:
-      eventInfo.data = {event: `controller started: ${res}`}
+      eventInfo.data = { event: `controller started: ${res}` }
       break
     case EventTypes.USER_CREATED:
-      eventInfo.data = {event: 'user created'}
+      eventInfo.data = { event: 'user created' }
       break
     case EventTypes.RUNNING_TIME:
       eventInfo.data = {
@@ -50,48 +51,47 @@ function buildEvent(eventType, res, args, functionName) {
       }
       break
     case EventTypes.IOFOG_CREATED:
-      eventInfo.data = {event: 'iofog agent created'}
+      eventInfo.data = { event: 'iofog agent created' }
       break
     case EventTypes.IOFOG_PROVISION:
-      eventInfo.data = {event: 'iofog agent provisioned'}
+      eventInfo.data = { event: 'iofog agent provisioned' }
       break
     case EventTypes.CATALOG_CREATED:
-      eventInfo.data = {event: 'catalog item was created'}
+      eventInfo.data = { event: 'catalog item was created' }
       break
     case EventTypes.MICROSERVICE_CREATED:
-      eventInfo.data = {event: 'microservice created'}
+      eventInfo.data = { event: 'microservice created' }
       break
     case EventTypes.CONFIG_CHANGED:
-      eventInfo.data = {event: `new config property '${res}'`}
+      eventInfo.data = { event: `new config property '${res}'` }
       break
     case EventTypes.OTHER:
-      eventInfo.data = {event: `function ${functionName} was executed`}
+      eventInfo.data = { event: `function ${functionName} was executed` }
       break
   }
   return eventInfo
 }
 
 function sendEvents(events) {
+  if (process.env.NODE_ENV != 'test') {
+    return
+  }
+
   for (const event of events) {
     event.data = JSON.parse(event.data)
   }
   const body = {
     events: events,
   }
-  const data = JSON.stringify(body)
+
   const options = {
-    host: 'analytics.iofog.org',
-    path: '/post',
+    uri: 'https://analytics.iofog.org/post',
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Content-Length': Buffer.byteLength(data),
-    },
+    body,
+    json: true,
   }
 
-  const request = https.request(options)
-  request.write(data)
-  request.end()
+  request(options).catch((e) => {})
 }
 
 function initTrackingUuid() {

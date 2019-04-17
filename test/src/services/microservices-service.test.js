@@ -1,4 +1,4 @@
-const {expect} = require('chai')
+const { expect } = require('chai')
 const sinon = require('sinon')
 
 const MicroserviceManager = require('../../../src/sequelize/managers/microservice-manager')
@@ -13,6 +13,8 @@ const MicroservicePortManager = require('../../../src/sequelize/managers/microse
 const VolumeMappingManager = require('../../../src/sequelize/managers/volume-mapping-manager')
 const MicroserviceStatusManager = require('../../../src/sequelize/managers/microservice-status-manager')
 const RoutingManager = require('../../../src/sequelize/managers/routing-manager')
+const MicroserviceEnvManager = require('../../../src/sequelize/managers/microservice-env-manager')
+const MicroserviceArgManager = require('../../../src/sequelize/managers/microservice-arg-manager')
 const Op = require('sequelize').Op
 
 describe('Microservices Service', () => {
@@ -44,17 +46,21 @@ describe('Microservices Service', () => {
     def('findPortMappingsResponse', () => Promise.resolve([]))
     def('findVolumeMappingsResponse', () => Promise.resolve([]))
     def('findRoutesResponse', () => Promise.resolve([]))
+    def('envResponse', () => Promise.resolve([]))
+    def('cmdResponse', () => Promise.resolve([]))
 
     beforeEach(() => {
       $sandbox.stub(MicroserviceManager, 'findAllExcludeFields').returns($findMicroservicesResponse)
       $sandbox.stub(MicroservicePortManager, 'findAll').returns($findPortMappingsResponse)
       $sandbox.stub(VolumeMappingManager, 'findAll').returns($findVolumeMappingsResponse)
       $sandbox.stub(RoutingManager, 'findAll').returns($findRoutesResponse)
+      $sandbox.stub(MicroserviceEnvManager, 'findAllExcludeFields').returns($envResponse)
+      $sandbox.stub(MicroserviceArgManager, 'findAllExcludeFields').returns($cmdResponse)
     })
 
     it('calls MicroserviceManager#findAllExcludeFields() with correct args', async () => {
       await $subject
-      const where = isCLI ? {delete: false} : {flowId: flowId, delete: false}
+      const where = isCLI ? { delete: false } : { flowId: flowId, delete: false }
 
       expect(MicroserviceManager.findAllExcludeFields).to.have.been.calledWith(where, transaction)
     })
@@ -95,12 +101,16 @@ describe('Microservices Service', () => {
     def('findPortMappingsResponse', () => Promise.resolve([]))
     def('findVolumeMappingsResponse', () => Promise.resolve([]))
     def('findRoutesResponse', () => Promise.resolve([]))
+    def('envResponse', () => Promise.resolve([]))
+    def('cmdResponse', () => Promise.resolve([]))
 
     beforeEach(() => {
       $sandbox.stub(MicroserviceManager, 'findOneExcludeFields').returns($findMicroserviceResponse)
       $sandbox.stub(MicroservicePortManager, 'findAll').returns($findPortMappingsResponse)
       $sandbox.stub(VolumeMappingManager, 'findAll').returns($findVolumeMappingsResponse)
       $sandbox.stub(RoutingManager, 'findAll').returns($findRoutesResponse)
+      $sandbox.stub(MicroserviceEnvManager, 'findAllExcludeFields').returns($envResponse)
+      $sandbox.stub(MicroserviceArgManager, 'findAllExcludeFields').returns($cmdResponse)
     })
 
     it('calls MicroserviceManager#findOneExcludeFields() with correct args', async () => {
@@ -284,7 +294,7 @@ describe('Microservices Service', () => {
               ?
               {
                 name: microserviceData.name,
-                uuid: {[Op.ne]: item.id},
+                uuid: { [Op.ne]: item.id },
                 userId: user.id,
               }
               :
@@ -1173,8 +1183,8 @@ describe('Microservices Service', () => {
     ]
 
     const where = isCLI
-      ? {uuid: microserviceUuid}
-      : {uuid: microserviceUuid, userId: user.id}
+      ? { uuid: microserviceUuid }
+      : { uuid: microserviceUuid, userId: user.id }
 
     const mappingData = {
       isPublic: false,

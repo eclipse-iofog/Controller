@@ -58,7 +58,7 @@ const prepareObjectLogs = winston.format((log) => {
   if (log.level === 'apiReq' && log.message instanceof Object) {
     const req = log.message
     log.message = `${req.method} ${req.originalUrl}`
-    log.args = {params: req.params, query: req.query, body: req.body}
+    log.args = { params: req.params, query: req.query, body: req.body }
   }
   if (log.level === 'apiRes' && log.message instanceof Object) {
     const req = log.message.req
@@ -120,7 +120,7 @@ logger.add(new winston.transports.Console({
     if (log.level === 'apiReq' && log.message instanceof Object) {
       const req = log.message
       log.message = `${req.method} ${req.originalUrl}`
-      log.args = {params: req.params, query: req.query, body: req.body}
+      log.args = { params: req.params, query: req.query, body: req.body }
     }
     if (log.level === 'apiRes' && log.message instanceof Object) {
       const req = log.message.req

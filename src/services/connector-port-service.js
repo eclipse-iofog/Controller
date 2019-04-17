@@ -40,7 +40,7 @@ async function openPortOnRandomConnector(isPublicAccess, transaction) {
     throw new Error('Not able to open port on remote Connector. Gave up after 5 attempts.')
   }
   ports.connectorId = connector.id
-  return {ports: ports, connector: connector}
+  return { ports: ports, connector: connector }
 }
 
 async function _openPortsOnConnector(connector, isPublicAccess) {

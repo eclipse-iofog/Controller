@@ -1,4 +1,4 @@
-const {expect} = require('chai')
+const { expect } = require('chai')
 const sinon = require('sinon')
 
 const DiagnosticController = require('../../../src/controllers/diagnostic-controller')
