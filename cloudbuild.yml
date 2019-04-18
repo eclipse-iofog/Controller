@@ -82,16 +82,12 @@ steps:
     args: ['delete', 'namespaces', 'test-$BUILD_ID']
     waitFor: ['e2e/system tests']
 
-#  - id: 'push dev image'
-#    name: 'gcr.io/cloud-builders/docker'
-#    args: [
-#      'build',
-#      '-t',
-#      'gcr.io/$PROJECT_ID/rushController:dev',
-#      '.'
-#    ]
-#    waitFor: ['delete namespace']
-  images: [
-    'gcr.io/$PROJECT_ID/rushController:dev',
-    'gcr.io/$PROJECT_ID/rushController:${COMMIT_SHA}'
-  ]
+  - id: 'push dev image'
+    name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'build',
+      '-t',
+      'gcr.io/$PROJECT_ID/rushController:dev',
+      '.'
+    ]
+    waitFor: ['delete namespace']
