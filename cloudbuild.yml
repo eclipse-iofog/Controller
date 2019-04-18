@@ -16,7 +16,7 @@ steps:
   - id: 'integration/pact/component tests'
     name: 'gcr.io/cloud-builders/npm'
     args: ['test']
-    waitFor: ['compile app']
+    waitFor: ['unit tests']
 
   - id: 'push image'
     name: 'gcr.io/cloud-builders/docker'
