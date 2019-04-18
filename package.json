@@ -33,6 +33,9 @@
 		"type": "git",
 		"url": "https://github.com/ioFog/Controller"
 	},
+	"engines" : {
+		"node" : ">=0.10.3 <0.12",
+	},
 	"scripts": {
 		"prestart": "npm run lint",
 		"start": "node scripts/scripts-api.js start",
@@ -101,7 +104,7 @@
 		"chai": "4.2.0",
 		"chai-as-promised": "7.1.1",
 		"chai-http": "4.2.1",
-		"eslint": "^5.14.1",
+		"eslint": "5.16.0",
 		"eslint-config-google": "^0.12.0",
 		"mocha": "5.2.0",
 		"newman": "^4.4.1",

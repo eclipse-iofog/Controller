@@ -1,0 +1,94 @@
+# master - then tag repo and tag docker with tag: need to figure this
+# develop - run this
+# branch - tag docker with commit perhaps
+
+steps:
+  - id: 'compile app'
+    name: 'gcr.io/cloud-builders/npm'
+    args: ['install']
+    waitFor: ['-']
+
+  - id: 'unit tests'
+    name: 'gcr.io/cloud-builders/npm'
+    args: ['test']
+    waitFor: ['compile app']
+
+  - id: 'integration/pact/component tests'
+    name: 'gcr.io/cloud-builders/npm'
+    args: ['test']
+    waitFor: ['compile app']
+
+  - id: 'push image'
+    name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'build',
+      '-t',
+      'gcr.io/$PROJECT_ID/rushController:${COMMIT_SHA}',
+      '.'
+    ]
+    waitFor: ['integration/pact/component tests']
+
+  # Generate a kubeconfig file for the given GKE cluster.
+  - id: 'kubeconfig for build cluster'
+    name: 'gcr.io/cloud-builders/gcloud'
+    env:
+      - 'CLOUDSDK_COMPUTE_ZONE=${_CLOUDSDK_COMPUTE_ZONE}'
+      - 'CLOUDSDK_CONTAINER_CLUSTER=${_CLOUDSDK_CONTAINER_CLUSTER}'
+      - 'KUBECONFIG=/kube/config'
+    entrypoint: 'sh'
+    args:
+      - '-c'
+      - |
+        CLUSTER=$$(gcloud config get-value container/cluster)
+        PROJECT=$$(gcloud config get-value core/project)
+        ZONE=$$(gcloud config get-value compute/zone)
+
+        gcloud container clusters get-credentials "$${CLUSTER}" \
+          --project "$${PROJECT}" \
+          --zone "$${ZONE}"
+    volumes:
+      - name: 'kube'
+        path: /kube
+
+  - id: 'deploy to build cluster'
+    name: 'gcr.io/cloud-builders/kubectl'
+    args: ['apply', '-f', 'k8s/', '--namespace=test-$BUILD_ID']
+    waitFor: ['kubeconfig for build cluster']
+
+  - id: 'deploy service'
+    name: 'gcr.io/cloud-builders/kubectl'
+    args:
+      - set
+      - image
+      - deployment
+      - [DEPLOYMENT-NAME]
+      - [CONTAINER]=gcr.io/[PROJECT-ID]/[IMAGE]:[TAG]
+    env:
+      - 'CLOUDSDK_COMPUTE_ZONE=[COMPUTE-ZONE]'
+      - 'CLOUDSDK_CONTAINER_CLUSTER=[CLUSTER]'
+
+  - id: 'e2e/system tests'
+    name: 'gcr.io/cloud-builders/curl'
+    entrypoint: '/bin/bash'
+    args:
+      - '-c'
+      - |
+        echo "hello"
+    waitFor: ['deploy service']
+
+  - id: 'delete namespace'
+    name: 'gcr.io/cloud-builders/kubectl'
+    args: ['delete', 'namespaces', 'test-$BUILD_ID']
+    waitFor: ['e2e/system tests']
+
+  - id: 'tag image dev'
+    name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'build',
+      '--tag=rush',
+      '--tag=gcr.io/$PROJECT_ID/rushController:dev',
+      '.'
+    ]
+    waitFor: ['delete namespace']
+  images: ["gcr.io/$PROJECT_ID/rushController:dev"]
+
