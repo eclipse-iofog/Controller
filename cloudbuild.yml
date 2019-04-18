@@ -82,14 +82,18 @@ steps:
     args: ['delete', 'namespaces', 'test-$BUILD_ID']
     waitFor: ['e2e/system tests']
 
-  - id: 'tag image dev'
+  - id: 'push dev image'
     name: 'gcr.io/cloud-builders/docker'
     args: [
       'build',
-      '--tag=rush',
-      '--tag=gcr.io/$PROJECT_ID/rushController:dev',
+      '-t',
+      'gcr.io/$PROJECT_ID/rushController:dev',
       '.'
     ]
     waitFor: ['delete namespace']
-  images: ["gcr.io/$PROJECT_ID/rushController:dev"]
 
+  # push images to Google Container Registry with tags
+  images: [
+    'gcr.io/$PROJECT_ID/rushController:dev',
+    'gcr.io/$PROJECT_ID/rushController:${COMMIT_SHA}'
+  ]
