@@ -31,15 +31,25 @@ steps:
       - '-Dsonar.sources=.'
     secretEnv: ['SONAR_LOGIN']
 
-  - id: 'push image'
+  - id: 'build image'
     name: 'gcr.io/cloud-builders/docker'
     args: [
       'build',
       '-t',
-      'gcr.io/$PROJECT_ID/rushController:${COMMIT_SHA}',
+      'gcr.io/$PROJECT_ID/rushcontroller:${COMMIT_SHA}',
       '.'
     ]
-    waitFor: ['integration/pact/component tests']
+    waitFor: ['sonar check']
+
+  - id: 'push built image'
+    name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'build',
+      '-t',
+      'gcr.io/$PROJECT_ID/rushcontroller:${COMMIT_SHA}',
+      '.'
+    ]
+    waitFor: ['build image']
 
   # Generate a kubeconfig file for the given GKE cluster.
   - id: 'kubeconfig for build cluster'
@@ -62,6 +72,7 @@ steps:
     volumes:
       - name: 'kube'
         path: /kube
+    waitFor: ['push image']
 
   - id: 'deploy to build cluster'
     name: 'gcr.io/cloud-builders/kubectl'
@@ -78,7 +89,7 @@ steps:
       'image',
       'deployment',
       'rushController',
-      'rushController=gcr.io/$PROJECT_ID/rushController:${COMMIT_SHA}'
+      'rushController=gcr.io/$PROJECT_ID/rushcontroller:${COMMIT_SHA}'
     ]
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=[COMPUTE-ZONE]'
@@ -103,7 +114,7 @@ steps:
     args: [
       'build',
       '-t',
-      'gcr.io/$PROJECT_ID/rushController:dev',
+      'gcr.io/$PROJECT_ID/rushcontroller:dev',
       '.'
     ]
     waitFor: ['delete namespace']
