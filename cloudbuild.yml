@@ -72,9 +72,9 @@ steps:
     volumes:
       - name: 'kube'
         path: /kube
-    waitFor: ['push image']
+    waitFor: ['push built image']
 
-  - id: 'deploy to build cluster'
+  - id: 'deploy namespace'
     name: 'gcr.io/cloud-builders/kubectl'
     args: ['apply', '-f', 'k8s/', '--namespace=test-$BUILD_ID']
     waitFor: ['kubeconfig for build cluster']
@@ -94,6 +94,7 @@ steps:
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=[COMPUTE-ZONE]'
       - 'CLOUDSDK_CONTAINER_CLUSTER=[CLUSTER]'
+    waitFor: ['deploy namespace']
 
   - id: 'e2e/system tests'
     name: 'gcr.io/cloud-builders/curl'
