@@ -14,9 +14,22 @@ steps:
     waitFor: ['compile app']
 
   - id: 'integration/pact/component tests'
-    name: 'gcr.io/cloud-builders/npm'
-    args: ['test']
+    name: 'gcr.io/cloud-builders/curl'
+    entrypoint: '/bin/bash'
+    args:
+      - '-c'
+      - |
+        echo "hello"
     waitFor: ['unit tests']
+
+  - id: 'sonar check'
+    name: 'gcr.io/$PROJECT_ID/sonar-scanner:latest'
+    args:
+      - '-Dsonar.host.url=http://35.224.185.47/'
+      - '-Dsonar.login=$$SONAR_LOGIN'
+      - '-Dsonar.projectKey=controller'
+      - '-Dsonar.sources=.'
+    secretEnv: ['SONAR_LOGIN']
 
   - id: 'push image'
     name: 'gcr.io/cloud-builders/docker'
@@ -94,3 +107,8 @@ steps:
       '.'
     ]
     waitFor: ['delete namespace']
+
+secrets:
+  - kmsKeyName: 'projects/$PROJECT_ID/locations/global/keyRings/rush-build/cryptoKeys/rush-build'
+    secretEnv:
+      SONAR_LOGIN: ${_SONAR_LOGIN}
