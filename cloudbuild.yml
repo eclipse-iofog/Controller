@@ -109,6 +109,6 @@ steps:
     waitFor: ['delete namespace']
 
 secrets:
-  - kmsKeyName: 'projects/${PROJECT_ID}/locations/global/keyRings/rush-build/cryptoKeys/rush-build'
+  - kmsKeyName: 'projects/focal-freedom-236620/locations/global/keyRings/rush-build/cryptoKeys/rush-build'
     secretEnv:
       SONAR_LOGIN: CiQAyglR/0ayS4n8Njkjluj/TAEufrGnIG3VNcNLDhHmELDGuqUSUACI5pchHwQFfSQCHC4l8VMQB/OM8RzbZxKzsUMI5sjXTUtFBLEE1sRyX45K5+saUkeeXqLL93hRw1OnkR7wPDI4+X30UH7JW7zzhzPGnriC
