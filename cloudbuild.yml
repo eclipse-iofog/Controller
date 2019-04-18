@@ -57,12 +57,13 @@ steps:
 
   - id: 'deploy service'
     name: 'gcr.io/cloud-builders/kubectl'
-    args:
-      - set
-      - image
-      - deployment
-      - [DEPLOYMENT-NAME]
-      - [CONTAINER]=gcr.io/[PROJECT-ID]/[IMAGE]:[TAG]
+    args: [
+      'set',
+      'image',
+      'deployment',
+      'rushController',
+      'rushController=gcr.io/$PROJECT_ID/rushController:${COMMIT_SHA}'
+    ]
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=[COMPUTE-ZONE]'
       - 'CLOUDSDK_CONTAINER_CLUSTER=[CLUSTER]'
