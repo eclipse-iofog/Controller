@@ -20,7 +20,7 @@ steps:
       - '-c'
       - |
         echo "hello"
-    waitFor: ['unit tests']
+    waitFor: ['compile app']
 
 #  - id: 'sonar check'
 #    name: 'gcr.io/$PROJECT_ID/sonar-scanner:latest'
