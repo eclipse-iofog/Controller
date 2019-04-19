@@ -55,14 +55,18 @@ steps:
   - id: 'kubeconfig for build cluster'
     name: 'gcr.io/cloud-builders/gcloud'
     entrypoint: 'sh'
-    args: [
-      'container',
-      'clusters',
-      'get-credentials',
-      '${_CLOUDSDK_CONTAINER_CLUSTER}',
-      '--zone',
-      '${_CLOUDSDK_COMPUTE_ZONE}'
-    ]
+    args:
+      - '-c'
+      - |
+        gcloud container clusters get-credentials rush-build --zone us-west2-b
+#    args: [
+#      'container',
+#      'clusters',
+#      'get-credentials',
+#      '${_CLOUDSDK_CONTAINER_CLUSTER}',
+#      '--zone',
+#      '${_CLOUDSDK_COMPUTE_ZONE}'
+#    ]
     waitFor: ['push built image']
 
   - id: 'deploy namespace'
