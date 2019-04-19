@@ -26,7 +26,7 @@ steps:
     name: 'gcr.io/$PROJECT_ID/sonar-scanner:latest'
     args:
       - '-Dsonar.host.url=http://35.224.185.47/'
-      - '-Dsonar.login=$SONAR_LOGIN'
+      - '-Dsonar.login=SONAR_LOGIN'
       - '-Dsonar.projectKey=controller'
       - '-Dsonar.sources=.'
     secretEnv: ['SONAR_LOGIN']
