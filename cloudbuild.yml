@@ -61,13 +61,13 @@ steps:
 #        gcloud container clusters get-credentials rush-build --zone us-west2-b
     args: [
       '-c',
-      'gcloud',
+      '"gcloud',
       'container',
       'clusters',
       'get-credentials',
       '${_CLOUDSDK_CONTAINER_CLUSTER}',
       '--zone',
-      '${_CLOUDSDK_COMPUTE_ZONE}'
+      '${_CLOUDSDK_COMPUTE_ZONE}"'
     ]
     waitFor: ['push built image']
 
