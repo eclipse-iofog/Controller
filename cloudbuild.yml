@@ -22,16 +22,21 @@ steps:
         echo "hello"
     waitFor: ['compile app']
 
-#  - id: 'sonar check'
-#    name: 'gcr.io/$PROJECT_ID/sonar-scanner:latest'
-#    env:
-#      - 'SONAR_LOGIN=$$SONAR_LOGIN'
-#    args:
+  - id: 'sonar check'
+    name: 'gcr.io/$PROJECT_ID/sonar-scanner:latest'
+    env:
+      - 'SONAR_LOGIN=$$SONAR_LOGIN'
+    args: [
+      '-Dsonar.host.url=http://35.224.185.47/',
+      '-Dsonar.login=$$SONAR_LOGIN',
+      '-Dsonar.projectKey=controller',
+      '-Dsonar.sources=.'
+    ]
 #      - '-Dsonar.host.url=http://35.224.185.47/'
 #      - '-Dsonar.login=$SONAR_LOGIN'
 #      - '-Dsonar.projectKey=controller'
 #      - '-Dsonar.sources=.'
-#    secretEnv: ['SONAR_LOGIN']
+    secretEnv: ['SONAR_LOGIN']
 
   - id: 'build image'
     name: 'gcr.io/cloud-builders/docker'
