@@ -70,13 +70,10 @@ steps:
   - id: 'deploy service'
     name: 'gcr.io/cloud-builders/kubectl'
     args: [
-      'set',
-      'image',
+      'create',
       'deployment',
       'rushController',
-      'rushController=gcr.io/$PROJECT_ID/rushcontroller:${COMMIT_SHA}',
-      '-n',
-      'test-$BUILD_ID'
+      '--image=gcr.io/$PROJECT_ID/rushcontroller:${COMMIT_SHA}'
     ]
     waitFor: ['deploy namespace']
 
