@@ -54,14 +54,19 @@ steps:
   # Generate a kubeconfig file for the given GKE cluster.
   - id: 'kubeconfig for build cluster'
     name: 'gcr.io/cloud-builders/gcloud'
-    env:
-      - 'CLOUDSDK_COMPUTE_ZONE=${_CLOUDSDK_COMPUTE_ZONE}'
-      - 'CLOUDSDK_CONTAINER_CLUSTER=${_CLOUDSDK_CONTAINER_CLUSTER}'
+#    env:
+#      - 'CLOUDSDK_COMPUTE_ZONE=${_CLOUDSDK_COMPUTE_ZONE}'
+#      - 'CLOUDSDK_CONTAINER_CLUSTER=${_CLOUDSDK_CONTAINER_CLUSTER}'
     entrypoint: 'sh'
-    args:
-      - '-c'
-      - |
-        gcloud container clusters get-credentials --zone $CLOUDSDK_COMPUTE_ZONE rush-build
+    args: [
+      'gcloud',
+      'container',
+      'clusters',
+      'get-credentials',
+      '${_CLOUDSDK_CONTAINER_CLUSTER}',
+      '--zone',
+      '${_CLOUDSDK_COMPUTE_ZONE}'
+    ]
     waitFor: ['push built image']
 
   - id: 'deploy namespace'
