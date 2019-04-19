@@ -22,14 +22,14 @@ steps:
         echo "hello"
     waitFor: ['unit tests']
 
-  - id: 'sonar check'
-    name: 'gcr.io/$PROJECT_ID/sonar-scanner:latest'
-    args:
-      - '-Dsonar.host.url=http://35.224.185.47/'
-      - '-Dsonar.login=$$SONAR_LOGIN'
-      - '-Dsonar.projectKey=controller'
-      - '-Dsonar.sources=.'
-    secretEnv: ['SONAR_LOGIN']
+#  - id: 'sonar check'
+#    name: 'gcr.io/$PROJECT_ID/sonar-scanner:latest'
+#    args:
+#      - '-Dsonar.host.url=http://35.224.185.47/'
+#      - '-Dsonar.login=$$SONAR_LOGIN'
+#      - '-Dsonar.projectKey=controller'
+#      - '-Dsonar.sources=.'
+#    secretEnv: ['SONAR_LOGIN']
 
   - id: 'build image'
     name: 'gcr.io/cloud-builders/docker'
@@ -39,7 +39,7 @@ steps:
       'gcr.io/$PROJECT_ID/rushcontroller:${COMMIT_SHA}',
       '.'
     ]
-    waitFor: ['sonar check']
+    waitFor: ['unit tests']
 
   - id: 'push built image'
     name: 'gcr.io/cloud-builders/docker'
