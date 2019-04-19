@@ -93,13 +93,24 @@ steps:
     args: ['delete', 'namespaces', 'test-$BUILD_ID']
     waitFor: ['e2e/system tests']
 
+
+  - id: 'build dev image'
+    name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'build',
+      '-t',
+      'gcr.io/$PROJECT_ID/rushcontroller:dev',
+      '.'
+    ]
+    waitFor: ['delete namespace']
+
   - id: 'push dev image'
     name: 'gcr.io/cloud-builders/docker'
     args: [
       'push',
       'gcr.io/$PROJECT_ID/rushcontroller:dev'
     ]
-    waitFor: ['delete namespace']
+    waitFor: ['build dev image']
 
 #secrets:
 #  - kmsKeyName: 'projects/focal-freedom-236620/locations/global/keyRings/rush-build/cryptoKeys/rush-build'
