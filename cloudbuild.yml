@@ -98,7 +98,7 @@ steps:
     name: 'gcr.io/cloud-builders/docker'
     args: [
       'tag',
-      'gcr.io/$PROJECT_ID/rushcontroller:${COMMIT_SHA}'
+      'gcr.io/$PROJECT_ID/rushcontroller:${COMMIT_SHA}',
       'gcr.io/$PROJECT_ID/rushcontroller:dev'
     ]
     waitFor: ['delete namespace']
