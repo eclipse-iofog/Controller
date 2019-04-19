@@ -64,7 +64,7 @@ steps:
 
   - id: 'deploy namespace'
     name: 'gcr.io/cloud-builders/kubectl'
-    args: ['apply', '-f', 'k8s/', '--namespace=test-$BUILD_ID']
+    args: ['create', 'ns', 'test-$BUILD_ID']
     waitFor: ['kubeconfig for build cluster']
 
   - id: 'deploy service'
@@ -74,7 +74,9 @@ steps:
       'image',
       'deployment',
       'rushController',
-      'rushController=gcr.io/$PROJECT_ID/rushcontroller:${COMMIT_SHA}'
+      'rushController=gcr.io/$PROJECT_ID/rushcontroller:${COMMIT_SHA}',
+      '-n',
+      'test-$BUILD_ID'
     ]
     waitFor: ['deploy namespace']
 
