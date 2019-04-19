@@ -127,7 +127,7 @@ steps:
 
 images: ['gcr.io/$PROJECT_ID/rushcontroller:dev']
 
-#secrets:
-#  - kmsKeyName: 'projects/focal-freedom-236620/locations/global/keyRings/rush-build/cryptoKeys/rush-build'
-#    secretEnv:
-#      SONAR_LOGIN: CiQAyglR/yYQ1aM851pSmNb2CfSHTa5rLz0I9xyzZBCQL5lt6UMSUgCI5pchiL/jDcM+TS9nU+bC4a4aYYyTTIITedL0zTCOQmzHgWkhM4l+cO1/nMat55K4tpdJmZw5f+ZbPXJOV/ojNrqvPjirfyShSpMC6HcP0r4=
+secrets:
+  - kmsKeyName: 'projects/focal-freedom-236620/locations/global/keyRings/rush-build/cryptoKeys/rush-build'
+    secretEnv:
+      SONAR_LOGIN: CiQAyglR/yYQ1aM851pSmNb2CfSHTa5rLz0I9xyzZBCQL5lt6UMSUgCI5pchiL/jDcM+TS9nU+bC4a4aYYyTTIITedL0zTCOQmzHgWkhM4l+cO1/nMat55K4tpdJmZw5f+ZbPXJOV/ojNrqvPjirfyShSpMC6HcP0r4=
