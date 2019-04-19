@@ -24,8 +24,6 @@ steps:
 
   - id: 'sonar check'
     name: 'gcr.io/$PROJECT_ID/sonar-scanner:latest'
-    env:
-      - 'SONAR_LOGIN=$$SONAR_LOGIN'
     args: [
       '-Dsonar.host.url=http://35.224.185.47/',
       '-Dsonar.login=$$SONAR_LOGIN',
