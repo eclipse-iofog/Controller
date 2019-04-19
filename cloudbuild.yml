@@ -28,7 +28,7 @@ steps:
       - '-Dsonar.host.url=http://35.224.185.47/'
       - '-Dsonar.login=fca6eb406fbd462d10a727d294c5d04ead69d5cb'
       - '-Dsonar.projectKey=controller'
-      - '-Dsonar.sources=src'
+      - '-Dsonar.sources=.'
     secretEnv: ['SONAR_LOGIN']
 
   - id: 'build image'
