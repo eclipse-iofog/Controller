@@ -8,10 +8,10 @@ steps:
     args: ['install']
     waitFor: ['-']
 
-  - id: 'unit tests'
-    name: 'gcr.io/cloud-builders/npm'
-    args: ['test']
-    waitFor: ['compile app']
+#  - id: 'unit tests'
+#    name: 'gcr.io/cloud-builders/npm'
+#    args: ['test']
+#    waitFor: ['compile app']
 
   - id: 'integration/pact/component tests'
     name: 'gcr.io/cloud-builders/curl'
@@ -44,10 +44,8 @@ steps:
   - id: 'push built image'
     name: 'gcr.io/cloud-builders/docker'
     args: [
-      'build',
-      '-t',
-      'gcr.io/$PROJECT_ID/rushcontroller:${COMMIT_SHA}',
-      '.'
+      'push',
+      'gcr.io/$PROJECT_ID/rushcontroller:${COMMIT_SHA}'
     ]
     waitFor: ['build image']
 
@@ -57,30 +55,17 @@ steps:
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=${_CLOUDSDK_COMPUTE_ZONE}'
       - 'CLOUDSDK_CONTAINER_CLUSTER=${_CLOUDSDK_CONTAINER_CLUSTER}'
-      - 'KUBECONFIG=/kube/config'
     entrypoint: 'sh'
     args:
       - '-c'
       - |
-        CLUSTER=$$(gcloud config get-value container/cluster)
-        PROJECT=$$(gcloud config get-value core/project)
-        ZONE=$$(gcloud config get-value compute/zone)
-
-        gcloud container clusters get-credentials "$${CLUSTER}" \
-          --project "$${PROJECT}" \
-          --zone "$${ZONE}"
-    volumes:
-      - name: 'kube'
-        path: /kube
+        gcloud container clusters get-credentials --zone "$CLOUDSDK_COMPUTE_ZONE" "$CLOUDSDK_CONTAINER_CLUSTER"
     waitFor: ['push built image']
 
   - id: 'deploy namespace'
     name: 'gcr.io/cloud-builders/kubectl'
     args: ['apply', '-f', 'k8s/', '--namespace=test-$BUILD_ID']
     waitFor: ['kubeconfig for build cluster']
-    volumes:
-      - name: 'kube'
-        path: /kube
 
   - id: 'deploy service'
     name: 'gcr.io/cloud-builders/kubectl'
@@ -91,9 +76,6 @@ steps:
       'rushController',
       'rushController=gcr.io/$PROJECT_ID/rushcontroller:${COMMIT_SHA}'
     ]
-    env:
-      - 'CLOUDSDK_COMPUTE_ZONE=[COMPUTE-ZONE]'
-      - 'CLOUDSDK_CONTAINER_CLUSTER=[CLUSTER]'
     waitFor: ['deploy namespace']
 
   - id: 'e2e/system tests'
@@ -113,10 +95,8 @@ steps:
   - id: 'push dev image'
     name: 'gcr.io/cloud-builders/docker'
     args: [
-      'build',
-      '-t',
-      'gcr.io/$PROJECT_ID/rushcontroller:dev',
-      '.'
+      'push',
+      'gcr.io/$PROJECT_ID/rushcontroller:dev'
     ]
     waitFor: ['delete namespace']
 
