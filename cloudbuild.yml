@@ -22,16 +22,16 @@ steps:
         echo "hello"
     waitFor: ['compile app']
 
-  - id: 'sonar check'
-    name: 'gcr.io/$PROJECT_ID/sonar-scanner:latest'
-    env:
-      - 'SONAR_LOGIN=$$SONAR_LOGIN'
-    args:
-      - '-Dsonar.host.url=http://35.224.185.47/'
-      - '-Dsonar.login=$SONAR_LOGIN'
-      - '-Dsonar.projectKey=controller'
-      - '-Dsonar.sources=.'
-    secretEnv: ['SONAR_LOGIN']
+#  - id: 'sonar check'
+#    name: 'gcr.io/$PROJECT_ID/sonar-scanner:latest'
+#    env:
+#      - 'SONAR_LOGIN=$$SONAR_LOGIN'
+#    args:
+#      - '-Dsonar.host.url=http://35.224.185.47/'
+#      - '-Dsonar.login=$SONAR_LOGIN'
+#      - '-Dsonar.projectKey=controller'
+#      - '-Dsonar.sources=.'
+#    secretEnv: ['SONAR_LOGIN']
 
   - id: 'build image'
     name: 'gcr.io/cloud-builders/docker'
@@ -61,7 +61,7 @@ steps:
     args:
       - '-c'
       - |
-        gcloud container clusters get-credentials --zone us-west2-b rush-build
+        gcloud container clusters get-credentials --zone $CLOUDSDK_COMPUTE_ZONE rush-build
     waitFor: ['push built image']
 
   - id: 'deploy namespace'
