@@ -24,17 +24,12 @@ steps:
 
   - id: 'sonar check'
     name: 'gcr.io/$PROJECT_ID/sonar-scanner:latest'
-#    args: [
-#      '-Dsonar.host.url=http://35.224.185.47/',
-#      '-Dsonar.login=$$SONAR_LOGIN',
-#      '-Dsonar.projectKey=controller',
-#      '-Dsonar.sources=.'
-#    ]
-    args: ['-c', '-Dsonar.host.url=http://35.224.185.47/ -Dsonar.login=fca6eb406fbd462d10a727d294c5d04ead69d5cb -Dsonar.projectKey=controller -Dsonar.sources=.']
-#      - '-Dsonar.host.url=http://35.224.185.47/'
-#      - '-Dsonar.login=$SONAR_LOGIN'
-#      - '-Dsonar.projectKey=controller'
-#      - '-Dsonar.sources=.'
+    args: [
+      '-Dsonar.host.url=http://35.224.185.47/',
+      '-Dsonar.login=fca6eb406fbd462d10a727d294c5d04ead69d5cb',
+      '-Dsonar.projectKey=controller',
+      '-Dsonar.sources=.'
+    ]
     secretEnv: ['SONAR_LOGIN']
 
   - id: 'build image'
