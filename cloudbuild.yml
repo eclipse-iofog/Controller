@@ -39,7 +39,7 @@ steps:
       'gcr.io/$PROJECT_ID/rushcontroller:${COMMIT_SHA}',
       '.'
     ]
-    waitFor: ['unit tests']
+    waitFor: ['integration/pact/component tests']
 
   - id: 'push built image'
     name: 'gcr.io/cloud-builders/docker'
