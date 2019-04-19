@@ -74,7 +74,7 @@ steps:
       'deployment',
       'rushcontroller',
       '--image=gcr.io/$PROJECT_ID/rushcontroller:${COMMIT_SHA}',
-      'n',
+      '-n',
       'test-$BUILD_ID'
     ]
     waitFor: ['deploy namespace']
