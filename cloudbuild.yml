@@ -59,7 +59,7 @@ steps:
     args:
       - '-c'
       - |
-        gcloud container clusters get-credentials --zone $CLOUDSDK_COMPUTE_ZONE $CLOUDSDK_CONTAINER_CLUSTER
+        gcloud container clusters get-credentials --zone us-west2-b rush-build
     waitFor: ['push built image']
 
   - id: 'deploy namespace'
