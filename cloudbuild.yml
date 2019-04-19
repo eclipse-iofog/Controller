@@ -26,7 +26,7 @@ steps:
     name: 'gcr.io/$PROJECT_ID/sonar-scanner:latest'
     args:
       - '-Dsonar.host.url=http://35.224.185.47/'
-      - '-Dsonar.login=fca6eb406fbd462d10a727d294c5d04ead69d5cb'
+      - '-Dsonar.login=$$SONAR_LOGIN'
       - '-Dsonar.projectKey=controller'
       - '-Dsonar.sources=.'
     secretEnv: ['SONAR_LOGIN']
@@ -111,7 +111,9 @@ steps:
     ]
     waitFor: ['tag dev image']
 
+images: ['gcr.io/$PROJECT_ID/rushcontroller:dev']
+
 secrets:
   - kmsKeyName: 'projects/focal-freedom-236620/locations/global/keyRings/rush-build/cryptoKeys/rush-build'
     secretEnv:
-      SONAR_LOGIN: CiQAyglR/0ayS4n8Njkjluj/TAEufrGnIG3VNcNLDhHmELDGuqUSUACI5pchHwQFfSQCHC4l8VMQB/OM8RzbZxKzsUMI5sjXTUtFBLEE1sRyX45K5+saUkeeXqLL93hRw1OnkR7wPDI4+X30UH7JW7zzhzPGnriC
+      SONAR_LOGIN: CiQAyglR/yYQ1aM851pSmNb2CfSHTa5rLz0I9xyzZBCQL5lt6UMSUgCI5pchiL/jDcM+TS9nU+bC4a4aYYyTTIITedL0zTCOQmzHgWkhM4l+cO1/nMat55K4tpdJmZw5f+ZbPXJOV/ojNrqvPjirfyShSpMC6HcP0r4=
