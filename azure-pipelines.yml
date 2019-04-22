@@ -48,18 +48,21 @@ steps:
       azureSubscriptionEndpoint: $(azureSubscriptionEndpoint)
       azureContainerRegistry: $(azureContainerRegistry)
 
-  - script: |
-      docker push $(imageName)
-    displayName: 'docker push using script'
+  steps:
+    - script: |
+        docker login -u rushbuild -p $(pswd) rushbuild.azurecr.io
+        docker push $(imageName)
+      env:
+        pswd: $(dockerPassword)
 
-  - task: Docker@1
-    displayName: Push Docker image
-    inputs:
-      command: 'Push an image'
-      containerregistrytype: Azure Container Registry
-      azureSubscriptionEndpoint: $(azureSubscriptionEndpoint)
-      azureContainerRegistry: $(azureContainerRegistry)
-      imageName: $(imageName)
+#  - task: Docker@1
+#    displayName: Push Docker image
+#    inputs:
+#      command: 'Push an image'
+#      containerregistrytype: Azure Container Registry
+#      azureSubscriptionEndpoint: $(azureSubscriptionEndpoint)
+#      azureContainerRegistry: $(azureContainerRegistry)
+#      imageName: $(imageName)
 
 #  - task: Docker@1
 #    displayName: "Container registry login"
