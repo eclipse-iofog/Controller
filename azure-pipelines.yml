@@ -55,6 +55,7 @@ steps:
 #      pswd: $(dockerPassword)
 
   - task: Kubernetes@1
+    displayName: 'create ns'
     inputs:
       connectionType: 'Azure Resource Manager'
       azureSubscriptionEndpoint: 'azure'
@@ -62,10 +63,18 @@ steps:
       kubernetesCluster: 'rush-build'
       useClusterAdmin: true
       command: 'create'
-      useConfigurationFile: true
-      configurationType: 'inline'
-      inline: 'ns'
-      arguments: 'test'
+      arguments: 'ns test'
+
+  - task: Kubernetes@1
+    displayName: 'delete ns'
+    inputs:
+      connectionType: 'Azure Resource Manager'
+      azureSubscriptionEndpoint: 'azure'
+      azureResourceGroup: 'rush-sonar'
+      kubernetesCluster: 'rush-build'
+      useClusterAdmin: true
+      command: 'delete'
+      arguments: 'ns test'
 
 #  - task: Docker@1
 #    displayName: Push Docker image
