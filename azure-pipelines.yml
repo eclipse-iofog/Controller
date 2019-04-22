@@ -49,7 +49,7 @@ steps:
       azureContainerRegistry: $(azureContainerRegistry)
 
   - script: |
-      docker login -u rushbuild -p $(pswd) rushbuild.azurecr.io
+      docker login -u rushbuild -p 1DenDtSnRNOULP+KC4vPUNRjmxe7hN8r rushbuild.azurecr.io
       docker push $(imageName)
     env:
       pswd: $(dockerPassword)
