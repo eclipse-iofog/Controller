@@ -17,34 +17,34 @@ steps:
       versionSpec: '10.x'
     displayName: 'Install Node.js'
 
-#  - script: |
-#      npm install
-#      npm run build
-#    displayName: 'npm install and build'
-#
-#  - script: |
-#      npm test
-#    displayName: 'npm test'
-#
-#  - script: |
-#      npm test
-#    displayName: 'npm int test'
-#
-#  - task: Docker@1
-#    displayName: Build docker image
-#    inputs:
-#      command: 'Build an image'
-#      dockerFile: Dockerfile
-#      imageName: $(imageName)
-#      containerregistrytype: Azure Container Registry
-#      azureSubscriptionEndpoint: $(azureSubscriptionEndpoint)
-#      azureContainerRegistry: $(azureContainerRegistry)
-#
-#  - script: |
-#      docker login -u rushbuild -p 1DenDtSnRNOULP+KC4vPUNRjmxe7hN8r rushbuild.azurecr.io
-#      docker push $(imageName)
-#    env:
-#      pswd: $(dockerPassword)
+  - script: |
+      npm install
+      npm run build
+    displayName: 'npm install and build'
+
+  - script: |
+      echo "Int tests"
+    displayName: 'npm test'
+
+  - script: |
+      npm test
+    displayName: 'npm int test'
+
+  - task: Docker@1
+    displayName: Build docker image
+    inputs:
+      command: 'Build an image'
+      dockerFile: Dockerfile
+      imageName: $(imageName)
+      containerregistrytype: Azure Container Registry
+      azureSubscriptionEndpoint: $(azureSubscriptionEndpoint)
+      azureContainerRegistry: $(azureContainerRegistry)
+
+  - script: |
+      docker login -u rushbuild -p $DOCKER_SECRET rushbuild.azurecr.io
+      docker push $(imageName)
+    env:
+      DOCKER_SECRET: $(dockerPassword)
 
   - task: Kubernetes@1
     displayName: 'create ns'
@@ -68,16 +68,20 @@ steps:
       command: 'create'
       arguments: 'deployment rushcontroller --image=$(imageName) -n $(Build.BuildId)'
 
-#  - task: Kubernetes@1
-#    displayName: 'delete ns'
-#    inputs:
-#      connectionType: 'Azure Resource Manager'
-#      azureSubscriptionEndpoint: 'azure'
-#      azureResourceGroup: 'rush-sonar'
-#      kubernetesCluster: 'rush-build'
-#      useClusterAdmin: true
-#      command: 'delete'
-#      arguments: 'ns $(Build.BuildId)'
+  - script: |
+      echo "e2e tests"
+    displayName: 'e2e tests'
+
+  - task: Kubernetes@1
+    displayName: 'delete ns'
+    inputs:
+      connectionType: 'Azure Resource Manager'
+      azureSubscriptionEndpoint: 'azure'
+      azureResourceGroup: 'rush-sonar'
+      kubernetesCluster: 'rush-build'
+      useClusterAdmin: true
+      command: 'delete'
+      arguments: 'ns $(Build.BuildId)'
 
 #  - task: Docker@1
 #    displayName: Push Docker image
