@@ -1,0 +1,57 @@
+trigger:
+  - master
+  - develop
+  - feature/*
+
+pool:
+  vmImage: 'Ubuntu-16.04'
+
+variables:
+  solution: 'migration/MigrationPlayground.sln'
+  buildPlatform: 'Any CPU'
+  buildConfiguration: 'Release'
+
+stages:
+  - stage: Build
+    jobs:
+      - job: BuildJob
+        steps:
+          - task: NodeTool@0
+              inputs:
+                versionSpec: '10.x'
+              displayName: 'Install Node.js'
+
+          - script: |
+              npm install
+              npm run build
+            displayName: 'npm install and build'
+
+  - stage: Test
+    jobs:
+      - job: Unit
+        steps:
+          - script: |
+            npm test
+          displayName: 'unit test'
+
+      - job: Integration/Component
+        steps:
+          - script: |
+              npm test
+            displayName: 'int/component test'
+
+      - job: Code Analysis
+        steps:
+          - task: SonarSource.sonarqube.15B84CA1-B62F-4A2A-A403-89B77A063157.SonarQubePrepare@4
+            displayName: 'Prepare analysis on SonarQube'
+            inputs:
+              SonarQube: 'SonarCloud'
+              projectKey: controller
+              projectName: MigrationPlayground
+              projectVersion: '$(AssemblyVersion)'
+
+  - stage: Deploy
+    jobs:
+      - job: Deploy
+        steps:
+          - script: echo Deploying the code!
