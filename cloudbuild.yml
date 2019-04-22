@@ -8,10 +8,10 @@ steps:
     args: ['install']
     waitFor: ['-']
 
-#  - id: 'unit tests'
-#    name: 'gcr.io/cloud-builders/npm'
-#    args: ['test']
-#    waitFor: ['compile app']
+  - id: 'unit tests'
+    name: 'gcr.io/cloud-builders/npm'
+    args: ['test']
+    waitFor: ['compile app']
 
   - id: 'integration/pact/component tests'
     name: 'gcr.io/cloud-builders/curl'
