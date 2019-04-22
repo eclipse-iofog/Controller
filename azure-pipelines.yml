@@ -54,6 +54,19 @@ steps:
     env:
       pswd: $(dockerPassword)
 
+  - task: Kubernetes@1
+    inputs:
+      connectionType: 'Azure Resource Manager'
+      azureSubscriptionEndpoint: 'azure'
+      azureResourceGroup: 'rush-sonar'
+      kubernetesCluster: 'rush-build'
+      useClusterAdmin: true
+      command: 'create'
+      useConfigurationFile: true
+      configurationType: 'inline'
+      inline: 'ns'
+      arguments: 'test'
+
 #  - task: Docker@1
 #    displayName: Push Docker image
 #    inputs:
