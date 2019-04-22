@@ -17,11 +17,11 @@ steps:
       versionSpec: '10.x'
     displayName: 'Install Node.js'
 
-  - script: |
-      npm install
-      npm run build
-    displayName: 'npm install and build'
-
+#  - script: |
+#      npm install
+#      npm run build
+#    displayName: 'npm install and build'
+#
 #  - script: |
 #      npm test
 #    displayName: 'npm test'
@@ -29,25 +29,17 @@ steps:
 #  - script: |
 #      npm test
 #    displayName: 'npm int test'
-
-  - task: Docker@1
-    displayName: Build docker image
-    inputs:
-      command: 'Build an image'
-      dockerFile: Dockerfile
-      imageName: $(imageName)
-      containerregistrytype: Azure Container Registry
-      azureSubscriptionEndpoint: $(azureSubscriptionEndpoint)
-      azureContainerRegistry: $(azureContainerRegistry)
-
-  - task: Docker@1
-    displayName: login
-    inputs:
-      command: 'login'
-      containerregistrytype: Azure Container Registry
-      azureSubscriptionEndpoint: $(azureSubscriptionEndpoint)
-      azureContainerRegistry: $(azureContainerRegistry)
-
+#
+#  - task: Docker@1
+#    displayName: Build docker image
+#    inputs:
+#      command: 'Build an image'
+#      dockerFile: Dockerfile
+#      imageName: $(imageName)
+#      containerregistrytype: Azure Container Registry
+#      azureSubscriptionEndpoint: $(azureSubscriptionEndpoint)
+#      azureContainerRegistry: $(azureContainerRegistry)
+#
 #  - script: |
 #      docker login -u rushbuild -p 1DenDtSnRNOULP+KC4vPUNRjmxe7hN8r rushbuild.azurecr.io
 #      docker push $(imageName)
