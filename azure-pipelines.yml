@@ -48,12 +48,11 @@ steps:
       azureSubscriptionEndpoint: $(azureSubscriptionEndpoint)
       azureContainerRegistry: $(azureContainerRegistry)
 
-  steps:
-    - script: |
-        docker login -u rushbuild -p $(pswd) rushbuild.azurecr.io
-        docker push $(imageName)
-      env:
-        pswd: $(dockerPassword)
+  - script: |
+      docker login -u rushbuild -p $(pswd) rushbuild.azurecr.io
+      docker push $(imageName)
+    env:
+      pswd: $(dockerPassword)
 
 #  - task: Docker@1
 #    displayName: Push Docker image
