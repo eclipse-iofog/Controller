@@ -10,6 +10,9 @@ notifications:
     on_failure: always
     template:
       - "Build <%{build_url}|#%{build_number}> (<%{compare_url}|%{commit}>) of %{repository_slug}@%{branch} in PR <%{pull_request_url}|#%{pull_request_number}> by %{author} %{result} in %{duration}"
+env:
+  global:
+    - COMMIT=${TRAVIS_COMMIT::8}
 stages:
 - name: test
   if: branch =~ /^release-.*$/ OR branch IN (develop, master)
@@ -46,10 +49,17 @@ jobs:
       $DEV_MACHINE_USERNAME@$DEV_MACHINE_IP:/iofogcontroller 
     - sshpass -p $DEV_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $DEV_MACHINE_USERNAME@$DEV_MACHINE_IP
       "npm i --unsafe-perm -g /iofogcontroller/iofogcontroller-*.tgz; iofog-controller start"
+    - docker build -t edgeworx/controller-dev:latest --build-arg FILENAME=$(ls iofogcontroller-*.tgz) . -f Dockerfile.dev
+    - echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+    - docker push edgeworx/controller-dev:latest
+    - docker tag edgeworx/controller-dev:latest edgeworx/controller-dev:$COMMIT
+    - docker push edgeworx/controller-dev:$COMMIT
   - stage: pre_release_deploy
     before_install:
     - sudo apt-get install sshpass
     script: skip
+    before_deploy:
+    - npm pack
     #- npm version prerelease --preid=prerelease -m "upgrade to %s for prerelease package"
     deploy:
       skip_cleanup: true
@@ -62,6 +72,11 @@ jobs:
     after_deploy:
     - sshpass -p $PREPROD_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $PREPROD_MACHINE_USERNAME@$PREPROD_MACHINE_IP
       "iofog-controller stop; npm i --unsafe-perm -g iofogcontroller@dev; iofog-controller start"
+    - docker build -t edgeworx/controller:latest --build-arg FILENAME=$(ls iofogcontroller-*.tgz) . -f Dockerfile.dev
+    - echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+    - docker push edgeworx/controller:latest
+    - docker tag edgeworx/controller:latest edgeworx/controller:$COMMIT
+    - docker push edgeworx/controller:$COMMIT
   - stage: release_deploy
     before_install:
     - sudo apt-get install sshpass
