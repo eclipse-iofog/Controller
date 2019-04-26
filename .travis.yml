@@ -43,36 +43,38 @@ jobs:
       on:
         branch: develop  
     after_deploy:
+      - export FILENAME=$(ls iofogcontroller-*.tgz)
+
       - sshpass -p $DEV_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $DEV_MACHINE_USERNAME@$DEV_MACHINE_IP
-        "iofog-controller stop; rm -f /iofogcontroller/*"
-      - sshpass -p $DEV_MACHINE_PASSWORD scp -o StrictHostKeyChecking=no iofogcontroller-*.tgz 
-        $DEV_MACHINE_USERNAME@$DEV_MACHINE_IP:/iofogcontroller 
+        "iofog-controller stop; rm -f /iofogcontroller*"
+      - sshpass -p $DEV_MACHINE_PASSWORD scp -o StrictHostKeyChecking=no $FILENAME
+        $DEV_MACHINE_USERNAME@$DEV_MACHINE_IP:/$FILENAME || travis_terminate 1; 
       - sshpass -p $DEV_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $DEV_MACHINE_USERNAME@$DEV_MACHINE_IP
-        "npm i --unsafe-perm -g /iofogcontroller/iofogcontroller-*.tgz; iofog-controller start"
+        "npm i --unsafe-perm -g /${FILENAME}; iofog-controller start" || travis_terminate 1; 
 
       - sshpass -p $JRC_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $JRC_MACHINE_USERNAME@$JRC_MACHINE_IP
-        "iofog-controller stop; rm -f /iofogcontroller/*"
-      - sshpass -p $JRC_MACHINE_PASSWORD scp -o StrictHostKeyChecking=no iofogcontroller-*.tgz 
-        $JRC_MACHINE_USERNAME@$JRC_MACHINE_IP:/iofogcontroller 
+        "iofog-controller stop; rm -f /iofogcontroller*"
+      - sshpass -p $JRC_MACHINE_PASSWORD scp -o StrictHostKeyChecking=no $FILENAME
+        $JRC_MACHINE_USERNAME@$JRC_MACHINE_IP:/$FILENAME || travis_terminate 1; 
       - sshpass -p $JRC_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $JRC_MACHINE_USERNAME@$JRC_MACHINE_IP
-        "npm i --unsafe-perm -g /iofogcontroller/iofogcontroller-*.tgz; iofog-controller start"
+        "npm i --unsafe-perm -g /${FILENAME}; iofog-controller start" || travis_terminate 1; 
       - sshpass -p $JRC_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $JRC_MACHINE_USERNAME@$JRC_MACHINE_IP
-        "iofog-controller start; iofog-controller user add -f John -l Doe -e user@domain.com -p ${JRC_MACHINE_PASSWORD}"
+        "iofog-controller start; iofog-controller user add -f John -l Doe -e user@domain.com -p ${JRC_MACHINE_PASSWORD}" || travis_terminate 1; 
 
       - sshpass -p $ATTINAD_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $ATTINAD_MACHINE_USERNAME@$ATTINAD_MACHINE_IP
-        "iofog-controller stop; rm -f /iofogcontroller/*"
-      - sshpass -p $ATTINAD_MACHINE_PASSWORD scp -o StrictHostKeyChecking=no iofogcontroller-*.tgz 
-        $ATTINAD_MACHINE_USERNAME@$ATTINAD_MACHINE_IP:/iofogcontroller 
+        "iofog-controller stop; rm -f /iofogcontroller*"
+      - sshpass -p $ATTINAD_MACHINE_PASSWORD scp -o StrictHostKeyChecking=no $FILENAME
+        $ATTINAD_MACHINE_USERNAME@$ATTINAD_MACHINE_IP:/$FILENAME || travis_terminate 1; 
       - sshpass -p $ATTINAD_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $ATTINAD_MACHINE_USERNAME@$ATTINAD_MACHINE_IP
-        "npm i --unsafe-perm -g /iofogcontroller/iofogcontroller-*.tgz; iofog-controller start"
+        "npm i --unsafe-perm -g /${FILENAME}; iofog-controller start" || travis_terminate 1; 
       - sshpass -p $ATTINAD_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $ATTINAD_MACHINE_USERNAME@$ATTINAD_MACHINE_IP
-        "iofog-controller start; iofog-controller user add -f John -l Doe -e user@domain.com -p ${ATTINAD_MACHINE_PASSWORD}"
+        "iofog-controller start; iofog-controller user add -f John -l Doe -e user@domain.com -p ${ATTINAD_MACHINE_PASSWORD}" || travis_terminate 1; 
 
-      - docker build -t iofog/controller-develop:latest --build-arg FILENAME=$(ls iofogcontroller-*.tgz) . -f Dockerfile.dev
+      - docker build -t iofog/controller-develop:latest --build-arg FILENAME=$FILENAME . -f Dockerfile.dev || travis_terminate 1; 
       - echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-      - docker push iofog/controller-develop:latest
-      - docker tag iofog/controller-develop:latest iofog/controller-develop:$COMMIT
-      - docker push iofog/controller-develop:$COMMIT
+      - docker push iofog/controller-develop:latest || travis_terminate 1; 
+      - docker tag iofog/controller-develop:latest iofog/controller-develop:$COMMIT || travis_terminate 1; 
+      - docker push iofog/controller-develop:$COMMIT || travis_terminate 1; 
   - stage: pre_release_deploy
     before_install:
     - sudo apt-get install sshpass
@@ -90,12 +92,14 @@ jobs:
         all_branches: true
     after_deploy:
     - sshpass -p $PREPROD_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $PREPROD_MACHINE_USERNAME@$PREPROD_MACHINE_IP
-      "iofog-controller stop; npm i --unsafe-perm -g iofogcontroller@dev; iofog-controller start"
-    - docker build -t edgeworx/controller:latest --build-arg FILENAME=$(ls iofogcontroller-*.tgz) . -f Dockerfile.dev
+      "iofog-controller stop"
+    - sshpass -p $PREPROD_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $PREPROD_MACHINE_USERNAME@$PREPROD_MACHINE_IP
+      "npm i --unsafe-perm -g iofogcontroller@dev; iofog-controller start" || travis_terminate 1;
+    - docker build -t edgeworx/controller:latest --build-arg FILENAME=$(ls iofogcontroller-*.tgz) . -f Dockerfile.dev || travis_terminate 1; 
     - echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-    - docker push edgeworx/controller:latest
-    - docker tag edgeworx/controller:latest edgeworx/controller:$COMMIT
-    - docker push edgeworx/controller:$COMMIT
+    - docker push edgeworx/controller:latest || travis_terminate 1; 
+    - docker tag edgeworx/controller:latest edgeworx/controller:$COMMIT || travis_terminate 1;
+    - docker push edgeworx/controller:$COMMIT || travis_terminate 1; 
   - stage: release_deploy
     before_install:
     - sudo apt-get install sshpass
@@ -110,5 +114,7 @@ jobs:
       on:
         branch: master
     after_deploy:
-    - sshpass -p $PROD_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $PROD_MACHINE_USERNAME@$PROD_MACHINE_IP
-      "iofog-controller stop; npm update --unsafe-perm -g iofogcontroller; iofog-controller start"
+      - sshpass -p $PROD_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $PROD_MACHINE_USERNAME@$PROD_MACHINE_IP
+        "iofog-controller stop"
+      - sshpass -p $PROD_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $PROD_MACHINE_USERNAME@$PROD_MACHINE_IP
+        "npm update --unsafe-perm -g iofogcontroller; iofog-controller start" || travis_terminate 1;
