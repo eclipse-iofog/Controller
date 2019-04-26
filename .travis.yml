@@ -43,17 +43,36 @@ jobs:
       on:
         branch: develop  
     after_deploy:
-    - sshpass -p $DEV_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $DEV_MACHINE_USERNAME@$DEV_MACHINE_IP
-      "iofog-controller stop; rm -f /iofogcontroller/*"
-    - sshpass -p $DEV_MACHINE_PASSWORD scp -o StrictHostKeyChecking=no iofogcontroller-*.tgz 
-      $DEV_MACHINE_USERNAME@$DEV_MACHINE_IP:/iofogcontroller 
-    - sshpass -p $DEV_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $DEV_MACHINE_USERNAME@$DEV_MACHINE_IP
-      "npm i --unsafe-perm -g /iofogcontroller/iofogcontroller-*.tgz; iofog-controller start"
-    - docker build -t edgeworx/controller-dev:latest --build-arg FILENAME=$(ls iofogcontroller-*.tgz) . -f Dockerfile.dev
-    - echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-    - docker push edgeworx/controller-dev:latest
-    - docker tag edgeworx/controller-dev:latest edgeworx/controller-dev:$COMMIT
-    - docker push edgeworx/controller-dev:$COMMIT
+      - sshpass -p $DEV_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $DEV_MACHINE_USERNAME@$DEV_MACHINE_IP
+        "iofog-controller stop; rm -f /iofogcontroller/*"
+      - sshpass -p $DEV_MACHINE_PASSWORD scp -o StrictHostKeyChecking=no iofogcontroller-*.tgz 
+        $DEV_MACHINE_USERNAME@$DEV_MACHINE_IP:/iofogcontroller 
+      - sshpass -p $DEV_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $DEV_MACHINE_USERNAME@$DEV_MACHINE_IP
+        "npm i --unsafe-perm -g /iofogcontroller/iofogcontroller-*.tgz; iofog-controller start"
+
+      - sshpass -p $JRC_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $JRC_MACHINE_USERNAME@$JRC_MACHINE_IP
+        "iofog-controller stop; rm -f /iofogcontroller/*"
+      - sshpass -p $JRC_MACHINE_PASSWORD scp -o StrictHostKeyChecking=no iofogcontroller-*.tgz 
+        $JRC_MACHINE_USERNAME@$JRC_MACHINE_IP:/iofogcontroller 
+      - sshpass -p $JRC_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $JRC_MACHINE_USERNAME@$JRC_MACHINE_IP
+        "npm i --unsafe-perm -g /iofogcontroller/iofogcontroller-*.tgz; iofog-controller start"
+      - sshpass -p $JRC_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $JRC_MACHINE_USERNAME@$JRC_MACHINE_IP
+        "iofog-controller start; iofog-controller user add -f John -l Doe -e user@domain.com -p ${JRC_MACHINE_PASSWORD}"
+
+      - sshpass -p $ATTINAD_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $ATTINAD_MACHINE_USERNAME@$ATTINAD_MACHINE_IP
+        "iofog-controller stop; rm -f /iofogcontroller/*"
+      - sshpass -p $ATTINAD_MACHINE_PASSWORD scp -o StrictHostKeyChecking=no iofogcontroller-*.tgz 
+        $ATTINAD_MACHINE_USERNAME@$ATTINAD_MACHINE_IP:/iofogcontroller 
+      - sshpass -p $ATTINAD_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $ATTINAD_MACHINE_USERNAME@$ATTINAD_MACHINE_IP
+        "npm i --unsafe-perm -g /iofogcontroller/iofogcontroller-*.tgz; iofog-controller start"
+      - sshpass -p $ATTINAD_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $ATTINAD_MACHINE_USERNAME@$ATTINAD_MACHINE_IP
+        "iofog-controller start; iofog-controller user add -f John -l Doe -e user@domain.com -p ${ATTINAD_MACHINE_PASSWORD}"
+
+      - docker build -t iofog/controller-develop:latest --build-arg FILENAME=$(ls iofogcontroller-*.tgz) . -f Dockerfile.dev
+      - echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+      - docker push iofog/controller-develop:latest
+      - docker tag iofog/controller-develop:latest iofog/controller-develop:$COMMIT
+      - docker push iofog/controller-develop:$COMMIT
   - stage: pre_release_deploy
     before_install:
     - sudo apt-get install sshpass
