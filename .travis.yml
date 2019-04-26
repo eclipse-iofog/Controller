@@ -93,11 +93,12 @@ jobs:
         "iofog-controller stop"
       - sshpass -p $PREPROD_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $PREPROD_MACHINE_USERNAME@$PREPROD_MACHINE_IP
         "npm i --unsafe-perm -g iofogcontroller@dev; iofog-controller start" || travis_terminate 1;
+      - export VERSION=`npm view iofogcontroller version`
       - docker build -t edgeworx/controller:latest --build-arg FILENAME=$(ls iofogcontroller-*.tgz) . -f Dockerfile.dev || travis_terminate 1; 
       - echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-      - docker push edgeworx/controller:latest || travis_terminate 1; 
-      - docker tag edgeworx/controller:latest edgeworx/controller:$COMMIT || travis_terminate 1;
-      - docker push edgeworx/controller:$COMMIT || travis_terminate 1; 
+      - docker push iofog/controller:rc || travis_terminate 1; 
+      - docker tag iofog/controller:rc iofog/controller:rc-$VERSION || travis_terminate 1; 
+      - docker push iofog/controller:rc-$VERSION || travis_terminate 1; 
   - stage: release_deploy
     before_install:
       - sudo apt-get install sshpass
