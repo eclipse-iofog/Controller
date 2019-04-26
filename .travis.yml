@@ -101,7 +101,7 @@ jobs:
         echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin &&
         docker push iofog/controller:rc &&
         docker tag iofog/controller:rc iofog/controller:rc-$VERSION &&
-        docker push iofog/controller:rc-$VERSION
+        docker push iofog/controller:rc-$VERSION || travis_terminate 1
   - stage: release_deploy
     before_install:
       - sudo apt-get install sshpass
@@ -117,8 +117,8 @@ jobs:
       on:
         branch: master
     after_deploy:
+      - sshpass -p $PROD_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $PROD_MACHINE_USERNAME@$PROD_MACHINE_IP "iofog-controller stop"
       - |
-        sshpass -p $PROD_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $PROD_MACHINE_USERNAME@$PROD_MACHINE_IP "iofog-controller stop" &&
         sshpass -p $PROD_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $PROD_MACHINE_USERNAME@$PROD_MACHINE_IP \
           "npm update --unsafe-perm -g iofogcontroller; iofog-controller start" &&
         export VERSION=`npm view iofogcontroller version` &&
@@ -126,4 +126,4 @@ jobs:
         echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin &&
         docker push iofog/controller:latest &&
         docker tag iofog/controller:latest iofog/controller:$VERSION &&
-        docker push iofog/controller:$VERSION
+        docker push iofog/controller:$VERSION || travis_terminate 1
