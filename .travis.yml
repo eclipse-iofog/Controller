@@ -29,17 +29,16 @@ jobs:
   - script: "npm run postman_test"
   - stage: dev_deploy
     before_install:
-    - sudo apt-get install sshpass
+      - sudo apt-get install sshpass
     script: skip
     before_deploy:
-    - npm pack
-    #- export VERSION=`npm view iofogcontroller version`  
+      - npm pack
     deploy:
       skip_cleanup: true
       provider: script
       script: 
-      - sshpass -p $EDGEWORX_PASSWORD scp -o StrictHostKeyChecking=no iofogcontroller-*.tgz 
-        $EDGEWORX_USERNAME@$EDGEWORX_IP:/var/www/vhosts/edgeworx.io/downloads/builds/iofogcontroller.tgz  
+        - sshpass -p $EDGEWORX_PASSWORD scp -o StrictHostKeyChecking=no iofogcontroller-*.tgz 
+          $EDGEWORX_USERNAME@$EDGEWORX_IP:/var/www/vhosts/edgeworx.io/downloads/builds/iofogcontroller.tgz  
       on:
         branch: develop  
     after_deploy:
@@ -75,11 +74,10 @@ jobs:
       - docker push iofog/controller-develop:$COMMIT
   - stage: pre_release_deploy
     before_install:
-    - sudo apt-get install sshpass
+      - sudo apt-get install sshpass
     script: skip
     before_deploy:
-    - npm pack
-    #- npm version prerelease --preid=prerelease -m "upgrade to %s for prerelease package"
+      - npm pack
     deploy:
       skip_cleanup: true
       provider: npm
@@ -89,18 +87,20 @@ jobs:
       on:
         all_branches: true
     after_deploy:
-    - sshpass -p $PREPROD_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $PREPROD_MACHINE_USERNAME@$PREPROD_MACHINE_IP
-      "iofog-controller stop; npm i --unsafe-perm -g iofogcontroller@dev; iofog-controller start"
-    - docker build -t edgeworx/controller:latest --build-arg FILENAME=$(ls iofogcontroller-*.tgz) . -f Dockerfile.dev
-    - echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-    - docker push edgeworx/controller:latest
-    - docker tag edgeworx/controller:latest edgeworx/controller:$COMMIT
-    - docker push edgeworx/controller:$COMMIT
+      - sshpass -p $PREPROD_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $PREPROD_MACHINE_USERNAME@$PREPROD_MACHINE_IP
+        "iofog-controller stop; npm i --unsafe-perm -g iofogcontroller@dev; iofog-controller start"
+      - export VERSION=`npm view iofogcontroller version`
+      - docker build -t iofog/controller:rc --build-arg FILENAME=$(ls iofogcontroller-*.tgz) . -f Dockerfile.rel
+      - echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+      - docker push iofog/controller:rc
+      - docker tag iofog/controller:rc iofog/controller:rc-$VERSION
+      - docker push iofog/controller:rc-$VERSION
   - stage: release_deploy
     before_install:
-    - sudo apt-get install sshpass
+      - sudo apt-get install sshpass
     script: skip
-    #- npm version patch -m "upgrade to %s for release"
+    before_deploy:
+      - npm pack
     deploy:
       skip_cleanup: true
       provider: npm
@@ -110,5 +110,11 @@ jobs:
       on:
         branch: master
     after_deploy:
-    - sshpass -p $PROD_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $PROD_MACHINE_USERNAME@$PROD_MACHINE_IP
-      "iofog-controller stop; npm update --unsafe-perm -g iofogcontroller; iofog-controller start"
+      - sshpass -p $PROD_MACHINE_PASSWORD ssh -o StrictHostKeyChecking=no $PROD_MACHINE_USERNAME@$PROD_MACHINE_IP
+        "iofog-controller stop; npm update --unsafe-perm -g iofogcontroller; iofog-controller start"
+      - export VERSION=`npm view iofogcontroller version`
+      - docker build -t iofog/controller:latest --build-arg FILENAME=$(ls iofogcontroller-*.tgz) . -f Dockerfile.rel
+      - echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+      - docker push iofog/controller:latest
+      - docker tag iofog/controller:latest iofog/controller:$VERSION
+      - docker push iofog/controller:$VERSION
