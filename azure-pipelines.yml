@@ -4,20 +4,48 @@
 # https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
 
 trigger:
-- master
-- develop
-- feature
+  - master
+  - develop
 
 pool:
   vmImage: 'Ubuntu-16.04'
 
-steps:
-- task: NodeTool@0
-  inputs:
-    versionSpec: '10.x'
-  displayName: 'Install Node.js'
+variables:
+  repository: 'focal-freedom-236620/controller'
 
-- script: |
-    npm install
-    npm run build
-  displayName: 'npm install and build'
+
+steps:
+  - task: NodeTool@0
+    inputs:
+      versionSpec: '8.x'
+    displayName: 'Install Node.js'
+
+  - script: |
+      npm install
+      npm run build
+    displayName: 'npm install and build'
+
+  - script: |
+      npm test
+    displayName: 'unit tests'
+
+  - script: |
+      echo "npm test"
+    displayName: 'integration tests'
+
+  - task: Docker@2
+    inputs:
+      containerRegistry: 'Edgeworx GCP'
+      repository: $(repository)
+      command: 'buildAndPush'
+
+  - script: |
+      echo "npm test"
+    displayName: 'api tests'
+
+  - task: Npm@1
+    displayName: 'publish npm package'
+    inputs:
+      command: 'publish'
+      publishRegistry: 'useFeed'
+      publishFeed: 'edgeworx'
