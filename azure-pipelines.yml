@@ -1,20 +1,27 @@
 trigger:
-  - master
-  - develop
-  - feature/*
+  tags:
+    include:
+      - v.*
+  branches:
+    include:
+      - develop
+      - master
+  paths:
+    exclude:
+      - README.md
 
 pool:
   vmImage: 'Ubuntu-16.04'
 
 variables:
-  imageName: rushbuild.azurecr.io/rushcontroller:latest #$(Build.SourceVersion)
-  azureSubscriptionEndpoint: azure
-  azureContainerRegistry: rushbuild
+  repository: 'focal-freedom-236620/controller'
+  type: $(Build.SourceBranchName)
+  commit: $(Build.SourceVersion)
 
 steps:
   - task: NodeTool@0
     inputs:
-      versionSpec: '10.x'
+      versionSpec: '8.x'
     displayName: 'Install Node.js'
 
   - script: |
@@ -23,85 +30,22 @@ steps:
     displayName: 'npm install and build'
 
   - script: |
-      echo "Int tests"
-    displayName: 'npm test'
-
-  - script: |
       npm test
-    displayName: 'npm int test'
-
-  - task: Docker@1
-    displayName: Build docker image
-    inputs:
-      command: 'Build an image'
-      dockerFile: Dockerfile
-      imageName: $(imageName)
-      containerregistrytype: Azure Container Registry
-      azureSubscriptionEndpoint: $(azureSubscriptionEndpoint)
-      azureContainerRegistry: $(azureContainerRegistry)
+    displayName: 'unit tests'
 
   - script: |
-      docker login -u rushbuild -p $DOCKER_SECRET rushbuild.azurecr.io
-      docker push $(imageName)
-    env:
-      DOCKER_SECRET: $(dockerPassword)
+      echo "npm test"
+    displayName: 'integration tests'
 
-  - task: Kubernetes@1
-    displayName: 'create ns'
+  - task: Docker@2
     inputs:
-      connectionType: 'Azure Resource Manager'
-      azureSubscriptionEndpoint: 'azure'
-      azureResourceGroup: 'rush-sonar'
-      kubernetesCluster: 'rush-build'
-      useClusterAdmin: true
-      command: 'create'
-      arguments: 'ns $(Build.BuildId)'
-
-  - task: Kubernetes@1
-    displayName: 'deploy app'
-    inputs:
-      connectionType: 'Azure Resource Manager'
-      azureSubscriptionEndpoint: 'azure'
-      azureResourceGroup: 'rush-sonar'
-      kubernetesCluster: 'rush-build'
-      useClusterAdmin: true
-      command: 'create'
-      arguments: 'deployment rushcontroller --image=$(imageName) -n $(Build.BuildId)'
+      containerRegistry: 'Edgeworx GCP'
+      repository: $(repository)
+      command: 'buildAndPush'
+      tags: |
+        $(type)
+        $(commit)
 
   - script: |
-      echo "e2e tests"
-    displayName: 'e2e tests'
-
-  - task: Kubernetes@1
-    displayName: 'delete ns'
-    inputs:
-      connectionType: 'Azure Resource Manager'
-      azureSubscriptionEndpoint: 'azure'
-      azureResourceGroup: 'rush-sonar'
-      kubernetesCluster: 'rush-build'
-      useClusterAdmin: true
-      command: 'delete'
-      arguments: 'ns $(Build.BuildId)'
-
-#  - task: Docker@1
-#    displayName: Push Docker image
-#    inputs:
-#      command: 'Push an image'
-#      containerregistrytype: Azure Container Registry
-#      azureSubscriptionEndpoint: $(azureSubscriptionEndpoint)
-#      azureContainerRegistry: $(azureContainerRegistry)
-#      imageName: $(imageName)
-
-#  - task: Docker@1
-#    displayName: "Container registry login"
-#    inputs:
-#      command: login
-#      azureSubscriptionEndpoint: $(azureSubscriptionEndpoint)
-#      azureContainerRegistry: $(azureContainerRegistry)
-#
-#  - script: |
-#      docker build -t $(dockerId).azurecr.io/$(imageName):$COMMIT_ID .
-#      docker push $(dockerId).azurecr.io/$(imageName):$COMMIT_ID
-#    displayName: 'docker'
-#    env:
-#      COMMIT_ID: $(Build.SourceVersion)
+      echo "npm test"
+    displayName: 'api tests'
