@@ -14,7 +14,7 @@ pool:
   vmImage: 'Ubuntu-16.04'
 
 variables:
-  repository: 'focal-freedom-236620/controller'
+  repository: 'focal-freedom-236620/rushcontroller'
   type: $(Build.SourceBranchName)
   commit: $(Build.SourceVersion)
 
@@ -45,6 +45,7 @@ steps:
       tags: |
         $(type)
         $(commit)
+        latest
 
   - script: |
       echo "npm test"
