@@ -1,0 +1,52 @@
+trigger:
+  tags:
+    include:
+      - v.*
+  branches:
+    include:
+      - develop
+      - master
+  paths:
+    exclude:
+      - README.md
+
+pool:
+  vmImage: 'Ubuntu-16.04'
+
+variables:
+  repository: 'focal-freedom-236620/rushcontroller'
+  type: $(Build.SourceBranchName)
+  commit: $(Build.SourceVersion)
+
+steps:
+  - task: NodeTool@0
+    inputs:
+      versionSpec: '8.x'
+    displayName: 'Install Node.js'
+
+  - script: |
+      npm install
+      npm run build
+    displayName: 'npm install and build'
+
+  - script: |
+      npm test
+    displayName: 'unit tests'
+
+  - script: |
+      echo "npm test"
+    displayName: 'integration tests'
+
+  - task: Docker@2
+    inputs:
+      containerRegistry: 'Edgeworx GCP'
+      repository: $(repository)
+      command: 'buildAndPush'
+      tags: |
+        $(type)
+        $(commit)
+        latest
+
+  - script: |
+      echo "npm test"
+    displayName: 'api tests'

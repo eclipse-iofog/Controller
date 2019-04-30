@@ -1,0 +1,127 @@
+# master - then tag repo and tag docker with tag: need to figure this
+# develop - run this
+# branch - tag docker with commit perhaps
+
+steps:
+  - id: 'compile app'
+    name: 'gcr.io/cloud-builders/npm'
+    args: ['install']
+    waitFor: ['-']
+
+  - id: 'unit tests'
+    name: 'gcr.io/cloud-builders/npm'
+    args: ['test']
+    waitFor: ['compile app']
+
+  - id: 'integration/pact/component tests'
+    name: 'gcr.io/cloud-builders/curl'
+    entrypoint: '/bin/bash'
+    args:
+      - '-c'
+      - |
+        echo "hello"
+    waitFor: ['compile app']
+
+  - id: 'sonar check'
+    name: 'gcr.io/$PROJECT_ID/sonar-scanner:latest'
+    args: [
+      '-Dsonar.host.url=http://35.224.185.47/',
+      '-Dsonar.login=fca6eb406fbd462d10a727d294c5d04ead69d5cb',
+      '-Dsonar.projectKey=controller',
+      '-Dsonar.sources=.'
+    ]
+    secretEnv: ['SONAR_LOGIN']
+
+  - id: 'build image'
+    name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'build',
+      '-t',
+      'gcr.io/$PROJECT_ID/rushcontroller:${COMMIT_SHA}',
+      '.'
+    ]
+    waitFor: ['integration/pact/component tests']
+
+  - id: 'push built image'
+    name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'push',
+      'gcr.io/$PROJECT_ID/rushcontroller:${COMMIT_SHA}'
+    ]
+    waitFor: ['build image']
+
+  # Generate a kubeconfig file for the given GKE cluster.
+  - id: 'kubeconfig for build cluster'
+    name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: 'sh'
+    args:
+      - '-c'
+      - |
+        gcloud container clusters get-credentials rush-build --zone us-west2-b
+#    args: [
+#      '-c',
+#      '"gcloud',
+#      'container',
+#      'clusters',
+#      'get-credentials',
+#      '${_CLOUDSDK_CONTAINER_CLUSTER}',
+#      '--zone',
+#      '${_CLOUDSDK_COMPUTE_ZONE}"'
+#    ]
+    waitFor: ['push built image']
+
+  - id: 'deploy namespace'
+    name: 'gcr.io/cloud-builders/kubectl'
+    args: ['create', 'ns', 'test-$BUILD_ID']
+    waitFor: ['kubeconfig for build cluster']
+
+  - id: 'deploy service'
+    name: 'gcr.io/cloud-builders/kubectl'
+    args: [
+      'create',
+      'deployment',
+      'rushcontroller',
+      '--image=gcr.io/$PROJECT_ID/rushcontroller:${COMMIT_SHA}',
+      '-n',
+      'test-$BUILD_ID'
+    ]
+    waitFor: ['deploy namespace']
+
+  - id: 'e2e/system tests'
+    name: 'gcr.io/cloud-builders/curl'
+    entrypoint: '/bin/bash'
+    args:
+      - '-c'
+      - |
+        echo "hello"
+    waitFor: ['deploy service']
+
+  - id: 'delete namespace'
+    name: 'gcr.io/cloud-builders/kubectl'
+    args: ['delete', 'namespaces', 'test-$BUILD_ID']
+    waitFor: ['e2e/system tests']
+
+
+  - id: 'tag dev image'
+    name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'tag',
+      'gcr.io/$PROJECT_ID/rushcontroller:${COMMIT_SHA}',
+      'gcr.io/$PROJECT_ID/rushcontroller:dev'
+    ]
+    waitFor: ['delete namespace']
+
+  - id: 'push dev image'
+    name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'push',
+      'gcr.io/$PROJECT_ID/rushcontroller:dev'
+    ]
+    waitFor: ['tag dev image']
+
+images: ['gcr.io/$PROJECT_ID/rushcontroller:dev']
+
+secrets:
+  - kmsKeyName: 'projects/focal-freedom-236620/locations/global/keyRings/rush-build/cryptoKeys/rush-build'
+    secretEnv:
+      SONAR_LOGIN: CiQAyglR/yYQ1aM851pSmNb2CfSHTa5rLz0I9xyzZBCQL5lt6UMSUgCI5pchiL/jDcM+TS9nU+bC4a4aYYyTTIITedL0zTCOQmzHgWkhM4l+cO1/nMat55K4tpdJmZw5f+ZbPXJOV/ojNrqvPjirfyShSpMC6HcP0r4=
