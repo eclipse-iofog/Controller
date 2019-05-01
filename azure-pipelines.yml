@@ -128,6 +128,8 @@ steps:
     inputs:
       SourceFolder: $(System.DefaultWorkingDirectory)
       TargetFolder: $(Build.ArtifactStagingDirectory)
+      Contents: |
+        *.tgz
       OverWrite: true
 
   - task: PublishBuildArtifacts@1
