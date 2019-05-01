@@ -46,6 +46,7 @@ steps:
       mkdir artefact && cd artefact
       npm pack
       cd ..
+      pwd
       ls
     displayName: 'npm pack'
 
