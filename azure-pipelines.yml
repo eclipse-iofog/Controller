@@ -43,9 +43,9 @@ steps:
     displayName: 'integration tests'
 
   - script: |
-      mkdir artefact && cd artefact
       npm pack
-      cd ..
+      mkdir artefact
+      mv iofogcontroller-*.tgz artefact/
       pwd
       ls
     displayName: 'npm pack'
