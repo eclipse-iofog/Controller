@@ -73,7 +73,7 @@ steps:
       repository: $(repository)
       command: 'build'
       Dockerfile: 'Dockerfile.dev'
-      arguments: FILENAME=$($controller_tar)
+      arguments: FILENAME=$(controller_tar)
       tags: |
         $(type)
         $(commit)
@@ -100,7 +100,7 @@ steps:
       repository: $(repository)
       command: 'build'
       Dockerfile: 'Dockerfile.rel'
-      arguments: FILENAME=$($controller_tar)
+      arguments: FILENAME=$(controller_tar)
       tags: |
         $(type)
         $(commit)
