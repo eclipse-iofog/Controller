@@ -44,15 +44,13 @@ steps:
 
   - script: |
       npm pack
-      mkdir artefact
-      mv iofogcontroller-*.tgz artefact/
       pwd
       ls
     displayName: 'npm pack'
 
   - bash: |
       echo checking pack file exists..
-      tar=$(ls artefact/iofogcontroller-*.tgz)
+      tar=$(ls iofogcontroller-*.tgz)
       echo $tar
       echo "##vso[task.setvariable variable=controller_tar]$tar"
     displayName: 'controller_tar check'
@@ -128,7 +126,7 @@ steps:
 
   - task: CopyFiles@2
     inputs:
-      SourceFolder: 'artefact'
+      SourceFolder: $(System.DefaultWorkingDirectory)
       TargetFolder: $(Build.ArtifactStagingDirectory)
       OverWrite: true
 
