@@ -74,11 +74,10 @@ steps:
       Dockerfile: 'Dockerfile.dev'
       arguments: --build-arg FILENAME=$(controller_tar)
       tags: |
-        dev
-        $(type)
-        $(commit)
-        latest
-        $(sem_tag)
+        dev-$(commit)
+        dev-$(type)
+        dev-latest
+        dev-$(sem_tag)
 
   - task: Docker@2
     displayName: 'push dev docker'
@@ -88,11 +87,10 @@ steps:
       command: 'push'
       Dockerfile: 'Dockerfile.dev'
       tags: |
-        dev
-        $(type)
-        $(commit)
-        latest
-        $(sem_tag)
+        dev-$(commit)
+        dev-$(type)
+        dev-latest
+        dev-$(sem_tag)
 
   - task: Docker@2
     displayName: 'build rel docker'
@@ -103,11 +101,10 @@ steps:
       Dockerfile: 'Dockerfile.rel'
       arguments: --build-arg FILENAME=$(controller_tar)
       tags: |
-        rel
-        $(type)
-        $(commit)
-        latest
-        $(sem_tag)
+        rel-$(commit)
+        rel-$(type)
+        rel-latest
+        rel-$(sem_tag)
 
   - task: Docker@2
     displayName: 'push rel docker'
@@ -117,12 +114,10 @@ steps:
       command: 'push'
       Dockerfile: 'Dockerfile.rel'
       tags: |
-        rel
-        $(type)
-        $(commit)
-        latest
-        $(sem_tag)
-
+        rel-$(commit)
+        rel-$(type)
+        rel-latest
+        rel-$(sem_tag)
 
   - script: |
       echo "npm test"
