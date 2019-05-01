@@ -17,7 +17,7 @@ pool:
   vmImage: 'Ubuntu-16.04'
 
 variables:
-  repository: 'focal-freedom-236620/rushcontroller'
+  repository: 'focal-freedom-236620/controller'
   type: $(Build.SourceBranchName)
   commit: $(Build.SourceVersion)
   sem_tag:
@@ -34,9 +34,9 @@ steps:
       npm run build
     displayName: 'npm install and build'
 
-#  - script: |
-#      npm test
-#    displayName: 'unit tests'
+  - script: |
+      npm test
+    displayName: 'unit tests'
 
   - script: |
       echo "npm test"
@@ -74,6 +74,7 @@ steps:
       Dockerfile: 'Dockerfile.dev'
       arguments: --build-arg FILENAME=$(controller_tar)
       tags: |
+        dev
         $(type)
         $(commit)
         latest
@@ -87,6 +88,7 @@ steps:
       command: 'push'
       Dockerfile: 'Dockerfile.dev'
       tags: |
+        dev
         $(type)
         $(commit)
         latest
@@ -101,6 +103,7 @@ steps:
       Dockerfile: 'Dockerfile.rel'
       arguments: --build-arg FILENAME=$(controller_tar)
       tags: |
+        rel
         $(type)
         $(commit)
         latest
@@ -114,6 +117,7 @@ steps:
       command: 'push'
       Dockerfile: 'Dockerfile.rel'
       tags: |
+        rel
         $(type)
         $(commit)
         latest
