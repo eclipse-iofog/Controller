@@ -51,21 +51,21 @@ steps:
     displayName: 'npm pack'
 
   - bash: |
+      cd artefact
       echo $controller_tar
       echo checking pack file exists..
       tar=$(ls iofogcontroller-*.tgz)
       echo $tar
       echo "##vso[task.setvariable variable=controller_tar]$tar"
+      cd ..
     displayName: 'controller_tar check'
     name: setcontrollertarvarStep
 
   - bash: |
-      cd artefact
       echo current tag..
       tag=$(type)
       tag=${tag:0:4}
       echo "##vso[task.setvariable variable=sem_tag]$tag"
-      cd ..
     displayName: 'tag'
     name: setvarStep
     condition: startsWith(variables['Build.SourceBranch'], 'refs/tags/')
