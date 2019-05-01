@@ -53,7 +53,6 @@ steps:
       echo checking pack file exists..
       tar=$(ls iofogcontroller-*.tgz)
       echo $tar
-      echo '$(tar)'
       echo "##vso[task.setvariable variable=controller_tar]$tar"
     displayName: 'controller_tar check'
     name: setcontrollertarvarStep
@@ -74,7 +73,7 @@ steps:
       repository: $(repository)
       command: 'build'
       Dockerfile: 'Dockerfile.dev'
-      arguments: FILENAME=$(controller_tar)
+      arguments: --build-arg FILENAME=$(controller_tar)
       tags: |
         $(type)
         $(commit)
@@ -101,7 +100,7 @@ steps:
       repository: $(repository)
       command: 'build'
       Dockerfile: 'Dockerfile.rel'
-      arguments: FILENAME=$(controller_tar)
+      arguments: --build-arg FILENAME=$(controller_tar)
       tags: |
         $(type)
         $(commit)
