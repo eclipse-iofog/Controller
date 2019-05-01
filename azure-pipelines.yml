@@ -43,7 +43,7 @@ steps:
     displayName: 'integration tests'
 
   - script: |
-      mrdir artefact && cd artefact
+      mkdir artefact && cd artefact
       npm pack
       cd ..
     displayName: 'npm pack'
@@ -125,17 +125,9 @@ steps:
       echo "npm test"
     displayName: 'api tests'
 
-#  - task: Npm@1
-#    displayName: 'publish npm package'
-#    inputs:
-#      command: 'publish'
-#      publishRegistry: 'useFeed'
-#      publishFeed: 'edgeworx'
-
   - task: CopyFiles@2
     inputs:
       SourceFolder: 'artefact'
-      #contents: '**'
       TargetFolder: $(Build.ArtifactStagingDirectory)
       OverWrite: true
 
@@ -143,3 +135,10 @@ steps:
     inputs:
       PathtoPublish: '$(Build.ArtifactStagingDirectory)'
       ArtifactName: 'controller'
+
+  - task: Npm@1
+    displayName: 'publish npm package'
+    inputs:
+      command: 'publish'
+      publishRegistry: 'useFeed'
+      publishFeed: 'edgeworx'

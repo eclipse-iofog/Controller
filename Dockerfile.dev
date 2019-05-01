@@ -1,4 +1,4 @@
-FROM iofog/node:alpine
+FROM iofog/node-alpine-x86:8.16.0
 
 ARG FILENAME
 ENV NODE_ENV=development
