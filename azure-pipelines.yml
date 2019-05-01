@@ -52,7 +52,8 @@ steps:
       echo checking pack file exists..
       controller_tar=$(ls iofogcontroller-*.tgz)
       echo $controller_tar
-      '##vso[task.setvariable variable=controller_tar]$controller_tar'
+      echo test
+      echo '##vso[task.setvariable variable=controller_tar]$controller_tar'
     displayName: 'controller_tar check'
     name: setcontrollertarvarStep
 
@@ -60,7 +61,7 @@ steps:
       echo current tag..
       sem_tag=$(type)
       sem_tag=${sem_tag:0:3}
-      '##vso[task.setvariable variable=sem_tag]$sem_tag'
+      echo '##vso[task.setvariable variable=sem_tag]$sem_tag'
     displayName: 'tag'
     name: setvarStep
     condition: startsWith(variables['Build.SourceBranch'], 'refs/tags/')
