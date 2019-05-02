@@ -136,9 +136,9 @@ steps:
       PathtoPublish: '$(Build.ArtifactStagingDirectory)'
       ArtifactName: 'controller'
 
-  - task: Npm@1
-    displayName: 'publish npm package'
-    inputs:
-      command: 'publish'
-      publishRegistry: 'useFeed'
-      publishFeed: 'edgeworx'
+#  - task: Npm@1
+#    displayName: 'publish npm package'
+#    inputs:
+#      command: 'publish'
+#      publishRegistry: 'useFeed'
+#      publishFeed: 'edgeworx'
