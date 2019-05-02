@@ -20,7 +20,6 @@ variables:
   repository: 'focal-freedom-236620/controller'
   type: $(Build.SourceBranchName)
   commit: $(Build.SourceVersion)
-  sem_tag:
   controller_tar:
 
 steps:
@@ -56,15 +55,6 @@ steps:
     displayName: 'controller_tar check'
     name: setcontrollertarvarStep
 
-  - bash: |
-      echo current tag..
-      tag=$(type)
-      tag=${tag:0:4}
-      echo "##vso[task.setvariable variable=sem_tag]$tag"
-    displayName: 'tag'
-    name: setvarStep
-    condition: startsWith(variables['Build.SourceBranch'], 'refs/tags/')
-
   - task: Docker@2
     displayName: 'build dev docker'
     inputs:
@@ -77,7 +67,6 @@ steps:
         dev-$(commit)
         dev-$(type)
         dev-latest
-        dev-$(sem_tag)
 
   - task: Docker@2
     displayName: 'push dev docker'
@@ -90,7 +79,6 @@ steps:
         dev-$(commit)
         dev-$(type)
         dev-latest
-        dev-$(sem_tag)
 
   - task: Docker@2
     displayName: 'build rel docker'
@@ -104,7 +92,6 @@ steps:
         rel-$(commit)
         rel-$(type)
         rel-latest
-        rel-$(sem_tag)
 
   - task: Docker@2
     displayName: 'push rel docker'
@@ -117,7 +104,6 @@ steps:
         rel-$(commit)
         rel-$(type)
         rel-latest
-        rel-$(sem_tag)
 
   - script: |
       echo "npm test"
