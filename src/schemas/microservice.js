@@ -91,7 +91,7 @@ const ports = {
   'properties': {
     'internal': { 'type': 'integer' },
     'external': { 'type': 'integer' },
-    'publicMode': { 'enum': [false] },
+    'publicMode': { 'type': 'boolean' },
   },
   'required': ['internal', 'external'],
   'additionalProperties': false,
