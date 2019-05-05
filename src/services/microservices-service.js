@@ -76,9 +76,17 @@ async function createMicroserviceEndPoint(microserviceData, user, isCLI, transac
 
   const microservice = await _createMicroservice(microserviceData, user, isCLI, transaction)
 
+  const publicPorts = []
   if (microserviceData.ports) {
     for (const mapping of microserviceData.ports) {
-      await _createPortMapping(microservice, mapping, user, transaction)
+      const res = await _createPortMapping(microservice, mapping, user, transaction)
+      if (res && res.publicLink) {
+        publicPorts.push({
+          internal: mapping.internal,
+          external: mapping.external,
+          publicLink: res.publicLink,
+        })
+      }
     }
   }
   if (microserviceData.env) {
@@ -105,9 +113,14 @@ async function createMicroserviceEndPoint(microserviceData, user, isCLI, transac
 
   await _createMicroserviceStatus(microservice, transaction)
 
-  return {
+  const res = {
     uuid: microservice.uuid,
   }
+  if (publicPorts.length) {
+    res.publicPorts = publicPorts
+  }
+
+  return res
 }
 
 async function updateMicroserviceEndPoint(microserviceUuid, microserviceData, user, isCLI, transaction) {
@@ -1007,7 +1020,7 @@ async function _createPortMappingOverConnector(microservice, portMappingData, us
 
 
   await _switchOnUpdateFlagsForMicroservicesForPortMapping(microservice, true, transaction)
-  const publicLink = await _buildLink(connector.devMode ? 'http' : 'https', connector.publicIp, connectorPort.port2)
+  const publicLink = _buildLink(connector.devMode ? 'http' : 'https', connector.publicIp, connectorPort.port2)
   return { publicLink: publicLink }
 }
 
@@ -1081,7 +1094,7 @@ async function _buildPortsList(portsPairs, transaction) {
       const connectorPorts = await ConnectorPortManager.findOne({ id: pubMode.connectorPortId }, transaction)
       const connector = await ConnectorManager.findOne({ id: connectorPorts.connectorId }, transaction)
 
-      portMappingResposeData.publicLink = await _buildLink(connector.devMode ? 'http' : 'https',
+      portMappingResposeData.publicLink = _buildLink(connector.devMode ? 'http' : 'https',
           connector.publicIp, connectorPorts.port2)
     }
     res.push(portMappingResposeData)
@@ -1179,7 +1192,7 @@ async function deleteMicroserviceWithRoutesAndPortMappings(microservice, transac
   }, transaction)
 }
 
-async function _buildLink(protocol, ip, port) {
+function _buildLink(protocol, ip, port) {
   return `${protocol}://${ip}:${port}`
 }
 
@@ -1188,6 +1201,7 @@ async function _buildGetMicroserviceResponse(microservice, transaction) {
 
   // get additional data
   const portMappings = await MicroservicePortManager.findAll({ microserviceUuid: microserviceUuid }, transaction)
+  const publicPortMappings = await MicroservicePublicModeManager.findAll({ microserviceUuid: microserviceUuid }, transaction)
   const volumeMappings = await VolumeMappingManager.findAll({ microserviceUuid: microserviceUuid }, transaction)
   const routes = await RoutingManager.findAll({ sourceMicroserviceUuid: microserviceUuid }, transaction)
   const env = await MicroserviceEnvManager.findAllExcludeFields({ microserviceUuid: microserviceUuid }, transaction)
@@ -1196,9 +1210,23 @@ async function _buildGetMicroserviceResponse(microservice, transaction) {
 
   // build microservice response
   const res = Object.assign({}, microservice.dataValues)
-  res.ports = portMappings.map((pm) => {
-    return { internal: pm.portInternal, external: pm.portExternal, publicMode: pm.isPublic }
-  })
+  res.ports = []
+  for (pm of portMappings) {
+    const mapping = { internal: pm.portInternal, external: pm.portExternal, publicMode: pm.isPublic }
+    if (pm.isPublic && publicPortMappings) {
+      const publicPortMapping = publicPortMappings.find((ppm) => ppm.microservicePortId == pm.id)
+      if (publicPortMapping) {
+        const connectorPort = await ConnectorPortManager.findOne({ id: publicPortMapping.connectorPortId }, transaction)
+        if (connectorPort) {
+          const connector = await ConnectorManager.findOne({ id: connectorPort.connectorId }, transaction)
+          if (connectorPort) {
+            mapping.publicLink = _buildLink(connector.devMode ? 'http' : 'https', connector.publicIp, connectorPort.port2)
+          }
+        }
+      }
+    }
+    res.ports.push(mapping)
+  }
   res.volumeMappings = volumeMappings.map((vm) => vm.dataValues)
   res.routes = routes.map((r) => r.destMicroserviceUuid)
   res.env = env
