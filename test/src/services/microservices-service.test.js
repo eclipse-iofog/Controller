@@ -16,6 +16,9 @@ const RoutingManager = require('../../../src/sequelize/managers/routing-manager'
 const MicroserviceEnvManager = require('../../../src/sequelize/managers/microservice-env-manager')
 const MicroserviceArgManager = require('../../../src/sequelize/managers/microservice-arg-manager')
 const Op = require('sequelize').Op
+const ConnectorManager = require('../../../src/sequelize/managers/connector-manager')
+const ConnectorPortManager = require('../../../src/sequelize/managers/connector-port-manager')
+const MicroservicePublicModeManager = require('../../../src/sequelize/managers/microservice-public-mode-manager')
 
 describe('Microservices Service', () => {
   def('subject', () => MicroservicesService)
@@ -46,6 +49,9 @@ describe('Microservices Service', () => {
     def('findPortMappingsResponse', () => Promise.resolve([]))
     def('findVolumeMappingsResponse', () => Promise.resolve([]))
     def('findRoutesResponse', () => Promise.resolve([]))
+    def('publicModeResponse', () => Promise.resolve([]))
+    def('connectorPortResponse', () => Promise.resolve({}))
+    def('connectorResponse', () => Promise.resolve({}))
     def('envResponse', () => Promise.resolve([]))
     def('cmdResponse', () => Promise.resolve([]))
 
@@ -56,6 +62,9 @@ describe('Microservices Service', () => {
       $sandbox.stub(RoutingManager, 'findAll').returns($findRoutesResponse)
       $sandbox.stub(MicroserviceEnvManager, 'findAllExcludeFields').returns($envResponse)
       $sandbox.stub(MicroserviceArgManager, 'findAllExcludeFields').returns($cmdResponse)
+      $sandbox.stub(MicroservicePublicModeManager, 'findAll').returns($publicModeResponse)
+      $sandbox.stub(ConnectorPortManager, 'findOne').returns($connectorPortResponse)
+      $sandbox.stub(ConnectorManager, 'findOne').returns($connectorResponse)
     })
 
     it('calls MicroserviceManager#findAllExcludeFields() with correct args', async () => {
@@ -101,6 +110,9 @@ describe('Microservices Service', () => {
     def('findPortMappingsResponse', () => Promise.resolve([]))
     def('findVolumeMappingsResponse', () => Promise.resolve([]))
     def('findRoutesResponse', () => Promise.resolve([]))
+    def('publicModeResponse', () => Promise.resolve([]))
+    def('connectorPortResponse', () => Promise.resolve({}))
+    def('connectorResponse', () => Promise.resolve({}))
     def('envResponse', () => Promise.resolve([]))
     def('cmdResponse', () => Promise.resolve([]))
 
@@ -111,6 +123,9 @@ describe('Microservices Service', () => {
       $sandbox.stub(RoutingManager, 'findAll').returns($findRoutesResponse)
       $sandbox.stub(MicroserviceEnvManager, 'findAllExcludeFields').returns($envResponse)
       $sandbox.stub(MicroserviceArgManager, 'findAllExcludeFields').returns($cmdResponse)
+      $sandbox.stub(MicroservicePublicModeManager, 'findAll').returns($publicModeResponse)
+      $sandbox.stub(ConnectorPortManager, 'findOne').returns($connectorPortResponse)
+      $sandbox.stub(ConnectorManager, 'findOne').returns($connectorResponse)
     })
 
     it('calls MicroserviceManager#findOneExcludeFields() with correct args', async () => {
@@ -131,6 +146,31 @@ describe('Microservices Service', () => {
     context('when MicroserviceManager#findOneExcludeFields() succeeds', () => {
       it('fulfills the promise', () => {
         return expect($subject).to.eventually.have.property('uuid')
+      })
+    })
+
+    context('when microservice has public ports', () => {
+      def('findPortMappingsResponse', () => Promise.resolve([
+        {
+          id: 1,
+          portInternal: 80,
+          portInternal: 8080,
+          isPublic: true,
+        },
+      ]))
+      def('publicModeResponse', () => Promise.resolve([{ microservicePortId: 1, connectorPortId: 1 }]))
+      def('connectorPortResponse', () => Promise.resolve({ connectorPortId: 1, port2: 1234 }))
+      def('connectorResponse', () => Promise.resolve({
+        publicIp: '1.2.3.4',
+        devMode: true,
+      }))
+
+      it('returns public link', async () => {
+        const ms = await $subject
+        expect(ms).to.have.property('ports')
+        expect(ms.ports).to.have.length(1)
+        expect(ms.ports[0]).to.have.property('publicLink')
+        expect(ms.ports[0].publicLink).to.equal('http://1.2.3.4:1234')
       })
     })
   })

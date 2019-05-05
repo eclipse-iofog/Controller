@@ -449,9 +449,14 @@ const _createMicroservice = async function(obj, user) {
 
   logger.cliReq('microservice add', { args: microservice })
   const result = await MicroserviceService.createMicroserviceEndPoint(microservice, user, true)
-  logger.cliRes(JSON.stringify({
+  const output = {
     uuid: result.uuid,
-  }, null, 2))
+  }
+  if (result.publicLink) {
+    output.publicLink = res.publicLink
+  }
+
+  logger.cliRes(JSON.stringify(output, null, 2))
 }
 
 const _updateMicroservice = async function(obj, user) {
