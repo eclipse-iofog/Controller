@@ -24,8 +24,11 @@ jobs:
   - job: Platform
     dependsOn: Controller
     pool: server
+    variables:
+      tagPrefix: $[ dependencies.Controller.outputs['setcontrollertarvarStep.type'] ]
 
     steps:
+
       - task: InvokeRESTAPI@1
         displayName: 'trigger platform job'
         inputs:
@@ -33,7 +36,7 @@ jobs:
           serviceConnection: 'Pipelines'
           method: 'POST'
           urlSuffix: '/edgeworx/_apis/build/builds?api-version=5.0'
-          body: "{\"Parameters\":\"{\\\"images.controller\\\": \\\"gcr.io/$(repository):dev-$(commit)\\\"}\", \"Definition\":{\"id\":\"5\"}}"
+          body: "{\"Parameters\":\"{\\\"images.controller\\\": \\\"gcr.io/$(repository):$(tagPrefix)-$(commit)\\\"}\", \"Definition\":{\"id\":\"5\"}}"
           waitForCompletion: 'false'
 
   - job: Controller
@@ -75,36 +78,38 @@ jobs:
           tar=$(ls iofogcontroller-*.tgz)
           echo $tar
           echo "##vso[task.setvariable variable=controller_tar]$tar"
-          if($(type)== 'release'); then
-             echo "##vso[task.setvariable variable=type]rc"
+          if [ $(type) = 'develop' ]; then
+             echo "##vso[task.setvariable variable=type]dev"
+             echo "##vso[task.setvariable variable=type;isOutput=true]dev"
+          elif [ $(type) = 'release' ]; then
+             echo "##vso[task.setvariable variable=type]rel"
+             echo "##vso[task.setvariable variable=type;isOutput=true]rel"
           fi
         displayName: 'setting vars'
         name: setcontrollertarvarStep
-
+      
       - task: Docker@2
-        displayName: 'build dev docker'
+        displayName: 'build docker'
         inputs:
           containerRegistry: 'Edgeworx GCP'
           repository: $(repository)
           command: 'build'
-          Dockerfile: 'Dockerfile.dev'
+          Dockerfile: "Dockerfile.$(type)"
           arguments: --build-arg FILENAME=$(controller_tar)
           tags: |
-            dev-$(commit)
-            dev-$(type)
-            dev-latest
+            $(type)-$(commit)
+            $(type)-latest
 
       - task: Docker@2
-        displayName: 'push dev docker'
+        displayName: 'push docker'
         inputs:
           containerRegistry: 'Edgeworx GCP'
           repository: $(repository)
           command: 'push'
-          Dockerfile: 'Dockerfile.dev'
+          Dockerfile: "Dockerfile.$(type)"
           tags: |
-            dev-$(commit)
-            dev-$(type)
-            dev-latest
+            $(type)-$(commit)
+            $(type)-latest
 
       - script: |
           echo "npm test"
