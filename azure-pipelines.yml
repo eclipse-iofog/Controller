@@ -79,11 +79,11 @@ jobs:
           echo "##vso[task.setvariable variable=controller_tar]$tar"
 
           echo 'setting commit tag'
-          $short=$(git rev-parse --short=5 HEAD)
+          short=$(git rev-parse --short=5 HEAD)
+          echo $short
           echo "##vso[task.setvariable variable=commit]$short"
 
           echo 'setting type tag'
-          echo $(type)
           if [ $(type) = 'develop' ]; then
             echo "##vso[task.setvariable variable=type]dev-latest"
           elif [ $(type) = 'release' ]; then
@@ -91,6 +91,7 @@ jobs:
           else
             echo "##vso[task.setvariable variable=commit]latest"
           fi
+          echo $(type)
         displayName: 'setting vars'
         name: setcontrollertarvarStep
 
