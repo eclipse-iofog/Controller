@@ -16,15 +16,14 @@ pr:
 variables:
   repository: 'focal-freedom-236620/controller'
   type: $(Build.SourceBranchName)
-  commit: $(Build.SourceVersion)
-  controller_tar:
 
 jobs:
   - job: Platform
     dependsOn: Controller
     pool: server
     variables:
-      tagPrefix: $[ dependencies.Controller.outputs['setcontrollertarvarStep.type'] ]
+      tagPrefix: $[dependencies.Controller.outputs['setvarStep.type']]
+      commit: $[dependencies.Controller.outputs['setvarStep.commit']]
 
     steps:
 
@@ -93,7 +92,7 @@ jobs:
           fi
           echo $(type)
         displayName: 'setting vars'
-        name: setcontrollertarvarStep
+        name: setvarStep
 
       - task: Docker@2
         displayName: 'build docker'
