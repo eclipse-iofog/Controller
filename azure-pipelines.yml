@@ -15,14 +15,13 @@ pr:
 
 variables:
   repository: 'focal-freedom-236620/controller'
-  type: $(Build.SourceBranchName)
+  primaryTag: $(Build.SourceBranchName)
 
 jobs:
   - job: Platform
     dependsOn: Controller
     pool: server
     variables:
-      tagPrefix: $[dependencies.Controller.outputs['setvarStep.type']]
       commit: $[dependencies.Controller.outputs['setvarStep.commit']]
 
     steps:
@@ -34,7 +33,7 @@ jobs:
           serviceConnection: 'Pipelines'
           method: 'POST'
           urlSuffix: '/edgeworx/_apis/build/builds?api-version=5.0'
-          body: "{\"Parameters\":\"{\\\"images.controller\\\": \\\"gcr.io/$(repository):$(tagPrefix)-$(commit)\\\"}\", \"Definition\":{\"id\":\"5\"}}"
+          body: "{\"Parameters\":\"{\\\"images.controller\\\": \\\"gcr.io/$(repository):$(commit)\\\"}\", \"Definition\":{\"id\":\"5\"}}"
           waitForCompletion: 'false'
 
   - job: Controller
@@ -78,19 +77,23 @@ jobs:
           echo "##vso[task.setvariable variable=controller_tar]$tar"
 
           echo 'setting commit tag'
-          short=$(git rev-parse --short=5 HEAD)
-          echo $short
-          echo "##vso[task.setvariable variable=commit]$short"
+          commit=$(git rev-parse --short=5 HEAD)
+          echo "##vso[task.setvariable variable=commit]$commit"
+          echo "##vso[task.setvariable variable=commit;isOutput=true]$commit"
 
-          echo 'setting type tag'
-          if [ $(type) = 'develop' ]; then
-            echo "##vso[task.setvariable variable=type]dev-latest"
-          elif [ $(type) = 'release' ]; then
-            echo "##vso[task.setvariable variable=type]rc-latest"
-          else
+          echo 'setting primary tag'
+          echo $(Build.SourceBranch)
+          if [[ $(Build.SourceBranchName) == 'develop' ]]; then
+            echo "##vso[task.setvariable variable=primaryTag;isOutput=true]dev-latest"
+          elif [[ $(Build.SourceBranch) == refs/heads/release* ]]; then
+            echo "##vso[task.setvariable variable=primaryTag;isOutput=true]rc-latest"
+          #If branch starts with ref/tags, apply latest and version tag
+          elif [[ $(Build.SourceBranch) == refs/tags* ]]; then
             echo "##vso[task.setvariable variable=commit]latest"
+            echo "##vso[task.setvariable variable=commit;isOutput=true]latest"
           fi
-          echo $(type)
+          echo 'commit tag: '$commit
+          echo 'primary tag: '$primaryTag
         displayName: 'setting vars'
         name: setvarStep
 
@@ -104,7 +107,7 @@ jobs:
           arguments: --build-arg FILENAME=$(controller_tar)
           tags: |
             $(commit)
-            $(type)
+            $(primaryTag)
 
       - task: Docker@2
         displayName: 'push docker'
@@ -115,7 +118,7 @@ jobs:
           Dockerfile: "Dockerfile.dev"
           tags: |
             $(commit)
-            $(type)
+            $(primaryTag)
 
       - script: |
           echo "npm test"
