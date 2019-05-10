@@ -5,7 +5,6 @@ trigger:
   branches:
     include:
       - develop
-      - master
       - release
   paths:
     exclude:
@@ -17,15 +16,17 @@ pr:
 variables:
   repository: 'focal-freedom-236620/controller'
   type: $(Build.SourceBranchName)
-  commit: $(Build.SourceVersion)
-  controller_tar:
 
 jobs:
   - job: Platform
     dependsOn: Controller
     pool: server
+    variables:
+      tagPrefix: $[dependencies.Controller.outputs['setvarStep.type']]
+      commit: $[dependencies.Controller.outputs['setvarStep.commit']]
 
     steps:
+
       - task: InvokeRESTAPI@1
         displayName: 'trigger platform job'
         inputs:
@@ -33,7 +34,7 @@ jobs:
           serviceConnection: 'Pipelines'
           method: 'POST'
           urlSuffix: '/edgeworx/_apis/build/builds?api-version=5.0'
-          body: "{\"Parameters\":\"{\\\"images.controller\\\": \\\"gcr.io/$(repository):dev-$(commit)\\\"}\", \"Definition\":{\"id\":\"5\"}}"
+          body: "{\"Parameters\":\"{\\\"images.controller\\\": \\\"gcr.io/$(repository):$(tagPrefix)-$(commit)\\\"}\", \"Definition\":{\"id\":\"5\"}}"
           waitForCompletion: 'false'
 
   - job: Controller
@@ -71,40 +72,50 @@ jobs:
         displayName: 'npm pack'
 
       - bash: |
-          echo checking pack file exists..
+          echo 'checking pack file exists..'
           tar=$(ls iofogcontroller-*.tgz)
           echo $tar
           echo "##vso[task.setvariable variable=controller_tar]$tar"
-          if($(type)== 'release'); then
-             echo "##vso[task.setvariable variable=type]rc"
+
+          echo 'setting commit tag'
+          short=$(git rev-parse --short=5 HEAD)
+          echo $short
+          echo "##vso[task.setvariable variable=commit]$short"
+
+          echo 'setting type tag'
+          if [ $(type) = 'develop' ]; then
+            echo "##vso[task.setvariable variable=type]dev-latest"
+          elif [ $(type) = 'release' ]; then
+            echo "##vso[task.setvariable variable=type]rc-latest"
+          else
+            echo "##vso[task.setvariable variable=commit]latest"
           fi
+          echo $(type)
         displayName: 'setting vars'
-        name: setcontrollertarvarStep
+        name: setvarStep
 
       - task: Docker@2
-        displayName: 'build dev docker'
+        displayName: 'build docker'
         inputs:
           containerRegistry: 'Edgeworx GCP'
           repository: $(repository)
           command: 'build'
-          Dockerfile: 'Dockerfile.dev'
+          Dockerfile: "Dockerfile.dev"
           arguments: --build-arg FILENAME=$(controller_tar)
           tags: |
-            dev-$(commit)
-            dev-$(type)
-            dev-latest
+            $(commit)
+            $(type)
 
       - task: Docker@2
-        displayName: 'push dev docker'
+        displayName: 'push docker'
         inputs:
           containerRegistry: 'Edgeworx GCP'
           repository: $(repository)
           command: 'push'
-          Dockerfile: 'Dockerfile.dev'
+          Dockerfile: "Dockerfile.dev"
           tags: |
-            dev-$(commit)
-            dev-$(type)
-            dev-latest
+            $(commit)
+            $(type)
 
       - script: |
           echo "npm test"
@@ -129,7 +140,6 @@ jobs:
           command: 'publish'
           publishRegistry: 'useFeed'
           publishFeed: 'dev'
-        condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/heads/'))
 
       - task: Npm@1
         displayName: 'publish npm package'
