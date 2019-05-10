@@ -26,7 +26,6 @@ module.exports = {
   'Settings:DefaultJobIntervalSeconds': 120,
   'Settings:UserTokenExpirationIntervalSeconds': 3600,
   'Settings:FogTokenExpirationIntervalSeconds': 3600,
-  'Settings:KubeletTokenExpirationIntervalSeconds': 3600,
   'Settings:SchedulerTokenExpirationIntervalSeconds': 3600,
   'Settings:FogStatusUpdateIntervalSeconds': 120,
   'Settings:FogStatusFrequencySeconds': 60,
