@@ -1018,7 +1018,6 @@ async function _createPortMappingOverConnector(microservice, portMappingData, us
   }
   await MicroservicePublicModeManager.create(msPubModeData, transaction)
 
-
   await _switchOnUpdateFlagsForMicroservicesForPortMapping(microservice, true, transaction)
   const publicLink = _buildLink(connector.devMode ? 'http' : 'https', connector.publicIp, connectorPort.port2)
   return { publicLink: publicLink }

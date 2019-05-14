@@ -490,7 +490,7 @@ const _updateMicroserviceObject = function(obj) {
     rootHostAccess: AppHelper.validateBooleanCliOptions(obj.rootEnable, obj.rootDisable),
     logSize: obj.logSize,
     rebuild: obj.rebuild,
-    arg: obj.cmd,
+    cmd: obj.cmd,
     env,
   }
 
@@ -524,7 +524,7 @@ const _createMicroserviceObject = function(obj) {
     rootHostAccess: AppHelper.validateBooleanCliOptions(obj.rootEnable, obj.rootDisable),
     logSize: obj.logSize,
     routes: obj.routes,
-    arg: obj.cmd,
+    cmd: obj.cmd,
     env,
   }
 
