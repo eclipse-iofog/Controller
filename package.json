@@ -74,7 +74,7 @@
 		"jsonschema": "1.2.4",
 		"moment": "2.20.1",
 		"morgan": "1.9.1",
-		"nconf": "0.10.0",
+		"nconf": "0.9.1",
 		"newman": "4.3.1",
 		"nodemailer": "5.1.1",
 		"nodemailer-smtp-transport": "2.7.4",
