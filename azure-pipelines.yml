@@ -5,7 +5,7 @@ trigger:
   branches:
     include:
       - develop
-      - release
+      - release*
   paths:
     exclude:
       - README.md
@@ -22,7 +22,7 @@ jobs:
     dependsOn: Controller
     pool: server
     variables:
-      commit: $[dependencies.Controller.outputs['setvarStep.commit']]
+      commit: $[dependencies.Controller.outputs['setvarStep.secondaryTag']]
 
     steps:
 
@@ -59,16 +59,33 @@ jobs:
         displayName: 'integration tests'
 
       - script: |
+          npm pack
+          ls iofogcontroller-*.tgz
+        displayName: 'npm pack for release artefact'
+
+      - task: CopyFiles@2
+        inputs:
+          SourceFolder: $(System.DefaultWorkingDirectory)
+          TargetFolder: $(Build.ArtifactStagingDirectory)
+          Contents: |
+            *.tgz
+            Dockerfile.dev
+          OverWrite: true
+        displayName: 'artefacts to publish'
+
+      - script: |
+          rm -fr iofogcontroller-*.tgz
           git checkout package-lock.json
           git config --global user.email "info@edgeworx.io"
           git config --global user.name "Azure DevOps"
-          npm version prerelease --preid=rc-$(Build.BuildNumber)
+
+          PACKAGE_VERSION=$(cat package.json | grep version | head -1 | awk -F: '{ print $2 }' | sed 's/[\",]//g' | tr -d '[[:space:]]')
+          npm --no-git-tag-version version $PACKAGE_VERSION-rc-$(Build.BuildNumber)
         displayName: 'npm version'
-        condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/heads/'))
 
       - script: |
           npm pack
-        displayName: 'npm pack'
+        displayName: 'npm pack with version containing build number'
 
       - bash: |
           echo 'checking pack file exists..'
@@ -76,10 +93,10 @@ jobs:
           echo $tar
           echo "##vso[task.setvariable variable=controller_tar]$tar"
 
-          echo 'setting commit tag'
+          echo 'setting secondary tag'
           commit=$(git rev-parse --short=5 HEAD)
-          echo "##vso[task.setvariable variable=commit]$commit"
-          echo "##vso[task.setvariable variable=commit;isOutput=true]$commit"
+          echo "##vso[task.setvariable variable=secondaryTag]$commit"
+          echo "##vso[task.setvariable variable=secondaryTag;isOutput=true]$commit"
 
           echo 'setting primary tag'
           echo $(Build.SourceBranch)
@@ -89,11 +106,12 @@ jobs:
             echo "##vso[task.setvariable variable=primaryTag;isOutput=true]rc-latest"
           #If branch starts with ref/tags, apply latest and version tag
           elif [[ $(Build.SourceBranch) == refs/tags* ]]; then
-            echo "##vso[task.setvariable variable=commit]latest"
-            echo "##vso[task.setvariable variable=commit;isOutput=true]latest"
+            primaryTag= echo $(primaryTag) | awk '{print substr($1,2);}'
+            echo $primaryTag
+            echo "##vso[task.setvariable variable=primaryTag]$primaryTag"
+            echo "##vso[task.setvariable variable=secondaryTag]latest"
+            echo "##vso[task.setvariable variable=secondaryTag;isOutput=true]latest"
           fi
-          echo 'commit tag: '$commit
-          echo 'primary tag: '$primaryTag
         displayName: 'setting vars'
         name: setvarStep
 
@@ -106,7 +124,7 @@ jobs:
           Dockerfile: "Dockerfile.dev"
           arguments: --build-arg FILENAME=$(controller_tar)
           tags: |
-            $(commit)
+            $(secondaryTag)
             $(primaryTag)
 
       - task: Docker@2
@@ -117,37 +135,37 @@ jobs:
           command: 'push'
           Dockerfile: "Dockerfile.dev"
           tags: |
-            $(commit)
+            $(secondaryTag)
             $(primaryTag)
 
       - script: |
           echo "npm test"
         displayName: 'api tests'
 
-      - task: CopyFiles@2
-        inputs:
-          SourceFolder: $(System.DefaultWorkingDirectory)
-          TargetFolder: $(Build.ArtifactStagingDirectory)
-          Contents: |
-            *.tgz
-          OverWrite: true
-
       - task: PublishBuildArtifacts@1
         inputs:
           PathtoPublish: '$(Build.ArtifactStagingDirectory)'
           ArtifactName: 'controller'
 
-      - task: Npm@1
-        displayName: 'publish dev npm package'
+      - task: DownloadSecureFile@1
         inputs:
-          command: 'publish'
-          publishRegistry: 'useFeed'
-          publishFeed: 'dev'
+          secureFile: 'package_cloud'
+        displayName: 'download package cloud token file'
 
-      - task: Npm@1
-        displayName: 'publish npm package'
+      - task: UseRubyVersion@0
         inputs:
-          command: 'publish'
-          verbose: true
-          publishEndpoint: 'edgeworx npm'
-        condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
+          versionSpec: '>= 2.5'
+          addToPath: true
+        displayName: 'install rubygem to be used to install package_cloud cli'
+
+      - script: |
+          gem install package_cloud
+          package_cloud -h
+          echo "config file..."
+          echo $DOWNLOADSECUREFILE_SECUREFILEPATH
+        displayName: 'install package_cloud cli'
+
+      - script: |
+          echo $(controller_tar)
+          package_cloud push iofog/iofog-controller-snapshots/node/1 $(controller_tar) --config=$DOWNLOADSECUREFILE_SECUREFILEPATH
+        displayName: 'push to package cloud'
