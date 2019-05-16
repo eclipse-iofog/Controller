@@ -60,14 +60,6 @@ jobs:
         displayName: 'integration tests'
 
       - script: |
-          git checkout package-lock.json
-          git config --global user.email "info@edgeworx.io"
-          git config --global user.name "Azure DevOps"
-          npm version prerelease --preid=rc-$(Build.BuildNumber)
-        displayName: 'npm version'
-        condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/heads/'))
-
-      - script: |
           npm pack
         displayName: 'npm pack'
 
