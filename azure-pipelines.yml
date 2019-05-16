@@ -72,32 +72,6 @@ jobs:
 
       - script: |
           npm pack
-          ls iofogcontroller-*.tgz
-        displayName: 'npm pack for release artefact'
-
-      - task: CopyFiles@2
-        inputs:
-          SourceFolder: $(System.DefaultWorkingDirectory)
-          TargetFolder: $(Build.ArtifactStagingDirectory)
-          Contents: |
-            standardjs.out
-            *.tgz
-            Dockerfile.dev
-          OverWrite: true
-        displayName: 'artefacts to publish'
-
-      - script: |
-          rm -fr iofogcontroller-*.tgz
-          git checkout package-lock.json
-          git config --global user.email "info@edgeworx.io"
-          git config --global user.name "Azure DevOps"
-
-          PACKAGE_VERSION=$(cat package.json | grep version | head -1 | awk -F: '{ print $2 }' | sed 's/[\",]//g' | tr -d '[[:space:]]')
-          npm --no-git-tag-version version $PACKAGE_VERSION-b$(Build.BuildId)
-        displayName: 'npm version'
-
-      - script: |
-          npm pack
         displayName: 'npm pack with version containing build number'
 
       - bash: |
