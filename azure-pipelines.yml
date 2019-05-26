@@ -56,6 +56,12 @@ jobs:
         displayName: 'Standardjs report'
 
       - script: |
+          npm run snyk
+        displayName: 'Snyk monitor'
+        env:
+          SNYK_TOKEN: $(snykToken)
+
+      - script: |
           npm test
         displayName: 'unit tests'
 
