@@ -14,6 +14,7 @@ pr:
   - master
 
 variables:
+  group: 'pipelines'
   repository: 'focal-freedom-236620/controller'
   primaryTag: $(Build.SourceBranchName)
 
@@ -56,7 +57,7 @@ jobs:
         displayName: 'Standardjs report'
 
       - script: |
-          npm run snyk
+          npm run snyk -- --project-name=ControllerCI
         displayName: 'Snyk monitor'
         env:
           SNYK_TOKEN: $(snykToken)
