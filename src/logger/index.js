@@ -79,7 +79,7 @@ const logger = winston.createLogger({
           prepareObjectLogs(),
           formattedJson()
       ),
-      filename: 'iofog-controller.log.0',
+      filename: 'iofog-controller.log',
       dirname: dirname,
       maxsize: maxsize,
     }),

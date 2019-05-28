@@ -86,6 +86,10 @@ class Config extends BaseCLIHandler {
         name: 'off', alias: 'f', type: Boolean, description: 'Disable',
         group: [constants.CMD_DEV_MODE, constants.CMD_EMAIL_ACTIVATION],
       },
+      {
+        name: 'kubelet', alias: 't', type: String, description: 'iofog-kubelet url',
+        group: constants.CMD_ADD,
+      },
     ]
     this.commands = {
       [constants.CMD_ADD]: 'Add a new config value.',
@@ -208,6 +212,11 @@ const _addConfigOption = async function(options) {
     config.set('Service:LogsFileSize', options.logSize * 1024)
     onSuccess()
   })
+
+  await updateConfig(options.kubelet, 'kubelet', 'Kubelet:Uri', (onSuccess) => {
+    config.set('Kubelet:Uri', options.kubelet)
+    onSuccess()
+  })
 }
 
 const updateConfig = async function(newConfigValue, cliConfigName, configName, fn) {
@@ -238,6 +247,7 @@ const _listConfigOptions = function() {
     'Log files directory': config.get('Service:LogsDirectory'),
     'Log files size': config.get('Service:LogsFileSize'),
     'Dev mode': config.get('Server:DevMode'),
+    'Kubelet Url': config.get('Kubelet:Uri'),
   }
 
   const result = Object.keys(configuration)
