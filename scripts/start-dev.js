@@ -18,6 +18,8 @@ function startDev() {
     env: {
       'NODE_ENV': 'development',
       'PATH': process.env.PATH,
+      'DB_USERNAME': process.env.DB_USERNAME,
+      'DB_PASSWORD': process.env.DB_PASSWORD,
     },
     stdio: [process.stdin, process.stdout, process.stderr],
   }

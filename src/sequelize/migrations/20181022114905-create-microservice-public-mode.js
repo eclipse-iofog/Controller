@@ -28,13 +28,13 @@ module.exports = {
         onDelete: 'set null',
       },
       microservicePortId: {
-        type: Sequelize.TEXT,
+        type: Sequelize.INTEGER,
         field: 'microservice_port_id',
         references: { model: 'MicroservicePorts', key: 'id' },
         onDelete: 'set null',
       },
       connectorPortId: {
-        type: Sequelize.TEXT,
+        type: Sequelize.INTEGER,
         field: 'connector_port_id',
         references: { model: 'ConnectorPorts', key: 'id' },
         onDelete: 'set null',

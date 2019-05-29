@@ -31,7 +31,7 @@ module.exports = {
     }).then(() => {
       return queryInterface.bulkUpdate('CatalogItems',
           {
-            is_public: 1,
+            is_public: true,
           },
           {
             name: 'Common Logging',
@@ -69,7 +69,7 @@ module.exports = {
     }).then(() => {
       return queryInterface.bulkUpdate('CatalogItems',
           {
-            is_public: 0,
+            is_public: false,
           },
           {
             name: 'Common Logging',

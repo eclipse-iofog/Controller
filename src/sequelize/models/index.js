@@ -4,10 +4,11 @@ const fs = require('fs')
 const path = require('path')
 const Sequelize = require('sequelize')
 const Umzug = require('umzug')
+const { Client } = require('pg')
 
 const basename = path.basename(__filename)
 const env = process.env.NODE_ENV || 'production'
-const config = require(__dirname + '/../config/config.json')[env]
+const config = require(__dirname + '/../config/config.js')[env]
 const db = {}
 
 let sequelize
@@ -17,7 +18,7 @@ config.storage = path.resolve(__dirname, '../' + config.storage)
 if (config.use_env_variable) {
   sequelize = new Sequelize(process.env[config.use_env_variable], config)
 } else {
-  sequelize = new Sequelize(config.database, config.username, config.password, config)
+  sequelize = new Sequelize(config)
 }
 
 const createUmzug = (path) => {
@@ -59,5 +60,28 @@ db.Sequelize = Sequelize
 
 db.migrate = () => createUmzug(path.resolve(__dirname, '../migrations')).up()
 db.seed = () => createUmzug(path.resolve(__dirname, '../seeders')).up()
+db.createDatabase = async () => {
+  const database = config.database
+
+  const client = new Client({
+    user: config.username,
+    password: config.password,
+    database: 'postgres',
+  })
+
+  await client.connect()
+
+  // const res = await client.query(`SELECT 1 FROM pg_catalog.pg_database WHERE datname = '${database}';`)
+  // if (res.rowCount === 0) {
+  //   await client.query(`CREATE DATABASE '${database}';`)
+  // }
+  try {
+    await client.query('CREATE DATABASE $1', [database])
+  } catch (err) {
+    debugger
+  }
+
+  await client.end()
+}
 
 module.exports = db

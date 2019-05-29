@@ -19,6 +19,8 @@ function init() {
     env: {
       'NODE_ENV': 'production',
       'PATH': process.env.PATH,
+      'DB_USERNAME': process.env.DB_USERNAME,
+      'DB_PASSWORD': process.env.DB_PASSWORD,
     },
     stdio: [process.stdin, process.stdout, process.stderr],
   }

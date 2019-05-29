@@ -4,7 +4,7 @@ module.exports = {
   up: (queryInterface, Sequelize) => {
     return queryInterface.bulkInsert('FogTypes', [
       {
-        ID: 0,
+        id: 0,
         name: 'Unspecified',
         image: 'iointegrator0.png',
         description: 'Unspecified device. Fog Type will be selected on provision',
@@ -13,7 +13,7 @@ module.exports = {
         bluetooth_catalog_item_id: 2,
       },
       {
-        ID: 1,
+        id: 1,
         name: 'Standard Linux (x86)',
         image: 'iointegrator1.png',
         description: 'A standard Linux server of at least moderate processing power and capacity. ' +
@@ -23,7 +23,7 @@ module.exports = {
         bluetooth_catalog_item_id: 2,
       },
       {
-        ID: 2,
+        id: 2,
         name: 'ARM Linux',
         image: 'iointegrator2.png',
         description: 'A version of ioFog meant to run on Linux systems with ARM processors. ' +
