@@ -62,6 +62,7 @@ async function updateConnector (connectorData, transaction) {
   const updatedConnector = await ConnectorManager.findOne({ publicIp: connectorData.publicIp }, transaction)
   await MicroserviceService.updateRouteOverConnector(updatedConnector, transaction)
   await MicroserviceService.updatePortMappingOverConnector(updatedConnector, transaction)
+  return updatedConnector
 }
 
 async function deleteConnector (connectorData, transaction) {

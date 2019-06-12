@@ -29,7 +29,10 @@ const deleteConnectorEndPoint = async function (req) {
 }
 
 const listConnectorEndPoint = async function (req) {
-  return ConnectorService.getConnectorList()
+  const res = await ConnectorService.getConnectorList()
+  return {
+    connectors: res,
+  }
 }
 
 module.exports = {
