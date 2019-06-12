@@ -77,7 +77,7 @@ async function deleteConnector (connectorData, transaction) {
   if (ports && ports.length > 0) {
     throw new Errors.ValidationError(ErrorMessages.CONNECTOR_IS_IN_USE)
   }
-  return ConnectorManager.delete(queryConnectorData, transaction)
+  await ConnectorManager.delete(queryConnectorData, transaction)
 }
 
 async function getConnectorList (transaction) {

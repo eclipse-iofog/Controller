@@ -104,7 +104,7 @@ module.exports = [
     middleware: async (req, res) => {
       logger.apiReq(req)
 
-      const successCode = constants.HTTP_CODE_SUCCESS
+      const successCode = constants.HTTP_CODE_NO_CONTENT
       const errorCodes = [
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
