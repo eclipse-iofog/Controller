@@ -22,7 +22,7 @@ const Op = require('sequelize').Op
 const ConnectorPortManager = require('../sequelize/managers/connector-port-manager')
 const MicroserviceService = require('../services/microservices-service')
 
-async function createConnector(connectorData, transaction) {
+async function createConnector (connectorData, transaction) {
   await Validator.validate(connectorData, Validator.schemas.connectorCreate)
   _validateConnectorData(connectorData)
   const connector = await ConnectorManager.findOne({
@@ -41,10 +41,10 @@ async function createConnector(connectorData, transaction) {
   if (connector) {
     throw new Errors.ValidationError(ErrorMessages.ALREADY_EXISTS)
   }
-  return await ConnectorManager.create(connectorData, transaction)
+  return ConnectorManager.create(connectorData, transaction)
 }
 
-async function updateConnector(connectorData, transaction) {
+async function updateConnector (connectorData, transaction) {
   await Validator.validate(connectorData, Validator.schemas.connectorUpdate)
   _validateConnectorData(connectorData)
   const queryConnectorData = {
@@ -62,9 +62,10 @@ async function updateConnector(connectorData, transaction) {
   const updatedConnector = await ConnectorManager.findOne({ publicIp: connectorData.publicIp }, transaction)
   await MicroserviceService.updateRouteOverConnector(updatedConnector, transaction)
   await MicroserviceService.updatePortMappingOverConnector(updatedConnector, transaction)
+  return updatedConnector
 }
 
-async function deleteConnector(connectorData, transaction) {
+async function deleteConnector (connectorData, transaction) {
   await Validator.validate(connectorData, Validator.schemas.connectorDelete)
   const queryConnectorData = {
     publicIp: connectorData.publicIp,
@@ -80,11 +81,11 @@ async function deleteConnector(connectorData, transaction) {
   await ConnectorManager.delete(queryConnectorData, transaction)
 }
 
-async function getConnectorList(transaction) {
-  return await ConnectorManager.findAll({}, transaction)
+async function getConnectorList (transaction) {
+  return ConnectorManager.findAll({}, transaction)
 }
 
-function _validateConnectorData(connectorData) {
+function _validateConnectorData (connectorData) {
   if (connectorData.domain) {
     const validDomain = AppHelper.isValidDomain(connectorData.domain) || AppHelper.isValidPublicIP(connectorData.domain)
     if (!validDomain) {
