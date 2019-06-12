@@ -93,7 +93,7 @@ jobs:
           git config --global user.name "Azure DevOps"
 
           PACKAGE_VERSION=$(cat package.json | grep version | head -1 | awk -F: '{ print $2 }' | sed 's/[\",]//g' | tr -d '[[:space:]]')
-          npm --no-git-tag-version version $PACKAGE_VERSION-rc-$(Build.BuildNumber)
+          npm --no-git-tag-version version $PACKAGE_VERSION-b$(Build.BuildId)
         displayName: 'npm version'
 
       - script: |
