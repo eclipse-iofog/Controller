@@ -28,11 +28,11 @@ module.exports = [
       const responseObject = await statusControllerEndPoint(req)
 
       res
-        .status(responseObject.code)
-        .send(responseObject.body)
+          .status(responseObject.code)
+          .send(responseObject.body)
 
       logger.apiRes({ req: req, res: responseObject })
-    }
+    },
   },
   {
     method: 'get',
@@ -46,11 +46,11 @@ module.exports = [
       const responseObject = await emailActivationEndPoint(req)
 
       res
-        .status(responseObject.code)
-        .send(responseObject.body)
+          .status(responseObject.code)
+          .send(responseObject.body)
 
       logger.apiRes({ req: req, res: responseObject })
-    }
+    },
   },
   {
     method: 'get',
@@ -64,10 +64,10 @@ module.exports = [
       const responseObject = await fogTypesEndPoint(req)
 
       res
-        .status(responseObject.code)
-        .send(responseObject.body)
+          .status(responseObject.code)
+          .send(responseObject.body)
 
       logger.apiRes({ req: req, res: responseObject })
-    }
-  }
+    },
+  },
 ]
