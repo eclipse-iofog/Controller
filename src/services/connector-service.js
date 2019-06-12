@@ -28,15 +28,15 @@ async function createConnector (connectorData, transaction) {
   const connector = await ConnectorManager.findOne({
     [Op.or]: [
       {
-        name: connectorData.name
+        name: connectorData.name,
       },
       {
-        publicIp: connectorData.publicIp
+        publicIp: connectorData.publicIp,
       },
       {
-        domain: connectorData.domain
-      }
-    ]
+        domain: connectorData.domain,
+      },
+    ],
   }, transaction)
   if (connector) {
     throw new Errors.ValidationError(ErrorMessages.ALREADY_EXISTS)
@@ -48,11 +48,11 @@ async function updateConnector (connectorData, transaction) {
   await Validator.validate(connectorData, Validator.schemas.connectorUpdate)
   _validateConnectorData(connectorData)
   const queryConnectorData = {
-    publicIp: connectorData.publicIp
+    publicIp: connectorData.publicIp,
   }
 
   const connector = await ConnectorManager.findOne({
-    publicIp: connectorData.publicIp
+    publicIp: connectorData.publicIp,
   }, transaction)
   if (!connector) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_CONNECTOR_IP, connectorData.publicIp))
@@ -67,7 +67,7 @@ async function updateConnector (connectorData, transaction) {
 async function deleteConnector (connectorData, transaction) {
   await Validator.validate(connectorData, Validator.schemas.connectorDelete)
   const queryConnectorData = {
-    publicIp: connectorData.publicIp
+    publicIp: connectorData.publicIp,
   }
   const connector = await ConnectorManager.findOne(queryConnectorData, transaction)
   if (!connector) {
@@ -101,5 +101,5 @@ module.exports = {
   createConnector: TransactionDecorator.generateTransaction(createConnector),
   updateConnector: TransactionDecorator.generateTransaction(updateConnector),
   deleteConnector: TransactionDecorator.generateTransaction(deleteConnector),
-  getConnectorList: TransactionDecorator.generateTransaction(getConnectorList)
+  getConnectorList: TransactionDecorator.generateTransaction(getConnectorList),
 }
