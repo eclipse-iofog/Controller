@@ -174,7 +174,7 @@ describe('Connector Service', () => {
     def('isValidDomainResponse', () => false)
     def('isValidPublicIpResponse', () => true)
     def('isValidPublicIpResponse2', () => true)
-    def('updateConnectorResponse', () => Promise.resolve())
+    def('updateConnectorResponse', () => Promise.resolve(connectorData))
     def('findOneConnectorResponse', () => Promise.resolve(connector))
     def('updateRouteOverConnectorResponse', () => Promise.resolve())
     def('updatePortMappingOverConnectorResponse', () => Promise.resolve())
@@ -218,7 +218,7 @@ describe('Connector Service', () => {
         def('isValidDomainResponse', () => error)
 
         it(`fails with ${error}`, () => {
-          return expect($subject).to.eventually.equal(undefined)
+          return expect($subject).to.eventually.equal(connector)
         })
       })
 
@@ -232,7 +232,7 @@ describe('Connector Service', () => {
           def('isValidPublicIpResponse', () => error)
 
           it(`fails with ${error}`, () => {
-            return expect($subject).to.eventually.equal(undefined)
+            return expect($subject).to.eventually.equal(connector)
           })
         })
 
@@ -246,7 +246,7 @@ describe('Connector Service', () => {
             def('isValidPublicIpResponse2', () => error)
 
             it(`fails with ${error}`, () => {
-              return expect($subject).to.eventually.equal(undefined)
+              return expect($subject).to.eventually.equal(connector)
             })
           })
 
@@ -310,7 +310,7 @@ describe('Connector Service', () => {
 
                   context('when MicroserviceService#updatePortMappingOverConnector() succeeds', () => {
                     it('fulfills the promise', () => {
-                      return expect($subject).to.eventually.equal(undefined)
+                      return expect($subject).to.eventually.equal(connector)
                     })
                   })
                 })

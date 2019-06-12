@@ -11,7 +11,7 @@
  *
  */
 const constants = require('../helpers/constants')
-const Connector = require('../controllers/connector')
+const Connector = require('../controllers/connector-controller')
 const ResponseDecorator = require('../decorators/response-decorator')
 const logger = require('../logger')
 const Errors = require('../helpers/errors')
