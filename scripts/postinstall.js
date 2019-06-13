@@ -20,7 +20,7 @@ const currentVersion = require('../package').version
 const { restoreDBs, restoreConfigs, restoreTrackingUuid, INSTALLATION_VARIABLES_FILE } = require('./util')
 
 function postinstall() {
-// restore all files
+  // restore all files
   restoreDBs()
   restoreConfigs()
   restoreTrackingUuid()
@@ -61,6 +61,8 @@ function postinstall() {
       'DB_USERNAME': process.env.DB_USERNAME,
       'DB_PASSWORD': process.env.DB_PASSWORD,
       'DB_PROVIDER': process.env.DB_PROVIDER,
+      'DB_HOST': process.env.DB_HOST,
+      'DB_PORT': process.env.DB_PORT,
     },
     stdio: [process.stdin, process.stdout, process.stderr],
   }
@@ -78,7 +80,7 @@ function insertSeeds() {
     '20180928112152-insert-iofog-type.js',
     '20180928121334-insert-catalog-item-image.js',
   ]
-  sqlite3ProdDb.serialize(function() {
+  sqlite3ProdDb.serialize(function () {
     const stmt = sqlite3ProdDb.prepare('INSERT INTO SequelizeMeta (name) VALUES (?)')
     seeds.map((s) => stmt.run(s))
     stmt.finalize()
@@ -89,7 +91,7 @@ function insertSeeds() {
 function updateEncryptionMethodForUsersPassword(decryptionFunc) {
   console.log('    updating encryption in DB')
   const sqlite3ProdDb = new sqlite3.Database(prodDb)
-  sqlite3ProdDb.all('select id, email, password from Users', function(err, rows) {
+  sqlite3ProdDb.all('select id, email, password from Users', function (err, rows) {
     const stmt = sqlite3ProdDb.prepare('update Users set password=? where id=?')
 
     rows.map((user) => {
@@ -168,7 +170,7 @@ function updateLogName() {
     fs.readdirSync(dirname).forEach((file) => {
       const path = dirname + '/' + file
       if (fs.existsSync(path)) {
-        fs.unlinkSync(path, function(err) {
+        fs.unlinkSync(path, function (err) {
           if (err) return console.log(err)
           console.log('log deleted successfully')
         })
