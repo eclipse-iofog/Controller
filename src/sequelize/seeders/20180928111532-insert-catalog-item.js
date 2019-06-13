@@ -4,7 +4,6 @@ module.exports = {
   up: (queryInterface, Sequelize) => {
     return queryInterface.bulkInsert('CatalogItems', [
       {
-        id: 1,
         name: 'Networking Tool',
         description: 'The built-in networking tool for Eclipse ioFog.',
         category: 'SYSTEM',
@@ -18,7 +17,6 @@ module.exports = {
         user_id: null,
       },
       {
-        id: 2,
         name: 'RESTBlue',
         description: 'REST API for Bluetooth Low Energy layer.',
         category: 'SYSTEM',
@@ -32,7 +30,6 @@ module.exports = {
         user_id: null,
       },
       {
-        id: 3,
         name: 'HAL',
         description: 'REST API for Hardware Abstraction layer.',
         category: 'SYSTEM',
@@ -46,7 +43,6 @@ module.exports = {
         user_id: null,
       },
       {
-        id: 4,
         name: 'Diagnostics',
         description: '0',
         category: 'UTILITIES',
@@ -60,7 +56,6 @@ module.exports = {
         user_id: null,
       },
       {
-        id: 5,
         name: 'Hello Web Demo',
         description: 'A simple web server to test Eclipse ioFog.',
         category: 'UTILITIES',
@@ -74,7 +69,6 @@ module.exports = {
         user_id: null,
       },
       {
-        id: 6,
         name: 'Open Weather Map Data',
         description: 'A stream of data from the Open Weather Map API in JSON format',
         category: 'SENSORS',
@@ -88,7 +82,6 @@ module.exports = {
         user_id: null,
       },
       {
-        id: 7,
         name: 'JSON REST API',
         description: 'A configurable REST API that gives JSON output',
         category: 'UTILITIES',
@@ -102,7 +95,6 @@ module.exports = {
         user_id: null,
       },
       {
-        id: 8,
         name: 'Temperature Converter',
         description: 'A simple temperature format converter',
         category: 'UTILITIES',
@@ -116,7 +108,6 @@ module.exports = {
         user_id: null,
       },
       {
-        id: 9,
         name: 'JSON Sub-Select',
         description: 'Performs sub-selection and transform operations on any JSON messages',
         category: 'UTILITIES',
@@ -130,7 +121,6 @@ module.exports = {
         user_id: null,
       },
       {
-        id: 10,
         name: 'Humidity Sensor Simulator',
         description: 'Humidity Sensor Simulator for Eclipse ioFog',
         category: 'SIMULATOR',
@@ -144,7 +134,6 @@ module.exports = {
         user_id: null,
       },
       {
-        id: 11,
         name: 'Seismic Sensor Simulator',
         description: 'Seismic Sensor Simulator for Eclipse ioFog',
         category: 'SIMULATOR',
@@ -158,7 +147,6 @@ module.exports = {
         user_id: null,
       },
       {
-        id: 12,
         name: 'Temperature Sensor Simulator',
         description: 'Temperature Sensor Simulator for Eclipse ioFog',
         category: 'SIMULATOR',

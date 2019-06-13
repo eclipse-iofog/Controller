@@ -1,7 +1,7 @@
 module.exports = {
   development: {
     dialect: 'postgres',
-    logging: false,
+    logging: console.log,
     operatorsAliases: false,
     transactionType: 'IMMEDIATE',
     pool: {
@@ -10,9 +10,11 @@ module.exports = {
       min: 1,
       idle: 20000,
     },
-    database: process.env.DB_NAME || 'iofog-controller-dev',
+    database: 'iofog_controller_dev',
     username: process.env.DB_USERNAME,
     password: process.env.DB_PASSWORD,
+    host: process.env.DB_HOST || 'localhost',
+    port: process.env.DB_PORT || 5432,
   },
   test: {
     dialect: 'postgres',
@@ -25,9 +27,11 @@ module.exports = {
       min: 1,
       idle: 20000,
     },
-    database: process.env.DB_NAME || 'iofog-controller-test',
+    database: 'iofog_controller_test',
     username: process.env.DB_USERNAME,
     password: process.env.DB_PASSWORD,
+    host: process.env.DB_HOST || 'localhost',
+    port: process.env.DB_PORT || 5432,
   },
   production: {
     dialect: 'postgres',
@@ -40,8 +44,10 @@ module.exports = {
       min: 1,
       idle: 20000,
     },
-    database: 'iofog-controller',
+    database: 'iofog_controller',
     username: process.env.DB_USERNAME,
     password: process.env.DB_PASSWORD,
+    host: process.env.DB_HOST || 'localhost',
+    port: process.env.DB_PORT || 5432,
   },
 }
