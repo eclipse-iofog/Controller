@@ -11,7 +11,6 @@
  *
  */
 
-const config = require('../config')
 const request = require('request-promise')
 
 const TransactionDecorator = require('../decorators/transaction-decorator')
@@ -30,6 +29,7 @@ const MicroserviceManager = require('../sequelize/managers/microservice-manager'
 const FogStates = require('../enums/fog-state')
 const TrackingDecorator = require('../decorators/tracking-decorator')
 const TrackingEventType = require('../enums/tracking-event-type')
+const config = require('../config')
 
 async function createFogEndPoint(fogData, user, isCLI, transaction) {
   await Validator.validate(fogData, Validator.schemas.iofogCreate)

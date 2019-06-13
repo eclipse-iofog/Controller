@@ -162,14 +162,16 @@ async function updateMicroserviceEndPoint(microserviceUuid, microserviceData, us
     throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.SYSTEM_MICROSERVICE_UPDATE, microserviceUuid))
   }
 
+  const iofogUuid = microserviceDataUpdate.iofogUuid || microservice.iofogUuid
+
   if (microserviceDataUpdate.name) {
     const userId = isCLI ? microservice.userId : user.id
     await _checkForDuplicateName(microserviceDataUpdate.name, { id: microserviceUuid }, userId, transaction)
   }
 
   // validate fog node
-  if (microserviceDataUpdate.iofogUuid) {
-    await IoFogService.getFog({ uuid: microserviceDataUpdate.iofogUuid }, user, isCLI, transaction)
+  if (iofogUuid) {
+    await IoFogService.getFog({ uuid: iofogUuid }, user, isCLI, transaction)
   }
 
   const updatedMicroservice = await MicroserviceManager.updateAndFind(query, microserviceDataUpdate, transaction)
@@ -189,10 +191,11 @@ async function updateMicroserviceEndPoint(microserviceUuid, microserviceData, us
   if (microserviceDataUpdate.iofogUuid && microserviceDataUpdate.iofogUuid !== microservice.iofogUuid) {
     await _moveRoutesToNewFog(updatedMicroservice, microservice.iofogUuid, user, transaction)
     await _movePublicModesToNewFog(updatedMicroservice, microservice.iofogUuid, user, transaction)
+    await _updateChangeTracking(true, microservice.iofogUuid, transaction)
   }
 
   // update change tracking for new fog
-  await _updateChangeTracking(!!microserviceData.config, microserviceDataUpdate.iofogUuid, transaction)
+  await _updateChangeTracking(!!microserviceData.config, iofogUuid, transaction)
 }
 
 async function _moveRoutesToNewFog(microservice, oldFogUuid, user, transaction) {
@@ -1017,7 +1020,6 @@ async function _createPortMappingOverConnector(microservice, portMappingData, us
     connectorPortId: connectorPort.id,
   }
   await MicroservicePublicModeManager.create(msPubModeData, transaction)
-
 
   await _switchOnUpdateFlagsForMicroservicesForPortMapping(microservice, true, transaction)
   const publicLink = _buildLink(connector.devMode ? 'http' : 'https', connector.publicIp, connectorPort.port2)
