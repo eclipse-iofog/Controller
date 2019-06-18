@@ -1,0 +1,37 @@
+{
+  "App": {
+    "Name": "iofog-controller"
+  },
+  "Kubelet": {
+    "Uri": "http://localhost:1234"
+  },
+  "Server": {
+    "Port": 54421,
+    "DevMode": false
+  },
+  "Email": {
+    "ActivationEnabled": false,
+    "HomeUrl": "https://google.com"
+  },
+  "Service": {
+    "LogsDirectory": "/var/log/iofog-controller",
+    "LogsFileSize": 1048576
+  },
+  "Settings": {
+    "DefaultJobIntervalSeconds": 120,
+    "UserTokenExpirationIntervalSeconds": 3600,
+    "FogTokenExpirationIntervalSeconds": 3600,
+    "FogStatusUpdateIntervalSeconds": 120,
+    "FogStatusFrequencySeconds": 60
+  },
+  "Diagnostics": {
+    "DiagnosticDir": "diagnostic"
+  },
+  "Database": {
+    "Provider": "postgres",
+    "Username": "postgres",
+    "Password": "#Bugs4Fun",
+    "Host": "localhost",
+    "Port": "5432"
+  }
+}

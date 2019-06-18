@@ -5,6 +5,7 @@ const path = require('path')
 const Sequelize = require('sequelize')
 const Umzug = require('umzug')
 const { Client } = require('pg')
+const serviceConfig = require('../../config')
 
 const basename = path.basename(__filename)
 const env = process.env.NODE_ENV || 'production'
@@ -12,7 +13,7 @@ const db = {}
 
 let sequelize
 
-let provider = process.env.DB_PROVIDER
+let provider = serviceConfig.get('Database:Provider') || process.env.DB_PROVIDER
 if (provider !== 'postgres') {
   provider = 'sqlite'
 }
