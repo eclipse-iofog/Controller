@@ -73,7 +73,6 @@
     "ejs": "2.6.1",
     "express": "4.16.4",
     "formidable": "1.2.1",
-    "fs": "0.0.1-security",
     "ftp": "0.3.10",
     "helmet": "3.15.0",
     "jsonschema": "1.2.4",
