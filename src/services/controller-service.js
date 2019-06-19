@@ -11,7 +11,7 @@
  *
  */
 
-const ioFogTypesManager = require('../sequelize/managers/iofog-type-manager')
+const ioFogTypesManager = require('../database/managers/iofog-type-manager')
 const Config = require('../config')
 const TransactionDecorator = require('../decorators/transaction-decorator')
 const packageJson = require('../../package')

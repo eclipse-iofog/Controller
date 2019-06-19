@@ -85,7 +85,7 @@
     "nodemailer-smtp-transport": "2.7.4",
     "os": "0.1.1",
     "path": "0.12.7",
-    "pg": "^7.11.0",
+    "pg": "7.11.0",
     "portscanner": "2.2.0",
     "qs": "6.6.0",
     "request-promise": "4.2.4",

@@ -1,17 +1,17 @@
 const { expect } = require('chai')
 const sinon = require('sinon')
 
-const ioFogManager = require('../../../src/sequelize/managers/iofog-manager')
+const ioFogManager = require('../../../src/database/managers/iofog-manager')
 const ioFogService = require('../../../src/services/iofog-service')
 const AppHelper = require('../../../src/helpers/app-helper')
 const Validator = require('../../../src/schemas')
 const ChangeTrackingService = require('../../../src/services/change-tracking-service')
 const CatalogService = require('../../../src/services/catalog-service')
-const MicroserviceManager = require('../../../src/sequelize/managers/microservice-manager')
-const ioFogProvisionKeyManager = require('../../../src/sequelize/managers/iofog-provision-key-manager')
-const ioFogVersionCommandManager = require('../../../src/sequelize/managers/iofog-version-command-manager')
-const HWInfoManager = require('../../../src/sequelize/managers/hw-info-manager')
-const USBInfoManager = require('../../../src/sequelize/managers/usb-info-manager')
+const MicroserviceManager = require('../../../src/database/managers/microservice-manager')
+const ioFogProvisionKeyManager = require('../../../src/database/managers/iofog-provision-key-manager')
+const ioFogVersionCommandManager = require('../../../src/database/managers/iofog-version-command-manager')
+const HWInfoManager = require('../../../src/database/managers/hw-info-manager')
+const USBInfoManager = require('../../../src/database/managers/usb-info-manager')
 
 describe('ioFog Service', () => {
   def('subject', () => ioFogService)

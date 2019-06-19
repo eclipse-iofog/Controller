@@ -1,11 +1,11 @@
 const { expect } = require('chai')
 const sinon = require('sinon')
 
-const RegistryManager = require('../../../src/sequelize/managers/registry-manager')
+const RegistryManager = require('../../../src/database/managers/registry-manager')
 const RegistryService = require('../../../src/services/registry-service')
 const Validator = require('../../../src/schemas')
 const AppHelper = require('../../../src/helpers/app-helper')
-const ioFogManager = require('../../../src/sequelize/managers/iofog-manager')
+const ioFogManager = require('../../../src/database/managers/iofog-manager')
 const ChangeTrackingService = require('../../../src/services/change-tracking-service')
 const Sequelize = require('sequelize')
 const Op = Sequelize.Op

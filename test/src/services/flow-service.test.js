@@ -1,7 +1,7 @@
 const { expect } = require('chai')
 const sinon = require('sinon')
 
-const FlowManager = require('../../../src/sequelize/managers/flow-manager')
+const FlowManager = require('../../../src/database/managers/flow-manager')
 const FlowService = require('../../../src/services/flow-service')
 const AppHelper = require('../../../src/helpers/app-helper')
 const Validator = require('../../../src/schemas')

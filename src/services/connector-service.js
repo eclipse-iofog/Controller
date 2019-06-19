@@ -13,13 +13,13 @@
 
 const TransactionDecorator = require('../decorators/transaction-decorator')
 const Validator = require('../schemas')
-const ConnectorManager = require('../sequelize/managers/connector-manager')
+const ConnectorManager = require('../database/managers/connector-manager')
 const Errors = require('../helpers/errors')
 const ErrorMessages = require('../helpers/error-messages')
 const AppHelper = require('../helpers/app-helper')
 const Op = require('sequelize').Op
 
-const ConnectorPortManager = require('../sequelize/managers/connector-port-manager')
+const ConnectorPortManager = require('../database/managers/connector-port-manager')
 const MicroserviceService = require('../services/microservices-service')
 
 async function createConnector (connectorData, transaction) {

@@ -11,7 +11,7 @@
  *
  */
 
-const ConnectorManager = require('../sequelize/managers/connector-manager')
+const ConnectorManager = require('../database/managers/connector-manager')
 const https = require('https')
 const http = require('http')
 const constants = require('../helpers/constants')

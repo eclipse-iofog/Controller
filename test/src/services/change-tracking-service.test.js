@@ -1,7 +1,7 @@
 const { expect } = require('chai')
 const sinon = require('sinon')
 
-const ChangeTrackingManager = require('../../../src/sequelize/managers/change-tracking-manager')
+const ChangeTrackingManager = require('../../../src/database/managers/change-tracking-manager')
 const ChangeTrackingService = require('../../../src/services/change-tracking-service')
 
 describe('ChangeTracking Service', () => {

@@ -11,7 +11,7 @@
  *
  */
 
-const AccessTokenManager = require('../sequelize/managers/access-token-manager')
+const AccessTokenManager = require('../database/managers/access-token-manager')
 
 const createAccessToken = async function(accessToken, transaction) {
   return await AccessTokenManager.create(accessToken, transaction)

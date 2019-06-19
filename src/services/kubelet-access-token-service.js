@@ -12,7 +12,7 @@
  */
 
 const AppHelper = require('../helpers/app-helper')
-const KubeletAccessTokenManager = require('../sequelize/managers/kubelet-access-token-manager')
+const KubeletAccessTokenManager = require('../database/managers/kubelet-access-token-manager')
 
 const Config = require('../config')
 

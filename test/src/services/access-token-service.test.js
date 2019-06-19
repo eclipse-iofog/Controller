@@ -1,7 +1,7 @@
 const { expect } = require('chai')
 const sinon = require('sinon')
 
-const AccessTokenManager = require('../../../src/sequelize/managers/access-token-manager')
+const AccessTokenManager = require('../../../src/database/managers/access-token-manager')
 const AccessTokenService = require('../../../src/services/access-token-service')
 
 describe('AccessToken Service', () => {

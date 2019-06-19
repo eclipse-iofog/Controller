@@ -19,7 +19,7 @@ const AppHelper = require('../helpers/app-helper')
 const Constants = require('../helpers/constants')
 const EventTypes = require('../enums/tracking-event-type')
 const logger = require('../logger')
-const TrackingEventManager = require('../sequelize/managers/tracking-event-manager')
+const TrackingEventManager = require('../database/managers/tracking-event-manager')
 const Transaction = require('sequelize/lib/transaction')
 
 

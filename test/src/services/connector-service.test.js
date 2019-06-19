@@ -1,12 +1,12 @@
 const { expect } = require('chai')
 const sinon = require('sinon')
 
-const ConnectorManager = require('../../../src/sequelize/managers/connector-manager')
+const ConnectorManager = require('../../../src/database/managers/connector-manager')
 const MicroserviceService = require('../../../src/services/microservices-service')
 const ConnectorService = require('../../../src/services/connector-service')
 const Validator = require('../../../src/schemas')
 const AppHelper = require('../../../src/helpers/app-helper')
-const ConnectorPortManager = require('../../../src/sequelize/managers/connector-port-manager')
+const ConnectorPortManager = require('../../../src/database/managers/connector-port-manager')
 const Sequelize = require('sequelize')
 const Op = Sequelize.Op
 

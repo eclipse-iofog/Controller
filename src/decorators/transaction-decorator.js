@@ -11,7 +11,7 @@
  *
  */
 
-const db = require('./../sequelize/models')
+const db = require('./../database/models')
 const retry = require('retry-as-promised')
 const sequelize = db.sequelize
 const Transaction = require('sequelize/lib/transaction')

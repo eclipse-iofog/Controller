@@ -11,8 +11,8 @@
  *
  */
 
-const TunnelManager = require('../sequelize/managers/tunnel-manager')
-const FogManager = require('../sequelize/managers/iofog-manager')
+const TunnelManager = require('../database/managers/tunnel-manager')
+const FogManager = require('../database/managers/iofog-manager')
 const Config = require('../config')
 const AppHelper = require('../helpers/app-helper')
 const Validator = require('../schemas')

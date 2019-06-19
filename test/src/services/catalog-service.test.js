@@ -1,17 +1,17 @@
 const { expect } = require('chai')
 const sinon = require('sinon')
 
-const CatalogItemManager = require('../../../src/sequelize/managers/catalog-item-manager')
+const CatalogItemManager = require('../../../src/database/managers/catalog-item-manager')
 const CatalogService = require('../../../src/services/catalog-service')
 const Validator = require('../../../src/schemas')
-const CatalogItemImageManager = require('../../../src/sequelize/managers/catalog-item-image-manager')
-const CatalogItemInputTypeManager = require('../../../src/sequelize/managers/catalog-item-input-type-manager')
-const CatalogItemOutputTypeManager = require('../../../src/sequelize/managers/catalog-item-output-type-manager')
-const RegistryManager = require('../../../src/sequelize/managers/registry-manager')
+const CatalogItemImageManager = require('../../../src/database/managers/catalog-item-image-manager')
+const CatalogItemInputTypeManager = require('../../../src/database/managers/catalog-item-input-type-manager')
+const CatalogItemOutputTypeManager = require('../../../src/database/managers/catalog-item-output-type-manager')
+const RegistryManager = require('../../../src/database/managers/registry-manager')
 const AppHelper = require('../../../src/helpers/app-helper')
 const Sequelize = require('sequelize')
 const Op = Sequelize.Op
-const MicroserviceManager = require('../../../src/sequelize/managers/microservice-manager')
+const MicroserviceManager = require('../../../src/database/managers/microservice-manager')
 
 describe('Catalog Service', () => {
   def('subject', () => CatalogService)

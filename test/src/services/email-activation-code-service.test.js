@@ -1,7 +1,7 @@
 const { expect } = require('chai')
 const sinon = require('sinon')
 
-const EmailActivationCodeManager = require('../../../src/sequelize/managers/email-activation-code-manager')
+const EmailActivationCodeManager = require('../../../src/database/managers/email-activation-code-manager')
 const EmailActivationCodeService = require('../../../src/services/email-activation-code-service')
 const AppHelper = require('../../../src/helpers/app-helper')
 const ErrorMessages = require('../../../src/helpers/error-messages')

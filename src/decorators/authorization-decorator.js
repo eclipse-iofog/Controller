@@ -12,10 +12,10 @@
  */
 const logger = require('../logger')
 const config = require('../config')
-const UserManager = require('../sequelize/managers/user-manager')
-const AccessTokenManager = require('../sequelize/managers/access-token-manager')
-const FogManager = require('../sequelize/managers/iofog-manager')
-const FogAccessTokenManager = require('../sequelize/managers/iofog-access-token-manager')
+const UserManager = require('../database/managers/user-manager')
+const AccessTokenManager = require('../database/managers/access-token-manager')
+const FogManager = require('../database/managers/iofog-manager')
+const FogAccessTokenManager = require('../database/managers/iofog-access-token-manager')
 const Errors = require('../helpers/errors')
 const { isTest } = require('../helpers/app-helper')
 

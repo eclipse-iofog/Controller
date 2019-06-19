@@ -12,7 +12,7 @@
  */
 
 const AppHelper = require('../helpers/app-helper')
-const FogAccessTokenManager = require('../sequelize/managers/iofog-access-token-manager')
+const FogAccessTokenManager = require('../database/managers/iofog-access-token-manager')
 
 const Config = require('../config')
 

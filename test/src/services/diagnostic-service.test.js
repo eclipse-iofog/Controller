@@ -1,13 +1,13 @@
 const { expect } = require('chai')
 const sinon = require('sinon')
-const StraceDiagnosticManager = require('../../../src/sequelize/managers/strace-diagnostics-manager')
+const StraceDiagnosticManager = require('../../../src/database/managers/strace-diagnostics-manager')
 const DiagnosticService = require('../../../src/services/diagnostic-service')
 const FtpClient = require('ftp')
 const fs = require('fs')
 const MicroserviceService = require('../../../src/services/microservices-service')
 const ChangeTrackingService = require('../../../src/services/change-tracking-service')
 const Validator = require('../../../src/schemas')
-const MicroserviceManager = require('../../../src/sequelize/managers/microservice-manager')
+const MicroserviceManager = require('../../../src/database/managers/microservice-manager')
 const Config = require('../../../src/config')
 
 describe('DiagnosticService Service', () => {
