@@ -17,6 +17,7 @@ variables:
   group: 'pipelines'
   repository: 'focal-freedom-236620/controller'
   primaryTag: $(Build.SourceBranchName)
+  releaseCandidate: 'rc1'
 
 jobs:
   - job: Platform
@@ -93,7 +94,11 @@ jobs:
           git config --global user.name "Azure DevOps"
 
           PACKAGE_VERSION=$(cat package.json | grep version | head -1 | awk -F: '{ print $2 }' | sed 's/[\",]//g' | tr -d '[[:space:]]')
-          npm --no-git-tag-version version $PACKAGE_VERSION-b$(Build.BuildId)
+          if [[ $(Build.SourceBranch) == refs/heads/release* ]]; then
+            npm --no-git-tag-version version $PACKAGE_VERSION-$(releaseCandidate)-b$(Build.BuildId)
+          else
+            npm --no-git-tag-version version $PACKAGE_VERSION-b$(Build.BuildId)
+          fi
         displayName: 'npm version'
 
       - script: |
