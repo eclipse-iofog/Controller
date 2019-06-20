@@ -29,7 +29,6 @@ class Start extends BaseCLIHandler {
     const pid = daemon.status()
 
     if (pid === 0) {
-      this.initDB()
       daemon.start()
       await checkDaemon(daemon, configuration)
     } else {
