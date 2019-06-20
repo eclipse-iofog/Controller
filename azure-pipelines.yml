@@ -100,7 +100,7 @@ jobs:
           echo "##vso[task.setvariable variable=controller_tar]$tar"
 
           echo 'setting secondary tag'
-          echo "##vso[task.setvariable variable=secondaryTag]$(Build.BuildId)"
+          echo "##vso[task.setvariable variable=secondaryTag]b-$(Build.BuildId)"
 
           if [[ $(Build.SourceBranch) == refs/heads/release* ]]; then
             echo "##vso[task.setvariable variable=primaryTag]rc-$(Build.SourceBranchName)"
