@@ -57,12 +57,12 @@ jobs:
       - script: |
           echo "##vso[task.setvariable variable=agent.jobstatus;]canceled"
           echo "##vso[task.complete result=Canceled;]DONE"
+        condition: eq(variables['Build.Reason'], 'PullRequest')
 
       - script: |
           npm pack
           ls iofogcontroller-*.tgz
         displayName: 'npm pack for release artefact'
-        condition: ne(variables['Build.Reason'], 'PullRequest')
 
       - task: CopyFiles@2
         inputs:
