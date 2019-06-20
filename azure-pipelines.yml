@@ -12,6 +12,7 @@ trigger:
 
 pr:
   - master
+  - develop
 
 variables:
   group: 'pipelines'
@@ -54,9 +55,14 @@ jobs:
         displayName: 'integration tests'
 
       - script: |
+          echo "##vso[task.setvariable variable=agent.jobstatus;]canceled"
+          echo "##vso[task.complete result=Canceled;]DONE"
+
+      - script: |
           npm pack
           ls iofogcontroller-*.tgz
         displayName: 'npm pack for release artefact'
+        condition: ne(variables['Build.Reason'], 'PullRequest')
 
       - task: CopyFiles@2
         inputs:
