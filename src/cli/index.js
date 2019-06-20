@@ -60,7 +60,9 @@ class Cli extends BaseCLIHandler {
     }
   }
 
-  run(daemon) {
+  async run(daemon) {
+    await Start.initDB()
+
     const mainCommand = this.parseCommandLineArgs(this.commandDefinitions)
     const argv = mainCommand._unknown || []
 
@@ -70,7 +72,7 @@ class Cli extends BaseCLIHandler {
       case constants.CMD_STOP:
         return daemon.stop()
       case constants.CMD_INIT_DB:
-        return Start.initDB()
+        return
       case constants.CMD_CONTROLLER:
         return Controller.run({ argv })
       case constants.CMD_USER:
