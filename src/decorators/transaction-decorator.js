@@ -10,12 +10,27 @@
  *  *******************************************************************************
  *
  */
+const cq = require('concurrent-queue')
 
 const db = require('./../sequelize/models')
-const retry = require('retry-as-promised')
 const sequelize = db.sequelize
 const Transaction = require('sequelize/lib/transaction')
 const { isTest } = require('../helpers/app-helper')
+
+const transactionsQueue = cq()
+  .limit({ concurrency: 1 })
+  .process((task, cb) => {
+    task.transaction
+      .apply(task.that, task.args)
+      .then(res => {
+        debugger
+        cb(null, res)
+      })
+      .catch(err => {
+        debugger
+        cb(err, null)
+      })
+  })
 
 function transaction(f) {
   return async function(...fArgs) {
@@ -37,17 +52,33 @@ function transaction(f) {
   }
 }
 
+function startTransaction(resolve, reject, transaction, that, retries, ...args) {
+  const task = {
+    transaction,
+    that,
+    retries,
+    args,
+  }
+  transactionsQueue(task, (error, success) => {
+    if (error === null) {
+      return resolve(success)
+    }
+
+    if (retries < 1 || (error.message || '').indexOf('SQLITE_BUSY') === -1) {
+      return reject(error)
+    }
+
+    startTransaction(resolve, reject, transaction, that, retries - 1, ...args)
+  })
+}
+
+
 function generateTransaction(f) {
   return function(...args) {
-    return retry(() => {
-      const t = transaction(f)
-      return t.apply(this, args)
-    }, {
-      max: 5,
-      match: [
-        sequelize.ConnectionError,
-        'SQLITE_BUSY',
-      ],
+    const t = transaction(f)
+
+    return new Promise((resolve, reject) => {
+      startTransaction(resolve, reject, t, this, 5, ...args)
     })
   }
 }
@@ -72,15 +103,9 @@ function fakeTransaction(f) {
 // TODO [when transactions concurrency issue fixed]: Remove
 function generateFakeTransaction(f) {
   return function(...args) {
-    return retry(() => {
-      const t = fakeTransaction(f)
-      return t.apply(this, args)
-    }, {
-      max: 5,
-      match: [
-        sequelize.ConnectionError,
-        'SQLITE_BUSY',
-      ],
+    const t = fakeTransaction(f)
+    return new Promise((resolve, reject) => {
+      startTransaction(resolve, reject, t, this, 5, args)
     })
   }
 }
