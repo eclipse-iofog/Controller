@@ -22,14 +22,8 @@ const transactionsQueue = cq()
   .process((task, cb) => {
     task.transaction
       .apply(task.that, task.args)
-      .then(res => {
-        debugger
-        cb(null, res)
-      })
-      .catch(err => {
-        debugger
-        cb(err, null)
-      })
+      .then(res => cb(null, res))
+      .catch(err => cb(err, null))
   })
 
 function transaction(f) {
