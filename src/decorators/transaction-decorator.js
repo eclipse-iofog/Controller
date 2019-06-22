@@ -18,13 +18,13 @@ const Transaction = require('sequelize/lib/transaction')
 const { isTest } = require('../helpers/app-helper')
 
 const transactionsQueue = cq()
-  .limit({ concurrency: 1 })
-  .process((task, cb) => {
-    task.transaction
-      .apply(task.that, task.args)
-      .then(res => cb(null, res))
-      .catch(err => cb(err, null))
-  })
+    .limit({ concurrency: 1 })
+    .process((task, cb) => {
+      task.transaction
+          .apply(task.that, task.args)
+          .then((res) => cb(null, res))
+          .catch((err) => cb(err, null))
+    })
 
 function transaction(f) {
   return async function(...fArgs) {
@@ -32,12 +32,9 @@ function transaction(f) {
       return await f.apply(this, fArgs)
     }
 
-    // TODO [when transactions concurrency issue fixed]: Remove 'fArgs[fArgs.length - 1].fakeTransaction'
-    if (fArgs.length > 0 && fArgs[fArgs.length - 1]
-      && (fArgs[fArgs.length - 1] instanceof Transaction || fArgs[fArgs.length - 1].fakeTransaction)) {
+    if (fArgs.length > 0 && fArgs[fArgs.length - 1] && (fArgs[fArgs.length - 1] instanceof Transaction)) {
       return await f.apply(this, fArgs)
     } else {
-    // return f.apply(this, fArgs)
       return sequelize.transaction(async (t) => {
         fArgs.push(t)
         return await f.apply(this, fArgs)
@@ -46,13 +43,14 @@ function transaction(f) {
   }
 }
 
-function startTransaction(resolve, reject, transaction, that, retries, ...args) {
+function queueTransaction(resolve, reject, transaction, that, retries, ...args) {
   const task = {
     transaction,
     that,
     retries,
     args,
   }
+
   transactionsQueue(task, (error, success) => {
     if (error === null) {
       return resolve(success)
@@ -62,49 +60,32 @@ function startTransaction(resolve, reject, transaction, that, retries, ...args) 
       return reject(error)
     }
 
-    startTransaction(resolve, reject, transaction, that, retries - 1, ...args)
+    queueTransaction(resolve, reject, transaction, that, retries - 1, ...args)
   })
 }
 
+function applyTransaction(resolve, reject, transaction, that, ...args) {
+  transaction.apply(that, args)
+      .then(resolve)
+      .catch((error) => {
+        if ((error.message || '').indexOf('SQLITE_BUSY') === -1) {
+          return reject(error)
+        }
+
+        queueTransaction(resolve, reject, t, this, 5, ...args)
+      })
+}
 
 function generateTransaction(f) {
   return function(...args) {
     const t = transaction(f)
 
     return new Promise((resolve, reject) => {
-      startTransaction(resolve, reject, t, this, 5, ...args)
-    })
-  }
-}
-
-function fakeTransaction(f) {
-  const fakeTransactionObject = { fakeTransaction: true }
-  return async function(...fArgs) {
-    if (isTest()) {
-      return await f.apply(this, fArgs)
-    }
-
-    if (fArgs.length > 0 && fArgs[fArgs.length - 1] instanceof Transaction) {
-      fArgs[fArgs.length - 1] = fakeTransactionObject
-      return await f.apply(this, fArgs)
-    } else {
-      fArgs.push(fakeTransactionObject)
-      return await f.apply(this, fArgs)
-    }
-  }
-}
-
-// TODO [when transactions concurrency issue fixed]: Remove
-function generateFakeTransaction(f) {
-  return function(...args) {
-    const t = fakeTransaction(f)
-    return new Promise((resolve, reject) => {
-      startTransaction(resolve, reject, t, this, 5, args)
+      applyTransaction(resolve, reject, t, this, ...args)
     })
   }
 }
 
 module.exports = {
   generateTransaction: generateTransaction,
-  generateFakeTransaction: generateFakeTransaction,
 }
