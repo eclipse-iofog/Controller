@@ -4,3 +4,6 @@ node_modules
 .nyc_output
 /.idea
 /src/config/tracking-uuid
+*.sqlite-shm
+*.sqlite-wal
+*.pid

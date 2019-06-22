@@ -11,11 +11,12 @@
  *
  */
 const cq = require('concurrent-queue')
+const Transaction = require('sequelize/lib/transaction')
 
 const db = require('./../sequelize/models')
-const sequelize = db.sequelize
-const Transaction = require('sequelize/lib/transaction')
 const { isTest } = require('../helpers/app-helper')
+
+const sequelize = db.sequelize
 
 const transactionsQueue = cq()
     .limit({ concurrency: 1 })
@@ -27,17 +28,17 @@ const transactionsQueue = cq()
     })
 
 function transaction(f) {
-  return async function(...fArgs) {
+  return function(...fArgs) {
     if (isTest()) {
-      return await f.apply(this, fArgs)
+      return f.apply(this, fArgs)
     }
 
     if (fArgs.length > 0 && fArgs[fArgs.length - 1] && (fArgs[fArgs.length - 1] instanceof Transaction)) {
-      return await f.apply(this, fArgs)
+      return f.apply(this, fArgs)
     } else {
-      return sequelize.transaction(async (t) => {
+      return sequelize.transaction((t) => {
         fArgs.push(t)
-        return await f.apply(this, fArgs)
+        return f.apply(this, fArgs)
       })
     }
   }
@@ -72,7 +73,7 @@ function applyTransaction(resolve, reject, transaction, that, ...args) {
           return reject(error)
         }
 
-        queueTransaction(resolve, reject, t, this, 5, ...args)
+        queueTransaction(resolve, reject, transaction, this, 5, ...args)
       })
 }
 

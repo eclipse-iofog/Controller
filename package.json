@@ -68,7 +68,6 @@
     "command-line-args": "5.0.2",
     "command-line-usage": "5.0.5",
     "concurrent-queue": "7.0.2",
-    "continuation-local-storage": "3.2.1",
     "cookie-parser": "1.4.3",
     "daemonize2": "0.4.2",
     "ejs": "2.6.1",
