@@ -39,7 +39,7 @@ class TimeTrackingJob extends BaseJobHandler {
   async trackTime() {
     let agentsCount = 0
     try {
-      const agents = await TransactionDecorator.generateFakeTransaction(FogAccessTokenService.all)()
+      const agents = await TransactionDecorator.generateTransaction(FogAccessTokenService.all)()
       agentsCount = (agents || []).length
     } catch (e) {
       logger.warn('Unable to count ioFog agents')

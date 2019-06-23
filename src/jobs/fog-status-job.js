@@ -29,7 +29,7 @@ class FogStatusJob extends BaseJobHandler {
   }
 
   run() {
-    setInterval(TransactionDecorator.generateFakeTransaction(updateFogsConnectionStatus), this.scheduleTime)
+    setInterval(TransactionDecorator.generateTransaction(updateFogsConnectionStatus), this.scheduleTime)
   }
 }
 

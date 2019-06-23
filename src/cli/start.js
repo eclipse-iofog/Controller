@@ -38,8 +38,7 @@ class Start extends BaseCLIHandler {
 
   async initDB() {
     try {
-      await db.migrate()
-      await db.seed()
+      await db.initDB()
     } catch (err) {
       logger.error('Unable to initialize the database.', err)
       process.exit(1)
