@@ -13,10 +13,7 @@
 const cq = require('concurrent-queue')
 const Transaction = require('sequelize/lib/transaction')
 
-const db = require('./../sequelize/models')
 const { isTest } = require('../helpers/app-helper')
-
-const sequelize = db.sequelize
 
 const transactionsQueue = cq()
     .limit({ concurrency: 1 })
@@ -28,18 +25,18 @@ const transactionsQueue = cq()
     })
 
 function transaction(f) {
+  const fakeTransactionObject = { fakeTransaction: true }
   return function(...fArgs) {
     if (isTest()) {
       return f.apply(this, fArgs)
     }
 
-    if (fArgs.length > 0 && fArgs[fArgs.length - 1] && (fArgs[fArgs.length - 1] instanceof Transaction)) {
+    if (fArgs.length > 0 && fArgs[fArgs.length - 1] instanceof Transaction) {
+      fArgs[fArgs.length - 1] = fakeTransactionObject
       return f.apply(this, fArgs)
     } else {
-      return sequelize.transaction((t) => {
-        fArgs.push(t)
-        return f.apply(this, fArgs)
-      })
+      fArgs.push(fakeTransactionObject)
+      return f.apply(this, fArgs)
     }
   }
 }
