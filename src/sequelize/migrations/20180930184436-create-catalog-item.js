@@ -55,14 +55,14 @@ module.exports = {
       userId: {
         type: Sequelize.INTEGER,
         field: 'user_id',
-        references: {model: 'Users', key: 'id'},
+        references: { model: 'Users', key: 'id' },
         onDelete: 'cascade',
       },
       registryId: {
         type: Sequelize.INTEGER,
         field: 'registry_id',
         as: 'registryId',
-        references: {model: 'Registries', key: 'id'},
+        references: { model: 'Registries', key: 'id' },
         onDelete: 'set null',
         defaultValue: 1,
       },

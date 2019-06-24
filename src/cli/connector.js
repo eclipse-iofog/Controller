@@ -80,7 +80,7 @@ class Connector extends BaseCLIHandler {
 
   async run(args) {
     try {
-      const connectorCommand = this.parseCommandLineArgs(this.commandDefinitions, {argv: args.argv, partial: false})
+      const connectorCommand = this.parseCommandLineArgs(this.commandDefinitions, { argv: args.argv, partial: false })
 
       const command = connectorCommand.command.command
 
@@ -126,7 +126,7 @@ async function _executeCase(commands, commandName, f, isUserRequired) {
 
 async function _createConnector(obj) {
   const connector = _createConnectorObject(obj)
-  logger.cliReq('connector add', {args: connector})
+  logger.cliReq('connector add', { args: connector })
   try {
     await ConnectorService.createConnector(connector)
     logger.cliRes('Connector has been created successfully.')
@@ -137,7 +137,7 @@ async function _createConnector(obj) {
 
 async function _updateConnector(obj) {
   const connector = _createConnectorObject(obj)
-  logger.cliReq('connector update', {args: connector})
+  logger.cliReq('connector update', { args: connector })
   try {
     await ConnectorService.updateConnector(connector)
     logger.cliRes('Connector has been updated successfully.')
@@ -148,7 +148,7 @@ async function _updateConnector(obj) {
 
 async function _deleteConnector(obj) {
   const connector = _createConnectorObject(obj)
-  logger.cliReq('connector remove', {args: connector})
+  logger.cliReq('connector remove', { args: connector })
   try {
     await ConnectorService.deleteConnector(connector)
     logger.cliRes('Connector has been removed successfully.')

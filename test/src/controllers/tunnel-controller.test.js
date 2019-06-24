@@ -1,4 +1,4 @@
-const {expect} = require('chai')
+const { expect } = require('chai')
 const sinon = require('sinon')
 
 const TunnelController = require('../../../src/controllers/tunnel-controller')
@@ -33,7 +33,7 @@ describe('Tunnel Controller', () => {
     context('when action is "open"', async () => {
       it('calls TunnelService#openTunnel with correct args', async () => {
         await $subject
-        expect(TunnelService.openTunnel).to.have.been.calledWith({iofogUuid: $id}, $user, false)
+        expect(TunnelService.openTunnel).to.have.been.calledWith({ iofogUuid: $id }, $user, false)
       })
 
       context('when TunnelService#openTunnel fails', () => {
@@ -58,7 +58,7 @@ describe('Tunnel Controller', () => {
 
       it('calls TunnelService#closeTunnel with correct args', async () => {
         await $subject
-        expect(TunnelService.closeTunnel).to.have.been.calledWith({iofogUuid: $id}, $user)
+        expect(TunnelService.closeTunnel).to.have.been.calledWith({ iofogUuid: $id }, $user)
       })
 
       context('when TunnelService#closeTunnel fails', () => {
@@ -107,7 +107,7 @@ describe('Tunnel Controller', () => {
 
     it('calls TunnelService#findTunnel with correct args', async () => {
       await $subject
-      expect(TunnelService.findTunnel).to.have.been.calledWith({iofogUuid: $id}, $user)
+      expect(TunnelService.findTunnel).to.have.been.calledWith({ iofogUuid: $id }, $user)
     })
 
     context('when TunnelService#findTunnel fails', () => {

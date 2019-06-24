@@ -15,14 +15,14 @@ const signUp = {
   'id': '/signUp',
   'type': 'object',
   'properties': {
-    'firstName': {'type': 'string', 'minLength': 3},
-    'lastName': {'type': 'string', 'minLength': 3},
+    'firstName': { 'type': 'string', 'minLength': 3 },
+    'lastName': { 'type': 'string', 'minLength': 3 },
     'email': {
       'type': 'string',
       'pattern': '^(([^<>()\\[\\]\\\\.,;:\\s@"]+(\\.[^<>()\\[\\]\\\\.,;:\\s@"]+)*)|(".+"))@((\\[[0-9]{1,3}\\.[0-9]{1,3}' +
       '\\.[0-9]{1,3}\\.[0-9]{1,3}])|(([a-zA-Z\\-0-9]+\\.)+[a-zA-Z]{2,}))$',
     },
-    'password': {'type': 'string', 'minLength': 8},
+    'password': { 'type': 'string', 'minLength': 8 },
   },
   'required': ['email', 'password', 'firstName', 'lastName'],
   'additionalProperties': false,
@@ -37,7 +37,7 @@ const login = {
       'pattern': '^(([^<>()\\[\\]\\\\.,;:\\s@"]+(\\.[^<>()\\[\\]\\\\.,;:\\s@"]+)*)|(".+"))@((\\[[0-9]{1,3}\\.[0-9]{1,3}' +
       '\\.[0-9]{1,3}\\.[0-9]{1,3}])|(([a-zA-Z\\-0-9]+\\.)+[a-zA-Z]{2,}))$',
     },
-    'password': {'type': 'string'},
+    'password': { 'type': 'string' },
   },
   'required': ['email', 'password'],
   'additionalProperties': false,
@@ -61,7 +61,7 @@ const activateUser = {
   'id': '/activateUser',
   'type': 'object',
   'properties': {
-    'activationCode': {'type': 'string'},
+    'activationCode': { 'type': 'string' },
   },
   'required': ['activationCode'],
   'additionalProperties': false,
@@ -71,7 +71,7 @@ const activateUserCLI = {
   'id': '/activateUserCLI',
   'type': 'object',
   'properties': {
-    'email': {'type': 'string'},
+    'email': { 'type': 'string' },
   },
   'required': ['email'],
   'additionalProperties': false,
@@ -81,8 +81,8 @@ const updateUserProfile = {
   'id': '/updateUserProfile',
   'type': 'object',
   'properties': {
-    'firstName': {'type': 'string', 'minLength': 3},
-    'lastName': {'type': 'string', 'minLength': 3},
+    'firstName': { 'type': 'string', 'minLength': 3 },
+    'lastName': { 'type': 'string', 'minLength': 3 },
   },
   'required': [],
   'additionalProperties': false,
@@ -92,9 +92,9 @@ const updateUserProfileCLI = {
   'id': '/updateUserProfileCLI',
   'type': 'object',
   'properties': {
-    'firstName': {'type': 'string', 'minLength': 3},
-    'lastName': {'type': 'string', 'minLength': 3},
-    'password': {'type': 'string', 'minLength': 8},
+    'firstName': { 'type': 'string', 'minLength': 3 },
+    'lastName': { 'type': 'string', 'minLength': 3 },
+    'password': { 'type': 'string', 'minLength': 8 },
   },
   'required': [],
   'additionalProperties': false,
@@ -104,8 +104,8 @@ const updatePassword = {
   'id': '/updatePassword',
   'type': 'object',
   'properties': {
-    'oldPassword': {'type': 'string'},
-    'newPassword': {'type': 'string', 'minLength': 8},
+    'oldPassword': { 'type': 'string' },
+    'newPassword': { 'type': 'string', 'minLength': 8 },
   },
   'required': ['oldPassword', 'newPassword'],
   'additionalProperties': false,

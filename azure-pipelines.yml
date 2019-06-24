@@ -1,0 +1,170 @@
+trigger:
+  tags:
+    include:
+      - v.*
+  branches:
+    include:
+      - develop
+      - release*
+  paths:
+    exclude:
+      - README.md
+
+pr:
+  - master
+  - develop
+
+variables:
+  group: 'pipelines'
+  repository: 'focal-freedom-236620/controller'
+  primaryTag: $(Build.SourceBranchName)
+  releaseCandidate: 'rc1'
+
+jobs:
+  - job: Controller
+    pool:
+      vmImage: 'Ubuntu-16.04'
+
+    steps:
+      - task: NodeTool@0
+        inputs:
+          versionSpec: '8.x'
+        displayName: 'Install Node.js'
+
+      - script: |
+          npm install
+        displayName: 'npm install and build'
+
+      # When we are ready to enforce standardjs, remove redirection and remove '|| true' from the standard script in package.json
+      - script: |
+          npm run standard 2>&1 | tee standardjs.out
+        displayName: 'Standardjs report'
+
+      - script: |
+          npm run snyk -- --project-name=ControllerCI
+        displayName: 'Snyk monitor'
+        env:
+          SNYK_TOKEN: $(snykToken)
+
+      - script: |
+          npm test
+        displayName: 'unit tests'
+
+      - script: |
+          echo "npm test"
+        displayName: 'integration tests'
+
+      - script: |
+          echo "##vso[task.setvariable variable=agent.jobstatus;]canceled"
+          echo "##vso[task.complete result=Canceled;]DONE"
+        condition: eq(variables['Build.Reason'], 'PullRequest')
+
+      - script: |
+          npm pack
+          ls iofogcontroller-*.tgz
+        displayName: 'npm pack for release artefact'
+
+      - task: CopyFiles@2
+        inputs:
+          SourceFolder: $(System.DefaultWorkingDirectory)
+          TargetFolder: $(Build.ArtifactStagingDirectory)
+          Contents: |
+            standardjs.out
+            *.tgz
+            Dockerfile.dev
+          OverWrite: true
+        displayName: 'artefacts to publish'
+
+      - script: |
+          rm -fr iofogcontroller-*.tgz
+          git checkout package-lock.json
+          git config --global user.email "info@edgeworx.io"
+          git config --global user.name "Azure DevOps"
+
+          PACKAGE_VERSION=$(cat package.json | grep version | head -1 | awk -F: '{ print $2 }' | sed 's/[\",]//g' | tr -d '[[:space:]]')
+          if [[ $(Build.SourceBranch) == refs/heads/release* ]]; then
+            npm --no-git-tag-version version $PACKAGE_VERSION-$(releaseCandidate)-b$(Build.BuildId)
+          else
+            npm --no-git-tag-version version $PACKAGE_VERSION-b$(Build.BuildId)
+          fi
+        displayName: 'npm version'
+
+      - script: |
+          npm pack
+        displayName: 'npm pack with version containing build number'
+
+      - bash: |
+          echo 'checking pack file exists..'
+          tar=$(ls iofogcontroller-*.tgz)
+          echo $tar
+          echo "##vso[task.setvariable variable=controller_tar]$tar"
+
+          echo 'setting secondary tag'
+          echo "##vso[task.setvariable variable=secondaryTag]b-$(Build.BuildId)"
+
+          if [[ $(Build.SourceBranch) == refs/heads/release* ]]; then
+            echo "##vso[task.setvariable variable=primaryTag]rc-$(Build.SourceBranchName)"
+          #If branch starts with ref/tags, apply latest and version tag
+          elif [[ $(Build.SourceBranch) == refs/tags* ]]; then
+            primaryTag= echo $(primaryTag) | awk '{print substr($1,2);}'
+            echo $primaryTag
+            echo "##vso[task.setvariable variable=primaryTag]$primaryTag"
+            echo "##vso[task.setvariable variable=secondaryTag]latest"
+          fi
+        displayName: 'setting vars'
+        name: setvarStep
+
+      - task: Docker@2
+        displayName: 'build docker'
+        inputs:
+          containerRegistry: 'Edgeworx GCP'
+          repository: $(repository)
+          command: 'build'
+          Dockerfile: "Dockerfile.dev"
+          arguments: --build-arg FILENAME=$(controller_tar)
+          tags: |
+            $(secondaryTag)
+            $(primaryTag)
+
+      - task: Docker@2
+        displayName: 'push docker'
+        inputs:
+          containerRegistry: 'Edgeworx GCP'
+          repository: $(repository)
+          command: 'push'
+          Dockerfile: "Dockerfile.dev"
+          tags: |
+            $(secondaryTag)
+            $(primaryTag)
+
+      - script: |
+          echo "npm test"
+        displayName: 'api tests'
+
+      - task: PublishBuildArtifacts@1
+        inputs:
+          PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+          ArtifactName: 'controller'
+
+      - task: DownloadSecureFile@1
+        inputs:
+          secureFile: 'package_cloud'
+        displayName: 'download package cloud token file'
+
+      - task: UseRubyVersion@0
+        inputs:
+          versionSpec: '>= 2.5'
+          addToPath: true
+        displayName: 'install rubygem to be used to install package_cloud cli'
+
+      - script: |
+          gem install package_cloud
+          package_cloud -h
+          echo "config file..."
+          echo $DOWNLOADSECUREFILE_SECUREFILEPATH
+        displayName: 'install package_cloud cli'
+
+      - script: |
+          echo $(controller_tar)
+          package_cloud push iofog/iofog-controller-snapshots/node/1 $(controller_tar) --config=$DOWNLOADSECUREFILE_SECUREFILEPATH
+        displayName: 'push to package cloud'

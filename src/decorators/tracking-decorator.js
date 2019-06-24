@@ -11,7 +11,7 @@
  *
  */
 
-const {isTest} = require('../helpers/app-helper')
+const { isTest } = require('../helpers/app-helper')
 const Tracking = require('../tracking')
 
 function trackEvent(f, eventType) {

@@ -11,6 +11,8 @@
  *
  */
 
+const request = require('request-promise')
+
 const TransactionDecorator = require('../decorators/transaction-decorator')
 const AppHelper = require('../helpers/app-helper')
 const FogManager = require('../sequelize/managers/iofog-manager')
@@ -27,8 +29,9 @@ const MicroserviceManager = require('../sequelize/managers/microservice-manager'
 const FogStates = require('../enums/fog-state')
 const TrackingDecorator = require('../decorators/tracking-decorator')
 const TrackingEventType = require('../enums/tracking-event-type')
+const config = require('../config')
 
-async function createFog(fogData, user, isCLI, transaction) {
+async function createFogEndPoint(fogData, user, isCLI, transaction) {
   await Validator.validate(fogData, Validator.schemas.iofogCreate)
 
   let createFogData = {
@@ -76,15 +79,19 @@ async function createFog(fogData, user, isCLI, transaction) {
 
   await ChangeTrackingService.update(createFogData.uuid, ChangeTrackingService.events.microserviceCommon, transaction)
 
+  try {
+    await informKubelet(fog.uuid, 'POST')
+  } catch (e) {}
+
   return res
 }
 
-async function updateFog(fogData, user, isCLI, transaction) {
+async function updateFogEndPoint(fogData, user, isCLI, transaction) {
   await Validator.validate(fogData, Validator.schemas.iofogUpdate)
 
   const queryFogData = isCLI
-    ? {uuid: fogData.uuid}
-    : {uuid: fogData.uuid, userId: user.id}
+    ? { uuid: fogData.uuid }
+    : { uuid: fogData.uuid, userId: user.id }
 
   let updateFogData = {
     name: fogData.name,
@@ -144,90 +151,49 @@ async function updateFog(fogData, user, isCLI, transaction) {
   }
 }
 
-async function deleteFog(fogData, user, isCLI, transaction) {
+async function deleteFogEndPoint(fogData, user, isCLI, transaction) {
   await Validator.validate(fogData, Validator.schemas.iofogDelete)
 
   const queryFogData = isCLI
-    ? {uuid: fogData.uuid}
-    : {uuid: fogData.uuid, userId: user.id}
+    ? { uuid: fogData.uuid }
+    : { uuid: fogData.uuid, userId: user.id }
 
   const fog = await FogManager.findOne(queryFogData, transaction)
   if (!fog) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, fogData.uuid))
   }
   await _processDeleteCommand(fog, transaction)
+
+  try {
+    await informKubelet(fog.uuid, 'DELETE')
+  } catch (e) {}
 }
 
 async function getFog(fogData, user, isCLI, transaction) {
   await Validator.validate(fogData, Validator.schemas.iofogGet)
 
   const queryFogData = isCLI
-    ? {uuid: fogData.uuid}
-    : {uuid: fogData.uuid, userId: user.id}
+    ? { uuid: fogData.uuid }
+    : { uuid: fogData.uuid, userId: user.id }
 
   const fog = await FogManager.findOne(queryFogData, transaction)
   if (!fog) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, fogData.uuid))
   }
 
-  return {
-    uuid: fog.uuid,
-    name: fog.name,
-    location: fog.location,
-    gpsMode: fog.gpsMode,
-    latitude: fog.latitude,
-    longitude: fog.longitude,
-    description: fog.description,
-    lastActive: fog.lastActive,
-    daemonStatus: fog.daemonStatus,
-    daemonOperatingDuration: fog.daemonOperatingDuration,
-    daemonLastStart: fog.daemonLastStart,
-    memoryUsage: fog.memoryUsage,
-    diskUsage: fog.diskUsage,
-    cpuUsage: fog.cpuUsage,
-    memoryViolation: fog.memoryViolation,
-    diskViolation: fog.diskViolation,
-    cpuViolation: fog.cpuViolation,
-    catalogItemStatus: fog.catalogItemStatus,
-    repositoryCount: fog.repositoryCount,
-    repositoryStatus: fog.repositoryStatus,
-    systemTime: fog.systemTime,
-    lastStatusTime: fog.lastStatusTime,
-    ipAddress: fog.ipAddress,
-    processedMessages: fog.processedMessages,
-    catalogItemMessageCounts: fog.catalogItemMessageCounts,
-    messageSpeed: fog.messageSpeed,
-    lastCommandTime: fog.lastCommandTime,
-    networkInterface: fog.networkInterface,
-    dockerUrl: fog.dockerUrl,
-    diskLimit: fog.diskLimit,
-    diskDirectory: fog.diskDirectory,
-    memoryLimit: fog.memoryLimit,
-    cpuLimit: fog.cpuLimit,
-    logLimit: fog.logLimit,
-    logDirectory: fog.logDirectory,
-    bluetoothEnabled: fog.bluetoothEnabled,
-    abstractedHardwareEnabled: fog.abstractedHardwareEnabled,
-    logFileCount: fog.logFileCount,
-    version: fog.version,
-    isReadyToUpgrade: fog.isReadyToUpgrade,
-    isReadyToRollback: fog.isReadyToRollback,
-    statusFrequency: fog.statusFrequency,
-    changeFrequency: fog.changeFrequency,
-    deviceScanFrequency: fog.deviceScanFrequency,
-    tunnel: fog.tunnel,
-    watchdogEnabled: fog.watchdogEnabled,
-    fogTypeId: fog.fogTypeId,
-    userId: fog.userId,
-  }
+  return fog
 }
 
-async function getFogList(filters, user, isCLI, transaction) {
+async function getFogEndPoint(fogData, user, isCLI, transaction) {
+  return await getFog(fogData, user, isCLI, transaction)
+}
+
+async function getFogListEndPoint(filters, user, isCLI, transaction) {
   await Validator.validate(filters, Validator.schemas.iofogFilters)
 
   const queryFogData = isCLI
     ? {}
-    : {userId: user.id}
+    : { userId: user.id }
 
   let fogs = await FogManager.findAll(queryFogData, transaction)
   fogs = _filterFogs(fogs, filters)
@@ -237,12 +203,12 @@ async function getFogList(filters, user, isCLI, transaction) {
   }
 }
 
-async function generateProvisioningKey(fogData, user, isCLI, transaction) {
+async function generateProvisioningKeyEndPoint(fogData, user, isCLI, transaction) {
   await Validator.validate(fogData, Validator.schemas.iofogGenerateProvision)
 
   const queryFogData = isCLI
-    ? {uuid: fogData.uuid}
-    : {uuid: fogData.uuid, userId: user.id}
+    ? { uuid: fogData.uuid }
+    : { uuid: fogData.uuid, userId: user.id }
 
   const newProvision = {
     iofogUuid: fogData.uuid,
@@ -254,7 +220,7 @@ async function generateProvisioningKey(fogData, user, isCLI, transaction) {
   if (!fog) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, fogData.uuid))
   }
-  const provisioningKeyData = await FogProvisionKeyManager.updateOrCreate({iofogUuid: fogData.uuid}, newProvision, transaction)
+  const provisioningKeyData = await FogProvisionKeyManager.updateOrCreate({ iofogUuid: fogData.uuid }, newProvision, transaction)
 
   return {
     key: provisioningKeyData.provisionKey,
@@ -262,12 +228,12 @@ async function generateProvisioningKey(fogData, user, isCLI, transaction) {
   }
 }
 
-async function setFogVersionCommand(fogVersionData, user, isCLI, transaction) {
+async function setFogVersionCommandEndPoint(fogVersionData, user, isCLI, transaction) {
   await Validator.validate(fogVersionData, Validator.schemas.iofogSetVersionCommand)
 
   const queryFogData = isCLI
-    ? {uuid: fogVersionData.uuid}
-    : {uuid: fogVersionData.uuid, userId: user.id}
+    ? { uuid: fogVersionData.uuid }
+    : { uuid: fogVersionData.uuid, userId: user.id }
 
   const newVersionCommand = {
     iofogUuid: fogVersionData.uuid,
@@ -286,17 +252,17 @@ async function setFogVersionCommand(fogVersionData, user, isCLI, transaction) {
     throw new Errors.ValidationError(ErrorMessages.INVALID_VERSION_COMMAND_UPGRADE)
   }
 
-  await generateProvisioningKey({uuid: fogVersionData.uuid}, user, isCLI, transaction)
-  await FogVersionCommandManager.updateOrCreate({iofogUuid: fogVersionData.uuid}, newVersionCommand, transaction)
+  await generateProvisioningKeyEndPoint({ uuid: fogVersionData.uuid }, user, isCLI, transaction)
+  await FogVersionCommandManager.updateOrCreate({ iofogUuid: fogVersionData.uuid }, newVersionCommand, transaction)
   await ChangeTrackingService.update(fogVersionData.uuid, ChangeTrackingService.events.version, transaction)
 }
 
-async function setFogRebootCommand(fogData, user, isCLI, transaction) {
+async function setFogRebootCommandEndPoint(fogData, user, isCLI, transaction) {
   await Validator.validate(fogData, Validator.schemas.iofogReboot)
 
   const queryFogData = isCLI
-    ? {uuid: fogData.uuid}
-    : {uuid: fogData.uuid, userId: user.id}
+    ? { uuid: fogData.uuid }
+    : { uuid: fogData.uuid, userId: user.id }
 
   const fog = await FogManager.findOne(queryFogData, transaction)
   if (!fog) {
@@ -306,7 +272,7 @@ async function setFogRebootCommand(fogData, user, isCLI, transaction) {
   await ChangeTrackingService.update(fogData.uuid, ChangeTrackingService.events.reboot, transaction)
 }
 
-async function getHalHardwareInfo(uuidObj, user, isCLI, transaction) {
+async function getHalHardwareInfoEndPoint(uuidObj, user, isCLI, transaction) {
   await Validator.validate(uuidObj, Validator.schemas.halGet)
 
   const fog = await FogManager.findOne({
@@ -321,7 +287,7 @@ async function getHalHardwareInfo(uuidObj, user, isCLI, transaction) {
   }, transaction)
 }
 
-async function getHalUsbInfo(uuidObj, user, isCLI, transaction) {
+async function getHalUsbInfoEndPoint(uuidObj, user, isCLI, transaction) {
   await Validator.validate(uuidObj, Validator.schemas.halGet)
 
   const fog = await FogManager.findOne({
@@ -364,7 +330,7 @@ function _filterFogs(fogs, filters) {
 
 async function _processDeleteCommand(fog, transaction) {
   if (!fog.daemonStatus || fog.daemonStatus === FogStates.UNKNOWN) {
-    await FogManager.delete({uuid: fog.uuid}, transaction)
+    await FogManager.delete({ uuid: fog.uuid }, transaction)
   } else {
     await ChangeTrackingService.update(fog.uuid, ChangeTrackingService.events.deleteNode, transaction)
   }
@@ -427,18 +393,31 @@ async function _deleteBluetoothMicroserviceByFog(fogData, transaction) {
 }
 
 // decorated functions
-const createFogWithTracking = TrackingDecorator.trackEvent(createFog, TrackingEventType.IOFOG_CREATED)
+const createFogWithTracking = TrackingDecorator.trackEvent(createFogEndPoint, TrackingEventType.IOFOG_CREATED)
+
+const informKubelet = function(iofogUuid, method) {
+  const kubeletUri = config.get('Kubelet:Uri')
+  const options = {
+    uri: kubeletUri + '/node',
+    qs: {
+      uuid: iofogUuid,
+    },
+    method: method,
+  }
+
+  return request(options)
+}
 
 module.exports = {
-  createFog: TransactionDecorator.generateTransaction(createFogWithTracking),
-  updateFog: TransactionDecorator.generateTransaction(updateFog),
-  deleteFog: TransactionDecorator.generateTransaction(deleteFog),
-  getFogWithTransaction: TransactionDecorator.generateTransaction(getFog),
-  getFogList: TransactionDecorator.generateTransaction(getFogList),
-  generateProvisioningKey: TransactionDecorator.generateTransaction(generateProvisioningKey),
-  setFogVersionCommand: TransactionDecorator.generateTransaction(setFogVersionCommand),
-  setFogRebootCommand: TransactionDecorator.generateTransaction(setFogRebootCommand),
-  getHalHardwareInfo: TransactionDecorator.generateTransaction(getHalHardwareInfo),
-  getHalUsbInfo: TransactionDecorator.generateTransaction(getHalUsbInfo),
+  createFogEndPoint: TransactionDecorator.generateTransaction(createFogWithTracking),
+  updateFogEndPoint: TransactionDecorator.generateTransaction(updateFogEndPoint),
+  deleteFogEndPoint: TransactionDecorator.generateTransaction(deleteFogEndPoint),
+  getFogEndPoint: TransactionDecorator.generateTransaction(getFogEndPoint),
+  getFogListEndPoint: TransactionDecorator.generateTransaction(getFogListEndPoint),
+  generateProvisioningKeyEndPoint: TransactionDecorator.generateTransaction(generateProvisioningKeyEndPoint),
+  setFogVersionCommandEndPoint: TransactionDecorator.generateTransaction(setFogVersionCommandEndPoint),
+  setFogRebootCommandEndPoint: TransactionDecorator.generateTransaction(setFogRebootCommandEndPoint),
+  getHalHardwareInfoEndPoint: TransactionDecorator.generateTransaction(getHalHardwareInfoEndPoint),
+  getHalUsbInfoEndPoint: TransactionDecorator.generateTransaction(getHalUsbInfoEndPoint),
   getFog: getFog,
 }

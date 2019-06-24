@@ -27,9 +27,9 @@ const MicroseriveStates = require('../enums/microservice-state')
 const TrackingDecorator = require('../decorators/tracking-decorator')
 const TrackingEventType = require('../enums/tracking-event-type')
 
-const createCatalogItem = async function(data, user, transaction) {
+const createCatalogItemEndPoint = async function(data, user, transaction) {
   await Validator.validate(data, Validator.schemas.catalogItemCreate)
-  await _checkForDuplicateName(data.name, {userId: user.id}, transaction)
+  await _checkForDuplicateName(data.name, { userId: user.id }, transaction)
   await _checkForRestrictedPublisher(data.publisher)
   const catalogItem = await _createCatalogItem(data, user, transaction)
   await _createCatalogImages(data, catalogItem, transaction)
@@ -41,7 +41,7 @@ const createCatalogItem = async function(data, user, transaction) {
   }
 }
 
-const updateCatalogItem = async function(id, data, user, isCLI, transaction) {
+const updateCatalogItemEndPoint = async function(id, data, user, isCLI, transaction) {
   await Validator.validate(data, Validator.schemas.catalogItemUpdate)
 
   const where = isCLI
@@ -59,17 +59,17 @@ const updateCatalogItem = async function(id, data, user, isCLI, transaction) {
   await _updateCatalogItemIOTypes(data, where, transaction)
 }
 
-const listCatalogItems = async function(user, isCLI, transaction) {
+const listCatalogItemsEndPoint = async function(user, isCLI, transaction) {
   const where = isCLI
     ? {}
     : {
-      [Op.or]: [{userId: user.id}, {userId: null}],
-      [Op.or]: [{category: {[Op.ne]: 'SYSTEM'}}, {category: null}],
+      [Op.or]: [{ userId: user.id }, { userId: null }],
+      [Op.or]: [{ category: { [Op.ne]: 'SYSTEM' } }, { category: null }],
     }
 
   const attributes = isCLI
     ? {}
-    : {exclude: ['userId']}
+    : { exclude: ['userId'] }
 
   const catalogItems = await CatalogItemManager.findAllWithDependencies(where, attributes, transaction)
   return {
@@ -77,18 +77,18 @@ const listCatalogItems = async function(user, isCLI, transaction) {
   }
 }
 
-const getCatalogItem = async function(id, user, isCLI, transaction) {
+async function getCatalogItem(id, user, isCLI, transaction) {
   const where = isCLI
-    ? {id: id}
+    ? { id: id }
     : {
       id: id,
-      [Op.or]: [{userId: user.id}, {userId: null}],
-      [Op.or]: [{category: {[Op.ne]: 'SYSTEM'}}, {category: null}],
+      [Op.or]: [{ userId: user.id }, { userId: null }],
+      [Op.or]: [{ category: { [Op.ne]: 'SYSTEM' } }, { category: null }],
     }
 
   const attributes = isCLI
     ? {}
-    : {exclude: ['userId']}
+    : { exclude: ['userId'] }
 
   const item = await CatalogItemManager.findOneWithDependencies(where, attributes, transaction)
   if (!item) {
@@ -97,7 +97,11 @@ const getCatalogItem = async function(id, user, isCLI, transaction) {
   return item
 }
 
-const deleteCatalogItem = async function(id, user, isCLI, transaction) {
+const getCatalogItemEndPoint = async function(id, user, isCLI, transaction) {
+  return await getCatalogItem(id, user, isCLI, transaction)
+}
+
+const deleteCatalogItemEndPoint = async function(id, user, isCLI, transaction) {
   const where = isCLI
     ? {
       id: id,
@@ -154,8 +158,8 @@ async function getHalCatalogItem(transaction) {
 const _checkForDuplicateName = async function(name, item, transaction) {
   if (name) {
     const where = item.id
-      ? {[Op.or]: [{userId: item.userId}, {userId: null}], name: name, id: {[Op.ne]: item.id}}
-      : {[Op.or]: [{userId: item.userId}, {userId: null}], name: name}
+      ? { [Op.or]: [{ userId: item.userId }, { userId: null }], name: name, id: { [Op.ne]: item.id } }
+      : { [Op.or]: [{ userId: item.userId }, { userId: null }], name: name }
 
     const result = await CatalogItemManager.findOne(where, transaction)
     if (result) {
@@ -196,7 +200,7 @@ const _createCatalogItem = async function(data, user, transaction) {
   catalogItem = AppHelper.deleteUndefinedFields(catalogItem)
 
   if (catalogItem.registryId) {
-    const registry = await RegistryManager.findOne({id: catalogItem.registryId}, transaction)
+    const registry = await RegistryManager.findOne({ id: catalogItem.registryId }, transaction)
     if (!registry) {
       throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_REGISTRY_ID, data.registryId))
     }
@@ -282,7 +286,7 @@ const _updateCatalogItem = async function(data, where, transaction) {
     return
   }
   if (data.registryId) {
-    const registry = await RegistryManager.findOne({id: data.registryId}, transaction)
+    const registry = await RegistryManager.findOne({ id: data.registryId }, transaction)
     if (!registry) {
       throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_REGISTRY_ID, data.registryId))
     }
@@ -300,7 +304,7 @@ const _updateCatalogItem = async function(data, where, transaction) {
 
 const _updateCatalogItemImages = async function(data, transaction) {
   if (data.images) {
-    const microservices = await MicroserviceManager.findAllWithStatuses({catalogItemId: data.id}, transaction)
+    const microservices = await MicroserviceManager.findAllWithStatuses({ catalogItemId: data.id }, transaction)
     for (const ms of microservices) {
       if (ms.microserviceStatus.status === MicroseriveStates.RUNNING) {
         throw new Errors.ValidationError(ErrorMessages.CATALOG_ITEM_IMAGES_IS_FROZEN)
@@ -328,7 +332,7 @@ const _updateCatalogItemIOTypes = async function(data, where, transaction) {
       infoFormat: data.inputType.infoFormat,
     }
     inputType = AppHelper.deleteUndefinedFields(inputType)
-    await CatalogItemInputTypeManager.updateOrCreate({catalogItemId: data.id}, inputType, transaction)
+    await CatalogItemInputTypeManager.updateOrCreate({ catalogItemId: data.id }, inputType, transaction)
   }
   if (data.outputType && data.outputType.length !== 0) {
     let outputType = {
@@ -337,19 +341,20 @@ const _updateCatalogItemIOTypes = async function(data, where, transaction) {
       infoFormat: data.outputType.infoFormat,
     }
     outputType = AppHelper.deleteUndefinedFields(outputType)
-    await CatalogItemOutputTypeManager.updateOrCreate({catalogItemId: data.id}, outputType, transaction)
+    await CatalogItemOutputTypeManager.updateOrCreate({ catalogItemId: data.id }, outputType, transaction)
   }
 }
 
 // decorated functions
-const createCatalogItemWithTracking = TrackingDecorator.trackEvent(createCatalogItem, TrackingEventType.CATALOG_CREATED)
+const createCatalogItemWithTracking = TrackingDecorator.trackEvent(createCatalogItemEndPoint, TrackingEventType.CATALOG_CREATED)
 
 module.exports = {
-  createCatalogItem: TransactionDecorator.generateTransaction(createCatalogItemWithTracking),
-  listCatalogItems: TransactionDecorator.generateTransaction(listCatalogItems),
-  getCatalogItem: TransactionDecorator.generateTransaction(getCatalogItem),
-  deleteCatalogItem: TransactionDecorator.generateTransaction(deleteCatalogItem),
-  updateCatalogItem: TransactionDecorator.generateTransaction(updateCatalogItem),
+  createCatalogItemEndPoint: TransactionDecorator.generateTransaction(createCatalogItemWithTracking),
+  listCatalogItemsEndPoint: TransactionDecorator.generateTransaction(listCatalogItemsEndPoint),
+  getCatalogItemEndPoint: TransactionDecorator.generateTransaction(getCatalogItemEndPoint),
+  deleteCatalogItemEndPoint: TransactionDecorator.generateTransaction(deleteCatalogItemEndPoint),
+  updateCatalogItemEndPoint: TransactionDecorator.generateTransaction(updateCatalogItemEndPoint),
+  getCatalogItem: getCatalogItem,
   getNetworkCatalogItem: getNetworkCatalogItem,
   getBluetoothCatalogItem: getBluetoothCatalogItem,
   getHalCatalogItem: getHalCatalogItem,

@@ -88,8 +88,8 @@ const agentDeprovision = async function(deprovisionData, fog, transaction) {
   await Validator.validate(deprovisionData, Validator.schemas.agentDeprovision)
 
   await MicroserviceStatusManager.update(
-      {microserviceUuid: deprovisionData.microserviceUuids},
-      {status: MicroserviceStates.NOT_RUNNING},
+      { microserviceUuid: deprovisionData.microserviceUuids },
+      { status: MicroserviceStates.NOT_RUNNING },
       transaction
   )
 
@@ -97,8 +97,8 @@ const agentDeprovision = async function(deprovisionData, fog, transaction) {
 }
 
 const _invalidateFogNode = async function(fog, transaction) {
-  const where = {uuid: fog.uuid}
-  const data = {daemonStatus: FogStates.UNKNOWN, ipAddress: '0.0.0.0'}
+  const where = { uuid: fog.uuid }
+  const data = { daemonStatus: FogStates.UNKNOWN, ipAddress: '0.0.0.0' }
   await FogManager.update(where, data, transaction)
   const updatedFog = Object.assign({}, fog)
   updatedFog.daemonStatus = FogStates.UNKNOWN
@@ -190,6 +190,11 @@ const updateAgentStatus = async function(agentStatus, fog, transaction) {
     memoryViolation: agentStatus.memoryViolation,
     diskViolation: agentStatus.diskViolation,
     cpuViolation: agentStatus.cpuViolation,
+    systemAvailableDisk: agentStatus.systemAvailableDisk,
+    systemAvailableMemory: agentStatus.systemAvailableMemory,
+    systemTotalCpu: agentStatus.systemTotalCpu,
+    securityStatus: agentStatus.securityStatus,
+    securityViolationInfo: agentStatus.securityViolationInfo,
     repositoryCount: agentStatus.repositoryCount,
     repositoryStatus: agentStatus.repositoryStatus,
     systemTime: agentStatus.systemTime,
@@ -249,6 +254,13 @@ const getAgentMicroservices = async function(fog, transaction) {
     }
 
     const routes = await MicroserviceService.getPhysicalConnections(microservice, transaction)
+    const env = microservice.env && microservice.env.map((it) => {
+      return {
+        key: it.key,
+        value: it.value,
+      }
+    })
+    const cmd = microservice.cmd && microservice.cmd.sort((a, b) => a.id > b.id).map((it) => it.cmd)
 
     const responseMicroservice = {
       uuid: microservice.uuid,
@@ -256,7 +268,7 @@ const getAgentMicroservices = async function(fog, transaction) {
       config: microservice.config,
       rebuild: microservice.rebuild,
       rootHostAccess: microservice.rootHostAccess,
-      logSize: microservice.logSize,
+      logSize: parseInt(microservice.logSize) || 50,
       registryId: microservice.catalogItem.registry.id,
       portMappings: microservice.ports,
       volumeMappings: microservice.volumeMappings,
@@ -264,6 +276,8 @@ const getAgentMicroservices = async function(fog, transaction) {
       delete: microservice.delete,
       deleteWithCleanup: microservice.deleteWithCleanup,
       routes: routes,
+      env: env,
+      cmd: cmd,
     }
 
     response.push(responseMicroservice)
@@ -506,23 +520,23 @@ const agentProvisionWithTracking = TrackingDecorator.trackEvent(agentProvision, 
 
 
 module.exports = {
-  agentProvision: TransactionDecorator.generateFakeTransaction(agentProvisionWithTracking),
-  agentDeprovision: TransactionDecorator.generateFakeTransaction(agentDeprovision),
+  agentProvision: TransactionDecorator.generateTransaction(agentProvisionWithTracking),
+  agentDeprovision: TransactionDecorator.generateTransaction(agentDeprovision),
   getAgentConfig: getAgentConfig,
-  updateAgentConfig: TransactionDecorator.generateFakeTransaction(updateAgentConfig),
-  getAgentConfigChanges: TransactionDecorator.generateFakeTransaction(getAgentConfigChanges),
-  updateAgentStatus: TransactionDecorator.generateFakeTransaction(updateAgentStatus),
-  getAgentMicroservices: TransactionDecorator.generateFakeTransaction(getAgentMicroservices),
-  getAgentMicroservice: TransactionDecorator.generateFakeTransaction(getAgentMicroservice),
-  getAgentRegistries: TransactionDecorator.generateFakeTransaction(getAgentRegistries),
-  getAgentTunnel: TransactionDecorator.generateFakeTransaction(getAgentTunnel),
-  getAgentStrace: TransactionDecorator.generateFakeTransaction(getAgentStrace),
-  updateAgentStrace: TransactionDecorator.generateFakeTransaction(updateAgentStrace),
-  getAgentChangeVersionCommand: TransactionDecorator.generateFakeTransaction(getAgentChangeVersionCommand),
-  updateHalHardwareInfo: TransactionDecorator.generateFakeTransaction(updateHalHardwareInfo),
-  updateHalUsbInfo: TransactionDecorator.generateFakeTransaction(updateHalUsbInfo),
-  deleteNode: TransactionDecorator.generateFakeTransaction(deleteNode),
-  getImageSnapshot: TransactionDecorator.generateFakeTransaction(getImageSnapshot),
-  putImageSnapshot: TransactionDecorator.generateFakeTransaction(putImageSnapshot),
-  postTracking: TransactionDecorator.generateFakeTransaction(postTracking),
+  updateAgentConfig: TransactionDecorator.generateTransaction(updateAgentConfig),
+  getAgentConfigChanges: TransactionDecorator.generateTransaction(getAgentConfigChanges),
+  updateAgentStatus: TransactionDecorator.generateTransaction(updateAgentStatus),
+  getAgentMicroservices: TransactionDecorator.generateTransaction(getAgentMicroservices),
+  getAgentMicroservice: TransactionDecorator.generateTransaction(getAgentMicroservice),
+  getAgentRegistries: TransactionDecorator.generateTransaction(getAgentRegistries),
+  getAgentTunnel: TransactionDecorator.generateTransaction(getAgentTunnel),
+  getAgentStrace: TransactionDecorator.generateTransaction(getAgentStrace),
+  updateAgentStrace: TransactionDecorator.generateTransaction(updateAgentStrace),
+  getAgentChangeVersionCommand: TransactionDecorator.generateTransaction(getAgentChangeVersionCommand),
+  updateHalHardwareInfo: TransactionDecorator.generateTransaction(updateHalHardwareInfo),
+  updateHalUsbInfo: TransactionDecorator.generateTransaction(updateHalUsbInfo),
+  deleteNode: TransactionDecorator.generateTransaction(deleteNode),
+  getImageSnapshot: TransactionDecorator.generateTransaction(getImageSnapshot),
+  putImageSnapshot: TransactionDecorator.generateTransaction(putImageSnapshot),
+  postTracking: TransactionDecorator.generateTransaction(postTracking),
 }

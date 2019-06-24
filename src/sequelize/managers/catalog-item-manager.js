@@ -46,7 +46,7 @@ class CatalogItemManager extends BaseManager {
         }],
       where: where,
       attributes: attributes,
-    }, {transaction: transaction})
+    }, { transaction: transaction })
   }
 
   findOneWithDependencies(where, attribures, transaction) {
@@ -72,7 +72,7 @@ class CatalogItemManager extends BaseManager {
         }],
       where: where,
       attributes: attribures,
-    }, {transaction: transaction})
+    }, { transaction: transaction })
   }
 }
 

@@ -77,6 +77,28 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.TEXT,
       field: 'cpu_violation',
     },
+    systemAvailableDisk: {
+      type: DataTypes.BIGINT,
+      field: 'system-available-disk',
+    },
+    systemAvailableMemory: {
+      type: DataTypes.BIGINT,
+      field: 'system-available-memory',
+    },
+    systemTotalCpu: {
+      type: DataTypes.FLOAT,
+      field: 'system-total-cpu',
+    },
+    securityStatus: {
+      type: DataTypes.TEXT,
+      defaultValue: 'OK',
+      field: 'security_status',
+    },
+    securityViolationInfo: {
+      type: DataTypes.TEXT,
+      defaultValue: 'No violation',
+      field: 'security_violation_info',
+    },
     catalogItemStatus: {
       type: DataTypes.TEXT,
       field: 'catalog_item_status',

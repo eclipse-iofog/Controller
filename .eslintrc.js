@@ -8,6 +8,7 @@ module.exports = {
 
   'extends': 'google',
   'rules': {
+    "linebreak-style": 0,
     'require-jsdoc': [OFF, {
       'require': {
         'FunctionDeclaration': true,
@@ -19,6 +20,8 @@ module.exports = {
     'no-invalid-this': OFF,
     'no-multi-str': OFF,
     'semi': [ERROR, 'never'],
+    'space-before-function-paren': OFF,
+    'object-curly-spacing': ['error', 'always'],
   },
 
   'parserOptions': {

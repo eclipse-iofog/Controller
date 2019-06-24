@@ -30,7 +30,7 @@ class CLIHandler {
   }
 
   parseCommandLineArgs(commandDefinitions, options = {}) {
-    return commandLineArgs(commandDefinitions, Object.assign({camelCase: true, partial: true}, options))
+    return commandLineArgs(commandDefinitions, Object.assign({ camelCase: true, partial: true }, options))
   }
 
   help(show = [], showOptions = true, hasCommands = true, additionalSection = []) {
@@ -43,7 +43,7 @@ class CLIHandler {
     }
   }
 
-  helpSome(show = [], showOptions = true,) {
+  helpSome(show = [], showOptions = true, ) {
     const options = Object.keys(this.commands)
         .filter((key) => show.indexOf(key) !== -1)
         .map((key) => ({

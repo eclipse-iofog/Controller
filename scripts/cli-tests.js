@@ -12,8 +12,8 @@
  */
 
 const execSync = require('child_process').execSync
-const {init} = require('./init')
-const {restoreDBs, backupDBs} = require('./util')
+const { init } = require('./init')
+const { restoreDBs, backupDBs } = require('./util')
 
 const options = {
   env: {
@@ -53,7 +53,7 @@ const registryListFields = ['registries']
 
 const tunnelListFields = ['tunnels']
 
-function testControllerSection() {
+function testControllerSection () {
   console.log('\n=============================\nStarting controller section..')
 
   responseHasFields(testCommand('controller status'), controllerStatusFields)
@@ -62,7 +62,7 @@ function testControllerSection() {
   hasSomeResponse(testCommand('controller version'))
 }
 
-function testUserSection() {
+function testUserSection () {
   console.log('\n=============================\nStarting user section..')
 
   responseHasFields(testCommand('user add -f John -l Doe -e user@domain.com -p \'#Bugs4Fun\''), userCreateFields)
@@ -75,7 +75,7 @@ function testUserSection() {
   responseEquals(testCommand('user remove -e user@domain.com'), 'User removed successfully.')
 }
 
-function testConfigSection() {
+function testConfigSection () {
   console.log('\n=============================\nStarting config section..')
 
   // TODO backup config before this command
@@ -86,7 +86,7 @@ function testConfigSection() {
   responseEquals(testCommand('config email-activation -f'), 'Email activation state updated successfully.')
 }
 
-function testConnectorSection() {
+function testConnectorSection () {
   console.log('\n=============================\nStarting connector section..')
 
   responseContains(testCommand('connector add -i 127.0.0.1 -n Connector1 -d iofog.test.org  -c testCertPath' +
@@ -97,7 +97,7 @@ function testConnectorSection() {
   responseIsArray(testCommand('connector list'))
 }
 
-function testTunnelSection() {
+function testTunnelSection () {
   console.log('\n=============================\nStarting tunnel section..')
 
   responseContains(testCommand('tunnel update -i testIoFogUuid -u testUsername -p testPassword -s 127.0.0.1 ' +
@@ -105,7 +105,7 @@ function testTunnelSection() {
   responseHasFields(testCommand('tunnel list'), tunnelListFields)
 }
 
-function testIoFogSection() {
+function testIoFogSection () {
   console.log('\n=============================\nStarting iofog section..')
 
   const userCreateResponse = responseHasFields(executeCommand('user add -f John -l Doe -e fogUser@domain.com' +
@@ -135,7 +135,7 @@ function testIoFogSection() {
   }
 }
 
-function testCatalogSection() {
+function testCatalogSection () {
   console.log('\n=============================\nStarting catalog section..')
 
   const userCreateResponse = responseHasFields(executeCommand('user add -f John -l Doe -e catalogUser@domain.com' +
@@ -147,13 +147,13 @@ function testCatalogSection() {
 
   try {
     const catalogCreateResponse = responseHasFields(testCommand('catalog add -n testCatalogItem1 -d testDescription' +
-      ' -c testCategory -x testIntelImage -a testArmImage -p testPublisher -s 15 -r 15 -t testPicture -g '
-      + registryId + ' -I testInputType -F testInputFormat -O testOutputType -T testOutputFormat ' +
+      ' -c testCategory -x testIntelImage -a testArmImage -p testPublisher -s 15 -r 15 -t testPicture -g ' +
+      registryId + ' -I testInputType -F testInputFormat -O testOutputType -T testOutputFormat ' +
       '-X \'{}\' -u ' + userId), catalogCreateFields)
     const catalogId = catalogCreateResponse.id
     responseEquals(testCommand('catalog update -i ' + catalogId + ' -n testCatalogItem2 -d testDescription' +
-      ' -c testCategory -x testIntelImage -a testArmImage -p testPublisher -s 15 -r 15 -t testPicture -g '
-      + registryId + ' -I testInputType -F testInputFormat -O testOutputType -T testOutputFormat -X \'{}\''),
+      ' -c testCategory -x testIntelImage -a testArmImage -p testPublisher -s 15 -r 15 -t testPicture -g ' +
+      registryId + ' -I testInputType -F testInputFormat -O testOutputType -T testOutputFormat -X \'{}\''),
     'Catalog item has been updated successfully.')
     responseHasFields(testCommand('catalog list'), catalogListFields)
     responseHasFields(testCommand('catalog info -i ' + catalogId), catalogCreateFields)
@@ -166,7 +166,7 @@ function testCatalogSection() {
   }
 }
 
-function testFlowSection() {
+function testFlowSection () {
   console.log('\n=============================\nStarting flow section..')
 
   const userCreateResponse = responseHasFields(executeCommand('user add -f John -l Doe -e flowUser@domain.com' +
@@ -188,7 +188,7 @@ function testFlowSection() {
   }
 }
 
-function testMicroserviceSection() {
+function testMicroserviceSection () {
   console.log('\n=============================\nStarting microservice section..')
 
   const userCreateResponse = responseHasFields(executeCommand('user add -f John -l Doe -e microserviceUser@domain.com' +
@@ -200,8 +200,8 @@ function testMicroserviceSection() {
   const registryId = registryCreateResponse.id
 
   const catalogCreateResponse = responseHasFields(executeCommand('catalog add -n testCatalogItem1 -d testDescription' +
-    ' -c testCategory -x testIntelImage -a testArmImage -p testPublisher -s 15 -r 15 -t testPicture -g '
-    + registryId + ' -I testInputType -F testInputFormat -O testOutputType -T testOutputFormat ' +
+    ' -c testCategory -x testIntelImage -a testArmImage -p testPublisher -s 15 -r 15 -t testPicture -g ' +
+    registryId + ' -I testInputType -F testInputFormat -O testOutputType -T testOutputFormat ' +
     '-X \'{}\' -u ' + userId), catalogCreateFields)
   const catalogId = catalogCreateResponse.id
 
@@ -254,7 +254,7 @@ function testMicroserviceSection() {
   }
 }
 
-function testRegistrySection() {
+function testRegistrySection () {
   console.log('\n=============================\nStarting registry section..')
 
   const userCreateResponse = responseHasFields(executeCommand('user add -f John -l Doe -e registryUser@domain.com' +
@@ -275,7 +275,7 @@ function testRegistrySection() {
   }
 }
 
-function testDiagnosticsSection() {
+function testDiagnosticsSection () {
   console.log('\n=============================\nStarting diagnostics section..')
 
   const userCreateResponse = responseHasFields(executeCommand('user add -f John -l Doe -e diagnosticsUser@domain.com' +
@@ -287,8 +287,8 @@ function testDiagnosticsSection() {
   const registryId = registryCreateResponse.id
 
   const catalogCreateResponse = responseHasFields(executeCommand('catalog add -n testCatalogItem1 -d testDescription' +
-    ' -c testCategory -x testIntelImage -a testArmImage -p testPublisher -s 15 -r 15 -t testPicture -g '
-    + registryId + ' -I testInputType -F testInputFormat -O testOutputType -T testOutputFormat ' +
+    ' -c testCategory -x testIntelImage -a testArmImage -p testPublisher -s 15 -r 15 -t testPicture -g ' +
+    registryId + ' -I testInputType -F testInputFormat -O testOutputType -T testOutputFormat ' +
     '-X \'{}\' -u ' + userId), catalogCreateFields)
   const catalogId = catalogCreateResponse.id
 
@@ -333,27 +333,27 @@ function testDiagnosticsSection() {
   }
 }
 
-function testCommand(command) {
+function testCommand (command) {
   console.log('\n Testing command \'' + command + '\'')
   testsCounter++
   return executeCommand(command)
 }
 
-function executeCommand(command) {
+function executeCommand (command) {
   let response = execSync('node ./src/main.js ' + command, options)
   response = response.toString()
   response = response.replace(/\r?\n?/g, '') // remove line breaks
   return response
 }
 
-function hasSomeResponse(response) {
+function hasSomeResponse (response) {
   if (response === undefined || response === null) {
     testsFailed++
     console.log('\'hasSomeResponse\' test failed with response: ' + JSON.stringify(response))
   }
 }
 
-function responseIsArray(jsonResponse) {
+function responseIsArray (jsonResponse) {
   try {
     const response = JSON.parse(jsonResponse)
     if (!Array.isArray(response)) {
@@ -366,7 +366,7 @@ function responseIsArray(jsonResponse) {
   }
 }
 
-function responseHasFields(jsonResponse, fields) {
+function responseHasFields (jsonResponse, fields) {
   try {
     const response = JSON.parse(jsonResponse)
     for (const field of fields) {
@@ -383,21 +383,21 @@ function responseHasFields(jsonResponse, fields) {
   }
 }
 
-function responseEquals(response, expectedResponse) {
+function responseEquals (response, expectedResponse) {
   if (response !== expectedResponse) {
     testsFailed++
     console.log('\'responseEquals\' test failed with response: ' + JSON.stringify(response))
   }
 }
 
-function responseContains(response, expectedResponsePart) {
+function responseContains (response, expectedResponsePart) {
   if (!response.includes(expectedResponsePart)) {
     testsFailed++
     console.log('\'responseContains\' test failed with response: ' + JSON.stringify(response))
   }
 }
 
-function cliTest() {
+function cliTest () {
   try {
     backupDBs()
     // create new DBs

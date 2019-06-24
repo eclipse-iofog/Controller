@@ -1,4 +1,4 @@
-const {expect} = require('chai')
+const { expect } = require('chai')
 const sinon = require('sinon')
 
 const RegistryManager = require('../../../src/sequelize/managers/registry-manager')
@@ -173,7 +173,7 @@ describe('Registry Service', () => {
             },
           ],
       }
-    const attributes = {exclude: ['password']}
+    const attributes = { exclude: ['password'] }
     def('subject', () => $subject.findRegistries(user, isCLI, transaction))
     def('findRegistriesResponse', () => Promise.resolve([]))
 
@@ -214,8 +214,8 @@ describe('Registry Service', () => {
     }
 
     const queryData = isCLI
-      ? {id: registryData.id}
-      : {id: registryData.id, userId: user.id}
+      ? { id: registryData.id }
+      : { id: registryData.id, userId: user.id }
 
     const ioFogs = [{
       uuid: 'testUuid',

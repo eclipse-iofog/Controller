@@ -66,7 +66,7 @@ const findRegistries = async function(user, isCLI, transaction) {
         ],
     }
 
-  const registries = await RegistryManager.findAllWithAttributes(queryRegistry, {exclude: ['password']}, transaction)
+  const registries = await RegistryManager.findAllWithAttributes(queryRegistry, { exclude: ['password'] }, transaction)
   return {
     registries: registries,
   }
@@ -75,14 +75,14 @@ const findRegistries = async function(user, isCLI, transaction) {
 const deleteRegistry = async function(registryData, user, isCLI, transaction) {
   await Validator.validate(registryData, Validator.schemas.registryDelete)
   const queryData = isCLI
-    ? {id: registryData.id}
-    : {id: registryData.id, userId: user.id}
+    ? { id: registryData.id }
+    : { id: registryData.id, userId: user.id }
   const registry = await RegistryManager.findOne(queryData, transaction)
   if (!registry) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_REGISTRY_ID, registryData.id))
   }
   if (isCLI) {
-    user = {id: registry.userId}
+    user = { id: registry.userId }
   }
   await RegistryManager.delete(queryData, transaction)
   await _updateChangeTracking(user, transaction)
@@ -131,7 +131,7 @@ const updateRegistry = async function(registry, registryId, user, isCLI, transac
 
 
 const _updateChangeTracking = async function(user, transaction) {
-  const fogs = await FogManager.findAll({userId: user.id}, transaction)
+  const fogs = await FogManager.findAll({ userId: user.id }, transaction)
   for (fog of fogs) {
     await ChangeTrackingService.update(fog.uuid, ChangeTrackingService.events.registries, transaction)
   }

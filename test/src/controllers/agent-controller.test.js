@@ -1,4 +1,4 @@
-const {expect} = require('chai')
+const { expect } = require('chai')
 const sinon = require('sinon')
 
 const AgentController = require('../../../src/controllers/agent-controller')
@@ -55,7 +55,7 @@ describe('Agent Controller', () => {
 
   describe('.agentDeprovisionEndPoint()', () => {
     def('fog', () => 'fog!')
-    const deprovisionData = {microserviceUuids: ['uuid']}
+    const deprovisionData = { microserviceUuids: ['uuid'] }
 
     def('req', () => ({
       body: deprovisionData,
@@ -805,7 +805,7 @@ describe('Agent Controller', () => {
     def('fog', () => 'fog!')
 
     def('req', () => ({
-      body: {events: []},
+      body: { events: [] },
     }))
     def('response', () => Promise.resolve())
     def('subject', () => $subject.postTrackingEndPoint($req, $fog))

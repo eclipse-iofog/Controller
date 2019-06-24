@@ -1,4 +1,4 @@
-const {expect} = require('chai')
+const { expect } = require('chai')
 const sinon = require('sinon')
 
 const AppHelper = require('../../../src/helpers/app-helper')
@@ -30,7 +30,7 @@ describe('Tunnel Service', () => {
     }))
     def('user', () => 'user')
     def('cli', () => false)
-    def('fog', () => ({uuid}))
+    def('fog', () => ({ uuid }))
     def('fogResponse', () => Promise.resolve($fog))
     def('portResponse', () => Promise.resolve(port))
     def('validatorResponse', () => Promise.resolve(true))
@@ -48,7 +48,7 @@ describe('Tunnel Service', () => {
 
     it('calls FogManager#findOne() with correct args', async () => {
       await $subject
-      expect(FogManager.findOne).to.have.been.calledWith({uuid}, transaction)
+      expect(FogManager.findOne).to.have.been.calledWith({ uuid }, transaction)
     })
 
     context('when FogManager#findOne() fails', () => {
@@ -228,7 +228,7 @@ describe('Tunnel Service', () => {
     const tunnel = [{}]
     const transaction = {}
     const error = 'Error!'
-    const attributes = {exclude: ['password']}
+    const attributes = { exclude: ['password'] }
 
     def('subject', () => $subject.findAll(transaction))
     def('tunnelManagerResponse', () => Promise.resolve(tunnel))
@@ -252,7 +252,7 @@ describe('Tunnel Service', () => {
 
     context('when tunnelManagerResponse#findAllWithAttributes() succeeds', () => {
       it('resolves with tunnel info', () => {
-        return expect($subject).to.eventually.eql({tunnels: tunnel})
+        return expect($subject).to.eventually.eql({ tunnels: tunnel })
       })
     })
   })
@@ -296,7 +296,7 @@ describe('Tunnel Service', () => {
     context('when TunnelService#findTunnel() succeeds', () => {
       it('calls TunnelManager#update() with correct args', async () => {
         await $subject
-        expect(TunnelManager.update).to.have.been.calledWith($tunnelData, {closed: true}, transaction)
+        expect(TunnelManager.update).to.have.been.calledWith($tunnelData, { closed: true }, transaction)
       })
 
       context('when TunnelManager#updateOrCreate() fails', () => {

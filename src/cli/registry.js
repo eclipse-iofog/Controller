@@ -90,7 +90,7 @@ class Registry extends BaseCLIHandler {
 
   async run(args) {
     try {
-      const registryCommand = this.parseCommandLineArgs(this.commandDefinitions, {argv: args.argv, partial: false})
+      const registryCommand = this.parseCommandLineArgs(this.commandDefinitions, { argv: args.argv, partial: false })
 
       const command = registryCommand.command.command
 
@@ -124,7 +124,7 @@ async function _createRegistry(obj, user) {
 
   const logRegistry = Object.assign({}, registry)
   delete logRegistry.password
-  logger.cliReq('registry add', {args: logRegistry})
+  logger.cliReq('registry add', { args: logRegistry })
 
   const response = await RegistryService.createRegistry(registry, user)
   logger.cliRes(JSON.stringify({
@@ -139,8 +139,8 @@ async function _getRegistries(obj, user) {
 }
 
 async function _deleteRegistry(obj, user) {
-  logger.cliReq('registry remove', {args: {id: obj.itemId}})
-  await RegistryService.deleteRegistry({id: obj.itemId}, user, true)
+  logger.cliReq('registry remove', { args: { id: obj.itemId } })
+  await RegistryService.deleteRegistry({ id: obj.itemId }, user, true)
   logger.cliRes('Registry has been removed successfully.')
 }
 
@@ -149,7 +149,7 @@ async function _updateRegistry(obj) {
 
   const logRegistry = Object.assign({}, registry)
   delete logRegistry.password
-  logger.cliReq('registry update', {args: logRegistry})
+  logger.cliReq('registry update', { args: logRegistry })
 
   await RegistryService.updateRegistry(registry, obj.itemId, {}, true)
   logger.cliRes('Registry has been updated successfully.')

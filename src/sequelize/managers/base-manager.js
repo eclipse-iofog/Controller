@@ -40,8 +40,8 @@ module.exports = class BaseManager {
   findAllWithAttributes(where, attributes, transaction) {
     return this.getEntity().findAll({
       where: where,
-      attributes: attributes},
-    {transaction: transaction})
+      attributes: attributes },
+    { transaction: transaction })
   }
 
   async findOne(object, transaction) {
@@ -66,7 +66,7 @@ module.exports = class BaseManager {
 
     const options = transaction.fakeTransaction
       ? {}
-      : {transaction: transaction}
+      : { transaction: transaction }
 
     return this.getEntity().create(object, options)
   }
@@ -76,7 +76,7 @@ module.exports = class BaseManager {
 
     const options = transaction.fakeTransaction
       ? {}
-      : {transaction: transaction}
+      : { transaction: transaction }
 
     return this.getEntity().bulkCreate(arr, options)
   }
@@ -120,7 +120,7 @@ module.exports = class BaseManager {
 
     const options = transaction.fakeTransaction
       ? {}
-      : {transaction: transaction}
+      : { transaction: transaction }
 
     return this.getEntity().upsert(data, options)
   }
@@ -156,6 +156,16 @@ module.exports = class BaseManager {
 
     if (hasUpdates) {
       return await this.update(whereData, newData, transaction)
+    }
+  }
+
+  async updateAndFind(whereData, data, transaction) {
+    AppHelper.checkTransaction(transaction)
+
+    const obj = await this.findOne(whereData, transaction)
+    if (obj) {
+      await this.update(whereData, data, transaction)
+      return this.findOne(whereData, transaction)
     }
   }
 }

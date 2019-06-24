@@ -1,4 +1,4 @@
-const {expect} = require('chai')
+const { expect } = require('chai')
 const sinon = require('sinon')
 
 const ioFogController = require('../../../src/controllers/iofog-controller')
@@ -65,12 +65,12 @@ describe('ioFog Controller', () => {
     def('subject', () => $subject.createFogEndPoint($req, $user))
 
     beforeEach(() => {
-      $sandbox.stub(ioFogService, 'createFog').returns($response)
+      $sandbox.stub(ioFogService, 'createFogEndPoint').returns($response)
     })
 
-    it('calls ioFogService.createFog with correct args', async () => {
+    it('calls ioFogService.createFogEndPoint with correct args', async () => {
       await $subject
-      expect(ioFogService.createFog).to.have.been.calledWith({
+      expect(ioFogService.createFogEndPoint).to.have.been.calledWith({
         name: $name,
         location: $location,
         latitude: $latitude,
@@ -94,7 +94,7 @@ describe('ioFog Controller', () => {
       }, $user, false)
     })
 
-    context('when ioFogService#createFog fails', () => {
+    context('when ioFogService#createFogEndPoint fails', () => {
       const error = 'Error!'
 
       def('response', () => Promise.reject(error))
@@ -104,7 +104,7 @@ describe('ioFog Controller', () => {
       })
     })
 
-    context('when ioFogService#createFog succeeds', () => {
+    context('when ioFogService#createFogEndPoint succeeds', () => {
       it(`succeeds`, () => {
         return expect($subject).to.eventually.equal(undefined)
       })
@@ -167,12 +167,12 @@ describe('ioFog Controller', () => {
     def('subject', () => $subject.updateFogEndPoint($req, $user))
 
     beforeEach(() => {
-      $sandbox.stub(ioFogService, 'updateFog').returns($response)
+      $sandbox.stub(ioFogService, 'updateFogEndPoint').returns($response)
     })
 
-    it('calls ioFogService.updateFog with correct args', async () => {
+    it('calls ioFogService.updateFogEndPoint with correct args', async () => {
       await $subject
-      expect(ioFogService.updateFog).to.have.been.calledWith({
+      expect(ioFogService.updateFogEndPoint).to.have.been.calledWith({
         uuid: $uuid,
         name: $name,
         location: $location,
@@ -197,7 +197,7 @@ describe('ioFog Controller', () => {
       }, $user, false)
     })
 
-    context('when ioFogService#updateFog fails', () => {
+    context('when ioFogService#updateFogEndPoint fails', () => {
       const error = 'Error!'
 
       def('response', () => Promise.reject(error))
@@ -207,7 +207,7 @@ describe('ioFog Controller', () => {
       })
     })
 
-    context('when ioFogService#updateFog succeeds', () => {
+    context('when ioFogService#updateFogEndPoint succeeds', () => {
       it(`succeeds`, () => {
         return expect($subject).to.eventually.equal(undefined)
       })
@@ -228,15 +228,15 @@ describe('ioFog Controller', () => {
     def('subject', () => $subject.deleteFogEndPoint($req, $user))
 
     beforeEach(() => {
-      $sandbox.stub(ioFogService, 'deleteFog').returns($response)
+      $sandbox.stub(ioFogService, 'deleteFogEndPoint').returns($response)
     })
 
-    it('calls ioFogService.deleteFog with correct args', async () => {
+    it('calls ioFogService.deleteFogEndPoint with correct args', async () => {
       await $subject
-      expect(ioFogService.deleteFog).to.have.been.calledWith({uuid: $uuid}, $user, false)
+      expect(ioFogService.deleteFogEndPoint).to.have.been.calledWith({ uuid: $uuid }, $user, false)
     })
 
-    context('when ioFogService#deleteFog fails', () => {
+    context('when ioFogService#deleteFogEndPoint fails', () => {
       const error = 'Error!'
 
       def('response', () => Promise.reject(error))
@@ -246,7 +246,7 @@ describe('ioFog Controller', () => {
       })
     })
 
-    context('when ioFogService#deleteFog succeeds', () => {
+    context('when ioFogService#deleteFogEndPoint succeeds', () => {
       it(`succeeds`, () => {
         return expect($subject).to.eventually.equal(undefined)
       })
@@ -266,15 +266,15 @@ describe('ioFog Controller', () => {
     def('subject', () => $subject.getFogEndPoint($req, $user))
 
     beforeEach(() => {
-      $sandbox.stub(ioFogService, 'getFogWithTransaction').returns($response)
+      $sandbox.stub(ioFogService, 'getFogEndPoint').returns($response)
     })
 
-    it('calls ioFogService.getFogWithTransaction with correct args', async () => {
+    it('calls ioFogService.getFogEndPoint with correct args', async () => {
       await $subject
-      expect(ioFogService.getFogWithTransaction).to.have.been.calledWith({uuid: $uuid}, $user, false)
+      expect(ioFogService.getFogEndPoint).to.have.been.calledWith({ uuid: $uuid }, $user, false)
     })
 
-    context('when ioFogService#getFogWithTransaction fails', () => {
+    context('when ioFogService#getFogEndPoint fails', () => {
       const error = 'Error!'
 
       def('response', () => Promise.reject(error))
@@ -284,7 +284,7 @@ describe('ioFog Controller', () => {
       })
     })
 
-    context('when ioFogService#getFogWithTransaction succeeds', () => {
+    context('when ioFogService#getFogEndPoint succeeds', () => {
       it(`succeeds`, () => {
         return expect($subject).to.eventually.equal(undefined)
       })
@@ -308,7 +308,7 @@ describe('ioFog Controller', () => {
 
     beforeEach(() => {
       $sandbox.stub(qs, 'parse').returns($queryParseResponse)
-      $sandbox.stub(ioFogService, 'getFogList').returns($response)
+      $sandbox.stub(ioFogService, 'getFogListEndPoint').returns($response)
     })
 
     it('calls qs.parse with correct args', async () => {
@@ -327,12 +327,12 @@ describe('ioFog Controller', () => {
     })
 
     context('when qs.parse succeeds', () => {
-      it('calls ioFogService.getFogList with correct args', async () => {
+      it('calls ioFogService.getFogListEndPoint with correct args', async () => {
         await $subject
-        expect(ioFogService.getFogList).to.have.been.calledWith($filters, $user, false)
+        expect(ioFogService.getFogListEndPoint).to.have.been.calledWith($filters, $user, false)
       })
 
-      context('when ioFogService.getFogList fails', () => {
+      context('when ioFogService.getFogListEndPoint fails', () => {
         const error = 'Error!'
 
         def('response', () => Promise.reject(error))
@@ -342,7 +342,7 @@ describe('ioFog Controller', () => {
         })
       })
 
-      context('when ioFogService.getFogList succeeds', () => {
+      context('when ioFogService.getFogListEndPoint succeeds', () => {
         it(`succeeds`, () => {
           return expect($subject).to.eventually.equal(undefined)
         })
@@ -363,15 +363,15 @@ describe('ioFog Controller', () => {
     def('subject', () => $subject.generateProvisioningKeyEndPoint($req, $user))
 
     beforeEach(() => {
-      $sandbox.stub(ioFogService, 'generateProvisioningKey').returns($response)
+      $sandbox.stub(ioFogService, 'generateProvisioningKeyEndPoint').returns($response)
     })
 
-    it('calls ioFogService.generateProvisioningKey with correct args', async () => {
+    it('calls ioFogService.generateProvisioningKeyEndPoint with correct args', async () => {
       await $subject
-      expect(ioFogService.generateProvisioningKey).to.have.been.calledWith({uuid: $uuid}, $user, false)
+      expect(ioFogService.generateProvisioningKeyEndPoint).to.have.been.calledWith({ uuid: $uuid }, $user, false)
     })
 
-    context('when ioFogService#generateProvisioningKey fails', () => {
+    context('when ioFogService#generateProvisioningKeyEndPoint fails', () => {
       const error = 'Error!'
 
       def('response', () => Promise.reject(error))
@@ -381,7 +381,7 @@ describe('ioFog Controller', () => {
       })
     })
 
-    context('when ioFogService#generateProvisioningKey succeeds', () => {
+    context('when ioFogService#generateProvisioningKeyEndPoint succeeds', () => {
       it(`succeeds`, () => {
         return expect($subject).to.eventually.equal(undefined)
       })
@@ -403,18 +403,18 @@ describe('ioFog Controller', () => {
     def('subject', () => $subject.setFogVersionCommandEndPoint($req, $user))
 
     beforeEach(() => {
-      $sandbox.stub(ioFogService, 'setFogVersionCommand').returns($response)
+      $sandbox.stub(ioFogService, 'setFogVersionCommandEndPoint').returns($response)
     })
 
-    it('calls ioFogService.setFogVersionCommand with correct args', async () => {
+    it('calls ioFogService.setFogVersionCommandEndPoint with correct args', async () => {
       await $subject
-      expect(ioFogService.setFogVersionCommand).to.have.been.calledWith({
+      expect(ioFogService.setFogVersionCommandEndPoint).to.have.been.calledWith({
         uuid: $uuid,
         versionCommand: $versionCommand,
       }, $user, false)
     })
 
-    context('when ioFogService#setFogVersionCommand fails', () => {
+    context('when ioFogService#setFogVersionCommandEndPoint fails', () => {
       const error = 'Error!'
 
       def('response', () => Promise.reject(error))
@@ -424,7 +424,7 @@ describe('ioFog Controller', () => {
       })
     })
 
-    context('when ioFogService#setFogVersionCommand succeeds', () => {
+    context('when ioFogService#setFogVersionCommandEndPoint succeeds', () => {
       it(`succeeds`, () => {
         return expect($subject).to.eventually.equal(undefined)
       })
@@ -444,15 +444,15 @@ describe('ioFog Controller', () => {
     def('subject', () => $subject.setFogRebootCommandEndPoint($req, $user))
 
     beforeEach(() => {
-      $sandbox.stub(ioFogService, 'setFogRebootCommand').returns($response)
+      $sandbox.stub(ioFogService, 'setFogRebootCommandEndPoint').returns($response)
     })
 
-    it('calls ioFogService.setFogRebootCommand with correct args', async () => {
+    it('calls ioFogService.setFogRebootCommandEndPoint with correct args', async () => {
       await $subject
-      expect(ioFogService.setFogRebootCommand).to.have.been.calledWith({uuid: $uuid}, $user, false)
+      expect(ioFogService.setFogRebootCommandEndPoint).to.have.been.calledWith({ uuid: $uuid }, $user, false)
     })
 
-    context('when ioFogService#setFogRebootCommand fails', () => {
+    context('when ioFogService#setFogRebootCommandEndPoint fails', () => {
       const error = 'Error!'
 
       def('response', () => Promise.reject(error))
@@ -462,7 +462,7 @@ describe('ioFog Controller', () => {
       })
     })
 
-    context('when ioFogService#setFogRebootCommand succeeds', () => {
+    context('when ioFogService#setFogRebootCommandEndPoint succeeds', () => {
       it(`succeeds`, () => {
         return expect($subject).to.eventually.equal(undefined)
       })
@@ -482,15 +482,15 @@ describe('ioFog Controller', () => {
     def('subject', () => $subject.getHalHardwareInfoEndPoint($req, $user))
 
     beforeEach(() => {
-      $sandbox.stub(ioFogService, 'getHalHardwareInfo').returns($response)
+      $sandbox.stub(ioFogService, 'getHalHardwareInfoEndPoint').returns($response)
     })
 
-    it('calls ioFogService.getHalHardwareInfo with correct args', async () => {
+    it('calls ioFogService.getHalHardwareInfoEndPoint with correct args', async () => {
       await $subject
-      expect(ioFogService.getHalHardwareInfo).to.have.been.calledWith({uuid: $uuid}, $user, false)
+      expect(ioFogService.getHalHardwareInfoEndPoint).to.have.been.calledWith({ uuid: $uuid }, $user, false)
     })
 
-    context('when ioFogService#getHalHardwareInfo fails', () => {
+    context('when ioFogService#getHalHardwareInfoEndPoint fails', () => {
       const error = 'Error!'
 
       def('response', () => Promise.reject(error))
@@ -500,7 +500,7 @@ describe('ioFog Controller', () => {
       })
     })
 
-    context('when ioFogService#getHalHardwareInfo succeeds', () => {
+    context('when ioFogService#getHalHardwareInfoEndPoint succeeds', () => {
       it(`succeeds`, () => {
         return expect($subject).to.eventually.equal(undefined)
       })
@@ -516,19 +516,19 @@ describe('ioFog Controller', () => {
         uuid: $uuid,
       },
     }))
-    def('response', () => Promise.resolve({info: undefined}))
+    def('response', () => Promise.resolve({ info: undefined }))
     def('subject', () => $subject.getHalUsbInfoEndPoint($req, $user))
 
     beforeEach(() => {
-      $sandbox.stub(ioFogService, 'getHalUsbInfo').returns($response)
+      $sandbox.stub(ioFogService, 'getHalUsbInfoEndPoint').returns($response)
     })
 
-    it('calls ioFogService.getHalUsbInfo with correct args', async () => {
+    it('calls ioFogService.getHalUsbInfoEndPoint with correct args', async () => {
       await $subject
-      expect(ioFogService.getHalUsbInfo).to.have.been.calledWith({uuid: $uuid}, $user, false)
+      expect(ioFogService.getHalUsbInfoEndPoint).to.have.been.calledWith({ uuid: $uuid }, $user, false)
     })
 
-    context('when ioFogService#getHalUsbInfo fails', () => {
+    context('when ioFogService#getHalUsbInfoEndPoint fails', () => {
       const error = 'Error!'
 
       def('response', () => Promise.reject(error))
@@ -538,7 +538,7 @@ describe('ioFog Controller', () => {
       })
     })
 
-    context('when ioFogService#getHalUsbInfo succeeds', () => {
+    context('when ioFogService#getHalUsbInfoEndPoint succeeds', () => {
       it(`succeeds`, () => {
         return expect($subject).to.eventually.have.property('info')
       })

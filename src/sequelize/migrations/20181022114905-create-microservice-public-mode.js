@@ -12,31 +12,31 @@ module.exports = {
       microserviceUuid: {
         type: Sequelize.TEXT,
         field: 'microservice_uuid',
-        references: {model: 'Microservices', key: 'uuid'},
+        references: { model: 'Microservices', key: 'uuid' },
         onDelete: 'cascade',
       },
       networkMicroserviceUuid: {
         type: Sequelize.TEXT,
         field: 'network_microservice_uuid',
-        references: {model: 'Microservices', key: 'uuid'},
+        references: { model: 'Microservices', key: 'uuid' },
         onDelete: 'set null',
       },
       iofogUuid: {
         type: Sequelize.TEXT,
         field: 'iofog_uuid',
-        references: {model: 'Fogs', key: 'uuid'},
+        references: { model: 'Fogs', key: 'uuid' },
         onDelete: 'set null',
       },
       microservicePortId: {
         type: Sequelize.TEXT,
         field: 'microservice_port_id',
-        references: {model: 'MicroservicePorts', key: 'id'},
+        references: { model: 'MicroservicePorts', key: 'id' },
         onDelete: 'set null',
       },
       connectorPortId: {
         type: Sequelize.TEXT,
         field: 'connector_port_id',
-        references: {model: 'ConnectorPorts', key: 'id'},
+        references: { model: 'ConnectorPorts', key: 'id' },
         onDelete: 'set null',
       },
     })

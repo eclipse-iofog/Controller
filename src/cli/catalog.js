@@ -154,7 +154,7 @@ class Catalog extends BaseCLIHandler {
 
   async run(args) {
     try {
-      const catalogCommand = this.parseCommandLineArgs(this.commandDefinitions, {argv: args.argv, partial: false})
+      const catalogCommand = this.parseCommandLineArgs(this.commandDefinitions, { argv: args.argv, partial: false })
 
       const command = catalogCommand.command.command
 
@@ -218,8 +218,8 @@ const _createCatalogItem = async function(obj, user) {
     ? JSON.parse(fs.readFileSync(obj.file, 'utf8'))
     : _createCatalogItemObject(obj)
 
-  logger.cliReq('catalog add', {args: item})
-  const catalogItemIdObject = await CatalogItemService.createCatalogItem(item, user)
+  logger.cliReq('catalog add', { args: item })
+  const catalogItemIdObject = await CatalogItemService.createCatalogItemEndPoint(item, user)
   logger.cliRes(JSON.stringify({
     id: catalogItemIdObject.id,
   }, null, 2))
@@ -234,26 +234,26 @@ const _updateCatalogItem = async function(obj) {
     throw new Errors.NotFoundError(ErrorMessages.CATALOG_UPDATE_REQUIRES_ID)
   }
 
-  logger.cliReq('catalog update', {args: item})
-  await CatalogItemService.updateCatalogItem(obj.itemId, item, {}, true)
+  logger.cliReq('catalog update', { args: item })
+  await CatalogItemService.updateCatalogItemEndPoint(obj.itemId, item, {}, true)
   logger.cliRes('Catalog item has been updated successfully.')
 }
 
 const _deleteCatalogItem = async function(obj) {
-  logger.cliReq('catalog remove', {args: {itemId: obj.itemId}})
-  await CatalogItemService.deleteCatalogItem(obj.itemId, {}, true)
+  logger.cliReq('catalog remove', { args: { itemId: obj.itemId } })
+  await CatalogItemService.deleteCatalogItemEndPoint(obj.itemId, {}, true)
   logger.cliRes('Catalog item has been removed successfully')
 }
 
 const _listCatalogItems = async function() {
   logger.cliReq('catalog list')
-  const result = await CatalogItemService.listCatalogItems({}, true)
+  const result = await CatalogItemService.listCatalogItemsEndPoint({}, true)
   logger.cliRes(JSON.stringify(result, null, 2))
 }
 
 const _getCatalogItem = async function(obj) {
-  logger.cliReq('catalog info', {args: {itemId: obj.itemId}})
-  const result = await CatalogItemService.getCatalogItem(obj.itemId, {}, true)
+  logger.cliReq('catalog info', { args: { itemId: obj.itemId } })
+  const result = await CatalogItemService.getCatalogItemEndPoint(obj.itemId, {}, true)
   logger.cliRes(JSON.stringify(result, null, 2))
 }
 
