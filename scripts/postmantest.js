@@ -12,10 +12,10 @@
  */
 
 const newman = require('newman')
-const {init} = require('./init')
-const {restoreDBs, backupDBs} = require('./util')
-const {start} = require('./start')
-const {stop} = require('./stop')
+const { init } = require('./init')
+const { restoreDBs, backupDBs } = require('./util')
+const { start } = require('./start')
+const { stop } = require('./stop')
 
 function postmanTest() {
   stop()

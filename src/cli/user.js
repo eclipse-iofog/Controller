@@ -71,7 +71,7 @@ class User extends BaseCLIHandler {
 
   async run(args) {
     try {
-      const userCommand = this.parseCommandLineArgs(this.commandDefinitions, {argv: args.argv, partial: false})
+      const userCommand = this.parseCommandLineArgs(this.commandDefinitions, { argv: args.argv, partial: false })
 
       const command = userCommand.command.command
 
@@ -125,7 +125,7 @@ const _executeCase = async function(userCommand, commandName, f, isUserRequired)
 }
 
 const _createUser = async function(user) {
-  logger.cliReq('user add', {args: user})
+  logger.cliReq('user add', { args: user })
   await Validator.validate(user, Validator.schemas.signUp)
 
   user.password = AppHelper.encryptText(user.password, user.email)
@@ -137,13 +137,13 @@ const _createUser = async function(user) {
 }
 
 const _updateUserDetails = async function(userDetails, user) {
-  logger.cliReq('user update', {args: userDetails})
+  logger.cliReq('user update', { args: userDetails })
   await UserService.updateUserDetails(user, userDetails, true)
   logger.cliRes('User updated successfully.')
 }
 
 const _deleteUser = async function(obj, user) {
-  logger.cliReq('user remove', {args: {user: user.dataValues, force: obj.force}})
+  logger.cliReq('user remove', { args: { user: user.dataValues, force: obj.force } })
   await UserService.deleteUser(obj.force, user, true)
   logger.cliRes('User removed successfully.')
 }
@@ -155,7 +155,7 @@ const _getAllUsers = async function() {
 }
 
 const _generateToken = async function(emailObj, user) {
-  logger.cliReq('user generate-token', {args: user.dataValues})
+  logger.cliReq('user generate-token', { args: user.dataValues })
   const response = await UserService.login(user, true)
   logger.cliRes(JSON.stringify(response, null, 2))
 }
@@ -164,13 +164,13 @@ const _activateUser = async function(emailObj, user) {
   const codeData = {
     userId: user.id,
   }
-  logger.cliReq('user activate', {args: codeData})
+  logger.cliReq('user activate', { args: codeData })
   await UserService.activateUser(codeData, true)
   logger.cliRes('User activated successfully.')
 }
 
 const _suspendUser = async function(emailObj, user) {
-  logger.cliReq('user suspend', {args: user.dataValues})
+  logger.cliReq('user suspend', { args: user.dataValues })
   await UserService.suspendUser(user, true)
   logger.cliRes('User suspended successfully.')
 }

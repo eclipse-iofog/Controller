@@ -1,4 +1,4 @@
-const {expect} = require('chai')
+const { expect } = require('chai')
 const sinon = require('sinon')
 
 const ioFogManager = require('../../../src/sequelize/managers/iofog-manager')
@@ -21,7 +21,7 @@ describe('ioFog Service', () => {
 
   afterEach(() => $sandbox.restore())
 
-  describe('.createFog()', () => {
+  describe('.createFogEndPoint()', () => {
     const transaction = {}
     const error = 'Error!'
 
@@ -122,7 +122,7 @@ describe('ioFog Service', () => {
       uuid: uuid,
     }
 
-    def('subject', () => $subject.createFog(fogData, user, isCLI, transaction))
+    def('subject', () => $subject.createFogEndPoint(fogData, user, isCLI, transaction))
     def('validatorResponse', () => Promise.resolve(true))
     def('generateRandomStringResponse', () => uuid)
     def('generateRandomStringResponse2', () => uuid2)
@@ -353,7 +353,7 @@ describe('ioFog Service', () => {
     })
   })
 
-  describe('.updateFog()', () => {
+  describe('.updateFogEndPoint()', () => {
     const transaction = {}
     const error = 'Error!'
 
@@ -416,8 +416,8 @@ describe('ioFog Service', () => {
     }
 
     const queryFogData = isCLI
-      ? {uuid: fogData.uuid}
-      : {uuid: fogData.uuid, userId: user.id}
+      ? { uuid: fogData.uuid }
+      : { uuid: fogData.uuid, userId: user.id }
 
     const updateFogData = {
       name: fogData.name,
@@ -474,7 +474,7 @@ describe('ioFog Service', () => {
       configLastUpdated: date,
     }
 
-    def('subject', () => $subject.updateFog(fogData, user, isCLI, transaction))
+    def('subject', () => $subject.updateFogEndPoint(fogData, user, isCLI, transaction))
     def('validatorResponse', () => Promise.resolve(true))
     def('deleteUndefinedFieldsResponse', () => updateFogData)
     def('findIoFogResponse', () => Promise.resolve(oldFog))
@@ -709,7 +709,7 @@ describe('ioFog Service', () => {
     })
   })
 
-  describe('.deleteFog()', () => {
+  describe('.deleteFogEndPoint()', () => {
     const transaction = {}
     const error = 'Error!'
 
@@ -751,10 +751,10 @@ describe('ioFog Service', () => {
     }
 
     const queryFogData = isCLI
-      ? {uuid: fogData.uuid}
-      : {uuid: fogData.uuid, userId: user.id}
+      ? { uuid: fogData.uuid }
+      : { uuid: fogData.uuid, userId: user.id }
 
-    def('subject', () => $subject.deleteFog(fogData, user, isCLI, transaction))
+    def('subject', () => $subject.deleteFogEndPoint(fogData, user, isCLI, transaction))
     def('validatorResponse', () => Promise.resolve(true))
     def('findIoFogResponse', () => Promise.resolve(fog))
     def('updateChangeTrackingResponse', () => Promise.resolve())
@@ -858,59 +858,9 @@ describe('ioFog Service', () => {
     }
 
     const queryFogData = isCLI
-      ? {uuid: fogData.uuid}
-      : {uuid: fogData.uuid, userId: user.id}
+      ? { uuid: fogData.uuid }
+      : { uuid: fogData.uuid, userId: user.id }
 
-    const fogResponse = {
-      uuid: fog.uuid,
-      name: fog.name,
-      location: fog.location,
-      gpsMode: fog.gpsMode,
-      latitude: fog.latitude,
-      longitude: fog.longitude,
-      description: fog.description,
-      lastActive: fog.lastActive,
-      daemonStatus: fog.daemonStatus,
-      daemonOperatingDuration: fog.daemonOperatingDuration,
-      daemonLastStart: fog.daemonLastStart,
-      memoryUsage: fog.memoryUsage,
-      diskUsage: fog.diskUsage,
-      cpuUsage: fog.cpuUsage,
-      memoryViolation: fog.memoryViolation,
-      diskViolation: fog.diskViolation,
-      cpuViolation: fog.cpuViolation,
-      catalogItemStatus: fog.catalogItemStatus,
-      repositoryCount: fog.repositoryCount,
-      repositoryStatus: fog.repositoryStatus,
-      systemTime: fog.systemTime,
-      lastStatusTime: fog.lastStatusTime,
-      ipAddress: fog.ipAddress,
-      processedMessages: fog.processedMessages,
-      catalogItemMessageCounts: fog.catalogItemMessageCounts,
-      messageSpeed: fog.messageSpeed,
-      lastCommandTime: fog.lastCommandTime,
-      networkInterface: fog.networkInterface,
-      dockerUrl: fog.dockerUrl,
-      diskLimit: fog.diskLimit,
-      diskDirectory: fog.diskDirectory,
-      memoryLimit: fog.memoryLimit,
-      cpuLimit: fog.cpuLimit,
-      logLimit: fog.logLimit,
-      logDirectory: fog.logDirectory,
-      bluetoothEnabled: fog.bluetoothEnabled,
-      abstractedHardwareEnabled: fog.abstractedHardwareEnabled,
-      logFileCount: fog.logFileCount,
-      version: fog.version,
-      isReadyToUpgrade: fog.isReadyToUpgrade,
-      isReadyToRollback: fog.isReadyToRollback,
-      statusFrequency: fog.statusFrequency,
-      changeFrequency: fog.changeFrequency,
-      deviceScanFrequency: fog.deviceScanFrequency,
-      tunnel: fog.tunnel,
-      watchdogEnabled: fog.watchdogEnabled,
-      fogTypeId: fog.fogTypeId,
-      userId: fog.userId,
-    }
 
     def('subject', () => $subject.getFog(fogData, user, isCLI, transaction))
     def('validatorResponse', () => Promise.resolve(true))
@@ -951,13 +901,13 @@ describe('ioFog Service', () => {
 
       context('when ioFogManager#findOne() succeeds', () => {
         it('fulfills the promise', () => {
-          return expect($subject).to.eventually.deep.equal(fogResponse)
+          return expect($subject).to.eventually.deep.equal(fog)
         })
       })
     })
   })
 
-  describe('.getFogList()', () => {
+  describe('.getFogListEndPoint()', () => {
     const transaction = {}
     const error = 'Error!'
 
@@ -998,11 +948,11 @@ describe('ioFog Service', () => {
 
     const queryFogData = isCLI
       ? {}
-      : {userId: user.id}
+      : { userId: user.id }
 
     const filters = []
 
-    def('subject', () => $subject.getFogList(filters, user, isCLI, transaction))
+    def('subject', () => $subject.getFogListEndPoint(filters, user, isCLI, transaction))
     def('validatorResponse', () => Promise.resolve(true))
     def('findAllIoFogResponse', () => Promise.resolve(fogs))
 
@@ -1047,7 +997,7 @@ describe('ioFog Service', () => {
     })
   })
 
-  describe('.generateProvisioningKey()', () => {
+  describe('.generateProvisioningKeyEndPoint()', () => {
     const transaction = {}
     const error = 'Error!'
 
@@ -1064,8 +1014,8 @@ describe('ioFog Service', () => {
     }
 
     const queryFogData = isCLI
-      ? {uuid: fogData.uuid}
-      : {uuid: fogData.uuid, userId: user.id}
+      ? { uuid: fogData.uuid }
+      : { uuid: fogData.uuid, userId: user.id }
 
     const provisionKey = 'tttttttt'
     const expirationTime = date + (20 * 60 * 1000)
@@ -1076,7 +1026,7 @@ describe('ioFog Service', () => {
       expirationTime: expirationTime,
     }
 
-    def('subject', () => $subject.generateProvisioningKey(fogData, user, isCLI, transaction))
+    def('subject', () => $subject.generateProvisioningKeyEndPoint(fogData, user, isCLI, transaction))
     def('validatorResponse', () => Promise.resolve(true))
     def('generateRandomStringResponse', () => provisionKey)
     def('findIoFogResponse', () => Promise.resolve({}))
@@ -1164,7 +1114,7 @@ describe('ioFog Service', () => {
     })
   })
 
-  describe('.setFogVersionCommand()', () => {
+  describe('.setFogVersionCommandEndPoint()', () => {
     const transaction = {}
     const error = 'Error!'
 
@@ -1182,8 +1132,8 @@ describe('ioFog Service', () => {
     }
 
     const queryFogData = isCLI
-      ? {uuid: fogVersionData.uuid}
-      : {uuid: fogVersionData.uuid, userId: user.id}
+      ? { uuid: fogVersionData.uuid }
+      : { uuid: fogVersionData.uuid, userId: user.id }
 
     const ioFog = {
       uuid: uuid,
@@ -1205,7 +1155,7 @@ describe('ioFog Service', () => {
       expirationTime: expirationTime,
     }
 
-    def('subject', () => $subject.setFogVersionCommand(fogVersionData, user, isCLI, transaction))
+    def('subject', () => $subject.setFogVersionCommandEndPoint(fogVersionData, user, isCLI, transaction))
     def('validatorResponse', () => Promise.resolve(true))
     def('findIoFogResponse', () => Promise.resolve(ioFog))
     def('generateRandomStringResponse', () => provisionKey)
@@ -1359,7 +1309,7 @@ describe('ioFog Service', () => {
     })
   })
 
-  describe('.setFogRebootCommand()', () => {
+  describe('.setFogRebootCommandEndPoint()', () => {
     const transaction = {}
     const error = 'Error!'
 
@@ -1376,10 +1326,10 @@ describe('ioFog Service', () => {
     }
 
     const queryFogData = isCLI
-      ? {uuid: fogData.uuid}
-      : {uuid: fogData.uuid, userId: user.id}
+      ? { uuid: fogData.uuid }
+      : { uuid: fogData.uuid, userId: user.id }
 
-    def('subject', () => $subject.setFogRebootCommand(fogData, user, isCLI, transaction))
+    def('subject', () => $subject.setFogRebootCommandEndPoint(fogData, user, isCLI, transaction))
     def('validatorResponse', () => Promise.resolve(true))
     def('findIoFogResponse', () => Promise.resolve({}))
     def('updateChangeTrackingResponse', () => Promise.resolve())
@@ -1443,7 +1393,7 @@ describe('ioFog Service', () => {
     })
   })
 
-  describe('.getHalHardwareInfo()', () => {
+  describe('.getHalHardwareInfoEndPoint()', () => {
     const transaction = {}
     const error = 'Error!'
 
@@ -1459,7 +1409,7 @@ describe('ioFog Service', () => {
       uuid: uuid,
     }
 
-    def('subject', () => $subject.getHalHardwareInfo(uuidObj, user, isCLI, transaction))
+    def('subject', () => $subject.getHalHardwareInfoEndPoint(uuidObj, user, isCLI, transaction))
     def('validatorResponse', () => Promise.resolve(true))
     def('findIoFogResponse', () => Promise.resolve({}))
     def('findHalHardwareResponse', () => Promise.resolve())
@@ -1526,7 +1476,7 @@ describe('ioFog Service', () => {
     })
   })
 
-  describe('.getHalUsbInfo()', () => {
+  describe('.getHalUsbInfoEndPoint()', () => {
     const transaction = {}
     const error = 'Error!'
 
@@ -1542,7 +1492,7 @@ describe('ioFog Service', () => {
       uuid: uuid,
     }
 
-    def('subject', () => $subject.getHalUsbInfo(uuidObj, user, isCLI, transaction))
+    def('subject', () => $subject.getHalUsbInfoEndPoint(uuidObj, user, isCLI, transaction))
     def('validatorResponse', () => Promise.resolve(true))
     def('findIoFogResponse', () => Promise.resolve({}))
     def('findHalUsbResponse', () => Promise.resolve())

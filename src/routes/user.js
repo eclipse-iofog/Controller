@@ -45,7 +45,7 @@ module.exports = [
           .status(responseObject.code)
           .send(responseObject.body)
 
-      logger.apiRes('POST /api/v3/user/login', {args: {statusCode: responseObject.code}})
+      logger.apiRes('POST /api/v3/user/login', { args: { statusCode: responseObject.code } })
       // don't use req and responseObject as args, because they have password and token
     },
   },
@@ -92,7 +92,7 @@ module.exports = [
           .status(responseObject.code)
           .send(responseObject.body)
 
-      logger.apiRes({req: req, res: responseObject})
+      logger.apiRes({ req: req, res: responseObject })
     },
   },
   {
@@ -117,7 +117,7 @@ module.exports = [
           .status(responseObject.code)
           .send(responseObject.body)
 
-      logger.apiRes({req: req, res: responseObject})
+      logger.apiRes({ req: req, res: responseObject })
     },
   },
   {
@@ -148,7 +148,7 @@ module.exports = [
           .status(responseObject.code)
           .send(responseObject.body)
 
-      logger.apiRes({req: req, res: responseObject})
+      logger.apiRes({ req: req, res: responseObject })
     },
   },
   {
@@ -172,7 +172,7 @@ module.exports = [
           .status(responseObject.code)
           .send(responseObject.body)
 
-      logger.apiRes({req: req, res: responseObject})
+      logger.apiRes({ req: req, res: responseObject })
     },
   },
   {
@@ -201,7 +201,7 @@ module.exports = [
           .status(responseObject.code)
           .send(responseObject.body)
 
-      logger.apiRes({req: req, res: responseObject})
+      logger.apiRes({ req: req, res: responseObject })
     },
   },
   {
@@ -226,7 +226,7 @@ module.exports = [
           .status(responseObject.code)
           .send(responseObject.body)
 
-      logger.apiRes({req: req, res: responseObject})
+      logger.apiRes({ req: req, res: responseObject })
     },
   },
   {
@@ -255,7 +255,7 @@ module.exports = [
           .status(responseObject.code)
           .send(responseObject.body)
 
-      logger.apiRes({req: req, res: responseObject})
+      logger.apiRes({ req: req, res: responseObject })
     },
   },
   {
@@ -280,7 +280,7 @@ module.exports = [
           .status(responseObject.code)
           .send(responseObject.body)
 
-      logger.apiRes({req: req, res: responseObject})
+      logger.apiRes({ req: req, res: responseObject })
     },
   },
 ]

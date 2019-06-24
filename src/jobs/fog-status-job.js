@@ -29,7 +29,7 @@ class FogStatusJob extends BaseJobHandler {
   }
 
   run() {
-    setInterval(TransactionDecorator.generateFakeTransaction(updateFogsConnectionStatus), this.scheduleTime)
+    setInterval(TransactionDecorator.generateTransaction(updateFogsConnectionStatus), this.scheduleTime)
   }
 }
 
@@ -41,7 +41,7 @@ async function updateFogsConnectionStatus(transaction) {
 
 async function _updateFogStatus(transaction) {
   const minInMs = Config.get('Settings:FogStatusFrequencySeconds') * 1000
-  const fogs = await FogManager.findAll({daemonStatus: FogStates.RUNNING}, transaction)
+  const fogs = await FogManager.findAll({ daemonStatus: FogStates.RUNNING }, transaction)
   const unknownFogUuids = fogs
       .filter((fog) => {
         const intervalInMs = fog.statusFrequency > minInMs ? fog.statusFrequency * 2 : minInMs
@@ -49,23 +49,23 @@ async function _updateFogStatus(transaction) {
       })
       .map((fog) => fog.uuid)
 
-  const where = {uuid: unknownFogUuids}
-  const data = {daemonStatus: FogStates.UNKNOWN, ipAddress: '0.0.0.0'}
+  const where = { uuid: unknownFogUuids }
+  const data = { daemonStatus: FogStates.UNKNOWN, ipAddress: '0.0.0.0' }
   await FogManager.update(where, data, transaction)
   return unknownFogUuids
 }
 
 async function _updateMicroserviceStatus(unknownFogUuids, transaction) {
-  const microservices = await MicroserviceManager.findAllWithStatuses({iofogUuid: unknownFogUuids}, transaction)
+  const microservices = await MicroserviceManager.findAllWithStatuses({ iofogUuid: unknownFogUuids }, transaction)
   const microserviceStatusIds = microservices.map((microservice) => microservice.microserviceStatus.id)
-  await MicroserviceStatusManager.update({id: microserviceStatusIds}, {status: MicroserviceStates.NOT_RUNNING}, transaction)
+  await MicroserviceStatusManager.update({ id: microserviceStatusIds }, { status: MicroserviceStates.NOT_RUNNING }, transaction)
   return microservices
 }
 
 async function _deleteNotRunningMicroservices(microservices, transaction) {
   for (microservice of microservices) {
     if (microservice.delete) {
-      await MicroserviceService.deleteMicroserviceWithRoutesAndPortMappings(microservice.uuid, transaction)
+      await MicroserviceService.deleteMicroserviceWithRoutesAndPortMappings(microservice, transaction)
     }
   }
 }

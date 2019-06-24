@@ -17,7 +17,7 @@ const AccessTokenManager = require('../sequelize/managers/access-token-manager')
 const FogManager = require('../sequelize/managers/iofog-manager')
 const FogAccessTokenManager = require('../sequelize/managers/iofog-access-token-manager')
 const Errors = require('../helpers/errors')
-const {isTest} = require('../helpers/app-helper')
+const { isTest } = require('../helpers/app-helper')
 
 function checkAuthToken(f) {
   return async function(...fArgs) {

@@ -29,7 +29,7 @@ class SendTrackingJob extends BaseJobHandler {
 const intervalMin = 5
 
 async function sendTracking() {
-  const fakeTransactionObject = {fakeTransaction: true}
+  const fakeTransactionObject = { fakeTransaction: true }
   const events = await TrackingEventManager.popAll(fakeTransactionObject)
   try {
     Tracking.sendEvents(events)

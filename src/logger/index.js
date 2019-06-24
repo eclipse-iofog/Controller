@@ -58,7 +58,7 @@ const prepareObjectLogs = winston.format((log) => {
   if (log.level === 'apiReq' && log.message instanceof Object) {
     const req = log.message
     log.message = `${req.method} ${req.originalUrl}`
-    log.args = {params: req.params, query: req.query, body: req.body}
+    log.args = { params: req.params, query: req.query, body: req.body }
   }
   if (log.level === 'apiRes' && log.message instanceof Object) {
     const req = log.message.req
@@ -79,37 +79,12 @@ const logger = winston.createLogger({
           prepareObjectLogs(),
           formattedJson()
       ),
-      filename: 'iofog-controller.0.log',
+      filename: 'iofog-controller.log',
       dirname: dirname,
       maxsize: maxsize,
-      rotationFormat: function() {
-        return getFormattedLogName()
-      },
     }),
   ],
 })
-
-// logFileName pattern similar to agent
-function getFormattedLogName() {
-  if (fs.existsSync(dirname)) {
-    const files = fs.readdirSync(dirname)
-    const latestFilePath = dirname + '/' + files[0]
-
-    if (files.length === 0 || fs.statSync(latestFilePath).size <= maxsize) {
-      return ''
-    }
-
-    files.reverse().forEach((file) => {
-      const path = dirname + '/' + file
-      if (fs.existsSync(path)) {
-        const strNumber = file.replace('iofog-controller.', '').replace('.log', '')
-        const number = parseInt(strNumber) + 1
-        fs.renameSync(path, path.replace(strNumber, number))
-      }
-    })
-  }
-  return ''
-}
 
 logger.add(new winston.transports.Console({
   level: 'info',
@@ -120,7 +95,7 @@ logger.add(new winston.transports.Console({
     if (log.level === 'apiReq' && log.message instanceof Object) {
       const req = log.message
       log.message = `${req.method} ${req.originalUrl}`
-      log.args = {params: req.params, query: req.query, body: req.body}
+      log.args = { params: req.params, query: req.query, body: req.body }
     }
     if (log.level === 'apiRes' && log.message instanceof Object) {
       const req = log.message.req

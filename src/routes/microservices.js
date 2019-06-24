@@ -39,7 +39,7 @@ module.exports = [
           .status(responseObject.code)
           .send(responseObject.body)
 
-      logger.apiRes({req: req, res: responseObject})
+      logger.apiRes({ req: req, res: responseObject })
     },
   },
   {
@@ -68,7 +68,7 @@ module.exports = [
           .status(responseObject.code)
           .send(responseObject.body)
 
-      logger.apiRes({req: req, res: responseObject})
+      logger.apiRes({ req: req, res: responseObject })
     },
   },
   {
@@ -97,7 +97,7 @@ module.exports = [
           .status(responseObject.code)
           .send(responseObject.body)
 
-      logger.apiRes({req: req, res: responseObject})
+      logger.apiRes({ req: req, res: responseObject })
     },
   },
 
@@ -131,7 +131,7 @@ module.exports = [
           .status(responseObject.code)
           .send(responseObject.body)
 
-      logger.apiRes({req: req, res: responseObject})
+      logger.apiRes({ req: req, res: responseObject })
     },
   },
   {
@@ -160,7 +160,7 @@ module.exports = [
           .status(responseObject.code)
           .send(responseObject.body)
 
-      logger.apiRes({req: req, res: responseObject})
+      logger.apiRes({ req: req, res: responseObject })
     },
   },
   {
@@ -193,7 +193,7 @@ module.exports = [
           .status(responseObject.code)
           .send(responseObject.body)
 
-      logger.apiRes({req: req, res: responseObject})
+      logger.apiRes({ req: req, res: responseObject })
     },
   },
   {
@@ -226,7 +226,7 @@ module.exports = [
           .status(responseObject.code)
           .send(responseObject.body)
 
-      logger.apiRes({req: req, res: responseObject})
+      logger.apiRes({ req: req, res: responseObject })
     },
   },
   {
@@ -259,7 +259,7 @@ module.exports = [
           .status(responseObject.code)
           .send(responseObject.body)
 
-      logger.apiRes({req: req, res: responseObject})
+      logger.apiRes({ req: req, res: responseObject })
     },
   },
   {
@@ -288,7 +288,7 @@ module.exports = [
           .status(responseObject.code)
           .send(responseObject.body)
 
-      logger.apiRes({req: req, res: responseObject})
+      logger.apiRes({ req: req, res: responseObject })
     },
   },
   {
@@ -317,7 +317,7 @@ module.exports = [
           .status(responseObject.code)
           .send(responseObject.body)
 
-      logger.apiRes({req: req, res: responseObject})
+      logger.apiRes({ req: req, res: responseObject })
     },
   },
   {
@@ -349,7 +349,7 @@ module.exports = [
           .status(responseObject.code)
           .send(responseObject.body)
 
-      logger.apiRes({req: req, res: responseObject})
+      logger.apiRes({ req: req, res: responseObject })
     },
   },
   {
@@ -385,7 +385,7 @@ module.exports = [
           .status(responseObject.code)
           .send(responseObject.body)
 
-      logger.apiRes({req: req, res: responseObject})
+      logger.apiRes({ req: req, res: responseObject })
     },
   },
   {
@@ -421,7 +421,7 @@ module.exports = [
           .status(responseObject.code)
           .send(responseObject.body)
 
-      logger.apiRes({req: req, res: responseObject})
+      logger.apiRes({ req: req, res: responseObject })
     },
   },
 ]

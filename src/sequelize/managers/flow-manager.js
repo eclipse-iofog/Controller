@@ -33,14 +33,14 @@ class FlowManager extends BaseManager {
       ],
       where: where,
       attributes: ['id'],
-    }, {transaction: transaction})
+    }, { transaction: transaction })
   }
 
   async findAllWithAttributes(where, attributes, transaction) {
     return Flow.findAll({
       where: where,
-      attributes: attributes},
-    {transaction: transaction})
+      attributes: attributes },
+    { transaction: transaction })
   }
 
   async findOneWithAttributes(where, attributes, transaction) {
@@ -48,7 +48,7 @@ class FlowManager extends BaseManager {
       where: where,
       attributes: attributes,
     },
-    {transaction: transaction})
+    { transaction: transaction })
   }
 }
 

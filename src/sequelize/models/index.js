@@ -57,7 +57,9 @@ Object.keys(db).forEach((modelName) => {
 db.sequelize = sequelize
 db.Sequelize = Sequelize
 
-db.migrate = () => createUmzug(path.resolve(__dirname, '../migrations')).up()
-db.seed = () => createUmzug(path.resolve(__dirname, '../seeders')).up()
+db.initDB = async () => {
+  await createUmzug(path.resolve(__dirname, '../migrations')).up()
+  await createUmzug(path.resolve(__dirname, '../seeders')).up()
+}
 
 module.exports = db

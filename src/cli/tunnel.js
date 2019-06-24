@@ -76,7 +76,7 @@ class Tunnel extends BaseCLIHandler {
 
   async run(args) {
     try {
-      const tunnelCommand = this.parseCommandLineArgs(this.commandDefinitions, {argv: args.argv, partial: false})
+      const tunnelCommand = this.parseCommandLineArgs(this.commandDefinitions, { argv: args.argv, partial: false })
 
       const command = tunnelCommand.command.command
 
@@ -104,7 +104,7 @@ async function _updateTunnel(obj, user) {
 
   const logTunnel = Object.assign({}, tunnel)
   delete logTunnel.password
-  logger.cliReq('tunnel update', {args: logTunnel})
+  logger.cliReq('tunnel update', { args: logTunnel })
 
   if (tunnel.iofogUuid === undefined) {
     throw new Error('Required field \'ioFog UUID\' is missing.')
@@ -115,7 +115,7 @@ async function _updateTunnel(obj, user) {
       await TunnelService.openTunnel(tunnel, user, true)
       break
     case 'close':
-      await TunnelService.closeTunnel({iofogUuid: tunnel.iofogUuid}, user)
+      await TunnelService.closeTunnel({ iofogUuid: tunnel.iofogUuid }, user)
       break
     default:
       throw new Errors.ValidationError(ErrorMessages.INVALID_ACTION_PROPERTY)

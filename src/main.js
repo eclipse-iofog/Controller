@@ -20,10 +20,12 @@ if (!process.env.NODE_ENV) {
 const Cli = require('./cli')
 const daemon = require('./daemon')
 
-function main() {
+async function main() {
   const cli = new Cli()
 
-  cli.run(daemon)
+  await cli.run(daemon)
 }
 
 main()
+    .then(() => process.exit(0))
+    .catch(() => process.exit(1))

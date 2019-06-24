@@ -22,12 +22,14 @@ const TransactionDecorator = require('../decorators/transaction-decorator')
 
 
 const INTERVAL_MIN = 5
+let timerThis
 
 class TimeTrackingJob extends BaseJobHandler {
   constructor() {
     super()
     this.scheduleTime = INTERVAL_MIN * 60 * 1000
     this.startTime = moment.now()
+    timerThis = this
   }
 
   run() {
@@ -37,17 +39,17 @@ class TimeTrackingJob extends BaseJobHandler {
   async trackTime() {
     let agentsCount = 0
     try {
-      const agents = await TransactionDecorator.generateFakeTransaction(FogAccessTokenService.all)()
+      const agents = await TransactionDecorator.generateTransaction(FogAccessTokenService.all)()
       agentsCount = (agents || []).length
     } catch (e) {
       logger.warn('Unable to count ioFog agents')
     }
 
-    const runningTime = moment().diff(this.startTime, 'minutes')
-    const event = Tracking.buildEvent(TrackingEventType.RUNNING_TIME, {runningTime, agentsCount})
+    const runningTime = moment().diff(timerThis.startTime, 'minutes')
+    const event = Tracking.buildEvent(TrackingEventType.RUNNING_TIME, { runningTime, agentsCount })
     await Tracking.processEvent(event)
 
-    setTimeout(this.trackTime, this.scheduleTime)
+    setTimeout(timerThis.trackTime, timerThis.scheduleTime)
   }
 }
 

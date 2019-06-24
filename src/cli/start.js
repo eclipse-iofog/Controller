@@ -29,9 +29,8 @@ class Start extends BaseCLIHandler {
     const pid = daemon.status()
 
     if (pid === 0) {
-      this.initDB()
       daemon.start()
-      checkDaemon(daemon, configuration)
+      await checkDaemon(daemon, configuration)
     } else {
       logger.cliRes(`iofog-controller already running. PID: ${pid}`)
     }
@@ -39,8 +38,7 @@ class Start extends BaseCLIHandler {
 
   async initDB() {
     try {
-      await db.migrate()
-      await db.seed()
+      await db.initDB()
     } catch (err) {
       logger.error('Unable to initialize the database.', err)
       process.exit(1)
@@ -49,28 +47,32 @@ class Start extends BaseCLIHandler {
 }
 
 function checkDaemon(daemon, configuration) {
-  let iterationsCount = 0
-  const check = () => {
-    iterationsCount++
-    const pid = daemon.status()
-    if (pid === 0) {
-      return logger.error('Error: port is probably allocated, or ssl_key or ssl_cert or intermediate_cert ' +
-          'is either missing or invalid.')
-    }
+  return new Promise((resolve, reject) => {
+    let iterationsCount = 0
+    const check = () => {
+      iterationsCount++
+      const pid = daemon.status()
+      if (pid === 0) {
+        logger.error('Error: port is probably allocated, or ssl_key or ssl_cert or intermediate_cert ' +
+            'is either missing or invalid.')
+        return reject(new Error('Error starting ioFog-Controller'))
+      }
 
-    if (iterationsCount === 5) {
-      checkServerProtocol(configuration)
-      return logger.cliRes(`ioFog-Controller has started at pid: ${pid}`)
+      if (iterationsCount === 5) {
+        checkServerProtocol(configuration)
+        logger.cliRes(`ioFog-Controller has started at pid: ${pid}`)
+        return resolve()
+      }
+
+      setTimeout(check, 1000)
     }
 
     setTimeout(check, 1000)
-  }
-
-  setTimeout(check, 1000)
+  })
 }
 
 function checkServerProtocol(configuration) {
-  const {devMode, port, sslKey, sslCert, intermedKey} = configuration
+  const { devMode, port, sslKey, sslCert, intermedKey } = configuration
   if (!devMode && sslKey && sslCert && intermedKey) {
     logger.cliRes(`==> 🌎 HTTPS server listening on port ${port}. Open up https://localhost:${port}/ in your browser.`)
   } else {

@@ -1,4 +1,4 @@
-const {expect} = require('chai')
+const { expect } = require('chai')
 const sinon = require('sinon')
 
 const CatalogItemManager = require('../../../src/sequelize/managers/catalog-item-manager')
@@ -19,7 +19,7 @@ describe('Catalog Service', () => {
 
   afterEach(() => $sandbox.restore())
 
-  describe('.createCatalogItem()', () => {
+  describe('.createCatalogItemEndPoint()', () => {
     const transaction = {}
     const error = 'Error!'
 
@@ -113,7 +113,7 @@ describe('Catalog Service', () => {
       catalogItemOutputType.infoFormat = data.outputType.infoFormat
     }
 
-    def('subject', () => $subject.createCatalogItem(data, user, transaction))
+    def('subject', () => $subject.createCatalogItemEndPoint(data, user, transaction))
 
     def('validatorResponse', () => Promise.resolve(true))
     def('catalogItemFindResponse', () => Promise.resolve())
@@ -158,8 +158,8 @@ describe('Catalog Service', () => {
       it('calls CatalogItemManager#findOne() with correct args', async () => {
         await $subject
         const where = catalogItem.id
-          ? {[Op.or]: [{userId: catalogItem.userId}, {userId: null}], name: data.name, id: {[Op.ne]: catalogItem.id}}
-          : {[Op.or]: [{userId: catalogItem.userId}, {userId: null}], name: data.name}
+          ? { [Op.or]: [{ userId: catalogItem.userId }, { userId: null }], name: data.name, id: { [Op.ne]: catalogItem.id } }
+          : { [Op.or]: [{ userId: catalogItem.userId }, { userId: null }], name: data.name }
         expect(CatalogItemManager.findOne).to.have.been.calledWith(where, transaction)
       })
 
@@ -301,7 +301,7 @@ describe('Catalog Service', () => {
     })
   })
 
-  describe('.updateCatalogItem()', () => {
+  describe('.updateCatalogItemEndPoint()', () => {
     const transaction = {}
     const error = 'Error!'
 
@@ -344,8 +344,8 @@ describe('Catalog Service', () => {
 
     const isCLI = false
     const where = isCLI
-      ? {id: id}
-      : {id: id, userId: user.id}
+      ? { id: id }
+      : { id: id, userId: user.id }
 
     data.id = id
 
@@ -416,7 +416,7 @@ describe('Catalog Service', () => {
       catalogItemOutputType.infoFormat = data.outputType.infoFormat
     }
 
-    def('subject', () => $subject.updateCatalogItem(id, data, user, isCLI, transaction))
+    def('subject', () => $subject.updateCatalogItemEndPoint(id, data, user, isCLI, transaction))
 
     def('validatorResponse', () => Promise.resolve(true))
     def('deleteUndefinedFieldsResponse1', () => catalogItem)
@@ -516,11 +516,11 @@ describe('Catalog Service', () => {
               await $subject
               const whereFind = catalogItem.id
                 ? {
-                  [Op.or]: [{userId: catalogItem.userId}, {userId: null}],
+                  [Op.or]: [{ userId: catalogItem.userId }, { userId: null }],
                   name: data.name,
-                  id: {[Op.ne]: catalogItem.id},
+                  id: { [Op.ne]: catalogItem.id },
                 }
-                : {[Op.or]: [{userId: catalogItem.userId}, {userId: null}], name: data.name}
+                : { [Op.or]: [{ userId: catalogItem.userId }, { userId: null }], name: data.name }
               expect(CatalogItemManager.findOne).to.have.been.calledWith(whereFind, transaction)
             })
 
@@ -529,11 +529,11 @@ describe('Catalog Service', () => {
                 await $subject
                 const whereFind = catalogItem.id
                   ? {
-                    [Op.or]: [{userId: catalogItem.userId}, {userId: null}],
+                    [Op.or]: [{ userId: catalogItem.userId }, { userId: null }],
                     name: data.name,
-                    id: {[Op.ne]: catalogItem.id},
+                    id: { [Op.ne]: catalogItem.id },
                   }
-                  : {[Op.or]: [{userId: catalogItem.userId}, {userId: null}], name: data.name}
+                  : { [Op.or]: [{ userId: catalogItem.userId }, { userId: null }], name: data.name }
                 expect(CatalogItemManager.findOne).to.have.been.calledWith(whereFind, transaction)
               })
 
@@ -672,7 +672,7 @@ describe('Catalog Service', () => {
     })
   })
 
-  describe('.listCatalogItems()', () => {
+  describe('.listCatalogItemsEndPoint()', () => {
     const transaction = {}
     const error = 'Error!'
 
@@ -683,17 +683,17 @@ describe('Catalog Service', () => {
     const isCLI = false
 
     const where = isCLI
-      ? {[Op.or]: [{category: {[Op.ne]: 'SYSTEM'}}, {category: null}]}
+      ? { [Op.or]: [{ category: { [Op.ne]: 'SYSTEM' } }, { category: null }] }
       : {
-        [Op.or]: [{userId: user.id}, {userId: null}],
-        [Op.or]: [{category: {[Op.ne]: 'SYSTEM'}}, {category: null}],
+        [Op.or]: [{ userId: user.id }, { userId: null }],
+        [Op.or]: [{ category: { [Op.ne]: 'SYSTEM' } }, { category: null }],
       }
 
     const attributes = isCLI
       ? {}
-      : {exclude: ['userId']}
+      : { exclude: ['userId'] }
 
-    def('subject', () => $subject.listCatalogItems(user, isCLI, transaction))
+    def('subject', () => $subject.listCatalogItemsEndPoint(user, isCLI, transaction))
 
     def('catalogItemsFindResponse', () => Promise.resolve())
 
@@ -721,7 +721,7 @@ describe('Catalog Service', () => {
     })
   })
 
-  describe('.getCatalogItem()', () => {
+  describe('.getCatalogItemEndPoint()', () => {
     const transaction = {}
     const error = 'Error!'
 
@@ -734,18 +734,18 @@ describe('Catalog Service', () => {
     const id = 5
 
     const where = isCLI
-      ? {id: id}
+      ? { id: id }
       : {
         id: id,
-        [Op.or]: [{userId: user.id}, {userId: null}],
-        [Op.or]: [{category: {[Op.ne]: 'SYSTEM'}}, {category: null}],
+        [Op.or]: [{ userId: user.id }, { userId: null }],
+        [Op.or]: [{ category: { [Op.ne]: 'SYSTEM' } }, { category: null }],
       }
 
     const attributes = isCLI
       ? {}
-      : {exclude: ['userId']}
+      : { exclude: ['userId'] }
 
-    def('subject', () => $subject.getCatalogItem(id, user, isCLI, transaction))
+    def('subject', () => $subject.getCatalogItemEndPoint(id, user, isCLI, transaction))
 
     def('catalogItemFindResponse', () => Promise.resolve({}))
 
@@ -773,7 +773,7 @@ describe('Catalog Service', () => {
     })
   })
 
-  describe('.deleteCatalogItem()', () => {
+  describe('.deleteCatalogItemEndPoint()', () => {
     const transaction = {}
     const error = 'Error!'
 
@@ -786,10 +786,10 @@ describe('Catalog Service', () => {
     const id = 5
 
     const where = isCLI
-      ? {id: id}
-      : {userId: user.id, id: id}
+      ? { id: id }
+      : { userId: user.id, id: id }
 
-    def('subject', () => $subject.deleteCatalogItem(id, user, isCLI, transaction))
+    def('subject', () => $subject.deleteCatalogItemEndPoint(id, user, isCLI, transaction))
 
     def('catalogItemFindResponse', () => Promise.resolve({}))
     def('response', () => 1)

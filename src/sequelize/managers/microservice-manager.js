@@ -15,6 +15,8 @@ const BaseManager = require('./base-manager')
 const models = require('./../models')
 const Microservice = models.Microservice
 const MicroservicePort = models.MicroservicePort
+const MicroserviceEnv = models.MicroserviceEnv
+const MicroserviceArg = models.MicroserviceArg
 const VolumeMapping = models.VolumeMapping
 const StraceDiagnostics = models.StraceDiagnostics
 const CatalogItem = models.CatalogItem
@@ -49,6 +51,18 @@ class MicroserviceManager extends BaseManager {
   findAllWithDependencies(where, attributes, transaction) {
     return Microservice.findAll({
       include: [
+        {
+          model: MicroserviceEnv,
+          as: 'env',
+          required: false,
+          attributes: ['key', 'value'],
+        },
+        {
+          model: MicroserviceArg,
+          as: 'cmd',
+          required: false,
+          attributes: ['cmd'],
+        },
         {
           model: MicroservicePort,
           as: 'ports',
@@ -93,19 +107,31 @@ class MicroserviceManager extends BaseManager {
             as: 'destMicroservice',
             attributes: ['uuid'],
           }],
-          attributes: {exclude: ['id', 'source_microservice_uuid',
+          attributes: { exclude: ['id', 'source_microservice_uuid',
             'sourceMicroserviceUuid', 'destMicroserviceUuid', 'sourceNetworkMicroserviceUuid',
-            'destNetworkMicroserviceUuid', 'sourceIofogUuid', 'destIofogUuid', 'connectorPortId']},
+            'destNetworkMicroserviceUuid', 'sourceIofogUuid', 'destIofogUuid', 'connectorPortId'] },
         },
       ],
       where: where,
       attributes: attributes,
-    }, {transaction: transaction})
+    }, { transaction: transaction })
   }
 
   findAllActiveFlowMicroservices(iofogUuid, transaction) {
     return Microservice.findAll({
       include: [
+        {
+          model: MicroserviceEnv,
+          as: 'env',
+          required: false,
+          attributes: ['key', 'value'],
+        },
+        {
+          model: MicroserviceArg,
+          as: 'cmd',
+          required: false,
+          attributes: ['cmd', 'id'],
+        },
         {
           model: MicroservicePort,
           as: 'ports',
@@ -153,18 +179,30 @@ class MicroserviceManager extends BaseManager {
               '$flow.is_activated$': true,
             },
             {
-              '$catalogItem.category$': {[Op.eq]: 'SYSTEM'},
-              '$catalogItem.id$': {[Op.ne]: 1},
+              '$catalogItem.category$': { [Op.eq]: 'SYSTEM' },
+              '$catalogItem.id$': { [Op.ne]: 1 },
             },
           ],
 
       },
-    }, {transaction: transaction})
+    }, { transaction: transaction })
   }
 
   findOneWithDependencies(where, attributes, transaction) {
     return Microservice.findOne({
       include: [
+        {
+          model: MicroserviceEnv,
+          as: 'env',
+          required: false,
+          attributes: ['key', 'value'],
+        },
+        {
+          model: MicroserviceArg,
+          as: 'cmd',
+          required: false,
+          attributes: ['cmd'],
+        },
         {
           model: MicroservicePort,
           as: 'ports',
@@ -209,15 +247,15 @@ class MicroserviceManager extends BaseManager {
             as: 'destMicroservice',
             attributes: ['uuid'],
           }],
-          attributes: {exclude: ['id',
+          attributes: { exclude: ['id',
             'sourceMicroserviceUuid', 'destMicroserviceUuid',
             'sourceNetworkMicroserviceUuid', 'destNetworkMicroserviceUuid',
-            'sourceIofogUuid', 'destIofogUuid', 'connectorPortId']},
+            'sourceIofogUuid', 'destIofogUuid', 'connectorPortId'] },
         },
       ],
       where: where,
       attributes: attributes,
-    }, {transaction: transaction})
+    }, { transaction: transaction })
   }
 
   findOneWithStatusAndCategory(where, transaction) {
@@ -236,7 +274,7 @@ class MicroserviceManager extends BaseManager {
         },
       ],
       where: where,
-    }, {transaction: transaction})
+    }, { transaction: transaction })
   }
 
   findAllWithStatuses(where, transaction) {
@@ -249,7 +287,7 @@ class MicroserviceManager extends BaseManager {
         },
       ],
       where: where,
-    }, {transaction: transaction})
+    }, { transaction: transaction })
   }
 
   findMicroserviceOnGet(where, transaction) {
@@ -272,7 +310,7 @@ class MicroserviceManager extends BaseManager {
       ],
       where: where,
       attributes: ['uuid'],
-    }, {transaction: transaction})
+    }, { transaction: transaction })
   }
 
   async findOneExcludeFields(where, transaction) {
@@ -280,7 +318,7 @@ class MicroserviceManager extends BaseManager {
       where: where,
       attributes: {
         exclude: microserviceExcludedFields,
-      }}, {
+      } }, {
       transaction: transaction,
     })
   }
@@ -290,7 +328,7 @@ class MicroserviceManager extends BaseManager {
       where: where,
       attributes: {
         exclude: microserviceExcludedFields,
-      }}, {
+      } }, {
       transaction: transaction,
     })
   }
@@ -306,7 +344,7 @@ class MicroserviceManager extends BaseManager {
         },
       ],
       where: where,
-    }, {transaction: transaction})
+    }, { transaction: transaction })
   }
 }
 

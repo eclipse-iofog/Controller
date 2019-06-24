@@ -1,4 +1,4 @@
-const {expect} = require('chai')
+const { expect } = require('chai')
 const sinon = require('sinon')
 
 const CatalogController = require('../../../src/controllers/catalog-controller')
@@ -64,12 +64,12 @@ describe('Catalog Controller', () => {
     def('subject', () => $subject.createCatalogItemEndPoint($req, $user))
 
     beforeEach(() => {
-      $sandbox.stub(CatalogService, 'createCatalogItem').returns($response)
+      $sandbox.stub(CatalogService, 'createCatalogItemEndPoint').returns($response)
     })
 
-    it('calls CatalogService.createCatalogItem with correct args', async () => {
+    it('calls CatalogService.createCatalogItemEndPoint with correct args', async () => {
       await $subject
-      expect(CatalogService.createCatalogItem).to.have.been.calledWith({
+      expect(CatalogService.createCatalogItemEndPoint).to.have.been.calledWith({
         name: $name,
         description: $description,
         category: $category,
@@ -86,7 +86,7 @@ describe('Catalog Controller', () => {
       }, $user)
     })
 
-    context('when CatalogService#createCatalogItem fails', () => {
+    context('when CatalogService#createCatalogItemEndPoint fails', () => {
       const error = 'Error!'
 
       def('response', () => Promise.reject(error))
@@ -96,7 +96,7 @@ describe('Catalog Controller', () => {
       })
     })
 
-    context('when CatalogService#createCatalogItem succeeds', () => {
+    context('when CatalogService#createCatalogItemEndPoint succeeds', () => {
       it(`succeeds`, () => {
         return expect($subject).to.eventually.equal(undefined)
       })
@@ -113,15 +113,15 @@ describe('Catalog Controller', () => {
     def('subject', () => $subject.listCatalogItemsEndPoint($req, $user))
 
     beforeEach(() => {
-      $sandbox.stub(CatalogService, 'listCatalogItems').returns($response)
+      $sandbox.stub(CatalogService, 'listCatalogItemsEndPoint').returns($response)
     })
 
-    it('calls CatalogService.listCatalogItems with correct args', async () => {
+    it('calls CatalogService.listCatalogItemsEndPoint with correct args', async () => {
       await $subject
-      expect(CatalogService.listCatalogItems).to.have.been.calledWith($user, false)
+      expect(CatalogService.listCatalogItemsEndPoint).to.have.been.calledWith($user, false)
     })
 
-    context('when CatalogService#listCatalogItems fails', () => {
+    context('when CatalogService#listCatalogItemsEndPoint fails', () => {
       const error = 'Error!'
 
       def('response', () => Promise.reject(error))
@@ -131,7 +131,7 @@ describe('Catalog Controller', () => {
       })
     })
 
-    context('when CatalogService#listCatalogItems succeeds', () => {
+    context('when CatalogService#listCatalogItemsEndPoint succeeds', () => {
       it(`succeeds`, () => {
         return expect($subject).to.eventually.equal(undefined)
       })
@@ -153,15 +153,15 @@ describe('Catalog Controller', () => {
     def('subject', () => $subject.listCatalogItemEndPoint($req, $user))
 
     beforeEach(() => {
-      $sandbox.stub(CatalogService, 'getCatalogItem').returns($response)
+      $sandbox.stub(CatalogService, 'getCatalogItemEndPoint').returns($response)
     })
 
-    it('calls CatalogService.getCatalogItem with correct args', async () => {
+    it('calls CatalogService.getCatalogItemEndPoint with correct args', async () => {
       await $subject
-      expect(CatalogService.getCatalogItem).to.have.been.calledWith($id, $user, false)
+      expect(CatalogService.getCatalogItemEndPoint).to.have.been.calledWith($id, $user, false)
     })
 
-    context('when CatalogService#getCatalogItem fails', () => {
+    context('when CatalogService#getCatalogItemEndPoint fails', () => {
       const error = 'Error!'
 
       def('response', () => Promise.reject(error))
@@ -171,7 +171,7 @@ describe('Catalog Controller', () => {
       })
     })
 
-    context('when CatalogService#getCatalogItem succeeds', () => {
+    context('when CatalogService#getCatalogItemEndPoint succeeds', () => {
       it(`succeeds`, () => {
         return expect($subject).to.eventually.equal(undefined)
       })
@@ -192,15 +192,15 @@ describe('Catalog Controller', () => {
     def('subject', () => $subject.deleteCatalogItemEndPoint($req, $user))
 
     beforeEach(() => {
-      $sandbox.stub(CatalogService, 'deleteCatalogItem').returns($response)
+      $sandbox.stub(CatalogService, 'deleteCatalogItemEndPoint').returns($response)
     })
 
-    it('calls CatalogService.deleteCatalogItem with correct args', async () => {
+    it('calls CatalogService.deleteCatalogItemEndPoint with correct args', async () => {
       await $subject
-      expect(CatalogService.deleteCatalogItem).to.have.been.calledWith($id, $user, false)
+      expect(CatalogService.deleteCatalogItemEndPoint).to.have.been.calledWith($id, $user, false)
     })
 
-    context('when CatalogService#deleteCatalogItem fails', () => {
+    context('when CatalogService#deleteCatalogItemEndPoint fails', () => {
       const error = 'Error!'
 
       def('response', () => Promise.reject(error))
@@ -210,7 +210,7 @@ describe('Catalog Controller', () => {
       })
     })
 
-    context('when CatalogService#deleteCatalogItem succeeds', () => {
+    context('when CatalogService#deleteCatalogItemEndPoint succeeds', () => {
       it(`succeeds`, () => {
         return expect($subject).to.eventually.equal(undefined)
       })
@@ -275,12 +275,12 @@ describe('Catalog Controller', () => {
     def('subject', () => $subject.updateCatalogItemEndPoint($req, $user))
 
     beforeEach(() => {
-      $sandbox.stub(CatalogService, 'updateCatalogItem').returns($response)
+      $sandbox.stub(CatalogService, 'updateCatalogItemEndPoint').returns($response)
     })
 
-    it('calls CatalogService.updateCatalogItem with correct args', async () => {
+    it('calls CatalogService.updateCatalogItemEndPoint with correct args', async () => {
       await $subject
-      expect(CatalogService.updateCatalogItem).to.have.been.calledWith($id, {
+      expect(CatalogService.updateCatalogItemEndPoint).to.have.been.calledWith($id, {
         name: $name,
         description: $description,
         category: $category,
@@ -297,7 +297,7 @@ describe('Catalog Controller', () => {
       }, $user, false)
     })
 
-    context('when CatalogService.updateCatalogItem fails', () => {
+    context('when CatalogService.updateCatalogItemEndPoint fails', () => {
       const error = 'Error!'
 
       def('response', () => Promise.reject(error))
@@ -307,7 +307,7 @@ describe('Catalog Controller', () => {
       })
     })
 
-    context('when CatalogService.updateCatalogItem succeeds', () => {
+    context('when CatalogService.updateCatalogItemEndPoint succeeds', () => {
       it(`succeeds`, () => {
         return expect($subject).to.eventually.equal(undefined)
       })

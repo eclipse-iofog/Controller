@@ -21,7 +21,7 @@ module.exports = {
       microserviceUuid: {
         type: Sequelize.TEXT,
         field: 'microservice_uuid',
-        references: {model: 'Microservices', key: 'uuid'},
+        references: { model: 'Microservices', key: 'uuid' },
         onDelete: 'cascade',
       },
     })

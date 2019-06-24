@@ -1,5 +1,5 @@
 const crypto = require('crypto')
-const {expect} = require('chai')
+const { expect } = require('chai')
 const fs = require('fs')
 const path = require('path')
 const portscanner = require('portscanner')
