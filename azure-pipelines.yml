@@ -1,7 +1,7 @@
 trigger:
   tags:
     include:
-      - v.*
+      - v*
   branches:
     include:
       - develop
@@ -9,10 +9,6 @@ trigger:
   paths:
     exclude:
       - README.md
-
-pr:
-  - master
-  - develop
 
 variables:
   group: 'pipelines'
@@ -52,12 +48,7 @@ jobs:
 
       - script: |
           echo "npm test"
-        displayName: 'integration tests'
-
-      - script: |
-          echo "##vso[task.setvariable variable=agent.jobstatus;]canceled"
-          echo "##vso[task.complete result=Canceled;]DONE"
-        condition: eq(variables['Build.Reason'], 'PullRequest')
+        displayName: 'integration tests' 
 
       - script: |
           npm pack
