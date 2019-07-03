@@ -83,6 +83,7 @@ const updateAgentStatus = {
     'systemTime': { 'type': 'integer', 'minimum': 0 },
     'lastStatusTime': { 'type': 'integer', 'minimum': 0 },
     'ipAddress': { 'type': 'string' },
+    'ipAddressExternal': { 'type': 'string' },
     'processedMessages': { 'type': 'integer', 'minimum': 0 },
     'microserviceMessageCounts': { 'type': 'string' },
     'messageSpeed': { 'type': 'number', 'minimum': 0 },

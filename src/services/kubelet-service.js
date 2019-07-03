@@ -333,7 +333,7 @@ const kubeletGetNodeAddresses = async function (fogNodeUuid, user, transaction) 
     },
     {
       type: 'ExternalIP',
-      address: node.ipAddress,
+      address: node.ipAddressExternal,
     },
   ]
 }

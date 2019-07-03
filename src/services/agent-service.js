@@ -98,11 +98,12 @@ const agentDeprovision = async function(deprovisionData, fog, transaction) {
 
 const _invalidateFogNode = async function(fog, transaction) {
   const where = { uuid: fog.uuid }
-  const data = { daemonStatus: FogStates.UNKNOWN, ipAddress: '0.0.0.0' }
+  const data = { daemonStatus: FogStates.UNKNOWN, ipAddress: '0.0.0.0', ipAddressExternal: '0.0.0.0' }
   await FogManager.update(where, data, transaction)
   const updatedFog = Object.assign({}, fog)
   updatedFog.daemonStatus = FogStates.UNKNOWN
   updatedFog.ipAddress = '0.0.0.0'
+  updatedFog.ipAddressExternal = '0.0.0.0'
   return updatedFog
 }
 
@@ -200,6 +201,7 @@ const updateAgentStatus = async function(agentStatus, fog, transaction) {
     systemTime: agentStatus.systemTime,
     lastStatusTime: agentStatus.lastStatusTime,
     ipAddress: agentStatus.ipAddress,
+    ipAddressExternal: agentStatus.ipAddressExternal,
     processedMessages: agentStatus.processedMessages,
     microserviceMessageCounts: agentStatus.microserviceMessageCounts,
     messageSpeed: agentStatus.messageSpeed,
