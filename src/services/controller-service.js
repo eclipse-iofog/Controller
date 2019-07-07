@@ -54,6 +54,7 @@ const statusController = async function(isCLI) {
   return {
     'status': status,
     'timestamp': Date.now(),
+    'uptimeSec': process.uptime(),
   }
 }
 
