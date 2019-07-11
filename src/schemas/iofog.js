@@ -37,7 +37,7 @@ const iofogCreate = {
     'fogType': { 'type': 'integer', 'minimum': 0, 'maximum': 2 },
   },
   'required': ['name', 'fogType'],
-  'additionalProperties': false,
+  'additionalProperties': true,
 }
 
 const iofogUpdate = {
@@ -67,7 +67,7 @@ const iofogUpdate = {
     'fogType': { 'type': 'integer', 'minimum': 0, 'maximum': 2 },
   },
   'required': ['uuid'],
-  'additionalProperties': false,
+  'additionalProperties': true,
 }
 
 const iofogDelete = {
@@ -77,7 +77,7 @@ const iofogDelete = {
     'uuid': { 'type': 'string' },
   },
   'required': ['uuid'],
-  'additionalProperties': false,
+  'additionalProperties': true,
 }
 
 const iofogGet = {
@@ -87,7 +87,7 @@ const iofogGet = {
     'uuid': { 'type': 'string' },
   },
   'required': ['uuid'],
-  'additionalProperties': false,
+  'additionalProperties': true,
 }
 
 const iofogGenerateProvision = {
@@ -97,7 +97,7 @@ const iofogGenerateProvision = {
     'uuid': { 'type': 'string' },
   },
   'required': ['uuid'],
-  'additionalProperties': false,
+  'additionalProperties': true,
 }
 
 const iofogSetVersionCommand = {
@@ -108,7 +108,7 @@ const iofogSetVersionCommand = {
     'versionCommand': { 'enum': ['upgrade', 'rollback'] },
   },
   'required': ['uuid', 'versionCommand'],
-  'additionalProperties': false,
+  'additionalProperties': true,
 }
 
 const iofogReboot = {
@@ -118,7 +118,7 @@ const iofogReboot = {
     'uuid': { 'type': 'string' },
   },
   'required': ['uuid'],
-  'additionalProperties': false,
+  'additionalProperties': true,
 }
 
 const iofogFilters = {
@@ -126,7 +126,7 @@ const iofogFilters = {
   'type': 'array',
   'items': { '$ref': '/filter' },
   'required': [],
-  'additionalProperties': false,
+  'additionalProperties': true,
 }
 
 const filter = {
@@ -138,7 +138,7 @@ const filter = {
     'condition': { 'enum': ['has', 'equals'] },
   },
   'required': ['key', 'value', 'condition'],
-  'additionalProperties': false,
+  'additionalProperties': true,
 }
 
 const halGet = {
@@ -148,7 +148,7 @@ const halGet = {
     'uuid': { 'type': 'string' },
   },
   'required': ['uuid'],
-  'additionalProperties': false,
+  'additionalProperties': true,
 }
 
 module.exports = {

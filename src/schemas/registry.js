@@ -28,7 +28,7 @@ const registryCreate = {
     'certificate': { 'type': 'string' },
   },
   'required': ['url', 'isPublic', 'username', 'password', 'email'],
-  'additionalProperties': false,
+  'additionalProperties': true,
 }
 
 const registryDelete = {
@@ -38,7 +38,7 @@ const registryDelete = {
     'id': { 'type': 'integer' },
   },
   'required': ['id'],
-  'additionalProperties': false,
+  'additionalProperties': true,
 }
 
 const registryUpdate = {
@@ -57,7 +57,7 @@ const registryUpdate = {
     'requiresCert': { 'type': 'boolean' },
     'certificate': { 'type': 'string' },
   },
-  'additionalProperties': false,
+  'additionalProperties': true,
 }
 
 module.exports = {

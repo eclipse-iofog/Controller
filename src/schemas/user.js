@@ -25,7 +25,7 @@ const signUp = {
     'password': { 'type': 'string', 'minLength': 8 },
   },
   'required': ['email', 'password', 'firstName', 'lastName'],
-  'additionalProperties': false,
+  'additionalProperties': true,
 }
 
 const login = {
@@ -40,7 +40,7 @@ const login = {
     'password': { 'type': 'string' },
   },
   'required': ['email', 'password'],
-  'additionalProperties': false,
+  'additionalProperties': true,
 }
 
 const resendActivation = {
@@ -54,7 +54,7 @@ const resendActivation = {
     },
   },
   'required': ['email'],
-  'additionalProperties': false,
+  'additionalProperties': true,
 }
 
 const activateUser = {
@@ -64,7 +64,7 @@ const activateUser = {
     'activationCode': { 'type': 'string' },
   },
   'required': ['activationCode'],
-  'additionalProperties': false,
+  'additionalProperties': true,
 }
 
 const activateUserCLI = {
@@ -74,7 +74,7 @@ const activateUserCLI = {
     'email': { 'type': 'string' },
   },
   'required': ['email'],
-  'additionalProperties': false,
+  'additionalProperties': true,
 }
 
 const updateUserProfile = {
@@ -85,7 +85,7 @@ const updateUserProfile = {
     'lastName': { 'type': 'string', 'minLength': 3 },
   },
   'required': [],
-  'additionalProperties': false,
+  'additionalProperties': true,
 }
 
 const updateUserProfileCLI = {
@@ -97,7 +97,7 @@ const updateUserProfileCLI = {
     'password': { 'type': 'string', 'minLength': 8 },
   },
   'required': [],
-  'additionalProperties': false,
+  'additionalProperties': true,
 }
 
 const updatePassword = {
@@ -108,7 +108,7 @@ const updatePassword = {
     'newPassword': { 'type': 'string', 'minLength': 8 },
   },
   'required': ['oldPassword', 'newPassword'],
-  'additionalProperties': false,
+  'additionalProperties': true,
 }
 
 const resetUserPassword = {
@@ -122,7 +122,7 @@ const resetUserPassword = {
     },
   },
   'required': ['email'],
-  'additionalProperties': false,
+  'additionalProperties': true,
 }
 
 
