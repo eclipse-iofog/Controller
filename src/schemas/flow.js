@@ -7,7 +7,7 @@ const flowCreate = {
     'isActivated': { 'type': 'boolean' },
   },
   'required': ['name'],
-  'additionalProperties': false,
+  'additionalProperties': true,
 }
 
 const flowUpdate = {
@@ -18,7 +18,7 @@ const flowUpdate = {
     'description': { 'type': 'string' },
     'isActivated': { 'type': 'boolean' },
   },
-  'additionalProperties': false,
+  'additionalProperties': true,
 }
 
 module.exports = {

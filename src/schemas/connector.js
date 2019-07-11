@@ -23,7 +23,7 @@ const connectorCreate = {
     'devMode': { 'type': 'boolean' },
   },
   'required': ['publicIp', 'name', 'devMode'],
-  'additionalProperties': false,
+  'additionalProperties': true,
 }
 
 const connectorUpdate = {
@@ -38,7 +38,7 @@ const connectorUpdate = {
     'devMode': { 'type': 'boolean' },
   },
   'required': ['publicIp'],
-  'additionalProperties': false,
+  'additionalProperties': true,
 }
 
 const connectorDelete = {
@@ -48,7 +48,7 @@ const connectorDelete = {
     'publicIp': { 'type': 'string', 'minLength': 7 },
   },
   'required': ['publicIp'],
-  'additionalProperties': false,
+  'additionalProperties': true,
 }
 
 module.exports = {

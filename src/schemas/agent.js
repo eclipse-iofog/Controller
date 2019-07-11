@@ -19,7 +19,7 @@ const agentProvision = {
     'key': { 'type': 'string' },
   },
   'required': ['type', 'key'],
-  'additionalProperties': false,
+  'additionalProperties': true,
 }
 
 const agentDeprovision = {
@@ -32,7 +32,7 @@ const agentDeprovision = {
     },
   },
   'required': ['microserviceUuids'],
-  'additionalProperties': false,
+  'additionalProperties': true,
 }
 
 const updateAgentConfig = {
@@ -56,7 +56,7 @@ const updateAgentConfig = {
     'longitude': { 'type': 'number', 'minimum': -180, 'maximum': 180 },
     'gpsMode': { 'type': 'string' },
   },
-  'additionalProperties': false,
+  'additionalProperties': true,
 }
 
 const updateAgentStatus = {
@@ -93,7 +93,7 @@ const updateAgentStatus = {
     'isReadyToUpgrade': { 'type': 'boolean' },
     'isReadyToRollback': { 'type': 'boolean' },
   },
-  'additionalProperties': false,
+  'additionalProperties': true,
 }
 
 
@@ -107,7 +107,7 @@ const updateAgentStrace = {
       'required': [],
     },
   },
-  'additionalProperties': false,
+  'additionalProperties': true,
 }
 
 const straceData = {
@@ -118,7 +118,7 @@ const straceData = {
     'buffer': { 'type': 'string' },
   },
   'required': ['microserviceUuid', 'buffer'],
-  'additionalProperties': false,
+  'additionalProperties': true,
 }
 
 const microserviceStatus = {
@@ -134,7 +134,7 @@ const microserviceStatus = {
     'memoryUsage': { 'type': 'number' },
   },
   'required': ['id'],
-  'additionalProperties': false,
+  'additionalProperties': true,
 }
 
 const updateHardwareInfo = {
@@ -144,7 +144,7 @@ const updateHardwareInfo = {
     'info': { 'type': 'string' },
   },
   'required': ['info'],
-  'additionalProperties': false,
+  'additionalProperties': true,
 }
 
 const updateUsbInfo = {
@@ -154,7 +154,7 @@ const updateUsbInfo = {
     'info': { 'type': 'string' },
   },
   'required': ['info'],
-  'additionalProperties': false,
+  'additionalProperties': true,
 }
 
 const trackingArray = {
@@ -174,7 +174,7 @@ const trackingMessage = {
     'data': { '$ref': '/trackingData' },
   },
   'required': ['uuid', 'sourceType', 'timestamp', 'type', 'data'],
-  'additionalProperties': false,
+  'additionalProperties': true,
 }
 
 const trackingData = {
