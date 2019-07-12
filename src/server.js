@@ -26,6 +26,7 @@ const xss = require('xss-clean')
 const packageJson = require('../package')
 
 const app = express()
+
 const Sentry = require('@sentry/node')
 
 const Tracking = require('./tracking')

@@ -48,7 +48,7 @@ jobs:
 
       - script: |
           echo "npm test"
-        displayName: 'integration tests' 
+        displayName: 'integration tests'
 
       - script: |
           npm pack

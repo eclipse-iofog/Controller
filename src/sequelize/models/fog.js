@@ -124,6 +124,11 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: '0.0.0.0',
       field: 'ip_address',
     },
+    ipAddressExternal: {
+      type: DataTypes.TEXT,
+      defaultValue: '0.0.0.0',
+      field: 'ip_address_external',
+    },
     processedMessages: {
       type: DataTypes.BIGINT,
       defaultValue: 0,

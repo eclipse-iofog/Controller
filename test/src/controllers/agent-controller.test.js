@@ -265,6 +265,7 @@ describe('Agent Controller', () => {
     def('systemTime', () => 1555555)
     def('lastStatusTime', () => 15555555)
     def('ipAddress', () => 'testIpAddress')
+    def('ipAddressExternal', () => 'testIpAddressExternal')
     def('processedMessages', () => 155)
     def('microserviceMessageCounts', () => 1555)
     def('messageSpeed', () => 5)
@@ -291,6 +292,7 @@ describe('Agent Controller', () => {
         systemTime: $systemTime,
         lastStatusTime: $lastStatusTime,
         ipAddress: $ipAddress,
+        ipAddressExternal: $ipAddressExternal,
         processedMessages: $processedMessages,
         microserviceMessageCounts: $microserviceMessageCounts,
         messageSpeed: $messageSpeed,
@@ -326,6 +328,7 @@ describe('Agent Controller', () => {
         systemTime: $systemTime,
         lastStatusTime: $lastStatusTime,
         ipAddress: $ipAddress,
+        ipAddressExternal: $ipAddressExternal,
         processedMessages: $processedMessages,
         microserviceMessageCounts: $microserviceMessageCounts,
         messageSpeed: $messageSpeed,

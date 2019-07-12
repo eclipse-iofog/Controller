@@ -233,7 +233,7 @@ describe('Agent Service', () => {
 
   describe('.agentDeprovision()', () => {
     const deprovisionData = { microserviceUuids: ['uuid'] }
-    const fogManagerUpdateData = { daemonStatus: FogStates.UNKNOWN, ipAddress: '0.0.0.0' }
+    const fogManagerUpdateData = { daemonStatus: FogStates.UNKNOWN, ipAddress: '0.0.0.0', ipAddressExternal: '0.0.0.0' }
 
     const transaction = {}
     const error = 'Error!'
@@ -527,6 +527,7 @@ describe('Agent Service', () => {
       systemTime: 15325235253,
       lastStatusTime: 15325235253,
       ipAddress: 'testIpAddress',
+      ipAddressExternal: 'testIpAddressExternal',
       processedMessages: 155,
       microserviceMessageCounts: 'testMessageCounts',
       messageSpeed: 255,
@@ -558,6 +559,7 @@ describe('Agent Service', () => {
       systemTime: 15325235253,
       lastStatusTime: 15325235253,
       ipAddress: 'testIpAddress',
+      ipAddressExternal: 'testIpAddressExternal',
       processedMessages: 155,
       microserviceMessageCounts: 'testMessageCounts',
       messageSpeed: 255,
