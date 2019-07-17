@@ -79,9 +79,9 @@ jobs:
 
           PACKAGE_VERSION=$(cat package.json | grep version | head -1 | awk -F: '{ print $2 }' | sed 's/[\",]//g' | tr -d '[[:space:]]')
           if [[ $(Build.SourceBranch) == refs/heads/release* ]]; then
-            npm --no-git-tag-version version $PACKAGE_VERSION-$(releaseCandidate)-b$(Build.BuildId)
+            npm --no-git-tag-version version $PACKAGE_VERSION-$(releaseCandidate)-b$(buildTag)
           else
-            npm --no-git-tag-version version $PACKAGE_VERSION-b$(Build.BuildId)
+            npm --no-git-tag-version version $PACKAGE_VERSION-b$(buildTag)
           fi
         displayName: 'npm version'
 
