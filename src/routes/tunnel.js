@@ -27,25 +27,25 @@ module.exports = [
       const errorCodes = [
         {
           code: constants.HTTP_CODE_BAD_REQUEST,
-          errors: [Errors.ValidationError],
+          errors: [Errors.ValidationError]
         },
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError],
+          errors: [Errors.AuthenticationError]
         },
         {
           code: constants.HTTP_CODE_NOT_FOUND,
-          errors: [Errors.NotFoundError],
-        },
+          errors: [Errors.NotFoundError]
+        }
       ]
       const tunnelEndPoint = ResponseDecorator.handleErrors(TunnelController.manageTunnelEndPoint, successCode, errorCodes)
       const responseObject = await tunnelEndPoint(req)
       res
-          .status(responseObject.code)
-          .send(responseObject.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
 
       logger.apiRes({ req: req, res: responseObject })
-    },
+    }
   },
   {
     method: 'get',
@@ -57,20 +57,20 @@ module.exports = [
       const errorCodes = [
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError],
+          errors: [Errors.AuthenticationError]
         },
         {
           code: constants.HTTP_CODE_NOT_FOUND,
-          errors: [Errors.NotFoundError],
-        },
+          errors: [Errors.NotFoundError]
+        }
       ]
       const tunnelEndPoint = ResponseDecorator.handleErrors(TunnelController.getTunnelEndPoint, successCode, errorCodes)
       const responseObject = await tunnelEndPoint(req)
       res
-          .status(responseObject.code)
-          .send(responseObject.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
 
       logger.apiRes({ req: req, res: responseObject })
-    },
-  },
+    }
+  }
 ]

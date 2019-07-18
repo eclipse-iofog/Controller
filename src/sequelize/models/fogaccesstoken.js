@@ -6,37 +6,37 @@ module.exports = (sequelize, DataTypes) => {
       primaryKey: true,
       autoIncrement: true,
       allowNull: false,
-      field: 'id',
+      field: 'id'
     },
     expirationTime: {
       type: DataTypes.BIGINT,
-      field: 'expiration_time',
+      field: 'expiration_time'
     },
     token: {
       type: DataTypes.TEXT,
-      field: 'token',
-    },
+      field: 'token'
+    }
   }, {
     timestamps: false,
-    underscored: true,
+    underscored: true
   })
-  FogAccessToken.associate = function(models) {
+  FogAccessToken.associate = function (models) {
     FogAccessToken.belongsTo(models.User, {
       foreignKey: {
         name: 'userId',
-        field: 'user_id',
+        field: 'user_id'
       },
       as: 'user',
-      onDelete: 'cascade',
+      onDelete: 'cascade'
     })
 
     FogAccessToken.belongsTo(models.Fog, {
       foreignKey: {
         name: 'iofogUuid',
-        field: 'iofog_uuid',
+        field: 'iofog_uuid'
       },
       as: 'iofog',
-      onDelete: 'cascade',
+      onDelete: 'cascade'
     })
   }
   return FogAccessToken

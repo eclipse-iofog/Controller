@@ -40,46 +40,46 @@ const microserviceExcludedFields = [
   'deleteWithCleanUp',
   'imageSnapshot',
   'catalog_item_id',
-  'iofog_uuid',
+  'iofog_uuid'
 ]
 
 class MicroserviceManager extends BaseManager {
-  getEntity() {
+  getEntity () {
     return Microservice
   }
 
-  findAllWithDependencies(where, attributes, transaction) {
+  findAllWithDependencies (where, attributes, transaction) {
     return Microservice.findAll({
       include: [
         {
           model: MicroserviceEnv,
           as: 'env',
           required: false,
-          attributes: ['key', 'value'],
+          attributes: ['key', 'value']
         },
         {
           model: MicroserviceArg,
           as: 'cmd',
           required: false,
-          attributes: ['cmd'],
+          attributes: ['cmd']
         },
         {
           model: MicroservicePort,
           as: 'ports',
           required: false,
-          attributes: ['portInternal', 'portExternal'],
+          attributes: ['portInternal', 'portExternal']
         },
         {
           model: VolumeMapping,
           as: 'volumeMappings',
           required: false,
-          attributes: ['hostDestination', 'containerDestination', 'accessMode'],
+          attributes: ['hostDestination', 'containerDestination', 'accessMode']
         },
         {
           model: StraceDiagnostics,
           as: 'strace',
           required: false,
-          attributes: ['straceRun'],
+          attributes: ['straceRun']
         },
         {
           model: CatalogItem,
@@ -88,15 +88,15 @@ class MicroserviceManager extends BaseManager {
           include: [{
             model: CatalogItemImage,
             as: 'images',
-            attributes: ['containerImage', 'fogTypeId'],
+            attributes: ['containerImage', 'fogTypeId']
           }],
-          attributes: ['picture', 'registryId'],
+          attributes: ['picture', 'registryId']
         },
         {
           model: Fog,
           as: 'iofog',
           required: false,
-          attributes: ['daemonStatus'],
+          attributes: ['daemonStatus']
         },
         {
           model: Routing,
@@ -105,44 +105,44 @@ class MicroserviceManager extends BaseManager {
           include: [{
             model: Microservice,
             as: 'destMicroservice',
-            attributes: ['uuid'],
+            attributes: ['uuid']
           }],
           attributes: { exclude: ['id', 'source_microservice_uuid',
             'sourceMicroserviceUuid', 'destMicroserviceUuid', 'sourceNetworkMicroserviceUuid',
-            'destNetworkMicroserviceUuid', 'sourceIofogUuid', 'destIofogUuid', 'connectorPortId'] },
-        },
+            'destNetworkMicroserviceUuid', 'sourceIofogUuid', 'destIofogUuid', 'connectorPortId'] }
+        }
       ],
       where: where,
-      attributes: attributes,
+      attributes: attributes
     }, { transaction: transaction })
   }
 
-  findAllActiveFlowMicroservices(iofogUuid, transaction) {
+  findAllActiveFlowMicroservices (iofogUuid, transaction) {
     return Microservice.findAll({
       include: [
         {
           model: MicroserviceEnv,
           as: 'env',
           required: false,
-          attributes: ['key', 'value'],
+          attributes: ['key', 'value']
         },
         {
           model: MicroserviceArg,
           as: 'cmd',
           required: false,
-          attributes: ['cmd', 'id'],
+          attributes: ['cmd', 'id']
         },
         {
           model: MicroservicePort,
           as: 'ports',
           required: false,
-          attributes: ['portInternal', 'portExternal'],
+          attributes: ['portInternal', 'portExternal']
         },
         {
           model: VolumeMapping,
           as: 'volumeMappings',
           required: false,
-          attributes: ['hostDestination', 'containerDestination', 'accessMode'],
+          attributes: ['hostDestination', 'containerDestination', 'accessMode']
         },
         {
           model: CatalogItem,
@@ -153,73 +153,73 @@ class MicroserviceManager extends BaseManager {
               model: CatalogItemImage,
               as: 'images',
               required: true,
-              attributes: ['containerImage', 'fogTypeId'],
+              attributes: ['containerImage', 'fogTypeId']
             },
             {
               model: Registry,
               as: 'registry',
               required: true,
-              attributes: ['id'],
-            },
+              attributes: ['id']
+            }
           ],
-          attributes: ['picture', 'category'],
+          attributes: ['picture', 'category']
         },
         {
           model: Flow,
           as: 'flow',
           required: false,
-          attributes: ['isActivated'],
-        },
+          attributes: ['isActivated']
+        }
       ],
       where: {
         iofogUuid: iofogUuid,
         [Op.or]:
           [
             {
-              '$flow.is_activated$': true,
+              '$flow.is_activated$': true
             },
             {
               '$catalogItem.category$': { [Op.eq]: 'SYSTEM' },
-              '$catalogItem.id$': { [Op.ne]: 1 },
-            },
-          ],
+              '$catalogItem.id$': { [Op.ne]: 1 }
+            }
+          ]
 
-      },
+      }
     }, { transaction: transaction })
   }
 
-  findOneWithDependencies(where, attributes, transaction) {
+  findOneWithDependencies (where, attributes, transaction) {
     return Microservice.findOne({
       include: [
         {
           model: MicroserviceEnv,
           as: 'env',
           required: false,
-          attributes: ['key', 'value'],
+          attributes: ['key', 'value']
         },
         {
           model: MicroserviceArg,
           as: 'cmd',
           required: false,
-          attributes: ['cmd'],
+          attributes: ['cmd']
         },
         {
           model: MicroservicePort,
           as: 'ports',
           required: false,
-          attributes: ['portInternal', 'portExternal'],
+          attributes: ['portInternal', 'portExternal']
         },
         {
           model: VolumeMapping,
           as: 'volumeMappings',
           required: false,
-          attributes: ['hostDestination', 'containerDestination', 'accessMode'],
+          attributes: ['hostDestination', 'containerDestination', 'accessMode']
         },
         {
           model: StraceDiagnostics,
           as: 'strace',
           required: false,
-          attributes: ['straceRun'],
+          attributes: ['straceRun']
         },
         {
           model: CatalogItem,
@@ -228,15 +228,15 @@ class MicroserviceManager extends BaseManager {
           include: [{
             model: CatalogItemImage,
             as: 'images',
-            attributes: ['containerImage', 'fogTypeId'],
+            attributes: ['containerImage', 'fogTypeId']
           }],
-          attributes: ['picture', 'registryId'],
+          attributes: ['picture', 'registryId']
         },
         {
           model: Fog,
           as: 'iofog',
           required: false,
-          attributes: ['daemonStatus'],
+          attributes: ['daemonStatus']
         },
         {
           model: Routing,
@@ -245,52 +245,52 @@ class MicroserviceManager extends BaseManager {
           include: [{
             model: Microservice,
             as: 'destMicroservice',
-            attributes: ['uuid'],
+            attributes: ['uuid']
           }],
           attributes: { exclude: ['id',
             'sourceMicroserviceUuid', 'destMicroserviceUuid',
             'sourceNetworkMicroserviceUuid', 'destNetworkMicroserviceUuid',
-            'sourceIofogUuid', 'destIofogUuid', 'connectorPortId'] },
-        },
+            'sourceIofogUuid', 'destIofogUuid', 'connectorPortId'] }
+        }
       ],
       where: where,
-      attributes: attributes,
+      attributes: attributes
     }, { transaction: transaction })
   }
 
-  findOneWithStatusAndCategory(where, transaction) {
+  findOneWithStatusAndCategory (where, transaction) {
     return Microservice.findOne({
       include: [
         {
           model: MicroserviceStatus,
           as: 'microserviceStatus',
-          required: false,
+          required: false
         },
         {
           model: CatalogItem,
           as: 'catalogItem',
           required: true,
-          attributes: ['category'],
-        },
+          attributes: ['category']
+        }
       ],
-      where: where,
+      where: where
     }, { transaction: transaction })
   }
 
-  findAllWithStatuses(where, transaction) {
+  findAllWithStatuses (where, transaction) {
     return Microservice.findAll({
       include: [
         {
           model: MicroserviceStatus,
           as: 'microserviceStatus',
-          required: false,
-        },
+          required: false
+        }
       ],
-      where: where,
+      where: where
     }, { transaction: transaction })
   }
 
-  findMicroserviceOnGet(where, transaction) {
+  findMicroserviceOnGet (where, transaction) {
     return Microservice.findOne({
       include: [
         {
@@ -302,48 +302,48 @@ class MicroserviceManager extends BaseManager {
               model: User,
               as: 'user',
               required: true,
-              attributes: ['id'],
-            },
+              attributes: ['id']
+            }
           ],
-          attributes: ['id'],
-        },
+          attributes: ['id']
+        }
       ],
       where: where,
-      attributes: ['uuid'],
+      attributes: ['uuid']
     }, { transaction: transaction })
   }
 
-  async findOneExcludeFields(where, transaction) {
+  async findOneExcludeFields (where, transaction) {
     return Microservice.findOne({
       where: where,
       attributes: {
-        exclude: microserviceExcludedFields,
+        exclude: microserviceExcludedFields
       } }, {
-      transaction: transaction,
+      transaction: transaction
     })
   }
 
-  async findAllExcludeFields(where, transaction) {
+  async findAllExcludeFields (where, transaction) {
     return Microservice.findAll({
       where: where,
       attributes: {
-        exclude: microserviceExcludedFields,
+        exclude: microserviceExcludedFields
       } }, {
-      transaction: transaction,
+      transaction: transaction
     })
   }
 
-  findOneWithCategory(where, transaction) {
+  findOneWithCategory (where, transaction) {
     return Microservice.findOne({
       include: [
         {
           model: CatalogItem,
           as: 'catalogItem',
           required: true,
-          attributes: ['category'],
-        },
+          attributes: ['category']
+        }
       ],
-      where: where,
+      where: where
     }, { transaction: transaction })
   }
 }

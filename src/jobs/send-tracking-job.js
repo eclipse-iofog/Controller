@@ -14,21 +14,22 @@
 const BaseJobHandler = require('./base/base-job-handler')
 const Tracking = require('../tracking')
 const TrackingEventManager = require('../sequelize/managers/tracking-event-manager')
+const logger = require('../logger')
 
 class SendTrackingJob extends BaseJobHandler {
-  constructor() {
+  constructor () {
     super()
     this.scheduleTime = intervalMin * 60 * 1000
   }
 
-  run() {
+  run () {
     setInterval(sendTracking, this.scheduleTime)
   }
 }
 
 const intervalMin = 5
 
-async function sendTracking() {
+async function sendTracking () {
   const fakeTransactionObject = { fakeTransaction: true }
   const events = await TrackingEventManager.popAll(fakeTransactionObject)
   try {

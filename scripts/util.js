@@ -35,24 +35,23 @@ const TRACKING_UUID_FILE_BACKUP = `${TEMP_DIR}/tracking-uuid_backup`
 
 const INSTALLATION_VARIABLES_FILE = TEMP_DIR + '/iofogcontroller_install_variables'
 
-
-function backupDBs() {
+function backupDBs () {
   renameFile(DEV_DB, DEV_DB_BACKUP)
   renameFile(PROD_DB, PROD_DB_BACKUP)
 }
 
-function restoreDBs() {
+function restoreDBs () {
   renameFile(DEV_DB_BACKUP, DEV_DB)
   renameFile(PROD_DB_BACKUP, PROD_DB)
 }
 
-function renameFile(oldPath, newPath) {
+function renameFile (oldPath, newPath) {
   if (fs.existsSync(oldPath)) {
     fs.renameSync(oldPath, newPath)
   }
 }
 
-function getTempDir() {
+function getTempDir () {
   let tempDir
 
   if (os.type() === 'Linux') {
@@ -68,23 +67,23 @@ function getTempDir() {
   return tempDir
 }
 
-function backupConfigs() {
+function backupConfigs () {
   renameFile(DEFAULT_CONFIG, DEFAULT_CONFIG_BACKUP)
   renameFile(DEVELOP_CONFIG, DEVELOP_CONFIG_BACKUP)
   renameFile(PRODUCTION_CONFIG, PRODUCTION_CONFIG_BACKUP)
 }
 
-function restoreConfigs() {
+function restoreConfigs () {
   renameFile(DEFAULT_CONFIG_BACKUP, DEFAULT_CONFIG)
   renameFile(DEVELOP_CONFIG_BACKUP, DEVELOP_CONFIG)
   renameFile(PRODUCTION_CONFIG_BACKUP, PRODUCTION_CONFIG)
 }
 
-function backupTrackingUuid() {
+function backupTrackingUuid () {
   renameFile(TRACKING_UUID_FILE, TRACKING_UUID_FILE_BACKUP)
 }
 
-function restoreTrackingUuid() {
+function restoreTrackingUuid () {
   renameFile(TRACKING_UUID_FILE_BACKUP, TRACKING_UUID_FILE)
 }
 
@@ -99,5 +98,5 @@ module.exports = {
   getTempDir: getTempDir,
 
   TEMP_DIR: TEMP_DIR,
-  INSTALLATION_VARIABLES_FILE: INSTALLATION_VARIABLES_FILE,
+  INSTALLATION_VARIABLES_FILE: INSTALLATION_VARIABLES_FILE
 }

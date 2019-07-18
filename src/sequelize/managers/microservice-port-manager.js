@@ -16,7 +16,7 @@ const models = require('./../models')
 const MicroservicePort = models.MicroservicePort
 
 class MicroservicePortManager extends BaseManager {
-  getEntity() {
+  getEntity () {
     return MicroservicePort
   }
 }

@@ -19,59 +19,59 @@ const CatalogItemInputType = models.CatalogItemInputType
 const CatalogItemOutputType = models.CatalogItemOutputType
 
 class CatalogItemManager extends BaseManager {
-  getEntity() {
+  getEntity () {
     return CatalogItem
   }
 
-  findAllWithDependencies(where, attributes, transaction) {
+  findAllWithDependencies (where, attributes, transaction) {
     return CatalogItem.findAll({
       include: [
         {
           model: CatalogItemImage,
           as: 'images',
           required: false,
-          attributes: ['containerImage', 'fogTypeId'],
+          attributes: ['containerImage', 'fogTypeId']
         },
         {
           model: CatalogItemInputType,
           as: 'inputType',
           required: false,
-          attributes: ['infoType', 'infoFormat'],
+          attributes: ['infoType', 'infoFormat']
         },
         {
           model: CatalogItemOutputType,
           as: 'outputType',
           required: false,
-          attributes: ['infoType', 'infoFormat'],
+          attributes: ['infoType', 'infoFormat']
         }],
       where: where,
-      attributes: attributes,
+      attributes: attributes
     }, { transaction: transaction })
   }
 
-  findOneWithDependencies(where, attribures, transaction) {
+  findOneWithDependencies (where, attribures, transaction) {
     return CatalogItem.findOne({
       include: [
         {
           model: CatalogItemImage,
           as: 'images',
           required: false,
-          attributes: ['containerImage', 'fogTypeId'],
+          attributes: ['containerImage', 'fogTypeId']
         },
         {
           model: CatalogItemInputType,
           as: 'inputType',
           required: false,
-          attributes: ['infoType', 'infoFormat'],
+          attributes: ['infoType', 'infoFormat']
         },
         {
           model: CatalogItemOutputType,
           as: 'outputType',
           required: false,
-          attributes: ['infoType', 'infoFormat'],
+          attributes: ['infoType', 'infoFormat']
         }],
       where: where,
-      attributes: attribures,
+      attributes: attribures
     }, { transaction: transaction })
   }
 }

@@ -24,10 +24,9 @@ const format = require('string-format')
 const ALGORITHM = 'aes-256-ctr'
 const IV_LENGTH = 16
 
-
 const Transaction = require('sequelize/lib/transaction')
 
-function encryptText(text, salt) {
+function encryptText (text, salt) {
   const iv = crypto.randomBytes(IV_LENGTH)
   const processedSalt = crypto.createHash('md5').update(salt).digest('hex')
 
@@ -37,7 +36,7 @@ function encryptText(text, salt) {
   return iv.toString('hex') + ':' + crypted.toString('hex')
 }
 
-function decryptText(text, salt) {
+function decryptText (text, salt) {
   const processedSalt = crypto.createHash('md5').update(salt).digest('hex')
 
   const textParts = text.split(':')
@@ -50,7 +49,7 @@ function decryptText(text, salt) {
   return dec
 }
 
-function generateRandomString(size) {
+function generateRandomString (size) {
   let randString = ''
   const possible = '2346789bcdfghjkmnpqrtvwxyzBCDFGHJKLMNPQRTVWXYZ'
 
@@ -64,23 +63,23 @@ function generateRandomString(size) {
 // Checks the status of a single port
 // returns 'closed' if port is available
 // returns 'open' if port is not available
-async function checkPortAvailability(port) {
+async function checkPortAvailability (port) {
   return new Promise((resolve) => {
     return resolve(portscanner.checkPortStatus(port))
   })
 }
 
-const findAvailablePort = async function(hostname) {
+const findAvailablePort = async function (hostname) {
   let portRange = Config.get('Tunnel:PortRange')
   if (!portRange) {
     logger.warn('Port range was\'n specified in config. Default range (2000-10000) will be used')
     portRange = '2000-10000'
   }
   const portBounds = portRange.split('-').map((i) => parseInt(i))
-  return await portscanner.findAPortNotInUse(portBounds[0], portBounds[1], hostname)
+  return portscanner.findAPortNotInUse(portBounds[0], portBounds[1], hostname)
 }
 
-function isFileExists(filePath) {
+function isFileExists (filePath) {
   if (path.extname(filePath).indexOf('.') >= 0) {
     return fs.existsSync(filePath)
   } else {
@@ -88,7 +87,7 @@ function isFileExists(filePath) {
   }
 }
 
-function isValidPort(port) {
+function isValidPort (port) {
   port = Number(port)
   if (Number.isInteger(port)) {
     if (port >= 0 && port < 65535) {
@@ -98,18 +97,18 @@ function isValidPort(port) {
   return false
 }
 
-function isValidDomain(domain) {
-  const re = /^((?:(?:(?:\w[\.\-\+]?)*)\w)+)((?:(?:(?:\w[\.\-\+]?){0,62})\w)+)\.(\w{2,6})$/
+function isValidDomain (domain) {
+  const re = /^((?:(?:(?:\w[\.\-\+]?)*)\w)+)((?:(?:(?:\w[\.\-\+]?){0,62})\w)+)\.(\w{2,6})$/ // eslint-disable-line no-useless-escape
   return re.test(domain)
 }
 
-const isValidPublicIP = function(publicIP) {
+const isValidPublicIP = function (publicIP) {
   /* eslint-disable max-len */
-  const re = /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$|^(([a-zA-Z]|[a-zA-Z][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])$|^\s*((([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})|((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})|((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})|((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})|((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(:(((:[0-9A-Fa-f]{1,4}){1,7})|((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:)))(%.+)?\s*$/
+  const re = /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$|^(([a-zA-Z]|[a-zA-Z][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])$|^\s*((([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})|((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})|((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})|((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})|((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(:(((:[0-9A-Fa-f]{1,4}){1,7})|((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:)))(%.+)?\s*$/ // eslint-disable-line no-useless-escape
   return re.test(publicIP)
 }
 
-function generateAccessToken() {
+function generateAccessToken () {
   let token = ''; let i
   for (i = 0; i < 8; i++) {
     token += ((0 + (Math.floor(Math.random() * (Math.pow(2, 31))) + 1).toString(16)).slice(-8)).substr(-8)
@@ -117,7 +116,7 @@ function generateAccessToken() {
   return token
 }
 
-function checkTransaction(transaction) {
+function checkTransaction (transaction) {
   if (isTest()) {
     return
   }
@@ -127,7 +126,7 @@ function checkTransaction(transaction) {
   }
 }
 
-function deleteUndefinedFields(obj) {
+function deleteUndefinedFields (obj) {
   if (!obj) {
     return
   }
@@ -143,34 +142,34 @@ function deleteUndefinedFields(obj) {
   return obj
 }
 
-function validateBooleanCliOptions(trueOption, falseOption) {
+function validateBooleanCliOptions (trueOption, falseOption) {
   if (trueOption && falseOption) {
     throw new Errors.ValidationError('Two opposite can not be used simultaneously')
   }
   return trueOption ? true : (falseOption ? false : undefined)
 }
 
-function formatMessage(...args) {
+function formatMessage (...args) {
   return format(...args)
 }
 
-function stringifyCliJsonSchema(json) {
+function stringifyCliJsonSchema (json) {
   return JSON.stringify(json, null, 2)
-      .replace(/{/g, '\\{')
-      .replace(/}/g, '\\}')
+    .replace(/{/g, '\\{')
+    .replace(/}/g, '\\}')
 }
 
-function trimCertificate(cert) {
+function trimCertificate (cert) {
   let result = cert.replace(/(^[\s\S]*-{3,}BEGIN CERTIFICATE-{3,}[\s]*)/, '')
   result = result.replace(/([\s]*-{3,}END CERTIFICATE-{3,}[\s\S]*$)/, '')
   return result
 }
 
-function isTest() {
+function isTest () {
   return process.env.NODE_ENV === 'test'
 }
 
-function isEmpty(obj) {
+function isEmpty (obj) {
   for (const key in obj) {
     if (obj.hasOwnProperty(key)) {
       return false
@@ -179,7 +178,7 @@ function isEmpty(obj) {
   return true
 }
 
-function isOnline() {
+function isOnline () {
   const daemon = require('../daemon')
 
   const pid = daemon.status()
@@ -205,5 +204,5 @@ module.exports = {
   trimCertificate,
   isTest,
   isEmpty,
-  isOnline,
+  isOnline
 }

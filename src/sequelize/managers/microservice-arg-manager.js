@@ -18,15 +18,15 @@ const MicroserviceArg = models.MicroserviceArg
 const microserviceArgExcludedFields = [
   'id',
   'microservice_uuid',
-  'microserviceUuid',
+  'microserviceUuid'
 ]
 
 class MicroserviceArgManager extends BaseManager {
-  getEntity() {
+  getEntity () {
     return MicroserviceArg
   }
 
-  findAllExcludeFields(where, transaction) {
+  findAllExcludeFields (where, transaction) {
     return this.findAllWithAttributes(where, { exclude: microserviceArgExcludedFields }, transaction)
   }
 }

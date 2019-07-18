@@ -6,33 +6,33 @@ module.exports = (sequelize, DataTypes) => {
       primaryKey: true,
       autoIncrement: true,
       allowNull: false,
-      field: 'id',
+      field: 'id'
     },
     containerImage: {
       type: DataTypes.TEXT,
-      field: 'container_image',
-    },
+      field: 'container_image'
+    }
   }, {
     timestamps: false,
-    underscored: true,
+    underscored: true
   })
-  CatalogItemImage.associate = function(models) {
+  CatalogItemImage.associate = function (models) {
     CatalogItemImage.belongsTo(models.CatalogItem, {
       foreignKey: {
         name: 'catalogItemId',
-        field: 'catalog_item_id',
+        field: 'catalog_item_id'
       },
       as: 'catalogItem',
-      onDelete: 'cascade',
+      onDelete: 'cascade'
     })
 
     CatalogItemImage.belongsTo(models.FogType, {
       foreignKey: {
         name: 'fogTypeId',
-        field: 'fog_type_id',
+        field: 'fog_type_id'
       },
       as: 'fogType',
-      onDelete: 'cascade',
+      onDelete: 'cascade'
     })
   }
   return CatalogItemImage

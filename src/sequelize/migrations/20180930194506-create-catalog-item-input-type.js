@@ -7,25 +7,25 @@ module.exports = {
         primaryKey: true,
         autoIncrement: true,
         allowNull: false,
-        field: 'id',
+        field: 'id'
       },
       infoType: {
         type: Sequelize.TEXT,
-        field: 'info_type',
+        field: 'info_type'
       },
       infoFormat: {
         type: Sequelize.TEXT,
-        field: 'info_format',
+        field: 'info_format'
       },
       catalogItemId: {
         type: Sequelize.INTEGER,
         field: 'catalog_item_id',
         references: { model: 'CatalogItems', key: 'id' },
-        onDelete: 'cascade',
-      },
+        onDelete: 'cascade'
+      }
     })
   },
   down: (queryInterface, Sequelize) => {
     return queryInterface.dropTable('CatalogItemInputTypes')
-  },
+  }
 }

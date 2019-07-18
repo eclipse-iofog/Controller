@@ -19,75 +19,75 @@ module.exports = (sequelize, DataTypes) => {
       primaryKey: true,
       autoIncrement: true,
       allowNull: false,
-      field: 'id',
+      field: 'id'
     },
     microserviceConfig: {
       type: DataTypes.BOOLEAN,
       field: 'microservice_config',
-      defaultValue: false,
+      defaultValue: false
     },
     reboot: {
       type: DataTypes.BOOLEAN,
       field: 'reboot',
-      defaultValue: false,
+      defaultValue: false
     },
     deleteNode: {
       type: DataTypes.BOOLEAN,
       field: 'deletenode',
-      defaultValue: false,
+      defaultValue: false
     },
     version: {
       type: DataTypes.BOOLEAN,
       field: 'version',
-      defaultValue: false,
+      defaultValue: false
     },
     microserviceList: {
       type: DataTypes.BOOLEAN,
       field: 'microservice_list',
-      defaultValue: false,
+      defaultValue: false
     },
     config: {
       type: DataTypes.BOOLEAN,
       field: 'config',
-      defaultValue: false,
+      defaultValue: false
     },
     routing: {
       type: DataTypes.BOOLEAN,
       field: 'routing',
-      defaultValue: false,
+      defaultValue: false
     },
     registries: {
       type: DataTypes.BOOLEAN,
       field: 'registries',
-      defaultValue: false,
+      defaultValue: false
     },
     tunnel: {
       type: DataTypes.BOOLEAN,
       field: 'tunnel',
-      defaultValue: false,
+      defaultValue: false
     },
     diagnostics: {
       type: DataTypes.BOOLEAN,
       field: 'diagnostics',
-      defaultValue: false,
+      defaultValue: false
     },
     isImageSnapshot: {
       type: DataTypes.BOOLEAN,
       field: 'image_snapshot',
-      defaultValue: false,
-    },
+      defaultValue: false
+    }
   }, {
     timestamps: false,
-    underscored: true,
+    underscored: true
   })
-  ChangeTracking.associate = function(models) {
+  ChangeTracking.associate = function (models) {
     ChangeTracking.belongsTo(models.Fog, {
       foreignKey: {
         name: 'iofogUuid',
-        field: 'iofog_uuid',
+        field: 'iofog_uuid'
       },
       as: 'iofog',
-      onDelete: 'cascade',
+      onDelete: 'cascade'
     })
   }
   return ChangeTracking

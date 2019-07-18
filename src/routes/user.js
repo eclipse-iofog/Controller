@@ -30,24 +30,24 @@ module.exports = [
       const errorCodes = [
         {
           code: constants.HTTP_CODE_BAD_REQUEST,
-          errors: [Errors.ValidationError],
+          errors: [Errors.ValidationError]
         },
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.InvalidCredentialsError],
-        },
+          errors: [Errors.InvalidCredentialsError]
+        }
       ]
 
       const userLoginEndPoint = ResponseDecorator.handleErrors(UserController.userLoginEndPoint, successCode, errorCodes)
       const responseObject = await userLoginEndPoint(req)
 
       res
-          .status(responseObject.code)
-          .send(responseObject.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
 
       logger.apiRes('POST /api/v3/user/login', { args: { statusCode: responseObject.code } })
       // don't use req and responseObject as args, because they have password and token
-    },
+    }
   },
   {
     method: 'post',
@@ -59,17 +59,17 @@ module.exports = [
       const errorCodes = [
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError],
-        },
+          errors: [Errors.AuthenticationError]
+        }
       ]
 
       const userLogoutEndPoint = ResponseDecorator.handleErrors(UserController.userLogoutEndPoint, successCode, errorCodes)
       const responseObject = await userLogoutEndPoint(req)
 
       res
-          .status(responseObject.code)
-          .send()
-    },
+        .status(responseObject.code)
+        .send()
+    }
   },
   {
     method: 'post',
@@ -81,19 +81,19 @@ module.exports = [
       const errorCodes = [
         {
           code: constants.HTTP_CODE_BAD_REQUEST,
-          errors: [Errors.ValidationError],
-        },
+          errors: [Errors.ValidationError]
+        }
       ]
 
       const userSignupEndPoint = ResponseDecorator.handleErrors(UserController.userSignupEndPoint, successCode, errorCodes)
       const responseObject = await userSignupEndPoint(req)
 
       res
-          .status(responseObject.code)
-          .send(responseObject.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
 
       logger.apiRes({ req: req, res: responseObject })
-    },
+    }
   },
   {
     method: 'get',
@@ -105,20 +105,20 @@ module.exports = [
       const errorCodes = [
         {
           code: constants.HTTP_CODE_BAD_REQUEST,
-          errors: [Errors.ValidationError],
-        },
+          errors: [Errors.ValidationError]
+        }
       ]
 
       const resendActivationEndPoint = ResponseDecorator.handleErrors(UserController.resendActivationEndPoint,
-          successCode, errorCodes)
+        successCode, errorCodes)
       const responseObject = await resendActivationEndPoint(req)
 
       res
-          .status(responseObject.code)
-          .send(responseObject.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
 
       logger.apiRes({ req: req, res: responseObject })
-    },
+    }
   },
   {
     method: 'post',
@@ -130,12 +130,12 @@ module.exports = [
       const errorCodes = [
         {
           code: constants.HTTP_CODE_NOT_FOUND,
-          errors: [Errors.NotFoundError],
-        },
+          errors: [Errors.NotFoundError]
+        }
       ]
 
       const activateUserEndPoint = ResponseDecorator.handleErrors(UserController.activateUserAccountEndPoint,
-          successCode, errorCodes)
+        successCode, errorCodes)
       const responseObject = await activateUserEndPoint(req)
 
       // redirect to login page
@@ -143,13 +143,12 @@ module.exports = [
         res.setHeader('Location', Config.get('Email:HomeUrl'))
       }
 
-
       res
-          .status(responseObject.code)
-          .send(responseObject.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
 
       logger.apiRes({ req: req, res: responseObject })
-    },
+    }
   },
   {
     method: 'get',
@@ -161,19 +160,19 @@ module.exports = [
       const errorCodes = [
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError],
-        },
+          errors: [Errors.AuthenticationError]
+        }
       ]
 
       const getUserProfileEndPoint = ResponseDecorator.handleErrors(UserController.getUserProfileEndPoint, successCode, errorCodes)
       const responseObject = await getUserProfileEndPoint(req)
 
       res
-          .status(responseObject.code)
-          .send(responseObject.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
 
       logger.apiRes({ req: req, res: responseObject })
-    },
+    }
   },
   {
     method: 'patch',
@@ -185,24 +184,24 @@ module.exports = [
       const errorCodes = [
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError],
+          errors: [Errors.AuthenticationError]
         },
         {
           code: constants.HTTP_CODE_BAD_REQUEST,
-          errors: [Errors.ValidationError],
-        },
+          errors: [Errors.ValidationError]
+        }
       ]
 
       const updateUserProfileEndPoint = ResponseDecorator.handleErrors(UserController.updateUserProfileEndPoint,
-          successCode, errorCodes)
+        successCode, errorCodes)
       const responseObject = await updateUserProfileEndPoint(req)
 
       res
-          .status(responseObject.code)
-          .send(responseObject.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
 
       logger.apiRes({ req: req, res: responseObject })
-    },
+    }
   },
   {
     method: 'delete',
@@ -214,20 +213,20 @@ module.exports = [
       const errorCodes = [
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError],
-        },
+          errors: [Errors.AuthenticationError]
+        }
       ]
 
       const deleteUserProfileEndPoint = ResponseDecorator.handleErrors(UserController.deleteUserProfileEndPoint,
-          successCode, errorCodes)
+        successCode, errorCodes)
       const responseObject = await deleteUserProfileEndPoint(req)
 
       res
-          .status(responseObject.code)
-          .send(responseObject.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
 
       logger.apiRes({ req: req, res: responseObject })
-    },
+    }
   },
   {
     method: 'patch',
@@ -239,24 +238,24 @@ module.exports = [
       const errorCodes = [
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError],
+          errors: [Errors.AuthenticationError]
         },
         {
           code: constants.HTTP_CODE_BAD_REQUEST,
-          errors: [Errors.ValidationError],
-        },
+          errors: [Errors.ValidationError]
+        }
       ]
 
       const updateUserPasswordEndPoint = ResponseDecorator.handleErrors(UserController.updateUserPasswordEndPoint,
-          successCode, errorCodes)
+        successCode, errorCodes)
       const responseObject = await updateUserPasswordEndPoint(req)
 
       res
-          .status(responseObject.code)
-          .send(responseObject.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
 
       logger.apiRes({ req: req, res: responseObject })
-    },
+    }
   },
   {
     method: 'delete',
@@ -268,19 +267,19 @@ module.exports = [
       const errorCodes = [
         {
           code: constants.HTTP_CODE_NOT_FOUND,
-          errors: [Errors.NotFoundError],
-        },
+          errors: [Errors.NotFoundError]
+        }
       ]
 
       const resetUserPasswordEndPoint = ResponseDecorator.handleErrors(UserController.resetUserPasswordEndPoint,
-          successCode, errorCodes)
+        successCode, errorCodes)
       const responseObject = await resetUserPasswordEndPoint(req)
 
       res
-          .status(responseObject.code)
-          .send(responseObject.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
 
       logger.apiRes({ req: req, res: responseObject })
-    },
-  },
+    }
+  }
 ]

@@ -7,41 +7,41 @@ module.exports = {
         primaryKey: true,
         autoIncrement: true,
         allowNull: false,
-        field: 'id',
+        field: 'id'
       },
       microserviceUuid: {
         type: Sequelize.TEXT,
         field: 'microservice_uuid',
         references: { model: 'Microservices', key: 'uuid' },
-        onDelete: 'cascade',
+        onDelete: 'cascade'
       },
       networkMicroserviceUuid: {
         type: Sequelize.TEXT,
         field: 'network_microservice_uuid',
         references: { model: 'Microservices', key: 'uuid' },
-        onDelete: 'set null',
+        onDelete: 'set null'
       },
       iofogUuid: {
         type: Sequelize.TEXT,
         field: 'iofog_uuid',
         references: { model: 'Fogs', key: 'uuid' },
-        onDelete: 'set null',
+        onDelete: 'set null'
       },
       microservicePortId: {
         type: Sequelize.TEXT,
         field: 'microservice_port_id',
         references: { model: 'MicroservicePorts', key: 'id' },
-        onDelete: 'set null',
+        onDelete: 'set null'
       },
       connectorPortId: {
         type: Sequelize.TEXT,
         field: 'connector_port_id',
         references: { model: 'ConnectorPorts', key: 'id' },
-        onDelete: 'set null',
-      },
+        onDelete: 'set null'
+      }
     })
   },
   down: (queryInterface, Sequelize) => {
     return queryInterface.dropTable('MicroservicePublicModes')
-  },
+  }
 }

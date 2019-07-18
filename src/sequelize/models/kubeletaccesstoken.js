@@ -6,28 +6,28 @@ module.exports = (sequelize, DataTypes) => {
       primaryKey: true,
       autoIncrement: true,
       allowNull: false,
-      field: 'id',
+      field: 'id'
     },
     expirationTime: {
       type: DataTypes.BIGINT,
-      field: 'expiration_time',
+      field: 'expiration_time'
     },
     token: {
       type: DataTypes.TEXT,
-      field: 'token',
-    },
+      field: 'token'
+    }
   }, {
     timestamps: false,
-    underscored: true,
+    underscored: true
   })
-  KubeletAccessToken.associate = function(models) {
+  KubeletAccessToken.associate = function (models) {
     KubeletAccessToken.belongsTo(models.User, {
       foreignKey: {
         name: 'userId',
-        field: 'user_id',
+        field: 'user_id'
       },
       as: 'user',
-      onDelete: 'cascade',
+      onDelete: 'cascade'
     })
   }
   return KubeletAccessToken

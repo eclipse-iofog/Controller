@@ -38,7 +38,7 @@ const levels = {
   info: 6,
   verbose: 7,
   debug: 8,
-  silly: 9,
+  silly: 9
 }
 
 const formattedJson = winston.format((log) => {
@@ -75,15 +75,15 @@ const logger = winston.createLogger({
   transports: [
     new winston.transports.File({
       format: winston.format.combine(
-          winston.format.timestamp(),
-          prepareObjectLogs(),
-          formattedJson()
+        winston.format.timestamp(),
+        prepareObjectLogs(),
+        formattedJson()
       ),
       filename: 'iofog-controller.log',
       dirname: dirname,
-      maxsize: maxsize,
-    }),
-  ],
+      maxsize: maxsize
+    })
+  ]
 })
 
 logger.add(new winston.transports.Console({
@@ -110,10 +110,10 @@ logger.add(new winston.transports.Console({
     }
     log[MESSAGE] = message
     return log
-  })(),
+  })()
 }))
 
-function getAllObjKeys(obj) {
+function getAllObjKeys (obj) {
   let keys = []
   for (const key in obj) {
     if (!obj.hasOwnProperty(key)) {

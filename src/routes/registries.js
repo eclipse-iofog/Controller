@@ -27,21 +27,21 @@ module.exports = [
       const errorCodes = [
         {
           code: constants.HTTP_CODE_BAD_REQUEST,
-          errors: [Errors.ValidationError],
+          errors: [Errors.ValidationError]
         },
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError],
-        },
+          errors: [Errors.AuthenticationError]
+        }
       ]
       const registriesEndPoint = ResponseDecorator.handleErrors(RegistryController.createRegistryEndPoint, successCode, errorCodes)
       const responseObject = await registriesEndPoint(req)
       res
-          .status(responseObject.code)
-          .send(responseObject.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
 
       logger.apiRes({ req: req, res: responseObject })
-    },
+    }
   },
   {
     method: 'get',
@@ -53,21 +53,21 @@ module.exports = [
       const errorCodes = [
         {
           code: constants.HTTP_CODE_BAD_REQUEST,
-          errors: [Errors.ValidationError],
+          errors: [Errors.ValidationError]
         },
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError],
-        },
+          errors: [Errors.AuthenticationError]
+        }
       ]
       const registriesEndPoint = ResponseDecorator.handleErrors(RegistryController.getRegistriesEndPoint, successCode, errorCodes)
       const responseObject = await registriesEndPoint(req)
       res
-          .status(responseObject.code)
-          .send(responseObject.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
 
       logger.apiRes({ req: req, res: responseObject })
-    },
+    }
   },
   {
     method: 'delete',
@@ -79,25 +79,25 @@ module.exports = [
       const errorCodes = [
         {
           code: constants.HTTP_CODE_BAD_REQUEST,
-          errors: [Errors.ValidationError],
+          errors: [Errors.ValidationError]
         },
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError],
+          errors: [Errors.AuthenticationError]
         },
         {
           code: constants.HTTP_CODE_NOT_FOUND,
-          errors: [Errors.NotFoundError],
-        },
+          errors: [Errors.NotFoundError]
+        }
       ]
       const registriesEndPoint = ResponseDecorator.handleErrors(RegistryController.deleteRegistryEndPoint, successCode, errorCodes)
       const responseObject = await registriesEndPoint(req)
       res
-          .status(responseObject.code)
-          .send(responseObject.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
 
       logger.apiRes({ req: req, res: responseObject })
-    },
+    }
   },
   {
     method: 'patch',
@@ -109,25 +109,25 @@ module.exports = [
       const errorCodes = [
         {
           code: constants.HTTP_CODE_BAD_REQUEST,
-          errors: [Errors.ValidationError],
+          errors: [Errors.ValidationError]
         },
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError],
+          errors: [Errors.AuthenticationError]
         },
         {
           code: constants.HTTP_CODE_NOT_FOUND,
-          errors: [Errors.NotFoundError],
-        },
+          errors: [Errors.NotFoundError]
+        }
       ]
       const updateRegistryEndPoint = ResponseDecorator.handleErrors(RegistryController.updateRegistryEndPoint,
-          successCode, errorCodes)
+        successCode, errorCodes)
       const responseObject = await updateRegistryEndPoint(req)
       res
-          .status(responseObject.code)
-          .send(responseObject.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
 
       logger.apiRes({ req: req, res: responseObject })
-    },
-  },
+    }
+  }
 ]

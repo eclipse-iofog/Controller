@@ -31,7 +31,7 @@ const deleteConnectorEndPoint = async function (req) {
 const listConnectorEndPoint = async function (req) {
   const res = await ConnectorService.getConnectorList()
   return {
-    connectors: res,
+    connectors: res
   }
 }
 
@@ -39,5 +39,5 @@ module.exports = {
   addConnectorEndPoint,
   updateConnectorEndPoint,
   deleteConnectorEndPoint,
-  listConnectorEndPoint,
+  listConnectorEndPoint
 }

@@ -18,11 +18,11 @@ const AccessToken = models.AccessToken
 const AppHelper = require('../../helpers/app-helper')
 
 class UserManager extends BaseManager {
-  getEntity() {
+  getEntity () {
     return User
   }
 
-  findByAccessToken(token, transaction) {
+  findByAccessToken (token, transaction) {
     AppHelper.checkTransaction(transaction)
 
     return User.findOne({
@@ -30,65 +30,60 @@ class UserManager extends BaseManager {
         model: AccessToken,
         as: 'accessToken',
         where: {
-          token: token,
-        },
-      }],
+          token: token
+        }
+      }]
     }, {
-      transaction: transaction,
+      transaction: transaction
     })
   }
 
-  findByEmail(email) {
+  findByEmail (email) {
     return User.findOne({
       where: {
-        email: email,
-      },
+        email: email
+      }
     })
   }
 
   // no transaction required here, used by auth decorator
-  checkAuthentication(token) {
+  checkAuthentication (token) {
     return User.findOne({
       include: [{
         model: AccessToken,
         as: 'accessToken',
         where: {
-          token: token,
-        },
-      }],
+          token: token
+        }
+      }]
     })
   }
 
   // no transaction required here, used by cli decorator
-  findById(id) {
+  findById (id) {
     return User.findOne({ where: { id: id } })
   }
 
-  updateDetails(user, updateObject, transaction) {
+  updateDetails (user, updateObject, transaction) {
     return this.update({
-      id: user.id,
+      id: user.id
     }, updateObject, transaction)
   }
 
-  updatePassword(userId, newPassword, transaction) {
+  updatePassword (userId, newPassword, transaction) {
     return this.update({
-      id: userId,
+      id: userId
     }, {
-      password: newPassword,
+      password: newPassword
     }, transaction)
   }
 
-  updateTempPassword(userId, tempPassword, transaction) {
+  updateTempPassword (userId, tempPassword, transaction) {
     return this.update({
-      id: userId,
+      id: userId
     }, {
-      tempPassword: tempPassword,
+      tempPassword: tempPassword
     }, transaction)
-  }
-
-  // no transaction required here, used by cli decorator
-  findById(id) {
-    return User.findOne({ where: { id: id } })
   }
 }
 

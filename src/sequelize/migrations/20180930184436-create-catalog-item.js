@@ -7,56 +7,56 @@ module.exports = {
         primaryKey: true,
         autoIncrement: true,
         allowNull: false,
-        field: 'id',
+        field: 'id'
       },
       name: {
         type: Sequelize.TEXT,
         field: 'name',
-        defaultValue: 'New Catalog Item',
+        defaultValue: 'New Catalog Item'
       },
       description: {
         type: Sequelize.TEXT,
         field: 'description',
-        defaultValue: '',
+        defaultValue: ''
       },
       category: {
         type: Sequelize.TEXT,
-        field: 'category',
+        field: 'category'
       },
       configExample: {
         type: Sequelize.TEXT,
         field: 'config_example',
-        defaultValue: '{}',
+        defaultValue: '{}'
       },
       publisher: {
         type: Sequelize.TEXT,
-        field: 'publisher',
+        field: 'publisher'
       },
       diskRequired: {
         type: Sequelize.BIGINT,
         field: 'disk_required',
-        defaultValue: 0,
+        defaultValue: 0
       },
       ramRequired: {
         type: Sequelize.BIGINT,
         field: 'ram_required',
-        defaultValue: 0,
+        defaultValue: 0
       },
       picture: {
         type: Sequelize.TEXT,
         field: 'picture',
-        defaultValue: 'images/shared/default.png',
+        defaultValue: 'images/shared/default.png'
       },
       isPublic: {
         type: Sequelize.BOOLEAN,
         field: 'is_public',
-        defaultValue: false,
+        defaultValue: false
       },
       userId: {
         type: Sequelize.INTEGER,
         field: 'user_id',
         references: { model: 'Users', key: 'id' },
-        onDelete: 'cascade',
+        onDelete: 'cascade'
       },
       registryId: {
         type: Sequelize.INTEGER,
@@ -64,11 +64,11 @@ module.exports = {
         as: 'registryId',
         references: { model: 'Registries', key: 'id' },
         onDelete: 'set null',
-        defaultValue: 1,
-      },
+        defaultValue: 1
+      }
     })
   },
   down: (queryInterface, Sequelize) => {
     return queryInterface.dropTable('CatalogItems')
-  },
+  }
 }

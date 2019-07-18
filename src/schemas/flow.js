@@ -4,10 +4,10 @@ const flowCreate = {
   'properties': {
     'name': { 'type': 'string', 'minLength': 1 },
     'description': { 'type': 'string' },
-    'isActivated': { 'type': 'boolean' },
+    'isActivated': { 'type': 'boolean' }
   },
   'required': ['name'],
-  'additionalProperties': true,
+  'additionalProperties': true
 }
 
 const flowUpdate = {
@@ -16,12 +16,12 @@ const flowUpdate = {
   'properties': {
     'name': { 'type': 'string', 'minLength': 1 },
     'description': { 'type': 'string' },
-    'isActivated': { 'type': 'boolean' },
+    'isActivated': { 'type': 'boolean' }
   },
-  'additionalProperties': true,
+  'additionalProperties': true
 }
 
 module.exports = {
   mainSchemas: [flowCreate, flowUpdate],
-  innerSchemas: [],
+  innerSchemas: []
 }

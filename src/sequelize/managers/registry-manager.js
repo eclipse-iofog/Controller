@@ -3,7 +3,7 @@ const models = require('./../models')
 const Registry = models.Registry
 
 class RegistryManager extends BaseManager {
-  getEntity() {
+  getEntity () {
     return Registry
   }
 }

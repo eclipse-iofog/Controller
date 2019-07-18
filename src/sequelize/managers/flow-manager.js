@@ -17,41 +17,40 @@ const Flow = models.Flow
 const Microservice = models.Microservice
 
 class FlowManager extends BaseManager {
-  getEntity() {
+  getEntity () {
     return Flow
   }
 
-  async findFlowMicroservices(where, transaction) {
+  async findFlowMicroservices (where, transaction) {
     return Flow.findOne({
       include: [
         {
           model: Microservice,
           as: 'microservices',
           required: false,
-          attributes: ['iofogUuid'],
-        },
+          attributes: ['iofogUuid']
+        }
       ],
       where: where,
-      attributes: ['id'],
+      attributes: ['id']
     }, { transaction: transaction })
   }
 
-  async findAllWithAttributes(where, attributes, transaction) {
+  async findAllWithAttributes (where, attributes, transaction) {
     return Flow.findAll({
       where: where,
       attributes: attributes },
     { transaction: transaction })
   }
 
-  async findOneWithAttributes(where, attributes, transaction) {
+  async findOneWithAttributes (where, attributes, transaction) {
     return Flow.findOne({
       where: where,
-      attributes: attributes,
+      attributes: attributes
     },
     { transaction: transaction })
   }
 }
-
 
 const instance = new FlowManager()
 module.exports = instance

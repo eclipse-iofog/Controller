@@ -15,7 +15,7 @@ module.exports = {
         config_example: null,
         is_public: 0,
         registry_id: 1,
-        user_id: null,
+        user_id: null
       },
       {
         ID: 2,
@@ -29,7 +29,7 @@ module.exports = {
         config_example: null,
         is_public: 0,
         registry_id: 1,
-        user_id: null,
+        user_id: null
       },
       {
         ID: 3,
@@ -43,7 +43,7 @@ module.exports = {
         config_example: null,
         is_public: 0,
         registry_id: 1,
-        user_id: null,
+        user_id: null
       },
       {
         ID: 4,
@@ -57,7 +57,7 @@ module.exports = {
         config_example: null,
         is_public: 1,
         registry_id: 1,
-        user_id: null,
+        user_id: null
       },
       {
         ID: 5,
@@ -71,7 +71,7 @@ module.exports = {
         config_example: null,
         is_public: 1,
         registry_id: 1,
-        user_id: null,
+        user_id: null
       },
       {
         ID: 6,
@@ -85,7 +85,7 @@ module.exports = {
         config_example: null,
         is_public: 1,
         registry_id: 1,
-        user_id: null,
+        user_id: null
       },
       {
         ID: 7,
@@ -99,7 +99,7 @@ module.exports = {
         config_example: null,
         is_public: 1,
         registry_id: 1,
-        user_id: null,
+        user_id: null
       },
       {
         ID: 8,
@@ -113,7 +113,7 @@ module.exports = {
         config_example: null,
         is_public: 1,
         registry_id: 1,
-        user_id: null,
+        user_id: null
       },
       {
         ID: 9,
@@ -127,7 +127,7 @@ module.exports = {
         config_example: null,
         is_public: 1,
         registry_id: 1,
-        user_id: null,
+        user_id: null
       },
       {
         ID: 10,
@@ -141,7 +141,7 @@ module.exports = {
         config_example: null,
         is_public: 1,
         registry_id: 1,
-        user_id: null,
+        user_id: null
       },
       {
         ID: 11,
@@ -155,7 +155,7 @@ module.exports = {
         config_example: null,
         is_public: 1,
         registry_id: 1,
-        user_id: null,
+        user_id: null
       },
       {
         ID: 12,
@@ -169,15 +169,12 @@ module.exports = {
         config_example: null,
         is_public: 1,
         registry_id: 1,
-        user_id: null,
-      },
+        user_id: null
+      }
     ])
   },
 
-
   down: (queryInterface, Sequelize) => {
     return queryInterface.bulkDelete('CatalogItems', null, {})
-  },
+  }
 }
-
-

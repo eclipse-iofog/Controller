@@ -19,21 +19,21 @@ const ErrorMessages = require('../helpers/error-messages')
 const logger = require('../logger')
 
 class CLIHandler {
-  constructor() {
+  constructor () {
     this.commandDefinitions = []
     this.commands = {}
     this.name = ''
   }
 
-  run(args) {
+  run (args) {
     throw new Error('Not Implemented')
   }
 
-  parseCommandLineArgs(commandDefinitions, options = {}) {
+  parseCommandLineArgs (commandDefinitions, options = {}) {
     return commandLineArgs(commandDefinitions, Object.assign({ camelCase: true, partial: true }, options))
   }
 
-  help(show = [], showOptions = true, hasCommands = true, additionalSection = []) {
+  help (show = [], showOptions = true, hasCommands = true, additionalSection = []) {
     if (show.length === 0) {
       // show all
       this.helpAll(show, showOptions, hasCommands, additionalSection)
@@ -43,65 +43,65 @@ class CLIHandler {
     }
   }
 
-  helpSome(show = [], showOptions = true, ) {
+  helpSome (show = [], showOptions = true) {
     const options = Object.keys(this.commands)
-        .filter((key) => show.indexOf(key) !== -1)
-        .map((key) => ({
-          header: key,
-          optionList: this.commandDefinitions,
-          group: [key],
-        }))
+      .filter((key) => show.indexOf(key) !== -1)
+      .map((key) => ({
+        header: key,
+        optionList: this.commandDefinitions,
+        group: [key]
+      }))
 
     const sections = [
       {
         header: 'Usage',
-        content: `$ iofog-controller ${this.name} ${show.length === 1 ? show : '<command>'} <options>`,
-      },
+        content: `$ iofog-controller ${this.name} ${show.length === 1 ? show : '<command>'} <options>`
+      }
     ].concat(showOptions ? options : [])
 
     const usage = [
       {
         header: 'ioFogController',
-        content: 'Fog Controller project for Eclipse IoFog @ iofog.org \\nCopyright (c) 2018 Edgeworx, Inc.',
-      },
+        content: 'Fog Controller project for Eclipse IoFog @ iofog.org \\nCopyright (c) 2018 Edgeworx, Inc.'
+      }
     ].concat(sections)
     logger.cliRes(commandLineUsage(usage))
   }
 
-  helpAll(show = [], showOptions = true, hasCommands = true, additionalSection = []) {
+  helpAll (show = [], showOptions = true, hasCommands = true, additionalSection = []) {
     const options = Object.keys(this.commands)
-        .map((key) => ({
-          header: key,
-          optionList: this.commandDefinitions,
-          group: [key],
-        }))
+      .map((key) => ({
+        header: key,
+        optionList: this.commandDefinitions,
+        group: [key]
+      }))
     const commandsList = {
       header: 'Command List',
       content: Object.keys(this.commands).map((key) => ({
         name: key,
-        summary: this.commands[key],
-      })),
+        summary: this.commands[key]
+      }))
     }
 
     const sections = [
       {
         header: 'Usage',
-        content: `$ iofog-controller ${this.name}${hasCommands ? ' <command>' : ''} <options>`,
-      },
+        content: `$ iofog-controller ${this.name}${hasCommands ? ' <command>' : ''} <options>`
+      }
     ].concat(hasCommands ? commandsList : [])
-        .concat(showOptions ? options : [])
-        .concat(additionalSection)
+      .concat(showOptions ? options : [])
+      .concat(additionalSection)
 
     const usage = [
       {
         header: 'ioFogController',
-        content: 'Fog Controller project for Eclipse IoFog @ iofog.org \\nCopyright (c) 2018 Edgeworx, Inc.',
-      },
+        content: 'Fog Controller project for Eclipse IoFog @ iofog.org \\nCopyright (c) 2018 Edgeworx, Inc.'
+      }
     ].concat(sections)
     logger.cliRes(commandLineUsage(usage))
   }
 
-  handleCLIError(error, args) {
+  handleCLIError (error, args) {
     switch (error.name) {
       case 'UNKNOWN_OPTION':
         logger.error('Invalid argument \'' + error.optionName.split('-').join('') + '\'')
@@ -132,7 +132,7 @@ class CLIHandler {
     }
   }
 
-  validateParameters(command, commandDefinitions, pArgs) {
+  validateParameters (command, commandDefinitions, pArgs) {
     // 1st argument = command
     const args = pArgs.slice()
     args.shift()
@@ -173,41 +173,41 @@ class CLIHandler {
 
       if (!isValidType) {
         throw new Errors.InvalidArgumentTypeError(AppHelper.formatMessage(ErrorMessages.INVALID_CLI_ARGUMENT_TYPE,
-            currentArgName, expectedValueType))
+          currentArgName, expectedValueType))
       }
     })
   }
 }
 
-function argsArrayAsMap(args) {
+function argsArrayAsMap (args) {
   const argsVars = args.join(' ').split(/(?= -{1,2}[^-]+)/)
   const argsMap = new Map()
   argsVars
-      .map((pair) => pair.trim())
-      .map((pair) => {
-        const spaceIndex = pair.indexOf(' ')
-        let key; let values
-        if (spaceIndex !== -1) {
-          key = pair.substr(0, pair.indexOf(' '))
-          values = pair.substr(pair.indexOf(' ')+1).split(' ')
-          argsMap.set(key, values)
-        } else {
-          key = pair
-          values = []
-        }
+    .map((pair) => pair.trim())
+    .map((pair) => {
+      const spaceIndex = pair.indexOf(' ')
+      let key; let values
+      if (spaceIndex !== -1) {
+        key = pair.substr(0, pair.indexOf(' '))
+        values = pair.substr(pair.indexOf(' ') + 1).split(' ')
         argsMap.set(key, values)
-      })
+      } else {
+        key = pair
+        values = []
+      }
+      argsMap.set(key, values)
+    })
   return argsMap
 }
 
-function _validateArg(arg, aliasesList) {
+function _validateArg (arg, aliasesList) {
   const valid = aliasesList.includes(arg)
   if (!valid) {
     throw new Errors.InvalidArgumentError('Invalid argument \'' + arg + '\'')
   }
 }
 
-function _getPossibleAliasesList(command, commandDefinitions) {
+function _getPossibleAliasesList (command, commandDefinitions) {
   const possibleAliasesList = []
 
   for (const definition of commandDefinitions) {
@@ -230,7 +230,7 @@ function _getPossibleAliasesList(command, commandDefinitions) {
   return possibleAliasesList
 }
 
-function _getPossibleArgsList(command, commandDefinitions) {
+function _getPossibleArgsList (command, commandDefinitions) {
   const possibleArgsList = []
 
   for (const definition of commandDefinitions) {
@@ -253,13 +253,13 @@ function _getPossibleArgsList(command, commandDefinitions) {
   return possibleArgsList
 }
 
-function _getValType(arg, commandDefinitions) {
+function _getValType (arg, commandDefinitions) {
   const command = commandDefinitions
-      .filter((def) => def.name === arg || def.alias === arg)[0]
+    .filter((def) => def.name === arg || def.alias === arg)[0]
   return command.type.name.toLowerCase()
 }
 
-function _getCurrentValType(values) {
+function _getCurrentValType (values) {
   let valType
   if (values.length === 0) {
     valType = 'boolean'
@@ -276,10 +276,10 @@ function _getCurrentValType(values) {
   return valType
 }
 
-function _validateType(expectedValueType, valType) {
+function _validateType (expectedValueType, valType) {
   let isValidType = true
-  if ((expectedValueType === 'float' || expectedValueType === 'number')
-    && (valType !== 'float' && valType !== 'number' && valType !== 'integer')) {
+  if ((expectedValueType === 'float' || expectedValueType === 'number') &&
+    (valType !== 'float' && valType !== 'number' && valType !== 'integer')) {
     isValidType = false
   } else if (expectedValueType === 'integer' && valType !== 'integer') {
     isValidType = false

@@ -7,5 +7,5 @@ module.exports = {
 
   down: (queryInterface, Sequelize) => {
     return queryInterface.renameColumn('Microservices', 'user_id', 'updated_by')
-  },
+  }
 }

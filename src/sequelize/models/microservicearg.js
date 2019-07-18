@@ -6,24 +6,24 @@ module.exports = (sequelize, DataTypes) => {
       primaryKey: true,
       autoIncrement: true,
       allowNull: false,
-      field: 'id',
+      field: 'id'
     },
     cmd: {
       type: DataTypes.TEXT,
-      field: 'cmd',
-    },
+      field: 'cmd'
+    }
   }, {
     timestamps: false,
-    underscored: true,
+    underscored: true
   })
-  MicroserviceArg.associate = function(models) {
+  MicroserviceArg.associate = function (models) {
     MicroserviceArg.belongsTo(models.Microservice, {
       foreignKey: {
         name: 'microserviceUuid',
-        field: 'microservice_uuid',
+        field: 'microservice_uuid'
       },
       as: 'microservice',
-      onDelete: 'cascade',
+      onDelete: 'cascade'
     })
   }
   return MicroserviceArg

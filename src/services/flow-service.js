@@ -21,7 +21,7 @@ const ChangeTrackingService = require('./change-tracking-service')
 const Sequelize = require('sequelize')
 const Op = Sequelize.Op
 
-const createFlowEndPoint = async function(flowData, user, isCLI, transaction) {
+const createFlowEndPoint = async function (flowData, user, isCLI, transaction) {
   await Validator.validate(flowData, Validator.schemas.flowCreate)
 
   await _checkForDuplicateName(flowData.name, null, user.id, transaction)
@@ -30,7 +30,7 @@ const createFlowEndPoint = async function(flowData, user, isCLI, transaction) {
     name: flowData.name,
     description: flowData.description,
     isActivated: flowData.isActivated,
-    userId: user.id,
+    userId: user.id
   }
 
   const flowDataCreate = AppHelper.deleteUndefinedFields(flowToCreate)
@@ -38,14 +38,14 @@ const createFlowEndPoint = async function(flowData, user, isCLI, transaction) {
   const flow = await FlowManager.create(flowDataCreate, transaction)
 
   return {
-    id: flow.id,
+    id: flow.id
   }
 }
 
-const deleteFlowEndPoint = async function(flowId, user, isCLI, transaction) {
+const deleteFlowEndPoint = async function (flowId, user, isCLI, transaction) {
   const whereObj = {
     id: flowId,
-    userId: user.id,
+    userId: user.id
   }
   const where = AppHelper.deleteUndefinedFields(whereObj)
 
@@ -54,7 +54,7 @@ const deleteFlowEndPoint = async function(flowId, user, isCLI, transaction) {
   await FlowManager.delete(where, transaction)
 }
 
-const updateFlowEndPoint = async function(flowData, flowId, user, isCLI, transaction) {
+const updateFlowEndPoint = async function (flowData, flowId, user, isCLI, transaction) {
   await Validator.validate(flowData, Validator.schemas.flowUpdate)
 
   const oldFlow = await getFlowEndPoint(flowId, user, isCLI, transaction)
@@ -68,7 +68,7 @@ const updateFlowEndPoint = async function(flowData, flowId, user, isCLI, transac
   const flow = {
     name: flowData.name,
     description: flowData.description,
-    isActivated: flowData.isActivated,
+    isActivated: flowData.isActivated
   }
 
   const updateFlowData = AppHelper.deleteUndefinedFields(flow)
@@ -84,27 +84,27 @@ const updateFlowEndPoint = async function(flowData, flowId, user, isCLI, transac
   }
 }
 
-const getUserFlowsEndPoint = async function(user, isCLI, transaction) {
+const getUserFlowsEndPoint = async function (user, isCLI, transaction) {
   const flow = {
-    userId: user.id,
+    userId: user.id
   }
 
   const attributes = { exclude: ['created_at', 'updated_at'] }
   const flows = await FlowManager.findAllWithAttributes(flow, attributes, transaction)
   return {
-    flows: flows,
+    flows: flows
   }
 }
 
-const getAllFlowsEndPoint = async function(isCLI, transaction) {
+const getAllFlowsEndPoint = async function (isCLI, transaction) {
   const attributes = { exclude: ['created_at', 'updated_at'] }
   const flows = await FlowManager.findAllWithAttributes({}, attributes, transaction)
   return {
-    flows: flows,
+    flows: flows
   }
 }
 
-async function getFlow(flowId, user, isCLI, transaction) {
+async function getFlow (flowId, user, isCLI, transaction) {
   const where = isCLI
     ? { id: flowId }
     : { id: flowId, userId: user.id }
@@ -119,7 +119,7 @@ async function getFlow(flowId, user, isCLI, transaction) {
   return flow
 }
 
-const getFlowByName = async function(flowName, user, isCLI, transaction) {
+const getFlowByName = async function (flowName, user, isCLI, transaction) {
   const where = isCLI
     ? { name: flowName }
     : { name: flowName, userId: user.id }
@@ -129,16 +129,16 @@ const getFlowByName = async function(flowName, user, isCLI, transaction) {
   const flow = await FlowManager.findOneWithAttributes(where, attributes, transaction)
 
   if (!flow) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_ID, flowId))
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_ID, flowName))
   }
   return flow
 }
 
-const getFlowEndPoint = async function(flowId, user, isCLI, transaction) {
-  return await getFlow(flowId, user, isCLI, transaction)
+const getFlowEndPoint = async function (flowId, user, isCLI, transaction) {
+  return getFlow(flowId, user, isCLI, transaction)
 }
 
-const _checkForDuplicateName = async function(name, flowId, userId, transaction) {
+const _checkForDuplicateName = async function (name, flowId, userId, transaction) {
   if (name) {
     const where = flowId
       ? { name: name, userId: userId, id: { [Op.ne]: flowId } }
@@ -151,16 +151,16 @@ const _checkForDuplicateName = async function(name, flowId, userId, transaction)
   }
 }
 
-async function _updateChangeTrackingsByFlowId(flowId, transaction) {
+async function _updateChangeTrackingsByFlowId (flowId, transaction) {
   const flowWithMicroservices = await FlowManager.findFlowMicroservices({ id: flowId }, transaction)
   if (!flowWithMicroservices) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_ID, flowId))
   }
   const onlyUnique = (value, index, self) => self.indexOf(value) === index
   const iofogUuids = flowWithMicroservices.microservices
-      .map((obj) => obj.iofogUuid)
-      .filter(onlyUnique)
-      .filter((val) => val !== null)
+    .map((obj) => obj.iofogUuid)
+    .filter(onlyUnique)
+    .filter((val) => val !== null)
   for (const iofogUuid of iofogUuids) {
     await ChangeTrackingService.update(iofogUuid, ChangeTrackingService.events.microserviceFull, transaction)
   }
@@ -174,5 +174,5 @@ module.exports = {
   getAllFlowsEndPoint: TransactionDecorator.generateTransaction(getAllFlowsEndPoint),
   getFlowEndPoint: TransactionDecorator.generateTransaction(getFlowEndPoint),
   getFlowByName: TransactionDecorator.generateTransaction(getFlowByName),
-  getFlow: getFlow,
+  getFlow: getFlow
 }

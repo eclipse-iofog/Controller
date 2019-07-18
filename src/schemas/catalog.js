@@ -29,13 +29,13 @@ const catalogItemCreate = {
       'type': 'array',
       'minItems': 1,
       'maxItems': 2,
-      'items': { '$ref': '/image' },
+      'items': { '$ref': '/image' }
     },
     'inputType': { '$ref': '/type' },
-    'outputType': { '$ref': '/type' },
+    'outputType': { '$ref': '/type' }
   },
   'required': ['name', 'registryId', 'images'],
-  'additionalProperties': true,
+  'additionalProperties': true
 }
 
 const catalogItemUpdate = {
@@ -55,12 +55,12 @@ const catalogItemUpdate = {
     'images': {
       'type': 'array',
       'maxItems': 2,
-      'items': { '$ref': '/image' },
+      'items': { '$ref': '/image' }
     },
     'inputType': { '$ref': '/type' },
-    'outputType': { '$ref': '/type' },
+    'outputType': { '$ref': '/type' }
   },
-  'additionalProperties': true,
+  'additionalProperties': true
 }
 
 const image = {
@@ -72,11 +72,11 @@ const image = {
       {
         'type': 'integer',
         'minimum': 1,
-        'maximum': 2,
-      },
+        'maximum': 2
+      }
   },
   'required': ['containerImage', 'fogTypeId'],
-  'additionalProperties': true,
+  'additionalProperties': true
 }
 
 const type = {
@@ -84,12 +84,12 @@ const type = {
   'type': 'object',
   'properties': {
     'infoType': { 'type': 'string' },
-    'infoFormat': { 'type': 'string' },
+    'infoFormat': { 'type': 'string' }
   },
-  'additionalProperties': true,
+  'additionalProperties': true
 }
 
 module.exports = {
   mainSchemas: [catalogItemCreate, catalogItemUpdate],
-  innerSchemas: [image, type],
+  innerSchemas: [image, type]
 }

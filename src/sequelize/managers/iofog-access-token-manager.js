@@ -16,18 +16,18 @@ const models = require('./../models')
 const FogAccessToken = models.FogAccessToken
 
 class FogAccessTokenManager extends BaseManager {
-  getEntity() {
+  getEntity () {
     return FogAccessToken
   }
 
   // no transaction required here, used by auth decorator
-  updateExpirationTime(id, newTime) {
+  updateExpirationTime (id, newTime) {
     return FogAccessToken.update({
-      expirationTime: newTime,
+      expirationTime: newTime
     }, {
       where: {
-        id: id,
-      },
+        id: id
+      }
     })
   }
 }

@@ -28,27 +28,27 @@ module.exports = [
       const errorCodes = [
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError],
+          errors: [Errors.AuthenticationError]
         },
         {
           code: constants.HTTP_CODE_NOT_FOUND,
-          errors: [Errors.NotFoundError],
-        },
+          errors: [Errors.NotFoundError]
+        }
       ]
 
       const createMicroserviceImageSnapshotEndPoint = ResponseDecorator.handleErrors(
-          DiagnosticController.createMicroserviceImageSnapshotEndPoint,
-          successCode,
-          errorCodes
+        DiagnosticController.createMicroserviceImageSnapshotEndPoint,
+        successCode,
+        errorCodes
       )
       const responseObject = await createMicroserviceImageSnapshotEndPoint(req)
 
       res
-          .status(responseObject.code)
-          .send(responseObject.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
 
       logger.apiRes({ req: req, res: responseObject })
-    },
+    }
   },
   {
     method: 'get',
@@ -60,35 +60,35 @@ module.exports = [
       const errorCodes = [
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError],
+          errors: [Errors.AuthenticationError]
         },
         {
           code: constants.HTTP_CODE_NOT_FOUND,
-          errors: [Errors.NotFoundError],
-        },
+          errors: [Errors.NotFoundError]
+        }
       ]
 
       const getMicroserviceImageSnapshotEndPoint = ResponseDecorator.handleErrors(
-          DiagnosticController.getMicroserviceImageSnapshotEndPoint,
-          successCode,
-          errorCodes
+        DiagnosticController.getMicroserviceImageSnapshotEndPoint,
+        successCode,
+        errorCodes
       )
       const responseObject = await getMicroserviceImageSnapshotEndPoint(req)
       if (responseObject.code !== successCode) {
         res
-            .status(responseObject.code)
-            .send(responseObject.body)
+          .status(responseObject.code)
+          .send(responseObject.body)
 
         logger.apiRes({ req: req, res: responseObject })
       } else {
         res.writeHead(successCode, {
           'Content-Length': responseObject.body['Content-Length'],
           'Content-Type': responseObject.body['Content-Type'],
-          'Content-Disposition': 'attachment; filename=' + responseObject.body.fileName,
+          'Content-Disposition': 'attachment; filename=' + responseObject.body.fileName
         })
         fs.createReadStream(responseObject.body.filePath).pipe(res)
       }
-    },
+    }
   },
   {
     method: 'patch',
@@ -100,31 +100,31 @@ module.exports = [
       const errorCodes = [
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError],
+          errors: [Errors.AuthenticationError]
         },
         {
           code: constants.HTTP_CODE_NOT_FOUND,
-          errors: [Errors.NotFoundError],
+          errors: [Errors.NotFoundError]
         },
         {
           code: constants.HTTP_CODE_BAD_REQUEST,
-          errors: [Errors.ValidationError],
-        },
+          errors: [Errors.ValidationError]
+        }
       ]
 
       const changeMicroserviceStraceStateEndPoint = ResponseDecorator.handleErrors(
-          DiagnosticController.changeMicroserviceStraceStateEndPoint,
-          successCode,
-          errorCodes
+        DiagnosticController.changeMicroserviceStraceStateEndPoint,
+        successCode,
+        errorCodes
       )
       const responseObject = await changeMicroserviceStraceStateEndPoint(req)
 
       res
-          .status(responseObject.code)
-          .send(responseObject.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
 
       logger.apiRes({ req: req, res: responseObject })
-    },
+    }
   },
   {
     method: 'get',
@@ -136,27 +136,27 @@ module.exports = [
       const errorCodes = [
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError],
+          errors: [Errors.AuthenticationError]
         },
         {
           code: constants.HTTP_CODE_NOT_FOUND,
-          errors: [Errors.NotFoundError],
-        },
+          errors: [Errors.NotFoundError]
+        }
       ]
 
       const getMicroserviceStraceDataEndPoint = ResponseDecorator.handleErrors(
-          DiagnosticController.getMicroserviceStraceDataEndPoint,
-          successCode,
-          errorCodes
+        DiagnosticController.getMicroserviceStraceDataEndPoint,
+        successCode,
+        errorCodes
       )
       const responseObject = await getMicroserviceStraceDataEndPoint(req)
 
       res
-          .status(responseObject.code)
-          .send(responseObject.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
 
       logger.apiRes({ req: req, res: responseObject })
-    },
+    }
   },
   {
     method: 'put',
@@ -168,34 +168,34 @@ module.exports = [
       const errorCodes = [
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError],
+          errors: [Errors.AuthenticationError]
         },
         {
           code: constants.HTTP_CODE_NOT_FOUND,
-          errors: [Errors.NotFoundError],
+          errors: [Errors.NotFoundError]
         },
         {
           code: constants.HTTP_CODE_BAD_REQUEST,
-          errors: [Errors.ValidationError],
+          errors: [Errors.ValidationError]
         },
         {
           code: constants.HTTP_CODE_INTERNAL_ERROR,
-          errors: [Errors.FtpError],
-        },
+          errors: [Errors.FtpError]
+        }
       ]
 
       const postMicroserviceStraceDataToFtpEndPoint = ResponseDecorator.handleErrors(
-          DiagnosticController.postMicroserviceStraceDataToFtpEndPoint,
-          successCode,
-          errorCodes
+        DiagnosticController.postMicroserviceStraceDataToFtpEndPoint,
+        successCode,
+        errorCodes
       )
       const responseObject = await postMicroserviceStraceDataToFtpEndPoint(req)
 
       res
-          .status(responseObject.code)
-          .send(responseObject.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
 
       logger.apiRes({ req: req, res: responseObject })
-    },
-  },
+    }
+  }
 ]

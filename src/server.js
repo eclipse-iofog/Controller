@@ -17,6 +17,7 @@ const logger = require('./logger')
 const bodyParser = require('body-parser')
 const cookieParser = require('cookie-parser')
 const express = require('express')
+const ecnViewer = require('ecn-viewer')
 const fs = require('fs')
 const helmet = require('helmet')
 const https = require('https')
@@ -47,7 +48,7 @@ app.use(xss())
 // app.use(morgan('combined'));
 
 app.use(bodyParser.urlencoded({
-  extended: true,
+  extended: true
 }))
 app.use(bodyParser.json())
 
@@ -72,30 +73,32 @@ const registerRoute = (route) => {
   app[route.method.toLowerCase()](route.path, route.middleware)
 }
 
-const setupMiddleware = function(routeName) {
+const setupMiddleware = function (routeName) {
   const routes = [].concat(require(path.join(__dirname, 'routes', routeName)) || [])
   routes.forEach(registerRoute)
 }
 
 fs.readdirSync(path.join(__dirname, 'routes'))
-    .forEach(setupMiddleware)
+  .forEach(setupMiddleware)
+
+app.use('/', ecnViewer.middleware(express))
 
 const jobs = []
 
-const setupJobs = function(file) {
+const setupJobs = function (file) {
   jobs.push((require(path.join(__dirname, 'jobs', file)) || []))
 }
 
 fs.readdirSync(path.join(__dirname, 'jobs'))
-    .filter((file) => {
-      return (file.indexOf('.') !== 0) && (file.slice(-3) === '.js')
-    })
-    .forEach(setupJobs)
+  .filter((file) => {
+    return (file.indexOf('.') !== 0) && (file.slice(-3) === '.js')
+  })
+  .forEach(setupJobs)
 
-function startHttpServer(app, port, jobs) {
+function startHttpServer (app, port, jobs) {
   logger.info('SSL not configured, starting HTTP server.')
 
-  app.listen(port, function onStart(err) {
+  app.listen(port, function onStart (err) {
     if (err) {
       logger.error(err)
     }
@@ -104,17 +107,17 @@ function startHttpServer(app, port, jobs) {
   })
 }
 
-function startHttpsServer(app, port, sslKey, sslCert, intermedKey, jobs) {
+function startHttpsServer (app, port, sslKey, sslCert, intermedKey, jobs) {
   try {
     const sslOptions = {
       key: fs.readFileSync(sslKey),
       cert: fs.readFileSync(sslCert),
       ca: fs.readFileSync(intermedKey),
       requestCert: true,
-      rejectUnauthorized: false, // currently for some reason iofog agent doesn't work without this option
+      rejectUnauthorized: false // currently for some reason iofog agent doesn't work without this option
     }
 
-    https.createServer(sslOptions, app).listen(port, function onStart(err) {
+    https.createServer(sslOptions, app).listen(port, function onStart (err) {
       if (err) {
         logger.error(err)
       }

@@ -17,22 +17,22 @@ const MicroservicePublicMode = models.MicroservicePublicMode
 const ConnectorPort = models.ConnectorPort
 
 class MicroservicePublicModeManager extends BaseManager {
-  getEntity() {
+  getEntity () {
     return MicroservicePublicMode
   }
 
-  findAllMicroservicePublicModesByConnectorId(connectorId, transaction) {
+  findAllMicroservicePublicModesByConnectorId (connectorId, transaction) {
     return MicroservicePublicMode.findAll({
       include: [
         {
           model: ConnectorPort,
           as: 'connectorPort',
-          required: true,
-        },
+          required: true
+        }
       ],
       where: {
-        '$connectorPort.connector_id$': connectorId,
-      },
+        '$connectorPort.connector_id$': connectorId
+      }
     }, { transaction: transaction })
   }
 }

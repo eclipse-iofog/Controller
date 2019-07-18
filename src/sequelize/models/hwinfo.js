@@ -6,26 +6,26 @@ module.exports = (sequelize, DataTypes) => {
       primaryKey: true,
       autoIncrement: true,
       allowNull: false,
-      field: 'id',
+      field: 'id'
     },
     info: {
       type: DataTypes.TEXT,
       defaultValue: ' ',
-      field: 'info',
-    },
+      field: 'info'
+    }
   }, {
     // add the timestamp attributes (updatedAt, createdAt)
     timestamps: true,
-    underscored: true,
+    underscored: true
   })
-  HWInfo.associate = function(models) {
+  HWInfo.associate = function (models) {
     HWInfo.belongsTo(models.Fog, {
       foreignKey: {
         name: 'iofogUuid',
-        field: 'iofog_uuid',
+        field: 'iofog_uuid'
       },
       as: 'iofog',
-      onDelete: 'cascade',
+      onDelete: 'cascade'
     })
   }
   return HWInfo

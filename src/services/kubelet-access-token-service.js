@@ -16,33 +16,33 @@ const KubeletAccessTokenManager = require('../sequelize/managers/kubelet-access-
 
 const Config = require('../config')
 
-const generateAccessToken = async function(transaction) {
+const generateAccessToken = async function (transaction) {
   while (true) {
     const newAccessToken = AppHelper.generateAccessToken()
     const exists = await KubeletAccessTokenManager.findOne({
-      token: newAccessToken,
+      token: newAccessToken
     }, transaction)
     if (!exists) {
       const accessTokenExpiryTime = Date.now() + Config.get('Settings:KubeletTokenExpirationIntervalSeconds') * 9999999
       return {
         token: newAccessToken,
-        expirationTime: accessTokenExpiryTime,
+        expirationTime: accessTokenExpiryTime
       }
     }
   }
 }
 
-async function updateAccessToken(userId, newAccessToken, transaction) {
+async function updateAccessToken (userId, newAccessToken, transaction) {
   return KubeletAccessTokenManager.updateOrCreate({
-    userId: userId,
+    userId: userId
   }, {
     userId: userId,
     token: newAccessToken.token,
-    expirationTime: newAccessToken.expirationTime,
+    expirationTime: newAccessToken.expirationTime
   }, transaction)
 }
 
 module.exports = {
   generateAccessToken,
-  updateAccessToken,
+  updateAccessToken
 }

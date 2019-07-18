@@ -16,7 +16,7 @@ const models = require('./../models')
 const ConnectorPort = models.ConnectorPort
 
 class ConnectorPortManager extends BaseManager {
-  getEntity() {
+  getEntity () {
     return ConnectorPort
   }
 }

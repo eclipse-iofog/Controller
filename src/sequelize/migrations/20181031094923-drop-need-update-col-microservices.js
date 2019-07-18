@@ -7,8 +7,8 @@ module.exports = {
 
   down: (queryInterface, Sequelize) => {
     return queryInterface.addColumn('Microservices',
-        'need_update',
-        Sequelize.BOOLEAN
+      'need_update',
+      Sequelize.BOOLEAN
     )
-  },
+  }
 }

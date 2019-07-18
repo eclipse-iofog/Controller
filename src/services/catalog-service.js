@@ -27,7 +27,7 @@ const MicroseriveStates = require('../enums/microservice-state')
 const TrackingDecorator = require('../decorators/tracking-decorator')
 const TrackingEventType = require('../enums/tracking-event-type')
 
-const createCatalogItemEndPoint = async function(data, user, transaction) {
+const createCatalogItemEndPoint = async function (data, user, transaction) {
   await Validator.validate(data, Validator.schemas.catalogItemCreate)
   await _checkForDuplicateName(data.name, { userId: user.id }, transaction)
   await _checkForRestrictedPublisher(data.publisher)
@@ -37,20 +37,20 @@ const createCatalogItemEndPoint = async function(data, user, transaction) {
   await _createCatalogItemOutputType(data, catalogItem, transaction)
 
   return {
-    id: catalogItem.id,
+    id: catalogItem.id
   }
 }
 
-const updateCatalogItemEndPoint = async function(id, data, user, isCLI, transaction) {
+const updateCatalogItemEndPoint = async function (id, data, user, isCLI, transaction) {
   await Validator.validate(data, Validator.schemas.catalogItemUpdate)
 
   const where = isCLI
     ? {
-      id: id,
+      id: id
     }
     : {
       id: id,
-      userId: user.id,
+      userId: user.id
     }
 
   data.id = id
@@ -59,12 +59,12 @@ const updateCatalogItemEndPoint = async function(id, data, user, isCLI, transact
   await _updateCatalogItemIOTypes(data, where, transaction)
 }
 
-const listCatalogItemsEndPoint = async function(user, isCLI, transaction) {
+const listCatalogItemsEndPoint = async function (user, isCLI, transaction) {
   const where = isCLI
     ? {}
     : {
       [Op.or]: [{ userId: user.id }, { userId: null }],
-      [Op.or]: [{ category: { [Op.ne]: 'SYSTEM' } }, { category: null }],
+      [Op.or]: [{ category: { [Op.ne]: 'SYSTEM' } }, { category: null }]
     }
 
   const attributes = isCLI
@@ -73,17 +73,17 @@ const listCatalogItemsEndPoint = async function(user, isCLI, transaction) {
 
   const catalogItems = await CatalogItemManager.findAllWithDependencies(where, attributes, transaction)
   return {
-    catalogItems: catalogItems,
+    catalogItems: catalogItems
   }
 }
 
-async function getCatalogItem(id, user, isCLI, transaction) {
+async function getCatalogItem (id, user, isCLI, transaction) {
   const where = isCLI
     ? { id: id }
     : {
       id: id,
       [Op.or]: [{ userId: user.id }, { userId: null }],
-      [Op.or]: [{ category: { [Op.ne]: 'SYSTEM' } }, { category: null }],
+      [Op.or]: [{ category: { [Op.ne]: 'SYSTEM' } }, { category: null }]
     }
 
   const attributes = isCLI
@@ -97,23 +97,23 @@ async function getCatalogItem(id, user, isCLI, transaction) {
   return item
 }
 
-const getCatalogItemEndPoint = async function(id, user, isCLI, transaction) {
-  return await getCatalogItem(id, user, isCLI, transaction)
+const getCatalogItemEndPoint = async function (id, user, isCLI, transaction) {
+  return getCatalogItem(id, user, isCLI, transaction)
 }
 
-const deleteCatalogItemEndPoint = async function(id, user, isCLI, transaction) {
+const deleteCatalogItemEndPoint = async function (id, user, isCLI, transaction) {
   const where = isCLI
     ? {
-      id: id,
+      id: id
     }
     : {
       userId: user.id,
-      id: id,
+      id: id
     }
 
   const item = await _checkIfItemExists(where, transaction)
 
-  if (item.category == 'SYSTEM') {
+  if (item.category === 'SYSTEM') {
     throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.SYSTEM_CATALOG_ITEM_DELETE, id))
   }
 
@@ -124,38 +124,37 @@ const deleteCatalogItemEndPoint = async function(id, user, isCLI, transaction) {
   return affectedRows
 }
 
-async function getNetworkCatalogItem(transaction) {
-  return await CatalogItemManager.findOne({
+async function getNetworkCatalogItem (transaction) {
+  return CatalogItemManager.findOne({
     name: 'Networking Tool',
     category: 'SYSTEM',
     publisher: 'Eclipse ioFog',
     registry_id: 1,
-    user_id: null,
+    user_id: null
   }, transaction)
 }
 
-async function getBluetoothCatalogItem(transaction) {
-  return await CatalogItemManager.findOne({
+async function getBluetoothCatalogItem (transaction) {
+  return CatalogItemManager.findOne({
     name: 'RESTBlue',
     category: 'SYSTEM',
     publisher: 'Eclipse ioFog',
     registry_id: 1,
-    user_id: null,
+    user_id: null
   }, transaction)
 }
 
-async function getHalCatalogItem(transaction) {
-  return await CatalogItemManager.findOne({
+async function getHalCatalogItem (transaction) {
+  return CatalogItemManager.findOne({
     name: 'HAL',
     category: 'SYSTEM',
     publisher: 'Eclipse ioFog',
     registry_id: 1,
-    user_id: null,
+    user_id: null
   }, transaction)
 }
 
-
-const _checkForDuplicateName = async function(name, item, transaction) {
+const _checkForDuplicateName = async function (name, item, transaction) {
   if (name) {
     const where = item.id
       ? { [Op.or]: [{ userId: item.userId }, { userId: null }], name: name, id: { [Op.ne]: item.id } }
@@ -168,13 +167,13 @@ const _checkForDuplicateName = async function(name, item, transaction) {
   }
 }
 
-const _checkForRestrictedPublisher = async function(publisher) {
+const _checkForRestrictedPublisher = async function (publisher) {
   if (publisher === 'Eclipse ioFog') {
     throw new Errors.ValidationError(ErrorMessages.RESTRICTED_PUBLISHER)
   }
 }
 
-const _checkIfItemExists = async function(where, transaction) {
+const _checkIfItemExists = async function (where, transaction) {
   const item = await CatalogItemManager.findOne(where, transaction)
   if (!item) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_CATALOG_ITEM_ID, where.id))
@@ -182,7 +181,7 @@ const _checkIfItemExists = async function(where, transaction) {
   return item
 }
 
-const _createCatalogItem = async function(data, user, transaction) {
+const _createCatalogItem = async function (data, user, transaction) {
   let catalogItem = {
     name: data.name,
     description: data.description,
@@ -194,7 +193,7 @@ const _createCatalogItem = async function(data, user, transaction) {
     picture: data.picture,
     isPublic: data.isPublic,
     registryId: data.registryId,
-    userId: user.id,
+    userId: user.id
   }
 
   catalogItem = AppHelper.deleteUndefinedFields(catalogItem)
@@ -206,19 +205,19 @@ const _createCatalogItem = async function(data, user, transaction) {
     }
   }
 
-  return await CatalogItemManager.create(catalogItem, transaction)
+  return CatalogItemManager.create(catalogItem, transaction)
 }
 
-const _createCatalogImages = async function(data, catalogItem, transaction) {
+const _createCatalogImages = async function (data, catalogItem, transaction) {
   const catalogItemImages = [
     {
       fogTypeId: 1,
-      catalogItemId: catalogItem.id,
+      catalogItemId: catalogItem.id
     },
     {
       fogTypeId: 2,
-      catalogItemId: catalogItem.id,
-    },
+      catalogItemId: catalogItem.id
+    }
   ]
   if (data.images) {
     for (const image of data.images) {
@@ -233,12 +232,12 @@ const _createCatalogImages = async function(data, catalogItem, transaction) {
     }
   }
 
-  return await CatalogItemImageManager.bulkCreate(catalogItemImages, transaction)
+  return CatalogItemImageManager.bulkCreate(catalogItemImages, transaction)
 }
 
-const _createCatalogItemInputType = async function(data, catalogItem, transaction) {
+const _createCatalogItemInputType = async function (data, catalogItem, transaction) {
   let catalogItemInputType = {
-    catalogItemId: catalogItem.id,
+    catalogItemId: catalogItem.id
   }
 
   if (data.inputType) {
@@ -248,12 +247,12 @@ const _createCatalogItemInputType = async function(data, catalogItem, transactio
 
   catalogItemInputType = AppHelper.deleteUndefinedFields(catalogItemInputType)
 
-  return await CatalogItemInputTypeManager.create(catalogItemInputType, transaction)
+  return CatalogItemInputTypeManager.create(catalogItemInputType, transaction)
 }
 
-const _createCatalogItemOutputType = async function(data, catalogItem, transaction) {
+const _createCatalogItemOutputType = async function (data, catalogItem, transaction) {
   let catalogItemOutputType = {
-    catalogItemId: catalogItem.id,
+    catalogItemId: catalogItem.id
   }
 
   if (data.outputType) {
@@ -263,11 +262,10 @@ const _createCatalogItemOutputType = async function(data, catalogItem, transacti
 
   catalogItemOutputType = AppHelper.deleteUndefinedFields(catalogItemOutputType)
 
-  return await CatalogItemOutputTypeManager.create(catalogItemOutputType, transaction)
+  return CatalogItemOutputTypeManager.create(catalogItemOutputType, transaction)
 }
 
-
-const _updateCatalogItem = async function(data, where, transaction) {
+const _updateCatalogItem = async function (data, where, transaction) {
   let catalogItem = {
     name: data.name,
     description: data.description,
@@ -278,7 +276,7 @@ const _updateCatalogItem = async function(data, where, transaction) {
     ramRequired: data.ramRequired,
     picture: data.picture,
     isPublic: data.isPublic,
-    registryId: data.registryId,
+    registryId: data.registryId
   }
 
   catalogItem = AppHelper.deleteUndefinedFields(catalogItem)
@@ -302,7 +300,7 @@ const _updateCatalogItem = async function(data, where, transaction) {
   await CatalogItemManager.update(where, catalogItem, transaction)
 }
 
-const _updateCatalogItemImages = async function(data, transaction) {
+const _updateCatalogItemImages = async function (data, transaction) {
   if (data.images) {
     const microservices = await MicroserviceManager.findAllWithStatuses({ catalogItemId: data.id }, transaction)
     for (const ms of microservices) {
@@ -314,22 +312,22 @@ const _updateCatalogItemImages = async function(data, transaction) {
     for (const image of data.images) {
       await CatalogItemImageManager.updateOrCreate({
         catalogItemId: data.id,
-        fogTypeId: image.fogTypeId,
+        fogTypeId: image.fogTypeId
       }, {
         catalogItemId: data.id,
         fogTypeId: image.fogTypeId,
-        containerImage: image.containerImage,
+        containerImage: image.containerImage
       }, transaction)
     }
   }
 }
 
-const _updateCatalogItemIOTypes = async function(data, where, transaction) {
+const _updateCatalogItemIOTypes = async function (data, where, transaction) {
   if (data.inputType && data.inputType.length !== 0) {
     let inputType = {
       catalogItemId: data.id,
       infoType: data.inputType.infoType,
-      infoFormat: data.inputType.infoFormat,
+      infoFormat: data.inputType.infoFormat
     }
     inputType = AppHelper.deleteUndefinedFields(inputType)
     await CatalogItemInputTypeManager.updateOrCreate({ catalogItemId: data.id }, inputType, transaction)
@@ -338,7 +336,7 @@ const _updateCatalogItemIOTypes = async function(data, where, transaction) {
     let outputType = {
       catalogItemId: data.id,
       infoType: data.outputType.infoType,
-      infoFormat: data.outputType.infoFormat,
+      infoFormat: data.outputType.infoFormat
     }
     outputType = AppHelper.deleteUndefinedFields(outputType)
     await CatalogItemOutputTypeManager.updateOrCreate({ catalogItemId: data.id }, outputType, transaction)
@@ -357,5 +355,5 @@ module.exports = {
   getCatalogItem: getCatalogItem,
   getNetworkCatalogItem: getNetworkCatalogItem,
   getBluetoothCatalogItem: getBluetoothCatalogItem,
-  getHalCatalogItem: getHalCatalogItem,
+  getHalCatalogItem: getHalCatalogItem
 }

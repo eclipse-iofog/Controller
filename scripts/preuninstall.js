@@ -16,9 +16,9 @@ const fs = require('fs')
 const version = require('../package').version
 const { backupDBs, backupConfigs, backupTrackingUuid, INSTALLATION_VARIABLES_FILE } = require('./util')
 
-function preuninstall() {
+function preuninstall () {
   const instalationVars = {
-    prevVer: version,
+    prevVer: version
   }
 
   fs.writeFileSync(INSTALLATION_VARIABLES_FILE, JSON.stringify(instalationVars))
@@ -28,11 +28,11 @@ function preuninstall() {
   backupTrackingUuid()
 
   const options = {
-    stdio: [process.stdin, process.stdout, process.stderr],
+    stdio: [process.stdin, process.stdout, process.stderr]
   }
   execSync('iofog-controller stop', options)
 }
 
 module.exports = {
-  preuninstall: preuninstall,
+  preuninstall: preuninstall
 }

@@ -16,7 +16,7 @@ const models = require('./../models')
 const FogProvisionKey = models.FogProvisionKey
 
 class FogProvisionKeyManager extends BaseManager {
-  getEntity() {
+  getEntity () {
     return FogProvisionKey
   }
 }

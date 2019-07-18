@@ -22,17 +22,16 @@ const logger = require('../logger')
 const TrackingEventManager = require('../sequelize/managers/tracking-event-manager')
 const Transaction = require('sequelize/lib/transaction')
 
-
 const fakeTransactionObject = { fakeTransaction: true }
 
 const trackingUuid = initTrackingUuid()
 
-function buildEvent(eventType, res, args, functionName) {
+function buildEvent (eventType, res, args, functionName) {
   const eventInfo = {
     uuid: trackingUuid,
     sourceType: 'controller',
     timestamp: Date.now(),
-    type: eventType,
+    type: eventType
   }
   switch (eventType) {
     case EventTypes.INIT:
@@ -47,7 +46,7 @@ function buildEvent(eventType, res, args, functionName) {
     case EventTypes.RUNNING_TIME:
       eventInfo.data = {
         event: `${res.runningTime} min`,
-        agentsCount: res.agentsCount,
+        agentsCount: res.agentsCount
       }
       break
     case EventTypes.IOFOG_CREATED:
@@ -72,8 +71,8 @@ function buildEvent(eventType, res, args, functionName) {
   return eventInfo
 }
 
-function sendEvents(events) {
-  if (process.env.NODE_ENV != 'test') {
+function sendEvents (events) {
+  if (process.env.NODE_ENV !== 'test') {
     return
   }
 
@@ -81,20 +80,20 @@ function sendEvents(events) {
     event.data = JSON.parse(event.data)
   }
   const body = {
-    events: events,
+    events: events
   }
 
   const options = {
     uri: 'https://analytics.iofog.org/post',
     method: 'POST',
     body,
-    json: true,
+    json: true
   }
 
   request(options).catch((e) => {})
 }
 
-function initTrackingUuid() {
+function initTrackingUuid () {
   let uuid
   const path = `${Constants.ROOT_DIR}/src/config/tracking-uuid`
   try {
@@ -113,14 +112,14 @@ function initTrackingUuid() {
   return uuid
 }
 
-function createTrackingUuidFile(path) {
+function createTrackingUuidFile (path) {
   const uuid = AppHelper.generateRandomString(32)
   fs.writeFileSync(path, uuid)
 
   return uuid
 }
 
-async function processEvent(event, fArgs) {
+async function processEvent (event, fArgs) {
   event.data = JSON.stringify(event.data)
   if (isOnline()) {
     // save in db, and send later by job
@@ -142,5 +141,5 @@ async function processEvent(event, fArgs) {
 module.exports = {
   buildEvent: buildEvent,
   sendEvents: sendEvents,
-  processEvent: processEvent,
+  processEvent: processEvent
 }

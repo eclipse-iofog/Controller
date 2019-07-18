@@ -19,44 +19,44 @@ const Sequelize = require('sequelize')
 const Op = Sequelize.Op
 
 class EmailActivationCodeManager extends BaseManager {
-  getEntity() {
+  getEntity () {
     return EmailActivationCode
   }
 
-  async getByActivationCode(activationCode, transaction) {
+  async getByActivationCode (activationCode, transaction) {
     AppHelper.checkTransaction(transaction)
 
     return EmailActivationCode.findOne({
       where: {
-        activationCode: activationCode,
-      },
+        activationCode: activationCode
+      }
     }, {
-      transaction: transaction,
+      transaction: transaction
     })
   };
 
-  async createActivationCode(userId, activationCode, expirationTime, transaction) {
+  async createActivationCode (userId, activationCode, expirationTime, transaction) {
     AppHelper.checkTransaction(transaction)
 
     return EmailActivationCode.create({
       userId: userId,
       activationCode: activationCode,
-      expirationTime: expirationTime,
+      expirationTime: expirationTime
     }, {
-      transaction: transaction,
+      transaction: transaction
     })
   };
 
-  async verifyActivationCode(activationCode, transaction) {
+  async verifyActivationCode (activationCode, transaction) {
     return EmailActivationCode.findOne({
       where: {
         activationCode: activationCode,
         expirationTime: {
-          [Op.gt]: new Date().getTime(),
-        },
-      },
+          [Op.gt]: new Date().getTime()
+        }
+      }
     }, {
-      transaction: transaction,
+      transaction: transaction
     })
   }
 }

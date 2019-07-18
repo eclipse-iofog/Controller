@@ -19,10 +19,10 @@ const FogAccessTokenManager = require('../sequelize/managers/iofog-access-token-
 const Errors = require('../helpers/errors')
 const { isTest } = require('../helpers/app-helper')
 
-function checkAuthToken(f) {
-  return async function(...fArgs) {
+function checkAuthToken (f) {
+  return async function (...fArgs) {
     if (isTest()) {
-      return await f.apply(this, fArgs)
+      return f.apply(this, fArgs)
     }
 
     const req = fArgs[0]
@@ -40,16 +40,16 @@ function checkAuthToken(f) {
     }
 
     fArgs.push(user)
-    AccessTokenManager.updateExpirationTime(user.accessToken.id, user.accessToken.expirationTime
-        + config.get('Settings:UserTokenExpirationIntervalSeconds') * 1000)
-    return await f.apply(this, fArgs)
+    AccessTokenManager.updateExpirationTime(user.accessToken.id, user.accessToken.expirationTime +
+        config.get('Settings:UserTokenExpirationIntervalSeconds') * 1000)
+    return f.apply(this, fArgs)
   }
 }
 
-function checkFogToken(f) {
-  return async function(...fArgs) {
+function checkFogToken (f) {
+  return async function (...fArgs) {
     if (isTest()) {
-      return await f.apply(this, fArgs)
+      return f.apply(this, fArgs)
     }
 
     const req = fArgs[0]
@@ -68,17 +68,17 @@ function checkFogToken(f) {
 
     fArgs.push(fog)
 
-    FogAccessTokenManager.updateExpirationTime(fog.accessToken.id, fog.accessToken.expirationTime
-        + config.get('Settings:FogTokenExpirationIntervalSeconds') * 1000)
+    FogAccessTokenManager.updateExpirationTime(fog.accessToken.id, fog.accessToken.expirationTime +
+        config.get('Settings:FogTokenExpirationIntervalSeconds') * 1000)
 
     const timestamp = Date.now()
     await FogManager.updateLastActive(fog.uuid, timestamp)
 
-    return await f.apply(this, fArgs)
+    return f.apply(this, fArgs)
   }
 }
 
 module.exports = {
   checkAuthToken: checkAuthToken,
-  checkFogToken: checkFogToken,
+  checkFogToken: checkFogToken
 }

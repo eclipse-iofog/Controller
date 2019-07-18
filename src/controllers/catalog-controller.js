@@ -14,23 +14,23 @@
 const CatalogService = require('../services/catalog-service')
 const AuthDecorator = require('./../decorators/authorization-decorator')
 
-const createCatalogItemEndPoint = async function(req, user) {
-  return await CatalogService.createCatalogItemEndPoint(req.body, user)
+const createCatalogItemEndPoint = async function (req, user) {
+  return CatalogService.createCatalogItemEndPoint(req.body, user)
 }
 
-const listCatalogItemsEndPoint = async function(req, user) {
-  return await CatalogService.listCatalogItemsEndPoint(user, false)
+const listCatalogItemsEndPoint = async function (req, user) {
+  return CatalogService.listCatalogItemsEndPoint(user, false)
 }
 
-const listCatalogItemEndPoint = async function(req, user) {
-  return await CatalogService.getCatalogItemEndPoint(req.params.id, user, false)
+const listCatalogItemEndPoint = async function (req, user) {
+  return CatalogService.getCatalogItemEndPoint(req.params.id, user, false)
 }
 
-const deleteCatalogItemEndPoint = async function(req, user) {
+const deleteCatalogItemEndPoint = async function (req, user) {
   await CatalogService.deleteCatalogItemEndPoint(req.params.id, user, false)
 }
 
-const updateCatalogItemEndPoint = async function(req, user) {
+const updateCatalogItemEndPoint = async function (req, user) {
   await CatalogService.updateCatalogItemEndPoint(req.params.id, req.body, user, false)
 }
 
@@ -39,5 +39,5 @@ module.exports = {
   listCatalogItemsEndPoint: AuthDecorator.checkAuthToken(listCatalogItemsEndPoint),
   listCatalogItemEndPoint: AuthDecorator.checkAuthToken(listCatalogItemEndPoint),
   deleteCatalogItemEndPoint: AuthDecorator.checkAuthToken(deleteCatalogItemEndPoint),
-  updateCatalogItemEndPoint: AuthDecorator.checkAuthToken(updateCatalogItemEndPoint),
+  updateCatalogItemEndPoint: AuthDecorator.checkAuthToken(updateCatalogItemEndPoint)
 }

@@ -7,63 +7,63 @@ module.exports = {
         primaryKey: true,
         autoIncrement: true,
         allowNull: false,
-        field: 'id',
+        field: 'id'
       },
       port1: {
         type: Sequelize.INTEGER,
-        field: 'port1',
+        field: 'port1'
       },
       port2: {
         type: Sequelize.INTEGER,
-        field: 'port2',
+        field: 'port2'
       },
       maxConnectionsPort1: {
         type: Sequelize.INTEGER,
-        field: 'max_connections_port1',
+        field: 'max_connections_port1'
       },
       maxConnectionsPort2: {
         type: Sequelize.INTEGER,
-        field: 'max_connection_port2',
+        field: 'max_connection_port2'
       },
       passcodePort1: {
         type: Sequelize.TEXT,
-        field: 'passcode_port1',
+        field: 'passcode_port1'
       },
       passcodePort2: {
         type: Sequelize.TEXT,
-        field: 'passcode_port2',
+        field: 'passcode_port2'
       },
       heartBeatAbsenceThresholdPort1: {
         type: Sequelize.INTEGER,
-        field: 'heartbeat_absence_threshold_port1',
+        field: 'heartbeat_absence_threshold_port1'
       },
       heartBeatAbsenceThresholdPort2: {
         type: Sequelize.INTEGER,
-        field: 'heartbeat_absence_threshold_port2',
+        field: 'heartbeat_absence_threshold_port2'
       },
       mappingId: {
         type: Sequelize.TEXT,
-        field: 'mapping_id',
+        field: 'mapping_id'
       },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE,
-        field: 'created_at',
+        field: 'created_at'
       },
       updatedAt: {
         allowNull: false,
         type: Sequelize.DATE,
-        field: 'updated_at',
+        field: 'updated_at'
       },
       connectorId: {
         type: Sequelize.INTEGER,
         field: 'connector_id',
         references: { model: 'Connectors', key: 'id' },
-        onDelete: 'cascade',
-      },
+        onDelete: 'cascade'
+      }
     })
   },
   down: (queryInterface, Sequelize) => {
     return queryInterface.dropTable('ConnectorPorts')
-  },
+  }
 }

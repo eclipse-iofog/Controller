@@ -7,31 +7,31 @@ module.exports = {
         primaryKey: true,
         autoIncrement: true,
         allowNull: false,
-        field: 'id',
+        field: 'id'
       },
       expirationTime: {
         type: Sequelize.BIGINT,
-        field: 'expiration_time',
+        field: 'expiration_time'
       },
       token: {
         type: Sequelize.TEXT,
-        field: 'token',
+        field: 'token'
       },
       iofogUuid: {
         type: Sequelize.TEXT,
         field: 'iofog_uuid',
         references: { model: 'Fogs', key: 'uuid' },
-        onDelete: 'cascade',
+        onDelete: 'cascade'
       },
       userId: {
         type: Sequelize.INTEGER,
         field: 'user_id',
         references: { model: 'Users', key: 'id' },
-        onDelete: 'cascade',
-      },
+        onDelete: 'cascade'
+      }
     })
   },
   down: (queryInterface, Sequelize) => {
     return queryInterface.dropTable('FogAccessTokens')
-  },
+  }
 }

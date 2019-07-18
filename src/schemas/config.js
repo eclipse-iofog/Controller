@@ -27,11 +27,11 @@ const configUpdate = {
     'emailService': { 'type': 'string' },
     'logDir': { 'type': 'string' },
     'logSize': { 'type': 'integer' },
-    'kubelet': { 'type': 'string' },
-  },
+    'kubelet': { 'type': 'string' }
+  }
 }
 
 module.exports = {
   mainSchemas: [configUpdate],
-  innerSchemas: [],
+  innerSchemas: []
 }

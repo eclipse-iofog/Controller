@@ -20,75 +20,96 @@ const AppHelper = require('../helpers/app-helper')
 const CliDataTypes = require('./cli-data-types')
 
 class Registry extends BaseCLIHandler {
-  constructor() {
+  constructor () {
     super()
 
     this.name = constants.CMD_REGISTRY
     this.commandDefinitions = [
       {
-        name: 'command', defaultOption: true,
-        group: [constants.CMD],
+        name: 'command',
+        defaultOption: true,
+        group: [constants.CMD]
       },
       {
-        name: 'uri', alias: 'U', type: String,
+        name: 'uri',
+        alias: 'U',
+        type: String,
         description: 'Registry URI',
-        group: [constants.CMD_ADD, constants.CMD_UPDATE],
+        group: [constants.CMD_ADD, constants.CMD_UPDATE]
       },
       {
-        name: 'public', alias: 'b', type: Boolean,
+        name: 'public',
+        alias: 'b',
+        type: Boolean,
         description: 'Set registry as public',
-        group: [constants.CMD_ADD, constants.CMD_UPDATE],
+        group: [constants.CMD_ADD, constants.CMD_UPDATE]
       },
       {
-        name: 'private', alias: 'r', type: Boolean,
+        name: 'private',
+        alias: 'r',
+        type: Boolean,
         description: 'Set registry as private',
-        group: [constants.CMD_ADD, constants.CMD_UPDATE],
+        group: [constants.CMD_ADD, constants.CMD_UPDATE]
       },
       {
-        name: 'username', alias: 'l', type: String,
+        name: 'username',
+        alias: 'l',
+        type: String,
         description: 'Registry\'s user name',
-        group: [constants.CMD_ADD, constants.CMD_UPDATE],
+        group: [constants.CMD_ADD, constants.CMD_UPDATE]
       },
       {
-        name: 'password', alias: 'p', type: String,
+        name: 'password',
+        alias: 'p',
+        type: String,
         description: 'Password',
-        group: [constants.CMD_ADD, constants.CMD_UPDATE],
+        group: [constants.CMD_ADD, constants.CMD_UPDATE]
       },
       {
-        name: 'requires-certificate', alias: 'c', type: Boolean,
+        name: 'requires-certificate',
+        alias: 'c',
+        type: Boolean,
         description: 'Requires certificate',
-        group: [constants.CMD_ADD, constants.CMD_UPDATE],
+        group: [constants.CMD_ADD, constants.CMD_UPDATE]
       },
       {
-        name: 'certificate', alias: 'C', type: String,
+        name: 'certificate',
+        alias: 'C',
+        type: String,
         description: 'Certificate',
-        group: [constants.CMD_ADD, constants.CMD_UPDATE],
+        group: [constants.CMD_ADD, constants.CMD_UPDATE]
       },
       {
-        name: 'email', alias: 'e', type: String,
+        name: 'email',
+        alias: 'e',
+        type: String,
         description: 'Email address',
-        group: [constants.CMD_ADD, constants.CMD_UPDATE],
+        group: [constants.CMD_ADD, constants.CMD_UPDATE]
       },
       {
-        name: 'user-id', alias: 'u', type: CliDataTypes.Integer,
+        name: 'user-id',
+        alias: 'u',
+        type: CliDataTypes.Integer,
         description: 'User\'s id',
-        group: [constants.CMD_ADD],
+        group: [constants.CMD_ADD]
       },
       {
-        name: 'item-id', alias: 'i', type: CliDataTypes.Integer,
+        name: 'item-id',
+        alias: 'i',
+        type: CliDataTypes.Integer,
         description: 'Item\'s id',
-        group: [constants.CMD_REMOVE, constants.CMD_UPDATE],
-      },
+        group: [constants.CMD_REMOVE, constants.CMD_UPDATE]
+      }
     ]
     this.commands = {
       [constants.CMD_ADD]: 'Add a new Registry.',
       [constants.CMD_REMOVE]: 'Delete a Registry.',
       [constants.CMD_UPDATE]: 'Update a Registry',
-      [constants.CMD_LIST]: 'List all Registries.',
+      [constants.CMD_LIST]: 'List all Registries.'
     }
   }
 
-  async run(args) {
+  async run (args) {
     try {
       const registryCommand = this.parseCommandLineArgs(this.commandDefinitions, { argv: args.argv, partial: false })
 
@@ -119,7 +140,7 @@ class Registry extends BaseCLIHandler {
   }
 }
 
-async function _createRegistry(obj, user) {
+async function _createRegistry (obj, user) {
   const registry = _createRegistryObject(obj)
 
   const logRegistry = Object.assign({}, registry)
@@ -128,23 +149,23 @@ async function _createRegistry(obj, user) {
 
   const response = await RegistryService.createRegistry(registry, user)
   logger.cliRes(JSON.stringify({
-    id: response.id,
+    id: response.id
   }, null, 2))
 }
 
-async function _getRegistries(obj, user) {
+async function _getRegistries (obj, user) {
   logger.cliReq('registry list')
   const result = await RegistryService.findRegistries(user, true)
   logger.cliRes(JSON.stringify(result, null, 2))
 }
 
-async function _deleteRegistry(obj, user) {
+async function _deleteRegistry (obj, user) {
   logger.cliReq('registry remove', { args: { id: obj.itemId } })
   await RegistryService.deleteRegistry({ id: obj.itemId }, user, true)
   logger.cliRes('Registry has been removed successfully.')
 }
 
-async function _updateRegistry(obj) {
+async function _updateRegistry (obj) {
   const registry = _createRegistryObject(obj)
 
   const logRegistry = Object.assign({}, registry)
@@ -155,7 +176,7 @@ async function _updateRegistry(obj) {
   logger.cliRes('Registry has been updated successfully.')
 }
 
-async function _executeCase(commands, commandName, f, isUserRequired) {
+async function _executeCase (commands, commandName, f, isUserRequired) {
   try {
     const obj = commands[commandName]
 
@@ -170,7 +191,7 @@ async function _executeCase(commands, commandName, f, isUserRequired) {
   }
 }
 
-function _createRegistryObject(cliData) {
+function _createRegistryObject (cliData) {
   return {
     url: cliData.uri,
     username: cliData.username,
@@ -178,7 +199,7 @@ function _createRegistryObject(cliData) {
     isPublic: AppHelper.validateBooleanCliOptions(cliData.public, cliData.private),
     email: cliData.email,
     requiresCert: cliData.requiresCertificate,
-    certificate: cliData.certificate,
+    certificate: cliData.certificate
   }
 }
 

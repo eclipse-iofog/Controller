@@ -16,7 +16,7 @@ const models = require('./../models')
 const MicroserviceStatus = models.MicroserviceStatus
 
 class MicroserviceStatusManager extends BaseManager {
-  getEntity() {
+  getEntity () {
     return MicroserviceStatus
   }
 }

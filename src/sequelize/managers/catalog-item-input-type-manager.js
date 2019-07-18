@@ -16,7 +16,7 @@ const models = require('./../models')
 const CatalogItemInputType = models.CatalogItemInputType
 
 class CatalogItemInputTypeManager extends BaseManager {
-  getEntity() {
+  getEntity () {
     return CatalogItemInputType
   }
 }

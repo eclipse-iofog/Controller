@@ -6,28 +6,28 @@ module.exports = (sequelize, DataTypes) => {
       primaryKey: true,
       autoIncrement: true,
       allowNull: false,
-      field: 'id',
+      field: 'id'
     },
     key: {
       type: DataTypes.TEXT,
-      field: 'key',
+      field: 'key'
     },
     value: {
       type: DataTypes.TEXT,
-      field: 'value',
-    },
+      field: 'value'
+    }
   }, {
     timestamps: false,
-    underscored: true,
+    underscored: true
   })
-  MicroserviceEnv.associate = function(models) {
+  MicroserviceEnv.associate = function (models) {
     MicroserviceEnv.belongsTo(models.Microservice, {
       foreignKey: {
         name: 'microserviceUuid',
-        field: 'microservice_uuid',
+        field: 'microservice_uuid'
       },
       as: 'microservice',
-      onDelete: 'cascade',
+      onDelete: 'cascade'
     })
   }
   return MicroserviceEnv

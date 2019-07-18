@@ -6,28 +6,28 @@ module.exports = (sequelize, DataTypes) => {
       primaryKey: true,
       autoIncrement: true,
       allowNull: false,
-      field: 'id',
+      field: 'id'
     },
     activationCode: {
       type: DataTypes.TEXT,
-      field: 'activation_code',
+      field: 'activation_code'
     },
     expirationTime: {
       type: DataTypes.BIGINT,
-      field: 'expiration_time',
-    },
+      field: 'expiration_time'
+    }
   }, {
     timestamps: false,
-    underscored: true,
+    underscored: true
   })
-  EmailActivationCode.associate = function(models) {
+  EmailActivationCode.associate = function (models) {
     EmailActivationCode.belongsTo(models.User, {
       foreignKey: {
         name: 'userId',
-        field: 'user_id',
+        field: 'user_id'
       },
       as: 'user',
-      onDelete: 'cascade',
+      onDelete: 'cascade'
     })
   }
   return EmailActivationCode

@@ -16,7 +16,7 @@ const models = require('./../models')
 const StraceDiagnostics = models.StraceDiagnostics
 
 class StraceDiagnosticsManager extends BaseManager {
-  getEntity() {
+  getEntity () {
     return StraceDiagnostics
   }
 }

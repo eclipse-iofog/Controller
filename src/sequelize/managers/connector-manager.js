@@ -16,7 +16,7 @@ const models = require('./../models')
 const Connector = models.Connector
 
 class ConnectorManager extends BaseManager {
-  getEntity() {
+  getEntity () {
     return Connector
   }
 }

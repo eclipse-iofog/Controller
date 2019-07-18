@@ -22,59 +22,74 @@ const ErrorMessages = require('../helpers/error-messages')
 const CliDataTypes = require('./cli-data-types')
 
 class Tunnel extends BaseCLIHandler {
-  constructor() {
+  constructor () {
     super()
 
     this.name = constants.CMD_TUNNEL
     this.commandDefinitions = [
       {
-        name: 'command', defaultOption: true,
+        name: 'command',
+        defaultOption: true,
         description: 'update, list',
-        group: constants.CMD,
+        group: constants.CMD
       },
       {
-        name: 'username', alias: 'u', type: String,
+        name: 'username',
+        alias: 'u',
+        type: String,
         description: 'Tunnel username',
-        group: [constants.CMD_UPDATE],
+        group: [constants.CMD_UPDATE]
       },
       {
-        name: 'password', alias: 'p', type: String,
+        name: 'password',
+        alias: 'p',
+        type: String,
         description: 'Tunnel password',
-        group: [constants.CMD_UPDATE],
+        group: [constants.CMD_UPDATE]
       },
       {
-        name: 'host', alias: 's', type: String,
+        name: 'host',
+        alias: 's',
+        type: String,
         description: 'Tunnel host address',
-        group: [constants.CMD_UPDATE],
+        group: [constants.CMD_UPDATE]
       },
       {
-        name: 'rsa-key', alias: 'k', type: String,
+        name: 'rsa-key',
+        alias: 'k',
+        type: String,
         description: 'Path to tunnel RSA key',
-        group: [constants.CMD_UPDATE],
+        group: [constants.CMD_UPDATE]
       },
       {
-        name: 'port', alias: 'o', type: CliDataTypes.Integer,
+        name: 'port',
+        alias: 'o',
+        type: CliDataTypes.Integer,
         description: 'Tunnel port',
-        group: [constants.CMD_UPDATE],
+        group: [constants.CMD_UPDATE]
       },
       {
-        name: 'iofog-uuid', alias: 'i', type: String,
+        name: 'iofog-uuid',
+        alias: 'i',
+        type: String,
         description: 'ioFog node UUID',
-        group: [constants.CMD_UPDATE],
+        group: [constants.CMD_UPDATE]
       },
       {
-        name: 'action', alias: 'a', type: String,
+        name: 'action',
+        alias: 'a',
+        type: String,
         description: 'Type of action. Can be "open" or "close"',
-        group: [constants.CMD_UPDATE],
-      },
+        group: [constants.CMD_UPDATE]
+      }
     ]
     this.commands = {
       [constants.CMD_UPDATE]: 'Update existing tunnel.',
-      [constants.CMD_LIST]: 'List all tunnels.',
+      [constants.CMD_LIST]: 'List all tunnels.'
     }
   }
 
-  async run(args) {
+  async run (args) {
     try {
       const tunnelCommand = this.parseCommandLineArgs(this.commandDefinitions, { argv: args.argv, partial: false })
 
@@ -98,7 +113,7 @@ class Tunnel extends BaseCLIHandler {
   }
 }
 
-async function _updateTunnel(obj, user) {
+async function _updateTunnel (obj, user) {
   const action = obj.action
   const tunnel = _createTunnelObject(obj)
 
@@ -123,13 +138,13 @@ async function _updateTunnel(obj, user) {
   logger.cliRes('Tunnel has been updated successfully.')
 }
 
-async function _tunnelList() {
+async function _tunnelList () {
   logger.cliReq('tunnel list')
   const tunnels = await TunnelService.findAll()
   logger.cliRes(JSON.stringify(tunnels, null, 2))
 }
 
-async function _executeCase(commands, commandName, f, isUserRequired) {
+async function _executeCase (commands, commandName, f, isUserRequired) {
   try {
     const obj = commands[commandName]
 
@@ -144,7 +159,7 @@ async function _executeCase(commands, commandName, f, isUserRequired) {
   }
 }
 
-function _createTunnelObject(cliData) {
+function _createTunnelObject (cliData) {
   const rsa = cliData.rsaKey ? fs.readFileSync(cliData.rsaKey, 'utf8') : ''
   return {
     host: cliData.host,
@@ -152,7 +167,7 @@ function _createTunnelObject(cliData) {
     password: cliData.password,
     rsakey: rsa,
     lport: cliData.port,
-    iofogUuid: cliData.iofogUuid,
+    iofogUuid: cliData.iofogUuid
   }
 }
 

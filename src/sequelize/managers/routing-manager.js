@@ -17,22 +17,22 @@ const Routing = models.Routing
 const ConnectorPort = models.ConnectorPort
 
 class RoutingManager extends BaseManager {
-  getEntity() {
+  getEntity () {
     return Routing
   }
 
-  findAllRoutesByConnectorId(connectorId, transaction) {
+  findAllRoutesByConnectorId (connectorId, transaction) {
     return Routing.findAll({
       include: [
         {
           model: ConnectorPort,
           as: 'connectorPort',
-          required: true,
-        },
+          required: true
+        }
       ],
       where: {
-        '$connectorPort.connector_id$': connectorId,
-      },
+        '$connectorPort.connector_id$': connectorId
+      }
     }, { transaction: transaction })
   }
 }
