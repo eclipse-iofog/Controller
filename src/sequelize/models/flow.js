@@ -6,44 +6,44 @@ module.exports = (sequelize, DataTypes) => {
       primaryKey: true,
       autoIncrement: true,
       allowNull: false,
-      field: 'id',
+      field: 'id'
 
     },
     name: {
       type: DataTypes.TEXT,
       field: 'name',
-      defaultValue: 'New Flow',
+      defaultValue: 'New Flow'
     },
     description: {
       type: DataTypes.TEXT,
       field: 'description',
-      defaultValue: '',
+      defaultValue: ''
     },
     isActivated: {
       type: DataTypes.BOOLEAN,
       field: 'is_activated',
-      defaultValue: false,
-    },
+      defaultValue: false
+    }
   }, {
     timestamps: true,
-    underscored: true,
+    underscored: true
   })
-  Flow.associate = function(models) {
+  Flow.associate = function (models) {
     Flow.belongsTo(models.User, {
       foreignKey: {
         name: 'userId',
-        field: 'user_id',
+        field: 'user_id'
       },
       as: 'user',
-      onDelete: 'cascade',
+      onDelete: 'cascade'
     })
 
     Flow.hasMany(models.Microservice, {
       foreignKey: {
         name: 'flowId',
-        field: 'flow_id',
+        field: 'flow_id'
       },
-      as: 'microservices',
+      as: 'microservices'
     })
   }
   return Flow

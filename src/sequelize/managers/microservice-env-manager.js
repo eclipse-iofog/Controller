@@ -18,15 +18,15 @@ const MicroserviceEnv = models.MicroserviceEnv
 const microserviceEnvExcludedFields = [
   'id',
   'microservice_uuid',
-  'microserviceUuid',
+  'microserviceUuid'
 ]
 
 class MicroserviceEnvManager extends BaseManager {
-  getEntity() {
+  getEntity () {
     return MicroserviceEnv
   }
 
-  findAllExcludeFields(where, transaction) {
+  findAllExcludeFields (where, transaction) {
     return this.findAllWithAttributes(where, { exclude: microserviceEnvExcludedFields }, transaction)
   }
 }

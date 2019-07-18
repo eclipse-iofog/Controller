@@ -21,7 +21,7 @@ const trackingEventType = Object.freeze({
   MICROSERVICE_CREATED: 'microservice created',
   CATALOG_CREATED: 'catalog created',
   CONFIG_CHANGED: 'config changed',
-  OTHER: 'other',
+  OTHER: 'other'
 })
 
 module.exports = trackingEventType

@@ -23,65 +23,80 @@ const CliDataTypes = require('./cli-data-types')
 const JSON_SCHEMA = AppHelper.stringifyCliJsonSchema({
   name: 'string',
   description: 'string',
-  isActivated: true,
+  isActivated: true
 })
 
 class Flow extends BaseCLIHandler {
-  constructor() {
+  constructor () {
     super()
 
     this.name = constants.CMD_FLOW
     this.commandDefinitions = [
       {
-        name: 'command', defaultOption: true,
-        group: [constants.CMD],
+        name: 'command',
+        defaultOption: true,
+        group: [constants.CMD]
       },
       {
-        name: 'file', alias: 'f', type: String,
+        name: 'file',
+        alias: 'f',
+        type: String,
         description: 'Path to application flow settings JSON file',
-        group: [constants.CMD_ADD, constants.CMD_UPDATE],
+        group: [constants.CMD_ADD, constants.CMD_UPDATE]
       },
       {
-        name: 'flow-id', alias: 'i', type: CliDataTypes.Integer,
+        name: 'flow-id',
+        alias: 'i',
+        type: CliDataTypes.Integer,
         description: 'Application flow ID',
-        group: [constants.CMD_UPDATE, constants.CMD_REMOVE, constants.CMD_INFO],
+        group: [constants.CMD_UPDATE, constants.CMD_REMOVE, constants.CMD_INFO]
       },
       {
-        name: 'name', alias: 'n', type: String,
+        name: 'name',
+        alias: 'n',
+        type: String,
         description: 'Application flow name',
-        group: [constants.CMD_UPDATE, constants.CMD_ADD],
+        group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
-        name: 'description', alias: 'd', type: String,
+        name: 'description',
+        alias: 'd',
+        type: String,
         description: 'Application flow description',
-        group: [constants.CMD_UPDATE, constants.CMD_ADD],
+        group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
-        name: 'activate', alias: 'a', type: Boolean,
+        name: 'activate',
+        alias: 'a',
+        type: Boolean,
         description: 'Activate application flow',
-        group: [constants.CMD_UPDATE, constants.CMD_ADD],
+        group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
-        name: 'deactivate', alias: 'D', type: Boolean,
+        name: 'deactivate',
+        alias: 'D',
+        type: Boolean,
         description: 'Deactivate application flow',
-        group: [constants.CMD_UPDATE, constants.CMD_ADD],
+        group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
-        name: 'user-id', alias: 'u', type: CliDataTypes.Integer,
+        name: 'user-id',
+        alias: 'u',
+        type: CliDataTypes.Integer,
         description: 'User\'s id',
-        group: [constants.CMD_ADD],
-      },
+        group: [constants.CMD_ADD]
+      }
     ]
     this.commands = {
       [constants.CMD_ADD]: 'Add a new flow.',
       [constants.CMD_UPDATE]: 'Update existing flow.',
       [constants.CMD_REMOVE]: 'Delete a flow.',
       [constants.CMD_LIST]: 'List all flows.',
-      [constants.CMD_INFO]: 'Get flow settings.',
+      [constants.CMD_INFO]: 'Get flow settings.'
     }
   }
 
-  async run(args) {
+  async run (args) {
     try {
       const flowCommand = this.parseCommandLineArgs(this.commandDefinitions, { argv: args.argv, partial: false })
 
@@ -114,20 +129,20 @@ class Flow extends BaseCLIHandler {
     }
   }
 
-  help() {
+  help () {
     super.help([], true, true, [
       {
         header: 'JSON File Schema',
         content: [
-          JSON_SCHEMA,
+          JSON_SCHEMA
         ],
-        raw: true,
-      },
+        raw: true
+      }
     ])
   }
 }
 
-const _executeCase = async function(flowCommand, commandName, f, isUserRequired) {
+const _executeCase = async function (flowCommand, commandName, f, isUserRequired) {
   try {
     const item = flowCommand[commandName]
 
@@ -142,18 +157,18 @@ const _executeCase = async function(flowCommand, commandName, f, isUserRequired)
   }
 }
 
-const _createFlow = async function(flowData, user) {
+const _createFlow = async function (flowData, user) {
   const flow = flowData.file
     ? JSON.parse(fs.readFileSync(flowData.file, 'utf8'))
     : _createFlowObject(flowData)
   logger.cliReq('flow add', { args: flow })
   const createdFlow = await FlowService.createFlowEndPoint(flow, user, true)
   logger.cliRes(JSON.stringify({
-    id: createdFlow.id,
+    id: createdFlow.id
   }, null, 2))
 }
 
-const _updateFlow = async function(flowData) {
+const _updateFlow = async function (flowData) {
   const flow = flowData.file
     ? JSON.parse(fs.readFileSync(flowData.file, 'utf8'))
     : _createFlowObject(flowData)
@@ -164,32 +179,32 @@ const _updateFlow = async function(flowData) {
   logger.cliRes('Flow updated successfully.')
 }
 
-const _deleteFlow = async function(flowData) {
+const _deleteFlow = async function (flowData) {
   const flowId = flowData.flowId
   logger.cliReq('flow remove', { args: { flowId: flowId } })
   await FlowService.deleteFlowEndPoint(flowId, {}, true)
   logger.cliRes('Flow removed successfully.')
 }
 
-const _getAllFlows = async function() {
+const _getAllFlows = async function () {
   logger.cliReq('flow list')
   const flows = await FlowService.getAllFlowsEndPoint(true)
   logger.cliRes(JSON.stringify(flows, null, 2))
 }
 
-const _getFlow = async function(flowData) {
+const _getFlow = async function (flowData) {
   const flowId = flowData.flowId
   logger.cliReq('flow info', { args: { flowId: flowId } })
   const flow = await FlowService.getFlowEndPoint(flowId, {}, true)
   logger.cliRes(JSON.stringify(flow, null, 2))
 }
 
-function _createFlowObject(data) {
+function _createFlowObject (data) {
   const flow = {
     id: data.id,
     name: data.name,
     description: data.description,
-    isActivated: AppHelper.validateBooleanCliOptions(data.activate, data.deactivate),
+    isActivated: AppHelper.validateBooleanCliOptions(data.activate, data.deactivate)
   }
 
   return AppHelper.deleteUndefinedFields(flow)

@@ -22,32 +22,32 @@ const AppHelper = require('../../helpers/app-helper')
 const maxBufferSize = 1e8
 
 class StraceManager extends BaseManager {
-  getEntity() {
+  getEntity () {
     return Strace
   }
 
-  async pushBufferByMicroserviceUuid(uuid, pushingData, transaction) {
+  async pushBufferByMicroserviceUuid (uuid, pushingData, transaction) {
     const strace = await this.findOne({
-      microserviceUuid: uuid,
+      microserviceUuid: uuid
     }, transaction)
     if (!strace) {
       throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, uuid))
     }
 
     const newBuffer = this._updateBuffer(strace.buffer, pushingData)
-    return await this.update({
-      microserviceUuid: uuid,
+    return this.update({
+      microserviceUuid: uuid
     }, {
-      buffer: newBuffer,
+      buffer: newBuffer
     }, transaction)
   }
 
-  _updateBuffer(oldBuf, pushingData) {
+  _updateBuffer (oldBuf, pushingData) {
     let newBuffer = oldBuf + pushingData
     const delta = newBuffer.length - maxBufferSize
     if (delta > 0) {
-      newBuffer = '[ioFogController Info] Buffer size is limited, so some of previous data was lost \n'
-        + newBuffer.substring(delta)
+      newBuffer = '[ioFogController Info] Buffer size is limited, so some of previous data was lost \n' +
+        newBuffer.substring(delta)
     }
     return newBuffer
   };

@@ -16,7 +16,7 @@ const models = require('./../models')
 const CatalogItemImage = models.CatalogItemImage
 
 class CatalogItemImageManager extends BaseManager {
-  getEntity() {
+  getEntity () {
     return CatalogItemImage
   }
 }

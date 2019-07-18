@@ -7,26 +7,26 @@ module.exports = {
         primaryKey: true,
         autoIncrement: true,
         allowNull: false,
-        field: 'id',
+        field: 'id'
       },
       provisionKey: {
         /* eslint-disable new-cap */
         type: Sequelize.STRING(100),
-        field: 'provisioning_string',
+        field: 'provisioning_string'
       },
       expirationTime: {
         type: Sequelize.BIGINT,
-        field: 'expiration_time',
+        field: 'expiration_time'
       },
       iofogUuid: {
         type: Sequelize.TEXT,
         field: 'iofog_uuid',
         references: { model: 'Fogs', key: 'uuid' },
-        onDelete: 'cascade',
-      },
+        onDelete: 'cascade'
+      }
     })
   },
   down: (queryInterface, Sequelize) => {
     return queryInterface.dropTable('FogProvisionKeys')
-  },
+  }
 }

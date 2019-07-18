@@ -6,27 +6,27 @@ module.exports = (sequelize, DataTypes) => {
       primaryKey: true,
       autoIncrement: true,
       allowNull: false,
-      field: 'id',
+      field: 'id'
     },
     token: {
       type: DataTypes.STRING,
-      field: 'token',
+      field: 'token'
     },
     expirationTime: {
       type: DataTypes.BIGINT,
-      field: 'expiration_time',
-    },
+      field: 'expiration_time'
+    }
   }, {
     timestamps: false,
-    underscored: true,
+    underscored: true
   })
-  AccessToken.associate = function(models) {
+  AccessToken.associate = function (models) {
     AccessToken.belongsTo(models.User, {
       foreignKey: {
         name: 'userId',
-        field: 'user_id',
+        field: 'user_id'
       },
-      as: 'user',
+      as: 'user'
     })
   }
   return AccessToken

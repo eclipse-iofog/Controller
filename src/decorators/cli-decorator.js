@@ -16,10 +16,10 @@ const UserManager = require('../sequelize/managers/user-manager')
 const Errors = require('../helpers/errors')
 const { isTest } = require('../helpers/app-helper')
 
-function prepareUserById(f) {
-  return async function(...args) {
+function prepareUserById (f) {
+  return async function (...args) {
     if (isTest()) {
-      return await f.apply(this, args)
+      return f.apply(this, args)
     }
 
     const fArgs = Array.prototype.slice.call(args)
@@ -34,14 +34,14 @@ function prepareUserById(f) {
     delete obj.userId
     fArgs.push(user)
 
-    return await f.apply(this, fArgs)
+    return f.apply(this, fArgs)
   }
 }
 
-function prepareUserByEmail(f) {
-  return async function(...args) {
+function prepareUserByEmail (f) {
+  return async function (...args) {
     if (isTest()) {
-      return await f.apply(this, args)
+      return f.apply(this, args)
     }
 
     const fArgs = Array.prototype.slice.call(args)
@@ -58,12 +58,12 @@ function prepareUserByEmail(f) {
     delete obj.email
     fArgs.push(user)
 
-    return await f.apply(this, fArgs)
+    return f.apply(this, fArgs)
   }
 }
 
 module.exports = {
   prepareUserById: prepareUserById,
-  prepareUserByEmail: prepareUserByEmail,
+  prepareUserByEmail: prepareUserByEmail
 
 }

@@ -34,10 +34,10 @@ const iofogCreate = {
     'bluetoothEnabled': { 'type': 'boolean' },
     'watchdogEnabled': { 'type': 'boolean' },
     'abstractedHardwareEnabled': { 'type': 'boolean' },
-    'fogType': { 'type': 'integer', 'minimum': 0, 'maximum': 2 },
+    'fogType': { 'type': 'integer', 'minimum': 0, 'maximum': 2 }
   },
   'required': ['name', 'fogType'],
-  'additionalProperties': true,
+  'additionalProperties': true
 }
 
 const iofogUpdate = {
@@ -64,40 +64,40 @@ const iofogUpdate = {
     'bluetoothEnabled': { 'type': 'boolean' },
     'watchdogEnabled': { 'type': 'boolean' },
     'abstractedHardwareEnabled': { 'type': 'boolean' },
-    'fogType': { 'type': 'integer', 'minimum': 0, 'maximum': 2 },
+    'fogType': { 'type': 'integer', 'minimum': 0, 'maximum': 2 }
   },
   'required': ['uuid'],
-  'additionalProperties': true,
+  'additionalProperties': true
 }
 
 const iofogDelete = {
   'id': '/iofogDelete',
   'type': 'object',
   'properties': {
-    'uuid': { 'type': 'string' },
+    'uuid': { 'type': 'string' }
   },
   'required': ['uuid'],
-  'additionalProperties': true,
+  'additionalProperties': true
 }
 
 const iofogGet = {
   'id': '/iofogGet',
   'type': 'object',
   'properties': {
-    'uuid': { 'type': 'string' },
+    'uuid': { 'type': 'string' }
   },
   'required': ['uuid'],
-  'additionalProperties': true,
+  'additionalProperties': true
 }
 
 const iofogGenerateProvision = {
   'id': '/iofogGenerateProvision',
   'type': 'object',
   'properties': {
-    'uuid': { 'type': 'string' },
+    'uuid': { 'type': 'string' }
   },
   'required': ['uuid'],
-  'additionalProperties': true,
+  'additionalProperties': true
 }
 
 const iofogSetVersionCommand = {
@@ -105,20 +105,20 @@ const iofogSetVersionCommand = {
   'type': 'object',
   'properties': {
     'uuid': { 'type': 'string' },
-    'versionCommand': { 'enum': ['upgrade', 'rollback'] },
+    'versionCommand': { 'enum': ['upgrade', 'rollback'] }
   },
   'required': ['uuid', 'versionCommand'],
-  'additionalProperties': true,
+  'additionalProperties': true
 }
 
 const iofogReboot = {
   'id': '/iofogReboot',
   'type': 'object',
   'properties': {
-    'uuid': { 'type': 'string' },
+    'uuid': { 'type': 'string' }
   },
   'required': ['uuid'],
-  'additionalProperties': true,
+  'additionalProperties': true
 }
 
 const iofogFilters = {
@@ -126,7 +126,7 @@ const iofogFilters = {
   'type': 'array',
   'items': { '$ref': '/filter' },
   'required': [],
-  'additionalProperties': true,
+  'additionalProperties': true
 }
 
 const filter = {
@@ -135,25 +135,25 @@ const filter = {
   'properties': {
     'key': { 'type': 'string' },
     'value': { 'type': 'string' },
-    'condition': { 'enum': ['has', 'equals'] },
+    'condition': { 'enum': ['has', 'equals'] }
   },
   'required': ['key', 'value', 'condition'],
-  'additionalProperties': true,
+  'additionalProperties': true
 }
 
 const halGet = {
   'id': '/halGet',
   'type': 'object',
   'properties': {
-    'uuid': { 'type': 'string' },
+    'uuid': { 'type': 'string' }
   },
   'required': ['uuid'],
-  'additionalProperties': true,
+  'additionalProperties': true
 }
 
 module.exports = {
   mainSchemas: [iofogCreate, iofogUpdate, iofogDelete,
     iofogGet, iofogGenerateProvision, iofogSetVersionCommand,
     iofogReboot, iofogFilters, halGet],
-  innerSchemas: [filter],
+  innerSchemas: [filter]
 }

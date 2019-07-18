@@ -7,8 +7,8 @@ module.exports = {
 
   down: (queryInterface, Sequelize) => {
     return queryInterface.addColumn('Flows',
-        'updated_by',
-        Sequelize.INTEGER
+      'updated_by',
+      Sequelize.INTEGER
     )
-  },
+  }
 }

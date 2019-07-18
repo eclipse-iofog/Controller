@@ -8,9 +8,9 @@ module.exports = {
       references: {
         name: 'userId',
         table: 'Users',
-        field: 'id',
+        field: 'id'
       },
-      onDelete: 'cascade',
+      onDelete: 'cascade'
     }).then(() => {
       return queryInterface.addConstraint('Microservices', ['user_id'], {
         type: 'FOREIGN KEY',
@@ -18,9 +18,9 @@ module.exports = {
         references: {
           name: 'userId',
           table: 'Users',
-          field: 'id',
+          field: 'id'
         },
-        onDelete: 'cascade',
+        onDelete: 'cascade'
       }).then(() => {
         return queryInterface.addConstraint('Microservices', ['iofog_uuid'], {
           type: 'FOREIGN KEY',
@@ -28,9 +28,9 @@ module.exports = {
           references: {
             name: 'iofogUuid',
             table: 'Fogs',
-            field: 'uuid',
+            field: 'uuid'
           },
-          onDelete: 'cascade',
+          onDelete: 'cascade'
         })
       }).then(() => {
         return queryInterface.addConstraint('Microservices', ['catalog_item_id'], {
@@ -39,9 +39,9 @@ module.exports = {
           references: {
             name: 'catalogItemId',
             table: 'CatalogItems',
-            field: 'id',
+            field: 'id'
           },
-          onDelete: 'cascade',
+          onDelete: 'cascade'
         })
       }).then(() => {
         return queryInterface.addConstraint('Microservices', ['registry_id'], {
@@ -50,9 +50,9 @@ module.exports = {
           references: {
             name: 'registryId',
             table: 'Registries',
-            field: 'id',
+            field: 'id'
           },
-          onDelete: 'cascade',
+          onDelete: 'cascade'
         })
       }).then(() => {
         return queryInterface.addConstraint('Microservices', ['flow_id'], {
@@ -61,9 +61,9 @@ module.exports = {
           references: {
             name: 'flowId',
             table: 'Flows',
-            field: 'id',
+            field: 'id'
           },
-          onDelete: 'cascade',
+          onDelete: 'cascade'
         })
       }).then(() => {
         return queryInterface.addConstraint('ChangeTrackings', ['iofog_uuid'], {
@@ -72,9 +72,9 @@ module.exports = {
           references: {
             name: 'iofogUuid',
             table: 'Fogs',
-            field: 'uuid',
+            field: 'uuid'
           },
-          onDelete: 'cascade',
+          onDelete: 'cascade'
         })
       })
     }).then(() => {
@@ -84,9 +84,9 @@ module.exports = {
         references: {
           name: 'userId',
           table: 'Users',
-          field: 'id',
+          field: 'id'
         },
-        onDelete: 'cascade',
+        onDelete: 'cascade'
       })
     }).then(() => {
       return queryInterface.addConstraint('MicroservicePorts', ['microservice_uuid'], {
@@ -95,9 +95,9 @@ module.exports = {
         references: {
           name: 'microserviceUuid',
           table: 'Microservices',
-          field: 'uuid',
+          field: 'uuid'
         },
-        onDelete: 'cascade',
+        onDelete: 'cascade'
       })
     })
   },
@@ -106,21 +106,21 @@ module.exports = {
     (queryInterface, Sequelize) => {
     // for SQLite
       return queryInterface.renameColumn('Flows', 'user_id', 'user_id1')
-          .then(() => {
-            return queryInterface.renameColumn('Flows', 'user_id1', 'user_id')
-          }).then(() => {
-            return queryInterface.renameColumn('Microservices', 'user_id', 'user_id1')
-          }).then(() => {
-            return queryInterface.renameColumn('Microservices', 'user_id1', 'user_id')
-          }).then(() => {
-            return queryInterface.renameColumn('ChangeTrackings', 'iofog_uuid', 'iofog_uuid1')
-          }).then(() => {
-            return queryInterface.renameColumn('ChangeTrackings', 'iofog_uuid1', 'iofog_uuid')
-          }).then(() => {
-            return queryInterface.renameColumn('MicroservicePorts', 'user_id', 'user_id1')
-          }).then(() => {
-            return queryInterface.renameColumn('MicroservicePorts', 'user_id1', 'user_id')
-          })
+        .then(() => {
+          return queryInterface.renameColumn('Flows', 'user_id1', 'user_id')
+        }).then(() => {
+          return queryInterface.renameColumn('Microservices', 'user_id', 'user_id1')
+        }).then(() => {
+          return queryInterface.renameColumn('Microservices', 'user_id1', 'user_id')
+        }).then(() => {
+          return queryInterface.renameColumn('ChangeTrackings', 'iofog_uuid', 'iofog_uuid1')
+        }).then(() => {
+          return queryInterface.renameColumn('ChangeTrackings', 'iofog_uuid1', 'iofog_uuid')
+        }).then(() => {
+          return queryInterface.renameColumn('MicroservicePorts', 'user_id', 'user_id1')
+        }).then(() => {
+          return queryInterface.renameColumn('MicroservicePorts', 'user_id1', 'user_id')
+        })
 
       // for other DB
 
@@ -142,5 +142,5 @@ module.exports = {
       //   }).then(() => {
       //     return queryInterface.removeConstraint('MicroservicePorts', 'microserviceUuid')
       //   });
-    },
+    }
 }

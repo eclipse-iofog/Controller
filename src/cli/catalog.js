@@ -29,8 +29,8 @@ const JSON_SCHEMA = AppHelper.stringifyCliJsonSchema({
   images: [
     {
       containerImage: 'string',
-      fogTypeId: 1,
-    },
+      fogTypeId: 1
+    }
   ],
   publisher: 'string',
   diskRequired: 0,
@@ -40,119 +40,177 @@ const JSON_SCHEMA = AppHelper.stringifyCliJsonSchema({
   registryId: 0,
   inputType: {
     infoType: 'string',
-    infoFormat: 'string',
+    infoFormat: 'string'
   },
   outputType: {
     infoType: 'string',
-    infoFormat: 'string',
+    infoFormat: 'string'
   },
-  configExample: 'string',
+  configExample: 'string'
 })
 
 class Catalog extends BaseCLIHandler {
-  constructor() {
+  constructor () {
     super()
 
     this.name = constants.CMD_CATALOG
     this.commandDefinitions = [
       {
-        name: 'command', defaultOption: true,
-        group: [constants.CMD],
+        name: 'command',
+        defaultOption: true,
+        group: [constants.CMD]
       },
       {
-        name: 'file', alias: 'f', type: String, description: 'Path to catalog item settings JSON file',
-        group: [constants.CMD_ADD, constants.CMD_UPDATE],
+        name: 'file',
+        alias: 'f',
+        type: String,
+        description: 'Path to catalog item settings JSON file',
+        group: [constants.CMD_ADD, constants.CMD_UPDATE]
       },
       {
-        name: 'item-id', alias: 'i', type: CliDataTypes.Integer, description: 'Catalog item ID',
-        group: [constants.CMD_UPDATE, constants.CMD_REMOVE, constants.CMD_INFO],
+        name: 'item-id',
+        alias: 'i',
+        type: CliDataTypes.Integer,
+        description: 'Catalog item ID',
+        group: [constants.CMD_UPDATE, constants.CMD_REMOVE, constants.CMD_INFO]
       },
       {
-        name: 'name', alias: 'n', type: String, description: 'Catalog item name',
-        group: [constants.CMD_UPDATE, constants.CMD_ADD],
+        name: 'name',
+        alias: 'n',
+        type: String,
+        description: 'Catalog item name',
+        group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
-        name: 'description', alias: 'd', type: String, description: 'Catalog item description',
-        group: [constants.CMD_UPDATE, constants.CMD_ADD],
+        name: 'description',
+        alias: 'd',
+        type: String,
+        description: 'Catalog item description',
+        group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
-        name: 'category', alias: 'c', type: String, description: 'Catalog item category',
-        group: [constants.CMD_UPDATE, constants.CMD_ADD],
+        name: 'category',
+        alias: 'c',
+        type: String,
+        description: 'Catalog item category',
+        group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
-        name: 'x86-image', alias: 'x', type: String, description: 'x86 docker image name',
-        group: [constants.CMD_UPDATE, constants.CMD_ADD],
+        name: 'x86-image',
+        alias: 'x',
+        type: String,
+        description: 'x86 docker image name',
+        group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
-        name: 'arm-image', alias: 'a', type: String, description: 'ARM docker image name',
-        group: [constants.CMD_UPDATE, constants.CMD_ADD],
+        name: 'arm-image',
+        alias: 'a',
+        type: String,
+        description: 'ARM docker image name',
+        group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
-        name: 'publisher', alias: 'p', type: String, description: 'Catalog item publisher name',
-        group: [constants.CMD_UPDATE, constants.CMD_ADD],
+        name: 'publisher',
+        alias: 'p',
+        type: String,
+        description: 'Catalog item publisher name',
+        group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
-        name: 'disk-required', alias: 's', type: CliDataTypes.Integer,
+        name: 'disk-required',
+        alias: 's',
+        type: CliDataTypes.Integer,
         description: 'Amount of disk required to run the microservice (MB)',
-        group: [constants.CMD_UPDATE, constants.CMD_ADD],
+        group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
-        name: 'ram-required', alias: 'r', type: CliDataTypes.Integer,
+        name: 'ram-required',
+        alias: 'r',
+        type: CliDataTypes.Integer,
         description: 'Amount of RAM required to run the microservice (MB)',
-        group: [constants.CMD_UPDATE, constants.CMD_ADD],
+        group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
-        name: 'picture', alias: 't', type: String, description: 'Catalog item picture',
-        group: [constants.CMD_UPDATE, constants.CMD_ADD],
+        name: 'picture',
+        alias: 't',
+        type: String,
+        description: 'Catalog item picture',
+        group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
-        name: 'public', alias: 'P', type: Boolean, description: 'Public catalog item',
-        group: [constants.CMD_UPDATE, constants.CMD_ADD],
+        name: 'public',
+        alias: 'P',
+        type: Boolean,
+        description: 'Public catalog item',
+        group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
-        name: 'private', alias: 'V', type: Boolean, description: 'Private catalog item',
-        group: [constants.CMD_UPDATE, constants.CMD_ADD],
+        name: 'private',
+        alias: 'V',
+        type: Boolean,
+        description: 'Private catalog item',
+        group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
-        name: 'registry-id', alias: 'g', type: CliDataTypes.Integer,
+        name: 'registry-id',
+        alias: 'g',
+        type: CliDataTypes.Integer,
         description: 'Catalog item docker registry ID',
-        group: [constants.CMD_UPDATE, constants.CMD_ADD],
+        group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
-        name: 'input-type', alias: 'I', type: String, description: 'Catalog item input type',
-        group: [constants.CMD_UPDATE, constants.CMD_ADD],
+        name: 'input-type',
+        alias: 'I',
+        type: String,
+        description: 'Catalog item input type',
+        group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
-        name: 'input-format', alias: 'F', type: String, description: 'Catalog item input format',
-        group: [constants.CMD_UPDATE, constants.CMD_ADD],
+        name: 'input-format',
+        alias: 'F',
+        type: String,
+        description: 'Catalog item input format',
+        group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
-        name: 'output-type', alias: 'O', type: String, description: 'Catalog item output type',
-        group: [constants.CMD_UPDATE, constants.CMD_ADD],
+        name: 'output-type',
+        alias: 'O',
+        type: String,
+        description: 'Catalog item output type',
+        group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
-        name: 'output-format', alias: 'T', type: String, description: 'Catalog item output format',
-        group: [constants.CMD_UPDATE, constants.CMD_ADD],
+        name: 'output-format',
+        alias: 'T',
+        type: String,
+        description: 'Catalog item output format',
+        group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
-        name: 'config-example', alias: 'X', type: String, description: 'Catalog item config example',
-        group: [constants.CMD_UPDATE, constants.CMD_ADD],
+        name: 'config-example',
+        alias: 'X',
+        type: String,
+        description: 'Catalog item config example',
+        group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
-        name: 'user-id', alias: 'u', type: CliDataTypes.Integer, description: 'User\'s id',
-        group: [constants.CMD_ADD],
-      },
+        name: 'user-id',
+        alias: 'u',
+        type: CliDataTypes.Integer,
+        description: 'User\'s id',
+        group: [constants.CMD_ADD]
+      }
     ]
     this.commands = {
       [constants.CMD_ADD]: 'Add a new catalog item.',
       [constants.CMD_UPDATE]: 'Update existing catalog item.',
       [constants.CMD_REMOVE]: 'Delete a catalog item.',
       [constants.CMD_LIST]: 'List all catalog items.',
-      [constants.CMD_INFO]: 'Get catalog item settings.',
+      [constants.CMD_INFO]: 'Get catalog item settings.'
     }
   }
 
-  async run(args) {
+  async run (args) {
     try {
       const catalogCommand = this.parseCommandLineArgs(this.commandDefinitions, { argv: args.argv, partial: false })
 
@@ -185,20 +243,20 @@ class Catalog extends BaseCLIHandler {
     }
   }
 
-  help() {
+  help () {
     super.help([], true, true, [
       {
         header: 'JSON File Schema',
         content: [
-          JSON_SCHEMA,
+          JSON_SCHEMA
         ],
-        raw: true,
-      },
+        raw: true
+      }
     ])
   }
 }
 
-const _executeCase = async function(catalogCommand, commandName, f, isUserRequired) {
+const _executeCase = async function (catalogCommand, commandName, f, isUserRequired) {
   try {
     const item = catalogCommand[commandName]
 
@@ -213,7 +271,7 @@ const _executeCase = async function(catalogCommand, commandName, f, isUserRequir
   }
 }
 
-const _createCatalogItem = async function(obj, user) {
+const _createCatalogItem = async function (obj, user) {
   const item = obj.file
     ? JSON.parse(fs.readFileSync(obj.file, 'utf8'))
     : _createCatalogItemObject(obj)
@@ -221,11 +279,11 @@ const _createCatalogItem = async function(obj, user) {
   logger.cliReq('catalog add', { args: item })
   const catalogItemIdObject = await CatalogItemService.createCatalogItemEndPoint(item, user)
   logger.cliRes(JSON.stringify({
-    id: catalogItemIdObject.id,
+    id: catalogItemIdObject.id
   }, null, 2))
 }
 
-const _updateCatalogItem = async function(obj) {
+const _updateCatalogItem = async function (obj) {
   const item = obj.file
     ? JSON.parse(fs.readFileSync(obj.file, 'utf8'))
     : _createCatalogItemObject(obj)
@@ -239,25 +297,25 @@ const _updateCatalogItem = async function(obj) {
   logger.cliRes('Catalog item has been updated successfully.')
 }
 
-const _deleteCatalogItem = async function(obj) {
+const _deleteCatalogItem = async function (obj) {
   logger.cliReq('catalog remove', { args: { itemId: obj.itemId } })
   await CatalogItemService.deleteCatalogItemEndPoint(obj.itemId, {}, true)
   logger.cliRes('Catalog item has been removed successfully')
 }
 
-const _listCatalogItems = async function() {
+const _listCatalogItems = async function () {
   logger.cliReq('catalog list')
   const result = await CatalogItemService.listCatalogItemsEndPoint({}, true)
   logger.cliRes(JSON.stringify(result, null, 2))
 }
 
-const _getCatalogItem = async function(obj) {
+const _getCatalogItem = async function (obj) {
   logger.cliReq('catalog info', { args: { itemId: obj.itemId } })
   const result = await CatalogItemService.getCatalogItemEndPoint(obj.itemId, {}, true)
   logger.cliRes(JSON.stringify(result, null, 2))
 }
 
-const _createCatalogItemObject = function(catalogItem) {
+const _createCatalogItemObject = function (catalogItem) {
   const catalogItemObj = {
     name: catalogItem.name,
     description: catalogItem.description,
@@ -269,37 +327,37 @@ const _createCatalogItemObject = function(catalogItem) {
     picture: catalogItem.picture,
     isPublic: AppHelper.validateBooleanCliOptions(catalogItem.public, catalogItem.private),
     registryId: catalogItem.registryId,
-    images: [],
+    images: []
   }
 
   if (catalogItem.x86Image) {
     catalogItemObj.images.push(
-        {
-          containerImage: catalogItem.x86Image,
-          fogTypeId: 1,
-        }
+      {
+        containerImage: catalogItem.x86Image,
+        fogTypeId: 1
+      }
     )
   }
   if (catalogItem.armImage) {
     catalogItemObj.images.push(
-        {
-          containerImage: catalogItem.armImage,
-          fogTypeId: 2,
-        }
+      {
+        containerImage: catalogItem.armImage,
+        fogTypeId: 2
+      }
     )
   }
 
   if (catalogItem.inputType) {
     catalogItemObj.inputType = {
       infoType: catalogItem.inputType,
-      infoFormat: catalogItem.inputFormat,
+      infoFormat: catalogItem.inputFormat
     }
   }
 
   if (catalogItem.outputType) {
     catalogItemObj.outputType = {
       infoType: catalogItem.outputType,
-      infoFormat: catalogItem.outputFormat,
+      infoFormat: catalogItem.outputFormat
     }
   }
 

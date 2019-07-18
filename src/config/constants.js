@@ -31,5 +31,5 @@ module.exports = {
   'Settings:FogStatusUpdateIntervalSeconds': 120,
   'Settings:FogStatusFrequencySeconds': 60,
 
-  'Diagnostics:DiagnosticDir': 'diagnostic',
+  'Diagnostics:DiagnosticDir': 'diagnostic'
 }

@@ -16,7 +16,7 @@ const models = require('./../models')
 const FogType = models.FogType
 
 class FogTypeManager extends BaseManager {
-  getEntity() {
+  getEntity () {
     return FogType
   }
 }

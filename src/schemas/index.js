@@ -27,27 +27,26 @@ const registerSchema = (schema, schemaName) => {
 }
 
 fs.readdirSync(__dirname)
-    .filter((file) => {
-      return (file.indexOf('.') !== 0) && (file !== basename) && (file.slice(-3) === '.js')
+  .filter((file) => {
+    return (file.indexOf('.') !== 0) && (file !== basename) && (file.slice(-3) === '.js')
+  })
+  .forEach((file) => {
+    const allSchemas = require(path.join(__dirname, file))
+
+    const mainSchemas = allSchemas.mainSchemas
+    const innerSchemas = allSchemas.innerSchemas
+
+    mainSchemas.forEach((schema) => {
+      schemas[schema.id.replace('/', '')] = schema
     })
-    .forEach((file) => {
-      const allSchemas = require(path.join(__dirname, file))
-
-      const mainSchemas = allSchemas.mainSchemas
-      const innerSchemas = allSchemas.innerSchemas
-
-      mainSchemas.forEach((schema) => {
-        schemas[schema.id.replace('/', '')] = schema
+    if (innerSchemas) {
+      innerSchemas.forEach((schema) => {
+        registerSchema(schema, schema.id)
       })
-      if (innerSchemas) {
-        innerSchemas.forEach((schema) => {
-          registerSchema(schema, schema.id)
-        })
-      }
-    })
+    }
+  })
 
-
-async function validate(object, schema) {
+async function validate (object, schema) {
   const response = v.validate(object, schema)
   if (!response.valid) {
     await handleValidationError(response.errors[0])
@@ -55,7 +54,7 @@ async function validate(object, schema) {
   return response
 }
 
-async function handleValidationError(error) {
+async function handleValidationError (error) {
   let message
   switch (error.name) {
     case 'pattern':
@@ -90,5 +89,5 @@ async function handleValidationError(error) {
 
 module.exports = {
   validate,
-  schemas,
+  schemas
 }

@@ -16,11 +16,11 @@ const models = require('./../models')
 const TrackingEvent = models.TrackingEvent
 
 class TrackingEventManager extends BaseManager {
-  getEntity() {
+  getEntity () {
     return TrackingEvent
   }
 
-  async popAll(transaction) {
+  async popAll (transaction) {
     const res = await this.findAll({}, transaction)
     await this.delete({}, transaction)
     return res

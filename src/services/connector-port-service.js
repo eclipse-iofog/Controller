@@ -19,7 +19,7 @@ const logger = require('../logger')
 const qs = require('qs')
 const fs = require('fs')
 
-async function openPortOnRandomConnector(isPublicAccess, transaction) {
+async function openPortOnRandomConnector (isPublicAccess, transaction) {
   let isConnectorPortOpen = false
   let ports = null
   let connector = null
@@ -43,14 +43,14 @@ async function openPortOnRandomConnector(isPublicAccess, transaction) {
   return { ports: ports, connector: connector }
 }
 
-async function _openPortsOnConnector(connector, isPublicAccess) {
+async function _openPortsOnConnector (connector, isPublicAccess) {
   const data = isPublicAccess
     ? await qs.stringify({
-      mapping: '{"type":"public","maxconnections":60,"heartbeatabsencethreshold":200000}',
+      mapping: '{"type":"public","maxconnections":60,"heartbeatabsencethreshold":200000}'
     })
     : await qs.stringify({
       mapping: '{"type":"private","maxconnectionsport1":1, "maxconnectionsport2":1, ' +
-      '"heartbeatabsencethresholdport1":200000, "heartbeatabsencethresholdport2":200000}',
+      '"heartbeatabsencethresholdport1":200000, "heartbeatabsencethresholdport2":200000}'
     })
 
   const port = connector.devMode ? constants.CONNECTOR_HTTP_PORT : constants.CONNECTOR_HTTPS_PORT
@@ -62,8 +62,8 @@ async function _openPortsOnConnector(connector, isPublicAccess) {
     method: 'POST',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
-      'Content-Length': Buffer.byteLength(data),
-    },
+      'Content-Length': Buffer.byteLength(data)
+    }
   }
   if (!connector.devMode && connector.cert && connector.isSelfSignedCert === true) {
     const ca = fs.readFileSync(connector.cert)
@@ -75,7 +75,7 @@ async function _openPortsOnConnector(connector, isPublicAccess) {
   return ports
 }
 
-async function _getRandomConnector(transaction) {
+async function _getRandomConnector (transaction) {
   const connectors = await ConnectorManager.findAll({}, transaction)
 
   if (connectors && connectors.length > 0) {
@@ -86,9 +86,9 @@ async function _getRandomConnector(transaction) {
   }
 }
 
-async function closePortOnConnector(connector, ports) {
+async function closePortOnConnector (connector, ports) {
   const data = qs.stringify({
-    mappingid: ports.mappingId,
+    mappingid: ports.mappingId
   })
 
   const port = connector.devMode ? constants.CONNECTOR_HTTP_PORT : constants.CONNECTOR_HTTPS_PORT
@@ -100,8 +100,8 @@ async function closePortOnConnector(connector, ports) {
     method: 'POST',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
-      'Content-Length': Buffer.byteLength(data),
-    },
+      'Content-Length': Buffer.byteLength(data)
+    }
   }
   if (!connector.devMode && connector.cert && connector.isSelfSignedCert === true) {
     const ca = fs.readFileSync(connector.cert)
@@ -109,21 +109,20 @@ async function closePortOnConnector(connector, ports) {
     options.ca = new Buffer.from(ca)
   }
 
-
   await _makeRequest(connector, options, data)
 }
 
-async function _makeRequest(connector, options, data) {
+async function _makeRequest (connector, options, data) {
   return new Promise((resolve, reject) => {
-    const httpreq = (connector.devMode ? http : https).request(options, function(response) {
+    const httpreq = (connector.devMode ? http : https).request(options, function (response) {
       let output = ''
       response.setEncoding('utf8')
 
-      response.on('data', function(chunk) {
+      response.on('data', function (chunk) {
         output += chunk
       })
 
-      response.on('end', function() {
+      response.on('end', function () {
         const responseObj = JSON.parse(output)
         if (responseObj.errormessage) {
           return reject(new Error(responseObj.errormessage))
@@ -133,7 +132,7 @@ async function _makeRequest(connector, options, data) {
       })
     })
 
-    httpreq.on('error', function(err) {
+    httpreq.on('error', function (err) {
       if (err instanceof Error) {
         return reject(new Error(err.message))
       } else {
@@ -148,5 +147,5 @@ async function _makeRequest(connector, options, data) {
 
 module.exports = {
   openPortOnRandomConnector: openPortOnRandomConnector,
-  closePortOnConnector: closePortOnConnector,
+  closePortOnConnector: closePortOnConnector
 }

@@ -16,7 +16,7 @@ const models = require('./../models')
 const ChangeTracking = models.ChangeTracking
 
 class ChangeTrackingManager extends BaseManager {
-  getEntity() {
+  getEntity () {
     return ChangeTracking
   }
 }

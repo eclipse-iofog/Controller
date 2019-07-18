@@ -7,47 +7,47 @@ module.exports = {
         primaryKey: true,
         autoIncrement: true,
         allowNull: false,
-        field: 'id',
+        field: 'id'
       },
       username: {
         type: Sequelize.TEXT,
-        field: 'username',
+        field: 'username'
       },
       password: {
         type: Sequelize.TEXT,
-        field: 'password',
+        field: 'password'
       },
       host: {
         type: Sequelize.TEXT,
-        field: 'host',
+        field: 'host'
       },
       rport: {
         type: Sequelize.INTEGER,
-        field: 'remote_port',
+        field: 'remote_port'
       },
       lport: {
         type: Sequelize.INTEGER,
         defaultValue: 22,
-        field: 'local_port',
+        field: 'local_port'
       },
       rsakey: {
         type: Sequelize.TEXT,
-        field: 'rsa_key',
+        field: 'rsa_key'
       },
       closed: {
         type: Sequelize.BOOLEAN,
         defaultValue: false,
-        field: 'closed',
+        field: 'closed'
       },
       iofogUuid: {
         type: Sequelize.TEXT,
         field: 'iofog_uuid',
         references: { model: 'Fogs', key: 'uuid' },
-        onDelete: 'cascade',
-      },
+        onDelete: 'cascade'
+      }
     })
   },
   down: (queryInterface, Sequelize) => {
     return queryInterface.dropTable('Tunnels')
-  },
+  }
 }

@@ -35,10 +35,10 @@ Sentry.configureScope((scope) => {
 })
 
 class Cli extends BaseCLIHandler {
-  constructor() {
+  constructor () {
     super()
     this.commandDefinitions = [
-      { name: 'command', defaultOption: true },
+      { name: 'command', defaultOption: true }
     ]
     this.commands = {
       [constants.CMD_START]: 'Start iofog-controller service.',
@@ -56,11 +56,11 @@ class Cli extends BaseCLIHandler {
       [constants.CMD_FLOW]: 'Application flow operations.',
       [constants.CMD_MICROSERVICE]: 'Microservice instance operations.',
       [constants.CMD_REGISTRY]: 'Registries instance operations.',
-      [constants.CMD_DIAGNOSTICS]: 'Diagnostic instance operations.',
+      [constants.CMD_DIAGNOSTICS]: 'Diagnostic instance operations.'
     }
   }
 
-  async run(daemon) {
+  async run (daemon) {
     await Start.initDB()
 
     const mainCommand = this.parseCommandLineArgs(this.commandDefinitions)

@@ -16,7 +16,7 @@ const models = require('./../models')
 const USBInfo = models.USBInfo
 
 class USBInfoManager extends BaseManager {
-  getEntity() {
+  getEntity () {
     return USBInfo
   }
 }

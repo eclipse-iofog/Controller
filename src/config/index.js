@@ -16,24 +16,24 @@ const path = require('path')
 const constants = require('./constants')
 
 class Config {
-  constructor() {
+  constructor () {
     nconf.env({ separator: '_' })
     const environment = nconf.get('NODE:ENV') || 'production'
     this.load(environment)
   }
 
-  get(key) {
+  get (key) {
     return nconf.get(key) || constants[key]
   }
 
-  set(key, value) {
+  set (key, value) {
     const environment = nconf.get('NODE:ENV') || 'production'
 
     nconf.stores[environment].set(key, value)
     nconf.stores[environment].saveSync()
   }
 
-  load(environment) {
+  load (environment) {
     nconf.file(environment, path.join(__dirname, environment.toLowerCase() + '.json'))
     nconf.file('default', path.join(__dirname, 'default.json'))
   }

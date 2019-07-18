@@ -16,14 +16,14 @@ const models = require('./../models')
 const VolumeMapping = models.VolumeMapping
 
 class VolumeMappingManager extends BaseManager {
-  getEntity() {
+  getEntity () {
     return VolumeMapping
   }
 
-  findAll(where, transaction) {
+  findAll (where, transaction) {
     return VolumeMapping.findAll({
       where: where,
-      attributes: ['hostDestination', 'containerDestination', 'accessMode', 'id'],
+      attributes: ['hostDestination', 'containerDestination', 'accessMode', 'id']
     }, { transaction: transaction })
   }
 }

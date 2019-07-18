@@ -3,7 +3,7 @@ const models = require('./../models')
 const Tunnel = models.Tunnel
 
 class TunnelManager extends BaseManager {
-  getEntity() {
+  getEntity () {
     return Tunnel
   }
 }

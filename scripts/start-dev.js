@@ -13,18 +13,18 @@
 
 const execSync = require('child_process').execSync
 
-function startDev() {
+function startDev () {
   const options = {
     env: {
       'NODE_ENV': 'development',
-      'PATH': process.env.PATH,
+      'PATH': process.env.PATH
     },
-    stdio: [process.stdin, process.stdout, process.stderr],
+    stdio: [process.stdin, process.stdout, process.stderr]
   }
 
   execSync('node ./src/main.js start', options)
 }
 
 module.exports = {
-  startDev: startDev,
+  startDev: startDev
 }

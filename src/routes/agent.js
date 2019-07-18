@@ -29,27 +29,27 @@ module.exports = [
       const errorCodes = [
         {
           code: constants.HTTP_CODE_NOT_FOUND,
-          errors: [Errors.NotFoundError],
+          errors: [Errors.NotFoundError]
         },
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError],
+          errors: [Errors.AuthenticationError]
         },
         {
           code: constants.HTTP_CODE_BAD_REQUEST,
-          errors: [Errors.ValidationError],
-        },
+          errors: [Errors.ValidationError]
+        }
       ]
 
       const agentProvisionEndPoint = ResponseDecorator.handleErrors(AgentController.agentProvisionEndPoint, successCode, errorCodes)
       const responseObject = await agentProvisionEndPoint(req)
 
       res
-          .status(responseObject.code)
-          .send(responseObject.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
 
       logger.apiRes({ req: req, res: responseObject })
-    },
+    }
   },
   {
     method: 'post',
@@ -61,24 +61,24 @@ module.exports = [
       const errorCodes = [
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError],
+          errors: [Errors.AuthenticationError]
         },
         {
           code: constants.HTTP_CODE_BAD_REQUEST,
-          errors: [Errors.ValidationError],
-        },
+          errors: [Errors.ValidationError]
+        }
       ]
 
       const agentDeprovisionEndPoint = ResponseDecorator.handleErrors(AgentController.agentDeprovisionEndPoint,
-          successCode, errorCodes)
+        successCode, errorCodes)
       const responseObject = await agentDeprovisionEndPoint(req)
 
       res
-          .status(responseObject.code)
-          .send(responseObject.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
 
       logger.apiRes({ req: req, res: responseObject })
-    },
+    }
   },
   {
     method: 'get',
@@ -90,19 +90,19 @@ module.exports = [
       const errorCodes = [
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError],
-        },
+          errors: [Errors.AuthenticationError]
+        }
       ]
 
       const getAgentConfigEndPoint = ResponseDecorator.handleErrors(AgentController.getAgentConfigEndPoint, successCode, errorCodes)
       const responseObject = await getAgentConfigEndPoint(req)
 
       res
-          .status(responseObject.code)
-          .send(responseObject.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
 
       logger.apiRes({ req: req, res: responseObject })
-    },
+    }
   },
   {
     method: 'patch',
@@ -114,24 +114,24 @@ module.exports = [
       const errorCodes = [
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError],
+          errors: [Errors.AuthenticationError]
         },
         {
           code: constants.HTTP_CODE_BAD_REQUEST,
-          errors: [Errors.ValidationError],
-        },
+          errors: [Errors.ValidationError]
+        }
       ]
 
       const updateAgentConfigEndPoint = ResponseDecorator.handleErrors(AgentController.updateAgentConfigEndPoint,
-          successCode, errorCodes)
+        successCode, errorCodes)
       const responseObject = await updateAgentConfigEndPoint(req)
 
       res
-          .status(responseObject.code)
-          .send(responseObject.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
 
       logger.apiRes({ req: req, res: responseObject })
-    },
+    }
   },
   {
     method: 'get',
@@ -143,24 +143,24 @@ module.exports = [
       const errorCodes = [
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError],
+          errors: [Errors.AuthenticationError]
         },
         {
           code: constants.HTTP_CODE_BAD_REQUEST,
-          errors: [Errors.ValidationError],
-        },
+          errors: [Errors.ValidationError]
+        }
       ]
 
       const getAgentConfigChangesEndPoint = ResponseDecorator.handleErrors(AgentController.getAgentConfigChangesEndPoint,
-          successCode, errorCodes)
+        successCode, errorCodes)
       const responseObject = await getAgentConfigChangesEndPoint(req)
 
       res
-          .status(responseObject.code)
-          .send(responseObject.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
 
       logger.apiRes({ req: req, res: responseObject })
-    },
+    }
   },
   {
     method: 'put',
@@ -172,24 +172,24 @@ module.exports = [
       const errorCodes = [
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError],
+          errors: [Errors.AuthenticationError]
         },
         {
           code: constants.HTTP_CODE_BAD_REQUEST,
-          errors: [Errors.ValidationError],
-        },
+          errors: [Errors.ValidationError]
+        }
       ]
 
       const updateAgentStatusEndPoint = ResponseDecorator.handleErrors(AgentController.updateAgentStatusEndPoint,
-          successCode, errorCodes)
+        successCode, errorCodes)
       const responseObject = await updateAgentStatusEndPoint(req)
 
       res
-          .status(responseObject.code)
-          .send(responseObject.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
 
       logger.apiRes({ req: req, res: responseObject })
-    },
+    }
   },
   {
     method: 'get',
@@ -201,20 +201,20 @@ module.exports = [
       const errorCodes = [
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError],
-        },
+          errors: [Errors.AuthenticationError]
+        }
       ]
 
       const getAgentMicroservicesEndPoint = ResponseDecorator.handleErrors(AgentController.getAgentMicroservicesEndPoint,
-          successCode, errorCodes)
+        successCode, errorCodes)
       const responseObject = await getAgentMicroservicesEndPoint(req)
 
       res
-          .status(responseObject.code)
-          .send(responseObject.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
 
       logger.apiRes({ req: req, res: responseObject })
-    },
+    }
   },
   {
     method: 'get',
@@ -226,24 +226,24 @@ module.exports = [
       const errorCodes = [
         {
           code: constants.HTTP_CODE_NOT_FOUND,
-          errors: [Errors.NotFoundError],
+          errors: [Errors.NotFoundError]
         },
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError],
-        },
+          errors: [Errors.AuthenticationError]
+        }
       ]
 
       const getAgentMicroserviceEndPoint = ResponseDecorator.handleErrors(AgentController.getAgentMicroserviceEndPoint,
-          successCode, errorCodes)
+        successCode, errorCodes)
       const responseObject = await getAgentMicroserviceEndPoint(req)
 
       res
-          .status(responseObject.code)
-          .send(responseObject.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
 
       logger.apiRes({ req: req, res: responseObject })
-    },
+    }
   },
   {
     method: 'get',
@@ -255,20 +255,20 @@ module.exports = [
       const errorCodes = [
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError],
-        },
+          errors: [Errors.AuthenticationError]
+        }
       ]
 
       const getAgentRegistriesEndPoint = ResponseDecorator.handleErrors(AgentController.getAgentRegistriesEndPoint,
-          successCode, errorCodes)
+        successCode, errorCodes)
       const responseObject = await getAgentRegistriesEndPoint(req)
 
       res
-          .status(responseObject.code)
-          .send(responseObject.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
 
       logger.apiRes({ req: req, res: responseObject })
-    },
+    }
   },
   {
     method: 'get',
@@ -280,24 +280,24 @@ module.exports = [
       const errorCodes = [
         {
           code: constants.HTTP_CODE_NOT_FOUND,
-          errors: [Errors.NotFoundError],
+          errors: [Errors.NotFoundError]
         },
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError],
-        },
+          errors: [Errors.AuthenticationError]
+        }
       ]
 
       const getAgentTunnelEndPoint = ResponseDecorator.handleErrors(AgentController.getAgentTunnelEndPoint,
-          successCode, errorCodes)
+        successCode, errorCodes)
       const responseObject = await getAgentTunnelEndPoint(req)
 
       res
-          .status(responseObject.code)
-          .send(responseObject.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
 
       logger.apiRes({ req: req, res: responseObject })
-    },
+    }
   },
   {
     method: 'get',
@@ -309,24 +309,24 @@ module.exports = [
       const errorCodes = [
         {
           code: constants.HTTP_CODE_NOT_FOUND,
-          errors: [Errors.NotFoundError],
+          errors: [Errors.NotFoundError]
         },
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError],
-        },
+          errors: [Errors.AuthenticationError]
+        }
       ]
 
       const getAgentStraceEndPoint = ResponseDecorator.handleErrors(AgentController.getAgentStraceEndPoint,
-          successCode, errorCodes)
+        successCode, errorCodes)
       const responseObject = await getAgentStraceEndPoint(req)
 
       res
-          .status(responseObject.code)
-          .send(responseObject.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
 
       logger.apiRes({ req: req, res: responseObject })
-    },
+    }
   },
   {
     method: 'put',
@@ -338,28 +338,28 @@ module.exports = [
       const errorCodes = [
         {
           code: constants.HTTP_CODE_NOT_FOUND,
-          errors: [Errors.NotFoundError],
+          errors: [Errors.NotFoundError]
         },
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError],
+          errors: [Errors.AuthenticationError]
         },
         {
           code: constants.HTTP_CODE_BAD_REQUEST,
-          errors: [Errors.ValidationError],
-        },
+          errors: [Errors.ValidationError]
+        }
       ]
 
       const updateAgentStraceEndPoint = ResponseDecorator.handleErrors(AgentController.updateAgentStraceEndPoint,
-          successCode, errorCodes)
+        successCode, errorCodes)
       const responseObject = await updateAgentStraceEndPoint(req)
 
       res
-          .status(responseObject.code)
-          .send(responseObject.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
 
       logger.apiRes({ req: req, res: responseObject })
-    },
+    }
   },
   {
     method: 'get',
@@ -371,24 +371,24 @@ module.exports = [
       const errorCodes = [
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError],
+          errors: [Errors.AuthenticationError]
         },
         {
           code: constants.HTTP_CODE_NOT_FOUND,
-          errors: [Errors.NotFoundError],
-        },
+          errors: [Errors.NotFoundError]
+        }
       ]
 
       const getAgentChangeVersionCommandEndPoint = ResponseDecorator.handleErrors(
-          AgentController.getAgentChangeVersionCommandEndPoint, successCode, errorCodes)
+        AgentController.getAgentChangeVersionCommandEndPoint, successCode, errorCodes)
       const responseObject = await getAgentChangeVersionCommandEndPoint(req)
 
       res
-          .status(responseObject.code)
-          .send(responseObject.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
 
       logger.apiRes({ req: req, res: responseObject })
-    },
+    }
   },
   {
     method: 'put',
@@ -400,24 +400,24 @@ module.exports = [
       const errorCodes = [
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError],
+          errors: [Errors.AuthenticationError]
         },
         {
           code: constants.HTTP_CODE_BAD_REQUEST,
-          errors: [Errors.ValidationError],
-        },
+          errors: [Errors.ValidationError]
+        }
       ]
 
       const updateHalHardwareInfoEndPoint = ResponseDecorator.handleErrors(AgentController.updateHalHardwareInfoEndPoint,
-          successCode, errorCodes)
+        successCode, errorCodes)
       const responseObject = await updateHalHardwareInfoEndPoint(req)
 
       res
-          .status(responseObject.code)
-          .send(responseObject.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
 
       logger.apiRes({ req: req, res: responseObject })
-    },
+    }
   },
   {
     method: 'put',
@@ -429,24 +429,24 @@ module.exports = [
       const errorCodes = [
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError],
+          errors: [Errors.AuthenticationError]
         },
         {
           code: constants.HTTP_CODE_BAD_REQUEST,
-          errors: [Errors.ValidationError],
-        },
+          errors: [Errors.ValidationError]
+        }
       ]
 
       const updateHalUsbInfoEndPoint = ResponseDecorator.handleErrors(AgentController.updateHalUsbInfoEndPoint,
-          successCode, errorCodes)
+        successCode, errorCodes)
       const responseObject = await updateHalUsbInfoEndPoint(req)
 
       res
-          .status(responseObject.code)
-          .send(responseObject.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
 
       logger.apiRes({ req: req, res: responseObject })
-    },
+    }
   },
   {
     method: 'delete',
@@ -458,20 +458,20 @@ module.exports = [
       const errCodes = [
         {
           code: 401,
-          errors: [Errors.AuthenticationError],
-        },
+          errors: [Errors.AuthenticationError]
+        }
       ]
 
       const deleteNodeEndPoint = ResponseDecorator.handleErrors(AgentController.deleteNodeEndPoint,
-          successCode, errCodes)
+        successCode, errCodes)
       const responseObject = await deleteNodeEndPoint(req)
 
       res
-          .status(responseObject.code)
-          .send(responseObject.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
 
       logger.apiRes({ req: req, res: responseObject })
-    },
+    }
   },
   {
     method: 'get',
@@ -483,24 +483,24 @@ module.exports = [
       const errorCodes = [
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError],
+          errors: [Errors.AuthenticationError]
         },
         {
           code: constants.HTTP_CODE_NOT_FOUND,
-          errors: [Errors.NotFoundError],
-        },
+          errors: [Errors.NotFoundError]
+        }
       ]
 
       const getImageSnapshotEndPoint = ResponseDecorator.handleErrors(AgentController.getImageSnapshotEndPoint,
-          successCode, errorCodes)
+        successCode, errorCodes)
       const responseObject = await getImageSnapshotEndPoint(req)
 
       res
-          .status(responseObject.code)
-          .send(responseObject.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
 
       logger.apiRes({ req: req, res: responseObject })
-    },
+    }
   },
   {
     method: 'put',
@@ -512,24 +512,24 @@ module.exports = [
       const errorCodes = [
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError],
+          errors: [Errors.AuthenticationError]
         },
         {
           code: constants.HTTP_CODE_BAD_REQUEST,
-          errors: [Errors.ValidationError],
-        },
+          errors: [Errors.ValidationError]
+        }
       ]
 
       const putImageSnapshotEndPoint = ResponseDecorator.handleErrors(AgentController.putImageSnapshotEndPoint,
-          successCode, errorCodes)
+        successCode, errorCodes)
       const responseObject = await putImageSnapshotEndPoint(req)
 
       res
-          .status(responseObject.code)
-          .send(responseObject.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
 
       logger.apiRes({ req: req, res: responseObject })
-    },
+    }
   },
   {
     method: 'post',
@@ -541,23 +541,23 @@ module.exports = [
       const errorCodes = [
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError],
+          errors: [Errors.AuthenticationError]
         },
         {
           code: constants.HTTP_CODE_BAD_REQUEST,
-          errors: [Errors.ValidationError],
-        },
+          errors: [Errors.ValidationError]
+        }
       ]
 
       const postTracking = ResponseDecorator.handleErrors(AgentController.postTrackingEndPoint,
-          successCode, errorCodes)
+        successCode, errorCodes)
       const responseObject = await postTracking(req)
 
       res
-          .status(responseObject.code)
-          .send(responseObject.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
 
       logger.apiRes({ req: req, res: responseObject })
-    },
-  },
+    }
+  }
 ]

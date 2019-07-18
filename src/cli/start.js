@@ -17,14 +17,14 @@ const logger = require('../logger')
 const db = require('../sequelize/models')
 
 class Start extends BaseCLIHandler {
-  async run(args) {
+  async run (args) {
     const daemon = args.daemon
     const configuration = {
       devMode: config.get('Server:DevMode'),
       port: config.get('Server:Port'),
       sslKey: config.get('Server:SslKey'),
       sslCert: config.get('Server:SslCert'),
-      intermedKey: config.get('Server:IntermediateCert'),
+      intermedKey: config.get('Server:IntermediateCert')
     }
     const pid = daemon.status()
 
@@ -36,7 +36,7 @@ class Start extends BaseCLIHandler {
     }
   }
 
-  async initDB() {
+  async initDB () {
     try {
       await db.initDB()
     } catch (err) {
@@ -46,7 +46,7 @@ class Start extends BaseCLIHandler {
   }
 }
 
-function checkDaemon(daemon, configuration) {
+function checkDaemon (daemon, configuration) {
   return new Promise((resolve, reject) => {
     let iterationsCount = 0
     const check = () => {
@@ -71,7 +71,7 @@ function checkDaemon(daemon, configuration) {
   })
 }
 
-function checkServerProtocol(configuration) {
+function checkServerProtocol (configuration) {
   const { devMode, port, sslKey, sslCert, intermedKey } = configuration
   if (!devMode && sslKey && sslCert && intermedKey) {
     logger.cliRes(`==> 🌎 HTTPS server listening on port ${port}. Open up https://localhost:${port}/ in your browser.`)

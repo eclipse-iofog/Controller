@@ -7,61 +7,61 @@ module.exports = {
         primaryKey: true,
         autoIncrement: true,
         allowNull: false,
-        field: 'id',
+        field: 'id'
       },
       containerConfig: {
         type: Sequelize.BOOLEAN,
-        field: 'container_config',
+        field: 'container_config'
       },
       reboot: {
         type: Sequelize.BOOLEAN,
-        field: 'reboot',
+        field: 'reboot'
       },
       deletenode: {
         type: Sequelize.BOOLEAN,
-        field: 'deletenode',
+        field: 'deletenode'
       },
       version: {
         type: Sequelize.BOOLEAN,
-        field: 'version',
+        field: 'version'
       },
       containerList: {
         type: Sequelize.BOOLEAN,
-        field: 'container_list',
+        field: 'container_list'
       },
       config: {
         type: Sequelize.BOOLEAN,
-        field: 'config',
+        field: 'config'
       },
       routing: {
         type: Sequelize.BOOLEAN,
-        field: 'routing',
+        field: 'routing'
       },
       registries: {
         type: Sequelize.BOOLEAN,
-        field: 'registries',
+        field: 'registries'
       },
       tunnel: {
         type: Sequelize.BOOLEAN,
-        field: 'tunnel',
+        field: 'tunnel'
       },
       diagnostics: {
         type: Sequelize.BOOLEAN,
-        field: 'diagnostics',
+        field: 'diagnostics'
       },
       isImageSnapshot: {
         type: Sequelize.BOOLEAN,
-        field: 'image_snapshot',
+        field: 'image_snapshot'
       },
       iofogUuid: {
         type: Sequelize.TEXT,
         field: 'iofog_uuid',
         references: { model: 'Fogs', key: 'uuid' },
-        onDelete: 'cascade',
-      },
+        onDelete: 'cascade'
+      }
     })
   },
   down: (queryInterface, Sequelize) => {
     return queryInterface.dropTable('ChangeTrackings')
-  },
+  }
 }

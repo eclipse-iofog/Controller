@@ -20,23 +20,22 @@ const Tracking = require('../tracking')
 const TrackingEventType = require('../enums/tracking-event-type')
 const TransactionDecorator = require('../decorators/transaction-decorator')
 
-
 const INTERVAL_MIN = 5
 let timerThis
 
 class TimeTrackingJob extends BaseJobHandler {
-  constructor() {
+  constructor () {
     super()
     this.scheduleTime = INTERVAL_MIN * 60 * 1000
     this.startTime = moment.now()
     timerThis = this
   }
 
-  run() {
+  run () {
     setTimeout(this.trackTime, this.scheduleTime)
   }
 
-  async trackTime() {
+  async trackTime () {
     let agentsCount = 0
     try {
       const agents = await TransactionDecorator.generateTransaction(FogAccessTokenService.all)()

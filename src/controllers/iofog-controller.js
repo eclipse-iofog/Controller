@@ -15,74 +15,74 @@ const AuthDecorator = require('../decorators/authorization-decorator')
 const FogService = require('../services/iofog-service')
 const qs = require('qs')
 
-async function createFogEndPoint(req, user) {
+async function createFogEndPoint (req, user) {
   const newFog = req.body
-  return await FogService.createFogEndPoint(newFog, user, false)
+  return FogService.createFogEndPoint(newFog, user, false)
 }
 
-async function updateFogEndPoint(req, user) {
+async function updateFogEndPoint (req, user) {
   const updateFog = req.body
   updateFog.uuid = req.params.uuid
-  return await FogService.updateFogEndPoint(updateFog, user, false)
+  return FogService.updateFogEndPoint(updateFog, user, false)
 }
 
-async function deleteFogEndPoint(req, user) {
+async function deleteFogEndPoint (req, user) {
   const deleteFog = {
-    uuid: req.params.uuid,
+    uuid: req.params.uuid
   }
-  return await FogService.deleteFogEndPoint(deleteFog, user, false)
+  return FogService.deleteFogEndPoint(deleteFog, user, false)
 }
 
-async function getFogEndPoint(req, user) {
+async function getFogEndPoint (req, user) {
   const getFog = {
-    uuid: req.params.uuid,
+    uuid: req.params.uuid
   }
 
-  return await FogService.getFogEndPoint(getFog, user, false)
+  return FogService.getFogEndPoint(getFog, user, false)
 }
 
-async function getFogListEndPoint(req, user) {
+async function getFogListEndPoint (req, user) {
   const query = qs.parse(req.query)
-  return await FogService.getFogListEndPoint(query.filters, user, false)
+  return FogService.getFogListEndPoint(query.filters, user, false)
 }
 
-async function generateProvisionKeyEndPoint(req, user) {
+async function generateProvisionKeyEndPoint (req, user) {
   const fog = {
-    uuid: req.params.uuid,
+    uuid: req.params.uuid
   }
 
-  return await FogService.generateProvisioningKeyEndPoint(fog, user, false)
+  return FogService.generateProvisioningKeyEndPoint(fog, user, false)
 }
 
-async function setFogVersionCommandEndPoint(req, user) {
+async function setFogVersionCommandEndPoint (req, user) {
   const fogVersionCommand = {
     uuid: req.params.uuid,
-    versionCommand: req.params.versionCommand,
+    versionCommand: req.params.versionCommand
   }
 
-  return await FogService.setFogVersionCommandEndPoint(fogVersionCommand, user, false)
+  return FogService.setFogVersionCommandEndPoint(fogVersionCommand, user, false)
 }
 
-async function setFogRebootCommandEndPoint(req, user) {
+async function setFogRebootCommandEndPoint (req, user) {
   const fog = {
-    uuid: req.params.uuid,
+    uuid: req.params.uuid
   }
 
-  return await FogService.setFogRebootCommandEndPoint(fog, user, false)
+  return FogService.setFogRebootCommandEndPoint(fog, user, false)
 }
 
-async function getHalHardwareInfoEndPoint(req, user) {
+async function getHalHardwareInfoEndPoint (req, user) {
   const uuidObj = {
-    uuid: req.params.uuid,
+    uuid: req.params.uuid
   }
-  return await FogService.getHalHardwareInfoEndPoint(uuidObj, user, false)
+  return FogService.getHalHardwareInfoEndPoint(uuidObj, user, false)
 }
 
-async function getHalUsbInfoEndPoint(req, user) {
+async function getHalUsbInfoEndPoint (req, user) {
   const uuidObj = {
-    uuid: req.params.uuid,
+    uuid: req.params.uuid
   }
-  return await FogService.getHalUsbInfoEndPoint(uuidObj, user, false)
+  return FogService.getHalUsbInfoEndPoint(uuidObj, user, false)
 }
 
 module.exports = {
@@ -95,5 +95,5 @@ module.exports = {
   setFogVersionCommandEndPoint: AuthDecorator.checkAuthToken(setFogVersionCommandEndPoint),
   setFogRebootCommandEndPoint: AuthDecorator.checkAuthToken(setFogRebootCommandEndPoint),
   getHalHardwareInfoEndPoint: AuthDecorator.checkAuthToken(getHalHardwareInfoEndPoint),
-  getHalUsbInfoEndPoint: AuthDecorator.checkAuthToken(getHalUsbInfoEndPoint),
+  getHalUsbInfoEndPoint: AuthDecorator.checkAuthToken(getHalUsbInfoEndPoint)
 }

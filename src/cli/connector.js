@@ -11,7 +11,6 @@
  *
  */
 
-
 const BaseCLIHandler = require('./base-cli-handler')
 const constants = require('../helpers/constants')
 const logger = require('../logger')
@@ -20,65 +19,82 @@ const AppHelper = require('../helpers/app-helper')
 const CliDecorator = require('../decorators/cli-decorator')
 
 class Connector extends BaseCLIHandler {
-  constructor() {
+  constructor () {
     super()
 
     this.name = constants.CMD_CONNECTOR
     this.commandDefinitions = [
       {
-        name: 'command', defaultOption: true,
-        group: [constants.CMD],
+        name: 'command',
+        defaultOption: true,
+        group: [constants.CMD]
       },
       {
-        name: 'name', alias: 'n', type: String,
+        name: 'name',
+        alias: 'n',
+        type: String,
         description: 'Connector name',
-        group: [constants.CMD_ADD, constants.CMD_UPDATE],
+        group: [constants.CMD_ADD, constants.CMD_UPDATE]
       },
       {
-        name: 'domain', alias: 'd', type: String,
+        name: 'domain',
+        alias: 'd',
+        type: String,
         description: 'Connector domain name',
-        group: [constants.CMD_ADD, constants.CMD_UPDATE],
+        group: [constants.CMD_ADD, constants.CMD_UPDATE]
       },
       {
-        name: 'public-ip', alias: 'i', type: String,
+        name: 'public-ip',
+        alias: 'i',
+        type: String,
         description: 'Connector public IP address',
-        group: [constants.CMD_ADD, constants.CMD_UPDATE, constants.CMD_REMOVE],
+        group: [constants.CMD_ADD, constants.CMD_UPDATE, constants.CMD_REMOVE]
       },
       {
-        name: 'cert', alias: 'c', type: String,
+        name: 'cert',
+        alias: 'c',
+        type: String,
         description: 'Path to certificate file',
-        group: [constants.CMD_ADD, constants.CMD_UPDATE],
+        group: [constants.CMD_ADD, constants.CMD_UPDATE]
       },
       {
-        name: 'self-signed-on', alias: 'S', type: Boolean,
+        name: 'self-signed-on',
+        alias: 'S',
+        type: Boolean,
         description: 'Switch on self-signed enabled',
-        group: [constants.CMD_ADD, constants.CMD_UPDATE],
+        group: [constants.CMD_ADD, constants.CMD_UPDATE]
       },
       {
-        name: 'self-signed-off', alias: 's', type: Boolean,
+        name: 'self-signed-off',
+        alias: 's',
+        type: Boolean,
         description: 'Switch off self-signed disabled',
-        group: [constants.CMD_ADD, constants.CMD_UPDATE],
+        group: [constants.CMD_ADD, constants.CMD_UPDATE]
       },
       {
-        name: 'dev-mode-on', alias: 'H', type: Boolean,
+        name: 'dev-mode-on',
+        alias: 'H',
+        type: Boolean,
         description: 'Switch on dev mode',
-        group: [constants.CMD_ADD, constants.CMD_UPDATE],
+        group: [constants.CMD_ADD, constants.CMD_UPDATE]
       },
       {
-        name: 'dev-mode-off', alias: 'h', type: Boolean,
+        name: 'dev-mode-off',
+        alias: 'h',
+        type: Boolean,
         description: 'Switch off dev mode',
-        group: [constants.CMD_ADD, constants.CMD_UPDATE],
-      },
+        group: [constants.CMD_ADD, constants.CMD_UPDATE]
+      }
     ]
     this.commands = {
       [constants.CMD_ADD]: 'Add a new Connector.',
       [constants.CMD_UPDATE]: 'Update existing Connector.',
       [constants.CMD_REMOVE]: 'Delete a Connector.',
-      [constants.CMD_LIST]: 'List all Connectors.',
+      [constants.CMD_LIST]: 'List all Connectors.'
     }
   }
 
-  async run(args) {
+  async run (args) {
     try {
       const connectorCommand = this.parseCommandLineArgs(this.commandDefinitions, { argv: args.argv, partial: false })
 
@@ -109,7 +125,7 @@ class Connector extends BaseCLIHandler {
   }
 }
 
-async function _executeCase(commands, commandName, f, isUserRequired) {
+async function _executeCase (commands, commandName, f, isUserRequired) {
   try {
     const obj = commands[commandName]
 
@@ -124,7 +140,7 @@ async function _executeCase(commands, commandName, f, isUserRequired) {
   }
 }
 
-async function _createConnector(obj) {
+async function _createConnector (obj) {
   const connector = _createConnectorObject(obj)
   logger.cliReq('connector add', { args: connector })
   try {
@@ -135,7 +151,7 @@ async function _createConnector(obj) {
   }
 }
 
-async function _updateConnector(obj) {
+async function _updateConnector (obj) {
   const connector = _createConnectorObject(obj)
   logger.cliReq('connector update', { args: connector })
   try {
@@ -146,7 +162,7 @@ async function _updateConnector(obj) {
   }
 }
 
-async function _deleteConnector(obj) {
+async function _deleteConnector (obj) {
   const connector = _createConnectorObject(obj)
   logger.cliReq('connector remove', { args: connector })
   try {
@@ -157,20 +173,20 @@ async function _deleteConnector(obj) {
   }
 }
 
-async function _getConnectorList() {
+async function _getConnectorList () {
   logger.cliReq('connector list')
   const list = await ConnectorService.getConnectorList()
   logger.cliRes(JSON.stringify(list, null, 2))
 }
 
-function _createConnectorObject(cliData) {
+function _createConnectorObject (cliData) {
   const connectorObj = {
     name: cliData.name,
     domain: cliData.domain,
     publicIp: cliData.publicIp,
     cert: cliData.cert,
     isSelfSignedCert: AppHelper.validateBooleanCliOptions(cliData.selfSignedOn, cliData.selfSignedOff),
-    devMode: AppHelper.validateBooleanCliOptions(cliData.devModeOn, cliData.devModeOff),
+    devMode: AppHelper.validateBooleanCliOptions(cliData.devModeOn, cliData.devModeOff)
   }
 
   return AppHelper.deleteUndefinedFields(connectorObj)

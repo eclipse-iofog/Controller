@@ -7,26 +7,26 @@ module.exports = {
         primaryKey: true,
         autoIncrement: true,
         allowNull: false,
-        field: 'id',
+        field: 'id'
       },
       straceRun: {
         type: Sequelize.BOOLEAN,
-        field: 'strace_run',
+        field: 'strace_run'
       },
       buffer: {
         type: Sequelize.TEXT,
         field: 'buffer',
-        defaultValue: '',
+        defaultValue: ''
       },
       microserviceUuid: {
         type: Sequelize.TEXT,
         field: 'microservice_uuid',
         references: { model: 'Microservices', key: 'uuid' },
-        onDelete: 'cascade',
-      },
+        onDelete: 'cascade'
+      }
     })
   },
   down: (queryInterface, Sequelize) => {
     return queryInterface.dropTable('StraceDiagnostics')
-  },
+  }
 }

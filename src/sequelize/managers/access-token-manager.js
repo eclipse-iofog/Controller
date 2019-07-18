@@ -16,18 +16,18 @@ const models = require('./../models')
 const AccessToken = models.AccessToken
 
 class AccessTokenManager extends BaseManager {
-  getEntity() {
+  getEntity () {
     return AccessToken
   }
 
   // no transaction required here, used by auth decorator
-  updateExpirationTime(id, newTime) {
+  updateExpirationTime (id, newTime) {
     return AccessToken.update({
-      expirationTime: newTime,
+      expirationTime: newTime
     }, {
       where: {
-        id: id,
-      },
+        id: id
+      }
     })
   }
 }

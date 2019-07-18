@@ -16,7 +16,7 @@ const models = require('./../models')
 const KubeletAccessToken = models.KubeletAccessToken
 
 class KubeletAccessTokenManager extends BaseManager {
-  getEntity() {
+  getEntity () {
     return KubeletAccessToken
   }
 }

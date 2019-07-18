@@ -19,36 +19,35 @@ const FogAccessToken = models.FogAccessToken
 const Strace = models.StraceDiagnostics
 
 class FogManager extends BaseManager {
-  getEntity() {
+  getEntity () {
     return Fog
   }
 
   // no transaction required here, used by auth decorator
-  checkToken(token) {
+  checkToken (token) {
     return Fog.findOne({
       include: [{
         model: FogAccessToken,
         as: 'accessToken',
         where: {
-          token: token,
-        },
-      }],
+          token: token
+        }
+      }]
     })
   }
-
 
   // no transaction required here, used by agent-last-active decorator
-  updateLastActive(uuid, timestamp) {
+  updateLastActive (uuid, timestamp) {
     return Fog.update({
-      lastActive: timestamp,
+      lastActive: timestamp
     }, {
       where: {
-        uuid: uuid,
-      },
+        uuid: uuid
+      }
     })
   }
 
-  findFogStraces(where, transaction) {
+  findFogStraces (where, transaction) {
     return Fog.findOne({
       include: [
         {
@@ -58,10 +57,10 @@ class FogManager extends BaseManager {
           include: [{
             model: Strace,
             as: 'strace',
-            required: true,
-          }],
+            required: true
+          }]
         }],
-      where: where,
+      where: where
     }, { transaction: transaction })
   }
 }

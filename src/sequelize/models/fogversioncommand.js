@@ -5,25 +5,25 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true,
-      field: 'id',
+      field: 'id'
     },
     versionCommand: {
       /* eslint-disable new-cap */
       type: DataTypes.STRING(100),
-      field: 'version_command',
-    },
+      field: 'version_command'
+    }
   }, {
     timestamps: false,
-    underscored: true,
+    underscored: true
   })
-  FogVersionCommand.associate = function(models) {
+  FogVersionCommand.associate = function (models) {
     FogVersionCommand.belongsTo(models.Fog, {
       foreignKey: {
         name: 'iofogUuid',
-        field: 'iofog_uuid',
+        field: 'iofog_uuid'
       },
       as: 'iofog',
-      onDelete: 'cascade',
+      onDelete: 'cascade'
     })
   }
   return FogVersionCommand

@@ -14,11 +14,11 @@
 const Config = require('../../config')
 
 class BaseJobHandler {
-  constructor() {
+  constructor () {
     this.scheduleTime = Config.get('Settings:DefaultJobIntervalSeconds') * 1000
   }
 
-  run() {
+  run () {
     throw new Error('Not Implemented')
   }
 }

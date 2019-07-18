@@ -27,23 +27,23 @@ module.exports = [
       const errorCodes = [
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError],
-        },
+          errors: [Errors.AuthenticationError]
+        }
       ]
 
       const listCatalogItemsEndPoint = ResponseDecorator.handleErrors(
-          CatalogController.listCatalogItemsEndPoint,
-          successCode,
-          errorCodes
+        CatalogController.listCatalogItemsEndPoint,
+        successCode,
+        errorCodes
       )
       const responseObject = await listCatalogItemsEndPoint(req)
 
       res
-          .status(responseObject.code)
-          .send(responseObject.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
 
       logger.apiRes({ req: req, res: responseObject })
-    },
+    }
   },
   {
     method: 'post',
@@ -55,31 +55,31 @@ module.exports = [
       const errorCodes = [
         {
           code: constants.HTTP_CODE_BAD_REQUEST,
-          errors: [Errors.ValidationError],
+          errors: [Errors.ValidationError]
         },
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError],
+          errors: [Errors.AuthenticationError]
         },
         {
           code: constants.HTTP_CODE_DUPLICATE_PROPERTY,
-          errors: [Errors.DuplicatePropertyError],
-        },
+          errors: [Errors.DuplicatePropertyError]
+        }
       ]
 
       const createCatalogItemEndpoint = ResponseDecorator.handleErrors(
-          CatalogController.createCatalogItemEndPoint,
-          successCode,
-          errorCodes
+        CatalogController.createCatalogItemEndPoint,
+        successCode,
+        errorCodes
       )
       const responseObject = await createCatalogItemEndpoint(req)
 
       res
-          .status(responseObject.code)
-          .send(responseObject.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
 
       logger.apiRes({ req: req, res: responseObject })
-    },
+    }
   },
   {
     method: 'get',
@@ -91,27 +91,27 @@ module.exports = [
       const errorCodes = [
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError],
+          errors: [Errors.AuthenticationError]
         },
         {
           code: constants.HTTP_CODE_NOT_FOUND,
-          errors: [Errors.NotFoundError],
-        },
+          errors: [Errors.NotFoundError]
+        }
       ]
 
       const listCatalogItemEndPoint = ResponseDecorator.handleErrors(
-          CatalogController.listCatalogItemEndPoint,
-          successCode,
-          errorCodes
+        CatalogController.listCatalogItemEndPoint,
+        successCode,
+        errorCodes
       )
       const responseObject = await listCatalogItemEndPoint(req)
 
       res
-          .status(responseObject.code)
-          .send(responseObject.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
 
       logger.apiRes({ req: req, res: responseObject })
-    },
+    }
   },
   {
     method: 'patch',
@@ -123,35 +123,35 @@ module.exports = [
       const errorCodes = [
         {
           code: constants.HTTP_CODE_BAD_REQUEST,
-          errors: [Errors.ValidationError],
+          errors: [Errors.ValidationError]
         },
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError],
+          errors: [Errors.AuthenticationError]
         },
         {
           code: constants.HTTP_CODE_DUPLICATE_PROPERTY,
-          errors: [Errors.DuplicatePropertyError],
+          errors: [Errors.DuplicatePropertyError]
         },
         {
           code: constants.HTTP_CODE_NOT_FOUND,
-          errors: [Errors.NotFoundError],
-        },
+          errors: [Errors.NotFoundError]
+        }
       ]
 
       const updateCatalogItemEndpoint = ResponseDecorator.handleErrors(
-          CatalogController.updateCatalogItemEndPoint,
-          successCode,
-          errorCodes
+        CatalogController.updateCatalogItemEndPoint,
+        successCode,
+        errorCodes
       )
       const responseObject = await updateCatalogItemEndpoint(req)
 
       res
-          .status(responseObject.code)
-          .send(responseObject.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
 
       logger.apiRes({ req: req, res: responseObject })
-    },
+    }
   },
   {
     method: 'delete',
@@ -163,26 +163,26 @@ module.exports = [
       const errorCodes = [
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError],
+          errors: [Errors.AuthenticationError]
         },
         {
           code: constants.HTTP_CODE_NOT_FOUND,
-          errors: [Errors.NotFoundError],
-        },
+          errors: [Errors.NotFoundError]
+        }
       ]
 
       const deleteCatalogItemEndPoint = ResponseDecorator.handleErrors(
-          CatalogController.deleteCatalogItemEndPoint,
-          successCode,
-          errorCodes
+        CatalogController.deleteCatalogItemEndPoint,
+        successCode,
+        errorCodes
       )
       const responseObject = await deleteCatalogItemEndPoint(req)
 
       res
-          .status(responseObject.code)
-          .send(responseObject.body)
+        .status(responseObject.code)
+        .send(responseObject.body)
 
       logger.apiRes({ req: req, res: responseObject })
-    },
-  },
+    }
+  }
 ]

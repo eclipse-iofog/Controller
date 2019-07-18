@@ -7,25 +7,25 @@ module.exports = {
         primaryKey: true,
         autoIncrement: true,
         allowNull: false,
-        field: 'id',
+        field: 'id'
       },
       key: {
         type: Sequelize.TEXT,
-        field: 'key',
+        field: 'key'
       },
       value: {
         type: Sequelize.TEXT,
-        field: 'value',
+        field: 'value'
       },
       microserviceUuid: {
         type: Sequelize.TEXT,
         field: 'microservice_uuid',
         references: { model: 'Microservices', key: 'uuid' },
-        onDelete: 'cascade',
-      },
+        onDelete: 'cascade'
+      }
     })
   },
   down: (queryInterface, Sequelize) => {
     return queryInterface.dropTable('MicroserviceEnvs')
-  },
+  }
 }

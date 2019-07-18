@@ -6,50 +6,50 @@ module.exports = (sequelize, DataTypes) => {
       primaryKey: true,
       autoIncrement: true,
       allowNull: false,
-      field: 'id',
+      field: 'id'
     },
     username: {
       type: DataTypes.TEXT,
-      field: 'username',
+      field: 'username'
     },
     password: {
       type: DataTypes.TEXT,
-      field: 'password',
+      field: 'password'
     },
     host: {
       type: DataTypes.TEXT,
-      field: 'host',
+      field: 'host'
     },
     rport: {
       type: DataTypes.INTEGER,
-      field: 'remote_port',
+      field: 'remote_port'
     },
     lport: {
       type: DataTypes.INTEGER,
       defaultValue: 22,
-      field: 'local_port',
+      field: 'local_port'
     },
     rsakey: {
       type: DataTypes.TEXT,
-      field: 'rsa_key',
+      field: 'rsa_key'
     },
     closed: {
       type: DataTypes.BOOLEAN,
       defaultValue: false,
-      field: 'closed',
-    },
+      field: 'closed'
+    }
   }, {
     timestamps: false,
-    underscored: true,
+    underscored: true
   })
-  Tunnel.associate = function(models) {
+  Tunnel.associate = function (models) {
     Tunnel.belongsTo(models.Fog, {
       foreignKey: {
         name: 'iofogUuid',
-        field: 'iofog_uuid',
+        field: 'iofog_uuid'
       },
       as: 'iofog',
-      onDelete: 'cascade',
+      onDelete: 'cascade'
     })
   }
   return Tunnel

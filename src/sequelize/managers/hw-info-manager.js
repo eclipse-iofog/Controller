@@ -16,7 +16,7 @@ const models = require('./../models')
 const HWInfo = models.HWInfo
 
 class HWInfoManager extends BaseManager {
-  getEntity() {
+  getEntity () {
     return HWInfo
   }
 }

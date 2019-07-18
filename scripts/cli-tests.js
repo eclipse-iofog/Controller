@@ -18,8 +18,8 @@ const { restoreDBs, backupDBs } = require('./util')
 const options = {
   env: {
     'NODE_ENV': 'production',
-    'PATH': process.env.PATH,
-  },
+    'PATH': process.env.PATH
+  }
 }
 
 /* eslint-disable no-unused-vars */
@@ -67,7 +67,7 @@ function testUserSection () {
 
   responseHasFields(testCommand('user add -f John -l Doe -e user@domain.com -p \'#Bugs4Fun\''), userCreateFields)
   responseEquals(testCommand('user update -f John2 -l Doe2 -e user@domain.com -p \'#Bugs4Fun34\''),
-      'User updated successfully.')
+    'User updated successfully.')
   responseIsArray(testCommand('user list'))
   responseHasFields(testCommand('user generate-token -e user@domain.com'), userAccessTokenFields)
   responseEquals(testCommand('user suspend -e user@domain.com'), 'User suspended successfully.')
@@ -125,7 +125,7 @@ function testIoFogSection () {
     responseHasFields(testCommand('iofog provisioning-key -i ' + ioFogUuid), ioFogProvisioningFields)
     responseEquals(testCommand('iofog reboot -i ' + ioFogUuid), 'ioFog reboot command has been set successfully')
     responseEquals(testCommand('iofog version -i ' + ioFogUuid + ' -v upgrade'),
-        'ioFog version command has been set successfully')
+      'ioFog version command has been set successfully')
     hasSomeResponse(testCommand('iofog hal-hw -i ' + ioFogUuid))
     hasSomeResponse(testCommand('iofog hal-usb -i ' + ioFogUuid))
     responseEquals(testCommand('iofog remove -i ' + ioFogUuid), 'ioFog node has been removed successfully')
@@ -178,7 +178,7 @@ function testFlowSection () {
       ' -a -u ' + userId), flowCreateFields)
     const flowId = flowCreateResponse.id
     responseEquals(testCommand('flow update -i ' + flowId + ' -n testFlow1 -d testDescription -a'),
-        'Flow updated successfully.')
+      'Flow updated successfully.')
     responseHasFields(testCommand('flow list'), flowListFields)
     responseHasFields(testCommand('flow info -i ' + flowId), flowCreateFields)
     responseEquals(testCommand('flow remove -i ' + flowId), 'Flow removed successfully.')
@@ -225,22 +225,22 @@ function testMicroserviceSection () {
     responseHasFields(testCommand('microservice list'), microserviceListFields)
     responseHasFields(testCommand('microservice info -i ' + microserviceUuid), microserviceCreateFields)
     responseContains(testCommand('microservice route-create -T ' + microserviceUuid + ':' + microserviceUuid),
-        'has been created successfully')
+      'has been created successfully')
     responseContains(testCommand('microservice route-remove -T ' + microserviceUuid + ':' + microserviceUuid),
-        'has been removed successfully')
+      'has been removed successfully')
     responseContains(testCommand('microservice port-mapping-create -i ' + microserviceUuid + ' -P 90:9090:false'),
-        'Port mapping has been created successfully.')
+      'Port mapping has been created successfully.')
     responseIsArray(testCommand('microservice port-mapping-list -i ' + microserviceUuid))
     responseEquals(testCommand('microservice port-mapping-remove -i ' + microserviceUuid + ' -b 90'),
-        'Port mapping has been removed successfully.')
+      'Port mapping has been removed successfully.')
     const volumeMappingCreateResponse = responseHasFields(testCommand('microservice volume-mapping-create' +
       ' -i ' + microserviceUuid + ' -P /test_path:/container_test_path:rw'), volumeMappingCreateFields)
     const volumeMappingId = volumeMappingCreateResponse.id
     responseIsArray(testCommand('microservice volume-mapping-list -i ' + microserviceUuid))
     responseContains(testCommand('microservice volume-mapping-remove -i ' + microserviceUuid + ' -a ' + volumeMappingId),
-        'Volume mapping has been deleted successfully.')
+      'Volume mapping has been deleted successfully.')
     responseEquals(testCommand('microservice remove -i ' + microserviceUuid),
-        'Microservice has been removed successfully.')
+      'Microservice has been removed successfully.')
     executeCommand('iofog remove -i ' + ioFogUuid)
     executeCommand('flow remove -i ' + flowId)
     executeCommand('catalog remove -i ' + catalogId)
@@ -308,15 +308,15 @@ function testDiagnosticsSection () {
 
   try {
     responseEquals(testCommand('diagnostics strace-update -e -i ' + microserviceUuid),
-        'Microservice strace has been enabled')
+      'Microservice strace has been enabled')
     responseContains(testCommand('diagnostics strace-info -f string -i ' + microserviceUuid),
-        'Microservice strace data has been retrieved successfully.')
+      'Microservice strace data has been retrieved successfully.')
     responseContains(testCommand('diagnostics strace-ftp-post -i ' + microserviceUuid + ' -h ftpTestHost -p 2024' +
       ' -u testFtpUser -s testFtpPass -d ftpTestDestination'), 'FTP error')
     responseContains(testCommand('diagnostics image-snapshot-create -i ' + microserviceUuid),
-        'Microservice image snapshot has been created successfully.')
+      'Microservice image snapshot has been created successfully.')
     responseContains(testCommand('diagnostics image-snapshot-get -i ' + microserviceUuid),
-        'Image snapshot is not available for this microservice.')
+      'Image snapshot is not available for this microservice.')
     executeCommand('microservice remove -i ' + microserviceUuid)
     executeCommand('iofog remove -i ' + ioFogUuid)
     executeCommand('flow remove -i ' + flowId)
@@ -433,5 +433,5 @@ function cliTest () {
 }
 
 module.exports = {
-  cliTest: cliTest,
+  cliTest: cliTest
 }

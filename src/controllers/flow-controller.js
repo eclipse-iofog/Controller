@@ -14,33 +14,33 @@
 const AuthDecorator = require('./../decorators/authorization-decorator')
 const FlowService = require('../services/flow-service')
 
-const createFlowEndPoint = async function(req, user) {
+const createFlowEndPoint = async function (req, user) {
   const flow = req.body
 
-  return await FlowService.createFlowEndPoint(flow, user, false)
+  return FlowService.createFlowEndPoint(flow, user, false)
 }
 
-const getFlowsByUserEndPoint = async function(req, user) {
-  return await FlowService.getUserFlowsEndPoint(user, false)
+const getFlowsByUserEndPoint = async function (req, user) {
+  return FlowService.getUserFlowsEndPoint(user, false)
 }
 
-const getFlowEndPoint = async function(req, user) {
+const getFlowEndPoint = async function (req, user) {
   const flowId = req.params.id
 
-  return await FlowService.getFlowEndPoint(flowId, user, false)
+  return FlowService.getFlowEndPoint(flowId, user, false)
 }
 
-const updateFlowEndPoint = async function(req, user) {
+const updateFlowEndPoint = async function (req, user) {
   const flow = req.body
   const flowId = req.params.id
 
-  return await FlowService.updateFlowEndPoint(flow, flowId, user, false)
+  return FlowService.updateFlowEndPoint(flow, flowId, user, false)
 }
 
-const deleteFlowEndPoint = async function(req, user) {
+const deleteFlowEndPoint = async function (req, user) {
   const flowId = req.params.id
 
-  return await FlowService.deleteFlowEndPoint(flowId, user, false)
+  return FlowService.deleteFlowEndPoint(flowId, user, false)
 }
 
 module.exports = {
@@ -48,5 +48,5 @@ module.exports = {
   getFlowsByUserEndPoint: AuthDecorator.checkAuthToken(getFlowsByUserEndPoint),
   getFlowEndPoint: AuthDecorator.checkAuthToken(getFlowEndPoint),
   updateFlowEndPoint: AuthDecorator.checkAuthToken(updateFlowEndPoint),
-  deleteFlowEndPoint: AuthDecorator.checkAuthToken(deleteFlowEndPoint),
+  deleteFlowEndPoint: AuthDecorator.checkAuthToken(deleteFlowEndPoint)
 }

@@ -16,7 +16,7 @@ const models = require('./../models')
 const SchedulerAccessToken = models.SchedulerAccessToken
 
 class SchedulerAccessTokenManager extends BaseManager {
-  getEntity() {
+  getEntity () {
     return SchedulerAccessToken
   }
 }

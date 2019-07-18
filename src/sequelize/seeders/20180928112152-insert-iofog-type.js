@@ -10,7 +10,7 @@ module.exports = {
         description: 'Unspecified device. Fog Type will be selected on provision',
         network_catalog_item_id: 1,
         hal_catalog_item_id: 3,
-        bluetooth_catalog_item_id: 2,
+        bluetooth_catalog_item_id: 2
       },
       {
         ID: 1,
@@ -20,7 +20,7 @@ module.exports = {
         'Compatible with common Linux types such as Ubuntu, Red Hat, and CentOS.',
         network_catalog_item_id: 1,
         hal_catalog_item_id: 3,
-        bluetooth_catalog_item_id: 2,
+        bluetooth_catalog_item_id: 2
       },
       {
         ID: 2,
@@ -30,21 +30,21 @@ module.exports = {
         'Microservices for this ioFog type will be tailored to ARM systems.',
         network_catalog_item_id: 1,
         hal_catalog_item_id: 3,
-        bluetooth_catalog_item_id: 2,
-      },
+        bluetooth_catalog_item_id: 2
+      }
     ]).then(() => {
       return queryInterface.bulkUpdate('Fogs',
-          {
-            fog_type_id: 0,
-          },
-          {
-            fog_type_id: null,
-          },
+        {
+          fog_type_id: 0
+        },
+        {
+          fog_type_id: null
+        }
       )
     })
   },
 
   down: (queryInterface, Sequelize) => {
     return queryInterface.bulkDelete('FogTypes', null, {})
-  },
+  }
 }

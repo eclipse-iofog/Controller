@@ -25,66 +25,66 @@ const events = Object.freeze({
     registries: false,
     tunnel: false,
     diagnostics: false,
-    isImageSnapshot: false,
+    isImageSnapshot: false
   },
   diagnostics: {
-    diagnostics: true,
+    diagnostics: true
   },
   imageSnapshot: {
-    isImageSnapshot: true,
+    isImageSnapshot: true
   },
   microserviceFull: {
     microserviceConfig: true,
     microserviceList: true,
-    routing: true,
+    routing: true
   },
   microserviceCommon: {
     microserviceConfig: true,
-    microserviceList: true,
+    microserviceList: true
   },
   microserviceList: {
-    microserviceList: true,
+    microserviceList: true
   },
   microserviceConfig: {
-    microserviceConfig: true,
+    microserviceConfig: true
   },
   microserviceRouting: {
-    routing: true,
+    routing: true
   },
   version: {
-    version: true,
+    version: true
   },
   reboot: {
-    reboot: true,
+    reboot: true
   },
   deleteNode: {
-    deleteNode: true,
+    deleteNode: true
   },
   registries: {
-    registries: true,
+    registries: true
   },
   tunnel: {
-    tunnel: true,
+    tunnel: true
   },
   config: {
-    config: true,
-  },
+    config: true
+  }
 })
 
-async function create(ioFogUuid, transaction) {
+async function create (ioFogUuid, transaction) {
   await ChangeTrackingManager.create({ iofogUuid: ioFogUuid }, transaction)
 }
 
-async function update(ioFogUuid, data, transaction) {
+async function update (ioFogUuid, data, transaction) {
   await ChangeTrackingManager.update({ iofogUuid: ioFogUuid }, data, transaction)
 }
 
-async function updateIfChanged(ioFogUuid, data, transaction) {
+async function updateIfChanged (ioFogUuid, data, transaction) {
   await ChangeTrackingManager.updateIfChanged({ iofogUuid: ioFogUuid }, data, transaction)
 }
 
-async function getByIoFogUuid(ioFogUuid, transaction) {
-  return await ChangeTrackingManager.findOne({ iofogUuid: ioFogUuid }, transaction)
+async function getByIoFogUuid (ioFogUuid, transaction) {
+  return ChangeTrackingManager.findOne({ iofogUuid: ioFogUuid }, transaction)
 }
 
 module.exports = {
@@ -92,5 +92,5 @@ module.exports = {
   create: create,
   update: update,
   updateIfChanged: updateIfChanged,
-  getByIoFogUuid: getByIoFogUuid,
+  getByIoFogUuid: getByIoFogUuid
 }

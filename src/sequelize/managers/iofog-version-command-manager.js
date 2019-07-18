@@ -16,7 +16,7 @@ const models = require('./../models')
 const FogVersionCommand = models.FogVersionCommand
 
 class FogVersionCommandManager extends BaseManager {
-  getEntity() {
+  getEntity () {
     return FogVersionCommand
   }
 }

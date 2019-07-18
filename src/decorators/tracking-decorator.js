@@ -14,10 +14,10 @@
 const { isTest } = require('../helpers/app-helper')
 const Tracking = require('../tracking')
 
-function trackEvent(f, eventType) {
-  return async function(...fArgs) {
+function trackEvent (f, eventType) {
+  return async function (...fArgs) {
     if (isTest()) {
-      return await f.apply(this, fArgs)
+      return f.apply(this, fArgs)
     }
 
     const res = await f.apply(this, fArgs)
@@ -27,7 +27,6 @@ function trackEvent(f, eventType) {
   }
 }
 
-
 module.exports = {
-  trackEvent: trackEvent,
+  trackEvent: trackEvent
 }

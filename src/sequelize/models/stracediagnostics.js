@@ -6,29 +6,29 @@ module.exports = (sequelize, DataTypes) => {
       primaryKey: true,
       autoIncrement: true,
       allowNull: false,
-      field: 'id',
+      field: 'id'
     },
     straceRun: {
       type: DataTypes.BOOLEAN,
-      field: 'strace_run',
+      field: 'strace_run'
     },
     buffer: {
       type: DataTypes.TEXT,
       field: 'buffer',
-      defaultValue: '',
-    },
+      defaultValue: ''
+    }
   }, {
     timestamps: false,
-    underscored: true,
+    underscored: true
   })
-  StraceDiagnostics.associate = function(models) {
+  StraceDiagnostics.associate = function (models) {
     StraceDiagnostics.belongsTo(models.Microservice, {
       foreignKey: {
         name: 'microserviceUuid',
-        field: 'microservice_uuid',
+        field: 'microservice_uuid'
       },
       as: 'microservice',
-      onDelete: 'cascade',
+      onDelete: 'cascade'
 
     })
   }
