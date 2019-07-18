@@ -34,7 +34,8 @@ const saveActivationCode = async function (userId, activationCodeData, transacti
   const expirationTime = activationCodeData.expirationTime
 
   try {
-    return EmailActivationCodeManager.createActivationCode(userId, activationCode, expirationTime, transaction)
+    const code = await EmailActivationCodeManager.createActivationCode(userId, activationCode, expirationTime, transaction)
+    return code
   } catch (errMsg) {
     throw new Error(ErrorMessages.UNABLE_TO_CREATE_ACTIVATION_CODE)
   }
@@ -42,7 +43,8 @@ const saveActivationCode = async function (userId, activationCodeData, transacti
 
 const verifyActivationCode = async function (activationCode, transaction) {
   try {
-    return EmailActivationCodeManager.verifyActivationCode(activationCode, transaction)
+    const value = await EmailActivationCodeManager.verifyActivationCode(activationCode, transaction)
+    return value
   } catch (errMsg) {
     throw new Error(ErrorMessages.UNABLE_TO_GET_ACTIVATION_CODE)
   }
