@@ -11,7 +11,7 @@
  *
  */
 
-const sqlite3 = require('sqlite3') // .verbose() //use verbose in dev to get stack traces
+// const sqlite3 = require('sqlite3') // .verbose() //use verbose in dev to get stack traces
 const execSync = require('child_process').execSync
 const fs = require('fs')
 const semver = require('semver')
@@ -27,7 +27,7 @@ function postinstall () {
 
   // process migrations
   try {
-    const installationVarsStr = fs.readFileSync(INSTALLATION_VARIABLES_FILE)
+    const installationVarsStr = fs.readFileSync(INSTALLATION_VARIABLES_FILE) // Always throws currently
     const installationVars = JSON.parse(installationVarsStr)
     const prevVersion = installationVars.prevVer
 
@@ -67,97 +67,101 @@ function postinstall () {
 // other functions definitions
 
 function insertSeeds () {
-  console.log('    inserting seeds meta info in db')
-  const sqlite3ProdDb = new sqlite3.Database(prodDb)
-  const seeds = [
-    '20180928110125-insert-registry.js',
-    '20180928111532-insert-catalog-item.js',
-    '20180928112152-insert-iofog-type.js',
-    '20180928121334-insert-catalog-item-image.js'
-  ]
-  sqlite3ProdDb.serialize(function () {
-    const stmt = sqlite3ProdDb.prepare('INSERT INTO SequelizeMeta (name) VALUES (?)')
-    seeds.map((s) => stmt.run(s))
-    stmt.finalize()
-  })
-  sqlite3ProdDb.close()
+  // Never called
+  // console.log('    inserting seeds meta info in db')
+  // const sqlite3ProdDb = new sqlite3.Database(prodDb)
+  // const seeds = [
+  //   '20180928110125-insert-registry.js',
+  //   '20180928111532-insert-catalog-item.js',
+  //   '20180928112152-insert-iofog-type.js',
+  //   '20180928121334-insert-catalog-item-image.js'
+  // ]
+  // sqlite3ProdDb.serialize(function () {
+  //   const stmt = sqlite3ProdDb.prepare('INSERT INTO SequelizeMeta (name) VALUES (?)')
+  //   seeds.map((s) => stmt.run(s))
+  //   stmt.finalize()
+  // })
+  // sqlite3ProdDb.close()
 }
 
-function updateEncryptionMethodForUsersPassword (decryptionFunc) {
-  console.log('    updating encryption in DB')
-  const sqlite3ProdDb = new sqlite3.Database(prodDb)
-  sqlite3ProdDb.all('select id, email, password from Users', function (err, rows) {
-    if (err) {
-      return
-    }
-    const stmt = sqlite3ProdDb.prepare('update Users set password=? where id=?')
+// Never called - prodDB undefined
+// function updateEncryptionMethodForUsersPassword (decryptionFunc) {
+// console.log('    updating encryption in DB')
+// const sqlite3ProdDb = new sqlite3.Database(prodDb)
+// sqlite3ProdDb.all('select id, email, password from Users', function (err, rows) {
+//   if (err) {
+//     return
+//   }
+//   const stmt = sqlite3ProdDb.prepare('update Users set password=? where id=?')
 
-    rows.map((user) => {
-      try {
-        const id = user.id
-        const email = user.email
-        const oldEncryptedPassword = user.password
+//   rows.map((user) => {
+//     try {
+//       const id = user.id
+//       const email = user.email
+//       const oldEncryptedPassword = user.password
 
-        const decryptedPassword = decryptionFunc(oldEncryptedPassword, email)
-        const AppHelper = require('../src/helpers/app-helper')
-        const newEncryptedPassword = AppHelper.encryptText(decryptedPassword, email)
+//       const decryptedPassword = decryptionFunc(oldEncryptedPassword, email)
+//       const AppHelper = require('../src/helpers/app-helper')
+//       const newEncryptedPassword = AppHelper.encryptText(decryptedPassword, email)
 
-        stmt.run(newEncryptedPassword, id)
-      } catch (e) {
-        console.log('db problem')
-        console.log(e)
-      }
-    })
-    stmt.finalize()
-  })
-  sqlite3ProdDb.close()
-}
+//       stmt.run(newEncryptedPassword, id)
+//     } catch (e) {
+//       console.log('db problem')
+//       console.log(e)
+//     }
+//   })
+//   stmt.finalize()
+// })
+// sqlite3ProdDb.close()
+// }
 
-function updateEncryptionMethodForEmailService (configFile, decryptionFunc) {
-  console.log(configFile)
-  if (!configFile) {
-    return
-  }
-  const configObj = JSON.parse(fs.readFileSync(configFile, 'utf8'))
-  console.log(configObj)
-  if (!configObj || !configObj.Email || !configObj.Email.Address || !configObj.Email.Password) {
-    return
-  }
+// Never called
+// function updateEncryptionMethodForEmailService (configFile, decryptionFunc) {
+//   console.log(configFile)
+//   if (!configFile) {
+//     return
+//   }
+//   const configObj = JSON.parse(fs.readFileSync(configFile, 'utf8'))
+//   console.log(configObj)
+//   if (!configObj || !configObj.Email || !configObj.Email.Address || !configObj.Email.Password) {
+//     return
+//   }
 
-  const email = configObj.Email.Address
-  const oldEncryptedPassword = configObj.Email.Password
+//   const email = configObj.Email.Address
+//   const oldEncryptedPassword = configObj.Email.Password
 
-  const decryptedPassword = decryptionFunc(oldEncryptedPassword, email)
+//   const decryptedPassword = decryptionFunc(oldEncryptedPassword, email)
 
-  const AppHelper = require('../src/helpers/app-helper')
-  configObj.Email.Password = AppHelper.encryptText(decryptedPassword, email)
+//   const AppHelper = require('../src/helpers/app-helper')
+//   configObj.Email.Password = AppHelper.encryptText(decryptedPassword, email)
 
-  console.log(configObj)
-  try {
-    fs.writeFileSync(configFile, JSON.stringify(configObj, null, 2))
-  } catch (e) {
-    console.log(e)
-  }
-}
+//   console.log(configObj)
+//   try {
+//     fs.writeFileSync(configFile, JSON.stringify(configObj, null, 2))
+//   } catch (e) {
+//     console.log(e)
+//   }
+// }
 
 function updateEncryptionMethod () {
-  console.log('    updating encryption method for old users')
+  // Never called - defConfig, devConfig, prodConfig undefined
+  // console.log('    updating encryption method for old users')
 
-  function decryptTextVer30 (text, salt) {
-    const crypto = require('crypto')
-    const ALGORITHM = 'aes-256-ctr'
+  // function decryptTextVer30 (text, salt) {
+  //   const crypto = require('crypto')
+  //   const ALGORITHM = 'aes-256-ctr'
 
-    const decipher = crypto.createDecipheriv(ALGORITHM, salt, null)
-    let dec = decipher.update(text, 'hex', 'utf8')
-    dec += decipher.final('utf8')
-    return dec
-  }
+  //   const decipher = crypto.createDecipheriv(ALGORITHM, salt, null)
+  //   let dec = decipher.update(text, 'hex', 'utf8')
+  //   dec += decipher.final('utf8')
+  //   return dec
+  // }
 
-  updateEncryptionMethodForUsersPassword(decryptTextVer30)
-  console.log('    updating encryption  for email services in configs')
-  updateEncryptionMethodForEmailService(defConfig, decryptTextVer30)
-  updateEncryptionMethodForEmailService(devConfig, decryptTextVer30)
-  updateEncryptionMethodForEmailService(prodConfig, decryptTextVer30)
+  // updateEncryptionMethodForUsersPassword(decryptTextVer30)
+  // console.log('    updating encryption  for email services in configs')
+  // updateEncryptionMethodForEmailService(defConfig, decryptTextVer30)
+  // updateEncryptionMethodForEmailService(devConfig, decryptTextVer30)
+  // updateEncryptionMethodForEmailService(prodConfig, decryptTextVer30)
 }
 
 function updateLogName () {
