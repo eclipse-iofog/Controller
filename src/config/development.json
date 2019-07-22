@@ -2,6 +2,9 @@
   "App": {
     "Name": "iofog-controller-dev"
   },
+  "Viewer": {
+    "Port": 8008
+  },
   "Kubelet": {
     "Uri": "http://localhost:1234"
   },
