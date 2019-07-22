@@ -83,8 +83,6 @@ const setupMiddleware = function (routeName) {
 fs.readdirSync(path.join(__dirname, 'routes'))
   .forEach(setupMiddleware)
 
-viewerApp.use('/', ecnViewer.middleware(express))
-
 const jobs = []
 
 const setupJobs = function (file) {
@@ -151,6 +149,9 @@ const viewerPort = config.get('Viewer:Port')
 const sslKey = config.get('Server:SslKey')
 const sslCert = config.get('Server:SslCert')
 const intermedKey = config.get('Server:IntermediateCert')
+
+viewerApp.use('/', ecnViewer.middleware(express))
+viewerApp.use('/api', (req, res) => res.redirect(`${req.protocol}://${req.headers.host.split(':')[0]}:${apiPort}${req.url}`))
 
 if (!devMode && sslKey && sslCert && intermedKey) {
   startHttpsServer({ api: app, viewer: viewerApp }, { api: apiPort, viewer: viewerPort }, sslKey, sslCert, intermedKey, jobs)
