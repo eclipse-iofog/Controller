@@ -20,6 +20,7 @@ const express = require('express')
 const ecnViewer = require('@iofog/ecn-viewer')
 const fs = require('fs')
 const helmet = require('helmet')
+const cors = require('cors')
 const https = require('https')
 const path = require('path')
 const { renderFile } = require('ejs')
@@ -29,6 +30,8 @@ const packageJson = require('../package')
 const viewerApp = express()
 
 const app = express()
+
+app.use(cors())
 
 const Sentry = require('@sentry/node')
 
@@ -150,7 +153,6 @@ const sslKey = config.get('Server:SslKey')
 const sslCert = config.get('Server:SslCert')
 const intermedKey = config.get('Server:IntermediateCert')
 
-viewerApp.use('/api', (req, res) => res.redirect(`${req.protocol}://${req.headers.host.split(':')[0]}:${apiPort}${req.url}`))
 viewerApp.use('/', ecnViewer.middleware(express))
 
 if (!devMode && sslKey && sslCert && intermedKey) {
