@@ -26,6 +26,8 @@ const { renderFile } = require('ejs')
 const xss = require('xss-clean')
 const packageJson = require('../package')
 
+const viewerApp = express()
+
 const app = express()
 
 const Sentry = require('@sentry/node')
@@ -81,7 +83,7 @@ const setupMiddleware = function (routeName) {
 fs.readdirSync(path.join(__dirname, 'routes'))
   .forEach(setupMiddleware)
 
-app.use('/', ecnViewer.middleware(express))
+viewerApp.use('/', ecnViewer.middleware(express))
 
 const jobs = []
 
@@ -95,19 +97,25 @@ fs.readdirSync(path.join(__dirname, 'jobs'))
   })
   .forEach(setupJobs)
 
-function startHttpServer (app, port, jobs) {
+function startHttpServer (apps, ports, jobs) {
   logger.info('SSL not configured, starting HTTP server.')
 
-  app.listen(port, function onStart (err) {
+  apps.viewer.listen(ports.viewer, function onStart (err) {
     if (err) {
       logger.error(err)
     }
-    logger.info(`==> 🌎 Listening on port ${port}. Open up http://localhost:${port}/ in your browser.`, port, port)
+    logger.info(`==> 🌎 Viewer listening on port ${ports.viewer}. Open up http://localhost:${ports.viewer}/ in your browser.`)
+  })
+  apps.api.listen(ports.api, function onStart (err) {
+    if (err) {
+      logger.error(err)
+    }
+    logger.info(`==> 🌎 API Listening on port ${ports.api}. Open up http://localhost:${ports.api}/ in your browser.`)
     jobs.forEach((job) => job.run())
   })
 }
 
-function startHttpsServer (app, port, sslKey, sslCert, intermedKey, jobs) {
+function startHttpsServer (apps, ports, sslKey, sslCert, intermedKey, jobs) {
   try {
     const sslOptions = {
       key: fs.readFileSync(sslKey),
@@ -117,11 +125,19 @@ function startHttpsServer (app, port, sslKey, sslCert, intermedKey, jobs) {
       rejectUnauthorized: false // currently for some reason iofog agent doesn't work without this option
     }
 
-    https.createServer(sslOptions, app).listen(port, function onStart (err) {
+    https.createServer(sslOptions, apps.viewer).listen(ports.viewer, function onStart (err) {
       if (err) {
         logger.error(err)
       }
-      logger.info(`==> 🌎 HTTPS server listening on port ${port}. Open up https://localhost:${port}/ in your browser.`)
+      logger.info(`==> 🌎 HTTPS Viewer server listening on port ${ports.viewer}. Open up https://localhost:${ports.viewer}/ in your browser.`)
+      jobs.forEach((job) => job.run())
+    })
+
+    https.createServer(sslOptions, apps.api).listen(ports.api, function onStart (err) {
+      if (err) {
+        logger.error(err)
+      }
+      logger.info(`==> 🌎 HTTPS API server listening on port ${ports.api}. Open up https://localhost:${ports.api}/ in your browser.`)
       jobs.forEach((job) => job.run())
     })
   } catch (e) {
@@ -130,15 +146,16 @@ function startHttpsServer (app, port, sslKey, sslCert, intermedKey, jobs) {
 }
 
 const devMode = config.get('Server:DevMode')
-const port = config.get('Server:Port')
+const apiPort = config.get('Server:Port')
+const viewerPort = config.get('Viewer:Port')
 const sslKey = config.get('Server:SslKey')
 const sslCert = config.get('Server:SslCert')
 const intermedKey = config.get('Server:IntermediateCert')
 
 if (!devMode && sslKey && sslCert && intermedKey) {
-  startHttpsServer(app, port, sslKey, sslCert, intermedKey, jobs)
+  startHttpsServer({ api: app, viewer: viewerApp }, { api: apiPort, viewer: viewerPort }, sslKey, sslCert, intermedKey, jobs)
 } else {
-  startHttpServer(app, port, jobs)
+  startHttpServer({ api: app, viewer: viewerApp }, { api: apiPort, viewer: viewerPort }, jobs)
 }
 
 const event = Tracking.buildEvent(TrackingEventType.START, `devMode is ${devMode}`)

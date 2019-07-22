@@ -2,8 +2,11 @@
   "App": {
     "Name": "iofog-controller"
   },
+  "Viewer": {
+    "Port": 80
+  },
   "Server": {
-    "Port": 54421,
+    "Port": 51121,
     "DevMode": true
   },
   "Email": {
