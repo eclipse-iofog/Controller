@@ -244,8 +244,16 @@ const kubeletGetPodStatus = async function (namespace, name, fogNodeUuid, user, 
 const kubeletGetPods = async function (fogNodeUuid, user, transaction) {
   const flows = await FlowService.getAllFlowsEndPoint(false, transaction)
   const pods = flows.flows
-    .filter((flow) => JSON.parse(Buffer.from(flow.description, 'base64').toString('utf8')).node === fogNodeUuid)
-    .map((flow) => JSON.parse(Buffer.from(flow.description, 'base64').toString('utf8')).metadata)
+    .reduce((prev, flow) => {
+      try {
+        const podsInfo = JSON.parse(Buffer.from(flow.description, 'base64').toString('utf8'))
+        if (podsInfo.node === fogNodeUuid) {
+          return prev.concat(podsInfo.metadata)
+        }
+      } catch (err) {
+        return prev
+      }
+    }, [])
 
   return pods
 }
