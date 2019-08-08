@@ -14,7 +14,7 @@
 const BaseCLIHandler = require('./base-cli-handler')
 const config = require('../config')
 const logger = require('../logger')
-const db = require('../sequelize/models')
+const db = require('../data/models')
 
 class Start extends BaseCLIHandler {
   async run (args) {
@@ -40,6 +40,7 @@ class Start extends BaseCLIHandler {
     try {
       await db.initDB()
     } catch (err) {
+      console.log(err)
       logger.error('Unable to initialize the database.', err)
       process.exit(1)
     }

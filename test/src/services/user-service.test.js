@@ -1,13 +1,13 @@
 const { expect } = require('chai')
 const sinon = require('sinon')
 
-const UserManager = require('../../../src/sequelize/managers/user-manager')
+const UserManager = require('../../../src/data/managers/user-manager')
 const UserService = require('../../../src/services/user-service')
 const Config = require('../../../src/config')
 const AccessTokenService = require('../../../src/services/access-token-service')
 const Validator = require('../../../src/schemas')
 const AppHelper = require('../../../src/helpers/app-helper')
-const ioFogManager = require('../../../src/sequelize/managers/iofog-manager')
+const ioFogManager = require('../../../src/data/managers/iofog-manager')
 const EmailActivationCodeService = require('../../../src/services/email-activation-code-service')
 const nodemailer = require('nodemailer')
 

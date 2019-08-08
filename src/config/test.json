@@ -1,0 +1,8 @@
+{
+  "Server": {
+    "DevMode": true
+  },
+  "Email": {
+    "ActivationEnabled": false
+  }
+}

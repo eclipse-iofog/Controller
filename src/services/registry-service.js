@@ -11,13 +11,13 @@
  *
  */
 
-const RegistryManager = require('../sequelize/managers/registry-manager')
+const RegistryManager = require('../data/managers/registry-manager')
 const Validator = require('../schemas')
 const Errors = require('../helpers/errors')
 const ErrorMessages = require('../helpers/error-messages')
 const ChangeTrackingService = require('./change-tracking-service')
 const TransactionDecorator = require('../decorators/transaction-decorator')
-const FogManager = require('../sequelize/managers/iofog-manager')
+const FogManager = require('../data/managers/iofog-manager')
 const Sequelize = require('sequelize')
 const Op = Sequelize.Op
 const AppHelper = require('../helpers/app-helper')

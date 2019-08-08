@@ -13,7 +13,7 @@
 
 const BaseJobHandler = require('./base/base-job-handler')
 const Tracking = require('../tracking')
-const TrackingEventManager = require('../sequelize/managers/tracking-event-manager')
+const TrackingEventManager = require('../data/managers/tracking-event-manager')
 const logger = require('../logger')
 
 class SendTrackingJob extends BaseJobHandler {

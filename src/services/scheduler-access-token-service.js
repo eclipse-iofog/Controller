@@ -12,7 +12,7 @@
  */
 
 const AppHelper = require('../helpers/app-helper')
-const SchedulerAccessTokenManager = require('../sequelize/managers/scheduler-access-token-manager')
+const SchedulerAccessTokenManager = require('../data/managers/scheduler-access-token-manager')
 
 const Config = require('../config')
 
