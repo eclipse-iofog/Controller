@@ -11,7 +11,7 @@
  *
  */
 
-const ChangeTrackingManager = require('../sequelize/managers/change-tracking-manager')
+const ChangeTrackingManager = require('../data/managers/change-tracking-manager')
 
 const events = Object.freeze({
   clean: {

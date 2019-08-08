@@ -16,10 +16,10 @@ const fs = require('fs')
 const ROOT_DIR = `${__dirname}/..`
 const TEMP_DIR = getTempDir()
 
-const DEV_DB = `${ROOT_DIR}/src/sequelize/dev_database.sqlite`
+const DEV_DB = `${ROOT_DIR}/src/data/dev_database.sqlite`
 const DEV_DB_BACKUP = `${TEMP_DIR}/dev_database.sqlite`
 
-const PROD_DB = `${ROOT_DIR}/src/sequelize/prod_database.sqlite`
+const PROD_DB = `${ROOT_DIR}/src/data/prod_database.sqlite`
 const PROD_DB_BACKUP = `${TEMP_DIR}/prod_database.sqlite`
 
 const DEFAULT_CONFIG = `${ROOT_DIR}/src/config/default.json`

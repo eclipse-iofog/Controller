@@ -13,9 +13,9 @@
 
 const TransactionDecorator = require('../decorators/transaction-decorator')
 
-const FogManager = require('../sequelize/managers/iofog-manager')
-const MicroserviceManager = require('../sequelize/managers/microservice-manager')
-const MicroserviceStatusManager = require('../sequelize/managers/microservice-status-manager')
+const FogManager = require('../data/managers/iofog-manager')
+const MicroserviceManager = require('../data/managers/microservice-manager')
+const MicroserviceStatusManager = require('../data/managers/microservice-status-manager')
 const MicroserviceService = require('../services/microservices-service')
 const MicroserviceStates = require('../enums/microservice-state')
 const FogStates = require('../enums/fog-state')
