@@ -2,7 +2,7 @@
 module.exports = (sequelize, DataTypes) => {
   const Microservice = sequelize.define('Microservice', {
     uuid: {
-      type: DataTypes.TEXT,
+      type: DataTypes.STRING(32),
       primaryKey: true,
       allowNull: false,
       field: 'uuid'

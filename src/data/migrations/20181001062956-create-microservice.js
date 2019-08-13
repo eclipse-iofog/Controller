@@ -3,7 +3,7 @@ module.exports = {
   up: (queryInterface, Sequelize) => {
     return queryInterface.createTable('Microservices', {
       uuid: {
-        type: Sequelize.TEXT,
+        type: Sequelize.STRING(32),
         primaryKey: true,
         allowNull: false,
         field: 'uuid'
@@ -59,7 +59,7 @@ module.exports = {
         field: 'updated_at'
       },
       iofogUuid: {
-        type: Sequelize.TEXT,
+        type: Sequelize.STRING(32),
         field: 'iofog_uuid',
         references: { model: 'Fogs', key: 'uuid' },
         onDelete: 'set null'

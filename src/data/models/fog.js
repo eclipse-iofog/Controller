@@ -2,7 +2,7 @@
 module.exports = (sequelize, DataTypes) => {
   const Fog = sequelize.define('Fog', {
     uuid: {
-      type: DataTypes.TEXT,
+      type: DataTypes.STRING(32),
       primaryKey: true,
       allowNull: false,
       field: 'uuid'

@@ -22,8 +22,8 @@ class Config {
     this.load(environment)
   }
 
-  get (key) {
-    return nconf.get(key) || constants[key]
+  get (key, defaultValue) {
+    return nconf.get(key) || constants[key] || defaultValue
   }
 
   set (key, value) {
