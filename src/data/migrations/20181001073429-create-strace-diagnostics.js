@@ -19,7 +19,7 @@ module.exports = {
         defaultValue: ''
       },
       microserviceUuid: {
-        type: Sequelize.TEXT,
+        type: Sequelize.STRING(32),
         field: 'microservice_uuid',
         references: { model: 'Microservices', key: 'uuid' },
         onDelete: 'cascade'

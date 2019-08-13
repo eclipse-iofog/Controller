@@ -10,19 +10,19 @@ module.exports = {
         field: 'id'
       },
       microserviceUuid: {
-        type: Sequelize.TEXT,
+        type: Sequelize.STRING(32),
         field: 'microservice_uuid',
         references: { model: 'Microservices', key: 'uuid' },
         onDelete: 'cascade'
       },
       networkMicroserviceUuid: {
-        type: Sequelize.TEXT,
+        type: Sequelize.STRING(32),
         field: 'network_microservice_uuid',
         references: { model: 'Microservices', key: 'uuid' },
         onDelete: 'set null'
       },
       iofogUuid: {
-        type: Sequelize.TEXT,
+        type: Sequelize.STRING(32),
         field: 'iofog_uuid',
         references: { model: 'Fogs', key: 'uuid' },
         onDelete: 'set null'

@@ -14,7 +14,7 @@ module.exports = {
         field: 'version_command'
       },
       iofogUuid: {
-        type: Sequelize.TEXT,
+        type: Sequelize.STRING(32),
         field: 'iofog_uuid',
         references: { model: 'Fogs', key: 'uuid' },
         onDelete: 'cascade'
