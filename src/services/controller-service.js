@@ -36,7 +36,7 @@ const getFogTypes = async function (isCLI, transaction) {
 }
 
 const emailActivation = async function (isCLI) {
-  const emailActivation = await Config.get('Email:ActivationEnabled')
+  const emailActivation = await Config.get('Email:ActivationEnabled', false)
   return {
     isEmailActivationEnabled: emailActivation
   }
