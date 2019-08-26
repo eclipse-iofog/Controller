@@ -382,7 +382,7 @@ module.exports = [
     }
   },
   {
-    method: 'put',
+    method: 'get',
     path: '/api/v3/k8s/vk-token',
     middleware: async (req, res) => {
       logger.apiReq(req)
