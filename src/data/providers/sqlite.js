@@ -10,7 +10,8 @@ class SqliteDatabaseProvider extends DatabaseProvider {
 
     const sqliteConfig = config.get('Database:Config', {})
     sqliteConfig.dialect = 'sqlite'
-    sqliteConfig.storage = path.resolve(__dirname, '../' + sqliteConfig.storage)
+    sqliteConfig.databaseName = process.env.DB_USERNAME || sqliteConfig.databaseName
+    sqliteConfig.storage = path.resolve(__dirname, '../' + sqliteConfig.databaseName)
     if (config.use_env_variable) {
       this.sequelize = new Sequelize(process.env[config.use_env_variable], sqliteConfig)
     } else {

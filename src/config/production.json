@@ -21,7 +21,7 @@
   "Database": {
     "Provider": "sqlite",
     "Config": {
-      "storage": "prod_database.sqlite",
+      "databaseName": "prod_database.sqlite",
       "logging": false,
       "operatorsAliases": false,
       "transactionType": "IMMEDIATE",
