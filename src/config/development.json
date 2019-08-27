@@ -40,7 +40,7 @@
   "Database": {
     "Provider": "sqlite",
     "Config": {
-      "storage": "dev_database.sqlite",
+      "databaseName": "dev_database.sqlite",
       "logging": false,
       "operatorsAliases": false,
       "transactionType": "IMMEDIATE",

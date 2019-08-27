@@ -8,7 +8,7 @@
   "Database": {
     "Provider": "sqlite",
     "Config": {
-      "storage": "test_database.sqlite",
+      "databaseName": "test_database.sqlite",
       "logging": false,
       "operatorsAliases": false,
       "transactionType": "IMMEDIATE",
