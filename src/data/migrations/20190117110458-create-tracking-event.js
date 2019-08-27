@@ -19,7 +19,7 @@ module.exports = {
         field: 'source_type'
       },
       timestamp: {
-        type: Sequelize.BIGINT,
+        type: Sequelize.INTEGER,
         field: 'timestamp'
       },
       type: {

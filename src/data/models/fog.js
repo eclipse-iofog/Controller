@@ -33,7 +33,7 @@ module.exports = (sequelize, DataTypes) => {
       field: 'description'
     },
     lastActive: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       field: 'last_active'
     },
     daemonStatus: {
@@ -42,12 +42,12 @@ module.exports = (sequelize, DataTypes) => {
       field: 'daemon_status'
     },
     daemonOperatingDuration: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       defaultValue: 0,
       field: 'daemon_operating_duration'
     },
     daemonLastStart: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       field: 'daemon_last_start'
     },
     memoryUsage: {
@@ -78,11 +78,11 @@ module.exports = (sequelize, DataTypes) => {
       field: 'cpu_violation'
     },
     systemAvailableDisk: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       field: 'system-available-disk'
     },
     systemAvailableMemory: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       field: 'system-available-memory'
     },
     systemTotalCpu: {
@@ -104,7 +104,7 @@ module.exports = (sequelize, DataTypes) => {
       field: 'catalog_item_status'
     },
     repositoryCount: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       field: 'repository_count'
     },
     repositoryStatus: {
@@ -112,11 +112,11 @@ module.exports = (sequelize, DataTypes) => {
       field: 'repository_status'
     },
     systemTime: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       field: 'system_time'
     },
     lastStatusTime: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       field: 'last_status_time'
     },
     ipAddress: {
@@ -130,7 +130,7 @@ module.exports = (sequelize, DataTypes) => {
       field: 'ip_address_external'
     },
     processedMessages: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       defaultValue: 0,
       field: 'processed_messages'
     },
@@ -139,11 +139,11 @@ module.exports = (sequelize, DataTypes) => {
       field: 'catalog_item_message_counts'
     },
     messageSpeed: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       field: 'message_speed'
     },
     lastCommandTime: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       field: 'last_command_time'
     },
     networkInterface: {
@@ -197,7 +197,7 @@ module.exports = (sequelize, DataTypes) => {
       field: 'hal'
     },
     logFileCount: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       defaultValue: 10,
       field: 'log_file_count'
     },

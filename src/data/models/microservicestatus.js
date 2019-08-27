@@ -14,12 +14,12 @@ module.exports = (sequelize, DataTypes) => {
       field: 'status'
     },
     operatingDuration: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       defaultValue: 0,
       field: 'operating_duration'
     },
     startTime: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       defaultValue: 0,
       field: 'start_time'
     },
@@ -29,7 +29,7 @@ module.exports = (sequelize, DataTypes) => {
       field: 'cpu_usage'
     },
     memoryUsage: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       defaultValue: 0,
       field: 'memory_usage'
     },

@@ -15,7 +15,7 @@ module.exports = {
         field: 'provisioning_string'
       },
       expirationTime: {
-        type: Sequelize.BIGINT,
+        type: Sequelize.INTEGER,
         field: 'expiration_time'
       },
       iofogUuid: {

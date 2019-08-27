@@ -33,12 +33,12 @@ module.exports = {
         field: 'publisher'
       },
       diskRequired: {
-        type: Sequelize.BIGINT,
+        type: Sequelize.INTEGER,
         field: 'disk_required',
         defaultValue: 0
       },
       ramRequired: {
-        type: Sequelize.BIGINT,
+        type: Sequelize.INTEGER,
         field: 'ram_required',
         defaultValue: 0
       },
