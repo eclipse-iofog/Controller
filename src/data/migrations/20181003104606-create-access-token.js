@@ -14,7 +14,7 @@ module.exports = {
         field: 'token'
       },
       expirationTime: {
-        type: Sequelize.BIGINT,
+        type: Sequelize.INTEGER,
         field: 'expiration_time'
       },
       userId: {

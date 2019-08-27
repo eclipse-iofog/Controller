@@ -14,7 +14,7 @@ module.exports = (sequelize, DataTypes) => {
       field: 'provisioning_string'
     },
     expirationTime: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       field: 'expiration_time'
     }
   }, {

@@ -32,12 +32,12 @@ module.exports = (sequelize, DataTypes) => {
       field: 'publisher'
     },
     diskRequired: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       field: 'disk_required',
       defaultValue: 0
     },
     ramRequired: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       field: 'ram_required',
       defaultValue: 0
     },

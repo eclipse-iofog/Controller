@@ -34,7 +34,7 @@ module.exports = {
         field: 'description'
       },
       lastactive: {
-        type: Sequelize.BIGINT,
+        type: Sequelize.INTEGER,
         field: 'last_active'
       },
       daemonStatus: {
@@ -43,12 +43,12 @@ module.exports = {
         field: 'daemon_status'
       },
       daemonOperatingDuration: {
-        type: Sequelize.BIGINT,
+        type: Sequelize.INTEGER,
         defaultValue: 0,
         field: 'daemon_operating_duration'
       },
       daemonLastStart: {
-        type: Sequelize.BIGINT,
+        type: Sequelize.INTEGER,
         field: 'daemon_last_start'
       },
       memoryUsage: {
@@ -83,7 +83,7 @@ module.exports = {
         field: 'catalog_item_status'
       },
       repositoryCount: {
-        type: Sequelize.BIGINT,
+        type: Sequelize.INTEGER,
         field: 'repository_count'
       },
       repositoryStatus: {
@@ -91,11 +91,11 @@ module.exports = {
         field: 'repository_status'
       },
       systemTime: {
-        type: Sequelize.BIGINT,
+        type: Sequelize.INTEGER,
         field: 'system_time'
       },
       lastStatusTime: {
-        type: Sequelize.BIGINT,
+        type: Sequelize.INTEGER,
         field: 'last_status_time'
       },
       ipAddress: {
@@ -104,7 +104,7 @@ module.exports = {
         field: 'ip_address'
       },
       processedMessages: {
-        type: Sequelize.BIGINT,
+        type: Sequelize.INTEGER,
         defaultValue: 0,
         field: 'processed_messages'
       },
@@ -113,11 +113,11 @@ module.exports = {
         field: 'catalog_item_message_counts'
       },
       messageSpeed: {
-        type: Sequelize.BIGINT,
+        type: Sequelize.INTEGER,
         field: 'message_speed'
       },
       lastCommandTime: {
-        type: Sequelize.BIGINT,
+        type: Sequelize.INTEGER,
         field: 'last_command_time'
       },
       networkInterface: {
@@ -171,7 +171,7 @@ module.exports = {
         field: 'hal'
       },
       logFileCount: {
-        type: Sequelize.BIGINT,
+        type: Sequelize.INTEGER,
         defaultValue: 10,
         field: 'log_file_count'
       },

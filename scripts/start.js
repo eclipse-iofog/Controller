@@ -18,11 +18,11 @@ function start () {
     env: {
       'NODE_ENV': 'production',
       'PATH': process.env.PATH,
-      'DB_USERNAME': process.env.DB_USERNAME,
-      'DB_PASSWORD': process.env.DB_PASSWORD,
-      'DB_PROVIDER': process.env.DB_PROVIDER,
-      'DB_HOST': process.env.DB_HOST,
-      'DB_PORT': process.env.DB_PORT
+      'DB_USERNAME': 'admin',
+      'DB_PASSWORD': 'gg3m53vw5a',
+      'DB_PROVIDER': 'postgres',
+      'DB_HOST': '34.94.12.14',
+      'DB_PORT': 30000
     },
     stdio: [process.stdin, process.stdout, process.stderr]
   }
