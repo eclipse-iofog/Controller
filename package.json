@@ -122,6 +122,10 @@
   },
   "files": [
     "/scripts",
-    "/src"
+    "/src",
+    "/test",
+    ".eslintrc.js",
+    ".jshintrc",
+    ".snyk"
   ]
 }
