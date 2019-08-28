@@ -12,20 +12,18 @@
  */
 
 const execSync = require('child_process').execSync
+
 const { init } = require('./init')
-const { restoreDBs, backupDBs } = require('./util')
+const { restoreDBs, backupDBs, setDbEnvVars } = require('./util')
 
 const options = {
   env: {
     'NODE_ENV': 'production',
-    'PATH': process.env.PATH,
-    'DB_USERNAME': process.env.DB_USERNAME,
-    'DB_PASSWORD': process.env.DB_PASSWORD,
-    'DB_PROVIDER': process.env.DB_PROVIDER,
-    'DB_HOST': process.env.DB_HOST,
-    'DB_PORT': process.env.DB_PORT
+    'PATH': process.env.PATH
   }
 }
+
+options.env = setDbEnvVars(options.env)
 
 /* eslint-disable no-unused-vars */
 let testsCounter = 0

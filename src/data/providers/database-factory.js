@@ -1,7 +1,8 @@
 const config = require('../../config')
 
 function createDatabaseProvider () {
-  let provider = process.env.DB_PROVIDER || config.get('Database:Provider')
+  let provider = process.env.DB_PROVIDER || config.get('Database:Provider', 'sqlite')
+
   if (!provider) {
     provider = 'sqlite'
   }

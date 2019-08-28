@@ -15,9 +15,10 @@
 const execSync = require('child_process').execSync
 const fs = require('fs')
 const semver = require('semver')
+
 const config = require('../src/config')
 const currentVersion = require('../package').version
-const { restoreDBs, restoreConfigs, restoreTrackingUuid, INSTALLATION_VARIABLES_FILE } = require('./util')
+const { restoreDBs, restoreConfigs, restoreTrackingUuid, INSTALLATION_VARIABLES_FILE, setDbEnvVars } = require('./util')
 
 function postinstall () {
 // restore all files
@@ -57,15 +58,12 @@ function postinstall () {
   const options = {
     env: {
       'NODE_ENV': 'production',
-      'PATH': process.env.PATH,
-      'DB_USERNAME': process.env.DB_USERNAME,
-      'DB_PASSWORD': process.env.DB_PASSWORD,
-      'DB_PROVIDER': process.env.DB_PROVIDER,
-      'DB_HOST': process.env.DB_HOST,
-      'DB_PORT': process.env.DB_PORT
+      'PATH': process.env.PATH
     },
     stdio: [process.stdin, process.stdout, process.stderr]
   }
+
+  options.env = setDbEnvVars(options.env)
 
   execSync('node ./src/main.js init', options)
 }
