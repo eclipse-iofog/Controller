@@ -19,17 +19,6 @@ class AccessTokenManager extends BaseManager {
   getEntity () {
     return AccessToken
   }
-
-  // no transaction required here, used by auth decorator
-  updateExpirationTime (id, newTime) {
-    return AccessToken.update({
-      expirationTime: newTime
-    }, {
-      where: {
-        id: id
-      }
-    })
-  }
 }
 
 const instance = new AccessTokenManager()

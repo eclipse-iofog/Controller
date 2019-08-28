@@ -13,7 +13,6 @@
 const logger = require('../logger')
 const config = require('../config')
 const UserManager = require('../sequelize/managers/user-manager')
-const AccessTokenManager = require('../sequelize/managers/access-token-manager')
 const FogManager = require('../sequelize/managers/iofog-manager')
 const FogAccessTokenManager = require('../sequelize/managers/iofog-access-token-manager')
 const Errors = require('../helpers/errors')
@@ -40,8 +39,6 @@ function checkAuthToken (f) {
     }
 
     fArgs.push(user)
-    AccessTokenManager.updateExpirationTime(user.accessToken.id, user.accessToken.expirationTime +
-        config.get('Settings:UserTokenExpirationIntervalSeconds') * 1000)
     return f.apply(this, fArgs)
   }
 }
