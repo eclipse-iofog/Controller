@@ -1,4 +1,7 @@
 'use strict'
+
+const { convertToInt } = require('../../helpers/app-helper')
+
 module.exports = (sequelize, DataTypes) => {
   const FogProvisionKey = sequelize.define('FogProvisionKey', {
     id: {
@@ -15,6 +18,9 @@ module.exports = (sequelize, DataTypes) => {
     },
     expirationTime: {
       type: DataTypes.BIGINT,
+      get () {
+        return convertToInt(this.getDataValue('expirationTime'))
+      },
       field: 'expiration_time'
     }
   }, {

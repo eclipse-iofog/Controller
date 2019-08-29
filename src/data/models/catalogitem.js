@@ -1,4 +1,7 @@
 'use strict'
+
+const { convertToInt } = require('../../helpers/app-helper')
+
 module.exports = (sequelize, DataTypes) => {
   const CatalogItem = sequelize.define('CatalogItem', {
     id: {
@@ -33,11 +36,17 @@ module.exports = (sequelize, DataTypes) => {
     },
     diskRequired: {
       type: DataTypes.BIGINT,
+      get () {
+        return convertToInt(this.getDataValue('diskRequired'))
+      },
       field: 'disk_required',
       defaultValue: 0
     },
     ramRequired: {
       type: DataTypes.BIGINT,
+      get () {
+        return convertToInt(this.getDataValue('ramRequired'))
+      },
       field: 'ram_required',
       defaultValue: 0
     },

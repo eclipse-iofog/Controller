@@ -1,4 +1,7 @@
 'use strict'
+
+const { convertToInt } = require('../../helpers/app-helper')
+
 module.exports = (sequelize, DataTypes) => {
   const TrackingEvent = sequelize.define('TrackingEvent', {
     id: {
@@ -19,6 +22,9 @@ module.exports = (sequelize, DataTypes) => {
     },
     timestamp: {
       type: DataTypes.BIGINT,
+      get () {
+        return convertToInt(this.getDataValue('timestamp'))
+      },
       field: 'timestamp'
     },
     type: {

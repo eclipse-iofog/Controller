@@ -1,4 +1,7 @@
 'use strict'
+
+const { convertToInt } = require('../../helpers/app-helper')
+
 module.exports = (sequelize, DataTypes) => {
   const Fog = sequelize.define('Fog', {
     uuid: {
@@ -34,6 +37,9 @@ module.exports = (sequelize, DataTypes) => {
     },
     lastActive: {
       type: DataTypes.BIGINT,
+      get () {
+        return convertToInt(this.getDataValue('lastActive'), 0)
+      },
       field: 'last_active'
     },
     daemonStatus: {
@@ -43,11 +49,17 @@ module.exports = (sequelize, DataTypes) => {
     },
     daemonOperatingDuration: {
       type: DataTypes.BIGINT,
+      get () {
+        return convertToInt(this.getDataValue('daemonOperatingDuration'))
+      },
       defaultValue: 0,
       field: 'daemon_operating_duration'
     },
     daemonLastStart: {
       type: DataTypes.BIGINT,
+      get () {
+        return convertToInt(this.getDataValue('daemonLastStart'), 0)
+      },
       field: 'daemon_last_start'
     },
     memoryUsage: {
@@ -79,10 +91,16 @@ module.exports = (sequelize, DataTypes) => {
     },
     systemAvailableDisk: {
       type: DataTypes.BIGINT,
+      get () {
+        return convertToInt(this.getDataValue('systemAvailableDisk'))
+      },
       field: 'system-available-disk'
     },
     systemAvailableMemory: {
       type: DataTypes.BIGINT,
+      get () {
+        return convertToInt(this.getDataValue('systemAvailableMemory'))
+      },
       field: 'system-available-memory'
     },
     systemTotalCpu: {
@@ -105,6 +123,9 @@ module.exports = (sequelize, DataTypes) => {
     },
     repositoryCount: {
       type: DataTypes.BIGINT,
+      get () {
+        return convertToInt(this.getDataValue('repositoryCount'), 0)
+      },
       field: 'repository_count'
     },
     repositoryStatus: {
@@ -113,10 +134,16 @@ module.exports = (sequelize, DataTypes) => {
     },
     systemTime: {
       type: DataTypes.BIGINT,
+      get () {
+        return convertToInt(this.getDataValue('systemTime'), 0)
+      },
       field: 'system_time'
     },
     lastStatusTime: {
       type: DataTypes.BIGINT,
+      get () {
+        return convertToInt(this.getDataValue('lastStatusTime'), 0)
+      },
       field: 'last_status_time'
     },
     ipAddress: {
@@ -131,6 +158,9 @@ module.exports = (sequelize, DataTypes) => {
     },
     processedMessages: {
       type: DataTypes.BIGINT,
+      get () {
+        return convertToInt(this.getDataValue('processedMessages'))
+      },
       defaultValue: 0,
       field: 'processed_messages'
     },
@@ -140,10 +170,16 @@ module.exports = (sequelize, DataTypes) => {
     },
     messageSpeed: {
       type: DataTypes.BIGINT,
+      get () {
+        return convertToInt(this.getDataValue('messageSpeed'), 0)
+      },
       field: 'message_speed'
     },
     lastCommandTime: {
       type: DataTypes.BIGINT,
+      get () {
+        return convertToInt(this.getDataValue('lastCommandTime'), 0)
+      },
       field: 'last_command_time'
     },
     networkInterface: {
@@ -198,6 +234,9 @@ module.exports = (sequelize, DataTypes) => {
     },
     logFileCount: {
       type: DataTypes.BIGINT,
+      get () {
+        return convertToInt(this.getDataValue('logFileCount'))
+      },
       defaultValue: 10,
       field: 'log_file_count'
     },
