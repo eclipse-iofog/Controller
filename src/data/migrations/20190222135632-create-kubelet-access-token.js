@@ -10,7 +10,7 @@ module.exports = {
         field: 'id'
       },
       expirationTime: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.BIGINT,
         field: 'expiration_time'
       },
       token: {

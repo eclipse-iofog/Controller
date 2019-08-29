@@ -17,7 +17,7 @@ module.exports = {
         field: 'name'
       },
       configLastUpdated: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.BIGINT,
         field: 'config_last_updated'
       },
       isNetwork: {
@@ -37,7 +37,7 @@ module.exports = {
         field: 'root_host_access'
       },
       logSize: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.BIGINT,
         field: 'log_size'
       },
       imageSnapshot: {

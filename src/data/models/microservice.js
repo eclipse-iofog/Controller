@@ -18,7 +18,7 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: 'New Microservice'
     },
     configLastUpdated: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.BIGINT,
       field: 'config_last_updated'
     },
     isNetwork: {
@@ -37,7 +37,7 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: false
     },
     logSize: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.BIGINT,
       field: 'log_size',
       defaultValue: 0
     },

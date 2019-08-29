@@ -3,10 +3,10 @@
 module.exports = {
   up: (queryInterface, Sequelize) => {
     return queryInterface.addColumn('Fogs',
-      'system-available-memory', Sequelize.INTEGER
+      'system-available-memory', Sequelize.BIGINT
     ).then(() => {
       return queryInterface.addColumn('Fogs',
-        'system-available-disk', Sequelize.INTEGER
+        'system-available-disk', Sequelize.BIGINT
       )
     }).then(() => {
       return queryInterface.addColumn('Fogs',

@@ -13,7 +13,7 @@ module.exports = (sequelize, DataTypes) => {
       field: 'activation_code'
     },
     expirationTime: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.BIGINT,
       field: 'expiration_time'
     }
   }, {

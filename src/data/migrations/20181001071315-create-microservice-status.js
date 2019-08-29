@@ -19,7 +19,7 @@ module.exports = {
         field: 'cpu_usage'
       },
       memoryUsage: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.BIGINT,
         defaultValue: 0,
         field: 'memory_usage'
       },
