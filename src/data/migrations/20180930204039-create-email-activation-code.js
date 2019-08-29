@@ -14,7 +14,7 @@ module.exports = {
         field: 'activation_code'
       },
       expirationTime: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.BIGINT,
         field: 'expiration_time'
       },
       userId: {

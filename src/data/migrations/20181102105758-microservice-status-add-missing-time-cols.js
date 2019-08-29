@@ -4,11 +4,11 @@ module.exports = {
   up: (queryInterface, Sequelize) => {
     return queryInterface.addColumn('MicroserviceStatuses',
       'operating_duration',
-      Sequelize.INTEGER
+      Sequelize.BIGINT
     )
       .then(() => queryInterface.addColumn('MicroserviceStatuses',
         'start_time',
-        Sequelize.INTEGER))
+        Sequelize.BIGINT))
   },
 
   down: (queryInterface, Sequelize) => {
