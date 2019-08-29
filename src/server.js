@@ -80,7 +80,7 @@ const setupMiddleware = function(routeName) {
 }
 
 fs.readdirSync(path.join(__dirname, 'routes'))
-  .forEach(setupMiddleware)
+    .forEach(setupMiddleware)
 
 viewerApp.use('/', ecnViewer.middleware(express))
 
