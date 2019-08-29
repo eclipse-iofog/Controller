@@ -1,4 +1,7 @@
 'use strict'
+
+const { convertToInt } = require('../../helpers/app-helper')
+
 module.exports = {
   up: (queryInterface, Sequelize) => {
     return queryInterface.createTable('TrackingEvents', {
@@ -20,6 +23,9 @@ module.exports = {
       },
       timestamp: {
         type: Sequelize.BIGINT,
+        get () {
+          return convertToInt(this.getDataValue('timestamp'))
+        },
         field: 'timestamp'
       },
       type: {

@@ -1,4 +1,7 @@
 'use strict'
+
+const { convertToInt } = require('../../helpers/app-helper')
+
 module.exports = (sequelize, DataTypes) => {
   const MicroserviceStatus = sequelize.define('MicroserviceStatus', {
     id: {
@@ -15,11 +18,17 @@ module.exports = (sequelize, DataTypes) => {
     },
     operatingDuration: {
       type: DataTypes.BIGINT,
+      get () {
+        return convertToInt(this.getDataValue('operatingDuration'))
+      },
       defaultValue: 0,
       field: 'operating_duration'
     },
     startTime: {
       type: DataTypes.BIGINT,
+      get () {
+        return convertToInt(this.getDataValue('startTime'))
+      },
       defaultValue: 0,
       field: 'start_time'
     },
@@ -30,6 +39,9 @@ module.exports = (sequelize, DataTypes) => {
     },
     memoryUsage: {
       type: DataTypes.BIGINT,
+      get () {
+        return convertToInt(this.getDataValue('memoryUsage'))
+      },
       defaultValue: 0,
       field: 'memory_usage'
     },

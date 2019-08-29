@@ -1,4 +1,7 @@
 'use strict'
+
+const { convertToInt } = require('../../helpers/app-helper')
+
 module.exports = {
   up: (queryInterface, Sequelize) => {
     return queryInterface.createTable('Microservices', {
@@ -18,6 +21,9 @@ module.exports = {
       },
       configLastUpdated: {
         type: Sequelize.BIGINT,
+        get () {
+          return convertToInt(this.getDataValue('configLastUpdated'))
+        },
         field: 'config_last_updated'
       },
       isNetwork: {
@@ -38,6 +44,9 @@ module.exports = {
       },
       logSize: {
         type: Sequelize.BIGINT,
+        get () {
+          return convertToInt(this.getDataValue('logSize'))
+        },
         field: 'log_size'
       },
       imageSnapshot: {

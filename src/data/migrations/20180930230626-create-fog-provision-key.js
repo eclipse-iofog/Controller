@@ -1,4 +1,7 @@
 'use strict'
+
+const { convertToInt } = require('../../helpers/app-helper')
+
 module.exports = {
   up: (queryInterface, Sequelize) => {
     return queryInterface.createTable('FogProvisionKeys', {
@@ -16,6 +19,9 @@ module.exports = {
       },
       expirationTime: {
         type: Sequelize.BIGINT,
+        get () {
+          return convertToInt(this.getDataValue('expirationTime'))
+        },
         field: 'expiration_time'
       },
       iofogUuid: {

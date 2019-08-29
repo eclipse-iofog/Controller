@@ -1,4 +1,7 @@
 'use strict'
+
+const { convertToInt } = require('../../helpers/app-helper')
+
 module.exports = {
   up: (queryInterface, Sequelize) => {
     return queryInterface.createTable('CatalogItems', {
@@ -34,11 +37,17 @@ module.exports = {
       },
       diskRequired: {
         type: Sequelize.BIGINT,
+        get () {
+          return convertToInt(this.getDataValue('diskRequired'))
+        },
         field: 'disk_required',
         defaultValue: 0
       },
       ramRequired: {
         type: Sequelize.BIGINT,
+        get () {
+          return convertToInt(this.getDataValue('ramRequired'))
+        },
         field: 'ram_required',
         defaultValue: 0
       },

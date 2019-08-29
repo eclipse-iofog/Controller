@@ -1,4 +1,7 @@
 'use strict'
+
+const { convertToInt } = require('../../helpers/app-helper')
+
 module.exports = (sequelize, DataTypes) => {
   const Microservice = sequelize.define('Microservice', {
     uuid: {
@@ -19,6 +22,9 @@ module.exports = (sequelize, DataTypes) => {
     },
     configLastUpdated: {
       type: DataTypes.BIGINT,
+      get () {
+        return convertToInt(this.getDataValue('configLastUpdated'))
+      },
       field: 'config_last_updated'
     },
     isNetwork: {
@@ -38,6 +44,9 @@ module.exports = (sequelize, DataTypes) => {
     },
     logSize: {
       type: DataTypes.BIGINT,
+      get () {
+        return convertToInt(this.getDataValue('logSize'))
+      },
       field: 'log_size',
       defaultValue: 0
     },
