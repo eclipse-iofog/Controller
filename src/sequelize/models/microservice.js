@@ -98,6 +98,11 @@ module.exports = (sequelize, DataTypes) => {
       onDelete: 'cascade'
     })
 
+    Microservice.hasMany(models.CatalogItemImage, {
+      foreignKey: 'microservice_uuid',
+      as: 'images'
+    })
+
     Microservice.hasMany(models.MicroservicePort, {
       foreignKey: 'microservice_uuid',
       as: 'ports'

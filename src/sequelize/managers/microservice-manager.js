@@ -82,6 +82,12 @@ class MicroserviceManager extends BaseManager {
           attributes: ['straceRun']
         },
         {
+          model: CatalogItemImage,
+          as: 'images',
+          required: false,
+          attributes: ['containerImage', 'fogTypeId']
+        },
+        {
           model: CatalogItem,
           as: 'catalogItem',
           required: true,
@@ -145,9 +151,15 @@ class MicroserviceManager extends BaseManager {
           attributes: ['hostDestination', 'containerDestination', 'accessMode']
         },
         {
+          model: CatalogItemImage,
+          as: 'images',
+          required: false,
+          attributes: ['containerImage', 'fogTypeId']
+        },
+        {
           model: CatalogItem,
           as: 'catalogItem',
-          required: true,
+          required: false,
           include: [
             {
               model: CatalogItemImage,
@@ -222,6 +234,12 @@ class MicroserviceManager extends BaseManager {
           attributes: ['straceRun']
         },
         {
+          model: CatalogItemImage,
+          as: 'images',
+          required: false,
+          attributes: ['containerImage', 'fogTypeId']
+        },
+        {
           model: CatalogItem,
           as: 'catalogItem',
           required: false,
@@ -269,7 +287,6 @@ class MicroserviceManager extends BaseManager {
         {
           model: CatalogItem,
           as: 'catalogItem',
-          required: true,
           attributes: ['category']
         }
       ],

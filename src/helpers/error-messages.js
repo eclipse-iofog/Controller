@@ -57,6 +57,8 @@ module.exports = {
   IMAGE_SNAPSHOT_WITHOUT_FOG: 'Can not run image snapshot for microservice without ioFog.',
   IMAGE_SNAPSHOT_NOT_AVAILABLE: 'Image snapshot is not available for this microservice.',
   FILE_DOES_NOT_EXIST: 'File does not exist.',
+  MICROSERVICE_DOES_NOT_HAVE_IMAGES: 'Microservice {} does not have valid images',
+  CATALOG_NOT_MATCH_IMAGES: 'Catalog item {} does not match provided images',
   RESTRICTED_PUBLISHER: 'You are not allowed to add catalog item as \'Eclipse ioFog\' publisher',
   REQUIRED_FOG_NODE: 'ioFog node is required.',
   PORT_MAPPING_ALREADY_EXISTS: 'Port mapping already exists',

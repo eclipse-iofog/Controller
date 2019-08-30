@@ -18,6 +18,7 @@ const MicroserviceStatusManager = require('../sequelize/managers/microservice-st
 const MicroserviceArgManager = require('../sequelize/managers/microservice-arg-manager')
 const MicroserviceEnvManager = require('../sequelize/managers/microservice-env-manager')
 const MicroservicePortManager = require('../sequelize/managers/microservice-port-manager')
+const CatalogItemImageManager = require('../sequelize/managers/catalog-item-image-manager')
 const MicroserviceStates = require('../enums/microservice-state')
 const VolumeMappingManager = require('../sequelize/managers/volume-mapping-manager')
 const ConnectorManager = require('../sequelize/managers/connector-manager')
@@ -71,10 +72,43 @@ async function getMicroserviceEndPoint (microserviceUuid, user, isCLI, transacti
   return _buildGetMicroserviceResponse(microservice, transaction)
 }
 
+function _validateImagesAgainstCatalog (catalogItem, images) {
+  for (const img of images) {
+    let found = false
+    for (const catalogImg of catalogItem.images) {
+      if (catalogImg.fogType === img.fogType) {
+        found = true
+      }
+      if (found === true && catalogImg.containerImage !== img.containerImage) {
+        throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.CATALOG_NOT_MATCH_IMAGES, `${catalogItem.id}`))
+      }
+    }
+    if (!found) {
+      throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.CATALOG_NOT_MATCH_IMAGES, `${catalogItem.id}`))
+    }
+  }
+}
+
 async function createMicroserviceEndPoint (microserviceData, user, isCLI, transaction) {
   await Validator.validate(microserviceData, Validator.schemas.microserviceCreate)
 
+  // validate images
+  if (microserviceData.catalogItemId) {
+    // validate catalog item
+    const catalogItem = await CatalogService.getCatalogItem(microserviceData.catalogItemId, user, isCLI, transaction)
+    _validateImagesAgainstCatalog(catalogItem, microserviceData.images || [])
+    microserviceData.images = catalogItem.images
+  }
+
+  if (!microserviceData.images || !microserviceData.images.length) {
+    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.MICROSERVICE_DOES_NOT_HAVE_IMAGES, microserviceData.name))
+  }
+
   const microservice = await _createMicroservice(microserviceData, user, isCLI, transaction)
+
+  if (!microserviceData.catalogItemId) {
+    await _createMicroserviceImages(microservice, microserviceData.images, transaction)
+  }
 
   const publicPorts = []
   if (microserviceData.ports) {
@@ -140,6 +174,7 @@ async function updateMicroserviceEndPoint (microserviceUuid, microserviceData, u
   const microserviceToUpdate = {
     name: microserviceData.name,
     config: config,
+    images: microserviceData.images,
     rebuild: microserviceData.rebuild,
     iofogUuid: microserviceData.iofogUuid,
     rootHostAccess: microserviceData.rootHostAccess,
@@ -245,7 +280,7 @@ async function deleteMicroserviceEndPoint (microserviceUuid, microserviceData, u
   if (!microservice) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, microserviceUuid))
   }
-  if (!isCLI && microservice.catalogItem.category === 'SYSTEM') {
+  if (!isCLI && microservice.catalogItem && microservice.catalogItem.category === 'SYSTEM') {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.SYSTEM_MICROSERVICE_DELETE, microserviceUuid))
   }
 
@@ -612,8 +647,6 @@ async function _createMicroservice (microserviceData, user, isCLI, transaction) 
 
   await _checkForDuplicateName(newMicroservice.name, {}, user.id, transaction)
 
-  // validate catalog item
-  await CatalogService.getCatalogItem(newMicroservice.catalogItemId, user, isCLI, transaction)
   // validate flow
   await FlowService.getFlow(newMicroservice.flowId, user, isCLI, transaction)
   // validate fog node
@@ -628,6 +661,16 @@ async function _createMicroserviceStatus (microservice, transaction) {
   return MicroserviceStatusManager.create({
     microserviceUuid: microservice.uuid
   }, transaction)
+}
+
+async function _createMicroserviceImages (microservice, images, transaction) {
+  const newImages = []
+  for (const img of images) {
+    const newImg = Object.assign({}, img)
+    newImg.microserviceUuid = microservice.uuid
+    newImages.push(newImg)
+  }
+  return CatalogItemImageManager.bulkCreate(newImages, transaction)
 }
 
 async function _createVolumeMappings (microservice, volumeMappings, transaction) {
@@ -1194,6 +1237,7 @@ async function _buildGetMicroserviceResponse (microservice, transaction) {
 
   // get additional data
   const portMappings = await MicroservicePortManager.findAll({ microserviceUuid: microserviceUuid }, transaction)
+  const images = await CatalogItemImageManager.findAll({ microserviceUuid: microserviceUuid }, transaction)
   const publicPortMappings = await MicroservicePublicModeManager.findAll({ microserviceUuid: microserviceUuid }, transaction)
   const volumeMappings = await VolumeMappingManager.findAll({ microserviceUuid: microserviceUuid }, transaction)
   const routes = await RoutingManager.findAll({ sourceMicroserviceUuid: microserviceUuid }, transaction)
@@ -1224,6 +1268,7 @@ async function _buildGetMicroserviceResponse (microservice, transaction) {
   res.routes = routes.map((r) => r.destMicroserviceUuid)
   res.env = env
   res.cmd = arg
+  res.images = images.map(i => ({ containerImage: i.containerImage, fogTypeId: i.fogTypeId }))
 
   return res
 }

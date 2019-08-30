@@ -26,6 +26,15 @@ module.exports = (sequelize, DataTypes) => {
       onDelete: 'cascade'
     })
 
+    CatalogItemImage.belongsTo(models.Microservice, {
+      foreignKey: {
+        name: 'microserviceUuid',
+        field: 'microservice_uuid'
+      },
+      as: 'microservice',
+      onDelete: 'cascade'
+    })
+
     CatalogItemImage.belongsTo(models.FogType, {
       foreignKey: {
         name: 'fogTypeId',
