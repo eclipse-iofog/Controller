@@ -175,6 +175,7 @@ async function updateMicroserviceEndPoint (microserviceUuid, microserviceData, u
     name: microserviceData.name,
     config: config,
     images: microserviceData.images,
+    catalogItemId: microserviceData.catalogItemId,
     rebuild: microserviceData.rebuild,
     iofogUuid: microserviceData.iofogUuid,
     rootHostAccess: microserviceData.rootHostAccess,
@@ -191,8 +192,27 @@ async function updateMicroserviceEndPoint (microserviceUuid, microserviceData, u
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, microserviceUuid))
   }
 
-  if (microservice.catalogItem.category === 'SYSTEM') {
+  if (microservice.catalogItem && microservice.catalogItem.category === 'SYSTEM') {
     throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.SYSTEM_MICROSERVICE_UPDATE, microserviceUuid))
+  }
+
+  // Validate images vs catalog item
+  const catalogItemId = microserviceDataUpdate.catalogItemId === null ? null : microserviceDataUpdate.catalogItemId || microservice.catalogItemId
+  if (catalogItemId) {
+    const catalogItem = await CatalogService.getCatalogItem(catalogItemId, user, isCLI, transaction)
+    _validateImagesAgainstCatalog(catalogItem, microserviceDataUpdate.images || [])
+    if (microserviceDataUpdate.catalogItemId !== undefined && microserviceDataUpdate.catalogItemId !== microservice.catalogItemId) {
+      // Catalog item changed or removed, set rebuild flag
+      microserviceDataUpdate.rebuild = true
+    }
+  } else if (microserviceDataUpdate.images && microserviceDataUpdate.images.length === 0) {
+    // No catalog, and no image
+    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.MICROSERVICE_DOES_NOT_HAVE_IMAGES, microserviceData.name))
+  } else if (microserviceDataUpdate.images && microserviceDataUpdate.images.length > 0) {
+    // No catalog, and images
+    await _updateImages(microserviceDataUpdate.images, microserviceUuid, transaction)
+    // Images updated, set rebuild flag to true
+    microserviceDataUpdate.rebuild = true
   }
 
   const iofogUuid = microserviceDataUpdate.iofogUuid || microservice.iofogUuid
@@ -713,6 +733,13 @@ async function _updateVolumeMappings (volumeMappings, microserviceUuid, transact
 
     await VolumeMappingManager.create(volumeMappingObj, transaction)
   }
+}
+
+async function _updateImages (images, microserviceUuid, transaction) {
+  await CatalogItemImageManager.delete({
+    microserviceUuid: microserviceUuid
+  }, transaction)
+  return _createMicroserviceImages({ uuid: microserviceUuid }, images, transaction)
 }
 
 async function _updateEnv (env, microserviceUuid, transaction) {
