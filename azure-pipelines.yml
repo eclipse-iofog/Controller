@@ -152,7 +152,7 @@ jobs:
             latest
 
       - script: |
-          echo "npm test"
+           npm run postmantest
         displayName: 'api tests'
 
       - task: PublishBuildArtifacts@1
