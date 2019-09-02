@@ -16,6 +16,7 @@ const MicroserviceStatusManager = require('../../../src/sequelize/managers/micro
 const RoutingManager = require('../../../src/sequelize/managers/routing-manager')
 const MicroserviceEnvManager = require('../../../src/sequelize/managers/microservice-env-manager')
 const MicroserviceArgManager = require('../../../src/sequelize/managers/microservice-arg-manager')
+const RegistryManager = require('../../../src/sequelize/managers/registry-manager')
 const Op = require('sequelize').Op
 const ConnectorManager = require('../../../src/sequelize/managers/connector-manager')
 const ConnectorPortManager = require('../../../src/sequelize/managers/connector-port-manager')
@@ -223,6 +224,7 @@ describe('Microservices Service', () => {
       iofogUuid: microserviceData.iofogUuid,
       rootHostAccess: microserviceData.rootHostAccess,
       logSize: microserviceData.logLimit,
+      registryId: 1,
       userId: user.id,
     }
 
@@ -272,6 +274,7 @@ describe('Microservices Service', () => {
     def('updateChangeTrackingResponse', () => Promise.resolve())
     def('createVolumeMappingResponse', () => Promise.resolve())
     def('createMicroserviceStatusResponse', () => Promise.resolve())
+    def('findOneRegistryResponse', () => Promise.resolve({}))
 
     beforeEach(() => {
       $sandbox.stub(Validator, 'validate')
@@ -292,6 +295,7 @@ describe('Microservices Service', () => {
       $sandbox.stub(ChangeTrackingService, 'update').returns($updateChangeTrackingResponse)
       $sandbox.stub(VolumeMappingManager, 'bulkCreate').returns($createVolumeMappingResponse)
       $sandbox.stub(MicroserviceStatusManager, 'create').returns($createMicroserviceStatusResponse)
+      $sandbox.stub(RegistryManager, 'findOne').returns($findOneRegistryResponse)
     })
 
     it('calls Validator#validate() with correct args', async () => {
