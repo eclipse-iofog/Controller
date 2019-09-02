@@ -65,6 +65,10 @@ jobs:
         displayName: 'unit tests'
 
       - script: |
+           npm run postman_test
+        displayName: 'api tests'
+
+      - script: |
           echo "npm test"
         displayName: 'integration tests'
 
@@ -150,10 +154,6 @@ jobs:
             b-$(buildTag)
             $(primaryTag)
             latest
-
-      - script: |
-           npm run postmantest
-        displayName: 'api tests'
 
       - task: PublishBuildArtifacts@1
         inputs:
