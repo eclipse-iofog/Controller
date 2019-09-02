@@ -34,7 +34,6 @@ const microserviceExcludedFields = [
   'created_at',
   'updated_at',
   'updatedBy',
-  'registryId',
   'isNetwork',
   'rebuild',
   'deleteWithCleanUp',
@@ -86,6 +85,12 @@ class MicroserviceManager extends BaseManager {
           as: 'images',
           required: false,
           attributes: ['containerImage', 'fogTypeId']
+        },
+        {
+          model: Registry,
+          as: 'registry',
+          required: true,
+          attributes: ['id']
         },
         {
           model: CatalogItem,
@@ -155,6 +160,12 @@ class MicroserviceManager extends BaseManager {
           as: 'images',
           required: false,
           attributes: ['containerImage', 'fogTypeId']
+        },
+        {
+          model: Registry,
+          as: 'registry',
+          required: true,
+          attributes: ['id']
         },
         {
           model: CatalogItem,
@@ -238,6 +249,12 @@ class MicroserviceManager extends BaseManager {
           as: 'images',
           required: false,
           attributes: ['containerImage', 'fogTypeId']
+        },
+        {
+          model: Registry,
+          as: 'registry',
+          required: true,
+          attributes: ['id']
         },
         {
           model: CatalogItem,

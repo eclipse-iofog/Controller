@@ -19,6 +19,7 @@ const MicroserviceArgManager = require('../sequelize/managers/microservice-arg-m
 const MicroserviceEnvManager = require('../sequelize/managers/microservice-env-manager')
 const MicroservicePortManager = require('../sequelize/managers/microservice-port-manager')
 const CatalogItemImageManager = require('../sequelize/managers/catalog-item-image-manager')
+const RegistryManager = require('../sequelize/managers/registry-manager')
 const MicroserviceStates = require('../enums/microservice-state')
 const VolumeMappingManager = require('../sequelize/managers/volume-mapping-manager')
 const ConnectorManager = require('../sequelize/managers/connector-manager')
@@ -180,12 +181,20 @@ async function updateMicroserviceEndPoint (microserviceUuid, microserviceData, u
     iofogUuid: microserviceData.iofogUuid,
     rootHostAccess: microserviceData.rootHostAccess,
     logSize: microserviceData.logLimit,
+    registryId: microserviceData.registryId,
     volumeMappings: microserviceData.volumeMappings,
     env: microserviceData.env,
     cmd: microserviceData.cmd
   }
 
   const microserviceDataUpdate = AppHelper.deleteUndefinedFields(microserviceToUpdate)
+
+  if (microserviceDataUpdate.registryId) {
+    const registry = await RegistryManager.findOne({ id: microserviceDataUpdate.registryId }, transaction)
+    if (!registry) {
+      throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_REGISTRY_ID, microserviceDataUpdate.registryId))
+    }
+  }
 
   const microservice = await MicroserviceManager.findOneWithCategory(query, transaction)
   if (!microservice) {
@@ -659,11 +668,19 @@ async function _createMicroservice (microserviceData, user, isCLI, transaction) 
     flowId: microserviceData.flowId,
     iofogUuid: microserviceData.iofogUuid,
     rootHostAccess: microserviceData.rootHostAccess,
+    registryId: microserviceData.registryId || 1,
     logSize: microserviceData.logLimit,
     userId: user.id
   }
 
   newMicroservice = AppHelper.deleteUndefinedFields(newMicroservice)
+
+  if (newMicroservice.registryId) {
+    const registry = await RegistryManager.findOne({ id: newMicroservice.registryId }, transaction)
+    if (!registry) {
+      throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_REGISTRY_ID, newMicroservice.registryId))
+    }
+  }
 
   await _checkForDuplicateName(newMicroservice.name, {}, user.id, transaction)
 

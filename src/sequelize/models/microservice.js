@@ -68,7 +68,16 @@ module.exports = (sequelize, DataTypes) => {
       },
       as: 'catalogItem',
       onDelete: 'cascade'
+    })
 
+    Microservice.belongsTo(models.Registry, {
+      foreignKey: {
+        name: 'registryId',
+        field: 'registry_id'
+      },
+      as: 'registry',
+      onDelete: 'cascade',
+      defaultValue: 1
     })
 
     Microservice.belongsTo(models.Fog, {

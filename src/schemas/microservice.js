@@ -16,6 +16,9 @@ const microserviceCreate = {
       'maxItems': 2,
       'items': { '$ref': '/image' }
     },
+    'registryId': {
+      'type': 'integer'
+    },
     'flowId': { 'type': 'integer' },
     'iofogUuid': { 'type': 'string' },
     'rootHostAccess': { 'type': 'boolean' },

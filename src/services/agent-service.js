@@ -263,8 +263,7 @@ const getAgentMicroservices = async function (fog, transaction) {
     })
     const cmd = microservice.cmd && microservice.cmd.sort((a, b) => a.id > b.id).map((it) => it.cmd)
 
-    // TODO: Get registry without catalog item
-    const registryId = microservice.catalogItem ? microservice.catalogItem.registry.id : 1
+    const registryId = microservice.catalogItem ? microservice.catalogItem.registry.id : microservice.registry.id
 
     const responseMicroservice = {
       uuid: microservice.uuid,
