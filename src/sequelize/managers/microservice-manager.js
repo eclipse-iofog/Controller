@@ -89,13 +89,13 @@ class MicroserviceManager extends BaseManager {
         {
           model: Registry,
           as: 'registry',
-          required: true,
+          required: false,
           attributes: ['id']
         },
         {
           model: CatalogItem,
           as: 'catalogItem',
-          required: true,
+          required: false,
           include: [{
             model: CatalogItemImage,
             as: 'images',
@@ -164,7 +164,7 @@ class MicroserviceManager extends BaseManager {
         {
           model: Registry,
           as: 'registry',
-          required: true,
+          required: false,
           attributes: ['id']
         },
         {
@@ -253,7 +253,7 @@ class MicroserviceManager extends BaseManager {
         {
           model: Registry,
           as: 'registry',
-          required: true,
+          required: false,
           attributes: ['id']
         },
         {
@@ -373,7 +373,7 @@ class MicroserviceManager extends BaseManager {
         {
           model: CatalogItem,
           as: 'catalogItem',
-          required: true,
+          required: false,
           attributes: ['category']
         }
       ],
