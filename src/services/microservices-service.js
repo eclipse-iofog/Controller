@@ -213,6 +213,11 @@ async function updateMicroserviceEndPoint (microserviceUuid, microserviceData, u
     if (microserviceDataUpdate.catalogItemId !== undefined && microserviceDataUpdate.catalogItemId !== microservice.catalogItemId) {
       // Catalog item changed or removed, set rebuild flag
       microserviceDataUpdate.rebuild = true
+      // If catalog item is set, set registry and msvc images
+      if (microserviceDataUpdate.catalogItemId) {
+        await _deleteImages(microserviceUuid, transaction)
+        microserviceDataUpdate.registryId = 1
+      }
     }
   } else if (microserviceDataUpdate.images && microserviceDataUpdate.images.length === 0) {
     // No catalog, and no image
@@ -757,6 +762,12 @@ async function _updateImages (images, microserviceUuid, transaction) {
     microserviceUuid: microserviceUuid
   }, transaction)
   return _createMicroserviceImages({ uuid: microserviceUuid }, images, transaction)
+}
+
+async function _deleteImages (microserviceUuid, transaction) {
+  await CatalogItemImageManager.delete({
+    microserviceUuid: microserviceUuid
+  }, transaction)
 }
 
 async function _updateEnv (env, microserviceUuid, transaction) {
