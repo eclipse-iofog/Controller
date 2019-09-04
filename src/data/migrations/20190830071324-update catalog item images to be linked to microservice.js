@@ -3,7 +3,7 @@
 module.exports = {
   up: (queryInterface, Sequelize) => {
     return queryInterface.addColumn('CatalogItemImages', 'microservice_uuid', {
-      type: Sequelize.TEXT,
+      type: Sequelize.STRING(32),
       field: 'microservice_uuid',
       references: { model: 'Microservices', key: 'uuid' },
       onDelete: 'cascade'
