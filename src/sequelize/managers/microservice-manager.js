@@ -34,7 +34,6 @@ const microserviceExcludedFields = [
   'created_at',
   'updated_at',
   'updatedBy',
-  'registryId',
   'isNetwork',
   'rebuild',
   'deleteWithCleanUp',
@@ -82,9 +81,21 @@ class MicroserviceManager extends BaseManager {
           attributes: ['straceRun']
         },
         {
+          model: CatalogItemImage,
+          as: 'images',
+          required: false,
+          attributes: ['containerImage', 'fogTypeId']
+        },
+        {
+          model: Registry,
+          as: 'registry',
+          required: false,
+          attributes: ['id']
+        },
+        {
           model: CatalogItem,
           as: 'catalogItem',
-          required: true,
+          required: false,
           include: [{
             model: CatalogItemImage,
             as: 'images',
@@ -145,9 +156,21 @@ class MicroserviceManager extends BaseManager {
           attributes: ['hostDestination', 'containerDestination', 'accessMode']
         },
         {
+          model: CatalogItemImage,
+          as: 'images',
+          required: false,
+          attributes: ['containerImage', 'fogTypeId']
+        },
+        {
+          model: Registry,
+          as: 'registry',
+          required: false,
+          attributes: ['id']
+        },
+        {
           model: CatalogItem,
           as: 'catalogItem',
-          required: true,
+          required: false,
           include: [
             {
               model: CatalogItemImage,
@@ -222,6 +245,18 @@ class MicroserviceManager extends BaseManager {
           attributes: ['straceRun']
         },
         {
+          model: CatalogItemImage,
+          as: 'images',
+          required: false,
+          attributes: ['containerImage', 'fogTypeId']
+        },
+        {
+          model: Registry,
+          as: 'registry',
+          required: false,
+          attributes: ['id']
+        },
+        {
           model: CatalogItem,
           as: 'catalogItem',
           required: false,
@@ -269,7 +304,6 @@ class MicroserviceManager extends BaseManager {
         {
           model: CatalogItem,
           as: 'catalogItem',
-          required: true,
           attributes: ['category']
         }
       ],
@@ -339,7 +373,7 @@ class MicroserviceManager extends BaseManager {
         {
           model: CatalogItem,
           as: 'catalogItem',
-          required: true,
+          required: false,
           attributes: ['category']
         }
       ],

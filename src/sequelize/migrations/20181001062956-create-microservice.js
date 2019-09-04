@@ -80,7 +80,8 @@ module.exports = {
         type: Sequelize.INTEGER,
         field: 'registry_id',
         references: { model: 'Registries', key: 'id' },
-        onDelete: 'cascade'
+        onDelete: 'cascade',
+        defaultValue: 1
       },
       flowId: {
         type: Sequelize.INTEGER,

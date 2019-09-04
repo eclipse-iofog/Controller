@@ -237,7 +237,7 @@ function testMicroserviceSection () {
       ' -i ' + microserviceUuid + ' -P /test_path:/container_test_path:rw'), volumeMappingCreateFields)
     const volumeMappingId = volumeMappingCreateResponse.id
     responseIsArray(testCommand('microservice volume-mapping-list -i ' + microserviceUuid))
-    responseContains(testCommand('microservice volume-mapping-remove -i ' + microserviceUuid + ' -a ' + volumeMappingId),
+    responseContains(testCommand('microservice volume-mapping-remove -i ' + microserviceUuid + ' -m ' + volumeMappingId),
       'Volume mapping has been deleted successfully.')
     responseEquals(testCommand('microservice remove -i ' + microserviceUuid),
       'Microservice has been removed successfully.')

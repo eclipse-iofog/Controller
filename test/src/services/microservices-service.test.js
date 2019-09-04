@@ -10,11 +10,13 @@ const CatalogService = require('../../../src/services/catalog-service')
 const FlowService = require('../../../src/services/flow-service')
 const ioFogService = require('../../../src/services/iofog-service')
 const MicroservicePortManager = require('../../../src/sequelize/managers/microservice-port-manager')
+const CatalogItemImageManager = require('../../../src/sequelize/managers/catalog-item-image-manager')
 const VolumeMappingManager = require('../../../src/sequelize/managers/volume-mapping-manager')
 const MicroserviceStatusManager = require('../../../src/sequelize/managers/microservice-status-manager')
 const RoutingManager = require('../../../src/sequelize/managers/routing-manager')
 const MicroserviceEnvManager = require('../../../src/sequelize/managers/microservice-env-manager')
 const MicroserviceArgManager = require('../../../src/sequelize/managers/microservice-arg-manager')
+const RegistryManager = require('../../../src/sequelize/managers/registry-manager')
 const Op = require('sequelize').Op
 const ConnectorManager = require('../../../src/sequelize/managers/connector-manager')
 const ConnectorPortManager = require('../../../src/sequelize/managers/connector-port-manager')
@@ -54,6 +56,7 @@ describe('Microservices Service', () => {
     def('connectorResponse', () => Promise.resolve({}))
     def('envResponse', () => Promise.resolve([]))
     def('cmdResponse', () => Promise.resolve([]))
+    def('imgResponse', () => Promise.resolve([]))
 
     beforeEach(() => {
       $sandbox.stub(MicroserviceManager, 'findAllExcludeFields').returns($findMicroservicesResponse)
@@ -65,6 +68,7 @@ describe('Microservices Service', () => {
       $sandbox.stub(MicroservicePublicModeManager, 'findAll').returns($publicModeResponse)
       $sandbox.stub(ConnectorPortManager, 'findOne').returns($connectorPortResponse)
       $sandbox.stub(ConnectorManager, 'findOne').returns($connectorResponse)
+      $sandbox.stub(CatalogItemImageManager, 'findAll').returns($imgResponse)
     })
 
     it('calls MicroserviceManager#findAllExcludeFields() with correct args', async () => {
@@ -115,6 +119,7 @@ describe('Microservices Service', () => {
     def('connectorResponse', () => Promise.resolve({}))
     def('envResponse', () => Promise.resolve([]))
     def('cmdResponse', () => Promise.resolve([]))
+    def('imgResponse', () => Promise.resolve([]))
 
     beforeEach(() => {
       $sandbox.stub(MicroserviceManager, 'findOneExcludeFields').returns($findMicroserviceResponse)
@@ -126,6 +131,7 @@ describe('Microservices Service', () => {
       $sandbox.stub(MicroservicePublicModeManager, 'findAll').returns($publicModeResponse)
       $sandbox.stub(ConnectorPortManager, 'findOne').returns($connectorPortResponse)
       $sandbox.stub(ConnectorManager, 'findOne').returns($connectorResponse)
+      $sandbox.stub(CatalogItemImageManager, 'findAll').returns($imgResponse)
     })
 
     it('calls MicroserviceManager#findOneExcludeFields() with correct args', async () => {
@@ -218,6 +224,7 @@ describe('Microservices Service', () => {
       iofogUuid: microserviceData.iofogUuid,
       rootHostAccess: microserviceData.rootHostAccess,
       logSize: microserviceData.logLimit,
+      registryId: 1,
       userId: user.id,
     }
 
@@ -245,6 +252,11 @@ describe('Microservices Service', () => {
       microserviceUuid: microserviceData.uuid,
     }
 
+    const images = [
+      {fogTypeId: 1, containerImage: 'hello-world'},
+      {fogTypeId: 2, containerImage: 'hello-world'},
+    ]
+
     def('subject', () => $subject.createMicroserviceEndPoint(microserviceData, user, isCLI, transaction))
     def('validatorResponse', () => Promise.resolve(true))
     def('validatorResponse2', () => Promise.resolve(true))
@@ -252,7 +264,7 @@ describe('Microservices Service', () => {
     def('deleteUndefinedFieldsResponse', () => newMicroservice)
     def('findMicroserviceResponse', () => Promise.resolve())
     def('findMicroserviceResponse2', () => Promise.resolve(microserviceData))
-    def('getCatalogItemResponse', () => Promise.resolve())
+    def('getCatalogItemResponse', () => Promise.resolve({images}))
     def('getFlowResponse', () => Promise.resolve())
     def('getIoFogResponse', () => Promise.resolve())
     def('createMicroserviceResponse', () => Promise.resolve(microserviceData))
@@ -262,6 +274,7 @@ describe('Microservices Service', () => {
     def('updateChangeTrackingResponse', () => Promise.resolve())
     def('createVolumeMappingResponse', () => Promise.resolve())
     def('createMicroserviceStatusResponse', () => Promise.resolve())
+    def('findOneRegistryResponse', () => Promise.resolve({}))
 
     beforeEach(() => {
       $sandbox.stub(Validator, 'validate')
@@ -282,6 +295,7 @@ describe('Microservices Service', () => {
       $sandbox.stub(ChangeTrackingService, 'update').returns($updateChangeTrackingResponse)
       $sandbox.stub(VolumeMappingManager, 'bulkCreate').returns($createVolumeMappingResponse)
       $sandbox.stub(MicroserviceStatusManager, 'create').returns($createMicroserviceStatusResponse)
+      $sandbox.stub(RegistryManager, 'findOne').returns($findOneRegistryResponse)
     })
 
     it('calls Validator#validate() with correct args', async () => {

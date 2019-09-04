@@ -11,6 +11,14 @@ const microserviceCreate = {
       'type': 'integer',
       'minimum': 4
     },
+    'images': {
+      'type': 'array',
+      'maxItems': 2,
+      'items': { '$ref': '/image' }
+    },
+    'registryId': {
+      'type': 'integer'
+    },
     'flowId': { 'type': 'integer' },
     'iofogUuid': { 'type': 'string' },
     'rootHostAccess': { 'type': 'boolean' },
@@ -32,7 +40,7 @@ const microserviceCreate = {
       'type': 'array',
       'items': { 'type': 'string' } }
   },
-  'required': ['name', 'flowId', 'catalogItemId'],
+  'required': ['name', 'flowId'],
   'additionalProperties': true
 }
 
@@ -52,6 +60,11 @@ const microserviceUpdate = {
     'volumeMappings': {
       'type': 'array',
       'items': { '$ref': '/volumeMappings' }
+    },
+    'images': {
+      'type': 'array',
+      'maxItems': 2,
+      'items': { '$ref': '/image' }
     },
     'env': {
       'type': 'array',

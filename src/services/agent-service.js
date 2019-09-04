@@ -247,7 +247,7 @@ const getAgentMicroservices = async function (fog, transaction) {
 
   const response = []
   for (const microservice of microservices) {
-    const images = microservice.catalogItem.images
+    const images = (microservice.images && microservice.images.length > 0) ? microservice.images : microservice.catalogItem.images
     const image = images.find((image) => image.fogTypeId === fogTypeId)
     const imageId = image ? image.containerImage : ''
     if (!imageId || imageId === '') {
@@ -263,6 +263,8 @@ const getAgentMicroservices = async function (fog, transaction) {
     })
     const cmd = microservice.cmd && microservice.cmd.sort((a, b) => a.id > b.id).map((it) => it.cmd)
 
+    const registryId = microservice.catalogItem ? microservice.catalogItem.registry.id : microservice.registry.id
+
     const responseMicroservice = {
       uuid: microservice.uuid,
       imageId: imageId,
@@ -270,7 +272,7 @@ const getAgentMicroservices = async function (fog, transaction) {
       rebuild: microservice.rebuild,
       rootHostAccess: microservice.rootHostAccess,
       logSize: parseInt(microservice.logSize) || 50,
-      registryId: microservice.catalogItem.registry.id,
+      registryId,
       portMappings: microservice.ports,
       volumeMappings: microservice.volumeMappings,
       imageSnapshot: microservice.imageSnapshot,

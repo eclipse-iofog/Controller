@@ -42,7 +42,7 @@ jobs:
     steps:
       - task: NodeTool@0
         inputs:
-          versionSpec: '8.x'
+          versionSpec: '10.x'
         displayName: 'Install Node.js'
 
       - script: |
@@ -63,6 +63,10 @@ jobs:
       - script: |
           npm test
         displayName: 'unit tests'
+
+      - script: |
+           npm run postman_test
+        displayName: 'api tests'
 
       - script: |
           echo "npm test"
@@ -150,10 +154,6 @@ jobs:
             b-$(buildTag)
             $(primaryTag)
             latest
-
-      - script: |
-          echo "npm test"
-        displayName: 'api tests'
 
       - task: PublishBuildArtifacts@1
         inputs:
