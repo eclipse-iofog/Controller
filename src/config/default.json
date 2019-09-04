@@ -6,7 +6,7 @@
     "Uri": "http://localhost:1234"
   },
   "Server": {
-    "Port": 54421,
+    "Port": 51121,
     "DevMode": false
   },
   "Email": {

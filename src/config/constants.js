@@ -14,7 +14,7 @@
 module.exports = {
   'App:Name': 'iofog-controller',
 
-  'Server:Port': 54421,
+  'Server:Port': 51121,
   'Server:DevMode': false,
 
   'Email:ActivationEnabled': false,
