@@ -26,6 +26,13 @@ const JSON_SCHEMA_ADD = AppHelper.stringifyCliJsonSchema(
     name: 'string',
     config: 'string',
     catalogItemId: 0,
+    images: [
+      {
+        containerImage: 'string',
+        fogTypeId: 1
+      }
+    ],
+    registryId: 1,
     flowId: 0,
     iofogUuid: 'string',
     rootHostAccess: true,
@@ -67,6 +74,14 @@ const JSON_SCHEMA_UPDATE = AppHelper.stringifyCliJsonSchema(
     iofogUuid: 'string',
     rootHostAccess: true,
     logSize: 0,
+    catalogItemId: 0,
+    images: [
+      {
+        containerImage: 'string',
+        fogTypeId: 1
+      }
+    ],
+    registryId: 1,
     volumeMappings: [
       {
         hostDestination: '/var/dest',
@@ -121,11 +136,32 @@ class Microservice extends BaseCLIHandler {
         group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
+        name: 'x86-image',
+        alias: 'x',
+        type: String,
+        description: 'x86 docker image name',
+        group: [constants.CMD_UPDATE, constants.CMD_ADD]
+      },
+      {
+        name: 'arm-image',
+        alias: 'a',
+        type: String,
+        description: 'ARM docker image name',
+        group: [constants.CMD_UPDATE, constants.CMD_ADD]
+      },
+      {
+        name: 'registry-id',
+        alias: 'd',
+        type: CliDataTypes.Integer,
+        description: 'Microservice docker registry ID',
+        group: [constants.CMD_UPDATE, constants.CMD_ADD]
+      },
+      {
         name: 'catalog-id',
         alias: 'c',
         type: CliDataTypes.Integer,
         description: 'Catalog item ID',
-        group: [constants.CMD_ADD]
+        group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
         name: 'flow-id',
@@ -237,7 +273,7 @@ class Microservice extends BaseCLIHandler {
       },
       {
         name: 'mapping-id',
-        alias: 'a',
+        alias: 'm',
         type: CliDataTypes.Integer,
         description: 'Volume mapping id',
         group: [constants.CMD_VOLUME_MAPPING_REMOVE]
@@ -561,9 +597,28 @@ const _updateMicroserviceObject = function (obj) {
     logSize: obj.logSize,
     rebuild: obj.rebuild,
     cmd: obj.cmd,
-    env
+    env,
+    images: [],
+    catalogItemId: parseInt(obj.catalogItemId) || undefined,
+    registryId: parseInt(obj.registryId) || undefined
   }
 
+  if (obj.x86Image) {
+    microserviceObj.images.push(
+      {
+        containerImage: obj.x86Image,
+        fogTypeId: 1
+      }
+    )
+  }
+  if (obj.armImage) {
+    microserviceObj.images.push(
+      {
+        containerImage: obj.armImage,
+        fogTypeId: 2
+      }
+    )
+  }
   if (obj.volumes) {
     microserviceObj.volumeMappings = parseVolumeMappingArray(obj.volumes, 'Error during parsing of volume mapping option.')
   }
@@ -588,16 +643,34 @@ const _createMicroserviceObject = function (obj) {
   const microserviceObj = {
     name: obj.name,
     config: obj.config,
-    catalogItemId: parseInt(obj.catalogId),
+    catalogItemId: parseInt(obj.catalogId) || undefined,
     flowId: parseInt(obj.flowId),
+    registryId: parseInt(obj.registryId) || undefined,
     iofogUuid: obj.iofogUuid,
     rootHostAccess: AppHelper.validateBooleanCliOptions(obj.rootEnable, obj.rootDisable),
     logSize: obj.logSize,
     routes: obj.routes,
     cmd: obj.cmd,
-    env
+    env,
+    images: []
   }
 
+  if (obj.x86Image) {
+    microserviceObj.images.push(
+      {
+        containerImage: obj.x86Image,
+        fogTypeId: 1
+      }
+    )
+  }
+  if (obj.armImage) {
+    microserviceObj.images.push(
+      {
+        containerImage: obj.armImage,
+        fogTypeId: 2
+      }
+    )
+  }
   if (obj.volumes) {
     microserviceObj.volumeMappings = parseVolumeMappingArray(obj.volumes, ErrorMessages.CLI.INVALID_VOLUME_MAPPING)
   }
