@@ -78,7 +78,7 @@ jobs:
         displayName: 'npm pack for release artefact'
 
       - script: |
-          echo "gcr.io/${repository}:b-${buildTag}" > GCR_DOCKER_IMAGE
+          echo "gcr.io/$(repository):b-$(buildTag)" > GCR_DOCKER_IMAGE
         displayName: 'Save Docker image name and tag to GCR_DOCKER_IMAGE into artifacts'
 
       - task: CopyFiles@2
