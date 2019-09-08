@@ -89,7 +89,7 @@ const agentDeprovision = async function (deprovisionData, fog, transaction) {
 
   await MicroserviceStatusManager.update(
     { microserviceUuid: deprovisionData.microserviceUuids },
-    { status: MicroserviceStates.NOT_RUNNING },
+    { status: MicroserviceStates.DELETING },
     transaction
   )
 

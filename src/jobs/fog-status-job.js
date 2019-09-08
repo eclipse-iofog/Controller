@@ -58,7 +58,7 @@ async function _updateFogStatus (transaction) {
 async function _updateMicroserviceStatus (unknownFogUuids, transaction) {
   const microservices = await MicroserviceManager.findAllWithStatuses({ iofogUuid: unknownFogUuids }, transaction)
   const microserviceStatusIds = microservices.map((microservice) => microservice.microserviceStatus.id)
-  await MicroserviceStatusManager.update({ id: microserviceStatusIds }, { status: MicroserviceStates.NOT_RUNNING }, transaction)
+  await MicroserviceStatusManager.update({ id: microserviceStatusIds }, { status: MicroserviceStates.UNKNOWN }, transaction)
   return microservices
 }
 

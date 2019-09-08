@@ -13,7 +13,7 @@ module.exports = (sequelize, DataTypes) => {
     },
     status: {
       type: DataTypes.TEXT,
-      defaultValue: 'NOT_RUNNING',
+      defaultValue: 'UNKNOWN',
       field: 'status'
     },
     operatingDuration: {

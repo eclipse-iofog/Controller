@@ -318,7 +318,7 @@ async function deleteMicroserviceEndPoint (microserviceUuid, microserviceData, u
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.SYSTEM_MICROSERVICE_DELETE, microserviceUuid))
   }
 
-  if (!microservice.microserviceStatus || microservice.microserviceStatus.status === MicroserviceStates.NOT_RUNNING) {
+  if (!microservice.microserviceStatus || microservice.microserviceStatus.status === MicroserviceStates.UNKNOWN) {
     await deleteMicroserviceWithRoutesAndPortMappings(microservice, transaction)
   } else {
     await MicroserviceManager.update({
@@ -337,7 +337,10 @@ async function deleteNotRunningMicroservices (fog, transaction) {
   const microservices = await MicroserviceManager.findAllWithStatuses({ iofogUuid: fog.uuid }, transaction)
   microservices
     .filter((microservice) => microservice.delete)
-    .filter((microservice) => microservice.microserviceStatus.status === MicroserviceStates.NOT_RUNNING)
+    .filter((microservice) => microservice.microserviceStatus.status === MicroserviceStates.UNKNOWN ||
+      microservice.microserviceStatus.status === MicroserviceStates.STOPPING ||
+      microservice.microserviceStatus.status === MicroserviceStates.DELETING ||
+      microservice.microserviceStatus.status === MicroserviceStates.MARKED_FOR_DELETION)
     .forEach(async (microservice) => { await deleteMicroserviceWithRoutesAndPortMappings(microservice, transaction) })
 }
 
