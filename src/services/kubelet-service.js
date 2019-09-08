@@ -220,9 +220,7 @@ const kubeletGetPodStatus = async function (namespace, name, fogNodeUuid, user, 
     const microservice = microservices.microservices.find((ms) => ms.name === `${name}-${c.name}`)
 
     const containerState = {}
-    if (!microservice.status.alive) {
-      containerState.waiting = { reason: 'NOT_RESPONSIVE' }
-    } else if (microservice.status.status === 'RUNNING') {
+    if (microservice.status.status === 'RUNNING') {
       containerState.running = { startedAt: moment(microservice.status.startTime).utc().toISOString() }
     } else {
       containerState.waiting = { reason: microservice.status.status }

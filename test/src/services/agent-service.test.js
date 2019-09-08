@@ -274,7 +274,7 @@ describe('Agent Service', () => {
         await $subject
         expect(MicroserviceStatusManager.update).to.have.been.calledWith(
             { microserviceUuid: deprovisionData.microserviceUuids },
-            { status: MicroserviceStates.NOT_RUNNING },
+            { status: MicroserviceStates.DELETING },
             transaction
         )
       })
