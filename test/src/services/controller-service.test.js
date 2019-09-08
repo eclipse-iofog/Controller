@@ -2,7 +2,7 @@ const { expect } = require('chai')
 const sinon = require('sinon')
 
 const ControllerService = require('../../../src/services/controller-service')
-const ioFogTypesManager = require('../../../src/sequelize/managers/iofog-type-manager')
+const ioFogTypesManager = require('../../../src/data/managers/iofog-type-manager')
 const Config = require('../../../src/config')
 
 describe('Controller Service', () => {

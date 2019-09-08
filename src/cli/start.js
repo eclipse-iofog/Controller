@@ -14,7 +14,7 @@
 const BaseCLIHandler = require('./base-cli-handler')
 const config = require('../config')
 const logger = require('../logger')
-const db = require('../sequelize/models')
+const db = require('../data/models')
 
 class Start extends BaseCLIHandler {
   async run (args) {

@@ -22,8 +22,18 @@ class Config {
     this.load(environment)
   }
 
-  get (key) {
-    return nconf.get(key) || constants[key]
+  get (key, defaultValue) {
+    let value = nconf.get(key)
+
+    if (value === undefined || value === null) {
+      value = constants[key]
+    }
+
+    if (value === undefined || value === null) {
+      value = defaultValue
+    }
+
+    return value
   }
 
   set (key, value) {

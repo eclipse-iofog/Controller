@@ -11,7 +11,7 @@
  *
  */
 
-const ioFogTypesManager = require('../sequelize/managers/iofog-type-manager')
+const ioFogTypesManager = require('../data/managers/iofog-type-manager')
 const Config = require('../config')
 const TransactionDecorator = require('../decorators/transaction-decorator')
 const packageJson = require('../../package')
@@ -36,7 +36,7 @@ const getFogTypes = async function (isCLI, transaction) {
 }
 
 const emailActivation = async function (isCLI) {
-  const emailActivation = await Config.get('Email:ActivationEnabled')
+  const emailActivation = await Config.get('Email:ActivationEnabled', false)
   return {
     isEmailActivationEnabled: emailActivation
   }

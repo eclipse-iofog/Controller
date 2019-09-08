@@ -13,6 +13,8 @@
 
 const execSync = require('child_process').execSync
 
+const { setDbEnvVars } = require('./util')
+
 function stop () {
   const options = {
     env: {
@@ -21,6 +23,8 @@ function stop () {
     },
     stdio: [process.stdin, process.stdout, process.stderr]
   }
+
+  options.env = setDbEnvVars(options.env)
 
   execSync('node ./src/main.js stop', options)
 }

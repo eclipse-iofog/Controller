@@ -11,7 +11,7 @@
  *
  */
 
-const EmailActivationCodeManager = require('../sequelize/managers/email-activation-code-manager')
+const EmailActivationCodeManager = require('../data/managers/email-activation-code-manager')
 const AppHelper = require('../helpers/app-helper')
 const ErrorMessages = require('../helpers/error-messages')
 

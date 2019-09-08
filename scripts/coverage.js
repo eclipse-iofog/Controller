@@ -13,6 +13,8 @@
 
 const execSync = require('child_process').execSync
 
+const { setDbEnvVars } = require('./util')
+
 function coverage () {
   const options = {
     env: {
@@ -21,6 +23,8 @@ function coverage () {
     },
     stdio: [process.stdin, process.stdout, process.stderr]
   }
+
+  options.env = setDbEnvVars(options.env)
 
   execSync('nyc mocha', options)
 }

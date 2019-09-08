@@ -16,10 +16,10 @@ const fs = require('fs')
 const ROOT_DIR = `${__dirname}/..`
 const TEMP_DIR = getTempDir()
 
-const DEV_DB = `${ROOT_DIR}/src/sequelize/dev_database.sqlite`
+const DEV_DB = `${ROOT_DIR}/src/data/dev_database.sqlite`
 const DEV_DB_BACKUP = `${TEMP_DIR}/dev_database.sqlite`
 
-const PROD_DB = `${ROOT_DIR}/src/sequelize/prod_database.sqlite`
+const PROD_DB = `${ROOT_DIR}/src/data/prod_database.sqlite`
 const PROD_DB_BACKUP = `${TEMP_DIR}/prod_database.sqlite`
 
 const DEFAULT_CONFIG = `${ROOT_DIR}/src/config/default.json`
@@ -87,6 +87,24 @@ function restoreTrackingUuid () {
   renameFile(TRACKING_UUID_FILE_BACKUP, TRACKING_UUID_FILE)
 }
 
+function setDbEnvVars (env) {
+  const DB_ENV_VARS = [
+    'DB_NAME',
+    'DB_USERNAME',
+    'DB_PASSWORD',
+    'DB_PROVIDER',
+    'DB_HOST',
+    'DB_PORT'
+  ]
+
+  for (const envVar of DB_ENV_VARS) {
+    if (process.env[envVar]) {
+      env[envVar] = process.env[envVar]
+    }
+  }
+  return env
+}
+
 module.exports = {
   backupDBs: backupDBs,
   restoreDBs: restoreDBs,
@@ -96,6 +114,7 @@ module.exports = {
   restoreTrackingUuid: restoreTrackingUuid,
   renameFile: renameFile,
   getTempDir: getTempDir,
+  setDbEnvVars: setDbEnvVars,
 
   TEMP_DIR: TEMP_DIR,
   INSTALLATION_VARIABLES_FILE: INSTALLATION_VARIABLES_FILE

@@ -185,6 +185,11 @@ function isOnline () {
   return pid !== 0
 }
 
+function convertToInt (value, defaultValue) {
+  const number = parseInt(value)
+  return isNaN(number) ? defaultValue : number
+}
+
 module.exports = {
   encryptText,
   decryptText,
@@ -204,5 +209,6 @@ module.exports = {
   trimCertificate,
   isTest,
   isEmpty,
-  isOnline
+  isOnline,
+  convertToInt
 }

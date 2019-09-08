@@ -22,10 +22,7 @@
     "Tetiana Yatsiuk",
     "Sergey Valevich"
   ],
-  "license": {
-    "type": "EPL-2.0",
-    "url": "https://www.eclipse.org/legal/epl-v20.html"
-  },
+  "license": "EPL-2.0",
   "bugs": {
     "email": "edgemaster@iofog.org"
   },
@@ -85,12 +82,14 @@
     "jsonschema": "1.2.4",
     "moment": "2.24.0",
     "morgan": "1.9.1",
+    "mysql2": "1.6.5",
     "nconf": "0.10.0",
     "newman": "^4.5.4",
     "nodemailer": "5.1.1",
     "nodemailer-smtp-transport": "2.7.4",
     "os": "0.1.1",
     "path": "0.12.7",
+    "pg": "7.11.0",
     "portscanner": "2.2.0",
     "qs": "6.6.0",
     "request-promise": "4.2.4",
@@ -120,5 +119,13 @@
     "sinon-chai": "3.3.0",
     "snyk": "1.193.2",
     "standard": "12.0.1"
-  }
+  },
+  "files": [
+    "/scripts",
+    "/src",
+    "/test",
+    ".eslintrc.js",
+    ".jshintrc",
+    ".snyk"
+  ]
 }

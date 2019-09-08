@@ -12,7 +12,7 @@
  */
 
 const TransactionDecorator = require('../decorators/transaction-decorator')
-const FlowManager = require('../sequelize/managers/flow-manager')
+const FlowManager = require('../data/managers/flow-manager')
 const AppHelper = require('../helpers/app-helper')
 const Errors = require('../helpers/errors')
 const ErrorMessages = require('../helpers/error-messages')
