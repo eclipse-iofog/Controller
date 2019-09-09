@@ -37,7 +37,7 @@ const connectorUpdate = {
     'isSelfSignedCert': { 'type': 'boolean' },
     'devMode': { 'type': 'boolean' }
   },
-  'required': ['publicIp'],
+  'required': ['name'],
   'additionalProperties': true
 }
 
@@ -45,9 +45,9 @@ const connectorDelete = {
   'id': '/connectorDelete',
   'type': 'object',
   'properties': {
-    'publicIp': { 'type': 'string', 'minLength': 7 }
+    'name': { 'type': 'string', 'minLength': 1 }
   },
-  'required': ['publicIp'],
+  'required': ['name'],
   'additionalProperties': true
 }
 

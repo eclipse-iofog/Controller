@@ -34,7 +34,7 @@ class Connector extends BaseCLIHandler {
         alias: 'n',
         type: String,
         description: 'Connector name',
-        group: [constants.CMD_ADD, constants.CMD_UPDATE]
+        group: [constants.CMD_ADD, constants.CMD_UPDATE, constants.CMD_REMOVE]
       },
       {
         name: 'domain',
@@ -48,7 +48,7 @@ class Connector extends BaseCLIHandler {
         alias: 'i',
         type: String,
         description: 'Connector public IP address',
-        group: [constants.CMD_ADD, constants.CMD_UPDATE, constants.CMD_REMOVE]
+        group: [constants.CMD_ADD, constants.CMD_UPDATE]
       },
       {
         name: 'cert',
