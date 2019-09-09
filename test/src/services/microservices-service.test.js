@@ -21,6 +21,7 @@ const Op = require('sequelize').Op
 const ConnectorManager = require('../../../src/data/managers/connector-manager')
 const ConnectorPortManager = require('../../../src/data/managers/connector-port-manager')
 const MicroservicePublicModeManager = require('../../../src/data/managers/microservice-public-mode-manager')
+const MicroserviceStatusManager = require('../../../src/data/managers/microservice-status-manager')
 
 describe('Microservices Service', () => {
   def('subject', () => MicroservicesService)
@@ -57,6 +58,7 @@ describe('Microservices Service', () => {
     def('envResponse', () => Promise.resolve([]))
     def('cmdResponse', () => Promise.resolve([]))
     def('imgResponse', () => Promise.resolve([]))
+    def('statusResponse', () => Promise.resolve([]))
 
     beforeEach(() => {
       $sandbox.stub(MicroserviceManager, 'findAllExcludeFields').returns($findMicroservicesResponse)
@@ -69,8 +71,9 @@ describe('Microservices Service', () => {
       $sandbox.stub(ConnectorPortManager, 'findOne').returns($connectorPortResponse)
       $sandbox.stub(ConnectorManager, 'findOne').returns($connectorResponse)
       $sandbox.stub(CatalogItemImageManager, 'findAll').returns($imgResponse)
+      $sandbox.stub(MicroserviceStatusManager, 'findAllExcludeFields').returns($statusResponse)
     })
-
+    
     it('calls MicroserviceManager#findAllExcludeFields() with correct args', async () => {
       await $subject
       const where = isCLI ? { delete: false } : { flowId: flowId, delete: false }
@@ -120,6 +123,7 @@ describe('Microservices Service', () => {
     def('envResponse', () => Promise.resolve([]))
     def('cmdResponse', () => Promise.resolve([]))
     def('imgResponse', () => Promise.resolve([]))
+    def('statusResponse', () => Promise.resolve([]))
 
     beforeEach(() => {
       $sandbox.stub(MicroserviceManager, 'findOneExcludeFields').returns($findMicroserviceResponse)
@@ -132,6 +136,7 @@ describe('Microservices Service', () => {
       $sandbox.stub(ConnectorPortManager, 'findOne').returns($connectorPortResponse)
       $sandbox.stub(ConnectorManager, 'findOne').returns($connectorResponse)
       $sandbox.stub(CatalogItemImageManager, 'findAll').returns($imgResponse)
+      $sandbox.stub(MicroserviceStatusManager, 'findAllExcludeFields').returns($statusResponse)
     })
 
     it('calls MicroserviceManager#findOneExcludeFields() with correct args', async () => {
