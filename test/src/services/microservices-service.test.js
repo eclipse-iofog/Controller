@@ -21,7 +21,6 @@ const Op = require('sequelize').Op
 const ConnectorManager = require('../../../src/data/managers/connector-manager')
 const ConnectorPortManager = require('../../../src/data/managers/connector-port-manager')
 const MicroservicePublicModeManager = require('../../../src/data/managers/microservice-public-mode-manager')
-const MicroserviceStatusManager = require('../../../src/data/managers/microservice-status-manager')
 
 describe('Microservices Service', () => {
   def('subject', () => MicroservicesService)
