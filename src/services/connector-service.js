@@ -17,7 +17,6 @@ const ConnectorManager = require('../data/managers/connector-manager')
 const Errors = require('../helpers/errors')
 const ErrorMessages = require('../helpers/error-messages')
 const AppHelper = require('../helpers/app-helper')
-const Op = require('sequelize').Op
 
 const ConnectorPortManager = require('../data/managers/connector-port-manager')
 const MicroserviceService = require('../services/microservices-service')
@@ -26,17 +25,7 @@ async function createConnector (connectorData, transaction) {
   await Validator.validate(connectorData, Validator.schemas.connectorCreate)
   _validateConnectorData(connectorData)
   const connector = await ConnectorManager.findOne({
-    [Op.or]: [
-      {
-        name: connectorData.name
-      },
-      {
-        publicIp: connectorData.publicIp
-      },
-      {
-        domain: connectorData.domain
-      }
-    ]
+    name: connectorData.name
   }, transaction)
   if (connector) {
     throw new Errors.ValidationError(ErrorMessages.ALREADY_EXISTS)
@@ -48,18 +37,18 @@ async function updateConnector (connectorData, transaction) {
   await Validator.validate(connectorData, Validator.schemas.connectorUpdate)
   _validateConnectorData(connectorData)
   const queryConnectorData = {
-    publicIp: connectorData.publicIp
+    name: connectorData.name
   }
 
   const connector = await ConnectorManager.findOne({
-    publicIp: connectorData.publicIp
+    name: connectorData.name
   }, transaction)
   if (!connector) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_CONNECTOR_IP, connectorData.publicIp))
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.CONNECTOR_NOT_FOUND, connectorData.name))
   }
 
   await ConnectorManager.update(queryConnectorData, connectorData, transaction)
-  const updatedConnector = await ConnectorManager.findOne({ publicIp: connectorData.publicIp }, transaction)
+  const updatedConnector = await ConnectorManager.findOne({ name: connectorData.name }, transaction)
   await MicroserviceService.updateRouteOverConnector(updatedConnector, transaction)
   await MicroserviceService.updatePortMappingOverConnector(updatedConnector, transaction)
   return updatedConnector
@@ -68,11 +57,11 @@ async function updateConnector (connectorData, transaction) {
 async function deleteConnector (connectorData, transaction) {
   await Validator.validate(connectorData, Validator.schemas.connectorDelete)
   const queryConnectorData = {
-    publicIp: connectorData.publicIp
+    name: connectorData.name
   }
   const connector = await ConnectorManager.findOne(queryConnectorData, transaction)
   if (!connector) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_CONNECTOR_IP, connectorData.publicIp))
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.CONNECTOR_NOT_FOUND, connectorData.name))
   }
   const ports = await ConnectorPortManager.findAll({ connectorId: connector.id }, transaction)
   if (ports && ports.length > 0) {

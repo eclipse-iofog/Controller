@@ -80,6 +80,7 @@ module.exports = {
     INVALID_ROUTE: 'Route parsing error. Please provide valid route.'
   },
   CONNECTOR_IS_IN_USE: 'You can\'t delete connector, because it is used for routing now.',
+  CONNECTOR_NOT_FOUND: 'Connecter not found.',
   INVALID_VERSION_COMMAND_UPGRADE: 'Can\'t upgrade version now. Latest is already installed',
   INVALID_VERSION_COMMAND_ROLLBACK: 'Can\'t rollback version now. There are no backups on agent',
   CATALOG_ITEM_IMAGES_IS_FROZEN: 'Can\'t update catalog item images for item used for running microservices',
