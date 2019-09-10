@@ -816,11 +816,13 @@ async function _checkForDuplicateName (name, item, userId, transaction) {
       ? {
         name: name,
         uuid: { [Op.ne]: item.id },
+        delete: false,
         userId: userId
       }
       : {
         name: name,
-        userId: userId
+        userId: userId,
+        delete: false
       }
 
     const result = await MicroserviceManager.findOne(where, transaction)
