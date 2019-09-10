@@ -885,7 +885,7 @@
 									"",
 									"var data = JSON.parse(responseBody);",
 									"",
-									"tests[\"Response validation passed\"] = data.hasOwnProperty('name') && data.name === 'updatedName';"
+									"tests[\"Response validation passed\"] = data.hasOwnProperty('name') && data.publicIp === '1.2.3.5';"
 								],
 								"type": "text/javascript"
 							}
@@ -906,7 +906,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"name\": \"updatedName\",\n \"publicIp\": \"{{connector-ip}}\" \n}"
+							"raw": "{\n  \"name\": \"MyConnector\",\n \"publicIp\": \"1.2.3.5\" \n}"
 						},
 						"url": {
 							"raw": "{{host}}/api/v3/connector",
@@ -951,7 +951,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"publicIp\": \"{{connector-ip}}\"\n}"
+							"raw": "{\n  \"name\": \"MyConnector\"\n}"
 						},
 						"url": {
 							"raw": "{{host}}/api/v3/connector",
