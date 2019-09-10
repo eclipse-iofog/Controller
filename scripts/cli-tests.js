@@ -20,7 +20,8 @@ const options = {
   env: {
     'NODE_ENV': 'production',
     'PATH': process.env.PATH
-  }
+  },
+  encoding: 'ascii'
 }
 
 options.env = setDbEnvVars(options.env)
@@ -163,7 +164,7 @@ function testCatalogSection () {
       ' -c testCategory -x testIntelImage -a testArmImage -p testPublisher -s 15 -r 15 -t testPicture -g ' +
       registryId + ' -I testInputType -F testInputFormat -O testOutputType -T testOutputFormat -X \'{}\''),
     'Catalog item has been updated successfully.')
-    responseHasFields(testCommand('catalog list'), catalogListFields)
+    responseHasFields(testCommand('catalog list | tr "\\0" "\\n"'), catalogListFields)
     responseHasFields(testCommand('catalog info -i ' + catalogId), catalogCreateFields)
     responseEquals(testCommand('catalog remove -i ' + catalogId), 'Catalog item has been removed successfully')
     executeCommand('registry remove -i ' + registryId)
@@ -349,7 +350,6 @@ function testCommand (command) {
 
 function executeCommand (command) {
   let response = execSync('node ./src/main.js ' + command, options)
-  response = response.toString()
   response = response.replace(/\r?\n?/g, '') // remove line breaks
   return response
 }

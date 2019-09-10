@@ -1,6 +1,7 @@
 'use strict'
 
 const { convertToInt } = require('../../helpers/app-helper')
+const microserviceState = require('../../enums/microservice-state')
 
 module.exports = (sequelize, DataTypes) => {
   const MicroserviceStatus = sequelize.define('MicroserviceStatus', {
@@ -13,7 +14,7 @@ module.exports = (sequelize, DataTypes) => {
     },
     status: {
       type: DataTypes.TEXT,
-      defaultValue: 'UNKNOWN',
+      defaultValue: microserviceState.QUEUED,
       field: 'status'
     },
     operatingDuration: {

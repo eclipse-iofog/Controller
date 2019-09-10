@@ -1302,6 +1302,7 @@ async function _buildGetMicroserviceResponse (microservice, transaction) {
   const env = await MicroserviceEnvManager.findAllExcludeFields({ microserviceUuid: microserviceUuid }, transaction)
   const cmd = await MicroserviceArgManager.findAllExcludeFields({ microserviceUuid: microserviceUuid }, transaction)
   const arg = cmd.map((it) => it.cmd)
+  const status = await MicroserviceStatusManager.findAllExcludeFields({ microserviceUuid: microserviceUuid }, transaction)
 
   // build microservice response
   const res = Object.assign({}, microservice.dataValues)
@@ -1327,6 +1328,9 @@ async function _buildGetMicroserviceResponse (microservice, transaction) {
   res.env = env
   res.cmd = arg
   res.images = images.map(i => ({ containerImage: i.containerImage, fogTypeId: i.fogTypeId }))
+  if (status && status.length) {
+    res.status = status[0]
+  }
 
   return res
 }
