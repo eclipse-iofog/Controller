@@ -354,11 +354,13 @@ describe('Microservices Service', () => {
                 name: microserviceData.name,
                 uuid: { [Op.ne]: item.id },
                 userId: user.id,
+                delete: false
               }
               :
               {
                 name: microserviceData.name,
                 userId: user.id,
+                delete: false
               }
             expect(MicroserviceManager.findOne).to.have.been.calledWith(where, transaction)
           })
