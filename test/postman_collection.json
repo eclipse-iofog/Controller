@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "b729b57d-2b43-4f3e-a4ce-3e98b534baba",
+		"_postman_id": "d6d939d2-de09-45c1-ac01-2ffcd67e6eb8",
 		"name": "Controller Testing",
 		"description": "iofog-controller collection",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -165,10 +165,6 @@
 					"request": {
 						"method": "GET",
 						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{host}}/api/v3/user/signup/resend-activation?email=user@domain.com",
 							"host": [
@@ -217,10 +213,6 @@
 								"value": "{{user-token}}"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{host}}/api/v3/user/profile",
 							"host": [
@@ -555,10 +547,6 @@
 					"request": {
 						"method": "GET",
 						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{host}}/api/v3/status",
 							"host": [
@@ -594,10 +582,6 @@
 					"request": {
 						"method": "GET",
 						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{host}}/api/v3/email-activation",
 							"host": [
@@ -633,10 +617,6 @@
 					"request": {
 						"method": "GET",
 						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{host}}/api/v3/fog-types",
 							"host": [
@@ -855,10 +835,6 @@
 								"type": "text"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{host}}/api/v3/connector",
 							"host": [
@@ -1220,10 +1196,6 @@
 								"value": "{{user-token}}"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{host}}/api/v3/iofog/{{node-id}}/provisioning-key",
 							"host": [
@@ -1322,10 +1294,6 @@
 								"value": "{{agent-token}}"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{host}}/api/v3/agent/config",
 							"host": [
@@ -1422,10 +1390,6 @@
 								"value": "{{agent-token}}"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{host}}/api/v3/agent/config/changes",
 							"host": [
@@ -1520,10 +1484,6 @@
 								"value": "{{agent-token}}"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{host}}/api/v3/agent/microservices",
 							"host": [
@@ -1570,10 +1530,6 @@
 								"value": "{{agent-token}}"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{host}}/api/v3/agent/microservices/abcedf",
 							"host": [
@@ -1621,10 +1577,6 @@
 								"value": "{{agent-token}}"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{host}}/api/v3/agent/registries",
 							"host": [
@@ -1671,10 +1623,6 @@
 								"value": "{{agent-token}}"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{host}}/api/v3/agent/tunnel",
 							"host": [
@@ -1718,10 +1666,6 @@
 								"value": "{{agent-token}}"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{host}}/api/v3/agent/strace",
 							"host": [
@@ -1818,10 +1762,6 @@
 								"value": "{{agent-token}}"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{host}}/api/v3/agent/version",
 							"host": [
@@ -1964,10 +1904,6 @@
 								"value": "{{agent-token}}"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{host}}/api/v3/agent/image-snapshot",
 							"host": [
@@ -2377,10 +2313,6 @@
 								"type": "text"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{host}}/api/v3/flow",
 							"host": [
@@ -2426,10 +2358,6 @@
 								"type": "text"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{host}}/api/v3/flow/{{flow-id}}",
 							"host": [
@@ -2787,10 +2715,6 @@
 								"type": "text"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{host}}/api/v3/catalog/microservices",
 							"host": [
@@ -2839,10 +2763,6 @@
 								"type": "text"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{host}}/api/v3/catalog/microservices/{{item-id}}",
 							"host": [
@@ -3248,10 +3168,6 @@
 								"type": "text"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{host}}/api/v3/iofog/{{node-id}}/tunnel",
 							"host": [
@@ -3751,7 +3667,13 @@
 									"",
 									"var data = JSON.parse(responseBody);",
 									"",
-									"tests[\"Response validation passed\"] = data.hasOwnProperty('microservices');"
+									"tests[\"Response has microservices property\"] = data.hasOwnProperty('microservices');",
+									"",
+									"tests[\"Response contains two microservices\"] = data.microservices.length === 2;",
+									"",
+									"tests[\"Response returns microservice status\"] = data.microservices[0].hasOwnProperty('status');",
+									"",
+									"tests[\"Microservice status has default value\"] = data.microservices[0].status.status === 'QUEUED';"
 								],
 								"type": "text/javascript"
 							}
@@ -3770,10 +3692,6 @@
 								"type": "text"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{host}}/api/v3/microservices?flowId={{flow-id}}",
 							"host": [
@@ -3825,10 +3743,6 @@
 								"type": "text"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{host}}/api/v3/microservices/{{ms-id}}",
 							"host": [
@@ -3875,10 +3789,6 @@
 								"type": "text"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{host}}/api/v3/microservices/{{ms-no-catalog-id}}",
 							"host": [
@@ -4017,10 +3927,6 @@
 								"type": "text"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{host}}/api/v3/microservices/{{ms-no-catalog-id}}",
 							"host": [
@@ -4113,10 +4019,6 @@
 								"type": "text"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{host}}/api/v3/microservices/{{ms-no-catalog-id}}",
 							"host": [
@@ -4209,10 +4111,6 @@
 								"type": "text"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{host}}/api/v3/microservices/{{ms-no-catalog-id}}",
 							"host": [
@@ -4402,10 +4300,6 @@
 								"type": "text"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{host}}/api/v3/microservices/{{ms-id}}/port-mapping",
 							"host": [
@@ -4550,10 +4444,6 @@
 								"value": "{{user-token}}"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{host}}/api/v3/microservices/{{ms-id}}/volume-mapping",
 							"host": [
@@ -5255,10 +5145,6 @@
 								"type": "text"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{host}}/api/v3/microservices/{{ms-id}}/image-snapshot",
 							"host": [
@@ -5354,10 +5240,6 @@
 								"type": "text"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{host}}/api/v3/microservices/{{ms-id}}/strace?format=string",
 							"host": [
@@ -5874,10 +5756,6 @@
 								"type": "text"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{host}}/api/v3/iofog/{{node-id}}/provisioning-key",
 							"host": [
@@ -5924,10 +5802,6 @@
 								"value": "{{user-token}}"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{host}}/api/v3/iofog-list?filters[0][key]=uuid&filters[0][value]={{node-id}}&filters[0][condition]=equals",
 							"host": [
@@ -6044,10 +5918,6 @@
 								"type": "text"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{host}}/api/v3/iofog/{{node-id}}",
 							"host": [
@@ -6239,10 +6109,6 @@
 								"type": "text"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{host}}/api/v3/iofog/{{node-id}}/hal/hw",
 							"host": [
@@ -6287,10 +6153,6 @@
 								"type": "text"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{host}}/api/v3/iofog/{{node-id}}/hal/usb",
 							"host": [
@@ -6650,10 +6512,6 @@
 								"type": "text"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{host}}/api/v3/registries",
 							"host": [
