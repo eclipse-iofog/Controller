@@ -401,7 +401,7 @@ const microservicesTopologicalOrder = function (msMetadata) {
         return
       }
 
-      node.edges = node.edges.filter((e) => e !== n)
+      node.edges = node.edges.filter((e) => `${e}` !== `${n}`)
       if (!node.edges.length) {
         stack.push(i)
       }
