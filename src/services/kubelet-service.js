@@ -329,18 +329,14 @@ const kubeletGetNodeConditions = async function (fogNodeUuid, user, transaction)
 
 const kubeletGetNodeAddresses = async function (fogNodeUuid, user, transaction) {
   const node = await IOFogService.getFogEndPoint({ uuid: fogNodeUuid }, user, false, transaction)
-  if (!node.ipAddress || node.ipAddress === '0.0.0.0') {
-    return []
-  }
-
   return [
     {
       type: 'InternalIP',
-      address: node.ipAddress
+      address: node.ipAddress ? node.ipAddress : '0.0.0.0'
     },
     {
       type: 'ExternalIP',
-      address: node.ipAddressExternal
+      address: node.ipAddressExternal ? node.ipAddressExternal : '0.0.0.0'
     }
   ]
 }
