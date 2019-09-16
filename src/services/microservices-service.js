@@ -74,13 +74,17 @@ async function getMicroserviceEndPoint (microserviceUuid, user, isCLI, transacti
 }
 
 function _validateImagesAgainstCatalog (catalogItem, images) {
+  const allImagesEmpty = images.reduce((result, b) => result && b.containerImage === '', true)
+  if (allImagesEmpty) {
+    return
+  }
   for (const img of images) {
     let found = false
     for (const catalogImg of catalogItem.images) {
       if (catalogImg.fogType === img.fogType) {
         found = true
       }
-      if (found === true && catalogImg.containerImage !== img.containerImage) {
+      if (found === true && img.containerImage !== '' && catalogImg.containerImage !== img.containerImage) {
         throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.CATALOG_NOT_MATCH_IMAGES, `${catalogItem.id}`))
       }
     }
