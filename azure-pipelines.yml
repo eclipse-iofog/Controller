@@ -115,7 +115,7 @@ jobs:
 
           PACKAGE_VERSION=$(cat package.json | grep version | head -1 | awk -F: '{ print $2 }' | sed 's/[\",]//g' | tr -d '[[:space:]]')
           if [[ $(ref) == refs/tags* ]]; then
-            npm --no-git-tag-version version $PACKAGE_VERSION
+            npm --allow-same-version --no-git-tag-version version $PACKAGE_VERSION
           else
             npm --no-git-tag-version version $PACKAGE_VERSION-b$(buildTag)
           fi
