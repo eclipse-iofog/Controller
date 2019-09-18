@@ -14,7 +14,7 @@ variables:
   group: 'pipelines'
   repository: 'focal-freedom-236620/controller'
   ref: $(Build.SourceBranch)
-  version:
+  imageTag:
   buildTag: $(Build.BuildId)
   branchTag: $(Build.SourceBranchName)
   releaseCandidate: 'rc'
@@ -79,8 +79,27 @@ jobs:
           ls iofogcontroller-*.tgz
         displayName: 'npm pack for release artefact'
 
+      - bash: |
+          echo 'checking pack file exists..'
+          tar=$(ls iofogcontroller-*.tgz)
+          echo $tar
+          echo "##vso[task.setvariable variable=controller_tar]$tar"
+
+          if [[ $(ref) == refs/tags* ]]; then
+            TAG=$(echo $(ref) | sed "s|refs/tags/v||g")
+            echo "##vso[task.setvariable variable=imageTag]$TAG"
+          else
+            LATESTTAG=$(git tag | tail -1)
+            LATESTVERS=${LATESTTAG#?}
+            if [ -z "$LATESTVERS" ]; then LATESTVERS=0.0.0; fi
+            echo "##vso[task.setvariable variable=imageTag]$LATESTVERS-b$(buildTag)"
+          fi
+          echo $(imageTag)
+        displayName: 'setting vars'
+        name: setvarStep
+
       - script: |
-          echo "gcr.io/${repository}:b-${buildTag}" > GCR_DOCKER_IMAGE
+          echo "gcr.io/$(repository):$(imageTag)" > GCR_DOCKER_IMAGE
         displayName: 'Save Docker image name and tag to GCR_DOCKER_IMAGE into artifacts'
 
       - task: CopyFiles@2
@@ -112,25 +131,6 @@ jobs:
           npm pack
         displayName: 'npm pack with version containing build number'
 
-      - bash: |
-          echo 'checking pack file exists..'
-          tar=$(ls iofogcontroller-*.tgz)
-          echo $tar
-          echo "##vso[task.setvariable variable=controller_tar]$tar"
-
-          if [[ $(ref) == refs/tags* ]]; then
-            TAG=$(echo $(ref) | sed "s|refs/tags/v||g")
-            echo "##vso[task.setvariable variable=version]$TAG"
-          else
-            LATESTTAG=$(git tag | tail -1)
-            LATESTVERS=${LATESTTAG#?}
-            if [ -z "$LATESTVERS" ]; then LATESTVERS=0.0.0; fi
-            echo "##vso[task.setvariable variable=version]$LATESTVERS-b$(buildTag)"
-          fi
-          echo $(version)
-        displayName: 'setting vars'
-        name: setvarStep
-
       - task: Docker@2
         displayName: 'build docker'
         inputs:
@@ -140,7 +140,7 @@ jobs:
           Dockerfile: "Dockerfile.dev"
           arguments: --build-arg FILENAME=$(controller_tar)
           tags: |
-            $(version)
+            $(imageTag)
             latest
 
       - task: Docker@2
@@ -151,7 +151,7 @@ jobs:
           command: 'push'
           Dockerfile: "Dockerfile.dev"
           tags: |
-            $(version)
+            $(imageTag)
             latest
 
       - task: PublishBuildArtifacts@1
