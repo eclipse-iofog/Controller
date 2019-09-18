@@ -13,6 +13,8 @@ trigger:
 variables:
   group: 'pipelines'
   repository: 'focal-freedom-236620/controller'
+  ref: $(Build.SourceBranch)
+  version:
   buildTag: $(Build.BuildId)
   branchTag: $(Build.SourceBranchName)
   releaseCandidate: 'rc'
@@ -116,17 +118,16 @@ jobs:
           echo $tar
           echo "##vso[task.setvariable variable=controller_tar]$tar"
 
-          echo 'setting primary tag'
-          echo "##vso[task.setvariable variable=primaryTag]$(branchTag)"
-
-          if [[ $(Build.SourceBranch) == refs/heads/release* ]]; then
-            echo "##vso[task.setvariable variable=primaryTag]rc-$(branchTag)"
-          #If branch starts with ref/tags, apply latest and version tag
-          elif [[ $(Build.SourceBranch) == refs/tags* ]]; then
-            primaryTag= echo $(branchTag) | awk '{print substr($1,2);}'
-            echo $primaryTag
-            echo "##vso[task.setvariable variable=primaryTag]$primaryTag"
+          if [[ $(ref) == refs/tags* ]]; then
+            TAG=$(echo $(ref) | sed "s|refs/tags/v||g")
+            echo "##vso[task.setvariable variable=version]$TAG"
+          else
+            LATESTTAG=$(git tag | tail -1)
+            LATESTVERS=${LATESTTAG#?}
+            if [ -z "$LATESTVERS" ]; then LATESTVERS=0.0.0; fi
+            echo "##vso[task.setvariable variable=version]$LATESTVERS-b$(buildTag)"
           fi
+          echo $(version)
         displayName: 'setting vars'
         name: setvarStep
 
@@ -139,8 +140,7 @@ jobs:
           Dockerfile: "Dockerfile.dev"
           arguments: --build-arg FILENAME=$(controller_tar)
           tags: |
-            b-$(buildTag)
-            $(primaryTag)
+            $(version)
             latest
 
       - task: Docker@2
@@ -151,8 +151,7 @@ jobs:
           command: 'push'
           Dockerfile: "Dockerfile.dev"
           tags: |
-            b-$(buildTag)
-            $(primaryTag)
+            $(version)
             latest
 
       - task: PublishBuildArtifacts@1
