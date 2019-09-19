@@ -31,6 +31,11 @@ module.exports = (sequelize, DataTypes) => {
     devMode: {
       type: DataTypes.BOOLEAN,
       field: 'dev_mode'
+    },
+    healthy: {
+      type: DataTypes.BOOLEAN,
+      field: 'healthy',
+      defaultValue: true
     }
   }, {
     timestamps: true,
