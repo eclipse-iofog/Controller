@@ -377,6 +377,7 @@ describe('Connector Service', () => {
           await $subject
           expect(ConnectorPortManager.findAll).to.have.been.calledWith({
             connectorId: connector.id,
+            moved: false
           }, transaction)
         })
 
