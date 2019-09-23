@@ -1340,6 +1340,8 @@ async function _buildGetMicroserviceResponse (microservice, transaction) {
     res.status = status[0]
   }
 
+  res.logSize *= 1
+
   return res
 }
 
