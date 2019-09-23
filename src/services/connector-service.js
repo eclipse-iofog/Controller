@@ -63,7 +63,7 @@ async function deleteConnector (connectorData, transaction) {
   if (!connector) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.CONNECTOR_NOT_FOUND, connectorData.name))
   }
-  const ports = await ConnectorPortManager.findAll({ connectorId: connector.id }, transaction)
+  const ports = await ConnectorPortManager.findAll({ connectorId: connector.id, moved: false }, transaction)
   if (ports && ports.length > 0) {
     throw new Errors.ValidationError(ErrorMessages.CONNECTOR_IS_IN_USE)
   }

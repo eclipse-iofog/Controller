@@ -25,7 +25,8 @@
     "UserTokenExpirationIntervalSeconds": 3600,
     "FogTokenExpirationIntervalSeconds": 3600,
     "FogStatusUpdateIntervalSeconds": 120,
-    "FogStatusFrequencySeconds": 60
+    "FogStatusFrequencySeconds": 60,
+    "ConnectorHealthCheckFrequencySeconds": 10
   },
   "Diagnostics": {
     "DiagnosticDir": "diagnostic"

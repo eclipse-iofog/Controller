@@ -43,6 +43,11 @@ module.exports = (sequelize, DataTypes) => {
     mappingId: {
       type: DataTypes.TEXT,
       field: 'mapping_id'
+    },
+    moved: {
+      type: DataTypes.BOOLEAN,
+      field: 'moved',
+      defaultValue: false
     }
   }, {
     timestamps: true,

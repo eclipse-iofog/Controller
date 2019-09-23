@@ -911,7 +911,8 @@ async function _createRouteOverConnector (sourceMicroservice, destMicroservice, 
     heartBeatAbsenceThresholdPort1: 60000,
     heartBeatAbsenceThresholdPort2: 60000,
     connectorId: ports.connectorId,
-    mappingId: ports.id
+    mappingId: ports.id,
+    moved: false
   }
   const connectorPort = await ConnectorPortManager.create(createConnectorPortData, transaction)
 
@@ -1068,7 +1069,8 @@ async function _createPortMappingOverConnector (microservice, portMappingData, u
     heartBeatAbsenceThresholdPort1: 60000,
     heartBeatAbsenceThresholdPort2: 0,
     connectorId: ports.connectorId,
-    mappingId: ports.id
+    mappingId: ports.id,
+    moved: false
   }
   const connectorPort = await ConnectorPortManager.create(createConnectorPortData, transaction)
 
@@ -1337,6 +1339,8 @@ async function _buildGetMicroserviceResponse (microservice, transaction) {
   if (status && status.length) {
     res.status = status[0]
   }
+
+  res.logSize *= 1
 
   return res
 }
