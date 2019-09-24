@@ -184,7 +184,7 @@ async function updateMicroserviceEndPoint (microserviceUuid, microserviceData, u
     rebuild: microserviceData.rebuild,
     iofogUuid: microserviceData.iofogUuid,
     rootHostAccess: microserviceData.rootHostAccess,
-    logSize: microserviceData.logLimit,
+    logSize: (microserviceData.logLimit || 50) * 1,
     registryId: microserviceData.registryId,
     volumeMappings: microserviceData.volumeMappings,
     env: microserviceData.env,
@@ -681,7 +681,7 @@ async function _createMicroservice (microserviceData, user, isCLI, transaction) 
     iofogUuid: microserviceData.iofogUuid,
     rootHostAccess: microserviceData.rootHostAccess,
     registryId: microserviceData.registryId || 1,
-    logSize: microserviceData.logLimit,
+    logSize: (microserviceData.logLimit || 50) * 1,
     userId: user.id
   }
 
@@ -911,7 +911,8 @@ async function _createRouteOverConnector (sourceMicroservice, destMicroservice, 
     heartBeatAbsenceThresholdPort1: 60000,
     heartBeatAbsenceThresholdPort2: 60000,
     connectorId: ports.connectorId,
-    mappingId: ports.id
+    mappingId: ports.id,
+    moved: false
   }
   const connectorPort = await ConnectorPortManager.create(createConnectorPortData, transaction)
 
@@ -1068,7 +1069,8 @@ async function _createPortMappingOverConnector (microservice, portMappingData, u
     heartBeatAbsenceThresholdPort1: 60000,
     heartBeatAbsenceThresholdPort2: 0,
     connectorId: ports.connectorId,
-    mappingId: ports.id
+    mappingId: ports.id,
+    moved: false
   }
   const connectorPort = await ConnectorPortManager.create(createConnectorPortData, transaction)
 
@@ -1337,6 +1339,8 @@ async function _buildGetMicroserviceResponse (microservice, transaction) {
   if (status && status.length) {
     res.status = status[0]
   }
+
+  res.logSize *= 1
 
   return res
 }

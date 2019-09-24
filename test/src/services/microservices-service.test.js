@@ -216,6 +216,7 @@ describe('Microservices Service', () => {
         },
       ],
       'routes': [],
+      'logLimit': 50
     }
 
     const newMicroserviceUuid = 'newMicroserviceUuid'
