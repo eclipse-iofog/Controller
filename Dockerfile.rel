@@ -4,8 +4,7 @@ ARG FILENAME
 
 COPY ${FILENAME} /tmp
 
-RUN npm install sqlite3@4.0.6 --build-from-source \
-  npm i --unsafe-perm -g /tmp/${FILENAME} && \
+RUN npm i minipass@2.7.0 --unsafe-perm -g /tmp/${FILENAME} && \
   rm -rf /tmp/${FILENAME} && \
   echo "iofog-controller start && tail -f /dev/null" >> /start.sh
 
