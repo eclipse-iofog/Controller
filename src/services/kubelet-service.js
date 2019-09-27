@@ -270,7 +270,7 @@ const kubeletGetAllocatable = async function (fogNodeUuid, user, transaction) {
   const node = await IOFogService.getFogEndPoint({ uuid: fogNodeUuid }, user, false, transaction)
 
   const pods = await kubeletGetPods(fogNodeUuid, user, transaction)
-  const allocatablePods = NODE_CAPACITY - pods.length
+  const allocatablePods = NODE_CAPACITY - (pods || []).length
 
   return {
     cpu: node.cpuLimit - node.cpuUsage,
