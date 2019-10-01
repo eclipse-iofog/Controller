@@ -20,6 +20,7 @@ const FlowService = require('./flow-service')
 const FogManager = require('../data/managers/iofog-manager')
 const IOFogService = require('./iofog-service')
 const KubeletAccessTokenService = require('./kubelet-access-token-service')
+const logger = require('../logger')
 const MicroservicesService = require('./microservices-service')
 const MicroserviceStatusManager = require('../data/managers/microservice-status-manager')
 // const SchedulerAccessTokenService = require('./scheduler-access-token-service')
@@ -246,11 +247,13 @@ const kubeletGetPods = async function (fogNodeUuid, user, transaction) {
       try {
         const podsInfo = JSON.parse(Buffer.from(flow.description, 'base64').toString('utf8'))
         if (podsInfo.node === fogNodeUuid) {
-          return prev.concat(podsInfo.metadata)
+          prev = prev.concat(podsInfo.metadata)
         }
       } catch (err) {
-        return prev
+        logger.error(err)
       }
+
+      return prev
     }, [])
 
   return pods
@@ -270,7 +273,7 @@ const kubeletGetAllocatable = async function (fogNodeUuid, user, transaction) {
   const node = await IOFogService.getFogEndPoint({ uuid: fogNodeUuid }, user, false, transaction)
 
   const pods = await kubeletGetPods(fogNodeUuid, user, transaction)
-  const allocatablePods = NODE_CAPACITY - pods.length
+  const allocatablePods = NODE_CAPACITY - (pods || []).length
 
   return {
     cpu: node.cpuLimit - node.cpuUsage,
