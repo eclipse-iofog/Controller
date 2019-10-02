@@ -63,11 +63,11 @@ jobs:
           SNYK_TOKEN: $(snykToken)
 
       - script: |
-          sudo npm test
+          npm test
         displayName: 'unit tests'
 
       - script: |
-          sudo npm run postman_test
+          npm run postman_test
         displayName: 'api tests'
 
       - script: |

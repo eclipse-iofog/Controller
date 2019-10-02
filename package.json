@@ -52,7 +52,7 @@
     "pretest": "npm run lint",
     "test": "node scripts/scripts-api.js test",
     "prepostman_test": "npm run lint",
-    "postman_test": "sudo node scripts/scripts-api.js postmantest",
+    "postman_test": "VIEWER_PORT=8080 node scripts/scripts-api.js postmantest",
     "precli-tests": "npm run lint",
     "cli-tests": "node scripts/scripts-api.js cli-tests",
     "precoverage": "npm run lint",

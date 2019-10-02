@@ -26,6 +26,10 @@ function start () {
 
   options.env = setDbEnvVars(options.env)
 
+  if (process.env.VIEWER_PORT) {
+    options.env.VIEWER_PORT = process.env.VIEWER_PORT
+  }
+
   execSync('node ./src/main.js start', options)
 }
 
