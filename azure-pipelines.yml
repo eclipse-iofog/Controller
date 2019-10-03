@@ -63,6 +63,7 @@ jobs:
           SNYK_TOKEN: $(snykToken)
 
       - script: |
+          sudo npm i -g mocha
           npm test
         displayName: 'unit tests'
 
