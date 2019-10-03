@@ -26,7 +26,6 @@ const HWInfoManager = require('../data/managers/hw-info-manager')
 const USBInfoManager = require('../data/managers/usb-info-manager')
 const CatalogService = require('../services/catalog-service')
 const MicroserviceManager = require('../data/managers/microservice-manager')
-const FogStates = require('../enums/fog-state')
 const TrackingDecorator = require('../decorators/tracking-decorator')
 const TrackingEventType = require('../enums/tracking-event-type')
 const config = require('../config')
@@ -329,11 +328,8 @@ function _filterFogs (fogs, filters) {
 }
 
 async function _processDeleteCommand (fog, transaction) {
-  if (!fog.daemonStatus || fog.daemonStatus === FogStates.UNKNOWN) {
-    await FogManager.delete({ uuid: fog.uuid }, transaction)
-  } else {
-    await ChangeTrackingService.update(fog.uuid, ChangeTrackingService.events.deleteNode, transaction)
-  }
+  await ChangeTrackingService.update(fog.uuid, ChangeTrackingService.events.deleteNode, transaction)
+  await FogManager.delete({ uuid: fog.uuid }, transaction)
 }
 
 async function _createHalMicroserviceForFog (fogData, oldFog, user, transaction) {

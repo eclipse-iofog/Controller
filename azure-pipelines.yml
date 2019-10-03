@@ -67,7 +67,7 @@ jobs:
         displayName: 'unit tests'
 
       - script: |
-           npm run postman_test
+          npm run postman_test
         displayName: 'api tests'
 
       - script: |
