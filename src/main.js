@@ -13,6 +13,8 @@
  *
  */
 
+const isElevated = require('is-elevated')
+
 if (!process.env.NODE_ENV) {
   process.env.NODE_ENV = 'production'
 }
@@ -21,6 +23,11 @@ const Cli = require('./cli')
 const daemon = require('./daemon')
 
 async function main () {
+  const runningAsRoot = await isElevated()
+  if (!runningAsRoot) {
+    console.error('Run iofog-controller with administrative privileges.')
+    process.exit(1)
+  }
   const cli = new Cli()
 
   await cli.run(daemon)

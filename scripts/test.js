@@ -12,6 +12,7 @@
  */
 
 const execSync = require('child_process').execSync
+const path = require('path')
 
 const { setDbEnvVars } = require('./util')
 
@@ -26,7 +27,8 @@ function test () {
 
   options.env = setDbEnvVars(options.env)
 
-  execSync('mocha', options)
+  const mocha = path.join(__dirname, '..', 'node_modules', 'mocha', 'bin', 'mocha')
+  execSync(mocha, options)
 }
 
 module.exports = {
