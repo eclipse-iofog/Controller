@@ -329,11 +329,8 @@ function _filterFogs (fogs, filters) {
 }
 
 async function _processDeleteCommand (fog, transaction) {
-  if (!fog.daemonStatus || fog.daemonStatus === FogStates.UNKNOWN) {
-    await FogManager.delete({ uuid: fog.uuid }, transaction)
-  } else {
-    await ChangeTrackingService.update(fog.uuid, ChangeTrackingService.events.deleteNode, transaction)
-  }
+  await ChangeTrackingService.update(fog.uuid, ChangeTrackingService.events.deleteNode, transaction)
+  await FogManager.delete({ uuid: fog.uuid }, transaction)
 }
 
 async function _createHalMicroserviceForFog (fogData, oldFog, user, transaction) {
