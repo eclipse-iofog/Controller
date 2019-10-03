@@ -762,6 +762,7 @@ describe('ioFog Service', () => {
     beforeEach(() => {
       $sandbox.stub(Validator, 'validate').returns($validatorResponse)
       $sandbox.stub(ioFogManager, 'findOne').returns($findIoFogResponse)
+      $sandbox.stub(ioFogManager, 'delete')
       $sandbox.stub(ChangeTrackingService, 'update').returns($updateChangeTrackingResponse)
     })
 
