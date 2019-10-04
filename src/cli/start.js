@@ -12,13 +12,36 @@
  */
 
 const BaseCLIHandler = require('./base-cli-handler')
+const constants = require('../helpers/constants')
 const config = require('../config')
 const logger = require('../logger')
 const db = require('../data/models')
 
 class Start extends BaseCLIHandler {
+  constructor () {
+    super()
+
+    this.commandDefinitions = [
+      {
+        name: 'start',
+        defaultOption: true,
+        group: [constants.CMD_START]
+      },
+      {
+        name: 'verbose',
+        alias: 'v',
+        type: Boolean,
+        description: 'Display output on stdout',
+        group: [constants.CMD_START]
+      }
+    ]
+  }
   async run (args) {
+    const startCommand = this.parseCommandLineArgs(this.commandDefinitions, { argv: args.argv, partial: false })
     const daemon = args.daemon
+    if (startCommand.start.verbose) {
+      daemon._options.silent = false
+    }
     const configuration = {
       devMode: config.get('Server:DevMode'),
       port: config.get('Server:Port'),

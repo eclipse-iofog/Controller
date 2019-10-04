@@ -8,6 +8,6 @@ COPY ${FILENAME} /tmp
 
 RUN npm i minipass@2.7.0 --unsafe-perm -g /tmp/${FILENAME} && \
   rm -rf /tmp/${FILENAME} && \
-  echo "iofog-controller start && tail -f /dev/null" >> /start.sh
+  echo "iofog-controller start && tail -f /var/log/iofog-controller/iofog-controller.log" >> /start.sh
 
 CMD [ "sh", "/start.sh" ]
