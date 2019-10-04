@@ -1,13 +1,26 @@
+FROM iofog/node-alpine-x86:8.16.0 AS builder
+
+RUN npm i -g npm
+
+WORKDIR /tmp
+
+COPY package.json .
+
+RUN npm i
+
+COPY . .
+
+RUN npm pack
+
 FROM iofog/node-alpine-x86:8.16.0
 
 RUN apk add -y sudo
 
-ARG FILENAME
+COPY --from=builder /tmp/iofogcontroller-*.tgz /tmp/iofog-controller.tgz
 
-COPY ${FILENAME} /tmp
-
-RUN npm i minipass@2.7.0 --unsafe-perm -g /tmp/${FILENAME} && \
-  rm -rf /tmp/${FILENAME} && \
+RUN npm i minipass@2.7.0 --unsafe-perm -g /tmp/iofog-controller.tgz && \
+  rm -rf /tmp/iofog-controller.tgz && \
+  iofog-controller config dev-mode --on && \
   echo "iofog-controller start && tail -f /var/log/iofog-controller/iofog-controller.log" >> /start.sh
 
 CMD [ "sh", "/start.sh" ]
