@@ -16,13 +16,14 @@ const config = require('../config')
 const fs = require('fs')
 const MESSAGE = Symbol.for('message')
 
-const dirname = config.get('Service:LogsDirectory')
-const maxsize = config.get('Service:LogsFileSize')
+const dirName = config.get('Service:LogsDirectory')
+const maxSize = config.get('Service:LogsFileSize')
+const maxFiles = config.get('Service:LogsFileCount')
 
 // Create the log directory if it does not exist
 try {
-  if (!fs.existsSync(dirname)) {
-    fs.mkdirSync(dirname)
+  if (!fs.existsSync(dirName)) {
+    fs.mkdirSync(dirName)
   }
 } catch (e) {
   // can't initialize log folder
@@ -80,8 +81,9 @@ const logger = winston.createLogger({
         formattedJson()
       ),
       filename: 'iofog-controller.log',
-      dirname: dirname,
-      maxsize: maxsize
+      dirname: dirName,
+      maxsize: maxSize,
+      maxFiles: maxFiles
     })
   ]
 })
