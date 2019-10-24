@@ -18,7 +18,8 @@
   },
   "Service": {
     "LogsDirectory": "/var/log/iofog-controller",
-    "LogsFileSize": 1048576
+    "LogsFileSize": 10485760,
+    "LogsFileCount": 10
   },
   "Settings": {
     "UserTokenExpirationIntervalSeconds": 360000,
