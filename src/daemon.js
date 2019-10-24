@@ -18,6 +18,7 @@ const daemon = daemonize.setup({
   main: 'server.js',
   name: 'iofog-controller',
   pidfile: 'iofog-controller.pid',
+  argv: [ ...process.argv.slice(2), 'daemonize2' ],
   silent: true
 })
 

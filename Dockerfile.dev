@@ -1,5 +1,7 @@
 FROM iofog/node-alpine-x86:8.16.0 AS builder
 
+ARG PKG_VERSION
+
 RUN npm i -g npm
 
 WORKDIR /tmp
@@ -10,6 +12,8 @@ RUN npm i
 
 COPY . .
 
+RUN npm version $PKG_VERSION --allow-same-version
+
 RUN npm pack
 
 FROM iofog/node-alpine-x86:8.16.0
@@ -19,9 +23,8 @@ ENV NODE_ENV=development
 
 COPY --from=builder /tmp/iofogcontroller-*.tgz /tmp/iofog-controller.tgz
 
-RUN npm i minipass@2.7.0 --unsafe-perm -g /tmp/iofog-controller.tgz && \
+RUN npm i --unsafe-perm -g /tmp/iofog-controller.tgz && \
   rm -rf /tmp/iofog-controller.tgz && \
-  iofog-controller config dev-mode --on && \
-  echo "iofog-controller start && tail -f /var/log/iofog-controller/iofog-controller.log" >> /start.sh
+  iofog-controller config dev-mode --on
 
-CMD [ "sh", "/start.sh" ]
+CMD [ "node", "/usr/local/lib/node_modules/iofogcontroller/src/server.js" ]
