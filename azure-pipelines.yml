@@ -119,6 +119,7 @@ jobs:
           else
             npm --no-git-tag-version version $PACKAGE_VERSION-b$(buildTag)
           fi
+          echo "##vso[task.setvariable variable=pkg_version]$PACKAGE_VERSION"
         displayName: 'npm version'
 
       - script: |
@@ -140,7 +141,7 @@ jobs:
           repository: $(repository)
           command: 'build'
           Dockerfile: "Dockerfile.dev"
-          arguments: --build-arg FILENAME=$(controller_tar)
+          arguments: --build-arg PKG_VERSION=$(pkg_version)
           tags: |
             $(imageTag)
             $(branchTag)
