@@ -20,8 +20,8 @@ variables:
   releaseCandidate: 'rc'
 
 jobs:
-  - job: Deploy
-    dependsOn: Controller
+  - job: Platform
+    dependsOn: Deploy
     pool: server
     variables:
       commit: b-$(buildTag)
