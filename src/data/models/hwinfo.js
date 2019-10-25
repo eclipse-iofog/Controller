@@ -15,6 +15,7 @@ module.exports = (sequelize, DataTypes) => {
     }
   }, {
     // add the timestamp attributes (updatedAt, createdAt)
+    tableName: 'HWInfos',
     timestamps: true,
     underscored: true
   })

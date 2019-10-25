@@ -36,6 +36,7 @@ module.exports = (sequelize, DataTypes) => {
       field: 'data'
     }
   }, {
+    tableName: 'TrackingEvents',
     timestamps: false,
     underscored: true
   })

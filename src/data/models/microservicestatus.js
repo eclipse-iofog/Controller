@@ -52,6 +52,7 @@ module.exports = (sequelize, DataTypes) => {
       field: 'container_id'
     }
   }, {
+    tableName: 'MicroserviceStatuses',
     // add the timestamp attributes (updatedAt, createdAt)
     timestamps: true,
     underscored: true

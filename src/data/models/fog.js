@@ -280,6 +280,7 @@ module.exports = (sequelize, DataTypes) => {
       field: 'isolated_docker_container'
     }
   }, {
+    tableName: 'Fogs',
     timestamps: true,
     underscored: true
   })

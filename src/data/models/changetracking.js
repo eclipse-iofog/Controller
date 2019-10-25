@@ -77,6 +77,7 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: false
     }
   }, {
+    tableName: 'ChangeTrackings',
     timestamps: false,
     underscored: true
   })

@@ -9,6 +9,7 @@ module.exports = (sequelize, DataTypes) => {
       field: 'id'
     }
   }, {
+    tableName: 'MicroservicePublicModes',
     timestamps: false,
     underscored: true
   })

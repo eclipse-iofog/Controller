@@ -25,6 +25,7 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: false
     }
   }, {
+    tableName: 'Flows',
     timestamps: true,
     underscored: true
   })

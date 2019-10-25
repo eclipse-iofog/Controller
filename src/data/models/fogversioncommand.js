@@ -13,6 +13,7 @@ module.exports = (sequelize, DataTypes) => {
       field: 'version_command'
     }
   }, {
+    tableName: 'FogVersionCommands',
     timestamps: false,
     underscored: true
   })

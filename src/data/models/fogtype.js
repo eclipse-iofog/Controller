@@ -21,6 +21,7 @@ module.exports = (sequelize, DataTypes) => {
       field: 'description'
     }
   }, {
+    tableName: 'FogTypes',
     timestamps: false,
     underscored: true
   })

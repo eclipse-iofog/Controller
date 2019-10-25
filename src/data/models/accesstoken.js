@@ -23,6 +23,7 @@ module.exports = (sequelize, DataTypes) => {
       field: 'expiration_time'
     }
   }, {
+    tableName: 'AccessTokens',
     timestamps: false,
     underscored: true
   })

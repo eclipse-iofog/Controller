@@ -13,6 +13,7 @@ module.exports = (sequelize, DataTypes) => {
       field: 'container_image'
     }
   }, {
+    tableName: 'CatalogItemImages',
     timestamps: false,
     underscored: true
   })

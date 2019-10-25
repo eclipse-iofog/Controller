@@ -44,7 +44,6 @@
     "Config": {
       "databaseName": "dev_database.sqlite",
       "logging": false,
-      "operatorsAliases": false,
       "transactionType": "IMMEDIATE",
       "pool": {
         "maxactive": 1,

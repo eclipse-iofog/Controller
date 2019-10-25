@@ -58,11 +58,12 @@ const updateFlowEndPoint = async function (flowData, flowId, user, isCLI, transa
   await Validator.validate(flowData, Validator.schemas.flowUpdate)
 
   const oldFlow = await getFlowEndPoint(flowId, user, isCLI, transaction)
+
   if (!oldFlow) {
     throw new Errors.NotFoundError(ErrorMessages.INVALID_FLOW_ID)
   }
   if (flowData.name) {
-    await _checkForDuplicateName(flowData.name, flowId, user.id, transaction)
+    await _checkForDuplicateName(flowData.name, flowId, user.id || oldFlow.userId, transaction)
   }
 
   const flow = {
@@ -76,7 +77,6 @@ const updateFlowEndPoint = async function (flowData, flowId, user, isCLI, transa
   const where = isCLI
     ? { id: flowId }
     : { id: flowId, userId: user.id }
-
   await FlowManager.update(where, updateFlowData, transaction)
 
   if (oldFlow.isActivated !== flowData.isActivated) {
@@ -108,11 +108,9 @@ async function getFlow (flowId, user, isCLI, transaction) {
   const where = isCLI
     ? { id: flowId }
     : { id: flowId, userId: user.id }
-
   const attributes = { exclude: ['created_at', 'updated_at'] }
 
   const flow = await FlowManager.findOneWithAttributes(where, attributes, transaction)
-
   if (!flow) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_ID, flowId))
   }

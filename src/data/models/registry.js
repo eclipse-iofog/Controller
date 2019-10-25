@@ -41,6 +41,7 @@ module.exports = (sequelize, DataTypes) => {
       field: 'user_email'
     }
   }, {
+    tableName: 'Registries',
     timestamps: false,
     underscored: true
   })

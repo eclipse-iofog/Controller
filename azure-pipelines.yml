@@ -57,6 +57,10 @@ jobs:
         displayName: 'Standardjs report'
 
       - script: |
+          npm audit
+        displayName: Check for vulnerabilities
+
+      - script: |
           npm run snyk -- --project-name=ControllerCI
         displayName: 'Snyk monitor'
         env:
