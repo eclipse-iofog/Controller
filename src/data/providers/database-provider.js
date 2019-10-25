@@ -21,6 +21,7 @@ class DatabaseProvider {
       storageOptions: {
         sequelize: this.sequelize
       },
+      logging: false,
       migrations: {
         params: [
           this.sequelize.getQueryInterface(),
