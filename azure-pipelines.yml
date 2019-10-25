@@ -21,10 +21,11 @@ variables:
 
 jobs:
   - job: Platform
-    dependsOn: Deploy
+    dependsOn: Controller
     pool: server
     variables:
       commit: b-$(buildTag)
+
     steps:
       - task: InvokeRESTAPI@1
         displayName: 'trigger platform job'
@@ -36,9 +37,10 @@ jobs:
           body: "{\"Parameters\":\"{\\\"images.controller\\\": \\\"gcr.io/$(repository):$(commit)\\\"}\", \"Definition\":{\"id\":\"5\"}}"
           waitForCompletion: 'false'
 
-  - job: Build
+  - job: Controller
     pool:
       vmImage: 'Ubuntu-16.04'
+
     steps:
       - task: NodeTool@0
         inputs:
@@ -49,11 +51,6 @@ jobs:
           npm install
         displayName: 'npm install and build'
 
-  - job: Test
-    pool:
-      vmImage: 'Ubuntu-16.04'
-    dependsOn: Build
-    steps:
       # When we are ready to enforce standardjs, remove redirection and remove '|| true' from the standard script in package.json
       - script: |
           npm run standard 2>&1 | tee standardjs.out
@@ -81,16 +78,11 @@ jobs:
           echo "npm test"
         displayName: 'integration tests'
 
-  - job: Deploy
-    pool:
-      vmImage: 'Ubuntu-16.04'
-    dependsOn: Test
-    condition: or(and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/heads/release/')), and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/develop')), and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/tags/')))
-    steps:
       - script: |
           npm pack
           ls iofogcontroller-*.tgz
         displayName: 'npm pack for release artefact'
+        condition: or(and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/heads/release/')), and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/develop')), and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/tags/')))
 
       - script: |
           if [[ $(ref) == refs/tags* ]]; then
@@ -104,10 +96,12 @@ jobs:
           fi
           echo $(imageTag)
         displayName: 'Set image tag'
+        condition: or(and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/heads/release/')), and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/develop')), and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/tags/')))
 
       - script: |
           echo "gcr.io/$(repository):$(imageTag)" > GCR_DOCKER_IMAGE
         displayName: 'Save Docker image name and tag to GCR_DOCKER_IMAGE into artifacts'
+        condition: or(and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/heads/release/')), and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/develop')), and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/tags/')))
 
       - task: CopyFiles@2
         inputs:
@@ -119,6 +113,7 @@ jobs:
             GCR_DOCKER_IMAGE
           OverWrite: true
         displayName: 'artefacts to publish'
+        condition: or(and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/heads/release/')), and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/develop')), and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/tags/')))
 
       - script: |
           rm -fr iofogcontroller-*.tgz
@@ -134,10 +129,12 @@ jobs:
           fi
           echo "##vso[task.setvariable variable=pkg_version]$PACKAGE_VERSION"
         displayName: 'npm version'
+        condition: or(and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/heads/release/')), and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/develop')), and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/tags/')))
 
       - script: |
           npm pack
         displayName: 'npm pack with version containing build number'
+        condition: or(and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/heads/release/')), and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/develop')), and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/tags/')))
 
       - bash: |
           echo 'checking pack file exists..'
@@ -146,6 +143,7 @@ jobs:
           echo "##vso[task.setvariable variable=controller_tar]$tar"
         displayName: 'setting vars'
         name: setvarStep
+        condition: or(and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/heads/release/')), and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/develop')), and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/tags/')))
 
       - task: Docker@2
         displayName: 'build docker'
@@ -159,6 +157,7 @@ jobs:
             $(imageTag)
             $(branchTag)
             latest
+        condition: or(and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/heads/release/')), and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/develop')), and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/tags/')))
 
       - task: Docker@2
         displayName: 'push docker'
@@ -171,22 +170,26 @@ jobs:
             $(imageTag)
             $(branchTag)
             latest
+        condition: or(and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/heads/release/')), and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/develop')), and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/tags/')))
 
       - task: PublishBuildArtifacts@1
         inputs:
           PathtoPublish: '$(Build.ArtifactStagingDirectory)'
           ArtifactName: 'controller'
+        condition: or(and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/heads/release/')), and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/develop')), and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/tags/')))
 
       - task: DownloadSecureFile@1
         inputs:
           secureFile: 'package_cloud'
         displayName: 'download package cloud token file'
+        condition: or(and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/heads/release/')), and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/develop')), and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/tags/')))
 
       - task: UseRubyVersion@0
         inputs:
           versionSpec: '>= 2.5'
           addToPath: true
         displayName: 'install rubygem to be used to install package_cloud cli'
+        condition: or(and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/heads/release/')), and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/develop')), and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/tags/')))
 
       - script: |
           gem install package_cloud
@@ -194,8 +197,10 @@ jobs:
           echo "config file..."
           ls $(Agent.TempDirectory)/package_cloud
         displayName: 'install package_cloud cli'
+        condition: or(and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/heads/release/')), and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/develop')), and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/tags/')))
 
       - script: |
           echo $(controller_tar)
           package_cloud push iofog/iofog-controller-snapshots/node/1 $(controller_tar) --config=$(Agent.TempDirectory)/package_cloud
         displayName: 'push to package cloud'
+        condition: or(and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/heads/release/')), and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/develop')), and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/tags/')))
