@@ -21,6 +21,7 @@ module.exports = (sequelize, DataTypes) => {
       field: 'access_mode'
     }
   }, {
+    tableName: 'VolumeMappings',
     timestamps: false,
     underscored: true
   })

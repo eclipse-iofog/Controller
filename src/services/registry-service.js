@@ -97,6 +97,7 @@ const updateRegistry = async function (registry, registryId, user, isCLI, transa
   const existingRegistry = await RegistryManager.findOne({
     id: registryId
   }, transaction)
+
   if (!existingRegistry) {
     throw new Errors.NotFoundError(ErrorMessages.REGISTRY_NOT_FOUND)
   }
@@ -123,6 +124,10 @@ const updateRegistry = async function (registry, registryId, user, isCLI, transa
     }
 
   await RegistryManager.update(where, registryUpdate, transaction)
+
+  if (isCLI) {
+    user = { id: existingRegistry.userId }
+  }
 
   await _updateChangeTracking(user, transaction)
 }

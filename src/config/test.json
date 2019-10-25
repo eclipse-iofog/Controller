@@ -10,7 +10,6 @@
     "Config": {
       "databaseName": "test_database.sqlite",
       "logging": false,
-      "operatorsAliases": false,
       "transactionType": "IMMEDIATE",
       "pool": {
         "maxactive": 1,

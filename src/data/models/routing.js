@@ -14,6 +14,7 @@ module.exports = (sequelize, DataTypes) => {
       field: 'is_network_connection'
     }
   }, {
+    tableName: 'Routings',
     timestamps: false,
     underscored: true
   })

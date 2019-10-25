@@ -13,6 +13,7 @@ module.exports = (sequelize, DataTypes) => {
       field: 'cmd'
     }
   }, {
+    tableName: 'MicroserviceArgs',
     timestamps: false,
     underscored: true
   })

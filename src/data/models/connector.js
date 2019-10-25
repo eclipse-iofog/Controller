@@ -38,6 +38,7 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: true
     }
   }, {
+    tableName: 'Connectors',
     timestamps: true,
     underscored: true
   })

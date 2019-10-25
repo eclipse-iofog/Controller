@@ -50,6 +50,7 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: false
     }
   }, {
+    tableName: 'ConnectorPorts',
     timestamps: true,
     underscored: true
   })

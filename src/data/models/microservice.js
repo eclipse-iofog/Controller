@@ -66,6 +66,7 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: false
     }
   }, {
+    tableName: 'Microservices',
     timestamps: true,
     underscored: true
   })

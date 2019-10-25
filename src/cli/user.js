@@ -114,6 +114,7 @@ class User extends BaseCLIHandler {
           return this.help([])
       }
     } catch (error) {
+      console.log({ error })
       this.handleCLIError(error, args.argv)
     }
   }

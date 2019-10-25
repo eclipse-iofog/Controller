@@ -21,6 +21,7 @@ module.exports = (sequelize, DataTypes) => {
       field: 'is_public'
     }
   }, {
+    tableName: 'MicroservicePorts',
     timestamps: true,
     underscored: true
   })

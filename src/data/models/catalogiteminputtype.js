@@ -17,6 +17,7 @@ module.exports = (sequelize, DataTypes) => {
       field: 'info_format'
     }
   }, {
+    tableName: 'CatalogItemInputTypes',
     timestamps: false,
     underscored: true
   })

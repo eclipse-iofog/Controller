@@ -17,6 +17,7 @@ module.exports = (sequelize, DataTypes) => {
       field: 'value'
     }
   }, {
+    tableName: 'MicroserviceEnvs',
     timestamps: false,
     underscored: true
   })

@@ -23,6 +23,7 @@ module.exports = (sequelize, DataTypes) => {
       field: 'token'
     }
   }, {
+    tableName: 'FogAccessTokens',
     timestamps: false,
     underscored: true
   })
