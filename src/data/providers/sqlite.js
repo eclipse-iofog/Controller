@@ -9,7 +9,6 @@ class SqliteDatabaseProvider extends DatabaseProvider {
     super()
 
     const sqliteConfig = config.get('Database:Config', {})
-    // sqliteConfig.logging = console.log
     sqliteConfig.dialect = 'sqlite'
     sqliteConfig.databaseName = process.env.DB_NAME || sqliteConfig.databaseName
     sqliteConfig.storage = path.resolve(__dirname, '../' + sqliteConfig.databaseName)
