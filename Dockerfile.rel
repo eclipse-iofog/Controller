@@ -21,8 +21,8 @@ RUN apk add -y sudo
 
 COPY --from=builder /tmp/iofogcontroller-*.tgz /tmp/iofog-controller.tgz
 
-RUN npm i minipass@2.7.0 --unsafe-perm -g /tmp/iofog-controller.tgz && \
+RUN npm i --unsafe-perm -g /tmp/iofog-controller.tgz && \
   rm -rf /tmp/iofog-controller.tgz && \
   iofog-controller config dev-mode --on
 
-CMD [ "sh", "/start.sh" ]
+CMD [ "node", "/usr/local/lib/node_modules/iofogcontroller/src/server.js" ]
