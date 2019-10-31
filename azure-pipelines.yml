@@ -19,7 +19,9 @@ variables:
   branchTag: $(Build.SourceBranchName)
   releaseCandidate: 'rc'
 
-jobs:
+stages:
+- stage: Preflight
+  jobs:
   - job: Platform
     dependsOn: Controller
     pool: server
@@ -36,15 +38,15 @@ jobs:
           urlSuffix: '/edgeworx/_apis/build/builds?api-version=5.0'
           body: "{\"Parameters\":\"{\\\"images.controller\\\": \\\"gcr.io/$(repository):$(commit)\\\"}\", \"Definition\":{\"id\":\"5\"}}"
           waitForCompletion: 'false'
-
-  - job: Controller
+  
+  - job: Build
     pool:
       vmImage: 'Ubuntu-16.04'
 
     steps:
       - task: NodeTool@0
         inputs:
-          versionSpec: '10.x'
+          versionSpec: '12.x'
         displayName: 'Install Node.js'
 
       - script: |
@@ -65,130 +67,157 @@ jobs:
         displayName: 'Snyk monitor'
         env:
           SNYK_TOKEN: $(snykToken)
+- stage: Test
+  jobs:
+  - job: Node_8
+    pool:
+      vmImage: 'Ubuntu-16.04'
+    steps:
+    - task: NodeTool@0
+      inputs:
+        versionSpec: '8.x'
+      displayName: 'Install Node.js'
+    - template: azure-templates/test.yml
+  - job: Node_10
+    pool:
+      vmImage: 'Ubuntu-16.04'
+    steps:
+    - task: NodeTool@0
+      inputs:
+        versionSpec: '10.x'
+      displayName: 'Install Node.js'
+    - template: azure-templates/test.yml
+  - job: Node_12
+    pool:
+      vmImage: 'Ubuntu-16.04'
+    steps:
+    - task: NodeTool@0
+      inputs:
+        versionSpec: '12.x'
+      displayName: 'Install Node.js'
+    - template: azure-templates/test.yml
+- stage: Publish
+  jobs:
+  - job: Controller
+    pool:
+      vmImage: 'Ubuntu-16.04'
+    steps:
+    - task: NodeTool@0
+      inputs:
+        versionSpec: '12.x'
+      displayName: 'Install Node.js'
+    - script: |
+        npm pack
+        ls iofogcontroller-*.tgz
+      displayName: 'npm pack for release artefact'
 
-      - script: |
-          npm test
-        displayName: 'unit tests'
+    - script: |
+        if [[ $(ref) == refs/tags* ]]; then
+          TAG=$(echo $(ref) | sed "s|refs/tags/v||g")
+          echo "##vso[task.setvariable variable=imageTag]$TAG"
+        else
+          LATESTTAG=$(git tag | tail -1)
+          LATESTVERS=${LATESTTAG#?}
+          if [ -z "$LATESTVERS" ]; then LATESTVERS=0.0.0; fi
+          echo "##vso[task.setvariable variable=imageTag]$LATESTVERS-b$(buildTag)"
+        fi
+        echo $(imageTag)
+      displayName: 'Set image tag'
 
-      - script: |
-          npm run postman_test
-        displayName: 'api tests'
+    - script: |
+        echo "gcr.io/$(repository):$(imageTag)" > GCR_DOCKER_IMAGE
+      displayName: 'Save Docker image name and tag to GCR_DOCKER_IMAGE into artifacts'
 
-      - script: |
-          echo "npm test"
-        displayName: 'integration tests'
+    - task: CopyFiles@2
+      inputs:
+        SourceFolder: $(System.DefaultWorkingDirectory)
+        TargetFolder: $(Build.ArtifactStagingDirectory)
+        Contents: |
+          standardjs.out
+          *.tgz
+          GCR_DOCKER_IMAGE
+        OverWrite: true
+      displayName: 'artefacts to publish'
 
-      - script: |
-          npm pack
-          ls iofogcontroller-*.tgz
-        displayName: 'npm pack for release artefact'
+    - script: |
+        rm -fr iofogcontroller-*.tgz
+        git checkout package-lock.json
+        git config --global user.email "info@edgeworx.io"
+        git config --global user.name "Azure DevOps"
 
-      - script: |
-          if [[ $(ref) == refs/tags* ]]; then
-            TAG=$(echo $(ref) | sed "s|refs/tags/v||g")
-            echo "##vso[task.setvariable variable=imageTag]$TAG"
-          else
-            LATESTTAG=$(git tag | tail -1)
-            LATESTVERS=${LATESTTAG#?}
-            if [ -z "$LATESTVERS" ]; then LATESTVERS=0.0.0; fi
-            echo "##vso[task.setvariable variable=imageTag]$LATESTVERS-b$(buildTag)"
-          fi
-          echo $(imageTag)
-        displayName: 'Set image tag'
+        PACKAGE_VERSION=$(cat package.json | grep version | head -1 | awk -F: '{ print $2 }' | sed 's/[\",]//g' | tr -d '[[:space:]]')
+        if [[ $(ref) == refs/tags* ]]; then
+          npm --no-git-tag-version version $PACKAGE_VERSION
+        else
+          npm --no-git-tag-version version $PACKAGE_VERSION-b$(buildTag)
+        fi
+        echo "##vso[task.setvariable variable=pkg_version]$PACKAGE_VERSION"
+      displayName: 'npm version'
 
-      - script: |
-          echo "gcr.io/$(repository):$(imageTag)" > GCR_DOCKER_IMAGE
-        displayName: 'Save Docker image name and tag to GCR_DOCKER_IMAGE into artifacts'
+    - script: |
+        npm pack
+      displayName: 'npm pack with version containing build number'
 
-      - task: CopyFiles@2
-        inputs:
-          SourceFolder: $(System.DefaultWorkingDirectory)
-          TargetFolder: $(Build.ArtifactStagingDirectory)
-          Contents: |
-            standardjs.out
-            *.tgz
-            GCR_DOCKER_IMAGE
-          OverWrite: true
-        displayName: 'artefacts to publish'
+    - bash: |
+        echo 'checking pack file exists..'
+        tar=$(ls iofogcontroller-*.tgz)
+        echo $tar
+        echo "##vso[task.setvariable variable=controller_tar]$tar"
+      displayName: 'setting vars'
+      name: setvarStep
 
-      - script: |
-          rm -fr iofogcontroller-*.tgz
-          git checkout package-lock.json
-          git config --global user.email "info@edgeworx.io"
-          git config --global user.name "Azure DevOps"
+    - task: Docker@2
+      displayName: 'build docker'
+      inputs:
+        containerRegistry: 'Edgeworx GCP'
+        repository: $(repository)
+        command: 'build'
+        Dockerfile: "Dockerfile.dev"
+        arguments: --build-arg PKG_VERSION=$(pkg_version)
+        tags: |
+          $(imageTag)
+          $(branchTag)
+          latest
+      condition: or(and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/heads/release/')), and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/develop')), and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/tags/')))
 
-          PACKAGE_VERSION=$(cat package.json | grep version | head -1 | awk -F: '{ print $2 }' | sed 's/[\",]//g' | tr -d '[[:space:]]')
-          if [[ $(ref) == refs/tags* ]]; then
-            npm --no-git-tag-version version $PACKAGE_VERSION
-          else
-            npm --no-git-tag-version version $PACKAGE_VERSION-b$(buildTag)
-          fi
-          echo "##vso[task.setvariable variable=pkg_version]$PACKAGE_VERSION"
-        displayName: 'npm version'
+    - task: Docker@2
+      displayName: 'push docker'
+      inputs:
+        containerRegistry: 'Edgeworx GCP'
+        repository: $(repository)
+        command: 'push'
+        Dockerfile: "Dockerfile.dev"
+        tags: |
+          $(imageTag)
+          $(branchTag)
+          latest
+      condition: or(and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/heads/release/')), and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/develop')), and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/tags/')))
 
-      - script: |
-          npm pack
-        displayName: 'npm pack with version containing build number'
+    - task: PublishBuildArtifacts@1
+      inputs:
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+        ArtifactName: 'controller'
 
-      - bash: |
-          echo 'checking pack file exists..'
-          tar=$(ls iofogcontroller-*.tgz)
-          echo $tar
-          echo "##vso[task.setvariable variable=controller_tar]$tar"
-        displayName: 'setting vars'
-        name: setvarStep
+    - task: DownloadSecureFile@1
+      inputs:
+        secureFile: 'package_cloud'
+      displayName: 'download package cloud token file'
 
-      - task: Docker@2
-        displayName: 'build docker'
-        inputs:
-          containerRegistry: 'Edgeworx GCP'
-          repository: $(repository)
-          command: 'build'
-          Dockerfile: "Dockerfile.dev"
-          arguments: --build-arg PKG_VERSION=$(pkg_version)
-          tags: |
-            $(imageTag)
-            $(branchTag)
-            latest
-        condition: or(and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/heads/release/')), and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/develop')), and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/tags/')))
+    - task: UseRubyVersion@0
+      inputs:
+        versionSpec: '>= 2.5'
+        addToPath: true
+      displayName: 'install rubygem to be used to install package_cloud cli'
 
-      - task: Docker@2
-        displayName: 'push docker'
-        inputs:
-          containerRegistry: 'Edgeworx GCP'
-          repository: $(repository)
-          command: 'push'
-          Dockerfile: "Dockerfile.dev"
-          tags: |
-            $(imageTag)
-            $(branchTag)
-            latest
-        condition: or(and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/heads/release/')), and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/develop')), and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/tags/')))
+    - script: |
+        gem install package_cloud
+        package_cloud -h
+        echo "config file..."
+        ls $(Agent.TempDirectory)/package_cloud
+      displayName: 'install package_cloud cli'
 
-      - task: PublishBuildArtifacts@1
-        inputs:
-          PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-          ArtifactName: 'controller'
+    - script: |
+        echo $(controller_tar)
+        package_cloud push iofog/iofog-controller-snapshots/node/1 $(controller_tar) --config=$(Agent.TempDirectory)/package_cloud
+      displayName: 'push to package cloud'
 
-      - task: DownloadSecureFile@1
-        inputs:
-          secureFile: 'package_cloud'
-        displayName: 'download package cloud token file'
-
-      - task: UseRubyVersion@0
-        inputs:
-          versionSpec: '>= 2.5'
-          addToPath: true
-        displayName: 'install rubygem to be used to install package_cloud cli'
-
-      - script: |
-          gem install package_cloud
-          package_cloud -h
-          echo "config file..."
-          ls $(Agent.TempDirectory)/package_cloud
-        displayName: 'install package_cloud cli'
-
-      - script: |
-          echo $(controller_tar)
-          package_cloud push iofog/iofog-controller-snapshots/node/1 $(controller_tar) --config=$(Agent.TempDirectory)/package_cloud
-        displayName: 'push to package cloud'

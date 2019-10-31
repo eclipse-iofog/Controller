@@ -1,0 +1,16 @@
+steps:
+- script: |
+    npm i
+  displayName: Install dependencies
+
+- script: |
+    npm test
+  displayName: 'unit tests'
+
+- script: |
+    npm run postman_test
+  displayName: 'api tests'
+
+- script: |
+    echo "npm test"
+  displayName: 'integration tests'
