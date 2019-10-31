@@ -18,6 +18,7 @@ variables:
   buildTag: $(Build.BuildId)
   branchTag: $(Build.SourceBranchName)
   releaseCandidate: 'rc'
+  runNodeVersions: false
 
 stages:
 - stage: Preflight
@@ -29,6 +30,7 @@ stages:
     steps:
       - task: NodeTool@0
         inputs:
+          # Only 10.X works on Azure pipeline
           versionSpec: '10.x'
         displayName: 'Install Node.js'
 
@@ -36,9 +38,8 @@ stages:
           npm install
         displayName: 'npm install and build'
 
-      # When we are ready to enforce standardjs, remove redirection and remove '|| true' from the standard script in package.json
       - script: |
-          npm run standard 2>&1 | tee standardjs.out
+          npm run standard
         displayName: 'Standardjs report'
 
       - script: |
@@ -61,6 +62,7 @@ stages:
         versionSpec: '8.x'
       displayName: 'Install Node.js'
     - template: azure-templates/test.yml
+    condition: eq('$(runNodeVersions)', 'true')
   - job: Node_10
     pool:
       vmImage: 'Ubuntu-16.04'
@@ -79,6 +81,7 @@ stages:
         versionSpec: '12.x'
       displayName: 'Install Node.js'
     - template: azure-templates/test.yml
+    condition: eq('$(runNodeVersions)', 'true')
 - stage: Publish
   jobs:
   - job: Platform
