@@ -24,7 +24,7 @@ const daemon = require('./daemon')
 
 async function main () {
   const runningAsRoot = await isElevated()
-  if (!runningAsRoot) {
+  if (process.argv[2] !== 'init' && !runningAsRoot) {
     console.error('Run iofog-controller with administrative privileges.')
     process.exit(1)
   }
