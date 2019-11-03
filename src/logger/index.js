@@ -43,11 +43,6 @@ const levels = {
 }
 
 const formattedJson = winston.format((log) => {
-  // let sortedFields = ['level', 'timestamp', 'message']
-  // if (log.args) {
-  //   sortedFields = sortedFields.concat(['args']).concat(getAllObjKeys(log.args))
-  // }
-  // log[MESSAGE] = JSON.stringify(log, sortedFields)
   log[MESSAGE] = JSON.stringify(log)
   return log
 })
@@ -117,20 +112,5 @@ if (process.ENV !== 'production') {
     })()
   }))
 }
-
-// function getAllObjKeys (obj) {
-//   let keys = []
-//   for (const key in obj) {
-//     if (!obj.hasOwnProperty(key)) {
-//       continue
-//     }
-//     keys.push(key)
-//     if (obj[key] instanceof Object) {
-//       const innerKeys = getAllObjKeys(obj[key])
-//       keys = keys.concat(innerKeys)
-//     }
-//   }
-//   return keys
-// }
 
 module.exports = logger
