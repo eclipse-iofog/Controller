@@ -18,7 +18,7 @@ variables:
   buildTag: $(Build.BuildId)
   branchTag: $(Build.SourceBranchName)
   releaseCandidate: 'rc'
-  runNodeVersions: false
+  runNodeVersions: true
 
 stages:
 - stage: Preflight
