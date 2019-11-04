@@ -20,6 +20,7 @@ function test () {
   const options = {
     env: {
       'NODE_ENV': 'test',
+      'VIEWER_PORT': '8008',
       'PATH': process.env.PATH
     },
     stdio: [process.stdin, process.stdout, process.stderr]
