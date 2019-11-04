@@ -43,11 +43,7 @@ const levels = {
 }
 
 const formattedJson = winston.format((log) => {
-  let sortedFields = ['level', 'timestamp', 'message']
-  if (log.args) {
-    sortedFields = sortedFields.concat(['args']).concat(getAllObjKeys(log.args))
-  }
-  log[MESSAGE] = JSON.stringify(log, sortedFields)
+  log[MESSAGE] = JSON.stringify(log)
   return log
 })
 
@@ -88,46 +84,35 @@ const logger = winston.createLogger({
   ]
 })
 
-logger.add(new winston.transports.Console({
-  level: 'info',
-  format: winston.format((log) => {
-    if (log.level === 'cliReq') {
-      return
-    }
-    if (log.level === 'apiReq' && log.message instanceof Object) {
-      const req = log.message
-      log.message = `${req.method} ${req.originalUrl}`
-      log.args = { params: req.params, query: req.query, body: req.body }
-    }
-    if (log.level === 'apiRes' && log.message instanceof Object) {
-      const req = log.message.req
-      const res = log.message.res
-      log.message = `${req.method} ${req.originalUrl}`
-      log.args = res
-    }
-    let message = log.level === 'cliRes' ? `${log.message}` : `[${log.level}] ${log.message}`
+// TODO: Fix test to pass without needing to set NODE_ENV to production
+// Tests are using console output to assess CLI command output
+if (process.env.NODE_ENV !== 'production2') {
+  logger.add(new winston.transports.Console({
+    level: 'info',
+    format: winston.format((log) => {
+      if (log.level === 'cliReq') {
+        return
+      }
+      if (log.level === 'apiReq' && log.message instanceof Object) {
+        const req = log.message
+        log.message = `${req.method} ${req.originalUrl}`
+        log.args = { params: req.params, query: req.query, body: req.body }
+      }
+      if (log.level === 'apiRes' && log.message instanceof Object) {
+        const req = log.message.req
+        const res = log.message.res
+        log.message = `${req.method} ${req.originalUrl}`
+        log.args = res
+      }
+      let message = log.level === 'cliRes' ? `${log.message}` : `[${log.level}] ${log.message}`
 
-    if (log.args) {
-      message += ` | args: ${JSON.stringify(log.args)}`
-    }
-    log[MESSAGE] = message
-    return log
-  })()
-}))
-
-function getAllObjKeys (obj) {
-  let keys = []
-  for (const key in obj) {
-    if (!obj.hasOwnProperty(key)) {
-      continue
-    }
-    keys.push(key)
-    if (obj[key] instanceof Object) {
-      const innerKeys = getAllObjKeys(obj[key])
-      keys = keys.concat(innerKeys)
-    }
-  }
-  return keys
+      if (log.args) {
+        message += ` | args: ${JSON.stringify(log.args)}`
+      }
+      log[MESSAGE] = message
+      return log
+    })()
+  }))
 }
 
 module.exports = logger

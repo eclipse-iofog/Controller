@@ -18,7 +18,7 @@ variables:
   buildTag: $(Build.BuildId)
   branchTag: $(Build.SourceBranchName)
   releaseCandidate: 'rc'
-  runNodeVersions: false
+  runNodeVersions: true
 
 stages:
 - stage: Preflight
@@ -62,7 +62,7 @@ stages:
         versionSpec: '8.x'
       displayName: 'Install Node.js'
     - template: azure-templates/test.yml
-    condition: eq('$(runNodeVersions)', 'true')
+    condition: eq(variables['runNodeVersions'], true)
   - job: Node_10
     pool:
       vmImage: 'Ubuntu-16.04'
@@ -81,7 +81,7 @@ stages:
         versionSpec: '12.x'
       displayName: 'Install Node.js'
     - template: azure-templates/test.yml
-    condition: eq('$(runNodeVersions)', 'true')
+    condition: eq(variables['runNodeVersions'], true)
 - stage: Publish
   jobs:
   - job: Platform
