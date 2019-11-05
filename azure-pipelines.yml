@@ -30,7 +30,7 @@ stages:
     steps:
       - task: NodeTool@0
         inputs:
-          # Only 10.X works on Azure pipeline
+          # iofogctl uses 10.X
           versionSpec: '10.x'
         displayName: 'Install Node.js'
 
@@ -43,7 +43,7 @@ stages:
         displayName: 'Standardjs report'
 
       - script: |
-          npm audit
+          npm audit --production
         displayName: Check for vulnerabilities
 
       - script: |
