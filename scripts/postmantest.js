@@ -49,5 +49,5 @@ function postmanTest () {
 }
 
 module.exports = {
-  postmanTest: postmanTest
+  postmanTest
 }
