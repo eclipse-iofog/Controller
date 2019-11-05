@@ -89,7 +89,6 @@
     "os": "0.1.1",
     "path": "0.12.7",
     "portscanner": "2.2.0",
-    "ps-node": "^0.1.6",
     "qs": "6.6.0",
     "request": "2.88.0",
     "request-promise": "4.2.4",

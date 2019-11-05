@@ -18,7 +18,6 @@ variables:
   buildTag: $(Build.BuildId)
   branchTag: $(Build.SourceBranchName)
   releaseCandidate: 'rc'
-  runNodeVersions: true
 
 stages:
 - stage: Preflight
@@ -53,35 +52,15 @@ stages:
           SNYK_TOKEN: $(snykToken)
 - stage: Test
   jobs:
-  - job: Node_8
-    pool:
-      vmImage: 'Ubuntu-16.04'
-    steps:
-    - task: NodeTool@0
-      inputs:
-        versionSpec: '8.x'
-      displayName: 'Install Node.js'
-    - template: azure-templates/test.yml
-    condition: eq(variables['runNodeVersions'], true)
-  - job: Node_10
-    pool:
-      vmImage: 'Ubuntu-16.04'
-    steps:
-    - task: NodeTool@0
-      inputs:
-        versionSpec: '10.x'
-      displayName: 'Install Node.js'
-    - template: azure-templates/test.yml
-  - job: Node_12
-    pool:
-      vmImage: 'Ubuntu-16.04'
-    steps:
-    - task: NodeTool@0
-      inputs:
-        versionSpec: '12.x'
-      displayName: 'Install Node.js'
-    - template: azure-templates/test.yml
-    condition: eq(variables['runNodeVersions'], true)
+  - template: azure-templates/test.yml
+    parameters:
+      nodeVersion: '8'
+  - template: azure-templates/test.yml
+    parameters:
+      nodeVersion: '10'
+  - template: azure-templates/test.yml
+    parameters:
+      nodeVersion: '12'
 - stage: Publish
   jobs:
   - job: Platform
