@@ -11,27 +11,24 @@
  *
  */
 
-const { start } = require('./start')
-const { startDev } = require('./start-dev')
-const { init } = require('./init')
-const { preuninstall } = require('./preuninstall')
-const { postinstall } = require('./postinstall')
+const { test } = require('./test')
+const { cliTest } = require('./cli-tests')
+const { coverage } = require('./coverage')
+const { postmanTest } = require('./postmantest')
 
 switch (process.argv[2]) {
-  case 'start':
-    start()
+  case 'test':
+    test()
+    cliTest()
     break
-  case 'start-dev':
-    startDev()
+  case 'cli-tests':
+    cliTest()
     break
-  case 'init':
-    init()
+  case 'coverage':
+    coverage()
     break
-  case 'preuninstall':
-    preuninstall()
-    break
-  case 'postinstall':
-    postinstall()
+  case 'postmantest':
+    postmanTest()
     break
   default:
     console.log('no script for this command')
