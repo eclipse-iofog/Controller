@@ -61,6 +61,7 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: false
     }
   }, {
+    tableName: 'CatalogItems',
     timestamps: false,
     underscored: true
   })

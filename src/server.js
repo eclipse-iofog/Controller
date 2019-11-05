@@ -13,6 +13,7 @@
 
 const config = require('./config')
 const logger = require('./logger')
+const db = require('./data/models')
 
 const bodyParser = require('body-parser')
 const cookieParser = require('cookie-parser')
@@ -148,18 +149,43 @@ function startHttpsServer (apps, ports, sslKey, sslCert, intermedKey, jobs) {
 
 const devMode = config.get('Server:DevMode')
 const apiPort = config.get('Server:Port')
-const viewerPort = process.env.VIEWER_PORT || config.get('Viewer:Port')
+const viewerPort = +(process.env.VIEWER_PORT || config.get('Viewer:Port'))
 const sslKey = config.get('Server:SslKey')
 const sslCert = config.get('Server:SslCert')
 const intermedKey = config.get('Server:IntermediateCert')
 
 viewerApp.use('/', ecnViewer.middleware(express))
 
-if (!devMode && sslKey && sslCert && intermedKey) {
-  startHttpsServer({ api: app, viewer: viewerApp }, { api: apiPort, viewer: viewerPort }, sslKey, sslCert, intermedKey, jobs)
-} else {
-  startHttpServer({ api: app, viewer: viewerApp }, { api: apiPort, viewer: viewerPort }, jobs)
+const isDaemon = process.argv[process.argv.length - 1] === 'daemonize2'
+
+const initState = async () => {
+  if (!isDaemon) {
+    // InitDB
+    try {
+      await db.initDB()
+    } catch (err) {
+      logger.error('Unable to initialize the database.', err)
+      process.exit(1)
+    }
+
+    // Store PID to let deamon know we are running.
+    jobs.push({
+      run: () => {
+        const pidFile = path.join(__dirname, 'iofog-controller.pid')
+        fs.writeFileSync(pidFile, process.pid)
+      }
+    })
+  }
 }
+
+initState()
+  .then(() => {
+    if (!devMode && sslKey && sslCert && intermedKey) {
+      startHttpsServer({ api: app, viewer: viewerApp }, { api: apiPort, viewer: viewerPort }, sslKey, sslCert, intermedKey, jobs)
+    } else {
+      startHttpServer({ api: app, viewer: viewerApp }, { api: apiPort, viewer: viewerPort }, jobs)
+    }
+  })
 
 const event = Tracking.buildEvent(TrackingEventType.START, `devMode is ${devMode}`)
 Tracking.processEvent(event)

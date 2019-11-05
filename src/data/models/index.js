@@ -31,8 +31,8 @@ db.Sequelize = Sequelize
 
 db.initDB = async () => {
   await databaseProvider.initDB()
-
-  await databaseProvider.createUmzug(path.resolve(__dirname, '../migrations')).up()
+  const migrationUmzug = databaseProvider.createUmzug(path.resolve(__dirname, '../migrations'))
+  await migrationUmzug.up()
   await databaseProvider.createUmzug(path.resolve(__dirname, '../seeders')).up()
 }
 

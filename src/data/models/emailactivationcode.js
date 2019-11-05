@@ -23,6 +23,7 @@ module.exports = (sequelize, DataTypes) => {
       field: 'expiration_time'
     }
   }, {
+    tableName: 'EmailActivationCodes',
     timestamps: false,
     underscored: true
   })

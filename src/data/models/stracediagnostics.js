@@ -18,6 +18,7 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: ''
     }
   }, {
+    tableName: 'StraceDiagnostics',
     timestamps: false,
     underscored: true
   })

@@ -23,6 +23,7 @@ module.exports = (sequelize, DataTypes) => {
       field: 'token'
     }
   }, {
+    tableName: 'KubeletAccessTokens',
     timestamps: false,
     underscored: true
   })

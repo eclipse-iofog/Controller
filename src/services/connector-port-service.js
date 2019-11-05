@@ -22,9 +22,15 @@ async function openPortOnRandomConnector (isPublicAccess, transaction) {
   let ports = null
   let connector = null
   const maxAttempts = 5
+
+  const connectors = await ConnectorManager.findAll({ healthy: true }, transaction)
+  if (!connectors || connectors.length === 0) {
+    throw new Error('No Connectors found to open ports on.')
+  }
+
   for (let i = 0; i < maxAttempts; i++) {
     try {
-      connector = await _getRandomConnector(transaction)
+      connector = await _getRandomConnector(connectors, transaction)
       ports = await _openPortsOnConnector(connector, isPublicAccess)
       if (ports) {
         isConnectorPortOpen = true
@@ -54,15 +60,9 @@ function _openPortsOnConnector (connector, isPublicAccess) {
   return connectorApiHelper(connector, data, '/api/v2/mapping/add')
 }
 
-async function _getRandomConnector (transaction) {
-  const connectors = await ConnectorManager.findAll({ healthy: true }, transaction)
-
-  if (connectors && connectors.length > 0) {
-    const randomNumber = Math.round((Math.random() * (connectors.length - 1)))
-    return connectors[randomNumber]
-  } else {
-    throw new Error('no connectors defined')
-  }
+async function _getRandomConnector (connectors, transaction) {
+  const randomNumber = Math.round((Math.random() * (connectors.length - 1)))
+  return connectors[randomNumber]
 }
 
 function closePortOnConnector (connector, ports) {

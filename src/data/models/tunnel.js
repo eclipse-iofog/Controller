@@ -39,6 +39,7 @@ module.exports = (sequelize, DataTypes) => {
       field: 'closed'
     }
   }, {
+    tableName: 'Tunnels',
     timestamps: false,
     underscored: true
   })

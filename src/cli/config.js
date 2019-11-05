@@ -104,6 +104,13 @@ class Config extends BaseCLIHandler {
         group: constants.CMD_ADD
       },
       {
+        name: 'log-file-count',
+        alias: 'g',
+        type: CliDataTypes.Integer,
+        description: 'Log files count',
+        group: constants.CMD_ADD
+      },
+      {
         name: 'on',
         alias: 'o',
         type: Boolean,
@@ -247,6 +254,11 @@ const _addConfigOption = async function (options) {
     onSuccess()
   })
 
+  await updateConfig(options.logSize, 'log-file-counr', 'Service:LogsFileCount', (onSuccess) => {
+    config.set('Service:LogsFileCount', options.logFileCount)
+    onSuccess()
+  })
+
   await updateConfig(options.kubelet, 'kubelet', 'Kubelet:Uri', (onSuccess) => {
     config.set('Kubelet:Uri', options.kubelet)
     onSuccess()
@@ -280,6 +292,7 @@ const _listConfigOptions = function () {
     'Email service': config.get('Email:Service'),
     'Log files directory': config.get('Service:LogsDirectory'),
     'Log files size': config.get('Service:LogsFileSize'),
+    'Log files count': config.get('Service:LogsFileCount'),
     'Dev mode': config.get('Server:DevMode'),
     'Kubelet Url': config.get('Kubelet:Uri')
   }

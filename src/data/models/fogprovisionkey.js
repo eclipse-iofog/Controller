@@ -24,6 +24,7 @@ module.exports = (sequelize, DataTypes) => {
       field: 'expiration_time'
     }
   }, {
+    tableName: 'FogProvisionKeys',
     timestamps: false,
     underscored: true
   })

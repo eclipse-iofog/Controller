@@ -14,6 +14,7 @@ module.exports = (sequelize, DataTypes) => {
       field: 'info'
     }
   }, {
+    tableName: 'USBInfos',
     // add the timestamp attributes (updatedAt, createdAt)
     timestamps: true,
     underscored: true

@@ -19,6 +19,7 @@ function start () {
   const options = {
     env: {
       'NODE_ENV': 'production',
+      'VIEWER_PORT': '8008',
       'PATH': process.env.PATH
     },
     stdio: [process.stdin, process.stdout, process.stderr]
