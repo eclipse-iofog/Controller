@@ -20,10 +20,10 @@ const isElevated = require('is-elevated')
 const request = require('request-promise')
 
 const isHTTPS = () => {
-  const sslKey = config.get('Server:SslKey')
-  const devMode = config.get('Server:DevMode')
-  const sslCert = config.get('Server:SslCert')
-  const intermedKey = config.get('Server:IntermediateCert')
+  const sslKey = config.get('Server:SslKey', '')
+  const devMode = config.get('Server:DevMode', false)
+  const sslCert = config.get('Server:SslCert', '')
+  const intermedKey = config.get('Server:IntermediateCert', '')
   return !devMode && sslKey && sslCert && intermedKey
 }
 
@@ -32,12 +32,14 @@ const getJSONFromURL = async (uri) => request({
   json: true
 })
 
+const apiPort = +(config.get('Server:Port', 51121))
+const viewerPort = +(process.env.VIEWER_PORT || config.get('Viewer:Port', 80))
+
 const isDaemonElevated = async () => {
   // If it is running and you can see it, you have enough permission to move forward
   if (daemon.status() !== 0) {
     return false
   }
-  const apiPort = config.get('Server:Port')
   const protocol = isHTTPS() ? 'https' : 'http'
   return getJSONFromURL(`${protocol}://localhost:${apiPort}/api/v3/status`)
     .then(result => {
@@ -58,9 +60,18 @@ const isDaemonElevated = async () => {
 const elevatedCommands = ['start', 'stop', 'controller status']
 const requiresElevated = async (command, runningAsRoot) => {
   // Does ECN Viewer need port 80 ?
-  const viewerPort = +(process.env.VIEWER_PORT || config.get('Viewer:Port'))
-  if (process.argv[2] === 'start' && (viewerPort === 80)) {
-    if (!runningAsRoot) { console.error(`Due to ECN Viewer requiring access to TCP port 80, please run iofog-controller start with administrative privileges.`) }
+  if (process.argv[2] === 'start' && (viewerPort < 1024 || apiPort < 1024)) {
+    if (!runningAsRoot) {
+      let message = 'Due to'
+      if (viewerPort < 1024) {
+        message += ` ECN Viewer requiring TCP port ${viewerPort},`
+      }
+      if (apiPort < 1024) {
+        message += ` iofog-controller REST API requiring TCP port ${apiPort},`
+      }
+      message += ' please run iofog-controller start with administrative privileges.'
+      console.error(message)
+    }
     return true
   }
   if (await isDaemonElevated() && elevatedCommands.includes(command)) {
