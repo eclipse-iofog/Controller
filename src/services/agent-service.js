@@ -123,7 +123,10 @@ const getAgentConfig = async function (fog) {
     deviceScanFrequency: fog.deviceScanFrequency,
     watchdogEnabled: fog.watchdogEnabled,
     latitude: fog.latitude,
-    longitude: fog.longitude
+    longitude: fog.longitude,
+    logLevel: fog.logLevel,
+    diskThreshold: fog.diskThreshold,
+    dockerPruningFrequency: fog.dockerPruningFrequency
   }
 }
 
@@ -146,7 +149,10 @@ const updateAgentConfig = async function (updateData, fog, transaction) {
     watchdogEnabled: updateData.watchdogEnabled,
     latitude: updateData.latitude,
     longitude: updateData.longitude,
-    gpsMode: updateData.gpsMode
+    gpsMode: updateData.gpsMode,
+    dockerPruningFrequency: updateData.dockerPruningFrequency,
+    diskThreshold: updateData.diskThreshold,
+    logLevel: updateData.logLevel
   }
   update = AppHelper.deleteUndefinedFields(update)
 
@@ -174,7 +180,8 @@ const getAgentConfigChanges = async function (ioFog, transaction) {
     registries: changeTracking.registries,
     tunnel: changeTracking.tunnel,
     diagnostics: changeTracking.diagnostics,
-    isImageSnapshot: changeTracking.isImageSnapshot
+    isImageSnapshot: changeTracking.isImageSnapshot,
+    prune: changeTracking.prune
   }
 }
 

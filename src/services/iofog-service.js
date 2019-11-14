@@ -56,7 +56,10 @@ async function createFogEndPoint (fogData, user, isCLI, transaction) {
     watchdogEnabled: fogData.watchdogEnabled,
     abstractedHardwareEnabled: fogData.abstractedHardwareEnabled,
     fogTypeId: fogData.fogType,
-    userId: user.id
+    userId: user.id,
+    logLevel: fogData.logLevel,
+    dockerPruningFrequency: fogData.dockerPruningFrequency,
+    diskThreshold: fogData.diskThreshold
   }
   createFogData = AppHelper.deleteUndefinedFields(createFogData)
 
@@ -113,7 +116,10 @@ async function updateFogEndPoint (fogData, user, isCLI, transaction) {
     bluetoothEnabled: fogData.bluetoothEnabled,
     watchdogEnabled: fogData.watchdogEnabled,
     abstractedHardwareEnabled: fogData.abstractedHardwareEnabled,
-    fogTypeId: fogData.fogType
+    fogTypeId: fogData.fogType,
+    logLevel: fogData.logLevel,
+    dockerPruningFrequency: fogData.dockerPruningFrequency,
+    diskThreshold: fogData.diskThreshold
   }
   updateFogData = AppHelper.deleteUndefinedFields(updateFogData)
 
@@ -404,6 +410,21 @@ const informKubelet = function (iofogUuid, method) {
   return request(options)
 }
 
+async function setFogPruneCommandEndPoint (fogData, user, isCLI, transaction) {
+  await Validator.validate(fogData, Validator.schemas.iofogPrune)
+
+  const queryFogData = isCLI
+    ? { uuid: fogData.uuid }
+    : { uuid: fogData.uuid, userId: user.id }
+
+  const fog = await FogManager.findOne(queryFogData, transaction)
+  if (!fog) {
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, fogData.uuid))
+  }
+
+  await ChangeTrackingService.update(fogData.uuid, ChangeTrackingService.events.prune, transaction)
+}
+
 module.exports = {
   createFogEndPoint: TransactionDecorator.generateTransaction(createFogWithTracking),
   updateFogEndPoint: TransactionDecorator.generateTransaction(updateFogEndPoint),
@@ -415,5 +436,6 @@ module.exports = {
   setFogRebootCommandEndPoint: TransactionDecorator.generateTransaction(setFogRebootCommandEndPoint),
   getHalHardwareInfoEndPoint: TransactionDecorator.generateTransaction(getHalHardwareInfoEndPoint),
   getHalUsbInfoEndPoint: TransactionDecorator.generateTransaction(getHalUsbInfoEndPoint),
-  getFog: getFog
+  getFog: getFog,
+  setFogPruneCommandEndPoint: TransactionDecorator.generateTransaction(setFogPruneCommandEndPoint)
 }
