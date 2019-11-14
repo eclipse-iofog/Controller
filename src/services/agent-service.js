@@ -491,7 +491,8 @@ async function _checkMicroservicesFogType (fog, fogTypeId, transaction) {
 
     for (const microservice of microservices) {
       let exists = false
-      for (const image of microservice.catalogItem.images) {
+      const images = (microservice.images && microservice.images.length > 0) ? microservice.images : microservice.catalogItem.images
+      for (const image of images) {
         if (image.fogTypeId === fogTypeId) {
           exists = true
           break
