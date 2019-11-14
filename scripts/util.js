@@ -22,6 +22,13 @@ const DEV_DB_BACKUP = `${TEMP_DIR}/dev_database.sqlite`
 const PROD_DB = `${ROOT_DIR}/src/data/prod_database.sqlite`
 const PROD_DB_BACKUP = `${TEMP_DIR}/prod_database.sqlite`
 
+let dbName = process.env.DB_NAME || 'iofogcontroller'
+if (!dbName.endsWith('.sqlite')) {
+  dbName += '.sqlite'
+}
+const CUSTOM_DB = `${ROOT_DIR}/src/data/${dbName}`
+const CUSTOM_DB_BACKUP = `${TEMP_DIR}/src/data/${dbName}`
+
 const DEFAULT_CONFIG = `${ROOT_DIR}/src/config/default.json`
 const DEVELOP_CONFIG = `${ROOT_DIR}/src/config/development.json`
 const PRODUCTION_CONFIG = `${ROOT_DIR}/src/config/production.json`
@@ -38,11 +45,13 @@ const INSTALLATION_VARIABLES_FILE = TEMP_DIR + '/iofogcontroller_install_variabl
 function backupDBs () {
   renameFile(DEV_DB, DEV_DB_BACKUP)
   renameFile(PROD_DB, PROD_DB_BACKUP)
+  renameFile(CUSTOM_DB, CUSTOM_DB_BACKUP)
 }
 
 function restoreDBs () {
   renameFile(DEV_DB_BACKUP, DEV_DB)
   renameFile(PROD_DB_BACKUP, PROD_DB)
+  renameFile(CUSTOM_DB_BACKUP, CUSTOM_DB)
 }
 
 function renameFile (oldPath, newPath) {
