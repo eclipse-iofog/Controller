@@ -63,7 +63,7 @@ class Start extends BaseCLIHandler {
     try {
       await db.initDB()
     } catch (err) {
-      logger.error('Unable to initialize the database.', err)
+      logger.error('Unable to initialize the database. Error: ' + err)
       process.exit(1)
     }
   }
