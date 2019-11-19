@@ -1,0 +1,15 @@
+node_modules
+.vscode
+*.sqlite
+.nyc_output
+/.idea
+/src/config/tracking-uuid
+*.sqlite-shm
+*.sqlite-wal
+*.pid
+/src/data/providers/*
+!/src/data/providers/sqlite.js
+!/src/data/providers/database-*.js
+/src/config/*-config.json
+.DS_Store
+iofogcontroller-*.tgz

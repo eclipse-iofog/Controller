@@ -13,24 +13,24 @@
 
 const TransactionDecorator = require('../decorators/transaction-decorator')
 
-const FogProvisionKeyManager = require('../sequelize/managers/iofog-provision-key-manager')
-const FogManager = require('../sequelize/managers/iofog-manager')
+const FogProvisionKeyManager = require('../data/managers/iofog-provision-key-manager')
+const FogManager = require('../data/managers/iofog-manager')
 const FogAccessTokenService = require('../services/iofog-access-token-service')
 const ChangeTrackingService = require('./change-tracking-service')
-const FogVersionCommandManager = require('../sequelize/managers/iofog-version-command-manager')
-const StraceManager = require('../sequelize/managers/strace-manager')
-const RegistryManager = require('../sequelize/managers/registry-manager')
-const MicroserviceStatusManager = require('../sequelize/managers/microservice-status-manager')
+const FogVersionCommandManager = require('../data/managers/iofog-version-command-manager')
+const StraceManager = require('../data/managers/strace-manager')
+const RegistryManager = require('../data/managers/registry-manager')
+const MicroserviceStatusManager = require('../data/managers/microservice-status-manager')
 const MicroserviceStates = require('../enums/microservice-state')
 const FogStates = require('../enums/fog-state')
 const Validator = require('../schemas')
 const Errors = require('../helpers/errors')
 const AppHelper = require('../helpers/app-helper')
 const ErrorMessages = require('../helpers/error-messages')
-const HWInfoManager = require('../sequelize/managers/hw-info-manager')
-const USBInfoManager = require('../sequelize/managers/usb-info-manager')
-const TunnelManager = require('../sequelize/managers/tunnel-manager')
-const MicroserviceManager = require('../sequelize/managers/microservice-manager')
+const HWInfoManager = require('../data/managers/hw-info-manager')
+const USBInfoManager = require('../data/managers/usb-info-manager')
+const TunnelManager = require('../data/managers/tunnel-manager')
+const MicroserviceManager = require('../data/managers/microservice-manager')
 const MicroserviceService = require('../services/microservices-service')
 const path = require('path')
 const fs = require('fs')
@@ -39,15 +39,15 @@ const Sequelize = require('sequelize')
 const Op = Sequelize.Op
 const TrackingDecorator = require('../decorators/tracking-decorator')
 const TrackingEventType = require('../enums/tracking-event-type')
-const TrackingEventManager = require('../sequelize/managers/tracking-event-manager')
+const TrackingEventManager = require('../data/managers/tracking-event-manager')
 
 const IncomingForm = formidable.IncomingForm
 
-const agentProvision = async function(provisionData, transaction) {
+const agentProvision = async function (provisionData, transaction) {
   await Validator.validate(provisionData, Validator.schemas.agentProvision)
 
   const provision = await FogProvisionKeyManager.findOne({
-    provisionKey: provisionData.key,
+    provisionKey: provisionData.key
   }, transaction)
   if (!provision) {
     throw new Errors.NotFoundError(ErrorMessages.INVALID_PROVISIONING_KEY)
@@ -59,7 +59,7 @@ const agentProvision = async function(provisionData, transaction) {
   }
 
   const fog = await FogManager.findOne({
-    uuid: provision.iofogUuid,
+    uuid: provision.iofogUuid
   }, transaction)
 
   await _checkMicroservicesFogType(fog, provisionData.type, transaction)
@@ -69,34 +69,34 @@ const agentProvision = async function(provisionData, transaction) {
   await FogAccessTokenService.updateAccessToken(fog.uuid, newAccessToken, transaction)
 
   await FogManager.update({
-    uuid: fog.uuid,
+    uuid: fog.uuid
   }, {
-    fogTypeId: provisionData.type,
+    fogTypeId: provisionData.type
   }, transaction)
 
   await FogProvisionKeyManager.delete({
-    provisionKey: provisionData.key,
+    provisionKey: provisionData.key
   }, transaction)
 
   return {
     uuid: fog.uuid,
-    token: newAccessToken.token,
+    token: newAccessToken.token
   }
 }
 
-const agentDeprovision = async function(deprovisionData, fog, transaction) {
+const agentDeprovision = async function (deprovisionData, fog, transaction) {
   await Validator.validate(deprovisionData, Validator.schemas.agentDeprovision)
 
   await MicroserviceStatusManager.update(
-      { microserviceUuid: deprovisionData.microserviceUuids },
-      { status: MicroserviceStates.NOT_RUNNING },
-      transaction
+    { microserviceUuid: deprovisionData.microserviceUuids },
+    { status: MicroserviceStates.DELETING },
+    transaction
   )
 
   await _invalidateFogNode(fog, transaction)
 }
 
-const _invalidateFogNode = async function(fog, transaction) {
+const _invalidateFogNode = async function (fog, transaction) {
   const where = { uuid: fog.uuid }
   const data = { daemonStatus: FogStates.UNKNOWN, ipAddress: '0.0.0.0', ipAddressExternal: '0.0.0.0' }
   await FogManager.update(where, data, transaction)
@@ -107,7 +107,7 @@ const _invalidateFogNode = async function(fog, transaction) {
   return updatedFog
 }
 
-const getAgentConfig = async function(fog) {
+const getAgentConfig = async function (fog) {
   return {
     networkInterface: fog.networkInterface,
     dockerUrl: fog.dockerUrl,
@@ -123,11 +123,11 @@ const getAgentConfig = async function(fog) {
     deviceScanFrequency: fog.deviceScanFrequency,
     watchdogEnabled: fog.watchdogEnabled,
     latitude: fog.latitude,
-    longitude: fog.longitude,
+    longitude: fog.longitude
   }
 }
 
-const updateAgentConfig = async function(updateData, fog, transaction) {
+const updateAgentConfig = async function (updateData, fog, transaction) {
   await Validator.validate(updateData, Validator.schemas.updateAgentConfig)
 
   let update = {
@@ -146,16 +146,16 @@ const updateAgentConfig = async function(updateData, fog, transaction) {
     watchdogEnabled: updateData.watchdogEnabled,
     latitude: updateData.latitude,
     longitude: updateData.longitude,
-    gpsMode: updateData.gpsMode,
+    gpsMode: updateData.gpsMode
   }
   update = AppHelper.deleteUndefinedFields(update)
 
   await FogManager.update({
-    uuid: fog.uuid,
+    uuid: fog.uuid
   }, update, transaction)
 }
 
-const getAgentConfigChanges = async function(ioFog, transaction) {
+const getAgentConfigChanges = async function (ioFog, transaction) {
   const changeTracking = await ChangeTrackingService.getByIoFogUuid(ioFog.uuid, transaction)
   if (!changeTracking) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID), ioFog.uuid)
@@ -174,11 +174,11 @@ const getAgentConfigChanges = async function(ioFog, transaction) {
     registries: changeTracking.registries,
     tunnel: changeTracking.tunnel,
     diagnostics: changeTracking.diagnostics,
-    isImageSnapshot: changeTracking.isImageSnapshot,
+    isImageSnapshot: changeTracking.isImageSnapshot
   }
 }
 
-const updateAgentStatus = async function(agentStatus, fog, transaction) {
+const updateAgentStatus = async function (agentStatus, fog, transaction) {
   await Validator.validate(agentStatus, Validator.schemas.updateAgentStatus)
 
   let fogStatus = {
@@ -209,46 +209,45 @@ const updateAgentStatus = async function(agentStatus, fog, transaction) {
     tunnelStatus: agentStatus.tunnelStatus,
     version: agentStatus.version,
     isReadyToUpgrade: agentStatus.isReadyToUpgrade,
-    isReadyToRollback: agentStatus.isReadyToRollback,
+    isReadyToRollback: agentStatus.isReadyToRollback
   }
 
   fogStatus = AppHelper.deleteUndefinedFields(fogStatus)
 
   await FogManager.update({
-    uuid: fog.uuid,
+    uuid: fog.uuid
   }, fogStatus, transaction)
 
   await _updateMicroserviceStatuses(JSON.parse(agentStatus.microserviceStatus), transaction)
   await MicroserviceService.deleteNotRunningMicroservices(fog, transaction)
 }
 
-
-const _updateMicroserviceStatuses = async function(microserviceStatus, transaction) {
-  for (status of microserviceStatus) {
+const _updateMicroserviceStatuses = async function (microserviceStatus, transaction) {
+  for (const status of microserviceStatus) {
     let microserviceStatus = {
       containerId: status.containerId,
       status: status.status,
       startTime: status.startTime,
       operatingDuration: status.operatingDuration,
       cpuUsage: status.cpuUsage,
-      memoryUsage: status.memoryUsage,
+      memoryUsage: status.memoryUsage
     }
     microserviceStatus = AppHelper.deleteUndefinedFields(microserviceStatus)
 
     await MicroserviceStatusManager.update({
-      microserviceUuid: status.id,
+      microserviceUuid: status.id
     }, microserviceStatus, transaction)
   }
 }
 
-const getAgentMicroservices = async function(fog, transaction) {
+const getAgentMicroservices = async function (fog, transaction) {
   const microservices = await MicroserviceManager.findAllActiveFlowMicroservices(fog.uuid, transaction)
 
   const fogTypeId = fog.fogTypeId
 
   const response = []
   for (const microservice of microservices) {
-    const images = microservice.catalogItem.images
+    const images = (microservice.images && microservice.images.length > 0) ? microservice.images : microservice.catalogItem.images
     const image = images.find((image) => image.fogTypeId === fogTypeId)
     const imageId = image ? image.containerImage : ''
     if (!imageId || imageId === '') {
@@ -259,10 +258,12 @@ const getAgentMicroservices = async function(fog, transaction) {
     const env = microservice.env && microservice.env.map((it) => {
       return {
         key: it.key,
-        value: it.value,
+        value: it.value
       }
     })
     const cmd = microservice.cmd && microservice.cmd.sort((a, b) => a.id > b.id).map((it) => it.cmd)
+
+    const registryId = microservice.catalogItem ? microservice.catalogItem.registry.id : microservice.registry.id
 
     const responseMicroservice = {
       uuid: microservice.uuid,
@@ -271,7 +272,7 @@ const getAgentMicroservices = async function(fog, transaction) {
       rebuild: microservice.rebuild,
       rootHostAccess: microservice.rootHostAccess,
       logSize: parseInt(microservice.logSize) || 50,
-      registryId: microservice.catalogItem.registry.id,
+      registryId,
       portMappings: microservice.ports,
       volumeMappings: microservice.volumeMappings,
       imageSnapshot: microservice.imageSnapshot,
@@ -279,57 +280,57 @@ const getAgentMicroservices = async function(fog, transaction) {
       deleteWithCleanup: microservice.deleteWithCleanup,
       routes: routes,
       env: env,
-      cmd: cmd,
+      cmd: cmd
     }
 
     response.push(responseMicroservice)
 
     await MicroserviceManager.update({
-      uuid: microservice.uuid,
+      uuid: microservice.uuid
     }, {
-      rebuild: false,
+      rebuild: false
     }, transaction)
   }
 
   return {
-    microservices: response,
+    microservices: response
   }
 }
 
-const getAgentMicroservice = async function(microserviceUuid, fog, transaction) {
+const getAgentMicroservice = async function (microserviceUuid, fog, transaction) {
   const microservice = await MicroserviceManager.findOneWithDependencies({
     uuid: microserviceUuid,
-    iofogUuid: fog.uuid,
+    iofogUuid: fog.uuid
   }, {}, transaction)
 
   if (!microservice) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, microserviceUuid))
   }
   return {
-    microservice: microservice,
+    microservice: microservice
   }
 }
 
-const getAgentRegistries = async function(fog, transaction) {
+const getAgentRegistries = async function (fog, transaction) {
   const registries = await RegistryManager.findAll({
     [Op.or]:
       [
         {
-          userId: fog.userId,
+          userId: fog.userId
         },
         {
-          isPublic: true,
-        },
-      ],
+          isPublic: true
+        }
+      ]
   }, transaction)
   return {
-    registries: registries,
+    registries: registries
   }
 }
 
-const getAgentTunnel = async function(fog, transaction) {
+const getAgentTunnel = async function (fog, transaction) {
   const tunnel = await TunnelManager.findOne({
-    iofogUuid: fog.uuid,
+    iofogUuid: fog.uuid
   }, transaction)
 
   if (!tunnel) {
@@ -337,13 +338,13 @@ const getAgentTunnel = async function(fog, transaction) {
   }
 
   return {
-    tunnel: tunnel,
+    tunnel: tunnel
   }
 }
 
-const getAgentStrace = async function(fog, transaction) {
+const getAgentStrace = async function (fog, transaction) {
   const fogWithStrace = await FogManager.findFogStraces({
-    uuid: fog.uuid,
+    uuid: fog.uuid
   }, transaction)
 
   if (!fogWithStrace) {
@@ -354,16 +355,16 @@ const getAgentStrace = async function(fog, transaction) {
   for (const msData of fogWithStrace.microservice) {
     straceArr.push({
       microserviceUuid: msData.strace.microserviceUuid,
-      straceRun: msData.strace.straceRun,
+      straceRun: msData.strace.straceRun
     })
   }
 
   return {
-    straceValues: straceArr,
+    straceValues: straceArr
   }
 }
 
-const updateAgentStrace = async function(straceData, fog, transaction) {
+const updateAgentStrace = async function (straceData, fog, transaction) {
   await Validator.validate(straceData, Validator.schemas.updateAgentStrace)
 
   for (const strace of straceData.straceData) {
@@ -373,76 +374,76 @@ const updateAgentStrace = async function(straceData, fog, transaction) {
   }
 }
 
-const getAgentChangeVersionCommand = async function(fog, transaction) {
+const getAgentChangeVersionCommand = async function (fog, transaction) {
   const versionCommand = await FogVersionCommandManager.findOne({
-    iofogUuid: fog.uuid,
+    iofogUuid: fog.uuid
   }, transaction)
   if (!versionCommand) {
     throw new Errors.NotFoundError(ErrorMessages.VERSION_COMMAND_NOT_FOUND)
   }
 
   const provision = await FogProvisionKeyManager.findOne({
-    iofogUuid: fog.uuid,
+    iofogUuid: fog.uuid
   }, transaction)
 
   return {
     versionCommand: versionCommand.versionCommand,
     provisionKey: provision.provisionKey,
-    expirationTime: provision.expirationTime,
+    expirationTime: provision.expirationTime
   }
 }
 
-const updateHalHardwareInfo = async function(hardwareData, fog, transaction) {
+const updateHalHardwareInfo = async function (hardwareData, fog, transaction) {
   await Validator.validate(hardwareData, Validator.schemas.updateHardwareInfo)
 
   hardwareData.iofogUuid = fog.uuid
 
   await HWInfoManager.updateOrCreate({
-    iofogUuid: fog.uuid,
+    iofogUuid: fog.uuid
   }, hardwareData, transaction)
 }
 
-const updateHalUsbInfo = async function(usbData, fog, transaction) {
+const updateHalUsbInfo = async function (usbData, fog, transaction) {
   await Validator.validate(usbData, Validator.schemas.updateUsbInfo)
 
   usbData.iofogUuid = fog.uuid
 
   await USBInfoManager.updateOrCreate({
-    iofogUuid: fog.uuid,
+    iofogUuid: fog.uuid
   }, usbData, transaction)
 }
 
-const deleteNode = async function(fog, transaction) {
+const deleteNode = async function (fog, transaction) {
   await FogManager.delete({
-    uuid: fog.uuid,
+    uuid: fog.uuid
   }, transaction)
 }
 
-const getImageSnapshot = async function(fog, transaction) {
+const getImageSnapshot = async function (fog, transaction) {
   const microservice = await MicroserviceManager.findOne({
     iofogUuid: fog.uuid,
-    imageSnapshot: 'get_image',
+    imageSnapshot: 'get_image'
   }, transaction)
   if (!microservice) {
     throw new Errors.NotFoundError(ErrorMessages.IMAGE_SNAPSHOT_NOT_FOUND)
   }
 
   return {
-    uuid: microservice.uuid,
+    uuid: microservice.uuid
   }
 }
 
-const putImageSnapshot = async function(req, fog, transaction) {
+const putImageSnapshot = async function (req, fog, transaction) {
   const opts = {
     maxFieldsSize: 500 * 1024 * 1024,
-    maxFileSize: 500 * 1024 * 1024,
+    maxFileSize: 500 * 1024 * 1024
   }
   if (!req.headers['content-type'].includes('multipart/form-data')) {
     throw new Errors.ValidationError(ErrorMessages.INVALID_CONTENT_TYPE)
   }
 
   const form = new IncomingForm(opts)
-  form.uploadDir = path.join(appRoot, '../') + 'data'
+  form.uploadDir = path.join(global.appRoot, '../') + 'data'
   if (!fs.existsSync(form.uploadDir)) {
     fs.mkdirSync(form.uploadDir)
   }
@@ -450,9 +451,13 @@ const putImageSnapshot = async function(req, fog, transaction) {
   return {}
 }
 
-const _saveSnapShot = function(req, form, fog, transaction) {
+const _saveSnapShot = function (req, form, fog, transaction) {
   return new Promise((resolve, reject) => {
-    form.parse(req, async function(error, fields, files) {
+    form.parse(req, async function (error, fields, files) {
+      if (error) {
+        reject(new Errors.ValidationError(ErrorMessages.UPLOADED_FILE_NOT_FOUND))
+        return
+      }
       const file = files['upstream']
       if (file === undefined) {
         reject(new Errors.ValidationError(ErrorMessages.UPLOADED_FILE_NOT_FOUND))
@@ -466,9 +471,9 @@ const _saveSnapShot = function(req, form, fog, transaction) {
 
       await MicroserviceManager.update({
         iofogUuid: fog.uuid,
-        imageSnapshot: 'get_image',
+        imageSnapshot: 'get_image'
       }, {
-        imageSnapshot: absolutePath + '.tar.gz',
+        imageSnapshot: absolutePath + '.tar.gz'
       }, transaction)
 
       resolve()
@@ -476,9 +481,9 @@ const _saveSnapShot = function(req, form, fog, transaction) {
   })
 }
 
-async function _checkMicroservicesFogType(fog, fogTypeId, transaction) {
+async function _checkMicroservicesFogType (fog, fogTypeId, transaction) {
   const where = {
-    iofogUuid: fog.uuid,
+    iofogUuid: fog.uuid
   }
   const microservices = await MicroserviceManager.findAllWithDependencies(where, {}, transaction)
   if (microservices) {
@@ -486,7 +491,8 @@ async function _checkMicroservicesFogType(fog, fogTypeId, transaction) {
 
     for (const microservice of microservices) {
       let exists = false
-      for (const image of microservice.catalogItem.images) {
+      const images = (microservice.images && microservice.images.length > 0) ? microservice.images : microservice.catalogItem.images
+      for (const image of images) {
         if (image.fogTypeId === fogTypeId) {
           exists = true
           break
@@ -500,7 +506,7 @@ async function _checkMicroservicesFogType(fog, fogTypeId, transaction) {
 
     if (invalidMicroservices.length > 0) {
       let errorMsg = ErrorMessages.INVALID_MICROSERVICES_FOG_TYPE
-      for (error of invalidMicroservices) {
+      for (const error of invalidMicroservices) {
         errorMsg = errorMsg + ' "' + error.name + '" microservice\n'
       }
       throw new Errors.ValidationError(errorMsg)
@@ -508,7 +514,7 @@ async function _checkMicroservicesFogType(fog, fogTypeId, transaction) {
   }
 }
 
-async function postTracking(events, fog, transaction) {
+async function postTracking (events, fog, transaction) {
   await Validator.validate(events, Validator.schemas.trackingArray)
   for (const event of events) {
     event.data = JSON.stringify(event.data)
@@ -519,7 +525,6 @@ async function postTracking(events, fog, transaction) {
 
 // decorated functions
 const agentProvisionWithTracking = TrackingDecorator.trackEvent(agentProvision, TrackingEventType.IOFOG_PROVISION)
-
 
 module.exports = {
   agentProvision: TransactionDecorator.generateTransaction(agentProvisionWithTracking),
@@ -540,5 +545,5 @@ module.exports = {
   deleteNode: TransactionDecorator.generateTransaction(deleteNode),
   getImageSnapshot: TransactionDecorator.generateTransaction(getImageSnapshot),
   putImageSnapshot: TransactionDecorator.generateTransaction(putImageSnapshot),
-  postTracking: TransactionDecorator.generateTransaction(postTracking),
+  postTracking: TransactionDecorator.generateTransaction(postTracking)
 }

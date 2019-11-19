@@ -16,10 +16,10 @@ const agentProvision = {
   'type': 'object',
   'properties': {
     'type': { 'type': 'integer', 'minimum': 0, 'maximum': 2 },
-    'key': { 'type': 'string' },
+    'key': { 'type': 'string' }
   },
   'required': ['type', 'key'],
-  'additionalProperties': true,
+  'additionalProperties': true
 }
 
 const agentDeprovision = {
@@ -28,11 +28,11 @@ const agentDeprovision = {
   'properties': {
     'microserviceUuids': {
       'type': 'array',
-      'items': { 'type': 'string' },
-    },
+      'items': { 'type': 'string' }
+    }
   },
   'required': ['microserviceUuids'],
-  'additionalProperties': true,
+  'additionalProperties': true
 }
 
 const updateAgentConfig = {
@@ -54,9 +54,9 @@ const updateAgentConfig = {
     'watchdogEnabled': { 'type': 'boolean' },
     'latitude': { 'type': 'number', 'minimum': -90, 'maximum': 90 },
     'longitude': { 'type': 'number', 'minimum': -180, 'maximum': 180 },
-    'gpsMode': { 'type': 'string' },
+    'gpsMode': { 'type': 'string' }
   },
-  'additionalProperties': true,
+  'additionalProperties': true
 }
 
 const updateAgentStatus = {
@@ -91,11 +91,10 @@ const updateAgentStatus = {
     'tunnelStatus': { 'type': 'string' },
     'version': { 'type': 'string' },
     'isReadyToUpgrade': { 'type': 'boolean' },
-    'isReadyToRollback': { 'type': 'boolean' },
+    'isReadyToRollback': { 'type': 'boolean' }
   },
-  'additionalProperties': true,
+  'additionalProperties': true
 }
-
 
 const updateAgentStrace = {
   'id': '/updateAgentStrace',
@@ -104,10 +103,10 @@ const updateAgentStrace = {
     'straceData': {
       'type': 'array',
       'items': { '$ref': '/straceData' },
-      'required': [],
-    },
+      'required': []
+    }
   },
-  'additionalProperties': true,
+  'additionalProperties': true
 }
 
 const straceData = {
@@ -115,10 +114,10 @@ const straceData = {
   'type': 'object',
   'properties': {
     'microserviceUuid': { 'type': 'string' },
-    'buffer': { 'type': 'string' },
+    'buffer': { 'type': 'string' }
   },
   'required': ['microserviceUuid', 'buffer'],
-  'additionalProperties': true,
+  'additionalProperties': true
 }
 
 const microserviceStatus = {
@@ -131,36 +130,36 @@ const microserviceStatus = {
     'startTime': { 'type': 'integer' },
     'operatingDuration': { 'type': 'integer' },
     'cpuUsage': { 'type': 'number' },
-    'memoryUsage': { 'type': 'number' },
+    'memoryUsage': { 'type': 'number' }
   },
   'required': ['id'],
-  'additionalProperties': true,
+  'additionalProperties': true
 }
 
 const updateHardwareInfo = {
   'id': '/updateHardwareInfo',
   'type': 'object',
   'properties': {
-    'info': { 'type': 'string' },
+    'info': { 'type': 'string' }
   },
   'required': ['info'],
-  'additionalProperties': true,
+  'additionalProperties': true
 }
 
 const updateUsbInfo = {
   'id': '/updateUsbInfo',
   'type': 'object',
   'properties': {
-    'info': { 'type': 'string' },
+    'info': { 'type': 'string' }
   },
   'required': ['info'],
-  'additionalProperties': true,
+  'additionalProperties': true
 }
 
 const trackingArray = {
   'id': '/trackingArray',
   'type': 'array',
-  'items': { '$ref': '/trackingMessage' },
+  'items': { '$ref': '/trackingMessage' }
 }
 
 const trackingMessage = {
@@ -171,10 +170,10 @@ const trackingMessage = {
     'sourceType': { 'type': 'string' },
     'timestamp': { 'type': 'number' },
     'type': { 'type': 'string' },
-    'data': { '$ref': '/trackingData' },
+    'data': { '$ref': '/trackingData' }
   },
   'required': ['uuid', 'sourceType', 'timestamp', 'type', 'data'],
-  'additionalProperties': true,
+  'additionalProperties': true
 }
 
 const trackingData = {
@@ -182,11 +181,11 @@ const trackingData = {
   'type': 'object',
   'properties': {
   },
-  'additionalProperties': true,
+  'additionalProperties': true
 }
 
 module.exports = {
   mainSchemas: [agentProvision, agentDeprovision, updateAgentConfig, updateAgentStatus, updateAgentStrace,
     updateHardwareInfo, updateUsbInfo, trackingArray],
-  innerSchemas: [straceData, microserviceStatus, trackingData, trackingMessage],
+  innerSchemas: [straceData, microserviceStatus, trackingData, trackingMessage]
 }

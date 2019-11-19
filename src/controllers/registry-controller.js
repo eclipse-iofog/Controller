@@ -14,31 +14,31 @@
 const AuthDecorator = require('../decorators/authorization-decorator')
 const RegistryService = require('../services/registry-service')
 
-const createRegistryEndPoint = async function(req, user) {
+const createRegistryEndPoint = async function (req, user) {
   const registry = req.body
-  return await RegistryService.createRegistry(registry, user)
+  return RegistryService.createRegistry(registry, user)
 }
 
-const getRegistriesEndPoint = async function(req, user) {
-  return await RegistryService.findRegistries(user, false)
+const getRegistriesEndPoint = async function (req, user) {
+  return RegistryService.findRegistries(user, false)
 }
 
-const deleteRegistryEndPoint = async function(req, user) {
+const deleteRegistryEndPoint = async function (req, user) {
   const deleteRegistry = {
-    id: parseInt(req.params.id),
+    id: parseInt(req.params.id)
   }
-  return await RegistryService.deleteRegistry(deleteRegistry, user, false)
+  return RegistryService.deleteRegistry(deleteRegistry, user, false)
 }
 
-const updateRegistryEndPoint = async function(req, user) {
+const updateRegistryEndPoint = async function (req, user) {
   const registry = req.body
   const registryId = req.params.id
-  return await RegistryService.updateRegistry(registry, registryId, user, false)
+  return RegistryService.updateRegistry(registry, registryId, user, false)
 }
 
 module.exports = {
   createRegistryEndPoint: AuthDecorator.checkAuthToken(createRegistryEndPoint),
   getRegistriesEndPoint: AuthDecorator.checkAuthToken(getRegistriesEndPoint),
   deleteRegistryEndPoint: AuthDecorator.checkAuthToken(deleteRegistryEndPoint),
-  updateRegistryEndPoint: AuthDecorator.checkAuthToken(updateRegistryEndPoint),
+  updateRegistryEndPoint: AuthDecorator.checkAuthToken(updateRegistryEndPoint)
 }

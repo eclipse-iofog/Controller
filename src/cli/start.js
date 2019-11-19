@@ -12,19 +12,42 @@
  */
 
 const BaseCLIHandler = require('./base-cli-handler')
+const constants = require('../helpers/constants')
 const config = require('../config')
 const logger = require('../logger')
-const db = require('../sequelize/models')
+const db = require('../data/models')
 
 class Start extends BaseCLIHandler {
-  async run(args) {
+  constructor () {
+    super()
+
+    this.commandDefinitions = [
+      {
+        name: 'start',
+        defaultOption: true,
+        group: [constants.CMD_START]
+      },
+      {
+        name: 'verbose',
+        alias: 'v',
+        type: Boolean,
+        description: 'Display output on stdout',
+        group: [constants.CMD_START]
+      }
+    ]
+  }
+  async run (args) {
+    const startCommand = this.parseCommandLineArgs(this.commandDefinitions, { argv: args.argv, partial: false })
     const daemon = args.daemon
+    if (startCommand.start.verbose) {
+      daemon._options.silent = false
+    }
     const configuration = {
       devMode: config.get('Server:DevMode'),
       port: config.get('Server:Port'),
       sslKey: config.get('Server:SslKey'),
       sslCert: config.get('Server:SslCert'),
-      intermedKey: config.get('Server:IntermediateCert'),
+      intermedKey: config.get('Server:IntermediateCert')
     }
     const pid = daemon.status()
 
@@ -36,17 +59,17 @@ class Start extends BaseCLIHandler {
     }
   }
 
-  async initDB() {
+  async initDB () {
     try {
       await db.initDB()
     } catch (err) {
-      logger.error('Unable to initialize the database.', err)
+      logger.error('Unable to initialize the database. Error: ' + err)
       process.exit(1)
     }
   }
 }
 
-function checkDaemon(daemon, configuration) {
+function checkDaemon (daemon, configuration) {
   return new Promise((resolve, reject) => {
     let iterationsCount = 0
     const check = () => {
@@ -71,7 +94,7 @@ function checkDaemon(daemon, configuration) {
   })
 }
 
-function checkServerProtocol(configuration) {
+function checkServerProtocol (configuration) {
   const { devMode, port, sslKey, sslCert, intermedKey } = configuration
   if (!devMode && sslKey && sslCert && intermedKey) {
     logger.cliRes(`==> 🌎 HTTPS server listening on port ${port}. Open up https://localhost:${port}/ in your browser.`)

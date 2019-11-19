@@ -13,18 +13,23 @@
 
 const execSync = require('child_process').execSync
 
-function stop() {
+const { setDbEnvVars } = require('./util')
+
+function stop () {
   const options = {
     env: {
       'NODE_ENV': 'production',
-      'PATH': process.env.PATH,
+      'VIEWER_PORT': '8008',
+      'PATH': process.env.PATH
     },
-    stdio: [process.stdin, process.stdout, process.stderr],
+    stdio: [process.stdin, process.stdout, process.stderr]
   }
+
+  options.env = setDbEnvVars(options.env)
 
   execSync('node ./src/main.js stop', options)
 }
 
 module.exports = {
-  stop: stop,
+  stop: stop
 }

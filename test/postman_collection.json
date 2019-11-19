@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "b729b57d-2b43-4f3e-a4ce-3e98b534baba",
+		"_postman_id": "e6897a6f-789a-4f24-a6fd-780063f4f927",
 		"name": "Controller Testing",
 		"description": "iofog-controller collection",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -165,10 +165,6 @@
 					"request": {
 						"method": "GET",
 						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{host}}/api/v3/user/signup/resend-activation?email=user@domain.com",
 							"host": [
@@ -217,10 +213,6 @@
 								"value": "{{user-token}}"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{host}}/api/v3/user/profile",
 							"host": [
@@ -555,10 +547,6 @@
 					"request": {
 						"method": "GET",
 						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{host}}/api/v3/status",
 							"host": [
@@ -594,10 +582,6 @@
 					"request": {
 						"method": "GET",
 						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{host}}/api/v3/email-activation",
 							"host": [
@@ -633,10 +617,6 @@
 					"request": {
 						"method": "GET",
 						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{host}}/api/v3/fog-types",
 							"host": [
@@ -855,10 +835,6 @@
 								"type": "text"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{host}}/api/v3/connector",
 							"host": [
@@ -885,7 +861,7 @@
 									"",
 									"var data = JSON.parse(responseBody);",
 									"",
-									"tests[\"Response validation passed\"] = data.hasOwnProperty('name') && data.name === 'updatedName';"
+									"tests[\"Response validation passed\"] = data.hasOwnProperty('name') && data.publicIp === '1.2.3.5';"
 								],
 								"type": "text/javascript"
 							}
@@ -906,7 +882,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"name\": \"updatedName\",\n \"publicIp\": \"{{connector-ip}}\" \n}"
+							"raw": "{\n  \"name\": \"MyConnector\",\n \"publicIp\": \"1.2.3.5\" \n}"
 						},
 						"url": {
 							"raw": "{{host}}/api/v3/connector",
@@ -951,7 +927,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"publicIp\": \"{{connector-ip}}\"\n}"
+							"raw": "{\n  \"name\": \"MyConnector\"\n}"
 						},
 						"url": {
 							"raw": "{{host}}/api/v3/connector",
@@ -1220,10 +1196,6 @@
 								"value": "{{user-token}}"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{host}}/api/v3/iofog/{{node-id}}/provisioning-key",
 							"host": [
@@ -1322,10 +1294,6 @@
 								"value": "{{agent-token}}"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{host}}/api/v3/agent/config",
 							"host": [
@@ -1422,10 +1390,6 @@
 								"value": "{{agent-token}}"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{host}}/api/v3/agent/config/changes",
 							"host": [
@@ -1520,10 +1484,6 @@
 								"value": "{{agent-token}}"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{host}}/api/v3/agent/microservices",
 							"host": [
@@ -1570,10 +1530,6 @@
 								"value": "{{agent-token}}"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{host}}/api/v3/agent/microservices/abcedf",
 							"host": [
@@ -1621,10 +1577,6 @@
 								"value": "{{agent-token}}"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{host}}/api/v3/agent/registries",
 							"host": [
@@ -1671,10 +1623,6 @@
 								"value": "{{agent-token}}"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{host}}/api/v3/agent/tunnel",
 							"host": [
@@ -1718,10 +1666,6 @@
 								"value": "{{agent-token}}"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{host}}/api/v3/agent/strace",
 							"host": [
@@ -1818,10 +1762,6 @@
 								"value": "{{agent-token}}"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{host}}/api/v3/agent/version",
 							"host": [
@@ -1964,10 +1904,6 @@
 								"value": "{{agent-token}}"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{host}}/api/v3/agent/image-snapshot",
 							"host": [
@@ -2377,10 +2313,6 @@
 								"type": "text"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{host}}/api/v3/flow",
 							"host": [
@@ -2426,10 +2358,6 @@
 								"type": "text"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{host}}/api/v3/flow/{{flow-id}}",
 							"host": [
@@ -2787,10 +2715,6 @@
 								"type": "text"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{host}}/api/v3/catalog/microservices",
 							"host": [
@@ -2839,10 +2763,6 @@
 								"type": "text"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{host}}/api/v3/catalog/microservices/{{item-id}}",
 							"host": [
@@ -3248,10 +3168,6 @@
 								"type": "text"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{host}}/api/v3/iofog/{{node-id}}/tunnel",
 							"host": [
@@ -3689,6 +3605,57 @@
 					"response": []
 				},
 				{
+					"name": "New Microservice without catalog",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "4f7a9f52-12cc-49d0-9e2f-147b6f5cb6fa",
+								"exec": [
+									"tests[\"Status code is 201\"] = responseCode.code === 201;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response validation passed\"] = data.uuid;",
+									"",
+									"postman.setGlobalVariable(\"ms-no-catalog-id\", data.uuid);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{user-token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"nameWithoutCatalog\",\n  \"config\": \"string\",\n  \"images\": [{\"containerImage\": \"hello-world\"\n,\"fogTypeId\": 1}, {\"containerImage\": \"hello-world\"\n,\"fogTypeId\": 2}]\n, \"registryId\": 1,\n \"flowId\": {{flow-id}},\n  \"iofogUuid\": \"{{node-id}}\",\n  \"rootHostAccess\": true,\n  \"logSize\": 0,\n  \"volumeMappings\": [\n    {\n      \"hostDestination\": \"/var/dest\",\n      \"containerDestination\": \"/var/dest\",\n      \"accessMode\": \"rw\"\n    }\n  ],\n  \"ports\": [\n    {\n      \"internal\": 2,\n      \"external\": 2,\n      \"publicMode\": false\n    }\n  ],\n  \"routes\": [\n  ],\n  \"env\": [\n    {\n      \"key\": \"KEY1\",\n      \"value\": \"value1\"\n    },\n    {\n      \"key\": \"KEY2\",\n      \"value\": \"value2\"\n    }\n  ],\n  \"cmd\": [\n  \t\"test\",\n  \t\"--arg1\",\n  \t\"--arg2\"\n  ]\n}\n"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/microservices",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"microservices"
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Get Microservices",
 					"event": [
 						{
@@ -3700,7 +3667,13 @@
 									"",
 									"var data = JSON.parse(responseBody);",
 									"",
-									"tests[\"Response validation passed\"] = data.hasOwnProperty('microservices');"
+									"tests[\"Response has microservices property\"] = data.hasOwnProperty('microservices');",
+									"",
+									"tests[\"Response contains two microservices\"] = data.microservices.length === 2;",
+									"",
+									"tests[\"Response returns microservice status\"] = data.microservices[0].hasOwnProperty('status');",
+									"",
+									"tests[\"Microservice status has default value\"] = data.microservices[0].status.status === 'QUEUED';"
 								],
 								"type": "text/javascript"
 							}
@@ -3719,10 +3692,6 @@
 								"type": "text"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{host}}/api/v3/microservices?flowId={{flow-id}}",
 							"host": [
@@ -3774,10 +3743,6 @@
 								"type": "text"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{host}}/api/v3/microservices/{{ms-id}}",
 							"host": [
@@ -3788,6 +3753,52 @@
 								"v3",
 								"microservices",
 								"{{ms-id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Microservice without catalog By Id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "4f7a9f52-12cc-49d0-9e2f-147b6f5cb6fa",
+								"exec": [
+									"tests[\"Status code is 200\"] = responseCode.code === 200;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response validation passed\"] = data.uuid && data.config && data.name && data.hasOwnProperty('rootHostAccess') && data.hasOwnProperty('images') && data.images.length === 2  && data.images[0].containerImage === \"hello-world\" && data.hasOwnProperty('catalogItemId') && data.catalogItemId === null && data.hasOwnProperty('registryId') && data.hasOwnProperty('logSize') && data.hasOwnProperty('env') && data.env.length === 2 && data.hasOwnProperty('cmd') && data.cmd.length === 3;"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{user-token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/api/v3/microservices/{{ms-no-catalog-id}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"microservices",
+								"{{ms-no-catalog-id}}"
 							]
 						}
 					},
@@ -3834,6 +3845,282 @@
 								"v3",
 								"microservices",
 								"{{ms-id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Microservice without catalog item",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "4f7a9f52-12cc-49d0-9e2f-147b6f5cb6fa",
+								"exec": [
+									"tests[\"Status code is 204\"] = responseCode.code === 204;"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{user-token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n \"images\": [{\"containerImage\": \"hello-world-updated\"\n,\"fogTypeId\": 1}, {\"containerImage\": \"hello-world-updated\"\n,\"fogTypeId\": 2}]\n, \"registryId\": 2,\n \"config\": \"string\",\n  \"rebuild\": true,\n  \"iofogUuid\": \"{{node-id}}\",\n  \"rootHostAccess\": true,\n  \"logSize\": 0,\n  \"volumeMappings\": [\n    {\n      \"hostDestination\": \"/var/dest\",\n      \"containerDestination\": \"/var/dest\",\n      \"accessMode\": \"rw\"\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/microservices/{{ms-no-catalog-id}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"microservices",
+								"{{ms-no-catalog-id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Updated Microservice without catalog By Id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "4f7a9f52-12cc-49d0-9e2f-147b6f5cb6fa",
+								"exec": [
+									"tests[\"Status code is 200\"] = responseCode.code === 200;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response validation passed\"] = data.uuid && data.config && data.name && data.hasOwnProperty('rootHostAccess') && data.hasOwnProperty('images') && data.images.length === 2 && data.images[0].containerImage === \"hello-world-updated\" && data.hasOwnProperty('catalogItemId') && data.catalogItemId === null && data.hasOwnProperty('registryId') && data.registryId === 2 && data.hasOwnProperty('logSize') && data.hasOwnProperty('env') && data.env.length === 2 && data.hasOwnProperty('cmd') && data.cmd.length === 3;"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{user-token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/api/v3/microservices/{{ms-no-catalog-id}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"microservices",
+								"{{ms-no-catalog-id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Microservice without catalog item to give it a catalog item",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "4f7a9f52-12cc-49d0-9e2f-147b6f5cb6fa",
+								"exec": [
+									"tests[\"Status code is 204\"] = responseCode.code === 204;"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{user-token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n \"images\": []\n, \"catalogItemId\": 14,\n \"config\": \"string\",\n  \"rebuild\": true,\n  \"iofogUuid\": \"{{node-id}}\",\n  \"rootHostAccess\": true,\n  \"logSize\": 0,\n  \"volumeMappings\": [\n    {\n      \"hostDestination\": \"/var/dest\",\n      \"containerDestination\": \"/var/dest\",\n      \"accessMode\": \"rw\"\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/microservices/{{ms-no-catalog-id}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"microservices",
+								"{{ms-no-catalog-id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Updated Microservice with catalog By Id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "4f7a9f52-12cc-49d0-9e2f-147b6f5cb6fa",
+								"exec": [
+									"tests[\"Status code is 200\"] = responseCode.code === 200;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response validation passed\"] = data.uuid && data.config && data.name && data.hasOwnProperty('rootHostAccess') && data.hasOwnProperty('images') && data.images.length === 0 && data.hasOwnProperty('catalogItemId') && data.catalogItemId === 14 && data.hasOwnProperty('logSize') && data.hasOwnProperty('env') && data.env.length === 2 && data.hasOwnProperty('cmd') && data.cmd.length === 3;"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{user-token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/api/v3/microservices/{{ms-no-catalog-id}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"microservices",
+								"{{ms-no-catalog-id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Microservice without catalog item",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "4f7a9f52-12cc-49d0-9e2f-147b6f5cb6fa",
+								"exec": [
+									"tests[\"Status code is 204\"] = responseCode.code === 204;"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{user-token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n \"images\": [{\"containerImage\": \"hello-world-updated\"\n,\"fogTypeId\": 1}, {\"containerImage\": \"hello-world-updated\"\n,\"fogTypeId\": 2}]\n, \"registryId\": 2,\n \"catalogItemId\": null,\n \"config\": \"string\",\n  \"rebuild\": true,\n  \"iofogUuid\": \"{{node-id}}\",\n  \"rootHostAccess\": true,\n  \"logSize\": 0,\n  \"volumeMappings\": [\n    {\n      \"hostDestination\": \"/var/dest\",\n      \"containerDestination\": \"/var/dest\",\n      \"accessMode\": \"rw\"\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/microservices/{{ms-no-catalog-id}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"microservices",
+								"{{ms-no-catalog-id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Updated Microservice again without catalog By Id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "4f7a9f52-12cc-49d0-9e2f-147b6f5cb6fa",
+								"exec": [
+									"tests[\"Status code is 200\"] = responseCode.code === 200;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response validation passed\"] = data.uuid && data.config && data.name && data.hasOwnProperty('rootHostAccess') && data.hasOwnProperty('images') && data.images.length === 2  && data.images[0].containerImage === \"hello-world-updated\" && data.hasOwnProperty('catalogItemId') && data.catalogItemId === null && data.hasOwnProperty('registryId') && data.registryId === 2 && data.hasOwnProperty('logSize') && data.hasOwnProperty('env') && data.env.length === 2 && data.hasOwnProperty('cmd') && data.cmd.length === 3;"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{user-token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/api/v3/microservices/{{ms-no-catalog-id}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"microservices",
+								"{{ms-no-catalog-id}}"
 							]
 						}
 					},
@@ -4013,10 +4300,6 @@
 								"type": "text"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{host}}/api/v3/microservices/{{ms-id}}/port-mapping",
 							"host": [
@@ -4161,10 +4444,6 @@
 								"value": "{{user-token}}"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{host}}/api/v3/microservices/{{ms-id}}/volume-mapping",
 							"host": [
@@ -4866,10 +5145,6 @@
 								"type": "text"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{host}}/api/v3/microservices/{{ms-id}}/image-snapshot",
 							"host": [
@@ -4965,10 +5240,6 @@
 								"type": "text"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{host}}/api/v3/microservices/{{ms-id}}/strace?format=string",
 							"host": [
@@ -5485,10 +5756,6 @@
 								"type": "text"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{host}}/api/v3/iofog/{{node-id}}/provisioning-key",
 							"host": [
@@ -5535,10 +5802,6 @@
 								"value": "{{user-token}}"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{host}}/api/v3/iofog-list?filters[0][key]=uuid&filters[0][value]={{node-id}}&filters[0][condition]=equals",
 							"host": [
@@ -5655,10 +5918,6 @@
 								"type": "text"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{host}}/api/v3/iofog/{{node-id}}",
 							"host": [
@@ -5850,10 +6109,6 @@
 								"type": "text"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{host}}/api/v3/iofog/{{node-id}}/hal/hw",
 							"host": [
@@ -5898,10 +6153,6 @@
 								"type": "text"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{host}}/api/v3/iofog/{{node-id}}/hal/usb",
 							"host": [
@@ -5960,6 +6211,64 @@
 								"v3",
 								"iofog",
 								"{{node-id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Check Node Deleted",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "4f7a9f52-12cc-49d0-9e2f-147b6f5cb6fa",
+								"exec": [
+									"tests[\"Status code is 200\"] = responseCode.code === 200;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response does not contain any node\"] = data.hasOwnProperty('fogs') && data.fogs.length === 0;"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{user-token}}"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/api/v3/iofog-list?filters[0][key]=uuid&filters[0][value]={{node-id}}&filters[0][condition]=equals",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"iofog-list"
+							],
+							"query": [
+								{
+									"key": "filters[0][key]",
+									"value": "uuid"
+								},
+								{
+									"key": "filters[0][value]",
+									"value": "{{node-id}}"
+								},
+								{
+									"key": "filters[0][condition]",
+									"value": "equals"
+								}
 							]
 						}
 					},
@@ -6261,10 +6570,6 @@
 								"type": "text"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{host}}/api/v3/registries",
 							"host": [

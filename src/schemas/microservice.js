@@ -4,12 +4,20 @@ const microserviceCreate = {
   'properties': {
     'name': {
       'type': 'string',
-      'minLength': 1,
+      'minLength': 1
     },
     'config': { 'type': 'string' },
     'catalogItemId': {
       'type': 'integer',
-      'minimum': 4,
+      'minimum': 4
+    },
+    'images': {
+      'type': 'array',
+      'maxItems': 2,
+      'items': { '$ref': '/image' }
+    },
+    'registryId': {
+      'type': 'integer'
     },
     'flowId': { 'type': 'integer' },
     'iofogUuid': { 'type': 'string' },
@@ -30,10 +38,10 @@ const microserviceCreate = {
       'items': { '$ref': '/env' } },
     'cmd': {
       'type': 'array',
-      'items': { 'type': 'string' } },
+      'items': { 'type': 'string' } }
   },
-  'required': ['name', 'flowId', 'catalogItemId'],
-  'additionalProperties': true,
+  'required': ['name', 'flowId'],
+  'additionalProperties': true
 }
 
 const microserviceUpdate = {
@@ -42,7 +50,7 @@ const microserviceUpdate = {
   'properties': {
     'name': {
       'type': 'string',
-      'minLength': 1,
+      'minLength': 1
     },
     'config': { 'type': 'string' },
     'rebuild': { 'type': 'boolean' },
@@ -51,16 +59,21 @@ const microserviceUpdate = {
     'logSize': { 'type': 'integer', 'minimum': 0 },
     'volumeMappings': {
       'type': 'array',
-      'items': { '$ref': '/volumeMappings' },
+      'items': { '$ref': '/volumeMappings' }
+    },
+    'images': {
+      'type': 'array',
+      'maxItems': 2,
+      'items': { '$ref': '/image' }
     },
     'env': {
       'type': 'array',
       'items': { '$ref': '/env' } },
     'cmd': {
       'type': 'array',
-      'items': { 'type': 'string' } },
+      'items': { 'type': 'string' } }
   },
-  'additionalProperties': true,
+  'additionalProperties': true
 }
 
 const microserviceDelete = {
@@ -68,10 +81,10 @@ const microserviceDelete = {
   'type': 'object',
   'properties': {
     'withCleanup': {
-      'type': 'boolean',
+      'type': 'boolean'
     },
-    'additionalProperties': true,
-  },
+    'additionalProperties': true
+  }
 }
 
 const env = {
@@ -79,10 +92,10 @@ const env = {
   'type': 'object',
   'properties': {
     'key': { 'type': 'string' },
-    'value': { 'type': 'string' },
+    'value': { 'type': 'string' }
   },
   'required': ['key', 'value'],
-  'additionalProperties': true,
+  'additionalProperties': true
 }
 
 const ports = {
@@ -91,10 +104,10 @@ const ports = {
   'properties': {
     'internal': { 'type': 'integer' },
     'external': { 'type': 'integer' },
-    'publicMode': { 'type': 'boolean' },
+    'publicMode': { 'type': 'boolean' }
   },
   'required': ['internal', 'external'],
-  'additionalProperties': true,
+  'additionalProperties': true
 }
 
 const portsCreate = {
@@ -103,10 +116,10 @@ const portsCreate = {
   'properties': {
     'internal': { 'type': 'integer' },
     'external': { 'type': 'integer' },
-    'publicMode': { 'type': 'boolean' },
+    'publicMode': { 'type': 'boolean' }
   },
   'required': ['internal', 'external'],
-  'additionalProperties': true,
+  'additionalProperties': true
 }
 
 const volumeMappings = {
@@ -115,13 +128,13 @@ const volumeMappings = {
   'properties': {
     'hostDestination': { 'type': 'string' },
     'containerDestination': { 'type': 'string' },
-    'accessMode': { 'type': 'string' },
+    'accessMode': { 'type': 'string' }
   },
   'required': ['hostDestination', 'containerDestination', 'accessMode'],
-  'additionalProperties': true,
+  'additionalProperties': true
 }
 
 module.exports = {
   mainSchemas: [microserviceCreate, microserviceUpdate, env, ports, portsCreate, microserviceDelete, volumeMappings],
-  innerSchemas: [volumeMappings, ports, env],
+  innerSchemas: [volumeMappings, ports, env]
 }

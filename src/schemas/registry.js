@@ -22,23 +22,23 @@ const registryCreate = {
     'email': {
       'type': 'string',
       'pattern': '^(([^<>()\\[\\]\\\\.,;:\\s@"]+(\\.[^<>()\\[\\]\\\\.,;:\\s@"]+)*)|(".+"))@((\\[[0-9]{1,3}\\.[0-9]{1,3}' +
-      '\\.[0-9]{1,3}\\.[0-9]{1,3}])|(([a-zA-Z\\-0-9]+\\.)+[a-zA-Z]{2,}))$',
+      '\\.[0-9]{1,3}\\.[0-9]{1,3}])|(([a-zA-Z\\-0-9]+\\.)+[a-zA-Z]{2,}))$'
     },
     'requiresCert': { 'type': 'boolean' },
-    'certificate': { 'type': 'string' },
+    'certificate': { 'type': 'string' }
   },
   'required': ['url', 'isPublic', 'username', 'password', 'email'],
-  'additionalProperties': true,
+  'additionalProperties': true
 }
 
 const registryDelete = {
   'id': '/registryDelete',
   'type': 'object',
   'properties': {
-    'id': { 'type': 'integer' },
+    'id': { 'type': 'integer' }
   },
   'required': ['id'],
-  'additionalProperties': true,
+  'additionalProperties': true
 }
 
 const registryUpdate = {
@@ -52,14 +52,14 @@ const registryUpdate = {
     'email': {
       'type': 'string',
       'pattern': '^(([^<>()\\[\\]\\\\.,;:\\s@"]+(\\.[^<>()\\[\\]\\\\.,;:\\s@"]+)*)|(".+"))@((\\[[0-9]{1,3}\\.[0-9]{1,3}' +
-      '\\.[0-9]{1,3}\\.[0-9]{1,3}])|(([a-zA-Z\\-0-9]+\\.)+[a-zA-Z]{2,}))$',
+      '\\.[0-9]{1,3}\\.[0-9]{1,3}])|(([a-zA-Z\\-0-9]+\\.)+[a-zA-Z]{2,}))$'
     },
     'requiresCert': { 'type': 'boolean' },
-    'certificate': { 'type': 'string' },
+    'certificate': { 'type': 'string' }
   },
-  'additionalProperties': true,
+  'additionalProperties': true
 }
 
 module.exports = {
-  mainSchemas: [registryCreate, registryDelete, registryUpdate],
+  mainSchemas: [registryCreate, registryDelete, registryUpdate]
 }

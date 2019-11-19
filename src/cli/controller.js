@@ -15,10 +15,10 @@ const BaseCLIHandler = require('./base-cli-handler')
 const constants = require('../helpers/constants')
 const ControllerService = require('../services/controller-service')
 const logger = require('../logger')
-
+const AuthDecorator = require('../decorators/cli-decorator')
 
 class Controller extends BaseCLIHandler {
-  constructor() {
+  constructor () {
     super()
 
     this.name = constants.CMD_CONTROLLER
@@ -27,18 +27,18 @@ class Controller extends BaseCLIHandler {
         name: 'command',
         defaultOption: true,
         description: 'status, email-activation, fog-types, version',
-        group: constants.CMD,
-      },
+        group: constants.CMD
+      }
     ]
     this.commands = {
       [constants.CMD_STATUS]: 'Display iofog-controller service status.',
       [constants.CMD_EMAIL_ACTIVATION]: 'Is email activation.',
       [constants.CMD_FOG_TYPES]: 'List all Fog-types.',
-      [constants.CMD_VERSION]: 'Display iofog-controller service version.',
+      [constants.CMD_VERSION]: 'Display iofog-controller service version.'
     }
   }
 
-  async run(args) {
+  async run (args) {
     try {
       const controllerCommand = this.parseCommandLineArgs(this.commandDefinitions, { argv: args.argv, partial: false })
 
@@ -69,7 +69,7 @@ class Controller extends BaseCLIHandler {
   }
 }
 
-const _executeCase = async function(userCommand, commandName, f, isUserRequired) {
+const _executeCase = async function (userCommand, commandName, f, isUserRequired) {
   try {
     const item = userCommand[commandName]
 
@@ -84,25 +84,24 @@ const _executeCase = async function(userCommand, commandName, f, isUserRequired)
   }
 }
 
-
-const _getStatus = async function() {
+const _getStatus = async function () {
   const response = await ControllerService.statusController(true)
   logger.cliRes(JSON.stringify(response, null, 2))
 }
 
-const _emailActivation = async function() {
+const _emailActivation = async function () {
   logger.cliReq('controller email-activation')
   const response = await ControllerService.emailActivation(true)
   logger.cliRes(JSON.stringify(response, null, 2))
 }
 
-const _getFogTypes = async function() {
+const _getFogTypes = async function () {
   logger.cliReq('controller fog-types')
   const response = await ControllerService.getFogTypes(true)
   logger.cliRes(JSON.stringify(response, null, 2))
 }
 
-const _getVersion = async function() {
+const _getVersion = async function () {
   logger.cliReq('controller version')
   const response = await ControllerService.getVersion(true)
   logger.cliRes(response, null, 2)

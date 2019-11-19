@@ -13,10 +13,10 @@
 const logger = require('../logger')
 const { isTest } = require('../helpers/app-helper')
 
-function handleErrors(f, successCode, errorsCodes) {
-  return async function(...args) {
+function handleErrors (f, successCode, errorsCodes) {
+  return async function (...args) {
     if (isTest()) {
-      return await f.apply(this, args)
+      return f.apply(this, args)
     }
 
     let responseObject = {}
@@ -48,15 +48,15 @@ function handleErrors(f, successCode, errorsCodes) {
           }
         })
       }
-      code = code ? code : 500
+      code = code || 500
 
       responseObject = {
         code: code,
         body: {
           name: errorObj.name,
           message: errorObj.message,
-          stack: errorObj.stack,
-        },
+          stack: errorObj.stack
+        }
       }
       if (code !== 500) {
         delete responseObject.body.stack
@@ -68,5 +68,5 @@ function handleErrors(f, successCode, errorsCodes) {
 }
 
 module.exports = {
-  handleErrors: handleErrors,
+  handleErrors: handleErrors
 }

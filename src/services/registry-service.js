@@ -11,19 +11,18 @@
  *
  */
 
-const RegistryManager = require('../sequelize/managers/registry-manager')
+const RegistryManager = require('../data/managers/registry-manager')
 const Validator = require('../schemas')
 const Errors = require('../helpers/errors')
 const ErrorMessages = require('../helpers/error-messages')
 const ChangeTrackingService = require('./change-tracking-service')
 const TransactionDecorator = require('../decorators/transaction-decorator')
-const FogManager = require('../sequelize/managers/iofog-manager')
+const FogManager = require('../data/managers/iofog-manager')
 const Sequelize = require('sequelize')
 const Op = Sequelize.Op
 const AppHelper = require('../helpers/app-helper')
 
-
-const createRegistry = async function(registry, user, transaction) {
+const createRegistry = async function (registry, user, transaction) {
   await Validator.validate(registry, Validator.schemas.registryCreate)
   if (registry.requiresCert && registry.certificate === undefined) {
     throw new Errors.ValidationError(ErrorMessages.CERT_PROPERTY_REQUIRED)
@@ -37,7 +36,7 @@ const createRegistry = async function(registry, user, transaction) {
     userEmail: registry.email,
     requiresCert: registry.requiresCert,
     certificate: registry.certificate,
-    userId: user.id,
+    userId: user.id
   }
 
   registryCreate = AppHelper.deleteUndefinedFields(registryCreate)
@@ -47,32 +46,32 @@ const createRegistry = async function(registry, user, transaction) {
   await _updateChangeTracking(user, transaction)
 
   return {
-    id: createdRegistry.id,
+    id: createdRegistry.id
   }
 }
 
-const findRegistries = async function(user, isCLI, transaction) {
+const findRegistries = async function (user, isCLI, transaction) {
   const queryRegistry = isCLI
     ? {}
     : {
       [Op.or]:
         [
           {
-            userId: user.id,
+            userId: user.id
           },
           {
-            isPublic: true,
-          },
-        ],
+            isPublic: true
+          }
+        ]
     }
 
   const registries = await RegistryManager.findAllWithAttributes(queryRegistry, { exclude: ['password'] }, transaction)
   return {
-    registries: registries,
+    registries: registries
   }
 }
 
-const deleteRegistry = async function(registryData, user, isCLI, transaction) {
+const deleteRegistry = async function (registryData, user, isCLI, transaction) {
   await Validator.validate(registryData, Validator.schemas.registryDelete)
   const queryData = isCLI
     ? { id: registryData.id }
@@ -88,7 +87,7 @@ const deleteRegistry = async function(registryData, user, isCLI, transaction) {
   await _updateChangeTracking(user, transaction)
 }
 
-const updateRegistry = async function(registry, registryId, user, isCLI, transaction) {
+const updateRegistry = async function (registry, registryId, user, isCLI, transaction) {
   await Validator.validate(registry, Validator.schemas.registryUpdate)
 
   if (registry.requiresCert && registry.certificate === undefined) {
@@ -96,8 +95,9 @@ const updateRegistry = async function(registry, registryId, user, isCLI, transac
   }
 
   const existingRegistry = await RegistryManager.findOne({
-    id: registryId,
+    id: registryId
   }, transaction)
+
   if (!existingRegistry) {
     throw new Errors.NotFoundError(ErrorMessages.REGISTRY_NOT_FOUND)
   }
@@ -109,30 +109,32 @@ const updateRegistry = async function(registry, registryId, user, isCLI, transac
     isPublic: registry.isPublic,
     userEmail: registry.email,
     requiresCert: registry.requiresCert,
-    certificate: registry.certificate,
+    certificate: registry.certificate
   }
 
   registryUpdate = AppHelper.deleteUndefinedFields(registryUpdate)
 
-  const where = isCLI ?
-    {
-      id: registryId,
+  const where = isCLI
+    ? {
+      id: registryId
     }
-    :
-    {
+    : {
       id: registryId,
-      userId: user.id,
+      userId: user.id
     }
 
   await RegistryManager.update(where, registryUpdate, transaction)
 
+  if (isCLI) {
+    user = { id: existingRegistry.userId }
+  }
+
   await _updateChangeTracking(user, transaction)
 }
 
-
-const _updateChangeTracking = async function(user, transaction) {
+const _updateChangeTracking = async function (user, transaction) {
   const fogs = await FogManager.findAll({ userId: user.id }, transaction)
-  for (fog of fogs) {
+  for (const fog of fogs) {
     await ChangeTrackingService.update(fog.uuid, ChangeTrackingService.events.registries, transaction)
   }
 }
@@ -141,5 +143,5 @@ module.exports = {
   createRegistry: TransactionDecorator.generateTransaction(createRegistry),
   findRegistries: TransactionDecorator.generateTransaction(findRegistries),
   deleteRegistry: TransactionDecorator.generateTransaction(deleteRegistry),
-  updateRegistry: TransactionDecorator.generateTransaction(updateRegistry),
+  updateRegistry: TransactionDecorator.generateTransaction(updateRegistry)
 }

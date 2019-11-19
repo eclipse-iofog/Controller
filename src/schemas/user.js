@@ -20,12 +20,12 @@ const signUp = {
     'email': {
       'type': 'string',
       'pattern': '^(([^<>()\\[\\]\\\\.,;:\\s@"]+(\\.[^<>()\\[\\]\\\\.,;:\\s@"]+)*)|(".+"))@((\\[[0-9]{1,3}\\.[0-9]{1,3}' +
-      '\\.[0-9]{1,3}\\.[0-9]{1,3}])|(([a-zA-Z\\-0-9]+\\.)+[a-zA-Z]{2,}))$',
+      '\\.[0-9]{1,3}\\.[0-9]{1,3}])|(([a-zA-Z\\-0-9]+\\.)+[a-zA-Z]{2,}))$'
     },
-    'password': { 'type': 'string', 'minLength': 8 },
+    'password': { 'type': 'string', 'minLength': 8 }
   },
   'required': ['email', 'password', 'firstName', 'lastName'],
-  'additionalProperties': true,
+  'additionalProperties': true
 }
 
 const login = {
@@ -35,12 +35,12 @@ const login = {
     'email': {
       'type': 'string',
       'pattern': '^(([^<>()\\[\\]\\\\.,;:\\s@"]+(\\.[^<>()\\[\\]\\\\.,;:\\s@"]+)*)|(".+"))@((\\[[0-9]{1,3}\\.[0-9]{1,3}' +
-      '\\.[0-9]{1,3}\\.[0-9]{1,3}])|(([a-zA-Z\\-0-9]+\\.)+[a-zA-Z]{2,}))$',
+      '\\.[0-9]{1,3}\\.[0-9]{1,3}])|(([a-zA-Z\\-0-9]+\\.)+[a-zA-Z]{2,}))$'
     },
-    'password': { 'type': 'string' },
+    'password': { 'type': 'string' }
   },
   'required': ['email', 'password'],
-  'additionalProperties': true,
+  'additionalProperties': true
 }
 
 const resendActivation = {
@@ -50,31 +50,31 @@ const resendActivation = {
     'email': {
       'type': 'string',
       'pattern': '^(([^<>()\\[\\]\\\\.,;:\\s@"]+(\\.[^<>()\\[\\]\\\\.,;:\\s@"]+)*)|(".+"))@((\\[[0-9]{1,3}\\.[0-9]{1,3}' +
-      '\\.[0-9]{1,3}\\.[0-9]{1,3}])|(([a-zA-Z\\-0-9]+\\.)+[a-zA-Z]{2,}))$',
-    },
+      '\\.[0-9]{1,3}\\.[0-9]{1,3}])|(([a-zA-Z\\-0-9]+\\.)+[a-zA-Z]{2,}))$'
+    }
   },
   'required': ['email'],
-  'additionalProperties': true,
+  'additionalProperties': true
 }
 
 const activateUser = {
   'id': '/activateUser',
   'type': 'object',
   'properties': {
-    'activationCode': { 'type': 'string' },
+    'activationCode': { 'type': 'string' }
   },
   'required': ['activationCode'],
-  'additionalProperties': true,
+  'additionalProperties': true
 }
 
 const activateUserCLI = {
   'id': '/activateUserCLI',
   'type': 'object',
   'properties': {
-    'email': { 'type': 'string' },
+    'email': { 'type': 'string' }
   },
   'required': ['email'],
-  'additionalProperties': true,
+  'additionalProperties': true
 }
 
 const updateUserProfile = {
@@ -82,10 +82,10 @@ const updateUserProfile = {
   'type': 'object',
   'properties': {
     'firstName': { 'type': 'string', 'minLength': 3 },
-    'lastName': { 'type': 'string', 'minLength': 3 },
+    'lastName': { 'type': 'string', 'minLength': 3 }
   },
   'required': [],
-  'additionalProperties': true,
+  'additionalProperties': true
 }
 
 const updateUserProfileCLI = {
@@ -94,10 +94,10 @@ const updateUserProfileCLI = {
   'properties': {
     'firstName': { 'type': 'string', 'minLength': 3 },
     'lastName': { 'type': 'string', 'minLength': 3 },
-    'password': { 'type': 'string', 'minLength': 8 },
+    'password': { 'type': 'string', 'minLength': 8 }
   },
   'required': [],
-  'additionalProperties': true,
+  'additionalProperties': true
 }
 
 const updatePassword = {
@@ -105,10 +105,10 @@ const updatePassword = {
   'type': 'object',
   'properties': {
     'oldPassword': { 'type': 'string' },
-    'newPassword': { 'type': 'string', 'minLength': 8 },
+    'newPassword': { 'type': 'string', 'minLength': 8 }
   },
   'required': ['oldPassword', 'newPassword'],
-  'additionalProperties': true,
+  'additionalProperties': true
 }
 
 const resetUserPassword = {
@@ -118,16 +118,15 @@ const resetUserPassword = {
     'email': {
       'type': 'string',
       'pattern': '^(([^<>()\\[\\]\\\\.,;:\\s@"]+(\\.[^<>()\\[\\]\\\\.,;:\\s@"]+)*)|(".+"))@((\\[[0-9]{1,3}\\.[0-9]{1,3}' +
-      '\\.[0-9]{1,3}\\.[0-9]{1,3}])|(([a-zA-Z\\-0-9]+\\.)+[a-zA-Z]{2,}))$',
-    },
+      '\\.[0-9]{1,3}\\.[0-9]{1,3}])|(([a-zA-Z\\-0-9]+\\.)+[a-zA-Z]{2,}))$'
+    }
   },
   'required': ['email'],
-  'additionalProperties': true,
+  'additionalProperties': true
 }
-
 
 module.exports = {
   mainSchemas: [signUp, login, resendActivation, activateUser, activateUserCLI, updateUserProfile,
     updateUserProfileCLI, updatePassword, resetUserPassword],
-  innerSchemas: [],
+  innerSchemas: []
 }

@@ -13,6 +13,7 @@
 
 module.exports = {
   'App:Name': 'iofog-controller',
+  'Viewer:Port': 80,
 
   'Server:Port': 51121,
   'Server:DevMode': false,
@@ -21,7 +22,8 @@ module.exports = {
   'Email:HomeUrl': 'https://iofog.org',
 
   'Service:LogsDirectory': '/var/log/iofog-controller',
-  'Service:LogsFileSize': 1048576,
+  'Service:LogsFileSize': 10485760,
+  'Service:LogsFileCount': 10,
 
   'Settings:DefaultJobIntervalSeconds': 120,
   'Settings:UserTokenExpirationIntervalSeconds': 3600,
@@ -31,5 +33,5 @@ module.exports = {
   'Settings:FogStatusUpdateIntervalSeconds': 120,
   'Settings:FogStatusFrequencySeconds': 60,
 
-  'Diagnostics:DiagnosticDir': 'diagnostic',
+  'Diagnostics:DiagnosticDir': 'diagnostic'
 }

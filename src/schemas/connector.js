@@ -20,10 +20,10 @@ const connectorCreate = {
     'publicIp': { 'type': 'string', 'minLength': 7 },
     'cert': { 'type': 'string' },
     'isSelfSignedCert': { 'type': 'boolean' },
-    'devMode': { 'type': 'boolean' },
+    'devMode': { 'type': 'boolean' }
   },
   'required': ['publicIp', 'name', 'devMode'],
-  'additionalProperties': true,
+  'additionalProperties': true
 }
 
 const connectorUpdate = {
@@ -35,23 +35,23 @@ const connectorUpdate = {
     'publicIp': { 'type': 'string', 'minLength': 7 },
     'cert': { 'type': 'string' },
     'isSelfSignedCert': { 'type': 'boolean' },
-    'devMode': { 'type': 'boolean' },
+    'devMode': { 'type': 'boolean' }
   },
-  'required': ['publicIp'],
-  'additionalProperties': true,
+  'required': ['name'],
+  'additionalProperties': true
 }
 
 const connectorDelete = {
   'id': '/connectorDelete',
   'type': 'object',
   'properties': {
-    'publicIp': { 'type': 'string', 'minLength': 7 },
+    'name': { 'type': 'string', 'minLength': 1 }
   },
-  'required': ['publicIp'],
-  'additionalProperties': true,
+  'required': ['name'],
+  'additionalProperties': true
 }
 
 module.exports = {
   mainSchemas: [connectorCreate, connectorUpdate, connectorDelete],
-  innerSchemas: [],
+  innerSchemas: []
 }

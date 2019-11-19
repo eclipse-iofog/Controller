@@ -12,19 +12,26 @@
  */
 
 const execSync = require('child_process').execSync
+const path = require('path')
 
-function test() {
+const { setDbEnvVars } = require('./util')
+
+function test () {
   const options = {
     env: {
       'NODE_ENV': 'test',
-      'PATH': process.env.PATH,
+      'VIEWER_PORT': '8008',
+      'PATH': process.env.PATH
     },
-    stdio: [process.stdin, process.stdout, process.stderr],
+    stdio: [process.stdin, process.stdout, process.stderr]
   }
 
-  execSync('mocha', options)
+  options.env = setDbEnvVars(options.env)
+
+  const mocha = path.join(__dirname, '..', 'node_modules', 'mocha', 'bin', 'mocha')
+  execSync(mocha, options)
 }
 
 module.exports = {
-  test: test,
+  test: test
 }

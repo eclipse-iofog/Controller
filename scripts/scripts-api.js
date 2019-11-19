@@ -16,10 +16,6 @@ const { startDev } = require('./start-dev')
 const { init } = require('./init')
 const { preuninstall } = require('./preuninstall')
 const { postinstall } = require('./postinstall')
-const { test } = require('./test')
-const { cliTest } = require('./cli-tests')
-const { postmanTest } = require('./postmantest')
-const { coverage } = require('./coverage')
 
 switch (process.argv[2]) {
   case 'start':
@@ -36,19 +32,6 @@ switch (process.argv[2]) {
     break
   case 'postinstall':
     postinstall()
-    break
-  case 'test':
-    test()
-    cliTest()
-    break
-  case 'postmantest':
-    postmanTest()
-    break
-  case 'cli-tests':
-    cliTest()
-    break
-  case 'coverage':
-    coverage()
     break
   default:
     console.log('no script for this command')

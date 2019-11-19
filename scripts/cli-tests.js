@@ -12,15 +12,19 @@
  */
 
 const execSync = require('child_process').execSync
+
 const { init } = require('./init')
-const { restoreDBs, backupDBs } = require('./util')
+const { restoreDBs, backupDBs, setDbEnvVars } = require('./util')
 
 const options = {
   env: {
     'NODE_ENV': 'production',
-    'PATH': process.env.PATH,
+    'PATH': process.env.PATH
   },
+  encoding: 'ascii'
 }
+
+options.env = setDbEnvVars(options.env)
 
 /* eslint-disable no-unused-vars */
 let testsCounter = 0
@@ -67,7 +71,7 @@ function testUserSection () {
 
   responseHasFields(testCommand('user add -f John -l Doe -e user@domain.com -p \'#Bugs4Fun\''), userCreateFields)
   responseEquals(testCommand('user update -f John2 -l Doe2 -e user@domain.com -p \'#Bugs4Fun34\''),
-      'User updated successfully.')
+    'User updated successfully.')
   responseIsArray(testCommand('user list'))
   responseHasFields(testCommand('user generate-token -e user@domain.com'), userAccessTokenFields)
   responseEquals(testCommand('user suspend -e user@domain.com'), 'User suspended successfully.')
@@ -91,9 +95,14 @@ function testConnectorSection () {
 
   responseContains(testCommand('connector add -i 127.0.0.1 -n Connector1 -d iofog.test.org  -c testCertPath' +
     ' -s -H'), 'Connector has been created successfully.')
-  responseEquals(testCommand('connector update -i 127.0.0.1 -n Connector2 -d iofog.test.org  -c testCertPath' +
+  responseEquals(testCommand('connector update -i 127.0.0.2 -n Connector1 -d iofog.test.org  -c testCertPath' +
     ' -s -H'), 'Connector has been updated successfully.')
-  responseEquals(testCommand('connector remove -i 127.0.0.1'), 'Connector has been removed successfully.')
+  responseEquals(testCommand('connector add -i 127.0.0.1 -n Connector2 -d iofog.test.org  -c testCertPath' +
+    ' -s -H'), 'Connector has been created successfully.')
+  responseEquals(testCommand('connector add -i 127.0.0.3 -n Connector1 -d iofog.test.org  -c testCertPath' +
+    ' -s -H'), '[error] Model already exists')
+  responseEquals(testCommand('connector remove -n Connector1'), 'Connector has been removed successfully.')
+  responseEquals(testCommand('connector remove -n Connector2'), 'Connector has been removed successfully.')
   responseIsArray(testCommand('connector list'))
 }
 
@@ -125,7 +134,7 @@ function testIoFogSection () {
     responseHasFields(testCommand('iofog provisioning-key -i ' + ioFogUuid), ioFogProvisioningFields)
     responseEquals(testCommand('iofog reboot -i ' + ioFogUuid), 'ioFog reboot command has been set successfully')
     responseEquals(testCommand('iofog version -i ' + ioFogUuid + ' -v upgrade'),
-        'ioFog version command has been set successfully')
+      'ioFog version command has been set successfully')
     hasSomeResponse(testCommand('iofog hal-hw -i ' + ioFogUuid))
     hasSomeResponse(testCommand('iofog hal-usb -i ' + ioFogUuid))
     responseEquals(testCommand('iofog remove -i ' + ioFogUuid), 'ioFog node has been removed successfully')
@@ -155,7 +164,7 @@ function testCatalogSection () {
       ' -c testCategory -x testIntelImage -a testArmImage -p testPublisher -s 15 -r 15 -t testPicture -g ' +
       registryId + ' -I testInputType -F testInputFormat -O testOutputType -T testOutputFormat -X \'{}\''),
     'Catalog item has been updated successfully.')
-    responseHasFields(testCommand('catalog list'), catalogListFields)
+    responseHasFields(testCommand('catalog list | tr "\\0" "\\n"'), catalogListFields)
     responseHasFields(testCommand('catalog info -i ' + catalogId), catalogCreateFields)
     responseEquals(testCommand('catalog remove -i ' + catalogId), 'Catalog item has been removed successfully')
     executeCommand('registry remove -i ' + registryId)
@@ -178,7 +187,7 @@ function testFlowSection () {
       ' -a -u ' + userId), flowCreateFields)
     const flowId = flowCreateResponse.id
     responseEquals(testCommand('flow update -i ' + flowId + ' -n testFlow1 -d testDescription -a'),
-        'Flow updated successfully.')
+      'Flow updated successfully.')
     responseHasFields(testCommand('flow list'), flowListFields)
     responseHasFields(testCommand('flow info -i ' + flowId), flowCreateFields)
     responseEquals(testCommand('flow remove -i ' + flowId), 'Flow removed successfully.')
@@ -225,22 +234,22 @@ function testMicroserviceSection () {
     responseHasFields(testCommand('microservice list'), microserviceListFields)
     responseHasFields(testCommand('microservice info -i ' + microserviceUuid), microserviceCreateFields)
     responseContains(testCommand('microservice route-create -T ' + microserviceUuid + ':' + microserviceUuid),
-        'has been created successfully')
+      'has been created successfully')
     responseContains(testCommand('microservice route-remove -T ' + microserviceUuid + ':' + microserviceUuid),
-        'has been removed successfully')
+      'has been removed successfully')
     responseContains(testCommand('microservice port-mapping-create -i ' + microserviceUuid + ' -P 90:9090:false'),
-        'Port mapping has been created successfully.')
+      'Port mapping has been created successfully.')
     responseIsArray(testCommand('microservice port-mapping-list -i ' + microserviceUuid))
     responseEquals(testCommand('microservice port-mapping-remove -i ' + microserviceUuid + ' -b 90'),
-        'Port mapping has been removed successfully.')
+      'Port mapping has been removed successfully.')
     const volumeMappingCreateResponse = responseHasFields(testCommand('microservice volume-mapping-create' +
       ' -i ' + microserviceUuid + ' -P /test_path:/container_test_path:rw'), volumeMappingCreateFields)
     const volumeMappingId = volumeMappingCreateResponse.id
     responseIsArray(testCommand('microservice volume-mapping-list -i ' + microserviceUuid))
-    responseContains(testCommand('microservice volume-mapping-remove -i ' + microserviceUuid + ' -a ' + volumeMappingId),
-        'Volume mapping has been deleted successfully.')
+    responseContains(testCommand('microservice volume-mapping-remove -i ' + microserviceUuid + ' -m ' + volumeMappingId),
+      'Volume mapping has been deleted successfully.')
     responseEquals(testCommand('microservice remove -i ' + microserviceUuid),
-        'Microservice has been removed successfully.')
+      'Microservice has been removed successfully.')
     executeCommand('iofog remove -i ' + ioFogUuid)
     executeCommand('flow remove -i ' + flowId)
     executeCommand('catalog remove -i ' + catalogId)
@@ -308,15 +317,15 @@ function testDiagnosticsSection () {
 
   try {
     responseEquals(testCommand('diagnostics strace-update -e -i ' + microserviceUuid),
-        'Microservice strace has been enabled')
+      'Microservice strace has been enabled')
     responseContains(testCommand('diagnostics strace-info -f string -i ' + microserviceUuid),
-        'Microservice strace data has been retrieved successfully.')
+      'Microservice strace data has been retrieved successfully.')
     responseContains(testCommand('diagnostics strace-ftp-post -i ' + microserviceUuid + ' -h ftpTestHost -p 2024' +
       ' -u testFtpUser -s testFtpPass -d ftpTestDestination'), 'FTP error')
     responseContains(testCommand('diagnostics image-snapshot-create -i ' + microserviceUuid),
-        'Microservice image snapshot has been created successfully.')
+      'Microservice image snapshot has been created successfully.')
     responseContains(testCommand('diagnostics image-snapshot-get -i ' + microserviceUuid),
-        'Image snapshot is not available for this microservice.')
+      'Image snapshot is not available for this microservice.')
     executeCommand('microservice remove -i ' + microserviceUuid)
     executeCommand('iofog remove -i ' + ioFogUuid)
     executeCommand('flow remove -i ' + flowId)
@@ -341,7 +350,6 @@ function testCommand (command) {
 
 function executeCommand (command) {
   let response = execSync('node ./src/main.js ' + command, options)
-  response = response.toString()
   response = response.replace(/\r?\n?/g, '') // remove line breaks
   return response
 }
@@ -433,5 +441,5 @@ function cliTest () {
 }
 
 module.exports = {
-  cliTest: cliTest,
+  cliTest: cliTest
 }

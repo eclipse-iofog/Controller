@@ -14,93 +14,93 @@
 const KubeletService = require('../services/kubelet-service')
 const AuthDecorator = require('../decorators/authorization-decorator')
 
-const kubeletCreatePodEndPoint = async function(req, user) {
+const kubeletCreatePodEndPoint = async function (req, user) {
   const createPodData = req.body
   const fogNodeUuid = req.query.nodeName
 
-  return await KubeletService.kubeletCreatePod(createPodData, fogNodeUuid, user)
+  return KubeletService.kubeletCreatePod(createPodData, fogNodeUuid, user)
 }
 
-const kubeletUpdatePodEndPoint = async function(req, user) {
+const kubeletUpdatePodEndPoint = async function (req, user) {
   const uploadPodData = req.body
   const fogNodeUuid = req.query.nodeName
 
-  return await KubeletService.kubeletUpdatePod(uploadPodData, fogNodeUuid, user)
+  return KubeletService.kubeletUpdatePod(uploadPodData, fogNodeUuid, user)
 }
 
-const kubeletDeletePodEndPoint = async function(req, user) {
+const kubeletDeletePodEndPoint = async function (req, user) {
   const fogNodeUuid = req.query.nodeName
   const podData = req.body
 
-  return await KubeletService.kubeletDeletePod(podData, fogNodeUuid, user)
+  return KubeletService.kubeletDeletePod(podData, fogNodeUuid, user)
 }
 
-const kubeletGetPodEndPoint = async function(req, user) {
+const kubeletGetPodEndPoint = async function (req, user) {
   const namespace = req.query.namespace
   const name = req.query.name
   const fogNodeUuid = req.query.nodeName
 
-  return await KubeletService.kubeletGetPod(namespace, name, fogNodeUuid, user)
+  return KubeletService.kubeletGetPod(namespace, name, fogNodeUuid, user)
 }
 
-const kubeletGetContainerLogsEndPoint = async function(req, user) {
+const kubeletGetContainerLogsEndPoint = async function (req, user) {
   const namespace = req.query.namespace
   const podName = req.query.podName
   const containerName = req.query.containerName
   const tail = req.query.tail
   const fogNodeUuid = req.query.nodeName
 
-  return await KubeletService.kubeletGetContainerLogs(namespace, podName, containerName, tail, fogNodeUuid)
+  return KubeletService.kubeletGetContainerLogs(namespace, podName, containerName, tail, fogNodeUuid)
 }
 
-const kubeletGetPodStatusEndPoint = async function(req, user) {
+const kubeletGetPodStatusEndPoint = async function (req, user) {
   const namespace = req.query.namespace
   const name = req.query.name
   const fogNodeUuid = req.query.nodeName
 
-  return await KubeletService.kubeletGetPodStatus(namespace, name, fogNodeUuid, user)
+  return KubeletService.kubeletGetPodStatus(namespace, name, fogNodeUuid, user)
 }
 
-const kubeletGetPodsEndPoint = async function(req, user) {
+const kubeletGetPodsEndPoint = async function (req, user) {
   const fogNodeUuid = req.query.nodeName
 
   return KubeletService.kubeletGetPods(fogNodeUuid, user)
 }
 
-const kubeletGetCapacityEndPoint = async function(req, user) {
+const kubeletGetCapacityEndPoint = async function (req, user) {
   const fogNodeUuid = req.query.nodeName
 
-  return await KubeletService.kubeletGetCapacity(fogNodeUuid, user)
+  return KubeletService.kubeletGetCapacity(fogNodeUuid, user)
 }
 
-const kubeletGetAllocatableEndPoint = async function(req, user) {
+const kubeletGetAllocatableEndPoint = async function (req, user) {
   const fogNodeUuid = req.query.nodeName
 
-  return await KubeletService.kubeletGetAllocatable(fogNodeUuid, user)
+  return KubeletService.kubeletGetAllocatable(fogNodeUuid, user)
 }
 
-const kubeletGetNodeConditionsEndPoint = async function(req, user) {
+const kubeletGetNodeConditionsEndPoint = async function (req, user) {
   const fogNodeUuid = req.query.nodeName
 
-  return await KubeletService.kubeletGetNodeConditions(fogNodeUuid, user)
+  return KubeletService.kubeletGetNodeConditions(fogNodeUuid, user)
 }
 
-const kubeletGetNodeAddressesEndPoint = async function(req, user) {
+const kubeletGetNodeAddressesEndPoint = async function (req, user) {
   const fogNodeUuid = req.query.nodeName
 
-  return await KubeletService.kubeletGetNodeAddresses(fogNodeUuid, user)
+  return KubeletService.kubeletGetNodeAddresses(fogNodeUuid, user)
 }
 
-const kubeletGetVkTokenEndPoint = async function(req, user) {
+const kubeletGetVkTokenEndPoint = async function (req, user) {
   const userId = user.id
 
-  return await KubeletService.kubeletGetVkToken(userId)
+  return KubeletService.kubeletGetVkToken(userId)
 }
 
-const kubeletGetSchedulerTokenEndPoint = async function(req, user) {
+const kubeletGetSchedulerTokenEndPoint = async function (req, user) {
   const userId = user.id
 
-  return await KubeletService.kubeletGetSchedulerToken(userId)
+  return KubeletService.kubeletGetSchedulerToken(userId)
 }
 
 module.exports = {
@@ -116,5 +116,5 @@ module.exports = {
   kubeletGetNodeConditionsEndPoint: AuthDecorator.checkAuthToken(kubeletGetNodeConditionsEndPoint),
   kubeletGetNodeAddressesEndPoint: AuthDecorator.checkAuthToken(kubeletGetNodeAddressesEndPoint),
   kubeletGetVkTokenEndPoint: AuthDecorator.checkAuthToken(kubeletGetVkTokenEndPoint),
-  kubeletGetSchedulerTokenEndPoint: AuthDecorator.checkAuthToken(kubeletGetSchedulerTokenEndPoint),
+  kubeletGetSchedulerTokenEndPoint: AuthDecorator.checkAuthToken(kubeletGetSchedulerTokenEndPoint)
 }

@@ -57,6 +57,8 @@ module.exports = {
   IMAGE_SNAPSHOT_WITHOUT_FOG: 'Can not run image snapshot for microservice without ioFog.',
   IMAGE_SNAPSHOT_NOT_AVAILABLE: 'Image snapshot is not available for this microservice.',
   FILE_DOES_NOT_EXIST: 'File does not exist.',
+  MICROSERVICE_DOES_NOT_HAVE_IMAGES: 'Microservice {} does not have valid images',
+  CATALOG_NOT_MATCH_IMAGES: 'Catalog item {} does not match provided images',
   RESTRICTED_PUBLISHER: 'You are not allowed to add catalog item as \'Eclipse ioFog\' publisher',
   REQUIRED_FOG_NODE: 'ioFog node is required.',
   PORT_MAPPING_ALREADY_EXISTS: 'Port mapping already exists',
@@ -75,9 +77,10 @@ module.exports = {
     INVALID_PORT_MAPPING: 'Port mapping parsing error. Please provide valid port mapping.',
     INVALID_VOLUME_MAPPING: 'Volume mapping parsing error. Please provide valid volume mapping.',
     INVALID_INTERNAL_PORT: 'Internal parsing error. Please provide valid internal port.',
-    INVALID_ROUTE: 'Route parsing error. Please provide valid route.',
+    INVALID_ROUTE: 'Route parsing error. Please provide valid route.'
   },
   CONNECTOR_IS_IN_USE: 'You can\'t delete connector, because it is used for routing now.',
+  CONNECTOR_NOT_FOUND: 'Connecter not found.',
   INVALID_VERSION_COMMAND_UPGRADE: 'Can\'t upgrade version now. Latest is already installed',
   INVALID_VERSION_COMMAND_ROLLBACK: 'Can\'t rollback version now. There are no backups on agent',
   CATALOG_ITEM_IMAGES_IS_FROZEN: 'Can\'t update catalog item images for item used for running microservices',
@@ -86,5 +89,5 @@ module.exports = {
   SYSTEM_CATALOG_ITEM_UPDATE: 'Catalog item id {} is system and can\'t be updated',
   SYSTEM_CATALOG_ITEM_DELETE: 'Catalog item id {} is system and can\'t be deleted',
   SYSTEM_MICROSERVICE_UPDATE: 'Microservice uuid {} is system and can\'t be updated',
-  SYSTEM_MICROSERVICE_DELETE: 'Microservice uuid {} is system and can\'t be deleted',
+  SYSTEM_MICROSERVICE_DELETE: 'Microservice uuid {} is system and can\'t be deleted'
 }

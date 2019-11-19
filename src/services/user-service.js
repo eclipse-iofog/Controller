@@ -13,12 +13,12 @@
 
 const nodemailer = require('nodemailer')
 const smtpTransport = require('nodemailer-smtp-transport')
-const UserManager = require('../sequelize/managers/user-manager')
+const UserManager = require('../data/managers/user-manager')
 const AppHelper = require('../helpers/app-helper')
 const Errors = require('../helpers/errors')
 const ErrorMessages = require('../helpers/error-messages')
 const Config = require('../config')
-const ioFogManager = require('../sequelize/managers/iofog-manager')
+const ioFogManager = require('../data/managers/iofog-manager')
 const FogStates = require('../enums/fog-state')
 const emailActivationTemplate = require('../views/email-activation-temp')
 const emailRecoveryTemplate = require('../views/email-temp')
@@ -31,7 +31,7 @@ const TrackingEventType = require('../enums/tracking-event-type')
 const TransactionDecorator = require('../decorators/transaction-decorator')
 const Validator = require('../schemas')
 
-const signUp = async function(user, isCLI, transaction) {
+const signUp = async function (user, isCLI, transaction) {
   const isEmailActivationEnabled = Config.get('Email:ActivationEnabled')
 
   if (isEmailActivationEnabled) {
@@ -45,13 +45,13 @@ const signUp = async function(user, isCLI, transaction) {
     await _notifyUserAboutActivationCode(user.email, Config.get('Email:HomeUrl'), emailData, activationCodeData, transporter)
     return newUser
   } else {
-    return await _handleCreateUser(user, isEmailActivationEnabled, transaction)
+    return _handleCreateUser(user, isEmailActivationEnabled, transaction)
   }
 }
 
-const login = async function(credentials, isCLI, transaction) {
+const login = async function (credentials, isCLI, transaction) {
   const user = await UserManager.findOne({
-    email: credentials.email,
+    email: credentials.email
   }, transaction)
   if (!user) {
     throw new Errors.InvalidCredentialsError()
@@ -75,15 +75,15 @@ const login = async function(credentials, isCLI, transaction) {
   await AccessTokenService.createAccessToken(accessToken, transaction)
 
   return {
-    accessToken: accessToken.token,
+    accessToken: accessToken.token
   }
 }
 
-const resendActivation = async function(emailObj, isCLI, transaction) {
+const resendActivation = async function (emailObj, isCLI, transaction) {
   await Validator.validate(emailObj, Validator.schemas.resendActivation)
 
   const user = await UserManager.findOne({
-    email: emailObj.email,
+    email: emailObj.email
   }, transaction)
   if (!user) {
     throw new Errors.ValidationError(ErrorMessages.INVALID_USER_EMAIL)
@@ -97,14 +97,14 @@ const resendActivation = async function(emailObj, isCLI, transaction) {
   await _notifyUserAboutActivationCode(user.email, Config.get('Email:HomeUrl'), emailData, activationCodeData, transporter)
 }
 
-const activateUser = async function(codeData, isCLI, transaction) {
+const activateUser = async function (codeData, isCLI, transaction) {
   const updatedObj = {
-    emailActivated: true,
+    emailActivated: true
   }
 
   if (isCLI) {
     const user = await UserManager.findOne({
-      id: codeData.userId,
+      id: codeData.userId
     }, transaction)
 
     if (user.emailActivated === true) {
@@ -126,11 +126,11 @@ const activateUser = async function(codeData, isCLI, transaction) {
   }
 }
 
-const logout = async function(user, isCLI, transaction) {
-  return await AccessTokenService.removeAccessTokenByUserId(user.id, transaction)
+const logout = async function (user, isCLI, transaction) {
+  return AccessTokenService.removeAccessTokenByUserId(user.id, transaction)
 }
 
-const updateUserDetails = async function(user, profileData, isCLI, transaction) {
+const updateUserDetails = async function (user, profileData, isCLI, transaction) {
   if (isCLI) {
     await Validator.validate(profileData, Validator.schemas.updateUserProfileCLI)
   } else {
@@ -139,16 +139,15 @@ const updateUserDetails = async function(user, profileData, isCLI, transaction) 
 
   const password = (profileData.password) ? AppHelper.encryptText(profileData.password, user.email) : undefined
 
-  let updateObject = isCLI ?
-    {
+  let updateObject = isCLI
+    ? {
       firstName: profileData.firstName,
       lastName: profileData.lastName,
-      password: password,
+      password: password
     }
-    :
-    {
+    : {
       firstName: profileData.firstName,
-      lastName: profileData.lastName,
+      lastName: profileData.lastName
     }
 
   updateObject = AppHelper.deleteUndefinedFields(updateObject)
@@ -158,17 +157,17 @@ const updateUserDetails = async function(user, profileData, isCLI, transaction) 
   return {
     firstName: updateObject.firstName,
     lastName: updateObject.lastName,
-    email: user.email,
+    email: user.email
   }
 }
 
-const deleteUser = async function(force, user, isCLI, transaction) {
+const deleteUser = async function (force, user, isCLI, transaction) {
   if (!force) {
     const ioFogArray = await ioFogManager.findAll({
-      userId: user.id,
+      userId: user.id
     }, transaction)
 
-    if (!!ioFogArray) {
+    if (ioFogArray) {
       for (const ioFog of ioFogArray) {
         if (ioFog.daemonStatus === FogStates.RUNNING) {
           throw new Errors.ValidationError(ErrorMessages.NEEDED_FORCE_DELETE_USER)
@@ -178,11 +177,11 @@ const deleteUser = async function(force, user, isCLI, transaction) {
   }
 
   await UserManager.delete({
-    id: user.id,
+    id: user.id
   }, transaction)
 }
 
-const updateUserPassword = async function(passwordUpdates, user, isCLI, transaction) {
+const updateUserPassword = async function (passwordUpdates, user, isCLI, transaction) {
   const pass = AppHelper.decryptText(user.password, user.email)
 
   if (pass !== passwordUpdates.oldPassword && user.tempPassword !== passwordUpdates.oldPassword) {
@@ -198,11 +197,11 @@ const updateUserPassword = async function(passwordUpdates, user, isCLI, transact
   await _notifyUserAboutPasswordChange(user, emailData, transporter)
 }
 
-const resetUserPassword = async function(emailObj, isCLI, transaction) {
+const resetUserPassword = async function (emailObj, isCLI, transaction) {
   await Validator.validate(emailObj, Validator.schemas.resetUserPassword)
 
   const user = await UserManager.findOne({
-    email: emailObj.email,
+    email: emailObj.email
   }, transaction)
   if (!user) {
     throw new Errors.NotFoundError(ErrorMessages.ACCOUNT_NOT_FOUND)
@@ -217,35 +216,35 @@ const resetUserPassword = async function(emailObj, isCLI, transaction) {
   await _notifyUserAboutPasswordReset(user, Config.get('Email:HomeUrl'), emailData, tempPass, transporter)
 }
 
-const list = async function(isCLI, transaction) {
-  return await UserManager.findAllWithAttributes({}, { exclude: ['password'] }, transaction)
+const list = async function (isCLI, transaction) {
+  return UserManager.findAllWithAttributes({}, { exclude: ['password'] }, transaction)
 }
 
-const suspendUser = async function(user, isCLI, transaction) {
+const suspendUser = async function (user, isCLI, transaction) {
   if (user.emailActivated === false) {
     throw new Error(ErrorMessages.USER_NOT_ACTIVATED_YET)
   }
 
   const updatedObj = {
-    emailActivated: false,
+    emailActivated: false
   }
 
   await AccessTokenService.removeAccessTokenByUserId(user.id, transaction)
 
-  return await _updateUser(user.id, updatedObj, transaction)
+  return _updateUser(user.id, updatedObj, transaction)
 }
 
-async function _updateUser(userId, updatedUser, transaction) {
+async function _updateUser (userId, updatedUser, transaction) {
   try {
-    return await UserManager.update({
-      id: userId,
+    return UserManager.update({
+      id: userId
     }, updatedUser, transaction)
   } catch (errMsg) {
     throw new Error(ErrorMessages.USER_NOT_UPDATED)
   }
 }
 
-async function _generateAccessToken(transaction) {
+async function _generateAccessToken (transaction) {
   while (true) {
     const newAccessToken = AppHelper.generateAccessToken()
     const exists = await UserManager.findByAccessToken(newAccessToken, transaction)
@@ -254,29 +253,28 @@ async function _generateAccessToken(transaction) {
 
       return {
         token: newAccessToken,
-        expirationTime: tokenExpiryTime,
+        expirationTime: tokenExpiryTime
       }
     }
   }
 }
 
-function _verifyEmailActivation(emailActivated) {
+function _verifyEmailActivation (emailActivated) {
   const isEmailActivationEnabled = Config.get('Email:ActivationEnabled')
   if (isEmailActivationEnabled && !emailActivated) {
     throw new Error(ErrorMessages.EMAIL_NOT_ACTIVATED)
   }
 }
 
-
-async function _userEmailSender(emailData) {
+async function _userEmailSender (emailData) {
   let transporter
   if (emailData.service) {
     transporter = nodemailer.createTransport(smtpTransport({
       service: emailData.service,
       auth: {
         user: emailData.email,
-        pass: emailData.password,
-      },
+        pass: emailData.password
+      }
     }))
   } else {
     transporter = nodemailer.createTransport(smtpTransport({
@@ -284,17 +282,17 @@ async function _userEmailSender(emailData) {
       port: emailData.port,
       auth: {
         user: emailData.email,
-        pass: emailData.password,
-      },
+        pass: emailData.password
+      }
     }))
   }
 
   return transporter
 }
 
-async function _handleCreateUser(user, isEmailActivationEnabled, transaction) {
+async function _handleCreateUser (user, isEmailActivationEnabled, transaction) {
   const existingUser = await UserManager.findOne({
-    email: user.email,
+    email: user.email
   }, transaction)
 
   if (existingUser) {
@@ -308,53 +306,52 @@ async function _handleCreateUser(user, isEmailActivationEnabled, transaction) {
     firstName: newUser.firstName,
     lastName: newUser.lastName,
     email: newUser.email,
-    emailActivated: user.emailActivated,
+    emailActivated: user.emailActivated
   }
 }
 
-async function _createNewUser(user, isEmailActivationEnabled, transaction) {
+async function _createNewUser (user, isEmailActivationEnabled, transaction) {
   user.emailActivated = !isEmailActivationEnabled
-  return await UserManager.create(user, transaction)
+  return UserManager.create(user, transaction)
 }
 
-async function _notifyUserAboutActivationCode(email, url, emailSenderData, activationCodeData, transporter) {
+async function _notifyUserAboutActivationCode (email, url, emailSenderData, activationCodeData, transporter) {
   const mailOptions = {
     from: '"IOFOG" <' + emailSenderData.email + '>',
     to: email,
     subject: 'Activate Your Account',
     html: emailActivationTemplate.p1 + url + emailActivationTemplate.p2 + activationCodeData.activationCode +
     emailActivationTemplate.p3 + url + emailActivationTemplate.p4 + activationCodeData.activationCode +
-    emailActivationTemplate.p5 + url + emailActivationTemplate.p6 + activationCodeData.activationCode + emailActivationTemplate.p7,
+    emailActivationTemplate.p5 + url + emailActivationTemplate.p6 + activationCodeData.activationCode + emailActivationTemplate.p7
   }
 
   await _sendEmail(transporter, mailOptions)
 }
 
-async function _notifyUserAboutPasswordChange(user, emailSenderData, transporter) {
+async function _notifyUserAboutPasswordChange (user, emailSenderData, transporter) {
   const mailOptions = {
     from: '"IOFOG" <' + emailSenderData.email + '>',
     to: user.email,
     subject: 'Password Change Notification',
-    html: emailRecoveryTemplate.p1 + user.firstName + ' ' + user.lastName + emailRecoveryTemplate.p2,
+    html: emailRecoveryTemplate.p1 + user.firstName + ' ' + user.lastName + emailRecoveryTemplate.p2
   }
 
   await _sendEmail(transporter, mailOptions)
 }
 
-
-async function _notifyUserAboutPasswordReset(user, url, emailSenderData, tempPass, transporter) {
+async function _notifyUserAboutPasswordReset (user, url, emailSenderData, tempPass, transporter) {
   const mailOptions = {
     from: '"IOFOG" <' + emailSenderData.email + '>',
     to: user.email,
     subject: 'Password Reset Request',
-    html: emailResetTemplate.p1 + user.firstName + ' ' + user.lastName + emailResetTemplate.p2 + tempPass + emailResetTemplate.p3
-    + url + emailResetTemplate.p4,
+    html: emailResetTemplate.p1 + user.firstName + ' ' + user.lastName + emailResetTemplate.p2 + tempPass + emailResetTemplate.p3 +
+    url + emailResetTemplate.p4
   }
 
   await _sendEmail(transporter, mailOptions)
 }
 
-async function _sendEmail(transporter, mailOptions) {
+async function _sendEmail (transporter, mailOptions) {
   try {
     await transporter.sendMail(mailOptions)
   } catch (errMsg) {
@@ -362,7 +359,7 @@ async function _sendEmail(transporter, mailOptions) {
   }
 }
 
-async function _getEmailData() {
+async function _getEmailData () {
   try {
     const email = Config.get('Email:Address')
     const password = AppHelper.decryptText(Config.get('Email:Password'), Config.get('Email:Address'))
@@ -371,7 +368,7 @@ async function _getEmailData() {
     return {
       email: email,
       password: password,
-      service: service,
+      service: service
     }
   } catch (errMsg) {
     throw new Errors.EmailActivationSetupError()
@@ -392,5 +389,5 @@ module.exports = {
   updateUserPassword: TransactionDecorator.generateTransaction(updateUserPassword),
   resetUserPassword: TransactionDecorator.generateTransaction(resetUserPassword),
   list: TransactionDecorator.generateTransaction(list),
-  suspendUser: TransactionDecorator.generateTransaction(suspendUser),
+  suspendUser: TransactionDecorator.generateTransaction(suspendUser)
 }

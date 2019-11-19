@@ -12,7 +12,7 @@
  */
 
 class AuthenticationError extends Error {
-  constructor(message) {
+  constructor (message) {
     super(message)
     this.message = message
     this.name = 'AuthenticationError'
@@ -20,7 +20,7 @@ class AuthenticationError extends Error {
 }
 
 class TransactionError extends Error {
-  constructor() {
+  constructor () {
     const message = 'Transaction not provided'
     super(message)
     this.message = message
@@ -29,7 +29,7 @@ class TransactionError extends Error {
 }
 
 class ValidationError extends Error {
-  constructor(message) {
+  constructor (message) {
     super(message)
     this.message = message
     this.name = 'ValidationError'
@@ -37,7 +37,7 @@ class ValidationError extends Error {
 }
 
 class InvalidCredentialsError extends Error {
-  constructor() {
+  constructor () {
     const message = 'Invalid credentials'
     super(message)
     this.message = message
@@ -46,7 +46,7 @@ class InvalidCredentialsError extends Error {
 }
 
 class DuplicatePropertyError extends Error {
-  constructor(message) {
+  constructor (message) {
     super(message)
     this.message = message
     this.name = 'DuplicatePropertyError'
@@ -54,7 +54,7 @@ class DuplicatePropertyError extends Error {
 }
 
 class ModelNotFoundError extends Error {
-  constructor() {
+  constructor () {
     const message = 'Model not found'
     super(message)
     this.message = message
@@ -63,7 +63,7 @@ class ModelNotFoundError extends Error {
 }
 
 class NotFoundError extends Error {
-  constructor(message) {
+  constructor (message) {
     super(message)
     this.message = message
     this.name = 'NotFoundError'
@@ -71,7 +71,7 @@ class NotFoundError extends Error {
 }
 
 class FtpError extends Error {
-  constructor(message) {
+  constructor (message) {
     super(message)
     this.message = message
     this.name = 'FtpError'
@@ -79,7 +79,7 @@ class FtpError extends Error {
 }
 
 class EmailActivationSetupError extends Error {
-  constructor() {
+  constructor () {
     const message = 'Email activation is not configured on Controller'
     super(message)
     this.message = message
@@ -88,7 +88,7 @@ class EmailActivationSetupError extends Error {
 }
 
 class InvalidArgumentError extends Error {
-  constructor(message) {
+  constructor (message) {
     super(message)
     this.message = message
     this.name = 'InvalidArgumentError'
@@ -96,7 +96,7 @@ class InvalidArgumentError extends Error {
 }
 
 class InvalidArgumentTypeError extends Error {
-  constructor(message) {
+  constructor (message) {
     super(message)
     this.message = message
     this.name = 'InvalidArgumentTypeError'
@@ -104,7 +104,7 @@ class InvalidArgumentTypeError extends Error {
 }
 
 class CLIArgsNotProvidedError extends Error {
-  constructor() {
+  constructor () {
     super('Empty args')
     this.message = 'Empty args'
     this.name = 'CLIArgsNotProvidedError'
@@ -123,5 +123,5 @@ module.exports = {
   EmailActivationSetupError: EmailActivationSetupError,
   InvalidArgumentError: InvalidArgumentError,
   InvalidArgumentTypeError: InvalidArgumentTypeError,
-  CLIArgsNotProvidedError: CLIArgsNotProvidedError,
+  CLIArgsNotProvidedError: CLIArgsNotProvidedError
 }

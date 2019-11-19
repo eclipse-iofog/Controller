@@ -16,11 +16,18 @@ const fs = require('fs')
 const ROOT_DIR = `${__dirname}/..`
 const TEMP_DIR = getTempDir()
 
-const DEV_DB = `${ROOT_DIR}/src/sequelize/dev_database.sqlite`
+const DEV_DB = `${ROOT_DIR}/src/data/dev_database.sqlite`
 const DEV_DB_BACKUP = `${TEMP_DIR}/dev_database.sqlite`
 
-const PROD_DB = `${ROOT_DIR}/src/sequelize/prod_database.sqlite`
+const PROD_DB = `${ROOT_DIR}/src/data/prod_database.sqlite`
 const PROD_DB_BACKUP = `${TEMP_DIR}/prod_database.sqlite`
+
+let dbName = process.env.DB_NAME || 'iofogcontroller'
+if (!dbName.endsWith('.sqlite')) {
+  dbName += '.sqlite'
+}
+const CUSTOM_DB = `${ROOT_DIR}/src/data/${dbName}`
+const CUSTOM_DB_BACKUP = `${TEMP_DIR}/src/data/${dbName}`
 
 const DEFAULT_CONFIG = `${ROOT_DIR}/src/config/default.json`
 const DEVELOP_CONFIG = `${ROOT_DIR}/src/config/development.json`
@@ -35,24 +42,25 @@ const TRACKING_UUID_FILE_BACKUP = `${TEMP_DIR}/tracking-uuid_backup`
 
 const INSTALLATION_VARIABLES_FILE = TEMP_DIR + '/iofogcontroller_install_variables'
 
-
-function backupDBs() {
+function backupDBs () {
   renameFile(DEV_DB, DEV_DB_BACKUP)
   renameFile(PROD_DB, PROD_DB_BACKUP)
+  renameFile(CUSTOM_DB, CUSTOM_DB_BACKUP)
 }
 
-function restoreDBs() {
+function restoreDBs () {
   renameFile(DEV_DB_BACKUP, DEV_DB)
   renameFile(PROD_DB_BACKUP, PROD_DB)
+  renameFile(CUSTOM_DB_BACKUP, CUSTOM_DB)
 }
 
-function renameFile(oldPath, newPath) {
+function renameFile (oldPath, newPath) {
   if (fs.existsSync(oldPath)) {
     fs.renameSync(oldPath, newPath)
   }
 }
 
-function getTempDir() {
+function getTempDir () {
   let tempDir
 
   if (os.type() === 'Linux') {
@@ -68,24 +76,42 @@ function getTempDir() {
   return tempDir
 }
 
-function backupConfigs() {
+function backupConfigs () {
   renameFile(DEFAULT_CONFIG, DEFAULT_CONFIG_BACKUP)
   renameFile(DEVELOP_CONFIG, DEVELOP_CONFIG_BACKUP)
   renameFile(PRODUCTION_CONFIG, PRODUCTION_CONFIG_BACKUP)
 }
 
-function restoreConfigs() {
+function restoreConfigs () {
   renameFile(DEFAULT_CONFIG_BACKUP, DEFAULT_CONFIG)
   renameFile(DEVELOP_CONFIG_BACKUP, DEVELOP_CONFIG)
   renameFile(PRODUCTION_CONFIG_BACKUP, PRODUCTION_CONFIG)
 }
 
-function backupTrackingUuid() {
+function backupTrackingUuid () {
   renameFile(TRACKING_UUID_FILE, TRACKING_UUID_FILE_BACKUP)
 }
 
-function restoreTrackingUuid() {
+function restoreTrackingUuid () {
   renameFile(TRACKING_UUID_FILE_BACKUP, TRACKING_UUID_FILE)
+}
+
+function setDbEnvVars (env) {
+  const DB_ENV_VARS = [
+    'DB_NAME',
+    'DB_USERNAME',
+    'DB_PASSWORD',
+    'DB_PROVIDER',
+    'DB_HOST',
+    'DB_PORT'
+  ]
+
+  for (const envVar of DB_ENV_VARS) {
+    if (process.env[envVar]) {
+      env[envVar] = process.env[envVar]
+    }
+  }
+  return env
 }
 
 module.exports = {
@@ -97,7 +123,8 @@ module.exports = {
   restoreTrackingUuid: restoreTrackingUuid,
   renameFile: renameFile,
   getTempDir: getTempDir,
+  setDbEnvVars: setDbEnvVars,
 
   TEMP_DIR: TEMP_DIR,
-  INSTALLATION_VARIABLES_FILE: INSTALLATION_VARIABLES_FILE,
+  INSTALLATION_VARIABLES_FILE: INSTALLATION_VARIABLES_FILE
 }

@@ -11,15 +11,15 @@
  *
  */
 
-function Integer(value) {
+function Integer (value) {
   return Number(value)
 }
 
-function Float(value) {
+function Float (value) {
   return Number(value)
 }
 
 module.exports = {
   Integer: Integer,
-  Float: Float,
+  Float: Float
 }

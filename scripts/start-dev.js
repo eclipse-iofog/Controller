@@ -13,18 +13,22 @@
 
 const execSync = require('child_process').execSync
 
-function startDev() {
+const { setDbEnvVars } = require('./util')
+
+function startDev () {
   const options = {
     env: {
       'NODE_ENV': 'development',
-      'PATH': process.env.PATH,
+      'PATH': process.env.PATH
     },
-    stdio: [process.stdin, process.stdout, process.stderr],
+    stdio: [process.stdin, process.stdout, process.stderr]
   }
+
+  options.env = setDbEnvVars(options.env)
 
   execSync('node ./src/main.js start', options)
 }
 
 module.exports = {
-  startDev: startDev,
+  startDev: startDev
 }

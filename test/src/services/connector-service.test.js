@@ -1,14 +1,13 @@
 const { expect } = require('chai')
 const sinon = require('sinon')
 
-const ConnectorManager = require('../../../src/sequelize/managers/connector-manager')
+const ConnectorManager = require('../../../src/data/managers/connector-manager')
 const MicroserviceService = require('../../../src/services/microservices-service')
 const ConnectorService = require('../../../src/services/connector-service')
 const Validator = require('../../../src/schemas')
 const AppHelper = require('../../../src/helpers/app-helper')
-const ConnectorPortManager = require('../../../src/sequelize/managers/connector-port-manager')
+const ConnectorPortManager = require('../../../src/data/managers/connector-port-manager')
 const Sequelize = require('sequelize')
-const Op = Sequelize.Op
 
 describe('Connector Service', () => {
   def('subject', () => ConnectorService)
@@ -106,17 +105,7 @@ describe('Connector Service', () => {
             it('calls ConnectorManager#findOne() with correct args', async () => {
               await $subject
               expect(ConnectorManager.findOne).to.have.been.calledWith({
-                [Op.or]: [
-                  {
-                    name: connectorData.name,
-                  },
-                  {
-                    publicIp: connectorData.publicIp,
-                  },
-                  {
-                    domain: connectorData.domain,
-                  },
-                ],
+                  name: connectorData.name
               }, transaction)
             })
 
@@ -180,7 +169,7 @@ describe('Connector Service', () => {
     def('updatePortMappingOverConnectorResponse', () => Promise.resolve())
 
     const queryConnectorData = {
-      publicIp: connectorData.publicIp,
+      name: connectorData.name,
     }
 
     beforeEach(() => {
@@ -268,7 +257,7 @@ describe('Connector Service', () => {
               it('calls ConnectorManager#findOne() with correct args', async () => {
                 await $subject
                 expect(ConnectorManager.findOne).to.have.been.calledWith({
-                  publicIp: connectorData.publicIp,
+                  name: connectorData.name,
                 }, transaction)
               })
 
@@ -346,7 +335,7 @@ describe('Connector Service', () => {
     def('deleteConnectorResponse', () => Promise.resolve())
 
     const queryConnectorData = {
-      publicIp: connectorData.publicIp,
+      name: connectorData.name,
     }
 
     beforeEach(() => {
@@ -388,6 +377,7 @@ describe('Connector Service', () => {
           await $subject
           expect(ConnectorPortManager.findAll).to.have.been.calledWith({
             connectorId: connector.id,
+            moved: false
           }, transaction)
         })
 

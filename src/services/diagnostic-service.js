@@ -17,17 +17,16 @@ const Errors = require('../helpers/errors')
 const ErrorMessages = require('../helpers/error-messages')
 const Validator = require('../schemas/index')
 const MicroserviceService = require('../services/microservices-service')
-const StraceDiagnosticManager = require('../sequelize/managers/strace-diagnostics-manager')
+const StraceDiagnosticManager = require('../data/managers/strace-diagnostics-manager')
 const ChangeTrackingService = require('./change-tracking-service')
-const MicroserviceManager = require('../sequelize/managers/microservice-manager')
+const MicroserviceManager = require('../data/managers/microservice-manager')
 const Config = require('../config')
 const fs = require('fs')
 const logger = require('../logger')
 const FtpClient = require('ftp')
 const mime = require('mime')
 
-
-const changeMicroserviceStraceState = async function(uuid, data, user, isCLI, transaction) {
+const changeMicroserviceStraceState = async function (uuid, data, user, isCLI, transaction) {
   await Validator.validate(data, Validator.schemas.straceStateUpdate)
   const microservice = await MicroserviceService.getMicroserviceEndPoint(uuid, user, isCLI, transaction)
   if (microservice.iofogUuid === null) {
@@ -36,14 +35,14 @@ const changeMicroserviceStraceState = async function(uuid, data, user, isCLI, tr
 
   const straceObj = {
     straceRun: data.enable,
-    microserviceUuid: uuid,
+    microserviceUuid: uuid
   }
 
   await StraceDiagnosticManager.updateOrCreate({ microserviceUuid: uuid }, straceObj, transaction)
   await ChangeTrackingService.update(microservice.iofogUuid, ChangeTrackingService.events.diagnostics, transaction)
 }
 
-const getMicroserviceStraceData = async function(uuid, data, user, isCLI, transaction) {
+const getMicroserviceStraceData = async function (uuid, data, user, isCLI, transaction) {
   await Validator.validate(data, Validator.schemas.straceGetData)
 
   const microserviceWhere = isCLI
@@ -72,11 +71,11 @@ const getMicroserviceStraceData = async function(uuid, data, user, isCLI, transa
   }
 
   return {
-    data: result,
+    data: result
   }
 }
 
-const postMicroserviceStraceDatatoFtp = async function(uuid, data, user, isCLI, transaction) {
+const postMicroserviceStraceDatatoFtp = async function (uuid, data, user, isCLI, transaction) {
   await Validator.validate(data, Validator.schemas.stracePostToFtp)
 
   const microserviceWhere = isCLI
@@ -101,17 +100,15 @@ const postMicroserviceStraceDatatoFtp = async function(uuid, data, user, isCLI, 
   _deleteFile(filePath)
 }
 
-const postMicroserviceImageSnapshotCreate = async function(microserviceUuid, user, isCLI, transaction) {
-  const where = isCLI ?
-    {
-      uuid: microserviceUuid,
+const postMicroserviceImageSnapshotCreate = async function (microserviceUuid, user, isCLI, transaction) {
+  const where = isCLI
+    ? {
+      uuid: microserviceUuid
     }
-    :
-    {
+    : {
       uuid: microserviceUuid,
-      userId: user.id,
+      userId: user.id
     }
-
 
   const microservice = await MicroserviceManager.findOneWithDependencies(where, {}, transaction)
 
@@ -123,22 +120,21 @@ const postMicroserviceImageSnapshotCreate = async function(microserviceUuid, use
   }
 
   const microserviceToUpdate = {
-    imageSnapshot: 'get_image',
+    imageSnapshot: 'get_image'
   }
 
   await MicroserviceManager.update({ uuid: microservice.uuid }, microserviceToUpdate, transaction)
   await ChangeTrackingService.update(microservice.iofogUuid, ChangeTrackingService.events.imageSnapshot, transaction)
 }
 
-const getMicroserviceImageSnapshot = async function(microserviceUuid, user, isCLI, transaction) {
-  const where = isCLI ?
-    {
-      uuid: microserviceUuid,
+const getMicroserviceImageSnapshot = async function (microserviceUuid, user, isCLI, transaction) {
+  const where = isCLI
+    ? {
+      uuid: microserviceUuid
     }
-    :
-    {
+    : {
       uuid: microserviceUuid,
-      userId: user.id,
+      userId: user.id
     }
   const microservice = await MicroserviceManager.findOneWithDependencies(where, {}, transaction)
   if (!microservice) {
@@ -149,7 +145,7 @@ const getMicroserviceImageSnapshot = async function(microserviceUuid, user, isCL
   }
 
   const microserviceToUpdate = {
-    imageSnapshot: '',
+    imageSnapshot: ''
   }
 
   if (!microservice.imageSnapshot || microservice.imageSnapshot === 'get_image') {
@@ -167,25 +163,25 @@ const getMicroserviceImageSnapshot = async function(microserviceUuid, user, isCL
       'Content-Length': fileSize,
       'Content-Type': mimetype,
       'fileName': _path.split(new RegExp('/'))[1],
-      'filePath': _path,
+      'filePath': _path
     }
   }
 }
 
-const _sendFileToFtp = async function(data, filePath) {
+const _sendFileToFtp = async function (data, filePath) {
   const destDir = data.ftpDestDir
   const connectionData = {
     host: data.ftpHost,
     port: data.ftpPort,
     user: data.ftpUser,
     password: data.ftpPass,
-    protocol: 'ftp',
+    protocol: 'ftp'
   }
 
   await writeFileToFtp(connectionData, filePath, destDir)
 }
 
-const writeFileToFtp = function(connectionData, filePath, destDir) {
+const writeFileToFtp = function (connectionData, filePath, destDir) {
   return new Promise((resolve, reject) => {
     const client = new FtpClient()
 
@@ -211,14 +207,13 @@ const writeFileToFtp = function(connectionData, filePath, destDir) {
   })
 }
 
-
-const _createDirectoryIfNotExists = function(dir) {
+const _createDirectoryIfNotExists = function (dir) {
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir)
   }
 }
 
-const _writeBufferToFile = function(filePath, data) {
+const _writeBufferToFile = function (filePath, data) {
   fs.writeFileSync(filePath, data, (err) => {
     if (err) {
       throw new Error(AppHelper.formatMessage(ErrorMessages.UNABLE_TO_WRITE_STRACE, data, err))
@@ -226,13 +221,13 @@ const _writeBufferToFile = function(filePath, data) {
   })
 }
 
-const _convertFileToBase64 = function(filePath) {
+const _convertFileToBase64 = function (filePath) {
   const file = fs.readFileSync(filePath)
   /* eslint-disable new-cap */
   return new Buffer.from(file).toString('base64')
 }
 
-const _deleteFile = function(filePath) {
+const _deleteFile = function (filePath) {
   fs.unlink(filePath, (err) => {
     if (err) {
       logger.warn(AppHelper.formatMessage(ErrorMessages.UNABLE_TO_DELETE_STRACE, filePath, err))
@@ -245,6 +240,6 @@ module.exports = {
   getMicroserviceStraceData: TransactionDecorator.generateTransaction(getMicroserviceStraceData),
   postMicroserviceStraceDatatoFtp: TransactionDecorator.generateTransaction(postMicroserviceStraceDatatoFtp),
   postMicroserviceImageSnapshotCreate: TransactionDecorator.generateTransaction(postMicroserviceImageSnapshotCreate),
-  getMicroserviceImageSnapshot: TransactionDecorator.generateTransaction(getMicroserviceImageSnapshot),
+  getMicroserviceImageSnapshot: TransactionDecorator.generateTransaction(getMicroserviceImageSnapshot)
 
 }

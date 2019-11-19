@@ -15,18 +15,18 @@ const straceStateUpdate = {
   'id': '/straceStateUpdate',
   'type': 'object',
   'properties': {
-    'enable': { 'type': 'boolean' },
+    'enable': { 'type': 'boolean' }
   },
-  'required': ['enable'],
+  'required': ['enable']
 }
 
 const straceGetData = {
   'id': '/straceGetData',
   'type': 'object',
   'properties': {
-    'format': { 'enum': ['string', 'file'] },
+    'format': { 'enum': ['string', 'file'] }
   },
-  'required': ['format'],
+  'required': ['format']
 }
 
 const stracePostToFtp = {
@@ -37,12 +37,12 @@ const stracePostToFtp = {
     'ftpPort': { 'type': 'integer', 'minimum': 0 },
     'ftpUser': { 'type': 'string' },
     'ftpPass': { 'type': 'string' },
-    'ftpDestDir': { 'type': 'string' },
+    'ftpDestDir': { 'type': 'string' }
   },
-  'required': ['ftpHost', 'ftpPort', 'ftpUser', 'ftpPass', 'ftpDestDir'],
+  'required': ['ftpHost', 'ftpPort', 'ftpUser', 'ftpPass', 'ftpDestDir']
 }
 
 module.exports = {
   mainSchemas: [straceStateUpdate, straceGetData, stracePostToFtp],
-  innerSchemas: [],
+  innerSchemas: []
 }

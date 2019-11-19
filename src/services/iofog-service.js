@@ -15,23 +15,22 @@ const request = require('request-promise')
 
 const TransactionDecorator = require('../decorators/transaction-decorator')
 const AppHelper = require('../helpers/app-helper')
-const FogManager = require('../sequelize/managers/iofog-manager')
-const FogProvisionKeyManager = require('../sequelize/managers/iofog-provision-key-manager')
-const FogVersionCommandManager = require('../sequelize/managers/iofog-version-command-manager')
+const FogManager = require('../data/managers/iofog-manager')
+const FogProvisionKeyManager = require('../data/managers/iofog-provision-key-manager')
+const FogVersionCommandManager = require('../data/managers/iofog-version-command-manager')
 const ChangeTrackingService = require('./change-tracking-service')
 const Errors = require('../helpers/errors')
 const ErrorMessages = require('../helpers/error-messages')
 const Validator = require('../schemas')
-const HWInfoManager = require('../sequelize/managers/hw-info-manager')
-const USBInfoManager = require('../sequelize/managers/usb-info-manager')
+const HWInfoManager = require('../data/managers/hw-info-manager')
+const USBInfoManager = require('../data/managers/usb-info-manager')
 const CatalogService = require('../services/catalog-service')
-const MicroserviceManager = require('../sequelize/managers/microservice-manager')
-const FogStates = require('../enums/fog-state')
+const MicroserviceManager = require('../data/managers/microservice-manager')
 const TrackingDecorator = require('../decorators/tracking-decorator')
 const TrackingEventType = require('../enums/tracking-event-type')
 const config = require('../config')
 
-async function createFogEndPoint(fogData, user, isCLI, transaction) {
+async function createFogEndPoint (fogData, user, isCLI, transaction) {
   await Validator.validate(fogData, Validator.schemas.iofogCreate)
 
   let createFogData = {
@@ -57,14 +56,14 @@ async function createFogEndPoint(fogData, user, isCLI, transaction) {
     watchdogEnabled: fogData.watchdogEnabled,
     abstractedHardwareEnabled: fogData.abstractedHardwareEnabled,
     fogTypeId: fogData.fogType,
-    userId: user.id,
+    userId: user.id
   }
   createFogData = AppHelper.deleteUndefinedFields(createFogData)
 
   const fog = await FogManager.create(createFogData, transaction)
 
   const res = {
-    uuid: fog.uuid,
+    uuid: fog.uuid
   }
 
   await ChangeTrackingService.create(fog.uuid, transaction)
@@ -86,7 +85,7 @@ async function createFogEndPoint(fogData, user, isCLI, transaction) {
   return res
 }
 
-async function updateFogEndPoint(fogData, user, isCLI, transaction) {
+async function updateFogEndPoint (fogData, user, isCLI, transaction) {
   await Validator.validate(fogData, Validator.schemas.iofogUpdate)
 
   const queryFogData = isCLI
@@ -114,7 +113,7 @@ async function updateFogEndPoint(fogData, user, isCLI, transaction) {
     bluetoothEnabled: fogData.bluetoothEnabled,
     watchdogEnabled: fogData.watchdogEnabled,
     abstractedHardwareEnabled: fogData.abstractedHardwareEnabled,
-    fogTypeId: fogData.fogType,
+    fogTypeId: fogData.fogType
   }
   updateFogData = AppHelper.deleteUndefinedFields(updateFogData)
 
@@ -151,7 +150,7 @@ async function updateFogEndPoint(fogData, user, isCLI, transaction) {
   }
 }
 
-async function deleteFogEndPoint(fogData, user, isCLI, transaction) {
+async function deleteFogEndPoint (fogData, user, isCLI, transaction) {
   await Validator.validate(fogData, Validator.schemas.iofogDelete)
 
   const queryFogData = isCLI
@@ -169,7 +168,7 @@ async function deleteFogEndPoint(fogData, user, isCLI, transaction) {
   } catch (e) {}
 }
 
-async function getFog(fogData, user, isCLI, transaction) {
+async function getFog (fogData, user, isCLI, transaction) {
   await Validator.validate(fogData, Validator.schemas.iofogGet)
 
   const queryFogData = isCLI
@@ -184,11 +183,11 @@ async function getFog(fogData, user, isCLI, transaction) {
   return fog
 }
 
-async function getFogEndPoint(fogData, user, isCLI, transaction) {
-  return await getFog(fogData, user, isCLI, transaction)
+async function getFogEndPoint (fogData, user, isCLI, transaction) {
+  return getFog(fogData, user, isCLI, transaction)
 }
 
-async function getFogListEndPoint(filters, user, isCLI, transaction) {
+async function getFogListEndPoint (filters, user, isCLI, transaction) {
   await Validator.validate(filters, Validator.schemas.iofogFilters)
 
   const queryFogData = isCLI
@@ -199,11 +198,11 @@ async function getFogListEndPoint(filters, user, isCLI, transaction) {
   fogs = _filterFogs(fogs, filters)
 
   return {
-    fogs: fogs,
+    fogs: fogs
   }
 }
 
-async function generateProvisioningKeyEndPoint(fogData, user, isCLI, transaction) {
+async function generateProvisioningKeyEndPoint (fogData, user, isCLI, transaction) {
   await Validator.validate(fogData, Validator.schemas.iofogGenerateProvision)
 
   const queryFogData = isCLI
@@ -213,7 +212,7 @@ async function generateProvisioningKeyEndPoint(fogData, user, isCLI, transaction
   const newProvision = {
     iofogUuid: fogData.uuid,
     provisionKey: AppHelper.generateRandomString(8),
-    expirationTime: new Date().getTime() + (20 * 60 * 1000),
+    expirationTime: new Date().getTime() + (20 * 60 * 1000)
   }
 
   const fog = await FogManager.findOne(queryFogData, transaction)
@@ -224,11 +223,11 @@ async function generateProvisioningKeyEndPoint(fogData, user, isCLI, transaction
 
   return {
     key: provisioningKeyData.provisionKey,
-    expirationTime: provisioningKeyData.expirationTime,
+    expirationTime: provisioningKeyData.expirationTime
   }
 }
 
-async function setFogVersionCommandEndPoint(fogVersionData, user, isCLI, transaction) {
+async function setFogVersionCommandEndPoint (fogVersionData, user, isCLI, transaction) {
   await Validator.validate(fogVersionData, Validator.schemas.iofogSetVersionCommand)
 
   const queryFogData = isCLI
@@ -237,12 +236,12 @@ async function setFogVersionCommandEndPoint(fogVersionData, user, isCLI, transac
 
   const newVersionCommand = {
     iofogUuid: fogVersionData.uuid,
-    versionCommand: fogVersionData.versionCommand,
+    versionCommand: fogVersionData.versionCommand
   }
 
   const fog = await FogManager.findOne(queryFogData, transaction)
   if (!fog) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, fogData.uuid))
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, queryFogData.uuid))
   }
 
   if (!fog.isReadyToRollback && fogVersionData.versionCommand === 'rollback') {
@@ -257,7 +256,7 @@ async function setFogVersionCommandEndPoint(fogVersionData, user, isCLI, transac
   await ChangeTrackingService.update(fogVersionData.uuid, ChangeTrackingService.events.version, transaction)
 }
 
-async function setFogRebootCommandEndPoint(fogData, user, isCLI, transaction) {
+async function setFogRebootCommandEndPoint (fogData, user, isCLI, transaction) {
   await Validator.validate(fogData, Validator.schemas.iofogReboot)
 
   const queryFogData = isCLI
@@ -272,37 +271,37 @@ async function setFogRebootCommandEndPoint(fogData, user, isCLI, transaction) {
   await ChangeTrackingService.update(fogData.uuid, ChangeTrackingService.events.reboot, transaction)
 }
 
-async function getHalHardwareInfoEndPoint(uuidObj, user, isCLI, transaction) {
+async function getHalHardwareInfoEndPoint (uuidObj, user, isCLI, transaction) {
   await Validator.validate(uuidObj, Validator.schemas.halGet)
 
   const fog = await FogManager.findOne({
-    uuid: uuidObj.uuid,
+    uuid: uuidObj.uuid
   }, transaction)
   if (!fog) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, uuidObj.uuid))
   }
 
-  return await HWInfoManager.findOne({
-    iofogUuid: uuidObj.uuid,
+  return HWInfoManager.findOne({
+    iofogUuid: uuidObj.uuid
   }, transaction)
 }
 
-async function getHalUsbInfoEndPoint(uuidObj, user, isCLI, transaction) {
+async function getHalUsbInfoEndPoint (uuidObj, user, isCLI, transaction) {
   await Validator.validate(uuidObj, Validator.schemas.halGet)
 
   const fog = await FogManager.findOne({
-    uuid: uuidObj.uuid,
+    uuid: uuidObj.uuid
   }, transaction)
   if (!fog) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, uuidObj.uuid))
   }
 
-  return await USBInfoManager.findOne({
-    iofogUuid: uuidObj.uuid,
+  return USBInfoManager.findOne({
+    iofogUuid: uuidObj.uuid
   }, transaction)
 }
 
-function _filterFogs(fogs, filters) {
+function _filterFogs (fogs, filters) {
   if (!filters) {
     return fogs
   }
@@ -314,8 +313,8 @@ function _filterFogs(fogs, filters) {
       const fld = filter.key
       const val = filter.value
       const condition = filter.condition
-      const isMatchField = (condition === 'equals' && fog[fld] && fog[fld] === val)
-        || (condition === 'has' && fog[fld] && fog[fld].includes(val))
+      const isMatchField = (condition === 'equals' && fog[fld] && fog[fld] === val) ||
+        (condition === 'has' && fog[fld] && fog[fld].includes(val))
       if (!isMatchField) {
         isMatchFog = false
         return false
@@ -328,15 +327,12 @@ function _filterFogs(fogs, filters) {
   return filtered
 }
 
-async function _processDeleteCommand(fog, transaction) {
-  if (!fog.daemonStatus || fog.daemonStatus === FogStates.UNKNOWN) {
-    await FogManager.delete({ uuid: fog.uuid }, transaction)
-  } else {
-    await ChangeTrackingService.update(fog.uuid, ChangeTrackingService.events.deleteNode, transaction)
-  }
+async function _processDeleteCommand (fog, transaction) {
+  await ChangeTrackingService.update(fog.uuid, ChangeTrackingService.events.deleteNode, transaction)
+  await FogManager.delete({ uuid: fog.uuid }, transaction)
 }
 
-async function _createHalMicroserviceForFog(fogData, oldFog, user, transaction) {
+async function _createHalMicroserviceForFog (fogData, oldFog, user, transaction) {
   const halItem = await CatalogService.getHalCatalogItem(transaction)
 
   const halMicroserviceData = {
@@ -348,23 +344,23 @@ async function _createHalMicroserviceForFog(fogData, oldFog, user, transaction) 
     rootHostAccess: true,
     logSize: 50,
     userId: oldFog ? oldFog.userId : user.id,
-    configLastUpdated: Date.now(),
+    configLastUpdated: Date.now()
   }
 
   await MicroserviceManager.create(halMicroserviceData, transaction)
 }
 
-async function _deleteHalMicroserviceByFog(fogData, transaction) {
+async function _deleteHalMicroserviceByFog (fogData, transaction) {
   const halItem = await CatalogService.getHalCatalogItem(transaction)
   const deleteHalMicroserviceData = {
     iofogUuid: fogData.uuid,
-    catalogItemId: halItem.id,
+    catalogItemId: halItem.id
   }
 
   await MicroserviceManager.delete(deleteHalMicroserviceData, transaction)
 }
 
-async function _createBluetoothMicroserviceForFog(fogData, oldFog, user, transaction) {
+async function _createBluetoothMicroserviceForFog (fogData, oldFog, user, transaction) {
   const bluetoothItem = await CatalogService.getBluetoothCatalogItem(transaction)
 
   const bluetoothMicroserviceData = {
@@ -376,17 +372,17 @@ async function _createBluetoothMicroserviceForFog(fogData, oldFog, user, transac
     rootHostAccess: true,
     logSize: 50,
     userId: oldFog ? oldFog.userId : user.id,
-    configLastUpdated: Date.now(),
+    configLastUpdated: Date.now()
   }
 
   await MicroserviceManager.create(bluetoothMicroserviceData, transaction)
 }
 
-async function _deleteBluetoothMicroserviceByFog(fogData, transaction) {
+async function _deleteBluetoothMicroserviceByFog (fogData, transaction) {
   const bluetoothItem = await CatalogService.getBluetoothCatalogItem(transaction)
   const deleteBluetoothMicroserviceData = {
     iofogUuid: fogData.uuid,
-    catalogItemId: bluetoothItem.id,
+    catalogItemId: bluetoothItem.id
   }
 
   await MicroserviceManager.delete(deleteBluetoothMicroserviceData, transaction)
@@ -395,14 +391,14 @@ async function _deleteBluetoothMicroserviceByFog(fogData, transaction) {
 // decorated functions
 const createFogWithTracking = TrackingDecorator.trackEvent(createFogEndPoint, TrackingEventType.IOFOG_CREATED)
 
-const informKubelet = function(iofogUuid, method) {
+const informKubelet = function (iofogUuid, method) {
   const kubeletUri = config.get('Kubelet:Uri')
   const options = {
     uri: kubeletUri + '/node',
     qs: {
-      uuid: iofogUuid,
+      uuid: iofogUuid
     },
-    method: method,
+    method: method
   }
 
   return request(options)
@@ -419,5 +415,5 @@ module.exports = {
   setFogRebootCommandEndPoint: TransactionDecorator.generateTransaction(setFogRebootCommandEndPoint),
   getHalHardwareInfoEndPoint: TransactionDecorator.generateTransaction(getHalHardwareInfoEndPoint),
   getHalUsbInfoEndPoint: TransactionDecorator.generateTransaction(getHalUsbInfoEndPoint),
-  getFog: getFog,
+  getFog: getFog
 }

@@ -22,172 +22,278 @@ const CliDecorator = require('../decorators/cli-decorator')
 const CliDataTypes = require('./cli-data-types')
 
 const JSON_SCHEMA_ADD = AppHelper.stringifyCliJsonSchema(
-    {
-      name: 'string',
-      config: 'string',
-      catalogItemId: 0,
-      flowId: 0,
-      iofogUuid: 'string',
-      rootHostAccess: true,
-      logSize: 0,
-      volumeMappings: [
-        {
-          hostDestination: '/var/dest',
-          containerDestination: '/var/dest',
-          accessMode: 'rw',
-        },
-      ],
-      ports: [
-        {
-          internal: 0,
-          external: 0,
-          publicMode: true,
-        },
-      ],
-      routes: [
-        'string',
-      ],
-      env: [
-        {
-          key: 'string',
-          value: 'string',
-        },
-      ],
-      cmd: [
-        'string',
-      ],
-    }
+  {
+    name: 'string',
+    config: 'string',
+    catalogItemId: 0,
+    images: [
+      {
+        containerImage: 'string',
+        fogTypeId: 1
+      }
+    ],
+    registryId: 1,
+    flowId: 0,
+    iofogUuid: 'string',
+    rootHostAccess: true,
+    logSize: 0,
+    volumeMappings: [
+      {
+        hostDestination: '/var/dest',
+        containerDestination: '/var/dest',
+        accessMode: 'rw'
+      }
+    ],
+    ports: [
+      {
+        internal: 0,
+        external: 0,
+        publicMode: true
+      }
+    ],
+    routes: [
+      'string'
+    ],
+    env: [
+      {
+        key: 'string',
+        value: 'string'
+      }
+    ],
+    cmd: [
+      'string'
+    ]
+  }
 )
 
 const JSON_SCHEMA_UPDATE = AppHelper.stringifyCliJsonSchema(
-    {
-      name: 'string',
-      config: 'string',
-      rebuild: true,
-      iofogUuid: 'string',
-      rootHostAccess: true,
-      logSize: 0,
-      volumeMappings: [
-        {
-          hostDestination: '/var/dest',
-          containerDestination: '/var/dest',
-          accessMode: 'rw',
-        },
-      ],
-      env: [
-        {
-          key: 'string',
-          value: 'string',
-        },
-      ],
-      cmd: [
-        'string',
-      ],
-    }
+  {
+    name: 'string',
+    config: 'string',
+    rebuild: true,
+    iofogUuid: 'string',
+    rootHostAccess: true,
+    logSize: 0,
+    catalogItemId: 0,
+    images: [
+      {
+        containerImage: 'string',
+        fogTypeId: 1
+      }
+    ],
+    registryId: 1,
+    volumeMappings: [
+      {
+        hostDestination: '/var/dest',
+        containerDestination: '/var/dest',
+        accessMode: 'rw'
+      }
+    ],
+    env: [
+      {
+        key: 'string',
+        value: 'string'
+      }
+    ],
+    cmd: [
+      'string'
+    ]
+  }
 )
 
 class Microservice extends BaseCLIHandler {
-  constructor() {
+  constructor () {
     super()
 
     this.name = constants.CMD_MICROSERVICE
     this.commandDefinitions = [
       {
-        name: 'command', defaultOption: true,
-        group: [constants.CMD],
+        name: 'command',
+        defaultOption: true,
+        group: [constants.CMD]
       },
       {
-        name: 'file', alias: 'f', type: String, description: 'Path to microservice settings JSON file',
-        group: [constants.CMD_ADD, constants.CMD_UPDATE],
+        name: 'file',
+        alias: 'f',
+        type: String,
+        description: 'Path to microservice settings JSON file',
+        group: [constants.CMD_ADD, constants.CMD_UPDATE]
       },
       {
-        name: 'microservice-uuid', alias: 'i', type: String, description: 'Microservice UUID',
+        name: 'microservice-uuid',
+        alias: 'i',
+        type: String,
+        description: 'Microservice UUID',
         group: [constants.CMD_UPDATE, constants.CMD_REMOVE, constants.CMD_INFO, constants.CMD_PORT_MAPPING_CREATE,
           constants.CMD_PORT_MAPPING_REMOVE, constants.CMD_PORT_MAPPING_LIST, constants.CMD_VOLUME_MAPPING_CREATE,
-          constants.CMD_VOLUME_MAPPING_REMOVE, constants.CMD_VOLUME_MAPPING_LIST],
+          constants.CMD_VOLUME_MAPPING_REMOVE, constants.CMD_VOLUME_MAPPING_LIST]
       },
       {
-        name: 'name', alias: 'n', type: String, description: 'Microservice name',
-        group: [constants.CMD_UPDATE, constants.CMD_ADD],
+        name: 'name',
+        alias: 'n',
+        type: String,
+        description: 'Microservice name',
+        group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
-        name: 'catalog-id', alias: 'c', type: CliDataTypes.Integer, description: 'Catalog item ID',
-        group: [constants.CMD_ADD],
+        name: 'x86-image',
+        alias: 'x',
+        type: String,
+        description: 'x86 docker image name',
+        group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
-        name: 'flow-id', alias: 'F', type: CliDataTypes.Integer, description: 'Application flow ID',
-        group: [constants.CMD_ADD],
+        name: 'arm-image',
+        alias: 'a',
+        type: String,
+        description: 'ARM docker image name',
+        group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
-        name: 'iofog-uuid', alias: 'I', type: String, description: 'ioFog node UUID',
-        group: [constants.CMD_UPDATE, constants.CMD_ADD],
+        name: 'registry-id',
+        alias: 'd',
+        type: CliDataTypes.Integer,
+        description: 'Microservice docker registry ID',
+        group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
-        name: 'config', alias: 'g', type: String, description: 'Microservice config',
-        group: [constants.CMD_UPDATE, constants.CMD_ADD],
+        name: 'catalog-id',
+        alias: 'c',
+        type: CliDataTypes.Integer,
+        description: 'Catalog item ID',
+        group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
-        name: 'volumes', alias: 'v', type: String, description: 'Microservice volume mapping(s)', multiple: true,
-        group: [constants.CMD_UPDATE, constants.CMD_ADD],
+        name: 'flow-id',
+        alias: 'F',
+        type: CliDataTypes.Integer,
+        description: 'Application flow ID',
+        group: [constants.CMD_ADD]
       },
       {
-        name: 'log-size', alias: 'l', type: CliDataTypes.Integer, description: 'Log file size limit (MB)',
-        group: [constants.CMD_UPDATE, constants.CMD_ADD],
+        name: 'iofog-uuid',
+        alias: 'I',
+        type: String,
+        description: 'ioFog node UUID',
+        group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
-        name: 'root-enable', alias: 'r', type: Boolean, description: 'Enable root access',
-        group: [constants.CMD_UPDATE, constants.CMD_ADD],
+        name: 'config',
+        alias: 'g',
+        type: String,
+        description: 'Microservice config',
+        group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
-        name: 'root-disable', alias: 'R', type: Boolean, description: 'Disable root access',
-        group: [constants.CMD_UPDATE, constants.CMD_ADD],
+        name: 'volumes',
+        alias: 'v',
+        type: String,
+        description: 'Microservice volume mapping(s)',
+        multiple: true,
+        group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
-        name: 'ports', alias: 'p', type: String, description: 'Container ports', multiple: true,
-        group: [constants.CMD_ADD],
+        name: 'log-size',
+        alias: 'l',
+        type: CliDataTypes.Integer,
+        description: 'Log file size limit (MB)',
+        group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
-        name: 'mapping', alias: 'P', type: String, description: 'Container port mapping',
-        group: [constants.CMD_PORT_MAPPING_CREATE, constants.CMD_VOLUME_MAPPING_CREATE],
+        name: 'root-enable',
+        alias: 'r',
+        type: Boolean,
+        description: 'Enable root access',
+        group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
-        name: 'routes', alias: 't', type: String,
+        name: 'root-disable',
+        alias: 'R',
+        type: Boolean,
+        description: 'Disable root access',
+        group: [constants.CMD_UPDATE, constants.CMD_ADD]
+      },
+      {
+        name: 'ports',
+        alias: 'p',
+        type: String,
+        description: 'Container ports',
+        multiple: true,
+        group: [constants.CMD_ADD]
+      },
+      {
+        name: 'mapping',
+        alias: 'P',
+        type: String,
+        description: 'Container port mapping',
+        group: [constants.CMD_PORT_MAPPING_CREATE, constants.CMD_VOLUME_MAPPING_CREATE]
+      },
+      {
+        name: 'routes',
+        alias: 't',
+        type: String,
         description: 'Microservice route(s) (receiving microservices)',
         multiple: true,
-        group: [constants.CMD_ADD],
+        group: [constants.CMD_ADD]
       },
       {
-        name: 'route', alias: 'T', type: String, description: 'Microservice route (receiving microservices)',
-        group: [constants.CMD_ROUTE_CREATE, constants.CMD_ROUTE_REMOVE],
+        name: 'route',
+        alias: 'T',
+        type: String,
+        description: 'Microservice route (receiving microservices)',
+        group: [constants.CMD_ROUTE_CREATE, constants.CMD_ROUTE_REMOVE]
       },
       {
-        name: 'internal-port', alias: 'b', type: CliDataTypes.Integer, description: 'Internal port',
-        group: [constants.CMD_PORT_MAPPING_REMOVE],
+        name: 'internal-port',
+        alias: 'b',
+        type: CliDataTypes.Integer,
+        description: 'Internal port',
+        group: [constants.CMD_PORT_MAPPING_REMOVE]
       },
       {
-        name: 'rebuild', alias: 'w', type: Boolean, description: 'Rebuild microservice image on fog agent',
-        group: [constants.CMD_UPDATE],
+        name: 'rebuild',
+        alias: 'w',
+        type: Boolean,
+        description: 'Rebuild microservice image on fog agent',
+        group: [constants.CMD_UPDATE]
       },
       {
-        name: 'cleanup', alias: 'z', type: Boolean, description: 'Delete microservice with cleanup',
-        group: [constants.CMD_REMOVE],
+        name: 'cleanup',
+        alias: 'z',
+        type: Boolean,
+        description: 'Delete microservice with cleanup',
+        group: [constants.CMD_REMOVE]
       },
       {
-        name: 'user-id', alias: 'u', type: CliDataTypes.Integer, description: 'User\'s id',
-        group: [constants.CMD_ADD],
+        name: 'user-id',
+        alias: 'u',
+        type: CliDataTypes.Integer,
+        description: 'User\'s id',
+        group: [constants.CMD_ADD]
       },
       {
-        name: 'mapping-id', alias: 'a', type: CliDataTypes.Integer, description: 'Volume mapping id',
-        group: [constants.CMD_VOLUME_MAPPING_REMOVE],
+        name: 'mapping-id',
+        alias: 'm',
+        type: CliDataTypes.Integer,
+        description: 'Volume mapping id',
+        group: [constants.CMD_VOLUME_MAPPING_REMOVE]
       },
       {
-        name: 'env', alias: 'e', type: String, description: 'Microservice environemnt variable(s)', multiple: true,
-        group: [constants.CMD_UPDATE, constants.CMD_ADD],
+        name: 'env',
+        alias: 'e',
+        type: String,
+        description: 'Microservice environemnt variable(s)',
+        multiple: true,
+        group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
-        name: 'cmd', alias: 'C', type: String, description: 'Microservice container command and argument(s)', multiple: true,
-        group: [constants.CMD_UPDATE, constants.CMD_ADD],
-      },
+        name: 'cmd',
+        alias: 'C',
+        type: String,
+        description: 'Microservice container command and argument(s)',
+        multiple: true,
+        group: [constants.CMD_UPDATE, constants.CMD_ADD]
+      }
     ]
     this.commands = {
       [constants.CMD_ADD]: 'Add a new microservice.',
@@ -202,11 +308,11 @@ class Microservice extends BaseCLIHandler {
       [constants.CMD_PORT_MAPPING_LIST]: 'List microservice port mapping.',
       [constants.CMD_VOLUME_MAPPING_CREATE]: 'Create microservice volume mapping.',
       [constants.CMD_VOLUME_MAPPING_REMOVE]: 'Remove microservice volume mapping.',
-      [constants.CMD_VOLUME_MAPPING_LIST]: 'List microservice volume mapping.',
+      [constants.CMD_VOLUME_MAPPING_LIST]: 'List microservice volume mapping.'
     }
   }
 
-  async run(args) {
+  async run (args) {
     try {
       const microserviceCommand = this.parseCommandLineArgs(this.commandDefinitions, { argv: args.argv, partial: false })
 
@@ -263,73 +369,73 @@ class Microservice extends BaseCLIHandler {
     }
   }
 
-  help() {
+  help () {
     super.help([], true, true, [
       {
         header: 'JSON ADD File Schema',
         content: [
-          JSON_SCHEMA_ADD,
+          JSON_SCHEMA_ADD
         ],
-        raw: true,
+        raw: true
       },
       {
         header: 'JSON UPDATE File Schema',
         content: [
-          JSON_SCHEMA_UPDATE,
+          JSON_SCHEMA_UPDATE
         ],
-        raw: true,
+        raw: true
       },
       {
         header: 'Examples',
         content: [
           {
             desc: '1. Single mapping',
-            example: '$ iofog-controller microservice add [other required options] --volumes /host_src:/container_src:rw',
+            example: '$ iofog-controller microservice add [other required options] --volumes /host_src:/container_src:rw'
           },
           {
             desc: '2. Multiple mappings',
             example: '$ iofog-controller microservice add [other required options] --volumes /host_src:/container_src:rw ' +
-            '/host_bin:/container_bin:r',
+            '/host_bin:/container_bin:r'
           },
           {
             desc: '3. Port mapping (80:8080:false - internal port : external port : public mode)',
-            example: '$ iofog-controller microservice add [other required options] --ports 80:8080:false 443:5443:false',
+            example: '$ iofog-controller microservice add [other required options] --ports 80:8080:false 443:5443:false'
           },
           {
             desc: '4. Add routes (ABC:DEF - source microservice uuid : dest microservice uuid)',
-            example: '$ iofog-controller microservice add [other required options] --routes ABC:DEF RFG:HJK',
+            example: '$ iofog-controller microservice add [other required options] --routes ABC:DEF RFG:HJK'
           },
           {
             desc: '5. Add route (ABC:DEF - source microservice uuid : dest microservice uuid)',
-            example: '$ iofog-controller microservice route-create --route ABC:DEF',
+            example: '$ iofog-controller microservice route-create --route ABC:DEF'
           },
           {
             desc: '6. Delete route (ABC:DEF - source microservice uuid : dest microservice uuid)',
-            example: '$ iofog-controller microservice route-remove --route ABC:DEF',
+            example: '$ iofog-controller microservice route-remove --route ABC:DEF'
           },
           {
             desc: '7. Create port mapping (80:8080:false - internal port : external port : public mode, ABC - microservice)',
-            example: '$ iofog-controller microservice port-mapping-create --mapping 80:8080:false -i ABC',
+            example: '$ iofog-controller microservice port-mapping-create --mapping 80:8080:false -i ABC'
           },
           {
             desc: '8. Delete port mapping (80 - internal port, ABC - microservice uuid)',
-            example: '$ iofog-controller microservice port-mapping-remove --internal-port 80 -i ABC',
+            example: '$ iofog-controller microservice port-mapping-remove --internal-port 80 -i ABC'
           },
           {
             desc: '9. Create volume mapping',
-            example: '$ iofog-controller microservice volume-mapping-create --mapping /host_src:/container_src:rw -i ABC',
+            example: '$ iofog-controller microservice volume-mapping-create --mapping /host_src:/container_src:rw -i ABC'
           },
           {
             desc: '10. Delete volume mapping',
-            example: '$ iofog-controller microservice volume-mapping-remove -i ABC -a 1',
-          },
-        ],
-      },
+            example: '$ iofog-controller microservice volume-mapping-remove -i ABC -a 1'
+          }
+        ]
+      }
     ])
   }
 }
 
-async function _executeCase(commands, commandName, f, isUserRequired) {
+async function _executeCase (commands, commandName, f, isUserRequired) {
   try {
     const obj = commands[commandName]
 
@@ -344,7 +450,7 @@ async function _executeCase(commands, commandName, f, isUserRequired) {
   }
 }
 
-const _createRoute = async function(obj, user) {
+const _createRoute = async function (obj, user) {
   try {
     const arr = obj.route.split(':')
     const sourceMicroserviceUuid = arr[0]
@@ -358,7 +464,7 @@ const _createRoute = async function(obj, user) {
   }
 }
 
-const _removeRoute = async function(obj, user) {
+const _removeRoute = async function (obj, user) {
   try {
     const arr = obj.route.split(':')
     const sourceMicroserviceUuid = arr[0]
@@ -372,23 +478,23 @@ const _removeRoute = async function(obj, user) {
   }
 }
 
-const _createPortMapping = async function(obj, user) {
+const _createPortMapping = async function (obj, user) {
   const mapping = parsePortMappingObject(obj.mapping, ErrorMessages.CLI.INVALID_PORT_MAPPING)
   logger.cliReq('microservice port-mapping-create', { args: mapping })
   await MicroserviceService.createPortMappingEndPoint(obj.microserviceUuid, mapping, user, true)
   logger.cliRes('Port mapping has been created successfully.')
 }
 
-const _createVolumeMapping = async function(obj, user) {
+const _createVolumeMapping = async function (obj, user) {
   const mapping = parseVolumeMappingObject(obj.mapping, ErrorMessages.CLI.INVALID_VOLUME_MAPPING)
   logger.cliReq('microservice volume-mapping-create', { args: mapping })
   const result = await MicroserviceService.createVolumeMappingEndPoint(obj.microserviceUuid, mapping, user, true)
   logger.cliRes(JSON.stringify({
-    id: result.id,
+    id: result.id
   }, null, 2))
 }
 
-const _removePortMapping = async function(obj, user) {
+const _removePortMapping = async function (obj, user) {
   try {
     logger.cliReq('microservice port-mapping-remove', { args: obj })
     await MicroserviceService.deletePortMappingEndPoint(obj.microserviceUuid, obj.internalPort, user, true)
@@ -398,7 +504,7 @@ const _removePortMapping = async function(obj, user) {
   }
 }
 
-const _removeVolumeMapping = async function(obj, user) {
+const _removeVolumeMapping = async function (obj, user) {
   try {
     logger.cliReq('microservice volume-mapping-remove', { args: obj })
     await MicroserviceService.deleteVolumeMappingEndPoint(obj.microserviceUuid, obj.mappingId, user, true)
@@ -408,21 +514,21 @@ const _removeVolumeMapping = async function(obj, user) {
   }
 }
 
-const _listPortMappings = async function(obj, user) {
+const _listPortMappings = async function (obj, user) {
   logger.cliReq('microservice port-mapping-list', { args: { microserviceUuid: obj.microserviceUuid } })
   const result = await MicroserviceService.listMicroservicePortMappingsEndPoint(obj.microserviceUuid, user, true)
   logger.cliRes(JSON.stringify(result, null, 2))
 }
 
-const _listVolumeMappings = async function(obj, user) {
+const _listVolumeMappings = async function (obj, user) {
   logger.cliReq('microservice volume-mapping-list', { args: { microserviceUuid: obj.microserviceUuid } })
   const result = await MicroserviceService.listVolumeMappingsEndPoint(obj.microserviceUuid, user, true)
   logger.cliRes(JSON.stringify(result, null, 2))
 }
 
-const _removeMicroservice = async function(obj, user) {
+const _removeMicroservice = async function (obj, user) {
   const microserviceData = {
-    withCleanup: obj.cleanup,
+    withCleanup: obj.cleanup
   }
 
   logger.cliReq('microservice remove', { args: { microserviceUuid: obj.microserviceUuid, withCleanup: obj.cleanup } })
@@ -430,19 +536,19 @@ const _removeMicroservice = async function(obj, user) {
   logger.cliRes('Microservice has been removed successfully.')
 }
 
-const _listMicroservices = async function() {
+const _listMicroservices = async function () {
   logger.cliReq('microservice list')
   const result = await MicroserviceService.listMicroservicesEndPoint({}, {}, true)
   logger.cliRes(JSON.stringify(result, null, 2))
 }
 
-const _getMicroservice = async function(obj, user) {
+const _getMicroservice = async function (obj, user) {
   logger.cliReq('microservice info', { args: { microserviceUuid: obj.microserviceUuid } })
   const result = await MicroserviceService.getMicroserviceEndPoint(obj.microserviceUuid, user, true)
   logger.cliRes(JSON.stringify(result, null, 2))
 }
 
-const _createMicroservice = async function(obj, user) {
+const _createMicroservice = async function (obj, user) {
   const microservice = obj.file
     ? JSON.parse(fs.readFileSync(obj.file, 'utf8'))
     : _createMicroserviceObject(obj)
@@ -450,16 +556,16 @@ const _createMicroservice = async function(obj, user) {
   logger.cliReq('microservice add', { args: microservice })
   const result = await MicroserviceService.createMicroserviceEndPoint(microservice, user, true)
   const output = {
-    uuid: result.uuid,
+    uuid: result.uuid
   }
   if (result.publicLink) {
-    output.publicLink = res.publicLink
+    output.publicLink = result.publicLink
   }
 
   logger.cliRes(JSON.stringify(output, null, 2))
 }
 
-const _updateMicroservice = async function(obj, user) {
+const _updateMicroservice = async function (obj, user) {
   const microservice = obj.file
     ? JSON.parse(fs.readFileSync(obj.file, 'utf8'))
     : _updateMicroserviceObject(obj)
@@ -469,7 +575,7 @@ const _updateMicroservice = async function(obj, user) {
   logger.cliRes('Microservice has been updated successfully.')
 }
 
-const _updateMicroserviceObject = function(obj) {
+const _updateMicroserviceObject = function (obj) {
   const envVars = obj.env || []
   const env = envVars.map((it) => {
     const split = it.split('=')
@@ -479,7 +585,7 @@ const _updateMicroserviceObject = function(obj) {
 
     return {
       key: split[0],
-      value: split.slice(1).join('='),
+      value: split.slice(1).join('=')
     }
   }).filter((it) => !!it)
 
@@ -488,12 +594,31 @@ const _updateMicroserviceObject = function(obj) {
     config: obj.config,
     iofogUuid: obj.iofogUuid,
     rootHostAccess: AppHelper.validateBooleanCliOptions(obj.rootEnable, obj.rootDisable),
-    logSize: obj.logSize,
+    logSize: (obj.logSize || 50) * 1,
     rebuild: obj.rebuild,
     cmd: obj.cmd,
     env,
+    images: [],
+    catalogItemId: parseInt(obj.catalogItemId) || undefined,
+    registryId: parseInt(obj.registryId) || undefined
   }
 
+  if (obj.x86Image) {
+    microserviceObj.images.push(
+      {
+        containerImage: obj.x86Image,
+        fogTypeId: 1
+      }
+    )
+  }
+  if (obj.armImage) {
+    microserviceObj.images.push(
+      {
+        containerImage: obj.armImage,
+        fogTypeId: 2
+      }
+    )
+  }
   if (obj.volumes) {
     microserviceObj.volumeMappings = parseVolumeMappingArray(obj.volumes, 'Error during parsing of volume mapping option.')
   }
@@ -501,7 +626,7 @@ const _updateMicroserviceObject = function(obj) {
   return AppHelper.deleteUndefinedFields(microserviceObj)
 }
 
-const _createMicroserviceObject = function(obj) {
+const _createMicroserviceObject = function (obj) {
   const envVars = obj.env || []
   const env = envVars.map((it) => {
     const split = it.split('=')
@@ -511,23 +636,41 @@ const _createMicroserviceObject = function(obj) {
 
     return {
       key: split[0],
-      value: split.slice(1).join('='),
+      value: split.slice(1).join('=')
     }
   }).filter((it) => !!it)
 
   const microserviceObj = {
     name: obj.name,
     config: obj.config,
-    catalogItemId: parseInt(obj.catalogId),
+    catalogItemId: parseInt(obj.catalogId) || undefined,
     flowId: parseInt(obj.flowId),
+    registryId: parseInt(obj.registryId) || undefined,
     iofogUuid: obj.iofogUuid,
     rootHostAccess: AppHelper.validateBooleanCliOptions(obj.rootEnable, obj.rootDisable),
-    logSize: obj.logSize,
+    logSize: (obj.logSize || 50) * 1,
     routes: obj.routes,
     cmd: obj.cmd,
     env,
+    images: []
   }
 
+  if (obj.x86Image) {
+    microserviceObj.images.push(
+      {
+        containerImage: obj.x86Image,
+        fogTypeId: 1
+      }
+    )
+  }
+  if (obj.armImage) {
+    microserviceObj.images.push(
+      {
+        containerImage: obj.armImage,
+        fogTypeId: 2
+      }
+    )
+  }
   if (obj.volumes) {
     microserviceObj.volumeMappings = parseVolumeMappingArray(obj.volumes, ErrorMessages.CLI.INVALID_VOLUME_MAPPING)
   }
@@ -538,14 +681,14 @@ const _createMicroserviceObject = function(obj) {
   return AppHelper.deleteUndefinedFields(microserviceObj)
 }
 
-const parseVolumeMappingObject = function(obj, errMsg) {
+const parseVolumeMappingObject = function (obj, errMsg) {
   let result = {}
   try {
     const props = obj.split(':')
     result = {
       hostDestination: props[0],
       containerDestination: props[1],
-      accessMode: props[2],
+      accessMode: props[2]
     }
   } catch (e) {
     logger.warn(errMsg)
@@ -553,18 +696,18 @@ const parseVolumeMappingObject = function(obj, errMsg) {
   return result
 }
 
-const parseVolumeMappingArray = function(arr, errMsg) {
+const parseVolumeMappingArray = function (arr, errMsg) {
   return arr.map((obj) => parseVolumeMappingObject(obj, errMsg))
 }
 
-const parsePortMappingObject = function(obj, errMsg) {
+const parsePortMappingObject = function (obj, errMsg) {
   let result = {}
   try {
     const props = obj.split(':')
     result = {
       internal: parseInt(props[0]),
       external: parseInt(props[1]),
-      publicMode: props[2] === 'true',
+      publicMode: props[2] === 'true'
     }
   } catch (e) {
     logger.warn(errMsg)
@@ -572,7 +715,7 @@ const parsePortMappingObject = function(obj, errMsg) {
   return result
 }
 
-const parsePortMappingArray = function(arr, errMsg) {
+const parsePortMappingArray = function (arr, errMsg) {
   return arr.map((obj) => parsePortMappingObject(obj, errMsg))
 }
 

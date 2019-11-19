@@ -14,97 +14,97 @@
 const AgentService = require('../services/agent-service')
 const AuthDecorator = require('../decorators/authorization-decorator')
 
-const agentProvisionEndPoint = async function(req) {
+const agentProvisionEndPoint = async function (req) {
   const provisionData = req.body
 
-  return await AgentService.agentProvision(provisionData)
+  return AgentService.agentProvision(provisionData)
 }
 
-const agentDeprovisionEndPoint = async function(req, fog) {
+const agentDeprovisionEndPoint = async function (req, fog) {
   const deprovisionData = req.body
 
-  return await AgentService.agentDeprovision(deprovisionData, fog)
+  return AgentService.agentDeprovision(deprovisionData, fog)
 }
 
-const getAgentConfigEndPoint = async function(req, fog) {
-  return await AgentService.getAgentConfig(fog)
+const getAgentConfigEndPoint = async function (req, fog) {
+  return AgentService.getAgentConfig(fog)
 }
 
-const updateAgentConfigEndPoint = async function(req, fog) {
+const updateAgentConfigEndPoint = async function (req, fog) {
   const updateData = req.body
 
-  return await AgentService.updateAgentConfig(updateData, fog)
+  return AgentService.updateAgentConfig(updateData, fog)
 }
 
-const getAgentConfigChangesEndPoint = async function(req, fog) {
-  return await AgentService.getAgentConfigChanges(fog)
+const getAgentConfigChangesEndPoint = async function (req, fog) {
+  return AgentService.getAgentConfigChanges(fog)
 }
 
-const updateAgentStatusEndPoint = async function(req, fog) {
+const updateAgentStatusEndPoint = async function (req, fog) {
   const agentStatus = req.body
 
-  return await AgentService.updateAgentStatus(agentStatus, fog)
+  return AgentService.updateAgentStatus(agentStatus, fog)
 }
 
-const getAgentMicroservicesEndPoint = async function(req, fog) {
-  return await AgentService.getAgentMicroservices(fog)
+const getAgentMicroservicesEndPoint = async function (req, fog) {
+  return AgentService.getAgentMicroservices(fog)
 }
 
-const getAgentMicroserviceEndPoint = async function(req, fog) {
+const getAgentMicroserviceEndPoint = async function (req, fog) {
   const microserviceUuid = req.params.microserviceUuid
 
-  return await AgentService.getAgentMicroservice(microserviceUuid, fog)
+  return AgentService.getAgentMicroservice(microserviceUuid, fog)
 }
 
-const getAgentRegistriesEndPoint = async function(req, fog) {
-  return await AgentService.getAgentRegistries(fog)
+const getAgentRegistriesEndPoint = async function (req, fog) {
+  return AgentService.getAgentRegistries(fog)
 }
 
-const getAgentTunnelEndPoint = async function(req, fog) {
-  return await AgentService.getAgentTunnel(fog)
+const getAgentTunnelEndPoint = async function (req, fog) {
+  return AgentService.getAgentTunnel(fog)
 }
 
-const getAgentStraceEndPoint = async function(req, fog) {
-  return await AgentService.getAgentStrace(fog)
+const getAgentStraceEndPoint = async function (req, fog) {
+  return AgentService.getAgentStrace(fog)
 }
 
-const updateAgentStraceEndPoint = async function(req, fog) {
+const updateAgentStraceEndPoint = async function (req, fog) {
   const straceData = req.body
 
-  return await AgentService.updateAgentStrace(straceData, fog)
+  return AgentService.updateAgentStrace(straceData, fog)
 }
 
-const getAgentChangeVersionCommandEndPoint = async function(req, fog) {
-  return await AgentService.getAgentChangeVersionCommand(fog)
+const getAgentChangeVersionCommandEndPoint = async function (req, fog) {
+  return AgentService.getAgentChangeVersionCommand(fog)
 }
 
-const updateHalHardwareInfoEndPoint = async function(req, fog) {
+const updateHalHardwareInfoEndPoint = async function (req, fog) {
   const hardwareData = req.body
 
-  return await AgentService.updateHalHardwareInfo(hardwareData, fog)
+  return AgentService.updateHalHardwareInfo(hardwareData, fog)
 }
 
-const updateHalUsbInfoEndPoint = async function(req, fog) {
+const updateHalUsbInfoEndPoint = async function (req, fog) {
   const usbData = req.body
 
-  return await AgentService.updateHalUsbInfo(usbData, fog)
+  return AgentService.updateHalUsbInfo(usbData, fog)
 }
 
-const deleteNodeEndPoint = async function(req, fog) {
-  return await AgentService.deleteNode(fog)
+const deleteNodeEndPoint = async function (req, fog) {
+  return AgentService.deleteNode(fog)
 }
 
-const getImageSnapshotEndPoint = async function(req, fog) {
-  return await AgentService.getImageSnapshot(fog)
+const getImageSnapshotEndPoint = async function (req, fog) {
+  return AgentService.getImageSnapshot(fog)
 }
 
-const putImageSnapshotEndPoint = async function(req, fog) {
-  return await AgentService.putImageSnapshot(req, fog)
+const putImageSnapshotEndPoint = async function (req, fog) {
+  return AgentService.putImageSnapshot(req, fog)
 }
 
-async function postTrackingEndPoint(req, fog) {
+async function postTrackingEndPoint (req, fog) {
   const events = req.body.events
-  return await AgentService.postTracking(events, fog)
+  return AgentService.postTracking(events, fog)
 }
 
 module.exports = {
@@ -126,5 +126,5 @@ module.exports = {
   deleteNodeEndPoint: AuthDecorator.checkFogToken(deleteNodeEndPoint),
   getImageSnapshotEndPoint: AuthDecorator.checkFogToken(getImageSnapshotEndPoint),
   putImageSnapshotEndPoint: AuthDecorator.checkFogToken(putImageSnapshotEndPoint),
-  postTrackingEndPoint: AuthDecorator.checkFogToken(postTrackingEndPoint),
+  postTrackingEndPoint: AuthDecorator.checkFogToken(postTrackingEndPoint)
 }

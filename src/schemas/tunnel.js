@@ -20,11 +20,11 @@ const tunnelCreate = {
     'password': { 'type': 'string' },
     'rsakey': { 'type': 'string' },
     'lport': { 'type': 'integer', 'minimum': 0, 'maximum': 65535 },
-    'rport': { 'type': 'integer', 'minimum': 0, 'maximum': 65535 },
+    'rport': { 'type': 'integer', 'minimum': 0, 'maximum': 65535 }
   },
-  'required': ['iofogUuid', 'username', 'password', 'lport', 'rport'],
+  'required': ['iofogUuid', 'username', 'password', 'lport', 'rport']
 }
 
 module.exports = {
-  mainSchemas: [tunnelCreate],
+  mainSchemas: [tunnelCreate]
 }

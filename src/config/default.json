@@ -2,6 +2,9 @@
   "App": {
     "Name": "iofog-controller"
   },
+  "Viewer": {
+    "Port": 80
+  },
   "Kubelet": {
     "Uri": "http://localhost:1234"
   },
@@ -15,14 +18,16 @@
   },
   "Service": {
     "LogsDirectory": "/var/log/iofog-controller",
-    "LogsFileSize": 1048576
+    "LogsFileSize": 10485760,
+    "LogsFileCount": 10
   },
   "Settings": {
     "DefaultJobIntervalSeconds": 120,
     "UserTokenExpirationIntervalSeconds": 3600,
     "FogTokenExpirationIntervalSeconds": 3600,
     "FogStatusUpdateIntervalSeconds": 120,
-    "FogStatusFrequencySeconds": 60
+    "FogStatusFrequencySeconds": 60,
+    "ConnectorHealthCheckFrequencySeconds": 10
   },
   "Diagnostics": {
     "DiagnosticDir": "diagnostic"

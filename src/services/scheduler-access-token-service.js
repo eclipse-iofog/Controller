@@ -12,37 +12,37 @@
  */
 
 const AppHelper = require('../helpers/app-helper')
-const SchedulerAccessTokenManager = require('../sequelize/managers/scheduler-access-token-manager')
+const SchedulerAccessTokenManager = require('../data/managers/scheduler-access-token-manager')
 
 const Config = require('../config')
 
-const generateAccessToken = async function(transaction) {
+const generateAccessToken = async function (transaction) {
   while (true) {
     const newAccessToken = AppHelper.generateAccessToken()
     const exists = await SchedulerAccessTokenManager.findOne({
-      token: newAccessToken,
+      token: newAccessToken
     }, transaction)
     if (!exists) {
       const accessTokenExpiryTime = Date.now() + Config.get('Settings:SchedulerTokenExpirationIntervalSeconds') * 99999
       return {
         token: newAccessToken,
-        expirationTime: accessTokenExpiryTime,
+        expirationTime: accessTokenExpiryTime
       }
     }
   }
 }
 
-async function updateAccessToken(userId, newAccessToken, transaction) {
+async function updateAccessToken (userId, newAccessToken, transaction) {
   return SchedulerAccessTokenManager.updateOrCreate({
-    userId: userId,
+    userId: userId
   }, {
     userId: userId,
     token: newAccessToken.token,
-    expirationTime: newAccessToken.expirationTime,
+    expirationTime: newAccessToken.expirationTime
   }, transaction)
 }
 
 module.exports = {
   generateAccessToken,
-  updateAccessToken,
+  updateAccessToken
 }

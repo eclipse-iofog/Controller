@@ -23,83 +23,124 @@ const TrackingEventType = require('../enums/tracking-event-type')
 const CliDataTypes = require('./cli-data-types')
 
 class Config extends BaseCLIHandler {
-  constructor() {
+  constructor () {
     super()
 
     this.name = constants.CMD_CONFIG
     this.commandDefinitions = [
       {
-        name: 'command', defaultOption: true,
-        group: constants.CMD,
+        name: 'command',
+        defaultOption: true,
+        group: constants.CMD
       },
       {
-        name: 'port', alias: 'p', type: CliDataTypes.Integer, description: 'Port',
-        group: constants.CMD_ADD,
+        name: 'port',
+        alias: 'p',
+        type: CliDataTypes.Integer,
+        description: 'Port',
+        group: constants.CMD_ADD
       },
       {
-        name: 'ssl-cert', alias: 'c', type: String,
+        name: 'ssl-cert',
+        alias: 'c',
+        type: String,
         description: 'Path to SSL certificate file',
-        group: constants.CMD_ADD,
+        group: constants.CMD_ADD
       },
       {
-        name: 'ssl-key', alias: 'k', type: String, description: 'Path to SSL key file',
-        group: constants.CMD_ADD,
+        name: 'ssl-key',
+        alias: 'k',
+        type: String,
+        description: 'Path to SSL key file',
+        group: constants.CMD_ADD
       },
       {
-        name: 'intermediate-cert', alias: 'i', type: String,
+        name: 'intermediate-cert',
+        alias: 'i',
+        type: String,
         description: 'Path to SSL intermediate certificate file',
-        group: constants.CMD_ADD,
+        group: constants.CMD_ADD
       },
       {
-        name: 'home-url', alias: 'h', type: String,
+        name: 'home-url',
+        alias: 'h',
+        type: String,
         description: 'Home page url for email activation links',
-        group: constants.CMD_ADD,
+        group: constants.CMD_ADD
       },
       {
-        name: 'email-address', alias: 'a', type: String,
+        name: 'email-address',
+        alias: 'a',
+        type: String,
         description: 'Email address to send activations from',
-        group: constants.CMD_ADD,
+        group: constants.CMD_ADD
       },
       {
-        name: 'email-password', alias: 'w', type: String,
+        name: 'email-password',
+        alias: 'w',
+        type: String,
         description: 'Email password to send activations from',
-        group: constants.CMD_ADD,
+        group: constants.CMD_ADD
       },
       {
-        name: 'email-service', alias: 's', type: String,
+        name: 'email-service',
+        alias: 's',
+        type: String,
         description: 'Email service to send activations',
-        group: constants.CMD_ADD,
+        group: constants.CMD_ADD
       },
       {
-        name: 'log-dir', alias: 'd', type: String, description: 'Path to log files directory',
-        group: constants.CMD_ADD,
+        name: 'log-dir',
+        alias: 'd',
+        type: String,
+        description: 'Path to log files directory',
+        group: constants.CMD_ADD
       },
       {
-        name: 'log-size', alias: 'z', type: CliDataTypes.Integer,
-        description: 'Log files size (MB)', group: constants.CMD_ADD,
+        name: 'log-size',
+        alias: 'z',
+        type: CliDataTypes.Integer,
+        description: 'Log files size (MB)',
+        group: constants.CMD_ADD
       },
       {
-        name: 'on', alias: 'o', type: Boolean, description: 'Enable',
-        group: [constants.CMD_DEV_MODE, constants.CMD_EMAIL_ACTIVATION],
+        name: 'log-file-count',
+        alias: 'g',
+        type: CliDataTypes.Integer,
+        description: 'Log files count',
+        group: constants.CMD_ADD
       },
       {
-        name: 'off', alias: 'f', type: Boolean, description: 'Disable',
-        group: [constants.CMD_DEV_MODE, constants.CMD_EMAIL_ACTIVATION],
+        name: 'on',
+        alias: 'o',
+        type: Boolean,
+        description: 'Enable',
+        group: [constants.CMD_DEV_MODE, constants.CMD_EMAIL_ACTIVATION]
       },
       {
-        name: 'kubelet', alias: 't', type: String, description: 'iofog-kubelet url',
-        group: constants.CMD_ADD,
+        name: 'off',
+        alias: 'f',
+        type: Boolean,
+        description: 'Disable',
+        group: [constants.CMD_DEV_MODE, constants.CMD_EMAIL_ACTIVATION]
       },
+      {
+        name: 'kubelet',
+        alias: 't',
+        type: String,
+        description: 'iofog-kubelet url',
+        group: constants.CMD_ADD
+      }
     ]
     this.commands = {
       [constants.CMD_ADD]: 'Add a new config value.',
       [constants.CMD_LIST]: 'Display current config.',
       [constants.CMD_DEV_MODE]: 'Dev mode config.',
-      [constants.CMD_EMAIL_ACTIVATION]: 'Email activation config.',
+      [constants.CMD_EMAIL_ACTIVATION]: 'Email activation config.'
     }
   }
 
-  async run(args) {
+  async run (args) {
     try {
       const configCommand = this.parseCommandLineArgs(this.commandDefinitions, { argv: args.argv, partial: false })
 
@@ -130,7 +171,7 @@ class Config extends BaseCLIHandler {
   }
 }
 
-const _executeCase = async function(catalogCommand, commandName, f) {
+const _executeCase = async function (catalogCommand, commandName, f) {
   try {
     const item = catalogCommand[commandName]
     await f(item)
@@ -139,7 +180,7 @@ const _executeCase = async function(catalogCommand, commandName, f) {
   }
 }
 
-const _addConfigOption = async function(options) {
+const _addConfigOption = async function (options) {
   await Validator.validate(options, Validator.schemas.configUpdate)
 
   await updateConfig(options.port, 'port', 'Server:Port', async (onSuccess) => {
@@ -213,17 +254,22 @@ const _addConfigOption = async function(options) {
     onSuccess()
   })
 
+  await updateConfig(options.logSize, 'log-file-counr', 'Service:LogsFileCount', (onSuccess) => {
+    config.set('Service:LogsFileCount', options.logFileCount)
+    onSuccess()
+  })
+
   await updateConfig(options.kubelet, 'kubelet', 'Kubelet:Uri', (onSuccess) => {
     config.set('Kubelet:Uri', options.kubelet)
     onSuccess()
   })
 }
 
-const updateConfig = async function(newConfigValue, cliConfigName, configName, fn) {
+const updateConfig = async function (newConfigValue, cliConfigName, configName, fn) {
   if (newConfigValue) {
     const oldConfigValue = config.get(configName)
     if (newConfigValue !== oldConfigValue) {
-      await fn(function() {
+      await fn(function () {
         const currentConfigValue = config.get(configName)
         logger.cliRes(`Config option ${cliConfigName} has been set to ${currentConfigValue}`)
       })
@@ -233,7 +279,7 @@ const updateConfig = async function(newConfigValue, cliConfigName, configName, f
   }
 }
 
-const _listConfigOptions = function() {
+const _listConfigOptions = function () {
   const configuration = {
     'Port': config.get('Server:Port'),
     'SSL key directory': config.get('Server:SslKey'),
@@ -246,18 +292,19 @@ const _listConfigOptions = function() {
     'Email service': config.get('Email:Service'),
     'Log files directory': config.get('Service:LogsDirectory'),
     'Log files size': config.get('Service:LogsFileSize'),
+    'Log files count': config.get('Service:LogsFileCount'),
     'Dev mode': config.get('Server:DevMode'),
-    'Kubelet Url': config.get('Kubelet:Uri'),
+    'Kubelet Url': config.get('Kubelet:Uri')
   }
 
   const result = Object.keys(configuration)
-      .filter((key) => configuration[key] != null)
-      .map((key) => `${key}: ${configuration[key]}`)
-      .join('\n')
+    .filter((key) => configuration[key] != null)
+    .map((key) => `${key}: ${configuration[key]}`)
+    .join('\n')
   console.log(result)
 }
 
-const _changeDevModeState = async function(options) {
+const _changeDevModeState = async function (options) {
   const enableDevMode = AppHelper.validateBooleanCliOptions(options.on, options.off)
   config.set('Server:DevMode', enableDevMode)
   logger.cliRes('Dev mode state updated successfully.')
@@ -267,7 +314,7 @@ const _changeDevModeState = async function(options) {
   await Tracking.processEvent(event)
 }
 
-const _changeEmailActivationState = function(options) {
+const _changeEmailActivationState = function (options) {
   const enableEmailActivation = AppHelper.validateBooleanCliOptions(options.on, options.off)
   config.set('Email:ActivationEnabled', enableEmailActivation)
   logger.cliRes('Email activation state updated successfully.')

@@ -13,19 +13,26 @@
 
 const config = require('./config')
 const logger = require('./logger')
+const db = require('./data/models')
 
 const bodyParser = require('body-parser')
 const cookieParser = require('cookie-parser')
 const express = require('express')
+const ecnViewer = require('@iofog/ecn-viewer')
 const fs = require('fs')
 const helmet = require('helmet')
+const cors = require('cors')
 const https = require('https')
 const path = require('path')
 const { renderFile } = require('ejs')
 const xss = require('xss-clean')
 const packageJson = require('../package')
 
+const viewerApp = express()
+
 const app = express()
+
+app.use(cors())
 
 const Sentry = require('@sentry/node')
 
@@ -47,7 +54,7 @@ app.use(xss())
 // app.use(morgan('combined'));
 
 app.use(bodyParser.urlencoded({
-  extended: true,
+  extended: true
 }))
 app.use(bodyParser.json())
 
@@ -72,53 +79,67 @@ const registerRoute = (route) => {
   app[route.method.toLowerCase()](route.path, route.middleware)
 }
 
-const setupMiddleware = function(routeName) {
+const setupMiddleware = function (routeName) {
   const routes = [].concat(require(path.join(__dirname, 'routes', routeName)) || [])
   routes.forEach(registerRoute)
 }
 
 fs.readdirSync(path.join(__dirname, 'routes'))
-    .forEach(setupMiddleware)
+  .forEach(setupMiddleware)
 
 const jobs = []
 
-const setupJobs = function(file) {
+const setupJobs = function (file) {
   jobs.push((require(path.join(__dirname, 'jobs', file)) || []))
 }
 
 fs.readdirSync(path.join(__dirname, 'jobs'))
-    .filter((file) => {
-      return (file.indexOf('.') !== 0) && (file.slice(-3) === '.js')
-    })
-    .forEach(setupJobs)
+  .filter((file) => {
+    return (file.indexOf('.') !== 0) && (file.slice(-3) === '.js')
+  })
+  .forEach(setupJobs)
 
-function startHttpServer(app, port, jobs) {
+function startHttpServer (apps, ports, jobs) {
   logger.info('SSL not configured, starting HTTP server.')
 
-  app.listen(port, function onStart(err) {
+  apps.viewer.listen(ports.viewer, function onStart (err) {
     if (err) {
       logger.error(err)
     }
-    logger.info(`==> 🌎 Listening on port ${port}. Open up http://localhost:${port}/ in your browser.`, port, port)
+    logger.info(`==> 🌎 Viewer listening on port ${ports.viewer}. Open up http://localhost:${ports.viewer}/ in your browser.`)
+  })
+  apps.api.listen(ports.api, function onStart (err) {
+    if (err) {
+      logger.error(err)
+    }
+    logger.info(`==> 🌎 API Listening on port ${ports.api}. Open up http://localhost:${ports.api}/ in your browser.`)
     jobs.forEach((job) => job.run())
   })
 }
 
-function startHttpsServer(app, port, sslKey, sslCert, intermedKey, jobs) {
+function startHttpsServer (apps, ports, sslKey, sslCert, intermedKey, jobs) {
   try {
     const sslOptions = {
       key: fs.readFileSync(sslKey),
       cert: fs.readFileSync(sslCert),
       ca: fs.readFileSync(intermedKey),
       requestCert: true,
-      rejectUnauthorized: false, // currently for some reason iofog agent doesn't work without this option
+      rejectUnauthorized: false // currently for some reason iofog agent doesn't work without this option
     }
 
-    https.createServer(sslOptions, app).listen(port, function onStart(err) {
+    https.createServer(sslOptions, apps.viewer).listen(ports.viewer, function onStart (err) {
       if (err) {
         logger.error(err)
       }
-      logger.info(`==> 🌎 HTTPS server listening on port ${port}. Open up https://localhost:${port}/ in your browser.`)
+      logger.info(`==> 🌎 HTTPS Viewer server listening on port ${ports.viewer}. Open up https://localhost:${ports.viewer}/ in your browser.`)
+      jobs.forEach((job) => job.run())
+    })
+
+    https.createServer(sslOptions, apps.api).listen(ports.api, function onStart (err) {
+      if (err) {
+        logger.error(err)
+      }
+      logger.info(`==> 🌎 HTTPS API server listening on port ${ports.api}. Open up https://localhost:${ports.api}/ in your browser.`)
       jobs.forEach((job) => job.run())
     })
   } catch (e) {
@@ -127,16 +148,44 @@ function startHttpsServer(app, port, sslKey, sslCert, intermedKey, jobs) {
 }
 
 const devMode = config.get('Server:DevMode')
-const port = config.get('Server:Port')
+const apiPort = config.get('Server:Port')
+const viewerPort = +(process.env.VIEWER_PORT || config.get('Viewer:Port'))
 const sslKey = config.get('Server:SslKey')
 const sslCert = config.get('Server:SslCert')
 const intermedKey = config.get('Server:IntermediateCert')
 
-if (!devMode && sslKey && sslCert && intermedKey) {
-  startHttpsServer(app, port, sslKey, sslCert, intermedKey, jobs)
-} else {
-  startHttpServer(app, port, jobs)
+viewerApp.use('/', ecnViewer.middleware(express))
+
+const isDaemon = process.argv[process.argv.length - 1] === 'daemonize2'
+
+const initState = async () => {
+  if (!isDaemon) {
+    // InitDB
+    try {
+      await db.initDB()
+    } catch (err) {
+      logger.error('Unable to initialize the database. Error: ' + err)
+      process.exit(1)
+    }
+
+    // Store PID to let deamon know we are running.
+    jobs.push({
+      run: () => {
+        const pidFile = path.join(__dirname, 'iofog-controller.pid')
+        fs.writeFileSync(pidFile, process.pid)
+      }
+    })
+  }
 }
+
+initState()
+  .then(() => {
+    if (!devMode && sslKey && sslCert && intermedKey) {
+      startHttpsServer({ api: app, viewer: viewerApp }, { api: apiPort, viewer: viewerPort }, sslKey, sslCert, intermedKey, jobs)
+    } else {
+      startHttpServer({ api: app, viewer: viewerApp }, { api: apiPort, viewer: viewerPort }, jobs)
+    }
+  })
 
 const event = Tracking.buildEvent(TrackingEventType.START, `devMode is ${devMode}`)
 Tracking.processEvent(event)

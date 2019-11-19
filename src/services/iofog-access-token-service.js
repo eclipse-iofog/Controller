@@ -12,42 +12,42 @@
  */
 
 const AppHelper = require('../helpers/app-helper')
-const FogAccessTokenManager = require('../sequelize/managers/iofog-access-token-manager')
+const FogAccessTokenManager = require('../data/managers/iofog-access-token-manager')
 
 const Config = require('../config')
 
-const generateAccessToken = async function(transaction) {
+const generateAccessToken = async function (transaction) {
   while (true) {
     const newAccessToken = AppHelper.generateRandomString(16)
     const exists = await FogAccessTokenManager.findOne({
-      token: newAccessToken,
+      token: newAccessToken
     }, transaction)
     if (!exists) {
       const accessTokenExpiryTime = Date.now() + Config.get('Settings:FogTokenExpirationIntervalSeconds') * 1000
       return {
         token: newAccessToken,
-        expirationTime: accessTokenExpiryTime,
+        expirationTime: accessTokenExpiryTime
       }
     }
   }
 }
 
-async function updateAccessToken(fogUuid, newAccessToken, transaction) {
+async function updateAccessToken (fogUuid, newAccessToken, transaction) {
   return FogAccessTokenManager.updateOrCreate({
-    iofogUuid: fogUuid,
+    iofogUuid: fogUuid
   }, {
     iofogUuid: fogUuid,
     token: newAccessToken.token,
-    expirationTime: newAccessToken.expirationTime,
+    expirationTime: newAccessToken.expirationTime
   }, transaction)
 }
 
-async function all(transaction) {
+async function all (transaction) {
   return FogAccessTokenManager.findAll(null, transaction)
 }
 
 module.exports = {
   generateAccessToken,
   updateAccessToken,
-  all,
+  all
 }

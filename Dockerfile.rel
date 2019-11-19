@@ -1,11 +1,26 @@
+FROM iofog/node-alpine-x86:8.16.0 AS builder
+ARG PKG_VERSION
+
+RUN npm i -g npm
+
+WORKDIR /tmp
+
+COPY package.json .
+
+RUN npm i
+
+COPY . .
+
+RUN npm version $PKG_VERSION --allow-same-version
+
+RUN npm pack
+
 FROM iofog/node-alpine-x86:8.16.0
 
-ARG FILENAME
+COPY --from=builder /tmp/iofogcontroller-*.tgz /tmp/iofog-controller.tgz
 
-COPY ${FILENAME} /tmp
+RUN npm i --unsafe-perm -g /tmp/iofog-controller.tgz && \
+  rm -rf /tmp/iofog-controller.tgz && \
+  iofog-controller config dev-mode --on
 
-RUN npm i --unsafe-perm -g /tmp/${FILENAME} && \
-  rm -rf /tmp/${FILENAME} && \
-  echo "iofog-controller start && tail -f /dev/null" >> /start.sh
-
-CMD [ "sh", "/start.sh" ]
+CMD [ "node", "/usr/local/lib/node_modules/iofogcontroller/src/server.js" ]
