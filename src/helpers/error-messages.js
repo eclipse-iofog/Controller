@@ -65,6 +65,7 @@ module.exports = {
   PORT_MAPPING_INTERNAL_PORT_NOT_PROVIDED: 'Internal port wasn\'t provided',
   VOLUME_MAPPING_ALREADY_EXISTS: 'Volume mapping already exists',
   INVALID_CONNECTOR_DOMAIN: 'Invalid connector domain {}',
+  INVALID_ROUTER_HOST: 'Invalid router host {}',
   CERT_PROPERTY_REQUIRED: 'Property "certificate" is required if property "requiresCert" is set to true',
   TUNNEL_NOT_FOUND: 'Tunnel not found',
   STRACE_NOT_FOUND: 'Strace not found',
