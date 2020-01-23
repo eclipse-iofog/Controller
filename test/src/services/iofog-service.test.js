@@ -56,6 +56,7 @@ describe('ioFog Service', () => {
       watchdogEnabled: false,
       abstractedHardwareEnabled: true,
       fogType: 1,
+      isSystem: false
     }
 
     const createFogData = {
@@ -81,6 +82,7 @@ describe('ioFog Service', () => {
       watchdogEnabled: fogData.watchdogEnabled,
       abstractedHardwareEnabled: fogData.abstractedHardwareEnabled,
       fogTypeId: fogData.fogType,
+      isSystem: fogData.isSystem,
       userId: user.id,
     }
 
@@ -389,6 +391,7 @@ describe('ioFog Service', () => {
       watchdogEnabled: false,
       abstractedHardwareEnabled: true,
       fogType: 1,
+      isSystem: true
     }
 
     const oldFog = {
@@ -413,6 +416,7 @@ describe('ioFog Service', () => {
       watchdogEnabled: false,
       abstractedHardwareEnabled: false,
       fogType: 1,
+      isSystem: false
     }
 
     const queryFogData = isCLI
@@ -441,6 +445,7 @@ describe('ioFog Service', () => {
       watchdogEnabled: fogData.watchdogEnabled,
       abstractedHardwareEnabled: fogData.abstractedHardwareEnabled,
       fogTypeId: fogData.fogType,
+      isSystem: fogData.isSystem
     }
 
     const halItem = {
@@ -948,8 +953,8 @@ describe('ioFog Service', () => {
     const fogs = [fog]
 
     const queryFogData = isCLI
-      ? {}
-      : { userId: user.id }
+      ? { isSystem: false }
+      : { userId: user.id, isSystem: false }
 
     const filters = []
 
