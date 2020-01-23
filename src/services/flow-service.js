@@ -29,8 +29,8 @@ const createFlowEndPoint = async function (flowData, user, isCLI, transaction) {
   const flowToCreate = {
     name: flowData.name,
     description: flowData.description,
-    isActivated: flowData.isActivated,
-    isSystem: flowData.isSystem,
+    isActivated: !!flowData.isActivated,
+    isSystem: !!flowData.isSystem,
     userId: user.id
   }
 
