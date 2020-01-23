@@ -1275,7 +1275,8 @@
 									"&& data.hasOwnProperty('memoryLimit') && data.hasOwnProperty('cpuLimit') && data.hasOwnProperty('logLimit') ",
 									"&& data.logDirectory && data.hasOwnProperty('logFileCount') ",
 									"&& data.hasOwnProperty('statusFrequency') && data.hasOwnProperty('changeFrequency') && data.hasOwnProperty('deviceScanFrequency') && data.hasOwnProperty('watchdogEnabled')",
-									"&& data.hasOwnProperty('latitude') && data.hasOwnProperty('longitude')"
+									"&& data.hasOwnProperty('latitude') && data.hasOwnProperty('longitude')",
+									"&& data.hasOwnProperty('routerHost') && data.hasOwnProperty('routerPort')"
 								],
 								"type": "text/javascript"
 							}

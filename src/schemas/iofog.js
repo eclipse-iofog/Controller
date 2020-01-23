@@ -35,10 +35,16 @@ const iofogCreate = {
     'watchdogEnabled': { 'type': 'boolean' },
     'abstractedHardwareEnabled': { 'type': 'boolean' },
     'fogType': { 'type': 'integer', 'minimum': 0, 'maximum': 2 },
-    'isSystem': { 'type': 'boolean' }
+    'isSystem': { 'type': 'boolean' },
+    'routerMode': { 'enum': ['none', 'edge', 'interior'], 'default': 'edge' },
+    'routerPort': { 'type': 'integer', 'minimum': 1, 'maximum': 65535 },
+    'upstreamRouters': {
+      'type': 'array',
+      'items': { 'type': 'string', 'minLength': 1 } },
+    'networkRouter': { 'type': 'string' }
   },
-  'required': ['name', 'fogType'],
-  'additionalProperties': true
+  'additionalProperties': true,
+  'required': ['name', 'fogType']
 }
 
 const iofogUpdate = {
@@ -66,10 +72,16 @@ const iofogUpdate = {
     'watchdogEnabled': { 'type': 'boolean' },
     'abstractedHardwareEnabled': { 'type': 'boolean' },
     'fogType': { 'type': 'integer', 'minimum': 0, 'maximum': 2 },
-    'isSystem': { 'type': 'boolean' }
+    'isSystem': { 'type': 'boolean' },
+    'routerMode': { 'enum': ['none', 'edge', 'interior'], 'default': 'edge' },
+    'routerPort': { 'type': 'integer', 'minimum': 1, 'maximum': 65535 },
+    'upstreamRouters': {
+      'type': 'array',
+      'items': { 'type': 'string', 'minLength': 1 } },
+    'networkRouter': { 'type': 'string', 'minLength': 1 }
   },
-  'required': ['uuid'],
-  'additionalProperties': true
+  'additionalProperties': true,
+  'required': ['uuid']
 }
 
 const iofogDelete = {
