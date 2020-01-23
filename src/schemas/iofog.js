@@ -34,7 +34,8 @@ const iofogCreate = {
     'bluetoothEnabled': { 'type': 'boolean' },
     'watchdogEnabled': { 'type': 'boolean' },
     'abstractedHardwareEnabled': { 'type': 'boolean' },
-    'fogType': { 'type': 'integer', 'minimum': 0, 'maximum': 2 }
+    'fogType': { 'type': 'integer', 'minimum': 0, 'maximum': 2 },
+    'isSystem': { 'type': 'boolean' }
   },
   'required': ['name', 'fogType'],
   'additionalProperties': true
@@ -64,7 +65,8 @@ const iofogUpdate = {
     'bluetoothEnabled': { 'type': 'boolean' },
     'watchdogEnabled': { 'type': 'boolean' },
     'abstractedHardwareEnabled': { 'type': 'boolean' },
-    'fogType': { 'type': 'integer', 'minimum': 0, 'maximum': 2 }
+    'fogType': { 'type': 'integer', 'minimum': 0, 'maximum': 2 },
+    'isSystem': { 'type': 'boolean' }
   },
   'required': ['uuid'],
   'additionalProperties': true

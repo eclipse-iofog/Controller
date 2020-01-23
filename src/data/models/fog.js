@@ -278,6 +278,11 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.BOOLEAN,
       defaultValue: true,
       field: 'isolated_docker_container'
+    },
+    isSystem: {
+      type: DataTypes.BOOLEAN,
+      field: 'is_system',
+      defaultValue: false
     }
   }, {
     tableName: 'Fogs',

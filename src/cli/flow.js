@@ -80,6 +80,18 @@ class Flow extends BaseCLIHandler {
         group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
+        name: 'system-enable',
+        type: Boolean,
+        description: 'Flag the flow as system',
+        group: [constants.CMD_UPDATE, constants.CMD_ADD]
+      },
+      {
+        name: 'system-disable',
+        type: Boolean,
+        description: 'Disable the system flag on the flow',
+        group: [constants.CMD_UPDATE, constants.CMD_ADD]
+      },
+      {
         name: 'user-id',
         alias: 'u',
         type: CliDataTypes.Integer,
@@ -204,7 +216,8 @@ function _createFlowObject (data) {
     id: data.id,
     name: data.name,
     description: data.description,
-    isActivated: AppHelper.validateBooleanCliOptions(data.activate, data.deactivate)
+    isActivated: AppHelper.validateBooleanCliOptions(data.activate, data.deactivate),
+    isSystem: AppHelper.validateBooleanCliOptions(data.systemEnable, data.systemDisable)
   }
 
   return AppHelper.deleteUndefinedFields(flow)
