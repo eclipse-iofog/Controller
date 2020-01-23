@@ -128,7 +128,7 @@ function testIoFogSection () {
     const ioFogUuid = ioFogCreateResponse.uuid
     responseEquals(testCommand('iofog update -i ' + ioFogUuid + ' -n ioFog1 -l testLocation -t 55 -g 65 ' +
       '-d testDescription -D testDockerUrl -M 55 -T testDiskDirectoryString -m 65 -c 24 -G 1 -Y testLogDirectory ' +
-      '-C 15 -s 25 -F 27 -Q 26 -B -W -A -y 1'), 'ioFog node has been updated successfully.')
+      '-C 15 -s 25 -F 27 -Q 26 -B -W -A -y 1 --system-enable'), 'ioFog node has been updated successfully.')
     responseHasFields(testCommand('iofog list'), ioFogListFields)
     responseHasFields(testCommand('iofog info -i ' + ioFogUuid), ioFogCreateFields)
     responseHasFields(testCommand('iofog provisioning-key -i ' + ioFogUuid), ioFogProvisioningFields)
@@ -186,7 +186,7 @@ function testFlowSection () {
     const flowCreateResponse = responseHasFields(testCommand('flow add -n testFlow1 -d testDescription' +
       ' -a -u ' + userId), flowCreateFields)
     const flowId = flowCreateResponse.id
-    responseEquals(testCommand('flow update -i ' + flowId + ' -n testFlow1 -d testDescription -a'),
+    responseEquals(testCommand('flow update -i ' + flowId + ' -n testFlow1 -d testDescription -a --system-enable'),
       'Flow updated successfully.')
     responseHasFields(testCommand('flow list'), flowListFields)
     responseHasFields(testCommand('flow info -i ' + flowId), flowCreateFields)

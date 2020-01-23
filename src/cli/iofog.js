@@ -40,7 +40,8 @@ const JSON_SCHEMA = AppHelper.stringifyCliJsonSchema({
   bluetoothEnabled: false,
   watchdogEnabled: true,
   abstractedHardwareEnabled: false,
-  fogType: 0
+  fogType: 0,
+  isSystem: false
 })
 
 class IOFog extends BaseCLIHandler {
@@ -250,6 +251,18 @@ class IOFog extends BaseCLIHandler {
         type: CliDataTypes.Integer,
         description: 'User\'s id',
         group: [constants.CMD_ADD]
+      },
+      {
+        name: 'system-enable',
+        type: Boolean,
+        description: 'Flag the ioFog node as system',
+        group: [constants.CMD_UPDATE, constants.CMD_ADD]
+      },
+      {
+        name: 'system-disable',
+        type: Boolean,
+        description: 'Flag the ioFog node as not system',
+        group: [constants.CMD_UPDATE, constants.CMD_ADD]
       }
     ]
     this.commands = {
@@ -462,6 +475,7 @@ function _createFogObject (cliData) {
     bluetoothEnabled: AppHelper.validateBooleanCliOptions(cliData.bluetoothEnable, cliData.bluetoothDisable),
     watchdogEnabled: AppHelper.validateBooleanCliOptions(cliData.watchdogEnable, cliData.watchdogDisable),
     abstractedHardwareEnabled: AppHelper.validateBooleanCliOptions(cliData.absHwEnable, cliData.absHwDisable),
+    isSystem: AppHelper.validateBooleanCliOptions(cliData.systemEnable, cliData.systemDisable),
 
     fogType: cliData.fogType,
     userId: cliData.userId
