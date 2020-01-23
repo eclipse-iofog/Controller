@@ -56,7 +56,6 @@ async function createFogEndPoint (fogData, user, isCLI, transaction) {
     watchdogEnabled: fogData.watchdogEnabled,
     abstractedHardwareEnabled: fogData.abstractedHardwareEnabled,
     fogTypeId: fogData.fogType,
-    isSystem: fogData.isSystem,
     userId: user.id
   }
   createFogData = AppHelper.deleteUndefinedFields(createFogData)
@@ -113,7 +112,6 @@ async function updateFogEndPoint (fogData, user, isCLI, transaction) {
     deviceScanFrequency: fogData.deviceScanFrequency,
     bluetoothEnabled: fogData.bluetoothEnabled,
     watchdogEnabled: fogData.watchdogEnabled,
-    isSystem: fogData.isSystem,
     abstractedHardwareEnabled: fogData.abstractedHardwareEnabled,
     fogTypeId: fogData.fogType
   }
@@ -193,8 +191,8 @@ async function getFogListEndPoint (filters, user, isCLI, transaction) {
   await Validator.validate(filters, Validator.schemas.iofogFilters)
 
   const queryFogData = isCLI
-    ? { isSystem: false }
-    : { userId: user.id, isSystem: false }
+    ? {}
+    : { userId: user.id }
 
   let fogs = await FogManager.findAll(queryFogData, transaction)
   fogs = _filterFogs(fogs, filters)
