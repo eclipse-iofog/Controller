@@ -26,6 +26,7 @@ const MicroserviceManager = require('../data/managers/microservice-manager')
 const MicroseriveStates = require('../enums/microservice-state')
 const TrackingDecorator = require('../decorators/tracking-decorator')
 const TrackingEventType = require('../enums/tracking-event-type')
+const DBConstants = require('../data/constants')
 
 const createCatalogItemEndPoint = async function (data, user, transaction) {
   await Validator.validate(data, Validator.schemas.catalogItemCreate)
@@ -124,33 +125,32 @@ const deleteCatalogItemEndPoint = async function (id, user, isCLI, transaction) 
   return affectedRows
 }
 
+// TODO: Remove when public port changes are done
 async function getNetworkCatalogItem (transaction) {
+  return null
+}
+
+async function getRouterCatalogItem (transaction) {
   return CatalogItemManager.findOne({
-    name: 'Networking Tool',
-    category: 'SYSTEM',
-    publisher: 'Eclipse ioFog',
-    registry_id: 1,
-    user_id: null
+    id: DBConstants.ROUTER_CATALOG_ITEM_ID
+  }, transaction)
+}
+
+async function getProxyCatalogItem (transaction) {
+  return CatalogItemManager.findOne({
+    id: DBConstants.PROXY_CATALOG_ITEM_ID
   }, transaction)
 }
 
 async function getBluetoothCatalogItem (transaction) {
   return CatalogItemManager.findOne({
-    name: 'RESTBlue',
-    category: 'SYSTEM',
-    publisher: 'Eclipse ioFog',
-    registry_id: 1,
-    user_id: null
+    id: DBConstants.RESTBLUE_CATALOG_ITEM_ID
   }, transaction)
 }
 
 async function getHalCatalogItem (transaction) {
   return CatalogItemManager.findOne({
-    name: 'HAL',
-    category: 'SYSTEM',
-    publisher: 'Eclipse ioFog',
-    registry_id: 1,
-    user_id: null
+    id: DBConstants.HAL_CATALOG_ITEM_ID
   }, transaction)
 }
 
@@ -211,21 +211,21 @@ const _createCatalogItem = async function (data, user, transaction) {
 const _createCatalogImages = async function (data, catalogItem, transaction) {
   const catalogItemImages = [
     {
-      fogTypeId: 1,
+      fogTypeId: DBConstants.FOG_TYPE_X86,
       catalogItemId: catalogItem.id
     },
     {
-      fogTypeId: 2,
+      fogTypeId: DBConstants.FOG_TYPE_ARM,
       catalogItemId: catalogItem.id
     }
   ]
   if (data.images) {
     for (const image of data.images) {
       switch (image.fogTypeId) {
-        case 1:
+        case DBConstants.FOG_TYPE_X86:
           catalogItemImages[0].containerImage = image.containerImage
           break
-        case 2:
+        case DBConstants.FOG_TYPE_ARM:
           catalogItemImages[1].containerImage = image.containerImage
           break
       }
@@ -353,7 +353,10 @@ module.exports = {
   deleteCatalogItemEndPoint: TransactionDecorator.generateTransaction(deleteCatalogItemEndPoint),
   updateCatalogItemEndPoint: TransactionDecorator.generateTransaction(updateCatalogItemEndPoint),
   getCatalogItem: getCatalogItem,
-  getNetworkCatalogItem: getNetworkCatalogItem,
+  getRouterCatalogItem: getRouterCatalogItem,
+  getProxyCatalogItem: getProxyCatalogItem,
   getBluetoothCatalogItem: getBluetoothCatalogItem,
-  getHalCatalogItem: getHalCatalogItem
+  getHalCatalogItem: getHalCatalogItem,
+  // TODO: Remove when public port changes are done
+  getNetworkCatalogItem: getNetworkCatalogItem
 }

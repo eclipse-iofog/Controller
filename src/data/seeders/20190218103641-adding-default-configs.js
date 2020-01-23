@@ -1,5 +1,7 @@
 'use strict'
 
+const constants = require('../constants')
+
 module.exports = {
   up: (queryInterface, Sequelize) => {
     return queryInterface.bulkUpdate('CatalogItems',
@@ -7,7 +9,7 @@ module.exports = {
         config_example: '{"citycode":"5391997","apikey":"6141811a6136148a00133488eadff0fb","frequency":1000}'
       },
       {
-        name: 'Open Weather Map Data'
+        id: constants.WEATHER_CATALOG_ITEM_ID
       }
     ).then(() => {
       return queryInterface.bulkUpdate('CatalogItems',
@@ -16,7 +18,7 @@ module.exports = {
             'outputfields":{"publisher":"source","contentdata":"temperature","timestamp":"time"}}'
         },
         {
-          name: 'JSON REST API'
+          id: constants.JSON_REST_CATALOG_ITEM_ID
         }
       )
     }).then(() => {
@@ -25,7 +27,7 @@ module.exports = {
           config_example: '{}'
         },
         {
-          name: 'JSON Sub-Select'
+          id: constants.JSON_SUB_CATALOG_ITEM_ID
         }
       )
     }).then(() => {
@@ -34,7 +36,7 @@ module.exports = {
           is_public: true
         },
         {
-          name: 'Common Logging'
+          id: constants.COMM_LOG_CATALOG_ITEM_ID
         }
       )
     })
@@ -46,7 +48,7 @@ module.exports = {
         config_example: '{}'
       },
       {
-        name: 'Open Weather Map Data'
+        id: constants.WEATHER_CATALOG_ITEM_ID
       }
     ).then(() => {
       return queryInterface.bulkUpdate('CatalogItems',
@@ -54,7 +56,7 @@ module.exports = {
           config_example: '{}'
         },
         {
-          name: 'JSON REST API'
+          id: constants.JSON_REST_CATALOG_ITEM_ID
         }
       )
     }).then(() => {
@@ -63,7 +65,7 @@ module.exports = {
           config_example: '{}'
         },
         {
-          name: 'JSON Sub-Select'
+          id: constants.JSON_SUB_CATALOG_ITEM_ID
         }
       )
     }).then(() => {
@@ -72,7 +74,7 @@ module.exports = {
           is_public: false
         },
         {
-          name: 'Common Logging'
+          id: constants.COMM_LOG_CATALOG_ITEM_ID
         }
       )
     })
