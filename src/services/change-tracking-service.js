@@ -25,7 +25,8 @@ const events = Object.freeze({
     registries: false,
     tunnel: false,
     diagnostics: false,
-    isImageSnapshot: false
+    isImageSnapshot: false,
+    prune: false
   },
   diagnostics: {
     diagnostics: true
@@ -68,6 +69,9 @@ const events = Object.freeze({
   },
   config: {
     config: true
+  },
+  prune: {
+    prune: true
   }
 })
 

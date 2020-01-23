@@ -85,6 +85,14 @@ async function getHalUsbInfoEndPoint (req, user) {
   return FogService.getHalUsbInfoEndPoint(uuidObj, user, false)
 }
 
+async function setFogPruneCommandEndPoint (req, user) {
+  const fog = {
+    uuid: req.params.uuid
+  }
+
+  return FogService.setFogPruneCommandEndPoint(fog, user, false)
+}
+
 module.exports = {
   createFogEndPoint: AuthDecorator.checkAuthToken(createFogEndPoint),
   updateFogEndPoint: AuthDecorator.checkAuthToken(updateFogEndPoint),
@@ -95,5 +103,6 @@ module.exports = {
   setFogVersionCommandEndPoint: AuthDecorator.checkAuthToken(setFogVersionCommandEndPoint),
   setFogRebootCommandEndPoint: AuthDecorator.checkAuthToken(setFogRebootCommandEndPoint),
   getHalHardwareInfoEndPoint: AuthDecorator.checkAuthToken(getHalHardwareInfoEndPoint),
-  getHalUsbInfoEndPoint: AuthDecorator.checkAuthToken(getHalUsbInfoEndPoint)
+  getHalUsbInfoEndPoint: AuthDecorator.checkAuthToken(getHalUsbInfoEndPoint),
+  setFogPruneCommandEndPoint: AuthDecorator.checkAuthToken(setFogPruneCommandEndPoint)
 }

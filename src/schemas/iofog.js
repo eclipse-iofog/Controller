@@ -34,7 +34,10 @@ const iofogCreate = {
     'bluetoothEnabled': { 'type': 'boolean' },
     'watchdogEnabled': { 'type': 'boolean' },
     'abstractedHardwareEnabled': { 'type': 'boolean' },
-    'fogType': { 'type': 'integer', 'minimum': 0, 'maximum': 2 }
+    'fogType': { 'type': 'integer', 'minimum': 0, 'maximum': 2 },
+    'dockerPruningFrequency': { 'type': 'integer', 'minimum': 0 },
+    'diskThreshold': { 'type': 'integer', 'minimum': 0 },
+    'logLevel': { 'type': 'string' }
   },
   'required': ['name', 'fogType'],
   'additionalProperties': true
@@ -64,7 +67,10 @@ const iofogUpdate = {
     'bluetoothEnabled': { 'type': 'boolean' },
     'watchdogEnabled': { 'type': 'boolean' },
     'abstractedHardwareEnabled': { 'type': 'boolean' },
-    'fogType': { 'type': 'integer', 'minimum': 0, 'maximum': 2 }
+    'fogType': { 'type': 'integer', 'minimum': 0, 'maximum': 2 },
+    'dockerPruningFrequency': { 'type': 'integer', 'minimum': 0 },
+    'diskThreshold': { 'type': 'integer', 'minimum': 0 },
+    'logLevel': { 'type': 'string' }
   },
   'required': ['uuid'],
   'additionalProperties': true
@@ -151,9 +157,19 @@ const halGet = {
   'additionalProperties': true
 }
 
+const iofogPrune = {
+  'id': '/iofogPrune',
+  'type': 'object',
+  'properties': {
+    'uuid': { 'type': 'string' }
+  },
+  'required': ['uuid'],
+  'additionalProperties': true
+}
+
 module.exports = {
   mainSchemas: [iofogCreate, iofogUpdate, iofogDelete,
     iofogGet, iofogGenerateProvision, iofogSetVersionCommand,
-    iofogReboot, iofogFilters, halGet],
+    iofogReboot, iofogFilters, halGet, iofogPrune],
   innerSchemas: [filter]
 }

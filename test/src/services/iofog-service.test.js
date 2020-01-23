@@ -56,6 +56,9 @@ describe('ioFog Service', () => {
       watchdogEnabled: false,
       abstractedHardwareEnabled: true,
       fogType: 1,
+      dockerPruningFrequency: 10,
+      diskThreshold: 90,
+      logLevel: 'INFO',
     }
 
     const createFogData = {
@@ -82,6 +85,9 @@ describe('ioFog Service', () => {
       abstractedHardwareEnabled: fogData.abstractedHardwareEnabled,
       fogTypeId: fogData.fogType,
       userId: user.id,
+      dockerPruningFrequency: 10,
+      diskThreshold: 90,
+      logLevel: 'INFO',
     }
 
     const halItem = {
@@ -389,6 +395,9 @@ describe('ioFog Service', () => {
       watchdogEnabled: false,
       abstractedHardwareEnabled: true,
       fogType: 1,
+      dockerPruningFrequency: 90,
+      diskThreshold: 80,
+      logLevel: 'INFO'
     }
 
     const oldFog = {
@@ -413,6 +422,9 @@ describe('ioFog Service', () => {
       watchdogEnabled: false,
       abstractedHardwareEnabled: false,
       fogType: 1,
+      dockerPruningFrequency: 90,
+      diskThreshold: 80,
+      logLevel: 'INFO'
     }
 
     const queryFogData = isCLI
@@ -441,6 +453,9 @@ describe('ioFog Service', () => {
       watchdogEnabled: fogData.watchdogEnabled,
       abstractedHardwareEnabled: fogData.abstractedHardwareEnabled,
       fogTypeId: fogData.fogType,
+      dockerPruningFrequency: 90,
+      diskThreshold: 80,
+      logLevel: 'INFO'
     }
 
     const halItem = {

@@ -75,6 +75,11 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.BOOLEAN,
       field: 'image_snapshot',
       defaultValue: false
+    },
+    prune: {
+      type: DataTypes.BOOLEAN,
+      field: 'prune',
+      defaultValue: false
     }
   }, {
     tableName: 'ChangeTrackings',

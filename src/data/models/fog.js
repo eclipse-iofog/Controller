@@ -278,6 +278,21 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.BOOLEAN,
       defaultValue: true,
       field: 'isolated_docker_container'
+    },
+    dockerPruningFrequency: {
+      type: DataTypes.INTEGER,
+      defaultValue: 60,
+      field: 'docker_pruning_freq'
+    },
+    diskThreshold: {
+      type: DataTypes.FLOAT,
+      defaultValue: 90,
+      field: 'available_disk_threshold'
+    },
+    logLevel: {
+      type: DataTypes.TEXT,
+      defaultValue: 'INFO',
+      field: 'log_level'
     }
   }, {
     tableName: 'Fogs',

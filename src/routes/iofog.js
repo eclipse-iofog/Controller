@@ -312,5 +312,38 @@ module.exports = [
 
       logger.apiRes({ req: req, res: responseObject })
     }
+  },
+  {
+    method: 'post',
+    path: '/api/v3/iofog/:uuid/prune',
+    middleware: async (req, res) => {
+      logger.apiReq(req)
+
+      const successCode = constants.HTTP_CODE_NO_CONTENT
+      const errCodes = [
+        {
+          code: 400,
+          errors: [Errors.ValidationError]
+        },
+        {
+          code: 401,
+          errors: [Errors.AuthenticationError]
+        },
+        {
+          code: 404,
+          errors: [Errors.NotFoundError]
+        }
+      ]
+
+      const setFogPruneCommand = ResponseDecorator.handleErrors(FogController.setFogPruneCommandEndPoint,
+        successCode, errCodes)
+      const responseObject = await setFogPruneCommand(req)
+
+      res
+        .status(responseObject.code)
+        .send(responseObject.body)
+
+      logger.apiRes({ req: req, res: responseObject })
+    }
   }
 ]

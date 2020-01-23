@@ -62,6 +62,7 @@ module.exports = {
   CMD_IMAGE_SNAPSHOT_GET: 'image-snapshot-get',
   CMD_HAL_HW: 'hal-hw',
   CMD_HAL_USB: 'hal-usb',
+  CMD_IOFOG_PRUNE: 'prune',
   HTTP_CODE_SUCCESS: 200,
   HTTP_CODE_CREATED: 201,
   HTTP_CODE_ACCEPTED: 202,

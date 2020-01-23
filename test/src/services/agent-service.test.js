@@ -335,8 +335,10 @@ describe('Agent Service', () => {
       latitude: 35,
       longitude: 36,
       gpsMode: 'testGpsMode',
+      dockerPruningFrequency: 10,
+      diskThreshold: 90,
+      logLevel: 'INFO',
     }
-
     const transaction = {}
     const error = 'Error!'
 
@@ -431,6 +433,7 @@ describe('Agent Service', () => {
       tunnel: undefined,
       diagnostics: undefined,
       isImageSnapshot: undefined,
+      prune: undefined,
     }
 
     const transaction = {}
