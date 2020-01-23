@@ -59,6 +59,7 @@ describe('ioFog Service', () => {
       dockerPruningFrequency: 10,
       diskThreshold: 90,
       logLevel: 'INFO',
+      isSystem: false
     }
 
     const createFogData = {
@@ -84,6 +85,7 @@ describe('ioFog Service', () => {
       watchdogEnabled: fogData.watchdogEnabled,
       abstractedHardwareEnabled: fogData.abstractedHardwareEnabled,
       fogTypeId: fogData.fogType,
+      isSystem: fogData.isSystem,
       userId: user.id,
       dockerPruningFrequency: 10,
       diskThreshold: 90,
@@ -397,7 +399,8 @@ describe('ioFog Service', () => {
       fogType: 1,
       dockerPruningFrequency: 90,
       diskThreshold: 80,
-      logLevel: 'INFO'
+      logLevel: 'INFO',
+      isSystem: true
     }
 
     const oldFog = {
@@ -424,7 +427,8 @@ describe('ioFog Service', () => {
       fogType: 1,
       dockerPruningFrequency: 90,
       diskThreshold: 80,
-      logLevel: 'INFO'
+      logLevel: 'INFO',
+      isSystem: false
     }
 
     const queryFogData = isCLI
@@ -455,7 +459,8 @@ describe('ioFog Service', () => {
       fogTypeId: fogData.fogType,
       dockerPruningFrequency: 90,
       diskThreshold: 80,
-      logLevel: 'INFO'
+      logLevel: 'INFO',
+      isSystem: fogData.isSystem
     }
 
     const halItem = {
@@ -963,8 +968,8 @@ describe('ioFog Service', () => {
     const fogs = [fog]
 
     const queryFogData = isCLI
-      ? {}
-      : { userId: user.id }
+      ? { isSystem: false }
+      : { userId: user.id, isSystem: false }
 
     const filters = []
 

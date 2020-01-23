@@ -37,7 +37,8 @@ const iofogCreate = {
     'fogType': { 'type': 'integer', 'minimum': 0, 'maximum': 2 },
     'dockerPruningFrequency': { 'type': 'integer', 'minimum': 0 },
     'diskThreshold': { 'type': 'integer', 'minimum': 0 },
-    'logLevel': { 'type': 'string' }
+    'logLevel': { 'type': 'string' },
+    'isSystem': { 'type': 'boolean' }
   },
   'required': ['name', 'fogType'],
   'additionalProperties': true
@@ -68,9 +69,13 @@ const iofogUpdate = {
     'watchdogEnabled': { 'type': 'boolean' },
     'abstractedHardwareEnabled': { 'type': 'boolean' },
     'fogType': { 'type': 'integer', 'minimum': 0, 'maximum': 2 },
+<<<<<<< HEAD
     'dockerPruningFrequency': { 'type': 'integer', 'minimum': 0 },
     'diskThreshold': { 'type': 'integer', 'minimum': 0 },
     'logLevel': { 'type': 'string' }
+=======
+    'isSystem': { 'type': 'boolean' }
+>>>>>>> Add isSystem flag to flows and fogs (#666)
   },
   'required': ['uuid'],
   'additionalProperties': true

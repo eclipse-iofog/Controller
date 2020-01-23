@@ -293,6 +293,11 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.TEXT,
       defaultValue: 'INFO',
       field: 'log_level'
+    },
+    isSystem: {
+      type: DataTypes.BOOLEAN,
+      field: 'is_system',
+      defaultValue: false
     }
   }, {
     tableName: 'Fogs',
