@@ -23,11 +23,6 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.BOOLEAN,
       field: 'is_activated',
       defaultValue: false
-    },
-    isSystem: {
-      type: DataTypes.BOOLEAN,
-      field: 'is_system',
-      defaultValue: false
     }
   }, {
     tableName: 'Flows',

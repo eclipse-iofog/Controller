@@ -30,7 +30,6 @@ const createFlowEndPoint = async function (flowData, user, isCLI, transaction) {
     name: flowData.name,
     description: flowData.description,
     isActivated: flowData.isActivated,
-    isSystem: flowData.isSystem,
     userId: user.id
   }
 
@@ -70,8 +69,7 @@ const updateFlowEndPoint = async function (flowData, flowId, user, isCLI, transa
   const flow = {
     name: flowData.name,
     description: flowData.description,
-    isActivated: flowData.isActivated,
-    isSystem: flowData.isSystem
+    isActivated: flowData.isActivated
   }
 
   const updateFlowData = AppHelper.deleteUndefinedFields(flow)
@@ -88,8 +86,7 @@ const updateFlowEndPoint = async function (flowData, flowId, user, isCLI, transa
 
 const getUserFlowsEndPoint = async function (user, isCLI, transaction) {
   const flow = {
-    userId: user.id,
-    isSystem: false
+    userId: user.id
   }
 
   const attributes = { exclude: ['created_at', 'updated_at'] }
