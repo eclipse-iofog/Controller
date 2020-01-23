@@ -32,12 +32,14 @@ describe('Flow Service', () => {
       name: 'testName',
       description: 'testDescription',
       isActivated: false,
+      isSystem: false
     }
 
     const flowToCreate = {
       name: flowData.name,
       description: flowData.description,
       isActivated: flowData.isActivated,
+      isSystem: flowData.isSystem,
       userId: user.id,
     }
 
@@ -252,12 +254,14 @@ describe('Flow Service', () => {
       name: 'testName',
       description: 'testDescription',
       isActivated: true,
+      isSystem: false
     }
 
     const flowData = {
       name: 'testName',
       description: 'testDescription',
       isActivated: false,
+      isSystem: true
     }
 
     const flowWithMicroservices = {
@@ -428,6 +432,7 @@ describe('Flow Service', () => {
 
     const flow = {
       userId: user.id,
+      isSystem: false
     }
 
     def('subject', () => $subject.getUserFlowsEndPoint(user, isCLI, transaction))
