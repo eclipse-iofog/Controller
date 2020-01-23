@@ -21,8 +21,8 @@ module.exports = {
         field: 'available_disk_threshold'
       }),
       queryInterface.addColumn('Fogs', 'log_level', {
-        type: Sequelize.INTEGER,
-        defaultValue: 60,
+        type: Sequelize.TEXT,
+        defaultValue: 'INFO',
         field: 'log_level'
       }),
       queryInterface.addColumn('ChangeTrackings', 'prune', {
