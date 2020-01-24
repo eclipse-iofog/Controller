@@ -108,6 +108,7 @@ const _invalidateFogNode = async function (fog, transaction) {
 }
 
 const getAgentConfig = async function (fog) {
+  // fog is the result of FogManager.FindOne() in the checkFogToken middleware
   return {
     networkInterface: fog.networkInterface,
     dockerUrl: fog.dockerUrl,
@@ -126,7 +127,9 @@ const getAgentConfig = async function (fog) {
     longitude: fog.longitude,
     logLevel: fog.logLevel,
     diskThreshold: fog.diskThreshold,
-    dockerPruningFrequency: fog.dockerPruningFrequency
+    dockerPruningFrequency: fog.dockerPruningFrequency,
+    routerHost: fog.routerHost,
+    routerPort: fog.routerPort
   }
 }
 

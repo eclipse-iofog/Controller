@@ -38,10 +38,31 @@ const iofogCreate = {
     'dockerPruningFrequency': { 'type': 'integer', 'minimum': 0 },
     'diskThreshold': { 'type': 'integer', 'minimum': 0 },
     'logLevel': { 'type': 'string' },
-    'isSystem': { 'type': 'boolean' }
+    'isSystem': { 'type': 'boolean' },
+    'routerMode': { 'enum': ['none', 'edge', 'interior'], 'default': 'edge' },
+    'messagingPort': { 'type': 'integer', 'minimum': 1, 'maximum': 65535 },
+    'interRouterPort': { 'type': 'integer', 'minimum': 1, 'maximum': 65535 },
+    'edgeRouterPort': { 'type': 'integer', 'minimum': 1, 'maximum': 65535 },
+    'upstreamRouters': {
+      'type': 'array',
+      'items': { 'type': 'string', 'minLength': 1 }
+    },
+    'networkRouter': { 'type': 'string' }
   },
-  'required': ['name', 'fogType'],
-  'additionalProperties': true
+  'anyOf': [
+    {
+      'properties': { 'routerMode': { 'const': 'interior' } },
+      'required': ['interRouterPort', 'edgeRouterPort']
+    },
+    {
+      'properties': { 'routerMode': { 'const': 'edge' } }
+    },
+    {
+      'properties': { 'routerMode': { 'const': 'none' } }
+    }
+  ],
+  'additionalProperties': true,
+  'required': ['name', 'fogType']
 }
 
 const iofogUpdate = {
@@ -69,16 +90,34 @@ const iofogUpdate = {
     'watchdogEnabled': { 'type': 'boolean' },
     'abstractedHardwareEnabled': { 'type': 'boolean' },
     'fogType': { 'type': 'integer', 'minimum': 0, 'maximum': 2 },
-<<<<<<< HEAD
     'dockerPruningFrequency': { 'type': 'integer', 'minimum': 0 },
     'diskThreshold': { 'type': 'integer', 'minimum': 0 },
-    'logLevel': { 'type': 'string' }
-=======
-    'isSystem': { 'type': 'boolean' }
->>>>>>> Add isSystem flag to flows and fogs (#666)
+    'logLevel': { 'type': 'string' },
+    'isSystem': { 'type': 'boolean' },
+    'routerMode': { 'enum': ['none', 'edge', 'interior'] },
+    'messagingPort': { 'type': 'integer', 'minimum': 1, 'maximum': 65535 },
+    'interRouterPort': { 'type': 'integer', 'minimum': 1, 'maximum': 65535 },
+    'edgeRouterPort': { 'type': 'integer', 'minimum': 1, 'maximum': 65535 },
+    'upstreamRouters': {
+      'type': 'array',
+      'items': { 'type': 'string', 'minLength': 1 }
+    },
+    'networkRouter': { 'type': 'string', 'minLength': 1 }
   },
-  'required': ['uuid'],
-  'additionalProperties': true
+  'anyOf': [
+    {
+      'properties': { 'routerMode': { 'const': 'interior' } },
+      'required': ['interRouterPort', 'edgeRouterPort']
+    },
+    {
+      'properties': { 'routerMode': { 'const': 'edge' } }
+    },
+    {
+      'properties': { 'routerMode': { 'const': 'none' } }
+    }
+  ],
+  'additionalProperties': true,
+  'required': ['uuid']
 }
 
 const iofogDelete = {

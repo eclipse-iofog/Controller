@@ -298,6 +298,16 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.BOOLEAN,
       field: 'is_system',
       defaultValue: false
+    },
+    routerHost: {
+      type: DataTypes.TEXT,
+      field: 'router_host',
+      defaultValue: ''
+    },
+    routerPort: {
+      type: DataTypes.INTEGER,
+      field: 'router_port',
+      defaultValue: 5672
     }
   }, {
     tableName: 'Fogs',
