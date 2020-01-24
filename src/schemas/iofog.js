@@ -37,12 +37,27 @@ const iofogCreate = {
     'fogType': { 'type': 'integer', 'minimum': 0, 'maximum': 2 },
     'isSystem': { 'type': 'boolean' },
     'routerMode': { 'enum': ['none', 'edge', 'interior'], 'default': 'edge' },
-    'routerPort': { 'type': 'integer', 'minimum': 1, 'maximum': 65535 },
+    'messagingPort': { 'type': 'integer', 'minimum': 1, 'maximum': 65535 },
+    'interRouterPort': { 'type': 'integer', 'minimum': 1, 'maximum': 65535 },
+    'edgeRouterPort': { 'type': 'integer', 'minimum': 1, 'maximum': 65535 },
     'upstreamRouters': {
       'type': 'array',
-      'items': { 'type': 'string', 'minLength': 1 } },
+      'items': { 'type': 'string', 'minLength': 1 }
+    },
     'networkRouter': { 'type': 'string' }
   },
+  'anyOf': [
+    {
+      'properties': { 'routerMode': { 'const': 'interior' } },
+      'required': ['interRouterPort', 'edgeRouterPort']
+    },
+    {
+      'properties': { 'routerMode': { 'const': 'edge' } }
+    },
+    {
+      'properties': { 'routerMode': { 'const': 'none' } }
+    }
+  ],
   'additionalProperties': true,
   'required': ['name', 'fogType']
 }
@@ -73,13 +88,28 @@ const iofogUpdate = {
     'abstractedHardwareEnabled': { 'type': 'boolean' },
     'fogType': { 'type': 'integer', 'minimum': 0, 'maximum': 2 },
     'isSystem': { 'type': 'boolean' },
-    'routerMode': { 'enum': ['none', 'edge', 'interior'], 'default': 'edge' },
-    'routerPort': { 'type': 'integer', 'minimum': 1, 'maximum': 65535 },
+    'routerMode': { 'enum': ['none', 'edge', 'interior'] },
+    'messagingPort': { 'type': 'integer', 'minimum': 1, 'maximum': 65535 },
+    'interRouterPort': { 'type': 'integer', 'minimum': 1, 'maximum': 65535 },
+    'edgeRouterPort': { 'type': 'integer', 'minimum': 1, 'maximum': 65535 },
     'upstreamRouters': {
       'type': 'array',
-      'items': { 'type': 'string', 'minLength': 1 } },
+      'items': { 'type': 'string', 'minLength': 1 }
+    },
     'networkRouter': { 'type': 'string', 'minLength': 1 }
   },
+  'anyOf': [
+    {
+      'properties': { 'routerMode': { 'const': 'interior' } },
+      'required': ['interRouterPort', 'edgeRouterPort']
+    },
+    {
+      'properties': { 'routerMode': { 'const': 'edge' } }
+    },
+    {
+      'properties': { 'routerMode': { 'const': 'none' } }
+    }
+  ],
   'additionalProperties': true,
   'required': ['uuid']
 }
