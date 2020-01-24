@@ -184,7 +184,8 @@ const getAgentConfigChanges = async function (ioFog, transaction) {
     tunnel: changeTracking.tunnel,
     diagnostics: changeTracking.diagnostics,
     isImageSnapshot: changeTracking.isImageSnapshot,
-    prune: changeTracking.prune
+    prune: changeTracking.prune,
+    routerChanged: changeTracking.routerChanged
   }
 }
 

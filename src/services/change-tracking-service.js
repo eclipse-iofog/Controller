@@ -26,7 +26,8 @@ const events = Object.freeze({
     tunnel: false,
     diagnostics: false,
     isImageSnapshot: false,
-    prune: false
+    prune: false,
+    routerChanged: false
   },
   diagnostics: {
     diagnostics: true
@@ -66,6 +67,9 @@ const events = Object.freeze({
   },
   tunnel: {
     tunnel: true
+  },
+  routerChanged: {
+    routerChanged: true
   },
   config: {
     config: true
