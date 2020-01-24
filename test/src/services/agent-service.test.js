@@ -430,6 +430,7 @@ describe('Agent Service', () => {
       registries: undefined,
       tunnel: undefined,
       diagnostics: undefined,
+      routerChanged: undefined,
       isImageSnapshot: undefined,
     }
 
