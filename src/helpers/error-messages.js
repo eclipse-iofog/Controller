@@ -90,5 +90,7 @@ module.exports = {
   SYSTEM_CATALOG_ITEM_UPDATE: 'Catalog item id {} is system and can\'t be updated',
   SYSTEM_CATALOG_ITEM_DELETE: 'Catalog item id {} is system and can\'t be deleted',
   SYSTEM_MICROSERVICE_UPDATE: 'Microservice uuid {} is system and can\'t be updated',
-  SYSTEM_MICROSERVICE_DELETE: 'Microservice uuid {} is system and can\'t be deleted'
+  SYSTEM_MICROSERVICE_DELETE: 'Microservice uuid {} is system and can\'t be deleted',
+  INVALID_ROUTER: 'Invalid router \'{}\'',
+  INVALID_UPSTREAM_ROUTER: 'Upstream router must be interior \'{}\''
 }

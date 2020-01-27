@@ -29,6 +29,9 @@ const MicroserviceManager = require('../data/managers/microservice-manager')
 const TrackingDecorator = require('../decorators/tracking-decorator')
 const TrackingEventType = require('../enums/tracking-event-type')
 const config = require('../config')
+const RouterManager = require('../data/managers/router-manager')
+const RouterService = require('./router-service')
+const Constants = require('../helpers/constants')
 
 async function createFogEndPoint (fogData, user, isCLI, transaction) {
   await Validator.validate(fogData, Validator.schemas.iofogCreate)
@@ -61,7 +64,25 @@ async function createFogEndPoint (fogData, user, isCLI, transaction) {
   }
   createFogData = AppHelper.deleteUndefinedFields(createFogData)
 
+  let defaultRouter, upstreamRouters
+  if (fogData.routerMode === 'none') {
+    const networkRouter = await RouterService.getNetworkRouter(fogData.networkRouter)
+    if (!networkRouter) {
+      throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_ROUTER, !fogData.networkRouter ? Constants.DEFAULT_ROUTER_NAME : fogData.networkRouter))
+    }
+    createFogData.routerHost = networkRouter.host
+    createFogData.routerPort = networkRouter.messagingPort
+  } else {
+    defaultRouter = await RouterManager.findOne({ isDefault: true }, transaction)
+    upstreamRouters = await RouterService.validateAndReturnUpstreamRouters(fogData.upstreamRouters, defaultRouter)
+  }
+
   const fog = await FogManager.create(createFogData, transaction)
+
+  if (fogData.routerMode !== 'none') {
+    const networkRouter = await RouterService.createRouterForFog(fogData, fog.uuid, user.id, upstreamRouters)
+    await FogManager.update({ uuid: fog.uuid }, { routerHost: networkRouter.host, routerPort: networkRouter.port }, transaction)
+  }
 
   const res = {
     uuid: fog.uuid

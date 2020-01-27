@@ -13,13 +13,13 @@
 
 const BaseManager = require('./base-manager')
 const models = require('../models')
-const Router = models.Router
+const RouterConnection = models.RouterConnection
 
-class RouterManager extends BaseManager {
+class RouterConnectionManager extends BaseManager {
   getEntity () {
-    return Router
+    return RouterConnection
   }
 }
 
-const instance = new RouterManager()
+const instance = new RouterConnectionManager()
 module.exports = instance

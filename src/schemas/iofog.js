@@ -40,6 +40,7 @@ const iofogCreate = {
     'messagingPort': { 'type': 'integer', 'minimum': 1, 'maximum': 65535 },
     'interRouterPort': { 'type': 'integer', 'minimum': 1, 'maximum': 65535 },
     'edgeRouterPort': { 'type': 'integer', 'minimum': 1, 'maximum': 65535 },
+    'host': { 'type': 'string' },
     'upstreamRouters': {
       'type': 'array',
       'items': { 'type': 'string', 'minLength': 1 }
@@ -49,7 +50,7 @@ const iofogCreate = {
   'anyOf': [
     {
       'properties': { 'routerMode': { 'const': 'interior' } },
-      'required': ['interRouterPort', 'edgeRouterPort']
+      'required': ['interRouterPort', 'edgeRouterPort', 'host']
     },
     {
       'properties': { 'routerMode': { 'const': 'edge' } }
@@ -92,6 +93,7 @@ const iofogUpdate = {
     'messagingPort': { 'type': 'integer', 'minimum': 1, 'maximum': 65535 },
     'interRouterPort': { 'type': 'integer', 'minimum': 1, 'maximum': 65535 },
     'edgeRouterPort': { 'type': 'integer', 'minimum': 1, 'maximum': 65535 },
+    'host': { 'type': 'string' },
     'upstreamRouters': {
       'type': 'array',
       'items': { 'type': 'string', 'minLength': 1 }
@@ -101,7 +103,7 @@ const iofogUpdate = {
   'anyOf': [
     {
       'properties': { 'routerMode': { 'const': 'interior' } },
-      'required': ['interRouterPort', 'edgeRouterPort']
+      'required': ['interRouterPort', 'edgeRouterPort', 'host']
     },
     {
       'properties': { 'routerMode': { 'const': 'edge' } }
@@ -195,9 +197,22 @@ const halGet = {
   'additionalProperties': true
 }
 
+const defaultRouterCreate = {
+  'id': '/defaultRouterCreate',
+  'type': 'object',
+  'properties': {
+    'messagingPort': { 'type': 'integer', 'minimum': 1, 'maximum': 65535 },
+    'interRouterPort': { 'type': 'integer', 'minimum': 1, 'maximum': 65535 },
+    'edgeRouterPort': { 'type': 'integer', 'minimum': 1, 'maximum': 65535 },
+    'host': { 'type': 'string' }
+  },
+  'required': ['host'],
+  'additionalProperties': true
+}
+
 module.exports = {
   mainSchemas: [iofogCreate, iofogUpdate, iofogDelete,
     iofogGet, iofogGenerateProvision, iofogSetVersionCommand,
-    iofogReboot, iofogFilters, halGet],
+    iofogReboot, iofogFilters, halGet, defaultRouterCreate],
   innerSchemas: [filter]
 }

@@ -328,6 +328,11 @@ module.exports = (sequelize, DataTypes) => {
       foreignKey: 'iofog_uuid',
       as: 'microservice'
     })
+
+    Fog.hasOne(models.Router, {
+      foreignKey: 'iofog_uuid',
+      as: 'router'
+    })
   }
 
   return Fog

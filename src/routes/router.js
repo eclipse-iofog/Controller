@@ -18,7 +18,7 @@ const Errors = require('../helpers/errors')
 
 module.exports = [
   {
-    method: 'post',
+    method: 'get',
     path: '/api/v3/router',
     middleware: async (req, res) => {
       logger.apiReq(req)
@@ -30,35 +30,12 @@ module.exports = [
           errors: [Errors.AuthenticationError]
         },
         {
-          code: constants.HTTP_CODE_BAD_REQUEST,
-          errors: [Errors.ValidationError]
+          code: constants.HTTP_CODE_NOT_FOUND,
+          errors: [Errors.NotFoundError]
         }
       ]
-      const addRouterEndPoint = ResponseDecorator.handleErrors(Router.addRouterEndPoint, successCode, errorCodes)
-      const responseObject = await addRouterEndPoint(req)
-
-      res
-        .status(responseObject.code)
-        .send(responseObject.body)
-
-      logger.apiRes({ req: req, res: responseObject })
-    }
-  },
-  {
-    method: 'get',
-    path: '/api/v3/router',
-    middleware: async (req, res) => {
-      logger.apiReq(req)
-
-      const successCode = constants.HTTP_CODE_SUCCESS
-      const errorCodes = [
-        {
-          code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError]
-        }
-      ]
-      const listRouterEndPoint = ResponseDecorator.handleErrors(Router.listRouterEndPoint, successCode, errorCodes)
-      const responseObject = await listRouterEndPoint(req)
+      const getRouterEndpoint = ResponseDecorator.handleErrors(Router.getRouterEndPoint, successCode, errorCodes)
+      const responseObject = await getRouterEndpoint()
 
       res
         .status(responseObject.code)
@@ -82,45 +59,10 @@ module.exports = [
         {
           code: constants.HTTP_CODE_BAD_REQUEST,
           errors: [Errors.ValidationError]
-        },
-        {
-          code: constants.HTTP_CODE_NOT_FOUND,
-          errors: [Errors.NotFoundError]
         }
       ]
-      const updateRouterEndPoint = ResponseDecorator.handleErrors(Router.updateRouterEndPoint, successCode, errorCodes)
-      const responseObject = await updateRouterEndPoint(req)
-
-      res
-        .status(responseObject.code)
-        .send(responseObject.body)
-
-      logger.apiRes({ req: req, res: responseObject })
-    }
-  },
-  {
-    method: 'delete',
-    path: '/api/v3/router',
-    middleware: async (req, res) => {
-      logger.apiReq(req)
-
-      const successCode = constants.HTTP_CODE_NO_CONTENT
-      const errorCodes = [
-        {
-          code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError]
-        },
-        {
-          code: constants.HTTP_CODE_BAD_REQUEST,
-          errors: [Errors.ValidationError]
-        },
-        {
-          code: constants.HTTP_CODE_NOT_FOUND,
-          errors: [Errors.NotFoundError]
-        }
-      ]
-      const deleteRouterEndPoint = ResponseDecorator.handleErrors(Router.deleteRouterEndPoint, successCode, errorCodes)
-      const responseObject = await deleteRouterEndPoint(req)
+      const upsertDefaultRouter = ResponseDecorator.handleErrors(Router.upsertDefaultRouter, successCode, errorCodes)
+      const responseObject = await upsertDefaultRouter(req)
 
       res
         .status(responseObject.code)
