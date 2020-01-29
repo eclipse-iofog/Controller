@@ -26,19 +26,18 @@ class RouterConnectionManager extends BaseManager {
       include: [
         {
           model: Router,
-          as: 'sourceRouter',
+          as: 'source',
           required: true,
           attributes: ['iofogUuid', 'id']
         },
         {
           model: Router,
-          as: 'destRouter',
+          as: 'dest',
           required: true,
           attributes: ['iofogUuid', 'id']
         }
       ],
-      where: where,
-      attributes: ['id']
+      where: where
     }, { transaction: transaction })
   }
 }

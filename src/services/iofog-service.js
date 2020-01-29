@@ -70,6 +70,14 @@ async function createFogEndPoint (fogData, user, isCLI, transaction) {
   // Default router is edge
   fogData.routerMode = fogData.routerMode || 'edge'
 
+  if (fogData.isSystem && fogData.routerMode !== 'interior') {
+    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_ROUTER_MODE, fogData.routerMode))
+  }
+
+  if (fogData.isSystem && !!(await FogManager.findOne({ isSystem: true }, transaction))) {
+    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.DUPLICATE_SYSTEM_FOG))
+  }
+
   let defaultRouter, upstreamRouters
   if (fogData.routerMode === 'none') {
     const networkRouter = await RouterService.getNetworkRouter(fogData.networkRouter)
@@ -155,13 +163,13 @@ async function updateFogEndPoint (fogData, user, isCLI, transaction) {
   // Get all router config informations
   const router = await RouterManager.findOne({ iofogUuid: fogData.uuid }, transaction)
   const host = fogData.host || lget(router, 'host')
-  const upstreamRoutersConnections = router ? (await RouterConnectionManager.findAllWithRouters({ sourceRouter: router.id }) || []) : []
-  const upstreamRoutersIofogUuid = fogData.upstreamRouters || await Promise.all(upstreamRoutersConnections.map(connection => connection.destRouter.iofogUuid))
+  const upstreamRoutersConnections = router ? (await RouterConnectionManager.findAllWithRouters({ sourceRouter: router.id }, transaction) || []) : []
+  const upstreamRoutersIofogUuid = fogData.upstreamRouters || await Promise.all(upstreamRoutersConnections.map(connection => connection.dest.iofogUuid))
   const routerMode = fogData.routerMode || (router ? (router.isEdge ? 'edge' : 'interior') : 'none')
   const messagingPort = fogData.messagingPort || (router ? router.messagingPort : null)
   const interRouterPort = fogData.interRouterPort || (router ? router.interRouterPort : null)
   const edgeRouterPort = fogData.edgeRouterPort || (router ? router.edgeRouterPort : null)
-  const currentNetworkRouter = oldFog.routerHost === 'localhost' ? router : await RouterManager.findOne({ host: oldFog.routerHost, messagingPort: oldFog.routerPort })
+  const currentNetworkRouter = oldFog.routerHost === 'localhost' ? router : await RouterManager.findOne({ host: oldFog.routerHost, messagingPort: oldFog.routerPort }, transaction)
   const networkRouterIofogUuid = fogData.networkRouter || lget(currentNetworkRouter, 'iofogUuid', undefined)
   let networkRouter
 
@@ -176,7 +184,7 @@ async function updateFogEndPoint (fogData, user, isCLI, transaction) {
     }
   } else {
     const defaultRouter = await RouterManager.findOne({ isDefault: true }, transaction)
-    const upstreamRouters = await RouterService.validateAndReturnUpstreamRouters(upstreamRoutersIofogUuid, defaultRouter)
+    const upstreamRouters = await RouterService.validateAndReturnUpstreamRouters(upstreamRoutersIofogUuid, oldFog.isSystem, defaultRouter)
     if (!router) {
       // Router does not exists yet
       networkRouter = await RouterService.createRouterForFog(fogData, oldFog.uuid, user.id, upstreamRouters)
@@ -184,7 +192,7 @@ async function updateFogEndPoint (fogData, user, isCLI, transaction) {
       // Update existing router
       networkRouter = await RouterService.updateRouter(router, {
         messagingPort, interRouterPort, edgeRouterPort, isEdge: routerMode === 'edge', host
-      }, upstreamRouters, transaction)
+      }, upstreamRouters)
     }
   }
   updateFogData.routerHost = networkRouter.host
@@ -233,11 +241,11 @@ async function _deleteFogRouter (fogData, transaction) {
     // Delete all router connections, and set routerChanged flag for linked routers
     if (routerConnections) {
       for (const connection of routerConnections) {
-        const router = connection.sourceRouter.id === routerID ? connection.destRouter : connection.sourceRouter
+        const router = connection.source.id === routerID ? connection.dest : connection.source
         // Delete router connection
         await RouterConnectionManager.delete({ id: connection.id }, transaction)
         // Update config for downstream routers
-        if (connection.destRouter.id === routerID) {
+        if (connection.dest.id === routerID) {
           // Update router config
           await RouterService.updateConfig(router.id, transaction)
           // Set routerChanged flag
@@ -287,8 +295,8 @@ async function _getFogRouterConfig (fog, transaction) {
       fog.edgeRouterPort = router.edgeRouterPort
     }
     // Get upstream routers
-    const upstreamRouters = RouterConnectionManager.findAllWithRouters({ sourceRouter: router.id }, transaction)
-    fog.upstreamRouters = upstreamRouters ? upstreamRouters.map(r => r.id) : []
+    const upstreamRoutersConnections = await RouterConnectionManager.findAllWithRouters({ sourceRouter: router.id }, transaction)
+    fog.upstreamRouters = upstreamRoutersConnections ? upstreamRoutersConnections.map(r => r.dest.iofogUuid) : []
   } else {
     fog.routerMode = 'none'
   }

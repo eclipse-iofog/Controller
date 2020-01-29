@@ -53,15 +53,15 @@ async function validateAndReturnUpstreamRouters (upstreamRouterIds, isSystemFog,
 async function createRouterForFog (fogData, uuid, userId, upstreamRouters, transaction) {
   const isEdge = fogData.routerMode === 'edge'
   const messagingPort = fogData.messagingPort || 5672
-  // Get default router if system fog
-  const isDefault = fogData.isSystem ? !!await RouterManager.findOne({ isDefault: true }, transaction) : false
+  // Is default router if we are on a system fog and no other default router already exists
+  const isDefault = (fogData.isSystem) ? !(await RouterManager.findOne({ isDefault: true }, transaction)) : false
   const routerData = {
     isEdge,
     messagingPort: messagingPort,
     host: fogData.host,
     edgeRouterPort: !isEdge ? fogData.edgeRouterPort : null,
     interRouterPort: !isEdge ? fogData.interRouterPort : null,
-    isDefault: isDefault, // Is the default if system fog and no default router already existing
+    isDefault: isDefault,
     iofogUuid: uuid
   }
 
@@ -102,11 +102,11 @@ async function updateRouter (oldRouter, newRouterData, upstreamRouters, transact
 
   // Update upstream routers
   const upstreamConnections = await RouterConnectionManager.findAllWithRouters({ sourceRouter: oldRouter.id }, transaction)
-  const upstreamToDelete = ldifferenceWith(upstreamConnections, upstreamRouters, (connection, router) => connection.destRouter.id === router.id)
+  const upstreamToDelete = ldifferenceWith(upstreamConnections, upstreamRouters, (connection, router) => connection.destRouter === router.id)
   for (const connectionToDelete of upstreamToDelete) {
-    await RouterConnectionManager.delete({ id: connectionToDelete.id })
+    await RouterConnectionManager.delete({ id: connectionToDelete.id }, transaction)
   }
-  const upstreamToCreate = ldifferenceWith(upstreamRouters, upstreamConnections, (router, connection) => connection.destRouter.id === router.id)
+  const upstreamToCreate = ldifferenceWith(upstreamRouters, upstreamConnections, (router, connection) => connection.destRouter === router.id)
   await RouterConnectionManager.bulkCreate(upstreamToCreate.map(router => ({ sourceRouter: oldRouter.id, destRouter: router.id })), transaction)
 
   // Update config if needed
@@ -123,9 +123,9 @@ async function updateConfig (routerID, transaction) {
   const router = await RouterManager.findOne({ id: routerID }, transaction)
   let microserviceConfig = _getRouterMicroserviceConfig(router.isEdge, router.iofogUuid, router.messagingPort, router.interRouterPort, router.edgeRouterPort)
 
-  const upstreamRouters = await RouterConnectionManager.findAll({ sourceRouter: router.id })
-  for (const upstreamRouter of upstreamRouters) {
-    microserviceConfig += _getRouterConnectorConfig(router.isEdge, upstreamRouter)
+  const upstreamRoutersConnections = await RouterConnectionManager.findAllWithRouters({ sourceRouter: router.id }, transaction)
+  for (const upstreamRouterConnection of upstreamRoutersConnections) {
+    microserviceConfig += _getRouterConnectorConfig(router.isEdge, upstreamRouterConnection.dest)
   }
   const routerCatalog = await CatalogService.getRouterCatalogItem(transaction)
   const routerMicroservice = await MicroserviceManager.findOne({
@@ -217,6 +217,10 @@ async function upsertDefaultRouter (routerData, transaction) {
   return RouterManager.updateOrCreate({ isDefault: true }, createRouterData, transaction)
 }
 
+async function findOne (option, transaction) {
+  return RouterManager.findOne(option, transaction)
+}
+
 module.exports = {
   createRouterForFog: TransactionDecorator.generateTransaction(createRouterForFog),
   updateConfig: TransactionDecorator.generateTransaction(updateConfig),
@@ -224,5 +228,6 @@ module.exports = {
   getDefaultRouter: TransactionDecorator.generateTransaction(getDefaultRouter),
   getNetworkRouter: TransactionDecorator.generateTransaction(getNetworkRouter),
   upsertDefaultRouter: TransactionDecorator.generateTransaction(upsertDefaultRouter),
-  validateAndReturnUpstreamRouters: TransactionDecorator.generateTransaction(validateAndReturnUpstreamRouters)
+  validateAndReturnUpstreamRouters: TransactionDecorator.generateTransaction(validateAndReturnUpstreamRouters),
+  findOne: TransactionDecorator.generateTransaction(findOne)
 }
