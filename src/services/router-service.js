@@ -13,6 +13,7 @@
 
 const AppHelper = require('../helpers/app-helper')
 const CatalogService = require('../services/catalog-service')
+const ChangeTrackingService = require('../services/change-tracking-service')
 const Constants = require('../helpers/constants')
 const Errors = require('../helpers/errors')
 const ErrorMessages = require('../helpers/error-messages')
@@ -22,6 +23,7 @@ const RouterConnectionManager = require('../data/managers/router-connection-mana
 const RouterManager = require('../data/managers/router-manager')
 const TransactionDecorator = require('../decorators/transaction-decorator')
 const Validator = require('../schemas')
+const ldifferenceWith = require('lodash/differenceWith')
 
 async function validateAndReturnUpstreamRouters (upstreamRouterIds, defaultRouter, transaction) {
   if (!upstreamRouterIds) {
@@ -52,7 +54,7 @@ async function createRouterForFog (fogData, uuid, userId, upstreamRouters, trans
   const routerData = {
     isEdge,
     messagingPort: messagingPort,
-    host: !isEdge ? fogData.host : null,
+    host: fogData.host,
     edgeRouterPort: !isEdge ? fogData.edgeRouterPort : null,
     interRouterPort: !isEdge ? fogData.interRouterPort : null,
     isDefault: false,
@@ -72,8 +74,64 @@ async function createRouterForFog (fogData, uuid, userId, upstreamRouters, trans
 
   return {
     host: 'localhost',
-    port: router.messagingPort
+    messagingPort: router.messagingPort
   }
+}
+
+async function updateRouter (oldRouter, newRouterData, upstreamRouters, transaction) {
+  if (newRouterData.isEdge && !oldRouter.isEdge) {
+    // Moving from internal to edge mode
+    // If there are downstream routers, return error
+    const downstreamRouterConnections = await RouterConnectionManager.findAll({ destRouter: oldRouter.id }, transaction)
+    if (downstreamRouterConnections && downstreamRouterConnections.length) {
+      throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.EDGE_ROUTER_HAS_DOWNSTREAM, oldRouter.id))
+    }
+    // Removing any possible connecting port
+    newRouterData.edgeRouterPort = null
+    newRouterData.interRouterPort = null
+  } else if (!newRouterData.isEdge && oldRouter.isEdge) {
+    // Moving from edge to internal
+    // Nothing specific to update
+  }
+  newRouterData.messagingPort = newRouterData.messagingPort || 5672
+  await RouterManager.update({ id: oldRouter.id }, newRouterData, transaction)
+
+  // Update upstream routers
+  const upstreamConnections = await RouterConnectionManager.findAllWithRouters({ sourceRouter: oldRouter.id }, transaction)
+  const upstreamToDelete = ldifferenceWith(upstreamConnections, upstreamRouters, (connection, router) => connection.destRouter.id === router.id)
+  for (const connectionToDelete of upstreamToDelete) {
+    await RouterConnectionManager.delete({ id: connectionToDelete.id })
+  }
+  const upstreamToCreate = ldifferenceWith(upstreamRouters, upstreamConnections, (router, connection) => connection.destRouter.id === router.id)
+  await RouterConnectionManager.bulkCreate(upstreamToCreate.map(router => ({ sourceRouter: oldRouter.id, destRouter: router.id })), transaction)
+
+  // Update config if needed
+  await updateConfig(oldRouter.id, transaction)
+  await ChangeTrackingService.update(oldRouter.iofogUuid, ChangeTrackingService.events.routerChanged, transaction)
+
+  return {
+    host: 'localhost',
+    messagingPort: newRouterData.messagingPort
+  }
+}
+
+async function updateConfig (routerID, transaction) {
+  const router = await RouterManager.findOne({ id: routerID }, transaction)
+  let microserviceConfig = _getRouterMicroserviceConfig(router.isEdge, router.iofogUuid, router.messagingPort, router.interRouterPort, router.edgeRouterPort)
+
+  const upstreamRouters = await RouterConnectionManager.findAll({ sourceRouter: router.id })
+  for (const upstreamRouter of upstreamRouters) {
+    microserviceConfig += _getRouterConnectorConfig(router.isEdge, upstreamRouter)
+  }
+  const routerCatalog = await CatalogService.getRouterCatalogItem(transaction)
+  const routerMicroservice = await MicroserviceManager.findOne({
+    catalogItemId: routerCatalog.id,
+    iofogUuid: router.iofogUuid
+  }, transaction)
+  if (!routerMicroservice) {
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_ROUTER, router.id))
+  }
+  await MicroserviceEnvManager.update({ microserviceUuid: routerMicroservice.uuid, key: 'QDROUTERD_CONF' }, { value: microserviceConfig }, transaction)
 }
 
 async function _createRouterMicroservice (isEdge, uuid, userId, microserviceConfig, transaction) {
@@ -157,6 +215,8 @@ async function upsertDefaultRouter (routerData, transaction) {
 
 module.exports = {
   createRouterForFog: TransactionDecorator.generateTransaction(createRouterForFog),
+  updateConfig: TransactionDecorator.generateTransaction(updateConfig),
+  updateRouter: TransactionDecorator.generateTransaction(updateRouter),
   getDefaultRouter: TransactionDecorator.generateTransaction(getDefaultRouter),
   getNetworkRouter: TransactionDecorator.generateTransaction(getNetworkRouter),
   upsertDefaultRouter: TransactionDecorator.generateTransaction(upsertDefaultRouter),

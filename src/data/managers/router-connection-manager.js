@@ -14,10 +14,32 @@
 const BaseManager = require('./base-manager')
 const models = require('../models')
 const RouterConnection = models.RouterConnection
+const Router = models.Router
 
 class RouterConnectionManager extends BaseManager {
   getEntity () {
     return RouterConnection
+  }
+
+  findAllWithRouters (where, transaction) {
+    return RouterConnection.findAll({
+      include: [
+        {
+          model: Router,
+          as: 'sourceRouter',
+          required: true,
+          attributes: ['iofogUuid', 'id']
+        },
+        {
+          model: Router,
+          as: 'destRouter',
+          required: true,
+          attributes: ['iofogUuid', 'id']
+        }
+      ],
+      where: where,
+      attributes: ['id']
+    }, { transaction: transaction })
   }
 }
 

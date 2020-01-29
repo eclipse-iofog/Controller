@@ -3,6 +3,8 @@ const sinon = require('sinon')
 
 const ioFogManager = require('../../../src/data/managers/iofog-manager')
 const ioFogService = require('../../../src/services/iofog-service')
+const RouterManager = require('../../../src/data/managers/router-manager')
+const RouterService = require('../../../src/services/router-service')
 const AppHelper = require('../../../src/helpers/app-helper')
 const Validator = require('../../../src/schemas')
 const ChangeTrackingService = require('../../../src/services/change-tracking-service')
@@ -124,6 +126,18 @@ describe('ioFog Service', () => {
       uuid: uuid,
     }
 
+    const networkRouter = {
+      host: 'localhost',
+      messagingPort: 5672
+    }
+
+    const router = {
+      isEdge: true,
+      ...networkRouter,
+      iofogUuid: uuid,
+      id: 1
+    }
+
     def('subject', () => $subject.createFogEndPoint(fogData, user, isCLI, transaction))
     def('validatorResponse', () => Promise.resolve(true))
     def('generateRandomStringResponse', () => uuid)
@@ -137,6 +151,9 @@ describe('ioFog Service', () => {
     def('createMicroserviceResponse2', () => Promise.resolve())
     def('getBluetoothCatalogItemResponse', () => Promise.resolve(bluetoothItem))
     def('updateChangeTrackingResponse', () => Promise.resolve())
+    def('getNetworkRouterResponse', () => Promise.resolve(networkRouter))
+    def('findOneRouterResponse', () => Promise.resolve(router))
+    def('emptyUpstreamRouters', () => Promise.resolve([]))
 
     def('dateResponse', () => date)
 
@@ -155,6 +172,11 @@ describe('ioFog Service', () => {
           .onSecondCall().returns($createMicroserviceResponse2)
       $sandbox.stub(CatalogService, 'getBluetoothCatalogItem').returns($getBluetoothCatalogItemResponse)
       $sandbox.stub(ChangeTrackingService, 'update').returns($updateChangeTrackingResponse)
+
+      $sandbox.stub(RouterService, 'getNetworkRouter').returns($getNetworkRouterResponse)
+      $sandbox.stub(RouterManager, 'findOne').returns($findOneRouterResponse)
+      $sandbox.stub(RouterService, 'validateAndReturnUpstreamRouters').returns($emptyUpstreamRouters)
+      $sandbox.stub(RouterService, 'createRouterForFog').returns($findOneRouterResponse)
 
       $sandbox.stub(Date, 'now').returns($dateResponse)
     })
