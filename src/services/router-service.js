@@ -25,9 +25,11 @@ const TransactionDecorator = require('../decorators/transaction-decorator')
 const Validator = require('../schemas')
 const ldifferenceWith = require('lodash/differenceWith')
 
-async function validateAndReturnUpstreamRouters (upstreamRouterIds, defaultRouter, transaction) {
+async function validateAndReturnUpstreamRouters (upstreamRouterIds, isSystemFog, defaultRouter, transaction) {
   if (!upstreamRouterIds) {
     if (!defaultRouter) {
+      // System fog will be created without default router already existing
+      if (isSystemFog) { return [] }
       throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_ROUTER, Constants.DEFAULT_ROUTER_NAME))
     }
     return [defaultRouter]
@@ -51,13 +53,15 @@ async function validateAndReturnUpstreamRouters (upstreamRouterIds, defaultRoute
 async function createRouterForFog (fogData, uuid, userId, upstreamRouters, transaction) {
   const isEdge = fogData.routerMode === 'edge'
   const messagingPort = fogData.messagingPort || 5672
+  // Get default router if system fog
+  const isDefault = fogData.isSystem ? !!await RouterManager.findOne({ isDefault: true }, transaction) : false
   const routerData = {
     isEdge,
     messagingPort: messagingPort,
     host: fogData.host,
     edgeRouterPort: !isEdge ? fogData.edgeRouterPort : null,
     interRouterPort: !isEdge ? fogData.interRouterPort : null,
-    isDefault: false,
+    isDefault: isDefault, // Is the default if system fog and no default router already existing
     iofogUuid: uuid
   }
 

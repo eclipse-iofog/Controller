@@ -4,6 +4,7 @@ const sinon = require('sinon')
 const ioFogManager = require('../../../src/data/managers/iofog-manager')
 const ioFogService = require('../../../src/services/iofog-service')
 const RouterManager = require('../../../src/data/managers/router-manager')
+const RouterConnectionManager = require('../../../src/data/managers/router-connection-manager')
 const RouterService = require('../../../src/services/router-service')
 const AppHelper = require('../../../src/helpers/app-helper')
 const Validator = require('../../../src/schemas')
@@ -151,6 +152,7 @@ describe('ioFog Service', () => {
     def('createMicroserviceResponse2', () => Promise.resolve())
     def('getBluetoothCatalogItemResponse', () => Promise.resolve(bluetoothItem))
     def('updateChangeTrackingResponse', () => Promise.resolve())
+
     def('getNetworkRouterResponse', () => Promise.resolve(networkRouter))
     def('findOneRouterResponse', () => Promise.resolve(router))
     def('emptyUpstreamRouters', () => Promise.resolve([]))
@@ -177,6 +179,7 @@ describe('ioFog Service', () => {
       $sandbox.stub(RouterManager, 'findOne').returns($findOneRouterResponse)
       $sandbox.stub(RouterService, 'validateAndReturnUpstreamRouters').returns($emptyUpstreamRouters)
       $sandbox.stub(RouterService, 'createRouterForFog').returns($findOneRouterResponse)
+      $sandbox.stub(ioFogManager, 'update').returns($createIoFogResponse)
 
       $sandbox.stub(Date, 'now').returns($dateResponse)
     })
@@ -501,9 +504,21 @@ describe('ioFog Service', () => {
       configLastUpdated: date,
     }
 
+    const networkRouter = {
+      host: 'localhost',
+      messagingPort: 5672
+    }
+
+    const router = {
+      isEdge: true,
+      ...networkRouter,
+      iofogUuid: uuid,
+      id: 1
+    }
+
     def('subject', () => $subject.updateFogEndPoint(fogData, user, isCLI, transaction))
     def('validatorResponse', () => Promise.resolve(true))
-    def('deleteUndefinedFieldsResponse', () => updateFogData)
+    def('deleteUndefinedFieldsResponse', () => ({...updateFogData}))
     def('findIoFogResponse', () => Promise.resolve(oldFog))
     def('updateIoFogResponse', () => Promise.resolve())
     def('updateChangeTrackingResponse', () => Promise.resolve())
@@ -515,6 +530,10 @@ describe('ioFog Service', () => {
     def('createMicroserviceResponse2', () => Promise.resolve())
     def('getBluetoothCatalogItemResponse', () => Promise.resolve(bluetoothItem))
 
+    
+    def('getNetworkRouterResponse', () => Promise.resolve(networkRouter))
+    def('findOneRouterResponse', () => Promise.resolve(router))
+    def('emptyUpstreamRouters', () => Promise.resolve([]))
     def('dateResponse', () => date)
 
     beforeEach(() => {
@@ -533,6 +552,13 @@ describe('ioFog Service', () => {
           .onFirstCall().returns($createMicroserviceResponse)
           .onSecondCall().returns($createMicroserviceResponse2)
       $sandbox.stub(CatalogService, 'getBluetoothCatalogItem').returns($getBluetoothCatalogItemResponse)
+
+      $sandbox.stub(RouterService, 'getNetworkRouter').returns($getNetworkRouterResponse)
+      $sandbox.stub(RouterManager, 'findOne').returns($findOneRouterResponse)
+      $sandbox.stub(RouterService, 'validateAndReturnUpstreamRouters').returns($emptyUpstreamRouters)
+      $sandbox.stub(RouterService, 'createRouterForFog').returns($findOneRouterResponse)
+      $sandbox.stub(RouterService, 'updateRouter').returns($findOneRouterResponse)
+      $sandbox.stub(RouterConnectionManager, 'findAllWithRouters').returns($emptyUpstreamRouters)
 
       $sandbox.stub(Date, 'now').returns($dateResponse)
     })
@@ -585,7 +611,7 @@ describe('ioFog Service', () => {
             await $subject
 
             expect(ioFogManager.update).to.have.been.calledWith(queryFogData,
-                updateFogData, transaction)
+                {...updateFogData, routerHost: 'localhost', routerPort: 5672}, transaction)
           })
 
           context('when ioFogManager#update() fails', () => {
@@ -777,6 +803,18 @@ describe('ioFog Service', () => {
       fogType: 1,
     }
 
+    const networkRouter = {
+      host: 'localhost',
+      messagingPort: 5672
+    }
+
+    const router = {
+      isEdge: true,
+      ...networkRouter,
+      iofogUuid: uuid,
+      id: 1
+    }
+    
     const queryFogData = isCLI
       ? { uuid: fogData.uuid }
       : { uuid: fogData.uuid, userId: user.id }
@@ -785,12 +823,17 @@ describe('ioFog Service', () => {
     def('validatorResponse', () => Promise.resolve(true))
     def('findIoFogResponse', () => Promise.resolve(fog))
     def('updateChangeTrackingResponse', () => Promise.resolve())
+    def('findOneRouterResponse', () => Promise.resolve(router))
+    def('emptyUpstreamRouters', () => Promise.resolve([]))
 
     beforeEach(() => {
       $sandbox.stub(Validator, 'validate').returns($validatorResponse)
       $sandbox.stub(ioFogManager, 'findOne').returns($findIoFogResponse)
       $sandbox.stub(ioFogManager, 'delete')
       $sandbox.stub(ChangeTrackingService, 'update').returns($updateChangeTrackingResponse)
+      $sandbox.stub(RouterManager, 'findOne').returns($findOneRouterResponse)
+      $sandbox.stub(RouterManager, 'delete')
+      $sandbox.stub(RouterConnectionManager, 'findAllWithRouters').returns($emptyUpstreamRouters)
     })
 
     it('calls Validator#validate() with correct args', async () => {
@@ -893,10 +936,12 @@ describe('ioFog Service', () => {
     def('subject', () => $subject.getFog(fogData, user, isCLI, transaction))
     def('validatorResponse', () => Promise.resolve(true))
     def('findIoFogResponse', () => Promise.resolve(fog))
+    def('findOneRouterResponse', () => Promise.resolve(null))
 
     beforeEach(() => {
       $sandbox.stub(Validator, 'validate').returns($validatorResponse)
       $sandbox.stub(ioFogManager, 'findOne').returns($findIoFogResponse)
+      $sandbox.stub(RouterManager, 'findOne').returns($findOneRouterResponse)
     })
 
     it('calls Validator#validate() with correct args', async () => {
@@ -983,10 +1028,12 @@ describe('ioFog Service', () => {
     def('subject', () => $subject.getFogListEndPoint(filters, user, isCLI, transaction))
     def('validatorResponse', () => Promise.resolve(true))
     def('findAllIoFogResponse', () => Promise.resolve(fogs))
+    def('findOneRouterResponse', () => Promise.resolve(null))
 
     beforeEach(() => {
       $sandbox.stub(Validator, 'validate').returns($validatorResponse)
       $sandbox.stub(ioFogManager, 'findAll').returns($findAllIoFogResponse)
+      $sandbox.stub(RouterManager, 'findOne').returns($findOneRouterResponse)
     })
 
     it('calls Validator#validate() with correct args', async () => {

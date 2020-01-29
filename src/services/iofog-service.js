@@ -67,6 +67,9 @@ async function createFogEndPoint (fogData, user, isCLI, transaction) {
   }
   createFogData = AppHelper.deleteUndefinedFields(createFogData)
 
+  // Default router is edge
+  fogData.routerMode = fogData.routerMode || 'edge'
+
   let defaultRouter, upstreamRouters
   if (fogData.routerMode === 'none') {
     const networkRouter = await RouterService.getNetworkRouter(fogData.networkRouter)
@@ -77,7 +80,7 @@ async function createFogEndPoint (fogData, user, isCLI, transaction) {
     createFogData.routerPort = networkRouter.messagingPort
   } else {
     defaultRouter = await RouterManager.findOne({ isDefault: true }, transaction)
-    upstreamRouters = await RouterService.validateAndReturnUpstreamRouters(fogData.upstreamRouters, defaultRouter)
+    upstreamRouters = await RouterService.validateAndReturnUpstreamRouters(fogData.upstreamRouters, fogData.isSystem, defaultRouter)
   }
 
   const fog = await FogManager.create(createFogData, transaction)
