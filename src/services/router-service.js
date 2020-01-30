@@ -124,6 +124,7 @@ async function updateConfig (routerID, transaction) {
   let microserviceConfig = _getRouterMicroserviceConfig(router.isEdge, router.iofogUuid, router.messagingPort, router.interRouterPort, router.edgeRouterPort)
 
   const upstreamRoutersConnections = await RouterConnectionManager.findAllWithRouters({ sourceRouter: router.id }, transaction)
+
   for (const upstreamRouterConnection of upstreamRoutersConnections) {
     microserviceConfig += _getRouterConnectorConfig(router.isEdge, upstreamRouterConnection.dest)
   }
