@@ -258,7 +258,9 @@ const getAgentMicroservices = async function (fog, transaction) {
       continue
     }
 
-    const routes = await MicroserviceService.getPhysicalConnections(microservice, transaction)
+    const routes = await MicroserviceService.getReceiverMicroservices(microservice, transaction)
+    const isConsumer = await MicroserviceService.isMicroserviceConsumer(microservice, transaction)
+
     const env = microservice.env && microservice.env.map((it) => {
       return {
         key: it.key,
@@ -282,9 +284,10 @@ const getAgentMicroservices = async function (fog, transaction) {
       imageSnapshot: microservice.imageSnapshot,
       delete: microservice.delete,
       deleteWithCleanup: microservice.deleteWithCleanup,
-      routes: routes,
-      env: env,
-      cmd: cmd
+      env,
+      cmd,
+      routes,
+      isConsumer
     }
 
     response.push(responseMicroservice)

@@ -386,11 +386,7 @@ async function _createRoute (sourceMicroservice, destMicroservice, user, transac
     throw new Errors.ValidationError('route already exists')
   }
 
-  if (sourceMicroservice.iofogUuid === destMicroservice.iofogUuid) {
-    await _createSimpleRoute(sourceMicroservice, destMicroservice, transaction)
-  } else {
-    await _createRouteOverConnector(sourceMicroservice, destMicroservice, user, transaction)
-  }
+  await _createSimpleRoute(sourceMicroservice, destMicroservice, transaction)
 }
 
 async function updateRouteOverConnector (connector, transaction) {
@@ -590,6 +586,18 @@ async function getPhysicalConnections (microservice, transaction) {
   }
 
   return res
+}
+
+async function getReceiverMicroservices (microservice, transaction) {
+  const routes = await RoutingManager.findAll({ sourceMicroserviceUuid: microservice.uuid }, transaction)
+
+  return routes.filter(route => route.sourceIofogUuid && route.destIofogUuid).map(route => route.destMicroserviceUuid)
+}
+
+async function isMicroserviceConsumer (microservice, transaction) {
+  const routes = await RoutingManager.findAll({ destMicroserviceUuid: microservice.uuid }, transaction)
+
+  return !!(routes && routes.length > 0)
 }
 
 async function createVolumeMappingEndPoint (microserviceUuid, volumeMappingData, user, isCLI, transaction) {
@@ -1383,5 +1391,7 @@ module.exports = {
   deleteNotRunningMicroservices: deleteNotRunningMicroservices,
   updateRouteOverConnector: updateRouteOverConnector,
   updatePortMappingOverConnector: updatePortMappingOverConnector,
-  deleteMicroserviceWithRoutesAndPortMappings: deleteMicroserviceWithRoutesAndPortMappings
+  deleteMicroserviceWithRoutesAndPortMappings: deleteMicroserviceWithRoutesAndPortMappings,
+  getReceiverMicroservices,
+  isMicroserviceConsumer
 }
