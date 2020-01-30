@@ -135,6 +135,11 @@ async function updateConfig (routerID, transaction) {
   if (!routerMicroservice) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_ROUTER, router.id))
   }
+  if (router.isEdge) {
+    await MicroserviceEnvManager.delete({ key: 'QDROUTERD_AUTO_MESH_DISCOVERY', microserviceUuid: routerMicroservice.uuid }, transaction)
+  } else {
+    await MicroserviceEnvManager.updateOrCreate({ key: 'QDROUTERD_AUTO_MESH_DISCOVERY', microserviceUuid: routerMicroservice.uuid }, { key: 'QDROUTERD_AUTO_MESH_DISCOVERY', microserviceUuid: routerMicroservice.uuid, value: 'QUERY' }, transaction)
+  }
   await MicroserviceEnvManager.update({ microserviceUuid: routerMicroservice.uuid, key: 'QDROUTERD_CONF' }, { value: microserviceConfig }, transaction)
 }
 
