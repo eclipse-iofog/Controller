@@ -255,6 +255,9 @@ async function _deleteFogRouter (fogData, transaction) {
     }
     // Delete router
     await RouterManager.delete({ iofogUuid: fogData.uuid }, transaction)
+    // Delete router msvc
+    const routerCatalog = await CatalogService.getRouterCatalogItem(transaction)
+    await MicroserviceManager.delete({ catalogItemId: routerCatalog.id, iofogUuid: fogData.uuid }, transaction)
   } else {
     // Router mode is none, there is nothing to do
   }
