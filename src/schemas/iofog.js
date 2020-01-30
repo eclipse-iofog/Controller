@@ -53,7 +53,8 @@ const iofogCreate = {
       'required': ['interRouterPort', 'edgeRouterPort', 'host']
     },
     {
-      'properties': { 'routerMode': { 'const': 'edge' } }
+      'properties': { 'routerMode': { 'const': 'edge' } },
+      'required': ['host']
     },
     {
       'properties': { 'routerMode': { 'const': 'none' } }
