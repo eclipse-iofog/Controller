@@ -902,94 +902,94 @@ async function _updateNetworkMicroserviceConfigs (networkMicroserviceUuids, conn
   }
 }
 
-async function _createRouteOverConnector (sourceMicroservice, destMicroservice, user, transaction) {
-  // open connector
-  const justOpenedConnectorsPorts = await ConnectorPortService.openPortOnRandomConnector(false, transaction)
+// async function _createRouteOverConnector (sourceMicroservice, destMicroservice, user, transaction) {
+//   // open connector
+//   const justOpenedConnectorsPorts = await ConnectorPortService.openPortOnRandomConnector(false, transaction)
 
-  const ports = justOpenedConnectorsPorts.ports
-  const connector = justOpenedConnectorsPorts.connector
+//   const ports = justOpenedConnectorsPorts.ports
+//   const connector = justOpenedConnectorsPorts.connector
 
-  const createConnectorPortData = {
-    port1: ports.port1,
-    port2: ports.port2,
-    maxConnectionsPort1: 1,
-    maxConnectionsPort2: 1,
-    passcodePort1: ports.passcode1,
-    passcodePort2: ports.passcode2,
-    heartBeatAbsenceThresholdPort1: 60000,
-    heartBeatAbsenceThresholdPort2: 60000,
-    connectorId: ports.connectorId,
-    mappingId: ports.id,
-    moved: false
-  }
-  const connectorPort = await ConnectorPortManager.create(createConnectorPortData, transaction)
+//   const createConnectorPortData = {
+//     port1: ports.port1,
+//     port2: ports.port2,
+//     maxConnectionsPort1: 1,
+//     maxConnectionsPort2: 1,
+//     passcodePort1: ports.passcode1,
+//     passcodePort2: ports.passcode2,
+//     heartBeatAbsenceThresholdPort1: 60000,
+//     heartBeatAbsenceThresholdPort2: 60000,
+//     connectorId: ports.connectorId,
+//     mappingId: ports.id,
+//     moved: false
+//   }
+//   const connectorPort = await ConnectorPortManager.create(createConnectorPortData, transaction)
 
-  const networkCatalogItem = await CatalogService.getNetworkCatalogItem(transaction)
+//   const networkCatalogItem = await CatalogService.getNetworkCatalogItem(transaction)
 
-  let cert
-  if (!connector.devMode && connector.cert) {
-    cert = AppHelper.trimCertificate(fs.readFileSync(connector.cert, 'utf-8'))
-  }
+//   let cert
+//   if (!connector.devMode && connector.cert) {
+//     cert = AppHelper.trimCertificate(fs.readFileSync(connector.cert, 'utf-8'))
+//   }
 
-  // create netw ms1
-  const sourceNetwMsConfig = {
-    'mode': 'private',
-    'host': connector.domain,
-    'cert': cert,
-    'port': ports.port1,
-    'passcode': ports.passcode1,
-    'connectioncount': 1,
-    'localhost': 'iofog',
-    'localport': 0,
-    'heartbeatfrequency': 20000,
-    'heartbeatabsencethreshold': 60000,
-    'devmode': connector.devMode
-  }
-  const sourceNetworkMicroservice = await _createNetworkMicroserviceForMaster(
-    sourceMicroservice,
-    sourceNetwMsConfig,
-    networkCatalogItem,
-    user,
-    transaction
-  )
+//   // create netw ms1
+//   const sourceNetwMsConfig = {
+//     'mode': 'private',
+//     'host': connector.domain,
+//     'cert': cert,
+//     'port': ports.port1,
+//     'passcode': ports.passcode1,
+//     'connectioncount': 1,
+//     'localhost': 'iofog',
+//     'localport': 0,
+//     'heartbeatfrequency': 20000,
+//     'heartbeatabsencethreshold': 60000,
+//     'devmode': connector.devMode
+//   }
+//   const sourceNetworkMicroservice = await _createNetworkMicroserviceForMaster(
+//     sourceMicroservice,
+//     sourceNetwMsConfig,
+//     networkCatalogItem,
+//     user,
+//     transaction
+//   )
 
-  // create netw ms2
-  const destNetwMsConfig = {
-    'mode': 'private',
-    'host': connector.domain,
-    'cert': cert,
-    'port': ports.port2,
-    'passcode': ports.passcode2,
-    'connectioncount': 1,
-    'localhost': 'iofog',
-    'localport': 0,
-    'heartbeatfrequency': 20000,
-    'heartbeatabsencethreshold': 60000,
-    'devmode': connector.devMode
-  }
-  const destNetworkMicroservice = await _createNetworkMicroserviceForMaster(
-    destMicroservice,
-    destNetwMsConfig,
-    networkCatalogItem,
-    user,
-    transaction
-  )
+//   // create netw ms2
+//   const destNetwMsConfig = {
+//     'mode': 'private',
+//     'host': connector.domain,
+//     'cert': cert,
+//     'port': ports.port2,
+//     'passcode': ports.passcode2,
+//     'connectioncount': 1,
+//     'localhost': 'iofog',
+//     'localport': 0,
+//     'heartbeatfrequency': 20000,
+//     'heartbeatabsencethreshold': 60000,
+//     'devmode': connector.devMode
+//   }
+//   const destNetworkMicroservice = await _createNetworkMicroserviceForMaster(
+//     destMicroservice,
+//     destNetwMsConfig,
+//     networkCatalogItem,
+//     user,
+//     transaction
+//   )
 
-  // create new route
-  const routeData = {
-    isNetworkConnection: true,
-    sourceMicroserviceUuid: sourceMicroservice.uuid,
-    destMicroserviceUuid: destMicroservice.uuid,
-    sourceIofogUuid: sourceMicroservice.iofogUuid,
-    destIofogUuid: destMicroservice.iofogUuid,
-    sourceNetworkMicroserviceUuid: sourceNetworkMicroservice.uuid,
-    destNetworkMicroserviceUuid: destNetworkMicroservice.uuid,
-    connectorPortId: connectorPort.id
-  }
-  await RoutingManager.create(routeData, transaction)
+//   // create new route
+//   const routeData = {
+//     isNetworkConnection: true,
+//     sourceMicroserviceUuid: sourceMicroservice.uuid,
+//     destMicroserviceUuid: destMicroservice.uuid,
+//     sourceIofogUuid: sourceMicroservice.iofogUuid,
+//     destIofogUuid: destMicroservice.iofogUuid,
+//     sourceNetworkMicroserviceUuid: sourceNetworkMicroservice.uuid,
+//     destNetworkMicroserviceUuid: destNetworkMicroservice.uuid,
+//     connectorPortId: connectorPort.id
+//   }
+//   await RoutingManager.create(routeData, transaction)
 
-  await _switchOnUpdateFlagsForMicroservicesInRoute(sourceMicroservice, destMicroservice, transaction)
-}
+//   await _switchOnUpdateFlagsForMicroservicesInRoute(sourceMicroservice, destMicroservice, transaction)
+// }
 
 async function _createNetworkMicroserviceForMaster (masterMicroservice, sourceNetwMsConfig, networkCatalogItem, user, transaction) {
   const sourceNetworkMicroserviceData = {

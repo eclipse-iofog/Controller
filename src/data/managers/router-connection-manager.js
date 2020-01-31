@@ -27,14 +27,12 @@ class RouterConnectionManager extends BaseManager {
         {
           model: Router,
           as: 'source',
-          required: true,
-          attributes: ['iofogUuid', 'host', 'edgeRouterPort', 'interRouterPort', 'messagingPort', 'isEdge', 'isDefault', 'id']
+          required: true
         },
         {
           model: Router,
           as: 'dest',
-          required: true,
-          attributes: ['iofogUuid', 'host', 'edgeRouterPort', 'interRouterPort', 'messagingPort', 'isEdge', 'isDefault', 'id']
+          required: true
         }
       ],
       where: where
