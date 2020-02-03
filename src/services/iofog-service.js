@@ -285,8 +285,13 @@ async function deleteFogEndPoint (fogData, user, isCLI, transaction) {
   await _deleteFogRouter(fogData, transaction)
 }
 
+async function _getRouterUuid (router, defaultRouter) {
+  return router.id === defaultRouter.id ? Constants.DEFAULT_ROUTER_NAME : router.iofogUuid
+}
+
 async function _getFogRouterConfig (fog, transaction) {
   // Get fog router config
+  const defaultRouter = RouterManager.findOne({ isDefault: true })
   const router = await RouterManager.findOne({ iofogUuid: fog.uuid }, transaction)
   if (fog.toJSON && typeof fog.toJSON === 'function') {
     fog = fog.toJSON() // Transform Sequelize object to JSON object
@@ -301,9 +306,13 @@ async function _getFogRouterConfig (fog, transaction) {
     }
     // Get upstream routers
     const upstreamRoutersConnections = await RouterConnectionManager.findAllWithRouters({ sourceRouter: router.id }, transaction)
-    fog.upstreamRouters = upstreamRoutersConnections ? upstreamRoutersConnections.map(r => r.dest.iofogUuid) : []
+    fog.upstreamRouters = upstreamRoutersConnections ? upstreamRoutersConnections.map(r => _getRouterUuid(r.dest, defaultRouter)) : []
   } else {
     fog.routerMode = 'none'
+    const networkRouter = await RouterManager.findOne({ host: fog.routerHost, messagingPort: fog.routerPort }, transaction)
+    if (networkRouter) {
+      fog.networkRouter = _getRouterUuid(networkRouter, defaultRouter)
+    }
   }
 
   return fog
