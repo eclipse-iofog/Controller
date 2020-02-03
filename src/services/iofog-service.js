@@ -291,7 +291,7 @@ function _getRouterUuid (router, defaultRouter) {
 
 async function _getFogRouterConfig (fog, transaction) {
   // Get fog router config
-  const defaultRouter = RouterManager.findOne({ isDefault: true })
+  const defaultRouter = await RouterManager.findOne({ isDefault: true }, transaction)
   const router = await RouterManager.findOne({ iofogUuid: fog.uuid }, transaction)
   if (fog.toJSON && typeof fog.toJSON === 'function') {
     fog = fog.toJSON() // Transform Sequelize object to JSON object
