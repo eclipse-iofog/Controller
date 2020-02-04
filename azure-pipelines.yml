@@ -207,4 +207,9 @@ stages:
         echo $(controller_tar)
         package_cloud push iofog/iofog-controller-snapshots/node/1 $(controller_tar) --config=$(Agent.TempDirectory)/package_cloud
       displayName: 'push to package cloud'
-
+    - script: |
+        cp $(controller_tar) iofogcontroller-develop.tgz
+        package_cloud yank iofog/iofog-controller-snapshots/node ./tmp/iofogcontroller-develop.tgz --skip-errors
+        package_cloud push iofog/iofog-controller-snapshots/node/1 iofogcontroller-develop.tgz --config=$(Agent.TempDirectory)/package_cloud
+      displayName: 'push develop package to package cloud'
+      # condition: and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/develop'))
