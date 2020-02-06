@@ -207,4 +207,10 @@ stages:
         echo $(controller_tar)
         package_cloud push iofog/iofog-controller-snapshots/node/1 $(controller_tar) --config=$(Agent.TempDirectory)/package_cloud
       displayName: 'push to package cloud'
-
+    - script: |
+        package_cloud yank iofog/iofog-controller-snapshots/node/1 iofogcontroller-0.0.0-dev.tgz --config=$(Agent.TempDirectory)/package_cloud
+        npm --no-git-tag-version version 0.0.0-dev --allow-downgrade
+        npm pack
+        package_cloud push iofog/iofog-controller-snapshots/node/1 iofogcontroller-0.0.0-dev.tgz --config=$(Agent.TempDirectory)/package_cloud
+      displayName: 'push develop package to package cloud'
+      condition: and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/develop'))
