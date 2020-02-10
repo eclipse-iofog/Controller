@@ -16,6 +16,9 @@ const execSync = require('child_process').execSync
 const { init } = require('./init')
 const { restoreDBs, backupDBs, setDbEnvVars } = require('./util')
 
+const FogService = require('../src/services/iofog-service')
+const RouterService = require('../src/services/router-service')
+
 const options = {
   env: {
     'NODE_ENV': 'production',
@@ -56,6 +59,26 @@ const registryCreateFields = ['id']
 const registryListFields = ['registries']
 
 const tunnelListFields = ['tunnels']
+
+async function seedTestData () {
+  // Create system agent which hosts default router
+  console.log('\n=============================\nSeeding database..')
+  console.log('\nCreating system fog')
+  await FogService.createFogEndPoint({
+    name: 'default-router',
+    fogType: 1,
+    isSystem: true,
+    routerMode: 'interior',
+    messagingPort: 5672,
+    edgeRouterPort: 56722,
+    interRouterPort: 56721,
+    host: 'localhost'
+  }, { }, false)
+  const defaultRouter = await RouterService.findOne({ isDefault: true })
+  if (!defaultRouter) {
+    throw new Error('Failed to seed')
+  }
+}
 
 function testControllerSection () {
   console.log('\n=============================\nStarting controller section..')
@@ -406,11 +429,12 @@ function responseContains (response, expectedResponsePart) {
   }
 }
 
-function cliTest () {
+async function cliTest () {
   try {
     backupDBs()
     // create new DBs
     init()
+    await seedTestData()
 
     testControllerSection()
     testUserSection()

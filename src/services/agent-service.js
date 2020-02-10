@@ -40,6 +40,7 @@ const Op = Sequelize.Op
 const TrackingDecorator = require('../decorators/tracking-decorator')
 const TrackingEventType = require('../enums/tracking-event-type')
 const TrackingEventManager = require('../data/managers/tracking-event-manager')
+const RouterManager = require('../data/managers/router-manager')
 
 const IncomingForm = formidable.IncomingForm
 
@@ -107,7 +108,8 @@ const _invalidateFogNode = async function (fog, transaction) {
   return updatedFog
 }
 
-const getAgentConfig = async function (fog) {
+const getAgentConfig = async function (fog, transaction) {
+  const router = fog.routerId ? await RouterManager.findOne({ id: fog.routerId }, transaction) : await fog.getRouter()
   // fog is the result of FogManager.FindOne() in the checkFogToken middleware
   return {
     networkInterface: fog.networkInterface,
@@ -128,8 +130,8 @@ const getAgentConfig = async function (fog) {
     logLevel: fog.logLevel,
     diskThreshold: fog.diskThreshold,
     dockerPruningFrequency: fog.dockerPruningFrequency,
-    routerHost: fog.routerHost,
-    routerPort: fog.routerPort
+    routerHost: router.host,
+    routerPort: router.messagingPort
   }
 }
 
@@ -265,7 +267,9 @@ const getAgentMicroservices = async function (fog, transaction) {
       continue
     }
 
-    const routes = await MicroserviceService.getPhysicalConnections(microservice, transaction)
+    const routes = await MicroserviceService.getReceiverMicroservices(microservice, transaction)
+    const isConsumer = await MicroserviceService.isMicroserviceConsumer(microservice, transaction)
+
     const env = microservice.env && microservice.env.map((it) => {
       return {
         key: it.key,
@@ -289,9 +293,10 @@ const getAgentMicroservices = async function (fog, transaction) {
       imageSnapshot: microservice.imageSnapshot,
       delete: microservice.delete,
       deleteWithCleanup: microservice.deleteWithCleanup,
-      routes: routes,
-      env: env,
-      cmd: cmd
+      env,
+      cmd,
+      routes,
+      isConsumer
     }
 
     response.push(responseMicroservice)
@@ -540,7 +545,7 @@ const agentProvisionWithTracking = TrackingDecorator.trackEvent(agentProvision, 
 module.exports = {
   agentProvision: TransactionDecorator.generateTransaction(agentProvisionWithTracking),
   agentDeprovision: TransactionDecorator.generateTransaction(agentDeprovision),
-  getAgentConfig: getAgentConfig,
+  getAgentConfig: TransactionDecorator.generateTransaction(getAgentConfig),
   updateAgentConfig: TransactionDecorator.generateTransaction(updateAgentConfig),
   getAgentConfigChanges: TransactionDecorator.generateTransaction(getAgentConfigChanges),
   updateAgentStatus: TransactionDecorator.generateTransaction(updateAgentStatus),

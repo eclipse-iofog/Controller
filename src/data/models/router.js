@@ -1,4 +1,5 @@
 'use strict'
+
 module.exports = (sequelize, DataTypes) => {
   const Router = sequelize.define('Router', {
     id: {
@@ -8,13 +9,32 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       field: 'id'
     },
-    name: {
-      type: DataTypes.TEXT,
-      field: 'name'
+    isEdge: {
+      type: DataTypes.BOOLEAN,
+      field: 'is_edge',
+      defaultValue: true
     },
-    domain: {
+    messagingPort: {
+      type: DataTypes.INTEGER,
+      field: 'messaging_port',
+      defaultValue: 5672
+    },
+    edgeRouterPort: {
+      type: DataTypes.INTEGER,
+      field: 'edge_router_port'
+    },
+    interRouterPort: {
+      type: DataTypes.INTEGER,
+      field: 'inter_router_port'
+    },
+    host: {
       type: DataTypes.TEXT,
       field: 'host'
+    },
+    isDefault: {
+      type: DataTypes.BOOLEAN,
+      field: 'is_default',
+      defaultValue: false
     }
   }, {
     tableName: 'Routers',
@@ -22,7 +42,20 @@ module.exports = (sequelize, DataTypes) => {
     underscored: true
   })
   Router.associate = function (models) {
+    Router.belongsTo(models.Fog, {
+      foreignKey: {
+        name: 'iofogUuid',
+        field: 'iofog_uuid'
+      },
+      as: 'iofog',
+      onDelete: 'cascade'
+    })
 
+    Router.hasMany(models.RouterConnection, {
+      foreignKey: 'source_router',
+      as: 'upstreamRouters'
+    })
   }
+
   return Router
 }

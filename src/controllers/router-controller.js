@@ -1,6 +1,6 @@
 /*
  * *******************************************************************************
- *  * Copyright (c) 2018 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -13,31 +13,16 @@
 
 const RouterService = require('../services/router-service')
 
-const addRouterEndPoint = async function (req) {
-  const connectorData = req.body
-  return RouterService.createRouter(connectorData)
+const upsertDefaultRouter = async function (req) {
+  const routerData = req.body
+  return RouterService.upsertDefaultRouter(routerData)
 }
 
-const updateRouterEndPoint = async function (req) {
-  const connectorData = req.body
-  return RouterService.updateRouter(connectorData)
-}
-
-const deleteRouterEndPoint = async function (req) {
-  const connectorData = req.body
-  return RouterService.deleteRouter(connectorData)
-}
-
-const listRouterEndPoint = async function (req) {
-  const res = await RouterService.getRouterList()
-  return {
-    routers: res
-  }
+const getRouterEndPoint = async function () {
+  return RouterService.getDefaultRouter()
 }
 
 module.exports = {
-  addRouterEndPoint,
-  updateRouterEndPoint,
-  deleteRouterEndPoint,
-  listRouterEndPoint
+  upsertDefaultRouter,
+  getRouterEndPoint
 }

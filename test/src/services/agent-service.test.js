@@ -739,6 +739,8 @@ describe('Agent Service', () => {
 
     const routes = []
 
+    const isConsumer = false
+
     const microserviceWithValidImage = {
       uuid: 'testMicroserviceUuid',
       imageId: '',
@@ -806,6 +808,7 @@ describe('Agent Service', () => {
     }
 
 
+
     const microserviceResponse = {
       microservices: [{
         uuid: 'testMicroserviceUuid',
@@ -831,6 +834,7 @@ describe('Agent Service', () => {
           'ls',
           '-l',
         ],
+        isConsumer
       }],
     }
 
@@ -848,11 +852,13 @@ describe('Agent Service', () => {
 
     def('findAllMicroservicesResponse', () => Promise.resolve([microserviceWithValidImage, microserviceWithInvalidImage]))
     def('getPhysicalConnectionsResponse', () => Promise.resolve(routes))
-    def('updateResponse', () => Promise.resolve(microserviceResponse))
+    def('updateResponse', () => Promise.resolve([]))
+    def('isConsumerResponse', () => Promise.resolve(isConsumer))
 
     beforeEach(() => {
       $sandbox.stub(MicroserviceManager, 'findAllActiveFlowMicroservices').returns($findAllMicroservicesResponse)
-      $sandbox.stub(MicroserviceService, 'getPhysicalConnections').returns($getPhysicalConnectionsResponse)
+      $sandbox.stub(MicroserviceService, 'getReceiverMicroservices').returns($getPhysicalConnectionsResponse)
+      $sandbox.stub(MicroserviceService, 'isMicroserviceConsumer').returns($isConsumerResponse)
       $sandbox.stub(MicroserviceManager, 'update').returns($updateResponse)
     })
 
@@ -870,15 +876,15 @@ describe('Agent Service', () => {
     })
 
     context('when MicroserviceManager#findAllActiveFlowMicroservices() succeeds', () => {
-      it('calls MicroserviceService.getPhysicalConnections with correct args', async () => {
+      it('calls MicroserviceService.getReceiverMicroservices with correct args', async () => {
         await $subject
-        expect(MicroserviceService.getPhysicalConnections).to.have.been.calledWith(microserviceWithValidImage, transaction)
+        expect(MicroserviceService.getReceiverMicroservices).to.have.been.calledWith(microserviceWithValidImage, transaction)
       })
 
-      context('when MicroserviceService#getPhysicalConnections fails', () => {
+      context('when MicroserviceService#getReceiverMicroservices fails', () => {
         const error = 'Error!'
 
-        def('getPhysicalConnectionsResponse', () => error)
+        def('getReceiverMicroservices', () => error)
 
         it(`fails with "${error}"`, () => {
           return expect($subject).to.be.rejectedWith = (error)

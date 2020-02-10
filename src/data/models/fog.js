@@ -299,15 +299,10 @@ module.exports = (sequelize, DataTypes) => {
       field: 'is_system',
       defaultValue: false
     },
-    routerHost: {
-      type: DataTypes.TEXT,
-      field: 'router_host',
-      defaultValue: ''
-    },
-    routerPort: {
+    routerId: {
       type: DataTypes.INTEGER,
-      field: 'router_port',
-      defaultValue: 5672
+      field: 'router_Id',
+      defaultValue: ''
     }
   }, {
     tableName: 'Fogs',
@@ -342,6 +337,11 @@ module.exports = (sequelize, DataTypes) => {
     Fog.hasMany(models.Microservice, {
       foreignKey: 'iofog_uuid',
       as: 'microservice'
+    })
+
+    Fog.hasOne(models.Router, {
+      foreignKey: 'iofog_uuid',
+      as: 'router'
     })
   }
 

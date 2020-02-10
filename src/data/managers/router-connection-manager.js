@@ -13,13 +13,32 @@
 
 const BaseManager = require('./base-manager')
 const models = require('../models')
+const RouterConnection = models.RouterConnection
 const Router = models.Router
 
-class RouterManager extends BaseManager {
+class RouterConnectionManager extends BaseManager {
   getEntity () {
-    return Router
+    return RouterConnection
+  }
+
+  findAllWithRouters (where, transaction) {
+    return RouterConnection.findAll({
+      include: [
+        {
+          model: Router,
+          as: 'source',
+          required: true
+        },
+        {
+          model: Router,
+          as: 'dest',
+          required: true
+        }
+      ],
+      where: where
+    }, { transaction: transaction })
   }
 }
 
-const instance = new RouterManager()
+const instance = new RouterConnectionManager()
 module.exports = instance

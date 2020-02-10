@@ -104,7 +104,8 @@ const ports = {
   'properties': {
     'internal': { 'type': 'integer' },
     'external': { 'type': 'integer' },
-    'publicMode': { 'type': 'boolean' }
+    'publicPort': { 'type': 'integer' },
+    'host': { 'type': 'string' }
   },
   'required': ['internal', 'external'],
   'additionalProperties': true

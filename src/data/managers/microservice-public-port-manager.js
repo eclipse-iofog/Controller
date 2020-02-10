@@ -13,13 +13,13 @@
 
 const BaseManager = require('./base-manager')
 const models = require('../models')
-const Router = models.Router
+const MicroservicePublicPort = models.MicroservicePublicPort
 
-class RouterManager extends BaseManager {
+class MicroservicePublicPortManager extends BaseManager {
   getEntity () {
-    return Router
+    return MicroservicePublicPort
   }
 }
 
-const instance = new RouterManager()
+const instance = new MicroservicePublicPortManager()
 module.exports = instance
