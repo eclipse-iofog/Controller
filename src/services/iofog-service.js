@@ -63,7 +63,8 @@ async function createFogEndPoint (fogData, user, isCLI, transaction) {
     abstractedHardwareEnabled: fogData.abstractedHardwareEnabled,
     fogTypeId: fogData.fogType,
     isSystem: fogData.isSystem,
-    userId: user.id
+    userId: user.id,
+    routerId: null
   }
   createFogData = AppHelper.deleteUndefinedFields(createFogData)
 
@@ -84,8 +85,7 @@ async function createFogEndPoint (fogData, user, isCLI, transaction) {
     if (!networkRouter) {
       throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_ROUTER, !fogData.networkRouter ? Constants.DEFAULT_ROUTER_NAME : fogData.networkRouter))
     }
-    createFogData.routerHost = networkRouter.host
-    createFogData.routerPort = networkRouter.messagingPort
+    createFogData.routerId = networkRouter.id
   } else {
     defaultRouter = await RouterManager.findOne({ isDefault: true }, transaction)
     upstreamRouters = await RouterService.validateAndReturnUpstreamRouters(fogData.upstreamRouters, fogData.isSystem, defaultRouter)
@@ -94,8 +94,7 @@ async function createFogEndPoint (fogData, user, isCLI, transaction) {
   const fog = await FogManager.create(createFogData, transaction)
 
   if (fogData.routerMode !== 'none') {
-    const networkRouter = await RouterService.createRouterForFog(fogData, fog.uuid, user.id, upstreamRouters)
-    await FogManager.update({ uuid: fog.uuid }, { routerHost: networkRouter.host, routerPort: networkRouter.messagingPort }, transaction)
+    await RouterService.createRouterForFog(fogData, fog.uuid, user.id, upstreamRouters)
   }
 
   const res = {
@@ -169,8 +168,6 @@ async function updateFogEndPoint (fogData, user, isCLI, transaction) {
   const messagingPort = fogData.messagingPort || (router ? router.messagingPort : null)
   const interRouterPort = fogData.interRouterPort || (router ? router.interRouterPort : null)
   const edgeRouterPort = fogData.edgeRouterPort || (router ? router.edgeRouterPort : null)
-  const currentNetworkRouter = oldFog.routerHost === 'localhost' ? router : await RouterManager.findOne({ host: oldFog.routerHost, messagingPort: oldFog.routerPort }, transaction)
-  const networkRouterIofogUuid = fogData.networkRouter || lget(currentNetworkRouter, 'iofogUuid', undefined)
   let networkRouter
 
   if (routerMode === 'none') {
@@ -178,7 +175,7 @@ async function updateFogEndPoint (fogData, user, isCLI, transaction) {
       // New router mode is none, delete existing router
       await _deleteFogRouter(fogData, transaction)
     }
-    networkRouter = await RouterService.getNetworkRouter(networkRouterIofogUuid)
+    networkRouter = await RouterService.getNetworkRouter(fogData.networkRouter)
     if (!networkRouter) {
       throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_ROUTER, !fogData.networkRouter ? Constants.DEFAULT_ROUTER_NAME : fogData.networkRouter))
     }
@@ -195,11 +192,10 @@ async function updateFogEndPoint (fogData, user, isCLI, transaction) {
       }, upstreamRouters)
     }
   }
-  updateFogData.routerHost = networkRouter.host
-  updateFogData.routerPort = networkRouter.messagingPort
+  updateFogData.routerId = networkRouter.id
 
   // If router changed, set routerChanged flag
-  if (updateFogData.routerHost !== oldFog.routerHost || updateFogData.routerPort !== oldFog.routerPort) {
+  if (updateFogData.routerId !== oldFog.routerId) {
     await ChangeTrackingService.update(fogData.uuid, ChangeTrackingService.events.routerChanged, transaction)
   }
 
@@ -231,36 +227,67 @@ async function updateFogEndPoint (fogData, user, isCLI, transaction) {
   }
 }
 
+async function _updateProxyRouters (fogId, router, transaction) {
+  const proxyCatalog = await CatalogService.getProxyCatalogItem(transaction)
+  const proxyMicroservices = await MicroserviceManager.findAll({ catalogItemId: proxyCatalog.id, iofogUuid: fogId })
+  for (const proxyMicroservice of proxyMicroservices) {
+    const config = JSON.parse(proxyMicroservice.config || '{}')
+    config.networkRouter = {
+      host: router.host,
+      port: router.messagingPort
+    }
+    await MicroserviceManager.updateIfChanged({ uuid: proxyMicroservice.uuid }, { config: JSON.stringify(config) }, transaction)
+    await ChangeTrackingService.update(fogId, ChangeTrackingService.events.microserviceConfig, transaction)
+  }
+}
+
 async function _deleteFogRouter (fogData, transaction) {
   const router = await RouterManager.findOne({ iofogUuid: fogData.uuid }, transaction)
+  const defaultRouter = await RouterManager.findOne({ isDefault: true }, transaction)
 
   // If agent had a router, delete router and update linked routers
-  if (router) {
-    const routerID = router.id
-    const routerConnections = await RouterConnectionManager.findAllWithRouters({ [Op.or]: [{ destRouter: routerID }, { sourceRouter: routerID }] }, transaction)
-    // Delete all router connections, and set routerChanged flag for linked routers
-    if (routerConnections) {
-      for (const connection of routerConnections) {
-        const router = connection.source.id === routerID ? connection.dest : connection.source
-        // Delete router connection
-        await RouterConnectionManager.delete({ id: connection.id }, transaction)
-        // Update config for downstream routers
-        if (connection.dest.id === routerID) {
-          // Update router config
-          await RouterService.updateConfig(router.id, transaction)
-          // Set routerChanged flag
-          await ChangeTrackingService.update(router.iofogUuid, ChangeTrackingService.events.routerChanged, transaction)
+  if (!router) {
+    // Router mode is none, there is nothing to do
+    return
+  }
+
+  const routerId = router.id
+  const routerConnections = await RouterConnectionManager.findAllWithRouters({ [Op.or]: [{ destRouter: routerId }, { sourceRouter: routerId }] }, transaction)
+  // Delete all router connections, and set routerChanged flag for linked routers
+  if (routerConnections) {
+    for (const connection of routerConnections) {
+      const router = connection.source.id === routerId ? connection.dest : connection.source
+      // Delete router connection
+      await RouterConnectionManager.delete({ id: connection.id }, transaction)
+      // Update config for downstream routers
+      if (connection.dest.id === routerId) {
+        // in order to keep downstream routers in the network, we connect them to default router
+        if (defaultRouter) {
+          await RouterConnectionManager.create({ sourceRouter: router.id, destRouter: defaultRouter.id }, transaction)
         }
+
+        // Update router config
+        await RouterService.updateConfig(router.id, transaction)
+        // Set routerChanged flag
+        await ChangeTrackingService.update(router.iofogUuid, ChangeTrackingService.events.routerChanged, transaction)
       }
     }
-    // Delete router
-    await RouterManager.delete({ iofogUuid: fogData.uuid }, transaction)
-    // Delete router msvc
-    const routerCatalog = await CatalogService.getRouterCatalogItem(transaction)
-    await MicroserviceManager.delete({ catalogItemId: routerCatalog.id, iofogUuid: fogData.uuid }, transaction)
-  } else {
-    // Router mode is none, there is nothing to do
   }
+
+  // Connect the agents to default router
+  if (defaultRouter) {
+    const connectedAgents = await FogManager.findAll({ routerId }, transaction)
+    for (const connectedAgent of connectedAgents) {
+      await FogManager.update({ uuid: connectedAgent.uuid }, { routerId: defaultRouter.id }, transaction)
+      await _updateProxyRouters(connectedAgent.uuid, defaultRouter)
+      await ChangeTrackingService.update(connectedAgent.uuid, ChangeTrackingService.events.routerChanged, transaction)
+    }
+  }
+  // Delete router
+  await RouterManager.delete({ iofogUuid: fogData.uuid }, transaction)
+  // Delete router msvc
+  const routerCatalog = await CatalogService.getRouterCatalogItem(transaction)
+  await MicroserviceManager.delete({ catalogItemId: routerCatalog.id, iofogUuid: fogData.uuid }, transaction)
 }
 
 async function deleteFogEndPoint (fogData, user, isCLI, transaction) {
@@ -275,14 +302,13 @@ async function deleteFogEndPoint (fogData, user, isCLI, transaction) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, fogData.uuid))
   }
 
+  await _deleteFogRouter(fogData, transaction)
+
   await _processDeleteCommand(fog, transaction)
 
   try {
     await informKubelet(fog.uuid, 'DELETE')
   } catch (e) {}
-
-  // Only start router deletion after actually deleting the iofog
-  await _deleteFogRouter(fogData, transaction)
 }
 
 function _getRouterUuid (router, defaultRouter) {
@@ -309,7 +335,7 @@ async function _getFogRouterConfig (fog, transaction) {
     fog.upstreamRouters = upstreamRoutersConnections ? upstreamRoutersConnections.map(r => _getRouterUuid(r.dest, defaultRouter)) : []
   } else {
     fog.routerMode = 'none'
-    const networkRouter = await RouterManager.findOne({ host: fog.routerHost, messagingPort: fog.routerPort }, transaction)
+    const networkRouter = await RouterManager.findOne({ id: fog.routerId }, transaction)
     if (networkRouter) {
       fog.networkRouter = _getRouterUuid(networkRouter, defaultRouter)
     }

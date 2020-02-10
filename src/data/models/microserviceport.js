@@ -43,6 +43,11 @@ module.exports = (sequelize, DataTypes) => {
       as: 'user',
       onDelete: 'cascade'
     })
+
+    MicroservicePort.hasOne(models.MicroservicePublicPort, {
+      foreignKey: 'port_id',
+      as: 'publicPort'
+    })
   }
   return MicroservicePort
 }

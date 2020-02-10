@@ -76,10 +76,7 @@ async function createRouterForFog (fogData, uuid, userId, upstreamRouters, trans
 
   await _createRouterMicroservice(isEdge, uuid, userId, microserviceConfig, transaction)
 
-  return {
-    host: 'localhost',
-    messagingPort: router.messagingPort
-  }
+  return router
 }
 
 async function updateRouter (oldRouter, newRouterData, upstreamRouters, transaction) {

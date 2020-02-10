@@ -40,6 +40,7 @@ const Op = Sequelize.Op
 const TrackingDecorator = require('../decorators/tracking-decorator')
 const TrackingEventType = require('../enums/tracking-event-type')
 const TrackingEventManager = require('../data/managers/tracking-event-manager')
+const RouterManager = require('../data/managers/router-manager')
 
 const IncomingForm = formidable.IncomingForm
 
@@ -107,7 +108,8 @@ const _invalidateFogNode = async function (fog, transaction) {
   return updatedFog
 }
 
-const getAgentConfig = async function (fog) {
+const getAgentConfig = async function (fog, transaction) {
+  const router = fog.routerId ? await RouterManager.findOne({ id: fog.routerId }, transaction) : await fog.getRouter()
   // fog is the result of FogManager.FindOne() in the checkFogToken middleware
   return {
     networkInterface: fog.networkInterface,
@@ -125,8 +127,8 @@ const getAgentConfig = async function (fog) {
     watchdogEnabled: fog.watchdogEnabled,
     latitude: fog.latitude,
     longitude: fog.longitude,
-    routerHost: fog.routerHost,
-    routerPort: fog.routerPort
+    routerHost: router.host,
+    routerPort: router.messagingPort
   }
 }
 
@@ -536,7 +538,7 @@ const agentProvisionWithTracking = TrackingDecorator.trackEvent(agentProvision, 
 module.exports = {
   agentProvision: TransactionDecorator.generateTransaction(agentProvisionWithTracking),
   agentDeprovision: TransactionDecorator.generateTransaction(agentDeprovision),
-  getAgentConfig: getAgentConfig,
+  getAgentConfig: TransactionDecorator.generateTransaction(getAgentConfig),
   updateAgentConfig: TransactionDecorator.generateTransaction(updateAgentConfig),
   getAgentConfigChanges: TransactionDecorator.generateTransaction(getAgentConfigChanges),
   updateAgentStatus: TransactionDecorator.generateTransaction(updateAgentStatus),
