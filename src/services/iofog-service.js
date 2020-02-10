@@ -171,13 +171,14 @@ async function updateFogEndPoint (fogData, user, isCLI, transaction) {
   let networkRouter
 
   if (routerMode === 'none') {
-    if (router) {
-      // New router mode is none, delete existing router
-      await _deleteFogRouter(fogData, transaction)
-    }
     networkRouter = await RouterService.getNetworkRouter(fogData.networkRouter)
     if (!networkRouter) {
       throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_ROUTER, !fogData.networkRouter ? Constants.DEFAULT_ROUTER_NAME : fogData.networkRouter))
+    }
+    // Only delete previous router if there is a network router
+    if (router) {
+      // New router mode is none, delete existing router
+      await _deleteFogRouter(fogData, transaction)
     }
   } else {
     const defaultRouter = await RouterManager.findOne({ isDefault: true }, transaction)
