@@ -571,6 +571,7 @@ async function _createOrUpdateProxyMicroservice (name, mapping, networkRouter, h
 }
 
 async function _createPublicPortMapping (microservice, portMappingData, user, transaction) {
+  const isTcp = portMappingData.protocol === 'tcp'
   const localAgent = portMappingData.localAgent
   const localAgentsRouter = localAgent.routerId ? await RouterManager.findOne({ id: localAgent.routerId }, transaction) : await RouterManager.findOne({ iofogUuid: localAgent.uuid }, transaction)
   const localNetworkRouter = {
@@ -581,8 +582,8 @@ async function _createPublicPortMapping (microservice, portMappingData, user, tr
   // create proxy microservices
   const queueName = AppHelper.generateRandomString(32)
   const proxyCatalog = await CatalogService.getProxyCatalogItem(transaction)
-  const localMapping = `amqp:${queueName}=>http:${portMappingData.external}`
-  const remoteMapping = `http:${portMappingData.publicPort}=>amqp:${queueName}`
+  const localMapping = `amqp:${queueName}=>${isTcp ? 'tcp' : 'http'}:${portMappingData.external}`
+  const remoteMapping = `${isTcp ? 'tcp' : 'http'}:${portMappingData.publicPort}=>amqp:${queueName}`
 
   const localProxy = await _createOrUpdateProxyMicroservice(
     `Local proxy for ${microservice.uuid}`,
@@ -626,7 +627,8 @@ async function _createPublicPortMapping (microservice, portMappingData, user, tr
     localProxyId: localProxy.uuid,
     remoteProxyId: portMappingData.host ? remoteProxy.uuid : null,
     publicPort: portMappingData.publicPort,
-    queueName
+    queueName,
+    isTcp
   }
   await MicroservicePublicPortManager.create(publicPort, transaction)
 }
@@ -697,8 +699,9 @@ async function _updateOrDeleteProxyMicroservice (proxyId, proxyMapping, transact
 async function _deletePublicPortMapping (microservice, portMapping, transaction) {
   const publicPort = await portMapping.getPublicPort()
   if (publicPort) {
-    const localMapping = `amqp:${publicPort.queueName}=>http:${portMapping.portExternal}`
-    const remoteMapping = `http:${publicPort.publicPort}=>amqp:${publicPort.queueName}`
+    const protocol = publicPort.isTcp ? 'tcp' : 'http'
+    const localMapping = `amqp:${publicPort.queueName}=>${protocol}:${portMapping.portExternal}`
+    const remoteMapping = `${protocol}:${publicPort.publicPort}=>amqp:${publicPort.queueName}`
 
     await _updateOrDeleteProxyMicroservice(publicPort.localProxyId, localMapping, transaction)
     await _updateOrDeleteProxyMicroservice(publicPort.remoteProxyId, remoteMapping, transaction)

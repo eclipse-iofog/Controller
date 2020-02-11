@@ -32,6 +32,11 @@ module.exports = (sequelize, DataTypes) => {
     queueName: {
       type: DataTypes.TEXT,
       field: 'queue_name'
+    },
+    isTcp: {
+      type: DataTypes.BOOLEAN,
+      field: 'is_tcp',
+      defaultValue: false
     }
   }, {
     tableName: 'MicroservicePublicPorts',

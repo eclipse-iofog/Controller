@@ -105,7 +105,8 @@ const ports = {
     'internal': { 'type': 'integer' },
     'external': { 'type': 'integer' },
     'publicPort': { 'type': 'integer' },
-    'host': { 'type': 'string' }
+    'host': { 'type': 'string' },
+    'protocol': { 'enum': ['http', 'tcp'] }
   },
   'required': ['internal', 'external'],
   'additionalProperties': true
@@ -117,7 +118,9 @@ const portsCreate = {
   'properties': {
     'internal': { 'type': 'integer' },
     'external': { 'type': 'integer' },
-    'publicMode': { 'type': 'boolean' }
+    'publicPort': { 'type': 'integer' },
+    'host': { 'type': 'string' },
+    'protocol': { 'enum': ['http', 'tcp'] }
   },
   'required': ['internal', 'external'],
   'additionalProperties': true

@@ -42,6 +42,11 @@ module.exports = {
         type: Sequelize.STRING(32),
         field: 'queue_name'
       },
+      isTcp: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: false,
+        field: 'is_tcp'
+      },
       createdAt: {
         type: Sequelize.DATE,
         allowNull: false,
