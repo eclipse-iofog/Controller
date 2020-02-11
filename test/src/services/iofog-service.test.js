@@ -95,6 +95,7 @@ describe('ioFog Service', () => {
       dockerPruningFrequency: 10,
       diskThreshold: 90,
       logLevel: 'INFO',
+      routerId: null
     }
 
     const halItem = {
@@ -138,7 +139,8 @@ describe('ioFog Service', () => {
     const networkRouter = {
       uuid: 'fakeUuid',
       host: 'localhost',
-      messagingPort: 5672
+      messagingPort: 5672,
+      id: 2
     }
 
     const router = {
@@ -419,9 +421,9 @@ describe('ioFog Service', () => {
             })
 
             context('When there is a network router', async () => {
-              it('Should use the create the fog with the network router', async () => {
+              it('Should use create the fog with the network router', async () => {
                 await $subject
-                return expect(ioFogManager.create).to.have.been.calledWith({...createFogData, routerHost: networkRouter.host, routerPort: networkRouter.messagingPort})
+                return expect(ioFogManager.create).to.have.been.calledWith({...createFogData, routerId: networkRouter.id})
               })
             })
           })
@@ -430,10 +432,6 @@ describe('ioFog Service', () => {
             it('expects router to be created', async () => {
               await $subject
               return expect(RouterService.createRouterForFog).to.have.been.calledWith({...fogData, routerMode: 'edge'}, response.uuid, user.id, [])
-            })
-            it('expects fog to be updated with router info', async () => {
-              await $subject
-              return expect(ioFogManager.update).to.have.been.calledWith({uuid: response.uuid}, {routerHost: networkRouter.host, routerPort: networkRouter.messagingPort})
             })
           })
         })
@@ -586,10 +584,16 @@ describe('ioFog Service', () => {
       id: 1
     }
 
+    const defaultRouter = {...router, isDefault: true, id: 2}
+
+    const routerCatalogItem = {
+      id: 42
+    }
+
     def('subject', () => $subject.updateFogEndPoint(fogData, user, isCLI, transaction))
     def('validatorResponse', () => Promise.resolve(true))
     def('deleteUndefinedFieldsResponse', () => ({...updateFogData}))
-    def('findIoFogResponse', () => Promise.resolve(oldFog))
+    def('findIoFogResponse', () => Promise.resolve({...oldFog, getRouter: () => Promise.resolve(router)}))
     def('updateIoFogResponse', () => Promise.resolve())
     def('updateChangeTrackingResponse', () => Promise.resolve())
     def('updateChangeTrackingResponse2', () => Promise.resolve())
@@ -602,8 +606,11 @@ describe('ioFog Service', () => {
 
     
     def('getNetworkRouterResponse', () => Promise.resolve(networkRouter))
+    def('getRouterCatalogItemResponse', () => Promise.resolve(routerCatalogItem))
     def('findOneRouterResponse', () => Promise.resolve(router))
-    def('findDefaultRouterResponse', () => Promise.resolve({...router, isDefault: true, id: 2}))
+    def('createRouterResponse', () => Promise.resolve(router))
+    def('updateRouterResponse', () => Promise.resolve(router))
+    def('findDefaultRouterResponse', () => Promise.resolve(defaultRouter))
     def('emptyUpstreamRouters', () => Promise.resolve([]))
     def('dateResponse', () => date)
 
@@ -628,10 +635,11 @@ describe('ioFog Service', () => {
       const findRouterStub = $sandbox.stub(RouterManager, 'findOne').returns($findOneRouterResponse)
       findRouterStub.withArgs({isDefault: true}).returns($findDefaultRouterResponse)
       $sandbox.stub(RouterService, 'validateAndReturnUpstreamRouters').returns($emptyUpstreamRouters)
-      $sandbox.stub(RouterService, 'createRouterForFog').returns($findOneRouterResponse)
-      $sandbox.stub(RouterService, 'updateRouter').returns($findOneRouterResponse)
+      $sandbox.stub(RouterService, 'createRouterForFog').returns($createRouterResponse)
+      $sandbox.stub(RouterService, 'updateRouter').returns($updateRouterResponse)
       $sandbox.stub(RouterConnectionManager, 'findAllWithRouters').returns($emptyUpstreamRouters)
-
+      $sandbox.stub(CatalogService, 'getRouterCatalogItem').returns($getRouterCatalogItemResponse)
+      $sandbox.stub(MicroserviceManager, 'delete')
       $sandbox.stub(Date, 'now').returns($dateResponse)
     })
 
@@ -683,7 +691,7 @@ describe('ioFog Service', () => {
             await $subject
 
             expect(ioFogManager.update).to.have.been.calledWith(queryFogData,
-                {...updateFogData, routerHost: 'localhost', routerPort: 5672}, transaction)
+                {...updateFogData, routerId: router.id})
           })
 
           context('when ioFogManager#update() fails', () => {
@@ -848,9 +856,43 @@ describe('ioFog Service', () => {
               })
               context('when old router mode was not none', async () => {
                 def('findOneRouterResponse', () => Promise.resolve({...router, isEdge: true}))
+                def('findConnectedRoutersResponse', () => Promise.resolve([]))
+                beforeEach(() => {
+                  $sandbox.stub(ioFogManager, 'findAll').returns($findConnectedRoutersResponse)
+                })
                 it('should delete previous router', async () => {
                   await $subject
                   return expect(RouterManager.delete).to.have.been.calledWith({iofogUuid: fogData.uuid})
+                })
+                context('when there are connected routers', () => {
+                  const proxyCatalogItem = {id: 5}
+                  const connectedFog = {uuid: 'connectedFogUuid'}
+                  def('findConnectedRoutersResponse', () => Promise.resolve([connectedFog]))
+                  def('findProxyCatalogItemResponse', () => Promise.resolve(proxyCatalogItem))
+                  def('findProxyMicroservicesResponse', () => Promise.resolve([]))
+                  beforeEach(() => {
+                    $sandbox.stub(CatalogService, 'getProxyCatalogItem').returns(() => Promise.resolve({id: 1}))
+                    $sandbox.stub(MicroserviceManager, 'findAll').returns($findProxyMicroservicesResponse)
+                  })
+
+                  it('should update agent routerId', async () => {
+                    await $subject
+                    return expect(ioFogManager.update).to.have.been.calledWith({ uuid: connectedFog.uuid }, { routerId: defaultRouter.id })
+                  })
+
+                  context('when there are proxy microservices', () => {
+                    const proxyMsvc = {uuid: 'proxyMsvc'}
+                    def('findProxyMicroservicesResponse', () => Promise.resolve([proxyMsvc]))
+                    beforeEach(() => {
+                      $sandbox.stub(MicroserviceManager, 'updateIfChanged')
+                    })
+                    it('should update microservice config and set flag', async () => {
+                      await $subject
+                      expect(MicroserviceManager.updateIfChanged).to.have.been.calledWith({ uuid: proxyMsvc.uuid }, { config: JSON.stringify({networkRouter: { host: defaultRouter.host, port: defaultRouter.messagingPort}}) })
+                      return expect(ChangeTrackingService.update).to.have.been.calledWith(connectedFog.uuid, ChangeTrackingService.events.microserviceConfig)
+                    })
+                  })
+
                 })
                 context('when there is no network router', () => {
                   def('getNetworkRouterResponse', () => Promise.resolve(null))
@@ -865,23 +907,35 @@ describe('ioFog Service', () => {
                 })
                 it('should set the network router', async () => {
                   await $subject
-                  return expect(ioFogManager.update).to.have.been.calledWith(queryFogData, {...updateFogData, routerHost: networkRouter.host, routerPort: networkRouter.messagingPort})
+                  return expect(ioFogManager.update).to.have.been.calledWith(queryFogData, {...updateFogData, routerId: networkRouter.id})
                 })
               })
             })
             context('when new router mode is edge', () => {
               beforeEach(() => {
                 fogData.routerMode = 'edge'
+                fogData.messagingPort = 1234
+                fogData.host = 'newHost'
               })
               afterEach(() => {
                 delete fogData.routerMode
+                delete fogData.messagingPort
+                delete fogData.host
               })
               context('when old router mode was none', async () => {
                 def('findOneRouterResponse', () => Promise.resolve(null))
+                def('findIoFogResponse', () => Promise.resolve({...oldFog, getRouter: () => Promise.resolve(null)}))
                 it('Should create a router', async () => {
                   await $subject
                   return expect(RouterService.createRouterForFog).to.have.been.calledWith(fogData, oldFog.uuid, user.id, [])
                 })
+              })
+
+              it('Should update the router', async () => {
+                await $subject
+                return expect(RouterService.updateRouter).to.have.been.calledWith(router, {
+                  messagingPort: fogData.messagingPort, interRouterPort: router.interRouterPort, edgeRouterPort: router.edgeRouterPort, isEdge: true, host: fogData.host
+                }, [])
               })
             })
           })
@@ -960,15 +1014,18 @@ describe('ioFog Service', () => {
     def('routerCatalogItem', () => Promise.resolve(routerCatalogItem))
 
     beforeEach(() => {
+      // _deleteFogRouter is tested in update fog (with new router mode set to none)
       $sandbox.stub(Validator, 'validate').returns($validatorResponse)
       $sandbox.stub(ioFogManager, 'findOne').returns($findIoFogResponse)
       $sandbox.stub(ioFogManager, 'delete')
       $sandbox.stub(ChangeTrackingService, 'update').returns($updateChangeTrackingResponse)
-      $sandbox.stub(RouterManager, 'findOne').returns($findOneRouterResponse)
+      const findRouterStub = $sandbox.stub(RouterManager, 'findOne').returns($findOneRouterResponse)
+      findRouterStub.withArgs({isDefault: true}).returns(Promise.resolve(null))
       $sandbox.stub(RouterManager, 'delete')
       $sandbox.stub(RouterConnectionManager, 'findAllWithRouters').returns($upstreamRouters)
       $sandbox.stub(CatalogService, 'getRouterCatalogItem').returns($routerCatalogItem)
       $sandbox.stub(MicroserviceManager, 'delete')
+      $sandbox.stub(ioFogManager, 'findAll').returns(Promise.resolve([]))
     })
 
     it('calls Validator#validate() with correct args', async () => {
@@ -1117,15 +1174,22 @@ describe('ioFog Service', () => {
       : { uuid: fogData.uuid, userId: user.id }
 
 
+    const defaultRouter = {
+      id: 1,
+      isDefault: true
+    }
+
     def('subject', () => $subject.getFog(fogData, user, isCLI, transaction))
     def('validatorResponse', () => Promise.resolve(true))
-    def('findIoFogResponse', () => Promise.resolve(fog))
+    def('findIoFogResponse', () => Promise.resolve({...fog, getRouter: () => Promise.resolve(null), toJSON: () => fog}))
     def('findOneRouterResponse', () => Promise.resolve(null))
+    def('defaultRouterResponse', () => Promise.resolve(defaultRouter))
 
     beforeEach(() => {
       $sandbox.stub(Validator, 'validate').returns($validatorResponse)
       $sandbox.stub(ioFogManager, 'findOne').returns($findIoFogResponse)
-      $sandbox.stub(RouterManager, 'findOne').returns($findOneRouterResponse)
+      const stub = $sandbox.stub(RouterManager, 'findOne').returns($findOneRouterResponse)
+      stub.withArgs({isDefault: true}).returns($defaultRouterResponse)
     })
 
     it('calls Validator#validate() with correct args', async () => {
@@ -1157,8 +1221,51 @@ describe('ioFog Service', () => {
       })
 
       context('when ioFogManager#findOne() succeeds', () => {
-        it('fulfills the promise', () => {
+        it('fulfills the promise', () => {      
           return expect($subject).to.eventually.deep.equal(fog)
+        })
+
+        context('when there is a router', () => {
+          const router = {
+            isEdge: true,
+            messagingPort: 1234,
+            id: 42
+          }
+          def('findIoFogResponse', () => Promise.resolve({...fog, getRouter: () => Promise.resolve(router), toJSON: () => fog}))
+          def('findRouterConnectionsResponse', () => Promise.resolve([]))
+          beforeEach(() => {
+            $sandbox.stub(RouterConnectionManager, 'findAllWithRouters').returns($findRouterConnectionsResponse)
+          })
+
+          it('should return router information', () => {
+            return expect($subject).to.eventually.deep.equal({...fog, routerMode: 'edge', messagingPort: router.messagingPort, upstreamRouters: []})
+          })
+
+          context('when it has upstream routers', () => {
+            const upstreamRouter = {
+              id: 43,
+              isEdge: false,
+              iofogUuid: 'upstreamFogUuid'
+            }
+            def('findRouterConnectionsResponse', () => Promise.resolve([{source: router, dest: upstreamRouter}, {source: router, dest: defaultRouter}]))
+            it('should have upstream router with agent uuid and default-router', () => {
+              return expect($subject).to.eventually.deep.equal({...fog, routerMode: 'edge', messagingPort: router.messagingPort, upstreamRouters: [upstreamRouter.iofogUuid, 'default-router']})  
+            })
+          })
+
+          context('when it is an interior router', () => {
+            const router = {
+              isEdge: false,
+              messagingPort: 1234,
+              interRouterPort: 4567,
+              edgeRouterPort: 7890,
+              id: 42
+            }
+            def('findIoFogResponse', () => Promise.resolve({...fog, getRouter: () => Promise.resolve(router), toJSON: () => fog}))
+            it('should return router information', () => {
+              return expect($subject).to.eventually.deep.equal({...fog, routerMode: 'interior', messagingPort: router.messagingPort, edgeRouterPort: router.edgeRouterPort, interRouterPort: router.interRouterPort, upstreamRouters: []})
+            })
+          })
         })
       })
     })
@@ -1211,7 +1318,7 @@ describe('ioFog Service', () => {
 
     def('subject', () => $subject.getFogListEndPoint(filters, user, isCLI, transaction))
     def('validatorResponse', () => Promise.resolve(true))
-    def('findAllIoFogResponse', () => Promise.resolve(fogs))
+    def('findAllIoFogResponse', () => Promise.resolve(fogs.map(f => ({...f, getRouter: () => Promise.resolve(null), toJSON: () => f}))))
     def('findOneRouterResponse', () => Promise.resolve(null))
 
     beforeEach(() => {

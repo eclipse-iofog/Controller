@@ -301,7 +301,7 @@ module.exports = (sequelize, DataTypes) => {
     },
     routerId: {
       type: DataTypes.INTEGER,
-      field: 'router_Id',
+      field: 'router_id',
       defaultValue: ''
     }
   }, {

@@ -166,7 +166,7 @@ async function updateFogEndPoint (fogData, user, isCLI, transaction) {
 
   // Update router
   // Get all router config informations
-  const router = await RouterManager.findOne({ iofogUuid: fogData.uuid }, transaction)
+  const router = await oldFog.getRouter()
   const host = fogData.host || lget(router, 'host')
   const upstreamRoutersConnections = router ? (await RouterConnectionManager.findAllWithRouters({ sourceRouter: router.id }, transaction) || []) : []
   const upstreamRoutersIofogUuid = fogData.upstreamRouters || await Promise.all(upstreamRoutersConnections.map(connection => connection.dest.iofogUuid))
@@ -325,7 +325,7 @@ function _getRouterUuid (router, defaultRouter) {
 async function _getFogRouterConfig (fog, transaction) {
   // Get fog router config
   const defaultRouter = await RouterManager.findOne({ isDefault: true }, transaction)
-  const router = await RouterManager.findOne({ iofogUuid: fog.uuid }, transaction)
+  const router = await fog.getRouter()
   if (fog.toJSON && typeof fog.toJSON === 'function') {
     fog = fog.toJSON() // Transform Sequelize object to JSON object
   }
