@@ -190,7 +190,7 @@ async function updateFogEndPoint (fogData, user, isCLI, transaction) {
     const defaultRouter = await RouterManager.findOne({ isDefault: true }, transaction)
     const upstreamRouters = await RouterService.validateAndReturnUpstreamRouters(upstreamRoutersIofogUuid, oldFog.isSystem, defaultRouter)
     if (!router) {
-      // Router does not exists yet
+      // Router does not exist yet
       networkRouter = await RouterService.createRouterForFog(fogData, oldFog.uuid, user.id, upstreamRouters)
     } else {
       // Update existing router
@@ -202,8 +202,9 @@ async function updateFogEndPoint (fogData, user, isCLI, transaction) {
   updateFogData.routerId = networkRouter.id
 
   // If router changed, set routerChanged flag
-  if (updateFogData.routerId !== oldFog.routerId) {
+  if (updateFogData.routerId !== oldFog.routerId || updateFogData.routerMode !== oldFog.routerMode) {
     await ChangeTrackingService.update(fogData.uuid, ChangeTrackingService.events.routerChanged, transaction)
+    await ChangeTrackingService.update(fogData.uuid, ChangeTrackingService.events.microserviceList, transaction)
   }
 
   await FogManager.update(queryFogData, updateFogData, transaction)
