@@ -196,7 +196,7 @@ async function updateFogEndPoint (fogData, user, isCLI, transaction) {
       // Update existing router
       networkRouter = await RouterService.updateRouter(router, {
         messagingPort, interRouterPort, edgeRouterPort, isEdge: routerMode === 'edge', host
-      }, upstreamRouters)
+      }, upstreamRouters, user.id)
     }
   }
   updateFogData.routerId = networkRouter.id
