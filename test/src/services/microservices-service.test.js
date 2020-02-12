@@ -21,6 +21,8 @@ const Op = require('sequelize').Op
 const ConnectorManager = require('../../../src/data/managers/connector-manager')
 const ConnectorPortManager = require('../../../src/data/managers/connector-port-manager')
 const MicroservicePublicModeManager = require('../../../src/data/managers/microservice-public-mode-manager')
+const MicroservicePublicPortManager = require('../../../src/data/managers/microservice-public-port-manager')
+const ioFogManager = require('../../../src/data/managers/iofog-manager')
 
 describe('Microservices Service', () => {
   def('subject', () => MicroservicesService)
@@ -212,7 +214,6 @@ describe('Microservices Service', () => {
         {
           'internal': 1,
           'external': 1,
-          'publicMode': false,
         },
       ],
       'routes': [],
@@ -231,6 +232,11 @@ describe('Microservices Service', () => {
       logSize: microserviceData.logLimit,
       registryId: 1,
       userId: user.id,
+    }
+
+    const fog = {
+      uuid: microserviceData.iofogUuid,
+      name: 'testfog'
     }
 
     const item = {}
@@ -280,6 +286,8 @@ describe('Microservices Service', () => {
     def('createVolumeMappingResponse', () => Promise.resolve())
     def('createMicroserviceStatusResponse', () => Promise.resolve())
     def('findOneRegistryResponse', () => Promise.resolve({}))
+    def('findOneFogResponse', () => Promise.resolve({...fog, getMicroservice: () => Promise.resolve([])}))
+    def('findPublicPortsResponse', () => Promise.resolve([]))
 
     beforeEach(() => {
       $sandbox.stub(Validator, 'validate')
@@ -301,6 +309,8 @@ describe('Microservices Service', () => {
       $sandbox.stub(VolumeMappingManager, 'bulkCreate').returns($createVolumeMappingResponse)
       $sandbox.stub(MicroserviceStatusManager, 'create').returns($createMicroserviceStatusResponse)
       $sandbox.stub(RegistryManager, 'findOne').returns($findOneRegistryResponse)
+      $sandbox.stub(ioFogManager, 'findOne').returns($findOneFogResponse)
+      $sandbox.stub(MicroservicePublicPortManager, 'findAll').returns($findPublicPortsResponse)
     })
 
     it('calls Validator#validate() with correct args', async () => {
@@ -1255,6 +1265,11 @@ describe('Microservices Service', () => {
       microserviceUuid: microserviceData.uuid,
     }
 
+    const fog = {
+      uuid: microserviceData.iofogUuid,
+      name: 'testFog'
+    }
+
     def('subject', () => $subject.createPortMappingEndPoint(microserviceUuid, portMappingData, user, isCLI, transaction))
     def('validatorResponse', () => Promise.resolve(true))
     def('findMicroserviceResponse', () => Promise.resolve(microserviceData))
@@ -1262,6 +1277,8 @@ describe('Microservices Service', () => {
     def('createMicroservicePortResponse', () => Promise.resolve())
     def('updateMicroserviceResponse', () => Promise.resolve())
     def('updateChangeTrackingResponse', () => Promise.resolve())
+    def('findOneFogResponse', () => Promise.resolve({...fog, getMicroservice: () => Promise.resolve([])}))
+    def('findPublicPortsResponse', () => Promise.resolve([]))
 
     beforeEach(() => {
       $sandbox.stub(Validator, 'validate').returns($validatorResponse)
@@ -1270,6 +1287,8 @@ describe('Microservices Service', () => {
       $sandbox.stub(MicroservicePortManager, 'create').returns($createMicroservicePortResponse)
       $sandbox.stub(MicroserviceManager, 'update').returns($updateMicroserviceResponse)
       $sandbox.stub(ChangeTrackingService, 'update').returns($updateChangeTrackingResponse)
+      $sandbox.stub(ioFogManager, 'findOne').returns($findOneFogResponse)
+      $sandbox.stub(MicroservicePublicPortManager, 'findAll').returns($findPublicPortsResponse)
     })
 
     it('calls Validator#validate() with correct args', async () => {
