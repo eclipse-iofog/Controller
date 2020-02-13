@@ -11,7 +11,7 @@
  *
  */
 const constants = require('../helpers/constants')
-const Router = require('../controllers/router-controller')
+const ConfigController = require('../controllers/config-controller')
 const ResponseDecorator = require('../decorators/response-decorator')
 const logger = require('../logger')
 const Errors = require('../helpers/errors')
@@ -19,7 +19,30 @@ const Errors = require('../helpers/errors')
 module.exports = [
   {
     method: 'get',
-    path: '/api/v3/router',
+    path: '/api/v3/config',
+    middleware: async (req, res) => {
+      logger.apiReq(req)
+
+      const successCode = constants.HTTP_CODE_SUCCESS
+      const errorCodes = [
+        {
+          code: constants.HTTP_CODE_UNAUTHORIZED,
+          errors: [Errors.AuthenticationError]
+        }
+      ]
+      const getConfigEndpoint = ResponseDecorator.handleErrors(ConfigController.listConfigEndpoint, successCode, errorCodes)
+      const responseObject = await getConfigEndpoint(req)
+
+      res
+        .status(responseObject.code)
+        .send(responseObject.body)
+
+      logger.apiRes({ req: req, res: responseObject })
+    }
+  },
+  {
+    method: 'get',
+    path: '/api/v3/config/:key',
     middleware: async (req, res) => {
       logger.apiReq(req)
 
@@ -34,8 +57,9 @@ module.exports = [
           errors: [Errors.NotFoundError]
         }
       ]
-      const getRouterEndpoint = ResponseDecorator.handleErrors(Router.getRouterEndPoint, successCode, errorCodes)
-      const responseObject = await getRouterEndpoint(req)
+
+      const getConfigEndpoint = ResponseDecorator.handleErrors(ConfigController.getConfigEndpoint, successCode, errorCodes)
+      const responseObject = await getConfigEndpoint(req)
 
       res
         .status(responseObject.code)
@@ -46,7 +70,7 @@ module.exports = [
   },
   {
     method: 'put',
-    path: '/api/v3/router',
+    path: '/api/v3/config',
     middleware: async (req, res) => {
       logger.apiReq(req)
 
@@ -61,8 +85,8 @@ module.exports = [
           errors: [Errors.ValidationError]
         }
       ]
-      const upsertDefaultRouter = ResponseDecorator.handleErrors(Router.upsertDefaultRouter, successCode, errorCodes)
-      const responseObject = await upsertDefaultRouter(req)
+      const upsertConfigElementEndpoint = ResponseDecorator.handleErrors(ConfigController.upsertConfigElementEndpoint, successCode, errorCodes)
+      const responseObject = await upsertConfigElementEndpoint(req)
 
       res
         .status(responseObject.code)

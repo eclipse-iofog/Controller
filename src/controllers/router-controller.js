@@ -11,6 +11,7 @@
  *
  */
 
+const AuthDecorator = require('./../decorators/authorization-decorator')
 const RouterService = require('../services/router-service')
 
 const upsertDefaultRouter = async function (req) {
@@ -23,6 +24,6 @@ const getRouterEndPoint = async function () {
 }
 
 module.exports = {
-  upsertDefaultRouter,
-  getRouterEndPoint
+  upsertDefaultRouter: AuthDecorator.checkAuthToken(upsertDefaultRouter),
+  getRouterEndPoint: AuthDecorator.checkAuthToken(getRouterEndPoint)
 }
