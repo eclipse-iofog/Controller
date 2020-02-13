@@ -1503,7 +1503,7 @@ async function _buildGetMicroserviceResponse (microservice, transaction) {
 }
 
 async function _buildPublicPortMapping (mapping, publicPortMapping, transaction) {
-  const hostRouter = publicPortMapping.hostId ? await RouterManager.findOne({ iofogUuid: publicPortMapping.hostId }, transaction) : { host: process.env.PROXY }
+  const hostRouter = publicPortMapping.hostId ? await RouterManager.findOne({ iofogUuid: publicPortMapping.hostId }, transaction) : { host: process.env.DEFAULT_PROXY_HOST }
   const hostFog = publicPortMapping.hostId ? await FogManager.findOne({ uuid: publicPortMapping.hostId }, transaction) : { uuid: DEFAULT_ROUTER_NAME }
   mapping.publicLink = _buildLink('https', hostRouter.host, publicPortMapping.publicPort)
   mapping.publicPort = publicPortMapping.publicPort
