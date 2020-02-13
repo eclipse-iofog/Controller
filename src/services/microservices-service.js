@@ -22,6 +22,7 @@ const CatalogItemImageManager = require('../data/managers/catalog-item-image-man
 const RegistryManager = require('../data/managers/registry-manager')
 const MicroserviceStates = require('../enums/microservice-state')
 const VolumeMappingManager = require('../data/managers/volume-mapping-manager')
+const ConfigManager = require('../data/managers/config-manager')
 const ConnectorManager = require('../data/managers/connector-manager')
 const ConnectorPortManager = require('../data/managers/connector-port-manager')
 const MicroservicePublicModeManager = require('../data/managers/microservice-public-mode-manager')
@@ -44,7 +45,9 @@ const FogManager = require('../data/managers/iofog-manager')
 const RouterManager = require('../data/managers/router-manager')
 const MicroservicePublicPortManager = require('../data/managers/microservice-public-port-manager')
 
-const { DEFAULT_ROUTER_NAME } = require('../helpers/constants')
+const { DEFAULT_ROUTER_NAME, DEFAULT_PROXY_HOST } = require('../helpers/constants')
+
+const lget = require('lodash/get')
 
 async function listMicroservicesEndPoint (flowId, user, isCLI, transaction) {
   if (!isCLI) {
@@ -1503,7 +1506,7 @@ async function _buildGetMicroserviceResponse (microservice, transaction) {
 }
 
 async function _buildPublicPortMapping (mapping, publicPortMapping, transaction) {
-  const hostRouter = publicPortMapping.hostId ? await RouterManager.findOne({ iofogUuid: publicPortMapping.hostId }, transaction) : { host: process.env.DEFAULT_PROXY_HOST }
+  const hostRouter = publicPortMapping.hostId ? await RouterManager.findOne({ iofogUuid: publicPortMapping.hostId }, transaction) : { host: lget(await ConfigManager.findOne({ key: DEFAULT_PROXY_HOST }, transaction), 'value', 'undefined-proxy-host') }
   const hostFog = publicPortMapping.hostId ? await FogManager.findOne({ uuid: publicPortMapping.hostId }, transaction) : { uuid: DEFAULT_ROUTER_NAME }
   mapping.publicLink = _buildLink('https', hostRouter.host, publicPortMapping.publicPort)
   mapping.publicPort = publicPortMapping.publicPort
