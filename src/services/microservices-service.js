@@ -44,6 +44,8 @@ const FogManager = require('../data/managers/iofog-manager')
 const RouterManager = require('../data/managers/router-manager')
 const MicroservicePublicPortManager = require('../data/managers/microservice-public-port-manager')
 
+const { DEFAULT_ROUTER_NAME } = require('../helpers/constants')
+
 async function listMicroservicesEndPoint (flowId, user, isCLI, transaction) {
   if (!isCLI) {
     await FlowService.getFlow(flowId, user, isCLI, transaction)
@@ -117,7 +119,7 @@ async function _validatePortMapping (agent, mapping, transaction) {
 
   if (mapping.publicPort) {
     let host
-    if (mapping.host) {
+    if (mapping.host && mapping.host !== DEFAULT_ROUTER_NAME) {
       host = await FogManager.findOne({ uuid: mapping.host }, transaction)
       if (!host) {
         throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_ROUTER_HOST, mapping.host))
@@ -127,7 +129,7 @@ async function _validatePortMapping (agent, mapping, transaction) {
       if (!host) {
         const defaultRouter = await RouterManager.findOne({ isDefault: true }, transaction)
         if (!defaultRouter) {
-          throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_ROUTER_HOST, 'default-router'))
+          throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_ROUTER_HOST, DEFAULT_ROUTER_NAME))
         }
       }
     }
@@ -1359,8 +1361,7 @@ async function _buildPortsList (portsPairs, transaction) {
     }
     if (ports.isPublic) {
       const msvcPublicPort = await ports.getPublicPort()
-      portMappingResponseData.publicPort = msvcPublicPort.publicPort
-      portMappingResponseData.host = msvcPublicPort.host
+      await _buildPublicPortMapping(portMappingResponseData, msvcPublicPort, transaction)
     }
     res.push(portMappingResponseData)
   }
@@ -1467,7 +1468,6 @@ async function _buildGetMicroserviceResponse (microservice, transaction) {
   // get additional data
   const portMappings = await MicroservicePortManager.findAll({ microserviceUuid: microserviceUuid }, transaction)
   const images = await CatalogItemImageManager.findAll({ microserviceUuid: microserviceUuid }, transaction)
-  const publicPortMappings = await MicroservicePublicModeManager.findAll({ microserviceUuid: microserviceUuid }, transaction)
   const volumeMappings = await VolumeMappingManager.findAll({ microserviceUuid: microserviceUuid }, transaction)
   const routes = await RoutingManager.findAll({ sourceMicroserviceUuid: microserviceUuid }, transaction)
   const env = await MicroserviceEnvManager.findAllExcludeFields({ microserviceUuid: microserviceUuid }, transaction)
@@ -1480,16 +1480,10 @@ async function _buildGetMicroserviceResponse (microservice, transaction) {
   res.ports = []
   for (const pm of portMappings) {
     const mapping = { internal: pm.portInternal, external: pm.portExternal, publicMode: pm.isPublic }
-    if (pm.isPublic && publicPortMappings) {
-      const publicPortMapping = publicPortMappings.find((ppm) => ppm.microservicePortId === pm.id)
+    if (pm.isPublic) {
+      const publicPortMapping = await pm.getPublicPort()
       if (publicPortMapping) {
-        const connectorPort = await ConnectorPortManager.findOne({ id: publicPortMapping.connectorPortId }, transaction)
-        if (connectorPort) {
-          const connector = await ConnectorManager.findOne({ id: connectorPort.connectorId }, transaction)
-          if (connectorPort) {
-            mapping.publicLink = _buildLink(connector.devMode ? 'http' : 'https', connector.publicIp, connectorPort.port2)
-          }
-        }
+        await _buildPublicPortMapping(mapping, publicPortMapping, transaction)
       }
     }
     res.ports.push(mapping)
@@ -1506,6 +1500,15 @@ async function _buildGetMicroserviceResponse (microservice, transaction) {
   res.logSize *= 1
 
   return res
+}
+
+async function _buildPublicPortMapping (mapping, publicPortMapping, transaction) {
+  const hostRouter = publicPortMapping.hostId ? await RouterManager.findOne({ iofogUuid: publicPortMapping.hostId }, transaction) : { host: process.env.PROXY }
+  const hostFog = publicPortMapping.hostId ? await FogManager.findOne({ uuid: publicPortMapping.hostId }, transaction) : { uuid: DEFAULT_ROUTER_NAME }
+  mapping.publicLink = _buildLink('https', hostRouter.host, publicPortMapping.publicPort)
+  mapping.publicPort = publicPortMapping.publicPort
+  mapping.host = hostFog.isSystem ? DEFAULT_ROUTER_NAME : hostFog.uuid
+  mapping.protocol = publicPortMapping.isTcp ? 'tcp' : 'http'
 }
 
 async function _recreateRoute (route, sourceMicroservice, destMicroservice, user, transaction) {
