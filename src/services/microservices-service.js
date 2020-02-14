@@ -1527,29 +1527,34 @@ async function _recreatePublicMode (microservice, publicMode, user, transaction)
   await _createPortMappingOverConnector(microservice, portMappingData, user, transaction)
 }
 
+function listAllPublicPortsEndPoint (user, transaction) {
+  return MicroservicePortManager.findAllPublicPorts(transaction)
+}
+
 // decorated functions
 const createMicroserviceWithTracking = TrackingDecorator.trackEvent(createMicroserviceEndPoint,
   TrackingEventType.MICROSERVICE_CREATED)
 
 module.exports = {
   createMicroserviceEndPoint: TransactionDecorator.generateTransaction(createMicroserviceWithTracking),
-  listMicroservicesEndPoint: TransactionDecorator.generateTransaction(listMicroservicesEndPoint),
-  getMicroserviceEndPoint: TransactionDecorator.generateTransaction(getMicroserviceEndPoint),
-  updateMicroserviceEndPoint: TransactionDecorator.generateTransaction(updateMicroserviceEndPoint),
-  deleteMicroserviceEndPoint: TransactionDecorator.generateTransaction(deleteMicroserviceEndPoint),
-  createRouteEndPoint: TransactionDecorator.generateTransaction(createRouteEndPoint),
-  deleteRouteEndPoint: TransactionDecorator.generateTransaction(deleteRouteEndPoint),
   createPortMappingEndPoint: TransactionDecorator.generateTransaction(createPortMappingEndPoint),
-  listMicroservicePortMappingsEndPoint: TransactionDecorator.generateTransaction(listPortMappingsEndPoint),
-  deletePortMappingEndPoint: TransactionDecorator.generateTransaction(deletePortMappingEndPoint),
+  createRouteEndPoint: TransactionDecorator.generateTransaction(createRouteEndPoint),
   createVolumeMappingEndPoint: TransactionDecorator.generateTransaction(createVolumeMappingEndPoint),
-  deleteVolumeMappingEndPoint: TransactionDecorator.generateTransaction(deleteVolumeMappingEndPoint),
-  listVolumeMappingsEndPoint: TransactionDecorator.generateTransaction(listVolumeMappingsEndPoint),
-  getPhysicalConnections: getPhysicalConnections,
-  deleteNotRunningMicroservices: deleteNotRunningMicroservices,
-  updateRouteOverConnector: updateRouteOverConnector,
-  updatePortMappingOverConnector: updatePortMappingOverConnector,
+  deleteMicroserviceEndPoint: TransactionDecorator.generateTransaction(deleteMicroserviceEndPoint),
   deleteMicroserviceWithRoutesAndPortMappings: deleteMicroserviceWithRoutesAndPortMappings,
+  deleteNotRunningMicroservices: deleteNotRunningMicroservices,
+  deletePortMappingEndPoint: TransactionDecorator.generateTransaction(deletePortMappingEndPoint),
+  deleteRouteEndPoint: TransactionDecorator.generateTransaction(deleteRouteEndPoint),
+  deleteVolumeMappingEndPoint: TransactionDecorator.generateTransaction(deleteVolumeMappingEndPoint),
+  getMicroserviceEndPoint: TransactionDecorator.generateTransaction(getMicroserviceEndPoint),
+  getPhysicalConnections: getPhysicalConnections,
   getReceiverMicroservices,
-  isMicroserviceConsumer
+  isMicroserviceConsumer,
+  listAllPublicPortsEndPoint: TransactionDecorator.generateTransaction(listAllPublicPortsEndPoint),
+  listMicroservicePortMappingsEndPoint: TransactionDecorator.generateTransaction(listPortMappingsEndPoint),
+  listMicroservicesEndPoint: TransactionDecorator.generateTransaction(listMicroservicesEndPoint),
+  listVolumeMappingsEndPoint: TransactionDecorator.generateTransaction(listVolumeMappingsEndPoint),
+  updateMicroserviceEndPoint: TransactionDecorator.generateTransaction(updateMicroserviceEndPoint),
+  updatePortMappingOverConnector: updatePortMappingOverConnector,
+  updateRouteOverConnector: updateRouteOverConnector
 }

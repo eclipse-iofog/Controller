@@ -37,6 +37,12 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.BOOLEAN,
       field: 'is_tcp',
       defaultValue: false
+    },
+    protocol: {
+      type: DataTypes.VIRTUAL,
+      get () {
+        return this.getDataValue('isTcp') ? 'tcp' : 'http'
+      }
     }
   }, {
     tableName: 'MicroservicePublicPorts',
