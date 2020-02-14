@@ -74,5 +74,6 @@ module.exports = {
   HTTP_CODE_DUPLICATE_PROPERTY: 409,
   HTTP_CODE_INTERNAL_ERROR: 500,
 
-  DEFAULT_ROUTER_NAME: 'default-router'
+  DEFAULT_ROUTER_NAME: 'default-router',
+  DEFAULT_PROXY_HOST: 'default-proxy-host'
 }
