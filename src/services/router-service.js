@@ -76,7 +76,7 @@ async function createRouterForFog (fogData, uuid, userId, upstreamRouters, trans
   }
 
   const routerMicroservice = await _createRouterMicroservice(isEdge, uuid, userId, microserviceConfig, transaction)
-  await _createRouterPorts(routerMicroservice.uuid, fogData.messagingPort, userId, transaction)
+  await _createRouterPorts(routerMicroservice.uuid, messagingPort, userId, transaction)
   if (!isEdge) {
     await _createRouterPorts(routerMicroservice.uuid, fogData.edgeRouterPort, userId, transaction)
     await _createRouterPorts(routerMicroservice.uuid, fogData.interRouterPort, userId, transaction)
