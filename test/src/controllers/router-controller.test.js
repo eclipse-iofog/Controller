@@ -4,7 +4,7 @@ const sinon = require('sinon')
 const RouterController = require('../../../src/controllers/router-controller')
 const RouterService = require('../../../src/services/router-service')
 
-describe('Tunnel Controller', () => {
+describe('Router Controller', () => {
   def('subject', () => RouterController)
   def('sandbox', () => sinon.createSandbox())
 
