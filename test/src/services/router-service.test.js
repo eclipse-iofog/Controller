@@ -26,6 +26,8 @@ describe('Router Service', () => {
     id: 5
   }
 
+  const userId = 1
+
   def('subject', () => RouterService)
   def('sandbox', () => sinon.createSandbox())
   def('routerCatalogItem', () => routerCatalogItem)
@@ -51,6 +53,7 @@ describe('Router Service', () => {
       id: 2,
       iofogUuid: 'agentDestUuid',
       host: 'agentDestHost',
+      isEdge: false,
       edgeRouterPort: 4567,
       interRouterPort: 43290,
     }]
@@ -347,6 +350,182 @@ describe('Router Service', () => {
           { microserviceUuid: $routerMsvc.uuid, key: 'QDROUTERD_CONF' },
           { value: $microserviceConfig }, 
           transaction)
+      })
+    })
+  })
+
+  describe('.updateRouter', () => {
+    const oldRouter = {
+      id: 42,
+      isEdge: true,
+      messagingPort: 33123,
+      host: 'oldRouterHost',
+      iofogUuid: 'agentUuid'
+    }
+
+    const newRouterData = {
+      ...oldRouter,
+      host: 'newRouterHost',
+      id: undefined
+    }
+
+    const upstreamRouters = []
+
+    const routerMsvc = {
+      id: 5,
+      catalogItemId: routerCatalogItem.id,
+      uuid: 'routerMsvc',
+      iofogUuid: oldRouter.iofogUuid
+    }
+
+    def('subject', () => $subject.updateRouter(oldRouter, newRouterData, upstreamRouters, userId, transaction))
+    def('oldRouter', () => oldRouter)
+    def('newRouterData', () => newRouterData)
+    def('upstreamRouters', () => upstreamRouters)
+    def('routerMsvc', () => routerMsvc)
+    def('routerMsvcResponse', () => Promise.resolve($routerMsvc))
+    def('findAllWithRoutersResponse', () => Promise.resolve($upstreamRouters))
+    def('findOneRouterResponse', () => Promise.resolve({...$newRouterData, id: $oldRouter.id}))
+
+    let findallWithRoutersStub
+    beforeEach(() => {
+      $sandbox.stub(MicroserviceManager, 'findOne').returns($routerMsvcResponse)
+      $sandbox.stub(RouterManager, 'update')
+      $sandbox.stub(RouterConnectionManager, 'bulkCreate')
+      findallWithRoutersStub = $sandbox.stub(RouterConnectionManager, 'findAllWithRouters')
+      findallWithRoutersStub.returns($findAllWithRoutersResponse)
+      $sandbox.stub(ChangeTrackingService, 'update')
+      $sandbox.stub(RouterManager, 'findOne').returns($findOneRouterResponse)
+      $sandbox.stub(MicroserviceEnvManager, 'delete')
+      $sandbox.stub(MicroserviceEnvManager, 'updateOrCreate')
+      $sandbox.stub(MicroserviceEnvManager, 'update')
+    })
+
+    it('Should update the router', async () => {
+      await $subject
+      return expect(RouterManager.update).to.have.been.calledWith({id: $oldRouter.id }, newRouterData, transaction)
+    })
+
+    it('Should update the tracking service', async () => {
+      await $subject
+      expect(ChangeTrackingService.update).to.have.been.calledWith($oldRouter.iofogUuid, ChangeTrackingService.events.routerChanged, transaction)
+      return expect(ChangeTrackingService.update).to.have.been.calledWith($oldRouter.iofogUuid, ChangeTrackingService.events.microserviceList, transaction)
+    })
+
+    context('Interior to edge', () => {
+      const interRouterPort = 3123123
+      const edgeRouterPort = 3123
+      def('downstreamRoutersResponse', () => Promise.resolve([]))
+
+      beforeEach(() => {
+        oldRouter.isEdge = false
+        oldRouter.interRouterPort = interRouterPort
+        oldRouter.edgeRouterPort = edgeRouterPort
+        $sandbox.stub(RouterConnectionManager, 'findAll').withArgs({ destRouter: $oldRouter.id }, transaction).returns($downstreamRoutersResponse)
+        $sandbox.stub(MicroservicePortManager, 'delete')
+      })
+
+      afterEach(() => {
+        oldRouter.isEdge = true
+        delete oldRouter.interRouterPort
+        delete oldRouter.edgeRouterPort
+      })
+
+      it('should delete router ports', async () => {
+        await $subject
+        expect(MicroservicePortManager.delete).to.have.been.calledTwice
+        expect(MicroservicePortManager.delete).to.have.been.calledWith({ microserviceUuid: $routerMsvc.uuid, portInternal: edgeRouterPort }, transaction)
+        expect(MicroservicePortManager.delete).to.have.been.calledWith({ microserviceUuid: $routerMsvc.uuid, portInternal: interRouterPort }, transaction)
+        return expect(RouterManager.update).to.have.been.calledWith({ id: $oldRouter.id }, { ...$newRouterData, interRouterPort: null, edgeRouterPort: null }, transaction)
+      })
+
+      context('With downstream routers', () => {
+        def('downstreamRoutersResponse', () => Promise.resolve([{}]))
+        it('Should fail with validation error', async () => {
+          try{
+            await $subject
+          } catch(e) {
+            return expect(e).to.be.instanceOf(Errors.ValidationError)
+          }
+          return expect(true).to.eql(false)
+        })
+      })
+    })
+
+    context('Edge to interior', () => {
+      const interRouterPort = 3123123
+      const edgeRouterPort = 3123
+
+      beforeEach(() => {
+        newRouterData.isEdge = false
+        newRouterData.interRouterPort = interRouterPort
+        newRouterData.edgeRouterPort = edgeRouterPort
+        $sandbox.stub(MicroservicePortManager, 'create')
+      })
+
+      afterEach(() => {
+        newRouterData.isEdge = true
+        delete newRouterData.interRouterPort
+        delete newRouterData.edgeRouterPort
+      })
+
+      it('should create router ports', async () => {
+        const mappingData = {
+          isPublic: false,
+          userId: userId,
+          microserviceUuid: $routerMsvc.uuid
+        }
+        await $subject
+        expect(MicroservicePortManager.create).to.have.been.calledTwice
+        expect(MicroservicePortManager.create).to.have.been.calledWith({ ...mappingData, portInternal: edgeRouterPort, portExternal: edgeRouterPort }, transaction)
+        expect(MicroservicePortManager.create).to.have.been.calledWith({ ...mappingData, portInternal: interRouterPort, portExternal: interRouterPort }, transaction)
+        return expect(RouterManager.update).to.have.been.calledWith({ id: $oldRouter.id }, { ...newRouterData }, transaction)
+      })
+
+    })
+
+    context('With upstream routers to delete', () => {
+      const upstreamRoutersConnections = [{
+        id: 1,
+        destRouter: 2,
+        dest: {
+          id: 2,
+          iofogUuid: 'agentDestUuid',
+          host: 'agentDestHost',
+          isEdge: false,
+          edgeRouterPort: 4567,
+          interRouterPort: 43290,
+        }
+      }]
+      def('upstreamRouters', () => upstreamRoutersConnections)
+
+      beforeEach(() => {
+        $sandbox.stub(RouterConnectionManager, 'delete')
+      })
+
+      it('should delete upstream routers connections', async () => {
+        await $subject
+        expect(RouterConnectionManager.delete).to.have.callCount(upstreamRoutersConnections.length)
+        for (const upstreamRouterConnection of upstreamRoutersConnections) {
+          expect(RouterConnectionManager.delete).to.have.been.calledWith({ id: upstreamRouterConnection.id }, transaction)
+        }
+      })
+    })
+
+    context('With upstream routers to create', () => {
+      const upstreamRouters = [{
+        id: 2,
+        iofogUuid: 'agentDestUuid',
+        host: 'agentDestHost',
+        isEdge: false,
+        edgeRouterPort: 4567,
+        interRouterPort: 43290,
+      }]
+      def('subject', () => RouterService.updateRouter(oldRouter, newRouterData, upstreamRouters, userId, transaction))
+
+      it('should create upstream routers connections', async () => {
+        await $subject
+        return expect(RouterConnectionManager.bulkCreate).to.have.been.calledWith(upstreamRouters.map(r => ({ sourceRouter: $oldRouter.id, destRouter: r.id })), transaction)
       })
     })
   })

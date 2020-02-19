@@ -137,7 +137,7 @@ async function _deleteRouterPorts (routerMicroserviceUuid, port, transaction) {
   if (!routerMicroserviceUuid) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_ROUTER))
   }
-  await MicroservicePortManager.delete({ microserviceUuid: routerMicroserviceUuid.uuid, portInternal: port }, transaction)
+  await MicroservicePortManager.delete({ microserviceUuid: routerMicroserviceUuid, portInternal: port }, transaction)
 }
 
 async function updateConfig (routerID, transaction) {
