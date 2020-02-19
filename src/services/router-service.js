@@ -142,6 +142,9 @@ async function _deleteRouterPorts (routerMicroserviceUuid, port, transaction) {
 
 async function updateConfig (routerID, transaction) {
   const router = await RouterManager.findOne({ id: routerID }, transaction)
+  if (!router) {
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_ROUTER, routerID))
+  }
   let microserviceConfig = _getRouterMicroserviceConfig(router.isEdge, router.iofogUuid, router.messagingPort, router.interRouterPort, router.edgeRouterPort)
 
   const upstreamRoutersConnections = await RouterConnectionManager.findAllWithRouters({ sourceRouter: router.id }, transaction)
