@@ -529,4 +529,264 @@ describe('Router Service', () => {
       })
     })
   })
+
+  describe('.getDefaultRouter', () => {
+    const defaultRouter = {
+      id: 56,
+      isDefault: true,
+      messagingPort: 5672,
+      edgeRouterPort: 31231,
+      interRouterPort: 3213133,
+      host: 'defaultRouterHost'
+    }
+
+    def('subject', () => $subject.getDefaultRouter(transaction))
+    def('defaultRouter', () => defaultRouter)
+    def('findOneRouter', () => Promise.resolve($defaultRouter))
+
+    beforeEach(() => {
+      $sandbox.stub(RouterManager, 'findOne').returns($findOneRouter)
+    })
+
+    it('Should return the default router', async () => {
+      expect(await $subject).to.eql({
+        host: defaultRouter.host,
+        messagingPort: defaultRouter.messagingPort,
+        edgeRouterPort: defaultRouter.edgeRouterPort,
+        interRouterPort: defaultRouter.interRouterPort
+      })
+
+      return expect(RouterManager.findOne).to.have.been.calledWith({isDefault: true}, transaction)
+    })
+
+    context('There is no default router', () => {
+      def('findOneRouter', () => Promise.resolve(null))
+      it('Should fail with error: Not Found', async () => {
+        try{
+          await $subject
+        } catch(e) {
+          return expect(e).to.be.instanceOf(Errors.NotFoundError)
+        }
+        return expect(true).to.eql(false)
+      })
+    })
+  })
+
+  describe('.getNetworkRouter', () => {
+    const routerID = 42
+
+    const defaultRouter = {
+      id: 56,
+      isDefault: true,
+      iofogUuid: 'systemFogUuid',
+      messagingPort: 5672,
+      edgeRouterPort: 31231,
+      interRouterPort: 3213133,
+      host: 'defaultRouterHost'
+    }
+
+    const router = {
+      id: routerID,
+      isDefault: false,
+      iofogUuid: 'interiorRouterUuid',
+      messagingPort: 4234,
+      edgeRouterPort: 4224,
+      interRouterPort: 333,
+      host: 'routerHost'
+    }
+
+    def('subject', () => $subject.getNetworkRouter(routerID, transaction))
+    def('router', () => router)
+    def('findOneRouter', () => Promise.resolve($router))
+
+    beforeEach(() => {
+      $sandbox.stub(RouterManager, 'findOne').returns($findOneRouter)
+    })
+
+    it('Should return the requested router', async () => {
+      expect(await $subject).to.eql(router)
+
+      return expect(RouterManager.findOne).to.have.been.calledWith({iofogUuid: routerID}, transaction)
+    })
+
+    context('There is no id requested', () => {
+      def('subject', () => RouterService.getNetworkRouter(null, transaction))
+      def('router', () => defaultRouter)
+
+      it('Should return the default router', async () => {
+        expect(await $subject).to.eql(defaultRouter)
+  
+        return expect(RouterManager.findOne).to.have.been.calledWith({isDefault: true}, transaction)
+      })
+    })
+  })
+
+  describe('.upsertDefaultRouter', () => {
+    const interRouterPort = 3214
+    const edgeRouterPort = 9403
+    const messagingPort = 4235
+    const routerData = {
+      host: 'routerHost',
+      edgeRouterPort,
+      interRouterPort,
+      messagingPort
+    }
+
+    const createRouterData = {
+      isEdge: false,
+      messagingPort,
+      interRouterPort,
+      edgeRouterPort,
+      host: routerData.host,
+      isDefault: true
+    }
+
+
+    def('validatorResponse', () => Promise.resolve(true))
+    def('subject', () => $subject.upsertDefaultRouter(routerData, transaction))
+
+    beforeEach(() => {
+      $sandbox.stub(Validator, 'validate').returns($validatorResponse)
+      $sandbox.stub(RouterManager, 'updateOrCreate')
+    })
+
+    
+    it('calls Validator#validate() with correct args', async () => {
+      await $subject
+      expect(Validator.validate).to.have.been.calledWith(routerData, Validator.schemas.defaultRouterCreate)
+    })
+
+    context('when Validator#validate() fails', () => {
+      const error = { message: 'Failed validation' }
+      def('validatorResponse', () => Promise.reject(error))
+
+      it(`fails with ${error}`, () => {
+        return expect($subject).to.be.rejectedWith(error)
+      })
+    })
+
+    it('Should update or create router', async () => {
+      await $subject
+      return expect(RouterManager.updateOrCreate).to.have.been.calledWith({ isDefault: true }, createRouterData, transaction)
+    })
+
+    context('Port not provided', () => {
+      beforeEach(() => {
+        delete routerData.interRouterPort
+        delete routerData.edgeRouterPort
+        delete routerData.messagingPort
+      })
+
+      afterEach(() => {
+        routerData.edgeRouterPort = edgeRouterPort
+        routerData.messagingPort = messagingPort
+        routerData.interRouterPort = interRouterPort
+      })
+
+      it('Should update or create router with default port values', async () => {
+        await $subject
+        return expect(RouterManager.updateOrCreate).to.have.been.calledWith({ isDefault: true }, {...createRouterData, messagingPort: 5672, interRouterPort: 56721, edgeRouterPort: 56722}, transaction)
+      })
+    })
+  })
+
+  describe('.validateAndReturnUpstreamRouters', () => {
+    const upstreamRouterIds = ['agent1', 'default-router']
+    const isSystemFog = false
+    const defaultRouter = {
+      id: 1,
+      isSystem: true,
+      isDefault: true,
+      isEdge: false,
+      edgeRouterPort: 56722,
+      interRouterPort: 56721,
+      messagingPort: 5672,
+      host: 'defaultRouterHost',
+      iofogUuid: 'systemFogUuid',
+    }
+
+    context('No upstreamRouterIds', () => {
+      context('No default router', () => {
+        context('Is not system fog', () => {
+          def('subject', () => $subject.validateAndReturnUpstreamRouters(null, false, null, transaction))
+          it ('Should error with Not found', async () => {
+            try{
+              await $subject
+            } catch(e) {
+              return expect(e).to.be.instanceOf(Errors.NotFoundError)
+            }
+            return expect(true).to.eql(false)
+          })
+        })
+        context('Is system fog', () => {
+          def('subject', () => $subject.validateAndReturnUpstreamRouters(null, true, null, transaction))
+          it ('Should return an empty array', async () => {
+            return expect(await $subject).to.eql([])
+          })
+        })
+      })
+      context('There is a default router', () => {
+        def('subject', () => $subject.validateAndReturnUpstreamRouters(null, true, defaultRouter, transaction))
+        it ('Should return an empty array', async () => {
+          return expect(await $subject).to.eql([defaultRouter])
+        })
+      })
+    })
+
+    context('There are upstream routers', () => {
+      const upstreamRouter = {
+        id: 42,
+        iofogUuid: 'agent1',
+        isSystem: false,
+        isEdge: false,
+        isDefault: false,
+        edgeRouterPort: 56722,
+        interRouterPort: 56721,
+        messagingPort: 5672,
+        host: 'agent1Host',
+      }
+      
+      def('findOneRouterResponse', () => Promise.resolve(upstreamRouter))
+      def('subject', () => $subject.validateAndReturnUpstreamRouters(upstreamRouterIds, false, defaultRouter, transaction))
+      
+      beforeEach(() => {
+        $sandbox.stub(RouterManager, 'findOne').returns($findOneRouterResponse)
+      })
+
+      it('Should return an array with upstreamRouter and defaultRouter', async () => {
+        return expect(await $subject).to.eql([upstreamRouter, defaultRouter])
+      })
+
+      context('upstreamRouter is edge', () => {
+        beforeEach(() => {
+          upstreamRouter.isEdge = true
+        })
+        afterEach(() => {
+          upstreamRouter.isEdge = false
+        })
+
+        it('Should error with Validation error', async () => {
+          try{
+            await $subject
+          } catch(e) {
+            return expect(e).to.be.instanceOf(Errors.ValidationError)
+          }
+          return expect(true).to.eql(false)
+        })
+      })
+
+      context('upstreamRouter is not found', () => {
+        def('findOneRouterResponse', () => Promise.resolve(null))
+
+        it('Should error with Not found error', async () => {
+          try{
+            await $subject
+          } catch(e) {
+            return expect(e).to.be.instanceOf(Errors.NotFoundError)
+          }
+          return expect(true).to.eql(false)
+        })
+      })
+    })
+  })
 })
