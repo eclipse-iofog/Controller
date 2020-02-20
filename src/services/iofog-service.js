@@ -320,7 +320,7 @@ async function deleteFogEndPoint (fogData, user, isCLI, transaction) {
 }
 
 function _getRouterUuid (router, defaultRouter) {
-  return router.id === defaultRouter.id ? Constants.DEFAULT_ROUTER_NAME : router.iofogUuid
+  return (defaultRouter && (router.id === defaultRouter.id)) ? Constants.DEFAULT_ROUTER_NAME : router.iofogUuid
 }
 
 async function _getFogRouterConfig (fog, transaction) {

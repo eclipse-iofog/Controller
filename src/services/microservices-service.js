@@ -274,6 +274,26 @@ async function updateMicroserviceEndPoint (microserviceUuid, microserviceData, u
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, microserviceUuid))
   }
 
+  if (microserviceData.iofogUuid && microservice.iofogUuid !== microserviceData.iofogUuid ) {
+    // Moving to new agent, make sure all ports are available
+    const ports = await microservice.getPorts()
+    const data = {
+      ports: [],
+      iofogUuid: microserviceData.iofogUuid
+    }
+
+    for (const port of ports) {
+      data.ports.push({
+        internal: port.portInternal,
+        external: port.portExternal
+      })
+    }
+
+    if (data.ports.length) {
+      await _validatePortMappings(data, transaction)
+    }
+  }
+
   if (microservice.catalogItem && microservice.catalogItem.category === 'SYSTEM') {
     throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.SYSTEM_MICROSERVICE_UPDATE, microserviceUuid))
   }
@@ -330,12 +350,24 @@ async function updateMicroserviceEndPoint (microserviceUuid, microserviceData, u
 
   if (microserviceDataUpdate.iofogUuid && microserviceDataUpdate.iofogUuid !== microservice.iofogUuid) {
     await _moveRoutesToNewFog(updatedMicroservice, microservice.iofogUuid, user, transaction)
-    await _movePublicModesToNewFog(updatedMicroservice, microservice.iofogUuid, user, transaction)
+    await _movePublicPortsToNewFog(updatedMicroservice, microservice.iofogUuid, user, transaction)
     await _updateChangeTracking(true, microservice.iofogUuid, transaction)
   }
 
   // update change tracking for new fog
   await _updateChangeTracking(!!microserviceData.config, iofogUuid, transaction)
+}
+
+async function _movePublicPortsToNewFog (updatedMicroservice, iofogUuid, user, transaction) {
+  const portMappings = await updatedMicroservice.getPorts()
+  for (const portMapping of portMappings) {
+    if (!portMapping.isPublic) {
+      continue
+    }
+
+    const publicPort = await portMapping.getPublicPort()
+    await MicroserviceManager.update({ uuid: publicPort.localProxyId }, { iofogUuid: updatedMicroservice.iofogUuid }, transaction)
+  }
 }
 
 async function _moveRoutesToNewFog (microservice, oldFogUuid, user, transaction) {
