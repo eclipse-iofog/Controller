@@ -40,6 +40,10 @@ const getAgentConfigChangesEndPoint = async function (req, fog) {
   return AgentService.getAgentConfigChanges(fog)
 }
 
+const resetAgentConfigChangesEndPoint = async function (req, fog) {
+  return AgentService.resetAgentConfigChanges(fog, req.body)
+}
+
 const updateAgentStatusEndPoint = async function (req, fog) {
   const agentStatus = req.body
 
@@ -126,5 +130,6 @@ module.exports = {
   deleteNodeEndPoint: AuthDecorator.checkFogToken(deleteNodeEndPoint),
   getImageSnapshotEndPoint: AuthDecorator.checkFogToken(getImageSnapshotEndPoint),
   putImageSnapshotEndPoint: AuthDecorator.checkFogToken(putImageSnapshotEndPoint),
-  postTrackingEndPoint: AuthDecorator.checkFogToken(postTrackingEndPoint)
+  postTrackingEndPoint: AuthDecorator.checkFogToken(postTrackingEndPoint),
+  resetAgentConfigChangesEndPoint: AuthDecorator.checkFogToken(resetAgentConfigChangesEndPoint)
 }

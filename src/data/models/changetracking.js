@@ -85,6 +85,11 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.BOOLEAN,
       field: 'prune',
       defaultValue: false
+    },
+    lastUpdated: {
+      type: DataTypes.STRING,
+      field: 'last_updated',
+      defaultValue: false
     }
   }, {
     tableName: 'ChangeTrackings',

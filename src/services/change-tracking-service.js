@@ -10,6 +10,8 @@
  *  *******************************************************************************
  *
  */
+const moment = require('moment')
+const Op = require('sequelize').Op
 
 const ChangeTrackingManager = require('../data/managers/change-tracking-manager')
 
@@ -80,25 +82,30 @@ const events = Object.freeze({
 })
 
 async function create (ioFogUuid, transaction) {
-  await ChangeTrackingManager.create({ iofogUuid: ioFogUuid }, transaction)
+  await ChangeTrackingManager.create({ iofogUuid: ioFogUuid, lastUpdated: moment().toISOString() }, transaction)
 }
 
 async function update (ioFogUuid, data, transaction) {
-  await ChangeTrackingManager.update({ iofogUuid: ioFogUuid }, data, transaction)
+  await ChangeTrackingManager.create({ ...data, iofogUuid: ioFogUuid, lastUpdated: moment().toISOString() }, transaction)
 }
 
 async function updateIfChanged (ioFogUuid, data, transaction) {
-  await ChangeTrackingManager.updateIfChanged({ iofogUuid: ioFogUuid }, data, transaction)
+  await ChangeTrackingManager.create({ ...data, iofogUuid: ioFogUuid, lastUpdated: moment().toISOString() }, transaction)
+}
+
+async function resetIfNotUpdated (ioFogUuid, lastUpdated, transaction) {
+  await ChangeTrackingManager.delete({ iofogUuid: ioFogUuid, lastUpdated: { [Op.lte]: lastUpdated } }, transaction)
 }
 
 async function getByIoFogUuid (ioFogUuid, transaction) {
-  return ChangeTrackingManager.findOne({ iofogUuid: ioFogUuid }, transaction)
+  return ChangeTrackingManager.findAll({ iofogUuid: ioFogUuid }, transaction)
 }
 
 module.exports = {
-  events: events,
-  create: create,
-  update: update,
-  updateIfChanged: updateIfChanged,
-  getByIoFogUuid: getByIoFogUuid
+  events,
+  create,
+  update,
+  updateIfChanged,
+  getByIoFogUuid,
+  resetIfNotUpdated
 }

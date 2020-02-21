@@ -11,8 +11,13 @@
  *
  */
 
-const TransactionDecorator = require('../decorators/transaction-decorator')
+const path = require('path')
+const fs = require('fs')
+const formidable = require('formidable')
+const Sequelize = require('sequelize')
+const Op = Sequelize.Op
 
+const TransactionDecorator = require('../decorators/transaction-decorator')
 const FogProvisionKeyManager = require('../data/managers/iofog-provision-key-manager')
 const FogManager = require('../data/managers/iofog-manager')
 const FogAccessTokenService = require('../services/iofog-access-token-service')
@@ -32,17 +37,18 @@ const USBInfoManager = require('../data/managers/usb-info-manager')
 const TunnelManager = require('../data/managers/tunnel-manager')
 const MicroserviceManager = require('../data/managers/microservice-manager')
 const MicroserviceService = require('../services/microservices-service')
-const path = require('path')
-const fs = require('fs')
-const formidable = require('formidable')
-const Sequelize = require('sequelize')
-const Op = Sequelize.Op
 const TrackingDecorator = require('../decorators/tracking-decorator')
 const TrackingEventType = require('../enums/tracking-event-type')
 const TrackingEventManager = require('../data/managers/tracking-event-manager')
 const RouterManager = require('../data/managers/router-manager')
 
 const IncomingForm = formidable.IncomingForm
+
+const CHANGE_TRACKING_DEFAULT = {}
+const CHANGE_TRACKING_KEYS = ['config', 'version', 'reboot', 'deleteNode', 'microserviceList', 'microserviceConfig', 'routing', 'registries', 'tunnel', 'diagnostics', 'isImageSnapshot', 'prune', 'routerChange']
+for (const key of CHANGE_TRACKING_KEYS) {
+  CHANGE_TRACKING_DEFAULT[key] = false
+}
 
 const agentProvision = async function (provisionData, transaction) {
   await Validator.validate(provisionData, Validator.schemas.agentProvision)
@@ -167,28 +173,20 @@ const updateAgentConfig = async function (updateData, fog, transaction) {
 }
 
 const getAgentConfigChanges = async function (ioFog, transaction) {
-  const changeTracking = await ChangeTrackingService.getByIoFogUuid(ioFog.uuid, transaction)
-  if (!changeTracking) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID), ioFog.uuid)
+  const changeTrackings = await ChangeTrackingService.getByIoFogUuid(ioFog.uuid, transaction)
+  const res = { ...CHANGE_TRACKING_DEFAULT }
+
+  for (const changeTracking of changeTrackings) {
+    for (const key of CHANGE_TRACKING_KEYS) {
+      res[key] = !!res[key] || !!changeTracking[key]
+    }
   }
 
-  await ChangeTrackingService.updateIfChanged(ioFog.uuid, ChangeTrackingService.events.clean, transaction)
+  return res
+}
 
-  return {
-    config: changeTracking.config,
-    version: changeTracking.version,
-    reboot: changeTracking.reboot,
-    deleteNode: changeTracking.deleteNode,
-    microserviceList: changeTracking.microserviceList,
-    microserviceConfig: changeTracking.microserviceConfig,
-    routing: changeTracking.routing,
-    registries: changeTracking.registries,
-    tunnel: changeTracking.tunnel,
-    diagnostics: changeTracking.diagnostics,
-    isImageSnapshot: changeTracking.isImageSnapshot,
-    prune: changeTracking.prune,
-    routerChanged: changeTracking.routerChanged
-  }
+const resetAgentConfigChanges = async function (ioFog, body, transaction) {
+  await ChangeTrackingService.resetIfNotUpdated(ioFog.uuid, body.lastUpdated, transaction)
 }
 
 const updateAgentStatus = async function (agentStatus, fog, transaction) {
@@ -548,6 +546,7 @@ module.exports = {
   getAgentConfig: TransactionDecorator.generateTransaction(getAgentConfig),
   updateAgentConfig: TransactionDecorator.generateTransaction(updateAgentConfig),
   getAgentConfigChanges: TransactionDecorator.generateTransaction(getAgentConfigChanges),
+  resetAgentConfigChanges: TransactionDecorator.generateTransaction(resetAgentConfigChanges),
   updateAgentStatus: TransactionDecorator.generateTransaction(updateAgentStatus),
   getAgentMicroservices: TransactionDecorator.generateTransaction(getAgentMicroservices),
   getAgentMicroservice: TransactionDecorator.generateTransaction(getAgentMicroservice),

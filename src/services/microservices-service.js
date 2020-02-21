@@ -344,15 +344,14 @@ async function updateMicroserviceEndPoint (microserviceUuid, microserviceData, u
 
   if (microserviceDataUpdate.iofogUuid && microserviceDataUpdate.iofogUuid !== microservice.iofogUuid) {
     await _moveRoutesToNewFog(updatedMicroservice, microservice.iofogUuid, user, transaction)
-    await _movePublicPortsToNewFog(updatedMicroservice, microservice.iofogUuid, user, transaction)
-    await _updateChangeTracking(true, microservice.iofogUuid, transaction)
+    await _movePublicPortsToNewFog(updatedMicroservice, user, transaction)
   }
 
-  // update change tracking for new fog
-  await _updateChangeTracking(!!microserviceData.config, iofogUuid, transaction)
+  await _updateChangeTracking(true, microservice.iofogUuid, transaction)
+  await _updateChangeTracking(true, updatedMicroservice.iofogUuid, transaction)
 }
 
-async function _movePublicPortsToNewFog (updatedMicroservice, iofogUuid, user, transaction) {
+async function _movePublicPortsToNewFog (updatedMicroservice, user, transaction) {
   const portMappings = await updatedMicroservice.getPorts()
   for (const portMapping of portMappings) {
     if (!portMapping.isPublic) {
@@ -360,7 +359,19 @@ async function _movePublicPortsToNewFog (updatedMicroservice, iofogUuid, user, t
     }
 
     const publicPort = await portMapping.getPublicPort()
-    await MicroserviceManager.update({ uuid: publicPort.localProxyId }, { iofogUuid: updatedMicroservice.iofogUuid }, transaction)
+    const localMapping = `amqp:${publicPort.queueName}=>${publicPort.protocol}:${portMapping.portExternal}`
+    const localProxy = await MicroserviceManager.findOne({ uuid: publicPort.localProxyId }, transaction)
+    await _updateOrDeleteProxyMicroservice(localProxy.uuid, localMapping, transaction)
+
+    const destAgent = await FogManager.findOne({ uuid: updatedMicroservice.iofogUuid }, transaction)
+    const destAgentsRouter = destAgent.routerId ? await RouterManager.findOne({ id: destAgent.routerId }, transaction) : await RouterManager.findOne({ iofogUuid: destAgent.uuid }, transaction)
+    const networkRouter = {
+      host: destAgentsRouter.host,
+      port: destAgentsRouter.messagingPort
+    }
+    const newProxy = await _createOrUpdateProxyMicroservice(localMapping, networkRouter, updatedMicroservice.iofogUuid, localProxy.catalogItemId, user, transaction)
+    publicPort.localProxyId = newProxy.uuid
+    await MicroservicePublicPortManager.updateOrCreate({ id: publicPort.id }, publicPort.toJSON(), transaction)
   }
 }
 
@@ -552,7 +563,7 @@ async function _createPortMapping (microservice, portMappingData, user, transact
   }
 }
 
-async function _createOrUpdateProxyMicroservice (name, mapping, networkRouter, hostUuid, proxyCatalogId, user, transaction) {
+async function _createOrUpdateProxyMicroservice (mapping, networkRouter, hostUuid, proxyCatalogId, user, transaction) {
   const existingProxy = await MicroserviceManager.findOne({ catalogItemId: proxyCatalogId, iofogUuid: hostUuid }, transaction)
   if (existingProxy) {
     const config = JSON.parse(existingProxy.config || '{}')
@@ -565,7 +576,7 @@ async function _createOrUpdateProxyMicroservice (name, mapping, networkRouter, h
 
   const proxyMicroserviceData = {
     uuid: AppHelper.generateRandomString(32),
-    name: name,
+    name: 'Proxy',
     config: JSON.stringify({
       mappings: [mapping],
       networkRouter: networkRouter
@@ -597,7 +608,6 @@ async function _createPublicPortMapping (microservice, portMappingData, user, tr
   const remoteMapping = `${isTcp ? 'tcp' : 'http'}:${portMappingData.publicPort}=>amqp:${queueName}`
 
   const localProxy = await _createOrUpdateProxyMicroservice(
-    `Local proxy for ${microservice.uuid}`,
     localMapping,
     localNetworkRouter,
     microservice.iofogUuid,
@@ -614,7 +624,6 @@ async function _createPublicPortMapping (microservice, portMappingData, user, tr
     }
 
     remoteProxy = await _createOrUpdateProxyMicroservice(
-      `Remote proxy for ${microservice.uuid}`,
       remoteMapping,
       remoteNetworkRouter,
       portMappingData.host.uuid,
