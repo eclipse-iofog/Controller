@@ -27,8 +27,7 @@ class FlowManager extends BaseManager {
         {
           model: Microservice,
           as: 'microservices',
-          required: false,
-          attributes: ['iofogUuid']
+          required: false
         }
       ],
       where: where,

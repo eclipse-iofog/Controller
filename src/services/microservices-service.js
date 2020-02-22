@@ -29,7 +29,7 @@ const AppHelper = require('../helpers/app-helper')
 const Errors = require('../helpers/errors')
 const ErrorMessages = require('../helpers/error-messages')
 const Validator = require('../schemas/index')
-const FlowService = require('../services/flow-service')
+const FlowManager = require('../data/managers/flow-manager')
 const CatalogService = require('../services/catalog-service')
 const RoutingManager = require('../data/managers/routing-manager')
 const Op = require('sequelize').Op
@@ -45,10 +45,10 @@ const lget = require('lodash/get')
 
 async function listMicroservicesEndPoint (flowId, user, isCLI, transaction) {
   if (!isCLI) {
-    await FlowService.getFlow(flowId, user, isCLI, transaction)
+    await _validateFlow(flowId, user, isCLI, transaction)
   }
-  const where = isCLI ? { delete: false } : { flowId: flowId, delete: false }
 
+  const where = isCLI ? { delete: false } : { flowId: flowId, delete: false }
   const microservices = await MicroserviceManager.findAllExcludeFields(where, transaction)
 
   const res = await Promise.all(microservices.map(async (microservice) => {
@@ -256,16 +256,18 @@ async function updateMicroserviceEndPoint (microserviceUuid, microserviceData, u
 
   const microserviceDataUpdate = AppHelper.deleteUndefinedFields(microserviceToUpdate)
 
+  const microservice = await MicroserviceManager.findOneWithCategory(query, transaction)
+  if (!microservice) {
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, microserviceUuid))
+  }
+
   if (microserviceDataUpdate.registryId) {
     const registry = await RegistryManager.findOne({ id: microserviceDataUpdate.registryId }, transaction)
     if (!registry) {
       throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_REGISTRY_ID, microserviceDataUpdate.registryId))
     }
-  }
-
-  const microservice = await MicroserviceManager.findOneWithCategory(query, transaction)
-  if (!microservice) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, microserviceUuid))
+  } else {
+    microserviceDataUpdate.registryId = microservice.registryId
   }
 
   if (microserviceData.iofogUuid && microservice.iofogUuid !== microserviceData.iofogUuid) {
@@ -904,13 +906,24 @@ async function _createMicroservice (microserviceData, user, isCLI, transaction) 
   await _checkForDuplicateName(newMicroservice.name, {}, user.id, transaction)
 
   // validate flow
-  await FlowService.getFlow(newMicroservice.flowId, user, isCLI, transaction)
+  await _validateFlow(newMicroservice.flowId, user, isCLI, transaction)
   // validate fog node
   if (newMicroservice.iofogUuid) {
     await IoFogService.getFog({ uuid: newMicroservice.iofogUuid }, user, isCLI, transaction)
   }
 
   return MicroserviceManager.create(newMicroservice, transaction)
+}
+
+async function _validateFlow (flowId, user, isCLI, transaction) {
+  const where = isCLI
+    ? { id: flowId }
+    : { id: flowId, userId: user.id }
+
+  const flow = await FlowManager.findOne(where, transaction)
+  if (!flow) {
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_ID, flowId))
+  }
 }
 
 async function _createMicroserviceStatus (microservice, transaction) {

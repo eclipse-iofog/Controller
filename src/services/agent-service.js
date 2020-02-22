@@ -15,6 +15,7 @@ const path = require('path')
 const fs = require('fs')
 const formidable = require('formidable')
 const Sequelize = require('sequelize')
+const moment = require('moment')
 const Op = Sequelize.Op
 
 const TransactionDecorator = require('../decorators/transaction-decorator')
@@ -45,7 +46,7 @@ const RouterManager = require('../data/managers/router-manager')
 const IncomingForm = formidable.IncomingForm
 
 const CHANGE_TRACKING_DEFAULT = {}
-const CHANGE_TRACKING_KEYS = ['config', 'version', 'reboot', 'deleteNode', 'microserviceList', 'microserviceConfig', 'routing', 'registries', 'tunnel', 'diagnostics', 'isImageSnapshot', 'prune', 'routerChange']
+const CHANGE_TRACKING_KEYS = ['config', 'version', 'reboot', 'deleteNode', 'microserviceList', 'microserviceConfig', 'routing', 'registries', 'tunnel', 'diagnostics', 'isImageSnapshot', 'prune', 'routerChanged']
 for (const key of CHANGE_TRACKING_KEYS) {
   CHANGE_TRACKING_DEFAULT[key] = false
 }
@@ -175,11 +176,13 @@ const updateAgentConfig = async function (updateData, fog, transaction) {
 const getAgentConfigChanges = async function (ioFog, transaction) {
   const changeTrackings = await ChangeTrackingService.getByIoFogUuid(ioFog.uuid, transaction)
   const res = { ...CHANGE_TRACKING_DEFAULT }
+  res.lastUpdated = moment().toISOString()
 
   for (const changeTracking of changeTrackings) {
     for (const key of CHANGE_TRACKING_KEYS) {
       res[key] = !!res[key] || !!changeTracking[key]
     }
+    res.lastUpdated = changeTracking.lastUpdated
   }
 
   return res
@@ -187,6 +190,7 @@ const getAgentConfigChanges = async function (ioFog, transaction) {
 
 const resetAgentConfigChanges = async function (ioFog, body, transaction) {
   await ChangeTrackingService.resetIfNotUpdated(ioFog.uuid, body.lastUpdated, transaction)
+  return {}
 }
 
 const updateAgentStatus = async function (agentStatus, fog, transaction) {
@@ -276,7 +280,7 @@ const getAgentMicroservices = async function (fog, transaction) {
     })
     const cmd = microservice.cmd && microservice.cmd.sort((a, b) => a.id > b.id).map((it) => it.cmd)
 
-    const registryId = microservice.catalogItem ? microservice.catalogItem.registry.id : microservice.registry.id
+    const registryId = microservice.catalogItem && microservice.catalogItem.registry ? microservice.catalogItem.registry.id : microservice.registry.id
 
     const responseMicroservice = {
       uuid: microservice.uuid,

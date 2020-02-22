@@ -163,7 +163,7 @@ module.exports = [
     }
   },
   {
-    method: 'delete',
+    method: 'patch',
     path: '/api/v3/agent/config/changes',
     middleware: async (req, res) => {
       logger.apiReq(req)

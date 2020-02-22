@@ -11,15 +11,17 @@
  *
  */
 
-const TransactionDecorator = require('../decorators/transaction-decorator')
-const FlowManager = require('../data/managers/flow-manager')
-const AppHelper = require('../helpers/app-helper')
-const Errors = require('../helpers/errors')
-const ErrorMessages = require('../helpers/error-messages')
-const Validator = require('../schemas')
-const ChangeTrackingService = require('./change-tracking-service')
 const Sequelize = require('sequelize')
 const Op = Sequelize.Op
+
+const AppHelper = require('../helpers/app-helper')
+const ChangeTrackingService = require('./change-tracking-service')
+const ErrorMessages = require('../helpers/error-messages')
+const Errors = require('../helpers/errors')
+const MicroserviceService = require('./microservices-service')
+const FlowManager = require('../data/managers/flow-manager')
+const TransactionDecorator = require('../decorators/transaction-decorator')
+const Validator = require('../schemas')
 
 const createFlowEndPoint = async function (flowData, user, isCLI, transaction) {
   await Validator.validate(flowData, Validator.schemas.flowCreate)
@@ -50,7 +52,7 @@ const deleteFlowEndPoint = async function (flowId, user, isCLI, transaction) {
   }
   const where = AppHelper.deleteUndefinedFields(whereObj)
 
-  await _updateChangeTrackingsByFlowId(flowId, transaction)
+  await _updateChangeTrackingsAndDeleteMicroservicesByFlowId(flowId, true, transaction)
 
   await FlowManager.delete(where, transaction)
 }
@@ -82,7 +84,7 @@ const updateFlowEndPoint = async function (flowData, flowId, user, isCLI, transa
   await FlowManager.update(where, updateFlowData, transaction)
 
   if (oldFlow.isActivated !== flowData.isActivated) {
-    await _updateChangeTrackingsByFlowId(flowId, transaction)
+    await _updateChangeTrackingsAndDeleteMicroservicesByFlowId(flowId, false, transaction)
   }
 }
 
@@ -152,14 +154,20 @@ const _checkForDuplicateName = async function (name, flowId, userId, transaction
   }
 }
 
-async function _updateChangeTrackingsByFlowId (flowId, transaction) {
+async function _updateChangeTrackingsAndDeleteMicroservicesByFlowId (flowId, deleteMicroservices, transaction) {
   const flowWithMicroservices = await FlowManager.findFlowMicroservices({ id: flowId }, transaction)
   if (!flowWithMicroservices) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_ID, flowId))
   }
   const onlyUnique = (value, index, self) => self.indexOf(value) === index
-  const iofogUuids = flowWithMicroservices.microservices
-    .map((obj) => obj.iofogUuid)
+  const iofogUuids = []
+  for (const ms of flowWithMicroservices.microservices) {
+    if (deleteMicroservices) {
+      await MicroserviceService.deleteMicroserviceWithRoutesAndPortMappings(ms, transaction)
+    }
+    iofogUuids.push(ms.iofogUuid)
+  }
+  iofogUuids
     .filter(onlyUnique)
     .filter((val) => val !== null)
   for (const iofogUuid of iofogUuids) {
