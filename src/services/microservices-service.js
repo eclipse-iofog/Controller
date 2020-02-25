@@ -349,6 +349,9 @@ async function updateMicroserviceEndPoint (microserviceUuid, microserviceData, u
     await _movePublicPortsToNewFog(updatedMicroservice, user, transaction)
   }
 
+  await ChangeTrackingService.update(microservice.iofogUuid, ChangeTrackingService.events.microserviceRouting, transaction)
+  await ChangeTrackingService.update(updatedMicroservice.iofogUuid, ChangeTrackingService.events.microserviceRouting, transaction)
+
   await _updateChangeTracking(true, microservice.iofogUuid, transaction)
   await _updateChangeTracking(true, updatedMicroservice.iofogUuid, transaction)
 }
