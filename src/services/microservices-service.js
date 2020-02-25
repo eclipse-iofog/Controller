@@ -1235,7 +1235,7 @@ async function deleteMicroserviceWithRoutesAndPortMappings (microservice, transa
 }
 
 function _buildLink (protocol, ip, port) {
-  return `${protocol}://${ip}:${port}`
+  return `${protocol || 'http'}://${ip}:${port}`
 }
 
 async function _buildGetMicroserviceResponse (microservice, transaction) {
@@ -1281,10 +1281,10 @@ async function _buildGetMicroserviceResponse (microservice, transaction) {
 async function _buildPublicPortMapping (mapping, publicPortMapping, transaction) {
   const hostRouter = publicPortMapping.hostId ? await RouterManager.findOne({ iofogUuid: publicPortMapping.hostId }, transaction) : { host: lget(await ConfigManager.findOne({ key: DEFAULT_PROXY_HOST }, transaction), 'value', 'undefined-proxy-host') }
   const hostFog = publicPortMapping.hostId ? await FogManager.findOne({ uuid: publicPortMapping.hostId }, transaction) : { uuid: DEFAULT_ROUTER_NAME }
-  mapping.publicLink = _buildLink('https', hostRouter.host, publicPortMapping.publicPort)
+  mapping.publicLink = _buildLink(publicPortMapping.protocol, hostRouter.host, publicPortMapping.publicPort)
   mapping.publicPort = publicPortMapping.publicPort
   mapping.host = hostFog.isSystem ? DEFAULT_ROUTER_NAME : hostFog.uuid
-  mapping.protocol = publicPortMapping.isTcp ? 'tcp' : 'http'
+  mapping.protocol = publicPortMapping.protocol
 }
 
 async function _recreateRoute (route, sourceMicroservice, destMicroservice, user, transaction) {

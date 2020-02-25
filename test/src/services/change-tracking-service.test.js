@@ -1,5 +1,6 @@
 const { expect } = require('chai')
 const sinon = require('sinon')
+const Op = require('sequelize').Op
 
 const ChangeTrackingManager = require('../../../src/data/managers/change-tracking-manager')
 const ChangeTrackingService = require('../../../src/services/change-tracking-service')
@@ -27,6 +28,7 @@ describe('ChangeTracking Service', () => {
       await $subject
       expect(ChangeTrackingManager.create).to.have.been.calledWith({
         iofogUuid: ioFogUuid,
+        lastUpdated: sinon.match.string,
       }, transaction)
     })
 
@@ -50,25 +52,27 @@ describe('ChangeTracking Service', () => {
     const error = 'Error!'
 
     const ioFogUuid = 'testUuid'
+    const data = ChangeTrackingService.events.clean
 
     def('subject', () => $subject.update(ioFogUuid, data, transaction))
     def('updateResponse', () => Promise.resolve())
 
 
-    const data = ChangeTrackingService.events.clean
 
     beforeEach(() => {
-      $sandbox.stub(ChangeTrackingManager, 'update').returns($updateResponse)
+      $sandbox.stub(ChangeTrackingManager, 'create').returns($updateResponse)
     })
 
-    it('calls ChangeTrackingManager#update() with correct args', async () => {
+    it('calls ChangeTrackingManager#create() with correct args', async () => {
       await $subject
-      expect(ChangeTrackingManager.update).to.have.been.calledWith({
+      expect(ChangeTrackingManager.create).to.have.been.calledWith({
+        ...data,
         iofogUuid: ioFogUuid,
-      }, data, transaction)
+        lastUpdated: sinon.match.string,
+      }, transaction)
     })
 
-    context('when ChangeTrackingManager#update() fails', () => {
+    context('when ChangeTrackingManager#create() fails', () => {
       def('updateResponse', () => Promise.reject(error))
 
       it(`fails with ${error}`, () => {
@@ -76,7 +80,7 @@ describe('ChangeTracking Service', () => {
       })
     })
 
-    context('when ChangeTrackingManager#update() succeeds', () => {
+    context('when ChangeTrackingManager#create() succeeds', () => {
       it('fulfills the promise', () => {
         return expect($subject).to.eventually.equal(undefined)
       })
@@ -96,17 +100,19 @@ describe('ChangeTracking Service', () => {
 
 
     beforeEach(() => {
-      $sandbox.stub(ChangeTrackingManager, 'updateIfChanged').returns($updateResponse)
+      $sandbox.stub(ChangeTrackingManager, 'create').returns($updateResponse)
     })
 
-    it('calls ChangeTrackingManager#updateIfChanged() with correct args', async () => {
+    it('calls ChangeTrackingManager#create() with correct args', async () => {
       await $subject
-      expect(ChangeTrackingManager.updateIfChanged).to.have.been.calledWith({
+      expect(ChangeTrackingManager.create).to.have.been.calledWith({
+        ...data,
         iofogUuid: ioFogUuid,
-      }, data, transaction)
+        lastUpdated: sinon.match.string,
+      }, transaction)
     })
 
-    context('when ChangeTrackingManager#updateIfChanged() fails', () => {
+    context('when ChangeTrackingManager#create() fails', () => {
       def('updateResponse', () => Promise.reject(error))
 
       it(`fails with ${error}`, () => {
@@ -114,7 +120,7 @@ describe('ChangeTracking Service', () => {
       })
     })
 
-    context('when ChangeTrackingManager#updateIfChanged() succeeds', () => {
+    context('when ChangeTrackingManager#create() succeeds', () => {
       it('fulfills the promise', () => {
         return expect($subject).to.eventually.equal(undefined)
       })
@@ -128,15 +134,15 @@ describe('ChangeTracking Service', () => {
     const ioFogUuid = 'testUuid'
 
     def('subject', () => $subject.getByIoFogUuid(ioFogUuid, transaction))
-    def('updateResponse', () => Promise.resolve())
+    def('updateResponse', () => Promise.resolve([]))
 
     beforeEach(() => {
-      $sandbox.stub(ChangeTrackingManager, 'findOne').returns($updateResponse)
+      $sandbox.stub(ChangeTrackingManager, 'findAll').returns($updateResponse)
     })
 
     it('calls ChangeTrackingManager#findOne() with correct args', async () => {
       await $subject
-      expect(ChangeTrackingManager.findOne).to.have.been.calledWith({
+      expect(ChangeTrackingManager.findAll).to.have.been.calledWith({
         iofogUuid: ioFogUuid,
       }, transaction)
     })
@@ -150,6 +156,43 @@ describe('ChangeTracking Service', () => {
     })
 
     context('when ChangeTrackingManager#findOne() succeeds', () => {
+      it('fulfills the promise', () => {
+        return expect($subject).to.eventually.eql([])
+      })
+    })
+  })
+
+  describe('.resetIfNotUpdated()', () => {
+    const transaction = {}
+    const error = 'Error!'
+
+    const ioFogUuid = 'testUuid'
+    const lastUpdated = 'now'
+
+    def('subject', () => $subject.resetIfNotUpdated(ioFogUuid, lastUpdated, transaction))
+    def('updateResponse', () => Promise.resolve())
+
+    beforeEach(() => {
+      $sandbox.stub(ChangeTrackingManager, 'delete').returns($updateResponse)
+    })
+
+    it('calls ChangeTrackingManager#delete() with correct args', async () => {
+      await $subject
+      expect(ChangeTrackingManager.delete).to.have.been.calledWith({
+        iofogUuid: ioFogUuid,
+        lastUpdated: { [Op.lte]: lastUpdated }
+      }, transaction)
+    })
+
+    context('when ChangeTrackingManager#delete() fails', () => {
+      def('updateResponse', () => Promise.reject(error))
+
+      it(`fails with ${error}`, () => {
+        return expect($subject).to.be.rejectedWith(error)
+      })
+    })
+
+    context('when ChangeTrackingManager#delete() succeeds', () => {
       it('fulfills the promise', () => {
         return expect($subject).to.eventually.equal(undefined)
       })
