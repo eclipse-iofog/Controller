@@ -470,30 +470,6 @@ describe('Agent Service', () => {
         return expect($subject).to.be.rejectedWith(error)
       })
     })
-
-    context('when ChangeTrackingService#getByIoFogUuid() succeeds', () => {
-      it('calls ChangeTrackingService.updateIfChanged with correct args', async () => {
-        await $subject
-        expect(ChangeTrackingService.updateIfChanged).to.have.been.calledWith($uuid,
-            ChangeTrackingService.events.clean, transaction)
-      })
-
-      context('when ChangeTrackingService#updateIfChanged fails', () => {
-        const error = 'Error!'
-
-        def('deleteUndefinedFieldsResponse', () => error)
-
-        it(`fails with "${error}"`, () => {
-          return expect($subject).to.be.rejectedWith = (error)
-        })
-      })
-
-      context('when ChangeTrackingService#updateIfChanged succeeds', () => {
-        it(`succeeds`, () => {
-          return expect($subject).to.eventually.deep.equal(configChanges)
-        })
-      })
-    })
   })
 
   describe('.updateAgentStatus()', () => {

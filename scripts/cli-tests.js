@@ -113,22 +113,6 @@ function testConfigSection () {
   responseEquals(testCommand('config email-activation -f'), 'Email activation state updated successfully.')
 }
 
-function testConnectorSection () {
-  console.log('\n=============================\nStarting connector section..')
-
-  responseContains(testCommand('connector add -i 127.0.0.1 -n Connector1 -d iofog.test.org  -c testCertPath' +
-    ' -s -H'), 'Connector has been created successfully.')
-  responseEquals(testCommand('connector update -i 127.0.0.2 -n Connector1 -d iofog.test.org  -c testCertPath' +
-    ' -s -H'), 'Connector has been updated successfully.')
-  responseEquals(testCommand('connector add -i 127.0.0.1 -n Connector2 -d iofog.test.org  -c testCertPath' +
-    ' -s -H'), 'Connector has been created successfully.')
-  responseEquals(testCommand('connector add -i 127.0.0.3 -n Connector1 -d iofog.test.org  -c testCertPath' +
-    ' -s -H'), '[error] Model already exists')
-  responseEquals(testCommand('connector remove -n Connector1'), 'Connector has been removed successfully.')
-  responseEquals(testCommand('connector remove -n Connector2'), 'Connector has been removed successfully.')
-  responseIsArray(testCommand('connector list'))
-}
-
 function testTunnelSection () {
   console.log('\n=============================\nStarting tunnel section..')
 
@@ -151,7 +135,7 @@ function testIoFogSection () {
     const ioFogUuid = ioFogCreateResponse.uuid
     responseEquals(testCommand('iofog update -i ' + ioFogUuid + ' -n ioFog1 -l testLocation -t 55 -g 65 ' +
       '-d testDescription -D testDockerUrl -M 55 -T testDiskDirectoryString -m 65 -c 24 -G 1 -Y testLogDirectory ' +
-      '-C 15 -s 25 -F 27 -Q 26 -B -W -A -y 1 -L INFO -p 65 -k 95'), 'ioFog node has been updated successfully.')
+      '-C 15 -s 25 -F 27 -Q 26 -B -W -A -y 1 -L INFO -p 65 -k 95 -u ' + userId), 'ioFog node has been updated successfully.')
     responseHasFields(testCommand('iofog list'), ioFogListFields)
     responseHasFields(testCommand('iofog info -i ' + ioFogUuid), ioFogCreateFields)
     responseHasFields(testCommand('iofog provisioning-key -i ' + ioFogUuid), ioFogProvisioningFields)
@@ -161,7 +145,7 @@ function testIoFogSection () {
       'ioFog version command has been set successfully')
     hasSomeResponse(testCommand('iofog hal-hw -i ' + ioFogUuid))
     hasSomeResponse(testCommand('iofog hal-usb -i ' + ioFogUuid))
-    responseEquals(testCommand('iofog remove -i ' + ioFogUuid), 'ioFog node has been removed successfully')
+    responseEquals(testCommand('iofog remove -i ' + ioFogUuid + ' -u ' + userId), 'ioFog node has been removed successfully')
     executeCommand('user remove -e fogUser@domain.com')
   } catch (exception) {
     executeCommand('user remove -e fogUser@domain.com')
@@ -439,7 +423,6 @@ async function cliTest () {
     testControllerSection()
     testUserSection()
     testConfigSection()
-    testConnectorSection()
     testTunnelSection()
     testIoFogSection()
     testCatalogSection()

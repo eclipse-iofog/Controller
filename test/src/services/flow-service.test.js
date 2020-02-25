@@ -6,6 +6,7 @@ const FlowService = require('../../../src/services/flow-service')
 const AppHelper = require('../../../src/helpers/app-helper')
 const Validator = require('../../../src/schemas')
 const ChangeTrackingService = require('../../../src/services/change-tracking-service')
+const MicroserviceService = require('../../../src/services/microservices-service')
 const Sequelize = require('sequelize')
 const Op = Sequelize.Op
 const ErrorMessages = require('../../../src/helpers/error-messages')
@@ -165,6 +166,7 @@ describe('Flow Service', () => {
       $sandbox.stub(AppHelper, 'deleteUndefinedFields').returns($deleteUndefinedFieldsResponse)
       $sandbox.stub(FlowManager, 'findFlowMicroservices').returns($findFlowMicroservicesResponse)
       $sandbox.stub(ChangeTrackingService, 'update').returns($updateChangeTrackingResponse)
+      $sandbox.stub(MicroserviceService, 'deleteMicroserviceWithRoutesAndPortMappings')
       $sandbox.stub(FlowManager, 'delete').returns($deleteFlowResponse)
     })
 
@@ -204,6 +206,13 @@ describe('Flow Service', () => {
 
           expect(ChangeTrackingService.update).to.have.been.calledWith(flowWithMicroservices.microservices[0].iofogUuid,
               ChangeTrackingService.events.microserviceFull, transaction)
+        })
+
+        it('should delete microservices with routes and ports', async () => {
+          await $subject
+
+          for (const msvc of flowWithMicroservices.microservices)
+          expect(MicroserviceService.deleteMicroserviceWithRoutesAndPortMappings).to.have.been.calledWith(msvc, transaction)
         })
 
         context('when ChangeTrackingService#update() fails', () => {

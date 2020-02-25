@@ -8,9 +8,11 @@ const Validator = require('../../../src/schemas')
 const ChangeTrackingService = require('../../../src/services/change-tracking-service')
 const CatalogService = require('../../../src/services/catalog-service')
 const FlowService = require('../../../src/services/flow-service')
+const FlowManager = require('../../../src/data/managers/flow-manager')
 const ioFogService = require('../../../src/services/iofog-service')
 const MicroservicePortManager = require('../../../src/data/managers/microservice-port-manager')
 const CatalogItemImageManager = require('../../../src/data/managers/catalog-item-image-manager')
+const RouterManager = require('../../../src/data/managers/router-manager')
 const VolumeMappingManager = require('../../../src/data/managers/volume-mapping-manager')
 const MicroserviceStatusManager = require('../../../src/data/managers/microservice-status-manager')
 const RoutingManager = require('../../../src/data/managers/routing-manager')
@@ -18,11 +20,10 @@ const MicroserviceEnvManager = require('../../../src/data/managers/microservice-
 const MicroserviceArgManager = require('../../../src/data/managers/microservice-arg-manager')
 const RegistryManager = require('../../../src/data/managers/registry-manager')
 const Op = require('sequelize').Op
-const ConnectorManager = require('../../../src/data/managers/connector-manager')
-const ConnectorPortManager = require('../../../src/data/managers/connector-port-manager')
 const MicroservicePublicModeManager = require('../../../src/data/managers/microservice-public-mode-manager')
 const MicroservicePublicPortManager = require('../../../src/data/managers/microservice-public-port-manager')
 const ioFogManager = require('../../../src/data/managers/iofog-manager')
+const Errors = require('../../../src/helpers/errors')
 
 describe('Microservices Service', () => {
   def('subject', () => MicroservicesService)
@@ -54,8 +55,6 @@ describe('Microservices Service', () => {
     def('findVolumeMappingsResponse', () => Promise.resolve([]))
     def('findRoutesResponse', () => Promise.resolve([]))
     def('publicModeResponse', () => Promise.resolve([]))
-    def('connectorPortResponse', () => Promise.resolve({}))
-    def('connectorResponse', () => Promise.resolve({}))
     def('envResponse', () => Promise.resolve([]))
     def('cmdResponse', () => Promise.resolve([]))
     def('imgResponse', () => Promise.resolve([]))
@@ -69,8 +68,6 @@ describe('Microservices Service', () => {
       $sandbox.stub(MicroserviceEnvManager, 'findAllExcludeFields').returns($envResponse)
       $sandbox.stub(MicroserviceArgManager, 'findAllExcludeFields').returns($cmdResponse)
       $sandbox.stub(MicroservicePublicModeManager, 'findAll').returns($publicModeResponse)
-      $sandbox.stub(ConnectorPortManager, 'findOne').returns($connectorPortResponse)
-      $sandbox.stub(ConnectorManager, 'findOne').returns($connectorResponse)
       $sandbox.stub(CatalogItemImageManager, 'findAll').returns($imgResponse)
       $sandbox.stub(MicroserviceStatusManager, 'findAllExcludeFields').returns($statusResponse)
     })
@@ -119,8 +116,6 @@ describe('Microservices Service', () => {
     def('findVolumeMappingsResponse', () => Promise.resolve([]))
     def('findRoutesResponse', () => Promise.resolve([]))
     def('publicModeResponse', () => Promise.resolve([]))
-    def('connectorPortResponse', () => Promise.resolve({}))
-    def('connectorResponse', () => Promise.resolve({}))
     def('envResponse', () => Promise.resolve([]))
     def('cmdResponse', () => Promise.resolve([]))
     def('imgResponse', () => Promise.resolve([]))
@@ -134,8 +129,6 @@ describe('Microservices Service', () => {
       $sandbox.stub(MicroserviceEnvManager, 'findAllExcludeFields').returns($envResponse)
       $sandbox.stub(MicroserviceArgManager, 'findAllExcludeFields').returns($cmdResponse)
       $sandbox.stub(MicroservicePublicModeManager, 'findAll').returns($publicModeResponse)
-      $sandbox.stub(ConnectorPortManager, 'findOne').returns($connectorPortResponse)
-      $sandbox.stub(ConnectorManager, 'findOne').returns($connectorResponse)
       $sandbox.stub(CatalogItemImageManager, 'findAll').returns($imgResponse)
       $sandbox.stub(MicroserviceStatusManager, 'findAllExcludeFields').returns($statusResponse)
     })
@@ -168,14 +161,18 @@ describe('Microservices Service', () => {
           portInternal: 80,
           portInternal: 8080,
           isPublic: true,
+          getPublicPort: () => Promise.resolve({
+            hostId: 'fakeAgentUuid',
+            publicPort: 1234,
+            protocol: 'http'
+          })
         },
       ]))
-      def('publicModeResponse', () => Promise.resolve([{ microservicePortId: 1, connectorPortId: 1 }]))
-      def('connectorPortResponse', () => Promise.resolve({ connectorPortId: 1, port2: 1234 }))
-      def('connectorResponse', () => Promise.resolve({
-        publicIp: '1.2.3.4',
-        devMode: true,
-      }))
+
+      beforeEach(() => {
+        $sandbox.stub(RouterManager, 'findOne').returns(Promise.resolve({host: '1.2.3.4'}))
+        $sandbox.stub(ioFogManager, 'findOne').returns(Promise.resolve({}))
+      })
 
       it('returns public link', async () => {
         const ms = await $subject
@@ -245,7 +242,6 @@ describe('Microservices Service', () => {
       {
         'internal': 1,
         'external': 1,
-        'publicMode': false,
       }
 
     const mappings = []
@@ -276,7 +272,7 @@ describe('Microservices Service', () => {
     def('findMicroserviceResponse', () => Promise.resolve())
     def('findMicroserviceResponse2', () => Promise.resolve(microserviceData))
     def('getCatalogItemResponse', () => Promise.resolve({images}))
-    def('getFlowResponse', () => Promise.resolve())
+    def('findFlowResponse', () => Promise.resolve({}))
     def('getIoFogResponse', () => Promise.resolve())
     def('createMicroserviceResponse', () => Promise.resolve(microserviceData))
     def('findMicroservicePortResponse', () => Promise.resolve())
@@ -288,6 +284,7 @@ describe('Microservices Service', () => {
     def('findOneRegistryResponse', () => Promise.resolve({}))
     def('findOneFogResponse', () => Promise.resolve({...fog, getMicroservice: () => Promise.resolve([])}))
     def('findPublicPortsResponse', () => Promise.resolve([]))
+    def('getProxyCatalogItem', () => Promise.resolve(({id: 15})))
 
     beforeEach(() => {
       $sandbox.stub(Validator, 'validate')
@@ -299,8 +296,9 @@ describe('Microservices Service', () => {
           .onFirstCall().returns($findMicroserviceResponse)
           .onSecondCall().returns($findMicroserviceResponse2)
       $sandbox.stub(CatalogService, 'getCatalogItem').returns($getCatalogItemResponse)
-      $sandbox.stub(FlowService, 'getFlow').returns($getFlowResponse)
+      $sandbox.stub(FlowManager, 'findOne').returns($findFlowResponse)
       $sandbox.stub(ioFogService, 'getFog').returns($getIoFogResponse)
+      $sandbox.stub(CatalogService, 'getProxyCatalogItem').returns($getProxyCatalogItem)
       $sandbox.stub(MicroserviceManager, 'create').returns($createMicroserviceResponse)
       $sandbox.stub(MicroservicePortManager, 'findOne').returns($findMicroservicePortResponse)
       $sandbox.stub(MicroservicePortManager, 'create').returns($createMicroservicePortResponse)
@@ -400,21 +398,33 @@ describe('Microservices Service', () => {
             })
 
             context('when CatalogService#getCatalogItem() succeeds', () => {
-              it('calls FlowService#getFlow() with correct args', async () => {
+              it('calls FlowManager#findOne() with correct args', async () => {
                 await $subject
-                expect(FlowService.getFlow).to.have.been.calledWith(newMicroservice.flowId,
-                    user, isCLI, transaction)
+                expect(FlowManager.findOne).to.have.been.calledWith({id: microserviceData.flowId}, transaction)
               })
 
-              context('when FlowService#getFlow() fails', () => {
-                def('getFlowResponse', () => Promise.reject(error))
+              context('when FlowManager#findOne() fails', () => {
+                def('findFlowResponse', () => Promise.reject(error))
 
                 it(`fails with ${error}`, () => {
                   return expect($subject).to.be.rejectedWith(error)
                 })
               })
 
-              context('when FlowService#getFlow() succeeds', () => {
+              context('when FlowManager#findOne() fails', () => {
+                def('findFlowResponse', () => Promise.resolve(null))
+
+                it(`fails with ${error}`, async () => {
+                  try {
+                    await $subject
+                  } catch (e) {
+                    return expect(e).to.be.instanceOf(Errors.NotFoundError)
+                  }
+                  return expect(true).to.eql(false)
+                })
+              })
+
+              context('when FlowManager#findOne() succeeds', () => {
                 it('calls IoFogService#getFog() with correct args', async () => {
                   await $subject
                   expect(ioFogService.getFog).to.have.been.calledWith({
