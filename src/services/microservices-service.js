@@ -725,7 +725,7 @@ async function _deletePublicPortMapping (microservice, portMapping, transaction)
     await _updateOrDeleteProxyMicroservice(publicPort.remoteProxyId, remoteMapping, transaction)
   }
 
-  await MicroservicePortManager.delete({ microserviceUuid: microservice.uuid }, transaction)
+  await MicroservicePortManager.delete({ id: portMapping.id }, transaction)
 }
 
 async function deletePortMappingEndPoint (microserviceUuid, internalPort, user, isCLI, transaction) {
