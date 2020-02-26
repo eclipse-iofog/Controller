@@ -64,6 +64,7 @@ const microserviceUpdate = {
     'images': {
       'type': 'array',
       'maxItems': 2,
+      'minItems': 1,
       'items': { '$ref': '/image' }
     },
     'env': {

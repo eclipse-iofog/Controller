@@ -293,9 +293,8 @@ async function updateMicroserviceEndPoint (microserviceUuid, microserviceData, u
   }
 
   // Validate images vs catalog item
-  const catalogItemId = microserviceDataUpdate.catalogItemId === null ? null : microserviceDataUpdate.catalogItemId || microservice.catalogItemId
-  if (catalogItemId) {
-    const catalogItem = await CatalogService.getCatalogItem(catalogItemId, user, isCLI, transaction)
+  if (microserviceDataUpdate.catalogItemId) {
+    const catalogItem = await CatalogService.getCatalogItem(microserviceDataUpdate.catalogItemId, user, isCLI, transaction)
     _validateImagesAgainstCatalog(catalogItem, microserviceDataUpdate.images || [])
     if (microserviceDataUpdate.catalogItemId !== undefined && microserviceDataUpdate.catalogItemId !== microservice.catalogItemId) {
       // Catalog item changed or removed, set rebuild flag
@@ -303,10 +302,10 @@ async function updateMicroserviceEndPoint (microserviceUuid, microserviceData, u
       // If catalog item is set, set registry and msvc images
       if (microserviceDataUpdate.catalogItemId) {
         await _deleteImages(microserviceUuid, transaction)
-        microserviceDataUpdate.registryId = 1
+        microserviceDataUpdate.registryId = catalogItem.registryId || 1
       }
     }
-  } else if (microserviceDataUpdate.images && microserviceDataUpdate.images.length === 0) {
+  } else if (!microservice.catalogItemId && microserviceDataUpdate.images && microserviceDataUpdate.images.length === 0) {
     // No catalog, and no image
     throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.MICROSERVICE_DOES_NOT_HAVE_IMAGES, microserviceData.name))
   } else if (microserviceDataUpdate.images && microserviceDataUpdate.images.length > 0) {
@@ -324,8 +323,8 @@ async function updateMicroserviceEndPoint (microserviceUuid, microserviceData, u
   }
 
   // validate fog node
-  if (iofogUuid) {
-    await IoFogService.getFog({ uuid: iofogUuid }, user, isCLI, transaction)
+  if (iofogUuid && !(await IoFogService.getFog({ uuid: iofogUuid }, user, isCLI, transaction))) {
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, iofogUuid))
   }
 
   const updatedMicroservice = await MicroserviceManager.updateAndFind(query, microserviceDataUpdate, transaction)
@@ -671,7 +670,6 @@ async function _updateOrDeleteProxyMicroservice (proxyId, proxyMapping, transact
     await MicroserviceManager.delete({ uuid: proxy.uuid }, transaction)
     await ChangeTrackingService.update(proxy.iofogUuid, ChangeTrackingService.events.microserviceConfig, transaction)
   } else {
-    proxy.config = JSON.stringify(config)
     await MicroserviceManager.updateIfChanged({ uuid: proxy.uuid }, { config: JSON.stringify(config) }, transaction)
     await ChangeTrackingService.update(proxy.iofogUuid, ChangeTrackingService.events.microserviceCommon, transaction)
   }
@@ -1010,11 +1008,8 @@ async function _validateMicroserviceOnGet (userId, microserviceUuid, transaction
 async function _createSimpleRoute (sourceMicroservice, destMicroservice, transaction) {
   // create new route
   const routeData = {
-    isNetworkConnection: false,
     sourceMicroserviceUuid: sourceMicroservice.uuid,
-    destMicroserviceUuid: destMicroservice.uuid,
-    sourceIofogUuid: sourceMicroservice.iofogUuid,
-    destIofogUuid: destMicroservice.iofogUuid // same as sourceIofogUuid
+    destMicroserviceUuid: destMicroservice.uuid
   }
 
   await RoutingManager.create(routeData, transaction)

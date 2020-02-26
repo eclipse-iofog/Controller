@@ -151,7 +151,6 @@ describe('ioFog Service', () => {
     }
 
     def('subject', () => $subject.createFogEndPoint(fogData, user, isCLI, transaction))
-    // def('subjectRouterNone', () => $subject.createFogEndPoint(fogData, user, isCLI, transaction))
     def('validatorResponse', () => Promise.resolve(true))
     def('generateRandomStringResponse', () => uuid)
     def('generateRandomStringResponse2', () => uuid2)

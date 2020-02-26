@@ -742,266 +742,510 @@ describe('Microservices Service', () => {
       })
     })
   })
-  // TODO: Rewrite tests once service has been refactored
-  // describe('.updateMicroserviceEndPoint()', () => {
-  //   const transaction = {};
-  //   const error = 'Error!';
 
-  //   const user = {
-  //     id: 15
-  //   };
+  describe('.updateMicroserviceEndPoint()', () => {
+    const transaction = {};
+    const error = 'Error!';
 
-  //   const microserviceUuid = 'testMicroserviceUuid';
+    const user = {
+      id: 15
+    };
 
-  //   const query = isCLI
-  //     ?
-  //     {
-  //       uuid: microserviceUuid
-  //     }
-  //     :
-  //     {
-  //       uuid: microserviceUuid,
-  //       userId: user.id
-  //     };
+    const microserviceUuid = 'testMicroserviceUuid';
 
-  //   const microserviceData = {
-  //     "name": "name2",
-  //     "config": "string",
-  //     "catalogItemId": 15,
-  //     "flowId": 16,
-  //     "iofogUuid": 'testIofogUuid',
-  //     "rootHostAccess": true,
-  //     "logSize": 0,
-  //   };
+    const query = isCLI
+      ?
+      {
+        uuid: microserviceUuid
+      }
+      :
+      {
+        uuid: microserviceUuid,
+        userId: user.id
+      };
 
-  //   const microserviceToUpdate = {
-  //     name: microserviceData.name,
-  //     config: microserviceData.config,
-  //     rebuild: microserviceData.rebuild,
-  //     iofogUuid: microserviceData.iofogUuid,
-  //     rootHostAccess: microserviceData.rootHostAccess,
-  //     logSize: microserviceData.logLimit,
-  //     volumeMappings: microserviceData.volumeMappings
-  //   };
+    const microserviceData = {
+      "name": "name2",
+      "config": "string",
+      "catalogItemId": 15,
+      "flowId": 16,
+      "iofogUuid": 'testIofogUuid',
+      "rootHostAccess": true,
+      "logSize": 0,
+    };
 
-  //   const newMicroserviceUuid = microserviceUuid;
-  //   const oldMicroservice = {
-  //     uuid: newMicroserviceUuid,
-  //     name: 'oldName',
-  //     config: microserviceData.config,
-  //     catalogItemId: microserviceData.catalogItemId,
-  //     flowId: microserviceData.flowId,
-  //     iofogUuid: microserviceData.iofogUuid,
-  //     rootHostAccess: !microserviceData.rootHostAccess,
-  //     logSize: microserviceData.logLimit,
-  //     userId: user.id
-  //   };
+    const microserviceToUpdate = {
+      name: microserviceData.name,
+      config: microserviceData.config,
+      rebuild: microserviceData.rebuild,
+      iofogUuid: microserviceData.iofogUuid,
+      rootHostAccess: microserviceData.rootHostAccess,
+      logSize: microserviceData.logLimit,
+      volumeMappings: microserviceData.volumeMappings
+    };
 
-  //   const microserviceUpdateData = {
-  //     uuid: oldMicroservice.uuid,
-  //     rootHostAccess: microserviceData.rootHostAccess,
-  //   }
+    const newMicroserviceUuid = microserviceUuid;
+    const oldMicroservice = {
+      uuid: newMicroserviceUuid,
+      name: 'oldName',
+      config: microserviceData.config,
+      catalogItemId: microserviceData.catalogItemId,
+      flowId: microserviceData.flowId,
+      iofogUuid: microserviceData.iofogUuid,
+      rootHostAccess: !microserviceData.rootHostAccess,
+      logSize: microserviceData.logLimit,
+      userId: user.id
+    };
 
-  //   const newMicroservice = {
-  //     ...oldMicroservice,
-  //     rootHostAccess: microserviceUpdateData.rootHostAccess,
-  //   }
+    const microserviceUpdateData = {
+      uuid: oldMicroservice.uuid,
+      rootHostAccess: microserviceData.rootHostAccess,
+    }
 
-  //   const randomString = 'randomString'
+    const newMicroservice = {
+      ...oldMicroservice,
+      rootHostAccess: microserviceUpdateData.rootHostAccess,
+    }
 
-  //   def('subject', () => $subject.updateMicroserviceEndPoint(microserviceUuid, microserviceData, user, isCLI, transaction));
-  //   def('validatorResponse', () => Promise.resolve(true));
-  //   def('deleteUndefinedFieldsResponse', () => microserviceUpdateData);
-  //   def('oldMicroserviceResponse', () => Promise.resolve(oldMicroservice))
-  //   def('newMicroserviceResponse', () => Promise.resolve(newMicroservice))
-  //   def('findRegistryResponse', () => Promise.resolve({}))
-  //   def('findCatalogItem', () => Promise.resolve({}))
-  //   def('findFogResponse', () => Promise.resolve({}))
+    const randomString = 'randomString'
+
+    def('subject', () => $subject.updateMicroserviceEndPoint(microserviceUuid, microserviceData, user, isCLI, transaction));
+    def('validatorResponse', () => Promise.resolve(true));
+    def('deleteUndefinedFieldsResponse', () => microserviceUpdateData);
+    def('oldMicroserviceResponse', () => Promise.resolve(oldMicroservice))
+    def('newMicroserviceResponse', () => Promise.resolve(newMicroservice))
+    def('findRegistryResponse', () => Promise.resolve({}))
+    def('findCatalogItem', () => Promise.resolve({}))
+    def('findFogResponse', () => Promise.resolve({}))
 
 
-  //   beforeEach(() => {
-  //     $sandbox.stub(Validator, 'validate').returns($validatorResponse);
-  //     $sandbox.stub(AppHelper, 'deleteUndefinedFields').returns($deleteUndefinedFieldsResponse);
-  //     $sandbox.stub(AppHelper, 'generateRandomString').returns(randomString);
-  //     $sandbox.stub(ChangeTrackingService, 'update')
-  //     $sandbox.stub(MicroserviceManager, 'findOneWithCategory').returns($oldMicroserviceResponse)
-  //     $sandbox.stub(MicroserviceManager, 'updateAndFind').returns($newMicroserviceResponse)
-  //     $sandbox.stub(RegistryManager, 'findOne').returns($findRegistryResponse)
-  //     $sandbox.stub(CatalogService, 'getCatalogItem').returns($findCatalogItem)
-  //     $sandbox.stub(ioFogService, 'getFog').returns($findFogResponse)
-  //   });
+    beforeEach(() => {
+      $sandbox.stub(Validator, 'validate').returns($validatorResponse);
+      $sandbox.stub(AppHelper, 'deleteUndefinedFields').returns($deleteUndefinedFieldsResponse);
+      $sandbox.stub(AppHelper, 'generateRandomString').returns(randomString);
+      $sandbox.stub(ChangeTrackingService, 'update')
+      $sandbox.stub(MicroserviceManager, 'findOneWithCategory').returns($oldMicroserviceResponse)
+      $sandbox.stub(MicroserviceManager, 'updateAndFind').returns($newMicroserviceResponse)
+      $sandbox.stub(RegistryManager, 'findOne').returns($findRegistryResponse)
+      $sandbox.stub(CatalogService, 'getCatalogItem').returns($findCatalogItem)
+      $sandbox.stub(ioFogService, 'getFog').returns($findFogResponse)
+    });
 
-  //   it('calls Validator#validate() with correct args', async () => {
-  //     await $subject;
-  //     expect(Validator.validate).to.have.been.calledWith(microserviceData,
-  //       Validator.schemas.microserviceUpdate);
-  //   });
+    it('calls Validator#validate() with correct args', async () => {
+      await $subject;
+      expect(Validator.validate).to.have.been.calledWith(microserviceData,
+        Validator.schemas.microserviceUpdate);
+    });
 
-  //   context('when Validator#validate() fails', () => {
-  //     def('validatorResponse', () => Promise.reject(error));
+    context('when Validator#validate() fails', () => {
+      def('validatorResponse', () => Promise.reject(error));
 
-  //     it(`fails with ${error}`, () => {
-  //       return expect($subject).to.be.rejectedWith(error);
-  //     })
-  //   });
+      it(`fails with ${error}`, () => {
+        return expect($subject).to.be.rejectedWith(error);
+      })
+    });
 
-  //   context('when Validator#validate() succeeds', () => {
-  //     it('calls AppHelper#deleteUndefinedFields() with correct args', async () => {
-  //       await $subject;
-  //       const microserviceToUpdate = {
-  //         name: microserviceData.name,
-  //         config: sinon.match.string,
-  //         images: microserviceData.images,
-  //         catalogItemId: microserviceData.catalogItemId,
-  //         rebuild: microserviceData.rebuild,
-  //         iofogUuid: microserviceData.iofogUuid,
-  //         rootHostAccess: microserviceData.rootHostAccess,
-  //         logSize: (microserviceData.logLimit || 50) * 1,
-  //         registryId: microserviceData.registryId,
-  //         volumeMappings: microserviceData.volumeMappings,
-  //         env: microserviceData.env,
-  //         cmd: microserviceData.cmd
-  //       }
-  //       expect(AppHelper.deleteUndefinedFields).to.have.been.calledWith(microserviceToUpdate);
-  //     });
+    context('when Validator#validate() succeeds', () => {
+      it('calls AppHelper#deleteUndefinedFields() with correct args', async () => {
+        await $subject;
+        const microserviceToUpdate = {
+          name: microserviceData.name,
+          config: sinon.match.string,
+          images: microserviceData.images,
+          catalogItemId: microserviceData.catalogItemId,
+          rebuild: microserviceData.rebuild,
+          iofogUuid: microserviceData.iofogUuid,
+          rootHostAccess: microserviceData.rootHostAccess,
+          logSize: (microserviceData.logLimit || 50) * 1,
+          registryId: microserviceData.registryId,
+          volumeMappings: microserviceData.volumeMappings,
+          env: microserviceData.env,
+          cmd: microserviceData.cmd
+        }
+        expect(AppHelper.deleteUndefinedFields).to.have.been.calledWith(microserviceToUpdate);
+      });
 
-  //     context('when AppHelper#deleteUndefinedFields() succeeds', () => {
-  //       it('should update the microservice', async () => {
-  //         await $subject
-  //         expect(MicroserviceManager.updateAndFind).to.have.been.calledWith(query, microserviceUpdateData, transaction)
-  //       })
+      context('when AppHelper#deleteUndefinedFields() succeeds', () => {
+        it('should update the microservice', async () => {
+          await $subject
+          expect(MicroserviceManager.updateAndFind).to.have.been.calledWith(query, microserviceUpdateData, transaction)
+          expect(ChangeTrackingService.update).to.have.been.calledWith(newMicroservice.iofogUuid, ChangeTrackingService.events.microserviceRouting, transaction)
+        })
 
-  //       context('when the microservice could not be found', () => {
-  //         def('oldMicroserviceResponse', () => Promise.resolve(null))
+        context('when the microservice could not be found', () => {
+          def('oldMicroserviceResponse', () => Promise.resolve(null))
 
-  //         it('should error with NotFound', async () => {
-  //           try{
-  //             await $subject
-  //           } catch(e) {
-  //             return expect(e).to.be.instanceOf(Errors.NotFoundError)
-  //           }
-  //           return expect(true).to.eql(false)
-  //         })
-  //       })
+          it('should error with NotFound', async () => {
+            try{
+              await $subject
+            } catch(e) {
+              return expect(e).to.be.instanceOf(Errors.NotFoundError)
+            }
+            return expect(true).to.eql(false)
+          })
+        })
 
-  //       context('when the registry could not be found', () => {
-  //         def('deleteUndefinedFieldsResponse', () => ({
-  //           uuid: microserviceUuid,
-  //           registryId: 5,
-  //         }))
-  //         def('findRegistryResponse', () => Promise.resolve(null))
+        context('when the registry could not be found', () => {
+          def('deleteUndefinedFieldsResponse', () => ({
+            uuid: microserviceUuid,
+            registryId: 5,
+          }))
+          def('findRegistryResponse', () => Promise.resolve(null))
 
-  //         it('should error with NotFound', async () => {
-  //           try{
-  //             await $subject
-  //           } catch(e) {
-  //             return expect(e).to.be.instanceOf(Errors.NotFoundError)
-  //           }
-  //           return expect(true).to.eql(false)
-  //         })
-  //       })
+          it('should error with NotFound', async () => {
+            try{
+              await $subject
+            } catch(e) {
+              return expect(e).to.be.instanceOf(Errors.NotFoundError)
+            }
+            return expect(true).to.eql(false)
+          })
+        })
 
-  //       context('when microservice is moved', () => {
-  //         const oldFog = {
-  //           uuid: 'oldUuid'
-  //         }
-  //         const newFog = {
-  //           uuid: 'newFogUuid'
-  //         }
-  //         const portMappings = []
-  //         def('oldMicroserviceResponse', () => Promise.resolve({
-  //           ...oldMicroservice,
-  //           iofogUuid: oldFog.uuid,
-  //           getPorts: () => Promise.resolve(portMappings)
-  //         }))
-  //         const newMicroservice = {
-  //           ...microserviceUpdateData,
-  //           iofogUuid: newFog.uuid,
-  //         }
-  //         const updatedNewMicroservice = {
-  //           ...newMicroservice,
-  //           getPorts: () => Promise.resolve(portMappings)
-  //         }
-  //         def('newMicroserviceResponse', () => Promise.resolve(updatedNewMicroservice))
-  //         def('deleteUndefinedFieldsResponse', () => newMicroservice)
-  //         def('getNewAgentMicroserviceReponse', () => Promise.resolve([]))
-  //         def('newAgentPublicPortsResponse', () => Promise.resolve([]))
-  //         def('findRoutesResponse', () => Promise.resolve([]))
+        context('when microservice is moved to another agent', () => {
+          const oldFog = {
+            uuid: 'oldUuid'
+          }
+          const newFog = {
+            uuid: 'newFogUuid'
+          }
+          const portMappings = []
+          def('oldMicroserviceResponse', () => Promise.resolve({
+            ...oldMicroservice,
+            iofogUuid: oldFog.uuid,
+            getPorts: () => Promise.resolve([])
+          }))
+          const newMicroservice = {
+            ...microserviceUpdateData,
+            iofogUuid: newFog.uuid,
+          }
+          const updatedNewMicroservice = {
+            ...newMicroservice,
+            getPorts: () => Promise.resolve([])
+          }
+          def('newMicroserviceResponse', () => Promise.resolve(updatedNewMicroservice))
+          def('deleteUndefinedFieldsResponse', () => newMicroservice)
+          def('getNewAgentMicroserviceReponse', () => Promise.resolve([]))
+          def('newAgentPublicPortsResponse', () => Promise.resolve([]))
+          def('findRoutesResponse', () => Promise.resolve([]))
+          def('getPortsResponse', () => Promise.resolve([]))
 
-  //         beforeEach(() => {
-  //           const stub = $sandbox.stub(ioFogManager, 'findOne')
-  //           stub.withArgs({isDefault: true}).returns(Promise.resolve({
-  //             uuid: 'defaultFogUuid',
-  //             isDefault: true,
-  //             isSystem: true
-  //           }))
-  //           stub.returns(Promise.resolve({
-  //             ...newFog,
-  //             getMicroservice: () => $getNewAgentMicroserviceReponse
-  //           }))
-  //           $sandbox.stub(MicroservicePublicPortManager, 'findAll').returns($newAgentPublicPortsResponse)
-  //           $sandbox.stub(RoutingManager, 'findAll').returns($findRoutesResponse)
-  //           $sandbox.stub(updatedNewMicroservice, 'getPorts').returns(Promise.resolve(portMappings))
-  //         })
+          beforeEach(() => {
+            const stub = $sandbox.stub(ioFogManager, 'findOne')
+            stub.withArgs({isDefault: true}).returns(Promise.resolve({
+              uuid: 'defaultFogUuid',
+              isDefault: true,
+              isSystem: true
+            }))
+            stub.returns(Promise.resolve({
+              ...newFog,
+              getMicroservice: () => $getNewAgentMicroserviceReponse
+            }))
+            $sandbox.stub(MicroservicePublicPortManager, 'findAll').returns($newAgentPublicPortsResponse)
+            $sandbox.stub(updatedNewMicroservice, 'getPorts').returns($getPortsResponse)
+          })
 
-  //         it('should look for ports and routes to move', async () => {
-  //           const query = {
-  //             [Op.or]:
-  //               [
-  //                 {
-  //                   sourceMicroserviceUuid: microserviceUuid
-  //                 },
-  //                 {
-  //                   destMicroserviceUuid: microserviceUuid
-  //                 }
-  //               ]
-  //           }
-  //           await $subject
-  //           expect(RoutingManager.findAll).to.have.been.calledWith(query, transaction)
-  //           expect(updatedNewMicroservice.getPorts).to.have.been.called
-  //         })
+          it('should look for ports to move', async () => {
+            await $subject
+            expect(updatedNewMicroservice.getPorts).to.have.been.called
+          })
 
-  //         context('when there are routes to be moved', () => {
-  //           const routes = [{
-  //             id: 233,
-  //             sourceMicroserviceUuid: microserviceUuid,
-  //             destMicroserviceUuid: 'destMsvcUUID1',
-  //             sourceIofogUuid: oldMicroservice.iofogUuid,
-  //             destIofogUuid: 'destUUID1',
-  //             isNetworkConnection: true
-  //           }, {
-  //             id: 234,
-  //             sourceMicroserviceUuid: 'srcMsvcUUID2',
-  //             destMicroserviceUuid: microserviceUuid,
-  //             sourceIofogUuid: 'srcUUID2',
-  //             destIofogUuid: oldMicroservice.iofogUuid
-  //           }]
-  //           const otherMsvc = {
-  //             iofogUuid: 'otherFoguuid',
-  //             uuid: 'otherMsvcUuid'
-  //           }
-  //           def('findRoutesResponse', () => Promise.resolve(routes))
-  //           def('findRouteResponse', () => Promise.resolve(null))
+          context('when there are ports to move', async () => {
+            const portMappings = [{
+              internalPort: 1,
+              externalPort: 1,
+            }]
+            def('getPortsResponse', () => Promise.resolve(portMappings))
 
-  //           beforeEach(() => {
-  //             $sandbox.stub(MicroserviceManager, 'findOne').returns(Promise.resolve(otherMsvc))
-  //             $sandbox.stub(RoutingManager, 'delete')
-  //             $sandbox.stub(RoutingManager, 'create')
-  //             $sandbox.stub(RoutingManager, 'findOne').returns($findRouteResponse)
-  //           })
+            beforeEach(() => {
+              $sandbox.stub(MicroservicePublicPortManager, 'updateOrCreate')
+            })
 
-  //           it('should delete old routes and create new ones', async () => {
-  //             await $subject
+            it('should not move any proxy microservice', async () => {
+              await $subject
+              return expect(MicroservicePublicPortManager.updateOrCreate).not.to.have.been.called
+            })
 
-  //             expect(RoutingManager.delete).to.have.been.calledWith()
-  //             expect(RoutingManager.create).to.have.been.calledWith()
-  //           })
+            context('when there is a public port', async () => {
+              const localProxyMsvcUUID = 'localProxyMsvcUUID'
+              const publicPort = {
+                id: 42,
+                queueName: 'testqueue',
+                protocol: 'http',
+                localProxyId: localProxyMsvcUUID
+              }
+              const publicPortMapping = {
+                portInternal: 2,
+                portExternal: 2,
+                isPublic: true,
+                getPublicPort: () => Promise.resolve({...publicPort, toJSON: () => publicPort})
+              }
+              const portMappings = [{
+                internalPort: 1,
+                externalPort: 1,
+              }, publicPortMapping]
 
-  //         })
-  //       })
-  //     })
-  //   })
-  // });
+              const localMapping = `amqp:${publicPort.queueName}=>${publicPort.protocol}:${publicPortMapping.portExternal}`
+
+              const proxyMsvc = {
+                uuid: localProxyMsvcUUID,
+                catalogItemId: 15,
+                config: JSON.stringify({
+                  mappings: [localMapping, `fake:queue:because:test:update`]
+                })
+              }
+              const agentRouter = {
+                host: 'agentRouterHost',
+                messagingPort: 5672
+              }
+              const networkRouter = {
+                host: agentRouter.host,
+                port: agentRouter.messagingPort
+              }
+              const newProxyMsvc = {uuid: 'newProxyUuid'}
+              def('getPortsResponse', () => Promise.resolve(portMappings))
+
+              beforeEach(() => {
+                const msvcStub = $sandbox.stub(MicroserviceManager, 'findOne')
+                msvcStub.withArgs({uuid: localProxyMsvcUUID}).returns(Promise.resolve(proxyMsvc)) // Current Proxy
+                msvcStub.returns(Promise.resolve(null)) // Dest proxy
+                $sandbox.stub(MicroserviceManager, 'updateIfChanged')
+                $sandbox.stub(MicroserviceManager, 'delete')
+                $sandbox.stub(MicroserviceManager, 'create').returns(Promise.resolve(newProxyMsvc))
+                $sandbox.stub(RouterManager, 'findOne').returns(Promise.resolve(agentRouter))
+              })
+
+              it('Should update the public port and move the proxy msvc', async () => {
+                const proxyMicroserviceData = {
+                  uuid: sinon.match.string,
+                  name: 'Proxy',
+                  config: JSON.stringify({
+                    mappings: [localMapping],
+                    networkRouter
+                  }),
+                  catalogItemId: 15,
+                  iofogUuid: newFog.uuid,
+                  rootHostAccess: true,
+                  registryId: 1,
+                  userId: user.id
+                }
+                await $subject
+                expect(MicroserviceManager.updateIfChanged).to.have.been.calledWith(
+                  {uuid: proxyMsvc.uuid},
+                  {config: JSON.stringify({
+                      mappings: [`fake:queue:because:test:update`]
+                    })
+                  },
+                  transaction)
+                expect(MicroserviceManager.create).to.have.been.calledWith(proxyMicroserviceData, transaction)
+                expect(MicroserviceManager.delete).not.to.have.been.called
+                expect(MicroservicePublicPortManager.updateOrCreate).to.have.been.calledWith({ id: publicPort.id }, publicPort, transaction)
+              })
+            })
+          })
+        })
+
+        context('when name is changed', () => {
+          const name = 'newName'
+          def('deleteUndefinedFieldsResponse', () => ({...microserviceUpdateData, name}))
+          def('findMicroserviceByNameResponse', () => Promise.resolve(null))
+          beforeEach(() => {
+            $sandbox.stub(MicroserviceManager, 'findOne').returns($findMicroserviceByNameResponse)
+          })
+
+          it('should check for duplicate name', async () => {
+            const where = microserviceUuid
+              ? {
+                name: name,
+                uuid: { [Op.ne]: microserviceUuid },
+                delete: false,
+                userId: user.id
+              }
+              : {
+                name: name,
+                userId: user.id,
+                delete: false
+              }
+            await $subject
+            expect(MicroserviceManager.findOne).to.have.been.calledWith(where, transaction)
+          })
+
+          context('Where name is duplicated', () => {
+            def('findMicroserviceByNameResponse', () => Promise.resolve({name}))
+            it('should fail with DuplicatePropertyError', async () => {
+              try{
+                await $subject
+              } catch(e) {
+                return expect(e).to.be.instanceOf(Errors.DuplicatePropertyError)
+              }
+              return expect(true).to.eql(false)
+            })
+          })
+        })
+
+        context('when volume mappings are updated', () => {
+          const volumeMappings = [
+            {
+              hostDestination: 'hd1',
+              containerDestination: 'cd1',
+              accessMode: 'rw'
+            },
+            {
+              hostDestination: 'hd2',
+              containerDestination: 'cd2',
+              accessMode: 'rw'
+            }
+          ]
+          def('deleteUndefinedFieldsResponse', () => ({...microserviceUpdateData, volumeMappings}))
+          
+          beforeEach(() => {
+            $sandbox.stub(VolumeMappingManager, 'delete')
+            $sandbox.stub(VolumeMappingManager, 'create')
+          })
+
+          it('should delete old mappings and create new ones', async () => {
+            await $subject
+            expect(VolumeMappingManager.delete).to.have.been.calledWith({microserviceUuid}, transaction)
+            for (const mapping of volumeMappings) {
+              const volumeMappingObj = {
+                microserviceUuid: microserviceUuid,
+                hostDestination: mapping.hostDestination,
+                containerDestination: mapping.containerDestination,
+                accessMode: mapping.accessMode
+              }
+              expect(VolumeMappingManager.create).to.have.been.calledWith(volumeMappingObj, transaction)
+            }
+          })
+        })
+
+        context('when env are updated', () => {
+          const env = [
+            {
+              key: 'k1',
+              value: 'v1',
+            },
+            {
+              key: 'k2',
+              value: 'v2',
+            }
+          ]
+          def('deleteUndefinedFieldsResponse', () => ({...microserviceUpdateData, env}))
+          
+          beforeEach(() => {
+            $sandbox.stub(MicroserviceEnvManager, 'delete')
+            $sandbox.stub(MicroserviceEnvManager, 'create')
+          })
+
+          it('should delete old env and create new ones', async () => {
+            await $subject
+            expect(MicroserviceEnvManager.delete).to.have.been.calledWith({microserviceUuid}, transaction)
+            for (const e of env) {
+              const envObj = {
+                microserviceUuid: microserviceUuid,
+                key: e.key,
+                value: e.value
+              }
+              expect(MicroserviceEnvManager.create).to.have.been.calledWith(envObj, transaction)
+            }
+          })
+        })
+
+        context('when cmd are updated', () => {
+          const cmd = ['a1', 'a2']
+          def('deleteUndefinedFieldsResponse', () => ({...microserviceUpdateData, cmd}))
+          
+          beforeEach(() => {
+            $sandbox.stub(MicroserviceArgManager, 'delete')
+            $sandbox.stub(MicroserviceArgManager, 'create')
+          })
+
+          it('should delete old env and create new ones', async () => {
+            await $subject
+            expect(MicroserviceArgManager.delete).to.have.been.calledWith({microserviceUuid}, transaction)
+            for (const a of cmd) {
+              const envObj = {
+                microserviceUuid: microserviceUuid,
+                cmd: a,
+              }
+              expect(MicroserviceArgManager.create).to.have.been.calledWith(envObj, transaction)
+            }
+          })
+        })
+
+        context('when catalog item id is updated', () => {
+          const catalogItemId = 84
+          const catalogItem = {
+            registryId: 2
+          }
+          def('deleteUndefinedFieldsResponse', () => ({...microserviceUpdateData, catalogItemId}))
+          def('findCatalogItem', () => Promise.resolve(catalogItem))
+          def('oldMicroserviceResponse', () => Promise.resolve({...oldMicroservice, catalogItemId: catalogItemId - 1}))
+          beforeEach(() => {
+            $sandbox.stub(CatalogItemImageManager, 'delete')
+          })
+
+          it('Should delete microservice images', async () => {
+            await $subject
+            return expect(CatalogItemImageManager.delete).to.have.been.calledWith({
+              microserviceUuid
+            }, transaction)
+          })
+
+          it('Should update with proper registryId', async () => {
+            await $subject
+            expect(MicroserviceManager.updateAndFind).to.have.been.calledWith(query, {...microserviceUpdateData, rebuild: true, catalogItemId, registryId: catalogItem.registryId}, transaction)
+          })
+        })
+
+        context('when images are updated', () => {
+          const images = [
+            {}
+          ]
+          registryId = 1
+          const microserviceUpdateDataWithImages = {...microserviceUpdateData, images, registryId}
+          def('deleteUndefinedFieldsResponse', () => (microserviceUpdateDataWithImages))
+
+          beforeEach(() => {
+            $sandbox.stub(CatalogItemImageManager, 'delete')
+            $sandbox.stub(CatalogItemImageManager, 'bulkCreate')
+          })
+
+          it('should update images', async () => {
+            await $subject  
+            const newImages = []
+            for (const img of images) {
+              const newImg = Object.assign({}, img)
+              newImg.microserviceUuid = microserviceUuid
+              newImages.push(newImg)
+            }
+            expect(CatalogItemImageManager.delete).to.have.been.calledWith({microserviceUuid}, transaction)
+            expect(CatalogItemImageManager.bulkCreate).to.have.been.calledWith(newImages, transaction)
+          })
+
+          it('should set rebuild flag', async () => {
+            await $subject
+            expect(MicroserviceManager.updateAndFind).to.have.been.calledWith(query, {...microserviceUpdateDataWithImages, rebuild: true}, transaction)
+          })
+
+          context('When there are no catalog item and the image array is empty', () => {
+            def('oldMicroserviceResponse', () => Promise.resolve({...oldMicroservice, catalogItemId: null}))
+            def('deleteUndefinedFieldsResponse', () => ({...microserviceUpdateDataWithImages, images: []}))
+
+            it('should error with ValidationError', async () => {
+              try{
+                await $subject
+              } catch(e){
+                return expect(e).to.be.instanceOf(Errors.ValidationError)
+              }
+              return expect(true).to.eql(false)
+            })
+          })
+
+        })
+
+      })
+    })
+  });
 
   describe('.deleteMicroserviceEndPoint()', () => {
     const transaction = {};
