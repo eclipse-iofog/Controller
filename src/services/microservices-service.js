@@ -260,7 +260,6 @@ async function updateMicroserviceEndPoint (microserviceUuid, microserviceData, u
   if (!microservice) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, microserviceUuid))
   }
-
   if (microserviceDataUpdate.registryId) {
     const registry = await RegistryManager.findOne({ id: microserviceDataUpdate.registryId }, transaction)
     if (!registry) {
@@ -270,7 +269,7 @@ async function updateMicroserviceEndPoint (microserviceUuid, microserviceData, u
     microserviceDataUpdate.registryId = microservice.registryId
   }
 
-  if (microserviceData.iofogUuid && microservice.iofogUuid !== microserviceData.iofogUuid) {
+  if (microserviceDataUpdate.iofogUuid && microservice.iofogUuid !== microserviceDataUpdate.iofogUuid) {
     // Moving to new agent, make sure all ports are available
     const ports = await microservice.getPorts()
     const data = {
