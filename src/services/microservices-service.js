@@ -22,7 +22,6 @@ const RegistryManager = require('../data/managers/registry-manager')
 const MicroserviceStates = require('../enums/microservice-state')
 const VolumeMappingManager = require('../data/managers/volume-mapping-manager')
 const ConfigManager = require('../data/managers/config-manager')
-const MicroservicePublicModeManager = require('../data/managers/microservice-public-mode-manager')
 const ChangeTrackingService = require('./change-tracking-service')
 const IoFogService = require('../services/iofog-service')
 const AppHelper = require('../helpers/app-helper')
@@ -345,7 +344,6 @@ async function updateMicroserviceEndPoint (microserviceUuid, microserviceData, u
   }
 
   if (microserviceDataUpdate.iofogUuid && microserviceDataUpdate.iofogUuid !== microservice.iofogUuid) {
-    await _moveRoutesToNewFog(updatedMicroservice, microservice.iofogUuid, user, transaction)
     await _movePublicPortsToNewFog(updatedMicroservice, user, transaction)
   }
 
@@ -380,29 +378,6 @@ async function _movePublicPortsToNewFog (updatedMicroservice, user, transaction)
   }
 }
 
-async function _moveRoutesToNewFog (microservice, oldFogUuid, user, transaction) {
-  const routes = await _getLogicalNetworkRoutesByMicroservice(microservice.uuid, transaction)
-
-  for (const route of routes.sourceRoutes) {
-    const sourceWhere = { uuid: route.sourceMicroserviceUuid, userId: user.id }
-    const sourceMicroservice = await MicroserviceManager.findOne(sourceWhere, transaction)
-
-    await _recreateRoute(route, sourceMicroservice, microservice, user, transaction)
-    await _updateChangeTracking(false, route.sourceIofogUuid, transaction)
-  }
-
-  for (const route of routes.destRoutes) {
-    const destWhere = { uuid: route.destMicroserviceUuid, userId: user.id }
-    const destMicroservice = await MicroserviceManager.findOne(destWhere, transaction)
-
-    await _recreateRoute(route, microservice, destMicroservice, user, transaction)
-    await _updateChangeTracking(false, route.destIofogUuid, transaction)
-  }
-
-  // update change tracking for old fog
-  await _updateChangeTracking(false, oldFogUuid, transaction)
-}
-
 async function deleteMicroserviceEndPoint (microserviceUuid, microserviceData, user, isCLI, transaction) {
   const where = isCLI
     ? {
@@ -422,17 +397,6 @@ async function deleteMicroserviceEndPoint (microserviceUuid, microserviceData, u
   }
 
   await deleteMicroserviceWithRoutesAndPortMappings(microservice, transaction)
-  // // TODO: Check why we set deleted flag
-  // if (!microservice.microserviceStatus || microservice.microserviceStatus.status === MicroserviceStates.UNKNOWN) {
-  // } else {
-  //   await MicroserviceManager.update({
-  //     uuid: microserviceUuid
-  //   },
-  //   {
-  //     delete: true,
-  //     deleteWithCleanUp: !!microserviceData.withCleanup
-  //   }, transaction)
-  // }
 
   await _updateChangeTracking(false, microservice.iofogUuid, transaction)
 }
@@ -764,32 +728,6 @@ async function listPortMappingsEndPoint (microserviceUuid, user, isCLI, transact
 
   const portsPairs = await MicroservicePortManager.findAll({ microserviceUuid: microserviceUuid }, transaction)
   return _buildPortsList(portsPairs, transaction)
-}
-
-async function getPhysicalConnections (microservice, transaction) {
-  const res = []
-  const pubModes = await MicroservicePublicModeManager.findAll({ microserviceUuid: microservice.uuid }, transaction)
-  for (const pm of pubModes) {
-    res.push(pm.networkMicroserviceUuid)
-  }
-
-  const sourceRoutes = await RoutingManager.findAll({ sourceMicroserviceUuid: microservice.uuid }, transaction)
-  for (const sr of sourceRoutes) {
-    if (!sr.sourceIofogUuid || !sr.destIofogUuid) {
-      continue
-    } else if (sr.sourceIofogUuid === sr.destIofogUuid) {
-      res.push(sr.destMicroserviceUuid)
-    } else if (sr.sourceIofogUuid !== sr.destIofogUuid) {
-      res.push(sr.sourceNetworkMicroserviceUuid)
-    }
-  }
-
-  const netwRoutes = await RoutingManager.findAll({ destNetworkMicroserviceUuid: microservice.uuid }, transaction)
-  for (const nr of netwRoutes) {
-    res.push(nr.destMicroserviceUuid)
-  }
-
-  return res
 }
 
 async function getReceiverMicroservices (microservice, transaction) {
@@ -1156,44 +1094,6 @@ async function _buildPortsList (portsPairs, transaction) {
   return res
 }
 
-/**
- * Get all microservices that connected (as source or destination) to microservice using network connection
- *
- * @param {string} microserviceUuid
- * @param {Transaction} transaction
- * @return {Promise<{sourceRoutes: Array, destRoutes: Array}>}
- * @private
- */
-async function _getLogicalNetworkRoutesByMicroservice (microserviceUuid, transaction) {
-  const res = {
-    sourceRoutes: [],
-    destRoutes: []
-  }
-  const query = {
-    [Op.or]:
-      [
-        {
-          sourceMicroserviceUuid: microserviceUuid
-        },
-        {
-          destMicroserviceUuid: microserviceUuid
-        }
-      ]
-  }
-  const routes = await RoutingManager.findAll(query, transaction)
-  for (const route of routes) {
-    if (route.sourceIofogUuid && route.destIofogUuid && route.isNetworkConnection) {
-      if (microserviceUuid === route.sourceMicroserviceUuid) {
-        res.destRoutes.push(route)
-      }
-      if (microserviceUuid === route.destMicroserviceUuid) {
-        res.sourceRoutes.push(route)
-      }
-    }
-  }
-  return res
-}
-
 async function _getLogicalRoutesByMicroservice (microserviceUuid, transaction) {
   const res = []
   const query = {
@@ -1287,11 +1187,6 @@ async function _buildPublicPortMapping (mapping, publicPortMapping, transaction)
   mapping.protocol = publicPortMapping.protocol
 }
 
-async function _recreateRoute (route, sourceMicroservice, destMicroservice, user, transaction) {
-  await _deleteSimpleRoute(route, transaction)
-  await _createRoute(sourceMicroservice, destMicroservice, user, transaction)
-}
-
 function listAllPublicPortsEndPoint (user, transaction) {
   return MicroservicePortManager.findAllPublicPorts(transaction)
 }
@@ -1312,7 +1207,6 @@ module.exports = {
   deleteRouteEndPoint: TransactionDecorator.generateTransaction(deleteRouteEndPoint),
   deleteVolumeMappingEndPoint: TransactionDecorator.generateTransaction(deleteVolumeMappingEndPoint),
   getMicroserviceEndPoint: TransactionDecorator.generateTransaction(getMicroserviceEndPoint),
-  getPhysicalConnections: getPhysicalConnections,
   getReceiverMicroservices,
   isMicroserviceConsumer,
   listAllPublicPortsEndPoint: TransactionDecorator.generateTransaction(listAllPublicPortsEndPoint),
