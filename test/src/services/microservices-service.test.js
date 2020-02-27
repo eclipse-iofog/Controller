@@ -1313,19 +1313,22 @@ describe('Microservices Service', () => {
         id: 233,
         sourceMicroserviceUuid: 'srcMsvcUUID1',
         destMicroserviceUuid: 'destMsvcUUID1',
-        sourceIofogUuid: 'srcUUID1',
-        destIofogUuid: 'destUUID1'
       }, {
         id: 234,
         sourceMicroserviceUuid: 'srcMsvcUUID2',
         destMicroserviceUuid: 'destMsvcUUID2',
-        sourceIofogUuid: 'srcUUID2',
-        destIofogUuid: 'destUUID2'
       }]
       def('findRoutesResponse', () => Promise.resolve(routes))
 
+      const routeAgentUuid = 'routeAgentUUID'
+
       beforeEach(() => {
         $sandbox.stub(RoutingManager, 'delete')
+        const stub = $sandbox.stub(MicroserviceManager, 'findOne')
+        for(const route of routes) {
+          stub.withArgs({uuid: route.sourceMicroserviceUuid}).returns(Promise.resolve({iofogUuid: routeAgentUuid + route.sourceMicroserviceUuid}))
+          stub.withArgs({uuid: route.destMicroserviceUuid}).returns(Promise.resolve({iofogUuid: routeAgentUuid + route.destMicroserviceUuid}))
+        }
       })
 
       it('should delete routes', async () => {
@@ -1333,8 +1336,8 @@ describe('Microservices Service', () => {
 
         for(const route of routes) {
           expect(RoutingManager.delete).to.have.been.calledWith({id: route.id}, transaction)
-          expect(ChangeTrackingService.update).to.have.been.calledWith(route.sourceIofogUuid, ChangeTrackingService.events.microserviceFull, transaction)
-          expect(ChangeTrackingService.update).to.have.been.calledWith(route.destIofogUuid, ChangeTrackingService.events.microserviceFull, transaction)
+          expect(ChangeTrackingService.update).to.have.been.calledWith(routeAgentUuid + route.sourceMicroserviceUuid, ChangeTrackingService.events.microserviceFull, transaction)
+          expect(ChangeTrackingService.update).to.have.been.calledWith(routeAgentUuid + route.destMicroserviceUuid, ChangeTrackingService.events.microserviceFull, transaction)
         }
       })
     })

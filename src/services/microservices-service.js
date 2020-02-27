@@ -1030,8 +1030,11 @@ async function _switchOnUpdateFlagsForMicroservicesInRoute (sourceMicroservice, 
 async function _deleteSimpleRoute (route, transaction) {
   await RoutingManager.delete({ id: route.id }, transaction)
 
-  await ChangeTrackingService.update(route.sourceIofogUuid, ChangeTrackingService.events.microserviceFull, transaction)
-  await ChangeTrackingService.update(route.destIofogUuid, ChangeTrackingService.events.microserviceFull, transaction)
+  const sourceMsvc = await MicroserviceManager.findOne({ uuid: route.sourceMicroserviceUuid }, transaction)
+  const destMsvc = await MicroserviceManager.findOne({ uuid: route.destMicroserviceUuid }, transaction)
+
+  await ChangeTrackingService.update(sourceMsvc.iofogUuid, ChangeTrackingService.events.microserviceFull, transaction)
+  await ChangeTrackingService.update(destMsvc.iofogUuid, ChangeTrackingService.events.microserviceFull, transaction)
 }
 
 async function _createSimplePortMapping (microservice, portMappingData, user, transaction) {
