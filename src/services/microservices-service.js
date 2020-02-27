@@ -730,7 +730,7 @@ async function listPortMappingsEndPoint (microserviceUuid, user, isCLI, transact
 async function getReceiverMicroservices (microservice, transaction) {
   const routes = await RoutingManager.findAll({ sourceMicroserviceUuid: microservice.uuid }, transaction)
 
-  return routes.filter(route => route.sourceIofogUuid && route.destIofogUuid).map(route => route.destMicroserviceUuid)
+  return routes.map(route => route.destMicroserviceUuid)
 }
 
 async function isMicroserviceConsumer (microservice, transaction) {
