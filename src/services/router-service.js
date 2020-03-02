@@ -89,7 +89,7 @@ async function updateRouter (oldRouter, newRouterData, upstreamRouters, userId, 
   const routerCatalog = await CatalogService.getRouterCatalogItem(transaction)
   const routerMicroservice = await MicroserviceManager.findOne({
     catalogItemId: routerCatalog.id,
-    iofogUuid: oldRouter.id
+    iofogUuid: oldRouter.iofogUuid
   }, transaction)
 
   if (newRouterData.isEdge && !oldRouter.isEdge) {
