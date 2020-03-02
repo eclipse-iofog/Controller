@@ -882,6 +882,84 @@ describe('Catalog Service', () => {
     })
   })
 
+  describe('.getRouterCatalogItem()', () => {
+    const transaction = {}
+    const error = 'Error!'
+
+    def('subject', () => $subject.getRouterCatalogItem(transaction))
+
+    def('response', () => 1)
+    def('catalogItemFindResponse', () => Promise.resolve($response))
+
+    beforeEach(() => {
+      $sandbox.stub(CatalogItemManager, 'findOne').returns($catalogItemFindResponse)
+    })
+
+    it('calls CatalogItemManager#findOne() with correct args', async () => {
+      await $subject
+      expect(CatalogItemManager.findOne).to.have.been.calledWith({
+        name: 'Router',
+        category: 'SYSTEM',
+        publisher: 'Eclipse ioFog',
+        registry_id: 1,
+        user_id: null,
+      }, transaction)
+    })
+
+    context('when CatalogItemManager#findOne() fails', () => {
+      def('catalogItemFindResponse', () => Promise.reject(error))
+
+      it(`fails with ${error}`, () => {
+        return expect($subject).to.be.rejectedWith(error)
+      })
+    })
+
+    context('when CatalogItemManager#findOne() succeeds', () => {
+      it('succeeds', () => {
+        return expect($subject).to.eventually.deep.equal($response)
+      })
+    })
+  })
+
+  describe('.getProxyCatalogItem()', () => {
+    const transaction = {}
+    const error = 'Error!'
+
+    def('subject', () => $subject.getProxyCatalogItem(transaction))
+
+    def('response', () => 1)
+    def('catalogItemFindResponse', () => Promise.resolve($response))
+
+    beforeEach(() => {
+      $sandbox.stub(CatalogItemManager, 'findOne').returns($catalogItemFindResponse)
+    })
+
+    it('calls CatalogItemManager#findOne() with correct args', async () => {
+      await $subject
+      expect(CatalogItemManager.findOne).to.have.been.calledWith({
+        name: 'Proxy',
+        category: 'SYSTEM',
+        publisher: 'Eclipse ioFog',
+        registry_id: 1,
+        user_id: null,
+      }, transaction)
+    })
+
+    context('when CatalogItemManager#findOne() fails', () => {
+      def('catalogItemFindResponse', () => Promise.reject(error))
+
+      it(`fails with ${error}`, () => {
+        return expect($subject).to.be.rejectedWith(error)
+      })
+    })
+
+    context('when CatalogItemManager#findOne() succeeds', () => {
+      it('succeeds', () => {
+        return expect($subject).to.eventually.deep.equal($response)
+      })
+    })
+  })
+
   describe('.getBluetoothCatalogItem()', () => {
     const transaction = {}
     const error = 'Error!'

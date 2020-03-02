@@ -252,7 +252,7 @@ class IOFog extends BaseCLIHandler {
         alias: 'u',
         type: CliDataTypes.Integer,
         description: 'User\'s id',
-        group: [constants.CMD_ADD]
+        group: [constants.CMD_ADD, constants.CMD_UPDATE, constants.CMD_REMOVE]
       },
       {
         name: 'log-level',
@@ -311,10 +311,10 @@ class IOFog extends BaseCLIHandler {
           await _executeCase(iofogCommand, constants.CMD_ADD, _createFog, true)
           break
         case constants.CMD_UPDATE:
-          await _executeCase(iofogCommand, constants.CMD_UPDATE, _updateFog, false)
+          await _executeCase(iofogCommand, constants.CMD_UPDATE, _updateFog, true)
           break
         case constants.CMD_REMOVE:
-          await _executeCase(iofogCommand, constants.CMD_REMOVE, _deleteFog, false)
+          await _executeCase(iofogCommand, constants.CMD_REMOVE, _deleteFog, true)
           break
         case constants.CMD_LIST:
           await _executeCase(iofogCommand, constants.CMD_LIST, _getFogList, false)

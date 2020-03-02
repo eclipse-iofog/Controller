@@ -163,6 +163,35 @@ module.exports = [
     }
   },
   {
+    method: 'patch',
+    path: '/api/v3/agent/config/changes',
+    middleware: async (req, res) => {
+      logger.apiReq(req)
+
+      const successCode = constants.HTTP_CODE_SUCCESS
+      const errorCodes = [
+        {
+          code: constants.HTTP_CODE_UNAUTHORIZED,
+          errors: [Errors.AuthenticationError]
+        },
+        {
+          code: constants.HTTP_CODE_BAD_REQUEST,
+          errors: [Errors.ValidationError]
+        }
+      ]
+
+      const resetAgentConfigChangesEndPoint = ResponseDecorator.handleErrors(AgentController.resetAgentConfigChangesEndPoint,
+        successCode, errorCodes)
+      const responseObject = await resetAgentConfigChangesEndPoint(req)
+
+      res
+        .status(responseObject.code)
+        .send(responseObject.body)
+
+      logger.apiRes({ req: req, res: responseObject })
+    }
+  },
+  {
     method: 'put',
     path: '/api/v3/agent/status',
     middleware: async (req, res) => {

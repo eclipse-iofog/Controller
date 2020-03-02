@@ -64,6 +64,7 @@ const microserviceUpdate = {
     'images': {
       'type': 'array',
       'maxItems': 2,
+      'minItems': 1,
       'items': { '$ref': '/image' }
     },
     'env': {
@@ -104,7 +105,9 @@ const ports = {
   'properties': {
     'internal': { 'type': 'integer' },
     'external': { 'type': 'integer' },
-    'publicMode': { 'type': 'boolean' }
+    'publicPort': { 'type': 'integer' },
+    'host': { 'type': 'string' },
+    'protocol': { 'enum': ['http', 'tcp'] }
   },
   'required': ['internal', 'external'],
   'additionalProperties': true
@@ -116,7 +119,9 @@ const portsCreate = {
   'properties': {
     'internal': { 'type': 'integer' },
     'external': { 'type': 'integer' },
-    'publicMode': { 'type': 'boolean' }
+    'publicPort': { 'type': 'integer' },
+    'host': { 'type': 'string' },
+    'protocol': { 'enum': ['http', 'tcp'] }
   },
   'required': ['internal', 'external'],
   'additionalProperties': true

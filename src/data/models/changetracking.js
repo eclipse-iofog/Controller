@@ -71,6 +71,11 @@ module.exports = (sequelize, DataTypes) => {
       field: 'diagnostics',
       defaultValue: false
     },
+    routerChanged: {
+      type: DataTypes.BOOLEAN,
+      field: 'router_changed',
+      defaultValue: false
+    },
     isImageSnapshot: {
       type: DataTypes.BOOLEAN,
       field: 'image_snapshot',
@@ -79,6 +84,11 @@ module.exports = (sequelize, DataTypes) => {
     prune: {
       type: DataTypes.BOOLEAN,
       field: 'prune',
+      defaultValue: false
+    },
+    lastUpdated: {
+      type: DataTypes.STRING,
+      field: 'last_updated',
       defaultValue: false
     }
   }, {

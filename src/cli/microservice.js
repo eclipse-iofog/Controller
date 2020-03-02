@@ -598,13 +598,15 @@ const _updateMicroserviceObject = function (obj) {
     rebuild: obj.rebuild,
     cmd: obj.cmd,
     env,
-    images: [],
+    images: obj.images,
     catalogItemId: parseInt(obj.catalogItemId) || undefined,
     registryId: parseInt(obj.registryId) || undefined
   }
 
+  const images = []
+
   if (obj.x86Image) {
-    microserviceObj.images.push(
+    images.push(
       {
         containerImage: obj.x86Image,
         fogTypeId: 1
@@ -612,13 +614,18 @@ const _updateMicroserviceObject = function (obj) {
     )
   }
   if (obj.armImage) {
-    microserviceObj.images.push(
+    images.push(
       {
         containerImage: obj.armImage,
         fogTypeId: 2
       }
     )
   }
+
+  if (images.length > 0) {
+    microserviceObj.images = images
+  }
+
   if (obj.volumes) {
     microserviceObj.volumeMappings = parseVolumeMappingArray(obj.volumes, 'Error during parsing of volume mapping option.')
   }

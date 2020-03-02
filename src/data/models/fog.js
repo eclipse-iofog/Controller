@@ -293,6 +293,16 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.TEXT,
       defaultValue: 'INFO',
       field: 'log_level'
+    },
+    isSystem: {
+      type: DataTypes.BOOLEAN,
+      field: 'is_system',
+      defaultValue: false
+    },
+    routerId: {
+      type: DataTypes.INTEGER,
+      field: 'router_id',
+      defaultValue: ''
     }
   }, {
     tableName: 'Fogs',
@@ -327,6 +337,11 @@ module.exports = (sequelize, DataTypes) => {
     Fog.hasMany(models.Microservice, {
       foreignKey: 'iofog_uuid',
       as: 'microservice'
+    })
+
+    Fog.hasOne(models.Router, {
+      foreignKey: 'iofog_uuid',
+      as: 'router'
     })
   }
 

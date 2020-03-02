@@ -19,6 +19,34 @@ const logger = require('../logger')
 module.exports = [
   {
     method: 'get',
+    path: '/api/v3/microservices/public-ports',
+    middleware: async (req, res) => {
+      logger.apiReq(req)
+
+      const successCode = constants.HTTP_CODE_SUCCESS
+      const errorCodes = [
+        {
+          code: constants.HTTP_CODE_UNAUTHORIZED,
+          errors: [Errors.AuthenticationError]
+        }
+      ]
+
+      const listAllPublicPortsEndPoint = ResponseDecorator.handleErrors(
+        MicroservicesController.listAllPublicPortsEndPoint,
+        successCode,
+        errorCodes
+      )
+      const responseObject = await listAllPublicPortsEndPoint(req)
+
+      res
+        .status(responseObject.code)
+        .send(responseObject.body)
+
+      logger.apiRes({ req: req, res: responseObject })
+    }
+  },
+  {
+    method: 'get',
     path: '/api/v3/microservices/',
     middleware: async (req, res) => {
       logger.apiReq(req)

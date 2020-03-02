@@ -11,8 +11,14 @@
  *
  */
 
-const TransactionDecorator = require('../decorators/transaction-decorator')
+const path = require('path')
+const fs = require('fs')
+const formidable = require('formidable')
+const Sequelize = require('sequelize')
+const moment = require('moment')
+const Op = Sequelize.Op
 
+const TransactionDecorator = require('../decorators/transaction-decorator')
 const FogProvisionKeyManager = require('../data/managers/iofog-provision-key-manager')
 const FogManager = require('../data/managers/iofog-manager')
 const FogAccessTokenService = require('../services/iofog-access-token-service')
@@ -32,16 +38,18 @@ const USBInfoManager = require('../data/managers/usb-info-manager')
 const TunnelManager = require('../data/managers/tunnel-manager')
 const MicroserviceManager = require('../data/managers/microservice-manager')
 const MicroserviceService = require('../services/microservices-service')
-const path = require('path')
-const fs = require('fs')
-const formidable = require('formidable')
-const Sequelize = require('sequelize')
-const Op = Sequelize.Op
 const TrackingDecorator = require('../decorators/tracking-decorator')
 const TrackingEventType = require('../enums/tracking-event-type')
 const TrackingEventManager = require('../data/managers/tracking-event-manager')
+const RouterManager = require('../data/managers/router-manager')
 
 const IncomingForm = formidable.IncomingForm
+
+const CHANGE_TRACKING_DEFAULT = {}
+const CHANGE_TRACKING_KEYS = ['config', 'version', 'reboot', 'deleteNode', 'microserviceList', 'microserviceConfig', 'routing', 'registries', 'tunnel', 'diagnostics', 'isImageSnapshot', 'prune', 'routerChanged']
+for (const key of CHANGE_TRACKING_KEYS) {
+  CHANGE_TRACKING_DEFAULT[key] = false
+}
 
 const agentProvision = async function (provisionData, transaction) {
   await Validator.validate(provisionData, Validator.schemas.agentProvision)
@@ -107,7 +115,9 @@ const _invalidateFogNode = async function (fog, transaction) {
   return updatedFog
 }
 
-const getAgentConfig = async function (fog) {
+const getAgentConfig = async function (fog, transaction) {
+  const router = fog.routerId ? await RouterManager.findOne({ id: fog.routerId }, transaction) : await fog.getRouter()
+  // fog is the result of FogManager.FindOne() in the checkFogToken middleware
   return {
     networkInterface: fog.networkInterface,
     dockerUrl: fog.dockerUrl,
@@ -126,7 +136,9 @@ const getAgentConfig = async function (fog) {
     longitude: fog.longitude,
     logLevel: fog.logLevel,
     diskThreshold: fog.diskThreshold,
-    dockerPruningFrequency: fog.dockerPruningFrequency
+    dockerPruningFrequency: fog.dockerPruningFrequency,
+    routerHost: router.host,
+    routerPort: router.messagingPort
   }
 }
 
@@ -162,27 +174,23 @@ const updateAgentConfig = async function (updateData, fog, transaction) {
 }
 
 const getAgentConfigChanges = async function (ioFog, transaction) {
-  const changeTracking = await ChangeTrackingService.getByIoFogUuid(ioFog.uuid, transaction)
-  if (!changeTracking) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID), ioFog.uuid)
+  const changeTrackings = await ChangeTrackingService.getByIoFogUuid(ioFog.uuid, transaction)
+  const res = { ...CHANGE_TRACKING_DEFAULT }
+  res.lastUpdated = moment().toISOString()
+
+  for (const changeTracking of changeTrackings) {
+    for (const key of CHANGE_TRACKING_KEYS) {
+      res[key] = !!res[key] || !!changeTracking[key]
+    }
+    res.lastUpdated = changeTracking.lastUpdated
   }
 
-  await ChangeTrackingService.updateIfChanged(ioFog.uuid, ChangeTrackingService.events.clean, transaction)
+  return res
+}
 
-  return {
-    config: changeTracking.config,
-    version: changeTracking.version,
-    reboot: changeTracking.reboot,
-    deleteNode: changeTracking.deleteNode,
-    microserviceList: changeTracking.microserviceList,
-    microserviceConfig: changeTracking.microserviceConfig,
-    routing: changeTracking.routing,
-    registries: changeTracking.registries,
-    tunnel: changeTracking.tunnel,
-    diagnostics: changeTracking.diagnostics,
-    isImageSnapshot: changeTracking.isImageSnapshot,
-    prune: changeTracking.prune
-  }
+const resetAgentConfigChanges = async function (ioFog, body, transaction) {
+  await ChangeTrackingService.resetIfNotUpdated(ioFog.uuid, body.lastUpdated, transaction)
+  return {}
 }
 
 const updateAgentStatus = async function (agentStatus, fog, transaction) {
@@ -261,7 +269,9 @@ const getAgentMicroservices = async function (fog, transaction) {
       continue
     }
 
-    const routes = await MicroserviceService.getPhysicalConnections(microservice, transaction)
+    const routes = await MicroserviceService.getReceiverMicroservices(microservice, transaction)
+    const isConsumer = await MicroserviceService.isMicroserviceConsumer(microservice, transaction)
+
     const env = microservice.env && microservice.env.map((it) => {
       return {
         key: it.key,
@@ -270,7 +280,7 @@ const getAgentMicroservices = async function (fog, transaction) {
     })
     const cmd = microservice.cmd && microservice.cmd.sort((a, b) => a.id > b.id).map((it) => it.cmd)
 
-    const registryId = microservice.catalogItem ? microservice.catalogItem.registry.id : microservice.registry.id
+    const registryId = microservice.catalogItem && microservice.catalogItem.registry ? microservice.catalogItem.registry.id : microservice.registry.id
 
     const responseMicroservice = {
       uuid: microservice.uuid,
@@ -285,9 +295,10 @@ const getAgentMicroservices = async function (fog, transaction) {
       imageSnapshot: microservice.imageSnapshot,
       delete: microservice.delete,
       deleteWithCleanup: microservice.deleteWithCleanup,
-      routes: routes,
-      env: env,
-      cmd: cmd
+      env,
+      cmd,
+      routes,
+      isConsumer
     }
 
     response.push(responseMicroservice)
@@ -536,9 +547,10 @@ const agentProvisionWithTracking = TrackingDecorator.trackEvent(agentProvision, 
 module.exports = {
   agentProvision: TransactionDecorator.generateTransaction(agentProvisionWithTracking),
   agentDeprovision: TransactionDecorator.generateTransaction(agentDeprovision),
-  getAgentConfig: getAgentConfig,
+  getAgentConfig: TransactionDecorator.generateTransaction(getAgentConfig),
   updateAgentConfig: TransactionDecorator.generateTransaction(updateAgentConfig),
   getAgentConfigChanges: TransactionDecorator.generateTransaction(getAgentConfigChanges),
+  resetAgentConfigChanges: TransactionDecorator.generateTransaction(resetAgentConfigChanges),
   updateAgentStatus: TransactionDecorator.generateTransaction(updateAgentStatus),
   getAgentMicroservices: TransactionDecorator.generateTransaction(getAgentMicroservices),
   getAgentMicroservice: TransactionDecorator.generateTransaction(getAgentMicroservice),

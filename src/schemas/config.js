@@ -31,7 +31,18 @@ const configUpdate = {
   }
 }
 
+const configElement = {
+  'id': '/configElement',
+  'type': 'object',
+  'properties': {
+    'key': { 'type': 'string', 'minLength': 1 },
+    'value': { 'type': 'string' }
+  },
+  'required': ['key', 'value'],
+  'additionalProperties': true
+}
+
 module.exports = {
-  mainSchemas: [configUpdate],
+  mainSchemas: [configUpdate, configElement],
   innerSchemas: []
 }

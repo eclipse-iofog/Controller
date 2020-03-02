@@ -65,6 +65,7 @@ module.exports = {
   PORT_MAPPING_INTERNAL_PORT_NOT_PROVIDED: 'Internal port wasn\'t provided',
   VOLUME_MAPPING_ALREADY_EXISTS: 'Volume mapping already exists',
   INVALID_CONNECTOR_DOMAIN: 'Invalid connector domain {}',
+  INVALID_ROUTER_HOST: 'Invalid router host {}',
   CERT_PROPERTY_REQUIRED: 'Property "certificate" is required if property "requiresCert" is set to true',
   TUNNEL_NOT_FOUND: 'Tunnel not found',
   STRACE_NOT_FOUND: 'Strace not found',
@@ -89,5 +90,11 @@ module.exports = {
   SYSTEM_CATALOG_ITEM_UPDATE: 'Catalog item id {} is system and can\'t be updated',
   SYSTEM_CATALOG_ITEM_DELETE: 'Catalog item id {} is system and can\'t be deleted',
   SYSTEM_MICROSERVICE_UPDATE: 'Microservice uuid {} is system and can\'t be updated',
-  SYSTEM_MICROSERVICE_DELETE: 'Microservice uuid {} is system and can\'t be deleted'
+  SYSTEM_MICROSERVICE_DELETE: 'Microservice uuid {} is system and can\'t be deleted',
+  INVALID_CONFIG_KEY: 'Unkown config key \'{}\'',
+  INVALID_ROUTER: 'Invalid router \'{}\'',
+  DUPLICATE_SYSTEM_FOG: 'There already is a system fog',
+  INVALID_ROUTER_MODE: 'Invalid router mode \'{}\'',
+  INVALID_UPSTREAM_ROUTER: 'Upstream router must be interior \'{}\'',
+  EDGE_ROUTER_HAS_DOWNSTREAM: 'Edge router {} has, or will have, downstream routers'
 }

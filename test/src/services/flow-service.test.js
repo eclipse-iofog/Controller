@@ -6,6 +6,7 @@ const FlowService = require('../../../src/services/flow-service')
 const AppHelper = require('../../../src/helpers/app-helper')
 const Validator = require('../../../src/schemas')
 const ChangeTrackingService = require('../../../src/services/change-tracking-service')
+const MicroserviceService = require('../../../src/services/microservices-service')
 const Sequelize = require('sequelize')
 const Op = Sequelize.Op
 const ErrorMessages = require('../../../src/helpers/error-messages')
@@ -32,12 +33,14 @@ describe('Flow Service', () => {
       name: 'testName',
       description: 'testDescription',
       isActivated: false,
+      isSystem: false
     }
 
     const flowToCreate = {
       name: flowData.name,
       description: flowData.description,
       isActivated: flowData.isActivated,
+      isSystem: flowData.isSystem,
       userId: user.id,
     }
 
@@ -163,6 +166,7 @@ describe('Flow Service', () => {
       $sandbox.stub(AppHelper, 'deleteUndefinedFields').returns($deleteUndefinedFieldsResponse)
       $sandbox.stub(FlowManager, 'findFlowMicroservices').returns($findFlowMicroservicesResponse)
       $sandbox.stub(ChangeTrackingService, 'update').returns($updateChangeTrackingResponse)
+      $sandbox.stub(MicroserviceService, 'deleteMicroserviceWithRoutesAndPortMappings')
       $sandbox.stub(FlowManager, 'delete').returns($deleteFlowResponse)
     })
 
@@ -202,6 +206,13 @@ describe('Flow Service', () => {
 
           expect(ChangeTrackingService.update).to.have.been.calledWith(flowWithMicroservices.microservices[0].iofogUuid,
               ChangeTrackingService.events.microserviceFull, transaction)
+        })
+
+        it('should delete microservices with routes and ports', async () => {
+          await $subject
+
+          for (const msvc of flowWithMicroservices.microservices)
+          expect(MicroserviceService.deleteMicroserviceWithRoutesAndPortMappings).to.have.been.calledWith(msvc, transaction)
         })
 
         context('when ChangeTrackingService#update() fails', () => {
@@ -252,12 +263,14 @@ describe('Flow Service', () => {
       name: 'testName',
       description: 'testDescription',
       isActivated: true,
+      isSystem: false
     }
 
     const flowData = {
       name: 'testName',
       description: 'testDescription',
       isActivated: false,
+      isSystem: true
     }
 
     const flowWithMicroservices = {
@@ -428,6 +441,7 @@ describe('Flow Service', () => {
 
     const flow = {
       userId: user.id,
+      isSystem: false
     }
 
     def('subject', () => $subject.getUserFlowsEndPoint(user, isCLI, transaction))
