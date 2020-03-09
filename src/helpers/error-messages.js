@@ -96,5 +96,6 @@ module.exports = {
   DUPLICATE_SYSTEM_FOG: 'There already is a system fog',
   INVALID_ROUTER_MODE: 'Invalid router mode \'{}\'',
   INVALID_UPSTREAM_ROUTER: 'Upstream router must be interior \'{}\'',
-  EDGE_ROUTER_HAS_DOWNSTREAM: 'Edge router {} has, or will have, downstream routers'
+  EDGE_ROUTER_HAS_DOWNSTREAM: 'Edge router {} has, or will have, downstream routers',
+  HOST_IS_REQUIRED: '"host" is required'
 }
