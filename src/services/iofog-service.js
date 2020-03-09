@@ -97,7 +97,7 @@ async function createFogEndPoint (fogData, user, isCLI, transaction) {
   const fog = await FogManager.create(createFogData, transaction)
 
   if (fogData.routerMode !== 'none') {
-    if (!fogData.host) {
+    if (!fogData.host && !isCLI) {
       throw new Errors.ValidationError(ErrorMessages.HOST_IS_REQUIRED)
     }
 
