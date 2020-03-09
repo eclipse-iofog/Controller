@@ -64,7 +64,8 @@ describe('ioFog Service', () => {
       dockerPruningFrequency: 10,
       diskThreshold: 90,
       logLevel: 'INFO',
-      isSystem: false
+      isSystem: false,
+      host: '1.2.3.4'
     }
 
     const createFogData = {
