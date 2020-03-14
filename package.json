@@ -104,7 +104,7 @@
     "xss-clean": "0.1.1"
   },
   "devDependencies": {
-    "acorn": "6.1.1",
+    "acorn": "6.4.1",
     "automatic-release": "1.1.1",
     "bdd-lazy-var": "2.5.2",
     "chai": "4.2.0",
