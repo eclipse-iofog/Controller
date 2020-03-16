@@ -68,6 +68,7 @@ async function createFogEndPoint (fogData, user, isCLI, transaction) {
     availableDiskThreshold: fogData.availableDiskThreshold,
     isSystem: fogData.isSystem,
     userId: user.id,
+    host: fogData.host,
     routerId: null
   }
   createFogData = AppHelper.deleteUndefinedFields(createFogData)
@@ -165,7 +166,8 @@ async function updateFogEndPoint (fogData, user, isCLI, transaction) {
     fogTypeId: fogData.fogType,
     logLevel: fogData.logLevel,
     dockerPruningFrequency: fogData.dockerPruningFrequency,
-    availableDiskThreshold: fogData.availableDiskThreshold
+    host: fogData.host,
+    availableDiskThreshold: fogData.diskThreshold
   }
   updateFogData = AppHelper.deleteUndefinedFields(updateFogData)
 

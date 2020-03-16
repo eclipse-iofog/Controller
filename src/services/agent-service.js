@@ -255,6 +255,10 @@ const _updateMicroserviceStatuses = async function (microserviceStatus, transact
   }
 }
 
+const _mapExtraHost = function (extraHost) {
+  return `${extraHost.name}:${extraHost.value}`
+}
+
 const getAgentMicroservices = async function (fog, transaction) {
   const microservices = await MicroserviceManager.findAllActiveFlowMicroservices(fog.uuid, transaction)
 
@@ -282,6 +286,8 @@ const getAgentMicroservices = async function (fog, transaction) {
 
     const registryId = microservice.catalogItem && microservice.catalogItem.registry ? microservice.catalogItem.registry.id : microservice.registry.id
 
+    const extraHosts = microservice.extraHosts && microservice.extraHosts.map(_mapExtraHost)
+
     const responseMicroservice = {
       uuid: microservice.uuid,
       imageId: imageId,
@@ -296,6 +302,7 @@ const getAgentMicroservices = async function (fog, transaction) {
       delete: microservice.delete,
       deleteWithCleanup: microservice.deleteWithCleanup,
       env,
+      extraHosts,
       cmd,
       routes,
       isConsumer

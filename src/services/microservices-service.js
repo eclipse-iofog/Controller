@@ -36,6 +36,7 @@ const TrackingEventType = require('../enums/tracking-event-type')
 const FogManager = require('../data/managers/iofog-manager')
 const RouterManager = require('../data/managers/router-manager')
 const MicroservicePublicPortManager = require('../data/managers/microservice-public-port-manager')
+const MicroserviceExtraHostManager = require('../data/managers/microservice-extra-host-manager')
 
 const { DEFAULT_ROUTER_NAME, DEFAULT_PROXY_HOST, RESERVED_PORTS } = require('../helpers/constants')
 
@@ -157,6 +158,111 @@ async function _validatePortMappings (microserviceData, transaction) {
   }
 }
 
+async function _validatePublicPortAppHostTemplate (extraHost, templateArgs, msvc, transaction) {
+  if (templateArgs.length !== 5) {
+    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_HOST_TEMPLATE, templateArgs.join('.')))
+  }
+
+  const ports = await MicroservicePortManager.findAll({ microserviceUuid: msvc.uuid, isPublic: true }, transaction)
+  for (const port of ports) {
+    const publicPort = await MicroservicePublicPortManager.findOne({ portId: port.id }, transaction)
+    if (publicPort && publicPort.publicPort === +(templateArgs[4])) {
+      extraHost.publicPort = publicPort.publicPort
+      extraHost.value = ''
+      extraHost.targetFogUuid = (await FogManager.findOne({ id: publicPort.hostId }, transaction)).uuid
+      return extraHost
+    }
+  }
+
+  throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.NOT_FOUND_HOST_TEMPLATE, templateArgs[4]))
+}
+
+async function _validateLocalAppHostTemplate (extraHost, templateArgs, msvc, transaction) {
+  if (templateArgs.length !== 4) {
+    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_HOST_TEMPLATE, templateArgs.join('.')))
+  }
+  const fog = await FogManager.findOne({ uuid: msvc.iofogUuid }, transaction)
+  if (!fog) {
+    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.NOT_FOUND_HOST_TEMPLATE, templateArgs[2]))
+  }
+  extraHost.targetFogUuid = fog.uuid
+  extraHost.value = fog.host || fog.ipAddress
+
+  return extraHost
+}
+
+async function _validateAppHostTemplate (extraHost, templateArgs, userId, transaction) {
+  if (templateArgs.length < 4) {
+    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_HOST_TEMPLATE, templateArgs.join('.')))
+  }
+  const flow = await FlowManager.findOne({ name: templateArgs[1], userId }, transaction)
+  if (!flow) {
+    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.NOT_FOUND_HOST_TEMPLATE, templateArgs[1]))
+  }
+  const msvc = await MicroserviceManager.findOne({ flowId: flow.id, name: templateArgs[2] }, transaction)
+  if (!msvc) {
+    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.NOT_FOUND_HOST_TEMPLATE, templateArgs[2]))
+  }
+  extraHost.templateType = 'Apps'
+  extraHost.targetMicroserviceUuid = msvc.uuid
+  if (templateArgs[3] === 'public') {
+    return _validatePublicPortAppHostTemplate(extraHost, templateArgs, msvc, transaction)
+  }
+  if (templateArgs[3] === 'local') {
+    return _validateLocalAppHostTemplate(extraHost, templateArgs, msvc, transaction)
+  }
+  throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_HOST_TEMPLATE, templateArgs.join('.')))
+}
+
+async function _validateAgentHostTemplate (extraHost, templateArgs, userId, transaction) {
+  if (templateArgs.length !== 2) {
+    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_HOST_TEMPLATE, templateArgs.join('.')))
+  }
+
+  extraHost.templateType = 'Agents'
+  console.log({ name: templateArgs[1], userId })
+  const fog = await FogManager.findOne({ name: templateArgs[1], userId }, transaction)
+  if (!fog) {
+    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.NOT_FOUND_HOST_TEMPLATE, templateArgs[1]))
+  }
+  extraHost.targetFogUuid = fog.uuid
+  extraHost.value = fog.host
+
+  return extraHost
+}
+
+async function _validateExtraHost (extraHostData, user, transaction) {
+  const extraHost = {
+    templateType: 'Litteral',
+    name: extraHostData.name,
+    template: extraHostData.address,
+    value: extraHostData.address
+  }
+  if (!(extraHost.template.startsWith('${') && extraHost.template.endsWith('}'))) {
+    return extraHost
+  }
+  const template = extraHost.value.slice(2, extraHost.value.length - 1)
+  const templateArgs = template.split('.')
+  extraHost.templateType = templateArgs[0]
+  if (templateArgs[0] === 'Apps') {
+    return _validateAppHostTemplate(extraHost, templateArgs, user.id, transaction)
+  } else if (templateArgs[0] === 'Agents') {
+    return _validateAgentHostTemplate(extraHost, templateArgs, user.id, transaction)
+  }
+  throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_HOST_TEMPLATE, template))
+}
+
+async function _validateExtraHosts (microserviceData, user, transaction) {
+  if (!microserviceData.extraHosts || microserviceData.extraHosts.length === 0) {
+    return []
+  }
+  const extraHosts = []
+  for (const extraHost of microserviceData.extraHosts) {
+    extraHosts.push(await _validateExtraHost(extraHost, user, transaction))
+  }
+  return extraHosts
+}
+
 async function createMicroserviceEndPoint (microserviceData, user, isCLI, transaction) {
   await Validator.validate(microserviceData, Validator.schemas.microserviceCreate)
 
@@ -171,6 +277,9 @@ async function createMicroserviceEndPoint (microserviceData, user, isCLI, transa
   if (!microserviceData.images || !microserviceData.images.length) {
     throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.MICROSERVICE_DOES_NOT_HAVE_IMAGES, microserviceData.name))
   }
+
+  // validate extraHosts
+  const extraHosts = await _validateExtraHosts(microserviceData, user, transaction)
 
   await _validatePortMappings(microserviceData, transaction)
 
@@ -193,6 +302,11 @@ async function createMicroserviceEndPoint (microserviceData, user, isCLI, transa
       }
     }
   }
+
+  for (const extraHost of extraHosts) {
+    await _createExtraHost(microservice, extraHost, user, transaction)
+  }
+
   if (microserviceData.env) {
     for (const env of microserviceData.env) {
       await _createEnv(microservice, env, user, transaction)
@@ -624,6 +738,19 @@ async function _createPublicPortMapping (microservice, portMappingData, user, tr
     isTcp
   }
   await MicroservicePublicPortManager.create(publicPort, transaction)
+}
+
+async function _createExtraHost (microservice, extraHostData, user, transaction) {
+  if (!microservice.iofogUuid) {
+    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.REQUIRED_FOG_NODE))
+  }
+
+  const msExtraHostData = {
+    ...extraHostData,
+    microserviceUuid: microservice.uuid
+  }
+
+  await MicroserviceExtraHostManager.create(msExtraHostData, transaction)
 }
 
 async function _createEnv (microservice, envData, user, transaction) {
