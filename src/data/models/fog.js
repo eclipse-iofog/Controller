@@ -284,7 +284,7 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: 60,
       field: 'docker_pruning_freq'
     },
-    diskThreshold: {
+    availableDiskThreshold: {
       type: DataTypes.FLOAT,
       defaultValue: 90,
       field: 'available_disk_threshold'

@@ -135,7 +135,7 @@ const getAgentConfig = async function (fog, transaction) {
     latitude: fog.latitude,
     longitude: fog.longitude,
     logLevel: fog.logLevel,
-    diskThreshold: fog.diskThreshold,
+    availableDiskThreshold: fog.availableDiskThreshold,
     dockerPruningFrequency: fog.dockerPruningFrequency,
     routerHost: router.host,
     routerPort: router.messagingPort
@@ -163,7 +163,7 @@ const updateAgentConfig = async function (updateData, fog, transaction) {
     longitude: updateData.longitude,
     gpsMode: updateData.gpsMode,
     dockerPruningFrequency: updateData.dockerPruningFrequency,
-    diskThreshold: updateData.diskThreshold,
+    availableDiskThreshold: updateData.availableDiskThreshold,
     logLevel: updateData.logLevel
   }
   update = AppHelper.deleteUndefinedFields(update)
