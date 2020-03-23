@@ -42,7 +42,7 @@ const JSON_SCHEMA = AppHelper.stringifyCliJsonSchema({
   abstractedHardwareEnabled: false,
   fogType: 0,
   dockerPruningFrequency: 0,
-  diskThreshold: 0,
+  availableDiskThreshold: 0,
   logLevel: 'string'
 })
 
@@ -508,7 +508,7 @@ function _createFogObject (cliData) {
     fogType: cliData.fogType,
     userId: cliData.userId,
     dockerPruningFrequency: cliData.dockerPruningFrequency,
-    diskThreshold: cliData.diskThreshold,
+    availableDiskThreshold: cliData.availableDiskThreshold,
     logLevel: cliData.logLevel
   }
 

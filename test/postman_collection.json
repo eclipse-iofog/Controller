@@ -1035,7 +1035,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"networkInterface\": \"wlan0\",\r\n  \"dockerUrl\": \"http://google.com\",\r\n  \"diskLimit\": 15,\r\n  \"diskDirectory\": \"testDirectoryPath\",\r\n  \"memoryLimit\": 150,\r\n  \"cpuLimit\": 17,\r\n  \"logLimit\": 16,\r\n  \"logDirectory\": \"testLogPath\",\r\n  \"logFileCount\": 7,\r\n  \"statusFrequency\": 35,\r\n  \"changeFrequency\": 36,\r\n  \"deviceScanFrequency\": 37,\r\n  \"watchdogEnabled\": true,\r\n  \"latitude\": 22,\r\n  \"longitude\": 66,\r\n  \"gpsMode\": \"manual\",\r\n \"dockerPruningFrequency\": 35,\r\n  \"diskThreshold\": 95,\r\n  \"logLevel\": \"INFO\"\r\n}"
+              "raw": "{\r\n  \"networkInterface\": \"wlan0\",\r\n  \"dockerUrl\": \"http://google.com\",\r\n  \"diskLimit\": 15,\r\n  \"diskDirectory\": \"testDirectoryPath\",\r\n  \"memoryLimit\": 150,\r\n  \"cpuLimit\": 17,\r\n  \"logLimit\": 16,\r\n  \"logDirectory\": \"testLogPath\",\r\n  \"logFileCount\": 7,\r\n  \"statusFrequency\": 35,\r\n  \"changeFrequency\": 36,\r\n  \"deviceScanFrequency\": 37,\r\n  \"watchdogEnabled\": true,\r\n  \"latitude\": 22,\r\n  \"longitude\": 66,\r\n  \"gpsMode\": \"manual\",\r\n \"dockerPruningFrequency\": 35,\r\n  \"availableDiskThreshold\": 95,\r\n  \"logLevel\": \"INFO\"\r\n}"
             },
             "url": {
               "raw": "{{host}}/api/v3/agent/config",
@@ -2918,7 +2918,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"string\",\n  \"location\": \"string\",\n  \"latitude\": 0,\n  \"longitude\": 0,\n  \"description\": \"string\",\n  \"dockerUrl\": \"string\",\n  \"diskLimit\": 0,\n  \"diskDirectory\": \"string\",\n  \"memoryLimit\": 0,\n  \"cpuLimit\": 0,\n  \"logLimit\": 0,\n  \"logDirectory\": \"string\",\n  \"logFileCount\": 0,\n  \"statusFrequency\": 0,\n  \"changeFrequency\": 0,\n  \"deviceScanFrequency\": 0,\n  \"bluetoothEnabled\": false,\n  \"watchdogEnabled\": true,\n  \"abstractedHardwareEnabled\": false,\n  \"fogType\": 0,\n  \"dockerPruningFrequency\": 35,\n  \"diskThreshold\": 95,\n  \"logLevel\": \"INFO\"\n,\n  \"host\": \"1.2.3.4\"\n}"
+              "raw": "{\n  \"name\": \"string\",\n  \"location\": \"string\",\n  \"latitude\": 0,\n  \"longitude\": 0,\n  \"description\": \"string\",\n  \"dockerUrl\": \"string\",\n  \"diskLimit\": 0,\n  \"diskDirectory\": \"string\",\n  \"memoryLimit\": 0,\n  \"cpuLimit\": 0,\n  \"logLimit\": 0,\n  \"logDirectory\": \"string\",\n  \"logFileCount\": 0,\n  \"statusFrequency\": 0,\n  \"changeFrequency\": 0,\n  \"deviceScanFrequency\": 0,\n  \"bluetoothEnabled\": false,\n  \"watchdogEnabled\": true,\n  \"abstractedHardwareEnabled\": false,\n  \"fogType\": 0,\n  \"dockerPruningFrequency\": 35,\n  \"availableDiskThreshold\": 95,\n  \"logLevel\": \"INFO\"\n,\n  \"host\": \"1.2.3.4\"\n}"
             },
             "url": {
               "raw": "{{host}}/api/v3/iofog",
@@ -6096,7 +6096,7 @@
                   "&& data.hasOwnProperty('changeFrequency') && data.hasOwnProperty('deviceScanFrequency') && data.hasOwnProperty('tunnel') && data.hasOwnProperty('watchdogEnabled')",
                   "&& data.hasOwnProperty('fogTypeId') && data.hasOwnProperty('userId')",
                   "&& data.hasOwnProperty('logLevel') && data.hasOwnProperty('dockerPruningFrequency')",
-                  "&& data.hasOwnProperty('diskThreshold')",
+                  "&& data.hasOwnProperty('availableDiskThreshold')",
                   "&& data.hasOwnProperty('fogTypeId') && data.hasOwnProperty('userId') && data.hasOwnProperty('isSystem');"
                 ],
                 "type": "text/javascript"

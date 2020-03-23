@@ -56,7 +56,7 @@ const updateAgentConfig = {
     'longitude': { 'type': 'number', 'minimum': -180, 'maximum': 180 },
     'gpsMode': { 'type': 'string' },
     'dockerPruningFrequency': { 'type': 'integer', 'minimum': 0 },
-    'diskThreshold': { 'type': 'integer', 'minimum': 0 },
+    'availableDiskThreshold': { 'type': 'integer', 'minimum': 0 },
     'logLevel': { 'type': 'string' }
   },
   'additionalProperties': true
