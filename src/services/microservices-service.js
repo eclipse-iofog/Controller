@@ -341,6 +341,41 @@ async function createMicroserviceEndPoint (microserviceData, user, isCLI, transa
   return res
 }
 
+async function _updateRelatedExtraHostTargetFog (extraHost, newFogUuid, transaction) {
+  const fog = await FogManager.findOne({ uuid: newFogUuid })
+  if (!fog) {
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, newFogUuid))
+  }
+  extraHost.targetFogUuid = fog.uuid
+  extraHost.host = fog.host
+}
+
+async function _updateRelatedExtraHosts (updatedMicroservice, transaction) {
+  const extraHosts = await MicroserviceExtraHostManager.findAll({ targetMicroserviceUuid: updatedMicroservice.uuid }, transaction)
+  for (const extraHost of extraHosts) {
+    if (!extraHost.publicPort) {
+      // Local port, update target fog and host if microservice moved
+      if (extraHost.targetFogUuid !== updatedMicroservice.iofogUuid) {
+        await _updateRelatedExtraHostTargetFog(extraHost, updatedMicroservice.iofogUuid, transaction)
+      }
+    } else {
+      // Public port, find public port host, update if different
+      const msvcPublicPorts = await MicroservicePortManager.findAllPublicPorts({ microserviceUuid: updatedMicroservice.uuid })
+      for (const port of msvcPublicPorts) {
+        if (port.publicPort.publicPort === extraHost.publicPort) {
+          if (extraHost.targetFogUuid !== port.publicPort.hostId) {
+            await _updateRelatedExtraHostTargetFog(extraHost, port.publicPort.hostId, transaction)
+            break
+          }
+        }
+      }
+    }
+    await extraHost.save()
+    // Update tracking change for microservice
+    await MicroserviceExtraHostManager.updateOriginMicroserviceChangeTracking(extraHost, transaction)
+  }
+}
+
 async function updateMicroserviceEndPoint (microserviceUuid, microserviceData, user, isCLI, transaction) {
   await Validator.validate(microserviceData, Validator.schemas.microserviceUpdate)
 
@@ -352,6 +387,9 @@ async function updateMicroserviceEndPoint (microserviceUuid, microserviceData, u
       uuid: microserviceUuid,
       userId: user.id
     }
+
+  // validate extraHosts
+  const extraHosts = microserviceData.extraHosts ? await _validateExtraHosts(microserviceData, user, transaction) : null
 
   const config = _validateMicroserviceConfig(microserviceData.config)
 
@@ -448,6 +486,13 @@ async function updateMicroserviceEndPoint (microserviceUuid, microserviceData, u
   }
 
   const updatedMicroservice = await MicroserviceManager.updateAndFind(query, microserviceDataUpdate, transaction)
+
+  if (extraHosts) {
+    await _updateExtraHosts(extraHosts, microserviceUuid, user, transaction)
+  }
+
+  // Update extra hosts that reference this microservice
+  await _updateRelatedExtraHosts(updatedMicroservice, transaction)
 
   if (microserviceDataUpdate.volumeMappings) {
     await _updateVolumeMappings(microserviceDataUpdate.volumeMappings, microserviceUuid, transaction)
@@ -741,10 +786,6 @@ async function _createPublicPortMapping (microservice, portMappingData, user, tr
 }
 
 async function _createExtraHost (microservice, extraHostData, user, transaction) {
-  if (!microservice.iofogUuid) {
-    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.REQUIRED_FOG_NODE))
-  }
-
   const msExtraHostData = {
     ...extraHostData,
     microserviceUuid: microservice.uuid
@@ -1069,6 +1110,15 @@ async function _deleteImages (microserviceUuid, transaction) {
   await CatalogItemImageManager.delete({
     microserviceUuid: microserviceUuid
   }, transaction)
+}
+
+async function _updateExtraHosts (extraHosts, microserviceUuid, user, transaction) {
+  await MicroserviceExtraHostManager.delete({
+    microserviceUuid: microserviceUuid
+  }, transaction)
+  for (const extraHost of extraHosts) {
+    await _createExtraHost({ uuid: microserviceUuid }, extraHost, user, transaction)
+  }
 }
 
 async function _updateEnv (env, microserviceUuid, transaction) {

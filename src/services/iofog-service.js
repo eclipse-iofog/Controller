@@ -31,6 +31,7 @@ const TrackingDecorator = require('../decorators/tracking-decorator')
 const TrackingEventType = require('../enums/tracking-event-type')
 const config = require('../config')
 const RouterManager = require('../data/managers/router-manager')
+const MicroserviceExtraHostManager = require('../data/managers/microservice-extra-host-manager')
 const RouterConnectionManager = require('../data/managers/router-connection-manager')
 const RouterService = require('./router-service')
 const Constants = require('../helpers/constants')
@@ -234,6 +235,11 @@ async function updateFogEndPoint (fogData, user, isCLI, transaction) {
 
   let msChanged = false
 
+  // Update Microservice extra hosts
+  if (updateFogData.host && updateFogData.host !== oldFog.host) {
+    await _updateMicroserviceExtraHosts(fogData.uuid, updateFogData.host, transaction)
+  }
+
   if (oldFog.abstractedHardwareEnabled === true && fogData.abstractedHardwareEnabled === false) {
     await _deleteHalMicroserviceByFog(fogData, transaction)
     msChanged = true
@@ -254,6 +260,16 @@ async function updateFogEndPoint (fogData, user, isCLI, transaction) {
 
   if (msChanged) {
     await ChangeTrackingService.update(fogData.uuid, ChangeTrackingService.events.microserviceCommon, transaction)
+  }
+}
+
+async function _updateMicroserviceExtraHosts (fogUuid, host, transaction) {
+  const microserviceExtraHosts = MicroserviceExtraHostManager.findAll({ targetFodUuid: fogUuid }, transaction)
+  for (const extraHost of microserviceExtraHosts) {
+    extraHost.value = host
+    await extraHost.save()
+    // Update tracking change for microservice
+    await MicroserviceExtraHostManager.updateOriginMicroserviceChangeTracking(extraHost, transaction)
   }
 }
 

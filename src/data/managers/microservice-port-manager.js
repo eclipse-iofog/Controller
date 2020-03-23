@@ -28,7 +28,7 @@ class MicroservicePortManager extends BaseManager {
           model: MicroservicePublicPort,
           as: 'publicPort',
           required: true,
-          attributes: ['queueName', 'publicPort', 'protocol', 'isTcp']
+          attributes: ['queueName', 'publicPort', 'protocol', 'isTcp', 'hostId']
         }
       ],
       where: { isPublic: true },
