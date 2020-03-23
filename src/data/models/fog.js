@@ -169,10 +169,8 @@ module.exports = (sequelize, DataTypes) => {
       field: 'catalog_item_message_counts'
     },
     messageSpeed: {
-      type: DataTypes.BIGINT,
-      get () {
-        return convertToInt(this.getDataValue('messageSpeed'), 0)
-      },
+      type: DataTypes.FLOAT,
+      defaultValue: 0.000,
       field: 'message_speed'
     },
     lastCommandTime: {
