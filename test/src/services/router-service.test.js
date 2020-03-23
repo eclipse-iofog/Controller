@@ -166,11 +166,6 @@ describe('Router Service', () => {
         await $subject
         expect(MicroservicePortManager.create).to.have.been.calledOnce
       })
-
-      it('Should not create the QDROUTERD_AUTO_MESH_DISCOVERY env variable', async () => {
-        await $subject
-        expect(MicroserviceEnvManager.create).to.have.been.calledOnce
-      })
     })
 
     context('Interior router', () => {
@@ -207,14 +202,6 @@ describe('Router Service', () => {
         await $subject      
         return expect(MicroserviceEnvManager.create).to.have.been.calledWith({
           key: 'QDROUTERD_CONF', value: microserviceConfig, microserviceUuid: routerMsvc.uuid
-        }, transaction)
-      })
-
-      it('Should create the QDROUTERD_AUTO_MESH_DISCOVERY env variable', async () => {
-        await $subject
-        expect(MicroserviceEnvManager.create).to.have.been.calledTwice
-        return expect(MicroserviceEnvManager.create).to.have.been.calledWith({
-          key: 'QDROUTERD_AUTO_MESH_DISCOVERY', value: 'QUERY', microserviceUuid: routerMsvc.uuid
         }, transaction)
       })
     })
@@ -305,25 +292,6 @@ describe('Router Service', () => {
           return expect(e).to.be.instanceOf(Errors.NotFoundError)
         }
         return expect(true).to.eql(false)
-      })
-    })
-
-    context('Edge router', () => {
-      it('Should delete the QDROUTERD_AUTO_MESH_DISCOVERY env variable', async () => {
-        await $subject
-        expect(MicroserviceEnvManager.updateOrCreate).not.to.have.been.called
-        return expect(MicroserviceEnvManager.delete).to.have.been.calledOnceWith({ key: 'QDROUTERD_AUTO_MESH_DISCOVERY', microserviceUuid: $routerMsvc.uuid }, transaction)
-      })
-    })
-
-    context('Interior router router', () => {
-      const interRouterPort = 32093
-      const edgeRouterPort = 3231
-      def('router', () =>  ({...$router, isEdge: false, interRouterPort, edgeRouterPort}))
-      it('Should create or update the QDROUTERD_AUTO_MESH_DISCOVERY env variable', async () => {
-        await $subject
-        expect(MicroserviceEnvManager.delete).not.to.have.been.called
-        return expect(MicroserviceEnvManager.updateOrCreate).to.have.been.calledWith({ key: 'QDROUTERD_AUTO_MESH_DISCOVERY', microserviceUuid: $routerMsvc.uuid }, { key: 'QDROUTERD_AUTO_MESH_DISCOVERY', microserviceUuid: $routerMsvc.uuid, value: 'QUERY' }, transaction)
       })
     })
 
