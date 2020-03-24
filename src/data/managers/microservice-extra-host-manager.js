@@ -30,6 +30,8 @@ class MicroserviceExtraHostManager extends BaseManager {
     if (!originMsvc) {
       throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, extraHost.microserviceUuid))
     }
+    originMsvc.rebuild = true
+    await originMsvc.save()
     await ChangeTrackingService.update(originMsvc.iofogUuid, ChangeTrackingService.events.microserviceCommon, transaction)
   }
 }
