@@ -474,6 +474,15 @@ async function updateMicroserviceEndPoint (microserviceUuid, microserviceData, u
     }
   }
 
+  // Set rebuild flag if needed
+  microserviceDataUpdate.rebuild = microserviceDataUpdate.rebuild || !!(
+    (microserviceDataUpdate.rootHostAccess !== undefined && microservice.rootHostAccess !== microserviceDataUpdate.rootHostAccess) ||
+    microserviceDataUpdate.env ||
+    microserviceDataUpdate.cmd ||
+    microserviceDataUpdate.volumeMappings ||
+    extraHosts
+  )
+
   const updatedMicroservice = await MicroserviceManager.updateAndFind(query, microserviceDataUpdate, transaction)
 
   if (extraHosts) {
