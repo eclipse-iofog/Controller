@@ -717,6 +717,11 @@ describe('Agent Service', () => {
 
     const isConsumer = false
 
+    const extraHost = {
+      name: 'testExtraHost',
+      value: '1.2.3.4'
+    }
+
     const microserviceWithValidImage = {
       uuid: 'testMicroserviceUuid',
       imageId: '',
@@ -746,6 +751,7 @@ describe('Agent Service', () => {
           value: 'value1',
         },
       ],
+      extraHosts: [extraHost],
       cmd: [
         {
           id: 1,
@@ -810,7 +816,8 @@ describe('Agent Service', () => {
           'ls',
           '-l',
         ],
-        isConsumer
+        isConsumer,
+        extraHosts: [`${extraHost.name}:${extraHost.value}`]
       }],
     }
 

@@ -286,7 +286,7 @@ const getAgentMicroservices = async function (fog, transaction) {
 
     const registryId = microservice.catalogItem && microservice.catalogItem.registry ? microservice.catalogItem.registry.id : microservice.registry.id
 
-    const extraHosts = microservice.extraHosts && microservice.extraHosts.map(_mapExtraHost)
+    const extraHosts = microservice.extraHosts ? microservice.extraHosts.map(_mapExtraHost) : []
 
     const responseMicroservice = {
       uuid: microservice.uuid,

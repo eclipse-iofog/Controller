@@ -163,13 +163,13 @@ async function _validatePublicPortAppHostTemplate (extraHost, templateArgs, msvc
     throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_HOST_TEMPLATE, templateArgs.join('.')))
   }
 
-  const ports = await MicroservicePortManager.findAll({ microserviceUuid: msvc.uuid, isPublic: true }, transaction)
+  const ports = await MicroservicePortManager.findAllPublicPorts({ microserviceUuid: msvc.uuid }, transaction)
   for (const port of ports) {
-    const publicPort = await MicroservicePublicPortManager.findOne({ portId: port.id }, transaction)
-    if (publicPort && publicPort.publicPort === +(templateArgs[4])) {
-      extraHost.publicPort = publicPort.publicPort
-      extraHost.value = ''
-      extraHost.targetFogUuid = (await FogManager.findOne({ id: publicPort.hostId }, transaction)).uuid
+    if (port.publicPort.publicPort === +(templateArgs[4])) {
+      const fog = await FogManager.findOne({ uuid: port.publicPort.hostId }, transaction)
+      extraHost.publicPort = port.publicPort.publicPort
+      extraHost.targetFogUuid = fog.uuid
+      extraHost.value = fog.host || fog.ipAddress
       return extraHost
     }
   }
@@ -342,12 +342,15 @@ async function createMicroserviceEndPoint (microserviceData, user, isCLI, transa
 }
 
 async function _updateRelatedExtraHostTargetFog (extraHost, newFogUuid, transaction) {
-  const fog = await FogManager.findOne({ uuid: newFogUuid })
+  const fog = await FogManager.findOne({ uuid: newFogUuid }, transaction)
   if (!fog) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, newFogUuid))
   }
   extraHost.targetFogUuid = fog.uuid
-  extraHost.host = fog.host
+  extraHost.value = fog.host
+  await extraHost.save()
+  // Update tracking change for microservice
+  await MicroserviceExtraHostManager.updateOriginMicroserviceChangeTracking(extraHost, transaction)
 }
 
 async function _updateRelatedExtraHosts (updatedMicroservice, transaction) {
@@ -358,21 +361,7 @@ async function _updateRelatedExtraHosts (updatedMicroservice, transaction) {
       if (extraHost.targetFogUuid !== updatedMicroservice.iofogUuid) {
         await _updateRelatedExtraHostTargetFog(extraHost, updatedMicroservice.iofogUuid, transaction)
       }
-    } else {
-      // Public port, find public port host, update if different
-      const msvcPublicPorts = await MicroservicePortManager.findAllPublicPorts({ microserviceUuid: updatedMicroservice.uuid })
-      for (const port of msvcPublicPorts) {
-        if (port.publicPort.publicPort === extraHost.publicPort) {
-          if (extraHost.targetFogUuid !== port.publicPort.hostId) {
-            await _updateRelatedExtraHostTargetFog(extraHost, port.publicPort.hostId, transaction)
-            break
-          }
-        }
-      }
     }
-    await extraHost.save()
-    // Update tracking change for microservice
-    await MicroserviceExtraHostManager.updateOriginMicroserviceChangeTracking(extraHost, transaction)
   }
 }
 
@@ -783,6 +772,15 @@ async function _createPublicPortMapping (microservice, portMappingData, user, tr
     isTcp
   }
   await MicroservicePublicPortManager.create(publicPort, transaction)
+
+  // Look for related extraHosts to update
+  const relatedExtraHosts = await MicroserviceExtraHostManager.findAll({ microserviceUuid: microservice.uuid, publicPort: publicPort.publicPort }, transaction)
+  for (const extraHost of relatedExtraHosts) {
+    extraHost.targetFogUuid = publicPort.hostId
+    extraHost.value = portMappingData.host.host
+    await extraHost.save()
+    await MicroserviceExtraHostManager.updateOriginMicroserviceChangeTracking(extraHost, transaction)
+  }
 }
 
 async function _createExtraHost (microservice, extraHostData, user, transaction) {
@@ -1326,6 +1324,7 @@ async function _buildGetMicroserviceResponse (microservice, transaction) {
 
   // get additional data
   const portMappings = await MicroservicePortManager.findAll({ microserviceUuid: microserviceUuid }, transaction)
+  const extraHosts = await MicroserviceExtraHostManager.findAll({ microserviceUuid: microserviceUuid }, transaction)
   const images = await CatalogItemImageManager.findAll({ microserviceUuid: microserviceUuid }, transaction)
   const volumeMappings = await VolumeMappingManager.findAll({ microserviceUuid: microserviceUuid }, transaction)
   const routes = await RoutingManager.findAll({ sourceMicroserviceUuid: microserviceUuid }, transaction)
@@ -1351,6 +1350,7 @@ async function _buildGetMicroserviceResponse (microservice, transaction) {
   res.routes = routes.map((r) => r.destMicroserviceUuid)
   res.env = env
   res.cmd = arg
+  res.extraHosts = extraHosts.map(eH => ({ name: eH.name, address: eH.template, value: eH.value }))
   res.images = images.map(i => ({ containerImage: i.containerImage, fogTypeId: i.fogTypeId }))
   if (status && status.length) {
     res.status = status[0]

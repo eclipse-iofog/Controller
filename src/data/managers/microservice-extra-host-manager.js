@@ -26,7 +26,7 @@ class MicroserviceExtraHostManager extends BaseManager {
   }
 
   async updateOriginMicroserviceChangeTracking (extraHost, transaction) {
-    const originMsvc = await MicroserviceManager.findOne({ uuid: extraHost.microserviceUuid })
+    const originMsvc = await MicroserviceManager.findOne({ uuid: extraHost.microserviceUuid }, transaction)
     if (!originMsvc) {
       throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, extraHost.microserviceUuid))
     }

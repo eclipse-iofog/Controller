@@ -168,7 +168,7 @@ async function updateFogEndPoint (fogData, user, isCLI, transaction) {
     logLevel: fogData.logLevel,
     dockerPruningFrequency: fogData.dockerPruningFrequency,
     host: fogData.host,
-    availableDiskThreshold: fogData.diskThreshold
+    availableDiskThreshold: fogData.availableDiskThreshold
   }
   updateFogData = AppHelper.deleteUndefinedFields(updateFogData)
 
@@ -264,7 +264,7 @@ async function updateFogEndPoint (fogData, user, isCLI, transaction) {
 }
 
 async function _updateMicroserviceExtraHosts (fogUuid, host, transaction) {
-  const microserviceExtraHosts = MicroserviceExtraHostManager.findAll({ targetFodUuid: fogUuid }, transaction)
+  const microserviceExtraHosts = await MicroserviceExtraHostManager.findAll({ targetFogUuid: fogUuid }, transaction)
   for (const extraHost of microserviceExtraHosts) {
     extraHost.value = host
     await extraHost.save()
