@@ -279,7 +279,7 @@ module.exports = (sequelize, DataTypes) => {
     },
     dockerPruningFrequency: {
       type: DataTypes.INTEGER,
-      defaultValue: 60,
+      defaultValue: 1,
       field: 'docker_pruning_freq'
     },
     availableDiskThreshold: {
