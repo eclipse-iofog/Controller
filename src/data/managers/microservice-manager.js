@@ -360,6 +360,7 @@ class MicroserviceManager extends BaseManager {
   async findAllExcludeFields (where, transaction) {
     return Microservice.findAll({
       where: where,
+      order: [ [ 'name', 'ASC' ] ],
       attributes: {
         exclude: microserviceExcludedFields
       } }, {
