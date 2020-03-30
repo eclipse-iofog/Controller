@@ -13,7 +13,7 @@ module.exports = {
 
     await queryInterface.bulkUpdate('CatalogItemImages',
       {
-        container_image: 'baghbidi/public:router'
+        container_image: 'iofog/router:latest'
       },
       {
         catalog_item_id: router.id,
@@ -21,7 +21,7 @@ module.exports = {
       })
     await queryInterface.bulkUpdate('CatalogItemImages',
       {
-        container_image: 'baghbidi/public:router-arm'
+        container_image: 'iofog/router-arm:latest'
       },
       {
         catalog_item_id: router.id,
