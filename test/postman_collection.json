@@ -6014,7 +6014,7 @@
           "response": []
         },
         {
-          "name": "List ioFog Nodes without system",
+          "name": "List ioFog Nodes after Update",
           "event": [
             {
               "listen": "test",
@@ -6054,6 +6054,68 @@
                 "iofog-list"
               ],
               "query": [
+                {
+                  "key": "filters[0][key]",
+                  "value": "uuid"
+                },
+                {
+                  "key": "filters[0][value]",
+                  "value": "{{node-id}}"
+                },
+                {
+                  "key": "filters[0][condition]",
+                  "value": "equals"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List System ioFog Nodes after Update",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "4f7a9f52-12cc-49d0-9e2f-147b6f5cb6fa",
+                "exec": [
+                  "tests[\"Status code is 200\"] = responseCode.code === 200;",
+                  "",
+                  "var data = JSON.parse(responseBody);",
+                  "",
+                  "tests[\"Response validation passed\"] = data.hasOwnProperty('fogs') && data.fogs.length > 0;"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "{{user-token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{host}}/api/v3/iofog-list?system=true&filters[0][key]=uuid&filters[0][value]={{node-id}}&filters[0][condition]=equals",
+              "host": [
+                "{{host}}"
+              ],
+              "path": [
+                "api",
+                "v3",
+                "iofog-list"
+              ],
+              "query": [
+                {
+                  "key": "system",
+                  "value": true
+                },
                 {
                   "key": "filters[0][key]",
                   "value": "uuid"
