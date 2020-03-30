@@ -13,14 +13,24 @@
 
 const BaseManager = require('./base-manager')
 const models = require('../models')
+
 const Fog = models.Fog
-const Microservice = models.Microservice
 const FogAccessToken = models.FogAccessToken
+const Microservice = models.Microservice
 const Strace = models.StraceDiagnostics
 
 class FogManager extends BaseManager {
   getEntity () {
     return Fog
+  }
+
+  async findAll (where, transaction) {
+    return Fog.findAll({
+      where: where,
+      order: [ [ 'name', 'ASC' ] ]
+    }, {
+      transaction: transaction
+    })
   }
 
   // no transaction required here, used by auth decorator
