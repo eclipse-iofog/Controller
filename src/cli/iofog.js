@@ -410,7 +410,7 @@ async function _deleteFog (obj, user) {
 async function _getFogList (obj, user) {
   logger.cliReq('fog list')
   const emptyFilters = []
-  const list = await FogService.getFogListEndPoint(emptyFilters, user, true)
+  const list = await FogService.getFogListEndPoint(emptyFilters, user, true, false)
   logger.cliRes(JSON.stringify(list, null, 2))
 }
 

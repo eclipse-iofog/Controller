@@ -1316,7 +1316,7 @@ describe('ioFog Service', () => {
 
     const filters = []
 
-    def('subject', () => $subject.getFogListEndPoint(filters, user, isCLI, transaction))
+    def('subject', () => $subject.getFogListEndPoint(filters, user, isCLI, false, transaction))
     def('validatorResponse', () => Promise.resolve(true))
     def('findAllIoFogResponse', () => Promise.resolve(fogs.map(f => ({...f, getRouter: () => Promise.resolve(null), toJSON: () => f}))))
     def('findOneRouterResponse', () => Promise.resolve(null))
