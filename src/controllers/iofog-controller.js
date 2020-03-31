@@ -14,7 +14,6 @@
 const AuthDecorator = require('../decorators/authorization-decorator')
 const FogService = require('../services/iofog-service')
 const qs = require('qs')
-const lget = require('lodash/get')
 
 async function createFogEndPoint (req, user) {
   const newFog = req.body
@@ -43,7 +42,7 @@ async function getFogEndPoint (req, user) {
 }
 
 async function getFogListEndPoint (req, user) {
-  const isSystem = !!lget(req, 'query.system', false)
+  const isSystem = req.query && req.query.system ? req.query.system === 'true' : false
   const query = qs.parse(req.query)
   return FogService.getFogListEndPoint(query.filters, user, false, isSystem)
 }
