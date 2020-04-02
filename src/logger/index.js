@@ -70,7 +70,7 @@ const prepareObjectLogs = winston.format((log) => {
 
 const logger = winston.createLogger({
   levels: levels,
-  level: 'silly',
+  level: 'warn',
   transports: [
     new winston.transports.File({
       format: winston.format.combine(
