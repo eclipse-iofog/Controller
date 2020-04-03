@@ -97,5 +97,6 @@ module.exports = {
   INVALID_ROUTER_MODE: 'Invalid router mode \'{}\'',
   INVALID_UPSTREAM_ROUTER: 'Upstream router must be interior \'{}\'',
   EDGE_ROUTER_HAS_DOWNSTREAM: 'Edge router {} has, or will have, downstream routers',
-  HOST_IS_REQUIRED: '"host" is required'
+  HOST_IS_REQUIRED: '"host" is required',
+  PORT_RESERVED: 'Port \'{}\' is reserved for internal use'
 }

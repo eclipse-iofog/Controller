@@ -38,7 +38,7 @@ const FogManager = require('../data/managers/iofog-manager')
 const RouterManager = require('../data/managers/router-manager')
 const MicroservicePublicPortManager = require('../data/managers/microservice-public-port-manager')
 
-const { DEFAULT_ROUTER_NAME, DEFAULT_PROXY_HOST } = require('../helpers/constants')
+const { DEFAULT_ROUTER_NAME, DEFAULT_PROXY_HOST, RESERVED_PORTS } = require('../helpers/constants')
 
 const lget = require('lodash/get')
 
@@ -96,6 +96,10 @@ function _validateImagesAgainstCatalog (catalogItem, images) {
 }
 
 async function _checkForDuplicatePorts (agent, localPort, transaction) {
+  if (RESERVED_PORTS.find(port => port === localPort)) {
+    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.PORT_RESERVED, localPort))
+  }
+
   const microservices = await agent.getMicroservice()
   for (const microservice of microservices) {
     const ports = await microservice.getPorts()
