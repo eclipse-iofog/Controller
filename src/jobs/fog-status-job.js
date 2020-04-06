@@ -26,10 +26,19 @@ class FogStatusJob extends BaseJobHandler {
   constructor () {
     super()
     this.scheduleTime = Config.get('Settings:FogStatusUpdateIntervalSeconds') * 1000
+
+    setTimeout(this.run, this.scheduleTime)
   }
 
-  run () {
-    setInterval(TransactionDecorator.generateTransaction(updateFogsConnectionStatus), this.scheduleTime)
+  async run () {
+    try {
+      const _updateFogsConnectionStatus = TransactionDecorator.generateTransaction(updateFogsConnectionStatus)
+      await _updateFogsConnectionStatus()
+    } catch (error) {
+      console.error(error)
+    } finally {
+      setTimeout(this.run.bind(this), this.scheduleTime)
+    }
   }
 }
 
@@ -40,24 +49,26 @@ async function updateFogsConnectionStatus (transaction) {
 }
 
 async function _updateFogStatus (transaction) {
-  const minInMs = Config.get('Settings:FogStatusFrequencySeconds') * 1000
+  const statusUpdateTolerance = Config.get('Settings:FogStatusUpdateTolerance')
   const fogs = await FogManager.findAll({ daemonStatus: FogStates.RUNNING }, transaction)
   const unknownFogUuids = fogs
     .filter((fog) => {
-      const intervalInMs = fog.statusFrequency > minInMs ? fog.statusFrequency * 2 : minInMs
-      return Date.now() - fog.lastStatusTime > intervalInMs
+      const statusUpdateToleranceMs = fog.statusFrequency * 1000 * statusUpdateTolerance
+      return (Date.now() - fog.lastStatusTime) > statusUpdateToleranceMs
     })
     .map((fog) => fog.uuid)
 
   const where = { uuid: unknownFogUuids }
-  const data = { daemonStatus: FogStates.UNKNOWN, ipAddress: '0.0.0.0' }
+  const data = { daemonStatus: FogStates.UNKNOWN }
   await FogManager.update(where, data, transaction)
   return unknownFogUuids
 }
 
 async function _updateMicroserviceStatus (unknownFogUuids, transaction) {
   const microservices = await MicroserviceManager.findAllWithStatuses({ iofogUuid: unknownFogUuids }, transaction)
-  const microserviceStatusIds = microservices.map((microservice) => microservice.microserviceStatus.id)
+  const microserviceStatusIds = microservices
+    .filter((microservice) => microservice.microserviceStatus)
+    .map((microservice) => microservice.microserviceStatus.id)
   await MicroserviceStatusManager.update({ id: microserviceStatusIds }, { status: MicroserviceStates.UNKNOWN }, transaction)
   return microservices
 }
