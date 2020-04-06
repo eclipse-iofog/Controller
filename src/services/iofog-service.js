@@ -64,7 +64,7 @@ async function createFogEndPoint (fogData, user, isCLI, transaction) {
     fogTypeId: fogData.fogType,
     logLevel: fogData.logLevel,
     dockerPruningFrequency: fogData.dockerPruningFrequency,
-    diskThreshold: fogData.diskThreshold,
+    availableDiskThreshold: fogData.availableDiskThreshold,
     isSystem: fogData.isSystem,
     userId: user.id,
     routerId: null
@@ -159,7 +159,7 @@ async function updateFogEndPoint (fogData, user, isCLI, transaction) {
     fogTypeId: fogData.fogType,
     logLevel: fogData.logLevel,
     dockerPruningFrequency: fogData.dockerPruningFrequency,
-    diskThreshold: fogData.diskThreshold
+    availableDiskThreshold: fogData.availableDiskThreshold
   }
   updateFogData = AppHelper.deleteUndefinedFields(updateFogData)
 
@@ -375,12 +375,12 @@ async function getFogEndPoint (fogData, user, isCLI, transaction) {
   return getFog(fogData, user, isCLI, transaction)
 }
 
-async function getFogListEndPoint (filters, user, isCLI, transaction) {
+async function getFogListEndPoint (filters, user, isCLI, isSystem, transaction) {
   await Validator.validate(filters, Validator.schemas.iofogFilters)
 
   const queryFogData = isCLI
-    ? { isSystem: false }
-    : { userId: user.id, isSystem: false }
+    ? { isSystem: isSystem }
+    : { userId: user.id, isSystem }
 
   let fogs = await FogManager.findAll(queryFogData, transaction)
   fogs = _filterFogs(fogs, filters)

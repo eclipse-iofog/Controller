@@ -62,7 +62,7 @@ describe('ioFog Service', () => {
       abstractedHardwareEnabled: true,
       fogType: 1,
       dockerPruningFrequency: 10,
-      diskThreshold: 90,
+      availableDiskThreshold: 90,
       logLevel: 'INFO',
       isSystem: false,
       host: '1.2.3.4'
@@ -94,7 +94,7 @@ describe('ioFog Service', () => {
       isSystem: fogData.isSystem,
       userId: user.id,
       dockerPruningFrequency: 10,
-      diskThreshold: 90,
+      availableDiskThreshold: 90,
       logLevel: 'INFO',
       routerId: null
     }
@@ -476,7 +476,7 @@ describe('ioFog Service', () => {
       abstractedHardwareEnabled: true,
       fogType: 1,
       dockerPruningFrequency: 90,
-      diskThreshold: 80,
+      availableDiskThreshold: 80,
       logLevel: 'INFO',
       isSystem: true
     }
@@ -504,7 +504,7 @@ describe('ioFog Service', () => {
       abstractedHardwareEnabled: false,
       fogType: 1,
       dockerPruningFrequency: 90,
-      diskThreshold: 80,
+      availableDiskThreshold: 80,
       logLevel: 'INFO',
       isSystem: false
     }
@@ -536,7 +536,7 @@ describe('ioFog Service', () => {
       abstractedHardwareEnabled: fogData.abstractedHardwareEnabled,
       fogTypeId: fogData.fogType,
       dockerPruningFrequency: 90,
-      diskThreshold: 80,
+      availableDiskThreshold: 80,
       logLevel: 'INFO',
       isSystem: fogData.isSystem
     }
@@ -1316,7 +1316,7 @@ describe('ioFog Service', () => {
 
     const filters = []
 
-    def('subject', () => $subject.getFogListEndPoint(filters, user, isCLI, transaction))
+    def('subject', () => $subject.getFogListEndPoint(filters, user, isCLI, false, transaction))
     def('validatorResponse', () => Promise.resolve(true))
     def('findAllIoFogResponse', () => Promise.resolve(fogs.map(f => ({...f, getRouter: () => Promise.resolve(null), toJSON: () => f}))))
     def('findOneRouterResponse', () => Promise.resolve(null))

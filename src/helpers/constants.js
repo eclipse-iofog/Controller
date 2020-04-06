@@ -75,5 +75,7 @@ module.exports = {
   HTTP_CODE_INTERNAL_ERROR: 500,
 
   DEFAULT_ROUTER_NAME: 'default-router',
-  DEFAULT_PROXY_HOST: 'default-proxy-host'
+  DEFAULT_PROXY_HOST: 'default-proxy-host',
+
+  RESERVED_PORTS: [54321, 54322]
 }

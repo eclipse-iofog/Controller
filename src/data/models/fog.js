@@ -169,10 +169,8 @@ module.exports = (sequelize, DataTypes) => {
       field: 'catalog_item_message_counts'
     },
     messageSpeed: {
-      type: DataTypes.BIGINT,
-      get () {
-        return convertToInt(this.getDataValue('messageSpeed'), 0)
-      },
+      type: DataTypes.FLOAT,
+      defaultValue: 0.000,
       field: 'message_speed'
     },
     lastCommandTime: {
@@ -281,10 +279,10 @@ module.exports = (sequelize, DataTypes) => {
     },
     dockerPruningFrequency: {
       type: DataTypes.INTEGER,
-      defaultValue: 60,
+      defaultValue: 1,
       field: 'docker_pruning_freq'
     },
-    diskThreshold: {
+    availableDiskThreshold: {
       type: DataTypes.FLOAT,
       defaultValue: 90,
       field: 'available_disk_threshold'
