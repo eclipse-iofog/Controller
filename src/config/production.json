@@ -20,8 +20,8 @@
   "Settings": {
     "UserTokenExpirationIntervalSeconds": 3600,
     "FogTokenExpirationIntervalSeconds": 3600,
-    "FogStatusUpdateIntervalSeconds": 120,
-    "FogStatusFrequencySeconds": 60,
+    "FogStatusUpdateIntervalSeconds": 30,
+    "FogStatusUpdateTolerance": 3,
     "ConnectorHealthCheckFrequencySeconds": 10
   },
   "Database": {
