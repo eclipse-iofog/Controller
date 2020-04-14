@@ -17,6 +17,7 @@ const FogType = models.FogType
 
 class FogTypeManager extends BaseManager {
   getEntity () {
+    console.log({ FogType })
     return FogType
   }
 }

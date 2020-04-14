@@ -31,5 +31,15 @@
   },
   "Diagnostics": {
     "DiagnosticDir": "diagnostic"
+  },
+  "SystemImages": {
+    "Router": {
+      "1": "iofog/router:latest",
+      "2": "iofog/router-arm:latest"
+    },
+    "Proxy": {
+      "1": "iofog/proxy:latest",
+      "2": "iofog/proxy-arm:latest"
+    }
   }
 }
