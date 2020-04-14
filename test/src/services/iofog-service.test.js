@@ -1025,6 +1025,7 @@ describe('ioFog Service', () => {
       $sandbox.stub(RouterConnectionManager, 'findAllWithRouters').returns($upstreamRouters)
       $sandbox.stub(CatalogService, 'getRouterCatalogItem').returns($routerCatalogItem)
       $sandbox.stub(MicroserviceManager, 'delete')
+      $sandbox.stub(MicroserviceManager, 'findAll').returns(Promise.resolve([]))
       $sandbox.stub(ioFogManager, 'findAll').returns(Promise.resolve([]))
     })
 

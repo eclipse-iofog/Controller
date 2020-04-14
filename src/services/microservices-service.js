@@ -23,7 +23,6 @@ const MicroserviceStates = require('../enums/microservice-state')
 const VolumeMappingManager = require('../data/managers/volume-mapping-manager')
 const ConfigManager = require('../data/managers/config-manager')
 const ChangeTrackingService = require('./change-tracking-service')
-const IoFogService = require('../services/iofog-service')
 const AppHelper = require('../helpers/app-helper')
 const Errors = require('../helpers/errors')
 const ErrorMessages = require('../helpers/error-messages')
@@ -327,8 +326,11 @@ async function updateMicroserviceEndPoint (microserviceUuid, microserviceData, u
   }
 
   // validate fog node
-  if (iofogUuid && !(await IoFogService.getFog({ uuid: iofogUuid }, user, isCLI, transaction))) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, iofogUuid))
+  if (iofogUuid) {
+    const fog = await FogManager.findOne({ uuid: iofogUuid }, transaction)
+    if (!fog || fog.length === 0) {
+      throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, iofogUuid))
+    }
   }
 
   const updatedMicroservice = await MicroserviceManager.updateAndFind(query, microserviceDataUpdate, transaction)
@@ -851,7 +853,10 @@ async function _createMicroservice (microserviceData, user, isCLI, transaction) 
   await _validateFlow(newMicroservice.flowId, user, isCLI, transaction)
   // validate fog node
   if (newMicroservice.iofogUuid) {
-    await IoFogService.getFog({ uuid: newMicroservice.iofogUuid }, user, isCLI, transaction)
+    const fog = await FogManager.findOne({ uuid: newMicroservice.iofogUuid }, transaction)
+    if (!fog || fog.length === 0) {
+      throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, newMicroservice.iofogUuid))
+    }
   }
 
   return MicroserviceManager.create(newMicroservice, transaction)

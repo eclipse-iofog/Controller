@@ -24,8 +24,9 @@ const ErrorMessages = require('../helpers/error-messages')
 const Validator = require('../schemas')
 const HWInfoManager = require('../data/managers/hw-info-manager')
 const USBInfoManager = require('../data/managers/usb-info-manager')
-const CatalogService = require('../services/catalog-service')
+const CatalogService = require('./catalog-service')
 const MicroserviceManager = require('../data/managers/microservice-manager')
+const MicroserviceService = require('./microservices-service')
 const TrackingDecorator = require('../decorators/tracking-decorator')
 const TrackingEventType = require('../enums/tracking-event-type')
 const config = require('../config')
@@ -518,6 +519,11 @@ function _filterFogs (fogs, filters) {
 }
 
 async function _processDeleteCommand (fog, transaction) {
+  const microservices = await MicroserviceManager.findAll({ iofogUuid: fog.uuid }, transaction)
+  for (const microservice of microservices) {
+    await MicroserviceService.deleteMicroserviceWithRoutesAndPortMappings(microservice, transaction)
+  }
+
   await ChangeTrackingService.update(fog.uuid, ChangeTrackingService.events.deleteNode, transaction)
   await FogManager.delete({ uuid: fog.uuid }, transaction)
 }

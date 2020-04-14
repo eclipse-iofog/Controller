@@ -9,7 +9,6 @@ const ChangeTrackingService = require('../../../src/services/change-tracking-ser
 const CatalogService = require('../../../src/services/catalog-service')
 const FlowService = require('../../../src/services/flow-service')
 const FlowManager = require('../../../src/data/managers/flow-manager')
-const ioFogService = require('../../../src/services/iofog-service')
 const MicroservicePortManager = require('../../../src/data/managers/microservice-port-manager')
 const CatalogItemImageManager = require('../../../src/data/managers/catalog-item-image-manager')
 const RouterManager = require('../../../src/data/managers/router-manager')
@@ -287,7 +286,6 @@ describe('Microservices Service', () => {
     def('findMicroserviceResponse2', () => Promise.resolve(microserviceData))
     def('getCatalogItemResponse', () => Promise.resolve({images}))
     def('findFlowResponse', () => Promise.resolve({}))
-    def('getIoFogResponse', () => Promise.resolve())
     def('createMicroserviceResponse', () => Promise.resolve(newMicroservice))
     def('findMicroservicePortResponse', () => Promise.resolve())
     def('createMicroservicePortResponse', () => Promise.resolve({id: 15}))
@@ -316,7 +314,6 @@ describe('Microservices Service', () => {
           .withArgs({ catalogItemId: proxyCatalogItem.id, iofogUuid: microserviceData.iofogUuid }).returns($getProxyMsvcResponse) // find proxy microservice in public port
       $sandbox.stub(CatalogService, 'getCatalogItem').returns($getCatalogItemResponse)
       $sandbox.stub(FlowManager, 'findOne').returns($findFlowResponse)
-      $sandbox.stub(ioFogService, 'getFog').returns($getIoFogResponse)
       $sandbox.stub(CatalogService, 'getProxyCatalogItem').returns($getProxyCatalogItem)
       $sandbox.stub(MicroserviceManager, 'create').returns($createMicroserviceResponse)
       $sandbox.stub(MicroservicePortManager, 'findOne').returns($findMicroservicePortResponse)
@@ -446,22 +443,22 @@ describe('Microservices Service', () => {
               })
 
               context('when FlowManager#findOne() succeeds', () => {
-                it('calls IoFogService#getFog() with correct args', async () => {
+                it('calls FogManager#findOne() with correct args', async () => {
                   await $subject
-                  expect(ioFogService.getFog).to.have.been.calledWith({
+                  expect(ioFogManager.findOne).to.have.been.calledWith({
                     uuid: newMicroservice.iofogUuid,
-                  }, user, isCLI, transaction)
+                  }, transaction)
                 })
 
-                context('when IoFogService#getFog() fails', () => {
-                  def('getIoFogResponse', () => Promise.reject(error))
+                context('when FogManager#findOne() fails', () => {
+                  def('findOneFogResponse', () => Promise.reject(error))
 
                   it(`fails with ${error}`, () => {
                     return expect($subject).to.be.rejectedWith(error)
                   })
                 })
 
-                context('when IoFogService#getFog() succeeds', () => {
+                context('when FogManager#findOne() succeeds', () => {
                   it('calls MicroserviceManager#create() with correct args', async () => {
                     await $subject
                     expect(MicroserviceManager.create).to.have.been.calledWith(newMicroservice,
@@ -469,7 +466,7 @@ describe('Microservices Service', () => {
                   })
 
                   context('when MicroserviceManager#create() fails', () => {
-                    def('getIoFogResponse', () => Promise.reject(error))
+                    def('findOneFogResponse', () => Promise.reject(error))
 
                     it(`fails with ${error}`, () => {
                       return expect($subject).to.be.rejectedWith(error)
@@ -828,7 +825,13 @@ describe('Microservices Service', () => {
       $sandbox.stub(MicroserviceManager, 'updateAndFind').returns($newMicroserviceResponse)
       $sandbox.stub(RegistryManager, 'findOne').returns($findRegistryResponse)
       $sandbox.stub(CatalogService, 'getCatalogItem').returns($findCatalogItem)
-      $sandbox.stub(ioFogService, 'getFog').returns($findFogResponse)
+      const stub = $sandbox.stub(ioFogManager, 'findOne')
+      stub.withArgs({isDefault: true}).returns(Promise.resolve({
+        uuid: 'defaultFogUuid',
+        isDefault: true,
+        isSystem: true
+      }))
+      stub.returns(Promise.resolve($findFogResponse))
     });
 
     it('calls Validator#validate() with correct args', async () => {
@@ -929,18 +932,9 @@ describe('Microservices Service', () => {
           def('newAgentPublicPortsResponse', () => Promise.resolve([]))
           def('findRoutesResponse', () => Promise.resolve([]))
           def('getPortsResponse', () => Promise.resolve([]))
+          def('findFogResponse', () => Promise.resolve({ ...newFog, getMicroservice: () => $getNewAgentMicroserviceReponse }))
 
           beforeEach(() => {
-            const stub = $sandbox.stub(ioFogManager, 'findOne')
-            stub.withArgs({isDefault: true}).returns(Promise.resolve({
-              uuid: 'defaultFogUuid',
-              isDefault: true,
-              isSystem: true
-            }))
-            stub.returns(Promise.resolve({
-              ...newFog,
-              getMicroservice: () => $getNewAgentMicroserviceReponse
-            }))
             $sandbox.stub(MicroservicePublicPortManager, 'findAll').returns($newAgentPublicPortsResponse)
             $sandbox.stub(updatedNewMicroservice, 'getPorts').returns($getPortsResponse)
           })
