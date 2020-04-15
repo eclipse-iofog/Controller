@@ -83,6 +83,10 @@ async function createFogEndPoint (fogData, user, isCLI, transaction) {
     throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.DUPLICATE_SYSTEM_FOG))
   }
 
+  if (!!(await FogManager.findOne({ name: createFogData.name }, transaction)) {
+    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.DUPLICATE_NAME, createFogData.name))
+  }
+
   let defaultRouter, upstreamRouters
   if (fogData.routerMode === 'none') {
     const networkRouter = await RouterService.getNetworkRouter(fogData.networkRouter)
@@ -167,6 +171,10 @@ async function updateFogEndPoint (fogData, user, isCLI, transaction) {
   const oldFog = await FogManager.findOne(queryFogData, transaction)
   if (!oldFog) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, fogData.uuid))
+  }
+
+  if (fogData.name === updateFogData.name) {
+    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.DUPLICATE_NAME, updateFogData.name))
   }
 
   // Update router
