@@ -16,7 +16,7 @@ const ioFogVersionCommandManager = require('../../../src/data/managers/iofog-ver
 const HWInfoManager = require('../../../src/data/managers/hw-info-manager')
 const USBInfoManager = require('../../../src/data/managers/usb-info-manager')
 const Errors = require('../../../src/helpers/errors')
-const ErrorMessages = require('../../../src/helpers/error-messages')
+const Op = require('sequelize').Op
 
 describe('ioFog Service', () => {
   def('subject', () => ioFogService)
@@ -192,6 +192,7 @@ describe('ioFog Service', () => {
       $sandbox.stub(RouterService, 'validateAndReturnUpstreamRouters').returns($emptyUpstreamRouters)
       $sandbox.stub(RouterService, 'createRouterForFog').returns($findOneRouterResponse)
       $sandbox.stub(ioFogManager, 'update').returns($createIoFogResponse)
+      $sandbox.stub(ioFogManager, 'findOne').returns(Promise.resolve())
 
       $sandbox.stub(Date, 'now').returns($dateResponse)
     })
@@ -455,7 +456,7 @@ describe('ioFog Service', () => {
 
     const fogData = {
       uuid: uuid,
-      name: 'testName',
+      name: 'new-name',
       location: 'testLocation',
       latitude: 45,
       longitude: 46,
@@ -483,7 +484,7 @@ describe('ioFog Service', () => {
 
     const oldFog = {
       uuid: uuid2,
-      name: 'testName',
+      name: 'old-name',
       location: 'testLocation',
       latitude: 45,
       longitude: 46,
@@ -617,8 +618,10 @@ describe('ioFog Service', () => {
     beforeEach(() => {
       $sandbox.stub(Validator, 'validate').returns($validatorResponse)
       $sandbox.stub(AppHelper, 'deleteUndefinedFields').returns($deleteUndefinedFieldsResponse)
-      $sandbox.stub(ioFogManager, 'findOne').returns($findIoFogResponse)
-      $sandbox.stub(ioFogManager, 'update').returns($updateIoFogResponse)
+      $sandbox.stub(ioFogManager, 'findOne')
+          .withArgs({ uuid: uuid, userId: user.id }).returns($findIoFogResponse)
+          .withArgs({ name: 'new-name', uuid: { [Op.not]: 'testUuid' }, userId: user.id }).returns(Promise.resolve())
+        $sandbox.stub(ioFogManager, 'update').returns($updateIoFogResponse)
       $sandbox.stub(ChangeTrackingService, 'update')
           .onFirstCall().returns($updateChangeTrackingResponse)
           .onSecondCall().returns($updateChangeTrackingResponse2)

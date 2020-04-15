@@ -83,7 +83,8 @@ async function createFogEndPoint (fogData, user, isCLI, transaction) {
     throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.DUPLICATE_SYSTEM_FOG))
   }
 
-  if (!!(await FogManager.findOne({ name: createFogData.name }, transaction)) {
+  const existingFog = await FogManager.findOne({ name: createFogData.name }, transaction)
+  if (existingFog) {
     throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.DUPLICATE_NAME, createFogData.name))
   }
 
@@ -173,7 +174,11 @@ async function updateFogEndPoint (fogData, user, isCLI, transaction) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, fogData.uuid))
   }
 
-  if (fogData.name === updateFogData.name) {
+  const conflictQuery = isCLI
+    ? { name: updateFogData.name, uuid: { [Op.not]: fogData.uuid } }
+    : { name: updateFogData.name, uuid: { [Op.not]: fogData.uuid }, userId: user.id }
+  const conflict = await FogManager.findOne(conflictQuery, transaction)
+  if (conflict) {
     throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.DUPLICATE_NAME, updateFogData.name))
   }
 
