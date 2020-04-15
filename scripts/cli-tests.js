@@ -226,7 +226,7 @@ function testMicroserviceSection () {
     ' -a -u ' + userId), flowCreateFields)
   const flowId = flowCreateResponse.id
 
-  const ioFogCreateResponse = responseHasFields(executeCommand('iofog add -n ioFog1 -l testLocation -t 55 -g 65 ' +
+  const ioFogCreateResponse = responseHasFields(executeCommand('iofog add -n ioFog2 -l testLocation -t 55 -g 65 ' +
     '-d testDescription -D testDockerUrl -M 55 -T testDiskDirectoryString -m 65 -c 24 -G 1 -Y testLogDirectory ' +
     '-C 15 -s 25 -F 27 -Q 26 -B -W -A -y 1 -u ' + userId), ioFogCreateFields)
   const ioFogUuid = ioFogCreateResponse.uuid
@@ -313,7 +313,7 @@ function testDiagnosticsSection () {
     ' -a -u ' + userId), flowCreateFields)
   const flowId = flowCreateResponse.id
 
-  const ioFogCreateResponse = responseHasFields(executeCommand('iofog add -n ioFog1 -l testLocation -t 55 -g 65' +
+  const ioFogCreateResponse = responseHasFields(executeCommand('iofog add -n ioFog3 -l testLocation -t 55 -g 65' +
     ' -d testDescription -D testDockerUrl -M 55 -T testDiskDirectoryString -m 65 -c 24 -G 1 -Y testLogDirectory ' +
     '-C 15 -s 25 -F 27 -Q 26 -B -W -A -y 1 -u ' + userId), ioFogCreateFields)
   const ioFogUuid = ioFogCreateResponse.uuid
