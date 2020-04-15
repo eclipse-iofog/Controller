@@ -174,12 +174,14 @@ async function updateFogEndPoint (fogData, user, isCLI, transaction) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, fogData.uuid))
   }
 
-  const conflictQuery = isCLI
-    ? { name: updateFogData.name, uuid: { [Op.not]: fogData.uuid } }
-    : { name: updateFogData.name, uuid: { [Op.not]: fogData.uuid }, userId: user.id }
-  const conflict = await FogManager.findOne(conflictQuery, transaction)
-  if (conflict) {
-    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.DUPLICATE_NAME, updateFogData.name))
+  if (updateFogData.name) {
+    const conflictQuery = isCLI
+      ? { name: updateFogData.name, uuid: { [Op.not]: fogData.uuid } }
+      : { name: updateFogData.name, uuid: { [Op.not]: fogData.uuid }, userId: user.id }
+    const conflict = await FogManager.findOne(conflictQuery, transaction)
+    if (conflict) {
+      throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.DUPLICATE_NAME, updateFogData.name))
+    }
   }
 
   // Update router
