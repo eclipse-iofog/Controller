@@ -2,12 +2,10 @@
 
 module.exports = {
   up: (queryInterface, Sequelize) => {
-    return Promise.all([
-      queryInterface.dropTable('Connectors'),
-      queryInterface.dropTable('ConnectorPorts'),
-      queryInterface.removeColumn('Routings', 'connectorPortId'),
-      queryInterface.removeColumn('MicroservicePublicModes', 'connectorPortId')
-    ])
+    return queryInterface.removeColumn('Routings', 'connectorPortId')
+      .then(() => queryInterface.removeColumn('MicroservicePublicModes', 'connectorPortId'))
+      .then(() => queryInterface.dropTable('ConnectorPorts'))
+      .then(() => queryInterface.dropTable('Connectors'))
   },
 
   down: (queryInterface, Sequelize) => {
@@ -130,11 +128,10 @@ module.exports = {
       onDelete: 'set null'
     })
 
-    return Promise.all([
-      connectorTable,
-      connectorPortTable,
-      connectorPortIdColumn,
-      msvcConnectorPortIdColumn])
+    return connectorTable
+      .then(() => connectorPortTable)
+      .then(() => connectorPortIdColumn)
+      .then(() => msvcConnectorPortIdColumn)
     /*
       Add reverting commands here.
       Return a promise to correctly handle asynchronicity.
