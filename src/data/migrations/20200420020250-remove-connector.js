@@ -2,8 +2,8 @@
 
 module.exports = {
   up: (queryInterface, Sequelize) => {
-    return queryInterface.removeColumn('Routings', 'connectorPortId')
-      .then(() => queryInterface.removeColumn('MicroservicePublicModes', 'connectorPortId'))
+    return queryInterface.removeColumn('Routings', 'connector_port_id')
+      .then(() => queryInterface.removeColumn('MicroservicePublicModes', 'connector_port_id'))
       .then(() => queryInterface.dropTable('ConnectorPorts'))
       .then(() => queryInterface.dropTable('Connectors'))
   },
