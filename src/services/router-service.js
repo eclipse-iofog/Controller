@@ -17,6 +17,7 @@ const ChangeTrackingService = require('../services/change-tracking-service')
 const Constants = require('../helpers/constants')
 const Errors = require('../helpers/errors')
 const ErrorMessages = require('../helpers/error-messages')
+const MicroserviceEnvManager = require('../data/managers/microservice-env-manager')
 const MicroserviceManager = require('../data/managers/microservice-manager')
 const MicroservicePortManager = require('../data/managers/microservice-port-manager')
 const RouterConnectionManager = require('../data/managers/router-connection-manager')
@@ -67,11 +68,11 @@ async function createRouterForFog (fogData, uuid, userId, upstreamRouters, trans
 
   const router = await RouterManager.create(routerData, transaction)
 
-  const microserviceConfig = _getRouterMicroserviceConfig(isEdge, uuid, messagingPort, router.interRouterPort, router.edgeRouterPort)
+  let microserviceConfig = _getRouterMicroserviceConfig(isEdge, uuid, messagingPort, router.interRouterPort, router.edgeRouterPort)
 
   for (const upstreamRouter of upstreamRouters) {
     await RouterConnectionManager.create({ sourceRouter: router.id, destRouter: upstreamRouter.id }, transaction)
-    microserviceConfig.connectors = (microserviceConfig.connectors || []).concat(_getRouterConnectorConfig(isEdge, upstreamRouter))
+    microserviceConfig += _getRouterConnectorConfig(isEdge, upstreamRouter)
   }
 
   const routerMicroservice = await _createRouterMicroservice(isEdge, uuid, userId, microserviceConfig, transaction)
@@ -122,7 +123,7 @@ async function updateRouter (oldRouter, newRouterData, upstreamRouters, userId, 
   await RouterConnectionManager.bulkCreate(upstreamToCreate.map(router => ({ sourceRouter: oldRouter.id, destRouter: router.id })), transaction)
 
   // Update config if needed
-  await updateConfig(oldRouter.id, userId, transaction)
+  await updateConfig(oldRouter.id, transaction)
   await ChangeTrackingService.update(oldRouter.iofogUuid, ChangeTrackingService.events.routerChanged, transaction)
   await ChangeTrackingService.update(oldRouter.iofogUuid, ChangeTrackingService.events.microserviceList, transaction)
 
@@ -139,17 +140,17 @@ async function _deleteRouterPorts (routerMicroserviceUuid, port, transaction) {
   await MicroservicePortManager.delete({ microserviceUuid: routerMicroserviceUuid, portInternal: port }, transaction)
 }
 
-async function updateConfig (routerID, userId, transaction) {
+async function updateConfig (routerID, transaction) {
   const router = await RouterManager.findOne({ id: routerID }, transaction)
   if (!router) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_ROUTER, routerID))
   }
-  const microserviceConfig = _getRouterMicroserviceConfig(router.isEdge, router.iofogUuid, router.messagingPort, router.interRouterPort, router.edgeRouterPort)
+  let microserviceConfig = _getRouterMicroserviceConfig(router.isEdge, router.iofogUuid, router.messagingPort, router.interRouterPort, router.edgeRouterPort)
 
   const upstreamRoutersConnections = await RouterConnectionManager.findAllWithRouters({ sourceRouter: router.id }, transaction)
 
   for (const upstreamRouterConnection of upstreamRoutersConnections) {
-    microserviceConfig.connectors = (microserviceConfig.connectors || []).concat(_getRouterConnectorConfig(router.isEdge, upstreamRouterConnection.dest))
+    microserviceConfig += _getRouterConnectorConfig(router.isEdge, upstreamRouterConnection.dest)
   }
   const routerCatalog = await CatalogService.getRouterCatalogItem(transaction)
   const routerMicroservice = await MicroserviceManager.findOne({
@@ -160,36 +161,7 @@ async function updateConfig (routerID, userId, transaction) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_ROUTER, router.id))
   }
 
-  if (routerMicroservice.config !== JSON.stringify(microserviceConfig)) {
-    await MicroserviceManager.update({ uuid: routerMicroservice.uuid }, { config: JSON.stringify(microserviceConfig) }, transaction)
-
-    if (_listenersChanged(JSON.parse(routerMicroservice.config || '{}').listeners, microserviceConfig.listeners)) {
-      MicroservicePortManager.delete({ microserviceUuid: routerMicroservice.uuid }, transaction)
-      await _createRouterPorts(routerMicroservice.uuid, router.messagingPort, userId, transaction)
-      if (!router.isEdge) {
-        await _createRouterPorts(routerMicroservice.uuid, router.edgeRouterPort, userId, transaction)
-        await _createRouterPorts(routerMicroservice.uuid, router.interRouterPort, userId, transaction)
-      }
-      await MicroserviceManager.update({ uuid: routerMicroservice.uuid }, { rebuild: true }, transaction)
-      await ChangeTrackingService.update(router.iofogUuid, ChangeTrackingService.events.microserviceList, transaction)
-    } else {
-      await ChangeTrackingService.update(router.iofogUuid, ChangeTrackingService.events.microserviceConfig, transaction)
-    }
-  }
-}
-
-function _listenersChanged (currentListeners, newListeners) {
-  if (currentListeners.length !== newListeners.length) {
-    return true
-  }
-
-  for (const listener of currentListeners) {
-    if (newListeners.findIndex(l => l.port === listener.port) === -1) {
-      return true
-    }
-  }
-
-  return false
+  await MicroserviceEnvManager.update({ microserviceUuid: routerMicroservice.uuid, key: 'QDROUTERD_CONF' }, { value: microserviceConfig }, transaction)
 }
 
 function _createRouterPorts (routerMicroserviceUuid, port, userId, transaction) {
@@ -209,7 +181,7 @@ async function _createRouterMicroservice (isEdge, uuid, userId, microserviceConf
   const routerMicroserviceData = {
     uuid: AppHelper.generateRandomString(32),
     name: `Router for Fog ${uuid}`,
-    config: JSON.stringify(microserviceConfig),
+    config: '{}',
     catalogItemId: routerCatalog.id,
     iofogUuid: uuid,
     rootHostAccess: false,
@@ -217,44 +189,27 @@ async function _createRouterMicroservice (isEdge, uuid, userId, microserviceConf
     userId,
     configLastUpdated: Date.now()
   }
-  return MicroserviceManager.create(routerMicroserviceData, transaction)
+  const routerMicroservice = await MicroserviceManager.create(routerMicroserviceData, transaction)
+
+  await MicroserviceEnvManager.create({ key: 'QDROUTERD_CONF', value: microserviceConfig, microserviceUuid: routerMicroservice.uuid }, transaction)
+
+  return routerMicroservice
 }
 
 function _getRouterConnectorConfig (isEdge, dest) {
-  return {
-    name: dest.iofogUuid || Constants.DEFAULT_ROUTER_NAME,
-    role: (isEdge ? 'edge' : 'inter-router'),
-    host: dest.host,
-    port: (isEdge ? dest.edgeRouterPort : dest.interRouterPort)
-  }
+  return '\nconnector {\n  name: ' + (dest.iofogUuid || Constants.DEFAULT_ROUTER_NAME) +
+    '\n  host: ' + dest.host +
+    '\n  port: ' + (isEdge ? dest.edgeRouterPort : dest.interRouterPort) +
+    '\n  role: ' + (isEdge ? 'edge' : 'inter-router') + '\n}'
 }
 
 function _getRouterMicroserviceConfig (isEdge, uuid, messagingPort, interRouterPort, edgeRouterPort) {
-  const microserviceConfig = {
-    mode: isEdge ? 'edge' : 'interior',
-    id: uuid,
-    listeners: [
-      {
-        role: 'normal',
-        host: '0.0.0.0',
-        port: messagingPort
-      }
-    ]
-  }
+  let microserviceConfig = 'router {\n  mode: ' + (isEdge ? 'edge' : 'interior') + '\n  id: ' + uuid + '\n}'
+  microserviceConfig += '\nlistener {\n  role: normal\n  host: 0.0.0.0\n  port: ' + messagingPort + '\n}'
 
   if (!isEdge) {
-    microserviceConfig.listeners.push(
-      {
-        role: 'inter-router',
-        host: '0.0.0.0',
-        port: interRouterPort
-      },
-      {
-        role: 'edge',
-        host: '0.0.0.0',
-        port: edgeRouterPort
-      }
-    )
+    microserviceConfig += '\nlistener {\n  role: inter-router\n  host: 0.0.0.0\n  port: ' + interRouterPort + '\n  saslMechanisms: ANONYMOUS\n  authenticatePeer: no\n}'
+    microserviceConfig += '\nlistener {\n  role: edge\n  host: 0.0.0.0\n  port: ' + edgeRouterPort + '\n  saslMechanisms: ANONYMOUS\n  authenticatePeer: no\n}'
   }
 
   return microserviceConfig

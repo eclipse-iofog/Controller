@@ -121,7 +121,7 @@ describe('Router Service', () => {
       expect(MicroserviceManager.create).to.have.been.calledWith({
         uuid: randomString,
         name: `Router for Fog ${uuid}`,
-        config: '{"mode":"edge","id":"agentuuid","listeners":[{"role":"normal","host":"0.0.0.0","port":1234}],"connectors":[{"name":"agentDestUuid","role":"edge","host":"agentDestHost","port":4567}]}',
+        config: '{}',
         catalogItemId: routerCatalogItem.id,
         iofogUuid: uuid,
         rootHostAccess: false,
@@ -136,8 +136,11 @@ describe('Router Service', () => {
         userId: userId,
         microserviceUuid: routerMsvc.uuid
       }
-      return expect(MicroservicePortManager.create).to.have.been.calledWith(mappingData, transaction)
-    })
+      expect(MicroservicePortManager.create).to.have.been.calledWith(mappingData, transaction)
+      return expect(MicroserviceEnvManager.create).to.have.been.calledWith({
+        key: 'QDROUTERD_CONF', value: microserviceConfig, microserviceUuid: routerMsvc.uuid
+      }, transaction)
+      })
 
 
     context('Messaging port not specified', () => {
@@ -184,20 +187,23 @@ describe('Router Service', () => {
       })
 
       it('Should have interior router msvc config', async () => {
+        let microserviceConfig = 'router {\n  mode: interior\n  id: ' + uuid + '\n}'
+        microserviceConfig += '\nlistener {\n  role: normal\n  host: 0.0.0.0\n  port: ' + $fogData.messagingPort + '\n}'
+        microserviceConfig += '\nlistener {\n  role: inter-router\n  host: 0.0.0.0\n  port: ' + $fogData.interRouterPort + '\n  saslMechanisms: ANONYMOUS\n  authenticatePeer: no\n}'
+        microserviceConfig += '\nlistener {\n  role: edge\n  host: 0.0.0.0\n  port: ' + $fogData.edgeRouterPort + '\n  saslMechanisms: ANONYMOUS\n  authenticatePeer: no\n}'
+        
+        for (const upstreamRouter of upstreamRouters) {
+          microserviceConfig += '\nconnector {\n  name: ' + (upstreamRouter.iofogUuid) +
+          '\n  host: ' + upstreamRouter.host +
+          '\n  port: ' + upstreamRouter.interRouterPort +
+          '\n  role: inter-router\n}'
+        }
+
         await $subject      
-        return expect(MicroserviceManager.create).to.have.been.calledWith({
-          uuid: randomString,
-          name: `Router for Fog ${uuid}`,
-          config: `{"mode":"interior","id":"${uuid}","listeners":[{"role":"normal","host":"0.0.0.0","port":${$fogData.messagingPort}},{"role":"inter-router","host":"0.0.0.0","port":${$fogData.interRouterPort}},` + 
-            `{"role":"edge","host":"0.0.0.0","port":${$fogData.edgeRouterPort}}],"connectors":[{"name":"agentDestUuid","role":"inter-router","host":"agentDestHost","port":43290}]}`,
-          catalogItemId: routerCatalogItem.id,
-          iofogUuid: uuid,
-          rootHostAccess: false,
-          logSize: 50,
-          userId,
-          configLastUpdated: now
+        return expect(MicroserviceEnvManager.create).to.have.been.calledWith({
+          key: 'QDROUTERD_CONF', value: microserviceConfig, microserviceUuid: routerMsvc.uuid
         }, transaction)
-        })
+      })
     })
   })
 
@@ -210,21 +216,12 @@ describe('Router Service', () => {
       messagingPort: 5672
     }
     def('routerID', () => routerID)
-    def('subject', () => $subject.updateConfig($routerID, userId, transaction))
+    def('subject', () => $subject.updateConfig($routerID, transaction))
     def('router', () => router)
     def('findOneRouterResponse', () => Promise.resolve($router))
     
-    const microserviceConfig = {
-      mode: 'edge',
-      id: router.iofogUuid,
-      listeners: [
-        {
-          role: 'normal',
-          host: '0.0.0.0',
-          port: router.messagingPort
-        }
-      ]
-    }
+    let microserviceConfig = 'router {\n  mode: edge\n  id: ' + router.iofogUuid + '\n}'
+    microserviceConfig += '\nlistener {\n  role: normal\n  host: 0.0.0.0\n  port: ' + router.messagingPort + '\n}'
     
     def('microserviceConfig', () => microserviceConfig)
     def('upstreamRouters', () => [])
@@ -234,7 +231,6 @@ describe('Router Service', () => {
       uuid: 'routerMsvcUuid',
       iofogUuid: $router.iofogUuid,
       catalogItemId: $routerCatalogItem.id,
-      config: JSON.stringify($microserviceConfig)
     }))
     def('msvcFindOneResponse', () => Promise.resolve($routerMsvc))
 
@@ -242,7 +238,6 @@ describe('Router Service', () => {
       $sandbox.stub(RouterManager, 'findOne').returns($findOneRouterResponse)
       $sandbox.stub(RouterConnectionManager, 'findAllWithRouters').returns($findAllWithRoutersResponse)
       $sandbox.stub(MicroserviceManager, 'findOne').returns($msvcFindOneResponse)
-      $sandbox.stub(MicroserviceManager, 'update').returns(Promise.resolve())
       $sandbox.stub(MicroserviceEnvManager, 'delete')
       $sandbox.stub(MicroserviceEnvManager, 'updateOrCreate')
       $sandbox.stub(MicroserviceEnvManager, 'update')
@@ -264,6 +259,14 @@ describe('Router Service', () => {
         catalogItemId: $routerCatalogItem.id,
         iofogUuid: $router.iofogUuid
       }, transaction)
+    })
+
+    it('Should update the router env variable', async () => {
+      await $subject
+      return expect(MicroserviceEnvManager.update).to.have.been.calledWith(
+        { microserviceUuid: $routerMsvc.uuid, key: 'QDROUTERD_CONF' },
+        { value: $microserviceConfig }, 
+        transaction)
     })
 
     context('Router not found', () => {
@@ -291,6 +294,32 @@ describe('Router Service', () => {
         return expect(true).to.eql(false)
       })
     })
+
+    context('With upstream routers', () => {
+      const upstreamRouters = [{
+        dest: {
+          id: 2,
+          iofogUuid: 'agentDestUuid',
+          host: 'agentDestHost',
+          edgeRouterPort: 4567,
+          interRouterPort: 43290,
+        }
+      }]
+      def('upstreamRouters', () => upstreamRouters)
+      for (const upstreamRouter of upstreamRouters) {
+        def('microserviceConfig', () => $microserviceConfig + '\nconnector {\n  name: ' + (upstreamRouter.dest.iofogUuid) +
+        '\n  host: ' + upstreamRouter.dest.host +
+        '\n  port: ' + upstreamRouter.dest.edgeRouterPort +
+        '\n  role: edge\n}')
+      }
+      it('Should update the router env variable', async () => {
+        await $subject
+        return expect(MicroserviceEnvManager.update).to.have.been.calledWith(
+          { microserviceUuid: $routerMsvc.uuid, key: 'QDROUTERD_CONF' },
+          { value: $microserviceConfig }, 
+          transaction)
+      })
+    })
   })
 
   describe('.updateRouter', () => {
@@ -310,24 +339,11 @@ describe('Router Service', () => {
 
     const upstreamRouters = []
 
-    const microserviceConfig = {
-      mode: 'edge',
-      id: oldRouter.iofogUuid,
-      listeners: [
-        {
-          role: 'normal',
-          host: '0.0.0.0',
-          port: oldRouter.messagingPort
-        }
-      ]
-    }
-    
     const routerMsvc = {
       id: 5,
       catalogItemId: routerCatalogItem.id,
       uuid: 'routerMsvc',
-      iofogUuid: oldRouter.iofogUuid,
-      config: JSON.stringify(microserviceConfig)
+      iofogUuid: oldRouter.iofogUuid
     }
 
     def('subject', () => $subject.updateRouter(oldRouter, newRouterData, upstreamRouters, userId, transaction))
@@ -342,7 +358,6 @@ describe('Router Service', () => {
     let findallWithRoutersStub
     beforeEach(() => {
       $sandbox.stub(MicroserviceManager, 'findOne').returns($routerMsvcResponse)
-      $sandbox.stub(MicroserviceManager, 'update').returns(Promise.resolve())
       $sandbox.stub(RouterManager, 'update')
       $sandbox.stub(RouterConnectionManager, 'bulkCreate')
       findallWithRoutersStub = $sandbox.stub(RouterConnectionManager, 'findAllWithRouters')
