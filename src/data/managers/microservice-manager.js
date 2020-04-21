@@ -16,6 +16,7 @@ const models = require('../models')
 const Microservice = models.Microservice
 const MicroservicePort = models.MicroservicePort
 const MicroserviceEnv = models.MicroserviceEnv
+const MicroserviceExtraHost = models.MicroserviceExtraHost
 const MicroserviceArg = models.MicroserviceArg
 const VolumeMapping = models.VolumeMapping
 const StraceDiagnostics = models.StraceDiagnostics
@@ -55,6 +56,11 @@ class MicroserviceManager extends BaseManager {
           as: 'env',
           required: false,
           attributes: ['key', 'value']
+        },
+        {
+          model: MicroserviceExtraHost,
+          as: 'extraHosts',
+          required: false
         },
         {
           model: MicroserviceArg,
@@ -138,6 +144,11 @@ class MicroserviceManager extends BaseManager {
           attributes: ['key', 'value']
         },
         {
+          model: MicroserviceExtraHost,
+          as: 'extraHosts',
+          required: false
+        },
+        {
           model: MicroserviceArg,
           as: 'cmd',
           required: false,
@@ -219,6 +230,11 @@ class MicroserviceManager extends BaseManager {
           as: 'env',
           required: false,
           attributes: ['key', 'value']
+        },
+        {
+          model: MicroserviceExtraHost,
+          as: 'extraHosts',
+          required: false
         },
         {
           model: MicroserviceArg,

@@ -15,6 +15,7 @@ const RouterManager = require('../../../src/data/managers/router-manager')
 const VolumeMappingManager = require('../../../src/data/managers/volume-mapping-manager')
 const MicroserviceStatusManager = require('../../../src/data/managers/microservice-status-manager')
 const RoutingManager = require('../../../src/data/managers/routing-manager')
+const MicroserviceExtraHostManager = require('../../../src/data/managers/microservice-extra-host-manager')
 const MicroserviceEnvManager = require('../../../src/data/managers/microservice-env-manager')
 const MicroserviceArgManager = require('../../../src/data/managers/microservice-arg-manager')
 const RegistryManager = require('../../../src/data/managers/registry-manager')
@@ -22,6 +23,7 @@ const Op = require('sequelize').Op
 const MicroservicePublicModeManager = require('../../../src/data/managers/microservice-public-mode-manager')
 const MicroservicePublicPortManager = require('../../../src/data/managers/microservice-public-port-manager')
 const ioFogManager = require('../../../src/data/managers/iofog-manager')
+const ioFogService = require('../../../src/services/iofog-service')
 const Errors = require('../../../src/helpers/errors')
 
 describe('Microservices Service', () => {
@@ -53,6 +55,7 @@ describe('Microservices Service', () => {
     def('findPortMappingsResponse', () => Promise.resolve([]))
     def('findVolumeMappingsResponse', () => Promise.resolve([]))
     def('findRoutesResponse', () => Promise.resolve([]))
+    def('findExtraHostsResponse', () => Promise.resolve([]))
     def('publicModeResponse', () => Promise.resolve([]))
     def('envResponse', () => Promise.resolve([]))
     def('cmdResponse', () => Promise.resolve([]))
@@ -64,6 +67,7 @@ describe('Microservices Service', () => {
       $sandbox.stub(MicroservicePortManager, 'findAll').returns($findPortMappingsResponse)
       $sandbox.stub(VolumeMappingManager, 'findAll').returns($findVolumeMappingsResponse)
       $sandbox.stub(RoutingManager, 'findAll').returns($findRoutesResponse)
+      $sandbox.stub(MicroserviceExtraHostManager, 'findAll').returns($findExtraHostsResponse)
       $sandbox.stub(MicroserviceEnvManager, 'findAllExcludeFields').returns($envResponse)
       $sandbox.stub(MicroserviceArgManager, 'findAllExcludeFields').returns($cmdResponse)
       $sandbox.stub(MicroservicePublicModeManager, 'findAll').returns($publicModeResponse)
@@ -114,6 +118,7 @@ describe('Microservices Service', () => {
     def('findPortMappingsResponse', () => Promise.resolve([]))
     def('findVolumeMappingsResponse', () => Promise.resolve([]))
     def('findRoutesResponse', () => Promise.resolve([]))
+    def('findExtraHostsResponse', () => Promise.resolve([]))
     def('publicModeResponse', () => Promise.resolve([]))
     def('envResponse', () => Promise.resolve([]))
     def('cmdResponse', () => Promise.resolve([]))
@@ -125,6 +130,7 @@ describe('Microservices Service', () => {
       $sandbox.stub(MicroservicePortManager, 'findAll').returns($findPortMappingsResponse)
       $sandbox.stub(VolumeMappingManager, 'findAll').returns($findVolumeMappingsResponse)
       $sandbox.stub(RoutingManager, 'findAll').returns($findRoutesResponse)
+      $sandbox.stub(MicroserviceExtraHostManager, 'findAll').returns($findExtraHostsResponse)
       $sandbox.stub(MicroserviceEnvManager, 'findAllExcludeFields').returns($envResponse)
       $sandbox.stub(MicroserviceArgManager, 'findAllExcludeFields').returns($cmdResponse)
       $sandbox.stub(MicroservicePublicModeManager, 'findAll').returns($publicModeResponse)
@@ -150,6 +156,25 @@ describe('Microservices Service', () => {
     context('when MicroserviceManager#findOneExcludeFields() succeeds', () => {
       it('fulfills the promise', () => {
         return expect($subject).to.eventually.have.property('uuid')
+      })
+    })
+
+    context('when microservice has extraHosts', () => {
+      const extraHosts = [{
+        id: 1,
+        targetFogUuid: 'tfog',
+        targetMicroserviceUuid: 'tmicroservice',
+        template: '${Apps.flow.msvc.local}',
+        value: '1.2.3.4',
+        name: 'testExtraHost'
+      }]
+      def('findExtraHostsResponse', () => Promise.resolve(extraHosts))
+
+      it('returns extra hosts', async () => {
+        const ms = await $subject
+        expect(ms).to.have.property('extraHosts')
+        expect(ms.extraHosts).to.have.length(extraHosts.length)
+        expect(ms.extraHosts).to.eql(extraHosts.map(e => ({value: e.value, name: e.name, address: e.template})))
       })
     })
 
@@ -277,6 +302,26 @@ describe('Microservices Service', () => {
       id: 21
     }
 
+    const extraHostFog = {
+      uuid: 'extraHostFogUuid',
+      host: 'extraHostFogHost'
+    }
+
+    const extraHostFogPublic = {
+      uuid: 'extraHostFogPublicUuid',
+      host: 'extraHostFogPublicHost'
+    }
+
+    const extraHostMsvc = {
+      uuid: 'extraHostUuid',
+      iofogUuid: extraHostFog.uuid,
+    }
+
+    const flow = {
+      active: true,
+      id: microserviceData.flowId
+    }
+
     def('subject', () => $subject.createMicroserviceEndPoint(microserviceData, user, isCLI, transaction))
     def('validatorResponse', () => Promise.resolve(true))
     def('validatorResponse2', () => Promise.resolve(true))
@@ -285,7 +330,8 @@ describe('Microservices Service', () => {
     def('findMicroserviceResponse', () => Promise.resolve())
     def('findMicroserviceResponse2', () => Promise.resolve(microserviceData))
     def('getCatalogItemResponse', () => Promise.resolve({images}))
-    def('findFlowResponse', () => Promise.resolve({}))
+    def('findFlowResponse', () => Promise.resolve(flow))
+    def('getIoFogResponse', () => Promise.resolve())
     def('createMicroserviceResponse', () => Promise.resolve(newMicroservice))
     def('findMicroservicePortResponse', () => Promise.resolve())
     def('createMicroservicePortResponse', () => Promise.resolve({id: 15}))
@@ -301,6 +347,9 @@ describe('Microservices Service', () => {
     def('findDefaultFogResponse', () => Promise.resolve(systemFog))
     def('findDefaultRouterResponse', () => Promise.resolve(defaultRouter))
     def('getProxyMsvcResponse', () => Promise.resolve(null))
+    def('getExtraHostMsvc', () => Promise.resolve(extraHostMsvc))
+    def('getExtraHostFog', () => Promise.resolve(extraHostFog))
+    def('getExtraHostFogPublic', () => Promise.resolve(extraHostFogPublic))
 
     beforeEach(() => {
       $sandbox.stub(Validator, 'validate')
@@ -312,6 +361,7 @@ describe('Microservices Service', () => {
           .onFirstCall().returns($findMicroserviceResponse)
           .onSecondCall().returns($findMicroserviceResponse2)
           .withArgs({ catalogItemId: proxyCatalogItem.id, iofogUuid: microserviceData.iofogUuid }).returns($getProxyMsvcResponse) // find proxy microservice in public port
+          .withArgs({ flowId: flow.id, name: 'msvc' }).returns($getExtraHostMsvc) // find extraHostMsvc target in extra host
       $sandbox.stub(CatalogService, 'getCatalogItem').returns($getCatalogItemResponse)
       $sandbox.stub(FlowManager, 'findOne').returns($findFlowResponse)
       $sandbox.stub(CatalogService, 'getProxyCatalogItem').returns($getProxyCatalogItem)
@@ -325,6 +375,8 @@ describe('Microservices Service', () => {
       $sandbox.stub(RegistryManager, 'findOne').returns($findOneRegistryResponse)
       const stub = $sandbox.stub(ioFogManager, 'findOne')
       stub.withArgs({isSystem: true}).returns($findDefaultFogResponse)
+      stub.withArgs({uuid: extraHostMsvc.iofogUuid}).returns($getExtraHostFog)
+      stub.withArgs({uuid: extraHostFogPublic.uuid}).returns($getExtraHostFogPublic)
       stub.returns($findOneFogResponse)
       $sandbox.stub(MicroservicePublicPortManager, 'findAll').returns($findPublicPortsResponse)
     })
@@ -504,6 +556,7 @@ describe('Microservices Service', () => {
                       })
 
                       context('when portMapping is public', () => {
+                        def('findRelatedExtraHosts', () => Promise.resolve([]))
                         const router = {
                           host: 'routerHost',
                           messagingPort: 5672
@@ -514,6 +567,7 @@ describe('Microservices Service', () => {
                           microserviceData.ports[0].publicPort = publicPort
                           microserviceData.ports[0].host = undefined
                           routerStub = $sandbox.stub(RouterManager, 'findOne').returns(Promise.resolve(router))
+                          $sandbox.stub(MicroserviceExtraHostManager, 'findAll').returns($findRelatedExtraHosts)
                           $sandbox.stub(MicroservicePublicPortManager, 'create')
                         })
 
@@ -570,6 +624,25 @@ describe('Microservices Service', () => {
                             isTcp: false
                           }
                           expect(MicroservicePublicPortManager.create).to.have.been.calledWith(publicPortData, transaction)
+                        })
+
+                        context('When there are related extra hosts', () => {
+                          const extraHosts = [{
+                            save: () => {},
+                            publicPort,
+                            microserviceUuid: newMicroserviceUuid
+                          }]
+                          def('findRelatedExtraHosts', () => Promise.resolve(extraHosts))
+                          beforeEach(() => {
+                            $sandbox.stub(MicroserviceExtraHostManager, 'updateOriginMicroserviceChangeTracking')
+                          })
+
+                          it('Should update the extraHost with the host values', async () => {
+                            await $subject
+                            for (const e of extraHosts) {
+                              expect(MicroserviceExtraHostManager.updateOriginMicroserviceChangeTracking).to.have.been.calledWith({...e, value: systemFog.host, targetFogUuid: systemFog.uuid}, transaction)
+                            }
+                          })
                         })
 
                         context('when there is no system fog (K8s)', () => {
@@ -724,6 +797,76 @@ describe('Microservices Service', () => {
                                     return expect($subject).to.eventually.have.property('uuid')
                                   })
                                 })
+
+                                context('When there are extraHosts', () => {
+                                  const extraHosts = [{
+                                    name: 'litteral',
+                                    address: 'litteral'
+                                  }, {
+                                    name: 'agent',
+                                    address: '${Agents.test}'
+                                  }, {
+                                    name: 'localMsvc',
+                                    address: '${Apps.flow.msvc.local}'
+                                  }, {
+                                    name: 'publicMsvc',
+                                    address: '${Apps.flow.msvc.public.5000}'
+                                  }]
+                                  beforeEach(() => {
+                                    microserviceData.extraHosts = extraHosts
+                                    $sandbox.stub(MicroserviceExtraHostManager, 'create')
+                                    $sandbox.stub(MicroservicePortManager, 'findAllPublicPorts').returns(Promise.resolve([{
+                                      publicPort: {
+                                        publicPort: 5000,
+                                        hostId: extraHostFogPublic.uuid 
+                                      }
+                                    }]))
+                                  })
+                                  afterEach(() => {
+                                    delete microserviceData.extraHosts
+                                  })
+
+                                  it('Should create extra hosts', async () => {
+                                    await $subject
+                                    const defaultExtraHost = {
+                                      microserviceUuid: newMicroserviceUuid
+                                    }
+                                    expect(MicroserviceExtraHostManager.create).to.have.been.calledWith({
+                                      name: 'litteral',
+                                      template: 'litteral',
+                                      templateType: 'Litteral',
+                                      value: 'litteral',
+                                      ...defaultExtraHost 
+                                    }, transaction)
+                                    expect(MicroserviceExtraHostManager.create).to.have.been.calledWith({
+                                      name: 'agent',
+                                      template: '${Agents.test}',
+                                      templateType: 'Agents',
+                                      value: fog.host,
+                                      targetFogUuid: fog.uuid,
+                                      ...defaultExtraHost 
+                                    }, transaction)
+                                    expect(MicroserviceExtraHostManager.create).to.have.been.calledWith({
+                                      name: 'localMsvc',
+                                      template: '${Apps.flow.msvc.local}',
+                                      templateType: 'Apps',
+                                      value: extraHostFog.host,
+                                      targetFogUuid: extraHostFog.uuid,
+                                      targetMicroserviceUuid: extraHostMsvc.uuid,
+                                      ...defaultExtraHost 
+                                    }, transaction)
+                                    expect(MicroserviceExtraHostManager.create).to.have.been.calledWith({
+                                      name: 'publicMsvc',
+                                      template: '${Apps.flow.msvc.public.5000}',
+                                      templateType: 'Apps',
+                                      value: extraHostFogPublic.host,
+                                      targetFogUuid: extraHostFogPublic.uuid,
+                                      targetMicroserviceUuid: extraHostMsvc.uuid,
+                                      publicPort: 5000,
+                                      ...defaultExtraHost 
+                                    }, transaction)
+                                  })
+                                })
                               })
                             })
                           })
@@ -814,6 +957,7 @@ describe('Microservices Service', () => {
     def('findRegistryResponse', () => Promise.resolve({}))
     def('findCatalogItem', () => Promise.resolve({}))
     def('findFogResponse', () => Promise.resolve({}))
+    def('findRelatedExtraHostsResponse', () => Promise.resolve([]))
 
 
     beforeEach(() => {
@@ -831,7 +975,9 @@ describe('Microservices Service', () => {
         isDefault: true,
         isSystem: true
       }))
-      stub.returns(Promise.resolve($findFogResponse))
+      stub.returns($findFogResponse)
+      $sandbox.stub(ioFogService, 'getFog').returns($findFogResponse)
+      $sandbox.stub(MicroserviceExtraHostManager, 'findAll').returns($findRelatedExtraHostsResponse)
     });
 
     it('calls Validator#validate() with correct args', async () => {
@@ -903,6 +1049,41 @@ describe('Microservices Service', () => {
             }
             return expect(true).to.eql(false)
           })
+        })
+
+        context('when there are local related extra hosts', () => {
+          const relatedExtraHosts = [{ 
+            targetFogUuid: newMicroservice.iofogUuid
+          }]
+          def('findRelatedExtraHostsResponse', () => Promise.resolve(relatedExtraHosts))
+          beforeEach(() => {
+            $sandbox.stub(MicroserviceExtraHostManager, 'updateOriginMicroserviceChangeTracking')
+          })
+
+          it('Should not update related extraHost', async () => {
+            await $subject
+            expect(MicroserviceExtraHostManager.updateOriginMicroserviceChangeTracking).not.to.have.been.called
+          })
+
+          context('when microservice is moved to another agent', () => {
+            const relatedExtraHosts = [{ 
+              targetFogUuid: 'previousUuid',
+              save: () => {}
+            }]
+            const extraHostFog = {uuid: newMicroservice.iofogUuid, host: '1.2.3.4'}
+            def('findRelatedExtraHostsResponse', () => Promise.resolve(relatedExtraHosts))
+            def('findRelatedExtraHostFogResponse', () => Promise.resolve(extraHostFog))
+            def('findFogResponse', () => Promise.resolve(extraHostFog))
+
+            it('Should update related extraHost', async () => {
+              await $subject
+              for (const e of relatedExtraHosts) {
+                expect(MicroserviceExtraHostManager.updateOriginMicroserviceChangeTracking).to.have.been.calledWith({...e, targetFogUuid: newMicroservice.iofogUuid, value: '1.2.3.4'}, transaction)
+              }
+            })
+
+          })
+
         })
 
         context('when microservice is moved to another agent', () => {
@@ -1470,6 +1651,7 @@ describe('Microservices Service', () => {
     def('updateChangeTrackingResponse', () => Promise.resolve())
     def('findOneFogResponse', () => Promise.resolve({...fog, getMicroservice: () => Promise.resolve([])}))
     def('findPublicPortsResponse', () => Promise.resolve([]))
+    def('findRelatedExtraHosts', () => Promise.resolve([]))
 
     beforeEach(() => {
       $sandbox.stub(Validator, 'validate').returns($validatorResponse)
@@ -1480,6 +1662,7 @@ describe('Microservices Service', () => {
       $sandbox.stub(ChangeTrackingService, 'update').returns($updateChangeTrackingResponse)
       $sandbox.stub(ioFogManager, 'findOne').returns($findOneFogResponse)
       $sandbox.stub(MicroservicePublicPortManager, 'findAll').returns($findPublicPortsResponse)
+      $sandbox.stub(MicroserviceExtraHostManager, 'findAll').returns($findRelatedExtraHosts)
     })
 
     it('calls Validator#validate() with correct args', async () => {

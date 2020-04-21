@@ -94,5 +94,7 @@ module.exports = {
   INVALID_UPSTREAM_ROUTER: 'Upstream router must be interior \'{}\'',
   EDGE_ROUTER_HAS_DOWNSTREAM: 'Edge router {} has, or will have, downstream routers',
   HOST_IS_REQUIRED: '"host" is required',
-  PORT_RESERVED: 'Port \'{}\' is reserved for internal use'
+  PORT_RESERVED: 'Port \'{}\' is reserved for internal use',
+  INVALID_HOST_TEMPLATE: '{} is not a valid host template',
+  NOT_FOUND_HOST_TEMPLATE: 'Could not find {} host template'
 }
