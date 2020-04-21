@@ -31,6 +31,7 @@ const TrackingDecorator = require('../decorators/tracking-decorator')
 const TrackingEventType = require('../enums/tracking-event-type')
 const config = require('../config')
 const RouterManager = require('../data/managers/router-manager')
+const MicroserviceExtraHostManager = require('../data/managers/microservice-extra-host-manager')
 const RouterConnectionManager = require('../data/managers/router-connection-manager')
 const RouterService = require('./router-service')
 const Constants = require('../helpers/constants')
@@ -68,6 +69,7 @@ async function createFogEndPoint (fogData, user, isCLI, transaction) {
     availableDiskThreshold: fogData.availableDiskThreshold,
     isSystem: fogData.isSystem,
     userId: user.id,
+    host: fogData.host,
     routerId: null
   }
   createFogData = AppHelper.deleteUndefinedFields(createFogData)
@@ -165,6 +167,7 @@ async function updateFogEndPoint (fogData, user, isCLI, transaction) {
     fogTypeId: fogData.fogType,
     logLevel: fogData.logLevel,
     dockerPruningFrequency: fogData.dockerPruningFrequency,
+    host: fogData.host,
     availableDiskThreshold: fogData.availableDiskThreshold
   }
   updateFogData = AppHelper.deleteUndefinedFields(updateFogData)
@@ -204,7 +207,7 @@ async function updateFogEndPoint (fogData, user, isCLI, transaction) {
     // Only delete previous router if there is a network router
     if (router) {
       // New router mode is none, delete existing router
-      await _deleteFogRouter(fogData, transaction)
+      await _deleteFogRouter(fogData, user.id, transaction)
     }
   } else {
     const defaultRouter = await RouterManager.findOne({ isDefault: true }, transaction)
@@ -232,6 +235,11 @@ async function updateFogEndPoint (fogData, user, isCLI, transaction) {
 
   let msChanged = false
 
+  // Update Microservice extra hosts
+  if (updateFogData.host && updateFogData.host !== oldFog.host) {
+    await _updateMicroserviceExtraHosts(fogData.uuid, updateFogData.host, transaction)
+  }
+
   if (oldFog.abstractedHardwareEnabled === true && fogData.abstractedHardwareEnabled === false) {
     await _deleteHalMicroserviceByFog(fogData, transaction)
     msChanged = true
@@ -255,6 +263,16 @@ async function updateFogEndPoint (fogData, user, isCLI, transaction) {
   }
 }
 
+async function _updateMicroserviceExtraHosts (fogUuid, host, transaction) {
+  const microserviceExtraHosts = await MicroserviceExtraHostManager.findAll({ targetFogUuid: fogUuid }, transaction)
+  for (const extraHost of microserviceExtraHosts) {
+    extraHost.value = host
+    await extraHost.save()
+    // Update tracking change for microservice
+    await MicroserviceExtraHostManager.updateOriginMicroserviceChangeTracking(extraHost, transaction)
+  }
+}
+
 async function _updateProxyRouters (fogId, router, transaction) {
   const proxyCatalog = await CatalogService.getProxyCatalogItem(transaction)
   const proxyMicroservices = await MicroserviceManager.findAll({ catalogItemId: proxyCatalog.id, iofogUuid: fogId })
@@ -269,7 +287,7 @@ async function _updateProxyRouters (fogId, router, transaction) {
   }
 }
 
-async function _deleteFogRouter (fogData, transaction) {
+async function _deleteFogRouter (fogData, userId, transaction) {
   const router = await RouterManager.findOne({ iofogUuid: fogData.uuid }, transaction)
   const defaultRouter = await RouterManager.findOne({ isDefault: true }, transaction)
 
@@ -295,7 +313,7 @@ async function _deleteFogRouter (fogData, transaction) {
         }
 
         // Update router config
-        await RouterService.updateConfig(router.id, transaction)
+        await RouterService.updateConfig(router.id, userId, transaction)
         // Set routerChanged flag
         await ChangeTrackingService.update(router.iofogUuid, ChangeTrackingService.events.routerChanged, transaction)
       }
@@ -330,7 +348,7 @@ async function deleteFogEndPoint (fogData, user, isCLI, transaction) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, fogData.uuid))
   }
 
-  await _deleteFogRouter(fogData, transaction)
+  await _deleteFogRouter(fogData, user.id, transaction)
 
   await _processDeleteCommand(fog, transaction)
 

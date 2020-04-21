@@ -49,15 +49,6 @@ module.exports = (sequelize, DataTypes) => {
       as: 'microservicePort',
       onDelete: 'set null'
     })
-
-    MicroservicePublicMode.belongsTo(models.ConnectorPort, {
-      foreignKey: {
-        name: 'connectorPortId',
-        field: 'connector_port_id'
-      },
-      as: 'connectorPort',
-      onDelete: 'set null'
-    })
   }
   return MicroservicePublicMode
 }

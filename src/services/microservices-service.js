@@ -36,6 +36,7 @@ const TrackingEventType = require('../enums/tracking-event-type')
 const FogManager = require('../data/managers/iofog-manager')
 const RouterManager = require('../data/managers/router-manager')
 const MicroservicePublicPortManager = require('../data/managers/microservice-public-port-manager')
+const MicroserviceExtraHostManager = require('../data/managers/microservice-extra-host-manager')
 
 const { DEFAULT_ROUTER_NAME, DEFAULT_PROXY_HOST, RESERVED_PORTS } = require('../helpers/constants')
 
@@ -157,6 +158,111 @@ async function _validatePortMappings (microserviceData, transaction) {
   }
 }
 
+async function _validatePublicPortAppHostTemplate (extraHost, templateArgs, msvc, transaction) {
+  if (templateArgs.length !== 5) {
+    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_HOST_TEMPLATE, templateArgs.join('.')))
+  }
+
+  const ports = await MicroservicePortManager.findAllPublicPorts({ microserviceUuid: msvc.uuid }, transaction)
+  for (const port of ports) {
+    if (port.publicPort.publicPort === +(templateArgs[4])) {
+      const fog = await FogManager.findOne({ uuid: port.publicPort.hostId }, transaction)
+      extraHost.publicPort = port.publicPort.publicPort
+      extraHost.targetFogUuid = fog.uuid
+      extraHost.value = fog.host || fog.ipAddress
+      return extraHost
+    }
+  }
+
+  throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.NOT_FOUND_HOST_TEMPLATE, templateArgs[4]))
+}
+
+async function _validateLocalAppHostTemplate (extraHost, templateArgs, msvc, transaction) {
+  if (templateArgs.length !== 4) {
+    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_HOST_TEMPLATE, templateArgs.join('.')))
+  }
+  const fog = await FogManager.findOne({ uuid: msvc.iofogUuid }, transaction)
+  if (!fog) {
+    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.NOT_FOUND_HOST_TEMPLATE, templateArgs[2]))
+  }
+  extraHost.targetFogUuid = fog.uuid
+  extraHost.value = fog.host || fog.ipAddress
+
+  return extraHost
+}
+
+async function _validateAppHostTemplate (extraHost, templateArgs, userId, transaction) {
+  if (templateArgs.length < 4) {
+    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_HOST_TEMPLATE, templateArgs.join('.')))
+  }
+  const flow = await FlowManager.findOne({ name: templateArgs[1], userId }, transaction)
+  if (!flow) {
+    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.NOT_FOUND_HOST_TEMPLATE, templateArgs[1]))
+  }
+  const msvc = await MicroserviceManager.findOne({ flowId: flow.id, name: templateArgs[2] }, transaction)
+  if (!msvc) {
+    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.NOT_FOUND_HOST_TEMPLATE, templateArgs[2]))
+  }
+  extraHost.templateType = 'Apps'
+  extraHost.targetMicroserviceUuid = msvc.uuid
+  if (templateArgs[3] === 'public') {
+    return _validatePublicPortAppHostTemplate(extraHost, templateArgs, msvc, transaction)
+  }
+  if (templateArgs[3] === 'local') {
+    return _validateLocalAppHostTemplate(extraHost, templateArgs, msvc, transaction)
+  }
+  throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_HOST_TEMPLATE, templateArgs.join('.')))
+}
+
+async function _validateAgentHostTemplate (extraHost, templateArgs, userId, transaction) {
+  if (templateArgs.length !== 2) {
+    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_HOST_TEMPLATE, templateArgs.join('.')))
+  }
+
+  extraHost.templateType = 'Agents'
+  console.log({ name: templateArgs[1], userId })
+  const fog = await FogManager.findOne({ name: templateArgs[1], userId }, transaction)
+  if (!fog) {
+    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.NOT_FOUND_HOST_TEMPLATE, templateArgs[1]))
+  }
+  extraHost.targetFogUuid = fog.uuid
+  extraHost.value = fog.host
+
+  return extraHost
+}
+
+async function _validateExtraHost (extraHostData, user, transaction) {
+  const extraHost = {
+    templateType: 'Litteral',
+    name: extraHostData.name,
+    template: extraHostData.address,
+    value: extraHostData.address
+  }
+  if (!(extraHost.template.startsWith('${') && extraHost.template.endsWith('}'))) {
+    return extraHost
+  }
+  const template = extraHost.value.slice(2, extraHost.value.length - 1)
+  const templateArgs = template.split('.')
+  extraHost.templateType = templateArgs[0]
+  if (templateArgs[0] === 'Apps') {
+    return _validateAppHostTemplate(extraHost, templateArgs, user.id, transaction)
+  } else if (templateArgs[0] === 'Agents') {
+    return _validateAgentHostTemplate(extraHost, templateArgs, user.id, transaction)
+  }
+  throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_HOST_TEMPLATE, template))
+}
+
+async function _validateExtraHosts (microserviceData, user, transaction) {
+  if (!microserviceData.extraHosts || microserviceData.extraHosts.length === 0) {
+    return []
+  }
+  const extraHosts = []
+  for (const extraHost of microserviceData.extraHosts) {
+    extraHosts.push(await _validateExtraHost(extraHost, user, transaction))
+  }
+  return extraHosts
+}
+
 async function createMicroserviceEndPoint (microserviceData, user, isCLI, transaction) {
   await Validator.validate(microserviceData, Validator.schemas.microserviceCreate)
 
@@ -171,6 +277,9 @@ async function createMicroserviceEndPoint (microserviceData, user, isCLI, transa
   if (!microserviceData.images || !microserviceData.images.length) {
     throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.MICROSERVICE_DOES_NOT_HAVE_IMAGES, microserviceData.name))
   }
+
+  // validate extraHosts
+  const extraHosts = await _validateExtraHosts(microserviceData, user, transaction)
 
   await _validatePortMappings(microserviceData, transaction)
 
@@ -193,6 +302,11 @@ async function createMicroserviceEndPoint (microserviceData, user, isCLI, transa
       }
     }
   }
+
+  for (const extraHost of extraHosts) {
+    await _createExtraHost(microservice, extraHost, user, transaction)
+  }
+
   if (microserviceData.env) {
     for (const env of microserviceData.env) {
       await _createEnv(microservice, env, user, transaction)
@@ -227,6 +341,30 @@ async function createMicroserviceEndPoint (microserviceData, user, isCLI, transa
   return res
 }
 
+async function _updateRelatedExtraHostTargetFog (extraHost, newFogUuid, transaction) {
+  const fog = await FogManager.findOne({ uuid: newFogUuid }, transaction)
+  if (!fog) {
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, newFogUuid))
+  }
+  extraHost.targetFogUuid = fog.uuid
+  extraHost.value = fog.host
+  await extraHost.save()
+  // Update tracking change for microservice
+  await MicroserviceExtraHostManager.updateOriginMicroserviceChangeTracking(extraHost, transaction)
+}
+
+async function _updateRelatedExtraHosts (updatedMicroservice, transaction) {
+  const extraHosts = await MicroserviceExtraHostManager.findAll({ targetMicroserviceUuid: updatedMicroservice.uuid }, transaction)
+  for (const extraHost of extraHosts) {
+    if (!extraHost.publicPort) {
+      // Local port, update target fog and host if microservice moved
+      if (extraHost.targetFogUuid !== updatedMicroservice.iofogUuid) {
+        await _updateRelatedExtraHostTargetFog(extraHost, updatedMicroservice.iofogUuid, transaction)
+      }
+    }
+  }
+}
+
 async function updateMicroserviceEndPoint (microserviceUuid, microserviceData, user, isCLI, transaction) {
   await Validator.validate(microserviceData, Validator.schemas.microserviceUpdate)
 
@@ -238,6 +376,9 @@ async function updateMicroserviceEndPoint (microserviceUuid, microserviceData, u
       uuid: microserviceUuid,
       userId: user.id
     }
+
+  // validate extraHosts
+  const extraHosts = microserviceData.extraHosts ? await _validateExtraHosts(microserviceData, user, transaction) : null
 
   const config = _validateMicroserviceConfig(microserviceData.config)
 
@@ -333,7 +474,23 @@ async function updateMicroserviceEndPoint (microserviceUuid, microserviceData, u
     }
   }
 
+  // Set rebuild flag if needed
+  microserviceDataUpdate.rebuild = microserviceDataUpdate.rebuild || !!(
+    (microserviceDataUpdate.rootHostAccess !== undefined && microservice.rootHostAccess !== microserviceDataUpdate.rootHostAccess) ||
+    microserviceDataUpdate.env ||
+    microserviceDataUpdate.cmd ||
+    microserviceDataUpdate.volumeMappings ||
+    extraHosts
+  )
+
   const updatedMicroservice = await MicroserviceManager.updateAndFind(query, microserviceDataUpdate, transaction)
+
+  if (extraHosts) {
+    await _updateExtraHosts(extraHosts, microserviceUuid, user, transaction)
+  }
+
+  // Update extra hosts that reference this microservice
+  await _updateRelatedExtraHosts(updatedMicroservice, transaction)
 
   if (microserviceDataUpdate.volumeMappings) {
     await _updateVolumeMappings(microserviceDataUpdate.volumeMappings, microserviceUuid, transaction)
@@ -624,6 +781,24 @@ async function _createPublicPortMapping (microservice, portMappingData, user, tr
     isTcp
   }
   await MicroservicePublicPortManager.create(publicPort, transaction)
+
+  // Look for related extraHosts to update
+  const relatedExtraHosts = await MicroserviceExtraHostManager.findAll({ microserviceUuid: microservice.uuid, publicPort: publicPort.publicPort }, transaction)
+  for (const extraHost of relatedExtraHosts) {
+    extraHost.targetFogUuid = publicPort.hostId
+    extraHost.value = portMappingData.host.host
+    await extraHost.save()
+    await MicroserviceExtraHostManager.updateOriginMicroserviceChangeTracking(extraHost, transaction)
+  }
+}
+
+async function _createExtraHost (microservice, extraHostData, user, transaction) {
+  const msExtraHostData = {
+    ...extraHostData,
+    microserviceUuid: microservice.uuid
+  }
+
+  await MicroserviceExtraHostManager.create(msExtraHostData, transaction)
 }
 
 async function _createEnv (microservice, envData, user, transaction) {
@@ -944,6 +1119,15 @@ async function _deleteImages (microserviceUuid, transaction) {
   }, transaction)
 }
 
+async function _updateExtraHosts (extraHosts, microserviceUuid, user, transaction) {
+  await MicroserviceExtraHostManager.delete({
+    microserviceUuid: microserviceUuid
+  }, transaction)
+  for (const extraHost of extraHosts) {
+    await _createExtraHost({ uuid: microserviceUuid }, extraHost, user, transaction)
+  }
+}
+
 async function _updateEnv (env, microserviceUuid, transaction) {
   await MicroserviceEnvManager.delete({
     microserviceUuid: microserviceUuid
@@ -1149,6 +1333,7 @@ async function _buildGetMicroserviceResponse (microservice, transaction) {
 
   // get additional data
   const portMappings = await MicroservicePortManager.findAll({ microserviceUuid: microserviceUuid }, transaction)
+  const extraHosts = await MicroserviceExtraHostManager.findAll({ microserviceUuid: microserviceUuid }, transaction)
   const images = await CatalogItemImageManager.findAll({ microserviceUuid: microserviceUuid }, transaction)
   const volumeMappings = await VolumeMappingManager.findAll({ microserviceUuid: microserviceUuid }, transaction)
   const routes = await RoutingManager.findAll({ sourceMicroserviceUuid: microserviceUuid }, transaction)
@@ -1174,6 +1359,7 @@ async function _buildGetMicroserviceResponse (microservice, transaction) {
   res.routes = routes.map((r) => r.destMicroserviceUuid)
   res.env = env
   res.cmd = arg
+  res.extraHosts = extraHosts.map(eH => ({ name: eH.name, address: eH.template, value: eH.value }))
   res.images = images.map(i => ({ containerImage: i.containerImage, fogTypeId: i.fogTypeId }))
   if (status && status.length) {
     res.status = status[0]

@@ -156,6 +156,11 @@ module.exports = (sequelize, DataTypes) => {
       foreignKey: 'microservice_uuid',
       as: 'cmd'
     })
+
+    Microservice.hasMany(models.MicroserviceExtraHost, {
+      foreignKey: 'microservice_uuid',
+      as: 'extraHosts'
+    })
   }
 
   return Microservice

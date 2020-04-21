@@ -11,6 +11,7 @@ const Validator = require('../../../src/schemas')
 const ChangeTrackingService = require('../../../src/services/change-tracking-service')
 const CatalogService = require('../../../src/services/catalog-service')
 const MicroserviceManager = require('../../../src/data/managers/microservice-manager')
+const MicroserviceExtraHostManager = require('../../../src/data/managers/microservice-extra-host-manager')
 const ioFogProvisionKeyManager = require('../../../src/data/managers/iofog-provision-key-manager')
 const ioFogVersionCommandManager = require('../../../src/data/managers/iofog-version-command-manager')
 const HWInfoManager = require('../../../src/data/managers/hw-info-manager')
@@ -96,7 +97,8 @@ describe('ioFog Service', () => {
       dockerPruningFrequency: 10,
       availableDiskThreshold: 90,
       logLevel: 'INFO',
-      routerId: null
+      routerId: null,
+      host: '1.2.3.4'
     }
 
     const halItem = {
@@ -479,7 +481,8 @@ describe('ioFog Service', () => {
       dockerPruningFrequency: 90,
       availableDiskThreshold: 80,
       logLevel: 'INFO',
-      isSystem: true
+      isSystem: true,
+      host: '5.6.7.8'
     }
 
     const oldFog = {
@@ -507,7 +510,8 @@ describe('ioFog Service', () => {
       dockerPruningFrequency: 90,
       availableDiskThreshold: 80,
       logLevel: 'INFO',
-      isSystem: false
+      isSystem: false,
+      host: fogData.host
     }
 
     const queryFogData = isCLI
@@ -539,7 +543,8 @@ describe('ioFog Service', () => {
       dockerPruningFrequency: 90,
       availableDiskThreshold: 80,
       logLevel: 'INFO',
-      isSystem: fogData.isSystem
+      isSystem: fogData.isSystem,
+      host: fogData.host
     }
 
     const halItem = {
@@ -837,6 +842,31 @@ describe('ioFog Service', () => {
                     })
                   })
                 })
+              })
+            })
+          })
+
+          context('when host changes', () => {
+            def('findIoFogResponse', () => Promise.resolve({...oldFog, host: '0.0.0.0', getRouter: () => Promise.resolve(router)}))
+            def('findExtraHostsResponse', () => Promise.resolve([]))
+
+            context('when there are extra hosts', () => {
+              const extraHosts = [{
+                id: 1,
+                save: () => {}
+              }]
+              def('findExtraHostsResponse', () => Promise.resolve(extraHosts))
+  
+              beforeEach(() => {
+                $sandbox.stub(MicroserviceExtraHostManager, 'findAll').returns($findExtraHostsResponse)
+                $sandbox.stub(MicroserviceExtraHostManager, 'updateOriginMicroserviceChangeTracking')
+              })
+  
+              it('should update extraHosts', async () => {
+                await $subject
+                for (const e of extraHosts) {
+                  expect(MicroserviceExtraHostManager.updateOriginMicroserviceChangeTracking).to.have.been.calledWith({...e, value: updateFogData.host}, transaction)
+                }
               })
             })
           })

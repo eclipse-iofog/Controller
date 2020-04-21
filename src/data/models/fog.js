@@ -156,6 +156,9 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: '0.0.0.0',
       field: 'ip_address_external'
     },
+    host: {
+      type: DataTypes.TEXT
+    },
     processedMessages: {
       type: DataTypes.BIGINT,
       get () {
