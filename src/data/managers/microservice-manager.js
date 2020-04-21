@@ -120,7 +120,7 @@ class MicroserviceManager extends BaseManager {
           }],
           attributes: { exclude: ['id', 'source_microservice_uuid',
             'sourceMicroserviceUuid', 'destMicroserviceUuid', 'sourceNetworkMicroserviceUuid',
-            'destNetworkMicroserviceUuid', 'sourceIofogUuid', 'destIofogUuid', 'connectorPortId'] }
+            'destNetworkMicroserviceUuid', 'sourceIofogUuid', 'destIofogUuid'] }
         }
       ],
       where: where,
@@ -285,7 +285,7 @@ class MicroserviceManager extends BaseManager {
           attributes: { exclude: ['id',
             'sourceMicroserviceUuid', 'destMicroserviceUuid',
             'sourceNetworkMicroserviceUuid', 'destNetworkMicroserviceUuid',
-            'sourceIofogUuid', 'destIofogUuid', 'connectorPortId'] }
+            'sourceIofogUuid', 'destIofogUuid'] }
         }
       ],
       where: where,

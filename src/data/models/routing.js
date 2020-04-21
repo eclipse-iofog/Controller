@@ -72,15 +72,6 @@ module.exports = (sequelize, DataTypes) => {
       as: 'destIofog',
       onDelete: 'set null'
     })
-
-    Routing.belongsTo(models.ConnectorPort, {
-      foreignKey: {
-        name: 'connectorPortId',
-        field: 'connector_port_id'
-      },
-      as: 'connectorPort',
-      onDelete: 'set null'
-    })
   }
   return Routing
 }
