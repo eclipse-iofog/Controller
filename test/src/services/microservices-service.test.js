@@ -23,6 +23,7 @@ const Op = require('sequelize').Op
 const MicroservicePublicModeManager = require('../../../src/data/managers/microservice-public-mode-manager')
 const MicroservicePublicPortManager = require('../../../src/data/managers/microservice-public-port-manager')
 const ioFogManager = require('../../../src/data/managers/iofog-manager')
+const ioFogService = require('../../../src/services/iofog-service')
 const Errors = require('../../../src/helpers/errors')
 
 describe('Microservices Service', () => {
@@ -974,7 +975,7 @@ describe('Microservices Service', () => {
         isDefault: true,
         isSystem: true
       }))
-      stub.returns(Promise.resolve($findFogResponse))
+      stub.returns($findFogResponse)
       $sandbox.stub(ioFogService, 'getFog').returns($findFogResponse)
       $sandbox.stub(MicroserviceExtraHostManager, 'findAll').returns($findRelatedExtraHostsResponse)
     });
@@ -1069,12 +1070,10 @@ describe('Microservices Service', () => {
               targetFogUuid: 'previousUuid',
               save: () => {}
             }]
+            const extraHostFog = {uuid: newMicroservice.iofogUuid, host: '1.2.3.4'}
             def('findRelatedExtraHostsResponse', () => Promise.resolve(relatedExtraHosts))
-            def('findRelatedExtraHostFogResponse', () => Promise.resolve({uuid: newMicroservice.iofogUuid, host: '1.2.3.4'}))
-
-            beforeEach(() => {
-              $sandbox.stub(ioFogManager, 'findOne').returns($findRelatedExtraHostFogResponse)
-            })
+            def('findRelatedExtraHostFogResponse', () => Promise.resolve(extraHostFog))
+            def('findFogResponse', () => Promise.resolve(extraHostFog))
 
             it('Should update related extraHost', async () => {
               await $subject

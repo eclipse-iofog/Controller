@@ -1761,14 +1761,14 @@
           "response": []
         },
         {
-          "name": "Delete agent node",
+          "name": "Delete Node",
           "event": [
             {
               "listen": "test",
               "script": {
-                "id": "b803da95-63d7-40a2-b48e-640e0c73e0d5",
+                "id": "4f7a9f52-12cc-49d0-9e2f-147b6f5cb6fa",
                 "exec": [
-                  "tests[\"Status code is 204\"] = responseCode.code === 204;",
+                  "tests[\"Status code is 202\"] = responseCode.code === 202;",
                   ""
                 ],
                 "type": "text/javascript"
@@ -1785,23 +1785,23 @@
               {
                 "key": "Authorization",
                 "type": "text",
-                "value": "{{agent-token}}"
+                "value": "{{user-token}}"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n\t\"type\": 1,\n\t\"key\":\"testtesttest\"\n}"
+              "raw": ""
             },
             "url": {
-              "raw": "{{host}}/api/v3/agent/delete-node",
+              "raw": "{{host}}/api/v3/iofog/{{node-id}}",
               "host": [
                 "{{host}}"
               ],
               "path": [
                 "api",
                 "v3",
-                "agent",
-                "delete-node"
+                "iofog",
+                "{{node-id}}"
               ]
             }
           },
@@ -3113,6 +3113,53 @@
                 "v3",
                 "iofog",
                 "{{system-node-id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Node",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "4f7a9f52-12cc-49d0-9e2f-147b6f5cb6fa",
+                "exec": [
+                  "tests[\"Status code is 202\"] = responseCode.code === 202;",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "type": "text",
+                "value": "{{user-token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "{{host}}/api/v3/iofog/{{node-id}}",
+              "host": [
+                "{{host}}"
+              ],
+              "path": [
+                "api",
+                "v3",
+                "iofog",
+                "{{node-id}}"
               ]
             }
           },
