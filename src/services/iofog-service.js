@@ -204,7 +204,7 @@ async function updateFogEndPoint (fogData, user, isCLI, transaction) {
     // Only delete previous router if there is a network router
     if (router) {
       // New router mode is none, delete existing router
-      await _deleteFogRouter(fogData, transaction)
+      await _deleteFogRouter(fogData, user.id, transaction)
     }
   } else {
     const defaultRouter = await RouterManager.findOne({ isDefault: true }, transaction)
@@ -269,7 +269,7 @@ async function _updateProxyRouters (fogId, router, transaction) {
   }
 }
 
-async function _deleteFogRouter (fogData, transaction) {
+async function _deleteFogRouter (fogData, userId, transaction) {
   const router = await RouterManager.findOne({ iofogUuid: fogData.uuid }, transaction)
   const defaultRouter = await RouterManager.findOne({ isDefault: true }, transaction)
 
@@ -295,7 +295,7 @@ async function _deleteFogRouter (fogData, transaction) {
         }
 
         // Update router config
-        await RouterService.updateConfig(router.id, transaction)
+        await RouterService.updateConfig(router.id, userId, transaction)
         // Set routerChanged flag
         await ChangeTrackingService.update(router.iofogUuid, ChangeTrackingService.events.routerChanged, transaction)
       }
@@ -330,7 +330,7 @@ async function deleteFogEndPoint (fogData, user, isCLI, transaction) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, fogData.uuid))
   }
 
-  await _deleteFogRouter(fogData, transaction)
+  await _deleteFogRouter(fogData, user.id, transaction)
 
   await _processDeleteCommand(fog, transaction)
 
