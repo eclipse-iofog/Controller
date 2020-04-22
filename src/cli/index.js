@@ -59,10 +59,10 @@ class Cli extends BaseCLIHandler {
   }
 
   async run (daemon) {
-    await Start.initDB()
-
     const mainCommand = this.parseCommandLineArgs(this.commandDefinitions)
     const argv = mainCommand._unknown || []
+
+    await Start.initDB(mainCommand.command === constants.CMD_START)
 
     switch (mainCommand.command) {
       case constants.CMD_START:

@@ -162,7 +162,7 @@ const initState = async () => {
   if (!isDaemon) {
     // InitDB
     try {
-      await db.initDB()
+      await db.initDB(true)
     } catch (err) {
       logger.error('Unable to initialize the database. Error: ' + err)
       process.exit(1)
