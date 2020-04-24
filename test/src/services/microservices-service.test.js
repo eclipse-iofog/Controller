@@ -229,7 +229,7 @@ describe('Microservices Service', () => {
           'hostDestination': '/var/dest',
           'containerDestination': '/var/dest',
           'accessMode': 'rw',
-          'type': 'volume'
+          'type': 'bind'
         },
       ],
       'ports': [
@@ -1288,7 +1288,7 @@ describe('Microservices Service', () => {
                 hostDestination: mapping.hostDestination,
                 containerDestination: mapping.containerDestination,
                 accessMode: mapping.accessMode,
-                type: 'volume'
+                type: 'bind'
               }
               expect(VolumeMappingManager.create).to.have.been.calledWith(volumeMappingObj, transaction)
             }
