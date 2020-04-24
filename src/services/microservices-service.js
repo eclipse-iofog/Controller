@@ -1072,6 +1072,7 @@ async function _createVolumeMappings (microservice, volumeMappings, transaction)
   const mappings = []
   for (const volumeMapping of volumeMappings) {
     const mapping = Object.assign({}, volumeMapping)
+    mapping.type = mapping.type || VOLUME_MAPPING_DEFAULT
     mapping.microserviceUuid = microservice.uuid
     mappings.push(mapping)
   }

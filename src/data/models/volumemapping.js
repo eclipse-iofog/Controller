@@ -22,7 +22,7 @@ module.exports = (sequelize, DataTypes) => {
     },
     type: {
       type: DataTypes.TEXT,
-      field: 'access_mode'
+      field: 'type'
     }
   }, {
     tableName: 'VolumeMappings',

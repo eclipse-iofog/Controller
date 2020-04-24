@@ -229,6 +229,7 @@ describe('Microservices Service', () => {
           'hostDestination': '/var/dest',
           'containerDestination': '/var/dest',
           'accessMode': 'rw',
+          'type': 'volume'
         },
       ],
       'ports': [
