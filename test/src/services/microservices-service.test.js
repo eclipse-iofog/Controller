@@ -1286,7 +1286,8 @@ describe('Microservices Service', () => {
                 microserviceUuid: microserviceUuid,
                 hostDestination: mapping.hostDestination,
                 containerDestination: mapping.containerDestination,
-                accessMode: mapping.accessMode
+                accessMode: mapping.accessMode,
+                type: 'volume'
               }
               expect(VolumeMappingManager.create).to.have.been.calledWith(volumeMappingObj, transaction)
             }
