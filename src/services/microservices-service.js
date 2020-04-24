@@ -38,7 +38,7 @@ const RouterManager = require('../data/managers/router-manager')
 const MicroservicePublicPortManager = require('../data/managers/microservice-public-port-manager')
 const MicroserviceExtraHostManager = require('../data/managers/microservice-extra-host-manager')
 
-const { DEFAULT_ROUTER_NAME, DEFAULT_PROXY_HOST, RESERVED_PORTS } = require('../helpers/constants')
+const { DEFAULT_ROUTER_NAME, DEFAULT_PROXY_HOST, RESERVED_PORTS, VOLUME_MAPPING_DEFAULT } = require('../helpers/constants')
 
 const lget = require('lodash/get')
 
@@ -932,10 +932,13 @@ async function createVolumeMappingEndPoint (microserviceUuid, volumeMappingData,
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, microserviceUuid))
   }
 
+  const type = volumeMappingData.type || VOLUME_MAPPING_DEFAULT
+
   const volumeMapping = await VolumeMappingManager.findOne({
     microserviceUuid: microserviceUuid,
     hostDestination: volumeMappingData.hostDestination,
-    containerDestination: volumeMappingData.containerDestination
+    containerDestination: volumeMappingData.containerDestination,
+    type
   }, transaction)
   if (volumeMapping) {
     throw new Errors.ValidationError(ErrorMessages.VOLUME_MAPPING_ALREADY_EXISTS)
@@ -945,7 +948,8 @@ async function createVolumeMappingEndPoint (microserviceUuid, volumeMappingData,
     microserviceUuid: microserviceUuid,
     hostDestination: volumeMappingData.hostDestination,
     containerDestination: volumeMappingData.containerDestination,
-    accessMode: volumeMappingData.accessMode
+    accessMode: volumeMappingData.accessMode,
+    type
   }
 
   return VolumeMappingManager.create(volumeMappingObj, transaction)
@@ -1094,12 +1098,15 @@ async function _updateVolumeMappings (volumeMappings, microserviceUuid, transact
   await VolumeMappingManager.delete({
     microserviceUuid: microserviceUuid
   }, transaction)
+
   for (const volumeMapping of volumeMappings) {
+    const type = volumeMapping.type || VOLUME_MAPPING_DEFAULT
     const volumeMappingObj = {
       microserviceUuid: microserviceUuid,
       hostDestination: volumeMapping.hostDestination,
       containerDestination: volumeMapping.containerDestination,
-      accessMode: volumeMapping.accessMode
+      accessMode: volumeMapping.accessMode,
+      type
     }
 
     await VolumeMappingManager.create(volumeMappingObj, transaction)

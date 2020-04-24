@@ -78,7 +78,7 @@ class MicroserviceManager extends BaseManager {
           model: VolumeMapping,
           as: 'volumeMappings',
           required: false,
-          attributes: ['hostDestination', 'containerDestination', 'accessMode']
+          attributes: ['hostDestination', 'containerDestination', 'accessMode', 'type']
         },
         {
           model: StraceDiagnostics,
@@ -164,7 +164,7 @@ class MicroserviceManager extends BaseManager {
           model: VolumeMapping,
           as: 'volumeMappings',
           required: false,
-          attributes: ['hostDestination', 'containerDestination', 'accessMode']
+          attributes: ['hostDestination', 'containerDestination', 'accessMode', 'type']
         },
         {
           model: CatalogItemImage,
@@ -252,7 +252,7 @@ class MicroserviceManager extends BaseManager {
           model: VolumeMapping,
           as: 'volumeMappings',
           required: false,
-          attributes: ['hostDestination', 'containerDestination', 'accessMode']
+          attributes: ['hostDestination', 'containerDestination', 'accessMode', 'type']
         },
         {
           model: StraceDiagnostics,

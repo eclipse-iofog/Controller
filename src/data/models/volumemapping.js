@@ -19,6 +19,10 @@ module.exports = (sequelize, DataTypes) => {
     accessMode: {
       type: DataTypes.TEXT,
       field: 'access_mode'
+    },
+    type: {
+      type: DataTypes.TEXT,
+      field: 'access_mode'
     }
   }, {
     tableName: 'VolumeMappings',
