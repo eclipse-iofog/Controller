@@ -1,4 +1,4 @@
-/*
+/* only "[a-zA-Z0-9][a-zA-Z0-9_.-]" are allowed
  * *******************************************************************************
  *  * Copyright (c) 2018 Edgeworx, Inc.
  *  *
@@ -38,7 +38,7 @@ const RouterManager = require('../data/managers/router-manager')
 const MicroservicePublicPortManager = require('../data/managers/microservice-public-port-manager')
 const MicroserviceExtraHostManager = require('../data/managers/microservice-extra-host-manager')
 
-const { DEFAULT_ROUTER_NAME, DEFAULT_PROXY_HOST, RESERVED_PORTS } = require('../helpers/constants')
+const { DEFAULT_ROUTER_NAME, DEFAULT_PROXY_HOST, RESERVED_PORTS, VOLUME_MAPPING_DEFAULT } = require('../helpers/constants')
 
 const lget = require('lodash/get')
 
@@ -263,6 +263,18 @@ async function _validateExtraHosts (microserviceData, user, transaction) {
   return extraHosts
 }
 
+function _validateVolumeMappings (volumeMappings) {
+  if (volumeMappings) {
+    for (const mapping of volumeMappings) {
+      mapping.type = mapping.type || VOLUME_MAPPING_DEFAULT
+      if (mapping.type === 'volume' && (!/^[a-zA-Z0-9_.-]/.test(mapping.hostDestination))) {
+        throw new Errors.InvalidArgumentError('hostDestination includes invalid characters for a local volume name, only ' +
+          '"[a-zA-Z0-9][a-zA-Z0-9_.-]" are allowed. If you intended to pass a host directory, use type: bind')
+      }
+    }
+  }
+}
+
 async function createMicroserviceEndPoint (microserviceData, user, isCLI, transaction) {
   await Validator.validate(microserviceData, Validator.schemas.microserviceCreate)
 
@@ -282,6 +294,8 @@ async function createMicroserviceEndPoint (microserviceData, user, isCLI, transa
   const extraHosts = await _validateExtraHosts(microserviceData, user, transaction)
 
   await _validatePortMappings(microserviceData, transaction)
+
+  _validateVolumeMappings(microserviceData.volumeMappings)
 
   const microservice = await _createMicroservice(microserviceData, user, isCLI, transaction)
 
@@ -932,20 +946,26 @@ async function createVolumeMappingEndPoint (microserviceUuid, volumeMappingData,
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, microserviceUuid))
   }
 
+  const type = volumeMappingData.type || VOLUME_MAPPING_DEFAULT
+
   const volumeMapping = await VolumeMappingManager.findOne({
     microserviceUuid: microserviceUuid,
     hostDestination: volumeMappingData.hostDestination,
-    containerDestination: volumeMappingData.containerDestination
+    containerDestination: volumeMappingData.containerDestination,
+    type
   }, transaction)
   if (volumeMapping) {
     throw new Errors.ValidationError(ErrorMessages.VOLUME_MAPPING_ALREADY_EXISTS)
   }
 
+  _validateVolumeMappings([volumeMappingData])
+
   const volumeMappingObj = {
     microserviceUuid: microserviceUuid,
     hostDestination: volumeMappingData.hostDestination,
     containerDestination: volumeMappingData.containerDestination,
-    accessMode: volumeMappingData.accessMode
+    accessMode: volumeMappingData.accessMode,
+    type
   }
 
   return VolumeMappingManager.create(volumeMappingObj, transaction)
@@ -1091,15 +1111,20 @@ async function _createRoutes (sourceMicroservice, destMsUuidArr, user, isCLI, tr
 }
 
 async function _updateVolumeMappings (volumeMappings, microserviceUuid, transaction) {
+  _validateVolumeMappings(volumeMappings)
+
   await VolumeMappingManager.delete({
     microserviceUuid: microserviceUuid
   }, transaction)
+
   for (const volumeMapping of volumeMappings) {
+    const type = volumeMapping.type || VOLUME_MAPPING_DEFAULT
     const volumeMappingObj = {
       microserviceUuid: microserviceUuid,
       hostDestination: volumeMapping.hostDestination,
       containerDestination: volumeMapping.containerDestination,
-      accessMode: volumeMapping.accessMode
+      accessMode: volumeMapping.accessMode,
+      type
     }
 
     await VolumeMappingManager.create(volumeMappingObj, transaction)
