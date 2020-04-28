@@ -54,7 +54,11 @@ const statusController = async function (isCLI) {
   return {
     'status': status,
     'timestamp': Date.now(),
-    'uptimeSec': process.uptime()
+    'uptimeSec': process.uptime(),
+    versions: {
+      controller: packageJson.version,
+      ecnViewer: packageJson.dependencies['@iofog/ecn-viewer']
+    }
   }
 }
 

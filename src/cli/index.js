@@ -14,7 +14,6 @@
 const BaseCLIHandler = require('./base-cli-handler')
 const Start = require('./start')
 const User = require('./user')
-const Connector = require('./connector')
 const Config = require('./config')
 const Tunnel = require('./tunnel')
 const IOFog = require('./iofog')
@@ -49,7 +48,6 @@ class Cli extends BaseCLIHandler {
       [constants.CMD_HELP]: 'Display usage information.',
       [constants.CMD_USER]: 'User operations.',
       [constants.CMD_CONFIG]: 'Set/Display iofog-controller service config.',
-      [constants.CMD_CONNECTOR]: 'Connector operations.',
       [constants.CMD_TUNNEL]: 'Tunnel operations.',
       [constants.CMD_IOFOG]: 'ioFog nodes operations.',
       [constants.CMD_CATALOG]: 'Microservices catalog operations.',
@@ -61,10 +59,10 @@ class Cli extends BaseCLIHandler {
   }
 
   async run (daemon) {
-    await Start.initDB()
-
     const mainCommand = this.parseCommandLineArgs(this.commandDefinitions)
     const argv = mainCommand._unknown || []
+
+    await Start.initDB(mainCommand.command === constants.CMD_START)
 
     switch (mainCommand.command) {
       case constants.CMD_START:
@@ -79,8 +77,6 @@ class Cli extends BaseCLIHandler {
         return User.run({ argv })
       case constants.CMD_CONFIG:
         return Config.run({ argv })
-      case constants.CMD_CONNECTOR:
-        return Connector.run({ argv })
       case constants.CMD_TUNNEL:
         return Tunnel.run({ argv })
       case constants.CMD_IOFOG:

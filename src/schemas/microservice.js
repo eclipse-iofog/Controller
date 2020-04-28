@@ -30,6 +30,9 @@ const microserviceCreate = {
     'ports': {
       'type': 'array',
       'items': { '$ref': '/ports' } },
+    'extraHosts': {
+      'type': 'array',
+      'items': { '$ref': '/extraHosts' } },
     'routes': {
       'type': 'array',
       'items': { 'type': 'string' } },
@@ -99,6 +102,17 @@ const env = {
   'additionalProperties': true
 }
 
+const extraHosts = {
+  'id': '/extraHosts',
+  'type': 'object',
+  'properties': {
+    'name': { 'type': 'string' },
+    'address': { 'type': 'string' }
+  },
+  'required': ['name', 'address'],
+  'additionalProperties': true
+}
+
 const ports = {
   'id': '/ports',
   'type': 'object',
@@ -133,13 +147,14 @@ const volumeMappings = {
   'properties': {
     'hostDestination': { 'type': 'string' },
     'containerDestination': { 'type': 'string' },
-    'accessMode': { 'type': 'string' }
+    'accessMode': { 'type': 'string' },
+    'type': { 'enum': ['volume', 'bind'] }
   },
   'required': ['hostDestination', 'containerDestination', 'accessMode'],
   'additionalProperties': true
 }
 
 module.exports = {
-  mainSchemas: [microserviceCreate, microserviceUpdate, env, ports, portsCreate, microserviceDelete, volumeMappings],
-  innerSchemas: [volumeMappings, ports, env]
+  mainSchemas: [microserviceCreate, microserviceUpdate, env, ports, extraHosts, portsCreate, microserviceDelete, volumeMappings],
+  innerSchemas: [volumeMappings, ports, env, extraHosts]
 }

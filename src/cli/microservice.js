@@ -41,7 +41,8 @@ const JSON_SCHEMA_ADD = AppHelper.stringifyCliJsonSchema(
       {
         hostDestination: '/var/dest',
         containerDestination: '/var/dest',
-        accessMode: 'rw'
+        accessMode: 'rw',
+        type: 'volume'
       }
     ],
     ports: [
@@ -86,7 +87,8 @@ const JSON_SCHEMA_UPDATE = AppHelper.stringifyCliJsonSchema(
       {
         hostDestination: '/var/dest',
         containerDestination: '/var/dest',
-        accessMode: 'rw'
+        accessMode: 'rw',
+        type: 'bind'
       }
     ],
     env: [
@@ -692,10 +694,12 @@ const parseVolumeMappingObject = function (obj, errMsg) {
   let result = {}
   try {
     const props = obj.split(':')
+    const type = props[3] || constants.VOLUME_MAPPING_DEFAULT
     result = {
       hostDestination: props[0],
       containerDestination: props[1],
-      accessMode: props[2]
+      accessMode: props[2],
+      type
     }
   } catch (e) {
     logger.warn(errMsg)

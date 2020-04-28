@@ -11,12 +11,13 @@ const Validator = require('../../../src/schemas')
 const ChangeTrackingService = require('../../../src/services/change-tracking-service')
 const CatalogService = require('../../../src/services/catalog-service')
 const MicroserviceManager = require('../../../src/data/managers/microservice-manager')
+const MicroserviceExtraHostManager = require('../../../src/data/managers/microservice-extra-host-manager')
 const ioFogProvisionKeyManager = require('../../../src/data/managers/iofog-provision-key-manager')
 const ioFogVersionCommandManager = require('../../../src/data/managers/iofog-version-command-manager')
 const HWInfoManager = require('../../../src/data/managers/hw-info-manager')
 const USBInfoManager = require('../../../src/data/managers/usb-info-manager')
 const Errors = require('../../../src/helpers/errors')
-const ErrorMessages = require('../../../src/helpers/error-messages')
+const Op = require('sequelize').Op
 
 describe('ioFog Service', () => {
   def('subject', () => ioFogService)
@@ -96,7 +97,8 @@ describe('ioFog Service', () => {
       dockerPruningFrequency: 10,
       availableDiskThreshold: 90,
       logLevel: 'INFO',
-      routerId: null
+      routerId: null,
+      host: '1.2.3.4'
     }
 
     const halItem = {
@@ -192,6 +194,7 @@ describe('ioFog Service', () => {
       $sandbox.stub(RouterService, 'validateAndReturnUpstreamRouters').returns($emptyUpstreamRouters)
       $sandbox.stub(RouterService, 'createRouterForFog').returns($findOneRouterResponse)
       $sandbox.stub(ioFogManager, 'update').returns($createIoFogResponse)
+      $sandbox.stub(ioFogManager, 'findOne').returns(Promise.resolve())
 
       $sandbox.stub(Date, 'now').returns($dateResponse)
     })
@@ -455,7 +458,7 @@ describe('ioFog Service', () => {
 
     const fogData = {
       uuid: uuid,
-      name: 'testName',
+      name: 'new-name',
       location: 'testLocation',
       latitude: 45,
       longitude: 46,
@@ -478,12 +481,13 @@ describe('ioFog Service', () => {
       dockerPruningFrequency: 90,
       availableDiskThreshold: 80,
       logLevel: 'INFO',
-      isSystem: true
+      isSystem: true,
+      host: '5.6.7.8'
     }
 
     const oldFog = {
       uuid: uuid2,
-      name: 'testName',
+      name: 'old-name',
       location: 'testLocation',
       latitude: 45,
       longitude: 46,
@@ -506,7 +510,8 @@ describe('ioFog Service', () => {
       dockerPruningFrequency: 90,
       availableDiskThreshold: 80,
       logLevel: 'INFO',
-      isSystem: false
+      isSystem: false,
+      host: fogData.host
     }
 
     const queryFogData = isCLI
@@ -538,7 +543,8 @@ describe('ioFog Service', () => {
       dockerPruningFrequency: 90,
       availableDiskThreshold: 80,
       logLevel: 'INFO',
-      isSystem: fogData.isSystem
+      isSystem: fogData.isSystem,
+      host: fogData.host
     }
 
     const halItem = {
@@ -617,8 +623,10 @@ describe('ioFog Service', () => {
     beforeEach(() => {
       $sandbox.stub(Validator, 'validate').returns($validatorResponse)
       $sandbox.stub(AppHelper, 'deleteUndefinedFields').returns($deleteUndefinedFieldsResponse)
-      $sandbox.stub(ioFogManager, 'findOne').returns($findIoFogResponse)
-      $sandbox.stub(ioFogManager, 'update').returns($updateIoFogResponse)
+      $sandbox.stub(ioFogManager, 'findOne')
+          .withArgs({ uuid: uuid, userId: user.id }).returns($findIoFogResponse)
+          .withArgs({ name: 'new-name', uuid: { [Op.not]: 'testUuid' }, userId: user.id }).returns(Promise.resolve())
+        $sandbox.stub(ioFogManager, 'update').returns($updateIoFogResponse)
       $sandbox.stub(ChangeTrackingService, 'update')
           .onFirstCall().returns($updateChangeTrackingResponse)
           .onSecondCall().returns($updateChangeTrackingResponse2)
@@ -838,6 +846,31 @@ describe('ioFog Service', () => {
             })
           })
 
+          context('when host changes', () => {
+            def('findIoFogResponse', () => Promise.resolve({...oldFog, host: '0.0.0.0', getRouter: () => Promise.resolve(router)}))
+            def('findExtraHostsResponse', () => Promise.resolve([]))
+
+            context('when there are extra hosts', () => {
+              const extraHosts = [{
+                id: 1,
+                save: () => {}
+              }]
+              def('findExtraHostsResponse', () => Promise.resolve(extraHosts))
+  
+              beforeEach(() => {
+                $sandbox.stub(MicroserviceExtraHostManager, 'findAll').returns($findExtraHostsResponse)
+                $sandbox.stub(MicroserviceExtraHostManager, 'updateOriginMicroserviceChangeTracking')
+              })
+  
+              it('should update extraHosts', async () => {
+                await $subject
+                for (const e of extraHosts) {
+                  expect(MicroserviceExtraHostManager.updateOriginMicroserviceChangeTracking).to.have.been.calledWith({...e, value: updateFogData.host}, transaction)
+                }
+              })
+            })
+          })
+
           context('when router mode changes', () => {
             context('when new router mode is none', () => {
               beforeEach(() => {
@@ -1025,6 +1058,7 @@ describe('ioFog Service', () => {
       $sandbox.stub(RouterConnectionManager, 'findAllWithRouters').returns($upstreamRouters)
       $sandbox.stub(CatalogService, 'getRouterCatalogItem').returns($routerCatalogItem)
       $sandbox.stub(MicroserviceManager, 'delete')
+      $sandbox.stub(MicroserviceManager, 'findAll').returns(Promise.resolve([]))
       $sandbox.stub(ioFogManager, 'findAll').returns(Promise.resolve([]))
     })
 

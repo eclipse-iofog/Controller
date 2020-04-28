@@ -25,11 +25,20 @@
     "DefaultJobIntervalSeconds": 120,
     "UserTokenExpirationIntervalSeconds": 3600,
     "FogTokenExpirationIntervalSeconds": 3600,
-    "FogStatusUpdateIntervalSeconds": 120,
-    "FogStatusFrequencySeconds": 60,
-    "ConnectorHealthCheckFrequencySeconds": 10
+    "FogStatusUpdateIntervalSeconds": 30,
+    "FogStatusUpdateTolerance": 3
   },
   "Diagnostics": {
     "DiagnosticDir": "diagnostic"
+  },
+  "SystemImages": {
+    "Router": {
+      "1": "iofog/router:latest",
+      "2": "iofog/router-arm:latest"
+    },
+    "Proxy": {
+      "1": "iofog/proxy:latest",
+      "2": "iofog/proxy-arm:latest"
+    }
   }
 }

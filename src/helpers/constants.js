@@ -13,8 +13,6 @@
 
 module.exports = {
   ROOT_DIR: `${__dirname}/../..`,
-  CONNECTOR_HTTP_PORT: 8080,
-  CONNECTOR_HTTPS_PORT: 443,
 
   CMD: 'command',
   CMD_LIST: 'list',
@@ -31,7 +29,6 @@ module.exports = {
   CMD_VERSION: 'version',
   CMD_USER: 'user',
   CMD_CONFIG: 'config',
-  CMD_CONNECTOR: 'connector',
   CMD_TUNNEL: 'tunnel',
   CMD_IOFOG: 'iofog',
   CMD_GENERATE_TOKEN: 'generate-token',
@@ -77,5 +74,7 @@ module.exports = {
   DEFAULT_ROUTER_NAME: 'default-router',
   DEFAULT_PROXY_HOST: 'default-proxy-host',
 
-  RESERVED_PORTS: [54321, 54322]
+  RESERVED_PORTS: [54321, 54322],
+
+  VOLUME_MAPPING_DEFAULT: 'bind'
 }
