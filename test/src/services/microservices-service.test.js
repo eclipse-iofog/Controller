@@ -258,6 +258,7 @@ describe('Microservices Service', () => {
 
     const fog = {
       uuid: microserviceData.iofogUuid,
+      fogType: 1,
       name: 'testfog'
     }
 
@@ -395,7 +396,7 @@ describe('Microservices Service', () => {
         return expect($subject).to.be.rejectedWith(error)
       })
     })
-
+    
     context('when Validator#validate() succeeds', () => {
       it('calls AppHelper#generateRandomString() with correct args', async () => {
         await $subject
@@ -516,6 +517,33 @@ describe('Microservices Service', () => {
                     await $subject
                     expect(MicroserviceManager.create).to.have.been.calledWith(newMicroservice,
                         transaction)
+                  })
+
+
+                  context('when there is no valid image in the catalog', () => {
+                    const catalogItemNoImages = {
+                      id: 3,
+                      images: []
+                    }
+                    def('findCatalogItem', () => Promise.resolve(catalogItemNoImages))
+                    it('Should throw validation error', async () => {
+                      try {
+                        await $subject
+                      } catch (e) {
+                        expect(e).to.be.instanceOf(Errors.ValidationError)
+                      }
+                    })
+                  })
+
+                  context('when there is no valid image in microservice', () => {
+                    def('subject', () => MicroservicesService.createMicroserviceEndPoint({...microserviceData, images: []}, user, isCLI, transaction))
+                    it('Should throw validation error', async () => {
+                      try {
+                        await $subject
+                      } catch (e) {
+                        expect(e).to.be.instanceOf(Errors.ValidationError)
+                      }
+                    })
                   })
 
                   context('when MicroserviceManager#create() fails', () => {
@@ -925,6 +953,11 @@ describe('Microservices Service', () => {
       volumeMappings: microserviceData.volumeMappings
     };
 
+    const images = [
+      {fogTypeId: 1, containerImage: 'hello-world'},
+      {fogTypeId: 2, containerImage: 'hello-world'},
+    ]
+
     const newMicroserviceUuid = microserviceUuid;
     const oldMicroservice = {
       uuid: newMicroserviceUuid,
@@ -935,7 +968,10 @@ describe('Microservices Service', () => {
       iofogUuid: microserviceData.iofogUuid,
       rootHostAccess: !microserviceData.rootHostAccess,
       logSize: microserviceData.logLimit,
-      userId: user.id
+      userId: user.id,
+      catalogItem: {
+        images
+      }
     };
 
     const microserviceUpdateData = {
@@ -956,8 +992,8 @@ describe('Microservices Service', () => {
     def('oldMicroserviceResponse', () => Promise.resolve(oldMicroservice))
     def('newMicroserviceResponse', () => Promise.resolve(newMicroservice))
     def('findRegistryResponse', () => Promise.resolve({}))
-    def('findCatalogItem', () => Promise.resolve({}))
-    def('findFogResponse', () => Promise.resolve({}))
+    def('findCatalogItem', () => Promise.resolve({ images }))
+    def('findFogResponse', () => Promise.resolve({fogType: 1}))
     def('findRelatedExtraHostsResponse', () => Promise.resolve([]))
 
 
@@ -1071,7 +1107,22 @@ describe('Microservices Service', () => {
               targetFogUuid: 'previousUuid',
               save: () => {}
             }]
-            const extraHostFog = {uuid: newMicroservice.iofogUuid, host: '1.2.3.4'}
+            const extraHostFog = {uuid: newMicroservice.iofogUuid, host: '1.2.3.4', fogType: 1}
+
+            context('when there is no valid image', () => {
+              const catalogItemNoImages = {
+                id: 3,
+                images: []
+              }
+              def('findCatalogItem', () => Promise.resolve(catalogItemNoImages))
+              it('Should throw validation error', async () => {
+                try {
+                  await $subject
+                } catch (e) {
+                  expect(e).to.be.instanceOf(Errors.ValidationError)
+                }
+              })
+            })
             def('findRelatedExtraHostsResponse', () => Promise.resolve(relatedExtraHosts))
             def('findRelatedExtraHostFogResponse', () => Promise.resolve(extraHostFog))
             def('findFogResponse', () => Promise.resolve(extraHostFog))
@@ -1092,7 +1143,8 @@ describe('Microservices Service', () => {
             uuid: 'oldUuid'
           }
           const newFog = {
-            uuid: 'newFogUuid'
+            uuid: 'newFogUuid',
+            fogType: 1
           }
           const portMappings = []
           def('oldMicroserviceResponse', () => Promise.resolve({
@@ -1352,13 +1404,29 @@ describe('Microservices Service', () => {
         context('when catalog item id is updated', () => {
           const catalogItemId = 84
           const catalogItem = {
-            registryId: 2
+            registryId: 2,
+            images
           }
           def('deleteUndefinedFieldsResponse', () => ({...microserviceUpdateData, catalogItemId}))
           def('findCatalogItem', () => Promise.resolve(catalogItem))
           def('oldMicroserviceResponse', () => Promise.resolve({...oldMicroservice, catalogItemId: catalogItemId - 1}))
           beforeEach(() => {
             $sandbox.stub(CatalogItemImageManager, 'delete')
+          })
+
+          context('when there is no valid image', () => {
+            const catalogItemNoImages = {
+              ...catalogItem,
+              images: []
+            }
+            def('findCatalogItem', () => Promise.resolve(catalogItemNoImages))
+            it('Should throw validation error', async () => {
+              try {
+                await $subject
+              } catch (e) {
+                expect(e).to.be.instanceOf(Errors.ValidationError)
+              }
+            })
           })
 
           it('Should delete microservice images', async () => {
@@ -1376,7 +1444,8 @@ describe('Microservices Service', () => {
 
         context('when images are updated', () => {
           const images = [
-            {}
+            {fogTypeId: 1, containerImage: 'newImage:x86'},
+            {fogTypeId: 2, containerImage: 'newImage:arm'},
           ]
           registryId = 1
           const microserviceUpdateDataWithImages = {...microserviceUpdateData, images, registryId}
@@ -1385,6 +1454,22 @@ describe('Microservices Service', () => {
           beforeEach(() => {
             $sandbox.stub(CatalogItemImageManager, 'delete')
             $sandbox.stub(CatalogItemImageManager, 'bulkCreate')
+          })
+
+          context('when there is no valid image', () => {
+            const images = [
+              {}
+            ]
+            registryId = 1
+            const microserviceUpdateDataWithImages = {...microserviceUpdateData, images, registryId}
+            def('deleteUndefinedFieldsResponse', () => (microserviceUpdateDataWithImages))
+            it('Should throw validation error', async () => {
+              try {
+                await $subject
+              } catch (e) {
+                expect(e).to.be.instanceOf(Errors.ValidationError)
+              }
+            })
           })
 
           it('should update images', async () => {
