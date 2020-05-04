@@ -258,7 +258,7 @@ describe('Microservices Service', () => {
 
     const fog = {
       uuid: microserviceData.iofogUuid,
-      fogType: 1,
+      fogTypeId: 1,
       name: 'testfog'
     }
 
@@ -993,7 +993,7 @@ describe('Microservices Service', () => {
     def('newMicroserviceResponse', () => Promise.resolve(newMicroservice))
     def('findRegistryResponse', () => Promise.resolve({}))
     def('findCatalogItem', () => Promise.resolve({ images }))
-    def('findFogResponse', () => Promise.resolve({fogType: 1}))
+    def('findFogResponse', () => Promise.resolve({fogTypeId: 1}))
     def('findRelatedExtraHostsResponse', () => Promise.resolve([]))
 
 
@@ -1107,7 +1107,7 @@ describe('Microservices Service', () => {
               targetFogUuid: 'previousUuid',
               save: () => {}
             }]
-            const extraHostFog = {uuid: newMicroservice.iofogUuid, host: '1.2.3.4', fogType: 1}
+            const extraHostFog = {uuid: newMicroservice.iofogUuid, host: '1.2.3.4', fogTypeId: 1}
 
             context('when there is no valid image', () => {
               const catalogItemNoImages = {
@@ -1144,7 +1144,7 @@ describe('Microservices Service', () => {
           }
           const newFog = {
             uuid: 'newFogUuid',
-            fogType: 1
+            fogTypeId: 1
           }
           const portMappings = []
           def('oldMicroserviceResponse', () => Promise.resolve({

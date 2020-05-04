@@ -278,7 +278,7 @@ function _validateVolumeMappings (volumeMappings) {
 function _validateImageFogType (microserviceData, fog, images) {
   let found = false
   for (const image of images) {
-    if (image.fogTypeId === fog.fogType) {
+    if (image.fogTypeId === fog.fogTypeId) {
       found = true
       break
     }
@@ -516,11 +516,11 @@ async function updateMicroserviceEndPoint (microserviceUuid, microserviceData, u
     } else if (microserviceDataUpdate.images) {
       images = microserviceDataUpdate.images
     } else if (microservice.catalogItemId) {
-      images = microservice.catalogItem.images
+      const catalogItem = await CatalogService.getCatalogItem(microservice.catalogItemId, user, isCLI, transaction)
+      images = catalogItem.images
     } else {
       images = await microservice.getImages()
     }
-    console.log({ images })
     _validateImageFogType(microserviceData, fog, images)
   }
 
