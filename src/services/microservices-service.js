@@ -275,15 +275,35 @@ function _validateVolumeMappings (volumeMappings) {
   }
 }
 
+function _validateImageFogType (microserviceData, fog, images) {
+  let found = false
+  for (const image of images) {
+    if (image.fogTypeId === fog.fogTypeId) {
+      found = true
+      break
+    }
+  }
+  if (!found) {
+    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.MISSING_IMAGE, microserviceData.name))
+  }
+}
+
 async function createMicroserviceEndPoint (microserviceData, user, isCLI, transaction) {
   await Validator.validate(microserviceData, Validator.schemas.microserviceCreate)
 
   // validate images
+  const fog = await FogManager.findOne({ uuid: microserviceData.iofogUuid }, transaction)
+  if (!fog) {
+    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, microserviceData.iofogUuid))
+  }
   if (microserviceData.catalogItemId) {
     // validate catalog item
     const catalogItem = await CatalogService.getCatalogItem(microserviceData.catalogItemId, user, isCLI, transaction)
     _validateImagesAgainstCatalog(catalogItem, microserviceData.images || [])
     microserviceData.images = catalogItem.images
+    _validateImageFogType(microserviceData, fog, catalogItem.images)
+  } else {
+    _validateImageFogType(microserviceData, fog, microserviceData.images)
   }
 
   if (!microserviceData.images || !microserviceData.images.length) {
@@ -427,7 +447,8 @@ async function updateMicroserviceEndPoint (microserviceUuid, microserviceData, u
   }
 
   if (microserviceDataUpdate.iofogUuid && microservice.iofogUuid !== microserviceDataUpdate.iofogUuid) {
-    // Moving to new agent, make sure all ports are available
+    // Moving to new agent
+    // make sure all ports are available
     const ports = await microservice.getPorts()
     const data = {
       ports: [],
@@ -451,6 +472,8 @@ async function updateMicroserviceEndPoint (microserviceUuid, microserviceData, u
   }
 
   // Validate images vs catalog item
+
+  const iofogUuid = microserviceDataUpdate.iofogUuid || microservice.iofogUuid
   if (microserviceDataUpdate.catalogItemId) {
     const catalogItem = await CatalogService.getCatalogItem(microserviceDataUpdate.catalogItemId, user, isCLI, transaction)
     _validateImagesAgainstCatalog(catalogItem, microserviceDataUpdate.images || [])
@@ -473,8 +496,6 @@ async function updateMicroserviceEndPoint (microserviceUuid, microserviceData, u
     microserviceDataUpdate.rebuild = true
   }
 
-  const iofogUuid = microserviceDataUpdate.iofogUuid || microservice.iofogUuid
-
   if (microserviceDataUpdate.name) {
     const userId = isCLI ? microservice.userId : user.id
     await _checkForDuplicateName(microserviceDataUpdate.name, { id: microserviceUuid }, userId, transaction)
@@ -486,6 +507,21 @@ async function updateMicroserviceEndPoint (microserviceUuid, microserviceData, u
     if (!fog || fog.length === 0) {
       throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, iofogUuid))
     }
+
+    // Validate image type
+    let images = []
+    if (microserviceDataUpdate.catalogItemId) {
+      const catalogItem = await CatalogService.getCatalogItem(microserviceDataUpdate.catalogItemId, user, isCLI, transaction)
+      images = catalogItem.images
+    } else if (microserviceDataUpdate.images) {
+      images = microserviceDataUpdate.images
+    } else if (microservice.catalogItemId) {
+      const catalogItem = await CatalogService.getCatalogItem(microservice.catalogItemId, user, isCLI, transaction)
+      images = catalogItem.images
+    } else {
+      images = await microservice.getImages()
+    }
+    _validateImageFogType(microserviceData, fog, images)
   }
 
   // Set rebuild flag if needed
