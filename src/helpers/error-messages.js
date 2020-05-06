@@ -17,6 +17,7 @@ module.exports = {
   ALREADY_EXISTS: 'Model already exists',
   INVALID_CATALOG_ITEM_ID: 'Invalid catalog item id \'{}\'',
   INVALID_FLOW_ID: 'Invalid flow id \'{}\'',
+  INVALID_ROUTING_ID: 'Invalid routing id \'{}\'',
   INVALID_REGISTRY_ID: 'Invalid registry id \'{}\'',
   UNABLE_TO_CREATE_ACTIVATION_CODE: 'Unable to create activation code',
   UNABLE_TO_GET_ACTIVATION_CODE: 'Unable to create activation code',

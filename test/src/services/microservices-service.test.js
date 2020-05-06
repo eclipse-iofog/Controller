@@ -1586,6 +1586,10 @@ describe('Microservices Service', () => {
 
       beforeEach(() => {
         $sandbox.stub(RoutingManager, 'delete')
+        const findOneStub = $sandbox.stub(RoutingManager, 'findOne')
+        for (const route of routes){
+          findOneStub.withArgs({id: route.id}, transaction).returns(route)
+        }
         const stub = $sandbox.stub(MicroserviceManager, 'findOne')
         for(const route of routes) {
           stub.withArgs({uuid: route.sourceMicroserviceUuid}).returns(Promise.resolve({iofogUuid: routeAgentUuid + route.sourceMicroserviceUuid}))
@@ -1597,6 +1601,7 @@ describe('Microservices Service', () => {
         await $subject
 
         for(const route of routes) {
+          expect(RoutingManager.findOne).to.have.been.calledWith({id: route.id}, transaction)
           expect(RoutingManager.delete).to.have.been.calledWith({id: route.id}, transaction)
           expect(ChangeTrackingService.update).to.have.been.calledWith(routeAgentUuid + route.sourceMicroserviceUuid, ChangeTrackingService.events.microserviceFull, transaction)
           expect(ChangeTrackingService.update).to.have.been.calledWith(routeAgentUuid + route.destMicroserviceUuid, ChangeTrackingService.events.microserviceFull, transaction)
