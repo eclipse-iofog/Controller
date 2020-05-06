@@ -25,14 +25,14 @@ const getRoutingEndPoint = async function (req, user) {
 }
 
 const updateRoutingEndpoint = async function (req, user) {
-  const routingId = req.params.id
+  const routeName = req.params.name
   const routeData = req.body
-  return RoutingService.updateRouting(routingId, routeData, user, false)
+  return RoutingService.updateRouting(routeName, routeData, user, false)
 }
 
 const deleteRoutingEndpoint = async function (req, user) {
-  const routingId = req.params.id
-  return RoutingService.deleteRouting(routingId, user, false)
+  const routeName = req.params.name
+  return RoutingService.deleteRouting(routeName, user, false)
 }
 
 module.exports = {

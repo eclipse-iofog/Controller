@@ -462,6 +462,7 @@ const _createRoute = async function (obj, user) {
     logger.cliRes(`Microservice route with source microservice ${sourceMicroserviceUuid} and dest microservice 
                 ${destMicroserviceUuid} has been created successfully.`)
   } catch (e) {
+    console.log({ e })
     logger.error(ErrorMessages.CLI.INVALID_ROUTE)
   }
 }

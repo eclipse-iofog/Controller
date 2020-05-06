@@ -622,7 +622,7 @@ async function deleteNotRunningMicroservices (fog, transaction) {
 
 async function createRouteEndPoint (sourceMicroserviceUuid, destMicroserviceUuid, user, isCLI, transaction) {
   // Print deprecated warning
-  return RoutingService.createRouting({ sourceMicroserviceUuid, destMicroserviceUuid, name: `${sourceMicroserviceUuid}_${destMicroserviceUuid}` }, user, isCLI, transaction)
+  return RoutingService.createRouting({ sourceMicroserviceUuid, destMicroserviceUuid, name: `r-${sourceMicroserviceUuid}-${destMicroserviceUuid}`.toLowerCase() }, user, isCLI, transaction)
 }
 
 async function deleteRouteEndPoint (sourceMicroserviceUuid, destMicroserviceUuid, user, isCLI, transaction) {
@@ -636,7 +636,7 @@ async function deleteRouteEndPoint (sourceMicroserviceUuid, destMicroserviceUuid
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.ROUTE_NOT_FOUND))
   }
 
-  return RoutingService.deleteRouting(route.id, user, isCLI, transaction)
+  return RoutingService.deleteRouting(route.name, user, isCLI, transaction)
 }
 
 async function createPortMappingEndPoint (microserviceUuid, portMappingData, user, isCLI, transaction) {
@@ -1271,7 +1271,7 @@ async function deleteMicroserviceWithRoutesAndPortMappings (microservice, transa
   }
   const routes = await _getLogicalRoutesByMicroservice(microservice.uuid, transaction)
   for (const route of routes) {
-    await RoutingService.deleteRouting(route.id, user, false, transaction)
+    await RoutingService.deleteRouting(route.name, user, false, transaction)
   }
 
   const portMappings = await MicroservicePortManager.findAll({ microserviceUuid: microservice.uuid }, transaction)

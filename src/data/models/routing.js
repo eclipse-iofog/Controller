@@ -10,6 +10,8 @@ module.exports = (sequelize, DataTypes) => {
     },
     name: {
       type: DataTypes.TEXT,
+      unique: true,
+      allowNull: false,
       field: 'name'
     },
     isNetworkConnection: {

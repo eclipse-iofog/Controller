@@ -19,7 +19,7 @@ const Errors = require('../helpers/errors')
 module.exports = [
   {
     method: 'get',
-    path: '/api/v3/routing',
+    path: '/api/v3/routes',
     middleware: async (req, res) => {
       logger.apiReq(req)
 
@@ -46,7 +46,7 @@ module.exports = [
   },
   {
     method: 'post',
-    path: '/api/v3/routing',
+    path: '/api/v3/routes',
     middleware: async (req, res) => {
       logger.apiReq(req)
 
@@ -77,7 +77,7 @@ module.exports = [
   },
   {
     method: 'patch',
-    path: '/api/v3/routing/:id',
+    path: '/api/v3/routes/:name',
     middleware: async (req, res) => {
       logger.apiReq(req)
 
@@ -110,7 +110,7 @@ module.exports = [
   },
   {
     method: 'delete',
-    path: '/api/v3/routing/:id',
+    path: '/api/v3/routes/:name',
     middleware: async (req, res) => {
       logger.apiReq(req)
 

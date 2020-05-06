@@ -15,7 +15,10 @@ const routingCreate = {
   'id': '/routingCreate',
   'type': 'object',
   'properties': {
-    'name': { 'type': 'string', 'minLength': 1 },
+    'name': {
+      'type': 'string',
+      'pattern': '^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$'
+    },
     'sourceMicroserviceUuid': { 'type': 'string', 'minLength': 1 },
     'destMicroserviceUuid': { 'type': 'string', 'minLength': 1 }
   },
@@ -27,7 +30,10 @@ const routingUpdate = {
   'id': '/routingUpdate',
   'type': 'object',
   'properties': {
-    'name': { 'type': 'string', 'minLength': 1 },
+    'name': {
+      'type': 'string',
+      'pattern': '^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$'
+    },
     'sourceMicroserviceUuid': { 'type': 'string', 'minLength': 1 },
     'destMicroserviceUuid': { 'type': 'string', 'minLength': 1 }
   },

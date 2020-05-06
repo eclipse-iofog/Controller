@@ -47,15 +47,15 @@ async function createRouting (routingData, user, isCLI, transaction) {
 
   const { sourceMicroservice, destMicroservice } = await _validateRouteMsvc(routingData, transaction)
 
-  return _createRoute(sourceMicroservice, destMicroservice, user, transaction)
+  return _createRoute(sourceMicroservice, destMicroservice, routingData, user, transaction)
 }
 
-async function updateRouting (routingId, routeData, user, isCLI, transaction) {
+async function updateRouting (routeName, routeData, user, isCLI, transaction) {
   await Validator.validate(routeData, Validator.schemas.routingUpdate)
 
-  const oldRoute = RoutingManager.findOne({ id: routingId }, transaction)
+  const oldRoute = RoutingManager.findOne({ name: routeName }, transaction)
   if (!oldRoute) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_ROUTING_ID, routingId))
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_ROUTING_ID, routeName))
   }
 
   const updateRouteData = {
@@ -88,10 +88,10 @@ async function updateRouting (routingId, routeData, user, isCLI, transaction) {
     await ChangeTrackingService.update(destMicroservice.iofogUuid, ChangeTrackingService.events.microserviceFull, transaction)
   }
 
-  await RoutingManager.update({ id: routingId }, updateRouteData, transaction)
+  await RoutingManager.update({ name: routeName }, updateRouteData, transaction)
 }
 
-async function _createRoute (sourceMicroservice, destMicroservice, user, transaction) {
+async function _createRoute (sourceMicroservice, destMicroservice, routeData, user, transaction) {
   if (!sourceMicroservice.iofogUuid || !destMicroservice.iofogUuid) {
     throw new Errors.ValidationError('fog not set')
   }
@@ -107,11 +107,11 @@ async function _createRoute (sourceMicroservice, destMicroservice, user, transac
     throw new Errors.ValidationError('route already exists')
   }
 
-  return _createSimpleRoute(sourceMicroservice, destMicroservice, transaction)
+  return _createSimpleRoute(sourceMicroservice, destMicroservice, routeData, transaction)
 }
 
-async function deleteRouting (id, user, isCLI, transaction) {
-  const route = await RoutingManager.findOne({ id }, transaction)
+async function deleteRouting (name, user, isCLI, transaction) {
+  const route = await RoutingManager.findOne({ name }, transaction)
   if (!route) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.ROUTE_NOT_FOUND))
   }
@@ -119,20 +119,22 @@ async function deleteRouting (id, user, isCLI, transaction) {
   await _deleteSimpleRoute(route, transaction)
 }
 
-async function _createSimpleRoute (sourceMicroservice, destMicroservice, transaction) {
+async function _createSimpleRoute (sourceMicroservice, destMicroservice, routeData, transaction) {
   // create new route
-  const routeData = {
+  const createRouteData = {
+    ...routeData,
     sourceMicroserviceUuid: sourceMicroservice.uuid,
     destMicroserviceUuid: destMicroservice.uuid
   }
 
-  const newRoute = await RoutingManager.create(routeData, transaction)
+  const newRoute = await RoutingManager.create(createRouteData, transaction)
   await _switchOnUpdateFlagsForMicroservicesInRoute(sourceMicroservice, destMicroservice, transaction)
+  console.log({ newRoute })
   return newRoute
 }
 
 async function _deleteSimpleRoute (route, transaction) {
-  await RoutingManager.delete({ id: route.id }, transaction)
+  await RoutingManager.delete({ name: route.name }, transaction)
 
   const sourceMsvc = await MicroserviceManager.findOne({ uuid: route.sourceMicroserviceUuid }, transaction)
   const destMsvc = await MicroserviceManager.findOne({ uuid: route.destMicroserviceUuid }, transaction)

@@ -4124,9 +4124,9 @@
                   "",
                   "var data = JSON.parse(responseBody);",
                   "",
-                  "tests[\"Response validation passed\"] = data.id",
+                  "tests[\"Response validation passed\"] = data.name",
                   "",
-                  "postman.setGlobalVariable(\"route-id\", data.id);"
+                  "postman.setGlobalVariable(\"route-id\", data.name);"
                 ],
                 "type": "text/javascript"
               }
@@ -4150,14 +4150,14 @@
               "raw": "\n{\n\"sourceMicroserviceUuid\": \"{{ms-id}}\",\n \"destMicroserviceUuid\": \"{{ms-id}}\",\n \"name\": \"my-route\"\n}"
             },
             "url": {
-              "raw": "{{host}}/api/v3/routing",
+              "raw": "{{host}}/api/v3/routes",
               "host": [
                 "{{host}}"
               ],
               "path": [
                 "api",
                 "v3",
-                "routing"
+                "routes"
               ]
             }
           },
@@ -4195,14 +4195,14 @@
               "raw": ""
             },
             "url": {
-              "raw": "{{host}}/api/v3/routing/{{route-id}}",
+              "raw": "{{host}}/api/v3/routes/{{route-id}}",
               "host": [
                 "{{host}}"
               ],
               "path": [
                 "api",
                 "v3",
-                "routing",
+                "routes",
                 "{{route-id}}"
               ]
             }
