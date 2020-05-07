@@ -20,8 +20,13 @@ const createRoutingEndpoint = async function (req, user) {
   return RoutingService.createRouting(routerData, user, false)
 }
 
+const getRoutingsEndPoint = async function (req, user) {
+  return RoutingService.getRoutings(user, false)
+}
+
 const getRoutingEndPoint = async function (req, user) {
-  return RoutingService.getRouting(user, false)
+  const routeName = req.params.name
+  return RoutingService.getRouting(routeName, user, false)
 }
 
 const updateRoutingEndpoint = async function (req, user) {
@@ -39,5 +44,6 @@ module.exports = {
   deleteRoutingEndpoint: AuthDecorator.checkAuthToken(deleteRoutingEndpoint),
   updateRoutingEndpoint: AuthDecorator.checkAuthToken(updateRoutingEndpoint),
   createRoutingEndpoint: AuthDecorator.checkAuthToken(createRoutingEndpoint),
-  getRoutingEndPoint: AuthDecorator.checkAuthToken(getRoutingEndPoint)
+  getRoutingEndPoint: AuthDecorator.checkAuthToken(getRoutingEndPoint),
+  getRoutingsEndPoint: AuthDecorator.checkAuthToken(getRoutingsEndPoint)
 }

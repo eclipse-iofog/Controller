@@ -34,6 +34,33 @@ module.exports = [
           errors: [Errors.NotFoundError]
         }
       ]
+      const getRouterEndpoint = ResponseDecorator.handleErrors(Routing.getRoutingsEndPoint, successCode, errorCodes)
+      const responseObject = await getRouterEndpoint(req)
+
+      res
+        .status(responseObject.code)
+        .send(responseObject.body)
+
+      logger.apiRes({ req: req, res: responseObject })
+    }
+  },
+  {
+    method: 'get',
+    path: '/api/v3/routes/:name',
+    middleware: async (req, res) => {
+      logger.apiReq(req)
+
+      const successCode = constants.HTTP_CODE_SUCCESS
+      const errorCodes = [
+        {
+          code: constants.HTTP_CODE_UNAUTHORIZED,
+          errors: [Errors.AuthenticationError]
+        },
+        {
+          code: constants.HTTP_CODE_NOT_FOUND,
+          errors: [Errors.NotFoundError]
+        }
+      ]
       const getRouterEndpoint = ResponseDecorator.handleErrors(Routing.getRoutingEndPoint, successCode, errorCodes)
       const responseObject = await getRouterEndpoint(req)
 
@@ -59,6 +86,10 @@ module.exports = [
         {
           code: constants.HTTP_CODE_BAD_REQUEST,
           errors: [Errors.ValidationError]
+        },
+        {
+          code: constants.HTTP_CODE_BAD_REQUEST,
+          errors: [Errors.DuplicatePropertyError]
         },
         {
           code: constants.HTTP_CODE_NOT_FOUND,

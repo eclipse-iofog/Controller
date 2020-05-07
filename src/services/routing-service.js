@@ -20,9 +20,17 @@ const RoutingManager = require('../data/managers/routing-manager')
 const TransactionDecorator = require('../decorators/transaction-decorator')
 const Validator = require('../schemas')
 
-async function getRouting (user, isCLI, transaction) {
+async function getRoutings (user, isCLI, transaction) {
   const routes = await RoutingManager.findAll({}, transaction)
   return { routes }
+}
+
+async function getRouting (name, user, isCLI, transaction) {
+  const route = await RoutingManager.findOne({ name }, transaction)
+  if (!route) {
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_ROUTING_NAME, name))
+  }
+  return route
 }
 
 async function _validateRouteMsvc (routingData, transaction) {
@@ -55,7 +63,7 @@ async function updateRouting (routeName, routeData, user, isCLI, transaction) {
 
   const oldRoute = RoutingManager.findOne({ name: routeName }, transaction)
   if (!oldRoute) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_ROUTING_ID, routeName))
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_ROUTING_NAME, routeName))
   }
 
   const updateRouteData = {
@@ -104,7 +112,7 @@ async function _createRoute (sourceMicroservice, destMicroservice, routeData, us
     destMicroserviceUuid: destMicroservice.uuid
   }, transaction)
   if (route) {
-    throw new Errors.ValidationError('route already exists')
+    throw new Errors.DuplicatePropertyError('route already exists')
   }
 
   return _createSimpleRoute(sourceMicroservice, destMicroservice, routeData, transaction)
@@ -129,7 +137,6 @@ async function _createSimpleRoute (sourceMicroservice, destMicroservice, routeDa
 
   const newRoute = await RoutingManager.create(createRouteData, transaction)
   await _switchOnUpdateFlagsForMicroservicesInRoute(sourceMicroservice, destMicroservice, transaction)
-  console.log({ newRoute })
   return newRoute
 }
 
@@ -156,6 +163,7 @@ async function _switchOnUpdateFlagsForMicroservicesInRoute (sourceMicroservice, 
 
 module.exports = {
   getRouting: TransactionDecorator.generateTransaction(getRouting),
+  getRoutings: TransactionDecorator.generateTransaction(getRoutings),
   createRouting: TransactionDecorator.generateTransaction(createRouting),
   updateRouting: TransactionDecorator.generateTransaction(updateRouting),
   deleteRouting: TransactionDecorator.generateTransaction(deleteRouting)
