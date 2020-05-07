@@ -137,7 +137,7 @@ const getAgentConfig = async function (fog, transaction) {
     logLevel: fog.logLevel,
     availableDiskThreshold: fog.availableDiskThreshold,
     dockerPruningFrequency: fog.dockerPruningFrequency,
-    routerHost: router.host,
+    routerHost: router.host === fog.host ? 'localhost' : router.host,
     routerPort: router.messagingPort
   }
 }
