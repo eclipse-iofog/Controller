@@ -46,7 +46,7 @@ const createApplicationEndPoint = async function (applicationData, user, isCLI, 
 
   if (applicationData.microservices) {
     for (const msvcData of applicationData.microservices) {
-      await MicroserviceService.createMicroserviceEndPoint(msvcData, user, isCLI, transaction)
+      await MicroserviceService.createMicroserviceEndPoint({ ...msvcData, application: application.name }, user, isCLI, transaction)
     }
   }
 
@@ -187,7 +187,7 @@ const _updateMicroservices = async function (application, microservices, user, i
   }
   // Create missing microservices
   for (const microservice of updatedMicroservices) {
-    await MicroserviceService.createMicroserviceEndPoint(microservice, user, isCLI, transaction)
+    await MicroserviceService.createMicroserviceEndPoint({ ...microservice, application: application.name }, user, isCLI, transaction)
   }
   iofogUuids
     .filter(onlyUnique)
