@@ -23,7 +23,7 @@ const StraceDiagnostics = models.StraceDiagnostics
 const CatalogItem = models.CatalogItem
 const CatalogItemImage = models.CatalogItemImage
 const Fog = models.Fog
-const Flow = models.Flow
+const Application = models.Application
 const User = models.User
 const Routing = models.Routing
 const Registry = models.Registry
@@ -199,7 +199,7 @@ class MicroserviceManager extends BaseManager {
           attributes: ['picture', 'category']
         },
         {
-          model: Flow,
+          model: Application,
           as: 'flow',
           required: false,
           attributes: ['isActivated']
@@ -344,7 +344,7 @@ class MicroserviceManager extends BaseManager {
     return Microservice.findOne({
       include: [
         {
-          model: Flow,
+          model: Application,
           as: 'flow',
           required: true,
           include: [

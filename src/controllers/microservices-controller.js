@@ -37,8 +37,8 @@ const deleteMicroserviceEndPoint = async function (req, user) {
 }
 
 const getMicroservicesByFlowEndPoint = async function (req, user) {
-  const flowId = req.query.flowId
-  return MicroservicesService.listMicroservicesEndPoint(flowId, user, false)
+  const applicationName = req.query.application
+  return MicroservicesService.listMicroservicesEndPoint(applicationName, user, false)
 }
 
 const createMicroserviceRouteEndPoint = async function (req, user) {

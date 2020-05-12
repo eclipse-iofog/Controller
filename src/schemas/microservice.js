@@ -19,7 +19,7 @@ const microserviceCreate = {
     'registryId': {
       'type': 'integer'
     },
-    'flowId': { 'type': 'integer' },
+    'application': { 'type': 'string' },
     'iofogUuid': { 'type': 'string' },
     'rootHostAccess': { 'type': 'boolean' },
     'logSize': { 'type': 'integer' },
@@ -43,7 +43,7 @@ const microserviceCreate = {
       'type': 'array',
       'items': { 'type': 'string' } }
   },
-  'required': ['name'],
+  'required': ['name', 'application'],
   'additionalProperties': true
 }
 

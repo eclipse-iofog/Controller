@@ -26,7 +26,7 @@ const AppHelper = require('../helpers/app-helper')
 const Errors = require('../helpers/errors')
 const ErrorMessages = require('../helpers/error-messages')
 const Validator = require('../schemas/index')
-const FlowManager = require('../data/managers/flow-manager')
+const ApplicationManager = require('../data/managers/application-manager')
 const CatalogService = require('../services/catalog-service')
 const RoutingManager = require('../data/managers/routing-manager')
 const RoutingService = require('../services/routing-service')
@@ -38,18 +38,14 @@ const MicroserviceExtraHostManager = require('../data/managers/microservice-extr
 
 const { VOLUME_MAPPING_DEFAULT } = require('../helpers/constants')
 
-async function listMicroservicesEndPoint (flowId, user, isCLI, transaction) {
-  if (!isCLI && flowId) {
-    await _validateFlow(flowId, user, isCLI, transaction)
-  }
+async function listMicroservicesEndPoint (applicationName, user, isCLI, transaction) {
+  const application = await _validateApplication(applicationName, user, isCLI, transaction)
 
-  let microservices = []
-  if (flowId) {
-    const where = isCLI ? { delete: false } : { flowId: flowId, delete: false }
-    microservices = await MicroserviceManager.findAllExcludeFields(where, transaction)
-  } else {
-    microservices = await MicroserviceManager.findAll({ userId: user.id, flowId: { [Op.ne]: null }, delete: false }, transaction)
+  const where = application ? { flowId: application.id, delete: false } : { delete: false, flowId: { [Op.ne]: null } }
+  if (!isCLI) {
+    where.userId = user.id
   }
+  const microservices = await MicroserviceManager.findAllExcludeFields(where, transaction)
 
   const res = await Promise.all(microservices.map(async (microservice) => {
     return _buildGetMicroserviceResponse(microservice, transaction)
@@ -115,11 +111,11 @@ async function _validateAppHostTemplate (extraHost, templateArgs, userId, transa
   if (templateArgs.length < 4) {
     throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_HOST_TEMPLATE, templateArgs.join('.')))
   }
-  const flow = await FlowManager.findOne({ name: templateArgs[1], userId }, transaction)
-  if (!flow) {
+  const application = await ApplicationManager.findOne({ name: templateArgs[1], userId }, transaction)
+  if (!application) {
     throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.NOT_FOUND_HOST_TEMPLATE, templateArgs[1]))
   }
-  const msvc = await MicroserviceManager.findOne({ flowId: flow.id, name: templateArgs[2] }, transaction)
+  const msvc = await MicroserviceManager.findOne({ flowId: application.id, name: templateArgs[2] }, transaction)
   if (!msvc) {
     throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.NOT_FOUND_HOST_TEMPLATE, templateArgs[2]))
   }
@@ -705,7 +701,6 @@ async function _createMicroservice (microserviceData, user, isCLI, transaction) 
     name: microserviceData.name,
     config: config,
     catalogItemId: microserviceData.catalogItemId,
-    flowId: microserviceData.flowId,
     iofogUuid: microserviceData.iofogUuid,
     rootHostAccess: microserviceData.rootHostAccess,
     registryId: microserviceData.registryId || 1,
@@ -725,7 +720,8 @@ async function _createMicroservice (microserviceData, user, isCLI, transaction) 
   await _checkForDuplicateName(newMicroservice.name, {}, user.id, transaction)
 
   // validate flow
-  await _validateFlow(newMicroservice.flowId, user, isCLI, transaction)
+  const application = await _validateApplication(microserviceData.application, user, isCLI, transaction)
+  newMicroservice.flowId = application.id
   // validate fog node
   if (newMicroservice.iofogUuid) {
     const fog = await FogManager.findOne({ uuid: newMicroservice.iofogUuid }, transaction)
@@ -737,15 +733,19 @@ async function _createMicroservice (microserviceData, user, isCLI, transaction) 
   return MicroserviceManager.create(newMicroservice, transaction)
 }
 
-async function _validateFlow (flowId, user, isCLI, transaction) {
-  const where = isCLI
-    ? { id: flowId }
-    : { id: flowId, userId: user.id }
-
-  const flow = await FlowManager.findOne(where, transaction)
-  if (!flow) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_ID, flowId))
+async function _validateApplication (name, user, isCLI, transaction) {
+  if (!name) {
+    return null
   }
+  const where = isCLI
+    ? { name }
+    : { name, userId: user.id }
+
+  const application = await ApplicationManager.findOne(where, transaction)
+  if (!application) {
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_ID, name))
+  }
+  return application
 }
 
 async function _createMicroserviceStatus (microservice, transaction) {

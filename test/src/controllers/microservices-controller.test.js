@@ -245,11 +245,11 @@ describe('Microservices Controller', () => {
 
   describe('.getMicroservicesByFlowEndPoint()', () => {
     def('user', () => 'user!')
-    def('flowId', () => 1)
+    def('application', () => 'my-app')
 
     def('req', () => ({
       query: {
-        flowId: $flowId,
+        application: $application,
       },
     }))
     def('response', () => Promise.resolve())
@@ -261,7 +261,7 @@ describe('Microservices Controller', () => {
 
     it('calls MicroservicesService.listMicroservicesEndPoint with correct args', async () => {
       await $subject
-      expect(MicroservicesService.listMicroservicesEndPoint).to.have.been.calledWith($flowId, $user, false)
+      expect(MicroservicesService.listMicroservicesEndPoint).to.have.been.calledWith($application, $user, false)
     })
 
     context('when MicroservicesService#listMicroservicesEndPoint fails', () => {

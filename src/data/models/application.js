@@ -1,6 +1,6 @@
 'use strict'
 module.exports = (sequelize, DataTypes) => {
-  const Flow = sequelize.define('Flow', {
+  const Application = sequelize.define('Application', {
     id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
@@ -12,7 +12,8 @@ module.exports = (sequelize, DataTypes) => {
     name: {
       type: DataTypes.TEXT,
       field: 'name',
-      defaultValue: 'New Flow'
+      defaultValue: 'new-application',
+      unique: true
     },
     description: {
       type: DataTypes.TEXT,
@@ -34,8 +35,8 @@ module.exports = (sequelize, DataTypes) => {
     timestamps: true,
     underscored: true
   })
-  Flow.associate = function (models) {
-    Flow.belongsTo(models.User, {
+  Application.associate = function (models) {
+    Application.belongsTo(models.User, {
       foreignKey: {
         name: 'userId',
         field: 'user_id'
@@ -44,7 +45,7 @@ module.exports = (sequelize, DataTypes) => {
       onDelete: 'cascade'
     })
 
-    Flow.hasMany(models.Microservice, {
+    Application.hasMany(models.Microservice, {
       foreignKey: {
         name: 'flowId',
         field: 'flow_id'
@@ -52,5 +53,5 @@ module.exports = (sequelize, DataTypes) => {
       as: 'microservices'
     })
   }
-  return Flow
+  return Application
 }

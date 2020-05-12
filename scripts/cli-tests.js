@@ -191,14 +191,14 @@ function testFlowSection () {
   const userId = userCreateResponse.id
 
   try {
-    const flowCreateResponse = responseHasFields(testCommand('flow add -n testFlow1 -d testDescription' +
+    const flowCreateResponse = responseHasFields(testCommand('flow add -n test-flow-1 -d testDescription' +
       ' -a -u ' + userId), flowCreateFields)
-    const flowId = flowCreateResponse.id
-    responseEquals(testCommand('flow update -i ' + flowId + ' -n testFlow1 -d testDescription -a'),
+    const name = flowCreateResponse.name
+    responseEquals(testCommand('flow update -n ' + name + ' -d testDescription -a' + ' -u ' + userId),
       'Flow updated successfully.')
     responseHasFields(testCommand('flow list'), flowListFields)
-    responseHasFields(testCommand('flow info -i ' + flowId), flowCreateFields)
-    responseEquals(testCommand('flow remove -i ' + flowId), 'Flow removed successfully.')
+    responseHasFields(testCommand('flow info -n ' + name), flowCreateFields)
+    responseEquals(testCommand('flow remove -n ' + name + ' -u ' + userId), 'Flow removed successfully.')
     executeCommand('user remove -e flowUser@domain.com')
   } catch (exception) {
     executeCommand('user remove -e flowUser@domain.com')
@@ -222,9 +222,9 @@ function testMicroserviceSection () {
     '-X \'{}\' -u ' + userId), catalogCreateFields)
   const catalogId = catalogCreateResponse.id
 
-  const flowCreateResponse = responseHasFields(executeCommand('flow add -n testFlow1 -d testDescription' +
+  const flowCreateResponse = responseHasFields(executeCommand('flow add -n test-flow1 -d testDescription' +
     ' -a -u ' + userId), flowCreateFields)
-  const flowId = flowCreateResponse.id
+  const flowId = flowCreateResponse.name
 
   const ioFogCreateResponse = responseHasFields(executeCommand('iofog add -n ioFog2 -l testLocation -t 55 -g 65 ' +
     '-d testDescription -D testDockerUrl -M 55 -T testDiskDirectoryString -m 65 -c 24 -G 1 -Y testLogDirectory ' +
@@ -309,9 +309,9 @@ function testDiagnosticsSection () {
     '-X \'{}\' -u ' + userId), catalogCreateFields)
   const catalogId = catalogCreateResponse.id
 
-  const flowCreateResponse = responseHasFields(executeCommand('flow add -n testFlow1 -d testDescription' +
+  const flowCreateResponse = responseHasFields(executeCommand('flow add -n test-flow1 -d testDescription' +
     ' -a -u ' + userId), flowCreateFields)
-  const flowId = flowCreateResponse.id
+  const flowId = flowCreateResponse.name
 
   const ioFogCreateResponse = responseHasFields(executeCommand('iofog add -n ioFog3 -l testLocation -t 55 -g 65' +
     ' -d testDescription -D testDockerUrl -M 55 -T testDiskDirectoryString -m 65 -c 24 -G 1 -Y testLogDirectory ' +

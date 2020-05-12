@@ -14,7 +14,7 @@
 const BaseCLIHandler = require('./base-cli-handler')
 const constants = require('../helpers/constants')
 const AuthDecorator = require('../decorators/cli-decorator')
-const FlowService = require('../services/flow-service')
+const ApplicationService = require('../services/application-service')
 const AppHelper = require('../helpers/app-helper')
 const logger = require('../logger')
 const fs = require('fs')
@@ -26,7 +26,7 @@ const JSON_SCHEMA = AppHelper.stringifyCliJsonSchema({
   isActivated: true
 })
 
-class Flow extends BaseCLIHandler {
+class Application extends BaseCLIHandler {
   constructor () {
     super()
 
@@ -45,24 +45,17 @@ class Flow extends BaseCLIHandler {
         group: [constants.CMD_ADD, constants.CMD_UPDATE]
       },
       {
-        name: 'flow-id',
-        alias: 'i',
-        type: CliDataTypes.Integer,
-        description: 'Application flow ID',
-        group: [constants.CMD_UPDATE, constants.CMD_REMOVE, constants.CMD_INFO]
-      },
-      {
         name: 'name',
         alias: 'n',
         type: String,
-        description: 'Application flow name',
-        group: [constants.CMD_UPDATE, constants.CMD_ADD]
+        description: 'Flow flow name',
+        group: [constants.CMD_UPDATE, constants.CMD_ADD, constants.CMD_REMOVE, constants.CMD_INFO]
       },
       {
         name: 'description',
         alias: 'd',
         type: String,
-        description: 'Application flow description',
+        description: 'Flow flow description',
         group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
@@ -84,7 +77,7 @@ class Flow extends BaseCLIHandler {
         alias: 'u',
         type: CliDataTypes.Integer,
         description: 'User\'s id',
-        group: [constants.CMD_ADD]
+        group: [constants.CMD_ADD, constants.CMD_UPDATE, constants.CMD_REMOVE]
       }
     ]
     this.commands = {
@@ -106,19 +99,19 @@ class Flow extends BaseCLIHandler {
 
       switch (command) {
         case constants.CMD_ADD:
-          await _executeCase(flowCommand, constants.CMD_ADD, _createFlow, true)
+          await _executeCase(flowCommand, constants.CMD_ADD, _createApplication, true)
           break
         case constants.CMD_UPDATE:
-          await _executeCase(flowCommand, constants.CMD_UPDATE, _updateFlow, false)
+          await _executeCase(flowCommand, constants.CMD_UPDATE, _updateApplication, true)
           break
         case constants.CMD_REMOVE:
-          await _executeCase(flowCommand, constants.CMD_REMOVE, _deleteFlow, false)
+          await _executeCase(flowCommand, constants.CMD_REMOVE, _deleteApplication, true)
           break
         case constants.CMD_LIST:
-          await _executeCase(flowCommand, constants.CMD_LIST, _getAllFlows, false)
+          await _executeCase(flowCommand, constants.CMD_LIST, _getAllApplications, false)
           break
         case constants.CMD_INFO:
-          await _executeCase(flowCommand, constants.CMD_INFO, _getFlow, false)
+          await _executeCase(flowCommand, constants.CMD_INFO, _getApplication, false)
           break
         case constants.CMD_HELP:
         default:
@@ -157,49 +150,50 @@ const _executeCase = async function (flowCommand, commandName, f, isUserRequired
   }
 }
 
-const _createFlow = async function (flowData, user) {
+const _createApplication = async function (flowData, user) {
   const flow = flowData.file
     ? JSON.parse(fs.readFileSync(flowData.file, 'utf8'))
-    : _createFlowObject(flowData)
+    : _createApplicationObject(flowData)
   logger.cliReq('flow add', { args: flow })
-  const createdFlow = await FlowService.createFlowEndPoint(flow, user, true)
+  const createdApplication = await ApplicationService.createApplicationEndPoint(flow, user, true)
   logger.cliRes(JSON.stringify({
-    id: createdFlow.id
+    id: createdApplication.id,
+    name: createdApplication.name
   }, null, 2))
 }
 
-const _updateFlow = async function (flowData) {
+const _updateApplication = async function (flowData, user) {
   const flow = flowData.file
     ? JSON.parse(fs.readFileSync(flowData.file, 'utf8'))
-    : _createFlowObject(flowData)
+    : _createApplicationObject(flowData)
 
-  const flowId = flowData.flowId
+  const name = flowData.name
   logger.cliReq('flow update', { args: flow })
-  await FlowService.updateFlowEndPoint(flow, flowId, {}, true)
+  await ApplicationService.patchApplicationEndPoint(flow, name, user, true)
   logger.cliRes('Flow updated successfully.')
 }
 
-const _deleteFlow = async function (flowData) {
-  const flowId = flowData.flowId
-  logger.cliReq('flow remove', { args: { flowId: flowId } })
-  await FlowService.deleteFlowEndPoint(flowId, {}, true)
+const _deleteApplication = async function (flowData, user) {
+  const name = flowData.name
+  logger.cliReq('flow remove', { args: { name } })
+  await ApplicationService.deleteApplicationEndPoint(name, user, true)
   logger.cliRes('Flow removed successfully.')
 }
 
-const _getAllFlows = async function () {
+const _getAllApplications = async function () {
   logger.cliReq('flow list')
-  const flows = await FlowService.getAllFlowsEndPoint(true)
+  const flows = await ApplicationService.getAllApplicationsEndPoint(true)
   logger.cliRes(JSON.stringify(flows, null, 2))
 }
 
-const _getFlow = async function (flowData) {
-  const flowId = flowData.flowId
-  logger.cliReq('flow info', { args: { flowId: flowId } })
-  const flow = await FlowService.getFlowEndPoint(flowId, {}, true)
+const _getApplication = async function (flowData) {
+  const name = flowData.name
+  logger.cliReq('flow info', { args: { name } })
+  const flow = await ApplicationService.getApplicationEndPoint(name, {}, true)
   logger.cliRes(JSON.stringify(flow, null, 2))
 }
 
-function _createFlowObject (data) {
+function _createApplicationObject (data) {
   const flow = {
     id: data.id,
     name: data.name,
@@ -210,4 +204,4 @@ function _createFlowObject (data) {
   return AppHelper.deleteUndefinedFields(flow)
 }
 
-module.exports = new Flow()
+module.exports = new Application()
