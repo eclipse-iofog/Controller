@@ -41,35 +41,35 @@ class Application extends BaseCLIHandler {
         name: 'file',
         alias: 'f',
         type: String,
-        description: 'Path to application flow settings JSON file',
+        description: 'Path to application settings JSON file',
         group: [constants.CMD_ADD, constants.CMD_UPDATE]
       },
       {
         name: 'name',
         alias: 'n',
         type: String,
-        description: 'Flow flow name',
+        description: 'Application name',
         group: [constants.CMD_UPDATE, constants.CMD_ADD, constants.CMD_REMOVE, constants.CMD_INFO]
       },
       {
         name: 'description',
         alias: 'd',
         type: String,
-        description: 'Flow flow description',
+        description: 'Application description',
         group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
         name: 'activate',
         alias: 'a',
         type: Boolean,
-        description: 'Activate application flow',
+        description: 'Activate application',
         group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
         name: 'deactivate',
         alias: 'D',
         type: Boolean,
-        description: 'Deactivate application flow',
+        description: 'Deactivate application',
         group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
@@ -81,37 +81,37 @@ class Application extends BaseCLIHandler {
       }
     ]
     this.commands = {
-      [constants.CMD_ADD]: 'Add a new flow.',
-      [constants.CMD_UPDATE]: 'Update existing flow.',
-      [constants.CMD_REMOVE]: 'Delete a flow.',
-      [constants.CMD_LIST]: 'List all flows.',
-      [constants.CMD_INFO]: 'Get flow settings.'
+      [constants.CMD_ADD]: 'Add a new application.',
+      [constants.CMD_UPDATE]: 'Update existing application.',
+      [constants.CMD_REMOVE]: 'Delete a application.',
+      [constants.CMD_LIST]: 'List all applications.',
+      [constants.CMD_INFO]: 'Get application settings.'
     }
   }
 
   async run (args) {
     try {
-      const flowCommand = this.parseCommandLineArgs(this.commandDefinitions, { argv: args.argv, partial: false })
+      const applicationCommand = this.parseCommandLineArgs(this.commandDefinitions, { argv: args.argv, partial: false })
 
-      const command = flowCommand.command.command
+      const command = applicationCommand.command.command
 
       this.validateParameters(command, this.commandDefinitions, args.argv)
 
       switch (command) {
         case constants.CMD_ADD:
-          await _executeCase(flowCommand, constants.CMD_ADD, _createApplication, true)
+          await _executeCase(applicationCommand, constants.CMD_ADD, _createApplication, true)
           break
         case constants.CMD_UPDATE:
-          await _executeCase(flowCommand, constants.CMD_UPDATE, _updateApplication, true)
+          await _executeCase(applicationCommand, constants.CMD_UPDATE, _updateApplication, true)
           break
         case constants.CMD_REMOVE:
-          await _executeCase(flowCommand, constants.CMD_REMOVE, _deleteApplication, true)
+          await _executeCase(applicationCommand, constants.CMD_REMOVE, _deleteApplication, true)
           break
         case constants.CMD_LIST:
-          await _executeCase(flowCommand, constants.CMD_LIST, _getAllApplications, false)
+          await _executeCase(applicationCommand, constants.CMD_LIST, _getAllApplications, false)
           break
         case constants.CMD_INFO:
-          await _executeCase(flowCommand, constants.CMD_INFO, _getApplication, false)
+          await _executeCase(applicationCommand, constants.CMD_INFO, _getApplication, false)
           break
         case constants.CMD_HELP:
         default:
@@ -135,9 +135,9 @@ class Application extends BaseCLIHandler {
   }
 }
 
-const _executeCase = async function (flowCommand, commandName, f, isUserRequired) {
+const _executeCase = async function (applicationCommand, commandName, f, isUserRequired) {
   try {
-    const item = flowCommand[commandName]
+    const item = applicationCommand[commandName]
 
     if (isUserRequired) {
       const decoratedFunction = AuthDecorator.prepareUserById(f)
@@ -150,58 +150,58 @@ const _executeCase = async function (flowCommand, commandName, f, isUserRequired
   }
 }
 
-const _createApplication = async function (flowData, user) {
-  const flow = flowData.file
-    ? JSON.parse(fs.readFileSync(flowData.file, 'utf8'))
-    : _createApplicationObject(flowData)
-  logger.cliReq('flow add', { args: flow })
-  const createdApplication = await ApplicationService.createApplicationEndPoint(flow, user, true)
+const _createApplication = async function (applicationData, user) {
+  const application = applicationData.file
+    ? JSON.parse(fs.readFileSync(applicationData.file, 'utf8'))
+    : _createApplicationObject(applicationData)
+  logger.cliReq('application add', { args: application })
+  const createdApplication = await ApplicationService.createApplicationEndPoint(application, user, true)
   logger.cliRes(JSON.stringify({
     id: createdApplication.id,
     name: createdApplication.name
   }, null, 2))
 }
 
-const _updateApplication = async function (flowData, user) {
-  const flow = flowData.file
-    ? JSON.parse(fs.readFileSync(flowData.file, 'utf8'))
-    : _createApplicationObject(flowData)
+const _updateApplication = async function (applicationData, user) {
+  const application = applicationData.file
+    ? JSON.parse(fs.readFileSync(applicationData.file, 'utf8'))
+    : _createApplicationObject(applicationData)
 
-  const name = flowData.name
-  logger.cliReq('flow update', { args: flow })
-  await ApplicationService.patchApplicationEndPoint(flow, name, user, true)
-  logger.cliRes('Flow updated successfully.')
+  const name = applicationData.name
+  logger.cliReq('application update', { args: application })
+  await ApplicationService.patchApplicationEndPoint(application, name, user, true)
+  logger.cliRes('Application updated successfully.')
 }
 
-const _deleteApplication = async function (flowData, user) {
-  const name = flowData.name
-  logger.cliReq('flow remove', { args: { name } })
+const _deleteApplication = async function (applicationData, user) {
+  const name = applicationData.name
+  logger.cliReq('application remove', { args: { name } })
   await ApplicationService.deleteApplicationEndPoint(name, user, true)
-  logger.cliRes('Flow removed successfully.')
+  logger.cliRes('Application removed successfully.')
 }
 
 const _getAllApplications = async function () {
-  logger.cliReq('flow list')
-  const flows = await ApplicationService.getAllApplicationsEndPoint(true)
-  logger.cliRes(JSON.stringify(flows, null, 2))
+  logger.cliReq('application list')
+  const applications = await ApplicationService.getAllApplicationsEndPoint(true)
+  logger.cliRes(JSON.stringify(applications, null, 2))
 }
 
-const _getApplication = async function (flowData) {
-  const name = flowData.name
-  logger.cliReq('flow info', { args: { name } })
-  const flow = await ApplicationService.getApplicationEndPoint(name, {}, true)
-  logger.cliRes(JSON.stringify(flow, null, 2))
+const _getApplication = async function (applicationData) {
+  const name = applicationData.name
+  logger.cliReq('application info', { args: { name } })
+  const application = await ApplicationService.getApplicationEndPoint(name, {}, true)
+  logger.cliRes(JSON.stringify(application, null, 2))
 }
 
 function _createApplicationObject (data) {
-  const flow = {
+  const application = {
     id: data.id,
     name: data.name,
     description: data.description,
     isActivated: AppHelper.validateBooleanCliOptions(data.activate, data.deactivate)
   }
 
-  return AppHelper.deleteUndefinedFields(flow)
+  return AppHelper.deleteUndefinedFields(application)
 }
 
 module.exports = new Application()

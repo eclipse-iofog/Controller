@@ -1878,7 +1878,7 @@
       ]
     },
     {
-      "name": "Flow",
+      "name": "Application",
       "item": [
         {
           "name": "Create user",
@@ -1975,7 +1975,7 @@
           "response": []
         },
         {
-          "name": "New Flow",
+          "name": "New Application",
           "event": [
             {
               "listen": "test",
@@ -1988,7 +1988,7 @@
                   "",
                   "tests[\"Response validation passed\"] = data.hasOwnProperty('id');",
                   "",
-                  "postman.setGlobalVariable(\"flow-name\", data.name);"
+                  "postman.setGlobalVariable(\"application-name\", data.name);"
                 ],
                 "type": "text/javascript"
               }
@@ -2009,7 +2009,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"flow-name\",\n \"isSystem\": false,\n \"description\": \"Description\",\n  \"isActivated\": true\n}"
+              "raw": "{\n  \"name\": \"application-name\",\n \"isSystem\": false,\n \"description\": \"Description\",\n  \"isActivated\": true\n}"
             },
             "url": {
               "raw": "{{host}}/api/v3/application",
@@ -2026,7 +2026,7 @@
           "response": []
         },
         {
-          "name": "Get Flows",
+          "name": "Get Applications",
           "event": [
             {
               "listen": "test",
@@ -2037,7 +2037,7 @@
                   "",
                   "var data = JSON.parse(responseBody);",
                   "",
-                  "tests[\"Response validation passed\"] = data.hasOwnProperty('flows') && data.flows.length > 0;"
+                  "tests[\"Response validation passed\"] = data.hasOwnProperty('applications') && data.applications.length > 0;"
                 ],
                 "type": "text/javascript"
               }
@@ -2071,7 +2071,7 @@
           "response": []
         },
         {
-          "name": "Get Flow By Name",
+          "name": "Get Application By Name",
           "event": [
             {
               "listen": "test",
@@ -2102,7 +2102,7 @@
               }
             ],
             "url": {
-              "raw": "{{host}}/api/v3/application/{{flow-name}}",
+              "raw": "{{host}}/api/v3/application/{{application-name}}",
               "host": [
                 "{{host}}"
               ],
@@ -2110,14 +2110,14 @@
                 "api",
                 "v3",
                 "application",
-                "{{flow-name}}"
+                "{{application-name}}"
               ]
             }
           },
           "response": []
         },
         {
-          "name": "Update Flow",
+          "name": "Update Application",
           "event": [
             {
               "listen": "test",
@@ -2125,7 +2125,7 @@
                 "id": "4f7a9f52-12cc-49d0-9e2f-147b6f5cb6fa",
                 "exec": [
                   "tests[\"Status code is 204\"] = responseCode.code === 204;",
-                  "postman.setGlobalVariable(\"flow-name\", \"flow-name-22\");"
+                  "postman.setGlobalVariable(\"application-name\", \"application-name-22\");"
                 ],
                 "type": "text/javascript"
               }
@@ -2146,10 +2146,10 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"flow-name-22\",\n  \"isSystem\": true,\n  \"description\": \"Description\",\n  \"isActivated\": true\n}"
+              "raw": "{\n  \"name\": \"application-name-22\",\n  \"isSystem\": true,\n  \"description\": \"Description\",\n  \"isActivated\": true\n}"
             },
             "url": {
-              "raw": "{{host}}/api/v3/application/{{flow-name}}",
+              "raw": "{{host}}/api/v3/application/{{application-name}}",
               "host": [
                 "{{host}}"
               ],
@@ -2157,14 +2157,14 @@
                 "api",
                 "v3",
                 "application",
-                "{{flow-name}}"
+                "{{application-name}}"
               ]
             }
           },
           "response": []
         },
         {
-          "name": "Get Flows without system",
+          "name": "Get Applications without system",
           "event": [
             {
               "listen": "test",
@@ -2175,7 +2175,7 @@
                   "",
                   "var data = JSON.parse(responseBody);",
                   "",
-                  "tests[\"Response validation passed\"] = data.hasOwnProperty('flows') && data.flows.length === 0;"
+                  "tests[\"Response validation passed\"] = data.hasOwnProperty('applications') && data.applications.length === 0;"
                 ],
                 "type": "text/javascript"
               }
@@ -2209,7 +2209,7 @@
           "response": []
         },
         {
-          "name": "Delete Flow",
+          "name": "Delete Application",
           "event": [
             {
               "listen": "test",
@@ -2240,7 +2240,7 @@
               "raw": ""
             },
             "url": {
-              "raw": "{{host}}/api/v3/application/{{flow-name}}",
+              "raw": "{{host}}/api/v3/application/{{application-name}}",
               "host": [
                 "{{host}}"
               ],
@@ -2248,7 +2248,7 @@
                 "api",
                 "v3",
                 "application",
-                "{{flow-name}}"
+                "{{application-name}}"
               ]
             }
           },
@@ -2300,7 +2300,7 @@
           "response": []
         }
       ],
-      "description": "Flow collection",
+      "description": "Application collection",
       "event": [
         {
           "listen": "prerequest",
@@ -3438,7 +3438,7 @@
           "response": []
         },
         {
-          "name": "New Flow",
+          "name": "New Application",
           "event": [
             {
               "listen": "test",
@@ -3451,7 +3451,7 @@
                   "",
                   "tests[\"Response validation passed\"] = data.hasOwnProperty('id');",
                   "",
-                  "postman.setGlobalVariable(\"flow-name\", data.name);"
+                  "postman.setGlobalVariable(\"application-name\", data.name);"
                 ],
                 "type": "text/javascript"
               }
@@ -3472,7 +3472,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"flow-name\",\n  \"description\": \"Description\",\n  \"isActivated\": true\n}"
+              "raw": "{\n  \"name\": \"application-name\",\n  \"description\": \"Description\",\n  \"isActivated\": true\n}"
             },
             "url": {
               "raw": "{{host}}/api/v3/application",
@@ -3626,7 +3626,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"name2\",\n  \"config\": \"string\",\n  \"catalogItemId\": {{item-id}},\n  \"application\": \"{{flow-name}}\",\n  \"iofogUuid\": \"{{node-id}}\",\n  \"rootHostAccess\": true,\n  \"logSize\": 0,\n  \"volumeMappings\": [\n    {\n      \"hostDestination\": \"/var/dest\",\n      \"containerDestination\": \"/var/dest\",\n      \"accessMode\": \"rw\"\n    }\n  ],\n  \"ports\": [\n    {\n      \"internal\": 1,\n      \"external\": 1,\n      \"publicMode\": false\n    }\n  ],\n  \"routes\": [\n  ],\n  \"env\": [\n    {\n      \"key\": \"KEY1\",\n      \"value\": \"value1\"\n    },\n    {\n      \"key\": \"KEY2\",\n      \"value\": \"value2\"\n    }\n  ],\n  \"cmd\": [\n  \t\"test\",\n  \t\"--arg1\",\n  \t\"--arg2\"\n  ]\n}\n"
+              "raw": "{\n  \"name\": \"name2\",\n  \"config\": \"string\",\n  \"catalogItemId\": {{item-id}},\n  \"application\": \"{{application-name}}\",\n  \"iofogUuid\": \"{{node-id}}\",\n  \"rootHostAccess\": true,\n  \"logSize\": 0,\n  \"volumeMappings\": [\n    {\n      \"hostDestination\": \"/var/dest\",\n      \"containerDestination\": \"/var/dest\",\n      \"accessMode\": \"rw\"\n    }\n  ],\n  \"ports\": [\n    {\n      \"internal\": 1,\n      \"external\": 1,\n      \"publicMode\": false\n    }\n  ],\n  \"routes\": [\n  ],\n  \"env\": [\n    {\n      \"key\": \"KEY1\",\n      \"value\": \"value1\"\n    },\n    {\n      \"key\": \"KEY2\",\n      \"value\": \"value2\"\n    }\n  ],\n  \"cmd\": [\n  \t\"test\",\n  \t\"--arg1\",\n  \t\"--arg2\"\n  ]\n}\n"
             },
             "url": {
               "raw": "{{host}}/api/v3/microservices",
@@ -3726,7 +3726,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"nameWithoutCatalog\",\n  \"config\": \"string\",\n  \"images\": [{\"containerImage\": \"hello-world\"\n,\"fogTypeId\": 1}, {\"containerImage\": \"hello-world\"\n,\"fogTypeId\": 2}]\n, \"registryId\": 1,\n \"application\": \"{{flow-name}}\",\n  \"iofogUuid\": \"{{node-id}}\",\n  \"rootHostAccess\": true,\n  \"logSize\": 0,\n  \"volumeMappings\": [\n    {\n      \"hostDestination\": \"/var/dest\",\n      \"containerDestination\": \"/var/dest\",\n      \"accessMode\": \"rw\"\n    }\n  ],\n  \"ports\": [\n    {\n      \"internal\": 2,\n      \"external\": 2,\n      \"publicMode\": false\n    }\n  ],\n  \"routes\": [\n  ],\n  \"env\": [\n    {\n      \"key\": \"KEY1\",\n      \"value\": \"value1\"\n    },\n    {\n      \"key\": \"KEY2\",\n      \"value\": \"value2\"\n    }\n  ],\n  \"cmd\": [\n  \t\"test\",\n  \t\"--arg1\",\n  \t\"--arg2\"\n  ]\n}\n"
+              "raw": "{\n  \"name\": \"nameWithoutCatalog\",\n  \"config\": \"string\",\n  \"images\": [{\"containerImage\": \"hello-world\"\n,\"fogTypeId\": 1}, {\"containerImage\": \"hello-world\"\n,\"fogTypeId\": 2}]\n, \"registryId\": 1,\n \"application\": \"{{application-name}}\",\n  \"iofogUuid\": \"{{node-id}}\",\n  \"rootHostAccess\": true,\n  \"logSize\": 0,\n  \"volumeMappings\": [\n    {\n      \"hostDestination\": \"/var/dest\",\n      \"containerDestination\": \"/var/dest\",\n      \"accessMode\": \"rw\"\n    }\n  ],\n  \"ports\": [\n    {\n      \"internal\": 2,\n      \"external\": 2,\n      \"publicMode\": false\n    }\n  ],\n  \"routes\": [\n  ],\n  \"env\": [\n    {\n      \"key\": \"KEY1\",\n      \"value\": \"value1\"\n    },\n    {\n      \"key\": \"KEY2\",\n      \"value\": \"value2\"\n    }\n  ],\n  \"cmd\": [\n  \t\"test\",\n  \t\"--arg1\",\n  \t\"--arg2\"\n  ]\n}\n"
             },
             "url": {
               "raw": "{{host}}/api/v3/microservices",
@@ -3978,7 +3978,7 @@
               }
             ],
             "url": {
-              "raw": "{{host}}/api/v3/microservices?application={{flow-name}}",
+              "raw": "{{host}}/api/v3/microservices?application={{application-name}}",
               "host": [
                 "{{host}}"
               ],
@@ -3990,7 +3990,7 @@
               "query": [
                 {
                   "key": "application",
-                  "value": "{{flow-name}}"
+                  "value": "{{application-name}}"
                 }
               ]
             }
@@ -4840,7 +4840,7 @@
           "response": []
         },
         {
-          "name": "Delete Flow",
+          "name": "Delete Application",
           "event": [
             {
               "listen": "test",
@@ -4871,7 +4871,7 @@
               "raw": ""
             },
             "url": {
-              "raw": "{{host}}/api/v3/application/{{flow-name}}",
+              "raw": "{{host}}/api/v3/application/{{application-name}}",
               "host": [
                 "{{host}}"
               ],
@@ -4879,7 +4879,7 @@
                 "api",
                 "v3",
                 "application",
-                "{{flow-name}}"
+                "{{application-name}}"
               ]
             }
           },
@@ -5299,7 +5299,7 @@
           "response": []
         },
         {
-          "name": "New Flow",
+          "name": "New Application",
           "event": [
             {
               "listen": "test",
@@ -5312,7 +5312,7 @@
                   "",
                   "tests[\"Response validation passed\"] = data.hasOwnProperty('id');",
                   "",
-                  "postman.setGlobalVariable(\"flow-name\", data.name);"
+                  "postman.setGlobalVariable(\"application-name\", data.name);"
                 ],
                 "type": "text/javascript"
               }
@@ -5333,7 +5333,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"flow-name\",\n  \"description\": \"Description\",\n  \"isActivated\": true\n}"
+              "raw": "{\n  \"name\": \"application-name\",\n  \"description\": \"Description\",\n  \"isActivated\": true\n}"
             },
             "url": {
               "raw": "{{host}}/api/v3/application",
@@ -5436,7 +5436,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"name2\",\n  \"config\": \"string\",\n  \"catalogItemId\": {{item-id}},\n  \"application\": \"{{flow-name}}\",\n  \"iofogUuid\": \"{{node-id}}\",\n  \"rootHostAccess\": true,\n  \"logSize\": 0,\n  \"volumeMappings\": [\n    {\n      \"hostDestination\": \"/var/dest\",\n      \"containerDestination\": \"/var/dest\",\n      \"accessMode\": \"rw\"\n    }\n  ],\n  \"ports\": [\n    {\n      \"internal\": 1,\n      \"external\": 1,\n      \"publicMode\": false\n    }\n  ],\n  \"routes\": [\n  ]\n}\n"
+              "raw": "{\n  \"name\": \"name2\",\n  \"config\": \"string\",\n  \"catalogItemId\": {{item-id}},\n  \"application\": \"{{application-name}}\",\n  \"iofogUuid\": \"{{node-id}}\",\n  \"rootHostAccess\": true,\n  \"logSize\": 0,\n  \"volumeMappings\": [\n    {\n      \"hostDestination\": \"/var/dest\",\n      \"containerDestination\": \"/var/dest\",\n      \"accessMode\": \"rw\"\n    }\n  ],\n  \"ports\": [\n    {\n      \"internal\": 1,\n      \"external\": 1,\n      \"publicMode\": false\n    }\n  ],\n  \"routes\": [\n  ]\n}\n"
             },
             "url": {
               "raw": "{{host}}/api/v3/microservices",
@@ -5748,7 +5748,7 @@
           "response": []
         },
         {
-          "name": "Delete Flow",
+          "name": "Delete Application",
           "event": [
             {
               "listen": "test",
@@ -5779,7 +5779,7 @@
               "raw": ""
             },
             "url": {
-              "raw": "{{host}}/api/v3/application/{{flow-name}}",
+              "raw": "{{host}}/api/v3/application/{{application-name}}",
               "host": [
                 "{{host}}"
               ],
@@ -5787,7 +5787,7 @@
                 "api",
                 "v3",
                 "application",
-                "{{flow-name}}"
+                "{{application-name}}"
               ]
             }
           },

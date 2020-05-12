@@ -47,8 +47,8 @@ const ioFogProvisioningFields = ['key', 'expirationTime']
 const catalogCreateFields = ['id']
 const catalogListFields = ['catalogItems']
 
-const flowCreateFields = ['id']
-const flowListFields = ['flows']
+const applicationCreateFields = ['id']
+const applicationListFields = ['applications']
 
 const microserviceCreateFields = ['uuid']
 const microserviceListFields = ['microservices']
@@ -183,25 +183,25 @@ function testCatalogSection () {
   }
 }
 
-function testFlowSection () {
-  console.log('\n=============================\nStarting flow section..')
+function testApplicationSection () {
+  console.log('\n=============================\nStarting application section..')
 
-  const userCreateResponse = responseHasFields(executeCommand('user add -f John -l Doe -e flowUser@domain.com' +
+  const userCreateResponse = responseHasFields(executeCommand('user add -f John -l Doe -e applicationUser@domain.com' +
     ' -p \'#Bugs4Fun\''), userCreateFields)
   const userId = userCreateResponse.id
 
   try {
-    const flowCreateResponse = responseHasFields(testCommand('flow add -n test-flow-1 -d testDescription' +
-      ' -a -u ' + userId), flowCreateFields)
-    const name = flowCreateResponse.name
-    responseEquals(testCommand('flow update -n ' + name + ' -d testDescription -a' + ' -u ' + userId),
-      'Flow updated successfully.')
-    responseHasFields(testCommand('flow list'), flowListFields)
-    responseHasFields(testCommand('flow info -n ' + name), flowCreateFields)
-    responseEquals(testCommand('flow remove -n ' + name + ' -u ' + userId), 'Flow removed successfully.')
-    executeCommand('user remove -e flowUser@domain.com')
+    const applicationCreateResponse = responseHasFields(testCommand('application add -n test-application-1 -d testDescription' +
+      ' -a -u ' + userId), applicationCreateFields)
+    const name = applicationCreateResponse.name
+    responseEquals(testCommand('application update -n ' + name + ' -d testDescription -a' + ' -u ' + userId),
+      'Application updated successfully.')
+    responseHasFields(testCommand('application list'), applicationListFields)
+    responseHasFields(testCommand('application info -n ' + name), applicationCreateFields)
+    responseEquals(testCommand('application remove -n ' + name + ' -u ' + userId), 'Application removed successfully.')
+    executeCommand('user remove -e applicationUser@domain.com')
   } catch (exception) {
-    executeCommand('user remove -e flowUser@domain.com')
+    executeCommand('user remove -e applicationUser@domain.com')
   }
 }
 
@@ -222,9 +222,9 @@ function testMicroserviceSection () {
     '-X \'{}\' -u ' + userId), catalogCreateFields)
   const catalogId = catalogCreateResponse.id
 
-  const flowCreateResponse = responseHasFields(executeCommand('flow add -n test-flow1 -d testDescription' +
-    ' -a -u ' + userId), flowCreateFields)
-  const flowId = flowCreateResponse.name
+  const applicationCreateResponse = responseHasFields(executeCommand('application add -n test-application1 -d testDescription' +
+    ' -a -u ' + userId), applicationCreateFields)
+  const applicationId = applicationCreateResponse.name
 
   const ioFogCreateResponse = responseHasFields(executeCommand('iofog add -n ioFog2 -l testLocation -t 55 -g 65 ' +
     '-d testDescription -D testDockerUrl -M 55 -T testDiskDirectoryString -m 65 -c 24 -G 1 -Y testLogDirectory ' +
@@ -233,7 +233,7 @@ function testMicroserviceSection () {
 
   try {
     const microserviceCreateResponse = responseHasFields(testCommand('microservice add -n microserviceName1' +
-      ' -c ' + catalogId + ' -F ' + flowId + ' -I ' + ioFogUuid + ' -g \'{}\' -v /host_src:/container_src:rw -l 15 -R' +
+      ' -c ' + catalogId + ' -F ' + applicationId + ' -I ' + ioFogUuid + ' -g \'{}\' -v /host_src:/container_src:rw -l 15 -R' +
       ' -p 80:8080:false -u ' + userId), microserviceCreateFields)
     const microserviceUuid = microserviceCreateResponse.uuid
     responseEquals(testCommand('microservice update -i ' + microserviceUuid + ' -n microserviceName2' +
@@ -259,12 +259,12 @@ function testMicroserviceSection () {
     responseEquals(testCommand('microservice remove -i ' + microserviceUuid),
       'Microservice has been removed successfully.')
     executeCommand('iofog remove -i ' + ioFogUuid)
-    executeCommand('flow remove -i ' + flowId)
+    executeCommand('application remove -i ' + applicationId)
     executeCommand('catalog remove -i ' + catalogId)
     executeCommand('user remove -e microserviceUser@domain.com')
   } catch (exception) {
     executeCommand('iofog remove -i ' + ioFogUuid)
-    executeCommand('flow remove -i ' + flowId)
+    executeCommand('application remove -i ' + applicationId)
     executeCommand('catalog remove -i ' + catalogId)
     executeCommand('registry remove -i ' + registryId)
     executeCommand('user remove -e microserviceUser@domain.com')
@@ -309,9 +309,9 @@ function testDiagnosticsSection () {
     '-X \'{}\' -u ' + userId), catalogCreateFields)
   const catalogId = catalogCreateResponse.id
 
-  const flowCreateResponse = responseHasFields(executeCommand('flow add -n test-flow1 -d testDescription' +
-    ' -a -u ' + userId), flowCreateFields)
-  const flowId = flowCreateResponse.name
+  const applicationCreateResponse = responseHasFields(executeCommand('application add -n test-application1 -d testDescription' +
+    ' -a -u ' + userId), applicationCreateFields)
+  const applicationId = applicationCreateResponse.name
 
   const ioFogCreateResponse = responseHasFields(executeCommand('iofog add -n ioFog3 -l testLocation -t 55 -g 65' +
     ' -d testDescription -D testDockerUrl -M 55 -T testDiskDirectoryString -m 65 -c 24 -G 1 -Y testLogDirectory ' +
@@ -319,7 +319,7 @@ function testDiagnosticsSection () {
   const ioFogUuid = ioFogCreateResponse.uuid
 
   const microserviceCreateResponse = responseHasFields(executeCommand('microservice add -n microserviceName1' +
-    ' -c ' + catalogId + ' -F ' + flowId + ' -I ' + ioFogUuid + ' -g \'{}\' -v /host_src:/container_src:rw -l 15 -R' +
+    ' -c ' + catalogId + ' -F ' + applicationId + ' -I ' + ioFogUuid + ' -g \'{}\' -v /host_src:/container_src:rw -l 15 -R' +
     ' -p 80:8080:false -u ' + userId), microserviceCreateFields)
   const microserviceUuid = microserviceCreateResponse.uuid
 
@@ -336,14 +336,14 @@ function testDiagnosticsSection () {
       'Image snapshot is not available for this microservice.')
     executeCommand('microservice remove -i ' + microserviceUuid)
     executeCommand('iofog remove -i ' + ioFogUuid)
-    executeCommand('flow remove -i ' + flowId)
+    executeCommand('application remove -i ' + applicationId)
     executeCommand('catalog remove -i ' + catalogId)
     executeCommand('registry remove -i ' + registryId)
     executeCommand('user remove -e diagnosticsUser@domain.com')
   } catch (exception) {
     executeCommand('microservice remove -i ' + microserviceUuid)
     executeCommand('iofog remove -i ' + ioFogUuid)
-    executeCommand('flow remove -i ' + flowId)
+    executeCommand('application remove -i ' + applicationId)
     executeCommand('catalog remove -i ' + catalogId)
     executeCommand('registry remove -i ' + registryId)
     executeCommand('user remove -e diagnosticsUser@domain.com')
@@ -426,7 +426,7 @@ async function cliTest () {
     testTunnelSection()
     testIoFogSection()
     testCatalogSection()
-    testFlowSection()
+    testApplicationSection()
     testMicroserviceSection()
     testRegistrySection()
     testDiagnosticsSection()

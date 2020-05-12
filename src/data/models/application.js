@@ -47,8 +47,8 @@ module.exports = (sequelize, DataTypes) => {
 
     Application.hasMany(models.Microservice, {
       foreignKey: {
-        name: 'flowId',
-        field: 'flow_id'
+        name: 'applicationId',
+        field: 'application_id'
       },
       as: 'microservices'
     })

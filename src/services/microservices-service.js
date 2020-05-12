@@ -41,7 +41,7 @@ const { VOLUME_MAPPING_DEFAULT } = require('../helpers/constants')
 async function listMicroservicesEndPoint (applicationName, user, isCLI, transaction) {
   const application = await _validateApplication(applicationName, user, isCLI, transaction)
 
-  const where = application ? { flowId: application.id, delete: false } : { delete: false, flowId: { [Op.ne]: null } }
+  const where = application ? { applicationId: application.id, delete: false } : { delete: false, flowId: { [Op.ne]: null } }
   if (!isCLI) {
     where.userId = user.id
   }
@@ -115,7 +115,7 @@ async function _validateAppHostTemplate (extraHost, templateArgs, userId, transa
   if (!application) {
     throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.NOT_FOUND_HOST_TEMPLATE, templateArgs[1]))
   }
-  const msvc = await MicroserviceManager.findOne({ flowId: application.id, name: templateArgs[2] }, transaction)
+  const msvc = await MicroserviceManager.findOne({ applicationId: application.id, name: templateArgs[2] }, transaction)
   if (!msvc) {
     throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.NOT_FOUND_HOST_TEMPLATE, templateArgs[2]))
   }
@@ -719,9 +719,9 @@ async function _createMicroservice (microserviceData, user, isCLI, transaction) 
 
   await _checkForDuplicateName(newMicroservice.name, {}, user.id, transaction)
 
-  // validate flow
+  // validate application
   const application = await _validateApplication(microserviceData.application, user, isCLI, transaction)
-  newMicroservice.flowId = application.id
+  newMicroservice.applicationId = application.id
   // validate fog node
   if (newMicroservice.iofogUuid) {
     const fog = await FogManager.findOne({ uuid: newMicroservice.iofogUuid }, transaction)
@@ -879,7 +879,7 @@ async function _checkForDuplicateName (name, item, userId, transaction) {
 
 async function _validateMicroserviceOnGet (userId, microserviceUuid, transaction) {
   const where = {
-    '$flow.user.id$': userId,
+    '$application.user.id$': userId,
     'uuid': microserviceUuid
   }
   const microservice = await MicroserviceManager.findMicroserviceOnGet(where, transaction)

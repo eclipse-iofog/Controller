@@ -103,8 +103,8 @@ async function _createRoute (sourceMicroservice, destMicroservice, routeData, us
   if (!sourceMicroservice.iofogUuid || !destMicroservice.iofogUuid) {
     throw new Errors.ValidationError('fog not set')
   }
-  if (sourceMicroservice.flowId !== destMicroservice.flowId) {
-    throw new Errors.ValidationError('microservices on different flows')
+  if (sourceMicroservice.applicationId !== destMicroservice.applicationId) {
+    throw new Errors.ValidationError('microservices on different applications')
   }
 
   const route = await RoutingManager.findOne({

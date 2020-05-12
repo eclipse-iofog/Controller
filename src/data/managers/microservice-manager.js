@@ -134,7 +134,7 @@ class MicroserviceManager extends BaseManager {
     }, { transaction: transaction })
   }
 
-  findAllActiveFlowMicroservices (iofogUuid, transaction) {
+  findAllActiveApplicationMicroservices (iofogUuid, transaction) {
     return Microservice.findAll({
       include: [
         {
@@ -200,7 +200,7 @@ class MicroserviceManager extends BaseManager {
         },
         {
           model: Application,
-          as: 'flow',
+          as: 'application',
           required: false,
           attributes: ['isActivated']
         }
@@ -210,7 +210,7 @@ class MicroserviceManager extends BaseManager {
         [Op.or]:
           [
             {
-              '$flow.is_activated$': true
+              '$application.is_activated$': true
             },
             {
               '$catalogItem.category$': { [Op.eq]: 'SYSTEM' },
@@ -345,7 +345,7 @@ class MicroserviceManager extends BaseManager {
       include: [
         {
           model: Application,
-          as: 'flow',
+          as: 'application',
           required: true,
           include: [
             {

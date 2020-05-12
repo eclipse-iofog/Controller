@@ -59,9 +59,9 @@ module.exports = [
         }
       ]
 
-      const getMicroservicesByFlowEndPoint = ResponseDecorator.handleErrors(MicroservicesController.getMicroservicesByFlowEndPoint,
+      const getMicroservicesByApplicationEndPoint = ResponseDecorator.handleErrors(MicroservicesController.getMicroservicesByApplicationEndPoint,
         successCode, errorCodes)
-      const responseObject = await getMicroservicesByFlowEndPoint(req)
+      const responseObject = await getMicroservicesByApplicationEndPoint(req)
 
       res
         .status(responseObject.code)

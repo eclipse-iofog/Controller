@@ -16,7 +16,7 @@ const moment = require('moment')
 const AppHelper = require('../helpers/app-helper')
 const ErrorMessages = require('../helpers/error-messages')
 const Errors = require('../helpers/errors')
-const FlowService = require('./application-service')
+const ApplicationService = require('./application-service')
 const FogManager = require('../data/managers/iofog-manager')
 const IOFogService = require('./iofog-service')
 const KubeletAccessTokenService = require('./kubelet-access-token-service')
@@ -30,40 +30,40 @@ const NODE_CAPACITY = 100
 
 const processPodPayload = function (createPodData, fogNodeUuid) {
   const msMetadata = JSON.parse(createPodData.metadata.annotations.microservices)
-  const flowDescription = {
+  const applicationDescription = {
     metadata: createPodData,
     node: fogNodeUuid
   }
 
-  const flowData = {
+  const applicationData = {
     name: createPodData.metadata.name,
     isActivated: true,
-    description: Buffer.from(JSON.stringify(flowDescription)).toString('base64')
+    description: Buffer.from(JSON.stringify(applicationDescription)).toString('base64')
   }
 
   const microservices = microservicesTopologicalOrder(msMetadata)
 
   return {
-    flowData,
+    applicationData,
     microservices
   }
 }
 
 const kubeletCreatePod = async function (createPodData, fogNodeUuid, user, transaction) {
   const podPayload = processPodPayload(createPodData, fogNodeUuid)
-  const { flowData, microservices } = podPayload
+  const { applicationData, microservices } = podPayload
 
-  const flows = await FlowService.getAllFlowsEndPoint(false, transaction)
-  let flow = flows.flows.find((flow) => flow.name === flowData.name)
-  if (!flow) {
-    flow = await FlowService.createFlowEndPoint(flowData, user, false, transaction)
+  const applications = await ApplicationService.getAllApplicationsEndPoint(false, transaction)
+  let application = applications.applications.find((application) => application.name === applicationData.name)
+  if (!application) {
+    application = await ApplicationService.createApplicationEndPoint(applicationData, user, false, transaction)
   }
 
-  const existingMicroservices = await MicroservicesService.listMicroservicesEndPoint(flow.id, user, false, transaction)
+  const existingMicroservices = await MicroservicesService.listMicroservicesEndPoint(application.id, user, false, transaction)
 
   const microservicesIds = []
   for (const ms of microservices) {
-    const name = `${flowData.name}-${ms.name}`
+    const name = `${applicationData.name}-${ms.name}`
     const existingMicroservice = existingMicroservices.microservices.find((it) => it.name === name)
     if (existingMicroservice) {
       microservicesIds.push(existingMicroservice.uuid)
@@ -84,7 +84,7 @@ const kubeletCreatePod = async function (createPodData, fogNodeUuid, user, trans
       name: name,
       config: ms.config,
       catalogItemId: ms['catalog-item-id'],
-      flowId: flow.id,
+      applicationId: application.id,
       iofogUuid: fogNodeUuid,
       rootHostAccess: ms['host-access'],
       volumeMappings: ms['volume-mappings'] || [],
@@ -106,19 +106,19 @@ const kubeletCreatePod = async function (createPodData, fogNodeUuid, user, trans
 const kubeletUpdatePod = async function (uploadPodData, fogNodeUuid, user, transaction) {
   // Not supported yet.
   // const podPayload = processPodPayload(uploadPodData, fogNodeUuid)
-  // const { flowData, microservices } = podPayload
+  // const { applicationData, microservices } = podPayload
 
-  // const flows = await FlowService.getAllFlowsEndPoint(false, transaction)
-  // const flow = flows.flows.find((flow) => flow.name === flowData.name)
-  // if (!flow) {
-  //   throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_ID, flowData.name))
+  // const applications = await ApplicationService.getAllApplicationsEndPoint(false, transaction)
+  // const application = applications.applications.find((application) => application.name === applicationData.name)
+  // if (!application) {
+  //   throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_ID, applicationData.name))
   // }
 
-  // const existingMicroservices = await MicroservicesService.listMicroservicesEndPoint(flow.id, user, false, transaction)
+  // const existingMicroservices = await MicroservicesService.listMicroservicesEndPoint(application.id, user, false, transaction)
   // const msDup = [].concat(microservices)
   // const toDelete = []
   // existingMicroservices.forEach((ms) => {
-  //   const name = `${flowData.name}-${ms.name}`
+  //   const name = `${applicationData.name}-${ms.name}`
   //   const idx = msDup.findIndex((it) => it.name === name)
 
   //   if (!idx) {
@@ -130,13 +130,13 @@ const kubeletUpdatePod = async function (uploadPodData, fogNodeUuid, user, trans
   // })
 
   // msDup.map((ms) => {
-  //   const name = `${flowData.name}-${ms.name}`
+  //   const name = `${applicationData.name}-${ms.name}`
 
   //   const microserviceData = {
   //     name: name,
   //     config: ms.config,
   //     catalogItemId: ms['catalog-item-id'],
-  //     flowId: flow.id,
+  //     applicationId: application.id,
   //     iofogUuid: fogNodeUuid,
   //     rootHostAccess: ms['host-access'],
   //     volumeMappings: ms['volume-mappings'] || [],
@@ -155,26 +155,26 @@ const kubeletUpdatePod = async function (uploadPodData, fogNodeUuid, user, trans
 }
 
 const kubeletDeletePod = async function (podData, fogNodeUuid, user, transaction) {
-  const flowName = podData.metadata.name
+  const applicationName = podData.metadata.name
 
-  const flows = await FlowService.getAllFlowsEndPoint(false, transaction)
-  const flow = flows.flows.find((flow) => flow.name === flowName)
-  if (!flow) {
+  const applications = await ApplicationService.getAllApplicationsEndPoint(false, transaction)
+  const application = applications.applications.find((application) => application.name === applicationName)
+  if (!application) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, fogNodeUuid))
   }
 
-  const existingMicroservices = await MicroservicesService.listMicroservicesEndPoint(flow.id, user, false, transaction)
+  const existingMicroservices = await MicroservicesService.listMicroservicesEndPoint(application.id, user, false, transaction)
   existingMicroservices.microservices.forEach(async (ms) => {
     await MicroservicesService.deleteMicroserviceEndPoint(ms.uuid, { withCleanup: true }, user, false, transaction)
   })
 
-  await FlowService.deleteFlowEndPoint(flow.id, user, false, transaction)
+  await ApplicationService.deleteApplicationEndPoint(application.id, user, false, transaction)
 }
 
 const kubeletGetPod = async function (namespace, name, fogNodeUuid, user, transaction) {
-  const flow = await FlowService.getFlowByName(name, user, false, transaction)
+  const application = await ApplicationService.getApplicationByName(name, user, false, transaction)
 
-  return JSON.parse(Buffer.from(flow.description, 'base64').toString('utf8')).metadata
+  return JSON.parse(Buffer.from(application.description, 'base64').toString('utf8')).metadata
 }
 
 const kubeletGetContainerLogs = async function (namespace, podName, containerName, tail, fogNodeUuid, user, transaction) {
@@ -185,9 +185,9 @@ const kubeletGetPodStatus = async function (namespace, name, fogNodeUuid, user, 
   const fog = await FogManager.findOne({ uuid: fogNodeUuid }, transaction)
   const changeFrequency = (fog && fog.changeFrequency) || 60
 
-  const flow = await FlowService.getFlowByName(name, user, false, transaction)
-  const microservices = await MicroservicesService.listMicroservicesEndPoint(flow.id, user, false, transaction)
-  const pod = JSON.parse(Buffer.from(flow.description, 'base64').toString('utf8')).metadata
+  const application = await ApplicationService.getApplicationByName(name, user, false, transaction)
+  const microservices = await MicroservicesService.listMicroservicesEndPoint(application.id, user, false, transaction)
+  const pod = JSON.parse(Buffer.from(application.description, 'base64').toString('utf8')).metadata
 
   for (const ms of microservices.microservices) {
     const status = await MicroserviceStatusManager.findOne({ microserviceUuid: ms.uuid }, transaction)
@@ -241,11 +241,11 @@ const kubeletGetPodStatus = async function (namespace, name, fogNodeUuid, user, 
 }
 
 const kubeletGetPods = async function (fogNodeUuid, user, transaction) {
-  const flows = await FlowService.getAllFlowsEndPoint(false, transaction)
-  const pods = flows.flows
-    .reduce((prev, flow) => {
+  const applications = await ApplicationService.getAllApplicationsEndPoint(false, transaction)
+  const pods = applications.applications
+    .reduce((prev, application) => {
       try {
-        const podsInfo = JSON.parse(Buffer.from(flow.description, 'base64').toString('utf8'))
+        const podsInfo = JSON.parse(Buffer.from(application.description, 'base64').toString('utf8'))
         if (podsInfo.node === fogNodeUuid) {
           prev = prev.concat(podsInfo.metadata)
         }

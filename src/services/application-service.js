@@ -27,38 +27,38 @@ const remove = require('lodash/remove')
 
 const onlyUnique = (value, index, self) => self.indexOf(value) === index
 
-const createApplicationEndPoint = async function (flowData, user, isCLI, transaction) {
-  await Validator.validate(flowData, Validator.schemas.applicationCreate)
+const createApplicationEndPoint = async function (applicationData, user, isCLI, transaction) {
+  await Validator.validate(applicationData, Validator.schemas.applicationCreate)
 
-  await _checkForDuplicateName(flowData.name, null, user.id, transaction)
+  await _checkForDuplicateName(applicationData.name, null, user.id, transaction)
 
-  const flowToCreate = {
-    name: flowData.name,
-    description: flowData.description,
-    isActivated: !!flowData.isActivated,
-    isSystem: !!flowData.isSystem,
+  const applicationToCreate = {
+    name: applicationData.name,
+    description: applicationData.description,
+    isActivated: !!applicationData.isActivated,
+    isSystem: !!applicationData.isSystem,
     userId: user.id
   }
 
-  const flowDataCreate = AppHelper.deleteUndefinedFields(flowToCreate)
+  const applicationDataCreate = AppHelper.deleteUndefinedFields(applicationToCreate)
 
-  const flow = await ApplicationManager.create(flowDataCreate, transaction)
+  const application = await ApplicationManager.create(applicationDataCreate, transaction)
 
-  if (flowData.microservices) {
-    for (const msvcData of flowData.microservices) {
+  if (applicationData.microservices) {
+    for (const msvcData of applicationData.microservices) {
       await MicroserviceService.createMicroserviceEndPoint(msvcData, user, isCLI, transaction)
     }
   }
 
-  if (flowData.routes) {
-    for (const routeData of flowData.routes) {
+  if (applicationData.routes) {
+    for (const routeData of applicationData.routes) {
       await RoutingService.createRouting(routeData, user, isCLI, transaction)
     }
   }
 
   return {
-    id: flow.id,
-    name: flow.name
+    id: application.id,
+    name: application.name
   }
 }
 
@@ -75,55 +75,55 @@ const deleteApplicationEndPoint = async function (name, user, isCLI, transaction
 }
 
 // Only patches the metadata (running, name, description, etc.)
-const patchApplicationEndPoint = async function (flowData, name, user, isCLI, transaction) {
-  await Validator.validate(flowData, Validator.schemas.applicationUpdate)
+const patchApplicationEndPoint = async function (applicationData, name, user, isCLI, transaction) {
+  await Validator.validate(applicationData, Validator.schemas.applicationUpdate)
 
   const oldApplication = await ApplicationManager.findOne({ name, userId: user.id }, transaction)
 
   if (!oldApplication) {
     throw new Errors.NotFoundError(ErrorMessages.INVALID_FLOW_ID)
   }
-  if (flowData.name) {
-    await _checkForDuplicateName(flowData.name, oldApplication.id, user.id || oldApplication.userId, transaction)
+  if (applicationData.name) {
+    await _checkForDuplicateName(applicationData.name, oldApplication.id, user.id || oldApplication.userId, transaction)
   }
 
-  const flow = {
-    name: flowData.name || name,
-    description: flowData.description,
-    isActivated: flowData.isActivated,
-    isSystem: flowData.isSystem
+  const application = {
+    name: applicationData.name || name,
+    description: applicationData.description,
+    isActivated: applicationData.isActivated,
+    isSystem: applicationData.isSystem
   }
 
-  const updateApplicationData = AppHelper.deleteUndefinedFields(flow)
+  const updateApplicationData = AppHelper.deleteUndefinedFields(application)
 
   const where = isCLI
     ? { id: oldApplication.id }
     : { id: oldApplication.id, userId: user.id }
   await ApplicationManager.update(where, updateApplicationData, transaction)
 
-  if (oldApplication.isActivated !== flowData.isActivated) {
+  if (oldApplication.isActivated !== applicationData.isActivated) {
     await _updateChangeTrackingsAndDeleteMicroservicesByApplicationId(name, false, transaction)
   }
 }
 
 // Updates the state (microservices, routes, etc.)
-const updateApplicationEndPoint = async function (flowData, name, user, isCLI, transaction) {
-  await Validator.validate(flowData, Validator.schemas.applicationUpdate)
+const updateApplicationEndPoint = async function (applicationData, name, user, isCLI, transaction) {
+  await Validator.validate(applicationData, Validator.schemas.applicationUpdate)
 
   const oldApplication = await ApplicationManager.findOne({ name, userId: user.id }, transaction)
 
   if (!oldApplication) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_ID, name))
   }
-  if (flowData.name) {
-    await _checkForDuplicateName(flowData.name, oldApplication.id, user.id || oldApplication.userId, transaction)
+  if (applicationData.name) {
+    await _checkForDuplicateName(applicationData.name, oldApplication.id, user.id || oldApplication.userId, transaction)
   }
 
   const application = {
-    name: flowData.name || name,
-    description: flowData.description,
-    isActivated: flowData.isActivated,
-    isSystem: flowData.isSystem
+    name: applicationData.name || name,
+    description: applicationData.description,
+    isActivated: applicationData.isActivated,
+    isSystem: applicationData.isSystem
   }
 
   const updateApplicationData = AppHelper.deleteUndefinedFields(application)
@@ -133,14 +133,14 @@ const updateApplicationEndPoint = async function (flowData, name, user, isCLI, t
     : { id: oldApplication.id, userId: user.id }
   const updatedApplication = await ApplicationManager.update(where, updateApplicationData, transaction)
 
-  if (flowData.microservices) {
-    _updateMicroservices(updatedApplication, flowData.microservices, user, isCLI, transaction)
+  if (applicationData.microservices) {
+    _updateMicroservices(updatedApplication, applicationData.microservices, user, isCLI, transaction)
   }
-  if (flowData.routes) {
-    _updateRoutes(updatedApplication, flowData.routes, user, isCLI, transaction)
+  if (applicationData.routes) {
+    _updateRoutes(updatedApplication, applicationData.routes, user, isCLI, transaction)
   }
 
-  if (oldApplication.isActivated !== flowData.isActivated) {
+  if (oldApplication.isActivated !== applicationData.isActivated) {
     await _updateChangeTrackingsAndDeleteMicroservicesByApplicationId(name, false, transaction)
   }
 }
@@ -198,23 +198,23 @@ const _updateMicroservices = async function (application, microservices, user, i
 }
 
 const getUserApplicationsEndPoint = async function (user, isCLI, transaction) {
-  const flow = {
+  const application = {
     userId: user.id,
     isSystem: false
   }
 
   const attributes = { exclude: ['created_at', 'updated_at'] }
-  const flows = await ApplicationManager.findAllPopulated(flow, attributes, transaction)
+  const applications = await ApplicationManager.findAllPopulated(application, attributes, transaction)
   return {
-    flows: flows
+    applications: applications
   }
 }
 
 const getAllApplicationsEndPoint = async function (isCLI, transaction) {
   const attributes = { exclude: ['created_at', 'updated_at'] }
-  const flows = await ApplicationManager.findAllPopulated({}, attributes, transaction)
+  const applications = await ApplicationManager.findAllPopulated({}, attributes, transaction)
   return {
-    flows: flows
+    applications: applications
   }
 }
 
@@ -224,21 +224,21 @@ async function getApplication (name, user, isCLI, transaction) {
     : { name, userId: user.id }
   const attributes = { exclude: ['created_at', 'updated_at'] }
 
-  const flow = await ApplicationManager.findOnePopulated(where, attributes, transaction)
-  if (!flow) {
+  const application = await ApplicationManager.findOnePopulated(where, attributes, transaction)
+  if (!application) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_ID, name))
   }
-  return flow
+  return application
 }
 
 const getApplicationEndPoint = async function (name, user, isCLI, transaction) {
   return getApplication(name, user, isCLI, transaction)
 }
 
-const _checkForDuplicateName = async function (name, flowId, userId, transaction) {
+const _checkForDuplicateName = async function (name, applicationId, userId, transaction) {
   if (name) {
-    const where = flowId
-      ? { name: name, userId: userId, id: { [Op.ne]: flowId } }
+    const where = applicationId
+      ? { name: name, userId: userId, id: { [Op.ne]: applicationId } }
       : { name: name, userId: userId }
 
     const result = await ApplicationManager.findOne(where, transaction)

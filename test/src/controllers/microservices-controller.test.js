@@ -16,7 +16,7 @@ describe('Microservices Controller', () => {
     def('name', () => 'testName')
     def('config', () => '{}')
     def('catalogItemId', () => 5)
-    def('flowId', () => 1)
+    def('applicationId', () => 1)
     def('iofogUuid', () => 'testUuid')
     def('rootHostAccess', () => true)
     def('logSize', () => 15)
@@ -41,7 +41,7 @@ describe('Microservices Controller', () => {
         name: $name,
         config: $config,
         catalogItemId: $catalogItemId,
-        flowId: $flowId,
+        applicationId: $applicationId,
         iofogUuid: $iofogUuid,
         rootHostAccess: $rootHostAccess,
         logSize: $logSize,
@@ -64,7 +64,7 @@ describe('Microservices Controller', () => {
         name: $name,
         config: $config,
         catalogItemId: $catalogItemId,
-        flowId: $flowId,
+        applicationId: $applicationId,
         iofogUuid: $iofogUuid,
         rootHostAccess: $rootHostAccess,
         logSize: $logSize,
@@ -243,7 +243,7 @@ describe('Microservices Controller', () => {
     })
   })
 
-  describe('.getMicroservicesByFlowEndPoint()', () => {
+  describe('.getMicroservicesByApplicationEndPoint()', () => {
     def('user', () => 'user!')
     def('application', () => 'my-app')
 
@@ -253,7 +253,7 @@ describe('Microservices Controller', () => {
       },
     }))
     def('response', () => Promise.resolve())
-    def('subject', () => $subject.getMicroservicesByFlowEndPoint($req, $user))
+    def('subject', () => $subject.getMicroservicesByApplicationEndPoint($req, $user))
 
     beforeEach(() => {
       $sandbox.stub(MicroservicesService, 'listMicroservicesEndPoint').returns($response)

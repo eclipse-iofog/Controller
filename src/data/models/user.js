@@ -57,7 +57,7 @@ module.exports = (sequelize, DataTypes) => {
         name: 'userId',
         field: 'user_id'
       },
-      as: 'flow'
+      as: 'application'
     })
 
     User.hasMany(models.Fog, {
