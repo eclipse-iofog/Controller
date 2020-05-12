@@ -46,6 +46,7 @@ describe('Application Service', () => {
     }
 
     const response = {
+      name: applicationData.name,
       id: 25,
     }
 
@@ -152,7 +153,7 @@ describe('Application Service', () => {
       it('Should create the microservices', async () => {
         await $subject
         for (const msvcData of microservices) {
-          expect(MicroserviceService.createMicroserviceEndPoint).to.have.been.calledWith(msvcData, user, isCLI, transaction)
+          expect(MicroserviceService.createMicroserviceEndPoint).to.have.been.calledWith({ ...msvcData, application: response.name }, user, isCLI, transaction)
         }
       })
     })
@@ -530,7 +531,7 @@ describe('Application Service', () => {
         for (const msvcData of msvcs) {
           expect(MicroserviceService.updateMicroserviceEndPoint).to.have.been.calledWith(msvcData.uuid, msvcData, user, isCLI, transaction)
         }
-        expect(MicroserviceService.createMicroserviceEndPoint).to.have.been.calledWith(newMsvc, user, isCLI, transaction)
+        expect(MicroserviceService.createMicroserviceEndPoint).to.have.been.calledWith({ ...newMsvc, application: applicationData.name }, user, isCLI, transaction)
         expect(MicroserviceService.deleteMicroserviceWithRoutesAndPortMappings).to.have.been.calledWith(oldMsvc, transaction)
       })
     })
