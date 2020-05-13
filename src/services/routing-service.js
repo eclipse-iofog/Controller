@@ -96,8 +96,6 @@ async function updateRouting (routeName, routeData, user, isCLI, transaction) {
     await ChangeTrackingService.update(destMicroservice.iofogUuid, ChangeTrackingService.events.microserviceFull, transaction)
   }
 
-  console.log({ name: routeName, updateRouteData })
-
   await RoutingManager.update({ name: routeName }, updateRouteData, transaction)
 }
 
