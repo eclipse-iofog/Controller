@@ -24,7 +24,7 @@ class ApplicationManager extends BaseManager {
   }
 
   async findApplicationMicroservices (where, transaction) {
-    const application = Application.findOne({
+    const application = await Application.findOne({
       include: [
         {
           model: Microservice,

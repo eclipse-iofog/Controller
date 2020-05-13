@@ -47,7 +47,23 @@ const applicationUpdate = {
   'additionalProperties': true
 }
 
+const applicationPatch = {
+  'id': '/applicationPatch',
+  'type': 'object',
+  'properties': {
+    'name': {
+      'type': 'string',
+      'minLength': 1,
+      'pattern': '^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$'
+    },
+    'description': { 'type': 'string' },
+    'isActivated': { 'type': 'boolean' },
+    'isSystem': { 'type': 'boolean' }
+  },
+  'additionalProperties': true
+}
+
 module.exports = {
-  mainSchemas: [applicationCreate, applicationUpdate],
+  mainSchemas: [applicationCreate, applicationUpdate, applicationPatch],
   innerSchemas: []
 }

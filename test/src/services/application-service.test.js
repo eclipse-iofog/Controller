@@ -176,7 +176,7 @@ describe('Application Service', () => {
       it('Should create the routes', async () => {
         await $subject
         for (const routeData of routes) {
-          expect(RoutingService.createRouting).to.have.been.calledWith(routeData, user, isCLI, transaction)
+          expect(RoutingService.createRouting).to.have.been.calledWith({ ...routeData, application: response.name }, user, isCLI, transaction)
         }
       })
     })
@@ -498,9 +498,9 @@ describe('Application Service', () => {
       it('Should update the routes', async () => {
         await $subject
         for (const routeData of routes) {
-          expect(RoutingService.updateRouting).to.have.been.calledWith(routeData.name, routeData, user, isCLI, transaction)
+          expect(RoutingService.updateRouting).to.have.been.calledWith(routeData.name, {...routeData, application: applicationData.name}, user, isCLI, transaction)
         }
-        expect(RoutingService.createRouting).to.have.been.calledWith(newRoute, user, isCLI, transaction)
+        expect(RoutingService.createRouting).to.have.been.calledWith({ ...newRoute, application: applicationData.name }, user, isCLI, transaction)
         expect(RoutingService.deleteRouting).to.have.been.calledWith(oldRoute.name, user, isCLI, transaction)
       })
     })
@@ -529,7 +529,7 @@ describe('Application Service', () => {
       it('Should update the microservices', async () => {
         await $subject
         for (const msvcData of msvcs) {
-          expect(MicroserviceService.updateMicroserviceEndPoint).to.have.been.calledWith(msvcData.uuid, msvcData, user, isCLI, transaction)
+          expect(MicroserviceService.updateMicroserviceEndPoint).to.have.been.calledWith(msvcData.uuid, {...msvcData, application: applicationData.name}, user, isCLI, transaction)
         }
         expect(MicroserviceService.createMicroserviceEndPoint).to.have.been.calledWith({ ...newMsvc, application: applicationData.name }, user, isCLI, transaction)
         expect(MicroserviceService.deleteMicroserviceWithRoutesAndPortMappings).to.have.been.calledWith(oldMsvc, transaction)

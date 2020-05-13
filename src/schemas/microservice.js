@@ -4,7 +4,7 @@ const microserviceCreate = {
   'properties': {
     'name': {
       'type': 'string',
-      'minLength': 1
+      'pattern': '^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$'
     },
     'config': { 'type': 'string' },
     'catalogItemId': {
@@ -53,7 +53,7 @@ const microserviceUpdate = {
   'properties': {
     'name': {
       'type': 'string',
-      'minLength': 1
+      'pattern': '^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$'
     },
     'config': { 'type': 'string' },
     'rebuild': { 'type': 'boolean' },
@@ -156,5 +156,5 @@ const volumeMappings = {
 
 module.exports = {
   mainSchemas: [microserviceCreate, microserviceUpdate, env, ports, extraHosts, portsCreate, microserviceDelete, volumeMappings],
-  innerSchemas: [volumeMappings, ports, env, extraHosts]
+  innerSchemas: [volumeMappings, ports, env, extraHosts, microserviceCreate]
 }

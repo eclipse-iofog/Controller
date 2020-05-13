@@ -28,6 +28,20 @@ const remove = require('lodash/remove')
 const onlyUnique = (value, index, self) => self.indexOf(value) === index
 
 const createApplicationEndPoint = async function (applicationData, user, isCLI, transaction) {
+  // Set the application field
+  if (applicationData.microservices) {
+    applicationData.microservices = applicationData.microservices.map(m => ({
+      ...m,
+      application: applicationData.name
+    }))
+  }
+  if (applicationData.routes) {
+    applicationData.routes = applicationData.routes.map(r => ({
+      ...r,
+      name: r.name || `r-${r.from}-${r.to}`,
+      application: applicationData.name
+    }))
+  }
   await Validator.validate(applicationData, Validator.schemas.applicationCreate)
 
   await _checkForDuplicateName(applicationData.name, null, user.id, transaction)
@@ -44,21 +58,27 @@ const createApplicationEndPoint = async function (applicationData, user, isCLI, 
 
   const application = await ApplicationManager.create(applicationDataCreate, transaction)
 
-  if (applicationData.microservices) {
-    for (const msvcData of applicationData.microservices) {
-      await MicroserviceService.createMicroserviceEndPoint({ ...msvcData, application: application.name }, user, isCLI, transaction)
+  try {
+    if (applicationData.microservices) {
+      for (const msvcData of applicationData.microservices) {
+        await MicroserviceService.createMicroserviceEndPoint(msvcData, user, isCLI, transaction)
+      }
     }
-  }
 
-  if (applicationData.routes) {
-    for (const routeData of applicationData.routes) {
-      await RoutingService.createRouting(routeData, user, isCLI, transaction)
+    if (applicationData.routes) {
+      for (const routeData of applicationData.routes) {
+        await RoutingService.createRouting(routeData, user, isCLI, transaction)
+      }
     }
-  }
 
-  return {
-    id: application.id,
-    name: application.name
+    return {
+      id: application.id,
+      name: application.name
+    }
+  } catch (e) {
+    // If anything failed during creating the application, delete all that was created
+    await deleteApplicationEndPoint(application.name, user, isCLI, transaction)
+    throw e
   }
 }
 
@@ -76,7 +96,7 @@ const deleteApplicationEndPoint = async function (name, user, isCLI, transaction
 
 // Only patches the metadata (running, name, description, etc.)
 const patchApplicationEndPoint = async function (applicationData, name, user, isCLI, transaction) {
-  await Validator.validate(applicationData, Validator.schemas.applicationUpdate)
+  await Validator.validate(applicationData, Validator.schemas.applicationPatch)
 
   const oldApplication = await ApplicationManager.findOne({ name, userId: user.id }, transaction)
 
@@ -108,6 +128,20 @@ const patchApplicationEndPoint = async function (applicationData, name, user, is
 
 // Updates the state (microservices, routes, etc.)
 const updateApplicationEndPoint = async function (applicationData, name, user, isCLI, transaction) {
+  if (applicationData.microservices) {
+    applicationData.microservices = applicationData.microservices.map(m => ({
+      ...m,
+      application: applicationData.name || name
+    }))
+  }
+  if (applicationData.routes) {
+    applicationData.routes = applicationData.routes.map(r => ({
+      ...r,
+      name: r.name || `r-${r.from}-${r.to}`,
+      application: applicationData.name || name
+    }))
+  }
+
   await Validator.validate(applicationData, Validator.schemas.applicationUpdate)
 
   const oldApplication = await ApplicationManager.findOne({ name, userId: user.id }, transaction)
@@ -127,17 +161,16 @@ const updateApplicationEndPoint = async function (applicationData, name, user, i
   }
 
   const updateApplicationData = AppHelper.deleteUndefinedFields(application)
-
   const where = isCLI
     ? { id: oldApplication.id }
     : { id: oldApplication.id, userId: user.id }
-  const updatedApplication = await ApplicationManager.update(where, updateApplicationData, transaction)
+  await ApplicationManager.update(where, updateApplicationData, transaction)
 
   if (applicationData.microservices) {
-    _updateMicroservices(updatedApplication, applicationData.microservices, user, isCLI, transaction)
+    await _updateMicroservices(application.name, applicationData.microservices, user, isCLI, transaction)
   }
   if (applicationData.routes) {
-    _updateRoutes(updatedApplication, applicationData.routes, user, isCLI, transaction)
+    await _updateRoutes(application.name, applicationData.routes, user, isCLI, transaction)
   }
 
   if (oldApplication.isActivated !== applicationData.isActivated) {
@@ -148,9 +181,9 @@ const updateApplicationEndPoint = async function (applicationData, name, user, i
 const _updateRoutes = async function (application, routes, user, isCLI, transaction) {
   // Update routes
   const updatedRoutes = [...routes]
-  const oldRoutes = await ApplicationManager.findApplicationRoutes({ name: application.name }, transaction)
+  const oldRoutes = await ApplicationManager.findApplicationRoutes({ name: application }, transaction)
   if (!oldRoutes) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_ID, application.name))
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_ID, application))
   }
   for (const oldRoute of oldRoutes) {
     const removed = remove(updatedRoutes, (n) => oldRoute.name === n.name)
@@ -170,9 +203,9 @@ const _updateRoutes = async function (application, routes, user, isCLI, transact
 const _updateMicroservices = async function (application, microservices, user, isCLI, transaction) {
   const updatedMicroservices = [...microservices]
   // Update microservices
-  const oldMicroservices = await ApplicationManager.findApplicationMicroservices({ name: application.name }, transaction)
+  const oldMicroservices = await ApplicationManager.findApplicationMicroservices({ name: application }, transaction)
   if (!oldMicroservices) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_ID, application.name))
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_ID, application))
   }
   const iofogUuids = []
   for (const oldMsvc of oldMicroservices) {
@@ -187,7 +220,7 @@ const _updateMicroservices = async function (application, microservices, user, i
   }
   // Create missing microservices
   for (const microservice of updatedMicroservices) {
-    await MicroserviceService.createMicroserviceEndPoint({ ...microservice, application: application.name }, user, isCLI, transaction)
+    await MicroserviceService.createMicroserviceEndPoint(microservice, user, isCLI, transaction)
   }
   iofogUuids
     .filter(onlyUnique)
@@ -251,7 +284,7 @@ const _checkForDuplicateName = async function (name, applicationId, userId, tran
 async function _updateChangeTrackingsAndDeleteMicroservicesByApplicationId (name, deleteMicroservices, transaction) {
   const microservices = await ApplicationManager.findApplicationMicroservices({ name }, transaction)
   if (!microservices) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_ID, name))
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_NAME, name))
   }
   const iofogUuids = []
   for (const ms of microservices) {

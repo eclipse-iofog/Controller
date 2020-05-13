@@ -19,10 +19,20 @@ const routingCreate = {
       'type': 'string',
       'pattern': '^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$'
     },
-    'sourceMicroserviceUuid': { 'type': 'string', 'minLength': 1 },
-    'destMicroserviceUuid': { 'type': 'string', 'minLength': 1 }
+    'from': {
+      'type': 'string',
+      'pattern': '^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$'
+    },
+    'to': {
+      'type': 'string',
+      'pattern': '^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$'
+    },
+    'application': {
+      'type': 'string',
+      'pattern': '^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$'
+    }
   },
-  'required': ['name', 'sourceMicroserviceUuid', 'destMicroserviceUuid'],
+  'required': ['name', 'from', 'to', 'application'],
   'additionalProperties': true
 }
 
@@ -34,12 +44,20 @@ const routingUpdate = {
       'type': 'string',
       'pattern': '^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$'
     },
-    'sourceMicroserviceUuid': { 'type': 'string', 'minLength': 1 },
-    'destMicroserviceUuid': { 'type': 'string', 'minLength': 1 }
+    'from': {
+      'type': 'string',
+      'pattern': '^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$'
+    },
+    'to': {
+      'type': 'string',
+      'pattern': '^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$'
+    }
   },
+  'required': ['from', 'to'],
   'additionalProperties': true
 }
 
 module.exports = {
-  mainSchemas: [routingUpdate, routingCreate]
+  mainSchemas: [routingUpdate, routingCreate],
+  innerSchemas: [routingCreate]
 }

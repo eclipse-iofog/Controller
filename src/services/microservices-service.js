@@ -136,7 +136,6 @@ async function _validateAgentHostTemplate (extraHost, templateArgs, userId, tran
   }
 
   extraHost.templateType = 'Agents'
-  console.log({ name: templateArgs[1], userId })
   const fog = await FogManager.findOne({ name: templateArgs[1], userId }, transaction)
   if (!fog) {
     throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.NOT_FOUND_HOST_TEMPLATE, templateArgs[1]))
@@ -266,7 +265,8 @@ async function createMicroserviceEndPoint (microserviceData, user, isCLI, transa
   await _createMicroserviceStatus(microservice, transaction)
 
   const res = {
-    uuid: microservice.uuid
+    uuid: microservice.uuid,
+    name: microservice.name
   }
   if (publicPorts.length) {
     res.publicPorts = publicPorts
@@ -513,7 +513,21 @@ async function deleteNotRunningMicroservices (fog, transaction) {
 
 async function createRouteEndPoint (sourceMicroserviceUuid, destMicroserviceUuid, user, isCLI, transaction) {
   // Print deprecated warning
-  return RoutingService.createRouting({ sourceMicroserviceUuid, destMicroserviceUuid, name: `r-${sourceMicroserviceUuid}-${destMicroserviceUuid}`.toLowerCase() }, user, isCLI, transaction)
+  const sourceMsvc = await MicroserviceManager.findOne({ uuid: sourceMicroserviceUuid }, transaction)
+  if (!sourceMsvc) {
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_SOURCE_MICROSERVICE_UUID, sourceMicroserviceUuid))
+  }
+  const destMsvc = await MicroserviceManager.findOne({ uuid: destMicroserviceUuid }, transaction)
+  if (!destMsvc) {
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_SOURCE_MICROSERVICE_UUID, destMsvc))
+  }
+
+  const application = await ApplicationManager.findOne({ id: sourceMsvc.applicationId }, transaction)
+  if (!application) {
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_ID, sourceMsvc.applicationId))
+  }
+
+  return RoutingService.createRouting({ application: application.name, from: sourceMsvc.name, to: destMsvc.name, name: `r-${sourceMsvc.name}-${destMsvc.name}` }, user, isCLI, transaction)
 }
 
 async function deleteRouteEndPoint (sourceMicroserviceUuid, destMicroserviceUuid, user, isCLI, transaction) {

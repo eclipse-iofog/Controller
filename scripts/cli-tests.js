@@ -232,11 +232,11 @@ function testMicroserviceSection () {
   const ioFogUuid = ioFogCreateResponse.uuid
 
   try {
-    const microserviceCreateResponse = responseHasFields(testCommand('microservice add -n microserviceName1' +
+    const microserviceCreateResponse = responseHasFields(testCommand('microservice add -n microservice-name-1' +
       ' -c ' + catalogId + ' -F ' + applicationId + ' -I ' + ioFogUuid + ' -g \'{}\' -v /host_src:/container_src:rw -l 15 -R' +
       ' -p 80:8080:false -u ' + userId), microserviceCreateFields)
     const microserviceUuid = microserviceCreateResponse.uuid
-    responseEquals(testCommand('microservice update -i ' + microserviceUuid + ' -n microserviceName2' +
+    responseEquals(testCommand('microservice update -i ' + microserviceUuid + ' -n microservice-name-2' +
       ' -I ' + ioFogUuid + ' -g \'{}\' -v /host_src:/container_src:rw -l 15 -R -w'),
     'Microservice has been updated successfully.')
     responseHasFields(testCommand('microservice list'), microserviceListFields)
@@ -318,7 +318,7 @@ function testDiagnosticsSection () {
     '-C 15 -s 25 -F 27 -Q 26 -B -W -A -y 1 -u ' + userId), ioFogCreateFields)
   const ioFogUuid = ioFogCreateResponse.uuid
 
-  const microserviceCreateResponse = responseHasFields(executeCommand('microservice add -n microserviceName1' +
+  const microserviceCreateResponse = responseHasFields(executeCommand('microservice add -n microservice-name-1' +
     ' -c ' + catalogId + ' -F ' + applicationId + ' -I ' + ioFogUuid + ' -g \'{}\' -v /host_src:/container_src:rw -l 15 -R' +
     ' -p 80:8080:false -u ' + userId), microserviceCreateFields)
   const microserviceUuid = microserviceCreateResponse.uuid
