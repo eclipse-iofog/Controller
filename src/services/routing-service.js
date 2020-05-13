@@ -61,13 +61,13 @@ async function createRouting (routingData, user, isCLI, transaction) {
 async function updateRouting (routeName, routeData, user, isCLI, transaction) {
   await Validator.validate(routeData, Validator.schemas.routingUpdate)
 
-  const oldRoute = RoutingManager.findOne({ name: routeName }, transaction)
+  const oldRoute = await RoutingManager.findOne({ name: routeName }, transaction)
   if (!oldRoute) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_ROUTING_NAME, routeName))
   }
 
   const updateRouteData = {
-    ...oldRoute,
+    ...oldRoute.get({ plain: true }),
     ...AppHelper.deleteUndefinedFields(routeData)
   }
 
@@ -95,6 +95,8 @@ async function updateRouting (routeName, routeData, user, isCLI, transaction) {
     await MicroserviceManager.update({ uuid: destMicroservice.uuid }, updateRebuildMs, transaction)
     await ChangeTrackingService.update(destMicroservice.iofogUuid, ChangeTrackingService.events.microserviceFull, transaction)
   }
+
+  console.log({ name: routeName, updateRouteData })
 
   await RoutingManager.update({ name: routeName }, updateRouteData, transaction)
 }
