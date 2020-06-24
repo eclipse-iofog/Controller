@@ -39,9 +39,10 @@ const RouterManager = require('../data/managers/router-manager')
 const MicroservicePublicPortManager = require('../data/managers/microservice-public-port-manager')
 const MicroserviceExtraHostManager = require('../data/managers/microservice-extra-host-manager')
 
-const { DEFAULT_ROUTER_NAME, DEFAULT_PROXY_HOST, RESERVED_PORTS, VOLUME_MAPPING_DEFAULT } = require('../helpers/constants')
+const { DEFAULT_ROUTER_NAME, DEFAULT_PROXY_HOST, RESERVED_PORTS, VOLUME_MAPPING_DEFAULT, PUBLIC_PORT_HOST_CONFIG_KEY_SUFFIX } = require('../helpers/constants')
 
 const lget = require('lodash/get')
+const configService = require('./config-service')
 
 async function listMicroservicesEndPoint (flowId, user, isCLI, transaction) {
   if (!isCLI) {
@@ -1283,8 +1284,17 @@ async function deleteMicroserviceWithRoutesAndPortMappings (microservice, transa
   }, transaction)
 }
 
-function _buildLink (protocol, ip, port) {
-  return `${protocol || 'http'}://${ip}:${port}`
+function _buildLink (protocol, host, port) {
+  protocol = `${protocol || 'http'}`
+  try {
+    const confElem = configService.getConfigElement(`${protocol}-${PUBLIC_PORT_HOST_CONFIG_KEY_SUFFIX}`)
+    if (!confElem.value) {
+      throw new Error('')
+    }
+    return `${protocol}://${confElem.value}:${port}`
+  } catch (exception) {
+    return `${protocol}://${host}:${port}`
+  }
 }
 
 async function _buildGetMicroserviceResponse (microservice, transaction) {
