@@ -76,5 +76,8 @@ module.exports = {
 
   RESERVED_PORTS: [54321, 54322],
 
-  VOLUME_MAPPING_DEFAULT: 'bind'
+  VOLUME_MAPPING_DEFAULT: 'bind',
+
+  HTTP_PUBLIC_PORT_HOST_CONFIG_KEY: 'http-public-port-host',
+  TCP_PUBLIC_PORT_HOST_CONFIG_KEY: 'tcp-public-port-host'
 }
