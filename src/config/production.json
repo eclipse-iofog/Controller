@@ -23,6 +23,9 @@
     "FogStatusUpdateIntervalSeconds": 30,
     "FogStatusUpdateTolerance": 3
   },
+  "PublicPorts": {
+    "Provider": "default"
+  },
   "Database": {
     "Provider": "sqlite",
     "Config": {
