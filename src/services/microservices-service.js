@@ -1,4 +1,4 @@
-/*
+/* only "[a-zA-Z0-9][a-zA-Z0-9_.-]" are allowed
  * *******************************************************************************
  *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
@@ -16,7 +16,6 @@ const MicroserviceManager = require('../data/managers/microservice-manager')
 const MicroserviceStatusManager = require('../data/managers/microservice-status-manager')
 const MicroserviceArgManager = require('../data/managers/microservice-arg-manager')
 const MicroserviceEnvManager = require('../data/managers/microservice-env-manager')
-const MicroservicePortManager = require('../data/managers/microservice-port-manager')
 const MicroservicePortService = require('../services/microservice-ports/factory')
 const CatalogItemImageManager = require('../data/managers/catalog-item-image-manager')
 const RegistryManager = require('../data/managers/registry-manager')
@@ -590,41 +589,11 @@ async function _createArg (microservice, arg, user, transaction) {
 }
 
 async function deletePortMappingEndPoint (microserviceUuid, internalPort, user, isCLI, transaction) {
-  const where = isCLI
-    ? { uuid: microserviceUuid }
-    : { uuid: microserviceUuid, userId: user.id }
-
-  const microservice = await MicroserviceManager.findOne(where, transaction)
-  if (!microservice) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, microserviceUuid))
-  }
-
-  if (!internalPort) {
-    throw new Errors.ValidationError(ErrorMessages.PORT_MAPPING_INTERNAL_PORT_NOT_PROVIDED)
-  }
-
-  const msPorts = await MicroservicePortManager.findOne({
-    microserviceUuid: microservice.uuid,
-    portInternal: internalPort
-  }, transaction)
-  if (!msPorts) {
-    throw new Errors.NotFoundError('port mapping not exists')
-  }
-
-  await MicroservicePortService.deletePortMapping(microservice, msPorts, user, transaction)
+  return MicroservicePortService.deletePortMapping(microserviceUuid, internalPort, user, isCLI, transaction)
 }
 
 async function listPortMappingsEndPoint (microserviceUuid, user, isCLI, transaction) {
-  const where = isCLI
-    ? { uuid: microserviceUuid }
-    : { uuid: microserviceUuid, userId: user.id }
-  const microservice = await MicroserviceManager.findOne(where, transaction)
-  if (!microservice) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, microserviceUuid))
-  }
-
-  const portsPairs = await MicroservicePortManager.findAll({ microserviceUuid: microserviceUuid }, transaction)
-  return MicroservicePortService.buildPortsList(portsPairs, transaction)
+  return MicroservicePortService.listPortMappings(microserviceUuid, user, isCLI, transaction)
 }
 
 async function getReceiverMicroservices (microservice, transaction) {
@@ -944,10 +913,8 @@ async function deleteMicroserviceWithRoutesAndPortMappings (microservice, transa
     await RoutingService.deleteRouting(route.name, user, false, transaction)
   }
 
-  const portMappings = await MicroservicePortManager.findAll({ microserviceUuid: microservice.uuid }, transaction)
-  for (const ports of portMappings) {
-    await MicroservicePortService.deletePortMapping(microservice, ports, user, transaction)
-  }
+  await MicroservicePortService.deletePortMappings(microservice, user, transaction)
+
   await MicroserviceManager.delete({
     uuid: microservice.uuid
   }, transaction)
@@ -957,7 +924,7 @@ async function _buildGetMicroserviceResponse (microservice, transaction) {
   const microserviceUuid = microservice.uuid
 
   // get additional data
-  const portMappings = await MicroservicePortManager.findAll({ microserviceUuid: microserviceUuid }, transaction)
+  const portMappings = await MicroservicePortService.getPortMappings(microserviceUuid, transaction)
   const extraHosts = await MicroserviceExtraHostManager.findAll({ microserviceUuid: microserviceUuid }, transaction)
   const images = await CatalogItemImageManager.findAll({ microserviceUuid: microserviceUuid }, transaction)
   const volumeMappings = await VolumeMappingManager.findAll({ microserviceUuid: microserviceUuid }, transaction)
@@ -996,7 +963,7 @@ async function _buildGetMicroserviceResponse (microservice, transaction) {
 }
 
 function listAllPublicPortsEndPoint (user, transaction) {
-  return MicroservicePortManager.findAllPublicPorts(transaction)
+  return MicroservicePortService.listAllPublicPorts(user, transaction)
 }
 
 // decorated functions

@@ -1,4 +1,4 @@
-/*
+/* only "[a-zA-Z0-9][a-zA-Z0-9_.-]" are allowed
  * *******************************************************************************
  *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
@@ -18,7 +18,7 @@ const ChangeTrackingService = require('../change-tracking-service')
 const AppHelper = require('../../helpers/app-helper')
 const Errors = require('../../helpers/errors')
 const ErrorMessages = require('../../helpers/error-messages')
-const CatalogService = require('../catalog-service')
+const CatalogService = require('../../services/catalog-service')
 const Op = require('sequelize').Op
 const FogManager = require('../../data/managers/iofog-manager')
 const RouterManager = require('../../data/managers/router-manager')
@@ -262,7 +262,7 @@ async function _createPublicPortMapping (microservice, portMappingData, user, tr
   }
 }
 
-async function deletePortMapping (microservice, portMapping, user, transaction) {
+async function _deletePortMapping (microservice, portMapping, user, transaction) {
   if (portMapping.isPublic) {
     await _deletePublicPortMapping(microservice, portMapping, transaction)
   } else {
@@ -325,7 +325,7 @@ async function _deleteSimplePortMapping (microservice, msPorts, user, transactio
   await ChangeTrackingService.update(microservice.iofogUuid, ChangeTrackingService.events.microserviceCommon, transaction)
 }
 
-async function buildPortsList (portsPairs, transaction) {
+async function _buildPortsList (portsPairs, transaction) {
   const res = []
   for (const ports of portsPairs) {
     const portMappingResponseData = {
@@ -368,14 +368,70 @@ async function switchOnUpdateFlagsForMicroservicesForPortMapping (microservice, 
   }
 }
 
+async function listPortMappings (microserviceUuid, user, isCLI, transaction) {
+  const where = isCLI
+    ? { uuid: microserviceUuid }
+    : { uuid: microserviceUuid, userId: user.id }
+  const microservice = await MicroserviceManager.findOne(where, transaction)
+  if (!microservice) {
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, microserviceUuid))
+  }
+
+  const portsPairs = await MicroservicePortManager.findAll({ microserviceUuid: microserviceUuid }, transaction)
+  return _buildPortsList(portsPairs, transaction)
+}
+
+async function deletePortMapping (microserviceUuid, internalPort, user, isCLI, transaction) {
+  const where = isCLI
+    ? { uuid: microserviceUuid }
+    : { uuid: microserviceUuid, userId: user.id }
+
+  const microservice = await MicroserviceManager.findOne(where, transaction)
+  if (!microservice) {
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, microserviceUuid))
+  }
+
+  if (!internalPort) {
+    throw new Errors.ValidationError(ErrorMessages.PORT_MAPPING_INTERNAL_PORT_NOT_PROVIDED)
+  }
+
+  const msPorts = await MicroservicePortManager.findOne({
+    microserviceUuid: microservice.uuid,
+    portInternal: internalPort
+  }, transaction)
+  if (!msPorts) {
+    throw new Errors.NotFoundError('port mapping not exists')
+  }
+
+  await _deletePortMapping(microservice, msPorts, user, transaction)
+}
+
+async function deletePortMappings (microservice, user, transaction) {
+  const portMappings = await MicroservicePortManager.findAll({ microserviceUuid: microservice.uuid }, transaction)
+  for (const ports of portMappings) {
+    await _deletePortMapping(microservice, ports, user, transaction)
+  }
+}
+
+async function getPortMappings (microserviceUuid, transaction) {
+  return MicroservicePortManager.findAll({ microserviceUuid: microserviceUuid }, transaction)
+}
+
+function listAllPublicPorts (user, transaction) {
+  return MicroservicePortManager.findAllPublicPorts(transaction)
+}
+
 module.exports = {
   validatePublicPortAppHostTemplate: validatePublicPortAppHostTemplate,
   validatePortMappings: validatePortMappings,
   validatePortMapping: validatePortMapping,
-  createPortMapping: createPortMapping,
   movePublicPortsToNewFog: movePublicPortsToNewFog,
-  deletePortMapping: deletePortMapping,
-  buildPortsList: buildPortsList,
+  switchOnUpdateFlagsForMicroservicesForPortMapping: switchOnUpdateFlagsForMicroservicesForPortMapping,
+  createPortMapping: createPortMapping,
   buildPublicPortMapping: buildPublicPortMapping,
-  switchOnUpdateFlagsForMicroservicesForPortMapping: switchOnUpdateFlagsForMicroservicesForPortMapping
+  listPortMappings: listPortMappings,
+  deletePortMapping: deletePortMapping,
+  deletePortMappings: deletePortMappings,
+  getPortMappings: getPortMappings,
+  listAllPublicPorts: listAllPublicPorts
 }
