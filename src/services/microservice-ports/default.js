@@ -129,7 +129,7 @@ async function movePublicPortsToNewFog (updatedMicroservice, user, transaction) 
       host: destAgentsRouter.host,
       port: destAgentsRouter.messagingPort
     }
-    const newProxy = await _createOrUpdateProxyMicroservice(localMapping, networkRouter, updatedMicroservice.iofogUuid, localProxy.catalogItemId, user, transaction)
+    const newProxy = await createOrUpdateProxyMicroservice(localMapping, networkRouter, updatedMicroservice.iofogUuid, localProxy.catalogItemId, user, transaction)
     publicPort.localProxyId = newProxy.uuid
     await MicroservicePublicPortManager.updateOrCreate({ id: publicPort.id }, publicPort.toJSON(), transaction)
   }
@@ -159,11 +159,11 @@ async function createPortMapping (microservice, portMappingData, user, transacti
   if (portMappingData.publicPort) {
     return _createPublicPortMapping(microservice, portMappingData, user, transaction)
   } else {
-    return _createSimplePortMapping(microservice, portMappingData, user, transaction)
+    return createSimplePortMapping(microservice, portMappingData, user, transaction)
   }
 }
 
-async function _createOrUpdateProxyMicroservice (mapping, networkRouter, hostUuid, proxyCatalogId, user, transaction) {
+async function createOrUpdateProxyMicroservice (mapping, networkRouter, hostUuid, proxyCatalogId, user, transaction) {
   const existingProxy = await MicroserviceManager.findOne({ catalogItemId: proxyCatalogId, iofogUuid: hostUuid }, transaction)
   if (existingProxy) {
     const config = JSON.parse(existingProxy.config || '{}')
@@ -207,7 +207,7 @@ async function _createPublicPortMapping (microservice, portMappingData, user, tr
   const localMapping = `amqp:${queueName}=>${isTcp ? 'tcp' : 'http'}:${portMappingData.external}`
   const remoteMapping = `${isTcp ? 'tcp' : 'http'}:${portMappingData.publicPort}=>amqp:${queueName}`
 
-  const localProxy = await _createOrUpdateProxyMicroservice(
+  const localProxy = await createOrUpdateProxyMicroservice(
     localMapping,
     localNetworkRouter,
     microservice.iofogUuid,
@@ -223,7 +223,7 @@ async function _createPublicPortMapping (microservice, portMappingData, user, tr
       port: hostRouter.messagingPort
     }
 
-    remoteProxy = await _createOrUpdateProxyMicroservice(
+    remoteProxy = await createOrUpdateProxyMicroservice(
       remoteMapping,
       remoteNetworkRouter,
       portMappingData.host.uuid,
@@ -266,7 +266,7 @@ async function _deletePortMapping (microservice, portMapping, user, transaction)
   if (portMapping.isPublic) {
     await _deletePublicPortMapping(microservice, portMapping, transaction)
   } else {
-    await _deleteSimplePortMapping(microservice, portMapping, user, transaction)
+    await deleteSimplePortMapping(microservice, portMapping, user, transaction)
   }
 }
 
@@ -301,7 +301,7 @@ async function _deletePublicPortMapping (microservice, portMapping, transaction)
   await MicroservicePortManager.delete({ id: portMapping.id }, transaction)
 }
 
-async function _createSimplePortMapping (microservice, portMappingData, user, transaction) {
+async function createSimplePortMapping (microservice, portMappingData, user, transaction) {
   // create port mapping
   const mappingData = {
     isPublic: false,
@@ -315,7 +315,7 @@ async function _createSimplePortMapping (microservice, portMappingData, user, tr
   await switchOnUpdateFlagsForMicroservicesForPortMapping(microservice, false, transaction)
 }
 
-async function _deleteSimplePortMapping (microservice, msPorts, user, transaction) {
+async function deleteSimplePortMapping (microservice, msPorts, user, transaction) {
   await MicroservicePortManager.delete({ id: msPorts.id }, transaction)
 
   const updateRebuildMs = {
@@ -433,5 +433,8 @@ module.exports = {
   deletePortMapping: deletePortMapping,
   deletePortMappings: deletePortMappings,
   getPortMappings: getPortMappings,
-  listAllPublicPorts: listAllPublicPorts
+  listAllPublicPorts: listAllPublicPorts,
+  createSimplePortMapping: createSimplePortMapping,
+  createOrUpdateProxyMicroservice: createOrUpdateProxyMicroservice,
+  deleteSimplePortMapping: deleteSimplePortMapping
 }
