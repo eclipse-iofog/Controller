@@ -1,4 +1,4 @@
-/* only "[a-zA-Z0-9][a-zA-Z0-9_.-]" are allowed
+/*
  * *******************************************************************************
  *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
@@ -17,7 +17,7 @@ const MicroserviceStatusManager = require('../data/managers/microservice-status-
 const MicroserviceArgManager = require('../data/managers/microservice-arg-manager')
 const MicroserviceEnvManager = require('../data/managers/microservice-env-manager')
 const MicroservicePortManager = require('../data/managers/microservice-port-manager')
-const MicroservicePortService = require('../services/microservice-port-service')
+const MicroservicePortService = require('../services/microservice-ports/factory')
 const CatalogItemImageManager = require('../data/managers/catalog-item-image-manager')
 const RegistryManager = require('../data/managers/registry-manager')
 const MicroserviceStates = require('../enums/microservice-state')

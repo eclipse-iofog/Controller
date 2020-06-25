@@ -1,4 +1,4 @@
-/* only "[a-zA-Z0-9][a-zA-Z0-9_.-]" are allowed
+/*
  * *******************************************************************************
  *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
@@ -11,21 +11,21 @@
  *
  */
 
-const MicroservicePortManager = require('../data/managers/microservice-port-manager')
-const MicroserviceManager = require('../data/managers/microservice-manager')
-const ConfigManager = require('../data/managers/config-manager')
-const ChangeTrackingService = require('./change-tracking-service')
-const AppHelper = require('../helpers/app-helper')
-const Errors = require('../helpers/errors')
-const ErrorMessages = require('../helpers/error-messages')
-const CatalogService = require('../services/catalog-service')
+const MicroservicePortManager = require('../../data/managers/microservice-port-manager')
+const MicroserviceManager = require('../../data/managers/microservice-manager')
+const ConfigManager = require('../../data/managers/config-manager')
+const ChangeTrackingService = require('../change-tracking-service')
+const AppHelper = require('../../helpers/app-helper')
+const Errors = require('../../helpers/errors')
+const ErrorMessages = require('../../helpers/error-messages')
+const CatalogService = require('../catalog-service')
 const Op = require('sequelize').Op
-const FogManager = require('../data/managers/iofog-manager')
-const RouterManager = require('../data/managers/router-manager')
-const MicroservicePublicPortManager = require('../data/managers/microservice-public-port-manager')
-const MicroserviceExtraHostManager = require('../data/managers/microservice-extra-host-manager')
+const FogManager = require('../../data/managers/iofog-manager')
+const RouterManager = require('../../data/managers/router-manager')
+const MicroservicePublicPortManager = require('../../data/managers/microservice-public-port-manager')
+const MicroserviceExtraHostManager = require('../../data/managers/microservice-extra-host-manager')
 
-const { DEFAULT_ROUTER_NAME, DEFAULT_PROXY_HOST, RESERVED_PORTS } = require('../helpers/constants')
+const { DEFAULT_ROUTER_NAME, DEFAULT_PROXY_HOST, RESERVED_PORTS } = require('../../helpers/constants')
 
 const lget = require('lodash/get')
 
