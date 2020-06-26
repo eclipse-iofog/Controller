@@ -21,6 +21,8 @@ RUN npm pack
 
 FROM iofog/node-alpine-x86:8.16.0
 
+RUN npm i -g pm2
+
 RUN apk add -y sudo
 
 COPY --from=builder /tmp/iofogcontroller-*.tgz /tmp/iofog-controller.tgz
@@ -29,4 +31,4 @@ RUN npm i --unsafe-perm -g /tmp/iofog-controller.tgz && \
   rm -rf /tmp/iofog-controller.tgz && \
   iofog-controller config dev-mode --on
 
-CMD [ "node", "/usr/local/lib/node_modules/iofogcontroller/src/server.js" ]
+CMD [ "pm2-runtime", "/usr/local/lib/node_modules/iofogcontroller/src/server.js" ]
