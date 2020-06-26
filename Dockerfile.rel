@@ -21,6 +21,9 @@ RUN npm pack
 
 FROM iofog/node-alpine-x86:8.16.0
 
+# https://stackoverflow.com/questions/52196518/could-not-get-uid-gid-when-building-node-docker
+# Workaround until we fix our node alpine image
+RUN npm config set unsafe-perm true
 RUN npm i -g pm2
 
 RUN apk add -y sudo
