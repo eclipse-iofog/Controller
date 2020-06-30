@@ -39,6 +39,14 @@ const Sentry = require('@sentry/node')
 const Tracking = require('./tracking')
 const TrackingEventType = require('./enums/tracking-event-type')
 
+// Handle SIGINT from pm2-runtime (happens on K8s)
+process.once('SIGINT', function (code) {
+  console.log('SIGINT received. Shutting down.')
+  // TODO: Stop Express server
+  // pm2-runtime will send SIGKILL after 1600ms
+  setTimeout(() => { process.exit(0) }, 1500)
+})
+
 Sentry.init({ dsn: 'https://a15f11352d404c2aa4c8f321ad9e759a@sentry.io/1378602' })
 Sentry.configureScope((scope) => {
   scope.setExtra('version', packageJson.version)
