@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2018 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -17,6 +17,7 @@ module.exports = {
   ALREADY_EXISTS: 'Model already exists',
   INVALID_CATALOG_ITEM_ID: 'Invalid catalog item id \'{}\'',
   INVALID_FLOW_ID: 'Invalid flow id \'{}\'',
+  INVALID_ROUTING_NAME: 'Invalid route name \'{}\'',
   INVALID_REGISTRY_ID: 'Invalid registry id \'{}\'',
   UNABLE_TO_CREATE_ACTIVATION_CODE: 'Unable to create activation code',
   UNABLE_TO_GET_ACTIVATION_CODE: 'Unable to create activation code',
@@ -96,5 +97,6 @@ module.exports = {
   HOST_IS_REQUIRED: '"host" is required',
   PORT_RESERVED: 'Port \'{}\' is reserved for internal use',
   INVALID_HOST_TEMPLATE: '{} is not a valid host template',
-  NOT_FOUND_HOST_TEMPLATE: 'Could not find {} host template'
+  NOT_FOUND_HOST_TEMPLATE: 'Could not find {} host template',
+  MISSING_IMAGE: 'Microservice {} does not have a valid image for its Agent type'
 }

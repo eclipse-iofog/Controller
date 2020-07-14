@@ -1,6 +1,6 @@
 /*
  * *******************************************************************************
- *  * Copyright (c) 2018 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -137,7 +137,7 @@ const getAgentConfig = async function (fog, transaction) {
     logLevel: fog.logLevel,
     availableDiskThreshold: fog.availableDiskThreshold,
     dockerPruningFrequency: fog.dockerPruningFrequency,
-    routerHost: router.host,
+    routerHost: router.host === fog.host ? 'localhost' : router.host,
     routerPort: router.messagingPort
   }
 }
