@@ -417,7 +417,7 @@ async function getFogListEndPoint (filters, user, isCLI, isSystem, transaction) 
     throw new Errors.AuthenticationError('Unauthorized')
   }
 
-  const queryFogData = isSystem ? { isSystem } : (isCLI ? {} : { user: user.id })
+  const queryFogData = isSystem ? { isSystem } : (isCLI ? {} : { userId: user.id })
 
   let fogs = await FogManager.findAll(queryFogData, transaction)
   fogs = _filterFogs(fogs, filters)

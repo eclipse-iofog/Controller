@@ -1342,15 +1342,15 @@ describe('ioFog Service', () => {
       fogType: 1,
     }
 
+    const isSystem = false
+
     const fogs = [fog]
 
-    const queryFogData = isCLI
-      ? { isSystem: false }
-      : { userId: user.id, isSystem: false }
+    const queryFogData = isSystem ? { isSystem } : (isCLI ? {} : { userId: user.id })
 
     const filters = []
 
-    def('subject', () => $subject.getFogListEndPoint(filters, user, isCLI, false, transaction))
+    def('subject', () => $subject.getFogListEndPoint(filters, user, isCLI, isSystem, transaction))
     def('validatorResponse', () => Promise.resolve(true))
     def('findAllIoFogResponse', () => Promise.resolve(fogs.map(f => ({...f, getRouter: () => Promise.resolve(null), toJSON: () => f}))))
     def('findOneRouterResponse', () => Promise.resolve(null))

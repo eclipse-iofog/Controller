@@ -6114,7 +6114,7 @@
                   "",
                   "var data = JSON.parse(responseBody);",
                   "",
-                  "tests[\"Response validation passed\"] = data.hasOwnProperty('fogs') && data.fogs.length > 0;"
+                  "tests[\"Response validation passed\"] = data.hasOwnProperty('fogs') && data.fogs.length === 1;"
                 ],
                 "type": "text/javascript"
               }
@@ -6207,7 +6207,7 @@
           "response": []
         },
         {
-          "name": "List ioFog Nodes without system",
+          "name": "List system fogs",
           "event": [
             {
               "listen": "test",
@@ -6218,7 +6218,7 @@
                   "",
                   "var data = JSON.parse(responseBody);",
                   "",
-                  "tests[\"Response validation passed\"] = data.hasOwnProperty('fogs') && data.fogs.length === 0;"
+                  "tests[\"Response validation passed\"] = data.hasOwnProperty('fogs') && data.fogs.length === 1;"
                 ],
                 "type": "text/javascript"
               }
@@ -6237,7 +6237,7 @@
               }
             ],
             "url": {
-              "raw": "{{host}}/api/v3/iofog-list?filters[0][key]=uuid&filters[0][value]={{node-id}}&filters[0][condition]=equals",
+              "raw": "{{host}}/api/v3/iofog-list?system=true&filters[0][key]=uuid&filters[0][value]={{node-id}}&filters[0][condition]=equals",
               "host": [
                 "{{host}}"
               ],
@@ -6247,6 +6247,10 @@
                 "iofog-list"
               ],
               "query": [
+                {
+                  "key": "system",
+                  "value": "true"
+                },
                 {
                   "key": "filters[0][key]",
                   "value": "uuid"
