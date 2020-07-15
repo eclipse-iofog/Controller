@@ -412,9 +412,12 @@ async function getFogEndPoint (fogData, user, isCLI, transaction) {
 async function getFogListEndPoint (filters, user, isCLI, isSystem, transaction) {
   await Validator.validate(filters, Validator.schemas.iofogFilters)
 
-  const queryFogData = isCLI
-    ? { isSystem: isSystem }
-    : { userId: user.id, isSystem }
+  // If listing system agent through REST API, make sure user is authenticated
+  if (isSystem && !isCLI && !lget(request, 'user.id')) {
+    throw new Errors.AuthenticationError('Unauthorized')
+  }
+
+  const queryFogData = isSystem ? { isSystem } : (isCLI ? {} : { user: request.user.id })
 
   let fogs = await FogManager.findAll(queryFogData, transaction)
   fogs = _filterFogs(fogs, filters)
