@@ -217,6 +217,11 @@ async function updateFogEndPoint (fogData, user, isCLI, transaction) {
   const edgeRouterPort = fogData.edgeRouterPort || (router ? router.edgeRouterPort : null)
   let networkRouter
 
+  // const isSystem = updateFogData.isSystem === undefined ? oldFog.isSystem : updateFogData.isSystem
+  // if (isSystem && routerMode !== 'interior') {
+  //   throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_ROUTER_MODE, fogData.routerMode))
+  // }
+
   if (routerMode === 'none') {
     networkRouter = await RouterService.getNetworkRouter(fogData.networkRouter)
     if (!networkRouter) {
@@ -441,7 +446,7 @@ async function getFogListEndPoint (filters, user, isCLI, isSystem, transaction) 
     throw new Errors.AuthenticationError('Unauthorized')
   }
 
-  const queryFogData = isSystem ? { isSystem } : (isCLI ? {} : { userId: user.id })
+  const queryFogData = isSystem ? { isSystem } : (isCLI ? {} : { userId: user.id, isSystem: false })
 
   let fogs = await FogManager.findAll(queryFogData, transaction)
   fogs = _filterFogs(fogs, filters)

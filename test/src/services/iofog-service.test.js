@@ -1343,7 +1343,7 @@ describe('ioFog Service', () => {
 
     const fogs = [fog]
 
-    const queryFogData = isSystem ? { isSystem } : (isCLI ? {} : { userId: user.id })
+    const queryFogData = isSystem ? { isSystem } : (isCLI ? {} : { userId: user.id, isSystem: false })
 
     const filters = []
 
