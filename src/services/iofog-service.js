@@ -243,6 +243,7 @@ async function updateFogEndPoint (fogData, user, isCLI, transaction) {
       networkRouter = await RouterService.updateRouter(router, {
         messagingPort, interRouterPort, edgeRouterPort, isEdge: routerMode === 'edge', host
       }, upstreamRouters, user.id)
+      await ChangeTrackingService.update(fogData.uuid, ChangeTrackingService.events.routerChanged, transaction)
     }
   }
   updateFogData.routerId = networkRouter.id
