@@ -38,7 +38,6 @@ const Sentry = require('@sentry/node')
 
 const Tracking = require('./tracking')
 const TrackingEventType = require('./enums/tracking-event-type')
-const { server } = require('sinon')
 
 Sentry.init({ dsn: 'https://a15f11352d404c2aa4c8f321ad9e759a@sentry.io/1378602' })
 Sentry.configureScope((scope) => {
