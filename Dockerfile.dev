@@ -28,7 +28,6 @@ ENV NODE_ENV=development
 # https://stackoverflow.com/questions/52196518/could-not-get-uid-gid-when-building-node-docker
 # Workaround until we fix our node alpine image
 RUN npm config set unsafe-perm true
-RUN npm i -g pm2
 
 COPY --from=builder /tmp/iofogcontroller-*.tgz /tmp/iofog-controller.tgz
 
@@ -36,4 +35,4 @@ RUN npm i --unsafe-perm -g /tmp/iofog-controller.tgz && \
   rm -rf /tmp/iofog-controller.tgz && \
   iofog-controller config dev-mode --on
 
-CMD [ "pm2-runtime", "/usr/local/lib/node_modules/iofogcontroller/src/server.js" ]
+CMD [ "node", "/usr/local/lib/node_modules/iofogcontroller/src/server.js" ]

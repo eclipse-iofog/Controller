@@ -38,14 +38,7 @@ const Sentry = require('@sentry/node')
 
 const Tracking = require('./tracking')
 const TrackingEventType = require('./enums/tracking-event-type')
-
-// Handle SIGINT from pm2-runtime (happens on K8s)
-process.once('SIGINT', function (code) {
-  console.log('SIGINT received. Shutting down.')
-  // TODO: Stop Express server
-  // pm2-runtime will send SIGKILL after 1600ms
-  setTimeout(() => { process.exit(0) }, 1500)
-})
+const { server } = require('sinon')
 
 Sentry.init({ dsn: 'https://a15f11352d404c2aa4c8f321ad9e759a@sentry.io/1378602' })
 Sentry.configureScope((scope) => {
@@ -107,22 +100,36 @@ fs.readdirSync(path.join(__dirname, 'jobs'))
   })
   .forEach(setupJobs)
 
+function registerServers (api, viewer) {
+  process.once('SIGTERM', async function (code) {
+    console.log('SIGTERM received. Shutting down.')
+    await api.close(() => {
+      console.log('API Server closed.')
+    })
+    await viewer.close(() => {
+      console.log('Viewer Server closed.')
+    })
+    process.exit(0)
+  })
+}
+
 function startHttpServer (apps, ports, jobs) {
   logger.info('SSL not configured, starting HTTP server.')
 
-  apps.viewer.listen(ports.viewer, function onStart (err) {
+  const viewerServer = apps.viewer.listen(ports.viewer, function onStart (err) {
     if (err) {
       logger.error(err)
     }
     logger.info(`==> 🌎 Viewer listening on port ${ports.viewer}. Open up http://localhost:${ports.viewer}/ in your browser.`)
   })
-  apps.api.listen(ports.api, function onStart (err) {
+  const apiServer = apps.api.listen(ports.api, function onStart (err) {
     if (err) {
       logger.error(err)
     }
     logger.info(`==> 🌎 API Listening on port ${ports.api}. Open up http://localhost:${ports.api}/ in your browser.`)
     jobs.forEach((job) => job.run())
   })
+  registerServers(apiServer, viewerServer)
 }
 
 function startHttpsServer (apps, ports, sslKey, sslCert, intermedKey, jobs) {
@@ -135,7 +142,7 @@ function startHttpsServer (apps, ports, sslKey, sslCert, intermedKey, jobs) {
       rejectUnauthorized: false // currently for some reason iofog agent doesn't work without this option
     }
 
-    https.createServer(sslOptions, apps.viewer).listen(ports.viewer, function onStart (err) {
+    const viewerServer = https.createServer(sslOptions, apps.viewer).listen(ports.viewer, function onStart (err) {
       if (err) {
         logger.error(err)
       }
@@ -143,13 +150,14 @@ function startHttpsServer (apps, ports, sslKey, sslCert, intermedKey, jobs) {
       jobs.forEach((job) => job.run())
     })
 
-    https.createServer(sslOptions, apps.api).listen(ports.api, function onStart (err) {
+    const apiServer = https.createServer(sslOptions, apps.api).listen(ports.api, function onStart (err) {
       if (err) {
         logger.error(err)
       }
       logger.info(`==> 🌎 HTTPS API server listening on port ${ports.api}. Open up https://localhost:${ports.api}/ in your browser.`)
       jobs.forEach((job) => job.run())
     })
+    registerServers(apiServer, viewerServer)
   } catch (e) {
     logger.error('ssl_key or ssl_cert or intermediate_cert is either missing or invalid. Provide valid SSL configurations.')
   }
