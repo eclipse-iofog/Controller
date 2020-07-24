@@ -102,12 +102,10 @@ fs.readdirSync(path.join(__dirname, 'jobs'))
 function registerServers (api, viewer) {
   process.once('SIGTERM', async function (code) {
     console.log('SIGTERM received. Shutting down.')
-    await api.close(() => {
-      console.log('API Server closed.')
-    })
-    await viewer.close(() => {
-      console.log('Viewer Server closed.')
-    })
+    await new Promise((resolve) => { api.close(resolve) })
+    console.log('API Server closed.')
+    await new Promise((resolve) => { viewer.close(resolve) })
+    console.log('Viewer Server closed.')
     process.exit(0)
   })
 }
