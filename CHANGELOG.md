@@ -1,6 +1,11 @@
 # Changelog
 
-## [Unreleased]
+## [v2.0.0] - 2020-08-05
+
+### Features
+
+* Add graceful shutdown of servers when SIGTERM is received
+* Add plugin support for Public Port allocation
 
 ## [v2.0.0-rc1] - 2020-04-28
 
