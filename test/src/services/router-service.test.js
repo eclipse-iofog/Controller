@@ -16,6 +16,7 @@ const Sequelize = require('sequelize')
 const Op = Sequelize.Op
 const Errors = require('../../../src/helpers/errors')
 const ErrorMessages = require('../../../src/helpers/error-messages')
+const { getProxyCatalogItem } = require('../../../src/services/catalog-service')
 
 describe('Router Service', () => {
   const transaction = {}
@@ -330,21 +331,38 @@ describe('Router Service', () => {
       config: JSON.stringify(microserviceConfig)
     }
 
+    const proxyCatalogItem = {
+      id: 13
+    }
+
+    const proxyMsvc = {
+      uuid: 'proxyMsvc',
+      catalogItemId: proxyCatalogItem.id,
+      config: JSON.stringify({mappings: [], networkRouter: {
+        host: oldRouter.host,
+        port: oldRouter.messagingPort
+      }})
+    }
+
     def('subject', () => $subject.updateRouter(oldRouter, newRouterData, upstreamRouters, userId, transaction))
     def('oldRouter', () => oldRouter)
     def('newRouterData', () => newRouterData)
     def('upstreamRouters', () => upstreamRouters)
     def('routerMsvc', () => routerMsvc)
+    def('proxyMsvc', () => proxyMsvc)
     def('routerMsvcResponse', () => Promise.resolve($routerMsvc))
     def('findAllWithRoutersResponse', () => Promise.resolve($upstreamRouters))
     def('findOneRouterResponse', () => Promise.resolve({...$newRouterData, id: $oldRouter.id}))
 
     let findallWithRoutersStub
     beforeEach(() => {
-      $sandbox.stub(MicroserviceManager, 'findOne').returns($routerMsvcResponse)
+      const stub = $sandbox.stub(MicroserviceManager, 'findOne').returns($routerMsvcResponse)
+      stub.withArgs({iofogUuid: oldRouter.iofogUuid, catalogItemId: proxyCatalogItem.id}).returns(Promise.resolve(proxyMsvc))
       $sandbox.stub(MicroserviceManager, 'update').returns(Promise.resolve())
+      $sandbox.stub(MicroserviceManager, 'updateIfChanged').returns(Promise.resolve())
       $sandbox.stub(RouterManager, 'update')
       $sandbox.stub(RouterConnectionManager, 'bulkCreate')
+      $sandbox.stub(CatalogService, 'getProxyCatalogItem').returns(Promise.resolve(proxyCatalogItem))
       findallWithRoutersStub = $sandbox.stub(RouterConnectionManager, 'findAllWithRouters')
       findallWithRoutersStub.returns($findAllWithRoutersResponse)
       $sandbox.stub(ChangeTrackingService, 'update')
@@ -363,6 +381,18 @@ describe('Router Service', () => {
       await $subject
       expect(ChangeTrackingService.update).to.have.been.calledWith($oldRouter.iofogUuid, ChangeTrackingService.events.routerChanged, transaction)
       return expect(ChangeTrackingService.update).to.have.been.calledWith($oldRouter.iofogUuid, ChangeTrackingService.events.microserviceList, transaction)
+    })
+
+    it('Should update the proxy', async () => {
+      await $subject
+      const newConfig = {
+        mappings: [],
+        networkRouter: {
+          host: newRouterData.host,
+          port: newRouterData.messagingPort
+        }
+      }
+      return expect(MicroserviceManager.updateIfChanged).to.have.been.calledWith({ uuid: proxyMsvc.uuid }, { config: JSON.stringify(newConfig) }, transaction)
     })
 
     context('Interior to edge', () => {

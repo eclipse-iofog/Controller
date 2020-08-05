@@ -6114,7 +6114,7 @@
                   "",
                   "var data = JSON.parse(responseBody);",
                   "",
-                  "tests[\"Response validation passed\"] = data.hasOwnProperty('fogs') && data.fogs.length > 0;"
+                  "tests[\"Response validation passed\"] = data.hasOwnProperty('fogs') && data.fogs.length === 1;"
                 ],
                 "type": "text/javascript"
               }
@@ -6189,7 +6189,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"string\",\n  \"isSystem\": true,\n  \"location\": \"string\",\n  \"latitude\": 0,\n  \"longitude\": 0,\n  \"description\": \"string\",\n  \"dockerUrl\": \"string\",\n  \"diskLimit\": 0,\n  \"diskDirectory\": \"string\",\n  \"memoryLimit\": 0,\n  \"cpuLimit\": 0,\n  \"logLimit\": 0,\n  \"logDirectory\": \"string\",\n  \"logFileCount\": 0,\n  \"statusFrequency\": 0,\n  \"changeFrequency\": 0,\n  \"deviceScanFrequency\": 0,\n  \"bluetoothEnabled\": false,\n  \"watchdogEnabled\": true,\n  \"abstractedHardwareEnabled\": false,\n  \"fogType\": 1\n}"
+              "raw": "{\n  \"name\": \"string\",\n  \"isSystem\": false,\n  \"location\": \"string\",\n  \"latitude\": 0,\n  \"longitude\": 0,\n  \"description\": \"string\",\n  \"dockerUrl\": \"string\",\n  \"diskLimit\": 0,\n  \"diskDirectory\": \"string\",\n  \"memoryLimit\": 0,\n  \"cpuLimit\": 0,\n  \"logLimit\": 0,\n  \"logDirectory\": \"string\",\n  \"logFileCount\": 0,\n  \"statusFrequency\": 0,\n  \"changeFrequency\": 0,\n  \"deviceScanFrequency\": 0,\n  \"bluetoothEnabled\": false,\n  \"watchdogEnabled\": true,\n  \"abstractedHardwareEnabled\": false,\n  \"fogType\": 1\n}"
             },
             "url": {
               "raw": "{{host}}/api/v3/iofog/{{node-id}}",
@@ -6207,7 +6207,7 @@
           "response": []
         },
         {
-          "name": "List ioFog Nodes without system",
+          "name": "List system fogs",
           "event": [
             {
               "listen": "test",
@@ -6218,7 +6218,7 @@
                   "",
                   "var data = JSON.parse(responseBody);",
                   "",
-                  "tests[\"Response validation passed\"] = data.hasOwnProperty('fogs') && data.fogs.length === 0;"
+                  "tests[\"Response validation passed\"] = data.hasOwnProperty('fogs') && data.fogs.length === 1;"
                 ],
                 "type": "text/javascript"
               }
@@ -6237,7 +6237,7 @@
               }
             ],
             "url": {
-              "raw": "{{host}}/api/v3/iofog-list?filters[0][key]=uuid&filters[0][value]={{node-id}}&filters[0][condition]=equals",
+              "raw": "{{host}}/api/v3/iofog-list?system=true",
               "host": [
                 "{{host}}"
               ],
@@ -6248,16 +6248,8 @@
               ],
               "query": [
                 {
-                  "key": "filters[0][key]",
-                  "value": "uuid"
-                },
-                {
-                  "key": "filters[0][value]",
-                  "value": "{{node-id}}"
-                },
-                {
-                  "key": "filters[0][condition]",
-                  "value": "equals"
+                  "key": "system",
+                  "value": "true"
                 }
               ]
             }

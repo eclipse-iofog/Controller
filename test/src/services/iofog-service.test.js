@@ -511,12 +511,11 @@ describe('ioFog Service', () => {
       availableDiskThreshold: 80,
       logLevel: 'INFO',
       isSystem: false,
-      host: fogData.host
+      host: fogData.host,
+      userId: user.id
     }
 
-    const queryFogData = isCLI
-      ? { uuid: fogData.uuid }
-      : { uuid: fogData.uuid, userId: user.id }
+    const queryFogData = { uuid: fogData.uuid }
 
     const updateFogData = {
       name: fogData.name,
@@ -624,9 +623,9 @@ describe('ioFog Service', () => {
       $sandbox.stub(Validator, 'validate').returns($validatorResponse)
       $sandbox.stub(AppHelper, 'deleteUndefinedFields').returns($deleteUndefinedFieldsResponse)
       $sandbox.stub(ioFogManager, 'findOne')
-          .withArgs({ uuid: uuid, userId: user.id }).returns($findIoFogResponse)
+          .withArgs({ uuid: uuid }).returns($findIoFogResponse)
           .withArgs({ name: 'new-name', uuid: { [Op.not]: 'testUuid' }, userId: user.id }).returns(Promise.resolve())
-        $sandbox.stub(ioFogManager, 'update').returns($updateIoFogResponse)
+      $sandbox.stub(ioFogManager, 'update').returns($updateIoFogResponse)
       $sandbox.stub(ChangeTrackingService, 'update')
           .onFirstCall().returns($updateChangeTrackingResponse)
           .onSecondCall().returns($updateChangeTrackingResponse2)
@@ -699,7 +698,7 @@ describe('ioFog Service', () => {
             await $subject
 
             expect(ioFogManager.update).to.have.been.calledWith(queryFogData,
-                {...updateFogData, routerId: router.id})
+                {...updateFogData, userId: 0, routerId: router.id})
           })
 
           context('when ioFogManager#update() fails', () => {
@@ -940,7 +939,7 @@ describe('ioFog Service', () => {
                 })
                 it('should set the network router', async () => {
                   await $subject
-                  return expect(ioFogManager.update).to.have.been.calledWith(queryFogData, {...updateFogData, routerId: networkRouter.id})
+                  return expect(ioFogManager.update).to.have.been.calledWith(queryFogData, {...updateFogData, userId: 0, routerId: networkRouter.id})
                 })
               })
             })
@@ -1016,6 +1015,7 @@ describe('ioFog Service', () => {
       watchdogEnabled: false,
       abstractedHardwareEnabled: false,
       fogType: 1,
+      userId: user.id
     }
 
     const networkRouter = {
@@ -1034,9 +1034,7 @@ describe('ioFog Service', () => {
       id: 15
     }
     
-    const queryFogData = isCLI
-      ? { uuid: fogData.uuid }
-      : { uuid: fogData.uuid, userId: user.id }
+    const queryFogData = { uuid: fogData.uuid }
 
     def('subject', () => $subject.deleteFogEndPoint(fogData, user, isCLI, transaction))
     def('validatorResponse', () => Promise.resolve(true))
@@ -1201,11 +1199,10 @@ describe('ioFog Service', () => {
       watchdogEnabled: false,
       abstractedHardwareEnabled: false,
       fogType: 1,
+      userId: user.id
     }
 
-    const queryFogData = isCLI
-      ? { uuid: fogData.uuid }
-      : { uuid: fogData.uuid, userId: user.id }
+    const queryFogData = { uuid: fogData.uuid }
 
 
     const defaultRouter = {
@@ -1342,15 +1339,15 @@ describe('ioFog Service', () => {
       fogType: 1,
     }
 
+    const isSystem = false
+
     const fogs = [fog]
 
-    const queryFogData = isCLI
-      ? { isSystem: false }
-      : { userId: user.id, isSystem: false }
+    const queryFogData = isSystem ? { isSystem } : (isCLI ? {} : { userId: user.id, isSystem: false })
 
     const filters = []
 
-    def('subject', () => $subject.getFogListEndPoint(filters, user, isCLI, false, transaction))
+    def('subject', () => $subject.getFogListEndPoint(filters, user, isCLI, isSystem, transaction))
     def('validatorResponse', () => Promise.resolve(true))
     def('findAllIoFogResponse', () => Promise.resolve(fogs.map(f => ({...f, getRouter: () => Promise.resolve(null), toJSON: () => f}))))
     def('findOneRouterResponse', () => Promise.resolve(null))
@@ -1413,9 +1410,7 @@ describe('ioFog Service', () => {
       uuid: uuid,
     }
 
-    const queryFogData = isCLI
-      ? { uuid: fogData.uuid }
-      : { uuid: fogData.uuid, userId: user.id }
+    const queryFogData = { uuid: fogData.uuid }
 
     const provisionKey = 'tttttttt'
     const expirationTime = date + (20 * 60 * 1000)
@@ -1429,7 +1424,7 @@ describe('ioFog Service', () => {
     def('subject', () => $subject.generateProvisioningKeyEndPoint(fogData, user, isCLI, transaction))
     def('validatorResponse', () => Promise.resolve(true))
     def('generateRandomStringResponse', () => provisionKey)
-    def('findIoFogResponse', () => Promise.resolve({}))
+    def('findIoFogResponse', () => Promise.resolve({ uuid: fogData.uuid, userId: user.id }))
     def('updateOrCreateProvisionKeyResponse', () => Promise.resolve(newProvision))
 
     def('dateResponse', () => date)
@@ -1531,14 +1526,13 @@ describe('ioFog Service', () => {
       versionCommand: 'upgrade',
     }
 
-    const queryFogData = isCLI
-      ? { uuid: fogVersionData.uuid }
-      : { uuid: fogVersionData.uuid, userId: user.id }
+    const queryFogData = { uuid: fogVersionData.uuid }
 
     const ioFog = {
       uuid: uuid,
       isReadyToUpgrade: true,
       isReadyToRollback: true,
+      userId: user.id
     }
 
     const newVersionCommand = {
@@ -1725,13 +1719,11 @@ describe('ioFog Service', () => {
       uuid: uuid,
     }
 
-    const queryFogData = isCLI
-      ? { uuid: fogData.uuid }
-      : { uuid: fogData.uuid, userId: user.id }
+    const queryFogData = { uuid: fogData.uuid }
 
     def('subject', () => $subject.setFogRebootCommandEndPoint(fogData, user, isCLI, transaction))
     def('validatorResponse', () => Promise.resolve(true))
-    def('findIoFogResponse', () => Promise.resolve({}))
+    def('findIoFogResponse', () => Promise.resolve({ uuid: fogData.uuid, userId: user.id }))
     def('updateChangeTrackingResponse', () => Promise.resolve())
 
     def('dateResponse', () => date)
@@ -1811,7 +1803,7 @@ describe('ioFog Service', () => {
 
     def('subject', () => $subject.getHalHardwareInfoEndPoint(uuidObj, user, isCLI, transaction))
     def('validatorResponse', () => Promise.resolve(true))
-    def('findIoFogResponse', () => Promise.resolve({}))
+    def('findIoFogResponse', () => Promise.resolve({ userId: user.id, uuid: uuidObj.uuid }))
     def('findHalHardwareResponse', () => Promise.resolve())
 
     def('dateResponse', () => date)
@@ -1894,7 +1886,7 @@ describe('ioFog Service', () => {
 
     def('subject', () => $subject.getHalUsbInfoEndPoint(uuidObj, user, isCLI, transaction))
     def('validatorResponse', () => Promise.resolve(true))
-    def('findIoFogResponse', () => Promise.resolve({}))
+    def('findIoFogResponse', () => Promise.resolve({ userId: user.id, uuid: uuidObj.uuid }))
     def('findHalUsbResponse', () => Promise.resolve())
 
     def('dateResponse', () => date)

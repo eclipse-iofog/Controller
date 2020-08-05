@@ -90,6 +90,11 @@ async function createFogEndPoint (fogData, user, isCLI, transaction) {
     throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.DUPLICATE_NAME, createFogData.name))
   }
 
+  // Remove user if system fog
+  if (fogData.isSystem) {
+    fogData.userId = 0
+  }
+
   let defaultRouter, upstreamRouters
   if (fogData.routerMode === 'none') {
     const networkRouter = await RouterService.getNetworkRouter(fogData.networkRouter)
@@ -138,9 +143,7 @@ async function createFogEndPoint (fogData, user, isCLI, transaction) {
 async function updateFogEndPoint (fogData, user, isCLI, transaction) {
   await Validator.validate(fogData, Validator.schemas.iofogUpdate)
 
-  const queryFogData = isCLI
-    ? { uuid: fogData.uuid }
-    : { uuid: fogData.uuid, userId: user.id }
+  const queryFogData = { uuid: fogData.uuid }
 
   let updateFogData = {
     name: fogData.name,
@@ -177,6 +180,21 @@ async function updateFogEndPoint (fogData, user, isCLI, transaction) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, fogData.uuid))
   }
 
+  // If using REST API and not system fog. You must be the fog's user to access it
+  if (!oldFog.isSystem && !isCLI && oldFog.userId !== user.id) {
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, fogData.uuid))
+  }
+
+  // Set userId if moving fog from system to classic or from classic to system
+  if (!oldFog.isSystem && updateFogData.isSystem) {
+    updateFogData.userId = 0
+    if (await FogManager.findOne({ isSystem: true }, transaction)) {
+      throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.DUPLICATE_SYSTEM_FOG))
+    }
+  } else if (updateFogData.isSystem === false) {
+    updateFogData.userId = user.id
+  }
+
   if (updateFogData.name) {
     const conflictQuery = isCLI
       ? { name: updateFogData.name, uuid: { [Op.not]: fogData.uuid } }
@@ -199,6 +217,11 @@ async function updateFogEndPoint (fogData, user, isCLI, transaction) {
   const edgeRouterPort = fogData.edgeRouterPort || (router ? router.edgeRouterPort : null)
   let networkRouter
 
+  // const isSystem = updateFogData.isSystem === undefined ? oldFog.isSystem : updateFogData.isSystem
+  // if (isSystem && routerMode !== 'interior') {
+  //   throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_ROUTER_MODE, fogData.routerMode))
+  // }
+
   if (routerMode === 'none') {
     networkRouter = await RouterService.getNetworkRouter(fogData.networkRouter)
     if (!networkRouter) {
@@ -220,6 +243,7 @@ async function updateFogEndPoint (fogData, user, isCLI, transaction) {
       networkRouter = await RouterService.updateRouter(router, {
         messagingPort, interRouterPort, edgeRouterPort, isEdge: routerMode === 'edge', host
       }, upstreamRouters, user.id)
+      await ChangeTrackingService.update(fogData.uuid, ChangeTrackingService.events.routerChanged, transaction)
     }
   }
   updateFogData.routerId = networkRouter.id
@@ -339,12 +363,15 @@ async function _deleteFogRouter (fogData, userId, transaction) {
 async function deleteFogEndPoint (fogData, user, isCLI, transaction) {
   await Validator.validate(fogData, Validator.schemas.iofogDelete)
 
-  const queryFogData = isCLI
-    ? { uuid: fogData.uuid }
-    : { uuid: fogData.uuid, userId: user.id }
+  const queryFogData = { uuid: fogData.uuid }
 
   const fog = await FogManager.findOne(queryFogData, transaction)
   if (!fog) {
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, fogData.uuid))
+  }
+
+  // If using REST API and not system fog. You must be the fog's user to access it
+  if (!fog.isSystem && !isCLI && fog.userId !== user.id) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, fogData.uuid))
   }
 
@@ -393,12 +420,15 @@ async function _getFogRouterConfig (fog, transaction) {
 async function getFog (fogData, user, isCLI, transaction) {
   await Validator.validate(fogData, Validator.schemas.iofogGet)
 
-  const queryFogData = isCLI
-    ? { uuid: fogData.uuid }
-    : { uuid: fogData.uuid, userId: user.id }
+  const queryFogData = { uuid: fogData.uuid }
 
   const fog = await FogManager.findOne(queryFogData, transaction)
   if (!fog) {
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, fogData.uuid))
+  }
+
+  // If using REST API and not system fog. You must be the fog's user to access it
+  if (!fog.isSystem && !isCLI && fog.userId !== user.id) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, fogData.uuid))
   }
 
@@ -412,9 +442,12 @@ async function getFogEndPoint (fogData, user, isCLI, transaction) {
 async function getFogListEndPoint (filters, user, isCLI, isSystem, transaction) {
   await Validator.validate(filters, Validator.schemas.iofogFilters)
 
-  const queryFogData = isCLI
-    ? { isSystem: isSystem }
-    : { userId: user.id, isSystem }
+  // If listing system agent through REST API, make sure user is authenticated
+  if (isSystem && !isCLI && !lget(user, 'id')) {
+    throw new Errors.AuthenticationError('Unauthorized')
+  }
+
+  const queryFogData = isSystem ? { isSystem } : (isCLI ? {} : { userId: user.id, isSystem: false })
 
   let fogs = await FogManager.findAll(queryFogData, transaction)
   fogs = _filterFogs(fogs, filters)
@@ -429,9 +462,7 @@ async function getFogListEndPoint (filters, user, isCLI, isSystem, transaction) 
 async function generateProvisioningKeyEndPoint (fogData, user, isCLI, transaction) {
   await Validator.validate(fogData, Validator.schemas.iofogGenerateProvision)
 
-  const queryFogData = isCLI
-    ? { uuid: fogData.uuid }
-    : { uuid: fogData.uuid, userId: user.id }
+  const queryFogData = { uuid: fogData.uuid }
 
   const newProvision = {
     iofogUuid: fogData.uuid,
@@ -443,6 +474,12 @@ async function generateProvisioningKeyEndPoint (fogData, user, isCLI, transactio
   if (!fog) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, fogData.uuid))
   }
+
+  // If using REST API and not system fog. You must be the fog's user to access it
+  if (!fog.isSystem && !isCLI && fog.userId !== user.id) {
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, fogData.uuid))
+  }
+
   const provisioningKeyData = await FogProvisionKeyManager.updateOrCreate({ iofogUuid: fogData.uuid }, newProvision, transaction)
 
   return {
@@ -454,9 +491,7 @@ async function generateProvisioningKeyEndPoint (fogData, user, isCLI, transactio
 async function setFogVersionCommandEndPoint (fogVersionData, user, isCLI, transaction) {
   await Validator.validate(fogVersionData, Validator.schemas.iofogSetVersionCommand)
 
-  const queryFogData = isCLI
-    ? { uuid: fogVersionData.uuid }
-    : { uuid: fogVersionData.uuid, userId: user.id }
+  const queryFogData = { uuid: fogVersionData.uuid }
 
   const newVersionCommand = {
     iofogUuid: fogVersionData.uuid,
@@ -465,6 +500,11 @@ async function setFogVersionCommandEndPoint (fogVersionData, user, isCLI, transa
 
   const fog = await FogManager.findOne(queryFogData, transaction)
   if (!fog) {
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, queryFogData.uuid))
+  }
+
+  // If using REST API and not system fog. You must be the fog's user to access it
+  if (!fog.isSystem && !isCLI && fog.userId !== user.id) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, queryFogData.uuid))
   }
 
@@ -483,12 +523,15 @@ async function setFogVersionCommandEndPoint (fogVersionData, user, isCLI, transa
 async function setFogRebootCommandEndPoint (fogData, user, isCLI, transaction) {
   await Validator.validate(fogData, Validator.schemas.iofogReboot)
 
-  const queryFogData = isCLI
-    ? { uuid: fogData.uuid }
-    : { uuid: fogData.uuid, userId: user.id }
+  const queryFogData = { uuid: fogData.uuid }
 
   const fog = await FogManager.findOne(queryFogData, transaction)
   if (!fog) {
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, fogData.uuid))
+  }
+
+  // If using REST API and not system fog. You must be the fog's user to access it
+  if (!fog.isSystem && !isCLI && fog.userId !== user.id) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, fogData.uuid))
   }
 
@@ -505,6 +548,11 @@ async function getHalHardwareInfoEndPoint (uuidObj, user, isCLI, transaction) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, uuidObj.uuid))
   }
 
+  // If using REST API and not system fog. You must be the fog's user to access it
+  if (!fog.isSystem && !isCLI && fog.userId !== user.id) {
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, uuidObj.uuid))
+  }
+
   return HWInfoManager.findOne({
     iofogUuid: uuidObj.uuid
   }, transaction)
@@ -517,6 +565,11 @@ async function getHalUsbInfoEndPoint (uuidObj, user, isCLI, transaction) {
     uuid: uuidObj.uuid
   }, transaction)
   if (!fog) {
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, uuidObj.uuid))
+  }
+
+  // If using REST API and not system fog. You must be the fog's user to access it
+  if (!fog.isSystem && !isCLI && fog.userId !== user.id) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, uuidObj.uuid))
   }
 
@@ -636,12 +689,15 @@ const informKubelet = function (iofogUuid, method) {
 async function setFogPruneCommandEndPoint (fogData, user, isCLI, transaction) {
   await Validator.validate(fogData, Validator.schemas.iofogPrune)
 
-  const queryFogData = isCLI
-    ? { uuid: fogData.uuid }
-    : { uuid: fogData.uuid, userId: user.id }
+  const queryFogData = { uuid: fogData.uuid }
 
   const fog = await FogManager.findOne(queryFogData, transaction)
   if (!fog) {
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, fogData.uuid))
+  }
+
+  // If using REST API and not system fog. You must be the fog's user to access it
+  if (!fog.isSystem && !isCLI && fog.userId !== user.id) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, fogData.uuid))
   }
 

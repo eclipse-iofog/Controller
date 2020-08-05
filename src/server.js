@@ -38,7 +38,6 @@ const Sentry = require('@sentry/node')
 
 const Tracking = require('./tracking')
 const TrackingEventType = require('./enums/tracking-event-type')
-const { server } = require('sinon')
 
 Sentry.init({ dsn: 'https://a15f11352d404c2aa4c8f321ad9e759a@sentry.io/1378602' })
 Sentry.configureScope((scope) => {
@@ -103,12 +102,19 @@ fs.readdirSync(path.join(__dirname, 'jobs'))
 function registerServers (api, viewer) {
   process.once('SIGTERM', async function (code) {
     console.log('SIGTERM received. Shutting down.')
+<<<<<<< HEAD
     await api.close(() => {
       console.log('API Server closed.')
     })
     await viewer.close(() => {
       console.log('Viewer Server closed.')
     })
+=======
+    await new Promise((resolve) => { api.close(resolve) })
+    console.log('API Server closed.')
+    await new Promise((resolve) => { viewer.close(resolve) })
+    console.log('Viewer Server closed.')
+>>>>>>> develop
     process.exit(0)
   })
 }

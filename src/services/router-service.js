@@ -121,6 +121,18 @@ async function updateRouter (oldRouter, newRouterData, upstreamRouters, userId, 
   const upstreamToCreate = ldifferenceWith(upstreamRouters, upstreamConnections, (router, connection) => connection.destRouter === router.id)
   await RouterConnectionManager.bulkCreate(upstreamToCreate.map(router => ({ sourceRouter: oldRouter.id, destRouter: router.id })), transaction)
 
+  // Update proxy microservice (If port or host changed)
+  const proxyCatalog = await CatalogService.getProxyCatalogItem(transaction)
+  const existingProxy = await MicroserviceManager.findOne({ iofogUuid: oldRouter.iofogUuid, catalogItemId: proxyCatalog.id }, transaction)
+  if (existingProxy) {
+    const config = JSON.parse(existingProxy.config || '{}')
+    config.networkRouter = {
+      host: newRouterData.host || oldRouter.host,
+      port: newRouterData.messagingPort
+    }
+    await MicroserviceManager.updateIfChanged({ uuid: existingProxy.uuid }, { config: JSON.stringify(config) }, transaction)
+  }
+
   // Update config if needed
   await updateConfig(oldRouter.id, userId, transaction)
   await ChangeTrackingService.update(oldRouter.iofogUuid, ChangeTrackingService.events.routerChanged, transaction)
