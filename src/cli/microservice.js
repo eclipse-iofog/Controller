@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2018 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -41,7 +41,8 @@ const JSON_SCHEMA_ADD = AppHelper.stringifyCliJsonSchema(
       {
         hostDestination: '/var/dest',
         containerDestination: '/var/dest',
-        accessMode: 'rw'
+        accessMode: 'rw',
+        type: 'volume'
       }
     ],
     ports: [
@@ -86,7 +87,8 @@ const JSON_SCHEMA_UPDATE = AppHelper.stringifyCliJsonSchema(
       {
         hostDestination: '/var/dest',
         containerDestination: '/var/dest',
-        accessMode: 'rw'
+        accessMode: 'rw',
+        type: 'bind'
       }
     ],
     env: [
@@ -460,6 +462,7 @@ const _createRoute = async function (obj, user) {
     logger.cliRes(`Microservice route with source microservice ${sourceMicroserviceUuid} and dest microservice 
                 ${destMicroserviceUuid} has been created successfully.`)
   } catch (e) {
+    console.log({ e })
     logger.error(ErrorMessages.CLI.INVALID_ROUTE)
   }
 }
@@ -598,13 +601,15 @@ const _updateMicroserviceObject = function (obj) {
     rebuild: obj.rebuild,
     cmd: obj.cmd,
     env,
-    images: [],
+    images: obj.images,
     catalogItemId: parseInt(obj.catalogItemId) || undefined,
     registryId: parseInt(obj.registryId) || undefined
   }
 
+  const images = []
+
   if (obj.x86Image) {
-    microserviceObj.images.push(
+    images.push(
       {
         containerImage: obj.x86Image,
         fogTypeId: 1
@@ -612,13 +617,18 @@ const _updateMicroserviceObject = function (obj) {
     )
   }
   if (obj.armImage) {
-    microserviceObj.images.push(
+    images.push(
       {
         containerImage: obj.armImage,
         fogTypeId: 2
       }
     )
   }
+
+  if (images.length > 0) {
+    microserviceObj.images = images
+  }
+
   if (obj.volumes) {
     microserviceObj.volumeMappings = parseVolumeMappingArray(obj.volumes, 'Error during parsing of volume mapping option.')
   }
@@ -685,10 +695,12 @@ const parseVolumeMappingObject = function (obj, errMsg) {
   let result = {}
   try {
     const props = obj.split(':')
+    const type = props[3] || constants.VOLUME_MAPPING_DEFAULT
     result = {
       hostDestination: props[0],
       containerDestination: props[1],
-      accessMode: props[2]
+      accessMode: props[2],
+      type
     }
   } catch (e) {
     logger.warn(errMsg)

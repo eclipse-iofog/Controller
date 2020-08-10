@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2018 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -13,14 +13,24 @@
 
 const BaseManager = require('./base-manager')
 const models = require('../models')
+
 const Fog = models.Fog
-const Microservice = models.Microservice
 const FogAccessToken = models.FogAccessToken
+const Microservice = models.Microservice
 const Strace = models.StraceDiagnostics
 
 class FogManager extends BaseManager {
   getEntity () {
     return Fog
+  }
+
+  async findAll (where, transaction) {
+    return Fog.findAll({
+      where: where,
+      order: [ [ 'name', 'ASC' ] ]
+    }, {
+      transaction: transaction
+    })
   }
 
   // no transaction required here, used by auth decorator

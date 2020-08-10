@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2018 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -17,6 +17,34 @@ const Errors = require('../helpers/errors')
 const logger = require('../logger')
 
 module.exports = [
+  {
+    method: 'get',
+    path: '/api/v3/microservices/public-ports',
+    middleware: async (req, res) => {
+      logger.apiReq(req)
+
+      const successCode = constants.HTTP_CODE_SUCCESS
+      const errorCodes = [
+        {
+          code: constants.HTTP_CODE_UNAUTHORIZED,
+          errors: [Errors.AuthenticationError]
+        }
+      ]
+
+      const listAllPublicPortsEndPoint = ResponseDecorator.handleErrors(
+        MicroservicesController.listAllPublicPortsEndPoint,
+        successCode,
+        errorCodes
+      )
+      const responseObject = await listAllPublicPortsEndPoint(req)
+
+      res
+        .status(responseObject.code)
+        .send(responseObject.body)
+
+      logger.apiRes({ req: req, res: responseObject })
+    }
+  },
   {
     method: 'get',
     path: '/api/v3/microservices/',

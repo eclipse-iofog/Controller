@@ -1,6 +1,6 @@
 /*
  * *******************************************************************************
- *  * Copyright (c) 2018 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -96,6 +96,10 @@ const deleteMicroserviceVolumeMappingEndPoint = async function (req, user) {
   return MicroservicesService.deleteVolumeMappingEndPoint(uuid, id, user, false)
 }
 
+const listAllPublicPortsEndPoint = async function (req, user) {
+  return MicroservicesService.listAllPublicPortsEndPoint(user)
+}
+
 module.exports = {
   createMicroserviceOnFogEndPoint: AuthDecorator.checkAuthToken(createMicroserviceOnFogEndPoint),
   getMicroserviceEndPoint: AuthDecorator.checkAuthToken(getMicroserviceEndPoint),
@@ -109,5 +113,6 @@ module.exports = {
   getMicroservicePortMappingListEndPoint: AuthDecorator.checkAuthToken(listMicroservicePortMappingsEndPoint),
   createMicroserviceVolumeMappingEndPoint: AuthDecorator.checkAuthToken(createMicroserviceVolumeMappingEndPoint),
   listMicroserviceVolumeMappingsEndPoint: AuthDecorator.checkAuthToken(listMicroserviceVolumeMappingsEndPoint),
-  deleteMicroserviceVolumeMappingEndPoint: AuthDecorator.checkAuthToken(deleteMicroserviceVolumeMappingEndPoint)
+  deleteMicroserviceVolumeMappingEndPoint: AuthDecorator.checkAuthToken(deleteMicroserviceVolumeMappingEndPoint),
+  listAllPublicPortsEndPoint: AuthDecorator.checkAuthToken(listAllPublicPortsEndPoint)
 }

@@ -1,6 +1,6 @@
 /*
  * *******************************************************************************
- *  * Copyright (c) 2018 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -23,7 +23,7 @@ class VolumeMappingManager extends BaseManager {
   findAll (where, transaction) {
     return VolumeMapping.findAll({
       where: where,
-      attributes: ['hostDestination', 'containerDestination', 'accessMode', 'id']
+      attributes: ['hostDestination', 'containerDestination', 'accessMode', 'id', 'type']
     }, { transaction: transaction })
   }
 }

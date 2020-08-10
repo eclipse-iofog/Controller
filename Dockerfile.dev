@@ -2,15 +2,19 @@ FROM iofog/node-alpine-x86:8.16.0 AS builder
 
 ARG PKG_VERSION
 
-RUN npm i -g npm
-
 WORKDIR /tmp
+
+RUN npm config set unsafe-perm true
+
+RUN npm i -g npm
 
 COPY package.json .
 
-RUN npm i
+COPY package-lock.json .
 
 COPY . .
+
+RUN npm i
 
 RUN npm version $PKG_VERSION --allow-same-version
 
@@ -19,6 +23,10 @@ RUN npm pack
 FROM iofog/node-alpine-x86:8.16.0
 
 ENV NODE_ENV=development
+
+# https://stackoverflow.com/questions/52196518/could-not-get-uid-gid-when-building-node-docker
+# Workaround until we fix our node alpine image
+RUN npm config set unsafe-perm true
 
 COPY --from=builder /tmp/iofogcontroller-*.tgz /tmp/iofog-controller.tgz
 

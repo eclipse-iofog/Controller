@@ -24,9 +24,8 @@
   "Settings": {
     "UserTokenExpirationIntervalSeconds": 360000,
     "FogTokenExpirationIntervalSeconds": 3600000,
-    "FogStatusUpdateIntervalSeconds": 120,
-    "FogStatusFrequencySeconds": 60,
-    "ConnectorHealthCheckFrequencySeconds": 10
+    "FogStatusUpdateIntervalSeconds": 30,
+    "FogStatusUpdateTolerance": 3
   },
   "Tunnel": {
     "Username": "username",

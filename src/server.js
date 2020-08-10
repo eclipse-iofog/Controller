@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2018 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -99,22 +99,34 @@ fs.readdirSync(path.join(__dirname, 'jobs'))
   })
   .forEach(setupJobs)
 
+function registerServers (api, viewer) {
+  process.once('SIGTERM', async function (code) {
+    console.log('SIGTERM received. Shutting down.')
+    await new Promise((resolve) => { api.close(resolve) })
+    console.log('API Server closed.')
+    await new Promise((resolve) => { viewer.close(resolve) })
+    console.log('Viewer Server closed.')
+    process.exit(0)
+  })
+}
+
 function startHttpServer (apps, ports, jobs) {
   logger.info('SSL not configured, starting HTTP server.')
 
-  apps.viewer.listen(ports.viewer, function onStart (err) {
+  const viewerServer = apps.viewer.listen(ports.viewer, function onStart (err) {
     if (err) {
       logger.error(err)
     }
     logger.info(`==> 🌎 Viewer listening on port ${ports.viewer}. Open up http://localhost:${ports.viewer}/ in your browser.`)
   })
-  apps.api.listen(ports.api, function onStart (err) {
+  const apiServer = apps.api.listen(ports.api, function onStart (err) {
     if (err) {
       logger.error(err)
     }
     logger.info(`==> 🌎 API Listening on port ${ports.api}. Open up http://localhost:${ports.api}/ in your browser.`)
     jobs.forEach((job) => job.run())
   })
+  registerServers(apiServer, viewerServer)
 }
 
 function startHttpsServer (apps, ports, sslKey, sslCert, intermedKey, jobs) {
@@ -127,7 +139,7 @@ function startHttpsServer (apps, ports, sslKey, sslCert, intermedKey, jobs) {
       rejectUnauthorized: false // currently for some reason iofog agent doesn't work without this option
     }
 
-    https.createServer(sslOptions, apps.viewer).listen(ports.viewer, function onStart (err) {
+    const viewerServer = https.createServer(sslOptions, apps.viewer).listen(ports.viewer, function onStart (err) {
       if (err) {
         logger.error(err)
       }
@@ -135,13 +147,14 @@ function startHttpsServer (apps, ports, sslKey, sslCert, intermedKey, jobs) {
       jobs.forEach((job) => job.run())
     })
 
-    https.createServer(sslOptions, apps.api).listen(ports.api, function onStart (err) {
+    const apiServer = https.createServer(sslOptions, apps.api).listen(ports.api, function onStart (err) {
       if (err) {
         logger.error(err)
       }
       logger.info(`==> 🌎 HTTPS API server listening on port ${ports.api}. Open up https://localhost:${ports.api}/ in your browser.`)
       jobs.forEach((job) => job.run())
     })
+    registerServers(apiServer, viewerServer)
   } catch (e) {
     logger.error('ssl_key or ssl_cert or intermediate_cert is either missing or invalid. Provide valid SSL configurations.')
   }
@@ -162,7 +175,7 @@ const initState = async () => {
   if (!isDaemon) {
     // InitDB
     try {
-      await db.initDB()
+      await db.initDB(true)
     } catch (err) {
       logger.error('Unable to initialize the database. Error: ' + err)
       process.exit(1)

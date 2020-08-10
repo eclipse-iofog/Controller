@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2018 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -54,13 +54,15 @@ const prepareObjectLogs = winston.format((log) => {
 
   if (log.level === 'apiReq' && log.message instanceof Object) {
     const req = log.message
-    log.message = `${req.method} ${req.originalUrl}`
+    const requestId = req.headers ? `[${req.headers['request-id']}] ` : ''
+    log.message = `${requestId}${req.method} ${req.originalUrl}`
     log.args = { params: req.params, query: req.query, body: req.body }
   }
   if (log.level === 'apiRes' && log.message instanceof Object) {
     const req = log.message.req
     const res = log.message.res
-    log.message = `${req.method} ${req.originalUrl}`
+    const requestId = req.headers ? `[${req.headers['request-id']}] ` : ''
+    log.message = `${requestId}${req.method} ${req.originalUrl}`
     log.args = res
   }
   return log
@@ -68,7 +70,7 @@ const prepareObjectLogs = winston.format((log) => {
 
 const logger = winston.createLogger({
   levels: levels,
-  level: 'silly',
+  level: 'warn',
   transports: [
     new winston.transports.File({
       format: winston.format.combine(
@@ -95,13 +97,15 @@ if (process.env.NODE_ENV !== 'production2') {
       }
       if (log.level === 'apiReq' && log.message instanceof Object) {
         const req = log.message
-        log.message = `${req.method} ${req.originalUrl}`
+        const requestId = req.headers ? `[${req.headers['request-id']}] ` : ''
+        log.message = `${requestId}${req.method} ${req.originalUrl}`
         log.args = { params: req.params, query: req.query, body: req.body }
       }
       if (log.level === 'apiRes' && log.message instanceof Object) {
         const req = log.message.req
         const res = log.message.res
-        log.message = `${req.method} ${req.originalUrl}`
+        const requestId = req.headers ? `[${req.headers['request-id']}] ` : ''
+        log.message = `${requestId}${req.method} ${req.originalUrl}`
         log.args = res
       }
       let message = log.level === 'cliRes' ? `${log.message}` : `[${log.level}] ${log.message}`

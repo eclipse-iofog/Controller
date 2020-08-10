@@ -1,6 +1,6 @@
 /*
  * *******************************************************************************
- *  * Copyright (c) 2018 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -54,7 +54,11 @@ const statusController = async function (isCLI) {
   return {
     'status': status,
     'timestamp': Date.now(),
-    'uptimeSec': process.uptime()
+    'uptimeSec': process.uptime(),
+    versions: {
+      controller: packageJson.version,
+      ecnViewer: packageJson.dependencies['@iofog/ecn-viewer']
+    }
   }
 }
 

@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2018 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -13,13 +13,13 @@
 
 const BaseManager = require('./base-manager')
 const models = require('../models')
-const Connector = models.Connector
+const Config = models.Config
 
-class ConnectorManager extends BaseManager {
+class ConfigManager extends BaseManager {
   getEntity () {
-    return Connector
+    return Config
   }
 }
 
-const instance = new ConnectorManager()
+const instance = new ConfigManager()
 module.exports = instance

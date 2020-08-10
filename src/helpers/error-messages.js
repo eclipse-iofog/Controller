@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2018 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -17,8 +17,8 @@ module.exports = {
   ALREADY_EXISTS: 'Model already exists',
   INVALID_CATALOG_ITEM_ID: 'Invalid catalog item id \'{}\'',
   INVALID_FLOW_ID: 'Invalid flow id \'{}\'',
+  INVALID_ROUTING_NAME: 'Invalid route name \'{}\'',
   INVALID_REGISTRY_ID: 'Invalid registry id \'{}\'',
-  INVALID_CONNECTOR_IP: 'Invalid connector IP \'{}\'',
   UNABLE_TO_CREATE_ACTIVATION_CODE: 'Unable to create activation code',
   UNABLE_TO_GET_ACTIVATION_CODE: 'Unable to create activation code',
   INVALID_IOFOG_UUID: 'Invalid ioFog UUID \'{}\'',
@@ -64,7 +64,7 @@ module.exports = {
   PORT_MAPPING_ALREADY_EXISTS: 'Port mapping already exists',
   PORT_MAPPING_INTERNAL_PORT_NOT_PROVIDED: 'Internal port wasn\'t provided',
   VOLUME_MAPPING_ALREADY_EXISTS: 'Volume mapping already exists',
-  INVALID_CONNECTOR_DOMAIN: 'Invalid connector domain {}',
+  INVALID_ROUTER_HOST: 'Invalid router host {}',
   CERT_PROPERTY_REQUIRED: 'Property "certificate" is required if property "requiresCert" is set to true',
   TUNNEL_NOT_FOUND: 'Tunnel not found',
   STRACE_NOT_FOUND: 'Strace not found',
@@ -79,8 +79,6 @@ module.exports = {
     INVALID_INTERNAL_PORT: 'Internal parsing error. Please provide valid internal port.',
     INVALID_ROUTE: 'Route parsing error. Please provide valid route.'
   },
-  CONNECTOR_IS_IN_USE: 'You can\'t delete connector, because it is used for routing now.',
-  CONNECTOR_NOT_FOUND: 'Connecter not found.',
   INVALID_VERSION_COMMAND_UPGRADE: 'Can\'t upgrade version now. Latest is already installed',
   INVALID_VERSION_COMMAND_ROLLBACK: 'Can\'t rollback version now. There are no backups on agent',
   CATALOG_ITEM_IMAGES_IS_FROZEN: 'Can\'t update catalog item images for item used for running microservices',
@@ -89,5 +87,16 @@ module.exports = {
   SYSTEM_CATALOG_ITEM_UPDATE: 'Catalog item id {} is system and can\'t be updated',
   SYSTEM_CATALOG_ITEM_DELETE: 'Catalog item id {} is system and can\'t be deleted',
   SYSTEM_MICROSERVICE_UPDATE: 'Microservice uuid {} is system and can\'t be updated',
-  SYSTEM_MICROSERVICE_DELETE: 'Microservice uuid {} is system and can\'t be deleted'
+  SYSTEM_MICROSERVICE_DELETE: 'Microservice uuid {} is system and can\'t be deleted',
+  INVALID_CONFIG_KEY: 'Unkown config key \'{}\'',
+  INVALID_ROUTER: 'Invalid router \'{}\'',
+  DUPLICATE_SYSTEM_FOG: 'There already is a system fog',
+  INVALID_ROUTER_MODE: 'Invalid router mode \'{}\'',
+  INVALID_UPSTREAM_ROUTER: 'Upstream router must be interior \'{}\'',
+  EDGE_ROUTER_HAS_DOWNSTREAM: 'Edge router {} has, or will have, downstream routers',
+  HOST_IS_REQUIRED: '"host" is required',
+  PORT_RESERVED: 'Port \'{}\' is reserved for internal use',
+  INVALID_HOST_TEMPLATE: '{} is not a valid host template',
+  NOT_FOUND_HOST_TEMPLATE: 'Could not find {} host template',
+  MISSING_IMAGE: 'Microservice {} does not have a valid image for its Agent type'
 }

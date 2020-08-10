@@ -16,10 +16,10 @@ const fs = require('fs')
 const ROOT_DIR = `${__dirname}/..`
 const TEMP_DIR = getTempDir()
 
-const DEV_DB = `${ROOT_DIR}/src/data/dev_database.sqlite`
+const DEV_DB = `${ROOT_DIR}/src/data/sqlite_files/dev_database.sqlite`
 const DEV_DB_BACKUP = `${TEMP_DIR}/dev_database.sqlite`
 
-const PROD_DB = `${ROOT_DIR}/src/data/prod_database.sqlite`
+const PROD_DB = `${ROOT_DIR}/src/data/sqlite_files/prod_database.sqlite`
 const PROD_DB_BACKUP = `${TEMP_DIR}/prod_database.sqlite`
 
 let dbName = process.env.DB_NAME || 'iofogcontroller'

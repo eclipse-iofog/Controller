@@ -8,6 +8,12 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       field: 'id'
     },
+    name: {
+      type: DataTypes.TEXT,
+      unique: true,
+      allowNull: false,
+      field: 'name'
+    },
     isNetworkConnection: {
       type: DataTypes.BOOLEAN,
       defaultValue: false,
@@ -70,15 +76,6 @@ module.exports = (sequelize, DataTypes) => {
         field: 'dest_iofog_uuid'
       },
       as: 'destIofog',
-      onDelete: 'set null'
-    })
-
-    Routing.belongsTo(models.ConnectorPort, {
-      foreignKey: {
-        name: 'connectorPortId',
-        field: 'connector_port_id'
-      },
-      as: 'connectorPort',
       onDelete: 'set null'
     })
   }

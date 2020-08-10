@@ -156,6 +156,9 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: '0.0.0.0',
       field: 'ip_address_external'
     },
+    host: {
+      type: DataTypes.TEXT
+    },
     processedMessages: {
       type: DataTypes.BIGINT,
       get () {
@@ -169,10 +172,8 @@ module.exports = (sequelize, DataTypes) => {
       field: 'catalog_item_message_counts'
     },
     messageSpeed: {
-      type: DataTypes.BIGINT,
-      get () {
-        return convertToInt(this.getDataValue('messageSpeed'), 0)
-      },
+      type: DataTypes.FLOAT,
+      defaultValue: 0.000,
       field: 'message_speed'
     },
     lastCommandTime: {
@@ -278,6 +279,31 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.BOOLEAN,
       defaultValue: true,
       field: 'isolated_docker_container'
+    },
+    dockerPruningFrequency: {
+      type: DataTypes.INTEGER,
+      defaultValue: 1,
+      field: 'docker_pruning_freq'
+    },
+    availableDiskThreshold: {
+      type: DataTypes.FLOAT,
+      defaultValue: 90,
+      field: 'available_disk_threshold'
+    },
+    logLevel: {
+      type: DataTypes.TEXT,
+      defaultValue: 'INFO',
+      field: 'log_level'
+    },
+    isSystem: {
+      type: DataTypes.BOOLEAN,
+      field: 'is_system',
+      defaultValue: false
+    },
+    routerId: {
+      type: DataTypes.INTEGER,
+      field: 'router_id',
+      defaultValue: ''
     }
   }, {
     tableName: 'Fogs',
@@ -312,6 +338,11 @@ module.exports = (sequelize, DataTypes) => {
     Fog.hasMany(models.Microservice, {
       foreignKey: 'iofog_uuid',
       as: 'microservice'
+    })
+
+    Fog.hasOne(models.Router, {
+      foreignKey: 'iofog_uuid',
+      as: 'router'
     })
   }
 

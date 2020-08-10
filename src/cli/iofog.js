@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2018 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -40,7 +40,10 @@ const JSON_SCHEMA = AppHelper.stringifyCliJsonSchema({
   bluetoothEnabled: false,
   watchdogEnabled: true,
   abstractedHardwareEnabled: false,
-  fogType: 0
+  fogType: 0,
+  dockerPruningFrequency: 0,
+  availableDiskThreshold: 0,
+  logLevel: 'string'
 })
 
 class IOFog extends BaseCLIHandler {
@@ -67,7 +70,7 @@ class IOFog extends BaseCLIHandler {
         type: String,
         description: 'ioFog node UUID',
         group: [constants.CMD_UPDATE, constants.CMD_REMOVE, constants.CMD_INFO, constants.CMD_PROVISIONING_KEY,
-          constants.CMD_IOFOG_REBOOT, constants.CMD_VERSION, constants.CMD_HAL_HW, constants.CMD_HAL_USB]
+          constants.CMD_IOFOG_REBOOT, constants.CMD_VERSION, constants.CMD_HAL_HW, constants.CMD_HAL_USB, constants.CMD_IOFOG_PRUNE]
       },
       {
         name: 'name',
@@ -249,7 +252,35 @@ class IOFog extends BaseCLIHandler {
         alias: 'u',
         type: CliDataTypes.Integer,
         description: 'User\'s id',
-        group: [constants.CMD_ADD]
+        group: [constants.CMD_ADD, constants.CMD_UPDATE, constants.CMD_REMOVE]
+      },
+      {
+        name: 'log-level',
+        alias: 'L',
+        type: String,
+        description: 'ioFog node log files level',
+        group: [constants.CMD_UPDATE, constants.CMD_ADD]
+      },
+      {
+        name: 'docker-pruning-frequency',
+        alias: 'p',
+        type: CliDataTypes.Integer,
+        description: 'ioFog node docker pruning frequency (seconds)',
+        group: [constants.CMD_UPDATE, constants.CMD_ADD]
+      },
+      {
+        name: 'disk-threshold',
+        alias: 'k',
+        type: CliDataTypes.Integer,
+        description: 'ioFog node available disk threshold (%)',
+        group: [constants.CMD_UPDATE, constants.CMD_ADD]
+      },
+      {
+        name: 'prune',
+        alias: 'e',
+        type: Boolean,
+        description: 'Prune ioFog node',
+        group: [constants.CMD_UPDATE, constants.CMD_ADD]
       }
     ]
     this.commands = {
@@ -262,7 +293,8 @@ class IOFog extends BaseCLIHandler {
       [constants.CMD_IOFOG_REBOOT]: 'Reboot ioFog node',
       [constants.CMD_VERSION]: 'Change agent version of ioFog node',
       [constants.CMD_HAL_HW]: 'Get HAL Hardware ioFog node data',
-      [constants.CMD_HAL_USB]: 'Get HAL USB ioFog node data'
+      [constants.CMD_HAL_USB]: 'Get HAL USB ioFog node data',
+      [constants.CMD_IOFOG_PRUNE]: 'Prune ioFog node'
     }
   }
 
@@ -279,10 +311,10 @@ class IOFog extends BaseCLIHandler {
           await _executeCase(iofogCommand, constants.CMD_ADD, _createFog, true)
           break
         case constants.CMD_UPDATE:
-          await _executeCase(iofogCommand, constants.CMD_UPDATE, _updateFog, false)
+          await _executeCase(iofogCommand, constants.CMD_UPDATE, _updateFog, true)
           break
         case constants.CMD_REMOVE:
-          await _executeCase(iofogCommand, constants.CMD_REMOVE, _deleteFog, false)
+          await _executeCase(iofogCommand, constants.CMD_REMOVE, _deleteFog, true)
           break
         case constants.CMD_LIST:
           await _executeCase(iofogCommand, constants.CMD_LIST, _getFogList, false)
@@ -304,6 +336,9 @@ class IOFog extends BaseCLIHandler {
           break
         case constants.CMD_HAL_USB:
           await _executeCase(iofogCommand, constants.CMD_HAL_USB, _getHalUsbInfo, false)
+          break
+        case constants.CMD_IOFOG_PRUNE:
+          await _executeCase(iofogCommand, constants.CMD_IOFOG_PRUNE, _setFogPruneCommand, false)
           break
         case constants.CMD_HELP:
         default:
@@ -375,7 +410,7 @@ async function _deleteFog (obj, user) {
 async function _getFogList (obj, user) {
   logger.cliReq('fog list')
   const emptyFilters = []
-  const list = await FogService.getFogListEndPoint(emptyFilters, user, true)
+  const list = await FogService.getFogListEndPoint(emptyFilters, user, true, false)
   logger.cliRes(JSON.stringify(list, null, 2))
 }
 
@@ -440,6 +475,13 @@ async function _getHalUsbInfo (obj) {
   }
 }
 
+async function _setFogPruneCommand (obj, user) {
+  const fog = _createFogObject(obj)
+  logger.cliReq('fog prune', { args: fog })
+  await FogService.setFogPruneCommandEndPoint(fog, user, true)
+  logger.cliRes('ioFog prune command has been set successfully')
+}
+
 function _createFogObject (cliData) {
   const fogObj = {
     uuid: cliData.iofogUuid,
@@ -464,7 +506,10 @@ function _createFogObject (cliData) {
     abstractedHardwareEnabled: AppHelper.validateBooleanCliOptions(cliData.absHwEnable, cliData.absHwDisable),
 
     fogType: cliData.fogType,
-    userId: cliData.userId
+    userId: cliData.userId,
+    dockerPruningFrequency: cliData.dockerPruningFrequency,
+    availableDiskThreshold: cliData.availableDiskThreshold,
+    logLevel: cliData.logLevel
   }
 
   return AppHelper.deleteUndefinedFields(fogObj)

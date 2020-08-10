@@ -1,6 +1,6 @@
 {
   "name": "iofogcontroller",
-  "version": "1.3.1",
+  "version": "2.0.0",
   "description": "ioFog Controller project for Eclipse IoFog @ iofog.org \\nCopyright (c) 2018 Edgeworx, Inc.",
   "main": "./src/main.js",
   "author": "Saeid Baghbidi",
@@ -64,7 +64,7 @@
     "iofog-controller": "src/main.js"
   },
   "dependencies": {
-    "@iofog/ecn-viewer": "1.0.4",
+    "@iofog/ecn-viewer": "1.0.6",
     "@sentry/node": "5.7.1",
     "body-parser": "1.18.3",
     "child_process": "1.0.2",
@@ -80,7 +80,7 @@
     "ftp": "0.3.10",
     "helmet": "3.21.2",
     "is-elevated": "3.0.0",
-    "jsonschema": "1.2.4",
+    "jsonschema": "1.2.5",
     "moment": "2.24.0",
     "morgan": "1.9.1",
     "nconf": "0.10.0",
@@ -104,7 +104,7 @@
     "xss-clean": "0.1.1"
   },
   "devDependencies": {
-    "acorn": "6.1.1",
+    "acorn": "7.1.1",
     "automatic-release": "1.1.1",
     "bdd-lazy-var": "2.5.2",
     "chai": "4.2.0",
@@ -112,9 +112,9 @@
     "chai-http": "4.2.1",
     "eslint": "5.14.1",
     "eslint-config-google": "0.12.0",
-    "mocha": "5.2.0",
-    "newman": "4.5.5",
-    "nyc": "14.1.1",
+    "mocha": "^7.1.2",
+    "newman": "^5.1.2",
+    "nyc": "15.0.0",
     "sinon": "7.2.3",
     "sinon-chai": "3.3.0",
     "snyk": "1.193.2",

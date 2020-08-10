@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2018 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -54,7 +54,10 @@ const updateAgentConfig = {
     'watchdogEnabled': { 'type': 'boolean' },
     'latitude': { 'type': 'number', 'minimum': -90, 'maximum': 90 },
     'longitude': { 'type': 'number', 'minimum': -180, 'maximum': 180 },
-    'gpsMode': { 'type': 'string' }
+    'gpsMode': { 'type': 'string' },
+    'dockerPruningFrequency': { 'type': 'integer', 'minimum': 0 },
+    'availableDiskThreshold': { 'type': 'integer', 'minimum': 0 },
+    'logLevel': { 'type': 'string' }
   },
   'additionalProperties': true
 }

@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2018 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -13,8 +13,6 @@
 
 module.exports = {
   ROOT_DIR: `${__dirname}/../..`,
-  CONNECTOR_HTTP_PORT: 8080,
-  CONNECTOR_HTTPS_PORT: 443,
 
   CMD: 'command',
   CMD_LIST: 'list',
@@ -31,7 +29,6 @@ module.exports = {
   CMD_VERSION: 'version',
   CMD_USER: 'user',
   CMD_CONFIG: 'config',
-  CMD_CONNECTOR: 'connector',
   CMD_TUNNEL: 'tunnel',
   CMD_IOFOG: 'iofog',
   CMD_GENERATE_TOKEN: 'generate-token',
@@ -62,6 +59,7 @@ module.exports = {
   CMD_IMAGE_SNAPSHOT_GET: 'image-snapshot-get',
   CMD_HAL_HW: 'hal-hw',
   CMD_HAL_USB: 'hal-usb',
+  CMD_IOFOG_PRUNE: 'prune',
   HTTP_CODE_SUCCESS: 200,
   HTTP_CODE_CREATED: 201,
   HTTP_CODE_ACCEPTED: 202,
@@ -71,5 +69,12 @@ module.exports = {
   HTTP_CODE_UNAUTHORIZED: 401,
   HTTP_CODE_NOT_FOUND: 404,
   HTTP_CODE_DUPLICATE_PROPERTY: 409,
-  HTTP_CODE_INTERNAL_ERROR: 500
+  HTTP_CODE_INTERNAL_ERROR: 500,
+
+  DEFAULT_ROUTER_NAME: 'default-router',
+  DEFAULT_PROXY_HOST: 'default-proxy-host',
+
+  RESERVED_PORTS: [54321, 54322],
+
+  VOLUME_MAPPING_DEFAULT: 'bind'
 }

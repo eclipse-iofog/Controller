@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2018 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -31,7 +31,18 @@ const configUpdate = {
   }
 }
 
+const configElement = {
+  'id': '/configElement',
+  'type': 'object',
+  'properties': {
+    'key': { 'type': 'string', 'minLength': 1 },
+    'value': { 'type': 'string' }
+  },
+  'required': ['key', 'value'],
+  'additionalProperties': true
+}
+
 module.exports = {
-  mainSchemas: [configUpdate],
+  mainSchemas: [configUpdate, configElement],
   innerSchemas: []
 }

@@ -30,6 +30,9 @@ const microserviceCreate = {
     'ports': {
       'type': 'array',
       'items': { '$ref': '/ports' } },
+    'extraHosts': {
+      'type': 'array',
+      'items': { '$ref': '/extraHosts' } },
     'routes': {
       'type': 'array',
       'items': { 'type': 'string' } },
@@ -64,6 +67,7 @@ const microserviceUpdate = {
     'images': {
       'type': 'array',
       'maxItems': 2,
+      'minItems': 1,
       'items': { '$ref': '/image' }
     },
     'env': {
@@ -98,13 +102,26 @@ const env = {
   'additionalProperties': true
 }
 
+const extraHosts = {
+  'id': '/extraHosts',
+  'type': 'object',
+  'properties': {
+    'name': { 'type': 'string' },
+    'address': { 'type': 'string' }
+  },
+  'required': ['name', 'address'],
+  'additionalProperties': true
+}
+
 const ports = {
   'id': '/ports',
   'type': 'object',
   'properties': {
     'internal': { 'type': 'integer' },
     'external': { 'type': 'integer' },
-    'publicMode': { 'type': 'boolean' }
+    'publicPort': { 'type': 'integer' },
+    'host': { 'type': 'string' },
+    'protocol': { 'enum': ['http', 'tcp'] }
   },
   'required': ['internal', 'external'],
   'additionalProperties': true
@@ -116,7 +133,9 @@ const portsCreate = {
   'properties': {
     'internal': { 'type': 'integer' },
     'external': { 'type': 'integer' },
-    'publicMode': { 'type': 'boolean' }
+    'publicPort': { 'type': 'integer' },
+    'host': { 'type': 'string' },
+    'protocol': { 'enum': ['http', 'tcp'] }
   },
   'required': ['internal', 'external'],
   'additionalProperties': true
@@ -128,13 +147,14 @@ const volumeMappings = {
   'properties': {
     'hostDestination': { 'type': 'string' },
     'containerDestination': { 'type': 'string' },
-    'accessMode': { 'type': 'string' }
+    'accessMode': { 'type': 'string' },
+    'type': { 'enum': ['volume', 'bind'] }
   },
   'required': ['hostDestination', 'containerDestination', 'accessMode'],
   'additionalProperties': true
 }
 
 module.exports = {
-  mainSchemas: [microserviceCreate, microserviceUpdate, env, ports, portsCreate, microserviceDelete, volumeMappings],
-  innerSchemas: [volumeMappings, ports, env]
+  mainSchemas: [microserviceCreate, microserviceUpdate, env, ports, extraHosts, portsCreate, microserviceDelete, volumeMappings],
+  innerSchemas: [volumeMappings, ports, env, extraHosts]
 }

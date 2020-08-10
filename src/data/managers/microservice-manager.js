@@ -1,6 +1,6 @@
 /*
  * *******************************************************************************
- *  * Copyright (c) 2018 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -16,6 +16,7 @@ const models = require('../models')
 const Microservice = models.Microservice
 const MicroservicePort = models.MicroservicePort
 const MicroserviceEnv = models.MicroserviceEnv
+const MicroserviceExtraHost = models.MicroserviceExtraHost
 const MicroserviceArg = models.MicroserviceArg
 const VolumeMapping = models.VolumeMapping
 const StraceDiagnostics = models.StraceDiagnostics
@@ -57,6 +58,11 @@ class MicroserviceManager extends BaseManager {
           attributes: ['key', 'value']
         },
         {
+          model: MicroserviceExtraHost,
+          as: 'extraHosts',
+          required: false
+        },
+        {
           model: MicroserviceArg,
           as: 'cmd',
           required: false,
@@ -72,7 +78,7 @@ class MicroserviceManager extends BaseManager {
           model: VolumeMapping,
           as: 'volumeMappings',
           required: false,
-          attributes: ['hostDestination', 'containerDestination', 'accessMode']
+          attributes: ['hostDestination', 'containerDestination', 'accessMode', 'type']
         },
         {
           model: StraceDiagnostics,
@@ -120,7 +126,7 @@ class MicroserviceManager extends BaseManager {
           }],
           attributes: { exclude: ['id', 'source_microservice_uuid',
             'sourceMicroserviceUuid', 'destMicroserviceUuid', 'sourceNetworkMicroserviceUuid',
-            'destNetworkMicroserviceUuid', 'sourceIofogUuid', 'destIofogUuid', 'connectorPortId'] }
+            'destNetworkMicroserviceUuid', 'sourceIofogUuid', 'destIofogUuid'] }
         }
       ],
       where: where,
@@ -138,6 +144,11 @@ class MicroserviceManager extends BaseManager {
           attributes: ['key', 'value']
         },
         {
+          model: MicroserviceExtraHost,
+          as: 'extraHosts',
+          required: false
+        },
+        {
           model: MicroserviceArg,
           as: 'cmd',
           required: false,
@@ -153,7 +164,7 @@ class MicroserviceManager extends BaseManager {
           model: VolumeMapping,
           as: 'volumeMappings',
           required: false,
-          attributes: ['hostDestination', 'containerDestination', 'accessMode']
+          attributes: ['hostDestination', 'containerDestination', 'accessMode', 'type']
         },
         {
           model: CatalogItemImage,
@@ -221,6 +232,11 @@ class MicroserviceManager extends BaseManager {
           attributes: ['key', 'value']
         },
         {
+          model: MicroserviceExtraHost,
+          as: 'extraHosts',
+          required: false
+        },
+        {
           model: MicroserviceArg,
           as: 'cmd',
           required: false,
@@ -236,7 +252,7 @@ class MicroserviceManager extends BaseManager {
           model: VolumeMapping,
           as: 'volumeMappings',
           required: false,
-          attributes: ['hostDestination', 'containerDestination', 'accessMode']
+          attributes: ['hostDestination', 'containerDestination', 'accessMode', 'type']
         },
         {
           model: StraceDiagnostics,
@@ -285,7 +301,7 @@ class MicroserviceManager extends BaseManager {
           attributes: { exclude: ['id',
             'sourceMicroserviceUuid', 'destMicroserviceUuid',
             'sourceNetworkMicroserviceUuid', 'destNetworkMicroserviceUuid',
-            'sourceIofogUuid', 'destIofogUuid', 'connectorPortId'] }
+            'sourceIofogUuid', 'destIofogUuid'] }
         }
       ],
       where: where,
@@ -360,6 +376,7 @@ class MicroserviceManager extends BaseManager {
   async findAllExcludeFields (where, transaction) {
     return Microservice.findAll({
       where: where,
+      order: [ [ 'name', 'ASC' ] ],
       attributes: {
         exclude: microserviceExcludedFields
       } }, {

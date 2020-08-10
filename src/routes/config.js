@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2018 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -11,15 +11,15 @@
  *
  */
 const constants = require('../helpers/constants')
-const Connector = require('../controllers/connector-controller')
+const ConfigController = require('../controllers/config-controller')
 const ResponseDecorator = require('../decorators/response-decorator')
 const logger = require('../logger')
 const Errors = require('../helpers/errors')
 
 module.exports = [
   {
-    method: 'post',
-    path: '/api/v3/connector',
+    method: 'get',
+    path: '/api/v3/config',
     middleware: async (req, res) => {
       logger.apiReq(req)
 
@@ -28,14 +28,10 @@ module.exports = [
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
           errors: [Errors.AuthenticationError]
-        },
-        {
-          code: constants.HTTP_CODE_BAD_REQUEST,
-          errors: [Errors.ValidationError]
         }
       ]
-      const addConnectorEndPoint = ResponseDecorator.handleErrors(Connector.addConnectorEndPoint, successCode, errorCodes)
-      const responseObject = await addConnectorEndPoint(req)
+      const getConfigEndpoint = ResponseDecorator.handleErrors(ConfigController.listConfigEndpoint, successCode, errorCodes)
+      const responseObject = await getConfigEndpoint(req)
 
       res
         .status(responseObject.code)
@@ -46,7 +42,7 @@ module.exports = [
   },
   {
     method: 'get',
-    path: '/api/v3/connector',
+    path: '/api/v3/config/:key',
     middleware: async (req, res) => {
       logger.apiReq(req)
 
@@ -55,10 +51,15 @@ module.exports = [
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
           errors: [Errors.AuthenticationError]
+        },
+        {
+          code: constants.HTTP_CODE_NOT_FOUND,
+          errors: [Errors.NotFoundError]
         }
       ]
-      const listConnectorEndPoint = ResponseDecorator.handleErrors(Connector.listConnectorEndPoint, successCode, errorCodes)
-      const responseObject = await listConnectorEndPoint(req)
+
+      const getConfigEndpoint = ResponseDecorator.handleErrors(ConfigController.getConfigEndpoint, successCode, errorCodes)
+      const responseObject = await getConfigEndpoint(req)
 
       res
         .status(responseObject.code)
@@ -69,7 +70,7 @@ module.exports = [
   },
   {
     method: 'put',
-    path: '/api/v3/connector',
+    path: '/api/v3/config',
     middleware: async (req, res) => {
       logger.apiReq(req)
 
@@ -82,45 +83,10 @@ module.exports = [
         {
           code: constants.HTTP_CODE_BAD_REQUEST,
           errors: [Errors.ValidationError]
-        },
-        {
-          code: constants.HTTP_CODE_NOT_FOUND,
-          errors: [Errors.NotFoundError]
         }
       ]
-      const updateConnectorEndPoint = ResponseDecorator.handleErrors(Connector.updateConnectorEndPoint, successCode, errorCodes)
-      const responseObject = await updateConnectorEndPoint(req)
-
-      res
-        .status(responseObject.code)
-        .send(responseObject.body)
-
-      logger.apiRes({ req: req, res: responseObject })
-    }
-  },
-  {
-    method: 'delete',
-    path: '/api/v3/connector',
-    middleware: async (req, res) => {
-      logger.apiReq(req)
-
-      const successCode = constants.HTTP_CODE_NO_CONTENT
-      const errorCodes = [
-        {
-          code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError]
-        },
-        {
-          code: constants.HTTP_CODE_BAD_REQUEST,
-          errors: [Errors.ValidationError]
-        },
-        {
-          code: constants.HTTP_CODE_NOT_FOUND,
-          errors: [Errors.NotFoundError]
-        }
-      ]
-      const deleteConnectorEndPoint = ResponseDecorator.handleErrors(Connector.deleteConnectorEndPoint, successCode, errorCodes)
-      const responseObject = await deleteConnectorEndPoint(req)
+      const upsertConfigElementEndpoint = ResponseDecorator.handleErrors(ConfigController.upsertConfigElementEndpoint, successCode, errorCodes)
+      const responseObject = await upsertConfigElementEndpoint(req)
 
       res
         .status(responseObject.code)

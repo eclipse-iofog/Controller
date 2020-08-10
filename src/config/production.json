@@ -20,9 +20,11 @@
   "Settings": {
     "UserTokenExpirationIntervalSeconds": 3600,
     "FogTokenExpirationIntervalSeconds": 3600,
-    "FogStatusUpdateIntervalSeconds": 120,
-    "FogStatusFrequencySeconds": 60,
-    "ConnectorHealthCheckFrequencySeconds": 10
+    "FogStatusUpdateIntervalSeconds": 30,
+    "FogStatusUpdateTolerance": 3
+  },
+  "PublicPorts": {
+    "Provider": "default"
   },
   "Database": {
     "Provider": "sqlite",

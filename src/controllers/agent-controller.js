@@ -1,6 +1,6 @@
 /*
  * *******************************************************************************
- *  * Copyright (c) 2018 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -38,6 +38,10 @@ const updateAgentConfigEndPoint = async function (req, fog) {
 
 const getAgentConfigChangesEndPoint = async function (req, fog) {
   return AgentService.getAgentConfigChanges(fog)
+}
+
+const resetAgentConfigChangesEndPoint = async function (req, fog) {
+  return AgentService.resetAgentConfigChanges(fog, req.body)
 }
 
 const updateAgentStatusEndPoint = async function (req, fog) {
@@ -126,5 +130,6 @@ module.exports = {
   deleteNodeEndPoint: AuthDecorator.checkFogToken(deleteNodeEndPoint),
   getImageSnapshotEndPoint: AuthDecorator.checkFogToken(getImageSnapshotEndPoint),
   putImageSnapshotEndPoint: AuthDecorator.checkFogToken(putImageSnapshotEndPoint),
-  postTrackingEndPoint: AuthDecorator.checkFogToken(postTrackingEndPoint)
+  postTrackingEndPoint: AuthDecorator.checkFogToken(postTrackingEndPoint),
+  resetAgentConfigChangesEndPoint: AuthDecorator.checkFogToken(resetAgentConfigChangesEndPoint)
 }

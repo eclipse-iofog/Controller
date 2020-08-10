@@ -1,6 +1,6 @@
 /*
  * *******************************************************************************
- *  * Copyright (c) 2018 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -19,6 +19,7 @@ const CatalogItemManager = require('../data/managers/catalog-item-manager')
 const CatalogItemImageManager = require('../data/managers/catalog-item-image-manager')
 const CatalogItemInputTypeManager = require('../data/managers/catalog-item-input-type-manager')
 const CatalogItemOutputTypeManager = require('../data/managers/catalog-item-output-type-manager')
+const DBConstants = require('../data/constants')
 const Op = require('sequelize').Op
 const Validator = require('../schemas/index')
 const RegistryManager = require('../data/managers/registry-manager')
@@ -127,6 +128,26 @@ const deleteCatalogItemEndPoint = async function (id, user, isCLI, transaction) 
 async function getNetworkCatalogItem (transaction) {
   return CatalogItemManager.findOne({
     name: 'Networking Tool',
+    category: 'SYSTEM',
+    publisher: 'Eclipse ioFog',
+    registry_id: 1,
+    user_id: null
+  }, transaction)
+}
+
+async function getRouterCatalogItem (transaction) {
+  return CatalogItemManager.findOne({
+    name: DBConstants.ROUTER_CATALOG_NAME,
+    category: 'SYSTEM',
+    publisher: 'Eclipse ioFog',
+    registry_id: 1,
+    user_id: null
+  }, transaction)
+}
+
+async function getProxyCatalogItem (transaction) {
+  return CatalogItemManager.findOne({
+    name: DBConstants.PROXY_CATALOG_NAME,
     category: 'SYSTEM',
     publisher: 'Eclipse ioFog',
     registry_id: 1,
@@ -355,5 +376,7 @@ module.exports = {
   getCatalogItem: getCatalogItem,
   getNetworkCatalogItem: getNetworkCatalogItem,
   getBluetoothCatalogItem: getBluetoothCatalogItem,
-  getHalCatalogItem: getHalCatalogItem
+  getHalCatalogItem: getHalCatalogItem,
+  getRouterCatalogItem: getRouterCatalogItem,
+  getProxyCatalogItem: getProxyCatalogItem
 }

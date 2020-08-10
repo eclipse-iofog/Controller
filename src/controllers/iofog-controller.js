@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2018 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -42,8 +42,9 @@ async function getFogEndPoint (req, user) {
 }
 
 async function getFogListEndPoint (req, user) {
+  const isSystem = req.query && req.query.system ? req.query.system === 'true' : false
   const query = qs.parse(req.query)
-  return FogService.getFogListEndPoint(query.filters, user, false)
+  return FogService.getFogListEndPoint(query.filters, user, false, isSystem)
 }
 
 async function generateProvisionKeyEndPoint (req, user) {
@@ -85,6 +86,14 @@ async function getHalUsbInfoEndPoint (req, user) {
   return FogService.getHalUsbInfoEndPoint(uuidObj, user, false)
 }
 
+async function setFogPruneCommandEndPoint (req, user) {
+  const fog = {
+    uuid: req.params.uuid
+  }
+
+  return FogService.setFogPruneCommandEndPoint(fog, user, false)
+}
+
 module.exports = {
   createFogEndPoint: AuthDecorator.checkAuthToken(createFogEndPoint),
   updateFogEndPoint: AuthDecorator.checkAuthToken(updateFogEndPoint),
@@ -95,5 +104,6 @@ module.exports = {
   setFogVersionCommandEndPoint: AuthDecorator.checkAuthToken(setFogVersionCommandEndPoint),
   setFogRebootCommandEndPoint: AuthDecorator.checkAuthToken(setFogRebootCommandEndPoint),
   getHalHardwareInfoEndPoint: AuthDecorator.checkAuthToken(getHalHardwareInfoEndPoint),
-  getHalUsbInfoEndPoint: AuthDecorator.checkAuthToken(getHalUsbInfoEndPoint)
+  getHalUsbInfoEndPoint: AuthDecorator.checkAuthToken(getHalUsbInfoEndPoint),
+  setFogPruneCommandEndPoint: AuthDecorator.checkAuthToken(setFogPruneCommandEndPoint)
 }

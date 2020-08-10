@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2018 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -59,9 +59,9 @@ class Start extends BaseCLIHandler {
     }
   }
 
-  async initDB () {
+  async initDB (isStart) {
     try {
-      await db.initDB()
+      await db.initDB(isStart)
     } catch (err) {
       logger.error('Unable to initialize the database. Error: ' + err)
       process.exit(1)

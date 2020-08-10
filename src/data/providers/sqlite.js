@@ -1,4 +1,5 @@
 const path = require('path')
+const fs = require('fs')
 const Sequelize = require('sequelize')
 
 const config = require('../../config')
@@ -14,7 +15,11 @@ class SqliteDatabaseProvider extends DatabaseProvider {
     if (!sqliteConfig.databaseName.endsWith('.sqlite')) {
       sqliteConfig.databaseName += '.sqlite'
     }
-    sqliteConfig.storage = path.resolve(__dirname, '../' + sqliteConfig.databaseName)
+    const storageFolder = path.resolve(__dirname, '../sqlite_files/')
+    sqliteConfig.storage = path.resolve(storageFolder, sqliteConfig.databaseName)
+    if (!fs.existsSync(storageFolder)) {
+      fs.mkdirSync(storageFolder)
+    }
     if (config.use_env_variable) {
       this.sequelize = new Sequelize(process.env[config.use_env_variable], sqliteConfig)
     } else {
