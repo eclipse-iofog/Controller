@@ -50,6 +50,11 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.TEXT,
       defaultValue: '',
       field: 'container_id'
+    },
+    percentage: {
+      type: DataTypes.FLOAT,
+      defaultValue: 0.00,
+      field: 'percentage'
     }
   }, {
     tableName: 'MicroserviceStatuses',

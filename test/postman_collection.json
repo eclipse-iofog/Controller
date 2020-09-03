@@ -3804,7 +3804,9 @@
                   "",
                   "tests[\"Response returns microservice status\"] = data.microservices[0].hasOwnProperty('status');",
                   "",
-                  "tests[\"Microservice status has default value\"] = data.microservices[0].status.status === 'QUEUED';"
+                  "tests[\"Microservice status has default value\"] = data.microservices[0].status.status === 'QUEUED';",
+                  "",
+                  "tests[\"Response returns microservice percentage\"] = data.microservices[0].status.hasOwnProperty('percentage');"
                 ],
                 "type": "text/javascript"
               }
