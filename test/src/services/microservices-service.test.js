@@ -44,11 +44,38 @@ describe('Microservices Service', () => {
 
     const flowId = 10
 
+    const microserviceStatus = {
+      'containerId': 'testContainerId',
+      'status': 'RUNNING',
+      'startTime': 5325543453454,
+      'operatingDuration': 534535435435,
+      'cpuUsage': 35,
+      'memoryUsage': 45,
+      'percentage': 50.5
+    }
     const response = [
       {
-        uuid: 'testUuid',
+        uuid: 'testUuid'
       },
     ]
+
+    
+
+    const responseObject = [{
+     cmd: [],
+      env: [],
+      extraHosts: [],
+      images: [],
+      logSize: NaN,
+      ports: [],
+      routes: [],
+      volumeMappings: [],
+      status: microserviceStatus
+    }]
+    const microserviceResponse = {
+      microservices: responseObject
+    }
+    const microserviceStatusArray = [microserviceStatus]
 
     def('subject', () => $subject.listMicroservicesEndPoint(flowId, user, isCLI, transaction))
     def('findMicroservicesResponse', () => Promise.resolve(response))
@@ -60,7 +87,7 @@ describe('Microservices Service', () => {
     def('envResponse', () => Promise.resolve([]))
     def('cmdResponse', () => Promise.resolve([]))
     def('imgResponse', () => Promise.resolve([]))
-    def('statusResponse', () => Promise.resolve([]))
+    def('statusResponse', () => microserviceStatusArray)
 
     beforeEach(() => {
       $sandbox.stub(MicroserviceManager, 'findAllExcludeFields').returns($findMicroservicesResponse)
@@ -93,6 +120,13 @@ describe('Microservices Service', () => {
     context('when MicroserviceManager#findAllExcludeFields() succeeds', () => {
       it('fulfills the promise', () => {
         return expect($subject).to.eventually.have.property('microservices')
+      })
+    })
+
+    context('when MicroserviceManager#findAllExcludeFields() succeeds and return microservices', () => {
+      it('fulfills the promise', async() => {
+        await $subject
+        return expect($subject).to.eventually.deep.equal(microserviceResponse)
       })
     })
   })

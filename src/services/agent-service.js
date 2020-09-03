@@ -245,7 +245,8 @@ const _updateMicroserviceStatuses = async function (microserviceStatus, transact
       startTime: status.startTime,
       operatingDuration: status.operatingDuration,
       cpuUsage: status.cpuUsage,
-      memoryUsage: status.memoryUsage
+      memoryUsage: status.memoryUsage,
+      percentage: status.percentage
     }
     microserviceStatus = AppHelper.deleteUndefinedFields(microserviceStatus)
 

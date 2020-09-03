@@ -49,6 +49,7 @@ async function listMicroservicesEndPoint (flowId, user, isCLI, transaction) {
   const res = await Promise.all(microservices.map(async (microservice) => {
     return _buildGetMicroserviceResponse(microservice, transaction)
   }))
+
   return {
     microservices: res
   }
@@ -953,6 +954,7 @@ async function _buildGetMicroserviceResponse (microservice, transaction) {
   res.cmd = arg
   res.extraHosts = extraHosts.map(eH => ({ name: eH.name, address: eH.template, value: eH.value }))
   res.images = images.map(i => ({ containerImage: i.containerImage, fogTypeId: i.fogTypeId }))
+
   if (status && status.length) {
     res.status = status[0]
   }
