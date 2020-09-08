@@ -43,7 +43,7 @@ const microserviceCreate = {
       'type': 'array',
       'items': { 'type': 'string' } }
   },
-  'required': ['name', 'flowId'],
+  'required': ['name'],
   'additionalProperties': true
 }
 
