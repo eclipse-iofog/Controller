@@ -39,12 +39,17 @@ const MicroserviceExtraHostManager = require('../data/managers/microservice-extr
 const { VOLUME_MAPPING_DEFAULT } = require('../helpers/constants')
 
 async function listMicroservicesEndPoint (flowId, user, isCLI, transaction) {
-  if (!isCLI) {
+  if (!isCLI && flowId) {
     await _validateFlow(flowId, user, isCLI, transaction)
   }
 
-  const where = isCLI ? { delete: false } : { flowId: flowId, delete: false }
-  const microservices = await MicroserviceManager.findAllExcludeFields(where, transaction)
+  let microservices = []
+  if (flowId) {
+    const where = isCLI ? { delete: false } : { flowId: flowId, delete: false }
+    microservices = await MicroserviceManager.findAllExcludeFields(where, transaction)
+  } else {
+    microservices = await MicroserviceManager.findAll({ userId: user.id, flowId: { [Op.ne]: null }, delete: false }, transaction)
+  }
 
   const res = await Promise.all(microservices.map(async (microservice) => {
     return _buildGetMicroserviceResponse(microservice, transaction)
