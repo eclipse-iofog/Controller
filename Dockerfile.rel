@@ -25,7 +25,8 @@ FROM iofog/node-alpine-x86:8.16.0
 # Workaround until we fix our node alpine image
 RUN npm config set unsafe-perm true
 
-RUN apk add -y sudo
+RUN apk add -y sudo logrotate
+COPY logrotate.conf /etc/logrotate.conf
 
 COPY --from=builder /tmp/iofogcontroller-*.tgz /tmp/iofog-controller.tgz
 

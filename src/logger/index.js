@@ -11,112 +11,99 @@
  *
  */
 
-const winston = require('winston')
-const config = require('../config')
 const fs = require('fs')
-const MESSAGE = Symbol.for('message')
+const path = require('path')
+const pino = require('pino')
+const serializer = require('pino-std-serializers')
+const config = require('../config')
 
 const dirName = config.get('Service:LogsDirectory')
-const maxSize = config.get('Service:LogsFileSize')
-const maxFiles = config.get('Service:LogsFileCount')
 
-// Create the log directory if it does not exist
+const levels = {
+  error: 100,
+  warn: 90,
+  cliReq: 80,
+  cliRes: 70,
+  apiReq: 60,
+  apiRes: 50,
+  info: 40,
+  verbose: 30,
+  debug: 20,
+  silly: 10
+}
+
+const defaultFormat = {
+  level: 'info',
+  customLevels: levels,
+  useOnlyCustomLevels: true,
+  redact: ['headers.authorization'],
+  formatters: {
+    level: (level) => ({ level }),
+    log: (log) => {
+      if (!log.req && !log.res) {
+        return log
+      }
+
+      let result = {}
+
+      if (log.req) {
+        result = Object.assign(
+          result,
+          serializer.req(log.req),
+          {
+            params: log.req.params,
+            query: log.req.query,
+            body: log.req.body
+          }
+        )
+      }
+
+      if (log.res) {
+        result = Object.assign(result, serializer.res(log.res))
+      }
+
+      return result
+    }
+  }
+}
+
+const consoleLogger = pino(defaultFormat)
+
+let fileLogger = null
 try {
+  // Create the log directory if it does not exist
   if (!fs.existsSync(dirName)) {
     fs.mkdirSync(dirName)
   }
-} catch (e) {
-  // can't initialize log folder
-}
 
-const levels = {
-  error: 0,
-  warn: 1,
-  cliReq: 2,
-  cliRes: 3,
-  apiReq: 4,
-  apiRes: 5,
-  info: 6,
-  verbose: 7,
-  debug: 8,
-  silly: 9
-}
+  const logDestination = pino.destination(path.resolve(dirName, 'iofog-controller.log'))
+  fileLogger = pino(
+    {
+      ...defaultFormat,
+      level: 'warn'
+    },
+    logDestination)
+  process.on('SIGHUP', () => logDestination.reopen())
+} catch (e) {}
 
-const formattedJson = winston.format((log) => {
-  log[MESSAGE] = JSON.stringify(log)
-  return log
-})
+module.exports = {}
 
-const prepareObjectLogs = winston.format((log) => {
-  if (!(log.message instanceof Object)) {
-    return log
+for (const level of Object.keys(levels)) {
+  module.exports[level] = (...log) => {
+    if (level === 'cliRes') {
+      return console.log(log[0])
+    }
+
+    if (level === 'cliReq') {
+      return
+    }
+
+    if (log[0] instanceof Error) {
+      log = serializer.err(...log)
+    }
+    consoleLogger[level](...log)
+    if (fileLogger !== null) {
+      fileLogger[level](...log)
+    }
   }
-
-  if (log.level === 'apiReq' && log.message instanceof Object) {
-    const req = log.message
-    const requestId = req.headers ? `[${req.headers['request-id']}] ` : ''
-    log.message = `${requestId}${req.method} ${req.originalUrl}`
-    log.args = { params: req.params, query: req.query, body: req.body }
-  }
-  if (log.level === 'apiRes' && log.message instanceof Object) {
-    const req = log.message.req
-    const res = log.message.res
-    const requestId = req.headers ? `[${req.headers['request-id']}] ` : ''
-    log.message = `${requestId}${req.method} ${req.originalUrl}`
-    log.args = res
-  }
-  return log
-})
-
-const logger = winston.createLogger({
-  levels: levels,
-  level: 'warn',
-  transports: [
-    new winston.transports.File({
-      format: winston.format.combine(
-        winston.format.timestamp(),
-        prepareObjectLogs(),
-        formattedJson()
-      ),
-      filename: 'iofog-controller.log',
-      dirname: dirName,
-      maxsize: maxSize,
-      maxFiles: maxFiles
-    })
-  ]
-})
-
-// TODO: Fix test to pass without needing to set NODE_ENV to production
-// Tests are using console output to assess CLI command output
-if (process.env.NODE_ENV !== 'production2') {
-  logger.add(new winston.transports.Console({
-    level: 'info',
-    format: winston.format((log) => {
-      if (log.level === 'cliReq') {
-        return
-      }
-      if (log.level === 'apiReq' && log.message instanceof Object) {
-        const req = log.message
-        const requestId = req.headers ? `[${req.headers['request-id']}] ` : ''
-        log.message = `${requestId}${req.method} ${req.originalUrl}`
-        log.args = { params: req.params, query: req.query, body: req.body }
-      }
-      if (log.level === 'apiRes' && log.message instanceof Object) {
-        const req = log.message.req
-        const res = log.message.res
-        const requestId = req.headers ? `[${req.headers['request-id']}] ` : ''
-        log.message = `${requestId}${req.method} ${req.originalUrl}`
-        log.args = res
-      }
-      let message = log.level === 'cliRes' ? `${log.message}` : `[${log.level}] ${log.message}`
-
-      if (log.args) {
-        message += ` | args: ${JSON.stringify(log.args)}`
-      }
-      log[MESSAGE] = message
-      return log
-    })()
-  }))
 }
-
-module.exports = logger
