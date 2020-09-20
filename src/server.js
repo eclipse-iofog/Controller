@@ -69,6 +69,11 @@ app.on('uncaughtException', (req, res, route, err) => {
 })
 
 app.use((req, res, next) => {
+  if (req.headers && req.headers['request-id']) {
+    req.id = req.headers['request-id']
+    delete req.headers['request-id']
+  }
+
   res.append('X-Timestamp', Date.now())
   next()
 })
