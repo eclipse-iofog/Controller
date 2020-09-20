@@ -14,18 +14,10 @@
 const fs = require('fs')
 const path = require('path')
 const pino = require('pino')
+const serializer = require('pino-std-serializers')
 const config = require('../config')
 
 const dirName = config.get('Service:LogsDirectory')
-
-// Create the log directory if it does not exist
-try {
-  if (!fs.existsSync(dirName)) {
-    fs.mkdirSync(dirName)
-  }
-} catch (e) {
-  // can't initialize log folder
-}
 
 const levels = {
   error: 100,
@@ -44,42 +36,68 @@ const defaultFormat = {
   level: 'info',
   customLevels: levels,
   useOnlyCustomLevels: true,
+  redact: ['headers.authorization'],
   formatters: {
     level: (level) => ({ level }),
     log: (log) => {
-      if (!log.req) {
+      if (!log.req && !log.res) {
         return log
       }
 
-      return {
-        requestId: log.req.headers ? `[${log.req.headers['request-id']}] ` : '',
-        method: log.req.method,
-        args: {
-          params: log.req.params,
-          query: log.req.query,
-          body: log.req.body
-        }
+      let result = {}
+
+      if (log.req) {
+        result = Object.assign(
+          result,
+          serializer.req(log.req),
+          {
+            params: log.req.params,
+            query: log.req.query,
+            body: log.req.body
+          }
+        )
       }
+
+      if (log.res) {
+        result = Object.assign(result, serializer.res(log.res))
+      }
+
+      return result
     }
   }
 }
 
 const consoleLogger = pino(defaultFormat)
 
-const logDestination = pino.destination(path.resolve(dirName, 'iofog-controller.log'))
-const fileLogger = pino(
-  {
-    ...defaultFormat,
-    level: 'warn'
-  },
-  logDestination)
-process.on('SIGHUP', () => logDestination.reopen())
+let fileLogger = null
+try {
+  // Create the log directory if it does not exist
+  if (!fs.existsSync(dirName)) {
+    fs.mkdirSync(dirName)
+  }
+
+  const logDestination = pino.destination(path.resolve(dirName, 'iofog-controller.log'))
+  fileLogger = pino(
+    {
+      ...defaultFormat,
+      level: 'warn'
+    },
+    logDestination)
+  process.on('SIGHUP', () => logDestination.reopen())
+} catch (e) {
+  consoleLogger.error({ msg: 'Unable to initialize file logger', ...serializer.err(e) })
+}
 
 module.exports = {}
 
 for (const level of Object.keys(levels)) {
-  module.exports[level] = (...log) => {
-    consoleLogger[level](...log)
-    fileLogger[level](...log)
+  module.exports[level] = (log) => {
+    if (log instanceof Error) {
+      log = serializer.err(log)
+    }
+    consoleLogger[level](log)
+    if (fileLogger !== null) {
+      fileLogger[level](...log)
+    }
   }
 }

@@ -89,6 +89,7 @@
     "os": "0.1.1",
     "path": "0.12.7",
     "pino": "6.6.1",
+    "pino-std-serializers": "2.5.0",
     "portscanner": "2.2.0",
     "qs": "6.6.0",
     "request": "2.88.0",
