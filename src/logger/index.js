@@ -84,18 +84,24 @@ try {
     },
     logDestination)
   process.on('SIGHUP', () => logDestination.reopen())
-} catch (e) {
-  consoleLogger.error({ msg: 'Unable to initialize file logger', ...serializer.err(e) })
-}
+} catch (e) {}
 
 module.exports = {}
 
 for (const level of Object.keys(levels)) {
-  module.exports[level] = (log) => {
-    if (log instanceof Error) {
-      log = serializer.err(log)
+  module.exports[level] = (...log) => {
+    if (level === 'cliRes') {
+      return console.log(log[0])
     }
-    consoleLogger[level](log)
+
+    if (level === 'cliReq') {
+      return
+    }
+
+    if (log[0] instanceof Error) {
+      log = serializer.err(...log)
+    }
+    consoleLogger[level](...log)
     if (fileLogger !== null) {
       fileLogger[level](...log)
     }
