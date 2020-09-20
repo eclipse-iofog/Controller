@@ -88,6 +88,7 @@
     "nodemailer-smtp-transport": "2.7.4",
     "os": "0.1.1",
     "path": "0.12.7",
+    "pino": "6.6.1",
     "portscanner": "2.2.0",
     "qs": "6.6.0",
     "request": "2.88.0",
@@ -100,7 +101,6 @@
     "string-format": "2.0.0",
     "umzug": "2.2.0",
     "underscore": "1.9.1",
-    "winston": "3.1.0",
     "xss-clean": "0.1.1"
   },
   "devDependencies": {
@@ -112,8 +112,8 @@
     "chai-http": "4.2.1",
     "eslint": "5.14.1",
     "eslint-config-google": "0.12.0",
-    "mocha": "^7.1.2",
-    "newman": "^5.1.2",
+    "mocha": "7.1.2",
+    "newman": "5.1.2",
     "nyc": "15.0.0",
     "sinon": "7.2.3",
     "sinon-chai": "3.3.0",
