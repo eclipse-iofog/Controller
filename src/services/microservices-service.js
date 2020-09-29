@@ -41,7 +41,7 @@ const { VOLUME_MAPPING_DEFAULT } = require('../helpers/constants')
 async function listMicroservicesEndPoint (applicationName, user, isCLI, transaction) {
   const application = await _validateApplication(applicationName, user, isCLI, transaction)
 
-  const where = application ? { applicationId: application.id, delete: false } : { delete: false, flowId: { [Op.ne]: null } }
+  const where = application ? { applicationId: application.id, delete: false } : { delete: false, applicationId: { [Op.ne]: null } }
   if (!isCLI) {
     where.userId = user.id
   }

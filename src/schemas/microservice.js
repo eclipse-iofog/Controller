@@ -1,10 +1,12 @@
+const { nameRegex } = require('./utils/utils')
+
 const microserviceCreate = {
   'id': '/microserviceCreate',
   'type': 'object',
   'properties': {
     'name': {
       'type': 'string',
-      'pattern': '^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$'
+      'pattern': nameRegex
     },
     'config': { 'type': 'string' },
     'catalogItemId': {
@@ -53,7 +55,7 @@ const microserviceUpdate = {
   'properties': {
     'name': {
       'type': 'string',
-      'pattern': '^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$'
+      'pattern': nameRegex
     },
     'config': { 'type': 'string' },
     'rebuild': { 'type': 'boolean' },

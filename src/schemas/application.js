@@ -1,3 +1,5 @@
+const { nameRegex } = require('./utils/utils')
+
 const applicationCreate = {
   'id': '/applicationCreate',
   'type': 'object',
@@ -5,7 +7,7 @@ const applicationCreate = {
     'name': {
       'type': 'string',
       'minLength': 1,
-      'pattern': '^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$'
+      'pattern': nameRegex
     },
     'routes': {
       'type': 'array',
@@ -30,7 +32,7 @@ const applicationUpdate = {
     'name': {
       'type': 'string',
       'minLength': 1,
-      'pattern': '^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$'
+      'pattern': nameRegex
     },
     'microservices': {
       'type': 'array',
@@ -54,7 +56,7 @@ const applicationPatch = {
     'name': {
       'type': 'string',
       'minLength': 1,
-      'pattern': '^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$'
+      'pattern': nameRegex
     },
     'description': { 'type': 'string' },
     'isActivated': { 'type': 'boolean' },

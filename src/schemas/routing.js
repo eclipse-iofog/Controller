@@ -11,25 +11,27 @@
  *
  */
 
+const { nameRegex } = require('./utils/utils')
+
 const routingCreate = {
   'id': '/routingCreate',
   'type': 'object',
   'properties': {
     'name': {
       'type': 'string',
-      'pattern': '^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$'
+      'pattern': nameRegex
     },
     'from': {
       'type': 'string',
-      'pattern': '^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$'
+      'pattern': nameRegex
     },
     'to': {
       'type': 'string',
-      'pattern': '^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$'
+      'pattern': nameRegex
     },
     'application': {
       'type': 'string',
-      'pattern': '^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$'
+      'pattern': nameRegex
     }
   },
   'required': ['name', 'from', 'to', 'application'],
@@ -42,15 +44,15 @@ const routingUpdate = {
   'properties': {
     'name': {
       'type': 'string',
-      'pattern': '^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$'
+      'pattern': nameRegex
     },
     'from': {
       'type': 'string',
-      'pattern': '^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$'
+      'pattern': nameRegex
     },
     'to': {
       'type': 'string',
-      'pattern': '^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$'
+      'pattern': nameRegex
     }
   },
   'required': ['from', 'to'],
