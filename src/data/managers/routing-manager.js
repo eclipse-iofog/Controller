@@ -19,6 +19,58 @@ class RoutingManager extends BaseManager {
   getEntity () {
     return Routing
   }
+
+  findOnePopulated (where, transaction) {
+    return Routing.findOne({
+      include: [
+        {
+          model: models.Microservice,
+          as: 'sourceMicroservice',
+          required: true,
+          attributes: ['name', 'uuid', 'iofogUuid']
+        },
+        {
+          model: models.Microservice,
+          as: 'destMicroservice',
+          required: true,
+          attributes: ['name', 'uuid', 'iofogUuid']
+        },
+        {
+          model: models.Application,
+          as: 'application',
+          required: true,
+          attributes: ['name', 'id']
+        }
+      ],
+      where
+    })
+  }
+
+  findAllPopulated (where, transaction) {
+    return Routing.findAll({
+      include: [
+        {
+          model: models.Microservice,
+          as: 'sourceMicroservice',
+          required: true,
+          attributes: ['name', 'uuid', 'iofogUuid']
+        },
+        {
+          model: models.Microservice,
+          as: 'destMicroservice',
+          required: true,
+          attributes: ['name', 'uuid', 'iofogUuid']
+        },
+        {
+          model: models.Application,
+          as: 'application',
+          required: true,
+          attributes: ['name', 'id']
+        }
+      ],
+      where
+    })
+  }
 }
 
 const instance = new RoutingManager()

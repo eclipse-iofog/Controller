@@ -18,7 +18,7 @@ const Config = require('./config')
 const Tunnel = require('./tunnel')
 const IOFog = require('./iofog')
 const Catalog = require('./catalog')
-const Flow = require('./flow')
+const Application = require('./application')
 const Microservice = require('./microservice')
 const Registry = require('./registry')
 const Controller = require('./controller')
@@ -51,7 +51,7 @@ class Cli extends BaseCLIHandler {
       [constants.CMD_TUNNEL]: 'Tunnel operations.',
       [constants.CMD_IOFOG]: 'ioFog nodes operations.',
       [constants.CMD_CATALOG]: 'Microservices catalog operations.',
-      [constants.CMD_FLOW]: 'Application flow operations.',
+      [constants.CMD_FLOW]: 'Application operations.',
       [constants.CMD_MICROSERVICE]: 'Microservice instance operations.',
       [constants.CMD_REGISTRY]: 'Registries instance operations.',
       [constants.CMD_DIAGNOSTICS]: 'Diagnostic instance operations.'
@@ -84,7 +84,7 @@ class Cli extends BaseCLIHandler {
       case constants.CMD_CATALOG:
         return Catalog.run({ argv })
       case constants.CMD_FLOW:
-        return Flow.run({ argv })
+        return Application.run({ argv })
       case constants.CMD_MICROSERVICE:
         return Microservice.run({ argv })
       case constants.CMD_REGISTRY:
