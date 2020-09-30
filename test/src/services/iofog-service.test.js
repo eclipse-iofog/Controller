@@ -63,7 +63,7 @@ describe('ioFog Service', () => {
       abstractedHardwareEnabled: true,
       fogType: 1,
       dockerPruningFrequency: 10,
-      availableDiskThreshold: 90,
+      availableDiskThreshold: 20,
       logLevel: 'INFO',
       isSystem: false,
       host: '1.2.3.4'
@@ -95,7 +95,7 @@ describe('ioFog Service', () => {
       isSystem: fogData.isSystem,
       userId: user.id,
       dockerPruningFrequency: 10,
-      availableDiskThreshold: 90,
+      availableDiskThreshold: 20,
       logLevel: 'INFO',
       routerId: null,
       host: '1.2.3.4'
@@ -479,7 +479,7 @@ describe('ioFog Service', () => {
       abstractedHardwareEnabled: true,
       fogType: 1,
       dockerPruningFrequency: 90,
-      availableDiskThreshold: 80,
+      availableDiskThreshold: 10,
       logLevel: 'INFO',
       isSystem: true,
       host: '5.6.7.8'
@@ -508,7 +508,7 @@ describe('ioFog Service', () => {
       abstractedHardwareEnabled: false,
       fogType: 1,
       dockerPruningFrequency: 90,
-      availableDiskThreshold: 80,
+      availableDiskThreshold: 10,
       logLevel: 'INFO',
       isSystem: false,
       host: fogData.host,
@@ -540,7 +540,7 @@ describe('ioFog Service', () => {
       abstractedHardwareEnabled: fogData.abstractedHardwareEnabled,
       fogTypeId: fogData.fogType,
       dockerPruningFrequency: 90,
-      availableDiskThreshold: 80,
+      availableDiskThreshold: 10,
       logLevel: 'INFO',
       isSystem: fogData.isSystem,
       host: fogData.host
