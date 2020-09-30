@@ -336,7 +336,7 @@ describe('Agent Service', () => {
       longitude: 36,
       gpsMode: 'testGpsMode',
       dockerPruningFrequency: 10,
-      availableDiskThreshold: 90,
+      availableDiskThreshold: 20,
       logLevel: 'INFO',
     }
     const transaction = {}

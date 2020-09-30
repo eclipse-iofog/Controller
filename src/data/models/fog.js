@@ -287,7 +287,7 @@ module.exports = (sequelize, DataTypes) => {
     },
     availableDiskThreshold: {
       type: DataTypes.FLOAT,
-      defaultValue: 90,
+      defaultValue: 20,
       field: 'available_disk_threshold'
     },
     logLevel: {
