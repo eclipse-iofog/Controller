@@ -99,12 +99,12 @@ module.exports = (sequelize, DataTypes) => {
       onDelete: 'set null'
     })
 
-    Microservice.belongsTo(models.Application, {
+    Microservice.belongsTo(models.Flow, {
       foreignKey: {
-        name: 'applicationId',
-        field: 'application_id'
+        name: 'flowId',
+        field: 'flow_id'
       },
-      as: 'application',
+      as: 'flow',
       onDelete: 'cascade'
     })
 

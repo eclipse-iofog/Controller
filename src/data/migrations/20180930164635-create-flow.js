@@ -13,7 +13,7 @@ module.exports = {
       name: {
         type: Sequelize.TEXT,
         field: 'name',
-        defaultValue: 'New Application'
+        defaultValue: 'New Flow'
       },
       description: {
         type: Sequelize.TEXT,

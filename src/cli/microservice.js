@@ -33,7 +33,7 @@ const JSON_SCHEMA_ADD = AppHelper.stringifyCliJsonSchema(
       }
     ],
     registryId: 1,
-    application: 'string',
+    flowId: 0,
     iofogUuid: 'string',
     rootHostAccess: true,
     logSize: 0,
@@ -166,10 +166,10 @@ class Microservice extends BaseCLIHandler {
         group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
-        name: 'application-name',
+        name: 'flow-id',
         alias: 'F',
-        type: String,
-        description: 'Application name',
+        type: CliDataTypes.Integer,
+        description: 'Application flow ID',
         group: [constants.CMD_ADD]
       },
       {
@@ -462,6 +462,7 @@ const _createRoute = async function (obj, user) {
     logger.cliRes(`Microservice route with source microservice ${sourceMicroserviceUuid} and dest microservice 
                 ${destMicroserviceUuid} has been created successfully.`)
   } catch (e) {
+    console.log({ e })
     logger.error(ErrorMessages.CLI.INVALID_ROUTE)
   }
 }
@@ -540,7 +541,7 @@ const _removeMicroservice = async function (obj, user) {
 
 const _listMicroservices = async function () {
   logger.cliReq('microservice list')
-  const result = await MicroserviceService.listMicroservicesEndPoint('', {}, true)
+  const result = await MicroserviceService.listMicroservicesEndPoint({}, {}, true)
   logger.cliRes(JSON.stringify(result, null, 2))
 }
 
@@ -653,7 +654,7 @@ const _createMicroserviceObject = function (obj) {
     name: obj.name,
     config: obj.config,
     catalogItemId: parseInt(obj.catalogId) || undefined,
-    application: obj.applicationName,
+    flowId: parseInt(obj.flowId),
     registryId: parseInt(obj.registryId) || undefined,
     iofogUuid: obj.iofogUuid,
     rootHostAccess: AppHelper.validateBooleanCliOptions(obj.rootEnable, obj.rootDisable),

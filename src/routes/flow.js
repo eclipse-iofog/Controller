@@ -11,7 +11,7 @@
  *
  */
 const constants = require('../helpers/constants')
-const FlowController = require('../controllers/application-controller')
+const FlowController = require('../controllers/flow-controller')
 const ResponseDecorator = require('../decorators/response-decorator')
 const Errors = require('../helpers/errors')
 const logger = require('../logger')
@@ -31,7 +31,7 @@ module.exports = [
         }
       ]
 
-      const getFlowsByUserEndPoint = ResponseDecorator.handleErrors(FlowController.getApplicationsByUserEndPoint, successCode, errorCodes)
+      const getFlowsByUserEndPoint = ResponseDecorator.handleErrors(FlowController.getFlowsByUserEndPoint, successCode, errorCodes)
       const responseObject = await getFlowsByUserEndPoint(req)
 
       res
@@ -59,7 +59,7 @@ module.exports = [
         }
       ]
 
-      const createFlowEndPoint = ResponseDecorator.handleErrors(FlowController.createApplicationEndPoint, successCode, errorCodes)
+      const createFlowEndPoint = ResponseDecorator.handleErrors(FlowController.createFlowEndPoint, successCode, errorCodes)
       const responseObject = await createFlowEndPoint(req)
 
       res
@@ -87,7 +87,7 @@ module.exports = [
         }
       ]
 
-      const getFlowEndPoint = ResponseDecorator.handleErrors(FlowController.getApplicationByIdEndPoint, successCode, errorCodes)
+      const getFlowEndPoint = ResponseDecorator.handleErrors(FlowController.getFlowEndPoint, successCode, errorCodes)
       const responseObject = await getFlowEndPoint(req)
 
       res
@@ -119,7 +119,7 @@ module.exports = [
         }
       ]
 
-      const updateFlowEndPoint = ResponseDecorator.handleErrors(FlowController.patchApplicationByIdEndPoint, successCode, errorCodes)
+      const updateFlowEndPoint = ResponseDecorator.handleErrors(FlowController.updateFlowEndPoint, successCode, errorCodes)
       const responseObject = await updateFlowEndPoint(req)
 
       res
@@ -147,7 +147,7 @@ module.exports = [
         }
       ]
 
-      const deleteFlowEndPoint = ResponseDecorator.handleErrors(FlowController.deleteApplicationByIdEndPoint, successCode, errorCodes)
+      const deleteFlowEndPoint = ResponseDecorator.handleErrors(FlowController.deleteFlowEndPoint, successCode, errorCodes)
       const responseObject = await deleteFlowEndPoint(req)
 
       res

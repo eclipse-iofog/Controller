@@ -16,7 +16,7 @@ describe('Microservices Controller', () => {
     def('name', () => 'testName')
     def('config', () => '{}')
     def('catalogItemId', () => 5)
-    def('applicationId', () => 1)
+    def('flowId', () => 1)
     def('iofogUuid', () => 'testUuid')
     def('rootHostAccess', () => true)
     def('logSize', () => 15)
@@ -41,7 +41,7 @@ describe('Microservices Controller', () => {
         name: $name,
         config: $config,
         catalogItemId: $catalogItemId,
-        applicationId: $applicationId,
+        flowId: $flowId,
         iofogUuid: $iofogUuid,
         rootHostAccess: $rootHostAccess,
         logSize: $logSize,
@@ -64,7 +64,7 @@ describe('Microservices Controller', () => {
         name: $name,
         config: $config,
         catalogItemId: $catalogItemId,
-        applicationId: $applicationId,
+        flowId: $flowId,
         iofogUuid: $iofogUuid,
         rootHostAccess: $rootHostAccess,
         logSize: $logSize,
@@ -243,17 +243,17 @@ describe('Microservices Controller', () => {
     })
   })
 
-  describe('.getMicroservicesByApplicationEndPoint()', () => {
+  describe('.getMicroservicesByFlowEndPoint()', () => {
     def('user', () => 'user!')
-    def('application', () => 'my-app')
+    def('flowId', () => 1)
 
     def('req', () => ({
       query: {
-        application: $application,
+        flowId: $flowId,
       },
     }))
     def('response', () => Promise.resolve())
-    def('subject', () => $subject.getMicroservicesByApplicationEndPoint($req, $user))
+    def('subject', () => $subject.getMicroservicesByFlowEndPoint($req, $user))
 
     beforeEach(() => {
       $sandbox.stub(MicroservicesService, 'listMicroservicesEndPoint').returns($response)
@@ -261,7 +261,7 @@ describe('Microservices Controller', () => {
 
     it('calls MicroservicesService.listMicroservicesEndPoint with correct args', async () => {
       await $subject
-      expect(MicroservicesService.listMicroservicesEndPoint).to.have.been.calledWith($application, $user, false)
+      expect(MicroservicesService.listMicroservicesEndPoint).to.have.been.calledWith($flowId, $user, false)
     })
 
     context('when MicroservicesService#listMicroservicesEndPoint fails', () => {

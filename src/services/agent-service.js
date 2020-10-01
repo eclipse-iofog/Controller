@@ -261,7 +261,7 @@ const _mapExtraHost = function (extraHost) {
 }
 
 const getAgentMicroservices = async function (fog, transaction) {
-  const microservices = await MicroserviceManager.findAllActiveApplicationMicroservices(fog.uuid, transaction)
+  const microservices = await MicroserviceManager.findAllActiveFlowMicroservices(fog.uuid, transaction)
 
   const fogTypeId = fog.fogTypeId
 

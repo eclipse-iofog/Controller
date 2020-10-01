@@ -36,9 +36,9 @@ const deleteMicroserviceEndPoint = async function (req, user) {
   return MicroservicesService.deleteMicroserviceEndPoint(microserviceUuid, microserviceData, user, false)
 }
 
-const getMicroservicesByApplicationEndPoint = async function (req, user) {
-  const applicationName = req.query.application
-  return MicroservicesService.listMicroservicesEndPoint(applicationName, user, false)
+const getMicroservicesByFlowEndPoint = async function (req, user) {
+  const flowId = req.query.flowId
+  return MicroservicesService.listMicroservicesEndPoint(flowId, user, false)
 }
 
 const createMicroserviceRouteEndPoint = async function (req, user) {
@@ -105,7 +105,7 @@ module.exports = {
   getMicroserviceEndPoint: AuthDecorator.checkAuthToken(getMicroserviceEndPoint),
   updateMicroserviceEndPoint: AuthDecorator.checkAuthToken(updateMicroserviceEndPoint),
   deleteMicroserviceEndPoint: AuthDecorator.checkAuthToken(deleteMicroserviceEndPoint),
-  getMicroservicesByApplicationEndPoint: AuthDecorator.checkAuthToken(getMicroservicesByApplicationEndPoint),
+  getMicroservicesByFlowEndPoint: AuthDecorator.checkAuthToken(getMicroservicesByFlowEndPoint),
   createMicroserviceRouteEndPoint: AuthDecorator.checkAuthToken(createMicroserviceRouteEndPoint),
   deleteMicroserviceRouteEndPoint: AuthDecorator.checkAuthToken(deleteMicroserviceRouteEndPoint),
   createMicroservicePortMappingEndPoint: AuthDecorator.checkAuthToken(createMicroservicePortMappingEndPoint),
