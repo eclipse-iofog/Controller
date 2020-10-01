@@ -11,18 +11,30 @@
  *
  */
 
+const { nameRegex } = require('./utils/utils')
+
 const routingCreate = {
   'id': '/routingCreate',
   'type': 'object',
   'properties': {
     'name': {
       'type': 'string',
-      'pattern': '^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$'
+      'pattern': nameRegex
     },
-    'sourceMicroserviceUuid': { 'type': 'string', 'minLength': 1 },
-    'destMicroserviceUuid': { 'type': 'string', 'minLength': 1 }
+    'from': {
+      'type': 'string',
+      'pattern': nameRegex
+    },
+    'to': {
+      'type': 'string',
+      'pattern': nameRegex
+    },
+    'application': {
+      'type': 'string',
+      'pattern': nameRegex
+    }
   },
-  'required': ['name', 'sourceMicroserviceUuid', 'destMicroserviceUuid'],
+  'required': ['name', 'from', 'to', 'application'],
   'additionalProperties': true
 }
 
@@ -32,14 +44,22 @@ const routingUpdate = {
   'properties': {
     'name': {
       'type': 'string',
-      'pattern': '^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$'
+      'pattern': nameRegex
     },
-    'sourceMicroserviceUuid': { 'type': 'string', 'minLength': 1 },
-    'destMicroserviceUuid': { 'type': 'string', 'minLength': 1 }
+    'from': {
+      'type': 'string',
+      'pattern': nameRegex
+    },
+    'to': {
+      'type': 'string',
+      'pattern': nameRegex
+    }
   },
+  'required': ['from', 'to'],
   'additionalProperties': true
 }
 
 module.exports = {
-  mainSchemas: [routingUpdate, routingCreate]
+  mainSchemas: [routingUpdate, routingCreate],
+  innerSchemas: [routingCreate]
 }

@@ -33,7 +33,7 @@ module.exports = {
   CMD_IOFOG: 'iofog',
   CMD_GENERATE_TOKEN: 'generate-token',
   CMD_CATALOG: 'catalog',
-  CMD_FLOW: 'flow',
+  CMD_FLOW: 'application',
   CMD_MICROSERVICE: 'microservice',
   CMD_ROUTE_CREATE: 'route-create',
   CMD_ROUTE_REMOVE: 'route-remove',

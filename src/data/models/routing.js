@@ -78,6 +78,15 @@ module.exports = (sequelize, DataTypes) => {
       as: 'destIofog',
       onDelete: 'set null'
     })
+
+    Routing.belongsTo(models.Application, {
+      foreignKey: {
+        name: 'applicationId',
+        field: 'application_id'
+      },
+      as: 'application',
+      onDelete: 'cascade'
+    })
   }
   return Routing
 }
