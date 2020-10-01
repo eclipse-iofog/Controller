@@ -11,7 +11,7 @@
  *
  */
 const constants = require('../helpers/constants')
-const ApplicationController = require('../controllers/application-controller')
+const FlowController = require('../controllers/flow-controller')
 const ResponseDecorator = require('../decorators/response-decorator')
 const Errors = require('../helpers/errors')
 const logger = require('../logger')
@@ -19,7 +19,7 @@ const logger = require('../logger')
 module.exports = [
   {
     method: 'get',
-    path: '/api/v3/application',
+    path: '/api/v3/flow',
     middleware: async (req, res) => {
       logger.apiReq(req)
 
@@ -31,8 +31,8 @@ module.exports = [
         }
       ]
 
-      const getApplicationsByUserEndPoint = ResponseDecorator.handleErrors(ApplicationController.getApplicationsByUserEndPoint, successCode, errorCodes)
-      const responseObject = await getApplicationsByUserEndPoint(req)
+      const getFlowsByUserEndPoint = ResponseDecorator.handleErrors(FlowController.getFlowsByUserEndPoint, successCode, errorCodes)
+      const responseObject = await getFlowsByUserEndPoint(req)
 
       res
         .status(responseObject.code)
@@ -43,7 +43,7 @@ module.exports = [
   },
   {
     method: 'post',
-    path: '/api/v3/application',
+    path: '/api/v3/flow',
     middleware: async (req, res) => {
       logger.apiReq(req)
 
@@ -59,8 +59,8 @@ module.exports = [
         }
       ]
 
-      const createApplicationEndPoint = ResponseDecorator.handleErrors(ApplicationController.createApplicationEndPoint, successCode, errorCodes)
-      const responseObject = await createApplicationEndPoint(req)
+      const createFlowEndPoint = ResponseDecorator.handleErrors(FlowController.createFlowEndPoint, successCode, errorCodes)
+      const responseObject = await createFlowEndPoint(req)
 
       res
         .status(responseObject.code)
@@ -71,7 +71,7 @@ module.exports = [
   },
   {
     method: 'get',
-    path: '/api/v3/application/:name',
+    path: '/api/v3/flow/:id',
     middleware: async (req, res) => {
       logger.apiReq(req)
 
@@ -87,8 +87,8 @@ module.exports = [
         }
       ]
 
-      const getApplicationEndPoint = ResponseDecorator.handleErrors(ApplicationController.getApplicationEndPoint, successCode, errorCodes)
-      const responseObject = await getApplicationEndPoint(req)
+      const getFlowEndPoint = ResponseDecorator.handleErrors(FlowController.getFlowEndPoint, successCode, errorCodes)
+      const responseObject = await getFlowEndPoint(req)
 
       res
         .status(responseObject.code)
@@ -99,7 +99,7 @@ module.exports = [
   },
   {
     method: 'patch',
-    path: '/api/v3/application/:name',
+    path: '/api/v3/flow/:id',
     middleware: async (req, res) => {
       logger.apiReq(req)
 
@@ -119,40 +119,8 @@ module.exports = [
         }
       ]
 
-      const updateApplicationEndPoint = ResponseDecorator.handleErrors(ApplicationController.patchApplicationEndPoint, successCode, errorCodes)
-      const responseObject = await updateApplicationEndPoint(req)
-
-      res
-        .status(responseObject.code)
-        .send(responseObject.body)
-
-      logger.apiRes({ req: req, res: responseObject })
-    }
-  },
-  {
-    method: 'put',
-    path: '/api/v3/application/:name',
-    middleware: async (req, res) => {
-      logger.apiReq(req)
-
-      const successCode = constants.HTTP_CODE_NO_CONTENT
-      const errorCodes = [
-        {
-          code: constants.HTTP_CODE_BAD_REQUEST,
-          errors: [Errors.ValidationError]
-        },
-        {
-          code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError]
-        },
-        {
-          code: constants.HTTP_CODE_NOT_FOUND,
-          errors: [Errors.NotFoundError]
-        }
-      ]
-
-      const updateApplicationEndPoint = ResponseDecorator.handleErrors(ApplicationController.updateApplicationEndPoint, successCode, errorCodes)
-      const responseObject = await updateApplicationEndPoint(req)
+      const updateFlowEndPoint = ResponseDecorator.handleErrors(FlowController.updateFlowEndPoint, successCode, errorCodes)
+      const responseObject = await updateFlowEndPoint(req)
 
       res
         .status(responseObject.code)
@@ -163,7 +131,7 @@ module.exports = [
   },
   {
     method: 'delete',
-    path: '/api/v3/application/:name',
+    path: '/api/v3/flow/:id',
     middleware: async (req, res) => {
       logger.apiReq(req)
 
@@ -179,8 +147,8 @@ module.exports = [
         }
       ]
 
-      const deleteApplicationEndPoint = ResponseDecorator.handleErrors(ApplicationController.deleteApplicationEndPoint, successCode, errorCodes)
-      const responseObject = await deleteApplicationEndPoint(req)
+      const deleteFlowEndPoint = ResponseDecorator.handleErrors(FlowController.deleteFlowEndPoint, successCode, errorCodes)
+      const responseObject = await deleteFlowEndPoint(req)
 
       res
         .status(responseObject.code)

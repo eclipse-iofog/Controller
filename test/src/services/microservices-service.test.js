@@ -7,8 +7,8 @@ const AppHelper = require('../../../src/helpers/app-helper')
 const Validator = require('../../../src/schemas')
 const ChangeTrackingService = require('../../../src/services/change-tracking-service')
 const CatalogService = require('../../../src/services/catalog-service')
-const ApplicationService = require('../../../src/services/application-service')
-const ApplicationManager = require('../../../src/data/managers/application-manager')
+const FlowService = require('../../../src/services/flow-service')
+const FlowManager = require('../../../src/data/managers/flow-manager')
 const MicroservicePortManager = require('../../../src/data/managers/microservice-port-manager')
 const CatalogItemImageManager = require('../../../src/data/managers/catalog-item-image-manager')
 const RouterManager = require('../../../src/data/managers/router-manager')
@@ -42,10 +42,7 @@ describe('Microservices Service', () => {
       id: 15,
     }
 
-    const application = {
-      name: 'my-app',
-      id: 42
-    }
+    const flowId = 10
 
     const microserviceStatus = {
       'containerId': 'testContainerId',
@@ -80,7 +77,7 @@ describe('Microservices Service', () => {
     }
     const microserviceStatusArray = [microserviceStatus]
 
-    def('subject', () => $subject.listMicroservicesEndPoint(application.name, user, isCLI, transaction))
+    def('subject', () => $subject.listMicroservicesEndPoint(flowId, user, isCLI, transaction))
     def('findMicroservicesResponse', () => Promise.resolve(response))
     def('findPortMappingsResponse', () => Promise.resolve([]))
     def('findVolumeMappingsResponse', () => Promise.resolve([]))
@@ -103,15 +100,11 @@ describe('Microservices Service', () => {
       $sandbox.stub(MicroservicePublicModeManager, 'findAll').returns($publicModeResponse)
       $sandbox.stub(CatalogItemImageManager, 'findAll').returns($imgResponse)
       $sandbox.stub(MicroserviceStatusManager, 'findAllExcludeFields').returns($statusResponse)
-      $sandbox.stub(ApplicationManager, 'findOne').returns(Promise.resolve(application))
     })
     
     it('calls MicroserviceManager#findAllExcludeFields() with correct args', async () => {
       await $subject
-      const where = application ? { applicationId: application.id, delete: false } : { delete: false }
-      if (!isCLI) {
-        where.userId = user.id
-      }
+      const where = isCLI ? { delete: false } : { flowId: flowId, delete: false }
 
       expect(MicroserviceManager.findAllExcludeFields).to.have.been.calledWith(where, transaction)
     })
@@ -205,7 +198,7 @@ describe('Microservices Service', () => {
         id: 1,
         targetFogUuid: 'tfog',
         targetMicroserviceUuid: 'tmicroservice',
-        template: '${Apps.application.msvc.local}',
+        template: '${Apps.flow.msvc.local}',
         value: '1.2.3.4',
         name: 'testExtraHost'
       }]
@@ -257,17 +250,11 @@ describe('Microservices Service', () => {
       id: 15,
     }
 
-    const application = {
-      name: 'my-app',
-      active: true,
-      id: 42
-    }
-
     const microserviceData = {
       'name': 'name2',
       'config': 'string',
       'catalogItemId': 15,
-      'application': application.name,
+      'flowId': 16,
       'iofogUuid': 'testIofogUuid',
       'rootHostAccess': true,
       'logSize': 0,
@@ -295,6 +282,7 @@ describe('Microservices Service', () => {
       name: microserviceData.name,
       config: microserviceData.config,
       catalogItemId: microserviceData.catalogItemId,
+      flowId: microserviceData.flowId,
       iofogUuid: microserviceData.iofogUuid,
       rootHostAccess: microserviceData.rootHostAccess,
       logSize: microserviceData.logLimit,
@@ -365,17 +353,22 @@ describe('Microservices Service', () => {
       iofogUuid: extraHostFog.uuid,
     }
 
+    const flow = {
+      active: true,
+      id: microserviceData.flowId
+    }
+
     def('subject', () => $subject.createMicroserviceEndPoint(microserviceData, user, isCLI, transaction))
     def('validatorResponse', () => Promise.resolve(true))
     def('validatorResponse2', () => Promise.resolve(true))
     def('generateRandomStringResponse', () => newMicroserviceUuid)
-    def('deleteUndefinedFieldsResponse', () => ({...newMicroservice}))
+    def('deleteUndefinedFieldsResponse', () => newMicroservice)
     def('findMicroserviceResponse', () => Promise.resolve())
     def('findMicroserviceResponse2', () => Promise.resolve(microserviceData))
     def('getCatalogItemResponse', () => Promise.resolve({images}))
-    def('findApplicationResponse', () => Promise.resolve(application))
+    def('findFlowResponse', () => Promise.resolve(flow))
     def('getIoFogResponse', () => Promise.resolve())
-    def('createMicroserviceResponse', () => Promise.resolve({...newMicroservice}))
+    def('createMicroserviceResponse', () => Promise.resolve(newMicroservice))
     def('findMicroservicePortResponse', () => Promise.resolve())
     def('createMicroservicePortResponse', () => Promise.resolve({id: 15}))
     def('updateMicroserviceResponse', () => Promise.resolve())
@@ -404,9 +397,9 @@ describe('Microservices Service', () => {
           .onFirstCall().returns($findMicroserviceResponse)
           .onSecondCall().returns($findMicroserviceResponse2)
           .withArgs({ catalogItemId: proxyCatalogItem.id, iofogUuid: microserviceData.iofogUuid }).returns($getProxyMsvcResponse) // find proxy microservice in public port
-          .withArgs({ applicationId: application.id, name: 'msvc' }).returns($getExtraHostMsvc) // find extraHostMsvc target in extra host
+          .withArgs({ flowId: flow.id, name: 'msvc' }).returns($getExtraHostMsvc) // find extraHostMsvc target in extra host
       $sandbox.stub(CatalogService, 'getCatalogItem').returns($getCatalogItemResponse)
-      $sandbox.stub(ApplicationManager, 'findOne').returns($findApplicationResponse)
+      $sandbox.stub(FlowManager, 'findOne').returns($findFlowResponse)
       $sandbox.stub(CatalogService, 'getProxyCatalogItem').returns($getProxyCatalogItem)
       $sandbox.stub(MicroserviceManager, 'create').returns($createMicroserviceResponse)
       $sandbox.stub(MicroservicePortManager, 'findOne').returns($findMicroservicePortResponse)
@@ -511,21 +504,21 @@ describe('Microservices Service', () => {
             })
 
             context('when CatalogService#getCatalogItem() succeeds', () => {
-              it('calls ApplicationManager#findOne() with correct args', async () => {
+              it('calls FlowManager#findOne() with correct args', async () => {
                 await $subject
-                expect(ApplicationManager.findOne).to.have.been.calledWith({name: microserviceData.application}, transaction)
+                expect(FlowManager.findOne).to.have.been.calledWith({id: microserviceData.flowId}, transaction)
               })
 
-              context('when ApplicationManager#findOne() fails', () => {
-                def('findApplicationResponse', () => Promise.reject(error))
+              context('when FlowManager#findOne() fails', () => {
+                def('findFlowResponse', () => Promise.reject(error))
 
                 it(`fails with ${error}`, () => {
                   return expect($subject).to.be.rejectedWith(error)
                 })
               })
 
-              context('when ApplicationManager#findOne() returns null', () => {
-                def('findApplicationResponse', () => Promise.resolve(null))
+              context('when FlowManager#findOne() returns null', () => {
+                def('findFlowResponse', () => Promise.resolve(null))
 
                 it(`fails with ${error}`, async () => {
                   try {
@@ -537,7 +530,7 @@ describe('Microservices Service', () => {
                 })
               })
 
-              context('when ApplicationManager#findOne() succeeds', () => {
+              context('when FlowManager#findOne() succeeds', () => {
                 it('calls FogManager#findOne() with correct args', async () => {
                   await $subject
                   expect(ioFogManager.findOne).to.have.been.calledWith({
@@ -556,7 +549,7 @@ describe('Microservices Service', () => {
                 context('when FogManager#findOne() succeeds', () => {
                   it('calls MicroserviceManager#create() with correct args', async () => {
                     await $subject
-                    expect(MicroserviceManager.create).to.have.been.calledWith({...newMicroservice, applicationId: application.id},
+                    expect(MicroserviceManager.create).to.have.been.calledWith(newMicroservice,
                         transaction)
                   })
 
@@ -877,10 +870,10 @@ describe('Microservices Service', () => {
                                     address: '${Agents.test}'
                                   }, {
                                     name: 'localMsvc',
-                                    address: '${Apps.application.msvc.local}'
+                                    address: '${Apps.flow.msvc.local}'
                                   }, {
                                     name: 'publicMsvc',
-                                    address: '${Apps.application.msvc.public.5000}'
+                                    address: '${Apps.flow.msvc.public.5000}'
                                   }]
                                   beforeEach(() => {
                                     microserviceData.extraHosts = extraHosts
@@ -918,7 +911,7 @@ describe('Microservices Service', () => {
                                     }, transaction)
                                     expect(MicroserviceExtraHostManager.create).to.have.been.calledWith({
                                       name: 'localMsvc',
-                                      template: '${Apps.application.msvc.local}',
+                                      template: '${Apps.flow.msvc.local}',
                                       templateType: 'Apps',
                                       value: extraHostFog.host,
                                       targetFogUuid: extraHostFog.uuid,
@@ -927,7 +920,7 @@ describe('Microservices Service', () => {
                                     }, transaction)
                                     expect(MicroserviceExtraHostManager.create).to.have.been.calledWith({
                                       name: 'publicMsvc',
-                                      template: '${Apps.application.msvc.public.5000}',
+                                      template: '${Apps.flow.msvc.public.5000}',
                                       templateType: 'Apps',
                                       value: extraHostFogPublic.host,
                                       targetFogUuid: extraHostFogPublic.uuid,
@@ -978,7 +971,7 @@ describe('Microservices Service', () => {
       "name": "name2",
       "config": "string",
       "catalogItemId": 15,
-      "applicationId": 16,
+      "flowId": 16,
       "iofogUuid": 'testIofogUuid',
       "rootHostAccess": true,
       "logSize": 0,
@@ -1005,7 +998,7 @@ describe('Microservices Service', () => {
       name: 'oldName',
       config: microserviceData.config,
       catalogItemId: microserviceData.catalogItemId,
-      applicationId: microserviceData.applicationId,
+      flowId: microserviceData.flowId,
       iofogUuid: microserviceData.iofogUuid,
       rootHostAccess: !microserviceData.rootHostAccess,
       logSize: microserviceData.logLimit,
@@ -1717,7 +1710,7 @@ describe('Microservices Service', () => {
       'name': 'name2',
       'config': 'string',
       'catalogItemId': 15,
-      'applicationId': 16,
+      'flowId': 16,
       'iofogUuid': 'testIofogUuid',
       'rootHostAccess': true,
       'logSize': 0,
@@ -1742,7 +1735,7 @@ describe('Microservices Service', () => {
       name: microserviceData.name,
       config: microserviceData.config,
       catalogItemId: microserviceData.catalogItemId,
-      applicationId: microserviceData.applicationId,
+      flowId: microserviceData.flowId,
       iofogUuid: microserviceData.iofogUuid,
       rootHostAccess: microserviceData.rootHostAccess,
       logSize: microserviceData.logLimit,

@@ -841,18 +841,18 @@ describe('Agent Service', () => {
     def('isConsumerResponse', () => Promise.resolve(isConsumer))
 
     beforeEach(() => {
-      $sandbox.stub(MicroserviceManager, 'findAllActiveApplicationMicroservices').returns($findAllMicroservicesResponse)
+      $sandbox.stub(MicroserviceManager, 'findAllActiveFlowMicroservices').returns($findAllMicroservicesResponse)
       $sandbox.stub(MicroserviceService, 'getReceiverMicroservices').returns($getPhysicalConnectionsResponse)
       $sandbox.stub(MicroserviceService, 'isMicroserviceConsumer').returns($isConsumerResponse)
       $sandbox.stub(MicroserviceManager, 'update').returns($updateResponse)
     })
 
-    it('calls MicroserviceManager#findAllActiveApplicationMicroservices() with correct args', async () => {
+    it('calls MicroserviceManager#findAllActiveFlowMicroservices() with correct args', async () => {
       await $subject
-      expect(MicroserviceManager.findAllActiveApplicationMicroservices).to.have.been.calledWith($uuid, transaction)
+      expect(MicroserviceManager.findAllActiveFlowMicroservices).to.have.been.calledWith($uuid, transaction)
     })
 
-    context('when MicroserviceManager#findAllActiveApplicationMicroservices() fails', () => {
+    context('when MicroserviceManager#findAllActiveFlowMicroservices() fails', () => {
       def('findAllMicroservicesResponse', () => Promise.reject(error))
 
       it(`fails with ${error}`, () => {
@@ -860,7 +860,7 @@ describe('Agent Service', () => {
       })
     })
 
-    context('when MicroserviceManager#findAllActiveApplicationMicroservices() succeeds', () => {
+    context('when MicroserviceManager#findAllActiveFlowMicroservices() succeeds', () => {
       it('calls MicroserviceService.getReceiverMicroservices with correct args', async () => {
         await $subject
         expect(MicroserviceService.getReceiverMicroservices).to.have.been.calledWith(microserviceWithValidImage, transaction)

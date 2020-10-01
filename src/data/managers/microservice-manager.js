@@ -23,7 +23,7 @@ const StraceDiagnostics = models.StraceDiagnostics
 const CatalogItem = models.CatalogItem
 const CatalogItemImage = models.CatalogItemImage
 const Fog = models.Fog
-const Application = models.Application
+const Flow = models.Flow
 const User = models.User
 const Routing = models.Routing
 const Registry = models.Registry
@@ -134,7 +134,7 @@ class MicroserviceManager extends BaseManager {
     }, { transaction: transaction })
   }
 
-  findAllActiveApplicationMicroservices (iofogUuid, transaction) {
+  findAllActiveFlowMicroservices (iofogUuid, transaction) {
     return Microservice.findAll({
       include: [
         {
@@ -199,8 +199,8 @@ class MicroserviceManager extends BaseManager {
           attributes: ['picture', 'category']
         },
         {
-          model: Application,
-          as: 'application',
+          model: Flow,
+          as: 'flow',
           required: false,
           attributes: ['isActivated']
         }
@@ -210,7 +210,7 @@ class MicroserviceManager extends BaseManager {
         [Op.or]:
           [
             {
-              '$application.is_activated$': true
+              '$flow.is_activated$': true
             },
             {
               '$catalogItem.category$': { [Op.eq]: 'SYSTEM' },
@@ -344,8 +344,8 @@ class MicroserviceManager extends BaseManager {
     return Microservice.findOne({
       include: [
         {
-          model: Application,
-          as: 'application',
+          model: Flow,
+          as: 'flow',
           required: true,
           include: [
             {

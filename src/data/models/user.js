@@ -52,12 +52,12 @@ module.exports = (sequelize, DataTypes) => {
       as: 'accessToken'
     })
 
-    User.hasMany(models.Application, {
+    User.hasMany(models.Flow, {
       foreignKey: {
         name: 'userId',
         field: 'user_id'
       },
-      as: 'application'
+      as: 'flow'
     })
 
     User.hasMany(models.Fog, {

@@ -1,12 +1,10 @@
-const { nameRegex } = require('./utils/utils')
-
 const microserviceCreate = {
   'id': '/microserviceCreate',
   'type': 'object',
   'properties': {
     'name': {
       'type': 'string',
-      'pattern': nameRegex
+      'minLength': 1
     },
     'config': { 'type': 'string' },
     'catalogItemId': {
@@ -21,7 +19,7 @@ const microserviceCreate = {
     'registryId': {
       'type': 'integer'
     },
-    'application': { 'type': 'string' },
+    'flowId': { 'type': 'integer' },
     'iofogUuid': { 'type': 'string' },
     'rootHostAccess': { 'type': 'boolean' },
     'logSize': { 'type': 'integer' },
@@ -45,7 +43,7 @@ const microserviceCreate = {
       'type': 'array',
       'items': { 'type': 'string' } }
   },
-  'required': ['name', 'application'],
+  'required': ['name'],
   'additionalProperties': true
 }
 
@@ -55,7 +53,7 @@ const microserviceUpdate = {
   'properties': {
     'name': {
       'type': 'string',
-      'pattern': nameRegex
+      'minLength': 1
     },
     'config': { 'type': 'string' },
     'rebuild': { 'type': 'boolean' },
@@ -158,5 +156,5 @@ const volumeMappings = {
 
 module.exports = {
   mainSchemas: [microserviceCreate, microserviceUpdate, env, ports, extraHosts, portsCreate, microserviceDelete, volumeMappings],
-  innerSchemas: [volumeMappings, ports, env, extraHosts, microserviceCreate]
+  innerSchemas: [volumeMappings, ports, env, extraHosts]
 }
