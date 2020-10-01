@@ -17,7 +17,7 @@ module.exports = {
       }),
       queryInterface.addColumn('Fogs', 'available_disk_threshold', {
         type: Sequelize.FLOAT,
-        defaultValue: 90,
+        defaultValue: 20,
         field: 'available_disk_threshold'
       }),
       queryInterface.addColumn('Fogs', 'log_level', {
