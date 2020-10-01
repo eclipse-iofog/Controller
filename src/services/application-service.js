@@ -82,23 +82,23 @@ const createApplicationEndPoint = async function (applicationData, user, isCLI, 
   }
 }
 
-const deleteApplicationEndPoint = async function (name, user, isCLI, transaction) {
+const deleteApplicationEndPoint = async function (conditions, user, isCLI, transaction) {
   const whereObj = {
-    name: name,
+    ...conditions,
     userId: user.id
   }
   const where = AppHelper.deleteUndefinedFields(whereObj)
 
-  await _updateChangeTrackingsAndDeleteMicroservicesByApplicationId(name, true, transaction)
+  await _updateChangeTrackingsAndDeleteMicroservicesByApplicationId(conditions, true, transaction)
 
   await ApplicationManager.delete(where, transaction)
 }
 
 // Only patches the metadata (running, name, description, etc.)
-const patchApplicationEndPoint = async function (applicationData, name, user, isCLI, transaction) {
+const patchApplicationEndPoint = async function (applicationData, conditions, user, isCLI, transaction) {
   await Validator.validate(applicationData, Validator.schemas.applicationPatch)
 
-  const oldApplication = await ApplicationManager.findOne({ name, userId: user.id }, transaction)
+  const oldApplication = await ApplicationManager.findOne({ ...conditions, userId: user.id }, transaction)
 
   if (!oldApplication) {
     throw new Errors.NotFoundError(ErrorMessages.INVALID_FLOW_ID)
@@ -108,7 +108,7 @@ const patchApplicationEndPoint = async function (applicationData, name, user, is
   }
 
   const application = {
-    name: applicationData.name || name,
+    name: applicationData.name || conditions.name,
     description: applicationData.description,
     isActivated: applicationData.isActivated,
     isSystem: applicationData.isSystem
@@ -122,7 +122,7 @@ const patchApplicationEndPoint = async function (applicationData, name, user, is
   await ApplicationManager.update(where, updateApplicationData, transaction)
 
   if (oldApplication.isActivated !== applicationData.isActivated) {
-    await _updateChangeTrackingsAndDeleteMicroservicesByApplicationId(name, false, transaction)
+    await _updateChangeTrackingsAndDeleteMicroservicesByApplicationId(conditions, false, transaction)
   }
 }
 
@@ -174,7 +174,7 @@ const updateApplicationEndPoint = async function (applicationData, name, user, i
   }
 
   if (oldApplication.isActivated !== applicationData.isActivated) {
-    await _updateChangeTrackingsAndDeleteMicroservicesByApplicationId(name, false, transaction)
+    await _updateChangeTrackingsAndDeleteMicroservicesByApplicationId({ name }, false, transaction)
   }
 }
 
@@ -251,15 +251,15 @@ const getAllApplicationsEndPoint = async function (isCLI, transaction) {
   }
 }
 
-async function getApplication (name, user, isCLI, transaction) {
+async function getApplication (conditions, user, isCLI, transaction) {
   const where = isCLI
-    ? { name }
-    : { name, userId: user.id }
+    ? { ...conditions }
+    : { ...conditions, userId: user.id }
   const attributes = { exclude: ['created_at', 'updated_at'] }
 
   const application = await ApplicationManager.findOnePopulated(where, attributes, transaction)
   if (!application) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_ID, name))
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_ID, conditions.name || conditions.id))
   }
   return application
 }
@@ -281,10 +281,10 @@ const _checkForDuplicateName = async function (name, applicationId, userId, tran
   }
 }
 
-async function _updateChangeTrackingsAndDeleteMicroservicesByApplicationId (name, deleteMicroservices, transaction) {
-  const microservices = await ApplicationManager.findApplicationMicroservices({ name }, transaction)
+async function _updateChangeTrackingsAndDeleteMicroservicesByApplicationId (conditions, deleteMicroservices, transaction) {
+  const microservices = await ApplicationManager.findApplicationMicroservices(conditions, transaction)
   if (!microservices) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_NAME, name))
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_NAME, conditions.name || conditions.id))
   }
   const iofogUuids = []
   for (const ms of microservices) {

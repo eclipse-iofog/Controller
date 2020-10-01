@@ -27,14 +27,14 @@ const getApplicationsByUserEndPoint = async function (req, user) {
 const getApplicationEndPoint = async function (req, user) {
   const name = req.params.name
 
-  return ApplicationService.getApplicationEndPoint(name, user, false)
+  return ApplicationService.getApplicationEndPoint({ name }, user, false)
 }
 
 const patchApplicationEndPoint = async function (req, user) {
   const application = req.body
-  const applicationName = req.params.name
+  const name = req.params.name
 
-  return ApplicationService.patchApplicationEndPoint(application, applicationName, user, false)
+  return ApplicationService.patchApplicationEndPoint(application, { name }, user, false)
 }
 
 const updateApplicationEndPoint = async function (req, user) {
@@ -47,14 +47,38 @@ const updateApplicationEndPoint = async function (req, user) {
 const deleteApplicationEndPoint = async function (req, user) {
   const name = req.params.name
 
-  return ApplicationService.deleteApplicationEndPoint(name, user, false)
+  return ApplicationService.deleteApplicationEndPoint({ name }, user, false)
+}
+
+// Legacy
+
+const deleteApplicationByIdEndPoint = async function (req, user) {
+  const id = req.params.id
+
+  return ApplicationService.deleteApplicationEndPoint({ id }, user, false)
+}
+
+const patchApplicationByIdEndPoint = async function (req, user) {
+  const application = req.body
+  const id = req.params.id
+
+  return ApplicationService.patchApplicationEndPoint(application, { id }, user, false)
+}
+
+const getApplicationByIdEndPoint = async function (req, user) {
+  const id = req.params.id
+
+  return ApplicationService.getApplicationEndPoint({ id }, user, false)
 }
 
 module.exports = {
   createApplicationEndPoint: AuthDecorator.checkAuthToken(createApplicationEndPoint),
   getApplicationsByUserEndPoint: AuthDecorator.checkAuthToken(getApplicationsByUserEndPoint),
   getApplicationEndPoint: AuthDecorator.checkAuthToken(getApplicationEndPoint),
+  getApplicationByIdEndPoint: AuthDecorator.checkAuthToken(getApplicationByIdEndPoint),
   updateApplicationEndPoint: AuthDecorator.checkAuthToken(updateApplicationEndPoint),
   patchApplicationEndPoint: AuthDecorator.checkAuthToken(patchApplicationEndPoint),
-  deleteApplicationEndPoint: AuthDecorator.checkAuthToken(deleteApplicationEndPoint)
+  patchApplicationByIdEndPoint: AuthDecorator.checkAuthToken(patchApplicationByIdEndPoint),
+  deleteApplicationEndPoint: AuthDecorator.checkAuthToken(deleteApplicationEndPoint),
+  deleteApplicationByIdEndPoint: AuthDecorator.checkAuthToken(deleteApplicationByIdEndPoint)
 }

@@ -169,14 +169,14 @@ const _updateApplication = async function (applicationData, user) {
 
   const name = applicationData.name
   logger.cliReq('application update', { args: application })
-  await ApplicationService.patchApplicationEndPoint(application, name, user, true)
+  await ApplicationService.patchApplicationEndPoint(application, { name }, user, true)
   logger.cliRes('Application updated successfully.')
 }
 
 const _deleteApplication = async function (applicationData, user) {
   const name = applicationData.name
   logger.cliReq('application remove', { args: { name } })
-  await ApplicationService.deleteApplicationEndPoint(name, user, true)
+  await ApplicationService.deleteApplicationEndPoint({ name }, user, true)
   logger.cliRes('Application removed successfully.')
 }
 
@@ -189,7 +189,7 @@ const _getAllApplications = async function () {
 const _getApplication = async function (applicationData) {
   const name = applicationData.name
   logger.cliReq('application info', { args: { name } })
-  const application = await ApplicationService.getApplicationEndPoint(name, {}, true)
+  const application = await ApplicationService.getApplicationEndPoint({ name }, {}, true)
   logger.cliRes(JSON.stringify(application, null, 2))
 }
 

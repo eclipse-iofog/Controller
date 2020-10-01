@@ -205,7 +205,7 @@ describe('Application Service', () => {
       ],
     }
 
-    def('subject', () => $subject.deleteApplicationEndPoint(name, user, isCLI, transaction))
+    def('subject', () => $subject.deleteApplicationEndPoint({ name }, user, isCLI, transaction))
     def('deleteUndefinedFieldsResponse', () => whereObj)
     def('findApplicationMicroservicesResponse', () => Promise.resolve(applicationWithMicroservices.microservices))
     def('updateChangeTrackingResponse', () => Promise.resolve())
@@ -621,7 +621,7 @@ describe('Application Service', () => {
       id: 15,
     }
 
-    def('subject', () => $subject.getApplication(name, user, isCLI, transaction))
+    def('subject', () => $subject.getApplication({ name }, user, isCLI, transaction))
     def('findApplicationResponse', () => Promise.resolve({}))
 
     beforeEach(() => {

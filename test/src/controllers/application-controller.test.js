@@ -112,7 +112,7 @@ describe('Application Controller', () => {
 
     it('calls ApplicationService.getApplicationEndPoint with correct args', async () => {
       await $subject
-      expect(ApplicationService.getApplicationEndPoint).to.have.been.calledWith($name, $user, false)
+      expect(ApplicationService.getApplicationEndPoint).to.have.been.calledWith({name: $name}, $user, false)
     })
 
     context('when ApplicationService#getApplicationEndPoint fails', () => {
@@ -203,7 +203,7 @@ describe('Application Controller', () => {
 
     it('calls ApplicationService.deleteApplicationEndPoint with correct args', async () => {
       await $subject
-      expect(ApplicationService.deleteApplicationEndPoint).to.have.been.calledWith($name, $user, false)
+      expect(ApplicationService.deleteApplicationEndPoint).to.have.been.calledWith({ name: $name }, $user, false)
     })
 
     context('when ApplicationService.deleteApplicationEndPoint fails', () => {
