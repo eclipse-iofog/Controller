@@ -59,9 +59,9 @@ module.exports = [
         }
       ]
 
-      const getMicroservicesByApplicationEndPoint = ResponseDecorator.handleErrors(MicroservicesController.getMicroservicesByApplicationEndPoint,
+      const getMicroservicesByFlowEndPoint = ResponseDecorator.handleErrors(MicroservicesController.getMicroservicesByFlowEndPoint,
         successCode, errorCodes)
-      const responseObject = await getMicroservicesByApplicationEndPoint(req)
+      const responseObject = await getMicroservicesByFlowEndPoint(req)
 
       res
         .status(responseObject.code)
@@ -197,7 +197,7 @@ module.exports = [
     middleware: async (req, res) => {
       logger.apiReq(req)
 
-      const successCode = constants.HTTP_CODE_CREATED
+      const successCode = constants.HTTP_CODE_NO_CONTENT
       const errorCodes = [
         {
           code: constants.HTTP_CODE_BAD_REQUEST,
