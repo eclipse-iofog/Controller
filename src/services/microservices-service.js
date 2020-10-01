@@ -192,6 +192,9 @@ function _validateImageFogType (microserviceData, fog, images) {
 }
 
 async function createMicroserviceEndPoint (microserviceData, user, isCLI, transaction) {
+  if (!microserviceData.application) {
+    microserviceData.application = microserviceData.flowId
+  }
   await Validator.validate(microserviceData, Validator.schemas.microserviceCreate)
 
   // validate images
@@ -757,7 +760,16 @@ async function _validateApplication (name, user, isCLI, transaction) {
 
   const application = await ApplicationManager.findOne(where, transaction)
   if (!application) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_ID, name))
+    // Try with id
+    const where = isCLI
+      ? { id: name }
+      : { id: name, userId: user.id }
+
+    const application = await ApplicationManager.findOne(where, transaction)
+    if (!application) {
+      throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_ID, name))
+    }
+    return application
   }
   return application
 }

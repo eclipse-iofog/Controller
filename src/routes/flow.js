@@ -36,7 +36,7 @@ module.exports = [
 
       res
         .status(responseObject.code)
-        .send(responseObject.body)
+        .send({ flows: responseObject.body.applications })
 
       logger.apiRes({ req: req, res: responseObject })
     }
