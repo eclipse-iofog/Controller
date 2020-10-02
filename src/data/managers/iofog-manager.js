@@ -15,6 +15,7 @@ const BaseManager = require('./base-manager')
 const models = require('../models')
 
 const Fog = models.Fog
+const Tags = models.Tags
 const FogAccessToken = models.FogAccessToken
 const Microservice = models.Microservice
 const Strace = models.StraceDiagnostics
@@ -22,6 +23,37 @@ const Strace = models.StraceDiagnostics
 class FogManager extends BaseManager {
   getEntity () {
     return Fog
+  }
+
+  async findAllWithTags (where, transaction) {
+    return Fog.findAll({
+      where: where,
+      order: [ [ 'name', 'ASC' ] ],
+      include: [
+        { model: Tags,
+          as: 'tags',
+          through: {
+            attributes: []
+          }
+        }
+      ]
+    }, {
+      transaction: transaction
+    })
+  }
+
+  async findOneWithTags (where, transaction) {
+    return Fog.findOne({
+      where,
+      include: [
+        { model: Tags,
+          as: 'tags',
+          through: {
+            attributes: []
+          }
+        }
+      ]
+    }, { transaction })
   }
 
   async findAll (where, transaction) {

@@ -26,6 +26,7 @@ const HWInfoManager = require('../data/managers/hw-info-manager')
 const USBInfoManager = require('../data/managers/usb-info-manager')
 const CatalogService = require('./catalog-service')
 const MicroserviceManager = require('../data/managers/microservice-manager')
+const TagsManager = require('../data/managers/tags-manager')
 const MicroserviceService = require('./microservices-service')
 const TrackingDecorator = require('../decorators/tracking-decorator')
 const TrackingEventType = require('../enums/tracking-event-type')
@@ -109,6 +110,9 @@ async function createFogEndPoint (fogData, user, isCLI, transaction) {
 
   const fog = await FogManager.create(createFogData, transaction)
 
+  // Set tags
+  await _setTags(fog, fogData.tags, transaction)
+
   if (fogData.routerMode !== 'none') {
     if (!fogData.host && !isCLI) {
       throw new Errors.ValidationError(ErrorMessages.HOST_IS_REQUIRED)
@@ -138,6 +142,20 @@ async function createFogEndPoint (fogData, user, isCLI, transaction) {
   } catch (e) {}
 
   return res
+}
+
+async function _setTags (fogModel, tagsArray, transaction) {
+  if (tagsArray) {
+    let tags = []
+    for (const name of tagsArray) {
+      let tagModel = await TagsManager.findOne({ name }, transaction)
+      if (!tagModel) {
+        tagModel = await TagsManager.create({ name }, transaction)
+      }
+      tags.push(tagModel)
+    }
+    await fogModel.setTags(tags)
+  }
 }
 
 async function updateFogEndPoint (fogData, user, isCLI, transaction) {
@@ -179,6 +197,9 @@ async function updateFogEndPoint (fogData, user, isCLI, transaction) {
   if (!oldFog) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, fogData.uuid))
   }
+
+  // Update tags
+  await _setTags(oldFog, fogData.tags, transaction)
 
   // If using REST API and not system fog. You must be the fog's user to access it
   if (!oldFog.isSystem && !isCLI && oldFog.userId !== user.id) {
@@ -422,7 +443,7 @@ async function getFog (fogData, user, isCLI, transaction) {
 
   const queryFogData = { uuid: fogData.uuid }
 
-  const fog = await FogManager.findOne(queryFogData, transaction)
+  const fog = await FogManager.findOneWithTags(queryFogData, transaction)
   if (!fog) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, fogData.uuid))
   }
@@ -449,7 +470,7 @@ async function getFogListEndPoint (filters, user, isCLI, isSystem, transaction) 
 
   const queryFogData = isSystem ? { isSystem } : (isCLI ? {} : { userId: user.id, isSystem: false })
 
-  let fogs = await FogManager.findAll(queryFogData, transaction)
+  let fogs = await FogManager.findAllWithTags(queryFogData, transaction)
   fogs = _filterFogs(fogs, filters)
 
   // Get router config info for all fogs
