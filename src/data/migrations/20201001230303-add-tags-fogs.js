@@ -15,6 +15,14 @@ module.exports = {
         field: 'name',
         unique: true,
         allowNull: false
+      },
+      icon: {
+        type: Sequelize.TEXT,
+        field: 'icon'
+      },
+      color: {
+        type: Sequelize.TEXT,
+        field: 'color'
       }
     })
     await queryInterface.createTable('IofogTags', {
