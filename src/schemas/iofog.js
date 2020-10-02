@@ -44,6 +44,10 @@ const iofogCreate = {
     'interRouterPort': { 'type': 'integer', 'minimum': 1, 'maximum': 65535 },
     'edgeRouterPort': { 'type': 'integer', 'minimum': 1, 'maximum': 65535 },
     'host': { 'type': 'string' },
+    'tags': {
+      'type': 'array',
+      'items': { 'type': 'string' }
+    },
     'upstreamRouters': {
       'type': 'array',
       'items': { 'type': 'string', 'minLength': 1 }
@@ -104,6 +108,10 @@ const iofogUpdate = {
     'upstreamRouters': {
       'type': 'array',
       'items': { 'type': 'string', 'minLength': 1 }
+    },
+    'tags': {
+      'type': 'array',
+      'items': { 'type': 'string' }
     },
     'networkRouter': { 'type': 'string', 'minLength': 1 }
   },
