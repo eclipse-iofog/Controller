@@ -239,7 +239,9 @@ const iofogTag = {
   'id': '/iofogTag',
   'type': 'object',
   'properties': {
-    'name': { 'type': 'string' }
+    'name': { 'type': 'string' },
+    'icon': { 'type': 'string' },
+    'color': { 'type': 'string' }
   },
   'required': ['name'],
   'additionalProperties': true
