@@ -46,7 +46,7 @@ const iofogCreate = {
     'host': { 'type': 'string' },
     'tags': {
       'type': 'array',
-      'items': { 'type': 'string' }
+      'items': { '$ref': '/iofogTag' }
     },
     'upstreamRouters': {
       'type': 'array',
@@ -111,7 +111,7 @@ const iofogUpdate = {
     },
     'tags': {
       'type': 'array',
-      'items': { 'type': 'string' }
+      'items': { '$ref': '/iofogTag' }
     },
     'networkRouter': { 'type': 'string', 'minLength': 1 }
   },
@@ -235,9 +235,19 @@ const defaultRouterCreate = {
   'additionalProperties': true
 }
 
+const iofogTag = {
+  'id': '/iofogTag',
+  'type': 'object',
+  'properties': {
+    'name': { 'type': 'string' }
+  },
+  'required': ['name'],
+  'additionalProperties': true
+}
+
 module.exports = {
   mainSchemas: [iofogCreate, iofogUpdate, iofogDelete,
     iofogGet, iofogGenerateProvision, iofogSetVersionCommand,
-    iofogReboot, iofogFilters, halGet, iofogPrune, defaultRouterCreate],
-  innerSchemas: [filter]
+    iofogReboot, iofogFilters, halGet, iofogPrune, defaultRouterCreate, iofogTag],
+  innerSchemas: [filter, iofogTag]
 }
