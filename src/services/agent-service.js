@@ -135,6 +135,7 @@ const getAgentConfig = async function (fog, transaction) {
     latitude: fog.latitude,
     longitude: fog.longitude,
     logLevel: fog.logLevel,
+    gpsMode: fog.gpsMode,
     availableDiskThreshold: fog.availableDiskThreshold,
     dockerPruningFrequency: fog.dockerPruningFrequency,
     routerHost: router.host === fog.host ? 'localhost' : router.host,
