@@ -104,7 +104,7 @@ fs.readdirSync(path.join(__dirname, 'routes'))
 const jobs = []
 
 const setupJobs = function (file) {
-  // jobs.push((require(path.join(__dirname, 'jobs', file)) || []))
+  jobs.push((require(path.join(__dirname, 'jobs', file)) || []))
 }
 
 fs.readdirSync(path.join(__dirname, 'jobs'))
