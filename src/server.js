@@ -18,7 +18,7 @@ const db = require('./data/models')
 const bodyParser = require('body-parser')
 const cookieParser = require('cookie-parser')
 const express = require('express')
-const ecnViewer = require('@iofog/ecn-viewer')
+const ecnViewer = process.env.ECN_VIEWER_PATH ? require(`${process.env.ECN_VIEWER_PATH}/package/index.js`) : require('@iofog/ecn-viewer')
 const fs = require('fs')
 const helmet = require('helmet')
 const cors = require('cors')
@@ -95,7 +95,7 @@ fs.readdirSync(path.join(__dirname, 'routes'))
 const jobs = []
 
 const setupJobs = function (file) {
-  // jobs.push((require(path.join(__dirname, 'jobs', file)) || []))
+  jobs.push((require(path.join(__dirname, 'jobs', file)) || []))
 }
 
 fs.readdirSync(path.join(__dirname, 'jobs'))
