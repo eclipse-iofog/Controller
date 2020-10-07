@@ -147,12 +147,10 @@ async function createFogEndPoint (fogData, user, isCLI, transaction) {
 async function _setTags (fogModel, tagsArray, transaction) {
   if (tagsArray) {
     let tags = []
-    for (const { name, icon, color } of tagsArray) {
-      let tagModel = await TagsManager.findOne({ name }, transaction)
+    for (const tag of tagsArray) {
+      let tagModel = await TagsManager.findOne({ value: tag }, transaction)
       if (!tagModel) {
-        tagModel = await TagsManager.create({ name, icon, color }, transaction)
-      } else {
-        await TagsManager.updateIfChanged({ name }, { color, icon }, transaction)
+        tagModel = await TagsManager.create({ value: tag }, transaction)
       }
       tags.push(tagModel)
     }
