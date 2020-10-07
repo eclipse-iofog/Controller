@@ -439,7 +439,11 @@ async function _getFogRouterConfig (fog, transaction) {
 }
 
 // Map tags to string array
+// Return plain JS object
 function _mapTags (fog) {
+  if (fog.toJSON) {
+    fog = fog.toJSON()
+  }
   fog.tags = fog.tags ? fog.tags.map(t => t.value) : []
   return fog
 }
@@ -459,7 +463,7 @@ async function getFog (fogData, user, isCLI, transaction) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, fogData.uuid))
   }
 
-  return _getFogRouterConfig(_mapTags(fog), transaction)
+  return _mapTags(await _getFogRouterConfig(fog, transaction))
 }
 
 async function getFogEndPoint (fogData, user, isCLI, transaction) {
@@ -481,9 +485,9 @@ async function getFogListEndPoint (filters, user, isCLI, isSystem, transaction) 
 
   // Map all tags
   // Get router config info for all fogs
-  fogs = await Promise.all(fogs.map(async (fog) => _getFogRouterConfig(_mapTags(fog), transaction)))
+  fogs = await Promise.all(fogs.map(async (fog) => _getFogRouterConfig(fog, transaction)))
   return {
-    fogs: fogs
+    fogs: fogs.map(_mapTags)
   }
 }
 
