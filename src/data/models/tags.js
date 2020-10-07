@@ -8,19 +8,11 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       field: 'id'
     },
-    name: {
+    value: {
       type: DataTypes.TEXT,
       unique: true,
       allowNull: false,
-      field: 'name'
-    },
-    icon: {
-      type: DataTypes.TEXT,
-      field: 'icon'
-    },
-    color: {
-      type: DataTypes.TEXT,
-      field: 'color'
+      field: 'value'
     }
   }, {
     tableName: 'Tags',
