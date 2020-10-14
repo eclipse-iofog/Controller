@@ -16,7 +16,6 @@ const RoutingService = require('../services/routing-service')
 
 const createRoutingEndpoint = async function (req, user) {
   const routerData = req.body
-  console.log({ routerData })
   return RoutingService.createRouting(routerData, user, false)
 }
 
