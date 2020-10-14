@@ -20,21 +20,38 @@ const routingCreate = {
     'name': {
       'type': 'string',
       'pattern': nameRegex
-    },
-    'from': {
-      'type': 'string',
-      'pattern': nameRegex
-    },
-    'to': {
-      'type': 'string',
-      'pattern': nameRegex
-    },
-    'application': {
-      'type': 'string',
-      'pattern': nameRegex
     }
   },
-  'required': ['name', 'from', 'to', 'application'],
+  'oneOf': [
+    {
+      'properties': {
+        'from': {
+          'type': 'string',
+          'pattern': nameRegex
+        },
+        'to': {
+          'type': 'string',
+          'pattern': nameRegex
+        },
+        'application': {
+          'type': 'string',
+          'pattern': nameRegex
+        }
+      },
+      'required': ['name', 'from', 'to', 'application']
+    },
+    {
+      'properties': {
+        'sourceMicroserviceUuid': {
+          'type': 'string'
+        },
+        'destMicroserviceUuid': {
+          'type': 'string'
+        }
+      },
+      'required': ['name', 'sourceMicroserviceUuid', 'destMicroserviceUuid']
+    }
+  ],
   'additionalProperties': true
 }
 
@@ -45,17 +62,38 @@ const routingUpdate = {
     'name': {
       'type': 'string',
       'pattern': nameRegex
-    },
-    'from': {
-      'type': 'string',
-      'pattern': nameRegex
-    },
-    'to': {
-      'type': 'string',
-      'pattern': nameRegex
     }
   },
-  'required': ['from', 'to'],
+  'oneOf': [
+    {
+      'properties': {
+        'from': {
+          'type': 'string',
+          'pattern': nameRegex
+        },
+        'to': {
+          'type': 'string',
+          'pattern': nameRegex
+        },
+        'application': {
+          'type': 'string',
+          'pattern': nameRegex
+        }
+      },
+      'required': ['from', 'to', 'application']
+    },
+    {
+      'properties': {
+        'sourceMicroserviceUuid': {
+          'type': 'string'
+        },
+        'destMicroserviceUuid': {
+          'type': 'string'
+        }
+      },
+      'required': ['sourceMicroserviceUuid', 'destMicroserviceUuid']
+    }
+  ],
   'additionalProperties': true
 }
 

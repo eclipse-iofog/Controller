@@ -80,7 +80,7 @@ describe('Microservices Service', () => {
     }
     const microserviceStatusArray = [microserviceStatus]
 
-    def('subject', () => $subject.listMicroservicesEndPoint(application.name, user, isCLI, transaction))
+    def('subject', () => $subject.listMicroservicesEndPoint({ applicationName: application.name }, user, isCLI, transaction))
     def('findMicroservicesResponse', () => Promise.resolve(response))
     def('findPortMappingsResponse', () => Promise.resolve([]))
     def('findVolumeMappingsResponse', () => Promise.resolve([]))

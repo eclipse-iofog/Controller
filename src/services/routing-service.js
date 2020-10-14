@@ -45,24 +45,40 @@ async function getRouting (name, user, isCLI, transaction) {
 }
 
 async function _validateRouteMsvc (routingData, user, isCLI, transaction) {
-  const applicationWhere = isCLI ? { name: routingData.application } : { name: routingData.application, userId: user.id }
-  const application = await ApplicationManager.findOne(applicationWhere, transaction)
-  if (!application) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_ID, routingData.application))
-  }
+  // Retro compatibility logic
+  if (routingData.sourceMicroserviceUuid) {
+    const sourceWhere = { uuid: routingData.sourceMicroserviceUuid }
+    const sourceMicroservice = await MicroserviceManager.findOne(sourceWhere, transaction)
+    if (!sourceMicroservice) {
+      throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_SOURCE_MICROSERVICE_NAME, routingData.sourceMicroserviceUuid))
+    }
 
-  const sourceWhere = { name: routingData.from, applicationId: application.id }
-  const sourceMicroservice = await MicroserviceManager.findOne(sourceWhere, transaction)
-  if (!sourceMicroservice) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_SOURCE_MICROSERVICE_NAME, routingData.from))
-  }
+    const destWhere = { uuid: routingData.destMicroserviceUuid }
+    const destMicroservice = await MicroserviceManager.findOne(destWhere, transaction)
+    if (!destMicroservice) {
+      throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_DEST_MICROSERVICE_NAME, routingData.destMicroserviceUuid))
+    }
+    return { sourceMicroservice, destMicroservice }
+  } else {
+    const applicationWhere = isCLI ? { name: routingData.application } : { name: routingData.application, userId: user.id }
+    const application = await ApplicationManager.findOne(applicationWhere, transaction)
+    if (!application) {
+      throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_ID, routingData.application))
+    }
 
-  const destWhere = { name: routingData.to, applicationId: application.id }
-  const destMicroservice = await MicroserviceManager.findOne(destWhere, transaction)
-  if (!destMicroservice) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_DEST_MICROSERVICE_NAME, routingData.to))
+    const sourceWhere = { name: routingData.from, applicationId: application.id }
+    const sourceMicroservice = await MicroserviceManager.findOne(sourceWhere, transaction)
+    if (!sourceMicroservice) {
+      throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_SOURCE_MICROSERVICE_NAME, routingData.from))
+    }
+
+    const destWhere = { name: routingData.to, applicationId: application.id }
+    const destMicroservice = await MicroserviceManager.findOne(destWhere, transaction)
+    if (!destMicroservice) {
+      throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_DEST_MICROSERVICE_NAME, routingData.to))
+    }
+    return { sourceMicroservice, destMicroservice }
   }
-  return { sourceMicroservice, destMicroservice }
 }
 
 async function createRouting (routingData, user, isCLI, transaction) {

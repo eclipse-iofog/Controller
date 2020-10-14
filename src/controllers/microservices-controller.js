@@ -37,8 +37,11 @@ const deleteMicroserviceEndPoint = async function (req, user) {
 }
 
 const getMicroservicesByApplicationEndPoint = async function (req, user) {
+  // API Retro compatibility
+  const flowId = req.query.flowId
+
   const applicationName = req.query.application
-  return MicroservicesService.listMicroservicesEndPoint(applicationName, user, false)
+  return MicroservicesService.listMicroservicesEndPoint({ applicationName, flowId }, user, false)
 }
 
 const createMicroserviceRouteEndPoint = async function (req, user) {

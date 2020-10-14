@@ -38,8 +38,15 @@ const MicroserviceExtraHostManager = require('../data/managers/microservice-extr
 
 const { VOLUME_MAPPING_DEFAULT } = require('../helpers/constants')
 
-async function listMicroservicesEndPoint (applicationName, user, isCLI, transaction) {
-  const application = await _validateApplication(applicationName, user, isCLI, transaction)
+async function listMicroservicesEndPoint (opt, user, isCLI, transaction) {
+  // API retro compatibility
+  const { applicationName, flowId } = opt
+  let application = await _validateApplication(applicationName, user, isCLI, transaction)
+
+  if (flowId) {
+    // _validateApplication wil try by ID if it fails finding by name
+    application = await _validateApplication(flowId, user, isCLI, transaction)
+  }
 
   const where = application ? { applicationId: application.id, delete: false } : { delete: false, applicationId: { [Op.ne]: null } }
   if (!isCLI) {
@@ -192,6 +199,7 @@ function _validateImageFogType (microserviceData, fog, images) {
 }
 
 async function createMicroserviceEndPoint (microserviceData, user, isCLI, transaction) {
+  // API Retro compatibility
   if (!microserviceData.application) {
     microserviceData.application = microserviceData.flowId
   }

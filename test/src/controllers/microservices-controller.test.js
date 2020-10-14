@@ -261,7 +261,7 @@ describe('Microservices Controller', () => {
 
     it('calls MicroservicesService.listMicroservicesEndPoint with correct args', async () => {
       await $subject
-      expect(MicroservicesService.listMicroservicesEndPoint).to.have.been.calledWith($application, $user, false)
+      expect(MicroservicesService.listMicroservicesEndPoint).to.have.been.calledWith({ applicationName: $application, flowId: undefined }, $user, false)
     })
 
     context('when MicroservicesService#listMicroservicesEndPoint fails', () => {
