@@ -102,6 +102,9 @@ class ApplicationManager extends BaseManager {
       where,
       attributes
     }, { transaction: transaction })
+    if (!application) {
+      return null
+    }
     const msvcs = application.microservices || []
     const routes = flatMap(msvcs, m => m.routes).map(r => r.get({ plain: true }))
     return {
