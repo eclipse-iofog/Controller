@@ -27,7 +27,10 @@ async function getRoutings (user, isCLI, transaction) {
     application: r.application.name,
     name: r.name,
     from: r.sourceMicroservice.name,
-    to: r.destMicroservice.name
+    to: r.destMicroservice.name,
+    // API retrocompatibility
+    sourceMicroserviceUuid: r.sourceMicroservice.uuid,
+    destMicroserviceUuid: r.destMicroservice.uuid
   })) }
 }
 
@@ -40,7 +43,10 @@ async function getRouting (name, user, isCLI, transaction) {
     application: route.application.name,
     name: route.name,
     from: route.sourceMicroservice.name,
-    to: route.destMicroservice.name
+    to: route.destMicroservice.name,
+    // API retrocompatibility
+    sourceMicroserviceUuid: route.sourceMicroservice.uuid,
+    destMicroserviceUuid: route.destMicroservice.uuid
   }
 }
 

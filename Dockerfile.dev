@@ -12,9 +12,11 @@ COPY package.json .
 
 COPY package-lock.json .
 
-COPY . .
+COPY scripts .
 
 RUN npm i
+
+COPY . .
 
 RUN npm version $PKG_VERSION --allow-same-version
 

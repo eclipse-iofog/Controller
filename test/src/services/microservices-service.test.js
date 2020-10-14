@@ -56,9 +56,18 @@ describe('Microservices Service', () => {
       'memoryUsage': 45,
       'percentage': 50.5
     }
+
+    const uuid = 'testUuid'
+
     const response = [
       {
-        uuid: 'testUuid'
+        uuid,
+        applicationId: application.id,
+        // dataValues is being directly accessed on top of sequelize getters
+        dataValues: {
+          uuid,
+          applicationId: application.id,
+        }
       },
     ]
 
@@ -73,7 +82,10 @@ describe('Microservices Service', () => {
       ports: [],
       routes: [],
       volumeMappings: [],
-      status: microserviceStatus
+      flowId: application.id,
+      applicationId: application.id,
+      status: microserviceStatus,
+      uuid
     }]
     const microserviceResponse = {
       microservices: responseObject

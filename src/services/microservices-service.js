@@ -1001,7 +1001,7 @@ async function _buildGetMicroserviceResponse (microservice, transaction) {
   res.logSize *= 1
 
   // API retrocompatibility
-  res.flowId = res.application
+  res.flowId = res.applicationId
 
   return res
 }
