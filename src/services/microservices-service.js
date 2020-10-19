@@ -965,6 +965,7 @@ async function _buildGetMicroserviceResponse (microservice, transaction) {
 
   // get additional data
   const portMappings = await MicroservicePortService.getPortMappings(microserviceUuid, transaction)
+  const application = await ApplicationManager.findOne({ id: microservice.applicationId }, transaction)
   const extraHosts = await MicroserviceExtraHostManager.findAll({ microserviceUuid: microserviceUuid }, transaction)
   const images = await CatalogItemImageManager.findAll({ microserviceUuid: microserviceUuid }, transaction)
   const volumeMappings = await VolumeMappingManager.findAll({ microserviceUuid: microserviceUuid }, transaction)
@@ -999,6 +1000,8 @@ async function _buildGetMicroserviceResponse (microservice, transaction) {
   }
 
   res.logSize *= 1
+
+  res.application = (application || { name: '' }).name
 
   // API retrocompatibility
   res.flowId = res.applicationId
