@@ -84,6 +84,7 @@ describe('Microservices Service', () => {
       volumeMappings: [],
       flowId: application.id,
       applicationId: application.id,
+      application: application.name,
       status: microserviceStatus,
       uuid
     }]
@@ -158,6 +159,11 @@ describe('Microservices Service', () => {
       id: 15,
     }
 
+    const application = {
+      name: 'my-app',
+      id: 42
+    }
+
     const microserviceUuid = 'testMicroserviceUuid'
 
     const response = {
@@ -189,6 +195,7 @@ describe('Microservices Service', () => {
       $sandbox.stub(MicroservicePublicModeManager, 'findAll').returns($publicModeResponse)
       $sandbox.stub(CatalogItemImageManager, 'findAll').returns($imgResponse)
       $sandbox.stub(MicroserviceStatusManager, 'findAllExcludeFields').returns($statusResponse)
+      $sandbox.stub(ApplicationManager, 'findOne').returns(Promise.resolve(application))
     })
 
     it('calls MicroserviceManager#findOneExcludeFields() with correct args', async () => {
