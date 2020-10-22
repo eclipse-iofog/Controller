@@ -763,8 +763,8 @@ async function _validateApplication (name, user, isCLI, transaction) {
     return null
   }
   const where = isCLI
-    ? { name }
-    : { name, userId: user.id }
+    ? { name: name.toString() }
+    : { name: name.toString(), userId: user.id }
 
   const application = await ApplicationManager.findOne(where, transaction)
   if (!application) {
