@@ -77,7 +77,7 @@ const createApplicationEndPoint = async function (applicationData, user, isCLI, 
     }
   } catch (e) {
     // If anything failed during creating the application, delete all that was created
-    await deleteApplicationEndPoint(application.name, user, isCLI, transaction)
+    await deleteApplicationEndPoint({ name: application.name }, user, isCLI, transaction)
     throw e
   }
 }
