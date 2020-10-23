@@ -1,5 +1,17 @@
 # Changelog
 
+## [v2.0.1] - 2020-10-23
+
+#### Features
+
+* Return microservice download percentage
+
+### Bugs
+
+* Fix default available disk threshold being too high
+* Replace Winston logger with Pino
+* Make flowId query param optional for GET microservices endpoint
+
 ## [v2.0.0] - 2020-08-05
 
 ### Features
