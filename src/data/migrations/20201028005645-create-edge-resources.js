@@ -41,7 +41,7 @@ module.exports = {
       EdgeResourceId: {
         type: Sequelize.INTEGER,
         field: 'edge_resource_id',
-        references: { model: 'EdgeResource', key: 'id' },
+        references: { model: 'EdgeResources', key: 'id' },
         onDelete: 'cascade'
       },
       FogUuid: {
@@ -61,7 +61,7 @@ module.exports = {
       edgeResourceId: {
         type: Sequelize.INTEGER,
         field: 'edge_resource_id',
-        references: { model: 'EdgeResource', key: 'id' },
+        references: { model: 'EdgeResources', key: 'id' },
         onDelete: 'cascade'
       }
     })
@@ -83,7 +83,7 @@ module.exports = {
       interfaceId: {
         type: Sequelize.INTEGER,
         field: 'interface_id',
-        references: { model: 'HTTPBasedResourceInterface', key: 'id' },
+        references: { model: 'HTTPBasedResourceInterfaces', key: 'id' },
         onDelete: 'cascade'
       }
     })

@@ -54,8 +54,8 @@ async function _createHttpBasedInterfaceEndpoints (endpoints, interfaceId, trans
   }
 }
 
-async function _createHttpBasedInterface (endpoints, resourceId, transaction) {
-  const httpBasedInterface = await HTTPBasedResourceInterfaceManager.create({ resourceId }, transaction)
+async function _createHttpBasedInterface (endpoints, edgeResourceId, transaction) {
+  const httpBasedInterface = await HTTPBasedResourceInterfaceManager.create({ edgeResourceId }, transaction)
   await _createHttpBasedInterfaceEndpoints(endpoints, httpBasedInterface.id, transaction)
   return httpBasedInterface
 }
@@ -110,6 +110,10 @@ async function _updateInterface (resource, newData, transaction) {
 async function createEdgeResource (edgeResourceData, user, transaction) {
   await Validator.validate(edgeResourceData, Validator.schemas.edgeResourceCreate)
   const { name, description, version, orchestrationTags, interfaceProtocol, display } = edgeResourceData
+  const existingResource = await EdgeResourceManager.findOne({ name, version, userId: user.id }, transaction)
+  if (existingResource) {
+    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.DUPLICATE_RESOURCE_NAME_VERSION, name, version))
+  }
   const resourceData = {
     userId: user.id,
     name,
@@ -152,7 +156,7 @@ async function updateEdgeResourceEndpoint (edgeResourceData, { name: oldName, ve
     newData.displayColor = display.color
   }
   AppHelper.deleteUndefinedFields(newData)
-  await EdgeResourceManager.update({ name }, newData, transaction)
+  await EdgeResourceManager.update({ name, version }, newData, transaction)
   if (oldData.interfaceProtocol !== newData.interfaceProtocol) {
     await _deleteInterface(oldData, transaction)
     await _createInterface(edgeResourceData, oldData.id, transaction)
@@ -166,7 +170,7 @@ async function deleteEdgeResource ({ name, version }, user, transaction) {
   if (!resource) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.NOT_FOUND_RESOURCE_NAME_VERSION, name, version))
   }
-  return EdgeResourceManager.delete({ name, userId: user.id }, transaction)
+  await EdgeResourceManager.delete({ name, version, userId: user.id }, transaction)
 }
 
 async function linkEdgeResource ({ name, version }, agentName, user, transaction) {
