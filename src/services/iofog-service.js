@@ -417,6 +417,17 @@ async function _getFogRouterConfig (fog, transaction) {
   return fog
 }
 
+async function _getFogEdgeResources (fog, transaction) {
+  fog.edgeResources = await fog.getEdgeResources()
+  return fog
+}
+
+async function _getFogExtraInformation (fog, transaction) {
+  fog = await _getFogRouterConfig(fog, transaction)
+  fog = await _getFogEdgeResources(fog, transaction)
+  return fog
+}
+
 async function getFog (fogData, user, isCLI, transaction) {
   await Validator.validate(fogData, Validator.schemas.iofogGet)
 
@@ -432,7 +443,7 @@ async function getFog (fogData, user, isCLI, transaction) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, fogData.uuid))
   }
 
-  return _getFogRouterConfig(fog, transaction)
+  return _getFogExtraInformation(fog, transaction)
 }
 
 async function getFogEndPoint (fogData, user, isCLI, transaction) {
@@ -453,7 +464,7 @@ async function getFogListEndPoint (filters, user, isCLI, isSystem, transaction) 
   fogs = _filterFogs(fogs, filters)
 
   // Get router config info for all fogs
-  fogs = await Promise.all(fogs.map(async (fog) => _getFogRouterConfig(fog, transaction)))
+  fogs = await Promise.all(fogs.map(async (fog) => _getFogExtraInformation(fog, transaction)))
   return {
     fogs: fogs
   }

@@ -101,5 +101,8 @@ module.exports = {
   PORT_RESERVED: 'Port \'{}\' is reserved for internal use',
   INVALID_HOST_TEMPLATE: '{} is not a valid host template',
   NOT_FOUND_HOST_TEMPLATE: 'Could not find {} host template',
-  MISSING_IMAGE: 'Microservice {} does not have a valid image for its Agent type'
+  MISSING_IMAGE: 'Microservice {} does not have a valid image for its Agent type',
+  NOT_FOUND_RESOURCE_NAME_VERSION: 'Could not find resource {} version {}',
+  NOT_FOUND_AGENT_NAME: 'Could not find agent {}',
+  RESOURCE_UPDATE_VERSION_MISMATCH: 'Cannot update resource version using update route. Please use the create new resource route.'
 }
