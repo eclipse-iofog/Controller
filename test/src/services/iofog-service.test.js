@@ -1206,7 +1206,9 @@ describe('ioFog Service', () => {
       watchdogEnabled: false,
       abstractedHardwareEnabled: false,
       fogType: 1,
-      userId: user.id
+      userId: user.id,
+      routerMode: 'none',
+      edgeResources: []
     }
 
     const queryFogData = { uuid: fogData.uuid }
@@ -1219,7 +1221,7 @@ describe('ioFog Service', () => {
 
     def('subject', () => $subject.getFog(fogData, user, isCLI, transaction))
     def('validatorResponse', () => Promise.resolve(true))
-    def('findIoFogResponse', () => Promise.resolve({...fog, getRouter: () => Promise.resolve(null), toJSON: () => fog}))
+    def('findIoFogResponse', () => Promise.resolve({...fog, getRouter: () => Promise.resolve(null), toJSON: () => fog, getEdgeResources: () => Promise.resolve([])}))
     def('findOneRouterResponse', () => Promise.resolve(null))
     def('defaultRouterResponse', () => Promise.resolve(defaultRouter))
 
@@ -1270,7 +1272,7 @@ describe('ioFog Service', () => {
             messagingPort: 1234,
             id: 42
           }
-          def('findIoFogResponse', () => Promise.resolve({...fog, getRouter: () => Promise.resolve(router), toJSON: () => fog}))
+          def('findIoFogResponse', () => Promise.resolve({...fog, getRouter: () => Promise.resolve(router), getEdgeResources: () => Promise.resolve([]), toJSON: () => fog}))
           def('findRouterConnectionsResponse', () => Promise.resolve([]))
           beforeEach(() => {
             $sandbox.stub(RouterConnectionManager, 'findAllWithRouters').returns($findRouterConnectionsResponse)
@@ -1300,7 +1302,7 @@ describe('ioFog Service', () => {
               edgeRouterPort: 7890,
               id: 42
             }
-            def('findIoFogResponse', () => Promise.resolve({...fog, getRouter: () => Promise.resolve(router), toJSON: () => fog}))
+            def('findIoFogResponse', () => Promise.resolve({...fog, getEdgeResources: () => Promise.resolve([]), getRouter: () => Promise.resolve(router), toJSON: () => fog}))
             it('should return router information', () => {
               return expect($subject).to.eventually.deep.equal({...fog, routerMode: 'interior', messagingPort: router.messagingPort, edgeRouterPort: router.edgeRouterPort, interRouterPort: router.interRouterPort, upstreamRouters: []})
             })
@@ -1357,7 +1359,7 @@ describe('ioFog Service', () => {
 
     def('subject', () => $subject.getFogListEndPoint(filters, user, isCLI, isSystem, transaction))
     def('validatorResponse', () => Promise.resolve(true))
-    def('findAllIoFogResponse', () => Promise.resolve(fogs.map(f => ({...f, getRouter: () => Promise.resolve(null), toJSON: () => f}))))
+    def('findAllIoFogResponse', () => Promise.resolve(fogs.map(f => ({...f, getRouter: () => Promise.resolve(null), getEdgeResources: () => Promise.resolve([]), toJSON: () => f}))))
     def('findOneRouterResponse', () => Promise.resolve(null))
 
     beforeEach(() => {
