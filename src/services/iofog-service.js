@@ -28,6 +28,7 @@ const CatalogService = require('./catalog-service')
 const MicroserviceManager = require('../data/managers/microservice-manager')
 const TagsManager = require('../data/managers/tags-manager')
 const MicroserviceService = require('./microservices-service')
+const EdgeResourceService = require('./edge-resource-service')
 const TrackingDecorator = require('../decorators/tracking-decorator')
 const TrackingEventType = require('../enums/tracking-event-type')
 const config = require('../config')
@@ -413,39 +414,59 @@ async function _getFogRouterConfig (fog, transaction) {
   // Get fog router config
   const defaultRouter = await RouterManager.findOne({ isDefault: true }, transaction)
   const router = await fog.getRouter()
-  if (fog.toJSON && typeof fog.toJSON === 'function') {
-    fog = fog.toJSON() // Transform Sequelize object to JSON object
+  const routerConfig = {
+
   }
   // Router mode is either interior or edge
   if (router) {
-    fog.routerMode = router.isEdge ? 'edge' : 'interior'
-    fog.messagingPort = router.messagingPort
-    if (fog.routerMode === 'interior') {
-      fog.interRouterPort = router.interRouterPort
-      fog.edgeRouterPort = router.edgeRouterPort
+    routerConfig.routerMode = router.isEdge ? 'edge' : 'interior'
+    routerConfig.messagingPort = router.messagingPort
+    if (routerConfig.routerMode === 'interior') {
+      routerConfig.interRouterPort = router.interRouterPort
+      routerConfig.edgeRouterPort = router.edgeRouterPort
     }
     // Get upstream routers
     const upstreamRoutersConnections = await RouterConnectionManager.findAllWithRouters({ sourceRouter: router.id }, transaction)
-    fog.upstreamRouters = upstreamRoutersConnections ? upstreamRoutersConnections.map(r => _getRouterUuid(r.dest, defaultRouter)) : []
+    routerConfig.upstreamRouters = upstreamRoutersConnections ? upstreamRoutersConnections.map(r => _getRouterUuid(r.dest, defaultRouter)) : []
   } else {
-    fog.routerMode = 'none'
+    routerConfig.routerMode = 'none'
     const networkRouter = await RouterManager.findOne({ id: fog.routerId }, transaction)
     if (networkRouter) {
-      fog.networkRouter = _getRouterUuid(networkRouter, defaultRouter)
+      routerConfig.networkRouter = _getRouterUuid(networkRouter, defaultRouter)
     }
   }
 
-  return fog
+  return routerConfig
+}
+
+async function _getFogEdgeResources (fog, transaction) {
+  const resourceAttributes = [
+    'name',
+    'version',
+    'description',
+    'interfaceProtocol',
+    'displayName',
+    'displayIcon',
+    'displayColor'
+  ]
+  const resources = await fog.getEdgeResources({ attributes: resourceAttributes })
+  return resources.map(EdgeResourceService.buildGetObject)
+}
+
+async function _getFogExtraInformation (fog, transaction) {
+  const routerConfig = await _getFogRouterConfig(fog, transaction)
+  const edgeResources = await _getFogEdgeResources(fog, transaction)
+  // Transform to plain JS object
+  if (fog.toJSON && typeof fog.toJSON === 'function') {
+    fog = fog.toJSON()
+  }
+  return { ...fog, tags: _mapTags(fog), ...routerConfig, edgeResources }
 }
 
 // Map tags to string array
 // Return plain JS object
 function _mapTags (fog) {
-  if (fog.toJSON) {
-    fog = fog.toJSON()
-  }
-  fog.tags = fog.tags ? fog.tags.map(t => t.value) : []
-  return fog
+  return fog.tags ? fog.tags.map(t => t.value) : []
 }
 
 async function getFog (fogData, user, isCLI, transaction) {
@@ -463,7 +484,7 @@ async function getFog (fogData, user, isCLI, transaction) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, fogData.uuid))
   }
 
-  return _mapTags(await _getFogRouterConfig(fog, transaction))
+  return _getFogExtraInformation(fog, transaction)
 }
 
 async function getFogEndPoint (fogData, user, isCLI, transaction) {
@@ -485,9 +506,9 @@ async function getFogListEndPoint (filters, user, isCLI, isSystem, transaction) 
 
   // Map all tags
   // Get router config info for all fogs
-  fogs = await Promise.all(fogs.map(async (fog) => _getFogRouterConfig(fog, transaction)))
+  fogs = await Promise.all(fogs.map(async (fog) => _getFogExtraInformation(fog, transaction)))
   return {
-    fogs: fogs.map(_mapTags)
+    fogs
   }
 }
 
