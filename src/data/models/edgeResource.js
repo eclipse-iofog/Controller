@@ -25,7 +25,7 @@ module.exports = (sequelize, DataTypes) => {
   })
   EdgeResource.associate = function (models) {
     EdgeResource.belongsToMany(models.Fog, { through: 'AgentEdgeResources', as: 'agents' })
-    // EdgeResources.hasMany(models.Tags, { as: 'orchestrationTags' }) TODO: Update this when merged with tags
+    EdgeResource.belongsToMany(models.Tags, { as: 'orchestrationTags', through: 'EdgeResourceOrchestrationTags' })
 
     EdgeResource.belongsTo(models.User, {
       foreignKey: {

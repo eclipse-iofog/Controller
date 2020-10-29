@@ -51,6 +51,27 @@ module.exports = {
         onDelete: 'cascade'
       }
     })
+    await queryInterface.createTable('EdgeResourceOrchestrationTags', {
+      id: {
+        type: Sequelize.INTEGER,
+        primaryKey: true,
+        autoIncrement: true,
+        allowNull: false,
+        field: 'id'
+      },
+      EdgeResourceId: {
+        type: Sequelize.INTEGER,
+        field: 'edge_resource_id',
+        references: { model: 'EdgeResources', key: 'id' },
+        onDelete: 'cascade'
+      },
+      TagId: {
+        type: Sequelize.INTEGER,
+        field: 'tag_id',
+        references: { model: 'Tags', key: 'id' },
+        onDelete: 'cascade'
+      }
+    })
     await queryInterface.createTable('HTTPBasedResourceInterfaces', {
       id: {
         type: Sequelize.INTEGER,
@@ -89,8 +110,9 @@ module.exports = {
     })
   },
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.dropTable('Tags')
+    await queryInterface.dropTable('EdgeResources')
     await queryInterface.dropTable('AgentEdgeResources')
+    await queryInterface.dropTable('EdgeResourceOrchestrationTags')
     await queryInterface.dropTable('HTTPBasedResourceInterfaces')
     await queryInterface.dropTable('HTTPBasedResourceInterfaceEndpoints')
   }
