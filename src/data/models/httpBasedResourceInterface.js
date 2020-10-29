@@ -13,7 +13,7 @@ module.exports = (sequelize, DataTypes) => {
     underscored: true
   })
   HTTPBasedResourceInterface.associate = function (models) {
-    HTTPBasedResourceInterface.hasMany(models.HTTPBasedResourceInterfaceEndpoint, { as: 'endpoints', onDelete: 'cascade' })
+    HTTPBasedResourceInterface.hasMany(models.HTTPBasedResourceInterfaceEndpoint, { as: 'endpoints', onDelete: 'cascade', foreignKey: { name: 'interfaceId', field: 'interface_id' } })
     HTTPBasedResourceInterface.belongsTo(models.EdgeResource, { foreignKey: { name: 'edgeResourceId', field: 'edge_resource_id' } })
   }
   return HTTPBasedResourceInterface

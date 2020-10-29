@@ -23,7 +23,7 @@ const Validator = require('../schemas')
 
 async function listEdgeResources (user, transaction) {
   const edgeResources = await EdgeResourceManager.findAll({ userId: user.id }, transaction)
-  return edgeResources
+  return edgeResources.map(buildGetObject)
 }
 
 async function getEdgeResource ({ name, version }, user, transaction) {
@@ -31,8 +31,10 @@ async function getEdgeResource ({ name, version }, user, transaction) {
   if (!resource) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.NOT_FOUND_RESOURCE_NAME_VERSION, name, version))
   }
-  resource.interface = await getInterface(resource)
-  return resource
+  const intrface = await getInterface(resource)
+  // Transform Sequelize objects into plain JSON objects
+  const result = { ...resource.toJSON(), interface: intrface.toJSON() }
+  return buildGetObject(result)
 }
 
 async function getInterface (resource, transaction) {
@@ -61,7 +63,7 @@ async function _createHttpBasedInterface (endpoints, edgeResourceId, transaction
 }
 
 async function _updateHttpBasedInterface (id, endpoints, transaction) {
-  const httpBasedInterface = await HTTPBasedResourceInterfaceManager.findOneWithEndpoints({ id }, transaction)
+  const httpBasedInterface = await HTTPBasedResourceInterfaceManager.findOne({ id }, transaction)
   if (httpBasedInterface) {
     await HTTPBasedResourceInterfaceEndpointsManager.delete({ interfaceId: httpBasedInterface.id }, transaction)
     await _createHttpBasedInterfaceEndpoints(endpoints, id, transaction)
@@ -135,7 +137,7 @@ async function createEdgeResource (edgeResourceData, user, transaction) {
 
 async function updateEdgeResourceEndpoint (edgeResourceData, { name: oldName, version }, user, transaction) {
   await Validator.validate(edgeResourceData, Validator.schemas.edgeResourceUpdate)
-  const oldData = await EdgeResourceManager.findOne({ name: oldName, version, userId: user.id })
+  const oldData = await EdgeResourceManager.findOne({ name: oldName, version, userId: user.id }, transaction)
   if (!oldData) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.NOT_FOUND_RESOURCE_NAME_VERSION, oldName, version))
   }
@@ -156,12 +158,20 @@ async function updateEdgeResourceEndpoint (edgeResourceData, { name: oldName, ve
     newData.displayColor = display.color
   }
   AppHelper.deleteUndefinedFields(newData)
+  if (newData.name && newData.name !== oldData.name) {
+    const newVersion = newData.version ? newData.version : version
+    const existingResource = await EdgeResourceManager.findOne({ name, version: newVersion, userId: user.id }, transaction)
+    if (!existingResource) {
+      throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.DUPLICATE_RESOURCE_NAME_VERSION, name, newVersion))
+    }
+  }
+
   await EdgeResourceManager.update({ name, version }, newData, transaction)
   if (oldData.interfaceProtocol !== newData.interfaceProtocol) {
     await _deleteInterface(oldData, transaction)
     await _createInterface(edgeResourceData, oldData.id, transaction)
   } else {
-    await _updateInterface(edgeResourceData, transaction)
+    await _updateInterface(oldData, edgeResourceData, transaction)
   }
 }
 
@@ -173,30 +183,46 @@ async function deleteEdgeResource ({ name, version }, user, transaction) {
   await EdgeResourceManager.delete({ name, version, userId: user.id }, transaction)
 }
 
-async function linkEdgeResource ({ name, version }, agentName, user, transaction) {
+async function linkEdgeResource ({ name, version }, uuid, user, transaction) {
   const resource = await EdgeResourceManager.findOne({ name, version, userId: user.id }, transaction)
   if (!resource) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.NOT_FOUND_RESOURCE_NAME_VERSION, name, version))
   }
-  const agent = await FogManager.findOne({ name: agentName, userId: user.id }, transaction)
+  const agent = await FogManager.findOne({ uuid, userId: user.id }, transaction)
   if (!agent) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.NOT_FOUND_AGENT_NAME, agentName))
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.NOT_FOUND_AGENT_NAME, uuid))
   }
 
-  await agent.addEdgeResource(resource.id)
+  await agent.addEdgeResource(resource.id, transaction)
 }
 
-async function unlinkEdgeResource ({ name, version }, agentName, user, transaction) {
+async function unlinkEdgeResource ({ name, version }, uuid, user, transaction) {
   const resource = await EdgeResourceManager.findOne({ name, userId: user.id }, transaction)
   if (!resource) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.NOT_FOUND_RESOURCE_NAME_VERSION, name, version))
   }
-  const agent = await FogManager.findOne({ name: agentName, userId: user.id }, transaction)
+  const agent = await FogManager.findOne({ uuid, userId: user.id }, transaction)
   if (!agent) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.NOT_FOUND_AGENT_NAME, agentName))
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.NOT_FOUND_AGENT_NAME, uuid))
   }
 
-  await agent.removeEdgeResource(resource.id)
+  await agent.removeEdgeResource(resource.id, transaction)
+}
+
+function buildGetObject (resource) {
+  const { name, interfaceProtocol, description, version, displayName, displayIcon, displayColor } = resource
+  return {
+    name,
+    description,
+    version,
+    interfaceProtocol,
+    display: {
+      name: displayName,
+      icon: displayIcon,
+      color: displayColor
+    },
+    interface: resource.interface
+  }
 }
 
 module.exports = {
@@ -207,5 +233,6 @@ module.exports = {
   updateEdgeResourceEndpoint: TransactionDecorator.generateTransaction(updateEdgeResourceEndpoint),
   linkEdgeResource: TransactionDecorator.generateTransaction(linkEdgeResource),
   unlinkEdgeResource: TransactionDecorator.generateTransaction(unlinkEdgeResource),
-  getInterface
+  getInterface,
+  buildGetObject
 }

@@ -9,7 +9,19 @@ class HTTPBasedResourceInterfacesManager extends BaseManager {
   }
 
   async findOneWithEndpoints (whereObj, transaction) {
-    HTTPBasedResourceInterface.findOne({
+    return HTTPBasedResourceInterface.findOne({
+      include: [
+        {
+          model: HTTPBasedResourceInterfaceEndpoint,
+          as: 'endpoints'
+        }
+      ],
+      where: whereObj
+    }, { transaction })
+  }
+
+  async findAllWithEndpoints (whereObj, transaction) {
+    return HTTPBasedResourceInterface.findAll({
       include: [
         {
           model: HTTPBasedResourceInterfaceEndpoint,
