@@ -15,6 +15,7 @@ const AppHelper = require('../helpers/app-helper')
 const Errors = require('../helpers/errors')
 const ErrorMessages = require('../helpers/error-messages')
 const EdgeResourceManager = require('../data/managers/edge-resource-manager')
+const TagsManager = require('../data/managers/tags-manager')
 const HTTPBasedResourceInterfaceManager = require('../data/managers/http-based-resource-interface-manager')
 const HTTPBasedResourceInterfaceEndpointsManager = require('../data/managers/http-based-resource-interface-endpoints-manager')
 const FogManager = require('../data/managers/iofog-manager')
@@ -22,12 +23,12 @@ const TransactionDecorator = require('../decorators/transaction-decorator')
 const Validator = require('../schemas')
 
 async function listEdgeResources (user, transaction) {
-  const edgeResources = await EdgeResourceManager.findAll({ userId: user.id }, transaction)
+  const edgeResources = await EdgeResourceManager.findAllWithOrchestrationTags({ userId: user.id }, transaction)
   return edgeResources.map(buildGetObject)
 }
 
 async function getEdgeResource ({ name, version }, user, transaction) {
-  const resource = await EdgeResourceManager.findOne({ name, version, userId: user.id }, transaction)
+  const resource = await EdgeResourceManager.findOneWithOrchestrationTags({ name, version, userId: user.id }, transaction)
   if (!resource) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.NOT_FOUND_RESOURCE_NAME_VERSION, name, version))
   }
@@ -109,6 +110,25 @@ async function _updateInterface (resource, newData, transaction) {
   }
 }
 
+async function _createOrchestrationTags (tagArray, edgeResourceModel, transaction) {
+  if (tagArray) {
+    let tags = []
+    for (const tag of tagArray) {
+      let tagModel = await TagsManager.findOne({ value: tag }, transaction)
+      if (!tagModel) {
+        tagModel = await TagsManager.create({ value: tag }, transaction)
+      }
+      tags.push(tagModel)
+    }
+    await edgeResourceModel.setOrchestrationTags(tags)
+  }
+}
+
+async function _updateOrchestrationTags (tagArray, edgeResourceModel, transaction) {
+  await edgeResourceModel.setOrchestrationTags([])
+  await _createOrchestrationTags(tagArray, edgeResourceModel, transaction)
+}
+
 async function createEdgeResource (edgeResourceData, user, transaction) {
   await Validator.validate(edgeResourceData, Validator.schemas.edgeResourceCreate)
   const { name, description, version, orchestrationTags, interfaceProtocol, display } = edgeResourceData
@@ -130,9 +150,18 @@ async function createEdgeResource (edgeResourceData, user, transaction) {
     resourceData.displayColor = display.color
   }
   const resource = await EdgeResourceManager.create(resourceData, transaction)
-  resource.interfaceId = (await _createInterface(edgeResourceData, resource.id, transaction)).id
-  await resource.save(transaction)
-  return resource
+  try {
+    if (orchestrationTags) {
+      await _createOrchestrationTags(orchestrationTags, resource, transaction)
+    }
+    resource.interfaceId = (await _createInterface(edgeResourceData, resource.id, transaction)).id
+    await resource.save(transaction)
+  } catch (e) {
+    // Clean up
+    await EdgeResourceManager.delete({ id: resource.id }, transaction)
+    throw e
+  }
+  return buildGetObject(resource)
 }
 
 async function updateEdgeResourceEndpoint (edgeResourceData, { name: oldName, version }, user, transaction) {
@@ -167,6 +196,10 @@ async function updateEdgeResourceEndpoint (edgeResourceData, { name: oldName, ve
   }
 
   await EdgeResourceManager.update({ name, version }, newData, transaction)
+
+  if (orchestrationTags) {
+    await _updateOrchestrationTags(orchestrationTags, oldData, transaction)
+  }
   if (oldData.interfaceProtocol !== newData.interfaceProtocol) {
     await _deleteInterface(oldData, transaction)
     await _createInterface(edgeResourceData, oldData.id, transaction)
@@ -194,6 +227,8 @@ async function linkEdgeResource ({ name, version }, uuid, user, transaction) {
   }
 
   await agent.addEdgeResource(resource.id, transaction)
+  const tags = await resource.getOrchestrationTags()
+  await agent.addTags(tags)
 }
 
 async function unlinkEdgeResource ({ name, version }, uuid, user, transaction) {
@@ -207,11 +242,14 @@ async function unlinkEdgeResource ({ name, version }, uuid, user, transaction) {
   }
 
   await agent.removeEdgeResource(resource.id, transaction)
+  const tags = await resource.getOrchestrationTags()
+  await agent.removeTags(tags)
 }
 
 function buildGetObject (resource) {
-  const { name, interfaceProtocol, description, version, displayName, displayIcon, displayColor } = resource
+  const { name, id, interfaceProtocol, description, version, displayName, displayIcon, displayColor, orchestrationTags } = resource
   return {
+    id,
     name,
     description,
     version,
@@ -221,7 +259,8 @@ function buildGetObject (resource) {
       icon: displayIcon,
       color: displayColor
     },
-    interface: resource.interface
+    interface: resource.interface,
+    orchestrationTags: (orchestrationTags || []).map(t => t.value)
   }
 }
 

@@ -11633,7 +11633,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"name\": \"com.orange.smart-door\",\n  \"version\": \"0.0.1\",\n  \"description\": \"Orange Smart Door\",\n  \"display\": {\n      \"name\": \"Smart Door\",\n      \"icon\": \"help\",\n      \"color\": \"#ff0000\"\n  },\n  \"interfaceProtocol\": \"https\",\n  \"endpoints\": [\n      {\n          \"name\": \"liveness\",\n          \"url\": \"https://localhost:91121\",\n          \"method\": \"GET\"\n      }\n  ]\n}"
+							"raw": "{\n  \"name\": \"com.orange.smart-door\",\n  \"version\": \"0.0.1\",\n  \"description\": \"Orange Smart Door\",\n  \"display\": {\n      \"name\": \"Smart Door\",\n      \"icon\": \"help\",\n      \"color\": \"#ff0000\"\n  },\n  \"interfaceProtocol\": \"https\",\n  \"endpoints\": [\n      {\n          \"name\": \"liveness\",\n          \"url\": \"https://localhost:91121\",\n          \"method\": \"GET\"\n      }\n  ],\n  \"orchestrationTags\": [\n      \"orange\",\n      \"smart-door\"\n  ]\n}"
 						},
 						"url": {
 							"raw": "{{host}}/api/v3/edgeResource",
@@ -11727,7 +11727,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"name\": \"com.orange.smart-door\",\n  \"version\": \"0.0.1\",\n  \"description\": \"Orange Smart Door\",\n  \"display\": {\n      \"name\": \"Smart Door\",\n      \"icon\": \"help\",\n      \"color\": \"#ff0000\"\n  },\n  \"interfaceProtocol\": \"https\",\n  \"endpoints\": [\n      {\n          \"name\": \"liveness\",\n          \"url\": \"https://localhost:91121\",\n          \"method\": \"GET\"\n      },\n      {\n          \"name\": \"version\",\n          \"url\": \"https://localhost:91121/version\",\n          \"method\": \"GET\"\n      }\n  ]\n}"
+							"raw": "{\n  \"name\": \"com.orange.smart-door\",\n  \"version\": \"0.0.1\",\n  \"description\": \"Orange Smart Door\",\n  \"display\": {\n      \"name\": \"Smart Door\",\n      \"icon\": \"help\",\n      \"color\": \"#ff0000\"\n  },\n  \"interfaceProtocol\": \"https\",\n  \"endpoints\": [\n      {\n          \"name\": \"liveness\",\n          \"url\": \"https://localhost:91121\",\n          \"method\": \"GET\"\n      },\n      {\n          \"name\": \"version\",\n          \"url\": \"https://localhost:91121/version\",\n          \"method\": \"GET\"\n      }\n  ],\n  \"orchestrationTags\": [\n      \"orange\",\n      \"smart-door\",\n      \"smart-door-v0.0.1\"\n  ]\n}"
 						},
 						"url": {
 							"raw": "{{host}}/api/v3/edgeResource/{{edge-resource-name}}/{{edge-resource-version}}",
@@ -11759,7 +11759,8 @@
 									"",
 									"tests[\"Contains metadata\"] = data.name && data.display && data.display.color && data.display.icon && data.display.name && data.interfaceProtocol && data.interfaceProtocol;",
 									"",
-									"tests[\"Has interface details\"] = data.interface && data.interface.endpoints && data.interface.endpoints.length === 2"
+									"tests[\"Has interface details\"] = data.interface && data.interface.endpoints && data.interface.endpoints.length === 2",
+									"tests[\"Has orchestration tags\"] = data.orchestrationTags && data.orchestrationTags.length === 3"
 								],
 								"type": "text/javascript"
 							}
@@ -11857,6 +11858,7 @@
 									"    var edgeResource = data.edgeResources[0] ",
 									"",
 									"    tests[\"Has display information\"] = edgeResource.display && edgeResource.display.name",
+									"    tests[\"Has tags\"] = data.tags && data.tags.length === 3",
 									"}",
 									""
 								],

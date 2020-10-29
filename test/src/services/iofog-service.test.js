@@ -1208,7 +1208,8 @@ describe('ioFog Service', () => {
       fogType: 1,
       userId: user.id,
       routerMode: 'none',
-      edgeResources: []
+      edgeResources: [],
+      tags: []
     }
 
     const queryFogData = { uuid: fogData.uuid }
