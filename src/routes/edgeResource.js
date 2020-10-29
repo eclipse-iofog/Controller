@@ -159,7 +159,7 @@ module.exports = [
   },
   {
     method: 'post',
-    path: '/api/v3/edgeResource/:name/:version/agent/:agentName',
+    path: '/api/v3/edgeResource/:name/:version/link',
     middleware: async (req, res) => {
       logger.apiReq(req)
 
@@ -186,7 +186,7 @@ module.exports = [
   },
   {
     method: 'delete',
-    path: '/api/v3/edgeResource/:name/:version/agent/:agentName',
+    path: '/api/v3/edgeResource/:name/:version/link',
     middleware: async (req, res) => {
       logger.apiReq(req)
 

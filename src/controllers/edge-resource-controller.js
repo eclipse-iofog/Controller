@@ -40,13 +40,15 @@ const deleteEdgeResourceEndpoint = async function (req, user) {
 }
 
 const linkEdgeResourceEndpoint = async function (req, user) {
-  const { name, version, agentName } = req.params
-  return EdgeResourceService.linkEdgeResource({ name, version }, agentName, user)
+  const { name, version } = req.params
+  const { uuid } = req.body
+  return EdgeResourceService.linkEdgeResource({ name, version }, uuid, user)
 }
 
 const unlinkEdgeResourceEndpoint = async function (req, user) {
-  const { name, version, agentName } = req.params
-  return EdgeResourceService.unlinkEdgeResource({ name, version }, agentName)
+  const { name, version } = req.params
+  const { uuid } = req.body
+  return EdgeResourceService.unlinkEdgeResource({ name, version }, uuid, user)
 }
 
 module.exports = {
