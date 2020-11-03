@@ -121,12 +121,20 @@ async function _createOrchestrationTags (tagArray, edgeResourceModel, transactio
       tags.push(tagModel)
     }
     await edgeResourceModel.setOrchestrationTags(tags)
+    return tags
   }
+  return []
 }
 
 async function _updateOrchestrationTags (tagArray, edgeResourceModel, transaction) {
+  const oldTags = await edgeResourceModel.getOrchestrationTags()
+  const linkedAgents = await edgeResourceModel.getAgents()
   await edgeResourceModel.setOrchestrationTags([])
-  await _createOrchestrationTags(tagArray, edgeResourceModel, transaction)
+  const newTags = await _createOrchestrationTags(tagArray, edgeResourceModel, transaction)
+  for (const agent of linkedAgents) {
+    await agent.removeTags(oldTags)
+    await agent.addTags(newTags)
+  }
 }
 
 async function createEdgeResource (edgeResourceData, user, transaction) {
