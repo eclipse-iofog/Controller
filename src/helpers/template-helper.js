@@ -30,8 +30,6 @@ const rvaluesVarSubstition = async (subjects, templateContext) => {
   return subjects
 }
 
-
-
 module.exports = {
   rvaluesVarSubstition
 }
