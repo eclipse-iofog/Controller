@@ -28,6 +28,7 @@ const { renderFile } = require('ejs')
 const xss = require('xss-clean')
 const packageJson = require('../package')
 
+const { rvaluesVarSubstition } = require( './helpers/template-helper')  
 const viewerApp = express()
 
 const app = express()
@@ -75,6 +76,17 @@ app.use((req, res, next) => {
   }
 
   res.append('X-Timestamp', Date.now())
+  next()
+})
+
+// TODO: Template expansion for not for all
+app.use((req, res, next) => {
+  if (['POST', 'PUT'].indexOf(req.method) > -1) {
+    logger.error(req.body)
+    logger.error(req.body.name)
+    rvaluesVarSubstition(req.body, { self: req.body })
+    logger.error(req.body)
+  }
   next()
 })
 
