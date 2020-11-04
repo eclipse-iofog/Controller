@@ -69,6 +69,34 @@ module.exports = [
     }
   },
   {
+    method: 'get',
+    path: '/api/v3/edgeResource/:name',
+    middleware: async (req, res) => {
+      logger.apiReq(req)
+
+      const successCode = constants.HTTP_CODE_SUCCESS
+      const errorCodes = [
+        {
+          code: constants.HTTP_CODE_UNAUTHORIZED,
+          errors: [Errors.AuthenticationError]
+        },
+        {
+          code: constants.HTTP_CODE_NOT_FOUND,
+          errors: [Errors.NotFoundError]
+        }
+      ]
+
+      const getEdgeResourceAllVersionsEndpoint = ResponseDecorator.handleErrors(EdgeResourceController.getEdgeResourceAllVersionsEndpoint, successCode, errorCodes)
+      const responseObject = await getEdgeResourceAllVersionsEndpoint(req)
+
+      res
+        .status(responseObject.code)
+        .send(responseObject.body)
+
+      logger.apiRes({ req: req, res: responseObject })
+    }
+  },
+  {
     method: 'put',
     path: '/api/v3/edgeResource/:name/:version',
     middleware: async (req, res) => {

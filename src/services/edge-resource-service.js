@@ -28,14 +28,28 @@ async function listEdgeResources (user, transaction) {
 }
 
 async function getEdgeResource ({ name, version }, user, transaction) {
-  const resource = await EdgeResourceManager.findOneWithOrchestrationTags({ name, version, userId: user.id }, transaction)
-  if (!resource) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.NOT_FOUND_RESOURCE_NAME_VERSION, name, version))
+  if (version) {
+    const resource = await EdgeResourceManager.findOneWithOrchestrationTags({ name, version, userId: user.id }, transaction)
+    if (!resource) {
+      throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.NOT_FOUND_RESOURCE_NAME_VERSION, name, version))
+    }
+    const intrface = await getInterface(resource)
+    // Transform Sequelize objects into plain JSON objects
+    const result = { ...resource.toJSON(), interface: intrface.toJSON() }
+    return buildGetObject(result)
+  } else {
+    const resources = await EdgeResourceManager.findAllWithOrchestrationTags({ name, userId: user.id }, transaction)
+    if (!resources.length) {
+      return []
+    }
+    let result = []
+    for (const resource of resources) {
+      const intrface = await getInterface(resource)
+      // Transform Sequelize objects into plain JSON objects
+      result.push(buildGetObject({ ...resource.toJSON(), interface: intrface.toJSON() }))
+    }
+    return result
   }
-  const intrface = await getInterface(resource)
-  // Transform Sequelize objects into plain JSON objects
-  const result = { ...resource.toJSON(), interface: intrface.toJSON() }
-  return buildGetObject(result)
 }
 
 async function getInterface (resource, transaction) {

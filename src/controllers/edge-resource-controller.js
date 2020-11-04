@@ -25,13 +25,24 @@ const updateEdgeResourceEndpoint = async function (req, user) {
   return EdgeResourceService.updateEdgeResourceEndpoint(edgeResourceData, { name, version }, user)
 }
 
-const listEdgeResourcesEndpoint = async function (user) {
+const listEdgeResourcesEndpoint = async function (req, user) {
   return { edgeResources: await EdgeResourceService.listEdgeResources(user) }
 }
 
 const getEdgeResourceEndpoint = async function (req, user) {
   const { version, name } = req.params
-  return EdgeResourceService.getEdgeResource({ name, version }, user)
+  const result = await EdgeResourceService.getEdgeResource({ name, version }, user)
+  if (version) {
+    return result
+  } else {
+    return { edgeResources: result }
+  }
+}
+
+const getEdgeResourceAllVersionsEndpoint = async function (req, user) {
+  const { name } = req.params
+  const result = await EdgeResourceService.getEdgeResource({ name }, user)
+  return { edgeResources: result }
 }
 
 const deleteEdgeResourceEndpoint = async function (req, user) {
@@ -58,5 +69,6 @@ module.exports = {
   getEdgeResourceEndpoint: AuthDecorator.checkAuthToken(getEdgeResourceEndpoint),
   deleteEdgeResourceEndpoint: AuthDecorator.checkAuthToken(deleteEdgeResourceEndpoint),
   linkEdgeResourceEndpoint: AuthDecorator.checkAuthToken(linkEdgeResourceEndpoint),
-  unlinkEdgeResourceEndpoint: AuthDecorator.checkAuthToken(unlinkEdgeResourceEndpoint)
+  unlinkEdgeResourceEndpoint: AuthDecorator.checkAuthToken(unlinkEdgeResourceEndpoint),
+  getEdgeResourceAllVersionsEndpoint: AuthDecorator.checkAuthToken(getEdgeResourceAllVersionsEndpoint)
 }
