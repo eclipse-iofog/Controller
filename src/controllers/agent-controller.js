@@ -54,6 +54,10 @@ const getAgentMicroservicesEndPoint = async function (req, fog) {
   return AgentService.getAgentMicroservices(fog)
 }
 
+const getAgentLinkedEdgeResourcesEndpoint = async function (req, fog) {
+  return { edgeResources: await AgentService.getAgentLinkedEdgeResources(fog) }
+}
+
 const getAgentMicroserviceEndPoint = async function (req, fog) {
   const microserviceUuid = req.params.microserviceUuid
 
@@ -131,5 +135,6 @@ module.exports = {
   getImageSnapshotEndPoint: AuthDecorator.checkFogToken(getImageSnapshotEndPoint),
   putImageSnapshotEndPoint: AuthDecorator.checkFogToken(putImageSnapshotEndPoint),
   postTrackingEndPoint: AuthDecorator.checkFogToken(postTrackingEndPoint),
-  resetAgentConfigChangesEndPoint: AuthDecorator.checkFogToken(resetAgentConfigChangesEndPoint)
+  resetAgentConfigChangesEndPoint: AuthDecorator.checkFogToken(resetAgentConfigChangesEndPoint),
+  getAgentLinkedEdgeResourcesEndpoint: AuthDecorator.checkFogToken(getAgentLinkedEdgeResourcesEndpoint)
 }

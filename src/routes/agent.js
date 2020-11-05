@@ -222,6 +222,31 @@ module.exports = [
   },
   {
     method: 'get',
+    path: '/api/v3/agent/edgeResources',
+    middleware: async (req, res) => {
+      logger.apiReq(req)
+
+      const successCode = constants.HTTP_CODE_SUCCESS
+      const errorCodes = [
+        {
+          code: constants.HTTP_CODE_UNAUTHORIZED,
+          errors: [Errors.AuthenticationError]
+        }
+      ]
+
+      const getAgentLinkedEdgeResourcesEndpoint = ResponseDecorator.handleErrors(AgentController.getAgentLinkedEdgeResourcesEndpoint,
+        successCode, errorCodes)
+      const responseObject = await getAgentLinkedEdgeResourcesEndpoint(req)
+
+      res
+        .status(responseObject.code)
+        .send(responseObject.body)
+
+      logger.apiRes({ req: req, res: responseObject })
+    }
+  },
+  {
+    method: 'get',
     path: '/api/v3/agent/microservices',
     middleware: async (req, res) => {
       logger.apiReq(req)

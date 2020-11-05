@@ -86,6 +86,11 @@ module.exports = (sequelize, DataTypes) => {
       field: 'prune',
       defaultValue: false
     },
+    linkedEdgeResources: {
+      type: DataTypes.BOOLEAN,
+      field: 'linked_edge_resources',
+      defaultValue: false
+    },
     lastUpdated: {
       type: DataTypes.STRING,
       field: 'last_updated',
