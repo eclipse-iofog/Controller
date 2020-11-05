@@ -55,6 +55,51 @@
 					"response": []
 				},
 				{
+					"name": "Activate user",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "413f59ba-1755-4fcd-b00e-2dd1dfb5eb25",
+								"exec": [
+									"tests[\"Status code is 404\"] = responseCode.code === 404;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Error message is valid\"] = data.name === \"NotFoundError\" && data.message === \"Activation code not found\";"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"activationCode\": \"string\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/user/activate",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"user",
+								"activate"
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Login",
 					"event": [
 						{
@@ -104,18 +149,63 @@
 					"response": []
 				},
 				{
-					"name": "Activate user",
+					"name": "Logout",
 					"event": [
 						{
 							"listen": "test",
 							"script": {
-								"id": "413f59ba-1755-4fcd-b00e-2dd1dfb5eb25",
+								"id": "5a3ce4de-a0c3-47db-bd0c-419d8a293d27",
 								"exec": [
-									"tests[\"Status code is 404\"] = responseCode.code === 404;",
+									"tests[\"Status code is 204\"] = responseCode.code === 204;"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{user-token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/user/logout",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"user",
+								"logout"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login 2",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "448015aa-17d4-4d08-aba8-08960efd5b5b",
+								"exec": [
+									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									"",
 									"var data = JSON.parse(responseBody);",
 									"",
-									"tests[\"Error message is valid\"] = data.name === \"NotFoundError\" && data.message === \"Activation code not found\";"
+									"tests[\"Response validation passed\"] = data.accessToken;",
+									"",
+									"",
+									"postman.setGlobalVariable(\"user-token\", data.accessToken);",
+									""
 								],
 								"type": "text/javascript"
 							}
@@ -131,10 +221,10 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"activationCode\": \"string\"\n}"
+							"raw": "{\n  \"email\": \"user@domain.com\",\n  \"password\": \"#Bugs4Fun\"\n}"
 						},
 						"url": {
-							"raw": "{{host}}/api/v3/user/activate",
+							"raw": "{{host}}/api/v3/user/login",
 							"host": [
 								"{{host}}"
 							],
@@ -142,7 +232,7 @@
 								"api",
 								"v3",
 								"user",
-								"activate"
+								"login"
 							]
 						}
 					},
@@ -223,6 +313,47 @@
 								"v3",
 								"user",
 								"profile"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Reset password",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "a54d8ca1-0194-4d96-8ef9-07a76a2df063",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"user@domain.com\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/user/password",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"user",
+								"password"
 							]
 						}
 					},
@@ -317,137 +448,6 @@
 								"v3",
 								"user",
 								"password"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Reset password",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "a54d8ca1-0194-4d96-8ef9-07a76a2df063",
-								"exec": [
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "DELETE",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"email\": \"user@domain.com\"\n}"
-						},
-						"url": {
-							"raw": "{{host}}/api/v3/user/password",
-							"host": [
-								"{{host}}"
-							],
-							"path": [
-								"api",
-								"v3",
-								"user",
-								"password"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Logout",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "5a3ce4de-a0c3-47db-bd0c-419d8a293d27",
-								"exec": [
-									"tests[\"Status code is 204\"] = responseCode.code === 204;"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "{{user-token}}"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
-						"url": {
-							"raw": "{{host}}/api/v3/user/logout",
-							"host": [
-								"{{host}}"
-							],
-							"path": [
-								"api",
-								"v3",
-								"user",
-								"logout"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Login 2",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "448015aa-17d4-4d08-aba8-08960efd5b5b",
-								"exec": [
-									"tests[\"Status code is 200\"] = responseCode.code === 200;",
-									"",
-									"var data = JSON.parse(responseBody);",
-									"",
-									"tests[\"Response validation passed\"] = data.accessToken;",
-									"",
-									"",
-									"postman.setGlobalVariable(\"user-token\", data.accessToken);",
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"email\": \"user@domain.com\",\n  \"password\": \"#Bugs4Fun\"\n}"
-						},
-						"url": {
-							"raw": "{{host}}/api/v3/user/login",
-							"host": [
-								"{{host}}"
-							],
-							"path": [
-								"api",
-								"v3",
-								"user",
-								"login"
 							]
 						}
 					},
@@ -1008,68 +1008,18 @@
 					"response": []
 				},
 				{
-					"name": "Update agent config",
+					"name": "Get image snapshot",
 					"event": [
 						{
 							"listen": "test",
 							"script": {
-								"id": "456f81ec-8be0-4da7-8067-aaae66b82fc7",
+								"id": "39ce5bed-0175-4c99-9413-b2752a9454b1",
 								"exec": [
-									"tests[\"Status code is 204\"] = responseCode.code === 204;",
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "PATCH",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							},
-							{
-								"key": "Authorization",
-								"type": "text",
-								"value": "{{agent-token}}"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n  \"networkInterface\": \"wlan0\",\r\n  \"dockerUrl\": \"http://google.com\",\r\n  \"diskLimit\": 15,\r\n  \"diskDirectory\": \"testDirectoryPath\",\r\n  \"memoryLimit\": 150,\r\n  \"cpuLimit\": 17,\r\n  \"logLimit\": 16,\r\n  \"logDirectory\": \"testLogPath\",\r\n  \"logFileCount\": 7,\r\n  \"statusFrequency\": 35,\r\n  \"changeFrequency\": 36,\r\n  \"deviceScanFrequency\": 37,\r\n  \"watchdogEnabled\": true,\r\n  \"latitude\": 22,\r\n  \"longitude\": 66,\r\n  \"gpsMode\": \"manual\",\r\n \"dockerPruningFrequency\": 35,\r\n  \"availableDiskThreshold\": 95,\r\n  \"logLevel\": \"INFO\"\r\n}"
-						},
-						"url": {
-							"raw": "{{host}}/api/v3/agent/config",
-							"host": [
-								"{{host}}"
-							],
-							"path": [
-								"api",
-								"v3",
-								"agent",
-								"config"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get agent config changes",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "127a6a4b-f07b-4259-a94b-72950dd8c03d",
-								"exec": [
-									"tests[\"Status code is 200\"] = responseCode.code === 200;",
+									"tests[\"Status code is 404\"] = responseCode.code === 404;",
 									"",
 									"var data = JSON.parse(responseBody);",
 									"",
-									"tests[\"Response validation passed\"] = data.hasOwnProperty('config') && data.hasOwnProperty('version') && data.hasOwnProperty('reboot')",
-									"&& data.hasOwnProperty('deleteNode') && data.hasOwnProperty('microserviceList') && data.hasOwnProperty('microserviceConfig')",
-									"&& data.hasOwnProperty('routing') && data.hasOwnProperty('registries') && data.hasOwnProperty('tunnel') && data.hasOwnProperty('diagnostics')",
-									"&& data.hasOwnProperty('isImageSnapshot') && data.hasOwnProperty('prune');"
+									"tests[\"Response error message is valid\"] = data.name === \"NotFoundError\" && data.message === \"Image snapshot not found\""
 								],
 								"type": "text/javascript"
 							}
@@ -1089,7 +1039,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{host}}/api/v3/agent/config/changes",
+							"raw": "{{host}}/api/v3/agent/image-snapshot",
 							"host": [
 								"{{host}}"
 							],
@@ -1097,101 +1047,7 @@
 								"api",
 								"v3",
 								"agent",
-								"config",
-								"changes"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Update agent status",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "1d9e4bab-3ada-4562-bb4f-6daff9cd7846",
-								"exec": [
-									"tests[\"Status code is 204\"] = responseCode.code === 204;",
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							},
-							{
-								"key": "Authorization",
-								"type": "text",
-								"value": "{{agent-token}}"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n  \"daemonStatus\": \"RUNNING\",\r\n  \"daemonOperatingDuration\": 15,\r\n  \"daemonLastStart\": 25,\r\n  \"memoryUsage\": 16,\r\n  \"diskUsage\": 14,\r\n  \"cpuUsage\": 17,\r\n  \"memoryViolation\": true,\r\n  \"diskViolation\": true,\r\n  \"cpuViolation\": true,\r\n  \"microserviceStatus\": \"[]\",\r\n  \"repositoryCount\": 5,\r\n  \"repositoryStatus\": \"RUNNING\",\r\n  \"systemTime\": 155,\r\n  \"lastStatusTime\": 166,\r\n  \"ipAddress\": \"192.168.0.1\",\r\n  \"processedMessages\": 255,\r\n  \"microserviceMessageCounts\": \"counts\",\r\n  \"messageSpeed\": 52,\r\n  \"lastCommandTime\": 57,\r\n  \"tunnelStatus\": \"on\",\r\n  \"version\": \"1\",\r\n  \"isReadyToUpgrade\": true,\r\n  \"isReadyToRollback\": true\r\n}"
-						},
-						"url": {
-							"raw": "{{host}}/api/v3/agent/status",
-							"host": [
-								"{{host}}"
-							],
-							"path": [
-								"api",
-								"v3",
-								"agent",
-								"status"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get agent microservices",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "b14d556a-d218-450c-a141-7227e9ee4292",
-								"exec": [
-									"tests[\"Status code is 200\"] = responseCode.code === 200;",
-									"",
-									"var data = JSON.parse(responseBody);",
-									"",
-									"tests[\"Response validation passed\"] = data.microservices;"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							},
-							{
-								"key": "Authorization",
-								"type": "text",
-								"value": "{{agent-token}}"
-							}
-						],
-						"url": {
-							"raw": "{{host}}/api/v3/agent/microservices",
-							"host": [
-								"{{host}}"
-							],
-							"path": [
-								"api",
-								"v3",
-								"agent",
-								"microservices"
+								"image-snapshot"
 							]
 						}
 					},
@@ -1245,98 +1101,6 @@
 					"response": []
 				},
 				{
-					"name": "Get agent registries",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "a92ec3cc-621a-4c9d-b788-304e98244cbf",
-								"exec": [
-									"tests[\"Status code is 200\"] = responseCode.code === 200;",
-									"",
-									"var data = JSON.parse(responseBody);",
-									"",
-									"tests[\"Response validation passed\"] = data.registries;"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							},
-							{
-								"key": "Authorization",
-								"type": "text",
-								"value": "{{agent-token}}"
-							}
-						],
-						"url": {
-							"raw": "{{host}}/api/v3/agent/registries",
-							"host": [
-								"{{host}}"
-							],
-							"path": [
-								"api",
-								"v3",
-								"agent",
-								"registries"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get agent tunnel",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "9d14dbad-44ae-4122-a3bb-ede35e1e7064",
-								"exec": [
-									"tests[\"Status code is 404\"] = responseCode.code === 404;",
-									"",
-									"var data = JSON.parse(responseBody);",
-									"",
-									"tests[\"Response error message is valid\"] = data.name === \"NotFoundError\" && data.message === \"Tunnel not found\""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							},
-							{
-								"key": "Authorization",
-								"type": "text",
-								"value": "{{agent-token}}"
-							}
-						],
-						"url": {
-							"raw": "{{host}}/api/v3/agent/tunnel",
-							"host": [
-								"{{host}}"
-							],
-							"path": [
-								"api",
-								"v3",
-								"agent",
-								"tunnel"
-							]
-						}
-					},
-					"response": []
-				},
-				{
 					"name": "Get agent strace",
 					"event": [
 						{
@@ -1374,102 +1138,6 @@
 								"v3",
 								"agent",
 								"strace"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Put agent strace",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "5ee08d02-443d-4b61-8e39-abbcd2c30dc1",
-								"exec": [
-									"tests[\"Status code is 404\"] = responseCode.code === 404;",
-									"",
-									"var data = JSON.parse(responseBody);",
-									"",
-									"tests[\"Response error message is valid\"] = data.name === \"NotFoundError\""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							},
-							{
-								"key": "Authorization",
-								"type": "text",
-								"value": "{{agent-token}}"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n  \"straceData\": [\r\n    {\r\n      \"microserviceUuid\": \"abcdef\",\r\n      \"buffer\": \"test\"\r\n    }\r\n  ]\r\n}"
-						},
-						"url": {
-							"raw": "{{host}}/api/v3/agent/strace",
-							"host": [
-								"{{host}}"
-							],
-							"path": [
-								"api",
-								"v3",
-								"agent",
-								"strace"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get change version command",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "1c2ba91e-d7e8-4060-81db-b5040d8ae8b7",
-								"exec": [
-									"tests[\"Status code is 404\"] = responseCode.code === 404;",
-									"",
-									"var data = JSON.parse(responseBody);",
-									"",
-									"tests[\"Response error message is valid\"] = data.name === \"NotFoundError\" && data.message === \"Version command not found\""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							},
-							{
-								"key": "Authorization",
-								"type": "text",
-								"value": "{{agent-token}}"
-							}
-						],
-						"url": {
-							"raw": "{{host}}/api/v3/agent/version",
-							"host": [
-								"{{host}}"
-							],
-							"path": [
-								"api",
-								"v3",
-								"agent",
-								"version"
 							]
 						}
 					},
@@ -1572,25 +1240,73 @@
 					"response": []
 				},
 				{
-					"name": "Get image snapshot",
+					"name": "Tracking",
 					"event": [
 						{
 							"listen": "test",
 							"script": {
-								"id": "39ce5bed-0175-4c99-9413-b2752a9454b1",
+								"id": "7744d489-333d-4ae4-b284-15ca5f0c3236",
 								"exec": [
-									"tests[\"Status code is 404\"] = responseCode.code === 404;",
-									"",
-									"var data = JSON.parse(responseBody);",
-									"",
-									"tests[\"Response error message is valid\"] = data.name === \"NotFoundError\" && data.message === \"Image snapshot not found\""
+									"tests[\"Status code is 204\"] = responseCode.code === 204;"
 								],
 								"type": "text/javascript"
 							}
 						}
 					],
 					"request": {
-						"method": "GET",
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{agent-token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"events\": [\n        {\n            \"uuid\": \"test_tracking\",\n            \"sourceType\": \"agent\",\n            \"timestamp\": 1551694999,\n            \"type\": \"test\",\n            \"data\": {\n                \"event\":\"test\"\n            }\n        }\n    ]\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/agent/tracking",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"agent",
+								"tracking"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Put agent strace",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "5ee08d02-443d-4b61-8e39-abbcd2c30dc1",
+								"exec": [
+									"tests[\"Status code is 404\"] = responseCode.code === 404;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response error message is valid\"] = data.name === \"NotFoundError\""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
 						"header": [
 							{
 								"key": "Content-Type",
@@ -1602,8 +1318,12 @@
 								"value": "{{agent-token}}"
 							}
 						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"straceData\": [\r\n    {\r\n      \"microserviceUuid\": \"abcdef\",\r\n      \"buffer\": \"test\"\r\n    }\r\n  ]\r\n}"
+						},
 						"url": {
-							"raw": "{{host}}/api/v3/agent/image-snapshot",
+							"raw": "{{host}}/api/v3/agent/strace",
 							"host": [
 								"{{host}}"
 							],
@@ -1611,7 +1331,54 @@
 								"api",
 								"v3",
 								"agent",
-								"image-snapshot"
+								"strace"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update agent status",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "1d9e4bab-3ada-4562-bb4f-6daff9cd7846",
+								"exec": [
+									"tests[\"Status code is 204\"] = responseCode.code === 204;",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"type": "text",
+								"value": "{{agent-token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"daemonStatus\": \"RUNNING\",\r\n  \"daemonOperatingDuration\": 15,\r\n  \"daemonLastStart\": 25,\r\n  \"memoryUsage\": 16,\r\n  \"diskUsage\": 14,\r\n  \"cpuUsage\": 17,\r\n  \"memoryViolation\": true,\r\n  \"diskViolation\": true,\r\n  \"cpuViolation\": true,\r\n  \"microserviceStatus\": \"[]\",\r\n  \"repositoryCount\": 5,\r\n  \"repositoryStatus\": \"RUNNING\",\r\n  \"systemTime\": 155,\r\n  \"lastStatusTime\": 166,\r\n  \"ipAddress\": \"192.168.0.1\",\r\n  \"processedMessages\": 255,\r\n  \"microserviceMessageCounts\": \"counts\",\r\n  \"messageSpeed\": 52,\r\n  \"lastCommandTime\": 57,\r\n  \"tunnelStatus\": \"on\",\r\n  \"version\": \"1\",\r\n  \"isReadyToUpgrade\": true,\r\n  \"isReadyToRollback\": true\r\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/agent/status",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"agent",
+								"status"
 							]
 						}
 					},
@@ -1668,40 +1435,39 @@
 					"response": []
 				},
 				{
-					"name": "Tracking",
+					"name": "Update agent config",
 					"event": [
 						{
 							"listen": "test",
 							"script": {
-								"id": "7744d489-333d-4ae4-b284-15ca5f0c3236",
+								"id": "456f81ec-8be0-4da7-8067-aaae66b82fc7",
 								"exec": [
-									"tests[\"Status code is 204\"] = responseCode.code === 204;"
+									"tests[\"Status code is 204\"] = responseCode.code === 204;",
+									""
 								],
 								"type": "text/javascript"
 							}
 						}
 					],
 					"request": {
-						"method": "POST",
+						"method": "PATCH",
 						"header": [
 							{
 								"key": "Content-Type",
-								"name": "Content-Type",
-								"value": "application/json",
-								"type": "text"
+								"value": "application/json"
 							},
 							{
 								"key": "Authorization",
-								"value": "{{agent-token}}",
-								"type": "text"
+								"type": "text",
+								"value": "{{agent-token}}"
 							}
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"events\": [\n        {\n            \"uuid\": \"test_tracking\",\n            \"sourceType\": \"agent\",\n            \"timestamp\": 1551694999,\n            \"type\": \"test\",\n            \"data\": {\n                \"event\":\"test\"\n            }\n        }\n    ]\n}"
+							"raw": "{\r\n  \"networkInterface\": \"wlan0\",\r\n  \"dockerUrl\": \"http://google.com\",\r\n  \"diskLimit\": 15,\r\n  \"diskDirectory\": \"testDirectoryPath\",\r\n  \"memoryLimit\": 150,\r\n  \"cpuLimit\": 17,\r\n  \"logLimit\": 16,\r\n  \"logDirectory\": \"testLogPath\",\r\n  \"logFileCount\": 7,\r\n  \"statusFrequency\": 35,\r\n  \"changeFrequency\": 36,\r\n  \"deviceScanFrequency\": 37,\r\n  \"watchdogEnabled\": true,\r\n  \"latitude\": 22,\r\n  \"longitude\": 66,\r\n  \"gpsMode\": \"manual\",\r\n \"dockerPruningFrequency\": 35,\r\n  \"availableDiskThreshold\": 95,\r\n  \"logLevel\": \"INFO\"\r\n}"
 						},
 						"url": {
-							"raw": "{{host}}/api/v3/agent/tracking",
+							"raw": "{{host}}/api/v3/agent/config",
 							"host": [
 								"{{host}}"
 							],
@@ -1709,7 +1475,241 @@
 								"api",
 								"v3",
 								"agent",
-								"tracking"
+								"config"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get agent config changes",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "127a6a4b-f07b-4259-a94b-72950dd8c03d",
+								"exec": [
+									"tests[\"Status code is 200\"] = responseCode.code === 200;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response validation passed\"] = data.hasOwnProperty('config') && data.hasOwnProperty('version') && data.hasOwnProperty('reboot')",
+									"&& data.hasOwnProperty('deleteNode') && data.hasOwnProperty('microserviceList') && data.hasOwnProperty('microserviceConfig')",
+									"&& data.hasOwnProperty('routing') && data.hasOwnProperty('registries') && data.hasOwnProperty('tunnel') && data.hasOwnProperty('diagnostics')",
+									"&& data.hasOwnProperty('isImageSnapshot') && data.hasOwnProperty('prune');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"type": "text",
+								"value": "{{agent-token}}"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/api/v3/agent/config/changes",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"agent",
+								"config",
+								"changes"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get agent tunnel",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "9d14dbad-44ae-4122-a3bb-ede35e1e7064",
+								"exec": [
+									"tests[\"Status code is 404\"] = responseCode.code === 404;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response error message is valid\"] = data.name === \"NotFoundError\" && data.message === \"Tunnel not found\""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"type": "text",
+								"value": "{{agent-token}}"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/api/v3/agent/tunnel",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"agent",
+								"tunnel"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get agent registries",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "a92ec3cc-621a-4c9d-b788-304e98244cbf",
+								"exec": [
+									"tests[\"Status code is 200\"] = responseCode.code === 200;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response validation passed\"] = data.registries;"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"type": "text",
+								"value": "{{agent-token}}"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/api/v3/agent/registries",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"agent",
+								"registries"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get change version command",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "1c2ba91e-d7e8-4060-81db-b5040d8ae8b7",
+								"exec": [
+									"tests[\"Status code is 404\"] = responseCode.code === 404;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response error message is valid\"] = data.name === \"NotFoundError\" && data.message === \"Version command not found\""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"type": "text",
+								"value": "{{agent-token}}"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/api/v3/agent/version",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"agent",
+								"version"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get agent microservices",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "b14d556a-d218-450c-a141-7227e9ee4292",
+								"exec": [
+									"tests[\"Status code is 200\"] = responseCode.code === 200;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response validation passed\"] = data.microservices;"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"type": "text",
+								"value": "{{agent-token}}"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/api/v3/agent/microservices",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"agent",
+								"microservices"
 							]
 						}
 					},
@@ -5436,7 +5436,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n \"images\": [{\"containerImage\": \"hello-world-updated\"\n,\"fogTypeId\": 1}, {\"containerImage\": \"hello-world-updated\"\n,\"fogTypeId\": 2}]\n, \"registryId\": 2,\n \"config\": \"string\",\n  \"rebuild\": true,\n  \"iofogUuid\": \"{{node-id}}\",\n  \"rootHostAccess\": true,\n  \"logSize\": 0,\n  \"volumeMappings\": [\n    {\n      \"hostDestination\": \"/var/dest\",\n      \"containerDestination\": \"/var/dest\",\n      \"accessMode\": \"rw\"\n    }\n  ]\n}"
+							"raw": "{\n    \"images\": [\n        {\n            \"containerImage\": \"hello-world-updated\",\n            \"fogTypeId\": 1\n        },\n        {\n            \"containerImage\": \"hello-world-updated\",\n            \"fogTypeId\": 2\n        }\n    ],\n    \"registryId\": 2,\n    \"config\": \"string\",\n    \"rebuild\": true,\n    \"iofogUuid\": \"{{node-id}}\",\n    \"rootHostAccess\": true,\n    \"logSize\": 0,\n    \"volumeMappings\": [\n        {\n            \"hostDestination\": \"/var/dest\",\n            \"containerDestination\": \"/var/dest\",\n            \"accessMode\": \"rw\"\n        }\n    ]\n}"
 						},
 						"url": {
 							"raw": "{{host}}/api/v3/microservices/{{ms-no-catalog-id}}",
@@ -5620,7 +5620,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n \"images\": [{\"containerImage\": \"hello-world-updated\"\n,\"fogTypeId\": 1}, {\"containerImage\": \"hello-world-updated\"\n,\"fogTypeId\": 2}]\n, \"registryId\": 2,\n \"catalogItemId\": null,\n \"config\": \"string\",\n  \"rebuild\": true,\n  \"iofogUuid\": \"{{node-id}}\",\n  \"rootHostAccess\": true,\n  \"logSize\": 0,\n  \"volumeMappings\": [\n    {\n      \"hostDestination\": \"/var/dest\",\n      \"containerDestination\": \"/var/dest\",\n      \"accessMode\": \"rw\"\n    }\n  ]\n}"
+							"raw": "{\n    \"images\": [\n        {\n            \"containerImage\": \"hello-world-updated\",\n            \"fogTypeId\": 1\n        },\n        {\n            \"containerImage\": \"hello-world-updated\",\n            \"fogTypeId\": 2\n        }\n    ],\n    \"registryId\": 2,\n    \"catalogItemId\": null,\n    \"config\": \"string\",\n    \"rebuild\": true,\n    \"iofogUuid\": \"{{node-id}}\",\n    \"rootHostAccess\": true,\n    \"logSize\": 0,\n    \"volumeMappings\": [\n        {\n            \"hostDestination\": \"/var/dest\",\n            \"containerDestination\": \"/var/dest\",\n            \"accessMode\": \"rw\"\n        }\n    ]\n}"
 						},
 						"url": {
 							"raw": "{{host}}/api/v3/microservices/{{ms-no-catalog-id}}",
@@ -8133,6 +8133,52 @@
 								"api",
 								"v3",
 								"microservices",
+								"{{ms-id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Microservice without catalog item",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "1308452f-56c3-498e-9e92-5dc1adbb4a59",
+								"exec": [
+									"tests[\"Status code is 204\"] = responseCode.code === 204;"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{user-token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n \"images\": [{\"containerImage\": \"hello-world-updated\"\n,\"fogTypeId\": 1}, {\"containerImage\": \"hello-world-updated\"\n,\"fogTypeId\": 2}]\n, \"registryId\": 2,\n \"config\": \"string\",\n  \"rebuild\": true,\n  \"iofogUuid\": \"{{node-id}}\",\n  \"rootHostAccess\": true,\n  \"logSize\": 0,\n  \"volumeMappings\": [\n    {\n      \"hostDestination\": \"/var/dest\",\n      \"containerDestination\": \"/var/dest\",\n      \"accessMode\": \"rw\"\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/microservices/{{ms-no-catalog-id}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"microservices",
 								"{{ms-no-catalog-id}}"
 							]
 						}
@@ -8175,52 +8221,6 @@
 						},
 						"url": {
 							"raw": "{{host}}/api/v3/microservices/{{ms-id}}",
-							"host": [
-								"{{host}}"
-							],
-							"path": [
-								"api",
-								"v3",
-								"microservices",
-								"{{ms-id}}"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Update Microservice without catalog item",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "1308452f-56c3-498e-9e92-5dc1adbb4a59",
-								"exec": [
-									"tests[\"Status code is 204\"] = responseCode.code === 204;"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "PATCH",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							},
-							{
-								"key": "Authorization",
-								"value": "{{user-token}}",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n \"images\": [{\"containerImage\": \"hello-world-updated\"\n,\"fogTypeId\": 1}, {\"containerImage\": \"hello-world-updated\"\n,\"fogTypeId\": 2}]\n, \"registryId\": 2,\n \"config\": \"string\",\n  \"rebuild\": true,\n  \"iofogUuid\": \"{{node-id}}\",\n  \"rootHostAccess\": true,\n  \"logSize\": 0,\n  \"volumeMappings\": [\n    {\n      \"hostDestination\": \"/var/dest\",\n      \"containerDestination\": \"/var/dest\",\n      \"accessMode\": \"rw\"\n    }\n  ]\n}"
-						},
-						"url": {
-							"raw": "{{host}}/api/v3/microservices/{{ms-no-catalog-id}}",
 							"host": [
 								"{{host}}"
 							],
@@ -9016,10 +9016,10 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"type\": 1,\n\t\"key\":\"testtesttest\"\n}"
+							"raw": ""
 						},
 						"url": {
-							"raw": "{{host}}/api/v3/iofog/{{system-node-id}}",
+							"raw": "{{host}}/api/v3/iofog/{{node-id}}",
 							"host": [
 								"{{host}}"
 							],
@@ -9063,10 +9063,10 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": ""
+							"raw": "{\n\t\"type\": 1,\n\t\"key\":\"testtesttest\"\n}"
 						},
 						"url": {
-							"raw": "{{host}}/api/v3/iofog/{{node-id}}",
+							"raw": "{{host}}/api/v3/iofog/{{system-node-id}}",
 							"host": [
 								"{{host}}"
 							],
@@ -9074,7 +9074,7 @@
 								"api",
 								"v3",
 								"iofog",
-								"{{node-id}}"
+								"{{system-node-id}}"
 							]
 						}
 					},
@@ -9648,6 +9648,53 @@
 					"response": []
 				},
 				{
+					"name": "Post Strace Data to FTP Server",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "8c52a33a-4039-4420-9805-fb79abe0e818",
+								"exec": [
+									"tests[\"Status code is 500\"] = responseCode.code === 500;"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"type": "text",
+								"value": "{{user-token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"ftpHost\": \"string\",\n  \"ftpPort\": 0,\n  \"ftpUser\": \"string\",\n  \"ftpPass\": \"string\",\n  \"ftpDestDir\": \"string\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/microservices/{{ms-id}}/strace",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"microservices",
+								"{{ms-id}}",
+								"strace"
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Get Strace Data For Microservice",
 					"event": [
 						{
@@ -9699,53 +9746,6 @@
 							]
 						},
 						"description": "available formats:\n\t- string\n\t- file"
-					},
-					"response": []
-				},
-				{
-					"name": "Post Strace Data to FTP Server",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "8c52a33a-4039-4420-9805-fb79abe0e818",
-								"exec": [
-									"tests[\"Status code is 500\"] = responseCode.code === 500;"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							},
-							{
-								"key": "Authorization",
-								"type": "text",
-								"value": "{{user-token}}"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"ftpHost\": \"string\",\n  \"ftpPort\": 0,\n  \"ftpUser\": \"string\",\n  \"ftpPass\": \"string\",\n  \"ftpDestDir\": \"string\"\n}"
-						},
-						"url": {
-							"raw": "{{host}}/api/v3/microservices/{{ms-id}}/strace",
-							"host": [
-								"{{host}}"
-							],
-							"path": [
-								"api",
-								"v3",
-								"microservices",
-								"{{ms-id}}",
-								"strace"
-							]
-						}
 					},
 					"response": []
 				},
@@ -9896,12 +9896,12 @@
 					"response": []
 				},
 				{
-					"name": "Delete system node",
+					"name": "Delete Node",
 					"event": [
 						{
 							"listen": "test",
 							"script": {
-								"id": "9b90def8-76af-44b6-b052-c59362eb6fee",
+								"id": "ce56fc7f-296f-4e01-88dd-fadeb54ef958",
 								"exec": [
 									"tests[\"Status code is 202\"] = responseCode.code === 202;",
 									""
@@ -9936,19 +9936,19 @@
 								"api",
 								"v3",
 								"iofog",
-								"{{system-node-id}}"
+								"{{node-id}}"
 							]
 						}
 					},
 					"response": []
 				},
 				{
-					"name": "Delete Node",
+					"name": "Delete system node",
 					"event": [
 						{
 							"listen": "test",
 							"script": {
-								"id": "ce56fc7f-296f-4e01-88dd-fadeb54ef958",
+								"id": "9b90def8-76af-44b6-b052-c59362eb6fee",
 								"exec": [
 									"tests[\"Status code is 202\"] = responseCode.code === 202;",
 									""
@@ -11591,6 +11591,103 @@
 					"response": []
 				},
 				{
+					"name": "Provisioning Key",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "6e548c0e-f4f8-4940-aedb-71b0c179f0c4",
+								"exec": [
+									"tests[\"Status code is 201\"] = responseCode.code === 201;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response validation passed\"] = data.key;",
+									"",
+									"postman.setGlobalVariable(\"provisioning-key\", data.key);",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"type": "text",
+								"value": "{{user-token}}"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/api/v3/iofog/{{node-id}}/provisioning-key",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"iofog",
+								"{{node-id}}",
+								"provisioning-key"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Agent provision",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "1592ff13-fd0c-4556-ae51-bf11db317bbf",
+								"exec": [
+									"tests[\"Status code is 200\"] = responseCode.code === 200;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response validation passed\"] = data.token;",
+									"",
+									"postman.setGlobalVariable(\"agent-token\", data.token);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"type\": 1,\n\t\"key\":\"{{provisioning-key}}\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/agent/provision",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"agent",
+								"provision"
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Create Edge Resource",
 					"event": [
 						{
@@ -11629,7 +11726,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"name\": \"com.orange.smart-door\",\n  \"version\": \"0.0.1\",\n  \"description\": \"Orange Smart Door\",\n  \"display\": {\n      \"name\": \"Smart Door\",\n      \"icon\": \"help\",\n      \"color\": \"#ff0000\"\n  },\n  \"interfaceProtocol\": \"https\",\n  \"endpoints\": [\n      {\n          \"name\": \"liveness\",\n          \"url\": \"https://localhost:91121\",\n          \"method\": \"GET\"\n      }\n  ],\n  \"orchestrationTags\": [\n      \"orange\",\n      \"smart-door\"\n  ]\n}"
+							"raw": "{\n    \"name\": \"com.orange.smart-door\",\n    \"version\": \"0.0.1\",\n    \"description\": \"Orange Smart Door\",\n    \"display\": {\n        \"name\": \"Smart Door\",\n        \"icon\": \"help\",\n        \"color\": \"#ff0000\"\n    },\n    \"interfaceProtocol\": \"https\",\n    \"interface\": {\n        \"endpoints\": [\n            {\n                \"name\": \"liveness\",\n                \"url\": \"https://localhost:91121\",\n                \"method\": \"GET\"\n            }\n        ]\n    },\n    \"orchestrationTags\": [\n        \"orange\",\n        \"smart-door\"\n    ]\n}"
 						},
 						"url": {
 							"raw": "{{host}}/api/v3/edgeResource",
@@ -11675,7 +11772,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"name\": \"com.orange.smart-door\",\n  \"version\": \"0.0.2\",\n  \"description\": \"Orange Smart Door\",\n  \"display\": {\n      \"name\": \"Smart Door\",\n      \"icon\": \"help\",\n      \"color\": \"#ff0000\"\n  },\n  \"interfaceProtocol\": \"https\",\n  \"endpoints\": [\n      {\n          \"name\": \"liveness\",\n          \"url\": \"https://localhost:91121\",\n          \"method\": \"GET\"\n      }\n  ]\n}"
+							"raw": "{\n    \"name\": \"com.orange.smart-door\",\n    \"version\": \"0.0.2\",\n    \"description\": \"Orange Smart Door\",\n    \"display\": {\n        \"name\": \"Smart Door\",\n        \"icon\": \"help\",\n        \"color\": \"#ff0000\"\n    },\n    \"interfaceProtocol\": \"https\",\n    \"interface\": {\n        \"endpoints\": [\n            {\n                \"name\": \"liveness\",\n                \"url\": \"https://localhost:91121\",\n                \"method\": \"GET\"\n            }\n        ]\n    }\n}"
 						},
 						"url": {
 							"raw": "{{host}}/api/v3/edgeResource/{{edge-resource-name}}/{{edge-resource-version}}",
@@ -11723,7 +11820,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"name\": \"com.orange.smart-door\",\n  \"version\": \"0.0.1\",\n  \"description\": \"Orange Smart Door\",\n  \"display\": {\n      \"name\": \"Smart Door\",\n      \"icon\": \"help\",\n      \"color\": \"#ff0000\"\n  },\n  \"interfaceProtocol\": \"https\",\n  \"endpoints\": [\n      {\n          \"name\": \"liveness\",\n          \"url\": \"https://localhost:91121\",\n          \"method\": \"GET\"\n      },\n      {\n          \"name\": \"version\",\n          \"url\": \"https://localhost:91121/version\",\n          \"method\": \"GET\"\n      }\n  ],\n  \"orchestrationTags\": [\n      \"orange\",\n      \"smart-door\",\n      \"smart-door-v0.0.1\"\n  ]\n}"
+							"raw": "{\n    \"name\": \"com.orange.smart-door\",\n    \"version\": \"0.0.1\",\n    \"description\": \"Orange Smart Door\",\n    \"display\": {\n        \"name\": \"Smart Door\",\n        \"icon\": \"help\",\n        \"color\": \"#ff0000\"\n    },\n    \"interfaceProtocol\": \"https\",\n    \"interface\": {\n        \"endpoints\": [\n            {\n                \"name\": \"liveness\",\n                \"url\": \"https://localhost:91121\",\n                \"method\": \"GET\"\n            },\n            {\n                \"name\": \"version\",\n                \"url\": \"https://localhost:91121/version\",\n                \"method\": \"GET\"\n            }\n        ]\n    },\n    \"orchestrationTags\": [\n        \"orange\",\n        \"smart-door\",\n        \"smart-door-v0.0.1\"\n    ]\n}"
 						},
 						"url": {
 							"raw": "{{host}}/api/v3/edgeResource/{{edge-resource-name}}/{{edge-resource-version}}",
@@ -11831,6 +11928,106 @@
 								"{{edge-resource-name}}",
 								"{{edge-resource-version}}",
 								"link"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get agent config changes",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "6d198e68-b4eb-43ec-b2dd-a9ea37a55133",
+								"exec": [
+									"tests[\"Status code is 200\"] = responseCode.code === 200;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response validation passed\"] = data.hasOwnProperty('linkedEdgeResources') && data.linkedEdgeResources === true"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"type": "text",
+								"value": "{{agent-token}}"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/api/v3/agent/config/changes",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"agent",
+								"config",
+								"changes"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get agent linked Edge resources",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "d499253b-1577-4b08-8813-4515e48b5345",
+								"exec": [
+									"tests[\"Status code is 200\"] = responseCode.code === 200;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Contains edgeResources\"] = data.edgeResources && data.edgeResources.length === 1",
+									"",
+									"if (tests[\"Contains edgeResources\"]) {",
+									"    var edgeResource = data.edgeResources[0] ",
+									"",
+									"    tests[\"Has display information\"] = edgeResource.display && edgeResource.display.name",
+									"    tests[\"Has interface\"] = edgeResource.interface && edgeResource.interface.endpoints.length > 0",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"type": "text",
+								"value": "{{agent-token}}"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/api/v3/agent/edgeResources",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"agent",
+								"edgeResources"
 							]
 						}
 					},
@@ -12018,7 +12215,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"name\": \"com.orange.smart-door\",\n  \"version\": \"0.0.2\",\n  \"description\": \"Orange Smart Door\",\n  \"display\": {\n      \"name\": \"Smart Door\",\n      \"icon\": \"help\",\n      \"color\": \"#ff0000\"\n  },\n  \"interfaceProtocol\": \"https\",\n  \"endpoints\": [\n      {\n          \"name\": \"liveness\",\n          \"url\": \"https://localhost:91121\",\n          \"method\": \"GET\"\n      }\n  ]\n}"
+							"raw": "{\n    \"name\": \"com.orange.smart-door\",\n    \"version\": \"0.0.2\",\n    \"description\": \"Orange Smart Door\",\n    \"display\": {\n        \"name\": \"Smart Door\",\n        \"icon\": \"help\",\n        \"color\": \"#ff0000\"\n    },\n    \"interfaceProtocol\": \"https\",\n    \"interface\": {\n        \"endpoints\": [\n            {\n                \"name\": \"liveness\",\n                \"url\": \"https://localhost:91121\",\n                \"method\": \"GET\"\n            }\n        ]\n    }\n}"
 						},
 						"url": {
 							"raw": "{{host}}/api/v3/edgeResource",
@@ -12131,54 +12328,6 @@
 					"response": []
 				},
 				{
-					"name": "Delete Edge Resource",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "09c5645d-1534-439c-988a-0657f234cf68",
-								"exec": [
-									"tests[\"Status code is 202\"] = responseCode.code === 202;",
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "DELETE",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							},
-							{
-								"key": "Authorization",
-								"type": "text",
-								"value": "{{user-token}}"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
-						"url": {
-							"raw": "{{host}}/api/v3/edgeResource/{{edge-resource-name}}/{{edge-resource-version}}",
-							"host": [
-								"{{host}}"
-							],
-							"path": [
-								"api",
-								"v3",
-								"edgeResource",
-								"{{edge-resource-name}}",
-								"{{edge-resource-version}}"
-							]
-						}
-					},
-					"response": []
-				},
-				{
 					"name": "Delete Edge Resource V2",
 					"event": [
 						{
@@ -12221,6 +12370,54 @@
 								"edgeResource",
 								"{{edge-resource-name}}",
 								"{{edge-resource-version-2}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Edge Resource",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "09c5645d-1534-439c-988a-0657f234cf68",
+								"exec": [
+									"tests[\"Status code is 202\"] = responseCode.code === 202;",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"type": "text",
+								"value": "{{user-token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/edgeResource/{{edge-resource-name}}/{{edge-resource-version}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"edgeResource",
+								"{{edge-resource-name}}",
+								"{{edge-resource-version}}"
 							]
 						}
 					},

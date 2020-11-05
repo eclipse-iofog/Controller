@@ -47,7 +47,7 @@ const EdgeResourceService = require('./edge-resource-service')
 const IncomingForm = formidable.IncomingForm
 
 const CHANGE_TRACKING_DEFAULT = {}
-const CHANGE_TRACKING_KEYS = ['config', 'version', 'reboot', 'deleteNode', 'microserviceList', 'microserviceConfig', 'routing', 'registries', 'tunnel', 'diagnostics', 'isImageSnapshot', 'prune', 'routerChanged']
+const CHANGE_TRACKING_KEYS = ['config', 'version', 'reboot', 'deleteNode', 'microserviceList', 'microserviceConfig', 'routing', 'registries', 'tunnel', 'diagnostics', 'isImageSnapshot', 'prune', 'routerChanged', 'linkedEdgeResources']
 for (const key of CHANGE_TRACKING_KEYS) {
   CHANGE_TRACKING_DEFAULT[key] = false
 }
@@ -327,6 +327,8 @@ const getAgentMicroservices = async function (fog, transaction) {
 const getAgentLinkedEdgeResources = async function (fog, transaction) {
   const edgeResources = []
   const resourceAttributes = [
+    'id',
+    'interfaceId',
     'name',
     'version',
     'description',

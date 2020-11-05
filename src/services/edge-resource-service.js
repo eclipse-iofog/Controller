@@ -72,13 +72,13 @@ async function _createHttpBasedInterfaceEndpoints (endpoints, interfaceId, trans
   }
 }
 
-async function _createHttpBasedInterface (endpoints, edgeResourceId, transaction) {
+async function _createHttpBasedInterface ({ endpoints }, edgeResourceId, transaction) {
   const httpBasedInterface = await HTTPBasedResourceInterfaceManager.create({ edgeResourceId }, transaction)
   await _createHttpBasedInterfaceEndpoints(endpoints, httpBasedInterface.id, transaction)
   return httpBasedInterface
 }
 
-async function _updateHttpBasedInterface (id, endpoints, transaction) {
+async function _updateHttpBasedInterface (id, { endpoints }, transaction) {
   const httpBasedInterface = await HTTPBasedResourceInterfaceManager.findOne({ id }, transaction)
   if (httpBasedInterface) {
     await HTTPBasedResourceInterfaceEndpointsManager.delete({ interfaceId: httpBasedInterface.id }, transaction)
@@ -92,7 +92,7 @@ async function _createInterface (resourceData, resourceId, transaction) {
     case 'https':
     case 'ws':
     case 'wss': {
-      return _createHttpBasedInterface(resourceData.endpoints, resourceId, transaction)
+      return _createHttpBasedInterface(resourceData.interface, resourceId, transaction)
     }
     default:
       break
@@ -113,15 +113,17 @@ async function _deleteInterface (resourceData, transaction) {
 }
 
 async function _updateInterface (resource, newData, transaction) {
-  switch (resource.interfaceProtocol) {
-    case 'http':
-    case 'https':
-    case 'ws':
-    case 'wss': {
-      return _updateHttpBasedInterface(resource.interfaceId, newData.endpoints, transaction)
+  if (resource.interfaceProtocol && newData.interface) {
+    switch (resource.interfaceProtocol) {
+      case 'http':
+      case 'https':
+      case 'ws':
+      case 'wss': {
+        return _updateHttpBasedInterface(resource.interfaceId, newData.interface, transaction)
+      }
+      default:
+        break
     }
-    default:
-      break
   }
 }
 
@@ -285,8 +287,8 @@ function buildGetObject (resource) {
       icon: displayIcon,
       color: displayColor
     },
-    interface: resource.interface,
-    orchestrationTags: (orchestrationTags || []).map(t => t.value)
+    orchestrationTags: (orchestrationTags || []).map(t => t.value),
+    interface: resource.interface
   }
 }
 
