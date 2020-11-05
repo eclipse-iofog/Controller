@@ -21,6 +21,7 @@ const HTTPBasedResourceInterfaceEndpointsManager = require('../data/managers/htt
 const FogManager = require('../data/managers/iofog-manager')
 const TransactionDecorator = require('../decorators/transaction-decorator')
 const Validator = require('../schemas')
+const ChangeTrackingService = require('./change-tracking-service')
 
 async function listEdgeResources (user, transaction) {
   const edgeResources = await EdgeResourceManager.findAllWithOrchestrationTags({ userId: user.id }, transaction)
@@ -33,7 +34,7 @@ async function getEdgeResource ({ name, version }, user, transaction) {
     if (!resource) {
       throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.NOT_FOUND_RESOURCE_NAME_VERSION, name, version))
     }
-    const intrface = await getInterface(resource)
+    const intrface = await getInterface(resource, transaction)
     // Transform Sequelize objects into plain JSON objects
     const result = { ...resource.toJSON(), interface: intrface.toJSON() }
     return buildGetObject(result)
@@ -148,6 +149,7 @@ async function _updateOrchestrationTags (tagArray, edgeResourceModel, transactio
   for (const agent of linkedAgents) {
     await agent.removeTags(oldTags)
     await agent.addTags(newTags)
+    await ChangeTrackingService.update(agent.uuid, ChangeTrackingService.events.edgeResources, transaction)
   }
 }
 
@@ -251,6 +253,7 @@ async function linkEdgeResource ({ name, version }, uuid, user, transaction) {
   await agent.addEdgeResource(resource.id, transaction)
   const tags = await resource.getOrchestrationTags()
   await agent.addTags(tags)
+  await ChangeTrackingService.update(agent.uuid, ChangeTrackingService.events.edgeResources, transaction)
 }
 
 async function unlinkEdgeResource ({ name, version }, uuid, user, transaction) {
@@ -266,6 +269,7 @@ async function unlinkEdgeResource ({ name, version }, uuid, user, transaction) {
   await agent.removeEdgeResource(resource.id, transaction)
   const tags = await resource.getOrchestrationTags()
   await agent.removeTags(tags)
+  await ChangeTrackingService.update(agent.uuid, ChangeTrackingService.events.edgeResources, transaction)
 }
 
 function buildGetObject (resource) {

@@ -55,6 +55,9 @@ const events = Object.freeze({
   microserviceRouting: {
     routing: true
   },
+  edgeResources: {
+    linkedEdgeResources: true
+  },
   version: {
     version: true
   },
