@@ -45,11 +45,11 @@ stages:
           npm audit --production
         displayName: Check for vulnerabilities
 
-      - script: |
-          npm run snyk -- --project-name=ControllerCI
-        displayName: 'Snyk monitor'
-        env:
-          SNYK_TOKEN: $(snykToken)
+      # - script: |
+      #    npm run snyk -- --project-name=ControllerCI
+      #  displayName: 'Snyk monitor'
+      #  env:
+      #    SNYK_TOKEN: $(snykToken)
 - stage: Test
   jobs:
   - template: azure-templates/test.yml

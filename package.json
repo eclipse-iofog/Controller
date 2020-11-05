@@ -81,6 +81,7 @@
     "helmet": "3.21.2",
     "is-elevated": "3.0.0",
     "jsonschema": "1.2.5",
+    "liquidjs": "^9.16.1",
     "moment": "2.24.0",
     "morgan": "1.9.1",
     "nconf": "0.10.0",

@@ -1,0 +1,20 @@
+
+---
+apiVersion: iofog.org/v2
+kind: Application
+metadata:
+  name: edai-smartbuilding-rules-engine
+spec:
+  microservices:
+    - name: rulesengine
+      container:
+        rootHostAccess: false 
+        volumes: [] 
+        ports:
+          - internal: 1881
+            external: 1882
+        env:  
+          - key: selfname
+            value: "{{ self.metadata.name }}"
+          - key: selfnameU
+            value: "{{ self.metadata.name | upcase }}"
