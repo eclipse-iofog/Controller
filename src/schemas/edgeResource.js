@@ -54,7 +54,12 @@ const edgeResource = {
     {
       properties: {
         interfaceProtocol: { enum: ['http', 'https', 'ws', 'wss'] },
-        endpoints: { type: 'array', items: { '$ref': '/edgeResourceHTTPEndpoint' } }
+        interface: {
+          type: 'object',
+          properties: {
+            endpoints: { type: 'array', items: { '$ref': '/edgeResourceHTTPEndpoint' } }
+          }
+        }
       }
     }
   ]
