@@ -1,14 +1,14 @@
 /*
- *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
+ * Software Name : eclipse-iofog/Controller
+ * Version: 2.0.x
+ * SPDX-FileCopyrightText: Copyright (c) 2020-2020 Orange
+ * SPDX-License-Identifier: EPL-2.0
  *
+ * This software is distributed under the <license-name>,
+ * the text of which is available at http://www.eclipse.org/legal/epl-2.0
+ * or see the "license.txt" file for more details.
+ *
+ * Author: Franck Roudet
  */
 // ninja2 like template engine
 const { Liquid } = require('liquidjs')
