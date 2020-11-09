@@ -239,6 +239,12 @@ async function deleteEdgeResource ({ name, version }, user, transaction) {
   if (!resource) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.NOT_FOUND_RESOURCE_NAME_VERSION, name, version))
   }
+  const agents = await resource.getAgents()
+  const tags = await resource.getOrchestrationTags()
+  for (const agent of agents) {
+    await agent.removeTags(tags)
+    await ChangeTrackingService.update(agent.uuid, ChangeTrackingService.events.edgeResources, transaction)
+  }
   await EdgeResourceManager.delete({ name, version, userId: user.id }, transaction)
 }
 
