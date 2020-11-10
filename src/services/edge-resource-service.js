@@ -216,8 +216,8 @@ async function updateEdgeResourceEndpoint (edgeResourceData, { name: oldName, ve
   if (newData.name && newData.name !== oldData.name) {
     const newVersion = newData.version ? newData.version : version
     const existingResource = await EdgeResourceManager.findOne({ name, version: newVersion, userId: user.id }, transaction)
-    if (!existingResource) {
-      throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.DUPLICATE_RESOURCE_NAME_VERSION, name, newVersion))
+    if (existingResource) {
+      throw new Errors.DuplicatePropertyError(AppHelper.formatMessage(ErrorMessages.DUPLICATE_RESOURCE_NAME_VERSION, name, newVersion))
     }
   }
 
