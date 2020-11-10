@@ -36,7 +36,7 @@ async function getEdgeResource ({ name, version }, user, transaction) {
     }
     const intrface = await getInterface(resource, transaction)
     // Transform Sequelize objects into plain JSON objects
-    const result = { ...resource.toJSON(), interface: intrface.toJSON() }
+    const result = { ...resource.toJSON(), interface: (intrface || { toJSON: () => {} }).toJSON() }
     return buildGetObject(result)
   } else {
     const resources = await EdgeResourceManager.findAllWithOrchestrationTags({ name, userId: user.id }, transaction)
@@ -67,7 +67,7 @@ async function getInterface (resource, transaction) {
 }
 
 async function _createHttpBasedInterfaceEndpoints (endpoints, interfaceId, transaction) {
-  for (const endpoint of endpoints) {
+  for (const endpoint of (endpoints || [])) {
     await HTTPBasedResourceInterfaceEndpointsManager.create({ ...endpoint, interfaceId }, transaction)
   }
 }
@@ -221,12 +221,12 @@ async function updateEdgeResourceEndpoint (edgeResourceData, { name: oldName, ve
     }
   }
 
-  await EdgeResourceManager.update({ name, version }, newData, transaction)
+  await EdgeResourceManager.update({ name: oldName, version }, newData, transaction)
 
   if (orchestrationTags) {
     await _updateOrchestrationTags(orchestrationTags, oldData, transaction)
   }
-  if (oldData.interfaceProtocol !== newData.interfaceProtocol) {
+  if (newData.interfaceProtocol && (oldData.interfaceProtocol !== newData.interfaceProtocol)) {
     await _deleteInterface(oldData, transaction)
     await _createInterface(edgeResourceData, oldData.id, transaction)
   } else {
