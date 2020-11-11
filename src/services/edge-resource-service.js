@@ -265,7 +265,7 @@ async function linkEdgeResource ({ name, version }, uuid, user, transaction) {
 }
 
 async function unlinkEdgeResource ({ name, version }, uuid, user, transaction) {
-  const resource = await EdgeResourceManager.findOne({ name, userId: user.id }, transaction)
+  const resource = await EdgeResourceManager.findOne({ name, version, userId: user.id }, transaction)
   if (!resource) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.NOT_FOUND_RESOURCE_NAME_VERSION, name, version))
   }
