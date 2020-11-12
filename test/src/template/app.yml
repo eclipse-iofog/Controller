@@ -1,0 +1,60 @@
+
+---
+apiVersion: iofog.org/v2
+kind: Application
+metadata:
+  name: edai-smartbuilding-rules-engine
+spec:
+  microservices:
+    - name: rulesengine
+      agent:
+        name: agent-aismall01
+        config: {} 
+      images:
+        x86: nodered/node-red:latest
+        arm: nodered/node-red:latest
+        registry: remote
+      config: {} 
+      container:
+        rootHostAccess: false 
+        volumes: [] 
+        ports:
+          - internal: 1881
+            external: 1882
+        env:  
+          - key: selfname
+            value: "{{ self.metadata.name }}"
+          - key: sharedToken
+            value: "sekrittoken"
+          - key: http_proxy
+            value: "http://proxy.rd.francetelecom.fr:8080/"
+          - key: https_proxy
+            value: "{{ self.spec.microservices | where: \"name\", \"rulesengine\" | first | map: \"container\" | first | map: \"env\" | first | where: \"key\" , \"http_proxy\" | first | map: \"value\" | first }}"
+    - name: ms2
+      agent:
+        name: agent-aismall01
+        config: {} 
+      images:
+        x86: nodered/img1
+        arm: nodered/img2
+        registry: remote
+      config: {} 
+      container:
+        rootHostAccess: false 
+        volumes: [] 
+        ports:
+          - internal: 1883
+            external: 1884
+        env:  
+          - key: selfname
+            value: "{{ self.metadata.name }}"
+          - key: sharedToken
+            value: "{{ self.spec.microservices | where: \"name\", \"rulesengine\" | first | map: \"container\" | first | map: \"env\" | first | where: \"key\", \"sharedToken\" | first | map: \"value\" | first }}"
+          - key: http_proxy
+            value: "{{ self.spec.microservices | where: \"name\", \"rulesengine\" | first | map: \"container\" | first | map: \"env\" | first | where: \"key\", \"http_proxy\" | first | map: \"value\" | first }}"
+          - key: https_proxy
+            value: "{{ self.spec.microservices | where: \"name\", \"rulesengine\" | first | map: \"container\" | first | map: \"env\" | first | where: \"key\", \"http_proxy\" | first | map: \"value\" | first }}"
+          - key: rulesengineHOST
+            value: "TODO"
+          - key: rulesenginePORT
+            value: "{{ self.spec.microservices | where: \"name\", \"rulesengine\" | first | map: \"container\" | first | map: \"ports\" | first | map: \"external\" | first }}"

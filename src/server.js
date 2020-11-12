@@ -18,7 +18,7 @@ const db = require('./data/models')
 const bodyParser = require('body-parser')
 const cookieParser = require('cookie-parser')
 const express = require('express')
-const ecnViewer = require('@iofog/ecn-viewer')
+const ecnViewer = process.env.ECN_VIEWER_PATH ? require(`${process.env.ECN_VIEWER_PATH}/package/index.js`) : require('@iofog/ecn-viewer')
 const fs = require('fs')
 const helmet = require('helmet')
 const cors = require('cors')
@@ -28,6 +28,7 @@ const { renderFile } = require('ejs')
 const xss = require('xss-clean')
 const packageJson = require('../package')
 
+const { rvaluesVarSubstition } = require('./helpers/template-helper')
 const viewerApp = express()
 
 const app = express()
@@ -75,6 +76,14 @@ app.use((req, res, next) => {
   }
 
   res.append('X-Timestamp', Date.now())
+  next()
+})
+
+// TODO: Template expansion for not for all
+app.use((req, res, next) => {
+  if (['POST', 'PUT'].indexOf(req.method) > -1) {
+    rvaluesVarSubstition(req.body, { self: req.body })
+  }
   next()
 })
 

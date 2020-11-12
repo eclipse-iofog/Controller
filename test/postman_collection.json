@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "56793693-be6f-4563-a52d-d52f58c52647",
+		"_postman_id": "61557393-b32f-4563-b563-b16c0c7bcf32",
 		"name": "Controller Testing",
 		"description": "iofog-controller collection",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -15,7 +15,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "dc69ae7b-ea3e-4a42-b515-9727fbe520a4",
+								"id": "5d1779ba-78ff-4e8b-acc4-14c936d88e6f",
 								"exec": [
 									"tests[\"Status code is 201\"] = responseCode.code === 201;",
 									"",
@@ -60,7 +60,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "8eb64b6a-3715-4672-8452-8f7f7086346c",
+								"id": "462e69a7-ae69-4cb6-80ad-b19ce0d2e75a",
 								"exec": [
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									"",
@@ -109,7 +109,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "5b4a2f9c-c77e-49af-b444-23bc9565ae65",
+								"id": "5efee983-a29f-4caa-8a01-3b7c93b089b2",
 								"exec": [
 									"tests[\"Status code is 404\"] = responseCode.code === 404;",
 									"",
@@ -154,7 +154,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "6ee8ce92-b18c-47ca-a0ff-2fc060d9539a",
+								"id": "12577414-9f4e-49fb-b470-0c14aaacf21e",
 								"exec": [
 									""
 								],
@@ -193,7 +193,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "979f4111-4e0f-41b5-aea9-473c2acb99d9",
+								"id": "43ec1416-a8dc-4993-a84a-cc4ccca98c47",
 								"exec": [
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									"",
@@ -234,7 +234,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "360e355a-d195-412c-92e6-c03058851c5c",
+								"id": "41a2e7ad-e6d2-4927-b87d-b8f2ca963ed2",
 								"exec": [
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									"",
@@ -283,7 +283,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "6e95d243-80cf-4033-af1e-ae06fbe8fb6b",
+								"id": "c5ccd550-3a97-4043-929f-43f5312f0257",
 								"exec": [
 									""
 								],
@@ -328,7 +328,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "27df01be-7ca7-4f1e-94d8-bc078409a1cf",
+								"id": "f7608359-fda4-47ce-8566-8a11587e8d9d",
 								"exec": [
 									""
 								],
@@ -369,7 +369,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "e43f3e72-cd11-4505-a091-db5675bf385a",
+								"id": "1a8267a1-db23-4e8d-b37f-4ae8655a5248",
 								"exec": [
 									"tests[\"Status code is 204\"] = responseCode.code === 204;"
 								],
@@ -410,7 +410,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "28eeafac-da2b-4404-8c83-15d9c967b66c",
+								"id": "423f1ab1-0a1d-498d-a8ce-bbe4398bd1e5",
 								"exec": [
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									"",
@@ -459,7 +459,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "b37c564a-9faf-4ac7-8eb6-86d80a2ee842",
+								"id": "cc06a25e-b564-4d04-bc2c-de92f093ded1",
 								"exec": [
 									"tests[\"Status code is 204\"] = responseCode.code === 204;"
 								],
@@ -504,7 +504,7 @@
 				{
 					"listen": "prerequest",
 					"script": {
-						"id": "79714408-294b-4859-84a2-0d30f4c0e974",
+						"id": "52c37451-76bb-4e9c-b5f2-52ad8d135354",
 						"type": "text/javascript",
 						"exec": [
 							""
@@ -514,7 +514,7 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "6a3718ce-1830-4c8d-bcb5-e6663705fe86",
+						"id": "9b2a13e3-d1a9-46ad-ad94-1d4dec066dcc",
 						"type": "text/javascript",
 						"exec": [
 							""
@@ -533,7 +533,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "0c5afc9b-adf7-460a-8df3-662fe319379c",
+								"id": "11cc8e69-4d82-42c6-b23c-e03f68e1cb1c",
 								"exec": [
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									"",
@@ -568,7 +568,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "046d3782-f155-47f2-bd73-db17f79d2b25",
+								"id": "9f15aad6-98c5-461d-9dd0-424e9bc34ae5",
 								"exec": [
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									"",
@@ -603,7 +603,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "d98f373f-aa51-48ca-bb14-6c59bbee927e",
+								"id": "f5f1320a-0b39-483e-b2eb-6005d7736273",
 								"exec": [
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									"",
@@ -638,7 +638,7 @@
 				{
 					"listen": "prerequest",
 					"script": {
-						"id": "6c10e9e1-1253-44ff-ab39-918879bff3ba",
+						"id": "a180195a-c5f5-4607-a99d-7e73d473c268",
 						"type": "text/javascript",
 						"exec": [
 							""
@@ -648,7 +648,7 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "331f2ebc-2b77-4683-bf95-7afb1aad1955",
+						"id": "57061470-6f55-4ab5-8a52-0a5365bfbf1b",
 						"type": "text/javascript",
 						"exec": [
 							""
@@ -667,7 +667,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "1de3e164-c48d-42d4-9434-1aab7132a4bb",
+								"id": "866effd0-f56b-4427-8fca-ea0bcc2d02ab",
 								"exec": [
 									"tests[\"Status code is 201\"] = responseCode.code === 201;",
 									"",
@@ -712,7 +712,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "64c8bbd4-7f1e-48a2-8336-cea9cabdb9da",
+								"id": "9d4dd5ac-cfa5-40bd-82ca-66fe490cbd28",
 								"exec": [
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									"",
@@ -761,7 +761,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "02f973d2-05c8-404b-970c-c90ba6641f65",
+								"id": "c9758103-dfd9-4dd3-8a8c-00db8117bfe1",
 								"exec": [
 									"tests[\"Status code is 201\"] = responseCode.code === 201;",
 									"",
@@ -813,7 +813,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "e1df25c7-1405-4310-83af-addf21ec2448",
+								"id": "bc5b4a36-cdaf-4dd7-9d79-7213d0cbf89b",
 								"exec": [
 									"tests[\"Status code is 201\"] = responseCode.code === 201;",
 									"",
@@ -865,7 +865,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "f69e7c33-29a6-46eb-bd0f-73b7cf4b1383",
+								"id": "dbf9961a-84a5-4bac-a79f-0fb5b5b92edd",
 								"exec": [
 									"tests[\"Status code is 201\"] = responseCode.code === 201;",
 									"",
@@ -915,7 +915,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "3f779de1-6a27-4dac-a784-ea1476697106",
+								"id": "f63ae7f4-9ae0-46cb-9bec-f9fbd388bb52",
 								"exec": [
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									"",
@@ -962,7 +962,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "7b58d9c8-cd9a-4c60-96b3-95cb5d208f57",
+								"id": "0a8f7723-41d5-4d5c-9fdd-c405a764c68a",
 								"exec": [
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									"",
@@ -1013,7 +1013,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "51107ae2-dbf8-4b38-a0ca-1be8309e5136",
+								"id": "f31dd4c5-4fa2-4d57-b9fb-444da9f0ad6a",
 								"exec": [
 									"tests[\"Status code is 204\"] = responseCode.code === 204;",
 									""
@@ -1060,7 +1060,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "13344a0b-2088-49a8-9dbe-f51a1b1e9dbb",
+								"id": "bfe771a7-6f4a-48b2-aa4f-a1d7276a0d32",
 								"exec": [
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									"",
@@ -1110,7 +1110,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "04ff1ef7-eff9-46fd-8ffb-fcdcfe292587",
+								"id": "696502d1-56e3-43f9-8ef3-588fb56e76ff",
 								"exec": [
 									"tests[\"Status code is 204\"] = responseCode.code === 204;",
 									""
@@ -1157,7 +1157,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "b662c4c9-e713-469b-a08e-c417c5bf044e",
+								"id": "61c4381c-71f3-4a5e-b353-45ba4a82650c",
 								"exec": [
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									"",
@@ -1203,7 +1203,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "74f8e476-4ef7-4a34-b4c5-fce3d8e31c4c",
+								"id": "6f9c0ef1-d696-4597-aff0-396665c3b63e",
 								"exec": [
 									"tests[\"Status code is 404\"] = responseCode.code === 404;",
 									"",
@@ -1250,7 +1250,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "46c11948-df8c-4176-b5a0-55541b2637a3",
+								"id": "96301eaa-bebb-4c64-9a02-79b76d83394c",
 								"exec": [
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									"",
@@ -1296,7 +1296,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "1454da52-163a-4707-8498-dd34d96428e7",
+								"id": "12248973-5c71-4dfd-8885-d9d2ea9e6452",
 								"exec": [
 									"tests[\"Status code is 404\"] = responseCode.code === 404;",
 									"",
@@ -1342,7 +1342,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "d3a1c870-6cd4-4340-8376-7a9564eff434",
+								"id": "c9caeb9a-5373-4291-a6af-5f124cc871d4",
 								"exec": [
 									"tests[\"Status code is 404\"] = responseCode.code === 404;",
 									""
@@ -1385,7 +1385,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "7f72b459-2a89-46d2-9498-ece70b36cfbd",
+								"id": "41e12965-8300-4e02-ad6e-6af489de3157",
 								"exec": [
 									"tests[\"Status code is 404\"] = responseCode.code === 404;",
 									"",
@@ -1435,7 +1435,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "bbdde62f-0da7-4f62-a0ed-02a29d728a7f",
+								"id": "4e1884e6-020b-43e5-810f-525de395e932",
 								"exec": [
 									"tests[\"Status code is 404\"] = responseCode.code === 404;",
 									"",
@@ -1481,7 +1481,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "c4ea4572-00a9-4986-8656-75692aa3b09d",
+								"id": "5f0cdbf9-0037-4cd1-b0c4-1ac478b5e14d",
 								"exec": [
 									"tests[\"Status code is 204\"] = responseCode.code === 204;",
 									""
@@ -1529,7 +1529,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "e2f82f23-e4db-464b-ac3a-de2462f0d519",
+								"id": "d8f810f7-5d16-4f5d-980c-1df1701ca8f3",
 								"exec": [
 									"tests[\"Status code is 204\"] = responseCode.code === 204;",
 									""
@@ -1577,7 +1577,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "5ac3d35f-58df-4290-8767-c9471c5a5b54",
+								"id": "7b6430ce-57d2-4aec-927b-017fe39172c0",
 								"exec": [
 									"tests[\"Status code is 404\"] = responseCode.code === 404;",
 									"",
@@ -1623,7 +1623,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "db57e556-82cd-46f8-8688-3e098a0a1032",
+								"id": "24f489ca-ae5b-4446-8fa8-30ec8d694351",
 								"exec": [
 									"tests[\"Status code is 400\"] = responseCode.code === 400;",
 									"",
@@ -1673,7 +1673,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "794e94bd-5641-45ae-b8f6-6e02821d9455",
+								"id": "ed771c64-6396-4afb-bf87-ab7a76754506",
 								"exec": [
 									"tests[\"Status code is 204\"] = responseCode.code === 204;"
 								],
@@ -1721,7 +1721,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "e9fd02ff-6604-4e82-a558-69970f2ab490",
+								"id": "08958c76-19db-4a2c-abec-bb53a9e2e949",
 								"exec": [
 									"tests[\"Status code is 202\"] = responseCode.code === 202;",
 									""
@@ -1768,7 +1768,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "f7488f88-b007-4959-bf58-dd0b225d1522",
+								"id": "c436453a-ba61-4437-91dc-dd3d463aa222",
 								"exec": [
 									"tests[\"Status code is 202\"] = responseCode.code === 202;",
 									""
@@ -1815,7 +1815,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "adab3115-2ded-43a0-84ff-969466332827",
+								"id": "5bfe45d6-0c44-4391-a179-a3b39a82c48f",
 								"exec": [
 									"tests[\"Status code is 204\"] = responseCode.code === 204;"
 								],
@@ -1860,7 +1860,7 @@
 				{
 					"listen": "prerequest",
 					"script": {
-						"id": "64327053-b532-48ca-97be-74fb0297e9f4",
+						"id": "a061e1fb-00f6-4abf-9905-539a23f79a55",
 						"type": "text/javascript",
 						"exec": [
 							""
@@ -1870,7 +1870,7 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "53086d3e-8b2a-4222-bab4-5647fe56f3d1",
+						"id": "0d33a0e3-5377-47f6-8c96-1014a787412d",
 						"type": "text/javascript",
 						"exec": [
 							""
@@ -1889,7 +1889,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "ce90cf80-674e-440b-98cf-f0589d439cfb",
+								"id": "48966284-d3d0-4c51-bcb6-f034c02c51f2",
 								"exec": [
 									"tests[\"Status code is 201\"] = responseCode.code === 201;",
 									"",
@@ -1934,7 +1934,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "b003cbca-f2aa-43d5-b444-1889dcc698ae",
+								"id": "f9b68414-6329-4314-9ab9-90eb0afbeff3",
 								"exec": [
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									"",
@@ -1983,7 +1983,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "7814bc50-2d25-408b-bb8f-174cde8435b0",
+								"id": "b5269f99-b187-497a-b3fe-971be81da083",
 								"exec": [
 									"tests[\"Status code is 201\"] = responseCode.code === 201;",
 									"",
@@ -2035,7 +2035,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "84e5dddf-de04-444c-8e84-9e6116c02eed",
+								"id": "750883f6-68bd-4a88-ac63-941485a1fb8c",
 								"exec": [
 									"tests[\"Status code is 201\"] = responseCode.code === 201;",
 									"",
@@ -2087,7 +2087,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "a94282e3-7658-471e-a9b0-751bb3f507ba",
+								"id": "e2d4bd36-c5ef-4be7-801f-36de8d2846bc",
 								"exec": [
 									"tests[\"Status code is 201\"] = responseCode.code === 201;",
 									"",
@@ -2138,7 +2138,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "88a40a86-fd70-427d-97b2-9dc73491d75f",
+								"id": "897d5717-d879-43b3-8a86-3fbbb1c92a1d",
 								"exec": [
 									"tests[\"Status code is 201\"] = responseCode.code === 201;",
 									"",
@@ -2191,7 +2191,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "32d50a7f-2864-4aca-8de7-0f30179a7edf",
+								"id": "56e14e53-f4aa-4754-ab6d-20d264d5ce9d",
 								"exec": [
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									"",
@@ -2238,7 +2238,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "b61e594b-46aa-4b06-a09e-69159f3ea15a",
+								"id": "63031789-5f9b-46c0-834f-32162f601037",
 								"exec": [
 									"tests[\"Status code is 204\"] = responseCode.code === 204;",
 									"",
@@ -2286,7 +2286,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "02673ba1-f80e-4304-ba5c-e4124c8e226e",
+								"id": "d7ea86cc-4004-484a-884d-ba9a39faf7c5",
 								"exec": [
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									"",
@@ -2334,7 +2334,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "577251d2-4a0a-4007-9bdc-e911bf43b161",
+								"id": "1af3329d-1941-4930-b6c3-e0b2c5a535d4",
 								"exec": [
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									"",
@@ -2381,7 +2381,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "4b4dd195-52b0-485b-8d6e-c08f4307fbbb",
+								"id": "26b79894-05bc-40e5-b041-ac6a81af441b",
 								"exec": [
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									"",
@@ -2440,7 +2440,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "c217c16d-4f17-48ed-b35b-26199d993867",
+								"id": "5dc70a0d-ace0-4bbb-a81c-f32411520a89",
 								"exec": [
 									"tests[\"Status code is 204\"] = responseCode.code === 204;"
 								],
@@ -2486,7 +2486,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "b41a767d-15a6-4a98-ae93-88ebc1540629",
+								"id": "d87afca3-199a-48fd-ae3a-a4e8177aedaa",
 								"exec": [
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									"",
@@ -2545,7 +2545,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "6fceea01-6ce2-49e2-99dc-c18732dd2701",
+								"id": "fce7e511-9a97-4491-820b-de66692fe1b7",
 								"exec": [
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									"",
@@ -2590,7 +2590,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "2d9d882b-e06b-479a-80dd-47e7affdb2c6",
+								"id": "767705f3-58cc-4a5e-b4c2-9a1e771b2023",
 								"exec": [
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									"",
@@ -2636,7 +2636,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "c8d40891-2792-40fb-b882-528629f8dcf7",
+								"id": "396d38cd-99be-4be3-932a-27b38cf9f431",
 								"exec": [
 									"tests[\"Status code is 204\"] = responseCode.code === 204;",
 									"postman.setGlobalVariable(\"application-name\", \"application-name-22\");"
@@ -2683,7 +2683,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "cf8a865d-5a81-4a25-a3d0-007508b30a2e",
+								"id": "020ed8d4-82fc-4236-8d82-a30573af95e7",
 								"exec": [
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									"",
@@ -2728,7 +2728,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "74129cc2-1e78-40c6-936d-ccc0d253f02a",
+								"id": "c943ecda-71d6-4771-91e4-1f25b93dee03",
 								"exec": [
 									"tests[\"Status code is 204\"] = responseCode.code === 204;"
 								],
@@ -2774,7 +2774,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "ac78173c-26ff-4e93-842d-9ef41723c9b8",
+								"id": "2053628f-47dd-4695-9598-6335101a5cd7",
 								"exec": [
 									"tests[\"Status code is 204\"] = responseCode.code === 204;"
 								],
@@ -2820,7 +2820,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "bc8d633c-5c5e-45f7-90c0-11b2721253f8",
+								"id": "0aa2016f-3b17-4877-a61d-156d8f3fbb7d",
 								"exec": [
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									"",
@@ -2865,7 +2865,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "2613a932-fe63-49bc-8a4e-7d518da3e6e5",
+								"id": "c6b13f25-bfb2-46b9-80b1-e0c89975b263",
 								"exec": [
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									"",
@@ -2913,7 +2913,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "6b7142cf-f43f-4971-86af-6b617f64cbe1",
+								"id": "a1a3577e-4c0a-4609-aa3a-984f33631e3e",
 								"exec": [
 									"tests[\"Status code is 404\"] = responseCode.code === 404;"
 								],
@@ -2955,7 +2955,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "d1d75861-fdab-44aa-87a0-57e545ea2773",
+								"id": "d4d169bb-4477-4f15-b7f3-0e254382608f",
 								"exec": [
 									"tests[\"Status code is 202\"] = responseCode.code === 202;",
 									""
@@ -3002,7 +3002,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "6def1670-3735-4892-9ff8-0f9ae4b20454",
+								"id": "73bd9e25-0f76-4b5b-b052-57a5e5221771",
 								"exec": [
 									"tests[\"Status code is 202\"] = responseCode.code === 202;",
 									""
@@ -3049,7 +3049,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "5dd5aa17-31ac-4c4f-8375-85077a80f46b",
+								"id": "c5bcba29-d95c-44f2-8ee0-04d24a4be097",
 								"exec": [
 									"tests[\"Status code is 204\"] = responseCode.code === 204;"
 								],
@@ -3094,7 +3094,7 @@
 				{
 					"listen": "prerequest",
 					"script": {
-						"id": "f3cc8a60-0a41-4a8b-afe6-1c1ee42bf6e0",
+						"id": "bf5920b4-d10a-4386-b4c4-63344e497352",
 						"type": "text/javascript",
 						"exec": [
 							""
@@ -3104,7 +3104,7 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "615ab8da-931b-49e8-b68a-ebd3cd147076",
+						"id": "d7817516-70ad-4e66-a908-cfb8f8ef3341",
 						"type": "text/javascript",
 						"exec": [
 							""
@@ -3115,7 +3115,7 @@
 			"protocolProfileBehavior": {}
 		},
 		{
-			"name": "Legacy: Flow",
+			"name": "Application with template",
 			"item": [
 				{
 					"name": "Create user",
@@ -3123,7 +3123,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "a862e6a8-030c-4575-8744-5732ef569dc8",
+								"id": "cf0b99bd-219a-46c3-85e6-71592ad86eac",
 								"exec": [
 									"tests[\"Status code is 201\"] = responseCode.code === 201;",
 									"",
@@ -3168,454 +3168,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "7fc6fbea-88ba-4424-bec8-ba6ae5c68184",
-								"exec": [
-									"tests[\"Status code is 200\"] = responseCode.code === 200;",
-									"",
-									"var data = JSON.parse(responseBody);",
-									"",
-									"tests[\"Response validation passed\"] = data.accessToken;",
-									"",
-									"",
-									"postman.setGlobalVariable(\"user-token\", data.accessToken);",
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"email\": \"user@domain.com\",\n  \"password\": \"#Bugs4Fun\"\n}"
-						},
-						"url": {
-							"raw": "{{host}}/api/v3/user/login",
-							"host": [
-								"{{host}}"
-							],
-							"path": [
-								"api",
-								"v3",
-								"user",
-								"login"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "New Flow",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "f446cf86-e3e8-4fc8-b296-eafcb752bb01",
-								"exec": [
-									"tests[\"Status code is 201\"] = responseCode.code === 201;",
-									"",
-									"var data = JSON.parse(responseBody);",
-									"",
-									"tests[\"Response validation passed\"] = data.hasOwnProperty('id');",
-									"",
-									"postman.setGlobalVariable(\"flow-id\", data.id);"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							},
-							{
-								"key": "Authorization",
-								"value": "{{user-token}}",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"name\": \"flow-name\",\n \"isSystem\": false,\n \"description\": \"Description\",\n  \"isActivated\": true\n}"
-						},
-						"url": {
-							"raw": "{{host}}/api/v3/flow",
-							"host": [
-								"{{host}}"
-							],
-							"path": [
-								"api",
-								"v3",
-								"flow"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get Flows",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "24abbf5f-d7a6-4e4e-b3c0-12b9ba190b99",
-								"exec": [
-									"tests[\"Status code is 200\"] = responseCode.code === 200;",
-									"",
-									"var data = JSON.parse(responseBody);",
-									"",
-									"tests[\"Response validation passed\"] = data.hasOwnProperty('flows') && data.flows.length > 0;"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							},
-							{
-								"key": "Authorization",
-								"value": "{{user-token}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{host}}/api/v3/flow",
-							"host": [
-								"{{host}}"
-							],
-							"path": [
-								"api",
-								"v3",
-								"flow"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get Flow By Id",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "4732934a-913f-4200-bffe-bbf7cf4ff8d9",
-								"exec": [
-									"tests[\"Status code is 200\"] = responseCode.code === 200;",
-									"",
-									"var data = JSON.parse(responseBody);",
-									"",
-									"tests[\"Response validation passed\"] = data.hasOwnProperty('id') && data.name && data.description && data.hasOwnProperty('isActivated');"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							},
-							{
-								"key": "Authorization",
-								"value": "{{user-token}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{host}}/api/v3/flow/{{flow-id}}",
-							"host": [
-								"{{host}}"
-							],
-							"path": [
-								"api",
-								"v3",
-								"flow",
-								"{{flow-id}}"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Update Flow",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "11c13b07-042a-4a11-b4f6-de08dc99e071",
-								"exec": [
-									"tests[\"Status code is 204\"] = responseCode.code === 204;"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "PATCH",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							},
-							{
-								"key": "Authorization",
-								"value": "{{user-token}}",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"name\": \"flow-name-22\",\n  \"isSystem\": true,\n  \"description\": \"Description\",\n  \"isActivated\": true\n}"
-						},
-						"url": {
-							"raw": "{{host}}/api/v3/flow/{{flow-id}}",
-							"host": [
-								"{{host}}"
-							],
-							"path": [
-								"api",
-								"v3",
-								"flow",
-								"{{flow-id}}"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get Flows without system",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "28d8265a-fda5-4408-8160-d445e7e096f7",
-								"exec": [
-									"tests[\"Status code is 200\"] = responseCode.code === 200;",
-									"",
-									"var data = JSON.parse(responseBody);",
-									"",
-									"tests[\"Response validation passed\"] = data.hasOwnProperty('flows') && data.flows.length === 0;"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							},
-							{
-								"key": "Authorization",
-								"value": "{{user-token}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{host}}/api/v3/flow",
-							"host": [
-								"{{host}}"
-							],
-							"path": [
-								"api",
-								"v3",
-								"flow"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Delete Flow",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "5be3ee35-ddb4-4e78-ad22-d82ead4c8a19",
-								"exec": [
-									"tests[\"Status code is 204\"] = responseCode.code === 204;"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "DELETE",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							},
-							{
-								"key": "Authorization",
-								"value": "{{user-token}}",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
-						"url": {
-							"raw": "{{host}}/api/v3/flow/{{flow-id}}",
-							"host": [
-								"{{host}}"
-							],
-							"path": [
-								"api",
-								"v3",
-								"flow",
-								"{{flow-id}}"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Delete user",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "bfc1970f-b544-4a5e-8515-195b94a029a0",
-								"exec": [
-									"tests[\"Status code is 204\"] = responseCode.code === 204;"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "DELETE",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "{{user-token}}"
-							},
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
-						"url": {
-							"raw": "{{host}}/api/v3/user/profile",
-							"host": [
-								"{{host}}"
-							],
-							"path": [
-								"api",
-								"v3",
-								"user",
-								"profile"
-							]
-						}
-					},
-					"response": []
-				}
-			],
-			"description": "Flow collection",
-			"event": [
-				{
-					"listen": "prerequest",
-					"script": {
-						"id": "27282e2b-748b-48b3-bda6-eae7823a19d0",
-						"type": "text/javascript",
-						"exec": [
-							""
-						]
-					}
-				},
-				{
-					"listen": "test",
-					"script": {
-						"id": "e2727e10-6d2d-426b-a1c7-000fa7737933",
-						"type": "text/javascript",
-						"exec": [
-							""
-						]
-					}
-				}
-			],
-			"protocolProfileBehavior": {}
-		},
-		{
-			"name": "Legacy: Microservices",
-			"item": [
-				{
-					"name": "Create user",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "a6fa02f8-10d2-49fc-9940-a231e91b5567",
-								"exec": [
-									"tests[\"Status code is 201\"] = responseCode.code === 201;",
-									"",
-									"var data = JSON.parse(responseBody);",
-									"",
-									"tests[\"Response validation passed\"] = data.hasOwnProperty('userId') && data.firstName && data.lastName && data.email && data.hasOwnProperty('emailActivated');"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"email\": \"user@domain.com\",\n  \"password\": \"#Bugs4Fun\"\n}"
-						},
-						"url": {
-							"raw": "{{host}}/api/v3/user/signup",
-							"host": [
-								"{{host}}"
-							],
-							"path": [
-								"api",
-								"v3",
-								"user",
-								"signup"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Login",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "45363535-422b-43e3-ba4f-7d5239bd973d",
+								"id": "467c0a0f-6bf3-4aca-89c8-833da9dd90e9",
 								"exec": [
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									"",
@@ -3664,7 +3217,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "dd618533-68ac-44f5-835e-e7095d2924ed",
+								"id": "39efda8a-1653-40e4-8329-342a6a5b3264",
 								"exec": [
 									"tests[\"Status code is 201\"] = responseCode.code === 201;",
 									"",
@@ -3716,7 +3269,1401 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "8cde3f27-9606-4681-905b-2a4a1f700a9b",
+								"id": "ad1c0baa-d41b-49c0-820b-aff0e62fcf7d",
+								"exec": [
+									"tests[\"Status code is 201\"] = responseCode.code === 201;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response validation passed\"] = data.uuid;",
+									"",
+									"postman.setGlobalVariable(\"node-id\", data.uuid);",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"type": "text",
+								"value": "{{user-token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"string\",\n \"host\": \"1.2.3.4\",\n  \"location\": \"string\",\n  \"latitude\": 0,\n  \"longitude\": 0,\n  \"description\": \"string\",\n  \"dockerUrl\": \"string\",\n  \"diskLimit\": 0,\n  \"diskDirectory\": \"string\",\n  \"memoryLimit\": 0,\n  \"cpuLimit\": 0,\n  \"logLimit\": 0,\n  \"logDirectory\": \"string\",\n  \"logFileCount\": 0,\n  \"statusFrequency\": 0,\n  \"changeFrequency\": 0,\n  \"deviceScanFrequency\": 0,\n  \"bluetoothEnabled\": false,\n  \"watchdogEnabled\": true,\n  \"abstractedHardwareEnabled\": false,\n  \"fogType\": 1\n,\n  \"host\": \"1.2.3.4\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/iofog",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"iofog"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "New Application",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "ad876f34-c556-44b7-8c9d-d50ee05051c7",
+								"exec": [
+									"tests[\"Status code is 201\"] = responseCode.code === 201;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response validation passed\"] = data.hasOwnProperty('id');",
+									"",
+									"postman.setGlobalVariable(\"application-name\", data.name);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{user-token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"application-name\",\n \"isSystem\": false,\n \"description\": \"Description\",\n  \"isActivated\": true\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/application",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"application"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "New Application with microservices and routes",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "23a06e92-e828-4788-8bc0-b1771cb455aa",
+								"exec": [
+									"tests[\"Status code is 201\"] = responseCode.code === 201;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response validation passed\"] = data.hasOwnProperty('id');",
+									"",
+									"postman.setGlobalVariable(\"application-msvc-name\", data.name);",
+									"postman.setGlobalVariable(\"application-route-name\", \"m1-2\");",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{user-token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"application-msvc-name\",\n    \"isSystem\": false,\n    \"description\": \"Description\",\n    \"isActivated\": true,\n    \"microservices\": [\n        {\n            \"name\": \"msvc-1\",\n            \"config\": \"string\",\n            \"images\": [\n                {\n                    \"containerImage\": \"hello-world\",\n                    \"fogTypeId\": 1\n                },\n                {\n                    \"containerImage\": \"hello-world\",\n                    \"fogTypeId\": 2\n                }\n            ],\n            \"registryId\": 1,\n            \"application\": \"{{application-name-2}}\",\n            \"iofogUuid\": \"{{node-id}}\",\n            \"rootHostAccess\": true,\n            \"logSize\": 0,\n            \"volumeMappings\": [\n                {\n                    \"hostDestination\": \"/var/dest\",\n                    \"containerDestination\": \"/var/dest\",\n                    \"accessMode\": \"rw\"\n                }\n            ],\n            \"ports\": [\n                {\n                    \"internal\": 1881,\n                    \"external\": 1882\n                }\n            ],\n            \"routes\": [],\n            \"env\": [\n                { \n                    \"key\": \"selfname\",\n                    \"value\": \"{{ self.name | upcase }}\"\n                },\n                {\n                    \"key\": \"sharedToken\",\n                    \"value\": \"sekrittoken\"\n                },\n                {\n                    \"key\": \"http_proxy\",\n                    \"value\": \"http://myproxy:8080/\"\n                },\n                {\n                    \"key\": \"https_proxy\",\n                    \"value\": \"{{ self.microservices | where: \\\"name\\\", \\\"msvc-1\\\" | first | map: \\\"env\\\" | first | where: \\\"key\\\" , \\\"http_proxy\\\" | first | map: \\\"value\\\" | first }}\"\n                }\n            ],\n            \"cmd\": [\n                \"test\",\n                \"--arg1\",\n                \"--arg2\"\n            ]\n        },\n        {\n            \"name\": \"msvc-2\",\n            \"config\": \"string\",\n            \"images\": [\n                {\n                    \"containerImage\": \"hello-world\",\n                    \"fogTypeId\": 1\n                },\n                {\n                    \"containerImage\": \"hello-world\",\n                    \"fogTypeId\": 2\n                }\n            ],\n            \"registryId\": 1,\n            \"application\": \"{{application-name-2}}\",\n            \"iofogUuid\": \"{{node-id}}\",\n            \"rootHostAccess\": true,\n            \"logSize\": 0,\n            \"volumeMappings\": [\n                {\n                    \"hostDestination\": \"/var/dest\",\n                    \"containerDestination\": \"/var/dest\",\n                    \"accessMode\": \"rw\"\n                }\n            ],\n            \"ports\": [],\n            \"routes\": [],\n            \"env\": [\n                { \n                    \"key\": \"selfname\",\n                    \"value\": \"{{ self.name | upcase }}\"\n                },\n                {\n                    \"key\": \"sharedToken\",\n                    \"value\": \"{{ self.microservices | where: \\\"name\\\", \\\"msvc-1\\\" | first | map: \\\"env\\\" | first | where: \\\"key\\\", \\\"sharedToken\\\" | first | map: \\\"value\\\" | first }}\"\n                },\n                {\n                    \"key\": \"http_proxy\",\n                    \"value\": \"{{ self.microservices | where: \\\"name\\\", \\\"msvc-1\\\" | first | map: \\\"env\\\" | first | where: \\\"key\\\" , \\\"http_proxy\\\" | first | map: \\\"value\\\" | first }}\"\n                },\n                {\n                    \"key\": \"https_proxy\",\n                    \"value\": \"{{ self.microservices | where: \\\"name\\\", \\\"msvc-1\\\" | first | map: \\\"env\\\" | first | where: \\\"key\\\" , \\\"http_proxy\\\" | first | map: \\\"value\\\" | first }}\"\n                },\n                {\n                    \"key\": \"rulesengineHOST\",\n                    \"value\": \"TODO\"\n                },\n                {\n                    \"key\": \"rulesenginePORT\",\n                    \"value\": \"{{ self.microservices | where: \\\"name\\\", \\\"msvc-1\\\" | first | map: \\\"ports\\\" | first | map: \\\"external\\\" | first }}\"\n                }\n            ],\n            \"cmd\": [\n                \"test\",\n                \"--arg1\",\n                \"--arg2\"\n            ]\n        },\n        {\n            \"name\": \"msvc-3\",\n            \"config\": \"string\",\n            \"images\": [\n                {\n                    \"containerImage\": \"hello-world\",\n                    \"fogTypeId\": 1\n                },\n                {\n                    \"containerImage\": \"hello-world\",\n                    \"fogTypeId\": 2\n                }\n            ],\n            \"registryId\": 1,\n            \"application\": \"{{application-name-2}}\",\n            \"iofogUuid\": \"{{node-id}}\",\n            \"rootHostAccess\": true,\n            \"logSize\": 0,\n            \"volumeMappings\": [\n                {\n                    \"hostDestination\": \"/var/dest\",\n                    \"containerDestination\": \"/var/dest\",\n                    \"accessMode\": \"rw\"\n                }\n            ],\n            \"ports\": [],\n            \"routes\": [],\n            \"env\": [\n                {\n                    \"key\": \"KEY1\",\n                    \"value\": \"value1\"\n                },\n                {\n                    \"key\": \"KEY2\",\n                    \"value\": \"value2\"\n                }\n            ],\n            \"cmd\": [\n                \"test\",\n                \"--arg1\",\n                \"--arg2\"\n            ]\n        }\n    ],\n    \"routes\": [\n        {\n            \"from\": \"msvc-1\",\n            \"to\": \"msvc-2\",\n            \"name\": \"m1-2\"\n        }\n    ]\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/application",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"application"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Microservices From application",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "26f388d9-07c4-47ee-b74d-14f63e4461b1",
+								"exec": [
+									"tests[\"Status code is 200\"] = responseCode.code === 200;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response has microservices property\"] = data.hasOwnProperty('microservices');",
+									"",
+									"tests[\"Response contains two microservices\"] = data.microservices.length === 3;",
+									"",
+									"tests[\"Response returns microservice status\"] = data.microservices[0].hasOwnProperty('status');",
+									"",
+									"tests[\"Microservice status has default value\"] = data.microservices[0].status.status === 'QUEUED';",
+									"",
+									"tests[\"Response returns microservice percentage\"] = data.microservices[0].status.hasOwnProperty('percentage');",
+									"",
+									"tests[\"msv1 gets env application name\"]=data.microservices[0].env[0].value === pm.globals.get(\"application-msvc-name\").toUpperCase()",
+									"tests[\"msv1 sets env value from another\"]=data.microservices[0].env[3].value === data.microservices[0].env[2].value",
+									"",
+									"tests[\"msv2 gets env application name\"]=data.microservices[1].env[0].value === pm.globals.get(\"application-msvc-name\").toUpperCase()",
+									"tests[\"msv2 sets env value from env service msvc1\"]=data.microservices[1].env[1].value === data.microservices[0].env[1].value",
+									"tests[\"msv2 sets env value from service msvc1\"]=data.microservices[1].env[5].value === data.microservices[0].ports[0].external.toString()",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{user-token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/api/v3/microservices?application={{application-msvc-name}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"microservices"
+							],
+							"query": [
+								{
+									"key": "application",
+									"value": "{{application-msvc-name}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Applications",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "1e56bdf7-9d37-47cb-b25e-62ea79a2cefb",
+								"exec": [
+									"tests[\"Status code is 200\"] = responseCode.code === 200;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response validation passed\"] = data.hasOwnProperty('applications') && data.applications.length > 0;"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{user-token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/api/v3/application",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"application"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Application By Name",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "4d22a127-f181-4bc6-a82d-2712e6e17cf8",
+								"exec": [
+									"tests[\"Status code is 200\"] = responseCode.code === 200;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response validation passed\"] = data.hasOwnProperty('id') && data.name && data.description && data.hasOwnProperty('isActivated');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{user-token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/api/v3/application/{{application-name}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"application",
+								"{{application-name}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Application",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "6ebf0b8e-cc01-4a44-8628-7cdc9a3447f3",
+								"exec": [
+									"tests[\"Status code is 204\"] = responseCode.code === 204;",
+									"postman.setGlobalVariable(\"application-name\", \"application-name-22\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{user-token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"application-name-22\",\n  \"isSystem\": true,\n  \"description\": \"Description\",\n  \"isActivated\": true\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/application/{{application-name}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"application",
+								"{{application-name}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Applications without system",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "30066976-493d-4637-9f1c-fc75a3624f94",
+								"exec": [
+									"tests[\"Status code is 200\"] = responseCode.code === 200;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response validation passed\"] = data.hasOwnProperty('applications') && data.applications.length === 1;"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{user-token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/api/v3/application",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"application"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Application",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "a04c65af-9cb6-4a11-9890-e2b6cc64f74f",
+								"exec": [
+									"tests[\"Status code is 204\"] = responseCode.code === 204;"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{user-token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/application/{{application-name}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"application",
+								"{{application-name}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Application With microservices",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "9fe69c2d-4539-4424-b8e0-12fe1d5a5589",
+								"exec": [
+									"tests[\"Status code is 204\"] = responseCode.code === 204;"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"type": "text",
+								"value": "{{user-token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/application/{{application-msvc-name}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"application",
+								"{{application-msvc-name}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Applications",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "46e17f5b-aaac-478d-9057-53f6bbedec7c",
+								"exec": [
+									"tests[\"Status code is 200\"] = responseCode.code === 200;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response validation passed\"] = data.hasOwnProperty('applications') && data.applications.length === 0;"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{user-token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/api/v3/application",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"application"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Microservice",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "cd5ffa80-4c98-44cf-8952-894ee54cca1d",
+								"exec": [
+									"tests[\"Status code is 200\"] = responseCode.code === 200;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response has microservices property\"] = data.hasOwnProperty('microservices');",
+									"",
+									"tests[\"Response contains three microservices\"] = data.microservices.length === 0;",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{user-token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/api/v3/microservices",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"microservices"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Application route",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "30139e2b-bedf-41a7-97fc-5bed871a4e3a",
+								"exec": [
+									"tests[\"Status code is 404\"] = responseCode.code === 404;"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"type": "text",
+								"value": "{{user-token}}"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/api/v3/route/{{application-route-name}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"route",
+								"{{application-route-name}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete system node",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "bda13ab3-e962-4f07-a1f7-5ea8807115b8",
+								"exec": [
+									"tests[\"Status code is 202\"] = responseCode.code === 202;",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"type": "text",
+								"value": "{{user-token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"type\": 1,\n\t\"key\":\"testtesttest\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/iofog/{{system-node-id}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"iofog",
+								"{{system-node-id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Node",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "b247bfec-be26-439a-bf77-81827a9550ed",
+								"exec": [
+									"tests[\"Status code is 202\"] = responseCode.code === 202;",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"type": "text",
+								"value": "{{user-token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/iofog/{{node-id}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"iofog",
+								"{{node-id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete user",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "b57e103d-9cee-4991-aa59-fd7192594e08",
+								"exec": [
+									"tests[\"Status code is 204\"] = responseCode.code === 204;"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{user-token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/user/profile",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"user",
+								"profile"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "Application collection",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "189aece1-2d08-4c9d-a150-b30c7de04eb9",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "43fcb590-10b8-4134-b15a-16b86705b36a",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Legacy: Flow",
+			"item": [
+				{
+					"name": "Create user",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "fd2caad8-d81d-49b5-97c4-9a9876f89fc1",
+								"exec": [
+									"tests[\"Status code is 201\"] = responseCode.code === 201;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response validation passed\"] = data.hasOwnProperty('userId') && data.firstName && data.lastName && data.email && data.hasOwnProperty('emailActivated');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"email\": \"user@domain.com\",\n  \"password\": \"#Bugs4Fun\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/user/signup",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"user",
+								"signup"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "dc2e3fc2-dd18-49ae-a4cc-2d3efb5eed15",
+								"exec": [
+									"tests[\"Status code is 200\"] = responseCode.code === 200;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response validation passed\"] = data.accessToken;",
+									"",
+									"",
+									"postman.setGlobalVariable(\"user-token\", data.accessToken);",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"user@domain.com\",\n  \"password\": \"#Bugs4Fun\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/user/login",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"user",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "New Flow",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "6d58adce-aacf-402f-ad3e-d1b747d31e0a",
+								"exec": [
+									"tests[\"Status code is 201\"] = responseCode.code === 201;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response validation passed\"] = data.hasOwnProperty('id');",
+									"",
+									"postman.setGlobalVariable(\"flow-id\", data.id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{user-token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"flow-name\",\n \"isSystem\": false,\n \"description\": \"Description\",\n  \"isActivated\": true\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/flow",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"flow"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Flows",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "50580131-31b3-4462-8b62-943ac8272fa0",
+								"exec": [
+									"tests[\"Status code is 200\"] = responseCode.code === 200;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response validation passed\"] = data.hasOwnProperty('flows') && data.flows.length > 0;"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{user-token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/api/v3/flow",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"flow"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Flow By Id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "0de914ce-5b6b-4cc7-80ae-132e216680dd",
+								"exec": [
+									"tests[\"Status code is 200\"] = responseCode.code === 200;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response validation passed\"] = data.hasOwnProperty('id') && data.name && data.description && data.hasOwnProperty('isActivated');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{user-token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/api/v3/flow/{{flow-id}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"flow",
+								"{{flow-id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Flow",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "473dab39-334f-473c-80a1-018f402adad4",
+								"exec": [
+									"tests[\"Status code is 204\"] = responseCode.code === 204;"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{user-token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"flow-name-22\",\n  \"isSystem\": true,\n  \"description\": \"Description\",\n  \"isActivated\": true\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/flow/{{flow-id}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"flow",
+								"{{flow-id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Flows without system",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "c8273d23-d282-453b-966b-633872c29353",
+								"exec": [
+									"tests[\"Status code is 200\"] = responseCode.code === 200;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response validation passed\"] = data.hasOwnProperty('flows') && data.flows.length === 0;"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{user-token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/api/v3/flow",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"flow"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Flow",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "681fc61f-e1bd-407a-b5d5-e1efadd17f8b",
+								"exec": [
+									"tests[\"Status code is 204\"] = responseCode.code === 204;"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{user-token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/flow/{{flow-id}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"flow",
+								"{{flow-id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete user",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "4cc335bc-7b87-4725-b3a1-82a1034e97c0",
+								"exec": [
+									"tests[\"Status code is 204\"] = responseCode.code === 204;"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{user-token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/user/profile",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"user",
+								"profile"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "Flow collection",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "4c121190-a2dd-4240-9fa4-c3c1df04c6d9",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "b9d9fb3d-071f-4b80-96e0-329145b9a033",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Legacy: Microservices",
+			"item": [
+				{
+					"name": "Create user",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "828d0869-ff35-407d-864a-fcdb859b4ee5",
+								"exec": [
+									"tests[\"Status code is 201\"] = responseCode.code === 201;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response validation passed\"] = data.hasOwnProperty('userId') && data.firstName && data.lastName && data.email && data.hasOwnProperty('emailActivated');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"email\": \"user@domain.com\",\n  \"password\": \"#Bugs4Fun\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/user/signup",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"user",
+								"signup"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "62333372-8bb0-4c67-94e8-d76ae3b3b721",
+								"exec": [
+									"tests[\"Status code is 200\"] = responseCode.code === 200;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response validation passed\"] = data.accessToken;",
+									"",
+									"",
+									"postman.setGlobalVariable(\"user-token\", data.accessToken);",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"user@domain.com\",\n  \"password\": \"#Bugs4Fun\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/user/login",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"user",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "New System Node",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "f897f2c5-6a69-4609-8897-855f11ffcb11",
+								"exec": [
+									"tests[\"Status code is 201\"] = responseCode.code === 201;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response validation passed\"] = data.uuid;",
+									"",
+									"postman.setGlobalVariable(\"system-node-id\", data.uuid);",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"type": "text",
+								"value": "{{user-token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"system node\",\n \"routerMode\": \"interior\",\n \"messagingPort\": 5672,\n \"edgeRouterPort\": 56722,\n  \"interRouterPort\": 56721,\n \"host\": \"localhost\",\n \"isSystem\": true,\n \"location\": \"string\",\n  \"latitude\": 0,\n  \"longitude\": 0,\n  \"description\": \"string\",\n  \"dockerUrl\": \"string\",\n  \"diskLimit\": 0,\n  \"diskDirectory\": \"string\",\n  \"memoryLimit\": 0,\n  \"cpuLimit\": 0,\n  \"logLimit\": 0,\n  \"logDirectory\": \"string\",\n  \"logFileCount\": 0,\n  \"statusFrequency\": 0,\n  \"changeFrequency\": 0,\n  \"deviceScanFrequency\": 0,\n  \"bluetoothEnabled\": false,\n  \"watchdogEnabled\": true,\n  \"abstractedHardwareEnabled\": false,\n  \"fogType\": 1\n,\n  \"host\": \"1.2.3.4\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/iofog",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"iofog"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "New Node",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "39cb7718-815c-4b48-b29b-9fb389fe7029",
 								"exec": [
 									"tests[\"Status code is 201\"] = responseCode.code === 201;",
 									"",
@@ -3768,7 +4715,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "7c3edfbd-ce70-4cc0-9d8c-31afeb91ee0d",
+								"id": "89a90190-d1af-4bc4-9283-e70f5f22ed8d",
 								"exec": [
 									"tests[\"Status code is 201\"] = responseCode.code === 201;",
 									"",
@@ -3819,7 +4766,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "bd0e3c2b-d3bd-42dc-972b-0a4dd743b7ba",
+								"id": "84a9fd40-79c4-4ffd-bf84-350335e6e38c",
 								"exec": [
 									"tests[\"Status code is 201\"] = responseCode.code === 201;",
 									"",
@@ -3870,7 +4817,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "f62b737f-4151-4535-a535-df795253d980",
+								"id": "4825f356-1d14-461d-83a8-33e10d8c3061",
 								"exec": [
 									"tests[\"Status code is 201\"] = responseCode.code === 201;",
 									"",
@@ -3922,7 +4869,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "a07a13b6-9240-493c-94f7-1012f9be0e75",
+								"id": "6090c170-47d1-482a-82b1-ee6a38e7e2ba",
 								"exec": [
 									"tests[\"Status code is 201\"] = responseCode.code === 201;",
 									"",
@@ -3973,7 +4920,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "b09d41f0-4f37-4424-8f42-8506bdb64d99",
+								"id": "c14692be-9d21-4412-97ab-c6613cd7980a",
 								"exec": [
 									"tests[\"Status code is 201\"] = responseCode.code === 201;",
 									"",
@@ -4022,7 +4969,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "cf05853d-fb8b-4e63-914f-2895c0972a35",
+								"id": "db63931e-2c38-4e60-ac20-5e3bfa8d2418",
 								"exec": [
 									"tests[\"Status code is 201\"] = responseCode.code === 201;",
 									"",
@@ -4073,7 +5020,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "5a48cb6d-41b9-4590-86b5-f9067839728d",
+								"id": "8aafd966-92d9-4e1d-a5d9-62e9a812a528",
 								"exec": [
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									"",
@@ -4124,7 +5071,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "39fae561-dc2d-4515-848d-e850b75e6283",
+								"id": "a4af91bf-3275-4e96-89de-9df7993c7aa8",
 								"exec": [
 									"tests[\"Status code is 204\"] = responseCode.code === 204;",
 									"",
@@ -4172,7 +5119,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "c667ea23-466d-44b8-a81b-1a821ca14227",
+								"id": "b31849c3-b079-4c01-9c54-cb33fc1ede38",
 								"exec": [
 									"tests[\"Status code is 204\"] = responseCode.code === 204;"
 								],
@@ -4218,7 +5165,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "c1664ae9-a7f5-442a-b724-fb95befb6a2d",
+								"id": "a0c4ea05-f05f-4d87-aef7-b5201b5d3481",
 								"exec": [
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									"",
@@ -4269,7 +5216,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "d740fe0c-0dbb-4a04-8cef-75209784ed9a",
+								"id": "e63a4fcf-6f3d-4d36-a8d4-8ef5fced9ba4",
 								"exec": [
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									"",
@@ -4328,7 +5275,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "eccb879c-aac6-4730-8371-af21546e4d4a",
+								"id": "a464f7eb-3edd-4b55-a334-c83bca382a5f",
 								"exec": [
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									"",
@@ -4374,7 +5321,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "5d7937d6-6bbb-44df-ae8e-846c1c0dee01",
+								"id": "25c3058b-9341-4aa4-ba8a-26b71785138c",
 								"exec": [
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									"",
@@ -4420,7 +5367,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "eaff21d9-2e39-475e-9d8f-d4e95bccb9d0",
+								"id": "264fb90e-27da-4c03-b51a-340e19397306",
 								"exec": [
 									"tests[\"Status code is 204\"] = responseCode.code === 204;"
 								],
@@ -4466,7 +5413,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "9a22074e-b220-45ae-a360-7cb9acfb694c",
+								"id": "f5c89e4e-960d-40c3-bec9-781f27d4257c",
 								"exec": [
 									"tests[\"Status code is 204\"] = responseCode.code === 204;"
 								],
@@ -4512,7 +5459,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "7070e978-52e8-4f2c-9ec4-41f2f43ce919",
+								"id": "3d863d18-168c-4e16-8dbe-ee56e9144c7c",
 								"exec": [
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									"",
@@ -4558,7 +5505,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "0a302a8c-9bf2-443d-a9d5-0045e637741a",
+								"id": "4bdf1c91-fe10-4fc4-8fc7-b7e69892fd45",
 								"exec": [
 									"tests[\"Status code is 204\"] = responseCode.code === 204;"
 								],
@@ -4604,7 +5551,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "87f163d4-e87f-49ea-a023-e6705da370b4",
+								"id": "c3a3b550-937c-49eb-add5-49d13074cf2b",
 								"exec": [
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									"",
@@ -4650,7 +5597,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "31aa20cf-34bc-40cb-b641-c35e2916960f",
+								"id": "ccd64487-811f-4992-9d96-687d850f8c2b",
 								"exec": [
 									"tests[\"Status code is 204\"] = responseCode.code === 204;"
 								],
@@ -4696,7 +5643,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "c249e205-b426-47ba-a866-f7e4c1e95e5b",
+								"id": "44c70c5a-c888-4792-8662-9c8b621d4b32",
 								"exec": [
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									"",
@@ -4742,7 +5689,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "63f401c8-3b59-48a4-95da-73c0dd52222f",
+								"id": "f08ec42d-45c4-42eb-9fa3-a37bf52e4ee0",
 								"exec": [
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									"",
@@ -4793,7 +5740,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "3689a80c-49cd-46b1-abcf-fffb081c8aa3",
+								"id": "0a10ee6c-8e2a-463a-8d0b-2c29c0b7f6f7",
 								"exec": [
 									"tests[\"Status code is 204\"] = responseCode.code === 204;"
 								],
@@ -4839,7 +5786,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "635891a0-f3cd-448d-997b-41963b2ae30b",
+								"id": "d52e2a4d-4a60-4416-a74e-8029b9891106",
 								"exec": [
 									"tests[\"Status code is 201\"] = responseCode.code === 201;"
 								],
@@ -4886,7 +5833,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "4583454c-ed38-43b5-afd1-ff5799597ee2",
+								"id": "24ebd19b-8cc1-430a-8b37-4b5fd63c47c9",
 								"exec": [
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									"",
@@ -4933,7 +5880,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "ce502a4c-e7b3-42a7-9770-d5a51474ddde",
+								"id": "e6c2a30e-13ed-469b-a16d-8f85e742cd81",
 								"exec": [
 									"tests[\"Status code is 204\"] = responseCode.code === 204;"
 								],
@@ -4981,7 +5928,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "dc72787b-dcfa-43a9-a0b3-d112f63fa3c6",
+								"id": "5dda82ab-fb62-4d2c-b086-9726920bb1d0",
 								"type": "text/javascript",
 								"exec": [
 									"tests[\"Status code is 201\"] = responseCode.code === 201;",
@@ -5035,7 +5982,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "aea5e94c-b9b5-48b1-9b90-d5939c1339c5",
+								"id": "9e478c58-09c5-4d8a-b013-87d9ee72728b",
 								"type": "text/javascript",
 								"exec": [
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
@@ -5077,7 +6024,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "f5ad5ec6-2f7c-4719-b0eb-8a3fe0ee3bdf",
+								"id": "4b9db468-4d53-4d1d-8b6d-055a9c63019c",
 								"type": "text/javascript",
 								"exec": [
 									"tests[\"Status code is 204\"] = responseCode.code === 204;"
@@ -5124,7 +6071,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "cde36054-a343-45af-9cd3-1b05a4b9d565",
+								"id": "d87ba368-db65-4eab-8602-ff7fc017e2ff",
 								"type": "text/javascript",
 								"exec": [
 									"tests[\"Status code is 204\"] = responseCode.code === 204;",
@@ -5170,7 +6117,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "967d1d08-94d5-40cf-80b1-9f60f22cb838",
+								"id": "2c04d827-7a87-413e-a82d-7ec8727ff992",
 								"exec": [
 									"tests[\"Status code is 204\"] = responseCode.code === 204;"
 								],
@@ -5216,7 +6163,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "3b834e02-0a95-475c-9bd8-cbddaa7b21f8",
+								"id": "ed071206-d7b5-4fbd-8256-d640fbfc2a42",
 								"exec": [
 									"tests[\"Status code is 204\"] = responseCode.code === 204;",
 									""
@@ -5264,7 +6211,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "50bebd56-4749-4fdf-be99-e84656bc9f69",
+								"id": "850daa78-002f-4ece-8317-83409bbece84",
 								"exec": [
 									"tests[\"Status code is 202\"] = responseCode.code === 202;",
 									""
@@ -5311,7 +6258,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "d5e4e8e8-0d34-4720-a5a4-1cd2fb3da7a2",
+								"id": "2518a952-e7b5-4c22-aba7-29eb8cfd8466",
 								"exec": [
 									"tests[\"Status code is 202\"] = responseCode.code === 202;",
 									""
@@ -5358,7 +6305,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "a9e28e1d-3477-4039-9dcd-85e15ef9cac4",
+								"id": "3603aae6-2439-46b8-8863-5a9c8cb8dfb3",
 								"exec": [
 									"tests[\"Status code is 204\"] = responseCode.code === 204;"
 								],
@@ -5403,7 +6350,7 @@
 				{
 					"listen": "prerequest",
 					"script": {
-						"id": "1bc275ae-6785-4266-bec9-44223bbc184f",
+						"id": "9ddc14a2-c10c-4f92-b2b2-df50c80288ed",
 						"type": "text/javascript",
 						"exec": [
 							""
@@ -5413,7 +6360,7 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "39ea59c0-e5d9-4666-a51c-bf202f2f2a9d",
+						"id": "bd9ee4e2-c15a-4f71-b05a-24b6ba2d5a6b",
 						"type": "text/javascript",
 						"exec": [
 							""
@@ -5432,7 +6379,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "fedf2122-7940-4ab3-8510-249e27789ac9",
+								"id": "2406a25f-528b-469c-8547-50ba13fa6ca1",
 								"exec": [
 									"tests[\"Status code is 201\"] = responseCode.code === 201;",
 									"",
@@ -5477,7 +6424,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "9148d684-cd40-413d-beb4-9c692436c4a0",
+								"id": "79066f6a-dba5-4388-8e4f-d6c3e9462c76",
 								"exec": [
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									"",
@@ -5526,7 +6473,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "75968740-f91e-4e64-a9bc-2eb7ef0c46e2",
+								"id": "e0f92358-e470-43ce-8c6a-3365eca5c867",
 								"exec": [
 									"tests[\"Status code is 201\"] = responseCode.code === 201;",
 									"",
@@ -5578,7 +6525,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "1f3d36c4-ca9d-4433-b6f5-8907047d52da",
+								"id": "ba26f093-8d24-4d4a-9a48-ee12c2e656e8",
 								"exec": [
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									"",
@@ -5624,7 +6571,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "4c42dac9-c007-44a2-bef6-65ba8db06ffe",
+								"id": "4631950b-d535-4681-9b9c-fed301d1f215",
 								"exec": [
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									"",
@@ -5673,7 +6620,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "dca704e3-6cd7-45b2-a895-0c03f206782f",
+								"id": "bb77fad8-494c-478d-93ec-8eb3a32787b4",
 								"exec": [
 									"tests[\"Status code is 204\"] = responseCode.code === 204;",
 									""
@@ -5721,7 +6668,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "77c6cc5a-e838-446e-873f-6abec5e286bc",
+								"id": "32b93d31-4150-4fa8-aedb-9fce2a257d85",
 								"exec": [
 									"tests[\"Status code is 204\"] = responseCode.code === 204;",
 									""
@@ -5769,7 +6716,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "5f0dedaa-de32-445d-9b38-6776bdc9503a",
+								"id": "71377e75-288f-41ea-818e-d9cf7149d32b",
 								"exec": [
 									"tests[\"Status code is 204\"] = responseCode.code === 204;"
 								],
@@ -5814,7 +6761,7 @@
 				{
 					"listen": "prerequest",
 					"script": {
-						"id": "23e047c1-9382-458d-b505-29fc0ce90343",
+						"id": "c03d9acd-2e56-4dfd-9162-26f50a65d3a9",
 						"type": "text/javascript",
 						"exec": [
 							""
@@ -5824,7 +6771,7 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "833b865c-749b-4cc5-9777-e4c9d58ca9a0",
+						"id": "92b36c9e-f3a0-4527-90a1-745f8ab9082d",
 						"type": "text/javascript",
 						"exec": [
 							""
@@ -5843,7 +6790,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "31470681-960e-488d-af3a-f2ae062df68b",
+								"id": "b3037d86-55d3-4c84-8746-79f100fc144c",
 								"exec": [
 									"tests[\"Status code is 201\"] = responseCode.code === 201;",
 									"",
@@ -5888,7 +6835,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "25303f78-95bf-4ed7-92cd-f09ad5c7450d",
+								"id": "155cfa35-65d3-4c35-8db1-401e56513658",
 								"exec": [
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									"",
@@ -5937,7 +6884,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "4a97ee3e-c466-4507-a056-3078804dd58b",
+								"id": "a815f830-fe3d-4c8d-87ca-5853e5198294",
 								"exec": [
 									"tests[\"Status code is 201\"] = responseCode.code === 201;",
 									"",
@@ -5989,7 +6936,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "452af6de-0f42-44fc-9186-f26303a8f66c",
+								"id": "12a920c4-6ea7-4c6c-95a5-82b8e2bc86cb",
 								"exec": [
 									"tests[\"Status code is 201\"] = responseCode.code === 201;",
 									"",
@@ -6041,7 +6988,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "f0685840-baf8-4820-b09d-ad475b3f56d7",
+								"id": "17b0f70d-3996-4d16-a802-e31b6234c37e",
 								"exec": [
 									""
 								],
@@ -6088,7 +7035,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "e3c491bb-7081-4f9d-b572-07a3d40ccb5c",
+								"id": "252d2f85-69de-4beb-b762-9873cd52af66",
 								"exec": [
 									""
 								],
@@ -6131,7 +7078,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "03cefa72-71f2-4080-ac51-6e534e1c67f4",
+								"id": "d5c54ae8-040f-45b0-81f2-c20602877694",
 								"exec": [
 									""
 								],
@@ -6178,7 +7125,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "bc0c84d2-6850-4007-9ec8-62a879ab367d",
+								"id": "8c16d2e2-7191-43b5-9dcc-afa23cbc8470",
 								"exec": [
 									"tests[\"Status code is 202\"] = responseCode.code === 202;",
 									""
@@ -6225,7 +7172,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "7ae0a6b9-e4c2-40f9-9d22-e0caf3164457",
+								"id": "678eeb1d-afed-4efc-b33a-d881aa7595ca",
 								"exec": [
 									"tests[\"Status code is 202\"] = responseCode.code === 202;",
 									""
@@ -6272,7 +7219,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "0ca5115e-e0c0-4e76-ae05-5a292653b9e1",
+								"id": "8f8ed30f-1508-4f12-ae5e-c7d13e6b5117",
 								"exec": [
 									"tests[\"Status code is 204\"] = responseCode.code === 204;"
 								],
@@ -6317,7 +7264,7 @@
 				{
 					"listen": "prerequest",
 					"script": {
-						"id": "ccd6cb4b-6be5-4eaa-97d2-ef0a086a9318",
+						"id": "f3857b00-d7c9-4eab-b4c3-8e6af9f470cb",
 						"type": "text/javascript",
 						"exec": [
 							""
@@ -6327,7 +7274,7 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "363ab846-4086-4d90-9e5d-090c35a73753",
+						"id": "cc2afa11-b2cb-423f-8fd9-43b18423a3d6",
 						"type": "text/javascript",
 						"exec": [
 							""
@@ -6346,7 +7293,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "b6ff8f0d-edd5-429e-af16-e016483d0bd7",
+								"id": "fae980af-5be2-414e-ad2d-4b1cf00b8d43",
 								"exec": [
 									"tests[\"Status code is 201\"] = responseCode.code === 201;",
 									"",
@@ -6391,7 +7338,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "af62b272-a9e5-4e15-b0b1-bc154b85de24",
+								"id": "813fdc1f-16b7-4f9f-8281-8905255afa12",
 								"exec": [
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									"",
@@ -6440,7 +7387,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "0eec8d32-3d77-4173-a86d-47f3a1bac49d",
+								"id": "cdf8f99c-21b3-4f10-bd63-c301d1861ec1",
 								"exec": [
 									"tests[\"Status code is 201\"] = responseCode.code === 201;",
 									"",
@@ -6492,7 +7439,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "0e7e54b2-4105-4e95-acb6-32b7402386ab",
+								"id": "6f58f97b-e0d6-4e85-a9db-ac3a980929e3",
 								"exec": [
 									"tests[\"Status code is 201\"] = responseCode.code === 201;",
 									"",
@@ -6544,7 +7491,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "d88984f9-e1d5-4c9e-9004-4533603aa2c1",
+								"id": "b547c908-de51-4233-b27f-97f91d2c577a",
 								"exec": [
 									"tests[\"Status code is 201\"] = responseCode.code === 201;",
 									"",
@@ -6595,7 +7542,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "77d08842-2cce-4c3f-a587-3a991df41e05",
+								"id": "d843e11d-1e6e-4510-b40a-cb62f9372bdd",
 								"exec": [
 									"tests[\"Status code is 201\"] = responseCode.code === 201;",
 									"",
@@ -6646,7 +7593,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "dbdd3e17-7ac7-4c57-8285-b24341404502",
+								"id": "37d322f6-79d2-4e44-94e3-3b94f903ff4c",
 								"exec": [
 									"tests[\"Status code is 201\"] = responseCode.code === 201;",
 									"",
@@ -6698,7 +7645,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "08caf3e9-33bd-41f1-a9e2-9656fae3ee8c",
+								"id": "90446a1f-d863-4306-a3d2-3db2ceeddfc6",
 								"exec": [
 									"tests[\"Status code is 201\"] = responseCode.code === 201;",
 									"",
@@ -6750,7 +7697,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "3da0e457-287f-472e-9499-7ce36f65322f",
+								"id": "bf081367-ca72-4763-8426-e443501eb41b",
 								"exec": [
 									"tests[\"Status code is 201\"] = responseCode.code === 201;",
 									"",
@@ -6799,7 +7746,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "0bf0d081-c24c-4993-ae65-a6b6181e5ea0",
+								"id": "df41658c-8178-4adb-b8c8-a33f49f6ff82",
 								"exec": [
 									"tests[\"Status code is 201\"] = responseCode.code === 201;",
 									"",
@@ -6851,7 +7798,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "419726d1-b8a4-4b72-b1e0-cf8d18cb0372",
+								"id": "a7de191e-5c05-45b1-8ad2-4603d8000093",
 								"exec": [
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									"",
@@ -6902,7 +7849,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "743f1bbe-7ca6-4e14-89c3-19cba9681419",
+								"id": "65605dbb-ec05-4ccb-af8b-3698ab0a0e7b",
 								"exec": [
 									"tests[\"Status code is 204\"] = responseCode.code === 204;",
 									"",
@@ -6950,7 +7897,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "44cb196a-57f0-4d7b-89a8-536a967ccb57",
+								"id": "9fffbb65-58bd-47d6-b2b8-8f2a363a8afd",
 								"exec": [
 									"tests[\"Status code is 204\"] = responseCode.code === 204;"
 								],
@@ -6996,7 +7943,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "2e9faa33-ebd0-42dd-ba44-70155362e7e3",
+								"id": "aaa59a24-39f5-4f0d-920d-ba8213e18e91",
 								"exec": [
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									"",
@@ -7047,7 +7994,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "ccd0be8e-5011-4784-90fe-318ee836911d",
+								"id": "4da2cc6e-acc1-47d4-aabc-52387935979d",
 								"exec": [
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									"",
@@ -7106,7 +8053,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "a61d4dd3-da90-4853-9146-025b01b428c8",
+								"id": "2bd75a80-fb56-40b6-a62e-b4cabf288c5b",
 								"exec": [
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									"",
@@ -7152,7 +8099,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "7c6294d2-ba27-44dc-a4a5-119ba557b880",
+								"id": "4e614898-6faf-49b1-afae-85bcb924faea",
 								"exec": [
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									"",
@@ -7198,7 +8145,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "022cee35-53a8-455b-ba0e-89e9f402408e",
+								"id": "92e803b1-66a4-43ba-8313-9097dbdd9d5a",
 								"exec": [
 									"tests[\"Status code is 204\"] = responseCode.code === 204;",
 									"",
@@ -7247,7 +8194,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "7e45e014-3ac9-494c-851c-b85d45a844dd",
+								"id": "05b47a93-7682-4f7a-9151-5fb7c4690994",
 								"exec": [
 									"tests[\"Status code is 204\"] = responseCode.code === 204;"
 								],
@@ -7293,7 +8240,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "4f1fe19a-495e-4acc-b369-a6a348d0c37a",
+								"id": "1cd4e5cd-e336-4e6f-a169-2b7e36548e2d",
 								"exec": [
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									"",
@@ -7339,7 +8286,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "f23871e6-04e4-4479-bd9c-cc2e57a2156b",
+								"id": "6bc5601a-ddd2-49e0-b0d0-5e676aaec2ea",
 								"exec": [
 									"tests[\"Status code is 204\"] = responseCode.code === 204;"
 								],
@@ -7385,7 +8332,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "8af917a5-16d4-4e65-980b-e37de167d775",
+								"id": "20be344d-50b0-498a-b9fb-c0a9847eab4b",
 								"exec": [
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									"",
@@ -7431,7 +8378,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "7e732c4b-631a-420b-a0e6-674ef8df5b83",
+								"id": "9de93d6d-86fe-4db4-a228-4414be56586f",
 								"exec": [
 									"tests[\"Status code is 204\"] = responseCode.code === 204;"
 								],
@@ -7477,7 +8424,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "b858ba1f-381a-4952-8a3b-ae7517078c52",
+								"id": "3eb8a212-213a-4424-b703-bd79e8b8bc73",
 								"exec": [
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									"",
@@ -7523,7 +8470,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "dab501e6-90af-4ed1-9161-24eb50b85375",
+								"id": "ceef4f32-a26c-4445-815f-93677a3f45aa",
 								"exec": [
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									"",
@@ -7574,7 +8521,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "d68aeb32-3cce-4dd1-b5b0-858853a8a75e",
+								"id": "0ee32072-caeb-4ea5-aed6-160370856906",
 								"exec": [
 									"tests[\"Status code is 204\"] = responseCode.code === 204;"
 								],
@@ -7620,7 +8567,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "dd7dec20-5012-4daf-845a-ac5cec9e9ff9",
+								"id": "fefd6edc-bf9c-4905-b3ba-7c085cd02aef",
 								"exec": [
 									"tests[\"Status code is 201\"] = responseCode.code === 201;"
 								],
@@ -7667,7 +8614,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "46a6472d-b599-47b2-bf12-c7fc014f0d46",
+								"id": "13db5873-831c-4a48-a597-6b5f1f3ed749",
 								"exec": [
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									"",
@@ -7714,7 +8661,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "c0c916b2-241e-45e5-be05-775e734a0beb",
+								"id": "80858d1c-c8b8-4396-919c-d21b30c3616a",
 								"exec": [
 									"tests[\"Status code is 204\"] = responseCode.code === 204;"
 								],
@@ -7762,7 +8709,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "2bd15bb5-95ad-44b3-b3a4-6a3d53e84803",
+								"id": "2cd6cb17-32cf-4cf6-9c83-0fff9ed1d43b",
 								"type": "text/javascript",
 								"exec": [
 									"tests[\"Status code is 201\"] = responseCode.code === 201;",
@@ -7816,7 +8763,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "7c3af738-ac81-40e5-a920-246f83275245",
+								"id": "b9f728fb-9841-4db1-83b3-600255ccb6f0",
 								"type": "text/javascript",
 								"exec": [
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
@@ -7858,7 +8805,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "840ea46e-e555-4c21-bafd-3d1e41d9e869",
+								"id": "7699f159-cc79-48fb-a138-122becf12f95",
 								"type": "text/javascript",
 								"exec": [
 									"tests[\"Status code is 204\"] = responseCode.code === 204;"
@@ -7905,7 +8852,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "17164f97-89ed-447c-b596-4e6e8d98ea50",
+								"id": "81111aed-a486-4f65-ae46-cdc28e271a19",
 								"type": "text/javascript",
 								"exec": [
 									"tests[\"Status code is 204\"] = responseCode.code === 204;",
@@ -7951,7 +8898,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "4ab9f7e5-d01f-419c-aa81-230f5fc26e51",
+								"id": "29860bd0-56e6-499b-82b3-339a32107aa7",
 								"exec": [
 									"tests[\"Status code is 204\"] = responseCode.code === 204;"
 								],
@@ -7997,7 +8944,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "b4d6c6cc-838f-4833-9af3-e607de55d271",
+								"id": "8a317ba8-d15c-4295-9940-f3064efcbc97",
 								"exec": [
 									"tests[\"Status code is 204\"] = responseCode.code === 204;",
 									""
@@ -8045,7 +8992,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "c6a75a0d-90ed-4311-8e69-710ce184d7be",
+								"id": "a248fbb3-33d3-420d-8175-21c328f18c65",
 								"exec": [
 									"tests[\"Status code is 202\"] = responseCode.code === 202;",
 									""
@@ -8092,7 +9039,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "d6011c0d-d636-45eb-bf9e-ba8cace0ac53",
+								"id": "fa392c04-b4eb-4826-8317-76859526f4f4",
 								"exec": [
 									"tests[\"Status code is 202\"] = responseCode.code === 202;",
 									""
@@ -8139,7 +9086,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "8e995dd0-1e3e-44f8-b7c4-05ac7d248696",
+								"id": "02a8efa8-b68e-4568-bf42-d22a6ebc5151",
 								"exec": [
 									"tests[\"Status code is 204\"] = responseCode.code === 204;"
 								],
@@ -8184,7 +9131,7 @@
 				{
 					"listen": "prerequest",
 					"script": {
-						"id": "c6fae7ad-d656-446e-9267-7c5dabaebcf4",
+						"id": "c8055b18-0a0d-42b7-b338-ba7b6f14b708",
 						"type": "text/javascript",
 						"exec": [
 							""
@@ -8194,7 +9141,7 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "4e1fa40b-9467-48e9-94d3-5bca99c972f8",
+						"id": "3997a8a4-872d-4f64-b7ba-a2013c0b7f1a",
 						"type": "text/javascript",
 						"exec": [
 							""
@@ -8213,7 +9160,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "e439f58c-d723-4f7c-a859-77633f157d36",
+								"id": "cf0e3315-3f92-49e2-954e-205414854312",
 								"exec": [
 									"tests[\"Status code is 201\"] = responseCode.code === 201;",
 									"",
@@ -8258,7 +9205,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "33a614a6-05f2-48eb-9eab-421d5752d659",
+								"id": "7818c973-9c74-44b4-8403-f70c0a54a3a0",
 								"exec": [
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									"",
@@ -8307,7 +9254,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "df1a8f93-af78-4f6a-bc3e-586d7d8eca91",
+								"id": "f5f8dfc9-d6a2-4f77-8943-5aacdc45f976",
 								"exec": [
 									"tests[\"Status code is 201\"] = responseCode.code === 201;",
 									"",
@@ -8359,7 +9306,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "6541819d-54b2-4b52-818a-dbde3b53d6a0",
+								"id": "8a526f14-e6fd-48f4-bf7d-8dd0044292df",
 								"exec": [
 									"tests[\"Status code is 201\"] = responseCode.code === 201;",
 									"",
@@ -8411,7 +9358,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "b180d29e-20bb-44da-88c7-09c886513b8e",
+								"id": "d31a0c60-7fa5-48f6-adef-49566305eecc",
 								"exec": [
 									"tests[\"Status code is 201\"] = responseCode.code === 201;",
 									"",
@@ -8462,7 +9409,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "0baff3e2-13a8-43bc-86c8-bfb26fb79369",
+								"id": "d64afc8b-2f69-4db8-9aa3-a1dc5231fa1e",
 								"exec": [
 									"tests[\"Status code is 201\"] = responseCode.code === 201;",
 									"",
@@ -8514,7 +9461,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "da43ba1a-9d69-49c1-8502-d5f141ddf485",
+								"id": "d8b349d0-7044-462e-a86d-af666a9b83cc",
 								"exec": [
 									"tests[\"Status code is 201\"] = responseCode.code === 201;",
 									"",
@@ -8565,7 +9512,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "ee9b7cc7-cbd1-4218-8cea-097c9695a1da",
+								"id": "de007589-2714-48d2-9b8d-2f128a625b13",
 								"exec": [
 									"tests[\"Status code is 201\"] = responseCode.code === 201;"
 								],
@@ -8612,7 +9559,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "faaa3b3d-d96c-47b4-9936-d2d9d0ad259f",
+								"id": "b9a99398-4272-4c06-98f2-8bdfe99d2745",
 								"exec": [
 									"tests[\"Status code is 500\"] = responseCode.code === 500;",
 									"",
@@ -8659,7 +9606,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "12961f5a-6f29-45b1-bd4d-aef886fce8d6",
+								"id": "d41dfa27-269f-4ed7-abd7-382342dbf467",
 								"exec": [
 									"tests[\"Status code is 204\"] = responseCode.code === 204;"
 								],
@@ -8706,7 +9653,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "e7d808b3-2e41-47e9-809f-a80d4e2a8346",
+								"id": "83b6b916-71bd-4224-ba5b-89e7a3dbbc78",
 								"exec": [
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									"",
@@ -8761,7 +9708,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "b313efcb-875a-4bcd-9dad-9fe6cca64c55",
+								"id": "b533e8b7-9932-4222-bbb2-abef82ff5ed2",
 								"exec": [
 									"tests[\"Status code is 500\"] = responseCode.code === 500;"
 								],
@@ -8808,7 +9755,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "6624f9f3-3670-498d-a264-71e3e8325b8c",
+								"id": "3b4a9f11-7441-4bf1-9433-7c952b7cf5c8",
 								"exec": [
 									"tests[\"Status code is 204\"] = responseCode.code === 204;"
 								],
@@ -8860,7 +9807,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "feda96a9-f5f8-4490-a76f-06a98569c64d",
+								"id": "7be2afb1-654c-4291-874d-8f74f6b7353d",
 								"exec": [
 									"tests[\"Status code is 204\"] = responseCode.code === 204;"
 								],
@@ -8906,7 +9853,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "b4d680fc-71eb-4d20-b814-8ee86eb551a1",
+								"id": "4da506c1-075e-48fe-8343-e1148f2fe81a",
 								"exec": [
 									"tests[\"Status code is 204\"] = responseCode.code === 204;",
 									""
@@ -8954,7 +9901,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "512022cb-4894-4619-b6dc-07bcb9737abf",
+								"id": "4d6db5c2-8c91-42a6-9402-7682501319a4",
 								"exec": [
 									"tests[\"Status code is 202\"] = responseCode.code === 202;",
 									""
@@ -9001,7 +9948,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "9ac9bb01-6254-4dd8-b2a8-7dd7e0f9bf41",
+								"id": "8ddbaa8b-09a5-47d3-ae0e-a6c5fa9aaa3c",
 								"exec": [
 									"tests[\"Status code is 202\"] = responseCode.code === 202;",
 									""
@@ -9048,7 +9995,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "7a83bf0b-8d34-446f-9b8b-46d5aa8c5cf0",
+								"id": "794546a2-8800-4f87-8971-46ad9b34e787",
 								"exec": [
 									"tests[\"Status code is 204\"] = responseCode.code === 204;"
 								],
@@ -9093,7 +10040,7 @@
 				{
 					"listen": "prerequest",
 					"script": {
-						"id": "6637a496-326d-4dbb-9d5a-15475c864eb0",
+						"id": "9ee51335-2793-4602-b0c1-3bcbde6f105e",
 						"type": "text/javascript",
 						"exec": [
 							""
@@ -9103,7 +10050,7 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "2b647281-39d5-4ad7-b491-545a2cf0000c",
+						"id": "9de857b1-0a46-4c90-951c-2f2b0da00eda",
 						"type": "text/javascript",
 						"exec": [
 							""
@@ -9122,7 +10069,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "b16015c3-4d06-4dd3-8063-89c795d12ca6",
+								"id": "fb4efabe-3521-4dad-8857-93d7e024123d",
 								"exec": [
 									"tests[\"Status code is 201\"] = responseCode.code === 201;",
 									"",
@@ -9167,7 +10114,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "19c2259d-5f54-438d-b289-567bfadc4728",
+								"id": "1d2c528b-493a-409a-b8fb-4514d21a5588",
 								"exec": [
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									"",
@@ -9216,7 +10163,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "f4f47f13-c1e3-496a-85a9-5f0e778df091",
+								"id": "1b6eaced-2c2e-45b0-9dfd-c86792904e17",
 								"exec": [
 									"tests[\"Status code is 201\"] = responseCode.code === 201;",
 									"",
@@ -9268,7 +10215,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "b1c2054e-29db-4015-9538-16b90cd9d800",
+								"id": "849efc09-ebaf-4798-81bf-3848c6b619be",
 								"exec": [
 									"tests[\"Status code is 201\"] = responseCode.code === 201;",
 									"",
@@ -9320,7 +10267,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "6db0aab0-bc03-42e3-a048-5881a4ef2c4c",
+								"id": "5e853bd0-2455-45fb-9b1c-2d2253ce0b55",
 								"exec": [
 									"tests[\"Status code is 201\"] = responseCode.code === 201;",
 									"",
@@ -9370,7 +10317,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "f66b120b-a9f9-46cb-8b66-2f28de03c88f",
+								"id": "6ab80f20-b78f-4b95-8af5-dfe16d4241b4",
 								"exec": [
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									"",
@@ -9428,7 +10375,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "e41c1e31-e63a-4f13-b46d-ca6887898cb9",
+								"id": "7990d42c-c318-4d5b-90ac-773ce61cf8b6",
 								"exec": [
 									"tests[\"Status code is 204\"] = responseCode.code === 204;"
 								],
@@ -9474,7 +10421,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "4914d13c-d581-4be4-a77e-e3ae2ab5eacf",
+								"id": "96223e37-2f74-44b5-be71-043cef4419d2",
 								"exec": [
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									"",
@@ -9524,7 +10471,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "d5595306-6abd-4253-a323-158730fab25c",
+								"id": "e989b2d4-fe04-4380-86b4-c5bce133d9bb",
 								"exec": [
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									"",
@@ -9584,7 +10531,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "5da7dfa8-72fb-4f7a-8a89-a5dd26484bac",
+								"id": "c6ed0380-f502-4788-8258-0e4ff9962ddd",
 								"exec": [
 									"tests[\"Status code is 204\"] = responseCode.code === 400;",
 									"",
@@ -9637,7 +10584,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "9ea185b1-ffcf-40e6-8557-50ce8f7ee988",
+								"id": "a1755f6d-d81a-4ec4-93dc-15274f7b3f79",
 								"exec": [
 									"tests[\"Status code is 204\"] = responseCode.code === 204;"
 								],
@@ -9686,7 +10633,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "9aca008c-18a2-4541-a639-ea5383a3bde2",
+								"id": "7452c077-bad7-407d-a092-c07761c3e472",
 								"exec": [
 									"tests[\"Status code is 204\"] = responseCode.code === 204;"
 								],
@@ -9733,7 +10680,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "41306bdb-21ba-47d5-a849-764bbe102c80",
+								"id": "f63bd3be-2641-4600-9a62-9061c1b5c4d7",
 								"exec": [
 									"tests[\"Status code is 204\"] = responseCode.code === 204;"
 								],
@@ -9780,7 +10727,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "c846b4ff-e8f0-4de8-92d2-82c2d2c05d58",
+								"id": "8f8cd4c9-0572-4b0d-a879-d22f377d7772",
 								"exec": [
 									"tests[\"Status code is 200\"] = responseCode.code === 200;"
 								],
@@ -9824,7 +10771,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "e1e68b9b-ec4b-40e7-b3d6-3388fffa1afb",
+								"id": "88b2bbe2-1382-41f3-94ae-fa3edcf4e2f6",
 								"exec": [
 									"tests[\"Status code is 200\"] = responseCode.code === 200;"
 								],
@@ -9868,7 +10815,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "c6f96ad8-fd9b-442a-b1f6-461ebee6c595",
+								"id": "6d53af72-7fba-4b01-883a-48f986d133f3",
 								"exec": [
 									"tests[\"Status code is 202\"] = responseCode.code === 202;",
 									""
@@ -9915,7 +10862,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "da4e4076-4c47-42ee-b205-78004c44ebfa",
+								"id": "318ded69-278a-4286-bb00-3eb5ed534c04",
 								"exec": [
 									"tests[\"Status code is 202\"] = responseCode.code === 202;"
 								],
@@ -9961,7 +10908,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "9de5b2d0-ab01-42b3-a208-db4535e1bb14",
+								"id": "4e619185-3fcf-4f1e-af2f-f2dded68bdb9",
 								"exec": [
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									"",
@@ -10019,7 +10966,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "a5c245bc-27be-45fa-91dc-fcc60bd4425f",
+								"id": "28fe2899-02a8-4376-8029-806328b8dd39",
 								"exec": [
 									"tests[\"Status code is 204\"] = responseCode.code === 204;"
 								],
@@ -10064,7 +11011,7 @@
 				{
 					"listen": "prerequest",
 					"script": {
-						"id": "e6b8f4f7-0527-479c-8f1d-3c79064e509a",
+						"id": "dd4c52ab-13a4-4d44-b1e3-4bed428cd781",
 						"type": "text/javascript",
 						"exec": [
 							""
@@ -10074,7 +11021,7 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "f1d48267-58bc-43ee-9dfd-f0fc7fd981cf",
+						"id": "6417c931-5c77-4c3d-9743-cdeb36dc4a32",
 						"type": "text/javascript",
 						"exec": [
 							""
@@ -10093,7 +11040,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "7bc2b1c3-b594-4850-9dee-072696511b96",
+								"id": "6038a273-df82-4c0a-a185-a3dc24ed3259",
 								"exec": [
 									"tests[\"Status code is 201\"] = responseCode.code === 201;",
 									"",
@@ -10138,7 +11085,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "70521c1a-6dfc-4bd1-8bcf-0bcdc0f93a32",
+								"id": "8d426338-0f71-4539-ab4a-62296386d84b",
 								"exec": [
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									"",
@@ -10187,7 +11134,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "371d507b-5901-4d00-a7eb-69389953590d",
+								"id": "2f501915-e4f5-4e9b-96df-95a74c8437c4",
 								"exec": [
 									"tests[\"Status code is 201\"] = responseCode.code === 201;",
 									"",
@@ -10239,7 +11186,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "7618289c-9a94-45d7-8434-f14af4d5d521",
+								"id": "d8e3540a-8875-4158-b60e-1afe1044fb7d",
 								"exec": [
 									"tests[\"Status code is 204\"] = responseCode.code === 204;"
 								],
@@ -10285,7 +11232,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "775c75c3-9ec4-4ed8-b671-9fb061c1b2c7",
+								"id": "68dd5e8b-f285-447b-b813-b88563077143",
 								"exec": [
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									"",
@@ -10330,7 +11277,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "5ee4871a-bab9-41ab-9f1d-b6a18a9683e7",
+								"id": "f862ab5f-9591-4a3d-8253-83a4ae98bb70",
 								"exec": [
 									"tests[\"Status code is 204\"] = responseCode.code === 204;"
 								],
@@ -10376,7 +11323,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "9210bf4c-234e-4c7b-af7f-4a17c87918c1",
+								"id": "b5207376-e37e-4d6a-ab28-d860afd5f9a9",
 								"exec": [
 									"tests[\"Status code is 204\"] = responseCode.code === 204;"
 								],
@@ -10421,7 +11368,7 @@
 				{
 					"listen": "prerequest",
 					"script": {
-						"id": "bd509de2-5653-491c-b883-d43df6630842",
+						"id": "3ff51a75-7e51-43fc-acb5-0b811d10bc8c",
 						"type": "text/javascript",
 						"exec": [
 							""
@@ -10431,7 +11378,7 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "41499ee4-60dd-4cd4-b725-17bc5bc63d0c",
+						"id": "7dd9a40a-5e67-4948-a69f-2860b69fc8d9",
 						"type": "text/javascript",
 						"exec": [
 							""
@@ -10446,7 +11393,7 @@
 		{
 			"listen": "prerequest",
 			"script": {
-				"id": "c4ed8b9e-a159-4b1e-a482-a842ec34adc6",
+				"id": "5a659552-a7e6-41f6-aa61-258476f155f6",
 				"type": "text/javascript",
 				"exec": [
 					""
@@ -10456,7 +11403,7 @@
 		{
 			"listen": "test",
 			"script": {
-				"id": "10181ac6-508f-41b7-b303-95e00e68375b",
+				"id": "0c99d5de-b103-484d-9a07-85502bda93cf",
 				"type": "text/javascript",
 				"exec": [
 					""
