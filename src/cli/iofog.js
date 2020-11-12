@@ -269,7 +269,7 @@ class IOFog extends BaseCLIHandler {
         group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
-        name: 'disk-threshold',
+        name: 'available-disk-threshold',
         alias: 'k',
         type: CliDataTypes.Integer,
         description: 'ioFog node available disk threshold (%)',
