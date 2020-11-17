@@ -28,7 +28,7 @@ const { renderFile } = require('ejs')
 const xss = require('xss-clean')
 const packageJson = require('../package')
 
-const { rvaluesVarSubstition } = require('./helpers/template-helper')
+const { rvaluesVarSubstitionMiddleware } = require('./helpers/template-helper')
 const viewerApp = express()
 
 const app = express()
@@ -81,10 +81,7 @@ app.use((req, res, next) => {
 
 // TODO: Template expansion for not for all
 app.use((req, res, next) => {
-  if (['POST', 'PUT'].indexOf(req.method) > -1) {
-    rvaluesVarSubstition(req.body, { self: req.body })
-  }
-  next()
+  rvaluesVarSubstitionMiddleware(req, res, next)
 })
 
 global.appRoot = path.resolve(__dirname)
