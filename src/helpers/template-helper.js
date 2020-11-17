@@ -11,12 +11,20 @@
  * Author: Franck Roudet
  */
 
-const ApplicationController = require('../controllers/application-controller')
+const MicroservicesController = require('../controllers/microservices-controller')
+const FogController = require('../controllers/iofog-controller')
 const logger = require('../logger')
 
 // ninja2 like template engine
 const { Liquid } = require('liquidjs')
 const templateEngine = new Liquid()
+
+// microservice | findAgent: agent
+templateEngine.registerFilter('findAgent', (microservice, agents) => {
+  logger.warn('search agent for %s %j', microservice.iofogUuid, agents)
+  let targetAgent = agents.find (agent => agent.uuid === microservice.iofogUuid)
+  return targetAgent
+})
 
 /**
   * Object in depth traversal and right value templateEngine rendering
@@ -76,14 +84,18 @@ function toValue (val) {
 const rvaluesVarSubstitionMiddleware = async (req, res, next) => {
   if (['POST', 'PUT'].indexOf(req.method) > -1) {
     const token = req.headers.authorization
-    let appEndpoint
+    let msvcEndpoint
+    let iofogListEndPoint
     if (token) {
-      appEndpoint = await ApplicationController.getApplicationsByUserEndPoint(req)
-      appEndpoint = appEndpoint.applications
+      msvcEndpoint = await MicroservicesController.getMicroservicesByApplicationEndPoint(req)
+      msvcEndpoint = msvcEndpoint.microservices
+      iofogListEndPoint = await FogController.getFogListEndPoint(req)
+      iofogListEndPoint = iofogListEndPoint.fogs
     }
     let tmplContext = {
       self: req.body,
-      applications: appEndpoint
+      microservices: msvcEndpoint,
+      iofogs: iofogListEndPoint
     }
     rvaluesVarSubstition(req.body, tmplContext)
   }
