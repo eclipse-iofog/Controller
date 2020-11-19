@@ -49,10 +49,14 @@ const rvaluesVarSubstitionMiddleware = async (req, res, next) => {
     let msvcEndpoint
     let iofogListEndPoint
     if (token) {
-      msvcEndpoint = await MicroservicesController.getMicroservicesByApplicationEndPoint(req)
-      msvcEndpoint = msvcEndpoint.microservices
-      iofogListEndPoint = await FogController.getFogListEndPoint(req)
-      iofogListEndPoint = iofogListEndPoint.fogs
+      try {
+        msvcEndpoint = await MicroservicesController.getMicroservicesByApplicationEndPoint(req)
+        msvcEndpoint = msvcEndpoint.microservices
+        iofogListEndPoint = await FogController.getFogListEndPoint(req)
+        iofogListEndPoint = iofogListEndPoint.fogs
+      } catch (e) {
+        // Nothing to do, suppose the token has no permission to access. The is the case of agent
+      }
     }
     let tmplContext = {
       self: req.body,
