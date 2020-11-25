@@ -42,11 +42,12 @@ const TrackingDecorator = require('../decorators/tracking-decorator')
 const TrackingEventType = require('../enums/tracking-event-type')
 const TrackingEventManager = require('../data/managers/tracking-event-manager')
 const RouterManager = require('../data/managers/router-manager')
+const EdgeResourceService = require('./edge-resource-service')
 
 const IncomingForm = formidable.IncomingForm
 
 const CHANGE_TRACKING_DEFAULT = {}
-const CHANGE_TRACKING_KEYS = ['config', 'version', 'reboot', 'deleteNode', 'microserviceList', 'microserviceConfig', 'routing', 'registries', 'tunnel', 'diagnostics', 'isImageSnapshot', 'prune', 'routerChanged']
+const CHANGE_TRACKING_KEYS = ['config', 'version', 'reboot', 'deleteNode', 'microserviceList', 'microserviceConfig', 'routing', 'registries', 'tunnel', 'diagnostics', 'isImageSnapshot', 'prune', 'routerChanged', 'linkedEdgeResources']
 for (const key of CHANGE_TRACKING_KEYS) {
   CHANGE_TRACKING_DEFAULT[key] = false
 }
@@ -323,6 +324,29 @@ const getAgentMicroservices = async function (fog, transaction) {
   }
 }
 
+const getAgentLinkedEdgeResources = async function (fog, transaction) {
+  const edgeResources = []
+  const resourceAttributes = [
+    'id',
+    'interfaceId',
+    'name',
+    'version',
+    'description',
+    'interfaceProtocol',
+    'displayName',
+    'displayIcon',
+    'displayColor'
+  ]
+  const resources = await fog.getEdgeResources({ attributes: resourceAttributes })
+  for (const resource of resources) {
+    const intrface = await EdgeResourceService.getInterface(resource, transaction)
+    // Transform Sequelize objects into plain JSON objects
+    const resourceObject = { ...resource.toJSON(), interface: intrface.toJSON() }
+    edgeResources.push(EdgeResourceService.buildGetObject(resourceObject))
+  }
+  return edgeResources
+}
+
 const getAgentMicroservice = async function (microserviceUuid, fog, transaction) {
   const microservice = await MicroserviceManager.findOneWithDependencies({
     uuid: microserviceUuid,
@@ -572,5 +596,6 @@ module.exports = {
   deleteNode: TransactionDecorator.generateTransaction(deleteNode),
   getImageSnapshot: TransactionDecorator.generateTransaction(getImageSnapshot),
   putImageSnapshot: TransactionDecorator.generateTransaction(putImageSnapshot),
-  postTracking: TransactionDecorator.generateTransaction(postTracking)
+  postTracking: TransactionDecorator.generateTransaction(postTracking),
+  getAgentLinkedEdgeResources: TransactionDecorator.generateTransaction(getAgentLinkedEdgeResources)
 }

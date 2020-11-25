@@ -195,6 +195,7 @@ describe('ioFog Service', () => {
       $sandbox.stub(RouterService, 'createRouterForFog').returns($findOneRouterResponse)
       $sandbox.stub(ioFogManager, 'update').returns($createIoFogResponse)
       $sandbox.stub(ioFogManager, 'findOne').returns(Promise.resolve())
+      $sandbox.stub(ioFogManager, 'findOneWithTags').returns(Promise.resolve())
 
       $sandbox.stub(Date, 'now').returns($dateResponse)
     })
@@ -482,7 +483,7 @@ describe('ioFog Service', () => {
       availableDiskThreshold: 10,
       logLevel: 'INFO',
       isSystem: true,
-      host: '5.6.7.8'
+      host: '5.6.7.8',
     }
 
     const oldFog = {
@@ -543,7 +544,7 @@ describe('ioFog Service', () => {
       availableDiskThreshold: 10,
       logLevel: 'INFO',
       isSystem: fogData.isSystem,
-      host: fogData.host
+      host: fogData.host,
     }
 
     const halItem = {
@@ -623,6 +624,9 @@ describe('ioFog Service', () => {
       $sandbox.stub(Validator, 'validate').returns($validatorResponse)
       $sandbox.stub(AppHelper, 'deleteUndefinedFields').returns($deleteUndefinedFieldsResponse)
       $sandbox.stub(ioFogManager, 'findOne')
+          .withArgs({ uuid: uuid }).returns($findIoFogResponse)
+          .withArgs({ name: 'new-name', uuid: { [Op.not]: 'testUuid' }, userId: user.id }).returns(Promise.resolve())
+      $sandbox.stub(ioFogManager, 'findOneWithTags')
           .withArgs({ uuid: uuid }).returns($findIoFogResponse)
           .withArgs({ name: 'new-name', uuid: { [Op.not]: 'testUuid' }, userId: user.id }).returns(Promise.resolve())
       $sandbox.stub(ioFogManager, 'update').returns($updateIoFogResponse)
@@ -891,6 +895,7 @@ describe('ioFog Service', () => {
                 def('findConnectedRoutersResponse', () => Promise.resolve([]))
                 beforeEach(() => {
                   $sandbox.stub(ioFogManager, 'findAll').returns($findConnectedRoutersResponse)
+                  $sandbox.stub(ioFogManager, 'findAllWithTags').returns($findConnectedRoutersResponse)
                 })
                 it('should delete previous router', async () => {
                   await $subject
@@ -1048,6 +1053,7 @@ describe('ioFog Service', () => {
       // _deleteFogRouter is tested in update fog (with new router mode set to none)
       $sandbox.stub(Validator, 'validate').returns($validatorResponse)
       $sandbox.stub(ioFogManager, 'findOne').returns($findIoFogResponse)
+      $sandbox.stub(ioFogManager, 'findOneWithTags').returns($findIoFogResponse)
       $sandbox.stub(ioFogManager, 'delete')
       $sandbox.stub(ChangeTrackingService, 'update').returns($updateChangeTrackingResponse)
       const findRouterStub = $sandbox.stub(RouterManager, 'findOne').returns($findOneRouterResponse)
@@ -1058,6 +1064,7 @@ describe('ioFog Service', () => {
       $sandbox.stub(MicroserviceManager, 'delete')
       $sandbox.stub(MicroserviceManager, 'findAll').returns(Promise.resolve([]))
       $sandbox.stub(ioFogManager, 'findAll').returns(Promise.resolve([]))
+      $sandbox.stub(ioFogManager, 'findAllWithTags').returns(Promise.resolve([]))
     })
 
     it('calls Validator#validate() with correct args', async () => {
@@ -1199,7 +1206,10 @@ describe('ioFog Service', () => {
       watchdogEnabled: false,
       abstractedHardwareEnabled: false,
       fogType: 1,
-      userId: user.id
+      userId: user.id,
+      routerMode: 'none',
+      edgeResources: [],
+      tags: []
     }
 
     const queryFogData = { uuid: fogData.uuid }
@@ -1212,13 +1222,14 @@ describe('ioFog Service', () => {
 
     def('subject', () => $subject.getFog(fogData, user, isCLI, transaction))
     def('validatorResponse', () => Promise.resolve(true))
-    def('findIoFogResponse', () => Promise.resolve({...fog, getRouter: () => Promise.resolve(null), toJSON: () => fog}))
+    def('findIoFogResponse', () => Promise.resolve({...fog, getRouter: () => Promise.resolve(null), toJSON: () => fog, getEdgeResources: () => Promise.resolve([])}))
     def('findOneRouterResponse', () => Promise.resolve(null))
     def('defaultRouterResponse', () => Promise.resolve(defaultRouter))
 
     beforeEach(() => {
       $sandbox.stub(Validator, 'validate').returns($validatorResponse)
       $sandbox.stub(ioFogManager, 'findOne').returns($findIoFogResponse)
+      $sandbox.stub(ioFogManager, 'findOneWithTags').returns($findIoFogResponse)
       const stub = $sandbox.stub(RouterManager, 'findOne').returns($findOneRouterResponse)
       stub.withArgs({isDefault: true}).returns($defaultRouterResponse)
     })
@@ -1237,10 +1248,10 @@ describe('ioFog Service', () => {
     })
 
     context('when Validator#validate() succeeds', () => {
-      it('calls ioFogManager#findOne() with correct args', async () => {
+      it('calls ioFogManager#findOneWithTags() with correct args', async () => {
         await $subject
 
-        expect(ioFogManager.findOne).to.have.been.calledWith(queryFogData, transaction)
+        expect(ioFogManager.findOneWithTags).to.have.been.calledWith(queryFogData, transaction)
       })
 
       context('when ioFogManager#findOne() fails', () => {
@@ -1262,7 +1273,7 @@ describe('ioFog Service', () => {
             messagingPort: 1234,
             id: 42
           }
-          def('findIoFogResponse', () => Promise.resolve({...fog, getRouter: () => Promise.resolve(router), toJSON: () => fog}))
+          def('findIoFogResponse', () => Promise.resolve({...fog, getRouter: () => Promise.resolve(router), getEdgeResources: () => Promise.resolve([]), toJSON: () => fog}))
           def('findRouterConnectionsResponse', () => Promise.resolve([]))
           beforeEach(() => {
             $sandbox.stub(RouterConnectionManager, 'findAllWithRouters').returns($findRouterConnectionsResponse)
@@ -1292,7 +1303,7 @@ describe('ioFog Service', () => {
               edgeRouterPort: 7890,
               id: 42
             }
-            def('findIoFogResponse', () => Promise.resolve({...fog, getRouter: () => Promise.resolve(router), toJSON: () => fog}))
+            def('findIoFogResponse', () => Promise.resolve({...fog, getEdgeResources: () => Promise.resolve([]), getRouter: () => Promise.resolve(router), toJSON: () => fog}))
             it('should return router information', () => {
               return expect($subject).to.eventually.deep.equal({...fog, routerMode: 'interior', messagingPort: router.messagingPort, edgeRouterPort: router.edgeRouterPort, interRouterPort: router.interRouterPort, upstreamRouters: []})
             })
@@ -1349,11 +1360,12 @@ describe('ioFog Service', () => {
 
     def('subject', () => $subject.getFogListEndPoint(filters, user, isCLI, isSystem, transaction))
     def('validatorResponse', () => Promise.resolve(true))
-    def('findAllIoFogResponse', () => Promise.resolve(fogs.map(f => ({...f, getRouter: () => Promise.resolve(null), toJSON: () => f}))))
+    def('findAllIoFogResponse', () => Promise.resolve(fogs.map(f => ({...f, getRouter: () => Promise.resolve(null), getEdgeResources: () => Promise.resolve([]), toJSON: () => f}))))
     def('findOneRouterResponse', () => Promise.resolve(null))
 
     beforeEach(() => {
       $sandbox.stub(Validator, 'validate').returns($validatorResponse)
+      $sandbox.stub(ioFogManager, 'findAllWithTags').returns($findAllIoFogResponse)
       $sandbox.stub(ioFogManager, 'findAll').returns($findAllIoFogResponse)
       $sandbox.stub(RouterManager, 'findOne').returns($findOneRouterResponse)
     })
@@ -1372,10 +1384,10 @@ describe('ioFog Service', () => {
     })
 
     context('when Validator#validate() succeeds', () => {
-      it('calls ioFogManager#findAll() with correct args', async () => {
+      it('calls ioFogManager#findAllWithTags() with correct args', async () => {
         await $subject
 
-        expect(ioFogManager.findAll).to.have.been.calledWith(queryFogData, transaction)
+        expect(ioFogManager.findAllWithTags).to.have.been.calledWith(queryFogData, transaction)
       })
 
       context('when ioFogManager#findAll() fails', () => {
@@ -1433,6 +1445,7 @@ describe('ioFog Service', () => {
       $sandbox.stub(Validator, 'validate').returns($validatorResponse)
       $sandbox.stub(AppHelper, 'generateRandomString').returns($generateRandomStringResponse)
       $sandbox.stub(ioFogManager, 'findOne').returns($findIoFogResponse)
+      $sandbox.stub(ioFogManager, 'findOneWithTags').returns($findIoFogResponse)
       $sandbox.stub(ioFogProvisionKeyManager, 'updateOrCreate').returns($updateOrCreateProvisionKeyResponse)
 
       $sandbox.stub(Date.prototype, 'getTime').returns($dateResponse)
@@ -1562,6 +1575,7 @@ describe('ioFog Service', () => {
     beforeEach(() => {
       $sandbox.stub(Validator, 'validate').returns($validatorResponse)
       $sandbox.stub(ioFogManager, 'findOne').returns($findIoFogResponse)
+      $sandbox.stub(ioFogManager, 'findOneWithTags').returns($findIoFogResponse)
       $sandbox.stub(AppHelper, 'generateRandomString').returns($generateRandomStringResponse)
       $sandbox.stub(ioFogProvisionKeyManager, 'updateOrCreate').returns($updateOrCreateProvisionKeyResponse)
       $sandbox.stub(ioFogVersionCommandManager, 'updateOrCreate').returns($findIoFogVersionCommandResponse)
@@ -1731,6 +1745,7 @@ describe('ioFog Service', () => {
     beforeEach(() => {
       $sandbox.stub(Validator, 'validate').returns($validatorResponse)
       $sandbox.stub(ioFogManager, 'findOne').returns($findIoFogResponse)
+      $sandbox.stub(ioFogManager, 'findOneWithTags').returns($findIoFogResponse)
       $sandbox.stub(ChangeTrackingService, 'update').returns($updateChangeTrackingResponse)
     })
 
@@ -1811,6 +1826,7 @@ describe('ioFog Service', () => {
     beforeEach(() => {
       $sandbox.stub(Validator, 'validate').returns($validatorResponse)
       $sandbox.stub(ioFogManager, 'findOne').returns($findIoFogResponse)
+      $sandbox.stub(ioFogManager, 'findOneWithTags').returns($findIoFogResponse)
       $sandbox.stub(HWInfoManager, 'findOne').returns($findHalHardwareResponse)
     })
 
@@ -1894,6 +1910,7 @@ describe('ioFog Service', () => {
     beforeEach(() => {
       $sandbox.stub(Validator, 'validate').returns($validatorResponse)
       $sandbox.stub(ioFogManager, 'findOne').returns($findIoFogResponse)
+      $sandbox.stub(ioFogManager, 'findOneWithTags').returns($findIoFogResponse)
       $sandbox.stub(USBInfoManager, 'findOne').returns($findHalUsbResponse)
     })
 

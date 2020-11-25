@@ -44,6 +44,10 @@ const iofogCreate = {
     'interRouterPort': { 'type': 'integer', 'minimum': 1, 'maximum': 65535 },
     'edgeRouterPort': { 'type': 'integer', 'minimum': 1, 'maximum': 65535 },
     'host': { 'type': 'string' },
+    'tags': {
+      'type': 'array',
+      'items': { '$ref': '/iofogTag' }
+    },
     'upstreamRouters': {
       'type': 'array',
       'items': { 'type': 'string', 'minLength': 1 }
@@ -104,6 +108,10 @@ const iofogUpdate = {
     'upstreamRouters': {
       'type': 'array',
       'items': { 'type': 'string', 'minLength': 1 }
+    },
+    'tags': {
+      'type': 'array',
+      'items': { '$ref': '/iofogTag' }
     },
     'networkRouter': { 'type': 'string', 'minLength': 1 }
   },
@@ -227,9 +235,14 @@ const defaultRouterCreate = {
   'additionalProperties': true
 }
 
+const iofogTag = {
+  'id': '/iofogTag',
+  'type': 'string'
+}
+
 module.exports = {
   mainSchemas: [iofogCreate, iofogUpdate, iofogDelete,
     iofogGet, iofogGenerateProvision, iofogSetVersionCommand,
-    iofogReboot, iofogFilters, halGet, iofogPrune, defaultRouterCreate],
-  innerSchemas: [filter]
+    iofogReboot, iofogFilters, halGet, iofogPrune, defaultRouterCreate, iofogTag],
+  innerSchemas: [filter, iofogTag]
 }

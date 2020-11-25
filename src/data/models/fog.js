@@ -344,6 +344,9 @@ module.exports = (sequelize, DataTypes) => {
       foreignKey: 'iofog_uuid',
       as: 'router'
     })
+
+    Fog.belongsToMany(models.Tags, { through: 'IofogTags', as: 'tags' })
+    Fog.belongsToMany(models.EdgeResource, { through: 'AgentEdgeResources', as: 'edgeResources' })
   }
 
   return Fog
