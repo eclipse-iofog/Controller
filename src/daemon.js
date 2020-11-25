@@ -13,11 +13,12 @@
 
 const daemonize = require('daemonize2')
 const logger = require('./logger')
+const path = require('path')
 
 const daemon = daemonize.setup({
   main: 'server.js',
   name: 'iofog-controller',
-  pidfile: 'iofog-controller.pid',
+  pidfile: path.join(process.env.PID_BASE || __dirname, 'iofog-controller.pid'),
   argv: [ ...process.argv.slice(2), 'daemonize2' ],
   silent: true
 })
