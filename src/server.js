@@ -198,7 +198,8 @@ const initState = async () => {
     // Store PID to let deamon know we are running.
     jobs.push({
       run: () => {
-        const pidFile = path.join(__dirname, 'iofog-controller.pid')
+        const pidFile = path.join((process.env.PID_BASE || __dirname), 'iofog-controller.pid')
+        logger.info(`==> PID file: ${pidFile}`)
         fs.writeFileSync(pidFile, process.pid)
       }
     })
