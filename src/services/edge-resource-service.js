@@ -194,7 +194,13 @@ async function updateEdgeResourceEndpoint (edgeResourceData, { name: oldName, ve
   await Validator.validate(edgeResourceData, Validator.schemas.edgeResourceUpdate)
   const oldData = await EdgeResourceManager.findOne({ name: oldName, version, userId: user.id }, transaction)
   if (!oldData) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.NOT_FOUND_RESOURCE_NAME_VERSION, oldName, version))
+    if (!edgeResourceData.name) {
+      edgeResourceData.name = oldName
+    }
+    if (!edgeResourceData.version) {
+      edgeResourceData.version = version
+    }
+    return createEdgeResource(edgeResourceData, user, transaction)
   }
   if (edgeResourceData.version && oldData.version !== edgeResourceData.version) {
     throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.RESOURCE_UPDATE_VERSION_MISMATCH))

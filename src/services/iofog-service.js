@@ -460,7 +460,13 @@ async function _getFogExtraInformation (fog, transaction) {
   if (fog.toJSON && typeof fog.toJSON === 'function') {
     fog = fog.toJSON()
   }
-  return { ...fog, ...routerConfig, edgeResources }
+  return { ...fog, tags: _mapTags(fog), ...routerConfig, edgeResources }
+}
+
+// Map tags to string array
+// Return plain JS object
+function _mapTags (fog) {
+  return fog.tags ? fog.tags.map(t => t.value) : []
 }
 
 async function getFog (fogData, user, isCLI, transaction) {
@@ -502,7 +508,7 @@ async function getFogListEndPoint (filters, user, isCLI, isSystem, transaction) 
   // Get router config info for all fogs
   fogs = await Promise.all(fogs.map(async (fog) => _getFogExtraInformation(fog, transaction)))
   return {
-    fogs: fogs.map(_mapTags)
+    fogs: fogs.map(_getFogExtraInformation)
   }
 }
 
