@@ -508,7 +508,7 @@ async function getFogListEndPoint (filters, user, isCLI, isSystem, transaction) 
   // Get router config info for all fogs
   fogs = await Promise.all(fogs.map(async (fog) => _getFogExtraInformation(fog, transaction)))
   return {
-    fogs: fogs.map(_getFogExtraInformation)
+    fogs
   }
 }
 
