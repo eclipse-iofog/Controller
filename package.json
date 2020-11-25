@@ -1,6 +1,6 @@
 {
   "name": "iofogcontroller",
-  "version": "2.0.0-orange",
+  "version": "2.0.0-dev",
   "description": "ioFog Controller project for Eclipse IoFog @ iofog.org \\nCopyright (c) 2018 Edgeworx, Inc.",
   "main": "./src/main.js",
   "author": "Saeid Baghbidi",
@@ -65,7 +65,7 @@
     "iofog-controller": "src/main.js"
   },
   "dependencies": {
-    "@iofog/ecn-viewer": "1.0.6-orange-edgeresource",
+    "@iofog/ecn-viewer": "1.0.7",
     "@sentry/node": "5.7.1",
     "body-parser": "1.18.3",
     "child_process": "1.0.2",
