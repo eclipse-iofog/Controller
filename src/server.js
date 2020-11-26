@@ -175,7 +175,7 @@ function startHttpsServer (apps, ports, sslKey, sslCert, intermedKey, jobs) {
 }
 
 const devMode = config.get('Server:DevMode')
-const apiPort = config.get('Server:Port')
+const apiPort = +(config.get('Server:Port'))
 const viewerPort = +(process.env.VIEWER_PORT || config.get('Viewer:Port'))
 const sslKey = config.get('Server:SslKey')
 const sslCert = config.get('Server:SslCert')
@@ -204,6 +204,16 @@ const initState = async () => {
       }
     })
   }
+  // Set up controller-config.js for ECN Viewer
+  const ecnViewerControllerConfigFilePath = path.join(__dirname, '..', 'node_modules', '@iofog', 'ecn-viewer', 'build', 'controller-config.js')
+  const ecnViewerControllerConfig = {
+    port: apiPort,
+    user: {}
+  }
+  const ecnViewerConfigScript = `
+    window.controllerConfig = ${JSON.stringify(ecnViewerControllerConfig)}
+  `
+  fs.writeFileSync(ecnViewerControllerConfigFilePath, ecnViewerConfigScript)
 }
 
 initState()

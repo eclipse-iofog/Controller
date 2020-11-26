@@ -65,7 +65,7 @@
     "iofog-controller": "src/main.js"
   },
   "dependencies": {
-    "@iofog/ecn-viewer": "1.0.7",
+    "@iofog/ecn-viewer": "1.0.8",
     "@sentry/node": "5.7.1",
     "body-parser": "1.18.3",
     "child_process": "1.0.2",
