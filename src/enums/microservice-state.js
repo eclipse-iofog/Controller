@@ -23,7 +23,11 @@ const microserviceState = {
   RESTARTING: 'RESTARTING',
   STUCK_IN_RESTART: 'STUCK_IN_RESTART',
   UNKNOWN: 'UNKNOWN',
-  FAILED: 'FAILED'
+  FAILED: 'FAILED',
+  DELETED: 'DELETED',
+  EXITING: 'EXITING',
+  STOPPED: 'STOPPED',
+  CREATING: 'CREATING'
 }
 
 module.exports = microserviceState
