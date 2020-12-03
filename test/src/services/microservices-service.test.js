@@ -54,7 +54,8 @@ describe('Microservices Service', () => {
       'operatingDuration': 534535435435,
       'cpuUsage': 35,
       'memoryUsage': 45,
-      'percentage': 50.5
+      'percentage': 50.5,
+      'errorMessage': ''
     }
 
     const uuid = 'testUuid'

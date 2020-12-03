@@ -55,6 +55,11 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.FLOAT,
       defaultValue: 0.00,
       field: 'percentage'
+    },
+    errorMessage: {
+      type: DataTypes.TEXT,
+      defaultValue: '',
+      field: 'error_message'
     }
   }, {
     tableName: 'MicroserviceStatuses',

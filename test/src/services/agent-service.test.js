@@ -483,7 +483,8 @@ describe('Agent Service', () => {
       'operatingDuration': 534535435435,
       'cpuUsage': 35,
       'memoryUsage': 45,
-      'percentage': 50.5
+      'percentage': 50.5,
+      'errorMessage': ''
     }
 
     const microserviceStatusArray = [microserviceStatus]
@@ -669,6 +670,7 @@ describe('Agent Service', () => {
                   microserviceUuid: microserviceStatus.id,
                 }, microserviceStatus, transaction)
                 assert.equal(microserviceStatus.percentage, 50.5)
+                assert.equal(microserviceStatus.errorMessage, '')
               })
 
               context('when MicroserviceStatusManager#update fails', () => {
@@ -709,7 +711,245 @@ describe('Agent Service', () => {
       })
     })
   })
+  describe('.updateAgentStatus() with failure', () => {
+    const microservicesStatus = '[{"containerId":"testContainerId", "status":"RUNNING"' +
+      ',"startTime":5325543453454,"operatingDuration":534535435435,"cpuUsage":35,"memoryUsage":45}]'
 
+    const microserviceStatus = {
+      'containerId': 'testContainerId',
+      'status': 'EXITING',
+      'startTime': 5325543453454,
+      'operatingDuration': 534535435435,
+      'cpuUsage': 35,
+      'memoryUsage': 45,
+      'percentage': 50.5,
+      'errorMessage': 'Error mounting volume'
+    }
+
+    const microserviceStatusArray = [microserviceStatus]
+
+    const fogStatus = {
+      daemonStatus: 'RUNNING',
+      daemonOperatingDuration: 25,
+      daemonLastStart: 15325235253,
+      memoryUsage: 15,
+      diskUsage: 16,
+      cpuUsage: 17,
+      memoryViolation: false,
+      diskViolation: false,
+      cpuViolation: false,
+      systemAvailableDisk: 1,
+      systemAvailableMemory: 1,
+      systemTotalCpu: 1.1,
+      securityStatus: 'OK',
+      securityViolationInfo: '',
+      repositoryCount: 5,
+      repositoryStatus: 'testStatus',
+      systemTime: 15325235253,
+      lastStatusTime: 15325235253,
+      ipAddress: 'testIpAddress',
+      ipAddressExternal: 'testIpAddressExternal',
+      processedMessages: 155,
+      microserviceMessageCounts: 'testMessageCounts',
+      messageSpeed: 255,
+      lastCommandTime: 15325235253,
+      tunnelStatus: 'testTunnelStatus',
+      version: '1.0.0',
+      isReadyToUpgrade: false,
+      isReadyToRollback: false,
+      microserviceStatus: microservicesStatus,
+    }
+
+    const agentStatus = {
+      daemonStatus: 'RUNNING',
+      daemonOperatingDuration: 25,
+      daemonLastStart: 15325235253,
+      memoryUsage: 15,
+      diskUsage: 16,
+      cpuUsage: 17,
+      memoryViolation: false,
+      diskViolation: false,
+      cpuViolation: false,
+      systemAvailableDisk: 1,
+      systemAvailableMemory: 1,
+      systemTotalCpu: 1.1,
+      securityStatus: 'OK',
+      securityViolationInfo: '',
+      repositoryCount: 5,
+      repositoryStatus: 'testStatus',
+      systemTime: 15325235253,
+      lastStatusTime: 15325235253,
+      ipAddress: 'testIpAddress',
+      ipAddressExternal: 'testIpAddressExternal',
+      processedMessages: 155,
+      microserviceMessageCounts: 'testMessageCounts',
+      messageSpeed: 255,
+      lastCommandTime: 15325235253,
+      tunnelStatus: 'testTunnelStatus',
+      version: '1.0.0',
+      isReadyToUpgrade: false,
+      isReadyToRollback: false,
+    }
+
+    const transaction = {}
+    const error = 'Error!'
+
+    def('uuid', () => 'testUuid')
+
+    def('fog', () => ({
+      uuid: $uuid,
+    }))
+
+    def('token', () => 'testToken')
+
+    def('subject', () => $subject.updateAgentStatus(fogStatus, $fog, transaction))
+
+    def('validatorResponse', () => Promise.resolve(true))
+    def('deleteUndefinedFieldsResponse', () => agentStatus)
+    def('deleteUndefinedFieldsResponse2', () => microserviceStatus)
+    def('updateResponse', () => Promise.resolve())
+    def('jsonParseResponse', () => microserviceStatusArray)
+    def('updateMicroserviceStatusesResponse', () => Promise.resolve())
+    def('deleteNotRunningResponse', () => Promise.resolve())
+
+    beforeEach(() => {
+      $sandbox.stub(Validator, 'validate').returns($validatorResponse)
+      $sandbox.stub(AppHelper, 'deleteUndefinedFields')
+          .onFirstCall().returns($deleteUndefinedFieldsResponse)
+          .onSecondCall().returns($deleteUndefinedFieldsResponse2)
+      $sandbox.stub(ioFogManager, 'update').returns($updateResponse)
+      $sandbox.stub(JSON, 'parse').returns($jsonParseResponse)
+      $sandbox.stub(MicroserviceStatusManager, 'update').returns($updateMicroserviceStatusesResponse)
+      $sandbox.stub(MicroserviceService, 'deleteNotRunningMicroservices').returns($deleteNotRunningResponse)
+    })
+
+    it('calls Validator#validate() with correct args', async () => {
+      await $subject
+      expect(Validator.validate).to.have.been.calledWith(fogStatus, Validator.schemas.updateAgentStatus)
+    })
+
+    context('when Validator#validate() fails', () => {
+      def('validatorResponse', () => Promise.reject(error))
+
+      it(`fails with ${error}`, () => {
+        return expect($subject).to.be.rejectedWith(error)
+      })
+    })
+
+    context('when Validator#validate() succeeds', () => {
+      it('calls AppHelper.deleteUndefinedFields with correct args', async () => {
+        await $subject
+        expect(AppHelper.deleteUndefinedFields).to.have.been.calledWith(agentStatus)
+      })
+
+      context('when AppHelper#deleteUndefinedFields fails', () => {
+        const error = 'Error!'
+
+        def('$deleteUndefinedFieldsResponse', () => error)
+
+        it(`fails with "${error}"`, () => {
+          return expect($subject).to.be.rejectedWith = (error)
+        })
+      })
+
+      context('when AppHelper#deleteUndefinedFields succeeds', () => {
+        it('calls ioFogManager.update with correct args', async () => {
+          await $subject
+          expect(ioFogManager.update).to.have.been.calledWith({
+            uuid: $uuid,
+          }, agentStatus, transaction)
+        })
+
+        context('when ioFogManager#update fails', () => {
+          const error = 'Error!'
+
+          def('updateResponse', () => error)
+
+          it(`fails with "${error}"`, () => {
+            return expect($subject).to.be.rejectedWith = (error)
+          })
+        })
+
+        context('when ioFogManager#update succeeds', () => {
+          it('calls JSON.parse with correct args', async () => {
+            await $subject
+            expect(JSON.parse).to.have.been.calledWith(fogStatus.microserviceStatus)
+          })
+
+          context('when JSON#parse fails', () => {
+            const error = 'Error!'
+
+            def('jsonParseResponse', () => error)
+
+            it(`fails with "${error}"`, () => {
+              return expect($subject).to.be.rejectedWith = (error)
+            })
+          })
+
+          context('when JSON#parse succeeds', () => {
+            it('calls AppHelper.deleteUndefinedFields with correct args', async () => {
+              await $subject
+              expect(AppHelper.deleteUndefinedFields).to.have.been.calledWith(microserviceStatus)
+            })
+
+            context('when AppHelper#deleteUndefinedFields fails', () => {
+              const error = 'Error!'
+
+              def('$deleteUndefinedFieldsResponse2', () => error)
+
+              it(`fails with "${error}"`, () => {
+                return expect($subject).to.be.rejectedWith = (error)
+              })
+            })
+
+            context('when AppHelper#deleteUndefinedFields succeeds', () => {
+              it('calls MicroserviceStatusManager.update with correct args', async () => {
+                await $subject
+                expect(MicroserviceStatusManager.update).to.have.been.calledWith({
+                  microserviceUuid: microserviceStatus.id,
+                }, microserviceStatus, transaction)
+                assert.equal(microserviceStatus.percentage, 50.5)
+                assert.equal(microserviceStatus.errorMessage, 'Error mounting volume')
+              })
+
+              context('when MicroserviceStatusManager#update fails', () => {
+                const error = 'Error!'
+
+                def('updateMicroserviceStatusesResponse', () => error)
+
+                it(`fails with "${error}"`, () => {
+                  return expect($subject).to.be.rejectedWith = (error)
+                })
+              })
+
+              context('when MicroserviceStatusManager#update succeeds', () => {
+                it('calls MicroserviceService.deleteNotRunningMicroservices with correct args', async () => {
+                  await $subject
+                  expect(MicroserviceService.deleteNotRunningMicroservices).to.have.been.calledWith($fog, transaction)
+                })
+
+                context('when MicroserviceService#deleteNotRunningMicroservices fails', () => {
+                  const error = 'Error!'
+
+                  def('deleteNotRunningResponse', () => error)
+
+                  it(`fails with "${error}"`, () => {
+                    return expect($subject).to.be.rejectedWith = (error)
+                  })
+                })
+
+                context('when MicroserviceService#deleteNotRunningMicroservices succeeds', () => {
+                  it(`succeeds`, () => {
+                    return expect($subject).to.eventually.equal(undefined)
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
+    })
+  })
 
   describe('.getAgentMicroservices()', () => {
     const transaction = {}
