@@ -82,7 +82,7 @@ const rvaluesVarSubstitionMiddleware = async (req, res, next) => {
     let tmplContext = {
       self: req.body,
       microservices: msvcEndpoint,
-      iofogs: iofogListEndPoint,
+      agents: iofogListEndPoint,
       // Private context
       _user: user // need by edge resource and every on demand request
     }

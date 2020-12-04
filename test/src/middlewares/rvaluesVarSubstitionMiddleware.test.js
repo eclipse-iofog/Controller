@@ -128,7 +128,7 @@ describe('rvaluesVarSubstitionMiddleware', () => {
         body: {
           name: $name,
           description: '{{ self.name | upcase }}',
-          serviceredisURL: '{% assign redismsvc = microservices | where: \"name\", \"redis\" | first %}{{ redismsvc | findAgent: iofogs | map: \"host\"}}:{{ redismsvc | map: \"ports\" | first | first |map: \"external\" | first }}',
+          serviceredisURL: '{% assign redismsvc = microservices | where: \"name\", \"redis\" | first %}{{ redismsvc | findAgent: agents | map: \"host\"}}:{{ redismsvc | map: \"ports\" | first | first |map: \"external\" | first }}',
           videoURL: '{{ microservices | where: \"name\", \"objdetecv4\" | first | map: \"env\" | first | where: \"key\" , \"RES_URL\" | first | map: \"value\" | first }}',
 
         },
