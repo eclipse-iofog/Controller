@@ -105,5 +105,7 @@ module.exports = {
   DUPLICATE_RESOURCE_NAME_VERSION: 'Resource {} version {} already exists',
   NOT_FOUND_RESOURCE_NAME_VERSION: 'Could not find resource {} version {}',
   NOT_FOUND_AGENT_NAME: 'Could not find agent {}',
-  RESOURCE_UPDATE_VERSION_MISMATCH: 'Cannot update resource version using update route. Please use the create new resource route.'
+  RESOURCE_UPDATE_VERSION_MISMATCH: 'Cannot update resource version using update route. Please use the create new resource route.',
+  INVALID_APPLICATION_TEMPLATE_NAME: 'Could not find Application Template {}',
+  APPLICATION_TEMPLATE_INVALID: 'Application Tempalte {} is invalid'
 }

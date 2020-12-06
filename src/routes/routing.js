@@ -74,6 +74,7 @@ module.exports = [
   {
     method: 'post',
     path: '/api/v3/routes',
+    supportSubstitution: true,
     middleware: async (req, res) => {
       logger.apiReq(req)
 
@@ -109,6 +110,7 @@ module.exports = [
   {
     method: 'patch',
     path: '/api/v3/routes/:name',
+    supportSubstitution: true,
     middleware: async (req, res) => {
       logger.apiReq(req)
 

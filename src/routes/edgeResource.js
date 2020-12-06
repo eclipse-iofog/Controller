@@ -99,6 +99,7 @@ module.exports = [
   {
     method: 'put',
     path: '/api/v3/edgeResource/:name/:version',
+    supportSubstitution: true,
     middleware: async (req, res) => {
       logger.apiReq(req)
 
@@ -161,6 +162,7 @@ module.exports = [
   {
     method: 'post',
     path: '/api/v3/edgeResource',
+    supportSubstitution: true,
     middleware: async (req, res) => {
       logger.apiReq(req)
 

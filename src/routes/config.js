@@ -71,6 +71,7 @@ module.exports = [
   {
     method: 'put',
     path: '/api/v3/config',
+    supportSubstitution: true,
     middleware: async (req, res) => {
       logger.apiReq(req)
 

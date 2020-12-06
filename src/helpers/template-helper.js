@@ -30,6 +30,12 @@ const rvaluesVarSubstition = async (subjects, templateContext) => {
   return subjects
 }
 
+const substitutionMiddleware = async (req, res, next) => {
+  await rvaluesVarSubstition(req.body, { self: req.body })
+  next()
+}
+
 module.exports = {
-  rvaluesVarSubstition
+  rvaluesVarSubstition,
+  substitutionMiddleware
 }

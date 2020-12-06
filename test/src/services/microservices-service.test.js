@@ -1053,7 +1053,7 @@ describe('Microservices Service', () => {
     def('newMicroserviceResponse', () => Promise.resolve(newMicroservice))
     def('findRegistryResponse', () => Promise.resolve({}))
     def('findCatalogItem', () => Promise.resolve({ images }))
-    def('findFogResponse', () => Promise.resolve({fogTypeId: 1}))
+    def('findFogResponse', () => Promise.resolve({fogTypeId: 1, uuid: microserviceData.iofogUuid }))
     def('findRelatedExtraHostsResponse', () => Promise.resolve([]))
 
 

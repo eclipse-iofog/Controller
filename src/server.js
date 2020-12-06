@@ -26,9 +26,8 @@ const https = require('https')
 const path = require('path')
 const { renderFile } = require('ejs')
 const xss = require('xss-clean')
+const { substitutionMiddleware } = require('./helpers/template-helper')
 const packageJson = require('../package')
-
-const { rvaluesVarSubstition } = require('./helpers/template-helper')
 const viewerApp = express()
 
 const app = express()
@@ -79,18 +78,11 @@ app.use((req, res, next) => {
   next()
 })
 
-// TODO: Template expansion for not for all
-app.use((req, res, next) => {
-  if (['POST', 'PUT'].indexOf(req.method) > -1) {
-    rvaluesVarSubstition(req.body, { self: req.body })
-  }
-  next()
-})
-
 global.appRoot = path.resolve(__dirname)
 
 const registerRoute = (route) => {
-  app[route.method.toLowerCase()](route.path, route.middleware)
+  const middlewares = route.supportSubstitution ? [substitutionMiddleware, route.middleware] : [route.middleware]
+  app[route.method.toLowerCase()](route.path, ...middlewares)
 }
 
 const setupMiddleware = function (routeName) {

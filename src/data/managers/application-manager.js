@@ -36,7 +36,7 @@ class ApplicationManager extends BaseManager {
       attributes: ['id']
     }, { transaction: transaction })
     if (!application) {
-      return undefined
+      return []
     }
     return application.microservices || []
   }
