@@ -50,19 +50,11 @@ const deleteApplicationTemplateEndPoint = async function (req, user) {
   return ApplicationTemplateService.deleteApplicationTemplateEndPoint({ name }, user, false)
 }
 
-const deployApplicationTemplateEndPoint = async function (req, user) {
-  const application = req.body
-  const templateName = req.params.name
-
-  return ApplicationTemplateService.deployApplicationTemplateEndPoint(application, templateName, user, false)
-}
-
 module.exports = {
   createApplicationTemplateEndPoint: AuthDecorator.checkAuthToken(createApplicationTemplateEndPoint),
   getApplicationTemplatesByUserEndPoint: AuthDecorator.checkAuthToken(getApplicationTemplatesByUserEndPoint),
   getApplicationTemplateEndPoint: AuthDecorator.checkAuthToken(getApplicationTemplateEndPoint),
   updateApplicationTemplateEndPoint: AuthDecorator.checkAuthToken(updateApplicationTemplateEndPoint),
   patchApplicationTemplateEndPoint: AuthDecorator.checkAuthToken(patchApplicationTemplateEndPoint),
-  deleteApplicationTemplateEndPoint: AuthDecorator.checkAuthToken(deleteApplicationTemplateEndPoint),
-  deployApplicationTemplateEndPoint: AuthDecorator.checkAuthToken(deployApplicationTemplateEndPoint)
+  deleteApplicationTemplateEndPoint: AuthDecorator.checkAuthToken(deleteApplicationTemplateEndPoint)
 }

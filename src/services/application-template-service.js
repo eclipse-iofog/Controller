@@ -23,22 +23,21 @@ const ApplicationTemplateManager = require('../data/managers/application-templat
 const ApplicationTemplateVariableManager = require('../data/managers/application-template-variable-manager')
 const TransactionDecorator = require('../decorators/transaction-decorator')
 const Validator = require('../schemas')
-const ApplicationService = require('./application-service')
 const logger = require('../logger')
 
 const createApplicationTemplateEndPoint = async function (applicationTemplateData, user, isCLI, transaction) {
   // Add a name field to pass schema validation using the applicationCreate schema
-  applicationTemplateData.applicationJSON = { ...applicationTemplateData.applicationJSON, name: 'validation' }
+  applicationTemplateData.application = { ...applicationTemplateData.application, name: 'validation' }
   await Validator.validate(applicationTemplateData, Validator.schemas.applicationTemplateCreate)
   // Remove name before storing
-  delete applicationTemplateData.applicationJSON.name
+  delete applicationTemplateData.application.name
 
   await _checkForDuplicateName(applicationTemplateData.name, null, user.id, transaction)
 
   const applicationTemplateToCreate = {
     name: applicationTemplateData.name,
     description: applicationTemplateData.description,
-    applicationJSON: JSON.stringify(applicationTemplateData.applicationJSON),
+    applicationJSON: JSON.stringify(applicationTemplateData.application),
     userId: user.id
   }
 
@@ -101,10 +100,10 @@ const patchApplicationTemplateEndPoint = async function (applicationTemplateData
 
 const updateApplicationTemplateEndPoint = async function (applicationTemplateData, name, user, isCLI, transaction) {
   // Add a name field to pass schema validation using the applicationCreate schema
-  applicationTemplateData.applicationJSON = { ...applicationTemplateData.applicationJSON, name: 'validation' }
+  applicationTemplateData.application = { ...applicationTemplateData.application, name: 'validation' }
   await Validator.validate(applicationTemplateData, Validator.schemas.applicationTemplateUpdate)
   // Remove name before storing
-  delete applicationTemplateData.applicationJSON.name
+  delete applicationTemplateData.application.name
 
   const oldApplicationTemplate = await ApplicationTemplateManager.findOne({ name, userId: user.id }, transaction)
 
@@ -115,13 +114,13 @@ const updateApplicationTemplateEndPoint = async function (applicationTemplateDat
     await _checkForDuplicateName(applicationTemplateData.name, oldApplicationTemplate.id, user.id || oldApplicationTemplate.userId, transaction)
   }
 
-  const applicationTemplate = {
+  const applicationTemplateDBModel = {
     name: applicationTemplateData.name || name,
     description: applicationTemplateData.description,
-    applicationJSON: JSON.stringify(applicationTemplateData.applicationJSON)
+    applicationJSON: JSON.stringify(applicationTemplateData.application)
   }
 
-  const updateApplicationTemplateData = AppHelper.deleteUndefinedFields(applicationTemplate)
+  const updateApplicationTemplateData = AppHelper.deleteUndefinedFields(applicationTemplateDBModel)
   const where = isCLI
     ? { id: oldApplicationTemplate.id }
     : { id: oldApplicationTemplate.id, userId: user.id }
@@ -147,8 +146,8 @@ const getUserApplicationTemplatesEndPoint = async function (user, isCLI, transac
   const attributes = { exclude: ['created_at', 'updated_at'] }
   const applications = await ApplicationTemplateManager.findAllPopulated(application, attributes, transaction)
   return {
-    applicationTemplates: applications.map(application => ({
-      ...application.toJSON(), applicationJSON: JSON.parse(application.applicationJSON || null)
+    applicationTemplates: applications.map(application => AppHelper.deleteUndefinedFields({
+      ...application.toJSON(), application: JSON.parse(application.applicationJSON || null), applicationJSON: undefined
     }))
   }
 }
@@ -157,8 +156,8 @@ const getAllApplicationTemplatesEndPoint = async function (isCLI, transaction) {
   const attributes = { exclude: ['created_at', 'updated_at'] }
   const applications = await ApplicationTemplateManager.findAllPopulated({}, attributes, transaction)
   return {
-    applicationtemplates: applications.map(application => ({
-      ...application.toJSON(), applicationJSON: JSON.parse(application.applicationJSON || null)
+    applicationTemplates: applications.map(application => AppHelper.deleteUndefinedFields({
+      ...application.toJSON(), application: JSON.parse(application.applicationJSON || null), applicationJSON: undefined
     }))
   }
 }
@@ -174,7 +173,8 @@ async function getApplicationTemplate (conditions, user, isCLI, transaction) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_APPLICATION_TEMPLATE_NAME, conditions.name || conditions.id))
   }
   const JSONData = application.toJSON()
-  JSONData.applicationJSON = JSON.parse(JSONData.applicationJSON || null)
+  JSONData.application = JSON.parse(JSONData.applicationJSON || null)
+  delete JSONData.applicationJSON
   return JSONData
 }
 
@@ -182,46 +182,34 @@ const getApplicationTemplateEndPoint = async function (name, user, isCLI, transa
   return getApplicationTemplate(name, user, isCLI, transaction)
 }
 
-const deployApplicationTemplateEndPoint = async function (applicationData, templateName, user, isCLI, transaction) {
-  await Validator.validate(applicationData, Validator.schemas.applicationTemplateDeploy)
+const getApplicationDataFromTemplate = async function (deploymentData, user, isCLI, transaction) {
+  await Validator.validate(deploymentData, Validator.schemas.applicationTemplateDeploy)
 
-  const applicationTemplateDBObject = await ApplicationTemplateManager.findOnePopulated({ name: templateName, userId: user.id }, transaction)
+  const applicationTemplateDBObject = await ApplicationTemplateManager.findOnePopulated({ name: deploymentData.name, userId: user.id }, transaction)
   if (!applicationTemplateDBObject) {
-    throw new Errors.NotFoundError(ErrorMessages.INVALID_APPLICATION_TEMPLATE_NAME, templateName)
+    throw new Errors.NotFoundError(ErrorMessages.INVALID_APPLICATION_TEMPLATE_NAME, deploymentData.name)
   }
   const applicationTemplate = applicationTemplateDBObject.toJSON()
-  applicationTemplate.applicationJSON = JSON.parse(applicationTemplate.applicationJSON || null)
-  if (!applicationTemplate.applicationJSON) {
-    throw new Errors.ValidationError(ErrorMessages.APPLICATION_TEMPLATE_INVALID, templateName)
+  applicationTemplate.application = JSON.parse(applicationTemplate.applicationJSON || null)
+  if (!applicationTemplate.application) {
+    throw new Errors.ValidationError(ErrorMessages.APPLICATION_TEMPLATE_INVALID, deploymentData.name)
   }
 
-  const newApplication = { ...applicationTemplate.applicationJSON, ...applicationData }
+  const newApplication = applicationTemplate.application
 
   // Replace variables
   const defaultVariablesValues = (applicationTemplate.variables || []).reduce((acc, v) => {
     return { ...acc, [v.key]: v.defaultValue }
   }, {})
-  const userProvidedVariables = (applicationData.variables || []).reduce((acc, v) => {
+  const userProvidedVariables = (deploymentData.variables || []).reduce((acc, v) => {
     return { ...acc, [v.key]: v.value }
   }, {})
+  delete newApplication.variables
 
   // default values are overwritten by user defined values, and self is always overwritten to the current object
   await rvaluesVarSubstition(newApplication, { ...defaultVariablesValues, ...userProvidedVariables, self: newApplication })
 
-  // Edit names - Until name scoping is added
-  for (const microservice of newApplication.microservices) {
-    microservice.name = `${microservice.name}-${applicationData.name}`
-  }
-  for (const route of newApplication.routes) {
-    route.name = `${route.name}-${applicationData.name}`
-    route.from = `${route.from}-${applicationData.name}`
-    route.to = `${route.to}-${applicationData.name}`
-  }
-
-  logger.info(JSON.stringify(newApplication))
-
-  // Use ApplicationService to create the application from the templated data
-  return ApplicationService.createApplicationEndPoint(newApplication, user, isCLI, transaction)
+  return newApplication
 }
 
 const _checkForDuplicateName = async function (name, applicationId, userId, transaction) {
@@ -247,5 +235,5 @@ module.exports = {
   getApplicationTemplateEndPoint: TransactionDecorator.generateTransaction(getApplicationTemplateEndPoint),
   getApplicationTemplateByName: TransactionDecorator.generateTransaction(getApplicationTemplateEndPoint),
   getApplicationTemplate: getApplicationTemplate,
-  deployApplicationTemplateEndPoint: TransactionDecorator.generateTransaction(deployApplicationTemplateEndPoint)
+  getApplicationDataFromTemplate
 }

@@ -188,37 +188,5 @@ module.exports = [
 
       logger.apiRes({ req: req, res: responseObject })
     }
-  },
-  {
-    method: 'post',
-    path: '/api/v3/applicationTemplate/deploy/:name',
-    middleware: async (req, res) => {
-      logger.apiReq(req)
-
-      const successCode = constants.HTTP_CODE_CREATED
-      const errorCodes = [
-        {
-          code: constants.HTTP_CODE_BAD_REQUEST,
-          errors: [Errors.ValidationError]
-        },
-        {
-          code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError]
-        },
-        {
-          code: constants.HTTP_CODE_NOT_FOUND,
-          errors: [Errors.NotFoundError]
-        }
-      ]
-
-      const deployApplicationTemplateEndPoint = ResponseDecorator.handleErrors(ApplicationTemplateController.deployApplicationTemplateEndPoint, successCode, errorCodes)
-      const responseObject = await deployApplicationTemplateEndPoint(req)
-
-      res
-        .status(responseObject.code)
-        .send(responseObject.body)
-
-      logger.apiRes({ req: req, res: responseObject })
-    }
   }
 ]

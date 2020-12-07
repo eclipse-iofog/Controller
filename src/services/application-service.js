@@ -22,12 +22,33 @@ const MicroserviceService = require('./microservices-service')
 const RoutingService = require('./routing-service')
 const ApplicationManager = require('../data/managers/application-manager')
 const TransactionDecorator = require('../decorators/transaction-decorator')
+const ApplicationTemplateService = require('./application-template-service')
 const Validator = require('../schemas')
 const remove = require('lodash/remove')
 
 const onlyUnique = (value, index, self) => self.indexOf(value) === index
 
 const createApplicationEndPoint = async function (applicationData, user, isCLI, transaction) {
+  // if template is provided, use template data
+  if (applicationData.template && applicationData.template.name) {
+    applicationData = {
+      ...await ApplicationTemplateService.getApplicationDataFromTemplate(applicationData.template, user, isCLI, transaction),
+      isSystem: applicationData.isSystem,
+      name: applicationData.name,
+      description: applicationData.description,
+      isActivated: applicationData.isActivated
+    }
+    // Edit names - Until name scoping is added
+    for (const microservice of applicationData.microservices) {
+      microservice.name = `${microservice.name}-${applicationData.name}`
+    }
+    for (const route of applicationData.routes) {
+      route.name = `${route.name}-${applicationData.name}`
+      route.from = `${route.from}-${applicationData.name}`
+      route.to = `${route.to}-${applicationData.name}`
+    }
+  }
+
   // Set the application field
   if (applicationData.microservices) {
     applicationData.microservices = applicationData.microservices.map(m => ({
