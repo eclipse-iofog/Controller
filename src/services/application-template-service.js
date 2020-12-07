@@ -128,6 +128,11 @@ const updateApplicationTemplateEndPoint = async function (applicationTemplateDat
   if (applicationTemplateData.variables) {
     await _updateVariables(oldApplicationTemplate.id, applicationTemplateData.variables, user, isCLI, transaction)
   }
+
+  return {
+    id: oldApplicationTemplate.id,
+    name: applicationTemplateDBModel.name
+  }
 }
 
 const _updateVariables = async function (applicationTemplateId, variables, user, isCLI, transaction) {
