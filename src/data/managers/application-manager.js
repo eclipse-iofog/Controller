@@ -94,6 +94,13 @@ class ApplicationManager extends BaseManager {
               model: Routing,
               as: 'routes',
               required: false,
+              include: [
+                {
+                  model: Microservice,
+                  as: 'destMicroservice',
+                  attributes: ['name']
+                }
+              ],
               attributes: ['name']
             }
           ]
@@ -106,7 +113,14 @@ class ApplicationManager extends BaseManager {
       return null
     }
     const msvcs = application.microservices || []
-    const routes = flatMap(msvcs, m => m.routes).map(r => r.get({ plain: true }))
+    const routes = flatMap(msvcs, m => m.routes.map(r => {
+      const route = r.get({ plain: true })
+      return {
+        name: route.name,
+        from: m.name,
+        to: route.destMicroservice.name
+      }
+    }))
     return {
       ...application.get({ plain: true }),
       microservices: msvcs.map(m => {
@@ -129,6 +143,13 @@ class ApplicationManager extends BaseManager {
               model: Routing,
               as: 'routes',
               required: false,
+              include: [
+                {
+                  model: Microservice,
+                  as: 'destMicroservice',
+                  attributes: ['name']
+                }
+              ],
               attributes: ['name']
             }
           ]
@@ -139,7 +160,14 @@ class ApplicationManager extends BaseManager {
     }, { transaction: transaction })
     return applications.map(application => {
       const msvcs = application.microservices || []
-      const routes = flatMap(msvcs, m => m.routes).map(r => r.get({ plain: true }))
+      const routes = flatMap(msvcs, m => m.routes.map(r => {
+        const route = r.get({ plain: true })
+        return {
+          name: route.name,
+          from: m.name,
+          to: route.destMicroservice.name
+        }
+      }))
       return {
         ...application.get({ plain: true }),
         microservices: msvcs.map(m => {
