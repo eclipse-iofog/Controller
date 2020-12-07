@@ -28,6 +28,7 @@ const microserviceCreate = {
       ]
     },
     'iofogUuid': { 'type': 'string' },
+    'agentName': { 'type': 'string' },
     'rootHostAccess': { 'type': 'boolean' },
     'logSize': { 'type': 'integer' },
     'imageSnapshot': { 'type': 'string' },
@@ -50,7 +51,7 @@ const microserviceCreate = {
       'type': 'array',
       'items': { 'type': 'string' } }
   },
-  'required': ['name', 'application'],
+  'required': ['name'],
   'additionalProperties': true
 }
 
@@ -65,6 +66,7 @@ const microserviceUpdate = {
     'config': { 'type': 'string' },
     'rebuild': { 'type': 'boolean' },
     'iofogUuid': { 'type': 'string' },
+    'agentName': { 'type': 'string' },
     'rootHostAccess': { 'type': 'boolean' },
     'logSize': { 'type': 'integer', 'minimum': 0 },
     'volumeMappings': {

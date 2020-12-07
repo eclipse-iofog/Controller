@@ -67,5 +67,5 @@ const applicationPatch = {
 
 module.exports = {
   mainSchemas: [applicationCreate, applicationUpdate, applicationPatch],
-  innerSchemas: []
+  innerSchemas: [applicationCreate]
 }

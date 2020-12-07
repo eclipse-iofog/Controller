@@ -198,6 +198,19 @@ function _validateImageFogType (microserviceData, fog, images) {
   }
 }
 
+async function _findFog (microserviceData, user, isCLI, transaction) {
+  const fogConditions = {}
+  if (microserviceData.iofogUuid) {
+    fogConditions.uuid = microserviceData.iofogUuid
+  } else {
+    if (!isCLI) {
+      fogConditions.userId = user.id
+    }
+    fogConditions.name = microserviceData.agentName
+  }
+  return FogManager.findOne(fogConditions, transaction)
+}
+
 async function createMicroserviceEndPoint (microserviceData, user, isCLI, transaction) {
   // API Retro compatibility
   if (!microserviceData.application) {
@@ -205,11 +218,13 @@ async function createMicroserviceEndPoint (microserviceData, user, isCLI, transa
   }
   await Validator.validate(microserviceData, Validator.schemas.microserviceCreate)
 
-  // validate images
-  const fog = await FogManager.findOne({ uuid: microserviceData.iofogUuid }, transaction)
+  // find fog
+  const fog = await _findFog(microserviceData, user, isCLI, transaction)
   if (!fog) {
-    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, microserviceData.iofogUuid))
+    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, microserviceData.iofogUuid || microserviceData.agentName))
   }
+
+  // validate images
   if (microserviceData.catalogItemId) {
     // validate catalog item
     const catalogItem = await CatalogService.getCatalogItem(microserviceData.catalogItemId, user, isCLI, transaction)
@@ -231,7 +246,7 @@ async function createMicroserviceEndPoint (microserviceData, user, isCLI, transa
 
   _validateVolumeMappings(microserviceData.volumeMappings)
 
-  const microservice = await _createMicroservice(microserviceData, user, isCLI, transaction)
+  const microservice = await _createMicroservice({ ...microserviceData, iofogUuid: fog.uuid }, user, isCLI, transaction)
 
   if (!microserviceData.catalogItemId) {
     await _createMicroserviceImages(microservice, microserviceData.images, transaction)
@@ -339,13 +354,14 @@ async function updateMicroserviceEndPoint (microserviceUuid, microserviceData, u
 
   const config = _validateMicroserviceConfig(microserviceData.config)
 
+  const newFog = await _findFog(microserviceData, user, isCLI, transaction) || {}
   const microserviceToUpdate = {
     name: microserviceData.name,
     config: config,
     images: microserviceData.images,
     catalogItemId: microserviceData.catalogItemId,
     rebuild: microserviceData.rebuild,
-    iofogUuid: microserviceData.iofogUuid,
+    iofogUuid: newFog.uuid,
     rootHostAccess: microserviceData.rootHostAccess,
     logSize: (microserviceData.logLimit || 50) * 1,
     registryId: microserviceData.registryId,
