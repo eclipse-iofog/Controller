@@ -1,14 +1,14 @@
 const { expect } = require('chai')
 const sinon = require('sinon')
 
-const { rvaluesVarSubstitionMiddleware } = require('../../../src/helpers/template-helper')
+const { substitutionMiddleware } = require('../../../src/helpers/template-helper')
 const UserManager = require('../../../src/data/managers/user-manager')
 const MicroservicesService = require('../../../src/services/microservices-service')
 const FogService = require('../../../src/services/iofog-service')
 const EdgeResourceService = require('../../../src/services/edge-resource-service')
 
 describe('rvaluesVarSubstitionMiddleware', () => {
-  def('subject', () => rvaluesVarSubstitionMiddleware)
+  def('subject', () => substitutionMiddleware)
   def('sandbox', () => sinon.createSandbox())
 
   afterEach(() => $sandbox.restore())

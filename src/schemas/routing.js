@@ -38,7 +38,7 @@ const routingCreate = {
           'pattern': nameRegex
         }
       },
-      'required': ['name', 'from', 'to', 'application']
+      'required': ['name', 'from', 'to']
     },
     {
       'properties': {

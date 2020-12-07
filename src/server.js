@@ -26,9 +26,9 @@ const https = require('https')
 const path = require('path')
 const { renderFile } = require('ejs')
 const xss = require('xss-clean')
+const { substitutionMiddleware } = require('./helpers/template-helper')
 const packageJson = require('../package')
 
-const { rvaluesVarSubstitionMiddleware } = require('./helpers/template-helper')
 const viewerApp = express()
 
 const app = express()
@@ -79,15 +79,11 @@ app.use((req, res, next) => {
   next()
 })
 
-// TODO: Template expansion for not for all
-app.use((req, res, next) => {
-  rvaluesVarSubstitionMiddleware(req, res, next)
-})
-
 global.appRoot = path.resolve(__dirname)
 
 const registerRoute = (route) => {
-  app[route.method.toLowerCase()](route.path, route.middleware)
+  const middlewares = route.supportSubstitution ? [substitutionMiddleware, route.middleware] : [route.middleware]
+  app[route.method.toLowerCase()](route.path, ...middlewares)
 }
 
 const setupMiddleware = function (routeName) {
@@ -172,7 +168,7 @@ function startHttpsServer (apps, ports, sslKey, sslCert, intermedKey, jobs) {
 }
 
 const devMode = config.get('Server:DevMode')
-const apiPort = config.get('Server:Port')
+const apiPort = +(config.get('Server:Port'))
 const viewerPort = +(process.env.VIEWER_PORT || config.get('Viewer:Port'))
 const sslKey = config.get('Server:SslKey')
 const sslCert = config.get('Server:SslCert')
@@ -201,6 +197,16 @@ const initState = async () => {
       }
     })
   }
+  // Set up controller-config.js for ECN Viewer
+  const ecnViewerControllerConfigFilePath = path.join(__dirname, '..', 'node_modules', '@iofog', 'ecn-viewer', 'build', 'controller-config.js')
+  const ecnViewerControllerConfig = {
+    port: apiPort,
+    user: {}
+  }
+  const ecnViewerConfigScript = `
+    window.controllerConfig = ${JSON.stringify(ecnViewerControllerConfig)}
+  `
+  fs.writeFileSync(ecnViewerControllerConfigFilePath, ecnViewerConfigScript)
 }
 
 initState()

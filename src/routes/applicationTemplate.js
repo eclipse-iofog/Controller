@@ -11,15 +11,15 @@
  *
  */
 const constants = require('../helpers/constants')
-const Routing = require('../controllers/routing-controller')
+const ApplicationTemplateController = require('../controllers/application-template-controller')
 const ResponseDecorator = require('../decorators/response-decorator')
-const logger = require('../logger')
 const Errors = require('../helpers/errors')
+const logger = require('../logger')
 
 module.exports = [
   {
     method: 'get',
-    path: '/api/v3/routes',
+    path: '/api/v3/applicationTemplates',
     middleware: async (req, res) => {
       logger.apiReq(req)
 
@@ -28,41 +28,11 @@ module.exports = [
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
           errors: [Errors.AuthenticationError]
-        },
-        {
-          code: constants.HTTP_CODE_NOT_FOUND,
-          errors: [Errors.NotFoundError]
         }
       ]
-      const getRouterEndpoint = ResponseDecorator.handleErrors(Routing.getRoutingsEndPoint, successCode, errorCodes)
-      const responseObject = await getRouterEndpoint(req)
 
-      res
-        .status(responseObject.code)
-        .send(responseObject.body)
-
-      logger.apiRes({ req: req, res: responseObject })
-    }
-  },
-  {
-    method: 'get',
-    path: '/api/v3/routes/:name',
-    middleware: async (req, res) => {
-      logger.apiReq(req)
-
-      const successCode = constants.HTTP_CODE_SUCCESS
-      const errorCodes = [
-        {
-          code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError]
-        },
-        {
-          code: constants.HTTP_CODE_NOT_FOUND,
-          errors: [Errors.NotFoundError]
-        }
-      ]
-      const getRouterEndpoint = ResponseDecorator.handleErrors(Routing.getRoutingEndPoint, successCode, errorCodes)
-      const responseObject = await getRouterEndpoint(req)
+      const getApplicationTemplatesByUserEndPoint = ResponseDecorator.handleErrors(ApplicationTemplateController.getApplicationTemplatesByUserEndPoint, successCode, errorCodes)
+      const responseObject = await getApplicationTemplatesByUserEndPoint(req)
 
       res
         .status(responseObject.code)
@@ -73,8 +43,35 @@ module.exports = [
   },
   {
     method: 'post',
-    path: '/api/v3/routes',
-    supportSubstitution: true,
+    path: '/api/v3/applicationTemplate',
+    middleware: async (req, res) => {
+      logger.apiReq(req)
+
+      const successCode = constants.HTTP_CODE_CREATED
+      const errorCodes = [
+        {
+          code: constants.HTTP_CODE_BAD_REQUEST,
+          errors: [Errors.ValidationError]
+        },
+        {
+          code: constants.HTTP_CODE_UNAUTHORIZED,
+          errors: [Errors.AuthenticationError]
+        }
+      ]
+
+      const createApplicationTemplateEndPoint = ResponseDecorator.handleErrors(ApplicationTemplateController.createApplicationTemplateEndPoint, successCode, errorCodes)
+      const responseObject = await createApplicationTemplateEndPoint(req)
+
+      res
+        .status(responseObject.code)
+        .send(responseObject.body)
+
+      logger.apiRes({ req: req, res: responseObject })
+    }
+  },
+  {
+    method: 'get',
+    path: '/api/v3/applicationTemplate/:name',
     middleware: async (req, res) => {
       logger.apiReq(req)
 
@@ -85,20 +82,13 @@ module.exports = [
           errors: [Errors.AuthenticationError]
         },
         {
-          code: constants.HTTP_CODE_BAD_REQUEST,
-          errors: [Errors.ValidationError]
-        },
-        {
-          code: constants.HTTP_CODE_BAD_REQUEST,
-          errors: [Errors.DuplicatePropertyError]
-        },
-        {
           code: constants.HTTP_CODE_NOT_FOUND,
           errors: [Errors.NotFoundError]
         }
       ]
-      const createRoutingEndpoint = ResponseDecorator.handleErrors(Routing.createRoutingEndpoint, successCode, errorCodes)
-      const responseObject = await createRoutingEndpoint(req)
+
+      const getApplicationTemplateEndPoint = ResponseDecorator.handleErrors(ApplicationTemplateController.getApplicationTemplateEndPoint, successCode, errorCodes)
+      const responseObject = await getApplicationTemplateEndPoint(req)
 
       res
         .status(responseObject.code)
@@ -109,8 +99,7 @@ module.exports = [
   },
   {
     method: 'patch',
-    path: '/api/v3/routes/:name',
-    supportSubstitution: true,
+    path: '/api/v3/applicationTemplate/:name',
     middleware: async (req, res) => {
       logger.apiReq(req)
 
@@ -130,9 +119,40 @@ module.exports = [
         }
       ]
 
-      const updateRoutingEndpoint = ResponseDecorator.handleErrors(Routing.updateRoutingEndpoint,
-        successCode, errorCodes)
-      const responseObject = await updateRoutingEndpoint(req)
+      const patchApplicationTemplateEndPoint = ResponseDecorator.handleErrors(ApplicationTemplateController.patchApplicationTemplateEndPoint, successCode, errorCodes)
+      const responseObject = await patchApplicationTemplateEndPoint(req)
+
+      res
+        .status(responseObject.code)
+        .send(responseObject.body)
+
+      logger.apiRes({ req: req, res: responseObject })
+    }
+  },
+  {
+    method: 'put',
+    path: '/api/v3/applicationTemplate/:name',
+    middleware: async (req, res) => {
+      logger.apiReq(req)
+
+      const successCode = constants.HTTP_CODE_NO_CONTENT
+      const errorCodes = [
+        {
+          code: constants.HTTP_CODE_BAD_REQUEST,
+          errors: [Errors.ValidationError]
+        },
+        {
+          code: constants.HTTP_CODE_UNAUTHORIZED,
+          errors: [Errors.AuthenticationError]
+        },
+        {
+          code: constants.HTTP_CODE_NOT_FOUND,
+          errors: [Errors.NotFoundError]
+        }
+      ]
+
+      const updateApplicationTemplateEndPoint = ResponseDecorator.handleErrors(ApplicationTemplateController.updateApplicationTemplateEndPoint, successCode, errorCodes)
+      const responseObject = await updateApplicationTemplateEndPoint(req)
 
       res
         .status(responseObject.code)
@@ -143,7 +163,7 @@ module.exports = [
   },
   {
     method: 'delete',
-    path: '/api/v3/routes/:name',
+    path: '/api/v3/applicationTemplate/:name',
     middleware: async (req, res) => {
       logger.apiReq(req)
 
@@ -159,9 +179,8 @@ module.exports = [
         }
       ]
 
-      const deleteRoutingEndpoint = ResponseDecorator.handleErrors(Routing.deleteRoutingEndpoint,
-        successCode, errorCodes)
-      const responseObject = await deleteRoutingEndpoint(req)
+      const deleteApplicationTemplateEndPoint = ResponseDecorator.handleErrors(ApplicationTemplateController.deleteApplicationTemplateEndPoint, successCode, errorCodes)
+      const responseObject = await deleteApplicationTemplateEndPoint(req)
 
       res
         .status(responseObject.code)

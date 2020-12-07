@@ -15,7 +15,6 @@ const MicroservicesService = require('../services/microservices-service')
 const FogService = require('../services/iofog-service')
 const qs = require('qs')
 const EdgeResourceService = require('../services/edge-resource-service')
-const logger = require('../logger')
 
 // ninja2 like template engine
 const { Liquid } = require('liquidjs')
@@ -49,17 +48,22 @@ templateEngine.registerFilter('findEdgeResource', findEdgeResourcehandler)
   */
 const rvaluesVarSubstition = async (subjects, templateContext) => {
   for (let key in subjects) {
-    if (typeof subjects[key] === 'object') {
-      await rvaluesVarSubstition(subjects[key], templateContext)
-    } else if (typeof subjects[key] === 'string') {
-      subjects[key] = await templateEngine.parseAndRender(subjects[key], templateContext)
+    try {
+      if (typeof subjects[key] === 'object') {
+        await rvaluesVarSubstition(subjects[key], templateContext)
+      } else if (typeof subjects[key] === 'string') {
+        subjects[key] = await templateEngine.parseAndRender(subjects[key], templateContext)
+      }
+    } catch (e) {
+      // Trace error in rendering
+      subjects[key] = e.toString()
     }
   }
   return subjects
 }
 
-const rvaluesVarSubstitionMiddleware = async (req, res, next) => {
-  if (['POST', 'PUT'].indexOf(req.method) > -1) {
+const substitutionMiddleware = async (req, res, next) => {
+  if (['POST', 'PUT', 'PATCH'].indexOf(req.method) > -1) {
     const token = req.headers.authorization
     let msvcEndpoint
     let iofogListEndPoint
@@ -93,5 +97,5 @@ const rvaluesVarSubstitionMiddleware = async (req, res, next) => {
 
 module.exports = {
   rvaluesVarSubstition,
-  rvaluesVarSubstitionMiddleware
+  substitutionMiddleware
 }
