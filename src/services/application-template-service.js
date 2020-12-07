@@ -23,7 +23,6 @@ const ApplicationTemplateManager = require('../data/managers/application-templat
 const ApplicationTemplateVariableManager = require('../data/managers/application-template-variable-manager')
 const TransactionDecorator = require('../decorators/transaction-decorator')
 const Validator = require('../schemas')
-const logger = require('../logger')
 
 const createApplicationTemplateEndPoint = async function (applicationTemplateData, user, isCLI, transaction) {
   // Add a name field to pass schema validation using the applicationCreate schema
