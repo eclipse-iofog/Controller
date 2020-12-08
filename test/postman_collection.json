@@ -3382,8 +3382,8 @@
 							"script": {
 								"id": "d22e918c-b826-4db1-af85-c9d176423b8b",
 								"exec": [
-									"tests[\"Status code is 204\"] = responseCode.code === 204;",
-									"if (tests[\"Status code is 204\"]) {",
+									"tests[\"Status code is 200\"] = responseCode.code === 200;",
+									"if (tests[\"Status code is 200\"]) {",
 									"    postman.setGlobalVariable(\"application-template-name\", \"application-template-22\");",
 									"}"
 								],
