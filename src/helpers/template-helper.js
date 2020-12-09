@@ -21,8 +21,8 @@ const { Liquid } = require('liquidjs')
 const templateEngine = new Liquid()
 
 /**
- * Add filter findAgent to tempalte engine.
- * Syntaxe  {{ microservice findAgent: iofogs }}
+ * Add filter findAgent to template engine.
+ * Syntaxe  {{ microservice findAgent: agents }}
  */
 templateEngine.registerFilter('findAgent', (microservice, agents) => {
   const targetAgent = agents ? agents.find(agent => agent.uuid === microservice.iofogUuid) : undefined

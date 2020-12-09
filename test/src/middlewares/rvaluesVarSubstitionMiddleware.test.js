@@ -178,7 +178,7 @@ describe('rvaluesVarSubstitionMiddleware', () => {
         ]
       }))
 
-      it('performs variable substitutions and applies filter', async () => {
+      it('performs variable substitutions and applies  filter', async () => {
         await $subject
         expect($nextfct).to.have.been.called
         expect(UserManager.checkAuthentication).to.have.been.called

@@ -12,7 +12,7 @@
  * Author: Franck Roudet
  */
 
- const { expect } = require('chai')
+const { expect } = require('chai')
 const sinon = require('sinon')
 
 const yaml = require('js-yaml')
