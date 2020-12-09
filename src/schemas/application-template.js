@@ -89,8 +89,8 @@ const applicationTemplateDeploy = {
       }
     }
   },
+  'required': ['name'],
   'additionalProperties': true
-
 }
 
 module.exports = {

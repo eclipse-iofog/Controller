@@ -154,7 +154,7 @@ const updateApplicationEndPoint = async function (applicationData, name, user, i
     applicationData = {
       ...await ApplicationTemplateService.getApplicationDataFromTemplate(applicationData.template, user, isCLI, transaction),
       isSystem: applicationData.isSystem,
-      name: applicationData.name,
+      name: applicationData.name || name,
       description: applicationData.description,
       isActivated: applicationData.isActivated
     }
