@@ -2395,7 +2395,9 @@
 									"",
 									"tests[\"Microservice status has default value\"] = data.microservices[0].status.status === 'QUEUED';",
 									"",
-									"tests[\"Response returns microservice percentage\"] = data.microservices[0].status.hasOwnProperty('percentage');"
+									"tests[\"Response returns microservice percentage\"] = data.microservices[0].status.hasOwnProperty('percentage');",
+									"",
+									"tests[\"Response returns microservice errorMessage\"] = data.microservices[0].status.hasOwnProperty('errorMessage');"
 								],
 								"type": "text/javascript"
 							}
@@ -2500,7 +2502,9 @@
 									"",
 									"tests[\"Microservice status has default value\"] = data.microservices[0].status.status === 'QUEUED';",
 									"",
-									"tests[\"Response returns microservice percentage\"] = data.microservices[0].status.hasOwnProperty('percentage');"
+									"tests[\"Response returns microservice percentage\"] = data.microservices[0].status.hasOwnProperty('percentage');",
+									"",
+									"tests[\"Response returns microservice errorMessage\"] = data.microservices[0].status.hasOwnProperty('errorMessage');"
 								],
 								"type": "text/javascript"
 							}
@@ -3427,7 +3431,7 @@
 							"script": {
 								"id": "99d137d3-df85-4bb3-a1f9-c8811324ee3a",
 								"exec": [
-									"tests[\"Status code is 204\"] = responseCode.code === 204;",
+									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									""
 								],
 								"type": "text/javascript"
@@ -4416,6 +4420,8 @@
 									"tests[\"Microservice status has default value\"] = data.microservices[0].status.status === 'QUEUED';",
 									"",
 									"tests[\"Response returns microservice percentage\"] = data.microservices[0].status.hasOwnProperty('percentage');",
+									"",
+									"tests[\"Response returns microservice errorMessage\"] = data.microservices[0].status.hasOwnProperty('errorMessage');",
 									"",
 									"tests[\"msv1 gets env application name\"]=data.microservices[0].env[0].value === pm.globals.get(\"application-msvc-name\").toUpperCase()",
 									"tests[\"msv1 sets env value from another\"]=data.microservices[0].env[3].value === data.microservices[0].env[2].value",
@@ -6307,7 +6313,9 @@
 									"",
 									"tests[\"Microservice status has default value\"] = data.microservices[0].status.status === 'QUEUED';",
 									"",
-									"tests[\"Response returns microservice percentage\"] = data.microservices[0].status.hasOwnProperty('percentage');"
+									"tests[\"Response returns microservice percentage\"] = data.microservices[0].status.hasOwnProperty('percentage');",
+									"",
+									"tests[\"Response returns microservice errorMessage\"] = data.microservices[0].status.hasOwnProperty('errorMessage');"
 								],
 								"type": "text/javascript"
 							}
@@ -9085,7 +9093,9 @@
 									"",
 									"tests[\"Microservice status has default value\"] = data.microservices[0].status.status === 'QUEUED';",
 									"",
-									"tests[\"Response returns microservice percentage\"] = data.microservices[0].status.hasOwnProperty('percentage');"
+									"tests[\"Response returns microservice percentage\"] = data.microservices[0].status.hasOwnProperty('percentage');",
+									"",
+									"tests[\"Response returns microservice errorMessage\"] = data.microservices[0].status.hasOwnProperty('errorMessage');"
 								],
 								"type": "text/javascript"
 							}
