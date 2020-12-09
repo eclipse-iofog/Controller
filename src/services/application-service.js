@@ -149,6 +149,26 @@ const patchApplicationEndPoint = async function (applicationData, conditions, us
 
 // Updates the state (microservices, routes, etc.)
 const updateApplicationEndPoint = async function (applicationData, name, user, isCLI, transaction) {
+  // if template is provided, use template data
+  if (applicationData.template && applicationData.template.name) {
+    applicationData = {
+      ...await ApplicationTemplateService.getApplicationDataFromTemplate(applicationData.template, user, isCLI, transaction),
+      isSystem: applicationData.isSystem,
+      name: applicationData.name,
+      description: applicationData.description,
+      isActivated: applicationData.isActivated
+    }
+    // Edit names - Until name scoping is added
+    for (const microservice of applicationData.microservices) {
+      microservice.name = `${microservice.name}-${applicationData.name}`
+    }
+    for (const route of applicationData.routes) {
+      route.name = `${route.name}-${applicationData.name}`
+      route.from = `${route.from}-${applicationData.name}`
+      route.to = `${route.to}-${applicationData.name}`
+    }
+  }
+
   if (applicationData.microservices) {
     applicationData.microservices = applicationData.microservices.map(m => ({
       ...m,
