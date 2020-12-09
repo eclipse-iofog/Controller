@@ -10,9 +10,36 @@
  *
  * Author: Franck Roudet
  */
+const UserManager = require('../data/managers/user-manager')
+const MicroservicesService = require('../services/microservices-service')
+const FogService = require('../services/iofog-service')
+const qs = require('qs')
+const EdgeResourceService = require('../services/edge-resource-service')
+
 // ninja2 like template engine
 const { Liquid } = require('liquidjs')
 const templateEngine = new Liquid()
+
+/**
+ * Add filter findAgent to template engine.
+ * Syntaxe  {{ microservice findAgent: agents }}
+ */
+templateEngine.registerFilter('findAgent', (microservice, agents) => {
+  const targetAgent = agents ? agents.find(agent => agent.uuid === microservice.iofogUuid) : undefined
+  return targetAgent
+})
+
+function findEdgeResourcehandler (name, version) {
+  const result = this.context.environments._user ? EdgeResourceService.getEdgeResource({ name, version }, this.context.environments._user) : Promise.resolve(undefined)
+  return result
+}
+
+/**
+ * Add filter findEdgeRessource to template engine.
+ * user is in liquid context _user
+ * Syntaxe  {{ name findEdgeRessource: version }}
+ */
+templateEngine.registerFilter('findEdgeResource', findEdgeResourcehandler)
 
 /**
   * Object in depth traversal and right value templateEngine rendering
@@ -20,18 +47,51 @@ const templateEngine = new Liquid()
   * @param {*} templateContext
   */
 const rvaluesVarSubstition = async (subjects, templateContext) => {
-  Object.keys(subjects).forEach((key) => {
-    if (typeof subjects[key] === 'object') {
-      rvaluesVarSubstition(subjects[key], templateContext)
-    } else if (typeof subjects[key] === 'string') {
-      subjects[key] = templateEngine.parseAndRenderSync(subjects[key], templateContext)
+  for (let key in subjects) {
+    try {
+      if (typeof subjects[key] === 'object') {
+        await rvaluesVarSubstition(subjects[key], templateContext)
+      } else if (typeof subjects[key] === 'string') {
+        subjects[key] = await templateEngine.parseAndRender(subjects[key], templateContext)
+      }
+    } catch (e) {
+      // Trace error in rendering
+      subjects[key] = e.toString()
     }
-  })
+  }
   return subjects
 }
 
 const substitutionMiddleware = async (req, res, next) => {
-  await rvaluesVarSubstition(req.body, { self: req.body })
+  if (['POST', 'PUT', 'PATCH'].indexOf(req.method) > -1) {
+    const token = req.headers.authorization
+    let msvcEndpoint
+    let iofogListEndPoint
+    let user
+    if (token) {
+      try {
+        user = await UserManager.checkAuthentication(token)
+        const flowId = req.query.flowId // API retro compatibility
+        const applicationName = req.query.application
+        msvcEndpoint = await MicroservicesService.listMicroservicesEndPoint({ applicationName, flowId }, user, false)
+        msvcEndpoint = msvcEndpoint.microservices
+        const isSystem = req.query && req.query.system ? req.query.system === 'true' : false
+        const query = qs.parse(req.query)
+        iofogListEndPoint = await FogService.getFogListEndPoint(query.filters, user, false, isSystem)
+        iofogListEndPoint = iofogListEndPoint.fogs
+      } catch (e) {
+        // Nothing to do, suppose the token has no permission to access. The is the case of agent
+      }
+    }
+    let tmplContext = {
+      self: req.body,
+      microservices: msvcEndpoint,
+      agents: iofogListEndPoint,
+      // Private context
+      _user: user // need by edge resource and every on demand request
+    }
+    await rvaluesVarSubstition(req.body, tmplContext)
+  }
   next()
 }
 

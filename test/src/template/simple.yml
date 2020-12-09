@@ -18,3 +18,5 @@ spec:
             value: "{{ self.metadata.name }}"
           - key: selfnameU
             value: "{{ self.metadata.name | upcase }}"
+          - key: selfnameA
+            value: "{{ microservices | first | findAgent: agents | map: \"host\" }}"

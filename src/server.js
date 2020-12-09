@@ -28,6 +28,7 @@ const { renderFile } = require('ejs')
 const xss = require('xss-clean')
 const { substitutionMiddleware } = require('./helpers/template-helper')
 const packageJson = require('../package')
+
 const viewerApp = express()
 
 const app = express()

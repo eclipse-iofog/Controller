@@ -12,7 +12,7 @@
  * Author: Franck Roudet
  */
 
- const { expect } = require('chai')
+const { expect } = require('chai')
 const sinon = require('sinon')
 
 const yaml = require('js-yaml')
@@ -28,7 +28,7 @@ describe('rvalues variable substition and scripting', () => {
   async function subsForFileName(filename, context = {} ) {
     // Get document, or throw exception on error
     let doc = yaml.safeLoad(fs.readFileSync(path.join(__dirname, filename), 'utf8'))
-    Object.assign( context, { self: doc } )
+    Object.assign( context, { self: doc, microservices: [ { iofogUuid: 'edai-smartbuilding-rules-engines' }],  agents : [ { uuid: 'unkn'}, { uuid: 'edai-smartbuilding-rules-engines', host: 'http://local:666/'} ]} )
     // console.log('source doc: %j', doc)
     let response = await rvaluesVarSubstition(doc, context)
 
@@ -56,9 +56,13 @@ describe('rvalues variable substition and scripting', () => {
         let subs = await $subject
         expect(subs.spec.microservices[0].container.env.find( el => el.key === 'selfname').value).equal(subs.metadata.name)
       })
-      it('applies filter', async () => {
+      it('applies standard liquidjs filter', async () => {
         let subs = await $subject
         expect(subs.spec.microservices[0].container.env.find( el => el.key === 'selfnameU').value).equals(subs.metadata.name.toUpperCase())
+      })
+      it('applies filter findAgent', async () => {
+        let subs = await $subject
+        expect(subs.spec.microservices[0].container.env.find( el => el.key === 'selfnameA').value).equals('http://local:666/')
       })
     })
   
