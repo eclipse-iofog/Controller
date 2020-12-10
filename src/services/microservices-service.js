@@ -224,6 +224,9 @@ async function createMicroserviceEndPoint (microserviceData, user, isCLI, transa
     throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, microserviceData.iofogUuid || microserviceData.agentName))
   }
 
+  // Set fog uuid for further reference
+  microserviceData.iofogUuid = fog.uuid
+
   // validate images
   if (microserviceData.catalogItemId) {
     // validate catalog item
