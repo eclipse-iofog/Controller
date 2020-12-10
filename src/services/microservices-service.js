@@ -394,7 +394,7 @@ async function updateMicroserviceEndPoint (microserviceUuid, microserviceData, u
     const ports = await microservice.getPorts()
     const data = {
       ports: [],
-      iofogUuid: microserviceData.iofogUuid
+      iofogUuid: microserviceDataUpdate.iofogUuid
     }
 
     for (const port of ports) {
