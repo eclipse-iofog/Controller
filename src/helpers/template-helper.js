@@ -64,7 +64,7 @@ async function findApplicationHandler (name) {
   if (result) {
     result.microservices = (await MicroservicesService.listMicroservicesEndPoint({ applicationName: name }, user, false)).microservices
     if (this.context.environments._applicationsByName) {
-      this.context.environments._applicationsByName[result.name] = result
+      this.context.environments._applicationsByName[name] = result
     }
   }
   return result

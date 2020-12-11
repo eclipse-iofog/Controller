@@ -127,7 +127,7 @@ describe('rvaluesVarSubstitionMiddleware', () => {
           name: $name,
           description: '{{ self.name | upcase }}',
           serviceredisURL: `{% assign redisApp = \"${$redisAppName}\" | findApplication %}{% assign redismsvc = redisApp.microservices | where: \"name\", \"redis\" | first %}{{ redismsvc | findMicroserviceAgent | map: \"host\"}}:{{ redismsvc | map: \"ports\" | first | first |map: \"external\" | first }}`,
-          videoURL: '{% assign redisApp = \"${$redisAppName}\" | findApplication %}{{ redisApp.microservices | where: \"name\", \"objdetecv4\" | first | map: \"env\" | first | where: \"key\" , \"RES_URL\" | first | map: \"value\" | first }}',
+          videoURL: `{% assign redisApp = \"${$redisAppName}\" | findApplication %}{{ redisApp.microservices | where: \"name\", \"objdetecv4\" | first | map: \"env\" | first | where: \"key\" , \"RES_URL\" | first | map: \"value\" | first }}`,
         },
       }))
       def('responseApp', ({ 
@@ -171,13 +171,13 @@ describe('rvaluesVarSubstitionMiddleware', () => {
         "host": "myhost01",
       }))
 
-      it('performs variable substitutions and applies filter', async () => {
+      it.only('performs variable substitutions and applies filter', async () => {
         await $subject
         expect($nextfct).to.have.been.called
         expect(UserManager.checkAuthentication).to.have.been.called
         expect(FogService.getFogEndPoint).to.have.been.called
         expect(FogService.getFogEndPoint).to.have.been.calledWith({uuid: "TkLh8wzcxb86CRnHQyJkx6VF468JFd4f"}, $auth, false)
-        expect(ApplicationManager.findOnePopulated).to.have.been.called
+        expect(ApplicationManager.findOnePopulated).to.have.been.calledOnce // Verifies the cache logic
         expect(ApplicationManager.findOnePopulated).to.have.been.calledWith({name: $redisAppName, userId: $auth.id}, { exclude: ["created_at", "updated_at"] }, {fakeTransaction: true})
         expect(MicroservicesService.listMicroservicesEndPoint).to.have.been.called
         expect(MicroservicesService.listMicroservicesEndPoint).to.have.been.calledWith({applicationName: $redisAppName}, $auth, false)
