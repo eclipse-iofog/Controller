@@ -47,7 +47,7 @@ const createApplicationTemplateEndPoint = async function (applicationTemplateDat
   try {
     if (applicationTemplateData.variables) {
       for (const variableData of applicationTemplateData.variables) {
-        await ApplicationTemplateVariableManager.create({ ...variableData, applicationTemplateId: applicationTemplate.id }, transaction)
+        await _createVariable(applicationTemplate.id, variableData, transaction)
       }
     }
 
@@ -135,10 +135,23 @@ const updateApplicationTemplateEndPoint = async function (applicationTemplateDat
   }
 }
 
+const _createVariable = async function (applicationTemplateId, variableData, transaction) {
+  const newVariable = {
+    ...variableData
+  }
+
+  // Store default value as a JSON stringified version to allow dynamic typing
+  if (newVariable.defaultValue) {
+    newVariable.defaultValue = JSON.stringify(newVariable.defaultValue)
+  }
+
+  return ApplicationTemplateVariableManager.create({ ...newVariable, applicationTemplateId }, transaction)
+}
+
 const _updateVariables = async function (applicationTemplateId, variables, user, isCLI, transaction) {
   await ApplicationTemplateVariableManager.delete({ applicationTemplateId }, transaction)
   for (const variableData of variables) {
-    await ApplicationTemplateVariableManager.create({ ...variableData, applicationTemplateId }, transaction)
+    await _createVariable(applicationTemplateId, variableData, transaction)
   }
 }
 
@@ -156,13 +169,24 @@ const getUserApplicationTemplatesEndPoint = async function (user, isCLI, transac
   }
 }
 
+const _buildGetApplicationObj = function (applicationDBObj) {
+  const JSONData = applicationDBObj.toJSON()
+  JSONData.application = JSON.parse(JSONData.applicationJSON || null)
+  JSONData.variables = (JSONData.variables || []).map(v => {
+    if (v.defaultValue === undefined) { return v }
+    return {
+      ...v, defaultValue: JSON.parse(v.defaultValue)
+    }
+  })
+  delete JSONData.applicationJSON
+  return JSONData
+}
+
 const getAllApplicationTemplatesEndPoint = async function (isCLI, transaction) {
   const attributes = { exclude: ['created_at', 'updated_at'] }
   const applications = await ApplicationTemplateManager.findAllPopulated({}, attributes, transaction)
   return {
-    applicationTemplates: applications.map(application => AppHelper.deleteUndefinedFields({
-      ...application.toJSON(), application: JSON.parse(application.applicationJSON || null), applicationJSON: undefined
-    }))
+    applicationTemplates: applications.map(_buildGetApplicationObj)
   }
 }
 
@@ -176,10 +200,7 @@ async function getApplicationTemplate (conditions, user, isCLI, transaction) {
   if (!application) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_APPLICATION_TEMPLATE_NAME, conditions.name || conditions.id))
   }
-  const JSONData = application.toJSON()
-  JSONData.application = JSON.parse(JSONData.applicationJSON || null)
-  delete JSONData.applicationJSON
-  return JSONData
+  return _buildGetApplicationObj(application)
 }
 
 const getApplicationTemplateEndPoint = async function (name, user, isCLI, transaction) {
@@ -203,7 +224,7 @@ const getApplicationDataFromTemplate = async function (deploymentData, user, isC
 
   // Replace variables
   const defaultVariablesValues = (applicationTemplate.variables || []).reduce((acc, v) => {
-    return { ...acc, [v.key]: v.defaultValue }
+    return { ...acc, [v.key]: JSON.parse(v.defaultValue) }
   }, {})
   const userProvidedVariables = (deploymentData.variables || []).reduce((acc, v) => {
     return { ...acc, [v.key]: v.value }
@@ -211,7 +232,7 @@ const getApplicationDataFromTemplate = async function (deploymentData, user, isC
   delete newApplication.variables
 
   // default values are overwritten by user defined values, and self is always overwritten to the current object
-  await rvaluesVarSubstition(newApplication, { ...defaultVariablesValues, ...userProvidedVariables, self: newApplication })
+  await rvaluesVarSubstition(newApplication, { ...defaultVariablesValues, ...userProvidedVariables, self: newApplication }, user)
 
   return newApplication
 }

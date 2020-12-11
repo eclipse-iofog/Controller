@@ -145,9 +145,17 @@ const iofogGet = {
   'id': '/iofogGet',
   'type': 'object',
   'properties': {
-    'uuid': { 'type': 'string' }
+    'uuid': { 'type': 'string' },
+    'name': { 'type': 'string' }
   },
-  'required': ['uuid'],
+  oneOf: [
+    {
+      required: ['uuid']
+    },
+    {
+      required: ['name']
+    }
+  ],
   'additionalProperties': true
 }
 

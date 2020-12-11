@@ -14,6 +14,7 @@
 
 const { expect } = require('chai')
 const sinon = require('sinon')
+const FogService = require('../../../src/services/iofog-service')
 
 const yaml = require('js-yaml')
 const fs = require('fs')
@@ -24,13 +25,17 @@ const { rvaluesVarSubstition } = require('../../../src/helpers/template-helper')
 const lget = require('lodash').get
 
 describe('rvalues variable substition and scripting', () => {
+  def('sandbox', () => sinon.createSandbox())
+  def('user', () => ({
+    id: 1
+  }))
 
   async function subsForFileName(filename, context = {} ) {
     // Get document, or throw exception on error
     let doc = yaml.safeLoad(fs.readFileSync(path.join(__dirname, filename), 'utf8'))
-    Object.assign( context, { self: doc, microservices: [ { iofogUuid: 'edai-smartbuilding-rules-engines' }],  agents : [ { uuid: 'unkn'}, { uuid: 'edai-smartbuilding-rules-engines', host: 'http://local:666/'} ]} )
+    Object.assign( context, { self: doc, microservices: [ { iofogUuid: 'edai-smartbuilding-rules-engines' }]} )
     // console.log('source doc: %j', doc)
-    let response = await rvaluesVarSubstition(doc, context)
+    let response = await rvaluesVarSubstition(doc, context, $user)
 
     // console.log('subs: %j', response)
     return response
@@ -39,6 +44,14 @@ describe('rvalues variable substition and scripting', () => {
   describe('yaml source parsed to json', () => {
     def('context', () => {})
     def('subject', () => subsForFileName($filename, $context))
+
+    beforeEach(() => {
+      $sandbox.stub(FogService, 'getFogEndPoint').resolves({ uuid: 'edai-smartbuilding-rules-engines', host: 'http://local:666/'})
+    })
+
+    afterEach(() => {
+      $sandbox.restore()
+    })
 
     context('basic substitution', async () => {
       def('filename', () => ('./simple.yml'))
