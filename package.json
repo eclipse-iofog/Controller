@@ -28,7 +28,8 @@
   },
   "standard": {
     "ignore": [
-      "test/**/*.js"
+      "test/**/*.js",
+      "src/lib/**/*.js"
     ]
   },
   "homepage": "https://www.iofog.org",

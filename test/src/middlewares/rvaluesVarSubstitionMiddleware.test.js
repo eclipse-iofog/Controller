@@ -126,7 +126,7 @@ describe('rvaluesVarSubstitionMiddleware', () => {
         body: {
           name: $name,
           description: '{{ self.name | upcase }}',
-          serviceredisURL: `{% assign redisApp = \"${$redisAppName}\" | findApplication %}{% assign redismsvc = redisApp.microservices | where: \"name\", \"redis\" | first %}{{ redismsvc | findMicroserviceAgent | map: \"host\"}}:{{ redismsvc | map: \"ports\" | first | first |map: \"external\" | first }}`,
+          serviceredisURL: `{% assign redisApp = \"${$redisAppName}\" | findApplication %}{% assign redismsvc = redisApp.microservices | where: \"name\", \"redis\" | first %}{{ redismsvc | findMicroserviceAgent | map: \"host\"}}:{{ redismsvc | map: \"ports\" | first | first |map: \"external\" | first | toString }}`,
           videoURL: `{% assign redisApp = \"${$redisAppName}\" | findApplication %}{{ redisApp.microservices | where: \"name\", \"objdetecv4\" | first | map: \"env\" | first | where: \"key\" , \"RES_URL\" | first | map: \"value\" | first }}`,
         },
       }))
@@ -171,7 +171,7 @@ describe('rvaluesVarSubstitionMiddleware', () => {
         "host": "myhost01",
       }))
 
-      it.only('performs variable substitutions and applies filter', async () => {
+      it('performs variable substitutions and applies filter', async () => {
         await $subject
         expect($nextfct).to.have.been.called
         expect(UserManager.checkAuthentication).to.have.been.called

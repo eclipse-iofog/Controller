@@ -1,0 +1,13 @@
+import { FilterImpl } from '../../template/filter/filter-impl';
+import { Scope } from '../../context/scope';
+export declare const join: (v: any[], arg: string) => string;
+export declare const last: (v: any) => any;
+export declare const first: (v: any) => any;
+export declare const reverse: (v: any[]) => any[];
+export declare function sort<T>(this: FilterImpl, arr: T[], property?: string): any[];
+export declare const size: (v: string | any[]) => number;
+export declare function map<T1, T2>(this: FilterImpl, arr: Scope[], property: string): object[];
+export declare function concat<T1, T2>(v: T1[], arg: T2[] | T2): (T1 | T2)[];
+export declare function slice<T>(v: T[], begin: number, length?: number): T[];
+export declare function where<T extends object>(this: FilterImpl, arr: T[], property: string, expected?: any): T[];
+export declare function uniq<T>(arr: T[]): T[];

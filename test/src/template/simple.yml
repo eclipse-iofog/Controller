@@ -12,11 +12,11 @@ spec:
         volumes: [] 
         ports:
           - internal: 1881
-            external: 1882
+            external: "{{ external-port | toNumber }}"
         env:  
           - key: selfname
             value: "{{ self.metadata.name }}"
           - key: selfnameU
             value: "{{ self.metadata.name | upcase }}"
           - key: selfnameA
-            value: "{{ microservices | first | findMicroserviceAgent | map: \"host\" }}"
+            value: "{{ microservices | first | findMicroserviceAgent | map: \"host\" | first }}"

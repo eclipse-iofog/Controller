@@ -57,4 +57,4 @@ spec:
           - key: rulesengineHOST
             value: "TODO"
           - key: rulesenginePORT
-            value: "{{ self.spec.microservices | where: \"name\", \"rulesengine\" | first | map: \"container\" | first | map: \"ports\" | first | map: \"external\" | first }}"
+            value: "{{ self.spec.microservices | where: \"name\", \"rulesengine\" | first | map: \"container\" | first | map: \"ports\" | first | map: \"external\" | first | toString }}"

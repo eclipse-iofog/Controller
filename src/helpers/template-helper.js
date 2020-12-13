@@ -17,7 +17,7 @@ const MicroservicesService = require('../services/microservices-service')
 const EdgeResourceService = require('../services/edge-resource-service')
 
 // ninja2 like template engine
-const { Liquid } = require('liquidjs')
+const { Liquid } = require('../lib/liquidjs/liquid.node.cjs')
 const templateEngine = new Liquid()
 
 /**
@@ -85,6 +85,28 @@ async function findAgentHandler (name) {
   return result
 }
 
+async function JSONParser (variable) {
+  try {
+    console.log({ variable })
+    return JSON.parse(variable)
+  } catch (e) {
+    return variable
+  }
+}
+
+function toStringParser (variable) {
+  try {
+    if (typeof variable === 'string') {
+      return variable
+    }
+    if (variable.toString) {
+      return variable.toString()
+    }
+    return JSON.stringify(variable)
+  } catch (e) {
+    return variable
+  }
+}
 /**
  * Add filter findEdgeRessource to template engine.
  * user is in liquid context _user
@@ -94,6 +116,9 @@ templateEngine.registerFilter('findEdgeResource', findEdgeResourcehandler)
 templateEngine.registerFilter('findApplication', findApplicationHandler)
 templateEngine.registerFilter('findAgent', findAgentHandler)
 templateEngine.registerFilter('findMicroserviceAgent', findMicroserviceAgentHandler)
+templateEngine.registerFilter('toNumber', JSONParser)
+templateEngine.registerFilter('toBoolean', JSONParser)
+templateEngine.registerFilter('toString', toStringParser)
 
 /**
   * Object in depth traversal and right value templateEngine rendering
@@ -121,7 +146,8 @@ const rvaluesVarSubstition = async (subjects, templateContext, user) => {
       if (typeof subjects[key] === 'object') {
         await rvaluesVarSubstition(subjects[key], context, null)
       } else if (typeof subjects[key] === 'string') {
-        subjects[key] = await templateEngine.parseAndRender(subjects[key], context)
+        const result = await templateEngine.parseAndRender(subjects[key], context, { keepOutputType: true })
+        subjects[key] = result
       }
     } catch (e) {
       // Trace error in rendering
