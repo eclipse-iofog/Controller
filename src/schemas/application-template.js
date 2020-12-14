@@ -29,8 +29,7 @@ const applicationTemplateVariable = {
       'minLength': 1,
       'pattern': nameRegex
     },
-    'description': { 'type': 'string' },
-    'defaultValue': { 'type': 'string' }
+    'description': { 'type': 'string' }
   },
   required: ['key']
 }
