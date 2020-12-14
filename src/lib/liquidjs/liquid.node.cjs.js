@@ -1373,7 +1373,11 @@ class Emitter {
         this.keepOutputType = keepOutputType;
     }
     write(html) {
-        if (this.keepOutputType && typeof html !== 'string') {
+        // This will only preserve the type if the value is isolated.
+        // I.E:
+        // {{ my-port }} -> 42
+        // {{ my-host }}:{{ my-port }} -> 'host:42'
+        if (this.keepOutputType === true && typeof html !== 'string' && this.html === '') {
             this.html = html;
         }
         else {
