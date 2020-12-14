@@ -4,6 +4,7 @@ const sinon = require('sinon')
 const { substitutionMiddleware } = require('../../../src/helpers/template-helper')
 const UserManager = require('../../../src/data/managers/user-manager')
 const MicroservicesService = require('../../../src/services/microservices-service')
+const ApplicationManager = require('../../../src/data/managers/application-manager')
 const FogService = require('../../../src/services/iofog-service')
 const EdgeResourceService = require('../../../src/services/edge-resource-service')
 
@@ -70,7 +71,7 @@ describe('rvaluesVarSubstitionMiddleware', () => {
     })
   })
 
-  context('POST request method calling microservices and fogs list services', () => {
+  context('POST request method triggering middleware', () => {
     def('token', () => 'token!')
 
     def('name', () => 'testName')
@@ -94,12 +95,12 @@ describe('rvaluesVarSubstitionMiddleware', () => {
     def('responseApp', ({ 
       microservices: []
     }))
-    def('responseFogList', ({ 
-      fogs: []
+    def('responseFog', ({
     }))
     def('responseEdgeRes', ({ 
       edgeResources: { name: 'testedgeres'}
     }))
+    
     def('auth', () => ({user: $token}))
     def('response', () => Promise.resolve())
     def('nextfct', () => sinon.spy() )
@@ -107,8 +108,9 @@ describe('rvaluesVarSubstitionMiddleware', () => {
 
     beforeEach(() => {
       $sandbox.stub(UserManager, 'checkAuthentication').resolves($auth)
+      $sandbox.stub(ApplicationManager, 'findOnePopulated').resolves($responseApp)
       $sandbox.stub(MicroservicesService, 'listMicroservicesEndPoint').resolves($responseApp)
-      $sandbox.stub(FogService, 'getFogListEndPoint').resolves($responseFogList)
+      $sandbox.stub(FogService, 'getFogEndPoint').resolves($responseFog)
       $sandbox.stub(EdgeResourceService, 'getEdgeResource').resolves($responseEdgeRes)
     })
 
@@ -116,21 +118,16 @@ describe('rvaluesVarSubstitionMiddleware', () => {
       await $subject
       expect($nextfct).to.have.been.called
       expect(UserManager.checkAuthentication).to.have.been.called
-      expect(FogService.getFogListEndPoint).to.have.been.called
-      expect(FogService.getFogListEndPoint).to.have.been.calledWith(undefined, $auth, false, false)
-      expect(MicroservicesService.listMicroservicesEndPoint).to.have.been.called
-      expect(MicroservicesService.listMicroservicesEndPoint).to.have.been.calledWith({ applicationName: $name, flowId: undefined }, $auth, false)
-      expect(EdgeResourceService.getEdgeResource).to.not.have.been.called
     })
 
-    context('Variables substitution and filter findAgent', () => {
+    context('Variables substitution and filter findMicroserviceAgent', () => {
+      def('redisAppName', () => 'redisApp')
       def('body', () => ({
         body: {
           name: $name,
           description: '{{ self.name | upcase }}',
-          serviceredisURL: '{% assign redismsvc = microservices | where: \"name\", \"redis\" | first %}{{ redismsvc | findAgent: agents | map: \"host\"}}:{{ redismsvc | map: \"ports\" | first | first |map: \"external\" | first }}',
-          videoURL: '{{ microservices | where: \"name\", \"objdetecv4\" | first | map: \"env\" | first | where: \"key\" , \"RES_URL\" | first | map: \"value\" | first }}',
-
+          serviceredisURL: `{% assign redisApp = \"${$redisAppName}\" | findApplication %}{% assign redismsvc = redisApp.microservices | where: \"name\", \"redis\" | first %}{{ redismsvc | findMicroserviceAgent | map: \"host\"}}:{{ redismsvc | map: \"ports\" | first | first |map: \"external\" | first | toString }}`,
+          videoURL: `{% assign redisApp = \"${$redisAppName}\" | findApplication %}{{ redisApp.microservices | where: \"name\", \"objdetecv4\" | first | map: \"env\" | first | where: \"key\" , \"RES_URL\" | first | map: \"value\" | first }}`,
         },
       }))
       def('responseApp', ({ 
@@ -167,25 +164,23 @@ describe('rvaluesVarSubstitionMiddleware', () => {
         }
       ]
       }))
-      def('responseFogList', ({ 
-        fogs: [
-          {
-            "uuid": "TkLh8wzcxb86CRnHQyJkx6VF468JFd4f",
-            "name": "agent01",
-            "location": "building01manager",
-            "host": "myhost01",
-        }
-        ]
+      def('responseFog', ({
+        "uuid": "TkLh8wzcxb86CRnHQyJkx6VF468JFd4f",
+        "name": "agent01",
+        "location": "building01manager",
+        "host": "myhost01",
       }))
 
-      it('performs variable substitutions and applies  filter', async () => {
+      it('performs variable substitutions and applies filter', async () => {
         await $subject
         expect($nextfct).to.have.been.called
         expect(UserManager.checkAuthentication).to.have.been.called
-        expect(FogService.getFogListEndPoint).to.have.been.called
-        expect(FogService.getFogListEndPoint).to.have.been.calledWith(undefined, $auth, false, false)
+        expect(FogService.getFogEndPoint).to.have.been.called
+        expect(FogService.getFogEndPoint).to.have.been.calledWith({uuid: "TkLh8wzcxb86CRnHQyJkx6VF468JFd4f"}, $auth, false)
+        expect(ApplicationManager.findOnePopulated).to.have.been.calledOnce // Verifies the cache logic
+        expect(ApplicationManager.findOnePopulated).to.have.been.calledWith({name: $redisAppName, userId: $auth.id}, { exclude: ["created_at", "updated_at"] }, {fakeTransaction: true})
         expect(MicroservicesService.listMicroservicesEndPoint).to.have.been.called
-        expect(MicroservicesService.listMicroservicesEndPoint).to.have.been.calledWith({ applicationName: $name, flowId: undefined }, $auth, false)
+        expect(MicroservicesService.listMicroservicesEndPoint).to.have.been.calledWith({applicationName: $redisAppName}, $auth, false)
         expect(EdgeResourceService.getEdgeResource).to.not.have.been.called
 
         expect($req.body.serviceredisURL).to.be.equal("myhost01:6379")
@@ -251,10 +246,6 @@ describe('rvaluesVarSubstitionMiddleware', () => {
           await $subject
           expect($nextfct).to.have.been.called
           expect(UserManager.checkAuthentication).to.have.been.called
-          expect(FogService.getFogListEndPoint).to.have.been.called
-          expect(FogService.getFogListEndPoint).to.have.been.calledWith(undefined, $auth, false, false)
-          expect(MicroservicesService.listMicroservicesEndPoint).to.have.been.called
-          expect(MicroservicesService.listMicroservicesEndPoint).to.have.been.calledWith({ applicationName: $name, flowId: undefined }, $auth, false)
           expect(EdgeResourceService.getEdgeResource).to.have.been.called
           expect(EdgeResourceService.getEdgeResource).to.have.been.calledWith({ name: "edgeRes", version: "0.1.0" } , $auth)
   
@@ -274,10 +265,6 @@ describe('rvaluesVarSubstitionMiddleware', () => {
           await $subject
           expect($nextfct).to.have.been.called
           expect(UserManager.checkAuthentication).to.have.been.called
-          expect(FogService.getFogListEndPoint).to.have.been.called
-          expect(FogService.getFogListEndPoint).to.have.been.calledWith(undefined, $auth, false, false)
-          expect(MicroservicesService.listMicroservicesEndPoint).to.have.been.called
-          expect(MicroservicesService.listMicroservicesEndPoint).to.have.been.calledWith({ applicationName: $name, flowId: undefined }, $auth, false)
           expect(EdgeResourceService.getEdgeResource).to.have.been.called
           expect(EdgeResourceService.getEdgeResource).to.have.been.calledWith({ name: "edgeRes", version: undefined } , $auth)
   

@@ -472,7 +472,7 @@ function _mapTags (fog) {
 async function getFog (fogData, user, isCLI, transaction) {
   await Validator.validate(fogData, Validator.schemas.iofogGet)
 
-  const queryFogData = { uuid: fogData.uuid }
+  const queryFogData = fogData.uuid ? { uuid: fogData.uuid } : { name: fogData.name, userId: user.id }
 
   const fog = await FogManager.findOneWithTags(queryFogData, transaction)
   if (!fog) {

@@ -14,6 +14,7 @@
 
 const { expect } = require('chai')
 const sinon = require('sinon')
+const FogService = require('../../../src/services/iofog-service')
 
 const yaml = require('js-yaml')
 const fs = require('fs')
@@ -24,13 +25,18 @@ const { rvaluesVarSubstition } = require('../../../src/helpers/template-helper')
 const lget = require('lodash').get
 
 describe('rvalues variable substition and scripting', () => {
+  def('sandbox', () => sinon.createSandbox())
+  def('user', () => ({
+    id: 1
+  }))
+  def('externalPort', () => 1882)
 
   async function subsForFileName(filename, context = {} ) {
     // Get document, or throw exception on error
     let doc = yaml.safeLoad(fs.readFileSync(path.join(__dirname, filename), 'utf8'))
-    Object.assign( context, { self: doc, microservices: [ { iofogUuid: 'edai-smartbuilding-rules-engines' }],  agents : [ { uuid: 'unkn'}, { uuid: 'edai-smartbuilding-rules-engines', host: 'http://local:666/'} ]} )
+    Object.assign( context, { self: doc, microservices: [ { iofogUuid: 'edai-smartbuilding-rules-engines' }], 'external-port': $externalPort} )
     // console.log('source doc: %j', doc)
-    let response = await rvaluesVarSubstition(doc, context)
+    let response = await rvaluesVarSubstition(doc, context, $user)
 
     // console.log('subs: %j', response)
     return response
@@ -40,11 +46,19 @@ describe('rvalues variable substition and scripting', () => {
     def('context', () => {})
     def('subject', () => subsForFileName($filename, $context))
 
+    beforeEach(() => {
+      $sandbox.stub(FogService, 'getFogEndPoint').resolves({ uuid: 'edai-smartbuilding-rules-engines', host: 'http://local:666/'})
+    })
+
+    afterEach(() => {
+      $sandbox.restore()
+    })
+
     context('basic substitution', async () => {
       def('filename', () => ('./simple.yml'))
       it('not change the type of attribute value withoug template expression', async () => {
         let subs = await $subject
-        expect(subs.spec.microservices[0].container.ports[0].external).to.be.a('number').and.equal(1882)
+        expect(subs.spec.microservices[0].container.ports[0].external).to.be.a('number').and.equal($externalPort)
         expect(subs.spec.microservices[0].container.rootHostAccess).to.be.a('boolean').and.equal(false)
         expect(subs.spec.microservices[0].container.volumes).to.be.an('array').that.is.empty
       })

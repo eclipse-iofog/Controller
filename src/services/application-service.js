@@ -305,8 +305,8 @@ async function getApplication (conditions, user, isCLI, transaction) {
   return application
 }
 
-const getApplicationEndPoint = async function (name, user, isCLI, transaction) {
-  return getApplication(name, user, isCLI, transaction)
+const getApplicationEndPoint = async function (conditions, user, isCLI, transaction) {
+  return getApplication(conditions, user, isCLI, transaction)
 }
 
 const _checkForDuplicateName = async function (name, applicationId, userId, transaction) {
@@ -350,6 +350,5 @@ module.exports = {
   getUserApplicationsEndPoint: TransactionDecorator.generateTransaction(getUserApplicationsEndPoint),
   getAllApplicationsEndPoint: TransactionDecorator.generateTransaction(getAllApplicationsEndPoint),
   getApplicationEndPoint: TransactionDecorator.generateTransaction(getApplicationEndPoint),
-  getApplicationByName: TransactionDecorator.generateTransaction(getApplicationEndPoint),
   getApplication: getApplication
 }
