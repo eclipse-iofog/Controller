@@ -1107,7 +1107,8 @@ describe('Microservices Service', () => {
           registryId: microserviceData.registryId,
           volumeMappings: microserviceData.volumeMappings,
           env: microserviceData.env,
-          cmd: microserviceData.cmd
+          cmd: microserviceData.cmd,
+          ports: microserviceData.ports,
         }
         expect(AppHelper.deleteUndefinedFields).to.have.been.calledWith(microserviceToUpdate);
       });
