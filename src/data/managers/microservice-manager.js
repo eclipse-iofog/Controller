@@ -281,7 +281,7 @@ class MicroserviceManager extends BaseManager {
             as: 'images',
             attributes: ['containerImage', 'fogTypeId']
           }],
-          attributes: ['picture', 'registryId']
+          attributes: ['picture', 'registryId', 'category']
         },
         {
           model: Fog,

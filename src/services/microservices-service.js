@@ -370,7 +370,8 @@ async function updateMicroserviceEndPoint (microserviceUuid, microserviceData, u
     registryId: microserviceData.registryId,
     volumeMappings: microserviceData.volumeMappings,
     env: microserviceData.env,
-    cmd: microserviceData.cmd
+    cmd: microserviceData.cmd,
+    ports: microserviceData.ports
   }
 
   const microserviceDataUpdate = AppHelper.deleteUndefinedFields(microserviceToUpdate)
@@ -386,6 +387,10 @@ async function updateMicroserviceEndPoint (microserviceUuid, microserviceData, u
     }
   } else {
     microserviceDataUpdate.registryId = microservice.registryId
+  }
+
+  if (microserviceDataUpdate.ports) {
+    await _updatePorts(microserviceDataUpdate.ports, microservice, user, transaction)
   }
 
   if (microserviceDataUpdate.iofogUuid && microservice.iofogUuid !== microserviceDataUpdate.iofogUuid) {
@@ -472,6 +477,7 @@ async function updateMicroserviceEndPoint (microserviceUuid, microserviceData, u
     microserviceDataUpdate.env ||
     microserviceDataUpdate.cmd ||
     microserviceDataUpdate.volumeMappings ||
+    microserviceDataUpdate.ports ||
     extraHosts
   )
 
@@ -899,6 +905,13 @@ async function _updateArg (arg, microserviceUuid, transaction) {
     }
 
     await MicroserviceArgManager.create(envObj, transaction)
+  }
+}
+
+async function _updatePorts (newPortMappings, microservice, user, transaction) {
+  await MicroservicePortService.deletePortMappings(microservice, user, transaction)
+  for (const portMapping of newPortMappings) {
+    await createPortMappingEndPoint(microservice.uuid, portMapping, user, false, transaction)
   }
 }
 
