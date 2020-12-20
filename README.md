@@ -21,9 +21,9 @@
 
 ## Install
 
-```
-sudo npm install -g iofogcontroller --unsafe-perm
-```
+The entire ioFog platform is best deployed through the unified CLI: `iofogctl`.
+
+Go to [iofog.org](https://iofog.org/docs/) to learn how to deploy the ioFog Control Plane and Agents.
 
 ## Usage
 ```
