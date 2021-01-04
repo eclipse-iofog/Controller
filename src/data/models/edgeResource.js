@@ -17,7 +17,8 @@ module.exports = (sequelize, DataTypes) => {
     displayColor: DataTypes.TEXT,
     displayIcon: DataTypes.TEXT,
     interfaceProtocol: DataTypes.TEXT,
-    interfaceId: { type: DataTypes.INTEGER, field: 'interface_id' } // Reference external document depending on the value of interfaceProtocol
+    interfaceId: { type: DataTypes.INTEGER, field: 'interface_id' }, // Reference external document depending on the value of interfaceProtocol
+    custom: DataTypes.TEXT
   }, {
     tableName: 'EdgeResources',
     timestamps: false,

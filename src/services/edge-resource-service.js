@@ -157,7 +157,7 @@ async function _updateOrchestrationTags (tagArray, edgeResourceModel, transactio
 
 async function createEdgeResource (edgeResourceData, user, transaction) {
   await Validator.validate(edgeResourceData, Validator.schemas.edgeResourceCreate)
-  const { name, description, version, orchestrationTags, interfaceProtocol, display } = edgeResourceData
+  const { name, description, version, orchestrationTags, interfaceProtocol, display, custom } = edgeResourceData
   const existingResource = await EdgeResourceManager.findOne({ name, version, userId: user.id }, transaction)
   if (existingResource) {
     throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.DUPLICATE_RESOURCE_NAME_VERSION, name, version))
@@ -174,6 +174,9 @@ async function createEdgeResource (edgeResourceData, user, transaction) {
     resourceData.displayName = display.name
     resourceData.displayIcon = display.icon
     resourceData.displayColor = display.color
+  }
+  if (custom) {
+    resourceData.custom = JSON.stringify(custom)
   }
   const resource = await EdgeResourceManager.create(resourceData, transaction)
   try {
@@ -205,7 +208,7 @@ async function updateEdgeResourceEndpoint (edgeResourceData, { name: oldName, ve
   if (edgeResourceData.version && oldData.version !== edgeResourceData.version) {
     throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.RESOURCE_UPDATE_VERSION_MISMATCH))
   }
-  const { name, description, orchestrationTags, interfaceProtocol, display } = edgeResourceData
+  const { name, description, orchestrationTags, interfaceProtocol, display, custom } = edgeResourceData
   const newData = {
     userId: user.id,
     name,
@@ -217,6 +220,9 @@ async function updateEdgeResourceEndpoint (edgeResourceData, { name: oldName, ve
     newData.displayName = display.name
     newData.displayIcon = display.icon
     newData.displayColor = display.color
+  }
+  if (custom) {
+    newData.custom = JSON.stringify(custom)
   }
   AppHelper.deleteUndefinedFields(newData)
   if (newData.name && newData.name !== oldData.name) {
@@ -287,7 +293,7 @@ async function unlinkEdgeResource ({ name, version }, uuid, user, transaction) {
 }
 
 function buildGetObject (resource) {
-  const { name, id, interfaceProtocol, description, version, displayName, displayIcon, displayColor, orchestrationTags } = resource
+  const { name, id, interfaceProtocol, description, version, displayName, displayIcon, displayColor, orchestrationTags, custom } = resource
   return {
     id,
     name,
@@ -299,6 +305,7 @@ function buildGetObject (resource) {
       icon: displayIcon,
       color: displayColor
     },
+    custom: JSON.parse(custom || '{}'),
     orchestrationTags: (orchestrationTags || []).map(t => t.value),
     interface: resource.interface
   }
