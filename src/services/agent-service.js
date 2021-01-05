@@ -336,13 +336,15 @@ const getAgentLinkedEdgeResources = async function (fog, transaction) {
     'interfaceProtocol',
     'displayName',
     'displayIcon',
-    'displayColor'
+    'displayColor',
+    'custom'
   ]
   const resources = await fog.getEdgeResources({ attributes: resourceAttributes })
   for (const resource of resources) {
     const intrface = await EdgeResourceService.getInterface(resource, transaction)
     // Transform Sequelize objects into plain JSON objects
     const resourceObject = { ...resource.toJSON(), interface: intrface.toJSON() }
+    resourceObject.custom = resourceObject.custom ? JSON.parse(resourceObject.custom) : {}
     edgeResources.push(EdgeResourceService.buildGetObject(resourceObject))
   }
   return edgeResources
