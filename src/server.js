@@ -193,7 +193,7 @@ const initState = async () => {
       run: () => {
         const pidFile = path.join((process.env.PID_BASE || __dirname), 'iofog-controller.pid')
         logger.info(`==> PID file: ${pidFile}`)
-        fs.writeFileSync(pidFile, process.pid)
+        fs.writeFileSync(pidFile, process.pid.toString())
       }
     })
   }
