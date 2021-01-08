@@ -274,6 +274,7 @@ async function updateFogEndPoint (fogData, user, isCLI, transaction) {
   if (updateFogData.routerId !== oldFog.routerId || updateFogData.routerMode !== oldFog.routerMode) {
     await ChangeTrackingService.update(fogData.uuid, ChangeTrackingService.events.routerChanged, transaction)
     await ChangeTrackingService.update(fogData.uuid, ChangeTrackingService.events.microserviceList, transaction)
+    await _updateProxyRouters(fogData.uuid, networkRouter, transaction)
   }
 
   await FogManager.update(queryFogData, updateFogData, transaction)
@@ -321,7 +322,7 @@ async function _updateMicroserviceExtraHosts (fogUuid, host, transaction) {
 
 async function _updateProxyRouters (fogId, router, transaction) {
   const proxyCatalog = await CatalogService.getProxyCatalogItem(transaction)
-  const proxyMicroservices = await MicroserviceManager.findAll({ catalogItemId: proxyCatalog.id, iofogUuid: fogId })
+  const proxyMicroservices = await MicroserviceManager.findAll({ catalogItemId: proxyCatalog.id, iofogUuid: fogId }, transaction)
   for (const proxyMicroservice of proxyMicroservices) {
     const config = JSON.parse(proxyMicroservice.config || '{}')
     config.networkRouter = {
