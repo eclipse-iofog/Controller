@@ -274,7 +274,6 @@ async function updateFogEndPoint (fogData, user, isCLI, transaction) {
   if (updateFogData.routerId !== oldFog.routerId || updateFogData.routerMode !== oldFog.routerMode) {
     await ChangeTrackingService.update(fogData.uuid, ChangeTrackingService.events.routerChanged, transaction)
     await ChangeTrackingService.update(fogData.uuid, ChangeTrackingService.events.microserviceList, transaction)
-    await _updateProxyRouters(fogData.uuid, networkRouter, transaction)
   }
 
   await FogManager.update(queryFogData, updateFogData, transaction)
