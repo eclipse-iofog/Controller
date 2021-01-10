@@ -274,7 +274,6 @@ async function updateFogEndPoint (fogData, user, isCLI, transaction) {
   if (updateFogData.routerId !== oldFog.routerId || updateFogData.routerMode !== oldFog.routerMode) {
     await ChangeTrackingService.update(fogData.uuid, ChangeTrackingService.events.routerChanged, transaction)
     await ChangeTrackingService.update(fogData.uuid, ChangeTrackingService.events.microserviceList, transaction)
-    await _updateProxyRouters(fogData.uuid, networkRouter, transaction)
   }
 
   await FogManager.update(queryFogData, updateFogData, transaction)
@@ -372,7 +371,7 @@ async function _deleteFogRouter (fogData, userId, transaction) {
     const connectedAgents = await FogManager.findAll({ routerId }, transaction)
     for (const connectedAgent of connectedAgents) {
       await FogManager.update({ uuid: connectedAgent.uuid }, { routerId: defaultRouter.id }, transaction)
-      await _updateProxyRouters(connectedAgent.uuid, defaultRouter)
+      await _updateProxyRouters(connectedAgent.uuid, defaultRouter, transaction)
       await ChangeTrackingService.update(connectedAgent.uuid, ChangeTrackingService.events.routerChanged, transaction)
     }
   }
