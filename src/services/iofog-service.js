@@ -322,7 +322,7 @@ async function _updateMicroserviceExtraHosts (fogUuid, host, transaction) {
 
 async function _updateProxyRouters (fogId, router, transaction) {
   const proxyCatalog = await CatalogService.getProxyCatalogItem(transaction)
-  const proxyMicroservices = await MicroserviceManager.findAll({ catalogItemId: proxyCatalog.id, iofogUuid: fogId })
+  const proxyMicroservices = await MicroserviceManager.findAll({ catalogItemId: proxyCatalog.id, iofogUuid: fogId }, transaction)
   for (const proxyMicroservice of proxyMicroservices) {
     const config = JSON.parse(proxyMicroservice.config || '{}')
     config.networkRouter = {
