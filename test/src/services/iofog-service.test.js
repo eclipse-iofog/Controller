@@ -596,10 +596,6 @@ describe('ioFog Service', () => {
       id: 42
     }
 
-    const proxyCatalogItem = {
-      id: 3
-    }
-
     def('subject', () => $subject.updateFogEndPoint(fogData, user, isCLI, transaction))
     def('validatorResponse', () => Promise.resolve(true))
     def('deleteUndefinedFieldsResponse', () => ({...updateFogData}))
@@ -623,10 +619,6 @@ describe('ioFog Service', () => {
     def('findDefaultRouterResponse', () => Promise.resolve(defaultRouter))
     def('emptyUpstreamRouters', () => Promise.resolve([]))
     def('dateResponse', () => date)
-
-    def('findProxyMicroservicesResponse', () => Promise.resolve([]))
-    def('updateIfChangedResponse', () => Promise.resolve())
-    def('updateResponse', () => Promise.resolve())
 
     beforeEach(() => {
       $sandbox.stub(Validator, 'validate').returns($validatorResponse)
@@ -660,10 +652,6 @@ describe('ioFog Service', () => {
       $sandbox.stub(CatalogService, 'getRouterCatalogItem').returns($getRouterCatalogItemResponse)
       $sandbox.stub(MicroserviceManager, 'delete')
       $sandbox.stub(Date, 'now').returns($dateResponse)
-
-      $sandbox.stub(CatalogService, 'getProxyCatalogItem').returns(Promise.resolve({id: 42}))
-      $sandbox.stub(MicroserviceManager, 'findAll').returns($findProxyMicroservicesResponse)
-      $sandbox.stub(MicroserviceManager, 'updateIfChanged').returns($updateIfChangedResponse)
     })
 
     it('calls Validator#validate() with correct args', async () => {
@@ -919,6 +907,10 @@ describe('ioFog Service', () => {
                   def('findConnectedRoutersResponse', () => Promise.resolve([connectedFog]))
                   def('findProxyCatalogItemResponse', () => Promise.resolve(proxyCatalogItem))
                   def('findProxyMicroservicesResponse', () => Promise.resolve([]))
+                  beforeEach(() => {
+                    $sandbox.stub(CatalogService, 'getProxyCatalogItem').returns(() => Promise.resolve({id: 1}))
+                    $sandbox.stub(MicroserviceManager, 'findAll').returns($findProxyMicroservicesResponse)
+                  })
 
                   it('should update agent routerId', async () => {
                     await $subject
@@ -928,6 +920,9 @@ describe('ioFog Service', () => {
                   context('when there are proxy microservices', () => {
                     const proxyMsvc = {uuid: 'proxyMsvc'}
                     def('findProxyMicroservicesResponse', () => Promise.resolve([proxyMsvc]))
+                    beforeEach(() => {
+                      $sandbox.stub(MicroserviceManager, 'updateIfChanged')
+                    })
                     it('should update microservice config and set flag', async () => {
                       await $subject
                       expect(MicroserviceManager.updateIfChanged).to.have.been.calledWith({ uuid: proxyMsvc.uuid }, { config: JSON.stringify({networkRouter: { host: defaultRouter.host, port: defaultRouter.messagingPort}}) })
