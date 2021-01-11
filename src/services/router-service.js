@@ -137,6 +137,7 @@ async function updateRouter (oldRouter, newRouterData, upstreamRouters, userId, 
   await updateConfig(oldRouter.id, userId, transaction)
   await ChangeTrackingService.update(oldRouter.iofogUuid, ChangeTrackingService.events.routerChanged, transaction)
   await ChangeTrackingService.update(oldRouter.iofogUuid, ChangeTrackingService.events.microserviceList, transaction)
+  await ChangeTrackingService.update(oldRouter.iofogUuid, ChangeTrackingService.events.microserviceConfig, transaction)
 
   return {
     host: 'localhost',

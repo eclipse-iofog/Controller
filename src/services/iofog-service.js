@@ -321,7 +321,7 @@ async function _updateMicroserviceExtraHosts (fogUuid, host, transaction) {
 
 async function _updateProxyRouters (fogId, router, transaction) {
   const proxyCatalog = await CatalogService.getProxyCatalogItem(transaction)
-  const proxyMicroservices = await MicroserviceManager.findAll({ catalogItemId: proxyCatalog.id, iofogUuid: fogId })
+  const proxyMicroservices = await MicroserviceManager.findAll({ catalogItemId: proxyCatalog.id, iofogUuid: fogId }, transaction)
   for (const proxyMicroservice of proxyMicroservices) {
     const config = JSON.parse(proxyMicroservice.config || '{}')
     config.networkRouter = {
@@ -371,7 +371,7 @@ async function _deleteFogRouter (fogData, userId, transaction) {
     const connectedAgents = await FogManager.findAll({ routerId }, transaction)
     for (const connectedAgent of connectedAgents) {
       await FogManager.update({ uuid: connectedAgent.uuid }, { routerId: defaultRouter.id }, transaction)
-      await _updateProxyRouters(connectedAgent.uuid, defaultRouter)
+      await _updateProxyRouters(connectedAgent.uuid, defaultRouter, transaction)
       await ChangeTrackingService.update(connectedAgent.uuid, ChangeTrackingService.events.routerChanged, transaction)
     }
   }
