@@ -141,7 +141,7 @@ const _createVariable = async function (applicationTemplateId, variableData, tra
   }
 
   // Store default value as a JSON stringified version to allow dynamic typing
-  if (newVariable.defaultValue) {
+  if (newVariable.defaultValue !== undefined) {
     newVariable.defaultValue = JSON.stringify(newVariable.defaultValue)
   }
 
