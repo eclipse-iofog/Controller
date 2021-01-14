@@ -226,7 +226,7 @@ async function _createRouterMicroservice (isEdge, uuid, userId, microserviceConf
     catalogItemId: routerCatalog.id,
     iofogUuid: uuid,
     rootHostAccess: false,
-    logSize: 50,
+    logSize: 1,
     userId,
     configLastUpdated: Date.now()
   }

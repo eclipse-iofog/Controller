@@ -297,7 +297,7 @@ const getAgentMicroservices = async function (fog, transaction) {
       config: microservice.config,
       rebuild: microservice.rebuild,
       rootHostAccess: microservice.rootHostAccess,
-      logSize: parseInt(microservice.logSize) || 50,
+      logSize: parseInt(microservice.logSize) || 1,
       registryId,
       portMappings: microservice.ports,
       volumeMappings: microservice.volumeMappings,

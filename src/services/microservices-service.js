@@ -366,7 +366,7 @@ async function updateMicroserviceEndPoint (microserviceUuid, microserviceData, u
     rebuild: microserviceData.rebuild,
     iofogUuid: newFog.uuid,
     rootHostAccess: microserviceData.rootHostAccess,
-    logSize: (microserviceData.logLimit || 50) * 1,
+    logSize: (microserviceData.logLimit || 1) * 1,
     registryId: microserviceData.registryId,
     volumeMappings: microserviceData.volumeMappings,
     env: microserviceData.env,
@@ -754,7 +754,7 @@ async function _createMicroservice (microserviceData, user, isCLI, transaction) 
     iofogUuid: microserviceData.iofogUuid,
     rootHostAccess: microserviceData.rootHostAccess,
     registryId: microserviceData.registryId || 1,
-    logSize: (microserviceData.logLimit || 50) * 1,
+    logSize: (microserviceData.logLimit || 1) * 1,
     userId: user.id
   }
 

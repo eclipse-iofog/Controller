@@ -113,7 +113,7 @@ describe('ioFog Service', () => {
       catalogItemId: halItem.id,
       iofogUuid: createFogData.uuid,
       rootHostAccess: true,
-      logSize: 50,
+      logSize: 1,
       userId: oldFog ? oldFog.userId : user.id,
       configLastUpdated: date,
     }
@@ -129,7 +129,7 @@ describe('ioFog Service', () => {
       catalogItemId: bluetoothItem.id,
       iofogUuid: createFogData.uuid,
       rootHostAccess: true,
-      logSize: 50,
+      logSize: 1,
       userId: oldFog ? oldFog.userId : user.id,
       configLastUpdated: date,
     }
@@ -557,7 +557,7 @@ describe('ioFog Service', () => {
       catalogItemId: halItem.id,
       iofogUuid: fogData.uuid,
       rootHostAccess: true,
-      logSize: 50,
+      logSize: 1,
       userId: oldFog ? oldFog.userId : user.id,
       configLastUpdated: date,
     }
@@ -573,7 +573,7 @@ describe('ioFog Service', () => {
       catalogItemId: bluetoothItem.id,
       iofogUuid: fogData.uuid,
       rootHostAccess: true,
-      logSize: 50,
+      logSize: 1,
       userId: oldFog ? oldFog.userId : user.id,
       configLastUpdated: date,
     }

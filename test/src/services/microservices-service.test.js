@@ -306,7 +306,7 @@ describe('Microservices Service', () => {
         },
       ],
       'routes': [],
-      'logLimit': 50
+      'logLimit': 1
     }
 
     const newMicroserviceUuid = 'newMicroserviceUuid'
@@ -1103,7 +1103,7 @@ describe('Microservices Service', () => {
           rebuild: microserviceData.rebuild,
           iofogUuid: microserviceData.iofogUuid,
           rootHostAccess: microserviceData.rootHostAccess,
-          logSize: (microserviceData.logLimit || 50) * 1,
+          logSize: (microserviceData.logLimit || 1) * 1,
           registryId: microserviceData.registryId,
           volumeMappings: microserviceData.volumeMappings,
           env: microserviceData.env,

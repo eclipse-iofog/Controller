@@ -126,7 +126,7 @@ describe('Router Service', () => {
         catalogItemId: routerCatalogItem.id,
         iofogUuid: uuid,
         rootHostAccess: false,
-        logSize: 50,
+        logSize: 1,
         userId,
         configLastUpdated: now
       }, transaction)
@@ -194,7 +194,7 @@ describe('Router Service', () => {
           catalogItemId: routerCatalogItem.id,
           iofogUuid: uuid,
           rootHostAccess: false,
-          logSize: 50,
+          logSize: 1,
           userId,
           configLastUpdated: now
         }, transaction)
