@@ -25,6 +25,8 @@ const MicroservicePublicPortManager = require('../../../src/data/managers/micros
 const ioFogManager = require('../../../src/data/managers/iofog-manager')
 const ioFogService = require('../../../src/services/iofog-service')
 const Errors = require('../../../src/helpers/errors')
+const constants = require('../../../src/config/constants')
+const Constants = require('../../../src/helpers/constants')
 
 describe('Microservices Service', () => {
   def('subject', () => MicroservicesService)
@@ -290,7 +292,7 @@ describe('Microservices Service', () => {
       'application': application.name,
       'iofogUuid': 'testIofogUuid',
       'rootHostAccess': true,
-      'logSize': 0,
+      'logSize': 1,
       'volumeMappings': [
         {
           'hostDestination': '/var/dest',
@@ -317,7 +319,7 @@ describe('Microservices Service', () => {
       catalogItemId: microserviceData.catalogItemId,
       iofogUuid: microserviceData.iofogUuid,
       rootHostAccess: microserviceData.rootHostAccess,
-      logSize: microserviceData.logLimit,
+      logSize: microserviceData.logSize,
       registryId: 1,
       userId: user.id,
     }
@@ -1001,7 +1003,7 @@ describe('Microservices Service', () => {
       "applicationId": 16,
       "iofogUuid": 'testIofogUuid',
       "rootHostAccess": true,
-      "logSize": 0,
+      "logSize": 1,
     };
 
     const microserviceToUpdate = {
@@ -1010,7 +1012,7 @@ describe('Microservices Service', () => {
       rebuild: microserviceData.rebuild,
       iofogUuid: microserviceData.iofogUuid,
       rootHostAccess: microserviceData.rootHostAccess,
-      logSize: microserviceData.logLimit,
+      logSize: microserviceData.logSize,
       volumeMappings: microserviceData.volumeMappings
     };
 
@@ -1028,7 +1030,7 @@ describe('Microservices Service', () => {
       applicationId: microserviceData.applicationId,
       iofogUuid: microserviceData.iofogUuid,
       rootHostAccess: !microserviceData.rootHostAccess,
-      logSize: microserviceData.logLimit,
+      logSize: microserviceData.logSize,
       userId: user.id,
       catalogItem: {
         images
@@ -1103,7 +1105,7 @@ describe('Microservices Service', () => {
           rebuild: microserviceData.rebuild,
           iofogUuid: microserviceData.iofogUuid,
           rootHostAccess: microserviceData.rootHostAccess,
-          logSize: (microserviceData.logLimit || 1) * 1,
+          logSize: (microserviceData.logSize || Constants.MICROSERVICE_DEFAULT_LOG_SIZE) * 1,
           registryId: microserviceData.registryId,
           volumeMappings: microserviceData.volumeMappings,
           env: microserviceData.env,
@@ -1741,7 +1743,7 @@ describe('Microservices Service', () => {
       'applicationId': 16,
       'iofogUuid': 'testIofogUuid',
       'rootHostAccess': true,
-      'logSize': 0,
+      'logSize': 1,
       'volumeMappings': [
         {
           'hostDestination': '/var/dest',
@@ -1766,7 +1768,7 @@ describe('Microservices Service', () => {
       applicationId: microserviceData.applicationId,
       iofogUuid: microserviceData.iofogUuid,
       rootHostAccess: microserviceData.rootHostAccess,
-      logSize: microserviceData.logLimit,
+      logSize: microserviceData.logSize,
       registryId: 1,
       userId: user.id,
     }

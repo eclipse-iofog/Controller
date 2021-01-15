@@ -24,6 +24,7 @@ const path = require('path')
 const MicroserviceStates = require('../../../src/enums/microservice-state')
 const FogStates = require('../../../src/enums/fog-state')
 const TrackingEventManager = require('../../../src/data/managers/tracking-event-manager')
+const constants = require('../../../src/helpers/constants')
 
 global.appRoot = path.resolve(__dirname)
 
@@ -970,7 +971,7 @@ describe('Agent Service', () => {
       config: '{}',
       rebuild: false,
       rootHostAccess: false,
-      logSize: 15,
+      logSize: constants.MICROSERVICE_DEFAULT_LOG_SIZE,
       ports: 'testPorts',
       volumeMappings: 'testVolumeMappings',
       imageSnapshot: 'testImageSnapshot',
@@ -1012,7 +1013,7 @@ describe('Agent Service', () => {
       config: '{}',
       rebuild: false,
       rootHostAccess: false,
-      logSize: 15,
+      logSize: constants.MICROSERVICE_DEFAULT_LOG_SIZE,
       ports: 'testPorts',
       volumeMappings: 'testVolumeMappings',
       imageSnapshot: 'testImageSnapshot',
@@ -1040,7 +1041,7 @@ describe('Agent Service', () => {
         config: '{}',
         rebuild: false,
         rootHostAccess: false,
-        logSize: 15,
+        logSize: constants.MICROSERVICE_DEFAULT_LOG_SIZE,
         portMappings: 'testPorts',
         volumeMappings: 'testVolumeMappings',
         imageSnapshot: 'testImageSnapshot',
@@ -1157,7 +1158,7 @@ describe('Agent Service', () => {
       config: '{}',
       rebuild: false,
       rootHostAccess: false,
-      logSize: 15,
+      logSize: constants.MICROSERVICE_DEFAULT_LOG_SIZE,
       portMappings: 'testPorts',
       volumeMappings: 'testVolumeMappings',
       imageSnapshot: 'testImageSnapshot',

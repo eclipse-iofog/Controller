@@ -39,7 +39,6 @@ const RouterService = require('./router-service')
 const Constants = require('../helpers/constants')
 const Op = require('sequelize').Op
 const lget = require('lodash/get')
-const constants = require('../config/constants')
 
 async function createFogEndPoint (fogData, user, isCLI, transaction) {
   await Validator.validate(fogData, Validator.schemas.iofogCreate)
@@ -678,7 +677,7 @@ async function _createHalMicroserviceForFog (fogData, oldFog, user, transaction)
     catalogItemId: halItem.id,
     iofogUuid: fogData.uuid,
     rootHostAccess: true,
-    logSize: constants.MICROSERVICE_DEFAULT_LOG_SIZE,
+    logSize: Constants.MICROSERVICE_DEFAULT_LOG_SIZE,
     userId: oldFog ? oldFog.userId : user.id,
     configLastUpdated: Date.now()
   }
@@ -706,7 +705,7 @@ async function _createBluetoothMicroserviceForFog (fogData, oldFog, user, transa
     catalogItemId: bluetoothItem.id,
     iofogUuid: fogData.uuid,
     rootHostAccess: true,
-    logSize: constants.MICROSERVICE_DEFAULT_LOG_SIZE,
+    logSize: Constants.MICROSERVICE_DEFAULT_LOG_SIZE,
     userId: oldFog ? oldFog.userId : user.id,
     configLastUpdated: Date.now()
   }
