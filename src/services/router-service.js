@@ -24,6 +24,7 @@ const RouterManager = require('../data/managers/router-manager')
 const TransactionDecorator = require('../decorators/transaction-decorator')
 const Validator = require('../schemas')
 const ldifferenceWith = require('lodash/differenceWith')
+const constants = require('../helpers/constants')
 
 async function validateAndReturnUpstreamRouters (upstreamRouterIds, isSystemFog, defaultRouter, transaction) {
   if (!upstreamRouterIds) {
@@ -226,7 +227,7 @@ async function _createRouterMicroservice (isEdge, uuid, userId, microserviceConf
     catalogItemId: routerCatalog.id,
     iofogUuid: uuid,
     rootHostAccess: false,
-    logSize: 50,
+    logSize: constants.MICROSERVICE_DEFAULT_LOG_SIZE,
     userId,
     configLastUpdated: Date.now()
   }

@@ -677,7 +677,7 @@ async function _createHalMicroserviceForFog (fogData, oldFog, user, transaction)
     catalogItemId: halItem.id,
     iofogUuid: fogData.uuid,
     rootHostAccess: true,
-    logSize: 50,
+    logSize: Constants.MICROSERVICE_DEFAULT_LOG_SIZE,
     userId: oldFog ? oldFog.userId : user.id,
     configLastUpdated: Date.now()
   }
@@ -705,7 +705,7 @@ async function _createBluetoothMicroserviceForFog (fogData, oldFog, user, transa
     catalogItemId: bluetoothItem.id,
     iofogUuid: fogData.uuid,
     rootHostAccess: true,
-    logSize: 50,
+    logSize: Constants.MICROSERVICE_DEFAULT_LOG_SIZE,
     userId: oldFog ? oldFog.userId : user.id,
     configLastUpdated: Date.now()
   }

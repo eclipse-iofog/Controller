@@ -17,6 +17,7 @@ const Op = Sequelize.Op
 const Errors = require('../../../src/helpers/errors')
 const ErrorMessages = require('../../../src/helpers/error-messages')
 const { getProxyCatalogItem } = require('../../../src/services/catalog-service')
+const constants = require('../../../src/helpers/constants')
 
 describe('Router Service', () => {
   const transaction = {}
@@ -126,7 +127,7 @@ describe('Router Service', () => {
         catalogItemId: routerCatalogItem.id,
         iofogUuid: uuid,
         rootHostAccess: false,
-        logSize: 50,
+        logSize: constants.MICROSERVICE_DEFAULT_LOG_SIZE,
         userId,
         configLastUpdated: now
       }, transaction)
@@ -194,7 +195,7 @@ describe('Router Service', () => {
           catalogItemId: routerCatalogItem.id,
           iofogUuid: uuid,
           rootHostAccess: false,
-          logSize: 50,
+          logSize: constants.MICROSERVICE_DEFAULT_LOG_SIZE,
           userId,
           configLastUpdated: now
         }, transaction)

@@ -18,6 +18,7 @@ const HWInfoManager = require('../../../src/data/managers/hw-info-manager')
 const USBInfoManager = require('../../../src/data/managers/usb-info-manager')
 const Errors = require('../../../src/helpers/errors')
 const Op = require('sequelize').Op
+const constants = require('../../../src/helpers/constants')
 
 describe('ioFog Service', () => {
   def('subject', () => ioFogService)
@@ -113,7 +114,7 @@ describe('ioFog Service', () => {
       catalogItemId: halItem.id,
       iofogUuid: createFogData.uuid,
       rootHostAccess: true,
-      logSize: 50,
+      logSize: constants.MICROSERVICE_DEFAULT_LOG_SIZE,
       userId: oldFog ? oldFog.userId : user.id,
       configLastUpdated: date,
     }
@@ -129,7 +130,7 @@ describe('ioFog Service', () => {
       catalogItemId: bluetoothItem.id,
       iofogUuid: createFogData.uuid,
       rootHostAccess: true,
-      logSize: 50,
+      logSize: constants.MICROSERVICE_DEFAULT_LOG_SIZE,
       userId: oldFog ? oldFog.userId : user.id,
       configLastUpdated: date,
     }
@@ -557,7 +558,7 @@ describe('ioFog Service', () => {
       catalogItemId: halItem.id,
       iofogUuid: fogData.uuid,
       rootHostAccess: true,
-      logSize: 50,
+      logSize: constants.MICROSERVICE_DEFAULT_LOG_SIZE,
       userId: oldFog ? oldFog.userId : user.id,
       configLastUpdated: date,
     }
@@ -573,7 +574,7 @@ describe('ioFog Service', () => {
       catalogItemId: bluetoothItem.id,
       iofogUuid: fogData.uuid,
       rootHostAccess: true,
-      logSize: 50,
+      logSize: constants.MICROSERVICE_DEFAULT_LOG_SIZE,
       userId: oldFog ? oldFog.userId : user.id,
       configLastUpdated: date,
     }

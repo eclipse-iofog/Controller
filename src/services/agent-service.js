@@ -43,7 +43,7 @@ const TrackingEventType = require('../enums/tracking-event-type')
 const TrackingEventManager = require('../data/managers/tracking-event-manager')
 const RouterManager = require('../data/managers/router-manager')
 const EdgeResourceService = require('./edge-resource-service')
-
+const constants = require('../helpers/constants')
 const IncomingForm = formidable.IncomingForm
 
 const CHANGE_TRACKING_DEFAULT = {}
@@ -297,7 +297,7 @@ const getAgentMicroservices = async function (fog, transaction) {
       config: microservice.config,
       rebuild: microservice.rebuild,
       rootHostAccess: microservice.rootHostAccess,
-      logSize: parseInt(microservice.logSize) || 50,
+      logSize: parseInt(microservice.logSize) || constants.MICROSERVICE_DEFAULT_LOG_SIZE,
       registryId,
       portMappings: microservice.ports,
       volumeMappings: microservice.volumeMappings,
