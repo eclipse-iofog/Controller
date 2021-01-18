@@ -130,7 +130,7 @@ const ports = {
     'external': { 'type': 'integer' },
     'publicPort': { 'type': 'integer' },
     'host': { 'type': 'string' },
-    'protocol': { 'enum': ['http', 'tcp'] }
+    'protocol': { 'enum': ['http', 'tcp', 'udp'] }
   },
   'required': ['internal', 'external'],
   'additionalProperties': true
@@ -144,7 +144,7 @@ const portsCreate = {
     'external': { 'type': 'integer' },
     'publicPort': { 'type': 'integer' },
     'host': { 'type': 'string' },
-    'protocol': { 'enum': ['http', 'tcp'] }
+    'protocol': { 'enum': ['http', 'tcp', 'udp'] }
   },
   'required': ['internal', 'external'],
   'additionalProperties': true

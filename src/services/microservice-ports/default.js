@@ -156,6 +156,8 @@ async function createPortMapping (microservice, portMappingData, user, transacti
     throw new Errors.ValidationError(ErrorMessages.PORT_MAPPING_ALREADY_EXISTS)
   }
 
+  portMappingData.protocol = portMappingData.protocol || ''
+
   if (portMappingData.publicPort) {
     return _createPublicPortMapping(microservice, portMappingData, user, transaction)
   } else {
@@ -193,7 +195,8 @@ async function createOrUpdateProxyMicroservice (mapping, networkRouter, hostUuid
 }
 
 async function _createPublicPortMapping (microservice, portMappingData, user, transaction) {
-  const isTcp = portMappingData.protocol === 'tcp'
+  const isTcp = portMappingData.protocol.toLowerCase() === 'tcp'
+  const isUdp = portMappingData.protocol.toLowerCase() === 'udp'
   const localAgent = portMappingData.localAgent
   const localAgentsRouter = localAgent.routerId ? await RouterManager.findOne({ id: localAgent.routerId }, transaction) : await RouterManager.findOne({ iofogUuid: localAgent.uuid }, transaction)
   const localNetworkRouter = {
@@ -236,6 +239,7 @@ async function _createPublicPortMapping (microservice, portMappingData, user, tr
     isPublic: true,
     portInternal: portMappingData.internal,
     portExternal: portMappingData.external,
+    isUdp,
     userId: microservice.userId,
     microserviceUuid: microservice.uuid
   }
@@ -308,6 +312,7 @@ async function createSimplePortMapping (microservice, portMappingData, user, tra
     portInternal: portMappingData.internal,
     portExternal: portMappingData.external,
     userId: microservice.userId,
+    isUdp: portMappingData.protocol.toLowerCase() === 'udp',
     microserviceUuid: microservice.uuid
   }
 
