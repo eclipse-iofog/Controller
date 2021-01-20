@@ -1014,7 +1014,7 @@ async function _buildGetMicroserviceResponse (microservice, transaction) {
   const res = Object.assign({}, microservice.dataValues)
   res.ports = []
   for (const pm of portMappings) {
-    const mapping = { internal: pm.portInternal, external: pm.portExternal, publicMode: pm.isPublic }
+    const mapping = { internal: pm.portInternal, external: pm.portExternal, publicMode: pm.isPublic, protocol: pm.isUdp ? 'udp' : 'tcp' }
     if (pm.isPublic) {
       const publicPortMapping = await pm.getPublicPort()
       if (publicPortMapping) {

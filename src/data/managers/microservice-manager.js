@@ -158,7 +158,7 @@ class MicroserviceManager extends BaseManager {
           model: MicroservicePort,
           as: 'ports',
           required: false,
-          attributes: ['portInternal', 'portExternal']
+          attributes: ['portInternal', 'portExternal', 'isUdp']
         },
         {
           model: VolumeMapping,
@@ -246,7 +246,7 @@ class MicroserviceManager extends BaseManager {
           model: MicroservicePort,
           as: 'ports',
           required: false,
-          attributes: ['portInternal', 'portExternal']
+          attributes: ['portInternal', 'portExternal', 'isUdp']
         },
         {
           model: VolumeMapping,
