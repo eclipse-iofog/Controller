@@ -285,7 +285,7 @@ const getAgentMicroservices = async function (fog, transaction) {
         value: it.value
       }
     })
-    const cmd = microservice.cmd && microservice.cmd.sort((a, b) => a.id > b.id).map((it) => it.cmd)
+    const cmd = microservice.cmd && microservice.cmd.sort((a, b) => a.id - b.id).map((it) => it.cmd)
 
     const registryId = microservice.catalogItem && microservice.catalogItem.registry ? microservice.catalogItem.registry.id : microservice.registry.id
 
