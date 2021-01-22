@@ -34,5 +34,6 @@ jobs:
       #failTaskOnFailedTests: false # Optional
       #testRunTitle: # Optional
       buildPlatform: ${{ format('Node_{0}', parameters.nodeVersion) }} # Optional
+      testRunTitle: ${{ format('Node_{0}', parameters.nodeVersion) }} # Optional
       #buildConfiguration: # Optional
       #publishRunAttachments: true # Optional

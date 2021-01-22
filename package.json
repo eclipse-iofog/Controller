@@ -119,6 +119,7 @@
     "mocha": "7.1.2",
     "mocha-junit-reporter": "^2.0.0",
     "newman": "5.1.2",
+    "newman-reporter-junitfull": "^1.1.1",
     "nyc": "15.0.0",
     "sinon": "7.2.3",
     "sinon-chai": "3.3.0",

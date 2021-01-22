@@ -27,6 +27,7 @@ function postmanTest () {
   newman.run({
     collection: require('../test/postman_collection.json'),
     reporters: ['cli', 'junit'],
+    // reporter: { junitfull: { export: './integration-results.xml' } }
     reporter: { junit: { export: './integration-results.xml' } }
     // abortOnError: true,
     // abortOnFailure: true
