@@ -22,6 +22,9 @@ jobs:
     displayName: 'integration tests'
   # Publish Test Results
   # Publish test results to Azure Pipelines
+  - script: |
+      ls -l
+    displayName: 'list files (looking for test results)'
   - task: PublishTestResults@2
     inputs:
       testResultsFormat: 'JUnit' # Options: JUnit, NUnit, VSTest, xUnit, cTest
