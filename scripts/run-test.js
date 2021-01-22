@@ -18,7 +18,7 @@ const { postmanTest } = require('./postmantest')
 
 switch (process.argv[2]) {
   case 'test':
-    test()
+    test(process.argv[3] === 'junit')
     cliTest()
     break
   case 'cli-tests':

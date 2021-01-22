@@ -16,7 +16,7 @@ const path = require('path')
 
 const { setDbEnvVars } = require('./util')
 
-function test () {
+function test (useReporter) {
   const options = {
     env: {
       'NODE_ENV': 'test',
@@ -28,7 +28,9 @@ function test () {
 
   options.env = setDbEnvVars(options.env)
 
-  const mocha = path.join(__dirname, '..', 'node_modules', 'mocha', 'bin', 'mocha')
+  const mochaBin = path.join(__dirname, '..', 'node_modules', 'mocha', 'bin', 'mocha')
+  const mochaReporterOptions = '--reporter mocha-junit-reporter --reporter-options mochaFile=./unit-results.xml'
+  const mocha = useReporter ? [mochaBin, mochaReporterOptions].join(' ') : mochaBin
   execSync(mocha, options)
 }
 

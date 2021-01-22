@@ -26,7 +26,8 @@ function postmanTest () {
   // call newman.run to pass `options` object and wait for callback
   newman.run({
     collection: require('../test/postman_collection.json'),
-    reporters: 'cli'
+    reporters: ['cli', 'junit'],
+    reporter: { junit: { export: './integration-results.xml' } }
     // abortOnError: true,
     // abortOnFailure: true
   }).on('start', function (err, args) { // on start of run, log to console
