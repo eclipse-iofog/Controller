@@ -189,7 +189,7 @@ async function _validateExtraHosts (microserviceData, user, transaction) {
 function _validateImageFogType (microserviceData, fog, images) {
   let found = false
   for (const image of images) {
-    if (image.fogTypeId === fog.fogTypeId) {
+    if (image.fogTypeId === fog.fogTypeId && image.containerImage) {
       found = true
       break
     }
