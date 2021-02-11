@@ -1,4 +1,4 @@
-FROM iofog/node-alpine-x86:8.16.0 AS builder
+FROM node:fermium AS builder
 
 ARG PKG_VERSION
 
@@ -10,17 +10,15 @@ RUN npm i -g npm
 
 COPY package.json .
 
-COPY package-lock.json .
-
 COPY . .
 
-RUN npm i
+RUN npm i --build-from-source
 
 RUN npm version $PKG_VERSION --allow-same-version
 
 RUN npm pack
 
-FROM iofog/node-alpine-x86:8.16.0
+FROM node:fermium-alpine3.12
 
 RUN apk add -y sudo logrotate
 ENV NODE_ENV=development
