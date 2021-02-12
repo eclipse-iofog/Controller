@@ -14,7 +14,7 @@ COPY . .
 
 RUN npm i --build-from-source
 
-RUN npm version $PKG_VERSION --allow-same-version
+RUN npm version $PKG_VERSION --allow-same-version --no-git-tag-version
 
 RUN npm pack
 
