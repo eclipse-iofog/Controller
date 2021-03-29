@@ -86,7 +86,7 @@
     "liquidjs": "^9.16.1",
     "moment": "2.24.0",
     "morgan": "1.9.1",
-    "nconf": "0.10.0",
+    "nconf": "0.11.2",
     "nodemailer": "5.1.1",
     "nodemailer-smtp-transport": "2.7.4",
     "os": "0.1.1",
