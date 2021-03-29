@@ -474,7 +474,7 @@ describe('Agent Service', () => {
   })
 
   describe('.updateAgentStatus()', () => {
-    const microservicesStatus = '[{"containerId":"testContainerId", "status":"RUNNING"' +
+    const microservicesStatus = '[{"id": "testUuid", "containerId":"testContainerId", "status":"RUNNING"' +
       ',"startTime":5325543453454,"operatingDuration":534535435435,"cpuUsage":35,"memoryUsage":45}]'
 
     const microserviceStatus = {
@@ -485,7 +485,7 @@ describe('Agent Service', () => {
       'cpuUsage': 35,
       'memoryUsage': 45,
       'percentage': 50.5,
-      'errorMessage': ''
+      'errorMessage': '',
     }
 
     const microserviceStatusArray = [microserviceStatus]
@@ -564,6 +564,10 @@ describe('Agent Service', () => {
 
     def('token', () => 'testToken')
 
+    def('microserviceResponse', () => ({
+      iofogUuid: $uuid,
+    }))
+
     def('subject', () => $subject.updateAgentStatus(fogStatus, $fog, transaction))
 
     def('validatorResponse', () => Promise.resolve(true))
@@ -573,6 +577,7 @@ describe('Agent Service', () => {
     def('jsonParseResponse', () => microserviceStatusArray)
     def('updateMicroserviceStatusesResponse', () => Promise.resolve())
     def('deleteNotRunningResponse', () => Promise.resolve())
+    def('findMicroservice', () => Promise.resolve($microserviceResponse))
 
     beforeEach(() => {
       $sandbox.stub(Validator, 'validate').returns($validatorResponse)
@@ -583,6 +588,7 @@ describe('Agent Service', () => {
       $sandbox.stub(JSON, 'parse').returns($jsonParseResponse)
       $sandbox.stub(MicroserviceStatusManager, 'update').returns($updateMicroserviceStatusesResponse)
       $sandbox.stub(MicroserviceService, 'deleteNotRunningMicroservices').returns($deleteNotRunningResponse)
+      $sandbox.stub(MicroserviceManager, 'findOne').returns($findMicroservice)
     })
 
     it('calls Validator#validate() with correct args', async () => {
@@ -601,7 +607,7 @@ describe('Agent Service', () => {
     context('when Validator#validate() succeeds', () => {
       it('calls AppHelper.deleteUndefinedFields with correct args', async () => {
         await $subject
-        expect(AppHelper.deleteUndefinedFields).to.have.been.calledWith(agentStatus)
+        expect(AppHelper.deleteUndefinedFields).to.have.been.calledWith(microserviceStatus)
       })
 
       context('when AppHelper#deleteUndefinedFields fails', () => {
@@ -713,7 +719,7 @@ describe('Agent Service', () => {
     })
   })
   describe('.updateAgentStatus() with failure', () => {
-    const microservicesStatus = '[{"containerId":"testContainerId", "status":"RUNNING"' +
+    const microservicesStatus = '[{"id": "testUuid", "containerId":"testContainerId", "status":"RUNNING"' +
       ',"startTime":5325543453454,"operatingDuration":534535435435,"cpuUsage":35,"memoryUsage":45}]'
 
     const microserviceStatus = {
@@ -724,7 +730,7 @@ describe('Agent Service', () => {
       'cpuUsage': 35,
       'memoryUsage': 45,
       'percentage': 50.5,
-      'errorMessage': 'Error mounting volume'
+      'errorMessage': 'Error mounting volume',
     }
 
     const microserviceStatusArray = [microserviceStatus]
@@ -791,6 +797,9 @@ describe('Agent Service', () => {
       isReadyToUpgrade: false,
       isReadyToRollback: false,
     }
+    def('microserviceResponse', () => ({
+      iofogUuid: $uuid,
+    }))
 
     const transaction = {}
     const error = 'Error!'
@@ -812,7 +821,7 @@ describe('Agent Service', () => {
     def('jsonParseResponse', () => microserviceStatusArray)
     def('updateMicroserviceStatusesResponse', () => Promise.resolve())
     def('deleteNotRunningResponse', () => Promise.resolve())
-
+    def('findMicroservice', () => Promise.resolve($microserviceResponse))
     beforeEach(() => {
       $sandbox.stub(Validator, 'validate').returns($validatorResponse)
       $sandbox.stub(AppHelper, 'deleteUndefinedFields')
@@ -822,6 +831,8 @@ describe('Agent Service', () => {
       $sandbox.stub(JSON, 'parse').returns($jsonParseResponse)
       $sandbox.stub(MicroserviceStatusManager, 'update').returns($updateMicroserviceStatusesResponse)
       $sandbox.stub(MicroserviceService, 'deleteNotRunningMicroservices').returns($deleteNotRunningResponse)
+      $sandbox.stub(MicroserviceManager, 'findOne').returns($findMicroservice)
+
     })
 
     it('calls Validator#validate() with correct args', async () => {
