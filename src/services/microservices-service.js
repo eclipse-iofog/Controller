@@ -35,7 +35,6 @@ const TrackingDecorator = require('../decorators/tracking-decorator')
 const TrackingEventType = require('../enums/tracking-event-type')
 const FogManager = require('../data/managers/iofog-manager')
 const MicroserviceExtraHostManager = require('../data/managers/microservice-extra-host-manager')
-
 const { VOLUME_MAPPING_DEFAULT } = require('../helpers/constants')
 const constants = require('../helpers/constants')
 
@@ -343,7 +342,7 @@ async function _updateRelatedExtraHosts (updatedMicroservice, transaction) {
 
 async function updateMicroserviceEndPoint (microserviceUuid, microserviceData, user, isCLI, transaction) {
   await Validator.validate(microserviceData, Validator.schemas.microserviceUpdate)
-
+  let needStatusReset = false
   const query = isCLI
     ? {
       uuid: microserviceUuid
@@ -413,6 +412,7 @@ async function updateMicroserviceEndPoint (microserviceUuid, microserviceData, u
     if (data.ports.length) {
       await MicroservicePortService.validatePortMappings(data, transaction)
     }
+    needStatusReset = true
   }
 
   if (microservice.catalogItem && microservice.catalogItem.category === 'SYSTEM') {
@@ -505,6 +505,22 @@ async function updateMicroserviceEndPoint (microserviceUuid, microserviceData, u
 
   if (microserviceDataUpdate.iofogUuid && microserviceDataUpdate.iofogUuid !== microservice.iofogUuid) {
     await MicroservicePortService.movePublicPortsToNewFog(updatedMicroservice, user, transaction)
+  }
+
+  if (needStatusReset) {
+    const microserviceStatus = {
+      status: MicroserviceStates.QUEUED,
+      operatingDuration: 0,
+      startTime: 0,
+      cpuUsage: 0,
+      memoryUsage: 0,
+      containerId: '',
+      percentage: 0,
+      errorMessage: ''
+    }
+    await MicroserviceStatusManager.update({
+      microserviceUuid: microservice.uuid
+    }, microserviceStatus, transaction)
   }
 
   await ChangeTrackingService.update(microservice.iofogUuid, ChangeTrackingService.events.microserviceRouting, transaction)

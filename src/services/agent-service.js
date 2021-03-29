@@ -45,7 +45,6 @@ const RouterManager = require('../data/managers/router-manager')
 const EdgeResourceService = require('./edge-resource-service')
 const constants = require('../helpers/constants')
 const IncomingForm = formidable.IncomingForm
-
 const CHANGE_TRACKING_DEFAULT = {}
 const CHANGE_TRACKING_KEYS = ['config', 'version', 'reboot', 'deleteNode', 'microserviceList', 'microserviceConfig', 'routing', 'registries', 'tunnel', 'diagnostics', 'isImageSnapshot', 'prune', 'routerChanged', 'linkedEdgeResources']
 for (const key of CHANGE_TRACKING_KEYS) {
@@ -234,11 +233,11 @@ const updateAgentStatus = async function (agentStatus, fog, transaction) {
     uuid: fog.uuid
   }, fogStatus, transaction)
 
-  await _updateMicroserviceStatuses(JSON.parse(agentStatus.microserviceStatus), transaction)
+  await _updateMicroserviceStatuses(JSON.parse(agentStatus.microserviceStatus), fog, transaction)
   await MicroserviceService.deleteNotRunningMicroservices(fog, transaction)
 }
 
-const _updateMicroserviceStatuses = async function (microserviceStatus, transaction) {
+const _updateMicroserviceStatuses = async function (microserviceStatus, fog, transaction) {
   for (const status of microserviceStatus) {
     let microserviceStatus = {
       containerId: status.containerId,
@@ -251,10 +250,14 @@ const _updateMicroserviceStatuses = async function (microserviceStatus, transact
       errorMessage: status.errorMessage
     }
     microserviceStatus = AppHelper.deleteUndefinedFields(microserviceStatus)
-
-    await MicroserviceStatusManager.update({
-      microserviceUuid: status.id
-    }, microserviceStatus, transaction)
+    const microservice = await MicroserviceManager.findOne({
+      uuid: status.id
+    }, transaction)
+    if (fog.uuid === microservice.iofogUuid) {
+      await MicroserviceStatusManager.update({
+        microserviceUuid: status.id
+      }, microserviceStatus, transaction)
+    }
   }
 }
 
