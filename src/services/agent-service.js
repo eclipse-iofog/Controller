@@ -253,7 +253,7 @@ const _updateMicroserviceStatuses = async function (microserviceStatus, fog, tra
     const microservice = await MicroserviceManager.findOne({
       uuid: status.id
     }, transaction)
-    if (microservice.iofogUuid && fog.uuid === microservice.iofogUuid) {
+    if (microservice && fog.uuid === microservice.iofogUuid) {
       await MicroserviceStatusManager.update({
         microserviceUuid: status.id
       }, microserviceStatus, transaction)
