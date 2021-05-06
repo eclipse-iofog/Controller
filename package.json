@@ -104,7 +104,7 @@
     "sqlite3": "4.0.8",
     "string-format": "2.0.0",
     "umzug": "2.2.0",
-    "underscore": "1.9.1",
+    "underscore": "1.12.1",
     "xss-clean": "0.1.1"
   },
   "devDependencies": {
