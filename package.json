@@ -87,7 +87,7 @@
     "moment": "2.24.0",
     "morgan": "1.9.1",
     "nconf": "0.11.2",
-    "nodemailer": "5.1.1",
+    "nodemailer": "6.4.16",
     "nodemailer-smtp-transport": "2.7.4",
     "os": "0.1.1",
     "path": "0.12.7",
