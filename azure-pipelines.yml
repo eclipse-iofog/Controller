@@ -10,6 +10,7 @@ trigger:
     exclude:
       - README.md
       - CHANGELOG.md
+      - LICENSE
 
 variables:
   group: 'pipelines'
