@@ -87,8 +87,8 @@
     "moment": "2.24.0",
     "morgan": "1.9.1",
     "nconf": "0.11.2",
-    "nodemailer": "5.1.1",
-    "nodemailer-smtp-transport": "2.7.4",
+    "nodemailer": "^6.6.0",
+    "nodemailer-smtp-transport": "^2.4.2",
     "os": "0.1.1",
     "path": "0.12.7",
     "pino": "6.6.1",
@@ -104,7 +104,7 @@
     "sqlite3": "4.0.8",
     "string-format": "2.0.0",
     "umzug": "2.2.0",
-    "underscore": "1.9.1",
+    "underscore": "^1.13.1",
     "xss-clean": "0.1.1"
   },
   "devDependencies": {
