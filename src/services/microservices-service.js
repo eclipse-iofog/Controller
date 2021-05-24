@@ -443,7 +443,7 @@ async function updateMicroserviceEndPoint (microserviceUuid, microserviceData, u
   } else if (!microservice.catalogItemId && microserviceDataUpdate.images && microserviceDataUpdate.images.length === 0) {
     // No catalog, and no image
     throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.MICROSERVICE_DOES_NOT_HAVE_IMAGES, microserviceData.name))
-  } else if (!checkIfMicorserviceImageIsUpdated(microserviceDataUpdate.images, microserviceImages)) {
+  } else if (microserviceDataUpdate.images && microserviceDataUpdate.images.length > 0 && !_checkIfMicroserviceImagesAreEqual(microserviceDataUpdate.images, microserviceImages)) {
     // No catalog, and images
     await _updateImages(microserviceDataUpdate.images, microserviceUuid, transaction)
     // Images updated, set rebuild flag to true
@@ -540,7 +540,7 @@ async function updateMicroserviceEndPoint (microserviceUuid, microserviceData, u
  * @param {*} microserviceDataUpdateImages
  * @param {*} catalogImages
  */
-const checkIfMicorserviceImageIsUpdated = (microserviceDataUpdateImages, catalogImages) => {
+const _checkIfMicroserviceImagesAreEqual = (microserviceDataUpdateImages, catalogImages) => {
   const oldMicroservicesImages = []
   for (const images of catalogImages) {
     oldMicroservicesImages.push(images.containerImage)
@@ -549,7 +549,6 @@ const checkIfMicorserviceImageIsUpdated = (microserviceDataUpdateImages, catalog
   for (const images of microserviceDataUpdateImages) {
     newMicroserviceImages.push(images.containerImage)
   }
-  // microserviceDataUpdate.images && microserviceDataUpdate.images.length > 0
   return isEqual(newMicroserviceImages, oldMicroservicesImages)
 }
 
