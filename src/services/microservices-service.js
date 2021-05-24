@@ -37,6 +37,7 @@ const FogManager = require('../data/managers/iofog-manager')
 const MicroserviceExtraHostManager = require('../data/managers/microservice-extra-host-manager')
 const { VOLUME_MAPPING_DEFAULT } = require('../helpers/constants')
 const constants = require('../helpers/constants')
+const isEqual = require('lodash/isEqual')
 
 async function listMicroservicesEndPoint (opt, user, isCLI, transaction) {
   // API retro compatibility
@@ -377,6 +378,11 @@ async function updateMicroserviceEndPoint (microserviceUuid, microserviceData, u
   const microserviceDataUpdate = AppHelper.deleteUndefinedFields(microserviceToUpdate)
 
   const microservice = await MicroserviceManager.findOneWithCategory(query, transaction)
+
+  const microserviceImages = await CatalogItemImageManager.findAll({
+    microservice_uuid: microserviceUuid
+  }, transaction)
+
   if (!microservice) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, microserviceUuid))
   }
@@ -437,7 +443,7 @@ async function updateMicroserviceEndPoint (microserviceUuid, microserviceData, u
   } else if (!microservice.catalogItemId && microserviceDataUpdate.images && microserviceDataUpdate.images.length === 0) {
     // No catalog, and no image
     throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.MICROSERVICE_DOES_NOT_HAVE_IMAGES, microserviceData.name))
-  } else if (microserviceDataUpdate.images && microserviceDataUpdate.images.length > 0) {
+  } else if (!checkIfMicorserviceImageIsUpdated(microserviceDataUpdate.images, microserviceImages)) {
     // No catalog, and images
     await _updateImages(microserviceDataUpdate.images, microserviceUuid, transaction)
     // Images updated, set rebuild flag to true
@@ -481,7 +487,6 @@ async function updateMicroserviceEndPoint (microserviceUuid, microserviceData, u
     microserviceDataUpdate.ports ||
     extraHosts
   )
-
   const updatedMicroservice = await MicroserviceManager.updateAndFind(query, microserviceDataUpdate, transaction)
 
   if (extraHosts) {
@@ -528,6 +533,24 @@ async function updateMicroserviceEndPoint (microserviceUuid, microserviceData, u
 
   await _updateChangeTracking(true, microservice.iofogUuid, transaction)
   await _updateChangeTracking(true, updatedMicroservice.iofogUuid, transaction)
+}
+
+/**
+ * checks if microservice image is updated
+ * @param {*} microserviceDataUpdateImages
+ * @param {*} catalogImages
+ */
+const checkIfMicorserviceImageIsUpdated = (microserviceDataUpdateImages, catalogImages) => {
+  const oldMicroservicesImages = []
+  for (const images of catalogImages) {
+    oldMicroservicesImages.push(images.containerImage)
+  }
+  const newMicroserviceImages = []
+  for (const images of microserviceDataUpdateImages) {
+    newMicroserviceImages.push(images.containerImage)
+  }
+  // microserviceDataUpdate.images && microserviceDataUpdate.images.length > 0
+  return isEqual(newMicroserviceImages, oldMicroservicesImages)
 }
 
 async function deleteMicroserviceEndPoint (microserviceUuid, microserviceData, user, isCLI, transaction) {
