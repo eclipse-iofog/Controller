@@ -249,6 +249,8 @@ const _updateMicroservices = async function (application, microservices, user, i
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_ID, application))
   }
   const iofogUuids = []
+  const oldMsvcs = []
+  const updatedMsvcs = []
   for (const oldMsvc of oldMicroservices) {
     const removed = remove(updatedMicroservices, (n) => oldMsvc.name === n.name)
     if (!removed.length) {
@@ -256,7 +258,9 @@ const _updateMicroservices = async function (application, microservices, user, i
       iofogUuids.push(oldMsvc.iofogUuid)
     } else {
       const updatedMsvc = removed[0]
-      await MicroserviceService.updateMicroserviceEndPoint(oldMsvc.uuid, updatedMsvc, user, isCLI, transaction)
+      const updatedMicroservices = await MicroserviceService.updateMicroserviceEndPoint(oldMsvc.uuid, updatedMsvc, user, isCLI, transaction, false)
+      oldMsvcs.push(updatedMicroservices.microserviceIofogUuid)
+      updatedMsvcs.push(updatedMicroservices.updatedMicroserviceIofogUuid)
     }
   }
   // Create missing microservices
@@ -269,6 +273,21 @@ const _updateMicroservices = async function (application, microservices, user, i
   for (const iofogUuid of iofogUuids) {
     await ChangeTrackingService.update(iofogUuid, ChangeTrackingService.events.microserviceFull, transaction)
   }
+  oldMsvcs
+    .filter(onlyUnique)
+    .filter((val) => val !== null)
+    .forEach(async (iofogUuid) => {
+      await ChangeTrackingService.update(iofogUuid, ChangeTrackingService.events.microserviceRouting, transaction)
+      await MicroserviceService._updateChangeTracking(true, iofogUuid, transaction)
+    })
+
+  updatedMsvcs
+    .filter(onlyUnique)
+    .filter((val) => val !== null)
+    .forEach(async (iofogUuid) => {
+      await ChangeTrackingService.update(iofogUuid, ChangeTrackingService.events.microserviceRouting, transaction)
+      await MicroserviceService._updateChangeTracking(true, iofogUuid, transaction)
+    })
 }
 
 const getUserApplicationsEndPoint = async function (user, isCLI, transaction) {

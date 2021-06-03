@@ -341,7 +341,7 @@ async function _updateRelatedExtraHosts (updatedMicroservice, transaction) {
   }
 }
 
-async function updateMicroserviceEndPoint (microserviceUuid, microserviceData, user, isCLI, transaction) {
+async function updateMicroserviceEndPoint (microserviceUuid, microserviceData, user, isCLI, transaction, changeTrackingEnabled = true) {
   await Validator.validate(microserviceData, Validator.schemas.microserviceUpdate)
   let needStatusReset = false
   const query = isCLI
@@ -528,11 +528,17 @@ async function updateMicroserviceEndPoint (microserviceUuid, microserviceData, u
     }, microserviceStatus, transaction)
   }
 
-  await ChangeTrackingService.update(microservice.iofogUuid, ChangeTrackingService.events.microserviceRouting, transaction)
-  await ChangeTrackingService.update(updatedMicroservice.iofogUuid, ChangeTrackingService.events.microserviceRouting, transaction)
-
-  await _updateChangeTracking(true, microservice.iofogUuid, transaction)
-  await _updateChangeTracking(true, updatedMicroservice.iofogUuid, transaction)
+  if (changeTrackingEnabled) {
+    await ChangeTrackingService.update(microservice.iofogUuid, ChangeTrackingService.events.microserviceRouting, transaction)
+    await ChangeTrackingService.update(updatedMicroservice.iofogUuid, ChangeTrackingService.events.microserviceRouting, transaction)
+    await _updateChangeTracking(true, microservice.iofogUuid, transaction)
+    await _updateChangeTracking(true, updatedMicroservice.iofogUuid, transaction)
+  } else {
+    return {
+      microserviceIofogUuid: microservice.iofogUuid,
+      updatedMicroserviceIofogUuid: updatedMicroservice.iofogUuid
+    }
+  }
 }
 
 /**
