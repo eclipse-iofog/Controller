@@ -519,11 +519,16 @@ describe('Application Service', () => {
         ...applicationData,
         microservices: [...msvcs, newMsvc]
       }
+      const microserviceUuids = {
+        microserviceIofogUuid: 'msvc-1',
+        updatedMicroserviceIofogUuid: 'msvc-2'
+      }
       def('subject', () => ApplicationService.updateApplicationEndPoint(data, name, user, isCLI, transaction))
       def('findApplicationMicroservicesResponse', () => Promise.resolve([...msvcs, oldMsvc]))
+      def('updateResponse',() => Promise.resolve(microserviceUuids))
       beforeEach(() => {
         $sandbox.stub(MicroserviceService, 'createMicroserviceEndPoint')
-        $sandbox.stub(MicroserviceService, 'updateMicroserviceEndPoint')
+        $sandbox.stub(MicroserviceService, 'updateMicroserviceEndPoint').returns($updateResponse)
         $sandbox.stub(MicroserviceService, 'deleteMicroserviceWithRoutesAndPortMappings')
       })
       it('Should update the microservices', async () => {

@@ -249,8 +249,8 @@ const _updateMicroservices = async function (application, microservices, user, i
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_ID, application))
   }
   const iofogUuids = []
-  const oldMsvcs = []
-  const updatedMsvcs = []
+  const oldMsvcsIofogUuids = []
+  const updatedMsvcsUuid = []
   for (const oldMsvc of oldMicroservices) {
     const removed = remove(updatedMicroservices, (n) => oldMsvc.name === n.name)
     if (!removed.length) {
@@ -259,8 +259,8 @@ const _updateMicroservices = async function (application, microservices, user, i
     } else {
       const updatedMsvc = removed[0]
       const updatedMicroservices = await MicroserviceService.updateMicroserviceEndPoint(oldMsvc.uuid, updatedMsvc, user, isCLI, transaction, false)
-      oldMsvcs.push(updatedMicroservices.microserviceIofogUuid)
-      updatedMsvcs.push(updatedMicroservices.updatedMicroserviceIofogUuid)
+      oldMsvcsIofogUuids.push(updatedMicroservices.microserviceIofogUuid)
+      updatedMsvcsUuid.push(updatedMicroservices.updatedMicroserviceIofogUuid)
     }
   }
   // Create missing microservices
@@ -273,7 +273,7 @@ const _updateMicroservices = async function (application, microservices, user, i
   for (const iofogUuid of iofogUuids) {
     await ChangeTrackingService.update(iofogUuid, ChangeTrackingService.events.microserviceFull, transaction)
   }
-  oldMsvcs
+  oldMsvcsIofogUuids
     .filter(onlyUnique)
     .filter((val) => val !== null)
     .forEach(async (iofogUuid) => {
@@ -281,7 +281,7 @@ const _updateMicroservices = async function (application, microservices, user, i
       await MicroserviceService._updateChangeTracking(true, iofogUuid, transaction)
     })
 
-  updatedMsvcs
+  updatedMsvcsUuid
     .filter(onlyUnique)
     .filter((val) => val !== null)
     .forEach(async (iofogUuid) => {
