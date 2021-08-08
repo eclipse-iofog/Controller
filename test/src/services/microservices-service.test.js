@@ -1041,6 +1041,7 @@ describe('Microservices Service', () => {
     const microserviceUpdateData = {
       uuid: oldMicroservice.uuid,
       rootHostAccess: microserviceData.rootHostAccess,
+      images
     }
 
     const newMicroservice = {
@@ -1059,6 +1060,7 @@ describe('Microservices Service', () => {
     def('findCatalogItem', () => Promise.resolve({ images }))
     def('findFogResponse', () => Promise.resolve({fogTypeId: 1, uuid: microserviceData.iofogUuid }))
     def('findRelatedExtraHostsResponse', () => Promise.resolve([]))
+    def('catalogResponse', () => Promise.resolve(images))
     def('updateResponse',() => Promise.resolve())
 
 
@@ -1072,6 +1074,7 @@ describe('Microservices Service', () => {
       $sandbox.stub(RegistryManager, 'findOne').returns($findRegistryResponse)
       $sandbox.stub(CatalogService, 'getCatalogItem').returns($findCatalogItem)
       $sandbox.stub(MicroserviceStatusManager, 'update').returns($updateResponse)
+      $sandbox.stub(CatalogItemImageManager, 'findAll').returns($catalogResponse)
       const stub = $sandbox.stub(ioFogManager, 'findOne')
       stub.withArgs({isDefault: true}).returns(Promise.resolve({
         uuid: 'defaultFogUuid',

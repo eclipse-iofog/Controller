@@ -10,6 +10,7 @@ trigger:
     exclude:
       - README.md
       - CHANGELOG.md
+      - LICENSE
 
 variables:
   group: 'pipelines'
@@ -193,7 +194,7 @@ stages:
 
     - task: UseRubyVersion@0
       inputs:
-        versionSpec: '= 2.7.2'
+        versionSpec: '= 2.7.3'
         addToPath: true
       displayName: 'install rubygem to be used to install package_cloud cli'
 
