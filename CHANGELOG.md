@@ -1,6 +1,16 @@
 # Changelog
 
-## [v3.0.0-alpha1] - 24 March 2021
+## [v3.0.0-beta1] - 13-08-2021
+
+### Features
+
+* Update ECN Viewer version to 2.0.1
+
+### Bugs
+* Fixed issue when rebuild flag was not set to true when images are updated
+* Fixed issue when microservice states were inconsistent on moving from one agent to another
+
+## [v3.0.0-alpha1] - 24-03-2021
 
 * Add Edge Resources API endpoints and functionality
 * Add Application Templates API endpoints and functionality
