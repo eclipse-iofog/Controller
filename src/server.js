@@ -170,6 +170,7 @@ function startHttpsServer (apps, ports, sslKey, sslCert, intermedKey, jobs) {
 const devMode = config.get('Server:DevMode')
 const apiPort = +(config.get('Server:Port'))
 const viewerPort = +(process.env.VIEWER_PORT || config.get('Viewer:Port'))
+const viewerURL = process.env.VIEWER_URL || config.get('Viewer:Url')
 const sslKey = config.get('Server:SslKey')
 const sslCert = config.get('Server:SslCert')
 const intermedKey = config.get('Server:IntermediateCert')
@@ -202,6 +203,9 @@ const initState = async () => {
   const ecnViewerControllerConfig = {
     port: apiPort,
     user: {}
+  }
+  if (viewerURL) {
+    ecnViewerControllerConfig.url = viewerURL
   }
   const ecnViewerConfigScript = `
     window.controllerConfig = ${JSON.stringify(ecnViewerControllerConfig)}
