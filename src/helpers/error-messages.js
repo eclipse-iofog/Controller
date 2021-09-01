@@ -73,6 +73,7 @@ module.exports = {
   STRACE_NOT_FOUND: 'Strace not found',
   INVALID_CONTENT_TYPE: 'Invalid content type',
   UPLOADED_FILE_NOT_FOUND: 'Uploaded image snapshot file not found',
+  APPLICATION_FILE_NOT_FOUND: 'Application file missing',
   REGISTRY_NOT_FOUND: 'Registry not found',
   USER_ALREADY_ACTIVATED: 'User is already activated.',
   USER_NOT_ACTIVATED_YET: 'User is not activated yet.',

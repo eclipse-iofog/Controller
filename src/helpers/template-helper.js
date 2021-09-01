@@ -75,6 +75,15 @@ async function findAgentHandler (name) {
   if (!user) {
     return undefined
   }
+  if (name === '') {
+    const { fogs: result } = await FogService.getFogListEndPoint([], user, false, false)
+    if (result && this.context.environments._agentsByName) {
+      result.forEach(agent => {
+        this.context.environments._agentsByName[agent.name] = agent
+      })
+    }
+    return result
+  }
   if (this.context.environments._agentsByName && this.context.environments._agentsByName[name]) {
     return this.context.environments._agentsByName[name]
   }
