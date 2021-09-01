@@ -556,10 +556,11 @@ describe('Application Service', () => {
     }
 
     def('subject', () => $subject.getUserApplicationsEndPoint(user, isCLI, transaction))
-    def('findExcludedApplicationResponse', () => Promise.resolve())
+    def('findExcludedApplicationResponse', () => Promise.resolve([]))
 
     beforeEach(() => {
       $sandbox.stub(ApplicationManager, 'findAllPopulated').returns($findExcludedApplicationResponse)
+      $sandbox.stub(MicroserviceService, 'buildGetMicroserviceResponse').callsFake(async (m) => m)
     })
 
     it('calls ApplicationManager#findAllWithAttributes() with correct args', async () => {
@@ -589,10 +590,11 @@ describe('Application Service', () => {
     const error = 'Error!'
 
     def('subject', () => $subject.getAllApplicationsEndPoint(isCLI, transaction))
-    def('findAllApplicationsResponse', () => Promise.resolve())
+    def('findAllApplicationsResponse', () => Promise.resolve([]))
 
     beforeEach(() => {
       $sandbox.stub(ApplicationManager, 'findAllPopulated').returns($findAllApplicationsResponse)
+      $sandbox.stub(MicroserviceService, 'buildGetMicroserviceResponse').callsFake(async (m) => m)
     })
 
     it('calls ApplicationManager#findAllWithAttributes() with correct args', async () => {
@@ -631,6 +633,7 @@ describe('Application Service', () => {
 
     beforeEach(() => {
       $sandbox.stub(ApplicationManager, 'findOnePopulated').returns($findApplicationResponse)
+      $sandbox.stub(MicroserviceService, 'buildGetMicroserviceResponse').callsFake(async (m) => m)
     })
 
     it('calls ApplicationManager#findOneWithAttributes() with correct args', async () => {

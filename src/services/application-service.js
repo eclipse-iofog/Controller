@@ -316,6 +316,9 @@ const getAllApplicationsEndPoint = async function (isCLI, transaction) {
 }
 
 async function _buildApplicationObject (application, transaction) {
+  if (!application.microservices) {
+    return application
+  }
   application.microservices = await Promise.all(application.microservices.map(async (m) => MicroserviceService.buildGetMicroserviceResponse(m.dataValues || m, transaction)))
   return application
 }
