@@ -29,6 +29,12 @@ const xss = require('xss-clean')
 const { substitutionMiddleware } = require('./helpers/template-helper')
 const packageJson = require('../package')
 
+const multer = require('multer')
+const multerMemStorage = multer.memoryStorage()
+const uploadFile = (fileName) => multer({
+  storage: multerMemStorage
+}).single(fileName)
+
 const viewerApp = express()
 
 const app = express()
@@ -82,7 +88,13 @@ app.use((req, res, next) => {
 global.appRoot = path.resolve(__dirname)
 
 const registerRoute = (route) => {
-  const middlewares = route.supportSubstitution ? [substitutionMiddleware, route.middleware] : [route.middleware]
+  const middlewares = [route.middleware]
+  if (route.supportSubstitution) {
+    middlewares.unshift(substitutionMiddleware)
+  }
+  if (route.fileInput) {
+    middlewares.unshift(uploadFile(route.fileInput))
+  }
   app[route.method.toLowerCase()](route.path, ...middlewares)
 }
 

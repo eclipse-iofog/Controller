@@ -25,6 +25,8 @@ const TransactionDecorator = require('../decorators/transaction-decorator')
 const ApplicationTemplateService = require('./application-template-service')
 const Validator = require('../schemas')
 const remove = require('lodash/remove')
+const lget = require('lodash/get')
+const yaml = require('js-yaml')
 
 const onlyUnique = (value, index, self) => self.indexOf(value) === index
 
@@ -298,17 +300,24 @@ const getUserApplicationsEndPoint = async function (user, isCLI, transaction) {
 
   const attributes = { exclude: ['created_at', 'updated_at'] }
   const applications = await ApplicationManager.findAllPopulated(application, attributes, transaction)
+
   return {
-    applications: applications
+    applications: await Promise.all(applications.map(async (app) => _buildApplicationObject(app, transaction)))
   }
 }
 
 const getAllApplicationsEndPoint = async function (isCLI, transaction) {
   const attributes = { exclude: ['created_at', 'updated_at'] }
   const applications = await ApplicationManager.findAllPopulated({}, attributes, transaction)
+
   return {
-    applications: applications
+    applications: await Promise.all(applications.map(async (app) => _buildApplicationObject(app, transaction)))
   }
+}
+
+async function _buildApplicationObject (application, transaction) {
+  application.microservices = await Promise.all(application.microservices.map(async (m) => MicroserviceService.buildGetMicroserviceResponse(m.dataValues || m, transaction)))
+  return application
 }
 
 async function getApplication (conditions, user, isCLI, transaction) {
@@ -317,15 +326,17 @@ async function getApplication (conditions, user, isCLI, transaction) {
     : { ...conditions, userId: user.id }
   const attributes = { exclude: ['created_at', 'updated_at'] }
 
-  const application = await ApplicationManager.findOnePopulated(where, attributes, transaction)
-  if (!application) {
+  const applicationRaw = await ApplicationManager.findOnePopulated(where, attributes, transaction)
+  if (!applicationRaw) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_ID, conditions.name || conditions.id))
   }
+  const application = await _buildApplicationObject(applicationRaw, transaction)
   return application
 }
 
 const getApplicationEndPoint = async function (conditions, user, isCLI, transaction) {
-  return getApplication(conditions, user, isCLI, transaction)
+  const application = await getApplication(conditions, user, isCLI, transaction)
+  return application
 }
 
 const _checkForDuplicateName = async function (name, applicationId, userId, transaction) {
@@ -361,6 +372,75 @@ async function _updateChangeTrackingsAndDeleteMicroservicesByApplicationId (cond
   }
 }
 
+const mapImages = (images) => {
+  const imgs = []
+  if (images.x86 != null) {
+    imgs.push({
+      fogTypeId: 1,
+      containerImage: images.x86
+    })
+  }
+  if (images.arm != null) {
+    imgs.push({
+      fogTypeId: 2,
+      containerImage: images.arm
+    })
+  }
+  return imgs
+}
+
+const parseMicroserviceImages = async (fileImages) => {
+  if (fileImages.catalogId != null) {
+    return { registryId: undefined, images: undefined, catalogItemId: fileImages.catalogId }
+  }
+  const registryByName = {
+    remote: 1,
+    local: 2
+  }
+  const images = mapImages(fileImages)
+  const registryId = fileImages.registry != null ? registryByName[fileImages.registry] || Number(fileImages.registry) : 1
+  return { registryId, catalogItemId: undefined, images }
+}
+
+const _deleteUndefinedFields = (obj) => Object.keys(obj).forEach(key => obj[key] === undefined && delete obj[key])
+
+const parseMicroservice = async (microservice) => {
+  const { registryId, catalogItemId, images } = await parseMicroserviceImages(microservice.images)
+  const microserviceData = {
+    config: microservice.config != null ? JSON.stringify(microservice.config) : undefined,
+    name: microservice.name,
+    catalogItemId,
+    agentName: lget(microservice, 'agent.name'),
+    registryId,
+    ...microservice.container,
+    ports: (lget(microservice, 'container.ports', [])).map(p => ({ ...p, publicPort: p.public })),
+    volumeMappings: lget(microservice, 'container.volumes', []),
+    cmd: lget(microservice, 'container.commands', []),
+    env: (lget(microservice, 'container.env', [])).map(e => ({ key: e.key.toString(), value: e.value.toString() })),
+    images,
+    extraHosts: lget(microservice, 'container.extraHosts', [])
+  }
+  _deleteUndefinedFields(microserviceData)
+  return microserviceData
+}
+
+async function parseYAMLFile (fileContent) {
+  const doc = yaml.load(fileContent)
+  if (doc.kind !== 'Application') {
+    throw new Errors.ValidationError(`Invalid kind ${doc.kind}`)
+  }
+  if (doc.metadata == null || doc.spec == null) {
+    throw new Errors.ValidationError('Invalid YAML format')
+  }
+  const application = {
+    name: lget(doc, 'metadata.name', undefined),
+    ...doc.spec,
+    isActivated: doc.spec.isActivated || true,
+    microservices: await Promise.all((doc.spec.microservices || []).map(async (m) => parseMicroservice(m)))
+  }
+  return application
+}
+
 module.exports = {
   createApplicationEndPoint: TransactionDecorator.generateTransaction(createApplicationEndPoint),
   deleteApplicationEndPoint: TransactionDecorator.generateTransaction(deleteApplicationEndPoint),
@@ -369,5 +449,6 @@ module.exports = {
   getUserApplicationsEndPoint: TransactionDecorator.generateTransaction(getUserApplicationsEndPoint),
   getAllApplicationsEndPoint: TransactionDecorator.generateTransaction(getAllApplicationsEndPoint),
   getApplicationEndPoint: TransactionDecorator.generateTransaction(getApplicationEndPoint),
-  getApplication: getApplication
+  getApplication: getApplication,
+  parseYAMLFile: parseYAMLFile
 }

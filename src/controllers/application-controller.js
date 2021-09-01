@@ -13,9 +13,23 @@
 
 const AuthDecorator = require('./../decorators/authorization-decorator')
 const ApplicationService = require('../services/application-service')
+const errors = require('../helpers/errors')
+const ErrorMessages = require('../helpers/error-messages')
+const { rvaluesVarSubstition } = require('../helpers/template-helper')
 
 const createApplicationEndPoint = async function (req, user) {
   const application = req.body
+
+  return ApplicationService.createApplicationEndPoint(application, user, false)
+}
+
+const createApplicationYAMLEndPoint = async function (req, user) {
+  if (!req.file) {
+    throw new errors.ValidationError(ErrorMessages.APPLICATION_FILE_NOT_FOUND)
+  }
+  const fileContent = req.file.buffer.toString()
+  const application = await ApplicationService.parseYAMLFile(fileContent)
+  await rvaluesVarSubstition(application, { self: application }, user)
 
   return ApplicationService.createApplicationEndPoint(application, user, false)
 }
@@ -27,7 +41,8 @@ const getApplicationsByUserEndPoint = async function (req, user) {
 const getApplicationEndPoint = async function (req, user) {
   const name = req.params.name
 
-  return ApplicationService.getApplicationEndPoint({ name }, user, false)
+  const application = await ApplicationService.getApplicationEndPoint({ name }, user, false)
+  return application
 }
 
 const patchApplicationEndPoint = async function (req, user) {
@@ -40,6 +55,18 @@ const patchApplicationEndPoint = async function (req, user) {
 const updateApplicationEndPoint = async function (req, user) {
   const application = req.body
   const name = req.params.name
+
+  return ApplicationService.updateApplicationEndPoint(application, name, user, false)
+}
+
+const updateApplicationYAMLEndPoint = async function (req, user) {
+  if (!req.file) {
+    throw new errors.ValidationError(ErrorMessages.APPLICATION_FILE_NOT_FOUND)
+  }
+  const name = req.params.name
+  const fileContent = req.file.buffer.toString()
+  const application = await ApplicationService.parseYAMLFile(fileContent)
+  await rvaluesVarSubstition(application, { self: application }, user)
 
   return ApplicationService.updateApplicationEndPoint(application, name, user, false)
 }
@@ -68,15 +95,18 @@ const patchApplicationByIdEndPoint = async function (req, user) {
 const getApplicationByIdEndPoint = async function (req, user) {
   const id = req.params.id
 
-  return ApplicationService.getApplicationEndPoint({ id }, user, false)
+  const application = await ApplicationService.getApplicationEndPoint({ id }, user, false)
+  return application
 }
 
 module.exports = {
   createApplicationEndPoint: AuthDecorator.checkAuthToken(createApplicationEndPoint),
+  createApplicationYAMLEndPoint: AuthDecorator.checkAuthToken(createApplicationYAMLEndPoint),
   getApplicationsByUserEndPoint: AuthDecorator.checkAuthToken(getApplicationsByUserEndPoint),
   getApplicationEndPoint: AuthDecorator.checkAuthToken(getApplicationEndPoint),
   getApplicationByIdEndPoint: AuthDecorator.checkAuthToken(getApplicationByIdEndPoint),
   updateApplicationEndPoint: AuthDecorator.checkAuthToken(updateApplicationEndPoint),
+  updateApplicationYAMLEndPoint: AuthDecorator.checkAuthToken(updateApplicationYAMLEndPoint),
   patchApplicationEndPoint: AuthDecorator.checkAuthToken(patchApplicationEndPoint),
   patchApplicationByIdEndPoint: AuthDecorator.checkAuthToken(patchApplicationByIdEndPoint),
   deleteApplicationEndPoint: AuthDecorator.checkAuthToken(deleteApplicationEndPoint),

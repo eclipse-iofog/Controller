@@ -71,6 +71,35 @@ module.exports = [
     }
   },
   {
+    method: 'post',
+    path: '/api/v3/application/yaml',
+    fileInput: 'application',
+    middleware: async (req, res) => {
+      logger.apiReq(req)
+
+      const successCode = constants.HTTP_CODE_CREATED
+      const errorCodes = [
+        {
+          code: constants.HTTP_CODE_BAD_REQUEST,
+          errors: [Errors.ValidationError]
+        },
+        {
+          code: constants.HTTP_CODE_UNAUTHORIZED,
+          errors: [Errors.AuthenticationError]
+        }
+      ]
+
+      const createApplicationEndPoint = ResponseDecorator.handleErrors(ApplicationController.createApplicationYAMLEndPoint, successCode, errorCodes)
+      const responseObject = await createApplicationEndPoint(req)
+
+      res
+        .status(responseObject.code)
+        .send(responseObject.body)
+
+      logger.apiRes({ req: req, res: responseObject })
+    }
+  },
+  {
     method: 'get',
     path: '/api/v3/application/:name',
     middleware: async (req, res) => {
@@ -96,6 +125,7 @@ module.exports = [
         .send(responseObject.body)
 
       logger.apiRes({ req: req, res: responseObject })
+      return null
     }
   },
   {
@@ -122,6 +152,39 @@ module.exports = [
       ]
 
       const updateApplicationEndPoint = ResponseDecorator.handleErrors(ApplicationController.patchApplicationEndPoint, successCode, errorCodes)
+      const responseObject = await updateApplicationEndPoint(req)
+
+      res
+        .status(responseObject.code)
+        .send(responseObject.body)
+
+      logger.apiRes({ req: req, res: responseObject })
+    }
+  },
+  {
+    method: 'put',
+    path: '/api/v3/application/yaml/:name',
+    fileInput: 'application',
+    middleware: async (req, res) => {
+      logger.apiReq(req)
+
+      const successCode = constants.HTTP_CODE_NO_CONTENT
+      const errorCodes = [
+        {
+          code: constants.HTTP_CODE_BAD_REQUEST,
+          errors: [Errors.ValidationError]
+        },
+        {
+          code: constants.HTTP_CODE_UNAUTHORIZED,
+          errors: [Errors.AuthenticationError]
+        },
+        {
+          code: constants.HTTP_CODE_NOT_FOUND,
+          errors: [Errors.NotFoundError]
+        }
+      ]
+
+      const updateApplicationEndPoint = ResponseDecorator.handleErrors(ApplicationController.updateApplicationYAMLEndPoint, successCode, errorCodes)
       const responseObject = await updateApplicationEndPoint(req)
 
       res
