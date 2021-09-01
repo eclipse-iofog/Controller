@@ -1,0 +1,44 @@
+kind: Application
+apiVersion: iofog.org/v3
+metadata:
+  name: "healthcare-wearable-flow"
+spec:
+  microservices:
+    # Custom micro service that will connect to Scosche heart rate monitor via Bluetooth
+    - name: heart-rate-monitor
+      agent:
+        name: "{% assign agent = \"\" | findAgent | first %}{{ agent.name }}"
+      images:
+        arm: "edgeworx/healthcare-heart-rate:arm-v1"
+        x86: "edgeworx/healthcare-heart-rate:x86-v1"
+      container:
+        rootHostAccess: false
+        ports: []
+      config:
+        test_mode: true
+        data_label: "Anonymous Person"
+    # Simple JSON viewer for the heart rate output
+    - name: heart-rate-viewer
+      agent:
+        name: "{% assign agent = \"\" | findAgent | first %}{{ agent.name }}"
+      images:
+        arm: "edgeworx/healthcare-heart-rate-ui:arm"
+        # x86: "edgeworx/healthcare-heart-rate:x86-nano"
+        x86: "edgeworx/healthcare-heart-rate-ui:x86"
+      container:
+        rootHostAccess: false
+        ports:
+          # The ui will be listening on port 80 (internal).
+          - external: 5000 # You will be able to access the ui on <AGENT_IP>:5000
+            internal: 80 # The ui is listening on port 80. Do not edit this.
+            public: 5005
+        volumes: []
+        env:
+          - key: "BASE_URL"
+            value: "http://localhost:8080/data"
+  routes:
+    # Use this section to configure route between microservices
+    # Use microservice name
+    - from: "heart-rate-monitor"
+      to: "heart-rate-viewer"
+      name: "monitor-to-viewer"

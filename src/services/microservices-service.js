@@ -56,7 +56,7 @@ async function listMicroservicesEndPoint (opt, user, isCLI, transaction) {
   const microservices = await MicroserviceManager.findAllExcludeFields(where, transaction)
 
   const res = await Promise.all(microservices.map(async (microservice) => {
-    return _buildGetMicroserviceResponse(microservice, transaction)
+    return _buildGetMicroserviceResponse(microservice.dataValues, transaction)
   }))
 
   return {
@@ -77,7 +77,7 @@ async function getMicroserviceEndPoint (microserviceUuid, user, isCLI, transacti
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, microserviceUuid))
   }
 
-  return _buildGetMicroserviceResponse(microservice, transaction)
+  return _buildGetMicroserviceResponse(microservice.dataValues, transaction)
 }
 
 function _validateImagesAgainstCatalog (catalogItem, images) {
@@ -1055,7 +1055,7 @@ async function _buildGetMicroserviceResponse (microservice, transaction) {
   const status = await MicroserviceStatusManager.findAllExcludeFields({ microserviceUuid: microserviceUuid }, transaction)
 
   // build microservice response
-  const res = Object.assign({}, microservice.dataValues)
+  const res = Object.assign({}, microservice)
   res.ports = []
   for (const pm of portMappings) {
     const mapping = { internal: pm.portInternal, external: pm.portExternal, publicMode: pm.isPublic, protocol: pm.isUdp ? 'udp' : 'tcp' }
@@ -1114,5 +1114,6 @@ module.exports = {
   listMicroservicePortMappingsEndPoint: TransactionDecorator.generateTransaction(listPortMappingsEndPoint),
   listMicroservicesEndPoint: TransactionDecorator.generateTransaction(listMicroservicesEndPoint),
   listVolumeMappingsEndPoint: TransactionDecorator.generateTransaction(listVolumeMappingsEndPoint),
-  updateMicroserviceEndPoint: TransactionDecorator.generateTransaction(updateMicroserviceEndPoint)
+  updateMicroserviceEndPoint: TransactionDecorator.generateTransaction(updateMicroserviceEndPoint),
+  buildGetMicroserviceResponse: _buildGetMicroserviceResponse
 }
