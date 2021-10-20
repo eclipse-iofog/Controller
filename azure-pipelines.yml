@@ -44,7 +44,8 @@ stages:
         displayName: 'Standardjs report'
 
       - script: |
-          npm audit --production
+          npm i -g better-npm-audit
+          npx better-npm-audit audit -p
         displayName: Check for vulnerabilities
 
       # - script: |
