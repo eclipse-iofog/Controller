@@ -1,11 +1,8 @@
-FROM node:fermium AS builder
+FROM node:fermium-buster AS builder
 
 ARG PKG_VERSION
 
 WORKDIR /tmp
-
-# Required by node-gyp
-RUN sudo apt install python3.8
 
 RUN npm config set unsafe-perm true
 

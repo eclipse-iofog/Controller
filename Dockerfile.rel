@@ -1,4 +1,5 @@
-FROM node:fermium AS builder
+FROM node:fermium-buster AS builder
+
 ARG PKG_VERSION
 
 WORKDIR /tmp
