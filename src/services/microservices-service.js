@@ -252,57 +252,63 @@ async function createMicroserviceEndPoint (microserviceData, user, isCLI, transa
 
   const microservice = await _createMicroservice({ ...microserviceData, iofogUuid: fog.uuid }, user, isCLI, transaction)
 
-  if (!microserviceData.catalogItemId) {
-    await _createMicroserviceImages(microservice, microserviceData.images, transaction)
-  }
+  // If anything fails from now on, delete the newly created microservice
+  try {
+    if (!microserviceData.catalogItemId) {
+      await _createMicroserviceImages(microservice, microserviceData.images, transaction)
+    }
 
-  const publicPorts = []
-  if (microserviceData.ports) {
-    for (const mapping of microserviceData.ports) {
-      const res = await MicroservicePortService.createPortMapping(microservice, mapping, user, transaction)
-      if (res && res.publicLink) {
-        publicPorts.push({
-          internal: mapping.internal,
-          external: mapping.external,
-          publicLink: res.publicLink
-        })
+    const publicPorts = []
+    if (microserviceData.ports) {
+      for (const mapping of microserviceData.ports) {
+        const res = await MicroservicePortService.createPortMapping(microservice, mapping, user, transaction)
+        if (res && res.publicLink) {
+          publicPorts.push({
+            internal: mapping.internal,
+            external: mapping.external,
+            publicLink: res.publicLink
+          })
+        }
       }
     }
-  }
 
-  for (const extraHost of extraHosts) {
-    await _createExtraHost(microservice, extraHost, user, transaction)
-  }
-
-  if (microserviceData.env) {
-    for (const env of microserviceData.env) {
-      await _createEnv(microservice, env, user, transaction)
+    for (const extraHost of extraHosts) {
+      await _createExtraHost(microservice, extraHost, user, transaction)
     }
-  }
-  if (microserviceData.cmd) {
-    for (const arg of microserviceData.cmd) {
-      await _createArg(microservice, arg, user, transaction)
+
+    if (microserviceData.env) {
+      for (const env of microserviceData.env) {
+        await _createEnv(microservice, env, user, transaction)
+      }
     }
-  }
-  if (microserviceData.volumeMappings) {
-    await _createVolumeMappings(microservice, microserviceData.volumeMappings, transaction)
-  }
+    if (microserviceData.cmd) {
+      for (const arg of microserviceData.cmd) {
+        await _createArg(microservice, arg, user, transaction)
+      }
+    }
+    if (microserviceData.volumeMappings) {
+      await _createVolumeMappings(microservice, microserviceData.volumeMappings, transaction)
+    }
 
-  if (microserviceData.iofogUuid) {
-    await _updateChangeTracking(false, microserviceData.iofogUuid, transaction)
-  }
+    if (microserviceData.iofogUuid) {
+      await _updateChangeTracking(false, microserviceData.iofogUuid, transaction)
+    }
 
-  await _createMicroserviceStatus(microservice, transaction)
+    await _createMicroserviceStatus(microservice, transaction)
 
-  const res = {
-    uuid: microservice.uuid,
-    name: microservice.name
-  }
-  if (publicPorts.length) {
-    res.publicPorts = publicPorts
-  }
+    const res = {
+      uuid: microservice.uuid,
+      name: microservice.name
+    }
+    if (publicPorts.length) {
+      res.publicPorts = publicPorts
+    }
 
-  return res
+    return res
+  } catch (e) {
+    await deleteMicroserviceWithRoutesAndPortMappings(microservice, transaction)
+    throw e
+  }
 }
 
 function _validateVolumeMappings (volumeMappings) {
