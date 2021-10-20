@@ -3,6 +3,9 @@ ARG PKG_VERSION
 
 WORKDIR /tmp
 
+# Required by node-gyp
+RUN sudo apt install python3.8
+
 RUN npm config set unsafe-perm true
 
 RUN npm i -g npm
