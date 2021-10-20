@@ -252,63 +252,57 @@ async function createMicroserviceEndPoint (microserviceData, user, isCLI, transa
 
   const microservice = await _createMicroservice({ ...microserviceData, iofogUuid: fog.uuid }, user, isCLI, transaction)
 
-  // If anything fails from now on, delete the newly created microservice
-  try {
-    if (!microserviceData.catalogItemId) {
-      await _createMicroserviceImages(microservice, microserviceData.images, transaction)
-    }
-
-    const publicPorts = []
-    if (microserviceData.ports) {
-      for (const mapping of microserviceData.ports) {
-        const res = await MicroservicePortService.createPortMapping(microservice, mapping, user, transaction)
-        if (res && res.publicLink) {
-          publicPorts.push({
-            internal: mapping.internal,
-            external: mapping.external,
-            publicLink: res.publicLink
-          })
-        }
-      }
-    }
-
-    for (const extraHost of extraHosts) {
-      await _createExtraHost(microservice, extraHost, user, transaction)
-    }
-
-    if (microserviceData.env) {
-      for (const env of microserviceData.env) {
-        await _createEnv(microservice, env, user, transaction)
-      }
-    }
-    if (microserviceData.cmd) {
-      for (const arg of microserviceData.cmd) {
-        await _createArg(microservice, arg, user, transaction)
-      }
-    }
-    if (microserviceData.volumeMappings) {
-      await _createVolumeMappings(microservice, microserviceData.volumeMappings, transaction)
-    }
-
-    if (microserviceData.iofogUuid) {
-      await _updateChangeTracking(false, microserviceData.iofogUuid, transaction)
-    }
-
-    await _createMicroserviceStatus(microservice, transaction)
-
-    const res = {
-      uuid: microservice.uuid,
-      name: microservice.name
-    }
-    if (publicPorts.length) {
-      res.publicPorts = publicPorts
-    }
-
-    return res
-  } catch (e) {
-    await deleteMicroserviceWithRoutesAndPortMappings(microservice, transaction)
-    throw e
+  if (!microserviceData.catalogItemId) {
+    await _createMicroserviceImages(microservice, microserviceData.images, transaction)
   }
+
+  const publicPorts = []
+  if (microserviceData.ports) {
+    for (const mapping of microserviceData.ports) {
+      const res = await MicroservicePortService.createPortMapping(microservice, mapping, user, transaction)
+      if (res && res.publicLinks) {
+        publicPorts.push({
+          internal: mapping.internal,
+          external: mapping.external,
+          publicLinks: res.publicLinks
+        })
+      }
+    }
+  }
+
+  for (const extraHost of extraHosts) {
+    await _createExtraHost(microservice, extraHost, user, transaction)
+  }
+
+  if (microserviceData.env) {
+    for (const env of microserviceData.env) {
+      await _createEnv(microservice, env, user, transaction)
+    }
+  }
+  if (microserviceData.cmd) {
+    for (const arg of microserviceData.cmd) {
+      await _createArg(microservice, arg, user, transaction)
+    }
+  }
+  if (microserviceData.volumeMappings) {
+    await _createVolumeMappings(microservice, microserviceData.volumeMappings, transaction)
+  }
+
+  if (microserviceData.iofogUuid) {
+    await _updateChangeTracking(false, microserviceData.iofogUuid, transaction)
+  }
+
+  await _createMicroserviceStatus(microservice, transaction)
+
+  const res = {
+    uuid: microservice.uuid,
+    name: microservice.name
+  }
+  if (publicPorts.length) {
+    res.publicPorts = publicPorts
+  }
+
+  return res
 }
 
 function _validateVolumeMappings (volumeMappings) {
@@ -647,7 +641,7 @@ async function createPortMappingEndPoint (microserviceUuid, portMappingData, use
   if (!agent) {
     throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, microservice.iofogUuid))
   }
-  await MicroservicePortService.validatePortMapping(agent, portMappingData, transaction)
+  await MicroservicePortService.validatePortMapping(agent, portMappingData, {}, transaction)
 
   return MicroservicePortService.createPortMapping(microservice, portMappingData, user, transaction)
 }
@@ -1064,7 +1058,7 @@ async function _buildGetMicroserviceResponse (microservice, transaction) {
   const res = Object.assign({}, microservice)
   res.ports = []
   for (const pm of portMappings) {
-    const mapping = { internal: pm.portInternal, external: pm.portExternal, publicMode: pm.isPublic, protocol: pm.isUdp ? 'udp' : 'tcp' }
+    const mapping = { internal: pm.portInternal, external: pm.portExternal, protocol: pm.isUdp ? 'udp' : 'tcp' }
     if (pm.isPublic) {
       const publicPortMapping = await pm.getPublicPort()
       if (publicPortMapping) {
@@ -1121,5 +1115,6 @@ module.exports = {
   listMicroservicesEndPoint: TransactionDecorator.generateTransaction(listMicroservicesEndPoint),
   listVolumeMappingsEndPoint: TransactionDecorator.generateTransaction(listVolumeMappingsEndPoint),
   updateMicroserviceEndPoint: TransactionDecorator.generateTransaction(updateMicroserviceEndPoint),
-  buildGetMicroserviceResponse: _buildGetMicroserviceResponse
+  buildGetMicroserviceResponse: _buildGetMicroserviceResponse,
+  updateChangeTracking: _updateChangeTracking
 }

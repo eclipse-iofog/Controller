@@ -72,7 +72,7 @@ async function validatePortMapping (agent, mapping, availablePublicPortsByHost, 
   await _checkForDuplicatePorts(agent, mapping.external, transaction)
 
   if (mapping.public) {
-    const isTcp = mapping.public.protocol.toLowerCase() === 'tcp'
+    const isTcp = mapping.public.protocol ? mapping.public.protocol.toLowerCase() === 'tcp' : false
     // Validate link protocol
     for (const scheme of mapping.public.schemes) {
       // !isTcp === HTTP link protocol will be used
@@ -96,20 +96,23 @@ async function validatePortMapping (agent, mapping, availablePublicPortsByHost, 
       }
     }
 
-    // Port is defined by user
-    if (mapping.public.router && mapping.public.router.port) {
-      await _checkForDuplicatePorts(host, mapping.public.router.port, transaction)
-      mapping.publicPort = mapping.public.router.port
-    } else {
-      // Assign next available public port
-      const currentPublicPorts = (await MicroservicePublicPortManager.findAll({ hostId: host.uuid }, transaction)).map(p => p.publicPort)
-      // Default range 6000 -> 7000
-      availablePublicPortsByHost[host.uuid] = availablePublicPortsByHost[host.uuid] || _createDefaultPublicPortRange()
-      availablePublicPortsByHost[host.uuid] = availablePublicPortsByHost[host.uuid].filter(port => !currentPublicPorts.includes(port))
-      if (availablePublicPortsByHost[host.uuid].length === 0) {
-        throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.NO_AVAILABLE_PUBLIC_PORT, host.isSystem ? DEFAULT_ROUTER_NAME : host.name))
+    // We have found a host
+    if (host) {
+      // Port is defined by user
+      if (mapping.public.router && mapping.public.router.port) {
+        await _checkForDuplicatePorts(host, mapping.public.router.port, transaction)
+        mapping.publicPort = mapping.public.router.port
+      } else {
+        // Assign next available public port
+        const currentPublicPorts = (await MicroservicePublicPortManager.findAll({ hostId: host.uuid }, transaction)).map(p => p.publicPort)
+        // Default range 6000 -> 7000
+        availablePublicPortsByHost[host.uuid] = availablePublicPortsByHost[host.uuid] || _createDefaultPublicPortRange()
+        availablePublicPortsByHost[host.uuid] = availablePublicPortsByHost[host.uuid].filter(port => !currentPublicPorts.includes(port))
+        if (availablePublicPortsByHost[host.uuid].length === 0) {
+          throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.NO_AVAILABLE_PUBLIC_PORT, host.isSystem ? DEFAULT_ROUTER_NAME : host.name))
+        }
+        mapping.publicPort = availablePublicPortsByHost[host.uuid].shift()
       }
-      mapping.publicPort = availablePublicPortsByHost[host.uuid].shift()
     }
 
     mapping.publicHost = host
@@ -238,7 +241,7 @@ async function createOrUpdateProxyMicroservice (mapping, networkRouter, hostUuid
 }
 
 async function _createPublicPortMapping (microservice, portMappingData, user, transaction) {
-  const isTcp = portMappingData.public.protocol.toLowerCase() === 'tcp'
+  const isTcp = portMappingData.public.protocol ? portMappingData.public.protocol.toLowerCase() === 'tcp' : false
   const isUdp = portMappingData.protocol.toLowerCase() === 'udp'
   const localAgent = portMappingData.localAgent // This is populated by validating the ports
   const localAgentsRouter = localAgent.routerId ? await RouterManager.findOne({ id: localAgent.routerId }, transaction) : await RouterManager.findOne({ iofogUuid: localAgent.uuid }, transaction)
@@ -287,6 +290,7 @@ async function _createPublicPortMapping (microservice, portMappingData, user, tr
     microserviceUuid: microservice.uuid
   }
   const port = await MicroservicePortManager.create(mappingData, transaction)
+  const schemes = portMappingData.public && portMappingData.public.schemes
 
   const publicPort = {
     portId: port.id,
@@ -295,6 +299,7 @@ async function _createPublicPortMapping (microservice, portMappingData, user, tr
     remoteProxyId: portMappingData.publicHost ? remoteProxy.uuid : null,
     publicPort: portMappingData.publicPort,
     queueName,
+    schemes: JSON.stringify(schemes),
     isTcp
   }
   await MicroservicePublicPortManager.create(publicPort, transaction)
@@ -303,7 +308,7 @@ async function _createPublicPortMapping (microservice, portMappingData, user, tr
   const relatedExtraHosts = await MicroserviceExtraHostManager.findAll({ microserviceUuid: microservice.uuid, publicPort: publicPort.publicPort }, transaction)
   for (const extraHost of relatedExtraHosts) {
     extraHost.targetFogUuid = publicPort.hostId
-    extraHost.value = portMappingData.host.host
+    extraHost.value = portMappingData.publicHost.host
     await extraHost.save()
     await MicroserviceExtraHostManager.updateOriginMicroserviceChangeTracking(extraHost, transaction)
   }
@@ -378,8 +383,7 @@ async function _buildPortsList (portsPairs, transaction) {
   for (const ports of portsPairs) {
     const portMappingResponseData = {
       internal: ports.portInternal,
-      external: ports.portExternal,
-      publicMode: ports.isPublic
+      external: ports.portExternal
     }
     if (ports.isPublic) {
       const msvcPublicPort = await ports.getPublicPort()
@@ -397,10 +401,17 @@ function _buildLink (protocol, host, port) {
 async function buildPublicPortMapping (mapping, publicPortMapping, transaction) {
   const hostRouter = publicPortMapping.hostId ? await RouterManager.findOne({ iofogUuid: publicPortMapping.hostId }, transaction) : { host: lget(await ConfigManager.findOne({ key: DEFAULT_PROXY_HOST }, transaction), 'value', 'undefined-proxy-host') }
   const hostFog = publicPortMapping.hostId ? await FogManager.findOne({ uuid: publicPortMapping.hostId }, transaction) : { uuid: DEFAULT_ROUTER_NAME }
-  mapping.publicLink = _buildLink(publicPortMapping.protocol, hostRouter.host, publicPortMapping.publicPort)
-  mapping.publicPort = publicPortMapping.publicPort
-  mapping.host = hostFog.isSystem ? DEFAULT_ROUTER_NAME : hostFog.uuid
-  mapping.protocol = publicPortMapping.protocol
+  const schemes = JSON.parse(publicPortMapping.schemes)
+  mapping.public = {
+    links: schemes.map(s => _buildLink(s, hostRouter.host, publicPortMapping.publicPort)),
+    protocol: publicPortMapping.protocol,
+    schemes,
+    enabled: !!publicPortMapping.localProxyId
+  }
+  mapping.public.router = {
+    port: publicPortMapping.publicPort,
+    host: hostFog.isSystem ? DEFAULT_ROUTER_NAME : hostFog.uuid
+  }
 }
 
 async function switchOnUpdateFlagsForMicroservicesForPortMapping (microservice, isPublic, transaction) {

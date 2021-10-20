@@ -280,7 +280,7 @@ const _updateMicroservices = async function (application, microservices, user, i
     .filter((val) => val !== null)
     .forEach(async (iofogUuid) => {
       await ChangeTrackingService.update(iofogUuid, ChangeTrackingService.events.microserviceRouting, transaction)
-      await MicroserviceService._updateChangeTracking(true, iofogUuid, transaction)
+      await MicroserviceService.updateChangeTracking(true, iofogUuid, transaction)
     })
 
   updatedMsvcsUuid
@@ -288,7 +288,7 @@ const _updateMicroservices = async function (application, microservices, user, i
     .filter((val) => val !== null)
     .forEach(async (iofogUuid) => {
       await ChangeTrackingService.update(iofogUuid, ChangeTrackingService.events.microserviceRouting, transaction)
-      await MicroserviceService._updateChangeTracking(true, iofogUuid, transaction)
+      await MicroserviceService.updateChangeTracking(true, iofogUuid, transaction)
     })
 }
 

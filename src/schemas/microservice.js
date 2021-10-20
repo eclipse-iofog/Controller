@@ -134,8 +134,6 @@ const ports = {
   'properties': {
     'internal': { 'type': 'integer' },
     'external': { 'type': 'integer' },
-    'publicPort': { 'type': 'integer' },
-    'host': { 'type': 'string' },
     'public': { '$ref': '/publicPort' },
     'protocol': { 'enum': ['tcp', 'udp'] }
   },
@@ -171,9 +169,8 @@ const portsCreate = {
   'properties': {
     'internal': { 'type': 'integer' },
     'external': { 'type': 'integer' },
-    'publicPort': { 'type': 'integer' },
-    'host': { 'type': 'string' },
-    'protocol': { 'enum': ['http', 'tcp', 'udp'] }
+    'protocol': { 'enum': ['tcp', 'udp'] },
+    'public': { '$ref': '/publicPort' }
   },
   'required': ['internal', 'external'],
   'additionalProperties': true
