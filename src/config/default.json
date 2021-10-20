@@ -31,6 +31,9 @@
   "Diagnostics": {
     "DiagnosticDir": "diagnostic"
   },
+  "PublicPorts": {
+    "Range": "6000-7000"
+  },
   "SystemImages": {
     "Router": {
       "1": "iofog/router:latest",

@@ -33,6 +33,11 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.TEXT,
       field: 'queue_name'
     },
+    schemes: {
+      type: DataTypes.TEXT, // JSON stringified array of strings
+      field: 'schemes',
+      defaultValue: JSON.stringify(['https'])
+    },
     isTcp: {
       type: DataTypes.BOOLEAN,
       field: 'is_tcp',

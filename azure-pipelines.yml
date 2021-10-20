@@ -26,7 +26,7 @@ stages:
   jobs:
   - job: Build
     pool:
-      vmImage: 'Ubuntu-16.04'
+      vmImage: 'Ubuntu-18.04'
 
     steps:
       - task: NodeTool@0
@@ -44,7 +44,8 @@ stages:
         displayName: 'Standardjs report'
 
       - script: |
-          npm audit --production
+          npm i -g better-npm-audit
+          npx better-npm-audit audit -p
         displayName: Check for vulnerabilities
 
       # - script: |
@@ -83,7 +84,7 @@ stages:
   #         waitForCompletion: 'false'
   - job: Controller
     pool:
-      vmImage: 'Ubuntu-16.04'
+      vmImage: 'Ubuntu-18.04'
     steps:
     - task: NodeTool@0
       inputs:
@@ -194,7 +195,7 @@ stages:
 
     - task: UseRubyVersion@0
       inputs:
-        versionSpec: '= 2.7.3'
+        versionSpec: '2.7'
         addToPath: true
       displayName: 'install rubygem to be used to install package_cloud cli'
 

@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "9d90462d-f52c-4244-be4f-026f555d3ff4",
+		"_postman_id": "e2940065-1900-4c1f-b382-8159daf3c078",
 		"name": "Controller Testing",
 		"description": "iofog-controller collection",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -2587,6 +2587,75 @@
 								"application",
 								"yaml",
 								"{{application-yaml-name}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Microservices From YAML application",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"tests[\"Status code is 200\"] = responseCode.code === 200;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response has microservices property\"] = data.hasOwnProperty('microservices');",
+									"",
+									"tests[\"Response contains two microservices\"] = data.microservices.length === 2;",
+									"",
+									"tests[\"Response returns microservice status\"] = data.microservices[0].hasOwnProperty('status');",
+									"",
+									"tests[\"Microservice status has default value\"] = data.microservices[0].status.status === 'QUEUED';",
+									"",
+									"tests[\"Response returns microservice percentage\"] = data.microservices[0].status.hasOwnProperty('percentage');",
+									"",
+									"tests[\"Response returns microservice errorMessage\"] = data.microservices[0].status.hasOwnProperty('errorMessage');",
+									"",
+									"const viewer = data.microservices.find(m => m.name === 'heart-rate-viewer')",
+									"const wssPort = viewer.ports.find(p => p.external === 5002)",
+									"const defaultPort = viewer.ports.find(p => p.external === 5001)",
+									"const defaultPort2 = viewer.ports.find(p => p.external === 5003)",
+									"tests[\"Viewer has public port public links\"] = wssPort.public.links.length === 2 && defaultPort.public.links.length === 1",
+									"tests[\"Viewer wss public port uses defined port\"] = wssPort.public.links[0].endsWith(':5005')",
+									"tests[\"Viewer default public port uses default port\"] = defaultPort.public.links[0].endsWith(':6000')",
+									"tests[\"Viewer default2 public port uses default port\"] = defaultPort2.public.links[0].endsWith(':6001')"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{user-token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/api/v3/microservices?application={{application-yaml-name}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"microservices"
+							],
+							"query": [
+								{
+									"key": "application",
+									"value": "{{application-yaml-name}}"
+								}
 							]
 						}
 					},

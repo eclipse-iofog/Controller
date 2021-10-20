@@ -108,5 +108,7 @@ module.exports = {
   NOT_FOUND_AGENT_NAME: 'Could not find agent {}',
   RESOURCE_UPDATE_VERSION_MISMATCH: 'Cannot update resource version using update route. Please use the create new resource route.',
   INVALID_APPLICATION_TEMPLATE_NAME: 'Could not find Application Template {}',
-  APPLICATION_TEMPLATE_INVALID: 'Application Tempalte {} is invalid'
+  APPLICATION_TEMPLATE_INVALID: 'Application Tempalte {} is invalid',
+  WRONG_PUBLIC_LINK_PROTOCOL: 'Public port {} has a scheme of {} and cannot use protocol {}',
+  NO_AVAILABLE_PUBLIC_PORT: 'No public port available in range for {}'
 }

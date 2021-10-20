@@ -251,7 +251,8 @@ describe('Microservices Service', () => {
           getPublicPort: () => Promise.resolve({
             hostId: 'fakeAgentUuid',
             publicPort: 1234,
-            protocol: 'http'
+            protocol: 'http',
+            schemes: JSON.stringify(['http'])
           })
         },
       ]))
@@ -261,12 +262,13 @@ describe('Microservices Service', () => {
         $sandbox.stub(ioFogManager, 'findOne').returns(Promise.resolve({}))
       })
 
-      it('returns public link', async () => {
+      it('returns public links', async () => {
         const ms = await $subject
         expect(ms).to.have.property('ports')
         expect(ms.ports).to.have.length(1)
-        expect(ms.ports[0]).to.have.property('publicLink')
-        expect(ms.ports[0].publicLink).to.equal('http://1.2.3.4:1234')
+        expect(ms.ports[0]).to.have.property('public')
+        expect(ms.ports[0].public).to.have.property('links')
+        expect(ms.ports[0].public.links).to.deep.equal(['http://1.2.3.4:1234'])
       })
     })
   })
@@ -654,19 +656,19 @@ describe('Microservices Service', () => {
                           host: 'routerHost',
                           messagingPort: 5672
                         }
-                        const publicPort = 1234
                         let routerStub
+                        const public = {
+                          schemes: ['http']
+                        }
                         beforeEach(() => {
-                          microserviceData.ports[0].publicPort = publicPort
-                          microserviceData.ports[0].host = undefined
+                          microserviceData.ports[0].public = public
                           routerStub = $sandbox.stub(RouterManager, 'findOne').returns(Promise.resolve(router))
                           $sandbox.stub(MicroserviceExtraHostManager, 'findAll').returns($findRelatedExtraHosts)
                           $sandbox.stub(MicroservicePublicPortManager, 'create')
                         })
 
                         afterEach(() => {
-                          delete microserviceData.ports[0].publicPort
-                          delete microserviceData.ports[0].host
+                          delete microserviceData.ports[0].public
                         })
                         
                         it('should create local and remote proxy microservices', async () => {
@@ -692,7 +694,7 @@ describe('Microservices Service', () => {
                             uuid: sinon.match.string,
                             name: 'Proxy',
                             config: JSON.stringify({
-                              mappings: [`http:${publicPort}=>amqp:${newMicroserviceUuid}`],
+                              mappings: [`http:${6000}=>amqp:${newMicroserviceUuid}`],
                               networkRouter: networkRouter
                             }),
                             catalogItemId: proxyCatalogItem.id,
@@ -712,9 +714,10 @@ describe('Microservices Service', () => {
                             hostId: systemFog.uuid,
                             localProxyId: newMicroservice.uuid,
                             remoteProxyId: newMicroservice.uuid,
-                            publicPort: publicPort,
+                            publicPort: 6000,
                             queueName: newMicroserviceUuid,
-                            isTcp: false
+                            isTcp: false,
+                            schemes: JSON.stringify(['http'])
                           }
                           expect(MicroservicePublicPortManager.create).to.have.been.calledWith(publicPortData, transaction)
                         })
@@ -722,7 +725,7 @@ describe('Microservices Service', () => {
                         context('When there are related extra hosts', () => {
                           const extraHosts = [{
                             save: () => {},
-                            publicPort,
+                            publicPort: 6000,
                             microserviceUuid: newMicroserviceUuid
                           }]
                           def('findRelatedExtraHosts', () => Promise.resolve(extraHosts))
@@ -767,7 +770,7 @@ describe('Microservices Service', () => {
                               uuid: sinon.match.string,
                               name: 'Proxy',
                               config: JSON.stringify({
-                                mappings: [`http:${publicPort}=>amqp:${newMicroserviceUuid}`],
+                                mappings: [`http:${6000}=>amqp:${newMicroserviceUuid}`],
                                 networkRouter: networkRouter
                               }),
                               catalogItemId: proxyCatalogItem.id,
@@ -787,9 +790,10 @@ describe('Microservices Service', () => {
                               hostId: null,
                               localProxyId: newMicroservice.uuid,
                               remoteProxyId: null,
-                              publicPort: publicPort,
+                              publicPort: 6000,
                               queueName: newMicroserviceUuid,
-                              isTcp: false
+                              isTcp: false,
+                              schemes: JSON.stringify(['http'])
                             }
                             expect(MicroservicePublicPortManager.create).to.have.been.calledWith(publicPortData, transaction)
                           })

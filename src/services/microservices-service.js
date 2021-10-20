@@ -260,11 +260,11 @@ async function createMicroserviceEndPoint (microserviceData, user, isCLI, transa
   if (microserviceData.ports) {
     for (const mapping of microserviceData.ports) {
       const res = await MicroservicePortService.createPortMapping(microservice, mapping, user, transaction)
-      if (res && res.publicLink) {
+      if (res && res.publicLinks) {
         publicPorts.push({
           internal: mapping.internal,
           external: mapping.external,
-          publicLink: res.publicLink
+          publicLinks: res.publicLinks
         })
       }
     }
@@ -641,7 +641,7 @@ async function createPortMappingEndPoint (microserviceUuid, portMappingData, use
   if (!agent) {
     throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, microservice.iofogUuid))
   }
-  await MicroservicePortService.validatePortMapping(agent, portMappingData, transaction)
+  await MicroservicePortService.validatePortMapping(agent, portMappingData, {}, transaction)
 
   return MicroservicePortService.createPortMapping(microservice, portMappingData, user, transaction)
 }
@@ -1058,7 +1058,7 @@ async function _buildGetMicroserviceResponse (microservice, transaction) {
   const res = Object.assign({}, microservice)
   res.ports = []
   for (const pm of portMappings) {
-    const mapping = { internal: pm.portInternal, external: pm.portExternal, publicMode: pm.isPublic, protocol: pm.isUdp ? 'udp' : 'tcp' }
+    const mapping = { internal: pm.portInternal, external: pm.portExternal, protocol: pm.isUdp ? 'udp' : 'tcp' }
     if (pm.isPublic) {
       const publicPortMapping = await pm.getPublicPort()
       if (publicPortMapping) {
@@ -1115,5 +1115,6 @@ module.exports = {
   listMicroservicesEndPoint: TransactionDecorator.generateTransaction(listMicroservicesEndPoint),
   listVolumeMappingsEndPoint: TransactionDecorator.generateTransaction(listVolumeMappingsEndPoint),
   updateMicroserviceEndPoint: TransactionDecorator.generateTransaction(updateMicroserviceEndPoint),
-  buildGetMicroserviceResponse: _buildGetMicroserviceResponse
+  buildGetMicroserviceResponse: _buildGetMicroserviceResponse,
+  updateChangeTracking: _updateChangeTracking
 }
