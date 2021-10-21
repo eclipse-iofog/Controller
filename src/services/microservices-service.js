@@ -38,6 +38,7 @@ const MicroserviceExtraHostManager = require('../data/managers/microservice-extr
 const { VOLUME_MAPPING_DEFAULT } = require('../helpers/constants')
 const constants = require('../helpers/constants')
 const isEqual = require('lodash/isEqual')
+const lget = require('lodash/get')
 const yaml = require('js-yaml')
 
 async function listMicroservicesEndPoint (opt, user, isCLI, transaction) {
@@ -1054,7 +1055,7 @@ async function parseYAMLFile (fileContent) {
     name: lget(doc, 'metadata.name', undefined),
     ...parseMicroserviceYAML(doc.spec)
   }
-  return application
+  return microservice
 }
 
 const _deleteUndefinedFields = (obj) => Object.keys(obj).forEach(key => obj[key] === undefined && delete obj[key])
