@@ -31,6 +31,7 @@ const applicationTemplateVariable = {
     },
     'description': { 'type': 'string' }
   },
+  additionalProperties: true,
   required: ['key']
 }
 

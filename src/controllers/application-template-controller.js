@@ -13,9 +13,23 @@
 
 const AuthDecorator = require('./../decorators/authorization-decorator')
 const ApplicationTemplateService = require('../services/application-template-service')
+const errors = require('../helpers/errors')
+const ErrorMessages = require('../helpers/error-messages')
+const { rvaluesVarSubstition } = require('../helpers/template-helper')
 
 const createApplicationTemplateEndPoint = async function (req, user) {
   const application = req.body
+
+  return ApplicationTemplateService.createApplicationTemplateEndPoint(application, user, false)
+}
+
+const createApplicationTemplateYAMLEndPoint = async function (req, user) {
+  if (!req.file) {
+    throw new errors.ValidationError(ErrorMessages.APPLICATION_FILE_NOT_FOUND)
+  }
+  const fileContent = req.file.buffer.toString()
+  const application = await ApplicationTemplateService.parseYAMLFile(fileContent)
+  await rvaluesVarSubstition(application.variables, { self: application.variables }, user)
 
   return ApplicationTemplateService.createApplicationTemplateEndPoint(application, user, false)
 }
@@ -44,6 +58,18 @@ const updateApplicationTemplateEndPoint = async function (req, user) {
   return ApplicationTemplateService.updateApplicationTemplateEndPoint(application, name, user, false)
 }
 
+const updateApplicationTemplateYAMLEndPoint = async function (req, user) {
+  if (!req.file) {
+    throw new errors.ValidationError(ErrorMessages.APPLICATION_FILE_NOT_FOUND)
+  }
+  const name = req.params.name
+  const fileContent = req.file.buffer.toString()
+  const application = await ApplicationTemplateService.parseYAMLFile(fileContent)
+  await rvaluesVarSubstition(application.variables, { self: application.variables }, user)
+
+  return ApplicationTemplateService.updateApplicationTemplateEndPoint(application, name, user, false)
+}
+
 const deleteApplicationTemplateEndPoint = async function (req, user) {
   const name = req.params.name
 
@@ -55,6 +81,8 @@ module.exports = {
   getApplicationTemplatesByUserEndPoint: AuthDecorator.checkAuthToken(getApplicationTemplatesByUserEndPoint),
   getApplicationTemplateEndPoint: AuthDecorator.checkAuthToken(getApplicationTemplateEndPoint),
   updateApplicationTemplateEndPoint: AuthDecorator.checkAuthToken(updateApplicationTemplateEndPoint),
+  updateApplicationTemplateYAMLEndPoint: AuthDecorator.checkAuthToken(updateApplicationTemplateYAMLEndPoint),
   patchApplicationTemplateEndPoint: AuthDecorator.checkAuthToken(patchApplicationTemplateEndPoint),
-  deleteApplicationTemplateEndPoint: AuthDecorator.checkAuthToken(deleteApplicationTemplateEndPoint)
+  deleteApplicationTemplateEndPoint: AuthDecorator.checkAuthToken(deleteApplicationTemplateEndPoint),
+  createApplicationTemplateYAMLEndPoint: AuthDecorator.checkAuthToken(createApplicationTemplateYAMLEndPoint)
 }

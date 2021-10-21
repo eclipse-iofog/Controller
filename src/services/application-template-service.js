@@ -22,7 +22,10 @@ const Errors = require('../helpers/errors')
 const ApplicationTemplateManager = require('../data/managers/application-template-manager')
 const ApplicationTemplateVariableManager = require('../data/managers/application-template-variable-manager')
 const TransactionDecorator = require('../decorators/transaction-decorator')
+const ApplicationService = require('./application-service')
 const Validator = require('../schemas')
+const lget = require('lodash/get')
+const yaml = require('js-yaml')
 
 const createApplicationTemplateEndPoint = async function (applicationTemplateData, user, isCLI, transaction) {
   // Add a name field to pass schema validation using the applicationCreate schema
@@ -250,6 +253,26 @@ const _checkForDuplicateName = async function (name, applicationId, userId, tran
   }
 }
 
+function parseYAMLFile (fileContent) {
+  const doc = yaml.load(fileContent)
+  if (doc.kind !== 'ApplicationTemplate') {
+    throw new Errors.ValidationError(`Invalid kind ${doc.kind}`)
+  }
+  if (doc.metadata == null || doc.spec == null) {
+    throw new Errors.ValidationError('Invalid YAML format')
+  }
+  const appTemplate = {
+    name: lget(doc, 'metadata.name', undefined),
+    applicationJSON: ApplicationService.parseYAMLFile(doc.spec.application),
+    description: doc.spec.description,
+    variables: doc.spec.variables
+  }
+  _deleteUndefinedFields(appTemplate)
+  return appTemplate
+}
+
+const _deleteUndefinedFields = (obj) => Object.keys(obj).forEach(key => obj[key] === undefined && delete obj[key])
+
 module.exports = {
   createApplicationTemplateEndPoint: TransactionDecorator.generateTransaction(createApplicationTemplateEndPoint),
   deleteApplicationTemplateEndPoint: TransactionDecorator.generateTransaction(deleteApplicationTemplateEndPoint),
@@ -260,5 +283,6 @@ module.exports = {
   getApplicationTemplateEndPoint: TransactionDecorator.generateTransaction(getApplicationTemplateEndPoint),
   getApplicationTemplateByName: TransactionDecorator.generateTransaction(getApplicationTemplateEndPoint),
   getApplicationTemplate: getApplicationTemplate,
-  getApplicationDataFromTemplate
+  getApplicationDataFromTemplate,
+  parseYAMLFile: parseYAMLFile
 }

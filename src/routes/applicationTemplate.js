@@ -70,6 +70,35 @@ module.exports = [
     }
   },
   {
+    method: 'post',
+    path: '/api/v3/applicationTemplate/yaml',
+    fileInput: 'template',
+    middleware: async (req, res) => {
+      logger.apiReq(req)
+
+      const successCode = constants.HTTP_CODE_CREATED
+      const errorCodes = [
+        {
+          code: constants.HTTP_CODE_BAD_REQUEST,
+          errors: [Errors.ValidationError]
+        },
+        {
+          code: constants.HTTP_CODE_UNAUTHORIZED,
+          errors: [Errors.AuthenticationError]
+        }
+      ]
+
+      const createApplicationTemplateEndPoint = ResponseDecorator.handleErrors(ApplicationTemplateController.createApplicationTemplateYAMLEndPoint, successCode, errorCodes)
+      const responseObject = await createApplicationTemplateEndPoint(req)
+
+      res
+        .status(responseObject.code)
+        .send(responseObject.body)
+
+      logger.apiRes({ req: req, res: responseObject })
+    }
+  },
+  {
     method: 'get',
     path: '/api/v3/applicationTemplate/:name',
     middleware: async (req, res) => {
@@ -131,7 +160,8 @@ module.exports = [
   },
   {
     method: 'put',
-    path: '/api/v3/applicationTemplate/:name',
+    path: '/api/v3/applicationTemplate/yaml/:name',
+    fileInput: 'template',
     middleware: async (req, res) => {
       logger.apiReq(req)
 
@@ -151,7 +181,7 @@ module.exports = [
         }
       ]
 
-      const updateApplicationTemplateEndPoint = ResponseDecorator.handleErrors(ApplicationTemplateController.updateApplicationTemplateEndPoint, successCode, errorCodes)
+      const updateApplicationTemplateEndPoint = ResponseDecorator.handleErrors(ApplicationTemplateController.updateApplicationTemplateYAMLEndPoint, successCode, errorCodes)
       const responseObject = await updateApplicationTemplateEndPoint(req)
 
       res
