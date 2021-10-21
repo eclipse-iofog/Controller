@@ -13,6 +13,7 @@
 
 const AuthDecorator = require('./../decorators/authorization-decorator')
 const MicroservicesService = require('../services/microservices-service')
+const YAMLParserService = require('../services/yaml-parser-service')
 const { rvaluesVarSubstition } = require('../helpers/template-helper')
 
 const createMicroserviceOnFogEndPoint = async function (req, user) {
@@ -22,7 +23,7 @@ const createMicroserviceOnFogEndPoint = async function (req, user) {
 
 const createMicroserviceYAMLEndPoint = async function (req, user) {
   const fileContent = req.file.buffer.toString()
-  const microservice = await MicroservicesService.parseYAMLFile(fileContent)
+  const microservice = await YAMLParserService.parseMicroserviceFile(fileContent)
   await rvaluesVarSubstition(microservice, { self: microservice }, user)
   return MicroservicesService.createMicroserviceEndPoint(microservice, user, false)
 }
@@ -41,7 +42,7 @@ const updateMicroserviceEndPoint = async function (req, user) {
 const updateMicroserviceYAMLEndPoint = async function (req, user) {
   const microserviceUuid = req.params.uuid
   const fileContent = req.file.buffer.toString()
-  const microservice = await MicroservicesService.parseYAMLFile(fileContent)
+  const microservice = await YAMLParserService.parseMicroserviceFile(fileContent)
   await rvaluesVarSubstition(microservice, { self: microservice }, user)
   return MicroservicesService.updateMicroserviceEndPoint(microserviceUuid, microservice, user, false)
 }

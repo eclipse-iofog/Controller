@@ -13,6 +13,7 @@
 
 const AuthDecorator = require('./../decorators/authorization-decorator')
 const ApplicationTemplateService = require('../services/application-template-service')
+const YAMLParserService = require('../services/yaml-parser-service')
 const errors = require('../helpers/errors')
 const ErrorMessages = require('../helpers/error-messages')
 const { rvaluesVarSubstition } = require('../helpers/template-helper')
@@ -28,7 +29,7 @@ const createApplicationTemplateYAMLEndPoint = async function (req, user) {
     throw new errors.ValidationError(ErrorMessages.APPLICATION_FILE_NOT_FOUND)
   }
   const fileContent = req.file.buffer.toString()
-  const application = await ApplicationTemplateService.parseYAMLFile(fileContent)
+  const application = await YAMLParserService.parseAppTemplateFile(fileContent)
   await rvaluesVarSubstition(application.variables, { self: application.variables }, user)
 
   return ApplicationTemplateService.createApplicationTemplateEndPoint(application, user, false)
@@ -64,7 +65,7 @@ const updateApplicationTemplateYAMLEndPoint = async function (req, user) {
   }
   const name = req.params.name
   const fileContent = req.file.buffer.toString()
-  const application = await ApplicationTemplateService.parseYAMLFile(fileContent)
+  const application = await YAMLParserService.parseAppTemplateFile(fileContent)
   await rvaluesVarSubstition(application.variables, { self: application.variables }, user)
 
   return ApplicationTemplateService.updateApplicationTemplateEndPoint(application, name, user, false)

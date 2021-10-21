@@ -25,8 +25,6 @@ const TransactionDecorator = require('../decorators/transaction-decorator')
 const ApplicationTemplateService = require('./application-template-service')
 const Validator = require('../schemas')
 const remove = require('lodash/remove')
-const lget = require('lodash/get')
-const yaml = require('js-yaml')
 
 const onlyUnique = (value, index, self) => self.indexOf(value) === index
 
@@ -375,23 +373,6 @@ async function _updateChangeTrackingsAndDeleteMicroservicesByApplicationId (cond
   }
 }
 
-async function parseYAMLFile (fileContent) {
-  const doc = yaml.load(fileContent)
-  if (doc.kind !== 'Application') {
-    throw new Errors.ValidationError(`Invalid kind ${doc.kind}`)
-  }
-  if (doc.metadata == null || doc.spec == null) {
-    throw new Errors.ValidationError('Invalid YAML format')
-  }
-  const application = {
-    name: lget(doc, 'metadata.name', undefined),
-    ...doc.spec,
-    isActivated: doc.spec.isActivated || true,
-    microservices: await Promise.all((doc.spec.microservices || []).map(async (m) => MicroserviceService.parseMicroserviceYAML(m)))
-  }
-  return application
-}
-
 module.exports = {
   createApplicationEndPoint: TransactionDecorator.generateTransaction(createApplicationEndPoint),
   deleteApplicationEndPoint: TransactionDecorator.generateTransaction(deleteApplicationEndPoint),
@@ -400,6 +381,5 @@ module.exports = {
   getUserApplicationsEndPoint: TransactionDecorator.generateTransaction(getUserApplicationsEndPoint),
   getAllApplicationsEndPoint: TransactionDecorator.generateTransaction(getAllApplicationsEndPoint),
   getApplicationEndPoint: TransactionDecorator.generateTransaction(getApplicationEndPoint),
-  getApplication: getApplication,
-  parseYAMLFile: parseYAMLFile
+  getApplication: getApplication
 }

@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "e2940065-1900-4c1f-b382-8159daf3c078",
+		"_postman_id": "0710bfbf-7d6c-49c3-9404-ff21f5e14a73",
 		"name": "Controller Testing",
 		"description": "iofog-controller collection",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -3578,23 +3578,30 @@
 					"response": []
 				},
 				{
-					"name": "Update Application Template metadata",
+					"name": "New Application Template From YAML",
 					"event": [
 						{
 							"listen": "test",
 							"script": {
 								"exec": [
-									"tests[\"Status code is 204\"] = responseCode.code === 204;",
-									"if (tests[\"Status code is 204\"]) {",
-									"    postman.setGlobalVariable(\"application-template-name\", \"application-template-22\");",
-									"}"
+									"tests[\"Status code is 201\"] = responseCode.code === 201;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response validation passed\"] = data.hasOwnProperty('id');",
+									"",
+									"if (tests[\"Response validation passed\"]) {",
+									"    postman.setGlobalVariable(\"application-template-from-yaml-name\", data.name);",
+									"    postman.setGlobalVariable(\"application-template-from-yaml-id\", data.id);",
+									"}",
+									""
 								],
 								"type": "text/javascript"
 							}
 						}
 					],
 					"request": {
-						"method": "PATCH",
+						"method": "POST",
 						"header": [
 							{
 								"key": "Content-Type",
@@ -3602,16 +3609,22 @@
 							},
 							{
 								"key": "Authorization",
-								"value": "{{user-token}}",
-								"type": "text"
+								"type": "text",
+								"value": "{{user-token}}"
 							}
 						],
 						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"name\": \"application-template-22\",\n  \"description\": \"Description\"\n}"
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "template",
+									"type": "file",
+									"src": "./test/application-template.yaml"
+								}
+							]
 						},
 						"url": {
-							"raw": "{{host}}/api/v3/applicationTemplate/{{application-template-name}}",
+							"raw": "{{host}}/api/v3/applicationTemplate/yaml",
 							"host": [
 								"{{host}}"
 							],
@@ -3619,7 +3632,7 @@
 								"api",
 								"v3",
 								"applicationTemplate",
-								"{{application-template-name}}"
+								"yaml"
 							]
 						}
 					},
@@ -3672,6 +3685,155 @@
 					"response": []
 				},
 				{
+					"name": "Update Application Template Microservices using YAML",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"tests[\"Status code is 200\"] = responseCode.code === 200;",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"type": "text",
+								"value": "{{user-token}}"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "template",
+									"type": "file",
+									"src": "./test/application-template-update.yaml"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/applicationTemplate/yaml/{{application-template-from-yaml-name}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"applicationTemplate",
+								"yaml",
+								"{{application-template-from-yaml-name}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Application Template metadata",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"tests[\"Status code is 204\"] = responseCode.code === 204;",
+									"if (tests[\"Status code is 204\"]) {",
+									"    postman.setGlobalVariable(\"application-template-name\", \"application-template-22\");",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{user-token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"application-template-22\",\n  \"description\": \"Description\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/applicationTemplate/{{application-template-name}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"applicationTemplate",
+								"{{application-template-name}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Application Template metadata from YAML",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"tests[\"Status code is 204\"] = responseCode.code === 204;",
+									"if (tests[\"Status code is 204\"]) {",
+									"    postman.setGlobalVariable(\"application-template-from-yaml-name\", \"application-template-from-yaml-22\");",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{user-token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"application-template-from-yaml-22\",\n  \"description\": \"Description\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/applicationTemplate/{{application-template-from-yaml-name}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"applicationTemplate",
+								"{{application-template-from-yaml-name}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Get Application Templates",
 					"event": [
 						{
@@ -3682,7 +3844,7 @@
 									"",
 									"var data = JSON.parse(responseBody);",
 									"",
-									"tests[\"Response validation passed\"] = data.hasOwnProperty('applicationTemplates') && data.applicationTemplates.length === 1;"
+									"tests[\"Response validation passed\"] = data.hasOwnProperty('applicationTemplates') && data.applicationTemplates.length === 2;"
 								],
 								"type": "text/javascript"
 							}
@@ -3755,7 +3917,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{host}}/api/v3/applicationTemplate/{{application-template-name}}",
+							"raw": "{{host}}/api/v3/applicationTemplate/{{application-template-from-yaml-name}}",
 							"host": [
 								"{{host}}"
 							],
@@ -3763,7 +3925,7 @@
 								"api",
 								"v3",
 								"applicationTemplate",
-								"{{application-template-name}}"
+								"{{application-template-from-yaml-name}}"
 							]
 						}
 					},
@@ -3807,7 +3969,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"name\": \"application-name\",\n    \"template\": {\n        \"name\": \"{{application-template-name}}\",\n        \"variables\": [\n            {\n                \"key\": \"agent-1-name\",\n                \"value\": \"string\"\n            },\n            {\n                \"key\": \"env-value-1\",\n                \"value\": \"12345\"\n            }\n        ]\n    },\n    \"isSystem\": false,\n    \"isActivated\": true,\n    \"description\": \"new application from template\"\n}"
+							"raw": "{\n    \"name\": \"application-name-2\",\n    \"template\": {\n        \"name\": \"{{application-template-from-yaml-name}}\",\n        \"variables\": [\n            {\n                \"key\": \"agent-1-name\",\n                \"value\": \"string\"\n            },\n            {\n                \"key\": \"env-value-1\",\n                \"value\": \"12345\"\n            },\n            {\n                \"key\": \"agent-2-name\",\n                \"value\": \"string\"\n            }\n        ]\n    },\n    \"isSystem\": false,\n    \"isActivated\": true,\n    \"description\": \"new application from template\"\n}"
 						},
 						"url": {
 							"raw": "{{host}}/api/v3/application",
@@ -4010,6 +4172,51 @@
 								"v3",
 								"applicationTemplate",
 								"{{application-template-name}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Application Template from YAML",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"tests[\"Status code is 204\"] = responseCode.code === 204;"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"type": "text",
+								"value": "{{user-token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/applicationTemplate/{{application-template-from-yaml-name}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"applicationTemplate",
+								"{{application-template-from-yaml-name}}"
 							]
 						}
 					},

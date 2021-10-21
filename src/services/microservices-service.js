@@ -38,8 +38,6 @@ const MicroserviceExtraHostManager = require('../data/managers/microservice-extr
 const { VOLUME_MAPPING_DEFAULT } = require('../helpers/constants')
 const constants = require('../helpers/constants')
 const isEqual = require('lodash/isEqual')
-const lget = require('lodash/get')
-const yaml = require('js-yaml')
 
 async function listMicroservicesEndPoint (opt, user, isCLI, transaction) {
   // API retro compatibility
@@ -992,74 +990,6 @@ async function _checkForDuplicateName (name, item, userId, transaction) {
   }
 }
 
-const mapImages = (images) => {
-  const imgs = []
-  if (images.x86 != null) {
-    imgs.push({
-      fogTypeId: 1,
-      containerImage: images.x86
-    })
-  }
-  if (images.arm != null) {
-    imgs.push({
-      fogTypeId: 2,
-      containerImage: images.arm
-    })
-  }
-  return imgs
-}
-
-const parseMicroserviceImages = async (fileImages) => {
-  if (fileImages.catalogId != null) {
-    return { registryId: undefined, images: undefined, catalogItemId: fileImages.catalogId }
-  }
-  const registryByName = {
-    remote: 1,
-    local: 2
-  }
-  const images = mapImages(fileImages)
-  const registryId = fileImages.registry != null ? registryByName[fileImages.registry] || Number(fileImages.registry) : 1
-  return { registryId, catalogItemId: undefined, images }
-}
-
-const parseMicroserviceYAML = async (microservice) => {
-  const { registryId, catalogItemId, images } = await parseMicroserviceImages(microservice.images)
-  const microserviceData = {
-    config: microservice.config != null ? JSON.stringify(microservice.config) : undefined,
-    name: microservice.name,
-    catalogItemId,
-    agentName: lget(microservice, 'agent.name'),
-    registryId,
-    ...microservice.container,
-    ports: (lget(microservice, 'container.ports', [])).map(p => ({ ...p, publicPort: p.public })),
-    volumeMappings: lget(microservice, 'container.volumes', []),
-    cmd: lget(microservice, 'container.commands', []),
-    env: (lget(microservice, 'container.env', [])).map(e => ({ key: e.key.toString(), value: e.value.toString() })),
-    images,
-    extraHosts: lget(microservice, 'container.extraHosts', []),
-    application: microservice.application
-  }
-  _deleteUndefinedFields(microserviceData)
-  return microserviceData
-}
-
-async function parseYAMLFile (fileContent) {
-  const doc = yaml.load(fileContent)
-  if (doc.kind !== 'Microservice') {
-    throw new Errors.ValidationError(`Invalid kind ${doc.kind}`)
-  }
-  if (doc.metadata == null || doc.spec == null) {
-    throw new Errors.ValidationError('Invalid YAML format')
-  }
-  const microservice = {
-    name: lget(doc, 'metadata.name', undefined),
-    ...parseMicroserviceYAML(doc.spec)
-  }
-  return microservice
-}
-
-const _deleteUndefinedFields = (obj) => Object.keys(obj).forEach(key => obj[key] === undefined && delete obj[key])
-
 async function _validateMicroserviceOnGet (userId, microserviceUuid, transaction) {
   const where = {
     '$application.user.id$': userId,
@@ -1186,7 +1116,5 @@ module.exports = {
   listVolumeMappingsEndPoint: TransactionDecorator.generateTransaction(listVolumeMappingsEndPoint),
   updateMicroserviceEndPoint: TransactionDecorator.generateTransaction(updateMicroserviceEndPoint),
   buildGetMicroserviceResponse: _buildGetMicroserviceResponse,
-  updateChangeTracking: _updateChangeTracking,
-  parseMicroserviceYAML: parseMicroserviceYAML,
-  parseYAMLFile: parseYAMLFile
+  updateChangeTracking: _updateChangeTracking
 }

@@ -10,14 +10,13 @@ const applicationTemplateCreate = {
       'pattern': nameRegex
     },
     'description': { 'type': 'string' },
-    'applicationJSON': { '$ref': '/applicationCreate' },
     'variables': {
       'type': 'array',
       'items': { '$ref': '/applicationTemplateVariable' }
     }
   },
   'required': ['name'],
-  'additionalProperties': true
+  'additionalProperties': true // application will be validated once it's being deployed
 }
 
 const applicationTemplateVariable = {

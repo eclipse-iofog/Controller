@@ -1,0 +1,64 @@
+kind: ApplicationTemplate
+apiVersion: iofog.org/v3
+metadata:
+  name: 'app-template-from-yaml'
+spec:
+  variables:
+  - key: agent-1-name
+    description: "Agent name for msvc-1"
+  - key: env-value-1
+    description: ENV variable value for KEY1
+  - key: env-value-2
+    description: ENV variable value for KEY2
+    defaultValue: "test42"
+  application:
+    microservices:
+    - name: msvc-1
+      images:
+        x86: hello-world
+        arm: hello-world
+      agent:
+        name: "{{ agent-1-name }}"
+      container:
+        rootHostAccess: true
+        ports: []
+        env:
+        - key: KEY1
+          value: "{{ env-value-1 }}"
+        - key: KEY2
+          value: "{{ env-value-2 }}"
+        volumes:
+        - hostDestination: "/var/dest"
+          containerDestination: "/var/dest"
+          accessMode: rw
+        commands:
+        - "test"
+        - "--arg1"
+        - "--arg2"
+    - name: msvc-2
+      config: "string"
+      images:
+        x86: hello-world
+        arm: hello-world
+      agent:
+        name: "{{ agent-2-name }}"
+      container:
+        rootHostAccess: true
+        ports: []
+        env:
+        - key: KEY1
+          value: "value1"
+        - key: KEY2
+          value: "value2"
+        volumes:
+        - hostDestination: "/var/dest"
+          containerDestination: "/var/dest"
+          accessMode: rw
+        commands:
+        - "test"
+        - "--arg1"
+        - "--arg2"
+    routes:
+    - name: m1-2
+      from: msvc-1
+      to: msvc-2
