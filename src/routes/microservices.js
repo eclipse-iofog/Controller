@@ -104,6 +104,7 @@ module.exports = [
     method: 'post',
     path: '/api/v3/microservices/yaml',
     supportSubstitution: true,
+    fileInput: 'microservice',
     middleware: async (req, res) => {
       logger.apiReq(req)
 
@@ -199,6 +200,7 @@ module.exports = [
     method: 'patch',
     path: '/api/v3/microservices/yaml/:uuid',
     supportSubstitution: true,
+    fileInput: 'microservice',
     middleware: async (req, res) => {
       logger.apiReq(req)
 
