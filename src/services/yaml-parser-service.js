@@ -107,6 +107,24 @@ async function parseMicroserviceFile (fileContent) {
     name: lget(doc, 'metadata.name', undefined),
     ...parseMicroserviceYAML(doc.spec)
   }
+  // Name could be FQName: <app_name>/<msvc_name>
+  if (microservice.name) {
+    const splittedName = microservice.name.split('/')
+    switch (splittedName.length) {
+      case 1: {
+        microservice.name = splittedName[0]
+        break
+      }
+      case 2: {
+        microservice.name = splittedName[1]
+        microservice.application = splittedName[0]
+        break
+      }
+      default: {
+        throw new Errors.ValidationError(`Invalid name ${microservice.name}`)
+      }
+    }
+  }
   return microservice
 }
 
