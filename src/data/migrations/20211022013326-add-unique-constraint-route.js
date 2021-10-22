@@ -13,7 +13,7 @@ module.exports = {
       {
         fields: ['application_id', 'name'],
         type: 'unique',
-        name: 'app_name_unique_constraint'
+        name: 'routings_app_name_unique_constraint'
       })
   },
 
@@ -25,6 +25,6 @@ module.exports = {
       Example:
       return queryInterface.dropTable('users');
     */
-    return queryInterface.removeConstraint('Routings', 'app_name_unique_constraint')
+    return queryInterface.removeConstraint('Routings', 'routings_app_name_unique_constraint')
   }
 }
