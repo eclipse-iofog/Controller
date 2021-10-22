@@ -38,15 +38,6 @@ const createApplicationEndPoint = async function (applicationData, user, isCLI, 
       description: applicationData.description,
       isActivated: applicationData.isActivated
     }
-    // Edit names - Until name scoping is added
-    for (const microservice of applicationData.microservices) {
-      microservice.name = `${microservice.name}-${applicationData.name}`
-    }
-    for (const route of applicationData.routes) {
-      route.name = `${route.name}-${applicationData.name}`
-      route.from = `${route.from}-${applicationData.name}`
-      route.to = `${route.to}-${applicationData.name}`
-    }
   }
 
   // Set the application field

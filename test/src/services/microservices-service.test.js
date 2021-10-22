@@ -27,6 +27,7 @@ const ioFogService = require('../../../src/services/iofog-service')
 const Errors = require('../../../src/helpers/errors')
 const constants = require('../../../src/config/constants')
 const Constants = require('../../../src/helpers/constants')
+const { application } = require('express')
 
 describe('Microservices Service', () => {
   def('subject', () => MicroservicesService)
@@ -501,12 +502,14 @@ describe('Microservices Service', () => {
                 name: microserviceData.name,
                 uuid: { [Op.ne]: item.id },
                 userId: user.id,
+                applicationId: application.id,
                 delete: false
               }
               :
               {
                 name: microserviceData.name,
                 userId: user.id,
+                applicationId: application.id,
                 delete: false
               }
             expect(MicroserviceManager.findOne).to.have.been.calledWith(where, transaction)
@@ -1361,12 +1364,14 @@ describe('Microservices Service', () => {
                 name: name,
                 uuid: { [Op.ne]: microserviceUuid },
                 delete: false,
-                userId: user.id
+                userId: user.id,
+                applicationId: microserviceData.applicationId
               }
               : {
                 name: name,
                 userId: user.id,
-                delete: false
+                delete: false,
+                applicationId: microserviceData.applicationId
               }
             await $subject
             expect(MicroserviceManager.findOne).to.have.been.calledWith(where, transaction)

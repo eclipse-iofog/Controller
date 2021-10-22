@@ -3999,7 +3999,7 @@
 									"tests[\"Response validation passed\"] = data.hasOwnProperty('id') && data.name && data.description && data.hasOwnProperty('isActivated');",
 									"",
 									"if (tests[\"Response validation passed\"]) {",
-									"    const msvc = data.microservices.find(m => m.name ===  \"msvc-1-\" + pm.globals.get(\"application-name\"));",
+									"    const msvc = data.microservices.find(m => m.name ===  \"msvc-1\");",
 									"    tests[\"Agent uuid was converted properly\"] = msvc.iofogUuid === pm.globals.get(\"node-id\");",
 									"    postman.setGlobalVariable(\"application-msvc-uuid\", msvc.uuid);",
 									"}"

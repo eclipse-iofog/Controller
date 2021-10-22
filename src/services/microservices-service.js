@@ -452,7 +452,7 @@ async function updateMicroserviceEndPoint (microserviceUuid, microserviceData, u
 
   if (microserviceDataUpdate.name) {
     const userId = isCLI ? microservice.userId : user.id
-    await _checkForDuplicateName(microserviceDataUpdate.name, { id: microserviceUuid }, userId, transaction)
+    await _checkForDuplicateName(microserviceDataUpdate.name, { id: microserviceUuid }, userId, microservice.applicationId || microservice.application, transaction)
   }
 
   // validate fog node
@@ -812,11 +812,12 @@ async function _createMicroservice (microserviceData, user, isCLI, transaction) 
     }
   }
 
-  await _checkForDuplicateName(newMicroservice.name, {}, user.id, transaction)
-
   // validate application
   const application = await _validateApplication(microserviceData.application, user, isCLI, transaction)
   newMicroservice.applicationId = application.id
+
+  await _checkForDuplicateName(newMicroservice.name, {}, user.id, newMicroservice.applicationId, transaction)
+
   // validate fog node
   if (newMicroservice.iofogUuid) {
     const fog = await FogManager.findOne({ uuid: newMicroservice.iofogUuid }, transaction)
@@ -968,18 +969,20 @@ async function _updateChangeTracking (configUpdated, fogNodeUuid, transaction) {
   }
 }
 
-async function _checkForDuplicateName (name, item, userId, transaction) {
+async function _checkForDuplicateName (name, item, userId, applicationId, transaction) {
   if (name) {
     const where = item.id
       ? {
         name: name,
         uuid: { [Op.ne]: item.id },
         delete: false,
-        userId: userId
+        userId: userId,
+        applicationId
       }
       : {
         name: name,
         userId: userId,
+        applicationId,
         delete: false
       }
 
