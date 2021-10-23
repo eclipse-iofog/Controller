@@ -34,8 +34,12 @@ async function getRoutings (user, isCLI, transaction) {
   })) }
 }
 
-async function getRouting (name, user, isCLI, transaction) {
-  const route = await RoutingManager.findOnePopulated({ name }, transaction)
+async function getRouting (appName, name, user, isCLI, transaction) {
+  const application = await ApplicationManager.findOne({ name: appName }, transaction)
+  if (!application) {
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_NAME, appName))
+  }
+  const route = await RoutingManager.findOnePopulated({ name, applicationId: application.id }, transaction)
   if (!route) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_ROUTING_NAME, name))
   }
@@ -95,10 +99,14 @@ async function createRouting (routingData, user, isCLI, transaction) {
   return _createRoute(sourceMicroservice, destMicroservice, routingData, user, transaction)
 }
 
-async function updateRouting (routeName, routeData, user, isCLI, transaction) {
+async function updateRouting (appName, routeName, routeData, user, isCLI, transaction) {
   await Validator.validate(routeData, Validator.schemas.routingUpdate)
+  const application = await ApplicationManager.findOne({ name: appName }, transaction)
+  if (!application) {
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_NAME, appName))
+  }
 
-  const oldRoute = await RoutingManager.findOnePopulated({ name: routeName }, transaction)
+  const oldRoute = await RoutingManager.findOnePopulated({ name: routeName, applicationId: application.id }, transaction)
   if (!oldRoute) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_ROUTING_NAME, routeName))
   }
@@ -154,8 +162,12 @@ async function _createRoute (sourceMicroservice, destMicroservice, routeData, us
   return _createSimpleRoute(sourceMicroservice, destMicroservice, routeData, transaction)
 }
 
-async function deleteRouting (name, user, isCLI, transaction) {
-  const route = await RoutingManager.findOne({ name }, transaction)
+async function deleteRouting (appName, name, user, isCLI, transaction) {
+  const application = await ApplicationManager.findOne({ name: appName }, transaction)
+  if (!application) {
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_NAME, appName))
+  }
+  const route = await RoutingManager.findOne({ name, applicationId: application.id }, transaction)
   if (!route) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.ROUTE_NOT_FOUND))
   }
@@ -178,7 +190,7 @@ async function _createSimpleRoute (sourceMicroservice, destMicroservice, routeDa
 }
 
 async function _deleteSimpleRoute (route, transaction) {
-  await RoutingManager.delete({ name: route.name }, transaction)
+  await RoutingManager.delete({ id: route.id }, transaction)
 
   const sourceMsvc = await MicroserviceManager.findOne({ uuid: route.sourceMicroserviceUuid }, transaction)
   const destMsvc = await MicroserviceManager.findOne({ uuid: route.destMicroserviceUuid }, transaction)

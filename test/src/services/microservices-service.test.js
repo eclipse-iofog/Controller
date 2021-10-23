@@ -113,6 +113,7 @@ describe('Microservices Service', () => {
       $sandbox.stub(MicroserviceManager, 'findAllExcludeFields').returns($findMicroservicesResponse)
       $sandbox.stub(MicroservicePortManager, 'findAll').returns($findPortMappingsResponse)
       $sandbox.stub(VolumeMappingManager, 'findAll').returns($findVolumeMappingsResponse)
+      $sandbox.stub(RoutingManager, 'findAllPopulated').returns($findRoutesResponse)
       $sandbox.stub(RoutingManager, 'findAll').returns($findRoutesResponse)
       $sandbox.stub(MicroserviceExtraHostManager, 'findAll').returns($findExtraHostsResponse)
       $sandbox.stub(MicroserviceEnvManager, 'findAllExcludeFields').returns($envResponse)
@@ -192,6 +193,7 @@ describe('Microservices Service', () => {
       $sandbox.stub(MicroserviceManager, 'findOneExcludeFields').returns($findMicroserviceResponse)
       $sandbox.stub(MicroservicePortManager, 'findAll').returns($findPortMappingsResponse)
       $sandbox.stub(VolumeMappingManager, 'findAll').returns($findVolumeMappingsResponse)
+      $sandbox.stub(RoutingManager, 'findAllPopulated').returns($findRoutesResponse)
       $sandbox.stub(RoutingManager, 'findAll').returns($findRoutesResponse)
       $sandbox.stub(MicroserviceExtraHostManager, 'findAll').returns($findExtraHostsResponse)
       $sandbox.stub(MicroserviceEnvManager, 'findAllExcludeFields').returns($envResponse)
@@ -1609,7 +1611,7 @@ describe('Microservices Service', () => {
   
     beforeEach(() => {
       $sandbox.stub(MicroserviceManager, 'findOneWithStatusAndCategory').returns($findMicroserviceResponse)
-      $sandbox.stub(RoutingManager, 'findAll').returns($findRoutesResponse)
+      $sandbox.stub(RoutingManager, 'findAllPopulated').returns($findRoutesResponse)
       $sandbox.stub(MicroservicePortManager, 'findAll').returns($findPortMappings)
       $sandbox.stub(MicroserviceManager, 'delete')
       $sandbox.stub(ChangeTrackingService, 'update')
@@ -1650,14 +1652,22 @@ describe('Microservices Service', () => {
     })
 
     context('when there are routes', () => {
+      const app = {
+        id: 1, 
+        name: 'my-app'
+      }
       const routes = [{
         name: 'one',
+        id: 1,
         sourceMicroserviceUuid: 'srcMsvcUUID1',
         destMicroserviceUuid: 'destMsvcUUID1',
+        application: app
       }, {
         name: 'two',
+        id: 2,
         sourceMicroserviceUuid: 'srcMsvcUUID2',
         destMicroserviceUuid: 'destMsvcUUID2',
+        application: app
       }]
       def('findRoutesResponse', () => Promise.resolve(routes))
 
@@ -1665,9 +1675,10 @@ describe('Microservices Service', () => {
 
       beforeEach(() => {
         $sandbox.stub(RoutingManager, 'delete')
+        $sandbox.stub(ApplicationManager, 'findOne').returns(Promise.resolve(app))
         const findOneStub = $sandbox.stub(RoutingManager, 'findOne')
         for (const route of routes){
-          findOneStub.withArgs({name: route.name}, transaction).returns(route)
+          findOneStub.withArgs({applicationId: app.id, name: route.name}, transaction).returns(route)
         }
         const stub = $sandbox.stub(MicroserviceManager, 'findOne')
         for(const route of routes) {
@@ -1680,8 +1691,8 @@ describe('Microservices Service', () => {
         await $subject
 
         for(const route of routes) {
-          expect(RoutingManager.findOne).to.have.been.calledWith({name: route.name}, transaction)
-          expect(RoutingManager.delete).to.have.been.calledWith({name: route.name}, transaction)
+          expect(RoutingManager.findOne).to.have.been.calledWith({applicationId: app.id, name: route.name}, transaction)
+          expect(RoutingManager.delete).to.have.been.calledWith({id: route.id}, transaction)
           expect(ChangeTrackingService.update).to.have.been.calledWith(routeAgentUuid + route.sourceMicroserviceUuid, ChangeTrackingService.events.microserviceFull, transaction)
           expect(ChangeTrackingService.update).to.have.been.calledWith(routeAgentUuid + route.destMicroserviceUuid, ChangeTrackingService.events.microserviceFull, transaction)
         }

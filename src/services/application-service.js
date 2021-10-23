@@ -149,15 +149,6 @@ const updateApplicationEndPoint = async function (applicationData, name, user, i
       description: applicationData.description,
       isActivated: applicationData.isActivated
     }
-    // Edit names - Until name scoping is added
-    for (const microservice of applicationData.microservices) {
-      microservice.name = `${microservice.name}-${applicationData.name}`
-    }
-    for (const route of applicationData.routes) {
-      route.name = `${route.name}-${applicationData.name}`
-      route.from = `${route.from}-${applicationData.name}`
-      route.to = `${route.to}-${applicationData.name}`
-    }
   }
 
   if (applicationData.microservices) {
@@ -223,7 +214,7 @@ const _updateRoutes = async function (application, routes, user, isCLI, transact
       await RoutingService.deleteRouting(oldRoute.name, user, isCLI, transaction)
     } else {
       const updatedRoute = removed[0]
-      await RoutingService.updateRouting(updatedRoute.name, updatedRoute, user, isCLI, transaction)
+      await RoutingService.updateRouting(application, updatedRoute.name, updatedRoute, user, isCLI, transaction)
     }
   }
   // Create missing routes

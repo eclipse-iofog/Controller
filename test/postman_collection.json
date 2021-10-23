@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "0710bfbf-7d6c-49c3-9404-ff21f5e14a73",
+		"_postman_id": "df6a958a-20f9-4d84-b707-b8af99164b77",
 		"name": "Controller Testing",
 		"description": "iofog-controller collection",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -2281,7 +2281,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{host}}/api/v3/routes/{{application-route-name}}",
+							"raw": "{{host}}/api/v3/routes/{{application-msvc-name}}/{{application-route-name}}",
 							"host": [
 								"{{host}}"
 							],
@@ -2289,6 +2289,7 @@
 								"api",
 								"v3",
 								"routes",
+								"{{application-msvc-name}}",
 								"{{application-route-name}}"
 							]
 						}
@@ -2421,7 +2422,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{host}}/api/v3/routes/{{application-route-name}}",
+							"raw": "{{host}}/api/v3/routes/{{application-msvc-name}}/{{application-route-name}}",
 							"host": [
 								"{{host}}"
 							],
@@ -2429,6 +2430,7 @@
 								"api",
 								"v3",
 								"routes",
+								"{{application-msvc-name}}",
 								"{{application-route-name}}"
 							]
 						}
@@ -6158,7 +6160,8 @@
 									"",
 									"tests[\"Response validation passed\"] = data.hasOwnProperty('id');",
 									"",
-									"postman.setGlobalVariable(\"flow-id\", data.id);"
+									"postman.setGlobalVariable(\"flow-id\", data.id);",
+									"postman.setGlobalVariable(\"flow-name\", data.name);"
 								],
 								"type": "text/javascript"
 							}
@@ -6527,7 +6530,7 @@
 							"raw": "{\n  \"name\": \"route-name-updated\",\n \"sourceMicroserviceUuid\": \"{{ms-no-catalog-id}}\",\n \"destMicroserviceUuid\": \"{{ms-id}}\"\n}\n"
 						},
 						"url": {
-							"raw": "{{host}}/api/v3/routes/{{route-name}}",
+							"raw": "{{host}}/api/v3/routes/{{flow-name}}/{{route-name}}",
 							"host": [
 								"{{host}}"
 							],
@@ -6535,6 +6538,7 @@
 								"api",
 								"v3",
 								"routes",
+								"{{flow-name}}",
 								"{{route-name}}"
 							]
 						}
@@ -6572,7 +6576,7 @@
 							"raw": ""
 						},
 						"url": {
-							"raw": "{{host}}/api/v3/routes/{{route-name}}",
+							"raw": "{{host}}/api/v3/routes/{{flow-name}}/{{route-name}}",
 							"host": [
 								"{{host}}"
 							],
@@ -6580,6 +6584,7 @@
 								"api",
 								"v3",
 								"routes",
+								"{{flow-name}}",
 								"{{route-name}}"
 							]
 						}
@@ -7182,7 +7187,7 @@
 							"raw": ""
 						},
 						"url": {
-							"raw": "{{host}}/api/v3/routes/{{route-id}}",
+							"raw": "{{host}}/api/v3/routes/{{flow-name}}/{{route-id}}",
 							"host": [
 								"{{host}}"
 							],
@@ -7190,6 +7195,7 @@
 								"api",
 								"v3",
 								"routes",
+								"{{flow-name}}",
 								"{{route-id}}"
 							]
 						}
@@ -9242,7 +9248,7 @@
 							"raw": "{\n  \"name\": \"route-name-updated\",\n \"from\": \"{{ms-no-catalog-name}}\",\n \"to\": \"{{ms-name}}\",\n \"application\": \"{{application-name}}\"\n}\n"
 						},
 						"url": {
-							"raw": "{{host}}/api/v3/routes/{{route-name}}",
+							"raw": "{{host}}/api/v3/routes/{{application-name}}/{{route-name}}",
 							"host": [
 								"{{host}}"
 							],
@@ -9250,6 +9256,7 @@
 								"api",
 								"v3",
 								"routes",
+								"{{application-name}}",
 								"{{route-name}}"
 							]
 						}
@@ -9287,7 +9294,7 @@
 							"raw": ""
 						},
 						"url": {
-							"raw": "{{host}}/api/v3/routes/{{route-name}}",
+							"raw": "{{host}}/api/v3/routes/{{application-name}}/{{route-name}}",
 							"host": [
 								"{{host}}"
 							],
@@ -9295,6 +9302,7 @@
 								"api",
 								"v3",
 								"routes",
+								"{{application-name}}",
 								"{{route-name}}"
 							]
 						}
@@ -9900,7 +9908,7 @@
 							"raw": ""
 						},
 						"url": {
-							"raw": "{{host}}/api/v3/routes/{{route-id}}",
+							"raw": "{{host}}/api/v3/routes/{{application-name}}/{{route-id}}",
 							"host": [
 								"{{host}}"
 							],
@@ -9908,6 +9916,7 @@
 								"api",
 								"v3",
 								"routes",
+								"{{application-name}}",
 								"{{route-id}}"
 							]
 						}
@@ -13627,7 +13636,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{host}}/api/v3/edgeResource/{{edge-resource-name}}?",
+							"raw": "{{host}}/api/v3/edgeResource/{{edge-resource-name}}?=",
 							"host": [
 								"{{host}}"
 							],
@@ -13640,7 +13649,7 @@
 							"query": [
 								{
 									"key": "",
-									"value": null
+									"value": ""
 								}
 							]
 						}

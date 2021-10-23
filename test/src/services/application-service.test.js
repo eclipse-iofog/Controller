@@ -498,7 +498,7 @@ describe('Application Service', () => {
       it('Should update the routes', async () => {
         await $subject
         for (const routeData of routes) {
-          expect(RoutingService.updateRouting).to.have.been.calledWith(routeData.name, {...routeData, application: applicationData.name}, user, isCLI, transaction)
+          expect(RoutingService.updateRouting).to.have.been.calledWith(applicationData.name, routeData.name, {...routeData, application: applicationData.name}, user, isCLI, transaction)
         }
         expect(RoutingService.createRouting).to.have.been.calledWith({ ...newRoute, application: applicationData.name }, user, isCLI, transaction)
         expect(RoutingService.deleteRouting).to.have.been.calledWith(oldRoute.name, user, isCLI, transaction)
