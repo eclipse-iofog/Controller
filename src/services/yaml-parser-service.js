@@ -105,7 +105,7 @@ async function parseMicroserviceFile (fileContent) {
   }
   const microservice = {
     name: lget(doc, 'metadata.name', undefined),
-    ...parseMicroserviceYAML(doc.spec)
+    ...(await parseMicroserviceYAML(doc.spec))
   }
   // Name could be FQName: <app_name>/<msvc_name>
   if (microservice.name) {
