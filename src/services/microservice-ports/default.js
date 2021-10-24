@@ -409,7 +409,7 @@ async function buildPublicPortMapping (mapping, publicPortMapping, transaction) 
     enabled: !!publicPortMapping.localProxyId
   }
   mapping.public.router = {
-    port: publicPortMapping.publicPort.publicPort,
+    port: publicPortMapping.publicPort,
     host: hostFog.isSystem ? DEFAULT_ROUTER_NAME : hostFog.uuid
   }
 }
