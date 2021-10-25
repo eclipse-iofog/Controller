@@ -83,7 +83,7 @@ const parseMicroserviceYAML = async (microservice) => {
     agentName: lget(microservice, 'agent.name'),
     registryId,
     ...microservice.container,
-    ports: (lget(microservice, 'container.ports', [])).map(p => ({ ...p, publicPort: p.public })),
+    ports: (lget(microservice, 'container.ports', [])),
     volumeMappings: lget(microservice, 'container.volumes', []),
     cmd: lget(microservice, 'container.commands', []),
     env: (lget(microservice, 'container.env', [])).map(e => ({ key: e.key.toString(), value: e.value.toString() })),
