@@ -399,17 +399,18 @@ function _buildLink (protocol, host, port) {
 }
 
 async function buildPublicPortMapping (mapping, publicPortMapping, transaction) {
+  const port = publicPortMapping.publicPort.publicPort ? publicPortMapping.publicPort.publicPort : publicPortMapping.publicPort
   const hostRouter = publicPortMapping.hostId ? await RouterManager.findOne({ iofogUuid: publicPortMapping.hostId }, transaction) : { host: lget(await ConfigManager.findOne({ key: DEFAULT_PROXY_HOST }, transaction), 'value', 'undefined-proxy-host') }
   const hostFog = publicPortMapping.hostId ? await FogManager.findOne({ uuid: publicPortMapping.hostId }, transaction) : { uuid: DEFAULT_ROUTER_NAME }
   const schemes = JSON.parse(publicPortMapping.schemes)
   mapping.public = {
-    links: schemes.map(s => _buildLink(s, hostRouter.host, publicPortMapping.publicPort)),
+    links: schemes.map(s => _buildLink(s, hostRouter.host, port)),
     protocol: publicPortMapping.protocol,
     schemes,
     enabled: !!publicPortMapping.localProxyId
   }
   mapping.public.router = {
-    port: publicPortMapping.publicPort,
+    port: port,
     host: hostFog.isSystem ? DEFAULT_ROUTER_NAME : hostFog.uuid
   }
 }
