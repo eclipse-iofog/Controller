@@ -113,6 +113,28 @@ async function validatePortMapping (agent, mapping, availablePublicPortsByHost, 
         }
         mapping.publicPort = availablePublicPortsByHost[host.uuid].shift()
       }
+    } else {
+      const hostId = 'default-router'
+      // We don't have a host. A.k.a, there is no System agent, but there is a default router. A.k.a: We're running on K8s
+      // Port is defined by user
+      if (mapping.public.router && mapping.public.router.port) {
+        // Alls ports are shared by the same proxy msvc
+        const publicPorts = await MicroservicePublicPortManager.findAll({ hostId: null }, transaction)
+        if (publicPorts.find(port => port.publicPort === mapping.public.router.port)) {
+          throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.PORT_NOT_AVAILABLE, mapping.public.router.port))
+        }
+        mapping.publicPort = mapping.public.router.port
+      } else {
+        // Port
+        // Alls ports are shared by the same proxy msvc
+        const currentPublicPorts = (await MicroservicePublicPortManager.findAll({ hostId: null }, transaction)).map(p => p.publicPort)
+        availablePublicPortsByHost[hostId] = availablePublicPortsByHost[hostId] || _createDefaultPublicPortRange()
+        availablePublicPortsByHost[hostId] = availablePublicPortsByHost[hostId].filter(port => !currentPublicPorts.includes(port))
+        if (availablePublicPortsByHost[hostId].length === 0) {
+          throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.NO_AVAILABLE_PUBLIC_PORT, host.isSystem ? DEFAULT_ROUTER_NAME : host.name))
+        }
+        mapping.publicPort = availablePublicPortsByHost[hostId].shift()
+      }
     }
 
     mapping.publicHost = host
