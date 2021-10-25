@@ -62,7 +62,11 @@ const mapImages = (images) => {
 }
 
 const parseMicroserviceImages = async (fileImages) => {
-  if (fileImages.catalogId != null) {
+  // Could be undefined if patch call
+  if (!fileImages) {
+    return { registryId: undefined, images: undefined, catalogItemId: undefined }
+  }
+  if (fileImages.catalogId > 0) {
     return { registryId: undefined, images: undefined, catalogItemId: fileImages.catalogId }
   }
   const registryByName = {
