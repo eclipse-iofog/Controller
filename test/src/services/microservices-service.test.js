@@ -27,6 +27,7 @@ const ioFogService = require('../../../src/services/iofog-service')
 const Errors = require('../../../src/helpers/errors')
 const constants = require('../../../src/config/constants')
 const Constants = require('../../../src/helpers/constants')
+const { application } = require('express')
 
 describe('Microservices Service', () => {
   def('subject', () => MicroservicesService)
@@ -112,6 +113,7 @@ describe('Microservices Service', () => {
       $sandbox.stub(MicroserviceManager, 'findAllExcludeFields').returns($findMicroservicesResponse)
       $sandbox.stub(MicroservicePortManager, 'findAll').returns($findPortMappingsResponse)
       $sandbox.stub(VolumeMappingManager, 'findAll').returns($findVolumeMappingsResponse)
+      $sandbox.stub(RoutingManager, 'findAllPopulated').returns($findRoutesResponse)
       $sandbox.stub(RoutingManager, 'findAll').returns($findRoutesResponse)
       $sandbox.stub(MicroserviceExtraHostManager, 'findAll').returns($findExtraHostsResponse)
       $sandbox.stub(MicroserviceEnvManager, 'findAllExcludeFields').returns($envResponse)
@@ -191,6 +193,7 @@ describe('Microservices Service', () => {
       $sandbox.stub(MicroserviceManager, 'findOneExcludeFields').returns($findMicroserviceResponse)
       $sandbox.stub(MicroservicePortManager, 'findAll').returns($findPortMappingsResponse)
       $sandbox.stub(VolumeMappingManager, 'findAll').returns($findVolumeMappingsResponse)
+      $sandbox.stub(RoutingManager, 'findAllPopulated').returns($findRoutesResponse)
       $sandbox.stub(RoutingManager, 'findAll').returns($findRoutesResponse)
       $sandbox.stub(MicroserviceExtraHostManager, 'findAll').returns($findExtraHostsResponse)
       $sandbox.stub(MicroserviceEnvManager, 'findAllExcludeFields').returns($envResponse)
@@ -251,7 +254,8 @@ describe('Microservices Service', () => {
           getPublicPort: () => Promise.resolve({
             hostId: 'fakeAgentUuid',
             publicPort: 1234,
-            protocol: 'http'
+            protocol: 'http',
+            schemes: JSON.stringify(['http'])
           })
         },
       ]))
@@ -261,12 +265,13 @@ describe('Microservices Service', () => {
         $sandbox.stub(ioFogManager, 'findOne').returns(Promise.resolve({}))
       })
 
-      it('returns public link', async () => {
+      it('returns public links', async () => {
         const ms = await $subject
         expect(ms).to.have.property('ports')
         expect(ms.ports).to.have.length(1)
-        expect(ms.ports[0]).to.have.property('publicLink')
-        expect(ms.ports[0].publicLink).to.equal('http://1.2.3.4:1234')
+        expect(ms.ports[0]).to.have.property('public')
+        expect(ms.ports[0].public).to.have.property('links')
+        expect(ms.ports[0].public.links).to.deep.equal(['http://1.2.3.4:1234'])
       })
     })
   })
@@ -499,12 +504,14 @@ describe('Microservices Service', () => {
                 name: microserviceData.name,
                 uuid: { [Op.ne]: item.id },
                 userId: user.id,
+                applicationId: application.id,
                 delete: false
               }
               :
               {
                 name: microserviceData.name,
                 userId: user.id,
+                applicationId: application.id,
                 delete: false
               }
             expect(MicroserviceManager.findOne).to.have.been.calledWith(where, transaction)
@@ -654,19 +661,19 @@ describe('Microservices Service', () => {
                           host: 'routerHost',
                           messagingPort: 5672
                         }
-                        const publicPort = 1234
                         let routerStub
+                        const public = {
+                          schemes: ['http']
+                        }
                         beforeEach(() => {
-                          microserviceData.ports[0].publicPort = publicPort
-                          microserviceData.ports[0].host = undefined
+                          microserviceData.ports[0].public = public
                           routerStub = $sandbox.stub(RouterManager, 'findOne').returns(Promise.resolve(router))
                           $sandbox.stub(MicroserviceExtraHostManager, 'findAll').returns($findRelatedExtraHosts)
                           $sandbox.stub(MicroservicePublicPortManager, 'create')
                         })
 
                         afterEach(() => {
-                          delete microserviceData.ports[0].publicPort
-                          delete microserviceData.ports[0].host
+                          delete microserviceData.ports[0].public
                         })
                         
                         it('should create local and remote proxy microservices', async () => {
@@ -692,7 +699,7 @@ describe('Microservices Service', () => {
                             uuid: sinon.match.string,
                             name: 'Proxy',
                             config: JSON.stringify({
-                              mappings: [`http:${publicPort}=>amqp:${newMicroserviceUuid}`],
+                              mappings: [`http:${6000}=>amqp:${newMicroserviceUuid}`],
                               networkRouter: networkRouter
                             }),
                             catalogItemId: proxyCatalogItem.id,
@@ -712,9 +719,10 @@ describe('Microservices Service', () => {
                             hostId: systemFog.uuid,
                             localProxyId: newMicroservice.uuid,
                             remoteProxyId: newMicroservice.uuid,
-                            publicPort: publicPort,
+                            publicPort: 6000,
                             queueName: newMicroserviceUuid,
-                            isTcp: false
+                            isTcp: false,
+                            schemes: JSON.stringify(['http'])
                           }
                           expect(MicroservicePublicPortManager.create).to.have.been.calledWith(publicPortData, transaction)
                         })
@@ -722,7 +730,7 @@ describe('Microservices Service', () => {
                         context('When there are related extra hosts', () => {
                           const extraHosts = [{
                             save: () => {},
-                            publicPort,
+                            publicPort: 6000,
                             microserviceUuid: newMicroserviceUuid
                           }]
                           def('findRelatedExtraHosts', () => Promise.resolve(extraHosts))
@@ -767,7 +775,7 @@ describe('Microservices Service', () => {
                               uuid: sinon.match.string,
                               name: 'Proxy',
                               config: JSON.stringify({
-                                mappings: [`http:${publicPort}=>amqp:${newMicroserviceUuid}`],
+                                mappings: [`http:${6000}=>amqp:${newMicroserviceUuid}`],
                                 networkRouter: networkRouter
                               }),
                               catalogItemId: proxyCatalogItem.id,
@@ -787,9 +795,10 @@ describe('Microservices Service', () => {
                               hostId: null,
                               localProxyId: newMicroservice.uuid,
                               remoteProxyId: null,
-                              publicPort: publicPort,
+                              publicPort: 6000,
                               queueName: newMicroserviceUuid,
-                              isTcp: false
+                              isTcp: false,
+                              schemes: JSON.stringify(['http'])
                             }
                             expect(MicroservicePublicPortManager.create).to.have.been.calledWith(publicPortData, transaction)
                           })
@@ -1357,12 +1366,14 @@ describe('Microservices Service', () => {
                 name: name,
                 uuid: { [Op.ne]: microserviceUuid },
                 delete: false,
-                userId: user.id
+                userId: user.id,
+                applicationId: microserviceData.applicationId
               }
               : {
                 name: name,
                 userId: user.id,
-                delete: false
+                delete: false,
+                applicationId: microserviceData.applicationId
               }
             await $subject
             expect(MicroserviceManager.findOne).to.have.been.calledWith(where, transaction)
@@ -1600,7 +1611,7 @@ describe('Microservices Service', () => {
   
     beforeEach(() => {
       $sandbox.stub(MicroserviceManager, 'findOneWithStatusAndCategory').returns($findMicroserviceResponse)
-      $sandbox.stub(RoutingManager, 'findAll').returns($findRoutesResponse)
+      $sandbox.stub(RoutingManager, 'findAllPopulated').returns($findRoutesResponse)
       $sandbox.stub(MicroservicePortManager, 'findAll').returns($findPortMappings)
       $sandbox.stub(MicroserviceManager, 'delete')
       $sandbox.stub(ChangeTrackingService, 'update')
@@ -1641,14 +1652,22 @@ describe('Microservices Service', () => {
     })
 
     context('when there are routes', () => {
+      const app = {
+        id: 1, 
+        name: 'my-app'
+      }
       const routes = [{
         name: 'one',
+        id: 1,
         sourceMicroserviceUuid: 'srcMsvcUUID1',
         destMicroserviceUuid: 'destMsvcUUID1',
+        application: app
       }, {
         name: 'two',
+        id: 2,
         sourceMicroserviceUuid: 'srcMsvcUUID2',
         destMicroserviceUuid: 'destMsvcUUID2',
+        application: app
       }]
       def('findRoutesResponse', () => Promise.resolve(routes))
 
@@ -1656,9 +1675,10 @@ describe('Microservices Service', () => {
 
       beforeEach(() => {
         $sandbox.stub(RoutingManager, 'delete')
+        $sandbox.stub(ApplicationManager, 'findOne').returns(Promise.resolve(app))
         const findOneStub = $sandbox.stub(RoutingManager, 'findOne')
         for (const route of routes){
-          findOneStub.withArgs({name: route.name}, transaction).returns(route)
+          findOneStub.withArgs({applicationId: app.id, name: route.name}, transaction).returns(route)
         }
         const stub = $sandbox.stub(MicroserviceManager, 'findOne')
         for(const route of routes) {
@@ -1671,8 +1691,8 @@ describe('Microservices Service', () => {
         await $subject
 
         for(const route of routes) {
-          expect(RoutingManager.findOne).to.have.been.calledWith({name: route.name}, transaction)
-          expect(RoutingManager.delete).to.have.been.calledWith({name: route.name}, transaction)
+          expect(RoutingManager.findOne).to.have.been.calledWith({applicationId: app.id, name: route.name}, transaction)
+          expect(RoutingManager.delete).to.have.been.calledWith({id: route.id}, transaction)
           expect(ChangeTrackingService.update).to.have.been.calledWith(routeAgentUuid + route.sourceMicroserviceUuid, ChangeTrackingService.events.microserviceFull, transaction)
           expect(ChangeTrackingService.update).to.have.been.calledWith(routeAgentUuid + route.destMicroserviceUuid, ChangeTrackingService.events.microserviceFull, transaction)
         }

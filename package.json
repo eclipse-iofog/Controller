@@ -102,7 +102,6 @@
     "retry-as-promised": "3.1.0",
     "semver": "5.6.0",
     "sequelize": "5.21.1",
-    "sequelize-cli": "5.5.0",
     "sqlite3": "5.0.2",
     "string-format": "2.0.0",
     "umzug": "2.2.0",
@@ -112,6 +111,7 @@
   "devDependencies": {
     "acorn": "7.1.1",
     "automatic-release": "1.1.1",
+    "sequelize-cli": "5.5.0",
     "bdd-lazy-var": "2.5.2",
     "chai": "4.2.0",
     "chai-as-promised": "7.1.1",

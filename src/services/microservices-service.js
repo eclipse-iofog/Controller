@@ -260,11 +260,11 @@ async function createMicroserviceEndPoint (microserviceData, user, isCLI, transa
   if (microserviceData.ports) {
     for (const mapping of microserviceData.ports) {
       const res = await MicroservicePortService.createPortMapping(microservice, mapping, user, transaction)
-      if (res && res.publicLink) {
+      if (res && res.publicLinks) {
         publicPorts.push({
           internal: mapping.internal,
           external: mapping.external,
-          publicLink: res.publicLink
+          publicLinks: res.publicLinks
         })
       }
     }
@@ -452,7 +452,7 @@ async function updateMicroserviceEndPoint (microserviceUuid, microserviceData, u
 
   if (microserviceDataUpdate.name) {
     const userId = isCLI ? microservice.userId : user.id
-    await _checkForDuplicateName(microserviceDataUpdate.name, { id: microserviceUuid }, userId, transaction)
+    await _checkForDuplicateName(microserviceDataUpdate.name, { id: microserviceUuid }, userId, microservice.applicationId || microservice.application, transaction)
   }
 
   // validate fog node
@@ -614,7 +614,7 @@ async function createRouteEndPoint (sourceMicroserviceUuid, destMicroserviceUuid
 async function deleteRouteEndPoint (sourceMicroserviceUuid, destMicroserviceUuid, user, isCLI, transaction) {
   // Print deprecated warning
 
-  const route = await RoutingManager.findOne({
+  const route = await RoutingManager.findOnePopulated({
     sourceMicroserviceUuid: sourceMicroserviceUuid,
     destMicroserviceUuid: destMicroserviceUuid
   }, transaction)
@@ -622,7 +622,7 @@ async function deleteRouteEndPoint (sourceMicroserviceUuid, destMicroserviceUuid
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.ROUTE_NOT_FOUND))
   }
 
-  return RoutingService.deleteRouting(route.name, user, isCLI, transaction)
+  return RoutingService.deleteRouting(route.application.name, route.name, user, isCLI, transaction)
 }
 
 async function createPortMappingEndPoint (microserviceUuid, portMappingData, user, isCLI, transaction) {
@@ -641,7 +641,7 @@ async function createPortMappingEndPoint (microserviceUuid, portMappingData, use
   if (!agent) {
     throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, microservice.iofogUuid))
   }
-  await MicroservicePortService.validatePortMapping(agent, portMappingData, transaction)
+  await MicroservicePortService.validatePortMapping(agent, portMappingData, {}, transaction)
 
   return MicroservicePortService.createPortMapping(microservice, portMappingData, user, transaction)
 }
@@ -812,11 +812,12 @@ async function _createMicroservice (microserviceData, user, isCLI, transaction) 
     }
   }
 
-  await _checkForDuplicateName(newMicroservice.name, {}, user.id, transaction)
-
   // validate application
   const application = await _validateApplication(microserviceData.application, user, isCLI, transaction)
   newMicroservice.applicationId = application.id
+
+  await _checkForDuplicateName(newMicroservice.name, {}, user.id, newMicroservice.applicationId, transaction)
+
   // validate fog node
   if (newMicroservice.iofogUuid) {
     const fog = await FogManager.findOne({ uuid: newMicroservice.iofogUuid }, transaction)
@@ -968,18 +969,20 @@ async function _updateChangeTracking (configUpdated, fogNodeUuid, transaction) {
   }
 }
 
-async function _checkForDuplicateName (name, item, userId, transaction) {
+async function _checkForDuplicateName (name, item, userId, applicationId, transaction) {
   if (name) {
     const where = item.id
       ? {
         name: name,
         uuid: { [Op.ne]: item.id },
         delete: false,
-        userId: userId
+        userId: userId,
+        applicationId
       }
       : {
         name: name,
         userId: userId,
+        applicationId,
         delete: false
       }
 
@@ -1014,7 +1017,7 @@ async function _getLogicalRoutesByMicroservice (microserviceUuid, transaction) {
         }
       ]
   }
-  const routes = await RoutingManager.findAll(query, transaction)
+  const routes = await RoutingManager.findAllPopulated(query, transaction)
   for (const route of routes) {
     if (route.sourceMicroserviceUuid && route.destMicroserviceUuid) {
       res.push(route)
@@ -1029,7 +1032,7 @@ async function deleteMicroserviceWithRoutesAndPortMappings (microservice, transa
   }
   const routes = await _getLogicalRoutesByMicroservice(microservice.uuid, transaction)
   for (const route of routes) {
-    await RoutingService.deleteRouting(route.name, user, false, transaction)
+    await RoutingService.deleteRouting(route.application.name, route.name, user, false, transaction)
   }
 
   await MicroservicePortService.deletePortMappings(microservice, user, transaction)
@@ -1058,7 +1061,7 @@ async function _buildGetMicroserviceResponse (microservice, transaction) {
   const res = Object.assign({}, microservice)
   res.ports = []
   for (const pm of portMappings) {
-    const mapping = { internal: pm.portInternal, external: pm.portExternal, publicMode: pm.isPublic, protocol: pm.isUdp ? 'udp' : 'tcp' }
+    const mapping = { internal: pm.portInternal, external: pm.portExternal, protocol: pm.isUdp ? 'udp' : 'tcp' }
     if (pm.isPublic) {
       const publicPortMapping = await pm.getPublicPort()
       if (publicPortMapping) {
@@ -1115,5 +1118,6 @@ module.exports = {
   listMicroservicesEndPoint: TransactionDecorator.generateTransaction(listMicroservicesEndPoint),
   listVolumeMappingsEndPoint: TransactionDecorator.generateTransaction(listVolumeMappingsEndPoint),
   updateMicroserviceEndPoint: TransactionDecorator.generateTransaction(updateMicroserviceEndPoint),
-  buildGetMicroserviceResponse: _buildGetMicroserviceResponse
+  buildGetMicroserviceResponse: _buildGetMicroserviceResponse,
+  updateChangeTracking: _updateChangeTracking
 }

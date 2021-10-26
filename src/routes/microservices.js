@@ -101,6 +101,37 @@ module.exports = [
     }
   },
   {
+    method: 'post',
+    path: '/api/v3/microservices/yaml',
+    supportSubstitution: true,
+    fileInput: 'microservice',
+    middleware: async (req, res) => {
+      logger.apiReq(req)
+
+      const successCode = constants.HTTP_CODE_CREATED
+      const errorCodes = [
+        {
+          code: constants.HTTP_CODE_BAD_REQUEST,
+          errors: [Errors.ValidationError]
+        },
+        {
+          code: constants.HTTP_CODE_UNAUTHORIZED,
+          errors: [Errors.AuthenticationError]
+        }
+      ]
+
+      const createMicroservicesYAMLEndPoint = ResponseDecorator.handleErrors(
+        MicroservicesController.createMicroserviceYAMLEndPoint, successCode, errorCodes)
+      const responseObject = await createMicroservicesYAMLEndPoint(req)
+
+      res
+        .status(responseObject.code)
+        .send(responseObject.body)
+
+      logger.apiRes({ req: req, res: responseObject })
+    }
+  },
+  {
     method: 'get',
     path: '/api/v3/microservices/:uuid',
     middleware: async (req, res) => {
@@ -156,6 +187,42 @@ module.exports = [
       const updateMicroserviceEndPoint = ResponseDecorator.handleErrors(MicroservicesController.updateMicroserviceEndPoint,
         successCode, errorCodes)
       const responseObject = await updateMicroserviceEndPoint(req)
+
+      res
+        .status(responseObject.code)
+        .send(responseObject.body)
+
+      logger.apiRes({ req: req, res: responseObject })
+    }
+  },
+
+  {
+    method: 'patch',
+    path: '/api/v3/microservices/yaml/:uuid',
+    supportSubstitution: true,
+    fileInput: 'microservice',
+    middleware: async (req, res) => {
+      logger.apiReq(req)
+
+      const successCode = constants.HTTP_CODE_NO_CONTENT
+      const errorCodes = [
+        {
+          code: constants.HTTP_CODE_BAD_REQUEST,
+          errors: [Errors.ValidationError]
+        },
+        {
+          code: constants.HTTP_CODE_UNAUTHORIZED,
+          errors: [Errors.AuthenticationError]
+        },
+        {
+          code: constants.HTTP_CODE_NOT_FOUND,
+          errors: [Errors.NotFoundError]
+        }
+      ]
+
+      const updateMicroserviceYAMLEndPoint = ResponseDecorator.handleErrors(MicroservicesController.updateMicroserviceYAMLEndPoint,
+        successCode, errorCodes)
+      const responseObject = await updateMicroserviceYAMLEndPoint(req)
 
       res
         .status(responseObject.code)

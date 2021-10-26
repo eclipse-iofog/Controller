@@ -25,8 +25,6 @@ const TransactionDecorator = require('../decorators/transaction-decorator')
 const ApplicationTemplateService = require('./application-template-service')
 const Validator = require('../schemas')
 const remove = require('lodash/remove')
-const lget = require('lodash/get')
-const yaml = require('js-yaml')
 
 const onlyUnique = (value, index, self) => self.indexOf(value) === index
 
@@ -39,15 +37,6 @@ const createApplicationEndPoint = async function (applicationData, user, isCLI, 
       name: applicationData.name,
       description: applicationData.description,
       isActivated: applicationData.isActivated
-    }
-    // Edit names - Until name scoping is added
-    for (const microservice of applicationData.microservices) {
-      microservice.name = `${microservice.name}-${applicationData.name}`
-    }
-    for (const route of applicationData.routes) {
-      route.name = `${route.name}-${applicationData.name}`
-      route.from = `${route.from}-${applicationData.name}`
-      route.to = `${route.to}-${applicationData.name}`
     }
   }
 
@@ -160,15 +149,6 @@ const updateApplicationEndPoint = async function (applicationData, name, user, i
       description: applicationData.description,
       isActivated: applicationData.isActivated
     }
-    // Edit names - Until name scoping is added
-    for (const microservice of applicationData.microservices) {
-      microservice.name = `${microservice.name}-${applicationData.name}`
-    }
-    for (const route of applicationData.routes) {
-      route.name = `${route.name}-${applicationData.name}`
-      route.from = `${route.from}-${applicationData.name}`
-      route.to = `${route.to}-${applicationData.name}`
-    }
   }
 
   if (applicationData.microservices) {
@@ -234,7 +214,7 @@ const _updateRoutes = async function (application, routes, user, isCLI, transact
       await RoutingService.deleteRouting(oldRoute.name, user, isCLI, transaction)
     } else {
       const updatedRoute = removed[0]
-      await RoutingService.updateRouting(updatedRoute.name, updatedRoute, user, isCLI, transaction)
+      await RoutingService.updateRouting(application, updatedRoute.name, updatedRoute, user, isCLI, transaction)
     }
   }
   // Create missing routes
@@ -280,7 +260,7 @@ const _updateMicroservices = async function (application, microservices, user, i
     .filter((val) => val !== null)
     .forEach(async (iofogUuid) => {
       await ChangeTrackingService.update(iofogUuid, ChangeTrackingService.events.microserviceRouting, transaction)
-      await MicroserviceService._updateChangeTracking(true, iofogUuid, transaction)
+      await MicroserviceService.updateChangeTracking(true, iofogUuid, transaction)
     })
 
   updatedMsvcsUuid
@@ -288,7 +268,7 @@ const _updateMicroservices = async function (application, microservices, user, i
     .filter((val) => val !== null)
     .forEach(async (iofogUuid) => {
       await ChangeTrackingService.update(iofogUuid, ChangeTrackingService.events.microserviceRouting, transaction)
-      await MicroserviceService._updateChangeTracking(true, iofogUuid, transaction)
+      await MicroserviceService.updateChangeTracking(true, iofogUuid, transaction)
     })
 }
 
@@ -375,75 +355,6 @@ async function _updateChangeTrackingsAndDeleteMicroservicesByApplicationId (cond
   }
 }
 
-const mapImages = (images) => {
-  const imgs = []
-  if (images.x86 != null) {
-    imgs.push({
-      fogTypeId: 1,
-      containerImage: images.x86
-    })
-  }
-  if (images.arm != null) {
-    imgs.push({
-      fogTypeId: 2,
-      containerImage: images.arm
-    })
-  }
-  return imgs
-}
-
-const parseMicroserviceImages = async (fileImages) => {
-  if (fileImages.catalogId != null) {
-    return { registryId: undefined, images: undefined, catalogItemId: fileImages.catalogId }
-  }
-  const registryByName = {
-    remote: 1,
-    local: 2
-  }
-  const images = mapImages(fileImages)
-  const registryId = fileImages.registry != null ? registryByName[fileImages.registry] || Number(fileImages.registry) : 1
-  return { registryId, catalogItemId: undefined, images }
-}
-
-const _deleteUndefinedFields = (obj) => Object.keys(obj).forEach(key => obj[key] === undefined && delete obj[key])
-
-const parseMicroservice = async (microservice) => {
-  const { registryId, catalogItemId, images } = await parseMicroserviceImages(microservice.images)
-  const microserviceData = {
-    config: microservice.config != null ? JSON.stringify(microservice.config) : undefined,
-    name: microservice.name,
-    catalogItemId,
-    agentName: lget(microservice, 'agent.name'),
-    registryId,
-    ...microservice.container,
-    ports: (lget(microservice, 'container.ports', [])).map(p => ({ ...p, publicPort: p.public })),
-    volumeMappings: lget(microservice, 'container.volumes', []),
-    cmd: lget(microservice, 'container.commands', []),
-    env: (lget(microservice, 'container.env', [])).map(e => ({ key: e.key.toString(), value: e.value.toString() })),
-    images,
-    extraHosts: lget(microservice, 'container.extraHosts', [])
-  }
-  _deleteUndefinedFields(microserviceData)
-  return microserviceData
-}
-
-async function parseYAMLFile (fileContent) {
-  const doc = yaml.load(fileContent)
-  if (doc.kind !== 'Application') {
-    throw new Errors.ValidationError(`Invalid kind ${doc.kind}`)
-  }
-  if (doc.metadata == null || doc.spec == null) {
-    throw new Errors.ValidationError('Invalid YAML format')
-  }
-  const application = {
-    name: lget(doc, 'metadata.name', undefined),
-    ...doc.spec,
-    isActivated: doc.spec.isActivated || true,
-    microservices: await Promise.all((doc.spec.microservices || []).map(async (m) => parseMicroservice(m)))
-  }
-  return application
-}
-
 module.exports = {
   createApplicationEndPoint: TransactionDecorator.generateTransaction(createApplicationEndPoint),
   deleteApplicationEndPoint: TransactionDecorator.generateTransaction(deleteApplicationEndPoint),
@@ -452,6 +363,5 @@ module.exports = {
   getUserApplicationsEndPoint: TransactionDecorator.generateTransaction(getUserApplicationsEndPoint),
   getAllApplicationsEndPoint: TransactionDecorator.generateTransaction(getAllApplicationsEndPoint),
   getApplicationEndPoint: TransactionDecorator.generateTransaction(getApplicationEndPoint),
-  getApplication: getApplication,
-  parseYAMLFile: parseYAMLFile
+  getApplication: getApplication
 }

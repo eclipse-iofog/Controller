@@ -31,7 +31,25 @@ spec:
           # The ui will be listening on port 80 (internal).
           - external: 5001 # You will be able to access the ui on <AGENT_IP>:5000
             internal: 80 # The ui is listening on port 80. Do not edit this.
-            public: 5005
+            public:
+              protocol: http
+              schemes:
+              - http
+          - external: 5003 # You will be able to access the ui on <AGENT_IP>:5000
+            internal: 82 # The ui is listening on port 80. Do not edit this.
+            public:
+              protocol: http
+              schemes:
+              - https
+          - external: 5002
+            internal: 443
+            public:
+              protocol: tcp
+              schemes:
+              - https
+              - wss
+              router:
+                port: 5005
         volumes: []
         env:
           - key: "BASE_URL"

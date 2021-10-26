@@ -13,9 +13,18 @@
 
 const AuthDecorator = require('./../decorators/authorization-decorator')
 const MicroservicesService = require('../services/microservices-service')
+const YAMLParserService = require('../services/yaml-parser-service')
+const { rvaluesVarSubstition } = require('../helpers/template-helper')
 
 const createMicroserviceOnFogEndPoint = async function (req, user) {
   const microservice = req.body
+  return MicroservicesService.createMicroserviceEndPoint(microservice, user, false)
+}
+
+const createMicroserviceYAMLEndPoint = async function (req, user) {
+  const fileContent = req.file.buffer.toString()
+  const microservice = await YAMLParserService.parseMicroserviceFile(fileContent)
+  await rvaluesVarSubstition(microservice, { self: microservice }, user)
   return MicroservicesService.createMicroserviceEndPoint(microservice, user, false)
 }
 
@@ -27,6 +36,14 @@ const getMicroserviceEndPoint = async function (req, user) {
 const updateMicroserviceEndPoint = async function (req, user) {
   const microservice = req.body
   const microserviceUuid = req.params.uuid
+  return MicroservicesService.updateMicroserviceEndPoint(microserviceUuid, microservice, user, false)
+}
+
+const updateMicroserviceYAMLEndPoint = async function (req, user) {
+  const microserviceUuid = req.params.uuid
+  const fileContent = req.file.buffer.toString()
+  const microservice = await YAMLParserService.parseMicroserviceFile(fileContent)
+  await rvaluesVarSubstition(microservice, { self: microservice }, user)
   return MicroservicesService.updateMicroserviceEndPoint(microserviceUuid, microservice, user, false)
 }
 
@@ -117,5 +134,7 @@ module.exports = {
   createMicroserviceVolumeMappingEndPoint: AuthDecorator.checkAuthToken(createMicroserviceVolumeMappingEndPoint),
   listMicroserviceVolumeMappingsEndPoint: AuthDecorator.checkAuthToken(listMicroserviceVolumeMappingsEndPoint),
   deleteMicroserviceVolumeMappingEndPoint: AuthDecorator.checkAuthToken(deleteMicroserviceVolumeMappingEndPoint),
-  listAllPublicPortsEndPoint: AuthDecorator.checkAuthToken(listAllPublicPortsEndPoint)
+  listAllPublicPortsEndPoint: AuthDecorator.checkAuthToken(listAllPublicPortsEndPoint),
+  createMicroserviceYAMLEndPoint: AuthDecorator.checkAuthToken(createMicroserviceYAMLEndPoint),
+  updateMicroserviceYAMLEndPoint: AuthDecorator.checkAuthToken(updateMicroserviceYAMLEndPoint)
 }

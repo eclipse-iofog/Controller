@@ -231,8 +231,22 @@ const getApplicationDataFromTemplate = async function (deploymentData, user, isC
   }, {})
   delete newApplication.variables
 
+  for (const msvc of newApplication.microservices) {
+    // Config is stored as a string, parse it to JSON before replacing values
+    if (typeof msvc.config === typeof '' && msvc.config !== '') {
+      msvc.config = JSON.parse(msvc.config)
+    }
+  }
+
   // default values are overwritten by user defined values, and self is always overwritten to the current object
   await rvaluesVarSubstition(newApplication, { ...defaultVariablesValues, ...userProvidedVariables, self: newApplication }, user)
+
+  for (const msvc of newApplication.microservices) {
+    // Send it back as a string for application creation and validation
+    if (typeof msvc.config === typeof {}) {
+      msvc.config = JSON.stringify(msvc.config)
+    }
+  }
 
   return newApplication
 }

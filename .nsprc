@@ -1,0 +1,20 @@
+{
+  "1002401": {
+    "notes": "Ignored because we can't fix it"
+  },
+  "1002503": {
+    "notes": "Ignored since tar is a dep of sqlite"
+  },
+  "1002506": {
+    "notes": "Ignored since tar is a dep of sqlite"
+  },
+  "1002509": {
+    "notes": "Ignored since tar is a dep of sqlite"
+  },
+  "1002542": {
+    "notes": "Ignored since tar is a dep of sqlite"
+  },
+  "1002546": {
+    "notes": "Ignored since tar is a dep of sqlite"
+  }
+}

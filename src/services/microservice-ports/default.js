@@ -24,6 +24,7 @@ const FogManager = require('../../data/managers/iofog-manager')
 const RouterManager = require('../../data/managers/router-manager')
 const MicroservicePublicPortManager = require('../../data/managers/microservice-public-port-manager')
 const MicroserviceExtraHostManager = require('../../data/managers/microservice-extra-host-manager')
+const controllerConfig = require('../../config')
 
 const { DEFAULT_ROUTER_NAME, DEFAULT_PROXY_HOST, RESERVED_PORTS } = require('../../helpers/constants')
 
@@ -48,15 +49,42 @@ async function _checkForDuplicatePorts (agent, localPort, transaction) {
   }
 }
 
-async function validatePortMapping (agent, mapping, transaction) {
+function _createDefaultPublicPortRange () {
+  const defaultPortRangeStr = process.env.PUBLIC_PORTS_RANGE || controllerConfig.get('PublicPorts:Range')
+  const [startStr, endStr] = defaultPortRangeStr.split('-')
+  let start = parseInt(startStr)
+  let end = parseInt(endStr)
+  if (!start || Number.isNaN(start)) { start = 6000 }
+  if (!end || Number.isNaN(end) || end < start) {
+    end = start + 1000
+  }
+  const size = end - start
+  const availablePorts = new Array(size)
+  for (let i = 0; i < size; ++i) {
+    availablePorts[i] = start + i
+  }
+
+  return availablePorts
+}
+
+// Validate port and populate mapping.publicHost, mapping.publicPort, mapping.localAgent
+async function validatePortMapping (agent, mapping, availablePublicPortsByHost, transaction) {
   await _checkForDuplicatePorts(agent, mapping.external, transaction)
 
-  if (mapping.publicPort) {
+  if (mapping.public) {
+    const isTcp = mapping.public.protocol ? mapping.public.protocol.toLowerCase() === 'tcp' : false
+    // Validate link protocol
+    for (const scheme of mapping.public.schemes) {
+      // !isTcp === HTTP link protocol will be used
+      if (!scheme.startsWith('http') && !isTcp) {
+        throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.WRONG_PUBLIC_LINK_PROTOCOL, mapping.internal, scheme, 'http'))
+      }
+    }
     let host
-    if (mapping.host && mapping.host !== DEFAULT_ROUTER_NAME) {
-      host = await FogManager.findOne({ uuid: mapping.host }, transaction)
+    if (mapping.public.router && mapping.public.router.host && mapping.public.router.host !== DEFAULT_ROUTER_NAME) {
+      host = await FogManager.findOne({ uuid: mapping.public.host }, transaction)
       if (!host) {
-        throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_ROUTER_HOST, mapping.host))
+        throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_ROUTER_HOST, mapping.public.host))
       }
     } else {
       host = await FogManager.findOne({ isSystem: true }, transaction)
@@ -68,11 +96,48 @@ async function validatePortMapping (agent, mapping, transaction) {
       }
     }
 
+    // We have found a host
     if (host) {
-      await _checkForDuplicatePorts(host, mapping.publicPort, transaction)
+      // Port is defined by user
+      if (mapping.public.router && mapping.public.router.port) {
+        await _checkForDuplicatePorts(host, mapping.public.router.port, transaction)
+        mapping.publicPort = mapping.public.router.port
+      } else {
+        // Assign next available public port
+        const currentPublicPorts = (await MicroservicePublicPortManager.findAll({ hostId: host.uuid }, transaction)).map(p => p.publicPort)
+        // Default range 6000 -> 7000
+        availablePublicPortsByHost[host.uuid] = availablePublicPortsByHost[host.uuid] || _createDefaultPublicPortRange()
+        availablePublicPortsByHost[host.uuid] = availablePublicPortsByHost[host.uuid].filter(port => !currentPublicPorts.includes(port))
+        if (availablePublicPortsByHost[host.uuid].length === 0) {
+          throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.NO_AVAILABLE_PUBLIC_PORT, host.isSystem ? DEFAULT_ROUTER_NAME : host.name))
+        }
+        mapping.publicPort = availablePublicPortsByHost[host.uuid].shift()
+      }
+    } else {
+      const hostId = 'default-router'
+      // We don't have a host. A.k.a, there is no System agent, but there is a default router. A.k.a: We're running on K8s
+      // Port is defined by user
+      if (mapping.public.router && mapping.public.router.port) {
+        // Alls ports are shared by the same proxy msvc
+        const publicPorts = await MicroservicePublicPortManager.findAll({ hostId: null }, transaction)
+        if (publicPorts.find(port => port.publicPort === mapping.public.router.port)) {
+          throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.PORT_NOT_AVAILABLE, mapping.public.router.port))
+        }
+        mapping.publicPort = mapping.public.router.port
+      } else {
+        // Port
+        // Alls ports are shared by the same proxy msvc
+        const currentPublicPorts = (await MicroservicePublicPortManager.findAll({ hostId: null }, transaction)).map(p => p.publicPort)
+        availablePublicPortsByHost[hostId] = availablePublicPortsByHost[hostId] || _createDefaultPublicPortRange()
+        availablePublicPortsByHost[hostId] = availablePublicPortsByHost[hostId].filter(port => !currentPublicPorts.includes(port))
+        if (availablePublicPortsByHost[hostId].length === 0) {
+          throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.NO_AVAILABLE_PUBLIC_PORT, host.isSystem ? DEFAULT_ROUTER_NAME : host.name))
+        }
+        mapping.publicPort = availablePublicPortsByHost[hostId].shift()
+      }
     }
 
-    mapping.host = host
+    mapping.publicHost = host
     mapping.localAgent = agent
   }
 }
@@ -87,8 +152,11 @@ async function validatePortMappings (microserviceData, transaction) {
     throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, microserviceData.iofogUuid))
   }
 
+  // Will be filled by validatePortMapping
+  // In memory store to keep track of newly allocated ports
+  const availablePublicPortsByHost = {}
   for (const mapping of microserviceData.ports) {
-    await validatePortMapping(localAgent, mapping, transaction)
+    await validatePortMapping(localAgent, mapping, availablePublicPortsByHost, transaction)
   }
 }
 
@@ -158,7 +226,7 @@ async function createPortMapping (microservice, portMappingData, user, transacti
 
   portMappingData.protocol = portMappingData.protocol || ''
 
-  if (portMappingData.publicPort) {
+  if (portMappingData.public) {
     return _createPublicPortMapping(microservice, portMappingData, user, transaction)
   } else {
     return createSimplePortMapping(microservice, portMappingData, user, transaction)
@@ -195,9 +263,9 @@ async function createOrUpdateProxyMicroservice (mapping, networkRouter, hostUuid
 }
 
 async function _createPublicPortMapping (microservice, portMappingData, user, transaction) {
-  const isTcp = portMappingData.protocol.toLowerCase() === 'tcp'
+  const isTcp = portMappingData.public.protocol ? portMappingData.public.protocol.toLowerCase() === 'tcp' : false
   const isUdp = portMappingData.protocol.toLowerCase() === 'udp'
-  const localAgent = portMappingData.localAgent
+  const localAgent = portMappingData.localAgent // This is populated by validating the ports
   const localAgentsRouter = localAgent.routerId ? await RouterManager.findOne({ id: localAgent.routerId }, transaction) : await RouterManager.findOne({ iofogUuid: localAgent.uuid }, transaction)
   const localNetworkRouter = {
     host: localAgentsRouter.host,
@@ -210,29 +278,29 @@ async function _createPublicPortMapping (microservice, portMappingData, user, tr
   const localMapping = `amqp:${queueName}=>${isTcp ? 'tcp' : 'http'}:${portMappingData.external}`
   const remoteMapping = `${isTcp ? 'tcp' : 'http'}:${portMappingData.publicPort}=>amqp:${queueName}`
 
-  const localProxy = await createOrUpdateProxyMicroservice(
+  const localProxy = !portMappingData.public.disabled ? await createOrUpdateProxyMicroservice(
     localMapping,
     localNetworkRouter,
     microservice.iofogUuid,
     proxyCatalog.id,
     user,
-    transaction)
+    transaction) : null
 
   let remoteProxy
-  if (portMappingData.host) {
-    const hostRouter = portMappingData.host.routerId ? await RouterManager.findOne({ id: portMappingData.host.routerId }, transaction) : await RouterManager.findOne({ iofogUuid: portMappingData.host.uuid }, transaction)
+  if (portMappingData.publicHost) {
+    const hostRouter = portMappingData.publicHost.routerId ? await RouterManager.findOne({ id: portMappingData.publicHost.routerId }, transaction) : await RouterManager.findOne({ iofogUuid: portMappingData.publicHost.uuid }, transaction)
     const remoteNetworkRouter = {
       host: hostRouter.host,
       port: hostRouter.messagingPort
     }
 
-    remoteProxy = await createOrUpdateProxyMicroservice(
+    remoteProxy = !portMappingData.public.disabled ? await createOrUpdateProxyMicroservice(
       remoteMapping,
       remoteNetworkRouter,
-      portMappingData.host.uuid,
+      portMappingData.publicHost.uuid,
       proxyCatalog.id,
       user,
-      transaction)
+      transaction) : null
   }
 
   const mappingData = {
@@ -244,14 +312,16 @@ async function _createPublicPortMapping (microservice, portMappingData, user, tr
     microserviceUuid: microservice.uuid
   }
   const port = await MicroservicePortManager.create(mappingData, transaction)
+  const schemes = portMappingData.public && portMappingData.public.schemes
 
   const publicPort = {
     portId: port.id,
-    hostId: portMappingData.host ? portMappingData.host.uuid : null,
+    hostId: portMappingData.publicHost ? portMappingData.publicHost.uuid : null,
     localProxyId: localProxy.uuid,
-    remoteProxyId: portMappingData.host ? remoteProxy.uuid : null,
+    remoteProxyId: portMappingData.publicHost ? remoteProxy.uuid : null,
     publicPort: portMappingData.publicPort,
     queueName,
+    schemes: JSON.stringify(schemes),
     isTcp
   }
   await MicroservicePublicPortManager.create(publicPort, transaction)
@@ -260,7 +330,7 @@ async function _createPublicPortMapping (microservice, portMappingData, user, tr
   const relatedExtraHosts = await MicroserviceExtraHostManager.findAll({ microserviceUuid: microservice.uuid, publicPort: publicPort.publicPort }, transaction)
   for (const extraHost of relatedExtraHosts) {
     extraHost.targetFogUuid = publicPort.hostId
-    extraHost.value = portMappingData.host.host
+    extraHost.value = portMappingData.publicHost.host
     await extraHost.save()
     await MicroserviceExtraHostManager.updateOriginMicroserviceChangeTracking(extraHost, transaction)
   }
@@ -335,8 +405,7 @@ async function _buildPortsList (portsPairs, transaction) {
   for (const ports of portsPairs) {
     const portMappingResponseData = {
       internal: ports.portInternal,
-      external: ports.portExternal,
-      publicMode: ports.isPublic
+      external: ports.portExternal
     }
     if (ports.isPublic) {
       const msvcPublicPort = await ports.getPublicPort()
@@ -352,12 +421,20 @@ function _buildLink (protocol, host, port) {
 }
 
 async function buildPublicPortMapping (mapping, publicPortMapping, transaction) {
+  const port = publicPortMapping.publicPort
   const hostRouter = publicPortMapping.hostId ? await RouterManager.findOne({ iofogUuid: publicPortMapping.hostId }, transaction) : { host: lget(await ConfigManager.findOne({ key: DEFAULT_PROXY_HOST }, transaction), 'value', 'undefined-proxy-host') }
   const hostFog = publicPortMapping.hostId ? await FogManager.findOne({ uuid: publicPortMapping.hostId }, transaction) : { uuid: DEFAULT_ROUTER_NAME }
-  mapping.publicLink = _buildLink(publicPortMapping.protocol, hostRouter.host, publicPortMapping.publicPort)
-  mapping.publicPort = publicPortMapping.publicPort
-  mapping.host = hostFog.isSystem ? DEFAULT_ROUTER_NAME : hostFog.uuid
-  mapping.protocol = publicPortMapping.protocol
+  const schemes = JSON.parse(publicPortMapping.schemes)
+  mapping.public = {
+    links: schemes.map(s => _buildLink(s, hostRouter.host, port)),
+    protocol: publicPortMapping.protocol,
+    schemes,
+    enabled: !!publicPortMapping.localProxyId
+  }
+  mapping.public.router = {
+    port: port,
+    host: hostFog.isSystem ? DEFAULT_ROUTER_NAME : hostFog.uuid
+  }
 }
 
 async function switchOnUpdateFlagsForMicroservicesForPortMapping (microservice, isPublic, transaction) {

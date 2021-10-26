@@ -46,7 +46,7 @@ module.exports = [
   },
   {
     method: 'get',
-    path: '/api/v3/routes/:name',
+    path: '/api/v3/routes/:appName/:name',
     middleware: async (req, res) => {
       logger.apiReq(req)
 
@@ -109,7 +109,7 @@ module.exports = [
   },
   {
     method: 'patch',
-    path: '/api/v3/routes/:name',
+    path: '/api/v3/routes/:appName/:name',
     supportSubstitution: true,
     middleware: async (req, res) => {
       logger.apiReq(req)
@@ -143,7 +143,7 @@ module.exports = [
   },
   {
     method: 'delete',
-    path: '/api/v3/routes/:name',
+    path: '/api/v3/routes/:appName/:name',
     middleware: async (req, res) => {
       logger.apiReq(req)
 
