@@ -187,14 +187,18 @@ const updateUserPassword = async function (passwordUpdates, user, isCLI, transac
   if (pass !== passwordUpdates.oldPassword && user.tempPassword !== passwordUpdates.oldPassword) {
     throw new Errors.ValidationError(ErrorMessages.INVALID_OLD_PASSWORD)
   }
-
-  const emailData = await _getEmailData()
-  const transporter = await _userEmailSender(emailData)
-
   const newPass = AppHelper.encryptText(passwordUpdates.newPassword, user.email)
 
   await UserManager.updatePassword(user.id, newPass, transaction)
-  await _notifyUserAboutPasswordChange(user, emailData, transporter)
+
+  try {
+    const emailData = await _getEmailData()
+    const transporter = await _userEmailSender(emailData)
+
+    await _notifyUserAboutPasswordChange(user, emailData, transporter)
+  } catch (e) {
+    console.error(e)
+  }
 }
 
 const resetUserPassword = async function (emailObj, isCLI, transaction) {
