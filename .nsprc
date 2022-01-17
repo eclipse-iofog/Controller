@@ -21,5 +21,8 @@
   },
   "1004876": {
     "notes": "Ignored since tar is a dep of sqlite"
+  },
+  "1005043": {
+    "notes": "Ignored since tar is a dep of sqlite"
   }
 }
