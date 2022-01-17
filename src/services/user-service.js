@@ -190,6 +190,7 @@ const updateUserPassword = async function (passwordUpdates, user, isCLI, transac
   const newPass = AppHelper.encryptText(passwordUpdates.newPassword, user.email)
 
   await UserManager.updatePassword(user.id, newPass, transaction)
+  await AccessTokenService.removeAccessTokenByUserId(user.id, transaction)
 
   try {
     const emailData = await _getEmailData()
