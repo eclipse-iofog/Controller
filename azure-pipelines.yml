@@ -32,7 +32,7 @@ stages:
       - task: NodeTool@0
         inputs:
           # iofogctl uses 10.X
-          versionSpec: '16.x'
+          versionSpec: '12.x'
         displayName: 'Install Node.js'
 
       - script: |
