@@ -92,7 +92,7 @@ stages:
     - task: NodeTool@0
       inputs:
         # Only 10.X works on Azure pipeline
-        versionSpec: '10.x'
+        versionSpec: '12.x'
       displayName: 'Install Node.js'
 
     - script: |
