@@ -11856,6 +11856,7 @@
 									"&& data.hasOwnProperty('fogTypeId') && data.hasOwnProperty('userId')",
 									"&& data.hasOwnProperty('logLevel') && data.hasOwnProperty('dockerPruningFrequency')",
 									"&& data.hasOwnProperty('availableDiskThreshold')",
+									"&& data.hasOwnProperty('timeZone')",
 									"&& data.hasOwnProperty('fogTypeId') && data.hasOwnProperty('userId') && data.hasOwnProperty('isSystem');"
 								],
 								"type": "text/javascript"
