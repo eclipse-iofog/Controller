@@ -32,7 +32,7 @@ stages:
       - task: NodeTool@0
         inputs:
           # iofogctl uses 10.X
-          versionSpec: '12.x'
+          versionSpec: '14.x'
         displayName: 'Install Node.js'
 
       - script: |
@@ -60,13 +60,13 @@ stages:
   #     nodeVersion: '10'
   - template: azure-templates/test.yml
     parameters:
-      nodeVersion: '12'
-  - template: azure-templates/test.yml
-    parameters:
       nodeVersion: '14'
   - template: azure-templates/test.yml
     parameters:
       nodeVersion: '16'
+  - template: azure-templates/test.yml
+    parameters:
+      nodeVersion: '17'
 - stage: Publish
   jobs:
   # - job: Platform
@@ -92,7 +92,7 @@ stages:
     - task: NodeTool@0
       inputs:
         # Only 10.X works on Azure pipeline
-        versionSpec: '12.x'
+        versionSpec: '14.x'
       displayName: 'Install Node.js'
 
     - script: |
