@@ -1,4 +1,4 @@
-FROM node:fermium-buster AS builder
+FROM node:gallium-buster AS builder
 
 ARG PKG_VERSION
 
@@ -18,7 +18,7 @@ RUN npm version $PKG_VERSION --allow-same-version --no-git-tag-version
 
 RUN npm pack
 
-FROM node:fermium-alpine3.12
+FROM node:gallium-alpine3.15
 
 RUN apk add sudo logrotate g++ make
 
