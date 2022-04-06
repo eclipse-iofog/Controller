@@ -67,7 +67,6 @@
   },
   "dependencies": {
     "@iofog/ecn-viewer": "2.0.1",
-    "@sentry/node": "5.7.1",
     "body-parser": "1.18.3",
     "child_process": "1.0.2",
     "command-line-args": "5.0.2",
