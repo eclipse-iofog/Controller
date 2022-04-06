@@ -304,6 +304,10 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER,
       field: 'router_id',
       defaultValue: ''
+    },
+    timeZone: {
+      type: DataTypes.TEXT,
+      field: 'time_zone'
     }
   }, {
     tableName: 'Fogs',

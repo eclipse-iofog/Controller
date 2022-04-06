@@ -43,7 +43,8 @@ const JSON_SCHEMA = AppHelper.stringifyCliJsonSchema({
   fogType: 0,
   dockerPruningFrequency: 0,
   availableDiskThreshold: 0,
-  logLevel: 'string'
+  logLevel: 'string',
+  timeZone: 'string'
 })
 
 class IOFog extends BaseCLIHandler {
@@ -509,7 +510,8 @@ function _createFogObject (cliData) {
     userId: cliData.userId,
     dockerPruningFrequency: cliData.dockerPruningFrequency,
     availableDiskThreshold: cliData.availableDiskThreshold,
-    logLevel: cliData.logLevel
+    logLevel: cliData.logLevel,
+    timeZone: cliData.timeZone
   }
 
   return AppHelper.deleteUndefinedFields(fogObj)

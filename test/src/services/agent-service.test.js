@@ -339,6 +339,7 @@ describe('Agent Service', () => {
       dockerPruningFrequency: 10,
       availableDiskThreshold: 20,
       logLevel: 'INFO',
+      timeZone: 'America/Los_Angeles'
     }
     const transaction = {}
     const error = 'Error!'

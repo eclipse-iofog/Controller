@@ -57,7 +57,8 @@ const updateAgentConfig = {
     'gpsMode': { 'type': 'string' },
     'dockerPruningFrequency': { 'type': 'integer', 'minimum': 0 },
     'availableDiskThreshold': { 'type': 'integer', 'minimum': 0 },
-    'logLevel': { 'type': 'string' }
+    'logLevel': { 'type': 'string' },
+    'timeZone': { 'type': 'string' }
   },
   'additionalProperties': true
 }

@@ -52,7 +52,8 @@ const iofogCreate = {
       'type': 'array',
       'items': { 'type': 'string', 'minLength': 1 }
     },
-    'networkRouter': { 'type': 'string' }
+    'networkRouter': { 'type': 'string' },
+    'timeZone': { 'type': 'string' }
   },
   'anyOf': [
     {
@@ -113,7 +114,8 @@ const iofogUpdate = {
       'type': 'array',
       'items': { '$ref': '/iofogTag' }
     },
-    'networkRouter': { 'type': 'string', 'minLength': 1 }
+    'networkRouter': { 'type': 'string', 'minLength': 1 },
+    'timeZone': { 'type': 'string' }
   },
   'anyOf': [
     {

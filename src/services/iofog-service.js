@@ -72,7 +72,8 @@ async function createFogEndPoint (fogData, user, isCLI, transaction) {
     isSystem: fogData.isSystem,
     userId: user.id,
     host: fogData.host,
-    routerId: null
+    routerId: null,
+    timeZone: fogData.timeZone
   }
   createFogData = AppHelper.deleteUndefinedFields(createFogData)
 
@@ -190,7 +191,8 @@ async function updateFogEndPoint (fogData, user, isCLI, transaction) {
     logLevel: fogData.logLevel,
     dockerPruningFrequency: fogData.dockerPruningFrequency,
     host: fogData.host,
-    availableDiskThreshold: fogData.availableDiskThreshold
+    availableDiskThreshold: fogData.availableDiskThreshold,
+    timeZone: fogData.timeZone
   }
   updateFogData = AppHelper.deleteUndefinedFields(updateFogData)
 
