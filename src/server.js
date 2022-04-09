@@ -40,9 +40,6 @@ const app = express()
 
 app.use(cors())
 
-const Tracking = require('./tracking')
-const TrackingEventType = require('./enums/tracking-event-type')
-
 app.use(helmet())
 app.use(xss())
 
@@ -222,6 +219,3 @@ initState()
       startHttpServer({ api: app, viewer: viewerApp }, { api: apiPort, viewer: viewerPort }, jobs)
     }
   })
-
-const event = Tracking.buildEvent(TrackingEventType.START, `devMode is ${devMode}`)
-Tracking.processEvent(event)

@@ -31,8 +31,6 @@ const CatalogService = require('../services/catalog-service')
 const RoutingManager = require('../data/managers/routing-manager')
 const RoutingService = require('../services/routing-service')
 const Op = require('sequelize').Op
-const TrackingDecorator = require('../decorators/tracking-decorator')
-const TrackingEventType = require('../enums/tracking-event-type')
 const FogManager = require('../data/managers/iofog-manager')
 const MicroserviceExtraHostManager = require('../data/managers/microservice-extra-host-manager')
 const { VOLUME_MAPPING_DEFAULT } = require('../helpers/constants')
@@ -1095,12 +1093,8 @@ function listAllPublicPortsEndPoint (user, transaction) {
   return MicroservicePortService.listAllPublicPorts(user, transaction)
 }
 
-// decorated functions
-const createMicroserviceWithTracking = TrackingDecorator.trackEvent(createMicroserviceEndPoint,
-  TrackingEventType.MICROSERVICE_CREATED)
-
 module.exports = {
-  createMicroserviceEndPoint: TransactionDecorator.generateTransaction(createMicroserviceWithTracking),
+  createMicroserviceEndPoint: TransactionDecorator.generateTransaction(createMicroserviceEndPoint),
   createPortMappingEndPoint: TransactionDecorator.generateTransaction(createPortMappingEndPoint),
   createRouteEndPoint: TransactionDecorator.generateTransaction(createRouteEndPoint),
   createVolumeMappingEndPoint: TransactionDecorator.generateTransaction(createVolumeMappingEndPoint),

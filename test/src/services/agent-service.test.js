@@ -23,7 +23,6 @@ const Op = Sequelize.Op
 const path = require('path')
 const MicroserviceStates = require('../../../src/enums/microservice-state')
 const FogStates = require('../../../src/enums/fog-state')
-const TrackingEventManager = require('../../../src/data/managers/tracking-event-manager')
 const constants = require('../../../src/helpers/constants')
 
 global.appRoot = path.resolve(__dirname)
@@ -1751,56 +1750,4 @@ describe('Agent Service', () => {
 
   // TODO
   // describe('.putImageSnapshot()', () => {
-
-  describe('postTrackingEndPoint()', () => {
-    const error = 'Error!'
-
-    def('fog', () => 'fog!')
-    def('events', () => [])
-    def('transaction', () => { })
-
-    def('subject', () => $subject.postTracking($events, $fog, $transaction))
-
-    def('validatorResponse', () => Promise.resolve(true))
-    def('bulkCreateResponse', () => Promise.resolve())
-
-    beforeEach(() => {
-      $sandbox.stub(Validator, 'validate').returns($validatorResponse)
-      $sandbox.stub(TrackingEventManager, 'bulkCreate').returns($bulkCreateResponse)
-    })
-
-    it('calls Validator#validate() with correct args', async () => {
-      await $subject
-      expect(Validator.validate).to.have.been.calledWith($events, Validator.schemas.trackingArray)
-    })
-
-    context('when Validator#validate() fails', () => {
-      def('validatorResponse', () => Promise.reject(error))
-
-      it(`fails with ${error}`, () => {
-        return expect($subject).to.be.rejectedWith(error)
-      })
-    })
-
-    context('when Validator#validate() succeeds', () => {
-      it('calls TrackingEventManager#bulkCreate() with correct args', async () => {
-        await $subject
-        expect(TrackingEventManager.bulkCreate).to.have.been.calledWith($events, $transaction)
-
-        context('when TrackingEventManager#bulkCreate() fails', () => {
-          def('bulkCreateResponse', () => Promise.reject(error))
-
-          it(`fails with ${error}`, () => {
-            return expect($subject).to.be.equal(undefined)
-          })
-        })
-
-        context('when TrackingEventManager#bulkCreate() succeeds', () => {
-          it(`succeeds`, () => {
-            return expect($subject).to.equal(undefined)
-          })
-        })
-      })
-    })
-  })
 })

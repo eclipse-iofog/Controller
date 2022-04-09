@@ -1256,53 +1256,6 @@
 					"response": []
 				},
 				{
-					"name": "Tracking",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"tests[\"Status code is 204\"] = responseCode.code === 204;"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"name": "Content-Type",
-								"value": "application/json",
-								"type": "text"
-							},
-							{
-								"key": "Authorization",
-								"value": "{{agent-token}}",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"events\": [\n        {\n            \"uuid\": \"test_tracking\",\n            \"sourceType\": \"agent\",\n            \"timestamp\": 1551694999,\n            \"type\": \"test\",\n            \"data\": {\n                \"event\":\"test\"\n            }\n        }\n    ]\n}"
-						},
-						"url": {
-							"raw": "{{host}}/api/v3/agent/tracking",
-							"host": [
-								"{{host}}"
-							],
-							"path": [
-								"api",
-								"v3",
-								"agent",
-								"tracking"
-							]
-						}
-					},
-					"response": []
-				},
-				{
 					"name": "Put agent strace",
 					"event": [
 						{

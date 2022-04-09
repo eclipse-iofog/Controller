@@ -25,8 +25,6 @@ const Validator = require('../schemas/index')
 const RegistryManager = require('../data/managers/registry-manager')
 const MicroserviceManager = require('../data/managers/microservice-manager')
 const MicroseriveStates = require('../enums/microservice-state')
-const TrackingDecorator = require('../decorators/tracking-decorator')
-const TrackingEventType = require('../enums/tracking-event-type')
 
 const createCatalogItemEndPoint = async function (data, user, transaction) {
   await Validator.validate(data, Validator.schemas.catalogItemCreate)
@@ -364,11 +362,8 @@ const _updateCatalogItemIOTypes = async function (data, where, transaction) {
   }
 }
 
-// decorated functions
-const createCatalogItemWithTracking = TrackingDecorator.trackEvent(createCatalogItemEndPoint, TrackingEventType.CATALOG_CREATED)
-
 module.exports = {
-  createCatalogItemEndPoint: TransactionDecorator.generateTransaction(createCatalogItemWithTracking),
+  createCatalogItemEndPoint: TransactionDecorator.generateTransaction(createCatalogItemEndPoint),
   listCatalogItemsEndPoint: TransactionDecorator.generateTransaction(listCatalogItemsEndPoint),
   getCatalogItemEndPoint: TransactionDecorator.generateTransaction(getCatalogItemEndPoint),
   deleteCatalogItemEndPoint: TransactionDecorator.generateTransaction(deleteCatalogItemEndPoint),

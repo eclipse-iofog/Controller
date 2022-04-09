@@ -18,8 +18,6 @@ const AppHelper = require('../helpers/app-helper')
 const ErrorMessages = require('../helpers/error-messages')
 const Validator = require('../schemas')
 const logger = require('../logger')
-const Tracking = require('../tracking')
-const TrackingEventType = require('../enums/tracking-event-type')
 const CliDataTypes = require('./cli-data-types')
 
 class Config extends BaseCLIHandler {
@@ -308,10 +306,6 @@ const _changeDevModeState = async function (options) {
   const enableDevMode = AppHelper.validateBooleanCliOptions(options.on, options.off)
   config.set('Server:DevMode', enableDevMode)
   logger.cliRes('Dev mode state updated successfully.')
-
-  // example of tracking  for other config
-  const event = Tracking.buildEvent(TrackingEventType.CONFIG_CHANGED, `devMode was set to ${enableDevMode}`)
-  await Tracking.processEvent(event)
 }
 
 const _changeEmailActivationState = function (options) {
