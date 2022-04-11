@@ -29,8 +29,6 @@ const MicroserviceManager = require('../data/managers/microservice-manager')
 const TagsManager = require('../data/managers/tags-manager')
 const MicroserviceService = require('./microservices-service')
 const EdgeResourceService = require('./edge-resource-service')
-const TrackingDecorator = require('../decorators/tracking-decorator')
-const TrackingEventType = require('../enums/tracking-event-type')
 const config = require('../config')
 const RouterManager = require('../data/managers/router-manager')
 const MicroserviceExtraHostManager = require('../data/managers/microservice-extra-host-manager')
@@ -725,9 +723,6 @@ async function _deleteBluetoothMicroserviceByFog (fogData, transaction) {
   await MicroserviceManager.delete(deleteBluetoothMicroserviceData, transaction)
 }
 
-// decorated functions
-const createFogWithTracking = TrackingDecorator.trackEvent(createFogEndPoint, TrackingEventType.IOFOG_CREATED)
-
 const informKubelet = function (iofogUuid, method) {
   const kubeletUri = config.get('Kubelet:Uri')
   const options = {
@@ -760,7 +755,7 @@ async function setFogPruneCommandEndPoint (fogData, user, isCLI, transaction) {
 }
 
 module.exports = {
-  createFogEndPoint: TransactionDecorator.generateTransaction(createFogWithTracking),
+  createFogEndPoint: TransactionDecorator.generateTransaction(createFogEndPoint),
   updateFogEndPoint: TransactionDecorator.generateTransaction(updateFogEndPoint),
   deleteFogEndPoint: TransactionDecorator.generateTransaction(deleteFogEndPoint),
   getFogEndPoint: TransactionDecorator.generateTransaction(getFogEndPoint),

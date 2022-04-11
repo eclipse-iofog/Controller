@@ -38,9 +38,6 @@ const USBInfoManager = require('../data/managers/usb-info-manager')
 const TunnelManager = require('../data/managers/tunnel-manager')
 const MicroserviceManager = require('../data/managers/microservice-manager')
 const MicroserviceService = require('../services/microservices-service')
-const TrackingDecorator = require('../decorators/tracking-decorator')
-const TrackingEventType = require('../enums/tracking-event-type')
-const TrackingEventManager = require('../data/managers/tracking-event-manager')
 const RouterManager = require('../data/managers/router-manager')
 const EdgeResourceService = require('./edge-resource-service')
 const constants = require('../helpers/constants')
@@ -571,20 +568,8 @@ async function _checkMicroservicesFogType (fog, fogTypeId, transaction) {
   }
 }
 
-async function postTracking (events, fog, transaction) {
-  await Validator.validate(events, Validator.schemas.trackingArray)
-  for (const event of events) {
-    event.data = JSON.stringify(event.data)
-  }
-
-  await TrackingEventManager.bulkCreate(events, transaction)
-}
-
-// decorated functions
-const agentProvisionWithTracking = TrackingDecorator.trackEvent(agentProvision, TrackingEventType.IOFOG_PROVISION)
-
 module.exports = {
-  agentProvision: TransactionDecorator.generateTransaction(agentProvisionWithTracking),
+  agentProvision: TransactionDecorator.generateTransaction(agentProvision),
   agentDeprovision: TransactionDecorator.generateTransaction(agentDeprovision),
   getAgentConfig: TransactionDecorator.generateTransaction(getAgentConfig),
   updateAgentConfig: TransactionDecorator.generateTransaction(updateAgentConfig),
@@ -603,6 +588,5 @@ module.exports = {
   deleteNode: TransactionDecorator.generateTransaction(deleteNode),
   getImageSnapshot: TransactionDecorator.generateTransaction(getImageSnapshot),
   putImageSnapshot: TransactionDecorator.generateTransaction(putImageSnapshot),
-  postTracking: TransactionDecorator.generateTransaction(postTracking),
   getAgentLinkedEdgeResources: TransactionDecorator.generateTransaction(getAgentLinkedEdgeResources)
 }

@@ -25,8 +25,6 @@ const emailRecoveryTemplate = require('../views/email-temp')
 const emailResetTemplate = require('../views/reset-password-temp')
 const EmailActivationCodeService = require('./email-activation-code-service')
 const AccessTokenService = require('./access-token-service')
-const TrackingDecorator = require('../decorators/tracking-decorator')
-const TrackingEventType = require('../enums/tracking-event-type')
 
 const TransactionDecorator = require('../decorators/transaction-decorator')
 const Validator = require('../schemas')
@@ -380,11 +378,8 @@ async function _getEmailData () {
   }
 }
 
-// decorated functions
-const signUpWithTracking = TrackingDecorator.trackEvent(signUp, TrackingEventType.USER_CREATED)
-
 module.exports = {
-  signUp: TransactionDecorator.generateTransaction(signUpWithTracking),
+  signUp: TransactionDecorator.generateTransaction(signUp),
   login: TransactionDecorator.generateTransaction(login),
   resendActivation: TransactionDecorator.generateTransaction(resendActivation),
   activateUser: TransactionDecorator.generateTransaction(activateUser),
