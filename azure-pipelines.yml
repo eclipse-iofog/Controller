@@ -45,7 +45,9 @@ stages:
 
       - script: |
           npm i -g better-npm-audit
-          npx better-npm-audit audit -p
+        # npx better-npm-audit audit -p 
+        # To be removed once new version of ncof is released
+          npx better-npm-audit audit -p -x 1069976
         displayName: Check for vulnerabilities
 
       # - script: |
