@@ -45,7 +45,7 @@ stages:
 
       - script: |
           npm i -g better-npm-audit
-          npx better-npm-audit audit -p -x 1069976
+          npx better-npm-audit audit -p
         displayName: Check for vulnerabilities
 
       # npx better-npm-audit audit -p 
