@@ -16,28 +16,19 @@ const TransactionDecorator = require('../decorators/transaction-decorator')
 const MicroserviceManager = require('../data/managers/microservice-manager')
 const MicroserviceStatusManager = require('../data/managers/microservice-status-manager')
 const MicroserviceStates = require('../enums/microservice-state')
-const BaseJobHandler = require('./base/base-job-handler')
 const Config = require('../config')
 const ApplicationManager = require('../data/managers/application-manager')
 
-class FogStatusJob extends BaseJobHandler {
-  constructor () {
-    super()
-    this.scheduleTime = Config.get('Settings:FogStatusUpdateIntervalSeconds') * 1000
+const scheduleTime = Config.get('Settings:FogStatusUpdateIntervalSeconds') * 1000
 
-    setTimeout(this.run, this.scheduleTime)
-  }
-
-  async run () {
-    const _self = this
-    try {
-      const _updateStoppedApplicationMicroserviceStatus = TransactionDecorator.generateTransaction(updateStoppedApplicationMicroserviceStatus)
-      await _updateStoppedApplicationMicroserviceStatus()
-    } catch (error) {
-      console.error(error)
-    } finally {
-      setTimeout(() => _self.run(), _self.scheduleTime)
-    }
+async function run () {
+  try {
+    const _updateStoppedApplicationMicroserviceStatus = TransactionDecorator.generateTransaction(updateStoppedApplicationMicroserviceStatus)
+    await _updateStoppedApplicationMicroserviceStatus()
+  } catch (error) {
+    console.error(error)
+  } finally {
+    setTimeout(run, scheduleTime)
   }
 }
 
@@ -57,4 +48,6 @@ async function _updateMicroserviceStatusStopped (stoppedMicroservices, transacti
   return microservices
 }
 
-module.exports = new FogStatusJob()
+module.exports = {
+  run
+}
