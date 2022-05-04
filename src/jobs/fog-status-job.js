@@ -31,13 +31,14 @@ class FogStatusJob extends BaseJobHandler {
   }
 
   async run () {
+    const _self = this
     try {
       const _updateFogsConnectionStatus = TransactionDecorator.generateTransaction(updateFogsConnectionStatus)
       await _updateFogsConnectionStatus()
     } catch (error) {
       console.error(error)
     } finally {
-      setTimeout(this.run.bind(this), this.scheduleTime)
+      setTimeout(() => _self.run(), _self.scheduleTime)
     }
   }
 }

@@ -36,7 +36,7 @@ class FogStatusJob extends BaseJobHandler {
     } catch (error) {
       console.error(error)
     } finally {
-      setTimeout(() => _self.run, _self.scheduleTime)
+      setTimeout(() => _self.run(), _self.scheduleTime)
     }
   }
 }

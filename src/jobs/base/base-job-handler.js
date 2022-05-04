@@ -18,7 +18,7 @@ class BaseJobHandler {
     this.scheduleTime = Config.get('Settings:DefaultJobIntervalSeconds') * 1000
   }
 
-  run () {
+  async run () {
     throw new Error('Not Implemented')
   }
 }
