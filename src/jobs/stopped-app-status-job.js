@@ -29,13 +29,14 @@ class FogStatusJob extends BaseJobHandler {
   }
 
   async run () {
+    const _self = this
     try {
       const _updateStoppedApplicationMicroserviceStatus = TransactionDecorator.generateTransaction(updateStoppedApplicationMicroserviceStatus)
       await _updateStoppedApplicationMicroserviceStatus()
     } catch (error) {
       console.error(error)
     } finally {
-      setTimeout(this.run.bind(this), this.scheduleTime)
+      setTimeout(() => _self.run, _self.scheduleTime)
     }
   }
 }
