@@ -13,6 +13,7 @@
 * Removed node 10 tests and added node 16 tests
 * Removed node 12
 * Minimum node version is now >= 12
+* Updated Docker Node.js version to Gallium
 * Updated API to use name instead of uuid as primary identifier
 * Allow password update without sending email
 
