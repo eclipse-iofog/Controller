@@ -1,6 +1,6 @@
 # Changelog
 
-## [v3.0.0] - 11-05-2022
+## [v3.0.1] - 12-05-2022
 
 * Updated the default router to use the latest image
 
