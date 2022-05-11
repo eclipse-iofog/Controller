@@ -57,7 +57,8 @@ const updateAgentConfig = {
     'gpsMode': { 'type': 'string' },
     'dockerPruningFrequency': { 'type': 'integer', 'minimum': 0 },
     'availableDiskThreshold': { 'type': 'integer', 'minimum': 0 },
-    'logLevel': { 'type': 'string' }
+    'logLevel': { 'type': 'string' },
+    'timeZone': { 'type': 'string' }
   },
   'additionalProperties': true
 }
@@ -159,36 +160,8 @@ const updateUsbInfo = {
   'additionalProperties': true
 }
 
-const trackingArray = {
-  'id': '/trackingArray',
-  'type': 'array',
-  'items': { '$ref': '/trackingMessage' }
-}
-
-const trackingMessage = {
-  'id': '/trackingMessage',
-  'type': 'object',
-  'properties': {
-    'uuid': { 'type': 'string' },
-    'sourceType': { 'type': 'string' },
-    'timestamp': { 'type': 'number' },
-    'type': { 'type': 'string' },
-    'data': { '$ref': '/trackingData' }
-  },
-  'required': ['uuid', 'sourceType', 'timestamp', 'type', 'data'],
-  'additionalProperties': true
-}
-
-const trackingData = {
-  'id': '/trackingData',
-  'type': 'object',
-  'properties': {
-  },
-  'additionalProperties': true
-}
-
 module.exports = {
   mainSchemas: [agentProvision, agentDeprovision, updateAgentConfig, updateAgentStatus, updateAgentStrace,
-    updateHardwareInfo, updateUsbInfo, trackingArray],
-  innerSchemas: [straceData, microserviceStatus, trackingData, trackingMessage]
+    updateHardwareInfo, updateUsbInfo],
+  innerSchemas: [straceData, microserviceStatus]
 }

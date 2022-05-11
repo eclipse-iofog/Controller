@@ -67,7 +67,8 @@ describe('ioFog Service', () => {
       availableDiskThreshold: 20,
       logLevel: 'INFO',
       isSystem: false,
-      host: '1.2.3.4'
+      host: '1.2.3.4',
+      timeZone: '',
     }
 
     const createFogData = {
@@ -99,7 +100,8 @@ describe('ioFog Service', () => {
       availableDiskThreshold: 20,
       logLevel: 'INFO',
       routerId: null,
-      host: '1.2.3.4'
+      host: '1.2.3.4',
+      timeZone: '',
     }
 
     const halItem = {
@@ -485,6 +487,7 @@ describe('ioFog Service', () => {
       logLevel: 'INFO',
       isSystem: true,
       host: '5.6.7.8',
+      timeZone: 'America/Los_Angeles',
     }
 
     const oldFog = {
@@ -514,7 +517,8 @@ describe('ioFog Service', () => {
       logLevel: 'INFO',
       isSystem: false,
       host: fogData.host,
-      userId: user.id
+      userId: user.id,
+      timeZone: 'America/Los_Angeles',
     }
 
     const queryFogData = { uuid: fogData.uuid }
@@ -546,6 +550,7 @@ describe('ioFog Service', () => {
       logLevel: 'INFO',
       isSystem: fogData.isSystem,
       host: fogData.host,
+      timeZone: fogData.timeZone,
     }
 
     const halItem = {

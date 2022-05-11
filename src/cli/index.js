@@ -23,15 +23,7 @@ const Microservice = require('./microservice')
 const Registry = require('./registry')
 const Controller = require('./controller')
 const Diagnostics = require('./diagnostics')
-const packageJson = require('./../../package')
-
 const constants = require('../helpers/constants')
-
-const Sentry = require('@sentry/node')
-Sentry.init({ dsn: 'https://3213bc0b88db47ffb103075d7e1e254f@sentry.io/1378606' })
-Sentry.configureScope((scope) => {
-  scope.setExtra('version', packageJson.version)
-})
 
 class Cli extends BaseCLIHandler {
   constructor () {

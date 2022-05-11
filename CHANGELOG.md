@@ -1,5 +1,22 @@
 # Changelog
 
+## [v3.0.0] - 11-05-2022
+
+### Features
+
+* Updated ecn-viewer to v3.0.2
+* Updated job schedular logic
+* Removed sentry from the code (#744)
+* Removed sentry and analytics from the code as they were obsolete.
+* Updated the down  migration of TrackingEvent table
+* Added timeZone in agentConfig
+* Removed node 10 tests and added node 16 tests
+* Removed node 12
+* Minimum node version is now >= 12
+* Updated Docker Node.js version to Gallium
+* Updated API to use name instead of uuid as primary identifier
+* Allow password update without sending email
+
 ## [v3.0.0-beta1] - 13-08-2021
 
 ### Features
@@ -10,7 +27,7 @@
 * Fixed issue when rebuild flag was not set to true when images are updated
 * Fixed issue when microservice states were inconsistent on moving from one agent to another
 
-## [v3.0.0-alpha1] - 24-03-2021
+## [v3.0.0-alpha1] - 24 March 2021
 
 * Add Edge Resources API endpoints and functionality
 * Add Application Templates API endpoints and functionality

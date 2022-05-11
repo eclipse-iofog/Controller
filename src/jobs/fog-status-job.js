@@ -19,26 +19,18 @@ const MicroserviceStatusManager = require('../data/managers/microservice-status-
 const MicroserviceService = require('../services/microservices-service')
 const MicroserviceStates = require('../enums/microservice-state')
 const FogStates = require('../enums/fog-state')
-const BaseJobHandler = require('./base/base-job-handler')
 const Config = require('../config')
 
-class FogStatusJob extends BaseJobHandler {
-  constructor () {
-    super()
-    this.scheduleTime = Config.get('Settings:FogStatusUpdateIntervalSeconds') * 1000
+const scheduleTime = Config.get('Settings:FogStatusUpdateIntervalSeconds') * 1000
 
-    setTimeout(this.run, this.scheduleTime)
-  }
-
-  async run () {
-    try {
-      const _updateFogsConnectionStatus = TransactionDecorator.generateTransaction(updateFogsConnectionStatus)
-      await _updateFogsConnectionStatus()
-    } catch (error) {
-      console.error(error)
-    } finally {
-      setTimeout(this.run.bind(this), this.scheduleTime)
-    }
+async function run () {
+  try {
+    const _updateFogsConnectionStatus = TransactionDecorator.generateTransaction(updateFogsConnectionStatus)
+    await _updateFogsConnectionStatus()
+  } catch (error) {
+    console.error(error)
+  } finally {
+    setTimeout(run, scheduleTime)
   }
 }
 
@@ -81,4 +73,6 @@ async function _deleteNotRunningMicroservices (microservices, transaction) {
   }
 }
 
-module.exports = new FogStatusJob()
+module.exports = {
+  run
+}

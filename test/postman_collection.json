@@ -426,7 +426,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"oldPassword\": \"#Bugs4Fun\",\n  \"newPassword\": \"#Bugs4Fun\"\n}"
+							"raw": "{\n  \"oldPassword\": \"#Bugs4Fun\",\n  \"newPassword\": \"#Bugs4Fun2\"\n}"
 						},
 						"url": {
 							"raw": "{{host}}/api/v3/user/password",
@@ -438,6 +438,54 @@
 								"v3",
 								"user",
 								"password"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login with new password",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"tests[\"Status code is 200\"] = responseCode.code === 200;",
+									"",
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"Response validation passed\"] = data.accessToken;",
+									"",
+									"",
+									"postman.setGlobalVariable(\"user-token\", data.accessToken);",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"user@domain.com\",\n  \"password\": \"#Bugs4Fun2\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/v3/user/login",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"user",
+								"login"
 							]
 						}
 					},
@@ -1202,53 +1250,6 @@
 								"agent",
 								"hal",
 								"usb"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Tracking",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"tests[\"Status code is 204\"] = responseCode.code === 204;"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"name": "Content-Type",
-								"value": "application/json",
-								"type": "text"
-							},
-							{
-								"key": "Authorization",
-								"value": "{{agent-token}}",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"events\": [\n        {\n            \"uuid\": \"test_tracking\",\n            \"sourceType\": \"agent\",\n            \"timestamp\": 1551694999,\n            \"type\": \"test\",\n            \"data\": {\n                \"event\":\"test\"\n            }\n        }\n    ]\n}"
-						},
-						"url": {
-							"raw": "{{host}}/api/v3/agent/tracking",
-							"host": [
-								"{{host}}"
-							],
-							"path": [
-								"api",
-								"v3",
-								"agent",
-								"tracking"
 							]
 						}
 					},
@@ -11808,6 +11809,7 @@
 									"&& data.hasOwnProperty('fogTypeId') && data.hasOwnProperty('userId')",
 									"&& data.hasOwnProperty('logLevel') && data.hasOwnProperty('dockerPruningFrequency')",
 									"&& data.hasOwnProperty('availableDiskThreshold')",
+									"&& data.hasOwnProperty('timeZone')",
 									"&& data.hasOwnProperty('fogTypeId') && data.hasOwnProperty('userId') && data.hasOwnProperty('isSystem');"
 								],
 								"type": "text/javascript"

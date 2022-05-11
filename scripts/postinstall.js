@@ -18,13 +18,12 @@ const semver = require('semver')
 
 const config = require('../src/config')
 const currentVersion = require('../package').version
-const { restoreDBs, restoreConfigs, restoreTrackingUuid, INSTALLATION_VARIABLES_FILE, setDbEnvVars } = require('./util')
+const { restoreDBs, restoreConfigs, INSTALLATION_VARIABLES_FILE, setDbEnvVars } = require('./util')
 
 function postinstall () {
 // restore all files
   restoreDBs()
   restoreConfigs()
-  restoreTrackingUuid()
 
   // process migrations
   try {

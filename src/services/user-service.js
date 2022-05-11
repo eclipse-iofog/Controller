@@ -25,8 +25,6 @@ const emailRecoveryTemplate = require('../views/email-temp')
 const emailResetTemplate = require('../views/reset-password-temp')
 const EmailActivationCodeService = require('./email-activation-code-service')
 const AccessTokenService = require('./access-token-service')
-const TrackingDecorator = require('../decorators/tracking-decorator')
-const TrackingEventType = require('../enums/tracking-event-type')
 
 const TransactionDecorator = require('../decorators/transaction-decorator')
 const Validator = require('../schemas')
@@ -187,14 +185,19 @@ const updateUserPassword = async function (passwordUpdates, user, isCLI, transac
   if (pass !== passwordUpdates.oldPassword && user.tempPassword !== passwordUpdates.oldPassword) {
     throw new Errors.ValidationError(ErrorMessages.INVALID_OLD_PASSWORD)
   }
-
-  const emailData = await _getEmailData()
-  const transporter = await _userEmailSender(emailData)
-
   const newPass = AppHelper.encryptText(passwordUpdates.newPassword, user.email)
 
   await UserManager.updatePassword(user.id, newPass, transaction)
-  await _notifyUserAboutPasswordChange(user, emailData, transporter)
+  await AccessTokenService.removeAccessTokenByUserId(user.id, transaction)
+
+  try {
+    const emailData = await _getEmailData()
+    const transporter = await _userEmailSender(emailData)
+
+    await _notifyUserAboutPasswordChange(user, emailData, transporter)
+  } catch (e) {
+    console.error(e)
+  }
 }
 
 const resetUserPassword = async function (emailObj, isCLI, transaction) {
@@ -375,11 +378,8 @@ async function _getEmailData () {
   }
 }
 
-// decorated functions
-const signUpWithTracking = TrackingDecorator.trackEvent(signUp, TrackingEventType.USER_CREATED)
-
 module.exports = {
-  signUp: TransactionDecorator.generateTransaction(signUpWithTracking),
+  signUp: TransactionDecorator.generateTransaction(signUp),
   login: TransactionDecorator.generateTransaction(login),
   resendActivation: TransactionDecorator.generateTransaction(resendActivation),
   activateUser: TransactionDecorator.generateTransaction(activateUser),

@@ -32,7 +32,7 @@ stages:
       - task: NodeTool@0
         inputs:
           # iofogctl uses 10.X
-          versionSpec: '10.x'
+          versionSpec: '14.x'
         displayName: 'Install Node.js'
 
       - script: |
@@ -48,6 +48,10 @@ stages:
           npx better-npm-audit audit -p
         displayName: Check for vulnerabilities
 
+      # npx better-npm-audit audit -p 
+      # To be removed once new version of ncof is released
+
+
       # - script: |
       #    npm run snyk -- --project-name=ControllerCI
       #  displayName: 'Snyk monitor'
@@ -55,15 +59,18 @@ stages:
       #    SNYK_TOKEN: $(snykToken)
 - stage: Test
   jobs:
-  - template: azure-templates/test.yml
-    parameters:
-      nodeVersion: '10'
-  - template: azure-templates/test.yml
-    parameters:
-      nodeVersion: '12'
+  # - template: azure-templates/test.yml
+  #   parameters:
+  #     nodeVersion: '10'
   - template: azure-templates/test.yml
     parameters:
       nodeVersion: '14'
+  - template: azure-templates/test.yml
+    parameters:
+      nodeVersion: '16'
+  - template: azure-templates/test.yml
+    parameters:
+      nodeVersion: '17'
 - stage: Publish
   jobs:
   # - job: Platform
@@ -89,7 +96,7 @@ stages:
     - task: NodeTool@0
       inputs:
         # Only 10.X works on Azure pipeline
-        versionSpec: '10.x'
+        versionSpec: '14.x'
       displayName: 'Install Node.js'
 
     - script: |
