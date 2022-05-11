@@ -2,6 +2,10 @@
 
 ## [v3.0.0] - 11-05-2022
 
+* Updated the default router to use the latest image
+
+## [v3.0.0] - 11-05-2022
+
 ### Features
 
 * Updated ecn-viewer to v3.0.2
