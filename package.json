@@ -118,7 +118,7 @@
     "chai-http": "4.2.1",
     "eslint": "5.14.1",
     "eslint-config-google": "0.12.0",
-    "mocha": "^10.1.0",
+    "mocha": "9.2.2",
     "mocha-junit-reporter": "2.0.0",
     "newman": "5.3.2",
     "newman-reporter-junitfull": "1.1.1",

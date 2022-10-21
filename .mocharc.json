@@ -1,0 +1,5 @@
+{
+  "require": "test/support/setup.js",
+  "ui": "bdd-lazy-var/global",
+  "recursive": true
+}
