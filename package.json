@@ -84,9 +84,11 @@
     "js-yaml": "3.14.1",
     "jsonschema": "1.2.5",
     "liquidjs": "9.16.1",
+    "minimatch": "3.1.2",
     "moment": "2.29.4",
+    "moment-timezone": "0.5.38",
     "morgan": "1.9.1",
-    "multer": "1.4.3",
+    "multer": "1.4.5-lts.1",
     "nconf": "0.12.0",
     "nodemailer": "6.7.3",
     "nodemailer-smtp-transport": "2.4.2",
@@ -106,11 +108,7 @@
     "string-format": "2.0.0",
     "umzug": "2.2.0",
     "underscore": "1.13.1",
-    "xss-clean": "0.1.1",
-    "dicer": "0.3.1",
-    "minimatch": "3.1.2",
-    "moment-timezone": "0.5.38",
-    "semver-regex": "4.0.3"
+    "xss-clean": "0.1.1"
   },
   "devDependencies": {
     "acorn": "7.1.1",
@@ -120,7 +118,7 @@
     "chai-http": "4.2.1",
     "eslint": "5.14.1",
     "eslint-config-google": "0.12.0",
-    "mocha": "7.1.2",
+    "mocha": "^10.1.0",
     "mocha-junit-reporter": "2.0.0",
     "newman": "5.3.2",
     "newman-reporter-junitfull": "1.1.1",
@@ -128,7 +126,7 @@
     "sequelize-cli": "5.5.0",
     "sinon": "7.5.0",
     "sinon-chai": "3.3.0",
-    "snyk": "1.894.0",
+    "snyk": "^1.1040.0",
     "standard": "12.0.1"
   },
   "files": [
