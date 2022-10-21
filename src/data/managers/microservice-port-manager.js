@@ -15,6 +15,7 @@ const BaseManager = require('./base-manager')
 const models = require('../models')
 const MicroservicePort = models.MicroservicePort
 const MicroservicePublicPort = models.MicroservicePublicPort
+const MicroserviceProxyPort = models.MicroserviceProxyPort
 
 class MicroservicePortManager extends BaseManager {
   getEntity () {
@@ -32,6 +33,21 @@ class MicroservicePortManager extends BaseManager {
         }
       ],
       where: { isPublic: true },
+      attributes: ['microserviceUuid']
+    }, { transaction: transaction })
+  }
+
+  findAllProxyPorts (transaction) {
+    return MicroservicePort.findAll({
+      include: [
+        {
+          model: MicroserviceProxyPort,
+          as: 'proxyPort',
+          required: true,
+          attributes: ['publicPort', 'protocol', 'host']
+        }
+      ],
+      where: { isProxy: true },
       attributes: ['microserviceUuid']
     }, { transaction: transaction })
   }

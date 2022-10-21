@@ -255,15 +255,24 @@ async function createMicroserviceEndPoint (microserviceData, user, isCLI, transa
   }
 
   const publicPorts = []
+  const proxyPorts = []
   if (microserviceData.ports) {
     for (const mapping of microserviceData.ports) {
       const res = await MicroservicePortService.createPortMapping(microservice, mapping, user, transaction)
-      if (res && res.publicLinks) {
-        publicPorts.push({
-          internal: mapping.internal,
-          external: mapping.external,
-          publicLinks: res.publicLinks
-        })
+      if (res) {
+        if (res.publicLinks) {
+          publicPorts.push({
+            internal: mapping.internal,
+            external: mapping.external,
+            publicLinks: res.publicLinks
+          })
+        } else if (res.proxy) {
+          proxyPorts.push({
+            internal: mapping.internal,
+            external: mapping.external,
+            proxy: res.proxy
+          })
+        }
       }
     }
   }
@@ -298,6 +307,9 @@ async function createMicroserviceEndPoint (microserviceData, user, isCLI, transa
   }
   if (publicPorts.length) {
     res.publicPorts = publicPorts
+  }
+  if (proxyPorts.length) {
+    res.proxies = proxyPorts
   }
 
   return res
@@ -1060,12 +1072,7 @@ async function _buildGetMicroserviceResponse (microservice, transaction) {
   res.ports = []
   for (const pm of portMappings) {
     const mapping = { internal: pm.portInternal, external: pm.portExternal, protocol: pm.isUdp ? 'udp' : 'tcp' }
-    if (pm.isPublic) {
-      const publicPortMapping = await pm.getPublicPort()
-      if (publicPortMapping) {
-        await MicroservicePortService.buildPublicPortMapping(mapping, publicPortMapping, transaction)
-      }
-    }
+    await MicroservicePortService.buildPublicPortMapping(pm, mapping, transaction)
     res.ports.push(mapping)
   }
   res.volumeMappings = volumeMappings.map((vm) => vm.dataValues)

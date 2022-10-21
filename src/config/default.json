@@ -42,6 +42,10 @@
     "Proxy": {
       "1": "iofog/proxy:latest",
       "2": "iofog/proxy-arm:latest"
+    },
+    "PortRouter": {
+      "1": "iofog/port-router:latest",
+      "2": "iofog/port-router:latest"
     }
   }
 }

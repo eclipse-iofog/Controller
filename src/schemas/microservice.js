@@ -135,6 +135,7 @@ const ports = {
     'internal': { 'type': 'integer' },
     'external': { 'type': 'integer' },
     'public': { '$ref': '/publicPort' },
+    'proxy': { type: 'boolean' },
     'protocol': { 'enum': ['tcp', 'udp'] }
   },
   'required': ['internal', 'external'],
