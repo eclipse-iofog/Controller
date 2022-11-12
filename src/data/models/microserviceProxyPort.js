@@ -32,6 +32,18 @@ module.exports = (sequelize, DataTypes) => {
     protocol: {
       type: DataTypes.TEXT,
       field: 'protocol'
+    },
+    proxyToken: {
+      type: DataTypes.TEXT,
+      field: 'proxy_token'
+    },
+    portUUID: {
+      type: DataTypes.TEXT,
+      field: 'port_uuid'
+    },
+    serverToken: {
+      type: DataTypes.TEXT,
+      field: 'server_token'
     }
   }, {
     tableName: 'MicroserviceProxyPorts',
