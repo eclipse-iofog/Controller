@@ -35,7 +35,7 @@ function deallocatePort (portUUID) {
 function revokeServerToken (token) {
   var options = {
     method: 'DELETE',
-    url: `${brokerUrl}/server_token/${token}`,
+    url: `${brokerUrl}/server-token/${token}`,
     headers: { 'X-Api-Key': brokerToken }
   }
 
