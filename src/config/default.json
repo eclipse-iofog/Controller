@@ -33,7 +33,7 @@
   },
   "PublicPorts": {
     "Range": "6000-7000",
-    "ProxyBrokerUrl": "http://localhost:7300",
+    "ProxyBrokerUrl": "http://localhost:3000",
     "ProxyBrokerToken": ""
   },
   "SystemImages": {
