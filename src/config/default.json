@@ -32,7 +32,9 @@
     "DiagnosticDir": "diagnostic"
   },
   "PublicPorts": {
-    "Range": "6000-7000"
+    "Range": "6000-7000",
+    "ProxyBrokerUrl": "http://localhost:3000",
+    "ProxyBrokerToken": ""
   },
   "SystemImages": {
     "Router": {
@@ -42,6 +44,10 @@
     "Proxy": {
       "1": "iofog/proxy:latest",
       "2": "iofog/proxy-arm:latest"
+    },
+    "PortRouter": {
+      "1": "iofog/port-router:latest",
+      "2": "iofog/port-router:latest"
     }
   }
 }

@@ -54,6 +54,7 @@ db.initDB = async (isStart) => {
     const fogTypes = await db.FogType.findAll({})
     await configureImage(db, constants.ROUTER_CATALOG_NAME, fogTypes, config.get('SystemImages:Router', {}))
     await configureImage(db, constants.PROXY_CATALOG_NAME, fogTypes, config.get('SystemImages:Proxy', {}))
+    await configureImage(db, constants.PORT_ROUTER_CATALOG_NAME, fogTypes, config.get('SystemImages:PortRouter', {}))
   }
 }
 

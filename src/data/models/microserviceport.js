@@ -23,6 +23,10 @@ module.exports = (sequelize, DataTypes) => {
     isPublic: {
       type: DataTypes.BOOLEAN,
       field: 'is_public'
+    },
+    isProxy: {
+      type: DataTypes.BOOLEAN,
+      field: 'is_proxy'
     }
   }, {
     tableName: 'MicroservicePorts',
@@ -51,6 +55,11 @@ module.exports = (sequelize, DataTypes) => {
     MicroservicePort.hasOne(models.MicroservicePublicPort, {
       foreignKey: 'port_id',
       as: 'publicPort'
+    })
+
+    MicroservicePort.hasOne(models.MicroserviceProxyPort, {
+      foreignKey: 'port_id',
+      as: 'proxyPort'
     })
   }
   return MicroservicePort

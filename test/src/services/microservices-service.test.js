@@ -351,6 +351,7 @@ describe('Microservices Service', () => {
     }
 
     const mappingData = {
+      isProxy: false,
       isPublic: false,
       isUdp: false,
       portInternal: portMappingData.internal,
@@ -1812,6 +1813,7 @@ describe('Microservices Service', () => {
       : { uuid: microserviceUuid, userId: user.id }
 
     const mappingData = {
+      isProxy: false,
       isPublic: false,
       isUdp: false,
       portInternal: portMappingData.internal,

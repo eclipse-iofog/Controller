@@ -26,7 +26,7 @@ stages:
   jobs:
   - job: Build
     pool:
-      vmImage: 'Ubuntu-18.04'
+      vmImage: 'Ubuntu-20.04'
 
     steps:
       - task: NodeTool@0
@@ -91,11 +91,10 @@ stages:
   #         waitForCompletion: 'false'
   - job: Controller
     pool:
-      vmImage: 'Ubuntu-18.04'
+      vmImage: 'Ubuntu-20.04'
     steps:
     - task: NodeTool@0
       inputs:
-        # Only 10.X works on Azure pipeline
         versionSpec: '14.x'
       displayName: 'Install Node.js'
 
