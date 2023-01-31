@@ -15,7 +15,7 @@ class SqliteDatabaseProvider extends DatabaseProvider {
     if (!sqliteConfig.databaseName.endsWith('.sqlite')) {
       sqliteConfig.databaseName += '.sqlite'
     }
-    const storageFolder = path.resolve(__dirname, '../sqlite_files/')
+    const storageFolder = path.resolve(__dirname, '../sqlite_files')
     sqliteConfig.storage = path.resolve(storageFolder, sqliteConfig.databaseName)
     if (!fs.existsSync(storageFolder)) {
       fs.mkdirSync(storageFolder)
