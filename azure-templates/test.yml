@@ -3,7 +3,7 @@ parameters:
 jobs:
 - job: ${{ format('Node_{0}', parameters.nodeVersion) }}
   pool:
-    vmImage: 'Ubuntu-18.04'
+    vmImage: 'Ubuntu-20.04'
   steps:
   - task: NodeTool@0
     inputs:
