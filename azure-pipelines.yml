@@ -33,7 +33,7 @@ stages:
         inputs:
           # iofogctl uses 10.X
           versionSource: 'spec'
-          versionSpec: '10.x'
+          versionSpec: '14.x'
         displayName: 'Install Node.js'
 
       - script: |
