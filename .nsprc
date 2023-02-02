@@ -24,5 +24,8 @@
   },
   "1005043": {
     "notes": "Ignored since tar is a dep of sqlite"
+  },
+  "1090146": {
+    "notes": "Ignored since tar is a dep of http-cache-semantics"
   }
 }
