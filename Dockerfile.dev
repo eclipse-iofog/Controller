@@ -41,6 +41,6 @@ COPY --from=builder /tmp/iofogcontroller-*.tgz /tmp/iofog-controller.tgz
 RUN npm i --unsafe-perm -g /tmp/iofog-controller.tgz && \
   rm -rf /tmp/iofog-controller.tgz && \
   iofog-controller config dev-mode --on
-RUN sudo rm -rf /usr/local/lib/node_modules/iofogcontroller/src/data/sqlite_files
+# RUN sudo rm -rf /usr/local/lib/node_modules/iofogcontroller/src/data/sqlite_files
 
 CMD [ "node", "/usr/local/lib/node_modules/iofogcontroller/src/server.js" ]
