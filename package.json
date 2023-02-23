@@ -103,7 +103,7 @@
     "retry-as-promised": "3.1.0",
     "semantic-release": "19.0.3",
     "semver": "5.6.0",
-    "sequelize": "5.22.5",
+    "sequelize": "6.28.2",
     "sqlite3": "4.2.0",
     "string-format": "2.0.0",
     "umzug": "2.2.0",
