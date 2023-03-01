@@ -24,22 +24,22 @@ module.exports = {
       })
     // restore constraints. Because Sequelize has problem with Sqlite constraints
       .then(() => {
-        return queryInterface.addConstraint('Fogs', ['user_id'], {
-          type: 'FOREIGN KEY',
-          name: 'userId',
+        return queryInterface.addConstraint('Fogs',  {
+          fields: ['user_id'],
+          type: 'foreign key',
+          name: 'userId_fkey_constraint',
           references: {
-            name: 'userId',
             table: 'Users',
             field: 'id'
           },
           onDelete: 'cascade'
         })
       }).then(() => {
-        return queryInterface.addConstraint('Fogs', ['fog_type_id'], {
-          type: 'FOREIGN KEY',
-          name: 'fogTypeId',
+        return queryInterface.addConstraint('Fogs',  {
+          fields: ['fog_type_id'],
+          type: 'foreign key',
+          name: 'fogTypeId_fkey_constraint',
           references: {
-            name: 'fogTypeId',
             table: 'FogTypes',
             field: 'id'
           },

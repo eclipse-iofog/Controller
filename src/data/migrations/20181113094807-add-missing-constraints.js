@@ -2,75 +2,75 @@
 
 module.exports = {
   up: (queryInterface, Sequelize) => {
-    return queryInterface.addConstraint('Flows', ['user_id'], {
-      type: 'FOREIGN KEY',
-      name: 'userId',
+    return queryInterface.addConstraint('Flows',  {
+      fields: ['user_id'],
+      type: 'foreign key',
+      name: 'userId_fkey_constraint',
       references: {
-        name: 'userId',
         table: 'Users',
         field: 'id'
       },
       onDelete: 'cascade'
     }).then(() => {
       return queryInterface.addConstraint('Microservices', ['user_id'], {
-        type: 'FOREIGN KEY',
-        name: 'userId',
+        fields: ['user_id'],
+        type: 'foreign key',
+        name: 'userId_fkey_constraint',
         references: {
-          name: 'userId',
           table: 'Users',
           field: 'id'
         },
         onDelete: 'cascade'
       }).then(() => {
-        return queryInterface.addConstraint('Microservices', ['iofog_uuid'], {
-          type: 'FOREIGN KEY',
-          name: 'iofogUuid',
+        return queryInterface.addConstraint('Microservices', {
+          fields: ['iofog_uuid'], 
+          type: 'foreign key',
+          name: 'iofogUuid_fkey_constraint',
           references: {
-            name: 'iofogUuid',
             table: 'Fogs',
             field: 'uuid'
           },
           onDelete: 'cascade'
         })
       }).then(() => {
-        return queryInterface.addConstraint('Microservices', ['catalog_item_id'], {
-          type: 'FOREIGN KEY',
-          name: 'catalogItemId',
+        return queryInterface.addConstraint('Microservices',  {
+          fields: ['catalog_item_id'],
+          type: 'foreign key',
+          name: 'catalogItemId_fkey_constraint',
           references: {
-            name: 'catalogItemId',
             table: 'CatalogItems',
             field: 'id'
           },
           onDelete: 'cascade'
         })
       }).then(() => {
-        return queryInterface.addConstraint('Microservices', ['registry_id'], {
-          type: 'FOREIGN KEY',
-          name: 'registryId',
+        return queryInterface.addConstraint('Microservices',  {
+          fields: ['registry_id'],
+          type: 'foreign key',
+          name: 'registryId_fkey_constraint',
           references: {
-            name: 'registryId',
             table: 'Registries',
             field: 'id'
           },
           onDelete: 'cascade'
         })
       }).then(() => {
-        return queryInterface.addConstraint('Microservices', ['flow_id'], {
-          type: 'FOREIGN KEY',
-          name: 'flowId',
+        return queryInterface.addConstraint('Microservices',  {
+          fields: ['flow_id'],
+          type: 'foreign key',
+          name: 'flowId_fkey_constraint',
           references: {
-            name: 'flowId',
             table: 'Flows',
             field: 'id'
           },
           onDelete: 'cascade'
         })
       }).then(() => {
-        return queryInterface.addConstraint('ChangeTrackings', ['iofog_uuid'], {
-          type: 'FOREIGN KEY',
-          name: 'iofogUuid',
+        return queryInterface.addConstraint('ChangeTrackings',  {
+          fields: ['iofog_uuid'],
+          type: 'foreign key',
+          name: 'iofogUuid_fkey_constraint',
           references: {
-            name: 'iofogUuid',
             table: 'Fogs',
             field: 'uuid'
           },
@@ -78,22 +78,22 @@ module.exports = {
         })
       })
     }).then(() => {
-      return queryInterface.addConstraint('MicroservicePorts', ['user_id'], {
-        type: 'FOREIGN KEY',
-        name: 'userId',
+      return queryInterface.addConstraint('MicroservicePorts', {
+        fields:  ['user_id'],
+        type: 'foreign key',
+        name: 'userId_fkey_constraint',
         references: {
-          name: 'userId',
           table: 'Users',
           field: 'id'
         },
         onDelete: 'cascade'
       })
     }).then(() => {
-      return queryInterface.addConstraint('MicroservicePorts', ['microservice_uuid'], {
-        type: 'FOREIGN KEY',
-        name: 'microserviceUuid',
+      return queryInterface.addConstraint('MicroservicePorts',  {
+        fields: ['microservice_uuid'],
+        type: 'foreign key',
+        name: 'microserviceUuid_fkey_constraint',
         references: {
-          name: 'microserviceUuid',
           table: 'Microservices',
           field: 'uuid'
         },
