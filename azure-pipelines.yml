@@ -61,9 +61,6 @@ stages:
       #    SNYK_TOKEN: $(snykToken)
 - stage: Test
   jobs:
-  # - template: azure-templates/test.yml
-  #   parameters:
-  #     nodeVersion: '10'
   - template: azure-templates/test.yml
     parameters:
       nodeVersion: '16'
@@ -73,6 +70,9 @@ stages:
   - template: azure-templates/test.yml
     parameters:
       nodeVersion: '18'
+  - template: azure-templates/test.yml
+    parameters:
+      nodeVersion: '19'
 - stage: Publish
   jobs:
   # - job: Platform
