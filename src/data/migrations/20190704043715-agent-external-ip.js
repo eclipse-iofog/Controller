@@ -14,7 +14,7 @@ module.exports = {
         return queryInterface.addConstraint('Fogs', {
           feilds: ['user_id'],
           type: 'foreign key',
-          name: 'userId_fkey_constraint',
+          name: 'fogs_users_fkey_constraint',
           references: {
             table: 'Users',
             field: 'id'
@@ -25,7 +25,7 @@ module.exports = {
         return queryInterface.addConstraint('Fogs', {
           feilds: ['fog_type_id'],
           type: 'foreign key',
-          name: 'fogTypeId_fkey_constraint',
+          name: 'fogs_types_fkey_constraint',
           references: {
             table: 'FogTypes',
             field: 'id'
