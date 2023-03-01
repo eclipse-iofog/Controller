@@ -11,95 +11,103 @@ module.exports = {
         field: 'id'
       },
       onDelete: 'cascade'
-    }).then(() => {
-      return queryInterface.addConstraint('Microservices', ['user_id'], {
-        fields: ['user_id'],
-        type: 'foreign key',
-        name: 'userId_fkey_constraint',
-        references: {
-          table: 'Users',
-          field: 'id'
-        },
-        onDelete: 'cascade'
-      }).then(() => {
-        return queryInterface.addConstraint('Microservices', {
-          fields: ['iofog_uuid'],
-          type: 'foreign key',
-          name: 'iofogUuid_fkey_constraint',
-          references: {
-            table: 'Fogs',
-            field: 'uuid'
-          },
-          onDelete: 'cascade'
-        })
-      }).then(() => {
-        return queryInterface.addConstraint('Microservices', {
-          fields: ['catalog_item_id'],
-          type: 'foreign key',
-          name: 'catalogItemId_fkey_constraint',
-          references: {
-            table: 'CatalogItems',
-            field: 'id'
-          },
-          onDelete: 'cascade'
-        })
-      }).then(() => {
-        return queryInterface.addConstraint('Microservices', {
-          fields: ['registry_id'],
-          type: 'foreign key',
-          name: 'registryId_fkey_constraint',
-          references: {
-            table: 'Registries',
-            field: 'id'
-          },
-          onDelete: 'cascade'
-        })
-      }).then(() => {
-        return queryInterface.addConstraint('Microservices', {
-          fields: ['flow_id'],
-          type: 'foreign key',
-          name: 'flowId_fkey_constraint',
-          references: {
-            table: 'Flows',
-            field: 'id'
-          },
-          onDelete: 'cascade'
-        })
-      }).then(() => {
-        return queryInterface.addConstraint('ChangeTrackings', {
-          fields: ['iofog_uuid'],
-          type: 'foreign key',
-          name: 'iofogUuid_fkey_constraint',
-          references: {
-            table: 'Fogs',
-            field: 'uuid'
-          },
-          onDelete: 'cascade'
-        })
-      })
-    }).then(() => {
-      return queryInterface.addConstraint('MicroservicePorts', {
-        fields: ['user_id'],
-        type: 'foreign key',
-        name: 'userId_fkey_constraint',
-        references: {
-          table: 'Users',
-          field: 'id'
-        },
-        onDelete: 'cascade'
-      })
-    }).then(() => {
-      return queryInterface.addConstraint('MicroservicePorts', {
-        fields: ['microservice_uuid'],
-        type: 'foreign key',
-        name: 'microserviceUuid_fkey_constraint',
-        references: {
-          table: 'Microservices',
-          field: 'uuid'
-        },
-        onDelete: 'cascade'
-      })
     })
+    // .then(() => {
+    //   return queryInterface.addConstraint('Microservices', ['user_id'], {
+    //     fields: ['user_id'],
+    //     type: 'foreign key',
+    //     name: 'userId_fkey_constraint',
+    //     references: {
+    //       table: 'Users',
+    //       field: 'id'
+    //     },
+    //     onDelete: 'cascade'
+    //   })
+    //   .then(() => {
+    //     return queryInterface.addConstraint('Microservices', {
+    //       fields: ['iofog_uuid'],
+    //       type: 'foreign key',
+    //       name: 'iofogUuid_fkey_constraint',
+    //       references: {
+    //         table: 'Fogs',
+    //         field: 'uuid'
+    //       },
+    //       onDelete: 'cascade'
+    //     })
+    //   })
+    //   .then(() => {
+    //     return queryInterface.addConstraint('Microservices', {
+    //       fields: ['catalog_item_id'],
+    //       type: 'foreign key',
+    //       name: 'catalogItemId_fkey_constraint',
+    //       references: {
+    //         table: 'CatalogItems',
+    //         field: 'id'
+    //       },
+    //       onDelete: 'cascade'
+    //     })
+    //   })
+    //   .then(() => {
+    //     return queryInterface.addConstraint('Microservices', {
+    //       fields: ['registry_id'],
+    //       type: 'foreign key',
+    //       name: 'registryId_fkey_constraint',
+    //       references: {
+    //         table: 'Registries',
+    //         field: 'id'
+    //       },
+    //       onDelete: 'cascade'
+    //     })
+    //   })
+    //   .then(() => {
+    //     return queryInterface.addConstraint('Microservices', {
+    //       fields: ['flow_id'],
+    //       type: 'foreign key',
+    //       name: 'flowId_fkey_constraint',
+    //       references: {
+    //         table: 'Flows',
+    //         field: 'id'
+    //       },
+    //       onDelete: 'cascade'
+    //     })
+    //   })
+    //   .then(() => {
+    //     return queryInterface.addConstraint('ChangeTrackings', {
+    //       fields: ['iofog_uuid'],
+    //       type: 'foreign key',
+    //       name: 'iofogUuid_fkey_constraint',
+    //       references: {
+    //         table: 'Fogs',
+    //         field: 'uuid'
+    //       },
+    //       onDelete: 'cascade'
+    //     })
+    //   })
+    // })
+    // .then(() => {
+    //   return queryInterface.addConstraint('MicroservicePorts', {
+    //     fields: ['user_id'],
+    //     type: 'foreign key',
+    //     name: 'userId_fkey_constraint',
+    //     references: {
+    //       table: 'Users',
+    //       field: 'id'
+    //     },
+    //     onDelete: 'cascade'
+    //   })
+    // })
+    // .then(() => {
+    //   return queryInterface.addConstraint('MicroservicePorts', {
+    //     fields: ['microservice_uuid'],
+    //     type: 'foreign key',
+    //     name: 'microserviceUuid_fkey_constraint',
+    //     references: {
+    //       table: 'Microservices',
+    //       field: 'uuid'
+    //     },
+    //     onDelete: 'cascade'
+    //   })
+    // })
   },
 
   down:
