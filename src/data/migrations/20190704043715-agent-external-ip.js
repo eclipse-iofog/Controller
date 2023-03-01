@@ -12,7 +12,7 @@ module.exports = {
     // restore constraints. Because Sequelize has problem with Sqlite constraints
       .then(() => {
         return queryInterface.addConstraint('Fogs', {
-          feilds: ['user_id'], 
+          feilds: ['user_id'],
           type: 'foreign key',
           name: 'userId_fkey_constraint',
           references: {
@@ -23,7 +23,7 @@ module.exports = {
         })
       }).then(() => {
         return queryInterface.addConstraint('Fogs', {
-          feilds:  ['fog_type_id'],
+          feilds: ['fog_type_id'],
           type: 'foreign key',
           name: 'fogTypeId_fkey_constraint',
           references: {

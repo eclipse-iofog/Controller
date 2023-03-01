@@ -29,7 +29,7 @@ module.exports = {
           onDelete: 'cascade'
         })
       }).then(() => {
-        return queryInterface.addConstraint('Fogs',  {
+        return queryInterface.addConstraint('Fogs', {
           fields: ['fog_type_id'],
           type: 'foreign key',
           name: 'fogTypeId_fkey_constraint',
