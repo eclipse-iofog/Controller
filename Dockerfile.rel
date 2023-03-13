@@ -7,8 +7,6 @@ WORKDIR /tmp
 # Required by node-gyp
 RUN apt install python3
 
-# RUN npm config set unsafe-perm true
-
 RUN npm i -g npm
 
 COPY package.json .
@@ -22,10 +20,6 @@ RUN npm version $PKG_VERSION --allow-same-version
 RUN npm pack
 
 FROM node:hydrogen-alpine3.17
-
-# https://stackoverflow.com/questions/52196518/could-not-get-uid-gid-when-building-node-docker
-# Workaround until we fix our node alpine image
-# RUN npm config set unsafe-perm true
 
 RUN apk add sudo logrotate g++ make
 

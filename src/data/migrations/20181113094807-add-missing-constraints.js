@@ -129,26 +129,5 @@ module.exports = {
         }).then(() => {
           return queryInterface.renameColumn('MicroservicePorts', 'user_id1', 'user_id')
         })
-
-      // for other DB
-
-      // return queryInterface.removeConstraint('Flows', 'userId')
-      //   .then(() => {
-      //     return queryInterface.removeConstraint('Microservices', 'mscv_users_fkey_constraint')
-      //   }).then(() => {
-      //     return queryInterface.removeConstraint('Microservices', 'msvc_fogs_fkey_constraint')
-      //   }).then(() => {
-      //     return queryInterface.removeConstraint('Microservices', 'msvc_catalogItems_fkey_constraint')
-      //   }).then(() => {
-      //     return queryInterface.removeConstraint('Microservices', 'msvc_registries_fkey_constraint')
-      //   }).then(() => {
-      //     return queryInterface.removeConstraint('Microservices', 'flowmsvc_flows_fkey_constraintId')
-      //   }).then(() => {
-      //     return queryInterface.removeConstraint('ChangeTrackings', 'changetracking_fogs_fkey_constraint')
-      //   }).then(() => {
-      //     return queryInterface.removeConstraint('MicroservicePorts', 'msvcports_users_fkey_constraint')
-      //   }).then(() => {
-      //     return queryInterface.removeConstraint('MicroservicePorts', 'mcsvcports_msvc_fkey_constraint')
-      //   });
     }
 }
