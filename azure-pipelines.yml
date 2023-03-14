@@ -31,9 +31,8 @@ stages:
     steps:
       - task: NodeTool@0
         inputs:
-          # iofogctl uses 10.X
           versionSource: 'spec'
-          versionSpec: '14.x'
+          versionSpec: '18.x'
         displayName: 'Install Node.js'
 
       - script: |
@@ -62,18 +61,18 @@ stages:
       #    SNYK_TOKEN: $(snykToken)
 - stage: Test
   jobs:
-  # - template: azure-templates/test.yml
-  #   parameters:
-  #     nodeVersion: '10'
-  - template: azure-templates/test.yml
-    parameters:
-      nodeVersion: '14'
   - template: azure-templates/test.yml
     parameters:
       nodeVersion: '16'
   - template: azure-templates/test.yml
     parameters:
       nodeVersion: '17'
+  - template: azure-templates/test.yml
+    parameters:
+      nodeVersion: '18'
+  - template: azure-templates/test.yml
+    parameters:
+      nodeVersion: '19'
 - stage: Publish
   jobs:
   # - job: Platform
@@ -98,7 +97,7 @@ stages:
     steps:
     - task: NodeTool@0
       inputs:
-        versionSpec: '14.x'
+        versionSpec: '18.x'
       displayName: 'Install Node.js'
 
     - script: |

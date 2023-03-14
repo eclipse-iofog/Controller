@@ -131,11 +131,11 @@ function testIoFogSection () {
   try {
     const ioFogCreateResponse = responseHasFields(testCommand('iofog add -n ioFog1 -l testLocation -t 55 -g 65' +
       ' -d testDescription -D testDockerUrl -M 55 -T testDiskDirectoryString -m 65 -c 24 -G 1 -Y testLogDirectory ' +
-      '-C 15 -s 25 -F 27 -Q 26 -B -W -A -y 1 -u ' + userId), ioFogCreateFields)
+      ' -s 25 -F 27 -Q 26 -B -W -A -y 1 -u ' + userId), ioFogCreateFields)
     const ioFogUuid = ioFogCreateResponse.uuid
     responseEquals(testCommand('iofog update -i ' + ioFogUuid + ' -n ioFog1 -l testLocation -t 55 -g 65 ' +
       '-d testDescription -D testDockerUrl -M 55 -T testDiskDirectoryString -m 65 -c 24 -G 1 -Y testLogDirectory ' +
-      '-C 15 -s 25 -F 27 -Q 26 -B -W -A -y 1 -L INFO -p 65 -k 95 -u ' + userId), 'ioFog node has been updated successfully.')
+      ' -s 25 -F 27 -Q 26 -B -W -A -y 1 -L INFO -p 65 -k 95 -u ' + userId), 'ioFog node has been updated successfully.')
     responseHasFields(testCommand('iofog list'), ioFogListFields)
     responseHasFields(testCommand('iofog info -i ' + ioFogUuid), ioFogCreateFields)
     responseHasFields(testCommand('iofog provisioning-key -i ' + ioFogUuid), ioFogProvisioningFields)
@@ -228,7 +228,7 @@ function testMicroserviceSection () {
 
   const ioFogCreateResponse = responseHasFields(executeCommand('iofog add -n ioFog2 -l testLocation -t 55 -g 65 ' +
     '-d testDescription -D testDockerUrl -M 55 -T testDiskDirectoryString -m 65 -c 24 -G 1 -Y testLogDirectory ' +
-    '-C 15 -s 25 -F 27 -Q 26 -B -W -A -y 1 -u ' + userId), ioFogCreateFields)
+    ' -s 25 -F 27 -Q 26 -B -W -A -y 1 -u ' + userId), ioFogCreateFields)
   const ioFogUuid = ioFogCreateResponse.uuid
 
   try {
@@ -315,7 +315,7 @@ function testDiagnosticsSection () {
 
   const ioFogCreateResponse = responseHasFields(executeCommand('iofog add -n ioFog3 -l testLocation -t 55 -g 65' +
     ' -d testDescription -D testDockerUrl -M 55 -T testDiskDirectoryString -m 65 -c 24 -G 1 -Y testLogDirectory ' +
-    '-C 15 -s 25 -F 27 -Q 26 -B -W -A -y 1 -u ' + userId), ioFogCreateFields)
+    ' -s 25 -F 27 -Q 26 -B -W -A -y 1 -u ' + userId), ioFogCreateFields)
   const ioFogUuid = ioFogCreateResponse.uuid
 
   const microserviceCreateResponse = responseHasFields(executeCommand('microservice add -n microservice-name-1' +
