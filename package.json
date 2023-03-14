@@ -104,7 +104,7 @@
     "semantic-release": "19.0.3",
     "semver": "5.6.0",
     "sequelize": "6.29.0",
-    "sqlite3": "^5.1.4",
+    "sqlite3": "^5.1.5",
     "string-format": "2.0.0",
     "umzug": "2.2.0",
     "underscore": "1.13.1",
