@@ -14,3 +14,4 @@ node_modules
 .DS_Store
 iofogcontroller-*.tgz
 diagnostic/
+iofog-iofogcontroller-*.tgz

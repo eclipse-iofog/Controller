@@ -13,3 +13,4 @@ node_modules
 /src/config/*-config.json
 .DS_Store
 iofogcontroller-*.tgz
+iofog-iofogcontroller-*.tgz
