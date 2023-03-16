@@ -30,11 +30,11 @@ RUN apk add --update --no-cache python3 && ln -sf python3 /usr/bin/python
 RUN python3 -m ensurepip
 RUN pip3 install --no-cache --upgrade pip setuptools
 
-COPY --from=builder /tmp/iofogcontroller-*.tgz /tmp/iofog-controller.tgz
+COPY --from=builder /tmp/iofog-iofogcontroller-*.tgz /tmp/iofog-controller.tgz
 
 RUN npm i -g /tmp/iofog-controller.tgz && \
   rm -rf /tmp/iofog-controller.tgz && \
   iofog-controller config dev-mode --on
 # RUN sudo rm -rf /usr/local/lib/node_modules/iofogcontroller/src/data/sqlite_files
 
-CMD [ "node", "/usr/local/lib/node_modules/iofogcontroller/src/server.js" ]
+CMD [ "node", "/usr/local/lib/node_modules/iofog-iofogcontroller/src/server.js" ]
