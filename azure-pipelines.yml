@@ -106,7 +106,7 @@ stages:
   
     - script: |
         npm pack
-        ls iofogcontroller-*.tgz
+        ls iofog-iofogcontroller-*.tgz
       displayName: 'npm pack for release artefact'
 
     - script: |
@@ -138,7 +138,7 @@ stages:
       displayName: 'artefacts to publish'
 
     - script: |
-        rm -fr iofogcontroller-*.tgz
+        rm -fr iofog-iofogcontroller-*.tgz
         git checkout package-lock.json
         git config --global user.email "info@edgeworx.io"
         git config --global user.name "Azure DevOps"
@@ -158,7 +158,7 @@ stages:
 
     - bash: |
         echo 'checking pack file exists..'
-        tar=$(ls iofogcontroller-*.tgz)
+        tar=$(ls iofog-iofogcontroller-*.tgz)
         echo $tar
         echo "##vso[task.setvariable variable=controller_tar]$tar"
       displayName: 'setting vars'
@@ -219,9 +219,9 @@ stages:
         package_cloud push iofog/iofog-controller-snapshots/node/1 $(controller_tar) --config=$(Agent.TempDirectory)/package_cloud
       displayName: 'push to package cloud'
     - script: |
-        package_cloud yank iofog/iofog-controller-snapshots/node/1 iofogcontroller-0.0.0-dev.tgz --config=$(Agent.TempDirectory)/package_cloud
+        package_cloud yank iofog/iofog-controller-snapshots/node/1 iofog-iofogcontroller-0.0.0-dev.tgz --config=$(Agent.TempDirectory)/package_cloud
         npm --no-git-tag-version version 0.0.0-dev --allow-downgrade
         npm pack
-        package_cloud push iofog/iofog-controller-snapshots/node/1 iofogcontroller-0.0.0-dev.tgz --config=$(Agent.TempDirectory)/package_cloud
+        package_cloud push iofog/iofog-controller-snapshots/node/1 iofog-iofogcontroller-0.0.0-dev.tgz --config=$(Agent.TempDirectory)/package_cloud
       displayName: 'push develop package to package cloud'
       condition: and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/develop'))
