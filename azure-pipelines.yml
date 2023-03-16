@@ -49,6 +49,18 @@ stages:
           npm i -g better-npm-audit
           npx better-npm-audit audit -p
         displayName: Check for vulnerabilities
+      - task: Docker@2
+        displayName: 'build docker'
+        inputs:
+          containerRegistry: 'Edgeworx GCP'
+          repository: $(repository)
+          command: 'build'
+          Dockerfile: "Dockerfile.dev"
+          arguments: --build-arg PKG_VERSION=3.0.2-dev
+          tags: |
+            $(imageTag)
+            $(branchTag)
+            latest
 
       # npx better-npm-audit audit -p 
       # To be removed once new version of ncof is released
