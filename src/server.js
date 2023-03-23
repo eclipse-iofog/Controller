@@ -27,7 +27,8 @@ const path = require('path')
 const { renderFile } = require('ejs')
 const xss = require('xss-clean')
 const { substitutionMiddleware } = require('./helpers/template-helper')
-
+const swaggerUi = require('swagger-ui-express')
+const swaggerFile = require('../docs/swagger.json')
 const multer = require('multer')
 const multerMemStorage = multer.memoryStorage()
 const uploadFile = (fileName) => multer({
@@ -219,3 +220,4 @@ initState()
       startHttpServer({ api: app, viewer: viewerApp }, { api: apiPort, viewer: viewerPort }, jobs)
     }
   })
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerFile))

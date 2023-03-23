@@ -59,7 +59,8 @@
     "cli-tests": "node scripts/run-test.js cli-tests",
     "precoverage": "npm run lint",
     "coverage": "node scripts/run-test.js coverage",
-    "prepare": "npm run lint"
+    "prepare": "npm run lint",
+    "swagger": "./generate-swagger.sh"
   },
   "preferGlobal": true,
   "bin": {
@@ -106,6 +107,7 @@
     "sequelize": "6.29.0",
     "sqlite3": "^5.1.5",
     "string-format": "2.0.0",
+    "swagger-ui-express": "^4.6.2",
     "umzug": "2.2.0",
     "underscore": "1.13.1",
     "xss-clean": "0.1.1"

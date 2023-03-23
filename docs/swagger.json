@@ -1,0 +1,3742 @@
+{
+  "swagger" : "2.0",
+  "info" : {
+    "version" : "3.0.0",
+    "title" : "ioFog Controller"
+  },
+  "tags" : [ {
+    "name" : "Controller",
+    "description" : "Manage your controller"
+  }, {
+    "name" : "ioFog",
+    "description" : "Manage your agents"
+  }, {
+    "name" : "Application",
+    "description" : "Manage your applications"
+  }, {
+    "name" : "Application Template",
+    "description" : "Manage your application templates"
+  }, {
+    "name" : "Catalog",
+    "description" : "Manage your catalog"
+  }, {
+    "name" : "Registries",
+    "description" : "Manage your registries"
+  }, {
+    "name" : "Flow",
+    "description" : "Manage your flows"
+  }, {
+    "name" : "Microservices",
+    "description" : "Manage your microservices"
+  }, {
+    "name" : "Routing",
+    "description" : "Manage your routes"
+  }, {
+    "name" : "Edge Resource",
+    "description" : "Manage your Edge Resources"
+  }, {
+    "name" : "Diagnostics",
+    "description" : "Diagnostic your microservices"
+  }, {
+    "name" : "Tunnel",
+    "description" : "Manage ssh tunnels"
+  }, {
+    "name" : "Agent",
+    "description" : "Used by your agents to communicate with your controller"
+  }, {
+    "name" : "User",
+    "description" : "Manage your users"
+  } ],
+  "paths" : {
+    "/status" : {
+      "get" : {
+        "tags" : [ "Controller" ],
+        "summary" : "Returns service health status",
+        "operationId" : "getServiceStatus",
+        "parameters" : [ ],
+        "responses" : {
+          "200" : {
+            "description" : "Service status"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/email-activation" : {
+      "get" : {
+        "tags" : [ "Controller" ],
+        "summary" : "Returns email activation status",
+        "operationId" : "getEmailActivationStatus",
+        "parameters" : [ ],
+        "responses" : {
+          "200" : {
+            "description" : "Email activation status"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/fog-types" : {
+      "get" : {
+        "tags" : [ "Controller" ],
+        "summary" : "Gets ioFog types list",
+        "operationId" : "getIOFogTypes",
+        "parameters" : [ ],
+        "responses" : {
+          "200" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/iofog-list" : {
+      "get" : {
+        "tags" : [ "ioFog" ],
+        "summary" : "Returns list of ioFog nodes",
+        "operationId" : "getIOFogNodes",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User token",
+          "required" : true
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "List of ioFog nodes",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request"
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/iofog" : {
+      "post" : {
+        "tags" : [ "ioFog" ],
+        "summary" : "Creates a new ioFog node",
+        "operationId" : "createIOFogNode",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User token",
+          "required" : true
+        } ],
+        "responses" : {
+          "201" : {
+            "description" : "Created",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request"
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/iofog/{uuid}" : {
+      "get" : {
+        "tags" : [ "ioFog" ],
+        "summary" : "Gets ioFog node info",
+        "operationId" : "getIOFogNode",
+        "parameters" : [ {
+          "name" : "uuid",
+          "in" : "path",
+          "description" : "ioFog node id",
+          "required" : true
+        }, {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User token",
+          "required" : true
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "404" : {
+            "description" : "Invalid Node Id"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "ioFog" ],
+        "summary" : "Deletes an ioFog node",
+        "operationId" : "deleteIOFogNode",
+        "parameters" : [ {
+          "name" : "uuid",
+          "in" : "path",
+          "description" : "ioFog node id",
+          "required" : true
+        }, {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User token",
+          "required" : true
+        } ],
+        "responses" : {
+          "202" : {
+            "description" : "Accepted",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "404" : {
+            "description" : "Invalid Node Id"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      },
+      "patch" : {
+        "tags" : [ "ioFog" ],
+        "summary" : "Updates existing ioFog node",
+        "operationId" : "updateIOFogNode",
+        "parameters" : [ {
+          "name" : "uuid",
+          "in" : "path",
+          "description" : "ioFog node id",
+          "required" : true
+        }, {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User token",
+          "required" : true
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "Updated",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request"
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "404" : {
+            "description" : "Invalid Node Id"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/iofog/{uuid}/provisioning-key" : {
+      "get" : {
+        "tags" : [ "ioFog" ],
+        "summary" : "Generates provisioning key for an ioFog node",
+        "operationId" : "generateProvisioningKey",
+        "parameters" : [ {
+          "name" : "uuid",
+          "in" : "path",
+          "description" : "ioFog node id",
+          "required" : true
+        }, {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User token",
+          "required" : true
+        } ],
+        "responses" : {
+          "201" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "404" : {
+            "description" : "Invalid Node Id"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/iofog/{uuid}/version/{versionCommand}" : {
+      "post" : {
+        "tags" : [ "ioFog" ],
+        "summary" : "Set change version command",
+        "operationId" : "setVersionCommand",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User token",
+          "required" : true
+        }, {
+          "name" : "uuid",
+          "in" : "path",
+          "description" : "ioFog node id",
+          "required" : true
+        }, {
+          "name" : "versionCommand",
+          "in" : "path",
+          "description" : "change version command",
+          "required" : true
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request"
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "404" : {
+            "description" : "Invalid Node Id"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/iofog/{uuid}/reboot" : {
+      "post" : {
+        "tags" : [ "ioFog" ],
+        "summary" : "remote reboot fog agent",
+        "operationId" : "setRebootCommand",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User Token",
+          "required" : true
+        }, {
+          "name" : "uuid",
+          "in" : "path",
+          "description" : "ioFog node id",
+          "required" : true
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/iofog/{uuid}/prune" : {
+      "post" : {
+        "tags" : [ "ioFog" ],
+        "summary" : "prune reboot fog agent",
+        "operationId" : "setPruneCommand",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User Token",
+          "required" : true
+        }, {
+          "name" : "uuid",
+          "in" : "path",
+          "description" : "ioFog node id",
+          "required" : true
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/iofog/{uuid}/hal/hw" : {
+      "get" : {
+        "tags" : [ "ioFog" ],
+        "summary" : "Retrieves HAL hardware info",
+        "operationId" : "getFogHalHardwareInfo",
+        "parameters" : [ {
+          "name" : "uuid",
+          "in" : "path",
+          "description" : "ioFog node id",
+          "required" : true
+        }, {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User token",
+          "required" : true
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "404" : {
+            "description" : "Invalid Node Id"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/iofog/{uuid}/hal/usb" : {
+      "get" : {
+        "tags" : [ "ioFog" ],
+        "summary" : "Retrieves HAL USB info",
+        "operationId" : "getFogHalUsbInfo",
+        "parameters" : [ {
+          "name" : "uuid",
+          "in" : "path",
+          "description" : "ioFog node id",
+          "required" : true
+        }, {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User token",
+          "required" : true
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "404" : {
+            "description" : "Invalid Node Id"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/application" : {
+      "get" : {
+        "tags" : [ "Application" ],
+        "summary" : "Lists all applications",
+        "operationId" : "listApplication",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User Token",
+          "required" : true
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request"
+          },
+          "404" : {
+            "description" : "Not Found"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "Application" ],
+        "summary" : "Creates an application",
+        "operationId" : "createApplication",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User Token",
+          "required" : true
+        } ],
+        "deprecated" : true,
+        "responses" : {
+          "200" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/application/yaml" : {
+      "post" : {
+        "tags" : [ "Application" ],
+        "summary" : "Creates an application using a YAML file",
+        "operationId" : "createApplicationYAML",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User Token",
+          "required" : true
+        }, {
+          "name" : "application",
+          "in" : "formData",
+          "description" : "YAML file",
+          "required" : true
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/application/{name}" : {
+      "get" : {
+        "tags" : [ "Application" ],
+        "summary" : "Gets an application details",
+        "operationId" : "getApplication",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User Token",
+          "required" : true
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request"
+          },
+          "404" : {
+            "description" : "Not Found"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      },
+      "put" : {
+        "tags" : [ "Application" ],
+        "summary" : "Updates an application",
+        "operationId" : "updateApplication",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User Token",
+          "required" : true
+        } ],
+        "deprecated" : true,
+        "responses" : {
+          "204" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request"
+          },
+          "404" : {
+            "description" : "Not Found"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "Application" ],
+        "summary" : "Deletes an application",
+        "operationId" : "deleteApplication",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User Token",
+          "required" : true
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request"
+          },
+          "404" : {
+            "description" : "Not Found"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      },
+      "patch" : {
+        "tags" : [ "Application" ],
+        "summary" : "Updates an application metadata",
+        "operationId" : "patchApplication",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User Token",
+          "required" : true
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request"
+          },
+          "404" : {
+            "description" : "Not Found"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/application/yaml/{name}" : {
+      "put" : {
+        "tags" : [ "Application" ],
+        "summary" : "Updates an application using a YAML file",
+        "operationId" : "updateApplicationYAML",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User Token",
+          "required" : true
+        }, {
+          "name" : "application",
+          "in" : "formData",
+          "description" : "YAML file",
+          "required" : true
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request"
+          },
+          "404" : {
+            "description" : "Not Found"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/applicationTemplates" : {
+      "get" : {
+        "tags" : [ "Application Template" ],
+        "summary" : "Lists all application templates",
+        "operationId" : "listApplicationTemplates",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User Token",
+          "required" : true
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request"
+          },
+          "404" : {
+            "description" : "Not Found"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/applicationTemplate" : {
+      "post" : {
+        "tags" : [ "Application Template" ],
+        "summary" : "Creates an application template",
+        "operationId" : "createApplicationTemplate",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User Token",
+          "required" : true
+        } ],
+        "deprecated" : true,
+        "responses" : {
+          "200" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/applicationTemplate/yaml" : {
+      "post" : {
+        "tags" : [ "Application Template" ],
+        "summary" : "Creates an application template using a YAML file",
+        "operationId" : "createApplicationTemplateYAML",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User Token",
+          "required" : true
+        }, {
+          "name" : "template",
+          "in" : "formData",
+          "description" : "YAML file",
+          "required" : true
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/applicationTemplate/{name}" : {
+      "get" : {
+        "tags" : [ "Application Template" ],
+        "summary" : "Gets an application template",
+        "operationId" : "getApplicationTemplate",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User Token",
+          "required" : true
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request"
+          },
+          "404" : {
+            "description" : "Not Found"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      },
+      "put" : {
+        "tags" : [ "Application Template" ],
+        "summary" : "Updates or creates an application template",
+        "operationId" : "updateOrCreateApplicationTemplate",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User Token",
+          "required" : true
+        } ],
+        "deprecated" : true,
+        "responses" : {
+          "200" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "Application Template" ],
+        "summary" : "Deletes an application template",
+        "operationId" : "deleteApplicationTemplate",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User Token",
+          "required" : true
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request"
+          },
+          "404" : {
+            "description" : "Not Found"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      },
+      "patch" : {
+        "tags" : [ "Application Template" ],
+        "summary" : "Patches an application template",
+        "operationId" : "patchApplicationTemplate",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User Token",
+          "required" : true
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request"
+          },
+          "404" : {
+            "description" : "Not Found"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/applicationTemplate/yaml/{name}" : {
+      "put" : {
+        "tags" : [ "Application Template" ],
+        "summary" : "Updates or creates an application template",
+        "operationId" : "updateOrCreateApplicationTemplate",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User Token",
+          "required" : true
+        }, {
+          "name" : "template",
+          "in" : "formData",
+          "description" : "YAML file",
+          "required" : true
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/agent/provision" : {
+      "post" : {
+        "tags" : [ "Agent" ],
+        "summary" : "Provision agent with an ioFog node",
+        "operationId" : "agentProvision",
+        "parameters" : [ ],
+        "responses" : {
+          "200" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request"
+          },
+          "401" : {
+            "description" : "Expired Provisioning Key"
+          },
+          "404" : {
+            "description" : "Invalid Provisioning Key"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/agent/deprovision" : {
+      "post" : {
+        "tags" : [ "Agent" ],
+        "summary" : "Deprovision agent",
+        "operationId" : "agentDeprovision",
+        "parameters" : [ ],
+        "responses" : {
+          "204" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request"
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/agent/config" : {
+      "get" : {
+        "tags" : [ "Agent" ],
+        "summary" : "Get an ioFog node configuration",
+        "operationId" : "getIOFogNodeConfig",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "Agent Token",
+          "required" : true
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      },
+      "patch" : {
+        "tags" : [ "Agent" ],
+        "summary" : "Updates an ioFog node configuration",
+        "operationId" : "updateIOFogNodeConfig",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "Agent Token",
+          "required" : true
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request"
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/agent/config/changes" : {
+      "get" : {
+        "tags" : [ "Agent" ],
+        "summary" : "Gets ioFog node changes",
+        "operationId" : "getIOFogNodeChanges",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "Agent Token",
+          "required" : true
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request"
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      },
+      "patch" : {
+        "tags" : [ "Agent" ],
+        "summary" : "Resets ioFog node changes list",
+        "operationId" : "resetIOFogNodeChanges",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "Agent Token",
+          "required" : true
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request"
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/agent/status" : {
+      "put" : {
+        "tags" : [ "Agent" ],
+        "summary" : "Posts agent status to ioFog node",
+        "operationId" : "postAgentStatus",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "Agent Token",
+          "required" : true
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request"
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/agent/microservices" : {
+      "get" : {
+        "tags" : [ "Agent" ],
+        "summary" : "Gets microservices running on an ioFog node",
+        "operationId" : "getAgentMicroservicesList",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "Agent Token",
+          "required" : true
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/agent/microservices/{microserviceUuid}" : {
+      "get" : {
+        "tags" : [ "Agent" ],
+        "summary" : "Gets microservices running on an ioFog node",
+        "operationId" : "getAgentMicroserviceInfo",
+        "parameters" : [ {
+          "name" : "microserviceUuid",
+          "in" : "path",
+          "description" : "Microservice UUID",
+          "required" : true
+        }, {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "Agent Token",
+          "required" : true
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "404" : {
+            "description" : "Invalid Microservice Uuid"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/agent/registries" : {
+      "get" : {
+        "tags" : [ "Agent" ],
+        "summary" : "Gets list of Docker registries",
+        "operationId" : "getRegistriesList",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "Agent Token",
+          "required" : true
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/agent/tunnel" : {
+      "get" : {
+        "tags" : [ "Agent" ],
+        "summary" : "Get an ioFog node tunnel configuration",
+        "operationId" : "getIOFogNodeTunnelConfig",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "Agent Token",
+          "required" : true
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "404" : {
+            "description" : "Tunnel Not Found"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/agent/strace" : {
+      "get" : {
+        "tags" : [ "Agent" ],
+        "summary" : "Get an ioFog node strace info",
+        "operationId" : "getIOFogNodeStraceInfo",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "Agent Token",
+          "required" : true
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "404" : {
+            "description" : "Strace Not Found"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      },
+      "put" : {
+        "tags" : [ "Agent" ],
+        "summary" : "Posts agent strace to ioFog node",
+        "operationId" : "postIOFogNodeStraceBuffer",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "Agent Token",
+          "required" : true
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request"
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "404" : {
+            "description" : "Invalid Node Id"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/agent/version" : {
+      "get" : {
+        "tags" : [ "Agent" ],
+        "summary" : "Get change version command",
+        "operationId" : "getChangeVersion",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "Agent Token",
+          "required" : true
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "404" : {
+            "description" : "Version Command Not Found"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/agent/hal/hw" : {
+      "put" : {
+        "tags" : [ "Agent" ],
+        "summary" : "Updates HAL hardware info",
+        "operationId" : "putHalHardwareInfo",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "Agent Token",
+          "required" : true
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request"
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/agent/hal/usb" : {
+      "get" : {
+        "tags" : [ "ioFog" ],
+        "summary" : "Retrieves HAL USB info",
+        "operationId" : "getFogHalUsbInfo",
+        "parameters" : [ {
+          "name" : "uuid",
+          "in" : "path",
+          "description" : "ioFog node id",
+          "required" : true
+        }, {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User token",
+          "required" : true
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "404" : {
+            "description" : "Invalid Node Id"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      },
+      "put" : {
+        "tags" : [ "Agent" ],
+        "summary" : "Updates HAL USB info",
+        "operationId" : "putHalUsbInfo",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "Agent Token",
+          "required" : true
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request"
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/agent/delete-node" : {
+      "delete" : {
+        "tags" : [ "Agent" ],
+        "summary" : "Deletes an ioFog node",
+        "operationId" : "deleteAgentNode",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "Agent token",
+          "required" : true
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/agent/image-snapshot" : {
+      "get" : {
+        "tags" : [ "Agent" ],
+        "summary" : "Get image snapshot info",
+        "operationId" : "getImageSnapshot",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "Agent Token",
+          "required" : true
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "404" : {
+            "description" : "Image Snapshot Not Found"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      },
+      "put" : {
+        "tags" : [ "Agent" ],
+        "summary" : "Put image snapshot info on controller",
+        "operationId" : "putImageSnapshot",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "Agent Token",
+          "required" : true
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request"
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/agent/tracking" : {
+      "post" : {
+        "tags" : [ "Agent" ],
+        "summary" : "Post tracking info",
+        "operationId" : "postTracking",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "Agent Token",
+          "required" : true
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "Success"
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/catalog/microservices" : {
+      "get" : {
+        "tags" : [ "Catalog" ],
+        "summary" : "Gets microservices catalog",
+        "operationId" : "getMicroservicesCatalog",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User Token",
+          "required" : true
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "Catalog" ],
+        "summary" : "Creates a new microservice catalog item",
+        "operationId" : "createMicroserviceCatalogItem",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User Token",
+          "required" : true
+        } ],
+        "responses" : {
+          "201" : {
+            "description" : "Created",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request"
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "409" : {
+            "description" : "Duplicate Name"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/catalog/microservices/{id}" : {
+      "get" : {
+        "tags" : [ "Catalog" ],
+        "summary" : "Gets microservice catalog item info",
+        "operationId" : "getMicroserviceCatalogItem",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User Token",
+          "required" : true
+        }, {
+          "name" : "id",
+          "in" : "path",
+          "description" : "Catalog Item Id",
+          "required" : true
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Catalog Item Info",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "404" : {
+            "description" : "Invalid Catalog Item Id"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "Catalog" ],
+        "summary" : "Deletes a microservice catalog item",
+        "operationId" : "deleteMicroserviceCatalogItem",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User Token",
+          "required" : true
+        }, {
+          "name" : "id",
+          "in" : "path",
+          "description" : "Catalog Item Id",
+          "required" : true
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "404" : {
+            "description" : "Invalid Catalog Item Id"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      },
+      "patch" : {
+        "tags" : [ "Catalog" ],
+        "summary" : "Updates a microservice catalog item",
+        "operationId" : "updateMicroserviceCatalogItem",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User Token",
+          "required" : true
+        }, {
+          "name" : "id",
+          "in" : "path",
+          "description" : "Catalog Item Id",
+          "required" : true
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request"
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "404" : {
+            "description" : "Invalid Catalog Item Id"
+          },
+          "409" : {
+            "description" : "Duplicate Name"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/flow" : {
+      "get" : {
+        "tags" : [ "Flow" ],
+        "summary" : "Gets list of flows",
+        "operationId" : "getFlowsList",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User Token",
+          "required" : true
+        } ],
+        "deprecated" : true,
+        "responses" : {
+          "200" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "Flow" ],
+        "summary" : "Creates a new flow",
+        "operationId" : "createFlow",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User Token",
+          "required" : true
+        } ],
+        "deprecated" : true,
+        "responses" : {
+          "201" : {
+            "description" : "Created",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request"
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/flow/{id}" : {
+      "get" : {
+        "tags" : [ "Flow" ],
+        "summary" : "Gets flow info",
+        "operationId" : "getFlowInfo",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User Token",
+          "required" : true
+        }, {
+          "name" : "id",
+          "in" : "path",
+          "description" : "Flow Id",
+          "required" : true
+        } ],
+        "deprecated" : true,
+        "responses" : {
+          "200" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "404" : {
+            "description" : "Invalid Flow Id"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "Flow" ],
+        "summary" : "Deletes a flow",
+        "operationId" : "deleteFlow",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User Token",
+          "required" : true
+        }, {
+          "name" : "id",
+          "in" : "path",
+          "description" : "Flow Id",
+          "required" : true
+        } ],
+        "deprecated" : true,
+        "responses" : {
+          "204" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "404" : {
+            "description" : "Invalid Flow Id"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      },
+      "patch" : {
+        "tags" : [ "Flow" ],
+        "summary" : "Updates a flow",
+        "operationId" : "updateFlow",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User Token",
+          "required" : true
+        }, {
+          "name" : "id",
+          "in" : "path",
+          "description" : "Flow Id",
+          "required" : true
+        } ],
+        "deprecated" : true,
+        "responses" : {
+          "204" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request"
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "404" : {
+            "description" : "Invalid Flow Id"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/microservices" : {
+      "get" : {
+        "tags" : [ "Microservices" ],
+        "summary" : "Gets list of microservices",
+        "operationId" : "getMicroservicesList",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User Token",
+          "required" : true
+        }, {
+          "name" : "flowId",
+          "in" : "query",
+          "description" : "Flow Id",
+          "required" : false
+        }, {
+          "name" : "application",
+          "in" : "query",
+          "description" : "Application name",
+          "required" : false
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "Microservices" ],
+        "summary" : "Creates a new microservice on an ioFog node",
+        "operationId" : "createMicroservice",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User Token",
+          "required" : true
+        } ],
+        "deprecated" : true,
+        "responses" : {
+          "201" : {
+            "description" : "Created",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request"
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "409" : {
+            "description" : "Duplicate Name"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/microservices/yaml" : {
+      "post" : {
+        "tags" : [ "Microservices" ],
+        "summary" : "Creates a new microservice in an Application",
+        "operationId" : "createMicroserviceYAML",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User Token",
+          "required" : true
+        }, {
+          "name" : "microservice",
+          "in" : "formData",
+          "description" : "Microservice YAML",
+          "required" : true,
+          "type" : "file"
+        } ],
+        "responses" : {
+          "201" : {
+            "description" : "Created",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request"
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "409" : {
+            "description" : "Duplicate Name"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/microservices/{uuid}" : {
+      "get" : {
+        "tags" : [ "Microservices" ],
+        "summary" : "Gets a microservice info",
+        "operationId" : "getMicroserviceInfo",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User Token",
+          "required" : true
+        }, {
+          "name" : "uuid",
+          "in" : "path",
+          "description" : "Microservice Uuid",
+          "required" : true
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "404" : {
+            "description" : "Not Found"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "Microservices" ],
+        "summary" : "Deletes a microservice",
+        "operationId" : "deleteMicroservice",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User Token",
+          "required" : true
+        }, {
+          "name" : "uuid",
+          "in" : "path",
+          "description" : "Microservice Uuid",
+          "required" : true
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request"
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "404" : {
+            "description" : "Not Found"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      },
+      "patch" : {
+        "tags" : [ "Microservices" ],
+        "summary" : "Updates a microservice",
+        "operationId" : "updateMicroservice",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User Token",
+          "required" : true
+        }, {
+          "name" : "uuid",
+          "in" : "path",
+          "description" : "Microservice Uuid",
+          "required" : true
+        } ],
+        "deprecated" : true,
+        "responses" : {
+          "204" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request"
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "404" : {
+            "description" : "Not Found"
+          },
+          "409" : {
+            "description" : "Duplicate Name"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/microservices/yaml/{uuid}" : {
+      "patch" : {
+        "tags" : [ "Microservices" ],
+        "summary" : "Updates a microservice",
+        "operationId" : "updateMicroserviceYAML",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User Token",
+          "required" : true
+        }, {
+          "name" : "uuid",
+          "in" : "path",
+          "description" : "Microservice Uuid",
+          "required" : true
+        }, {
+          "name" : "microservice",
+          "in" : "formData",
+          "description" : "YAML file",
+          "required" : true,
+          "type" : "file"
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request"
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "404" : {
+            "description" : "Not Found"
+          },
+          "409" : {
+            "description" : "Duplicate Name"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/microservices/{uuid}/routes/{receiverUuid}" : {
+      "post" : {
+        "tags" : [ "Microservices" ],
+        "summary" : "Creates a route from microservice to receiver",
+        "operationId" : "createMicroserviceRoute",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User Token",
+          "required" : true
+        }, {
+          "name" : "uuid",
+          "in" : "path",
+          "description" : "Microservice Uuid",
+          "required" : true
+        }, {
+          "name" : "receiverUuid",
+          "in" : "path",
+          "description" : "Receiver Microservice Uuid",
+          "required" : true
+        } ],
+        "deprecated" : true,
+        "responses" : {
+          "204" : {
+            "description" : "Created",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Not Valid"
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "404" : {
+            "description" : "Not Found"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "Microservices" ],
+        "summary" : "Deletes a route microservice",
+        "operationId" : "deleteMicroserviceRoute",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User Token",
+          "required" : true
+        }, {
+          "name" : "uuid",
+          "in" : "path",
+          "description" : "Microservice Uuid",
+          "required" : true
+        }, {
+          "name" : "receiverUuid",
+          "in" : "path",
+          "description" : "Receiver Microservice Uuid",
+          "required" : true
+        } ],
+        "deprecated" : true,
+        "responses" : {
+          "204" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Not Valid"
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "404" : {
+            "description" : "Not Found"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/microservices/{uuid}/port-mapping" : {
+      "get" : {
+        "tags" : [ "Microservices" ],
+        "summary" : "Get a port mapping list for microservice",
+        "operationId" : "getMicroservicePortMapping",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User Token",
+          "required" : true
+        }, {
+          "name" : "uuid",
+          "in" : "path",
+          "description" : "Microservice Uuid",
+          "required" : true
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Created",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "404" : {
+            "description" : "Not Found"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "Microservices" ],
+        "summary" : "Creates a port mapping for microservice",
+        "operationId" : "createMicroservicePortMapping",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User Token",
+          "required" : true
+        }, {
+          "name" : "uuid",
+          "in" : "path",
+          "description" : "Microservice Uuid",
+          "required" : true
+        } ],
+        "responses" : {
+          "201" : {
+            "description" : "Created",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Not Valid"
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "404" : {
+            "description" : "Not Found"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/microservices/{uuid}/port-mapping/{internalPort}" : {
+      "delete" : {
+        "tags" : [ "Microservices" ],
+        "summary" : "Deletes a port mapping for microservice",
+        "operationId" : "deleteMicroservicePortMapping",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User Token",
+          "required" : true
+        }, {
+          "name" : "uuid",
+          "in" : "path",
+          "description" : "Microservice Uuid",
+          "required" : true
+        }, {
+          "name" : "internalPort",
+          "in" : "path",
+          "description" : "Internal Port",
+          "required" : true
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "404" : {
+            "description" : "Not Found"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/microservices/{uuid}/volume-mapping" : {
+      "get" : {
+        "tags" : [ "Microservices" ],
+        "summary" : "Get a volume mapping list for microservice",
+        "operationId" : "getMicroserviceVolumeMapping",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User Token",
+          "required" : true
+        }, {
+          "name" : "uuid",
+          "in" : "path",
+          "description" : "Microservice Uuid",
+          "required" : true
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "404" : {
+            "description" : "Not Found"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "Microservices" ],
+        "summary" : "Creates a volume mapping for microservice",
+        "operationId" : "createMicroserviceVolumeMapping",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User Token",
+          "required" : true
+        }, {
+          "name" : "uuid",
+          "in" : "path",
+          "description" : "Microservice Uuid",
+          "required" : true
+        } ],
+        "responses" : {
+          "201" : {
+            "description" : "Created",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Not Valid"
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "404" : {
+            "description" : "Not Found"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/microservices/{uuid}/volume-mapping/{id}" : {
+      "delete" : {
+        "tags" : [ "Microservices" ],
+        "summary" : "Deletes a volume mapping for microservice",
+        "operationId" : "deleteMicroserviceVolumeMapping",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User Token",
+          "required" : true
+        }, {
+          "name" : "uuid",
+          "in" : "path",
+          "description" : "Microservice Uuid",
+          "required" : true
+        }, {
+          "name" : "id",
+          "in" : "path",
+          "description" : "Volume id",
+          "required" : true
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Not Valid"
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "404" : {
+            "description" : "Not Found"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/microservices/{uuid}/image-snapshot" : {
+      "get" : {
+        "tags" : [ "Diagnostics" ],
+        "summary" : "Download image snapshot",
+        "operationId" : "downloadImageSnapshot",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User Token",
+          "required" : true
+        }, {
+          "name" : "uuid",
+          "in" : "path",
+          "description" : "Microservice UUID",
+          "required" : true
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "404" : {
+            "description" : "Invalid Microservice UUID"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "Diagnostics" ],
+        "summary" : "Send request to create image snapshot",
+        "operationId" : "createImageSnapshot",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User Token",
+          "required" : true
+        }, {
+          "name" : "uuid",
+          "in" : "path",
+          "description" : "Microservice UUID",
+          "required" : true
+        } ],
+        "responses" : {
+          "201" : {
+            "description" : "Created",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "404" : {
+            "description" : "Invalid Microservice UUID"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/microservices/{uuid}/strace" : {
+      "get" : {
+        "tags" : [ "Diagnostics" ],
+        "summary" : "Gets Strace Data for Microservice",
+        "operationId" : "getMicroserviceStrace",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User Token",
+          "required" : true
+        }, {
+          "name" : "uuid",
+          "in" : "path",
+          "description" : "Microservice UUID",
+          "required" : true
+        }, {
+          "name" : "format",
+          "in" : "query",
+          "required" : true
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "404" : {
+            "description" : "Invalid Microservice UUID"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      },
+      "put" : {
+        "tags" : [ "Diagnostics" ],
+        "summary" : "Posts Microservice Strace file to FTP",
+        "operationId" : "postMicroserviceStraceToFTP",
+        "parameters" : [ {
+          "name" : "uuid",
+          "in" : "path",
+          "description" : "Microservice UUID",
+          "required" : true
+        }, {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User Token",
+          "required" : true
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request"
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "404" : {
+            "description" : "Invalid Microservice UUID"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      },
+      "patch" : {
+        "tags" : [ "Diagnostics" ],
+        "summary" : "Enables Microservice Strace Option",
+        "operationId" : "enableMicroserviceStrace",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User Token",
+          "required" : true
+        }, {
+          "name" : "uuid",
+          "in" : "path",
+          "description" : "Microservice UUID",
+          "required" : true
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request"
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "404" : {
+            "description" : "Invalid Microservice UUID"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/iofog/{uuid}/tunnel" : {
+      "get" : {
+        "tags" : [ "Tunnel" ],
+        "summary" : "Gets current info about ioFog node ssh tunnel status",
+        "operationId" : "getIOFogNodeSshTunnelStatusInfo",
+        "parameters" : [ {
+          "name" : "uuid",
+          "in" : "path",
+          "description" : "ioFog node id",
+          "required" : true
+        }, {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User token",
+          "required" : true
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "404" : {
+            "description" : "Invalid Node Id"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      },
+      "patch" : {
+        "tags" : [ "Tunnel" ],
+        "summary" : "Opens/closes ssh tunnel",
+        "operationId" : "openIOFogNodeSshTunnel",
+        "parameters" : [ {
+          "name" : "uuid",
+          "in" : "path",
+          "description" : "ioFog node id",
+          "required" : true
+        }, {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User Token",
+          "required" : true
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request"
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "404" : {
+            "description" : "Invalid Node Id"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/registries" : {
+      "get" : {
+        "tags" : [ "Registries" ],
+        "summary" : "Gets list of registries",
+        "operationId" : "getRegistryList",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User token",
+          "required" : true
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "Registries" ],
+        "summary" : "Creates new registry",
+        "operationId" : "createRegistry",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User Token",
+          "required" : true
+        } ],
+        "responses" : {
+          "201" : {
+            "description" : "Created",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request"
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/registries/{id}" : {
+      "delete" : {
+        "tags" : [ "Registries" ],
+        "summary" : "Deletes a registry",
+        "operationId" : "deleteRegistry",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "description" : "Registry id",
+          "required" : true
+        }, {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User token",
+          "required" : true
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "Deleted",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "404" : {
+            "description" : "Invalid Registry Id"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      },
+      "patch" : {
+        "tags" : [ "Registries" ],
+        "summary" : "Updates a registry",
+        "operationId" : "updateRegistry",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "description" : "Registry id",
+          "required" : true
+        }, {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User token",
+          "required" : true
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "Updated",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request"
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "404" : {
+            "description" : "Invalid Registry Id"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/user/login" : {
+      "post" : {
+        "tags" : [ "User" ],
+        "summary" : "Login",
+        "operationId" : "login",
+        "parameters" : [ ],
+        "responses" : {
+          "200" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "400" : {
+            "description" : "bad request"
+          },
+          "401" : {
+            "description" : "incorrect credentials"
+          }
+        }
+      }
+    },
+    "/user/logout" : {
+      "post" : {
+        "tags" : [ "User" ],
+        "summary" : "Logout",
+        "operationId" : "logout",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User token",
+          "required" : true
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "Success"
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/user/signup" : {
+      "post" : {
+        "tags" : [ "User" ],
+        "summary" : "Signup",
+        "operationId" : "signup",
+        "parameters" : [ ],
+        "responses" : {
+          "201" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/user/signup/resend-activation" : {
+      "get" : {
+        "tags" : [ "User" ],
+        "summary" : "Resend activation email",
+        "operationId" : "resendActivationEmail",
+        "parameters" : [ {
+          "name" : "email",
+          "in" : "query",
+          "required" : true
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/user/activate" : {
+      "post" : {
+        "tags" : [ "User" ],
+        "summary" : "Activate account",
+        "operationId" : "activateAccount",
+        "parameters" : [ ],
+        "responses" : {
+          "303" : {
+            "description" : "Redirect to login page",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              },
+              "Location" : {
+                "description" : "Login page url"
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/user/profile" : {
+      "get" : {
+        "tags" : [ "User" ],
+        "summary" : "Get current user profile data",
+        "operationId" : "getUserProfile",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User token",
+          "required" : true
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "User" ],
+        "summary" : "Delete account",
+        "operationId" : "deleteAccount",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User Token",
+          "required" : true
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      },
+      "patch" : {
+        "tags" : [ "User" ],
+        "summary" : "Update user profile",
+        "operationId" : "updateUserProfile",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User Token",
+          "required" : true
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Updated user profile",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request"
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/user/password" : {
+      "delete" : {
+        "tags" : [ "User" ],
+        "summary" : "Reset password",
+        "operationId" : "resetPassword",
+        "parameters" : [ ],
+        "responses" : {
+          "204" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      },
+      "patch" : {
+        "tags" : [ "User" ],
+        "summary" : "change password",
+        "operationId" : "changePassword",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User Token",
+          "required" : true
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request"
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/routes" : {
+      "get" : {
+        "tags" : [ "Routing" ],
+        "summary" : "Get routes",
+        "operationId" : "getRoutes",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User Token",
+          "required" : true
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "Routing" ],
+        "summary" : "Creates a new route",
+        "operationId" : "createRoute",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User Token",
+          "required" : true
+        } ],
+        "responses" : {
+          "201" : {
+            "description" : "Created",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request"
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "409" : {
+            "description" : "Duplicate Name"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/routes/{name}" : {
+      "get" : {
+        "tags" : [ "Routing" ],
+        "summary" : "Gets a route info",
+        "operationId" : "getRoute",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User Token",
+          "required" : true
+        }, {
+          "name" : "name",
+          "in" : "path",
+          "description" : "Route name",
+          "required" : true
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Route Info",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "404" : {
+            "description" : "Invalid Route Id"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "Routing" ],
+        "summary" : "Deletes a route",
+        "operationId" : "deleteRoute",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User Token",
+          "required" : true
+        }, {
+          "name" : "name",
+          "in" : "path",
+          "description" : "Route name",
+          "required" : true
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "404" : {
+            "description" : "Invalid Route Id"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      },
+      "patch" : {
+        "tags" : [ "Routing" ],
+        "summary" : "Updates a route",
+        "operationId" : "updateRoute",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User Token",
+          "required" : true
+        }, {
+          "name" : "name",
+          "in" : "path",
+          "description" : "Route name",
+          "required" : true
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request"
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "404" : {
+            "description" : "Invalid Route Id"
+          },
+          "409" : {
+            "description" : "Duplicate Name"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/edgeResources" : {
+      "get" : {
+        "tags" : [ "Edge Resource" ],
+        "summary" : "Get Edge Resources",
+        "operationId" : "getEdgeResources",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User Token",
+          "required" : true
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/edgeResource/{name}/{version}" : {
+      "get" : {
+        "tags" : [ "Edge Resource" ],
+        "summary" : "Get Specific Edge Resource",
+        "operationId" : "getEdgeResourceDetail",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User Token",
+          "required" : true
+        }, {
+          "name" : "name",
+          "in" : "path",
+          "description" : "Edge Resource name",
+          "required" : true
+        }, {
+          "name" : "version",
+          "in" : "path",
+          "description" : "Edge Resource version",
+          "required" : true
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      },
+      "put" : {
+        "tags" : [ "Edge Resource" ],
+        "summary" : "Update/Create Specific Edge Resource",
+        "operationId" : "putEdgeResource",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User Token",
+          "required" : true
+        }, {
+          "name" : "name",
+          "in" : "path",
+          "description" : "Edge Resource name",
+          "required" : true
+        }, {
+          "name" : "version",
+          "in" : "path",
+          "description" : "Edge Resource version",
+          "required" : true
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "Edge Resource" ],
+        "summary" : "Deletes an Edge Resource",
+        "operationId" : "deleteEdgeResource",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User Token",
+          "required" : true
+        }, {
+          "name" : "name",
+          "in" : "path",
+          "description" : "Edge Resource name",
+          "required" : true
+        }, {
+          "name" : "version",
+          "in" : "path",
+          "description" : "Edge Resource version",
+          "required" : true
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found"
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/edgeResource/{name}" : {
+      "get" : {
+        "tags" : [ "Edge Resource" ],
+        "summary" : "Get Specific Edge Resource versions",
+        "operationId" : "getEdgeResourceVersions",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User Token",
+          "required" : true
+        }, {
+          "name" : "name",
+          "in" : "path",
+          "description" : "Edge Resource name",
+          "required" : true
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/edgeResource" : {
+      "post" : {
+        "tags" : [ "Edge Resource" ],
+        "summary" : "Create Specific Edge Resource",
+        "operationId" : "postEdgeResource",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User Token",
+          "required" : true
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/edgeResource/{name}/{version}/link" : {
+      "post" : {
+        "tags" : [ "Edge Resource" ],
+        "summary" : "Attach Edge Resource to Agent",
+        "operationId" : "postEdgeResourceLink",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User Token",
+          "required" : true
+        }, {
+          "name" : "name",
+          "in" : "path",
+          "description" : "Edge Resource Name",
+          "required" : true
+        }, {
+          "name" : "version",
+          "in" : "path",
+          "description" : "Edge Resource Version",
+          "required" : true
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "404" : {
+            "description" : "Not Found"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "Edge Resource" ],
+        "summary" : "Detach Edge Resource from Agent",
+        "operationId" : "deleteEdgeResourceLink",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "description" : "User Token",
+          "required" : true
+        }, {
+          "name" : "name",
+          "in" : "path",
+          "description" : "Edge Resource Name",
+          "required" : true
+        }, {
+          "name" : "version",
+          "in" : "path",
+          "description" : "Edge Resource Version",
+          "required" : true
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "404" : {
+            "description" : "Not Found"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    }
+  },
+  "definitions" : { }
+}
