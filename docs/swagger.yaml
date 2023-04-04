@@ -1,4 +1,4 @@
-swagger: "2.0"
+openapi: "3.0.0"
 info:
   version: 3.0.0
   title: ioFog Controller
@@ -525,12 +525,16 @@ paths:
           required: true
           schema:
             type: string
-        - in: formData
-          name: application
-          description: YAML file
-          required: true
-          schema:
-            type: file
+      requestBody:
+        required: true
+        content:
+          application/yaml:
+            schema:
+              type: object
+              properties:
+                application:
+                  type: string
+                  format: binary
       responses:
         "200":
           description: Success
@@ -559,6 +563,12 @@ paths:
         - in: header
           name: Authorization
           description: User Token
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: name
+          description: Application name
           required: true
           schema:
             type: string
@@ -591,6 +601,12 @@ paths:
         - in: header
           name: Authorization
           description: User Token
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: name
+          description: Application name
           required: true
           schema:
             type: string
@@ -633,6 +649,12 @@ paths:
           required: true
           schema:
             type: string
+        - in: path
+          name: name
+          description: Application name
+          required: true
+          schema:
+            type: string
       responses:
         "204":
           description: Success
@@ -656,6 +678,12 @@ paths:
         - in: header
           name: Authorization
           description: User Token
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: name
+          description: Application name
           required: true
           schema:
             type: string
@@ -690,12 +718,22 @@ paths:
           required: true
           schema:
             type: string
-        - in: formData
-          name: application
-          description: YAML file
+        - in: path
+          name: name
+          description: Application name
           required: true
           schema:
-            type: file
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/yaml:
+            schema:
+              type: object
+              properties:
+                application:
+                  type: string
+                  format: binary
       responses:
         "204":
           description: Success
@@ -786,12 +824,16 @@ paths:
           required: true
           schema:
             type: string
-        - in: formData
-          name: template
-          description: YAML file
-          required: true
-          schema:
-            type: file
+      requestBody:
+        required: true
+        content:
+          application/yaml:
+            schema:
+              type: object
+              properties:
+                application:
+                  type: string
+                  format: binary
       responses:
         "200":
           description: Success
@@ -822,6 +864,12 @@ paths:
           required: true
           schema:
             type: string
+        - in: path
+          name: name
+          description: Application template name
+          required: true
+          schema:
+            type: string
       requestBody:
         $ref: "#/components/requestBodies/ApplicationTemplateCreateRequest"
       responses:
@@ -849,6 +897,12 @@ paths:
         - in: header
           name: Authorization
           description: User Token
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: name
+          description: Application template name
           required: true
           schema:
             type: string
@@ -884,6 +938,12 @@ paths:
           required: true
           schema:
             type: string
+        - in: path
+          name: name
+          description: Application template name
+          required: true
+          schema:
+            type: string
       responses:
         "200":
           description: Success
@@ -910,6 +970,12 @@ paths:
           required: true
           schema:
             type: string
+        - in: path
+          name: name
+          description: Application template name
+          required: true
+          schema:
+            type: string
       responses:
         "200":
           description: Success
@@ -933,7 +999,7 @@ paths:
       tags:
         - Application Template
       summary: Updates or creates an application template
-      operationId: updateOrCreateApplicationTemplate
+      operationId: updateOrCreateApplicationTemplateFromYaml
       parameters:
         - in: header
           name: Authorization
@@ -941,12 +1007,22 @@ paths:
           required: true
           schema:
             type: string
-        - in: formData
-          name: template
-          description: YAML file
+        - in: path
+          name: name
+          description: Application template name
           required: true
           schema:
-            type: file
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/yaml:
+            schema:
+              type: object
+              properties:
+                template:
+                  type: string
+                  format: binary
       responses:
         "200":
           description: Success
@@ -1429,14 +1505,8 @@ paths:
       tags:
         - ioFog
       summary: Retrieves HAL USB info
-      operationId: getFogHalUsbInfo
+      operationId: getAgentHalUsbInfo
       parameters:
-        - in: path
-          name: uuid
-          description: ioFog node id
-          required: true
-          schema:
-            type: string
         - in: header
           name: Authorization
           description: User token
@@ -2048,11 +2118,16 @@ paths:
           required: true
           schema:
             type: string
-        - in: formData
-          name: microservice
-          description: Microservice YAML
-          type: file
-          required: true
+      requestBody:
+        required: true
+        content:
+          application/yaml:
+            schema:
+              type: object
+              properties:
+                microsoervice:
+                  type: string
+                  format: binary
       responses:
         "201":
           description: Created
@@ -2175,15 +2250,6 @@ paths:
           required: true
           schema:
             type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                withCleanup:
-                  type: boolean
-        description: Delete option
       responses:
         "204":
           description: Success
@@ -2219,11 +2285,16 @@ paths:
           required: true
           schema:
             type: string
-        - in: formData
-          name: microservice
-          description: YAML file
-          type: file
-          required: true
+      requestBody:
+        required: true
+        content:
+          application/yaml:
+            schema:
+              type: object
+              properties:
+                microservice:
+                  type: string
+                  format: binary
       responses:
         "204":
           description: Success
@@ -3789,9 +3860,6 @@ tags:
     description: Manage your catalog
   - name: Registries
     description: Manage your registries
-  - name: Flow
-    description: Manage your flows
-    deprecated: true
   - name: Microservices
     description: Manage your microservices
   - name: Routing
@@ -3863,7 +3931,7 @@ components:
               interfaceProtocol:
                 type: string
               display:
-                $ref: '#/components/schema/EdgeResourceDisplay'
+                $ref: '#/components/schemas/EdgeResourceDisplay'
     EdgeResourceGetResponse:
       type: object
       properties:
@@ -3941,26 +4009,35 @@ components:
     ApplicationCreateFromTemplateRequest:
       type: object
       properties:
-        name: string
-        description: string
-        isActivated: boolean
+        name:
+          type: string
+        description:
+          type: string
+        isActivated:
+          type: boolean
         template:
           type: object
           properties:
-            name: string
+            name:
+              type: string
             variables:
               type: array
               items:
                 type: object
                 properties:
-                  key: string
-                  value: string
+                  key:
+                    type: string
+                  value:
+                    type: string
     ApplicationCreateRequest:
       type: object
       properties:
-        name: string
-        description: string
-        isActivated: boolean
+        name:
+          type: string
+        description:
+          type: string
+        isActivated:
+          type: boolean
         microservices:
           type: array
           items:
@@ -4439,7 +4516,7 @@ components:
           type: number
         dockerPruningFrequency:
           type: number
-        diskThreshold:
+        availableDiskThreshold:
           type: number
         logLevel:
           type: string
@@ -4461,6 +4538,10 @@ components:
           type: number
         host:
           type: string
+        tags:
+          type: array
+          items:
+            type: string
         upstreamRouters:
           type: array
           items:
@@ -4861,7 +4942,6 @@ components:
           enum:
           - tcp
           - udp
-          defaultValue: tcp
         proxy:
           type: boolean
       required:
