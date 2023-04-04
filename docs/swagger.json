@@ -1,5 +1,5 @@
 {
-  "swagger" : "2.0",
+  "swagger" : "3.0.0",
   "info" : {
     "version" : "3.0.0",
     "title" : "ioFog Controller"
@@ -22,9 +22,6 @@
   }, {
     "name" : "Registries",
     "description" : "Manage your registries"
-  }, {
-    "name" : "Flow",
-    "description" : "Manage your flows"
   }, {
     "name" : "Microservices",
     "description" : "Manage your microservices"
@@ -569,11 +566,6 @@
           "in" : "header",
           "description" : "User Token",
           "required" : true
-        }, {
-          "name" : "application",
-          "in" : "formData",
-          "description" : "YAML file",
-          "required" : true
         } ],
         "responses" : {
           "200" : {
@@ -602,6 +594,11 @@
           "name" : "Authorization",
           "in" : "header",
           "description" : "User Token",
+          "required" : true
+        }, {
+          "name" : "name",
+          "in" : "path",
+          "description" : "Application name",
           "required" : true
         } ],
         "responses" : {
@@ -632,6 +629,11 @@
           "name" : "Authorization",
           "in" : "header",
           "description" : "User Token",
+          "required" : true
+        }, {
+          "name" : "name",
+          "in" : "path",
+          "description" : "Application name",
           "required" : true
         } ],
         "deprecated" : true,
@@ -664,6 +666,11 @@
           "in" : "header",
           "description" : "User Token",
           "required" : true
+        }, {
+          "name" : "name",
+          "in" : "path",
+          "description" : "Application name",
+          "required" : true
         } ],
         "responses" : {
           "204" : {
@@ -693,6 +700,11 @@
           "name" : "Authorization",
           "in" : "header",
           "description" : "User Token",
+          "required" : true
+        }, {
+          "name" : "name",
+          "in" : "path",
+          "description" : "Application name",
           "required" : true
         } ],
         "responses" : {
@@ -727,9 +739,9 @@
           "description" : "User Token",
           "required" : true
         }, {
-          "name" : "application",
-          "in" : "formData",
-          "description" : "YAML file",
+          "name" : "name",
+          "in" : "path",
+          "description" : "Application name",
           "required" : true
         } ],
         "responses" : {
@@ -825,11 +837,6 @@
           "in" : "header",
           "description" : "User Token",
           "required" : true
-        }, {
-          "name" : "template",
-          "in" : "formData",
-          "description" : "YAML file",
-          "required" : true
         } ],
         "responses" : {
           "200" : {
@@ -858,6 +865,11 @@
           "name" : "Authorization",
           "in" : "header",
           "description" : "User Token",
+          "required" : true
+        }, {
+          "name" : "name",
+          "in" : "path",
+          "description" : "Application template name",
           "required" : true
         } ],
         "responses" : {
@@ -889,6 +901,11 @@
           "in" : "header",
           "description" : "User Token",
           "required" : true
+        }, {
+          "name" : "name",
+          "in" : "path",
+          "description" : "Application template name",
+          "required" : true
         } ],
         "deprecated" : true,
         "responses" : {
@@ -916,6 +933,11 @@
           "name" : "Authorization",
           "in" : "header",
           "description" : "User Token",
+          "required" : true
+        }, {
+          "name" : "name",
+          "in" : "path",
+          "description" : "Application template name",
           "required" : true
         } ],
         "responses" : {
@@ -947,6 +969,11 @@
           "in" : "header",
           "description" : "User Token",
           "required" : true
+        }, {
+          "name" : "name",
+          "in" : "path",
+          "description" : "Application template name",
+          "required" : true
         } ],
         "responses" : {
           "204" : {
@@ -973,16 +1000,16 @@
       "put" : {
         "tags" : [ "Application Template" ],
         "summary" : "Updates or creates an application template",
-        "operationId" : "updateOrCreateApplicationTemplate",
+        "operationId" : "updateOrCreateApplicationTemplateFromYaml",
         "parameters" : [ {
           "name" : "Authorization",
           "in" : "header",
           "description" : "User Token",
           "required" : true
         }, {
-          "name" : "template",
-          "in" : "formData",
-          "description" : "YAML file",
+          "name" : "name",
+          "in" : "path",
+          "description" : "Application template name",
           "required" : true
         } ],
         "responses" : {
@@ -1473,13 +1500,8 @@
       "get" : {
         "tags" : [ "ioFog" ],
         "summary" : "Retrieves HAL USB info",
-        "operationId" : "getFogHalUsbInfo",
+        "operationId" : "getAgentHalUsbInfo",
         "parameters" : [ {
-          "name" : "uuid",
-          "in" : "path",
-          "description" : "ioFog node id",
-          "required" : true
-        }, {
           "name" : "Authorization",
           "in" : "header",
           "description" : "User token",
@@ -2083,12 +2105,6 @@
           "in" : "header",
           "description" : "User Token",
           "required" : true
-        }, {
-          "name" : "microservice",
-          "in" : "formData",
-          "description" : "Microservice YAML",
-          "required" : true,
-          "type" : "file"
         } ],
         "responses" : {
           "201" : {
@@ -2246,12 +2262,6 @@
           "in" : "path",
           "description" : "Microservice Uuid",
           "required" : true
-        }, {
-          "name" : "microservice",
-          "in" : "formData",
-          "description" : "YAML file",
-          "required" : true,
-          "type" : "file"
         } ],
         "responses" : {
           "204" : {
