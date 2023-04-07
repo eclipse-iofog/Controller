@@ -135,6 +135,7 @@
     "/scripts",
     "/src",
     "/test",
+    "/docs",
     ".eslintrc.js",
     ".jshintrc",
     ".snyk"
