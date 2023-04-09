@@ -1,6 +1,6 @@
 {
   "name": "@iofog/iofogcontroller",
-  "version": "3.0.2-dev",
+  "version": "3.0.4",
   "description": "ioFog Controller project for Eclipse IoFog @ iofog.org \\nCopyright (c) 2018 Edgeworx, Inc.",
   "main": "./src/main.js",
   "author": "Saeid Baghbidi",
