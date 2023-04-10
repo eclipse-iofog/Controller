@@ -110,7 +110,8 @@ jobs:
         else
            echo "tag=${{ steps.previoustag.outputs.tag }}-${{ github.run_number }}" >> "${GITHUB_OUTPUT}"
         fi
-        echo ${{ steps.tags.outputs.tag }}
+    - name: Get image tag
+      run: echo ${{ steps.tags.outputs.tag }}
 
 
 # name: GitHub Actions Demo
