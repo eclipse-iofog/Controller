@@ -96,11 +96,17 @@ jobs:
         ls iofog-iofogcontroller-*.tgz
     - name: Generate version
       shell: bash
+      id: tags
       run: |
-        echo "tag=${GITHUB_REF#refs/*/}" >> $GITHUB_OUTPUT
-        echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_OUTPUT
-        LATESTTAG=$(git tag | tail -1)
-        echo " LATESTVERS=${LATESTTAG#?}" >> $GITHUB_OUTPUT
+        if [[ ${{ github.ref_name }} =~ ^v.* ]] ; then
+          tag=${{ github.ref_name }}"
+          echo "tag=${tag}" >> "${GITHUB_OUTPUT}"
+        else 
+          LATESTTAG=$(git tag | tail -1)
+          echo "tag=${LATESTTAG}-b${{ github.run_number }}" >> "${GITHUB_OUTPUT}"
+        fi
+        echo ${{ steps.tags.outputs.tag }}
+
     - name: Output Run ID
       run: echo ${{ github.run_id }}
     - name: Output Run Number
