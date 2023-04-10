@@ -48,6 +48,7 @@ jobs:
         npx better-npm-audit audit -p
 
   Tests:
+    needs: Build
     runs-on: ubuntu-latest
     permissions:
       contents: 'read'
