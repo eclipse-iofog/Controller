@@ -29,7 +29,25 @@ env:
   releaseCandidate: 'rc'
 
 jobs:
-  Explore-github-tests:
+  Build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+      packages: 'write'
+    name: Preflight
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-node@v3
+      with:
+        node-version: 18
+    - run: npm ci
+    - run: npm run standard
+    - run: |
+        npm i -g better-npm-audit
+        npx better-npm-audit audit -p
+
+  Tests:
     runs-on: ubuntu-latest
     permissions:
       contents: 'read'
