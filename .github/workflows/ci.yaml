@@ -46,7 +46,8 @@ jobs:
       with:
         node-version: ${{ matrix.node }}
     - run: npm ci
-    - run: azure-templates/test.yml
+    - run: npm run test -- junit
+    - run: npm run postman_test
     # - run: npm run standard
     # - run: 
 
