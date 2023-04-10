@@ -87,6 +87,8 @@ jobs:
     name: Publish Controller
     steps:
     - uses: actions/checkout@v3
+      with:
+          fetch-depth: 0
     - uses: actions/setup-node@v3
       with:
         node-version: 18
@@ -105,8 +107,8 @@ jobs:
       run: |
         if [[ ${{ github.ref_name }} =~ ^v.* ]] ; then
           echo "tag=${{ github.ref_name }}" >> "${GITHUB_OUTPUT}"
-        else 
-          echo "tag=${{ steps.previoustag.outputs.tag }}-${{ github.run_number }}" >> "${GITHUB_OUTPUT}"
+        else
+           echo "tag=${{ steps.previoustag.outputs.tag }}-${{ github.run_number }}" >> "${GITHUB_OUTPUT}"
         fi
         echo ${{ steps.tags.outputs.tag }}
 
