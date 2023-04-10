@@ -9,6 +9,15 @@ on:
       - README.md
       - CHANGELOG.md
       - LICENSE
+  pull_request:
+  # Sequence of patterns matched against refs/heads
+    branches:    
+      - develop
+      - release*
+    paths-ignore:
+      - README.md
+      - CHANGELOG.md
+      - LICENSE
 
 env:
   group: 'pipelines'
@@ -36,7 +45,6 @@ jobs:
     - run: azure-templates/test.yml
     # - run: npm run standard
     # - run: 
-
 
 
 # name: GitHub Actions Demo
