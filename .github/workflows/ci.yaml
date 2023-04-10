@@ -35,6 +35,9 @@ jobs:
       contents: 'read'
       id-token: 'write'
       packages: 'write'
+      issues: read
+      checks: write
+      pull-requests: write
     strategy:
       matrix:
         node: [ 16, 17, 18, 19 ]
@@ -48,6 +51,12 @@ jobs:
     - run: npm ci
     - run: npm run test -- junit
     - run: npm run postman_test
+    - name: Publish Test Results
+      uses: EnricoMi/publish-unit-test-result-action@v2
+      if: always()
+      with:
+        files: |
+          *-results.xml
     # - run: npm run standard
     # - run: 
 
