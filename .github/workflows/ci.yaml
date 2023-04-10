@@ -76,8 +76,37 @@ jobs:
       with:
         files: |
           *-results.xml
-    # - run: npm run standard
-    # - run: 
+
+  Publish:
+    needs: [Build, Tests]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+      packages: 'write'
+    name: Publish Controller
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-node@v3
+      with:
+        node-version: 18
+    - run: npm ci
+    - run: |
+        npm pack
+        ls iofog-iofogcontroller-*.tgz
+    - name: Generate version
+      shell: bash
+      run: |
+        if [[ $(ref) == refs/tags* ]]; then
+          TAG=$(echo $(ref) | sed "s|refs/tags/v||g")
+          echo "imageTag=$TAG" >> $GITHUB_ENV
+        else
+          LATESTTAG=$(git tag | tail -1)
+          LATESTVERS=${LATESTTAG#?}
+          if [ -z "$LATESTVERS" ]; then LATESTVERS=0.0.0; fi
+          echo "imageTag=$LATESTVERS-b$buildTag" >> $GITHUB_ENV
+        fi
+        echo "imageTag=$imageTag" >> "$GITHUB_OUTPUT"
 
 
 # name: GitHub Actions Demo
