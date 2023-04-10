@@ -94,25 +94,21 @@ jobs:
     - run: |
         npm pack
         ls iofog-iofogcontroller-*.tgz
-    - name: Generate version
+    - name: 'Get Previous tag'
+      id: previoustag
+      uses: "WyriHaximus/github-action-get-previous-tag@v1"
+      with:
+        fallback: 0.0.0
+    - name: Set image tag
       shell: bash
       id: tags
       run: |
         if [[ ${{ github.ref_name }} =~ ^v.* ]] ; then
-          tag=${{ github.ref_name }}"
-          echo "tag=${tag}" >> "${GITHUB_OUTPUT}"
+          echo "tag=${{ github.ref_name }}" >> "${GITHUB_OUTPUT}"
         else 
-          LATESTTAG=$(git tag | tail -1)
-          echo "tag=${LATESTTAG}-b${{ github.run_number }}" >> "${GITHUB_OUTPUT}"
+          echo "tag=${{ steps.previoustag.outputs.tag }}-${{ github.run_number }}" >> "${GITHUB_OUTPUT}"
         fi
         echo ${{ steps.tags.outputs.tag }}
-
-    - name: Output Run ID
-      run: echo ${{ github.run_id }}
-    - name: Output Run Number
-      run: echo ${{ github.run_number }}
-    - name: Output Run Attempt
-      run: echo ${{ github.run_attempt }}
 
 
 # name: GitHub Actions Demo
