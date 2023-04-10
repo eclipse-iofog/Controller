@@ -97,16 +97,15 @@ jobs:
     - name: Generate version
       shell: bash
       run: |
-        if [[ $(ref) == refs/tags* ]]; then
-          TAG=$(echo $(ref) | sed "s|refs/tags/v||g")
-          echo "imageTag=$TAG" >> $GITHUB_ENV
-        else
-          LATESTTAG=$(git tag | tail -1)
-          LATESTVERS=${LATESTTAG#?}
-          if [ -z "$LATESTVERS" ]; then LATESTVERS=0.0.0; fi
-          echo "imageTag=$LATESTVERS-b$buildTag" >> $GITHUB_ENV
-        fi
-        echo "imageTag=$imageTag" >> "$GITHUB_OUTPUT"
+        echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+        LATESTTAG=$(git tag | tail -1)
+        echo " LATESTVERS=${LATESTTAG#?}" >> $GITHUB_ENV
+    - name: Output Run ID
+      run: echo ${{ github.run_id }}
+    - name: Output Run Number
+      run: echo ${{ github.run_number }}
+    - name: Output Run Attempt
+      run: echo ${{ github.run_attempt }}
 
 
 # name: GitHub Actions Demo
