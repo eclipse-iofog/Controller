@@ -31,6 +31,10 @@ env:
 jobs:
   Explore-github-tests:
     runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+      packages: 'write'
     strategy:
       matrix:
         node: [ 16, 17, 18, 19 ]
