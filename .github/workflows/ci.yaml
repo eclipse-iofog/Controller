@@ -110,8 +110,17 @@ jobs:
         else
            echo "tag=${{ steps.previoustag.outputs.tag }}-${{ github.run_number }}" >> "${GITHUB_OUTPUT}"
         fi
+        echo "tag=${{ steps.tags.outputs.tag }} | sed 's/v//'"
     - name: Get image tag
-      run: echo ${{ steps.tags.outputs.tag }}
+      run: |
+        echo ${{ steps.tags.outputs.tag }}
+    - name: Save Docker image name and tag to GCR_DOCKER_IMAGE into artifacts
+      id: gcr
+      run: |
+        echo "gcr_docker_image=gcr.io/${{ env.repository }}:${{ steps.tags.outputs.tag }}" >> "${GITHUB_OUTPUT}"
+    - name: Get GCR image
+      run: ${{ steps.gcr.outputs.gcr_docker_image }}
+      
 
 
 # name: GitHub Actions Demo
