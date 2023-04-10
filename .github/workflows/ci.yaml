@@ -59,7 +59,7 @@ jobs:
       pull-requests: write
     strategy:
       matrix:
-        node: [ 16, 17, 18, 19 ]
+        node: [ 19 ]
     name: Node ${{ matrix.node }} Test
     steps:
     - uses: actions/checkout@v3
@@ -97,9 +97,10 @@ jobs:
     - name: Generate version
       shell: bash
       run: |
-        echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+        echo "tag=${GITHUB_REF#refs/*/}" >> $GITHUB_OUTPUT
+        echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_OUTPUT
         LATESTTAG=$(git tag | tail -1)
-        echo " LATESTVERS=${LATESTTAG#?}" >> $GITHUB_ENV
+        echo " LATESTVERS=${LATESTTAG#?}" >> $GITHUB_OUTPUT
     - name: Output Run ID
       run: echo ${{ github.run_id }}
     - name: Output Run Number
