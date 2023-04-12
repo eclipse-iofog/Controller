@@ -125,8 +125,6 @@ jobs:
     - name: npm version
       id: package-version
       uses: martinbeentjes/npm-get-version-action@v1.3.1
-    - name: npm pack with version containing build number
-      run: npm pack
     - name: package version
       shell: bash
       id: version
@@ -136,6 +134,10 @@ jobs:
         else
            echo "pkg_version=${{ steps.package-version.outputs.current-version}}-${{ github.run_number }}" >> "${GITHUB_OUTPUT}"
         fi
+    - name: npm pack with version containing build number
+      run: |
+        npm --no-git-tag-version version ${{ steps.version.outputs.pkg_version }}
+        npm pack
     - name: display version
       run: |
         echo ${{ steps.tags.outputs.edited_tag }}
@@ -160,14 +162,14 @@ jobs:
     - uses: actions/upload-artifact@v2
       with:
         name: npm-package
-        path: iofog-iofogcontroller-*.tgz
+        path: iofog-iofogcontroller-${{ steps.version.outputs.pkg_version }}.tgz
     - uses: actions/download-artifact@v2
       with:
         name: npm-package
     - run: ls
     - uses: danielmundi/upload-packagecloud@v1
       with:
-        PACKAGE-NAME: iofog-iofogcontroller-*.tgz
+        PACKAGE-NAME: iofog-iofogcontroller-${{ steps.version.outputs.pkg_version }}.tgz
         PACKAGECLOUD-USERNAME: iofog
         PACKAGECLOUD-REPO: iofog-controller-snapshots
         PACKAGECLOUD-DISTRIB: node
