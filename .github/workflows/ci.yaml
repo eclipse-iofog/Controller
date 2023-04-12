@@ -101,20 +101,20 @@ jobs:
       uses: "WyriHaximus/github-action-get-previous-tag@v1"
       with:
         fallback: 0.0.0
-    - name: Set image tag
-      shell: bash
-      id: tags
-      run: |
-        if [[ ${{ github.ref_name }} =~ ^v.* ]] ; then
-          echo "tag=${{ github.ref_name }}" >> "${GITHUB_OUTPUT}"
-        else
-           echo "tag=${{ steps.previoustag.outputs.tag }}-${{ github.run_number }}" >> "${GITHUB_OUTPUT}"
-        fi
-    - name: Get image tag
-      run: |
-        echo ${{ steps.tags.outputs.tag }}
-        echo "edited_tag='${{ steps.tags.outputs.tag }} | sed 's/v//''"
-        echo ${{ steps.tags.outputs.edited_tag }}
+    # - name: Set image tag
+    #   shell: bash
+    #   id: tags
+    #   run: |
+    #     if [[ ${{ github.ref_name }} =~ ^v.* ]] ; then
+    #       echo "tag=${{ github.ref_name }}" >> "${GITHUB_OUTPUT}"
+    #     else
+    #        echo "tag=${{ steps.previoustag.outputs.tag }}-${{ github.run_number }}" >> "${GITHUB_OUTPUT}"
+    #     fi
+    # - name: Get image tag
+    #   run: |
+    #     echo ${{ steps.tags.outputs.tag }}
+    #     echo "edited_tag='${{ steps.tags.outputs.tag }} | sed 's/v//''"
+    #     echo ${{ steps.tags.outputs.edited_tag }}
 
     - name: Save Docker image name and tag to GCR_DOCKER_IMAGE into artifacts
       id: gcr
@@ -153,8 +153,25 @@ jobs:
       with:
         file: Dockerfile.dev
         push: true
-        tags: ghcr.io/eclipse-iofog/controller/${{ steps.version.outputs.pkg_version }}
+        tags: |
+          ghcr.io/eclipse-iofog/controller:${{ steps.version.outputs.pkg_version }}
+          ghcr.io/eclipse-iofog/controller:latest
         build-args: PKG_VERSION=${{ steps.version.outputs.pkg_version }}
+    - uses: actions/upload-artifact@v2
+      with:
+        name: npm-package
+        path: iofog-iofogcontroller-*.tgz
+    - uses: actions/download-artifact@v2
+      with:
+        name: npm-package
+    - run: ls
+    - uses: danielmundi/upload-packagecloud@v1
+      with:
+        PACKAGE-NAME: iofog-iofogcontroller-*.tgz
+        PACKAGECLOUD-USERNAME: iofog
+        PACKAGECLOUD-REPO: iofog-controller-snapshots
+        PACKAGECLOUD-DISTRIB: node
+        PACKAGECLOUD-TOKEN: ${{ secrets.packagecloud_token }}
       
 
     # - name: setting vars
