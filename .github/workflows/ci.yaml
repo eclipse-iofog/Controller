@@ -93,29 +93,11 @@ jobs:
       with:
         node-version: 18
     - run: npm ci
-    # - run: |
-    #     npm pack
-    #     ls iofog-iofogcontroller-*.tgz
     - name: 'Get Previous tag'
       id: previoustag
       uses: "WyriHaximus/github-action-get-previous-tag@v1"
       with:
         fallback: 0.0.0
-    # - name: Set image tag
-    #   shell: bash
-    #   id: tags
-    #   run: |
-    #     if [[ ${{ github.ref_name }} =~ ^v.* ]] ; then
-    #       echo "tag=${{ github.ref_name }}" >> "${GITHUB_OUTPUT}"
-    #     else
-    #        echo "tag=${{ steps.previoustag.outputs.tag }}-${{ github.run_number }}" >> "${GITHUB_OUTPUT}"
-    #     fi
-    # - name: Get image tag
-    #   run: |
-    #     echo ${{ steps.tags.outputs.tag }}
-    #     echo "edited_tag='${{ steps.tags.outputs.tag }} | sed 's/v//''"
-    #     echo ${{ steps.tags.outputs.edited_tag }}
-
     - name: Save Docker image name and tag to GCR_DOCKER_IMAGE into artifacts
       id: gcr
       run: |
@@ -138,17 +120,16 @@ jobs:
       run: |
         npm --no-git-tag-version version ${{ steps.version.outputs.pkg_version }}
         npm pack
-    - name: display version
-      run: |
-        echo ${{ steps.tags.outputs.edited_tag }}
-        echo ${{ steps.version.outputs.pkg_version }}
+    # - name: display version
+    #   run: |
+    #     echo ${{ steps.tags.outputs.edited_tag }}
+    #     echo ${{ steps.version.outputs.pkg_version }}
     - name: Login to Github Container Registry
       uses: docker/login-action@v2
       with:
         registry: "ghcr.io"
         username: ${{ github.actor }}
         password: ${{ github.token }}
-
     - name: Build and Push Container Image
       uses: docker/build-push-action@v3
       id: build
@@ -159,6 +140,18 @@ jobs:
           ghcr.io/eclipse-iofog/controller:${{ steps.version.outputs.pkg_version }}
           ghcr.io/eclipse-iofog/controller:latest
         build-args: PKG_VERSION=${{ steps.version.outputs.pkg_version }}
+
+    - name: build and push to gcr
+      uses: RafikFarhad/push-to-gcr-github-action@v5-beta
+      with:
+        gcloud_service_key: ${{ secrets.GCLOUD_SERVICE_KEY }}
+        registry: gcr.io
+        project_id: focal-freedom-236620
+        image_name: controller
+        image_tag: latest,${{ steps.version.outputs.pkg_version }}
+        dockerfile: Dockerfile.dev
+        build_args: PKG_VERSION=${{ steps.version.outputs.pkg_version }}
+
     - uses: actions/upload-artifact@v2
       with:
         name: npm-package
@@ -174,16 +167,3 @@ jobs:
         PACKAGECLOUD-REPO: iofog-controller-snapshots
         PACKAGECLOUD-DISTRIB: node
         PACKAGECLOUD-TOKEN: ${{ secrets.packagecloud_token }}
-      
-
-    # - name: setting vars
-    #   id: npm_tar
-    #   run: |
-    #     ls ${{ github.workspace }}
-    #     echo 'checking pack file exists..'
-    #     cat iofog-iofogcontroller-*.tgz
-    #     # echo "tar=${iofog-iofogcontroller-*.tgz}" >> "${GITHUB_OUTPUT}"
-    # - name: Get tar
-    #   run: |
-    #     cat iofog-iofogcontroller-*.tgz
-    #     echo ${{ steps.npm_tar.outputs.tar }}
