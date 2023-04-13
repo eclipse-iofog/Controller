@@ -20,13 +20,9 @@ on:
       - LICENSE
 
 env:
-  group: 'pipelines'
-  repository: 'focal-freedom-236620/controller'
-  ref: $(Build.SourceBranch)
-  imageTag:
-  buildTag: $(Build.BuildId)
-  branchTag: $(Build.SourceBranchName)
-  releaseCandidate: 'rc'
+  project: 'focal-freedom-236620'
+  image: 'controller'
+
 
 jobs:
   Build:
@@ -85,6 +81,7 @@ jobs:
       id-token: 'write'
       packages: 'write'
     name: Publish Controller
+    if: ${{ needs.Tests.result }} == 'success'
     steps:
     - uses: actions/checkout@v3
       with:
@@ -93,20 +90,17 @@ jobs:
       with:
         node-version: 18
     - run: npm ci
+
     - name: 'Get Previous tag'
       id: previoustag
       uses: "WyriHaximus/github-action-get-previous-tag@v1"
       with:
         fallback: 0.0.0
-    - name: Save Docker image name and tag to GCR_DOCKER_IMAGE into artifacts
-      id: gcr
-      run: |
-        echo "gcr_docker_image=gcr.io/${{ env.repository }}:${{ steps.tags.outputs.edited_tag }}" >> "${GITHUB_OUTPUT}"
-    - name: Get GCR image
-      run: echo ${{ steps.gcr.outputs.gcr_docker_image }}
+
     - name: npm version
       id: package-version
       uses: martinbeentjes/npm-get-version-action@v1.3.1
+
     - name: package version
       shell: bash
       id: version
@@ -116,19 +110,22 @@ jobs:
         else
            echo "pkg_version=${{ steps.package-version.outputs.current-version}}-${{ github.run_number }}" >> "${GITHUB_OUTPUT}"
         fi
-    - name: npm pack with version containing build number
+
+    - name: npm pack with version from package version
       run: |
         npm --no-git-tag-version version ${{ steps.version.outputs.pkg_version }}
         npm pack
+
     - name: Login to Github Container Registry
       uses: docker/login-action@v2
       with:
         registry: "ghcr.io"
         username: ${{ github.actor }}
         password: ${{ github.token }}
-    - name: Build and Push Container Image
+
+    - name: Build and Push to ghcr
       uses: docker/build-push-action@v3
-      id: build
+      id: build_push_ghcr
       with:
         file: Dockerfile.dev
         push: true
@@ -137,26 +134,30 @@ jobs:
           ghcr.io/eclipse-iofog/controller:latest
         build-args: PKG_VERSION=${{ steps.version.outputs.pkg_version }}
 
-    - name: build and push to gcr
+    - name: Build and Push to GCR
+      id: build_push_gcr
       uses: RafikFarhad/push-to-gcr-github-action@v5-beta
       with:
         gcloud_service_key: ${{ secrets.GCLOUD_SERVICE_KEY }}
         registry: gcr.io
-        project_id: focal-freedom-236620
+        project_id: ${{ env.project }}
         image_name: controller
         image_tag: latest,${{ steps.version.outputs.pkg_version }}
         dockerfile: Dockerfile.dev
         build_args: PKG_VERSION=${{ steps.version.outputs.pkg_version }}
 
-    - uses: actions/upload-artifact@v2
-      with:
-        name: npm-package
-        path: iofog-iofogcontroller-${{ steps.version.outputs.pkg_version }}.tgz
-    - uses: actions/download-artifact@v2
-      with:
-        name: npm-package
+    # - uses: actions/upload-artifact@v2
+    #   with:
+    #     name: npm-package
+    #     path: iofog-iofogcontroller-${{ steps.version.outputs.pkg_version }}.tgz
+    # - uses: actions/download-artifact@v2
+    #   with:
+    #     name: npm-package
     - run: ls
-    - uses: danielmundi/upload-packagecloud@v1
+
+    - name: Publish package to packagecloud
+      if: ${{ steps.build_push_gcr.outcome }} == 'success'
+      uses: danielmundi/upload-packagecloud@v1
       with:
         PACKAGE-NAME: iofog-iofogcontroller-${{ steps.version.outputs.pkg_version }}.tgz
         PACKAGECLOUD-USERNAME: iofog
