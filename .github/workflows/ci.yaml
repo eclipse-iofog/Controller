@@ -63,6 +63,14 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: ${{ matrix.node }}
+    - name: Cache Node Modules
+      uses: actions/cache@v3
+      with:
+        path: |
+          node_modules
+        key: ${{ runner.os }}-controller-node_modules-${{ hashFiles('package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-controller-node_modules-
     - run: npm ci
     - run: npm run test -- junit
     - run: npm run postman_test
@@ -141,10 +149,12 @@ jobs:
         gcloud_service_key: ${{ secrets.GCLOUD_SERVICE_KEY }}
         registry: gcr.io
         project_id: ${{ env.project }}
-        image_name: controller
+        image_name: ${{ env.image }}
         image_tag: latest,${{ steps.version.outputs.pkg_version }}
         dockerfile: Dockerfile.dev
         build_args: PKG_VERSION=${{ steps.version.outputs.pkg_version }}
+        cache-to: type=gha
+        cache-from: type=gha
 
     # - uses: actions/upload-artifact@v2
     #   with:
