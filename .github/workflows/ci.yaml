@@ -55,7 +55,7 @@ jobs:
       pull-requests: write
     strategy:
       matrix:
-        node: [ 19 ]
+        node: [ 16, 17, 16, 19 ]
     name: Node ${{ matrix.node }} Test
     steps:
     - uses: actions/checkout@v3
