@@ -120,10 +120,6 @@ jobs:
       run: |
         npm --no-git-tag-version version ${{ steps.version.outputs.pkg_version }}
         npm pack
-    # - name: display version
-    #   run: |
-    #     echo ${{ steps.tags.outputs.edited_tag }}
-    #     echo ${{ steps.version.outputs.pkg_version }}
     - name: Login to Github Container Registry
       uses: docker/login-action@v2
       with:
