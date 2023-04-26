@@ -37,6 +37,11 @@ jobs:
     - uses: actions/setup-node@v3
       with:
         node-version: 18
+    - run: git fetch --prune --unshallow
+    - name: get previous tag
+      id: previous_tag
+      run: echo "version=$(git describe --tags --abbrev=0)" >> "${GITHUB_OUTPUT}"
+    - run: echo ${{ steps.previous_tag.outputs.version }}
     - run: npm ci
     - run: npm run standard
     - run: |
@@ -89,15 +94,17 @@ jobs:
       id-token: 'write'
       packages: 'write'
     name: Publish Controller
-    if: ${{ needs.Tests.result }} == 'success'
     steps:
     - uses: actions/checkout@v3
-      with:
-          fetch-depth: 0
     - uses: actions/setup-node@v3
       with:
         node-version: 18
     - run: npm ci
+    - run: git fetch --prune --unshallow
+    - name: get previous tag
+      id: previous_tag
+      run: echo "version=git describe --tags --abbrev=0" >> "${GITHUB_OUTPUT}"
+    - run: echo ${{ steps.previous_tag.outputs.version }}
 
     - name: 'Get Previous tag'
       id: previoustag
@@ -108,7 +115,7 @@ jobs:
     - name: npm version
       id: package-version
       uses: martinbeentjes/npm-get-version-action@v1.3.1
-
+    - run: echo ${{ github.event.before }}
     - name: package version
       shell: bash
       id: version
@@ -156,13 +163,6 @@ jobs:
         cache-to: type=gha
         cache-from: type=gha
 
-    # - uses: actions/upload-artifact@v2
-    #   with:
-    #     name: npm-package
-    #     path: iofog-iofogcontroller-${{ steps.version.outputs.pkg_version }}.tgz
-    # - uses: actions/download-artifact@v2
-    #   with:
-    #     name: npm-package
     - run: ls
 
     - name: Publish package to packagecloud
