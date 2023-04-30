@@ -37,11 +37,6 @@ jobs:
     - uses: actions/setup-node@v3
       with:
         node-version: 18
-    - run: git fetch --prune --unshallow
-    - name: get previous tag
-      id: previous_tag
-      run: echo "version=$(git describe --tags --abbrev=0)" >> "${GITHUB_OUTPUT}"
-    - run: echo ${{ steps.previous_tag.outputs.version }}
     - run: npm ci
     - run: npm run standard
     - run: |
@@ -100,22 +95,11 @@ jobs:
       with:
         node-version: 18
     - run: npm ci
-    - run: git fetch --prune --unshallow
-    - name: get previous tag
-      id: previous_tag
-      run: echo "version=git describe --tags --abbrev=0" >> "${GITHUB_OUTPUT}"
-    - run: echo ${{ steps.previous_tag.outputs.version }}
-
-    - name: 'Get Previous tag'
-      id: previoustag
-      uses: "WyriHaximus/github-action-get-previous-tag@v1"
-      with:
-        fallback: 0.0.0
 
     - name: npm version
       id: package-version
       uses: martinbeentjes/npm-get-version-action@v1.3.1
-    - run: echo ${{ github.event.before }}
+
     - name: package version
       shell: bash
       id: version
@@ -160,8 +144,6 @@ jobs:
         image_tag: latest,${{ steps.version.outputs.pkg_version }}
         dockerfile: Dockerfile.dev
         build_args: PKG_VERSION=${{ steps.version.outputs.pkg_version }}
-        cache-to: type=gha
-        cache-from: type=gha
 
     - run: ls
 
