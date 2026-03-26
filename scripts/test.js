@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2018 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -16,7 +16,7 @@ const path = require('path')
 
 const { setDbEnvVars } = require('./util')
 
-function test (useReporter) {
+function test (useReporter, extraArgs) {
   const options = {
     env: {
       'NODE_ENV': 'test',
@@ -30,8 +30,13 @@ function test (useReporter) {
 
   const mochaBin = path.join(__dirname, '..', 'node_modules', 'mocha', 'bin', 'mocha')
   const mochaReporterOptions = '--reporter mocha-junit-reporter --reporter-options mochaFile=./unit-results.xml'
-  const mocha = useReporter ? [mochaBin, mochaReporterOptions].join(' ') : mochaBin
-  execSync(mocha, options)
+  let mochaCmd = useReporter ? [mochaBin, mochaReporterOptions].join(' ') : mochaBin
+  if (extraArgs && extraArgs.length) {
+    mochaCmd += ' ' + extraArgs.map(a => (a.includes(' ') ? `"${a}"` : a)).join(' ')
+    execSync(`node "${mochaBin}" ${mochaCmd.slice(mochaBin.length).trim()}`, options)
+  } else {
+    execSync(mochaCmd, options)
+  }
 }
 
 module.exports = {

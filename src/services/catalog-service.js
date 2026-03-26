@@ -1,6 +1,6 @@
 /*
  * *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -24,13 +24,14 @@ const Op = require('sequelize').Op
 const Validator = require('../schemas/index')
 const RegistryManager = require('../data/managers/registry-manager')
 const MicroserviceManager = require('../data/managers/microservice-manager')
-const MicroseriveStates = require('../enums/microservice-state')
+// const MicroseriveStates = require('../enums/microservice-state')
+const ChangeTrackingService = require('./change-tracking-service')
 
-const createCatalogItemEndPoint = async function (data, user, transaction) {
+const createCatalogItemEndPoint = async function (data, transaction) {
   await Validator.validate(data, Validator.schemas.catalogItemCreate)
-  await _checkForDuplicateName(data.name, { userId: user.id }, transaction)
+  await _checkForDuplicateName(data.name, null, transaction)
   await _checkForRestrictedPublisher(data.publisher)
-  const catalogItem = await _createCatalogItem(data, user, transaction)
+  const catalogItem = await _createCatalogItem(data, transaction)
   await _createCatalogImages(data, catalogItem, transaction)
   await _createCatalogItemInputType(data, catalogItem, transaction)
   await _createCatalogItemOutputType(data, catalogItem, transaction)
@@ -40,7 +41,7 @@ const createCatalogItemEndPoint = async function (data, user, transaction) {
   }
 }
 
-const updateCatalogItemEndPoint = async function (id, data, user, isCLI, transaction) {
+const updateCatalogItemEndPoint = async function (id, data, isCLI, transaction) {
   await Validator.validate(data, Validator.schemas.catalogItemUpdate)
 
   const where = isCLI
@@ -48,8 +49,7 @@ const updateCatalogItemEndPoint = async function (id, data, user, isCLI, transac
       id: id
     }
     : {
-      id: id,
-      userId: user.id
+      id: id
     }
 
   data.id = id
@@ -58,17 +58,17 @@ const updateCatalogItemEndPoint = async function (id, data, user, isCLI, transac
   await _updateCatalogItemIOTypes(data, where, transaction)
 }
 
-const listCatalogItemsEndPoint = async function (user, isCLI, transaction) {
+const listCatalogItemsEndPoint = async function (isCLI, transaction) {
   const where = isCLI
     ? {}
-    : {
-      [Op.or]: [{ userId: user.id }, { userId: null }],
-      [Op.or]: [{ category: { [Op.ne]: 'SYSTEM' } }, { category: null }]
-    }
+    // : {
+    //   [Op.or]: [{ category: { [Op.ne]: 'SYSTEM' } }, { category: null }]
+    // }
+    : {}
 
   const attributes = isCLI
     ? {}
-    : { exclude: ['userId'] }
+    : {}
 
   const catalogItems = await CatalogItemManager.findAllWithDependencies(where, attributes, transaction)
   return {
@@ -76,18 +76,18 @@ const listCatalogItemsEndPoint = async function (user, isCLI, transaction) {
   }
 }
 
-async function getCatalogItem (id, user, isCLI, transaction) {
+async function getCatalogItem (id, isCLI, transaction) {
   const where = isCLI
     ? { id: id }
-    : {
-      id: id,
-      [Op.or]: [{ userId: user.id }, { userId: null }],
-      [Op.or]: [{ category: { [Op.ne]: 'SYSTEM' } }, { category: null }]
-    }
+    // : {
+    //   id: id,
+    //   [Op.or]: [{ category: { [Op.ne]: 'SYSTEM' } }, { category: null }]
+    // }
+    : { id: id }
 
   const attributes = isCLI
     ? {}
-    : { exclude: ['userId'] }
+    : {}
 
   const item = await CatalogItemManager.findOneWithDependencies(where, attributes, transaction)
   if (!item) {
@@ -96,17 +96,31 @@ async function getCatalogItem (id, user, isCLI, transaction) {
   return item
 }
 
-const getCatalogItemEndPoint = async function (id, user, isCLI, transaction) {
-  return getCatalogItem(id, user, isCLI, transaction)
+async function getSystemCatalogItem (id, isCLI, transaction) {
+  const where = {
+    id: id,
+    category: 'SYSTEM'
+  }
+
+  const attributes = {}
+
+  const item = await CatalogItemManager.findOneWithDependencies(where, attributes, transaction)
+  if (!item) {
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_CATALOG_ITEM_ID, id))
+  }
+  return item
 }
 
-const deleteCatalogItemEndPoint = async function (id, user, isCLI, transaction) {
+const getCatalogItemEndPoint = async function (id, isCLI, transaction) {
+  return getCatalogItem(id, isCLI, transaction)
+}
+
+const deleteCatalogItemEndPoint = async function (id, isCLI, transaction) {
   const where = isCLI
     ? {
       id: id
     }
     : {
-      userId: user.id,
       id: id
     }
 
@@ -116,6 +130,11 @@ const deleteCatalogItemEndPoint = async function (id, user, isCLI, transaction) 
     throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.SYSTEM_CATALOG_ITEM_DELETE, id))
   }
 
+  const microservices = await MicroserviceManager.findAllWithStatuses({ catalogItemId: id }, transaction)
+  if (microservices.length > 0) {
+    throw new Errors.ValidationError(ErrorMessages.CATALOG_ITEM_IMAGES_IS_FROZEN)
+  }
+
   const affectedRows = await CatalogItemManager.delete(where, transaction)
   if (affectedRows === 0) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_CATALOG_ITEM_ID, id))
@@ -123,13 +142,12 @@ const deleteCatalogItemEndPoint = async function (id, user, isCLI, transaction) 
   return affectedRows
 }
 
-async function getNetworkCatalogItem (transaction) {
+async function getNatsCatalogItem (transaction) {
   return CatalogItemManager.findOne({
-    name: 'Networking Tool',
+    name: 'NATs',
     category: 'SYSTEM',
     publisher: 'Eclipse ioFog',
-    registry_id: 1,
-    user_id: null
+    registry_id: 1
   }, transaction)
 }
 
@@ -138,28 +156,16 @@ async function getRouterCatalogItem (transaction) {
     name: DBConstants.ROUTER_CATALOG_NAME,
     category: 'SYSTEM',
     publisher: 'Eclipse ioFog',
-    registry_id: 1,
-    user_id: null
+    registry_id: 1
   }, transaction)
 }
 
-async function getProxyCatalogItem (transaction) {
+async function getDebugCatalogItem (transaction) {
   return CatalogItemManager.findOne({
-    name: DBConstants.PROXY_CATALOG_NAME,
+    name: DBConstants.DEBUG_CATALOG_NAME,
     category: 'SYSTEM',
     publisher: 'Eclipse ioFog',
-    registry_id: 1,
-    user_id: null
-  }, transaction)
-}
-
-async function getPortRouterCatalogItem (transaction) {
-  return CatalogItemManager.findOne({
-    name: DBConstants.PORT_ROUTER_CATALOG_NAME,
-    category: 'SYSTEM',
-    publisher: 'Eclipse ioFog',
-    registry_id: 1,
-    user_id: null
+    registry_id: 1
   }, transaction)
 }
 
@@ -168,8 +174,7 @@ async function getBluetoothCatalogItem (transaction) {
     name: 'RESTBlue',
     category: 'SYSTEM',
     publisher: 'Eclipse ioFog',
-    registry_id: 1,
-    user_id: null
+    registry_id: 1
   }, transaction)
 }
 
@@ -178,16 +183,15 @@ async function getHalCatalogItem (transaction) {
     name: 'HAL',
     category: 'SYSTEM',
     publisher: 'Eclipse ioFog',
-    registry_id: 1,
-    user_id: null
+    registry_id: 1
   }, transaction)
 }
 
 const _checkForDuplicateName = async function (name, item, transaction) {
   if (name) {
-    const where = item.id
-      ? { [Op.or]: [{ userId: item.userId }, { userId: null }], name: name, id: { [Op.ne]: item.id } }
-      : { [Op.or]: [{ userId: item.userId }, { userId: null }], name: name }
+    const where = (item && item.id)
+      ? { name: name, id: { [Op.ne]: item.id } }
+      : { name: name }
 
     const result = await CatalogItemManager.findOne(where, transaction)
     if (result) {
@@ -210,7 +214,7 @@ const _checkIfItemExists = async function (where, transaction) {
   return item
 }
 
-const _createCatalogItem = async function (data, user, transaction) {
+const _createCatalogItem = async function (data, transaction) {
   let catalogItem = {
     name: data.name,
     description: data.description,
@@ -221,8 +225,7 @@ const _createCatalogItem = async function (data, user, transaction) {
     ramRequired: data.ramRequired,
     picture: data.picture,
     isPublic: data.isPublic,
-    registryId: data.registryId,
-    userId: user.id
+    registryId: data.registryId
   }
 
   catalogItem = AppHelper.deleteUndefinedFields(catalogItem)
@@ -317,6 +320,12 @@ const _updateCatalogItem = async function (data, where, transaction) {
     if (!registry) {
       throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_REGISTRY_ID, data.registryId))
     }
+    const microservices = await MicroserviceManager.findAllWithStatuses({ catalogItemId: data.id }, transaction)
+    if (microservices.length > 0) {
+      for (const ms of microservices) {
+        await MicroserviceManager.updateAndFind({ uuid: ms.uuid }, { registryId: data.registryId }, transaction)
+      }
+    }
   }
 
   const item = await _checkIfItemExists(where, transaction)
@@ -331,12 +340,13 @@ const _updateCatalogItem = async function (data, where, transaction) {
 
 const _updateCatalogItemImages = async function (data, transaction) {
   if (data.images) {
-    const microservices = await MicroserviceManager.findAllWithStatuses({ catalogItemId: data.id }, transaction)
-    for (const ms of microservices) {
-      if (ms.microserviceStatus.status === MicroseriveStates.RUNNING) {
-        throw new Errors.ValidationError(ErrorMessages.CATALOG_ITEM_IMAGES_IS_FROZEN)
-      }
-    }
+    // TODO: Rather than not allowing images for running microservices, update changetracking for agent microsevice list so that once catalog item images are updated, the microservices are updated and restarted.
+    // const microservices = await MicroserviceManager.findAllWithStatuses({ catalogItemId: data.id }, transaction)
+    // for (const ms of microservices) {
+    //   if (ms.microserviceStatus.status === MicroseriveStates.RUNNING) {
+    //     throw new Errors.ValidationError(ErrorMessages.CATALOG_ITEM_IMAGES_IS_FROZEN)
+    //   }
+    // }
 
     for (const image of data.images) {
       await CatalogItemImageManager.updateOrCreate({
@@ -347,6 +357,13 @@ const _updateCatalogItemImages = async function (data, transaction) {
         fogTypeId: image.fogTypeId,
         containerImage: image.containerImage
       }, transaction)
+    }
+    const microservices = await MicroserviceManager.findAllWithStatuses({ catalogItemId: data.id }, transaction)
+    if (microservices.length > 0) {
+      for (const ms of microservices) {
+        await MicroserviceManager.updateAndFind({ uuid: ms.uuid }, { rebuild: true }, transaction)
+        await ChangeTrackingService.update(ms.iofogUuid, ChangeTrackingService.events.microserviceCommon, transaction)
+      }
     }
   }
 }
@@ -379,10 +396,10 @@ module.exports = {
   deleteCatalogItemEndPoint: TransactionDecorator.generateTransaction(deleteCatalogItemEndPoint),
   updateCatalogItemEndPoint: TransactionDecorator.generateTransaction(updateCatalogItemEndPoint),
   getCatalogItem: getCatalogItem,
-  getNetworkCatalogItem: getNetworkCatalogItem,
+  getSystemCatalogItem: getSystemCatalogItem,
+  getNatsCatalogItem: getNatsCatalogItem,
   getBluetoothCatalogItem: getBluetoothCatalogItem,
   getHalCatalogItem: getHalCatalogItem,
   getRouterCatalogItem: getRouterCatalogItem,
-  getProxyCatalogItem: getProxyCatalogItem,
-  getPortRouterCatalogItem: getPortRouterCatalogItem
+  getDebugCatalogItem: getDebugCatalogItem
 }

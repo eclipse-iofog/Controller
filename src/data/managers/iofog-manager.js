@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -16,7 +16,6 @@ const models = require('../models')
 
 const Fog = models.Fog
 const Tags = models.Tags
-const FogAccessToken = models.FogAccessToken
 const Microservice = models.Microservice
 const Strace = models.StraceDiagnostics
 
@@ -62,19 +61,6 @@ class FogManager extends BaseManager {
       order: [ [ 'name', 'ASC' ] ]
     }, {
       transaction: transaction
-    })
-  }
-
-  // no transaction required here, used by auth decorator
-  checkToken (token) {
-    return Fog.findOne({
-      include: [{
-        model: FogAccessToken,
-        as: 'accessToken',
-        where: {
-          token: token
-        }
-      }]
     })
   }
 

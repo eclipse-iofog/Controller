@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -18,13 +18,13 @@ const logger = require('../logger')
 const MicroserviceService = require('../services/microservices-service')
 const fs = require('fs')
 const AppHelper = require('../helpers/app-helper')
-const CliDecorator = require('../decorators/cli-decorator')
 const CliDataTypes = require('./cli-data-types')
 
 const JSON_SCHEMA_ADD = AppHelper.stringifyCliJsonSchema(
   {
     name: 'string',
     config: 'string',
+    annotations: 'string',
     catalogItemId: 0,
     images: [
       {
@@ -35,7 +35,8 @@ const JSON_SCHEMA_ADD = AppHelper.stringifyCliJsonSchema(
     registryId: 1,
     application: 'string',
     iofogUuid: 'string',
-    rootHostAccess: true,
+    hostNetworkMode: true,
+    isPrivileged: true,
     logSize: 0,
     volumeMappings: [
       {
@@ -52,9 +53,6 @@ const JSON_SCHEMA_ADD = AppHelper.stringifyCliJsonSchema(
         publicMode: true
       }
     ],
-    routes: [
-      'string'
-    ],
     env: [
       {
         key: 'string',
@@ -63,7 +61,19 @@ const JSON_SCHEMA_ADD = AppHelper.stringifyCliJsonSchema(
     ],
     cmd: [
       'string'
-    ]
+    ],
+    cdiDevices: [
+      'string'
+    ],
+    capAdd: [
+      'string'
+    ],
+    capDrop: [
+      'string'
+    ],
+    runAsUser: 'string',
+    platform: 'string',
+    runtime: 'string'
   }
 )
 
@@ -71,9 +81,11 @@ const JSON_SCHEMA_UPDATE = AppHelper.stringifyCliJsonSchema(
   {
     name: 'string',
     config: 'string',
+    annotations: 'string',
     rebuild: true,
     iofogUuid: 'string',
-    rootHostAccess: true,
+    hostNetworkMode: true,
+    isPrivileged: true,
     logSize: 0,
     catalogItemId: 0,
     images: [
@@ -99,7 +111,19 @@ const JSON_SCHEMA_UPDATE = AppHelper.stringifyCliJsonSchema(
     ],
     cmd: [
       'string'
-    ]
+    ],
+    cdiDevices: [
+      'string'
+    ],
+    capAdd: [
+      'string'
+    ],
+    capDrop: [
+      'string'
+    ],
+    runAsUser: 'string',
+    platform: 'string',
+    runtime: 'string'
   }
 )
 
@@ -187,6 +211,13 @@ class Microservice extends BaseCLIHandler {
         group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
+        name: 'annotations',
+        alias: 'A',
+        type: String,
+        description: 'Microservice annotations',
+        group: [constants.CMD_UPDATE, constants.CMD_ADD]
+      },
+      {
         name: 'volumes',
         alias: 'v',
         type: String,
@@ -202,17 +233,17 @@ class Microservice extends BaseCLIHandler {
         group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
-        name: 'root-enable',
-        alias: 'r',
+        name: 'host-network-mode',
+        alias: 'hN',
         type: Boolean,
-        description: 'Enable root access',
+        description: 'Enable host network mode',
         group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
-        name: 'root-disable',
-        alias: 'R',
+        name: 'is-privileged',
+        alias: 'iP',
         type: Boolean,
-        description: 'Disable root access',
+        description: 'Enable privileged mode',
         group: [constants.CMD_UPDATE, constants.CMD_ADD]
       },
       {
@@ -229,21 +260,6 @@ class Microservice extends BaseCLIHandler {
         type: String,
         description: 'Container port mapping',
         group: [constants.CMD_PORT_MAPPING_CREATE, constants.CMD_VOLUME_MAPPING_CREATE]
-      },
-      {
-        name: 'routes',
-        alias: 't',
-        type: String,
-        description: 'Microservice route(s) (receiving microservices)',
-        multiple: true,
-        group: [constants.CMD_ADD]
-      },
-      {
-        name: 'route',
-        alias: 'T',
-        type: String,
-        description: 'Microservice route (receiving microservices)',
-        group: [constants.CMD_ROUTE_CREATE, constants.CMD_ROUTE_REMOVE]
       },
       {
         name: 'internal-port',
@@ -267,13 +283,6 @@ class Microservice extends BaseCLIHandler {
         group: [constants.CMD_REMOVE]
       },
       {
-        name: 'user-id',
-        alias: 'u',
-        type: CliDataTypes.Integer,
-        description: 'User\'s id',
-        group: [constants.CMD_ADD]
-      },
-      {
         name: 'mapping-id',
         alias: 'm',
         type: CliDataTypes.Integer,
@@ -295,6 +304,54 @@ class Microservice extends BaseCLIHandler {
         description: 'Microservice container command and argument(s)',
         multiple: true,
         group: [constants.CMD_UPDATE, constants.CMD_ADD]
+      },
+      {
+        name: 'cdiDevices',
+        alias: 'D',
+        type: String,
+        description: 'Map CDI devices to microservice container',
+        multiple: true,
+        group: [constants.CMD_UPDATE, constants.CMD_ADD]
+      },
+      {
+        name: 'capAdd',
+        alias: 'cA',
+        type: String,
+        description: 'A list of kernel capabilities to add to the container.',
+        multiple: true,
+        group: [constants.CMD_UPDATE, constants.CMD_ADD]
+      },
+      {
+        name: 'capDrop',
+        alias: 'cD',
+        type: String,
+        description: 'A list of kernel capabilities to drop to the container.',
+        multiple: true,
+        group: [constants.CMD_UPDATE, constants.CMD_ADD]
+      },
+      {
+        name: 'user',
+        alias: 'U',
+        type: String,
+        description: 'Run Microservice as a user)',
+        multiple: true,
+        group: [constants.CMD_UPDATE, constants.CMD_ADD]
+      },
+      {
+        name: 'platform',
+        alias: 'L',
+        type: String,
+        description: 'Microservice image platform to be used',
+        multiple: true,
+        group: [constants.CMD_UPDATE, constants.CMD_ADD]
+      },
+      {
+        name: 'runtime',
+        alias: 'y',
+        type: String,
+        description: 'Microservice container runtime definition',
+        multiple: true,
+        group: [constants.CMD_UPDATE, constants.CMD_ADD]
       }
     ]
     this.commands = {
@@ -303,8 +360,6 @@ class Microservice extends BaseCLIHandler {
       [constants.CMD_REMOVE]: 'Delete a microservice.',
       [constants.CMD_LIST]: 'List all microservices.',
       [constants.CMD_INFO]: 'Get microservice settings.',
-      [constants.CMD_ROUTE_CREATE]: 'Create microservice route.',
-      [constants.CMD_ROUTE_REMOVE]: 'Remove microservice route.',
       [constants.CMD_PORT_MAPPING_CREATE]: 'Create microservice port mapping.',
       [constants.CMD_PORT_MAPPING_REMOVE]: 'Remove microservice port mapping.',
       [constants.CMD_PORT_MAPPING_LIST]: 'List microservice port mapping.',
@@ -324,43 +379,37 @@ class Microservice extends BaseCLIHandler {
 
       switch (command) {
         case constants.CMD_ADD:
-          await _executeCase(microserviceCommand, constants.CMD_ADD, _createMicroservice, true)
+          await _executeCase(microserviceCommand, constants.CMD_ADD, _createMicroservice)
           break
         case constants.CMD_UPDATE:
-          await _executeCase(microserviceCommand, constants.CMD_UPDATE, _updateMicroservice, false)
+          await _executeCase(microserviceCommand, constants.CMD_UPDATE, _updateMicroservice)
           break
         case constants.CMD_REMOVE:
-          await _executeCase(microserviceCommand, constants.CMD_REMOVE, _removeMicroservice, false)
+          await _executeCase(microserviceCommand, constants.CMD_REMOVE, _removeMicroservice)
           break
         case constants.CMD_LIST:
-          await _executeCase(microserviceCommand, constants.CMD_LIST, _listMicroservices, false)
+          await _executeCase(microserviceCommand, constants.CMD_LIST, _listMicroservices)
           break
         case constants.CMD_INFO:
-          await _executeCase(microserviceCommand, constants.CMD_INFO, _getMicroservice, false)
-          break
-        case constants.CMD_ROUTE_CREATE:
-          await _executeCase(microserviceCommand, constants.CMD_ROUTE_CREATE, _createRoute, false)
-          break
-        case constants.CMD_ROUTE_REMOVE:
-          await _executeCase(microserviceCommand, constants.CMD_ROUTE_REMOVE, _removeRoute, false)
+          await _executeCase(microserviceCommand, constants.CMD_INFO, _getMicroservice)
           break
         case constants.CMD_PORT_MAPPING_CREATE:
-          await _executeCase(microserviceCommand, constants.CMD_PORT_MAPPING_CREATE, _createPortMapping, false)
+          await _executeCase(microserviceCommand, constants.CMD_PORT_MAPPING_CREATE, _createPortMapping)
           break
         case constants.CMD_PORT_MAPPING_REMOVE:
-          await _executeCase(microserviceCommand, constants.CMD_PORT_MAPPING_REMOVE, _removePortMapping, false)
+          await _executeCase(microserviceCommand, constants.CMD_PORT_MAPPING_REMOVE, _removePortMapping)
           break
         case constants.CMD_PORT_MAPPING_LIST:
-          await _executeCase(microserviceCommand, constants.CMD_PORT_MAPPING_LIST, _listPortMappings, false)
+          await _executeCase(microserviceCommand, constants.CMD_PORT_MAPPING_LIST, _listPortMappings)
           break
         case constants.CMD_VOLUME_MAPPING_CREATE:
-          await _executeCase(microserviceCommand, constants.CMD_VOLUME_MAPPING_CREATE, _createVolumeMapping, false)
+          await _executeCase(microserviceCommand, constants.CMD_VOLUME_MAPPING_CREATE, _createVolumeMapping)
           break
         case constants.CMD_VOLUME_MAPPING_REMOVE:
-          await _executeCase(microserviceCommand, constants.CMD_VOLUME_MAPPING_REMOVE, _removeVolumeMapping, false)
+          await _executeCase(microserviceCommand, constants.CMD_VOLUME_MAPPING_REMOVE, _removeVolumeMapping)
           break
         case constants.CMD_VOLUME_MAPPING_LIST:
-          await _executeCase(microserviceCommand, constants.CMD_VOLUME_MAPPING_LIST, _listVolumeMappings, false)
+          await _executeCase(microserviceCommand, constants.CMD_VOLUME_MAPPING_LIST, _listVolumeMappings)
           break
         case constants.CMD_HELP:
         default:
@@ -404,19 +453,7 @@ class Microservice extends BaseCLIHandler {
             example: '$ iofog-controller microservice add [other required options] --ports 80:8080:false 443:5443:false'
           },
           {
-            desc: '4. Add routes (ABC:DEF - source microservice uuid : dest microservice uuid)',
-            example: '$ iofog-controller microservice add [other required options] --routes ABC:DEF RFG:HJK'
-          },
-          {
-            desc: '5. Add route (ABC:DEF - source microservice uuid : dest microservice uuid)',
-            example: '$ iofog-controller microservice route-create --route ABC:DEF'
-          },
-          {
-            desc: '6. Delete route (ABC:DEF - source microservice uuid : dest microservice uuid)',
-            example: '$ iofog-controller microservice route-remove --route ABC:DEF'
-          },
-          {
-            desc: '7. Create port mapping (80:8080:false - internal port : external port : public mode, ABC - microservice)',
+            desc: '4. Create port mapping (80:8080:false - internal port : external port : public mode, ABC - microservice)',
             example: '$ iofog-controller microservice port-mapping-create --mapping 80:8080:false -i ABC'
           },
           {
@@ -437,126 +474,92 @@ class Microservice extends BaseCLIHandler {
   }
 }
 
-async function _executeCase (commands, commandName, f, isUserRequired) {
+async function _executeCase (commands, commandName, f) {
   try {
     const obj = commands[commandName]
-
-    if (isUserRequired) {
-      const decoratedFunction = CliDecorator.prepareUserById(f)
-      await decoratedFunction(obj)
-    } else {
-      await f(obj)
-    }
+    await f(obj)
   } catch (error) {
     logger.error(error.message)
   }
 }
 
-const _createRoute = async function (obj, user) {
-  try {
-    const arr = obj.route.split(':')
-    const sourceMicroserviceUuid = arr[0]
-    const destMicroserviceUuid = arr[1]
-    logger.cliReq('microservice route-create', { args: { source: sourceMicroserviceUuid, dest: destMicroserviceUuid } })
-    await MicroserviceService.createRouteEndPoint(sourceMicroserviceUuid, destMicroserviceUuid, user, true)
-    logger.cliRes(`Microservice route with source microservice ${sourceMicroserviceUuid} and dest microservice 
-                ${destMicroserviceUuid} has been created successfully.`)
-  } catch (e) {
-    logger.error(ErrorMessages.CLI.INVALID_ROUTE)
-  }
-}
-
-const _removeRoute = async function (obj, user) {
-  try {
-    const arr = obj.route.split(':')
-    const sourceMicroserviceUuid = arr[0]
-    const destMicroserviceUuid = arr[1]
-    logger.cliReq('microservice route-remove', { args: { source: sourceMicroserviceUuid, dest: destMicroserviceUuid } })
-    await MicroserviceService.deleteRouteEndPoint(sourceMicroserviceUuid, destMicroserviceUuid, user, true)
-    logger.cliRes('Microservice route with source microservice ' + sourceMicroserviceUuid +
-      ' and dest microservice ' + destMicroserviceUuid + 'has been removed successfully.')
-  } catch (e) {
-    logger.error(ErrorMessages.CLI.INVALID_ROUTE)
-  }
-}
-
-const _createPortMapping = async function (obj, user) {
+const _createPortMapping = async function (obj) {
   const mapping = parsePortMappingObject(obj.mapping, ErrorMessages.CLI.INVALID_PORT_MAPPING)
   logger.cliReq('microservice port-mapping-create', { args: mapping })
-  await MicroserviceService.createPortMappingEndPoint(obj.microserviceUuid, mapping, user, true)
+  await MicroserviceService.createPortMappingEndPoint(obj.microserviceUuid, mapping, true)
   logger.cliRes('Port mapping has been created successfully.')
 }
 
-const _createVolumeMapping = async function (obj, user) {
+const _createVolumeMapping = async function (obj) {
   const mapping = parseVolumeMappingObject(obj.mapping, ErrorMessages.CLI.INVALID_VOLUME_MAPPING)
   logger.cliReq('microservice volume-mapping-create', { args: mapping })
-  const result = await MicroserviceService.createVolumeMappingEndPoint(obj.microserviceUuid, mapping, user, true)
+  const result = await MicroserviceService.createVolumeMappingEndPoint(obj.microserviceUuid, mapping, true)
   logger.cliRes(JSON.stringify({
     id: result.id
   }, null, 2))
 }
 
-const _removePortMapping = async function (obj, user) {
+const _removePortMapping = async function (obj) {
   try {
     logger.cliReq('microservice port-mapping-remove', { args: obj })
-    await MicroserviceService.deletePortMappingEndPoint(obj.microserviceUuid, obj.internalPort, user, true)
+    await MicroserviceService.deletePortMappingEndPoint(obj.microserviceUuid, obj.internalPort, true)
     logger.cliRes('Port mapping has been removed successfully.')
   } catch (e) {
     logger.error(e.message)
   }
 }
 
-const _removeVolumeMapping = async function (obj, user) {
+const _removeVolumeMapping = async function (obj) {
   try {
     logger.cliReq('microservice volume-mapping-remove', { args: obj })
-    await MicroserviceService.deleteVolumeMappingEndPoint(obj.microserviceUuid, obj.mappingId, user, true)
+    await MicroserviceService.deleteVolumeMappingEndPoint(obj.microserviceUuid, obj.mappingId, true)
     logger.cliRes('Volume mapping has been deleted successfully.')
   } catch (e) {
     logger.error(e.message)
   }
 }
 
-const _listPortMappings = async function (obj, user) {
+const _listPortMappings = async function (obj) {
   logger.cliReq('microservice port-mapping-list', { args: { microserviceUuid: obj.microserviceUuid } })
-  const result = await MicroserviceService.listMicroservicePortMappingsEndPoint(obj.microserviceUuid, user, true)
+  const result = await MicroserviceService.listMicroservicePortMappingsEndPoint(obj.microserviceUuid, true)
   logger.cliRes(JSON.stringify(result, null, 2))
 }
 
-const _listVolumeMappings = async function (obj, user) {
+const _listVolumeMappings = async function (obj) {
   logger.cliReq('microservice volume-mapping-list', { args: { microserviceUuid: obj.microserviceUuid } })
-  const result = await MicroserviceService.listVolumeMappingsEndPoint(obj.microserviceUuid, user, true)
+  const result = await MicroserviceService.listVolumeMappingsEndPoint(obj.microserviceUuid, true)
   logger.cliRes(JSON.stringify(result, null, 2))
 }
 
-const _removeMicroservice = async function (obj, user) {
+const _removeMicroservice = async function (obj) {
   const microserviceData = {
     withCleanup: obj.cleanup
   }
 
   logger.cliReq('microservice remove', { args: { microserviceUuid: obj.microserviceUuid, withCleanup: obj.cleanup } })
-  await MicroserviceService.deleteMicroserviceEndPoint(obj.microserviceUuid, microserviceData, user, true)
+  await MicroserviceService.deleteMicroserviceEndPoint(obj.microserviceUuid, microserviceData, true)
   logger.cliRes('Microservice has been removed successfully.')
 }
 
 const _listMicroservices = async function () {
   logger.cliReq('microservice list')
-  const result = await MicroserviceService.listMicroservicesEndPoint('', {}, true)
+  const result = await MicroserviceService.listMicroservicesEndPoint('', true)
   logger.cliRes(JSON.stringify(result, null, 2))
 }
 
-const _getMicroservice = async function (obj, user) {
+const _getMicroservice = async function (obj) {
   logger.cliReq('microservice info', { args: { microserviceUuid: obj.microserviceUuid } })
-  const result = await MicroserviceService.getMicroserviceEndPoint(obj.microserviceUuid, user, true)
+  const result = await MicroserviceService.getMicroserviceEndPoint(obj.microserviceUuid, true)
   logger.cliRes(JSON.stringify(result, null, 2))
 }
 
-const _createMicroservice = async function (obj, user) {
+const _createMicroservice = async function (obj) {
   const microservice = obj.file
     ? JSON.parse(fs.readFileSync(obj.file, 'utf8'))
     : _createMicroserviceObject(obj)
 
   logger.cliReq('microservice add', { args: microservice })
-  const result = await MicroserviceService.createMicroserviceEndPoint(microservice, user, true)
+  const result = await MicroserviceService.createMicroserviceEndPoint(microservice, true)
   const output = {
     uuid: result.uuid
   }
@@ -567,13 +570,13 @@ const _createMicroservice = async function (obj, user) {
   logger.cliRes(JSON.stringify(output, null, 2))
 }
 
-const _updateMicroservice = async function (obj, user) {
+const _updateMicroservice = async function (obj) {
   const microservice = obj.file
     ? JSON.parse(fs.readFileSync(obj.file, 'utf8'))
     : _updateMicroserviceObject(obj)
 
   logger.cliReq('microservice update', { args: microservice })
-  await MicroserviceService.updateMicroserviceEndPoint(obj.microserviceUuid, microservice, user, true)
+  await MicroserviceService.updateMicroserviceEndPoint(obj.microserviceUuid, microservice, true)
   logger.cliRes('Microservice has been updated successfully.')
 }
 
@@ -594,11 +597,19 @@ const _updateMicroserviceObject = function (obj) {
   const microserviceObj = {
     name: obj.name,
     config: obj.config,
+    annotations: obj.annotations,
     iofogUuid: obj.iofogUuid,
-    rootHostAccess: AppHelper.validateBooleanCliOptions(obj.rootEnable, obj.rootDisable),
+    hostNetworkMode: obj.hostNetworkMode,
+    isPrivileged: obj.isPrivileged,
     logSize: (obj.logSize || constants.MICROSERVICE_DEFAULT_LOG_SIZE) * 1,
     rebuild: obj.rebuild,
     cmd: obj.cmd,
+    cdiDevices: obj.cdiDevices,
+    capAdd: obj.capAdd,
+    capDrop: obj.capDrop,
+    runAsUser: obj.runAsUser,
+    platform: obj.platform,
+    runtime: obj.runtime,
     env,
     images: obj.images,
     catalogItemId: parseInt(obj.catalogItemId) || undefined,
@@ -652,14 +663,21 @@ const _createMicroserviceObject = function (obj) {
   const microserviceObj = {
     name: obj.name,
     config: obj.config,
+    annotations: obj.annotations,
     catalogItemId: parseInt(obj.catalogId) || undefined,
     application: obj.applicationName,
     registryId: parseInt(obj.registryId) || undefined,
     iofogUuid: obj.iofogUuid,
-    rootHostAccess: AppHelper.validateBooleanCliOptions(obj.rootEnable, obj.rootDisable),
+    hostNetworkMode: obj.hostNetworkMode,
+    isPrivileged: obj.isPrivileged,
     logSize: (obj.logSize || constants.MICROSERVICE_DEFAULT_LOG_SIZE) * 1,
-    routes: obj.routes,
     cmd: obj.cmd,
+    cdiDevices: obj.cdiDevices,
+    capAdd: obj.capAdd,
+    capDrop: obj.capDrop,
+    runAsUser: obj.runAsUser,
+    platform: obj.platform,
+    runtime: obj.runtime,
     env,
     images: []
   }

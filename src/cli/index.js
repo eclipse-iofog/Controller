@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -13,7 +13,6 @@
 
 const BaseCLIHandler = require('./base-cli-handler')
 const Start = require('./start')
-const User = require('./user')
 const Config = require('./config')
 const Tunnel = require('./tunnel')
 const IOFog = require('./iofog')
@@ -38,7 +37,6 @@ class Cli extends BaseCLIHandler {
       // [constants.CMD_INIT_DB]: 'Init sqlite db for iofog-controller.',
       [constants.CMD_CONTROLLER]: 'Display iofog-controller service information.',
       [constants.CMD_HELP]: 'Display usage information.',
-      [constants.CMD_USER]: 'User operations.',
       [constants.CMD_CONFIG]: 'Set/Display iofog-controller service config.',
       [constants.CMD_TUNNEL]: 'Tunnel operations.',
       [constants.CMD_IOFOG]: 'ioFog nodes operations.',
@@ -65,8 +63,6 @@ class Cli extends BaseCLIHandler {
         return
       case constants.CMD_CONTROLLER:
         return Controller.run({ argv })
-      case constants.CMD_USER:
-        return User.run({ argv })
       case constants.CMD_CONFIG:
         return Config.run({ argv })
       case constants.CMD_TUNNEL:

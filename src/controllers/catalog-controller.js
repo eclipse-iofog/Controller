@@ -1,6 +1,6 @@
 /*
  * *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -12,32 +12,31 @@
  */
 
 const CatalogService = require('../services/catalog-service')
-const AuthDecorator = require('./../decorators/authorization-decorator')
 
-const createCatalogItemEndPoint = async function (req, user) {
-  return CatalogService.createCatalogItemEndPoint(req.body, user)
+const createCatalogItemEndPoint = async function (req) {
+  return CatalogService.createCatalogItemEndPoint(req.body)
 }
 
-const listCatalogItemsEndPoint = async function (req, user) {
-  return CatalogService.listCatalogItemsEndPoint(user, false)
+const listCatalogItemsEndPoint = async function (req) {
+  return CatalogService.listCatalogItemsEndPoint(false)
 }
 
-const listCatalogItemEndPoint = async function (req, user) {
-  return CatalogService.getCatalogItemEndPoint(req.params.id, user, false)
+const listCatalogItemEndPoint = async function (req) {
+  return CatalogService.getCatalogItemEndPoint(req.params.id, false)
 }
 
-const deleteCatalogItemEndPoint = async function (req, user) {
-  await CatalogService.deleteCatalogItemEndPoint(req.params.id, user, false)
+const deleteCatalogItemEndPoint = async function (req) {
+  await CatalogService.deleteCatalogItemEndPoint(req.params.id, false)
 }
 
-const updateCatalogItemEndPoint = async function (req, user) {
-  await CatalogService.updateCatalogItemEndPoint(req.params.id, req.body, user, false)
+const updateCatalogItemEndPoint = async function (req) {
+  await CatalogService.updateCatalogItemEndPoint(req.params.id, req.body, false)
 }
 
 module.exports = {
-  createCatalogItemEndPoint: AuthDecorator.checkAuthToken(createCatalogItemEndPoint),
-  listCatalogItemsEndPoint: AuthDecorator.checkAuthToken(listCatalogItemsEndPoint),
-  listCatalogItemEndPoint: AuthDecorator.checkAuthToken(listCatalogItemEndPoint),
-  deleteCatalogItemEndPoint: AuthDecorator.checkAuthToken(deleteCatalogItemEndPoint),
-  updateCatalogItemEndPoint: AuthDecorator.checkAuthToken(updateCatalogItemEndPoint)
+  createCatalogItemEndPoint: (createCatalogItemEndPoint),
+  listCatalogItemsEndPoint: (listCatalogItemsEndPoint),
+  listCatalogItemEndPoint: (listCatalogItemEndPoint),
+  deleteCatalogItemEndPoint: (deleteCatalogItemEndPoint),
+  updateCatalogItemEndPoint: (updateCatalogItemEndPoint)
 }

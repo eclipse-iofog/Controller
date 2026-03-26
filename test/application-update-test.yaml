@@ -1,5 +1,5 @@
 kind: Application
-apiVersion: iofog.org/v3
+apiVersion: datasance.com/v3
 metadata:
   name: "healthcare-wearable-flow"
 spec:
@@ -9,8 +9,8 @@ spec:
       agent:
         name: "{% assign agent = \"\" | findAgent | first %}{{ agent.name }}"
       images:
-        arm: "edgeworx/healthcare-heart-rate:arm-v1"
-        x86: "edgeworx/healthcare-heart-rate:x86-v1"
+        arm: "edgeworx/healthcare-heart-rate:arm-v3"
+        x86: "edgeworx/healthcare-heart-rate:x86-v3"
       container:
         rootHostAccess: false
         ports: []

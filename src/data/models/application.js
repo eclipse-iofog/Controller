@@ -29,6 +29,16 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.BOOLEAN,
       field: 'is_system',
       defaultValue: false
+    },
+    natsAccess: {
+      type: DataTypes.BOOLEAN,
+      field: 'nats_access',
+      defaultValue: false
+    },
+    natsRuleId: {
+      type: DataTypes.INTEGER,
+      field: 'nats_rule_id',
+      allowNull: true
     }
   }, {
     tableName: 'Flows',
@@ -36,21 +46,21 @@ module.exports = (sequelize, DataTypes) => {
     underscored: true
   })
   Application.associate = function (models) {
-    Application.belongsTo(models.User, {
-      foreignKey: {
-        name: 'userId',
-        field: 'user_id'
-      },
-      as: 'user',
-      onDelete: 'cascade'
-    })
-
     Application.hasMany(models.Microservice, {
       foreignKey: {
         name: 'applicationId',
         field: 'application_id'
       },
       as: 'microservices'
+    })
+
+    Application.belongsTo(models.NatsAccountRule, {
+      foreignKey: {
+        name: 'natsRuleId',
+        field: 'nats_rule_id'
+      },
+      as: 'natsRule',
+      onDelete: 'set null'
     })
   }
   return Application

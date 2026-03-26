@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -43,11 +43,11 @@ class Start extends BaseCLIHandler {
       daemon._options.silent = false
     }
     const configuration = {
-      devMode: config.get('Server:DevMode'),
-      port: config.get('Server:Port'),
-      sslKey: config.get('Server:SslKey'),
-      sslCert: config.get('Server:SslCert'),
-      intermedKey: config.get('Server:IntermediateCert')
+      devMode: config.get('server.devMode'),
+      port: config.get('server.port'),
+      sslKey: config.get('server.ssl.path.key'),
+      sslCert: config.get('server.ssl.path.cert'),
+      intermedKey: config.get('server.ssl.path.intermediateCert')
     }
     const pid = daemon.status()
 
@@ -76,8 +76,7 @@ function checkDaemon (daemon, configuration) {
       iterationsCount++
       const pid = daemon.status()
       if (pid === 0) {
-        logger.error('Error: port is probably allocated, or ssl_key or ssl_cert or intermediate_cert ' +
-            'is either missing or invalid.')
+        logger.error('Error: port is probably allocated, or ssl_key or ssl_cert is either missing or invalid.')
         return reject(new Error('Error starting ioFog-Controller'))
       }
 
@@ -95,8 +94,8 @@ function checkDaemon (daemon, configuration) {
 }
 
 function checkServerProtocol (configuration) {
-  const { devMode, port, sslKey, sslCert, intermedKey } = configuration
-  if (!devMode && sslKey && sslCert && intermedKey) {
+  const { devMode, port, sslKey, sslCert } = configuration
+  if (!devMode && sslKey && sslCert) {
     logger.cliRes(`==> 🌎 HTTPS server listening on port ${port}. Open up https://localhost:${port}/ in your browser.`)
   } else {
     logger.cliRes(`==> 🌎 Listening on port ${port}. Open up http://localhost:${port}/ in your browser.`)

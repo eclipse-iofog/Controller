@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -15,7 +15,6 @@ const BaseCLIHandler = require('./base-cli-handler')
 const constants = require('../helpers/constants')
 const logger = require('../logger')
 const fs = require('fs')
-const CliDecorator = require('../decorators/cli-decorator')
 const AppHelper = require('../helpers/app-helper')
 const FogService = require('../services/iofog-service')
 const CliDataTypes = require('./cli-data-types')
@@ -249,13 +248,6 @@ class IOFog extends BaseCLIHandler {
         group: [constants.CMD_VERSION]
       },
       {
-        name: 'user-id',
-        alias: 'u',
-        type: CliDataTypes.Integer,
-        description: 'User\'s id',
-        group: [constants.CMD_ADD, constants.CMD_UPDATE, constants.CMD_REMOVE]
-      },
-      {
         name: 'log-level',
         alias: 'L',
         type: String,
@@ -309,37 +301,37 @@ class IOFog extends BaseCLIHandler {
 
       switch (command) {
         case constants.CMD_ADD:
-          await _executeCase(iofogCommand, constants.CMD_ADD, _createFog, true)
+          await _executeCase(iofogCommand, constants.CMD_ADD, _createFog)
           break
         case constants.CMD_UPDATE:
-          await _executeCase(iofogCommand, constants.CMD_UPDATE, _updateFog, true)
+          await _executeCase(iofogCommand, constants.CMD_UPDATE, _updateFog)
           break
         case constants.CMD_REMOVE:
-          await _executeCase(iofogCommand, constants.CMD_REMOVE, _deleteFog, true)
+          await _executeCase(iofogCommand, constants.CMD_REMOVE, _deleteFog)
           break
         case constants.CMD_LIST:
-          await _executeCase(iofogCommand, constants.CMD_LIST, _getFogList, false)
+          await _executeCase(iofogCommand, constants.CMD_LIST, _getFogList)
           break
         case constants.CMD_INFO:
-          await _executeCase(iofogCommand, constants.CMD_INFO, _getFog, false)
+          await _executeCase(iofogCommand, constants.CMD_INFO, _getFog)
           break
         case constants.CMD_PROVISIONING_KEY:
-          await _executeCase(iofogCommand, constants.CMD_PROVISIONING_KEY, _generateProvision, false)
+          await _executeCase(iofogCommand, constants.CMD_PROVISIONING_KEY, _generateProvision)
           break
         case constants.CMD_IOFOG_REBOOT:
-          await _executeCase(iofogCommand, constants.CMD_IOFOG_REBOOT, _setFogRebootCommand, false)
+          await _executeCase(iofogCommand, constants.CMD_IOFOG_REBOOT, _setFogRebootCommand)
           break
         case constants.CMD_VERSION:
-          await _executeCase(iofogCommand, constants.CMD_VERSION, _setFogVersionCommand, false)
+          await _executeCase(iofogCommand, constants.CMD_VERSION, _setFogVersionCommand)
           break
         case constants.CMD_HAL_HW:
-          await _executeCase(iofogCommand, constants.CMD_HAL_HW, _getHalHardwareInfo, false)
+          await _executeCase(iofogCommand, constants.CMD_HAL_HW, _getHalHardwareInfo)
           break
         case constants.CMD_HAL_USB:
-          await _executeCase(iofogCommand, constants.CMD_HAL_USB, _getHalUsbInfo, false)
+          await _executeCase(iofogCommand, constants.CMD_HAL_USB, _getHalUsbInfo)
           break
         case constants.CMD_IOFOG_PRUNE:
-          await _executeCase(iofogCommand, constants.CMD_IOFOG_PRUNE, _setFogPruneCommand, false)
+          await _executeCase(iofogCommand, constants.CMD_IOFOG_PRUNE, _setFogPruneCommand)
           break
         case constants.CMD_HELP:
         default:
@@ -362,34 +354,28 @@ class IOFog extends BaseCLIHandler {
   }
 }
 
-async function _executeCase (commands, commandName, f, isUserRequired) {
+async function _executeCase (commands, commandName, f) {
   try {
     const obj = commands[commandName]
-
-    if (isUserRequired) {
-      const decoratedFunction = CliDecorator.prepareUserById(f)
-      await decoratedFunction(obj)
-    } else {
-      await f(obj)
-    }
+    await f(obj)
   } catch (error) {
     logger.error(error.message)
   }
 }
 
-async function _createFog (obj, user) {
+async function _createFog (obj) {
   const fog = obj.file
     ? JSON.parse(fs.readFileSync(obj.file, 'utf8'))
     : _createFogObject(obj)
 
   logger.cliReq('fog add', { args: fog })
-  const result = await FogService.createFogEndPoint(fog, user, true)
+  const result = await FogService.createFogEndPoint(fog, true)
   logger.cliRes(JSON.stringify({
     uuid: result.uuid
   }, null, 2))
 }
 
-async function _updateFog (obj, user) {
+async function _updateFog (obj) {
   const fog = obj.file
     ? JSON.parse(fs.readFileSync(obj.file, 'utf8'))
     : _createFogObject(obj)
@@ -397,52 +383,52 @@ async function _updateFog (obj, user) {
   fog.uuid = obj.iofogUuid
 
   logger.cliReq('fog update', { args: fog })
-  await FogService.updateFogEndPoint(fog, user, true)
+  await FogService.updateFogEndPoint(fog, true)
   logger.cliRes('ioFog node has been updated successfully.')
 }
 
-async function _deleteFog (obj, user) {
+async function _deleteFog (obj) {
   const fog = _createFogObject(obj)
   logger.cliReq('fog remove', { args: fog })
-  await FogService.deleteFogEndPoint(fog, user, true)
+  await FogService.deleteFogEndPoint(fog, true)
   logger.cliRes('ioFog node has been removed successfully')
 }
 
-async function _getFogList (obj, user) {
+async function _getFogList (obj) {
   logger.cliReq('fog list')
   const emptyFilters = []
-  const list = await FogService.getFogListEndPoint(emptyFilters, user, true, false)
+  const list = await FogService.getFogListEndPoint(emptyFilters, true, false)
   logger.cliRes(JSON.stringify(list, null, 2))
 }
 
-async function _getFog (obj, user) {
+async function _getFog (obj) {
   const fog = _createFogObject(obj)
   logger.cliReq('fog info', { args: fog })
-  const res = await FogService.getFogEndPoint(fog, user, true)
+  const res = await FogService.getFogEndPoint(fog, true)
   logger.cliRes(JSON.stringify(res, null, 2))
 }
 
-async function _generateProvision (obj, user) {
+async function _generateProvision (obj) {
   const fog = _createFogObject(obj)
   logger.cliReq('fog provisioning-key', { args: fog })
-  const response = await FogService.generateProvisioningKeyEndPoint(fog, user, true)
+  const response = await FogService.generateProvisioningKeyEndPoint(fog, true)
   logger.cliRes(JSON.stringify(response), null, 2)
 }
 
-async function _setFogRebootCommand (obj, user) {
+async function _setFogRebootCommand (obj) {
   const fog = _createFogObject(obj)
   logger.cliReq('fog reboot', { args: fog })
-  await FogService.setFogRebootCommandEndPoint(fog, user, true)
+  await FogService.setFogRebootCommandEndPoint(fog, true)
   logger.cliRes('ioFog reboot command has been set successfully')
 }
 
-async function _setFogVersionCommand (obj, user) {
+async function _setFogVersionCommand (obj) {
   const fog = {
     uuid: obj.iofogUuid,
     versionCommand: obj.versionCommand
   }
   logger.cliReq('fog version', { args: fog })
-  await FogService.setFogVersionCommandEndPoint(fog, user, true)
+  await FogService.setFogVersionCommandEndPoint(fog, true)
   logger.cliRes('ioFog version command has been set successfully')
 }
 
@@ -476,10 +462,10 @@ async function _getHalUsbInfo (obj) {
   }
 }
 
-async function _setFogPruneCommand (obj, user) {
+async function _setFogPruneCommand (obj) {
   const fog = _createFogObject(obj)
   logger.cliReq('fog prune', { args: fog })
-  await FogService.setFogPruneCommandEndPoint(fog, user, true)
+  await FogService.setFogPruneCommandEndPoint(fog, true)
   logger.cliRes('ioFog prune command has been set successfully')
 }
 
@@ -507,7 +493,6 @@ function _createFogObject (cliData) {
     abstractedHardwareEnabled: AppHelper.validateBooleanCliOptions(cliData.absHwEnable, cliData.absHwDisable),
 
     fogType: cliData.fogType,
-    userId: cliData.userId,
     dockerPruningFrequency: cliData.dockerPruningFrequency,
     availableDiskThreshold: cliData.availableDiskThreshold,
     logLevel: cliData.logLevel,

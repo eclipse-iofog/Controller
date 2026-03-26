@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -14,7 +14,6 @@
 const BaseCLIHandler = require('./base-cli-handler')
 const constants = require('../helpers/constants')
 const logger = require('../logger')
-const CliDecorator = require('../decorators/cli-decorator')
 const RegistryService = require('../services/registry-service')
 const AppHelper = require('../helpers/app-helper')
 const CliDataTypes = require('./cli-data-types')
@@ -66,32 +65,11 @@ class Registry extends BaseCLIHandler {
         group: [constants.CMD_ADD, constants.CMD_UPDATE]
       },
       {
-        name: 'requires-certificate',
-        alias: 'c',
-        type: Boolean,
-        description: 'Requires certificate',
-        group: [constants.CMD_ADD, constants.CMD_UPDATE]
-      },
-      {
-        name: 'certificate',
-        alias: 'C',
-        type: String,
-        description: 'Certificate',
-        group: [constants.CMD_ADD, constants.CMD_UPDATE]
-      },
-      {
         name: 'email',
         alias: 'e',
         type: String,
         description: 'Email address',
         group: [constants.CMD_ADD, constants.CMD_UPDATE]
-      },
-      {
-        name: 'user-id',
-        alias: 'u',
-        type: CliDataTypes.Integer,
-        description: 'User\'s id',
-        group: [constants.CMD_ADD]
       },
       {
         name: 'item-id',
@@ -119,16 +97,16 @@ class Registry extends BaseCLIHandler {
 
       switch (command) {
         case constants.CMD_ADD:
-          await _executeCase(registryCommand, constants.CMD_ADD, _createRegistry, true)
+          await _executeCase(registryCommand, constants.CMD_ADD, _createRegistry)
           break
         case constants.CMD_REMOVE:
-          await _executeCase(registryCommand, constants.CMD_REMOVE, _deleteRegistry, false)
+          await _executeCase(registryCommand, constants.CMD_REMOVE, _deleteRegistry)
           break
         case constants.CMD_UPDATE:
-          await _executeCase(registryCommand, constants.CMD_UPDATE, _updateRegistry, false)
+          await _executeCase(registryCommand, constants.CMD_UPDATE, _updateRegistry)
           break
         case constants.CMD_LIST:
-          await _executeCase(registryCommand, constants.CMD_LIST, _getRegistries, false)
+          await _executeCase(registryCommand, constants.CMD_LIST, _getRegistries)
           break
         case constants.CMD_HELP:
         default:
@@ -140,28 +118,28 @@ class Registry extends BaseCLIHandler {
   }
 }
 
-async function _createRegistry (obj, user) {
+async function _createRegistry (obj) {
   const registry = _createRegistryObject(obj)
 
   const logRegistry = Object.assign({}, registry)
   delete logRegistry.password
   logger.cliReq('registry add', { args: logRegistry })
 
-  const response = await RegistryService.createRegistry(registry, user)
+  const response = await RegistryService.createRegistry(registry)
   logger.cliRes(JSON.stringify({
     id: response.id
   }, null, 2))
 }
 
-async function _getRegistries (obj, user) {
+async function _getRegistries (obj) {
   logger.cliReq('registry list')
-  const result = await RegistryService.findRegistries(user, true)
+  const result = await RegistryService.findRegistries(true)
   logger.cliRes(JSON.stringify(result, null, 2))
 }
 
-async function _deleteRegistry (obj, user) {
+async function _deleteRegistry (obj) {
   logger.cliReq('registry remove', { args: { id: obj.itemId } })
-  await RegistryService.deleteRegistry({ id: obj.itemId }, user, true)
+  await RegistryService.deleteRegistry({ id: obj.itemId }, true)
   logger.cliRes('Registry has been removed successfully.')
 }
 
@@ -176,16 +154,10 @@ async function _updateRegistry (obj) {
   logger.cliRes('Registry has been updated successfully.')
 }
 
-async function _executeCase (commands, commandName, f, isUserRequired) {
+async function _executeCase (commands, commandName, f) {
   try {
     const obj = commands[commandName]
-
-    if (isUserRequired) {
-      const decoratedFunction = CliDecorator.prepareUserById(f)
-      await decoratedFunction(obj)
-    } else {
-      await f(obj)
-    }
+    await f(obj)
   } catch (error) {
     logger.error(error.message)
   }
@@ -197,9 +169,7 @@ function _createRegistryObject (cliData) {
     username: cliData.username,
     password: cliData.password,
     isPublic: AppHelper.validateBooleanCliOptions(cliData.public, cliData.private),
-    email: cliData.email,
-    requiresCert: cliData.requiresCertificate,
-    certificate: cliData.certificate
+    email: cliData.email
   }
 }
 

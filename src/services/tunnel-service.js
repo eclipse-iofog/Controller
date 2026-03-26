@@ -1,6 +1,6 @@
 /*
  * *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -21,7 +21,7 @@ const ErrorMessages = require('../helpers/error-messages')
 const TransactionDecorator = require('../decorators/transaction-decorator')
 const ChangeTrackingService = require('./change-tracking-service')
 
-const openTunnel = async function (tunnelData, user, isCli, transaction) {
+const openTunnel = async function (tunnelData, isCli, transaction) {
   const iofog = await FogManager.findOne({ uuid: tunnelData.iofogUuid }, transaction)
   if (!iofog) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, tunnelData.iofogUuid))
@@ -30,13 +30,13 @@ const openTunnel = async function (tunnelData, user, isCli, transaction) {
   if (isCli) {
     tunnel.rport = await AppHelper.findAvailablePort(tunnelData.host)
   } else {
-    const host = Config.get('Tunnel:Host')
+    const host = Config.get('tunnel.host')
     tunnel = {
-      username: Config.get('Tunnel:Username'),
-      password: Config.get('Tunnel:Password'),
+      username: Config.get('tunnel.username'),
+      password: Config.get('tunnel.password'),
       host: host,
-      rsakey: Config.get('Tunnel:RsaKey'),
-      lport: Config.get('Tunnel:Lport'),
+      rsakey: Config.get('tunnel.rsaKey'),
+      lport: Config.get('tunnel.lport'),
       iofogUuid: iofog.uuid,
       closed: false,
       rport: await AppHelper.findAvailablePort(host)
@@ -47,7 +47,7 @@ const openTunnel = async function (tunnelData, user, isCli, transaction) {
   await ChangeTrackingService.update(tunnelData.iofogUuid, ChangeTrackingService.events.tunnel, transaction)
 }
 
-const findTunnel = async function (tunnelData, user, transaction) {
+const findTunnel = async function (tunnelData, transaction) {
   const tunnel = await TunnelManager.findOne(tunnelData, transaction)
   if (!tunnel) {
     throw new Errors.NotFoundError('Invalid Tunnel Id')
@@ -68,8 +68,8 @@ const findAll = async function (transaction) {
   }
 }
 
-const closeTunnel = async function (tunnelData, user, transaction) {
-  await module.exports.findTunnel(tunnelData, user, transaction)
+const closeTunnel = async function (tunnelData, transaction) {
+  await module.exports.findTunnel(tunnelData, transaction)
   await TunnelManager.update(tunnelData, { closed: true }, transaction)
   await ChangeTrackingService.update(tunnelData.iofogUuid, ChangeTrackingService.events.tunnel, transaction)
 }

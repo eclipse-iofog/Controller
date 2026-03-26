@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -15,6 +15,7 @@ const Router = require('../controllers/router-controller')
 const ResponseDecorator = require('../decorators/response-decorator')
 const logger = require('../logger')
 const Errors = require('../helpers/errors')
+const rbacMiddleware = require('../lib/rbac/middleware')
 
 module.exports = [
   {
@@ -34,14 +35,22 @@ module.exports = [
           errors: [Errors.NotFoundError]
         }
       ]
-      const getRouterEndpoint = ResponseDecorator.handleErrors(Router.getRouterEndPoint, successCode, errorCodes)
-      const responseObject = await getRouterEndpoint(req)
 
-      res
-        .status(responseObject.code)
-        .send(responseObject.body)
+      // Protecting for SRE, Developer, and Viewer roles
+      await rbacMiddleware.protect()(req, res, async () => {
+        const getRouterEndpoint = ResponseDecorator.handleErrors(
+          Router.getRouterEndPoint,
+          successCode,
+          errorCodes
+        )
+        const responseObject = await getRouterEndpoint(req)
+        const user = req.kauth && req.kauth.grant && req.kauth.grant.access_token ? req.kauth.grant.access_token.content.preferred_username : 'system'
+        res
+          .status(responseObject.code)
+          .send(responseObject.body)
 
-      logger.apiRes({ req: req, res: responseObject })
+        logger.apiRes({ req: req, user: user, res: res, responseObject: responseObject })
+      })
     }
   },
   {
@@ -62,14 +71,22 @@ module.exports = [
           errors: [Errors.ValidationError]
         }
       ]
-      const upsertDefaultRouter = ResponseDecorator.handleErrors(Router.upsertDefaultRouter, successCode, errorCodes)
-      const responseObject = await upsertDefaultRouter(req)
 
-      res
-        .status(responseObject.code)
-        .send(responseObject.body)
+      // Protecting for SRE role
+      await rbacMiddleware.protect()(req, res, async () => {
+        const upsertDefaultRouter = ResponseDecorator.handleErrors(
+          Router.upsertDefaultRouter,
+          successCode,
+          errorCodes
+        )
+        const responseObject = await upsertDefaultRouter(req)
+        const user = req.kauth.grant.access_token.content.preferred_username
+        res
+          .status(responseObject.code)
+          .send(responseObject.body)
 
-      logger.apiRes({ req: req, res: responseObject })
+        logger.apiRes({ req: req, user: user, res: res, responseObject: responseObject })
+      })
     }
   }
 ]

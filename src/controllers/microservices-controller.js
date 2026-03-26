@@ -1,6 +1,6 @@
 /*
  * *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -11,130 +11,258 @@
  *
  */
 
-const AuthDecorator = require('./../decorators/authorization-decorator')
 const MicroservicesService = require('../services/microservices-service')
 const YAMLParserService = require('../services/yaml-parser-service')
 const { rvaluesVarSubstition } = require('../helpers/template-helper')
 
-const createMicroserviceOnFogEndPoint = async function (req, user) {
+const createMicroserviceOnFogEndPoint = async function (req) {
   const microservice = req.body
-  return MicroservicesService.createMicroserviceEndPoint(microservice, user, false)
+  return MicroservicesService.createMicroserviceEndPoint(microservice, false)
 }
 
-const createMicroserviceYAMLEndPoint = async function (req, user) {
+const createMicroserviceYAMLEndPoint = async function (req) {
   const fileContent = req.file.buffer.toString()
   const microservice = await YAMLParserService.parseMicroserviceFile(fileContent)
-  await rvaluesVarSubstition(microservice, { self: microservice }, user)
-  return MicroservicesService.createMicroserviceEndPoint(microservice, user, false)
+  await rvaluesVarSubstition(microservice, { self: microservice })
+  return MicroservicesService.createMicroserviceEndPoint(microservice, false)
 }
 
-const getMicroserviceEndPoint = async function (req, user) {
+const getMicroserviceEndPoint = async function (req) {
   const microserviceUuid = req.params.uuid
-  return MicroservicesService.getMicroserviceEndPoint(microserviceUuid, user, false)
+  return MicroservicesService.getMicroserviceEndPoint(microserviceUuid, false)
 }
 
-const updateMicroserviceEndPoint = async function (req, user) {
+const getSystemMicroserviceEndPoint = async function (req) {
+  const microserviceUuid = req.params.uuid
+  return MicroservicesService.getSystemMicroserviceEndPoint(microserviceUuid, false)
+}
+
+const updateMicroserviceEndPoint = async function (req) {
   const microservice = req.body
   const microserviceUuid = req.params.uuid
-  return MicroservicesService.updateMicroserviceEndPoint(microserviceUuid, microservice, user, false)
+  return MicroservicesService.updateMicroserviceEndPoint(microserviceUuid, microservice, false)
 }
 
-const updateMicroserviceYAMLEndPoint = async function (req, user) {
+const updateSystemMicroserviceEndPoint = async function (req) {
+  const microservice = req.body
+  const microserviceUuid = req.params.uuid
+  return MicroservicesService.updateSystemMicroserviceEndPoint(microserviceUuid, microservice, false)
+}
+
+const rebuildMicroserviceEndPoint = async function (req) {
+  const microserviceUuid = req.params.uuid
+  return MicroservicesService.rebuildMicroserviceEndPoint(microserviceUuid, false)
+}
+
+const rebuildSystemMicroserviceEndPoint = async function (req) {
+  const microserviceUuid = req.params.uuid
+  return MicroservicesService.rebuildSystemMicroserviceEndPoint(microserviceUuid, false)
+}
+
+const updateMicroserviceYAMLEndPoint = async function (req) {
   const microserviceUuid = req.params.uuid
   const fileContent = req.file.buffer.toString()
   const microservice = await YAMLParserService.parseMicroserviceFile(fileContent)
-  await rvaluesVarSubstition(microservice, { self: microservice }, user)
-  return MicroservicesService.updateMicroserviceEndPoint(microserviceUuid, microservice, user, false)
+  await rvaluesVarSubstition(microservice, { self: microservice })
+  return MicroservicesService.updateMicroserviceEndPoint(microserviceUuid, microservice, false)
 }
 
-const deleteMicroserviceEndPoint = async function (req, user) {
+const updateSystemMicroserviceYAMLEndPoint = async function (req) {
+  const microserviceUuid = req.params.uuid
+  const fileContent = req.file.buffer.toString()
+  const microservice = await YAMLParserService.parseMicroserviceFile(fileContent)
+  await rvaluesVarSubstition(microservice, { self: microservice })
+  return MicroservicesService.updateSystemMicroserviceEndPoint(microserviceUuid, microservice, false)
+}
+
+const updateMicroserviceConfigEndPoint = async function (req) {
+  const microserviceUuid = req.params.uuid
+  const config = req.body
+  return MicroservicesService.updateMicroserviceConfigEndPoint(microserviceUuid, config, false)
+}
+
+const getMicroserviceConfigEndPoint = async function (req) {
+  const microserviceUuid = req.params.uuid
+  return MicroservicesService.getMicroserviceConfigEndPoint(microserviceUuid, false)
+}
+
+const deleteMicroserviceConfigEndPoint = async function (req) {
+  const microserviceUuid = req.params.uuid
+  return MicroservicesService.deleteMicroserviceConfigEndPoint(microserviceUuid, false)
+}
+
+const updateSystemMicroserviceConfigEndPoint = async function (req) {
+  const microserviceUuid = req.params.uuid
+  const config = req.body
+  return MicroservicesService.updateSystemMicroserviceConfigEndPoint(microserviceUuid, config, false)
+}
+
+const getSystemMicroserviceConfigEndPoint = async function (req) {
+  const microserviceUuid = req.params.uuid
+  return MicroservicesService.getSystemMicroserviceConfigEndPoint(microserviceUuid, false)
+}
+
+const deleteSystemMicroserviceConfigEndPoint = async function (req) {
+  const microserviceUuid = req.params.uuid
+  return MicroservicesService.deleteSystemMicroserviceConfigEndPoint(microserviceUuid, false)
+}
+
+const deleteMicroserviceEndPoint = async function (req) {
   const microserviceUuid = req.params.uuid
   const microserviceData = req.body || {}
-  return MicroservicesService.deleteMicroserviceEndPoint(microserviceUuid, microserviceData, user, false)
+  return MicroservicesService.deleteMicroserviceEndPoint(microserviceUuid, microserviceData, false)
 }
 
-const getMicroservicesByApplicationEndPoint = async function (req, user) {
+const getMicroservicesByApplicationEndPoint = async function (req) {
   // API Retro compatibility
   const flowId = req.query.flowId
 
   const applicationName = req.query.application
-  return MicroservicesService.listMicroservicesEndPoint({ applicationName, flowId }, user, false)
+  return MicroservicesService.listMicroservicesEndPoint({ applicationName, flowId }, false)
 }
 
-const createMicroserviceRouteEndPoint = async function (req, user) {
-  const sourceUuid = req.params.uuid
-  const destUuid = req.params.receiverUuid
-  return MicroservicesService.createRouteEndPoint(sourceUuid, destUuid, user, false)
+const getSystemMicroservicesByApplicationEndPoint = async function (req) {
+  // API Retro compatibility
+  const flowId = req.query.flowId
+
+  const applicationName = req.query.application
+  return MicroservicesService.listSystemMicroservicesEndPoint({ applicationName, flowId }, false)
 }
 
-const deleteMicroserviceRouteEndPoint = async function (req, user) {
-  const sourceUuid = req.params.uuid
-  const destUuid = req.params.receiverUuid
-  return MicroservicesService.deleteRouteEndPoint(sourceUuid, destUuid, user, false)
-}
-
-const createMicroservicePortMappingEndPoint = async function (req, user) {
+const createMicroservicePortMappingEndPoint = async function (req) {
   const uuid = req.params.uuid
   const portMappingData = req.body
-  return MicroservicesService.createPortMappingEndPoint(uuid, portMappingData, user, false)
+  return MicroservicesService.createPortMappingEndPoint(uuid, portMappingData, false)
 }
 
-const deleteMicroservicePortMappingEndPoint = async function (req, user) {
+const createSystemMicroservicePortMappingEndPoint = async function (req) {
+  const uuid = req.params.uuid
+  const portMappingData = req.body
+  return MicroservicesService.createSystemPortMappingEndPoint(uuid, portMappingData, false)
+}
+
+const deleteMicroservicePortMappingEndPoint = async function (req) {
   const uuid = req.params.uuid
   const internalPort = req.params.internalPort
-  return MicroservicesService.deletePortMappingEndPoint(uuid, internalPort, user, false)
+  return MicroservicesService.deletePortMappingEndPoint(uuid, internalPort, false)
 }
 
-const listMicroservicePortMappingsEndPoint = async function (req, user) {
+const deleteSystemMicroservicePortMappingEndPoint = async function (req) {
   const uuid = req.params.uuid
-  const ports = await MicroservicesService.listMicroservicePortMappingsEndPoint(uuid, user, false)
+  const internalPort = req.params.internalPort
+  return MicroservicesService.deleteSystemPortMappingEndPoint(uuid, internalPort, false)
+}
+
+const listMicroservicePortMappingsEndPoint = async function (req) {
+  const uuid = req.params.uuid
+  const ports = await MicroservicesService.listMicroservicePortMappingsEndPoint(uuid, false)
   return {
     ports: ports
   }
 }
 
-const createMicroserviceVolumeMappingEndPoint = async function (req, user) {
+const createMicroserviceVolumeMappingEndPoint = async function (req) {
   const microserviceUuid = req.params.uuid
   const volumeMappingData = req.body
-  const volumeMapping = await MicroservicesService.createVolumeMappingEndPoint(microserviceUuid, volumeMappingData, user, false)
+  const volumeMapping = await MicroservicesService.createVolumeMappingEndPoint(microserviceUuid, volumeMappingData, false)
   return {
     id: volumeMapping.id
   }
 }
 
-const listMicroserviceVolumeMappingsEndPoint = async function (req, user) {
+const createSystemMicroserviceVolumeMappingEndPoint = async function (req) {
+  const microserviceUuid = req.params.uuid
+  const volumeMappingData = req.body
+  const volumeMapping = await MicroservicesService.createSystemVolumeMappingEndPoint(microserviceUuid, volumeMappingData, false)
+  return {
+    id: volumeMapping.id
+  }
+}
+
+const listMicroserviceVolumeMappingsEndPoint = async function (req) {
   const uuid = req.params.uuid
-  const volumeMappings = await MicroservicesService.listVolumeMappingsEndPoint(uuid, user, false)
+  const volumeMappings = await MicroservicesService.listVolumeMappingsEndPoint(uuid, false)
   return {
     volumeMappings: volumeMappings
   }
 }
 
-const deleteMicroserviceVolumeMappingEndPoint = async function (req, user) {
+const deleteMicroserviceVolumeMappingEndPoint = async function (req) {
   const uuid = req.params.uuid
   const id = req.params.id
-  return MicroservicesService.deleteVolumeMappingEndPoint(uuid, id, user, false)
+  return MicroservicesService.deleteVolumeMappingEndPoint(uuid, id, false)
 }
 
-const listAllPublicPortsEndPoint = async function (req, user) {
-  return MicroservicesService.listAllPublicPortsEndPoint(user)
+const deleteSystemMicroserviceVolumeMappingEndPoint = async function (req) {
+  const uuid = req.params.uuid
+  const id = req.params.id
+  return MicroservicesService.deleteSystemVolumeMappingEndPoint(uuid, id, false)
+}
+
+const createMicroserviceExecEndPoint = async function (req) {
+  const uuid = req.params.uuid
+  return MicroservicesService.createExecEndPoint(uuid, false)
+}
+
+const deleteMicroserviceExecEndPoint = async function (req) {
+  const uuid = req.params.uuid
+  return MicroservicesService.deleteExecEndPoint(uuid, false)
+}
+
+const createSystemMicroserviceExecEndPoint = async function (req) {
+  const uuid = req.params.uuid
+  return MicroservicesService.createSystemExecEndPoint(uuid, false)
+}
+
+const deleteSystemMicroserviceExecEndPoint = async function (req) {
+  const uuid = req.params.uuid
+  return MicroservicesService.deleteSystemExecEndPoint(uuid, false)
+}
+
+const startMicroserviceEndPoint = async function (req) {
+  const uuid = req.params.uuid
+  return MicroservicesService.startMicroserviceEndPoint(uuid, false)
+}
+
+const stopMicroserviceEndPoint = async function (req) {
+  const uuid = req.params.uuid
+  return MicroservicesService.stopMicroserviceEndPoint(uuid, false)
 }
 
 module.exports = {
-  createMicroserviceOnFogEndPoint: AuthDecorator.checkAuthToken(createMicroserviceOnFogEndPoint),
-  getMicroserviceEndPoint: AuthDecorator.checkAuthToken(getMicroserviceEndPoint),
-  updateMicroserviceEndPoint: AuthDecorator.checkAuthToken(updateMicroserviceEndPoint),
-  deleteMicroserviceEndPoint: AuthDecorator.checkAuthToken(deleteMicroserviceEndPoint),
-  getMicroservicesByApplicationEndPoint: AuthDecorator.checkAuthToken(getMicroservicesByApplicationEndPoint),
-  createMicroserviceRouteEndPoint: AuthDecorator.checkAuthToken(createMicroserviceRouteEndPoint),
-  deleteMicroserviceRouteEndPoint: AuthDecorator.checkAuthToken(deleteMicroserviceRouteEndPoint),
-  createMicroservicePortMappingEndPoint: AuthDecorator.checkAuthToken(createMicroservicePortMappingEndPoint),
-  deleteMicroservicePortMappingEndPoint: AuthDecorator.checkAuthToken(deleteMicroservicePortMappingEndPoint),
-  getMicroservicePortMappingListEndPoint: AuthDecorator.checkAuthToken(listMicroservicePortMappingsEndPoint),
-  createMicroserviceVolumeMappingEndPoint: AuthDecorator.checkAuthToken(createMicroserviceVolumeMappingEndPoint),
-  listMicroserviceVolumeMappingsEndPoint: AuthDecorator.checkAuthToken(listMicroserviceVolumeMappingsEndPoint),
-  deleteMicroserviceVolumeMappingEndPoint: AuthDecorator.checkAuthToken(deleteMicroserviceVolumeMappingEndPoint),
-  listAllPublicPortsEndPoint: AuthDecorator.checkAuthToken(listAllPublicPortsEndPoint),
-  createMicroserviceYAMLEndPoint: AuthDecorator.checkAuthToken(createMicroserviceYAMLEndPoint),
-  updateMicroserviceYAMLEndPoint: AuthDecorator.checkAuthToken(updateMicroserviceYAMLEndPoint)
+  createMicroserviceOnFogEndPoint: (createMicroserviceOnFogEndPoint),
+  getMicroserviceEndPoint: (getMicroserviceEndPoint),
+  getSystemMicroserviceEndPoint: (getSystemMicroserviceEndPoint),
+  updateMicroserviceEndPoint: (updateMicroserviceEndPoint),
+  updateSystemMicroserviceEndPoint: (updateSystemMicroserviceEndPoint),
+  rebuildMicroserviceEndPoint: (rebuildMicroserviceEndPoint),
+  rebuildSystemMicroserviceEndPoint: (rebuildSystemMicroserviceEndPoint),
+  deleteMicroserviceEndPoint: (deleteMicroserviceEndPoint),
+  getMicroservicesByApplicationEndPoint: (getMicroservicesByApplicationEndPoint),
+  getSystemMicroservicesByApplicationEndPoint: (getSystemMicroservicesByApplicationEndPoint),
+  createMicroservicePortMappingEndPoint: (createMicroservicePortMappingEndPoint),
+  createSystemMicroservicePortMappingEndPoint: (createSystemMicroservicePortMappingEndPoint),
+  deleteMicroservicePortMappingEndPoint: (deleteMicroservicePortMappingEndPoint),
+  deleteSystemMicroservicePortMappingEndPoint: (deleteSystemMicroservicePortMappingEndPoint),
+  getMicroservicePortMappingListEndPoint: (listMicroservicePortMappingsEndPoint),
+  createMicroserviceVolumeMappingEndPoint: (createMicroserviceVolumeMappingEndPoint),
+  createSystemMicroserviceVolumeMappingEndPoint: (createSystemMicroserviceVolumeMappingEndPoint),
+  listMicroserviceVolumeMappingsEndPoint: (listMicroserviceVolumeMappingsEndPoint),
+  deleteMicroserviceVolumeMappingEndPoint: (deleteMicroserviceVolumeMappingEndPoint),
+  deleteSystemMicroserviceVolumeMappingEndPoint: (deleteSystemMicroserviceVolumeMappingEndPoint),
+  createMicroserviceYAMLEndPoint: (createMicroserviceYAMLEndPoint),
+  updateMicroserviceYAMLEndPoint: (updateMicroserviceYAMLEndPoint),
+  updateSystemMicroserviceYAMLEndPoint: (updateSystemMicroserviceYAMLEndPoint),
+  updateMicroserviceConfigEndPoint: (updateMicroserviceConfigEndPoint),
+  getMicroserviceConfigEndPoint: (getMicroserviceConfigEndPoint),
+  updateSystemMicroserviceConfigEndPoint: (updateSystemMicroserviceConfigEndPoint),
+  getSystemMicroserviceConfigEndPoint: (getSystemMicroserviceConfigEndPoint),
+  deleteMicroserviceConfigEndPoint: (deleteMicroserviceConfigEndPoint),
+  deleteSystemMicroserviceConfigEndPoint: (deleteSystemMicroserviceConfigEndPoint),
+  createMicroserviceExecEndPoint: (createMicroserviceExecEndPoint),
+  deleteMicroserviceExecEndPoint: (deleteMicroserviceExecEndPoint),
+  createSystemMicroserviceExecEndPoint: (createSystemMicroserviceExecEndPoint),
+  deleteSystemMicroserviceExecEndPoint: (deleteSystemMicroserviceExecEndPoint),
+  startMicroserviceEndPoint: (startMicroserviceEndPoint),
+  stopMicroserviceEndPoint: (stopMicroserviceEndPoint)
 }

@@ -1,8 +1,8 @@
 {
-  "swagger" : "3.0.0",
+  "openapi" : "3.0.0",
   "info" : {
-    "version" : "3.0.0",
-    "title" : "ioFog Controller"
+    "version" : "1.0.0",
+    "title" : "Eclipse ioFog Controller"
   },
   "tags" : [ {
     "name" : "Controller",
@@ -61,22 +61,6 @@
         }
       }
     },
-    "/email-activation" : {
-      "get" : {
-        "tags" : [ "Controller" ],
-        "summary" : "Returns email activation status",
-        "operationId" : "getEmailActivationStatus",
-        "parameters" : [ ],
-        "responses" : {
-          "200" : {
-            "description" : "Email activation status"
-          },
-          "500" : {
-            "description" : "Internal Server Error"
-          }
-        }
-      }
-    },
     "/fog-types" : {
       "get" : {
         "tags" : [ "Controller" ],
@@ -103,11 +87,9 @@
         "tags" : [ "ioFog" ],
         "summary" : "Returns list of ioFog nodes",
         "operationId" : "getIOFogNodes",
-        "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User token",
-          "required" : true
+        "parameters" : [ ],
+        "security" : [ {
+          "userToken" : [ ]
         } ],
         "responses" : {
           "200" : {
@@ -135,11 +117,9 @@
         "tags" : [ "ioFog" ],
         "summary" : "Creates a new ioFog node",
         "operationId" : "createIOFogNode",
-        "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User token",
-          "required" : true
+        "parameters" : [ ],
+        "security" : [ {
+          "userToken" : [ ]
         } ],
         "responses" : {
           "201" : {
@@ -172,11 +152,9 @@
           "in" : "path",
           "description" : "ioFog node id",
           "required" : true
-        }, {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User token",
-          "required" : true
+        } ],
+        "security" : [ {
+          "userToken" : [ ]
         } ],
         "responses" : {
           "200" : {
@@ -207,11 +185,9 @@
           "in" : "path",
           "description" : "ioFog node id",
           "required" : true
-        }, {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User token",
-          "required" : true
+        } ],
+        "security" : [ {
+          "userToken" : [ ]
         } ],
         "responses" : {
           "202" : {
@@ -242,11 +218,9 @@
           "in" : "path",
           "description" : "ioFog node id",
           "required" : true
-        }, {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User token",
-          "required" : true
+        } ],
+        "security" : [ {
+          "userToken" : [ ]
         } ],
         "responses" : {
           "204" : {
@@ -282,11 +256,9 @@
           "in" : "path",
           "description" : "ioFog node id",
           "required" : true
-        }, {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User token",
-          "required" : true
+        } ],
+        "security" : [ {
+          "userToken" : [ ]
         } ],
         "responses" : {
           "201" : {
@@ -315,11 +287,6 @@
         "summary" : "Set change version command",
         "operationId" : "setVersionCommand",
         "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User token",
-          "required" : true
-        }, {
           "name" : "uuid",
           "in" : "path",
           "description" : "ioFog node id",
@@ -329,6 +296,9 @@
           "in" : "path",
           "description" : "change version command",
           "required" : true
+        } ],
+        "security" : [ {
+          "userToken" : [ ]
         } ],
         "responses" : {
           "204" : {
@@ -360,15 +330,13 @@
         "summary" : "remote reboot fog agent",
         "operationId" : "setRebootCommand",
         "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User Token",
-          "required" : true
-        }, {
           "name" : "uuid",
           "in" : "path",
           "description" : "ioFog node id",
           "required" : true
+        } ],
+        "security" : [ {
+          "userToken" : [ ]
         } ],
         "responses" : {
           "204" : {
@@ -391,18 +359,16 @@
     "/iofog/{uuid}/prune" : {
       "post" : {
         "tags" : [ "ioFog" ],
-        "summary" : "prune reboot fog agent",
+        "summary" : "prune remote fog agent",
         "operationId" : "setPruneCommand",
         "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User Token",
-          "required" : true
-        }, {
           "name" : "uuid",
           "in" : "path",
           "description" : "ioFog node id",
           "required" : true
+        } ],
+        "security" : [ {
+          "userToken" : [ ]
         } ],
         "responses" : {
           "204" : {
@@ -432,11 +398,9 @@
           "in" : "path",
           "description" : "ioFog node id",
           "required" : true
-        }, {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User token",
-          "required" : true
+        } ],
+        "security" : [ {
+          "userToken" : [ ]
         } ],
         "responses" : {
           "200" : {
@@ -469,11 +433,9 @@
           "in" : "path",
           "description" : "ioFog node id",
           "required" : true
-        }, {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User token",
-          "required" : true
+        } ],
+        "security" : [ {
+          "userToken" : [ ]
         } ],
         "responses" : {
           "200" : {
@@ -501,11 +463,9 @@
         "tags" : [ "Application" ],
         "summary" : "Lists all applications",
         "operationId" : "listApplication",
-        "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User Token",
-          "required" : true
+        "parameters" : [ ],
+        "security" : [ {
+          "userToken" : [ ]
         } ],
         "responses" : {
           "200" : {
@@ -526,18 +486,17 @@
             "description" : "Internal Server Error"
           }
         }
-      },
-      "post" : {
+      }
+    },
+    "/application/system" : {
+      "get" : {
         "tags" : [ "Application" ],
-        "summary" : "Creates an application",
-        "operationId" : "createApplication",
-        "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User Token",
-          "required" : true
+        "summary" : "Lists all system applications",
+        "operationId" : "listSystemApplication",
+        "parameters" : [ ],
+        "security" : [ {
+          "userToken" : [ ]
         } ],
-        "deprecated" : true,
         "responses" : {
           "200" : {
             "description" : "Success",
@@ -550,6 +509,44 @@
           "400" : {
             "description" : "Bad Request"
           },
+          "404" : {
+            "description" : "Not Found"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/application/system/{name}" : {
+      "delete" : {
+        "tags" : [ "Application" ],
+        "summary" : "Deletes a system application",
+        "operationId" : "deleteSystemApplication",
+        "parameters" : [ {
+          "name" : "name",
+          "in" : "path",
+          "description" : "Application name",
+          "required" : true
+        } ],
+        "security" : [ {
+          "userToken" : [ ]
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request"
+          },
+          "404" : {
+            "description" : "Not Found"
+          },
           "500" : {
             "description" : "Internal Server Error"
           }
@@ -561,11 +558,9 @@
         "tags" : [ "Application" ],
         "summary" : "Creates an application using a YAML file",
         "operationId" : "createApplicationYAML",
-        "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User Token",
-          "required" : true
+        "parameters" : [ ],
+        "security" : [ {
+          "userToken" : [ ]
         } ],
         "responses" : {
           "200" : {
@@ -591,54 +586,16 @@
         "summary" : "Gets an application details",
         "operationId" : "getApplication",
         "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User Token",
-          "required" : true
-        }, {
           "name" : "name",
           "in" : "path",
           "description" : "Application name",
           "required" : true
+        } ],
+        "security" : [ {
+          "userToken" : [ ]
         } ],
         "responses" : {
           "200" : {
-            "description" : "Success",
-            "headers" : {
-              "X-Timestamp" : {
-                "description" : "FogController server timestamp"
-              }
-            }
-          },
-          "400" : {
-            "description" : "Bad Request"
-          },
-          "404" : {
-            "description" : "Not Found"
-          },
-          "500" : {
-            "description" : "Internal Server Error"
-          }
-        }
-      },
-      "put" : {
-        "tags" : [ "Application" ],
-        "summary" : "Updates an application",
-        "operationId" : "updateApplication",
-        "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User Token",
-          "required" : true
-        }, {
-          "name" : "name",
-          "in" : "path",
-          "description" : "Application name",
-          "required" : true
-        } ],
-        "deprecated" : true,
-        "responses" : {
-          "204" : {
             "description" : "Success",
             "headers" : {
               "X-Timestamp" : {
@@ -662,15 +619,13 @@
         "summary" : "Deletes an application",
         "operationId" : "deleteApplication",
         "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User Token",
-          "required" : true
-        }, {
           "name" : "name",
           "in" : "path",
           "description" : "Application name",
           "required" : true
+        } ],
+        "security" : [ {
+          "userToken" : [ ]
         } ],
         "responses" : {
           "204" : {
@@ -697,15 +652,13 @@
         "summary" : "Updates an application metadata",
         "operationId" : "patchApplication",
         "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User Token",
-          "required" : true
-        }, {
           "name" : "name",
           "in" : "path",
           "description" : "Application name",
           "required" : true
+        } ],
+        "security" : [ {
+          "userToken" : [ ]
         } ],
         "responses" : {
           "204" : {
@@ -734,15 +687,13 @@
         "summary" : "Updates an application using a YAML file",
         "operationId" : "updateApplicationYAML",
         "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User Token",
-          "required" : true
-        }, {
           "name" : "name",
           "in" : "path",
           "description" : "Application name",
           "required" : true
+        } ],
+        "security" : [ {
+          "userToken" : [ ]
         } ],
         "responses" : {
           "204" : {
@@ -770,11 +721,9 @@
         "tags" : [ "Application Template" ],
         "summary" : "Lists all application templates",
         "operationId" : "listApplicationTemplates",
-        "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User Token",
-          "required" : true
+        "parameters" : [ ],
+        "security" : [ {
+          "userToken" : [ ]
         } ],
         "responses" : {
           "200" : {
@@ -797,46 +746,14 @@
         }
       }
     },
-    "/applicationTemplate" : {
-      "post" : {
-        "tags" : [ "Application Template" ],
-        "summary" : "Creates an application template",
-        "operationId" : "createApplicationTemplate",
-        "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User Token",
-          "required" : true
-        } ],
-        "deprecated" : true,
-        "responses" : {
-          "200" : {
-            "description" : "Success",
-            "headers" : {
-              "X-Timestamp" : {
-                "description" : "FogController server timestamp"
-              }
-            }
-          },
-          "400" : {
-            "description" : "Bad Request"
-          },
-          "500" : {
-            "description" : "Internal Server Error"
-          }
-        }
-      }
-    },
     "/applicationTemplate/yaml" : {
       "post" : {
         "tags" : [ "Application Template" ],
         "summary" : "Creates an application template using a YAML file",
         "operationId" : "createApplicationTemplateYAML",
-        "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User Token",
-          "required" : true
+        "parameters" : [ ],
+        "security" : [ {
+          "userToken" : [ ]
         } ],
         "responses" : {
           "200" : {
@@ -862,15 +779,13 @@
         "summary" : "Gets an application template",
         "operationId" : "getApplicationTemplate",
         "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User Token",
-          "required" : true
-        }, {
           "name" : "name",
           "in" : "path",
           "description" : "Application template name",
           "required" : true
+        } ],
+        "security" : [ {
+          "userToken" : [ ]
         } ],
         "responses" : {
           "200" : {
@@ -892,53 +807,18 @@
           }
         }
       },
-      "put" : {
-        "tags" : [ "Application Template" ],
-        "summary" : "Updates or creates an application template",
-        "operationId" : "updateOrCreateApplicationTemplate",
-        "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User Token",
-          "required" : true
-        }, {
-          "name" : "name",
-          "in" : "path",
-          "description" : "Application template name",
-          "required" : true
-        } ],
-        "deprecated" : true,
-        "responses" : {
-          "200" : {
-            "description" : "Success",
-            "headers" : {
-              "X-Timestamp" : {
-                "description" : "FogController server timestamp"
-              }
-            }
-          },
-          "400" : {
-            "description" : "Bad Request"
-          },
-          "500" : {
-            "description" : "Internal Server Error"
-          }
-        }
-      },
       "delete" : {
         "tags" : [ "Application Template" ],
         "summary" : "Deletes an application template",
         "operationId" : "deleteApplicationTemplate",
         "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User Token",
-          "required" : true
-        }, {
           "name" : "name",
           "in" : "path",
           "description" : "Application template name",
           "required" : true
+        } ],
+        "security" : [ {
+          "userToken" : [ ]
         } ],
         "responses" : {
           "200" : {
@@ -965,15 +845,13 @@
         "summary" : "Patches an application template",
         "operationId" : "patchApplicationTemplate",
         "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User Token",
-          "required" : true
-        }, {
           "name" : "name",
           "in" : "path",
           "description" : "Application template name",
           "required" : true
+        } ],
+        "security" : [ {
+          "userToken" : [ ]
         } ],
         "responses" : {
           "204" : {
@@ -1002,15 +880,13 @@
         "summary" : "Updates or creates an application template",
         "operationId" : "updateOrCreateApplicationTemplateFromYaml",
         "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User Token",
-          "required" : true
-        }, {
           "name" : "name",
           "in" : "path",
           "description" : "Application template name",
           "required" : true
+        } ],
+        "security" : [ {
+          "userToken" : [ ]
         } ],
         "responses" : {
           "200" : {
@@ -1092,11 +968,9 @@
         "tags" : [ "Agent" ],
         "summary" : "Get an ioFog node configuration",
         "operationId" : "getIOFogNodeConfig",
-        "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "Agent Token",
-          "required" : true
+        "parameters" : [ ],
+        "security" : [ {
+          "agentToken" : [ ]
         } ],
         "responses" : {
           "200" : {
@@ -1119,11 +993,9 @@
         "tags" : [ "Agent" ],
         "summary" : "Updates an ioFog node configuration",
         "operationId" : "updateIOFogNodeConfig",
-        "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "Agent Token",
-          "required" : true
+        "parameters" : [ ],
+        "security" : [ {
+          "agentToken" : [ ]
         } ],
         "responses" : {
           "204" : {
@@ -1151,11 +1023,9 @@
         "tags" : [ "Agent" ],
         "summary" : "Gets ioFog node changes",
         "operationId" : "getIOFogNodeChanges",
-        "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "Agent Token",
-          "required" : true
+        "parameters" : [ ],
+        "security" : [ {
+          "agentToken" : [ ]
         } ],
         "responses" : {
           "200" : {
@@ -1181,11 +1051,9 @@
         "tags" : [ "Agent" ],
         "summary" : "Resets ioFog node changes list",
         "operationId" : "resetIOFogNodeChanges",
-        "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "Agent Token",
-          "required" : true
+        "parameters" : [ ],
+        "security" : [ {
+          "agentToken" : [ ]
         } ],
         "responses" : {
           "200" : {
@@ -1213,11 +1081,9 @@
         "tags" : [ "Agent" ],
         "summary" : "Posts agent status to ioFog node",
         "operationId" : "postAgentStatus",
-        "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "Agent Token",
-          "required" : true
+        "parameters" : [ ],
+        "security" : [ {
+          "agentToken" : [ ]
         } ],
         "responses" : {
           "204" : {
@@ -1245,11 +1111,9 @@
         "tags" : [ "Agent" ],
         "summary" : "Gets microservices running on an ioFog node",
         "operationId" : "getAgentMicroservicesList",
-        "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "Agent Token",
-          "required" : true
+        "parameters" : [ ],
+        "security" : [ {
+          "agentToken" : [ ]
         } ],
         "responses" : {
           "200" : {
@@ -1279,11 +1143,9 @@
           "in" : "path",
           "description" : "Microservice UUID",
           "required" : true
-        }, {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "Agent Token",
-          "required" : true
+        } ],
+        "security" : [ {
+          "agentToken" : [ ]
         } ],
         "responses" : {
           "200" : {
@@ -1311,11 +1173,9 @@
         "tags" : [ "Agent" ],
         "summary" : "Gets list of Docker registries",
         "operationId" : "getRegistriesList",
-        "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "Agent Token",
-          "required" : true
+        "parameters" : [ ],
+        "security" : [ {
+          "agentToken" : [ ]
         } ],
         "responses" : {
           "200" : {
@@ -1340,11 +1200,9 @@
         "tags" : [ "Agent" ],
         "summary" : "Get an ioFog node tunnel configuration",
         "operationId" : "getIOFogNodeTunnelConfig",
-        "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "Agent Token",
-          "required" : true
+        "parameters" : [ ],
+        "security" : [ {
+          "agentToken" : [ ]
         } ],
         "responses" : {
           "200" : {
@@ -1372,11 +1230,9 @@
         "tags" : [ "Agent" ],
         "summary" : "Get an ioFog node strace info",
         "operationId" : "getIOFogNodeStraceInfo",
-        "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "Agent Token",
-          "required" : true
+        "parameters" : [ ],
+        "security" : [ {
+          "agentToken" : [ ]
         } ],
         "responses" : {
           "200" : {
@@ -1402,11 +1258,9 @@
         "tags" : [ "Agent" ],
         "summary" : "Posts agent strace to ioFog node",
         "operationId" : "postIOFogNodeStraceBuffer",
-        "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "Agent Token",
-          "required" : true
+        "parameters" : [ ],
+        "security" : [ {
+          "agentToken" : [ ]
         } ],
         "responses" : {
           "204" : {
@@ -1437,11 +1291,9 @@
         "tags" : [ "Agent" ],
         "summary" : "Get change version command",
         "operationId" : "getChangeVersion",
-        "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "Agent Token",
-          "required" : true
+        "parameters" : [ ],
+        "security" : [ {
+          "agentToken" : [ ]
         } ],
         "responses" : {
           "200" : {
@@ -1469,11 +1321,9 @@
         "tags" : [ "Agent" ],
         "summary" : "Updates HAL hardware info",
         "operationId" : "putHalHardwareInfo",
-        "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "Agent Token",
-          "required" : true
+        "parameters" : [ ],
+        "security" : [ {
+          "agentToken" : [ ]
         } ],
         "responses" : {
           "204" : {
@@ -1501,11 +1351,9 @@
         "tags" : [ "ioFog" ],
         "summary" : "Retrieves HAL USB info",
         "operationId" : "getAgentHalUsbInfo",
-        "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User token",
-          "required" : true
+        "parameters" : [ ],
+        "security" : [ {
+          "userToken" : [ ]
         } ],
         "responses" : {
           "200" : {
@@ -1531,11 +1379,9 @@
         "tags" : [ "Agent" ],
         "summary" : "Updates HAL USB info",
         "operationId" : "putHalUsbInfo",
-        "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "Agent Token",
-          "required" : true
+        "parameters" : [ ],
+        "security" : [ {
+          "agentToken" : [ ]
         } ],
         "responses" : {
           "204" : {
@@ -1563,11 +1409,9 @@
         "tags" : [ "Agent" ],
         "summary" : "Deletes an ioFog node",
         "operationId" : "deleteAgentNode",
-        "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "Agent token",
-          "required" : true
+        "parameters" : [ ],
+        "security" : [ {
+          "agentToken" : [ ]
         } ],
         "responses" : {
           "204" : {
@@ -1592,11 +1436,9 @@
         "tags" : [ "Agent" ],
         "summary" : "Get image snapshot info",
         "operationId" : "getImageSnapshot",
-        "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "Agent Token",
-          "required" : true
+        "parameters" : [ ],
+        "security" : [ {
+          "agentToken" : [ ]
         } ],
         "responses" : {
           "200" : {
@@ -1622,11 +1464,9 @@
         "tags" : [ "Agent" ],
         "summary" : "Put image snapshot info on controller",
         "operationId" : "putImageSnapshot",
-        "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "Agent Token",
-          "required" : true
+        "parameters" : [ ],
+        "security" : [ {
+          "agentToken" : [ ]
         } ],
         "responses" : {
           "204" : {
@@ -1654,11 +1494,9 @@
         "tags" : [ "Agent" ],
         "summary" : "Post tracking info",
         "operationId" : "postTracking",
-        "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "Agent Token",
-          "required" : true
+        "parameters" : [ ],
+        "security" : [ {
+          "agentToken" : [ ]
         } ],
         "responses" : {
           "204" : {
@@ -1678,11 +1516,9 @@
         "tags" : [ "Catalog" ],
         "summary" : "Gets microservices catalog",
         "operationId" : "getMicroservicesCatalog",
-        "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User Token",
-          "required" : true
+        "parameters" : [ ],
+        "security" : [ {
+          "userToken" : [ ]
         } ],
         "responses" : {
           "200" : {
@@ -1705,11 +1541,9 @@
         "tags" : [ "Catalog" ],
         "summary" : "Creates a new microservice catalog item",
         "operationId" : "createMicroserviceCatalogItem",
-        "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User Token",
-          "required" : true
+        "parameters" : [ ],
+        "security" : [ {
+          "userToken" : [ ]
         } ],
         "responses" : {
           "201" : {
@@ -1741,15 +1575,13 @@
         "summary" : "Gets microservice catalog item info",
         "operationId" : "getMicroserviceCatalogItem",
         "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User Token",
-          "required" : true
-        }, {
           "name" : "id",
           "in" : "path",
           "description" : "Catalog Item Id",
           "required" : true
+        } ],
+        "security" : [ {
+          "userToken" : [ ]
         } ],
         "responses" : {
           "200" : {
@@ -1776,15 +1608,13 @@
         "summary" : "Deletes a microservice catalog item",
         "operationId" : "deleteMicroserviceCatalogItem",
         "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User Token",
-          "required" : true
-        }, {
           "name" : "id",
           "in" : "path",
           "description" : "Catalog Item Id",
           "required" : true
+        } ],
+        "security" : [ {
+          "userToken" : [ ]
         } ],
         "responses" : {
           "204" : {
@@ -1811,15 +1641,13 @@
         "summary" : "Updates a microservice catalog item",
         "operationId" : "updateMicroserviceCatalogItem",
         "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User Token",
-          "required" : true
-        }, {
           "name" : "id",
           "in" : "path",
           "description" : "Catalog Item Id",
           "required" : true
+        } ],
+        "security" : [ {
+          "userToken" : [ ]
         } ],
         "responses" : {
           "204" : {
@@ -1848,191 +1676,12 @@
         }
       }
     },
-    "/flow" : {
-      "get" : {
-        "tags" : [ "Flow" ],
-        "summary" : "Gets list of flows",
-        "operationId" : "getFlowsList",
-        "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User Token",
-          "required" : true
-        } ],
-        "deprecated" : true,
-        "responses" : {
-          "200" : {
-            "description" : "Success",
-            "headers" : {
-              "X-Timestamp" : {
-                "description" : "FogController server timestamp"
-              }
-            }
-          },
-          "401" : {
-            "description" : "Not Authorized"
-          },
-          "500" : {
-            "description" : "Internal Server Error"
-          }
-        }
-      },
-      "post" : {
-        "tags" : [ "Flow" ],
-        "summary" : "Creates a new flow",
-        "operationId" : "createFlow",
-        "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User Token",
-          "required" : true
-        } ],
-        "deprecated" : true,
-        "responses" : {
-          "201" : {
-            "description" : "Created",
-            "headers" : {
-              "X-Timestamp" : {
-                "description" : "FogController server timestamp"
-              }
-            }
-          },
-          "400" : {
-            "description" : "Bad Request"
-          },
-          "401" : {
-            "description" : "Not Authorized"
-          },
-          "500" : {
-            "description" : "Internal Server Error"
-          }
-        }
-      }
-    },
-    "/flow/{id}" : {
-      "get" : {
-        "tags" : [ "Flow" ],
-        "summary" : "Gets flow info",
-        "operationId" : "getFlowInfo",
-        "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User Token",
-          "required" : true
-        }, {
-          "name" : "id",
-          "in" : "path",
-          "description" : "Flow Id",
-          "required" : true
-        } ],
-        "deprecated" : true,
-        "responses" : {
-          "200" : {
-            "description" : "Success",
-            "headers" : {
-              "X-Timestamp" : {
-                "description" : "FogController server timestamp"
-              }
-            }
-          },
-          "401" : {
-            "description" : "Not Authorized"
-          },
-          "404" : {
-            "description" : "Invalid Flow Id"
-          },
-          "500" : {
-            "description" : "Internal Server Error"
-          }
-        }
-      },
-      "delete" : {
-        "tags" : [ "Flow" ],
-        "summary" : "Deletes a flow",
-        "operationId" : "deleteFlow",
-        "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User Token",
-          "required" : true
-        }, {
-          "name" : "id",
-          "in" : "path",
-          "description" : "Flow Id",
-          "required" : true
-        } ],
-        "deprecated" : true,
-        "responses" : {
-          "204" : {
-            "description" : "Success",
-            "headers" : {
-              "X-Timestamp" : {
-                "description" : "FogController server timestamp"
-              }
-            }
-          },
-          "401" : {
-            "description" : "Not Authorized"
-          },
-          "404" : {
-            "description" : "Invalid Flow Id"
-          },
-          "500" : {
-            "description" : "Internal Server Error"
-          }
-        }
-      },
-      "patch" : {
-        "tags" : [ "Flow" ],
-        "summary" : "Updates a flow",
-        "operationId" : "updateFlow",
-        "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User Token",
-          "required" : true
-        }, {
-          "name" : "id",
-          "in" : "path",
-          "description" : "Flow Id",
-          "required" : true
-        } ],
-        "deprecated" : true,
-        "responses" : {
-          "204" : {
-            "description" : "Success",
-            "headers" : {
-              "X-Timestamp" : {
-                "description" : "FogController server timestamp"
-              }
-            }
-          },
-          "400" : {
-            "description" : "Bad Request"
-          },
-          "401" : {
-            "description" : "Not Authorized"
-          },
-          "404" : {
-            "description" : "Invalid Flow Id"
-          },
-          "500" : {
-            "description" : "Internal Server Error"
-          }
-        }
-      }
-    },
     "/microservices" : {
       "get" : {
         "tags" : [ "Microservices" ],
         "summary" : "Gets list of microservices",
         "operationId" : "getMicroservicesList",
         "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User Token",
-          "required" : true
-        }, {
           "name" : "flowId",
           "in" : "query",
           "description" : "Flow Id",
@@ -2043,6 +1692,9 @@
           "description" : "Application name",
           "required" : false
         } ],
+        "security" : [ {
+          "userToken" : [ ]
+        } ],
         "responses" : {
           "200" : {
             "description" : "Success",
@@ -2054,40 +1706,6 @@
           },
           "401" : {
             "description" : "Not Authorized"
-          },
-          "500" : {
-            "description" : "Internal Server Error"
-          }
-        }
-      },
-      "post" : {
-        "tags" : [ "Microservices" ],
-        "summary" : "Creates a new microservice on an ioFog node",
-        "operationId" : "createMicroservice",
-        "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User Token",
-          "required" : true
-        } ],
-        "deprecated" : true,
-        "responses" : {
-          "201" : {
-            "description" : "Created",
-            "headers" : {
-              "X-Timestamp" : {
-                "description" : "FogController server timestamp"
-              }
-            }
-          },
-          "400" : {
-            "description" : "Bad Request"
-          },
-          "401" : {
-            "description" : "Not Authorized"
-          },
-          "409" : {
-            "description" : "Duplicate Name"
           },
           "500" : {
             "description" : "Internal Server Error"
@@ -2100,11 +1718,9 @@
         "tags" : [ "Microservices" ],
         "summary" : "Creates a new microservice in an Application",
         "operationId" : "createMicroserviceYAML",
-        "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User Token",
-          "required" : true
+        "parameters" : [ ],
+        "security" : [ {
+          "userToken" : [ ]
         } ],
         "responses" : {
           "201" : {
@@ -2136,15 +1752,13 @@
         "summary" : "Gets a microservice info",
         "operationId" : "getMicroserviceInfo",
         "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User Token",
-          "required" : true
-        }, {
           "name" : "uuid",
           "in" : "path",
           "description" : "Microservice Uuid",
           "required" : true
+        } ],
+        "security" : [ {
+          "userToken" : [ ]
         } ],
         "responses" : {
           "200" : {
@@ -2171,15 +1785,13 @@
         "summary" : "Deletes a microservice",
         "operationId" : "deleteMicroservice",
         "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User Token",
-          "required" : true
-        }, {
           "name" : "uuid",
           "in" : "path",
           "description" : "Microservice Uuid",
           "required" : true
+        } ],
+        "security" : [ {
+          "userToken" : [ ]
         } ],
         "responses" : {
           "204" : {
@@ -2209,42 +1821,30 @@
         "summary" : "Updates a microservice",
         "operationId" : "updateMicroservice",
         "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User Token",
-          "required" : true
-        }, {
           "name" : "uuid",
           "in" : "path",
           "description" : "Microservice Uuid",
           "required" : true
         } ],
-        "deprecated" : true,
-        "responses" : {
-          "204" : {
-            "description" : "Success",
-            "headers" : {
-              "X-Timestamp" : {
-                "description" : "FogController server timestamp"
-              }
-            }
-          },
-          "400" : {
-            "description" : "Bad Request"
-          },
-          "401" : {
-            "description" : "Not Authorized"
-          },
-          "404" : {
-            "description" : "Not Found"
-          },
-          "409" : {
-            "description" : "Duplicate Name"
-          },
-          "500" : {
-            "description" : "Internal Server Error"
-          }
-        }
+        "security" : [ {
+          "userToken" : [ ]
+        } ]
+      }
+    },
+    "/microservices/system/{uuid}" : {
+      "patch" : {
+        "tags" : [ "Microservices" ],
+        "summary" : "Updates a system microservice",
+        "operationId" : "updateSystemMicroservice",
+        "parameters" : [ {
+          "name" : "uuid",
+          "in" : "path",
+          "description" : "Microservice Uuid",
+          "required" : true
+        } ],
+        "security" : [ {
+          "userToken" : [ ]
+        } ]
       }
     },
     "/microservices/yaml/{uuid}" : {
@@ -2253,15 +1853,13 @@
         "summary" : "Updates a microservice",
         "operationId" : "updateMicroserviceYAML",
         "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User Token",
-          "required" : true
-        }, {
           "name" : "uuid",
           "in" : "path",
           "description" : "Microservice Uuid",
           "required" : true
+        } ],
+        "security" : [ {
+          "userToken" : [ ]
         } ],
         "responses" : {
           "204" : {
@@ -2283,96 +1881,6 @@
           },
           "409" : {
             "description" : "Duplicate Name"
-          },
-          "500" : {
-            "description" : "Internal Server Error"
-          }
-        }
-      }
-    },
-    "/microservices/{uuid}/routes/{receiverUuid}" : {
-      "post" : {
-        "tags" : [ "Microservices" ],
-        "summary" : "Creates a route from microservice to receiver",
-        "operationId" : "createMicroserviceRoute",
-        "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User Token",
-          "required" : true
-        }, {
-          "name" : "uuid",
-          "in" : "path",
-          "description" : "Microservice Uuid",
-          "required" : true
-        }, {
-          "name" : "receiverUuid",
-          "in" : "path",
-          "description" : "Receiver Microservice Uuid",
-          "required" : true
-        } ],
-        "deprecated" : true,
-        "responses" : {
-          "204" : {
-            "description" : "Created",
-            "headers" : {
-              "X-Timestamp" : {
-                "description" : "FogController server timestamp"
-              }
-            }
-          },
-          "400" : {
-            "description" : "Not Valid"
-          },
-          "401" : {
-            "description" : "Not Authorized"
-          },
-          "404" : {
-            "description" : "Not Found"
-          },
-          "500" : {
-            "description" : "Internal Server Error"
-          }
-        }
-      },
-      "delete" : {
-        "tags" : [ "Microservices" ],
-        "summary" : "Deletes a route microservice",
-        "operationId" : "deleteMicroserviceRoute",
-        "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User Token",
-          "required" : true
-        }, {
-          "name" : "uuid",
-          "in" : "path",
-          "description" : "Microservice Uuid",
-          "required" : true
-        }, {
-          "name" : "receiverUuid",
-          "in" : "path",
-          "description" : "Receiver Microservice Uuid",
-          "required" : true
-        } ],
-        "deprecated" : true,
-        "responses" : {
-          "204" : {
-            "description" : "Success",
-            "headers" : {
-              "X-Timestamp" : {
-                "description" : "FogController server timestamp"
-              }
-            }
-          },
-          "400" : {
-            "description" : "Not Valid"
-          },
-          "401" : {
-            "description" : "Not Authorized"
-          },
-          "404" : {
-            "description" : "Not Found"
           },
           "500" : {
             "description" : "Internal Server Error"
@@ -2386,15 +1894,13 @@
         "summary" : "Get a port mapping list for microservice",
         "operationId" : "getMicroservicePortMapping",
         "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User Token",
-          "required" : true
-        }, {
           "name" : "uuid",
           "in" : "path",
           "description" : "Microservice Uuid",
           "required" : true
+        } ],
+        "security" : [ {
+          "userToken" : [ ]
         } ],
         "responses" : {
           "200" : {
@@ -2421,15 +1927,51 @@
         "summary" : "Creates a port mapping for microservice",
         "operationId" : "createMicroservicePortMapping",
         "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User Token",
-          "required" : true
-        }, {
           "name" : "uuid",
           "in" : "path",
           "description" : "Microservice Uuid",
           "required" : true
+        } ],
+        "security" : [ {
+          "userToken" : [ ]
+        } ],
+        "responses" : {
+          "201" : {
+            "description" : "Created",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Not Valid"
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "404" : {
+            "description" : "Not Found"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/microservices/system/{uuid}/port-mapping" : {
+      "post" : {
+        "tags" : [ "Microservices" ],
+        "summary" : "Creates a port mapping for system microservice",
+        "operationId" : "createSystemMicroservicePortMapping",
+        "parameters" : [ {
+          "name" : "uuid",
+          "in" : "path",
+          "description" : "Microservice Uuid",
+          "required" : true
+        } ],
+        "security" : [ {
+          "userToken" : [ ]
         } ],
         "responses" : {
           "201" : {
@@ -2461,11 +2003,6 @@
         "summary" : "Deletes a port mapping for microservice",
         "operationId" : "deleteMicroservicePortMapping",
         "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User Token",
-          "required" : true
-        }, {
           "name" : "uuid",
           "in" : "path",
           "description" : "Microservice Uuid",
@@ -2475,6 +2012,49 @@
           "in" : "path",
           "description" : "Internal Port",
           "required" : true
+        } ],
+        "security" : [ {
+          "userToken" : [ ]
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "404" : {
+            "description" : "Not Found"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/microservices/system/{uuid}/port-mapping/{internalPort}" : {
+      "delete" : {
+        "tags" : [ "Microservices" ],
+        "summary" : "Deletes a port mapping for system microservice",
+        "operationId" : "deleteSystemMicroservicePortMapping",
+        "parameters" : [ {
+          "name" : "uuid",
+          "in" : "path",
+          "description" : "Microservice Uuid",
+          "required" : true
+        }, {
+          "name" : "internalPort",
+          "in" : "path",
+          "description" : "Internal Port",
+          "required" : true
+        } ],
+        "security" : [ {
+          "userToken" : [ ]
         } ],
         "responses" : {
           "204" : {
@@ -2503,15 +2083,13 @@
         "summary" : "Get a volume mapping list for microservice",
         "operationId" : "getMicroserviceVolumeMapping",
         "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User Token",
-          "required" : true
-        }, {
           "name" : "uuid",
           "in" : "path",
           "description" : "Microservice Uuid",
           "required" : true
+        } ],
+        "security" : [ {
+          "userToken" : [ ]
         } ],
         "responses" : {
           "200" : {
@@ -2538,15 +2116,51 @@
         "summary" : "Creates a volume mapping for microservice",
         "operationId" : "createMicroserviceVolumeMapping",
         "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User Token",
-          "required" : true
-        }, {
           "name" : "uuid",
           "in" : "path",
           "description" : "Microservice Uuid",
           "required" : true
+        } ],
+        "security" : [ {
+          "userToken" : [ ]
+        } ],
+        "responses" : {
+          "201" : {
+            "description" : "Created",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Not Valid"
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "404" : {
+            "description" : "Not Found"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/microservices/system/{uuid}/volume-mapping" : {
+      "post" : {
+        "tags" : [ "Microservices" ],
+        "summary" : "Creates a volume mapping for system microservice",
+        "operationId" : "createSystemMicroserviceVolumeMapping",
+        "parameters" : [ {
+          "name" : "uuid",
+          "in" : "path",
+          "description" : "Microservice Uuid",
+          "required" : true
+        } ],
+        "security" : [ {
+          "userToken" : [ ]
         } ],
         "responses" : {
           "201" : {
@@ -2578,11 +2192,6 @@
         "summary" : "Deletes a volume mapping for microservice",
         "operationId" : "deleteMicroserviceVolumeMapping",
         "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User Token",
-          "required" : true
-        }, {
           "name" : "uuid",
           "in" : "path",
           "description" : "Microservice Uuid",
@@ -2592,6 +2201,52 @@
           "in" : "path",
           "description" : "Volume id",
           "required" : true
+        } ],
+        "security" : [ {
+          "userToken" : [ ]
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Not Valid"
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "404" : {
+            "description" : "Not Found"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/microservices/system/{uuid}/volume-mapping/{id}" : {
+      "delete" : {
+        "tags" : [ "Microservices" ],
+        "summary" : "Deletes a volume mapping for system microservice",
+        "operationId" : "deleteSystemMicroserviceVolumeMapping",
+        "parameters" : [ {
+          "name" : "uuid",
+          "in" : "path",
+          "description" : "Microservice Uuid",
+          "required" : true
+        }, {
+          "name" : "id",
+          "in" : "path",
+          "description" : "Volume id",
+          "required" : true
+        } ],
+        "security" : [ {
+          "userToken" : [ ]
         } ],
         "responses" : {
           "204" : {
@@ -2623,15 +2278,13 @@
         "summary" : "Download image snapshot",
         "operationId" : "downloadImageSnapshot",
         "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User Token",
-          "required" : true
-        }, {
           "name" : "uuid",
           "in" : "path",
           "description" : "Microservice UUID",
           "required" : true
+        } ],
+        "security" : [ {
+          "userToken" : [ ]
         } ],
         "responses" : {
           "200" : {
@@ -2658,15 +2311,13 @@
         "summary" : "Send request to create image snapshot",
         "operationId" : "createImageSnapshot",
         "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User Token",
-          "required" : true
-        }, {
           "name" : "uuid",
           "in" : "path",
           "description" : "Microservice UUID",
           "required" : true
+        } ],
+        "security" : [ {
+          "userToken" : [ ]
         } ],
         "responses" : {
           "201" : {
@@ -2695,11 +2346,6 @@
         "summary" : "Gets Strace Data for Microservice",
         "operationId" : "getMicroserviceStrace",
         "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User Token",
-          "required" : true
-        }, {
           "name" : "uuid",
           "in" : "path",
           "description" : "Microservice UUID",
@@ -2708,6 +2354,9 @@
           "name" : "format",
           "in" : "query",
           "required" : true
+        } ],
+        "security" : [ {
+          "userToken" : [ ]
         } ],
         "responses" : {
           "200" : {
@@ -2738,11 +2387,9 @@
           "in" : "path",
           "description" : "Microservice UUID",
           "required" : true
-        }, {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User Token",
-          "required" : true
+        } ],
+        "security" : [ {
+          "userToken" : [ ]
         } ],
         "responses" : {
           "204" : {
@@ -2772,15 +2419,13 @@
         "summary" : "Enables Microservice Strace Option",
         "operationId" : "enableMicroserviceStrace",
         "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User Token",
-          "required" : true
-        }, {
           "name" : "uuid",
           "in" : "path",
           "description" : "Microservice UUID",
           "required" : true
+        } ],
+        "security" : [ {
+          "userToken" : [ ]
         } ],
         "responses" : {
           "204" : {
@@ -2816,11 +2461,9 @@
           "in" : "path",
           "description" : "ioFog node id",
           "required" : true
-        }, {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User token",
-          "required" : true
+        } ],
+        "security" : [ {
+          "userToken" : [ ]
         } ],
         "responses" : {
           "200" : {
@@ -2851,11 +2494,9 @@
           "in" : "path",
           "description" : "ioFog node id",
           "required" : true
-        }, {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User Token",
-          "required" : true
+        } ],
+        "security" : [ {
+          "userToken" : [ ]
         } ],
         "responses" : {
           "204" : {
@@ -2886,11 +2527,9 @@
         "tags" : [ "Registries" ],
         "summary" : "Gets list of registries",
         "operationId" : "getRegistryList",
-        "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User token",
-          "required" : true
+        "parameters" : [ ],
+        "security" : [ {
+          "userToken" : [ ]
         } ],
         "responses" : {
           "200" : {
@@ -2913,11 +2552,9 @@
         "tags" : [ "Registries" ],
         "summary" : "Creates new registry",
         "operationId" : "createRegistry",
-        "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User Token",
-          "required" : true
+        "parameters" : [ ],
+        "security" : [ {
+          "userToken" : [ ]
         } ],
         "responses" : {
           "201" : {
@@ -2950,11 +2587,9 @@
           "in" : "path",
           "description" : "Registry id",
           "required" : true
-        }, {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User token",
-          "required" : true
+        } ],
+        "security" : [ {
+          "userToken" : [ ]
         } ],
         "responses" : {
           "204" : {
@@ -2985,11 +2620,9 @@
           "in" : "path",
           "description" : "Registry id",
           "required" : true
-        }, {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User token",
-          "required" : true
+        } ],
+        "security" : [ {
+          "userToken" : [ ]
         } ],
         "responses" : {
           "204" : {
@@ -3039,16 +2672,38 @@
         }
       }
     },
+    "/user/refresh" : {
+      "post" : {
+        "tags" : [ "User" ],
+        "summary" : "Refresh accessToken with refreshToken",
+        "operationId" : "refresh",
+        "parameters" : [ ],
+        "responses" : {
+          "200" : {
+            "description" : "Success",
+            "headers" : {
+              "X-Timestamp" : {
+                "description" : "FogController server timestamp"
+              }
+            }
+          },
+          "400" : {
+            "description" : "bad request"
+          },
+          "401" : {
+            "description" : "incorrect credentials"
+          }
+        }
+      }
+    },
     "/user/logout" : {
       "post" : {
         "tags" : [ "User" ],
         "summary" : "Logout",
         "operationId" : "logout",
-        "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User token",
-          "required" : true
+        "parameters" : [ ],
+        "security" : [ {
+          "userToken" : [ ]
         } ],
         "responses" : {
           "204" : {
@@ -3063,215 +2718,23 @@
         }
       }
     },
-    "/user/signup" : {
-      "post" : {
-        "tags" : [ "User" ],
-        "summary" : "Signup",
-        "operationId" : "signup",
-        "parameters" : [ ],
-        "responses" : {
-          "201" : {
-            "description" : "Success",
-            "headers" : {
-              "X-Timestamp" : {
-                "description" : "FogController server timestamp"
-              }
-            }
-          },
-          "400" : {
-            "description" : "Bad Request"
-          },
-          "500" : {
-            "description" : "Internal Server Error"
-          }
-        }
-      }
-    },
-    "/user/signup/resend-activation" : {
-      "get" : {
-        "tags" : [ "User" ],
-        "summary" : "Resend activation email",
-        "operationId" : "resendActivationEmail",
-        "parameters" : [ {
-          "name" : "email",
-          "in" : "query",
-          "required" : true
-        } ],
-        "responses" : {
-          "204" : {
-            "description" : "Success",
-            "headers" : {
-              "X-Timestamp" : {
-                "description" : "FogController server timestamp"
-              }
-            }
-          },
-          "400" : {
-            "description" : "Bad Request"
-          },
-          "500" : {
-            "description" : "Internal Server Error"
-          }
-        }
-      }
-    },
-    "/user/activate" : {
-      "post" : {
-        "tags" : [ "User" ],
-        "summary" : "Activate account",
-        "operationId" : "activateAccount",
-        "parameters" : [ ],
-        "responses" : {
-          "303" : {
-            "description" : "Redirect to login page",
-            "headers" : {
-              "X-Timestamp" : {
-                "description" : "FogController server timestamp"
-              },
-              "Location" : {
-                "description" : "Login page url"
-              }
-            }
-          },
-          "404" : {
-            "description" : "Not Found"
-          },
-          "500" : {
-            "description" : "Internal Server Error"
-          }
-        }
-      }
-    },
     "/user/profile" : {
       "get" : {
         "tags" : [ "User" ],
         "summary" : "Get current user profile data",
         "operationId" : "getUserProfile",
-        "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User token",
-          "required" : true
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "Success",
-            "headers" : {
-              "X-Timestamp" : {
-                "description" : "FogController server timestamp"
-              }
-            }
-          },
-          "401" : {
-            "description" : "Not Authorized"
-          },
-          "500" : {
-            "description" : "Internal Server Error"
-          }
-        }
-      },
-      "delete" : {
-        "tags" : [ "User" ],
-        "summary" : "Delete account",
-        "operationId" : "deleteAccount",
-        "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User Token",
-          "required" : true
-        } ],
-        "responses" : {
-          "204" : {
-            "description" : "Success",
-            "headers" : {
-              "X-Timestamp" : {
-                "description" : "FogController server timestamp"
-              }
-            }
-          },
-          "401" : {
-            "description" : "Not Authorized"
-          },
-          "500" : {
-            "description" : "Internal Server Error"
-          }
-        }
-      },
-      "patch" : {
-        "tags" : [ "User" ],
-        "summary" : "Update user profile",
-        "operationId" : "updateUserProfile",
-        "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User Token",
-          "required" : true
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "Updated user profile",
-            "headers" : {
-              "X-Timestamp" : {
-                "description" : "FogController server timestamp"
-              }
-            }
-          },
-          "400" : {
-            "description" : "Bad Request"
-          },
-          "401" : {
-            "description" : "Not Authorized"
-          },
-          "500" : {
-            "description" : "Internal Server Error"
-          }
-        }
-      }
-    },
-    "/user/password" : {
-      "delete" : {
-        "tags" : [ "User" ],
-        "summary" : "Reset password",
-        "operationId" : "resetPassword",
         "parameters" : [ ],
-        "responses" : {
-          "204" : {
-            "description" : "Success",
-            "headers" : {
-              "X-Timestamp" : {
-                "description" : "FogController server timestamp"
-              }
-            }
-          },
-          "404" : {
-            "description" : "Not Found"
-          },
-          "500" : {
-            "description" : "Internal Server Error"
-          }
-        }
-      },
-      "patch" : {
-        "tags" : [ "User" ],
-        "summary" : "change password",
-        "operationId" : "changePassword",
-        "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User Token",
-          "required" : true
+        "security" : [ {
+          "userToken" : [ ]
         } ],
         "responses" : {
-          "204" : {
+          "200" : {
             "description" : "Success",
             "headers" : {
               "X-Timestamp" : {
                 "description" : "FogController server timestamp"
               }
             }
-          },
-          "400" : {
-            "description" : "Bad Request"
           },
           "401" : {
             "description" : "Not Authorized"
@@ -3287,11 +2750,9 @@
         "tags" : [ "Routing" ],
         "summary" : "Get routes",
         "operationId" : "getRoutes",
-        "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User Token",
-          "required" : true
+        "parameters" : [ ],
+        "security" : [ {
+          "userToken" : [ ]
         } ],
         "responses" : {
           "200" : {
@@ -3314,11 +2775,9 @@
         "tags" : [ "Routing" ],
         "summary" : "Creates a new route",
         "operationId" : "createRoute",
-        "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User Token",
-          "required" : true
+        "parameters" : [ ],
+        "security" : [ {
+          "userToken" : [ ]
         } ],
         "responses" : {
           "201" : {
@@ -3350,15 +2809,13 @@
         "summary" : "Gets a route info",
         "operationId" : "getRoute",
         "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User Token",
-          "required" : true
-        }, {
           "name" : "name",
           "in" : "path",
           "description" : "Route name",
           "required" : true
+        } ],
+        "security" : [ {
+          "userToken" : [ ]
         } ],
         "responses" : {
           "200" : {
@@ -3385,15 +2842,13 @@
         "summary" : "Deletes a route",
         "operationId" : "deleteRoute",
         "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User Token",
-          "required" : true
-        }, {
           "name" : "name",
           "in" : "path",
           "description" : "Route name",
           "required" : true
+        } ],
+        "security" : [ {
+          "userToken" : [ ]
         } ],
         "responses" : {
           "204" : {
@@ -3420,15 +2875,13 @@
         "summary" : "Updates a route",
         "operationId" : "updateRoute",
         "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User Token",
-          "required" : true
-        }, {
           "name" : "name",
           "in" : "path",
           "description" : "Route name",
           "required" : true
+        } ],
+        "security" : [ {
+          "userToken" : [ ]
         } ],
         "responses" : {
           "204" : {
@@ -3462,11 +2915,9 @@
         "tags" : [ "Edge Resource" ],
         "summary" : "Get Edge Resources",
         "operationId" : "getEdgeResources",
-        "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User Token",
-          "required" : true
+        "parameters" : [ ],
+        "security" : [ {
+          "userToken" : [ ]
         } ],
         "responses" : {
           "200" : {
@@ -3492,11 +2943,6 @@
         "summary" : "Get Specific Edge Resource",
         "operationId" : "getEdgeResourceDetail",
         "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User Token",
-          "required" : true
-        }, {
           "name" : "name",
           "in" : "path",
           "description" : "Edge Resource name",
@@ -3506,6 +2952,9 @@
           "in" : "path",
           "description" : "Edge Resource version",
           "required" : true
+        } ],
+        "security" : [ {
+          "userToken" : [ ]
         } ],
         "responses" : {
           "200" : {
@@ -3529,11 +2978,6 @@
         "summary" : "Update/Create Specific Edge Resource",
         "operationId" : "putEdgeResource",
         "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User Token",
-          "required" : true
-        }, {
           "name" : "name",
           "in" : "path",
           "description" : "Edge Resource name",
@@ -3543,6 +2987,9 @@
           "in" : "path",
           "description" : "Edge Resource version",
           "required" : true
+        } ],
+        "security" : [ {
+          "userToken" : [ ]
         } ],
         "responses" : {
           "200" : {
@@ -3566,11 +3013,6 @@
         "summary" : "Deletes an Edge Resource",
         "operationId" : "deleteEdgeResource",
         "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User Token",
-          "required" : true
-        }, {
           "name" : "name",
           "in" : "path",
           "description" : "Edge Resource name",
@@ -3580,6 +3022,9 @@
           "in" : "path",
           "description" : "Edge Resource version",
           "required" : true
+        } ],
+        "security" : [ {
+          "userToken" : [ ]
         } ],
         "responses" : {
           "204" : {
@@ -3608,15 +3053,13 @@
         "summary" : "Get Specific Edge Resource versions",
         "operationId" : "getEdgeResourceVersions",
         "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User Token",
-          "required" : true
-        }, {
           "name" : "name",
           "in" : "path",
           "description" : "Edge Resource name",
           "required" : true
+        } ],
+        "security" : [ {
+          "userToken" : [ ]
         } ],
         "responses" : {
           "200" : {
@@ -3641,11 +3084,9 @@
         "tags" : [ "Edge Resource" ],
         "summary" : "Create Specific Edge Resource",
         "operationId" : "postEdgeResource",
-        "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User Token",
-          "required" : true
+        "parameters" : [ ],
+        "security" : [ {
+          "userToken" : [ ]
         } ],
         "responses" : {
           "200" : {
@@ -3671,11 +3112,6 @@
         "summary" : "Attach Edge Resource to Agent",
         "operationId" : "postEdgeResourceLink",
         "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User Token",
-          "required" : true
-        }, {
           "name" : "name",
           "in" : "path",
           "description" : "Edge Resource Name",
@@ -3685,6 +3121,9 @@
           "in" : "path",
           "description" : "Edge Resource Version",
           "required" : true
+        } ],
+        "security" : [ {
+          "userToken" : [ ]
         } ],
         "responses" : {
           "204" : {
@@ -3711,11 +3150,6 @@
         "summary" : "Detach Edge Resource from Agent",
         "operationId" : "deleteEdgeResourceLink",
         "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "description" : "User Token",
-          "required" : true
-        }, {
           "name" : "name",
           "in" : "path",
           "description" : "Edge Resource Name",
@@ -3725,6 +3159,9 @@
           "in" : "path",
           "description" : "Edge Resource Version",
           "required" : true
+        } ],
+        "security" : [ {
+          "userToken" : [ ]
         } ],
         "responses" : {
           "204" : {

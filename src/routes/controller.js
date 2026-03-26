@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -31,25 +31,7 @@ module.exports = [
         .status(responseObject.code)
         .send(responseObject.body)
 
-      logger.apiRes({ req: req, res: responseObject })
-    }
-  },
-  {
-    method: 'get',
-    path: '/api/v3/email-activation',
-    middleware: async (req, res) => {
-      logger.apiReq(req)
-
-      const successCode = constants.HTTP_CODE_SUCCESS
-      const errorCodes = []
-      const emailActivationEndPoint = ResponseDecorator.handleErrors(Controller.emailActivationEndPoint, successCode, errorCodes)
-      const responseObject = await emailActivationEndPoint(req)
-
-      res
-        .status(responseObject.code)
-        .send(responseObject.body)
-
-      logger.apiRes({ req: req, res: responseObject })
+      logger.apiRes({ req: req, res: res, responseObject: responseObject })
     }
   },
   {
@@ -67,7 +49,7 @@ module.exports = [
         .status(responseObject.code)
         .send(responseObject.body)
 
-      logger.apiRes({ req: req, res: responseObject })
+      logger.apiRes({ req: req, res: res, responseObject: responseObject })
     }
   }
 ]

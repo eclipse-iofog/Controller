@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -15,6 +15,7 @@ const FlowController = require('../controllers/application-controller')
 const ResponseDecorator = require('../decorators/response-decorator')
 const Errors = require('../helpers/errors')
 const logger = require('../logger')
+const rbacMiddleware = require('../lib/rbac/middleware')
 
 module.exports = [
   {
@@ -31,14 +32,17 @@ module.exports = [
         }
       ]
 
-      const getFlowsByUserEndPoint = ResponseDecorator.handleErrors(FlowController.getApplicationsByUserEndPoint, successCode, errorCodes)
-      const responseObject = await getFlowsByUserEndPoint(req)
+      // Add rbacMiddleware.protect middleware to protect the route for both SRE and Developer roles
+      await rbacMiddleware.protect()(req, res, async () => {
+        const getFlowsByUserEndPoint = ResponseDecorator.handleErrors(FlowController.getApplicationsByUserEndPoint, successCode, errorCodes)
+        const responseObject = await getFlowsByUserEndPoint(req)
+        const user = req.kauth && req.kauth.grant && req.kauth.grant.access_token ? req.kauth.grant.access_token.content.preferred_username : 'system'
+        res
+          .status(responseObject.code)
+          .send({ flows: responseObject.body.applications })
 
-      res
-        .status(responseObject.code)
-        .send({ flows: responseObject.body.applications })
-
-      logger.apiRes({ req: req, res: responseObject })
+        logger.apiRes({ req: req, user: user, res: res, responseObject: responseObject })
+      })
     }
   },
   {
@@ -59,14 +63,17 @@ module.exports = [
         }
       ]
 
-      const createFlowEndPoint = ResponseDecorator.handleErrors(FlowController.createApplicationEndPoint, successCode, errorCodes)
-      const responseObject = await createFlowEndPoint(req)
+      // Add rbacMiddleware.protect middleware to protect the route for both SRE and Developer roles
+      await rbacMiddleware.protect()(req, res, async () => {
+        const createFlowEndPoint = ResponseDecorator.handleErrors(FlowController.createApplicationEndPoint, successCode, errorCodes)
+        const responseObject = await createFlowEndPoint(req)
+        const user = req.kauth && req.kauth.grant && req.kauth.grant.access_token ? req.kauth.grant.access_token.content.preferred_username : 'system'
+        res
+          .status(responseObject.code)
+          .send(responseObject.body)
 
-      res
-        .status(responseObject.code)
-        .send(responseObject.body)
-
-      logger.apiRes({ req: req, res: responseObject })
+        logger.apiRes({ req: req, user: user, res: res, responseObject: responseObject })
+      })
     }
   },
   {
@@ -87,14 +94,17 @@ module.exports = [
         }
       ]
 
-      const getFlowEndPoint = ResponseDecorator.handleErrors(FlowController.getApplicationByIdEndPoint, successCode, errorCodes)
-      const responseObject = await getFlowEndPoint(req)
+      // Add rbacMiddleware.protect middleware to protect the route for both SRE and Developer roles
+      await rbacMiddleware.protect()(req, res, async () => {
+        const getFlowEndPoint = ResponseDecorator.handleErrors(FlowController.getApplicationByIdEndPoint, successCode, errorCodes)
+        const responseObject = await getFlowEndPoint(req)
+        const user = req.kauth && req.kauth.grant && req.kauth.grant.access_token ? req.kauth.grant.access_token.content.preferred_username : 'system'
+        res
+          .status(responseObject.code)
+          .send(responseObject.body)
 
-      res
-        .status(responseObject.code)
-        .send(responseObject.body)
-
-      logger.apiRes({ req: req, res: responseObject })
+        logger.apiRes({ req: req, user: user, res: res, responseObject: responseObject })
+      })
     }
   },
   {
@@ -119,14 +129,17 @@ module.exports = [
         }
       ]
 
-      const updateFlowEndPoint = ResponseDecorator.handleErrors(FlowController.patchApplicationByIdEndPoint, successCode, errorCodes)
-      const responseObject = await updateFlowEndPoint(req)
+      // Add rbacMiddleware.protect middleware to protect the route for both SRE and Developer roles
+      await rbacMiddleware.protect()(req, res, async () => {
+        const updateFlowEndPoint = ResponseDecorator.handleErrors(FlowController.patchApplicationByIdEndPoint, successCode, errorCodes)
+        const responseObject = await updateFlowEndPoint(req)
+        const user = req.kauth && req.kauth.grant && req.kauth.grant.access_token ? req.kauth.grant.access_token.content.preferred_username : 'system'
+        res
+          .status(responseObject.code)
+          .send(responseObject.body)
 
-      res
-        .status(responseObject.code)
-        .send(responseObject.body)
-
-      logger.apiRes({ req: req, res: responseObject })
+        logger.apiRes({ req: req, user: user, res: res, responseObject: responseObject })
+      })
     }
   },
   {
@@ -147,14 +160,17 @@ module.exports = [
         }
       ]
 
-      const deleteFlowEndPoint = ResponseDecorator.handleErrors(FlowController.deleteApplicationByIdEndPoint, successCode, errorCodes)
-      const responseObject = await deleteFlowEndPoint(req)
+      // Add rbacMiddleware.protect middleware to protect the route for both SRE and Developer roles
+      await rbacMiddleware.protect()(req, res, async () => {
+        const deleteFlowEndPoint = ResponseDecorator.handleErrors(FlowController.deleteApplicationByIdEndPoint, successCode, errorCodes)
+        const responseObject = await deleteFlowEndPoint(req)
+        const user = req.kauth.grant.access_token.content.preferred_username
+        res
+          .status(responseObject.code)
+          .send(responseObject.body)
 
-      res
-        .status(responseObject.code)
-        .send(responseObject.body)
-
-      logger.apiRes({ req: req, res: responseObject })
+        logger.apiRes({ req: req, user: user, res: res, responseObject: responseObject })
+      })
     }
   }
 ]

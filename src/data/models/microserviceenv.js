@@ -15,6 +15,14 @@ module.exports = (sequelize, DataTypes) => {
     value: {
       type: DataTypes.TEXT,
       field: 'value'
+    },
+    valueFromSecret: {
+      type: DataTypes.TEXT,
+      field: 'value_from_secret'
+    },
+    valueFromConfigMap: {
+      type: DataTypes.TEXT,
+      field: 'value_from_config_map'
     }
   }, {
     tableName: 'MicroserviceEnvs',

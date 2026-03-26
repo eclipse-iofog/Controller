@@ -60,6 +60,32 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.TEXT,
       defaultValue: '',
       field: 'error_message'
+    },
+    ipAddress: {
+      type: DataTypes.TEXT,
+      defaultValue: '',
+      field: 'ip_address'
+    },
+    healthStatus: {
+      type: DataTypes.TEXT,
+      defaultValue: '',
+      field: 'health_status'
+    },
+    execSessionIds: {
+      type: DataTypes.TEXT,
+      defaultValue: '[]',
+      field: 'exec_session_ids',
+      get () {
+        const value = this.getDataValue('execSessionIds')
+        try {
+          return JSON.parse(value)
+        } catch (e) {
+          return []
+        }
+      },
+      set (value) {
+        this.setDataValue('execSessionIds', JSON.stringify(value))
+      }
     }
   }, {
     tableName: 'MicroserviceStatuses',

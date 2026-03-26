@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -20,7 +20,10 @@ const iofogCreate = {
     'latitude': { 'type': 'number', 'minimum': -90, 'maximum': 90 },
     'longitude': { 'type': 'number', 'minimum': -180, 'maximum': 180 },
     'description': { 'type': 'string' },
+    'networkInterface': { 'type': 'string' },
     'dockerUrl': { 'type': 'string' },
+    'containerEngine': { 'type': 'string', 'enum': ['docker', 'podman'] },
+    'deploymentType': { 'type': 'string', 'enum': ['native', 'container'] },
     'diskLimit': { 'type': 'integer', 'minimum': 0 },
     'diskDirectory': { 'type': 'string' },
     'memoryLimit': { 'type': 'integer', 'minimum': 0 },
@@ -43,6 +46,18 @@ const iofogCreate = {
     'messagingPort': { 'type': 'integer', 'minimum': 1, 'maximum': 65535 },
     'interRouterPort': { 'type': 'integer', 'minimum': 1, 'maximum': 65535 },
     'edgeRouterPort': { 'type': 'integer', 'minimum': 1, 'maximum': 65535 },
+    'natsMode': { 'enum': ['none', 'leaf', 'server'], 'default': 'leaf' },
+    'natsServerPort': { 'type': 'integer', 'minimum': 1, 'maximum': 65535 },
+    'natsLeafPort': { 'type': 'integer', 'minimum': 1, 'maximum': 65535 },
+    'natsClusterPort': { 'type': 'integer', 'minimum': 1, 'maximum': 65535 },
+    'natsMqttPort': { 'type': 'integer', 'minimum': 1, 'maximum': 65535 },
+    'natsHttpPort': { 'type': 'integer', 'minimum': 1, 'maximum': 65535 },
+    'jsStorageSize': { 'type': 'string', 'pattern': '^[0-9]+\\s*([mM][bB]?|[gG][bB]?|[tT][bB]?)?$', 'maxLength': 32 },
+    'jsMemoryStoreSize': { 'type': 'string', 'pattern': '^[0-9]+\\s*([mM][bB]?|[gG][bB]?|[tT][bB]?)?$', 'maxLength': 32 },
+    'upstreamNatsServers': {
+      'type': 'array',
+      'items': { 'type': 'string', 'minLength': 1 }
+    },
     'host': { 'type': 'string' },
     'tags': {
       'type': 'array',
@@ -82,7 +97,10 @@ const iofogUpdate = {
     'latitude': { 'type': 'number', 'minimum': -90, 'maximum': 90 },
     'longitude': { 'type': 'number', 'minimum': -180, 'maximum': 180 },
     'description': { 'type': 'string' },
+    'networkInterface': { 'type': 'string' },
     'dockerUrl': { 'type': 'string' },
+    'containerEngine': { 'type': 'string', 'enum': ['docker', 'podman'] },
+    'deploymentType': { 'type': 'string', 'enum': ['native', 'container'] },
     'diskLimit': { 'type': 'integer', 'minimum': 0 },
     'diskDirectory': { 'type': 'string' },
     'memoryLimit': { 'type': 'integer', 'minimum': 0 },
@@ -105,6 +123,18 @@ const iofogUpdate = {
     'messagingPort': { 'type': 'integer', 'minimum': 1, 'maximum': 65535 },
     'interRouterPort': { 'type': 'integer', 'minimum': 1, 'maximum': 65535 },
     'edgeRouterPort': { 'type': 'integer', 'minimum': 1, 'maximum': 65535 },
+    'natsMode': { 'enum': ['none', 'leaf', 'server'] },
+    'natsServerPort': { 'type': 'integer', 'minimum': 1, 'maximum': 65535 },
+    'natsLeafPort': { 'type': 'integer', 'minimum': 1, 'maximum': 65535 },
+    'natsClusterPort': { 'type': 'integer', 'minimum': 1, 'maximum': 65535 },
+    'natsMqttPort': { 'type': 'integer', 'minimum': 1, 'maximum': 65535 },
+    'natsHttpPort': { 'type': 'integer', 'minimum': 1, 'maximum': 65535 },
+    'jsStorageSize': { 'type': 'string', 'pattern': '^[0-9]+\\s*([mM][bB]?|[gG][bB]?|[tT][bB]?)?$', 'maxLength': 32 },
+    'jsMemoryStoreSize': { 'type': 'string', 'pattern': '^[0-9]+\\s*([mM][bB]?|[gG][bB]?|[tT][bB]?)?$', 'maxLength': 32 },
+    'upstreamNatsServers': {
+      'type': 'array',
+      'items': { 'type': 'string', 'minLength': 1 }
+    },
     'host': { 'type': 'string' },
     'upstreamRouters': {
       'type': 'array',
@@ -250,9 +280,30 @@ const iofogTag = {
   'type': 'string'
 }
 
+const enableNodeExec = {
+  'id': '/enableNodeExec',
+  'type': 'object',
+  'properties': {
+    'uuid': { 'type': 'string' },
+    'image': { 'type': 'string' }
+  },
+  'required': ['uuid'],
+  'additionalProperties': true
+}
+
+const disableNodeExec = {
+  'id': '/disableNodeExec',
+  'type': 'object',
+  'properties': {
+    'uuid': { 'type': 'string' }
+  },
+  'required': ['uuid'],
+  'additionalProperties': true
+}
+
 module.exports = {
   mainSchemas: [iofogCreate, iofogUpdate, iofogDelete,
     iofogGet, iofogGenerateProvision, iofogSetVersionCommand,
-    iofogReboot, iofogFilters, halGet, iofogPrune, defaultRouterCreate, iofogTag],
+    iofogReboot, iofogFilters, halGet, iofogPrune, defaultRouterCreate, iofogTag, enableNodeExec, disableNodeExec],
   innerSchemas: [filter, iofogTag]
 }

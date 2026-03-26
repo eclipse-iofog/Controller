@@ -1,6 +1,6 @@
 /*
  * *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -12,25 +12,7 @@
  */
 
 const UserService = require('../services/user-service')
-const AuthDecorator = require('../decorators/authorization-decorator')
-const AppHelper = require('../helpers/app-helper')
-
 const Validator = require('../schemas')
-
-const userSignupEndPoint = async function (req) {
-  const user = req.body
-
-  await Validator.validate(user, Validator.schemas.signUp)
-
-  const encryptedPassword = AppHelper.encryptText(user.password, user.email)
-  const newUser = {
-    firstName: user.firstName,
-    lastName: user.lastName,
-    email: user.email,
-    password: encryptedPassword
-  }
-  return UserService.signUp(newUser, false)
-}
 
 const userLoginEndPoint = async function (req) {
   const user = req.body
@@ -39,66 +21,36 @@ const userLoginEndPoint = async function (req) {
 
   const credentials = {
     email: user.email,
-    password: user.password
+    password: user.password,
+    totp: user.totp
   }
 
   return UserService.login(credentials, false)
 }
 
-const resendActivationEndPoint = async function (req) {
-  const emailData = req.query
-  return UserService.resendActivation(emailData, false)
-}
+const refreshTokenEndPoint = async function (req) {
+  const token = req.body
 
-const activateUserAccountEndPoint = async function (req) {
-  const codeData = req.body
+  await Validator.validate(token, Validator.schemas.refresh)
 
-  await UserService.activateUser(codeData, false)
-}
+  const credentials = {
+    refreshToken: token.refreshToken
 
-const userLogoutEndPoint = async function (req, user) {
-  return UserService.logout(user, false)
-}
-
-const getUserProfileEndPoint = async function (req, user) {
-  return {
-    firstName: user.firstName,
-    lastName: user.lastName,
-    email: user.email
   }
+  return UserService.refresh(credentials, false)
 }
 
-const updateUserProfileEndPoint = async function (req, user) {
-  const profileData = req.body
-  return UserService.updateUserDetails(user, profileData, false)
+const getUserProfileEndPoint = async function (req) {
+  return UserService.profile(req, false)
 }
 
-const deleteUserProfileEndPoint = async function (req, user) {
-  return UserService.deleteUser(req.body.force, user, false)
-}
-
-const updateUserPasswordEndPoint = async function (req, user) {
-  const passwordUpdates = req.body
-
-  await Validator.validate(passwordUpdates, Validator.schemas.updatePassword)
-
-  return UserService.updateUserPassword(passwordUpdates, user, false)
-}
-
-const resetUserPasswordEndPoint = async function (req) {
-  const emailObj = req.body
-  return UserService.resetUserPassword(emailObj, false)
+const userLogoutEndPoint = async function (req) {
+  return UserService.logout(req, false)
 }
 
 module.exports = {
-  userSignupEndPoint: userSignupEndPoint,
   userLoginEndPoint: userLoginEndPoint,
-  resendActivationEndPoint: resendActivationEndPoint,
-  activateUserAccountEndPoint: activateUserAccountEndPoint,
-  userLogoutEndPoint: AuthDecorator.checkAuthToken(userLogoutEndPoint),
-  getUserProfileEndPoint: AuthDecorator.checkAuthToken(getUserProfileEndPoint),
-  updateUserProfileEndPoint: AuthDecorator.checkAuthToken(updateUserProfileEndPoint),
-  deleteUserProfileEndPoint: AuthDecorator.checkAuthToken(deleteUserProfileEndPoint),
-  updateUserPasswordEndPoint: AuthDecorator.checkAuthToken(updateUserPasswordEndPoint),
-  resetUserPasswordEndPoint: resetUserPasswordEndPoint
+  refreshTokenEndPoint: refreshTokenEndPoint,
+  getUserProfileEndPoint: getUserProfileEndPoint,
+  userLogoutEndPoint: userLogoutEndPoint
 }

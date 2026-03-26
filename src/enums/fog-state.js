@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -13,7 +13,14 @@
 
 const fogState = {
   UNKNOWN: 'UNKNOWN',
-  RUNNING: 'RUNNING'
+  RUNNING: 'RUNNING',
+  STOPPED: 'STOPPED',
+  WAITING: 'WAITING',
+  WARNING: 'WARNING',
+  DEBUGGING: 'DEBUGGING',
+  DEPROVISIONED: 'DEPROVISIONED',
+  ERROR: 'ERROR',
+  NOT_PROVISIONED: 'NOT_PROVISIONED'
 }
 
 module.exports = fogState

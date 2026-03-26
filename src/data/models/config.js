@@ -30,8 +30,5 @@ module.exports = (sequelize, DataTypes) => {
       }
     ]
   })
-  Config.associate = function (models) {
-
-  }
   return Config
 }

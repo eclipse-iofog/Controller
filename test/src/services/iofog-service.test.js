@@ -6,6 +6,7 @@ const ioFogService = require('../../../src/services/iofog-service')
 const RouterManager = require('../../../src/data/managers/router-manager')
 const RouterConnectionManager = require('../../../src/data/managers/router-connection-manager')
 const RouterService = require('../../../src/services/router-service')
+const NatsService = require('../../../src/services/nats-service')
 const AppHelper = require('../../../src/helpers/app-helper')
 const Validator = require('../../../src/schemas')
 const ChangeTrackingService = require('../../../src/services/change-tracking-service')
@@ -196,6 +197,7 @@ describe('ioFog Service', () => {
       $sandbox.stub(RouterManager, 'findOne').returns($findOneRouterResponse)
       $sandbox.stub(RouterService, 'validateAndReturnUpstreamRouters').returns($emptyUpstreamRouters)
       $sandbox.stub(RouterService, 'createRouterForFog').returns($findOneRouterResponse)
+      $sandbox.stub(NatsService, 'ensureNatsForFog').returns(Promise.resolve())
       $sandbox.stub(ioFogManager, 'update').returns($createIoFogResponse)
       $sandbox.stub(ioFogManager, 'findOne').returns(Promise.resolve())
       $sandbox.stub(ioFogManager, 'findOneWithTags').returns(Promise.resolve())
@@ -654,6 +656,7 @@ describe('ioFog Service', () => {
       $sandbox.stub(RouterService, 'validateAndReturnUpstreamRouters').returns($emptyUpstreamRouters)
       $sandbox.stub(RouterService, 'createRouterForFog').returns($createRouterResponse)
       $sandbox.stub(RouterService, 'updateRouter').returns($updateRouterResponse)
+      $sandbox.stub(NatsService, 'ensureNatsForFog').returns(Promise.resolve())
       $sandbox.stub(RouterConnectionManager, 'findAllWithRouters').returns($emptyUpstreamRouters)
       $sandbox.stub(CatalogService, 'getRouterCatalogItem').returns($getRouterCatalogItemResponse)
       $sandbox.stub(MicroserviceManager, 'delete')
@@ -1069,6 +1072,7 @@ describe('ioFog Service', () => {
       $sandbox.stub(CatalogService, 'getRouterCatalogItem').returns($routerCatalogItem)
       $sandbox.stub(MicroserviceManager, 'delete')
       $sandbox.stub(MicroserviceManager, 'findAll').returns(Promise.resolve([]))
+      $sandbox.stub(NatsService, 'cleanupNatsForFog').returns(Promise.resolve())
       $sandbox.stub(ioFogManager, 'findAll').returns(Promise.resolve([]))
       $sandbox.stub(ioFogManager, 'findAllWithTags').returns(Promise.resolve([]))
     })
@@ -1102,6 +1106,11 @@ describe('ioFog Service', () => {
       })
 
       context('when ioFogManager#findOne() succeeds', () => {
+        it('calls NatsService#cleanupNatsForFog() with correct args', async () => {
+          await $subject
+          expect(NatsService.cleanupNatsForFog).to.have.been.calledWith(fog, transaction)
+        })
+
         it('calls ChangeTrackingService#update() with correct args', async () => {
           await $subject
 

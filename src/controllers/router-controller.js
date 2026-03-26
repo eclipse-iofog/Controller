@@ -1,6 +1,6 @@
 /*
  * *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -11,7 +11,6 @@
  *
  */
 
-const AuthDecorator = require('./../decorators/authorization-decorator')
 const RouterService = require('../services/router-service')
 
 const upsertDefaultRouter = async function (req) {
@@ -24,6 +23,6 @@ const getRouterEndPoint = async function () {
 }
 
 module.exports = {
-  upsertDefaultRouter: AuthDecorator.checkAuthToken(upsertDefaultRouter),
-  getRouterEndPoint: AuthDecorator.checkAuthToken(getRouterEndPoint)
+  upsertDefaultRouter: (upsertDefaultRouter),
+  getRouterEndPoint: (getRouterEndPoint)
 }

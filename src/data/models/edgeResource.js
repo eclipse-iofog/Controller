@@ -27,16 +27,6 @@ module.exports = (sequelize, DataTypes) => {
   EdgeResource.associate = function (models) {
     EdgeResource.belongsToMany(models.Fog, { through: 'AgentEdgeResources', as: 'agents' })
     EdgeResource.belongsToMany(models.Tags, { as: 'orchestrationTags', through: 'EdgeResourceOrchestrationTags' })
-
-    EdgeResource.belongsTo(models.User, {
-      foreignKey: {
-        name: 'userId',
-        field: 'user_id'
-      },
-      as: 'user',
-      defaultValue: 0,
-      onDelete: 'cascade'
-    })
   }
   return EdgeResource
 }

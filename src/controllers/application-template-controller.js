@@ -1,6 +1,6 @@
 /*
  * *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -11,79 +11,78 @@
  *
  */
 
-const AuthDecorator = require('./../decorators/authorization-decorator')
 const ApplicationTemplateService = require('../services/application-template-service')
 const YAMLParserService = require('../services/yaml-parser-service')
 const errors = require('../helpers/errors')
 const ErrorMessages = require('../helpers/error-messages')
 const { rvaluesVarSubstition } = require('../helpers/template-helper')
 
-const createApplicationTemplateEndPoint = async function (req, user) {
+const createApplicationTemplateEndPoint = async function (req) {
   const application = req.body
 
-  return ApplicationTemplateService.createApplicationTemplateEndPoint(application, user, false)
+  return ApplicationTemplateService.createApplicationTemplateEndPoint(application, false)
 }
 
-const createApplicationTemplateYAMLEndPoint = async function (req, user) {
+const createApplicationTemplateYAMLEndPoint = async function (req) {
   if (!req.file) {
     throw new errors.ValidationError(ErrorMessages.APPLICATION_FILE_NOT_FOUND)
   }
   const fileContent = req.file.buffer.toString()
   const application = await YAMLParserService.parseAppTemplateFile(fileContent)
-  await rvaluesVarSubstition(application.variables, { self: application.variables }, user)
+  await rvaluesVarSubstition(application.variables, { self: application.variables })
 
-  return ApplicationTemplateService.createApplicationTemplateEndPoint(application, user, false)
+  return ApplicationTemplateService.createApplicationTemplateEndPoint(application, false)
 }
 
-const getApplicationTemplatesByUserEndPoint = async function (req, user) {
-  return ApplicationTemplateService.getUserApplicationTemplatesEndPoint(user, false)
+const getApplicationTemplatesByUserEndPoint = async function (req) {
+  return ApplicationTemplateService.getUserApplicationTemplatesEndPoint(false)
 }
 
-const getApplicationTemplateEndPoint = async function (req, user) {
+const getApplicationTemplateEndPoint = async function (req) {
   const name = req.params.name
 
-  return ApplicationTemplateService.getApplicationTemplateEndPoint({ name }, user, false)
+  return ApplicationTemplateService.getApplicationTemplateEndPoint({ name }, false)
 }
 
-const patchApplicationTemplateEndPoint = async function (req, user) {
+const patchApplicationTemplateEndPoint = async function (req) {
   const application = req.body
   const name = req.params.name
 
-  return ApplicationTemplateService.patchApplicationTemplateEndPoint(application, { name }, user, false)
+  return ApplicationTemplateService.patchApplicationTemplateEndPoint(application, { name }, false)
 }
 
-const updateApplicationTemplateEndPoint = async function (req, user) {
+const updateApplicationTemplateEndPoint = async function (req) {
   const application = req.body
   const name = req.params.name
 
-  return ApplicationTemplateService.updateApplicationTemplateEndPoint(application, name, user, false)
+  return ApplicationTemplateService.updateApplicationTemplateEndPoint(application, name, false)
 }
 
-const updateApplicationTemplateYAMLEndPoint = async function (req, user) {
+const updateApplicationTemplateYAMLEndPoint = async function (req) {
   if (!req.file) {
     throw new errors.ValidationError(ErrorMessages.APPLICATION_FILE_NOT_FOUND)
   }
   const name = req.params.name
   const fileContent = req.file.buffer.toString()
   const application = await YAMLParserService.parseAppTemplateFile(fileContent)
-  await rvaluesVarSubstition(application.variables, { self: application.variables }, user)
+  await rvaluesVarSubstition(application.variables, { self: application.variables })
 
-  return ApplicationTemplateService.updateApplicationTemplateEndPoint(application, name, user, false)
+  return ApplicationTemplateService.updateApplicationTemplateEndPoint(application, name, false)
 }
 
-const deleteApplicationTemplateEndPoint = async function (req, user) {
+const deleteApplicationTemplateEndPoint = async function (req) {
   const name = req.params.name
 
-  return ApplicationTemplateService.deleteApplicationTemplateEndPoint({ name }, user, false)
+  return ApplicationTemplateService.deleteApplicationTemplateEndPoint({ name }, false)
 }
 
 module.exports = {
-  createApplicationTemplateEndPoint: AuthDecorator.checkAuthToken(createApplicationTemplateEndPoint),
-  getApplicationTemplatesByUserEndPoint: AuthDecorator.checkAuthToken(getApplicationTemplatesByUserEndPoint),
-  getApplicationTemplateEndPoint: AuthDecorator.checkAuthToken(getApplicationTemplateEndPoint),
-  updateApplicationTemplateEndPoint: AuthDecorator.checkAuthToken(updateApplicationTemplateEndPoint),
-  updateApplicationTemplateYAMLEndPoint: AuthDecorator.checkAuthToken(updateApplicationTemplateYAMLEndPoint),
-  patchApplicationTemplateEndPoint: AuthDecorator.checkAuthToken(patchApplicationTemplateEndPoint),
-  deleteApplicationTemplateEndPoint: AuthDecorator.checkAuthToken(deleteApplicationTemplateEndPoint),
-  createApplicationTemplateYAMLEndPoint: AuthDecorator.checkAuthToken(createApplicationTemplateYAMLEndPoint)
+  createApplicationTemplateEndPoint: (createApplicationTemplateEndPoint),
+  getApplicationTemplatesByUserEndPoint: (getApplicationTemplatesByUserEndPoint),
+  getApplicationTemplateEndPoint: (getApplicationTemplateEndPoint),
+  updateApplicationTemplateEndPoint: (updateApplicationTemplateEndPoint),
+  updateApplicationTemplateYAMLEndPoint: (updateApplicationTemplateYAMLEndPoint),
+  patchApplicationTemplateEndPoint: (patchApplicationTemplateEndPoint),
+  deleteApplicationTemplateEndPoint: (deleteApplicationTemplateEndPoint),
+  createApplicationTemplateYAMLEndPoint: (createApplicationTemplateYAMLEndPoint)
 }

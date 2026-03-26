@@ -1,6 +1,6 @@
 /*
  * *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -12,7 +12,6 @@
  */
 
 const ioFogTypesManager = require('../data/managers/iofog-type-manager')
-const Config = require('../config')
 const TransactionDecorator = require('../decorators/transaction-decorator')
 const packageJson = require('../../package')
 const AppHelper = require('../helpers/app-helper')
@@ -35,13 +34,6 @@ const getFogTypes = async function (isCLI, transaction) {
   }
 }
 
-const emailActivation = async function (isCLI) {
-  const emailActivation = await Config.get('Email:ActivationEnabled', false)
-  return {
-    isEmailActivationEnabled: emailActivation
-  }
-}
-
 const statusController = async function (isCLI) {
   let status
 
@@ -57,7 +49,7 @@ const statusController = async function (isCLI) {
     'uptimeSec': process.uptime(),
     versions: {
       controller: packageJson.version,
-      ecnViewer: packageJson.dependencies['@iofog/ecn-viewer']
+      ecnViewer: packageJson.dependencies['@eclipse-iofog/ecn-viewer']
     }
   }
 }
@@ -68,7 +60,6 @@ const getVersion = async function (isCLI) {
 
 module.exports = {
   getFogTypes: TransactionDecorator.generateTransaction(getFogTypes),
-  emailActivation: emailActivation,
   statusController: statusController,
   getVersion: getVersion
 }

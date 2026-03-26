@@ -35,14 +35,6 @@ module.exports = (sequelize, DataTypes) => {
     underscored: true
   })
   ApplicationTemplate.associate = function (models) {
-    ApplicationTemplate.belongsTo(models.User, {
-      foreignKey: {
-        name: 'userId',
-        field: 'user_id'
-      },
-      as: 'user',
-      onDelete: 'cascade'
-    })
     ApplicationTemplate.hasMany(models.ApplicationTemplateVariable, {
       foreignKey: {
         name: 'applicationTemplateId',

@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -15,6 +15,7 @@ const TunnelController = require('../controllers/tunnel-controller')
 const ResponseDecorator = require('../decorators/response-decorator')
 const Errors = require('../helpers/errors')
 const logger = require('../logger')
+const rbacMiddleware = require('../lib/rbac/middleware')
 
 module.exports = [
   {
@@ -38,13 +39,22 @@ module.exports = [
           errors: [Errors.NotFoundError]
         }
       ]
-      const tunnelEndPoint = ResponseDecorator.handleErrors(TunnelController.manageTunnelEndPoint, successCode, errorCodes)
-      const responseObject = await tunnelEndPoint(req)
-      res
-        .status(responseObject.code)
-        .send(responseObject.body)
 
-      logger.apiRes({ req: req, res: responseObject })
+      // Protecting for SRE and Developer roles
+      await rbacMiddleware.protect()(req, res, async () => {
+        const tunnelEndPoint = ResponseDecorator.handleErrors(
+          TunnelController.manageTunnelEndPoint,
+          successCode,
+          errorCodes
+        )
+        const responseObject = await tunnelEndPoint(req)
+        const user = req.kauth && req.kauth.grant && req.kauth.grant.access_token ? req.kauth.grant.access_token.content.preferred_username : 'system'
+        res
+          .status(responseObject.code)
+          .send(responseObject.body)
+
+        logger.apiRes({ req: req, user: user, res: res, responseObject: responseObject })
+      })
     }
   },
   {
@@ -64,13 +74,22 @@ module.exports = [
           errors: [Errors.NotFoundError]
         }
       ]
-      const tunnelEndPoint = ResponseDecorator.handleErrors(TunnelController.getTunnelEndPoint, successCode, errorCodes)
-      const responseObject = await tunnelEndPoint(req)
-      res
-        .status(responseObject.code)
-        .send(responseObject.body)
 
-      logger.apiRes({ req: req, res: responseObject })
+      // Protecting for SRE and Developer roles
+      await rbacMiddleware.protect()(req, res, async () => {
+        const tunnelEndPoint = ResponseDecorator.handleErrors(
+          TunnelController.getTunnelEndPoint,
+          successCode,
+          errorCodes
+        )
+        const responseObject = await tunnelEndPoint(req)
+        const user = req.kauth.grant.access_token.content.preferred_username
+        res
+          .status(responseObject.code)
+          .send(responseObject.body)
+
+        logger.apiRes({ req: req, user: user, res: res, responseObject: responseObject })
+      })
     }
   }
 ]

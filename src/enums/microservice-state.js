@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -30,4 +30,10 @@ const microserviceState = {
   CREATING: 'CREATING'
 }
 
-module.exports = microserviceState
+const microserviceExecState = {
+  PENDING: 'PENDING',
+  ACTIVE: 'ACTIVE',
+  INACTIVE: 'INACTIVE'
+}
+
+module.exports = { microserviceState, microserviceExecState }

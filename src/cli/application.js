@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -13,12 +13,10 @@
 
 const BaseCLIHandler = require('./base-cli-handler')
 const constants = require('../helpers/constants')
-const AuthDecorator = require('../decorators/cli-decorator')
 const ApplicationService = require('../services/application-service')
 const AppHelper = require('../helpers/app-helper')
 const logger = require('../logger')
 const fs = require('fs')
-const CliDataTypes = require('./cli-data-types')
 
 const JSON_SCHEMA = AppHelper.stringifyCliJsonSchema({
   name: 'string',
@@ -71,13 +69,6 @@ class Application extends BaseCLIHandler {
         type: Boolean,
         description: 'Deactivate application',
         group: [constants.CMD_UPDATE, constants.CMD_ADD]
-      },
-      {
-        name: 'user-id',
-        alias: 'u',
-        type: CliDataTypes.Integer,
-        description: 'User\'s id',
-        group: [constants.CMD_ADD, constants.CMD_UPDATE, constants.CMD_REMOVE]
       }
     ]
     this.commands = {
@@ -99,19 +90,19 @@ class Application extends BaseCLIHandler {
 
       switch (command) {
         case constants.CMD_ADD:
-          await _executeCase(applicationCommand, constants.CMD_ADD, _createApplication, true)
+          await _executeCase(applicationCommand, constants.CMD_ADD, _createApplication)
           break
         case constants.CMD_UPDATE:
-          await _executeCase(applicationCommand, constants.CMD_UPDATE, _updateApplication, true)
+          await _executeCase(applicationCommand, constants.CMD_UPDATE, _updateApplication)
           break
         case constants.CMD_REMOVE:
-          await _executeCase(applicationCommand, constants.CMD_REMOVE, _deleteApplication, true)
+          await _executeCase(applicationCommand, constants.CMD_REMOVE, _deleteApplication)
           break
         case constants.CMD_LIST:
-          await _executeCase(applicationCommand, constants.CMD_LIST, _getAllApplications, false)
+          await _executeCase(applicationCommand, constants.CMD_LIST, _getAllApplications)
           break
         case constants.CMD_INFO:
-          await _executeCase(applicationCommand, constants.CMD_INFO, _getApplication, false)
+          await _executeCase(applicationCommand, constants.CMD_INFO, _getApplication)
           break
         case constants.CMD_HELP:
         default:
@@ -135,48 +126,42 @@ class Application extends BaseCLIHandler {
   }
 }
 
-const _executeCase = async function (applicationCommand, commandName, f, isUserRequired) {
+const _executeCase = async function (applicationCommand, commandName, f) {
   try {
     const item = applicationCommand[commandName]
-
-    if (isUserRequired) {
-      const decoratedFunction = AuthDecorator.prepareUserById(f)
-      await decoratedFunction(item)
-    } else {
-      await f(item)
-    }
+    await f(item)
   } catch (error) {
     logger.error(error.message)
   }
 }
 
-const _createApplication = async function (applicationData, user) {
+const _createApplication = async function (applicationData) {
   const application = applicationData.file
     ? JSON.parse(fs.readFileSync(applicationData.file, 'utf8'))
     : _createApplicationObject(applicationData)
   logger.cliReq('application add', { args: application })
-  const createdApplication = await ApplicationService.createApplicationEndPoint(application, user, true)
+  const createdApplication = await ApplicationService.createApplicationEndPoint(application, true)
   logger.cliRes(JSON.stringify({
     id: createdApplication.id,
     name: createdApplication.name
   }, null, 2))
 }
 
-const _updateApplication = async function (applicationData, user) {
+const _updateApplication = async function (applicationData) {
   const application = applicationData.file
     ? JSON.parse(fs.readFileSync(applicationData.file, 'utf8'))
     : _createApplicationObject(applicationData)
 
   const name = applicationData.name
   logger.cliReq('application update', { args: application })
-  await ApplicationService.patchApplicationEndPoint(application, { name }, user, true)
+  await ApplicationService.patchApplicationEndPoint(application, { name }, true)
   logger.cliRes('Application updated successfully.')
 }
 
-const _deleteApplication = async function (applicationData, user) {
+const _deleteApplication = async function (applicationData) {
   const name = applicationData.name
   logger.cliReq('application remove', { args: { name } })
-  await ApplicationService.deleteApplicationEndPoint({ name }, user, true)
+  await ApplicationService.deleteApplicationEndPoint({ name }, true)
   logger.cliRes('Application removed successfully.')
 }
 
