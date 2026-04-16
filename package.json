@@ -1,6 +1,6 @@
 {
   "name": "@eclipse-iofog/iofogcontroller",
-  "version": "3.7.2",
+  "version": "3.7.3",
   "description": "ioFog Controller project for Eclipse ioFog @ iofog.org \\nCopyright (c) 2023 Contributors to the Eclipse ioFog Project",
   "main": "./src/main.js",
   "author": "Eclipse ioFog Project",
@@ -91,7 +91,7 @@
     "@opentelemetry/instrumentation-http": "^0.200.0",
     "@opentelemetry/resources": "^1.8.0",
     "@opentelemetry/sdk-node": "^0.200.0",
-    "axios": "1.13.5",
+    "axios": "1.15.0",
     "bignumber.js": "^9.3.0",
     "body-parser": "^1.20.4",
     "command-line-args": "5.2.1",
@@ -117,7 +117,7 @@
     "mysql2": "3.10.1",
     "nconf": "0.12.1",
     "node-fetch-npm": "^2.0.4",
-    "node-forge": "^1.3.3",
+    "node-forge": "^1.4.0",
     "pg": "8.12.0",
     "pino": "9.13.1",
     "pino-std-serializers": "7.0.0",
@@ -165,16 +165,23 @@
     "sequelize": {
       "validator": "^13.15.22"
     },
+    "express": {
+      "path-to-regexp": "0.1.13"
+    },
+    "axios": {
+      "follow-redirects": "1.16.0"
+    },
     "sqlite3": {
       "prebuild-install": {
         "tar-fs": "^2.1.4"
       }
     },
     "@tootallnate/once": "^3.0.1",
+    "basic-ftp": "^5.2.2",
     "tar": "^7.5.10",
-    "lodash": "^4.17.23",
+    "lodash": "^4.18.0",
     "bn.js": "^5.2.3",
-    "minimatch": "10.2.3",
+    "minimatch": "10.2.5",
     "dottie": "^2.0.7"
   }
 }

@@ -267,7 +267,7 @@ module.exports = {
   getRoleBindingEndpoint: TransactionDecorator.generateTransaction(getRoleBindingEndpoint),
   createRoleBindingEndpoint: TransactionDecorator.generateTransaction(createRoleBindingEndpoint),
   updateRoleBindingEndpoint: TransactionDecorator.generateTransaction(updateRoleBindingEndpoint),
-  deleteRoleBindingEndpoint,
+  deleteRoleBindingEndpoint: TransactionDecorator.generateTransaction(deleteRoleBindingEndpoint),
   // ServiceAccount endpoints
   listServiceAccountsEndpoint: TransactionDecorator.generateTransaction(listServiceAccountsEndpoint),
   getServiceAccountEndpoint: TransactionDecorator.generateTransaction(getServiceAccountEndpoint),
