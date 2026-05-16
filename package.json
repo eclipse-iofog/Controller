@@ -91,7 +91,7 @@
     "@opentelemetry/instrumentation-http": "^0.200.0",
     "@opentelemetry/resources": "^1.8.0",
     "@opentelemetry/sdk-node": "^0.200.0",
-    "axios": "1.15.0",
+    "axios": "1.16.1",
     "bignumber.js": "^9.3.0",
     "body-parser": "^1.20.4",
     "command-line-args": "5.2.1",
