@@ -123,7 +123,7 @@
     "pino-std-serializers": "7.0.0",
     "portscanner": "2.2.0",
     "sqlite3": "^5.1.7",
-    "qs": "6.14.2",
+    "qs": "6.15.2",
     "rhea": "^3.0.4",
     "sequelize": "6.37.8",
     "string-format": "2.0.0",
