@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Datasance Teknoloji A.S.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -16,7 +16,6 @@ const constants = require('../helpers/constants')
 const logger = require('../logger')
 const DiagnosticService = require('../services/diagnostic-service')
 const AppHelper = require('../helpers/app-helper')
-const AuthDecorator = require('../decorators/cli-decorator')
 const CliDataTypes = require('./cli-data-types')
 
 class Diagnostics extends BaseCLIHandler {
@@ -114,19 +113,19 @@ class Diagnostics extends BaseCLIHandler {
 
       switch (command) {
         case constants.CMD_STRACE_UPDATE:
-          await _executeCase(diagnosticCommand, constants.CMD_STRACE_UPDATE, _changeMicroserviceStraceState, false)
+          await _executeCase(diagnosticCommand, constants.CMD_STRACE_UPDATE, _changeMicroserviceStraceState)
           break
         case constants.CMD_STRACE_INFO:
-          await _executeCase(diagnosticCommand, constants.CMD_STRACE_INFO, _getMicroserviceStraceData, false)
+          await _executeCase(diagnosticCommand, constants.CMD_STRACE_INFO, _getMicroserviceStraceData)
           break
         case constants.CMD_STRACE_FTP_POST:
-          await _executeCase(diagnosticCommand, constants.CMD_STRACE_FTP_POST, _postMicroserviceStraceDataToFtp, false)
+          await _executeCase(diagnosticCommand, constants.CMD_STRACE_FTP_POST, _postMicroserviceStraceDataToFtp)
           break
         case constants.CMD_IMAGE_SNAPSHOT_CREATE:
-          await _executeCase(diagnosticCommand, constants.CMD_IMAGE_SNAPSHOT_CREATE, _postMicroserviceImageSnapshotCreate, false)
+          await _executeCase(diagnosticCommand, constants.CMD_IMAGE_SNAPSHOT_CREATE, _postMicroserviceImageSnapshotCreate)
           break
         case constants.CMD_IMAGE_SNAPSHOT_GET:
-          await _executeCase(diagnosticCommand, constants.CMD_IMAGE_SNAPSHOT_GET, _getMicroserviceImageSnapshot, false)
+          await _executeCase(diagnosticCommand, constants.CMD_IMAGE_SNAPSHOT_GET, _getMicroserviceImageSnapshot)
           break
         case constants.CMD_HELP:
         default:
@@ -138,16 +137,10 @@ class Diagnostics extends BaseCLIHandler {
   }
 }
 
-const _executeCase = async function (diagnosticCommand, commandName, f, isUserRequired) {
+const _executeCase = async function (diagnosticCommand, commandName, f) {
   try {
     const item = diagnosticCommand[commandName]
-
-    if (isUserRequired) {
-      const decoratedFunction = AuthDecorator.prepareUserById(f)
-      await decoratedFunction(item)
-    } else {
-      await f(item)
-    }
+    await f(item)
   } catch (error) {
     logger.error(error.message)
   }

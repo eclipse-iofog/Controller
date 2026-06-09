@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2018 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Datasance Teknoloji A.S.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -34,11 +34,7 @@ let testsCounter = 0
 let testsFailed = 0
 
 const controllerStatusFields = ['status', 'timestamp']
-const controllerEmailActivationFields = ['isEmailActivationEnabled']
 const controllerFogTypesFields = ['fogTypes']
-
-const userCreateFields = ['id']
-const userAccessTokenFields = ['accessToken']
 
 const ioFogCreateFields = ['uuid']
 const ioFogListFields = ['fogs']
@@ -69,9 +65,9 @@ async function seedTestData () {
     fogType: 1,
     isSystem: true,
     routerMode: 'interior',
-    messagingPort: 5672,
-    edgeRouterPort: 56722,
-    interRouterPort: 56721,
+    messagingPort: 5671,
+    edgeRouterPort: 45671,
+    interRouterPort: 55671,
     host: 'localhost'
   }, { }, false)
   const defaultRouter = await RouterService.findOne({ isDefault: true })
@@ -84,22 +80,8 @@ function testControllerSection () {
   console.log('\n=============================\nStarting controller section..')
 
   responseHasFields(testCommand('controller status'), controllerStatusFields)
-  responseHasFields(testCommand('controller email-activation'), controllerEmailActivationFields)
   responseHasFields(testCommand('controller fog-types'), controllerFogTypesFields)
   hasSomeResponse(testCommand('controller version'))
-}
-
-function testUserSection () {
-  console.log('\n=============================\nStarting user section..')
-
-  responseHasFields(testCommand('user add -f John -l Doe -e user@domain.com -p \'#Bugs4Fun\''), userCreateFields)
-  responseEquals(testCommand('user update -f John2 -l Doe2 -e user@domain.com -p \'#Bugs4Fun34\''),
-    'User updated successfully.')
-  responseIsArray(testCommand('user list'))
-  responseHasFields(testCommand('user generate-token -e user@domain.com'), userAccessTokenFields)
-  responseEquals(testCommand('user suspend -e user@domain.com'), 'User suspended successfully.')
-  responseEquals(testCommand('user activate -e user@domain.com'), 'User activated successfully.')
-  responseEquals(testCommand('user remove -e user@domain.com'), 'User removed successfully.')
 }
 
 function testConfigSection () {
@@ -110,7 +92,6 @@ function testConfigSection () {
   //   " -h testHomeUrl -a testEmailAddress -w testEmailPassword -s testEmailService -d testLogDir -z 555"));
   hasSomeResponse(testCommand('config list'))
   responseEquals(testCommand('config dev-mode -o'), 'Dev mode state updated successfully.')
-  responseEquals(testCommand('config email-activation -f'), 'Email activation state updated successfully.')
 }
 
 function testTunnelSection () {
@@ -124,18 +105,14 @@ function testTunnelSection () {
 function testIoFogSection () {
   console.log('\n=============================\nStarting iofog section..')
 
-  const userCreateResponse = responseHasFields(executeCommand('user add -f John -l Doe -e fogUser@domain.com' +
-    ' -p \'#Bugs4Fun\''), userCreateFields)
-  const userId = userCreateResponse.id
-
   try {
     const ioFogCreateResponse = responseHasFields(testCommand('iofog add -n ioFog1 -l testLocation -t 55 -g 65' +
       ' -d testDescription -D testDockerUrl -M 55 -T testDiskDirectoryString -m 65 -c 24 -G 1 -Y testLogDirectory ' +
-      ' -s 25 -F 27 -Q 26 -B -W -A -y 1 -u ' + userId), ioFogCreateFields)
+      ' -s 25 -F 27 -Q 26 -B -W -A -y 1 -u '), ioFogCreateFields)
     const ioFogUuid = ioFogCreateResponse.uuid
     responseEquals(testCommand('iofog update -i ' + ioFogUuid + ' -n ioFog1 -l testLocation -t 55 -g 65 ' +
       '-d testDescription -D testDockerUrl -M 55 -T testDiskDirectoryString -m 65 -c 24 -G 1 -Y testLogDirectory ' +
-      ' -s 25 -F 27 -Q 26 -B -W -A -y 1 -L INFO -p 65 -k 95 -u ' + userId), 'ioFog node has been updated successfully.')
+      ' -s 25 -F 27 -Q 26 -B -W -A -y 1 -L INFO -p 65 -k 95 -u '), 'ioFog node has been updated successfully.')
     responseHasFields(testCommand('iofog list'), ioFogListFields)
     responseHasFields(testCommand('iofog info -i ' + ioFogUuid), ioFogCreateFields)
     responseHasFields(testCommand('iofog provisioning-key -i ' + ioFogUuid), ioFogProvisioningFields)
@@ -145,7 +122,7 @@ function testIoFogSection () {
       'ioFog version command has been set successfully')
     hasSomeResponse(testCommand('iofog hal-hw -i ' + ioFogUuid))
     hasSomeResponse(testCommand('iofog hal-usb -i ' + ioFogUuid))
-    responseEquals(testCommand('iofog remove -i ' + ioFogUuid + ' -u ' + userId), 'ioFog node has been removed successfully')
+    responseEquals(testCommand('iofog remove -i ' + ioFogUuid + ' -u '), 'ioFog node has been removed successfully')
     executeCommand('user remove -e fogUser@domain.com')
   } catch (exception) {
     executeCommand('user remove -e fogUser@domain.com')
@@ -155,18 +132,15 @@ function testIoFogSection () {
 function testCatalogSection () {
   console.log('\n=============================\nStarting catalog section..')
 
-  const userCreateResponse = responseHasFields(executeCommand('user add -f John -l Doe -e catalogUser@domain.com' +
-    ' -p \'#Bugs4Fun\''), userCreateFields)
-  const userId = userCreateResponse.id
   const registryCreateResponse = responseHasFields(executeCommand('registry add -U testRegistryUri -b -l testUserName' +
-    ' -p testPassword -e testEmail@gmail.com -u ' + userId), registryCreateFields)
+    ' -p testPassword -e testEmail@gmail.com -u '), registryCreateFields)
   const registryId = registryCreateResponse.id
 
   try {
     const catalogCreateResponse = responseHasFields(testCommand('catalog add -n testCatalogItem1 -d testDescription' +
       ' -c testCategory -x testIntelImage -a testArmImage -p testPublisher -s 15 -r 15 -t testPicture -g ' +
       registryId + ' -I testInputType -F testInputFormat -O testOutputType -T testOutputFormat ' +
-      '-X \'{}\' -u ' + userId), catalogCreateFields)
+      '-X \'{}\' -u '), catalogCreateFields)
     const catalogId = catalogCreateResponse.id
     responseEquals(testCommand('catalog update -i ' + catalogId + ' -n testCatalogItem2 -d testDescription' +
       ' -c testCategory -x testIntelImage -a testArmImage -p testPublisher -s 15 -r 15 -t testPicture -g ' +
@@ -186,19 +160,15 @@ function testCatalogSection () {
 function testApplicationSection () {
   console.log('\n=============================\nStarting application section..')
 
-  const userCreateResponse = responseHasFields(executeCommand('user add -f John -l Doe -e applicationUser@domain.com' +
-    ' -p \'#Bugs4Fun\''), userCreateFields)
-  const userId = userCreateResponse.id
-
   try {
     const applicationCreateResponse = responseHasFields(testCommand('application add -n test-application-1 -d testDescription' +
-      ' -a -u ' + userId), applicationCreateFields)
+      ' -a -u '), applicationCreateFields)
     const name = applicationCreateResponse.name
-    responseEquals(testCommand('application update -n ' + name + ' -d testDescription -a' + ' -u ' + userId),
+    responseEquals(testCommand('application update -n ' + name + ' -d testDescription -a' + ' -u '),
       'Application updated successfully.')
     responseHasFields(testCommand('application list'), applicationListFields)
     responseHasFields(testCommand('application info -n ' + name), applicationCreateFields)
-    responseEquals(testCommand('application remove -n ' + name + ' -u ' + userId), 'Application removed successfully.')
+    responseEquals(testCommand('application remove -n ' + name + ' -u '), 'Application removed successfully.')
     executeCommand('user remove -e applicationUser@domain.com')
   } catch (exception) {
     executeCommand('user remove -e applicationUser@domain.com')
@@ -208,33 +178,29 @@ function testApplicationSection () {
 function testMicroserviceSection () {
   console.log('\n=============================\nStarting microservice section..')
 
-  const userCreateResponse = responseHasFields(executeCommand('user add -f John -l Doe -e microserviceUser@domain.com' +
-    ' -p \'#Bugs4Fun\''), userCreateFields)
-  const userId = userCreateResponse.id
-
   const registryCreateResponse = responseHasFields(executeCommand('registry add -U testRegistryUri -b -l testUserName' +
-    ' -p testPassword -e testEmail@gmail.com -u ' + userId), registryCreateFields)
+    ' -p testPassword -e testEmail@gmail.com -u '), registryCreateFields)
   const registryId = registryCreateResponse.id
 
   const catalogCreateResponse = responseHasFields(executeCommand('catalog add -n testCatalogItem1 -d testDescription' +
     ' -c testCategory -x testIntelImage -a testArmImage -p testPublisher -s 15 -r 15 -t testPicture -g ' +
     registryId + ' -I testInputType -F testInputFormat -O testOutputType -T testOutputFormat ' +
-    '-X \'{}\' -u ' + userId), catalogCreateFields)
+    '-X \'{}\' -u '), catalogCreateFields)
   const catalogId = catalogCreateResponse.id
 
   const applicationCreateResponse = responseHasFields(executeCommand('application add -n test-application1 -d testDescription' +
-    ' -a -u ' + userId), applicationCreateFields)
+    ' -a -u '), applicationCreateFields)
   const applicationId = applicationCreateResponse.name
 
   const ioFogCreateResponse = responseHasFields(executeCommand('iofog add -n ioFog2 -l testLocation -t 55 -g 65 ' +
     '-d testDescription -D testDockerUrl -M 55 -T testDiskDirectoryString -m 65 -c 24 -G 1 -Y testLogDirectory ' +
-    ' -s 25 -F 27 -Q 26 -B -W -A -y 1 -u ' + userId), ioFogCreateFields)
+    ' -s 25 -F 27 -Q 26 -B -W -A -y 1 -u '), ioFogCreateFields)
   const ioFogUuid = ioFogCreateResponse.uuid
 
   try {
     const microserviceCreateResponse = responseHasFields(testCommand('microservice add -n microservice-name-1' +
       ' -c ' + catalogId + ' -F ' + applicationId + ' -I ' + ioFogUuid + ' -g \'{}\' -v /host_src:/container_src:rw -l 15 -R' +
-      ' -p 80:8080:false -u ' + userId), microserviceCreateFields)
+      ' -p 80:8080:false -u '), microserviceCreateFields)
     const microserviceUuid = microserviceCreateResponse.uuid
     responseEquals(testCommand('microservice update -i ' + microserviceUuid + ' -n microservice-name-2' +
       ' -I ' + ioFogUuid + ' -g \'{}\' -v /host_src:/container_src:rw -l 15 -R -w'),
@@ -274,13 +240,9 @@ function testMicroserviceSection () {
 function testRegistrySection () {
   console.log('\n=============================\nStarting registry section..')
 
-  const userCreateResponse = responseHasFields(executeCommand('user add -f John -l Doe -e registryUser@domain.com' +
-    ' -p \'#Bugs4Fun\''), userCreateFields)
-
   try {
-    const userId = userCreateResponse.id
     const registryCreateResponse = responseHasFields(testCommand('registry add -U testRegistryUri -b -l testUserName' +
-      ' -p testPassword -e testEmail@gmail.com -u ' + userId), registryCreateFields)
+      ' -p testPassword -e testEmail@gmail.com -u '), registryCreateFields)
     const registryId = registryCreateResponse.id
     responseEquals(testCommand('registry update -i ' + registryId + ' -U testRegistryUri -b -l testUserName' +
       '    -p testPassword -e testEmail@gmail.com'), 'Registry has been updated successfully.')
@@ -295,32 +257,28 @@ function testRegistrySection () {
 function testDiagnosticsSection () {
   console.log('\n=============================\nStarting diagnostics section..')
 
-  const userCreateResponse = responseHasFields(executeCommand('user add -f John -l Doe -e diagnosticsUser@domain.com' +
-    ' -p \'#Bugs4Fun\''), userCreateFields)
-  const userId = userCreateResponse.id
-
   const registryCreateResponse = responseHasFields(executeCommand('registry add -U testRegistryUri -b -l testUserName' +
-    ' -p testPassword -e testEmail@gmail.com -u ' + userId), registryCreateFields)
+    ' -p testPassword -e testEmail@gmail.com -u '), registryCreateFields)
   const registryId = registryCreateResponse.id
 
   const catalogCreateResponse = responseHasFields(executeCommand('catalog add -n testCatalogItem1 -d testDescription' +
     ' -c testCategory -x testIntelImage -a testArmImage -p testPublisher -s 15 -r 15 -t testPicture -g ' +
     registryId + ' -I testInputType -F testInputFormat -O testOutputType -T testOutputFormat ' +
-    '-X \'{}\' -u ' + userId), catalogCreateFields)
+    '-X \'{}\' -u '), catalogCreateFields)
   const catalogId = catalogCreateResponse.id
 
   const applicationCreateResponse = responseHasFields(executeCommand('application add -n test-application1 -d testDescription' +
-    ' -a -u ' + userId), applicationCreateFields)
+    ' -a -u '), applicationCreateFields)
   const applicationId = applicationCreateResponse.name
 
   const ioFogCreateResponse = responseHasFields(executeCommand('iofog add -n ioFog3 -l testLocation -t 55 -g 65' +
     ' -d testDescription -D testDockerUrl -M 55 -T testDiskDirectoryString -m 65 -c 24 -G 1 -Y testLogDirectory ' +
-    ' -s 25 -F 27 -Q 26 -B -W -A -y 1 -u ' + userId), ioFogCreateFields)
+    ' -s 25 -F 27 -Q 26 -B -W -A -y 1 -u '), ioFogCreateFields)
   const ioFogUuid = ioFogCreateResponse.uuid
 
   const microserviceCreateResponse = responseHasFields(executeCommand('microservice add -n microservice-name-1' +
     ' -c ' + catalogId + ' -F ' + applicationId + ' -I ' + ioFogUuid + ' -g \'{}\' -v /host_src:/container_src:rw -l 15 -R' +
-    ' -p 80:8080:false -u ' + userId), microserviceCreateFields)
+    ' -p 80:8080:false -u '), microserviceCreateFields)
   const microserviceUuid = microserviceCreateResponse.uuid
 
   try {
@@ -421,7 +379,6 @@ async function cliTest () {
     await seedTestData()
 
     testControllerSection()
-    testUserSection()
     testConfigSection()
     testTunnelSection()
     testIoFogSection()

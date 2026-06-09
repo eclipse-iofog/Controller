@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Datasance Teknoloji A.S.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -78,15 +78,6 @@ class FtpError extends Error {
   }
 }
 
-class EmailActivationSetupError extends Error {
-  constructor () {
-    const message = 'Email activation is not configured on Controller'
-    super(message)
-    this.message = message
-    this.name = 'EmailActivationSetupError'
-  }
-}
-
 class InvalidArgumentError extends Error {
   constructor (message) {
     super(message)
@@ -111,6 +102,22 @@ class CLIArgsNotProvidedError extends Error {
   }
 }
 
+class ConflictError extends Error {
+  constructor (message) {
+    super(message)
+    this.name = 'ConflictError'
+    this.status = 409
+  }
+}
+
+class ForbiddenError extends Error {
+  constructor (message) {
+    super(message)
+    this.message = message
+    this.name = 'ForbiddenError'
+  }
+}
+
 module.exports = {
   AuthenticationError: AuthenticationError,
   TransactionError: TransactionError,
@@ -120,8 +127,9 @@ module.exports = {
   ModelNotFoundError: ModelNotFoundError,
   DuplicatePropertyError: DuplicatePropertyError,
   FtpError: FtpError,
-  EmailActivationSetupError: EmailActivationSetupError,
   InvalidArgumentError: InvalidArgumentError,
   InvalidArgumentTypeError: InvalidArgumentTypeError,
-  CLIArgsNotProvidedError: CLIArgsNotProvidedError
+  CLIArgsNotProvidedError: CLIArgsNotProvidedError,
+  ConflictError: ConflictError,
+  ForbiddenError: ForbiddenError
 }

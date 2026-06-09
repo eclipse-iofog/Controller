@@ -5,7 +5,7 @@ const { convertToInt } = require('../../helpers/app-helper')
 module.exports = (sequelize, DataTypes) => {
   const Microservice = sequelize.define('Microservice', {
     uuid: {
-      type: DataTypes.STRING(32),
+      type: DataTypes.STRING(36),
       primaryKey: true,
       allowNull: false,
       field: 'uuid'
@@ -13,6 +13,11 @@ module.exports = (sequelize, DataTypes) => {
     config: {
       type: DataTypes.TEXT,
       field: 'config',
+      defaultValue: '{}'
+    },
+    annotations: {
+      type: DataTypes.TEXT,
+      field: 'annotations',
       defaultValue: '{}'
     },
     name: {
@@ -27,20 +32,35 @@ module.exports = (sequelize, DataTypes) => {
       },
       field: 'config_last_updated'
     },
-    isNetwork: {
-      type: DataTypes.BOOLEAN,
-      field: 'is_network',
-      defaultValue: false
-    },
     rebuild: {
       type: DataTypes.BOOLEAN,
       field: 'rebuild',
       defaultValue: false
     },
-    rootHostAccess: {
+    hostNetworkMode: {
       type: DataTypes.BOOLEAN,
-      field: 'root_host_access',
+      field: 'host_network_mode',
       defaultValue: false
+    },
+    isPrivileged: {
+      type: DataTypes.BOOLEAN,
+      field: 'is_privileged',
+      defaultValue: false
+    },
+    runAsUser: {
+      type: DataTypes.TEXT,
+      field: 'run_as_user',
+      defaultValue: ''
+    },
+    platform: {
+      type: DataTypes.TEXT,
+      field: 'platform',
+      defaultValue: ''
+    },
+    runtime: {
+      type: DataTypes.TEXT,
+      field: 'runtime',
+      defaultValue: ''
     },
     logSize: {
       type: DataTypes.BIGINT,
@@ -50,10 +70,39 @@ module.exports = (sequelize, DataTypes) => {
       field: 'log_size',
       defaultValue: 0
     },
+    pidMode: {
+      type: DataTypes.TEXT,
+      field: 'pid_mode',
+      defaultValue: ''
+    },
+    ipcMode: {
+      type: DataTypes.TEXT,
+      field: 'ipc_mode',
+      defaultValue: ''
+    },
+    schedule: {
+      type: DataTypes.INTEGER,
+      field: 'schedule',
+      defaultValue: 50
+    },
+    cpuSetCpus: {
+      type: DataTypes.TEXT,
+      field: 'cpu_set_cpus',
+      defaultValue: ''
+    },
+    memoryLimit: {
+      type: DataTypes.FLOAT,
+      field: 'memory_limit'
+    },
     imageSnapshot: {
       type: DataTypes.TEXT,
       field: 'image_snapshot',
       defaultValue: ''
+    },
+    execEnabled: {
+      type: DataTypes.BOOLEAN,
+      field: 'exec_enabled',
+      defaultValue: false
     },
     delete: {
       type: DataTypes.BOOLEAN,
@@ -64,6 +113,36 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.BOOLEAN,
       field: 'delete_with_cleanup',
       defaultValue: false
+    },
+    isActivated: {
+      type: DataTypes.BOOLEAN,
+      field: 'is_activated',
+      defaultValue: true
+    },
+    natsAccess: {
+      type: DataTypes.BOOLEAN,
+      field: 'nats_access',
+      defaultValue: false
+    },
+    natsAccountId: {
+      type: DataTypes.INTEGER,
+      field: 'nats_account_id',
+      allowNull: true
+    },
+    natsUserId: {
+      type: DataTypes.INTEGER,
+      field: 'nats_user_id',
+      allowNull: true
+    },
+    natsCredsSecretName: {
+      type: DataTypes.TEXT,
+      field: 'nats_creds_secret_name',
+      allowNull: true
+    },
+    natsRuleId: {
+      type: DataTypes.INTEGER,
+      field: 'nats_rule_id',
+      allowNull: true
     }
   }, {
     tableName: 'Microservices',
@@ -108,15 +187,6 @@ module.exports = (sequelize, DataTypes) => {
       onDelete: 'cascade'
     })
 
-    Microservice.belongsTo(models.User, {
-      foreignKey: {
-        name: 'userId',
-        field: 'user_id'
-      },
-      as: 'user',
-      onDelete: 'cascade'
-    })
-
     Microservice.hasMany(models.CatalogItemImage, {
       foreignKey: 'microservice_uuid',
       as: 'images'
@@ -137,14 +207,19 @@ module.exports = (sequelize, DataTypes) => {
       as: 'strace'
     })
 
-    Microservice.hasMany(models.Routing, {
-      foreignKey: 'source_microservice_uuid',
-      as: 'routes'
-    })
-
     Microservice.hasOne(models.MicroserviceStatus, {
       foreignKey: 'microservice_uuid',
       as: 'microserviceStatus'
+    })
+
+    Microservice.hasOne(models.MicroserviceExecStatus, {
+      foreignKey: 'microservice_uuid',
+      as: 'microserviceExecStatus'
+    })
+
+    Microservice.hasOne(models.MicroserviceHealthCheck, {
+      foreignKey: 'microservice_uuid',
+      as: 'healthCheck'
     })
 
     Microservice.hasMany(models.MicroserviceEnv, {
@@ -157,9 +232,55 @@ module.exports = (sequelize, DataTypes) => {
       as: 'cmd'
     })
 
+    Microservice.hasMany(models.MicroserviceCdiDev, {
+      foreignKey: 'microservice_uuid',
+      as: 'cdiDevices'
+    })
+
+    Microservice.hasMany(models.MicroserviceCapAdd, {
+      foreignKey: 'microservice_uuid',
+      as: 'capAdd'
+    })
+
+    Microservice.hasMany(models.MicroserviceCapDrop, {
+      foreignKey: 'microservice_uuid',
+      as: 'capDrop'
+    })
+
     Microservice.hasMany(models.MicroserviceExtraHost, {
       foreignKey: 'microservice_uuid',
       as: 'extraHosts'
+    })
+
+    Microservice.hasOne(models.RbacServiceAccount, {
+      foreignKey: 'microservice_uuid',
+      as: 'serviceAccount',
+      onDelete: 'cascade'
+    })
+
+    Microservice.belongsTo(models.NatsAccount, {
+      foreignKey: {
+        name: 'natsAccountId',
+        field: 'nats_account_id'
+      },
+      as: 'natsAccount'
+    })
+
+    Microservice.belongsTo(models.NatsUser, {
+      foreignKey: {
+        name: 'natsUserId',
+        field: 'nats_user_id'
+      },
+      as: 'natsUser'
+    })
+
+    Microservice.belongsTo(models.NatsUserRule, {
+      foreignKey: {
+        name: 'natsRuleId',
+        field: 'nats_rule_id'
+      },
+      as: 'natsRule',
+      onDelete: 'set null'
     })
   }
 

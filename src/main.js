@@ -2,7 +2,7 @@
 
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Datasance Teknoloji A.S.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -17,23 +17,25 @@ const Cli = require('./cli')
 const daemon = require('./daemon')
 const config = require('./config')
 const isElevated = require('is-elevated')
-const request = require('request-promise')
+const fetch = require('node-fetch-npm')
 
 const isHTTPS = () => {
-  const sslKey = config.get('Server:SslKey', '')
-  const devMode = config.get('Server:DevMode', false)
-  const sslCert = config.get('Server:SslCert', '')
-  const intermedKey = config.get('Server:IntermediateCert', '')
-  return !devMode && sslKey && sslCert && intermedKey
+  const sslKey = config.get('server.ssl.path.key', '')
+  const devMode = config.get('server.devMode', false)
+  const sslCert = config.get('server.ssl.path.cert', '')
+  return !devMode && sslKey && sslCert
 }
 
-const getJSONFromURL = async (uri) => request({
-  uri,
-  json: true
-})
+const getJSONFromURL = async (uri) => {
+  const response = await fetch(uri)
+  if (!response.ok) {
+    throw new Error(`HTTP error! Status: ${response.status}`)
+  }
+  return response.json()
+}
 
-const apiPort = +(config.get('Server:Port', 51121))
-const viewerPort = +(process.env.VIEWER_PORT || config.get('Viewer:Port', 80))
+const apiPort = +(config.get('server.port', 51121))
+const viewerPort = +(process.env.VIEWER_PORT || config.get('viewer.port', 8008))
 
 const isDaemonElevated = async () => {
   // If it is running and you can see it, you have enough permission to move forward

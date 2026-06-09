@@ -10,7 +10,7 @@
  *
  * Author: Franck Roudet
  */
-const UserManager = require('../data/managers/user-manager')
+
 const ApplicationManager = require('../data/managers/application-manager.js') // Using manager instead of service to avoid dependency loop
 const FogService = require('../services/iofog-service')
 const MicroservicesService = require('../services/microservices-service')
@@ -26,24 +26,24 @@ const templateEngine = new Liquid()
  */
 
 function findMicroserviceAgentHandler (microservice) {
-  const user = this.context.environments._user
-  if (!user) {
-    return undefined
-  }
-  const result = FogService.getFogEndPoint({ uuid: microservice.iofogUuid }, user, false)
+  // const user = this.context.environments._user
+  // if (!user) {
+  //   return undefined
+  // }
+  const result = FogService.getFogEndPoint({ uuid: microservice.iofogUuid }, false)
   return result
 }
 
 async function findEdgeResourcehandler (name, version) {
   const key = `${name}/${version}`
-  const user = this.context.environments._user
-  if (!user) {
-    return undefined
-  }
+  // const user = this.context.environments._user
+  // if (!user) {
+  //   return undefined
+  // }
   if (this.context.environments._edgeResourcesByName && this.context.environments._edgeResourcesByName[key]) {
     return this.context.environments._edgeResourcesByName[key]
   }
-  const result = await EdgeResourceService.getEdgeResource({ name, version }, user)
+  const result = await EdgeResourceService.getEdgeResource({ name, version })
 
   if (result && this.context.environments._edgeResourcesByName) {
     this.context.environments._edgeResourcesByName[key] = result
@@ -52,17 +52,17 @@ async function findEdgeResourcehandler (name, version) {
 }
 
 async function findApplicationHandler (name) {
-  const user = this.context.environments._user
-  if (!user) {
-    return undefined
-  }
+  // const user = this.context.environments._user
+  // if (!user) {
+  //   return undefined
+  // }
   if (this.context.environments._applicationsByName && this.context.environments._applicationsByName[name]) {
     return this.context.environments._applicationsByName[name]
   }
 
-  const result = await ApplicationManager.findOnePopulated({ name, userId: user.id }, { exclude: ['created_at', 'updated_at'] }, { fakeTransaction: true }) // TODO: Get a proper DB transaction
+  const result = await ApplicationManager.findOnePopulated({ exclude: ['created_at', 'updated_at'] }, { fakeTransaction: true }) // TODO: Get a proper DB transaction
   if (result) {
-    result.microservices = (await MicroservicesService.listMicroservicesEndPoint({ applicationName: name }, user, false)).microservices
+    result.microservices = (await MicroservicesService.listMicroservicesEndPoint({ applicationName: name }, false)).microservices
     if (this.context.environments._applicationsByName) {
       this.context.environments._applicationsByName[name] = result
     }
@@ -71,12 +71,12 @@ async function findApplicationHandler (name) {
 }
 
 async function findAgentHandler (name) {
-  const user = this.context.environments._user
-  if (!user) {
-    return undefined
-  }
+  // const user = this.context.environments._user
+  // if (!user) {
+  //   return undefined
+  // }
   if (name === '') {
-    const { fogs: result } = await FogService.getFogListEndPoint([], user, false, false)
+    const { fogs: result } = await FogService.getFogListEndPoint([], false, false)
     if (result && this.context.environments._agentsByName) {
       result.forEach(agent => {
         this.context.environments._agentsByName[agent.name] = agent
@@ -87,7 +87,7 @@ async function findAgentHandler (name) {
   if (this.context.environments._agentsByName && this.context.environments._agentsByName[name]) {
     return this.context.environments._agentsByName[name]
   }
-  const result = await FogService.getFogEndPoint({ name }, user, false)
+  const result = await FogService.getFogEndPoint({ name }, false)
   if (result && this.context.environments._agentsByName) {
     this.context.environments._agentsByName[result.name] = result
   }
@@ -134,15 +134,13 @@ templateEngine.registerFilter('toString', toStringParser)
   * @param {*} subjects
   * @param {*} templateContext
   */
-const rvaluesVarSubstition = async (subjects, templateContext, user) => {
+const rvaluesVarSubstition = async (subjects, templateContext) => {
   let context = templateContext
   // Due to the recursive nature of this function, user will only be defined on the first iteration
-  if (user) {
-    context = {
-      ...templateContext,
-      // Private context
-      _user: user // need by edge resource and every on demand request
-    }
+  context = {
+    ...templateContext
+    // Private context
+    // _user: user // need by edge resource and every on demand request
   }
 
   // Create local cache for filters if they do not exists
@@ -169,22 +167,14 @@ const rvaluesVarSubstition = async (subjects, templateContext, user) => {
 
 const substitutionMiddleware = async (req, res, next) => {
   if (['POST', 'PUT', 'PATCH'].indexOf(req.method) > -1) {
-    const token = req.headers.authorization
-    let user
-    if (token) {
-      try {
-        user = await UserManager.checkAuthentication(token)
-      } catch (e) {
-        // Nothing to do, suppose the token has no permission to access. The is the case of agent
-      }
-    }
+    // let user
     let tmplContext = {
-      self: req.body,
+      self: req.body
       // Private context
-      _user: user // need by edge resource and every on demand request
+      // _user: user // need by edge resource and every on demand request
     }
     try {
-      await rvaluesVarSubstition(req.body, tmplContext, user)
+      await rvaluesVarSubstition(req.body, tmplContext)
     } catch (e) {
       next(e)
     }

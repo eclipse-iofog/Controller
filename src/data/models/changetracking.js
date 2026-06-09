@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Datasance Teknoloji A.S.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -51,11 +51,6 @@ module.exports = (sequelize, DataTypes) => {
       field: 'config',
       defaultValue: false
     },
-    routing: {
-      type: DataTypes.BOOLEAN,
-      field: 'routing',
-      defaultValue: false
-    },
     registries: {
       type: DataTypes.BOOLEAN,
       field: 'registries',
@@ -89,6 +84,26 @@ module.exports = (sequelize, DataTypes) => {
     linkedEdgeResources: {
       type: DataTypes.BOOLEAN,
       field: 'linked_edge_resources',
+      defaultValue: false
+    },
+    volumeMounts: {
+      type: DataTypes.BOOLEAN,
+      field: 'volume_mounts',
+      defaultValue: false
+    },
+    execSessions: {
+      type: DataTypes.BOOLEAN,
+      field: 'exec_sessions',
+      defaultValue: false
+    },
+    microserviceLogs: {
+      type: DataTypes.BOOLEAN,
+      field: 'microservice_logs',
+      defaultValue: false
+    },
+    fogLogs: {
+      type: DataTypes.BOOLEAN,
+      field: 'fog_logs',
       defaultValue: false
     },
     lastUpdated: {

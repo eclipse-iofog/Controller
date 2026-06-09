@@ -1,0 +1,179 @@
+# Application Configuration
+app:
+  name: pot  # Application name
+  uuid: ""
+  controlPlane: Remote        # Control plane type: Remote or Kubernetes or Local
+  namespace: datasance  # Namespace for the application
+
+# Server Configuration
+server:
+  port: 51121             # Server port number
+  devMode: true   
+  webSocket:
+    perMessageDeflate: false
+    allowExtensions: false        # Disable all extensions
+    pingInterval: 30000             # Ping interval in milliseconds (30 seconds)
+    pongTimeout: 10000             # Pong timeout in milliseconds (10 seconds)
+    handshakeTimeout: 10000      # 10 seconds
+    maxPayload: 1048576          # 1MB
+    maxFrameSize: 65536          # 64KB
+    session:
+      timeout: 3600000             # Session timeout in milliseconds (1 hour)
+      maxConnections: 100          # Maximum connections per session
+      cleanupInterval: 30000       # Session cleanup interval (30 seconds)
+    security:
+      maxConnectionsPerIp: 10
+      maxRequestsPerMinute: 60
+      maxPayload: 1048576  # 1MB
+  # ssl:
+  #   path:
+  #     key: ""              # SSL key file path
+  #     cert: ""             # SSL certificate file path
+  #     intermediateCert: "" # Intermediate certificate file path
+  #   base64:
+  #     key:  # SSL key in base64 format
+  #     cert:  # SSL certificate in base64 format
+  #     intermediateCert: # Intermediate certificate in base64 format
+
+# Viewer Configuration
+viewer:
+  port: 8008             # Viewer port number
+  url: ""                # Viewer URL
+
+# Logging Configuration
+log:
+  level: info
+  directory: /var/log/iofog-controller  # Log directory
+  fileSize: 1073741824                   # Maximum log file size in bytes (1GB)
+  fileCount: 10                          # Maximum number of log files
+
+# Settings Configuration
+settings:
+  # defaultJobInterval: 120                 # Default job interval in seconds
+  fogStatusUpdateInterval: 30             # Fog status update interval in seconds
+  fogStatusUpdateTolerance: 3             # Fog status update tolerance
+  fogExpiredTokenCleanupInterval: 300     # Fog expired token cleanup interval in seconds
+  eventRetentionDays: 7                 # Days to retain events (default: 7)
+  eventCleanupInterval: 86400            # Cleanup job interval in seconds (default: 24 hours)
+  eventAuditEnabled: true                # Enable/disable event auditing
+  eventCaptureIpAddress: true             # Capture IP address (default: true, set false for privacy compliance)
+  controllerHeartbeatInterval: 30        # Controller heartbeat interval in seconds (default: 30)
+  controllerInactiveThreshold: 300       # Mark controller inactive after N seconds without heartbeat (default: 300 = 5 minutes)
+  controllerCleanupInterval: 600         # Controller cleanup job interval in seconds (default: 600 = 10 minutes)
+  natsReconcileChunkSize: 1              # NATS reconcile task chunk size in fogs per task (default: 1)
+  natsReconcileTaskStalenessSeconds: 900 # NATS reconcile task staleness for reclaim (default: 900 = 15 minutes)
+  natsReconcileWorkerIntervalSeconds: 3 # NATS reconcile worker poll interval in seconds (default: 3)
+
+# Database Configuration
+database:
+  provider: sqlite     # Database provider (sqlite/mysql/postgres)
+  # mysql:
+  #   host: ""    # MySQL host
+  #   port: 3306          # MySQL port
+  #   username: ""        # MySQL username
+  #   password: ""        # MySQL password
+  #   databaseName: ""   # MySQL database name
+  #   useSSL: false       # Use SSL for MySQL connection
+  #   sslCA: ""           # MySQL SSL CA in base64 encoded string
+  # postgres:
+  #   host: ""   # PostgreSQL host
+  #   port: 5432         # PostgreSQL port
+  #   username: ""       # PostgreSQL username
+  #   password: ""       # PostgreSQL password
+  #   databaseName: ""  # PostgreSQL database name
+  #   useSSL: false       # Use SSL for PostgreSQL connection
+  #   sslCA: ""           # PostgreSQL SSL CA in base64 encoded string
+  sqlite:
+    databaseName: controller_db.sqlite  # SQLite database file name
+    logging: false     # Enable SQLite query logging
+    transactionType: IMMEDIATE      # SQLite transaction type
+    pool:
+      maxActive: 1     # Maximum active connections
+      max: 1          # Maximum total connections
+      min: 0          # Minimum connections
+      idle: 20000     # Idle timeout in milliseconds
+
+# Auth Configuration
+# auth:
+#   realm:           # Keycloak realm
+#   realmKey:        # Realm public key
+#   url:       # Keycloak authentication server URL
+#   sslRequired:   # SSL requirement level
+#   client:
+#     id:           # ControllerClient ID
+#     secret:        # ControllerClient Client secret
+#   viewerClient:   # Viewer client ID
+
+# Bridge Ports Configuration for Services
+bridgePorts:
+  range: "10024-65535"  # Bridge ports range
+
+# System Images Configuration
+systemImages:
+  router:
+    "1": "ghcr.io/datasance/router:latest"
+    "2": "ghcr.io/datasance/router:latest"
+  debug:
+    "1": "ghcr.io/datasance/node-debugger:latest"
+    "2": "ghcr.io/datasance/node-debugger:latest"
+  nats:
+    "1": "ghcr.io/datasance/nats:latest"
+    "2": "ghcr.io/datasance/nats:latest"
+
+# NATS Configuration
+nats:
+  enabled: true
+
+# Diagnostics Configuration
+diagnostics:
+  directory: "diagnostic"  # Diagnostics directory
+
+
+# Vault Configuration (for compliance with NIST, ISO 27001, NATO, IEC 62443)
+# When enabled, sensitive data (secrets, certificates, private keys) will be stored
+# in the configured vault provider instead of encrypted in the database
+# vault:
+#   enabled: false         # Enable/disable vault integration
+#   provider: hashicorp  # Provider: hashicorp, openbao, vault, aws, aws-secrets-manager, azure, azure-key-vault, google, google-secret-manager
+#   basePath: "pot/$namespace/secrets"  # Base path for secrets in vault ($namespace will be replaced with app.namespace)
+#   # HashiCorp Vault configuration
+#   hashicorp:
+#     address: "http://localhost:8200"  # Vault server address (can also be set via VAULT_HASHICORP_ADDRESS env var)
+#     token: ""  # Vault token (can also be set via VAULT_HASHICORP_TOKEN env var)
+#     mount: "kv"  # Vault mount point (can also be set via VAULT_HASHICORP_MOUNT env var)
+#   # AWS Secrets Manager configuration
+#   aws:
+#     region: "us-east-1"  # AWS region (can also be set via VAULT_AWS_REGION or AWS_REGION env var)
+#     accessKeyId: ""  # AWS access key ID (can also be set via VAULT_AWS_ACCESS_KEY_ID or AWS_ACCESS_KEY_ID env var)
+#     accessKey: ""  # AWS secret access key (can also be set via VAULT_AWS_ACCESS_KEY or AWS_SECRET_ACCESS_KEY env var)
+#   # Azure Key Vault configuration
+#   azure:
+#     url: "https://your-vault.vault.azure.net"  # Azure Key Vault URL (can also be set via VAULT_AZURE_URL env var)
+#     tenantId: ""  # Azure tenant ID (can also be set via VAULT_AZURE_TENANT_ID or AZURE_TENANT_ID env var)
+#     clientId: ""  # Azure client ID (can also be set via VAULT_AZURE_CLIENT_ID or AZURE_CLIENT_ID env var)
+#     clientSecret: ""  # Azure client secret (can also be set via VAULT_AZURE_CLIENT_SECRET or AZURE_CLIENT_SECRET env var)
+#   # Google Secret Manager configuration
+#   google:
+#     projectId: ""  # Google Cloud project ID (required, can also be set via VAULT_GOOGLE_PROJECT_ID env var)
+#     credentials: ""  # Path to service account key file (can also be set via VAULT_GOOGLE_CREDENTIALS or GOOGLE_APPLICATION_CREDENTIALS env var)
+
+# OpenTelemetry Configuration
+# otel:
+#   enabled: false         # true/disable OpenTelemetry
+#   serviceName: "pot-controller"  # Service name for traces
+#   endpoint: "http://localhost:4318/v1/traces"  # OTel endpoint
+#   protocol: http/protobuf       # Exporter OTLP Protocol (grpc or http/protobuf)
+#   headers: ""  # A list of headers to apply to all outgoing data (traces, metrics, and logs).
+#   resourceAttributes: "service.version=3.5.0,deployment.environment=production,team=devops"  # Resource attributes
+#   metrics:
+#     exporter: otlp      # Otel metrics exporter
+#     interval: 1000      # Metrics collection interval in ms
+#   logs:
+#     level: info       # Log level
+#   propagators: "tracecontext,baggage"  # Context propagation
+#   traces:
+#     sampler: "parentbased_traceidratio"       # Sampler to be used for traces
+#     samplerArg: 0.1
+#   batch: # Batch size and timeout for telemetry data
+#     size: 512      # Maximum batch size
+#     delay: 1000    # Delay interval (in milliseconds) between two consecutive exports

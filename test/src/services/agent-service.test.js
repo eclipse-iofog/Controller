@@ -967,10 +967,6 @@ describe('Agent Service', () => {
     const transaction = {}
     const error = 'Error!'
 
-    const routes = []
-
-    const isConsumer = false
-
     const extraHost = {
       name: 'testExtraHost',
       value: '1.2.3.4'
@@ -998,7 +994,6 @@ describe('Agent Service', () => {
           id: 10,
         },
       },
-      routes: routes,
       env: [
         {
           key: 'ENV_VAR1',
@@ -1040,7 +1035,6 @@ describe('Agent Service', () => {
           id: 10,
         },
       },
-      routes: routes,
     }
 
 
@@ -1058,7 +1052,6 @@ describe('Agent Service', () => {
         imageSnapshot: 'testImageSnapshot',
         delete: false,
         deleteWithCleanup: false,
-        routes: routes,
         registryId: 10,
         env: [
           {
@@ -1070,7 +1063,6 @@ describe('Agent Service', () => {
           'ls',
           '-l',
         ],
-        isConsumer,
         extraHosts: [`${extraHost.name}:${extraHost.value}`]
       }],
     }
@@ -1088,14 +1080,10 @@ describe('Agent Service', () => {
     def('subject', () => $subject.getAgentMicroservices($fog, transaction))
 
     def('findAllMicroservicesResponse', () => Promise.resolve([microserviceWithValidImage, microserviceWithInvalidImage]))
-    def('getPhysicalConnectionsResponse', () => Promise.resolve(routes))
     def('updateResponse', () => Promise.resolve([]))
-    def('isConsumerResponse', () => Promise.resolve(isConsumer))
 
     beforeEach(() => {
       $sandbox.stub(MicroserviceManager, 'findAllActiveApplicationMicroservices').returns($findAllMicroservicesResponse)
-      $sandbox.stub(MicroserviceService, 'getReceiverMicroservices').returns($getPhysicalConnectionsResponse)
-      $sandbox.stub(MicroserviceService, 'isMicroserviceConsumer').returns($isConsumerResponse)
       $sandbox.stub(MicroserviceManager, 'update').returns($updateResponse)
     })
 
@@ -1113,22 +1101,7 @@ describe('Agent Service', () => {
     })
 
     context('when MicroserviceManager#findAllActiveApplicationMicroservices() succeeds', () => {
-      it('calls MicroserviceService.getReceiverMicroservices with correct args', async () => {
-        await $subject
-        expect(MicroserviceService.getReceiverMicroservices).to.have.been.calledWith(microserviceWithValidImage, transaction)
-      })
-
-      context('when MicroserviceService#getReceiverMicroservices fails', () => {
-        const error = 'Error!'
-
-        def('getReceiverMicroservices', () => error)
-
-        it(`fails with "${error}"`, () => {
-          return expect($subject).to.be.rejectedWith = (error)
-        })
-      })
-
-      context('when MicroserviceService#getPhysicalConnections succeeds', () => {
+      context('when MicroserviceManager#update succeeds', () => {
         it('calls MicroserviceManager.update with correct args', async () => {
           await $subject
           expect(MicroserviceManager.update).to.have.been.calledWith({
@@ -1161,8 +1134,6 @@ describe('Agent Service', () => {
     const transaction = {}
     const error = 'Error!'
 
-    const routes = []
-
     const microservice = {
       uuid: 'testMicroserviceUuid',
       imageId: 'testContainerImage',
@@ -1175,7 +1146,6 @@ describe('Agent Service', () => {
       imageSnapshot: 'testImageSnapshot',
       delete: false,
       deleteWithCleanup: false,
-      routes: routes,
       registryId: 10,
     }
 

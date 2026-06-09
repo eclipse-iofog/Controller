@@ -9,17 +9,14 @@ const applicationCreate = {
       'minLength': 1,
       'pattern': nameRegex
     },
-    'routes': {
-      'type': 'array',
-      'items': { '$ref': '/routingCreate' }
-    },
     'microservices': {
       'type': 'array',
       'items': { '$ref': '/microserviceCreate' }
     },
     'description': { 'type': 'string' },
     'isActivated': { 'type': 'boolean' },
-    'isSystem': { 'type': 'boolean' }
+    'isSystem': { 'type': 'boolean' },
+    'natsConfig': { '$ref': '/applicationNatsConfig' }
   },
   'required': ['name'],
   'additionalProperties': true
@@ -38,13 +35,10 @@ const applicationUpdate = {
       'type': 'array',
       'items': { '$ref': '/microserviceCreate' }
     },
-    'routes': {
-      'type': 'array',
-      'items': { '$ref': '/routingCreate' }
-    },
     'description': { 'type': 'string' },
     'isActivated': { 'type': 'boolean' },
-    'isSystem': { 'type': 'boolean' }
+    'isSystem': { 'type': 'boolean' },
+    'natsConfig': { '$ref': '/applicationNatsConfig' }
   },
   'additionalProperties': true
 }
@@ -60,12 +54,23 @@ const applicationPatch = {
     },
     'description': { 'type': 'string' },
     'isActivated': { 'type': 'boolean' },
-    'isSystem': { 'type': 'boolean' }
+    'isSystem': { 'type': 'boolean' },
+    'natsConfig': { '$ref': '/applicationNatsConfig' }
   },
   'additionalProperties': true
 }
 
+const applicationNatsConfig = {
+  'id': '/applicationNatsConfig',
+  'type': 'object',
+  'properties': {
+    'natsAccess': { 'type': 'boolean' },
+    'natsRule': { 'type': 'string', 'minLength': 1, 'maxLength': 255 }
+  },
+  'additionalProperties': false
+}
+
 module.exports = {
   mainSchemas: [applicationCreate, applicationUpdate, applicationPatch],
-  innerSchemas: [applicationCreate]
+  innerSchemas: [applicationCreate, applicationNatsConfig]
 }

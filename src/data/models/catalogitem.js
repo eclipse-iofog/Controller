@@ -76,15 +76,6 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: 1
     })
 
-    CatalogItem.belongsTo(models.User, {
-      foreignKey: {
-        name: 'userId',
-        field: 'user_id'
-      },
-      as: 'user',
-      onDelete: 'cascade'
-    })
-
     CatalogItem.hasMany(models.CatalogItemImage, {
       foreignKey: 'catalog_item_id',
       as: 'images'

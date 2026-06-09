@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Datasance Teknoloji A.S.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -15,6 +15,7 @@ const ConfigController = require('../controllers/config-controller')
 const ResponseDecorator = require('../decorators/response-decorator')
 const logger = require('../logger')
 const Errors = require('../helpers/errors')
+const rbacMiddleware = require('../lib/rbac/middleware')
 
 module.exports = [
   {
@@ -30,14 +31,18 @@ module.exports = [
           errors: [Errors.AuthenticationError]
         }
       ]
-      const getConfigEndpoint = ResponseDecorator.handleErrors(ConfigController.listConfigEndpoint, successCode, errorCodes)
-      const responseObject = await getConfigEndpoint(req)
 
-      res
-        .status(responseObject.code)
-        .send(responseObject.body)
+      // Add rbacMiddleware.protect middleware to protect the route
+      await rbacMiddleware.protect()(req, res, async () => {
+        const getConfigEndpoint = ResponseDecorator.handleErrors(ConfigController.listConfigEndpoint, successCode, errorCodes)
+        const responseObject = await getConfigEndpoint(req)
+        const user = req.kauth && req.kauth.grant && req.kauth.grant.access_token ? req.kauth.grant.access_token.content.preferred_username : 'system'
+        res
+          .status(responseObject.code)
+          .send(responseObject.body)
 
-      logger.apiRes({ req: req, res: responseObject })
+        logger.apiRes({ req: req, user: user, res: res, responseObject: responseObject })
+      })
     }
   },
   {
@@ -58,14 +63,17 @@ module.exports = [
         }
       ]
 
-      const getConfigEndpoint = ResponseDecorator.handleErrors(ConfigController.getConfigEndpoint, successCode, errorCodes)
-      const responseObject = await getConfigEndpoint(req)
+      // Add rbacMiddleware.protect middleware to protect the route
+      await rbacMiddleware.protect()(req, res, async () => {
+        const getConfigEndpoint = ResponseDecorator.handleErrors(ConfigController.getConfigEndpoint, successCode, errorCodes)
+        const responseObject = await getConfigEndpoint(req)
+        const user = req.kauth && req.kauth.grant && req.kauth.grant.access_token ? req.kauth.grant.access_token.content.preferred_username : 'system'
+        res
+          .status(responseObject.code)
+          .send(responseObject.body)
 
-      res
-        .status(responseObject.code)
-        .send(responseObject.body)
-
-      logger.apiRes({ req: req, res: responseObject })
+        logger.apiRes({ req: req, user: user, res: res, responseObject: responseObject })
+      })
     }
   },
   {
@@ -86,14 +94,18 @@ module.exports = [
           errors: [Errors.ValidationError]
         }
       ]
-      const upsertConfigElementEndpoint = ResponseDecorator.handleErrors(ConfigController.upsertConfigElementEndpoint, successCode, errorCodes)
-      const responseObject = await upsertConfigElementEndpoint(req)
 
-      res
-        .status(responseObject.code)
-        .send(responseObject.body)
+      // Add rbacMiddleware.protect middleware to protect the route
+      await rbacMiddleware.protect()(req, res, async () => {
+        const upsertConfigElementEndpoint = ResponseDecorator.handleErrors(ConfigController.upsertConfigElementEndpoint, successCode, errorCodes)
+        const responseObject = await upsertConfigElementEndpoint(req)
+        const user = req.kauth.grant.access_token.content.preferred_username
+        res
+          .status(responseObject.code)
+          .send(responseObject.body)
 
-      logger.apiRes({ req: req, res: responseObject })
+        logger.apiRes({ req: req, user: user, res: res, responseObject: responseObject })
+      })
     }
   }
 ]

@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Datasance Teknoloji A.S.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -17,7 +17,6 @@ const logger = require('../logger')
 const CatalogItemService = require('../services/catalog-service')
 const fs = require('fs')
 const AppHelper = require('../helpers/app-helper')
-const AuthDecorator = require('../decorators/cli-decorator')
 const Errors = require('../helpers/errors')
 const ErrorMessages = require('../helpers/error-messages')
 const CliDataTypes = require('./cli-data-types')
@@ -192,13 +191,6 @@ class Catalog extends BaseCLIHandler {
         type: String,
         description: 'Catalog item config example',
         group: [constants.CMD_UPDATE, constants.CMD_ADD]
-      },
-      {
-        name: 'user-id',
-        alias: 'u',
-        type: CliDataTypes.Integer,
-        description: 'User\'s id',
-        group: [constants.CMD_ADD]
       }
     ]
     this.commands = {
@@ -220,19 +212,19 @@ class Catalog extends BaseCLIHandler {
 
       switch (command) {
         case constants.CMD_ADD:
-          await _executeCase(catalogCommand, constants.CMD_ADD, _createCatalogItem, true)
+          await _executeCase(catalogCommand, constants.CMD_ADD, _createCatalogItem)
           break
         case constants.CMD_UPDATE:
-          await _executeCase(catalogCommand, constants.CMD_UPDATE, _updateCatalogItem, false)
+          await _executeCase(catalogCommand, constants.CMD_UPDATE, _updateCatalogItem)
           break
         case constants.CMD_REMOVE:
-          await _executeCase(catalogCommand, constants.CMD_REMOVE, _deleteCatalogItem, false)
+          await _executeCase(catalogCommand, constants.CMD_REMOVE, _deleteCatalogItem)
           break
         case constants.CMD_LIST:
-          await _executeCase(catalogCommand, constants.CMD_LIST, _listCatalogItems, false)
+          await _executeCase(catalogCommand, constants.CMD_LIST, _listCatalogItems)
           break
         case constants.CMD_INFO:
-          await _executeCase(catalogCommand, constants.CMD_INFO, _getCatalogItem, false)
+          await _executeCase(catalogCommand, constants.CMD_INFO, _getCatalogItem)
           break
         case constants.CMD_HELP:
         default:
@@ -256,28 +248,22 @@ class Catalog extends BaseCLIHandler {
   }
 }
 
-const _executeCase = async function (catalogCommand, commandName, f, isUserRequired) {
+const _executeCase = async function (catalogCommand, commandName, f) {
   try {
     const item = catalogCommand[commandName]
-
-    if (isUserRequired) {
-      const decoratedFunction = AuthDecorator.prepareUserById(f)
-      await decoratedFunction(item)
-    } else {
-      await f(item)
-    }
+    await f(item)
   } catch (error) {
     logger.error(error.message)
   }
 }
 
-const _createCatalogItem = async function (obj, user) {
+const _createCatalogItem = async function (obj) {
   const item = obj.file
     ? JSON.parse(fs.readFileSync(obj.file, 'utf8'))
     : _createCatalogItemObject(obj)
 
   logger.cliReq('catalog add', { args: item })
-  const catalogItemIdObject = await CatalogItemService.createCatalogItemEndPoint(item, user)
+  const catalogItemIdObject = await CatalogItemService.createCatalogItemEndPoint(item)
   logger.cliRes(JSON.stringify({
     id: catalogItemIdObject.id
   }, null, 2))

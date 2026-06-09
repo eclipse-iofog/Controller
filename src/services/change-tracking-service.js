@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Datasance Teknoloji A.S.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -23,13 +23,14 @@ const events = Object.freeze({
     deleteNode: false,
     microserviceList: false,
     microserviceConfig: false,
-    routing: false,
     registries: false,
     tunnel: false,
     diagnostics: false,
     isImageSnapshot: false,
     prune: false,
-    routerChanged: false
+    routerChanged: false,
+    volumeMounts: false,
+    execSessions: false
   },
   diagnostics: {
     diagnostics: true
@@ -39,8 +40,7 @@ const events = Object.freeze({
   },
   microserviceFull: {
     microserviceConfig: true,
-    microserviceList: true,
-    routing: true
+    microserviceList: true
   },
   microserviceCommon: {
     microserviceConfig: true,
@@ -51,9 +51,6 @@ const events = Object.freeze({
   },
   microserviceConfig: {
     microserviceConfig: true
-  },
-  microserviceRouting: {
-    routing: true
   },
   edgeResources: {
     linkedEdgeResources: true
@@ -81,6 +78,18 @@ const events = Object.freeze({
   },
   prune: {
     prune: true
+  },
+  volumeMounts: {
+    volumeMounts: true
+  },
+  microserviceExecSessions: {
+    execSessions: true
+  },
+  microserviceLogs: {
+    microserviceLogs: true
+  },
+  fogLogs: {
+    fogLogs: true
   }
 })
 

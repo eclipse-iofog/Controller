@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Datasance Teknoloji A.S.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -13,6 +13,7 @@
 
 const crypto = require('crypto')
 const Errors = require('./errors')
+// const { v4: uuidv4 } = require('uuid')
 
 const logger = require('../logger')
 const fs = require('fs')
@@ -60,6 +61,10 @@ function generateRandomString (size) {
   return randString
 }
 
+function generateUUID () {
+  return crypto.randomUUID()
+}
+
 // Checks the status of a single port
 // returns 'closed' if port is available
 // returns 'open' if port is not available
@@ -70,7 +75,7 @@ async function checkPortAvailability (port) {
 }
 
 const findAvailablePort = async function (hostname) {
-  let portRange = Config.get('Tunnel:PortRange')
+  let portRange = Config.get('tunnel.portRange')
   if (!portRange) {
     logger.warn('Port range was\'n specified in config. Default range (2000-10000) will be used')
     portRange = '2000-10000'
@@ -194,6 +199,7 @@ module.exports = {
   encryptText,
   decryptText,
   generateRandomString,
+  generateUUID,
   isFileExists,
   isValidPort,
   isValidDomain,

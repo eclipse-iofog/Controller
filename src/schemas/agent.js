@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Datasance Teknoloji A.S.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -55,10 +55,23 @@ const updateAgentConfig = {
     'latitude': { 'type': 'number', 'minimum': -90, 'maximum': 90 },
     'longitude': { 'type': 'number', 'minimum': -180, 'maximum': 180 },
     'gpsMode': { 'type': 'string' },
+    'gpsDevice': { 'type': 'string' },
+    'gpsScanFrequency': { 'type': 'integer', 'minimum': 0 },
+    'edgeGuardFrequency': { 'type': 'integer', 'minimum': 0 },
     'dockerPruningFrequency': { 'type': 'integer', 'minimum': 0 },
     'availableDiskThreshold': { 'type': 'integer', 'minimum': 0 },
     'logLevel': { 'type': 'string' },
     'timeZone': { 'type': 'string' }
+  },
+  'additionalProperties': true
+}
+
+const updateAgentGps = {
+  'id': '/updateAgentGps',
+  'type': 'object',
+  'properties': {
+    'latitude': { 'type': 'number', 'minimum': -90, 'maximum': 90 },
+    'longitude': { 'type': 'number', 'minimum': -180, 'maximum': 180 }
   },
   'additionalProperties': true
 }
@@ -68,6 +81,7 @@ const updateAgentStatus = {
   'type': 'object',
   'properties': {
     'daemonStatus': { 'type': 'string' },
+    'warningMessage': { 'type': 'string' },
     'daemonOperatingDuration': { 'type': 'integer', 'minimum': 0 },
     'daemonLastStart': { 'type': 'integer', 'minimum': 0 },
     'memoryUsage': { 'type': 'number', 'minimum': 0 },
@@ -92,10 +106,15 @@ const updateAgentStatus = {
     'microserviceMessageCounts': { 'type': 'string' },
     'messageSpeed': { 'type': 'number', 'minimum': 0 },
     'lastCommandTime': { 'type': 'integer', 'minimum': 0 },
+    'gpsMode': { 'type': 'string' },
+    'gpsDevice': { 'type': 'string' },
+    'gpsScanFrequency': { 'type': 'integer', 'minimum': 0 },
+    'edgeGuardFrequency': { 'type': 'integer', 'minimum': 0 },
     'tunnelStatus': { 'type': 'string' },
     'version': { 'type': 'string' },
     'isReadyToUpgrade': { 'type': 'boolean' },
-    'isReadyToRollback': { 'type': 'boolean' }
+    'isReadyToRollback': { 'type': 'boolean' },
+    'gpsStatus': { 'type': 'string' }
   },
   'additionalProperties': true
 }
@@ -131,10 +150,14 @@ const microserviceStatus = {
     'id': { 'type': 'string' },
     'containerId': { 'type': 'string' },
     'status': { 'type': 'string' },
+    'healthStatus': { 'type': 'string' },
     'startTime': { 'type': 'integer' },
     'operatingDuration': { 'type': 'integer' },
     'cpuUsage': { 'type': 'number' },
-    'memoryUsage': { 'type': 'number' }
+    'memoryUsage': { 'type': 'number' },
+    'ipAddress': { 'type': 'string' },
+    'ipAddressExternal': { 'type': 'string' },
+    'execSessionIds': { 'type': 'array', 'items': { 'type': 'string' } }
   },
   'required': ['id'],
   'additionalProperties': true
@@ -161,7 +184,7 @@ const updateUsbInfo = {
 }
 
 module.exports = {
-  mainSchemas: [agentProvision, agentDeprovision, updateAgentConfig, updateAgentStatus, updateAgentStrace,
+  mainSchemas: [agentProvision, agentDeprovision, updateAgentConfig, updateAgentGps, updateAgentStatus, updateAgentStrace,
     updateHardwareInfo, updateUsbInfo],
   innerSchemas: [straceData, microserviceStatus]
 }

@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Datasance Teknoloji A.S.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -62,7 +62,7 @@ class CLIHandler {
     const usage = [
       {
         header: 'ioFogController',
-        content: 'Fog Controller project for Eclipse IoFog @ iofog.org \\nCopyright (c) 2020 Edgeworx, Inc.'
+        content: 'Fog Controller project for Eclipse IoFog @ iofog.org \\nCopyright (c) 2023 Datasance Teknoloji A.S.'
       }
     ].concat(sections)
     logger.cliRes(commandLineUsage(usage))
@@ -95,7 +95,7 @@ class CLIHandler {
     const usage = [
       {
         header: 'ioFogController',
-        content: 'Fog Controller project for Eclipse IoFog @ iofog.org \\nCopyright (c) 2020 Edgeworx, Inc.'
+        content: 'Fog Controller project for Eclipse IoFog @ iofog.org \\nCopyright (c) 2023 Datasance Teknoloji A.S.'
       }
     ].concat(sections)
     logger.cliRes(commandLineUsage(usage))

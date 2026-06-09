@@ -7,7 +7,6 @@ const AppHelper = require('../../../src/helpers/app-helper')
 const Validator = require('../../../src/schemas')
 const ChangeTrackingService = require('../../../src/services/change-tracking-service')
 const MicroserviceService = require('../../../src/services/microservices-service')
-const RoutingService = require('../../../src/services/routing-service')
 const Sequelize = require('sequelize')
 const Op = Sequelize.Op
 const ErrorMessages = require('../../../src/helpers/error-messages')
@@ -158,28 +157,6 @@ describe('Application Service', () => {
       })
     })
 
-    context('when there are routes to deploy', () => {
-      const routes = [{
-        name: 'test-msvc',
-      },{
-        name: 'test-msvc-2',
-      }]
-      const data = {
-        ...applicationData,
-        routes
-      }
-      def('subject', () => ApplicationService.createApplicationEndPoint(data, user, isCLI, transaction))
-      beforeEach(() => {
-        $sandbox.stub(RoutingService, 'createRouting')
-      })
-  
-      it('Should create the routes', async () => {
-        await $subject
-        for (const routeData of routes) {
-          expect(RoutingService.createRouting).to.have.been.calledWith({ ...routeData, application: response.name }, user, isCLI, transaction)
-        }
-      })
-    })
   })
 
   describe('.deleteApplicationEndPoint()', () => {
@@ -476,34 +453,6 @@ describe('Application Service', () => {
       })
     })
 
-    context('when there are routes to update', () => {
-      const newRoute = { name: 'new-route' }
-      const oldRoute = { name: 'old-route' }
-      const routes = [{
-        name: 'test-msvc',
-      },{
-        name: 'test-msvc-2',
-      }]
-      const data = {
-        ...applicationData,
-        routes: [...routes, newRoute]
-      }
-      def('subject', () => ApplicationService.updateApplicationEndPoint(data, name, user, isCLI, transaction))
-      beforeEach(() => {
-        $sandbox.stub(RoutingService, 'createRouting')
-        $sandbox.stub(RoutingService, 'updateRouting')
-        $sandbox.stub(RoutingService, 'deleteRouting')
-        $sandbox.stub(ApplicationManager, 'findApplicationRoutes').returns(Promise.resolve([...routes, oldRoute]))
-      })
-      it('Should update the routes', async () => {
-        await $subject
-        for (const routeData of routes) {
-          expect(RoutingService.updateRouting).to.have.been.calledWith(applicationData.name, routeData.name, {...routeData, application: applicationData.name}, user, isCLI, transaction)
-        }
-        expect(RoutingService.createRouting).to.have.been.calledWith({ ...newRoute, application: applicationData.name }, user, isCLI, transaction)
-        expect(RoutingService.deleteRouting).to.have.been.calledWith(oldRoute.name, user, isCLI, transaction)
-      })
-    })
 
     context('when there are microservices to update', () => {
       const newMsvc = { name: 'new-msvc' }

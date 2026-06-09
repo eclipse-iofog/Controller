@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Datasance Teknoloji A.S.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -23,9 +23,7 @@ const registryCreate = {
       'type': 'string',
       'pattern': '^(([^<>()\\[\\]\\\\.,;:\\s@"]+(\\.[^<>()\\[\\]\\\\.,;:\\s@"]+)*)|(".+"))@((\\[[0-9]{1,3}\\.[0-9]{1,3}' +
       '\\.[0-9]{1,3}\\.[0-9]{1,3}])|(([a-zA-Z\\-0-9]+\\.)+[a-zA-Z]{2,}))$'
-    },
-    'requiresCert': { 'type': 'boolean' },
-    'certificate': { 'type': 'string' }
+    }
   },
   'required': ['url', 'isPublic', 'username', 'password', 'email'],
   'additionalProperties': true
@@ -53,9 +51,7 @@ const registryUpdate = {
       'type': 'string',
       'pattern': '^(([^<>()\\[\\]\\\\.,;:\\s@"]+(\\.[^<>()\\[\\]\\\\.,;:\\s@"]+)*)|(".+"))@((\\[[0-9]{1,3}\\.[0-9]{1,3}' +
       '\\.[0-9]{1,3}\\.[0-9]{1,3}])|(([a-zA-Z\\-0-9]+\\.)+[a-zA-Z]{2,}))$'
-    },
-    'requiresCert': { 'type': 'boolean' },
-    'certificate': { 'type': 'string' }
+    }
   },
   'additionalProperties': true
 }

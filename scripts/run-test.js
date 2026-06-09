@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2018 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Datasance Teknoloji A.S.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -17,10 +17,13 @@ const { coverage } = require('./coverage')
 const { postmanTest } = require('./postmantest')
 
 switch (process.argv[2]) {
-  case 'test':
-    test(process.argv[3] === 'junit')
+  case 'test': {
+    const useReporter = process.argv[3] === 'junit'
+    const extraArgs = process.argv.slice(useReporter ? 4 : 3).filter(Boolean)
+    test(useReporter, extraArgs)
     cliTest()
     break
+  }
   case 'cli-tests':
     cliTest()
     break

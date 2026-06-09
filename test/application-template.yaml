@@ -1,5 +1,5 @@
 kind: ApplicationTemplate
-apiVersion: iofog.org/v3
+apiVersion: datasance.com/v3
 metadata:
   name: 'app-template-from-yaml'
 spec:

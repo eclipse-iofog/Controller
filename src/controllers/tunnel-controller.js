@@ -1,6 +1,6 @@
 /*
  * *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Datasance Teknoloji A.S.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -11,12 +11,11 @@
  *
  */
 
-const AuthDecorator = require('../decorators/authorization-decorator')
 const TunnelService = require('../services/tunnel-service')
 const Errors = require('../helpers/errors')
 const ErrorMessages = require('../helpers/error-messages')
 
-const manageTunnelEndPoint = async function (req, user) {
+const manageTunnelEndPoint = async function (req) {
   const action = req.body.action
   const tunnelData = {
     iofogUuid: req.params.id
@@ -24,24 +23,24 @@ const manageTunnelEndPoint = async function (req, user) {
 
   switch (action) {
     case 'open':
-      await TunnelService.openTunnel(tunnelData, user, false)
+      await TunnelService.openTunnel(tunnelData, false)
       break
     case 'close':
-      await TunnelService.closeTunnel(tunnelData, user)
+      await TunnelService.closeTunnel(tunnelData)
       break
     default:
       throw new Errors.ValidationError(ErrorMessages.INVALID_ACTION_PROPERTY)
   }
 }
 
-const getTunnelEndPoint = async function (req, user) {
+const getTunnelEndPoint = async function (req) {
   const tunnelData = {
     iofogUuid: req.params.id
   }
-  return TunnelService.findTunnel(tunnelData, user)
+  return TunnelService.findTunnel(tunnelData)
 }
 
 module.exports = {
-  manageTunnelEndPoint: AuthDecorator.checkAuthToken(manageTunnelEndPoint),
-  getTunnelEndPoint: AuthDecorator.checkAuthToken(getTunnelEndPoint)
+  manageTunnelEndPoint: (manageTunnelEndPoint),
+  getTunnelEndPoint: (getTunnelEndPoint)
 }

@@ -1,5 +1,5 @@
 module.exports = {
   ROUTER_CATALOG_NAME: 'Router',
-  PROXY_CATALOG_NAME: 'Proxy',
-  PORT_ROUTER_CATALOG_NAME: 'PortRouter'
+  DEBUG_CATALOG_NAME: 'Debug',
+  NATS_CATALOG_NAME: 'NATs'
 }

@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Datasance Teknoloji A.S.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -16,6 +16,7 @@ const ResponseDecorator = require('../decorators/response-decorator')
 const Errors = require('../helpers/errors')
 const fs = require('fs')
 const logger = require('../logger')
+const rbacMiddleware = require('../lib/rbac/middleware')
 
 module.exports = [
   {
@@ -36,18 +37,21 @@ module.exports = [
         }
       ]
 
-      const createMicroserviceImageSnapshotEndPoint = ResponseDecorator.handleErrors(
-        DiagnosticController.createMicroserviceImageSnapshotEndPoint,
-        successCode,
-        errorCodes
-      )
-      const responseObject = await createMicroserviceImageSnapshotEndPoint(req)
+      // Add rbacMiddleware.protect middleware to protect the route
+      await rbacMiddleware.protect()(req, res, async () => {
+        const createMicroserviceImageSnapshotEndPoint = ResponseDecorator.handleErrors(
+          DiagnosticController.createMicroserviceImageSnapshotEndPoint,
+          successCode,
+          errorCodes
+        )
+        const responseObject = await createMicroserviceImageSnapshotEndPoint(req)
+        const user = req.kauth && req.kauth.grant && req.kauth.grant.access_token ? req.kauth.grant.access_token.content.preferred_username : 'system'
+        res
+          .status(responseObject.code)
+          .send(responseObject.body)
 
-      res
-        .status(responseObject.code)
-        .send(responseObject.body)
-
-      logger.apiRes({ req: req, res: responseObject })
+        logger.apiRes({ req: req, user: user, res: res, responseObject: responseObject })
+      })
     }
   },
   {
@@ -68,26 +72,30 @@ module.exports = [
         }
       ]
 
-      const getMicroserviceImageSnapshotEndPoint = ResponseDecorator.handleErrors(
-        DiagnosticController.getMicroserviceImageSnapshotEndPoint,
-        successCode,
-        errorCodes
-      )
-      const responseObject = await getMicroserviceImageSnapshotEndPoint(req)
-      if (responseObject.code !== successCode) {
-        res
-          .status(responseObject.code)
-          .send(responseObject.body)
+      // Add rbacMiddleware.protect middleware to protect the route
+      await rbacMiddleware.protect()(req, res, async () => {
+        const getMicroserviceImageSnapshotEndPoint = ResponseDecorator.handleErrors(
+          DiagnosticController.getMicroserviceImageSnapshotEndPoint,
+          successCode,
+          errorCodes
+        )
+        const responseObject = await getMicroserviceImageSnapshotEndPoint(req)
+        const user = req.kauth && req.kauth.grant && req.kauth.grant.access_token ? req.kauth.grant.access_token.content.preferred_username : 'system'
+        if (responseObject.code !== successCode) {
+          res
+            .status(responseObject.code)
+            .send(responseObject.body)
 
-        logger.apiRes({ req: req, res: responseObject })
-      } else {
-        res.writeHead(successCode, {
-          'Content-Length': responseObject.body['Content-Length'],
-          'Content-Type': responseObject.body['Content-Type'],
-          'Content-Disposition': 'attachment; filename=' + responseObject.body.fileName
-        })
-        fs.createReadStream(responseObject.body.filePath).pipe(res)
-      }
+          logger.apiRes({ req: req, user: user, res: res, responseObject: responseObject })
+        } else {
+          res.writeHead(successCode, {
+            'Content-Length': responseObject.body['Content-Length'],
+            'Content-Type': responseObject.body['Content-Type'],
+            'Content-Disposition': 'attachment; filename=' + responseObject.body.fileName
+          })
+          fs.createReadStream(responseObject.body.filePath).pipe(res)
+        }
+      })
     }
   },
   {
@@ -112,18 +120,21 @@ module.exports = [
         }
       ]
 
-      const changeMicroserviceStraceStateEndPoint = ResponseDecorator.handleErrors(
-        DiagnosticController.changeMicroserviceStraceStateEndPoint,
-        successCode,
-        errorCodes
-      )
-      const responseObject = await changeMicroserviceStraceStateEndPoint(req)
+      // Add rbacMiddleware.protect middleware to protect the route
+      await rbacMiddleware.protect()(req, res, async () => {
+        const changeMicroserviceStraceStateEndPoint = ResponseDecorator.handleErrors(
+          DiagnosticController.changeMicroserviceStraceStateEndPoint,
+          successCode,
+          errorCodes
+        )
+        const responseObject = await changeMicroserviceStraceStateEndPoint(req)
+        const user = req.kauth && req.kauth.grant && req.kauth.grant.access_token ? req.kauth.grant.access_token.content.preferred_username : 'system'
+        res
+          .status(responseObject.code)
+          .send(responseObject.body)
 
-      res
-        .status(responseObject.code)
-        .send(responseObject.body)
-
-      logger.apiRes({ req: req, res: responseObject })
+        logger.apiRes({ req: req, user: user, res: res, responseObject: responseObject })
+      })
     }
   },
   {
@@ -144,18 +155,21 @@ module.exports = [
         }
       ]
 
-      const getMicroserviceStraceDataEndPoint = ResponseDecorator.handleErrors(
-        DiagnosticController.getMicroserviceStraceDataEndPoint,
-        successCode,
-        errorCodes
-      )
-      const responseObject = await getMicroserviceStraceDataEndPoint(req)
+      // Add rbacMiddleware.protect middleware to protect the route
+      await rbacMiddleware.protect()(req, res, async () => {
+        const getMicroserviceStraceDataEndPoint = ResponseDecorator.handleErrors(
+          DiagnosticController.getMicroserviceStraceDataEndPoint,
+          successCode,
+          errorCodes
+        )
+        const responseObject = await getMicroserviceStraceDataEndPoint(req)
+        const user = req.kauth && req.kauth.grant && req.kauth.grant.access_token ? req.kauth.grant.access_token.content.preferred_username : 'system'
+        res
+          .status(responseObject.code)
+          .send(responseObject.body)
 
-      res
-        .status(responseObject.code)
-        .send(responseObject.body)
-
-      logger.apiRes({ req: req, res: responseObject })
+        logger.apiRes({ req: req, user: user, res: res, responseObject: responseObject })
+      })
     }
   },
   {
@@ -184,18 +198,21 @@ module.exports = [
         }
       ]
 
-      const postMicroserviceStraceDataToFtpEndPoint = ResponseDecorator.handleErrors(
-        DiagnosticController.postMicroserviceStraceDataToFtpEndPoint,
-        successCode,
-        errorCodes
-      )
-      const responseObject = await postMicroserviceStraceDataToFtpEndPoint(req)
+      // Add rbacMiddleware.protect middleware to protect the route
+      await rbacMiddleware.protect()(req, res, async () => {
+        const postMicroserviceStraceDataToFtpEndPoint = ResponseDecorator.handleErrors(
+          DiagnosticController.postMicroserviceStraceDataToFtpEndPoint,
+          successCode,
+          errorCodes
+        )
+        const responseObject = await postMicroserviceStraceDataToFtpEndPoint(req)
+        const user = req.kauth.grant.access_token.content.preferred_username
+        res
+          .status(responseObject.code)
+          .send(responseObject.body)
 
-      res
-        .status(responseObject.code)
-        .send(responseObject.body)
-
-      logger.apiRes({ req: req, res: responseObject })
+        logger.apiRes({ req: req, user: user, res: res, responseObject: responseObject })
+      })
     }
   }
 ]

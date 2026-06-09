@@ -19,14 +19,6 @@ module.exports = (sequelize, DataTypes) => {
     isUdp: {
       type: DataTypes.BOOLEAN,
       field: 'is_udp'
-    },
-    isPublic: {
-      type: DataTypes.BOOLEAN,
-      field: 'is_public'
-    },
-    isProxy: {
-      type: DataTypes.BOOLEAN,
-      field: 'is_proxy'
     }
   }, {
     tableName: 'MicroservicePorts',
@@ -41,25 +33,6 @@ module.exports = (sequelize, DataTypes) => {
       },
       as: 'microservice',
       onDelete: 'cascade'
-    })
-
-    MicroservicePort.belongsTo(models.User, {
-      foreignKey: {
-        name: 'userId',
-        field: 'user_id'
-      },
-      as: 'user',
-      onDelete: 'cascade'
-    })
-
-    MicroservicePort.hasOne(models.MicroservicePublicPort, {
-      foreignKey: 'port_id',
-      as: 'publicPort'
-    })
-
-    MicroservicePort.hasOne(models.MicroserviceProxyPort, {
-      foreignKey: 'port_id',
-      as: 'proxyPort'
     })
   }
   return MicroservicePort

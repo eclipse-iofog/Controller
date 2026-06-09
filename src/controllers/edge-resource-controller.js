@@ -1,6 +1,6 @@
 /*
  * *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Datasance Teknoloji A.S.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -11,27 +11,26 @@
  *
  */
 
-const AuthDecorator = require('./../decorators/authorization-decorator')
 const EdgeResourceService = require('../services/edge-resource-service')
 
-const createEdgeResourceEndpoint = async function (req, user) {
+const createEdgeResourceEndpoint = async function (req) {
   const edgeResourceData = req.body
-  return EdgeResourceService.createEdgeResource(edgeResourceData, user)
+  return EdgeResourceService.createEdgeResource(edgeResourceData)
 }
 
-const updateEdgeResourceEndpoint = async function (req, user) {
+const updateEdgeResourceEndpoint = async function (req) {
   const edgeResourceData = req.body
   const { version, name } = req.params
-  return EdgeResourceService.updateEdgeResourceEndpoint(edgeResourceData, { name, version }, user)
+  return EdgeResourceService.updateEdgeResourceEndpoint(edgeResourceData, { name, version })
 }
 
-const listEdgeResourcesEndpoint = async function (req, user) {
-  return { edgeResources: await EdgeResourceService.listEdgeResources(user) }
+const listEdgeResourcesEndpoint = async function () {
+  return { edgeResources: await EdgeResourceService.listEdgeResources() }
 }
 
-const getEdgeResourceEndpoint = async function (req, user) {
+const getEdgeResourceEndpoint = async function (req) {
   const { version, name } = req.params
-  const result = await EdgeResourceService.getEdgeResource({ name, version }, user)
+  const result = await EdgeResourceService.getEdgeResource({ name, version })
   if (version) {
     return result
   } else {
@@ -39,36 +38,36 @@ const getEdgeResourceEndpoint = async function (req, user) {
   }
 }
 
-const getEdgeResourceAllVersionsEndpoint = async function (req, user) {
+const getEdgeResourceAllVersionsEndpoint = async function (req) {
   const { name } = req.params
-  const result = await EdgeResourceService.getEdgeResource({ name }, user)
+  const result = await EdgeResourceService.getEdgeResource({ name })
   return { edgeResources: result }
 }
 
-const deleteEdgeResourceEndpoint = async function (req, user) {
+const deleteEdgeResourceEndpoint = async function (req) {
   const { version, name } = req.params
-  return EdgeResourceService.deleteEdgeResource({ name, version }, user)
+  return EdgeResourceService.deleteEdgeResource({ name, version })
 }
 
-const linkEdgeResourceEndpoint = async function (req, user) {
+const linkEdgeResourceEndpoint = async function (req) {
   const { name, version } = req.params
   const { uuid } = req.body
-  return EdgeResourceService.linkEdgeResource({ name, version }, uuid, user)
+  return EdgeResourceService.linkEdgeResource({ name, version }, uuid)
 }
 
-const unlinkEdgeResourceEndpoint = async function (req, user) {
+const unlinkEdgeResourceEndpoint = async function (req) {
   const { name, version } = req.params
   const { uuid } = req.body
-  return EdgeResourceService.unlinkEdgeResource({ name, version }, uuid, user)
+  return EdgeResourceService.unlinkEdgeResource({ name, version }, uuid)
 }
 
 module.exports = {
-  createEdgeResourceEndpoint: AuthDecorator.checkAuthToken(createEdgeResourceEndpoint),
-  updateEdgeResourceEndpoint: AuthDecorator.checkAuthToken(updateEdgeResourceEndpoint),
-  listEdgeResourcesEndpoint: AuthDecorator.checkAuthToken(listEdgeResourcesEndpoint),
-  getEdgeResourceEndpoint: AuthDecorator.checkAuthToken(getEdgeResourceEndpoint),
-  deleteEdgeResourceEndpoint: AuthDecorator.checkAuthToken(deleteEdgeResourceEndpoint),
-  linkEdgeResourceEndpoint: AuthDecorator.checkAuthToken(linkEdgeResourceEndpoint),
-  unlinkEdgeResourceEndpoint: AuthDecorator.checkAuthToken(unlinkEdgeResourceEndpoint),
-  getEdgeResourceAllVersionsEndpoint: AuthDecorator.checkAuthToken(getEdgeResourceAllVersionsEndpoint)
+  createEdgeResourceEndpoint: (createEdgeResourceEndpoint),
+  updateEdgeResourceEndpoint: (updateEdgeResourceEndpoint),
+  listEdgeResourcesEndpoint: (listEdgeResourcesEndpoint),
+  getEdgeResourceEndpoint: (getEdgeResourceEndpoint),
+  deleteEdgeResourceEndpoint: (deleteEdgeResourceEndpoint),
+  linkEdgeResourceEndpoint: (linkEdgeResourceEndpoint),
+  unlinkEdgeResourceEndpoint: (unlinkEdgeResourceEndpoint),
+  getEdgeResourceAllVersionsEndpoint: (getEdgeResourceAllVersionsEndpoint)
 }

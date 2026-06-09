@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Datasance Teknoloji A.S.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -11,40 +11,10 @@
  *
  */
 const logger = require('../logger')
-const config = require('../config')
-const UserManager = require('../data/managers/user-manager')
-const AccessTokenManager = require('../data/managers/access-token-manager')
 const FogManager = require('../data/managers/iofog-manager')
-const FogAccessTokenManager = require('../data/managers/iofog-access-token-manager')
+const FogKeyService = require('../services/iofog-key-service')
 const Errors = require('../helpers/errors')
 const { isTest } = require('../helpers/app-helper')
-
-function checkAuthToken (f) {
-  return async function (...fArgs) {
-    if (isTest()) {
-      return f.apply(this, fArgs)
-    }
-
-    const req = fArgs[0]
-    const token = req.headers.authorization
-
-    const user = await UserManager.checkAuthentication(token)
-
-    if (!user) {
-      logger.error('token ' + token + ' incorrect')
-      throw new Errors.AuthenticationError('authorization failed')
-    }
-    if (Date.now() > user.accessToken.expirationTime) {
-      logger.error('token ' + token + ' expired')
-      throw new Errors.AuthenticationError('token expired')
-    }
-
-    fArgs.push(user)
-    AccessTokenManager.updateExpirationTime(user.accessToken.id, user.accessToken.expirationTime +
-        config.get('Settings:UserTokenExpirationIntervalSeconds') * 1000)
-    return f.apply(this, fArgs)
-  }
-}
 
 function checkFogToken (f) {
   return async function (...fArgs) {
@@ -53,32 +23,68 @@ function checkFogToken (f) {
     }
 
     const req = fArgs[0]
-    const token = req.headers.authorization
+    const authHeader = req.headers.authorization
 
-    const fog = await FogManager.checkToken(token)
-
-    if (!fog) {
-      logger.error('token ' + token + ' incorrect')
+    if (!authHeader) {
+      logger.error('No authorization token provided')
       throw new Errors.AuthenticationError('authorization failed')
     }
-    if (Date.now() > fog.accessToken.expirationTime) {
-      logger.error('token ' + token + ' expired')
-      throw new Errors.AuthenticationError('token expired')
+
+    // Extract token from Bearer scheme
+    const [scheme, token] = authHeader.split(' ')
+    if (scheme.toLowerCase() !== 'bearer' || !token) {
+      logger.error('Invalid authorization scheme')
+      throw new Errors.AuthenticationError('authorization failed')
     }
 
-    fArgs.push(fog)
+    try {
+      // Debug log for JWT
+      logger.debug({ token }, 'Received JWT')
 
-    FogAccessTokenManager.updateExpirationTime(fog.accessToken.id, fog.accessToken.expirationTime +
-        config.get('Settings:FogTokenExpirationIntervalSeconds') * 1000)
+      // First, decode the JWT without verification to get the fog UUID
+      const tokenParts = token.split('.')
+      if (tokenParts.length !== 3) {
+        logger.error('Invalid JWT format')
+        throw new Errors.AuthenticationError('authorization failed')
+      }
 
-    const timestamp = Date.now()
-    await FogManager.updateLastActive(fog.uuid, timestamp)
+      const payload = JSON.parse(Buffer.from(tokenParts[1], 'base64').toString())
+      const fogUuid = payload.sub
+      logger.debug({ payload }, 'JWT payload')
+      logger.info({ iofogUUID: payload.sub })
 
-    return f.apply(this, fArgs)
+      if (!fogUuid) {
+        logger.error('JWT missing subject claim')
+        throw new Errors.AuthenticationError('authorization failed')
+      }
+
+      // Get the fog with transaction
+      const fog = await FogManager.findOne({
+        uuid: fogUuid
+      }, { fakeTransaction: true })
+
+      if (!fog) {
+        logger.error(`Fog with UUID ${fogUuid} not found`)
+        throw new Errors.AuthenticationError('authorization failed')
+      }
+
+      // Verify the JWT with transaction
+      await FogKeyService.verifyJWT(token, fogUuid, { fakeTransaction: true })
+
+      // Update last active timestamp with transaction
+      const timestamp = Date.now()
+      await FogManager.updateLastActive(fog.uuid, timestamp, { fakeTransaction: true })
+
+      fArgs.push(fog)
+
+      return f.apply(this, fArgs)
+    } catch (error) {
+      logger.error(`JWT verification failed: ${error.message}`)
+      throw new Errors.AuthenticationError('authorization failed')
+    }
   }
 }
 
 module.exports = {
-  checkAuthToken: checkAuthToken,
   checkFogToken: checkFogToken
 }

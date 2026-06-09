@@ -14,9 +14,6 @@ module.exports = (sequelize, DataTypes) => {
     name: {
       type: DataTypes.TEXT
     },
-    publicPort: {
-      type: DataTypes.INTEGER
-    }, // Only if type is Apps
     template: {
       type: DataTypes.TEXT
     }, // Contains the template string

@@ -1,6 +1,6 @@
 
 ---
-apiVersion: iofog.org/v2
+apiVersion: datasance.com/v3
 kind: Application
 metadata:
   name: edai-smartbuilding-rules-engine

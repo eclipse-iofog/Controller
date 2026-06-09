@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Datasance Teknoloji A.S.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -60,34 +60,6 @@ class Config extends BaseCLIHandler {
         group: constants.CMD_ADD
       },
       {
-        name: 'home-url',
-        alias: 'h',
-        type: String,
-        description: 'Home page url for email activation links',
-        group: constants.CMD_ADD
-      },
-      {
-        name: 'email-address',
-        alias: 'a',
-        type: String,
-        description: 'Email address to send activations from',
-        group: constants.CMD_ADD
-      },
-      {
-        name: 'email-password',
-        alias: 'w',
-        type: String,
-        description: 'Email password to send activations from',
-        group: constants.CMD_ADD
-      },
-      {
-        name: 'email-service',
-        alias: 's',
-        type: String,
-        description: 'Email service to send activations',
-        group: constants.CMD_ADD
-      },
-      {
         name: 'log-dir',
         alias: 'd',
         type: String,
@@ -113,28 +85,20 @@ class Config extends BaseCLIHandler {
         alias: 'o',
         type: Boolean,
         description: 'Enable',
-        group: [constants.CMD_DEV_MODE, constants.CMD_EMAIL_ACTIVATION]
+        group: [constants.CMD_DEV_MODE]
       },
       {
         name: 'off',
         alias: 'f',
         type: Boolean,
         description: 'Disable',
-        group: [constants.CMD_DEV_MODE, constants.CMD_EMAIL_ACTIVATION]
-      },
-      {
-        name: 'kubelet',
-        alias: 't',
-        type: String,
-        description: 'iofog-kubelet url',
-        group: constants.CMD_ADD
+        group: [constants.CMD_DEV_MODE]
       }
     ]
     this.commands = {
       [constants.CMD_ADD]: 'Add a new config value.',
       [constants.CMD_LIST]: 'Display current config.',
-      [constants.CMD_DEV_MODE]: 'Dev mode config.',
-      [constants.CMD_EMAIL_ACTIVATION]: 'Email activation config.'
+      [constants.CMD_DEV_MODE]: 'Dev mode config.'
     }
   }
 
@@ -155,9 +119,6 @@ class Config extends BaseCLIHandler {
           break
         case constants.CMD_DEV_MODE:
           await _executeCase(configCommand, constants.CMD_DEV_MODE, _changeDevModeState)
-          break
-        case constants.CMD_EMAIL_ACTIVATION:
-          await _executeCase(configCommand, constants.CMD_EMAIL_ACTIVATION, _changeEmailActivationState)
           break
         case constants.CMD_HELP:
         default:
@@ -181,84 +142,59 @@ const _executeCase = async function (catalogCommand, commandName, f) {
 const _addConfigOption = async function (options) {
   await Validator.validate(options, Validator.schemas.configUpdate)
 
-  await updateConfig(options.port, 'port', 'Server:Port', async (onSuccess) => {
+  await updateConfig(options.port, 'port', 'server.port', async (onSuccess) => {
     const port = options.port
     const status = await AppHelper.checkPortAvailability(port)
     if (status === 'closed') {
-      config.set('Server:Port', port)
+      config.set('server.port', port)
       onSuccess()
     } else {
       logger.error(AppHelper.formatMessage(ErrorMessages.PORT_NOT_AVAILABLE, port))
     }
   })
 
-  await updateConfig(options.sslCert, 'ssl-cert', 'Server:SslCert', (onSuccess) => {
+  await updateConfig(options.sslCert, 'ssl-cert', 'server.ssl.path.cert', (onSuccess) => {
     const sslCert = options.sslCert
     if (!AppHelper.isFileExists(sslCert)) {
       logger.error(ErrorMessages.INVALID_FILE_PATH)
       return
     }
-    config.set('Server:SslCert', sslCert)
+    config.set('server.ssl.path.cert', sslCert)
     onSuccess()
   })
 
-  await updateConfig(options.sslKey, 'ssl-key', 'Server:SslKey', (onSuccess) => {
+  await updateConfig(options.sslKey, 'ssl-key', 'server.ssl.path.key', (onSuccess) => {
     const sslKey = options.sslKey
     if (!AppHelper.isFileExists(sslKey)) {
       logger.error(ErrorMessages.INVALID_FILE_PATH)
       return
     }
-    config.set('Server:SslKey', sslKey)
+    config.set('server.ssl.path.key', sslKey)
     onSuccess()
   })
 
-  await updateConfig(options.intermediateCert, 'intermediate-cert', 'Server:IntermediateCert', (onSuccess) => {
+  await updateConfig(options.intermediateCert, 'intermediate-cert', 'server.ssl.path.intermediateCert', (onSuccess) => {
     const intermediateCert = options.intermediateCert
     if (!AppHelper.isFileExists(intermediateCert)) {
       logger.error(ErrorMessages.INVALID_FILE_PATH)
       return
     }
-    config.set('Server:IntermediateCert', intermediateCert)
+    config.set('server.ssl.path.intermediateCert', intermediateCert)
     onSuccess()
   })
 
-  await updateConfig(options.homeUrl, 'home-url', 'Email:HomeUrl', (onSuccess) => {
-    config.set('Email:HomeUrl', options.homeUrl)
+  await updateConfig(options.logDir, 'log-dir', 'log.directory', (onSuccess) => {
+    config.set('log.directory', options.logDir)
     onSuccess()
   })
 
-  await updateConfig(options.emailAddress, 'email-address', 'Email:Address', (onSuccess) => {
-    config.set('Email:Address', options.emailAddress)
+  await updateConfig(options.logSize, 'log-size', 'log.fileSize', (onSuccess) => {
+    config.set('log.fileSize', options.logSize * 1024)
     onSuccess()
   })
 
-  if (options.emailPassword) {
-    config.set('Email:Password', AppHelper.encryptText(options.emailPassword, config.get('Email:Address')))
-    logger.cliRes('Config option email-password has been updated.')
-  }
-
-  await updateConfig(options.emailService, 'email-service', 'Email:Service', (onSuccess) => {
-    config.set('Email:Service', options.emailService)
-    onSuccess()
-  })
-
-  await updateConfig(options.logDir, 'log-dir', 'Service:LogsDirectory', (onSuccess) => {
-    config.set('Service:LogsDirectory', options.logDir)
-    onSuccess()
-  })
-
-  await updateConfig(options.logSize, 'log-size', 'Service:LogsFileSize', (onSuccess) => {
-    config.set('Service:LogsFileSize', options.logSize * 1024)
-    onSuccess()
-  })
-
-  await updateConfig(options.logSize, 'log-file-counr', 'Service:LogsFileCount', (onSuccess) => {
-    config.set('Service:LogsFileCount', options.logFileCount)
-    onSuccess()
-  })
-
-  await updateConfig(options.kubelet, 'kubelet', 'Kubelet:Uri', (onSuccess) => {
-    config.set('Kubelet:Uri', options.kubelet)
+  await updateConfig(options.logFileCount, 'log-file-count', 'log.fileCount', (onSuccess) => {
+    config.set('log.fileCount', options.logFileCount)
     onSuccess()
   })
 }
@@ -279,20 +215,14 @@ const updateConfig = async function (newConfigValue, cliConfigName, configName, 
 
 const _listConfigOptions = function () {
   const configuration = {
-    'Port': config.get('Server:Port'),
-    'SSL key directory': config.get('Server:SslKey'),
-    'SSL certificate directory': config.get('Server:SslCert'),
-    'Intermediate key directory': config.get('Server:IntermediateCert'),
-    'Home url': config.get('Email:HomeUrl'),
-    'Email activation': config.get('Email:ActivationEnabled'),
-    'Email address': config.get('Email:Address'),
-    'Email password': config.get('Email:Password'),
-    'Email service': config.get('Email:Service'),
-    'Log files directory': config.get('Service:LogsDirectory'),
-    'Log files size': config.get('Service:LogsFileSize'),
-    'Log files count': config.get('Service:LogsFileCount'),
-    'Dev mode': config.get('Server:DevMode'),
-    'Kubelet Url': config.get('Kubelet:Uri')
+    'Port': config.get('server.port'),
+    'SSL key directory': config.get('server.ssl.path.key'),
+    'SSL certificate directory': config.get('server.ssl.path.cert'),
+    'Intermediate key directory': config.get('server.ssl.path.intermediateCert'),
+    'Log files directory': config.get('log.directory'),
+    'Log files size': config.get('log.fileSize'),
+    'Log files count': config.get('log.fileCount'),
+    'Dev mode': config.get('server.devMode')
   }
 
   const result = Object.keys(configuration)
@@ -304,14 +234,8 @@ const _listConfigOptions = function () {
 
 const _changeDevModeState = async function (options) {
   const enableDevMode = AppHelper.validateBooleanCliOptions(options.on, options.off)
-  config.set('Server:DevMode', enableDevMode)
+  config.set('server.devMode', enableDevMode)
   logger.cliRes('Dev mode state updated successfully.')
-}
-
-const _changeEmailActivationState = function (options) {
-  const enableEmailActivation = AppHelper.validateBooleanCliOptions(options.on, options.off)
-  config.set('Email:ActivationEnabled', enableEmailActivation)
-  logger.cliRes('Email activation state updated successfully.')
 }
 
 module.exports = new Config()

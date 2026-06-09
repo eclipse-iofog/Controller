@@ -1,6 +1,6 @@
 /*
  * *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Datasance Teknoloji A.S.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -36,6 +36,12 @@ const updateAgentConfigEndPoint = async function (req, fog) {
   return AgentService.updateAgentConfig(updateData, fog)
 }
 
+const updateAgentGpsEndPoint = async function (req, fog) {
+  const updateData = req.body
+
+  return AgentService.updateAgentGpsEndPoint(updateData, fog)
+}
+
 const getAgentConfigChangesEndPoint = async function (req, fog) {
   return AgentService.getAgentConfigChanges(fog)
 }
@@ -56,6 +62,14 @@ const getAgentMicroservicesEndPoint = async function (req, fog) {
 
 const getAgentLinkedEdgeResourcesEndpoint = async function (req, fog) {
   return { edgeResources: await AgentService.getAgentLinkedEdgeResources(fog) }
+}
+
+const getAgentLinkedVolumeMountsEndpoint = async function (req, fog) {
+  return { volumeMounts: await AgentService.getAgentLinkedVolumeMounts(fog) }
+}
+
+const getAgentLogSessionsEndPoint = async function (req, fog) {
+  return AgentService.getAgentLogSessions(fog)
 }
 
 const getAgentMicroserviceEndPoint = async function (req, fog) {
@@ -110,11 +124,16 @@ const putImageSnapshotEndPoint = async function (req, fog) {
   return AgentService.putImageSnapshot(req, fog)
 }
 
+const getControllerCAEndPoint = async function (req, fog) {
+  return AgentService.getControllerCA(fog)
+}
+
 module.exports = {
   agentProvisionEndPoint: agentProvisionEndPoint,
   agentDeprovisionEndPoint: AuthDecorator.checkFogToken(agentDeprovisionEndPoint),
   getAgentConfigEndPoint: AuthDecorator.checkFogToken(getAgentConfigEndPoint),
   updateAgentConfigEndPoint: AuthDecorator.checkFogToken(updateAgentConfigEndPoint),
+  updateAgentGpsEndPoint: AuthDecorator.checkFogToken(updateAgentGpsEndPoint),
   getAgentConfigChangesEndPoint: AuthDecorator.checkFogToken(getAgentConfigChangesEndPoint),
   updateAgentStatusEndPoint: AuthDecorator.checkFogToken(updateAgentStatusEndPoint),
   getAgentMicroservicesEndPoint: AuthDecorator.checkFogToken(getAgentMicroservicesEndPoint),
@@ -130,5 +149,8 @@ module.exports = {
   getImageSnapshotEndPoint: AuthDecorator.checkFogToken(getImageSnapshotEndPoint),
   putImageSnapshotEndPoint: AuthDecorator.checkFogToken(putImageSnapshotEndPoint),
   resetAgentConfigChangesEndPoint: AuthDecorator.checkFogToken(resetAgentConfigChangesEndPoint),
-  getAgentLinkedEdgeResourcesEndpoint: AuthDecorator.checkFogToken(getAgentLinkedEdgeResourcesEndpoint)
+  getAgentLinkedEdgeResourcesEndpoint: AuthDecorator.checkFogToken(getAgentLinkedEdgeResourcesEndpoint),
+  getAgentLinkedVolumeMountsEndpoint: AuthDecorator.checkFogToken(getAgentLinkedVolumeMountsEndpoint),
+  getControllerCAEndPoint: AuthDecorator.checkFogToken(getControllerCAEndPoint),
+  getAgentLogSessionsEndPoint: AuthDecorator.checkFogToken(getAgentLogSessionsEndPoint)
 }

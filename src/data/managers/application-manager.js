@@ -1,6 +1,6 @@
 /*
  * *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Datasance Teknoloji A.S.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -15,8 +15,6 @@ const BaseManager = require('./base-manager')
 const models = require('../models')
 const Application = models.Application
 const Microservice = models.Microservice
-const Routing = models.Routing
-const flatMap = require('lodash/flatMap')
 
 class ApplicationManager extends BaseManager {
   getEntity () {
@@ -41,32 +39,6 @@ class ApplicationManager extends BaseManager {
     return application.microservices || []
   }
 
-  async findApplicationRoutes (where, transaction) {
-    const application = await Application.findOne({
-      include: [
-        {
-          model: Microservice,
-          as: 'microservices',
-          required: false,
-          include: [
-            {
-              model: Routing,
-              as: 'routes',
-              required: false,
-              attributes: ['name']
-            }
-          ]
-        }
-      ],
-      where: where,
-      attributes: ['id']
-    }, { transaction: transaction })
-    if (!application) {
-      return undefined
-    }
-    return flatMap(application.microservices || [], m => m.routes).map(r => r.get({ plain: true }))
-  }
-
   async findAllWithAttributes (where, attributes, transaction) {
     return Application.findAll({
       where: where,
@@ -88,22 +60,7 @@ class ApplicationManager extends BaseManager {
         {
           model: Microservice,
           as: 'microservices',
-          required: false,
-          include: [
-            {
-              model: Routing,
-              as: 'routes',
-              required: false,
-              include: [
-                {
-                  model: Microservice,
-                  as: 'destMicroservice',
-                  attributes: ['name']
-                }
-              ],
-              attributes: ['name']
-            }
-          ]
+          required: false
         }
       ],
       where,
@@ -113,21 +70,9 @@ class ApplicationManager extends BaseManager {
       return null
     }
     const msvcs = application.microservices || []
-    const routes = flatMap(msvcs, m => m.routes.map(r => {
-      const route = r.get({ plain: true })
-      return {
-        name: route.name,
-        from: m.name,
-        to: route.destMicroservice.name
-      }
-    }))
     return {
       ...application.get({ plain: true }),
-      microservices: msvcs.map(m => {
-        delete m.routes
-        return m
-      }),
-      routes
+      microservices: msvcs.map(m => m.get({ plain: true }))
     }
   }
 
@@ -137,47 +82,16 @@ class ApplicationManager extends BaseManager {
         {
           model: Microservice,
           as: 'microservices',
-          required: false,
-          include: [
-            {
-              model: Routing,
-              as: 'routes',
-              required: false,
-              include: [
-                {
-                  model: Microservice,
-                  as: 'destMicroservice',
-                  attributes: ['name']
-                }
-              ],
-              attributes: ['name']
-            }
-          ]
+          required: false
         }
       ],
       where,
       attributes
     }, { transaction: transaction })
-    return applications.map(application => {
-      const msvcs = application.microservices || []
-      const routes = flatMap(msvcs, m => m.routes.map(r => {
-        const route = r.get({ plain: true })
-        return {
-          name: route.name,
-          from: m.name,
-          to: route.destMicroservice.name
-        }
-      }))
-      return {
-        ...application.get({ plain: true }),
-        microservices: msvcs.map(m => {
-          const msvc = m.get({ plain: true })
-          delete msvc.routes
-          return msvc
-        }),
-        routes
-      }
-    })
+    return applications.map(application => ({
+      ...application.get({ plain: true }),
+      microservices: (application.microservices || []).map(m => m.get({ plain: true }))
+    }))
   }
 }
 

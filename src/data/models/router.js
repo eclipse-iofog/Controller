@@ -17,7 +17,7 @@ module.exports = (sequelize, DataTypes) => {
     messagingPort: {
       type: DataTypes.INTEGER,
       field: 'messaging_port',
-      defaultValue: 5672
+      defaultValue: 5671
     },
     edgeRouterPort: {
       type: DataTypes.INTEGER,

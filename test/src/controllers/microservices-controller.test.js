@@ -32,9 +32,6 @@ describe('Microservices Controller', () => {
         publicMode: true,
       },
     ])
-    def('routes', () => [
-      'testAnotherUuid',
-    ])
 
     def('req', () => ({
       body: {
@@ -47,7 +44,6 @@ describe('Microservices Controller', () => {
         logSize: $logSize,
         volumeMappings: $volumeMappings,
         ports: $ports,
-        routes: $routes,
       },
     }))
 
@@ -70,7 +66,6 @@ describe('Microservices Controller', () => {
         logSize: $logSize,
         volumeMappings: $volumeMappings,
         ports: $ports,
-        routes: $routes,
       }, $user, false)
     })
 
@@ -275,86 +270,6 @@ describe('Microservices Controller', () => {
     })
 
     context('when MicroservicesService#listMicroservicesEndPoint succeeds', () => {
-      it(`succeeds`, () => {
-        return expect($subject).to.eventually.equal(undefined)
-      })
-    })
-  })
-
-  describe('.createMicroserviceRouteEndPoint()', () => {
-    def('user', () => 'user!')
-    def('uuid', () => 'testUuid')
-    def('receiverUuid', () => 'testReceiverUuid')
-
-    def('req', () => ({
-      params: {
-        uuid: $uuid,
-        receiverUuid: $receiverUuid,
-      },
-    }))
-    def('response', () => Promise.resolve())
-    def('subject', () => $subject.createMicroserviceRouteEndPoint($req, $user))
-
-    beforeEach(() => {
-      $sandbox.stub(MicroservicesService, 'createRouteEndPoint').returns($response)
-    })
-
-    it('calls MicroservicesService.createRouteEndPoint with correct args', async () => {
-      await $subject
-      expect(MicroservicesService.createRouteEndPoint).to.have.been.calledWith($uuid, $receiverUuid, $user, false)
-    })
-
-    context('when MicroservicesService#createRouteEndPoint fails', () => {
-      const error = 'Error!'
-
-      def('response', () => Promise.reject(error))
-
-      it(`fails with "${error}"`, () => {
-        return expect($subject).to.be.rejectedWith(error)
-      })
-    })
-
-    context('when MicroservicesService#createRouteEndPoint succeeds', () => {
-      it(`succeeds`, () => {
-        return expect($subject).to.eventually.equal(undefined)
-      })
-    })
-  })
-
-  describe('deleteMicroserviceRouteEndPoint()', () => {
-    def('user', () => 'user!')
-    def('uuid', () => 'testUuid')
-    def('receiverUuid', () => 'testReceiverUuid')
-
-    def('req', () => ({
-      params: {
-        uuid: $uuid,
-        receiverUuid: $receiverUuid,
-      },
-    }))
-    def('response', () => Promise.resolve())
-    def('subject', () => $subject.deleteMicroserviceRouteEndPoint($req, $user))
-
-    beforeEach(() => {
-      $sandbox.stub(MicroservicesService, 'deleteRouteEndPoint').returns($response)
-    })
-
-    it('calls MicroservicesService.deleteRouteEndPoint with correct args', async () => {
-      await $subject
-      expect(MicroservicesService.deleteRouteEndPoint).to.have.been.calledWith($uuid, $receiverUuid, $user, false)
-    })
-
-    context('when MicroservicesService#deleteRouteEndPoint fails', () => {
-      const error = 'Error!'
-
-      def('response', () => Promise.reject(error))
-
-      it(`fails with "${error}"`, () => {
-        return expect($subject).to.be.rejectedWith(error)
-      })
-    })
-
-    context('when MicroservicesService#deleteRouteEndPoint succeeds', () => {
       it(`succeeds`, () => {
         return expect($subject).to.eventually.equal(undefined)
       })

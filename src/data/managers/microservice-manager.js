@@ -1,6 +1,6 @@
 /*
  * *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Datasance Teknoloji A.S.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -18,16 +18,20 @@ const MicroservicePort = models.MicroservicePort
 const MicroserviceEnv = models.MicroserviceEnv
 const MicroserviceExtraHost = models.MicroserviceExtraHost
 const MicroserviceArg = models.MicroserviceArg
+const MicroserviceCdiDev = models.MicroserviceCdiDev
+const MicroserviceCapAdd = models.MicroserviceCapAdd
+const MicroserviceCapDrop = models.MicroserviceCapDrop
 const VolumeMapping = models.VolumeMapping
 const StraceDiagnostics = models.StraceDiagnostics
 const CatalogItem = models.CatalogItem
 const CatalogItemImage = models.CatalogItemImage
 const Fog = models.Fog
 const Application = models.Application
-const User = models.User
-const Routing = models.Routing
 const Registry = models.Registry
 const MicroserviceStatus = models.MicroserviceStatus
+const MicroserviceExecStatus = models.MicroserviceExecStatus
+const MicroserviceHealthCheck = models.MicroserviceHealthCheck
+const RbacServiceAccount = models.RbacServiceAccount
 const Op = require('sequelize').Op
 
 const microserviceExcludedFields = [
@@ -35,7 +39,6 @@ const microserviceExcludedFields = [
   'created_at',
   'updated_at',
   'updatedBy',
-  'isNetwork',
   'rebuild',
   'deleteWithCleanUp',
   'imageSnapshot',
@@ -67,6 +70,24 @@ class MicroserviceManager extends BaseManager {
           as: 'cmd',
           required: false,
           attributes: ['cmd']
+        },
+        {
+          model: MicroserviceCdiDev,
+          as: 'cdiDevices',
+          required: false,
+          attributes: ['cdiDevices']
+        },
+        {
+          model: MicroserviceCapAdd,
+          as: 'capAdd',
+          required: false,
+          attributes: ['capAdd']
+        },
+        {
+          model: MicroserviceCapDrop,
+          as: 'capDrop',
+          required: false,
+          attributes: ['capDrop']
         },
         {
           model: MicroservicePort,
@@ -116,17 +137,15 @@ class MicroserviceManager extends BaseManager {
           attributes: ['daemonStatus']
         },
         {
-          model: Routing,
-          as: 'routes',
+          model: MicroserviceHealthCheck,
+          as: 'healthCheck',
           required: false,
-          include: [{
-            model: Microservice,
-            as: 'destMicroservice',
-            attributes: ['uuid']
-          }],
-          attributes: { exclude: ['id', 'source_microservice_uuid',
-            'sourceMicroserviceUuid', 'destMicroserviceUuid', 'sourceNetworkMicroserviceUuid',
-            'destNetworkMicroserviceUuid', 'sourceIofogUuid', 'destIofogUuid'] }
+          attributes: ['test', 'interval', 'timeout', 'startPeriod', 'startInterval', 'retries']
+        },
+        {
+          model: RbacServiceAccount,
+          as: 'serviceAccount',
+          required: false
         }
       ],
       where: where,
@@ -153,6 +172,24 @@ class MicroserviceManager extends BaseManager {
           as: 'cmd',
           required: false,
           attributes: ['cmd', 'id']
+        },
+        {
+          model: MicroserviceCdiDev,
+          as: 'cdiDevices',
+          required: false,
+          attributes: ['cdiDevices']
+        },
+        {
+          model: MicroserviceCapAdd,
+          as: 'capAdd',
+          required: false,
+          attributes: ['capAdd']
+        },
+        {
+          model: MicroserviceCapDrop,
+          as: 'capDrop',
+          required: false,
+          attributes: ['capDrop']
         },
         {
           model: MicroservicePort,
@@ -203,6 +240,17 @@ class MicroserviceManager extends BaseManager {
           as: 'application',
           required: false,
           attributes: ['isActivated']
+        },
+        {
+          model: MicroserviceHealthCheck,
+          as: 'healthCheck',
+          required: false,
+          attributes: ['test', 'interval', 'timeout', 'startPeriod', 'startInterval', 'retries']
+        },
+        {
+          model: RbacServiceAccount,
+          as: 'serviceAccount',
+          required: false
         }
       ],
       where: {
@@ -210,7 +258,10 @@ class MicroserviceManager extends BaseManager {
         [Op.or]:
           [
             {
-              '$application.is_activated$': true
+              [Op.and]: [
+                { '$application.is_activated$': true },
+                { isActivated: true }
+              ]
             },
             {
               '$catalogItem.category$': { [Op.eq]: 'SYSTEM' },
@@ -241,6 +292,24 @@ class MicroserviceManager extends BaseManager {
           as: 'cmd',
           required: false,
           attributes: ['cmd']
+        },
+        {
+          model: MicroserviceCdiDev,
+          as: 'cdiDevices',
+          required: false,
+          attributes: ['cdiDevices']
+        },
+        {
+          model: MicroserviceCapAdd,
+          as: 'capAdd',
+          required: false,
+          attributes: ['capAdd']
+        },
+        {
+          model: MicroserviceCapDrop,
+          as: 'capDrop',
+          required: false,
+          attributes: ['capDrop']
         },
         {
           model: MicroservicePort,
@@ -290,18 +359,15 @@ class MicroserviceManager extends BaseManager {
           attributes: ['daemonStatus']
         },
         {
-          model: Routing,
-          as: 'routes',
+          model: MicroserviceHealthCheck,
+          as: 'healthCheck',
           required: false,
-          include: [{
-            model: Microservice,
-            as: 'destMicroservice',
-            attributes: ['uuid']
-          }],
-          attributes: { exclude: ['id',
-            'sourceMicroserviceUuid', 'destMicroserviceUuid',
-            'sourceNetworkMicroserviceUuid', 'destNetworkMicroserviceUuid',
-            'sourceIofogUuid', 'destIofogUuid'] }
+          attributes: ['test', 'interval', 'timeout', 'startPeriod', 'startInterval', 'retries']
+        },
+        {
+          model: RbacServiceAccount,
+          as: 'serviceAccount',
+          required: false
         }
       ],
       where: where,
@@ -334,6 +400,11 @@ class MicroserviceManager extends BaseManager {
           model: MicroserviceStatus,
           as: 'microserviceStatus',
           required: false
+        },
+        {
+          model: MicroserviceExecStatus,
+          as: 'microserviceExecStatus',
+          required: false
         }
       ],
       where: where
@@ -347,14 +418,9 @@ class MicroserviceManager extends BaseManager {
           model: Application,
           as: 'application',
           required: true,
-          include: [
-            {
-              model: User,
-              as: 'user',
-              required: true,
-              attributes: ['id']
-            }
-          ],
+          where: {
+            isSystem: false
+          },
           attributes: ['id']
         }
       ],
@@ -362,26 +428,83 @@ class MicroserviceManager extends BaseManager {
       attributes: ['uuid']
     }, { transaction: transaction })
   }
-
+  findSystemMicroserviceOnGet (where, transaction) {
+    return Microservice.findOne({
+      include: [
+        {
+          model: Application,
+          as: 'application',
+          required: true,
+          where: {
+            isSystem: true
+          },
+          attributes: ['id']
+        }
+      ],
+      where: where,
+      attributes: ['uuid']
+    }, { transaction: transaction })
+  }
   async findOneExcludeFields (where, transaction) {
     return Microservice.findOne({
+      include: [
+        {
+          model: RbacServiceAccount,
+          as: 'serviceAccount',
+          required: false
+        }
+      ],
       where: where,
       attributes: {
         exclude: microserviceExcludedFields
-      } }, {
-      transaction: transaction
-    })
+      }
+    }, { transaction: transaction })
   }
 
   async findAllExcludeFields (where, transaction) {
     return Microservice.findAll({
+      include: [
+        {
+          model: Application,
+          as: 'application',
+          required: true,
+          where: { isSystem: false }
+        },
+        {
+          model: RbacServiceAccount,
+          as: 'serviceAccount',
+          required: false
+        }
+      ],
       where: where,
-      order: [ [ 'name', 'ASC' ] ],
+      order: [['name', 'ASC']],
       attributes: {
         exclude: microserviceExcludedFields
-      } }, {
-      transaction: transaction
-    })
+      }
+    }, { transaction: transaction })
+  }
+
+  async findAllSystemExcludeFields (where, transaction) {
+    return Microservice.findAll({
+      include: [
+        {
+          model: Application,
+          as: 'application',
+          required: true,
+          where: { isSystem: true }
+        },
+        {
+          model: RbacServiceAccount,
+          as: 'serviceAccount',
+          required: false
+        }
+      ],
+      where: where,
+      order: [['name', 'ASC']],
+      attributes: {
+        exclude: microserviceExcludedFields
+      }
+    }, { transaction: transaction })
   }
 
   findOneWithCategory (where, transaction) {

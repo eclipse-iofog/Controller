@@ -1,0 +1,14 @@
+{
+    "realm": "datasance",
+    "realm-public-key": "",
+    "auth-server-url": "",
+    "ssl-required": "",
+    "resource": "pot-controller",
+    "bearer-only":true,
+    "verify-token-audience": true,
+    "credentials": {
+        "secret": ""
+    },
+    "use-resource-role-mappings": true,
+    "confidential-port": 0
+}

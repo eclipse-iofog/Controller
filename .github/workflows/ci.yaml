@@ -1,100 +1,93 @@
 name: CI
 on:
-  push: 
+  push:
     branches:
-      - develop
-      - release*
+      - main
     tags: [v*]
     paths-ignore:
       - README.md
       - CHANGELOG.md
       - LICENSE
   pull_request:
-  # Sequence of patterns matched against refs/heads
-    branches:    
-      - develop
-      - release*
+    # Sequence of patterns matched against refs/heads
+    branches:
+      - main
     paths-ignore:
       - README.md
       - CHANGELOG.md
       - LICENSE
-
 env:
-  project: 'focal-freedom-236620'
-  image: 'controller'
+  IMAGE_NAME: 'controller'
+
 
 
 jobs:
   Build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04  
     permissions:
-      contents: 'read'
-      id-token: 'write'
-      packages: 'write'
+      actions: write
+      checks: write
+      contents: write
+      deployments: write
+      id-token: write
+      issues: write
+      discussions: write
+      packages: write
+      pages: write
+      pull-requests: write
+      repository-projects: write
+      security-events: write
+      statuses: write
     name: Preflight
     steps:
-    - uses: actions/checkout@v3
-    - uses: actions/setup-node@v3
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
       with:
-        node-version: 18
-    - run: npm ci
+        node-version: 24
+    - name: Replace values
+      shell: bash
+      env: 
+          PAT: ${{ secrets.PAT }}
+      run: |
+        sed -i.back "s|PAT|${PAT}|g" .npmrc
+    - run: npm config set @datasance:registry https://npm.pkg.github.com/    
+    - run: npm install --build-from-source --force
     - run: npm run standard
     - run: |
         npm i -g better-npm-audit
         npx better-npm-audit audit -p
 
-  Tests:
-    needs: Build
-    runs-on: ubuntu-latest
-    permissions:
-      contents: 'read'
-      id-token: 'write'
-      packages: 'write'
-      issues: read
-      checks: write
-      pull-requests: write
-    strategy:
-      matrix:
-        node: [ 16, 17, 16, 19 ]
-    name: Node ${{ matrix.node }} Test
-    steps:
-    - uses: actions/checkout@v3
-    - name: Setup Node ${{ matrix.node }} Test
-      uses: actions/setup-node@v3
-      with:
-        node-version: ${{ matrix.node }}
-    - name: Cache Node Modules
-      uses: actions/cache@v3
-      with:
-        path: |
-          node_modules
-        key: ${{ runner.os }}-controller-node_modules-${{ hashFiles('package-lock.json') }}
-        restore-keys: |
-          ${{ runner.os }}-controller-node_modules-
-    - run: npm ci
-    - run: npm run test -- junit
-    - run: npm run postman_test
-    - name: Publish Test Results
-      uses: EnricoMi/publish-unit-test-result-action@v2
-      if: always()
-      with:
-        files: |
-          *-results.xml
-
   Publish:
-    needs: [Build, Tests]
-    runs-on: ubuntu-latest
+    needs: [Build]
+    runs-on: ubuntu-22.04
     permissions:
-      contents: 'read'
-      id-token: 'write'
-      packages: 'write'
+      actions: write
+      checks: write
+      contents: write
+      deployments: write
+      id-token: write
+      issues: write
+      discussions: write
+      packages: write
+      pages: write
+      pull-requests: write
+      repository-projects: write
+      security-events: write
+      statuses: write 
     name: Publish Controller
     steps:
-    - uses: actions/checkout@v3
-    - uses: actions/setup-node@v3
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
       with:
-        node-version: 18
-    - run: npm ci
+        node-version: 24
+    - name: Replace values
+      shell: bash
+      env: 
+          PAT: ${{ secrets.PAT }}
+      run: |
+        sed -i.back "s|PAT|${PAT}|g" .npmrc
+    - run: npm config set @datasance:registry https://npm.pkg.github.com/ 
+    - run: npm install --build-from-source --force
 
     - name: npm version
       id: package-version
@@ -112,47 +105,52 @@ jobs:
 
     - name: npm pack with version from package version
       run: |
-        npm --no-git-tag-version version ${{ steps.version.outputs.pkg_version }}
         npm pack
+        npm publish --registry=https://npm.pkg.github.com/
+
+    - name: 'Get Previous tag'
+      id: previoustag
+      uses: "WyriHaximus/github-action-get-previous-tag@v1"
+      with:
+        fallback: 0.0.0
+    - name: Set image tag
+      shell: bash
+      id: tags
+      run: |
+        if [[ ${{ github.ref_name }} =~ ^v.* ]] ; then
+          VERSION=${{ github.ref_name }}
+          echo "VERSION=${VERSION:1}" >> "${GITHUB_OUTPUT}"
+        else
+            VERSION=${{ steps.previoustag.outputs.tag }}
+            echo "VERSION=${VERSION:1}-${{ github.run_number }}" >> "${GITHUB_OUTPUT}"
+        fi
+
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      with:
+        version: v0.29.1      
+
 
     - name: Login to Github Container Registry
       uses: docker/login-action@v2
       with:
         registry: "ghcr.io"
         username: ${{ github.actor }}
-        password: ${{ github.token }}
-
+        password: ${{ secrets.PAT }}
+        
     - name: Build and Push to ghcr
       uses: docker/build-push-action@v3
       id: build_push_ghcr
       with:
-        file: Dockerfile.dev
+        file: Dockerfile
+        context: .
+        platforms: linux/amd64, linux/arm64 
         push: true
+        outputs: type=image,name=target,annotation-index.org.opencontainers.image.description=Controller
+        build-args: GITHUB_TOKEN=${{ secrets.PAT }}
         tags: |
-          ghcr.io/eclipse-iofog/controller:${{ steps.version.outputs.pkg_version }}
-          ghcr.io/eclipse-iofog/controller:latest
-        build-args: PKG_VERSION=${{ steps.version.outputs.pkg_version }}
-
-    - name: Build and Push to GCR
-      id: build_push_gcr
-      uses: RafikFarhad/push-to-gcr-github-action@v5-beta
-      with:
-        gcloud_service_key: ${{ secrets.GCLOUD_SERVICE_KEY }}
-        registry: gcr.io
-        project_id: ${{ env.project }}
-        image_name: ${{ env.image }}
-        image_tag: latest,${{ steps.version.outputs.pkg_version }}
-        dockerfile: Dockerfile.dev
-        build_args: PKG_VERSION=${{ steps.version.outputs.pkg_version }}
-
-    - run: ls
-
-    - name: Publish package to packagecloud
-      if: ${{ steps.build_push_gcr.outcome }} == 'success'
-      uses: danielmundi/upload-packagecloud@v1
-      with:
-        PACKAGE-NAME: iofog-iofogcontroller-${{ steps.version.outputs.pkg_version }}.tgz
-        PACKAGECLOUD-USERNAME: iofog
-        PACKAGECLOUD-REPO: iofog-controller-snapshots
-        PACKAGECLOUD-DISTRIB: node
-        PACKAGECLOUD-TOKEN: ${{ secrets.packagecloud_token }}
+          ghcr.io/datasance/${{ env.IMAGE_NAME }}:${{ steps.tags.outputs.VERSION }}
+          ghcr.io/datasance/${{ env.IMAGE_NAME }}:latest
+          ghcr.io/datasance/${{ env.IMAGE_NAME }}:main

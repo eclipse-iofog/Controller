@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Datasance Teknoloji A.S.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -15,6 +15,7 @@ const ApplicationTemplateController = require('../controllers/application-templa
 const ResponseDecorator = require('../decorators/response-decorator')
 const Errors = require('../helpers/errors')
 const logger = require('../logger')
+const rbacMiddleware = require('../lib/rbac/middleware')
 
 module.exports = [
   {
@@ -32,13 +33,17 @@ module.exports = [
       ]
 
       const getApplicationTemplatesByUserEndPoint = ResponseDecorator.handleErrors(ApplicationTemplateController.getApplicationTemplatesByUserEndPoint, successCode, errorCodes)
-      const responseObject = await getApplicationTemplatesByUserEndPoint(req)
 
-      res
-        .status(responseObject.code)
-        .send(responseObject.body)
+      // Add rbacMiddleware.protect middleware to protect the route
+      await rbacMiddleware.protect()(req, res, async () => {
+        const responseObject = await getApplicationTemplatesByUserEndPoint(req)
+        const user = req.kauth && req.kauth.grant && req.kauth.grant.access_token ? req.kauth.grant.access_token.content.preferred_username : 'system'
+        res
+          .status(responseObject.code)
+          .send(responseObject.body)
 
-      logger.apiRes({ req: req, res: responseObject })
+        logger.apiRes({ req: req, user: user, res: res, responseObject: responseObject })
+      })
     }
   },
   {
@@ -60,13 +65,17 @@ module.exports = [
       ]
 
       const createApplicationTemplateEndPoint = ResponseDecorator.handleErrors(ApplicationTemplateController.createApplicationTemplateEndPoint, successCode, errorCodes)
-      const responseObject = await createApplicationTemplateEndPoint(req)
 
-      res
-        .status(responseObject.code)
-        .send(responseObject.body)
+      // Add rbacMiddleware.protect middleware to protect the route
+      await rbacMiddleware.protect()(req, res, async () => {
+        const responseObject = await createApplicationTemplateEndPoint(req)
+        const user = req.kauth && req.kauth.grant && req.kauth.grant.access_token ? req.kauth.grant.access_token.content.preferred_username : 'system'
+        res
+          .status(responseObject.code)
+          .send(responseObject.body)
 
-      logger.apiRes({ req: req, res: responseObject })
+        logger.apiRes({ req: req, user: user, res: res, responseObject: responseObject })
+      })
     }
   },
   {
@@ -89,13 +98,17 @@ module.exports = [
       ]
 
       const createApplicationTemplateEndPoint = ResponseDecorator.handleErrors(ApplicationTemplateController.createApplicationTemplateYAMLEndPoint, successCode, errorCodes)
-      const responseObject = await createApplicationTemplateEndPoint(req)
 
-      res
-        .status(responseObject.code)
-        .send(responseObject.body)
+      // Add rbacMiddleware.protect middleware to protect the route
+      await rbacMiddleware.protect()(req, res, async () => {
+        const responseObject = await createApplicationTemplateEndPoint(req)
+        const user = req.kauth && req.kauth.grant && req.kauth.grant.access_token ? req.kauth.grant.access_token.content.preferred_username : 'system'
+        res
+          .status(responseObject.code)
+          .send(responseObject.body)
 
-      logger.apiRes({ req: req, res: responseObject })
+        logger.apiRes({ req: req, user: user, res: res, responseObject: responseObject })
+      })
     }
   },
   {
@@ -117,13 +130,17 @@ module.exports = [
       ]
 
       const getApplicationTemplateEndPoint = ResponseDecorator.handleErrors(ApplicationTemplateController.getApplicationTemplateEndPoint, successCode, errorCodes)
-      const responseObject = await getApplicationTemplateEndPoint(req)
 
-      res
-        .status(responseObject.code)
-        .send(responseObject.body)
+      // Add rbacMiddleware.protect middleware to protect the route
+      await rbacMiddleware.protect()(req, res, async () => {
+        const responseObject = await getApplicationTemplateEndPoint(req)
+        const user = req.kauth && req.kauth.grant && req.kauth.grant.access_token ? req.kauth.grant.access_token.content.preferred_username : 'system'
+        res
+          .status(responseObject.code)
+          .send(responseObject.body)
 
-      logger.apiRes({ req: req, res: responseObject })
+        logger.apiRes({ req: req, user: user, res: res, responseObject: responseObject })
+      })
     }
   },
   {
@@ -149,13 +166,17 @@ module.exports = [
       ]
 
       const patchApplicationTemplateEndPoint = ResponseDecorator.handleErrors(ApplicationTemplateController.patchApplicationTemplateEndPoint, successCode, errorCodes)
-      const responseObject = await patchApplicationTemplateEndPoint(req)
 
-      res
-        .status(responseObject.code)
-        .send(responseObject.body)
+      // Add rbacMiddleware.protect middleware to protect the route
+      await rbacMiddleware.protect()(req, res, async () => {
+        const responseObject = await patchApplicationTemplateEndPoint(req)
+        const user = req.kauth && req.kauth.grant && req.kauth.grant.access_token ? req.kauth.grant.access_token.content.preferred_username : 'system'
+        res
+          .status(responseObject.code)
+          .send(responseObject.body)
 
-      logger.apiRes({ req: req, res: responseObject })
+        logger.apiRes({ req: req, user: user, res: res, responseObject: responseObject })
+      })
     }
   },
   {
@@ -182,13 +203,17 @@ module.exports = [
       ]
 
       const updateApplicationTemplateEndPoint = ResponseDecorator.handleErrors(ApplicationTemplateController.updateApplicationTemplateYAMLEndPoint, successCode, errorCodes)
-      const responseObject = await updateApplicationTemplateEndPoint(req)
 
-      res
-        .status(responseObject.code)
-        .send(responseObject.body)
+      // Add rbacMiddleware.protect middleware to protect the route
+      await rbacMiddleware.protect()(req, res, async () => {
+        const responseObject = await updateApplicationTemplateEndPoint(req)
+        const user = req.kauth && req.kauth.grant && req.kauth.grant.access_token ? req.kauth.grant.access_token.content.preferred_username : 'system'
+        res
+          .status(responseObject.code)
+          .send(responseObject.body)
 
-      logger.apiRes({ req: req, res: responseObject })
+        logger.apiRes({ req: req, user: user, res: res, responseObject: responseObject })
+      })
     }
   },
   {
@@ -214,13 +239,17 @@ module.exports = [
       ]
 
       const updateApplicationTemplateEndPoint = ResponseDecorator.handleErrors(ApplicationTemplateController.updateApplicationTemplateEndPoint, successCode, errorCodes)
-      const responseObject = await updateApplicationTemplateEndPoint(req)
 
-      res
-        .status(responseObject.code)
-        .send(responseObject.body)
+      // Add rbacMiddleware.protect middleware to protect the route
+      await rbacMiddleware.protect()(req, res, async () => {
+        const responseObject = await updateApplicationTemplateEndPoint(req)
+        const user = req.kauth && req.kauth.grant && req.kauth.grant.access_token ? req.kauth.grant.access_token.content.preferred_username : 'system'
+        res
+          .status(responseObject.code)
+          .send(responseObject.body)
 
-      logger.apiRes({ req: req, res: responseObject })
+        logger.apiRes({ req: req, user: user, res: res, responseObject: responseObject })
+      })
     }
   },
   {
@@ -242,13 +271,17 @@ module.exports = [
       ]
 
       const deleteApplicationTemplateEndPoint = ResponseDecorator.handleErrors(ApplicationTemplateController.deleteApplicationTemplateEndPoint, successCode, errorCodes)
-      const responseObject = await deleteApplicationTemplateEndPoint(req)
 
-      res
-        .status(responseObject.code)
-        .send(responseObject.body)
+      // Add rbacMiddleware.protect middleware to protect the route
+      await rbacMiddleware.protect()(req, res, async () => {
+        const responseObject = await deleteApplicationTemplateEndPoint(req)
+        const user = req.kauth.grant.access_token.content.preferred_username
+        res
+          .status(responseObject.code)
+          .send(responseObject.body)
 
-      logger.apiRes({ req: req, res: responseObject })
+        logger.apiRes({ req: req, user: user, res: res, responseObject: responseObject })
+      })
     }
   }
 ]

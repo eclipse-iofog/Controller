@@ -9,8 +9,12 @@ node_modules
 *.pid
 /src/data/providers/*
 !/src/data/providers/sqlite.js
+!/src/data/providers/mysql.js
+!/src/data/providers/postgres.js
 !/src/data/providers/database-*.js
 /src/config/*-config.json
 .DS_Store
 iofogcontroller-*.tgz
 iofog-iofogcontroller-*.tgz
+.env
+src/iofog-controller.pid

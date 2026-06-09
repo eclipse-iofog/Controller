@@ -1,6 +1,7 @@
 /* eslint-disable no-useless-escape */
 module.exports = {
   nameRegex: '^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$',
+  serviceNameRegex: '^[a-z0-9]([a-z0-9-]*[a-z0-9])?$',
   // Supports hex, rgb, and rgba
   colorRegex: '^(#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{8}))|(rgb\(\s*(?:(\d{1,3})\s*,?){3}\))|(rgba\(\s*(?:(\d{1,3})\s*,?){4}\))|$',
   // https://semver.org/#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string
