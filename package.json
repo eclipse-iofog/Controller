@@ -1,6 +1,6 @@
 {
   "name": "@datasance/iofogcontroller",
-  "version": "3.7.3",
+  "version": "3.7.4",
   "description": "ioFog Controller project for Datasance PoT @ datasance.com \\nCopyright (c) 2023 Datasance Teknoloji A.S.",
   "main": "./src/main.js",
   "author": "Emirhan Durmus",
@@ -60,8 +60,8 @@
     "iofog-controller": "src/main.js"
   },
   "dependencies": {
-    "@aws-sdk/client-secrets-manager": "^3.1015.0",
-    "@azure/identity": "^4.13.0",
+    "@aws-sdk/client-secrets-manager": "^3.1042.0",
+    "@azure/identity": "^4.13.1",
     "@azure/keyvault-secrets": "^4.10.0",
     "@datasance/ecn-viewer": "1.4.4",
     "@google-cloud/secret-manager": "^6.1.1",
@@ -69,13 +69,13 @@
     "@msgpack/msgpack": "^3.1.2",
     "@nats-io/jwt": "^0.0.10-5",
     "@nats-io/nkeys": "^2.0.3",
-    "@opentelemetry/api": "^1.9.0",
-    "@opentelemetry/exporter-trace-otlp-http": "^0.200.0",
-    "@opentelemetry/instrumentation-express": "^0.48.1",
-    "@opentelemetry/instrumentation-http": "^0.200.0",
+    "@opentelemetry/api": "^1.9.1",
+    "@opentelemetry/exporter-trace-otlp-http": "^0.218.0",
+    "@opentelemetry/instrumentation-express": "^0.66.0",
+    "@opentelemetry/instrumentation-http": "^0.218.0",
     "@opentelemetry/resources": "^1.8.0",
-    "@opentelemetry/sdk-node": "^0.200.0",
-    "axios": "1.15.0",
+    "@opentelemetry/sdk-node": "^0.218.0",
+    "axios": "1.17.0",
     "bignumber.js": "^9.3.0",
     "body-parser": "^1.20.4",
     "command-line-args": "5.2.1",
@@ -86,8 +86,8 @@
     "daemonize2": "0.4.2",
     "dotenv": "^16.5.0",
     "ejs": "3.1.10",
-    "express": "4.22.1",
-    "express-session": "1.18.2",
+    "express": "4.22.2",
+    "express-session": "1.19.0",
     "formidable": "3.5.4",
     "ftp": "0.3.10",
     "helmet": "7.1.0",
@@ -106,13 +106,12 @@
     "pino": "9.13.1",
     "pino-std-serializers": "7.0.0",
     "portscanner": "2.2.0",
-    "sqlite3": "^5.1.7",
-    "qs": "6.14.2",
+    "sqlite3": "^6.0.1",
+    "qs": "6.15.2",
     "rhea": "^3.0.4",
     "sequelize": "6.37.8",
     "string-format": "2.0.0",
-    "uuid": "11.1.0",
-    "ws": "^8.18.0",
+    "ws": "^8.21.0",
     "xss-clean": "0.1.1"
   },
   "devDependencies": {
@@ -146,23 +145,14 @@
   ],
   "type": "commonjs",
   "overrides": {
-    "sequelize": {
-      "validator": "^13.15.22"
-    },
-    "express": {
-      "path-to-regexp": "0.1.13"
-    },
-    "sqlite3": {
-      "prebuild-install": {
-        "tar-fs": "^2.1.4"
-      }
-    },
+    "protobufjs": "^7.6.1",
     "@tootallnate/once": "^3.0.1",
-    "basic-ftp": "^5.2.2",
+    "basic-ftp": "^5.3.1",
     "tar": "^7.5.10",
     "lodash": "^4.18.0",
     "bn.js": "^5.2.3",
     "minimatch": "10.2.5",
-    "dottie": "^2.0.7"
+    "dottie": "^2.0.7",
+    "ip-address": "^10.1.1"
   }
 }

@@ -13,7 +13,7 @@
 
 const crypto = require('crypto')
 const Errors = require('./errors')
-const { v4: uuidv4 } = require('uuid')
+// const { v4: uuidv4 } = require('uuid')
 
 const logger = require('../logger')
 const fs = require('fs')
@@ -62,7 +62,7 @@ function generateRandomString (size) {
 }
 
 function generateUUID () {
-  return uuidv4()
+  return crypto.randomUUID()
 }
 
 // Checks the status of a single port
