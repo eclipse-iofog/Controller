@@ -20,3 +20,7 @@ iofog-iofogcontroller-*.tgz
 .npmrc
 .env
 src/iofog-controller.pid
+mcp-controller-server/
+.cursor/
+examples/
+AGENTS.md
