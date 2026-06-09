@@ -116,7 +116,8 @@ const verifyJWT = async function (token, fogUuid, transaction) {
 
     // Verify the JWT using jose
     const { payload } = await jose.jwtVerify(token, publicKey, {
-      algorithms: ['EdDSA']
+      algorithms: ['EdDSA'],
+      clockTolerance: 10
     })
 
     // Check if JTI is already used

@@ -138,7 +138,7 @@ module.exports = {
       {
         apiGroups: ['agent.datasance.com/v3'],
         resources: ['log'],
-        verbs: ['post']
+        verbs: ['patch']
       },
       {
         apiGroups: ['agent.datasance.com/v3'],
