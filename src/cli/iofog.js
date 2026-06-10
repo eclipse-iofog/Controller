@@ -25,7 +25,7 @@ const JSON_SCHEMA = AppHelper.stringifyCliJsonSchema({
   latitude: 0,
   longitude: 0,
   description: 'string',
-  dockerUrl: 'string',
+  containerEngineUrl: 'string',
   diskLimit: 0,
   diskDirectory: 'string',
   memoryLimit: 0,
@@ -40,7 +40,7 @@ const JSON_SCHEMA = AppHelper.stringifyCliJsonSchema({
   watchdogEnabled: true,
   abstractedHardwareEnabled: false,
   archId: 0,
-  dockerPruningFrequency: 0,
+  pruningFrequency: 0,
   availableDiskThreshold: 0,
   logLevel: 'string',
   timeZone: 'string'
@@ -477,7 +477,7 @@ function _createFogObject (cliData) {
     latitude: cliData.latitude,
     longitude: cliData.longitude,
     description: cliData.description,
-    dockerUrl: cliData.dockerUrl,
+    containerEngineUrl: cliData.containerEngineUrl,
     diskLimit: cliData.diskLimit,
     diskDirectory: cliData.diskDirectory,
     memoryLimit: cliData.memoryLimit,
@@ -493,7 +493,7 @@ function _createFogObject (cliData) {
     abstractedHardwareEnabled: AppHelper.validateBooleanCliOptions(cliData.absHwEnable, cliData.absHwDisable),
 
     archId: cliData.archId,
-    dockerPruningFrequency: cliData.dockerPruningFrequency,
+    pruningFrequency: cliData.pruningFrequency,
     availableDiskThreshold: cliData.availableDiskThreshold,
     logLevel: cliData.logLevel,
     timeZone: cliData.timeZone

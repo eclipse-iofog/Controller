@@ -190,16 +190,16 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: 'dynamic',
       field: 'network_interface'
     },
-    dockerUrl: {
+    containerEngineUrl: {
       type: DataTypes.TEXT,
-      defaultValue: 'unix:///var/run/docker.sock',
+      defaultValue: 'unix:///run/edgelet/contaienrd.sock',
       field: 'docker_url'
     },
     containerEngine: {
-      type: DataTypes.ENUM('docker', 'podman'),
+      type: DataTypes.ENUM('edgelet', 'docker', 'podman'),
       allowNull: false,
       field: 'container_engine',
-      defaultValue: 'docker'
+      defaultValue: 'edgelet'
     },
     deploymentType: {
       type: DataTypes.ENUM('native', 'container'),
@@ -299,7 +299,7 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: 0,
       field: 'edge_guard_frequency'
     },
-    dockerPruningFrequency: {
+    pruningFrequency: {
       type: DataTypes.INTEGER,
       defaultValue: 0,
       field: 'docker_pruning_freq'

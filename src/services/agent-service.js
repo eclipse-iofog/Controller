@@ -150,7 +150,7 @@ const getAgentConfig = async function (fog, transaction) {
   }, transaction)
   const resp = {
     networkInterface: fogData.networkInterface,
-    containerEngineUrl: fogData.dockerUrl,
+    containerEngineUrl: fogData.containerEngineUrl,
     diskLimit: fogData.diskLimit,
     diskDirectory: fogData.diskDirectory,
     memoryLimit: fogData.memoryLimit,
@@ -170,7 +170,7 @@ const getAgentConfig = async function (fog, transaction) {
     longitude: fogData.longitude,
     logLevel: fogData.logLevel,
     availableDiskThreshold: fogData.availableDiskThreshold,
-    pruningFrequency: fogData.dockerPruningFrequency,
+    pruningFrequency: fogData.pruningFrequency,
     timeZone: fogData.timeZone
   }
   return resp
@@ -181,7 +181,7 @@ const updateAgentConfig = async function (updateData, fog, transaction) {
 
   let update = {
     networkInterface: updateData.networkInterface,
-    dockerUrl: updateData.containerEngineUrl,
+    containerEngineUrl: updateData.containerEngineUrl,
     diskLimit: updateData.diskLimit,
     diskDirectory: updateData.diskDirectory,
     memoryLimit: updateData.memoryLimit,
@@ -199,7 +199,7 @@ const updateAgentConfig = async function (updateData, fog, transaction) {
     gpsDevice: updateData.gpsDevice,
     gpsScanFrequency: updateData.gpsScanFrequency,
     edgeGuardFrequency: updateData.edgeGuardFrequency,
-    dockerPruningFrequency: updateData.pruningFrequency,
+    pruningFrequency: updateData.pruningFrequency,
     availableDiskThreshold: updateData.availableDiskThreshold,
     logLevel: updateData.logLevel,
     timeZone: updateData.timeZone

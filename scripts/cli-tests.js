@@ -107,11 +107,11 @@ function testIoFogSection () {
 
   try {
     const ioFogCreateResponse = responseHasFields(testCommand('iofog add -n ioFog1 -l testLocation -t 55 -g 65' +
-      ' -d testDescription -D testDockerUrl -M 55 -T testDiskDirectoryString -m 65 -c 24 -G 1 -Y testLogDirectory ' +
+      ' -d testDescription -D testcontainerEngineUrl -M 55 -T testDiskDirectoryString -m 65 -c 24 -G 1 -Y testLogDirectory ' +
       ' -s 25 -F 27 -Q 26 -B -W -A -y 1 -u '), ioFogCreateFields)
     const ioFogUuid = ioFogCreateResponse.uuid
     responseEquals(testCommand('iofog update -i ' + ioFogUuid + ' -n ioFog1 -l testLocation -t 55 -g 65 ' +
-      '-d testDescription -D testDockerUrl -M 55 -T testDiskDirectoryString -m 65 -c 24 -G 1 -Y testLogDirectory ' +
+      '-d testDescription -D testcontainerEngineUrl -M 55 -T testDiskDirectoryString -m 65 -c 24 -G 1 -Y testLogDirectory ' +
       ' -s 25 -F 27 -Q 26 -B -W -A -y 1 -L INFO -p 65 -k 95 -u '), 'ioFog node has been updated successfully.')
     responseHasFields(testCommand('iofog list'), ioFogListFields)
     responseHasFields(testCommand('iofog info -i ' + ioFogUuid), ioFogCreateFields)
@@ -193,7 +193,7 @@ function testMicroserviceSection () {
   const applicationId = applicationCreateResponse.name
 
   const ioFogCreateResponse = responseHasFields(executeCommand('iofog add -n ioFog2 -l testLocation -t 55 -g 65 ' +
-    '-d testDescription -D testDockerUrl -M 55 -T testDiskDirectoryString -m 65 -c 24 -G 1 -Y testLogDirectory ' +
+    '-d testDescription -D testcontainerEngineUrl -M 55 -T testDiskDirectoryString -m 65 -c 24 -G 1 -Y testLogDirectory ' +
     ' -s 25 -F 27 -Q 26 -B -W -A -y 1 -u '), ioFogCreateFields)
   const ioFogUuid = ioFogCreateResponse.uuid
 
