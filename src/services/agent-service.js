@@ -91,11 +91,16 @@ const agentProvision = async function (provisionData, transaction) {
   // Store the public key
   await FogKeyService.storePublicKey(fog.uuid, keyPair.publicKey, transaction)
 
+  const provisionUpdate = {
+    archId: provisionData.type
+  }
+  if (provisionData.engine) {
+    provisionUpdate.containerEngine = provisionData.engine
+  }
+
   await FogManager.update({
     uuid: fog.uuid
-  }, {
-    fogTypeId: provisionData.type
-  }, transaction)
+  }, provisionUpdate, transaction)
 
   await FogProvisionKeyManager.delete({
     provisionKey: provisionData.key
@@ -150,7 +155,7 @@ const getAgentConfig = async function (fog, transaction) {
   }, transaction)
   const resp = {
     networkInterface: fogData.networkInterface,
-    dockerUrl: fogData.dockerUrl,
+    containerEngineUrl: fogData.dockerUrl,
     diskLimit: fogData.diskLimit,
     diskDirectory: fogData.diskDirectory,
     memoryLimit: fogData.memoryLimit,
@@ -170,7 +175,7 @@ const getAgentConfig = async function (fog, transaction) {
     longitude: fogData.longitude,
     logLevel: fogData.logLevel,
     availableDiskThreshold: fogData.availableDiskThreshold,
-    dockerPruningFrequency: fogData.dockerPruningFrequency,
+    pruningFrequency: fogData.dockerPruningFrequency,
     timeZone: fogData.timeZone
   }
   return resp
@@ -181,7 +186,7 @@ const updateAgentConfig = async function (updateData, fog, transaction) {
 
   let update = {
     networkInterface: updateData.networkInterface,
-    dockerUrl: updateData.dockerUrl,
+    dockerUrl: updateData.containerEngineUrl,
     diskLimit: updateData.diskLimit,
     diskDirectory: updateData.diskDirectory,
     memoryLimit: updateData.memoryLimit,
@@ -199,7 +204,7 @@ const updateAgentConfig = async function (updateData, fog, transaction) {
     gpsDevice: updateData.gpsDevice,
     gpsScanFrequency: updateData.gpsScanFrequency,
     edgeGuardFrequency: updateData.edgeGuardFrequency,
-    dockerPruningFrequency: updateData.dockerPruningFrequency,
+    dockerPruningFrequency: updateData.pruningFrequency,
     availableDiskThreshold: updateData.availableDiskThreshold,
     logLevel: updateData.logLevel,
     timeZone: updateData.timeZone
@@ -268,9 +273,9 @@ const updateAgentStatus = async function (agentStatus, fog, transaction) {
     lastStatusTime: agentStatus.lastStatusTime,
     ipAddress: agentStatus.ipAddress,
     ipAddressExternal: agentStatus.ipAddressExternal,
-    processedMessages: agentStatus.processedMessages,
-    microserviceMessageCounts: agentStatus.microserviceMessageCounts,
-    messageSpeed: agentStatus.messageSpeed,
+    availableRuntimes: agentStatus.availableRuntimes != null
+      ? JSON.stringify(agentStatus.availableRuntimes)
+      : undefined,
     lastCommandTime: agentStatus.lastCommandTime,
     tunnelStatus: agentStatus.tunnelStatus,
     version: agentStatus.version,
@@ -374,12 +379,12 @@ async function _resolveServiceAccountRules (serviceAccount, transaction) {
 const getAgentMicroservices = async function (fog, transaction) {
   const microservices = await MicroserviceManager.findAllActiveApplicationMicroservices(fog.uuid, transaction)
 
-  const fogTypeId = fog.fogTypeId
+  const archId = fog.archId
 
   const response = []
   for (const microservice of microservices) {
     const images = (microservice.images && microservice.images.length > 0) ? microservice.images : microservice.catalogItem.images
-    const image = images.find((image) => image.fogTypeId === fogTypeId)
+    const image = images.find((image) => image.archId === archId)
     const imageId = image ? image.containerImage : ''
     if (!imageId || imageId === '') {
       continue
@@ -702,7 +707,7 @@ const _saveSnapShot = function (req, form, fog, transaction) {
   })
 }
 
-async function _checkMicroservicesFogType (fog, fogTypeId, transaction) {
+async function _checkMicroservicesFogType (fog, archId, transaction) {
   const where = {
     iofogUuid: fog.uuid
   }
@@ -714,7 +719,7 @@ async function _checkMicroservicesFogType (fog, fogTypeId, transaction) {
       let exists = false
       const images = (microservice.images && microservice.images.length > 0) ? microservice.images : microservice.catalogItem.images
       for (const image of images) {
-        if (image.fogTypeId === fogTypeId) {
+        if (image.archId === archId) {
           exists = true
           break
         }

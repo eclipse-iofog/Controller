@@ -63,6 +63,11 @@ const SITE_CA_CERT = 'router-site-ca'
 const DEFAULT_ROUTER_LOCAL_CA = 'default-router-local-ca'
 const SERVICE_ANNOTATION_TAG = 'service.datasance.com/tag'
 
+function _resolveArchId (fogData) {
+  if (fogData.archId !== undefined) return fogData.archId
+  return undefined
+}
+
 async function checkKubernetesEnvironment () {
   const controlPlane = process.env.CONTROL_PLANE || config.get('app.ControlPlane')
   return controlPlane && controlPlane.toLowerCase() === 'kubernetes'
@@ -288,7 +293,7 @@ async function createFogEndPoint (fogData, isCLI, transaction) {
     // gpsMode: fogData.latitude || fogData.longitude ? 'manual' : undefined,
     description: fogData.description,
     networkInterface: fogData.networkInterface,
-    dockerUrl: fogData.dockerUrl,
+    dockerUrl: fogData.containerEngineUrl,
     containerEngine: fogData.containerEngine,
     deploymentType: fogData.deploymentType,
     diskLimit: fogData.diskLimit,
@@ -304,10 +309,10 @@ async function createFogEndPoint (fogData, isCLI, transaction) {
     bluetoothEnabled: fogData.bluetoothEnabled,
     watchdogEnabled: fogData.watchdogEnabled,
     abstractedHardwareEnabled: fogData.abstractedHardwareEnabled,
-    fogTypeId: fogData.fogType,
+    archId: _resolveArchId(fogData),
     logLevel: fogData.logLevel,
     edgeGuardFrequency: fogData.edgeGuardFrequency,
-    dockerPruningFrequency: fogData.dockerPruningFrequency,
+    dockerPruningFrequency: fogData.pruningFrequency,
     availableDiskThreshold: fogData.availableDiskThreshold,
     isSystem: fogData.isSystem,
     host: fogData.host,
@@ -486,7 +491,7 @@ async function updateFogEndPoint (fogData, isCLI, transaction) {
     // gpsMode: fogData.latitude || fogData.longitude ? 'manual' : undefined,
     description: fogData.description,
     networkInterface: fogData.networkInterface,
-    dockerUrl: fogData.dockerUrl,
+    dockerUrl: fogData.containerEngineUrl,
     containerEngine: fogData.containerEngine,
     deploymentType: fogData.deploymentType,
     diskLimit: fogData.diskLimit,
@@ -503,9 +508,9 @@ async function updateFogEndPoint (fogData, isCLI, transaction) {
     watchdogEnabled: fogData.watchdogEnabled,
     isSystem: fogData.isSystem,
     abstractedHardwareEnabled: fogData.abstractedHardwareEnabled,
-    fogTypeId: fogData.fogType,
+    archId: _resolveArchId(fogData),
     logLevel: fogData.logLevel,
-    dockerPruningFrequency: fogData.dockerPruningFrequency,
+    dockerPruningFrequency: fogData.pruningFrequency,
     edgeGuardFrequency: fogData.edgeGuardFrequency,
     host: fogData.host,
     availableDiskThreshold: fogData.availableDiskThreshold,
@@ -546,11 +551,12 @@ async function updateFogEndPoint (fogData, isCLI, transaction) {
     throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_SYSTEM_CHANGE))
   }
 
-  // Prevent overwriting detected fogType (1 or 2) with "auto" (0)
-  // If fogType is being set to "auto" (0) but the agent has already detected its type (1 or 2),
+  // Prevent overwriting detected arch (1 or 2) with "auto" (0)
+  // If arch is being set to "auto" (0) but the agent has already detected its type (1 or 2),
   // preserve the detected type to ensure getAgentMicroservices can find matching images
-  if (fogData.fogType === 0 && (oldFog.fogTypeId === 1 || oldFog.fogTypeId === 2)) {
-    updateFogData.fogTypeId = undefined
+  const requestedArchId = _resolveArchId(fogData)
+  if (requestedArchId === 0 && (oldFog.archId === 1 || oldFog.archId === 2)) {
+    updateFogData.archId = undefined
     // Remove undefined fields again after modifying updateFogData
     updateFogData = AppHelper.deleteUndefinedFields(updateFogData)
   }
@@ -956,7 +962,15 @@ async function _getFogExtraInformation (fog, transaction) {
   if (fog.toJSON && typeof fog.toJSON === 'function') {
     fog = fog.toJSON()
   }
-  return { ...fog, tags: _mapTags(fog), ...routerConfig, ...natsConfig, edgeResources, volumeMounts }
+  const { fogType, fogTypeId, architecture, ...fogFields } = fog
+  const archId = fogFields.archId
+  const arch = architecture ? {
+    id: architecture.id,
+    name: architecture.name,
+    image: architecture.image,
+    description: architecture.description
+  } : undefined
+  return { ...fogFields, archId, arch, tags: _mapTags(fog), ...routerConfig, ...natsConfig, edgeResources, volumeMounts }
 }
 
 // Map tags to string array
@@ -1403,8 +1417,8 @@ async function enableNodeExecEndPoint (execData, isCLI, transaction) {
 
   if (execData.image) {
     const images = [
-      { fogTypeId: 1, containerImage: execData.image },
-      { fogTypeId: 2, containerImage: execData.image }
+      { archId: 1, containerImage: execData.image },
+      { archId: 2, containerImage: execData.image }
     ]
     debugMicroserviceData.images = images
   } else {
@@ -1449,8 +1463,8 @@ async function enableNodeExecEndPoint (execData, isCLI, transaction) {
 
     if (execData.image) {
       const images = [
-        { fogTypeId: 1, containerImage: execData.image },
-        { fogTypeId: 2, containerImage: execData.image }
+        { archId: 1, containerImage: execData.image },
+        { archId: 2, containerImage: execData.image }
       ]
       await _updateImages(images, existingMicroservice.uuid, transaction)
     }
@@ -1467,8 +1481,8 @@ async function enableNodeExecEndPoint (execData, isCLI, transaction) {
 
       if (execData.image) {
         const images = [
-          { fogTypeId: 1, containerImage: execData.image },
-          { fogTypeId: 2, containerImage: execData.image }
+          { archId: 1, containerImage: execData.image },
+          { archId: 2, containerImage: execData.image }
         ]
         await _createMicroserviceImages(microservice, images, transaction)
       }

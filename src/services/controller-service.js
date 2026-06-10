@@ -16,21 +16,21 @@ const TransactionDecorator = require('../decorators/transaction-decorator')
 const packageJson = require('../../package')
 const AppHelper = require('../helpers/app-helper')
 
-const getFogTypes = async function (isCLI, transaction) {
-  const ioFogTypes = await architectureManager.findAll({}, transaction)
+const getArchitectures = async function (isCLI, transaction) {
+  const architectures = await architectureManager.findAll({}, transaction)
   const response = []
 
-  for (const ioFogType of ioFogTypes) {
+  for (const architecture of architectures) {
     response.push({
-      id: ioFogType.id,
-      name: ioFogType.name,
-      image: ioFogType.image,
-      description: ioFogType.description
+      id: architecture.id,
+      name: architecture.name,
+      image: architecture.image,
+      description: architecture.description
     })
   }
 
   return {
-    fogTypes: response
+    architectures: response
   }
 }
 
@@ -59,7 +59,7 @@ const getVersion = async function (isCLI) {
 }
 
 module.exports = {
-  getFogTypes: TransactionDecorator.generateTransaction(getFogTypes),
+  getArchitectures: TransactionDecorator.generateTransaction(getArchitectures),
   statusController: statusController,
   getVersion: getVersion
 }
