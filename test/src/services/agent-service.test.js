@@ -10,6 +10,8 @@ const FogKeyService = require('../../../src/services/iofog-key-service')
 const AppHelper = require('../../../src/helpers/app-helper')
 const ChangeTrackingService = require('../../../src/services/change-tracking-service')
 const MicroserviceStatusManager = require('../../../src/data/managers/microservice-status-manager')
+const MicroserviceExecStatusManager = require('../../../src/data/managers/microservice-exec-status-manager')
+const ApplicationManager = require('../../../src/data/managers/application-manager')
 const MicroserviceService = require('../../../src/services/microservices-service')
 const RegistryManager = require('../../../src/data/managers/registry-manager')
 const TunnelManager = require('../../../src/data/managers/tunnel-manager')
@@ -21,7 +23,7 @@ const USBInfoManager = require('../../../src/data/managers/usb-info-manager')
 const Sequelize = require('sequelize')
 const Op = Sequelize.Op
 const path = require('path')
-const MicroserviceStates = require('../../../src/enums/microservice-state')
+const { microserviceState } = require('../../../src/enums/microservice-state')
 const FogStates = require('../../../src/enums/fog-state')
 const constants = require('../../../src/helpers/constants')
 
@@ -185,7 +187,7 @@ describe('Agent Service', () => {
                   expect(ioFogManager.update).to.have.been.calledWith({
                     uuid: $uuid,
                   }, {
-                    fogTypeId: provisionData.type,
+                    archId: provisionData.type,
                   }, transaction)
                 })
 
@@ -233,13 +235,63 @@ describe('Agent Service', () => {
     })
   })
 
+  describe('.agentProvision() with engine', () => {
+    const transaction = {}
+    const provisionDataWithEngine = {
+      type: 1,
+      key: 'dpodkqwdpj',
+      engine: 'edgelet',
+    }
+
+    def('uuid', () => 'testUuid')
+    def('subject', () => AgentService.agentProvision(provisionDataWithEngine, transaction))
+    def('validatorResponse', () => Promise.resolve(true))
+    def('fogProvisionKeyManagerResponse', () => Promise.resolve({
+      iofogUuid: $uuid,
+      expirationTime: new Date(Date.now() + 3600000),
+    }))
+    def('iofogManagerResponse', () => Promise.resolve({ uuid: $uuid }))
+    def('microserviceManagerResponse', () => Promise.resolve())
+    def('fogKeyServiceGenerateResponse', () => Promise.resolve({
+      publicKey: 'testPublicKey',
+      privateKey: 'testPrivateKey',
+    }))
+    def('fogKeyServiceStoreResponse', () => Promise.resolve())
+    def('iofogManagerUpdateResponse', () => Promise.resolve())
+    def('fogProvisionKeyManagerDeleteResponse', () => Promise.resolve())
+    def('changeTrackingUpdateResponse', () => Promise.resolve())
+
+    beforeEach(() => {
+      $sandbox.stub(Validator, 'validate').returns($validatorResponse)
+      $sandbox.stub(FogProvisionKeyManager, 'findOne').returns($fogProvisionKeyManagerResponse)
+      $sandbox.stub(MicroserviceManager, 'findAllWithDependencies').returns($microserviceManagerResponse)
+      $sandbox.stub(ioFogManager, 'findOne').returns($iofogManagerResponse)
+      $sandbox.stub(FogKeyService, 'generateKeyPair').returns($fogKeyServiceGenerateResponse)
+      $sandbox.stub(FogKeyService, 'storePublicKey').returns($fogKeyServiceStoreResponse)
+      $sandbox.stub(ioFogManager, 'update').returns($iofogManagerUpdateResponse)
+      $sandbox.stub(FogProvisionKeyManager, 'delete').returns($fogProvisionKeyManagerDeleteResponse)
+      $sandbox.stub(ChangeTrackingService, 'update').returns($changeTrackingUpdateResponse)
+    })
+
+    it('persists containerEngine from engine field', async () => {
+      await $subject
+      expect(ioFogManager.update).to.have.been.calledWith({
+        uuid: $uuid,
+      }, {
+        archId: provisionDataWithEngine.type,
+        containerEngine: 'edgelet',
+      }, transaction)
+    })
+  })
 
   describe('.agentDeprovision()', () => {
     const deprovisionData = { microserviceUuids: ['uuid'] }
-    const fogManagerUpdateData = { daemonStatus: FogStates.UNKNOWN, ipAddress: '0.0.0.0', ipAddressExternal: '0.0.0.0' }
+    const fogManagerUpdateData = { daemonStatus: FogStates.DEPROVISIONED, ipAddress: '0.0.0.0', ipAddressExternal: '0.0.0.0' }
 
     const transaction = {}
     const error = 'Error!'
+
+    def('uuid', () => 'testUuid')
 
     def('fog', () => ({
       uuid: $uuid,
@@ -251,11 +303,14 @@ describe('Agent Service', () => {
 
     def('validatorResponse', () => Promise.resolve(true))
     def('microserviceStatusUpdateResponse', () => Promise.resolve())
+    def('microserviceExecStatusUpdateResponse', () => Promise.resolve())
     def('iofogManagerUpdateResponse', () => Promise.resolve())
 
     beforeEach(() => {
       $sandbox.stub(Validator, 'validate').returns($validatorResponse)
       $sandbox.stub(MicroserviceStatusManager, 'update').returns($microserviceStatusUpdateResponse)
+      $sandbox.stub(MicroserviceExecStatusManager, 'update').returns($microserviceExecStatusUpdateResponse)
+      $sandbox.stub(FogKeyService, 'deletePublicKey').returns(Promise.resolve())
       $sandbox.stub(ioFogManager, 'update').returns($iofogManagerUpdateResponse)
     })
 
@@ -277,7 +332,7 @@ describe('Agent Service', () => {
         await $subject
         expect(MicroserviceStatusManager.update).to.have.been.calledWith(
             { microserviceUuid: deprovisionData.microserviceUuids },
-            { status: MicroserviceStates.DELETING },
+            { status: microserviceState.DELETING },
             transaction
         )
       })
@@ -323,7 +378,7 @@ describe('Agent Service', () => {
   describe('.updateAgentConfig()', () => {
     const agentConfig = {
       networkInterface: 'testNetworkInterface',
-      dockerUrl: 'testDockerUrl',
+      containerEngineUrl: 'testContainerEngineUrl',
       diskLimit: 5,
       diskDirectory: 'testDiskDirectory',
       memoryLimit: 15,
@@ -338,7 +393,7 @@ describe('Agent Service', () => {
       latitude: 35,
       longitude: 36,
       gpsMode: 'testGpsMode',
-      dockerPruningFrequency: 10,
+      pruningFrequency: 10,
       availableDiskThreshold: 20,
       logLevel: 'INFO',
       timeZone: 'America/Los_Angeles'
@@ -359,7 +414,7 @@ describe('Agent Service', () => {
     def('subject', () => $subject.updateAgentConfig(agentConfig, $fog, transaction))
 
     def('validatorResponse', () => Promise.resolve(true))
-    def('deleteUndefinedFieldsResponse', () => agentConfig)
+    def('deleteUndefinedFieldsResponse', () => expectedFogUpdate)
     def('iofogManagerUpdateResponse', () => Promise.resolve())
 
     beforeEach(() => {
@@ -381,10 +436,36 @@ describe('Agent Service', () => {
       })
     })
 
+    const expectedFogUpdate = {
+      networkInterface: agentConfig.networkInterface,
+      dockerUrl: agentConfig.containerEngineUrl,
+      diskLimit: agentConfig.diskLimit,
+      diskDirectory: agentConfig.diskDirectory,
+      memoryLimit: agentConfig.memoryLimit,
+      cpuLimit: agentConfig.cpuLimit,
+      logLimit: agentConfig.logLimit,
+      logDirectory: agentConfig.logDirectory,
+      logFileCount: agentConfig.logFileCount,
+      statusFrequency: agentConfig.statusFrequency,
+      changeFrequency: agentConfig.changeFrequency,
+      deviceScanFrequency: agentConfig.deviceScanFrequency,
+      watchdogEnabled: agentConfig.watchdogEnabled,
+      latitude: agentConfig.latitude,
+      longitude: agentConfig.longitude,
+      gpsMode: agentConfig.gpsMode,
+      gpsDevice: agentConfig.gpsDevice,
+      gpsScanFrequency: agentConfig.gpsScanFrequency,
+      edgeGuardFrequency: agentConfig.edgeGuardFrequency,
+      dockerPruningFrequency: agentConfig.pruningFrequency,
+      availableDiskThreshold: agentConfig.availableDiskThreshold,
+      logLevel: agentConfig.logLevel,
+      timeZone: agentConfig.timeZone
+    }
+
     context('when Validator#validate() succeeds', () => {
       it('calls AppHelper.deleteUndefinedFields with correct args', async () => {
         await $subject
-        expect(AppHelper.deleteUndefinedFields).to.have.been.calledWith(agentConfig)
+        expect(AppHelper.deleteUndefinedFields).to.have.been.calledWith(expectedFogUpdate)
       })
 
       context('when AppHelper#deleteUndefinedFields fails', () => {
@@ -402,7 +483,7 @@ describe('Agent Service', () => {
           await $subject
           expect(ioFogManager.update).to.have.been.calledWith({
             uuid: $uuid,
-          }, agentConfig, transaction)
+          }, expectedFogUpdate, transaction)
         })
 
         context('when ioFogManager#update fails', () => {
@@ -481,6 +562,7 @@ describe('Agent Service', () => {
       ',"startTime":5325543453454,"operatingDuration":534535435435,"cpuUsage":35,"memoryUsage":45}]'
 
     const microserviceStatus = {
+      'id': 'testUuid',
       'containerId': 'testContainerId',
       'status': 'RUNNING',
       'startTime': 5325543453454,
@@ -493,10 +575,22 @@ describe('Agent Service', () => {
 
     const microserviceStatusArray = [microserviceStatus]
 
+    const expectedMicroserviceUpdate = {
+      containerId: microserviceStatus.containerId,
+      status: microserviceStatus.status,
+      startTime: microserviceStatus.startTime,
+      operatingDuration: microserviceStatus.operatingDuration,
+      cpuUsage: microserviceStatus.cpuUsage,
+      memoryUsage: microserviceStatus.memoryUsage,
+      percentage: microserviceStatus.percentage,
+      errorMessage: microserviceStatus.errorMessage,
+    }
+
     const fogStatus = {
       daemonStatus: 'RUNNING',
       daemonOperatingDuration: 25,
       daemonLastStart: 15325235253,
+      warningMessage: '',
       memoryUsage: 15,
       diskUsage: 16,
       cpuUsage: 17,
@@ -506,26 +600,28 @@ describe('Agent Service', () => {
       systemAvailableDisk: 1,
       systemAvailableMemory: 1,
       systemTotalCpu: 1.1,
-      securityStatus: 'OK',
-      securityViolationInfo: '',
       repositoryCount: 5,
-      repositoryStatus: 'testStatus',
+      repositoryStatus: '[]',
       systemTime: 15325235253,
       lastStatusTime: 15325235253,
       ipAddress: 'testIpAddress',
       ipAddressExternal: 'testIpAddressExternal',
-      processedMessages: 155,
-      microserviceMessageCounts: 'testMessageCounts',
-      messageSpeed: 255,
+      microserviceMessageCounts: '[]',
+      availableRuntimes: ['edgelet'],
+      runtimeAgentPhase: 'Running',
+      controlPlaneQuiesced: false,
       lastCommandTime: 15325235253,
-      tunnelStatus: 'testTunnelStatus',
+      tunnelStatus: '{}',
       version: '1.0.0',
       isReadyToUpgrade: false,
       isReadyToRollback: false,
+      activeVolumeMounts: [],
+      volumeMountLastUpdate: 15325235253,
+      gpsStatus: 'OK',
       microserviceStatus: microservicesStatus,
     }
 
-    const agentStatus = {
+    const expectedFogUpdate = {
       daemonStatus: 'RUNNING',
       daemonOperatingDuration: 25,
       daemonLastStart: 15325235253,
@@ -539,21 +635,22 @@ describe('Agent Service', () => {
       systemAvailableMemory: 1,
       systemTotalCpu: 1.1,
       securityStatus: 'OK',
-      securityViolationInfo: '',
+      securityViolationInfo: 'No violation',
       repositoryCount: 5,
-      repositoryStatus: 'testStatus',
+      repositoryStatus: '[]',
       systemTime: 15325235253,
       lastStatusTime: 15325235253,
       ipAddress: 'testIpAddress',
       ipAddressExternal: 'testIpAddressExternal',
-      processedMessages: 155,
-      microserviceMessageCounts: 'testMessageCounts',
-      messageSpeed: 255,
+      availableRuntimes: '["edgelet"]',
       lastCommandTime: 15325235253,
-      tunnelStatus: 'testTunnelStatus',
+      tunnelStatus: '{}',
       version: '1.0.0',
       isReadyToUpgrade: false,
       isReadyToRollback: false,
+      activeVolumeMounts: [],
+      volumeMountLastUpdate: 15325235253,
+      gpsStatus: 'OK',
     }
 
     const transaction = {}
@@ -574,8 +671,8 @@ describe('Agent Service', () => {
     def('subject', () => $subject.updateAgentStatus(fogStatus, $fog, transaction))
 
     def('validatorResponse', () => Promise.resolve(true))
-    def('deleteUndefinedFieldsResponse', () => agentStatus)
     def('deleteUndefinedFieldsResponse2', () => microserviceStatus)
+    def('findOneResponse', () => Promise.resolve({ warningMessage: '' }))
     def('updateResponse', () => Promise.resolve())
     def('jsonParseResponse', () => microserviceStatusArray)
     def('updateMicroserviceStatusesResponse', () => Promise.resolve())
@@ -584,9 +681,8 @@ describe('Agent Service', () => {
 
     beforeEach(() => {
       $sandbox.stub(Validator, 'validate').returns($validatorResponse)
-      $sandbox.stub(AppHelper, 'deleteUndefinedFields')
-          .onFirstCall().returns($deleteUndefinedFieldsResponse)
-          .onSecondCall().returns($deleteUndefinedFieldsResponse2)
+      $sandbox.spy(AppHelper, 'deleteUndefinedFields')
+      $sandbox.stub(ioFogManager, 'findOne').returns($findOneResponse)
       $sandbox.stub(ioFogManager, 'update').returns($updateResponse)
       $sandbox.stub(JSON, 'parse').returns($jsonParseResponse)
       $sandbox.stub(MicroserviceStatusManager, 'update').returns($updateMicroserviceStatusesResponse)
@@ -608,15 +704,17 @@ describe('Agent Service', () => {
     })
 
     context('when Validator#validate() succeeds', () => {
-      it('calls AppHelper.deleteUndefinedFields with correct args', async () => {
+      it('stringifies availableRuntimes for fog persistence', async () => {
         await $subject
-        expect(AppHelper.deleteUndefinedFields).to.have.been.calledWith(microserviceStatus)
+        expect(ioFogManager.update).to.have.been.calledWith({
+          uuid: $uuid,
+        }, sinon.match.has('availableRuntimes', '["edgelet"]'), transaction)
       })
 
       context('when AppHelper#deleteUndefinedFields fails', () => {
         const error = 'Error!'
 
-        def('$deleteUndefinedFieldsResponse', () => error)
+        def('deleteUndefinedFieldsResponse2', () => error)
 
         it(`fails with "${error}"`, () => {
           return expect($subject).to.be.rejectedWith = (error)
@@ -628,7 +726,7 @@ describe('Agent Service', () => {
           await $subject
           expect(ioFogManager.update).to.have.been.calledWith({
             uuid: $uuid,
-          }, agentStatus, transaction)
+          }, expectedFogUpdate, transaction)
         })
 
         context('when ioFogManager#update fails', () => {
@@ -660,7 +758,7 @@ describe('Agent Service', () => {
           context('when JSON#parse succeeds', () => {
             it('calls AppHelper.deleteUndefinedFields with correct args', async () => {
               await $subject
-              expect(AppHelper.deleteUndefinedFields).to.have.been.calledWith(microserviceStatus)
+              expect(AppHelper.deleteUndefinedFields).to.have.been.calledWith(expectedMicroserviceUpdate)
             })
 
             context('when AppHelper#deleteUndefinedFields fails', () => {
@@ -678,7 +776,7 @@ describe('Agent Service', () => {
                 await $subject
                 expect(MicroserviceStatusManager.update).to.have.been.calledWith({
                   microserviceUuid: microserviceStatus.id,
-                }, microserviceStatus, transaction)
+                }, expectedMicroserviceUpdate, transaction)
                 assert.equal(microserviceStatus.percentage, 50.5)
                 assert.equal(microserviceStatus.errorMessage, '')
               })
@@ -726,6 +824,7 @@ describe('Agent Service', () => {
       ',"startTime":5325543453454,"operatingDuration":534535435435,"cpuUsage":35,"memoryUsage":45}]'
 
     const microserviceStatus = {
+      'id': 'testUuid',
       'containerId': 'testContainerId',
       'status': 'EXITING',
       'startTime': 5325543453454,
@@ -738,10 +837,22 @@ describe('Agent Service', () => {
 
     const microserviceStatusArray = [microserviceStatus]
 
+    const expectedMicroserviceUpdate = {
+      containerId: microserviceStatus.containerId,
+      status: microserviceStatus.status,
+      startTime: microserviceStatus.startTime,
+      operatingDuration: microserviceStatus.operatingDuration,
+      cpuUsage: microserviceStatus.cpuUsage,
+      memoryUsage: microserviceStatus.memoryUsage,
+      percentage: microserviceStatus.percentage,
+      errorMessage: microserviceStatus.errorMessage,
+    }
+
     const fogStatus = {
       daemonStatus: 'RUNNING',
       daemonOperatingDuration: 25,
       daemonLastStart: 15325235253,
+      warningMessage: '',
       memoryUsage: 15,
       diskUsage: 16,
       cpuUsage: 17,
@@ -751,26 +862,28 @@ describe('Agent Service', () => {
       systemAvailableDisk: 1,
       systemAvailableMemory: 1,
       systemTotalCpu: 1.1,
-      securityStatus: 'OK',
-      securityViolationInfo: '',
       repositoryCount: 5,
-      repositoryStatus: 'testStatus',
+      repositoryStatus: '[]',
       systemTime: 15325235253,
       lastStatusTime: 15325235253,
       ipAddress: 'testIpAddress',
       ipAddressExternal: 'testIpAddressExternal',
-      processedMessages: 155,
-      microserviceMessageCounts: 'testMessageCounts',
-      messageSpeed: 255,
+      microserviceMessageCounts: '[]',
+      availableRuntimes: ['edgelet'],
+      runtimeAgentPhase: 'Running',
+      controlPlaneQuiesced: false,
       lastCommandTime: 15325235253,
-      tunnelStatus: 'testTunnelStatus',
+      tunnelStatus: '{}',
       version: '1.0.0',
       isReadyToUpgrade: false,
       isReadyToRollback: false,
+      activeVolumeMounts: [],
+      volumeMountLastUpdate: 15325235253,
+      gpsStatus: 'OK',
       microserviceStatus: microservicesStatus,
     }
 
-    const agentStatus = {
+    const expectedFogUpdate = {
       daemonStatus: 'RUNNING',
       daemonOperatingDuration: 25,
       daemonLastStart: 15325235253,
@@ -784,21 +897,22 @@ describe('Agent Service', () => {
       systemAvailableMemory: 1,
       systemTotalCpu: 1.1,
       securityStatus: 'OK',
-      securityViolationInfo: '',
+      securityViolationInfo: 'No violation',
       repositoryCount: 5,
-      repositoryStatus: 'testStatus',
+      repositoryStatus: '[]',
       systemTime: 15325235253,
       lastStatusTime: 15325235253,
       ipAddress: 'testIpAddress',
       ipAddressExternal: 'testIpAddressExternal',
-      processedMessages: 155,
-      microserviceMessageCounts: 'testMessageCounts',
-      messageSpeed: 255,
+      availableRuntimes: '["edgelet"]',
       lastCommandTime: 15325235253,
-      tunnelStatus: 'testTunnelStatus',
+      tunnelStatus: '{}',
       version: '1.0.0',
       isReadyToUpgrade: false,
       isReadyToRollback: false,
+      activeVolumeMounts: [],
+      volumeMountLastUpdate: 15325235253,
+      gpsStatus: 'OK',
     }
     def('microserviceResponse', () => ({
       iofogUuid: $uuid,
@@ -818,8 +932,8 @@ describe('Agent Service', () => {
     def('subject', () => $subject.updateAgentStatus(fogStatus, $fog, transaction))
 
     def('validatorResponse', () => Promise.resolve(true))
-    def('deleteUndefinedFieldsResponse', () => agentStatus)
     def('deleteUndefinedFieldsResponse2', () => microserviceStatus)
+    def('findOneResponse', () => Promise.resolve({ warningMessage: '' }))
     def('updateResponse', () => Promise.resolve())
     def('jsonParseResponse', () => microserviceStatusArray)
     def('updateMicroserviceStatusesResponse', () => Promise.resolve())
@@ -827,15 +941,13 @@ describe('Agent Service', () => {
     def('findMicroservice', () => Promise.resolve($microserviceResponse))
     beforeEach(() => {
       $sandbox.stub(Validator, 'validate').returns($validatorResponse)
-      $sandbox.stub(AppHelper, 'deleteUndefinedFields')
-          .onFirstCall().returns($deleteUndefinedFieldsResponse)
-          .onSecondCall().returns($deleteUndefinedFieldsResponse2)
+      $sandbox.spy(AppHelper, 'deleteUndefinedFields')
+      $sandbox.stub(ioFogManager, 'findOne').returns($findOneResponse)
       $sandbox.stub(ioFogManager, 'update').returns($updateResponse)
       $sandbox.stub(JSON, 'parse').returns($jsonParseResponse)
       $sandbox.stub(MicroserviceStatusManager, 'update').returns($updateMicroserviceStatusesResponse)
       $sandbox.stub(MicroserviceService, 'deleteNotRunningMicroservices').returns($deleteNotRunningResponse)
       $sandbox.stub(MicroserviceManager, 'findOne').returns($findMicroservice)
-
     })
 
     it('calls Validator#validate() with correct args', async () => {
@@ -852,15 +964,17 @@ describe('Agent Service', () => {
     })
 
     context('when Validator#validate() succeeds', () => {
-      it('calls AppHelper.deleteUndefinedFields with correct args', async () => {
+      it('persists Edgelet availableRuntimes on fog update', async () => {
         await $subject
-        expect(AppHelper.deleteUndefinedFields).to.have.been.calledWith(agentStatus)
+        expect(ioFogManager.update).to.have.been.calledWith({
+          uuid: $uuid,
+        }, expectedFogUpdate, transaction)
       })
 
       context('when AppHelper#deleteUndefinedFields fails', () => {
         const error = 'Error!'
 
-        def('$deleteUndefinedFieldsResponse', () => error)
+        def('deleteUndefinedFieldsResponse2', () => error)
 
         it(`fails with "${error}"`, () => {
           return expect($subject).to.be.rejectedWith = (error)
@@ -872,7 +986,7 @@ describe('Agent Service', () => {
           await $subject
           expect(ioFogManager.update).to.have.been.calledWith({
             uuid: $uuid,
-          }, agentStatus, transaction)
+          }, expectedFogUpdate, transaction)
         })
 
         context('when ioFogManager#update fails', () => {
@@ -904,7 +1018,7 @@ describe('Agent Service', () => {
           context('when JSON#parse succeeds', () => {
             it('calls AppHelper.deleteUndefinedFields with correct args', async () => {
               await $subject
-              expect(AppHelper.deleteUndefinedFields).to.have.been.calledWith(microserviceStatus)
+              expect(AppHelper.deleteUndefinedFields).to.have.been.calledWith(expectedMicroserviceUpdate)
             })
 
             context('when AppHelper#deleteUndefinedFields fails', () => {
@@ -922,7 +1036,7 @@ describe('Agent Service', () => {
                 await $subject
                 expect(MicroserviceStatusManager.update).to.have.been.calledWith({
                   microserviceUuid: microserviceStatus.id,
-                }, microserviceStatus, transaction)
+                }, expectedMicroserviceUpdate, transaction)
                 assert.equal(microserviceStatus.percentage, 50.5)
                 assert.equal(microserviceStatus.errorMessage, 'Error mounting volume')
               })
@@ -977,6 +1091,7 @@ describe('Agent Service', () => {
 
     const microserviceWithValidImage = {
       uuid: 'testMicroserviceUuid',
+      applicationId: 1,
       imageId: '',
       config: '{}',
       rebuild: false,
@@ -989,7 +1104,7 @@ describe('Agent Service', () => {
       deleteWithCleanup: false,
       catalogItem: {
         images: [{
-          fogTypeId: 1,
+          archId: 1,
           containerImage: 'testContainerImage',
         },
         ],
@@ -1030,7 +1145,7 @@ describe('Agent Service', () => {
       deleteWithCleanup: false,
       catalogItem: {
         images: [{
-          fogTypeId: 3,
+          archId: 3,
           containerImage: 'testContainerImage',
         },
         ],
@@ -1071,11 +1186,11 @@ describe('Agent Service', () => {
     }
 
     def('uuid', () => 'testUuid')
-    def('fogTypeId', () => 1)
+    def('archId', () => 1)
 
     def('fog', () => ({
       uuid: $uuid,
-      fogTypeId: $fogTypeId,
+      archId: $archId,
     }))
 
     def('token', () => 'testToken')
@@ -1088,6 +1203,9 @@ describe('Agent Service', () => {
     beforeEach(() => {
       $sandbox.stub(MicroserviceManager, 'findAllActiveApplicationMicroservices').returns($findAllMicroservicesResponse)
       $sandbox.stub(MicroserviceManager, 'update').returns($updateResponse)
+      $sandbox.stub(ApplicationManager, 'findOne').returns(Promise.resolve({ name: 'testApp' }))
+      $sandbox.stub(MicroserviceService, 'isMicroserviceRouter').returns(Promise.resolve(false))
+      $sandbox.stub(MicroserviceService, 'isMicroserviceNats').returns(Promise.resolve(false))
     })
 
     it('calls MicroserviceManager#findAllActiveApplicationMicroservices() with correct args', async () => {
@@ -1125,8 +1243,16 @@ describe('Agent Service', () => {
         })
 
         context('when MicroserviceManager#update succeeds', () => {
-          it(`succeeds`, () => {
-            return expect($subject).to.eventually.deep.equal(microserviceResponse)
+          it(`succeeds`, async () => {
+            const result = await $subject
+            expect(result.microservices).to.have.length(1)
+            const msvc = result.microservices[0]
+            expect(msvc.uuid).to.equal(microserviceResponse.microservices[0].uuid)
+            expect(msvc.imageId).to.equal(microserviceResponse.microservices[0].imageId)
+            expect(msvc.application).to.equal('testApp')
+            expect(msvc.registryId).to.equal(microserviceResponse.microservices[0].registryId)
+            expect(msvc.cmd).to.deep.equal(microserviceResponse.microservices[0].cmd)
+            expect(msvc.extraHosts).to.deep.equal(microserviceResponse.microservices[0].extraHosts)
           })
         })
       })
@@ -1220,17 +1346,7 @@ describe('Agent Service', () => {
 
     it('calls RegistryManager#findAll() with correct args', async () => {
       await $subject
-      expect(RegistryManager.findAll).to.have.been.calledWith({
-        [Op.or]:
-          [
-            {
-              userId: $userId,
-            },
-            {
-              isPublic: true,
-            },
-          ],
-      }, transaction)
+      expect(RegistryManager.findAll).to.have.been.calledWith({}, transaction)
     })
 
     context('when RegistryManager#findAll() fails', () => {

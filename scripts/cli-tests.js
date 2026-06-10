@@ -34,7 +34,7 @@ let testsCounter = 0
 let testsFailed = 0
 
 const controllerStatusFields = ['status', 'timestamp']
-const controllerFogTypesFields = ['fogTypes']
+const controllerArchitecturesFields = ['architectures']
 
 const ioFogCreateFields = ['uuid']
 const ioFogListFields = ['fogs']
@@ -62,7 +62,7 @@ async function seedTestData () {
   console.log('\nCreating system fog')
   await FogService.createFogEndPoint({
     name: 'default-router',
-    fogType: 1,
+    archId: 1,
     isSystem: true,
     routerMode: 'interior',
     messagingPort: 5671,
@@ -80,7 +80,7 @@ function testControllerSection () {
   console.log('\n=============================\nStarting controller section..')
 
   responseHasFields(testCommand('controller status'), controllerStatusFields)
-  responseHasFields(testCommand('controller fog-types'), controllerFogTypesFields)
+  responseHasFields(testCommand('controller architectures'), controllerArchitecturesFields)
   hasSomeResponse(testCommand('controller version'))
 }
 

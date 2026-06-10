@@ -129,7 +129,7 @@ describe('Agent Controller', () => {
     def('fog', () => 'fog!')
 
     def('networkInterface', () => 'testNetworkInterface')
-    def('dockerUrl', () => 'testDockerUrl')
+    def('containerEngineUrl', () => 'testContainerEngineUrl')
     def('diskLimit', 15)
     def('diskDirectory', () => 'testDiskDirectory')
     def('memoryLimit', () => 25)
@@ -148,7 +148,7 @@ describe('Agent Controller', () => {
     def('req', () => ({
       body: {
         networkInterface: $networkInterface,
-        dockerUrl: $dockerUrl,
+        containerEngineUrl: $containerEngineUrl,
         diskLimit: $diskLimit,
         diskDirectory: $diskDirectory,
         memoryLimit: $memoryLimit,
@@ -177,7 +177,7 @@ describe('Agent Controller', () => {
       await $subject
       expect(AgentService.updateAgentConfig).to.have.been.calledWith({
         networkInterface: $networkInterface,
-        dockerUrl: $dockerUrl,
+        containerEngineUrl: $containerEngineUrl,
         diskLimit: $diskLimit,
         diskDirectory: $diskDirectory,
         memoryLimit: $memoryLimit,
@@ -266,9 +266,9 @@ describe('Agent Controller', () => {
     def('lastStatusTime', () => 15555555)
     def('ipAddress', () => 'testIpAddress')
     def('ipAddressExternal', () => 'testIpAddressExternal')
-    def('processedMessages', () => 155)
-    def('microserviceMessageCounts', () => 1555)
-    def('messageSpeed', () => 5.00)
+    def('availableRuntimes', () => ['edgelet'])
+    def('runtimeAgentPhase', () => 'Running')
+    def('controlPlaneQuiesced', () => false)
     def('lastCommandTime', () => 155555555)
     def('tunnelStatus', () => 'testTunnelStatus')
     def('version', () => '1.5.6')
@@ -293,9 +293,9 @@ describe('Agent Controller', () => {
         lastStatusTime: $lastStatusTime,
         ipAddress: $ipAddress,
         ipAddressExternal: $ipAddressExternal,
-        processedMessages: $processedMessages,
-        microserviceMessageCounts: $microserviceMessageCounts,
-        messageSpeed: $messageSpeed,
+        availableRuntimes: $availableRuntimes,
+        runtimeAgentPhase: $runtimeAgentPhase,
+        controlPlaneQuiesced: $controlPlaneQuiesced,
         lastCommandTime: $lastCommandTime,
         tunnelStatus: $tunnelStatus,
         version: $version,
@@ -329,9 +329,9 @@ describe('Agent Controller', () => {
         lastStatusTime: $lastStatusTime,
         ipAddress: $ipAddress,
         ipAddressExternal: $ipAddressExternal,
-        processedMessages: $processedMessages,
-        microserviceMessageCounts: $microserviceMessageCounts,
-        messageSpeed: $messageSpeed,
+        availableRuntimes: $availableRuntimes,
+        runtimeAgentPhase: $runtimeAgentPhase,
+        controlPlaneQuiesced: $controlPlaneQuiesced,
         lastCommandTime: $lastCommandTime,
         tunnelStatus: $tunnelStatus,
         version: $version,

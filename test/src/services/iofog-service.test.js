@@ -49,7 +49,7 @@ describe('ioFog Service', () => {
       latitude: 45,
       longitude: 46,
       description: 'testDescription',
-      dockerUrl: 'testDockerUrl',
+      containerEngineUrl: 'testContainerEngineUrl',
       diskLimit: 15,
       diskDirectory: 'testDirectory',
       memoryLimit: 55,
@@ -63,8 +63,8 @@ describe('ioFog Service', () => {
       bluetoothEnabled: true,
       watchdogEnabled: false,
       abstractedHardwareEnabled: true,
-      fogType: 1,
-      dockerPruningFrequency: 10,
+      archId: 1,
+      pruningFrequency: 10,
       availableDiskThreshold: 20,
       logLevel: 'INFO',
       isSystem: false,
@@ -80,7 +80,7 @@ describe('ioFog Service', () => {
       longitude: fogData.longitude,
       gpsMode: fogData.latitude || fogData.longitude ? 'manual' : undefined,
       description: fogData.description,
-      dockerUrl: fogData.dockerUrl,
+      dockerUrl: fogData.containerEngineUrl,
       diskLimit: fogData.diskLimit,
       diskDirectory: fogData.diskDirectory,
       memoryLimit: fogData.memoryLimit,
@@ -94,10 +94,9 @@ describe('ioFog Service', () => {
       bluetoothEnabled: fogData.bluetoothEnabled,
       watchdogEnabled: fogData.watchdogEnabled,
       abstractedHardwareEnabled: fogData.abstractedHardwareEnabled,
-      fogTypeId: fogData.fogType,
+      archId: fogData.archId,
       isSystem: fogData.isSystem,
-      userId: user.id,
-      dockerPruningFrequency: 10,
+      dockerPruningFrequency: fogData.pruningFrequency,
       availableDiskThreshold: 20,
       logLevel: 'INFO',
       routerId: null,
@@ -118,7 +117,7 @@ describe('ioFog Service', () => {
       iofogUuid: createFogData.uuid,
       rootHostAccess: true,
       logSize: constants.MICROSERVICE_DEFAULT_LOG_SIZE,
-      userId: oldFog ? oldFog.userId : user.id,
+      userId: oldFog ? oldFog.userId : undefined,
       configLastUpdated: date,
     }
 
@@ -134,7 +133,7 @@ describe('ioFog Service', () => {
       iofogUuid: createFogData.uuid,
       rootHostAccess: true,
       logSize: constants.MICROSERVICE_DEFAULT_LOG_SIZE,
-      userId: oldFog ? oldFog.userId : user.id,
+      userId: oldFog ? oldFog.userId : undefined,
       configLastUpdated: date,
     }
 
@@ -157,9 +156,9 @@ describe('ioFog Service', () => {
       id: 1
     }
 
-    def('subject', () => $subject.createFogEndPoint(fogData, user, isCLI, transaction))
+    def('subject', () => $subject.createFogEndPoint(fogData, isCLI, transaction))
     def('validatorResponse', () => Promise.resolve(true))
-    def('generateRandomStringResponse', () => uuid)
+    def('generateUuidResponse', () => uuid)
     def('generateRandomStringResponse2', () => uuid2)
     def('generateRandomStringResponse3', () => uuid3)
     def('deleteUndefinedFieldsResponse', () => createFogData)
@@ -179,10 +178,10 @@ describe('ioFog Service', () => {
 
     beforeEach(() => {
       $sandbox.stub(Validator, 'validate').returns($validatorResponse)
+      $sandbox.stub(AppHelper, 'generateUUID').returns($generateUuidResponse)
       $sandbox.stub(AppHelper, 'generateRandomString')
-          .onFirstCall().returns($generateRandomStringResponse)
-          .onSecondCall().returns($generateRandomStringResponse2)
-          .onThirdCall().returns($generateRandomStringResponse3)
+          .onFirstCall().returns($generateRandomStringResponse2)
+          .onSecondCall().returns($generateRandomStringResponse3)
       $sandbox.stub(AppHelper, 'deleteUndefinedFields').returns($deleteUndefinedFieldsResponse)
       $sandbox.stub(ioFogManager, 'create').returns($createIoFogResponse)
       $sandbox.stub(ChangeTrackingService, 'create').returns($createChangeTrackingResponse)
@@ -219,20 +218,20 @@ describe('ioFog Service', () => {
     })
 
     context('when Validator#validate() succeeds', () => {
-      it('calls AppHelper#generateRandomString() with correct args', async () => {
+      it('calls AppHelper#generateUUID()', async () => {
         await $subject
-        expect(AppHelper.generateRandomString).to.have.been.calledWith(32)
+        expect(AppHelper.generateUUID).to.have.been.called
       })
 
-      context('when AppHelper#generateRandomString() fails', () => {
-        def('generateRandomStringResponse', () => error)
+      context('when AppHelper#generateUUID() fails', () => {
+        def('generateUuidResponse', () => { throw error })
 
         it(`fails with ${error}`, () => {
-          return expect($subject).to.eventually.have.property('uuid')
+          return expect($subject).to.be.rejectedWith(error)
         })
       })
 
-      context('when AppHelper#generateRandomString() succeeds', () => {
+      context('when AppHelper#generateUUID() succeeds', () => {
         it('calls AppHelper#deleteUndefinedFields() with correct args', async () => {
           await $subject
 
@@ -440,7 +439,7 @@ describe('ioFog Service', () => {
           context('when routerMode is edge or interior', () => {
             it('expects router to be created', async () => {
               await $subject
-              return expect(RouterService.createRouterForFog).to.have.been.calledWith({...fogData, routerMode: 'edge'}, response.uuid, user.id, [])
+              return expect(RouterService.createRouterForFog).to.have.been.calledWith({...fogData, routerMode: 'edge'}, response.uuid, [])
             })
           })
         })
@@ -469,7 +468,7 @@ describe('ioFog Service', () => {
       latitude: 45,
       longitude: 46,
       description: 'testDescription',
-      dockerUrl: 'testDockerUrl',
+      containerEngineUrl: 'testContainerEngineUrl',
       diskLimit: 15,
       diskDirectory: 'testDirectory',
       memoryLimit: 55,
@@ -483,8 +482,8 @@ describe('ioFog Service', () => {
       bluetoothEnabled: true,
       watchdogEnabled: false,
       abstractedHardwareEnabled: true,
-      fogType: 1,
-      dockerPruningFrequency: 90,
+      archId: 1,
+      pruningFrequency: 90,
       availableDiskThreshold: 10,
       logLevel: 'INFO',
       isSystem: true,
@@ -499,7 +498,7 @@ describe('ioFog Service', () => {
       latitude: 45,
       longitude: 46,
       description: 'testDescription',
-      dockerUrl: 'testDockerUrl',
+      containerEngineUrl: 'testContainerEngineUrl',
       diskLimit: 15,
       diskDirectory: 'testDirectory',
       memoryLimit: 55,
@@ -513,8 +512,8 @@ describe('ioFog Service', () => {
       bluetoothEnabled: false,
       watchdogEnabled: false,
       abstractedHardwareEnabled: false,
-      fogType: 1,
-      dockerPruningFrequency: 90,
+      archId: 1,
+      pruningFrequency: 90,
       availableDiskThreshold: 10,
       logLevel: 'INFO',
       isSystem: false,
@@ -532,7 +531,7 @@ describe('ioFog Service', () => {
       longitude: fogData.longitude,
       gpsMode: fogData.latitude || fogData.longitude ? 'manual' : undefined,
       description: fogData.description,
-      dockerUrl: fogData.dockerUrl,
+      dockerUrl: fogData.containerEngineUrl,
       diskLimit: fogData.diskLimit,
       diskDirectory: fogData.diskDirectory,
       memoryLimit: fogData.memoryLimit,
@@ -546,8 +545,8 @@ describe('ioFog Service', () => {
       bluetoothEnabled: fogData.bluetoothEnabled,
       watchdogEnabled: fogData.watchdogEnabled,
       abstractedHardwareEnabled: fogData.abstractedHardwareEnabled,
-      fogTypeId: fogData.fogType,
-      dockerPruningFrequency: 90,
+      archId: fogData.archId,
+      dockerPruningFrequency: fogData.pruningFrequency,
       availableDiskThreshold: 10,
       logLevel: 'INFO',
       isSystem: fogData.isSystem,
@@ -566,7 +565,7 @@ describe('ioFog Service', () => {
       iofogUuid: fogData.uuid,
       rootHostAccess: true,
       logSize: constants.MICROSERVICE_DEFAULT_LOG_SIZE,
-      userId: oldFog ? oldFog.userId : user.id,
+      userId: oldFog ? oldFog.userId : undefined,
       configLastUpdated: date,
     }
 
@@ -582,7 +581,7 @@ describe('ioFog Service', () => {
       iofogUuid: fogData.uuid,
       rootHostAccess: true,
       logSize: constants.MICROSERVICE_DEFAULT_LOG_SIZE,
-      userId: oldFog ? oldFog.userId : user.id,
+      userId: oldFog ? oldFog.userId : undefined,
       configLastUpdated: date,
     }
 
@@ -604,7 +603,7 @@ describe('ioFog Service', () => {
       id: 42
     }
 
-    def('subject', () => $subject.updateFogEndPoint(fogData, user, isCLI, transaction))
+    def('subject', () => $subject.updateFogEndPoint(fogData, isCLI, transaction))
     def('validatorResponse', () => Promise.resolve(true))
     def('deleteUndefinedFieldsResponse', () => ({...updateFogData}))
     def('findIoFogResponse', () => Promise.resolve({...oldFog, getRouter: () => Promise.resolve(router)}))
@@ -633,10 +632,10 @@ describe('ioFog Service', () => {
       $sandbox.stub(AppHelper, 'deleteUndefinedFields').returns($deleteUndefinedFieldsResponse)
       $sandbox.stub(ioFogManager, 'findOne')
           .withArgs({ uuid: uuid }).returns($findIoFogResponse)
-          .withArgs({ name: 'new-name', uuid: { [Op.not]: 'testUuid' }, userId: user.id }).returns(Promise.resolve())
+          .withArgs({ name: 'new-name', uuid: { [Op.not]: 'testUuid' } }).returns(Promise.resolve())
       $sandbox.stub(ioFogManager, 'findOneWithTags')
           .withArgs({ uuid: uuid }).returns($findIoFogResponse)
-          .withArgs({ name: 'new-name', uuid: { [Op.not]: 'testUuid' }, userId: user.id }).returns(Promise.resolve())
+          .withArgs({ name: 'new-name', uuid: { [Op.not]: 'testUuid' } }).returns(Promise.resolve())
       $sandbox.stub(ioFogManager, 'update').returns($updateIoFogResponse)
       $sandbox.stub(ChangeTrackingService, 'update')
           .onFirstCall().returns($updateChangeTrackingResponse)
@@ -711,7 +710,7 @@ describe('ioFog Service', () => {
             await $subject
 
             expect(ioFogManager.update).to.have.been.calledWith(queryFogData,
-                {...updateFogData, userId: 0, routerId: router.id})
+                {...updateFogData, routerId: router.id})
           })
 
           context('when ioFogManager#update() fails', () => {
@@ -953,7 +952,7 @@ describe('ioFog Service', () => {
                 })
                 it('should set the network router', async () => {
                   await $subject
-                  return expect(ioFogManager.update).to.have.been.calledWith(queryFogData, {...updateFogData, userId: 0, routerId: networkRouter.id})
+                  return expect(ioFogManager.update).to.have.been.calledWith(queryFogData, {...updateFogData, routerId: networkRouter.id})
                 })
               })
             })
@@ -973,7 +972,7 @@ describe('ioFog Service', () => {
                 def('findIoFogResponse', () => Promise.resolve({...oldFog, getRouter: () => Promise.resolve(null)}))
                 it('Should create a router', async () => {
                   await $subject
-                  return expect(RouterService.createRouterForFog).to.have.been.calledWith(fogData, oldFog.uuid, user.id, [])
+                  return expect(RouterService.createRouterForFog).to.have.been.calledWith(fogData, oldFog.uuid, [])
                 })
               })
 
@@ -1011,7 +1010,7 @@ describe('ioFog Service', () => {
       latitude: 45,
       longitude: 46,
       description: 'testDescription',
-      dockerUrl: 'testDockerUrl',
+      containerEngineUrl: 'testContainerEngineUrl',
       diskLimit: 15,
       diskDirectory: 'testDirectory',
       daemonStatus: 'RUNNING',
@@ -1028,7 +1027,7 @@ describe('ioFog Service', () => {
       bluetoothEnabled: false,
       watchdogEnabled: false,
       abstractedHardwareEnabled: false,
-      fogType: 1,
+      archId: 1,
       userId: user.id
     }
 
@@ -1050,7 +1049,7 @@ describe('ioFog Service', () => {
     
     const queryFogData = { uuid: fogData.uuid }
 
-    def('subject', () => $subject.deleteFogEndPoint(fogData, user, isCLI, transaction))
+    def('subject', () => $subject.deleteFogEndPoint(fogData, isCLI, transaction))
     def('validatorResponse', () => Promise.resolve(true))
     def('findIoFogResponse', () => Promise.resolve(fog))
     def('updateChangeTrackingResponse', () => Promise.resolve())
@@ -1203,7 +1202,7 @@ describe('ioFog Service', () => {
       latitude: 45,
       longitude: 46,
       description: 'testDescription',
-      dockerUrl: 'testDockerUrl',
+      containerEngineUrl: 'testContainerEngineUrl',
       diskLimit: 15,
       diskDirectory: 'testDirectory',
       daemonStatus: 'RUNNING',
@@ -1220,7 +1219,7 @@ describe('ioFog Service', () => {
       bluetoothEnabled: false,
       watchdogEnabled: false,
       abstractedHardwareEnabled: false,
-      fogType: 1,
+      archId: 1,
       userId: user.id,
       routerMode: 'none',
       edgeResources: [],
@@ -1235,7 +1234,7 @@ describe('ioFog Service', () => {
       isDefault: true
     }
 
-    def('subject', () => $subject.getFog(fogData, user, isCLI, transaction))
+    def('subject', () => $subject.getFog(fogData, isCLI, transaction))
     def('validatorResponse', () => Promise.resolve(true))
     def('findIoFogResponse', () => Promise.resolve({...fog, getRouter: () => Promise.resolve(null), toJSON: () => fog, getEdgeResources: () => Promise.resolve([])}))
     def('findOneRouterResponse', () => Promise.resolve(null))
@@ -1345,7 +1344,7 @@ describe('ioFog Service', () => {
       latitude: 45,
       longitude: 46,
       description: 'testDescription',
-      dockerUrl: 'testDockerUrl',
+      containerEngineUrl: 'testContainerEngineUrl',
       diskLimit: 15,
       diskDirectory: 'testDirectory',
       daemonStatus: 'RUNNING',
@@ -1362,18 +1361,18 @@ describe('ioFog Service', () => {
       bluetoothEnabled: false,
       watchdogEnabled: false,
       abstractedHardwareEnabled: false,
-      fogType: 1,
+      archId: 1,
     }
 
     const isSystem = false
 
     const fogs = [fog]
 
-    const queryFogData = isSystem ? { isSystem } : (isCLI ? {} : { userId: user.id, isSystem: false })
+    const queryFogData = {}
 
     const filters = []
 
-    def('subject', () => $subject.getFogListEndPoint(filters, user, isCLI, isSystem, transaction))
+    def('subject', () => $subject.getFogListEndPoint(filters, isCLI, transaction))
     def('validatorResponse', () => Promise.resolve(true))
     def('findAllIoFogResponse', () => Promise.resolve(fogs.map(f => ({...f, getRouter: () => Promise.resolve(null), getEdgeResources: () => Promise.resolve([]), toJSON: () => f}))))
     def('findOneRouterResponse', () => Promise.resolve(null))
@@ -1448,9 +1447,9 @@ describe('ioFog Service', () => {
       expirationTime: expirationTime,
     }
 
-    def('subject', () => $subject.generateProvisioningKeyEndPoint(fogData, user, isCLI, transaction))
+    def('subject', () => $subject.generateProvisioningKeyEndPoint(fogData, isCLI, transaction))
     def('validatorResponse', () => Promise.resolve(true))
-    def('generateRandomStringResponse', () => provisionKey)
+    def('generateUuidResponse', () => provisionKey)
     def('findIoFogResponse', () => Promise.resolve({ uuid: fogData.uuid, userId: user.id }))
     def('updateOrCreateProvisionKeyResponse', () => Promise.resolve(newProvision))
 
@@ -1458,7 +1457,7 @@ describe('ioFog Service', () => {
 
     beforeEach(() => {
       $sandbox.stub(Validator, 'validate').returns($validatorResponse)
-      $sandbox.stub(AppHelper, 'generateRandomString').returns($generateRandomStringResponse)
+      $sandbox.stub(AppHelper, 'generateUUID').returns($generateUuidResponse)
       $sandbox.stub(ioFogManager, 'findOne').returns($findIoFogResponse)
       $sandbox.stub(ioFogManager, 'findOneWithTags').returns($findIoFogResponse)
       $sandbox.stub(ioFogProvisionKeyManager, 'updateOrCreate').returns($updateOrCreateProvisionKeyResponse)
@@ -1480,14 +1479,14 @@ describe('ioFog Service', () => {
     })
 
     context('when Validator#validate() succeeds', () => {
-      it('calls AppHelper#generateRandomString() with correct args', async () => {
+      it('calls AppHelper#generateUUID() with correct args', async () => {
         await $subject
 
-        expect(AppHelper.generateRandomString).to.have.been.calledWith(8)
+        expect(AppHelper.generateUUID).to.have.been.called
       })
 
-      context('when AppHelper#generateRandomString() fails', () => {
-        def('generateRandomStringResponse', () => error)
+      context('when AppHelper#generateUUID() fails', () => {
+        def('generateUuidResponse', () => { throw error })
 
         it(`fails with ${error}`, () => {
           return expect($subject).to.eventually.have.property('key')
@@ -1577,10 +1576,10 @@ describe('ioFog Service', () => {
       expirationTime: expirationTime,
     }
 
-    def('subject', () => $subject.setFogVersionCommandEndPoint(fogVersionData, user, isCLI, transaction))
+    def('subject', () => $subject.setFogVersionCommandEndPoint(fogVersionData, isCLI, transaction))
     def('validatorResponse', () => Promise.resolve(true))
     def('findIoFogResponse', () => Promise.resolve(ioFog))
-    def('generateRandomStringResponse', () => provisionKey)
+    def('generateUuidResponse', () => provisionKey)
     def('updateOrCreateProvisionKeyResponse', () => Promise.resolve(newProvision))
     def('findIoFogVersionCommandResponse', () => Promise.resolve())
     def('updateChangeTrackingResponse', () => Promise.resolve())
@@ -1591,7 +1590,7 @@ describe('ioFog Service', () => {
       $sandbox.stub(Validator, 'validate').returns($validatorResponse)
       $sandbox.stub(ioFogManager, 'findOne').returns($findIoFogResponse)
       $sandbox.stub(ioFogManager, 'findOneWithTags').returns($findIoFogResponse)
-      $sandbox.stub(AppHelper, 'generateRandomString').returns($generateRandomStringResponse)
+      $sandbox.stub(AppHelper, 'generateUUID').returns($generateUuidResponse)
       $sandbox.stub(ioFogProvisionKeyManager, 'updateOrCreate').returns($updateOrCreateProvisionKeyResponse)
       $sandbox.stub(ioFogVersionCommandManager, 'updateOrCreate').returns($findIoFogVersionCommandResponse)
       $sandbox.stub(ChangeTrackingService, 'update').returns($updateChangeTrackingResponse)
@@ -1750,7 +1749,7 @@ describe('ioFog Service', () => {
 
     const queryFogData = { uuid: fogData.uuid }
 
-    def('subject', () => $subject.setFogRebootCommandEndPoint(fogData, user, isCLI, transaction))
+    def('subject', () => $subject.setFogRebootCommandEndPoint(fogData, isCLI, transaction))
     def('validatorResponse', () => Promise.resolve(true))
     def('findIoFogResponse', () => Promise.resolve({ uuid: fogData.uuid, userId: user.id }))
     def('updateChangeTrackingResponse', () => Promise.resolve())
@@ -1831,7 +1830,7 @@ describe('ioFog Service', () => {
       uuid: uuid,
     }
 
-    def('subject', () => $subject.getHalHardwareInfoEndPoint(uuidObj, user, isCLI, transaction))
+    def('subject', () => $subject.getHalHardwareInfoEndPoint(uuidObj, isCLI, transaction))
     def('validatorResponse', () => Promise.resolve(true))
     def('findIoFogResponse', () => Promise.resolve({ userId: user.id, uuid: uuidObj.uuid }))
     def('findHalHardwareResponse', () => Promise.resolve())
@@ -1915,7 +1914,7 @@ describe('ioFog Service', () => {
       uuid: uuid,
     }
 
-    def('subject', () => $subject.getHalUsbInfoEndPoint(uuidObj, user, isCLI, transaction))
+    def('subject', () => $subject.getHalUsbInfoEndPoint(uuidObj, isCLI, transaction))
     def('validatorResponse', () => Promise.resolve(true))
     def('findIoFogResponse', () => Promise.resolve({ userId: user.id, uuid: uuidObj.uuid }))
     def('findHalUsbResponse', () => Promise.resolve())
