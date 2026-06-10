@@ -254,60 +254,6 @@ function testRegistrySection () {
   }
 }
 
-function testDiagnosticsSection () {
-  console.log('\n=============================\nStarting diagnostics section..')
-
-  const registryCreateResponse = responseHasFields(executeCommand('registry add -U testRegistryUri -b -l testUserName' +
-    ' -p testPassword -e testEmail@gmail.com -u '), registryCreateFields)
-  const registryId = registryCreateResponse.id
-
-  const catalogCreateResponse = responseHasFields(executeCommand('catalog add -n testCatalogItem1 -d testDescription' +
-    ' -c testCategory -x testIntelImage -a testArmImage -p testPublisher -s 15 -r 15 -t testPicture -g ' +
-    registryId + ' -I testInputType -F testInputFormat -O testOutputType -T testOutputFormat ' +
-    '-X \'{}\' -u '), catalogCreateFields)
-  const catalogId = catalogCreateResponse.id
-
-  const applicationCreateResponse = responseHasFields(executeCommand('application add -n test-application1 -d testDescription' +
-    ' -a -u '), applicationCreateFields)
-  const applicationId = applicationCreateResponse.name
-
-  const ioFogCreateResponse = responseHasFields(executeCommand('iofog add -n ioFog3 -l testLocation -t 55 -g 65' +
-    ' -d testDescription -D testDockerUrl -M 55 -T testDiskDirectoryString -m 65 -c 24 -G 1 -Y testLogDirectory ' +
-    ' -s 25 -F 27 -Q 26 -B -W -A -y 1 -u '), ioFogCreateFields)
-  const ioFogUuid = ioFogCreateResponse.uuid
-
-  const microserviceCreateResponse = responseHasFields(executeCommand('microservice add -n microservice-name-1' +
-    ' -c ' + catalogId + ' -F ' + applicationId + ' -I ' + ioFogUuid + ' -g \'{}\' -v /host_src:/container_src:rw -l 15 -R' +
-    ' -p 80:8080:false -u '), microserviceCreateFields)
-  const microserviceUuid = microserviceCreateResponse.uuid
-
-  try {
-    responseEquals(testCommand('diagnostics strace-update -e -i ' + microserviceUuid),
-      'Microservice strace has been enabled')
-    responseContains(testCommand('diagnostics strace-info -f string -i ' + microserviceUuid),
-      'Microservice strace data has been retrieved successfully.')
-    responseContains(testCommand('diagnostics strace-ftp-post -i ' + microserviceUuid + ' -h ftpTestHost -p 2024' +
-      ' -u testFtpUser -s testFtpPass -d ftpTestDestination'), 'FTP error')
-    responseContains(testCommand('diagnostics image-snapshot-create -i ' + microserviceUuid),
-      'Microservice image snapshot has been created successfully.')
-    responseContains(testCommand('diagnostics image-snapshot-get -i ' + microserviceUuid),
-      'Image snapshot is not available for this microservice.')
-    executeCommand('microservice remove -i ' + microserviceUuid)
-    executeCommand('iofog remove -i ' + ioFogUuid)
-    executeCommand('application remove -i ' + applicationId)
-    executeCommand('catalog remove -i ' + catalogId)
-    executeCommand('registry remove -i ' + registryId)
-    executeCommand('user remove -e diagnosticsUser@domain.com')
-  } catch (exception) {
-    executeCommand('microservice remove -i ' + microserviceUuid)
-    executeCommand('iofog remove -i ' + ioFogUuid)
-    executeCommand('application remove -i ' + applicationId)
-    executeCommand('catalog remove -i ' + catalogId)
-    executeCommand('registry remove -i ' + registryId)
-    executeCommand('user remove -e diagnosticsUser@domain.com')
-  }
-}
-
 function testCommand (command) {
   console.log('\n Testing command \'' + command + '\'')
   testsCounter++
@@ -386,7 +332,6 @@ async function cliTest () {
     testApplicationSection()
     testMicroserviceSection()
     testRegistrySection()
-    testDiagnosticsSection()
 
     restoreDBs()
   } catch (exception) {

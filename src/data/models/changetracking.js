@@ -61,19 +61,9 @@ module.exports = (sequelize, DataTypes) => {
       field: 'tunnel',
       defaultValue: false
     },
-    diagnostics: {
-      type: DataTypes.BOOLEAN,
-      field: 'diagnostics',
-      defaultValue: false
-    },
     routerChanged: {
       type: DataTypes.BOOLEAN,
       field: 'router_changed',
-      defaultValue: false
-    },
-    isImageSnapshot: {
-      type: DataTypes.BOOLEAN,
-      field: 'image_snapshot',
       defaultValue: false
     },
     prune: {

@@ -97,9 +97,6 @@ module.exports = {
   // NATS Configuration
   'NATS_ENABLED': 'nats.enabled',
 
-  // Diagnostics Configuration
-  'DIAGNOSTICS_DIRECTORY': 'diagnostics.directory',
-
   // Vault Configuration
   'VAULT_ENABLED': 'vault.enabled',
   'VAULT_PROVIDER': 'vault.provider',

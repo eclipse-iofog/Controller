@@ -22,7 +22,6 @@ const MicroserviceCdiDev = models.MicroserviceCdiDev
 const MicroserviceCapAdd = models.MicroserviceCapAdd
 const MicroserviceCapDrop = models.MicroserviceCapDrop
 const VolumeMapping = models.VolumeMapping
-const StraceDiagnostics = models.StraceDiagnostics
 const CatalogItem = models.CatalogItem
 const CatalogItemImage = models.CatalogItemImage
 const Fog = models.Fog
@@ -41,7 +40,6 @@ const microserviceExcludedFields = [
   'updatedBy',
   'rebuild',
   'deleteWithCleanUp',
-  'imageSnapshot',
   'catalog_item_id',
   'iofog_uuid'
 ]
@@ -100,12 +98,6 @@ class MicroserviceManager extends BaseManager {
           as: 'volumeMappings',
           required: false,
           attributes: ['hostDestination', 'containerDestination', 'accessMode', 'type']
-        },
-        {
-          model: StraceDiagnostics,
-          as: 'strace',
-          required: false,
-          attributes: ['straceRun']
         },
         {
           model: CatalogItemImage,
@@ -322,12 +314,6 @@ class MicroserviceManager extends BaseManager {
           as: 'volumeMappings',
           required: false,
           attributes: ['hostDestination', 'containerDestination', 'accessMode', 'type']
-        },
-        {
-          model: StraceDiagnostics,
-          as: 'strace',
-          required: false,
-          attributes: ['straceRun']
         },
         {
           model: CatalogItemImage,

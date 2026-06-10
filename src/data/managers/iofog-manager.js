@@ -17,8 +17,6 @@ const models = require('../models')
 const Fog = models.Fog
 const Tags = models.Tags
 const Architecture = models.Architecture
-const Microservice = models.Microservice
-const Strace = models.StraceDiagnostics
 
 class FogManager extends BaseManager {
   getEntity () {
@@ -82,23 +80,6 @@ class FogManager extends BaseManager {
         uuid: uuid
       }
     })
-  }
-
-  findFogStraces (where, transaction) {
-    return Fog.findOne({
-      include: [
-        {
-          model: Microservice,
-          as: 'microservice',
-          required: true,
-          include: [{
-            model: Strace,
-            as: 'strace',
-            required: true
-          }]
-        }],
-      where: where
-    }, { transaction: transaction })
   }
 }
 

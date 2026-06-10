@@ -124,11 +124,6 @@ systemImages:
 nats:
   enabled: true
 
-# Diagnostics Configuration
-diagnostics:
-  directory: "diagnostic"  # Diagnostics directory
-
-
 # Vault Configuration (for compliance with NIST, ISO 27001, NATO, IEC 62443)
 # When enabled, sensitive data (secrets, certificates, private keys) will be stored
 # in the configured vault provider instead of encrypted in the database

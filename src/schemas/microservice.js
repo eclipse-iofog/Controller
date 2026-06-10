@@ -33,7 +33,6 @@ const microserviceCreate = {
       'maximum': 100
     },
     'logSize': { 'type': 'integer' },
-    'imageSnapshot': { 'type': 'string' },
     'volumeMappings': {
       'type': 'array',
       'items': { '$ref': '/volumeMappings' } },
