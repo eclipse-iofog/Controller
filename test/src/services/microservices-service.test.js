@@ -1899,4 +1899,278 @@ describe('Microservices Service', () => {
       })
     })
   })
+
+  describe('microservice runtime validation', () => {
+    const transaction = {}
+    const application = { name: 'my-app', id: 42, active: true }
+    const fogUuid = 'fog-uuid'
+
+    describe('.createMicroserviceEndPoint()', () => {
+      def('fog', () => ({
+        uuid: fogUuid,
+        name: 'agent-1',
+        fogTypeId: 1,
+        availableRuntimes: '["docker"]'
+      }))
+      def('microserviceData', () => ({
+        name: 'my-msvc',
+        application: application.name,
+        iofogUuid: fogUuid,
+        runtime: 'edgelet',
+        images: [{ fogTypeId: 1, containerImage: 'hello-world' }]
+      }))
+      def('subject', () => MicroservicesService.createMicroserviceEndPoint($microserviceData, isCLI, transaction))
+
+      beforeEach(() => {
+        $sandbox.stub(Validator, 'validate').resolves(true)
+        $sandbox.stub(ApplicationManager, 'findOne').resolves(application)
+        $sandbox.stub(ioFogManager, 'findOne').resolves($fog)
+      })
+
+      context('when runtime is not in agent availableRuntimes', () => {
+        it('rejects the request', () => {
+          return expect($subject).to.be.rejectedWith(
+            Errors.ValidationError,
+            /Runtime 'edgelet' is not available on agent 'agent-1'/
+          )
+        })
+      })
+
+      context('when agent has no availableRuntimes and runtime is set', () => {
+        def('fog', () => ({
+          uuid: fogUuid,
+          name: 'agent-1',
+          fogTypeId: 1,
+          availableRuntimes: ''
+        }))
+
+        it('rejects the request', () => {
+          return expect($subject).to.be.rejectedWith(
+            Errors.ValidationError,
+            /Runtime 'edgelet' is not available on agent 'agent-1'/
+          )
+        })
+      })
+    })
+  })
+
+  describe('serviceAccount volume immutability', () => {
+    const transaction = {}
+    const microserviceUuid = 'msvc-uuid'
+    const microserviceName = 'my-msvc'
+    const saContainerDestination = '/var/run/secrets/edgelet.iofog.org/serviceaccount'
+    const MicroservicePortService = require('../../../src/services/microservice-ports/microservice-port')
+    const MicroserviceExecStatusManager = require('../../../src/data/managers/microservice-exec-status-manager')
+    const CatalogItemImageManager = require('../../../src/data/managers/catalog-item-image-manager')
+    const RbacRoleManager = require('../../../src/data/managers/rbac-role-manager')
+    const RbacServiceAccountManager = require('../../../src/data/managers/rbac-service-account-manager')
+
+    describe('.createMicroserviceEndPoint()', () => {
+      const application = { name: 'my-app', id: 42, active: true }
+      const fog = { uuid: 'fog-uuid', name: 'agent-1', fogTypeId: 1, availableRuntimes: '["docker"]' }
+
+      def('subject', () => MicroservicesService.createMicroserviceEndPoint($microserviceData, isCLI, transaction))
+
+      beforeEach(() => {
+        $sandbox.stub(Validator, 'validate').resolves(true)
+        $sandbox.stub(ApplicationManager, 'findOne').resolves(application)
+        $sandbox.stub(ioFogManager, 'findOne').resolves(fog)
+        $sandbox.stub(MicroserviceManager, 'findOne').callsFake((where) => {
+          if (where && where.uuid === microserviceUuid) {
+            return Promise.resolve({
+              uuid: microserviceUuid,
+              name: microserviceName,
+              applicationId: application.id
+            })
+          }
+          return Promise.resolve(null)
+        })
+        $sandbox.stub(AppHelper, 'generateRandomString').returns(microserviceUuid)
+        $sandbox.stub(AppHelper, 'deleteUndefinedFields').callsFake((obj) => obj)
+        $sandbox.stub(MicroserviceManager, 'create').resolves({
+          uuid: microserviceUuid,
+          name: microserviceName,
+          applicationId: application.id,
+          iofogUuid: fog.uuid
+        })
+        $sandbox.stub(MicroservicePortService, 'validatePortMappings').resolves()
+        $sandbox.stub(RegistryManager, 'findOne').resolves({ id: 1 })
+        $sandbox.stub(MicroservicePortManager, 'findOne').resolves(null)
+        $sandbox.stub(MicroservicePortManager, 'create').resolves({ id: 1 })
+        $sandbox.stub(MicroserviceStatusManager, 'create').resolves()
+        $sandbox.stub(MicroserviceExecStatusManager, 'create').resolves()
+        $sandbox.stub(CatalogItemImageManager, 'bulkCreate').resolves()
+        $sandbox.stub(ChangeTrackingService, 'update').resolves()
+        $sandbox.stub(VolumeMappingManager, 'bulkCreate').resolves()
+        $sandbox.stub(VolumeMappingManager, 'findOne').resolves(null)
+        $sandbox.stub(VolumeMappingManager, 'create').resolves({ uuid: 'sa-volume-uuid' })
+        $sandbox.stub(RbacRoleManager, 'getRoleWithRules').resolves({ name: 'microservice' })
+        $sandbox.stub(RbacServiceAccountManager, 'findOneByMicroserviceUuid').resolves(null)
+        $sandbox.stub(RbacServiceAccountManager, 'createServiceAccount').resolves({ name: microserviceName })
+      })
+
+      context('when user supplies a serviceAccount volume mapping', () => {
+        def('microserviceData', () => ({
+          name: microserviceName,
+          application: application.name,
+          iofogUuid: fog.uuid,
+          images: [{ fogTypeId: 1, containerImage: 'hello-world' }],
+          volumeMappings: [{
+            hostDestination: microserviceName,
+            containerDestination: saContainerDestination,
+            accessMode: 'ro',
+            type: 'serviceAccount'
+          }]
+        }))
+
+        it('rejects the request', () => {
+          return expect($subject).to.be.rejectedWith(
+            Errors.ValidationError,
+            /serviceAccount are system-managed/
+          )
+        })
+      })
+
+      context('when user does not supply a serviceAccount volume mapping', () => {
+        def('microserviceData', () => ({
+          name: microserviceName,
+          application: application.name,
+          iofogUuid: fog.uuid,
+          images: [{ fogTypeId: 1, containerImage: 'hello-world' }],
+          volumeMappings: [{
+            hostDestination: '/var/dest',
+            containerDestination: '/var/dest',
+            accessMode: 'rw',
+            type: 'bind'
+          }]
+        }))
+
+        it('auto-injects the serviceAccount volume after user mappings', async () => {
+          await $subject
+          expect(VolumeMappingManager.create).to.have.been.calledWith({
+            microserviceUuid,
+            hostDestination: microserviceName,
+            containerDestination: saContainerDestination,
+            accessMode: 'ro',
+            type: 'serviceAccount'
+          }, transaction)
+        })
+      })
+    })
+
+    describe('.createVolumeMappingEndPoint()', () => {
+      def('volumeMappingData', () => ({
+        hostDestination: microserviceName,
+        containerDestination: saContainerDestination,
+        accessMode: 'ro',
+        type: 'serviceAccount'
+      }))
+      def('subject', () => MicroservicesService.createVolumeMappingEndPoint(
+        microserviceUuid,
+        $volumeMappingData,
+        isCLI,
+        transaction
+      ))
+
+      beforeEach(() => {
+        $sandbox.stub(Validator, 'validate').resolves(true)
+        $sandbox.stub(MicroserviceManager, 'findMicroserviceOnGet').resolves({ uuid: microserviceUuid })
+      })
+
+      it('rejects serviceAccount volume creation by users', () => {
+        return expect($subject).to.be.rejectedWith(
+          Errors.ValidationError,
+          /serviceAccount are system-managed/
+        )
+      })
+    })
+
+    describe('.deleteVolumeMappingEndPoint()', () => {
+      const saVolumeUuid = 'sa-volume-uuid'
+      def('subject', () => MicroservicesService.deleteVolumeMappingEndPoint(
+        microserviceUuid,
+        saVolumeUuid,
+        isCLI,
+        transaction
+      ))
+
+      beforeEach(() => {
+        $sandbox.stub(MicroserviceManager, 'findOne').resolves({ uuid: microserviceUuid })
+        $sandbox.stub(VolumeMappingManager, 'findOne').resolves({
+          uuid: saVolumeUuid,
+          type: 'serviceAccount'
+        })
+        $sandbox.stub(VolumeMappingManager, 'delete').resolves(1)
+      })
+
+      it('rejects deletion of serviceAccount volume mappings', () => {
+        return expect($subject).to.be.rejectedWith(
+          Errors.ValidationError,
+          /serviceAccount are system-managed/
+        )
+      })
+
+      it('does not call VolumeMappingManager#delete()', async () => {
+        try {
+          await $subject
+        } catch (error) {
+          // expected
+        }
+        expect(VolumeMappingManager.delete).to.not.have.been.called
+      })
+    })
+
+    describe('.updateMicroserviceEndPoint()', () => {
+      const microservice = {
+        uuid: microserviceUuid,
+        name: microserviceName,
+        applicationId: 42,
+        registryId: 1,
+        iofogUuid: 'fog-uuid',
+        schedule: 0,
+        catalogItem: null,
+        getImages: () => Promise.resolve([{ fogTypeId: 1, containerImage: 'hello-world' }]),
+        getPorts: () => Promise.resolve([])
+      }
+
+      def('subject', () => MicroservicesService.updateMicroserviceEndPoint(
+        microserviceUuid,
+        $microserviceData,
+        isCLI,
+        transaction
+      ))
+
+      beforeEach(() => {
+        $sandbox.stub(Validator, 'validate').resolves(true)
+        $sandbox.stub(AppHelper, 'deleteUndefinedFields').callsFake((obj) => obj)
+        $sandbox.stub(MicroserviceManager, 'findOne').resolves(microservice)
+        $sandbox.stub(MicroserviceManager, 'findOneWithCategory').resolves(microservice)
+        $sandbox.stub(CatalogItemImageManager, 'findAll').resolves([])
+        $sandbox.stub(ApplicationManager, 'findOne').resolves({ id: 42, natsAccess: false })
+        $sandbox.stub(RegistryManager, 'findOne').resolves({ id: 1 })
+        $sandbox.stub(ioFogManager, 'findOne').resolves({ uuid: 'fog-uuid', fogTypeId: 1 })
+        $sandbox.stub(MicroserviceExtraHostManager, 'findAll').resolves([])
+        $sandbox.stub(MicroserviceManager, 'updateAndFind').resolves(microservice)
+        $sandbox.stub(ChangeTrackingService, 'update').resolves()
+      })
+
+      context('when patch includes a serviceAccount volume mapping', () => {
+        def('microserviceData', () => ({
+          volumeMappings: [{
+            hostDestination: microserviceName,
+            containerDestination: saContainerDestination,
+            accessMode: 'ro',
+            type: 'serviceAccount'
+          }]
+        }))
+
+        it('rejects the update', () => {
+          return expect($subject).to.be.rejectedWith(
+            Errors.ValidationError,
+            /serviceAccount are system-managed/
+          )
+        })
+      })
+    })
+  })
 })

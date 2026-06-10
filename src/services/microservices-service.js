@@ -54,6 +54,10 @@ const constants = require('../helpers/constants')
 const isEqual = require('lodash/isEqual')
 const logger = require('../logger')
 
+const SERVICE_ACCOUNT_VOLUME_TYPE = 'serviceAccount'
+const SERVICE_ACCOUNT_VOLUME_CONTAINER_DESTINATION = '/var/run/secrets/edgelet.iofog.org/serviceaccount'
+const SERVICE_ACCOUNT_VOLUME_ACCESS_MODE = 'ro'
+
 /**
  * Create or update service account for a microservice
  * @param {string} microserviceUuid - UUID of the microservice
@@ -428,6 +432,88 @@ async function _findFog (microserviceData, isCLI, transaction) {
   return FogManager.findOne(fogConditions, transaction)
 }
 
+function _parseFogAvailableRuntimes (fog) {
+  if (!fog || fog.availableRuntimes == null || fog.availableRuntimes === '') {
+    return []
+  }
+  if (Array.isArray(fog.availableRuntimes)) {
+    return fog.availableRuntimes
+  }
+  try {
+    const parsed = JSON.parse(fog.availableRuntimes)
+    return Array.isArray(parsed) ? parsed : []
+  } catch (error) {
+    return []
+  }
+}
+
+function _validateMicroserviceRuntime (runtime, fog) {
+  if (runtime == null || runtime === '') {
+    return
+  }
+  const availableRuntimes = _parseFogAvailableRuntimes(fog)
+  if (!availableRuntimes.includes(runtime)) {
+    const agentLabel = fog.name || fog.uuid || 'agent'
+    throw new Errors.ValidationError(
+      `Runtime '${runtime}' is not available on agent '${agentLabel}'`
+    )
+  }
+}
+
+function _isServiceAccountVolumeType (type) {
+  return type === SERVICE_ACCOUNT_VOLUME_TYPE
+}
+
+function _buildServiceAccountVolumeMapping (microserviceName) {
+  return {
+    hostDestination: microserviceName,
+    containerDestination: SERVICE_ACCOUNT_VOLUME_CONTAINER_DESTINATION,
+    accessMode: SERVICE_ACCOUNT_VOLUME_ACCESS_MODE,
+    type: SERVICE_ACCOUNT_VOLUME_TYPE
+  }
+}
+
+function _rejectUserServiceAccountVolumeMappings (volumeMappings) {
+  if (!volumeMappings) {
+    return
+  }
+  for (const mapping of volumeMappings) {
+    const type = mapping.type || VOLUME_MAPPING_DEFAULT
+    if (_isServiceAccountVolumeType(type)) {
+      throw new Errors.ValidationError(
+        'Volume mappings of type serviceAccount are system-managed and cannot be set by users'
+      )
+    }
+  }
+}
+
+async function _injectServiceAccountVolume (microservice, transaction) {
+  const mapping = _buildServiceAccountVolumeMapping(microservice.name)
+
+  const existing = await VolumeMappingManager.findOne({
+    microserviceUuid: microservice.uuid,
+    type: SERVICE_ACCOUNT_VOLUME_TYPE,
+    containerDestination: SERVICE_ACCOUNT_VOLUME_CONTAINER_DESTINATION
+  }, transaction)
+
+  if (existing) {
+    if (existing.hostDestination !== microservice.name) {
+      await VolumeMappingManager.update(
+        { uuid: existing.uuid },
+        { hostDestination: microservice.name },
+        transaction
+      )
+    }
+    return { created: false, mapping: existing }
+  }
+
+  const createdMapping = await VolumeMappingManager.create({
+    microserviceUuid: microservice.uuid,
+    ...mapping
+  }, transaction)
+  return { created: true, mapping: createdMapping }
+}
+
 async function _normalizeMicroserviceNatsConfig (microserviceData, transaction, existingMicroservice = null) {
   if (Object.prototype.hasOwnProperty.call(microserviceData, 'natsAccess')) {
     throw new Errors.ValidationError('natsAccess must be provided under natsConfig.natsAccess')
@@ -470,6 +556,8 @@ async function createMicroserviceEndPoint (microserviceData, isCLI, transaction)
 
   // Set fog uuid for further reference
   microserviceData.iofogUuid = fog.uuid
+
+  _validateMicroserviceRuntime(microserviceData.runtime, fog)
 
   // validate images
   if (microserviceData.catalogItemId) {
@@ -567,6 +655,8 @@ async function createMicroserviceEndPoint (microserviceData, isCLI, transaction)
     await _createVolumeMappings(microservice, microserviceData.volumeMappings, transaction)
   }
 
+  await _injectServiceAccountVolume(microservice, transaction)
+
   if (microserviceData.iofogUuid) {
     await _updateChangeTracking(false, microserviceData.iofogUuid, transaction)
   }
@@ -611,6 +701,7 @@ async function createMicroserviceEndPoint (microserviceData, isCLI, transaction)
 }
 
 function _validateVolumeMappings (volumeMappings) {
+  _rejectUserServiceAccountVolumeMappings(volumeMappings)
   if (volumeMappings) {
     for (const mapping of volumeMappings) {
       mapping.type = mapping.type || VOLUME_MAPPING_DEFAULT
@@ -930,6 +1021,14 @@ async function updateSystemMicroserviceEndPoint (microserviceUuid, microserviceD
       images = await microservice.getImages()
     }
     _validateImageFogType(microserviceData, fog, images)
+    const shouldValidateRuntime = microserviceDataUpdate.runtime !== undefined ||
+      (microserviceDataUpdate.iofogUuid && microserviceDataUpdate.iofogUuid !== microservice.iofogUuid)
+    if (shouldValidateRuntime) {
+      const runtimeToValidate = microserviceDataUpdate.runtime !== undefined
+        ? microserviceDataUpdate.runtime
+        : microservice.runtime
+      _validateMicroserviceRuntime(runtimeToValidate, fog)
+    }
   }
 
   // Set rebuild flag if needed
@@ -965,6 +1064,11 @@ async function updateSystemMicroserviceEndPoint (microserviceUuid, microserviceD
 
   if (microserviceDataUpdate.volumeMappings) {
     await _updateVolumeMappings(microserviceDataUpdate.volumeMappings, microserviceUuid, transaction)
+  } else if (microserviceDataUpdate.name && microserviceDataUpdate.name !== microservice.name) {
+    await _injectServiceAccountVolume(
+      { uuid: microserviceUuid, name: microserviceDataUpdate.name },
+      transaction
+    )
   }
 
   if (microserviceDataUpdate.env) {
@@ -1218,6 +1322,14 @@ async function updateMicroserviceEndPoint (microserviceUuid, microserviceData, i
       images = await microservice.getImages()
     }
     _validateImageFogType(microserviceData, fog, images)
+    const shouldValidateRuntime = microserviceDataUpdate.runtime !== undefined ||
+      (microserviceDataUpdate.iofogUuid && microserviceDataUpdate.iofogUuid !== microservice.iofogUuid)
+    if (shouldValidateRuntime) {
+      const runtimeToValidate = microserviceDataUpdate.runtime !== undefined
+        ? microserviceDataUpdate.runtime
+        : microservice.runtime
+      _validateMicroserviceRuntime(runtimeToValidate, fog)
+    }
   }
 
   // Set rebuild flag if needed
@@ -1253,6 +1365,11 @@ async function updateMicroserviceEndPoint (microserviceUuid, microserviceData, i
 
   if (microserviceDataUpdate.volumeMappings) {
     await _updateVolumeMappings(microserviceDataUpdate.volumeMappings, microserviceUuid, transaction)
+  } else if (microserviceDataUpdate.name && microserviceDataUpdate.name !== microservice.name) {
+    await _injectServiceAccountVolume(
+      { uuid: microserviceUuid, name: microserviceDataUpdate.name },
+      transaction
+    )
   }
 
   if (microserviceDataUpdate.env) {
@@ -1812,6 +1929,12 @@ async function createVolumeMappingEndPoint (microserviceUuid, volumeMappingData,
 
   const type = volumeMappingData.type || VOLUME_MAPPING_DEFAULT
 
+  if (_isServiceAccountVolumeType(type)) {
+    throw new Errors.ValidationError(
+      'Volume mappings of type serviceAccount are system-managed and cannot be created by users'
+    )
+  }
+
   const volumeMapping = await VolumeMappingManager.findOne({
     microserviceUuid: microserviceUuid,
     hostDestination: volumeMappingData.hostDestination,
@@ -1854,6 +1977,12 @@ async function createSystemVolumeMappingEndPoint (microserviceUuid, volumeMappin
   }
 
   const type = volumeMappingData.type || VOLUME_MAPPING_DEFAULT
+
+  if (_isServiceAccountVolumeType(type)) {
+    throw new Errors.ValidationError(
+      'Volume mappings of type serviceAccount are system-managed and cannot be created by users'
+    )
+  }
 
   const volumeMapping = await VolumeMappingManager.findOne({
     microserviceUuid: microserviceUuid,
@@ -1899,6 +2028,17 @@ async function deleteVolumeMappingEndPoint (microserviceUuid, volumeMappingUuid,
     microserviceUuid: microserviceUuid
   }
 
+  const volumeMapping = await VolumeMappingManager.findOne(volumeMappingWhere, transaction)
+  if (!volumeMapping) {
+    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_VOLUME_MAPPING_UUID, volumeMappingUuid))
+  }
+
+  if (_isServiceAccountVolumeType(volumeMapping.type)) {
+    throw new Errors.ValidationError(
+      'Volume mappings of type serviceAccount are system-managed and cannot be deleted by users'
+    )
+  }
+
   const affectedRows = await VolumeMappingManager.delete(volumeMappingWhere, transaction)
   if (affectedRows === 0) {
     throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_VOLUME_MAPPING_UUID, volumeMappingUuid))
@@ -1918,6 +2058,17 @@ async function deleteSystemVolumeMappingEndPoint (microserviceUuid, volumeMappin
   const volumeMappingWhere = {
     uuid: volumeMappingUuid,
     microserviceUuid: microserviceUuid
+  }
+
+  const volumeMapping = await VolumeMappingManager.findOne(volumeMappingWhere, transaction)
+  if (!volumeMapping) {
+    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_VOLUME_MAPPING_UUID, volumeMappingUuid))
+  }
+
+  if (_isServiceAccountVolumeType(volumeMapping.type)) {
+    throw new Errors.ValidationError(
+      'Volume mappings of type serviceAccount are system-managed and cannot be deleted by users'
+    )
   }
 
   const affectedRows = await VolumeMappingManager.delete(volumeMappingWhere, transaction)
@@ -2200,6 +2351,8 @@ async function _updateVolumeMappings (volumeMappings, microserviceUuid, transact
 
     await VolumeMappingManager.create(volumeMappingObj, transaction)
   }
+
+  await _injectServiceAccountVolume(microservice, transaction)
 }
 
 async function _updateImages (images, microserviceUuid, transaction) {
@@ -2716,5 +2869,7 @@ module.exports = {
   deleteSystemExecEndPoint: TransactionDecorator.generateTransaction(deleteSystemExecEndPoint),
   startMicroserviceEndPoint: TransactionDecorator.generateTransaction(startMicroserviceEndPoint),
   stopMicroserviceEndPoint: TransactionDecorator.generateTransaction(stopMicroserviceEndPoint),
-  reconcileNatsForApplication: TransactionDecorator.generateTransaction(reconcileNatsForApplication, bypassOptions)
+  reconcileNatsForApplication: TransactionDecorator.generateTransaction(reconcileNatsForApplication, bypassOptions),
+  injectServiceAccountVolume: _injectServiceAccountVolume,
+  createOrUpdateServiceAccountForMicroservice: _createOrUpdateServiceAccountForMicroservice
 }

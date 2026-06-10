@@ -245,7 +245,7 @@ const volumeMappings = {
     'hostDestination': { 'type': 'string' },
     'containerDestination': { 'type': 'string' },
     'accessMode': { 'type': 'string' },
-    'type': { 'enum': ['volume', 'bind', 'volumeMount'] }
+    'type': { 'enum': ['volume', 'bind', 'volumeMount', 'serviceAccount'] }
   },
   'required': ['hostDestination', 'containerDestination', 'accessMode'],
   'additionalProperties': true
