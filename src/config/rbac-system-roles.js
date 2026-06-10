@@ -95,23 +95,14 @@ module.exports = {
   },
   AGENT_ADMIN_ROLE: {
     name: 'agent-admin',
-    apiVersion: 'agent.datasance.com/v3',
+    apiVersion: 'edgelet.iofog.org/v1',
     kind: 'Role',
     get namespace () {
       return getNamespace()
     },
     rules: [
       {
-        // Wildcard covers all agent API resources and verbs
-        // This includes all Microservice role permissions plus:
-        // - status (get)
-        // - info (get)
-        // - version (get)
-        // - provision (post)
-        // - deprovision (delete)
-        // - config (post)
-        // - prune (post)
-        apiGroups: ['agent.datasance.com/v3'],
+        apiGroups: ['edgelet.iofog.org/v1'],
         resources: ['*'],
         verbs: ['*']
       }
@@ -119,32 +110,21 @@ module.exports = {
   },
   MICROSERVICE_ROLE: {
     name: 'microservice',
-    apiVersion: 'agent.datasance.com/v3',
+    apiVersion: 'edgelet.iofog.org/v1',
     kind: 'Role',
     get namespace () {
       return getNamespace()
     },
     rules: [
       {
-        apiGroups: ['agent.datasance.com/v3'],
-        resources: ['gps'],
-        verbs: ['get', 'patch']
-      },
-      {
-        apiGroups: ['agent.datasance.com/v3'],
-        resources: ['config'],
+        apiGroups: ['edgelet.iofog.org/v1'],
+        resources: [
+          'microservices/config/self',
+          'auth/whoami',
+          'system/gps',
+          'microservices/control/self'
+        ],
         verbs: ['get']
-      },
-      {
-        apiGroups: ['agent.datasance.com/v3'],
-        resources: ['log'],
-        verbs: ['patch']
-      },
-      {
-        apiGroups: ['agent.datasance.com/v3'],
-        resources: ['control'],
-        verbs: ['get']
-        // Note: WebSocket 'get' for control is handled separately by agent
       }
     ]
   }
