@@ -76,7 +76,7 @@ const patchApplicationTemplateEndPoint = async function (applicationTemplateData
   const oldApplicationTemplate = await ApplicationTemplateManager.findOne({ ...conditions }, transaction)
 
   if (!oldApplicationTemplate) {
-    throw new Errors.NotFoundError(ErrorMessages.INVALID_FLOW_ID)
+    throw new Errors.NotFoundError(ErrorMessages.INVALID_APPLICATION_ID)
   }
   if (applicationTemplateData.name) {
     await _checkForDuplicateName(applicationTemplateData.name, oldApplicationTemplate.id, transaction)

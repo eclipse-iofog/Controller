@@ -114,19 +114,13 @@ const deleteMicroserviceEndPoint = async function (req) {
 }
 
 const getMicroservicesByApplicationEndPoint = async function (req) {
-  // API Retro compatibility
-  const flowId = req.query.flowId
-
   const applicationName = req.query.application
-  return MicroservicesService.listMicroservicesEndPoint({ applicationName, flowId }, false)
+  return MicroservicesService.listMicroservicesEndPoint({ applicationName }, false)
 }
 
 const getSystemMicroservicesByApplicationEndPoint = async function (req) {
-  // API Retro compatibility
-  const flowId = req.query.flowId
-
   const applicationName = req.query.application
-  return MicroservicesService.listSystemMicroservicesEndPoint({ applicationName, flowId }, false)
+  return MicroservicesService.listSystemMicroservicesEndPoint({ applicationName }, false)
 }
 
 const createMicroservicePortMappingEndPoint = async function (req) {

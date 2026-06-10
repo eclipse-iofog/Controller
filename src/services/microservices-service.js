@@ -2078,12 +2078,12 @@ async function _validateApplication (name, isCLI, transaction) {
 
       const application = await ApplicationManager.findOne(where, transaction)
       if (!application) {
-        throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_ID, name))
+        throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_APPLICATION_ID, name))
       }
       return application
     } else {
       // If name is not a valid integer, it's not a valid ID either
-      throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_ID, name))
+      throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_APPLICATION_ID, name))
     }
   }
   return application
@@ -2109,12 +2109,12 @@ async function _validateSystemApplication (name, isCLI, transaction) {
 
       const application = await ApplicationManager.findOne(where, transaction)
       if (!application) {
-        throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_ID, name))
+        throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_APPLICATION_ID, name))
       }
       return application
     } else {
       // If name is not a valid integer, it's not a valid ID either
-      throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_ID, name))
+      throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_APPLICATION_ID, name))
     }
   }
   return application

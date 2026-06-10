@@ -48,7 +48,7 @@ module.exports = {
   CMD_IOFOG_REBOOT: 'reboot',
   CMD_CONTROLLER: 'controller',
   CMD_EMAIL_ACTIVATION: 'email-activation',
-  CMD_FOG_TYPES: 'fog-types',
+  CMD_ARCHITECTURES: 'architectures',
   CMD_DIAGNOSTICS: 'diagnostics',
   CMD_STRACE_UPDATE: 'strace-update',
   CMD_STRACE_INFO: 'strace-info',

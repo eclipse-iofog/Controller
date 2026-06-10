@@ -529,7 +529,7 @@ async function ensureAccountForApplication (applicationId, transaction) {
 
   const application = await ApplicationManager.findOne({ id: applicationId }, transaction)
   if (!application) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_ID, applicationId))
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_APPLICATION_ID, applicationId))
   }
 
   const operator = await ensureOperator(transaction)
@@ -713,7 +713,7 @@ async function createUserForAccount (accountId, userName, expiresIn, natsRuleNam
   await ensureDefaultRules(transaction)
   const account = await NatsAccountManager.findOne({ id: accountId }, transaction)
   if (!account) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_ID, accountId))
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_APPLICATION_ID, accountId))
   }
   const existingUser = await NatsUserManager.findOne({ accountId: account.id, name: userName }, transaction)
   if (existingUser) {

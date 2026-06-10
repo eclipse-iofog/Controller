@@ -387,7 +387,7 @@ async function _createRouterMicroservice (isEdge, uuid, microserviceConfig, tran
     { capAdd: 'NET_RAW' }
   ]
   if (!application) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_ID, `system-${fog.name}`))
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_APPLICATION_ID, `system-${fog.name}`))
   }
   routerMicroserviceData.applicationId = application.id
   const routerMicroservice = await MicroserviceManager.create(routerMicroserviceData, transaction)

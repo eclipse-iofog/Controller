@@ -151,7 +151,7 @@ const patchApplicationEndPoint = async function (applicationData, conditions, is
   const oldApplication = await ApplicationManager.findOne({ ...conditions }, transaction)
 
   if (!oldApplication) {
-    throw new Errors.NotFoundError(ErrorMessages.INVALID_FLOW_ID)
+    throw new Errors.NotFoundError(ErrorMessages.INVALID_APPLICATION_ID)
   }
   if (applicationData.name && applicationData.name !== oldApplication.name) {
     throw new Errors.ValidationError('Application Resource Name is immutable')
@@ -217,7 +217,7 @@ const updateApplicationEndPoint = async function (applicationData, name, isCLI, 
   const oldApplication = await ApplicationManager.findOne({ name }, transaction)
 
   if (!oldApplication) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_ID, name))
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_APPLICATION_ID, name))
   }
   if (applicationData.name && applicationData.name !== oldApplication.name) {
     throw new Errors.ValidationError('Application Resource Name is immutable')
@@ -290,7 +290,7 @@ const _updateMicroservices = async function (application, microservices, isCLI, 
   // Update microservices
   const oldMicroservices = await ApplicationManager.findApplicationMicroservices({ name: application }, transaction)
   if (!oldMicroservices) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_ID, application))
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_APPLICATION_ID, application))
   }
   const iofogUuids = []
   const oldMsvcsIofogUuids = []
@@ -395,7 +395,7 @@ async function getApplication (conditions, isCLI, transaction) {
 
   const applicationRaw = await ApplicationManager.findOnePopulated(where, attributes, transaction)
   if (!applicationRaw) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_ID, conditions.name || conditions.id))
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_APPLICATION_ID, conditions.name || conditions.id))
   }
   const application = await _buildApplicationObject(applicationRaw, transaction)
   return application
@@ -409,7 +409,7 @@ async function getSystemApplication (conditions, isCLI, transaction) {
 
   const applicationRaw = await ApplicationManager.findOnePopulated(where, attributes, transaction)
   if (!applicationRaw) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_ID, conditions.name || conditions.id))
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_APPLICATION_ID, conditions.name || conditions.id))
   }
   const application = await _buildApplicationObject(applicationRaw, transaction)
   return application
@@ -440,7 +440,7 @@ const getSystemApplicationEndPoint = async function (conditions, isCLI, transact
 async function _updateChangeTrackingsAndDeleteMicroservicesByApplicationId (conditions, deleteMicroservices, transaction) {
   const microservices = await ApplicationManager.findApplicationMicroservices(conditions, transaction)
   if (!microservices) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_NAME, conditions.name || conditions.id))
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_APPLICATION_NAME, conditions.name || conditions.id))
   }
   const iofogUuids = []
   for (const ms of microservices) {
