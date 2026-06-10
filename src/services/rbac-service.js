@@ -34,23 +34,39 @@ function validateNotSystemRole (roleName) {
 }
 
 /**
- * Notify microservice when a service account linked to a microservice is updated
+ * Set microserviceList change tracking on every distinct agent hosting an MS linked to the given SAs.
+ * R22: agent list embeds SA rules from SA.roleRef → Role.rules only; SA or role mutations must refresh the list.
+ * @param {Array<Object>} serviceAccounts - Service account records (may omit microserviceUuid for app-scoped SAs)
+ * @param {object} transaction - Database transaction
+ */
+async function _setMicroserviceListChangeTrackingForServiceAccounts (serviceAccounts, transaction) {
+  const iofogUuids = new Set()
+  for (const serviceAccount of serviceAccounts) {
+    const microserviceUuid = serviceAccount.microserviceUuid || (serviceAccount.get && serviceAccount.get('microserviceUuid'))
+    if (!microserviceUuid) {
+      continue
+    }
+    try {
+      const microservice = await MicroserviceManager.findOne({ uuid: microserviceUuid }, transaction)
+      if (microservice && microservice.iofogUuid) {
+        iofogUuids.add(microservice.iofogUuid)
+      }
+    } catch (error) {
+      logger.error(`Failed to resolve agent for service account update (microserviceUuid: ${microserviceUuid}):`, error.message)
+    }
+  }
+  for (const iofogUuid of iofogUuids) {
+    await ChangeTrackingService.update(iofogUuid, ChangeTrackingService.events.microserviceList, transaction)
+  }
+}
+
+/**
+ * Notify hosting agent when a single service account linked to a microservice is updated.
  * @param {Object} serviceAccount - Service account object (must have microserviceUuid if linked to a microservice)
  * @param {object} transaction - Database transaction
  */
 async function _notifyMicroservicesForServiceAccountUpdate (serviceAccount, transaction) {
-  const microserviceUuid = serviceAccount.microserviceUuid || (serviceAccount.get && serviceAccount.get('microserviceUuid'))
-  if (!microserviceUuid) {
-    return
-  }
-  try {
-    const microservice = await MicroserviceManager.findOne({ uuid: microserviceUuid }, transaction)
-    if (microservice && microservice.iofogUuid) {
-      await ChangeTrackingService.update(microservice.iofogUuid, ChangeTrackingService.events.microserviceFull, transaction)
-    }
-  } catch (error) {
-    logger.error(`Failed to notify microservice for service account update (microserviceUuid: ${microserviceUuid}):`, error.message)
-  }
+  await _setMicroserviceListChangeTrackingForServiceAccounts([serviceAccount], transaction)
 }
 
 // Role Management
@@ -136,8 +152,8 @@ async function updateRoleEndpoint (name, roleData, transaction) {
           roleRef: sa.roleRef
         }, transaction)
       }
-      await _notifyMicroservicesForServiceAccountUpdate(sa, transaction)
     }
+    await _setMicroserviceListChangeTrackingForServiceAccounts(serviceAccounts, transaction)
   }
 
   return {
