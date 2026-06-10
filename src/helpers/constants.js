@@ -68,7 +68,7 @@ module.exports = {
   DEFAULT_NATS_HUB_NAME: 'default-nats-hub',
   DEFAULT_PROXY_HOST: 'default-proxy-host',
 
-  RESERVED_PORTS: [54321, 54322],
+  RESERVED_PORTS: [54321, 54322, 53],
 
   VOLUME_MAPPING_DEFAULT: 'bind',
   MICROSERVICE_DEFAULT_LOG_SIZE: 1
