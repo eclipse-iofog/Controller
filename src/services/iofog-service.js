@@ -31,7 +31,6 @@ const MicroserviceManager = require('../data/managers/microservice-manager')
 const ApplicationManager = require('../data/managers/application-manager')
 const TagsManager = require('../data/managers/tags-manager')
 const MicroserviceService = require('./microservices-service')
-const EdgeResourceService = require('./edge-resource-service')
 const RouterManager = require('../data/managers/router-manager')
 const MicroserviceExtraHostManager = require('../data/managers/microservice-extra-host-manager')
 const MicroserviceStatusManager = require('../data/managers/microservice-status-manager')
@@ -921,20 +920,6 @@ async function _getFogNatsConfig (fog, transaction) {
   return natsConfig
 }
 
-async function _getFogEdgeResources (fog, transaction) {
-  const resourceAttributes = [
-    'name',
-    'version',
-    'description',
-    'interfaceProtocol',
-    'displayName',
-    'displayIcon',
-    'displayColor'
-  ]
-  const resources = await fog.getEdgeResources({ attributes: resourceAttributes })
-  return resources.map(EdgeResourceService.buildGetObject)
-}
-
 async function _getFogVolumeMounts (fog, transaction) {
   const volumeMountAttributes = [
     'name',
@@ -956,7 +941,6 @@ async function _getFogVolumeMounts (fog, transaction) {
 async function _getFogExtraInformation (fog, transaction) {
   const routerConfig = await _getFogRouterConfig(fog, transaction)
   const natsConfig = await _getFogNatsConfig(fog, transaction)
-  const edgeResources = await _getFogEdgeResources(fog, transaction)
   const volumeMounts = await _getFogVolumeMounts(fog, transaction)
   // Transform to plain JS object
   if (fog.toJSON && typeof fog.toJSON === 'function') {
@@ -970,7 +954,7 @@ async function _getFogExtraInformation (fog, transaction) {
     image: architecture.image,
     description: architecture.description
   } : undefined
-  return { ...fogFields, archId, arch, tags: _mapTags(fog), ...routerConfig, ...natsConfig, edgeResources, volumeMounts }
+  return { ...fogFields, archId, arch, tags: _mapTags(fog), ...routerConfig, ...natsConfig, volumeMounts }
 }
 
 // Map tags to string array
