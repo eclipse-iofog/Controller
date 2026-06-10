@@ -16,6 +16,7 @@ const models = require('../models')
 
 const Fog = models.Fog
 const Tags = models.Tags
+const Architecture = models.Architecture
 const Microservice = models.Microservice
 const Strace = models.StraceDiagnostics
 
@@ -34,6 +35,10 @@ class FogManager extends BaseManager {
           through: {
             attributes: []
           }
+        },
+        { model: Architecture,
+          as: 'architecture',
+          attributes: ['id', 'name', 'image', 'description']
         }
       ]
     }, {
@@ -50,6 +55,10 @@ class FogManager extends BaseManager {
           through: {
             attributes: []
           }
+        },
+        { model: Architecture,
+          as: 'architecture',
+          attributes: ['id', 'name', 'image', 'description']
         }
       ]
     }, { transaction })

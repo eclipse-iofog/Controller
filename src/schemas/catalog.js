@@ -68,14 +68,13 @@ const image = {
   'type': 'object',
   'properties': {
     'containerImage': { 'type': 'string' },
-    'fogTypeId':
-      {
-        'type': 'integer',
-        'minimum': 1,
-        'maximum': 2
-      }
+    'archId': {
+      'type': 'integer',
+      'minimum': 1,
+      'maximum': 4
+    }
   },
-  'required': ['containerImage', 'fogTypeId'],
+  'required': ['containerImage', 'archId'],
   'additionalProperties': true
 }
 

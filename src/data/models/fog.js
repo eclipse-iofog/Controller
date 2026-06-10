@@ -351,6 +351,11 @@ module.exports = (sequelize, DataTypes) => {
     gpsStatus: {
       type: DataTypes.TEXT,
       field: 'gps_status'
+    },
+    archId: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
+      field: 'arch_id'
     }
   }, {
     tableName: 'Fogs',

@@ -22,12 +22,7 @@ const microserviceCreate = {
     'registryId': {
       'type': 'integer'
     },
-    'application': {
-      'anyOf': [
-        { 'type': 'string' },
-        { 'type': 'number' }
-      ]
-    },
+    'application': { 'type': 'string' },
     'iofogUuid': { 'type': 'string' },
     'agentName': { 'type': 'string' },
     'hostNetworkMode': { 'type': 'boolean' },

@@ -21,8 +21,8 @@ const iofogCreate = {
     'longitude': { 'type': 'number', 'minimum': -180, 'maximum': 180 },
     'description': { 'type': 'string' },
     'networkInterface': { 'type': 'string' },
-    'dockerUrl': { 'type': 'string' },
-    'containerEngine': { 'type': 'string', 'enum': ['docker', 'podman'] },
+    'containerEngineUrl': { 'type': 'string' },
+    'containerEngine': { 'type': 'string', 'enum': ['edgelet', 'docker', 'podman'] },
     'deploymentType': { 'type': 'string', 'enum': ['native', 'container'] },
     'diskLimit': { 'type': 'integer', 'minimum': 0 },
     'diskDirectory': { 'type': 'string' },
@@ -37,8 +37,8 @@ const iofogCreate = {
     'bluetoothEnabled': { 'type': 'boolean' },
     'watchdogEnabled': { 'type': 'boolean' },
     'abstractedHardwareEnabled': { 'type': 'boolean' },
-    'fogType': { 'type': 'integer', 'minimum': 0, 'maximum': 2 },
-    'dockerPruningFrequency': { 'type': 'integer', 'minimum': 0 },
+    'archId': { 'type': 'integer', 'minimum': 0, 'maximum': 4 },
+    'pruningFrequency': { 'type': 'integer', 'minimum': 0 },
     'availableDiskThreshold': { 'type': 'integer', 'minimum': 0 },
     'logLevel': { 'type': 'string' },
     'isSystem': { 'type': 'boolean' },
@@ -84,7 +84,7 @@ const iofogCreate = {
     }
   ],
   'additionalProperties': true,
-  'required': ['name', 'fogType']
+  'required': ['name', 'archId']
 }
 
 const iofogUpdate = {
@@ -98,8 +98,8 @@ const iofogUpdate = {
     'longitude': { 'type': 'number', 'minimum': -180, 'maximum': 180 },
     'description': { 'type': 'string' },
     'networkInterface': { 'type': 'string' },
-    'dockerUrl': { 'type': 'string' },
-    'containerEngine': { 'type': 'string', 'enum': ['docker', 'podman'] },
+    'containerEngineUrl': { 'type': 'string' },
+    'containerEngine': { 'type': 'string', 'enum': ['edgelet', 'docker', 'podman'] },
     'deploymentType': { 'type': 'string', 'enum': ['native', 'container'] },
     'diskLimit': { 'type': 'integer', 'minimum': 0 },
     'diskDirectory': { 'type': 'string' },
@@ -114,8 +114,8 @@ const iofogUpdate = {
     'bluetoothEnabled': { 'type': 'boolean' },
     'watchdogEnabled': { 'type': 'boolean' },
     'abstractedHardwareEnabled': { 'type': 'boolean' },
-    'fogType': { 'type': 'integer', 'minimum': 0, 'maximum': 2 },
-    'dockerPruningFrequency': { 'type': 'integer', 'minimum': 0 },
+    'archId': { 'type': 'integer', 'minimum': 0, 'maximum': 4 },
+    'pruningFrequency': { 'type': 'integer', 'minimum': 0 },
     'availableDiskThreshold': { 'type': 'integer', 'minimum': 0 },
     'logLevel': { 'type': 'string' },
     'isSystem': { 'type': 'boolean' },

@@ -40,7 +40,7 @@ const updateAgentConfig = {
   'type': 'object',
   'properties': {
     'networkInterface': { 'type': 'string' },
-    'dockerUrl': { 'type': 'string' },
+    'containerEngineUrl': { 'type': 'string' },
     'diskLimit': { 'type': 'integer', 'minimum': 0 },
     'diskDirectory': { 'type': 'string' },
     'memoryLimit': { 'type': 'integer', 'minimum': 0 },
@@ -58,7 +58,7 @@ const updateAgentConfig = {
     'gpsDevice': { 'type': 'string' },
     'gpsScanFrequency': { 'type': 'integer', 'minimum': 0 },
     'edgeGuardFrequency': { 'type': 'integer', 'minimum': 0 },
-    'dockerPruningFrequency': { 'type': 'integer', 'minimum': 0 },
+    'pruningFrequency': { 'type': 'integer', 'minimum': 0 },
     'availableDiskThreshold': { 'type': 'integer', 'minimum': 0 },
     'logLevel': { 'type': 'string' },
     'timeZone': { 'type': 'string' }
@@ -102,10 +102,13 @@ const updateAgentStatus = {
     'lastStatusTime': { 'type': 'integer', 'minimum': 0 },
     'ipAddress': { 'type': 'string' },
     'ipAddressExternal': { 'type': 'string' },
-    'processedMessages': { 'type': 'integer', 'minimum': 0 },
-    'microserviceMessageCounts': { 'type': 'string' },
-    'messageSpeed': { 'type': 'number', 'minimum': 0 },
     'lastCommandTime': { 'type': 'integer', 'minimum': 0 },
+    'availableRuntimes': {
+      'type': 'array',
+      'items': { 'type': 'string' }
+    },
+    'runtimeAgentPhase': { 'type': 'string' },
+    'controlPlaneQuiesced': { 'type': 'boolean' },
     'gpsMode': { 'type': 'string' },
     'gpsDevice': { 'type': 'string' },
     'gpsScanFrequency': { 'type': 'integer', 'minimum': 0 },
