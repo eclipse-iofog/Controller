@@ -141,7 +141,7 @@ async function authorize (subjects, apiGroup, resource, verb, resourceName, tran
   }
 
   // Check system roles first (Admin, SRE, Developer, Viewer)
-  // These work directly without RoleBindings when Keycloak role name matches
+  // These work directly without RoleBindings when OIDC group/role name matches
   for (const subject of subjects) {
     if (subject.kind === 'Group' && subject.name) {
       const roleName = subject.name.toLowerCase()
