@@ -1228,6 +1228,43 @@ paths:
           description: Not Authorized
         "500":
           description: Internal Server Error
+  /agent/controller/register:
+    post:
+      tags:
+        - Agent
+      summary: Register ControlPlane controller microservice
+      description: >-
+        Agent-only endpoint (fog token). Edgelet registers the controller workload on system fogs.
+        Not available via user RBAC — do not add to rbac-resources.yaml user resources.
+      operationId: registerControllerMicroservice
+      security:
+        - authToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ControllerRegisterRequest"
+      responses:
+        "200":
+          description: Success
+          headers:
+            X-Timestamp:
+              description: FogController server timestamp
+              schema:
+                type: number
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ControllerRegisterResponse"
+        "400":
+          description: Bad Request — invalid body or name other than controller
+        "401":
+          description: Not Authorized
+        "403":
+          description: Forbidden — authenticated fog is not a system fog
+        "500":
+          description: Internal Server Error
   /agent/microservices:
     get:
       tags:
@@ -6991,6 +7028,63 @@ components:
             type: string
         idConsumer:
           type: boolean
+        isRouter:
+          type: boolean
+          description: True when microservice is the system router
+        isNats:
+          type: boolean
+          description: True when microservice is the system NATS broker
+        isController:
+          type: boolean
+          description: True when microservice is the ControlPlane controller workload (DB column)
+    ControllerRegisterRequest:
+      type: object
+      description: Slim register body for Edgelet ControlPlane controller workload
+      required:
+        - uuid
+        - images
+        - registryId
+      properties:
+        uuid:
+          type: string
+          description: Edgelet-generated stable uuid for the controller microservice
+        name:
+          type: string
+          enum:
+            - controller
+          description: Must be controller (default controller if omitted)
+        images:
+          type: array
+          minItems: 1
+          maxItems: 2
+          items:
+            $ref: "#/components/schemas/MicroserviceContainerImage"
+        registryId:
+          type: integer
+        ports:
+          type: array
+          items:
+            $ref: "#/components/schemas/PortMappingsResponse"
+        volumeMappings:
+          type: array
+          items:
+            $ref: "#/components/schemas/VolumeMappingRequest"
+        env:
+          type: array
+          items:
+            $ref: "#/components/schemas/AgentEnvRequest"
+        config:
+          type: string
+        hostNetworkMode:
+          type: boolean
+        runtime:
+          type: string
+    ControllerRegisterResponse:
+      type: object
+      properties:
+        uuid:
+          type: string
+          description: Same uuid as the register request
     AgentEnvRequest:
       type: object
       properties:
