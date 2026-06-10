@@ -35,6 +35,7 @@ const {
 
 const K8S_ROUTER_CONFIG_MAP = 'iofog-router'
 const SERVICE_ANNOTATION_TAG = 'service.datasance.com/tag'
+const EDGELET_BRIDGE_CONNECTOR_HOST = 'edgelet.default.bridge.local'
 
 // Map service tags to string array
 // Return plain JS object
@@ -271,15 +272,22 @@ async function defineBridgePort (serviceConfig, transaction) {
 // Helper function to determine host based on service type
 async function _determineConnectorHost (serviceConfig, transaction) {
   switch (serviceConfig.type.toLowerCase()) {
-    case 'microservice':
+    case 'microservice': {
       const microservice = await MicroserviceManager.findOne({ uuid: serviceConfig.resource }, transaction)
-      if (microservice.hostNetworkMode) {
-        return 'iofog'
-      } else {
-        return `iofog_${serviceConfig.resource}`
+      if (!microservice) {
+        throw new Errors.NotFoundError(`Microservice not found: ${serviceConfig.resource}`)
       }
-    case 'agent': // TODO: find agent extract router config mode from agent router mode.
-      return 'iofog'
+      if (microservice.hostNetworkMode) {
+        return EDGELET_BRIDGE_CONNECTOR_HOST
+      }
+      const application = await ApplicationManager.findOne({ id: microservice.applicationId }, transaction)
+      if (!application) {
+        throw new Errors.NotFoundError(`Application not found for microservice: ${serviceConfig.resource}`)
+      }
+      return `${application.name}.${microservice.name}`
+    }
+    case 'agent':
+      return EDGELET_BRIDGE_CONNECTOR_HOST
     case 'k8s':
     case 'external':
       return serviceConfig.resource
@@ -1333,5 +1341,6 @@ module.exports = {
   deleteServiceEndpoint: TransactionDecorator.generateTransaction(deleteServiceEndpoint),
   getServicesListEndpoint: TransactionDecorator.generateTransaction(getServicesListEndpoint),
   getServiceEndpoint: TransactionDecorator.generateTransaction(getServiceEndpoint),
-  moveMicroserviceTcpBridgeToNewFog: TransactionDecorator.generateTransaction(moveMicroserviceTcpBridgeToNewFog)
+  moveMicroserviceTcpBridgeToNewFog: TransactionDecorator.generateTransaction(moveMicroserviceTcpBridgeToNewFog),
+  _determineConnectorHost
 }
