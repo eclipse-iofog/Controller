@@ -86,10 +86,16 @@ module.exports = {
   // System Images Configuration
   'ROUTER_IMAGE_1': 'systemImages.router.1',
   'ROUTER_IMAGE_2': 'systemImages.router.2',
+  'ROUTER_IMAGE_3': 'systemImages.router.3',
+  'ROUTER_IMAGE_4': 'systemImages.router.4',
   'DEBUG_IMAGE_1': 'systemImages.debug.1',
   'DEBUG_IMAGE_2': 'systemImages.debug.2',
+  'DEBUG_IMAGE_3': 'systemImages.debug.3',
+  'DEBUG_IMAGE_4': 'systemImages.debug.4',
   'NATS_IMAGE_1': 'systemImages.nats.1',
   'NATS_IMAGE_2': 'systemImages.nats.2',
+  'NATS_IMAGE_3': 'systemImages.nats.3',
+  'NATS_IMAGE_4': 'systemImages.nats.4',
 
   // NATS Configuration
   'NATS_ENABLED': 'nats.enabled',

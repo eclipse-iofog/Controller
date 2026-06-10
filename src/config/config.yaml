@@ -110,12 +110,18 @@ systemImages:
   router:
     "1": "ghcr.io/datasance/router:latest"
     "2": "ghcr.io/datasance/router:latest"
+    "3": "ghcr.io/datasance/router:latest"
+    "4": "ghcr.io/datasance/router:latest"
   debug:
     "1": "ghcr.io/datasance/node-debugger:latest"
     "2": "ghcr.io/datasance/node-debugger:latest"
+    "3": "ghcr.io/datasance/node-debugger:latest"
+    "4": "ghcr.io/datasance/node-debugger:latest"
   nats:
     "1": "ghcr.io/datasance/nats:latest"
     "2": "ghcr.io/datasance/nats:latest"
+    "3": "ghcr.io/datasance/nats:latest"
+    "4": "ghcr.io/datasance/nats:latest"
 
 # NATS Configuration
 nats:
