@@ -34,6 +34,7 @@ const FogManager = require('../data/managers/iofog-manager')
 const config = require('../config')
 const VolumeMountService = require('./volume-mount-service')
 const VolumeMappingManager = require('../data/managers/volume-mapping-manager')
+const MicroservicesService = require('./microservices-service')
 const {
   ensureSystemApplication,
   getSystemMicroserviceName
@@ -613,6 +614,24 @@ async function _ensureRouterSslVolumeMountsAndMappings (iofogUuid, routerMicrose
       if (isRouterSsl && mapping.hostDestination && !profileNamesWithSecret.has(mapping.hostDestination)) {
         await VolumeMappingManager.delete({ id: mapping.id }, transaction)
       }
+    }
+  }
+
+  const routerMicroservice = await MicroserviceManager.findOne({ uuid: routerMicroserviceUuid }, transaction)
+  if (routerMicroservice) {
+    const { created: saVolumeCreated } = await MicroservicesService.injectServiceAccountVolume(
+      routerMicroservice,
+      transaction
+    )
+    await MicroservicesService.createOrUpdateServiceAccountForMicroservice(
+      routerMicroservice.uuid,
+      routerMicroservice.name,
+      null,
+      transaction
+    )
+    if (saVolumeCreated) {
+      await MicroserviceManager.update({ uuid: routerMicroserviceUuid }, { rebuild: true }, transaction)
+      await ChangeTrackingService.update(iofogUuid, ChangeTrackingService.events.microserviceList, transaction)
     }
   }
 }

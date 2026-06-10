@@ -39,6 +39,7 @@ const NatsUserManager = require('../data/managers/nats-user-manager')
 const ApplicationManager = require('../data/managers/application-manager')
 const NatsAuthService = require('./nats-auth-service')
 const ChangeTrackingService = require('./change-tracking-service')
+const MicroservicesService = require('./microservices-service')
 const FogManager = require('../data/managers/iofog-manager')
 const databaseProvider = require('../data/providers/database-factory')
 const config = require('../config')
@@ -808,6 +809,20 @@ async function _ensureNatsMicroservice (fog, mode, transaction) {
     )
   } else {
     await MicroserviceHealthCheckManager.create(healthCheckData, transaction)
+  }
+
+  const { created: saVolumeCreated } = await MicroservicesService.injectServiceAccountVolume(
+    microservice,
+    transaction
+  )
+  await MicroservicesService.createOrUpdateServiceAccountForMicroservice(
+    microservice.uuid,
+    microservice.name,
+    null,
+    transaction
+  )
+  if (saVolumeCreated) {
+    microservice._volumeMappingCreated = true
   }
 
   return microservice
