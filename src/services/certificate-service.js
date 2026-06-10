@@ -8,6 +8,7 @@ const AppHelper = require('../helpers/app-helper')
 const Validator = require('../schemas/index')
 const { generateSelfSignedCA, storeCA, generateCertificate } = require('../utils/cert')
 const config = require('../config')
+const Constants = require('../helpers/constants')
 const forge = require('node-forge')
 
 // Helper function to check Kubernetes environment
@@ -149,6 +150,25 @@ async function createCAEndpoint (caData, transaction) {
     type: caData.type,
     valid_from: certDetails.validFrom,
     valid_to: certDetails.validTo
+  }
+}
+
+async function ensureCentralLocalCAs (transaction) {
+  for (const name of [Constants.DEFAULT_ROUTER_LOCAL_CA, Constants.DEFAULT_NATS_LOCAL_CA]) {
+    try {
+      await getCAEndpoint(name, transaction)
+    } catch (err) {
+      if (err.name === 'NotFoundError') {
+        await createCAEndpoint({
+          name,
+          subject: name,
+          expiration: 60,
+          type: 'self-signed'
+        }, transaction)
+      } else if (err.name !== 'ConflictError') {
+        throw err
+      }
+    }
   }
 }
 
@@ -624,5 +644,6 @@ module.exports = {
   listCertificatesEndpoint: TransactionDecorator.generateTransaction(listCertificatesEndpoint),
   deleteCertificateEndpoint: TransactionDecorator.generateTransaction(deleteCertificateEndpoint),
   renewCertificateEndpoint: TransactionDecorator.generateTransaction(renewCertificateEndpoint),
-  listExpiringCertificatesEndpoint: TransactionDecorator.generateTransaction(listExpiringCertificatesEndpoint)
+  listExpiringCertificatesEndpoint: TransactionDecorator.generateTransaction(listExpiringCertificatesEndpoint),
+  ensureCentralLocalCAs: TransactionDecorator.generateTransaction(ensureCentralLocalCAs)
 }

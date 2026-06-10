@@ -40,6 +40,10 @@ async function initialize () {
     logger.info('Initializing database...')
     await db.initDB(true)
 
+    const CertificateService = require('./services/certificate-service')
+    logger.info('Ensuring central router and NATS local CAs...')
+    await CertificateService.ensureCentralLocalCAs({ fakeTransaction: true })
+
     logger.info('Initialization completed successfully')
     return true
   } catch (error) {

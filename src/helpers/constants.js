@@ -68,6 +68,15 @@ module.exports = {
   DEFAULT_NATS_HUB_NAME: 'default-nats-hub',
   DEFAULT_PROXY_HOST: 'default-proxy-host',
 
+  DEFAULT_ROUTER_LOCAL_CA: 'default-router-local-ca',
+  DEFAULT_NATS_LOCAL_CA: 'default-nats-local-ca',
+  ROUTER_SITE_CA: 'router-site-ca',
+  NATS_SITE_CA: 'nats-site-ca',
+
+  ROUTER_BRIDGE_DNS_SAN: 'router.default.svc.bridge.local',
+  NATS_BRIDGE_DNS_SAN: 'nats.default.svc.bridge.local',
+  DEFAULT_ROUTER_K8S_SERVICE: 'router',
+
   RESERVED_PORTS: [54321, 54322, 53],
 
   VOLUME_MAPPING_DEFAULT: 'bind',
