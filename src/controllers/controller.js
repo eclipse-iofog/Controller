@@ -17,11 +17,11 @@ const statusControllerEndPoint = async function (req) {
   return ControllerService.statusController(false)
 }
 
-const fogTypesEndPoint = async function (req) {
-  return ControllerService.getFogTypes(false)
+const architecturesEndPoint = async function (req) {
+  return ControllerService.getArchitectures(false)
 }
 
 module.exports = {
   statusControllerEndPoint: statusControllerEndPoint,
-  fogTypesEndPoint: fogTypesEndPoint
+  architecturesEndPoint: architecturesEndPoint
 }

@@ -18,12 +18,12 @@ paths:
                 $ref: "#/components/schemas/ServiceStatusResponse"
         "500":
           description: Internal Server Error
-  /fog-types:
+  /architectures:
     get:
       tags:
         - Controller
-      summary: Gets ioFog types list
-      operationId: getIOFogTypes
+      summary: Gets architecture list
+      operationId: getArchitectures
       responses:
         "200":
           description: Success
@@ -35,7 +35,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/IOFogTypesResponse"
+                $ref: "#/components/schemas/ArchitecturesResponse"
         "500":
           description: Internal Server Error
   /iofog-list:
@@ -1742,13 +1742,6 @@ paths:
       operationId: getMicroservicesList
       parameters:
         - in: query
-          name: flowId
-          deprecated: true
-          description: Flow Id
-          required: false
-          schema:
-            type: integer
-        - in: query
           name: application
           description: Application name
           required: false
@@ -1946,13 +1939,6 @@ paths:
       security:
         - authToken: []
       parameters:
-        - in: query
-          name: flowId
-          deprecated: true
-          description: Flow Id
-          required: false
-          schema:
-            type: integer
         - in: query
           name: application
           description: Application name
@@ -6785,7 +6771,7 @@ components:
                   properties:
                     containerImage:
                       type: string
-                    fogTypeId:
+                    archId:
                       type: string
               iofogUuid:
                 type: string
@@ -6913,7 +6899,7 @@ components:
                       properties:
                         containerImage:
                           type: string
-                        fogTypeId:
+                        archId:
                           type: string
                   iofogUuid:
                     type: string
@@ -7017,14 +7003,14 @@ components:
           example: ok
         timestamp:
           type: number
-    IOFogTypesResponse:
+    ArchitecturesResponse:
       type: object
       properties:
-        fogTypes:
+        architectures:
           type: array
           items:
-            $ref: "#/components/schemas/IOFogType"
-    IOFogType:
+            $ref: "#/components/schemas/Architecture"
+    Architecture:
       type: object
       properties:
         id:
@@ -7068,8 +7054,6 @@ components:
           type: number
         lastStatusTime:
           type: number
-        processedMessages:
-          type: number
         lastCommandTime:
           type: number
         logFileCount:
@@ -7112,16 +7096,16 @@ components:
           type: string
         ipAddressExternal:
           type: string
-        catalogItemMessageCounts:
-          type: number
-        messageSpeed:
-          type: number
         networkInterface:
           type: string
-        dockerUrl:
+        containerEngineUrl:
           type: string
         containerEngine:
           type: string
+          enum:
+            - edgelet
+            - docker
+            - podman
         deploymentType:
           type: string
         diskLimit:
@@ -7156,7 +7140,7 @@ components:
           type: string
         watchdogEnabled:
           type: boolean
-        dockerPruningFrequency:
+        pruningFrequency:
           type: number
         availableDiskThreshold:
           type: number
@@ -7170,8 +7154,14 @@ components:
           type: number
         updatedAt:
           type: number
-        fogTypeId:
+        archId:
           type: number
+        arch:
+          $ref: "#/components/schemas/Architecture"
+        availableRuntimes:
+          type: array
+          items:
+            type: string
         routerMode:
           type: string
           enum:
@@ -7223,11 +7213,15 @@ components:
           type: number
         description:
           type: string
-        dockerUrl:
+        containerEngineUrl:
           type: string
           default: unix:///var/run/docker.sock
         containerEngine:
           type: string
+          enum:
+            - edgelet
+            - docker
+            - podman
           default: docker
         deploymentType:
           type: string
@@ -7277,9 +7271,11 @@ components:
         abstractedHardwareEnabled:
           type: boolean
           default: false
-        fogType:
+        archId:
           type: number
-        dockerPruningFrequency:
+          minimum: 0
+          maximum: 4
+        pruningFrequency:
           type: number
         availableDiskThreshold:
           type: number
@@ -7359,13 +7355,22 @@ components:
       properties:
         type:
           type: number
-          enum:
-            - 1
-            - 2
+          minimum: 0
+          maximum: 4
           description: |
-            Architecture
-             * '1': x86
-             * '2': arm
+            Architecture code
+             * '0': auto
+             * '1': amd64
+             * '2': arm64
+             * '3': riscv64
+             * '4': arm
+        engine:
+          type: string
+          enum:
+            - edgelet
+            - docker
+            - podman
+          description: Container engine selected at provision time
         key:
           type: string
           description: provisioning key
@@ -7417,10 +7422,14 @@ components:
       properties:
         networkInterface:
           type: string
-        dockerUrl:
+        containerEngineUrl:
           type: string
         containerEngine:
           type: string
+          enum:
+            - edgelet
+            - docker
+            - podman
         deploymentType:
           type: string
         diskLimit:
@@ -7453,7 +7462,7 @@ components:
           type: string
         availableDiskThreshold:
           type: number
-        dockerPruningFrequency:
+        pruningFrequency:
           type: number
         routerHost:
           type: string
@@ -7464,10 +7473,14 @@ components:
       properties:
         networkInterface:
           type: string
-        dockerUrl:
+        containerEngineUrl:
           type: string
         containerEngine:
           type: string
+          enum:
+            - edgelet
+            - docker
+            - podman
         deploymentType:
           type: string
         diskLimit:
@@ -7502,7 +7515,7 @@ components:
           type: string
         availableDiskThreshold:
           type: number
-        dockerPruningFrequency:
+        pruningFrequency:
           type: number
     IOFogNodeGpsRequest:
       type: object
@@ -7515,6 +7528,8 @@ components:
       type: object
       properties:
         daemonStatus:
+          type: string
+        warningMessage:
           type: string
         daemonOperatingDuration:
           type: number
@@ -7538,6 +7553,10 @@ components:
           type: integer
         systemTotalCpu:
           type: number
+        securityStatus:
+          type: string
+        securityViolationInfo:
+          type: string
         microserviceStatus:
           type: string
         repositoryCount:
@@ -7550,14 +7569,18 @@ components:
           type: number
         ipAddress:
           type: string
-        processedMessages:
-          type: number
-        microserviceMessageCounts:
+        ipAddressExternal:
           type: string
-        messageSpeed:
-          type: number
         lastCommandTime:
           type: number
+        availableRuntimes:
+          type: array
+          items:
+            type: string
+        runtimeAgentPhase:
+          type: string
+        controlPlaneQuiesced:
+          type: boolean
         tunnelStatus:
           type: string
         version:
@@ -7566,6 +7589,12 @@ components:
           type: boolean
         isReadyToRollback:
           type: boolean
+        activeVolumeMounts:
+          type: number
+        volumeMountLastUpdate:
+          type: number
+        gpsStatus:
+          type: string
     IOFogNodeTunnelConfigResponse:
       type: object
       properties:
@@ -7919,7 +7948,7 @@ components:
       properties:
         containerImage:
           type: string
-        fogTypeId:
+        archId:
           type: number
           enum:
             - 1
@@ -8010,7 +8039,7 @@ components:
             properties:
               containerImage:
                 type: string
-              fogTypeId:
+              archId:
                 type: string
         iofogUuid:
           type: string
@@ -8089,15 +8118,10 @@ components:
             properties:
               containerImage:
                 type: string
-              fogTypeId:
+              archId:
                 type: string
-        flowId:
-          type: integer
-          deprecated: true
         application:
-          oneOf:
-            - type: string
-            - type: integer
+          type: string
         iofogUuid:
           type: string
         agentName:
@@ -8177,7 +8201,7 @@ components:
             properties:
               containerImage:
                 type: string
-              fogTypeId:
+              archId:
                 type: string
         runAsUser:
           type: string

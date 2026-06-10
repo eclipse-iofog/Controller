@@ -28,7 +28,7 @@ const JSON_SCHEMA = AppHelper.stringifyCliJsonSchema({
   images: [
     {
       containerImage: 'string',
-      fogTypeId: 1
+      archId: 1
     }
   ],
   publisher: 'string',
@@ -320,7 +320,7 @@ const _createCatalogItemObject = function (catalogItem) {
     catalogItemObj.images.push(
       {
         containerImage: catalogItem.x86Image,
-        fogTypeId: 1
+        archId: 1
       }
     )
   }
@@ -328,7 +328,7 @@ const _createCatalogItemObject = function (catalogItem) {
     catalogItemObj.images.push(
       {
         containerImage: catalogItem.armImage,
-        fogTypeId: 2
+        archId: 2
       }
     )
   }

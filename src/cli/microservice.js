@@ -29,7 +29,7 @@ const JSON_SCHEMA_ADD = AppHelper.stringifyCliJsonSchema(
     images: [
       {
         containerImage: 'string',
-        fogTypeId: 1
+        archId: 1
       }
     ],
     registryId: 1,
@@ -91,7 +91,7 @@ const JSON_SCHEMA_UPDATE = AppHelper.stringifyCliJsonSchema(
     images: [
       {
         containerImage: 'string',
-        fogTypeId: 1
+        archId: 1
       }
     ],
     registryId: 1,
@@ -622,7 +622,7 @@ const _updateMicroserviceObject = function (obj) {
     images.push(
       {
         containerImage: obj.x86Image,
-        fogTypeId: 1
+        archId: 1
       }
     )
   }
@@ -630,7 +630,7 @@ const _updateMicroserviceObject = function (obj) {
     images.push(
       {
         containerImage: obj.armImage,
-        fogTypeId: 2
+        archId: 2
       }
     )
   }
@@ -686,7 +686,7 @@ const _createMicroserviceObject = function (obj) {
     microserviceObj.images.push(
       {
         containerImage: obj.x86Image,
-        fogTypeId: 1
+        archId: 1
       }
     )
   }
@@ -694,7 +694,7 @@ const _createMicroserviceObject = function (obj) {
     microserviceObj.images.push(
       {
         containerImage: obj.armImage,
-        fogTypeId: 2
+        archId: 2
       }
     )
   }

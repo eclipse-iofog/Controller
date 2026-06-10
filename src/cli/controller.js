@@ -25,13 +25,13 @@ class Controller extends BaseCLIHandler {
       {
         name: 'command',
         defaultOption: true,
-        description: 'status, fog-types, version',
+        description: 'status, architectures, version',
         group: constants.CMD
       }
     ]
     this.commands = {
       [constants.CMD_STATUS]: 'Display iofog-controller service status.',
-      [constants.CMD_FOG_TYPES]: 'List all Fog-types.',
+      [constants.CMD_ARCHITECTURES]: 'List all architectures.',
       [constants.CMD_VERSION]: 'Display iofog-controller service version.'
     }
   }
@@ -48,8 +48,8 @@ class Controller extends BaseCLIHandler {
         case constants.CMD_STATUS:
           await _executeCase(controllerCommand, constants.CMD_STATUS, _getStatus)
           break
-        case constants.CMD_FOG_TYPES:
-          await _executeCase(controllerCommand, constants.CMD_FOG_TYPES, _getFogTypes)
+        case constants.CMD_ARCHITECTURES:
+          await _executeCase(controllerCommand, constants.CMD_ARCHITECTURES, _getArchitectures)
           break
         case constants.CMD_VERSION:
           await _executeCase(controllerCommand, constants.CMD_VERSION, _getVersion)
@@ -78,9 +78,9 @@ const _getStatus = async function () {
   logger.cliRes(JSON.stringify(response, null, 2))
 }
 
-const _getFogTypes = async function () {
-  logger.cliReq('controller fog-types')
-  const response = await ControllerService.getFogTypes(true)
+const _getArchitectures = async function () {
+  logger.cliReq('controller architectures')
+  const response = await ControllerService.getArchitectures(true)
   logger.cliRes(JSON.stringify(response, null, 2))
 }
 

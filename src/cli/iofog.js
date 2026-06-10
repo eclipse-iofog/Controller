@@ -39,7 +39,7 @@ const JSON_SCHEMA = AppHelper.stringifyCliJsonSchema({
   bluetoothEnabled: false,
   watchdogEnabled: true,
   abstractedHardwareEnabled: false,
-  fogType: 0,
+  archId: 0,
   dockerPruningFrequency: 0,
   availableDiskThreshold: 0,
   logLevel: 'string',
@@ -492,7 +492,7 @@ function _createFogObject (cliData) {
     watchdogEnabled: AppHelper.validateBooleanCliOptions(cliData.watchdogEnable, cliData.watchdogDisable),
     abstractedHardwareEnabled: AppHelper.validateBooleanCliOptions(cliData.absHwEnable, cliData.absHwDisable),
 
-    fogType: cliData.fogType,
+    archId: cliData.archId,
     dockerPruningFrequency: cliData.dockerPruningFrequency,
     availableDiskThreshold: cliData.availableDiskThreshold,
     logLevel: cliData.logLevel,

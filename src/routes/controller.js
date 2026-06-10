@@ -36,14 +36,14 @@ module.exports = [
   },
   {
     method: 'get',
-    path: '/api/v3/fog-types/',
+    path: '/api/v3/architectures/',
     middleware: async (req, res) => {
       logger.apiReq(req)
 
       const successCode = constants.HTTP_CODE_SUCCESS
       const errorCodes = []
-      const fogTypesEndPoint = ResponseDecorator.handleErrors(Controller.fogTypesEndPoint, successCode, errorCodes)
-      const responseObject = await fogTypesEndPoint(req)
+      const architecturesEndPoint = ResponseDecorator.handleErrors(Controller.architecturesEndPoint, successCode, errorCodes)
+      const responseObject = await architecturesEndPoint(req)
 
       res
         .status(responseObject.code)

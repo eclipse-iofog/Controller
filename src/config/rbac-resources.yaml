@@ -769,7 +769,7 @@ resources:
       - path: /api/v3/status
         methods:
           GET: []
-      - path: /api/v3/fog-types/
+      - path: /api/v3/architectures/
         methods:
           GET: []
 
