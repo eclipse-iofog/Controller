@@ -12,9 +12,7 @@
  */
 
 const config = require('../config')
-const path = require('path')
 const fs = require('fs')
-const formidable = require('formidable')
 // const Sequelize = require('sequelize')
 const moment = require('moment')
 // const Op = Sequelize.Op
@@ -26,7 +24,6 @@ const FogManager = require('../data/managers/iofog-manager')
 const FogKeyService = require('../services/iofog-key-service')
 const ChangeTrackingService = require('./change-tracking-service')
 const FogVersionCommandManager = require('../data/managers/iofog-version-command-manager')
-const StraceManager = require('../data/managers/strace-manager')
 const RegistryManager = require('../data/managers/registry-manager')
 const MicroserviceStatusManager = require('../data/managers/microservice-status-manager')
 const MicroserviceExecStatusManager = require('../data/managers/microservice-exec-status-manager')
@@ -42,7 +39,6 @@ const TunnelManager = require('../data/managers/tunnel-manager')
 const MicroserviceManager = require('../data/managers/microservice-manager')
 const MicroserviceService = require('../services/microservices-service')
 const ApplicationManager = require('../data/managers/application-manager')
-const EdgeResourceService = require('./edge-resource-service')
 const constants = require('../helpers/constants')
 const SecretManager = require('../data/managers/secret-manager')
 const ConfigMapManager = require('../data/managers/config-map-manager')
@@ -50,9 +46,8 @@ const MicroserviceLogStatusManager = require('../data/managers/microservice-log-
 const FogLogStatusManager = require('../data/managers/fog-log-status-manager')
 const RbacRoleManager = require('../data/managers/rbac-role-manager')
 
-const IncomingForm = formidable.IncomingForm
 const CHANGE_TRACKING_DEFAULT = {}
-const CHANGE_TRACKING_KEYS = ['config', 'version', 'reboot', 'deleteNode', 'microserviceList', 'microserviceConfig', 'registries', 'tunnel', 'diagnostics', 'isImageSnapshot', 'prune', 'routerChanged', 'linkedEdgeResources', 'volumeMounts', 'execSessions', 'microserviceLogs', 'fogLogs']
+const CHANGE_TRACKING_KEYS = ['config', 'version', 'reboot', 'deleteNode', 'microserviceList', 'microserviceConfig', 'registries', 'tunnel', 'prune', 'routerChanged', 'volumeMounts', 'execSessions', 'microserviceLogs', 'fogLogs']
 for (const key of CHANGE_TRACKING_KEYS) {
   CHANGE_TRACKING_DEFAULT[key] = false
 }
@@ -467,7 +462,6 @@ const getAgentMicroservices = async function (fog, transaction) {
       registryId,
       portMappings: microservice.ports,
       volumeMappings: microservice.volumeMappings,
-      imageSnapshot: microservice.imageSnapshot,
       delete: microservice.delete,
       deleteWithCleanup: microservice.deleteWithCleanup,
       env,
@@ -509,30 +503,6 @@ const getAgentMicroservices = async function (fog, transaction) {
   }
 }
 
-const getAgentLinkedEdgeResources = async function (fog, transaction) {
-  const edgeResources = []
-  const resourceAttributes = [
-    'id',
-    'interfaceId',
-    'name',
-    'version',
-    'description',
-    'interfaceProtocol',
-    'displayName',
-    'displayIcon',
-    'displayColor',
-    'custom'
-  ]
-  const resources = await fog.getEdgeResources({ attributes: resourceAttributes })
-  for (const resource of resources) {
-    const intrface = await EdgeResourceService.getInterface(resource, transaction)
-    // Transform Sequelize objects into plain JSON objects
-    const resourceObject = { ...resource.toJSON(), interface: intrface.toJSON() }
-    edgeResources.push(EdgeResourceService.buildGetObject(resourceObject))
-  }
-  return edgeResources
-}
-
 const getAgentMicroservice = async function (microserviceUuid, fog, transaction) {
   const microservice = await MicroserviceManager.findOneWithDependencies({
     uuid: microserviceUuid,
@@ -565,38 +535,6 @@ const getAgentTunnel = async function (fog, transaction) {
 
   return {
     tunnel: tunnel
-  }
-}
-
-const getAgentStrace = async function (fog, transaction) {
-  const fogWithStrace = await FogManager.findFogStraces({
-    uuid: fog.uuid
-  }, transaction)
-
-  if (!fogWithStrace) {
-    throw new Errors.NotFoundError(ErrorMessages.STRACE_NOT_FOUND)
-  }
-
-  const straceArr = []
-  for (const msData of fogWithStrace.microservice) {
-    straceArr.push({
-      microserviceUuid: msData.strace.microserviceUuid,
-      straceRun: msData.strace.straceRun
-    })
-  }
-
-  return {
-    straceValues: straceArr
-  }
-}
-
-const updateAgentStrace = async function (straceData, fog, transaction) {
-  await Validator.validate(straceData, Validator.schemas.updateAgentStrace)
-
-  for (const strace of straceData.straceData) {
-    const microserviceUuid = strace.microserviceUuid
-    const buffer = strace.buffer
-    await StraceManager.pushBufferByMicroserviceUuid(microserviceUuid, buffer, transaction)
   }
 }
 
@@ -643,68 +581,6 @@ const deleteNode = async function (fog, transaction) {
   await FogManager.delete({
     uuid: fog.uuid
   }, transaction)
-}
-
-const getImageSnapshot = async function (fog, transaction) {
-  const microservice = await MicroserviceManager.findOne({
-    iofogUuid: fog.uuid,
-    imageSnapshot: 'get_image'
-  }, transaction)
-  if (!microservice) {
-    throw new Errors.NotFoundError(ErrorMessages.IMAGE_SNAPSHOT_NOT_FOUND)
-  }
-
-  return {
-    uuid: microservice.uuid
-  }
-}
-
-const putImageSnapshot = async function (req, fog, transaction) {
-  const opts = {
-    maxFieldsSize: 500 * 1024 * 1024,
-    maxFileSize: 500 * 1024 * 1024
-  }
-  if (!req.headers['content-type'].includes('multipart/form-data')) {
-    throw new Errors.ValidationError(ErrorMessages.INVALID_CONTENT_TYPE)
-  }
-
-  const form = new IncomingForm(opts)
-  form.uploadDir = path.join(global.appRoot, '../') + 'data'
-  if (!fs.existsSync(form.uploadDir)) {
-    fs.mkdirSync(form.uploadDir)
-  }
-  await _saveSnapShot(req, form, fog, transaction)
-  return {}
-}
-
-const _saveSnapShot = function (req, form, fog, transaction) {
-  return new Promise((resolve, reject) => {
-    form.parse(req, async function (error, fields, files) {
-      if (error) {
-        reject(new Errors.ValidationError(ErrorMessages.UPLOADED_FILE_NOT_FOUND))
-        return
-      }
-      const file = files['upstream']
-      if (file === undefined) {
-        reject(new Errors.ValidationError(ErrorMessages.UPLOADED_FILE_NOT_FOUND))
-        return
-      }
-
-      const filePath = file['path']
-
-      const absolutePath = path.resolve(filePath)
-      fs.renameSync(absolutePath, absolutePath + '.tar.gz')
-
-      await MicroserviceManager.update({
-        iofogUuid: fog.uuid,
-        imageSnapshot: 'get_image'
-      }, {
-        imageSnapshot: absolutePath + '.tar.gz'
-      }, transaction)
-
-      resolve()
-    })
-  })
 }
 
 async function _checkMicroservicesFogType (fog, archId, transaction) {
@@ -914,15 +790,10 @@ module.exports = {
   getAgentMicroservice: TransactionDecorator.generateTransaction(getAgentMicroservice),
   getAgentRegistries: TransactionDecorator.generateTransaction(getAgentRegistries),
   getAgentTunnel: TransactionDecorator.generateTransaction(getAgentTunnel),
-  getAgentStrace: TransactionDecorator.generateTransaction(getAgentStrace),
-  updateAgentStrace: TransactionDecorator.generateTransaction(updateAgentStrace),
   getAgentChangeVersionCommand: TransactionDecorator.generateTransaction(getAgentChangeVersionCommand),
   updateHalHardwareInfo: TransactionDecorator.generateTransaction(updateHalHardwareInfo),
   updateHalUsbInfo: TransactionDecorator.generateTransaction(updateHalUsbInfo),
   deleteNode: TransactionDecorator.generateTransaction(deleteNode),
-  getImageSnapshot: TransactionDecorator.generateTransaction(getImageSnapshot),
-  putImageSnapshot: TransactionDecorator.generateTransaction(putImageSnapshot),
-  getAgentLinkedEdgeResources: TransactionDecorator.generateTransaction(getAgentLinkedEdgeResources),
   getAgentLinkedVolumeMounts: TransactionDecorator.generateTransaction(getAgentLinkedVolumeMounts),
   getControllerCA: TransactionDecorator.generateTransaction(getControllerCA),
   getAgentLogSessions: TransactionDecorator.generateTransaction(getAgentLogSessions)

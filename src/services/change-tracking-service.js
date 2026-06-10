@@ -25,18 +25,10 @@ const events = Object.freeze({
     microserviceConfig: false,
     registries: false,
     tunnel: false,
-    diagnostics: false,
-    isImageSnapshot: false,
     prune: false,
     routerChanged: false,
     volumeMounts: false,
     execSessions: false
-  },
-  diagnostics: {
-    diagnostics: true
-  },
-  imageSnapshot: {
-    isImageSnapshot: true
   },
   microserviceFull: {
     microserviceConfig: true,
@@ -51,9 +43,6 @@ const events = Object.freeze({
   },
   microserviceConfig: {
     microserviceConfig: true
-  },
-  edgeResources: {
-    linkedEdgeResources: true
   },
   version: {
     version: true

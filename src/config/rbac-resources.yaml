@@ -64,17 +64,6 @@ resources:
         methods:
           PATCH: [patch]
         resourceNameParam: uuid
-      - path: /api/v3/microservices/:uuid/image-snapshot
-        methods:
-          GET: [get]
-          POST: [create]
-        resourceNameParam: uuid
-      - path: /api/v3/microservices/:uuid/strace
-        methods:
-          GET: [get]
-          PATCH: [patch]
-          PUT: [update]
-        resourceNameParam: uuid
 
   # System Microservices
   systemMicroservices:
@@ -394,21 +383,6 @@ resources:
           PATCH: [patch]
         resourceNameParam: name
 
-  # Flows
-  flows:
-    basePath: /api/v3/flow
-    routes:
-      - path: /api/v3/flow
-        methods:
-          GET: [list]
-          POST: [create]
-      - path: /api/v3/flow/:id
-        methods:
-          GET: [get]
-          PATCH: [patch]
-          DELETE: [delete]
-        resourceNameParam: id
-
   # Catalog
   catalog:
     basePath: /api/v3/catalog
@@ -560,32 +534,6 @@ resources:
         methods:
           POST: [create]
 
-  # Edge Resources
-  edgeResources:
-    basePath: /api/v3/edgeResource
-    routes:
-      - path: /api/v3/edgeResources
-        methods:
-          GET: [list]
-      - path: /api/v3/edgeResource/:name/:version
-        methods:
-          GET: [get]
-          PUT: [update]
-          DELETE: [delete]
-        resourceNameParam: name
-      - path: /api/v3/edgeResource/:name
-        methods:
-          GET: [get]
-        resourceNameParam: name
-      - path: /api/v3/edgeResource
-        methods:
-          POST: [create]
-      - path: /api/v3/edgeResource/:name/:version/link
-        methods:
-          POST: [patch]
-          DELETE: [patch]
-        resourceNameParam: name
-
   # Application Templates
   applicationTemplates:
     basePath: /api/v3/applicationTemplate
@@ -615,9 +563,6 @@ resources:
   capabilities:
     basePath: /api/v3/capabilities
     routes:
-      - path: /api/v3/capabilities/edgeResources
-        methods:
-          HEAD: [get]
       - path: /api/v3/capabilities/applicationTemplates
         methods:
           HEAD: [get]
@@ -633,22 +578,6 @@ resources:
         methods:
           GET: [list]
           DELETE: [delete]
-
-  # Diagnostics
-  diagnostics:
-    basePath: /api/v3/microservices
-    routes:
-      - path: /api/v3/microservices/:uuid/image-snapshot
-        methods:
-          GET: [get]
-          POST: [create]
-        resourceNameParam: uuid
-      - path: /api/v3/microservices/:uuid/strace
-        methods:
-          GET: [get]
-          PATCH: [patch]
-          PUT: [update]
-        resourceNameParam: uuid
 
   # Agent endpoints (for agent-to-controller communication)
   agent:
@@ -674,9 +603,6 @@ resources:
       - path: /api/v3/agent/status
         methods:
           PUT: [update]
-      - path: /api/v3/agent/edgeResources
-        methods:
-          GET: [list]
       - path: /api/v3/agent/volumeMounts
         methods:
           GET: [list]
@@ -693,10 +619,6 @@ resources:
       - path: /api/v3/agent/tunnel
         methods:
           GET: [get]
-      - path: /api/v3/agent/strace
-        methods:
-          GET: [get]
-          PUT: [update]
       - path: /api/v3/agent/version
         methods:
           GET: [get]
@@ -709,10 +631,6 @@ resources:
       - path: /api/v3/agent/delete-node
         methods:
           DELETE: [delete]
-      - path: /api/v3/agent/image-snapshot
-        methods:
-          GET: [get]
-          PUT: [update]
       - path: /api/v3/agent/cert
         methods:
           GET: [get]

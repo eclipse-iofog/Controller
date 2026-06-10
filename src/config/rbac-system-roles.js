@@ -48,7 +48,7 @@ module.exports = {
     rules: [
       {
         apiGroups: [''],
-        resources: ['microservices', 'systemMicroservices', 'fogs', 'applications', 'systemApplications', 'applicationTemplates', 'services', 'router', 'natsAccounts', 'natsUsers', 'natsAccountRules', 'natsUserRules', 'flows', 'catalog', 'registries', 'secrets', 'configMaps', 'volumeMounts', 'tunnels', 'certificates', 'edgeResources', 'capabilities', 'diagnostics', 'serviceAccounts', 'events', 'users', 'config', 'controller', 'execSessions', 'systemExecSessions', 'logs', 'systemLogs'],
+        resources: ['microservices', 'systemMicroservices', 'fogs', 'applications', 'systemApplications', 'applicationTemplates', 'services', 'router', 'natsAccounts', 'natsUsers', 'natsAccountRules', 'natsUserRules', 'catalog', 'registries', 'secrets', 'configMaps', 'volumeMounts', 'tunnels', 'certificates', 'capabilities', 'serviceAccounts', 'events', 'users', 'config', 'controller', 'execSessions', 'systemExecSessions', 'logs', 'systemLogs'],
         verbs: ['*']
       },
       {
@@ -68,7 +68,7 @@ module.exports = {
     rules: [
       {
         apiGroups: [''],
-        resources: ['microservices', 'applications', 'applicationTemplates', 'services', 'natsAccounts', 'natsUsers', 'natsAccountRules', 'natsUserRules', 'flows', 'catalog', 'registries', 'secrets', 'configMaps', 'volumeMounts', 'certificates', 'edgeResources', 'capabilities', 'diagnostics', 'serviceAccounts', 'controller', 'execSessions', 'logs'],
+        resources: ['microservices', 'applications', 'applicationTemplates', 'services', 'natsAccounts', 'natsUsers', 'natsAccountRules', 'natsUserRules', 'catalog', 'registries', 'secrets', 'configMaps', 'volumeMounts', 'certificates', 'capabilities', 'serviceAccounts', 'controller', 'execSessions', 'logs'],
         verbs: ['get', 'list', 'create', 'update', 'patch', 'delete']
       },
       {
@@ -88,7 +88,7 @@ module.exports = {
     rules: [
       {
         apiGroups: [''],
-        resources: ['microservices', 'fogs', 'applications', 'systemMicroservices', 'systemApplications', 'applicationTemplates', 'services', 'router', 'natsOperator', 'natsHub', 'natsAccounts', 'natsUsers', 'natsAccountRules', 'natsUserRules', 'flows', 'catalog', 'registries', 'secrets', 'configMaps', 'volumeMounts', 'certificates', 'edgeResources', 'capabilities', 'diagnostics', 'serviceAccounts', 'config', 'controller', 'roles', 'roleBindings'],
+        resources: ['microservices', 'fogs', 'applications', 'systemMicroservices', 'systemApplications', 'applicationTemplates', 'services', 'router', 'natsOperator', 'natsHub', 'natsAccounts', 'natsUsers', 'natsAccountRules', 'natsUserRules', 'catalog', 'registries', 'secrets', 'configMaps', 'volumeMounts', 'certificates', 'capabilities', 'serviceAccounts', 'config', 'controller', 'roles', 'roleBindings'],
         verbs: ['get', 'list']
       }
     ]

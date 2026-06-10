@@ -252,31 +252,6 @@ module.exports = [
   },
   {
     method: 'get',
-    path: '/api/v3/agent/edgeResources',
-    middleware: async (req, res) => {
-      logger.apiReq(req)
-
-      const successCode = constants.HTTP_CODE_SUCCESS
-      const errorCodes = [
-        {
-          code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError]
-        }
-      ]
-
-      const getAgentLinkedEdgeResourcesEndpoint = ResponseDecorator.handleErrors(AgentController.getAgentLinkedEdgeResourcesEndpoint,
-        successCode, errorCodes)
-      const responseObject = await getAgentLinkedEdgeResourcesEndpoint(req)
-
-      res
-        .status(responseObject.code)
-        .send(responseObject.body)
-
-      logger.apiRes({ req: req, res: res, responseObject: responseObject })
-    }
-  },
-  {
-    method: 'get',
     path: '/api/v3/agent/volumeMounts',
     middleware: async (req, res) => {
       logger.apiReq(req)
@@ -410,68 +385,6 @@ module.exports = [
   },
   {
     method: 'get',
-    path: '/api/v3/agent/strace',
-    middleware: async (req, res) => {
-      logger.apiReq(req)
-
-      const successCode = constants.HTTP_CODE_SUCCESS
-      const errorCodes = [
-        {
-          code: constants.HTTP_CODE_NOT_FOUND,
-          errors: [Errors.NotFoundError]
-        },
-        {
-          code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError]
-        }
-      ]
-
-      const getAgentStraceEndPoint = ResponseDecorator.handleErrors(AgentController.getAgentStraceEndPoint,
-        successCode, errorCodes)
-      const responseObject = await getAgentStraceEndPoint(req)
-
-      res
-        .status(responseObject.code)
-        .send(responseObject.body)
-
-      logger.apiRes({ req: req, res: res, responseObject: responseObject })
-    }
-  },
-  {
-    method: 'put',
-    path: '/api/v3/agent/strace',
-    middleware: async (req, res) => {
-      logger.apiReq(req)
-
-      const successCode = constants.HTTP_CODE_NO_CONTENT
-      const errorCodes = [
-        {
-          code: constants.HTTP_CODE_NOT_FOUND,
-          errors: [Errors.NotFoundError]
-        },
-        {
-          code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError]
-        },
-        {
-          code: constants.HTTP_CODE_BAD_REQUEST,
-          errors: [Errors.ValidationError]
-        }
-      ]
-
-      const updateAgentStraceEndPoint = ResponseDecorator.handleErrors(AgentController.updateAgentStraceEndPoint,
-        successCode, errorCodes)
-      const responseObject = await updateAgentStraceEndPoint(req)
-
-      res
-        .status(responseObject.code)
-        .send(responseObject.body)
-
-      logger.apiRes({ req: req, res: res, responseObject: responseObject })
-    }
-  },
-  {
-    method: 'get',
     path: '/api/v3/agent/version',
     middleware: async (req, res) => {
       logger.apiReq(req)
@@ -574,64 +487,6 @@ module.exports = [
       const deleteNodeEndPoint = ResponseDecorator.handleErrors(AgentController.deleteNodeEndPoint,
         successCode, errCodes)
       const responseObject = await deleteNodeEndPoint(req)
-
-      res
-        .status(responseObject.code)
-        .send(responseObject.body)
-
-      logger.apiRes({ req: req, res: res, responseObject: responseObject })
-    }
-  },
-  {
-    method: 'get',
-    path: '/api/v3/agent/image-snapshot',
-    middleware: async (req, res) => {
-      logger.apiReq(req)
-
-      const successCode = constants.HTTP_CODE_SUCCESS
-      const errorCodes = [
-        {
-          code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError]
-        },
-        {
-          code: constants.HTTP_CODE_NOT_FOUND,
-          errors: [Errors.NotFoundError]
-        }
-      ]
-
-      const getImageSnapshotEndPoint = ResponseDecorator.handleErrors(AgentController.getImageSnapshotEndPoint,
-        successCode, errorCodes)
-      const responseObject = await getImageSnapshotEndPoint(req)
-
-      res
-        .status(responseObject.code)
-        .send(responseObject.body)
-
-      logger.apiRes({ req: req, res: res, responseObject: responseObject })
-    }
-  },
-  {
-    method: 'put',
-    path: '/api/v3/agent/image-snapshot',
-    middleware: async (req, res) => {
-      logger.apiReq(req)
-
-      const successCode = constants.HTTP_CODE_SUCCESS
-      const errorCodes = [
-        {
-          code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError]
-        },
-        {
-          code: constants.HTTP_CODE_BAD_REQUEST,
-          errors: [Errors.ValidationError]
-        }
-      ]
-
-      const putImageSnapshotEndPoint = ResponseDecorator.handleErrors(AgentController.putImageSnapshotEndPoint,
-        successCode, errorCodes)
-      const responseObject = await putImageSnapshotEndPoint(req)
 
       res
         .status(responseObject.code)
