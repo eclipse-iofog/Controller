@@ -15,7 +15,6 @@ const ApplicationManager = require('../../../src/data/managers/application-manag
 const MicroserviceService = require('../../../src/services/microservices-service')
 const RegistryManager = require('../../../src/data/managers/registry-manager')
 const TunnelManager = require('../../../src/data/managers/tunnel-manager')
-const StraceManager = require('../../../src/data/managers/strace-manager')
 const ioFogVersionCommandManager = require('../../../src/data/managers/iofog-version-command-manager')
 const ioFogProvisionKeyManager = require('../../../src/data/managers/iofog-provision-key-manager')
 const HWInfoManager = require('../../../src/data/managers/hw-info-manager')
@@ -516,9 +515,7 @@ describe('Agent Service', () => {
       routing: undefined,
       registries: undefined,
       tunnel: undefined,
-      diagnostics: undefined,
       routerChanged: undefined,
-      isImageSnapshot: undefined,
       prune: undefined,
     }
 
@@ -1099,7 +1096,6 @@ describe('Agent Service', () => {
       logSize: constants.MICROSERVICE_DEFAULT_LOG_SIZE,
       ports: 'testPorts',
       volumeMappings: 'testVolumeMappings',
-      imageSnapshot: 'testImageSnapshot',
       delete: false,
       deleteWithCleanup: false,
       catalogItem: {
@@ -1140,7 +1136,6 @@ describe('Agent Service', () => {
       logSize: constants.MICROSERVICE_DEFAULT_LOG_SIZE,
       ports: 'testPorts',
       volumeMappings: 'testVolumeMappings',
-      imageSnapshot: 'testImageSnapshot',
       delete: false,
       deleteWithCleanup: false,
       catalogItem: {
@@ -1167,7 +1162,6 @@ describe('Agent Service', () => {
         logSize: constants.MICROSERVICE_DEFAULT_LOG_SIZE,
         portMappings: 'testPorts',
         volumeMappings: 'testVolumeMappings',
-        imageSnapshot: 'testImageSnapshot',
         delete: false,
         deleteWithCleanup: false,
         registryId: 10,
@@ -1272,7 +1266,6 @@ describe('Agent Service', () => {
       logSize: constants.MICROSERVICE_DEFAULT_LOG_SIZE,
       portMappings: 'testPorts',
       volumeMappings: 'testVolumeMappings',
-      imageSnapshot: 'testImageSnapshot',
       delete: false,
       deleteWithCleanup: false,
       registryId: 10,
@@ -1402,137 +1395,6 @@ describe('Agent Service', () => {
     context('when TunnelManager#findOne() succeeds', () => {
       it(`succeeds`, () => {
         return expect($subject).to.eventually.have.property('tunnel')
-      })
-    })
-  })
-
-  describe('.getAgentStrace()', () => {
-    const transaction = {}
-    const error = 'Error!'
-
-    def('uuid', () => 'testUuid')
-
-    def('fog', () => ({
-      uuid: $uuid,
-    }))
-
-    def('microserviceUuid', () => 'testMicroserviceUuid')
-    def('straceRun', () => 'testStraceRun')
-
-    def('strace', () => ({
-      microserviceUuid: $microserviceUuid,
-      straceRun: $straceRun,
-    }))
-
-    def('getStracesData', () => ({
-      microservice: [{
-        strace: $strace,
-      }],
-    }))
-
-    def('straceResponse', () => ({
-      straceValues: [$strace],
-    }))
-
-    def('subject', () => $subject.getAgentStrace($fog, transaction))
-
-    def('getStracesResponse', () => Promise.resolve($getStracesData))
-
-    beforeEach(() => {
-      $sandbox.stub(ioFogManager, 'findFogStraces').returns($getStracesResponse)
-    })
-
-    it('calls ioFogManager#findFogStraces() with correct args', async () => {
-      await $subject
-      expect(ioFogManager.findFogStraces).to.have.been.calledWith({
-        uuid: $uuid,
-      }, transaction)
-    })
-
-    context('when ioFogManager#findFogStraces() fails', () => {
-      def('getStracesResponse', () => Promise.reject(error))
-
-      it(`fails with ${error}`, () => {
-        return expect($subject).to.be.rejectedWith(error)
-      })
-    })
-
-    context('when ioFogManager#findFogStraces() succeeds', () => {
-      it(`succeeds`, () => {
-        return expect($subject).to.eventually.deep.equal($straceResponse)
-      })
-    })
-  })
-
-  describe('.updateAgentStrace()', () => {
-    const transaction = {}
-    const error = 'Error!'
-
-    def('uuid', () => 'testUuid')
-
-    def('fog', () => ({
-      uuid: $uuid,
-    }))
-
-    def('microserviceUuid', () => 'testMicroserviceUuid')
-    def('buffer', () => 'testBuffer')
-
-    def('strace', () => ({
-      microserviceUuid: $microserviceUuid,
-      buffer: $buffer,
-    }))
-
-    def('straceData', () => ({
-      straceData: [$strace],
-    }))
-
-    def('straceResponse', () => ({
-      straceValues: [$strace],
-    }))
-
-    def('subject', () => $subject.updateAgentStrace($straceData, $fog, transaction))
-
-    def('validatorResponse', () => Promise.resolve(true))
-    def('pushBufferResponse', () => Promise.resolve())
-
-
-    beforeEach(() => {
-      $sandbox.stub(Validator, 'validate').returns($validatorResponse)
-      $sandbox.stub(StraceManager, 'pushBufferByMicroserviceUuid').returns($pushBufferResponse)
-    })
-
-    it('calls Validator#validate() with correct args', async () => {
-      await $subject
-      expect(Validator.validate).to.have.been.calledWith($straceData, Validator.schemas.updateAgentStrace)
-    })
-
-    context('when Validator#validate() fails', () => {
-      def('validatorResponse', () => Promise.reject(error))
-
-      it(`fails with ${error}`, () => {
-        return expect($subject).to.be.rejectedWith(error)
-      })
-    })
-
-    context('when Validator#validate() succeeds', () => {
-      it('calls StraceManager#pushBufferByMicroserviceUuid() with correct args', async () => {
-        await $subject
-        expect(StraceManager.pushBufferByMicroserviceUuid).to.have.been.calledWith($microserviceUuid, $buffer,
-            transaction)
-      })
-
-      context('when StraceManager#pushBufferByMicroserviceUuid() fails', () => {
-        def('pushBufferResponse', () => Promise.reject(error))
-
-        it(`fails with ${error}`, () => {
-          return expect($subject).to.be.rejectedWith(error)
-        })
-      })
-
-      context('when StraceManager#pushBufferByMicroserviceUuid() succeeds', () => {
-        it(`succeeds`, () => {
-          return expect($subject).to.eventually.equal(undefined)
-        })
       })
     })
   })
@@ -1762,7 +1624,7 @@ describe('Agent Service', () => {
 
     def('subject', () => $subject.deleteNode($fog, transaction))
 
-    def('deleteResponse', () => Promise.resolve($getStracesData))
+    def('deleteResponse', () => Promise.resolve())
 
     beforeEach(() => {
       $sandbox.stub(ioFogManager, 'delete').returns($deleteResponse)
@@ -1790,53 +1652,4 @@ describe('Agent Service', () => {
     })
   })
 
-  describe('.getImageSnapshot()', () => {
-    const transaction = {}
-    const error = 'Error!'
-
-    def('uuid', () => 'testUuid')
-
-    def('fog', () => ({
-      uuid: $uuid,
-    }))
-
-    def('microserviceUuid', () => 'testMicroserviceUuid')
-
-    def('microserviceResponse', () => ({
-      uuid: $microserviceUuid,
-    }))
-
-    def('subject', () => $subject.getImageSnapshot($fog, transaction))
-
-    def('findResponse', () => Promise.resolve($microserviceResponse))
-
-    beforeEach(() => {
-      $sandbox.stub(MicroserviceManager, 'findOne').returns($findResponse)
-    })
-
-    it('calls MicroserviceManager#delete() with correct args', async () => {
-      await $subject
-      expect(MicroserviceManager.findOne).to.have.been.calledWith({
-        iofogUuid: $uuid,
-        imageSnapshot: 'get_image',
-      }, transaction)
-    })
-
-    context('when MicroserviceManager#delete() fails', () => {
-      def('findResponse', () => Promise.reject(error))
-
-      it(`fails with ${error}`, () => {
-        return expect($subject).to.be.rejectedWith(error)
-      })
-    })
-
-    context('when MicroserviceManager#delete() succeeds', () => {
-      it(`succeeds`, () => {
-        return expect($subject).to.eventually.have.property('uuid')
-      })
-    })
-  })
-
-  // TODO
-  // describe('.putImageSnapshot()', () => {
 })

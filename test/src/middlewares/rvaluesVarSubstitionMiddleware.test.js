@@ -5,7 +5,6 @@ const { substitutionMiddleware } = require('../../../src/helpers/template-helper
 const MicroservicesService = require('../../../src/services/microservices-service')
 const ApplicationManager = require('../../../src/data/managers/application-manager')
 const FogService = require('../../../src/services/iofog-service')
-const EdgeResourceService = require('../../../src/services/edge-resource-service')
 
 describe('rvaluesVarSubstitionMiddleware', () => {
   def('subject', () => substitutionMiddleware)
@@ -77,9 +76,6 @@ describe('rvaluesVarSubstitionMiddleware', () => {
       microservices: []
     }))
     def('responseFog', () => ({}))
-    def('responseEdgeRes', () => ({
-      edgeResources: { name: 'testedgeres' }
-    }))
 
     def('response', () => Promise.resolve())
     def('nextfct', () => sinon.spy())
@@ -89,7 +85,6 @@ describe('rvaluesVarSubstitionMiddleware', () => {
       $sandbox.stub(ApplicationManager, 'findOnePopulated').resolves($responseApp)
       $sandbox.stub(MicroservicesService, 'listMicroservicesEndPoint').resolves($responseApp)
       $sandbox.stub(FogService, 'getFogEndPoint').resolves($responseFog)
-      $sandbox.stub(EdgeResourceService, 'getEdgeResource').resolves($responseEdgeRes)
     })
 
     it('calls next after POST body substitution', async () => {
@@ -158,83 +153,9 @@ describe('rvaluesVarSubstitionMiddleware', () => {
         expect(ApplicationManager.findOnePopulated).to.have.been.calledWith({ exclude: ['created_at', 'updated_at'] }, { fakeTransaction: true })
         expect(MicroservicesService.listMicroservicesEndPoint).to.have.been.called
         expect(MicroservicesService.listMicroservicesEndPoint).to.have.been.calledWith({ applicationName: $redisAppName }, false)
-        expect(EdgeResourceService.getEdgeResource).to.not.have.been.called
 
         expect($req.body.serviceredisURL).to.be.equal('myhost01:6379')
         expect($req.body.videoURL).to.be.equal('http://mycam/img/video.mjpeg')
-      })
-    })
-
-    context('Variables substitution and filter edgeresource', () => {
-      def('responseApp', () => ({
-        microservices: [
-          {
-            name: 'objdetecv4',
-            applicationId: 1,
-            ports: [
-              {
-                internal: 8080,
-                external: 8091,
-                publicMode: false
-              }
-            ],
-            env: [
-              {
-                key: 'RES_URL',
-                value: 'http://mycam/img/video.mjpeg'
-              }
-            ]
-          },
-          {
-            name: 'redis',
-            iofogUuid: 'TkLh8wzcxb86CRnHQyJkx6VF468JFd4f',
-            ports: [
-              {
-                internal: 6379,
-                external: 6379,
-                publicMode: false
-              }
-            ],
-            application: 'main-app',
-            flowId: 1
-          }
-        ]
-      }))
-
-      context('edgeresource finding with version', () => {
-        def('body', () => ({
-          body: {
-            name: $name,
-            description: '{{ self.name | upcase }}',
-            edgeRes: '{{ \"edgeRes\" | findEdgeResource: "0.1.0" | json }}'
-          },
-        }))
-        it('performs variable substitutions and applies filter, looking edge resource with version', async () => {
-          await $subject
-          expect($nextfct).to.have.been.called
-          expect(EdgeResourceService.getEdgeResource).to.have.been.called
-          expect(EdgeResourceService.getEdgeResource).to.have.been.calledWith({ name: 'edgeRes', version: '0.1.0' })
-
-          expect($req.body.edgeRes).to.be.equal(JSON.stringify($responseEdgeRes))
-        })
-      })
-
-      context('edgeresource finding without version', () => {
-        def('body', () => ({
-          body: {
-            name: $name,
-            description: '{{ self.name | upcase }}',
-            edgeResWithoutVersion: '{{ \"edgeRes\" | findEdgeResource | json }}'
-          },
-        }))
-        it('performs variable substitutions and applies filter, looking edge resource without version', async () => {
-          await $subject
-          expect($nextfct).to.have.been.called
-          expect(EdgeResourceService.getEdgeResource).to.have.been.called
-          expect(EdgeResourceService.getEdgeResource).to.have.been.calledWith({ name: 'edgeRes', version: undefined })
-
-          expect($req.body.edgeResWithoutVersion).to.be.equal(JSON.stringify($responseEdgeRes))
-        })
       })
     })
   })
