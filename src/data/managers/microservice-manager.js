@@ -111,7 +111,7 @@ class MicroserviceManager extends BaseManager {
           model: CatalogItemImage,
           as: 'images',
           required: false,
-          attributes: ['containerImage', 'fogTypeId']
+          attributes: ['containerImage', 'archId']
         },
         {
           model: Registry,
@@ -126,7 +126,7 @@ class MicroserviceManager extends BaseManager {
           include: [{
             model: CatalogItemImage,
             as: 'images',
-            attributes: ['containerImage', 'fogTypeId']
+            attributes: ['containerImage', 'archId']
           }],
           attributes: ['picture', 'registryId']
         },
@@ -207,7 +207,7 @@ class MicroserviceManager extends BaseManager {
           model: CatalogItemImage,
           as: 'images',
           required: false,
-          attributes: ['containerImage', 'fogTypeId']
+          attributes: ['containerImage', 'archId']
         },
         {
           model: Registry,
@@ -224,7 +224,7 @@ class MicroserviceManager extends BaseManager {
               model: CatalogItemImage,
               as: 'images',
               required: true,
-              attributes: ['containerImage', 'fogTypeId']
+              attributes: ['containerImage', 'archId']
             },
             {
               model: Registry,
@@ -333,7 +333,7 @@ class MicroserviceManager extends BaseManager {
           model: CatalogItemImage,
           as: 'images',
           required: false,
-          attributes: ['containerImage', 'fogTypeId']
+          attributes: ['containerImage', 'archId']
         },
         {
           model: Registry,
@@ -348,7 +348,7 @@ class MicroserviceManager extends BaseManager {
           include: [{
             model: CatalogItemImage,
             as: 'images',
-            attributes: ['containerImage', 'fogTypeId']
+            attributes: ['containerImage', 'archId']
           }],
           attributes: ['picture', 'registryId', 'category']
         },

@@ -13,13 +13,13 @@
 
 const BaseManager = require('./base-manager')
 const models = require('../models')
-const FogType = models.FogType
+const Architecture = models.Architecture
 
-class FogTypeManager extends BaseManager {
+class ArchitectureManager extends BaseManager {
   getEntity () {
-    return FogType
+    return Architecture
   }
 }
 
-const instance = new FogTypeManager()
+const instance = new ArchitectureManager()
 module.exports = instance

@@ -30,7 +30,7 @@ class CatalogItemManager extends BaseManager {
           model: CatalogItemImage,
           as: 'images',
           required: false,
-          attributes: ['containerImage', 'fogTypeId']
+          attributes: ['containerImage', 'archId']
         },
         {
           model: CatalogItemInputType,
@@ -56,7 +56,7 @@ class CatalogItemManager extends BaseManager {
           model: CatalogItemImage,
           as: 'images',
           required: false,
-          attributes: ['containerImage', 'fogTypeId']
+          attributes: ['containerImage', 'archId']
         },
         {
           model: CatalogItemInputType,

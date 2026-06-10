@@ -170,22 +170,13 @@ module.exports = (sequelize, DataTypes) => {
     host: {
       type: DataTypes.TEXT
     },
-    processedMessages: {
-      type: DataTypes.BIGINT,
-      get () {
-        return convertToInt(this.getDataValue('processedMessages'))
-      },
-      defaultValue: 0,
-      field: 'processed_messages'
-    },
     catalogItemMessageCounts: {
       type: DataTypes.TEXT,
       field: 'catalog_item_message_counts'
     },
-    messageSpeed: {
-      type: DataTypes.FLOAT,
-      defaultValue: 0.000,
-      field: 'message_speed'
+    availableRuntimes: {
+      type: DataTypes.TEXT,
+      field: 'available_runtimes'
     },
     lastCommandTime: {
       type: DataTypes.BIGINT,
@@ -367,12 +358,12 @@ module.exports = (sequelize, DataTypes) => {
     underscored: true
   })
   Fog.associate = function (models) {
-    Fog.belongsTo(models.FogType, {
+    Fog.belongsTo(models.Architecture, {
       foreignKey: {
-        name: 'fogTypeId',
-        field: 'fog_type_id'
+        name: 'archId',
+        field: 'arch_id'
       },
-      as: 'fogType',
+      as: 'architecture',
       defaultValue: 0
     })
 

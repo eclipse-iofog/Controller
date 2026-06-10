@@ -11,13 +11,13 @@
  *
  */
 
-const ioFogTypesManager = require('../data/managers/iofog-type-manager')
+const architectureManager = require('../data/managers/architecture-manager')
 const TransactionDecorator = require('../decorators/transaction-decorator')
 const packageJson = require('../../package')
 const AppHelper = require('../helpers/app-helper')
 
 const getFogTypes = async function (isCLI, transaction) {
-  const ioFogTypes = await ioFogTypesManager.findAll({}, transaction)
+  const ioFogTypes = await architectureManager.findAll({}, transaction)
   const response = []
 
   for (const ioFogType of ioFogTypes) {

@@ -1,6 +1,6 @@
 'use strict'
 module.exports = (sequelize, DataTypes) => {
-  const FogType = sequelize.define('FogType', {
+  const Architecture = sequelize.define('Architecture', {
     id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
@@ -21,12 +21,12 @@ module.exports = (sequelize, DataTypes) => {
       field: 'description'
     }
   }, {
-    tableName: 'FogTypes',
+    tableName: 'Architectures',
     timestamps: false,
     underscored: true
   })
-  FogType.associate = function (models) {
-    FogType.belongsTo(models.CatalogItem, {
+  Architecture.associate = function (models) {
+    Architecture.belongsTo(models.CatalogItem, {
       foreignKey: {
         name: 'networkCatalogItemId',
         field: 'network_catalog_item_id'
@@ -34,7 +34,7 @@ module.exports = (sequelize, DataTypes) => {
       as: 'networkCatalogItem'
     })
 
-    FogType.belongsTo(models.CatalogItem, {
+    Architecture.belongsTo(models.CatalogItem, {
       foreignKey: {
         name: 'halCatalogItemId',
         field: 'hal_catalog_item_id'
@@ -42,7 +42,7 @@ module.exports = (sequelize, DataTypes) => {
       as: 'halCatalogItem'
     })
 
-    FogType.belongsTo(models.CatalogItem, {
+    Architecture.belongsTo(models.CatalogItem, {
       foreignKey: {
         name: 'bluetoothCatalogItemId',
         field: 'bluetooth_catalog_item_id'
@@ -50,5 +50,5 @@ module.exports = (sequelize, DataTypes) => {
       as: 'bluetoothCatalogItem'
     })
   }
-  return FogType
+  return Architecture
 }

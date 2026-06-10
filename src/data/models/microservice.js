@@ -143,6 +143,11 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER,
       field: 'nats_rule_id',
       allowNull: true
+    },
+    isController: {
+      type: DataTypes.BOOLEAN,
+      field: 'is_controller',
+      defaultValue: false
     }
   }, {
     tableName: 'Microservices',
