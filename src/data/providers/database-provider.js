@@ -249,10 +249,10 @@ class DatabaseProvider {
     }
   }
 
-  // SQLite migration
+  // SQLite migration — greenfield v3.8.0 (see src/data/migrations/README.md)
   async runMigrationSQLite (dbName) {
-    const migrationSqlPath = path.resolve(__dirname, '../migrations/sqlite/db_migration_sqlite_v1.1.0.sql')
-    const migrationVersion = '1.1.0'
+    const migrationSqlPath = path.resolve(__dirname, '../migrations/sqlite/db_migration_sqlite_v3.8.0.sql')
+    const migrationVersion = '3.8.0'
 
     if (!fs.existsSync(migrationSqlPath)) {
       logger.error(`Migration file not found: ${migrationSqlPath}`)
@@ -322,10 +322,10 @@ class DatabaseProvider {
     }
   }
 
-  // MySQL migration
+  // MySQL migration — greenfield v3.8.0 (see src/data/migrations/README.md)
   async runMigrationMySQL (db) {
-    const migrationSqlPath = path.resolve(__dirname, '../migrations/mysql/db_migration_mysql_v1.1.0.sql')
-    const migrationVersion = '1.1.0'
+    const migrationSqlPath = path.resolve(__dirname, '../migrations/mysql/db_migration_mysql_v3.8.0.sql')
+    const migrationVersion = '3.8.0'
 
     if (!fs.existsSync(migrationSqlPath)) {
       logger.error(`Migration file not found: ${migrationSqlPath}`)
@@ -383,10 +383,10 @@ class DatabaseProvider {
     }
   }
 
-  // PostgreSQL migration
+  // PostgreSQL migration — greenfield v3.8.0 (see src/data/migrations/README.md)
   async runMigrationPostgres (db) {
-    const migrationSqlPath = path.resolve(__dirname, '../migrations/postgres/db_migration_pg_v1.1.0.sql')
-    const migrationVersion = '1.1.0'
+    const migrationSqlPath = path.resolve(__dirname, '../migrations/postgres/db_migration_pg_v3.8.0.sql')
+    const migrationVersion = '3.8.0'
 
     if (!fs.existsSync(migrationSqlPath)) {
       logger.error(`Migration file not found: ${migrationSqlPath}`)
@@ -458,10 +458,10 @@ class DatabaseProvider {
     }
   }
 
-  // SQLite seeder
+  // SQLite seeder — greenfield v3.8.0 (see src/data/migrations/README.md)
   async runSeederSQLite (dbName) {
-    const seederSqlPath = path.resolve(__dirname, '../seeders/sqlite/db_seeder_sqlite_v1.0.2.sql')
-    const seederVersion = '1.0.2'
+    const seederSqlPath = path.resolve(__dirname, '../seeders/sqlite/db_seeder_sqlite_v3.8.0.sql')
+    const seederVersion = '3.8.0'
 
     if (!fs.existsSync(seederSqlPath)) {
       logger.error(`Seeder file not found: ${seederSqlPath}`)
@@ -530,10 +530,10 @@ class DatabaseProvider {
     }
   }
 
-  // MySQL seeder
+  // MySQL seeder — greenfield v3.8.0 (see src/data/migrations/README.md)
   async runSeederMySQL (db) {
-    const seederSqlPath = path.resolve(__dirname, '../seeders/mysql/db_seeder_mysql_v1.0.2.sql')
-    const seederVersion = '1.0.2'
+    const seederSqlPath = path.resolve(__dirname, '../seeders/mysql/db_seeder_mysql_v3.8.0.sql')
+    const seederVersion = '3.8.0'
 
     if (!fs.existsSync(seederSqlPath)) {
       logger.error(`Seeder file not found: ${seederSqlPath}`)
@@ -580,10 +580,10 @@ class DatabaseProvider {
     }
   }
 
-  // PostgreSQL seeder
+  // PostgreSQL seeder — greenfield v3.8.0 (see src/data/migrations/README.md)
   async runSeederPostgres (db) {
-    const seederSqlPath = path.resolve(__dirname, '../seeders/postgres/db_seeder_pg_v1.0.2.sql')
-    const seederVersion = '1.0.2'
+    const seederSqlPath = path.resolve(__dirname, '../seeders/postgres/db_seeder_pg_v3.8.0.sql')
+    const seederVersion = '3.8.0'
 
     if (!fs.existsSync(seederSqlPath)) {
       logger.error(`Seeder file not found: ${seederSqlPath}`)
