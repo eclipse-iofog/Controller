@@ -12,6 +12,7 @@
  */
 
 const AgentService = require('../services/agent-service')
+const ControllerMsService = require('../services/controller-ms-service')
 const AuthDecorator = require('../decorators/authorization-decorator')
 
 const agentProvisionEndPoint = async function (req) {
@@ -106,6 +107,10 @@ const getControllerCAEndPoint = async function (req, fog) {
   return AgentService.getControllerCA(fog)
 }
 
+const registerControllerMicroserviceEndPoint = async function (req, fog) {
+  return ControllerMsService.registerControllerMicroservice(req.body, fog)
+}
+
 module.exports = {
   agentProvisionEndPoint: agentProvisionEndPoint,
   agentDeprovisionEndPoint: AuthDecorator.checkFogToken(agentDeprovisionEndPoint),
@@ -125,5 +130,6 @@ module.exports = {
   resetAgentConfigChangesEndPoint: AuthDecorator.checkFogToken(resetAgentConfigChangesEndPoint),
   getAgentLinkedVolumeMountsEndpoint: AuthDecorator.checkFogToken(getAgentLinkedVolumeMountsEndpoint),
   getControllerCAEndPoint: AuthDecorator.checkFogToken(getControllerCAEndPoint),
-  getAgentLogSessionsEndPoint: AuthDecorator.checkFogToken(getAgentLogSessionsEndPoint)
+  getAgentLogSessionsEndPoint: AuthDecorator.checkFogToken(getAgentLogSessionsEndPoint),
+  registerControllerMicroserviceEndPoint: AuthDecorator.checkFogToken(registerControllerMicroserviceEndPoint)
 }
