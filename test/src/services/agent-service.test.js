@@ -1098,6 +1098,7 @@ describe('Agent Service', () => {
       volumeMappings: 'testVolumeMappings',
       delete: false,
       deleteWithCleanup: false,
+      isController: true,
       catalogItem: {
         images: [{
           archId: 1,
@@ -1247,6 +1248,9 @@ describe('Agent Service', () => {
             expect(msvc.registryId).to.equal(microserviceResponse.microservices[0].registryId)
             expect(msvc.cmd).to.deep.equal(microserviceResponse.microservices[0].cmd)
             expect(msvc.extraHosts).to.deep.equal(microserviceResponse.microservices[0].extraHosts)
+            expect(msvc.isController).to.equal(true)
+            expect(msvc.isRouter).to.equal(false)
+            expect(msvc.isNats).to.equal(false)
           })
         })
       })

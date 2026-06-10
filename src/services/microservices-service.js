@@ -1264,6 +1264,9 @@ async function updateMicroserviceEndPoint (microserviceUuid, microserviceData, i
   if (microservice.catalogItem && microservice.catalogItem.category === 'SYSTEM') {
     throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.SYSTEM_MICROSERVICE_UPDATE, microserviceUuid))
   }
+  if (microservice.isController) {
+    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.SYSTEM_MICROSERVICE_UPDATE, microserviceUuid))
+  }
 
   _validateMicroserviceSchedule(microserviceDataUpdate.schedule, false)
 
@@ -1696,6 +1699,9 @@ async function deleteMicroserviceEndPoint (microserviceUuid, microserviceData, i
   }
   if (!isCLI && microservice.catalogItem && microservice.catalogItem.category === 'SYSTEM') {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.SYSTEM_MICROSERVICE_DELETE, microserviceUuid))
+  }
+  if (!isCLI && microservice.isController) {
+    throw new Errors.ForbiddenError(AppHelper.formatMessage(ErrorMessages.CONTROLLER_MICROSERVICE_DELETE, microserviceUuid))
   }
 
   const existingService = await ServiceManager.findOne({ type: `microservice`, resource: microservice.uuid }, transaction)

@@ -472,6 +472,7 @@ const getAgentMicroservices = async function (fog, transaction) {
       capDrop,
       isRouter,
       isNats,
+      isController: microservice.isController,
       execEnabled: microservice.execEnabled,
       schedule: microservice.schedule
     }

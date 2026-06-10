@@ -1585,16 +1585,18 @@ describe('Microservices Service', () => {
 
     const microserviceUuid = 'msvcToDeleteUUID'
     const isCLI = false
-    const user = {
-      id: 15
-    }
 
     const microserviceData = {
       uuid: microserviceUuid,
       iofogUuid: 'msvciofoguuid'
     }
 
-    def('subject', () => $subject.deleteMicroserviceEndPoint(microserviceUuid, microserviceData, user, isCLI, transaction))
+    const ServiceManager = require('../../../src/data/managers/service-manager')
+    const NatsAuthService = require('../../../src/services/nats-auth-service')
+    const MicroservicePortService = require('../../../src/services/microservice-ports/microservice-port')
+    const RbacServiceAccountManager = require('../../../src/data/managers/rbac-service-account-manager')
+
+    def('subject', () => $subject.deleteMicroserviceEndPoint(microserviceUuid, microserviceData, isCLI, transaction))
     def('findMicroserviceResponse', () => Promise.resolve(microserviceData))
     def('findPortMappings', () => Promise.resolve([]))
   
@@ -1605,7 +1607,20 @@ describe('Microservices Service', () => {
       $sandbox.stub(ChangeTrackingService, 'update')
     })
 
+    const stubDeleteDependencies = ({ keepPortDeletion = false } = {}) => {
+      $sandbox.stub(ServiceManager, 'findOne').resolves(null)
+      $sandbox.stub(NatsAuthService, 'revokeMicroserviceUser').resolves()
+      if (!keepPortDeletion) {
+        $sandbox.stub(MicroservicePortService, 'deletePortMappings').resolves()
+      }
+      $sandbox.stub(RbacServiceAccountManager, 'deleteByMicroserviceUuid').resolves()
+      if (!keepPortDeletion) {
+        $sandbox.stub(MicroserviceManager, 'update').resolves()
+      }
+    }
+
     it('should delete the microservice', async () => {
+      stubDeleteDependencies()
       await $subject
       expect(MicroserviceManager.delete).to.have.been.calledWith({uuid: microserviceUuid}, transaction)
       return expect(ChangeTrackingService.update).to.have.been.calledWith(microserviceData.iofogUuid, ChangeTrackingService.events.microserviceList, transaction)
@@ -1639,6 +1654,22 @@ describe('Microservices Service', () => {
       })
     })
 
+    context('when microservice is controller', () => {
+      def('findMicroserviceResponse', () => Promise.resolve({
+        uuid: microserviceUuid,
+        iofogUuid: microserviceData.iofogUuid,
+        isController: true
+      }))
+      it('should fail with ForbiddenError', async () => {
+        try {
+          await $subject
+        } catch (e) {
+          return expect(e).to.be.instanceOf(Errors.ForbiddenError)
+        }
+        return expect(true).to.eql(false)
+      })
+    })
+
     context('when there are ports', () => {
       const publicPort = {
         id: 1,
@@ -1666,6 +1697,7 @@ describe('Microservices Service', () => {
       def('findPortMappings', () => Promise.resolve(portMappings))
 
       beforeEach(() => {
+        stubDeleteDependencies({ keepPortDeletion: true })
         $sandbox.stub(MicroservicePortManager, 'delete')
         $sandbox.stub(MicroserviceManager, 'update')
         $sandbox.stub(MicroserviceManager, 'findOne')
@@ -2170,6 +2202,45 @@ describe('Microservices Service', () => {
             /serviceAccount are system-managed/
           )
         })
+      })
+    })
+  })
+
+  describe('controller microservice user guards', () => {
+    const transaction = {}
+    const microserviceUuid = 'controller-ms-uuid'
+    const images = [{ fogTypeId: 1, containerImage: 'controller:latest' }]
+    const microservice = {
+      uuid: microserviceUuid,
+      name: 'controller',
+      applicationId: 16,
+      iofogUuid: 'system-fog-uuid',
+      registryId: 1,
+      isController: true,
+      catalogItem: { images }
+    }
+
+    describe('.updateMicroserviceEndPoint()', () => {
+      def('subject', () => MicroservicesService.updateMicroserviceEndPoint(
+        microserviceUuid,
+        { config: '{}' },
+        false,
+        transaction
+      ))
+
+      beforeEach(() => {
+        $sandbox.stub(Validator, 'validate').resolves(true)
+        $sandbox.stub(MicroserviceManager, 'findOne').resolves(microservice)
+        $sandbox.stub(MicroserviceManager, 'findOneWithCategory').resolves(microservice)
+        $sandbox.stub(CatalogItemImageManager, 'findAll').resolves(images)
+        $sandbox.stub(ApplicationManager, 'findOne').resolves({ id: microservice.applicationId, natsAccess: false })
+        $sandbox.stub(AppHelper, 'deleteUndefinedFields').callsFake((obj) => obj)
+        $sandbox.stub(ioFogManager, 'findOne').resolves({ uuid: microservice.iofogUuid, fogTypeId: 1 })
+        $sandbox.stub(ioFogService, 'getFog').resolves({ uuid: microservice.iofogUuid, fogTypeId: 1 })
+      })
+
+      it('blocks user update when isController', async () => {
+        await expect($subject).to.be.rejectedWith(Errors.ValidationError)
       })
     })
   })
