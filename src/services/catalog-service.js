@@ -13,6 +13,7 @@
 
 const TransactionDecorator = require('../decorators/transaction-decorator')
 const AppHelper = require('../helpers/app-helper')
+const { validateUniqueArchIds } = require('../helpers/arch-images')
 const Errors = require('../helpers/errors')
 const ErrorMessages = require('../helpers/error-messages')
 const CatalogItemManager = require('../data/managers/catalog-item-manager')
@@ -241,29 +242,15 @@ const _createCatalogItem = async function (data, transaction) {
 }
 
 const _createCatalogImages = async function (data, catalogItem, transaction) {
-  const catalogItemImages = [
-    {
-      fogTypeId: 1,
-      catalogItemId: catalogItem.id
-    },
-    {
-      fogTypeId: 2,
-      catalogItemId: catalogItem.id
-    }
-  ]
-  if (data.images) {
-    for (const image of data.images) {
-      switch (image.fogTypeId) {
-        case 1:
-          catalogItemImages[0].containerImage = image.containerImage
-          break
-        case 2:
-          catalogItemImages[1].containerImage = image.containerImage
-          break
-      }
-    }
+  if (!data.images || !data.images.length) {
+    return []
   }
-
+  validateUniqueArchIds(data.images)
+  const catalogItemImages = data.images.map((image) => ({
+    catalogItemId: catalogItem.id,
+    archId: image.archId,
+    containerImage: image.containerImage
+  }))
   return CatalogItemImageManager.bulkCreate(catalogItemImages, transaction)
 }
 
@@ -348,13 +335,14 @@ const _updateCatalogItemImages = async function (data, transaction) {
     //   }
     // }
 
+    validateUniqueArchIds(data.images)
     for (const image of data.images) {
       await CatalogItemImageManager.updateOrCreate({
         catalogItemId: data.id,
-        fogTypeId: image.fogTypeId
+        archId: image.archId
       }, {
         catalogItemId: data.id,
-        fogTypeId: image.fogTypeId,
+        archId: image.archId,
         containerImage: image.containerImage
       }, transaction)
     }

@@ -17,10 +17,10 @@ describe('Catalog Controller', () => {
     def('description', () => 'testDescription')
     def('category', () => 'testCategory')
     def('containerImage', () => 'testContainerImage')
-    def('fogTypeId', () => 'testFogTypeId')
+    def('archId', () => 'testFogTypeId')
     def('images', () => [{
       containerImage: $containerImage,
-      fogTypeId: $fogTypeId,
+      archId: $archId,
     }])
     def('publisher', () => 'testPublisher')
     def('diskRequired', () => 15)
@@ -225,10 +225,10 @@ describe('Catalog Controller', () => {
     def('description', () => 'testDescription')
     def('category', () => 'testCategory')
     def('containerImage', () => 'testContainerImage')
-    def('fogTypeId', () => 'testFogTypeId')
+    def('archId', () => 'testFogTypeId')
     def('images', () => [{
       containerImage: $containerImage,
-      fogTypeId: $fogTypeId,
+      archId: $archId,
     }])
     def('publisher', () => 'testPublisher')
     def('diskRequired', () => 15)

@@ -65,17 +65,10 @@ function _validateMicroserviceRuntime (runtime, fog) {
   }
 }
 
-function _validateImageFogType (name, fog, images) {
-  let found = false
-  for (const image of images) {
-    if (image.fogTypeId === fog.fogTypeId && image.containerImage) {
-      found = true
-      break
-    }
-  }
-  if (!found) {
-    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.MISSING_IMAGE, name))
-  }
+const { validateImageMatchesFogArch } = require('../helpers/arch-images')
+
+function _validateImageArch (name, fog, images) {
+  validateImageMatchesFogArch(name, fog, images)
 }
 
 function _validateMicroserviceConfig (config) {
@@ -395,7 +388,7 @@ async function registerControllerMicroservice (registerData, fog, transaction) {
 
   await _validateRegistry(registerData.registryId, transaction)
   _validateMicroserviceRuntime(registerData.runtime, fog)
-  _validateImageFogType(registerData.name, fog, registerData.images)
+  _validateImageArch(registerData.name, fog, registerData.images)
   _validateVolumeMappingFields(registerData.volumeMappings)
   await _validateVolumeMappingsForFog(registerData.volumeMappings, fog.uuid, transaction)
 

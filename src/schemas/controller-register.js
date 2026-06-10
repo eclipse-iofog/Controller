@@ -20,7 +20,7 @@ const controllerRegister = {
     'images': {
       'type': 'array',
       'minItems': 1,
-      'maxItems': 2,
+      'maxItems': 4,
       'items': { '$ref': '/image' }
     },
     'registryId': { 'type': 'integer' },

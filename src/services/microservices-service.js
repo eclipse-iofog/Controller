@@ -29,6 +29,12 @@ const MicroserviceStates = require('../enums/microservice-state')
 const VolumeMappingManager = require('../data/managers/volume-mapping-manager')
 const ChangeTrackingService = require('./change-tracking-service')
 const AppHelper = require('../helpers/app-helper')
+const {
+  validateUniqueArchIds,
+  validateImageMatchesFogArch,
+  validateImagesAgainstCatalog,
+  imagesAreEqual
+} = require('../helpers/arch-images')
 const Errors = require('../helpers/errors')
 const ErrorMessages = require('../helpers/error-messages')
 const { slugifyName } = require('../helpers/system-naming')
@@ -51,7 +57,6 @@ const FogManager = require('../data/managers/iofog-manager')
 const MicroserviceExtraHostManager = require('../data/managers/microservice-extra-host-manager')
 const { VOLUME_MAPPING_DEFAULT } = require('../helpers/constants')
 const constants = require('../helpers/constants')
-const isEqual = require('lodash/isEqual')
 const logger = require('../logger')
 
 const SERVICE_ACCOUNT_VOLUME_TYPE = 'serviceAccount'
@@ -299,27 +304,6 @@ async function getSystemMicroserviceEndPoint (microserviceUuid, isCLI, transacti
   return _buildGetMicroserviceResponse(microservice.dataValues, transaction)
 }
 
-function _validateImagesAgainstCatalog (catalogItem, images) {
-  const allImagesEmpty = images.reduce((result, b) => result && b.containerImage === '', true)
-  if (allImagesEmpty) {
-    return
-  }
-  for (const img of images) {
-    let found = false
-    for (const catalogImg of catalogItem.images) {
-      if (catalogImg.fogType === img.fogType) {
-        found = true
-      }
-      if (found === true && img.containerImage !== '' && catalogImg.containerImage !== img.containerImage) {
-        throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.CATALOG_NOT_MATCH_IMAGES, `${catalogItem.id}`))
-      }
-    }
-    if (!found) {
-      throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.CATALOG_NOT_MATCH_IMAGES, `${catalogItem.id}`))
-    }
-  }
-}
-
 async function _validateLocalAppHostTemplate (extraHost, templateArgs, msvc, fogUuid, transaction) {
   if (templateArgs.length !== 4) {
     throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_HOST_TEMPLATE, templateArgs.join('.')))
@@ -409,17 +393,8 @@ async function _validateExtraHosts (microserviceData, fogUuid, transaction) {
   return extraHosts
 }
 
-function _validateImageFogType (microserviceData, fog, images) {
-  let found = false
-  for (const image of images) {
-    if (image.fogTypeId === fog.fogTypeId && image.containerImage) {
-      found = true
-      break
-    }
-  }
-  if (!found) {
-    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.MISSING_IMAGE, microserviceData.name))
-  }
+function _validateImageArch (microserviceData, fog, images) {
+  validateImageMatchesFogArch(microserviceData.name, fog, images)
 }
 
 async function _findFog (microserviceData, isCLI, transaction) {
@@ -563,15 +538,16 @@ async function createMicroserviceEndPoint (microserviceData, isCLI, transaction)
   if (microserviceData.catalogItemId) {
     // validate catalog item
     const catalogItem = await CatalogService.getCatalogItem(microserviceData.catalogItemId, isCLI, transaction)
-    _validateImagesAgainstCatalog(catalogItem, microserviceData.images || [])
+    validateImagesAgainstCatalog(catalogItem, microserviceData.images || [])
     microserviceData.images = catalogItem.images
-    _validateImageFogType(microserviceData, fog, catalogItem.images)
+    _validateImageArch(microserviceData, fog, catalogItem.images)
     // use catalog item's registryId if it is set
     if (catalogItem.registryId) {
       microserviceData.registryId = catalogItem.registryId
     }
   } else {
-    _validateImageFogType(microserviceData, fog, microserviceData.images)
+    validateUniqueArchIds(microserviceData.images)
+    _validateImageArch(microserviceData, fog, microserviceData.images)
   }
 
   if (!microserviceData.images || !microserviceData.images.length) {
@@ -971,7 +947,7 @@ async function updateSystemMicroserviceEndPoint (microserviceUuid, microserviceD
   const iofogUuid = microserviceDataUpdate.iofogUuid || microservice.iofogUuid
   if (microserviceDataUpdate.catalogItemId) {
     const catalogItem = await CatalogService.getSystemCatalogItem(microserviceDataUpdate.catalogItemId, isCLI, transaction)
-    _validateImagesAgainstCatalog(catalogItem, microserviceDataUpdate.images || [])
+    validateImagesAgainstCatalog(catalogItem, microserviceDataUpdate.images || [])
     if (microserviceDataUpdate.catalogItemId !== undefined && microserviceDataUpdate.catalogItemId !== microservice.catalogItemId) {
       // Catalog item changed or removed, set rebuild flag
       microserviceDataUpdate.rebuild = true
@@ -1020,7 +996,7 @@ async function updateSystemMicroserviceEndPoint (microserviceUuid, microserviceD
     } else {
       images = await microservice.getImages()
     }
-    _validateImageFogType(microserviceData, fog, images)
+    _validateImageArch(microserviceData, fog, images)
     const shouldValidateRuntime = microserviceDataUpdate.runtime !== undefined ||
       (microserviceDataUpdate.iofogUuid && microserviceDataUpdate.iofogUuid !== microservice.iofogUuid)
     if (shouldValidateRuntime) {
@@ -1275,7 +1251,7 @@ async function updateMicroserviceEndPoint (microserviceUuid, microserviceData, i
   const iofogUuid = microserviceDataUpdate.iofogUuid || microservice.iofogUuid
   if (microserviceDataUpdate.catalogItemId) {
     const catalogItem = await CatalogService.getCatalogItem(microserviceDataUpdate.catalogItemId, isCLI, transaction)
-    _validateImagesAgainstCatalog(catalogItem, microserviceDataUpdate.images || [])
+    validateImagesAgainstCatalog(catalogItem, microserviceDataUpdate.images || [])
     if (microserviceDataUpdate.catalogItemId !== undefined && microserviceDataUpdate.catalogItemId !== microservice.catalogItemId) {
       // Catalog item changed or removed, set rebuild flag
       microserviceDataUpdate.rebuild = true
@@ -1324,7 +1300,7 @@ async function updateMicroserviceEndPoint (microserviceUuid, microserviceData, i
     } else {
       images = await microservice.getImages()
     }
-    _validateImageFogType(microserviceData, fog, images)
+    _validateImageArch(microserviceData, fog, images)
     const shouldValidateRuntime = microserviceDataUpdate.runtime !== undefined ||
       (microserviceDataUpdate.iofogUuid && microserviceDataUpdate.iofogUuid !== microservice.iofogUuid)
     if (shouldValidateRuntime) {
@@ -1673,15 +1649,7 @@ async function rebuildSystemMicroserviceEndPoint (microserviceUuid, isCLI, trans
  * @param {*} catalogImages
  */
 const _checkIfMicroserviceImagesAreEqual = (microserviceDataUpdateImages, catalogImages) => {
-  const oldMicroservicesImages = []
-  for (const images of catalogImages) {
-    oldMicroservicesImages.push(images.containerImage)
-  }
-  const newMicroserviceImages = []
-  for (const images of microserviceDataUpdateImages) {
-    newMicroserviceImages.push(images.containerImage)
-  }
-  return isEqual(newMicroserviceImages, oldMicroservicesImages)
+  return imagesAreEqual(microserviceDataUpdateImages, catalogImages)
 }
 
 async function deleteMicroserviceEndPoint (microserviceUuid, microserviceData, isCLI, transaction) {
@@ -2615,7 +2583,7 @@ async function _buildGetMicroserviceResponse (microservice, transaction) {
   res.capAdd = capAdds
   res.capDrop = capDrops
   res.extraHosts = extraHosts.map(eH => ({ name: eH.name, address: eH.template, value: eH.value }))
-  res.images = images.map(i => ({ containerImage: i.containerImage, fogTypeId: i.fogTypeId }))
+  res.images = images.map(i => ({ containerImage: i.containerImage, archId: i.archId }))
   if (status && status.length) {
     res.status = status[0]
   }

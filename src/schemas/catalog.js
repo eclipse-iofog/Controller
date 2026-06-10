@@ -28,7 +28,7 @@ const catalogItemCreate = {
     'images': {
       'type': 'array',
       'minItems': 1,
-      'maxItems': 2,
+      'maxItems': 4,
       'items': { '$ref': '/image' }
     },
     'inputType': { '$ref': '/type' },
@@ -54,7 +54,7 @@ const catalogItemUpdate = {
     'configExample': { 'type': 'string' },
     'images': {
       'type': 'array',
-      'maxItems': 2,
+      'maxItems': 4,
       'items': { '$ref': '/image' }
     },
     'inputType': { '$ref': '/type' },

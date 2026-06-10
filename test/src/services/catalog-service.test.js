@@ -34,11 +34,11 @@ describe('Catalog Service', () => {
       'images': [
         {
           'containerImage': 'x86 docker image name',
-          'fogTypeId': 1,
+          'archId': 1,
         },
         {
           'containerImage': 'ARM docker image name',
-          'fogTypeId': 2,
+          'archId': 2,
         },
       ],
       'publisher': 'string',
@@ -59,6 +59,7 @@ describe('Catalog Service', () => {
     }
 
     const catalogItem = {
+      id: 15,
       name: data.name,
       description: data.description,
       category: data.category,
@@ -72,28 +73,11 @@ describe('Catalog Service', () => {
       userId: user.id,
     }
 
-    const catalogItemImages = [
-      {
-        fogTypeId: 1,
-        catalogItemId: catalogItem.id,
-      },
-      {
-        fogTypeId: 2,
-        catalogItemId: catalogItem.id,
-      },
-    ]
-    if (data.images) {
-      for (const image of data.images) {
-        switch (image.fogTypeId) {
-          case 1:
-            catalogItemImages[0].containerImage = image.containerImage
-            break
-          case 2:
-            catalogItemImages[1].containerImage = image.containerImage
-            break
-        }
-      }
-    }
+    const catalogItemImages = data.images.map((image) => ({
+      archId: image.archId,
+      catalogItemId: catalogItem.id,
+      containerImage: image.containerImage
+    }))
 
     const catalogItemInputType = {
       catalogItemId: catalogItem.id,
@@ -318,11 +302,11 @@ describe('Catalog Service', () => {
       'images': [
         {
           'containerImage': 'x86 docker image name',
-          'fogTypeId': 1,
+          'archId': 1,
         },
         {
           'containerImage': 'ARM docker image name',
-          'fogTypeId': 2,
+          'archId': 2,
         },
       ],
       'publisher': 'string',
@@ -363,38 +347,16 @@ describe('Catalog Service', () => {
       registryId: data.registryId,
     }
 
-    const image1 = {
-      fogTypeId: 1,
-      catalogItemId: id,
-    }
-    const image2 = {
-      fogTypeId: 2,
-      catalogItemId: id,
-    }
-    const catalogItemImages = [
-      image1, image2,
-    ]
-
-    if (data.images) {
-      for (const image of data.images) {
-        switch (image.fogTypeId) {
-          case 1:
-            catalogItemImages[0].containerImage = image.containerImage
-            break
-          case 2:
-            catalogItemImages[1].containerImage = image.containerImage
-            break
-        }
-      }
-    }
+    const image1 = { archId: 1 }
+    const image2 = { archId: 2 }
 
     const updatedImage1 = {
-      fogTypeId: 1,
+      archId: 1,
       containerImage: 'x86 docker image name',
     }
 
     const updatedImage2 = {
-      fogTypeId: 2,
+      archId: 2,
       containerImage: 'ARM docker image name',
     }
 
@@ -556,10 +518,10 @@ describe('Catalog Service', () => {
                     await $subject
                     expect(CatalogItemImageManager.updateOrCreate).to.have.been.calledWith({
                       catalogItemId: data.id,
-                      fogTypeId: image1.fogTypeId,
+                      archId: image1.archId,
                     }, {
                       catalogItemId: data.id,
-                      fogTypeId: image1.fogTypeId,
+                      archId: image1.archId,
                       containerImage: updatedImage1.containerImage,
                     }, transaction)
                   })
@@ -577,10 +539,10 @@ describe('Catalog Service', () => {
                       await $subject
                       expect(CatalogItemImageManager.updateOrCreate).to.have.been.calledWith({
                         catalogItemId: id,
-                        fogTypeId: image2.fogTypeId,
+                        archId: image2.archId,
                       }, {
                         catalogItemId: id,
-                        fogTypeId: image2.fogTypeId,
+                        archId: image2.archId,
                         containerImage: updatedImage2.containerImage,
                       }, transaction)
                     })

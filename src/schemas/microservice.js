@@ -16,7 +16,7 @@ const microserviceCreate = {
     },
     'images': {
       'type': 'array',
-      'maxItems': 2,
+      'maxItems': 4,
       'items': { '$ref': '/image' }
     },
     'registryId': {
@@ -114,7 +114,7 @@ const microserviceUpdate = {
     },
     'images': {
       'type': 'array',
-      'maxItems': 2,
+      'maxItems': 4,
       'minItems': 1,
       'items': { '$ref': '/image' }
     },

@@ -232,22 +232,9 @@ async function parseServiceFile (fileContent, options = {}) {
   }
 }
 
-const mapImages = (images) => {
-  const imgs = []
-  if (images.x86 != null) {
-    imgs.push({
-      fogTypeId: 1,
-      containerImage: images.x86
-    })
-  }
-  if (images.arm != null) {
-    imgs.push({
-      fogTypeId: 2,
-      containerImage: images.arm
-    })
-  }
-  return imgs
-}
+const { mapYamlImagesToArchList } = require('../helpers/arch-images')
+
+const mapImages = (images) => mapYamlImagesToArchList(images)
 
 const parseMicroserviceImages = async (fileImages) => {
   // Could be undefined if patch call

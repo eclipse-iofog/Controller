@@ -61,6 +61,29 @@ spec:
       expect(result.name).to.eql('ms-b')
     })
 
+    it('maps multi-arch YAML image keys to archId', async () => {
+      const yaml = `
+kind: Microservice
+metadata:
+  name: app-a/ms-d
+spec:
+  images:
+    x86: edgeworx/foo:x86
+    arm64: edgeworx/foo:arm64
+    riscv64: edgeworx/foo:riscv
+    arm: edgeworx/foo:arm32
+  container:
+    env: []
+`
+      const result = await YamlParserService.parseMicroserviceFile(yaml)
+      expect(result.images).to.eql([
+        { archId: 1, containerImage: 'edgeworx/foo:x86' },
+        { archId: 2, containerImage: 'edgeworx/foo:arm64' },
+        { archId: 3, containerImage: 'edgeworx/foo:riscv' },
+        { archId: 4, containerImage: 'edgeworx/foo:arm32' }
+      ])
+    })
+
     it('does not map deprecated top-level natsAccess', async () => {
       const yaml = `
 kind: Microservice

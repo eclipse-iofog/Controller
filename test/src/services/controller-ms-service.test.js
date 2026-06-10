@@ -28,7 +28,7 @@ describe('Controller MS Service', () => {
     uuid: fogUuid,
     name: 'system-fog',
     isSystem: true,
-    fogTypeId: 1,
+    archId: 1,
     availableRuntimes: JSON.stringify(['io.containerd.runc.v2'])
   }
 
@@ -36,7 +36,7 @@ describe('Controller MS Service', () => {
     uuid: 'regular-fog-uuid',
     name: 'regular-fog',
     isSystem: false,
-    fogTypeId: 1
+    archId: 1
   }
 
   const application = {
@@ -47,7 +47,7 @@ describe('Controller MS Service', () => {
 
   const registerData = {
     uuid: msUuid,
-    images: [{ containerImage: 'controller:latest', fogTypeId: 1 }],
+    images: [{ containerImage: 'controller:latest', archId: 1 }],
     registryId: 1,
     ports: [{ internal: 8080, external: 8080, protocol: 'tcp' }],
     volumeMappings: [{
@@ -171,7 +171,7 @@ describe('Controller MS Service', () => {
         })
         CatalogItemImageManager.findAll.resolves([{
           containerImage: 'controller:old',
-          fogTypeId: 1
+          archId: 1
         }])
       })
 

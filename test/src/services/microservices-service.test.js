@@ -321,7 +321,7 @@ describe('Microservices Service', () => {
 
     const fog = {
       uuid: microserviceData.iofogUuid,
-      fogTypeId: 1,
+      archId: 1,
       name: 'testfog'
     }
 
@@ -351,8 +351,8 @@ describe('Microservices Service', () => {
     }
 
     const images = [
-      {fogTypeId: 1, containerImage: 'hello-world'},
-      {fogTypeId: 2, containerImage: 'hello-world'},
+      {archId: 1, containerImage: 'hello-world'},
+      {archId: 2, containerImage: 'hello-world'},
     ]
 
     const proxyCatalogItem = {
@@ -1018,8 +1018,8 @@ describe('Microservices Service', () => {
     };
 
     const images = [
-      {fogTypeId: 1, containerImage: 'hello-world'},
-      {fogTypeId: 2, containerImage: 'hello-world'},
+      {archId: 1, containerImage: 'hello-world'},
+      {archId: 2, containerImage: 'hello-world'},
     ]
 
     const newMicroserviceUuid = microserviceUuid;
@@ -1058,7 +1058,7 @@ describe('Microservices Service', () => {
     def('newMicroserviceResponse', () => Promise.resolve(newMicroservice))
     def('findRegistryResponse', () => Promise.resolve({}))
     def('findCatalogItem', () => Promise.resolve({ images }))
-    def('findFogResponse', () => Promise.resolve({fogTypeId: 1, uuid: microserviceData.iofogUuid }))
+    def('findFogResponse', () => Promise.resolve({archId: 1, uuid: microserviceData.iofogUuid }))
     def('findRelatedExtraHostsResponse', () => Promise.resolve([]))
     def('catalogResponse', () => Promise.resolve(images))
     def('updateResponse',() => Promise.resolve())
@@ -1177,7 +1177,7 @@ describe('Microservices Service', () => {
               targetFogUuid: 'previousUuid',
               save: () => {}
             }]
-            const extraHostFog = {uuid: newMicroservice.iofogUuid, host: '1.2.3.4', fogTypeId: 1}
+            const extraHostFog = {uuid: newMicroservice.iofogUuid, host: '1.2.3.4', archId: 1}
 
             context('when there is no valid image', () => {
               const catalogItemNoImages = {
@@ -1214,7 +1214,7 @@ describe('Microservices Service', () => {
           }
           const newFog = {
             uuid: 'newFogUuid',
-            fogTypeId: 1
+            archId: 1
           }
           const portMappings = []
           def('oldMicroserviceResponse', () => Promise.resolve({
@@ -1515,8 +1515,8 @@ describe('Microservices Service', () => {
 
         context('when images are updated', () => {
           const images = [
-            {fogTypeId: 1, containerImage: 'newImage:x86'},
-            {fogTypeId: 2, containerImage: 'newImage:arm'},
+            {archId: 1, containerImage: 'newImage:x86'},
+            {archId: 2, containerImage: 'newImage:arm'},
           ]
           registryId = 1
           const microserviceUpdateDataWithImages = {...microserviceUpdateData, images, registryId}
@@ -1941,7 +1941,7 @@ describe('Microservices Service', () => {
       def('fog', () => ({
         uuid: fogUuid,
         name: 'agent-1',
-        fogTypeId: 1,
+        archId: 1,
         availableRuntimes: '["docker"]'
       }))
       def('microserviceData', () => ({
@@ -1949,7 +1949,7 @@ describe('Microservices Service', () => {
         application: application.name,
         iofogUuid: fogUuid,
         runtime: 'edgelet',
-        images: [{ fogTypeId: 1, containerImage: 'hello-world' }]
+        images: [{ archId: 1, containerImage: 'hello-world' }]
       }))
       def('subject', () => MicroservicesService.createMicroserviceEndPoint($microserviceData, isCLI, transaction))
 
@@ -1972,7 +1972,7 @@ describe('Microservices Service', () => {
         def('fog', () => ({
           uuid: fogUuid,
           name: 'agent-1',
-          fogTypeId: 1,
+          archId: 1,
           availableRuntimes: ''
         }))
 
@@ -1999,7 +1999,7 @@ describe('Microservices Service', () => {
 
     describe('.createMicroserviceEndPoint()', () => {
       const application = { name: 'my-app', id: 42, active: true }
-      const fog = { uuid: 'fog-uuid', name: 'agent-1', fogTypeId: 1, availableRuntimes: '["docker"]' }
+      const fog = { uuid: 'fog-uuid', name: 'agent-1', archId: 1, availableRuntimes: '["docker"]' }
 
       def('subject', () => MicroservicesService.createMicroserviceEndPoint($microserviceData, isCLI, transaction))
 
@@ -2046,7 +2046,7 @@ describe('Microservices Service', () => {
           name: microserviceName,
           application: application.name,
           iofogUuid: fog.uuid,
-          images: [{ fogTypeId: 1, containerImage: 'hello-world' }],
+          images: [{ archId: 1, containerImage: 'hello-world' }],
           volumeMappings: [{
             hostDestination: microserviceName,
             containerDestination: saContainerDestination,
@@ -2068,7 +2068,7 @@ describe('Microservices Service', () => {
           name: microserviceName,
           application: application.name,
           iofogUuid: fog.uuid,
-          images: [{ fogTypeId: 1, containerImage: 'hello-world' }],
+          images: [{ archId: 1, containerImage: 'hello-world' }],
           volumeMappings: [{
             hostDestination: '/var/dest',
             containerDestination: '/var/dest',
@@ -2161,7 +2161,7 @@ describe('Microservices Service', () => {
         iofogUuid: 'fog-uuid',
         schedule: 0,
         catalogItem: null,
-        getImages: () => Promise.resolve([{ fogTypeId: 1, containerImage: 'hello-world' }]),
+        getImages: () => Promise.resolve([{ archId: 1, containerImage: 'hello-world' }]),
         getPorts: () => Promise.resolve([])
       }
 
@@ -2180,7 +2180,7 @@ describe('Microservices Service', () => {
         $sandbox.stub(CatalogItemImageManager, 'findAll').resolves([])
         $sandbox.stub(ApplicationManager, 'findOne').resolves({ id: 42, natsAccess: false })
         $sandbox.stub(RegistryManager, 'findOne').resolves({ id: 1 })
-        $sandbox.stub(ioFogManager, 'findOne').resolves({ uuid: 'fog-uuid', fogTypeId: 1 })
+        $sandbox.stub(ioFogManager, 'findOne').resolves({ uuid: 'fog-uuid', archId: 1 })
         $sandbox.stub(MicroserviceExtraHostManager, 'findAll').resolves([])
         $sandbox.stub(MicroserviceManager, 'updateAndFind').resolves(microservice)
         $sandbox.stub(ChangeTrackingService, 'update').resolves()
@@ -2209,7 +2209,7 @@ describe('Microservices Service', () => {
   describe('controller microservice user guards', () => {
     const transaction = {}
     const microserviceUuid = 'controller-ms-uuid'
-    const images = [{ fogTypeId: 1, containerImage: 'controller:latest' }]
+    const images = [{ archId: 1, containerImage: 'controller:latest' }]
     const microservice = {
       uuid: microserviceUuid,
       name: 'controller',
@@ -2235,8 +2235,8 @@ describe('Microservices Service', () => {
         $sandbox.stub(CatalogItemImageManager, 'findAll').resolves(images)
         $sandbox.stub(ApplicationManager, 'findOne').resolves({ id: microservice.applicationId, natsAccess: false })
         $sandbox.stub(AppHelper, 'deleteUndefinedFields').callsFake((obj) => obj)
-        $sandbox.stub(ioFogManager, 'findOne').resolves({ uuid: microservice.iofogUuid, fogTypeId: 1 })
-        $sandbox.stub(ioFogService, 'getFog').resolves({ uuid: microservice.iofogUuid, fogTypeId: 1 })
+        $sandbox.stub(ioFogManager, 'findOne').resolves({ uuid: microservice.iofogUuid, archId: 1 })
+        $sandbox.stub(ioFogService, 'getFog').resolves({ uuid: microservice.iofogUuid, archId: 1 })
       })
 
       it('blocks user update when isController', async () => {
