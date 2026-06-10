@@ -71,11 +71,6 @@ module.exports = (sequelize, DataTypes) => {
       field: 'prune',
       defaultValue: false
     },
-    linkedEdgeResources: {
-      type: DataTypes.BOOLEAN,
-      field: 'linked_edge_resources',
-      defaultValue: false
-    },
     volumeMounts: {
       type: DataTypes.BOOLEAN,
       field: 'volume_mounts',
