@@ -2,7 +2,7 @@ const { expect } = require('chai')
 const sinon = require('sinon')
 
 const ControllerService = require('../../../src/services/controller-service')
-const ioFogTypesManager = require('../../../src/data/managers/iofog-type-manager')
+const architectureManager = require('../../../src/data/managers/architecture-manager')
 const Config = require('../../../src/config')
 
 describe('Controller Service', () => {
@@ -26,15 +26,15 @@ describe('Controller Service', () => {
     }]))
 
     beforeEach(() => {
-      $sandbox.stub(ioFogTypesManager, 'findAll').returns($findResponse)
+      $sandbox.stub(architectureManager, 'findAll').returns($findResponse)
     })
 
-    it('calls ioFogTypesManager#findAll() with correct args', async () => {
+    it('calls architectureManager#findAll() with correct args', async () => {
       await $subject
-      expect(ioFogTypesManager.findAll).to.have.been.calledWith({}, transaction)
+      expect(architectureManager.findAll).to.have.been.calledWith({}, transaction)
     })
 
-    context('when ioFogTypesManager#findAll() fails', () => {
+    context('when architectureManager#findAll() fails', () => {
       def('findResponse', () => Promise.reject(error))
 
       it(`fails with ${error}`, () => {
@@ -42,7 +42,7 @@ describe('Controller Service', () => {
       })
     })
 
-    context('when ioFogTypesManager#findAll() succeeds', () => {
+    context('when architectureManager#findAll() succeeds', () => {
       it('fulfills the promise', () => {
         return expect($subject).to.eventually.have.property('fogTypes')
       })

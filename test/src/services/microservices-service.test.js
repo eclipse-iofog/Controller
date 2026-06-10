@@ -19,13 +19,15 @@ const MicroserviceEnvManager = require('../../../src/data/managers/microservice-
 const MicroserviceArgManager = require('../../../src/data/managers/microservice-arg-manager')
 const RegistryManager = require('../../../src/data/managers/registry-manager')
 const Op = require('sequelize').Op
-const MicroservicePublicPortManager = require('../../../src/data/managers/microservice-public-port-manager')
+const MicroservicePublicPortManager = {
+  findAll: () => Promise.resolve([]),
+  create: () => Promise.resolve(),
+  updateOrCreate: () => Promise.resolve()
+}
 const ioFogManager = require('../../../src/data/managers/iofog-manager')
 const ioFogService = require('../../../src/services/iofog-service')
 const Errors = require('../../../src/helpers/errors')
-const constants = require('../../../src/config/constants')
 const Constants = require('../../../src/helpers/constants')
-const { application } = require('express')
 
 describe('Microservices Service', () => {
   def('subject', () => MicroservicesService)

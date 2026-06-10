@@ -12,7 +12,6 @@
  */
 
 const execSync = require('child_process').execSync
-const path = require('path')
 
 const { setDbEnvVars } = require('./util')
 
@@ -28,7 +27,7 @@ function test (useReporter, extraArgs) {
 
   options.env = setDbEnvVars(options.env)
 
-  const mochaBin = path.join(__dirname, '..', 'node_modules', 'mocha', 'bin', 'mocha')
+  const mochaBin = require.resolve('mocha/bin/mocha.js')
   const mochaReporterOptions = '--reporter mocha-junit-reporter --reporter-options mochaFile=./unit-results.xml'
   let mochaCmd = useReporter ? [mochaBin, mochaReporterOptions].join(' ') : mochaBin
   if (extraArgs && extraArgs.length) {

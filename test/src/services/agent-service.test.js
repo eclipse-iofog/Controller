@@ -6,7 +6,7 @@ const Validator = require('../../../src/schemas')
 const FogProvisionKeyManager = require('../../../src/data/managers/iofog-provision-key-manager')
 const MicroserviceManager = require('../../../src/data/managers/microservice-manager')
 const ioFogManager = require('../../../src/data/managers/iofog-manager')
-const FogAccessTokenService = require('../../../src/services/iofog-access-token-service')
+const FogKeyService = require('../../../src/services/iofog-key-service')
 const AppHelper = require('../../../src/helpers/app-helper')
 const ChangeTrackingService = require('../../../src/services/change-tracking-service')
 const MicroserviceStatusManager = require('../../../src/data/managers/microservice-status-manager')
@@ -48,20 +48,23 @@ describe('Agent Service', () => {
     def('provisionResponse', () => 'provisionResponse')
 
     def('subject', () => $subject.agentProvision(provisionData, transaction))
-    def('accessTokenResponse', () => Promise.resolve($accessTokenObj))
-
+    def('keyPairResponse', () => Promise.resolve({
+      publicKey: 'testPublicKey',
+      privateKey: 'testPrivateKey',
+    }))
+    def('storePublicKeyResponse', () => Promise.resolve())
+    def('changeTrackingUpdateResponse', () => Promise.resolve())
     def('validatorResponse', () => Promise.resolve(true))
     def('fogProvisionKeyManagerResponse', () => Promise.resolve({
-      uuid: $uuid,
+      iofogUuid: $uuid,
+      expirationTime: new Date(Date.now() + 3600000),
     }))
     def('microserviceManagerResponse', () => Promise.resolve())
     def('iofogManagerResponse', () => Promise.resolve({
       uuid: $uuid,
     }))
-    def('fogAccessTokenServiceGenerateResponse', () => Promise.resolve({
-      token: $token,
-    }))
-    def('fogAccessTokenServiceUpdateResponse', () => Promise.resolve())
+    def('fogKeyServiceGenerateResponse', () => $keyPairResponse)
+    def('fogKeyServiceStoreResponse', () => $storePublicKeyResponse)
     def('iofogManagerUpdateResponse', () => Promise.resolve())
     def('fogProvisionKeyManagerDeleteResponse', () => Promise.resolve())
 
@@ -70,8 +73,9 @@ describe('Agent Service', () => {
       $sandbox.stub(FogProvisionKeyManager, 'findOne').returns($fogProvisionKeyManagerResponse)
       $sandbox.stub(MicroserviceManager, 'findAllWithDependencies').returns($microserviceManagerResponse)
       $sandbox.stub(ioFogManager, 'findOne').returns($iofogManagerResponse)
-      $sandbox.stub(FogAccessTokenService, 'generateAccessToken').returns($fogAccessTokenServiceGenerateResponse)
-      $sandbox.stub(FogAccessTokenService, 'updateAccessToken').returns($fogAccessTokenServiceUpdateResponse)
+      $sandbox.stub(FogKeyService, 'generateKeyPair').returns($fogKeyServiceGenerateResponse)
+      $sandbox.stub(FogKeyService, 'storePublicKey').returns($fogKeyServiceStoreResponse)
+      $sandbox.stub(ChangeTrackingService, 'update').returns($changeTrackingUpdateResponse)
       $sandbox.stub(ioFogManager, 'update').returns($iofogManagerUpdateResponse)
       $sandbox.stub(FogProvisionKeyManager, 'delete').returns($fogProvisionKeyManagerDeleteResponse)
     })
@@ -111,7 +115,7 @@ describe('Agent Service', () => {
         it('calls ioFogManager.findOne with correct args', async () => {
           await $subject
           expect(ioFogManager.findOne).to.have.been.calledWith({
-            uuid: $fogProvisionKeyManagerResponse.uuid,
+            uuid: $uuid,
           }, transaction)
         })
 
@@ -144,40 +148,38 @@ describe('Agent Service', () => {
           })
 
           context('when MicroserviceManager#findAllWithDependencies succeeds', () => {
-            it('calls FogAccessTokenService.generateAccessToken with correct args', async () => {
+            it('calls FogKeyService.generateKeyPair with correct args', async () => {
               await $subject
-              expect(FogAccessTokenService.generateAccessToken).to.have.been.calledWith(transaction)
+              expect(FogKeyService.generateKeyPair).to.have.been.calledWith(transaction)
             })
 
-            context('when FogAccessTokenService#generateAccessToken fails', () => {
+            context('when FogKeyService#generateKeyPair fails', () => {
               const error = 'Error!'
 
-              def('fogAccessTokenServiceGenerateResponse', () => Promise.reject(error))
+              def('fogKeyServiceGenerateResponse', () => Promise.reject(error))
 
               it(`fails with "${error}"`, () => {
                 return expect($subject).to.be.rejectedWith(error)
               })
             })
 
-            context('when FogAccessTokenService#generateAccessToken succeeds', () => {
-              it('calls FogAccessTokenService.updateAccessToken with correct args', async () => {
+            context('when FogKeyService#generateKeyPair succeeds', () => {
+              it('calls FogKeyService.storePublicKey with correct args', async () => {
                 await $subject
-                expect(FogAccessTokenService.updateAccessToken).to.have.been.calledWith($uuid, {
-                  token: $token,
-                }, transaction)
+                expect(FogKeyService.storePublicKey).to.have.been.calledWith($uuid, 'testPublicKey', transaction)
               })
 
-              context('when FogAccessTokenService#updateAccessToken fails', () => {
+              context('when FogKeyService#storePublicKey fails', () => {
                 const error = 'Error!'
 
-                def('fogAccessTokenServiceUpdateResponse', () => Promise.reject(error))
+                def('fogKeyServiceStoreResponse', () => Promise.reject(error))
 
                 it(`fails with "${error}"`, () => {
                   return expect($subject).to.be.rejectedWith(error)
                 })
               })
 
-              context('when FogAccessTokenService#updateAccessToken succeeds', () => {
+              context('when FogKeyService#storePublicKey succeeds', () => {
                 it('calls ioFogManager.update with correct args', async () => {
                   await $subject
                   expect(ioFogManager.update).to.have.been.calledWith({
@@ -216,9 +218,10 @@ describe('Agent Service', () => {
                   })
 
                   context('when FogProvisionKeyManager#delete succeeds', () => {
-                    it(`succeeds`, () => {
+                    it('succeeds', () => {
                       return expect($subject).to.eventually.have.property('uuid') &&
-                        expect($subject).to.eventually.have.property('token')
+                        expect($subject).to.eventually.have.property('privateKey') &&
+                        expect($subject).to.eventually.have.property('namespace')
                     })
                   })
                 })
