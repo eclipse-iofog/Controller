@@ -35,6 +35,7 @@ const MESSAGE_TYPES = {
 }
 
 const EventService = require('../services/event-service')
+const { isAuthConfigured: isOidcAuthConfigured } = require('../config/oidc')
 
 let processErrorHandlersRegistered = false
 
@@ -2331,17 +2332,7 @@ class WebSocketServer {
 
   // Helper method to check if auth is configured
   isAuthConfigured () {
-    const requiredConfigs = [
-      'auth.realm',
-      'auth.realmKey',
-      'auth.url',
-      'auth.client.id',
-      'auth.client.secret'
-    ]
-    return requiredConfigs.every(configKey => {
-      const value = config.get(configKey)
-      return value !== undefined && value !== null && value !== ''
-    })
+    return isOidcAuthConfigured()
   }
 
   // Helper method to validate ISO 8601 format

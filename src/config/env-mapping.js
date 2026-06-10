@@ -74,14 +74,11 @@ module.exports = {
     path: (provider) => `database.${provider}.sslCA`
   },
 
-  // Auth Configuration
-  'KC_REALM': 'auth.realm',
-  'KC_REALM_KEY': 'auth.realmKey',
-  'KC_URL': 'auth.url',
-  'KC_SSL_REQ': 'auth.sslRequired',
-  'KC_CLIENT': 'auth.client.id',
-  'KC_CLIENT_SECRET': 'auth.client.secret',
-  'KC_VIEWER_CLIENT': 'auth.viewerClient',
+  // Auth Configuration (OIDC — k8s-style; naming-map §13)
+  'OIDC_ISSUER_URL': 'auth.issuerUrl',
+  'OIDC_CLIENT_ID': 'auth.client.id',
+  'OIDC_CLIENT_SECRET': 'auth.client.secret',
+  'OIDC_VIEWER_CLIENT_ID': 'auth.viewerClient',
 
   // Bridge Ports Configuration
   'BRIDGE_PORTS_RANGE': 'bridgePorts.range',

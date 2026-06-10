@@ -37,11 +37,11 @@ initialize().then(() => {
     storage: multerMemStorage
   }).single(fileName)
 
-  // Initialize session and Keycloak after config is loaded
+  // Initialize session and OIDC bearer validation after config is loaded
   const session = require('express-session')
-  const { initKeycloak, getMemoryStore } = require('./config/keycloak.js')
+  const { initOidc, getOidcMiddleware, getMemoryStore, getOidcSettings } = require('./config/oidc.js')
   const memoryStore = getMemoryStore()
-  const keycloak = initKeycloak()
+  initOidc()
 
   const viewerApp = express()
   const app = express()
@@ -59,7 +59,7 @@ initialize().then(() => {
     saveUninitialized: true,
     store: memoryStore
   }))
-  app.use(keycloak.middleware())
+  app.use(getOidcMiddleware())
   app.use(bodyParser.urlencoded({
     extended: true
   }))
@@ -222,9 +222,18 @@ initialize().then(() => {
   const hasFileBasedSSL = !devMode && sslKey && sslCert
   const hasBase64SSL = !devMode && sslKeyBase64 && sslCertBase64
 
-  const kcRealm = process.env.KC_REALM || config.get('auth.realm')
-  const kcURL = process.env.KC_URL || config.get('auth.url')
-  const kcClient = process.env.KC_VIEWER_CLIENT || config.get('auth.viewerClient')
+  const { issuerUrl: oidcIssuerUrl } = getOidcSettings()
+  const oidcViewerClient = process.env.OIDC_VIEWER_CLIENT_ID || config.get('auth.viewerClient')
+  // ECN Viewer still reads keycloak* keys in controller-config.js; derive from OIDC issuer when possible
+  let viewerAuthUrl = oidcIssuerUrl || ''
+  let viewerAuthRealm = ''
+  if (oidcIssuerUrl) {
+    const realmMatch = oidcIssuerUrl.match(/^(.*)\/realms\/([^/]+)\/?$/)
+    if (realmMatch) {
+      viewerAuthUrl = `${realmMatch[1]}/`
+      viewerAuthRealm = realmMatch[2]
+    }
+  }
 
   viewerApp.use('/', ecnViewer.middleware(express))
 
@@ -255,9 +264,9 @@ initialize().then(() => {
       port: apiPort,
       user: {},
       controllerDevMode: devMode,
-      keycloakUrl: kcURL,
-      keycloakRealm: kcRealm,
-      keycloakClientId: kcClient
+      keycloakUrl: viewerAuthUrl,
+      keycloakRealm: viewerAuthRealm,
+      keycloakClientId: oidcViewerClient
     }
     if (viewerURL) {
       ecnViewerControllerConfig.url = viewerURL

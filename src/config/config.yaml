@@ -93,16 +93,13 @@ database:
       min: 0          # Minimum connections
       idle: 20000     # Idle timeout in milliseconds
 
-# Auth Configuration
+# Auth Configuration (OIDC — any compliant provider; env: OIDC_* per naming-map §13)
 # auth:
-#   realm:           # Keycloak realm
-#   realmKey:        # Realm public key
-#   url:       # Keycloak authentication server URL
-#   sslRequired:   # SSL requirement level
+#   issuerUrl:      # OIDC issuer URL (OIDC_ISSUER_URL); discovery resolves JWKS and endpoints
 #   client:
-#     id:           # ControllerClient ID
-#     secret:        # ControllerClient Client secret
-#   viewerClient:   # Viewer client ID
+#     id:           # Controller API client ID (OIDC_CLIENT_ID)
+#     secret:       # Controller API client secret (OIDC_CLIENT_SECRET)
+#   viewerClient:   # ECN Viewer SPA client ID (OIDC_VIEWER_CLIENT_ID)
 
 # Bridge Ports Configuration for Services
 bridgePorts:
