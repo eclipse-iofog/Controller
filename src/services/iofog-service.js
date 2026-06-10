@@ -44,9 +44,15 @@ const {
   ensureSystemApplication,
   getLegacySystemAppName,
   getSystemAppName,
-  getSystemMicroserviceName
+  getSystemMicroserviceName,
+  slugifyName
 } = require('../helpers/system-naming')
 const Constants = require('../helpers/constants')
+const {
+  routerLocalCertificateHosts,
+  buildNatsServerCertificateHostList,
+  buildNatsMqttCertificateHostList
+} = require('../helpers/cert-dns-sans')
 const Op = require('sequelize').Op
 const lget = require('lodash/get')
 const CertificateService = require('./certificate-service')
@@ -58,9 +64,13 @@ const vaultManager = require('../vault/vault-manager')
 const SecretHelper = require('../helpers/secret-helper')
 const FogPublicKeyManager = require('../data/managers/iofog-public-key-manager')
 
-const SITE_CA_CERT = 'router-site-ca'
-const DEFAULT_ROUTER_LOCAL_CA = 'default-router-local-ca'
+const SITE_CA_CERT = Constants.ROUTER_SITE_CA
+const DEFAULT_ROUTER_LOCAL_CA = Constants.DEFAULT_ROUTER_LOCAL_CA
+const NATS_SITE_CA = Constants.NATS_SITE_CA
+const DEFAULT_NATS_LOCAL_CA = Constants.DEFAULT_NATS_LOCAL_CA
 const SERVICE_ANNOTATION_TAG = 'service.datasance.com/tag'
+
+const _fogToken = (fog) => slugifyName((fog && fog.name) || (fog && fog.uuid) || 'fog')
 
 function _resolveArchId (fogData) {
   if (fogData.archId !== undefined) return fogData.archId
@@ -72,18 +82,10 @@ async function checkKubernetesEnvironment () {
   return controlPlane && controlPlane.toLowerCase() === 'kubernetes'
 }
 
-async function getLocalCertificateHosts (fogData) {
-  const hosts = new Set()
-  const defaultHost = ['localhost', '127.0.0.1', 'host.docker.internal', 'host.containers.internal', 'iofog', 'service.local']
-  // Add default hosts individually
-  defaultHost.forEach(host => hosts.add(host))
-  if (fogData.host) hosts.add(fogData.host)
-  if (fogData.ipAddress) hosts.add(fogData.ipAddress)
-  if (fogData.ipAddressExternal) hosts.add(fogData.ipAddressExternal)
-  // if (isKubernetes) {
-  //   return `router-local,router-local.${namespace},router-local.${namespace}.svc.cluster.local,127.0.0.1,localhost,host.docker.internal,host.containers.internal`
-  // }
-  return Array.from(hosts).join(',') || 'localhost'
+async function getLocalCertificateHosts (fogData, uuid, transaction) {
+  const defaultRouter = await RouterManager.findOne({ isDefault: true }, transaction)
+  const isDefaultRouter = !!(defaultRouter && defaultRouter.iofogUuid === uuid)
+  return routerLocalCertificateHosts(fogData, { isDefaultRouter })
 }
 
 async function getSiteCertificateHosts (fogData) {
@@ -116,12 +118,52 @@ async function getSiteCertificateHosts (fogData) {
   return Array.from(hosts).join(',') || 'localhost'
 }
 
-async function _handleRouterCertificates (fogData, uuid, isRouterModeChanged, transaction) {
-  logger.debug('Starting _handleRouterCertificates for fog: ' + JSON.stringify({ uuid: uuid, host: fogData.host }))
+async function _recreateCertificateIfExists (name, subject, hosts, ca, transaction) {
+  try {
+    const existingCert = await CertificateService.getCertificateEndpoint(name, transaction)
+    if (!existingCert) {
+      return
+    }
+    await CertificateService.deleteCertificateEndpoint(name, transaction)
+    await CertificateService.createCertificateEndpoint({
+      name,
+      subject: `${subject}`,
+      hosts,
+      ca
+    }, transaction)
+  } catch (err) {
+    if (err.name === 'NotFoundError') {
+      return
+    }
+    throw err
+  }
+}
 
-  // Check if we're in Kubernetes environment
-  const isKubernetes = await checkKubernetesEnvironment()
-  // const namespace = isKubernetes ? process.env.CONTROLLER_NAMESPACE : null
+async function _reconcileNatsCertificatesOnHostChange (fog, transaction) {
+  const fogToken = _fogToken(fog)
+  const serverCertName = `nats-server-${fogToken}`
+  const mqttCertName = `nats-mqtt-server-${fogToken}`
+  const serverHosts = buildNatsServerCertificateHostList(fog).join(',')
+  const mqttHosts = buildNatsMqttCertificateHostList(fog).join(',')
+
+  await _recreateCertificateIfExists(
+    serverCertName,
+    serverCertName,
+    serverHosts,
+    { type: 'direct', secretName: NATS_SITE_CA },
+    transaction
+  )
+  await _recreateCertificateIfExists(
+    mqttCertName,
+    mqttCertName,
+    mqttHosts,
+    { type: 'direct', secretName: DEFAULT_NATS_LOCAL_CA },
+    transaction
+  )
+}
+
+async function _handleRouterCertificates (fogData, uuid, shouldRecreateCerts, transaction) {
+  logger.debug('Starting _handleRouterCertificates for fog: ' + JSON.stringify({ uuid: uuid, host: fogData.host }))
 
   // Helper to check CA existence
   async function ensureCA (name, subject) {
@@ -209,25 +251,16 @@ async function _handleRouterCertificates (fogData, uuid, isRouterModeChanged, tr
     // If routerMode is 'none', only ensure DEFAULT_ROUTER_LOCAL_CA and its signed certificate
     if (fogData.routerMode === 'none') {
       logger.debug('Router mode is none, ensuring DEFAULT_ROUTER_LOCAL_CA exists')
-      if (isKubernetes) {
-        await ensureCA(DEFAULT_ROUTER_LOCAL_CA, DEFAULT_ROUTER_LOCAL_CA)
-      }
+      await ensureCA(DEFAULT_ROUTER_LOCAL_CA, DEFAULT_ROUTER_LOCAL_CA)
       logger.debug('Ensuring local-agent certificate signed by DEFAULT_ROUTER_LOCAL_CA')
-      const localHosts = await getLocalCertificateHosts(fogData)
-      let defaultRouterLocalCA
-      if (isKubernetes) {
-        defaultRouterLocalCA = DEFAULT_ROUTER_LOCAL_CA
-      } else {
-        const defaultRouter = await RouterManager.findOne({ isDefault: true }, transaction)
-        defaultRouterLocalCA = `${defaultRouter.iofogUuid}-local-ca`
-      }
+      const localHosts = await getLocalCertificateHosts(fogData, uuid, transaction)
 
       await ensureCert(
         `router-local-agent-${fogData.name}`,
         `${uuid}`,
         localHosts,
-        { type: 'direct', secretName: defaultRouterLocalCA },
-        isRouterModeChanged
+        { type: 'direct', secretName: DEFAULT_ROUTER_LOCAL_CA },
+        shouldRecreateCerts
       )
       logger.debug('Successfully completed _handleRouterCertificates for routerMode none')
       return
@@ -242,22 +275,21 @@ async function _handleRouterCertificates (fogData, uuid, isRouterModeChanged, tr
       `${uuid}`,
       siteHosts,
       { type: 'direct', secretName: SITE_CA_CERT },
-      false
+      shouldRecreateCerts
     )
 
-    // Always ensure local-ca exists
-    logger.debug('Ensuring local-ca exists')
-    await ensureCA(`router-local-ca-${fogData.name}`, `${uuid}`)
+    logger.debug('Ensuring DEFAULT_ROUTER_LOCAL_CA exists')
+    await ensureCA(DEFAULT_ROUTER_LOCAL_CA, DEFAULT_ROUTER_LOCAL_CA)
 
     // Always ensure local-server cert exists
     logger.debug('Ensuring local-server certificate exists')
-    const localHosts = await getLocalCertificateHosts(fogData)
+    const localHosts = await getLocalCertificateHosts(fogData, uuid, transaction)
     await ensureCert(
       `router-local-server-${fogData.name}`,
       `${uuid}`,
       localHosts,
-      { type: 'direct', secretName: `router-local-ca-${fogData.name}` },
-      isRouterModeChanged
+      { type: 'direct', secretName: DEFAULT_ROUTER_LOCAL_CA },
+      shouldRecreateCerts
     )
 
     // Always ensure local-agent cert exists
@@ -266,8 +298,8 @@ async function _handleRouterCertificates (fogData, uuid, isRouterModeChanged, tr
       `router-local-agent-${fogData.name}`,
       `${uuid}`,
       localHosts,
-      { type: 'direct', secretName: `router-local-ca-${fogData.name}` },
-      isRouterModeChanged
+      { type: 'direct', secretName: DEFAULT_ROUTER_LOCAL_CA },
+      shouldRecreateCerts
     )
 
     logger.debug('Successfully completed _handleRouterCertificates')
@@ -596,6 +628,8 @@ async function updateFogEndPoint (fogData, isCLI, transaction) {
       isRouterModeChanged = true
     }
   }
+  const isHostChanged = !!(updateFogData.host && updateFogData.host !== oldFog.host)
+  const shouldRecreateCerts = isRouterModeChanged || isHostChanged
 
   await FogManager.update(queryFogData, updateFogData, transaction)
   await ChangeTrackingService.update(fogData.uuid, ChangeTrackingService.events.config, transaction)
@@ -622,12 +656,18 @@ async function updateFogEndPoint (fogData, isCLI, transaction) {
       try {
         // --- Begin orchestration logic ---
         const fog = await FogManager.findOne({ uuid: fogData.uuid }, transaction)
-        await _handleRouterCertificates({ ...fogData, name: fog.name }, fog.uuid, isRouterModeChanged, transaction)
+        await _handleRouterCertificates({ ...fogData, name: fog.name }, fog.uuid, shouldRecreateCerts, transaction)
+        if (shouldRecreateCerts) {
+          await ChangeTrackingService.update(fogData.uuid, ChangeTrackingService.events.volumeMounts, transaction)
+        }
         if (natsConfig.mode === 'none') {
           await NatsService.cleanupNatsForFog(fog, transaction)
           await _deleteNatsMicroserviceByFog(fogData, transaction)
           await ChangeTrackingService.update(fogData.uuid, ChangeTrackingService.events.microserviceList, transaction)
         } else {
+          if (isHostChanged) {
+            await _reconcileNatsCertificatesOnHostChange(fog, transaction)
+          }
           await NatsService.ensureNatsForFog(fog, natsConfig, transaction)
         }
 

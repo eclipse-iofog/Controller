@@ -46,11 +46,16 @@ const config = require('../config')
 const Constants = require('../helpers/constants')
 const { ensureSystemApplication, getSystemMicroserviceName, slugifyName } = require('../helpers/system-naming')
 const TransactionDecorator = require('../decorators/transaction-decorator')
+const {
+  buildNatsServerCertificateHostList,
+  buildNatsMqttCertificateHostList
+} = require('../helpers/cert-dns-sans')
 const logger = require('../logger')
 const K8sClient = require('../utils/k8s-client')
 const { Op } = require('sequelize')
 
-const NATS_SITE_CA = 'nats-site-ca'
+const NATS_SITE_CA = Constants.NATS_SITE_CA
+const DEFAULT_NATS_LOCAL_CA = Constants.DEFAULT_NATS_LOCAL_CA
 const NATS_CONFIG_DIR = '/etc/nats/config'
 const NATS_JWT_DIR = '/home/runner/nats/jwt'
 const NATS_JWT_MOUNT_DIR = '/tmp/nats/jwt'
@@ -272,17 +277,15 @@ async function _ensureNatsCertificates (fog, transaction) {
   }
 
   await ensureCA(NATS_SITE_CA, NATS_SITE_CA)
-  await ensureCA(natsLocalCaName(fog), natsLocalCaName(fog))
+  await ensureCA(DEFAULT_NATS_LOCAL_CA, DEFAULT_NATS_LOCAL_CA)
 
-  const hosts = [fog.host, fog.ipAddress, fog.ipAddressExternal].filter(Boolean)
-  if (hosts.length === 0) {
-    hosts.push('localhost')
-  }
+  const serverHosts = buildNatsServerCertificateHostList(fog)
+  const mqttHosts = buildNatsMqttCertificateHostList(fog)
   const serverCertName = natsServerCertName(fog)
   const mqttCertName = natsLocalMQTTCertName(fog)
 
-  await ensureCert(serverCertName, serverCertName, hosts, NATS_SITE_CA)
-  await ensureCert(mqttCertName, mqttCertName, hosts, natsLocalCaName(fog))
+  await ensureCert(serverCertName, serverCertName, serverHosts, NATS_SITE_CA)
+  await ensureCert(mqttCertName, mqttCertName, mqttHosts, DEFAULT_NATS_LOCAL_CA)
 
   return {
     serverCertName,
