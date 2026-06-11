@@ -199,7 +199,7 @@ async function createUser ({ email, password, groups }, transaction) {
     id: userId,
     email: normalizedEmail,
     passwordHash: await AuthPasswordService.hashPassword(password),
-    mustChangePassword: false,
+    mustChangePassword: true,
     isBootstrap: false
   }, withTransaction(transaction))
 
@@ -324,6 +324,24 @@ async function consumeResetToken (resetToken, transaction) {
   return session.userId
 }
 
+async function changePasswordWithCurrent (userId, currentPassword, newPassword, transaction) {
+  const user = await loadUserById(userId, transaction)
+  if (!user) {
+    throw new Errors.NotFoundError('User not found')
+  }
+
+  if (!currentPassword || !newPassword) {
+    throw new Errors.ValidationError('currentPassword and newPassword are required')
+  }
+
+  if (!await AuthPasswordService.verifyPassword(currentPassword, user.passwordHash)) {
+    throw new Errors.InvalidCredentialsError()
+  }
+
+  await updatePassword(user, newPassword, transaction)
+  return { status: 'success' }
+}
+
 async function changePassword (req, payload, transaction) {
   if (payload.resetToken) {
     const userId = await consumeResetToken(payload.resetToken, transaction)
@@ -365,20 +383,36 @@ async function listGroups (transaction) {
     order: [['name', 'ASC']]
   }))
 
-  return groups.map((group) => ({
+  return groups.map(formatGroupResponse)
+}
+
+function normalizeGroupName (name) {
+  const normalizedName = String(name || '').trim().toLowerCase()
+  if (!normalizedName) {
+    throw new Errors.ValidationError('name is required')
+  }
+  return normalizedName
+}
+
+async function findGroupByName (groupName, transaction) {
+  const normalizedName = normalizeGroupName(groupName)
+  return db.AuthGroup.findOne(withTransaction(transaction, {
+    where: { name: normalizedName }
+  }))
+}
+
+function formatGroupResponse (group) {
+  return {
     id: group.id,
     name: group.name,
     isSystem: group.isSystem,
     createdAt: group.createdAt,
     updatedAt: group.updatedAt
-  }))
+  }
 }
 
 async function createGroup ({ name }, transaction) {
-  const normalizedName = String(name || '').trim().toLowerCase()
-  if (!normalizedName) {
-    throw new Errors.ValidationError('name is required')
-  }
+  const normalizedName = normalizeGroupName(name)
   if (SYSTEM_GROUP_NAMES.includes(normalizedName)) {
     throw new Errors.ConflictError('A system group with this name already exists')
   }
@@ -395,32 +429,20 @@ async function createGroup ({ name }, transaction) {
     isSystem: false
   }, withTransaction(transaction))
 
-  return {
-    id: group.id,
-    name: group.name,
-    isSystem: group.isSystem,
-    createdAt: group.createdAt,
-    updatedAt: group.updatedAt
-  }
+  return formatGroupResponse(group)
 }
 
-async function getGroup (groupId, transaction) {
-  const group = await db.AuthGroup.findByPk(groupId, withTransaction(transaction))
+async function getGroup (groupName, transaction) {
+  const group = await findGroupByName(groupName, transaction)
   if (!group) {
     throw new Errors.NotFoundError('Group not found')
   }
 
-  return {
-    id: group.id,
-    name: group.name,
-    isSystem: group.isSystem,
-    createdAt: group.createdAt,
-    updatedAt: group.updatedAt
-  }
+  return formatGroupResponse(group)
 }
 
-async function updateGroup (groupId, payload, transaction) {
-  const group = await db.AuthGroup.findByPk(groupId, withTransaction(transaction))
+async function updateGroup (groupName, payload, transaction) {
+  const group = await findGroupByName(groupName, transaction)
   if (!group) {
     throw new Errors.NotFoundError('Group not found')
   }
@@ -428,10 +450,7 @@ async function updateGroup (groupId, payload, transaction) {
     throw new Errors.ForbiddenError('System groups cannot be modified')
   }
 
-  const normalizedName = String(payload.name || '').trim().toLowerCase()
-  if (!normalizedName) {
-    throw new Errors.ValidationError('name is required')
-  }
+  const normalizedName = normalizeGroupName(payload.name)
 
   const duplicate = await db.AuthGroup.findOne(withTransaction(transaction, {
     where: {
@@ -444,11 +463,11 @@ async function updateGroup (groupId, payload, transaction) {
   }
 
   await group.update({ name: normalizedName }, withTransaction(transaction))
-  return getGroup(group.id, transaction)
+  return getGroup(normalizedName, transaction)
 }
 
-async function deleteGroup (groupId, transaction) {
-  const group = await db.AuthGroup.findByPk(groupId, withTransaction(transaction))
+async function deleteGroup (groupName, transaction) {
+  const group = await findGroupByName(groupName, transaction)
   if (!group) {
     throw new Errors.NotFoundError('Group not found')
   }
@@ -471,6 +490,7 @@ module.exports = {
   deleteUser: TransactionDecorator.generateTransaction(deleteUser),
   resetPassword: TransactionDecorator.generateTransaction(resetPassword),
   resetToken: TransactionDecorator.generateTransaction(resetToken),
+  changePasswordWithCurrent: TransactionDecorator.generateTransaction(changePasswordWithCurrent),
   changePassword: TransactionDecorator.generateTransaction(changePassword),
   listGroups: TransactionDecorator.generateTransaction(listGroups),
   createGroup: TransactionDecorator.generateTransaction(createGroup),

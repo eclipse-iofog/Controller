@@ -39,9 +39,15 @@ initialize().then(() => {
 
   // Initialize session and OIDC bearer validation after config is loaded
   const session = require('express-session')
-  const { initOidc, getOidcMiddleware, getMemoryStore, getAuthMode, isAuthConfigured } = require('./config/oidc.js')
-  const memoryStore = getMemoryStore()
-  initOidc()
+  const { initOidc, getOidcMiddleware, getAuthMode, isAuthConfigured } = require('./config/oidc.js')
+  const {
+    initAuthSessionStore,
+    getAuthSessionStore,
+    getSessionSecret,
+    getSessionStoreConfig,
+    resolveSessionSecret
+  } = require('./config/auth-session-store.js')
+  const { getPublicUrl, getViewerUrl } = require('./config/auth-urls.js')
 
   const viewerApp = express()
   const app = express()
@@ -79,49 +85,69 @@ initialize().then(() => {
 
   validateProductionPublicUrl()
 
-  app.use(cors())
+  const devMode = process.env.DEV_MODE || config.get('server.devMode', true)
+  const insecureAllowHttp = config.get('auth.insecureAllowHttp', false)
+
+  const viewerURLForCors = getViewerUrl()
+  app.use(cors({
+    origin (origin, callback) {
+      if (!origin || !viewerURLForCors) {
+        callback(null, true)
+        return
+      }
+      callback(null, origin === viewerURLForCors)
+    },
+    credentials: true
+  }))
 
   app.use(helmet())
   app.use(xss())
 
   // express logs
   // app.use(morgan('combined'));
-  app.use(session({
-    secret: 'pot-controller',
-    resave: false,
-    saveUninitialized: true,
-    store: memoryStore
-  }))
-  app.use(getOidcMiddleware())
-  app.use(bodyParser.urlencoded({
-    extended: true
-  }))
-  app.use(bodyParser.json())
+  const sessionStoreConfig = getSessionStoreConfig()
 
-  app.engine('ejs', renderFile)
-  app.set('view engine', 'ejs')
-  app.use(cookieParser())
-
-  app.set('views', path.join(__dirname, 'views'))
-
-  app.on('uncaughtException', (req, res, route, err) => {
-    // TODO
-  })
-
-  app.use((req, res, next) => {
-    if (req.headers && req.headers['request-id']) {
-      req.id = req.headers['request-id']
-      delete req.headers['request-id']
+  function skipOidcPaths (middleware) {
+    return (req, res, next) => {
+      if ((req.path || '').startsWith('/oidc')) {
+        return next()
+      }
+      return middleware(req, res, next)
     }
+  }
 
-    res.append('X-Timestamp', Date.now())
-    next()
-  })
+  function registerApiMiddleware () {
+    app.use(skipOidcPaths(bodyParser.urlencoded({
+      extended: true
+    })))
+    app.use(skipOidcPaths(bodyParser.json()))
 
-  // Event audit middleware - tracks non-GET operations
-  // Must be after authentication middleware but before route handlers
-  const eventAuditMiddleware = require('./middlewares/event-audit-middleware')
-  app.use(eventAuditMiddleware)
+    app.engine('ejs', renderFile)
+    app.set('view engine', 'ejs')
+    app.use(cookieParser())
+
+    app.set('views', path.join(__dirname, 'views'))
+
+    app.on('uncaughtException', (req, res, route, err) => {
+      // TODO
+    })
+
+    app.use((req, res, next) => {
+      if (req.headers && req.headers['request-id']) {
+        req.id = req.headers['request-id']
+        delete req.headers['request-id']
+      }
+
+      res.append('X-Timestamp', Date.now())
+      next()
+    })
+
+    const { authRateLimitMiddleware } = require('./middlewares/auth-rate-limit-middleware')
+    app.use(authRateLimitMiddleware)
+
+    const eventAuditMiddleware = require('./middlewares/event-audit-middleware')
+    app.use(eventAuditMiddleware)
+  }
 
   global.appRoot = path.resolve(__dirname)
 
@@ -227,12 +253,11 @@ initialize().then(() => {
     }
   }
 
-  const devMode = process.env.DEV_MODE || config.get('server.devMode')
   const apiPort = process.env.API_PORT || config.get('server.port')
   const viewerPort = process.env.VIEWER_PORT || config.get('viewer.port')
-  const viewerURL = process.env.VIEWER_URL || config.get('viewer.url')
   const controlPlane = process.env.CONTROL_PLANE || config.get('app.ControlPlane')
-  const publicUrl = (process.env.CONTROLLER_PUBLIC_URL || config.get('server.publicUrl') || '').replace(/\/$/, '')
+  const publicUrl = getPublicUrl()
+  const viewerURL = getViewerUrl()
 
   // File-based TLS configuration
   const tlsKey = process.env.TLS_PATH_KEY || config.get('server.tls.path.key')
@@ -292,12 +317,14 @@ initialize().then(() => {
     const ecnViewerControllerConfig = {
       apiPort,
       auth: {
+        mode: getAuthMode(),
         loginUrl: '/api/v3/user/login',
         refreshUrl: '/api/v3/user/refresh',
         logoutUrl: '/api/v3/user/logout',
         profileUrl: '/api/v3/user/profile',
         changePasswordUrl: '/api/v3/user/change-password',
-        oauthAuthorizeUrl: '/api/v3/user/oauth/authorize'
+        oauthAuthorizeUrl: '/api/v3/user/oauth/authorize',
+        oauthInteractionUrl: '/login/oauth'
       }
     }
     if (publicUrl) {
@@ -315,7 +342,27 @@ initialize().then(() => {
     fs.writeFileSync(ecnViewerControllerConfigFilePath, ecnViewerConfigScript)
   }
 
-  initState()
+  resolveSessionSecret()
+    .then(() => {
+      initOidc()
+      initAuthSessionStore()
+
+      app.use(session({
+        secret: getSessionSecret(),
+        resave: false,
+        saveUninitialized: false,
+        store: getAuthSessionStore(),
+        cookie: {
+          maxAge: sessionStoreConfig.ttlMs,
+          sameSite: 'lax',
+          secure: !devMode && !insecureAllowHttp
+        }
+      }))
+      app.use(getOidcMiddleware())
+      registerApiMiddleware()
+
+      return initState()
+    })
     .then(() => {
       if (hasFileBasedTLS) {
         startHttpsServer(

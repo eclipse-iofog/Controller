@@ -684,6 +684,27 @@ resources:
       - path: /api/v3/user/oauth/callback
         methods:
           GET: []
+      - path: /api/v3/user/interaction/:uid
+        methods:
+          GET: []
+      - path: /api/v3/user/interaction/:uid/login
+        methods:
+          POST: []
+      - path: /api/v3/user/interaction/:uid/mfa
+        methods:
+          POST: []
+      - path: /api/v3/user/interaction/:uid/enroll
+        methods:
+          POST: []
+      - path: /api/v3/user/interaction/:uid/confirm-enroll
+        methods:
+          POST: []
+      - path: /api/v3/user/interaction/:uid/change-password
+        methods:
+          POST: []
+      - path: /api/v3/user/interaction/:uid/complete
+        methods:
+          POST: []
 
   authAdmin:
     basePath: /api/v3/auth
@@ -724,12 +745,12 @@ resources:
         methods:
           GET: [list]
           POST: [create]
-      - path: /api/v3/groups/:id
+      - path: /api/v3/groups/:name
         methods:
           GET: [get]
           PATCH: [patch]
           DELETE: [delete]
-        resourceNameParam: id
+        resourceNameParam: name
 
   # Config management
   config:

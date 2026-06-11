@@ -63,20 +63,24 @@ const createGroupEndPoint = async function (req) {
   return AuthUserService.createGroup(req.body)
 }
 
+function getGroupNameParam (req) {
+  return decodeURIComponent(req.params.name || '')
+}
+
 const getGroupEndPoint = async function (req) {
   AuthUserService.ensureEmbeddedMode()
-  return AuthUserService.getGroup(parseInt(req.params.id, 10))
+  return AuthUserService.getGroup(getGroupNameParam(req))
 }
 
 const updateGroupEndPoint = async function (req) {
   AuthUserService.ensureEmbeddedMode()
   await Validator.validate(req.body, Validator.schemas.updateAuthGroup)
-  return AuthUserService.updateGroup(parseInt(req.params.id, 10), req.body)
+  return AuthUserService.updateGroup(getGroupNameParam(req), req.body)
 }
 
 const deleteGroupEndPoint = async function (req) {
   AuthUserService.ensureEmbeddedMode()
-  return AuthUserService.deleteGroup(parseInt(req.params.id, 10))
+  return AuthUserService.deleteGroup(getGroupNameParam(req))
 }
 
 module.exports = {

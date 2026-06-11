@@ -123,17 +123,17 @@ module.exports = [
   },
   {
     method: 'get',
-    path: '/api/v3/groups/:id',
+    path: '/api/v3/groups/:name',
     middleware: protectEmbeddedRoute(UsersController.getGroupEndPoint, constants.HTTP_CODE_SUCCESS)
   },
   {
     method: 'patch',
-    path: '/api/v3/groups/:id',
+    path: '/api/v3/groups/:name',
     middleware: protectEmbeddedRoute(UsersController.updateGroupEndPoint, constants.HTTP_CODE_SUCCESS)
   },
   {
     method: 'delete',
-    path: '/api/v3/groups/:id',
+    path: '/api/v3/groups/:name',
     middleware: protectEmbeddedRoute(UsersController.deleteGroupEndPoint, constants.HTTP_CODE_NO_CONTENT)
   }
 ]
