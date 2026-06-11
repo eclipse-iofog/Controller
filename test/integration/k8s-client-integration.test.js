@@ -1,12 +1,11 @@
 /*
- * k8s-client integration test.
- * Uses namespace "local-test" by default (override with K8S_TEST_NAMESPACE).
- * Requires local kubeconfig (KUBECONFIG or ~/.kube/config).
- * Run with: nvm use 24 && npm run test:k8s-client
- * Skip when no namespace (e.g. K8S_TEST_NAMESPACE="" in CI without a cluster).
+ * Kubernetes cluster integration tests — not run by `npm test`.
+ * Requires a live cluster, kubeconfig, and target namespace.
+ *
+ *   K8S_TEST_NAMESPACE=local-test npm run test:k8s-client
  */
 
-const namespace = process.env.K8S_TEST_NAMESPACE || 'local-test'
+const namespace = process.env.K8S_TEST_NAMESPACE
 if (namespace) {
   process.env.CONTROL_PLANE = 'kubernetes'
   process.env.CONTROLLER_NAMESPACE = namespace
@@ -14,7 +13,7 @@ if (namespace) {
 }
 
 const { expect } = require('chai')
-const k8sClient = require('../../../src/utils/k8s-client')
+const k8sClient = namespace ? require('../../src/utils/k8s-client') : null
 
 const resourcePrefix = 'k8s-client-test-'
 const testSecretName = resourcePrefix + 'secret'

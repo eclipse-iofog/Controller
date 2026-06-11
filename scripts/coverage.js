@@ -26,7 +26,7 @@ function coverage () {
 
   options.env = setDbEnvVars(options.env)
 
-  execSync('nyc mocha', options)
+  execSync('nyc mocha "test/src/**/*.js"', options)
 }
 
 module.exports = {

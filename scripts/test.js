@@ -19,7 +19,7 @@ function test (useReporter, extraArgs) {
   const options = {
     env: {
       NODE_ENV: 'test',
-      VIEWER_PORT: '8008',
+      CONSOLE_PORT: '8008',
       PATH: process.env.PATH
     },
     stdio: [process.stdin, process.stdout, process.stderr]
@@ -29,12 +29,13 @@ function test (useReporter, extraArgs) {
 
   const mochaBin = require.resolve('mocha/bin/mocha.js')
   const mochaReporterOptions = '--reporter mocha-junit-reporter --reporter-options mochaFile=./unit-results.xml'
-  let mochaCmd = useReporter ? [mochaBin, mochaReporterOptions].join(' ') : mochaBin
-  if (extraArgs && extraArgs.length) {
-    mochaCmd += ' ' + extraArgs.map(a => (a.includes(' ') ? `"${a}"` : a)).join(' ')
-    execSync(`node "${mochaBin}" ${mochaCmd.slice(mochaBin.length).trim()}`, options)
+  if (useReporter) {
+    execSync(`node "${mochaBin}" ${mochaReporterOptions} "test/src/**/*.js"`, options)
+  } else if (extraArgs && extraArgs.length) {
+    const args = extraArgs.map(a => (a.includes(' ') ? `"${a}"` : a)).join(' ')
+    execSync(`node "${mochaBin}" ${args}`, options)
   } else {
-    execSync(mochaCmd, options)
+    execSync(`node "${mochaBin}" "test/src/**/*.js"`, options)
   }
 }
 

@@ -347,6 +347,7 @@ async function cliTest () {
     process.exit(1)
   } else {
     console.log('\nCLI Tests passed successfully.')
+    process.exit(0)
   }
 }
 
