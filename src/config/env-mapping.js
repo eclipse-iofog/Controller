@@ -29,9 +29,9 @@ module.exports = {
   TLS_BASE64_CERT: 'server.tls.base64.cert',
   TLS_BASE64_INTERMEDIATE_CERT: 'server.tls.base64.intermediateCert',
 
-  // Viewer Configuration
-  VIEWER_PORT: 'viewer.port',
-  VIEWER_URL: 'viewer.url',
+  // Console Configuration
+  CONSOLE_PORT: 'console.port',
+  CONSOLE_URL: 'console.url',
 
   // Logging Configuration
   LOG_LEVEL: 'log.level',
@@ -81,8 +81,8 @@ module.exports = {
   OIDC_ISSUER_URL: 'auth.issuerUrl',
   OIDC_CLIENT_ID: 'auth.client.id',
   OIDC_CLIENT_SECRET: 'auth.client.secret',
-  OIDC_VIEWER_CLIENT_ID: 'auth.viewerClient',
-  AUTH_VIEWER_CLIENT_ENABLED: 'auth.viewerClient.enabled',
+  OIDC_CONSOLE_CLIENT_ID: 'auth.consoleClient',
+  AUTH_CONSOLE_CLIENT_ENABLED: 'auth.consoleClient.enabled',
   AUTH_INSECURE_ALLOW_HTTP: 'auth.insecureAllowHttp',
   OIDC_BOOTSTRAP_ADMIN_USERNAME: 'auth.bootstrap.adminUsername',
   OIDC_BOOTSTRAP_ADMIN_PASSWORD: 'auth.bootstrap.adminPassword',

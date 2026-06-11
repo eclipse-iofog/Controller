@@ -13,9 +13,9 @@ const { getOidcSettings } = require('./oidc')
 const { createOidcProviderAdapterFactory } = require('../data/adapters/oidc-provider-adapter')
 const { buildUserAccessClaims } = require('../services/auth-token-service')
 const { loadOidcProviderTtls } = require('./auth-oidc-ttl')
-const { getPublicUrl, getViewerUrl } = require('./auth-urls')
+const { getPublicUrl, getConsoleUrl } = require('./auth-urls')
 
-const DEFAULT_VIEWER_CLIENT_ID = 'ecn-viewer'
+const DEFAULT_CONSOLE_CLIENT_ID = 'ecn-viewer'
 
 let providerInstance = null
 
@@ -24,13 +24,13 @@ function getOauthInteractionPath () {
 }
 
 function buildInteractionRedirectUrl (interactionUid) {
-  const viewerUrl = getViewerUrl()
-  if (!viewerUrl) {
-    throw new Error('CONTROLLER_PUBLIC_URL or VIEWER_URL is required for embedded OAuth BFF interactions')
+  const consoleUrl = getConsoleUrl()
+  if (!consoleUrl) {
+    throw new Error('CONTROLLER_PUBLIC_URL or CONSOLE_URL is required for embedded OAuth BFF interactions')
   }
   const interactionPath = getOauthInteractionPath()
   const normalizedPath = interactionPath.startsWith('/') ? interactionPath : `/${interactionPath}`
-  return `${viewerUrl}${normalizedPath}?interaction=${encodeURIComponent(interactionUid)}`
+  return `${consoleUrl}${normalizedPath}?interaction=${encodeURIComponent(interactionUid)}`
 }
 
 function buildInteractionPolicy () {
@@ -39,19 +39,19 @@ function buildInteractionPolicy () {
   return policy
 }
 
-function isViewerClientEnabled () {
-  const envValue = process.env.AUTH_VIEWER_CLIENT_ENABLED
+function isConsoleClientEnabled () {
+  const envValue = process.env.AUTH_CONSOLE_CLIENT_ENABLED
   if (envValue !== undefined && envValue !== null && envValue !== '') {
     return envValue === 'true' || envValue === '1'
   }
-  return config.get('auth.viewerClient.enabled', false) === true
+  return config.get('auth.consoleClient.enabled', false) === true
 }
 
-function getViewerClientId () {
-  return process.env.OIDC_VIEWER_CLIENT_ID ||
-    config.get('auth.viewerClient.id') ||
-    config.get('auth.viewerClient') ||
-    DEFAULT_VIEWER_CLIENT_ID
+function getConsoleClientId () {
+  return process.env.OIDC_CONSOLE_CLIENT_ID ||
+    config.get('auth.consoleClient.id') ||
+    config.get('auth.consoleClient') ||
+    DEFAULT_CONSOLE_CLIENT_ID
 }
 
 function getCookieKeys () {
@@ -87,12 +87,12 @@ function getTrustProxySetting () {
   return trustProxy || false
 }
 
-async function ensureViewerClientMetadata (db) {
-  if (!isViewerClientEnabled()) {
+async function ensureConsoleClientMetadata (db) {
+  if (!isConsoleClientEnabled()) {
     return null
   }
 
-  const clientId = getViewerClientId()
+  const clientId = getConsoleClientId()
   let clientRow = await db.AuthOidcClient.findOne({ where: { clientId } })
   if (!clientRow) {
     clientRow = await db.AuthOidcClient.create({
@@ -170,9 +170,9 @@ async function ensureSigningJwks (db) {
 
 async function buildProviderConfiguration (db) {
   const clients = [await ensureConfidentialClientMetadata(db)]
-  const viewerClient = await ensureViewerClientMetadata(db)
-  if (viewerClient) {
-    clients.push(viewerClient)
+  const consoleClient = await ensureConsoleClientMetadata(db)
+  if (consoleClient) {
+    clients.push(consoleClient)
   }
 
   const ttlPolicy = await loadOidcProviderTtls(db)

@@ -16,7 +16,7 @@ const {
   getOauthClientConfiguration,
   getAuthMode
 } = require('../config/oidc')
-const { getPublicUrl, getViewerUrl } = require('../config/auth-urls')
+const { getPublicUrl, getConsoleUrl } = require('../config/auth-urls')
 const { getSessionStoreTtlMs } = require('../config/auth-session-store')
 const AuthTokenService = require('./auth-token-service')
 
@@ -30,8 +30,8 @@ function ensureAuthConfigured () {
 }
 
 function ensureOauthBffReady () {
-  if (!getViewerUrl()) {
-    throw new Errors.NotImplementedError('OAuth BFF requires CONTROLLER_PUBLIC_URL or VIEWER_URL to be configured')
+  if (!getConsoleUrl()) {
+    throw new Errors.NotImplementedError('OAuth BFF requires CONTROLLER_PUBLIC_URL or CONSOLE_URL to be configured')
   }
 }
 
@@ -170,7 +170,7 @@ async function callback (req) {
     throw new Errors.AuthenticationError(error.message || 'OAuth authorization failed')
   }
 
-  const viewerUrl = getViewerUrl()
+  const consoleUrl = getConsoleUrl()
 
   if (getAuthMode() === 'embedded') {
     const user = await resolveEmbeddedUserFromTokenResponse(tokenResponse)
@@ -178,7 +178,7 @@ async function callback (req) {
     const tokens = await AuthTokenService.issueTokenPair(user, groupNames)
     return {
       tokens,
-      viewerUrl
+      consoleUrl
     }
   }
 
@@ -189,7 +189,7 @@ async function callback (req) {
       accessToken: tokenResponse.access_token,
       refreshToken: tokenResponse.refresh_token || null
     },
-    viewerUrl
+    consoleUrl
   }
 }
 
@@ -197,5 +197,6 @@ module.exports = {
   authorize,
   callback,
   getRedirectUri,
-  getViewerUrl
+  getConsoleUrl,
+  resolveEmbeddedUserFromTokenResponse
 }

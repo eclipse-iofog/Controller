@@ -1,7 +1,7 @@
 openapi : "3.0.0"
 info:
-  version: 3.7.0
-  title: Datasance PoT Controller
+  version: 3.8.0
+  title: Edge Compute Network Controller
 paths:
   /status:
     get:
@@ -3254,27 +3254,27 @@ paths:
       summary: Start OAuth authorization (BFF)
       operationId: oauthAuthorize
       description: >
-        Browser OAuth BFF entry point for ECN Viewer (Plan 8.2). ECN Viewer Sign in performs a
+        Browser OAuth BFF entry point for EdgeOps Console (Plan 8.2). EdgeOps Console Sign in performs a
         full-page redirect here; do **not** POST credentials from the browser.
 
         **External mode:** redirects to the external IdP authorize endpoint.
 
         **Embedded mode:** redirects to the in-process issuer at `{CONTROLLER_PUBLIC_URL}/oidc/auth`,
         which starts an OAuth interaction and redirects the browser to
-        `{viewerUrl}{auth.oauthInteractionUrl}?interaction=<uid>` for Viewer-owned login/MFA steps.
+        `{consoleUrl}{auth.oauthInteractionUrl}?interaction=<uid>` for Console-owned login/MFA steps.
 
         Redirect chain (external):
 
-        `Viewer → GET /user/oauth/authorize → external IdP (login, MFA, password policy) →
-        GET /user/oauth/callback → 302 {viewerUrl}/login#accessToken=...&refreshToken=...`
+        `Console → GET /user/oauth/authorize → external IdP (login, MFA, password policy) →
+        GET /user/oauth/callback → 302 {consoleUrl}/login#accessToken=...&refreshToken=...`
 
         Redirect chain (embedded):
 
-        `Viewer → GET /user/oauth/authorize → /oidc/auth → {viewerUrl}/login/oauth?interaction=<uid>
-        → interaction APIs → GET /user/oauth/callback → 302 {viewerUrl}/login#tokens`
+        `Console → GET /user/oauth/authorize → /oidc/auth → {consoleUrl}/login/oauth?interaction=<uid>
+        → interaction APIs → GET /user/oauth/callback → 302 {consoleUrl}/login#tokens`
 
         OAuth callback redirect URI: `{CONTROLLER_PUBLIC_URL}/api/v3/user/oauth/callback`.
-        Requires `VIEWER_URL` in embedded mode. External mode requires `OIDC_ISSUER_URL`,
+        Requires `CONSOLE_URL` in embedded mode. External mode requires `OIDC_ISSUER_URL`,
         `OIDC_CLIENT_ID`, and `OIDC_CLIENT_SECRET` for the confidential Controller client.
       responses:
         "302":
@@ -3282,7 +3282,7 @@ paths:
         "401":
           description: Auth not configured or OAuth session error
         "501":
-          description: Embedded OAuth BFF requires VIEWER_URL
+          description: Embedded OAuth BFF requires CONSOLE_URL
         "429":
           $ref: "#/components/responses/AuthRateLimitExceeded"
   /user/oauth/callback:
@@ -3296,9 +3296,9 @@ paths:
         Validates `state` and `nonce` from the server session (10-minute TTL). Works in **embedded**
         and **external** auth modes.
 
-        When `VIEWER_URL` is configured (recommended for browser login), responds with **302** to
-        `{viewerUrl}/login#accessToken=...&refreshToken=...`. Viewer `/login` parses the URL
-        fragment, stores tokens, clears the hash, and navigates to the app. When `VIEWER_URL` is
+        When `CONSOLE_URL` is configured (recommended for browser login), responds with **302** to
+        `{consoleUrl}/login#accessToken=...&refreshToken=...`. EdgeOps Console `/login` parses the URL
+        fragment, stores tokens, clears the hash, and navigates to the app. When `CONSOLE_URL` is
         unset, returns JSON **200** `{ accessToken, refreshToken }` (CLI/automation only).
 
         **External forced password change** is enforced by the IdP during authorize (e.g. Keycloak
@@ -3308,17 +3308,17 @@ paths:
         MFA in external browser login is IdP-owned; embedded browser MFA uses interaction endpoints.
       responses:
         "200":
-          description: Token response when VIEWER_URL is not configured
+          description: Token response when CONSOLE_URL is not configured
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/LoginSuccessResponse"
         "302":
-          description: Redirect to ECN Viewer `/login` with tokens in URL fragment
+          description: Redirect to EdgeOps Console `/login` with tokens in URL fragment
         "401":
           description: OAuth session expired, state/nonce mismatch, or authorization code exchange failed
         "501":
-          description: Embedded OAuth BFF requires VIEWER_URL
+          description: Embedded OAuth BFF requires CONSOLE_URL
         "429":
           $ref: "#/components/responses/AuthRateLimitExceeded"
   /user/interaction/{uid}:

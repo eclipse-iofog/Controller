@@ -321,15 +321,15 @@ module.exports = [
         return
       }
 
-      const { tokens, viewerUrl } = responseObject.body
+      const { tokens, consoleUrl } = responseObject.body
 
-      if (viewerUrl) {
+      if (consoleUrl) {
         const fragment = new URLSearchParams()
         fragment.set('accessToken', tokens.accessToken)
         if (tokens.refreshToken) {
           fragment.set('refreshToken', tokens.refreshToken)
         }
-        res.redirect(302, `${viewerUrl}/login#${fragment.toString()}`)
+        res.redirect(302, `${consoleUrl}/login#${fragment.toString()}`)
         logger.apiRes('GET /api/v3/user/oauth/callback', { args: { statusCode: 302 } })
         return
       }

@@ -35,7 +35,7 @@ const getJSONFromURL = async (uri) => {
 }
 
 const apiPort = +(config.get('server.port', 51121))
-const viewerPort = +(process.env.VIEWER_PORT || config.get('viewer.port', 8008))
+const consolePort = +(process.env.CONSOLE_PORT || config.get('console.port', 8008))
 
 const isDaemonElevated = async () => {
   // If it is running and you can see it, you have enough permission to move forward
@@ -61,12 +61,12 @@ const isDaemonElevated = async () => {
 }
 const elevatedCommands = ['start', 'stop', 'controller status']
 const requiresElevated = async (command, runningAsRoot) => {
-  // Does ECN Viewer need port 80 ?
-  if (process.argv[2] === 'start' && (viewerPort < 1024 || apiPort < 1024)) {
+  // Does EdgeOps Console need port 80 ?
+  if (process.argv[2] === 'start' && (consolePort < 1024 || apiPort < 1024)) {
     if (!runningAsRoot) {
       let message = 'Due to'
-      if (viewerPort < 1024) {
-        message += ` ECN Viewer requiring TCP port ${viewerPort},`
+      if (consolePort < 1024) {
+        message += ` EdgeOps Console requiring TCP port ${consolePort},`
       }
       if (apiPort < 1024) {
         message += ` iofog-controller REST API requiring TCP port ${apiPort},`

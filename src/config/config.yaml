@@ -37,10 +37,10 @@ server:
   #     cert:  # TLS certificate in base64 format (TLS_BASE64_CERT)
   #     intermediateCert: # Intermediate certificate in base64 format (TLS_BASE64_INTERMEDIATE_CERT)
 
-# Viewer Configuration
-viewer:
-  port: 8008             # Viewer port number
-  url: ""                # Viewer URL (VIEWER_URL); defaults to server.publicUrl when empty
+# Console Configuration
+console:
+  port: 8008             # Console port number
+  url: "http://localhost:8008"                # Console URL (CONSOLE_URL); defaults to server.publicUrl when empty
 
 # Logging Configuration
 log:
@@ -96,18 +96,18 @@ database:
       idle: 20000     # Idle timeout in milliseconds
 
 # Auth Configuration (OIDC — any compliant provider; env: OIDC_* / AUTH_* per naming-map §13)
-# auth:
-#   mode: embedded        # embedded | external (AUTH_MODE); resolution
-#   insecureAllowHttp: false  # Allow http CONTROLLER_PUBLIC_URL in prod (AUTH_INSECURE_ALLOW_HTTP)
-#   bootstrap:
+auth:
+  mode: embedded        # embedded | external (AUTH_MODE); resolution
+  insecureAllowHttp: false  # Allow http CONTROLLER_PUBLIC_URL in prod (AUTH_INSECURE_ALLOW_HTTP)
+  bootstrap:
 #     adminUsername: ""  # Bootstrap admin username (OIDC_BOOTSTRAP_ADMIN_USERNAME)
 #     adminPassword: ""  # Bootstrap admin password (OIDC_BOOTSTRAP_ADMIN_PASSWORD)
-#     insecureAllowBootstrapLog: false  # Allow bootstrap log in prod (AUTH_INSECURE_ALLOW_BOOTSTRAP_LOG)
+    insecureAllowBootstrapLog: false  # Allow bootstrap log in prod (AUTH_INSECURE_ALLOW_BOOTSTRAP_LOG)
 #   issuerUrl:      # OIDC issuer URL (OIDC_ISSUER_URL); external mode only
 #   client:
 #     id:           # Controller API client ID (OIDC_CLIENT_ID)
 #     secret:       # Controller API client secret (OIDC_CLIENT_SECRET)
-#   viewerClient:   # ECN Viewer SPA client ID (OIDC_VIEWER_CLIENT_ID)
+#   consoleClient:   # EdgeOps Console SPA client ID (OIDC_CONSOLE_CLIENT_ID)
 #   rateLimit:
 #     enabled: true                 # AUTH_RATE_LIMIT_ENABLED
 #     maxRequestsPerWindow: 60      # AUTH_RATE_LIMIT_MAX_REQUESTS — per-IP auth endpoints

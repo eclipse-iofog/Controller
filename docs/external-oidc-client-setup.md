@@ -10,7 +10,7 @@ Controller uses one **confidential** OIDC client for browser and CLI authenticat
 
 | Use case | Grant / flow | Controller endpoint |
 |----------|--------------|---------------------|
-| Browser (ECN Viewer) | Authorization code + PKCE S256 | `GET /api/v3/user/oauth/authorize` → IdP → `GET /api/v3/user/oauth/callback` |
+| Browser (EdgeOps Console) | Authorization code + PKCE S256 | `GET /api/v3/user/oauth/authorize` → IdP → `GET /api/v3/user/oauth/callback` |
 | CLI (potctl) | Resource owner password (direct access) | `POST /api/v3/user/login` |
 | Session refresh | Refresh token | `POST /api/v3/user/refresh` |
 | Profile | Bearer access token (+ UserInfo) | `GET /api/v3/user/profile` |
@@ -26,7 +26,7 @@ In external mode, access and refresh tokens are **issued by the IdP**. Controlle
 | `OIDC_CLIENT_ID` | Yes | `pot-controller` |
 | `OIDC_CLIENT_SECRET` | Yes | Confidential client secret |
 | `CONTROLLER_PUBLIC_URL` | Yes | `https://controller.example.com` |
-| `VIEWER_URL` | Yes (browser login) | `https://viewer.example.com` |
+| `CONSOLE_URL` | Yes (browser login) | `https://console.example.com` |
 | `AUTH_INSECURE_ALLOW_HTTP` | Development only | `true` when using `http://localhost:*` |
 
 ## IdP client — required settings
@@ -73,10 +73,10 @@ Avoid overly broad wildcards in production.
 
 ### Web origins (CORS)
 
-If the Viewer calls the Controller API from the browser, allow:
+If the Console calls the Controller API from the browser, allow:
 
 ```text
-{VIEWER_URL}
+{CONSOLE_URL}
 ```
 
 Example: `http://localhost:3000`
@@ -160,7 +160,7 @@ Example client: `pot-controller`
 | Direct access grants | On (if CLI login is required) |
 | PKCE Method | S256 |
 | Valid redirect URIs | `{CONTROLLER_PUBLIC_URL}/api/v3/user/oauth/callback` |
-| Web origins | `{VIEWER_URL}` |
+| Web origins | `{CONSOLE_URL}` |
 | Client scopes | `openid`, `profile`, `email`, `roles` (default); `groups`, `offline_access` (optional) |
 
 ### MFA and forced password change
@@ -174,7 +174,7 @@ Example client: `pot-controller`
 ### Browser
 
 1. Viewer Sign in → IdP login page (no `invalid_scope` or PKCE errors)
-2. Callback → `{VIEWER_URL}/login#accessToken=...&refreshToken=...`
+2. Callback → `{CONSOLE_URL}/login#accessToken=...&refreshToken=...`
 3. `GET /api/v3/user/profile` with `Authorization: Bearer <accessToken>` → 200
 
 ### CLI

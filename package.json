@@ -45,14 +45,18 @@
     "snyk": "./node_modules/.bin/snyk monitor",
     "pretest": "npm run lint",
     "test": "node scripts/run-test.js test",
-    "test:k8s-client": "node scripts/run-test.js test --grep 'k8s-client'",
+    "test:all": "node scripts/run-test.js test-all",
+    "test:k8s-client": "node scripts/run-test.js test test/integration/k8s-client-integration.test.js",
     "precli-tests": "npm run lint",
     "cli-tests": "node scripts/run-test.js cli-tests",
     "precoverage": "npm run lint",
     "coverage": "node scripts/run-test.js coverage",
     "prepare": "npm run lint",
     "swagger": "./generate-swagger.sh",
-    "rbac-audit": "node scripts/rbac-audit.js"
+    "rbac-audit": "node scripts/rbac-audit.js",
+    "build:console": "node scripts/build-console-dev.js",
+    "start:server": "sudo -E node -r dotenv/config src/server.js",
+    "dev:embedded": "npm run build:console && npm run start:server"
   },
   "preferGlobal": true,
   "bin": {
@@ -62,7 +66,6 @@
     "@aws-sdk/client-secrets-manager": "^3.1042.0",
     "@azure/identity": "^4.13.1",
     "@azure/keyvault-secrets": "^4.10.0",
-    "@datasance/ecn-viewer": "1.4.4",
     "@google-cloud/secret-manager": "^6.1.1",
     "@kubernetes/client-node": "^1.4.0",
     "@msgpack/msgpack": "^3.1.2",

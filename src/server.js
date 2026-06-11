@@ -22,7 +22,6 @@ initialize().then(() => {
   const bodyParser = require('body-parser')
   const cookieParser = require('cookie-parser')
   const express = require('express')
-  const ecnViewer = process.env.ECN_VIEWER_PATH ? require(`${process.env.ECN_VIEWER_PATH}/package/index.js`) : require('@datasance/ecn-viewer')
   const fs = require('fs')
   const helmet = require('helmet')
   const cors = require('cors')
@@ -47,15 +46,26 @@ initialize().then(() => {
     getSessionStoreConfig,
     resolveSessionSecret
   } = require('./config/auth-session-store.js')
-  const { getPublicUrl, getViewerUrl } = require('./config/auth-urls.js')
+  const { getPublicUrl, getConsoleUrl } = require('./config/auth-urls.js')
 
-  const viewerApp = express()
+  function resolveConsolePath () {
+    if (process.env.EDGEOPS_CONSOLE_PATH) {
+      return process.env.EDGEOPS_CONSOLE_PATH
+    }
+    const legacyBuildPath = path.join(__dirname, '..', 'node_modules', '@datasance', 'ecn-viewer', 'build')
+    if (fs.existsSync(legacyBuildPath)) {
+      return legacyBuildPath
+    }
+    throw new Error('EDGEOPS_CONSOLE_PATH is required (path to EdgeOps Console static build/)')
+  }
+
+  const consoleApp = express()
   const app = express()
 
   const trustProxy = process.env.TRUST_PROXY || config.get('server.trustProxy', false)
   if (trustProxy) {
     app.set('trust proxy', trustProxy === true ? 1 : trustProxy)
-    viewerApp.set('trust proxy', trustProxy === true ? 1 : trustProxy)
+    consoleApp.set('trust proxy', trustProxy === true ? 1 : trustProxy)
   }
 
   function validateProductionPublicUrl () {
@@ -88,14 +98,14 @@ initialize().then(() => {
   const devMode = process.env.DEV_MODE || config.get('server.devMode', true)
   const insecureAllowHttp = config.get('auth.insecureAllowHttp', false)
 
-  const viewerURLForCors = getViewerUrl()
+  const consoleURLForCors = getConsoleUrl()
   app.use(cors({
     origin (origin, callback) {
-      if (!origin || !viewerURLForCors) {
+      if (!origin || !consoleURLForCors) {
         callback(null, true)
         return
       }
-      callback(null, origin === viewerURLForCors)
+      callback(null, origin === consoleURLForCors)
     },
     credentials: true
   }))
@@ -180,13 +190,13 @@ initialize().then(() => {
     jobs.push((require(path.join(__dirname, 'jobs', file)) || []))
   }
 
-  function registerServers (api, viewer) {
+  function registerServers (api, consoleServer) {
     process.once('SIGTERM', async function (code) {
       console.log('SIGTERM received. Shutting down.')
       await new Promise((resolve) => { api.close(resolve) })
       console.log('API Server closed.')
-      await new Promise((resolve) => { viewer.close(resolve) })
-      console.log('Viewer Server closed.')
+      await new Promise((resolve) => { consoleServer.close(resolve) })
+      console.log('Console Server closed.')
       process.exit(0)
     })
   }
@@ -194,11 +204,11 @@ initialize().then(() => {
   function startHttpServer (apps, ports, jobs) {
     logger.info('TLS not configured, starting HTTP server.')
 
-    const viewerServer = apps.viewer.listen(ports.viewer, function onStart (err) {
+    const consoleServer = apps.console.listen(ports.console, function onStart (err) {
       if (err) {
         logger.error(err)
       }
-      logger.info(`==> 🌎 Viewer listening on port ${ports.viewer}. Open up http://localhost:${ports.viewer}/ in your browser.`)
+      logger.info(`==> 🌎 EdgeOps Console listening on port ${ports.console}. Open up http://localhost:${ports.console}/ in your browser.`)
     })
     const apiServer = apps.api.listen(ports.api, function onStart (err) {
       if (err) {
@@ -212,7 +222,7 @@ initialize().then(() => {
     const wsServer = WebSocketServer.getInstance()
     wsServer.initialize(apiServer)
     logger.info(`==> 🌎 Webscoker API server listening on port ${ports.api}. Open up ws://localhost:${ports.api}/.`)
-    registerServers(apiServer, viewerServer)
+    registerServers(apiServer, consoleServer)
   }
 
   const { createSSLOptions } = require('./utils/ssl-utils')
@@ -226,11 +236,11 @@ initialize().then(() => {
         isBase64
       })
 
-      const viewerServer = https.createServer(sslOptions, apps.viewer).listen(ports.viewer, function onStart (err) {
+      const consoleServer = https.createServer(sslOptions, apps.console).listen(ports.console, function onStart (err) {
         if (err) {
           logger.error(err)
         }
-        logger.info(`==> 🌎 HTTPS Viewer server listening on port ${ports.viewer}. Open up https://localhost:${ports.viewer}/ in your browser.`)
+        logger.info(`==> 🌎 HTTPS EdgeOps Console server listening on port ${ports.console}. Open up https://localhost:${ports.console}/ in your browser.`)
         jobs.forEach((job) => job.run())
       })
 
@@ -247,17 +257,18 @@ initialize().then(() => {
       wsServer.initialize(apiServer)
       logger.info(`==> 🌎 WSS API server listening on port ${ports.api}. Open up wss://localhost:${ports.api}/.`)
 
-      registerServers(apiServer, viewerServer)
+      registerServers(apiServer, consoleServer)
     } catch (e) {
       logger.error('Error loading TLS certificates. Please check your configuration.')
     }
   }
 
   const apiPort = process.env.API_PORT || config.get('server.port')
-  const viewerPort = process.env.VIEWER_PORT || config.get('viewer.port')
+  const consolePort = process.env.CONSOLE_PORT || config.get('console.port')
   const controlPlane = process.env.CONTROL_PLANE || config.get('app.ControlPlane')
   const publicUrl = getPublicUrl()
-  const viewerURL = getViewerUrl()
+  const consoleURL = getConsoleUrl()
+  const consolePath = resolveConsolePath()
 
   // File-based TLS configuration
   const tlsKey = process.env.TLS_PATH_KEY || config.get('server.tls.path.key')
@@ -272,7 +283,17 @@ initialize().then(() => {
   const hasFileBasedTLS = !devMode && tlsKey && tlsCert
   const hasBase64TLS = !devMode && tlsKeyBase64 && tlsCertBase64
 
-  viewerApp.use('/', ecnViewer.middleware(express))
+  consoleApp.use(express.static(consolePath, { index: 'index.html' }))
+  consoleApp.get('*', (req, res, next) => {
+    if (path.extname(req.path)) {
+      return next()
+    }
+    res.sendFile(path.join(consolePath, 'index.html'), (error) => {
+      if (error) {
+        next(error)
+      }
+    })
+  })
 
   const isDaemon = process.argv[process.argv.length - 1] === 'daemonize2'
 
@@ -312,9 +333,9 @@ initialize().then(() => {
       })
       .forEach(setupJobs)
 
-    // Set up controller-config.js for ECN Viewer
-    const ecnViewerControllerConfigFilePath = path.join(__dirname, '..', 'node_modules', '@datasance', 'ecn-viewer', 'build', 'controller-config.js')
-    const ecnViewerControllerConfig = {
+    // Set up controller-config.js for EdgeOps Console
+    const consoleConfigFilePath = path.join(consolePath, 'controller-config.js')
+    const consoleConfig = {
       apiPort,
       auth: {
         mode: getAuthMode(),
@@ -328,18 +349,16 @@ initialize().then(() => {
       }
     }
     if (publicUrl) {
-      ecnViewerControllerConfig.publicUrl = publicUrl
+      consoleConfig.publicUrl = publicUrl
     }
-    if (viewerURL) {
-      ecnViewerControllerConfig.viewerUrl = viewerURL
-    }
+    consoleConfig.consoleUrl = consoleURL || publicUrl || `http://localhost:${consolePort}`
     if (controlPlane) {
-      ecnViewerControllerConfig.controlPlane = controlPlane
+      consoleConfig.controlPlane = controlPlane
     }
-    const ecnViewerConfigScript = `
-      window.controllerConfig = ${JSON.stringify(ecnViewerControllerConfig)}
+    const consoleConfigScript = `
+      window.controllerConfig = ${JSON.stringify(consoleConfig)}
     `
-    fs.writeFileSync(ecnViewerControllerConfigFilePath, ecnViewerConfigScript)
+    fs.writeFileSync(consoleConfigFilePath, consoleConfigScript)
   }
 
   resolveSessionSecret()
@@ -366,8 +385,8 @@ initialize().then(() => {
     .then(() => {
       if (hasFileBasedTLS) {
         startHttpsServer(
-          { api: app, viewer: viewerApp },
-          { api: apiPort, viewer: viewerPort },
+          { api: app, console: consoleApp },
+          { api: apiPort, console: consolePort },
           tlsKey,
           tlsCert,
           intermedKey,
@@ -376,8 +395,8 @@ initialize().then(() => {
         )
       } else if (hasBase64TLS) {
         startHttpsServer(
-          { api: app, viewer: viewerApp },
-          { api: apiPort, viewer: viewerPort },
+          { api: app, console: consoleApp },
+          { api: apiPort, console: consolePort },
           tlsKeyBase64,
           tlsCertBase64,
           intermedKeyBase64,
@@ -386,8 +405,8 @@ initialize().then(() => {
         )
       } else {
         startHttpServer(
-          { api: app, viewer: viewerApp },
-          { api: apiPort, viewer: viewerPort },
+          { api: app, console: consoleApp },
+          { api: apiPort, console: consolePort },
           jobs
         )
       }

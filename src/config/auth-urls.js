@@ -10,8 +10,8 @@ function getPublicUrl () {
   return normalizeUrl(process.env.CONTROLLER_PUBLIC_URL || config.get('server.publicUrl') || '')
 }
 
-function getViewerUrl () {
-  const explicit = process.env.VIEWER_URL || config.get('viewer.url')
+function getConsoleUrl () {
+  const explicit = process.env.CONSOLE_URL || config.get('console.url')
   if (explicit) {
     return normalizeUrl(explicit)
   }
@@ -20,6 +20,6 @@ function getViewerUrl () {
 
 module.exports = {
   getPublicUrl,
-  getViewerUrl,
+  getConsoleUrl,
   normalizeUrl
 }

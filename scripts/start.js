@@ -19,7 +19,7 @@ function start () {
   const options = {
     env: {
       NODE_ENV: 'production',
-      VIEWER_PORT: '8008',
+      CONSOLE_PORT: '8008',
       PATH: process.env.PATH
     },
     stdio: [process.stdin, process.stdout, process.stderr]
@@ -27,8 +27,8 @@ function start () {
 
   options.env = setDbEnvVars(options.env)
 
-  if (process.env.VIEWER_PORT) {
-    options.env.VIEWER_PORT = process.env.VIEWER_PORT
+  if (process.env.CONSOLE_PORT) {
+    options.env.CONSOLE_PORT = process.env.CONSOLE_PORT
   }
 
   execSync('node ./src/main.js start', options)
