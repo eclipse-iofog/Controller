@@ -960,3 +960,151 @@ CREATE INDEX idx_applications_nats_rule_id ON Applications (nats_rule_id);
 CREATE INDEX idx_microservices_nats_rule_id ON Microservices (nats_rule_id);
 CREATE INDEX idx_microservices_nats_account_id ON Microservices (nats_account_id);
 CREATE INDEX idx_microservices_nats_user_id ON Microservices (nats_user_id);
+
+CREATE TABLE IF NOT EXISTS AuthUsers (
+    id VARCHAR(36) PRIMARY KEY NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    password_hash TEXT NOT NULL,
+    password_history_hashes TEXT,
+    must_change_password BOOLEAN DEFAULT false,
+    is_bootstrap BOOLEAN DEFAULT false,
+    failed_attempts INT DEFAULT 0,
+    locked_until DATETIME,
+    deleted_at DATETIME,
+    created_at DATETIME,
+    updated_at DATETIME
+);
+
+CREATE INDEX idx_auth_users_email ON AuthUsers (email);
+CREATE INDEX idx_auth_users_deleted_at ON AuthUsers (deleted_at);
+
+CREATE TABLE IF NOT EXISTS AuthGroups (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    name VARCHAR(255) NOT NULL UNIQUE,
+    is_system BOOLEAN DEFAULT false,
+    created_at DATETIME,
+    updated_at DATETIME
+);
+
+CREATE TABLE IF NOT EXISTS AuthUserGroups (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    user_id VARCHAR(36) NOT NULL,
+    group_id INT NOT NULL,
+    created_at DATETIME,
+    FOREIGN KEY (user_id) REFERENCES AuthUsers (id) ON DELETE CASCADE,
+    FOREIGN KEY (group_id) REFERENCES AuthGroups (id) ON DELETE CASCADE,
+    UNIQUE (user_id, group_id)
+);
+
+CREATE INDEX idx_auth_user_groups_user_id ON AuthUserGroups (user_id);
+CREATE INDEX idx_auth_user_groups_group_id ON AuthUserGroups (group_id);
+
+CREATE TABLE IF NOT EXISTS AuthMfa (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    user_id VARCHAR(36) NOT NULL UNIQUE,
+    totp_secret_encrypted TEXT,
+    enabled BOOLEAN DEFAULT false,
+    recovery_codes_hash TEXT,
+    created_at DATETIME,
+    updated_at DATETIME,
+    FOREIGN KEY (user_id) REFERENCES AuthUsers (id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_auth_mfa_user_id ON AuthMfa (user_id);
+
+CREATE TABLE IF NOT EXISTS AuthPasswordResetSessions (
+    id VARCHAR(36) PRIMARY KEY NOT NULL,
+    user_id VARCHAR(36) NOT NULL,
+    expires_at DATETIME NOT NULL,
+    created_at DATETIME,
+    FOREIGN KEY (user_id) REFERENCES AuthUsers (id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_auth_password_reset_sessions_user_id ON AuthPasswordResetSessions (user_id);
+CREATE INDEX idx_auth_password_reset_sessions_expires_at ON AuthPasswordResetSessions (expires_at);
+
+CREATE TABLE IF NOT EXISTS AuthRefreshTokens (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    token_hash VARCHAR(255) NOT NULL,
+    user_id VARCHAR(36) NOT NULL,
+    family_id VARCHAR(36) NOT NULL,
+    expires_at DATETIME NOT NULL,
+    revoked BOOLEAN DEFAULT false,
+    created_at DATETIME,
+    updated_at DATETIME,
+    FOREIGN KEY (user_id) REFERENCES AuthUsers (id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_auth_refresh_tokens_token_hash ON AuthRefreshTokens (token_hash);
+CREATE INDEX idx_auth_refresh_tokens_user_id ON AuthRefreshTokens (user_id);
+CREATE INDEX idx_auth_refresh_tokens_family_id ON AuthRefreshTokens (family_id);
+CREATE INDEX idx_auth_refresh_tokens_expires_at ON AuthRefreshTokens (expires_at);
+
+CREATE TABLE IF NOT EXISTS AuthOidcKeys (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    kid VARCHAR(255) NOT NULL UNIQUE,
+    key_material_encrypted TEXT,
+    vault_ref TEXT,
+    active BOOLEAN DEFAULT true,
+    created_at DATETIME,
+    updated_at DATETIME
+);
+
+CREATE INDEX idx_auth_oidc_keys_active ON AuthOidcKeys (active);
+
+CREATE TABLE IF NOT EXISTS AuthOidcClients (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    client_id VARCHAR(255) NOT NULL UNIQUE,
+    secret_ref TEXT,
+    client_type VARCHAR(32) NOT NULL DEFAULT 'confidential',
+    created_at DATETIME,
+    updated_at DATETIME
+);
+
+CREATE TABLE IF NOT EXISTS AuthOidcProviderStates (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    model VARCHAR(64) NOT NULL,
+    record_id VARCHAR(255) NOT NULL,
+    payload TEXT NOT NULL,
+    expires_at DATETIME,
+    grant_id VARCHAR(255),
+    uid VARCHAR(255),
+    user_code VARCHAR(255),
+    consumed BOOLEAN DEFAULT false,
+    consumed_at DATETIME,
+    created_at DATETIME,
+    updated_at DATETIME,
+    UNIQUE (model, record_id)
+);
+
+CREATE INDEX idx_auth_oidc_provider_states_grant_id ON AuthOidcProviderStates (grant_id);
+CREATE INDEX idx_auth_oidc_provider_states_uid ON AuthOidcProviderStates (uid);
+CREATE INDEX idx_auth_oidc_provider_states_user_code ON AuthOidcProviderStates (user_code);
+CREATE INDEX idx_auth_oidc_provider_states_expires_at ON AuthOidcProviderStates (expires_at);
+
+CREATE TABLE IF NOT EXISTS AuthBootstrapMeta (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    completed_at DATETIME,
+    bootstrap_admin_user_id VARCHAR(36),
+    created_at DATETIME,
+    updated_at DATETIME,
+    FOREIGN KEY (bootstrap_admin_user_id) REFERENCES AuthUsers (id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS AuthPolicy (
+    id INT PRIMARY KEY NOT NULL CHECK (id = 1),
+    min_password_length INT DEFAULT 12,
+    require_uppercase BOOLEAN DEFAULT true,
+    require_lowercase BOOLEAN DEFAULT true,
+    require_digit BOOLEAN DEFAULT true,
+    password_max_age_days INT DEFAULT 0,
+    password_history_count INT DEFAULT 5,
+    max_failed_attempts INT DEFAULT 5,
+    lockout_duration_minutes INT DEFAULT 15,
+    access_token_ttl_seconds INT DEFAULT 900,
+    refresh_token_ttl_seconds INT DEFAULT 604800,
+    refresh_rotation BOOLEAN DEFAULT true,
+    max_concurrent_sessions INT,
+    created_at DATETIME,
+    updated_at DATETIME
+);

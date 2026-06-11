@@ -352,7 +352,6 @@ class DatabaseProvider {
           try {
             await db.query(query)
           } catch (err) {
-            // Check both the error and its parent (for Sequelize errors)
             const errorToCheck = err.parent || err
             if (errorToCheck.code === 'ER_TABLE_EXISTS_ERROR' ||
                 errorToCheck.code === 'ER_DUP_FIELDNAME' ||
@@ -413,10 +412,8 @@ class DatabaseProvider {
           try {
             await db.query(query)
           } catch (err) {
-            // Check both the error and its parent (for Sequelize errors)
             const errorToCheck = err.parent || err
 
-            // If transaction is aborted, rollback and start new transaction
             if (errorToCheck.code === '25P02') {
               logger.warn('Transaction aborted, rolling back and starting new transaction...')
               await db.query('ROLLBACK')
@@ -424,16 +421,16 @@ class DatabaseProvider {
               continue
             }
 
-            if (errorToCheck.code === '42P07' || // duplicate_table
-                errorToCheck.code === '42701' || // duplicate_column
-                errorToCheck.code === '42P06' || // duplicate_schema
-                errorToCheck.code === '23505' || // unique_violation
-                errorToCheck.code === '23503' || // foreign_key_violation
-                errorToCheck.code === '42P01' || // undefined_table
-                errorToCheck.code === '42703' || // undefined_column
-                errorToCheck.code === '42P16' || // invalid_table_definition
-                errorToCheck.code === '42P17' || // invalid_table_definition
-                errorToCheck.code === '42P18' || // invalid_table_definition
+            if (errorToCheck.code === '42P07' ||
+                errorToCheck.code === '42701' ||
+                errorToCheck.code === '42P06' ||
+                errorToCheck.code === '23505' ||
+                errorToCheck.code === '23503' ||
+                errorToCheck.code === '42P01' ||
+                errorToCheck.code === '42703' ||
+                errorToCheck.code === '42P16' ||
+                errorToCheck.code === '42P17' ||
+                errorToCheck.code === '42P18' ||
                 (errorToCheck.message && (
                   errorToCheck.message.includes('already exists') ||
                   errorToCheck.message.includes('duplicate key') ||
@@ -609,8 +606,8 @@ class DatabaseProvider {
           try {
             await db.query(query)
           } catch (err) {
-            if (err.code === '23505' || // unique_violation
-                err.code === '23503') { // foreign_key_violation
+            if (err.code === '23505' ||
+                err.code === '23503') {
               logger.warn(`Ignored PostgreSQL error: ${err.message}`)
             } else {
               await db.query('ROLLBACK')

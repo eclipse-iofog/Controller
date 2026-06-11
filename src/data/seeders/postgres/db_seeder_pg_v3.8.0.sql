@@ -48,4 +48,34 @@ VALUES
     (5, 3, 'ghcr.io/datasance/nats:latest'),
     (5, 4, 'ghcr.io/datasance/nats:latest');
 
+INSERT INTO "AuthPolicy" (
+    id,
+    min_password_length,
+    require_uppercase,
+    require_lowercase,
+    require_digit,
+    password_max_age_days,
+    password_history_count,
+    max_failed_attempts,
+    lockout_duration_minutes,
+    access_token_ttl_seconds,
+    refresh_token_ttl_seconds,
+    refresh_rotation,
+    max_concurrent_sessions
+)
+VALUES (1, 12, true, true, true, 0, 5, 5, 15, 900, 604800, true, NULL)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO "AuthGroups" (name, is_system)
+VALUES
+    ('admin', true),
+    ('sre', true),
+    ('developer', true),
+    ('viewer', true)
+ON CONFLICT (name) DO NOTHING;
+
+INSERT INTO "AuthBootstrapMeta" (id, completed_at)
+VALUES (1, NULL)
+ON CONFLICT (id) DO NOTHING;
+
 COMMIT;

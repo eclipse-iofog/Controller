@@ -4,7 +4,7 @@
 
 New installations use **`db_migration_*_v3.8.0.sql`** and **`db_seeder_*_v3.8.0.sql`**
 (sqlite, mysql, postgres). The migration runner in `src/data/providers/database-provider.js`
-records schema version **`3.8.0`**.
+records schema version **`3.8.0`** (includes embedded auth tables).
 
 Greenfield only: wipe the data directory or database before upgrading from pre-3.8 builds.
 There is no v3.7→v3.8 incremental migrator.
