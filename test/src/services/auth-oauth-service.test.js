@@ -29,13 +29,13 @@ describe('Auth OAuth service', () => {
   def('sandbox', () => sinon.createSandbox())
   def('envSnapshot', () => snapshotOidcEnv())
   def('harness', async () => createEmbeddedAuthHarness($sandbox, {
-    env: { VIEWER_URL: 'http://viewer.test' }
+    env: { CONSOLE_URL: 'http://console.test' }
   }))
   def('oidcConfig', () => createTestOidcConfiguration())
 
   beforeEach(async () => {
     await $harness
-    process.env.VIEWER_URL = 'http://viewer.test'
+    process.env.CONSOLE_URL = 'http://console.test'
     delete require.cache[require.resolve('../../../src/services/auth-oauth-service')]
     const oidcModule = require('../../../src/config/oidc')
     $sandbox.stub(oidcModule, 'getOauthClientConfiguration').resolves($oidcConfig)
@@ -64,7 +64,7 @@ describe('Auth OAuth service', () => {
 
   it('passes pkceCodeVerifier to authorizationCodeGrant on callback', async () => {
     applyExternalEnv({})
-    process.env.VIEWER_URL = 'http://viewer.test'
+    process.env.CONSOLE_URL = 'http://console.test'
 
     const grantStub = $sandbox.stub().resolves({
       access_token: 'external-access-token',
@@ -114,7 +114,7 @@ describe('Auth OAuth service', () => {
     expect(grantStub.firstCall.args[2].expectedNonce).to.equal('test-nonce')
     expect(result.tokens.accessToken).to.equal('external-access-token')
     expect(result.tokens.refreshToken).to.equal('external-refresh-token')
-    expect(result.viewerUrl).to.equal('http://viewer.test')
+    expect(result.consoleUrl).to.equal('http://console.test')
     expect(req.session.controllerOauth).to.be.undefined
   })
 

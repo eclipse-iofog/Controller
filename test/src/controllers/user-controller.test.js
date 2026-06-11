@@ -3,474 +3,205 @@ const sinon = require('sinon')
 
 const UserController = require('../../../src/controllers/user-controller')
 const UserService = require('../../../src/services/user-service')
-const AppHelper = require('../../../src/helpers/app-helper')
 const Validator = require('../../../src/schemas')
 
 describe('User Controller', () => {
-  def('subject', () => UserController)
+  def('controller', () => UserController)
   def('sandbox', () => sinon.createSandbox())
 
   afterEach(() => $sandbox.restore())
 
-  const error = 'Error!'
-
-  describe('.userSignupEndPoint()', () => {
-    def('firstName', () => 'firstName')
-    def('lastName', () => 'lastName')
-    def('email', () => 'test@gmail.com')
-    def('password', () => 'testPassword')
-
-    def('req', () => ({
-      body: {
-        firstName: $firstName,
-        lastName: $lastName,
-
-        email: $email,
-        password: $password,
-      },
-    }))
-    def('response', () => Promise.resolve())
-    def('encryptedPassword', () => 'encryptedPassword')
-    def('validatorResponse', () => Promise.resolve(true))
-    def('encryptTextResponse', () => $encryptedPassword)
-    def('subject', () => $subject.userSignupEndPoint($req))
-
-    beforeEach(() => {
-      $sandbox.stub(Validator, 'validate').returns($validatorResponse)
-      $sandbox.stub(AppHelper, 'encryptText').returns($encryptTextResponse)
-      $sandbox.stub(UserService, 'signUp').returns($response)
-    })
-
-    it('calls Validator#validate() with correct args', async () => {
-      await $subject
-      expect(Validator.validate).to.have.been.calledWith({
-        firstName: $firstName,
-        lastName: $lastName,
-        email: $email,
-        password: $password,
-      }, Validator.schemas.signUp)
-    })
-
-    context('when Validator#validate() fails', () => {
-      def('validatorResponse', () => Promise.reject(error))
-
-      it(`fails with ${error}`, () => {
-        return expect($subject).to.be.rejectedWith(error)
-      })
-    })
-
-    context('when Validator#validate() succeeds', () => {
-      it('calls AppHelper#encryptText() with correct args', async () => {
-        await $subject
-        expect(AppHelper.encryptText).to.have.been.calledWith($password, $email)
-      })
-
-      context('when AppHelper#encryptText() fails', () => {
-        it('fails', () => {
-          return expect($subject).to.eventually.equal(undefined)
-        })
-      })
-
-      context('when AppHelper#encryptText() succeeds', () => {
-        it('calls UserService.signUp with correct args', async () => {
-          await $subject
-          expect(UserService.signUp).to.have.been.calledWith({
-            firstName: $firstName,
-            lastName: $lastName,
-            email: $email,
-            password: $encryptedPassword,
-          }, false)
-        })
-
-        context('when UserService#signUp fails', () => {
-          const error = 'Error!'
-
-          def('response', () => Promise.reject(error))
-
-          it(`fails with "${error}"`, () => {
-            return expect($subject).to.be.rejectedWith(error)
-          })
-        })
-
-        context('when UserService#signUp succeeds', () => {
-          it(`succeeds`, () => {
-            return expect($subject).to.eventually.equal(undefined)
-          })
-        })
-      })
-    })
-  })
-
   describe('.userLoginEndPoint()', () => {
     def('email', () => 'test@gmail.com')
     def('password', () => 'testPassword')
+    def('totp', () => '123456')
 
     def('req', () => ({
       body: {
         email: $email,
         password: $password,
-      },
+        totp: $totp
+      }
     }))
-    def('response', () => Promise.resolve())
-    def('validatorResponse', () => Promise.resolve(true))
-    def('subject', () => $subject.userLoginEndPoint($req))
+
+    def('subject', () => $controller.userLoginEndPoint($req))
+    def('response', () => Promise.resolve({ accessToken: 'token' }))
 
     beforeEach(() => {
-      $sandbox.stub(Validator, 'validate').returns($validatorResponse)
+      $sandbox.stub(Validator, 'validate').resolves(true)
       $sandbox.stub(UserService, 'login').returns($response)
     })
 
-    it('calls Validator#validate() with correct args', async () => {
+    it('validates credentials and delegates to UserService.login', async () => {
       await $subject
-      expect(Validator.validate).to.have.been.calledWith({
+      expect(Validator.validate).to.have.been.calledWith($req.body, Validator.schemas.login)
+      expect(UserService.login).to.have.been.calledWith({
         email: $email,
         password: $password,
-      }, Validator.schemas.login)
+        totp: $totp
+      }, false)
     })
 
-    context('when Validator#validate() fails', () => {
-      def('validatorResponse', () => Promise.reject(error))
-
-      it(`fails with ${error}`, () => {
-        return expect($subject).to.be.rejectedWith(error)
-      })
-    })
-
-    context('when Validator#validate() succeeds', () => {
-      it('calls UserService.login with correct args', async () => {
-        await $subject
-        expect(UserService.login).to.have.been.calledWith({
-          email: $email,
-          password: $password,
-        }, false)
+    context('when validation fails', () => {
+      beforeEach(() => {
+        Validator.validate.rejects(new Error('invalid login'))
       })
 
-      context('when UserService#login fails', () => {
-        const error = 'Error!'
-
-        def('response', () => Promise.reject(error))
-
-        it(`fails with "${error}"`, () => {
-          return expect($subject).to.be.rejectedWith(error)
-        })
-      })
-
-      context('when UserService#login succeeds', () => {
-        it(`succeeds`, () => {
-          return expect($subject).to.eventually.equal(undefined)
+      it('rejects without calling login', () => {
+        return expect($subject).to.be.rejectedWith('invalid login').then(() => {
+          expect(UserService.login).to.not.have.been.called
         })
       })
     })
   })
 
-  describe('.resendActivationEndPoint()', () => {
-    def('email', () => 'test@gmail.com')
+  describe('.refreshTokenEndPoint()', () => {
+    def('refreshToken', () => 'refresh-token-value')
 
     def('req', () => ({
-      query: {
-        email: $email,
-      },
+      body: { refreshToken: $refreshToken }
     }))
-    def('response', () => Promise.resolve())
-    def('subject', () => $subject.resendActivationEndPoint($req))
+
+    def('subject', () => $controller.refreshTokenEndPoint($req))
+    def('response', () => Promise.resolve({ accessToken: 'new-token' }))
 
     beforeEach(() => {
-      $sandbox.stub(UserService, 'resendActivation').returns($response)
+      $sandbox.stub(Validator, 'validate').resolves(true)
+      $sandbox.stub(UserService, 'refresh').returns($response)
     })
 
-    it('calls UserService.resendActivation with correct args', async () => {
+    it('validates and refreshes tokens', async () => {
       await $subject
-      expect(UserService.resendActivation).to.have.been.calledWith({
-        email: $email,
-      }, false)
-    })
-
-    context('when UserService#resendActivation fails', () => {
-      const error = 'Error!'
-
-      def('response', () => Promise.reject(error))
-
-      it(`fails with "${error}"`, () => {
-        return expect($subject).to.be.rejectedWith(error)
-      })
-    })
-
-    context('when UserService#resendActivation succeeds', () => {
-      it(`succeeds`, () => {
-        return expect($subject).to.eventually.equal(undefined)
-      })
-    })
-  })
-
-  describe('.activateUserAccountEndPoint()', () => {
-    def('activationCode', () => 'testActivationCode')
-
-    def('req', () => ({
-      body: {
-        activationCode: $activationCode,
-      },
-    }))
-    def('response', () => Promise.resolve())
-    def('subject', () => $subject.activateUserAccountEndPoint($req))
-
-    beforeEach(() => {
-      $sandbox.stub(UserService, 'activateUser').returns($response)
-    })
-
-    it('calls UserService.activateUser with correct args', async () => {
-      await $subject
-      expect(UserService.activateUser).to.have.been.calledWith({
-        activationCode: $activationCode,
-      }, false)
-    })
-
-    context('when UserService#activateUser fails', () => {
-      const error = 'Error!'
-
-      def('response', () => Promise.reject(error))
-
-      it(`fails with "${error}"`, () => {
-        return expect($subject).to.be.rejectedWith(error)
-      })
-    })
-
-    context('when UserService#activateUser succeeds', () => {
-      it(`succeeds`, () => {
-        return expect($subject).to.eventually.equal(undefined)
-      })
-    })
-  })
-
-  describe('.userLogoutEndPoint()', () => {
-    def('activationCode', () => 'testActivationCode')
-    def('user', () => 'user!')
-
-    def('req', () => ({
-      body: {},
-    }))
-    def('response', () => Promise.resolve())
-    def('subject', () => $subject.userLogoutEndPoint($req, $user))
-
-    beforeEach(() => {
-      $sandbox.stub(UserService, 'logout').returns($response)
-    })
-
-    it('calls UserService.logout with correct args', async () => {
-      await $subject
-      expect(UserService.logout).to.have.been.calledWith($user, false)
-    })
-
-    context('when UserService#logout fails', () => {
-      const error = 'Error!'
-
-      def('response', () => Promise.reject(error))
-
-      it(`fails with "${error}"`, () => {
-        return expect($subject).to.be.rejectedWith(error)
-      })
-    })
-
-    context('when UserService#logout succeeds', () => {
-      it(`succeeds`, () => {
-        return expect($subject).to.eventually.equal(undefined)
-      })
+      expect(Validator.validate).to.have.been.calledWith($req.body, Validator.schemas.refresh)
+      expect(UserService.refresh).to.have.been.calledWith({ refreshToken: $refreshToken }, false)
     })
   })
 
   describe('.getUserProfileEndPoint()', () => {
-    def('user', () => 'user!')
-
     def('req', () => ({
-      body: {},
+      headers: { authorization: 'Bearer access-token' }
     }))
-    def('response', () => Promise.resolve())
-    def('subject', () => $subject.getUserProfileEndPoint($req, $user))
 
-    it(`succeeds`, () => {
-      return expect($subject).to.eventually.include.all.keys(['firstName', 'lastName', 'email'])
-    })
-  })
-
-  describe('.updateUserProfileEndPoint()', () => {
-    def('firstName', () => 'firstName2')
-    def('lastName', () => 'lastName2')
-    def('user', () => 'user!')
-
-    def('req', () => ({
-      body: {
-        firstName: $firstName,
-        lastName: $lastName,
-      },
+    def('profile', () => ({
+      firstName: 'Test',
+      lastName: 'User',
+      email: 'test@gmail.com'
     }))
-    def('profileData', () => $req.body)
-    def('response', () => Promise.resolve())
-    def('subject', () => $subject.updateUserProfileEndPoint($req, $user))
+
+    def('subject', () => $controller.getUserProfileEndPoint($req))
 
     beforeEach(() => {
-      $sandbox.stub(UserService, 'updateUserDetails').returns($response)
+      $sandbox.stub(UserService, 'profile').resolves($profile)
     })
 
-    it('calls UserService.updateUserDetails with correct args', async () => {
-      await $subject
-      expect(UserService.updateUserDetails).to.have.been.calledWith($user, $profileData, false)
-    })
-
-    context('when UserService#updateUserDetails fails', () => {
-      const error = 'Error!'
-
-      def('response', () => Promise.reject(error))
-
-      it(`fails with "${error}"`, () => {
-        return expect($subject).to.be.rejectedWith(error)
-      })
-    })
-
-    context('when UserService#updateUserDetails succeeds', () => {
-      it(`succeeds`, () => {
-        return expect($subject).to.eventually.equal(undefined)
-      })
+    it('returns the user profile from UserService.profile', async () => {
+      const result = await $subject
+      expect(UserService.profile).to.have.been.calledWith($req, false)
+      expect(result).to.eql($profile)
     })
   })
 
-  describe('.deleteUserProfileEndPoint()', () => {
-    def('user', () => 'user!')
-
+  describe('.userLogoutEndPoint()', () => {
     def('req', () => ({
-      body: {
-        force: true,
-      },
+      headers: { authorization: 'Bearer access-token' },
+      body: {}
     }))
-    def('response', () => Promise.resolve())
-    def('subject', () => $subject.deleteUserProfileEndPoint($req, $user))
+
+    def('subject', () => $controller.userLogoutEndPoint($req))
+    def('logoutResult', () => ({ status: 'success' }))
 
     beforeEach(() => {
-      $sandbox.stub(UserService, 'deleteUser').returns($response)
+      $sandbox.stub(UserService, 'logout').resolves($logoutResult)
     })
 
-    it('calls UserService.deleteUser with correct args', async () => {
-      await $subject
-      expect(UserService.deleteUser).to.have.been.calledWith(true, $user, false)
-    })
-
-    context('when UserService#deleteUser fails', () => {
-      const error = 'Error!'
-
-      def('response', () => Promise.reject(error))
-
-      it(`fails with "${error}"`, () => {
-        return expect($subject).to.be.rejectedWith(error)
-      })
-    })
-
-    context('when UserService#deleteUser succeeds', () => {
-      it(`succeeds`, () => {
-        return expect($subject).to.eventually.equal(undefined)
-      })
+    it('delegates logout to UserService', async () => {
+      const result = await $subject
+      expect(UserService.logout).to.have.been.calledWith($req, false)
+      expect(result).to.eql($logoutResult)
     })
   })
 
-  describe('.updateUserPasswordEndPoint()', () => {
-    def('user', () => 'user!')
-
-    def('oldPassword', () => 'oldPassword')
-    def('newPassword', () => 'newPassword')
+  describe('.changePasswordEndPoint()', () => {
+    def('payload', () => ({
+      oldPassword: 'old-password',
+      newPassword: 'new-password'
+    }))
 
     def('req', () => ({
-      body: {
-        oldPassword: $oldPassword,
-        newPassword: $newPassword,
-      },
+      body: $payload,
+      kauth: { grant: { access_token: { content: { sub: 'user-id' } } } }
     }))
-    def('response', () => Promise.resolve())
-    def('validatorResponse', () => Promise.resolve(true))
-    def('subject', () => $subject.updateUserPasswordEndPoint($req, $user))
+
+    def('subject', () => $controller.changePasswordEndPoint($req))
 
     beforeEach(() => {
-      $sandbox.stub(Validator, 'validate').returns($validatorResponse)
-      $sandbox.stub(UserService, 'updateUserPassword').returns($response)
+      $sandbox.stub(Validator, 'validate').resolves(true)
+      $sandbox.stub(UserService, 'changePassword').resolves({ status: 'success' })
     })
 
-    it('calls Validator#validate() with correct args', async () => {
+    it('validates payload and delegates password change', async () => {
       await $subject
-      expect(Validator.validate).to.have.been.calledWith({
-        oldPassword: $oldPassword,
-        newPassword: $newPassword,
-      }, Validator.schemas.updatePassword)
-    })
-
-    context('when Validator#validate() fails', () => {
-      def('validatorResponse', () => Promise.reject(error))
-
-      it(`fails with ${error}`, () => {
-        return expect($subject).to.be.rejectedWith(error)
-      })
-    })
-
-    context('when Validator#validate() succeeds', () => {
-      it('calls UserService.updateUserPassword with correct args', async () => {
-        await $subject
-        expect(UserService.updateUserPassword).to.have.been.calledWith({
-          oldPassword: $oldPassword,
-          newPassword: $newPassword,
-        }, $user, false)
-      })
-
-      context('when UserService#updateUserPassword fails', () => {
-        const error = 'Error!'
-
-        def('response', () => Promise.reject(error))
-
-        it(`fails with "${error}"`, () => {
-          return expect($subject).to.be.rejectedWith(error)
-        })
-      })
-
-      context('when UserService#updateUserPassword succeeds', () => {
-        it(`succeeds`, () => {
-          return expect($subject).to.eventually.equal(undefined)
-        })
-      })
+      expect(Validator.validate).to.have.been.calledWith($payload, Validator.schemas.changePassword)
+      expect(UserService.changePassword).to.have.been.calledWith($req, $payload, false)
     })
   })
 
-  describe('.resetUserPasswordEndPoint()', () => {
-    def('user', () => 'user!')
+  describe('.enrollMfaEndPoint()', () => {
+    def('req', () => ({
+      kauth: { grant: { access_token: { content: { sub: 'user-id' } } } }
+    }))
 
+    def('subject', () => $controller.enrollMfaEndPoint($req))
+
+    beforeEach(() => {
+      $sandbox.stub(UserService, 'enrollMfa').resolves({ secret: 'otp-secret' })
+    })
+
+    it('delegates MFA enrollment to UserService', async () => {
+      await $subject
+      expect(UserService.enrollMfa).to.have.been.calledWith($req, false)
+    })
+  })
+
+  describe('.interactionLoginEndPoint()', () => {
+    def('uid', () => 'interaction-uid')
     def('email', () => 'test@gmail.com')
+    def('password', () => 'testPassword')
 
     def('req', () => ({
-      body: {
-        email: $email,
-      },
+      params: { uid: $uid },
+      body: { email: $email, password: $password }
     }))
-    def('response', () => Promise.resolve())
-    def('subject', () => $subject.resetUserPasswordEndPoint($req))
+
+    def('subject', () => $controller.interactionLoginEndPoint($req))
 
     beforeEach(() => {
-      $sandbox.stub(UserService, 'resetUserPassword').returns($response)
+      $sandbox.stub(Validator, 'validate').resolves(true)
+      $sandbox.stub(UserService, 'interactionLogin').resolves({ status: 'ok' })
     })
 
-    it('calls UserService.resetUserPassword with correct args', async () => {
+    it('validates and submits interaction login', async () => {
       await $subject
-      expect(UserService.resetUserPassword).to.have.been.calledWith({
-        email: $email,
-      }, false)
+      expect(Validator.validate).to.have.been.calledWith($req.body, Validator.schemas.interactionLogin)
+      expect(UserService.interactionLogin).to.have.been.calledWith(
+        $uid,
+        { email: $email, password: $password },
+        false
+      )
+    })
+  })
+
+  describe('.oauthAuthorizeEndPoint()', () => {
+    def('req', () => ({ query: { redirect_uri: 'https://console.example/login' } }))
+    def('subject', () => $controller.oauthAuthorizeEndPoint($req))
+
+    beforeEach(() => {
+      $sandbox.stub(UserService, 'oauthAuthorize').resolves({ redirect: '/oidc/auth' })
     })
 
-    context('when UserService#resetUserPassword fails', () => {
-      const error = 'Error!'
-
-      def('response', () => Promise.reject(error))
-
-      it(`fails with "${error}"`, () => {
-        return expect($subject).to.be.rejectedWith(error)
-      })
-    })
-
-    context('when UserService#resetUserPassword succeeds', () => {
-      it(`succeeds`, () => {
-        return expect($subject).to.eventually.equal(undefined)
-      })
+    it('delegates OAuth authorize to UserService', async () => {
+      await $subject
+      expect(UserService.oauthAuthorize).to.have.been.calledWith($req, false)
     })
   })
 })

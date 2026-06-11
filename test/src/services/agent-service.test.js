@@ -437,7 +437,7 @@ describe('Agent Service', () => {
 
     const expectedFogUpdate = {
       networkInterface: agentConfig.networkInterface,
-      dockerUrl: agentConfig.containerEngineUrl,
+      containerEngineUrl: agentConfig.containerEngineUrl,
       diskLimit: agentConfig.diskLimit,
       diskDirectory: agentConfig.diskDirectory,
       memoryLimit: agentConfig.memoryLimit,
@@ -455,7 +455,7 @@ describe('Agent Service', () => {
       gpsDevice: agentConfig.gpsDevice,
       gpsScanFrequency: agentConfig.gpsScanFrequency,
       edgeGuardFrequency: agentConfig.edgeGuardFrequency,
-      dockerPruningFrequency: agentConfig.pruningFrequency,
+      pruningFrequency: agentConfig.pruningFrequency,
       availableDiskThreshold: agentConfig.availableDiskThreshold,
       logLevel: agentConfig.logLevel,
       timeZone: agentConfig.timeZone

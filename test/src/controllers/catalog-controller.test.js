@@ -61,7 +61,7 @@ describe('Catalog Controller', () => {
     }))
 
     def('response', () => Promise.resolve())
-    def('subject', () => $subject.createCatalogItemEndPoint($req, $user))
+    def('subject', () => $subject.createCatalogItemEndPoint($req))
 
     beforeEach(() => {
       $sandbox.stub(CatalogService, 'createCatalogItemEndPoint').returns($response)
@@ -83,7 +83,7 @@ describe('Catalog Controller', () => {
         inputType: $inputType,
         outputType: $outputType,
         configExample: $configExample,
-      }, $user)
+      })
     })
 
     context('when CatalogService#createCatalogItemEndPoint fails', () => {
@@ -110,7 +110,7 @@ describe('Catalog Controller', () => {
       body: {},
     }))
     def('response', () => Promise.resolve())
-    def('subject', () => $subject.listCatalogItemsEndPoint($req, $user))
+    def('subject', () => $subject.listCatalogItemsEndPoint($req))
 
     beforeEach(() => {
       $sandbox.stub(CatalogService, 'listCatalogItemsEndPoint').returns($response)
@@ -118,7 +118,7 @@ describe('Catalog Controller', () => {
 
     it('calls CatalogService.listCatalogItemsEndPoint with correct args', async () => {
       await $subject
-      expect(CatalogService.listCatalogItemsEndPoint).to.have.been.calledWith($user, false)
+      expect(CatalogService.listCatalogItemsEndPoint).to.have.been.calledWith(false)
     })
 
     context('when CatalogService#listCatalogItemsEndPoint fails', () => {
@@ -150,7 +150,7 @@ describe('Catalog Controller', () => {
     }))
 
     def('response', () => Promise.resolve())
-    def('subject', () => $subject.listCatalogItemEndPoint($req, $user))
+    def('subject', () => $subject.listCatalogItemEndPoint($req))
 
     beforeEach(() => {
       $sandbox.stub(CatalogService, 'getCatalogItemEndPoint').returns($response)
@@ -158,7 +158,7 @@ describe('Catalog Controller', () => {
 
     it('calls CatalogService.getCatalogItemEndPoint with correct args', async () => {
       await $subject
-      expect(CatalogService.getCatalogItemEndPoint).to.have.been.calledWith($id, $user, false)
+      expect(CatalogService.getCatalogItemEndPoint).to.have.been.calledWith($id, false)
     })
 
     context('when CatalogService#getCatalogItemEndPoint fails', () => {
@@ -189,7 +189,7 @@ describe('Catalog Controller', () => {
     }))
 
     def('response', () => Promise.resolve())
-    def('subject', () => $subject.deleteCatalogItemEndPoint($req, $user))
+    def('subject', () => $subject.deleteCatalogItemEndPoint($req))
 
     beforeEach(() => {
       $sandbox.stub(CatalogService, 'deleteCatalogItemEndPoint').returns($response)
@@ -197,7 +197,7 @@ describe('Catalog Controller', () => {
 
     it('calls CatalogService.deleteCatalogItemEndPoint with correct args', async () => {
       await $subject
-      expect(CatalogService.deleteCatalogItemEndPoint).to.have.been.calledWith($id, $user, false)
+      expect(CatalogService.deleteCatalogItemEndPoint).to.have.been.calledWith($id, false)
     })
 
     context('when CatalogService#deleteCatalogItemEndPoint fails', () => {
@@ -272,7 +272,7 @@ describe('Catalog Controller', () => {
     }))
 
     def('response', () => Promise.resolve())
-    def('subject', () => $subject.updateCatalogItemEndPoint($req, $user))
+    def('subject', () => $subject.updateCatalogItemEndPoint($req))
 
     beforeEach(() => {
       $sandbox.stub(CatalogService, 'updateCatalogItemEndPoint').returns($response)
@@ -294,7 +294,7 @@ describe('Catalog Controller', () => {
         inputType: $inputType,
         outputType: $outputType,
         configExample: $configExample,
-      }, $user, false)
+      }, false)
     })
 
     context('when CatalogService.updateCatalogItemEndPoint fails', () => {

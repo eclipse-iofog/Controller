@@ -7,28 +7,41 @@ const AppHelper = require('../../../src/helpers/app-helper')
 const Validator = require('../../../src/schemas')
 const ChangeTrackingService = require('../../../src/services/change-tracking-service')
 const MicroserviceService = require('../../../src/services/microservices-service')
-const Sequelize = require('sequelize')
-const Op = Sequelize.Op
-const ErrorMessages = require('../../../src/helpers/error-messages')
+const NatsAuthService = require('../../../src/services/nats-auth-service')
+const Errors = require('../../../src/helpers/errors')
+
+const transaction = {}
+const isCLI = true
+
+function buildApplicationRecord (fields = {}) {
+  return {
+    id: 42,
+    name: 'my-app',
+    description: 'test app',
+    isActivated: true,
+    isSystem: false,
+    natsAccess: false,
+    natsRuleId: null,
+    ...fields
+  }
+}
+
+function stubCreateApplicationDeps (sandbox, { appId = 25, name = 'test-name' } = {}) {
+  const created = buildApplicationRecord({ id: appId, name })
+
+  sandbox.stub(Validator, 'validate').resolves(true)
+  sandbox.stub(ApplicationManager, 'findOne').resolves(null)
+  sandbox.stub(AppHelper, 'deleteUndefinedFields').callsFake((value) => value)
+  sandbox.stub(ApplicationManager, 'create').resolves(created)
+}
 
 describe('Application Service', () => {
-  def('subject', () => ApplicationService)
+  def('service', () => ApplicationService)
   def('sandbox', () => sinon.createSandbox())
-
-  const isCLI = false
 
   afterEach(() => $sandbox.restore())
 
   describe('.createApplicationEndPoint()', () => {
-    const transaction = {}
-    const error = 'Error!'
-
-    const user = {
-      id: 15,
-    }
-
-    const applicationId = null
-
     const applicationData = {
       name: 'test-name',
       description: 'testDescription',
@@ -36,576 +49,281 @@ describe('Application Service', () => {
       isSystem: false
     }
 
-    const applicationToCreate = {
-      name: applicationData.name,
-      description: applicationData.description,
-      isActivated: applicationData.isActivated,
-      isSystem: applicationData.isSystem,
-      userId: user.id,
-    }
-
-    const response = {
-      name: applicationData.name,
-      id: 25,
-    }
-
-    def('subject', () => $subject.createApplicationEndPoint(applicationData, user, isCLI, transaction))
-    def('validatorResponse', () => Promise.resolve(true))
-    def('findApplicationResponse', () => Promise.resolve())
-    def('deleteUndefinedFieldsResponse', () => applicationToCreate)
-    def('createApplicationResponse', () => Promise.resolve(response))
-
+    def('subject', () => $service.createApplicationEndPoint(applicationData, isCLI, transaction))
 
     beforeEach(() => {
-      $sandbox.stub(Validator, 'validate').returns($validatorResponse)
-      $sandbox.stub(ApplicationManager, 'findOne').returns($findApplicationResponse)
-      $sandbox.stub(AppHelper, 'deleteUndefinedFields').returns($deleteUndefinedFieldsResponse)
-      $sandbox.stub(ApplicationManager, 'create').returns($createApplicationResponse)
+      stubCreateApplicationDeps($sandbox)
     })
 
-    it('calls Validator#validate() with correct args', async () => {
-      await $subject
+    it('validates input and creates an application', async () => {
+      const result = await $subject
       expect(Validator.validate).to.have.been.calledWith(applicationData, Validator.schemas.applicationCreate)
+      expect(ApplicationManager.create).to.have.been.calledOnce
+      expect(result).to.eql({ id: 25, name: 'test-name' })
     })
 
-    context('when Validator#validate() fails', () => {
-      def('validatorResponse', () => Promise.reject(error))
-
-      it(`fails with ${error}`, () => {
-        return expect($subject).to.be.rejectedWith(error)
-      })
+    it('rejects top-level natsAccess (use natsConfig)', () => {
+      const badPayload = { ...applicationData, natsAccess: true }
+      return expect(
+        $service.createApplicationEndPoint(badPayload, isCLI, transaction)
+      ).to.be.rejectedWith('natsAccess must be provided under natsConfig.natsAccess')
     })
 
-    context('when Validator#validate() succeeds', () => {
-      it('calls ApplicationManager#findOne() with correct args', async () => {
-        await $subject
-        const where = applicationId
-          ? { name: applicationData.name, id: { [Op.ne]: applicationId, userId: user.id } }
-          : { name: applicationData.name, userId: user.id }
-
-        expect(ApplicationManager.findOne).to.have.been.calledWith(where, transaction)
-      })
-
-      context('when ApplicationManager#findOne() fails', () => {
-        def('findApplicationResponse', () => Promise.reject(error))
-
-        it(`fails with ${error}`, () => {
-          return expect($subject).to.be.rejectedWith(error)
-        })
-      })
-
-      context('when ApplicationManager#findOne() succeeds', () => {
-        it('calls AppHelper#deleteUndefinedFields() with correct args', async () => {
-          await $subject
-
-          expect(AppHelper.deleteUndefinedFields).to.have.been.calledWith(applicationToCreate)
-        })
-
-        context('when AppHelper#deleteUndefinedFields() fails', () => {
-          def('deleteUndefinedFieldsResponse', () => error)
-
-          it(`fails with ${error}`, () => {
-            return expect($subject).to.eventually.have.property('id')
-          })
-        })
-
-        context('when AppHelper#deleteUndefinedFields() succeeds', () => {
-          it('calls ApplicationManager#create() with correct args', async () => {
-            await $subject
-
-            expect(ApplicationManager.create).to.have.been.calledWith(applicationToCreate)
-          })
-
-          context('when ApplicationManager#create() fails', () => {
-            def('createApplicationResponse', () => error)
-
-            it(`fails with ${error}`, () => {
-              return expect($subject).to.eventually.have.property('id')
-            })
-          })
-
-          context('when ApplicationManager#create() succeeds', () => {
-            it('fulfills the promise', () => {
-              return expect($subject).to.eventually.have.property('id')
-            })
-          })
-        })
-      })
-    })
-
-    context('when there are microservices to deploy', () => {
-      const microservices = [{
-        name: 'test-msvc',
-      },{
-        name: 'test-msvc-2',
-      }]
-      const data = {
-        ...applicationData,
-        microservices
-      }
-
-      def('subject', () => ApplicationService.createApplicationEndPoint(data, user, isCLI, transaction))
+    context('when name already exists', () => {
       beforeEach(() => {
-        $sandbox.stub(MicroserviceService, 'createMicroserviceEndPoint')
+        ApplicationManager.findOne.resolves(buildApplicationRecord({ name: applicationData.name }))
       })
 
-      it('Should create the microservices', async () => {
+      it('rejects with DuplicatePropertyError', () => expect($subject).to.be.rejectedWith(Errors.DuplicatePropertyError))
+    })
+
+    context('when microservices are included', () => {
+      const microservices = [{ name: 'test-msvc' }, { name: 'test-msvc-2' }]
+      const data = { ...applicationData, microservices }
+
+      def('subject', () => $service.createApplicationEndPoint(data, isCLI, transaction))
+
+      beforeEach(() => {
+        $sandbox.stub(MicroserviceService, 'createMicroserviceEndPoint').resolves({ uuid: 'msvc-uuid', name: 'test-msvc' })
+      })
+
+      it('creates each microservice with application name set', async () => {
         await $subject
-        for (const msvcData of microservices) {
-          expect(MicroserviceService.createMicroserviceEndPoint).to.have.been.calledWith({ ...msvcData, application: response.name }, user, isCLI, transaction)
+        for (const msvc of microservices) {
+          expect(MicroserviceService.createMicroserviceEndPoint).to.have.been.calledWith(
+            { ...msvc, application: applicationData.name },
+            isCLI,
+            transaction
+          )
         }
       })
-    })
 
+      context('when microservice creation fails', () => {
+        beforeEach(() => {
+          MicroserviceService.createMicroserviceEndPoint.rejects(new Error('create failed'))
+          $sandbox.stub(ApplicationManager, 'findApplicationMicroservices').resolves([])
+          $sandbox.stub(NatsAuthService, 'deleteAccountForApplication').resolves()
+          $sandbox.stub(ApplicationManager, 'delete').resolves()
+          ApplicationManager.findOne.onFirstCall().resolves(null)
+          ApplicationManager.findOne.onSecondCall().resolves(buildApplicationRecord({ id: 25, name: applicationData.name }))
+        })
+
+        it('rolls back by deleting the application', () => {
+          return expect($subject).to.be.rejectedWith('create failed').then(() => {
+            expect(ApplicationManager.delete).to.have.been.calledWith({ name: applicationData.name }, transaction)
+          })
+        })
+      })
+    })
   })
 
   describe('.deleteApplicationEndPoint()', () => {
-    const transaction = {}
-    const error = 'Error!'
-
-    const user = {
-      id: 15,
-    }
-
     const name = 'my-app'
+    const application = buildApplicationRecord({ name })
+    const microservices = [{ uuid: 'msvc-1', iofogUuid: 'fog-uuid' }]
 
-    const whereObj = {
-      name,
-      userId: user.id,
-    }
-
-    const applicationWithMicroservices = {
-      microservices: [
-        {
-          iofogUuid: 15,
-        },
-      ],
-    }
-
-    def('subject', () => $subject.deleteApplicationEndPoint({ name }, user, isCLI, transaction))
-    def('deleteUndefinedFieldsResponse', () => whereObj)
-    def('findApplicationMicroservicesResponse', () => Promise.resolve(applicationWithMicroservices.microservices))
-    def('updateChangeTrackingResponse', () => Promise.resolve())
-    def('deleteApplicationResponse', () => Promise.resolve())
+    def('subject', () => $service.deleteApplicationEndPoint({ name }, isCLI, transaction))
 
     beforeEach(() => {
-      $sandbox.stub(AppHelper, 'deleteUndefinedFields').returns($deleteUndefinedFieldsResponse)
-      $sandbox.stub(ApplicationManager, 'findApplicationMicroservices').returns($findApplicationMicroservicesResponse)
-      $sandbox.stub(ChangeTrackingService, 'update').returns($updateChangeTrackingResponse)
-      $sandbox.stub(MicroserviceService, 'deleteMicroserviceWithRoutesAndPortMappings')
-      $sandbox.stub(ApplicationManager, 'delete').returns($deleteApplicationResponse)
+      $sandbox.stub(ApplicationManager, 'findOne').resolves(application)
+      $sandbox.stub(AppHelper, 'deleteUndefinedFields').callsFake((value) => value)
+      $sandbox.stub(ApplicationManager, 'findApplicationMicroservices').resolves(microservices)
+      $sandbox.stub(MicroserviceService, 'deleteMicroserviceWithRoutesAndPortMappings').resolves()
+      $sandbox.stub(ChangeTrackingService, 'update').resolves()
+      $sandbox.stub(NatsAuthService, 'deleteAccountForApplication').resolves()
+      $sandbox.stub(ApplicationManager, 'delete').resolves()
     })
 
-    it('calls AppHelper#deleteUndefinedFields() with correct args', async () => {
+    it('deletes microservices, NATS account, and the application', async () => {
       await $subject
-      expect(AppHelper.deleteUndefinedFields).to.have.been.calledWith(whereObj)
+      expect(MicroserviceService.deleteMicroserviceWithRoutesAndPortMappings).to.have.been.calledWith(microservices[0], transaction)
+      expect(NatsAuthService.deleteAccountForApplication).to.have.been.calledWith(application.id, transaction)
+      expect(ApplicationManager.delete).to.have.been.calledWith({ name }, transaction)
     })
 
-    context('when AppHelper#deleteUndefinedFields() fails', () => {
-      def('deleteUndefinedFieldsResponse', () => Promise.reject(error))
-
-      it(`fails with ${error}`, () => {
-        return expect($subject).to.eventually.equal(undefined)
+    context('when application is system', () => {
+      beforeEach(() => {
+        ApplicationManager.findOne.resolves({ ...application, isSystem: true })
       })
+
+      it('rejects with ValidationError', () => expect($subject).to.be.rejectedWith(Errors.ValidationError))
+    })
+  })
+
+  describe('.updateApplicationEndPoint()', () => {
+    const name = 'my-app'
+    const oldApplication = buildApplicationRecord({ name })
+
+    def('subject', () => $service.updateApplicationEndPoint($updateData, name, isCLI, transaction))
+    def('updateData', () => ({ description: 'updated description', isActivated: true }))
+
+    beforeEach(() => {
+      $sandbox.stub(Validator, 'validate').resolves(true)
+      $sandbox.stub(ApplicationManager, 'findOne').callsFake((where) => {
+        if (where && where.name === name && !where.id) {
+          return Promise.resolve(oldApplication)
+        }
+        return Promise.resolve(null)
+      })
+      $sandbox.stub(AppHelper, 'deleteUndefinedFields').callsFake((value) => value)
+      $sandbox.stub(ApplicationManager, 'update').resolves()
     })
 
-    context('when AppHelper#deleteUndefinedFields() succeeds', () => {
-      it('calls ApplicationManager#findApplicationMicroservices() with correct args', async () => {
+    it('updates mutable application fields', async () => {
+      await $subject
+      expect(ApplicationManager.update).to.have.been.calledWith({ id: oldApplication.id }, sinon.match.object, transaction)
+    })
+
+    context('when renaming', () => {
+      def('updateData', () => ({ name: 'new-app-name' }))
+
+      it('rejects rename attempts', () => expect($subject).to.be.rejectedWith('Application Resource Name is immutable'))
+    })
+
+    context('when microservices are included', () => {
+      const existingMsvc = { name: 'test-msvc', uuid: 'msvc-1', iofogUuid: 'fog-1' }
+      const removedMsvc = { name: 'old-msvc', uuid: 'old-uuid', iofogUuid: 'fog-2' }
+      const newMsvc = { name: 'new-msvc' }
+      const updateData = {
+        description: 'updated',
+        microservices: [existingMsvc, newMsvc]
+      }
+
+      def('subject', () => $service.updateApplicationEndPoint(updateData, name, isCLI, transaction))
+
+      beforeEach(() => {
+        $sandbox.stub(ApplicationManager, 'findApplicationMicroservices').resolves([existingMsvc, removedMsvc])
+        $sandbox.stub(MicroserviceService, 'updateMicroserviceEndPoint').resolves({
+          microserviceIofogUuid: 'fog-1',
+          updatedMicroserviceIofogUuid: 'fog-1'
+        })
+        $sandbox.stub(MicroserviceService, 'createMicroserviceEndPoint').resolves({ uuid: 'new-uuid', name: 'new-msvc' })
+        $sandbox.stub(MicroserviceService, 'deleteMicroserviceWithRoutesAndPortMappings').resolves()
+        $sandbox.stub(MicroserviceService, 'updateChangeTracking').resolves()
+        $sandbox.stub(ChangeTrackingService, 'update').resolves()
+      })
+
+      it('updates, creates, and deletes microservices as needed', async () => {
         await $subject
-
-        expect(ApplicationManager.findApplicationMicroservices).to.have.been.calledWith({
-          name,
-        }, transaction)
-      })
-
-      context('when ApplicationManager#findApplicationMicroservices() fails', () => {
-        def('findApplicationMicroservicesResponse', () => Promise.reject(error))
-
-        it(`fails with ${error}`, () => {
-          return expect($subject).to.be.rejectedWith(error)
-        })
-      })
-
-      context('when ApplicationManager#findApplicationMicroservices() succeeds', () => {
-        it('calls ChangeTrackingService#update() with correct args', async () => {
-          await $subject
-
-          expect(ChangeTrackingService.update).to.have.been.calledWith(applicationWithMicroservices.microservices[0].iofogUuid,
-              ChangeTrackingService.events.microserviceFull, transaction)
-        })
-
-        it('should delete microservices with routes and ports', async () => {
-          await $subject
-
-          for (const msvc of applicationWithMicroservices.microservices)
-          expect(MicroserviceService.deleteMicroserviceWithRoutesAndPortMappings).to.have.been.calledWith(msvc, transaction)
-        })
-
-        context('when ChangeTrackingService#update() fails', () => {
-          def('updateChangeTrackingResponse', () => error)
-
-          it(`fails with ${error}`, () => {
-            return expect($subject).to.eventually.equal(undefined)
-          })
-        })
-
-        context('when ChangeTrackingService#update() succeeds', () => {
-          it('calls ApplicationManager#delete() with correct args', async () => {
-            await $subject
-
-            expect(ApplicationManager.delete).to.have.been.calledWith(whereObj, transaction)
-          })
-
-          context('when ApplicationManager#delete() fails', () => {
-            def('deleteApplicationResponse', () => Promise.reject(error))
-
-            it(`fails with ${error}`, () => {
-              return expect($subject).to.be.rejectedWith(error)
-            })
-          })
-
-          context('when ApplicationManager#delete() succeeds', () => {
-            it('fulfills the promise', () => {
-              return expect($subject).to.eventually.equal(undefined)
-            })
-          })
-        })
+        expect(MicroserviceService.updateMicroserviceEndPoint).to.have.been.calledWith(
+          existingMsvc.uuid,
+          { ...existingMsvc, application: name },
+          isCLI,
+          transaction,
+          false
+        )
+        expect(MicroserviceService.createMicroserviceEndPoint).to.have.been.calledWith(
+          { ...newMsvc, application: name },
+          isCLI,
+          transaction
+        )
+        expect(MicroserviceService.deleteMicroserviceWithRoutesAndPortMappings).to.have.been.calledWith(removedMsvc, transaction)
       })
     })
   })
 
+  describe('.patchApplicationEndPoint()', () => {
+    const conditions = { name: 'my-app' }
+    const oldApplication = buildApplicationRecord(conditions)
+    const patchData = { description: 'patched description', isActivated: true }
 
-  describe('.updateApplicationEndPoint()', () => {
-    const transaction = {}
-    const error = 'Error!'
-
-    const user = {
-      id: 15,
-    }
-
-    const name = 'my-app'
-
-    const oldApplicationData = {
-      id: 42,
-      name,
-      description: 'testDescription',
-      isActivated: true,
-      isSystem: false
-    }
-
-    const applicationData = {
-      name: 'new-app-name',
-      description: 'testDescription',
-      isActivated: false,
-      isSystem: true
-    }
-
-    const applicationWithMicroservices = {
-      microservices: [
-        {
-          iofogUuid: 15,
-        },
-      ],
-    }
-
-    def('subject', () => $subject.updateApplicationEndPoint(applicationData, name, user, isCLI, transaction))
-    def('validatorResponse', () => Promise.resolve(true))
-    def('findExcludedApplicationResponse', () => Promise.resolve(oldApplicationData))
-    def('findApplicationResponse', () => Promise.resolve())
-    def('deleteUndefinedFieldsResponse', () => applicationData)
-    def('updateApplicationResponse', () => Promise.resolve({...applicationData, id: oldApplicationData.id}))
-    def('findApplicationMicroservicesResponse', () => Promise.resolve(applicationWithMicroservices.microservices))
-    def('updateChangeTrackingResponse', () => Promise.resolve())
+    def('subject', () => $service.patchApplicationEndPoint($patchData, conditions, isCLI, transaction))
+    def('patchData', () => patchData)
 
     beforeEach(() => {
-      $sandbox.stub(Validator, 'validate').returns($validatorResponse)
-      const stub = $sandbox.stub(ApplicationManager, 'findOne')
-      stub.withArgs({name, userId: user.id}, transaction).returns($findExcludedApplicationResponse)
-      stub.returns($findApplicationResponse)
-      $sandbox.stub(AppHelper, 'deleteUndefinedFields').returns($deleteUndefinedFieldsResponse)
-      $sandbox.stub(ApplicationManager, 'update').returns($updateApplicationResponse)
-      $sandbox.stub(ApplicationManager, 'findApplicationMicroservices').returns($findApplicationMicroservicesResponse)
-      $sandbox.stub(ChangeTrackingService, 'update').returns($updateChangeTrackingResponse)
+      $sandbox.stub(Validator, 'validate').resolves(true)
+      $sandbox.stub(ApplicationManager, 'findOne').resolves(oldApplication)
+      $sandbox.stub(AppHelper, 'deleteUndefinedFields').callsFake((value) => value)
+      $sandbox.stub(ApplicationManager, 'update').resolves()
     })
 
-    it('calls Validator#validate() with correct args', async () => {
+    it('patches application metadata', async () => {
       await $subject
-      expect(Validator.validate).to.have.been.calledWith(applicationData, Validator.schemas.applicationUpdate)
+      expect(Validator.validate).to.have.been.calledWith(patchData, Validator.schemas.applicationPatch)
+      expect(ApplicationManager.update).to.have.been.calledWith({ id: oldApplication.id }, sinon.match.object, transaction)
     })
 
-    context('when Validator#validate() fails', () => {
-      def('validatorResponse', () => Promise.reject(error))
-
-      it(`fails with ${error}`, () => {
-        return expect($subject).to.be.rejectedWith(error)
-      })
-    })
-
-    context('when Validator#validate() succeeds', () => {
-      it('calls ApplicationManager#findOneWithAttributes() with correct args', async () => {
-        await $subject
-        expect(ApplicationManager.findOne).to.have.been.calledWith({ name, userId: user.id }, transaction)
-      })
-
-      context('when ApplicationManager#findOneWithAttributes() fails', () => {
-        def('findExcludedApplicationResponse', () => Promise.reject(error))
-
-        it(`fails with ${error}`, () => {
-          return expect($subject).to.be.rejectedWith(error)
-        })
-      })
-
-      context('when ApplicationManager#findOneWithAttributes() succeeds', () => {
-        it('calls ApplicationManager#findOne() with correct args', async () => {
-          await $subject
-
-          const where = oldApplicationData.id
-            ? { name: applicationData.name, userId: user.id, id: { [Op.ne]: oldApplicationData.id } }
-            : { name: applicationData.name, userId: user.id }
-          expect(ApplicationManager.findOne).to.have.been.calledWith(where, transaction)
-        })
-
-        context('when ApplicationManager#findOne() fails', () => {
-          def('findApplicationResponse', () => Promise.reject(AppHelper.formatMessage(ErrorMessages.DUPLICATE_NAME,
-              applicationData.name)))
-
-          it(`fails with ${error}`, () => {
-            return expect($subject).to.be.rejectedWith(AppHelper.formatMessage(ErrorMessages.DUPLICATE_NAME,
-                applicationData.name))
-          })
-        })
-
-        context('when ApplicationManager#findOne() succeeds', () => {
-          it('calls AppHelper#deleteUndefinedFields() with correct args', async () => {
-            await $subject
-
-            expect(AppHelper.deleteUndefinedFields).to.have.been.calledWith(applicationData)
-          })
-
-          context('when AppHelper#deleteUndefinedFields() fails', () => {
-            def('deleteUndefinedFieldsResponse', () => Promise.reject(error))
-
-            it(`fails with ${error}`, () => {
-              return expect($subject).to.eventually.equal(undefined)
-            })
-          })
-
-          context('when AppHelper#deleteUndefinedFields() succeeds', () => {
-            it('calls ApplicationManager#update() with correct args', async () => {
-              await $subject
-
-              const where = isCLI
-                ? { id: oldApplicationData.id }
-                : { id: oldApplicationData.id, userId: user.id }
-              expect(ApplicationManager.update).to.have.been.calledWith(where, applicationData, transaction)
-            })
-
-            context('when ApplicationManager#update() fails', () => {
-              def('updateApplicationResponse', () => Promise.reject(error))
-
-              it(`fails with ${error}`, () => {
-                return expect($subject).to.be.rejectedWith(error)
-              })
-            })
-
-            context('when ApplicationManager#update() succeeds', () => {
-              it('calls ApplicationManager#findApplicationMicroservices() with correct args', async () => {
-                await $subject
-
-                expect(ApplicationManager.findApplicationMicroservices).to.have.been.calledWith({
-                  name,
-                }, transaction)
-              })
-
-              context('when ApplicationManager#findApplicationMicroservices() fails', () => {
-                def('findApplicationMicroservicesResponse', () => Promise.reject(error))
-
-                it(`fails with ${error}`, () => {
-                  return expect($subject).to.be.rejectedWith(error)
-                })
-              })
-
-              context('when ApplicationManager#findApplicationMicroservices() succeeds', () => {
-                it('calls ChangeTrackingService#update() with correct args', async () => {
-                  await $subject
-
-                  expect(ChangeTrackingService.update).to.have.been.calledWith(applicationWithMicroservices.microservices[0].iofogUuid,
-                      ChangeTrackingService.events.microserviceFull, transaction)
-                })
-
-                context('when ChangeTrackingService#update() fails', () => {
-                  def('updateChangeTrackingResponse', () => error)
-
-                  it(`fails with ${error}`, () => {
-                    return expect($subject).to.eventually.equal(undefined)
-                  })
-                })
-
-                context('when ChangeTrackingService#update() succeeds', () => {
-                  it('fulfills the promise', () => {
-                    return expect($subject).to.eventually.equal(undefined)
-                  })
-                })
-              })
-            })
-          })
-        })
-      })
-    })
-
-
-    context('when there are microservices to update', () => {
-      const newMsvc = { name: 'new-msvc' }
-      const oldMsvc = { name: 'old-msvc', uuid: 'old-msvc-uuid' }
-      const msvcs = [{
-        name: 'test-msvc',
-        uuid: 'msvc-1'
-      },{
-        name: 'test-msvc-2',
-        uuid: 'msvc-2'
-      }]
-      const data = {
-        ...applicationData,
-        microservices: [...msvcs, newMsvc]
-      }
-      const microserviceUuids = {
-        microserviceIofogUuid: 'msvc-1',
-        updatedMicroserviceIofogUuid: 'msvc-2'
-      }
-      def('subject', () => ApplicationService.updateApplicationEndPoint(data, name, user, isCLI, transaction))
-      def('findApplicationMicroservicesResponse', () => Promise.resolve([...msvcs, oldMsvc]))
-      def('updateResponse',() => Promise.resolve(microserviceUuids))
+    context('when application is missing', () => {
       beforeEach(() => {
-        $sandbox.stub(MicroserviceService, 'createMicroserviceEndPoint')
-        $sandbox.stub(MicroserviceService, 'updateMicroserviceEndPoint').returns($updateResponse)
-        $sandbox.stub(MicroserviceService, 'deleteMicroserviceWithRoutesAndPortMappings')
+        ApplicationManager.findOne.resolves(null)
       })
-      it('Should update the microservices', async () => {
-        await $subject
-        for (const msvcData of msvcs) {
-          expect(MicroserviceService.updateMicroserviceEndPoint).to.have.been.calledWith(msvcData.uuid, {...msvcData, application: applicationData.name}, user, isCLI, transaction)
-        }
-        expect(MicroserviceService.createMicroserviceEndPoint).to.have.been.calledWith({ ...newMsvc, application: applicationData.name }, user, isCLI, transaction)
-        expect(MicroserviceService.deleteMicroserviceWithRoutesAndPortMappings).to.have.been.calledWith(oldMsvc, transaction)
-      })
+
+      it('rejects with NotFoundError', () => expect($subject).to.be.rejectedWith(Errors.NotFoundError))
+    })
+
+    context('when renaming', () => {
+      def('patchData', () => ({ name: 'new-name' }))
+
+      it('rejects rename attempts', () => expect($subject).to.be.rejectedWith('Application Resource Name is immutable'))
     })
   })
 
   describe('.getUserApplicationsEndPoint()', () => {
-    const transaction = {}
-    const error = 'Error!'
+    const appRow = buildApplicationRecord()
 
-    const user = {
-      id: 15,
-    }
-
-    const application = {
-      userId: user.id,
-      isSystem: false
-    }
-
-    def('subject', () => $subject.getUserApplicationsEndPoint(user, isCLI, transaction))
-    def('findExcludedApplicationResponse', () => Promise.resolve([]))
+    def('subject', () => $service.getUserApplicationsEndPoint(isCLI, transaction))
 
     beforeEach(() => {
-      $sandbox.stub(ApplicationManager, 'findAllPopulated').returns($findExcludedApplicationResponse)
+      $sandbox.stub(ApplicationManager, 'findAllPopulated').resolves([appRow])
       $sandbox.stub(MicroserviceService, 'buildGetMicroserviceResponse').callsFake(async (m) => m)
     })
 
-    it('calls ApplicationManager#findAllWithAttributes() with correct args', async () => {
-      await $subject
-      const attributes = { exclude: ['created_at', 'updated_at'] }
-      expect(ApplicationManager.findAllPopulated).to.have.been.calledWith(application, attributes, transaction)
-    })
-
-    context('when ApplicationManager#findAllWithAttributes() fails', () => {
-      def('findExcludedApplicationResponse', () => Promise.reject(error))
-
-      it(`fails with ${error}`, () => {
-        return expect($subject).to.be.rejectedWith(error)
-      })
-    })
-
-    context('when ApplicationManager#findAllWithAttributes() succeeds', () => {
-      it('fulfills the promise', () => {
-        return expect($subject).to.eventually.have.property('applications')
-      })
+    it('lists non-system applications', async () => {
+      const result = await $subject
+      expect(ApplicationManager.findAllPopulated).to.have.been.calledWith(
+        { isSystem: false },
+        { exclude: ['created_at', 'updated_at'] },
+        transaction
+      )
+      expect(result.applications).to.have.length(1)
+      expect(result.applications[0].natsConfig).to.eql({ natsAccess: false, natsRule: null })
     })
   })
 
-
   describe('.getAllApplicationsEndPoint()', () => {
-    const transaction = {}
-    const error = 'Error!'
-
-    def('subject', () => $subject.getAllApplicationsEndPoint(isCLI, transaction))
-    def('findAllApplicationsResponse', () => Promise.resolve([]))
+    def('subject', () => $service.getAllApplicationsEndPoint(isCLI, transaction))
 
     beforeEach(() => {
-      $sandbox.stub(ApplicationManager, 'findAllPopulated').returns($findAllApplicationsResponse)
-      $sandbox.stub(MicroserviceService, 'buildGetMicroserviceResponse').callsFake(async (m) => m)
+      $sandbox.stub(ApplicationManager, 'findAllPopulated').resolves([])
     })
 
-    it('calls ApplicationManager#findAllWithAttributes() with correct args', async () => {
+    it('lists all applications', async () => {
       await $subject
-      const attributes = { exclude: ['created_at', 'updated_at'] }
-      expect(ApplicationManager.findAllPopulated).to.have.been.calledWith({}, attributes, transaction)
-    })
-
-    context('when ApplicationManager#findAllWithAttributes() fails', () => {
-      def('findAllApplicationsResponse', () => Promise.reject(error))
-
-      it(`fails with ${error}`, () => {
-        return expect($subject).to.be.rejectedWith(error)
-      })
-    })
-
-    context('when ApplicationManager#findAllWithAttributes() succeeds', () => {
-      it('fulfills the promise', () => {
-        return expect($subject).to.eventually.have.property('applications')
-      })
+      expect(ApplicationManager.findAllPopulated).to.have.been.calledWith(
+        {},
+        { exclude: ['created_at', 'updated_at'] },
+        transaction
+      )
     })
   })
 
   describe('.getApplication()', () => {
-    const transaction = {}
-    const error = 'Error!'
-
     const name = 'my-app'
+    const appRow = buildApplicationRecord({ name })
 
-    const user = {
-      id: 15,
-    }
-
-    def('subject', () => $subject.getApplication({ name }, user, isCLI, transaction))
-    def('findApplicationResponse', () => Promise.resolve({}))
+    def('subject', () => $service.getApplication({ name }, isCLI, transaction))
 
     beforeEach(() => {
-      $sandbox.stub(ApplicationManager, 'findOnePopulated').returns($findApplicationResponse)
+      $sandbox.stub(ApplicationManager, 'findOnePopulated').resolves(appRow)
       $sandbox.stub(MicroserviceService, 'buildGetMicroserviceResponse').callsFake(async (m) => m)
     })
 
-    it('calls ApplicationManager#findOneWithAttributes() with correct args', async () => {
-      await $subject
-      const where = isCLI
-        ? { name }
-        : { name, userId: user.id }
-      const attributes = { exclude: ['created_at', 'updated_at'] }
-      expect(ApplicationManager.findOnePopulated).to.have.been.calledWith(where, attributes, transaction)
+    it('returns application with natsConfig', async () => {
+      const result = await $subject
+      expect(ApplicationManager.findOnePopulated).to.have.been.calledWith(
+        { name, isSystem: false },
+        { exclude: ['created_at', 'updated_at'] },
+        transaction
+      )
+      expect(result.natsConfig).to.eql({ natsAccess: false, natsRule: null })
     })
 
-    context('when ApplicationManager#findOneWithAttributes() fails', () => {
-      def('findApplicationResponse', () => Promise.reject(error))
-
-      it(`fails with ${error}`, () => {
-        return expect($subject).to.be.rejectedWith(error)
+    context('when application is missing', () => {
+      beforeEach(() => {
+        ApplicationManager.findOnePopulated.resolves(null)
       })
-    })
 
-    context('when ApplicationManager#findOneWithAttributes() succeeds', () => {
-      it('fulfills the promise', () => {
-        return expect($subject).to.eventually.deep.equal({})
-      })
+      it('rejects with NotFoundError', () => expect($subject).to.be.rejectedWith(Errors.NotFoundError))
     })
   })
 })

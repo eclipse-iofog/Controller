@@ -34,7 +34,7 @@ describe('Registry Controller', () => {
     }))
 
     def('response', () => Promise.resolve())
-    def('subject', () => $subject.createRegistryEndPoint($req, $user))
+    def('subject', () => $subject.createRegistryEndPoint($req))
 
     beforeEach(() => {
       $sandbox.stub(RegistryService, 'createRegistry').returns($response)
@@ -50,7 +50,7 @@ describe('Registry Controller', () => {
         email: $email,
         requiresCert: $requiresCert,
         certificate: $certificate,
-      }, $user)
+      })
     })
 
     context('when RegistryService#createRegistry fails', () => {
@@ -77,7 +77,7 @@ describe('Registry Controller', () => {
       body: {},
     }))
     def('response', () => Promise.resolve())
-    def('subject', () => $subject.getRegistriesEndPoint($req, $user))
+    def('subject', () => $subject.getRegistriesEndPoint($req))
 
     beforeEach(() => {
       $sandbox.stub(RegistryService, 'findRegistries').returns($response)
@@ -85,7 +85,7 @@ describe('Registry Controller', () => {
 
     it('calls RegistryService.findRegistries with correct args', async () => {
       await $subject
-      expect(RegistryService.findRegistries).to.have.been.calledWith($user, false)
+      expect(RegistryService.findRegistries).to.have.been.calledWith(false)
     })
 
     context('when RegistryService#findRegistries fails', () => {
@@ -115,7 +115,7 @@ describe('Registry Controller', () => {
       },
     }))
     def('response', () => Promise.resolve())
-    def('subject', () => $subject.deleteRegistryEndPoint($req, $user))
+    def('subject', () => $subject.deleteRegistryEndPoint($req))
 
     beforeEach(() => {
       $sandbox.stub(RegistryService, 'deleteRegistry').returns($response)
@@ -125,7 +125,7 @@ describe('Registry Controller', () => {
       await $subject
       expect(RegistryService.deleteRegistry).to.have.been.calledWith({
         id: parseInt($req.params.id),
-      }, $user, false)
+      }, false)
     })
 
     context('when RegistryService#deleteRegistry fails', () => {
@@ -172,7 +172,7 @@ describe('Registry Controller', () => {
       },
     }))
     def('response', () => Promise.resolve())
-    def('subject', () => $subject.updateRegistryEndPoint($req, $user))
+    def('subject', () => $subject.updateRegistryEndPoint($req))
 
     beforeEach(() => {
       $sandbox.stub(RegistryService, 'updateRegistry').returns($response)
@@ -188,7 +188,7 @@ describe('Registry Controller', () => {
         email: $email,
         requiresCert: $requiresCert,
         certificate: $certificate,
-      }, $id, $user, false)
+      }, $id, false)
     })
 
     context('when RegistryService#updateRegistry fails', () => {

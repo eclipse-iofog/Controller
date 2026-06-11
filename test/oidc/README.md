@@ -88,7 +88,7 @@ Point env at any OIDC issuer:
 - `OIDC_ISSUER_URL` — full issuer URL
 - `OIDC_CLIENT_ID` / `OIDC_CLIENT_SECRET` — confidential client
 - `CONTROLLER_PUBLIC_URL` — canonical external URL (issuer host + OAuth callback base)
-- `VIEWER_URL` — SPA base; BFF redirects tokens to `{viewerUrl}/login#accessToken=...`
+- `CONSOLE_URL` — SPA base; BFF redirects tokens to `{consoleUrl}/login#accessToken=...`
 
 Optional auth rate limits (Plan 8.2-4): `AUTH_RATE_LIMIT_ENABLED` (default `true`),
 `AUTH_RATE_LIMIT_MAX_REQUESTS` (default `60`), `AUTH_RATE_LIMIT_WINDOW_MS` (default `60000`).
@@ -116,9 +116,9 @@ middleware (default).
 
 3. **Callback + Viewer handoff** — after IdP redirects to
    `{CONTROLLER_PUBLIC_URL}/api/v3/user/oauth/callback?code=...&state=...`, expect **302** to
-   `{VIEWER_URL}/login#accessToken=...&refreshToken=...` when `VIEWER_URL` is set.
+   `{CONSOLE_URL}/login#accessToken=...&refreshToken=...` when `CONSOLE_URL` is set.
 
-4. **Protected API** — copy `accessToken` from the fragment (or JSON **200** when `VIEWER_URL`
+4. **Protected API** — copy `accessToken` from the fragment (or JSON **200** when `CONSOLE_URL`
    is unset) and call:
 
    ```bash
@@ -144,7 +144,7 @@ Embedded interaction step state (`AuthInteractionStates`) uses the same store mo
 
 ### Two-instance manual procedure
 
-Prerequisites: shared mysql/postgres DB; both instances use identical auth env (`AUTH_MODE`, `CONTROLLER_PUBLIC_URL`, `VIEWER_URL`, `AUTH_SESSION_*`).
+Prerequisites: shared mysql/postgres DB; both instances use identical auth env (`AUTH_MODE`, `CONTROLLER_PUBLIC_URL`, `CONSOLE_URL`, `AUTH_SESSION_*`).
 
 1. Start instance A on port `51121` and instance B on port `51122` (different `SERVER_PORT`).
 
@@ -166,6 +166,6 @@ Prerequisites: shared mysql/postgres DB; both instances use identical auth env (
      "http://localhost:51122/api/v3/user/oauth/callback?code=<code>&state=<state>"
    ```
 
-   Expect **302** to `{VIEWER_URL}/login#accessToken=...` (or JSON **200** when `VIEWER_URL` is unset).
+   Expect **302** to `{CONSOLE_URL}/login#accessToken=...` (or JSON **200** when `CONSOLE_URL` is unset).
 
 5. **Negative control** — with `AUTH_SESSION_STORE_TYPE=memory`, step 4 on a different instance returns **401** (session not found).

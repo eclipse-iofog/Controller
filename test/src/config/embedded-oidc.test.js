@@ -134,12 +134,12 @@ describe('Embedded OIDC issuer', () => {
     expect(db.AuthOidcKey.create.firstCall.args[0].keyMaterialEncrypted).to.be.a('string')
   })
 
-  it('registers the optional ecn-viewer public client when enabled', async () => {
+  it('registers the optional EdgeOps Console public client when enabled', async () => {
     applyOidcEnv({
       AUTH_MODE: 'embedded',
       CONTROLLER_PUBLIC_URL: $publicUrl,
-      AUTH_VIEWER_CLIENT_ENABLED: 'true',
-      OIDC_VIEWER_CLIENT_ID: 'ecn-viewer'
+      AUTH_CONSOLE_CLIENT_ENABLED: 'true',
+      OIDC_CONSOLE_CLIENT_ID: 'ecn-viewer'
     })
 
     const embeddedOidc = reloadEmbeddedOidcModule()

@@ -5,481 +5,269 @@ const RegistryManager = require('../../../src/data/managers/registry-manager')
 const RegistryService = require('../../../src/services/registry-service')
 const Validator = require('../../../src/schemas')
 const AppHelper = require('../../../src/helpers/app-helper')
-const ioFogManager = require('../../../src/data/managers/iofog-manager')
+const FogManager = require('../../../src/data/managers/iofog-manager')
 const ChangeTrackingService = require('../../../src/services/change-tracking-service')
-const Sequelize = require('sequelize')
-const Op = Sequelize.Op
+const MicroserviceManager = require('../../../src/data/managers/microservice-manager')
+const SecretHelper = require('../../../src/helpers/secret-helper')
+const ErrorMessages = require('../../../src/helpers/error-messages')
+const Errors = require('../../../src/helpers/errors')
+
+const transaction = {}
+const isCLI = true
+
+function buildRegistryRecord (fields = {}) {
+  return {
+    id: 16,
+    url: 'https://registry.example.com',
+    username: 'user',
+    password: 'encrypted-secret',
+    isPublic: false,
+    userEmail: 'user@example.com',
+    ...fields
+  }
+}
+
+function stubChangeTrackingDeps (sandbox, { fogUuid = 'fog-uuid' } = {}) {
+  sandbox.stub(FogManager, 'findAll').resolves([{ uuid: fogUuid }])
+  sandbox.stub(ChangeTrackingService, 'update').resolves()
+}
 
 describe('Registry Service', () => {
-  def('subject', () => RegistryService)
+  def('service', () => RegistryService)
   def('sandbox', () => sinon.createSandbox())
-
-  const isCLI = false
 
   afterEach(() => $sandbox.restore())
 
   describe('.createRegistry()', () => {
-    const transaction = {}
-    const error = 'Error!'
-
-    const user = {
-      id: 15,
-    }
-
-    const registry = {
-      url: 'testUrl',
-      username: 'testUsername',
-      password: 'testPassword',
+    const registryData = {
+      url: 'https://registry.example.com',
+      username: 'user',
+      password: 'plain-password',
       isPublic: false,
-      userEmail: 'testEmail',
-      requiresCert: false,
-      certificate: 'testCertificate',
-      userId: user.id,
+      email: 'user@example.com'
     }
+    const created = buildRegistryRecord({ id: 16, password: 'plain-password' })
 
-    const registryCreate = {
-      url: registry.url,
-      username: registry.username,
-      password: registry.password,
-      isPublic: registry.isPublic,
-      userEmail: registry.email,
-      requiresCert: registry.requiresCert,
-      certificate: registry.certificate,
-      userId: user.id,
-    }
-
-    const ioFogs = [{
-      uuid: 'testUuid',
-    }]
-
-    def('subject', () => $subject.createRegistry(registry, user, transaction))
-    def('validatorResponse', () => Promise.resolve(true))
-    def('deleteUndefinedFieldsResponse', () => registryCreate)
-    def('createRegistryResponse', () => Promise.resolve({
-      id: 16,
-    }))
-    def('findIoFogsResponse', () => Promise.resolve(ioFogs))
-    def('updateChangeTrackingResponse', () => Promise.resolve())
+    def('subject', () => $service.createRegistry(registryData, transaction))
 
     beforeEach(() => {
-      $sandbox.stub(Validator, 'validate').returns($validatorResponse)
-      $sandbox.stub(AppHelper, 'deleteUndefinedFields').returns($deleteUndefinedFieldsResponse)
-      $sandbox.stub(RegistryManager, 'create').returns($createRegistryResponse)
-      $sandbox.stub(ioFogManager, 'findAll').returns($findIoFogsResponse)
-      $sandbox.stub(ChangeTrackingService, 'update').returns($updateChangeTrackingResponse)
+      $sandbox.stub(Validator, 'validate').resolves(true)
+      $sandbox.stub(AppHelper, 'deleteUndefinedFields').callsFake((value) => value)
+      $sandbox.stub(RegistryManager, 'create').resolves(created)
+      $sandbox.stub(SecretHelper, 'encryptSecret').resolves('encrypted-password')
+      $sandbox.stub(RegistryManager, 'update').resolves()
+      stubChangeTrackingDeps($sandbox)
     })
 
-    it('calls Validator#validate() with correct args', async () => {
-      await $subject
-      expect(Validator.validate).to.have.been.calledWith(registry, Validator.schemas.registryCreate)
+    it('validates input, encrypts password, and returns registry id', async () => {
+      const result = await $subject
+      expect(Validator.validate).to.have.been.calledWith(registryData, Validator.schemas.registryCreate)
+      expect(RegistryManager.create).to.have.been.calledWithMatch({
+        url: registryData.url,
+        username: registryData.username,
+        userEmail: registryData.email
+      }, transaction)
+      expect(SecretHelper.encryptSecret).to.have.been.calledWith(
+        { value: registryData.password },
+        'registry-16',
+        'registry'
+      )
+      expect(ChangeTrackingService.update).to.have.been.calledWith(
+        'fog-uuid',
+        ChangeTrackingService.events.registries,
+        transaction
+      )
+      expect(result).to.eql({ id: 16 })
     })
 
-    context('when Validator#validate() fails', () => {
-      def('validatorResponse', () => Promise.reject(error))
+    context('when password is empty', () => {
+      def('registryData', () => ({
+        url: 'https://registry.example.com',
+        username: 'user',
+        password: '',
+        isPublic: true
+      }))
+      def('subject', () => $service.createRegistry($registryData, transaction))
 
-      it(`fails with ${error}`, () => {
-        return expect($subject).to.be.rejectedWith(error)
+      beforeEach(() => {
+        RegistryManager.create.resolves(buildRegistryRecord({ id: 17, password: '' }))
       })
-    })
 
-    context('when Validator#validate() succeeds', () => {
-      it('calls AppHelper#deleteUndefinedFields() with correct args', async () => {
+      it('skips password encryption', async () => {
         await $subject
-        expect(AppHelper.deleteUndefinedFields).to.have.been.calledWith(registryCreate)
-      })
-
-      context('when AppHelper#deleteUndefinedFields() fails', () => {
-        def('deleteUndefinedFieldsResponse', () => error)
-
-        it(`fails with ${error}`, () => {
-          return expect($subject).to.eventually.have.property('id')
-        })
-      })
-
-      context('when AppHelper#deleteUndefinedFields() succeeds', () => {
-        it('calls RegistryManager#create() with correct args', async () => {
-          await $subject
-          expect(RegistryManager.create).to.have.been.calledWith(registryCreate, transaction)
-        })
-
-        context('when RegistryManager#create() fails', () => {
-          def('createRegistryResponse', () => Promise.reject(error))
-
-          it(`fails with ${error}`, () => {
-            return expect($subject).to.be.rejectedWith(error)
-          })
-        })
-
-        context('when RegistryManager#create() succeeds', () => {
-          it('calls ioFogManager#findAll() with correct args', async () => {
-            await $subject
-            expect(ioFogManager.findAll).to.have.been.calledWith({
-              userId: user.id,
-            }, transaction)
-          })
-
-          context('when ioFogManager#findAll() fails', () => {
-            def('findIoFogsResponse', () => Promise.reject(error))
-
-            it(`fails with ${error}`, () => {
-              return expect($subject).to.be.rejectedWith(error)
-            })
-          })
-
-          context('when ioFogManager#findAll() succeeds', () => {
-            it('calls ChangeTrackingService#update() with correct args', async () => {
-              await $subject
-              expect(ChangeTrackingService.update).to.have.been.calledWith(ioFogs[0].uuid,
-                  ChangeTrackingService.events.registries, transaction)
-            })
-
-            context('when ChangeTrackingService#update() fails', () => {
-              def('findIoFogsResponse', () => Promise.reject(error))
-
-              it(`fails with ${error}`, () => {
-                return expect($subject).to.be.rejectedWith(error)
-              })
-            })
-
-            context('when ChangeTrackingService#update() succeeds', () => {
-              it('fulfills the promise', () => {
-                return expect($subject).to.eventually.have.property('id')
-              })
-            })
-          })
-        })
+        expect(SecretHelper.encryptSecret).to.not.have.been.called
+        expect(RegistryManager.update).to.not.have.been.called
       })
     })
   })
 
   describe('.findRegistries()', () => {
-    const transaction = {}
-    const error = 'Error!'
+    const registries = [buildRegistryRecord()]
 
-    const user = {
-      id: 15,
-    }
-
-    const queryRegistry = isCLI
-      ? {}
-      : {
-        [Op.or]:
-          [
-            {
-              userId: user.id,
-            },
-            {
-              isPublic: true,
-            },
-          ],
-      }
-    const attributes = { exclude: ['password'] }
-    def('subject', () => $subject.findRegistries(user, isCLI, transaction))
-    def('findRegistriesResponse', () => Promise.resolve([]))
+    def('subject', () => $service.findRegistries(isCLI, transaction))
 
     beforeEach(() => {
-      $sandbox.stub(RegistryManager, 'findAllWithAttributes').returns($findRegistriesResponse)
+      $sandbox.stub(RegistryManager, 'findAllWithAttributes').resolves(registries)
     })
 
-    it('calls RegistryManager#findAllWithAttributes() with correct args', async () => {
-      await $subject
-      expect(RegistryManager.findAllWithAttributes).to.have.been.calledWith(queryRegistry, attributes, transaction)
-    })
-
-    context('when RegistryManager#findAllWithAttributes() fails', () => {
-      def('findRegistriesResponse', () => Promise.reject(error))
-
-      it(`fails with ${error}`, () => {
-        return expect($subject).to.be.rejectedWith(error)
-      })
-    })
-
-    context('when RegistryManager#findAllWithAttributes() succeeds', () => {
-      it('fulfills the promise', () => {
-        return expect($subject).to.eventually.have.property('registries')
-      })
+    it('returns registries without password field', async () => {
+      const result = await $subject
+      expect(RegistryManager.findAllWithAttributes).to.have.been.calledWith(
+        {},
+        { exclude: ['password'] },
+        transaction
+      )
+      expect(result.registries).to.equal(registries)
     })
   })
 
   describe('.deleteRegistry()', () => {
-    const transaction = {}
-    const error = 'Error!'
+    const registryId = 16
+    const registry = buildRegistryRecord({ id: registryId })
 
-    const user = {
-      id: 15,
-    }
-
-    const registryData = {
-      id: 5,
-    }
-
-    const queryData = isCLI
-      ? { id: registryData.id }
-      : { id: registryData.id, userId: user.id }
-
-    const ioFogs = [{
-      uuid: 'testUuid',
-    }]
-
-    def('subject', () => $subject.deleteRegistry(registryData, user, isCLI, transaction))
-    def('validatorResponse', () => Promise.resolve(true))
-    def('findRegistryResponse', () => Promise.resolve({
-      userId: user.id,
-    }))
-    def('deleteRegistryResponse', () => Promise.resolve())
-    def('findIoFogsResponse', () => Promise.resolve(ioFogs))
-    def('updateChangeTrackingResponse', () => Promise.resolve())
+    def('subject', () => $service.deleteRegistry({ id: registryId }, isCLI, transaction))
 
     beforeEach(() => {
-      $sandbox.stub(Validator, 'validate').returns($validatorResponse)
-      $sandbox.stub(RegistryManager, 'findOne').returns($findRegistryResponse)
-      $sandbox.stub(RegistryManager, 'delete').returns($deleteRegistryResponse)
-      $sandbox.stub(ioFogManager, 'findAll').returns($findIoFogsResponse)
-      $sandbox.stub(ChangeTrackingService, 'update').returns($updateChangeTrackingResponse)
+      $sandbox.stub(Validator, 'validate').resolves(true)
+      $sandbox.stub(RegistryManager, 'findOne').resolves(registry)
+      $sandbox.stub(MicroserviceManager, 'findAllWithStatuses').resolves([])
+      $sandbox.stub(RegistryManager, 'delete').resolves()
+      stubChangeTrackingDeps($sandbox)
     })
 
-    it('calls Validator#validate() with correct args', async () => {
+    it('deletes an unused registry', async () => {
       await $subject
-      expect(Validator.validate).to.have.been.calledWith(registryData, Validator.schemas.registryDelete)
+      expect(RegistryManager.delete).to.have.been.calledWith({ id: registryId }, transaction)
+      expect(ChangeTrackingService.update).to.have.been.called
     })
 
-    context('when Validator#validate() fails', () => {
-      def('validatorResponse', () => Promise.reject(error))
-
-      it(`fails with ${error}`, () => {
-        return expect($subject).to.be.rejectedWith(error)
-      })
+    it('rejects system registry ids', () => {
+      return expect($service.deleteRegistry({ id: 1 }, isCLI, transaction))
+        .to.be.rejectedWith(ErrorMessages.REGISTRY_IS_SYSTEM)
     })
 
-    context('when Validator#validate() succeeds', () => {
-      it('calls RegistryManager#findOne() with correct args', async () => {
-        await $subject
-        expect(RegistryManager.findOne).to.have.been.calledWith(queryData, transaction)
+    context('when registry is missing', () => {
+      beforeEach(() => {
+        RegistryManager.findOne.resolves(null)
       })
 
-      context('when RegistryManager#findOne() fails', () => {
-        def('findRegistryResponse', () => Promise.reject(error))
+      it('rejects with NotFoundError', () => expect($subject).to.be.rejectedWith(Errors.NotFoundError))
+    })
 
-        it(`fails with ${error}`, () => {
-          return expect($subject).to.be.rejectedWith(error)
-        })
+    context('when registry is in use', () => {
+      beforeEach(() => {
+        MicroserviceManager.findAllWithStatuses.resolves([{ uuid: 'msvc-uuid' }])
       })
 
-      context('when RegistryManager#findOne() succeeds', () => {
-        it('calls RegistryManager#delete() with correct args', async () => {
-          await $subject
-          expect(RegistryManager.delete).to.have.been.calledWith(queryData, transaction)
-        })
-
-        context('when RegistryManager#delete() fails', () => {
-          def('deleteRegistryResponse', () => Promise.reject(error))
-
-          it(`fails with ${error}`, () => {
-            return expect($subject).to.be.rejectedWith(error)
-          })
-        })
-
-        context('when RegistryManager#delete() succeeds', () => {
-          it('calls ioFogManager#findAll() with correct args', async () => {
-            await $subject
-            expect(ioFogManager.findAll).to.have.been.calledWith({
-              userId: user.id,
-            }, transaction)
-          })
-
-          context('when ioFogManager#findAll() fails', () => {
-            def('findIoFogsResponse', () => Promise.reject(error))
-
-            it(`fails with ${error}`, () => {
-              return expect($subject).to.be.rejectedWith(error)
-            })
-          })
-
-          context('when ioFogManager#findAll() succeeds', () => {
-            it('calls ChangeTrackingService#update() with correct args', async () => {
-              await $subject
-              expect(ChangeTrackingService.update).to.have.been.calledWith(ioFogs[0].uuid,
-                  ChangeTrackingService.events.registries, transaction)
-            })
-
-            context('when ChangeTrackingService#update() fails', () => {
-              def('findIoFogsResponse', () => Promise.reject(error))
-
-              it(`fails with ${error}`, () => {
-                return expect($subject).to.be.rejectedWith(error)
-              })
-            })
-
-            context('when ChangeTrackingService#update() succeeds', () => {
-              it('fulfills the promise', () => {
-                return expect($subject).to.eventually.equal(undefined)
-              })
-            })
-          })
-        })
-      })
+      it('rejects with ValidationError', () => expect($subject).to.be.rejectedWith(ErrorMessages.REGISTRY_IS_IN_USE))
     })
   })
 
   describe('.updateRegistry()', () => {
-    const transaction = {}
-    const error = 'Error!'
+    const registryId = 16
+    const existing = buildRegistryRecord({ id: registryId })
+    const updateData = { url: 'https://new-registry.example.com', username: 'new-user' }
 
-    const user = {
-      id: 15,
-    }
-
-    const registryId = 5
-
-    const registry = {
-      url: 'testUrl',
-      username: 'testUsername',
-      password: 'testPassword',
-      isPublic: false,
-      userEmail: 'testEmail',
-      requiresCert: false,
-      certificate: 'testCertificate',
-      userId: user.id,
-    }
-
-    const registryUpdate = {
-      url: registry.url,
-      username: registry.username,
-      password: registry.password,
-      isPublic: registry.isPublic,
-      userEmail: registry.email,
-      requiresCert: registry.requiresCert,
-      certificate: registry.certificate,
-    }
-
-    const ioFogs = [{
-      uuid: 'testUuid',
-    }]
-
-    const where = isCLI ?
-      {
-        id: registryId,
-      }
-      :
-      {
-        id: registryId,
-        userId: user.id,
-      }
-
-    def('subject', () => $subject.updateRegistry(registry, registryId, user, isCLI, transaction))
-    def('validatorResponse', () => Promise.resolve(true))
-    def('findRegistryResponse', () => Promise.resolve({}))
-    def('deleteUndefinedFieldsResponse', () => registryUpdate)
-    def('updateRegistryResponse', () => Promise.resolve())
-    def('findIoFogsResponse', () => Promise.resolve(ioFogs))
-    def('updateChangeTrackingResponse', () => Promise.resolve())
+    def('subject', () => $service.updateRegistry(updateData, registryId, isCLI, transaction))
 
     beforeEach(() => {
-      $sandbox.stub(Validator, 'validate').returns($validatorResponse)
-      $sandbox.stub(RegistryManager, 'findOne').returns($findRegistryResponse)
-      $sandbox.stub(AppHelper, 'deleteUndefinedFields').returns($deleteUndefinedFieldsResponse)
-      $sandbox.stub(RegistryManager, 'update').returns($updateRegistryResponse)
-      $sandbox.stub(ioFogManager, 'findAll').returns($findIoFogsResponse)
-      $sandbox.stub(ChangeTrackingService, 'update').returns($updateChangeTrackingResponse)
+      $sandbox.stub(Validator, 'validate').resolves(true)
+      $sandbox.stub(RegistryManager, 'findOne').resolves(existing)
+      $sandbox.stub(AppHelper, 'deleteUndefinedFields').callsFake((value) => value)
+      $sandbox.stub(RegistryManager, 'update').resolves()
+      $sandbox.stub(MicroserviceManager, 'findAllWithStatuses').resolves([])
+      stubChangeTrackingDeps($sandbox)
     })
 
-    it('calls Validator#validate() with correct args', async () => {
+    it('updates registry metadata', async () => {
       await $subject
-      expect(Validator.validate).to.have.been.calledWith(registry, Validator.schemas.registryUpdate)
+      expect(RegistryManager.update).to.have.been.calledWith(
+        { id: registryId },
+        sinon.match({ url: updateData.url, username: updateData.username }),
+        transaction
+      )
+      expect(ChangeTrackingService.update).to.have.been.calledWith(
+        'fog-uuid',
+        ChangeTrackingService.events.registries,
+        transaction
+      )
     })
 
-    context('when Validator#validate() fails', () => {
-      def('validatorResponse', () => Promise.reject(error))
+    it('rejects system registry ids', () => {
+      return expect($service.updateRegistry(updateData, 2, isCLI, transaction))
+        .to.be.rejectedWith(ErrorMessages.REGISTRY_IS_SYSTEM)
+    })
 
-      it(`fails with ${error}`, () => {
-        return expect($subject).to.be.rejectedWith(error)
+    context('when registry is missing', () => {
+      beforeEach(() => {
+        RegistryManager.findOne.resolves(null)
       })
+
+      it('rejects with NotFoundError', () => expect($subject).to.be.rejectedWith(ErrorMessages.REGISTRY_NOT_FOUND))
     })
 
-    context('when Validator#validate() succeeds', () => {
-      it('calls RegistryManager#findOne() with correct args', async () => {
+    context('when microservices use the registry', () => {
+      const microservice = { uuid: 'msvc-uuid', iofogUuid: 'fog-uuid' }
+
+      beforeEach(() => {
+        MicroserviceManager.findAllWithStatuses.resolves([microservice])
+        $sandbox.stub(MicroserviceManager, 'updateAndFind').resolves(microservice)
+      })
+
+      it('marks microservices for rebuild and updates change tracking', async () => {
         await $subject
-        expect(RegistryManager.findOne).to.have.been.calledWith({
-          id: registryId,
-        }, transaction)
+        expect(MicroserviceManager.updateAndFind).to.have.been.calledWith(
+          { uuid: microservice.uuid },
+          { rebuild: true },
+          transaction
+        )
+        expect(ChangeTrackingService.update).to.have.been.calledWith(
+          microservice.iofogUuid,
+          ChangeTrackingService.events.microserviceCommon,
+          transaction
+        )
+      })
+    })
+
+    context('when password is cleared and vault reference exists', () => {
+      beforeEach(() => {
+        RegistryManager.findOne.resolves({ ...existing, password: 'vault:ref' })
+        $sandbox.stub(SecretHelper, 'isVaultReference').returns(true)
+        $sandbox.stub(SecretHelper, 'deleteSecret').resolves()
       })
 
-      context('when RegistryManager#findOne() fails', () => {
-        def('findRegistryResponse', () => Promise.reject(error))
+      def('updateData', () => ({ password: '' }))
+      def('subject', () => $service.updateRegistry($updateData, registryId, isCLI, transaction))
 
-        it(`fails with ${error}`, () => {
-          return expect($subject).to.be.rejectedWith(error)
-        })
+      it('deletes the stored secret', async () => {
+        await $subject
+        expect(SecretHelper.deleteSecret).to.have.been.calledWith('registry-16', 'registry')
+      })
+    })
+  })
+
+  describe('.getRegistry()', () => {
+    const registryId = 16
+    const registry = buildRegistryRecord({ id: registryId })
+
+    def('subject', () => $service.getRegistry(registryId, isCLI, transaction))
+
+    beforeEach(() => {
+      $sandbox.stub(RegistryManager, 'findOne').resolves(registry)
+    })
+
+    it('returns the registry record', async () => {
+      const result = await $subject
+      expect(RegistryManager.findOne).to.have.been.calledWith({ id: registryId }, transaction)
+      expect(result).to.equal(registry)
+    })
+
+    context('when registry is missing', () => {
+      beforeEach(() => {
+        RegistryManager.findOne.resolves(null)
       })
 
-      context('when RegistryManager#findOne() succeeds', () => {
-        it('calls AppHelper#deleteUndefinedFields() with correct args', async () => {
-          await $subject
-          expect(AppHelper.deleteUndefinedFields).to.have.been.calledWith(registryUpdate)
-        })
-
-        context('when AppHelper#deleteUndefinedFields() fails', () => {
-          def('deleteUndefinedFieldsResponse', () => error)
-
-          it(`fails with ${error}`, () => {
-            return expect($subject).to.eventually.equal(undefined)
-          })
-        })
-
-        context('when AppHelper#deleteUndefinedFields() succeeds', () => {
-          it('calls RegistryManager#update() with correct args', async () => {
-            await $subject
-            expect(RegistryManager.update).to.have.been.calledWith(where, registryUpdate, transaction)
-          })
-
-          context('when RegistryManager#update() fails', () => {
-            def('updateRegistryResponse', () => Promise.reject(error))
-
-            it(`fails with ${error}`, () => {
-              return expect($subject).to.be.rejectedWith(error)
-            })
-          })
-
-          context('when RegistryManager#update() succeeds', () => {
-            it('calls ioFogManager#findAll() with correct args', async () => {
-              await $subject
-              expect(ioFogManager.findAll).to.have.been.calledWith({
-                userId: user.id,
-              }, transaction)
-            })
-
-            context('when ioFogManager#findAll() fails', () => {
-              def('findIoFogsResponse', () => Promise.reject(error))
-
-              it(`fails with ${error}`, () => {
-                return expect($subject).to.be.rejectedWith(error)
-              })
-            })
-
-            context('when ioFogManager#findAll() succeeds', () => {
-              it('calls ChangeTrackingService#update() with correct args', async () => {
-                await $subject
-                expect(ChangeTrackingService.update).to.have.been.calledWith(ioFogs[0].uuid,
-                    ChangeTrackingService.events.registries, transaction)
-              })
-
-              context('when ChangeTrackingService#update() fails', () => {
-                def('findIoFogsResponse', () => Promise.reject(error))
-
-                it(`fails with ${error}`, () => {
-                  return expect($subject).to.be.rejectedWith(error)
-                })
-              })
-
-              context('when ChangeTrackingService#update() succeeds', () => {
-                it('fulfills the promise', () => {
-                  return expect($subject).to.eventually.equal(undefined)
-                })
-              })
-            })
-          })
-        })
-      })
+      it('rejects with NotFoundError', () => expect($subject).to.be.rejectedWith(Errors.NotFoundError))
     })
   })
 })
