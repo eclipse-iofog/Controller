@@ -14,7 +14,6 @@
 const { test } = require('./test')
 const { cliTest } = require('./cli-tests')
 const { coverage } = require('./coverage')
-const { postmanTest } = require('./postmantest')
 
 switch (process.argv[2]) {
   case 'test': {
@@ -29,9 +28,6 @@ switch (process.argv[2]) {
     break
   case 'coverage':
     coverage()
-    break
-  case 'postmantest':
-    postmanTest()
     break
   default:
     console.log('no script for this command')
