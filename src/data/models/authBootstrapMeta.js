@@ -18,6 +18,11 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING(36),
       allowNull: true,
       field: 'bootstrap_admin_user_id'
+    },
+    sessionSecretRef: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      field: 'session_secret_ref'
     }
   }, {
     tableName: 'AuthBootstrapMeta',

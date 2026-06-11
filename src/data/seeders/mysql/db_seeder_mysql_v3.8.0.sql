@@ -63,7 +63,7 @@ INSERT IGNORE INTO AuthPolicy (
     refresh_rotation,
     max_concurrent_sessions
 )
-VALUES (1, 12, true, true, true, 0, 5, 5, 15, 900, 604800, true, NULL);
+VALUES (1, 12, true, true, true, 0, 5, 5, 15, 900, 3600, true, NULL);
 
 INSERT IGNORE INTO AuthGroups (name, is_system)
 VALUES

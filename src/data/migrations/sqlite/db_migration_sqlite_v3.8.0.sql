@@ -1082,10 +1082,31 @@ CREATE INDEX idx_auth_oidc_provider_states_uid ON AuthOidcProviderStates (uid);
 CREATE INDEX idx_auth_oidc_provider_states_user_code ON AuthOidcProviderStates (user_code);
 CREATE INDEX idx_auth_oidc_provider_states_expires_at ON AuthOidcProviderStates (expires_at);
 
+CREATE TABLE IF NOT EXISTS AuthBffSessions (
+    sid VARCHAR(255) PRIMARY KEY NOT NULL,
+    data TEXT NOT NULL,
+    expires_at DATETIME NOT NULL,
+    created_at DATETIME,
+    updated_at DATETIME
+);
+
+CREATE INDEX idx_auth_bff_sessions_expires_at ON AuthBffSessions (expires_at);
+
+CREATE TABLE IF NOT EXISTS AuthInteractionStates (
+    uid VARCHAR(255) PRIMARY KEY NOT NULL,
+    payload TEXT NOT NULL,
+    expires_at DATETIME NOT NULL,
+    created_at DATETIME,
+    updated_at DATETIME
+);
+
+CREATE INDEX idx_auth_interaction_states_expires_at ON AuthInteractionStates (expires_at);
+
 CREATE TABLE IF NOT EXISTS AuthBootstrapMeta (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     completed_at DATETIME,
     bootstrap_admin_user_id VARCHAR(36),
+    session_secret_ref TEXT,
     created_at DATETIME,
     updated_at DATETIME,
     FOREIGN KEY (bootstrap_admin_user_id) REFERENCES AuthUsers (id) ON DELETE SET NULL
@@ -1102,7 +1123,7 @@ CREATE TABLE IF NOT EXISTS AuthPolicy (
     max_failed_attempts INT DEFAULT 5,
     lockout_duration_minutes INT DEFAULT 15,
     access_token_ttl_seconds INT DEFAULT 900,
-    refresh_token_ttl_seconds INT DEFAULT 604800,
+    refresh_token_ttl_seconds INT DEFAULT 3600,
     refresh_rotation BOOLEAN DEFAULT true,
     max_concurrent_sessions INT,
     created_at DATETIME,
