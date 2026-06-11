@@ -2,28 +2,15 @@
 
 const db = require('../data/models')
 const { withTransaction } = require('../helpers/app-helper')
-
-const DEFAULT_POLICY = {
-  minPasswordLength: 12,
-  requireUppercase: true,
-  requireLowercase: true,
-  requireDigit: true,
-  passwordMaxAgeDays: 0,
-  passwordHistoryCount: 5,
-  maxFailedAttempts: 5,
-  lockoutDurationMinutes: 15,
-  accessTokenTtlSeconds: 900,
-  refreshTokenTtlSeconds: 604800,
-  refreshRotation: true,
-  maxConcurrentSessions: null
-}
+const { applyTokenTtlOverrides } = require('../config/auth-token-ttl')
+const { DEFAULT_POLICY } = require('../config/auth-policy-defaults')
 
 async function getPolicy (transaction) {
   const policy = await db.AuthPolicy.findByPk(1, withTransaction(transaction))
   if (!policy) {
-    return { ...DEFAULT_POLICY }
+    return applyTokenTtlOverrides({ ...DEFAULT_POLICY })
   }
-  return policy.get({ plain: true })
+  return applyTokenTtlOverrides(policy.get({ plain: true }))
 }
 
 function isAccountLocked (user, policy) {
