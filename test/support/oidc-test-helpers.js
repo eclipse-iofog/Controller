@@ -1,11 +1,12 @@
 const OIDC_ENV_KEYS = [
+  'AUTH_MODE',
+  'CONTROLLER_PUBLIC_URL',
   'OIDC_ISSUER_URL',
   'OIDC_CLIENT_ID',
   'OIDC_CLIENT_SECRET',
-  'OIDC_VIEWER_CLIENT_ID'
+  'OIDC_VIEWER_CLIENT_ID',
+  'AUTH_VIEWER_CLIENT_ENABLED'
 ]
-
-let savedTlsRejectUnauthorized
 
 function snapshotOidcEnv () {
   return OIDC_ENV_KEYS.reduce((env, key) => {
@@ -32,20 +33,6 @@ function applyOidcEnv (env = {}) {
       process.env[key] = env[key]
     }
   }
-}
-
-function enableMockOidcTls () {
-  savedTlsRejectUnauthorized = process.env.NODE_TLS_REJECT_UNAUTHORIZED
-  process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
-}
-
-function restoreMockOidcTls () {
-  if (savedTlsRejectUnauthorized === undefined) {
-    delete process.env.NODE_TLS_REJECT_UNAUTHORIZED
-  } else {
-    process.env.NODE_TLS_REJECT_UNAUTHORIZED = savedTlsRejectUnauthorized
-  }
-  savedTlsRejectUnauthorized = undefined
 }
 
 function reloadOidcModule () {
@@ -85,8 +72,6 @@ module.exports = {
   snapshotOidcEnv,
   restoreOidcEnv,
   applyOidcEnv,
-  enableMockOidcTls,
-  restoreMockOidcTls,
   reloadOidcModule,
   runMiddleware
 }

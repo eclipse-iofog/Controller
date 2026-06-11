@@ -1,48 +1,41 @@
 const { expect } = require('chai')
 const sinon = require('sinon')
 
-const config = require('../../../src/config')
-const { MockOidcProvider } = require('../../support/mock-oidc-provider')
 const {
   snapshotOidcEnv,
-  restoreOidcEnv,
-  applyOidcEnv,
-  enableMockOidcTls,
-  restoreMockOidcTls,
-  reloadOidcModule
-} = require('../../support/oidc-test-helpers')
-
-function reloadUserServiceModule () {
-  const userServicePath = require.resolve('../../../src/services/user-service')
-  delete require.cache[userServicePath]
-  return require('../../../src/services/user-service')
-}
+  DEFAULT_TEST_PASSWORD,
+  createEmbeddedAuthHarness,
+  teardownEmbeddedAuth,
+  applyEmbeddedEnv,
+  reloadAuthModules
+} = require('../../support/embedded-auth-harness')
+const { applyOidcEnv, reloadOidcModule } = require('../../support/oidc-test-helpers')
 
 describe('User service OIDC', () => {
   def('sandbox', () => sinon.createSandbox())
   def('envSnapshot', () => snapshotOidcEnv())
-  def('provider', () => new MockOidcProvider())
+  def('harness', async () => createEmbeddedAuthHarness($sandbox))
 
   beforeEach(async () => {
-    enableMockOidcTls()
-    await $provider.start()
-    applyOidcEnv($provider.getEnv())
-    reloadOidcModule()
+    await $harness
   })
 
-  afterEach(async () => {
+  afterEach(() => {
     $sandbox.restore()
-    restoreOidcEnv($envSnapshot)
-    restoreMockOidcTls()
-    await $provider.stop()
+    teardownEmbeddedAuth($envSnapshot)
   })
 
-  describe('login()', () => {
-    it('returns access and refresh tokens from the issuer token endpoint', async () => {
-      const UserService = reloadUserServiceModule()
-      const result = await UserService.login({
-        email: $provider.username,
-        password: $provider.password
+  describe('embedded login()', () => {
+    it('returns access and refresh tokens for valid credentials', async () => {
+      const { store, modules } = await $harness
+      await store.seedUser({
+        email: 'viewer@example.com',
+        groupNames: ['viewer']
+      })
+
+      const result = await modules.UserService.login({
+        email: 'viewer@example.com',
+        password: DEFAULT_TEST_PASSWORD
       }, false)
 
       expect(result.accessToken).to.be.a('string').that.is.not.empty
@@ -50,10 +43,15 @@ describe('User service OIDC', () => {
     })
 
     it('throws InvalidCredentialsError for bad password', async () => {
-      const UserService = reloadUserServiceModule()
+      const { store, modules } = await $harness
+      await store.seedUser({
+        email: 'viewer@example.com',
+        groupNames: ['viewer']
+      })
+
       try {
-        await UserService.login({
-          email: $provider.username,
+        await modules.UserService.login({
+          email: 'viewer@example.com',
           password: 'wrong-password'
         }, false)
         expect.fail('expected login to fail')
@@ -63,15 +61,20 @@ describe('User service OIDC', () => {
     })
   })
 
-  describe('refresh()', () => {
+  describe('embedded refresh()', () => {
     it('returns a new access token for a valid refresh token', async () => {
-      const UserService = reloadUserServiceModule()
-      const loginResult = await UserService.login({
-        email: $provider.username,
-        password: $provider.password
+      const { store, modules } = await $harness
+      await store.seedUser({
+        email: 'viewer@example.com',
+        groupNames: ['viewer']
+      })
+
+      const loginResult = await modules.UserService.login({
+        email: 'viewer@example.com',
+        password: DEFAULT_TEST_PASSWORD
       }, false)
 
-      const refreshResult = await UserService.refresh({
+      const refreshResult = await modules.UserService.refresh({
         refreshToken: loginResult.refreshToken
       }, false)
 
@@ -80,34 +83,45 @@ describe('User service OIDC', () => {
     })
   })
 
-  describe('profile()', () => {
-    it('returns userinfo claims for a valid bearer token', async () => {
-      const UserService = reloadUserServiceModule()
-      const loginResult = await UserService.login({
-        email: $provider.username,
-        password: $provider.password
+  describe('embedded profile()', () => {
+    it('returns JWT claims for a valid bearer token', async () => {
+      const { store, modules } = await $harness
+      await store.seedUser({
+        email: 'viewer@example.com',
+        groupNames: ['viewer']
+      })
+
+      const loginResult = await modules.UserService.login({
+        email: 'viewer@example.com',
+        password: DEFAULT_TEST_PASSWORD
       }, false)
 
-      const profile = await UserService.profile({
+      const profile = await modules.UserService.profile({
         headers: {
           authorization: `Bearer ${loginResult.accessToken}`
         }
       }, false)
 
-      expect(profile.preferred_username).to.equal($provider.username)
-      expect(profile.email).to.equal(`${$provider.username}@example.com`)
+      expect(profile.preferred_username).to.equal('viewer@example.com')
+      expect(profile.email).to.equal('viewer@example.com')
+      expect(profile.groups).to.deep.equal(['viewer'])
     })
   })
 
-  describe('logout()', () => {
-    it('returns success after best-effort token revocation', async () => {
-      const UserService = reloadUserServiceModule()
-      const loginResult = await UserService.login({
-        email: $provider.username,
-        password: $provider.password
+  describe('embedded logout()', () => {
+    it('returns success after revoking refresh tokens', async () => {
+      const { store, modules } = await $harness
+      await store.seedUser({
+        email: 'viewer@example.com',
+        groupNames: ['viewer']
+      })
+
+      const loginResult = await modules.UserService.login({
+        email: 'viewer@example.com',
+        password: DEFAULT_TEST_PASSWORD
       }, false)
 
-      const result = await UserService.logout({
+      const result = await modules.UserService.logout({
         headers: {
           authorization: `Bearer ${loginResult.accessToken}`
         }
@@ -117,29 +131,23 @@ describe('User service OIDC', () => {
     })
   })
 
-  describe('dev mode without auth config', () => {
+  describe('without auth config', () => {
     beforeEach(() => {
       applyOidcEnv({})
       reloadOidcModule()
     })
 
-    it('returns mock tokens when auth is not configured', async () => {
-      const originalGet = config.get.bind(config)
-      $sandbox.stub(config, 'get').callsFake((key, defaultValue) => {
-        if (key === 'server.devMode') {
-          return true
-        }
-        return originalGet(key, defaultValue)
-      })
-
-      const UserService = reloadUserServiceModule()
-      const result = await UserService.login({
-        email: 'dev@example.com',
-        password: 'password'
-      }, false)
-
-      expect(result.accessToken).to.equal('mock-access-token')
-      expect(result.refreshToken).to.equal('mock-refresh-token')
+    it('throws when auth is not configured', async () => {
+      const { UserService } = reloadAuthModules()
+      try {
+        await UserService.login({
+          email: 'dev@example.com',
+          password: 'password'
+        }, false)
+        expect.fail('expected login to fail')
+      } catch (error) {
+        expect(error.message).to.include('Auth is not configured')
+      }
     })
   })
 })

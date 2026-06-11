@@ -1,67 +1,86 @@
-# OIDC mock provider (Plan 8)
+# Embedded auth dev smoke (Plan 8.1)
 
-Generic OIDC smoke path for dev and CI. Replaces the legacy `MockKeycloak` dev shim with a
-provider-agnostic mock that exercises the same discovery + JWKS + bearer validation flow as
-production.
+Local smoke path for embedded identity: Controller issues tokens from the in-process `/oidc`
+issuer and validates Bearer JWTs via local JWKS. No mock OIDC provider.
 
-## Unit tests
+## Unit / integration tests
 
-OIDC and RBAC middleware tests live under:
+Auth tests live under:
 
 - `test/src/config/oidc.test.js`
+- `test/src/config/embedded-oidc.test.js`
+- `test/src/services/auth-login.test.js`
+- `test/src/services/auth-integration.test.js`
+- `test/src/services/user-service-oidc.test.js`
 - `test/src/lib/rbac/middleware-oidc.test.js`
-- `test/src/support/mock-oidc-smoke.test.js`
+- `test/src/support/embedded-auth-smoke.test.js`
 
-Run only OIDC-related tests:
+Run OIDC-related tests:
 
 ```bash
 nvm use 24
-node ./node_modules/mocha/bin/mocha.js test/src/config/oidc.test.js test/src/lib/rbac/middleware-oidc.test.js test/src/support/mock-oidc-smoke.test.js --require test/support/setup.js --ui bdd-lazy-var/global --grep 'OIDC|Mock OIDC' --exit
+node ./node_modules/mocha/bin/mocha.js \
+  test/src/config/oidc.test.js \
+  test/src/config/embedded-oidc.test.js \
+  test/src/services/auth-login.test.js \
+  test/src/services/auth-integration.test.js \
+  test/src/services/user-service-oidc.test.js \
+  test/src/lib/rbac/middleware-oidc.test.js \
+  test/src/support/embedded-auth-smoke.test.js \
+  --require test/support/setup.js \
+  --ui bdd-lazy-var/global \
+  --grep 'OIDC|Embedded auth|RBAC middleware OIDC' \
+  --exit
 ```
 
-## Local dev smoke
+Test harness: `test/support/embedded-auth-harness.js` (in-memory auth store + embedded JWKS).
 
-1. Start the mock issuer:
+## Local dev smoke (embedded mode)
 
-   ```bash
-   node test/oidc/run-mock-provider.js
-   ```
-
-2. Export the printed `OIDC_*` variables in the shell where you run Controller.
-
-3. Ensure `server.devMode` is true (default in `config.yaml`) or set auth in yaml — the mock
-   env vars take precedence over an empty auth block.
-
-4. For the self-signed mock cert, also run:
+1. Print recommended env:
 
    ```bash
-   export NODE_TLS_REJECT_UNAUTHORIZED=0
+   node test/oidc/run-embedded-smoke.js
    ```
 
-5. Start Controller (`npm run start-dev`) and call a RBAC-protected route with:
+2. Export the printed variables in the shell where you run Controller.
+
+3. For HTTP-only local runs, also set:
 
    ```bash
-   curl -H "Authorization: Bearer <token>" http://localhost:51121/api/v3/...
+   export AUTH_INSECURE_ALLOW_HTTP=true
    ```
 
-   Issue a token from Node (example):
+4. Start Controller:
 
-   ```javascript
-   const { MockOidcProvider } = require('./test/support/mock-oidc-provider')
-   const p = new MockOidcProvider({ clientId: '...', clientSecret: '...' })
-   await p.start()
-   const token = await p.issueAccessToken({ preferred_username: 'smoke-user', roles: ['sre'] })
+   ```bash
+   npm run start-dev
    ```
 
-6. Without a bearer token, protected routes should return `401`. With a valid token, RBAC
-   applies from `rbac-resources.yaml` and RoleBindings as before.
+5. Login (bootstrap admin on first boot):
 
-## Real provider smoke
+   ```bash
+   curl -s -X POST http://localhost:51121/api/v3/user/login \
+     -H "Content-Type: application/json" \
+     -d '{"email":"admin@example.com","password":"ChangeMeSecure123!"}'
+   ```
 
-Point the same env vars at any OIDC issuer (Keycloak, Auth0, etc.):
+6. Call a protected route with the returned `accessToken`:
 
-- `OIDC_ISSUER_URL` — issuer URL (discovery document at `/.well-known/openid-configuration`)
-- `OIDC_CLIENT_ID` — confidential client for Controller API
-- `OIDC_CLIENT_SECRET` — client secret
+   ```bash
+   curl -H "Authorization: Bearer <accessToken>" http://localhost:51121/api/v3/user/profile
+   ```
 
-No Keycloak-specific env vars are required.
+7. Admin accounts require MFA to be enrolled before login succeeds (except **bootstrap admin** with `isBootstrap: true`). Login accepts optional `totp` on the same request; missing or invalid MFA returns **401**. Enroll/confirm via Bearer on `/user/mfa/enroll` and `/user/mfa/confirm`.
+
+## External IdP smoke
+
+Point env at any OIDC issuer:
+
+- `AUTH_MODE=external`
+- `OIDC_ISSUER_URL` — full issuer URL
+- `OIDC_CLIENT_ID` / `OIDC_CLIENT_SECRET` — confidential client
+- `CONTROLLER_PUBLIC_URL` — canonical external URL
+
+Embedded-only routes (`/api/v3/users`, migration export, JWKS rotate) return **501** in
+external mode.

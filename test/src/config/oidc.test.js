@@ -2,13 +2,15 @@ const { expect } = require('chai')
 const sinon = require('sinon')
 
 const config = require('../../../src/config')
-const { MockOidcProvider } = require('../../support/mock-oidc-provider')
 const {
   snapshotOidcEnv,
-  restoreOidcEnv,
+  applyEmbeddedEnv,
+  applyExternalEnv,
+  createEmbeddedAuthHarness,
+  teardownEmbeddedAuth
+} = require('../../support/embedded-auth-harness')
+const {
   applyOidcEnv,
-  enableMockOidcTls,
-  restoreMockOidcTls,
   reloadOidcModule,
   runMiddleware
 } = require('../../support/oidc-test-helpers')
@@ -16,42 +18,57 @@ const {
 describe('OIDC config', () => {
   def('sandbox', () => sinon.createSandbox())
   def('envSnapshot', () => snapshotOidcEnv())
-  def('provider', () => new MockOidcProvider())
+  def('harness', async () => createEmbeddedAuthHarness($sandbox))
 
-  beforeEach(async () => {
-    enableMockOidcTls()
-    await $provider.start()
+  afterEach(() => {
+    $sandbox.restore()
+    teardownEmbeddedAuth($envSnapshot)
   })
 
-  afterEach(async () => {
-    $sandbox.restore()
-    restoreOidcEnv($envSnapshot)
-    restoreMockOidcTls()
-    await $provider.stop()
+  describe('getAuthMode()', () => {
+    it('defaults to embedded when AUTH_MODE is unset', () => {
+      applyOidcEnv({})
+      const oidc = reloadOidcModule()
+      expect(oidc.getAuthMode()).to.equal('embedded')
+    })
+
+    it('throws for an invalid AUTH_MODE value', () => {
+      applyOidcEnv({ AUTH_MODE: 'keycloak' })
+      const oidc = reloadOidcModule()
+      expect(() => oidc.getAuthMode()).to.throw('Invalid auth.mode')
+    })
   })
 
   describe('isAuthConfigured()', () => {
-    it('returns false when OIDC env vars are unset', () => {
+    it('returns false when embedded mode has no public URL', () => {
       applyOidcEnv({})
       const oidc = reloadOidcModule()
       expect(oidc.isAuthConfigured()).to.equal(false)
     })
 
-    it('returns true when issuer, client id, and secret are set', () => {
-      applyOidcEnv($provider.getEnv())
+    it('returns true in embedded mode when CONTROLLER_PUBLIC_URL is set', () => {
+      applyEmbeddedEnv()
+      const oidc = reloadOidcModule()
+      expect(oidc.isAuthConfigured()).to.equal(true)
+    })
+
+    it('returns true in external mode when issuer, client id, and secret are set', () => {
+      applyExternalEnv()
       const oidc = reloadOidcModule()
       expect(oidc.isAuthConfigured()).to.equal(true)
     })
   })
 
-  describe('initOidc() dev mode', () => {
-    it('uses pass-through middleware when auth is not configured', async () => {
+  describe('initOidc() without auth config', () => {
+    it('initializes without bearer validation when auth is not configured in dev mode', async () => {
       applyOidcEnv({})
       const oidc = reloadOidcModule()
       oidc.initOidc()
 
       const result = await runMiddleware(oidc.getOidcMiddleware(), {
-        headers: {}
+        headers: {
+          authorization: 'Bearer some-token'
+        }
       })
 
       expect(result.nextCalled).to.equal(true)
@@ -77,36 +94,41 @@ describe('OIDC config', () => {
     })
   })
 
-  describe('getOidcMiddleware() with mock issuer', () => {
-    beforeEach(() => {
-      applyOidcEnv($provider.getEnv())
+  describe('getOidcMiddleware() with embedded issuer', () => {
+    beforeEach(async () => {
+      await $harness
     })
 
     it('populates req.kauth for a valid bearer token', async () => {
-      const oidc = reloadOidcModule()
-      oidc.initOidc()
-      const token = await $provider.issueAccessToken({
-        preferred_username: 'alice',
-        roles: ['SRE']
+      const { store, modules } = await $harness
+      await store.seedUser({
+        email: 'alice@example.com',
+        groupNames: ['sre']
       })
 
-      const result = await runMiddleware(oidc.getOidcMiddleware(), {
+      const loginResult = await modules.UserService.login({
+        email: 'alice@example.com',
+        password: require('../../support/embedded-auth-harness').DEFAULT_TEST_PASSWORD
+      }, false)
+
+      modules.oidc.initOidc()
+      const result = await runMiddleware(modules.oidc.getOidcMiddleware(), {
         headers: {
-          authorization: `Bearer ${token}`
+          authorization: `Bearer ${loginResult.accessToken}`
         }
       })
 
       expect(result.nextCalled).to.equal(true)
-      expect(result.req.kauth.grant.access_token.token).to.equal(token)
-      expect(result.req.kauth.grant.access_token.content.preferred_username).to.equal('alice')
-      expect(result.req.kauth.grant.access_token.content.roles).to.deep.equal(['SRE'])
+      expect(result.req.kauth.grant.access_token.token).to.equal(loginResult.accessToken)
+      expect(result.req.kauth.grant.access_token.content.preferred_username).to.equal('alice@example.com')
+      expect(result.req.kauth.grant.access_token.content.groups).to.deep.equal(['sre'])
     })
 
     it('leaves req.kauth unset for an invalid bearer token', async () => {
-      const oidc = reloadOidcModule()
-      oidc.initOidc()
+      const { modules } = await $harness
+      modules.oidc.initOidc()
 
-      const result = await runMiddleware(oidc.getOidcMiddleware(), {
+      const result = await runMiddleware(modules.oidc.getOidcMiddleware(), {
         headers: {
           authorization: 'Bearer not-a-valid-jwt'
         }
@@ -117,10 +139,10 @@ describe('OIDC config', () => {
     })
 
     it('passes through when Authorization header is missing', async () => {
-      const oidc = reloadOidcModule()
-      oidc.initOidc()
+      const { modules } = await $harness
+      modules.oidc.initOidc()
 
-      const result = await runMiddleware(oidc.getOidcMiddleware(), {
+      const result = await runMiddleware(modules.oidc.getOidcMiddleware(), {
         headers: {}
       })
 
@@ -129,10 +151,10 @@ describe('OIDC config', () => {
     })
 
     it('skips OIDC validation for agent routes', async () => {
-      const oidc = reloadOidcModule()
-      oidc.initOidc()
+      const { modules } = await $harness
+      modules.oidc.initOidc()
 
-      const result = await runMiddleware(oidc.getOidcMiddleware(), {
+      const result = await runMiddleware(modules.oidc.getOidcMiddleware(), {
         path: '/api/v3/agent/status',
         headers: {
           authorization: 'Bearer not-an-oidc-token'

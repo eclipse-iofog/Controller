@@ -3,13 +3,14 @@ const sinon = require('sinon')
 
 const authorizer = require('../../../../src/lib/rbac/authorizer')
 const rbacMiddleware = require('../../../../src/lib/rbac/middleware')
-const { MockOidcProvider } = require('../../../support/mock-oidc-provider')
 const {
   snapshotOidcEnv,
-  restoreOidcEnv,
+  createEmbeddedAuthHarness,
+  teardownEmbeddedAuth,
+  EMBEDDED_CLIENT_ID
+} = require('../../../support/embedded-auth-harness')
+const {
   applyOidcEnv,
-  enableMockOidcTls,
-  restoreMockOidcTls,
   reloadOidcModule,
   runMiddleware
 } = require('../../../support/oidc-test-helpers')
@@ -17,18 +18,15 @@ const {
 describe('RBAC middleware OIDC integration', () => {
   def('sandbox', () => sinon.createSandbox())
   def('envSnapshot', () => snapshotOidcEnv())
-  def('provider', () => new MockOidcProvider())
+  def('harness', async () => createEmbeddedAuthHarness($sandbox))
 
   beforeEach(async () => {
-    enableMockOidcTls()
-    await $provider.start()
+    await $harness
   })
 
-  afterEach(async () => {
+  afterEach(() => {
     $sandbox.restore()
-    restoreOidcEnv($envSnapshot)
-    restoreMockOidcTls()
-    await $provider.stop()
+    teardownEmbeddedAuth($envSnapshot)
   })
 
   describe('extractSubjects()', () => {
@@ -53,7 +51,11 @@ describe('RBAC middleware OIDC integration', () => {
     })
 
     it('extracts Keycloak-style resource_access roles for the configured client', () => {
-      applyOidcEnv($provider.getEnv())
+      applyOidcEnv({
+        AUTH_MODE: 'embedded',
+        CONTROLLER_PUBLIC_URL: 'https://controller.test',
+        OIDC_CLIENT_ID: EMBEDDED_CLIENT_ID
+      })
       reloadOidcModule()
 
       const req = {
@@ -63,7 +65,7 @@ describe('RBAC middleware OIDC integration', () => {
               content: {
                 preferred_username: 'bob',
                 resource_access: {
-                  [$provider.clientId]: {
+                  [EMBEDDED_CLIENT_ID]: {
                     roles: ['Viewer']
                   }
                 }
@@ -127,19 +129,22 @@ describe('RBAC middleware OIDC integration', () => {
       expect($res.statusCode).to.equal(null)
     })
 
-    it('authorizes catalog routes using subjects from OIDC bearer tokens', async () => {
-      applyOidcEnv($provider.getEnv())
-      const oidc = reloadOidcModule()
-      oidc.initOidc()
-
-      const token = await $provider.issueAccessToken({
-        preferred_username: 'alice',
-        roles: ['SRE']
+    it('authorizes catalog routes using subjects from embedded bearer tokens', async () => {
+      const { store, modules } = await $harness
+      await store.seedUser({
+        email: 'alice@example.com',
+        groupNames: ['sre']
       })
 
-      const middlewareResult = await runMiddleware(oidc.getOidcMiddleware(), {
+      const loginResult = await modules.UserService.login({
+        email: 'alice@example.com',
+        password: require('../../../support/embedded-auth-harness').DEFAULT_TEST_PASSWORD
+      }, false)
+
+      modules.oidc.initOidc()
+      const middlewareResult = await runMiddleware(modules.oidc.getOidcMiddleware(), {
         headers: {
-          authorization: `Bearer ${token}`
+          authorization: `Bearer ${loginResult.accessToken}`
         }
       })
 
