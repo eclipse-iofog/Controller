@@ -25,6 +25,7 @@ const AuthLoginService = require('./auth-login-service')
 const AuthMfaService = require('./auth-mfa-service')
 const AuthUserService = require('./auth-user-service')
 const AuthOauthService = require('./auth-oauth-service')
+const AuthInteractionService = require('./auth-interaction-service')
 
 function mapOidcError (error) {
   const description = error.error_description || error.message || 'Invalid credentials'
@@ -194,6 +195,48 @@ const oauthCallback = async function (req, isCLI, transaction) {
   return AuthOauthService.callback(req)
 }
 
+const interactionStatus = async function (uid, isCLI, transaction) {
+  ensureAuthConfigured()
+  ensureEmbeddedMode()
+  return AuthInteractionService.getStatus(uid, transaction)
+}
+
+const interactionLogin = async function (uid, credentials, isCLI, transaction) {
+  ensureAuthConfigured()
+  ensureEmbeddedMode()
+  return AuthInteractionService.submitLogin(uid, credentials, transaction)
+}
+
+const interactionMfa = async function (uid, code, isCLI, transaction) {
+  ensureAuthConfigured()
+  ensureEmbeddedMode()
+  return AuthInteractionService.submitMfa(uid, code, transaction)
+}
+
+const interactionEnroll = async function (uid, isCLI, transaction) {
+  ensureAuthConfigured()
+  ensureEmbeddedMode()
+  return AuthInteractionService.submitEnroll(uid, transaction)
+}
+
+const interactionConfirmEnroll = async function (uid, code, isCLI, transaction) {
+  ensureAuthConfigured()
+  ensureEmbeddedMode()
+  return AuthInteractionService.submitConfirmEnroll(uid, code, transaction)
+}
+
+const interactionChangePassword = async function (uid, payload, isCLI, transaction) {
+  ensureAuthConfigured()
+  ensureEmbeddedMode()
+  return AuthInteractionService.submitChangePassword(uid, payload, transaction)
+}
+
+const interactionComplete = async function (uid, req, res, isCLI, transaction) {
+  ensureAuthConfigured()
+  ensureEmbeddedMode()
+  return AuthInteractionService.complete(uid, req, res, transaction)
+}
+
 module.exports = {
   login: TransactionDecorator.generateTransaction(login),
   refresh: TransactionDecorator.generateTransaction(refresh),
@@ -204,5 +247,12 @@ module.exports = {
   disableMfa: TransactionDecorator.generateTransaction(disableMfa),
   changePassword: TransactionDecorator.generateTransaction(changePassword),
   oauthAuthorize: TransactionDecorator.generateTransaction(oauthAuthorize),
-  oauthCallback: TransactionDecorator.generateTransaction(oauthCallback)
+  oauthCallback: TransactionDecorator.generateTransaction(oauthCallback),
+  interactionStatus: TransactionDecorator.generateTransaction(interactionStatus),
+  interactionLogin: TransactionDecorator.generateTransaction(interactionLogin),
+  interactionMfa: TransactionDecorator.generateTransaction(interactionMfa),
+  interactionEnroll: TransactionDecorator.generateTransaction(interactionEnroll),
+  interactionConfirmEnroll: TransactionDecorator.generateTransaction(interactionConfirmEnroll),
+  interactionChangePassword: TransactionDecorator.generateTransaction(interactionChangePassword),
+  interactionComplete: TransactionDecorator.generateTransaction(interactionComplete)
 }

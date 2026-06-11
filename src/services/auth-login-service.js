@@ -58,7 +58,8 @@ async function profile (req, transaction) {
     sub: claims.sub,
     email: claims.email,
     preferred_username: claims.preferred_username,
-    groups: claims.groups || []
+    groups: claims.groups || [],
+    password_change_required: claims.password_change_required === true
   }
 }
 

@@ -1,7 +1,7 @@
 'use strict'
 
 const crypto = require('crypto')
-const { SignJWT } = require('jose')
+const { SignJWT, jwtVerify } = require('jose')
 const db = require('../data/models')
 const { getOidcSettings } = require('../config/oidc')
 const AuthJwks = require('../config/auth-jwks')
@@ -9,12 +9,32 @@ const { getPolicy } = require('./auth-policy-service')
 const { withTransaction } = require('../helpers/app-helper')
 const Errors = require('../helpers/errors')
 
-function hashRefreshToken (token) {
-  return crypto.createHash('sha256').update(token).digest('hex')
+const PASSWORD_CHANGE_REQUIRED_CLAIM = 'password_change_required'
+const ACCESS_TOKEN_USE = 'access'
+const REFRESH_TOKEN_USE = 'refresh'
+
+function buildUserAccessClaims (user, groupNames) {
+  const identifier = user.email
+  const claims = {
+    preferred_username: identifier,
+    groups: groupNames,
+    token_use: ACCESS_TOKEN_USE
+  }
+  if (String(identifier).includes('@')) {
+    claims.email = identifier
+  }
+  if (user.mustChangePassword) {
+    claims[PASSWORD_CHANGE_REQUIRED_CLAIM] = true
+  }
+  return claims
 }
 
-function createOpaqueRefreshToken () {
-  return crypto.randomBytes(32).toString('base64url')
+function hashTokenJti (jti) {
+  return crypto.createHash('sha256').update(jti).digest('hex')
+}
+
+function hashRefreshToken (value) {
+  return hashTokenJti(value)
 }
 
 async function issueAccessToken (user, groupNames, policy, transaction) {
@@ -22,11 +42,9 @@ async function issueAccessToken (user, groupNames, policy, transaction) {
   const { kid, signingKey } = await AuthJwks.getActiveSigningMaterial(transaction)
   const ttlSeconds = policy.accessTokenTtlSeconds || 900
 
-  return new SignJWT({
-    preferred_username: user.email,
-    email: user.email,
-    groups: groupNames
-  })
+  const claims = buildUserAccessClaims(user, groupNames)
+
+  return new SignJWT(claims)
     .setProtectedHeader({ alg: 'RS256', kid })
     .setSubject(user.id)
     .setIssuer(issuerUrl)
@@ -36,10 +54,10 @@ async function issueAccessToken (user, groupNames, policy, transaction) {
     .sign(signingKey)
 }
 
-async function persistRefreshToken (userId, refreshToken, familyId, policy, transaction) {
-  const ttlSeconds = policy.refreshTokenTtlSeconds || 604800
+async function persistRefreshToken (userId, jti, familyId, policy, transaction) {
+  const ttlSeconds = policy.refreshTokenTtlSeconds || 3600
   await db.AuthRefreshToken.create({
-    tokenHash: hashRefreshToken(refreshToken),
+    tokenHash: hashTokenJti(jti),
     userId,
     familyId,
     expiresAt: new Date(Date.now() + ttlSeconds * 1000),
@@ -47,19 +65,63 @@ async function persistRefreshToken (userId, refreshToken, familyId, policy, tran
   }, withTransaction(transaction))
 }
 
+async function issueRefreshToken (user, familyId, policy, transaction) {
+  const { issuerUrl, clientId } = getOidcSettings()
+  const { kid, signingKey } = await AuthJwks.getActiveSigningMaterial(transaction)
+  const jti = crypto.randomUUID()
+  const ttlSeconds = policy.refreshTokenTtlSeconds || 3600
+
+  const refreshToken = await new SignJWT({
+    token_use: REFRESH_TOKEN_USE,
+    family_id: familyId
+  })
+    .setProtectedHeader({ alg: 'RS256', kid })
+    .setSubject(user.id)
+    .setIssuer(issuerUrl)
+    .setAudience(clientId)
+    .setJti(jti)
+    .setIssuedAt()
+    .setExpirationTime(`${ttlSeconds}s`)
+    .sign(signingKey)
+
+  await persistRefreshToken(user.id, jti, familyId, policy, transaction)
+  return refreshToken
+}
+
 async function issueTokenPair (user, groupNames, transaction) {
   const policy = await getPolicy(transaction)
-  const accessToken = await issueAccessToken(user, groupNames, policy, transaction)
-  const refreshToken = createOpaqueRefreshToken()
   const familyId = crypto.randomUUID()
-
-  await persistRefreshToken(user.id, refreshToken, familyId, policy, transaction)
+  const accessToken = await issueAccessToken(user, groupNames, policy, transaction)
+  const refreshToken = await issueRefreshToken(user, familyId, policy, transaction)
 
   return { accessToken, refreshToken }
 }
 
-async function findValidRefreshToken (refreshToken, transaction) {
-  const tokenHash = hashRefreshToken(refreshToken)
+async function verifyRefreshJwt (refreshToken, transaction) {
+  const { issuerUrl, clientId } = getOidcSettings()
+  const { signingKey } = await AuthJwks.getActiveSigningMaterial(transaction)
+  const verifyOptions = { issuer: issuerUrl }
+  if (clientId) {
+    verifyOptions.audience = clientId
+  }
+
+  let payload
+  try {
+    const result = await jwtVerify(refreshToken, signingKey, verifyOptions)
+    payload = result.payload
+  } catch (error) {
+    throw new Errors.InvalidCredentialsError()
+  }
+
+  if (payload.token_use !== REFRESH_TOKEN_USE || !payload.jti) {
+    throw new Errors.InvalidCredentialsError()
+  }
+
+  return payload
+}
+
+async function findValidRefreshTokenByJti (jti, transaction) {
+  const tokenHash = hashTokenJti(jti)
   const row = await db.AuthRefreshToken.findOne(withTransaction(transaction, {
     where: {
       tokenHash,
@@ -81,8 +143,17 @@ async function revokeRefreshTokenFamily (familyId, transaction) {
 }
 
 async function rotateRefreshToken (refreshToken, transaction) {
-  const row = await findValidRefreshToken(refreshToken, transaction)
+  const claims = await verifyRefreshJwt(refreshToken, transaction)
+  const row = await findValidRefreshTokenByJti(claims.jti, transaction)
   if (!row) {
+    throw new Errors.InvalidCredentialsError()
+  }
+
+  if (row.userId !== claims.sub) {
+    throw new Errors.InvalidCredentialsError()
+  }
+
+  if (claims.family_id && row.familyId !== claims.family_id) {
     throw new Errors.InvalidCredentialsError()
   }
 
@@ -108,8 +179,7 @@ async function rotateRefreshToken (refreshToken, transaction) {
   let nextRefreshToken = refreshToken
 
   if (policy.refreshRotation) {
-    nextRefreshToken = createOpaqueRefreshToken()
-    await persistRefreshToken(user.id, nextRefreshToken, row.familyId, policy, transaction)
+    nextRefreshToken = await issueRefreshToken(user, row.familyId, policy, transaction)
   }
 
   return {
@@ -119,7 +189,14 @@ async function rotateRefreshToken (refreshToken, transaction) {
 }
 
 async function revokeRefreshToken (refreshToken, transaction) {
-  const row = await findValidRefreshToken(refreshToken, transaction)
+  let claims
+  try {
+    claims = await verifyRefreshJwt(refreshToken, transaction)
+  } catch (error) {
+    return
+  }
+
+  const row = await findValidRefreshTokenByJti(claims.jti, transaction)
   if (!row) {
     return
   }
@@ -133,8 +210,13 @@ async function revokeAllUserRefreshTokens (userId, transaction) {
 }
 
 module.exports = {
+  PASSWORD_CHANGE_REQUIRED_CLAIM,
+  ACCESS_TOKEN_USE,
+  REFRESH_TOKEN_USE,
+  buildUserAccessClaims,
   issueAccessToken,
   issueTokenPair,
+  verifyRefreshJwt,
   rotateRefreshToken,
   revokeRefreshToken,
   revokeAllUserRefreshTokens,

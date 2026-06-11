@@ -17,7 +17,14 @@ const yaml = require('js-yaml')
 const authorizer = require('./authorizer')
 const logger = require('../../logger')
 const config = require('../../config')
+const db = require('../../data/models')
 const { getOidcSettings } = require('../../config/oidc')
+const { PASSWORD_CHANGE_REQUIRED_CLAIM } = require('../../services/auth-token-service')
+
+const PASSWORD_CHANGE_ALLOWLIST = [
+  { method: 'GET', path: '/api/v3/user/profile' },
+  { method: 'POST', path: '/api/v3/user/change-password' }
+]
 
 // Load route resource catalog
 let routeCatalog = null
@@ -91,6 +98,84 @@ function extractGroupSubjects (tokenContent) {
   return groups
 }
 
+function normalizeRequestPath (path) {
+  let normalizedPath = path
+  try {
+    if (path.includes('?')) {
+      normalizedPath = path.split('?')[0]
+    }
+    if (normalizedPath.includes('#')) {
+      normalizedPath = normalizedPath.split('#')[0]
+    }
+  } catch (error) {
+    // If parsing fails, use path as-is
+  }
+  return normalizedPath.replace(/\/$/, '')
+}
+
+function tokenRequiresPasswordChange (tokenContent) {
+  return Boolean(tokenContent && tokenContent[PASSWORD_CHANGE_REQUIRED_CLAIM] === true)
+}
+
+function isPasswordChangeAllowlistedRoute (method, path) {
+  const normalizedPath = normalizeRequestPath(path)
+  return PASSWORD_CHANGE_ALLOWLIST.some((route) => (
+    route.method === method.toUpperCase() && route.path === normalizedPath
+  ))
+}
+
+function denyPasswordChangeRequired (res) {
+  return res.status(403).json({
+    error: 'Forbidden',
+    message: 'Password change required before accessing this resource'
+  })
+}
+
+async function userStillRequiresPasswordChange (tokenContent) {
+  if (!tokenRequiresPasswordChange(tokenContent)) {
+    return false
+  }
+
+  const userId = tokenContent.sub
+  if (!userId) {
+    return true
+  }
+
+  const user = await db.AuthUser.findByPk(userId, {
+    attributes: ['mustChangePassword', 'deletedAt']
+  })
+
+  if (!user || user.deletedAt) {
+    return true
+  }
+
+  return Boolean(user.mustChangePassword)
+}
+
+async function enforcePasswordChangeGate (req, res, tokenContent) {
+  if (!await userStillRequiresPasswordChange(tokenContent)) {
+    return false
+  }
+  if (isPasswordChangeAllowlistedRoute(req.method, req.path)) {
+    return false
+  }
+  denyPasswordChangeRequired(res)
+  return true
+}
+
+async function enforcePasswordChangeGateForWebSocket (tokenContent, path) {
+  if (!await userStillRequiresPasswordChange(tokenContent)) {
+    return { blocked: false }
+  }
+  if (isPasswordChangeAllowlistedRoute('WS', path)) {
+    return { blocked: false }
+  }
+  return {
+    blocked: true,
+    reason: 'Password change required before accessing this resource'
+  }
+}
+
 /**
  * Extract subjects from request (OIDC bearer token via req.kauth or ServiceAccount JWT)
  */
@@ -132,19 +217,7 @@ function findRouteDefinition (method, path) {
 
   // Normalize path (remove trailing slashes and query parameters)
   // Extract pathname only (remove query string and hash)
-  let normalizedPath = path
-  try {
-    // If path contains query parameters, extract just the pathname
-    if (path.includes('?')) {
-      normalizedPath = path.split('?')[0]
-    }
-    if (normalizedPath.includes('#')) {
-      normalizedPath = normalizedPath.split('#')[0]
-    }
-  } catch (error) {
-    // If parsing fails, use path as-is
-  }
-  normalizedPath = normalizedPath.replace(/\/$/, '')
+  const normalizedPath = normalizeRequestPath(path)
 
   for (const [resourceName, resourceDef] of Object.entries(catalog.resources)) {
     if (!resourceDef.routes || !Array.isArray(resourceDef.routes)) {
@@ -240,6 +313,11 @@ function requirePermission (resource, verb) {
         return res.status(401).json({ error: 'Unauthorized: No authentication information found' })
       }
 
+      const tokenContent = req.kauth.grant.access_token.content
+      if (await enforcePasswordChangeGate(req, res, tokenContent)) {
+        return
+      }
+
       // Find route definition
       const routeDef = findRouteDefinition(req.method, req.path)
       if (!routeDef) {
@@ -310,6 +388,23 @@ async function authorizeWebSocket (req, token) {
     subjects = extractSubjectsFromWebSocket(req, token)
     if (subjects.length === 0) {
       return { allowed: false, reason: 'No subjects found in WebSocket token' }
+    }
+
+    let tokenPayload = null
+    if (token) {
+      try {
+        const tokenParts = token.replace('Bearer ', '').split('.')
+        if (tokenParts.length === 3) {
+          tokenPayload = JSON.parse(Buffer.from(tokenParts[1], 'base64').toString())
+        }
+      } catch (error) {
+        logger.warn('Failed to parse WebSocket token for password-change gate:', error)
+      }
+    }
+
+    const passwordChangeGate = await enforcePasswordChangeGateForWebSocket(tokenPayload, req.url)
+    if (passwordChangeGate.blocked) {
+      return { allowed: false, reason: passwordChangeGate.reason }
     }
 
     // Find route definition (use 'WS' as method)
@@ -477,6 +572,11 @@ function protect (_roles) {
         return res.status(401).json({ error: 'Unauthorized: No authentication information found' })
       }
 
+      const tokenContent = req.kauth.grant.access_token.content
+      if (await enforcePasswordChangeGate(req, res, tokenContent)) {
+        return
+      }
+
       // Find route definition
       const routeDef = findRouteDefinition(req.method, req.path)
       if (!routeDef) {
@@ -537,7 +637,9 @@ module.exports = {
   skipRBAC,
   extractSubjects,
   extractSubjectsFromWebSocket,
-  findRouteDefinition
+  findRouteDefinition,
+  tokenRequiresPasswordChange,
+  isPasswordChangeAllowlistedRoute
 }
 
 
