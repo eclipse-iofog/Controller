@@ -21,7 +21,6 @@ resources:
         methods:
           GET: [get]
           PATCH: [patch]
-          PUT: [update]
           DELETE: [delete]
         resourceNameParam: uuid
       - path: /api/v3/microservices/:uuid/rebuild
@@ -397,12 +396,6 @@ resources:
           PATCH: [patch]
           DELETE: [delete]
         resourceNameParam: id
-      - path: /api/v3/catalog/microservices/:id/images
-        methods:
-          GET: [get]
-          POST: [create]
-          DELETE: [delete]
-        resourceNameParam: id
 
   # Registries
   registries:
@@ -634,6 +627,9 @@ resources:
       - path: /api/v3/agent/cert
         methods:
           GET: [get]
+      - path: /api/v3/agent/controller/register
+        methods:
+          POST: [create]
       - path: /api/v3/agent/logs/sessions
         methods:
           GET: [list]

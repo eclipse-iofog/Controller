@@ -53,7 +53,8 @@
     "precoverage": "npm run lint",
     "coverage": "node scripts/run-test.js coverage",
     "prepare": "npm run lint",
-    "swagger": "./generate-swagger.sh"
+    "swagger": "./generate-swagger.sh",
+    "rbac-audit": "node scripts/rbac-audit.js"
   },
   "preferGlobal": true,
   "bin": {
