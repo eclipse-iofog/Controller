@@ -126,6 +126,14 @@ class NotImplementedError extends Error {
   }
 }
 
+class RateLimitExceededError extends Error {
+  constructor (message = 'Too many authentication requests from this IP address') {
+    super(message)
+    this.message = message
+    this.name = 'RateLimitExceededError'
+  }
+}
+
 module.exports = {
   AuthenticationError: AuthenticationError,
   TransactionError: TransactionError,
@@ -140,5 +148,6 @@ module.exports = {
   CLIArgsNotProvidedError: CLIArgsNotProvidedError,
   ConflictError: ConflictError,
   ForbiddenError: ForbiddenError,
-  NotImplementedError: NotImplementedError
+  NotImplementedError: NotImplementedError,
+  RateLimitExceededError: RateLimitExceededError
 }

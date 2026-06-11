@@ -1,21 +1,42 @@
 'use strict'
 
 const crypto = require('crypto')
-const { Provider } = require('oidc-provider')
+const { Provider, interactionPolicy } = require('oidc-provider')
 const { generateKeyPair, exportJWK } = require('jose')
 const config = require('./index')
 const logger = require('../logger')
 const secretHelper = require('../helpers/secret-helper')
+const {
+  resolveConfidentialClientSecret
+} = require('./embedded-oidc-client-secret')
 const { getOidcSettings } = require('./oidc')
 const { createOidcProviderAdapterFactory } = require('../data/adapters/oidc-provider-adapter')
+const { buildUserAccessClaims } = require('../services/auth-token-service')
+const { loadOidcProviderTtls } = require('./auth-oidc-ttl')
+const { getPublicUrl, getViewerUrl } = require('./auth-urls')
 
 const DEFAULT_VIEWER_CLIENT_ID = 'ecn-viewer'
-const CONTROLLER_CLIENT_ID = 'controller'
 
 let providerInstance = null
 
-function getPublicUrl () {
-  return (process.env.CONTROLLER_PUBLIC_URL || config.get('server.publicUrl') || '').replace(/\/$/, '')
+function getOauthInteractionPath () {
+  return config.get('auth.oauthInteractionUrl') || '/login/oauth'
+}
+
+function buildInteractionRedirectUrl (interactionUid) {
+  const viewerUrl = getViewerUrl()
+  if (!viewerUrl) {
+    throw new Error('CONTROLLER_PUBLIC_URL or VIEWER_URL is required for embedded OAuth BFF interactions')
+  }
+  const interactionPath = getOauthInteractionPath()
+  const normalizedPath = interactionPath.startsWith('/') ? interactionPath : `/${interactionPath}`
+  return `${viewerUrl}${normalizedPath}?interaction=${encodeURIComponent(interactionUid)}`
+}
+
+function buildInteractionPolicy () {
+  const policy = interactionPolicy.base()
+  policy.remove('consent')
+  return policy
 }
 
 function isViewerClientEnabled () {
@@ -33,10 +54,6 @@ function getViewerClientId () {
     DEFAULT_VIEWER_CLIENT_ID
 }
 
-function generateClientSecret () {
-  return crypto.randomBytes(32).toString('base64url')
-}
-
 function getCookieKeys () {
   const configured = process.env.OIDC_COOKIE_KEYS || config.get('auth.cookieKeys')
   if (Array.isArray(configured)) {
@@ -48,82 +65,26 @@ function getCookieKeys () {
   return ['controller-embedded-oidc-cookie-key']
 }
 
+async function ensureConfidentialClientMetadata (db) {
+  const publicUrl = getPublicUrl()
+  const { clientId, clientSecret } = await resolveConfidentialClientSecret(db, { createIfMissing: true })
+
+  return {
+    client_id: clientId,
+    client_secret: clientSecret,
+    grant_types: ['authorization_code'],
+    response_types: ['code'],
+    token_endpoint_auth_method: 'client_secret_basic',
+    redirect_uris: [`${publicUrl}/api/v3/user/oauth/callback`]
+  }
+}
+
 function getTrustProxySetting () {
   const trustProxy = process.env.TRUST_PROXY || config.get('server.trustProxy', false)
   if (trustProxy === true || trustProxy === 'true' || trustProxy === 1 || trustProxy === '1') {
     return true
   }
   return trustProxy || false
-}
-
-async function resolveStoredSecret (secretRef, secretName, secretType) {
-  if (!secretRef) {
-    return null
-  }
-
-  if (secretHelper.isVaultReference(secretRef)) {
-    const data = await secretHelper.decryptSecret(secretRef, secretName, secretType)
-    return data.secret || data.client_secret || data.value || null
-  }
-
-  try {
-    const data = await secretHelper.decryptSecret(secretRef, secretName, secretType)
-    return data.secret || data.client_secret || data.value || null
-  } catch (error) {
-    return secretRef
-  }
-}
-
-async function persistClientSecret (db, clientId, secret) {
-  const secretRef = await secretHelper.encryptSecret({ secret }, `oidc-client-${clientId}`, 'oidc-client')
-  const existing = await db.AuthOidcClient.findOne({ where: { clientId } })
-  if (existing) {
-    await existing.update({ secretRef })
-    return existing
-  }
-
-  return db.AuthOidcClient.create({
-    clientId,
-    secretRef,
-    clientType: 'confidential'
-  })
-}
-
-async function ensureConfidentialClientMetadata (db) {
-  const { clientId, clientSecret: envSecret } = getOidcSettings()
-  const resolvedClientId = clientId || CONTROLLER_CLIENT_ID
-  const publicUrl = getPublicUrl()
-  let clientRow = await db.AuthOidcClient.findOne({ where: { clientId: resolvedClientId } })
-
-  let secret = envSecret || null
-  if (!secret && clientRow && clientRow.secretRef) {
-    secret = await resolveStoredSecret(clientRow.secretRef, `oidc-client-${resolvedClientId}`, 'oidc-client')
-  }
-
-  if (!secret) {
-    secret = generateClientSecret()
-    clientRow = await persistClientSecret(db, resolvedClientId, secret)
-    logger.info(`Generated embedded OIDC client secret for "${resolvedClientId}"`)
-  } else if (!clientRow) {
-    let secretRef = envSecret
-    if (!secretRef) {
-      secretRef = await secretHelper.encryptSecret({ secret }, `oidc-client-${resolvedClientId}`, 'oidc-client')
-    }
-    clientRow = await db.AuthOidcClient.create({
-      clientId: resolvedClientId,
-      secretRef,
-      clientType: 'confidential'
-    })
-  }
-
-  return {
-    client_id: resolvedClientId,
-    client_secret: secret,
-    grant_types: ['authorization_code', 'refresh_token', 'client_credentials'],
-    response_types: ['code'],
-    token_endpoint_auth_method: 'client_secret_basic',
-    redirect_uris: [`${publicUrl}/api/v3/user/oauth/callback`]
-  }
 }
 
 async function ensureViewerClientMetadata (db) {
@@ -144,7 +105,7 @@ async function ensureViewerClientMetadata (db) {
   return {
     client_id: clientId,
     client_secret: undefined,
-    grant_types: ['authorization_code', 'refresh_token'],
+    grant_types: ['authorization_code'],
     response_types: ['code'],
     token_endpoint_auth_method: 'none',
     redirect_uris: [`${publicUrl}/`]
@@ -207,14 +168,6 @@ async function ensureSigningJwks (db) {
   return { keys: [privateJwk] }
 }
 
-async function loadTokenPolicy (db) {
-  const policy = await db.AuthPolicy.findByPk(1)
-  return {
-    accessTokenTtlSeconds: (policy && policy.accessTokenTtlSeconds) || 900,
-    refreshTokenTtlSeconds: (policy && policy.refreshTokenTtlSeconds) || 604800
-  }
-}
-
 async function buildProviderConfiguration (db) {
   const clients = [await ensureConfidentialClientMetadata(db)]
   const viewerClient = await ensureViewerClientMetadata(db)
@@ -222,7 +175,7 @@ async function buildProviderConfiguration (db) {
     clients.push(viewerClient)
   }
 
-  const tokenPolicy = await loadTokenPolicy(db)
+  const ttlPolicy = await loadOidcProviderTtls(db)
   const trustProxy = getTrustProxySetting()
 
   return {
@@ -248,15 +201,19 @@ async function buildProviderConfiguration (db) {
         async claims () {
           return {
             sub: id,
-            email: user.email,
-            preferred_username: user.email,
-            groups: groupNames
+            ...buildUserAccessClaims(user, groupNames)
           }
         }
       }
     },
     cookies: {
       keys: getCookieKeys()
+    },
+    interactions: {
+      policy: buildInteractionPolicy(),
+      url (ctx, interaction) {
+        return buildInteractionRedirectUrl(interaction.uid)
+      }
     },
     features: {
       devInteractions: { enabled: false },
@@ -280,8 +237,12 @@ async function buildProviderConfiguration (db) {
     },
     proxy: trustProxy,
     ttl: {
-      AccessToken: tokenPolicy.accessTokenTtlSeconds,
-      RefreshToken: tokenPolicy.refreshTokenTtlSeconds
+      AccessToken: ttlPolicy.accessTokenTtlSeconds,
+      RefreshToken: ttlPolicy.refreshTokenTtlSeconds,
+      IdToken: ttlPolicy.idTokenTtlSeconds,
+      Interaction: ttlPolicy.interactionTtlSeconds,
+      Grant: ttlPolicy.grantTtlSeconds,
+      Session: ttlPolicy.sessionTtlSeconds
     }
   }
 }
@@ -318,5 +279,7 @@ function resetEmbeddedIssuerForTests () {
 module.exports = {
   initEmbeddedIssuer,
   getEmbeddedProvider,
-  resetEmbeddedIssuerForTests
+  resetEmbeddedIssuerForTests,
+  getOauthInteractionPath,
+  buildInteractionRedirectUrl
 }

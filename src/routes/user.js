@@ -223,11 +223,13 @@ module.exports = [
         errorCodes
       )
       const responseObject = await getUserProfileEndPoint(req)
-      const user = req.kauth.grant.access_token.content.preferred_username
       res
         .status(responseObject.code)
         .send(responseObject.body)
 
+      const user = req.kauth && req.kauth.grant && req.kauth.grant.access_token
+        ? req.kauth.grant.access_token.content.preferred_username
+        : undefined
       logger.apiRes({ req: req, user: user, res: res, responseObject: responseObject })
     }
   },
@@ -337,6 +339,233 @@ module.exports = [
         .send(tokens)
 
       logger.apiRes('GET /api/v3/user/oauth/callback', { args: { statusCode: responseObject.code } })
+    }
+  },
+  {
+    method: 'get',
+    path: '/api/v3/user/interaction/:uid',
+    middleware: async (req, res) => {
+      logger.apiReq('GET /api/v3/user/interaction/:uid')
+
+      const successCode = constants.HTTP_CODE_SUCCESS
+      const errorCodes = [
+        {
+          code: constants.HTTP_CODE_UNAUTHORIZED,
+          errors: [Errors.AuthenticationError, Errors.InvalidCredentialsError]
+        },
+        {
+          code: constants.HTTP_CODE_NOT_IMPLEMENTED,
+          errors: [Errors.NotImplementedError]
+        }
+      ]
+
+      const interactionStatusEndPoint = ResponseDecorator.handleErrors(
+        UserController.interactionStatusEndPoint,
+        successCode,
+        errorCodes
+      )
+      const responseObject = await interactionStatusEndPoint(req)
+
+      res.status(responseObject.code).send(responseObject.body)
+      logger.apiRes('GET /api/v3/user/interaction/:uid', { args: { statusCode: responseObject.code } })
+    }
+  },
+  {
+    method: 'post',
+    path: '/api/v3/user/interaction/:uid/login',
+    middleware: async (req, res) => {
+      logger.apiReq('POST /api/v3/user/interaction/:uid/login')
+
+      const successCode = constants.HTTP_CODE_SUCCESS
+      const errorCodes = [
+        {
+          code: constants.HTTP_CODE_BAD_REQUEST,
+          errors: [Errors.ValidationError]
+        },
+        {
+          code: constants.HTTP_CODE_UNAUTHORIZED,
+          errors: [Errors.AuthenticationError, Errors.InvalidCredentialsError]
+        },
+        {
+          code: constants.HTTP_CODE_NOT_IMPLEMENTED,
+          errors: [Errors.NotImplementedError]
+        }
+      ]
+
+      const interactionLoginEndPoint = ResponseDecorator.handleErrors(
+        UserController.interactionLoginEndPoint,
+        successCode,
+        errorCodes
+      )
+      const responseObject = await interactionLoginEndPoint(req)
+
+      res.status(responseObject.code).send(responseObject.body)
+      logger.apiRes('POST /api/v3/user/interaction/:uid/login', { args: { statusCode: responseObject.code } })
+    }
+  },
+  {
+    method: 'post',
+    path: '/api/v3/user/interaction/:uid/mfa',
+    middleware: async (req, res) => {
+      logger.apiReq('POST /api/v3/user/interaction/:uid/mfa')
+
+      const successCode = constants.HTTP_CODE_SUCCESS
+      const errorCodes = [
+        {
+          code: constants.HTTP_CODE_BAD_REQUEST,
+          errors: [Errors.ValidationError]
+        },
+        {
+          code: constants.HTTP_CODE_UNAUTHORIZED,
+          errors: [Errors.AuthenticationError, Errors.InvalidCredentialsError]
+        },
+        {
+          code: constants.HTTP_CODE_NOT_IMPLEMENTED,
+          errors: [Errors.NotImplementedError]
+        }
+      ]
+
+      const interactionMfaEndPoint = ResponseDecorator.handleErrors(
+        UserController.interactionMfaEndPoint,
+        successCode,
+        errorCodes
+      )
+      const responseObject = await interactionMfaEndPoint(req)
+
+      res.status(responseObject.code).send(responseObject.body)
+      logger.apiRes('POST /api/v3/user/interaction/:uid/mfa', { args: { statusCode: responseObject.code } })
+    }
+  },
+  {
+    method: 'post',
+    path: '/api/v3/user/interaction/:uid/enroll',
+    middleware: async (req, res) => {
+      logger.apiReq('POST /api/v3/user/interaction/:uid/enroll')
+
+      const successCode = constants.HTTP_CODE_SUCCESS
+      const errorCodes = [
+        {
+          code: constants.HTTP_CODE_BAD_REQUEST,
+          errors: [Errors.ValidationError]
+        },
+        {
+          code: constants.HTTP_CODE_UNAUTHORIZED,
+          errors: [Errors.AuthenticationError, Errors.InvalidCredentialsError]
+        },
+        {
+          code: constants.HTTP_CODE_NOT_IMPLEMENTED,
+          errors: [Errors.NotImplementedError]
+        }
+      ]
+
+      const interactionEnrollEndPoint = ResponseDecorator.handleErrors(
+        UserController.interactionEnrollEndPoint,
+        successCode,
+        errorCodes
+      )
+      const responseObject = await interactionEnrollEndPoint(req)
+
+      res.status(responseObject.code).send(responseObject.body)
+      logger.apiRes('POST /api/v3/user/interaction/:uid/enroll', { args: { statusCode: responseObject.code } })
+    }
+  },
+  {
+    method: 'post',
+    path: '/api/v3/user/interaction/:uid/confirm-enroll',
+    middleware: async (req, res) => {
+      logger.apiReq('POST /api/v3/user/interaction/:uid/confirm-enroll')
+
+      const successCode = constants.HTTP_CODE_SUCCESS
+      const errorCodes = [
+        {
+          code: constants.HTTP_CODE_BAD_REQUEST,
+          errors: [Errors.ValidationError]
+        },
+        {
+          code: constants.HTTP_CODE_UNAUTHORIZED,
+          errors: [Errors.AuthenticationError, Errors.InvalidCredentialsError]
+        },
+        {
+          code: constants.HTTP_CODE_NOT_IMPLEMENTED,
+          errors: [Errors.NotImplementedError]
+        }
+      ]
+
+      const interactionConfirmEnrollEndPoint = ResponseDecorator.handleErrors(
+        UserController.interactionConfirmEnrollEndPoint,
+        successCode,
+        errorCodes
+      )
+      const responseObject = await interactionConfirmEnrollEndPoint(req)
+
+      res.status(responseObject.code).send(responseObject.body)
+      logger.apiRes('POST /api/v3/user/interaction/:uid/confirm-enroll', { args: { statusCode: responseObject.code } })
+    }
+  },
+  {
+    method: 'post',
+    path: '/api/v3/user/interaction/:uid/change-password',
+    middleware: async (req, res) => {
+      logger.apiReq('POST /api/v3/user/interaction/:uid/change-password')
+
+      const successCode = constants.HTTP_CODE_SUCCESS
+      const errorCodes = [
+        {
+          code: constants.HTTP_CODE_BAD_REQUEST,
+          errors: [Errors.ValidationError, Errors.InvalidArgumentError]
+        },
+        {
+          code: constants.HTTP_CODE_UNAUTHORIZED,
+          errors: [Errors.AuthenticationError, Errors.InvalidCredentialsError]
+        },
+        {
+          code: constants.HTTP_CODE_NOT_IMPLEMENTED,
+          errors: [Errors.NotImplementedError]
+        }
+      ]
+
+      const interactionChangePasswordEndPoint = ResponseDecorator.handleErrors(
+        UserController.interactionChangePasswordEndPoint,
+        successCode,
+        errorCodes
+      )
+      const responseObject = await interactionChangePasswordEndPoint(req)
+
+      res.status(responseObject.code).send(responseObject.body)
+      logger.apiRes('POST /api/v3/user/interaction/:uid/change-password', { args: { statusCode: responseObject.code } })
+    }
+  },
+  {
+    method: 'post',
+    path: '/api/v3/user/interaction/:uid/complete',
+    middleware: async (req, res) => {
+      logger.apiReq('POST /api/v3/user/interaction/:uid/complete')
+
+      const successCode = constants.HTTP_CODE_SUCCESS
+      const errorCodes = [
+        {
+          code: constants.HTTP_CODE_BAD_REQUEST,
+          errors: [Errors.ValidationError]
+        },
+        {
+          code: constants.HTTP_CODE_UNAUTHORIZED,
+          errors: [Errors.AuthenticationError, Errors.InvalidCredentialsError]
+        },
+        {
+          code: constants.HTTP_CODE_NOT_IMPLEMENTED,
+          errors: [Errors.NotImplementedError]
+        }
+      ]
+
+      const interactionCompleteEndPoint = ResponseDecorator.handleErrors(
+        UserController.interactionCompleteEndPoint,
+        successCode,
+        errorCodes
+      )
+      const responseObject = await interactionCompleteEndPoint(req, res)
+
+      res.status(responseObject.code).send(responseObject.body)
+      logger.apiRes('POST /api/v3/user/interaction/:uid/complete', { args: { statusCode: responseObject.code } })
     }
   }
 ]

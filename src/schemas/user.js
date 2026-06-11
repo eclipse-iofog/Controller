@@ -17,8 +17,7 @@ const login = {
   properties: {
     email: {
       type: 'string',
-      pattern: '^(([^<>()\\[\\]\\\\.,;:\\s@"]+(\\.[^<>()\\[\\]\\\\.,;:\\s@"]+)*)|(".+"))@((\\[[0-9]{1,3}\\.[0-9]{1,3}' +
-      '\\.[0-9]{1,3}\\.[0-9]{1,3}])|(([a-zA-Z\\-0-9]+\\.)+[a-zA-Z]{2,}))$'
+      minLength: 1
     },
     password: { type: 'string' },
     totp: { type: 'string' }
@@ -67,6 +66,30 @@ const changePassword = {
     resetToken: { type: 'string' }
   },
   required: ['newPassword'],
+  additionalProperties: true
+}
+
+const interactionLogin = {
+  id: '/interactionLogin',
+  type: 'object',
+  properties: {
+    email: {
+      type: 'string',
+      minLength: 1
+    },
+    password: { type: 'string' }
+  },
+  required: ['email', 'password'],
+  additionalProperties: true
+}
+
+const interactionMfa = {
+  id: '/interactionMfa',
+  type: 'object',
+  properties: {
+    code: { type: 'string' }
+  },
+  required: ['code'],
   additionalProperties: true
 }
 
@@ -127,6 +150,6 @@ const updateAuthGroup = {
 }
 
 module.exports = {
-  mainSchemas: [login, refresh, mfaConfirm, mfaDisable, changePassword, createAuthUser, updateAuthUser, createAuthGroup, updateAuthGroup],
+  mainSchemas: [login, refresh, mfaConfirm, mfaDisable, changePassword, interactionLogin, interactionMfa, createAuthUser, updateAuthUser, createAuthGroup, updateAuthGroup],
   innerSchemas: []
 }

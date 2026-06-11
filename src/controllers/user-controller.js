@@ -78,6 +78,45 @@ const oauthCallbackEndPoint = async function (req) {
   return UserService.oauthCallback(req, false)
 }
 
+const interactionStatusEndPoint = async function (req) {
+  return UserService.interactionStatus(req.params.uid, false)
+}
+
+const interactionLoginEndPoint = async function (req) {
+  const payload = req.body
+  await Validator.validate(payload, Validator.schemas.interactionLogin)
+  return UserService.interactionLogin(req.params.uid, {
+    email: payload.email,
+    password: payload.password
+  }, false)
+}
+
+const interactionMfaEndPoint = async function (req) {
+  const payload = req.body
+  await Validator.validate(payload, Validator.schemas.interactionMfa)
+  return UserService.interactionMfa(req.params.uid, payload.code, false)
+}
+
+const interactionEnrollEndPoint = async function (req) {
+  return UserService.interactionEnroll(req.params.uid, false)
+}
+
+const interactionConfirmEnrollEndPoint = async function (req) {
+  const payload = req.body
+  await Validator.validate(payload, Validator.schemas.interactionMfa)
+  return UserService.interactionConfirmEnroll(req.params.uid, payload.code, false)
+}
+
+const interactionChangePasswordEndPoint = async function (req) {
+  const payload = req.body
+  await Validator.validate(payload, Validator.schemas.changePassword)
+  return UserService.interactionChangePassword(req.params.uid, payload, false)
+}
+
+const interactionCompleteEndPoint = async function (req, res) {
+  return UserService.interactionComplete(req.params.uid, req, res, false)
+}
+
 module.exports = {
   userLoginEndPoint: userLoginEndPoint,
   refreshTokenEndPoint: refreshTokenEndPoint,
@@ -88,5 +127,12 @@ module.exports = {
   disableMfaEndPoint: disableMfaEndPoint,
   changePasswordEndPoint: changePasswordEndPoint,
   oauthAuthorizeEndPoint: oauthAuthorizeEndPoint,
-  oauthCallbackEndPoint: oauthCallbackEndPoint
+  oauthCallbackEndPoint: oauthCallbackEndPoint,
+  interactionStatusEndPoint: interactionStatusEndPoint,
+  interactionLoginEndPoint: interactionLoginEndPoint,
+  interactionMfaEndPoint: interactionMfaEndPoint,
+  interactionEnrollEndPoint: interactionEnrollEndPoint,
+  interactionConfirmEnrollEndPoint: interactionConfirmEnrollEndPoint,
+  interactionChangePasswordEndPoint: interactionChangePasswordEndPoint,
+  interactionCompleteEndPoint: interactionCompleteEndPoint
 }
