@@ -8,6 +8,8 @@ module.exports = {
   // Server Configuration
   'SERVER_PORT': 'server.port',
   'SERVER_DEV_MODE': 'server.devMode',
+  'CONTROLLER_PUBLIC_URL': 'server.publicUrl',
+  'TRUST_PROXY': 'server.trustProxy',
 
   'WS_PING_INTERVAL': 'server.webSocket.pingInterval',
   'WS_PONG_TIMEOUT': 'server.webSocket.pongTimeout',
@@ -19,13 +21,13 @@ module.exports = {
   'WS_SECURITY_MAX_REQUESTS_PER_MINUTE': 'server.webSocket.security.maxRequestsPerMinute',
   'WS_SECURITY_MAX_PAYLOAD': 'server.webSocket.security.maxPayload',
 
-  // SSL Configuration
-  'SSL_PATH_KEY': 'server.ssl.path.key',
-  'SSL_PATH_CERT': 'server.ssl.path.cert',
-  'SSL_PATH_INTERMEDIATE_CERT': 'server.ssl.path.intermediateCert',
-  'SSL_BASE64_KEY': 'server.ssl.base64.key',
-  'SSL_BASE64_CERT': 'server.ssl.base64.cert',
-  'SSL_BASE64_INTERMEDIATE_CERT': 'server.ssl.base64.intermediateCert',
+  // TLS Configuration (listener certificates; env TLS_* per Plan 8.1)
+  'TLS_PATH_KEY': 'server.tls.path.key',
+  'TLS_PATH_CERT': 'server.tls.path.cert',
+  'TLS_PATH_INTERMEDIATE_CERT': 'server.tls.path.intermediateCert',
+  'TLS_BASE64_KEY': 'server.tls.base64.key',
+  'TLS_BASE64_CERT': 'server.tls.base64.cert',
+  'TLS_BASE64_INTERMEDIATE_CERT': 'server.tls.base64.intermediateCert',
 
   // Viewer Configuration
   'VIEWER_PORT': 'viewer.port',
@@ -75,10 +77,16 @@ module.exports = {
   },
 
   // Auth Configuration (OIDC — k8s-style; naming-map §13)
+  'AUTH_MODE': 'auth.mode',
   'OIDC_ISSUER_URL': 'auth.issuerUrl',
   'OIDC_CLIENT_ID': 'auth.client.id',
   'OIDC_CLIENT_SECRET': 'auth.client.secret',
   'OIDC_VIEWER_CLIENT_ID': 'auth.viewerClient',
+  'AUTH_VIEWER_CLIENT_ENABLED': 'auth.viewerClient.enabled',
+  'AUTH_INSECURE_ALLOW_HTTP': 'auth.insecureAllowHttp',
+  'OIDC_BOOTSTRAP_ADMIN_EMAIL': 'auth.bootstrap.adminEmail',
+  'OIDC_BOOTSTRAP_ADMIN_PASSWORD': 'auth.bootstrap.adminPassword',
+  'AUTH_INSECURE_ALLOW_BOOTSTRAP_LOG': 'auth.insecureAllowBootstrapLog',
 
   // Bridge Ports Configuration
   'BRIDGE_PORTS_RANGE': 'bridgePorts.range',

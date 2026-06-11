@@ -8,7 +8,9 @@ app:
 # Server Configuration
 server:
   port: 51121             # Server port number
-  devMode: true   
+  devMode: true
+  publicUrl: ""           # Canonical external URL (CONTROLLER_PUBLIC_URL); https required in prod unless auth.insecureAllowHttp
+  trustProxy: false       # Honor X-Forwarded-* when behind reverse proxy (TRUST_PROXY)
   webSocket:
     perMessageDeflate: false
     allowExtensions: false        # Disable all extensions
@@ -25,15 +27,15 @@ server:
       maxConnectionsPerIp: 10
       maxRequestsPerMinute: 60
       maxPayload: 1048576  # 1MB
-  # ssl:
+  # tls:
   #   path:
-  #     key: ""              # SSL key file path
-  #     cert: ""             # SSL certificate file path
-  #     intermediateCert: "" # Intermediate certificate file path
+  #     key: ""              # TLS key file path (TLS_PATH_KEY)
+  #     cert: ""             # TLS certificate file path (TLS_PATH_CERT)
+  #     intermediateCert: "" # Intermediate certificate file path (TLS_PATH_INTERMEDIATE_CERT)
   #   base64:
-  #     key:  # SSL key in base64 format
-  #     cert:  # SSL certificate in base64 format
-  #     intermediateCert: # Intermediate certificate in base64 format
+  #     key:  # TLS key in base64 format (TLS_BASE64_KEY)
+  #     cert:  # TLS certificate in base64 format (TLS_BASE64_CERT)
+  #     intermediateCert: # Intermediate certificate in base64 format (TLS_BASE64_INTERMEDIATE_CERT)
 
 # Viewer Configuration
 viewer:
@@ -93,9 +95,15 @@ database:
       min: 0          # Minimum connections
       idle: 20000     # Idle timeout in milliseconds
 
-# Auth Configuration (OIDC — any compliant provider; env: OIDC_* per naming-map §13)
+# Auth Configuration (OIDC — any compliant provider; env: OIDC_* / AUTH_* per naming-map §13)
 # auth:
-#   issuerUrl:      # OIDC issuer URL (OIDC_ISSUER_URL); discovery resolves JWKS and endpoints
+#   mode: embedded        # embedded | external (AUTH_MODE); resolution
+#   insecureAllowHttp: false  # Allow http CONTROLLER_PUBLIC_URL in prod (AUTH_INSECURE_ALLOW_HTTP)
+#   bootstrap:
+#     adminEmail: ""  # Bootstrap admin email (OIDC_BOOTSTRAP_ADMIN_EMAIL)
+#     adminPassword: ""  # Bootstrap admin password (OIDC_BOOTSTRAP_ADMIN_PASSWORD)
+#     insecureAllowBootstrapLog: false  # Allow bootstrap log in prod (AUTH_INSECURE_ALLOW_BOOTSTRAP_LOG)
+#   issuerUrl:      # OIDC issuer URL (OIDC_ISSUER_URL); external mode only
 #   client:
 #     id:           # Controller API client ID (OIDC_CLIENT_ID)
 #     secret:       # Controller API client secret (OIDC_CLIENT_SECRET)

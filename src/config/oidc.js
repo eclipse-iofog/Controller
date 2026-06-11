@@ -22,9 +22,10 @@
  */
 const session = require('express-session')
 const oidcClient = require('openid-client')
-const { createRemoteJWKSet, jwtVerify } = require('jose')
+const { createRemoteJWKSet, createLocalJWKSet, jwtVerify } = require('jose')
 const config = require('./index')
 const logger = require('../logger')
+const { getActiveSigningMaterial, getPublicJwk } = require('./auth-jwks')
 
 let oidcInstance = null
 let memoryStore = null
@@ -32,9 +33,26 @@ let discoveryPromise = null
 let jwks = null
 let issuerString = null
 let configuredClientId = null
-let devMode = false
 
-function getOidcSettings () {
+const AUTH_MODES = ['embedded', 'external']
+
+function isNonEmptyString (value) {
+  return value !== undefined && value !== null && value !== ''
+}
+
+function getAuthMode () {
+  const mode = process.env.AUTH_MODE || config.get('auth.mode') || 'embedded'
+  if (!AUTH_MODES.includes(mode)) {
+    throw new Error(`Invalid auth.mode "${mode}". Must be embedded or external`)
+  }
+  return mode
+}
+
+function getPublicUrl () {
+  return process.env.CONTROLLER_PUBLIC_URL || config.get('server.publicUrl') || ''
+}
+
+function getExternalOidcSettings () {
   return {
     issuerUrl: process.env.OIDC_ISSUER_URL || config.get('auth.issuerUrl') || config.get('auth.url'),
     clientId: process.env.OIDC_CLIENT_ID || config.get('auth.client.id'),
@@ -42,11 +60,53 @@ function getOidcSettings () {
   }
 }
 
+function getEmbeddedIssuerUrl () {
+  const publicUrl = getPublicUrl().replace(/\/$/, '')
+  return `${publicUrl}/oidc`
+}
+
+function getOidcSettings () {
+  const mode = getAuthMode()
+  if (mode === 'embedded') {
+    return {
+      issuerUrl: getEmbeddedIssuerUrl(),
+      clientId: process.env.OIDC_CLIENT_ID || config.get('auth.client.id') || 'controller',
+      clientSecret: process.env.OIDC_CLIENT_SECRET || config.get('auth.client.secret') || ''
+    }
+  }
+  return getExternalOidcSettings()
+}
+
+function isEmbeddedAuthConfigured () {
+  return isNonEmptyString(getPublicUrl())
+}
+
+function isExternalAuthConfigured () {
+  const { issuerUrl, clientId, clientSecret } = getExternalOidcSettings()
+  return [issuerUrl, clientId, clientSecret].every(isNonEmptyString)
+}
+
 function isAuthConfigured () {
-  const { issuerUrl, clientId, clientSecret } = getOidcSettings()
-  return [issuerUrl, clientId, clientSecret].every(
-    value => value !== undefined && value !== null && value !== ''
-  )
+  const mode = getAuthMode()
+  return mode === 'embedded' ? isEmbeddedAuthConfigured() : isExternalAuthConfigured()
+}
+
+function validateAuthConfig () {
+  const mode = getAuthMode()
+  if (mode === 'embedded') {
+    if (!isEmbeddedAuthConfigured()) {
+      throw new Error('Embedded auth requires CONTROLLER_PUBLIC_URL (server.publicUrl)')
+    }
+    const externalIssuer = process.env.OIDC_ISSUER_URL || config.get('auth.issuerUrl')
+    if (isNonEmptyString(externalIssuer)) {
+      logger.warn('auth.issuerUrl is set but auth.mode is embedded; embedded issuer will be used')
+    }
+    return
+  }
+
+  if (!isExternalAuthConfigured()) {
+    throw new Error('External auth requires OIDC_ISSUER_URL, OIDC_CLIENT_ID, and OIDC_CLIENT_SECRET')
+  }
 }
 
 /**
@@ -63,8 +123,24 @@ function buildKauthGrant (claims, rawToken) {
   }
 }
 
+async function ensureEmbeddedJwks () {
+  const { privateJwk } = await getActiveSigningMaterial()
+  jwks = createLocalJWKSet({ keys: [getPublicJwk(privateJwk)] })
+  issuerString = getEmbeddedIssuerUrl()
+  configuredClientId = getOidcSettings().clientId
+  return null
+}
+
 async function ensureDiscovery () {
   if (discoveryPromise) {
+    return discoveryPromise
+  }
+
+  if (getAuthMode() === 'embedded') {
+    discoveryPromise = ensureEmbeddedJwks().catch((error) => {
+      discoveryPromise = null
+      throw error
+    })
     return discoveryPromise
   }
 
@@ -109,26 +185,22 @@ function initOidc () {
   }
 
   // v3.9: read TLS client-auth policy when HTTPS + requestCert enabled (server.js listener)
-  const isDevMode = config.get('server.devMode', true)
-  const hasAuthConfig = isAuthConfigured()
-  devMode = isDevMode && !hasAuthConfig
-
-  if (devMode) {
+  if (!isAuthConfigured()) {
+    const isProduction = !config.get('server.devMode', true)
+    if (isProduction) {
+      const error = new Error('Auth configuration required in production mode')
+      logger.error('Failed to initialize OIDC:', error)
+      throw error
+    }
+    logger.warn('OIDC not configured; bearer validation unavailable until auth is configured')
     oidcInstance = createOidcFacade()
-    logger.warn('OIDC initialized in development mode (no auth configuration)')
-    logger.warn('WARNING: All routes are unprotected in this mode')
     return oidcInstance
   }
 
-  if (!hasAuthConfig) {
-    const error = new Error('Auth configuration required in production mode')
-    logger.error('Failed to initialize OIDC:', error)
-    throw error
-  }
-
+  validateAuthConfig()
   memoryStore = new session.MemoryStore()
   oidcInstance = createOidcFacade()
-  logger.info('OIDC initialized successfully with auth configuration')
+  logger.info(`OIDC initialized successfully (${getAuthMode()} mode)`)
   return oidcInstance
 }
 
@@ -138,13 +210,13 @@ function getOidc () {
 
 function getOidcMiddleware () {
   return async (req, res, next) => {
-    if (devMode) {
+    if (!isAuthConfigured()) {
       return next()
     }
 
     // Agent routes use fog JWTs (checkFogToken), not OIDC bearer tokens
     const requestPath = req.path || (req.url && req.url.split('?')[0]) || ''
-    if (requestPath.startsWith('/api/v3/agent')) {
+    if (requestPath.startsWith('/api/v3/agent') || requestPath.startsWith('/oidc')) {
       return next()
     }
 
@@ -187,12 +259,25 @@ async function getOidcConfiguration () {
   return ensureDiscovery()
 }
 
+function resetDiscoveryForTests () {
+  discoveryPromise = null
+  jwks = null
+  issuerString = null
+  configuredClientId = null
+  oidcInstance = null
+  memoryStore = null
+}
+
 module.exports = {
   initOidc,
   getOidc,
   getOidcMiddleware,
   getMemoryStore,
+  getAuthMode,
   isAuthConfigured,
+  validateAuthConfig,
   getOidcSettings,
-  getOidcConfiguration
+  getOidcConfiguration,
+  resetDiscoveryForTests,
+  buildKauthGrant
 }
