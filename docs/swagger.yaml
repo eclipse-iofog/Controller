@@ -3040,6 +3040,14 @@ paths:
         - User
       summary: Login
       operationId: login
+      description: >
+        CLI login (potctl). The `email` field is the login identifier (username or email);
+        bootstrap admin may use a non-email username. User creation via POST /users still
+        requires a valid email address.
+
+        When the account has a temporary password (`mustChangePassword`), the access token
+        includes JWT claim `password_change_required: true`. RBAC allows only
+        `GET /user/profile` and `POST /user/change-password` until the password is changed.
       requestBody:
         content:
           application/json:
@@ -3062,6 +3070,8 @@ paths:
           description: bad request
         "401":
           description: incorrect credentials
+        "429":
+          $ref: "#/components/responses/AuthRateLimitExceeded"
   /user/refresh:
     post:
       tags:
@@ -3154,6 +3164,8 @@ paths:
           description: Not Authorized
         "501":
           description: Embedded auth mode only
+        "429":
+          $ref: "#/components/responses/AuthRateLimitExceeded"
   /user/mfa/enroll:
     post:
       tags:
@@ -3174,6 +3186,8 @@ paths:
           description: Not Authorized
         "501":
           description: Embedded auth mode only
+        "429":
+          $ref: "#/components/responses/AuthRateLimitExceeded"
   /user/mfa/confirm:
     post:
       tags:
@@ -3202,6 +3216,8 @@ paths:
           description: Invalid credentials or enrollment token
         "501":
           description: Embedded auth mode only
+        "429":
+          $ref: "#/components/responses/AuthRateLimitExceeded"
   /user/mfa:
     delete:
       tags:
@@ -3235,16 +3251,40 @@ paths:
     get:
       tags:
         - User
-      summary: Start external IdP OAuth authorization (BFF)
+      summary: Start OAuth authorization (BFF)
       operationId: oauthAuthorize
-      description: Redirects the browser to the external OIDC authorization endpoint. External auth mode only.
+      description: >
+        Browser OAuth BFF entry point for ECN Viewer (Plan 8.2). ECN Viewer Sign in performs a
+        full-page redirect here; do **not** POST credentials from the browser.
+
+        **External mode:** redirects to the external IdP authorize endpoint.
+
+        **Embedded mode:** redirects to the in-process issuer at `{CONTROLLER_PUBLIC_URL}/oidc/auth`,
+        which starts an OAuth interaction and redirects the browser to
+        `{viewerUrl}{auth.oauthInteractionUrl}?interaction=<uid>` for Viewer-owned login/MFA steps.
+
+        Redirect chain (external):
+
+        `Viewer → GET /user/oauth/authorize → external IdP (login, MFA, password policy) →
+        GET /user/oauth/callback → 302 {viewerUrl}/login#accessToken=...&refreshToken=...`
+
+        Redirect chain (embedded):
+
+        `Viewer → GET /user/oauth/authorize → /oidc/auth → {viewerUrl}/login/oauth?interaction=<uid>
+        → interaction APIs → GET /user/oauth/callback → 302 {viewerUrl}/login#tokens`
+
+        OAuth callback redirect URI: `{CONTROLLER_PUBLIC_URL}/api/v3/user/oauth/callback`.
+        Requires `VIEWER_URL` in embedded mode. External mode requires `OIDC_ISSUER_URL`,
+        `OIDC_CLIENT_ID`, and `OIDC_CLIENT_SECRET` for the confidential Controller client.
       responses:
         "302":
-          description: Redirect to external IdP
+          description: Redirect to IdP or embedded issuer authorization endpoint
         "401":
-          description: Not Authorized
+          description: Auth not configured or OAuth session error
         "501":
-          description: External auth mode only
+          description: Embedded OAuth BFF requires VIEWER_URL
+        "429":
+          $ref: "#/components/responses/AuthRateLimitExceeded"
   /user/oauth/callback:
     get:
       tags:
@@ -3252,22 +3292,268 @@ paths:
       summary: OAuth authorization callback (BFF)
       operationId: oauthCallback
       description: >
-        Exchanges the authorization code for tokens. When VIEWER_URL is configured,
-        redirects to `{viewerUrl}/login#accessToken=...&refreshToken=...`. Otherwise
-        returns JSON `{ accessToken, refreshToken }`.
+        Exchanges the authorization code for tokens using the confidential Controller OIDC client.
+        Validates `state` and `nonce` from the server session (10-minute TTL). Works in **embedded**
+        and **external** auth modes.
+
+        When `VIEWER_URL` is configured (recommended for browser login), responds with **302** to
+        `{viewerUrl}/login#accessToken=...&refreshToken=...`. Viewer `/login` parses the URL
+        fragment, stores tokens, clears the hash, and navigates to the app. When `VIEWER_URL` is
+        unset, returns JSON **200** `{ accessToken, refreshToken }` (CLI/automation only).
+
+        **External forced password change** is enforced by the IdP during authorize (e.g. Keycloak
+        required actions: `UPDATE_PASSWORD`). **Embedded forced password** uses the interaction
+        `change-password` step (Plan 8.2-3).
+
+        MFA in external browser login is IdP-owned; embedded browser MFA uses interaction endpoints.
       responses:
         "200":
-          description: Token response (when VIEWER_URL is not configured)
+          description: Token response when VIEWER_URL is not configured
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/LoginSuccessResponse"
         "302":
-          description: Redirect to ECN Viewer login with tokens in URL fragment
+          description: Redirect to ECN Viewer `/login` with tokens in URL fragment
         "401":
-          description: OAuth session invalid or authorization failed
+          description: OAuth session expired, state/nonce mismatch, or authorization code exchange failed
+        "501":
+          description: Embedded OAuth BFF requires VIEWER_URL
+        "429":
+          $ref: "#/components/responses/AuthRateLimitExceeded"
+  /user/interaction/{uid}:
+    get:
+      tags:
+        - User
+      summary: Get embedded OAuth interaction status
+      operationId: interactionStatus
+      description: >
+        **Embedded auth mode only.** Returns the next interaction step for the OAuth BFF flow.
+        Unauthenticated — the interaction uid comes from the Viewer redirect query string
+        (`?interaction=<uid>`). Steps: `login`, `mfa`, `enroll`, `confirm-enroll`,
+        `change-password`, `complete`.
+      parameters:
+        - name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Current interaction step
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InteractionStepResponse"
+        "401":
+          description: Interaction session not found or expired
+        "501":
+          description: External auth mode only (embedded interactions)
+  /user/interaction/{uid}/login:
+    post:
+      tags:
+        - User
+      summary: Submit credentials for embedded OAuth interaction
+      operationId: interactionLogin
+      description: >
+        **Embedded auth mode only.** Verifies email/login identifier and password for the OAuth
+        interaction. Returns the next step on success. Failures return **401** (no custom MFA JSON).
+      parameters:
+        - name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InteractionLoginRequest"
+      responses:
+        "200":
+          description: Credentials accepted; returns next step
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InteractionStepResponse"
+        "400":
+          description: Validation error
+        "401":
+          description: Invalid credentials or interaction expired
         "501":
           description: External auth mode only
+        "429":
+          $ref: "#/components/responses/AuthRateLimitExceeded"
+  /user/interaction/{uid}/mfa:
+    post:
+      tags:
+        - User
+      summary: Submit TOTP for embedded OAuth interaction
+      operationId: interactionMfa
+      description: >
+        **Embedded auth mode only.** Verifies TOTP for admin users with MFA enabled during the
+        OAuth interaction. Returns the next step on success.
+      parameters:
+        - name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InteractionMfaRequest"
+      responses:
+        "200":
+          description: MFA verified; returns next step
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InteractionStepResponse"
+        "400":
+          description: Validation error
+        "401":
+          description: Invalid MFA code or interaction expired
+        "501":
+          description: External auth mode only
+        "429":
+          $ref: "#/components/responses/AuthRateLimitExceeded"
+  /user/interaction/{uid}/enroll:
+    post:
+      tags:
+        - User
+      summary: Start MFA enrollment during embedded OAuth interaction
+      operationId: interactionEnroll
+      description: >
+        **Embedded auth mode only.** Starts admin MFA enrollment during the browser OAuth
+        interaction (browser-only first enrollment). Returns TOTP secret material for QR display.
+      parameters:
+        - name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Enrollment started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InteractionEnrollResponse"
+        "400":
+          description: Validation error
+        "401":
+          description: Interaction expired or credentials not verified
+        "501":
+          description: External auth mode only
+        "429":
+          $ref: "#/components/responses/AuthRateLimitExceeded"
+  /user/interaction/{uid}/confirm-enroll:
+    post:
+      tags:
+        - User
+      summary: Confirm MFA enrollment during embedded OAuth interaction
+      operationId: interactionConfirmEnroll
+      description: >
+        **Embedded auth mode only.** Confirms MFA enrollment with a TOTP code during the browser
+        OAuth interaction. Returns recovery codes on success.
+      parameters:
+        - name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InteractionMfaRequest"
+      responses:
+        "200":
+          description: MFA enrollment confirmed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InteractionConfirmEnrollResponse"
+        "400":
+          description: Validation error
+        "401":
+          description: Invalid code or interaction expired
+        "501":
+          description: External auth mode only
+        "429":
+          $ref: "#/components/responses/AuthRateLimitExceeded"
+  /user/interaction/{uid}/change-password:
+    post:
+      tags:
+        - User
+      summary: Forced password change during embedded OAuth interaction
+      operationId: interactionChangePassword
+      description: >
+        **Embedded auth mode only.** Forced password change step before OAuth tokens are issued
+        when `mustChangePassword` is true. Requires `currentPassword` and `newPassword` in the body.
+      parameters:
+        - name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChangePasswordRequest"
+      responses:
+        "200":
+          description: Password changed; returns next step
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InteractionStepResponse"
+        "400":
+          description: Validation error
+        "401":
+          description: Invalid credentials or interaction expired
+        "501":
+          description: External auth mode only
+        "429":
+          $ref: "#/components/responses/AuthRateLimitExceeded"
+  /user/interaction/{uid}/complete:
+    post:
+      tags:
+        - User
+      summary: Finish embedded OAuth interaction
+      operationId: interactionComplete
+      description: >
+        **Embedded auth mode only.** Completes the oidc-provider interaction after all required
+        steps are satisfied. Returns `{ redirectTo }` — Viewer should navigate the browser to
+        this URL to resume the OAuth authorize flow and reach `/user/oauth/callback`.
+      parameters:
+        - name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Interaction finished; resume OAuth at redirectTo
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InteractionCompleteResponse"
+        "400":
+          description: Required interaction step not yet completed
+        "401":
+          description: Interaction expired or credentials invalid
+        "501":
+          description: External auth mode only
+        "429":
+          $ref: "#/components/responses/AuthRateLimitExceeded"
   /auth/migration/export:
     post:
       tags:
@@ -3340,6 +3626,9 @@ paths:
         - Auth Users
       summary: Create embedded auth user
       operationId: createAuthUser
+      description: >
+        Admin-created users receive `mustChangePassword: true` so the first login forces
+        a password change (browser interaction step or CLI JWT `password_change_required` gate).
       security:
         - authToken: []
       requestBody:
@@ -3551,7 +3840,7 @@ paths:
           description: Conflict
         "501":
           description: Embedded auth mode only
-  "/groups/{id}":
+  "/groups/{name}":
     get:
       tags:
         - Auth Groups
@@ -3560,11 +3849,12 @@ paths:
       security:
         - authToken: []
       parameters:
-        - name: id
+        - name: name
           in: path
           required: true
           schema:
-            type: integer
+            type: string
+          description: Unique auth group name (e.g. viewer, platform-ops)
       responses:
         "200":
           description: Success
@@ -3586,11 +3876,12 @@ paths:
       security:
         - authToken: []
       parameters:
-        - name: id
+        - name: name
           in: path
           required: true
           schema:
-            type: integer
+            type: string
+          description: Current auth group name
       requestBody:
         required: true
         content:
@@ -3622,11 +3913,12 @@ paths:
       security:
         - authToken: []
       parameters:
-        - name: id
+        - name: name
           in: path
           required: true
           schema:
-            type: integer
+            type: string
+          description: Auth group name
       responses:
         "204":
           description: Deleted
@@ -6452,6 +6744,18 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
+  responses:
+    AuthRateLimitExceeded:
+      description: Too many authentication requests from this IP address
+      headers:
+        Retry-After:
+          description: Seconds until the current rate-limit window resets
+          schema:
+            type: integer
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/RateLimitExceededResponse"
   requestBodies:
     UpdateIOFogNodeRequestBody:
       content:
@@ -8493,6 +8797,8 @@ components:
       properties:
         email:
           type: string
+          minLength: 1
+          description: Login identifier (email for normal users; bootstrap admin may use a non-email username)
         password:
           type: string
         totp:
@@ -8536,8 +8842,82 @@ components:
       properties:
         accessToken:
           type: string
+          description: >
+            JWT access token (`token_use=access`). Includes `password_change_required: true`
+            when the account must change its password before full API access.
         refreshToken:
           type: string
+          description: JWT refresh token (`token_use=refresh`). Use only with POST /user/refresh.
+    InteractionStepResponse:
+      type: object
+      required:
+        - step
+      properties:
+        step:
+          type: string
+          enum:
+            - login
+            - mfa
+            - enroll
+            - confirm-enroll
+            - change-password
+            - complete
+    InteractionLoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          description: Login identifier (not required to be an email address)
+        password:
+          type: string
+    InteractionMfaRequest:
+      type: object
+      required:
+        - code
+      properties:
+        code:
+          type: string
+    InteractionEnrollResponse:
+      type: object
+      required:
+        - step
+        - secret
+        - otpauthUrl
+      properties:
+        step:
+          type: string
+        secret:
+          type: string
+        otpauthUrl:
+          type: string
+    InteractionConfirmEnrollResponse:
+      type: object
+      required:
+        - step
+        - recoveryCodes
+      properties:
+        step:
+          type: string
+        recoveryCodes:
+          type: array
+          items:
+            type: string
+    InteractionCompleteResponse:
+      type: object
+      required:
+        - redirectTo
+        - step
+      properties:
+        redirectTo:
+          type: string
+          description: OAuth resume URL; navigate browser here after all steps complete
+        step:
+          type: string
+          enum:
+            - complete
     RefreshSuccessResponse:
       type: object
       required:
@@ -8573,6 +8953,9 @@ components:
                 type: string
               email:
                 type: string
+              password_change_required:
+                type: boolean
+                description: Present when JWT claim `password_change_required` is true
     ChangePasswordRequest:
       type: object
       required:
@@ -8589,6 +8972,18 @@ components:
       properties:
         status:
           type: string
+    RateLimitExceededResponse:
+      type: object
+      required:
+        - name
+        - message
+      properties:
+        name:
+          type: string
+          example: RateLimitExceededError
+        message:
+          type: string
+          example: Too many authentication requests from this IP address
     AuthUserCreateRequest:
       type: object
       required:

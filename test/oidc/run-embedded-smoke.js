@@ -18,7 +18,7 @@ function main () {
   console.log("  export AUTH_MODE='embedded'")
   console.log(`  export CONTROLLER_PUBLIC_URL='${EMBEDDED_PUBLIC_URL}'`)
   console.log(`  export OIDC_CLIENT_ID='${EMBEDDED_CLIENT_ID}'`)
-  console.log("  export OIDC_BOOTSTRAP_ADMIN_EMAIL='admin@example.com'")
+  console.log("  export OIDC_BOOTSTRAP_ADMIN_USERNAME='admin'")
   console.log("  export OIDC_BOOTSTRAP_ADMIN_PASSWORD='ChangeMeSecure123!'")
   console.log('')
   console.log('Optional for local HTTP smoke:')
@@ -30,10 +30,17 @@ function main () {
   console.log('Login smoke:')
   console.log('  curl -s -X POST http://localhost:51121/api/v3/user/login \\')
   console.log('    -H "Content-Type: application/json" \\')
-  console.log('    -d \'{"email":"admin@example.com","password":"ChangeMeSecure123!"}\'')
+  console.log('    -d \'{"email":"admin","password":"ChangeMeSecure123!"}\'')
   console.log('')
   console.log('Protected route smoke (replace <token>):')
   console.log('  curl -H "Authorization: Bearer <token>" http://localhost:51121/api/v3/user/profile')
+  console.log('')
+  console.log('Embedded OAuth BFF smoke (requires VIEWER_URL + running Controller):')
+  console.log("  export VIEWER_URL='http://localhost:8008'")
+  console.log('  open http://localhost:51121/api/v3/user/oauth/authorize')
+  console.log('  # → redirects to Viewer /login/oauth?interaction=<uid>')
+  console.log('  # → Viewer calls POST /api/v3/user/interaction/:uid/login (etc.)')
+  console.log('  # → POST /api/v3/user/interaction/:uid/complete → redirectTo → callback → /login#tokens')
 }
 
 if (require.main === module) {

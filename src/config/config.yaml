@@ -40,7 +40,7 @@ server:
 # Viewer Configuration
 viewer:
   port: 8008             # Viewer port number
-  url: ""                # Viewer URL
+  url: ""                # Viewer URL (VIEWER_URL); defaults to server.publicUrl when empty
 
 # Logging Configuration
 log:
@@ -100,7 +100,7 @@ database:
 #   mode: embedded        # embedded | external (AUTH_MODE); resolution
 #   insecureAllowHttp: false  # Allow http CONTROLLER_PUBLIC_URL in prod (AUTH_INSECURE_ALLOW_HTTP)
 #   bootstrap:
-#     adminEmail: ""  # Bootstrap admin email (OIDC_BOOTSTRAP_ADMIN_EMAIL)
+#     adminUsername: ""  # Bootstrap admin username (OIDC_BOOTSTRAP_ADMIN_USERNAME)
 #     adminPassword: ""  # Bootstrap admin password (OIDC_BOOTSTRAP_ADMIN_PASSWORD)
 #     insecureAllowBootstrapLog: false  # Allow bootstrap log in prod (AUTH_INSECURE_ALLOW_BOOTSTRAP_LOG)
 #   issuerUrl:      # OIDC issuer URL (OIDC_ISSUER_URL); external mode only
@@ -108,6 +108,22 @@ database:
 #     id:           # Controller API client ID (OIDC_CLIENT_ID)
 #     secret:       # Controller API client secret (OIDC_CLIENT_SECRET)
 #   viewerClient:   # ECN Viewer SPA client ID (OIDC_VIEWER_CLIENT_ID)
+#   rateLimit:
+#     enabled: true                 # AUTH_RATE_LIMIT_ENABLED
+#     maxRequestsPerWindow: 60      # AUTH_RATE_LIMIT_MAX_REQUESTS — per-IP auth endpoints
+#     windowMs: 60000               # AUTH_RATE_LIMIT_WINDOW_MS — sliding window (ms)
+#   sessionStore:
+#     type: memory                  # memory | database (AUTH_SESSION_STORE_TYPE); auto database for mysql/postgres
+#     ttlMs: 600000                 # AUTH_SESSION_STORE_TTL_MS — OAuth BFF session TTL (10 min)
+#     secret: ""                    # AUTH_SESSION_SECRET — optional; auto-generated and persisted when unset
+#   tokenTtl:
+#     accessTokenTtlSeconds: 900    # AUTH_ACCESS_TOKEN_TTL_SECONDS — runtime override (default from AuthPolicy)
+#     refreshTokenTtlSeconds: 3600  # AUTH_REFRESH_TOKEN_TTL_SECONDS — runtime override (default 1h from AuthPolicy)
+#   oidcTtl:
+#     interactionTtlSeconds:        # AUTH_OIDC_INTERACTION_TTL_SECONDS — defaults to sessionStore.ttlMs / 1000
+#     grantTtlSeconds:              # AUTH_OIDC_GRANT_TTL_SECONDS — defaults to interactionTtlSeconds
+#     sessionTtlSeconds:            # AUTH_OIDC_SESSION_TTL_SECONDS — defaults to AuthPolicy refresh_token_ttl_seconds
+#     idTokenTtlSeconds:            # AUTH_OIDC_ID_TOKEN_TTL_SECONDS — defaults to AuthPolicy access_token_ttl_seconds
 
 # Bridge Ports Configuration for Services
 bridgePorts:

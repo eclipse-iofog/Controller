@@ -1,5 +1,6 @@
 const { expect } = require('chai')
 const sinon = require('sinon')
+const express = require('express')
 
 const config = require('../../../src/config')
 const {
@@ -163,6 +164,118 @@ describe('OIDC config', () => {
 
       expect(result.nextCalled).to.equal(true)
       expect(result.req.kauth).to.equal(undefined)
+    })
+  })
+
+  describe('getOauthClientConfiguration()', () => {
+    function createEmbeddedOidcStubDb () {
+      const storedKeys = []
+      const storedClients = []
+
+      return {
+        AuthOidcKey: {
+          findAll: sinon.stub().resolves(storedKeys),
+          create: sinon.stub().callsFake(async (values) => {
+            storedKeys.push(values)
+            return values
+          })
+        },
+        AuthOidcClient: {
+          findOne: sinon.stub().callsFake(async ({ where }) => {
+            return storedClients.find((client) => client.clientId === where.clientId) || null
+          }),
+          create: sinon.stub().callsFake(async (values) => {
+            storedClients.push(values)
+            return values
+          })
+        },
+        AuthOidcProviderState: {
+          upsert: sinon.stub().resolves([{}, true]),
+          findOne: sinon.stub().resolves(null),
+          update: sinon.stub().resolves([1]),
+          destroy: sinon.stub().resolves(0)
+        },
+        AuthPolicy: {
+          findByPk: sinon.stub().resolves({
+            accessTokenTtlSeconds: 900,
+            refreshTokenTtlSeconds: 604800
+          })
+        },
+        AuthUser: {
+          findByPk: sinon.stub().resolves(null)
+        }
+      }
+    }
+
+    function reloadEmbeddedOidcModule () {
+      const embeddedPath = require.resolve('../../../src/config/embedded-oidc')
+      delete require.cache[embeddedPath]
+      return require('../../../src/config/embedded-oidc')
+    }
+
+    async function withEmbeddedIssuerServer (run) {
+      const app = express()
+
+      const server = await new Promise((resolve, reject) => {
+        const listener = app.listen(0, '127.0.0.1', () => resolve(listener))
+        listener.on('error', reject)
+      })
+
+      const { port } = server.address()
+      const issuerBase = `http://127.0.0.1:${port}`
+
+      applyEmbeddedEnv({
+        CONTROLLER_PUBLIC_URL: issuerBase,
+        OIDC_CLIENT_SECRET: 'embedded-oauth-test-secret'
+      })
+
+      const embeddedOidc = reloadEmbeddedOidcModule()
+      await embeddedOidc.initEmbeddedIssuer(app, { db: createEmbeddedOidcStubDb() })
+
+      try {
+        await run(issuerBase, server)
+      } finally {
+        await new Promise((resolve, reject) => {
+          server.close((error) => (error ? reject(error) : resolve()))
+        })
+        embeddedOidc.resetEmbeddedIssuerForTests()
+      }
+    }
+
+    beforeEach(async () => {
+      await $harness
+    })
+
+    it('discovers the embedded issuer over HTTP when auth.insecureAllowHttp is true', async () => {
+      await withEmbeddedIssuerServer(async (issuerBase) => {
+        const originalGet = config.get.bind(config)
+        $sandbox.stub(config, 'get').callsFake((key, defaultValue) => {
+          if (key === 'auth.insecureAllowHttp') {
+            return true
+          }
+          return originalGet(key, defaultValue)
+        })
+
+        const oidc = reloadOidcModule()
+        oidc.initOidc()
+
+        const clientConfig = await oidc.getOauthClientConfiguration()
+        expect(clientConfig.serverMetadata().issuer).to.equal(`${issuerBase}/oidc`)
+      })
+    })
+
+    it('rejects HTTP issuer discovery when auth.insecureAllowHttp is false', async () => {
+      await withEmbeddedIssuerServer(async (issuerBase) => {
+        const oidc = reloadOidcModule()
+        oidc.initOidc()
+
+        try {
+          await oidc.getOauthClientConfiguration()
+          expect.fail('expected HTTP discovery to be rejected')
+        } catch (error) {
+          expect(error.message).to.equal('only requests to HTTPS are allowed')
+        }
+      })
     })
   })
 })

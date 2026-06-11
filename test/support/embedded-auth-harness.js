@@ -106,7 +106,8 @@ function createEmbeddedAuthStore () {
     groupNames = ['viewer'],
     mfaEnabled = false,
     totpSecret = null,
-    isBootstrap = false
+    isBootstrap = false,
+    mustChangePassword = false
   }) {
     const normalizedEmail = String(email).trim().toLowerCase()
     const userId = crypto.randomUUID()
@@ -115,7 +116,7 @@ function createEmbeddedAuthStore () {
       id: userId,
       email: normalizedEmail,
       passwordHash,
-      mustChangePassword: false,
+      mustChangePassword,
       isBootstrap,
       failedAttempts: 0,
       lockedUntil: null,
@@ -363,6 +364,8 @@ function reloadAuthModules ({ keepJwks = false } = {}) {
 function resetEmbeddedAuthCaches () {
   require('../../src/config/oidc').resetDiscoveryForTests()
   require('../../src/config/auth-jwks').resetSigningMaterialCacheForTests()
+  require('../../src/config/auth-session-store').resetAuthSessionStoreForTests()
+  require('../../src/services/auth-interaction-state-store').resetInteractionStateForTests()
 }
 
 async function createEmbeddedAuthHarness (sandbox, options = {}) {
