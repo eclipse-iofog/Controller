@@ -77,12 +77,12 @@ const deleteApplicationTemplateEndPoint = async function (req) {
 }
 
 module.exports = {
-  createApplicationTemplateEndPoint: (createApplicationTemplateEndPoint),
-  getApplicationTemplatesByUserEndPoint: (getApplicationTemplatesByUserEndPoint),
-  getApplicationTemplateEndPoint: (getApplicationTemplateEndPoint),
-  updateApplicationTemplateEndPoint: (updateApplicationTemplateEndPoint),
-  updateApplicationTemplateYAMLEndPoint: (updateApplicationTemplateYAMLEndPoint),
-  patchApplicationTemplateEndPoint: (patchApplicationTemplateEndPoint),
-  deleteApplicationTemplateEndPoint: (deleteApplicationTemplateEndPoint),
-  createApplicationTemplateYAMLEndPoint: (createApplicationTemplateYAMLEndPoint)
+  createApplicationTemplateEndPoint,
+  getApplicationTemplatesByUserEndPoint,
+  getApplicationTemplateEndPoint,
+  updateApplicationTemplateEndPoint,
+  updateApplicationTemplateYAMLEndPoint,
+  patchApplicationTemplateEndPoint,
+  deleteApplicationTemplateEndPoint,
+  createApplicationTemplateYAMLEndPoint
 }

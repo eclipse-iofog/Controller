@@ -38,20 +38,19 @@ function handleErrors (f, successCode, errorsCodes) {
       if (errorsCodes) {
         errorsCodes.some((errCodeDescr) => {
           const isCurrentCode = errCodeDescr.errors.some((err) => {
-            if (errorObj instanceof err) {
-              return true
-            }
+            return errorObj instanceof err
           })
           if (isCurrentCode) {
             code = errCodeDescr.code
             return true
           }
+          return false
         })
       }
       code = code || 500
 
       responseObject = {
-        code: code,
+        code,
         body: {
           name: errorObj.name,
           message: errorObj.message,
@@ -68,5 +67,5 @@ function handleErrors (f, successCode, errorsCodes) {
 }
 
 module.exports = {
-  handleErrors: handleErrors
+  handleErrors
 }

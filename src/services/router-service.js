@@ -106,15 +106,17 @@ async function validateAndReturnUpstreamRouters (upstreamRouterIds, isSystemFog,
 async function createRouterForFog (fogData, uuid, upstreamRouters, transaction) {
   const isEdge = fogData.routerMode === 'edge'
   const messagingPort = fogData.messagingPort || 5671
+  const DEFAULT_EDGE_ROUTER_PORT = 45671
+  const DEFAULT_INTERIOR_ROUTER_PORT = 55671
   // Is default router if we are on a system fog and no other default router already exists
   const isDefault = (fogData.isSystem) ? !(await RouterManager.findOne({ isDefault: true }, transaction)) : false
   const routerData = {
     isEdge,
-    messagingPort: messagingPort,
+    messagingPort,
     host: fogData.host,
-    edgeRouterPort: !isEdge ? fogData.edgeRouterPort : null,
-    interRouterPort: !isEdge ? fogData.interRouterPort : null,
-    isDefault: isDefault,
+    edgeRouterPort: !isEdge ? fogData.edgeRouterPort || DEFAULT_EDGE_ROUTER_PORT : null,
+    interRouterPort: !isEdge ? fogData.interRouterPort || DEFAULT_INTERIOR_ROUTER_PORT : null,
+    isDefault,
     iofogUuid: uuid
   }
 
@@ -355,7 +357,7 @@ async function _createRouterMicroservice (isEdge, uuid, microserviceConfig, tran
     config: JSON.stringify(microserviceConfig),
     catalogItemId: routerCatalog.id,
     iofogUuid: uuid,
-    hostNetworkMode: hostNetworkMode,
+    hostNetworkMode,
     isPrivileged: false,
     logSize: constants.MICROSERVICE_DEFAULT_LOG_SIZE,
     schedule: 0,
@@ -470,7 +472,7 @@ async function _getRouterMicroserviceConfig (isEdge, uuid, messagingPort, interR
     siteConfig: {
       name: uuid,
       namespace: SITE_CONFIG_NAMESPACE,
-      platform: platform,
+      platform,
       version: SITE_CONFIG_VERSION
     },
     sslProfiles: {}

@@ -50,7 +50,7 @@ const updateConfigMapFromYamlEndpoint = async function (req) {
   const configMapName = req.params.name
   const configMapData = await YamlParserService.parseConfigMapFile(fileContent, {
     isUpdate: true,
-    configMapName: configMapName
+    configMapName
   })
   return ConfigMapService.updateConfigMapEndpoint(configMapName, configMapData)
 }

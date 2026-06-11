@@ -112,7 +112,7 @@ const registerControllerMicroserviceEndPoint = async function (req, fog) {
 }
 
 module.exports = {
-  agentProvisionEndPoint: agentProvisionEndPoint,
+  agentProvisionEndPoint,
   agentDeprovisionEndPoint: AuthDecorator.checkFogToken(agentDeprovisionEndPoint),
   getAgentConfigEndPoint: AuthDecorator.checkFogToken(getAgentConfigEndPoint),
   updateAgentConfigEndPoint: AuthDecorator.checkFogToken(updateAgentConfigEndPoint),

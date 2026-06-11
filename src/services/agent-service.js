@@ -108,7 +108,7 @@ const agentProvision = async function (provisionData, transaction) {
   return {
     uuid: fog.uuid,
     privateKey: keyPair.privateKey,
-    namespace: namespace
+    namespace
   }
 }
 
@@ -444,7 +444,7 @@ const getAgentMicroservices = async function (fog, transaction) {
       uuid: microservice.uuid,
       name: microservice.name,
       application,
-      imageId: imageId,
+      imageId,
       config: microservice.config,
       annotations: microservice.annotations,
       rebuild: microservice.rebuild,
@@ -452,7 +452,7 @@ const getAgentMicroservices = async function (fog, transaction) {
       isPrivileged: microservice.isPrivileged,
       cpuSetCpus: microservice.cpuSetCpus,
       memoryLimit: microservice.memoryLimit,
-      healthCheck: healthCheck,
+      healthCheck,
       pidMode: microservice.pidMode,
       ipcMode: microservice.ipcMode,
       runAsUser: microservice.runAsUser,
@@ -514,14 +514,14 @@ const getAgentMicroservice = async function (microserviceUuid, fog, transaction)
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, microserviceUuid))
   }
   return {
-    microservice: microservice
+    microservice
   }
 }
 
 const getAgentRegistries = async function (fog, transaction) {
   const registries = await RegistryManager.findAll({}, transaction)
   return {
-    registries: registries
+    registries
   }
 }
 
@@ -535,7 +535,7 @@ const getAgentTunnel = async function (fog, transaction) {
   }
 
   return {
-    tunnel: tunnel
+    tunnel
   }
 }
 
@@ -770,8 +770,8 @@ const getAgentLinkedVolumeMounts = async function (fog, transaction) {
       uuid: resourceObject.uuid,
       name: resourceObject.name,
       version: resourceObject.version,
-      type: type,
-      data: data
+      type,
+      data
     }
     volumeMounts.push(responseObject)
   }

@@ -86,5 +86,5 @@ function checkFogToken (f) {
 }
 
 module.exports = {
-  checkFogToken: checkFogToken
+  checkFogToken
 }

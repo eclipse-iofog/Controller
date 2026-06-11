@@ -423,8 +423,8 @@ const getApplicationEndPoint = async function (conditions, isCLI, transaction) {
 const _checkForDuplicateName = async function (name, applicationId, transaction) {
   if (name) {
     const where = applicationId
-      ? { name: name, id: { [Op.ne]: applicationId } }
-      : { name: name }
+      ? { name, id: { [Op.ne]: applicationId } }
+      : { name }
 
     const result = await ApplicationManager.findOne(where, transaction)
     if (result) {
@@ -470,6 +470,6 @@ module.exports = {
   getAllApplicationsEndPoint: TransactionDecorator.generateTransaction(getAllApplicationsEndPoint),
   getApplicationEndPoint: TransactionDecorator.generateTransaction(getApplicationEndPoint),
   getSystemApplicationEndPoint: TransactionDecorator.generateTransaction(getSystemApplicationEndPoint),
-  getApplication: getApplication,
-  getSystemApplication: getSystemApplication
+  getApplication,
+  getSystemApplication
 }

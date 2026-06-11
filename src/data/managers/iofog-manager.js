@@ -25,22 +25,24 @@ class FogManager extends BaseManager {
 
   async findAllWithTags (where, transaction) {
     return Fog.findAll({
-      where: where,
-      order: [ [ 'name', 'ASC' ] ],
+      where,
+      order: [['name', 'ASC']],
       include: [
-        { model: Tags,
+        {
+          model: Tags,
           as: 'tags',
           through: {
             attributes: []
           }
         },
-        { model: Architecture,
+        {
+          model: Architecture,
           as: 'architecture',
           attributes: ['id', 'name', 'image', 'description']
         }
       ]
     }, {
-      transaction: transaction
+      transaction
     })
   }
 
@@ -48,13 +50,15 @@ class FogManager extends BaseManager {
     return Fog.findOne({
       where,
       include: [
-        { model: Tags,
+        {
+          model: Tags,
           as: 'tags',
           through: {
             attributes: []
           }
         },
-        { model: Architecture,
+        {
+          model: Architecture,
           as: 'architecture',
           attributes: ['id', 'name', 'image', 'description']
         }
@@ -64,10 +68,10 @@ class FogManager extends BaseManager {
 
   async findAll (where, transaction) {
     return Fog.findAll({
-      where: where,
-      order: [ [ 'name', 'ASC' ] ]
+      where,
+      order: [['name', 'ASC']]
     }, {
-      transaction: transaction
+      transaction
     })
   }
 
@@ -77,7 +81,7 @@ class FogManager extends BaseManager {
       lastActive: timestamp
     }, {
       where: {
-        uuid: uuid
+        uuid
       }
     })
   }

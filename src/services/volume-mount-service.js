@@ -34,7 +34,7 @@ async function listVolumeMountsEndpoint (transaction) {
 
 async function getVolumeMountEndpoint (name, transaction) {
   const volumeMount = await VolumeMountingManager.findOne({
-    name: name
+    name
   }, transaction)
 
   if (!volumeMount) {
@@ -125,7 +125,7 @@ async function updateVolumeMountEndpoint (name, data, transaction) {
     configMapName: data.configMapName,
     secretName: data.secretName
   }
-  await VolumeMountingManager.update({ name: name }, updatedVolumeMountObj, transaction)
+  await VolumeMountingManager.update({ name }, updatedVolumeMountObj, transaction)
 
   // Update change tracking for all linked fog nodes
   await _updateChangeTrackingForFogs(linkedFogUuids, transaction)
@@ -138,7 +138,7 @@ async function deleteVolumeMountEndpoint (name, transaction) {
   const linkedFogUuids = await findVolumeMountedFogNodes(name, transaction)
 
   // Delete volume mount
-  await VolumeMountingManager.delete({ name: name }, transaction)
+  await VolumeMountingManager.delete({ name }, transaction)
 
   // Update change tracking for all linked fog nodes
   await _updateChangeTrackingForFogs(linkedFogUuids, transaction)

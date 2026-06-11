@@ -44,7 +44,7 @@ class FogUsedTokenManager {
       const tokenData = {
         jti,
         iofogUuid: fogUuid,
-        expiryTime: expiryTime
+        expiryTime
       }
 
       // Create the record with or without transaction

@@ -37,7 +37,7 @@ class RbacCacheVersionManager extends BaseManager {
   _getModelOptions (transaction) {
     return transaction && transaction.fakeTransaction
       ? {}
-      : { transaction: transaction }
+      : { transaction }
   }
 
   _extractAffectedRows (updateResult) {

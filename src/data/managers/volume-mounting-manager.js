@@ -31,30 +31,30 @@ class VolumeMountingManager extends BaseManager {
 
   getAll (where, transaction) {
     return VolumeMount.findAll({
-      where: where,
+      where,
       attributes: ['uuid', 'name', 'configMapName', 'secretName']
-    }, { transaction: transaction })
+    }, { transaction })
   }
 
   getOne (where, transaction) {
     return VolumeMount.findOne({
-      where: where,
+      where,
       attributes: ['uuid', 'name', 'configMapName', 'secretName', 'version']
-    }, { transaction: transaction })
+    }, { transaction })
   }
 
   findOne (where, transaction) {
     return VolumeMount.findOne({
-      where: where,
+      where,
       attributes: ['uuid', 'name', 'configMapName', 'secretName', 'version']
-    }, { transaction: transaction })
+    }, { transaction })
   }
 
   findAll (where, transaction) {
     return VolumeMount.findAll({
-      where: where,
+      where,
       attributes: ['uuid', 'name', 'configMapName', 'secretName', 'version']
-    }, { transaction: transaction })
+    }, { transaction })
   }
 }
 

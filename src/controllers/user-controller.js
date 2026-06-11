@@ -118,21 +118,21 @@ const interactionCompleteEndPoint = async function (req, res) {
 }
 
 module.exports = {
-  userLoginEndPoint: userLoginEndPoint,
-  refreshTokenEndPoint: refreshTokenEndPoint,
-  getUserProfileEndPoint: getUserProfileEndPoint,
-  userLogoutEndPoint: userLogoutEndPoint,
-  enrollMfaEndPoint: enrollMfaEndPoint,
-  confirmMfaEndPoint: confirmMfaEndPoint,
-  disableMfaEndPoint: disableMfaEndPoint,
-  changePasswordEndPoint: changePasswordEndPoint,
-  oauthAuthorizeEndPoint: oauthAuthorizeEndPoint,
-  oauthCallbackEndPoint: oauthCallbackEndPoint,
-  interactionStatusEndPoint: interactionStatusEndPoint,
-  interactionLoginEndPoint: interactionLoginEndPoint,
-  interactionMfaEndPoint: interactionMfaEndPoint,
-  interactionEnrollEndPoint: interactionEnrollEndPoint,
-  interactionConfirmEnrollEndPoint: interactionConfirmEnrollEndPoint,
-  interactionChangePasswordEndPoint: interactionChangePasswordEndPoint,
-  interactionCompleteEndPoint: interactionCompleteEndPoint
+  userLoginEndPoint,
+  refreshTokenEndPoint,
+  getUserProfileEndPoint,
+  userLogoutEndPoint,
+  enrollMfaEndPoint,
+  confirmMfaEndPoint,
+  disableMfaEndPoint,
+  changePasswordEndPoint,
+  oauthAuthorizeEndPoint,
+  oauthCallbackEndPoint,
+  interactionStatusEndPoint,
+  interactionLoginEndPoint,
+  interactionMfaEndPoint,
+  interactionEnrollEndPoint,
+  interactionConfirmEnrollEndPoint,
+  interactionChangePasswordEndPoint,
+  interactionCompleteEndPoint
 }

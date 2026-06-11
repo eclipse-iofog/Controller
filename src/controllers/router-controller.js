@@ -23,6 +23,6 @@ const getRouterEndPoint = async function () {
 }
 
 module.exports = {
-  upsertDefaultRouter: (upsertDefaultRouter),
-  getRouterEndPoint: (getRouterEndPoint)
+  upsertDefaultRouter,
+  getRouterEndPoint
 }

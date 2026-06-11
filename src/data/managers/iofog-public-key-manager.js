@@ -24,16 +24,16 @@ class FogPublicKeyManager extends BaseManager {
   findByFogUuid (fogUuid, transaction) {
     const options = transaction.fakeTransaction
       ? {
-        where: {
-          iofogUuid: fogUuid
+          where: {
+            iofogUuid: fogUuid
+          }
         }
-      }
       : {
-        where: {
-          iofogUuid: fogUuid
-        },
-        transaction: transaction
-      }
+          where: {
+            iofogUuid: fogUuid
+          },
+          transaction
+        }
 
     return FogPublicKey.findOne(options)
   }
@@ -42,43 +42,43 @@ class FogPublicKeyManager extends BaseManager {
   updateOrCreate (fogUuid, publicKey, transaction) {
     const options = transaction.fakeTransaction
       ? {
-        where: {
-          iofogUuid: fogUuid
+          where: {
+            iofogUuid: fogUuid
+          }
         }
-      }
       : {
-        where: {
-          iofogUuid: fogUuid
-        },
-        transaction: transaction
-      }
+          where: {
+            iofogUuid: fogUuid
+          },
+          transaction
+        }
 
     return FogPublicKey.findOne(options).then((existingKey) => {
       if (existingKey) {
         const updateOptions = transaction.fakeTransaction
           ? {
-            where: {
-              iofogUuid: fogUuid
+              where: {
+                iofogUuid: fogUuid
+              }
             }
-          }
           : {
-            where: {
-              iofogUuid: fogUuid
-            },
-            transaction: transaction
-          }
+              where: {
+                iofogUuid: fogUuid
+              },
+              transaction
+            }
 
         return FogPublicKey.update({
-          publicKey: publicKey
+          publicKey
         }, updateOptions)
       } else {
         const createOptions = transaction.fakeTransaction
           ? {}
-          : { transaction: transaction }
+          : { transaction }
 
         return FogPublicKey.create({
           iofogUuid: fogUuid,
-          publicKey: publicKey
+          publicKey
         }, createOptions)
       }
     })

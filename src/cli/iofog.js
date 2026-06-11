@@ -439,7 +439,7 @@ async function _getHalHardwareInfo (obj) {
   logger.cliReq('fog hal-hw', { args: uuidObj })
   const data = await FogService.getHalHardwareInfoEndPoint(uuidObj, {}, true)
   if (data) {
-    if (data.hasOwnProperty('info')) {
+    if (Object.hasOwn(data, 'info')) {
       data.info = JSON.parse(data.info)
     }
 
@@ -454,7 +454,7 @@ async function _getHalUsbInfo (obj) {
   logger.cliReq('fog hal-usb', { args: uuidObj })
   const data = await FogService.getHalUsbInfoEndPoint(uuidObj, {}, true)
   if (data) {
-    if (data.hasOwnProperty('info')) {
+    if (Object.hasOwn(data, 'info')) {
       data.info = JSON.parse(data.info)
     }
 

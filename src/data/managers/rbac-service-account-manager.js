@@ -221,7 +221,7 @@ class RbacServiceAccountManager extends BaseManager {
    */
   async listServiceAccounts (transaction, options = {}) {
     AppHelper.checkTransaction(transaction)
-    let where = {}
+    const where = {}
     if (options.applicationName) {
       const application = await ApplicationManager.findOne({ name: options.applicationName }, transaction)
       if (!application) {

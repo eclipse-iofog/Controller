@@ -10,6 +10,7 @@ const { generateSelfSignedCA, storeCA, generateCertificate } = require('../utils
 const config = require('../config')
 const Constants = require('../helpers/constants')
 const forge = require('node-forge')
+const logger = require('../logger')
 
 // Helper function to check Kubernetes environment
 function checkKubernetesEnvironment () {
@@ -199,7 +200,7 @@ async function getCAEndpoint (name, transaction) {
     serialNumber: certRecord.serialNumber,
     data: {
       certificate,
-      privateKey: privateKey
+      privateKey
     }
   }
 }
@@ -241,6 +242,19 @@ async function deleteCAEndpoint (name, transaction) {
 }
 
 async function createCertificateEndpoint (certData, transaction) {
+  try {
+    return await _createCertificateEndpointInner(certData, transaction)
+  } catch (error) {
+    if (!(error instanceof Errors.ValidationError) &&
+        !(error instanceof Errors.NotFoundError) &&
+        !(error instanceof Errors.ConflictError)) {
+      logger.error(`Create certificate failed for ${certData && certData.name}:`, error.message)
+    }
+    throw error
+  }
+}
+
+async function _createCertificateEndpointInner (certData, transaction) {
   // Validate input data
   const validation = await Validator.validate(certData, Validator.schemas.certificateCreate)
   if (!validation.valid) {
@@ -322,6 +336,7 @@ async function createCertificateEndpoint (certData, transaction) {
               ca_name: certData.ca.secretName
             }
           } catch (error) {
+            logger.error(`Failed to create k8s-secret certificate ${certData.name}:`, error.message)
             throw error
           }
         }
@@ -335,13 +350,18 @@ async function createCertificateEndpoint (certData, transaction) {
   }
 
   // Generate certificate
-  await generateCertificate({
-    name: certData.name,
-    subject: certData.subject,
-    hosts: certData.hosts,
-    expiration: certData.expiration,
-    ca: certData.ca
-  })
+  try {
+    await generateCertificate({
+      name: certData.name,
+      subject: certData.subject,
+      hosts: certData.hosts,
+      expiration: certData.expiration,
+      ca: certData.ca
+    })
+  } catch (error) {
+    logger.error(`Failed to generate certificate ${certData.name}:`, error.message)
+    throw error
+  }
 
   // Get certificate from secret to parse details
   const certSecret = await SecretService.getSecretEndpoint(certData.name)
@@ -408,7 +428,7 @@ async function getCertificateEndpoint (name, transaction) {
     isExpired: certRecord.isExpired(),
     data: {
       certificate,
-      privateKey: privateKey
+      privateKey
     }
   }
 }
@@ -454,7 +474,7 @@ async function deleteCertificateEndpoint (name, transaction) {
 async function renewCertificateEndpoint (name, transaction) {
   try {
     // First check if certificate exists in database
-    let certRecord = await CertificateManager.findCertificateByName(name, transaction)
+    const certRecord = await CertificateManager.findCertificateByName(name, transaction)
     let isNewRecord = false
 
     // If no certificate record but secret exists, we'll create a new record
@@ -487,7 +507,7 @@ async function renewCertificateEndpoint (name, transaction) {
 
     // Prepare renewal data
     const renewalData = {
-      name: name,
+      name,
       subject: certRecord ? certRecord.subject : name,
       hosts: certRecord ? certRecord.hosts : null,
       isRenewal: true
@@ -535,7 +555,7 @@ async function renewCertificateEndpoint (name, transaction) {
     if (isNewRecord) {
       // Create new certificate record
       await CertificateManager.create({
-        name: name,
+        name,
         subject: renewalData.subject,
         hosts: renewalData.hosts,
         isCA: renewalData.ca.type === 'self-signed',
@@ -563,7 +583,7 @@ async function renewCertificateEndpoint (name, transaction) {
     if (!updatedCert) {
       // If certificate record still doesn't exist, try to create it again with all fields
       await CertificateManager.create({
-        name: name,
+        name,
         subject: renewalData.subject,
         hosts: renewalData.hosts,
         isCA: renewalData.ca.type === 'self-signed',
@@ -609,16 +629,18 @@ async function listExpiringCertificatesEndpoint (days = 30, transaction) {
 
   // Ensure we return an empty array, not null, if no certificates are expiring
   return {
-    certificates: expiringCerts ? expiringCerts.map(cert => ({
-      name: cert.name,
-      subject: cert.subject,
-      hosts: cert.hosts,
-      is_ca: cert.isCA,
-      valid_from: cert.validFrom,
-      valid_to: cert.validTo,
-      days_remaining: cert.getDaysUntilExpiration(),
-      ca_name: cert.signingCA ? cert.signingCA.name : null
-    })) : []
+    certificates: expiringCerts
+      ? expiringCerts.map(cert => ({
+        name: cert.name,
+        subject: cert.subject,
+        hosts: cert.hosts,
+        is_ca: cert.isCA,
+        valid_from: cert.validFrom,
+        valid_to: cert.validTo,
+        days_remaining: cert.getDaysUntilExpiration(),
+        ca_name: cert.signingCA ? cert.signingCA.name : null
+      }))
+      : []
   }
 }
 

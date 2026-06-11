@@ -43,7 +43,7 @@ class LogSessionManager {
       fogUuid,
       agent: agentWs,
       user: userWs, // Single user per session (one-to-one)
-      tailConfig: tailConfig, // Per-session tail configuration
+      tailConfig, // Per-session tail configuration
       lastActivity: Date.now(),
       createdAt: Date.now(),
       transaction
@@ -91,12 +91,12 @@ class LogSessionManager {
     try {
       if (session.microserviceUuid) {
         await MicroserviceLogStatusManager.delete(
-          { sessionId: sessionId },
+          { sessionId },
           transaction
         )
       } else if (session.fogUuid) {
         await FogLogStatusManager.delete(
-          { sessionId: sessionId },
+          { sessionId },
           transaction
         )
       }
@@ -128,7 +128,7 @@ class LogSessionManager {
       logger.error('Error removing log session from database:' + JSON.stringify({
         error: error.message,
         stack: error.stack,
-        sessionId: sessionId,
+        sessionId,
         microserviceUuid: session.microserviceUuid,
         fogUuid: session.fogUuid
       }))

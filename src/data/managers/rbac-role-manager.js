@@ -230,7 +230,7 @@ class RbacRoleManager extends BaseManager {
 
     const findAllOptions = transaction.fakeTransaction
       ? { where: { roleId: role.id } }
-      : { where: { roleId: role.id }, transaction: transaction }
+      : { where: { roleId: role.id }, transaction }
     const rules = await RbacRoleRule.findAll(findAllOptions)
 
     return {

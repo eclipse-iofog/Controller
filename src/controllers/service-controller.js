@@ -50,7 +50,7 @@ const updateServiceYAMLEndpoint = async function (req) {
   const fileContent = req.file.buffer.toString()
   const serviceData = await YamlParserService.parseServiceFile(fileContent, {
     isUpdate: true,
-    serviceName: serviceName
+    serviceName
   })
   return ServiceService.updateServiceEndpoint(serviceName, serviceData)
 }

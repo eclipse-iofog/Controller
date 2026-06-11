@@ -116,18 +116,18 @@ const getApplicationByIdEndPoint = async function (req) {
 }
 
 module.exports = {
-  createApplicationEndPoint: (createApplicationEndPoint),
-  createApplicationYAMLEndPoint: (createApplicationYAMLEndPoint),
-  getApplicationsByUserEndPoint: (getApplicationsByUserEndPoint),
-  getApplicationsBySystemEndPoint: (getApplicationsBySystemEndPoint),
-  getApplicationEndPoint: (getApplicationEndPoint),
-  getSystemApplicationEndPoint: (getSystemApplicationEndPoint),
-  getApplicationByIdEndPoint: (getApplicationByIdEndPoint),
-  updateApplicationEndPoint: (updateApplicationEndPoint),
-  updateApplicationYAMLEndPoint: (updateApplicationYAMLEndPoint),
-  patchApplicationEndPoint: (patchApplicationEndPoint),
-  patchApplicationByIdEndPoint: (patchApplicationByIdEndPoint),
-  deleteApplicationEndPoint: (deleteApplicationEndPoint),
-  deleteSystemApplicationEndPoint: (deleteSystemApplicationEndPoint),
-  deleteApplicationByIdEndPoint: (deleteApplicationByIdEndPoint)
+  createApplicationEndPoint,
+  createApplicationYAMLEndPoint,
+  getApplicationsByUserEndPoint,
+  getApplicationsBySystemEndPoint,
+  getApplicationEndPoint,
+  getSystemApplicationEndPoint,
+  getApplicationByIdEndPoint,
+  updateApplicationEndPoint,
+  updateApplicationYAMLEndPoint,
+  patchApplicationEndPoint,
+  patchApplicationByIdEndPoint,
+  deleteApplicationEndPoint,
+  deleteSystemApplicationEndPoint,
+  deleteApplicationByIdEndPoint
 }

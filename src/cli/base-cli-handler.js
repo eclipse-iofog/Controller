@@ -184,7 +184,7 @@ function argsArrayAsMap (args) {
   const argsMap = new Map()
   argsVars
     .map((pair) => pair.trim())
-    .map((pair) => {
+    .forEach((pair) => {
       const spaceIndex = pair.indexOf(' ')
       let key; let values
       if (spaceIndex !== -1) {
@@ -194,8 +194,8 @@ function argsArrayAsMap (args) {
       } else {
         key = pair
         values = []
+        argsMap.set(key, values)
       }
-      argsMap.set(key, values)
     })
   return argsMap
 }

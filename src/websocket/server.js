@@ -202,7 +202,7 @@ class WebSocketServer {
     } catch (error) {
       logger.error('Failed to encode message:' + JSON.stringify({
         error: error.message,
-        message: message
+        message
       }))
       throw new WebSocketError(1008, 'Message encoding failed')
     }
@@ -492,7 +492,6 @@ class WebSocketServer {
         } catch (error) {
           logger.error('Error closing WebSocket:', error.message)
         }
-        return
       } catch (error) {
         logger.error('WebSocket connection error:' + JSON.stringify({
           error: error.message,
@@ -508,7 +507,7 @@ class WebSocketServer {
             const microserviceUuid = this.extractMicroserviceUuid(req.url)
             if (microserviceUuid) {
               await MicroserviceExecStatusManager.update(
-                { microserviceUuid: microserviceUuid },
+                { microserviceUuid },
                 { execSessionId: '', status: microserviceExecState.INACTIVE },
                 transaction
               )
@@ -537,7 +536,7 @@ class WebSocketServer {
   async _routeToInternalHandler (ws, req, transaction) {
     try {
       // Extract token from headers (already set by protectWebSocket middleware)
-      let token = req.headers.authorization
+      const token = req.headers.authorization
       if (!token) {
         logger.error('WebSocket internal routing failed: Missing authentication token')
         try {
@@ -627,7 +626,6 @@ class WebSocketServer {
         } catch (error) {
           logger.error('Error closing WebSocket:', error.message)
         }
-        return
       }
     } catch (error) {
       logger.error('WebSocket internal routing error:' + JSON.stringify({
@@ -735,7 +733,7 @@ class WebSocketServer {
               await EventService.createWsConnectEvent({
                 timestamp: Date.now(),
                 endpointType: 'agent',
-                actorId: actorId,
+                actorId,
                 path: req.url,
                 resourceId: msgMicroserviceUuid,
                 ipAddress: EventService.extractIPv4Address(req) || null
@@ -748,18 +746,18 @@ class WebSocketServer {
           this.attachPendingKeepAliveHandler(ws)
           try {
             await MicroserviceExecStatusManager.update(
-              { microserviceUuid: microserviceUuid },
+              { microserviceUuid },
               { execSessionId: execId, status: microserviceExecState.PENDING },
               transaction
             )
             logger.debug('[WS-SESSION] Updated microservice exec status to PENDING', {
               execId,
-              microserviceUuid: microserviceUuid
+              microserviceUuid
             })
           } catch (error) {
             logger.error('[WS-SESSION] Failed to update microservice exec status to PENDING', {
               execId,
-              microserviceUuid: microserviceUuid,
+              microserviceUuid,
               error: error.message,
               stack: error.stack
             })
@@ -810,7 +808,7 @@ class WebSocketServer {
                 await EventService.createWsConnectEvent({
                   timestamp: Date.now(),
                   endpointType: 'agent',
-                  actorId: actorId,
+                  actorId,
                   path: req.url,
                   resourceId: msgMicroserviceUuid,
                   ipAddress: EventService.extractIPv4Address(req) || null
@@ -849,7 +847,7 @@ class WebSocketServer {
                 await EventService.createWsConnectEvent({
                   timestamp: Date.now(),
                   endpointType: 'agent',
-                  actorId: actorId,
+                  actorId,
                   path: req.url,
                   resourceId: msgMicroserviceUuid,
                   ipAddress: EventService.extractIPv4Address(req) || null
@@ -897,7 +895,7 @@ class WebSocketServer {
             await EventService.createWsDisconnectEvent({
               timestamp: Date.now(),
               endpointType: 'agent',
-              actorId: actorId,
+              actorId,
               path: req.url,
               resourceId: microserviceUuid,
               ipAddress: EventService.extractIPv4Address(req) || null,
@@ -917,7 +915,7 @@ class WebSocketServer {
               try {
                 const closeMsg = {
                   type: MESSAGE_TYPES.CLOSE,
-                  execId: execId,
+                  execId,
                   microserviceUuid: session.microserviceUuid,
                   timestamp: Date.now(),
                   data: Buffer.from('Agent closed connection')
@@ -970,7 +968,7 @@ class WebSocketServer {
     try {
       const pendingExecStatus = await MicroserviceExecStatusManager.findAllExcludeFields(
         {
-          microserviceUuid: microserviceUuid,
+          microserviceUuid,
           status: microserviceExecState.PENDING
         },
         transaction
@@ -1047,7 +1045,7 @@ class WebSocketServer {
                 await EventService.createWsConnectEvent({
                   timestamp: Date.now(),
                   endpointType: 'user',
-                  actorId: actorId,
+                  actorId,
                   path: req.url,
                   resourceId: microserviceUuid,
                   ipAddress: EventService.extractIPv4Address(req) || null
@@ -1067,7 +1065,7 @@ class WebSocketServer {
           })
           this.sessionManager.createSession(availableExecId, microserviceUuid, null, ws, transaction)
           await MicroserviceExecStatusManager.update(
-            { microserviceUuid: microserviceUuid },
+            { microserviceUuid },
             { execSessionId: availableExecId, status: microserviceExecState.ACTIVE },
             transaction
           )
@@ -1089,7 +1087,7 @@ class WebSocketServer {
               await EventService.createWsConnectEvent({
                 timestamp: Date.now(),
                 endpointType: 'user',
-                actorId: actorId,
+                actorId,
                 path: req.url,
                 resourceId: microserviceUuid,
                 ipAddress: EventService.extractIPv4Address(req) || null
@@ -1148,7 +1146,7 @@ class WebSocketServer {
                 await EventService.createWsConnectEvent({
                   timestamp: Date.now(),
                   endpointType: 'user',
-                  actorId: actorId,
+                  actorId,
                   path: req.url,
                   resourceId: microserviceUuid,
                   ipAddress: EventService.extractIPv4Address(req) || null
@@ -1169,7 +1167,7 @@ class WebSocketServer {
           this.sessionManager.removePendingUser(microserviceUuid, ws)
           this.sessionManager.createSession(availableExecId, microserviceUuid, null, ws, transaction)
           await MicroserviceExecStatusManager.update(
-            { microserviceUuid: microserviceUuid },
+            { microserviceUuid },
             { execSessionId: availableExecId, status: microserviceExecState.ACTIVE },
             transaction
           )
@@ -1190,7 +1188,7 @@ class WebSocketServer {
               await EventService.createWsConnectEvent({
                 timestamp: Date.now(),
                 endpointType: 'user',
-                actorId: actorId,
+                actorId,
                 path: req.url,
                 resourceId: microserviceUuid,
                 ipAddress: EventService.extractIPv4Address(req) || null
@@ -1211,7 +1209,7 @@ class WebSocketServer {
         const statusMsg = {
           type: MESSAGE_TYPES.STDERR,
           data: Buffer.from('Waiting for agent connection. Please ensure the microservice/agent is running.\n'),
-          microserviceUuid: microserviceUuid,
+          microserviceUuid,
           execId: 'pending', // Since we don't have execSessionId anymore
           timestamp: Date.now()
         }
@@ -1280,7 +1278,7 @@ class WebSocketServer {
                       await EventService.createWsConnectEvent({
                         timestamp: Date.now(),
                         endpointType: 'user',
-                        actorId: actorId,
+                        actorId,
                         path: req.url,
                         resourceId: microserviceUuid,
                         ipAddress: EventService.extractIPv4Address(req) || null
@@ -1290,7 +1288,7 @@ class WebSocketServer {
                     }
                   })
                   clearInterval(retryTimer) // Stop retry timer
-                  return // Exit early, session activated successfully
+                  // Exit early, session activated successfully
                 }
               } else {
                 // Agent is on different replica - activate with user only
@@ -1302,7 +1300,7 @@ class WebSocketServer {
                 this.sessionManager.removePendingUser(microserviceUuid, ws)
                 this.sessionManager.createSession(availableExecId, microserviceUuid, null, ws, transaction)
                 await MicroserviceExecStatusManager.update(
-                  { microserviceUuid: microserviceUuid },
+                  { microserviceUuid },
                   { execSessionId: availableExecId, status: microserviceExecState.ACTIVE },
                   transaction
                 )
@@ -1323,7 +1321,7 @@ class WebSocketServer {
                     await EventService.createWsConnectEvent({
                       timestamp: Date.now(),
                       endpointType: 'user',
-                      actorId: actorId,
+                      actorId,
                       path: req.url,
                       resourceId: microserviceUuid,
                       ipAddress: EventService.extractIPv4Address(req) || null
@@ -1333,7 +1331,6 @@ class WebSocketServer {
                   }
                 })
                 clearInterval(retryTimer) // Stop retry timer
-                return
               }
             }
           } catch (retryError) {
@@ -1365,7 +1362,7 @@ class WebSocketServer {
             const timeoutMsg = {
               type: MESSAGE_TYPES.STDERR,
               data: Buffer.from('Timeout waiting for agent connection. Please try again.\n'),
-              microserviceUuid: microserviceUuid,
+              microserviceUuid,
               execId: 'pending', // Since we don't have execSessionId anymore
               timestamp: Date.now()
             }
@@ -1419,7 +1416,7 @@ class WebSocketServer {
             await EventService.createWsDisconnectEvent({
               timestamp: Date.now(),
               endpointType: 'user',
-              actorId: actorId,
+              actorId,
               path: req.url,
               resourceId: microserviceUuid,
               ipAddress: EventService.extractIPv4Address(req) || null,
@@ -1527,12 +1524,12 @@ class WebSocketServer {
     const activationMsg = {
       type: MESSAGE_TYPES.ACTIVATION,
       data: Buffer.from(JSON.stringify({
-        execId: execId,
+        execId,
         microserviceUuid: session.microserviceUuid,
         timestamp: Date.now()
       })),
       microserviceUuid: session.microserviceUuid,
-      execId: execId,
+      execId,
       timestamp: Date.now()
     }
 
@@ -1612,7 +1609,7 @@ class WebSocketServer {
             type: MESSAGE_TYPES.STDIN,
             data: Buffer.from(text + '\n'), // Add newline for command execution
             microserviceUuid: session.microserviceUuid,
-            execId: execId,
+            execId,
             timestamp: Date.now()
           }
 
@@ -1708,7 +1705,7 @@ class WebSocketServer {
                 type: MESSAGE_TYPES.CONTROL,
                 data: Buffer.from('keepalive'),
                 microserviceUuid: session.microserviceUuid,
-                execId: execId,
+                execId,
                 timestamp: Date.now()
               }
               const encoded = this.encodeMessage(keepAliveResponse)
@@ -1818,7 +1815,7 @@ class WebSocketServer {
                   type: msg.type,
                   data: msg.data,
                   microserviceUuid: session.microserviceUuid,
-                  execId: execId,
+                  execId,
                   timestamp: Date.now()
                 }
                 // Encode and send as binary
@@ -1980,7 +1977,7 @@ class WebSocketServer {
 
       // 3. Check microservice status
       const statusArr = await MicroserviceStatusManager.findAllExcludeFields({
-        microserviceUuid: microserviceUuid
+        microserviceUuid
       }, transaction)
       if (!statusArr || statusArr.length === 0) {
         throw new Errors.NotFoundError('Microservice status not found')
@@ -2074,7 +2071,7 @@ class WebSocketServer {
     if (session.agent && session.agent.readyState === WebSocket.OPEN) {
       const closeMsg = {
         type: MESSAGE_TYPES.CLOSE,
-        execId: execId,
+        execId,
         microserviceUuid: session.microserviceUuid,
         timestamp: Date.now(),
         data: Buffer.from('Session closed')
@@ -2428,7 +2425,7 @@ class WebSocketServer {
         await this.validateMicroservice(microserviceUuid, expectSystem, transaction)
 
         const statusArr = await MicroserviceStatusManager.findAllExcludeFields({
-          microserviceUuid: microserviceUuid
+          microserviceUuid
         }, transaction)
         if (!statusArr || statusArr.length === 0) {
           throw new Errors.NotFoundError('Microservice status not found')
@@ -2497,9 +2494,9 @@ class WebSocketServer {
       // 4. Create log session in database (no HTTP POST needed!)
       if (microserviceUuid) {
         await MicroserviceLogStatusManager.create({
-          microserviceUuid: microserviceUuid,
-          logSessionId: logSessionId,
-          sessionId: sessionId, // Unique per user session
+          microserviceUuid,
+          logSessionId,
+          sessionId, // Unique per user session
           status: 'PENDING',
           tailConfig: JSON.stringify(tailConfig),
           agentConnected: false,
@@ -2508,8 +2505,8 @@ class WebSocketServer {
       } else if (fogUuid) {
         await FogLogStatusManager.create({
           iofogUuid: fogUuid,
-          logSessionId: logSessionId,
-          sessionId: sessionId, // Unique per user session
+          logSessionId,
+          sessionId, // Unique per user session
           status: 'PENDING',
           tailConfig: JSON.stringify(tailConfig),
           agentConnected: false,
@@ -2567,10 +2564,10 @@ class WebSocketServer {
       const sessionInfoMsg = {
         type: MESSAGE_TYPES.LOG_START,
         data: Buffer.from(JSON.stringify({
-          sessionId: sessionId,
-          tailConfig: tailConfig
+          sessionId,
+          tailConfig
         })),
-        sessionId: sessionId,
+        sessionId,
         timestamp: Date.now()
       }
       ws.send(this.encodeMessage(sessionInfoMsg), { binary: true })
@@ -2580,7 +2577,7 @@ class WebSocketServer {
         const waitingMsg = {
           type: MESSAGE_TYPES.LOG_LINE,
           data: Buffer.from('Waiting for agent connection. Log streaming will begin once the agent connects.\n'),
-          sessionId: sessionId,
+          sessionId,
           timestamp: Date.now(),
           microserviceUuid: microserviceUuid || null,
           iofogUuid: fogUuid || null
@@ -2612,7 +2609,7 @@ class WebSocketServer {
           await EventService.createWsConnectEvent({
             timestamp: Date.now(),
             endpointType: 'user',
-            actorId: actorId,
+            actorId,
             path: req.url,
             resourceId: microserviceUuid || fogUuid,
             ipAddress: EventService.extractIPv4Address(req) || null
@@ -2632,13 +2629,13 @@ class WebSocketServer {
           // Update database
           if (microserviceUuid) {
             await MicroserviceLogStatusManager.update(
-              { sessionId: sessionId },
+              { sessionId },
               { userConnected: false },
               transaction
             )
           } else if (fogUuid) {
             await FogLogStatusManager.update(
-              { sessionId: sessionId },
+              { sessionId },
               { userConnected: false },
               transaction
             )
@@ -2671,7 +2668,7 @@ class WebSocketServer {
             await EventService.createWsDisconnectEvent({
               timestamp: Date.now(),
               endpointType: 'user',
-              actorId: actorId,
+              actorId,
               path: req.url,
               resourceId: microserviceUuid || fogUuid,
               ipAddress: EventService.extractIPv4Address(req) || null,
@@ -2701,12 +2698,12 @@ class WebSocketServer {
       let logStatus = null
       if (microserviceUuid) {
         logStatus = await MicroserviceLogStatusManager.findOne(
-          { sessionId: sessionId },
+          { sessionId },
           transaction
         )
       } else if (iofogUuid) {
         logStatus = await FogLogStatusManager.findOne(
-          { sessionId: sessionId },
+          { sessionId },
           transaction
         )
       }
@@ -2735,13 +2732,13 @@ class WebSocketServer {
       // 4. Update database
       if (microserviceUuid) {
         await MicroserviceLogStatusManager.update(
-          { sessionId: sessionId },
+          { sessionId },
           { agentConnected: true, status: 'ACTIVE' },
           transaction
         )
       } else if (iofogUuid) {
         await FogLogStatusManager.update(
-          { sessionId: sessionId },
+          { sessionId },
           { agentConnected: true, status: 'ACTIVE' },
           transaction
         )
@@ -2818,10 +2815,10 @@ class WebSocketServer {
       const configMsg = {
         type: MESSAGE_TYPES.LOG_START,
         data: Buffer.from(JSON.stringify({
-          sessionId: sessionId,
-          tailConfig: tailConfig
+          sessionId,
+          tailConfig
         })),
-        sessionId: sessionId,
+        sessionId,
         timestamp: Date.now()
       }
       ws.send(this.encodeMessage(configMsg), { binary: true })
@@ -2832,10 +2829,10 @@ class WebSocketServer {
           const agentConnectedMsg = {
             type: MESSAGE_TYPES.LOG_START,
             data: Buffer.from(JSON.stringify({
-              sessionId: sessionId,
+              sessionId,
               message: 'Agent connected. Log streaming started.\n'
             })),
-            sessionId: sessionId,
+            sessionId,
             timestamp: Date.now()
           }
           session.user.send(this.encodeMessage(agentConnectedMsg), { binary: true })
@@ -2878,7 +2875,7 @@ class WebSocketServer {
           await EventService.createWsConnectEvent({
             timestamp: Date.now(),
             endpointType: 'agent',
-            actorId: actorId,
+            actorId,
             path: req.url,
             resourceId: microserviceUuid || iofogUuid,
             ipAddress: EventService.extractIPv4Address(req) || null
@@ -2898,13 +2895,13 @@ class WebSocketServer {
           // Update database
           if (microserviceUuid) {
             await MicroserviceLogStatusManager.update(
-              { sessionId: sessionId },
+              { sessionId },
               { agentConnected: false },
               transaction
             )
           } else if (iofogUuid) {
             await FogLogStatusManager.update(
-              { sessionId: sessionId },
+              { sessionId },
               { agentConnected: false },
               transaction
             )
@@ -2949,7 +2946,7 @@ class WebSocketServer {
             await EventService.createWsDisconnectEvent({
               timestamp: Date.now(),
               endpointType: 'agent',
-              actorId: actorId,
+              actorId,
               path: req.url,
               resourceId: microserviceUuid || iofogUuid,
               ipAddress: EventService.extractIPv4Address(req) || null,

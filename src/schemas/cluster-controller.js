@@ -12,14 +12,14 @@
  */
 
 const clusterControllerUpdate = {
-  'id': '/clusterControllerUpdate',
-  'type': 'object',
-  'properties': {
-    'host': {
-      'type': 'string'
+  id: '/clusterControllerUpdate',
+  type: 'object',
+  properties: {
+    host: {
+      type: 'string'
     }
   },
-  'additionalProperties': false
+  additionalProperties: false
 }
 
 module.exports = {

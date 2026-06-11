@@ -145,7 +145,7 @@ class Config {
   get (key, defaultValue) {
     // Replace dots with colons for nconf compatibility
     const nconfKey = key.replace(/\./g, ':')
-    let value = nconf.get(nconfKey)
+    const value = nconf.get(nconfKey)
     return value !== undefined ? value : defaultValue
   }
 

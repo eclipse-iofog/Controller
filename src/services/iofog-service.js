@@ -163,7 +163,7 @@ async function _reconcileNatsCertificatesOnHostChange (fog, transaction) {
 }
 
 async function _handleRouterCertificates (fogData, uuid, shouldRecreateCerts, transaction) {
-  logger.debug('Starting _handleRouterCertificates for fog: ' + JSON.stringify({ uuid: uuid, host: fogData.host }))
+  logger.debug('Starting _handleRouterCertificates for fog: ' + JSON.stringify({ uuid, host: fogData.host }))
 
   // Helper to check CA existence
   async function ensureCA (name, subject) {
@@ -315,6 +315,17 @@ async function createFogEndPoint (fogData, isCLI, transaction) {
   if (isKubernetes && fogData.isSystem) {
     throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_SYSTEM_FOG_KUBERNETES))
   }
+
+  if (!isKubernetes) {
+    const existingFogs = await FogManager.findAll({}, transaction)
+    if (existingFogs.length === 0) {
+      fogData.isSystem = true
+      fogData.routerMode = 'interior'
+      fogData.natsMode = 'server'
+      logger.info('First fog in cluster — promoting to system interior router with NATS server')
+    }
+  }
+
   let createFogData = {
     uuid: AppHelper.generateUUID(),
     name: fogData.name,
@@ -377,6 +388,11 @@ async function createFogEndPoint (fogData, isCLI, transaction) {
     throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_NATS_MODE, fogData.natsMode))
   }
 
+  const natsMode = fogData.natsMode || 'leaf'
+  if (!isCLI && !fogData.host && (fogData.routerMode !== 'none' || natsMode !== 'none')) {
+    throw new Errors.ValidationError(ErrorMessages.HOST_IS_REQUIRED)
+  }
+
   // // TODO: handle multiple system fogs a.k.a multi-remote-controller and multi interior routers
   // if (fogData.isSystem && !!(await FogManager.findOne({ isSystem: true }, transaction))) {
   //   throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.DUPLICATE_SYSTEM_FOG))
@@ -408,7 +424,7 @@ async function createFogEndPoint (fogData, isCLI, transaction) {
   const res = { uuid: fog.uuid }
 
   const natsConfig = {
-    mode: fogData.natsMode || 'leaf',
+    mode: natsMode,
     serverPort: fogData.natsServerPort,
     leafPort: fogData.natsLeafPort,
     clusterPort: fogData.natsClusterPort,
@@ -432,9 +448,6 @@ async function createFogEndPoint (fogData, isCLI, transaction) {
         await NatsService.ensureNatsForFog(fog, natsConfig, transaction)
 
         if (fogData.routerMode !== 'none') {
-          if (!fogData.host && !isCLI) {
-            throw new Errors.ValidationError(ErrorMessages.HOST_IS_REQUIRED)
-          }
           await RouterService.createRouterForFog(fogData, fog.uuid, upstreamRouters)
 
           // Service Distribution Logic
@@ -497,7 +510,7 @@ async function createFogEndPoint (fogData, isCLI, transaction) {
 
 async function _setTags (fogModel, tagsArray, transaction) {
   if (tagsArray) {
-    let tags = []
+    const tags = []
     for (const tag of tagsArray) {
       let tagModel = await TagsManager.findOne({ value: tag }, transaction)
       if (!tagModel) {
@@ -988,12 +1001,14 @@ async function _getFogExtraInformation (fog, transaction) {
   }
   const { fogType, fogTypeId, architecture, ...fogFields } = fog
   const archId = fogFields.archId
-  const arch = architecture ? {
-    id: architecture.id,
-    name: architecture.name,
-    image: architecture.image,
-    description: architecture.description
-  } : undefined
+  const arch = architecture
+    ? {
+        id: architecture.id,
+        name: architecture.name,
+        image: architecture.image,
+        description: architecture.description
+      }
+    : undefined
   return { ...fogFields, archId, arch, tags: _mapTags(fog), ...routerConfig, ...natsConfig, volumeMounts }
 }
 
@@ -1134,7 +1149,7 @@ async function generateProvisioningKeyEndPoint (fogData, isCLI, transaction) {
   return {
     key: provisioningKeyData.provisionKey,
     expirationTime: provisioningKeyData.expirationTime,
-    caCert: caCert
+    caCert
   }
 }
 
@@ -1216,7 +1231,7 @@ function _filterFogs (fogs, filters) {
   const filtered = []
   fogs.forEach((fog) => {
     let isMatchFog = true
-    filters.some((filter) => {
+    filters.forEach((filter) => {
       const fld = filter.key
       const val = filter.value
       const condition = filter.condition
@@ -1224,7 +1239,6 @@ function _filterFogs (fogs, filters) {
         (condition === 'has' && fog[fld] && fog[fld].includes(val))
       if (!isMatchField) {
         isMatchFog = false
-        return false
       }
     })
     if (isMatchFog) {
@@ -1698,7 +1712,7 @@ async function _createMicroserviceImages (microservice, images, transaction) {
 
 async function _updateImages (images, microserviceUuid, transaction) {
   await CatalogItemImageManager.delete({
-    microserviceUuid: microserviceUuid
+    microserviceUuid
   }, transaction)
   return _createMicroserviceImages({ uuid: microserviceUuid }, images, transaction)
 }
@@ -1716,7 +1730,7 @@ module.exports = {
   setFogRebootCommandEndPoint: TransactionDecorator.generateTransaction(setFogRebootCommandEndPoint),
   getHalHardwareInfoEndPoint: TransactionDecorator.generateTransaction(getHalHardwareInfoEndPoint),
   getHalUsbInfoEndPoint: TransactionDecorator.generateTransaction(getHalUsbInfoEndPoint),
-  getFog: getFog,
+  getFog,
   setFogPruneCommandEndPoint: TransactionDecorator.generateTransaction(setFogPruneCommandEndPoint),
   enableNodeExecEndPoint: TransactionDecorator.generateTransaction(enableNodeExecEndPoint),
   disableNodeExecEndPoint: TransactionDecorator.generateTransaction(disableNodeExecEndPoint),

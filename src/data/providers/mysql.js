@@ -27,9 +27,9 @@ class MySqlDatabaseProvider extends DatabaseProvider {
       const caBase64 = process.env.DB_SSL_CA_B64
       const sslOptions = caBase64
         ? {
-          ca: Buffer.from(caBase64, 'base64').toString('utf-8'),
-          rejectUnauthorized: true
-        }
+            ca: Buffer.from(caBase64, 'base64').toString('utf-8'),
+            rejectUnauthorized: true
+          }
         : { rejectUnauthorized: false }
 
       connectionOptions.ssl = sslOptions
@@ -54,9 +54,9 @@ class MySqlDatabaseProvider extends DatabaseProvider {
       const caBase64 = process.env.DB_SSL_CA_B64
       sequelizeConfig.dialectOptions.ssl = caBase64
         ? {
-          ca: Buffer.from(caBase64, 'base64').toString('utf-8'),
-          rejectUnauthorized: true
-        }
+            ca: Buffer.from(caBase64, 'base64').toString('utf-8'),
+            rejectUnauthorized: true
+          }
         : { rejectUnauthorized: false }
     }
 

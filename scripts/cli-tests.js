@@ -21,8 +21,8 @@ const RouterService = require('../src/services/router-service')
 
 const options = {
   env: {
-    'NODE_ENV': 'production',
-    'PATH': process.env.PATH
+    NODE_ENV: 'production',
+    PATH: process.env.PATH
   },
   encoding: 'ascii'
 }
@@ -290,7 +290,7 @@ function responseHasFields (jsonResponse, fields) {
   try {
     const response = JSON.parse(jsonResponse)
     for (const field of fields) {
-      if (!response.hasOwnProperty(field)) {
+      if (!Object.hasOwn(response, field)) {
         testsFailed++
         console.log('\'responseHasFields\' test failed with response: ' + JSON.stringify(response))
       }
@@ -351,5 +351,5 @@ async function cliTest () {
 }
 
 module.exports = {
-  cliTest: cliTest
+  cliTest
 }

@@ -215,7 +215,7 @@ const updateConfig = async function (newConfigValue, cliConfigName, configName, 
 
 const _listConfigOptions = function () {
   const configuration = {
-    'Port': config.get('server.port'),
+    Port: config.get('server.port'),
     'SSL key directory': config.get('server.ssl.path.key'),
     'SSL certificate directory': config.get('server.ssl.path.cert'),
     'Intermediate key directory': config.get('server.ssl.path.intermediateCert'),

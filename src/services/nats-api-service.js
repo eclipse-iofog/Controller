@@ -363,7 +363,7 @@ async function getUserCreds (appName, userName, transaction) {
   if (sysAccount && (sysAccount.isSystem || sysAccount.isLeafSystem)) {
     accountId = sysAccount.id
   }
-  const user = await NatsUserManager.findOne({ accountId: accountId, name: userName }, transaction)
+  const user = await NatsUserManager.findOne({ accountId, name: userName }, transaction)
   if (!user) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_NAME, userName))
   }

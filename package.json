@@ -46,8 +46,6 @@
     "pretest": "npm run lint",
     "test": "node scripts/run-test.js test",
     "test:k8s-client": "node scripts/run-test.js test --grep 'k8s-client'",
-    "prepostman_test": "npm run lint",
-    "postman_test": "node scripts/run-test.js postmantest",
     "precli-tests": "npm run lint",
     "cli-tests": "node scripts/run-test.js cli-tests",
     "precoverage": "npm run lint",
@@ -124,26 +122,22 @@
     "chai": "5.1.1",
     "chai-as-promised": "7.1.2",
     "chai-http": "4.4.0",
-    "eslint": "9.28.0",
-    "eslint-config-google": "0.14.0",
+    "eslint": "8.57.1",
     "js-yaml": "^4.1.1",
-    "mocha": "10.6.0",
+    "mocha": "11.7.6",
     "mocha-junit-reporter": "2.2.1",
-    "newman": "^6.2.1",
-    "newman-reporter-junitfull": "1.1.1",
     "nyc": "15.1.0",
     "sequelize-cli": "6.6.2",
     "sinon": "17.0.1",
     "sinon-chai": "3.7.0",
     "snyk": "^1.1291.0",
-    "standard": "12.0.1"
+    "standard": "17.1.2"
   },
   "files": [
     "/scripts",
     "/src",
     "/test",
     "/docs",
-    ".eslintrc.js",
     ".jshintrc",
     ".snyk"
   ],
@@ -156,7 +150,10 @@
     "lodash": "^4.18.0",
     "bn.js": "^5.2.3",
     "minimatch": "10.2.5",
+    "uuid": "11.1.1",
     "dottie": "^2.0.7",
-    "ip-address": "^10.1.1"
+    "ip-address": "^10.1.1",
+    "serialize-javascript": "7.0.5",
+    "diff": "8.0.3"
   }
 }

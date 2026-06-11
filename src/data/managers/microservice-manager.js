@@ -140,9 +140,9 @@ class MicroserviceManager extends BaseManager {
           required: false
         }
       ],
-      where: where,
-      attributes: attributes
-    }, { transaction: transaction })
+      where,
+      attributes
+    }, { transaction })
   }
 
   findAllActiveApplicationMicroservices (iofogUuid, transaction) {
@@ -246,7 +246,7 @@ class MicroserviceManager extends BaseManager {
         }
       ],
       where: {
-        iofogUuid: iofogUuid,
+        iofogUuid,
         [Op.or]:
           [
             {
@@ -262,7 +262,7 @@ class MicroserviceManager extends BaseManager {
           ]
 
       }
-    }, { transaction: transaction })
+    }, { transaction })
   }
 
   findOneWithDependencies (where, attributes, transaction) {
@@ -356,9 +356,9 @@ class MicroserviceManager extends BaseManager {
           required: false
         }
       ],
-      where: where,
-      attributes: attributes
-    }, { transaction: transaction })
+      where,
+      attributes
+    }, { transaction })
   }
 
   findOneWithStatusAndCategory (where, transaction) {
@@ -375,8 +375,8 @@ class MicroserviceManager extends BaseManager {
           attributes: ['category']
         }
       ],
-      where: where
-    }, { transaction: transaction })
+      where
+    }, { transaction })
   }
 
   findAllWithStatuses (where, transaction) {
@@ -393,8 +393,8 @@ class MicroserviceManager extends BaseManager {
           required: false
         }
       ],
-      where: where
-    }, { transaction: transaction })
+      where
+    }, { transaction })
   }
 
   findMicroserviceOnGet (where, transaction) {
@@ -410,10 +410,11 @@ class MicroserviceManager extends BaseManager {
           attributes: ['id']
         }
       ],
-      where: where,
+      where,
       attributes: ['uuid']
-    }, { transaction: transaction })
+    }, { transaction })
   }
+
   findSystemMicroserviceOnGet (where, transaction) {
     return Microservice.findOne({
       include: [
@@ -427,10 +428,11 @@ class MicroserviceManager extends BaseManager {
           attributes: ['id']
         }
       ],
-      where: where,
+      where,
       attributes: ['uuid']
-    }, { transaction: transaction })
+    }, { transaction })
   }
+
   async findOneExcludeFields (where, transaction) {
     return Microservice.findOne({
       include: [
@@ -440,11 +442,11 @@ class MicroserviceManager extends BaseManager {
           required: false
         }
       ],
-      where: where,
+      where,
       attributes: {
         exclude: microserviceExcludedFields
       }
-    }, { transaction: transaction })
+    }, { transaction })
   }
 
   async findAllExcludeFields (where, transaction) {
@@ -462,12 +464,12 @@ class MicroserviceManager extends BaseManager {
           required: false
         }
       ],
-      where: where,
+      where,
       order: [['name', 'ASC']],
       attributes: {
         exclude: microserviceExcludedFields
       }
-    }, { transaction: transaction })
+    }, { transaction })
   }
 
   async findAllSystemExcludeFields (where, transaction) {
@@ -485,12 +487,12 @@ class MicroserviceManager extends BaseManager {
           required: false
         }
       ],
-      where: where,
+      where,
       order: [['name', 'ASC']],
       attributes: {
         exclude: microserviceExcludedFields
       }
-    }, { transaction: transaction })
+    }, { transaction })
   }
 
   findOneWithCategory (where, transaction) {
@@ -503,8 +505,8 @@ class MicroserviceManager extends BaseManager {
           attributes: ['category']
         }
       ],
-      where: where
-    }, { transaction: transaction })
+      where
+    }, { transaction })
   }
 }
 

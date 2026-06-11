@@ -11,8 +11,10 @@
  *
  */
 
+const path = require('path')
+
 module.exports = {
-  ROOT_DIR: `${__dirname}/../..`,
+  ROOT_DIR: path.join(__dirname, '../..'),
 
   CMD: 'command',
   CMD_LIST: 'list',

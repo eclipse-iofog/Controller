@@ -234,7 +234,7 @@ async function deleteSecretEndpoint (secretName, transaction) {
 }
 
 async function _deleteVolumeMountsUsingSecret (secretName, transaction) {
-  const volumeMounts = await VolumeMountingManager.findAll({ secretName: secretName }, transaction)
+  const volumeMounts = await VolumeMountingManager.findAll({ secretName }, transaction)
   if (volumeMounts.length > 0) {
     for (const volumeMount of volumeMounts) {
       await VolumeMountService.deleteVolumeMountEndpoint(volumeMount.name, transaction)
@@ -243,12 +243,12 @@ async function _deleteVolumeMountsUsingSecret (secretName, transaction) {
 }
 
 async function _updateChangeTrackingForFogs (secretName, transaction) {
-  const secretVolumeMounts = await VolumeMountingManager.findAll({ secretName: secretName }, transaction)
+  const secretVolumeMounts = await VolumeMountingManager.findAll({ secretName }, transaction)
   if (secretVolumeMounts.length > 0) {
     for (const secretVolumeMount of secretVolumeMounts) {
       const volumeMountObj = {
         name: secretVolumeMount.name,
-        secretName: secretName
+        secretName
       }
       await VolumeMountService.updateVolumeMountEndpoint(secretVolumeMount.name, volumeMountObj, transaction)
     }

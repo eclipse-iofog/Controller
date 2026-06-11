@@ -36,6 +36,7 @@ class Start extends BaseCLIHandler {
       }
     ]
   }
+
   async run (args) {
     const startCommand = this.parseCommandLineArgs(this.commandDefinitions, { argv: args.argv, partial: false })
     const daemon = args.daemon

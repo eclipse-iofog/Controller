@@ -138,7 +138,7 @@ async function deleteConfigMapEndpoint (configMapName, transaction) {
 }
 
 async function _deleteVolumeMountsUsingConfigMap (configMapName, transaction) {
-  const volumeMounts = await VolumeMountingManager.findAll({ configMapName: configMapName }, transaction)
+  const volumeMounts = await VolumeMountingManager.findAll({ configMapName }, transaction)
   if (volumeMounts.length > 0) {
     for (const volumeMount of volumeMounts) {
       await VolumeMountService.deleteVolumeMountEndpoint(volumeMount.name, transaction)
@@ -147,12 +147,12 @@ async function _deleteVolumeMountsUsingConfigMap (configMapName, transaction) {
 }
 
 async function _updateChangeTrackingForFogs (configMapName, transaction) {
-  const configMapVolumeMounts = await VolumeMountingManager.findAll({ configMapName: configMapName }, transaction)
+  const configMapVolumeMounts = await VolumeMountingManager.findAll({ configMapName }, transaction)
   if (configMapVolumeMounts.length > 0) {
     for (const configMapVolumeMount of configMapVolumeMounts) {
       const volumeMountObj = {
         name: configMapVolumeMount.name,
-        configMapName: configMapName
+        configMapName
       }
       await VolumeMountService.updateVolumeMountEndpoint(configMapVolumeMount.name, volumeMountObj, transaction)
     }

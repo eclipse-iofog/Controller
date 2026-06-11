@@ -198,6 +198,7 @@ class DatabaseProvider {
     try {
       await db.query(query)
     } catch (err) {
+      logger.error(`Failed to create SchemaVersion table (${provider}):`, err)
       throw err
     }
   }
@@ -228,7 +229,7 @@ class DatabaseProvider {
   // Common method to update seeder version
   async updateSeederVersion (db, version, provider) {
     switch (provider) {
-      case 'sqlite':
+      case 'sqlite': {
         const sqliteQuery = 'UPDATE SchemaVersion SET seeder_version = ?, updated_at = CURRENT_TIMESTAMP WHERE id = (SELECT MAX(id) FROM SchemaVersion)'
         return new Promise((resolve, reject) => {
           db.run(sqliteQuery, [version], (err) => {
@@ -236,16 +237,19 @@ class DatabaseProvider {
             else resolve()
           })
         })
-      case 'mysql':
+      }
+      case 'mysql': {
         const [result] = await db.query('SELECT MAX(id) as maxId FROM SchemaVersion')
         const maxId = result[0].maxId
         const mysqlQuery = 'UPDATE SchemaVersion SET seeder_version = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?'
         await db.query(mysqlQuery, { replacements: [version, maxId] })
         break
-      case 'postgres':
+      }
+      case 'postgres': {
         const postgresQuery = 'UPDATE "SchemaVersion" SET seeder_version = $1, updated_at = CURRENT_TIMESTAMP WHERE id = (SELECT MAX(id) FROM "SchemaVersion")'
         await db.query(postgresQuery, { bind: [version] })
         break
+      }
     }
   }
 
@@ -262,7 +266,7 @@ class DatabaseProvider {
     const migrationSql = fs.readFileSync(migrationSqlPath).toString()
     const dataArr = migrationSql.split(';')
 
-    let db = new sqlite3.Database(dbName, (err) => {
+    const db = new sqlite3.Database(dbName, (err) => {
       if (err) {
         logger.error(err.message)
         throw err
@@ -468,7 +472,7 @@ class DatabaseProvider {
     const seederSql = fs.readFileSync(seederSqlPath).toString()
     const dataArr = seederSql.split(';')
 
-    let db = new sqlite3.Database(dbName, (err) => {
+    const db = new sqlite3.Database(dbName, (err) => {
       if (err) {
         logger.error(err.message)
         throw err

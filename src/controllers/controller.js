@@ -22,6 +22,6 @@ const architecturesEndPoint = async function (req) {
 }
 
 module.exports = {
-  statusControllerEndPoint: statusControllerEndPoint,
-  architecturesEndPoint: architecturesEndPoint
+  statusControllerEndPoint,
+  architecturesEndPoint
 }

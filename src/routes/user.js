@@ -230,7 +230,7 @@ module.exports = [
       const user = req.kauth && req.kauth.grant && req.kauth.grant.access_token
         ? req.kauth.grant.access_token.content.preferred_username
         : undefined
-      logger.apiRes({ req: req, user: user, res: res, responseObject: responseObject })
+      logger.apiRes({ req, user, res, responseObject })
     }
   },
   {

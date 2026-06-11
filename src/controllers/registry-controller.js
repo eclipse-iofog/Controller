@@ -40,9 +40,9 @@ const updateRegistryEndPoint = async function (req) {
 }
 
 module.exports = {
-  createRegistryEndPoint: (createRegistryEndPoint),
-  getRegistriesEndPoint: (getRegistriesEndPoint),
-  getRegistryEndPoint: (getRegistryEndPoint),
-  deleteRegistryEndPoint: (deleteRegistryEndPoint),
-  updateRegistryEndPoint: (updateRegistryEndPoint)
+  createRegistryEndPoint,
+  getRegistriesEndPoint,
+  getRegistryEndPoint,
+  deleteRegistryEndPoint,
+  updateRegistryEndPoint
 }

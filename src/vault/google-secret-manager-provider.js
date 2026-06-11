@@ -46,8 +46,8 @@ class GoogleSecretManagerProvider extends BaseVaultProvider {
 
       this.client = new SecretManagerServiceClient({
         projectId: config.projectId,
-        keyFilename: keyFilename,
-        credentials: credentials
+        keyFilename,
+        credentials
       })
 
       this.projectId = config.projectId
@@ -83,7 +83,7 @@ class GoogleSecretManagerProvider extends BaseVaultProvider {
           // Create new secret
           const [secret] = await this.client.createSecret({
             parent: projectPath,
-            secretId: secretId,
+            secretId,
             secret: {
               replication: {
                 automatic: {}

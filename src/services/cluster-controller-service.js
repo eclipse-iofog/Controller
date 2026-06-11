@@ -46,7 +46,7 @@ async function initializeControllerUuid (transaction) {
         {
           lastHeartbeat: new Date(),
           isActive: true,
-          processId: processId
+          processId
         },
         transaction
       )
@@ -58,7 +58,7 @@ async function initializeControllerUuid (transaction) {
       await ClusterControllerManager.create({
         uuid,
         host,
-        processId: processId,
+        processId,
         lastHeartbeat: new Date(),
         isActive: true
       }, transaction)

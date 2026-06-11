@@ -70,7 +70,7 @@ const findRegistries = async function (isCLI, transaction) {
 
   const registries = await RegistryManager.findAllWithAttributes(queryRegistry, { exclude: ['password'] }, transaction)
   return {
-    registries: registries
+    registries
   }
 }
 
@@ -128,14 +128,14 @@ const updateRegistry = async function (registry, registryId, isCLI, transaction)
 
   const where = isCLI
     ? {
-      id: registryId
-    }
+        id: registryId
+      }
     : {
-      id: registryId
-    }
+        id: registryId
+      }
 
   await RegistryManager.update(where, registryUpdate, transaction)
-  const microservices = await MicroserviceManager.findAllWithStatuses({ registryId: registryId }, transaction)
+  const microservices = await MicroserviceManager.findAllWithStatuses({ registryId }, transaction)
   if (microservices.length > 0) {
     for (const ms of microservices) {
       await MicroserviceManager.updateAndFind({ uuid: ms.uuid }, { rebuild: true }, transaction)

@@ -18,9 +18,9 @@ const { setDbEnvVars } = require('./util')
 function test (useReporter, extraArgs) {
   const options = {
     env: {
-      'NODE_ENV': 'test',
-      'VIEWER_PORT': '8008',
-      'PATH': process.env.PATH
+      NODE_ENV: 'test',
+      VIEWER_PORT: '8008',
+      PATH: process.env.PATH
     },
     stdio: [process.stdin, process.stdout, process.stderr]
   }
@@ -39,5 +39,5 @@ function test (useReporter, extraArgs) {
 }
 
 module.exports = {
-  test: test
+  test
 }

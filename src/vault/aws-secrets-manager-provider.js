@@ -43,7 +43,7 @@ class AWSSecretsManagerProvider extends BaseVaultProvider {
 
       this.client = new SecretsManagerClient({
         region: config.region,
-        credentials: credentials
+        credentials
       })
 
       this.GetSecretValueCommand = GetSecretValueCommand
@@ -60,13 +60,13 @@ class AWSSecretsManagerProvider extends BaseVaultProvider {
     } catch (error) {
       // Provide more specific error messages
       if (error.code === 'MODULE_NOT_FOUND' || error.message.includes('Cannot find module')) {
-        throw new Error(`Failed to initialize AWS Secrets Manager: @aws-sdk/client-secrets-manager package is not installed. Please run: npm install @aws-sdk/client-secrets-manager`)
+        throw new Error('Failed to initialize AWS Secrets Manager: @aws-sdk/client-secrets-manager package is not installed. Please run: npm install @aws-sdk/client-secrets-manager')
       }
       if (error.code === 'ENOTFOUND' || error.message.includes('getaddrinfo ENOTFOUND')) {
         throw new Error(`Failed to connect to AWS Secrets Manager: Invalid region "${config.region}" or network connectivity issue. Please verify the AWS region is correct (e.g., us-east-1, eu-west-1).`)
       }
       if (error.name === 'CredentialsProviderError' || error.message.includes('credentials')) {
-        throw new Error(`Failed to initialize AWS Secrets Manager: Invalid credentials. Please verify AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY are correct.`)
+        throw new Error('Failed to initialize AWS Secrets Manager: Invalid credentials. Please verify AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY are correct.')
       }
       throw new Error(`Failed to initialize AWS Secrets Manager: ${error.message}`)
     }

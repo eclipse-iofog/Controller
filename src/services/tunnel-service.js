@@ -34,7 +34,7 @@ const openTunnel = async function (tunnelData, isCli, transaction) {
     tunnel = {
       username: Config.get('tunnel.username'),
       password: Config.get('tunnel.password'),
-      host: host,
+      host,
       rsakey: Config.get('tunnel.rsaKey'),
       lport: Config.get('tunnel.lport'),
       iofogUuid: iofog.uuid,
@@ -64,7 +64,7 @@ const findTunnel = async function (tunnelData, transaction) {
 const findAll = async function (transaction) {
   const tunnels = await TunnelManager.findAllWithAttributes({}, { exclude: ['password'] }, transaction)
   return {
-    tunnels: tunnels
+    tunnels
   }
 }
 

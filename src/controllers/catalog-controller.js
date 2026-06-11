@@ -34,9 +34,9 @@ const updateCatalogItemEndPoint = async function (req) {
 }
 
 module.exports = {
-  createCatalogItemEndPoint: (createCatalogItemEndPoint),
-  listCatalogItemsEndPoint: (listCatalogItemsEndPoint),
-  listCatalogItemEndPoint: (listCatalogItemEndPoint),
-  deleteCatalogItemEndPoint: (deleteCatalogItemEndPoint),
-  updateCatalogItemEndPoint: (updateCatalogItemEndPoint)
+  createCatalogItemEndPoint,
+  listCatalogItemsEndPoint,
+  listCatalogItemEndPoint,
+  deleteCatalogItemEndPoint,
+  updateCatalogItemEndPoint
 }

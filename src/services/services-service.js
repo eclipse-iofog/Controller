@@ -45,7 +45,7 @@ function _mapTags (service) {
 
 async function _setTags (serviceModel, tagsArray, transaction) {
   if (tagsArray) {
-    let tags = []
+    const tags = []
     for (const tag of tagsArray) {
       let tagModel = await TagsManager.findOne({ value: tag }, transaction)
       if (!tagModel) {
@@ -222,7 +222,7 @@ async function validateDefaultBridge (serviceConfig, transaction) {
     }
 
     // Get the router for the iofog node
-    const router = await RouterManager.findOne({ iofogUuid: iofogUuid }, transaction)
+    const router = await RouterManager.findOne({ iofogUuid }, transaction)
     if (!router) {
       throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_ROUTER, iofogUuid))
     }

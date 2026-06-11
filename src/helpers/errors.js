@@ -135,19 +135,19 @@ class RateLimitExceededError extends Error {
 }
 
 module.exports = {
-  AuthenticationError: AuthenticationError,
-  TransactionError: TransactionError,
-  ValidationError: ValidationError,
-  InvalidCredentialsError: InvalidCredentialsError,
-  NotFoundError: NotFoundError,
-  ModelNotFoundError: ModelNotFoundError,
-  DuplicatePropertyError: DuplicatePropertyError,
-  FtpError: FtpError,
-  InvalidArgumentError: InvalidArgumentError,
-  InvalidArgumentTypeError: InvalidArgumentTypeError,
-  CLIArgsNotProvidedError: CLIArgsNotProvidedError,
-  ConflictError: ConflictError,
-  ForbiddenError: ForbiddenError,
-  NotImplementedError: NotImplementedError,
-  RateLimitExceededError: RateLimitExceededError
+  AuthenticationError,
+  TransactionError,
+  ValidationError,
+  InvalidCredentialsError,
+  NotFoundError,
+  ModelNotFoundError,
+  DuplicatePropertyError,
+  FtpError,
+  InvalidArgumentError,
+  InvalidArgumentTypeError,
+  CLIArgsNotProvidedError,
+  ConflictError,
+  ForbiddenError,
+  NotImplementedError,
+  RateLimitExceededError
 }

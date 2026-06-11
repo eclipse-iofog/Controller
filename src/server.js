@@ -222,8 +222,8 @@ initialize().then(() => {
       const sslOptions = createSSLOptions({
         key: sslKey,
         cert: sslCert,
-        intermedKey: intermedKey,
-        isBase64: isBase64
+        intermedKey,
+        isBase64
       })
 
       const viewerServer = https.createServer(sslOptions, apps.viewer).listen(ports.viewer, function onStart (err) {

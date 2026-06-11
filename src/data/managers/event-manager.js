@@ -92,7 +92,7 @@ class EventManager extends BaseManager {
     }
 
     const options = {
-      where: where,
+      where,
       order: [['timestamp', 'DESC']],
       limit: Number(limit), // Ensure it's a number
       offset: Number(offset) // Ensure it's a number
@@ -117,8 +117,8 @@ class EventManager extends BaseManager {
     return {
       events: limitedRows,
       total: count,
-      limit: limit,
-      offset: offset
+      limit,
+      offset
     }
   }
 

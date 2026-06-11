@@ -128,7 +128,7 @@ async function _ensureNatsCredsForMicroservice (microservice, transaction) {
   const application = microservice.application || await ApplicationManager.findOne({ id: microservice.applicationId }, transaction)
   const accountName = application ? application.name : account.name
   const credsPath = `${slugifyName(accountName, 64)}/${slugifyName(microservice.name, 64)}.creds`
-  const containerDest = `/etc/nats/creds`
+  const containerDest = '/etc/nats/creds'
   const existingMapping = await VolumeMappingManager.findOne({
     microserviceUuid: microservice.uuid,
     hostDestination: credsSecretName,
@@ -740,6 +740,17 @@ function _validateKeyPath (data, keyPath, resourceName, resourceType, volumeMoun
  * @returns {Promise<void>}
  */
 async function _validateVolumeMountReference (hostDestination, type, fogUuid, transaction) {
+  try {
+    return await _validateVolumeMountReferenceInner(hostDestination, type, fogUuid, transaction)
+  } catch (error) {
+    if (!(error instanceof Errors.ValidationError)) {
+      logger.error(`Volume mount reference validation failed (${hostDestination}, fog ${fogUuid}):`, error.message)
+    }
+    throw error
+  }
+}
+
+async function _validateVolumeMountReferenceInner (hostDestination, type, fogUuid, transaction) {
   if (!hostDestination || typeof hostDestination !== 'string') {
     return // No validation needed if hostDestination is empty or not a string
   }
@@ -772,6 +783,7 @@ async function _validateVolumeMountReference (hostDestination, type, fogUuid, tr
     if (error instanceof Errors.NotFoundError) {
       throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.VOLUME_MOUNT_NOT_FOUND, volumeMountName))
     }
+    logger.error(`Failed to load volume mount ${volumeMountName}:`, error.message)
     throw error
   }
 
@@ -799,7 +811,7 @@ async function _validateVolumeMountReference (hostDestination, type, fogUuid, tr
   try {
     linkedFogUuids = await VolumeMountService.findVolumeMountedFogNodes(volumeMountName, transaction)
   } catch (error) {
-    // If volume mount doesn't exist (shouldn't happen at this point), rethrow
+    logger.error(`Failed to find fog nodes linked to volume mount ${volumeMountName}:`, error.message)
     throw error
   }
 
@@ -848,11 +860,11 @@ async function updateSystemMicroserviceEndPoint (microserviceUuid, microserviceD
   let needStatusReset = false
   const query = isCLI
     ? {
-      uuid: microserviceUuid
-    }
+        uuid: microserviceUuid
+      }
     : {
-      uuid: microserviceUuid
-    }
+        uuid: microserviceUuid
+      }
 
   const newFog = await _findFog(microserviceData, isCLI, transaction) || {}
   // validate extraHosts
@@ -865,8 +877,8 @@ async function updateSystemMicroserviceEndPoint (microserviceUuid, microserviceD
   // const newFog = await _findFog(microserviceData, isCLI, transaction) || {}
   const microserviceToUpdate = {
     name: microserviceData.name,
-    config: config,
-    annotations: annotations,
+    config,
+    annotations,
     images: microserviceData.images,
     catalogItemId: microserviceData.catalogItemId,
     rebuild: microserviceData.rebuild,
@@ -1137,11 +1149,11 @@ async function updateMicroserviceEndPoint (microserviceUuid, microserviceData, i
   let needStatusReset = false
   const query = isCLI
     ? {
-      uuid: microserviceUuid
-    }
+        uuid: microserviceUuid
+      }
     : {
-      uuid: microserviceUuid
-    }
+        uuid: microserviceUuid
+      }
 
   const newFog = await _findFog(microserviceData, isCLI, transaction) || {}
   // validate extraHosts
@@ -1154,8 +1166,8 @@ async function updateMicroserviceEndPoint (microserviceUuid, microserviceData, i
   // const newFog = await _findFog(microserviceData, isCLI, transaction) || {}
   const microserviceToUpdate = {
     name: microserviceData.name,
-    config: config,
-    annotations: annotations,
+    config,
+    annotations,
     images: microserviceData.images,
     catalogItemId: microserviceData.catalogItemId,
     rebuild: microserviceData.rebuild,
@@ -1384,7 +1396,7 @@ async function updateMicroserviceEndPoint (microserviceUuid, microserviceData, i
     await _updateCapDrop(microserviceDataUpdate.capDrop, microserviceUuid, transaction)
   }
 
-  const existingService = await ServiceManager.findOne({ type: `microservice`, resource: microservice.uuid }, transaction)
+  const existingService = await ServiceManager.findOne({ type: 'microservice', resource: microservice.uuid }, transaction)
   if (microserviceDataUpdate.iofogUuid && microserviceDataUpdate.iofogUuid !== microservice.iofogUuid && existingService) {
     await ServiceServices.moveMicroserviceTcpBridgeToNewFog(existingService, microserviceDataUpdate.iofogUuid, microservice.iofogUuid, transaction)
   }
@@ -1458,11 +1470,11 @@ async function updateMicroserviceEndPoint (microserviceUuid, microserviceData, i
 async function updateMicroserviceConfigEndPoint (microserviceUuid, config, isCLI, transaction) {
   const query = isCLI
     ? {
-      uuid: microserviceUuid
-    }
+        uuid: microserviceUuid
+      }
     : {
-      uuid: microserviceUuid
-    }
+        uuid: microserviceUuid
+      }
   const microservice = await MicroserviceManager.findOneWithCategory(query, transaction)
   if (!microservice) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, microserviceUuid))
@@ -1482,11 +1494,11 @@ async function updateMicroserviceConfigEndPoint (microserviceUuid, config, isCLI
 async function getMicroserviceConfigEndPoint (microserviceUuid, isCLI, transaction) {
   const query = isCLI
     ? {
-      uuid: microserviceUuid
-    }
+        uuid: microserviceUuid
+      }
     : {
-      uuid: microserviceUuid
-    }
+        uuid: microserviceUuid
+      }
   const microservice = await MicroserviceManager.findOneWithCategory(query, transaction)
   if (!microservice) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, microserviceUuid))
@@ -1504,11 +1516,11 @@ async function getMicroserviceConfigEndPoint (microserviceUuid, isCLI, transacti
 async function deleteMicroserviceConfigEndPoint (microserviceUuid, isCLI, transaction) {
   const query = isCLI
     ? {
-      uuid: microserviceUuid
-    }
+        uuid: microserviceUuid
+      }
     : {
-      uuid: microserviceUuid
-    }
+        uuid: microserviceUuid
+      }
   const microservice = await MicroserviceManager.findOneWithCategory(query, transaction)
   if (!microservice) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, microserviceUuid))
@@ -1528,11 +1540,11 @@ async function deleteMicroserviceConfigEndPoint (microserviceUuid, isCLI, transa
 async function getSystemMicroserviceConfigEndPoint (microserviceUuid, isCLI, transaction) {
   const query = isCLI
     ? {
-      uuid: microserviceUuid
-    }
+        uuid: microserviceUuid
+      }
     : {
-      uuid: microserviceUuid
-    }
+        uuid: microserviceUuid
+      }
   const microservice = await MicroserviceManager.findOneWithCategory(query, transaction)
   if (!microservice) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, microserviceUuid))
@@ -1549,11 +1561,11 @@ async function getSystemMicroserviceConfigEndPoint (microserviceUuid, isCLI, tra
 async function updateSystemMicroserviceConfigEndPoint (microserviceUuid, config, isCLI, transaction) {
   const query = isCLI
     ? {
-      uuid: microserviceUuid
-    }
+        uuid: microserviceUuid
+      }
     : {
-      uuid: microserviceUuid
-    }
+        uuid: microserviceUuid
+      }
   const microservice = await MicroserviceManager.findOneWithCategory(query, transaction)
   if (!microservice) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, microserviceUuid))
@@ -1573,11 +1585,11 @@ async function updateSystemMicroserviceConfigEndPoint (microserviceUuid, config,
 async function deleteSystemMicroserviceConfigEndPoint (microserviceUuid, isCLI, transaction) {
   const query = isCLI
     ? {
-      uuid: microserviceUuid
-    }
+        uuid: microserviceUuid
+      }
     : {
-      uuid: microserviceUuid
-    }
+        uuid: microserviceUuid
+      }
   const microservice = await MicroserviceManager.findOneWithCategory(query, transaction)
   if (!microservice) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, microserviceUuid))
@@ -1597,11 +1609,11 @@ async function deleteSystemMicroserviceConfigEndPoint (microserviceUuid, isCLI, 
 async function rebuildMicroserviceEndPoint (microserviceUuid, isCLI, transaction) {
   const query = isCLI
     ? {
-      uuid: microserviceUuid
-    }
+        uuid: microserviceUuid
+      }
     : {
-      uuid: microserviceUuid
-    }
+        uuid: microserviceUuid
+      }
 
   const check = await MicroserviceManager.findOneWithCategory(query, transaction)
   if (check.catalogItem && check.catalogItem.category === 'SYSTEM') {
@@ -1624,11 +1636,11 @@ async function rebuildMicroserviceEndPoint (microserviceUuid, isCLI, transaction
 async function rebuildSystemMicroserviceEndPoint (microserviceUuid, isCLI, transaction) {
   const query = isCLI
     ? {
-      uuid: microserviceUuid
-    }
+        uuid: microserviceUuid
+      }
     : {
-      uuid: microserviceUuid
-    }
+        uuid: microserviceUuid
+      }
 
   const microservice = await MicroserviceManager.updateAndFind(query, { rebuild: true }, transaction)
 
@@ -1655,11 +1667,11 @@ const _checkIfMicroserviceImagesAreEqual = (microserviceDataUpdateImages, catalo
 async function deleteMicroserviceEndPoint (microserviceUuid, microserviceData, isCLI, transaction) {
   const where = isCLI
     ? {
-      uuid: microserviceUuid
-    }
+        uuid: microserviceUuid
+      }
     : {
-      uuid: microserviceUuid
-    }
+        uuid: microserviceUuid
+      }
 
   const microservice = await MicroserviceManager.findOneWithStatusAndCategory(where, transaction)
   if (!microservice) {
@@ -1672,7 +1684,7 @@ async function deleteMicroserviceEndPoint (microserviceUuid, microserviceData, i
     throw new Errors.ForbiddenError(AppHelper.formatMessage(ErrorMessages.CONTROLLER_MICROSERVICE_DELETE, microserviceUuid))
   }
 
-  const existingService = await ServiceManager.findOne({ type: `microservice`, resource: microservice.uuid }, transaction)
+  const existingService = await ServiceManager.findOne({ type: 'microservice', resource: microservice.uuid }, transaction)
   if (existingService) {
     logger.info(`Deleting service ${existingService.name}`)
     await ServiceServices.deleteServiceEndpoint(existingService.name, transaction)
@@ -1825,7 +1837,7 @@ async function _createCdiDevices (microservice, cdiDevices, transaction) {
   }
 
   const msCdiDevicesData = {
-    cdiDevices: cdiDevices,
+    cdiDevices,
     microserviceUuid: microservice.uuid
   }
 
@@ -1839,7 +1851,7 @@ async function _createCapAdd (microservice, capAdd, transaction) {
   }
 
   const msCapAddData = {
-    capAdd: capAdd,
+    capAdd,
     microserviceUuid: microservice.uuid
   }
 
@@ -1853,7 +1865,7 @@ async function _createCapDrop (microservice, capDrop, transaction) {
   }
 
   const msCapDropData = {
-    capDrop: capDrop,
+    capDrop,
     microserviceUuid: microservice.uuid
   }
 
@@ -1910,7 +1922,7 @@ async function createVolumeMappingEndPoint (microserviceUuid, volumeMappingData,
   }
 
   const volumeMapping = await VolumeMappingManager.findOne({
-    microserviceUuid: microserviceUuid,
+    microserviceUuid,
     hostDestination: volumeMappingData.hostDestination,
     containerDestination: volumeMappingData.containerDestination,
     type
@@ -1928,7 +1940,7 @@ async function createVolumeMappingEndPoint (microserviceUuid, volumeMappingData,
   }
 
   const volumeMappingObj = {
-    microserviceUuid: microserviceUuid,
+    microserviceUuid,
     hostDestination: volumeMappingData.hostDestination,
     containerDestination: volumeMappingData.containerDestination,
     accessMode: volumeMappingData.accessMode,
@@ -1959,7 +1971,7 @@ async function createSystemVolumeMappingEndPoint (microserviceUuid, volumeMappin
   }
 
   const volumeMapping = await VolumeMappingManager.findOne({
-    microserviceUuid: microserviceUuid,
+    microserviceUuid,
     hostDestination: volumeMappingData.hostDestination,
     containerDestination: volumeMappingData.containerDestination,
     type
@@ -1977,7 +1989,7 @@ async function createSystemVolumeMappingEndPoint (microserviceUuid, volumeMappin
   }
 
   const volumeMappingObj = {
-    microserviceUuid: microserviceUuid,
+    microserviceUuid,
     hostDestination: volumeMappingData.hostDestination,
     containerDestination: volumeMappingData.containerDestination,
     accessMode: volumeMappingData.accessMode,
@@ -1999,7 +2011,7 @@ async function deleteVolumeMappingEndPoint (microserviceUuid, volumeMappingUuid,
 
   const volumeMappingWhere = {
     uuid: volumeMappingUuid,
-    microserviceUuid: microserviceUuid
+    microserviceUuid
   }
 
   const volumeMapping = await VolumeMappingManager.findOne(volumeMappingWhere, transaction)
@@ -2031,7 +2043,7 @@ async function deleteSystemVolumeMappingEndPoint (microserviceUuid, volumeMappin
 
   const volumeMappingWhere = {
     uuid: volumeMappingUuid,
-    microserviceUuid: microserviceUuid
+    microserviceUuid
   }
 
   const volumeMapping = await VolumeMappingManager.findOne(volumeMappingWhere, transaction)
@@ -2061,7 +2073,7 @@ async function listVolumeMappingsEndPoint (microserviceUuid, isCLI, transaction)
   }
 
   const volumeMappingWhere = {
-    microserviceUuid: microserviceUuid
+    microserviceUuid
   }
   return VolumeMappingManager.findAll(volumeMappingWhere, transaction)
 }
@@ -2131,8 +2143,8 @@ async function _createMicroservice (microserviceData, isCLI, transaction) {
   let newMicroservice = {
     uuid: AppHelper.generateUUID(),
     name: microserviceData.name,
-    config: config,
-    annotations: annotations,
+    config,
+    annotations,
     catalogItemId: microserviceData.catalogItemId,
     iofogUuid: microserviceData.iofogUuid,
     hostNetworkMode: microserviceData.hostNetworkMode,
@@ -2310,13 +2322,13 @@ async function _updateVolumeMappings (volumeMappings, microserviceUuid, transact
   }
 
   await VolumeMappingManager.delete({
-    microserviceUuid: microserviceUuid
+    microserviceUuid
   }, transaction)
 
   for (const volumeMapping of volumeMappings) {
     const type = volumeMapping.type || VOLUME_MAPPING_DEFAULT
     const volumeMappingObj = {
-      microserviceUuid: microserviceUuid,
+      microserviceUuid,
       hostDestination: volumeMapping.hostDestination,
       containerDestination: volumeMapping.containerDestination,
       accessMode: volumeMapping.accessMode,
@@ -2331,20 +2343,20 @@ async function _updateVolumeMappings (volumeMappings, microserviceUuid, transact
 
 async function _updateImages (images, microserviceUuid, transaction) {
   await CatalogItemImageManager.delete({
-    microserviceUuid: microserviceUuid
+    microserviceUuid
   }, transaction)
   return _createMicroserviceImages({ uuid: microserviceUuid }, images, transaction)
 }
 
 async function _deleteImages (microserviceUuid, transaction) {
   await CatalogItemImageManager.delete({
-    microserviceUuid: microserviceUuid
+    microserviceUuid
   }, transaction)
 }
 
 async function _updateExtraHosts (extraHosts, microserviceUuid, transaction) {
   await MicroserviceExtraHostManager.delete({
-    microserviceUuid: microserviceUuid
+    microserviceUuid
   }, transaction)
   for (const extraHost of extraHosts) {
     await _createExtraHost({ uuid: microserviceUuid }, extraHost, transaction)
@@ -2353,11 +2365,11 @@ async function _updateExtraHosts (extraHosts, microserviceUuid, transaction) {
 
 async function _updateEnv (env, microserviceUuid, transaction) {
   await MicroserviceEnvManager.delete({
-    microserviceUuid: microserviceUuid
+    microserviceUuid
   }, transaction)
   for (const envData of env) {
     const envObj = {
-      microserviceUuid: microserviceUuid,
+      microserviceUuid,
       key: envData.key,
       value: envData.value
     }
@@ -2411,11 +2423,11 @@ async function _updateEnv (env, microserviceUuid, transaction) {
 
 async function _updateArg (arg, microserviceUuid, transaction) {
   await MicroserviceArgManager.delete({
-    microserviceUuid: microserviceUuid
+    microserviceUuid
   }, transaction)
   for (const argData of arg) {
     const envObj = {
-      microserviceUuid: microserviceUuid,
+      microserviceUuid,
       cmd: argData
     }
 
@@ -2425,11 +2437,11 @@ async function _updateArg (arg, microserviceUuid, transaction) {
 
 async function _updateCdiDevices (cdiDevices, microserviceUuid, transaction) {
   await MicroserviceCdiDevManager.delete({
-    microserviceUuid: microserviceUuid
+    microserviceUuid
   }, transaction)
   for (const cdiDevicesData of cdiDevices) {
     const envObj = {
-      microserviceUuid: microserviceUuid,
+      microserviceUuid,
       cdiDevices: cdiDevicesData
     }
 
@@ -2439,11 +2451,11 @@ async function _updateCdiDevices (cdiDevices, microserviceUuid, transaction) {
 
 async function _updateCapAdd (capAdd, microserviceUuid, transaction) {
   await MicroserviceCapAddManager.delete({
-    microserviceUuid: microserviceUuid
+    microserviceUuid
   }, transaction)
   for (const capAddData of capAdd) {
     const envObj = {
-      microserviceUuid: microserviceUuid,
+      microserviceUuid,
       capAdd: capAddData
     }
 
@@ -2453,11 +2465,11 @@ async function _updateCapAdd (capAdd, microserviceUuid, transaction) {
 
 async function _updateCapDrop (capDrop, microserviceUuid, transaction) {
   await MicroserviceCapDropManager.delete({
-    microserviceUuid: microserviceUuid
+    microserviceUuid
   }, transaction)
   for (const capDropData of capDrop) {
     const envObj = {
-      microserviceUuid: microserviceUuid,
+      microserviceUuid,
       capDrop: capDropData
     }
 
@@ -2491,16 +2503,16 @@ async function _checkForDuplicateName (name, item, applicationId, transaction) {
   if (name) {
     const where = item.id
       ? {
-        name: name,
-        uuid: { [Op.ne]: item.id },
-        delete: false,
-        applicationId
-      }
+          name,
+          uuid: { [Op.ne]: item.id },
+          delete: false,
+          applicationId
+        }
       : {
-        name: name,
-        applicationId,
-        delete: false
-      }
+          name,
+          applicationId,
+          delete: false
+        }
 
     const result = await MicroserviceManager.findOne(where, transaction)
     if (result) {
@@ -2553,21 +2565,21 @@ async function _buildGetMicroserviceResponse (microservice, transaction) {
   // get additional data
   const portMappings = await MicroservicePortService.getPortMappings(microserviceUuid, transaction)
   const application = await ApplicationManager.findOne({ id: microservice.applicationId }, transaction)
-  const extraHosts = await MicroserviceExtraHostManager.findAll({ microserviceUuid: microserviceUuid }, transaction)
-  const images = await CatalogItemImageManager.findAll({ microserviceUuid: microserviceUuid }, transaction)
-  const volumeMappings = await VolumeMappingManager.findAll({ microserviceUuid: microserviceUuid }, transaction)
-  const env = await MicroserviceEnvManager.findAllExcludeFields({ microserviceUuid: microserviceUuid }, transaction)
-  const cmd = await MicroserviceArgManager.findAllExcludeFields({ microserviceUuid: microserviceUuid }, transaction)
+  const extraHosts = await MicroserviceExtraHostManager.findAll({ microserviceUuid }, transaction)
+  const images = await CatalogItemImageManager.findAll({ microserviceUuid }, transaction)
+  const volumeMappings = await VolumeMappingManager.findAll({ microserviceUuid }, transaction)
+  const env = await MicroserviceEnvManager.findAllExcludeFields({ microserviceUuid }, transaction)
+  const cmd = await MicroserviceArgManager.findAllExcludeFields({ microserviceUuid }, transaction)
   const arg = cmd.map((it) => it.cmd)
-  const cdiDevices = await MicroserviceCdiDevManager.findAllExcludeFields({ microserviceUuid: microserviceUuid }, transaction)
+  const cdiDevices = await MicroserviceCdiDevManager.findAllExcludeFields({ microserviceUuid }, transaction)
   const cdiDevs = cdiDevices.map((it) => it.cdiDevices)
-  const capAdd = await MicroserviceCapAddManager.findAllExcludeFields({ microserviceUuid: microserviceUuid }, transaction)
+  const capAdd = await MicroserviceCapAddManager.findAllExcludeFields({ microserviceUuid }, transaction)
   const capAdds = capAdd.map((it) => it.capAdd)
-  const capDrop = await MicroserviceCapDropManager.findAllExcludeFields({ microserviceUuid: microserviceUuid }, transaction)
+  const capDrop = await MicroserviceCapDropManager.findAllExcludeFields({ microserviceUuid }, transaction)
   const capDrops = capDrop.map((it) => it.capDrop)
-  const status = await MicroserviceStatusManager.findAllExcludeFields({ microserviceUuid: microserviceUuid }, transaction)
-  const execStatus = await MicroserviceExecStatusManager.findAllExcludeFields({ microserviceUuid: microserviceUuid }, transaction)
-  const healthCheck = await MicroserviceHealthCheckManager.findAllExcludeFields({ microserviceUuid: microserviceUuid }, transaction)
+  const status = await MicroserviceStatusManager.findAllExcludeFields({ microserviceUuid }, transaction)
+  const execStatus = await MicroserviceExecStatusManager.findAllExcludeFields({ microserviceUuid }, transaction)
+  const healthCheck = await MicroserviceHealthCheckManager.findAllExcludeFields({ microserviceUuid }, transaction)
   // build microservice response
   const res = Object.assign({}, microservice)
   res.ports = []
@@ -2811,8 +2823,8 @@ module.exports = {
   createVolumeMappingEndPoint: TransactionDecorator.generateTransaction(createVolumeMappingEndPoint),
   createSystemVolumeMappingEndPoint: TransactionDecorator.generateTransaction(createSystemVolumeMappingEndPoint),
   deleteMicroserviceEndPoint: TransactionDecorator.generateTransaction(deleteMicroserviceEndPoint, bypassOptions),
-  deleteMicroserviceWithRoutesAndPortMappings: deleteMicroserviceWithRoutesAndPortMappings,
-  deleteNotRunningMicroservices: deleteNotRunningMicroservices,
+  deleteMicroserviceWithRoutesAndPortMappings,
+  deleteNotRunningMicroservices,
   deletePortMappingEndPoint: TransactionDecorator.generateTransaction(deletePortMappingEndPoint),
   deleteSystemPortMappingEndPoint: TransactionDecorator.generateTransaction(deleteSystemPortMappingEndPoint),
   deleteVolumeMappingEndPoint: TransactionDecorator.generateTransaction(deleteVolumeMappingEndPoint),

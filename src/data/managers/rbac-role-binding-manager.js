@@ -58,7 +58,7 @@ class RbacRoleBindingManager extends BaseManager {
         kind: bindingData.kind || 'RoleBinding',
         // namespace removed (controller manages single namespace)
         roleRef: bindingData.roleRef,
-        roleId: roleId,
+        roleId,
         subjects: bindingData.subjects || []
       }, transaction)
     } catch (error) {

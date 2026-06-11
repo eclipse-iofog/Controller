@@ -112,17 +112,17 @@ async function disableNodeExecEndPoint (req) {
 }
 
 module.exports = {
-  createFogEndPoint: (createFogEndPoint),
-  updateFogEndPoint: (updateFogEndPoint),
-  deleteFogEndPoint: (deleteFogEndPoint),
-  getFogEndPoint: (getFogEndPoint),
-  getFogListEndPoint: (getFogListEndPoint),
+  createFogEndPoint,
+  updateFogEndPoint,
+  deleteFogEndPoint,
+  getFogEndPoint,
+  getFogListEndPoint,
   generateProvisioningKeyEndPoint: (generateProvisionKeyEndPoint),
-  setFogVersionCommandEndPoint: (setFogVersionCommandEndPoint),
-  setFogRebootCommandEndPoint: (setFogRebootCommandEndPoint),
-  getHalHardwareInfoEndPoint: (getHalHardwareInfoEndPoint),
-  getHalUsbInfoEndPoint: (getHalUsbInfoEndPoint),
-  setFogPruneCommandEndPoint: (setFogPruneCommandEndPoint),
-  enableNodeExecEndPoint: (enableNodeExecEndPoint),
-  disableNodeExecEndPoint: (disableNodeExecEndPoint)
+  setFogVersionCommandEndPoint,
+  setFogRebootCommandEndPoint,
+  getHalHardwareInfoEndPoint,
+  getHalUsbInfoEndPoint,
+  setFogPruneCommandEndPoint,
+  enableNodeExecEndPoint,
+  disableNodeExecEndPoint
 }

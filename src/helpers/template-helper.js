@@ -128,7 +128,7 @@ const rvaluesVarSubstition = async (subjects, templateContext) => {
   context._agentsByName = context._agentsByName || {}
   context._applicationsByName = context._applicationsByName || {}
 
-  for (let key in subjects) {
+  for (const key in subjects) {
     try {
       if (typeof subjects[key] === 'object') {
         await rvaluesVarSubstition(subjects[key], context, null)
@@ -148,7 +148,7 @@ const rvaluesVarSubstition = async (subjects, templateContext) => {
 const substitutionMiddleware = async (req, res, next) => {
   if (['POST', 'PUT', 'PATCH'].indexOf(req.method) > -1) {
     // let user
-    let tmplContext = {
+    const tmplContext = {
       self: req.body
       // Private context
       // _user: user // need by edge resource and every on demand request

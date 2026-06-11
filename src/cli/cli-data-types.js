@@ -20,6 +20,6 @@ function Float (value) {
 }
 
 module.exports = {
-  Integer: Integer,
-  Float: Float
+  Integer,
+  Float
 }

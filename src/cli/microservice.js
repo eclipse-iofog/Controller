@@ -582,17 +582,17 @@ const _updateMicroservice = async function (obj) {
 
 const _updateMicroserviceObject = function (obj) {
   const envVars = obj.env || []
-  const env = envVars.map((it) => {
+  const env = envVars.flatMap((it) => {
     const split = it.split('=')
     if (!split || split.length < 2) {
-      return
+      return []
     }
 
-    return {
+    return [{
       key: split[0],
       value: split.slice(1).join('=')
-    }
-  }).filter((it) => !!it)
+    }]
+  })
 
   const microserviceObj = {
     name: obj.name,
@@ -648,17 +648,17 @@ const _updateMicroserviceObject = function (obj) {
 
 const _createMicroserviceObject = function (obj) {
   const envVars = obj.env || []
-  const env = envVars.map((it) => {
+  const env = envVars.flatMap((it) => {
     const split = it.split('=')
     if (!split || split.length < 2) {
-      return
+      return []
     }
 
-    return {
+    return [{
       key: split[0],
       value: split.slice(1).join('=')
-    }
-  }).filter((it) => !!it)
+    }]
+  })
 
   const microserviceObj = {
     name: obj.name,

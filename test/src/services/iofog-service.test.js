@@ -199,6 +199,7 @@ describe('ioFog Service', () => {
       $sandbox.stub(NatsService, 'ensureNatsForFog').returns(Promise.resolve())
       $sandbox.stub(ioFogManager, 'update').returns($createIoFogResponse)
       $sandbox.stub(ioFogManager, 'findOne').returns(Promise.resolve())
+      $sandbox.stub(ioFogManager, 'findAll').returns(Promise.resolve([{ uuid: 'existing-fog' }]))
       $sandbox.stub(ioFogManager, 'findOneWithTags').returns(Promise.resolve())
 
       $sandbox.stub(Date, 'now').returns($dateResponse)

@@ -249,7 +249,7 @@ async function _ensureNatsCertificates (fog, transaction) {
       }
       await CertificateService.createCAEndpoint({
         name,
-        subject: subject,
+        subject,
         expiration: 60,
         type: 'self-signed'
       }, transaction)
@@ -265,7 +265,7 @@ async function _ensureNatsCertificates (fog, transaction) {
       }
       await CertificateService.createCertificateEndpoint({
         name,
-        subject: subject,
+        subject,
         hosts: hosts.join(','),
         ca: {
           type: 'direct',
@@ -504,14 +504,16 @@ async function _computeLeafRemotesForInstance (fog, natsInstance, transaction, c
   if (!upstreamConnections || upstreamConnections.length === 0) {
     return remotes
   }
-  const tlsConfig = certName ? {
-    ca_file: `${NATS_CERTS_DIR}/${certName}/ca.crt`,
-    cert_file: `${NATS_CERTS_DIR}/${certName}/tls.crt`,
-    key_file: `${NATS_CERTS_DIR}/${certName}/tls.key`,
-    verify: true,
-    handshake_first: true,
-    timeout: '3s'
-  } : undefined
+  const tlsConfig = certName
+    ? {
+        ca_file: `${NATS_CERTS_DIR}/${certName}/ca.crt`,
+        cert_file: `${NATS_CERTS_DIR}/${certName}/tls.crt`,
+        key_file: `${NATS_CERTS_DIR}/${certName}/tls.key`,
+        verify: true,
+        handshake_first: true,
+        timeout: '3s'
+      }
+    : undefined
   const appIds = await _getLeafAppIds(fog, transaction)
   for (const appId of appIds) {
     const account = await NatsAuthService.ensureAccountForApplication(appId, transaction)
@@ -651,7 +653,7 @@ async function _renderAndPersistNatsConfig (fog, natsInstance, certName, mqttCer
     NATS_SSL_DIR: NATS_CERTS_DIR,
     NATS_CERT_NAME: certName,
     NATS_MQTT_CERT_NAME: mqttCertName,
-    NATS_JWT_DIR: NATS_JWT_DIR,
+    NATS_JWT_DIR,
     NATS_JS_MAX_MEMORY_STORE: jsMaxMemory,
     NATS_JS_MAX_FILE_STORE: jsMaxFile
   }
@@ -750,7 +752,7 @@ async function _ensureNatsMicroservice (fog, mode, transaction) {
     }
     const data = {
       uuid: AppHelper.generateUUID(),
-      name: name,
+      name,
       config: '{}',
       catalogItemId: catalog.id,
       iofogUuid: fog.uuid,
@@ -977,7 +979,7 @@ async function ensureNatsForFog (fog, natsConfig, transaction) {
     clusterPort,
     mqttPort,
     httpPort,
-    configMapName: configMapName,
+    configMapName,
     jwtDirMountName: natsJwtDirMount(fog),
     certSecretName: certName,
     jsStorageSize: jsStorageSize || DEFAULT_JS_STORAGE_SIZE,
@@ -1062,7 +1064,7 @@ async function ensureNatsForFog (fog, natsConfig, transaction) {
     }
   }
 
-  await _ensureVolumeMount(configMapName, { configMapName: configMapName }, transaction)
+  await _ensureVolumeMount(configMapName, { configMapName }, transaction)
   await _ensureVolumeMount(natsJwtDirMount(fog), { configMapName: jwtBundleConfigMapName }, transaction)
   await _ensureVolumeMount(certName, { secretName: certName }, transaction)
   await _ensureVolumeMount(mqttCertName, { secretName: mqttCertName }, transaction)
@@ -1631,7 +1633,7 @@ function normalizeJetstreamSize (value, defaultValue) {
 module.exports = {
   ensureNatsForFog: TransactionDecorator.generateTransaction(ensureNatsForFog),
   reconcileResolverArtifacts: TransactionDecorator.generateTransaction(reconcileResolverArtifacts),
-  scheduleResolverArtifactsReconcile: scheduleResolverArtifactsReconcile,
+  scheduleResolverArtifactsReconcile,
   enqueueReconcileTask: TransactionDecorator.generateTransaction(enqueueReconcileTask),
   claimNextTask,
   cleanupNatsForFog: TransactionDecorator.generateTransaction(cleanupNatsForFog),

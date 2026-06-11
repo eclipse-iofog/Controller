@@ -47,11 +47,11 @@ const updateCatalogItemEndPoint = async function (id, data, isCLI, transaction) 
 
   const where = isCLI
     ? {
-      id: id
-    }
+        id
+      }
     : {
-      id: id
-    }
+        id
+      }
 
   data.id = id
   await _updateCatalogItem(data, where, transaction)
@@ -73,18 +73,18 @@ const listCatalogItemsEndPoint = async function (isCLI, transaction) {
 
   const catalogItems = await CatalogItemManager.findAllWithDependencies(where, attributes, transaction)
   return {
-    catalogItems: catalogItems
+    catalogItems
   }
 }
 
 async function getCatalogItem (id, isCLI, transaction) {
   const where = isCLI
-    ? { id: id }
+    ? { id }
     // : {
     //   id: id,
     //   [Op.or]: [{ category: { [Op.ne]: 'SYSTEM' } }, { category: null }]
     // }
-    : { id: id }
+    : { id }
 
   const attributes = isCLI
     ? {}
@@ -99,7 +99,7 @@ async function getCatalogItem (id, isCLI, transaction) {
 
 async function getSystemCatalogItem (id, isCLI, transaction) {
   const where = {
-    id: id,
+    id,
     category: 'SYSTEM'
   }
 
@@ -119,11 +119,11 @@ const getCatalogItemEndPoint = async function (id, isCLI, transaction) {
 const deleteCatalogItemEndPoint = async function (id, isCLI, transaction) {
   const where = isCLI
     ? {
-      id: id
-    }
+        id
+      }
     : {
-      id: id
-    }
+        id
+      }
 
   const item = await _checkIfItemExists(where, transaction)
 
@@ -191,8 +191,8 @@ async function getHalCatalogItem (transaction) {
 const _checkForDuplicateName = async function (name, item, transaction) {
   if (name) {
     const where = (item && item.id)
-      ? { name: name, id: { [Op.ne]: item.id } }
-      : { name: name }
+      ? { name, id: { [Op.ne]: item.id } }
+      : { name }
 
     const result = await CatalogItemManager.findOne(where, transaction)
     if (result) {
@@ -383,11 +383,11 @@ module.exports = {
   getCatalogItemEndPoint: TransactionDecorator.generateTransaction(getCatalogItemEndPoint),
   deleteCatalogItemEndPoint: TransactionDecorator.generateTransaction(deleteCatalogItemEndPoint),
   updateCatalogItemEndPoint: TransactionDecorator.generateTransaction(updateCatalogItemEndPoint),
-  getCatalogItem: getCatalogItem,
-  getSystemCatalogItem: getSystemCatalogItem,
-  getNatsCatalogItem: getNatsCatalogItem,
-  getBluetoothCatalogItem: getBluetoothCatalogItem,
-  getHalCatalogItem: getHalCatalogItem,
-  getRouterCatalogItem: getRouterCatalogItem,
-  getDebugCatalogItem: getDebugCatalogItem
+  getCatalogItem,
+  getSystemCatalogItem,
+  getNatsCatalogItem,
+  getBluetoothCatalogItem,
+  getHalCatalogItem,
+  getRouterCatalogItem,
+  getDebugCatalogItem
 }

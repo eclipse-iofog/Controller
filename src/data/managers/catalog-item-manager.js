@@ -44,9 +44,9 @@ class CatalogItemManager extends BaseManager {
           required: false,
           attributes: ['infoType', 'infoFormat']
         }],
-      where: where,
-      attributes: attributes
-    }, { transaction: transaction })
+      where,
+      attributes
+    }, { transaction })
   }
 
   findOneWithDependencies (where, attribures, transaction) {
@@ -70,9 +70,9 @@ class CatalogItemManager extends BaseManager {
           required: false,
           attributes: ['infoType', 'infoFormat']
         }],
-      where: where,
+      where,
       attributes: attribures
-    }, { transaction: transaction })
+    }, { transaction })
   }
 }
 

@@ -50,7 +50,7 @@ const updateSecretFromYamlEndpoint = async function (req) {
   const secretName = req.params.name
   const secretData = await YamlParserService.parseSecretFile(fileContent, {
     isUpdate: true,
-    secretName: secretName
+    secretName
   })
   return SecretService.updateSecretEndpoint(secretName, secretData)
 }

@@ -151,7 +151,7 @@ const listMicroservicePortMappingsEndPoint = async function (req) {
   const uuid = req.params.uuid
   const ports = await MicroservicesService.listMicroservicePortMappingsEndPoint(uuid, false)
   return {
-    ports: ports
+    ports
   }
 }
 
@@ -177,7 +177,7 @@ const listMicroserviceVolumeMappingsEndPoint = async function (req) {
   const uuid = req.params.uuid
   const volumeMappings = await MicroservicesService.listVolumeMappingsEndPoint(uuid, false)
   return {
-    volumeMappings: volumeMappings
+    volumeMappings
   }
 }
 
@@ -224,39 +224,39 @@ const stopMicroserviceEndPoint = async function (req) {
 }
 
 module.exports = {
-  createMicroserviceOnFogEndPoint: (createMicroserviceOnFogEndPoint),
-  getMicroserviceEndPoint: (getMicroserviceEndPoint),
-  getSystemMicroserviceEndPoint: (getSystemMicroserviceEndPoint),
-  updateMicroserviceEndPoint: (updateMicroserviceEndPoint),
-  updateSystemMicroserviceEndPoint: (updateSystemMicroserviceEndPoint),
-  rebuildMicroserviceEndPoint: (rebuildMicroserviceEndPoint),
-  rebuildSystemMicroserviceEndPoint: (rebuildSystemMicroserviceEndPoint),
-  deleteMicroserviceEndPoint: (deleteMicroserviceEndPoint),
-  getMicroservicesByApplicationEndPoint: (getMicroservicesByApplicationEndPoint),
-  getSystemMicroservicesByApplicationEndPoint: (getSystemMicroservicesByApplicationEndPoint),
-  createMicroservicePortMappingEndPoint: (createMicroservicePortMappingEndPoint),
-  createSystemMicroservicePortMappingEndPoint: (createSystemMicroservicePortMappingEndPoint),
-  deleteMicroservicePortMappingEndPoint: (deleteMicroservicePortMappingEndPoint),
-  deleteSystemMicroservicePortMappingEndPoint: (deleteSystemMicroservicePortMappingEndPoint),
+  createMicroserviceOnFogEndPoint,
+  getMicroserviceEndPoint,
+  getSystemMicroserviceEndPoint,
+  updateMicroserviceEndPoint,
+  updateSystemMicroserviceEndPoint,
+  rebuildMicroserviceEndPoint,
+  rebuildSystemMicroserviceEndPoint,
+  deleteMicroserviceEndPoint,
+  getMicroservicesByApplicationEndPoint,
+  getSystemMicroservicesByApplicationEndPoint,
+  createMicroservicePortMappingEndPoint,
+  createSystemMicroservicePortMappingEndPoint,
+  deleteMicroservicePortMappingEndPoint,
+  deleteSystemMicroservicePortMappingEndPoint,
   getMicroservicePortMappingListEndPoint: (listMicroservicePortMappingsEndPoint),
-  createMicroserviceVolumeMappingEndPoint: (createMicroserviceVolumeMappingEndPoint),
-  createSystemMicroserviceVolumeMappingEndPoint: (createSystemMicroserviceVolumeMappingEndPoint),
-  listMicroserviceVolumeMappingsEndPoint: (listMicroserviceVolumeMappingsEndPoint),
-  deleteMicroserviceVolumeMappingEndPoint: (deleteMicroserviceVolumeMappingEndPoint),
-  deleteSystemMicroserviceVolumeMappingEndPoint: (deleteSystemMicroserviceVolumeMappingEndPoint),
-  createMicroserviceYAMLEndPoint: (createMicroserviceYAMLEndPoint),
-  updateMicroserviceYAMLEndPoint: (updateMicroserviceYAMLEndPoint),
-  updateSystemMicroserviceYAMLEndPoint: (updateSystemMicroserviceYAMLEndPoint),
-  updateMicroserviceConfigEndPoint: (updateMicroserviceConfigEndPoint),
-  getMicroserviceConfigEndPoint: (getMicroserviceConfigEndPoint),
-  updateSystemMicroserviceConfigEndPoint: (updateSystemMicroserviceConfigEndPoint),
-  getSystemMicroserviceConfigEndPoint: (getSystemMicroserviceConfigEndPoint),
-  deleteMicroserviceConfigEndPoint: (deleteMicroserviceConfigEndPoint),
-  deleteSystemMicroserviceConfigEndPoint: (deleteSystemMicroserviceConfigEndPoint),
-  createMicroserviceExecEndPoint: (createMicroserviceExecEndPoint),
-  deleteMicroserviceExecEndPoint: (deleteMicroserviceExecEndPoint),
-  createSystemMicroserviceExecEndPoint: (createSystemMicroserviceExecEndPoint),
-  deleteSystemMicroserviceExecEndPoint: (deleteSystemMicroserviceExecEndPoint),
-  startMicroserviceEndPoint: (startMicroserviceEndPoint),
-  stopMicroserviceEndPoint: (stopMicroserviceEndPoint)
+  createMicroserviceVolumeMappingEndPoint,
+  createSystemMicroserviceVolumeMappingEndPoint,
+  listMicroserviceVolumeMappingsEndPoint,
+  deleteMicroserviceVolumeMappingEndPoint,
+  deleteSystemMicroserviceVolumeMappingEndPoint,
+  createMicroserviceYAMLEndPoint,
+  updateMicroserviceYAMLEndPoint,
+  updateSystemMicroserviceYAMLEndPoint,
+  updateMicroserviceConfigEndPoint,
+  getMicroserviceConfigEndPoint,
+  updateSystemMicroserviceConfigEndPoint,
+  getSystemMicroserviceConfigEndPoint,
+  deleteMicroserviceConfigEndPoint,
+  deleteSystemMicroserviceConfigEndPoint,
+  createMicroserviceExecEndPoint,
+  deleteMicroserviceExecEndPoint,
+  createSystemMicroserviceExecEndPoint,
+  deleteSystemMicroserviceExecEndPoint,
+  startMicroserviceEndPoint,
+  stopMicroserviceEndPoint
 }

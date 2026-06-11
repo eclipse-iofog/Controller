@@ -31,7 +31,7 @@ module.exports = [
         .status(responseObject.code)
         .send(responseObject.body)
 
-      logger.apiRes({ req: req, res: res, responseObject: responseObject })
+      logger.apiRes({ req, res, responseObject })
     }
   },
   {
@@ -49,7 +49,7 @@ module.exports = [
         .status(responseObject.code)
         .send(responseObject.body)
 
-      logger.apiRes({ req: req, res: res, responseObject: responseObject })
+      logger.apiRes({ req, res, responseObject })
     }
   }
 ]

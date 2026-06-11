@@ -32,7 +32,7 @@ const serviceCreate = {
     },
     tags: {
       type: 'array',
-      items: { '$ref': '/serviceTag' }
+      items: { $ref: '/serviceTag' }
     }
   }
   // allOf: [
@@ -78,7 +78,7 @@ const serviceUpdate = {
     },
     tags: {
       type: 'array',
-      items: { '$ref': '/serviceTag' }
+      items: { $ref: '/serviceTag' }
     }
   }
   // allOf: [

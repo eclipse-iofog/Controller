@@ -30,9 +30,9 @@ class ApplicationManager extends BaseManager {
           required: false
         }
       ],
-      where: where,
+      where,
       attributes: ['id']
-    }, { transaction: transaction })
+    }, { transaction })
     if (!application) {
       return []
     }
@@ -41,17 +41,18 @@ class ApplicationManager extends BaseManager {
 
   async findAllWithAttributes (where, attributes, transaction) {
     return Application.findAll({
-      where: where,
-      attributes: attributes },
-    { transaction: transaction })
+      where,
+      attributes
+    },
+    { transaction })
   }
 
   async findOneWithAttributes (where, attributes, transaction) {
     return Application.findOne({
-      where: where,
-      attributes: attributes
+      where,
+      attributes
     },
-    { transaction: transaction })
+    { transaction })
   }
 
   async findOnePopulated (where, attributes, transaction) {
@@ -65,7 +66,7 @@ class ApplicationManager extends BaseManager {
       ],
       where,
       attributes
-    }, { transaction: transaction })
+    }, { transaction })
     if (!application) {
       return null
     }
@@ -87,7 +88,7 @@ class ApplicationManager extends BaseManager {
       ],
       where,
       attributes
-    }, { transaction: transaction })
+    }, { transaction })
     return applications.map(application => ({
       ...application.get({ plain: true }),
       microservices: (application.microservices || []).map(m => m.get({ plain: true }))

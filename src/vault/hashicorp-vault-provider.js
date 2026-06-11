@@ -107,7 +107,7 @@ class HashiCorpVaultProvider extends BaseVaultProvider {
     const secretPath = `v1/${this.mount}/data/${vaultPath}`
 
     const payload = {
-      data: data
+      data
     }
 
     try {

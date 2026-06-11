@@ -28,7 +28,7 @@ const getConfigEndpoint = async function (req) {
 }
 
 module.exports = {
-  upsertConfigElementEndpoint: (upsertConfigElementEndpoint),
-  listConfigEndpoint: (listConfigEndpoint),
-  getConfigEndpoint: (getConfigEndpoint)
+  upsertConfigElementEndpoint,
+  listConfigEndpoint,
+  getConfigEndpoint
 }

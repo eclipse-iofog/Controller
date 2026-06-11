@@ -44,9 +44,9 @@ const statusController = async function (isCLI) {
   }
 
   return {
-    'status': status,
-    'timestamp': Date.now(),
-    'uptimeSec': process.uptime(),
+    status,
+    timestamp: Date.now(),
+    uptimeSec: process.uptime(),
     versions: {
       controller: packageJson.version,
       ecnViewer: packageJson.dependencies['@datasance/ecn-viewer']
@@ -60,6 +60,6 @@ const getVersion = async function (isCLI) {
 
 module.exports = {
   getArchitectures: TransactionDecorator.generateTransaction(getArchitectures),
-  statusController: statusController,
-  getVersion: getVersion
+  statusController,
+  getVersion
 }

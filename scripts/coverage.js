@@ -18,8 +18,8 @@ const { setDbEnvVars } = require('./util')
 function coverage () {
   const options = {
     env: {
-      'NODE_ENV': 'test',
-      'PATH': process.env.PATH
+      NODE_ENV: 'test',
+      PATH: process.env.PATH
     },
     stdio: [process.stdin, process.stdout, process.stderr]
   }
@@ -30,5 +30,5 @@ function coverage () {
 }
 
 module.exports = {
-  coverage: coverage
+  coverage
 }

@@ -31,7 +31,7 @@ class ApplicationTemplateManager extends BaseManager {
       ],
       where,
       attributes
-    }, { transaction: transaction })
+    }, { transaction })
     return applicationTemplate
   }
 
@@ -46,7 +46,7 @@ class ApplicationTemplateManager extends BaseManager {
       ],
       where,
       attributes
-    }, { transaction: transaction })
+    }, { transaction })
     return applicationTemplates
   }
 }

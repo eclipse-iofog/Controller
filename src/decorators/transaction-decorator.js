@@ -95,5 +95,5 @@ function generateTransaction (f, options = {}) {
 }
 
 module.exports = {
-  generateTransaction: generateTransaction
+  generateTransaction
 }

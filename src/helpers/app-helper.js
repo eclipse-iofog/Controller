@@ -183,7 +183,7 @@ function isTest () {
 
 function isEmpty (obj) {
   for (const key in obj) {
-    if (obj.hasOwnProperty(key)) {
+    if (Object.hasOwn(obj, key)) {
       return false
     }
   }

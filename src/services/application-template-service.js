@@ -251,8 +251,8 @@ const getApplicationDataFromTemplate = async function (deploymentData, isCLI, tr
 const _checkForDuplicateName = async function (name, applicationId, transaction) {
   if (name) {
     const where = applicationId
-      ? { name: name, id: { [Op.ne]: applicationId } }
-      : { name: name }
+      ? { name, id: { [Op.ne]: applicationId } }
+      : { name }
 
     const result = await ApplicationTemplateManager.findOne(where, transaction)
     if (result) {
@@ -270,6 +270,6 @@ module.exports = {
   getAllApplicationTemplatesEndPoint: TransactionDecorator.generateTransaction(getAllApplicationTemplatesEndPoint),
   getApplicationTemplateEndPoint: TransactionDecorator.generateTransaction(getApplicationTemplateEndPoint),
   getApplicationTemplateByName: TransactionDecorator.generateTransaction(getApplicationTemplateEndPoint),
-  getApplicationTemplate: getApplicationTemplate,
+  getApplicationTemplate,
   getApplicationDataFromTemplate
 }

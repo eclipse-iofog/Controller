@@ -41,6 +41,6 @@ const getTunnelEndPoint = async function (req) {
 }
 
 module.exports = {
-  manageTunnelEndPoint: (manageTunnelEndPoint),
-  getTunnelEndPoint: (getTunnelEndPoint)
+  manageTunnelEndPoint,
+  getTunnelEndPoint
 }
