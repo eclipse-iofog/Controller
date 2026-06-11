@@ -118,6 +118,14 @@ class ForbiddenError extends Error {
   }
 }
 
+class NotImplementedError extends Error {
+  constructor (message = 'This endpoint is only available in embedded auth mode') {
+    super(message)
+    this.message = message
+    this.name = 'NotImplementedError'
+  }
+}
+
 module.exports = {
   AuthenticationError: AuthenticationError,
   TransactionError: TransactionError,
@@ -131,5 +139,6 @@ module.exports = {
   InvalidArgumentTypeError: InvalidArgumentTypeError,
   CLIArgsNotProvidedError: CLIArgsNotProvidedError,
   ConflictError: ConflictError,
-  ForbiddenError: ForbiddenError
+  ForbiddenError: ForbiddenError,
+  NotImplementedError: NotImplementedError
 }

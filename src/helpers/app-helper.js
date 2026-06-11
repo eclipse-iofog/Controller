@@ -131,6 +131,13 @@ function checkTransaction (transaction) {
   }
 }
 
+function withTransaction (transaction, options = {}) {
+  if (transaction && !transaction.fakeTransaction) {
+    options.transaction = transaction
+  }
+  return options
+}
+
 function deleteUndefinedFields (obj) {
   if (!obj) {
     return
@@ -206,6 +213,7 @@ module.exports = {
   checkPortAvailability,
   generateAccessToken,
   checkTransaction,
+  withTransaction,
   deleteUndefinedFields,
   validateBooleanCliOptions,
   formatMessage,
