@@ -5,54 +5,46 @@ const {
   buildAuthorizationUrl,
   authorizationCodeGrant,
   randomState,
-  randomNonce
+  randomNonce,
+  randomPKCECodeVerifier,
+  calculatePKCECodeChallenge
 } = require('openid-client')
-const config = require('../config')
+const db = require('../data/models')
 const Errors = require('../helpers/errors')
 const logger = require('../logger')
 const {
-  getOidcConfiguration,
-  getAuthMode,
-  isAuthConfigured
+  getOauthClientConfiguration,
+  getAuthMode
 } = require('../config/oidc')
+const { getPublicUrl, getViewerUrl } = require('../config/auth-urls')
+const { getSessionStoreTtlMs } = require('../config/auth-session-store')
+const AuthTokenService = require('./auth-token-service')
 
 const OAUTH_SESSION_KEY = 'controllerOauth'
-const OAUTH_SESSION_TTL_MS = 10 * 60 * 1000
 
 function ensureAuthConfigured () {
+  const { isAuthConfigured } = require('../config/oidc')
   if (!isAuthConfigured()) {
     throw new Error('Auth is not configured for this cluster. Please contact your administrator.')
   }
 }
 
-function ensureExternalMode () {
-  if (getAuthMode() !== 'external') {
-    throw new Errors.NotImplementedError('OAuth BFF is only available in external auth mode')
+function ensureOauthBffReady () {
+  if (!getViewerUrl()) {
+    throw new Errors.NotImplementedError('OAuth BFF requires CONTROLLER_PUBLIC_URL or VIEWER_URL to be configured')
   }
-}
-
-function getPublicUrl () {
-  return (process.env.CONTROLLER_PUBLIC_URL || config.get('server.publicUrl') || '').replace(/\/$/, '')
 }
 
 function getRedirectUri () {
   return `${getPublicUrl()}/api/v3/user/oauth/callback`
 }
 
-function getViewerUrl () {
-  const viewerUrl = process.env.VIEWER_URL || config.get('viewer.url')
-  if (!viewerUrl) {
-    return null
-  }
-  return String(viewerUrl).replace(/\/$/, '')
-}
-
 function ensureOauthSession (sessionData) {
-  if (!sessionData || !sessionData.state || !sessionData.nonce) {
+  if (!sessionData || !sessionData.state || !sessionData.nonce || !sessionData.codeVerifier) {
     throw new Errors.AuthenticationError('OAuth session expired or missing')
   }
 
-  if (Date.now() - sessionData.createdAt > OAUTH_SESSION_TTL_MS) {
+  if (Date.now() - sessionData.createdAt > getSessionStoreTtlMs()) {
     throw new Errors.AuthenticationError('OAuth session expired')
   }
 }
@@ -101,25 +93,56 @@ function linkExternalUserByEmail (tokenResponse) {
   return email
 }
 
+async function resolveEmbeddedUserFromTokenResponse (tokenResponse) {
+  if (!tokenResponse.id_token) {
+    throw new Errors.AuthenticationError('OAuth response missing id_token')
+  }
+
+  const claims = decodeJwt(tokenResponse.id_token)
+  const userId = claims.sub
+  if (!userId) {
+    throw new Errors.AuthenticationError('OAuth response missing subject')
+  }
+
+  const user = await db.AuthUser.findByPk(userId, {
+    include: [{
+      model: db.AuthGroup,
+      as: 'groups',
+      through: { attributes: [] }
+    }]
+  })
+
+  if (!user || user.deletedAt) {
+    throw new Errors.AuthenticationError('OAuth user not found')
+  }
+
+  return user
+}
+
 async function authorize (req) {
   ensureAuthConfigured()
-  ensureExternalMode()
+  ensureOauthBffReady()
 
-  const oidcConfig = await getOidcConfiguration()
+  const oidcConfig = await getOauthClientConfiguration()
   const state = randomState()
   const nonce = randomNonce()
+  const codeVerifier = randomPKCECodeVerifier()
+  const codeChallenge = await calculatePKCECodeChallenge(codeVerifier)
 
   req.session[OAUTH_SESSION_KEY] = {
     state,
     nonce,
+    codeVerifier,
     createdAt: Date.now()
   }
 
   const authorizationUrl = buildAuthorizationUrl(oidcConfig, {
     redirect_uri: getRedirectUri(),
-    scope: 'openid profile email',
+    scope: 'openid profile email groups offline_access',
     state,
-    nonce
+    nonce,
+    code_challenge: codeChallenge,
+    code_challenge_method: 'S256'
   })
 
   return { redirectUrl: authorizationUrl.toString() }
@@ -127,35 +150,46 @@ async function authorize (req) {
 
 async function callback (req) {
   ensureAuthConfigured()
-  ensureExternalMode()
+  ensureOauthBffReady()
 
   const sessionData = req.session[OAUTH_SESSION_KEY]
   ensureOauthSession(sessionData)
   delete req.session[OAUTH_SESSION_KEY]
 
-  const oidcConfig = await getOidcConfiguration()
+  const oidcConfig = await getOauthClientConfiguration()
   const currentUrl = new URL(`${getPublicUrl()}${req.originalUrl}`)
 
   let tokenResponse
   try {
     tokenResponse = await authorizationCodeGrant(oidcConfig, currentUrl, {
       expectedState: sessionData.state,
-      expectedNonce: sessionData.nonce
+      expectedNonce: sessionData.nonce,
+      pkceCodeVerifier: sessionData.codeVerifier
     })
   } catch (error) {
     throw new Errors.AuthenticationError(error.message || 'OAuth authorization failed')
   }
 
-  linkExternalUserByEmail(tokenResponse)
+  const viewerUrl = getViewerUrl()
 
-  const tokens = {
-    accessToken: tokenResponse.access_token,
-    refreshToken: tokenResponse.refresh_token || null
+  if (getAuthMode() === 'embedded') {
+    const user = await resolveEmbeddedUserFromTokenResponse(tokenResponse)
+    const groupNames = (user.groups || []).map((group) => group.name)
+    const tokens = await AuthTokenService.issueTokenPair(user, groupNames)
+    return {
+      tokens,
+      viewerUrl
+    }
   }
 
+  linkExternalUserByEmail(tokenResponse)
+
   return {
-    tokens,
-    viewerUrl: getViewerUrl()
+    tokens: {
+      accessToken: tokenResponse.access_token,
+      refreshToken: tokenResponse.refresh_token || null
+    },
+    viewerUrl
   }
 }
 

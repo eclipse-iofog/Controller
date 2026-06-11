@@ -20,16 +20,17 @@
  * Edgelet CP: no v3.8 env changes for mTLS; Plan 8.1 embedded issuer is separate.
  * See .cursor/rules/controller-oidc-handoff.mdc for v3.8 OIDC env contract.
  */
-const session = require('express-session')
 const oidcClient = require('openid-client')
+const { allowInsecureRequests } = oidcClient
 const { createRemoteJWKSet, createLocalJWKSet, jwtVerify } = require('jose')
 const config = require('./index')
 const logger = require('../logger')
+const { getPublicUrl: resolvePublicUrl } = require('./auth-urls')
 const { getActiveSigningMaterial, getPublicJwk } = require('./auth-jwks')
 
 let oidcInstance = null
-let memoryStore = null
 let discoveryPromise = null
+let embeddedOauthClientPromise = null
 let jwks = null
 let issuerString = null
 let configuredClientId = null
@@ -49,7 +50,7 @@ function getAuthMode () {
 }
 
 function getPublicUrl () {
-  return process.env.CONTROLLER_PUBLIC_URL || config.get('server.publicUrl') || ''
+  return resolvePublicUrl()
 }
 
 function getExternalOidcSettings () {
@@ -123,6 +124,16 @@ function buildKauthGrant (claims, rawToken) {
   }
 }
 
+function getDiscoveryOptions () {
+  const allowHttp = process.env.AUTH_INSECURE_ALLOW_HTTP !== undefined
+    ? process.env.AUTH_INSECURE_ALLOW_HTTP === 'true'
+    : config.get('auth.insecureAllowHttp', false) === true
+  if (!allowHttp) {
+    return undefined
+  }
+  return { execute: [allowInsecureRequests] }
+}
+
 async function ensureEmbeddedJwks () {
   const { privateJwk } = await getActiveSigningMaterial()
   jwks = createLocalJWKSet({ keys: [getPublicJwk(privateJwk)] })
@@ -152,7 +163,9 @@ async function ensureDiscovery () {
     const configuration = await oidcClient.discovery(
       issuer,
       clientId,
-      clientSecret
+      clientSecret,
+      undefined,
+      getDiscoveryOptions()
     )
     const metadata = configuration.serverMetadata()
 
@@ -198,7 +211,6 @@ function initOidc () {
   }
 
   validateAuthConfig()
-  memoryStore = new session.MemoryStore()
   oidcInstance = createOidcFacade()
   logger.info(`OIDC initialized successfully (${getAuthMode()} mode)`)
   return oidcInstance
@@ -239,6 +251,9 @@ function getOidcMiddleware () {
       }
 
       const { payload } = await jwtVerify(token, jwks, verifyOptions)
+      if (payload.token_use === 'refresh') {
+        throw new Error('Refresh token cannot be used as access token')
+      }
       req.kauth = buildKauthGrant(payload, token)
       return next()
     } catch (error) {
@@ -252,20 +267,51 @@ function getOidcMiddleware () {
 }
 
 function getMemoryStore () {
-  return memoryStore
+  const { getAuthSessionStore } = require('./auth-session-store')
+  return getAuthSessionStore()
 }
 
-async function getOidcConfiguration () {
+async function ensureEmbeddedOauthClient () {
+  if (embeddedOauthClientPromise) {
+    return embeddedOauthClientPromise
+  }
+
+  const { issuerUrl } = getOidcSettings()
+  const db = require('../data/models')
+  const { resolveConfidentialClientSecret } = require('./embedded-oidc-client-secret')
+  const { clientId, clientSecret } = await resolveConfidentialClientSecret(db)
+
+  embeddedOauthClientPromise = oidcClient.discovery(
+    new URL(issuerUrl),
+    clientId,
+    clientSecret,
+    undefined,
+    getDiscoveryOptions()
+  ).catch((error) => {
+    embeddedOauthClientPromise = null
+    throw error
+  })
+
+  return embeddedOauthClientPromise
+}
+
+async function getOauthClientConfiguration () {
+  if (getAuthMode() === 'embedded') {
+    await ensureEmbeddedJwks()
+    return ensureEmbeddedOauthClient()
+  }
   return ensureDiscovery()
 }
 
 function resetDiscoveryForTests () {
   discoveryPromise = null
+  embeddedOauthClientPromise = null
   jwks = null
   issuerString = null
   configuredClientId = null
   oidcInstance = null
-  memoryStore = null
+  const { resetAuthSessionStoreForTests } = require('./auth-session-store')
+  resetAuthSessionStoreForTests()
 }
 
 module.exports = {
@@ -277,7 +323,8 @@ module.exports = {
   isAuthConfigured,
   validateAuthConfig,
   getOidcSettings,
-  getOidcConfiguration,
+  getOidcConfiguration: ensureDiscovery,
+  getOauthClientConfiguration,
   resetDiscoveryForTests,
   buildKauthGrant
 }
