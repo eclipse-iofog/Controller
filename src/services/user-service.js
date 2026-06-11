@@ -13,7 +13,6 @@
 
 const Errors = require('../helpers/errors')
 const TransactionDecorator = require('../decorators/transaction-decorator')
-const config = require('../config')
 const {
   genericGrantRequest,
   refreshTokenGrant,
@@ -21,22 +20,11 @@ const {
   tokenRevocation
 } = require('openid-client')
 const { decodeJwt } = require('jose')
-const { getOidcConfiguration, isAuthConfigured } = require('../config/oidc')
-
-const isDevMode = config.get('server.devMode', true)
-
-const mockUser = {
-  preferred_username: 'dev-user',
-  email: 'dev@example.com',
-  realm_access: {
-    roles: ['SRE', 'Developer', 'Viewer']
-  }
-}
-
-const mockToken = {
-  access_token: 'mock-access-token',
-  refresh_token: 'mock-refresh-token'
-}
+const { getOidcConfiguration, isAuthConfigured, getAuthMode } = require('../config/oidc')
+const AuthLoginService = require('./auth-login-service')
+const AuthMfaService = require('./auth-mfa-service')
+const AuthUserService = require('./auth-user-service')
+const AuthOauthService = require('./auth-oauth-service')
 
 function mapOidcError (error) {
   const description = error.error_description || error.message || 'Invalid credentials'
@@ -50,25 +38,23 @@ function tokensFromResponse (tokenResponse) {
   }
 }
 
-function ensureAuthOrDev () {
-  if (!isAuthConfigured() && isDevMode) {
-    return 'dev'
-  }
-
-  if (!isAuthConfigured() && !isDevMode) {
+function ensureAuthConfigured () {
+  if (!isAuthConfigured()) {
     throw new Error('Auth is not configured for this cluster. Please contact your administrator.')
   }
+}
 
-  return 'oidc'
+function ensureEmbeddedMode () {
+  if (getAuthMode() !== 'embedded') {
+    throw new Errors.InvalidArgumentError('This endpoint is only available in embedded auth mode')
+  }
 }
 
 const login = async function (credentials, isCLI, transaction) {
-  const mode = ensureAuthOrDev()
-  if (mode === 'dev') {
-    return {
-      accessToken: mockToken.access_token,
-      refreshToken: mockToken.refresh_token
-    }
+  ensureAuthConfigured()
+
+  if (getAuthMode() === 'embedded') {
+    return AuthLoginService.login(credentials, transaction)
   }
 
   try {
@@ -89,12 +75,10 @@ const login = async function (credentials, isCLI, transaction) {
 }
 
 const refresh = async function (credentials, isCLI, transaction) {
-  const mode = ensureAuthOrDev()
-  if (mode === 'dev') {
-    return {
-      accessToken: mockToken.access_token,
-      refreshToken: mockToken.refresh_token
-    }
+  ensureAuthConfigured()
+
+  if (getAuthMode() === 'embedded') {
+    return AuthLoginService.refresh(credentials, transaction)
   }
 
   try {
@@ -107,9 +91,10 @@ const refresh = async function (credentials, isCLI, transaction) {
 }
 
 const profile = async function (req, isCLI, transaction) {
-  const mode = ensureAuthOrDev()
-  if (mode === 'dev') {
-    return mockUser
+  ensureAuthConfigured()
+
+  if (getAuthMode() === 'embedded') {
+    return AuthLoginService.profile(req, transaction)
   }
 
   const accessToken = req.headers.authorization.replace('Bearer ', '')
@@ -132,9 +117,10 @@ const profile = async function (req, isCLI, transaction) {
 }
 
 const logout = async function (req, isCLI, transaction) {
-  const mode = ensureAuthOrDev()
-  if (mode === 'dev') {
-    return { status: 'success' }
+  ensureAuthConfigured()
+
+  if (getAuthMode() === 'embedded') {
+    return AuthLoginService.logout(req, transaction)
   }
 
   const accessToken = req.headers.authorization.replace('Bearer ', '')
@@ -152,9 +138,71 @@ const logout = async function (req, isCLI, transaction) {
   return { status: 'success' }
 }
 
+const enrollMfa = async function (req, isCLI, transaction) {
+  ensureAuthConfigured()
+  ensureEmbeddedMode()
+
+  if (!req.kauth || !req.kauth.grant || !req.kauth.grant.access_token) {
+    throw new Errors.AuthenticationError('Authentication required')
+  }
+
+  const userId = req.kauth.grant.access_token.content.sub
+  return AuthMfaService.enrollMfa(userId, transaction)
+}
+
+const confirmMfa = async function (req, isCLI, transaction) {
+  ensureAuthConfigured()
+  ensureEmbeddedMode()
+
+  if (!req.kauth || !req.kauth.grant || !req.kauth.grant.access_token) {
+    throw new Errors.AuthenticationError('Authentication required')
+  }
+
+  const userId = req.kauth.grant.access_token.content.sub
+  return AuthMfaService.confirmMfa(userId, req.body.code, transaction)
+}
+
+const disableMfa = async function (req, isCLI, transaction) {
+  ensureAuthConfigured()
+  ensureEmbeddedMode()
+
+  const userId = req.kauth.grant.access_token.content.sub
+  return AuthMfaService.disableMfa(userId, req.body.password, req.body.code, transaction)
+}
+
+const changePassword = async function (req, payload, isCLI, transaction) {
+  ensureAuthConfigured()
+
+  if (getAuthMode() === 'embedded') {
+    if (payload.resetToken) {
+      return AuthUserService.changePassword(req, payload, transaction)
+    }
+    ensureEmbeddedMode()
+    return AuthUserService.changePassword(req, payload, transaction)
+  }
+
+  throw new Errors.NotImplementedError('Password change is only supported in embedded auth mode')
+}
+
+const oauthAuthorize = async function (req, isCLI, transaction) {
+  ensureAuthConfigured()
+  return AuthOauthService.authorize(req)
+}
+
+const oauthCallback = async function (req, isCLI, transaction) {
+  ensureAuthConfigured()
+  return AuthOauthService.callback(req)
+}
+
 module.exports = {
   login: TransactionDecorator.generateTransaction(login),
   refresh: TransactionDecorator.generateTransaction(refresh),
   profile: TransactionDecorator.generateTransaction(profile),
-  logout: TransactionDecorator.generateTransaction(logout)
+  logout: TransactionDecorator.generateTransaction(logout),
+  enrollMfa: TransactionDecorator.generateTransaction(enrollMfa),
+  confirmMfa: TransactionDecorator.generateTransaction(confirmMfa),
+  disableMfa: TransactionDecorator.generateTransaction(disableMfa),
+  changePassword: TransactionDecorator.generateTransaction(changePassword),
+  oauthAuthorize: TransactionDecorator.generateTransaction(oauthAuthorize),
+  oauthCallback: TransactionDecorator.generateTransaction(oauthCallback)
 }

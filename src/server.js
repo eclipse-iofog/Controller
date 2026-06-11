@@ -39,12 +39,45 @@ initialize().then(() => {
 
   // Initialize session and OIDC bearer validation after config is loaded
   const session = require('express-session')
-  const { initOidc, getOidcMiddleware, getMemoryStore, getOidcSettings } = require('./config/oidc.js')
+  const { initOidc, getOidcMiddleware, getMemoryStore, getAuthMode, isAuthConfigured } = require('./config/oidc.js')
   const memoryStore = getMemoryStore()
   initOidc()
 
   const viewerApp = express()
   const app = express()
+
+  const trustProxy = process.env.TRUST_PROXY || config.get('server.trustProxy', false)
+  if (trustProxy) {
+    app.set('trust proxy', trustProxy === true ? 1 : trustProxy)
+    viewerApp.set('trust proxy', trustProxy === true ? 1 : trustProxy)
+  }
+
+  function validateProductionPublicUrl () {
+    const devMode = process.env.DEV_MODE || config.get('server.devMode', true)
+    if (devMode) {
+      return
+    }
+
+    const publicUrl = process.env.CONTROLLER_PUBLIC_URL || config.get('server.publicUrl')
+    const insecureAllowHttp = config.get('auth.insecureAllowHttp', false)
+
+    if (!publicUrl) {
+      throw new Error('CONTROLLER_PUBLIC_URL is required in production mode')
+    }
+
+    let parsedUrl
+    try {
+      parsedUrl = new URL(publicUrl)
+    } catch (error) {
+      throw new Error('CONTROLLER_PUBLIC_URL must be a valid URL')
+    }
+
+    if (!insecureAllowHttp && parsedUrl.protocol !== 'https:') {
+      throw new Error('CONTROLLER_PUBLIC_URL must use https in production unless auth.insecureAllowHttp is true')
+    }
+  }
+
+  validateProductionPublicUrl()
 
   app.use(cors())
 
@@ -115,20 +148,11 @@ initialize().then(() => {
     routes.forEach(registerRoute)
   }
 
-  fs.readdirSync(path.join(__dirname, 'routes'))
-    .forEach(setupMiddleware)
-
   const jobs = []
 
   const setupJobs = function (file) {
     jobs.push((require(path.join(__dirname, 'jobs', file)) || []))
   }
-
-  fs.readdirSync(path.join(__dirname, 'jobs'))
-    .filter((file) => {
-      return (file.indexOf('.') !== 0) && (file.slice(-3) === '.js')
-    })
-    .forEach(setupJobs)
 
   function registerServers (api, viewer) {
     process.once('SIGTERM', async function (code) {
@@ -142,7 +166,7 @@ initialize().then(() => {
   }
 
   function startHttpServer (apps, ports, jobs) {
-    logger.info('SSL not configured, starting HTTP server.')
+    logger.info('TLS not configured, starting HTTP server.')
 
     const viewerServer = apps.viewer.listen(ports.viewer, function onStart (err) {
       if (err) {
@@ -199,7 +223,7 @@ initialize().then(() => {
 
       registerServers(apiServer, viewerServer)
     } catch (e) {
-      logger.error('Error loading SSL certificates. Please check your configuration.')
+      logger.error('Error loading TLS certificates. Please check your configuration.')
     }
   }
 
@@ -208,32 +232,20 @@ initialize().then(() => {
   const viewerPort = process.env.VIEWER_PORT || config.get('viewer.port')
   const viewerURL = process.env.VIEWER_URL || config.get('viewer.url')
   const controlPlane = process.env.CONTROL_PLANE || config.get('app.ControlPlane')
+  const publicUrl = (process.env.CONTROLLER_PUBLIC_URL || config.get('server.publicUrl') || '').replace(/\/$/, '')
 
-  // File-based SSL configuration
-  const sslKey = process.env.SSL_PATH_KEY || config.get('server.ssl.path.key')
-  const sslCert = process.env.SSL_PATH_CERT || config.get('server.ssl.path.cert')
-  const intermedKey = process.env.SSL_PATH_INTERMEDIATE_CERT || config.get('server.ssl.path.intermediateCert')
+  // File-based TLS configuration
+  const tlsKey = process.env.TLS_PATH_KEY || config.get('server.tls.path.key')
+  const tlsCert = process.env.TLS_PATH_CERT || config.get('server.tls.path.cert')
+  const intermedKey = process.env.TLS_PATH_INTERMEDIATE_CERT || config.get('server.tls.path.intermediateCert')
 
-  // Base64 SSL configuration
-  const sslKeyBase64 = process.env.SSL_BASE64_KEY || config.get('server.ssl.base64.key')
-  const sslCertBase64 = process.env.SSL_BASE64_CERT || config.get('server.ssl.base64.cert')
-  const intermedKeyBase64 = process.env.SSL_BASE64_INTERMEDIATE_CERT || config.get('server.ssl.base64.intermediateCert')
+  // Base64 TLS configuration
+  const tlsKeyBase64 = process.env.TLS_BASE64_KEY || config.get('server.tls.base64.key')
+  const tlsCertBase64 = process.env.TLS_BASE64_CERT || config.get('server.tls.base64.cert')
+  const intermedKeyBase64 = process.env.TLS_BASE64_INTERMEDIATE_CERT || config.get('server.tls.base64.intermediateCert')
 
-  const hasFileBasedSSL = !devMode && sslKey && sslCert
-  const hasBase64SSL = !devMode && sslKeyBase64 && sslCertBase64
-
-  const { issuerUrl: oidcIssuerUrl } = getOidcSettings()
-  const oidcViewerClient = process.env.OIDC_VIEWER_CLIENT_ID || config.get('auth.viewerClient')
-  // ECN Viewer still reads keycloak* keys in controller-config.js; derive from OIDC issuer when possible
-  let viewerAuthUrl = oidcIssuerUrl || ''
-  let viewerAuthRealm = ''
-  if (oidcIssuerUrl) {
-    const realmMatch = oidcIssuerUrl.match(/^(.*)\/realms\/([^/]+)\/?$/)
-    if (realmMatch) {
-      viewerAuthUrl = `${realmMatch[1]}/`
-      viewerAuthRealm = realmMatch[2]
-    }
-  }
+  const hasFileBasedTLS = !devMode && tlsKey && tlsCert
+  const hasBase64TLS = !devMode && tlsKeyBase64 && tlsCertBase64
 
   viewerApp.use('/', ecnViewer.middleware(express))
 
@@ -258,18 +270,41 @@ initialize().then(() => {
         }
       })
     }
+
+    if (getAuthMode() === 'embedded' && isAuthConfigured()) {
+      const { runBootstrap } = require('./services/auth-bootstrap-service')
+      await runBootstrap()
+      const { initEmbeddedIssuer } = require('./config/embedded-oidc.js')
+      await initEmbeddedIssuer(app, { db })
+    }
+
+    fs.readdirSync(path.join(__dirname, 'routes'))
+      .forEach(setupMiddleware)
+
+    fs.readdirSync(path.join(__dirname, 'jobs'))
+      .filter((file) => {
+        return (file.indexOf('.') !== 0) && (file.slice(-3) === '.js')
+      })
+      .forEach(setupJobs)
+
     // Set up controller-config.js for ECN Viewer
     const ecnViewerControllerConfigFilePath = path.join(__dirname, '..', 'node_modules', '@datasance', 'ecn-viewer', 'build', 'controller-config.js')
     const ecnViewerControllerConfig = {
-      port: apiPort,
-      user: {},
-      controllerDevMode: devMode,
-      keycloakUrl: viewerAuthUrl,
-      keycloakRealm: viewerAuthRealm,
-      keycloakClientId: oidcViewerClient
+      apiPort,
+      auth: {
+        loginUrl: '/api/v3/user/login',
+        refreshUrl: '/api/v3/user/refresh',
+        logoutUrl: '/api/v3/user/logout',
+        profileUrl: '/api/v3/user/profile',
+        changePasswordUrl: '/api/v3/user/change-password',
+        oauthAuthorizeUrl: '/api/v3/user/oauth/authorize'
+      }
+    }
+    if (publicUrl) {
+      ecnViewerControllerConfig.publicUrl = publicUrl
     }
     if (viewerURL) {
-      ecnViewerControllerConfig.url = viewerURL
+      ecnViewerControllerConfig.viewerUrl = viewerURL
     }
     if (controlPlane) {
       ecnViewerControllerConfig.controlPlane = controlPlane
@@ -282,22 +317,22 @@ initialize().then(() => {
 
   initState()
     .then(() => {
-      if (hasFileBasedSSL) {
+      if (hasFileBasedTLS) {
         startHttpsServer(
           { api: app, viewer: viewerApp },
           { api: apiPort, viewer: viewerPort },
-          sslKey,
-          sslCert,
+          tlsKey,
+          tlsCert,
           intermedKey,
           jobs,
           false
         )
-      } else if (hasBase64SSL) {
+      } else if (hasBase64TLS) {
         startHttpsServer(
           { api: app, viewer: viewerApp },
           { api: apiPort, viewer: viewerPort },
-          sslKeyBase64,
-          sslCertBase64,
+          tlsKeyBase64,
+          tlsCertBase64,
           intermedKeyBase64,
           jobs,
           true

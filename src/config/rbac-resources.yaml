@@ -666,6 +666,70 @@ resources:
       - path: /api/v3/user/logout
         methods:
           POST: []
+      - path: /api/v3/user/change-password
+        methods:
+          POST: [patch]
+      - path: /api/v3/user/mfa/enroll
+        methods:
+          POST: [patch]
+      - path: /api/v3/user/mfa/confirm
+        methods:
+          POST: [patch]
+      - path: /api/v3/user/mfa
+        methods:
+          DELETE: [delete]
+      - path: /api/v3/user/oauth/authorize
+        methods:
+          GET: []
+      - path: /api/v3/user/oauth/callback
+        methods:
+          GET: []
+
+  authAdmin:
+    basePath: /api/v3/auth
+    routes:
+      - path: /api/v3/auth/migration/export
+        methods:
+          POST: [create]
+      - path: /api/v3/auth/jwks/rotate
+        methods:
+          POST: [patch]
+
+  authUsers:
+    basePath: /api/v3/users
+    routes:
+      - path: /api/v3/users
+        methods:
+          GET: [list]
+          POST: [create]
+      - path: /api/v3/users/:id
+        methods:
+          GET: [get]
+          PATCH: [patch]
+          DELETE: [delete]
+        resourceNameParam: id
+      - path: /api/v3/users/:id/reset-password
+        methods:
+          POST: [patch]
+        resourceNameParam: id
+      - path: /api/v3/users/:id/reset-token
+        methods:
+          POST: [patch]
+        resourceNameParam: id
+
+  authGroups:
+    basePath: /api/v3/groups
+    routes:
+      - path: /api/v3/groups
+        methods:
+          GET: [list]
+          POST: [create]
+      - path: /api/v3/groups/:id
+        methods:
+          GET: [get]
+          PATCH: [patch]
+          DELETE: [delete]
+        resourceNameParam: id
 
   # Config management
   config:

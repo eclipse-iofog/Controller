@@ -48,6 +48,98 @@ module.exports = [
   },
   {
     method: 'post',
+    path: '/api/v3/user/mfa/enroll',
+    middleware: async (req, res) => {
+      logger.apiReq(req)
+
+      const successCode = constants.HTTP_CODE_SUCCESS
+      const errorCodes = [
+        {
+          code: constants.HTTP_CODE_BAD_REQUEST,
+          errors: [Errors.ValidationError, Errors.InvalidArgumentError]
+        },
+        {
+          code: constants.HTTP_CODE_UNAUTHORIZED,
+          errors: [Errors.AuthenticationError]
+        },
+        {
+          code: constants.HTTP_CODE_NOT_FOUND,
+          errors: [Errors.NotFoundError]
+        }
+      ]
+
+      const enrollMfaEndPoint = ResponseDecorator.handleErrors(UserController.enrollMfaEndPoint, successCode, errorCodes)
+      const responseObject = await enrollMfaEndPoint(req)
+
+      res
+        .status(responseObject.code)
+        .send(responseObject.body)
+
+      logger.apiRes(req, { args: { statusCode: responseObject.code } })
+    }
+  },
+  {
+    method: 'post',
+    path: '/api/v3/user/mfa/confirm',
+    middleware: async (req, res) => {
+      logger.apiReq(req)
+
+      const successCode = constants.HTTP_CODE_SUCCESS
+      const errorCodes = [
+        {
+          code: constants.HTTP_CODE_BAD_REQUEST,
+          errors: [Errors.ValidationError, Errors.InvalidArgumentError]
+        },
+        {
+          code: constants.HTTP_CODE_UNAUTHORIZED,
+          errors: [Errors.AuthenticationError, Errors.InvalidCredentialsError]
+        }
+      ]
+
+      const confirmMfaEndPoint = ResponseDecorator.handleErrors(UserController.confirmMfaEndPoint, successCode, errorCodes)
+      const responseObject = await confirmMfaEndPoint(req)
+
+      res
+        .status(responseObject.code)
+        .send(responseObject.body)
+
+      logger.apiRes(req, { args: { statusCode: responseObject.code } })
+    }
+  },
+  {
+    method: 'delete',
+    path: '/api/v3/user/mfa',
+    middleware: async (req, res) => {
+      logger.apiReq(req)
+
+      const successCode = constants.HTTP_CODE_SUCCESS
+      const errorCodes = [
+        {
+          code: constants.HTTP_CODE_BAD_REQUEST,
+          errors: [Errors.ValidationError, Errors.InvalidArgumentError]
+        },
+        {
+          code: constants.HTTP_CODE_UNAUTHORIZED,
+          errors: [Errors.AuthenticationError, Errors.InvalidCredentialsError]
+        },
+        {
+          code: constants.HTTP_CODE_NOT_FOUND,
+          errors: [Errors.NotFoundError]
+        }
+      ]
+
+      const disableMfaEndPoint = ResponseDecorator.handleErrors(UserController.disableMfaEndPoint, successCode, errorCodes)
+      const responseObject = await disableMfaEndPoint(req)
+
+      res
+        .status(responseObject.code)
+        .send(responseObject.body)
+
+      logger.apiRes(req, { args: { statusCode: responseObject.code } })
+    }
+  },
+  {
+    method: 'post',
     path: '/api/v3/user/refresh',
     middleware: async (req, res) => {
       logger.apiReq('POST /api/v3/user/refresh') // don't use req as arg, because password not encrypted
@@ -73,6 +165,42 @@ module.exports = [
 
       logger.apiRes('POST /api/v3/user/refresh', { args: { statusCode: responseObject.code } })
       // don't use req and responseObject as args, because they have password and token
+    }
+  },
+  {
+    method: 'post',
+    path: '/api/v3/user/change-password',
+    middleware: async (req, res) => {
+      logger.apiReq('POST /api/v3/user/change-password')
+
+      const successCode = constants.HTTP_CODE_SUCCESS
+      const errorCodes = [
+        {
+          code: constants.HTTP_CODE_BAD_REQUEST,
+          errors: [Errors.ValidationError, Errors.InvalidArgumentError]
+        },
+        {
+          code: constants.HTTP_CODE_UNAUTHORIZED,
+          errors: [Errors.AuthenticationError, Errors.InvalidCredentialsError]
+        },
+        {
+          code: constants.HTTP_CODE_NOT_FOUND,
+          errors: [Errors.NotFoundError]
+        },
+        {
+          code: constants.HTTP_CODE_NOT_IMPLEMENTED,
+          errors: [Errors.NotImplementedError]
+        }
+      ]
+
+      const changePasswordEndPoint = ResponseDecorator.handleErrors(UserController.changePasswordEndPoint, successCode, errorCodes)
+      const responseObject = await changePasswordEndPoint(req)
+
+      res
+        .status(responseObject.code)
+        .send(responseObject.body)
+
+      logger.apiRes('POST /api/v3/user/change-password', { args: { statusCode: responseObject.code } })
     }
   },
   {
@@ -123,6 +251,92 @@ module.exports = [
       res
         .status(responseObject.code)
         .send()
+    }
+  },
+  {
+    method: 'get',
+    path: '/api/v3/user/oauth/authorize',
+    middleware: async (req, res) => {
+      logger.apiReq('GET /api/v3/user/oauth/authorize')
+
+      const successCode = constants.HTTP_CODE_SUCCESS
+      const errorCodes = [
+        {
+          code: constants.HTTP_CODE_UNAUTHORIZED,
+          errors: [Errors.AuthenticationError]
+        },
+        {
+          code: constants.HTTP_CODE_NOT_IMPLEMENTED,
+          errors: [Errors.NotImplementedError]
+        }
+      ]
+
+      const oauthAuthorizeEndPoint = ResponseDecorator.handleErrors(
+        UserController.oauthAuthorizeEndPoint,
+        successCode,
+        errorCodes
+      )
+      const responseObject = await oauthAuthorizeEndPoint(req)
+      if (responseObject.code === constants.HTTP_CODE_SUCCESS) {
+        res.redirect(302, responseObject.body.redirectUrl)
+        logger.apiRes('GET /api/v3/user/oauth/authorize', { args: { statusCode: 302 } })
+        return
+      }
+
+      res.status(responseObject.code).send(responseObject.body)
+      logger.apiRes('GET /api/v3/user/oauth/authorize', { args: { statusCode: responseObject.code } })
+    }
+  },
+  {
+    method: 'get',
+    path: '/api/v3/user/oauth/callback',
+    middleware: async (req, res) => {
+      logger.apiReq('GET /api/v3/user/oauth/callback')
+
+      const successCode = constants.HTTP_CODE_SUCCESS
+      const errorCodes = [
+        {
+          code: constants.HTTP_CODE_UNAUTHORIZED,
+          errors: [Errors.AuthenticationError]
+        },
+        {
+          code: constants.HTTP_CODE_NOT_IMPLEMENTED,
+          errors: [Errors.NotImplementedError]
+        }
+      ]
+
+      const oauthCallbackEndPoint = ResponseDecorator.handleErrors(
+        UserController.oauthCallbackEndPoint,
+        successCode,
+        errorCodes
+      )
+
+      const responseObject = await oauthCallbackEndPoint(req)
+
+      if (responseObject.code !== constants.HTTP_CODE_SUCCESS) {
+        res.status(responseObject.code).send(responseObject.body)
+        logger.apiRes('GET /api/v3/user/oauth/callback', { args: { statusCode: responseObject.code } })
+        return
+      }
+
+      const { tokens, viewerUrl } = responseObject.body
+
+      if (viewerUrl) {
+        const fragment = new URLSearchParams()
+        fragment.set('accessToken', tokens.accessToken)
+        if (tokens.refreshToken) {
+          fragment.set('refreshToken', tokens.refreshToken)
+        }
+        res.redirect(302, `${viewerUrl}/login#${fragment.toString()}`)
+        logger.apiRes('GET /api/v3/user/oauth/callback', { args: { statusCode: 302 } })
+        return
+      }
+
+      res
+        .status(responseObject.code)
+        .send(tokens)
+
+      logger.apiRes('GET /api/v3/user/oauth/callback', { args: { statusCode: responseObject.code } })
     }
   }
 ]

@@ -48,7 +48,7 @@ module.exports = {
     rules: [
       {
         apiGroups: [''],
-        resources: ['microservices', 'systemMicroservices', 'fogs', 'applications', 'systemApplications', 'applicationTemplates', 'services', 'router', 'natsAccounts', 'natsUsers', 'natsAccountRules', 'natsUserRules', 'catalog', 'registries', 'secrets', 'configMaps', 'volumeMounts', 'tunnels', 'certificates', 'capabilities', 'serviceAccounts', 'events', 'users', 'config', 'controller', 'execSessions', 'systemExecSessions', 'logs', 'systemLogs'],
+        resources: ['microservices', 'systemMicroservices', 'fogs', 'applications', 'systemApplications', 'applicationTemplates', 'services', 'router', 'natsAccounts', 'natsUsers', 'natsAccountRules', 'natsUserRules', 'catalog', 'registries', 'secrets', 'configMaps', 'volumeMounts', 'tunnels', 'certificates', 'capabilities', 'serviceAccounts', 'events', 'users', 'authUsers', 'authGroups', 'config', 'controller', 'execSessions', 'systemExecSessions', 'logs', 'systemLogs'],
         verbs: ['*']
       },
       {
@@ -73,7 +73,7 @@ module.exports = {
       },
       {
         apiGroups: [''],
-        resources: ['fogs', 'router', 'tunnels', 'users', 'config', 'roles', 'roleBindings', 'systemMicroservices', 'systemApplications', 'natsOperator', 'natsHub'],
+        resources: ['fogs', 'router', 'tunnels', 'users', 'authUsers', 'authGroups', 'config', 'roles', 'roleBindings', 'systemMicroservices', 'systemApplications', 'natsOperator', 'natsHub'],
         verbs: ['get', 'list']
       }
     ]

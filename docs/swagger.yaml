@@ -3129,6 +3129,515 @@ paths:
           description: Not Authorized
         "500":
           description: Internal Server Error
+  /user/change-password:
+    post:
+      tags:
+        - User
+      summary: Change password (authenticated or via reset token)
+      operationId: changePassword
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChangePasswordRequest"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusResponse"
+        "400":
+          description: Bad Request
+        "401":
+          description: Not Authorized
+        "501":
+          description: Embedded auth mode only
+  /user/mfa/enroll:
+    post:
+      tags:
+        - User
+      summary: Begin MFA enrollment (embedded mode)
+      operationId: enrollMfa
+      security:
+        - authToken: []
+      description: Start TOTP enrollment for the authenticated user.
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MfaEnrollResponse"
+        "401":
+          description: Not Authorized
+        "501":
+          description: Embedded auth mode only
+  /user/mfa/confirm:
+    post:
+      tags:
+        - User
+      summary: Confirm MFA enrollment with TOTP code
+      operationId: confirmMfa
+      security:
+        - authToken: []
+      description: Complete TOTP enrollment for the authenticated user.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MfaConfirmRequest"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusResponse"
+        "400":
+          description: Bad Request
+        "401":
+          description: Invalid credentials or enrollment token
+        "501":
+          description: Embedded auth mode only
+  /user/mfa:
+    delete:
+      tags:
+        - User
+      summary: Disable MFA for the current user
+      operationId: disableMfa
+      security:
+        - authToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MfaDisableRequest"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusResponse"
+        "400":
+          description: Bad Request
+        "401":
+          description: Not Authorized
+        "404":
+          description: Not Found
+        "501":
+          description: Embedded auth mode only
+  /user/oauth/authorize:
+    get:
+      tags:
+        - User
+      summary: Start external IdP OAuth authorization (BFF)
+      operationId: oauthAuthorize
+      description: Redirects the browser to the external OIDC authorization endpoint. External auth mode only.
+      responses:
+        "302":
+          description: Redirect to external IdP
+        "401":
+          description: Not Authorized
+        "501":
+          description: External auth mode only
+  /user/oauth/callback:
+    get:
+      tags:
+        - User
+      summary: OAuth authorization callback (BFF)
+      operationId: oauthCallback
+      description: >
+        Exchanges the authorization code for tokens. When VIEWER_URL is configured,
+        redirects to `{viewerUrl}/login#accessToken=...&refreshToken=...`. Otherwise
+        returns JSON `{ accessToken, refreshToken }`.
+      responses:
+        "200":
+          description: Token response (when VIEWER_URL is not configured)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginSuccessResponse"
+        "302":
+          description: Redirect to ECN Viewer login with tokens in URL fragment
+        "401":
+          description: OAuth session invalid or authorization failed
+        "501":
+          description: External auth mode only
+  /auth/migration/export:
+    post:
+      tags:
+        - Auth Admin
+      summary: Export embedded auth users for external IdP migration
+      operationId: exportAuthMigration
+      description: Admin-only. Exports user UUIDs, emails, and group memberships. No secrets or password hashes.
+      security:
+        - authToken: []
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthMigrationExportResponse"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Forbidden
+        "501":
+          description: Embedded auth mode only
+  /auth/jwks/rotate:
+    post:
+      tags:
+        - Auth Admin
+      summary: Rotate embedded OIDC signing keys (manual)
+      operationId: rotateAuthJwks
+      description: >
+        Admin-only. Generates a new JWKS signing key and deactivates the previous active key.
+        Restart Controller pods after rotation so the embedded issuer loads the new key.
+      security:
+        - authToken: []
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthJwksRotateResponse"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Forbidden
+        "501":
+          description: Embedded auth mode only
+  /users:
+    get:
+      tags:
+        - Auth Users
+      summary: List embedded auth users
+      operationId: listAuthUsers
+      security:
+        - authToken: []
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AuthUserResponse"
+        "401":
+          description: Not Authorized
+        "501":
+          description: Embedded auth mode only
+    post:
+      tags:
+        - Auth Users
+      summary: Create embedded auth user
+      operationId: createAuthUser
+      security:
+        - authToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthUserCreateRequest"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthUserResponse"
+        "400":
+          description: Bad Request
+        "401":
+          description: Not Authorized
+        "409":
+          description: Conflict
+        "501":
+          description: Embedded auth mode only
+  "/users/{id}":
+    get:
+      tags:
+        - Auth Users
+      summary: Get embedded auth user
+      operationId: getAuthUser
+      security:
+        - authToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthUserResponse"
+        "401":
+          description: Not Authorized
+        "404":
+          description: Not Found
+        "501":
+          description: Embedded auth mode only
+    patch:
+      tags:
+        - Auth Users
+      summary: Update embedded auth user
+      operationId: updateAuthUser
+      security:
+        - authToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthUserUpdateRequest"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthUserResponse"
+        "400":
+          description: Bad Request
+        "401":
+          description: Not Authorized
+        "404":
+          description: Not Found
+        "501":
+          description: Embedded auth mode only
+    delete:
+      tags:
+        - Auth Users
+      summary: Soft-delete embedded auth user
+      operationId: deleteAuthUser
+      security:
+        - authToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+        "401":
+          description: Not Authorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+        "501":
+          description: Embedded auth mode only
+  "/users/{id}/reset-password":
+    post:
+      tags:
+        - Auth Users
+      summary: Reset user password to a temporary value
+      operationId: resetAuthUserPassword
+      security:
+        - authToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthUserResetPasswordResponse"
+        "401":
+          description: Not Authorized
+        "404":
+          description: Not Found
+        "501":
+          description: Embedded auth mode only
+  "/users/{id}/reset-token":
+    post:
+      tags:
+        - Auth Users
+      summary: Issue a one-time password reset token
+      operationId: resetAuthUserToken
+      security:
+        - authToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthUserResetTokenResponse"
+        "401":
+          description: Not Authorized
+        "404":
+          description: Not Found
+        "501":
+          description: Embedded auth mode only
+  /groups:
+    get:
+      tags:
+        - Auth Groups
+      summary: List auth groups
+      operationId: listAuthGroups
+      security:
+        - authToken: []
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AuthGroupResponse"
+        "401":
+          description: Not Authorized
+        "501":
+          description: Embedded auth mode only
+    post:
+      tags:
+        - Auth Groups
+      summary: Create custom auth group
+      operationId: createAuthGroup
+      security:
+        - authToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthGroupCreateRequest"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthGroupResponse"
+        "400":
+          description: Bad Request
+        "401":
+          description: Not Authorized
+        "409":
+          description: Conflict
+        "501":
+          description: Embedded auth mode only
+  "/groups/{id}":
+    get:
+      tags:
+        - Auth Groups
+      summary: Get auth group
+      operationId: getAuthGroup
+      security:
+        - authToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthGroupResponse"
+        "401":
+          description: Not Authorized
+        "404":
+          description: Not Found
+        "501":
+          description: Embedded auth mode only
+    patch:
+      tags:
+        - Auth Groups
+      summary: Update custom auth group
+      operationId: updateAuthGroup
+      security:
+        - authToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthGroupUpdateRequest"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthGroupResponse"
+        "400":
+          description: Bad Request
+        "401":
+          description: Not Authorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+        "501":
+          description: Embedded auth mode only
+    delete:
+      tags:
+        - Auth Groups
+      summary: Delete custom auth group
+      operationId: deleteAuthGroup
+      security:
+        - authToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "401":
+          description: Not Authorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+        "501":
+          description: Embedded auth mode only
   /secrets:
     post:
       tags:
@@ -7981,18 +8490,44 @@ components:
       required:
         - email
         - password
-        - totp
-    RefreshRequest:
-      type: string
-      required:
-        - refreshToken
       properties:
         email:
           type: string
         password:
           type: string
         totp:
-          type: string 
+          type: string
+          description: TOTP or recovery code when MFA is enabled (optional otherwise; CLI may send empty string)
+    MfaEnrollResponse:
+      type: object
+      properties:
+        secret:
+          type: string
+        otpauthUrl:
+          type: string
+    MfaConfirmRequest:
+      type: object
+      required:
+        - code
+      properties:
+        code:
+          type: string
+    MfaDisableRequest:
+      type: object
+      required:
+        - password
+      properties:
+        password:
+          type: string
+        code:
+          type: string
+    RefreshRequest:
+      type: object
+      required:
+        - refreshToken
+      properties:
+        refreshToken:
+          type: string
     LoginSuccessResponse:
       type: object
       required:
@@ -8038,6 +8573,154 @@ components:
                 type: string
               email:
                 type: string
+    ChangePasswordRequest:
+      type: object
+      required:
+        - newPassword
+      properties:
+        currentPassword:
+          type: string
+        newPassword:
+          type: string
+        resetToken:
+          type: string
+    StatusResponse:
+      type: object
+      properties:
+        status:
+          type: string
+    AuthUserCreateRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+        groups:
+          type: array
+          items:
+            type: string
+    AuthUserUpdateRequest:
+      type: object
+      properties:
+        email:
+          type: string
+        groups:
+          type: array
+          items:
+            type: string
+    AuthUserResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+        groups:
+          type: array
+          items:
+            type: string
+        mustChangePassword:
+          type: boolean
+        mfaEnabled:
+          type: boolean
+        isBootstrap:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    AuthUserResetPasswordResponse:
+      type: object
+      properties:
+        temporaryPassword:
+          type: string
+        mustChangePassword:
+          type: boolean
+    AuthUserResetTokenResponse:
+      type: object
+      properties:
+        resetToken:
+          type: string
+        expiresIn:
+          type: integer
+    AuthGroupCreateRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+    AuthGroupUpdateRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+    AuthGroupResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        isSystem:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    AuthMigrationExportResponse:
+      type: object
+      properties:
+        exportedAt:
+          type: string
+          format: date-time
+        authMode:
+          type: string
+          enum: [embedded]
+        users:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              email:
+                type: string
+              groups:
+                type: array
+                items:
+                  type: string
+        groups:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+              name:
+                type: string
+              isSystem:
+                type: boolean
+    AuthJwksRotateResponse:
+      type: object
+      properties:
+        kid:
+          type: string
+        rotatedAt:
+          type: string
+          format: date-time
+        restartRequired:
+          type: boolean
     VersionCommandResponse:
       type: object
       required:
