@@ -7396,7 +7396,7 @@ components:
           default: 50
         diskDirectory:
           type: string
-          default: /var/lib/iofog-agent
+          default: /var/lib/edgelet/
         memoryLimit:
           type: number
           default: 4096

@@ -184,7 +184,7 @@ Optional CI wiring is planned for Plan 11.
 | System roles | `src/config/rbac-system-roles.js` |
 | RBAC middleware | `src/lib/rbac/middleware.js` |
 | Authorizer | `src/lib/rbac/authorizer.js` |
-| Route inventory (generated) | `.cursor/controllerv3.8/docs/09-rbac-audit-route-inventory.md` |
-| Drift script | `scripts/rbac-audit.js`, `scripts/route-inventory.js` |
+| Route inventory (generated) | `node scripts/route-inventory.js` |
+| Drift script | `scripts/rbac-audit.js`, `npm run rbac-audit` |
 | External IdP groups | `docs/external-oidc-client-setup.md` |
 | HTTP API spec | `docs/swagger.yaml` |
