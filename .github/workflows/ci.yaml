@@ -95,21 +95,45 @@ jobs:
           echo "EDGEOPS_CONSOLE_REPO=$REPO" >> "${GITHUB_ENV}"
           echo "EDGEOPS_CONSOLE_FLAVOR=$FLAVOR" >> "${GITHUB_ENV}"
 
-      - name: Set image registry
+      - name: Set image registry and OCI source
         shell: bash
         run: |
           REGISTRY="${{ vars.IMAGE_REGISTRY }}"
-          if [ -z "$REGISTRY" ]; then
+          OCI_SOURCE="${{ vars.OCI_SOURCE_REPO }}"
+          if [ -z "$REGISTRY" ] || [ -z "$OCI_SOURCE" ]; then
             case "${{ github.repository }}" in
               eclipse-iofog/Controller|eclipse-iofog/controller)
-                REGISTRY="ghcr.io/eclipse-iofog"
+                REGISTRY="${REGISTRY:-ghcr.io/eclipse-iofog}"
+                OCI_SOURCE="${OCI_SOURCE:-https://github.com/eclipse-iofog/Controller}"
                 ;;
               *)
-                REGISTRY="ghcr.io/datasance"
+                REGISTRY="${REGISTRY:-ghcr.io/datasance}"
+                OCI_SOURCE="${OCI_SOURCE:-https://github.com/Datasance/Controller}"
                 ;;
             esac
           fi
           echo "IMAGE_REGISTRY=$REGISTRY" >> "${GITHUB_ENV}"
+          echo "OCI_SOURCE_REPO=$OCI_SOURCE" >> "${GITHUB_ENV}"
+
+      - name: Set controller flavor build args
+        shell: bash
+        run: |
+          DISTRIBUTION="${{ vars.CONTROLLER_DISTRIBUTION }}"
+          RBAC_API="${{ vars.RBAC_API_VERSION }}"
+          if [ -z "$DISTRIBUTION" ] || [ -z "$RBAC_API" ]; then
+            case "${{ github.repository }}" in
+              eclipse-iofog/Controller|eclipse-iofog/controller)
+                DISTRIBUTION="${DISTRIBUTION:-iofog}"
+                RBAC_API="${RBAC_API:-iofog.org/v3}"
+                ;;
+              *)
+                DISTRIBUTION="${DISTRIBUTION:-datasance}"
+                RBAC_API="${RBAC_API:-datasance.com/v3}"
+                ;;
+            esac
+          fi
+          echo "CONTROLLER_DISTRIBUTION=$DISTRIBUTION" >> "${GITHUB_ENV}"
+          echo "RBAC_API_VERSION=$RBAC_API" >> "${GITHUB_ENV}"
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -118,7 +142,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Log in to GitHub Container Registry
-        if: github.event_name != 'pull_request'
+        if: startsWith(github.ref, 'refs/tags/v')
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
@@ -131,7 +155,7 @@ jobs:
           context: .
           file: Dockerfile
           platforms: linux/amd64,linux/arm64
-          push: ${{ github.event_name != 'pull_request' }}
+          push: ${{ startsWith(github.ref, 'refs/tags/v') }}
           tags: |
             ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.image_tag }}
             ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:main
@@ -141,3 +165,7 @@ jobs:
             EDGEOPS_CONSOLE_REPO=${{ env.EDGEOPS_CONSOLE_REPO }}
             EDGEOPS_CONSOLE_VERSION=${{ env.EDGEOPS_CONSOLE_VERSION }}
             EDGEOPS_CONSOLE_FLAVOR=${{ env.EDGEOPS_CONSOLE_FLAVOR }}
+            IMAGE_REGISTRY=${{ env.IMAGE_REGISTRY }}
+            OCI_SOURCE_REPO=${{ env.OCI_SOURCE_REPO }}
+            CONTROLLER_DISTRIBUTION=${{ env.CONTROLLER_DISTRIBUTION }}
+            RBAC_API_VERSION=${{ env.RBAC_API_VERSION }}

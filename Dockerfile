@@ -30,7 +30,6 @@ RUN test -f build/index.html \
 FROM node:24-bookworm AS builder
 
 ARG PKG_VERSION
-# ARG GITHUB_TOKEN
 
 WORKDIR /tmp
 
@@ -50,6 +49,10 @@ RUN npm pack
 FROM registry.access.redhat.com/ubi9/nodejs-24-minimal:latest
 
 ARG EDGEOPS_CONSOLE_VERSION=1.0.0
+ARG IMAGE_REGISTRY
+ARG OCI_SOURCE_REPO
+ARG CONTROLLER_DISTRIBUTION=datasance
+ARG RBAC_API_VERSION=datasance.com/v3
 
 USER root
 # Install dependencies for logging and development
@@ -80,20 +83,23 @@ ENV NPM_CONFIG_PREFIX=/home/runner/.npm-global
 ENV NPM_CONFIG_CACHE=/home/runner/.npm
 ENV PATH=$PATH:/home/runner/.npm-global/bin
 
-COPY --from=builder /tmp/datasance-iofogcontroller-*.tgz /home/runner/iofog-controller.tgz
+COPY --from=builder /tmp/controller-*.tgz /home/runner/iofog-controller.tgz
 
 ENV PID_BASE=/home/runner
 ENV EDGEOPS_CONSOLE_PATH=/home/runner/static/console
 ENV EDGEOPS_CONSOLE_VERSION=${EDGEOPS_CONSOLE_VERSION}
+ENV CONTROLLER_DISTRIBUTION=${CONTROLLER_DISTRIBUTION}
+ENV RBAC_API_VERSION=${RBAC_API_VERSION}
 
 RUN npm i -g /home/runner/iofog-controller.tgz && \
   rm -rf /home/runner/iofog-controller.tgz && \
   iofog-controller config dev-mode --on
 
-RUN rm -rf /home/runner/.npm-global/lib/node_modules/@datasance/iofogcontroller/src/data/sqlite_files/*
+RUN rm -rf /home/runner/.npm-global/lib/node_modules/controller/src/data/sqlite_files/*
 
 COPY LICENSE /licenses/LICENSE
 LABEL org.opencontainers.image.description=controller
-LABEL org.opencontainers.image.source=https://github.com/datasance/controller
+LABEL org.opencontainers.image.source=${OCI_SOURCE_REPO}
 LABEL org.opencontainers.image.licenses=EPL2.0
-CMD [ "node", "/home/runner/.npm-global/lib/node_modules/@datasance/iofogcontroller/src/server.js" ]
+LABEL org.opencontainers.image.url=${IMAGE_REGISTRY}/controller
+CMD [ "node", "/home/runner/.npm-global/lib/node_modules/controller/src/server.js" ]
