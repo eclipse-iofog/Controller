@@ -9,7 +9,7 @@ const CONSOLE_DIR = path.join(DEV_DIR, 'console')
 const BUILD_OUT = path.join(CONSOLE_DIR, 'build')
 
 const REPO = process.env.EDGEOPS_CONSOLE_REPO || 'https://github.com/Datasance/edgeops-console'
-const VERSION = process.env.EDGEOPS_CONSOLE_VERSION || '1.0.0'
+const VERSION = process.env.EDGEOPS_CONSOLE_VERSION || 'v1.0.0'
 const FLAVOR = process.env.EDGEOPS_CONSOLE_FLAVOR || 'datasance'
 
 function normalizeTag (version) {
