@@ -1,7 +1,8 @@
 # Stage 1 — EdgeOps Console static SPA (Plan 11-1)
 # ioFog overrides: EDGEOPS_CONSOLE_REPO=https://github.com/eclipse-iofog/edgeops-console
 #                   EDGEOPS_CONSOLE_FLAVOR=iofog
-FROM node:24-bookworm AS console-builder
+# node:24-bookworm — pin manifest list digest for reproducible multi-arch builds
+FROM node:24-bookworm@sha256:40ad9f3064e67d6860b4bc3fe1880b2953934fd6320ada990e45fe0efa6badd7 AS console-builder
 
 ARG EDGEOPS_CONSOLE_REPO=https://github.com/Datasance/edgeops-console
 ARG EDGEOPS_CONSOLE_VERSION=1.0.0
@@ -27,7 +28,7 @@ RUN test -f build/index.html \
     && cp -a build /tmp/console/build
 
 
-FROM node:24-bookworm AS builder
+FROM node:24-bookworm@sha256:40ad9f3064e67d6860b4bc3fe1880b2953934fd6320ada990e45fe0efa6badd7 AS builder
 
 ARG PKG_VERSION
 
@@ -46,7 +47,8 @@ RUN npm version $PKG_VERSION --allow-same-version --no-git-tag-version
 RUN npm pack
 
 
-FROM registry.access.redhat.com/ubi9/nodejs-24-minimal:latest
+# ubi9/nodejs-24-minimal:latest — pin manifest list digest for reproducible multi-arch builds
+FROM registry.access.redhat.com/ubi9/nodejs-24-minimal@sha256:e76548c58c4a29907cef1e01cb6a4cab426eb071ffe28ac1f25dd58d14a89569
 
 ARG EDGEOPS_CONSOLE_VERSION=1.0.0
 ARG IMAGE_REGISTRY
