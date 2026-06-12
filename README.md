@@ -1,7 +1,8 @@
 # Controller
 
 [![CI](https://github.com/eclipse-iofog/Controller/actions/workflows/ci.yaml/badge.svg)](https://github.com/eclipse-iofog/Controller/actions/workflows/ci.yaml)
-[![Release](https://img.shields.io/github/v/release/eclipse-iofog/Controller?include_prereleases)](https://github.com/eclipse-iofog/Controller/releases)
+[![Release](https://github.com/eclipse-iofog/Controller/actions/workflows/release.yaml/badge.svg)](https://github.com/eclipse-iofog/Controller/actions/workflows/release.yaml)
+[![Version](https://img.shields.io/github/v/release/eclipse-iofog/Controller?include_prereleases)](https://github.com/eclipse-iofog/Controller/releases)
 [![Node.js](https://img.shields.io/badge/node-24.x-brightgreen.svg)](https://nodejs.org/)
 [![License](https://img.shields.io/badge/License-EPL--2.0-blue.svg)](LICENSE)
 [![Ship](https://img.shields.io/badge/ship-container-blue.svg)](Dockerfile)
@@ -15,7 +16,7 @@
 
 **Cloud-native control plane for edge fleets.** Controller orchestrates [Edgelet](https://github.com/eclipse-iofog/edgelet) nodes, microservices, routing, NATS messaging, RBAC, and certificates. v3.8 is a **greenfield** release: **Edgelet only** — v3.7 legacy field agents are not supported.
 
-See [CONTRIBUTING](CONTRIBUTING) for the dual-mirror repository model, CI workflow, and per-mirror GitHub Actions variables.
+See [CONTRIBUTING](CONTRIBUTING) for the dual-mirror repository model, CI/release workflows, and per-mirror GitHub Actions variables.
 
 ## Platforms
 

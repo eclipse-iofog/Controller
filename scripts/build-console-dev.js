@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Datasance Teknoloji A.S.
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 const { execSync } = require('child_process')
 const fs = require('fs')
 const path = require('path')
@@ -22,7 +9,7 @@ const CONSOLE_DIR = path.join(DEV_DIR, 'console')
 const BUILD_OUT = path.join(CONSOLE_DIR, 'build')
 
 const REPO = process.env.EDGEOPS_CONSOLE_REPO || 'https://github.com/Datasance/edgeops-console'
-const VERSION = process.env.EDGEOPS_CONSOLE_VERSION || '1.0.0'
+const VERSION = process.env.EDGEOPS_CONSOLE_VERSION || 'v1.0.0'
 const FLAVOR = process.env.EDGEOPS_CONSOLE_FLAVOR || 'datasance'
 
 function normalizeTag (version) {

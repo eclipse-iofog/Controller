@@ -13,14 +13,18 @@ Controller v3.8 uses a **single shared git tree** published to two GitHub remote
 
 Canonical upstream in `package.json` is `eclipse-iofog/Controller`. Product-facing strings (RBAC API group, distribution label, container registry) differ by **build flavor**, not by diverging source code.
 
-### CI workflow
+### CI and release workflows
 
-| Trigger | Jobs |
-|---------|------|
-| Pull request, push to `main`, push to `develop` | **Preflight** — lint, unit tests, dependency audit, Docker build (**no image push**) |
-| Push of a `v*` tag (e.g. `v3.8.0`) | **Publish** — Docker build and push to `${IMAGE_REGISTRY}/controller` |
+Workflows live under `.github/workflows/`. Third-party actions are pinned to commit SHAs (with version comments).
+
+| Workflow | Trigger | Jobs |
+|----------|---------|------|
+| **CI** (`ci.yaml`) | Pull request; push to `main` or `develop` | **Lint** → **Test** → **Audit** (sequential, via `quality.yml`), then **Docker build** (`push: false`, no registry login) |
+| **Release** (`release.yaml`) | Push of a `v*` tag (e.g. `v3.8.0`) | **Lint** → **Test** → **Audit**, then **Docker build and push** to `${IMAGE_REGISTRY}/controller` (`:latest` + semver tag) |
 
 Image publish runs **only** on version tags. Integration branches on both mirrors are `main` and `develop`.
+
+Shared Docker build-args (registry, OCI source, EdgeOps Console repo/flavor, controller distribution) are resolved by the composite action `.github/actions/set-build-env`.
 
 ### Repository CI variables
 

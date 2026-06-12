@@ -252,7 +252,7 @@ describe('Catalog Service', () => {
       expect(CatalogItemManager.findOne).to.have.been.calledWith({
         name: 'NATs',
         category: 'SYSTEM',
-        publisher: 'Datasance',
+        publisher: 'Eclipse ioFog',
         registry_id: 1
       }, transaction)
     })
@@ -262,7 +262,7 @@ describe('Catalog Service', () => {
       expect(CatalogItemManager.findOne).to.have.been.calledWith({
         name: DBConstants.ROUTER_CATALOG_NAME,
         category: 'SYSTEM',
-        publisher: 'Datasance',
+        publisher: 'Eclipse ioFog',
         registry_id: 1
       }, transaction)
     })
@@ -272,7 +272,7 @@ describe('Catalog Service', () => {
       expect(CatalogItemManager.findOne).to.have.been.calledWith({
         name: DBConstants.DEBUG_CATALOG_NAME,
         category: 'SYSTEM',
-        publisher: 'Datasance',
+        publisher: 'Eclipse ioFog',
         registry_id: 1
       }, transaction)
     })
@@ -282,7 +282,7 @@ describe('Catalog Service', () => {
       expect(CatalogItemManager.findOne).to.have.been.calledWith({
         name: 'RESTBlue',
         category: 'SYSTEM',
-        publisher: 'Datasance',
+        publisher: 'Eclipse ioFog',
         registry_id: 1
       }, transaction)
     })
@@ -292,7 +292,7 @@ describe('Catalog Service', () => {
       expect(CatalogItemManager.findOne).to.have.been.calledWith({
         name: 'HAL',
         category: 'SYSTEM',
-        publisher: 'Datasance',
+        publisher: 'Eclipse ioFog',
         registry_id: 1
       }, transaction)
     })
