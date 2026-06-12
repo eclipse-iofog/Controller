@@ -436,9 +436,9 @@ describe('ioFog Service', () => {
 
   describe('.setFogVersionCommandEndPoint()', () => {
     const uuid = 'testUuid'
-    const fogVersionData = { uuid, versionCommand: 'upgrade' }
 
-    def('subject', () => $subject.setFogVersionCommandEndPoint(fogVersionData, isCLI, transaction))
+    def('fogVersionData', () => ({ uuid, versionCommand: 'upgrade' }))
+    def('subject', () => $subject.setFogVersionCommandEndPoint($fogVersionData, isCLI, transaction))
 
     beforeEach(() => {
       $sandbox.stub(Validator, 'validate').resolves(true)
@@ -462,10 +462,23 @@ describe('ioFog Service', () => {
       expect(ioFogProvisionKeyManager.updateOrCreate).to.have.been.calledOnce
       expect(ioFogVersionCommandManager.updateOrCreate).to.have.been.calledWith(
         { iofogUuid: uuid },
-        { iofogUuid: uuid, versionCommand: 'upgrade' },
+        { iofogUuid: uuid, versionCommand: 'upgrade', semver: null },
         transaction
       )
       expect(ChangeTrackingService.update).to.have.been.calledWith(uuid, ChangeTrackingService.events.version, transaction)
+    })
+
+    context('when semver is provided', () => {
+      def('fogVersionData', () => ({ uuid, versionCommand: 'upgrade', semver: '3.2.0' }))
+
+      it('stores semver with version command', async () => {
+        await $subject
+        expect(ioFogVersionCommandManager.updateOrCreate).to.have.been.calledWith(
+          { iofogUuid: uuid },
+          { iofogUuid: uuid, versionCommand: 'upgrade', semver: '3.2.0' },
+          transaction
+        )
+      })
     })
 
     context('when upgrade is not allowed', () => {

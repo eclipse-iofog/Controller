@@ -1,3 +1,5 @@
+const { versionRegex } = require('./utils/utils')
+
 const iofogCreate = {
   id: '/iofogCreate',
   type: 'object',
@@ -193,7 +195,8 @@ const iofogSetVersionCommand = {
   type: 'object',
   properties: {
     uuid: { type: 'string' },
-    versionCommand: { enum: ['upgrade', 'rollback'] }
+    versionCommand: { enum: ['upgrade', 'rollback'] },
+    semver: { type: 'string', pattern: versionRegex }
   },
   required: ['uuid', 'versionCommand'],
   additionalProperties: true

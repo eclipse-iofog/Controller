@@ -11,6 +11,10 @@ module.exports = (sequelize, DataTypes) => {
       /* eslint-disable new-cap */
       type: DataTypes.STRING(100),
       field: 'version_command'
+    },
+    semver: {
+      type: DataTypes.STRING(100),
+      field: 'semver'
     }
   }, {
     tableName: 'FogVersionCommands',

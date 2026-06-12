@@ -538,11 +538,17 @@ const getAgentChangeVersionCommand = async function (fog, transaction) {
     iofogUuid: fog.uuid
   }, transaction)
 
-  return {
+  const response = {
     versionCommand: versionCommand.versionCommand,
     provisionKey: provision.provisionKey,
     expirationTime: provision.expirationTime
   }
+
+  if (versionCommand.semver) {
+    response.semver = versionCommand.semver
+  }
+
+  return response
 }
 
 const updateHalHardwareInfo = async function (hardwareData, fog, transaction) {

@@ -398,6 +398,7 @@ describe('ioFog Controller', () => {
         uuid: $uuid,
         versionCommand: $versionCommand,
       },
+      body: {},
     }))
     def('response', () => Promise.resolve())
     def('subject', () => $subject.setFogVersionCommandEndPoint($req))
@@ -412,6 +413,27 @@ describe('ioFog Controller', () => {
         uuid: $uuid,
         versionCommand: $versionCommand,
       }, false)
+    })
+
+    context('when semver is provided in body', () => {
+      def('req', () => ({
+        params: {
+          uuid: $uuid,
+          versionCommand: $versionCommand,
+        },
+        body: {
+          semver: '3.2.0',
+        },
+      }))
+
+      it('passes semver to service', async () => {
+        await $subject
+        expect(ioFogService.setFogVersionCommandEndPoint).to.have.been.calledWith({
+          uuid: $uuid,
+          versionCommand: $versionCommand,
+          semver: '3.2.0',
+        }, false)
+      })
     })
 
     context('when ioFogService#setFogVersionCommandEndPoint fails', () => {

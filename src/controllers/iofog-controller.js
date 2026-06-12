@@ -48,6 +48,10 @@ async function setFogVersionCommandEndPoint (req) {
     versionCommand: req.params.versionCommand
   }
 
+  if (req.body && Object.hasOwn(req.body, 'semver')) {
+    fogVersionCommand.semver = req.body.semver
+  }
+
   return FogService.setFogVersionCommandEndPoint(fogVersionCommand, false)
 }
 

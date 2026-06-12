@@ -1142,13 +1142,21 @@ async function generateProvisioningKeyEndPoint (fogData, isCLI, transaction) {
 }
 
 async function setFogVersionCommandEndPoint (fogVersionData, isCLI, transaction) {
-  await Validator.validate(fogVersionData, Validator.schemas.iofogSetVersionCommand)
+  const validationData = {
+    uuid: fogVersionData.uuid,
+    versionCommand: fogVersionData.versionCommand
+  }
+  if (fogVersionData.semver != null) {
+    validationData.semver = fogVersionData.semver
+  }
+  await Validator.validate(validationData, Validator.schemas.iofogSetVersionCommand)
 
   const queryFogData = { uuid: fogVersionData.uuid }
 
   const newVersionCommand = {
     iofogUuid: fogVersionData.uuid,
-    versionCommand: fogVersionData.versionCommand
+    versionCommand: fogVersionData.versionCommand,
+    semver: fogVersionData.semver ?? null
   }
 
   const fog = await FogManager.findOne(queryFogData, transaction)

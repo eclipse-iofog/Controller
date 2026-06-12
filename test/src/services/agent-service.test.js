@@ -1478,6 +1478,35 @@ describe('Agent Service', () => {
         })
       })
     })
+
+    context('when semver is set on version command', () => {
+      def('semver', () => '3.2.0')
+      def('versionCommand', () => ({
+        versionCommand: $versionCommandLine,
+        semver: $semver,
+      }))
+      def('response', () => ({
+        versionCommand: $versionCommandLine,
+        provisionKey: $provisionKey,
+        expirationTime: $expirationTime,
+        semver: $semver,
+      }))
+
+      it('includes semver in response', () => {
+        return expect($subject).to.eventually.eql($response)
+      })
+    })
+
+    context('when semver is null on version command', () => {
+      def('versionCommand', () => ({
+        versionCommand: $versionCommandLine,
+        semver: null,
+      }))
+
+      it('omits semver from response', () => {
+        return expect($subject).to.eventually.eql($response)
+      })
+    })
   })
 
   describe('.updateHalHardwareInfo()', () => {
