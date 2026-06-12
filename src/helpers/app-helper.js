@@ -1,19 +1,6 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 const crypto = require('crypto')
 const Errors = require('./errors')
-const { v4: uuidv4 } = require('uuid')
+// const { v4: uuidv4 } = require('uuid')
 
 const logger = require('../logger')
 const fs = require('fs')
@@ -62,7 +49,7 @@ function generateRandomString (size) {
 }
 
 function generateUUID () {
-  return uuidv4()
+  return crypto.randomUUID()
 }
 
 // Checks the status of a single port
@@ -131,6 +118,13 @@ function checkTransaction (transaction) {
   }
 }
 
+function withTransaction (transaction, options = {}) {
+  if (transaction && !transaction.fakeTransaction) {
+    options.transaction = transaction
+  }
+  return options
+}
+
 function deleteUndefinedFields (obj) {
   if (!obj) {
     return
@@ -176,7 +170,7 @@ function isTest () {
 
 function isEmpty (obj) {
   for (const key in obj) {
-    if (obj.hasOwnProperty(key)) {
+    if (Object.hasOwn(obj, key)) {
       return false
     }
   }
@@ -206,6 +200,7 @@ module.exports = {
   checkPortAvailability,
   generateAccessToken,
   checkTransaction,
+  withTransaction,
   deleteUndefinedFields,
   validateBooleanCliOptions,
   formatMessage,

@@ -26,7 +26,7 @@ describe('Application Controller', () => {
     }))
 
     def('response', () => Promise.resolve())
-    def('subject', () => $subject.createApplicationEndPoint($req, $user))
+    def('subject', () => $subject.createApplicationEndPoint($req))
 
     beforeEach(() => {
       $sandbox.stub(ApplicationService, 'createApplicationEndPoint').returns($response)
@@ -38,7 +38,7 @@ describe('Application Controller', () => {
         name: $name,
         description: $description,
         isActivated: $isActivated,
-      }, $user, false)
+      }, false)
     })
 
     context('when ApplicationService#createApplicationEndPoint fails', () => {
@@ -65,7 +65,7 @@ describe('Application Controller', () => {
       body: {},
     }))
     def('response', () => Promise.resolve())
-    def('subject', () => $subject.getApplicationsByUserEndPoint($req, $user))
+    def('subject', () => $subject.getApplicationsByUserEndPoint($req))
 
     beforeEach(() => {
       $sandbox.stub(ApplicationService, 'getUserApplicationsEndPoint').returns($response)
@@ -73,7 +73,7 @@ describe('Application Controller', () => {
 
     it('calls ApplicationService.getUserApplicationsEndPoint with correct args', async () => {
       await $subject
-      expect(ApplicationService.getUserApplicationsEndPoint).to.have.been.calledWith($user, false)
+      expect(ApplicationService.getUserApplicationsEndPoint).to.have.been.calledWith(false)
     })
 
     context('when ApplicationService#getUserApplicationsEndPoint fails', () => {
@@ -104,7 +104,7 @@ describe('Application Controller', () => {
     }))
 
     def('response', () => Promise.resolve())
-    def('subject', () => $subject.getApplicationEndPoint($req, $user))
+    def('subject', () => $subject.getApplicationEndPoint($req))
 
     beforeEach(() => {
       $sandbox.stub(ApplicationService, 'getApplicationEndPoint').returns($response)
@@ -112,7 +112,7 @@ describe('Application Controller', () => {
 
     it('calls ApplicationService.getApplicationEndPoint with correct args', async () => {
       await $subject
-      expect(ApplicationService.getApplicationEndPoint).to.have.been.calledWith({name: $name}, $user, false)
+      expect(ApplicationService.getApplicationEndPoint).to.have.been.calledWith({ name: $name }, false)
     })
 
     context('when ApplicationService#getApplicationEndPoint fails', () => {
@@ -152,7 +152,7 @@ describe('Application Controller', () => {
     }))
 
     def('response', () => Promise.resolve())
-    def('subject', () => $subject.updateApplicationEndPoint($req, $user))
+    def('subject', () => $subject.updateApplicationEndPoint($req))
 
     beforeEach(() => {
       $sandbox.stub(ApplicationService, 'updateApplicationEndPoint').returns($response)
@@ -164,7 +164,7 @@ describe('Application Controller', () => {
         name: $name,
         description: $description,
         isActivated: $isActivated,
-      }, $oldName, $user, false)
+      }, $oldName, false)
     })
 
     context('when ApplicationService#updateApplicationEndPoint fails', () => {
@@ -195,7 +195,7 @@ describe('Application Controller', () => {
     }))
 
     def('response', () => Promise.resolve())
-    def('subject', () => $subject.deleteApplicationEndPoint($req, $user))
+    def('subject', () => $subject.deleteApplicationEndPoint($req))
 
     beforeEach(() => {
       $sandbox.stub(ApplicationService, 'deleteApplicationEndPoint').returns($response)
@@ -203,7 +203,7 @@ describe('Application Controller', () => {
 
     it('calls ApplicationService.deleteApplicationEndPoint with correct args', async () => {
       await $subject
-      expect(ApplicationService.deleteApplicationEndPoint).to.have.been.calledWith({ name: $name }, $user, false)
+      expect(ApplicationService.deleteApplicationEndPoint).to.have.been.calledWith({ name: $name }, false)
     })
 
     context('when ApplicationService.deleteApplicationEndPoint fails', () => {

@@ -19,4 +19,11 @@ diagnostic/
 iofog-iofogcontroller-*.tgz
 .npmrc
 .env
+dev/edgeops-console/
+dev/console/
+dev/logs/
 src/iofog-controller.pid
+mcp-controller-server/
+.cursor/
+examples/
+AGENTS.md

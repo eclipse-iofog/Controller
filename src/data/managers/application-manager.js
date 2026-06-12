@@ -1,16 +1,3 @@
-/*
- * *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 const BaseManager = require('./base-manager')
 const models = require('../models')
 const Application = models.Application
@@ -30,9 +17,9 @@ class ApplicationManager extends BaseManager {
           required: false
         }
       ],
-      where: where,
+      where,
       attributes: ['id']
-    }, { transaction: transaction })
+    }, { transaction })
     if (!application) {
       return []
     }
@@ -41,17 +28,18 @@ class ApplicationManager extends BaseManager {
 
   async findAllWithAttributes (where, attributes, transaction) {
     return Application.findAll({
-      where: where,
-      attributes: attributes },
-    { transaction: transaction })
+      where,
+      attributes
+    },
+    { transaction })
   }
 
   async findOneWithAttributes (where, attributes, transaction) {
     return Application.findOne({
-      where: where,
-      attributes: attributes
+      where,
+      attributes
     },
-    { transaction: transaction })
+    { transaction })
   }
 
   async findOnePopulated (where, attributes, transaction) {
@@ -65,7 +53,7 @@ class ApplicationManager extends BaseManager {
       ],
       where,
       attributes
-    }, { transaction: transaction })
+    }, { transaction })
     if (!application) {
       return null
     }
@@ -87,7 +75,7 @@ class ApplicationManager extends BaseManager {
       ],
       where,
       attributes
-    }, { transaction: transaction })
+    }, { transaction })
     return applications.map(application => ({
       ...application.get({ plain: true }),
       microservices: (application.microservices || []).map(m => m.get({ plain: true }))

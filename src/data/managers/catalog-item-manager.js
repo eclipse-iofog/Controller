@@ -1,16 +1,3 @@
-/*
- * *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 const BaseManager = require('./base-manager')
 const models = require('../models')
 const CatalogItem = models.CatalogItem
@@ -30,7 +17,7 @@ class CatalogItemManager extends BaseManager {
           model: CatalogItemImage,
           as: 'images',
           required: false,
-          attributes: ['containerImage', 'fogTypeId']
+          attributes: ['containerImage', 'archId']
         },
         {
           model: CatalogItemInputType,
@@ -44,9 +31,9 @@ class CatalogItemManager extends BaseManager {
           required: false,
           attributes: ['infoType', 'infoFormat']
         }],
-      where: where,
-      attributes: attributes
-    }, { transaction: transaction })
+      where,
+      attributes
+    }, { transaction })
   }
 
   findOneWithDependencies (where, attribures, transaction) {
@@ -56,7 +43,7 @@ class CatalogItemManager extends BaseManager {
           model: CatalogItemImage,
           as: 'images',
           required: false,
-          attributes: ['containerImage', 'fogTypeId']
+          attributes: ['containerImage', 'archId']
         },
         {
           model: CatalogItemInputType,
@@ -70,9 +57,9 @@ class CatalogItemManager extends BaseManager {
           required: false,
           attributes: ['infoType', 'infoFormat']
         }],
-      where: where,
+      where,
       attributes: attribures
-    }, { transaction: transaction })
+    }, { transaction })
   }
 }
 

@@ -1,17 +1,5 @@
-/*
- * *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 const AgentService = require('../services/agent-service')
+const ControllerMsService = require('../services/controller-ms-service')
 const AuthDecorator = require('../decorators/authorization-decorator')
 
 const agentProvisionEndPoint = async function (req) {
@@ -60,10 +48,6 @@ const getAgentMicroservicesEndPoint = async function (req, fog) {
   return AgentService.getAgentMicroservices(fog)
 }
 
-const getAgentLinkedEdgeResourcesEndpoint = async function (req, fog) {
-  return { edgeResources: await AgentService.getAgentLinkedEdgeResources(fog) }
-}
-
 const getAgentLinkedVolumeMountsEndpoint = async function (req, fog) {
   return { volumeMounts: await AgentService.getAgentLinkedVolumeMounts(fog) }
 }
@@ -86,16 +70,6 @@ const getAgentTunnelEndPoint = async function (req, fog) {
   return AgentService.getAgentTunnel(fog)
 }
 
-const getAgentStraceEndPoint = async function (req, fog) {
-  return AgentService.getAgentStrace(fog)
-}
-
-const updateAgentStraceEndPoint = async function (req, fog) {
-  const straceData = req.body
-
-  return AgentService.updateAgentStrace(straceData, fog)
-}
-
 const getAgentChangeVersionCommandEndPoint = async function (req, fog) {
   return AgentService.getAgentChangeVersionCommand(fog)
 }
@@ -116,20 +90,16 @@ const deleteNodeEndPoint = async function (req, fog) {
   return AgentService.deleteNode(fog)
 }
 
-const getImageSnapshotEndPoint = async function (req, fog) {
-  return AgentService.getImageSnapshot(fog)
-}
-
-const putImageSnapshotEndPoint = async function (req, fog) {
-  return AgentService.putImageSnapshot(req, fog)
-}
-
 const getControllerCAEndPoint = async function (req, fog) {
   return AgentService.getControllerCA(fog)
 }
 
+const registerControllerMicroserviceEndPoint = async function (req, fog) {
+  return ControllerMsService.registerControllerMicroservice(req.body, fog)
+}
+
 module.exports = {
-  agentProvisionEndPoint: agentProvisionEndPoint,
+  agentProvisionEndPoint,
   agentDeprovisionEndPoint: AuthDecorator.checkFogToken(agentDeprovisionEndPoint),
   getAgentConfigEndPoint: AuthDecorator.checkFogToken(getAgentConfigEndPoint),
   updateAgentConfigEndPoint: AuthDecorator.checkFogToken(updateAgentConfigEndPoint),
@@ -140,17 +110,13 @@ module.exports = {
   getAgentMicroserviceEndPoint: AuthDecorator.checkFogToken(getAgentMicroserviceEndPoint),
   getAgentRegistriesEndPoint: AuthDecorator.checkFogToken(getAgentRegistriesEndPoint),
   getAgentTunnelEndPoint: AuthDecorator.checkFogToken(getAgentTunnelEndPoint),
-  getAgentStraceEndPoint: AuthDecorator.checkFogToken(getAgentStraceEndPoint),
-  updateAgentStraceEndPoint: AuthDecorator.checkFogToken(updateAgentStraceEndPoint),
   getAgentChangeVersionCommandEndPoint: AuthDecorator.checkFogToken(getAgentChangeVersionCommandEndPoint),
   updateHalHardwareInfoEndPoint: AuthDecorator.checkFogToken(updateHalHardwareInfoEndPoint),
   updateHalUsbInfoEndPoint: AuthDecorator.checkFogToken(updateHalUsbInfoEndPoint),
   deleteNodeEndPoint: AuthDecorator.checkFogToken(deleteNodeEndPoint),
-  getImageSnapshotEndPoint: AuthDecorator.checkFogToken(getImageSnapshotEndPoint),
-  putImageSnapshotEndPoint: AuthDecorator.checkFogToken(putImageSnapshotEndPoint),
   resetAgentConfigChangesEndPoint: AuthDecorator.checkFogToken(resetAgentConfigChangesEndPoint),
-  getAgentLinkedEdgeResourcesEndpoint: AuthDecorator.checkFogToken(getAgentLinkedEdgeResourcesEndpoint),
   getAgentLinkedVolumeMountsEndpoint: AuthDecorator.checkFogToken(getAgentLinkedVolumeMountsEndpoint),
   getControllerCAEndPoint: AuthDecorator.checkFogToken(getControllerCAEndPoint),
-  getAgentLogSessionsEndPoint: AuthDecorator.checkFogToken(getAgentLogSessionsEndPoint)
+  getAgentLogSessionsEndPoint: AuthDecorator.checkFogToken(getAgentLogSessionsEndPoint),
+  registerControllerMicroserviceEndPoint: AuthDecorator.checkFogToken(registerControllerMicroserviceEndPoint)
 }

@@ -10,6 +10,7 @@ const ApplicationManager = require('../../../src/data/managers/application-manag
 const SecretService = require('../../../src/services/secret-service')
 const NatsService = require('../../../src/services/nats-service')
 const NatsAuthService = require('../../../src/services/nats-auth-service')
+const { createOperator, createAccount } = require('@nats-io/nkeys')
 
 describe('NATS Auth Service', () => {
   def('sandbox', () => sinon.createSandbox())
@@ -101,13 +102,27 @@ describe('NATS Auth Service', () => {
     })
 
     context('when existing user has same account but different rule (revoke and reissue)', () => {
+      const operatorKp = createOperator()
+      const accountKp = createAccount()
+      const operatorSeed = new TextDecoder().decode(operatorKp.getSeed())
+      const accountSeed = new TextDecoder().decode(accountKp.getSeed())
+
       beforeEach(() => {
         $sandbox.stub(NatsUserManager, 'findOne').resolves(existingUserSameAccountDifferentRule)
         $sandbox.stub(NatsUserManager, 'update').resolves()
         $sandbox.stub(NatsAccountManager, 'update').resolves()
-        $sandbox.stub(SecretService, 'getSecretEndpoint').resolves({ data: { seed: 'operator-seed-base64' } })
+        $sandbox.stub(SecretService, 'getSecretEndpoint').callsFake((secretName) => {
+          if (secretName === 'op-seed') {
+            return Promise.resolve({ data: { seed: operatorSeed } })
+          }
+          if (secretName === 'acc-seed') {
+            return Promise.resolve({ data: { seed: accountSeed } })
+          }
+          return Promise.resolve(null)
+        })
         $sandbox.stub(SecretService, 'createSecretEndpoint').resolves()
         $sandbox.stub(SecretService, 'updateSecretEndpointIfChanged').resolves()
+        $sandbox.stub(NatsAccountRuleManager, 'findOne').resolves({ name: 'default-account' })
         const NatsOperatorManager = require('../../../src/data/managers/nats-operator-manager')
         $sandbox.stub(NatsOperatorManager, 'findOne').resolves({ seedSecretName: 'op-seed' })
       })

@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 const WebSocket = require('ws')
 const logger = require('../logger')
 const MicroserviceLogStatusManager = require('../data/managers/microservice-log-status-manager')
@@ -43,7 +30,7 @@ class LogSessionManager {
       fogUuid,
       agent: agentWs,
       user: userWs, // Single user per session (one-to-one)
-      tailConfig: tailConfig, // Per-session tail configuration
+      tailConfig, // Per-session tail configuration
       lastActivity: Date.now(),
       createdAt: Date.now(),
       transaction
@@ -91,12 +78,12 @@ class LogSessionManager {
     try {
       if (session.microserviceUuid) {
         await MicroserviceLogStatusManager.delete(
-          { sessionId: sessionId },
+          { sessionId },
           transaction
         )
       } else if (session.fogUuid) {
         await FogLogStatusManager.delete(
-          { sessionId: sessionId },
+          { sessionId },
           transaction
         )
       }
@@ -128,7 +115,7 @@ class LogSessionManager {
       logger.error('Error removing log session from database:' + JSON.stringify({
         error: error.message,
         stack: error.stack,
-        sessionId: sessionId,
+        sessionId,
         microserviceUuid: session.microserviceUuid,
         fogUuid: session.fogUuid
       }))

@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 // Load configuration first
 require('./config')
 
@@ -39,6 +26,10 @@ async function initialize () {
 
     logger.info('Initializing database...')
     await db.initDB(true)
+
+    const CertificateService = require('./services/certificate-service')
+    logger.info('Ensuring central router and NATS local CAs...')
+    await CertificateService.ensureCentralLocalCAs({ fakeTransaction: true })
 
     logger.info('Initialization completed successfully')
     return true

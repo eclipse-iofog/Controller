@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 const RbacRoleManager = require('../data/managers/rbac-role-manager')
 const RbacRoleBindingManager = require('../data/managers/rbac-role-binding-manager')
 const RbacServiceAccountManager = require('../data/managers/rbac-service-account-manager')
@@ -34,30 +21,46 @@ function validateNotSystemRole (roleName) {
 }
 
 /**
- * Notify microservice when a service account linked to a microservice is updated
+ * Set microserviceList change tracking on every distinct agent hosting an MS linked to the given SAs.
+ * R22: agent list embeds SA rules from SA.roleRef → Role.rules only; SA or role mutations must refresh the list.
+ * @param {Array<Object>} serviceAccounts - Service account records (may omit microserviceUuid for app-scoped SAs)
+ * @param {object} transaction - Database transaction
+ */
+async function _setMicroserviceListChangeTrackingForServiceAccounts (serviceAccounts, transaction) {
+  const iofogUuids = new Set()
+  for (const serviceAccount of serviceAccounts) {
+    const microserviceUuid = serviceAccount.microserviceUuid || (serviceAccount.get && serviceAccount.get('microserviceUuid'))
+    if (!microserviceUuid) {
+      continue
+    }
+    try {
+      const microservice = await MicroserviceManager.findOne({ uuid: microserviceUuid }, transaction)
+      if (microservice && microservice.iofogUuid) {
+        iofogUuids.add(microservice.iofogUuid)
+      }
+    } catch (error) {
+      logger.error(`Failed to resolve agent for service account update (microserviceUuid: ${microserviceUuid}):`, error.message)
+    }
+  }
+  for (const iofogUuid of iofogUuids) {
+    await ChangeTrackingService.update(iofogUuid, ChangeTrackingService.events.microserviceList, transaction)
+  }
+}
+
+/**
+ * Notify hosting agent when a single service account linked to a microservice is updated.
  * @param {Object} serviceAccount - Service account object (must have microserviceUuid if linked to a microservice)
  * @param {object} transaction - Database transaction
  */
 async function _notifyMicroservicesForServiceAccountUpdate (serviceAccount, transaction) {
-  const microserviceUuid = serviceAccount.microserviceUuid || (serviceAccount.get && serviceAccount.get('microserviceUuid'))
-  if (!microserviceUuid) {
-    return
-  }
-  try {
-    const microservice = await MicroserviceManager.findOne({ uuid: microserviceUuid }, transaction)
-    if (microservice && microservice.iofogUuid) {
-      await ChangeTrackingService.update(microservice.iofogUuid, ChangeTrackingService.events.microserviceFull, transaction)
-    }
-  } catch (error) {
-    logger.error(`Failed to notify microservice for service account update (microserviceUuid: ${microserviceUuid}):`, error.message)
-  }
+  await _setMicroserviceListChangeTrackingForServiceAccounts([serviceAccount], transaction)
 }
 
 // Role Management
 async function listRolesEndpoint (transaction) {
   const roles = await RbacRoleManager.listRoles(transaction)
   return {
-    roles: roles
+    roles
   }
 }
 
@@ -67,7 +70,7 @@ async function getRoleEndpoint (name, transaction) {
     throw new Errors.NotFoundError(`Role '${name}' not found`)
   }
   return {
-    role: role
+    role
   }
 }
 
@@ -80,7 +83,7 @@ async function createRoleEndpoint (roleData, transaction) {
 
   const role = await RbacRoleManager.createRole(roleData, transaction)
   return {
-    role: role
+    role
   }
 }
 
@@ -118,7 +121,7 @@ async function updateRoleEndpoint (name, roleData, transaction) {
   // System roles don't have database IDs, but we already prevent updating system roles above
   if (roleId != null) {
     // Find all role bindings that reference this role using roleId for efficient querying
-    const bindings = await RbacRoleBindingManager.findAll({ roleId: roleId }, transaction)
+    const bindings = await RbacRoleBindingManager.findAll({ roleId }, transaction)
     for (const binding of bindings) {
       // Trigger update to refresh cache and ensure roleId is set
       await RbacRoleBindingManager.updateRoleBinding(binding.name, {
@@ -127,7 +130,7 @@ async function updateRoleEndpoint (name, roleData, transaction) {
     }
 
     // Find all service accounts that reference this role using roleId for efficient querying
-    const serviceAccounts = await RbacServiceAccountManager.findAll({ roleId: roleId }, transaction)
+    const serviceAccounts = await RbacServiceAccountManager.findAll({ roleId }, transaction)
     for (const sa of serviceAccounts) {
       const application = sa.applicationId ? await ApplicationManager.findOne({ id: sa.applicationId }, transaction) : null
       const appName = application ? application.name : null
@@ -136,12 +139,12 @@ async function updateRoleEndpoint (name, roleData, transaction) {
           roleRef: sa.roleRef
         }, transaction)
       }
-      await _notifyMicroservicesForServiceAccountUpdate(sa, transaction)
     }
+    await _setMicroserviceListChangeTrackingForServiceAccounts(serviceAccounts, transaction)
   }
 
   return {
-    role: role
+    role
   }
 }
 
@@ -156,7 +159,7 @@ async function deleteRoleEndpoint (name, transaction) {
 async function listRoleBindingsEndpoint (transaction) {
   const bindings = await RbacRoleBindingManager.listRoleBindings(transaction)
   return {
-    bindings: bindings
+    bindings
   }
 }
 
@@ -166,7 +169,7 @@ async function getRoleBindingEndpoint (name, transaction) {
     throw new Errors.NotFoundError(`RoleBinding '${name}' not found`)
   }
   return {
-    binding: binding
+    binding
   }
 }
 
@@ -176,7 +179,7 @@ async function createRoleBindingEndpoint (bindingData, transaction) {
 
   const binding = await RbacRoleBindingManager.createRoleBinding(bindingData, transaction)
   return {
-    binding: binding
+    binding
   }
 }
 
@@ -186,7 +189,7 @@ async function updateRoleBindingEndpoint (name, bindingData, transaction) {
 
   const binding = await RbacRoleBindingManager.updateRoleBinding(name, bindingData, transaction)
   return {
-    binding: binding
+    binding
   }
 }
 
@@ -201,7 +204,7 @@ async function deleteRoleBindingEndpoint (name, transaction) {
 async function listServiceAccountsEndpoint (applicationName, transaction) {
   const serviceAccounts = await RbacServiceAccountManager.listServiceAccounts(transaction, { applicationName })
   return {
-    serviceAccounts: serviceAccounts
+    serviceAccounts
   }
 }
 

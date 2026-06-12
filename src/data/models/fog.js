@@ -170,22 +170,13 @@ module.exports = (sequelize, DataTypes) => {
     host: {
       type: DataTypes.TEXT
     },
-    processedMessages: {
-      type: DataTypes.BIGINT,
-      get () {
-        return convertToInt(this.getDataValue('processedMessages'))
-      },
-      defaultValue: 0,
-      field: 'processed_messages'
-    },
     catalogItemMessageCounts: {
       type: DataTypes.TEXT,
       field: 'catalog_item_message_counts'
     },
-    messageSpeed: {
-      type: DataTypes.FLOAT,
-      defaultValue: 0.000,
-      field: 'message_speed'
+    availableRuntimes: {
+      type: DataTypes.TEXT,
+      field: 'available_runtimes'
     },
     lastCommandTime: {
       type: DataTypes.BIGINT,
@@ -199,16 +190,16 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: 'dynamic',
       field: 'network_interface'
     },
-    dockerUrl: {
+    containerEngineUrl: {
       type: DataTypes.TEXT,
-      defaultValue: 'unix:///var/run/docker.sock',
+      defaultValue: 'unix:///run/edgelet/contaienrd.sock',
       field: 'docker_url'
     },
     containerEngine: {
-      type: DataTypes.ENUM('docker', 'podman'),
+      type: DataTypes.ENUM('edgelet', 'docker', 'podman'),
       allowNull: false,
       field: 'container_engine',
-      defaultValue: 'docker'
+      defaultValue: 'edgelet'
     },
     deploymentType: {
       type: DataTypes.ENUM('native', 'container'),
@@ -308,7 +299,7 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: 0,
       field: 'edge_guard_frequency'
     },
-    dockerPruningFrequency: {
+    pruningFrequency: {
       type: DataTypes.INTEGER,
       defaultValue: 0,
       field: 'docker_pruning_freq'
@@ -360,6 +351,11 @@ module.exports = (sequelize, DataTypes) => {
     gpsStatus: {
       type: DataTypes.TEXT,
       field: 'gps_status'
+    },
+    archId: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
+      field: 'arch_id'
     }
   }, {
     tableName: 'Fogs',
@@ -367,12 +363,12 @@ module.exports = (sequelize, DataTypes) => {
     underscored: true
   })
   Fog.associate = function (models) {
-    Fog.belongsTo(models.FogType, {
+    Fog.belongsTo(models.Architecture, {
       foreignKey: {
-        name: 'fogTypeId',
-        field: 'fog_type_id'
+        name: 'archId',
+        field: 'arch_id'
       },
-      as: 'fogType',
+      as: 'architecture',
       defaultValue: 0
     })
 
@@ -402,7 +398,6 @@ module.exports = (sequelize, DataTypes) => {
     })
 
     Fog.belongsToMany(models.Tags, { through: 'IofogTags', as: 'tags' })
-    Fog.belongsToMany(models.EdgeResource, { through: 'AgentEdgeResources', as: 'edgeResources' })
     Fog.belongsToMany(models.VolumeMount, { through: 'FogVolumeMounts', as: 'volumeMounts' })
   }
 

@@ -198,6 +198,7 @@ class DatabaseProvider {
     try {
       await db.query(query)
     } catch (err) {
+      logger.error(`Failed to create SchemaVersion table (${provider}):`, err)
       throw err
     }
   }
@@ -228,7 +229,7 @@ class DatabaseProvider {
   // Common method to update seeder version
   async updateSeederVersion (db, version, provider) {
     switch (provider) {
-      case 'sqlite':
+      case 'sqlite': {
         const sqliteQuery = 'UPDATE SchemaVersion SET seeder_version = ?, updated_at = CURRENT_TIMESTAMP WHERE id = (SELECT MAX(id) FROM SchemaVersion)'
         return new Promise((resolve, reject) => {
           db.run(sqliteQuery, [version], (err) => {
@@ -236,23 +237,26 @@ class DatabaseProvider {
             else resolve()
           })
         })
-      case 'mysql':
+      }
+      case 'mysql': {
         const [result] = await db.query('SELECT MAX(id) as maxId FROM SchemaVersion')
         const maxId = result[0].maxId
         const mysqlQuery = 'UPDATE SchemaVersion SET seeder_version = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?'
         await db.query(mysqlQuery, { replacements: [version, maxId] })
         break
-      case 'postgres':
+      }
+      case 'postgres': {
         const postgresQuery = 'UPDATE "SchemaVersion" SET seeder_version = $1, updated_at = CURRENT_TIMESTAMP WHERE id = (SELECT MAX(id) FROM "SchemaVersion")'
         await db.query(postgresQuery, { bind: [version] })
         break
+      }
     }
   }
 
-  // SQLite migration
+  // SQLite migration — greenfield v3.8.0 (see src/data/migrations/README.md)
   async runMigrationSQLite (dbName) {
-    const migrationSqlPath = path.resolve(__dirname, '../migrations/sqlite/db_migration_sqlite_v1.1.0.sql')
-    const migrationVersion = '1.1.0'
+    const migrationSqlPath = path.resolve(__dirname, '../migrations/sqlite/db_migration_sqlite_v3.8.0.sql')
+    const migrationVersion = '3.8.0'
 
     if (!fs.existsSync(migrationSqlPath)) {
       logger.error(`Migration file not found: ${migrationSqlPath}`)
@@ -262,7 +266,7 @@ class DatabaseProvider {
     const migrationSql = fs.readFileSync(migrationSqlPath).toString()
     const dataArr = migrationSql.split(';')
 
-    let db = new sqlite3.Database(dbName, (err) => {
+    const db = new sqlite3.Database(dbName, (err) => {
       if (err) {
         logger.error(err.message)
         throw err
@@ -322,10 +326,10 @@ class DatabaseProvider {
     }
   }
 
-  // MySQL migration
+  // MySQL migration — greenfield v3.8.0 (see src/data/migrations/README.md)
   async runMigrationMySQL (db) {
-    const migrationSqlPath = path.resolve(__dirname, '../migrations/mysql/db_migration_mysql_v1.1.0.sql')
-    const migrationVersion = '1.1.0'
+    const migrationSqlPath = path.resolve(__dirname, '../migrations/mysql/db_migration_mysql_v3.8.0.sql')
+    const migrationVersion = '3.8.0'
 
     if (!fs.existsSync(migrationSqlPath)) {
       logger.error(`Migration file not found: ${migrationSqlPath}`)
@@ -352,7 +356,6 @@ class DatabaseProvider {
           try {
             await db.query(query)
           } catch (err) {
-            // Check both the error and its parent (for Sequelize errors)
             const errorToCheck = err.parent || err
             if (errorToCheck.code === 'ER_TABLE_EXISTS_ERROR' ||
                 errorToCheck.code === 'ER_DUP_FIELDNAME' ||
@@ -383,10 +386,10 @@ class DatabaseProvider {
     }
   }
 
-  // PostgreSQL migration
+  // PostgreSQL migration — greenfield v3.8.0 (see src/data/migrations/README.md)
   async runMigrationPostgres (db) {
-    const migrationSqlPath = path.resolve(__dirname, '../migrations/postgres/db_migration_pg_v1.1.0.sql')
-    const migrationVersion = '1.1.0'
+    const migrationSqlPath = path.resolve(__dirname, '../migrations/postgres/db_migration_pg_v3.8.0.sql')
+    const migrationVersion = '3.8.0'
 
     if (!fs.existsSync(migrationSqlPath)) {
       logger.error(`Migration file not found: ${migrationSqlPath}`)
@@ -413,10 +416,8 @@ class DatabaseProvider {
           try {
             await db.query(query)
           } catch (err) {
-            // Check both the error and its parent (for Sequelize errors)
             const errorToCheck = err.parent || err
 
-            // If transaction is aborted, rollback and start new transaction
             if (errorToCheck.code === '25P02') {
               logger.warn('Transaction aborted, rolling back and starting new transaction...')
               await db.query('ROLLBACK')
@@ -424,16 +425,16 @@ class DatabaseProvider {
               continue
             }
 
-            if (errorToCheck.code === '42P07' || // duplicate_table
-                errorToCheck.code === '42701' || // duplicate_column
-                errorToCheck.code === '42P06' || // duplicate_schema
-                errorToCheck.code === '23505' || // unique_violation
-                errorToCheck.code === '23503' || // foreign_key_violation
-                errorToCheck.code === '42P01' || // undefined_table
-                errorToCheck.code === '42703' || // undefined_column
-                errorToCheck.code === '42P16' || // invalid_table_definition
-                errorToCheck.code === '42P17' || // invalid_table_definition
-                errorToCheck.code === '42P18' || // invalid_table_definition
+            if (errorToCheck.code === '42P07' ||
+                errorToCheck.code === '42701' ||
+                errorToCheck.code === '42P06' ||
+                errorToCheck.code === '23505' ||
+                errorToCheck.code === '23503' ||
+                errorToCheck.code === '42P01' ||
+                errorToCheck.code === '42703' ||
+                errorToCheck.code === '42P16' ||
+                errorToCheck.code === '42P17' ||
+                errorToCheck.code === '42P18' ||
                 (errorToCheck.message && (
                   errorToCheck.message.includes('already exists') ||
                   errorToCheck.message.includes('duplicate key') ||
@@ -458,10 +459,10 @@ class DatabaseProvider {
     }
   }
 
-  // SQLite seeder
+  // SQLite seeder — greenfield v3.8.0 (see src/data/migrations/README.md)
   async runSeederSQLite (dbName) {
-    const seederSqlPath = path.resolve(__dirname, '../seeders/sqlite/db_seeder_sqlite_v1.0.2.sql')
-    const seederVersion = '1.0.2'
+    const seederSqlPath = path.resolve(__dirname, '../seeders/sqlite/db_seeder_sqlite_v3.8.0.sql')
+    const seederVersion = '3.8.0'
 
     if (!fs.existsSync(seederSqlPath)) {
       logger.error(`Seeder file not found: ${seederSqlPath}`)
@@ -471,7 +472,7 @@ class DatabaseProvider {
     const seederSql = fs.readFileSync(seederSqlPath).toString()
     const dataArr = seederSql.split(';')
 
-    let db = new sqlite3.Database(dbName, (err) => {
+    const db = new sqlite3.Database(dbName, (err) => {
       if (err) {
         logger.error(err.message)
         throw err
@@ -530,10 +531,10 @@ class DatabaseProvider {
     }
   }
 
-  // MySQL seeder
+  // MySQL seeder — greenfield v3.8.0 (see src/data/migrations/README.md)
   async runSeederMySQL (db) {
-    const seederSqlPath = path.resolve(__dirname, '../seeders/mysql/db_seeder_mysql_v1.0.2.sql')
-    const seederVersion = '1.0.2'
+    const seederSqlPath = path.resolve(__dirname, '../seeders/mysql/db_seeder_mysql_v3.8.0.sql')
+    const seederVersion = '3.8.0'
 
     if (!fs.existsSync(seederSqlPath)) {
       logger.error(`Seeder file not found: ${seederSqlPath}`)
@@ -580,10 +581,10 @@ class DatabaseProvider {
     }
   }
 
-  // PostgreSQL seeder
+  // PostgreSQL seeder — greenfield v3.8.0 (see src/data/migrations/README.md)
   async runSeederPostgres (db) {
-    const seederSqlPath = path.resolve(__dirname, '../seeders/postgres/db_seeder_pg_v1.0.2.sql')
-    const seederVersion = '1.0.2'
+    const seederSqlPath = path.resolve(__dirname, '../seeders/postgres/db_seeder_pg_v3.8.0.sql')
+    const seederVersion = '3.8.0'
 
     if (!fs.existsSync(seederSqlPath)) {
       logger.error(`Seeder file not found: ${seederSqlPath}`)
@@ -609,8 +610,8 @@ class DatabaseProvider {
           try {
             await db.query(query)
           } catch (err) {
-            if (err.code === '23505' || // unique_violation
-                err.code === '23503') { // foreign_key_violation
+            if (err.code === '23505' ||
+                err.code === '23503') {
               logger.warn(`Ignored PostgreSQL error: ${err.message}`)
             } else {
               await db.query('ROLLBACK')

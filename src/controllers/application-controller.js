@@ -1,16 +1,3 @@
-/*
- * *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 const ApplicationService = require('../services/application-service')
 const YAMLParserService = require('../services/yaml-parser-service')
 const errors = require('../helpers/errors')
@@ -116,18 +103,18 @@ const getApplicationByIdEndPoint = async function (req) {
 }
 
 module.exports = {
-  createApplicationEndPoint: (createApplicationEndPoint),
-  createApplicationYAMLEndPoint: (createApplicationYAMLEndPoint),
-  getApplicationsByUserEndPoint: (getApplicationsByUserEndPoint),
-  getApplicationsBySystemEndPoint: (getApplicationsBySystemEndPoint),
-  getApplicationEndPoint: (getApplicationEndPoint),
-  getSystemApplicationEndPoint: (getSystemApplicationEndPoint),
-  getApplicationByIdEndPoint: (getApplicationByIdEndPoint),
-  updateApplicationEndPoint: (updateApplicationEndPoint),
-  updateApplicationYAMLEndPoint: (updateApplicationYAMLEndPoint),
-  patchApplicationEndPoint: (patchApplicationEndPoint),
-  patchApplicationByIdEndPoint: (patchApplicationByIdEndPoint),
-  deleteApplicationEndPoint: (deleteApplicationEndPoint),
-  deleteSystemApplicationEndPoint: (deleteSystemApplicationEndPoint),
-  deleteApplicationByIdEndPoint: (deleteApplicationByIdEndPoint)
+  createApplicationEndPoint,
+  createApplicationYAMLEndPoint,
+  getApplicationsByUserEndPoint,
+  getApplicationsBySystemEndPoint,
+  getApplicationEndPoint,
+  getSystemApplicationEndPoint,
+  getApplicationByIdEndPoint,
+  updateApplicationEndPoint,
+  updateApplicationYAMLEndPoint,
+  patchApplicationEndPoint,
+  patchApplicationByIdEndPoint,
+  deleteApplicationEndPoint,
+  deleteSystemApplicationEndPoint,
+  deleteApplicationByIdEndPoint
 }

@@ -33,5 +33,5 @@ function preuninstall () {
 }
 
 module.exports = {
-  preuninstall: preuninstall
+  preuninstall
 }

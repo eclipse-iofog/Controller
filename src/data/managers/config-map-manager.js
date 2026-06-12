@@ -11,9 +11,9 @@ class ConfigMapManager extends BaseManager {
   async createConfigMap (name, immutable, data, useVault = true, transaction) {
     return this.create({
       name,
-      immutable: immutable,
-      useVault: useVault,
-      data: data
+      immutable,
+      useVault,
+      data
     }, transaction)
   }
 
@@ -31,7 +31,7 @@ class ConfigMapManager extends BaseManager {
     existing.useVault = useVault !== null ? useVault : existing.useVault
 
     // Save the instance - this triggers beforeSave hook which handles encryption/vault
-    const options = transaction.fakeTransaction ? {} : { transaction: transaction }
+    const options = transaction.fakeTransaction ? {} : { transaction }
     await existing.save(options)
 
     return existing

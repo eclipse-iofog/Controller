@@ -1,20 +1,6 @@
-/*
- * Software Name : eclipse-iofog/Controller
- * Version: 2.0.x
- * SPDX-FileCopyrightText: Copyright (c) 2020-2020 Orange
- * SPDX-License-Identifier: EPL-2.0
- *
- * This software is distributed under the <license-name>,
- * the text of which is available at http://www.eclipse.org/legal/epl-2.0
- * or see the "license.txt" file for more details.
- *
- * Author: Franck Roudet
- */
-
 const ApplicationManager = require('../data/managers/application-manager.js') // Using manager instead of service to avoid dependency loop
 const FogService = require('../services/iofog-service')
 const MicroservicesService = require('../services/microservices-service')
-const EdgeResourceService = require('../services/edge-resource-service')
 
 // ninja2 like template engine
 const { Liquid } = require('../lib/liquidjs/liquid.node.cjs')
@@ -31,23 +17,6 @@ function findMicroserviceAgentHandler (microservice) {
   //   return undefined
   // }
   const result = FogService.getFogEndPoint({ uuid: microservice.iofogUuid }, false)
-  return result
-}
-
-async function findEdgeResourcehandler (name, version) {
-  const key = `${name}/${version}`
-  // const user = this.context.environments._user
-  // if (!user) {
-  //   return undefined
-  // }
-  if (this.context.environments._edgeResourcesByName && this.context.environments._edgeResourcesByName[key]) {
-    return this.context.environments._edgeResourcesByName[key]
-  }
-  const result = await EdgeResourceService.getEdgeResource({ name, version })
-
-  if (result && this.context.environments._edgeResourcesByName) {
-    this.context.environments._edgeResourcesByName[key] = result
-  }
   return result
 }
 
@@ -117,11 +86,10 @@ function toStringParser (variable) {
   }
 }
 /**
- * Add filter findEdgeRessource to template engine.
+ * Add filter findApplication to template engine.
  * user is in liquid context _user
- * Syntaxe  {{ name findEdgeRessource: version }}
+ * Syntaxe  {{ name | findApplication }}
  */
-templateEngine.registerFilter('findEdgeResource', findEdgeResourcehandler)
 templateEngine.registerFilter('findApplication', findApplicationHandler)
 templateEngine.registerFilter('findAgent', findAgentHandler)
 templateEngine.registerFilter('findMicroserviceAgent', findMicroserviceAgentHandler)
@@ -145,10 +113,9 @@ const rvaluesVarSubstition = async (subjects, templateContext) => {
 
   // Create local cache for filters if they do not exists
   context._agentsByName = context._agentsByName || {}
-  context._edgeResourcesByName = context._edgeResourcesByName || {}
   context._applicationsByName = context._applicationsByName || {}
 
-  for (let key in subjects) {
+  for (const key in subjects) {
     try {
       if (typeof subjects[key] === 'object') {
         await rvaluesVarSubstition(subjects[key], context, null)
@@ -168,7 +135,7 @@ const rvaluesVarSubstition = async (subjects, templateContext) => {
 const substitutionMiddleware = async (req, res, next) => {
   if (['POST', 'PUT', 'PATCH'].indexOf(req.method) > -1) {
     // let user
-    let tmplContext = {
+    const tmplContext = {
       self: req.body
       // Private context
       // _user: user // need by edge resource and every on demand request

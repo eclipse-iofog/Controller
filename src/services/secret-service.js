@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 const crypto = require('crypto')
 const TransactionDecorator = require('../decorators/transaction-decorator')
 const SecretManager = require('../data/managers/secret-manager')
@@ -234,7 +221,7 @@ async function deleteSecretEndpoint (secretName, transaction) {
 }
 
 async function _deleteVolumeMountsUsingSecret (secretName, transaction) {
-  const volumeMounts = await VolumeMountingManager.findAll({ secretName: secretName }, transaction)
+  const volumeMounts = await VolumeMountingManager.findAll({ secretName }, transaction)
   if (volumeMounts.length > 0) {
     for (const volumeMount of volumeMounts) {
       await VolumeMountService.deleteVolumeMountEndpoint(volumeMount.name, transaction)
@@ -243,12 +230,12 @@ async function _deleteVolumeMountsUsingSecret (secretName, transaction) {
 }
 
 async function _updateChangeTrackingForFogs (secretName, transaction) {
-  const secretVolumeMounts = await VolumeMountingManager.findAll({ secretName: secretName }, transaction)
+  const secretVolumeMounts = await VolumeMountingManager.findAll({ secretName }, transaction)
   if (secretVolumeMounts.length > 0) {
     for (const secretVolumeMount of secretVolumeMounts) {
       const volumeMountObj = {
         name: secretVolumeMount.name,
-        secretName: secretName
+        secretName
       }
       await VolumeMountService.updateVolumeMountEndpoint(secretVolumeMount.name, volumeMountObj, transaction)
     }

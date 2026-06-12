@@ -1,16 +1,3 @@
-/*
- * *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 const ServiceService = require('../services/services-service')
 const YamlParserService = require('../services/yaml-parser-service')
 
@@ -50,7 +37,7 @@ const updateServiceYAMLEndpoint = async function (req) {
   const fileContent = req.file.buffer.toString()
   const serviceData = await YamlParserService.parseServiceFile(fileContent, {
     isUpdate: true,
-    serviceName: serviceName
+    serviceName
   })
   return ServiceService.updateServiceEndpoint(serviceName, serviceData)
 }

@@ -1,6 +1,42 @@
-# Contributing to Eclipse-ioFog Controller
+# Contributing to Controller
 
 Thanks for your interest in this project.
+
+## Dual-mirror repositories
+
+Controller v3.8 uses a **single shared git tree** published to two GitHub remotes at the **same commit SHA**:
+
+| Remote | Default registry | OCI source |
+|--------|------------------|------------|
+| [eclipse-iofog/Controller](https://github.com/eclipse-iofog/Controller) | `ghcr.io/eclipse-iofog` | `https://github.com/eclipse-iofog/Controller` |
+| [Datasance/Controller](https://github.com/Datasance/Controller) | `ghcr.io/datasance` | `https://github.com/Datasance/Controller` |
+
+Canonical upstream in `package.json` is `eclipse-iofog/Controller`. Product-facing strings (RBAC API group, distribution label, container registry) differ by **build flavor**, not by diverging source code.
+
+### CI workflow
+
+| Trigger | Jobs |
+|---------|------|
+| Pull request, push to `main`, push to `develop` | **Preflight** — lint, unit tests, dependency audit, Docker build (**no image push**) |
+| Push of a `v*` tag (e.g. `v3.8.0`) | **Publish** — Docker build and push to `${IMAGE_REGISTRY}/controller` |
+
+Image publish runs **only** on version tags. Integration branches on both mirrors are `main` and `develop`.
+
+### Repository CI variables
+
+Set these as GitHub **Actions variables** (`Settings → Secrets and variables → Actions → Variables`) per mirror. When unset, CI derives defaults from `github.repository` (same pattern as EdgeOps Console).
+
+| Variable | Eclipse ioFog mirror | Datasance PoT mirror |
+|----------|----------------------|----------------------|
+| `IMAGE_REGISTRY` | `ghcr.io/eclipse-iofog` | `ghcr.io/datasance` |
+| `OCI_SOURCE_REPO` | `https://github.com/eclipse-iofog/Controller` | `https://github.com/Datasance/Controller` |
+| `CONTROLLER_DISTRIBUTION` | `iofog` | `datasance` |
+| `RBAC_API_VERSION` | `iofog.org/v3` | `datasance.com/v3` |
+| `EDGEOPS_CONSOLE_REPO` | `https://github.com/eclipse-iofog/edgeops-console` | `https://github.com/Datasance/edgeops-console` |
+| `EDGEOPS_CONSOLE_FLAVOR` | `iofog` | `datasance` |
+| `EDGEOPS_CONSOLE_VERSION` | Console release tag (optional; default `1.0.0`) | same |
+
+Docker build passes these as build-args for OCI labels and baked runtime flavor env.
 
 ## Project description
 

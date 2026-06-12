@@ -1,18 +1,7 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
+const path = require('path')
 
 module.exports = {
-  ROOT_DIR: `${__dirname}/../..`,
+  ROOT_DIR: path.join(__dirname, '../..'),
 
   CMD: 'command',
   CMD_LIST: 'list',
@@ -48,13 +37,7 @@ module.exports = {
   CMD_IOFOG_REBOOT: 'reboot',
   CMD_CONTROLLER: 'controller',
   CMD_EMAIL_ACTIVATION: 'email-activation',
-  CMD_FOG_TYPES: 'fog-types',
-  CMD_DIAGNOSTICS: 'diagnostics',
-  CMD_STRACE_UPDATE: 'strace-update',
-  CMD_STRACE_INFO: 'strace-info',
-  CMD_STRACE_FTP_POST: 'strace-ftp-post',
-  CMD_IMAGE_SNAPSHOT_CREATE: 'image-snapshot-create',
-  CMD_IMAGE_SNAPSHOT_GET: 'image-snapshot-get',
+  CMD_ARCHITECTURES: 'architectures',
   CMD_HAL_HW: 'hal-hw',
   CMD_HAL_USB: 'hal-usb',
   CMD_IOFOG_PRUNE: 'prune',
@@ -67,6 +50,8 @@ module.exports = {
   HTTP_CODE_UNAUTHORIZED: 401,
   HTTP_CODE_FORBIDDEN: 403,
   HTTP_CODE_NOT_FOUND: 404,
+  HTTP_CODE_TOO_MANY_REQUESTS: 429,
+  HTTP_CODE_NOT_IMPLEMENTED: 501,
   HTTP_CODE_DUPLICATE_PROPERTY: 409,
   HTTP_CODE_INTERNAL_ERROR: 500,
 
@@ -74,7 +59,16 @@ module.exports = {
   DEFAULT_NATS_HUB_NAME: 'default-nats-hub',
   DEFAULT_PROXY_HOST: 'default-proxy-host',
 
-  RESERVED_PORTS: [54321, 54322],
+  DEFAULT_ROUTER_LOCAL_CA: 'default-router-local-ca',
+  DEFAULT_NATS_LOCAL_CA: 'default-nats-local-ca',
+  ROUTER_SITE_CA: 'router-site-ca',
+  NATS_SITE_CA: 'nats-site-ca',
+
+  ROUTER_BRIDGE_DNS_SAN: 'router.default.svc.bridge.local',
+  NATS_BRIDGE_DNS_SAN: 'nats.default.svc.bridge.local',
+  DEFAULT_ROUTER_K8S_SERVICE: 'router',
+
+  RESERVED_PORTS: [54321, 54322, 53],
 
   VOLUME_MAPPING_DEFAULT: 'bind',
   MICROSERVICE_DEFAULT_LOG_SIZE: 1

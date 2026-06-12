@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 const NatsAuthService = require('./nats-auth-service')
 const NatsHubService = require('./nats-hub-service')
 const NatsAccountManager = require('../data/managers/nats-account-manager')
@@ -236,11 +223,11 @@ async function upsertHub (payload, transaction) {
 async function getAccount (appName, transaction) {
   const application = await ApplicationManager.findOne({ name: appName }, transaction)
   if (!application) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_NAME, appName))
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_APPLICATION_NAME, appName))
   }
   const account = await NatsAccountManager.findOne({ applicationId: application.id }, transaction)
   if (!account) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_ID, application.id))
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_APPLICATION_ID, application.id))
   }
   return {
     id: account.id,
@@ -255,7 +242,7 @@ async function getAccount (appName, transaction) {
 async function ensureAccount (appName, payload, transaction) {
   const application = await ApplicationManager.findOne({ name: appName }, transaction)
   if (!application) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_NAME, appName))
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_APPLICATION_NAME, appName))
   }
   if (application.natsAccess) {
     throw new Errors.ValidationError(
@@ -303,11 +290,11 @@ async function listAllUsers (transaction) {
 async function listUsers (appName, transaction) {
   const application = await ApplicationManager.findOne({ name: appName }, transaction)
   if (!application) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_NAME, appName))
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_APPLICATION_NAME, appName))
   }
   const account = await NatsAccountManager.findOne({ applicationId: application.id }, transaction)
   if (!account) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_ID, application.id))
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_APPLICATION_ID, application.id))
   }
   const users = await NatsUserManager.findAll({ accountId: account.id }, transaction)
   return {
@@ -330,7 +317,7 @@ async function createUser (appName, payload, transaction) {
   }
   const application = await ApplicationManager.findOne({ name: appName }, transaction)
   if (!application) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_NAME, appName))
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_APPLICATION_NAME, appName))
   }
   const account = await NatsAuthService.ensureAccountForApplication(application.id, transaction)
   const expiresIn = payload && payload.expiresIn
@@ -350,20 +337,20 @@ async function getUserCreds (appName, userName, transaction) {
   const sysAccount = await NatsAccountManager.findOne({ name: appName }, transaction)
 
   if (!application && (!sysAccount || (!sysAccount.isSystem && !sysAccount.isLeafSystem))) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_NAME, appName))
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_APPLICATION_NAME, appName))
   }
   let accountId = null
   if (application) {
     const account = await NatsAccountManager.findOne({ applicationId: application.id }, transaction)
     if (!account) {
-      throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_ID, application.id))
+      throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_APPLICATION_ID, application.id))
     }
     accountId = account.id
   }
   if (sysAccount && (sysAccount.isSystem || sysAccount.isLeafSystem)) {
     accountId = sysAccount.id
   }
-  const user = await NatsUserManager.findOne({ accountId: accountId, name: userName }, transaction)
+  const user = await NatsUserManager.findOne({ accountId, name: userName }, transaction)
   if (!user) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_NAME, userName))
   }
@@ -392,7 +379,7 @@ async function createMqttBearer (appName, payload, transaction) {
   }
   const application = await ApplicationManager.findOne({ name: appName }, transaction)
   if (!application) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_NAME, appName))
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_APPLICATION_NAME, appName))
   }
   const expiresIn = payload && payload.expiresIn
   const natsRule = payload && payload.natsRule
@@ -408,11 +395,11 @@ async function createMqttBearer (appName, payload, transaction) {
 async function deleteUser (appName, userName, transaction) {
   const application = await ApplicationManager.findOne({ name: appName }, transaction)
   if (!application) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_NAME, appName))
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_APPLICATION_NAME, appName))
   }
   const account = await NatsAccountManager.findOne({ applicationId: application.id }, transaction)
   if (!account) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_ID, application.id))
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_APPLICATION_ID, application.id))
   }
   await NatsAuthService.revokeUserByAccountAndName(account.id, userName, transaction)
 }
@@ -420,11 +407,11 @@ async function deleteUser (appName, userName, transaction) {
 async function deleteMqttBearer (appName, userName, transaction) {
   const application = await ApplicationManager.findOne({ name: appName }, transaction)
   if (!application) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_NAME, appName))
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_APPLICATION_NAME, appName))
   }
   const account = await NatsAccountManager.findOne({ applicationId: application.id }, transaction)
   if (!account) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_ID, application.id))
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_APPLICATION_ID, application.id))
   }
   const user = await NatsUserManager.findOne({ accountId: account.id, name: userName }, transaction)
   if (!user) {

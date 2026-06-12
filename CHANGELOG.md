@@ -1,5 +1,97 @@
 # Changelog
 
+## [v3.8.0] - 2026-06-12
+
+Controller v3.8 is a **greenfield** release aligned with **Edgelet**. There is **no upgrade path** from v3.7: use a fresh database and redeploy Controller + Edgelet together.
+
+### Breaking changes
+
+#### Agent runtime
+
+- **Edgelet only** — v3.7 legacy field agents are **not supported**.
+- Requires **Edgelet v1.0.0-beta.1+** on the same release train (pin e.g. `v1.0.0-beta.2` with Controller `v3.8.0`).
+- Provision accepts `containerEngine`: `edgelet` | `docker` | `podman` (was docker-implied).
+- Agent config: `dockerUrl` → **`containerEngineUrl`**; `dockerPruningFrequency` → **`pruningFrequency`**.
+- Agent architecture: `fogType` / `fogTypeId` → **`arch`** / **`archId`** (ids: 0=auto, 1=amd64, 2=arm64, 3=riscv64, 4=arm).
+- Agent status: removed **`processedMessages`**, **`messageSpeed`**; added **`availableRuntimes`**, optional **`runtimeAgentPhase`**, **`controlPlaneQuiesced`**.
+- Default container registry: **`docker.io`** (was `registry.hub.docker.com`).
+- Reserved ports: **54321**, **54322**, **53**.
+- New field-agent endpoint: **`POST /api/v3/agent/controller/register`** (system fogs only; Edgelet beta.1+).
+
+#### API — architectures and applications
+
+- **`GET /api/v3/fog-types`** → **`GET /api/v3/architectures/`** (public).
+- **`/api/v3/flow/*`** → **`/api/v3/application/*`**; RBAC resource **`flows`** → **`applications`**.
+- Microservice create: **`application`** string (name) in body — **`flowId` query param removed**.
+- Error codes: **`INVALID_FLOW_*`** → **`INVALID_APPLICATION_*`**.
+- Catalog and microservice images: **`images[]`** with `{ containerImage, archId }` (up to **4** per arch 1–4); single-image-only create removed.
+- Microservice **`runtime`** must be in agent **`availableRuntimes`**.
+- Service account volume type **`serviceAccount`** (immutable); `roleRef.apiGroup` **`edgelet.iofog.org/v1`** (was `agent.datasance.com/v3`).
+- System microservice **`controller`** in application `system-{agentName}`; user delete → **403**, user PATCH → **400**.
+- TCP bridge connector hosts: **`{appName}.{microserviceName}`** or **`edgelet.default.bridge.local`** (removed `iofog`, `iofog_{uuid}`).
+
+#### Removed APIs
+
+- **EdgeResource** APIs, models, and RBAC.
+- **Diagnostics**, **strace**, image **snapshot** / **download** APIs.
+- All **`/api/v3/flow`** routes.
+
+#### Authentication
+
+- **`keycloak-connect` removed** — generic OIDC (`openid-client` + JWKS discovery).
+- Keycloak-specific env removed: **`KC_*`**, **`auth.realm`**, **`auth.realmKey`**, realm public key.
+- Canonical OIDC env: **`OIDC_ISSUER_URL`** (full issuer URL), **`OIDC_CLIENT_ID`**, **`OIDC_CLIENT_SECRET`**, **`OIDC_CONSOLE_CLIENT_ID`**, **`AUTH_MODE`** (`embedded` | `external`).
+- Embedded issuer at **`{CONTROLLER_PUBLIC_URL}/oidc`** when `AUTH_MODE=embedded`.
+- TLS env renamed: **`SSL_*`** → **`TLS_*`**; use **`CONTROLLER_PUBLIC_URL`** + **`TRUST_PROXY`** behind reverse proxies.
+- Browser login: OAuth BFF (`GET /api/v3/user/oauth/authorize`) — not browser `POST /user/login`.
+- Bootstrap admin: **`OIDC_BOOTSTRAP_ADMIN_USERNAME`**, **`OIDC_BOOTSTRAP_ADMIN_PASSWORD`** (embedded first boot).
+
+#### EdgeOps Console (replaces ECN-Viewer)
+
+- **Container-only ship** — no npm publish of `@datasance/iofogcontroller` or `@datasance/ecn-viewer`.
+- **EdgeOps Console** static SPA embedded in the Controller image (replaces **`@datasance/ecn-viewer`** / **`@iofog/ecn-viewer`** npm package).
+- Build flavors: **`datasance`** | **`iofog`** via **`EDGEOPS_CONSOLE_FLAVOR`** / **`EDGEOPS_CONSOLE_VERSION`**.
+- Env renames (no aliases):
+
+  | Remove | Canonical |
+  |--------|-----------|
+  | `VIEWER_URL` | **`CONSOLE_URL`** |
+  | `VIEWER_PORT` | **`CONSOLE_PORT`** |
+  | `ECN_VIEWER_PATH` | **`EDGEOPS_CONSOLE_PATH`** |
+  | `OIDC_VIEWER_CLIENT_ID` | **`OIDC_CONSOLE_CLIENT_ID`** |
+  | `AUTH_VIEWER_CLIENT_ENABLED` | **`AUTH_CONSOLE_CLIENT_ENABLED`** |
+
+- Runtime **`controller-config.js`** uses **`consoleUrl`** (not `viewerUrl`); **`auth.*`** endpoints only — no `keycloak*` or `oidcIssuerUrl` keys in Console config.
+- Dual-port default: API **51121**, Console **8008**.
+- Status API field **`versions.ecnViewer`** retained for compatibility; value is the embedded Console version string.
+
+#### Database and distribution
+
+- **Greenfield schema** — **new install required**; no v3.7 → v3.8 database migrator.
+- PKI: central router/NATS local CAs; legacy per-agent CAs migrated via one-time **rotation job** (Plan 5).
+- **Node.js 24.x** required for dev and CI (was 16/18).
+- Dual-mirror container images: **`ghcr.io/eclipse-iofog/controller`** and **`ghcr.io/datasance/controller`** from the **same commit SHA**; publish on **`v*` tags only** via repo variable **`IMAGE_REGISTRY`**.
+
+### Added
+
+- Embedded OIDC identity service with TOTP MFA (mandatory for `admin` group).
+- **`POST /api/v3/auth/migration/export`** — one-way embedded → external IdP migration.
+- **`POST /api/v3/auth/jwks/rotate`** — manual JWKS rotation (embedded mode).
+- Built-in rate limiting on auth endpoints.
+- HA BFF session store support for multi-replica Controller deployments.
+- **NOTICE** file replaces per-file copyright headers.
+- Neutral in-tree identity: RBAC **`iofog.org/v3`**, default namespace **`iofog`**, `package.json` name **`controller`**.
+
+### Removed
+
+- v3.7 legacy field-agent wire protocol and deprecated agent field names.
+- npm package distribution of Controller and ECN-Viewer.
+- EdgeResource, diagnostics, strace, and legacy flow APIs.
+- Keycloak-specific configuration and `keycloak-connect` dependency.
+- `processedMessages`, `messageSpeed`, and dual-read aliases for deprecated agent fields.
+
+---
+
 ## [v3.0.0] - 11-05-2022
 
 ### Features

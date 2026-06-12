@@ -1,16 +1,3 @@
-/*
- * *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 const TransactionDecorator = require('../decorators/transaction-decorator')
 const ServiceManager = require('../data/managers/service-manager')
 const MicroserviceManager = require('../data/managers/microservice-manager')
@@ -31,10 +18,11 @@ const {
   ensureSystemApplication,
   getSystemMicroserviceName
 } = require('../helpers/system-naming')
+const { getServiceAnnotationTag, getComponentLabelKey, getAppLabelKey } = require('../config/flavor')
 // const { Op } = require('sequelize')
 
 const K8S_ROUTER_CONFIG_MAP = 'iofog-router'
-const SERVICE_ANNOTATION_TAG = 'service.iofog.org/tag'
+const EDGELET_BRIDGE_CONNECTOR_HOST = 'edgelet.default.bridge.local'
 
 // Map service tags to string array
 // Return plain JS object
@@ -44,7 +32,7 @@ function _mapTags (service) {
 
 async function _setTags (serviceModel, tagsArray, transaction) {
   if (tagsArray) {
-    let tags = []
+    const tags = []
     for (const tag of tagsArray) {
       let tagModel = await TagsManager.findOne({ value: tag }, transaction)
       if (!tagModel) {
@@ -59,10 +47,11 @@ async function _setTags (serviceModel, tagsArray, transaction) {
 async function handleServiceDistribution (serviceTags, transaction) {
   const tags = Array.isArray(serviceTags) ? serviceTags : (serviceTags ? [].concat(serviceTags) : [])
   logger.debug('handleServiceDistribution: entry', { serviceTagsType: typeof serviceTags, isArray: Array.isArray(serviceTags), tagsLength: tags.length })
+  const serviceAnnotationTag = getServiceAnnotationTag()
 
   // Always find fog nodes with 'all' tag
   const allTaggedFogNodesRaw = await FogManager.findAllWithTags({
-    '$tags.value$': `${SERVICE_ANNOTATION_TAG}: all`
+    '$tags.value$': `${serviceAnnotationTag}: all`
   }, transaction)
   const allTaggedFogNodes = Array.isArray(allTaggedFogNodesRaw) ? allTaggedFogNodesRaw : []
   logger.debug('handleServiceDistribution: allTaggedFogNodes', { length: allTaggedFogNodes.length })
@@ -91,7 +80,7 @@ async function handleServiceDistribution (serviceTags, transaction) {
   const specificTaggedFogNodes = new Set()
   for (const tag of filteredServiceTags) {
     const fogNodesRaw = await FogManager.findAllWithTags({
-      '$tags.value$': `${SERVICE_ANNOTATION_TAG}: ${tag}`
+      '$tags.value$': `${serviceAnnotationTag}: ${tag}`
     }, transaction)
     const fogNodes = Array.isArray(fogNodesRaw) ? fogNodesRaw : []
     fogNodes.forEach(fog => specificTaggedFogNodes.add(fog.uuid))
@@ -221,7 +210,7 @@ async function validateDefaultBridge (serviceConfig, transaction) {
     }
 
     // Get the router for the iofog node
-    const router = await RouterManager.findOne({ iofogUuid: iofogUuid }, transaction)
+    const router = await RouterManager.findOne({ iofogUuid }, transaction)
     if (!router) {
       throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_ROUTER, iofogUuid))
     }
@@ -271,15 +260,22 @@ async function defineBridgePort (serviceConfig, transaction) {
 // Helper function to determine host based on service type
 async function _determineConnectorHost (serviceConfig, transaction) {
   switch (serviceConfig.type.toLowerCase()) {
-    case 'microservice':
+    case 'microservice': {
       const microservice = await MicroserviceManager.findOne({ uuid: serviceConfig.resource }, transaction)
-      if (microservice.hostNetworkMode) {
-        return 'iofog'
-      } else {
-        return `iofog_${serviceConfig.resource}`
+      if (!microservice) {
+        throw new Errors.NotFoundError(`Microservice not found: ${serviceConfig.resource}`)
       }
-    case 'agent': // TODO: find agent extract router config mode from agent router mode.
-      return 'iofog'
+      if (microservice.hostNetworkMode) {
+        return EDGELET_BRIDGE_CONNECTOR_HOST
+      }
+      const application = await ApplicationManager.findOne({ id: microservice.applicationId }, transaction)
+      if (!application) {
+        throw new Errors.NotFoundError(`Application not found for microservice: ${serviceConfig.resource}`)
+      }
+      return `${application.name}.${microservice.name}`
+    }
+    case 'agent':
+      return EDGELET_BRIDGE_CONNECTOR_HOST
     case 'k8s':
     case 'external':
       return serviceConfig.resource
@@ -847,11 +843,13 @@ async function _deleteTcpListener (serviceName, transaction) {
 
 // Common labels for Kubernetes services created by the controller
 function _getK8sServiceLabels () {
+  const componentLabelKey = getComponentLabelKey()
+  const appLabelKey = getAppLabelKey()
   return {
-    'app.kubernetes.io/name': 'iofog',
+    'app.kubernetes.io/name': appLabelKey,
     'app.kubernetes.io/component': 'controller',
     'app.kubernetes.io/managed-by': 'controller',
-    'iofog.org/component': 'router',
+    [componentLabelKey]: 'router',
     'app.kubernetes.io/instance': process.env.CONTROLLER_NAME || config.get('app.name')
   }
 }
@@ -859,6 +857,7 @@ function _getK8sServiceLabels () {
 // Helper function to create Kubernetes service
 async function _createK8sService (serviceConfig, transaction) {
   const normalizedTags = serviceConfig.tags.map(tag => tag.includes(':') ? tag : `${tag}:`)
+  const componentLabelKey = getComponentLabelKey()
   const serviceSpec = {
     apiVersion: 'v1',
     kind: 'Service',
@@ -874,7 +873,7 @@ async function _createK8sService (serviceConfig, transaction) {
     spec: {
       type: serviceConfig.k8sType,
       selector: {
-        'iofog.org/component': 'router'
+        [componentLabelKey]: 'router'
       },
       ports: [{
         name: 'iofog-service',
@@ -911,6 +910,7 @@ async function _updateK8sService (serviceConfig, transaction) {
     return service
   } else {
     const normalizedTags = serviceConfig.tags.map(tag => tag.includes(':') ? tag : `${tag}:`)
+    const componentLabelKey = getComponentLabelKey()
     const patchData = {
       metadata: {
         labels: _getK8sServiceLabels(),
@@ -923,7 +923,7 @@ async function _updateK8sService (serviceConfig, transaction) {
       spec: {
         type: serviceConfig.k8sType,
         selector: {
-          'iofog.org/component': 'router'
+          [componentLabelKey]: 'router'
         },
         ports: [{
           name: 'iofog-service',
@@ -1333,5 +1333,6 @@ module.exports = {
   deleteServiceEndpoint: TransactionDecorator.generateTransaction(deleteServiceEndpoint),
   getServicesListEndpoint: TransactionDecorator.generateTransaction(getServicesListEndpoint),
   getServiceEndpoint: TransactionDecorator.generateTransaction(getServiceEndpoint),
-  moveMicroserviceTcpBridgeToNewFog: TransactionDecorator.generateTransaction(moveMicroserviceTcpBridgeToNewFog)
+  moveMicroserviceTcpBridgeToNewFog: TransactionDecorator.generateTransaction(moveMicroserviceTcpBridgeToNewFog),
+  _determineConnectorHost
 }

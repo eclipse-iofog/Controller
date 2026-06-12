@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 const AppHelper = require('../helpers/app-helper')
 const CatalogService = require('../services/catalog-service')
 const ChangeTrackingService = require('../services/change-tracking-service')
@@ -34,6 +21,7 @@ const FogManager = require('../data/managers/iofog-manager')
 const config = require('../config')
 const VolumeMountService = require('./volume-mount-service')
 const VolumeMappingManager = require('../data/managers/volume-mapping-manager')
+const MicroservicesService = require('./microservices-service')
 const {
   ensureSystemApplication,
   getSystemMicroserviceName
@@ -105,15 +93,17 @@ async function validateAndReturnUpstreamRouters (upstreamRouterIds, isSystemFog,
 async function createRouterForFog (fogData, uuid, upstreamRouters, transaction) {
   const isEdge = fogData.routerMode === 'edge'
   const messagingPort = fogData.messagingPort || 5671
+  const DEFAULT_EDGE_ROUTER_PORT = 45671
+  const DEFAULT_INTERIOR_ROUTER_PORT = 55671
   // Is default router if we are on a system fog and no other default router already exists
   const isDefault = (fogData.isSystem) ? !(await RouterManager.findOne({ isDefault: true }, transaction)) : false
   const routerData = {
     isEdge,
-    messagingPort: messagingPort,
+    messagingPort,
     host: fogData.host,
-    edgeRouterPort: !isEdge ? fogData.edgeRouterPort : null,
-    interRouterPort: !isEdge ? fogData.interRouterPort : null,
-    isDefault: isDefault,
+    edgeRouterPort: !isEdge ? fogData.edgeRouterPort || DEFAULT_EDGE_ROUTER_PORT : null,
+    interRouterPort: !isEdge ? fogData.interRouterPort || DEFAULT_INTERIOR_ROUTER_PORT : null,
+    isDefault,
     iofogUuid: uuid
   }
 
@@ -354,7 +344,7 @@ async function _createRouterMicroservice (isEdge, uuid, microserviceConfig, tran
     config: JSON.stringify(microserviceConfig),
     catalogItemId: routerCatalog.id,
     iofogUuid: uuid,
-    hostNetworkMode: hostNetworkMode,
+    hostNetworkMode,
     isPrivileged: false,
     logSize: constants.MICROSERVICE_DEFAULT_LOG_SIZE,
     schedule: 0,
@@ -387,7 +377,7 @@ async function _createRouterMicroservice (isEdge, uuid, microserviceConfig, tran
     { capAdd: 'NET_RAW' }
   ]
   if (!application) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_ID, `system-${fog.name}`))
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_APPLICATION_ID, `system-${fog.name}`))
   }
   routerMicroserviceData.applicationId = application.id
   const routerMicroservice = await MicroserviceManager.create(routerMicroserviceData, transaction)
@@ -469,7 +459,7 @@ async function _getRouterMicroserviceConfig (isEdge, uuid, messagingPort, interR
     siteConfig: {
       name: uuid,
       namespace: SITE_CONFIG_NAMESPACE,
-      platform: platform,
+      platform,
       version: SITE_CONFIG_VERSION
     },
     sslProfiles: {}
@@ -613,6 +603,24 @@ async function _ensureRouterSslVolumeMountsAndMappings (iofogUuid, routerMicrose
       if (isRouterSsl && mapping.hostDestination && !profileNamesWithSecret.has(mapping.hostDestination)) {
         await VolumeMappingManager.delete({ id: mapping.id }, transaction)
       }
+    }
+  }
+
+  const routerMicroservice = await MicroserviceManager.findOne({ uuid: routerMicroserviceUuid }, transaction)
+  if (routerMicroservice) {
+    const { created: saVolumeCreated } = await MicroservicesService.injectServiceAccountVolume(
+      routerMicroservice,
+      transaction
+    )
+    await MicroservicesService.createOrUpdateServiceAccountForMicroservice(
+      routerMicroservice.uuid,
+      routerMicroservice.name,
+      null,
+      transaction
+    )
+    if (saVolumeCreated) {
+      await MicroserviceManager.update({ uuid: routerMicroserviceUuid }, { rebuild: true }, transaction)
+      await ChangeTrackingService.update(iofogUuid, ChangeTrackingService.events.microserviceList, transaction)
     }
   }
 }

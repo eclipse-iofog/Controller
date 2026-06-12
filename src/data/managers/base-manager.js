@@ -1,16 +1,3 @@
-/*
-* *******************************************************************************
-*  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
-*  *
-*  * This program and the accompanying materials are made available under the
-*  * terms of the Eclipse Public License v. 2.0 which is available at
-*  * http://www.eclipse.org/legal/epl-2.0
-*  *
-*  * SPDX-License-Identifier: EPL-2.0
-*  *******************************************************************************
-*
-*/
-
 const AppHelper = require('../../helpers/app-helper')
 const Errors = require('../../helpers/errors')
 
@@ -27,21 +14,22 @@ module.exports = class BaseManager {
 
     const options = transaction.fakeTransaction
       ? {
-        where: object
-      }
+          where: object
+        }
       : {
-        where: object,
-        transaction: transaction
-      }
+          where: object,
+          transaction
+        }
 
     return this.getEntity().findAll(options)
   }
 
   findAllWithAttributes (where, attributes, transaction) {
     return this.getEntity().findAll({
-      where: where,
-      attributes: attributes },
-    { transaction: transaction })
+      where,
+      attributes
+    },
+    { transaction })
   }
 
   async findOne (object, transaction) {
@@ -51,12 +39,12 @@ module.exports = class BaseManager {
 
     const options = transaction.fakeTransaction
       ? {
-        where: object
-      }
+          where: object
+        }
       : {
-        where: object,
-        transaction: transaction
-      }
+          where: object,
+          transaction
+        }
 
     return this.getEntity().findOne(options)
   }
@@ -66,7 +54,7 @@ module.exports = class BaseManager {
 
     const options = transaction.fakeTransaction
       ? {}
-      : { transaction: transaction }
+      : { transaction }
 
     return this.getEntity().create(object, options)
   }
@@ -76,7 +64,7 @@ module.exports = class BaseManager {
 
     const options = transaction.fakeTransaction
       ? {}
-      : { transaction: transaction }
+      : { transaction }
 
     return this.getEntity().bulkCreate(arr, options)
   }
@@ -88,12 +76,12 @@ module.exports = class BaseManager {
 
     const options = transaction.fakeTransaction
       ? {
-        where: data
-      }
+          where: data
+        }
       : {
-        where: data,
-        transaction: transaction
-      }
+          where: data,
+          transaction
+        }
 
     return this.getEntity().destroy(options)
   }
@@ -105,12 +93,12 @@ module.exports = class BaseManager {
 
     const options = transaction.fakeTransaction
       ? {
-        where: whereData
-      }
+          where: whereData
+        }
       : {
-        where: whereData,
-        transaction: transaction
-      }
+          where: whereData,
+          transaction
+        }
 
     return this.getEntity().update(newData, options)
   }
@@ -120,7 +108,7 @@ module.exports = class BaseManager {
 
     const options = transaction.fakeTransaction
       ? {}
-      : { transaction: transaction }
+      : { transaction }
 
     return this.getEntity().upsert(data, options)
   }
@@ -147,7 +135,7 @@ module.exports = class BaseManager {
 
     let hasUpdates = false
     for (const fldName in newData) {
-      if (newData.hasOwnProperty(fldName) && obj.dataValues.hasOwnProperty(fldName) &&
+      if (Object.hasOwn(newData, fldName) && Object.hasOwn(obj.dataValues, fldName) &&
           newData[fldName] !== obj.dataValues[fldName]) {
         hasUpdates = true
         break

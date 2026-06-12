@@ -1,237 +1,245 @@
-/*
- * *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 const Errors = require('../helpers/errors')
 const TransactionDecorator = require('../decorators/transaction-decorator')
-const axios = require('axios')
-const qs = require('qs')
-const https = require('https')
-const config = require('../config')
+const {
+  genericGrantRequest,
+  refreshTokenGrant,
+  fetchUserInfo,
+  tokenRevocation
+} = require('openid-client')
+const { decodeJwt } = require('jose')
+const { getOidcConfiguration, isAuthConfigured, getAuthMode } = require('../config/oidc')
+const AuthLoginService = require('./auth-login-service')
+const AuthMfaService = require('./auth-mfa-service')
+const AuthUserService = require('./auth-user-service')
+const AuthOauthService = require('./auth-oauth-service')
+const AuthInteractionService = require('./auth-interaction-service')
 
-const kcClient = process.env.KC_CLIENT || config.get('auth.client.id')
-const kcClientSecret = process.env.KC_CLIENT_SECRET || config.get('auth.client.secret')
-const kcUrl = process.env.KC_URL || config.get('auth.url')
-const kcRealm = process.env.KC_REALM || config.get('auth.realm')
-const isDevMode = config.get('server.devMode', true)
+function mapOidcError (error) {
+  const description = error.error_description || error.message || 'Invalid credentials'
+  throw new Errors.InvalidCredentialsError(description)
+}
 
-const mockUser = {
-  preferred_username: 'dev-user',
-  email: 'dev@example.com',
-  realm_access: {
-    roles: ['SRE', 'Developer', 'Viewer']
+function tokensFromResponse (tokenResponse) {
+  return {
+    accessToken: tokenResponse.access_token,
+    refreshToken: tokenResponse.refresh_token
   }
 }
 
-const mockToken = {
-  access_token: 'mock-access-token',
-  refresh_token: 'mock-refresh-token'
+function ensureAuthConfigured () {
+  if (!isAuthConfigured()) {
+    throw new Error('Auth is not configured for this cluster. Please contact your administrator.')
+  }
 }
 
-const isAuthConfigured = () => {
-  return kcUrl && kcRealm && kcClient && kcClientSecret
+function ensureEmbeddedMode () {
+  if (getAuthMode() !== 'embedded') {
+    throw new Errors.InvalidArgumentError('This endpoint is only available in embedded auth mode')
+  }
 }
 
 const login = async function (credentials, isCLI, transaction) {
-  // If in dev mode and auth is not configured, always return mock token
-  if (!isAuthConfigured() && isDevMode) {
-    return {
-      accessToken: mockToken.access_token,
-      refreshToken: mockToken.refresh_token
-    }
-  }
+  ensureAuthConfigured()
 
-  // If auth is not configured and not in dev mode, throw error
-  if (!isAuthConfigured() && !isDevMode) {
-    throw new Error(`Auth is not configured for this cluster. Please contact your administrator.`)
-  }
-
-  // Only proceed with axios request if auth is configured
-  const data = qs.stringify({
-    grant_type: 'password',
-    username: credentials.email,
-    password: credentials.password,
-    totp: credentials.totp,
-    client_id: kcClient,
-    client_secret: kcClientSecret
-  })
-
-  const agent = new https.Agent({
-    rejectUnauthorized: false
-  })
-
-  const requestConfig = {
-    method: 'post',
-    maxBodyLength: Infinity,
-    url: `${kcUrl}realms/${kcRealm}/protocol/openid-connect/token`,
-    headers: {
-      'Cache-Control': 'no-cache',
-      'Content-Type': 'application/x-www-form-urlencoded'
-    },
-    data,
-    httpsAgent: agent
+  if (getAuthMode() === 'embedded') {
+    return AuthLoginService.login(credentials, transaction)
   }
 
   try {
-    const response = await axios.request(requestConfig)
-    const accessToken = response.data.access_token
-    const refreshToken = response.data.refresh_token
-    return {
-      accessToken,
-      refreshToken
+    const oidcConfig = await getOidcConfiguration()
+    const parameters = {
+      username: credentials.email,
+      password: credentials.password
     }
+    if (credentials.totp) {
+      parameters.totp = credentials.totp
+    }
+
+    const tokenResponse = await genericGrantRequest(oidcConfig, 'password', parameters)
+    return tokensFromResponse(tokenResponse)
   } catch (error) {
-    if (error.response && error.response.data) {
-      throw new Errors.InvalidCredentialsError(error.response.data.error_description || 'Invalid credentials')
-    }
-    throw new Errors.InvalidCredentialsError(error.message || 'Invalid credentials')
+    mapOidcError(error)
   }
 }
 
 const refresh = async function (credentials, isCLI, transaction) {
-  // If in dev mode and auth is not configured, always return mock token
-  if (!isAuthConfigured() && isDevMode) {
-    return {
-      accessToken: mockToken.access_token,
-      refreshToken: mockToken.refresh_token
-    }
-  }
+  ensureAuthConfigured()
 
-  // If auth is not configured and not in dev mode, throw error
-  if (!isAuthConfigured() && !isDevMode) {
-    throw new Error(`Auth is not configured for this cluster. Please contact your administrator.`)
-  }
-
-  // Only proceed with axios request if auth is configured
-  const data = qs.stringify({
-    grant_type: 'refresh_token',
-    refresh_token: credentials.refreshToken,
-    client_id: kcClient,
-    client_secret: kcClientSecret
-  })
-
-  const agent = new https.Agent({
-    rejectUnauthorized: false
-  })
-
-  const requestConfig = {
-    method: 'post',
-    maxBodyLength: Infinity,
-    url: `${kcUrl}realms/${kcRealm}/protocol/openid-connect/token`,
-    headers: {
-      'Cache-Control': 'no-cache',
-      'Content-Type': 'application/x-www-form-urlencoded'
-    },
-    data,
-    httpsAgent: agent
+  if (getAuthMode() === 'embedded') {
+    return AuthLoginService.refresh(credentials, transaction)
   }
 
   try {
-    const response = await axios.request(requestConfig)
-    const accessToken = response.data.access_token
-    const refreshToken = response.data.refresh_token
-    return {
-      accessToken,
-      refreshToken
-    }
+    const oidcConfig = await getOidcConfiguration()
+    const tokenResponse = await refreshTokenGrant(oidcConfig, credentials.refreshToken)
+    return tokensFromResponse(tokenResponse)
   } catch (error) {
-    if (error.response && error.response.data) {
-      throw new Errors.InvalidCredentialsError(error.response.data.error_description || 'Invalid credentials')
-    }
-    throw new Errors.InvalidCredentialsError(error.message || 'Invalid credentials')
+    mapOidcError(error)
   }
 }
 
 const profile = async function (req, isCLI, transaction) {
-  // If in dev mode and auth is not configured, always return mock user
-  if (!isAuthConfigured() && isDevMode) {
-    return mockUser
+  ensureAuthConfigured()
+
+  if (getAuthMode() === 'embedded') {
+    return AuthLoginService.profile(req, transaction)
   }
 
-  // If auth is not configured and not in dev mode, throw error
-  if (!isAuthConfigured() && !isDevMode) {
-    throw new Error(`Auth is not configured for this cluster. Please contact your administrator.`)
-  }
-
-  // Only proceed with axios request if auth is configured
   const accessToken = req.headers.authorization.replace('Bearer ', '')
-  const agent = new https.Agent({
-    rejectUnauthorized: false
-  })
-
-  const requestConfig = {
-    method: 'get',
-    maxBodyLength: Infinity,
-    url: `${kcUrl}realms/${kcRealm}/protocol/openid-connect/userinfo`,
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-      Authorization: `Bearer ${accessToken}`
-    },
-    httpsAgent: agent
-  }
 
   try {
-    const response = await axios.request(requestConfig)
-    return response.data
-  } catch (error) {
-    if (error.response && error.response.data) {
-      throw new Errors.InvalidCredentialsError(error.response.data.error_description || 'Invalid credentials')
+    const oidcConfig = await getOidcConfiguration()
+    const claims = decodeJwt(accessToken)
+    const subject = claims.sub
+    if (!subject) {
+      throw new Errors.InvalidCredentialsError('Invalid credentials')
     }
-    throw new Errors.InvalidCredentialsError(error.message || 'Invalid credentials')
+
+    return await fetchUserInfo(oidcConfig, accessToken, subject)
+  } catch (error) {
+    if (error instanceof Errors.InvalidCredentialsError) {
+      throw error
+    }
+    mapOidcError(error)
   }
 }
 
 const logout = async function (req, isCLI, transaction) {
-  // If in dev mode and auth is not configured, always return success
-  if (!isAuthConfigured() && isDevMode) {
-    return { status: 'success' }
+  ensureAuthConfigured()
+
+  if (getAuthMode() === 'embedded') {
+    return AuthLoginService.logout(req, transaction)
   }
 
-  // If auth is not configured and not in dev mode, throw error
-  if (!isAuthConfigured() && !isDevMode) {
-    throw new Error(`Auth is not configured for this cluster. Please contact your administrator.`)
-  }
-
-  // Only proceed with axios request if auth is configured
   const accessToken = req.headers.authorization.replace('Bearer ', '')
-  const agent = new https.Agent({
-    rejectUnauthorized: false
-  })
-
-  const requestConfig = {
-    method: 'post',
-    maxBodyLength: Infinity,
-    url: `${kcUrl}realms/${kcRealm}/protocol/openid-connect/logout`,
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-      Authorization: `Bearer ${accessToken}`
-    },
-    httpsAgent: agent
-  }
 
   try {
-    const response = await axios.request(requestConfig)
-    return response.data
-  } catch (error) {
-    if (error.response && error.response.data) {
-      throw new Errors.InvalidCredentialsError(error.response.data.error_description || 'Invalid credentials')
+    const oidcConfig = await getOidcConfiguration()
+    const metadata = oidcConfig.serverMetadata()
+    if (metadata.revocation_endpoint) {
+      await tokenRevocation(oidcConfig, accessToken, { token_type_hint: 'access_token' })
     }
-    throw new Errors.InvalidCredentialsError(error.message || 'Invalid credentials')
+  } catch (error) {
+    // Best-effort logout when issuer has no revocation endpoint or revocation fails
   }
+
+  return { status: 'success' }
+}
+
+const enrollMfa = async function (req, isCLI, transaction) {
+  ensureAuthConfigured()
+  ensureEmbeddedMode()
+
+  if (!req.kauth || !req.kauth.grant || !req.kauth.grant.access_token) {
+    throw new Errors.AuthenticationError('Authentication required')
+  }
+
+  const userId = req.kauth.grant.access_token.content.sub
+  return AuthMfaService.enrollMfa(userId, transaction)
+}
+
+const confirmMfa = async function (req, isCLI, transaction) {
+  ensureAuthConfigured()
+  ensureEmbeddedMode()
+
+  if (!req.kauth || !req.kauth.grant || !req.kauth.grant.access_token) {
+    throw new Errors.AuthenticationError('Authentication required')
+  }
+
+  const userId = req.kauth.grant.access_token.content.sub
+  return AuthMfaService.confirmMfa(userId, req.body.code, transaction)
+}
+
+const disableMfa = async function (req, isCLI, transaction) {
+  ensureAuthConfigured()
+  ensureEmbeddedMode()
+
+  const userId = req.kauth.grant.access_token.content.sub
+  return AuthMfaService.disableMfa(userId, req.body.password, req.body.code, transaction)
+}
+
+const changePassword = async function (req, payload, isCLI, transaction) {
+  ensureAuthConfigured()
+
+  if (getAuthMode() === 'embedded') {
+    if (payload.resetToken) {
+      return AuthUserService.changePassword(req, payload, transaction)
+    }
+    ensureEmbeddedMode()
+    return AuthUserService.changePassword(req, payload, transaction)
+  }
+
+  throw new Errors.NotImplementedError('Password change is only supported in embedded auth mode')
+}
+
+const oauthAuthorize = async function (req, isCLI, transaction) {
+  ensureAuthConfigured()
+  return AuthOauthService.authorize(req)
+}
+
+const oauthCallback = async function (req, isCLI, transaction) {
+  ensureAuthConfigured()
+  return AuthOauthService.callback(req)
+}
+
+const interactionStatus = async function (uid, isCLI, transaction) {
+  ensureAuthConfigured()
+  ensureEmbeddedMode()
+  return AuthInteractionService.getStatus(uid, transaction)
+}
+
+const interactionLogin = async function (uid, credentials, isCLI, transaction) {
+  ensureAuthConfigured()
+  ensureEmbeddedMode()
+  return AuthInteractionService.submitLogin(uid, credentials, transaction)
+}
+
+const interactionMfa = async function (uid, code, isCLI, transaction) {
+  ensureAuthConfigured()
+  ensureEmbeddedMode()
+  return AuthInteractionService.submitMfa(uid, code, transaction)
+}
+
+const interactionEnroll = async function (uid, isCLI, transaction) {
+  ensureAuthConfigured()
+  ensureEmbeddedMode()
+  return AuthInteractionService.submitEnroll(uid, transaction)
+}
+
+const interactionConfirmEnroll = async function (uid, code, isCLI, transaction) {
+  ensureAuthConfigured()
+  ensureEmbeddedMode()
+  return AuthInteractionService.submitConfirmEnroll(uid, code, transaction)
+}
+
+const interactionChangePassword = async function (uid, payload, isCLI, transaction) {
+  ensureAuthConfigured()
+  ensureEmbeddedMode()
+  return AuthInteractionService.submitChangePassword(uid, payload, transaction)
+}
+
+const interactionComplete = async function (uid, req, res, isCLI, transaction) {
+  ensureAuthConfigured()
+  ensureEmbeddedMode()
+  return AuthInteractionService.complete(uid, req, res, transaction)
 }
 
 module.exports = {
   login: TransactionDecorator.generateTransaction(login),
   refresh: TransactionDecorator.generateTransaction(refresh),
   profile: TransactionDecorator.generateTransaction(profile),
-  logout: TransactionDecorator.generateTransaction(logout)
+  logout: TransactionDecorator.generateTransaction(logout),
+  enrollMfa: TransactionDecorator.generateTransaction(enrollMfa),
+  confirmMfa: TransactionDecorator.generateTransaction(confirmMfa),
+  disableMfa: TransactionDecorator.generateTransaction(disableMfa),
+  changePassword: TransactionDecorator.generateTransaction(changePassword),
+  oauthAuthorize: TransactionDecorator.generateTransaction(oauthAuthorize),
+  oauthCallback: TransactionDecorator.generateTransaction(oauthCallback),
+  interactionStatus: TransactionDecorator.generateTransaction(interactionStatus),
+  interactionLogin: TransactionDecorator.generateTransaction(interactionLogin),
+  interactionMfa: TransactionDecorator.generateTransaction(interactionMfa),
+  interactionEnroll: TransactionDecorator.generateTransaction(interactionEnroll),
+  interactionConfirmEnroll: TransactionDecorator.generateTransaction(interactionConfirmEnroll),
+  interactionChangePassword: TransactionDecorator.generateTransaction(interactionChangePassword),
+  interactionComplete: TransactionDecorator.generateTransaction(interactionComplete)
 }

@@ -18,9 +18,9 @@ const { setDbEnvVars } = require('./util')
 function stop () {
   const options = {
     env: {
-      'NODE_ENV': 'production',
-      'VIEWER_PORT': '8008',
-      'PATH': process.env.PATH
+      NODE_ENV: 'production',
+      CONSOLE_PORT: '8008',
+      PATH: process.env.PATH
     },
     stdio: [process.stdin, process.stdout, process.stderr]
   }
@@ -31,5 +31,5 @@ function stop () {
 }
 
 module.exports = {
-  stop: stop
+  stop
 }

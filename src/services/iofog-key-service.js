@@ -1,16 +1,3 @@
-/*
- * *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 const crypto = require('crypto')
 const FogPublicKeyManager = require('../data/managers/iofog-public-key-manager')
 const FogUsedTokenManager = require('../data/managers/fog-used-token-manager')
@@ -116,7 +103,8 @@ const verifyJWT = async function (token, fogUuid, transaction) {
 
     // Verify the JWT using jose
     const { payload } = await jose.jwtVerify(token, publicKey, {
-      algorithms: ['EdDSA']
+      algorithms: ['EdDSA'],
+      clockTolerance: 10
     })
 
     // Check if JTI is already used

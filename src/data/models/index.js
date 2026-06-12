@@ -34,7 +34,7 @@ const initializeModels = (sequelize) => {
   db.Sequelize = Sequelize
 }
 
-const configureImage = async (db, name, fogTypes, images) => {
+const configureImage = async (db, name, architectures, images) => {
   const isNats = name === constants.NATS_CATALOG_NAME
   const catalogItem = await db.CatalogItem.findOne({
     where: isNats ? { name } : { name, isPublic: false }
@@ -43,13 +43,13 @@ const configureImage = async (db, name, fogTypes, images) => {
     logger.warn(`Catalog item not found for ${name}, skipping image configuration`)
     return
   }
-  for (const fogType of fogTypes) {
-    if (fogType.id === 0) {
+  for (const architecture of architectures) {
+    if (architecture.id === 0) {
       // Skip auto detect type
       continue
     }
-    const image = lget(images, fogType.id, '')
-    await db.CatalogItemImage.update({ containerImage: image }, { where: { fogTypeId: fogType.id, catalogItemId: catalogItem.id } })
+    const image = lget(images, architecture.id, '')
+    await db.CatalogItemImage.update({ containerImage: image }, { where: { archId: architecture.id, catalogItemId: catalogItem.id } })
   }
 }
 
@@ -86,10 +86,10 @@ db.initDB = async (isStart) => {
     }
 
     // Configure system images
-    const fogTypes = await db.FogType.findAll({})
-    await configureImage(db, constants.ROUTER_CATALOG_NAME, fogTypes, config.get('systemImages.router', {}))
-    await configureImage(db, constants.DEBUG_CATALOG_NAME, fogTypes, config.get('systemImages.debug', {}))
-    await configureImage(db, constants.NATS_CATALOG_NAME, fogTypes, config.get('systemImages.nats', {}))
+    const architectures = await db.Architecture.findAll({})
+    await configureImage(db, constants.ROUTER_CATALOG_NAME, architectures, config.get('systemImages.router', {}))
+    await configureImage(db, constants.DEBUG_CATALOG_NAME, architectures, config.get('systemImages.debug', {}))
+    await configureImage(db, constants.NATS_CATALOG_NAME, architectures, config.get('systemImages.nats', {}))
 
     // Initialize controller UUID
     try {

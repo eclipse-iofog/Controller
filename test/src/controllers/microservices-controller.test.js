@@ -48,7 +48,7 @@ describe('Microservices Controller', () => {
     }))
 
     def('response', () => Promise.resolve())
-    def('subject', () => $subject.createMicroserviceOnFogEndPoint($req, $user))
+    def('subject', () => $subject.createMicroserviceOnFogEndPoint($req))
 
     beforeEach(() => {
       $sandbox.stub(MicroservicesService, 'createMicroserviceEndPoint').returns($response)
@@ -66,7 +66,7 @@ describe('Microservices Controller', () => {
         logSize: $logSize,
         volumeMappings: $volumeMappings,
         ports: $ports,
-      }, $user, false)
+      }, false)
     })
 
     context('when MicroservicesService#createMicroserviceEndPoint fails', () => {
@@ -97,7 +97,7 @@ describe('Microservices Controller', () => {
       },
     }))
     def('response', () => Promise.resolve())
-    def('subject', () => $subject.getMicroserviceEndPoint($req, $user))
+    def('subject', () => $subject.getMicroserviceEndPoint($req))
 
     beforeEach(() => {
       $sandbox.stub(MicroservicesService, 'getMicroserviceEndPoint').returns($response)
@@ -105,7 +105,7 @@ describe('Microservices Controller', () => {
 
     it('calls MicroservicesService.getMicroserviceEndPoint with correct args', async () => {
       await $subject
-      expect(MicroservicesService.getMicroserviceEndPoint).to.have.been.calledWith($uuid, $user, false)
+      expect(MicroservicesService.getMicroserviceEndPoint).to.have.been.calledWith($uuid, false)
     })
 
     context('when MicroservicesService#getMicroserviceEndPoint fails', () => {
@@ -157,7 +157,7 @@ describe('Microservices Controller', () => {
     }))
 
     def('response', () => Promise.resolve())
-    def('subject', () => $subject.updateMicroserviceEndPoint($req, $user))
+    def('subject', () => $subject.updateMicroserviceEndPoint($req))
 
     beforeEach(() => {
       $sandbox.stub(MicroservicesService, 'updateMicroserviceEndPoint').returns($response)
@@ -173,7 +173,7 @@ describe('Microservices Controller', () => {
         rootHostAccess: $rootHostAccess,
         logSize: $logSize,
         volumeMappings: $volumeMappings,
-      }, $user, false)
+      }, false)
     })
 
     context('when MicroservicesService#updateMicroserviceEndPoint fails', () => {
@@ -208,7 +208,7 @@ describe('Microservices Controller', () => {
       },
     }))
     def('response', () => Promise.resolve())
-    def('subject', () => $subject.deleteMicroserviceEndPoint($req, $user))
+    def('subject', () => $subject.deleteMicroserviceEndPoint($req))
 
     beforeEach(() => {
       $sandbox.stub(MicroservicesService, 'deleteMicroserviceEndPoint').returns($response)
@@ -218,7 +218,7 @@ describe('Microservices Controller', () => {
       await $subject
       expect(MicroservicesService.deleteMicroserviceEndPoint).to.have.been.calledWith($uuid, {
         withCleanup: $withCleanup,
-      }, $user, false)
+      }, false)
     })
 
     context('when MicroservicesService#deleteMicroserviceEndPoint fails', () => {
@@ -248,7 +248,7 @@ describe('Microservices Controller', () => {
       },
     }))
     def('response', () => Promise.resolve())
-    def('subject', () => $subject.getMicroservicesByApplicationEndPoint($req, $user))
+    def('subject', () => $subject.getMicroservicesByApplicationEndPoint($req))
 
     beforeEach(() => {
       $sandbox.stub(MicroservicesService, 'listMicroservicesEndPoint').returns($response)
@@ -256,7 +256,7 @@ describe('Microservices Controller', () => {
 
     it('calls MicroservicesService.listMicroservicesEndPoint with correct args', async () => {
       await $subject
-      expect(MicroservicesService.listMicroservicesEndPoint).to.have.been.calledWith({ applicationName: $application, flowId: undefined }, $user, false)
+      expect(MicroservicesService.listMicroservicesEndPoint).to.have.been.calledWith({ applicationName: $application }, false)
     })
 
     context('when MicroservicesService#listMicroservicesEndPoint fails', () => {
@@ -294,7 +294,7 @@ describe('Microservices Controller', () => {
       },
     }))
     def('response', () => Promise.resolve())
-    def('subject', () => $subject.createMicroservicePortMappingEndPoint($req, $user))
+    def('subject', () => $subject.createMicroservicePortMappingEndPoint($req))
 
     beforeEach(() => {
       $sandbox.stub(MicroservicesService, 'createPortMappingEndPoint').returns($response)
@@ -306,7 +306,7 @@ describe('Microservices Controller', () => {
         internal: $internal,
         external: $external,
         publicMode: $publicMode,
-      }, $user, false)
+      }, false)
     })
 
     context('when MicroservicesService#createPortMappingEndPoint fails', () => {
@@ -338,7 +338,7 @@ describe('Microservices Controller', () => {
       },
     }))
     def('response', () => Promise.resolve())
-    def('subject', () => $subject.deleteMicroservicePortMappingEndPoint($req, $user))
+    def('subject', () => $subject.deleteMicroservicePortMappingEndPoint($req))
 
     beforeEach(() => {
       $sandbox.stub(MicroservicesService, 'deletePortMappingEndPoint').returns($response)
@@ -346,7 +346,7 @@ describe('Microservices Controller', () => {
 
     it('calls MicroservicesService.deletePortMappingEndPoint with correct args', async () => {
       await $subject
-      expect(MicroservicesService.deletePortMappingEndPoint).to.have.been.calledWith($uuid, $internalPort, $user, false)
+      expect(MicroservicesService.deletePortMappingEndPoint).to.have.been.calledWith($uuid, $internalPort, false)
     })
 
     context('when MicroservicesService#deletePortMappingEndPoint fails', () => {
@@ -376,7 +376,7 @@ describe('Microservices Controller', () => {
       },
     }))
     def('response', () => Promise.resolve())
-    def('subject', () => $subject.getMicroservicePortMappingListEndPoint($req, $user))
+    def('subject', () => $subject.getMicroservicePortMappingListEndPoint($req))
 
     beforeEach(() => {
       $sandbox.stub(MicroservicesService, 'listMicroservicePortMappingsEndPoint').returns($response)
@@ -384,7 +384,7 @@ describe('Microservices Controller', () => {
 
     it('calls MicroservicesService.listMicroservicePortMappingsEndPoint with correct args', async () => {
       await $subject
-      expect(MicroservicesService.listMicroservicePortMappingsEndPoint).to.have.been.calledWith($uuid, $user, false)
+      expect(MicroservicesService.listMicroservicePortMappingsEndPoint).to.have.been.calledWith($uuid, false)
     })
 
     context('when MicroservicesService#listMicroservicePortMappingsEndPoint fails', () => {
@@ -423,7 +423,7 @@ describe('Microservices Controller', () => {
       },
     }))
     def('response', () => Promise.resolve({ id: 15 }))
-    def('subject', () => $subject.createMicroserviceVolumeMappingEndPoint($req, $user))
+    def('subject', () => $subject.createMicroserviceVolumeMappingEndPoint($req))
 
     beforeEach(() => {
       $sandbox.stub(MicroservicesService, 'createVolumeMappingEndPoint').returns($response)
@@ -435,7 +435,7 @@ describe('Microservices Controller', () => {
         hostDestination: $hostDestination,
         containerDestination: $containerDestination,
         accessMode: $accessMode,
-      }, $user, false)
+      }, false)
     })
 
     context('when MicroservicesService#createVolumeMappingEndPoint fails', () => {
@@ -465,7 +465,7 @@ describe('Microservices Controller', () => {
       },
     }))
     def('response', () => Promise.resolve())
-    def('subject', () => $subject.listMicroserviceVolumeMappingsEndPoint($req, $user))
+    def('subject', () => $subject.listMicroserviceVolumeMappingsEndPoint($req))
 
     beforeEach(() => {
       $sandbox.stub(MicroservicesService, 'listVolumeMappingsEndPoint').returns($response)
@@ -473,7 +473,7 @@ describe('Microservices Controller', () => {
 
     it('calls MicroservicesService.listVolumeMappingsEndPoint with correct args', async () => {
       await $subject
-      expect(MicroservicesService.listVolumeMappingsEndPoint).to.have.been.calledWith($uuid, $user, false)
+      expect(MicroservicesService.listVolumeMappingsEndPoint).to.have.been.calledWith($uuid, false)
     })
 
     context('when MicroservicesService#listVolumeMappingsEndPoint fails', () => {
@@ -505,7 +505,7 @@ describe('Microservices Controller', () => {
       },
     }))
     def('response', () => Promise.resolve())
-    def('subject', () => $subject.deleteMicroserviceVolumeMappingEndPoint($req, $user))
+    def('subject', () => $subject.deleteMicroserviceVolumeMappingEndPoint($req))
 
     beforeEach(() => {
       $sandbox.stub(MicroservicesService, 'deleteVolumeMappingEndPoint').returns($response)
@@ -513,7 +513,7 @@ describe('Microservices Controller', () => {
 
     it('calls MicroservicesService.deleteVolumeMappingEndPoint with correct args', async () => {
       await $subject
-      expect(MicroservicesService.deleteVolumeMappingEndPoint).to.have.been.calledWith($uuid, $id, $user, false)
+      expect(MicroservicesService.deleteVolumeMappingEndPoint).to.have.been.calledWith($uuid, $id, false)
     })
 
     context('when MicroservicesService#deleteVolumeMappingEndPoint fails', () => {

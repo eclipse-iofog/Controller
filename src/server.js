@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 // Initialize everything in the correct order
 const { initialize } = require('./init')
 initialize().then(() => {
@@ -22,7 +9,6 @@ initialize().then(() => {
   const bodyParser = require('body-parser')
   const cookieParser = require('cookie-parser')
   const express = require('express')
-  const ecnViewer = process.env.ECN_VIEWER_PATH ? require(`${process.env.ECN_VIEWER_PATH}/package/index.js`) : require('@eclipse-iofog/ecn-viewer')
   const fs = require('fs')
   const helmet = require('helmet')
   const cors = require('cors')
@@ -37,58 +23,128 @@ initialize().then(() => {
     storage: multerMemStorage
   }).single(fileName)
 
-  // Initialize session and Keycloak after config is loaded
+  // Initialize session and OIDC bearer validation after config is loaded
   const session = require('express-session')
-  const { initKeycloak, getMemoryStore } = require('./config/keycloak.js')
-  const memoryStore = getMemoryStore()
-  const keycloak = initKeycloak()
+  const { initOidc, getOidcMiddleware, getAuthMode, isAuthConfigured } = require('./config/oidc.js')
+  const {
+    initAuthSessionStore,
+    getAuthSessionStore,
+    getSessionSecret,
+    getSessionStoreConfig,
+    resolveSessionSecret
+  } = require('./config/auth-session-store.js')
+  const { getPublicUrl, getConsoleUrl } = require('./config/auth-urls.js')
 
-  const viewerApp = express()
+  function resolveConsolePath () {
+    if (process.env.EDGEOPS_CONSOLE_PATH) {
+      return process.env.EDGEOPS_CONSOLE_PATH
+    }
+    const legacyBuildPath = path.join(__dirname, '..', 'node_modules', '@datasance', 'ecn-viewer', 'build')
+    if (fs.existsSync(legacyBuildPath)) {
+      return legacyBuildPath
+    }
+    throw new Error('EDGEOPS_CONSOLE_PATH is required (path to EdgeOps Console static build/)')
+  }
+
+  const consoleApp = express()
   const app = express()
 
-  app.use(cors())
+  const trustProxy = process.env.TRUST_PROXY || config.get('server.trustProxy', false)
+  if (trustProxy) {
+    app.set('trust proxy', trustProxy === true ? 1 : trustProxy)
+    consoleApp.set('trust proxy', trustProxy === true ? 1 : trustProxy)
+  }
+
+  function validateProductionPublicUrl () {
+    const devMode = process.env.DEV_MODE || config.get('server.devMode', true)
+    if (devMode) {
+      return
+    }
+
+    const publicUrl = process.env.CONTROLLER_PUBLIC_URL || config.get('server.publicUrl')
+    const insecureAllowHttp = config.get('auth.insecureAllowHttp', false)
+
+    if (!publicUrl) {
+      throw new Error('CONTROLLER_PUBLIC_URL is required in production mode')
+    }
+
+    let parsedUrl
+    try {
+      parsedUrl = new URL(publicUrl)
+    } catch (error) {
+      throw new Error('CONTROLLER_PUBLIC_URL must be a valid URL')
+    }
+
+    if (!insecureAllowHttp && parsedUrl.protocol !== 'https:') {
+      throw new Error('CONTROLLER_PUBLIC_URL must use https in production unless auth.insecureAllowHttp is true')
+    }
+  }
+
+  validateProductionPublicUrl()
+
+  const devMode = process.env.DEV_MODE || config.get('server.devMode', true)
+  const insecureAllowHttp = config.get('auth.insecureAllowHttp', false)
+
+  const consoleURLForCors = getConsoleUrl()
+  app.use(cors({
+    origin (origin, callback) {
+      if (!origin || !consoleURLForCors) {
+        callback(null, true)
+        return
+      }
+      callback(null, origin === consoleURLForCors)
+    },
+    credentials: true
+  }))
 
   app.use(helmet())
   app.use(xss())
 
   // express logs
   // app.use(morgan('combined'));
-  app.use(session({
-    secret: 'iofog-controller',
-    resave: false,
-    saveUninitialized: true,
-    store: memoryStore
-  }))
-  app.use(keycloak.middleware())
-  app.use(bodyParser.urlencoded({
-    extended: true
-  }))
-  app.use(bodyParser.json())
+  const sessionStoreConfig = getSessionStoreConfig()
 
-  app.engine('ejs', renderFile)
-  app.set('view engine', 'ejs')
-  app.use(cookieParser())
-
-  app.set('views', path.join(__dirname, 'views'))
-
-  app.on('uncaughtException', (req, res, route, err) => {
-    // TODO
-  })
-
-  app.use((req, res, next) => {
-    if (req.headers && req.headers['request-id']) {
-      req.id = req.headers['request-id']
-      delete req.headers['request-id']
+  function skipOidcPaths (middleware) {
+    return (req, res, next) => {
+      if ((req.path || '').startsWith('/oidc')) {
+        return next()
+      }
+      return middleware(req, res, next)
     }
+  }
 
-    res.append('X-Timestamp', Date.now())
-    next()
-  })
+  function registerApiMiddleware () {
+    app.use(skipOidcPaths(bodyParser.urlencoded({
+      extended: true
+    })))
+    app.use(skipOidcPaths(bodyParser.json()))
 
-  // Event audit middleware - tracks non-GET operations
-  // Must be after authentication middleware but before route handlers
-  const eventAuditMiddleware = require('./middlewares/event-audit-middleware')
-  app.use(eventAuditMiddleware)
+    app.engine('ejs', renderFile)
+    app.set('view engine', 'ejs')
+    app.use(cookieParser())
+
+    app.set('views', path.join(__dirname, 'views'))
+
+    app.on('uncaughtException', (req, res, route, err) => {
+      // TODO
+    })
+
+    app.use((req, res, next) => {
+      if (req.headers && req.headers['request-id']) {
+        req.id = req.headers['request-id']
+        delete req.headers['request-id']
+      }
+
+      res.append('X-Timestamp', Date.now())
+      next()
+    })
+
+    const { authRateLimitMiddleware } = require('./middlewares/auth-rate-limit-middleware')
+    app.use(authRateLimitMiddleware)
+
+    const eventAuditMiddleware = require('./middlewares/event-audit-middleware')
+    app.use(eventAuditMiddleware)
+  }
 
   global.appRoot = path.resolve(__dirname)
 
@@ -115,40 +171,31 @@ initialize().then(() => {
     routes.forEach(registerRoute)
   }
 
-  fs.readdirSync(path.join(__dirname, 'routes'))
-    .forEach(setupMiddleware)
-
   const jobs = []
 
   const setupJobs = function (file) {
     jobs.push((require(path.join(__dirname, 'jobs', file)) || []))
   }
 
-  fs.readdirSync(path.join(__dirname, 'jobs'))
-    .filter((file) => {
-      return (file.indexOf('.') !== 0) && (file.slice(-3) === '.js')
-    })
-    .forEach(setupJobs)
-
-  function registerServers (api, viewer) {
+  function registerServers (api, consoleServer) {
     process.once('SIGTERM', async function (code) {
       console.log('SIGTERM received. Shutting down.')
       await new Promise((resolve) => { api.close(resolve) })
       console.log('API Server closed.')
-      await new Promise((resolve) => { viewer.close(resolve) })
-      console.log('Viewer Server closed.')
+      await new Promise((resolve) => { consoleServer.close(resolve) })
+      console.log('Console Server closed.')
       process.exit(0)
     })
   }
 
   function startHttpServer (apps, ports, jobs) {
-    logger.info('SSL not configured, starting HTTP server.')
+    logger.info('TLS not configured, starting HTTP server.')
 
-    const viewerServer = apps.viewer.listen(ports.viewer, function onStart (err) {
+    const consoleServer = apps.console.listen(ports.console, function onStart (err) {
       if (err) {
         logger.error(err)
       }
-      logger.info(`==> 🌎 Viewer listening on port ${ports.viewer}. Open up http://localhost:${ports.viewer}/ in your browser.`)
+      logger.info(`==> 🌎 EdgeOps Console listening on port ${ports.console}. Open up http://localhost:${ports.console}/ in your browser.`)
     })
     const apiServer = apps.api.listen(ports.api, function onStart (err) {
       if (err) {
@@ -162,7 +209,7 @@ initialize().then(() => {
     const wsServer = WebSocketServer.getInstance()
     wsServer.initialize(apiServer)
     logger.info(`==> 🌎 Webscoker API server listening on port ${ports.api}. Open up ws://localhost:${ports.api}/.`)
-    registerServers(apiServer, viewerServer)
+    registerServers(apiServer, consoleServer)
   }
 
   const { createSSLOptions } = require('./utils/ssl-utils')
@@ -172,15 +219,15 @@ initialize().then(() => {
       const sslOptions = createSSLOptions({
         key: sslKey,
         cert: sslCert,
-        intermedKey: intermedKey,
-        isBase64: isBase64
+        intermedKey,
+        isBase64
       })
 
-      const viewerServer = https.createServer(sslOptions, apps.viewer).listen(ports.viewer, function onStart (err) {
+      const consoleServer = https.createServer(sslOptions, apps.console).listen(ports.console, function onStart (err) {
         if (err) {
           logger.error(err)
         }
-        logger.info(`==> 🌎 HTTPS Viewer server listening on port ${ports.viewer}. Open up https://localhost:${ports.viewer}/ in your browser.`)
+        logger.info(`==> 🌎 HTTPS EdgeOps Console server listening on port ${ports.console}. Open up https://localhost:${ports.console}/ in your browser.`)
         jobs.forEach((job) => job.run())
       })
 
@@ -197,36 +244,43 @@ initialize().then(() => {
       wsServer.initialize(apiServer)
       logger.info(`==> 🌎 WSS API server listening on port ${ports.api}. Open up wss://localhost:${ports.api}/.`)
 
-      registerServers(apiServer, viewerServer)
+      registerServers(apiServer, consoleServer)
     } catch (e) {
-      logger.error('Error loading SSL certificates. Please check your configuration.')
+      logger.error('Error loading TLS certificates. Please check your configuration.')
     }
   }
 
-  const devMode = process.env.DEV_MODE || config.get('server.devMode')
   const apiPort = process.env.API_PORT || config.get('server.port')
-  const viewerPort = process.env.VIEWER_PORT || config.get('viewer.port')
-  const viewerURL = process.env.VIEWER_URL || config.get('viewer.url')
+  const consolePort = process.env.CONSOLE_PORT || config.get('console.port')
   const controlPlane = process.env.CONTROL_PLANE || config.get('app.ControlPlane')
+  const publicUrl = getPublicUrl()
+  const consoleURL = getConsoleUrl()
+  const consolePath = resolveConsolePath()
 
-  // File-based SSL configuration
-  const sslKey = process.env.SSL_PATH_KEY || config.get('server.ssl.path.key')
-  const sslCert = process.env.SSL_PATH_CERT || config.get('server.ssl.path.cert')
-  const intermedKey = process.env.SSL_PATH_INTERMEDIATE_CERT || config.get('server.ssl.path.intermediateCert')
+  // File-based TLS configuration
+  const tlsKey = process.env.TLS_PATH_KEY || config.get('server.tls.path.key')
+  const tlsCert = process.env.TLS_PATH_CERT || config.get('server.tls.path.cert')
+  const intermedKey = process.env.TLS_PATH_INTERMEDIATE_CERT || config.get('server.tls.path.intermediateCert')
 
-  // Base64 SSL configuration
-  const sslKeyBase64 = process.env.SSL_BASE64_KEY || config.get('server.ssl.base64.key')
-  const sslCertBase64 = process.env.SSL_BASE64_CERT || config.get('server.ssl.base64.cert')
-  const intermedKeyBase64 = process.env.SSL_BASE64_INTERMEDIATE_CERT || config.get('server.ssl.base64.intermediateCert')
+  // Base64 TLS configuration
+  const tlsKeyBase64 = process.env.TLS_BASE64_KEY || config.get('server.tls.base64.key')
+  const tlsCertBase64 = process.env.TLS_BASE64_CERT || config.get('server.tls.base64.cert')
+  const intermedKeyBase64 = process.env.TLS_BASE64_INTERMEDIATE_CERT || config.get('server.tls.base64.intermediateCert')
 
-  const hasFileBasedSSL = !devMode && sslKey && sslCert
-  const hasBase64SSL = !devMode && sslKeyBase64 && sslCertBase64
+  const hasFileBasedTLS = !devMode && tlsKey && tlsCert
+  const hasBase64TLS = !devMode && tlsKeyBase64 && tlsCertBase64
 
-  const kcRealm = process.env.KC_REALM || config.get('auth.realm')
-  const kcURL = process.env.KC_URL || config.get('auth.url')
-  const kcClient = process.env.KC_VIEWER_CLIENT || config.get('auth.viewerClient')
-
-  viewerApp.use('/', ecnViewer.middleware(express))
+  consoleApp.use(express.static(consolePath, { index: 'index.html' }))
+  consoleApp.get('*', (req, res, next) => {
+    if (path.extname(req.path)) {
+      return next()
+    }
+    res.sendFile(path.join(consolePath, 'index.html'), (error) => {
+      if (error) {
+        next(error)
+      }
+    })
+  })
 
   const isDaemon = process.argv[process.argv.length - 1] === 'daemonize2'
 
@@ -249,54 +303,97 @@ initialize().then(() => {
         }
       })
     }
-    // Set up controller-config.js for ECN Viewer
-    const ecnViewerControllerConfigFilePath = path.join(__dirname, '..', 'node_modules', '@eclipse-iofog', 'ecn-viewer', 'build', 'controller-config.js')
-    const ecnViewerControllerConfig = {
-      port: apiPort,
-      user: {},
-      controllerDevMode: devMode,
-      keycloakUrl: kcURL,
-      keycloakRealm: kcRealm,
-      keycloakClientId: kcClient
+
+    if (getAuthMode() === 'embedded' && isAuthConfigured()) {
+      const { runBootstrap } = require('./services/auth-bootstrap-service')
+      await runBootstrap()
+      const { initEmbeddedIssuer } = require('./config/embedded-oidc.js')
+      await initEmbeddedIssuer(app, { db })
     }
-    if (viewerURL) {
-      ecnViewerControllerConfig.url = viewerURL
+
+    fs.readdirSync(path.join(__dirname, 'routes'))
+      .forEach(setupMiddleware)
+
+    fs.readdirSync(path.join(__dirname, 'jobs'))
+      .filter((file) => {
+        return (file.indexOf('.') !== 0) && (file.slice(-3) === '.js')
+      })
+      .forEach(setupJobs)
+
+    // Set up controller-config.js for EdgeOps Console
+    const consoleConfigFilePath = path.join(consolePath, 'controller-config.js')
+    const consoleConfig = {
+      apiPort,
+      auth: {
+        mode: getAuthMode(),
+        loginUrl: '/api/v3/user/login',
+        refreshUrl: '/api/v3/user/refresh',
+        logoutUrl: '/api/v3/user/logout',
+        profileUrl: '/api/v3/user/profile',
+        changePasswordUrl: '/api/v3/user/change-password',
+        oauthAuthorizeUrl: '/api/v3/user/oauth/authorize',
+        oauthInteractionUrl: '/login/oauth'
+      }
     }
+    if (publicUrl) {
+      consoleConfig.publicUrl = publicUrl
+    }
+    consoleConfig.consoleUrl = consoleURL || publicUrl || `http://localhost:${consolePort}`
     if (controlPlane) {
-      ecnViewerControllerConfig.controlPlane = controlPlane
+      consoleConfig.controlPlane = controlPlane
     }
-    const ecnViewerConfigScript = `
-      window.controllerConfig = ${JSON.stringify(ecnViewerControllerConfig)}
+    const consoleConfigScript = `
+      window.controllerConfig = ${JSON.stringify(consoleConfig)}
     `
-    fs.writeFileSync(ecnViewerControllerConfigFilePath, ecnViewerConfigScript)
+    fs.writeFileSync(consoleConfigFilePath, consoleConfigScript)
   }
 
-  initState()
+  resolveSessionSecret()
     .then(() => {
-      if (hasFileBasedSSL) {
+      initOidc()
+      initAuthSessionStore()
+
+      app.use(session({
+        secret: getSessionSecret(),
+        resave: false,
+        saveUninitialized: false,
+        store: getAuthSessionStore(),
+        cookie: {
+          maxAge: sessionStoreConfig.ttlMs,
+          sameSite: 'lax',
+          secure: !devMode && !insecureAllowHttp
+        }
+      }))
+      app.use(getOidcMiddleware())
+      registerApiMiddleware()
+
+      return initState()
+    })
+    .then(() => {
+      if (hasFileBasedTLS) {
         startHttpsServer(
-          { api: app, viewer: viewerApp },
-          { api: apiPort, viewer: viewerPort },
-          sslKey,
-          sslCert,
+          { api: app, console: consoleApp },
+          { api: apiPort, console: consolePort },
+          tlsKey,
+          tlsCert,
           intermedKey,
           jobs,
           false
         )
-      } else if (hasBase64SSL) {
+      } else if (hasBase64TLS) {
         startHttpsServer(
-          { api: app, viewer: viewerApp },
-          { api: apiPort, viewer: viewerPort },
-          sslKeyBase64,
-          sslCertBase64,
+          { api: app, console: consoleApp },
+          { api: apiPort, console: consolePort },
+          tlsKeyBase64,
+          tlsCertBase64,
           intermedKeyBase64,
           jobs,
           true
         )
       } else {
         startHttpServer(
-          { api: app, viewer: viewerApp },
-          { api: apiPort, viewer: viewerPort },
+          { api: app, console: consoleApp },
+          { api: apiPort, console: consolePort },
           jobs
         )
       }

@@ -20,7 +20,7 @@ describe('ioFog Controller', () => {
     def('latitude', () => 15)
     def('longitude', () => 16)
     def('description', () => 'testDescription')
-    def('dockerUrl', () => 'testDockerUrl')
+    def('containerEngineUrl', () => 'testContainerEngineUrl')
     def('diskLimit', () => 25)
     def('diskDirectory', () => 'testDiskDirectory')
     def('memoryLimit', () => 35)
@@ -34,7 +34,7 @@ describe('ioFog Controller', () => {
     def('bluetoothEnabled', () => false)
     def('watchdogEnabled', () => true)
     def('abstractedHardwareEnabled', () => false)
-    def('fogType', () => 0)
+    def('archId', () => 0)
 
     def('req', () => ({
       body: {
@@ -43,7 +43,7 @@ describe('ioFog Controller', () => {
         latitude: $latitude,
         longitude: $longitude,
         description: $description,
-        dockerUrl: $dockerUrl,
+        containerEngineUrl: $containerEngineUrl,
         diskLimit: $diskLimit,
         diskDirectory: $diskDirectory,
         memoryLimit: $memoryLimit,
@@ -57,12 +57,12 @@ describe('ioFog Controller', () => {
         bluetoothEnabled: $bluetoothEnabled,
         watchdogEnabled: $watchdogEnabled,
         abstractedHardwareEnabled: $abstractedHardwareEnabled,
-        fogType: $fogType,
+        archId: $archId,
       },
     }))
 
     def('response', () => Promise.resolve())
-    def('subject', () => $subject.createFogEndPoint($req, $user))
+    def('subject', () => $subject.createFogEndPoint($req))
 
     beforeEach(() => {
       $sandbox.stub(ioFogService, 'createFogEndPoint').returns($response)
@@ -76,7 +76,7 @@ describe('ioFog Controller', () => {
         latitude: $latitude,
         longitude: $longitude,
         description: $description,
-        dockerUrl: $dockerUrl,
+        containerEngineUrl: $containerEngineUrl,
         diskLimit: $diskLimit,
         diskDirectory: $diskDirectory,
         memoryLimit: $memoryLimit,
@@ -90,8 +90,8 @@ describe('ioFog Controller', () => {
         bluetoothEnabled: $bluetoothEnabled,
         watchdogEnabled: $watchdogEnabled,
         abstractedHardwareEnabled: $abstractedHardwareEnabled,
-        fogType: $fogType,
-      }, $user, false)
+        archId: $archId,
+      }, false)
     })
 
     context('when ioFogService#createFogEndPoint fails', () => {
@@ -120,7 +120,7 @@ describe('ioFog Controller', () => {
     def('latitude', () => 15)
     def('longitude', () => 16)
     def('description', () => 'testDescription')
-    def('dockerUrl', () => 'testDockerUrl')
+    def('containerEngineUrl', () => 'testContainerEngineUrl')
     def('diskLimit', () => 25)
     def('diskDirectory', () => 'testDiskDirectory')
     def('memoryLimit', () => 35)
@@ -134,7 +134,7 @@ describe('ioFog Controller', () => {
     def('bluetoothEnabled', () => false)
     def('watchdogEnabled', () => true)
     def('abstractedHardwareEnabled', () => false)
-    def('fogType', () => 0)
+    def('archId', () => 0)
 
     def('req', () => ({
       params: {
@@ -146,7 +146,7 @@ describe('ioFog Controller', () => {
         latitude: $latitude,
         longitude: $longitude,
         description: $description,
-        dockerUrl: $dockerUrl,
+        containerEngineUrl: $containerEngineUrl,
         diskLimit: $diskLimit,
         diskDirectory: $diskDirectory,
         memoryLimit: $memoryLimit,
@@ -160,11 +160,11 @@ describe('ioFog Controller', () => {
         bluetoothEnabled: $bluetoothEnabled,
         watchdogEnabled: $watchdogEnabled,
         abstractedHardwareEnabled: $abstractedHardwareEnabled,
-        fogType: $fogType,
+        archId: $archId,
       },
     }))
     def('response', () => Promise.resolve())
-    def('subject', () => $subject.updateFogEndPoint($req, $user))
+    def('subject', () => $subject.updateFogEndPoint($req))
 
     beforeEach(() => {
       $sandbox.stub(ioFogService, 'updateFogEndPoint').returns($response)
@@ -179,7 +179,7 @@ describe('ioFog Controller', () => {
         latitude: $latitude,
         longitude: $longitude,
         description: $description,
-        dockerUrl: $dockerUrl,
+        containerEngineUrl: $containerEngineUrl,
         diskLimit: $diskLimit,
         diskDirectory: $diskDirectory,
         memoryLimit: $memoryLimit,
@@ -193,8 +193,8 @@ describe('ioFog Controller', () => {
         bluetoothEnabled: $bluetoothEnabled,
         watchdogEnabled: $watchdogEnabled,
         abstractedHardwareEnabled: $abstractedHardwareEnabled,
-        fogType: $fogType,
-      }, $user, false)
+        archId: $archId,
+      }, false)
     })
 
     context('when ioFogService#updateFogEndPoint fails', () => {
@@ -225,7 +225,7 @@ describe('ioFog Controller', () => {
     }))
 
     def('response', () => Promise.resolve())
-    def('subject', () => $subject.deleteFogEndPoint($req, $user))
+    def('subject', () => $subject.deleteFogEndPoint($req))
 
     beforeEach(() => {
       $sandbox.stub(ioFogService, 'deleteFogEndPoint').returns($response)
@@ -233,7 +233,7 @@ describe('ioFog Controller', () => {
 
     it('calls ioFogService.deleteFogEndPoint with correct args', async () => {
       await $subject
-      expect(ioFogService.deleteFogEndPoint).to.have.been.calledWith({ uuid: $uuid }, $user, false)
+      expect(ioFogService.deleteFogEndPoint).to.have.been.calledWith({ uuid: $uuid }, false)
     })
 
     context('when ioFogService#deleteFogEndPoint fails', () => {
@@ -263,7 +263,7 @@ describe('ioFog Controller', () => {
       },
     }))
     def('response', () => Promise.resolve())
-    def('subject', () => $subject.getFogEndPoint($req, $user))
+    def('subject', () => $subject.getFogEndPoint($req))
 
     beforeEach(() => {
       $sandbox.stub(ioFogService, 'getFogEndPoint').returns($response)
@@ -271,7 +271,7 @@ describe('ioFog Controller', () => {
 
     it('calls ioFogService.getFogEndPoint with correct args', async () => {
       await $subject
-      expect(ioFogService.getFogEndPoint).to.have.been.calledWith({ uuid: $uuid }, $user, false)
+      expect(ioFogService.getFogEndPoint).to.have.been.calledWith({ uuid: $uuid }, false)
     })
 
     context('when ioFogService#getFogEndPoint fails', () => {
@@ -304,7 +304,7 @@ describe('ioFog Controller', () => {
     def('queryParseResponse', () => ({
       filters: $filters,
     }))
-    def('subject', () => $subject.getFogListEndPoint($req, $user))
+    def('subject', () => $subject.getFogListEndPoint($req))
 
     beforeEach(() => {
       $sandbox.stub(qs, 'parse').returns($queryParseResponse)
@@ -313,7 +313,7 @@ describe('ioFog Controller', () => {
 
     it('calls qs.parse with correct args', async () => {
       await $subject
-      expect(qs.parse).to.have.been.calledWith($queryParseResponse)
+      expect(qs.parse).to.have.been.calledWith($req.query)
     })
 
     context('when qs.parse fails', () => {
@@ -329,7 +329,7 @@ describe('ioFog Controller', () => {
     context('when qs.parse succeeds', () => {
       it('calls ioFogService.getFogListEndPoint with correct args', async () => {
         await $subject
-        expect(ioFogService.getFogListEndPoint).to.have.been.calledWith($filters, $user, false)
+        expect(ioFogService.getFogListEndPoint).to.have.been.calledWith($filters, false)
       })
 
       context('when ioFogService.getFogListEndPoint fails', () => {
@@ -360,7 +360,7 @@ describe('ioFog Controller', () => {
       },
     }))
     def('response', () => Promise.resolve())
-    def('subject', () => $subject.generateProvisioningKeyEndPoint($req, $user))
+    def('subject', () => $subject.generateProvisioningKeyEndPoint($req))
 
     beforeEach(() => {
       $sandbox.stub(ioFogService, 'generateProvisioningKeyEndPoint').returns($response)
@@ -368,7 +368,7 @@ describe('ioFog Controller', () => {
 
     it('calls ioFogService.generateProvisioningKeyEndPoint with correct args', async () => {
       await $subject
-      expect(ioFogService.generateProvisioningKeyEndPoint).to.have.been.calledWith({ uuid: $uuid }, $user, false)
+      expect(ioFogService.generateProvisioningKeyEndPoint).to.have.been.calledWith({ uuid: $uuid }, false)
     })
 
     context('when ioFogService#generateProvisioningKeyEndPoint fails', () => {
@@ -398,9 +398,10 @@ describe('ioFog Controller', () => {
         uuid: $uuid,
         versionCommand: $versionCommand,
       },
+      body: {},
     }))
     def('response', () => Promise.resolve())
-    def('subject', () => $subject.setFogVersionCommandEndPoint($req, $user))
+    def('subject', () => $subject.setFogVersionCommandEndPoint($req))
 
     beforeEach(() => {
       $sandbox.stub(ioFogService, 'setFogVersionCommandEndPoint').returns($response)
@@ -411,7 +412,28 @@ describe('ioFog Controller', () => {
       expect(ioFogService.setFogVersionCommandEndPoint).to.have.been.calledWith({
         uuid: $uuid,
         versionCommand: $versionCommand,
-      }, $user, false)
+      }, false)
+    })
+
+    context('when semver is provided in body', () => {
+      def('req', () => ({
+        params: {
+          uuid: $uuid,
+          versionCommand: $versionCommand,
+        },
+        body: {
+          semver: '3.2.0',
+        },
+      }))
+
+      it('passes semver to service', async () => {
+        await $subject
+        expect(ioFogService.setFogVersionCommandEndPoint).to.have.been.calledWith({
+          uuid: $uuid,
+          versionCommand: $versionCommand,
+          semver: '3.2.0',
+        }, false)
+      })
     })
 
     context('when ioFogService#setFogVersionCommandEndPoint fails', () => {
@@ -441,7 +463,7 @@ describe('ioFog Controller', () => {
       },
     }))
     def('response', () => Promise.resolve())
-    def('subject', () => $subject.setFogRebootCommandEndPoint($req, $user))
+    def('subject', () => $subject.setFogRebootCommandEndPoint($req))
 
     beforeEach(() => {
       $sandbox.stub(ioFogService, 'setFogRebootCommandEndPoint').returns($response)
@@ -449,7 +471,7 @@ describe('ioFog Controller', () => {
 
     it('calls ioFogService.setFogRebootCommandEndPoint with correct args', async () => {
       await $subject
-      expect(ioFogService.setFogRebootCommandEndPoint).to.have.been.calledWith({ uuid: $uuid }, $user, false)
+      expect(ioFogService.setFogRebootCommandEndPoint).to.have.been.calledWith({ uuid: $uuid }, false)
     })
 
     context('when ioFogService#setFogRebootCommandEndPoint fails', () => {
@@ -479,7 +501,7 @@ describe('ioFog Controller', () => {
       },
     }))
     def('response', () => Promise.resolve())
-    def('subject', () => $subject.getHalHardwareInfoEndPoint($req, $user))
+    def('subject', () => $subject.getHalHardwareInfoEndPoint($req))
 
     beforeEach(() => {
       $sandbox.stub(ioFogService, 'getHalHardwareInfoEndPoint').returns($response)
@@ -487,7 +509,7 @@ describe('ioFog Controller', () => {
 
     it('calls ioFogService.getHalHardwareInfoEndPoint with correct args', async () => {
       await $subject
-      expect(ioFogService.getHalHardwareInfoEndPoint).to.have.been.calledWith({ uuid: $uuid }, $user, false)
+      expect(ioFogService.getHalHardwareInfoEndPoint).to.have.been.calledWith({ uuid: $uuid }, false)
     })
 
     context('when ioFogService#getHalHardwareInfoEndPoint fails', () => {
@@ -517,7 +539,7 @@ describe('ioFog Controller', () => {
       },
     }))
     def('response', () => Promise.resolve({ info: undefined }))
-    def('subject', () => $subject.getHalUsbInfoEndPoint($req, $user))
+    def('subject', () => $subject.getHalUsbInfoEndPoint($req))
 
     beforeEach(() => {
       $sandbox.stub(ioFogService, 'getHalUsbInfoEndPoint').returns($response)
@@ -525,7 +547,7 @@ describe('ioFog Controller', () => {
 
     it('calls ioFogService.getHalUsbInfoEndPoint with correct args', async () => {
       await $subject
-      expect(ioFogService.getHalUsbInfoEndPoint).to.have.been.calledWith({ uuid: $uuid }, $user, false)
+      expect(ioFogService.getHalUsbInfoEndPoint).to.have.been.calledWith({ uuid: $uuid }, false)
     })
 
     context('when ioFogService#getHalUsbInfoEndPoint fails', () => {

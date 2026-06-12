@@ -129,7 +129,7 @@ describe('Agent Controller', () => {
     def('fog', () => 'fog!')
 
     def('networkInterface', () => 'testNetworkInterface')
-    def('dockerUrl', () => 'testDockerUrl')
+    def('containerEngineUrl', () => 'testContainerEngineUrl')
     def('diskLimit', 15)
     def('diskDirectory', () => 'testDiskDirectory')
     def('memoryLimit', () => 25)
@@ -148,7 +148,7 @@ describe('Agent Controller', () => {
     def('req', () => ({
       body: {
         networkInterface: $networkInterface,
-        dockerUrl: $dockerUrl,
+        containerEngineUrl: $containerEngineUrl,
         diskLimit: $diskLimit,
         diskDirectory: $diskDirectory,
         memoryLimit: $memoryLimit,
@@ -177,7 +177,7 @@ describe('Agent Controller', () => {
       await $subject
       expect(AgentService.updateAgentConfig).to.have.been.calledWith({
         networkInterface: $networkInterface,
-        dockerUrl: $dockerUrl,
+        containerEngineUrl: $containerEngineUrl,
         diskLimit: $diskLimit,
         diskDirectory: $diskDirectory,
         memoryLimit: $memoryLimit,
@@ -266,9 +266,9 @@ describe('Agent Controller', () => {
     def('lastStatusTime', () => 15555555)
     def('ipAddress', () => 'testIpAddress')
     def('ipAddressExternal', () => 'testIpAddressExternal')
-    def('processedMessages', () => 155)
-    def('microserviceMessageCounts', () => 1555)
-    def('messageSpeed', () => 5.00)
+    def('availableRuntimes', () => ['edgelet'])
+    def('runtimeAgentPhase', () => 'Running')
+    def('controlPlaneQuiesced', () => false)
     def('lastCommandTime', () => 155555555)
     def('tunnelStatus', () => 'testTunnelStatus')
     def('version', () => '1.5.6')
@@ -293,9 +293,9 @@ describe('Agent Controller', () => {
         lastStatusTime: $lastStatusTime,
         ipAddress: $ipAddress,
         ipAddressExternal: $ipAddressExternal,
-        processedMessages: $processedMessages,
-        microserviceMessageCounts: $microserviceMessageCounts,
-        messageSpeed: $messageSpeed,
+        availableRuntimes: $availableRuntimes,
+        runtimeAgentPhase: $runtimeAgentPhase,
+        controlPlaneQuiesced: $controlPlaneQuiesced,
         lastCommandTime: $lastCommandTime,
         tunnelStatus: $tunnelStatus,
         version: $version,
@@ -329,9 +329,9 @@ describe('Agent Controller', () => {
         lastStatusTime: $lastStatusTime,
         ipAddress: $ipAddress,
         ipAddressExternal: $ipAddressExternal,
-        processedMessages: $processedMessages,
-        microserviceMessageCounts: $microserviceMessageCounts,
-        messageSpeed: $messageSpeed,
+        availableRuntimes: $availableRuntimes,
+        runtimeAgentPhase: $runtimeAgentPhase,
+        controlPlaneQuiesced: $controlPlaneQuiesced,
         lastCommandTime: $lastCommandTime,
         tunnelStatus: $tunnelStatus,
         version: $version,
@@ -500,87 +500,6 @@ describe('Agent Controller', () => {
     })
   })
 
-  describe('getAgentStraceEndPoint()', () => {
-    def('fog', () => 'fog!')
-
-    def('req', () => ({
-      body: {},
-    }))
-    def('response', () => Promise.resolve())
-    def('subject', () => $subject.getAgentStraceEndPoint($req, $fog))
-
-    beforeEach(() => {
-      $sandbox.stub(AgentService, 'getAgentStrace').returns($response)
-    })
-
-    it('calls AgentService.getAgentStrace with correct args', async () => {
-      await $subject
-      expect(AgentService.getAgentStrace).to.have.been.calledWith($fog)
-    })
-
-    context('when AgentService#getAgentStrace fails', () => {
-      const error = 'Error!'
-
-      def('response', () => Promise.reject(error))
-
-      it(`fails with "${error}"`, () => {
-        return expect($subject).to.be.rejectedWith(error)
-      })
-    })
-
-    context('when AgentService#getAgentStrace succeeds', () => {
-      it(`succeeds`, () => {
-        return expect($subject).to.eventually.equal(undefined)
-      })
-    })
-  })
-
-  describe('updateAgentStraceEndPoint()', () => {
-    def('fog', () => 'fog!')
-    def('microserviceUuid', () => 'microserviceUuid')
-    def('buffer', () => 'testBuffer')
-
-    def('straceData', [{
-      microserviceUuid: $microserviceUuid,
-      buffer: $buffer,
-    }])
-
-    def('req', () => ({
-      body: {
-        straceData: $straceData,
-      },
-    }))
-    def('response', () => Promise.resolve())
-    def('subject', () => $subject.updateAgentStraceEndPoint($req, $fog))
-
-    beforeEach(() => {
-      $sandbox.stub(AgentService, 'updateAgentStrace').returns($response)
-    })
-
-    it('calls AgentService.updateAgentStrace with correct args', async () => {
-      await $subject
-      expect(AgentService.updateAgentStrace).to.have.been.calledWith({
-        straceData: $straceData,
-      }, $fog)
-    })
-
-    context('when AgentService#updateAgentStrace fails', () => {
-      const error = 'Error!'
-
-      def('response', () => Promise.reject(error))
-
-      it(`fails with "${error}"`, () => {
-        return expect($subject).to.be.rejectedWith(error)
-      })
-    })
-
-    context('when AgentService#updateAgentStrace succeeds', () => {
-      it(`succeeds`, () => {
-        return expect($subject).to.eventually.equal(undefined)
-      })
-    })
-  })
-
   describe('getAgentChangeVersionCommandEndPoint()', () => {
     def('fog', () => 'fog!')
 
@@ -727,76 +646,6 @@ describe('Agent Controller', () => {
     })
 
     context('when AgentService#deleteNode succeeds', () => {
-      it(`succeeds`, () => {
-        return expect($subject).to.eventually.equal(undefined)
-      })
-    })
-  })
-
-  describe('getImageSnapshotEndPoint()', () => {
-    def('fog', () => 'fog!')
-
-    def('req', () => ({
-      body: {},
-    }))
-    def('response', () => Promise.resolve())
-    def('subject', () => $subject.getImageSnapshotEndPoint($req, $fog))
-
-    beforeEach(() => {
-      $sandbox.stub(AgentService, 'getImageSnapshot').returns($response)
-    })
-
-    it('calls AgentService.getImageSnapshot with correct args', async () => {
-      await $subject
-      expect(AgentService.getImageSnapshot).to.have.been.calledWith($fog)
-    })
-
-    context('when AgentService#getImageSnapshot fails', () => {
-      const error = 'Error!'
-
-      def('response', () => Promise.reject(error))
-
-      it(`fails with "${error}"`, () => {
-        return expect($subject).to.be.rejectedWith(error)
-      })
-    })
-
-    context('when AgentService#getImageSnapshot succeeds', () => {
-      it(`succeeds`, () => {
-        return expect($subject).to.eventually.equal(undefined)
-      })
-    })
-  })
-
-  describe('putImageSnapshotEndPoint()', () => {
-    def('fog', () => 'fog!')
-
-    def('req', () => ({
-      body: {},
-    }))
-    def('response', () => Promise.resolve())
-    def('subject', () => $subject.putImageSnapshotEndPoint($req, $fog))
-
-    beforeEach(() => {
-      $sandbox.stub(AgentService, 'putImageSnapshot').returns($response)
-    })
-
-    it('calls AgentService.putImageSnapshot with correct args', async () => {
-      await $subject
-      expect(AgentService.putImageSnapshot).to.have.been.calledWith($req, $fog)
-    })
-
-    context('when AgentService#putImageSnapshot fails', () => {
-      const error = 'Error!'
-
-      def('response', () => Promise.reject(error))
-
-      it(`fails with "${error}"`, () => {
-        return expect($subject).to.be.rejectedWith(error)
-      })
-    })
-
-    context('when AgentService#putImageSnapshot succeeds', () => {
       it(`succeeds`, () => {
         return expect($subject).to.eventually.equal(undefined)
       })

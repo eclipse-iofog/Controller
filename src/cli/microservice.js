@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 const BaseCLIHandler = require('./base-cli-handler')
 const constants = require('../helpers/constants')
 const ErrorMessages = require('../helpers/error-messages')
@@ -29,7 +16,7 @@ const JSON_SCHEMA_ADD = AppHelper.stringifyCliJsonSchema(
     images: [
       {
         containerImage: 'string',
-        fogTypeId: 1
+        archId: 1
       }
     ],
     registryId: 1,
@@ -91,7 +78,7 @@ const JSON_SCHEMA_UPDATE = AppHelper.stringifyCliJsonSchema(
     images: [
       {
         containerImage: 'string',
-        fogTypeId: 1
+        archId: 1
       }
     ],
     registryId: 1,
@@ -582,17 +569,17 @@ const _updateMicroservice = async function (obj) {
 
 const _updateMicroserviceObject = function (obj) {
   const envVars = obj.env || []
-  const env = envVars.map((it) => {
+  const env = envVars.flatMap((it) => {
     const split = it.split('=')
     if (!split || split.length < 2) {
-      return
+      return []
     }
 
-    return {
+    return [{
       key: split[0],
       value: split.slice(1).join('=')
-    }
-  }).filter((it) => !!it)
+    }]
+  })
 
   const microserviceObj = {
     name: obj.name,
@@ -622,7 +609,7 @@ const _updateMicroserviceObject = function (obj) {
     images.push(
       {
         containerImage: obj.x86Image,
-        fogTypeId: 1
+        archId: 1
       }
     )
   }
@@ -630,7 +617,7 @@ const _updateMicroserviceObject = function (obj) {
     images.push(
       {
         containerImage: obj.armImage,
-        fogTypeId: 2
+        archId: 2
       }
     )
   }
@@ -648,17 +635,17 @@ const _updateMicroserviceObject = function (obj) {
 
 const _createMicroserviceObject = function (obj) {
   const envVars = obj.env || []
-  const env = envVars.map((it) => {
+  const env = envVars.flatMap((it) => {
     const split = it.split('=')
     if (!split || split.length < 2) {
-      return
+      return []
     }
 
-    return {
+    return [{
       key: split[0],
       value: split.slice(1).join('=')
-    }
-  }).filter((it) => !!it)
+    }]
+  })
 
   const microserviceObj = {
     name: obj.name,
@@ -686,7 +673,7 @@ const _createMicroserviceObject = function (obj) {
     microserviceObj.images.push(
       {
         containerImage: obj.x86Image,
-        fogTypeId: 1
+        archId: 1
       }
     )
   }
@@ -694,7 +681,7 @@ const _createMicroserviceObject = function (obj) {
     microserviceObj.images.push(
       {
         containerImage: obj.armImage,
-        fogTypeId: 2
+        archId: 2
       }
     )
   }

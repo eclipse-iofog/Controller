@@ -1,16 +1,3 @@
-/*
- * *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 const BaseManager = require('./base-manager')
 const models = require('../models')
 const Microservice = models.Microservice
@@ -22,7 +9,6 @@ const MicroserviceCdiDev = models.MicroserviceCdiDev
 const MicroserviceCapAdd = models.MicroserviceCapAdd
 const MicroserviceCapDrop = models.MicroserviceCapDrop
 const VolumeMapping = models.VolumeMapping
-const StraceDiagnostics = models.StraceDiagnostics
 const CatalogItem = models.CatalogItem
 const CatalogItemImage = models.CatalogItemImage
 const Fog = models.Fog
@@ -41,7 +27,6 @@ const microserviceExcludedFields = [
   'updatedBy',
   'rebuild',
   'deleteWithCleanUp',
-  'imageSnapshot',
   'catalog_item_id',
   'iofog_uuid'
 ]
@@ -102,16 +87,10 @@ class MicroserviceManager extends BaseManager {
           attributes: ['hostDestination', 'containerDestination', 'accessMode', 'type']
         },
         {
-          model: StraceDiagnostics,
-          as: 'strace',
-          required: false,
-          attributes: ['straceRun']
-        },
-        {
           model: CatalogItemImage,
           as: 'images',
           required: false,
-          attributes: ['containerImage', 'fogTypeId']
+          attributes: ['containerImage', 'archId']
         },
         {
           model: Registry,
@@ -126,7 +105,7 @@ class MicroserviceManager extends BaseManager {
           include: [{
             model: CatalogItemImage,
             as: 'images',
-            attributes: ['containerImage', 'fogTypeId']
+            attributes: ['containerImage', 'archId']
           }],
           attributes: ['picture', 'registryId']
         },
@@ -148,9 +127,9 @@ class MicroserviceManager extends BaseManager {
           required: false
         }
       ],
-      where: where,
-      attributes: attributes
-    }, { transaction: transaction })
+      where,
+      attributes
+    }, { transaction })
   }
 
   findAllActiveApplicationMicroservices (iofogUuid, transaction) {
@@ -207,7 +186,7 @@ class MicroserviceManager extends BaseManager {
           model: CatalogItemImage,
           as: 'images',
           required: false,
-          attributes: ['containerImage', 'fogTypeId']
+          attributes: ['containerImage', 'archId']
         },
         {
           model: Registry,
@@ -224,7 +203,7 @@ class MicroserviceManager extends BaseManager {
               model: CatalogItemImage,
               as: 'images',
               required: true,
-              attributes: ['containerImage', 'fogTypeId']
+              attributes: ['containerImage', 'archId']
             },
             {
               model: Registry,
@@ -254,7 +233,7 @@ class MicroserviceManager extends BaseManager {
         }
       ],
       where: {
-        iofogUuid: iofogUuid,
+        iofogUuid,
         [Op.or]:
           [
             {
@@ -270,7 +249,7 @@ class MicroserviceManager extends BaseManager {
           ]
 
       }
-    }, { transaction: transaction })
+    }, { transaction })
   }
 
   findOneWithDependencies (where, attributes, transaction) {
@@ -324,16 +303,10 @@ class MicroserviceManager extends BaseManager {
           attributes: ['hostDestination', 'containerDestination', 'accessMode', 'type']
         },
         {
-          model: StraceDiagnostics,
-          as: 'strace',
-          required: false,
-          attributes: ['straceRun']
-        },
-        {
           model: CatalogItemImage,
           as: 'images',
           required: false,
-          attributes: ['containerImage', 'fogTypeId']
+          attributes: ['containerImage', 'archId']
         },
         {
           model: Registry,
@@ -348,7 +321,7 @@ class MicroserviceManager extends BaseManager {
           include: [{
             model: CatalogItemImage,
             as: 'images',
-            attributes: ['containerImage', 'fogTypeId']
+            attributes: ['containerImage', 'archId']
           }],
           attributes: ['picture', 'registryId', 'category']
         },
@@ -370,9 +343,9 @@ class MicroserviceManager extends BaseManager {
           required: false
         }
       ],
-      where: where,
-      attributes: attributes
-    }, { transaction: transaction })
+      where,
+      attributes
+    }, { transaction })
   }
 
   findOneWithStatusAndCategory (where, transaction) {
@@ -389,8 +362,8 @@ class MicroserviceManager extends BaseManager {
           attributes: ['category']
         }
       ],
-      where: where
-    }, { transaction: transaction })
+      where
+    }, { transaction })
   }
 
   findAllWithStatuses (where, transaction) {
@@ -407,8 +380,8 @@ class MicroserviceManager extends BaseManager {
           required: false
         }
       ],
-      where: where
-    }, { transaction: transaction })
+      where
+    }, { transaction })
   }
 
   findMicroserviceOnGet (where, transaction) {
@@ -424,10 +397,11 @@ class MicroserviceManager extends BaseManager {
           attributes: ['id']
         }
       ],
-      where: where,
+      where,
       attributes: ['uuid']
-    }, { transaction: transaction })
+    }, { transaction })
   }
+
   findSystemMicroserviceOnGet (where, transaction) {
     return Microservice.findOne({
       include: [
@@ -441,10 +415,11 @@ class MicroserviceManager extends BaseManager {
           attributes: ['id']
         }
       ],
-      where: where,
+      where,
       attributes: ['uuid']
-    }, { transaction: transaction })
+    }, { transaction })
   }
+
   async findOneExcludeFields (where, transaction) {
     return Microservice.findOne({
       include: [
@@ -454,11 +429,11 @@ class MicroserviceManager extends BaseManager {
           required: false
         }
       ],
-      where: where,
+      where,
       attributes: {
         exclude: microserviceExcludedFields
       }
-    }, { transaction: transaction })
+    }, { transaction })
   }
 
   async findAllExcludeFields (where, transaction) {
@@ -476,12 +451,12 @@ class MicroserviceManager extends BaseManager {
           required: false
         }
       ],
-      where: where,
+      where,
       order: [['name', 'ASC']],
       attributes: {
         exclude: microserviceExcludedFields
       }
-    }, { transaction: transaction })
+    }, { transaction })
   }
 
   async findAllSystemExcludeFields (where, transaction) {
@@ -499,12 +474,12 @@ class MicroserviceManager extends BaseManager {
           required: false
         }
       ],
-      where: where,
+      where,
       order: [['name', 'ASC']],
       attributes: {
         exclude: microserviceExcludedFields
       }
-    }, { transaction: transaction })
+    }, { transaction })
   }
 
   findOneWithCategory (where, transaction) {
@@ -517,8 +492,8 @@ class MicroserviceManager extends BaseManager {
           attributes: ['category']
         }
       ],
-      where: where
-    }, { transaction: transaction })
+      where
+    }, { transaction })
   }
 }
 

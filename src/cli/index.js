@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 const BaseCLIHandler = require('./base-cli-handler')
 const Start = require('./start')
 const Config = require('./config')
@@ -21,7 +8,6 @@ const Application = require('./application')
 const Microservice = require('./microservice')
 const Registry = require('./registry')
 const Controller = require('./controller')
-const Diagnostics = require('./diagnostics')
 const constants = require('../helpers/constants')
 
 class Cli extends BaseCLIHandler {
@@ -43,8 +29,7 @@ class Cli extends BaseCLIHandler {
       [constants.CMD_CATALOG]: 'Microservices catalog operations.',
       [constants.CMD_FLOW]: 'Application operations.',
       [constants.CMD_MICROSERVICE]: 'Microservice instance operations.',
-      [constants.CMD_REGISTRY]: 'Registries instance operations.',
-      [constants.CMD_DIAGNOSTICS]: 'Diagnostic instance operations.'
+      [constants.CMD_REGISTRY]: 'Registries instance operations.'
     }
   }
 
@@ -77,8 +62,6 @@ class Cli extends BaseCLIHandler {
         return Microservice.run({ argv })
       case constants.CMD_REGISTRY:
         return Registry.run({ argv })
-      case constants.CMD_DIAGNOSTICS:
-        return Diagnostics.run({ argv })
       case constants.CMD_HELP:
       default:
         return this.help([], false)

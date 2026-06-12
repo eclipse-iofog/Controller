@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 const BaseCLIHandler = require('./base-cli-handler')
 const constants = require('../helpers/constants')
 const logger = require('../logger')
@@ -25,7 +12,7 @@ const JSON_SCHEMA = AppHelper.stringifyCliJsonSchema({
   latitude: 0,
   longitude: 0,
   description: 'string',
-  dockerUrl: 'string',
+  containerEngineUrl: 'string',
   diskLimit: 0,
   diskDirectory: 'string',
   memoryLimit: 0,
@@ -39,8 +26,8 @@ const JSON_SCHEMA = AppHelper.stringifyCliJsonSchema({
   bluetoothEnabled: false,
   watchdogEnabled: true,
   abstractedHardwareEnabled: false,
-  fogType: 0,
-  dockerPruningFrequency: 0,
+  archId: 0,
+  pruningFrequency: 0,
   availableDiskThreshold: 0,
   logLevel: 'string',
   timeZone: 'string'
@@ -439,7 +426,7 @@ async function _getHalHardwareInfo (obj) {
   logger.cliReq('fog hal-hw', { args: uuidObj })
   const data = await FogService.getHalHardwareInfoEndPoint(uuidObj, {}, true)
   if (data) {
-    if (data.hasOwnProperty('info')) {
+    if (Object.hasOwn(data, 'info')) {
       data.info = JSON.parse(data.info)
     }
 
@@ -454,7 +441,7 @@ async function _getHalUsbInfo (obj) {
   logger.cliReq('fog hal-usb', { args: uuidObj })
   const data = await FogService.getHalUsbInfoEndPoint(uuidObj, {}, true)
   if (data) {
-    if (data.hasOwnProperty('info')) {
+    if (Object.hasOwn(data, 'info')) {
       data.info = JSON.parse(data.info)
     }
 
@@ -477,7 +464,7 @@ function _createFogObject (cliData) {
     latitude: cliData.latitude,
     longitude: cliData.longitude,
     description: cliData.description,
-    dockerUrl: cliData.dockerUrl,
+    containerEngineUrl: cliData.containerEngineUrl,
     diskLimit: cliData.diskLimit,
     diskDirectory: cliData.diskDirectory,
     memoryLimit: cliData.memoryLimit,
@@ -492,8 +479,8 @@ function _createFogObject (cliData) {
     watchdogEnabled: AppHelper.validateBooleanCliOptions(cliData.watchdogEnable, cliData.watchdogDisable),
     abstractedHardwareEnabled: AppHelper.validateBooleanCliOptions(cliData.absHwEnable, cliData.absHwDisable),
 
-    fogType: cliData.fogType,
-    dockerPruningFrequency: cliData.dockerPruningFrequency,
+    archId: cliData.archId,
+    pruningFrequency: cliData.pruningFrequency,
     availableDiskThreshold: cliData.availableDiskThreshold,
     logLevel: cliData.logLevel,
     timeZone: cliData.timeZone

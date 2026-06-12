@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 const daemonize = require('daemonize2')
 const logger = require('./logger')
 const path = require('path')
@@ -19,7 +6,7 @@ const daemon = daemonize.setup({
   main: 'server.js',
   name: 'iofog-controller',
   pidfile: path.join(process.env.PID_BASE || __dirname, 'iofog-controller.pid'),
-  argv: [ ...process.argv.slice(2), 'daemonize2' ],
+  argv: [...process.argv.slice(2), 'daemonize2'],
   silent: true
 })
 

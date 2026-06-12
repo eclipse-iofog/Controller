@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 const RbacRoleBindingManager = require('../../data/managers/rbac-role-binding-manager')
 const RbacRoleManager = require('../../data/managers/rbac-role-manager')
 const RbacCacheVersionManager = require('../../data/managers/rbac-cache-version-manager')
@@ -141,7 +128,7 @@ async function authorize (subjects, apiGroup, resource, verb, resourceName, tran
   }
 
   // Check system roles first (Admin, SRE, Developer, Viewer)
-  // These work directly without RoleBindings when Keycloak role name matches
+  // These work directly without RoleBindings when OIDC group/role name matches
   for (const subject of subjects) {
     if (subject.kind === 'Group' && subject.name) {
       const roleName = subject.name.toLowerCase()

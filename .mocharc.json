@@ -1,5 +1,6 @@
 {
   "require": "test/support/setup.js",
   "ui": "bdd-lazy-var/global",
-  "recursive": true
+  "timeout": 15000,
+  "exit": true
 }

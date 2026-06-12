@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 const RbacService = require('../services/rbac-service')
 const YamlParserService = require('../services/yaml-parser-service')
 
@@ -139,27 +126,27 @@ const updateServiceAccountFromYamlEndpoint = async function (req) {
 
 module.exports = {
   // Role endpoints
-  listRolesEndpoint: (listRolesEndpoint),
-  getRoleEndpoint: (getRoleEndpoint),
-  createRoleEndpoint: (createRoleEndpoint),
-  updateRoleEndpoint: (updateRoleEndpoint),
-  deleteRoleEndpoint: (deleteRoleEndpoint),
-  createRoleFromYamlEndpoint: (createRoleFromYamlEndpoint),
-  updateRoleFromYamlEndpoint: (updateRoleFromYamlEndpoint),
+  listRolesEndpoint,
+  getRoleEndpoint,
+  createRoleEndpoint,
+  updateRoleEndpoint,
+  deleteRoleEndpoint,
+  createRoleFromYamlEndpoint,
+  updateRoleFromYamlEndpoint,
   // RoleBinding endpoints
-  listRoleBindingsEndpoint: (listRoleBindingsEndpoint),
-  getRoleBindingEndpoint: (getRoleBindingEndpoint),
-  createRoleBindingEndpoint: (createRoleBindingEndpoint),
-  updateRoleBindingEndpoint: (updateRoleBindingEndpoint),
-  deleteRoleBindingEndpoint: (deleteRoleBindingEndpoint),
-  createRoleBindingFromYamlEndpoint: (createRoleBindingFromYamlEndpoint),
-  updateRoleBindingFromYamlEndpoint: (updateRoleBindingFromYamlEndpoint),
+  listRoleBindingsEndpoint,
+  getRoleBindingEndpoint,
+  createRoleBindingEndpoint,
+  updateRoleBindingEndpoint,
+  deleteRoleBindingEndpoint,
+  createRoleBindingFromYamlEndpoint,
+  updateRoleBindingFromYamlEndpoint,
   // ServiceAccount endpoints
-  listServiceAccountsEndpoint: (listServiceAccountsEndpoint),
-  getServiceAccountEndpoint: (getServiceAccountEndpoint),
-  createServiceAccountEndpoint: (createServiceAccountEndpoint),
-  updateServiceAccountEndpoint: (updateServiceAccountEndpoint),
-  deleteServiceAccountEndpoint: (deleteServiceAccountEndpoint),
-  createServiceAccountFromYamlEndpoint: (createServiceAccountFromYamlEndpoint),
-  updateServiceAccountFromYamlEndpoint: (updateServiceAccountFromYamlEndpoint)
+  listServiceAccountsEndpoint,
+  getServiceAccountEndpoint,
+  createServiceAccountEndpoint,
+  updateServiceAccountEndpoint,
+  deleteServiceAccountEndpoint,
+  createServiceAccountFromYamlEndpoint,
+  updateServiceAccountFromYamlEndpoint
 }

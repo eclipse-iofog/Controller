@@ -26,7 +26,7 @@ const swaggerOptions = {
           description: 'JWT token for authentication (user or agent)'
         }
       },
-      schemas: schemas
+      schemas
     },
     security: [
       {

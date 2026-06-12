@@ -1,7 +1,7 @@
 openapi : "3.0.0"
 info:
-  version: 3.7.0
-  title: Eclipse ioFog Controller
+  version: 3.8.0
+  title: Cloud Native Controller for Edge Native Workloads
 paths:
   /status:
     get:
@@ -18,12 +18,12 @@ paths:
                 $ref: "#/components/schemas/ServiceStatusResponse"
         "500":
           description: Internal Server Error
-  /fog-types:
+  /architectures:
     get:
       tags:
         - Controller
-      summary: Gets ioFog types list
-      operationId: getIOFogTypes
+      summary: Gets architecture list
+      operationId: getArchitectures
       responses:
         "200":
           description: Success
@@ -35,7 +35,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/IOFogTypesResponse"
+                $ref: "#/components/schemas/ArchitecturesResponse"
         "500":
           description: Internal Server Error
   /iofog-list:
@@ -245,6 +245,17 @@ paths:
             enum:
               - upgrade
               - rollback
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                semver:
+                  type: string
+                  description: Target semver for upgrade or rollback
+                  pattern: ^v?(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:[+]([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$
       security:
         - authToken: []
       responses:
@@ -1228,6 +1239,43 @@ paths:
           description: Not Authorized
         "500":
           description: Internal Server Error
+  /agent/controller/register:
+    post:
+      tags:
+        - Agent
+      summary: Register ControlPlane controller microservice
+      description: >-
+        Agent-only endpoint (fog token). Edgelet registers the controller workload on system fogs.
+        Not available via user RBAC — do not add to rbac-resources.yaml user resources.
+      operationId: registerControllerMicroservice
+      security:
+        - authToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ControllerRegisterRequest"
+      responses:
+        "200":
+          description: Success
+          headers:
+            X-Timestamp:
+              description: FogController server timestamp
+              schema:
+                type: number
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ControllerRegisterResponse"
+        "400":
+          description: Bad Request — invalid body or name other than controller
+        "401":
+          description: Not Authorized
+        "403":
+          description: Forbidden — authenticated fog is not a system fog
+        "500":
+          description: Internal Server Error
   /agent/microservices:
     get:
       tags:
@@ -1333,61 +1381,6 @@ paths:
           description: Not Authorized
         "404":
           description: Tunnel Not Found
-        "500":
-          description: Internal Server Error
-  /agent/strace:
-    get:
-      tags:
-        - Agent
-      summary: Get an ioFog node strace info
-      operationId: getIOFogNodeStraceInfo
-      security:
-        - authToken: []
-      responses:
-        "200":
-          description: Success
-          headers:
-            X-Timestamp:
-              description: FogController server timestamp
-              schema:
-                type: number
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/IOFogNodeStraceResponse"
-        "401":
-          description: Not Authorized
-        "404":
-          description: Strace Not Found
-        "500":
-          description: Internal Server Error
-    put:
-      tags:
-        - Agent
-      summary: Posts agent strace to ioFog node
-      operationId: postIOFogNodeStraceBuffer
-      security:
-        - authToken: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/IOFogNodeStraceBuffer"
-        required: true
-      responses:
-        "204":
-          description: Success
-          headers:
-            X-Timestamp:
-              description: FogController server timestamp
-              schema:
-                type: number
-        "400":
-          description: Bad Request
-        "401":
-          description: Not Authorized
-        "404":
-          description: Invalid Node Id
         "500":
           description: Internal Server Error
   /agent/version:
@@ -1505,59 +1498,6 @@ paths:
               description: FogController server timestamp
               schema:
                 type: number
-        "401":
-          description: Not Authorized
-        "500":
-          description: Internal Server Error
-  /agent/image-snapshot:
-    get:
-      tags:
-        - Agent
-      summary: Get image snapshot info
-      operationId: getImageSnapshot
-      security:
-        - authToken: []
-      responses:
-        "200":
-          description: Success
-          headers:
-            X-Timestamp:
-              description: FogController server timestamp
-              schema:
-                type: number
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ImageSnapshotResponse"
-        "401":
-          description: Not Authorized
-        "404":
-          description: Image Snapshot Not Found
-        "500":
-          description: Internal Server Error
-    put:
-      tags:
-        - Agent
-      summary: Put image snapshot info on controller
-      operationId: putImageSnapshot
-      security:
-        - authToken: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/ImageSnapshotRequest"
-        required: true
-      responses:
-        "204":
-          description: Success
-          headers:
-            X-Timestamp:
-              description: FogController server timestamp
-              schema:
-                type: number
-        "400":
-          description: Bad Request
         "401":
           description: Not Authorized
         "500":
@@ -1741,13 +1681,6 @@ paths:
       summary: Gets list of microservices
       operationId: getMicroservicesList
       parameters:
-        - in: query
-          name: flowId
-          deprecated: true
-          description: Flow Id
-          required: false
-          schema:
-            type: integer
         - in: query
           name: application
           description: Application name
@@ -1946,13 +1879,6 @@ paths:
       security:
         - authToken: []
       parameters:
-        - in: query
-          name: flowId
-          deprecated: true
-          description: Flow Id
-          required: false
-          schema:
-            type: integer
         - in: query
           name: application
           description: Application name
@@ -2903,195 +2829,6 @@ paths:
           description: Invalid Microservice UUID
         "500":
           description: Internal Server Error
-  "/microservices/{uuid}/image-snapshot":
-    post:
-      tags:
-        - Diagnostics
-      summary: Send request to create image snapshot
-      operationId: createImageSnapshot
-      parameters:
-        - in: path
-          name: uuid
-          description: Microservice UUID
-          required: true
-          schema:
-            type: string
-      security:
-        - authToken: []
-      responses:
-        "201":
-          description: Created
-          headers:
-            X-Timestamp:
-              description: FogController server timestamp
-              schema:
-                type: number
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  id:
-                    type: string
-        "401":
-          description: Not Authorized
-        "404":
-          description: Invalid Microservice UUID
-        "500":
-          description: Internal Server Error
-    get:
-      tags:
-        - Diagnostics
-      summary: Download image snapshot
-      operationId: downloadImageSnapshot
-      parameters:
-        - in: path
-          name: uuid
-          description: Microservice UUID
-          required: true
-          schema:
-            type: string
-      security:
-        - authToken: []
-      responses:
-        "200":
-          description: Success
-          headers:
-            X-Timestamp:
-              description: FogController server timestamp
-              schema:
-                type: number
-          content:
-            application/gzip:
-              schema:
-                type: string
-                format: binary
-        "401":
-          description: Not Authorized
-        "404":
-          description: Invalid Microservice UUID
-        "500":
-          description: Internal Server Error
-  "/microservices/{uuid}/strace":
-    patch:
-      tags:
-        - Diagnostics
-      summary: Enables Microservice Strace Option
-      operationId: enableMicroserviceStrace
-      parameters:
-        - in: path
-          name: uuid
-          description: Microservice UUID
-          required: true
-          schema:
-            type: string
-      security:
-        - authToken: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                enable:
-                  type: boolean
-        description: Strace info to enable or disable feature
-        required: true
-      responses:
-        "204":
-          description: Success
-          headers:
-            X-Timestamp:
-              description: FogController server timestamp
-              schema:
-                type: number
-        "400":
-          description: Bad Request
-        "401":
-          description: Not Authorized
-        "404":
-          description: Invalid Microservice UUID
-        "500":
-          description: Internal Server Error
-    get:
-      tags:
-        - Diagnostics
-      summary: Gets Strace Data for Microservice
-      operationId: getMicroserviceStrace
-      parameters:
-        - in: path
-          name: uuid
-          description: Microservice UUID
-          required: true
-          schema:
-            type: string
-        - in: query
-          name: format
-          required: true
-          schema:
-            type: string
-            enum:
-              - file
-              - string
-      security:
-        - authToken: []
-      responses:
-        "200":
-          description: Success
-          headers:
-            X-Timestamp:
-              description: FogController server timestamp
-              schema:
-                type: number
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    type: string
-        "401":
-          description: Not Authorized
-        "404":
-          description: Invalid Microservice UUID
-        "500":
-          description: Internal Server Error
-    put:
-      tags:
-        - Diagnostics
-      summary: Posts Microservice Strace file to FTP
-      operationId: postMicroserviceStraceToFTP
-      parameters:
-        - in: path
-          required: true
-          name: uuid
-          description: Microservice UUID
-          schema:
-            type: string
-      security:
-        - authToken: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/MicroserviceStraceFTPBody"
-        required: true
-      responses:
-        "204":
-          description: Success
-          headers:
-            X-Timestamp:
-              description: FogController server timestamp
-              schema:
-                type: number
-        "400":
-          description: Bad Request
-        "401":
-          description: Not Authorized
-        "404":
-          description: Invalid Microservice UUID
-        "500":
-          description: Internal Server Error
   "/iofog/{uuid}/tunnel":
     patch:
       tags:
@@ -3314,6 +3051,14 @@ paths:
         - User
       summary: Login
       operationId: login
+      description: >
+        CLI login. The `email` field is the login identifier (username or email);
+        bootstrap admin may use a non-email username. User creation via POST /users still
+        requires a valid email address.
+
+        When the account has a temporary password (`mustChangePassword`), the access token
+        includes JWT claim `password_change_required: true`. RBAC allows only
+        `GET /user/profile` and `POST /user/change-password` until the password is changed.
       requestBody:
         content:
           application/json:
@@ -3336,6 +3081,8 @@ paths:
           description: bad request
         "401":
           description: incorrect credentials
+        "429":
+          $ref: "#/components/responses/AuthRateLimitExceeded"
   /user/refresh:
     post:
       tags:
@@ -3403,289 +3150,797 @@ paths:
           description: Not Authorized
         "500":
           description: Internal Server Error
-  /edgeResources:
-    get:
-      tags:
-        - Edge Resource
-      summary: Get Edge Resources
-      operationId: getEdgeResources
-      security:
-        - authToken: []
-      responses:
-        "200":
-          description: Success
-          headers:
-            X-Timestamp:
-              description: FogController server timestamp
-              schema:
-                type: number
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/EdgeResourcesListResponse"
-        "401":
-          description: Not Authorized
-        "500":
-          description: Internal Server Error
-  "/edgeResource/{name}/{version}":
-    get:
-      tags:
-        - Edge Resource
-      summary: Get Specific Edge Resource
-      operationId: getEdgeResourceDetail
-      parameters:
-        - in: path
-          name: name
-          description: Edge Resource name
-          required: true
-          schema:
-            type: string
-        - in: path
-          name: version
-          description: Edge Resource version
-          required: true
-          schema:
-            type: string
-      security:
-        - authToken: []
-      responses:
-        "200":
-          description: Success
-          headers:
-            X-Timestamp:
-              description: FogController server timestamp
-              schema:
-                type: number
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/EdgeResourceGetResponse"
-        "401":
-          description: Not Authorized
-        "500":
-          description: Internal Server Error
-    put:
-      tags:
-        - Edge Resource
-      summary: Update/Create Specific Edge Resource
-      operationId: putEdgeResource
-      parameters:
-        - in: path
-          name: name
-          description: Edge Resource name
-          required: true
-          schema:
-            type: string
-        - in: path
-          name: version
-          description: Edge Resource version
-          required: true
-          schema:
-            type: string
-      security:
-        - authToken: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/EdgeResourceCreateSchema"
-        description: Updated profile data
-        required: true
-      responses:
-        "200":
-          description: Success
-          headers:
-            X-Timestamp:
-              description: FogController server timestamp
-              schema:
-                type: number
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/EdgeResourceCreateResponse"
-        "401":
-          description: Not Authorized
-        "500":
-          description: Internal Server Error
-    delete:
-      tags:
-        - Edge Resource
-      summary: Deletes an Edge Resource
-      operationId: deleteEdgeResource
-      parameters:
-        - in: path
-          name: name
-          description: Edge Resource name
-          required: true
-          schema:
-            type: string
-        - in: path
-          name: version
-          description: Edge Resource version
-          required: true
-          schema:
-            type: string
-      security:
-        - authToken: []
-      responses:
-        "204":
-          description: Success
-          headers:
-            X-Timestamp:
-              description: FogController server timestamp
-              schema:
-                type: number
-        "404":
-          description: Not Found
-        "401":
-          description: Not Authorized
-        "500":
-          description: Internal Server Error
-  "/edgeResource/{name}":
-    get:
-      tags:
-        - Edge Resource
-      summary: Get Specific Edge Resource versions
-      operationId: getEdgeResourceVersions
-      parameters:
-        - in: path
-          name: name
-          description: Edge Resource name
-          required: true
-          schema:
-            type: string
-      security:
-        - authToken: []
-      responses:
-        "200":
-          description: Success
-          headers:
-            X-Timestamp:
-              description: FogController server timestamp
-              schema:
-                type: number
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/EdgeResourcesListResponse"
-        "401":
-          description: Not Authorized
-        "500":
-          description: Internal Server Error
-  /edgeResource:
+  /user/change-password:
     post:
       tags:
-        - Edge Resource
-      summary: Create Specific Edge Resource
-      operationId: postEdgeResource
-      security:
-        - authToken: []
+        - User
+      summary: Change password (authenticated or via reset token)
+      operationId: changePassword
       requestBody:
+        required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/EdgeResourceCreateSchema"
-        description: Updated profile data
-        required: true
+              $ref: "#/components/schemas/ChangePasswordRequest"
       responses:
         "200":
           description: Success
-          headers:
-            X-Timestamp:
-              description: FogController server timestamp
-              schema:
-                type: number
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/EdgeResourceCreateResponse"
+                $ref: "#/components/schemas/StatusResponse"
+        "400":
+          description: Bad Request
         "401":
           description: Not Authorized
-        "500":
-          description: Internal Server Error
-  "/edgeResource/{name}/{version}/link":
+        "501":
+          description: Embedded auth mode only
+        "429":
+          $ref: "#/components/responses/AuthRateLimitExceeded"
+  /user/mfa/enroll:
     post:
       tags:
-        - Edge Resource
-      summary: Attach Edge Resource to Agent
-      operationId: postEdgeResourceLink
-      parameters:
-        - in: path
-          name: name
-          description: Edge Resource Name
-          required: true
-          schema:
-            type: string
-        - in: path
-          name: version
-          description: Edge Resource Version
-          required: true
-          schema:
-            type: string
+        - User
+      summary: Begin MFA enrollment (embedded mode)
+      operationId: enrollMfa
       security:
         - authToken: []
+      description: Start TOTP enrollment for the authenticated user.
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MfaEnrollResponse"
+        "401":
+          description: Not Authorized
+        "501":
+          description: Embedded auth mode only
+        "429":
+          $ref: "#/components/responses/AuthRateLimitExceeded"
+  /user/mfa/confirm:
+    post:
+      tags:
+        - User
+      summary: Confirm MFA enrollment with TOTP code
+      operationId: confirmMfa
+      security:
+        - authToken: []
+      description: Complete TOTP enrollment for the authenticated user.
       requestBody:
+        required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/EdgeResourceLinkSchema"
-        description: Agent informations
-        required: true
+              $ref: "#/components/schemas/MfaConfirmRequest"
       responses:
-        "204":
+        "200":
           description: Success
-          headers:
-            X-Timestamp:
-              description: FogController server timestamp
+          content:
+            application/json:
               schema:
-                type: number
+                $ref: "#/components/schemas/StatusResponse"
+        "400":
+          description: Bad Request
         "401":
-          description: Not Authorized
-        "404":
-          description: Not Found
-        "500":
-          description: Internal Server Error
+          description: Invalid credentials or enrollment token
+        "501":
+          description: Embedded auth mode only
+        "429":
+          $ref: "#/components/responses/AuthRateLimitExceeded"
+  /user/mfa:
     delete:
       tags:
-        - Edge Resource
-      summary: Detach Edge Resource from Agent
-      operationId: deleteEdgeResourceLink
-      parameters:
-        - in: path
-          name: name
-          description: Edge Resource Name
-          required: true
-          schema:
-            type: string
-        - in: path
-          name: version
-          description: Edge Resource Version
-          required: true
-          schema:
-            type: string
+        - User
+      summary: Disable MFA for the current user
+      operationId: disableMfa
       security:
         - authToken: []
       requestBody:
+        required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/EdgeResourceLinkSchema"
-        description: Agent informations
-        required: true
+              $ref: "#/components/schemas/MfaDisableRequest"
       responses:
-        "204":
+        "200":
           description: Success
-          headers:
-            X-Timestamp:
-              description: FogController server timestamp
+          content:
+            application/json:
               schema:
-                type: number
+                $ref: "#/components/schemas/StatusResponse"
+        "400":
+          description: Bad Request
         "401":
           description: Not Authorized
         "404":
           description: Not Found
-        "500":
-          description: Internal Server Error
+        "501":
+          description: Embedded auth mode only
+  /user/oauth/authorize:
+    get:
+      tags:
+        - User
+      summary: Start OAuth authorization (BFF)
+      operationId: oauthAuthorize
+      description: >
+        Browser OAuth BFF entry point for EdgeOps Console (Plan 8.2). EdgeOps Console Sign in performs a
+        full-page redirect here; do **not** POST credentials from the browser.
+
+        **External mode:** redirects to the external IdP authorize endpoint.
+
+        **Embedded mode:** redirects to the in-process issuer at `{CONTROLLER_PUBLIC_URL}/oidc/auth`,
+        which starts an OAuth interaction and redirects the browser to
+        `{consoleUrl}{auth.oauthInteractionUrl}?interaction=<uid>` for Console-owned login/MFA steps.
+
+        Redirect chain (external):
+
+        `Console → GET /user/oauth/authorize → external IdP (login, MFA, password policy) →
+        GET /user/oauth/callback → 302 {consoleUrl}/login#accessToken=...&refreshToken=...`
+
+        Redirect chain (embedded):
+
+        `Console → GET /user/oauth/authorize → /oidc/auth → {consoleUrl}/login/oauth?interaction=<uid>
+        → interaction APIs → GET /user/oauth/callback → 302 {consoleUrl}/login#tokens`
+
+        OAuth callback redirect URI: `{CONTROLLER_PUBLIC_URL}/api/v3/user/oauth/callback`.
+        Requires `CONSOLE_URL` in embedded mode. External mode requires `OIDC_ISSUER_URL`,
+        `OIDC_CLIENT_ID`, and `OIDC_CLIENT_SECRET` for the confidential Controller client.
+      responses:
+        "302":
+          description: Redirect to IdP or embedded issuer authorization endpoint
+        "401":
+          description: Auth not configured or OAuth session error
+        "501":
+          description: Embedded OAuth BFF requires CONSOLE_URL
+        "429":
+          $ref: "#/components/responses/AuthRateLimitExceeded"
+  /user/oauth/callback:
+    get:
+      tags:
+        - User
+      summary: OAuth authorization callback (BFF)
+      operationId: oauthCallback
+      description: >
+        Exchanges the authorization code for tokens using the confidential Controller OIDC client.
+        Validates `state` and `nonce` from the server session (10-minute TTL). Works in **embedded**
+        and **external** auth modes.
+
+        When `CONSOLE_URL` is configured (recommended for browser login), responds with **302** to
+        `{consoleUrl}/login#accessToken=...&refreshToken=...`. EdgeOps Console `/login` parses the URL
+        fragment, stores tokens, clears the hash, and navigates to the app. When `CONSOLE_URL` is
+        unset, returns JSON **200** `{ accessToken, refreshToken }` (CLI/automation only).
+
+        **External forced password change** is enforced by the IdP during authorize (e.g. Keycloak
+        required actions: `UPDATE_PASSWORD`). **Embedded forced password** uses the interaction
+        `change-password` step (Plan 8.2-3).
+
+        MFA in external browser login is IdP-owned; embedded browser MFA uses interaction endpoints.
+      responses:
+        "200":
+          description: Token response when CONSOLE_URL is not configured
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginSuccessResponse"
+        "302":
+          description: Redirect to EdgeOps Console `/login` with tokens in URL fragment
+        "401":
+          description: OAuth session expired, state/nonce mismatch, or authorization code exchange failed
+        "501":
+          description: Embedded OAuth BFF requires CONSOLE_URL
+        "429":
+          $ref: "#/components/responses/AuthRateLimitExceeded"
+  /user/interaction/{uid}:
+    get:
+      tags:
+        - User
+      summary: Get embedded OAuth interaction status
+      operationId: interactionStatus
+      description: >
+        **Embedded auth mode only.** Returns the next interaction step for the OAuth BFF flow.
+        Unauthenticated — the interaction uid comes from the Viewer redirect query string
+        (`?interaction=<uid>`). Steps: `login`, `mfa`, `enroll`, `confirm-enroll`,
+        `change-password`, `complete`.
+      parameters:
+        - name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Current interaction step
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InteractionStepResponse"
+        "401":
+          description: Interaction session not found or expired
+        "501":
+          description: External auth mode only (embedded interactions)
+  /user/interaction/{uid}/login:
+    post:
+      tags:
+        - User
+      summary: Submit credentials for embedded OAuth interaction
+      operationId: interactionLogin
+      description: >
+        **Embedded auth mode only.** Verifies email/login identifier and password for the OAuth
+        interaction. Returns the next step on success. Failures return **401** (no custom MFA JSON).
+      parameters:
+        - name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InteractionLoginRequest"
+      responses:
+        "200":
+          description: Credentials accepted; returns next step
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InteractionStepResponse"
+        "400":
+          description: Validation error
+        "401":
+          description: Invalid credentials or interaction expired
+        "501":
+          description: External auth mode only
+        "429":
+          $ref: "#/components/responses/AuthRateLimitExceeded"
+  /user/interaction/{uid}/mfa:
+    post:
+      tags:
+        - User
+      summary: Submit TOTP for embedded OAuth interaction
+      operationId: interactionMfa
+      description: >
+        **Embedded auth mode only.** Verifies TOTP for admin users with MFA enabled during the
+        OAuth interaction. Returns the next step on success.
+      parameters:
+        - name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InteractionMfaRequest"
+      responses:
+        "200":
+          description: MFA verified; returns next step
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InteractionStepResponse"
+        "400":
+          description: Validation error
+        "401":
+          description: Invalid MFA code or interaction expired
+        "501":
+          description: External auth mode only
+        "429":
+          $ref: "#/components/responses/AuthRateLimitExceeded"
+  /user/interaction/{uid}/enroll:
+    post:
+      tags:
+        - User
+      summary: Start MFA enrollment during embedded OAuth interaction
+      operationId: interactionEnroll
+      description: >
+        **Embedded auth mode only.** Starts admin MFA enrollment during the browser OAuth
+        interaction (browser-only first enrollment). Returns TOTP secret material for QR display.
+      parameters:
+        - name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Enrollment started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InteractionEnrollResponse"
+        "400":
+          description: Validation error
+        "401":
+          description: Interaction expired or credentials not verified
+        "501":
+          description: External auth mode only
+        "429":
+          $ref: "#/components/responses/AuthRateLimitExceeded"
+  /user/interaction/{uid}/confirm-enroll:
+    post:
+      tags:
+        - User
+      summary: Confirm MFA enrollment during embedded OAuth interaction
+      operationId: interactionConfirmEnroll
+      description: >
+        **Embedded auth mode only.** Confirms MFA enrollment with a TOTP code during the browser
+        OAuth interaction. Returns recovery codes on success.
+      parameters:
+        - name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InteractionMfaRequest"
+      responses:
+        "200":
+          description: MFA enrollment confirmed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InteractionConfirmEnrollResponse"
+        "400":
+          description: Validation error
+        "401":
+          description: Invalid code or interaction expired
+        "501":
+          description: External auth mode only
+        "429":
+          $ref: "#/components/responses/AuthRateLimitExceeded"
+  /user/interaction/{uid}/change-password:
+    post:
+      tags:
+        - User
+      summary: Forced password change during embedded OAuth interaction
+      operationId: interactionChangePassword
+      description: >
+        **Embedded auth mode only.** Forced password change step before OAuth tokens are issued
+        when `mustChangePassword` is true. Requires `currentPassword` and `newPassword` in the body.
+      parameters:
+        - name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChangePasswordRequest"
+      responses:
+        "200":
+          description: Password changed; returns next step
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InteractionStepResponse"
+        "400":
+          description: Validation error
+        "401":
+          description: Invalid credentials or interaction expired
+        "501":
+          description: External auth mode only
+        "429":
+          $ref: "#/components/responses/AuthRateLimitExceeded"
+  /user/interaction/{uid}/complete:
+    post:
+      tags:
+        - User
+      summary: Finish embedded OAuth interaction
+      operationId: interactionComplete
+      description: >
+        **Embedded auth mode only.** Completes the oidc-provider interaction after all required
+        steps are satisfied. Returns `{ redirectTo }` — Viewer should navigate the browser to
+        this URL to resume the OAuth authorize flow and reach `/user/oauth/callback`.
+      parameters:
+        - name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Interaction finished; resume OAuth at redirectTo
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InteractionCompleteResponse"
+        "400":
+          description: Required interaction step not yet completed
+        "401":
+          description: Interaction expired or credentials invalid
+        "501":
+          description: External auth mode only
+        "429":
+          $ref: "#/components/responses/AuthRateLimitExceeded"
+  /auth/migration/export:
+    post:
+      tags:
+        - Auth Admin
+      summary: Export embedded auth users for external IdP migration
+      operationId: exportAuthMigration
+      description: Admin-only. Exports user UUIDs, emails, and group memberships. No secrets or password hashes.
+      security:
+        - authToken: []
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthMigrationExportResponse"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Forbidden
+        "501":
+          description: Embedded auth mode only
+  /auth/jwks/rotate:
+    post:
+      tags:
+        - Auth Admin
+      summary: Rotate embedded OIDC signing keys (manual)
+      operationId: rotateAuthJwks
+      description: >
+        Admin-only. Generates a new JWKS signing key and deactivates the previous active key.
+        Restart Controller pods after rotation so the embedded issuer loads the new key.
+      security:
+        - authToken: []
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthJwksRotateResponse"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Forbidden
+        "501":
+          description: Embedded auth mode only
+  /users:
+    get:
+      tags:
+        - Auth Users
+      summary: List embedded auth users
+      operationId: listAuthUsers
+      security:
+        - authToken: []
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AuthUserResponse"
+        "401":
+          description: Not Authorized
+        "501":
+          description: Embedded auth mode only
+    post:
+      tags:
+        - Auth Users
+      summary: Create embedded auth user
+      operationId: createAuthUser
+      description: >
+        Admin-created users receive `mustChangePassword: true` so the first login forces
+        a password change (browser interaction step or CLI JWT `password_change_required` gate).
+      security:
+        - authToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthUserCreateRequest"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthUserResponse"
+        "400":
+          description: Bad Request
+        "401":
+          description: Not Authorized
+        "409":
+          description: Conflict
+        "501":
+          description: Embedded auth mode only
+  "/users/{id}":
+    get:
+      tags:
+        - Auth Users
+      summary: Get embedded auth user
+      operationId: getAuthUser
+      security:
+        - authToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthUserResponse"
+        "401":
+          description: Not Authorized
+        "404":
+          description: Not Found
+        "501":
+          description: Embedded auth mode only
+    patch:
+      tags:
+        - Auth Users
+      summary: Update embedded auth user
+      operationId: updateAuthUser
+      security:
+        - authToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthUserUpdateRequest"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthUserResponse"
+        "400":
+          description: Bad Request
+        "401":
+          description: Not Authorized
+        "404":
+          description: Not Found
+        "501":
+          description: Embedded auth mode only
+    delete:
+      tags:
+        - Auth Users
+      summary: Soft-delete embedded auth user
+      operationId: deleteAuthUser
+      security:
+        - authToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+        "401":
+          description: Not Authorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+        "501":
+          description: Embedded auth mode only
+  "/users/{id}/reset-password":
+    post:
+      tags:
+        - Auth Users
+      summary: Reset user password to a temporary value
+      operationId: resetAuthUserPassword
+      security:
+        - authToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthUserResetPasswordResponse"
+        "401":
+          description: Not Authorized
+        "404":
+          description: Not Found
+        "501":
+          description: Embedded auth mode only
+  "/users/{id}/reset-token":
+    post:
+      tags:
+        - Auth Users
+      summary: Issue a one-time password reset token
+      operationId: resetAuthUserToken
+      security:
+        - authToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthUserResetTokenResponse"
+        "401":
+          description: Not Authorized
+        "404":
+          description: Not Found
+        "501":
+          description: Embedded auth mode only
+  /groups:
+    get:
+      tags:
+        - Auth Groups
+      summary: List auth groups
+      operationId: listAuthGroups
+      security:
+        - authToken: []
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AuthGroupResponse"
+        "401":
+          description: Not Authorized
+        "501":
+          description: Embedded auth mode only
+    post:
+      tags:
+        - Auth Groups
+      summary: Create custom auth group
+      operationId: createAuthGroup
+      security:
+        - authToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthGroupCreateRequest"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthGroupResponse"
+        "400":
+          description: Bad Request
+        "401":
+          description: Not Authorized
+        "409":
+          description: Conflict
+        "501":
+          description: Embedded auth mode only
+  "/groups/{name}":
+    get:
+      tags:
+        - Auth Groups
+      summary: Get auth group
+      operationId: getAuthGroup
+      security:
+        - authToken: []
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique auth group name (e.g. viewer, platform-ops)
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthGroupResponse"
+        "401":
+          description: Not Authorized
+        "404":
+          description: Not Found
+        "501":
+          description: Embedded auth mode only
+    patch:
+      tags:
+        - Auth Groups
+      summary: Update custom auth group
+      operationId: updateAuthGroup
+      security:
+        - authToken: []
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Current auth group name
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthGroupUpdateRequest"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthGroupResponse"
+        "400":
+          description: Bad Request
+        "401":
+          description: Not Authorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+        "501":
+          description: Embedded auth mode only
+    delete:
+      tags:
+        - Auth Groups
+      summary: Delete custom auth group
+      operationId: deleteAuthGroup
+      security:
+        - authToken: []
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Auth group name
+      responses:
+        "204":
+          description: Deleted
+        "401":
+          description: Not Authorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+        "501":
+          description: Embedded auth mode only
   /secrets:
     post:
       tags:
@@ -6468,10 +6723,6 @@ tags:
     description: Manage your microservices
   - name: NATS
     description: Manage NATS operator, hub, accounts, users, and rules
-  - name: Edge Resource
-    description: Manage your Edge Resources
-  - name: Diagnostics
-    description: Diagnostic your microservices
   - name: Tunnel
     description: Manage ssh tunnels
   - name: Agent
@@ -6504,6 +6755,18 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
+  responses:
+    AuthRateLimitExceeded:
+      description: Too many authentication requests from this IP address
+      headers:
+        Retry-After:
+          description: Seconds until the current rate-limit window resets
+          schema:
+            type: integer
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/RateLimitExceededResponse"
   requestBodies:
     UpdateIOFogNodeRequestBody:
       content:
@@ -6529,13 +6792,6 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/ApplicationTemplateCreateRequest"
-      required: true
-    NewFlowRequest:
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/NewFlowRequest"
-      description: New Flow Info
       required: true
   schemas:
     EventRecord:
@@ -6638,100 +6894,6 @@ components:
         - deletedCount
         - deletedAt
         - deletedAll
-    EdgeResourcesListResponse:
-      type: object
-      properties:
-        edgeResources:
-          type: array
-          items:
-            type: object
-            properties:
-              id:
-                type: number
-              name:
-                type: string
-              description:
-                type: string
-              version:
-                type: string
-              interfaceProtocol:
-                type: string
-              display:
-                $ref: '#/components/schemas/EdgeResourceDisplay'
-    EdgeResourceGetResponse:
-      type: object
-      properties:
-        id:
-          type: number
-        name:
-          type: string
-        description:
-          type: string
-        version:
-          type: string
-        interfaceProtocol:
-          type: string
-        display:
-          $ref: '#/components/schemas/EdgeResourceDisplay'
-        interface:
-          $ref: '#/components/schemas/EdgeResourceHTTPInterface'
-        custom:
-          type: object
-    EdgeResourceDisplay:
-      type: object
-      properties:
-        color:
-          type: string
-        icon:
-          type: string
-        name:
-          type: string
-    EdgeResourceHTTPInterface:
-      type: object
-      properties:
-        endpoints:
-          type: array
-          items:
-            type: object
-            properties:
-              name:
-                type: number
-              description:
-                type: number
-              method:
-                type: string
-              url:
-                type: string
-              requestType:
-                type: string
-              responseType:
-                type: string
-              requestPayloadExample:
-                type: string
-              responsePayloadExample:
-                type: string
-    EdgeResourceCreateSchema:
-      type: object
-      properties:
-        name:
-          type: string
-        description:
-          type: string
-        version:
-          type: string
-        interfaceProtocol:
-          type: string
-        display:
-          $ref: '#/components/schemas/EdgeResourceDisplay'
-        interface:
-          $ref: '#/components/schemas/EdgeResourceHTTPInterface'
-    EdgeResourceCreateResponse:
-      $ref: '#/components/schemas/EdgeResourceGetResponse'
-    EdgeResourceLinkSchema:
-      type: object
-      properties:
-        uuid:
-          type: string
     ApplicationCreateFromTemplateRequest:
       type: object
       properties:
@@ -6785,7 +6947,7 @@ components:
                   properties:
                     containerImage:
                       type: string
-                    fogTypeId:
+                    archId:
                       type: string
               iofogUuid:
                 type: string
@@ -6913,7 +7075,7 @@ components:
                       properties:
                         containerImage:
                           type: string
-                        fogTypeId:
+                        archId:
                           type: string
                   iofogUuid:
                     type: string
@@ -7017,14 +7179,14 @@ components:
           example: ok
         timestamp:
           type: number
-    IOFogTypesResponse:
+    ArchitecturesResponse:
       type: object
       properties:
-        fogTypes:
+        architectures:
           type: array
           items:
-            $ref: "#/components/schemas/IOFogType"
-    IOFogType:
+            $ref: "#/components/schemas/Architecture"
+    Architecture:
       type: object
       properties:
         id:
@@ -7068,8 +7230,6 @@ components:
           type: number
         lastStatusTime:
           type: number
-        processedMessages:
-          type: number
         lastCommandTime:
           type: number
         logFileCount:
@@ -7112,16 +7272,16 @@ components:
           type: string
         ipAddressExternal:
           type: string
-        catalogItemMessageCounts:
-          type: number
-        messageSpeed:
-          type: number
         networkInterface:
           type: string
-        dockerUrl:
+        containerEngineUrl:
           type: string
         containerEngine:
           type: string
+          enum:
+            - edgelet
+            - docker
+            - podman
         deploymentType:
           type: string
         diskLimit:
@@ -7156,7 +7316,7 @@ components:
           type: string
         watchdogEnabled:
           type: boolean
-        dockerPruningFrequency:
+        pruningFrequency:
           type: number
         availableDiskThreshold:
           type: number
@@ -7170,8 +7330,14 @@ components:
           type: number
         updatedAt:
           type: number
-        fogTypeId:
+        archId:
           type: number
+        arch:
+          $ref: "#/components/schemas/Architecture"
+        availableRuntimes:
+          type: array
+          items:
+            type: string
         routerMode:
           type: string
           enum:
@@ -7223,11 +7389,15 @@ components:
           type: number
         description:
           type: string
-        dockerUrl:
+        containerEngineUrl:
           type: string
-          default: unix:///var/run/docker.sock
+          default: unix:///run/edgelet/contaienrd.sock
         containerEngine:
           type: string
+          enum:
+            - edgelet
+            - docker
+            - podman
           default: docker
         deploymentType:
           type: string
@@ -7237,7 +7407,7 @@ components:
           default: 50
         diskDirectory:
           type: string
-          default: /var/lib/iofog-agent
+          default: /var/lib/edgelet/
         memoryLimit:
           type: number
           default: 4096
@@ -7277,9 +7447,11 @@ components:
         abstractedHardwareEnabled:
           type: boolean
           default: false
-        fogType:
+        archId:
           type: number
-        dockerPruningFrequency:
+          minimum: 0
+          maximum: 4
+        pruningFrequency:
           type: number
         availableDiskThreshold:
           type: number
@@ -7359,13 +7531,22 @@ components:
       properties:
         type:
           type: number
-          enum:
-            - 1
-            - 2
+          minimum: 0
+          maximum: 4
           description: |
-            Architecture
-             * '1': x86
-             * '2': arm
+            Architecture code
+             * '0': auto
+             * '1': amd64
+             * '2': arm64
+             * '3': riscv64
+             * '4': arm
+        engine:
+          type: string
+          enum:
+            - edgelet
+            - docker
+            - podman
+          description: Container engine selected at provision time
         key:
           type: string
           description: provisioning key
@@ -7404,10 +7585,6 @@ components:
           type: boolean
         tunnel:
           type: boolean
-        diagnostics:
-          type: boolean
-        isImageSnapshot:
-          type: boolean
         prune:
           type: boolean
         routerChanged:
@@ -7417,10 +7594,14 @@ components:
       properties:
         networkInterface:
           type: string
-        dockerUrl:
+        containerEngineUrl:
           type: string
         containerEngine:
           type: string
+          enum:
+            - edgelet
+            - docker
+            - podman
         deploymentType:
           type: string
         diskLimit:
@@ -7453,7 +7634,7 @@ components:
           type: string
         availableDiskThreshold:
           type: number
-        dockerPruningFrequency:
+        pruningFrequency:
           type: number
         routerHost:
           type: string
@@ -7464,10 +7645,14 @@ components:
       properties:
         networkInterface:
           type: string
-        dockerUrl:
+        containerEngineUrl:
           type: string
         containerEngine:
           type: string
+          enum:
+            - edgelet
+            - docker
+            - podman
         deploymentType:
           type: string
         diskLimit:
@@ -7502,7 +7687,7 @@ components:
           type: string
         availableDiskThreshold:
           type: number
-        dockerPruningFrequency:
+        pruningFrequency:
           type: number
     IOFogNodeGpsRequest:
       type: object
@@ -7515,6 +7700,8 @@ components:
       type: object
       properties:
         daemonStatus:
+          type: string
+        warningMessage:
           type: string
         daemonOperatingDuration:
           type: number
@@ -7538,6 +7725,10 @@ components:
           type: integer
         systemTotalCpu:
           type: number
+        securityStatus:
+          type: string
+        securityViolationInfo:
+          type: string
         microserviceStatus:
           type: string
         repositoryCount:
@@ -7550,14 +7741,18 @@ components:
           type: number
         ipAddress:
           type: string
-        processedMessages:
-          type: number
-        microserviceMessageCounts:
+        ipAddressExternal:
           type: string
-        messageSpeed:
-          type: number
         lastCommandTime:
           type: number
+        availableRuntimes:
+          type: array
+          items:
+            type: string
+        runtimeAgentPhase:
+          type: string
+        controlPlaneQuiesced:
+          type: boolean
         tunnelStatus:
           type: string
         version:
@@ -7566,6 +7761,12 @@ components:
           type: boolean
         isReadyToRollback:
           type: boolean
+        activeVolumeMounts:
+          type: number
+        volumeMountLastUpdate:
+          type: number
+        gpsStatus:
+          type: string
     IOFogNodeTunnelConfigResponse:
       type: object
       properties:
@@ -7583,47 +7784,6 @@ components:
           type: string
         closed:
           type: boolean
-    IOFogNodeStraceResponse:
-      type: object
-      properties:
-        straceValues:
-          type: array
-          items:
-            $ref: "#/components/schemas/MicroserviceStrace"
-    MicroserviceStrace:
-      type: object
-      properties:
-        microserviceUuid:
-          type: string
-        straceRun:
-          type: boolean
-    IOFogNodeStraceBuffer:
-      type: object
-      properties:
-        straceData:
-          type: array
-          items:
-            $ref: "#/components/schemas/MicroserviceStraceBuffer"
-    MicroserviceStraceBuffer:
-      type: object
-      properties:
-        microserviceUuid:
-          type: string
-        buffer:
-          type: string
-    MicroserviceStraceFTPBody:
-      type: object
-      properties:
-        ftpHost:
-          type: string
-        ftpPort:
-          type: number
-        ftpUser:
-          type: string
-        ftpPass:
-          type: string
-        ftpDestDir:
-          type: string
     AgentMicroservicesListResponse:
       type: object
       properties:
@@ -7660,8 +7820,6 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/VolumeMapping"
-        imageSnapshot:
-          type: string
         delete:
           type: boolean
         deleteWithCleanUp:
@@ -7694,6 +7852,63 @@ components:
             type: string
         idConsumer:
           type: boolean
+        isRouter:
+          type: boolean
+          description: True when microservice is the system router
+        isNats:
+          type: boolean
+          description: True when microservice is the system NATS broker
+        isController:
+          type: boolean
+          description: True when microservice is the ControlPlane controller workload (DB column)
+    ControllerRegisterRequest:
+      type: object
+      description: Slim register body for Edgelet ControlPlane controller workload
+      required:
+        - uuid
+        - images
+        - registryId
+      properties:
+        uuid:
+          type: string
+          description: Edgelet-generated stable uuid for the controller microservice
+        name:
+          type: string
+          enum:
+            - controller
+          description: Must be controller (default controller if omitted)
+        images:
+          type: array
+          minItems: 1
+          maxItems: 4
+          items:
+            $ref: "#/components/schemas/MicroserviceContainerImage"
+        registryId:
+          type: integer
+        ports:
+          type: array
+          items:
+            $ref: "#/components/schemas/PortMappingsResponse"
+        volumeMappings:
+          type: array
+          items:
+            $ref: "#/components/schemas/VolumeMappingRequest"
+        env:
+          type: array
+          items:
+            $ref: "#/components/schemas/AgentEnvRequest"
+        config:
+          type: string
+        hostNetworkMode:
+          type: boolean
+        runtime:
+          type: string
+    ControllerRegisterResponse:
+      type: object
+      properties:
+        uuid:
+          type: string
+          description: Same uuid as the register request
     AgentEnvRequest:
       type: object
       properties:
@@ -7919,11 +8134,13 @@ components:
       properties:
         containerImage:
           type: string
-        fogTypeId:
+        archId:
           type: number
           enum:
             - 1
             - 2
+            - 3
+            - 4
     CreateUpdateCatalogItemRequestBody:
       type: object
       properties:
@@ -7953,33 +8170,6 @@ components:
           $ref: "#/components/schemas/InfoTypeResponse"
         configExample:
           type: string
-    GetFlowsResponse:
-      type: object
-      properties:
-        flows:
-          type: array
-          items:
-            $ref: "#/components/schemas/FlowInfoResponse"
-    FlowInfoResponse:
-      type: object
-      properties:
-        id:
-          type: string
-        name:
-          type: string
-        description:
-          type: string
-        isActivated:
-          type: boolean
-    NewFlowRequest:
-      type: object
-      properties:
-        name:
-          type: string
-        description:
-          type: string
-        isActivated:
-          type: boolean
     GetMicroservicesResponse:
       type: object
       properties:
@@ -8010,7 +8200,7 @@ components:
             properties:
               containerImage:
                 type: string
-              fogTypeId:
+              archId:
                 type: string
         iofogUuid:
           type: string
@@ -8089,15 +8279,10 @@ components:
             properties:
               containerImage:
                 type: string
-              fogTypeId:
+              archId:
                 type: string
-        flowId:
-          type: integer
-          deprecated: true
         application:
-          oneOf:
-            - type: string
-            - type: integer
+          type: string
         iofogUuid:
           type: string
         agentName:
@@ -8177,7 +8362,7 @@ components:
             properties:
               containerImage:
                 type: string
-              fogTypeId:
+              archId:
                 type: string
         runAsUser:
           type: string
@@ -8620,18 +8805,46 @@ components:
       required:
         - email
         - password
-        - totp
-    RefreshRequest:
-      type: string
-      required:
-        - refreshToken
       properties:
         email:
           type: string
+          minLength: 1
+          description: Login identifier (email for normal users; bootstrap admin may use a non-email username)
         password:
           type: string
         totp:
-          type: string 
+          type: string
+          description: TOTP or recovery code when MFA is enabled (optional otherwise; CLI may send empty string)
+    MfaEnrollResponse:
+      type: object
+      properties:
+        secret:
+          type: string
+        otpauthUrl:
+          type: string
+    MfaConfirmRequest:
+      type: object
+      required:
+        - code
+      properties:
+        code:
+          type: string
+    MfaDisableRequest:
+      type: object
+      required:
+        - password
+      properties:
+        password:
+          type: string
+        code:
+          type: string
+    RefreshRequest:
+      type: object
+      required:
+        - refreshToken
+      properties:
+        refreshToken:
+          type: string
     LoginSuccessResponse:
       type: object
       required:
@@ -8640,8 +8853,82 @@ components:
       properties:
         accessToken:
           type: string
+          description: >
+            JWT access token (`token_use=access`). Includes `password_change_required: true`
+            when the account must change its password before full API access.
         refreshToken:
           type: string
+          description: JWT refresh token (`token_use=refresh`). Use only with POST /user/refresh.
+    InteractionStepResponse:
+      type: object
+      required:
+        - step
+      properties:
+        step:
+          type: string
+          enum:
+            - login
+            - mfa
+            - enroll
+            - confirm-enroll
+            - change-password
+            - complete
+    InteractionLoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          description: Login identifier (not required to be an email address)
+        password:
+          type: string
+    InteractionMfaRequest:
+      type: object
+      required:
+        - code
+      properties:
+        code:
+          type: string
+    InteractionEnrollResponse:
+      type: object
+      required:
+        - step
+        - secret
+        - otpauthUrl
+      properties:
+        step:
+          type: string
+        secret:
+          type: string
+        otpauthUrl:
+          type: string
+    InteractionConfirmEnrollResponse:
+      type: object
+      required:
+        - step
+        - recoveryCodes
+      properties:
+        step:
+          type: string
+        recoveryCodes:
+          type: array
+          items:
+            type: string
+    InteractionCompleteResponse:
+      type: object
+      required:
+        - redirectTo
+        - step
+      properties:
+        redirectTo:
+          type: string
+          description: OAuth resume URL; navigate browser here after all steps complete
+        step:
+          type: string
+          enum:
+            - complete
     RefreshSuccessResponse:
       type: object
       required:
@@ -8677,6 +8964,169 @@ components:
                 type: string
               email:
                 type: string
+              password_change_required:
+                type: boolean
+                description: Present when JWT claim `password_change_required` is true
+    ChangePasswordRequest:
+      type: object
+      required:
+        - newPassword
+      properties:
+        currentPassword:
+          type: string
+        newPassword:
+          type: string
+        resetToken:
+          type: string
+    StatusResponse:
+      type: object
+      properties:
+        status:
+          type: string
+    RateLimitExceededResponse:
+      type: object
+      required:
+        - name
+        - message
+      properties:
+        name:
+          type: string
+          example: RateLimitExceededError
+        message:
+          type: string
+          example: Too many authentication requests from this IP address
+    AuthUserCreateRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+        groups:
+          type: array
+          items:
+            type: string
+    AuthUserUpdateRequest:
+      type: object
+      properties:
+        email:
+          type: string
+        groups:
+          type: array
+          items:
+            type: string
+    AuthUserResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+        groups:
+          type: array
+          items:
+            type: string
+        mustChangePassword:
+          type: boolean
+        mfaEnabled:
+          type: boolean
+        isBootstrap:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    AuthUserResetPasswordResponse:
+      type: object
+      properties:
+        temporaryPassword:
+          type: string
+        mustChangePassword:
+          type: boolean
+    AuthUserResetTokenResponse:
+      type: object
+      properties:
+        resetToken:
+          type: string
+        expiresIn:
+          type: integer
+    AuthGroupCreateRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+    AuthGroupUpdateRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+    AuthGroupResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        isSystem:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    AuthMigrationExportResponse:
+      type: object
+      properties:
+        exportedAt:
+          type: string
+          format: date-time
+        authMode:
+          type: string
+          enum: [embedded]
+        users:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              email:
+                type: string
+              groups:
+                type: array
+                items:
+                  type: string
+        groups:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+              name:
+                type: string
+              isSystem:
+                type: boolean
+    AuthJwksRotateResponse:
+      type: object
+      properties:
+        kid:
+          type: string
+        rotatedAt:
+          type: string
+          format: date-time
+        restartRequired:
+          type: boolean
     VersionCommandResponse:
       type: object
       required:
@@ -8690,26 +9140,16 @@ components:
           type: string
         expirationTime:
           type: string
+        semver:
+          type: string
+          description: Target semver for upgrade or rollback
+          pattern: ^v?(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:[+]([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$
     HalInfo:
       type: object
       required:
         - info
       properties:
         info:
-          type: string
-    ImageSnapshotResponse:
-      type: object
-      required:
-        - uuid
-      properties:
-        uuid:
-          type: string
-    ImageSnapshotRequest:
-      type: object
-      required:
-        - upstream
-      properties:
-        upstream:
           type: string
     PostTrackingRequest:
       type: array

@@ -49,7 +49,7 @@ async function parseSecretFile (fileContent, options = {}) {
   try {
     const doc = yaml.load(fileContent)
     if (!doc || !doc.kind) {
-      throw new Errors.ValidationError(`Invalid YAML format: missing kind field`)
+      throw new Errors.ValidationError('Invalid YAML format: missing kind field')
     }
     if (doc.kind !== 'Secret') {
       throw new Errors.ValidationError(`Invalid kind ${doc.kind}`)
@@ -88,7 +88,7 @@ async function parseVolumeMountFile (fileContent, options = {}) {
   try {
     const doc = yaml.load(fileContent)
     if (!doc || !doc.kind) {
-      throw new Errors.ValidationError(`Invalid YAML format: missing kind field`)
+      throw new Errors.ValidationError('Invalid YAML format: missing kind field')
     }
     if (doc.kind !== 'VolumeMount') {
       throw new Errors.ValidationError(`Invalid kind ${doc.kind}`)
@@ -136,7 +136,7 @@ async function parseConfigMapFile (fileContent, options = {}) {
   try {
     const doc = yaml.load(fileContent)
     if (!doc || !doc.kind) {
-      throw new Errors.ValidationError(`Invalid YAML format: missing kind field`)
+      throw new Errors.ValidationError('Invalid YAML format: missing kind field')
     }
     if (doc.kind !== 'ConfigMap') {
       throw new Errors.ValidationError(`Invalid kind ${doc.kind}`)
@@ -185,7 +185,7 @@ async function parseServiceFile (fileContent, options = {}) {
   try {
     const doc = yaml.load(fileContent)
     if (!doc || !doc.kind) {
-      throw new Errors.ValidationError(`Invalid YAML format: missing kind field`)
+      throw new Errors.ValidationError('Invalid YAML format: missing kind field')
     }
     if (doc.kind !== 'Service') {
       throw new Errors.ValidationError(`Invalid kind ${doc.kind}`)
@@ -232,22 +232,9 @@ async function parseServiceFile (fileContent, options = {}) {
   }
 }
 
-const mapImages = (images) => {
-  const imgs = []
-  if (images.x86 != null) {
-    imgs.push({
-      fogTypeId: 1,
-      containerImage: images.x86
-    })
-  }
-  if (images.arm != null) {
-    imgs.push({
-      fogTypeId: 2,
-      containerImage: images.arm
-    })
-  }
-  return imgs
-}
+const { mapYamlImagesToArchList } = require('../helpers/arch-images')
+
+const mapImages = (images) => mapYamlImagesToArchList(images)
 
 const parseMicroserviceImages = async (fileImages) => {
   // Could be undefined if patch call
@@ -290,9 +277,9 @@ const parseMicroserviceYAML = async (microservice) => {
       }
 
       // Check that exactly one of value, valueFromSecret, or valueFromConfigMap is provided
-      const hasValue = env.hasOwnProperty('value')
-      const hasValueFromSecret = env.hasOwnProperty('valueFromSecret')
-      const hasValueFromConfigMap = env.hasOwnProperty('valueFromConfigMap')
+      const hasValue = Object.hasOwn(env, 'value')
+      const hasValueFromSecret = Object.hasOwn(env, 'valueFromSecret')
+      const hasValueFromConfigMap = Object.hasOwn(env, 'valueFromConfigMap')
 
       const valueCount = [hasValue, hasValueFromSecret, hasValueFromConfigMap].filter(Boolean).length
 
@@ -486,7 +473,7 @@ async function parseCertificateFile (fileContent) {
   try {
     const doc = yaml.load(fileContent)
     if (!doc || !doc.kind) {
-      throw new Errors.ValidationError(`Invalid YAML format: missing kind field`)
+      throw new Errors.ValidationError('Invalid YAML format: missing kind field')
     }
     if (doc.kind !== 'Certificate' && doc.kind !== 'CertificateAuthority') {
       throw new Errors.ValidationError(`Invalid kind ${doc.kind}`)
@@ -662,17 +649,17 @@ async function parseNatsUserRuleFile (fileContent, options = {}) {
 }
 
 module.exports = {
-  parseAppTemplateFile: parseAppTemplateFile,
-  parseAppFile: parseAppFile,
-  parseMicroserviceFile: parseMicroserviceFile,
-  parseSecretFile: parseSecretFile,
-  parseVolumeMountFile: parseVolumeMountFile,
-  parseConfigMapFile: parseConfigMapFile,
-  parseCertificateFile: parseCertificateFile,
-  parseNatsAccountRuleFile: parseNatsAccountRuleFile,
-  parseNatsUserRuleFile: parseNatsUserRuleFile,
-  parseServiceFile: parseServiceFile,
-  parseRoleFile: parseRoleFile,
-  parseRoleBindingFile: parseRoleBindingFile,
-  parseServiceAccountFile: parseServiceAccountFile
+  parseAppTemplateFile,
+  parseAppFile,
+  parseMicroserviceFile,
+  parseSecretFile,
+  parseVolumeMountFile,
+  parseConfigMapFile,
+  parseCertificateFile,
+  parseNatsAccountRuleFile,
+  parseNatsUserRuleFile,
+  parseServiceFile,
+  parseRoleFile,
+  parseRoleBindingFile,
+  parseServiceAccountFile
 }

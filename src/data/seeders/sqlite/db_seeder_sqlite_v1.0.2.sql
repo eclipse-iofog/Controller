@@ -5,11 +5,11 @@ VALUES
 
 INSERT INTO `CatalogItems` (name, description, category, publisher, disk_required, ram_required, picture, config_example, is_public, registry_id)
 VALUES 
-    ('Router', 'The built-in router for Eclipse ioFog.', 'SYSTEM', 'Eclipse ioFog', 0, 0, 'none.png', NULL, false, 1),
-    ('RESTBlue', 'REST API for Bluetooth Low Energy layer.', 'SYSTEM', 'Eclipse ioFog', 0, 0, 'none.png', NULL, true, 1),
-    ('HAL', 'REST API for Hardware Abstraction layer.', 'SYSTEM', 'Eclipse ioFog', 0, 0, 'none.png', NULL, true, 1),
-    ('Debug', 'The built-in debugger for Eclipse ioFog Agent.', 'SYSTEM', 'Eclipse ioFog', 0, 0, 'none.png', NULL, false, 1),
-    ('NATs', 'NATs server microservice for Eclipse ioFog', 'SYSTEM', 'Eclipse ioFog', 0, 0, 'none.png', NULL, true, 1);
+    ('Router', 'The built-in router for Edgelet.', 'SYSTEM', 'Datasance', 0, 0, 'none.png', NULL, false, 1),
+    ('RESTBlue', 'REST API for Bluetooth Low Energy layer.', 'SYSTEM', 'Datasance', 0, 0, 'none.png', NULL, true, 1),
+    ('HAL', 'REST API for Hardware Abstraction layer.', 'SYSTEM', 'Datasance', 0, 0, 'none.png', NULL, true, 1),
+    ('Debug', 'The built-in debugger for Edgelet.', 'SYSTEM', 'Datasance', 0, 0, 'none.png', NULL, false, 1),
+    ('NATs', 'NATs server microservice for Edgelet', 'SYSTEM', 'Datasance', 0, 0, 'none.png', NULL, true, 1);
 
 INSERT INTO `FogTypes` (id, name, image, description, network_catalog_item_id, hal_catalog_item_id, bluetooth_catalog_item_id)
 VALUES 

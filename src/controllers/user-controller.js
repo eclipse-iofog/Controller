@@ -1,16 +1,3 @@
-/*
- * *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 const UserService = require('../services/user-service')
 const Validator = require('../schemas')
 
@@ -48,9 +35,91 @@ const userLogoutEndPoint = async function (req) {
   return UserService.logout(req, false)
 }
 
+const enrollMfaEndPoint = async function (req) {
+  return UserService.enrollMfa(req, false)
+}
+
+const confirmMfaEndPoint = async function (req) {
+  const payload = req.body
+  await Validator.validate(payload, Validator.schemas.mfaConfirm)
+  return UserService.confirmMfa(req, false)
+}
+
+const disableMfaEndPoint = async function (req) {
+  const payload = req.body
+  await Validator.validate(payload, Validator.schemas.mfaDisable)
+  return UserService.disableMfa(req, false)
+}
+
+const changePasswordEndPoint = async function (req) {
+  const payload = req.body
+  await Validator.validate(payload, Validator.schemas.changePassword)
+  return UserService.changePassword(req, payload, false)
+}
+
+const oauthAuthorizeEndPoint = async function (req) {
+  return UserService.oauthAuthorize(req, false)
+}
+
+const oauthCallbackEndPoint = async function (req) {
+  return UserService.oauthCallback(req, false)
+}
+
+const interactionStatusEndPoint = async function (req) {
+  return UserService.interactionStatus(req.params.uid, false)
+}
+
+const interactionLoginEndPoint = async function (req) {
+  const payload = req.body
+  await Validator.validate(payload, Validator.schemas.interactionLogin)
+  return UserService.interactionLogin(req.params.uid, {
+    email: payload.email,
+    password: payload.password
+  }, false)
+}
+
+const interactionMfaEndPoint = async function (req) {
+  const payload = req.body
+  await Validator.validate(payload, Validator.schemas.interactionMfa)
+  return UserService.interactionMfa(req.params.uid, payload.code, false)
+}
+
+const interactionEnrollEndPoint = async function (req) {
+  return UserService.interactionEnroll(req.params.uid, false)
+}
+
+const interactionConfirmEnrollEndPoint = async function (req) {
+  const payload = req.body
+  await Validator.validate(payload, Validator.schemas.interactionMfa)
+  return UserService.interactionConfirmEnroll(req.params.uid, payload.code, false)
+}
+
+const interactionChangePasswordEndPoint = async function (req) {
+  const payload = req.body
+  await Validator.validate(payload, Validator.schemas.changePassword)
+  return UserService.interactionChangePassword(req.params.uid, payload, false)
+}
+
+const interactionCompleteEndPoint = async function (req, res) {
+  return UserService.interactionComplete(req.params.uid, req, res, false)
+}
+
 module.exports = {
-  userLoginEndPoint: userLoginEndPoint,
-  refreshTokenEndPoint: refreshTokenEndPoint,
-  getUserProfileEndPoint: getUserProfileEndPoint,
-  userLogoutEndPoint: userLogoutEndPoint
+  userLoginEndPoint,
+  refreshTokenEndPoint,
+  getUserProfileEndPoint,
+  userLogoutEndPoint,
+  enrollMfaEndPoint,
+  confirmMfaEndPoint,
+  disableMfaEndPoint,
+  changePasswordEndPoint,
+  oauthAuthorizeEndPoint,
+  oauthCallbackEndPoint,
+  interactionStatusEndPoint,
+  interactionLoginEndPoint,
+  interactionMfaEndPoint,
+  interactionEnrollEndPoint,
+  interactionConfirmEnrollEndPoint,
+  interactionChangePasswordEndPoint,
+  interactionCompleteEndPoint
 }

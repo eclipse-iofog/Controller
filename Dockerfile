@@ -1,7 +1,35 @@
+# Stage 1 — EdgeOps Console static SPA (Plan 11-1)
+# ioFog overrides: EDGEOPS_CONSOLE_REPO=https://github.com/eclipse-iofog/edgeops-console
+#                   EDGEOPS_CONSOLE_FLAVOR=iofog
+FROM node:24-bookworm AS console-builder
+
+ARG EDGEOPS_CONSOLE_REPO=https://github.com/Datasance/edgeops-console
+ARG EDGEOPS_CONSOLE_VERSION=1.0.0
+ARG EDGEOPS_CONSOLE_FLAVOR=datasance
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends git \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /tmp/console-src
+
+RUN VERSION="${EDGEOPS_CONSOLE_VERSION}" \
+    && if [ "${VERSION#v}" = "${VERSION}" ]; then VERSION="v${VERSION}"; fi \
+    && git clone --depth 1 --branch "${VERSION}" "${EDGEOPS_CONSOLE_REPO}" .
+
+RUN npm ci --legacy-peer-deps
+
+RUN VITE_DISTRIBUTION="${EDGEOPS_CONSOLE_FLAVOR}" sh package.sh
+
+RUN test -f build/index.html \
+    && test -d build/assets \
+    && mkdir -p /tmp/console \
+    && cp -a build /tmp/console/build
+
+
 FROM node:24-bookworm AS builder
 
 ARG PKG_VERSION
-# ARG GITHUB_TOKEN
 
 WORKDIR /tmp
 
@@ -20,6 +48,12 @@ RUN npm pack
 
 FROM registry.access.redhat.com/ubi9/nodejs-24-minimal:latest
 
+ARG EDGEOPS_CONSOLE_VERSION=1.0.0
+ARG IMAGE_REGISTRY
+ARG OCI_SOURCE_REPO
+ARG CONTROLLER_DISTRIBUTION=datasance
+ARG RBAC_API_VERSION=datasance.com/v3
+
 USER root
 # Install dependencies for logging and development
 RUN microdnf install -y g++ make && microdnf clean all
@@ -37,6 +71,11 @@ RUN useradd --uid 10000 --create-home runner
 RUN mkdir -p /var/log/iofog-controller && \
     chown runner:runner /var/log/iofog-controller && \
     chmod 755 /var/log/iofog-controller
+
+COPY --from=console-builder /tmp/console/build /home/runner/static/console
+RUN echo "${EDGEOPS_CONSOLE_VERSION}" > /home/runner/static/console/VERSION \
+    && chown -R runner:runner /home/runner/static/console
+
 USER 10000
 WORKDIR /home/runner
 
@@ -44,18 +83,23 @@ ENV NPM_CONFIG_PREFIX=/home/runner/.npm-global
 ENV NPM_CONFIG_CACHE=/home/runner/.npm
 ENV PATH=$PATH:/home/runner/.npm-global/bin
 
-COPY --from=builder /tmp/eclipse-iofog-iofogcontroller-*.tgz /home/runner/iofog-controller.tgz
+COPY --from=builder /tmp/controller-*.tgz /home/runner/iofog-controller.tgz
 
-ENV PID_BASE=/home/runner 
+ENV PID_BASE=/home/runner
+ENV EDGEOPS_CONSOLE_PATH=/home/runner/static/console
+ENV EDGEOPS_CONSOLE_VERSION=${EDGEOPS_CONSOLE_VERSION}
+ENV CONTROLLER_DISTRIBUTION=${CONTROLLER_DISTRIBUTION}
+ENV RBAC_API_VERSION=${RBAC_API_VERSION}
 
 RUN npm i -g /home/runner/iofog-controller.tgz && \
   rm -rf /home/runner/iofog-controller.tgz && \
   iofog-controller config dev-mode --on
 
-RUN rm -rf /home/runner/.npm-global/lib/node_modules/@eclipse-iofog/iofogcontroller/src/data/sqlite_files/*
+RUN rm -rf /home/runner/.npm-global/lib/node_modules/controller/src/data/sqlite_files/*
 
 COPY LICENSE /licenses/LICENSE
 LABEL org.opencontainers.image.description=controller
-LABEL org.opencontainers.image.source=https://github.com/eclipse-iofog/Controller
+LABEL org.opencontainers.image.source=${OCI_SOURCE_REPO}
 LABEL org.opencontainers.image.licenses=EPL2.0
-CMD [ "node", "/home/runner/.npm-global/lib/node_modules/@eclipse-iofog/iofogcontroller/src/server.js" ]
+LABEL org.opencontainers.image.url=${IMAGE_REGISTRY}/controller
+CMD [ "node", "/home/runner/.npm-global/lib/node_modules/controller/src/server.js" ]
