@@ -1,5 +1,5 @@
 name: Set Docker build environment
-description: Resolves EdgeOps Console, image registry, and controller flavor build args from repository variables.
+description: Resolves EdgeOps Console, image registry, and controller flavor build args from workflow env (pass vars from the calling workflow).
 
 runs:
   using: composite
@@ -7,12 +7,12 @@ runs:
     - name: Set EdgeOps Console build args
       shell: bash
       run: |
-        VERSION="${{ vars.EDGEOPS_CONSOLE_VERSION }}"
+        VERSION="${{ env.EDGEOPS_CONSOLE_VERSION }}"
         if [ -z "$VERSION" ]; then VERSION="1.0.0"; fi
         echo "EDGEOPS_CONSOLE_VERSION=$VERSION" >> "${GITHUB_ENV}"
 
-        REPO="${{ vars.EDGEOPS_CONSOLE_REPO }}"
-        FLAVOR="${{ vars.EDGEOPS_CONSOLE_FLAVOR }}"
+        REPO="${{ env.EDGEOPS_CONSOLE_REPO }}"
+        FLAVOR="${{ env.EDGEOPS_CONSOLE_FLAVOR }}"
         if [ -z "$REPO" ] || [ -z "$FLAVOR" ]; then
           case "${{ github.repository }}" in
             eclipse-iofog/Controller|eclipse-iofog/controller)
@@ -31,8 +31,8 @@ runs:
     - name: Set image registry and OCI source
       shell: bash
       run: |
-        REGISTRY="${{ vars.IMAGE_REGISTRY }}"
-        OCI_SOURCE="${{ vars.OCI_SOURCE_REPO }}"
+        REGISTRY="${{ env.IMAGE_REGISTRY }}"
+        OCI_SOURCE="${{ env.OCI_SOURCE_REPO }}"
         if [ -z "$REGISTRY" ] || [ -z "$OCI_SOURCE" ]; then
           case "${{ github.repository }}" in
             eclipse-iofog/Controller|eclipse-iofog/controller)
@@ -51,8 +51,8 @@ runs:
     - name: Set controller flavor build args
       shell: bash
       run: |
-        DISTRIBUTION="${{ vars.CONTROLLER_DISTRIBUTION }}"
-        RBAC_API="${{ vars.RBAC_API_VERSION }}"
+        DISTRIBUTION="${{ env.CONTROLLER_DISTRIBUTION }}"
+        RBAC_API="${{ env.RBAC_API_VERSION }}"
         if [ -z "$DISTRIBUTION" ] || [ -z "$RBAC_API" ]; then
           case "${{ github.repository }}" in
             eclipse-iofog/Controller|eclipse-iofog/controller)

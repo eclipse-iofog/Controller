@@ -31,6 +31,14 @@ jobs:
           echo "image_tag=${IMAGE_TAG}" >> "${GITHUB_OUTPUT}"
 
       - uses: ./.github/actions/set-build-env
+        env:
+          EDGEOPS_CONSOLE_VERSION: ${{ vars.EDGEOPS_CONSOLE_VERSION }}
+          EDGEOPS_CONSOLE_REPO: ${{ vars.EDGEOPS_CONSOLE_REPO }}
+          EDGEOPS_CONSOLE_FLAVOR: ${{ vars.EDGEOPS_CONSOLE_FLAVOR }}
+          IMAGE_REGISTRY: ${{ vars.IMAGE_REGISTRY }}
+          OCI_SOURCE_REPO: ${{ vars.OCI_SOURCE_REPO }}
+          CONTROLLER_DISTRIBUTION: ${{ vars.CONTROLLER_DISTRIBUTION }}
+          RBAC_API_VERSION: ${{ vars.RBAC_API_VERSION }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@06116385d9baf250c9f4dcb4858b16962ea869c3 # v4.1.0
