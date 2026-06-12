@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Datasance Teknoloji A.S.
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 const commandLineArgs = require('command-line-args')
 const commandLineUsage = require('command-line-usage')
 const AppHelper = require('../helpers/app-helper')
@@ -62,7 +49,7 @@ class CLIHandler {
     const usage = [
       {
         header: 'ioFogController',
-        content: 'Fog Controller project for Eclipse IoFog @ iofog.org \\nCopyright (c) 2023 Datasance Teknoloji A.S.'
+        content: 'Fog Controller project for Eclipse ioFog @ iofog.org'
       }
     ].concat(sections)
     logger.cliRes(commandLineUsage(usage))
@@ -95,7 +82,7 @@ class CLIHandler {
     const usage = [
       {
         header: 'ioFogController',
-        content: 'Fog Controller project for Eclipse IoFog @ iofog.org \\nCopyright (c) 2023 Datasance Teknoloji A.S.'
+        content: 'Fog Controller project for Eclipse ioFog @ iofog.org'
       }
     ].concat(sections)
     logger.cliRes(commandLineUsage(usage))

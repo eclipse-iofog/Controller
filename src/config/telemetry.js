@@ -25,7 +25,7 @@ function awaitAttributes (detector) {
 
 // Initialize OpenTelemetry
 const sdk = new NodeSDK({
-  serviceName: process.env.OTEL_SERVICE_NAME || 'pot-controller',
+  serviceName: process.env.OTEL_SERVICE_NAME || 'iofog-controller',
   resource: new Resource({}),
   resourceDetectors: [
     awaitAttributes(envDetectorSync),

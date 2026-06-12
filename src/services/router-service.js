@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Datasance Teknoloji A.S.
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 const AppHelper = require('../helpers/app-helper')
 const CatalogService = require('../services/catalog-service')
 const ChangeTrackingService = require('../services/change-tracking-service')
@@ -40,7 +27,7 @@ const {
   getSystemMicroserviceName
 } = require('../helpers/system-naming')
 
-const SITE_CONFIG_VERSION = 'pot'
+const SITE_CONFIG_VERSION = 'iofog'
 const SITE_CONFIG_NAMESPACE = process.env.CONTROLLER_NAMESPACE || config.get('app.namespace')
 const SSL_PROFILE_PATH = '/etc/skupper-router-certs'
 const SYSTEM_DEFAULT_CA_PATH = '/etc/pki/tls/certs/ca-bundle.crt'
@@ -381,7 +368,7 @@ async function _createRouterMicroservice (isEdge, uuid, microserviceConfig, tran
       },
       {
         key: 'SKUPPER_PLATFORM',
-        value: 'pot'
+        value: 'iofog'
       }
     ]
   }

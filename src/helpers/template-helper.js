@@ -1,16 +1,3 @@
-/*
- * Software Name : eclipse-iofog/Controller
- * Version: 2.0.x
- * SPDX-FileCopyrightText: Copyright (c) 2020-2020 Orange
- * SPDX-License-Identifier: EPL-2.0
- *
- * This software is distributed under the <license-name>,
- * the text of which is available at http://www.eclipse.org/legal/epl-2.0
- * or see the "license.txt" file for more details.
- *
- * Author: Franck Roudet
- */
-
 const ApplicationManager = require('../data/managers/application-manager.js') // Using manager instead of service to avoid dependency loop
 const FogService = require('../services/iofog-service')
 const MicroservicesService = require('../services/microservices-service')
