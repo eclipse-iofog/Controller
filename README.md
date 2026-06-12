@@ -1,5 +1,7 @@
 # ioFog Controller
 
+See [CONTRIBUTING](CONTRIBUTING) for the dual-mirror repository model and CI workflow. Full operator-facing README updates are planned for the v3.8 release (Plan 13).
+
 ### Status
 
 ![](https://img.shields.io/github/release/datasance/controller.svg?style=flat)
