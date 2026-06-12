@@ -4,6 +4,10 @@ module.exports = {
   CONTROLLER_UUID: 'app.uuid',
   CONTROL_PLANE: 'app.controlPlane',
   CONTROLLER_NAMESPACE: 'app.namespace',
+  CONTROLLER_DISTRIBUTION: 'flavor.distribution',
+  RBAC_API_VERSION: 'flavor.rbacApiVersion',
+  SERVICE_ANNOTATION_TAG: 'flavor.serviceAnnotationTag',
+  COMPONENT_LABEL_DOMAIN: 'flavor.componentLabelDomain',
 
   // Server Configuration
   SERVER_PORT: 'server.port',

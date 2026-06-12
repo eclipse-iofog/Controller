@@ -3,7 +3,7 @@ app:
   name: pot  # Application name
   uuid: ""
   controlPlane: Remote        # Control plane type: Remote or Kubernetes or Local
-  namespace: datasance  # Namespace for the application
+  namespace: iofog  # Namespace for the application (PoT: CONTROLLER_NAMESPACE=datasance)
 
 # Server Configuration
 server:
@@ -125,6 +125,13 @@ auth:
 #     sessionTtlSeconds:            # AUTH_OIDC_SESSION_TTL_SECONDS — defaults to AuthPolicy refresh_token_ttl_seconds
 #     idTokenTtlSeconds:            # AUTH_OIDC_ID_TOKEN_TTL_SECONDS — defaults to AuthPolicy access_token_ttl_seconds
 
+# Build flavor (Plan 12 — override via env or Docker build-arg)
+flavor:
+  distribution: datasance
+  rbacApiVersion: datasance.com/v3
+  serviceAnnotationTag: service.iofog.org/tag
+  componentLabelDomain: iofog.org/component
+
 # Bridge Ports Configuration for Services
 bridgePorts:
   range: "10024-65535"  # Bridge ports range
@@ -132,20 +139,20 @@ bridgePorts:
 # System Images Configuration
 systemImages:
   router:
-    "1": "ghcr.io/datasance/router:latest"
-    "2": "ghcr.io/datasance/router:latest"
-    "3": "ghcr.io/datasance/router:latest"
-    "4": "ghcr.io/datasance/router:latest"
+    "1": "ghcr.io/eclipse-iofog/router:latest"
+    "2": "ghcr.io/eclipse-iofog/router:latest"
+    "3": "ghcr.io/eclipse-iofog/router:latest"
+    "4": "ghcr.io/eclipse-iofog/router:latest"
   debug:
-    "1": "ghcr.io/datasance/node-debugger:latest"
-    "2": "ghcr.io/datasance/node-debugger:latest"
-    "3": "ghcr.io/datasance/node-debugger:latest"
-    "4": "ghcr.io/datasance/node-debugger:latest"
+    "1": "ghcr.io/eclipse-iofog/node-debugger:latest"
+    "2": "ghcr.io/eclipse-iofog/node-debugger:latest"
+    "3": "ghcr.io/eclipse-iofog/node-debugger:latest"
+    "4": "ghcr.io/eclipse-iofog/node-debugger:latest"
   nats:
-    "1": "ghcr.io/datasance/nats:latest"
-    "2": "ghcr.io/datasance/nats:latest"
-    "3": "ghcr.io/datasance/nats:latest"
-    "4": "ghcr.io/datasance/nats:latest"
+    "1": "ghcr.io/eclipse-iofog/nats:latest"
+    "2": "ghcr.io/eclipse-iofog/nats:latest"
+    "3": "ghcr.io/eclipse-iofog/nats:latest"
+    "4": "ghcr.io/eclipse-iofog/nats:latest"
 
 # NATS Configuration
 nats:

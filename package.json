@@ -1,7 +1,7 @@
 {
-  "name": "@datasance/iofogcontroller",
-  "version": "3.7.4",
-  "description": "ioFog Controller project for Datasance PoT @ datasance.com \\nCopyright (c) 2023 Datasance Teknoloji A.S.",
+  "name": "controller",
+  "version": "3.8.0",
+  "description": "A cloud-native operations controller for managing edge computing workloads, nodes, and deployments across Eclipse IoFog and Datasance PoT.",
   "main": "./src/main.js",
   "author": "Emirhan Durmus",
   "contributors": [
@@ -11,9 +11,6 @@
   "license": "EPL-2.0",
   "engines": {
     "node": "^24.0.0"
-  },
-  "bugs": {
-    "email": "support@datasance.com"
   },
   "standard": {
     "ignore": [
@@ -25,10 +22,7 @@
   "homepage": "https://www.datasance.com",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Datasance/Controller"
-  },
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com/"
+    "url": "https://github.com/eclipse-iofog/Controller"
   },
   "scripts": {
     "prestart": "npm run lint",

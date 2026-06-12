@@ -1,16 +1,3 @@
-/*
- * *******************************************************************************
- *  * Copyright (c) 2023 Datasance Teknoloji A.S.
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 const TransactionDecorator = require('../decorators/transaction-decorator')
 const ServiceManager = require('../data/managers/service-manager')
 const MicroserviceManager = require('../data/managers/microservice-manager')
@@ -31,10 +18,10 @@ const {
   ensureSystemApplication,
   getSystemMicroserviceName
 } = require('../helpers/system-naming')
+const { getServiceAnnotationTag, getComponentLabelKey } = require('../config/flavor')
 // const { Op } = require('sequelize')
 
 const K8S_ROUTER_CONFIG_MAP = 'iofog-router'
-const SERVICE_ANNOTATION_TAG = 'service.datasance.com/tag'
 const EDGELET_BRIDGE_CONNECTOR_HOST = 'edgelet.default.bridge.local'
 
 // Map service tags to string array
@@ -60,10 +47,11 @@ async function _setTags (serviceModel, tagsArray, transaction) {
 async function handleServiceDistribution (serviceTags, transaction) {
   const tags = Array.isArray(serviceTags) ? serviceTags : (serviceTags ? [].concat(serviceTags) : [])
   logger.debug('handleServiceDistribution: entry', { serviceTagsType: typeof serviceTags, isArray: Array.isArray(serviceTags), tagsLength: tags.length })
+  const serviceAnnotationTag = getServiceAnnotationTag()
 
   // Always find fog nodes with 'all' tag
   const allTaggedFogNodesRaw = await FogManager.findAllWithTags({
-    '$tags.value$': `${SERVICE_ANNOTATION_TAG}: all`
+    '$tags.value$': `${serviceAnnotationTag}: all`
   }, transaction)
   const allTaggedFogNodes = Array.isArray(allTaggedFogNodesRaw) ? allTaggedFogNodesRaw : []
   logger.debug('handleServiceDistribution: allTaggedFogNodes', { length: allTaggedFogNodes.length })
@@ -92,7 +80,7 @@ async function handleServiceDistribution (serviceTags, transaction) {
   const specificTaggedFogNodes = new Set()
   for (const tag of filteredServiceTags) {
     const fogNodesRaw = await FogManager.findAllWithTags({
-      '$tags.value$': `${SERVICE_ANNOTATION_TAG}: ${tag}`
+      '$tags.value$': `${serviceAnnotationTag}: ${tag}`
     }, transaction)
     const fogNodes = Array.isArray(fogNodesRaw) ? fogNodesRaw : []
     fogNodes.forEach(fog => specificTaggedFogNodes.add(fog.uuid))
@@ -855,11 +843,13 @@ async function _deleteTcpListener (serviceName, transaction) {
 
 // Common labels for Kubernetes services created by the controller
 function _getK8sServiceLabels () {
+  const componentLabelKey = getComponentLabelKey()
+  const appLabelKey = getAppLabelKey()
   return {
-    'app.kubernetes.io/name': 'pot',
+    'app.kubernetes.io/name': appLabelKey,
     'app.kubernetes.io/component': 'controller',
     'app.kubernetes.io/managed-by': 'controller',
-    'datasance.com/component': 'router',
+    [componentLabelKey]: 'router',
     'app.kubernetes.io/instance': process.env.CONTROLLER_NAME || config.get('app.name')
   }
 }
@@ -867,6 +857,7 @@ function _getK8sServiceLabels () {
 // Helper function to create Kubernetes service
 async function _createK8sService (serviceConfig, transaction) {
   const normalizedTags = serviceConfig.tags.map(tag => tag.includes(':') ? tag : `${tag}:`)
+  const componentLabelKey = getComponentLabelKey()
   const serviceSpec = {
     apiVersion: 'v1',
     kind: 'Service',
@@ -882,10 +873,10 @@ async function _createK8sService (serviceConfig, transaction) {
     spec: {
       type: serviceConfig.k8sType,
       selector: {
-        'datasance.com/component': 'router'
+        [componentLabelKey]: 'router'
       },
       ports: [{
-        name: 'pot-service',
+        name: 'iofog-service',
         targetPort: parseInt(serviceConfig.bridgePort),
         port: parseInt(serviceConfig.servicePort),
         protocol: 'TCP'
@@ -919,6 +910,7 @@ async function _updateK8sService (serviceConfig, transaction) {
     return service
   } else {
     const normalizedTags = serviceConfig.tags.map(tag => tag.includes(':') ? tag : `${tag}:`)
+    const componentLabelKey = getComponentLabelKey()
     const patchData = {
       metadata: {
         labels: _getK8sServiceLabels(),
@@ -931,10 +923,10 @@ async function _updateK8sService (serviceConfig, transaction) {
       spec: {
         type: serviceConfig.k8sType,
         selector: {
-          'datasance.com/component': 'router'
+          [componentLabelKey]: 'router'
         },
         ports: [{
-          name: 'pot-service',
+          name: 'iofog-service',
           port: parseInt(serviceConfig.servicePort),
           targetPort: parseInt(serviceConfig.bridgePort),
           protocol: 'TCP'

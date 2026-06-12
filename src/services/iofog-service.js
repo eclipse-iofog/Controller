@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Datasance Teknoloji A.S.
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 const config = require('../config')
 const fs = require('fs')
 const TransactionDecorator = require('../decorators/transaction-decorator')
@@ -63,12 +50,12 @@ const SecretManager = require('../data/managers/secret-manager')
 const vaultManager = require('../vault/vault-manager')
 const SecretHelper = require('../helpers/secret-helper')
 const FogPublicKeyManager = require('../data/managers/iofog-public-key-manager')
+const { getServiceAnnotationTag } = require('../config/flavor')
 
 const SITE_CA_CERT = Constants.ROUTER_SITE_CA
 const DEFAULT_ROUTER_LOCAL_CA = Constants.DEFAULT_ROUTER_LOCAL_CA
 const NATS_SITE_CA = Constants.NATS_SITE_CA
 const DEFAULT_NATS_LOCAL_CA = Constants.DEFAULT_NATS_LOCAL_CA
-const SERVICE_ANNOTATION_TAG = 'service.datasance.com/tag'
 
 const _fogToken = (fog) => slugifyName((fog && fog.name) || (fog && fog.uuid) || 'fog')
 
@@ -1028,9 +1015,10 @@ async function _extractServiceTags (fogTags) {
     return []
   }
 
-  // Filter tags that start with SERVICE_ANNOTATION_TAG
+  // Filter tags that start with the service annotation key
+  const serviceAnnotationTag = getServiceAnnotationTag()
   const serviceTags = fogTags
-    .filter(tag => tag.startsWith(SERVICE_ANNOTATION_TAG))
+    .filter(tag => tag.startsWith(serviceAnnotationTag))
     .map(tag => {
       // Extract the value after the colon
       const parts = tag.split(':')

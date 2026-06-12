@@ -1,31 +1,21 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Datasance Teknoloji A.S.
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 /**
  * Hardcoded system roles configuration
  * Admin role is fixed and cannot be modified, created, or deleted
- * Note: Namespace is set from controller config at runtime, 'datasance' is default
+ * Note: Namespace is set from controller config at runtime, 'iofog' is default
  */
 const config = require('./index')
+const { getRbacApiVersion } = require('./flavor')
 
 function getNamespace () {
-  return process.env.CONTROLLER_NAMESPACE || config.get('app.namespace', 'datasance')
+  return process.env.CONTROLLER_NAMESPACE || config.get('app.namespace', 'iofog')
 }
 
 module.exports = {
   ADMIN_ROLE: {
     name: 'admin',
-    apiVersion: 'datasance.com/v3',
+    get apiVersion () {
+      return getRbacApiVersion()
+    },
     kind: 'Role',
     get namespace () {
       return getNamespace()
@@ -40,7 +30,9 @@ module.exports = {
   },
   SRE_ROLE: {
     name: 'sre',
-    apiVersion: 'datasance.com/v3',
+    get apiVersion () {
+      return getRbacApiVersion()
+    },
     kind: 'Role',
     get namespace () {
       return getNamespace()
@@ -60,7 +52,9 @@ module.exports = {
   },
   DEVELOPER_ROLE: {
     name: 'developer',
-    apiVersion: 'datasance.com/v3',
+    get apiVersion () {
+      return getRbacApiVersion()
+    },
     kind: 'Role',
     get namespace () {
       return getNamespace()
@@ -80,7 +74,9 @@ module.exports = {
   },
   VIEWER_ROLE: {
     name: 'viewer',
-    apiVersion: 'datasance.com/v3',
+    get apiVersion () {
+      return getRbacApiVersion()
+    },
     kind: 'Role',
     get namespace () {
       return getNamespace()
