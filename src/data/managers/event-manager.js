@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Datasance Teknoloji A.S.
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 const BaseManager = require('./base-manager')
 const models = require('../models')
 const Event = models.Event
@@ -92,7 +79,7 @@ class EventManager extends BaseManager {
     }
 
     const options = {
-      where: where,
+      where,
       order: [['timestamp', 'DESC']],
       limit: Number(limit), // Ensure it's a number
       offset: Number(offset) // Ensure it's a number
@@ -117,8 +104,8 @@ class EventManager extends BaseManager {
     return {
       events: limitedRows,
       total: count,
-      limit: limit,
-      offset: offset
+      limit,
+      offset
     }
   }
 

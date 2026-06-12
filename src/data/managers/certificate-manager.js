@@ -27,12 +27,14 @@ class CertificateManager extends BaseManager {
 
     const options = transaction.fakeTransaction
       ? {
-        where: { signedById: caId },
-        include: ['secret'] }
+          where: { signedById: caId },
+          include: ['secret']
+        }
       : {
-        where: { signedById: caId },
-        include: ['secret'],
-        transaction: transaction }
+          where: { signedById: caId },
+          include: ['secret'],
+          transaction
+        }
     return this.getEntity().findAll(options)
   }
 
@@ -44,16 +46,18 @@ class CertificateManager extends BaseManager {
 
     const options = transaction.fakeTransaction
       ? {
-        where: { validTo: { [Op.lt]: expirationDate
+          where: {
+            validTo: { [Op.lt]: expirationDate }
+          },
+          include: ['signingCA']
         }
-        },
-        include: ['signingCA'] }
       : {
-        where: { validTo: { [Op.lt]: expirationDate
+          where: {
+            validTo: { [Op.lt]: expirationDate }
+          },
+          include: ['signingCA'],
+          transaction
         }
-        },
-        include: ['signingCA'],
-        transaction: transaction }
     return this.getEntity().findAll(options)
   }
 
@@ -62,12 +66,14 @@ class CertificateManager extends BaseManager {
 
     const options = transaction.fakeTransaction
       ? {
-        where: { name },
-        include: ['signingCA', 'secret'] }
+          where: { name },
+          include: ['signingCA', 'secret']
+        }
       : {
-        where: { name },
-        include: ['signingCA', 'secret'],
-        transaction: transaction }
+          where: { name },
+          include: ['signingCA', 'secret'],
+          transaction
+        }
     return this.getEntity().findOne(options)
   }
 
@@ -76,12 +82,14 @@ class CertificateManager extends BaseManager {
 
     const options = transaction.fakeTransaction
       ? {
-        where: { isCA: true },
-        include: ['secret'] }
+          where: { isCA: true },
+          include: ['secret']
+        }
       : {
-        where: { isCA: true },
-        include: ['secret'],
-        transaction: transaction }
+          where: { isCA: true },
+          include: ['secret'],
+          transaction
+        }
     return this.getEntity().findAll(options)
   }
 
@@ -89,11 +97,11 @@ class CertificateManager extends BaseManager {
     AppHelper.checkTransaction(transaction)
 
     const options = transaction.fakeTransaction
-      ? {
-        include: ['signingCA', 'secret'] }
+      ? { include: ['signingCA', 'secret'] }
       : {
-        include: ['signingCA', 'secret'],
-        transaction: transaction }
+          include: ['signingCA', 'secret'],
+          transaction
+        }
     return this.getEntity().findAll(options)
   }
 
@@ -106,11 +114,11 @@ class CertificateManager extends BaseManager {
 
     // Find existing certificate
     const options = transaction.fakeTransaction
-      ? {
-        where: { id } }
+      ? { where: { id } }
       : {
-        where: { id },
-        transaction: transaction }
+          where: { id },
+          transaction
+        }
     const cert = await this.getEntity().findOne(options)
 
     if (!cert) {
@@ -128,16 +136,18 @@ class CertificateManager extends BaseManager {
 
     const options = transaction.fakeTransaction
       ? {
-        where: { validTo: { [Op.lt]: currentDate
+          where: {
+            validTo: { [Op.lt]: currentDate }
+          },
+          include: ['signingCA', 'secret']
         }
-        },
-        include: ['signingCA', 'secret'] }
       : {
-        where: { validTo: { [Op.lt]: currentDate
+          where: {
+            validTo: { [Op.lt]: currentDate }
+          },
+          include: ['signingCA', 'secret'],
+          transaction
         }
-        },
-        include: ['signingCA', 'secret'],
-        transaction: transaction }
     return this.getEntity().findAll(options)
   }
 
@@ -147,12 +157,14 @@ class CertificateManager extends BaseManager {
 
     const options = transaction.fakeTransaction
       ? {
-        where: { id: certId },
-        include: ['signingCA', 'secret'] }
+          where: { id: certId },
+          include: ['signingCA', 'secret']
+        }
       : {
-        where: { id: certId },
-        include: ['signingCA', 'secret'],
-        transaction: transaction }
+          where: { id: certId },
+          include: ['signingCA', 'secret'],
+          transaction
+        }
     let currentCert = await this.getEntity().findOne(options)
 
     if (!currentCert) {
@@ -164,10 +176,8 @@ class CertificateManager extends BaseManager {
     // Traverse up the chain of signing CAs
     while (currentCert.signingCA) {
       const parentOptions = transaction.fakeTransaction
-        ? { where: { id: currentCert.signedById }, include: ['signingCA', 'secret']
-        }
-        : { where: { id: currentCert.signedById }, include: ['signingCA', 'secret'], transaction: transaction
-        }
+        ? { where: { id: currentCert.signedById }, include: ['signingCA', 'secret'] }
+        : { where: { id: currentCert.signedById }, include: ['signingCA', 'secret'], transaction }
       currentCert = await this.getEntity().findOne(parentOptions)
 
       if (currentCert) {
@@ -190,22 +200,24 @@ class CertificateManager extends BaseManager {
 
     const options = transaction.fakeTransaction
       ? {
-        where: {
-          validTo: {
-            [Op.gt]: now,
-            [Op.lt]: futureDate
-          }
-        },
-        include: ['signingCA', 'secret'] }
+          where: {
+            validTo: {
+              [Op.gt]: now,
+              [Op.lt]: futureDate
+            }
+          },
+          include: ['signingCA', 'secret']
+        }
       : {
-        where: {
-          validTo: {
-            [Op.gt]: now,
-            [Op.lt]: futureDate
-          }
-        },
-        include: ['signingCA', 'secret'],
-        transaction: transaction }
+          where: {
+            validTo: {
+              [Op.gt]: now,
+              [Op.lt]: futureDate
+            }
+          },
+          include: ['signingCA', 'secret'],
+          transaction
+        }
     return this.getEntity().findAll(options)
   }
 
@@ -214,12 +226,14 @@ class CertificateManager extends BaseManager {
 
     const options = transaction.fakeTransaction
       ? {
-        where: { signedById: caId },
-        include: ['secret'] }
+          where: { signedById: caId },
+          include: ['secret']
+        }
       : {
-        where: { signedById: caId },
-        include: ['secret'],
-        transaction: transaction }
+          where: { signedById: caId },
+          include: ['secret'],
+          transaction
+        }
     return this.getEntity().findAll(options)
   }
 }

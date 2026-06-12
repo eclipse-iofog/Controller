@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Datasance Teknoloji A.S.
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 const BaseVaultProvider = require('./base-vault-provider')
 
 class GoogleSecretManagerProvider extends BaseVaultProvider {
@@ -46,8 +33,8 @@ class GoogleSecretManagerProvider extends BaseVaultProvider {
 
       this.client = new SecretManagerServiceClient({
         projectId: config.projectId,
-        keyFilename: keyFilename,
-        credentials: credentials
+        keyFilename,
+        credentials
       })
 
       this.projectId = config.projectId
@@ -83,7 +70,7 @@ class GoogleSecretManagerProvider extends BaseVaultProvider {
           // Create new secret
           const [secret] = await this.client.createSecret({
             parent: projectPath,
-            secretId: secretId,
+            secretId,
             secret: {
               replication: {
                 automatic: {}
@@ -215,7 +202,7 @@ class GoogleSecretManagerProvider extends BaseVaultProvider {
     if (this.config && this.config.basePath && typeof this.config.basePath === 'string') {
       return this.config.basePath
     }
-    return 'pot-controller/secrets'
+    return 'controller/secrets'
   }
 }
 

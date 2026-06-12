@@ -1,16 +1,3 @@
-/*
- * *******************************************************************************
- *  * Copyright (c) 2023 Datasance Teknoloji A.S.
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 const Sequelize = require('sequelize')
 const Op = Sequelize.Op
 
@@ -76,7 +63,7 @@ const patchApplicationTemplateEndPoint = async function (applicationTemplateData
   const oldApplicationTemplate = await ApplicationTemplateManager.findOne({ ...conditions }, transaction)
 
   if (!oldApplicationTemplate) {
-    throw new Errors.NotFoundError(ErrorMessages.INVALID_FLOW_ID)
+    throw new Errors.NotFoundError(ErrorMessages.INVALID_APPLICATION_ID)
   }
   if (applicationTemplateData.name) {
     await _checkForDuplicateName(applicationTemplateData.name, oldApplicationTemplate.id, transaction)
@@ -251,8 +238,8 @@ const getApplicationDataFromTemplate = async function (deploymentData, isCLI, tr
 const _checkForDuplicateName = async function (name, applicationId, transaction) {
   if (name) {
     const where = applicationId
-      ? { name: name, id: { [Op.ne]: applicationId } }
-      : { name: name }
+      ? { name, id: { [Op.ne]: applicationId } }
+      : { name }
 
     const result = await ApplicationTemplateManager.findOne(where, transaction)
     if (result) {
@@ -270,6 +257,6 @@ module.exports = {
   getAllApplicationTemplatesEndPoint: TransactionDecorator.generateTransaction(getAllApplicationTemplatesEndPoint),
   getApplicationTemplateEndPoint: TransactionDecorator.generateTransaction(getApplicationTemplateEndPoint),
   getApplicationTemplateByName: TransactionDecorator.generateTransaction(getApplicationTemplateEndPoint),
-  getApplicationTemplate: getApplicationTemplate,
+  getApplicationTemplate,
   getApplicationDataFromTemplate
 }

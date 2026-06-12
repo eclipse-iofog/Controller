@@ -8,9 +8,9 @@ const swaggerOptions = {
   swaggerDefinition: {
     openapi: '3.0.0',
     info: {
-      title: 'Datasance PoT Controller REST API Documentation',
-      version: '3.5.0',
-      description: 'Datasance PoT Controller REST API Documentation'
+      title: 'Eclipse ioFog Controller REST API Documentation',
+      version: '3.7.0',
+      description: 'Eclipse ioFog Controller REST API Documentation'
     },
     servers: [
       {
@@ -26,7 +26,7 @@ const swaggerOptions = {
           description: 'JWT token for authentication (user or agent)'
         }
       },
-      schemas: schemas
+      schemas
     },
     security: [
       {

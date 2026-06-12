@@ -13,7 +13,7 @@ class SecretManager extends BaseManager {
     return this.create({
       name,
       type,
-      data: data
+      data
     }, transaction)
   }
 

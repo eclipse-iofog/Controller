@@ -44,23 +44,24 @@ describe('Controller', () => {
     })
   })
 
-  describe('.emailActivationEndPoint()', () => {
+  describe('.architecturesEndPoint()', () => {
     def('req', () => ({
       body: {},
     }))
+
     def('response', () => Promise.resolve())
-    def('subject', () => $subject.emailActivationEndPoint($req, $user))
+    def('subject', () => $subject.architecturesEndPoint($req))
 
     beforeEach(() => {
-      $sandbox.stub(ControllerService, 'emailActivation').returns($response)
+      $sandbox.stub(ControllerService, 'getArchitectures').returns($response)
     })
 
-    it('calls ControllerService.emailActivation with correct args', async () => {
+    it('calls ControllerService.getArchitectures with correct args', async () => {
       await $subject
-      expect(ControllerService.emailActivation).to.have.been.calledWith(false)
+      expect(ControllerService.getArchitectures).to.have.been.calledWith(false)
     })
 
-    context('when ControllerService#emailActivation fails', () => {
+    context('when ControllerService#getArchitectures fails', () => {
       const error = 'Error!'
 
       def('response', () => Promise.reject(error))
@@ -70,41 +71,7 @@ describe('Controller', () => {
       })
     })
 
-    context('when ControllerService#emailActivation succeeds', () => {
-      it(`succeeds`, () => {
-        return expect($subject).to.eventually.equal(undefined)
-      })
-    })
-  })
-
-  describe('.fogTypesEndPoint()', () => {
-    def('req', () => ({
-      body: {},
-    }))
-
-    def('response', () => Promise.resolve())
-    def('subject', () => $subject.fogTypesEndPoint($req, $user))
-
-    beforeEach(() => {
-      $sandbox.stub(ControllerService, 'getFogTypes').returns($response)
-    })
-
-    it('calls ControllerService.getFogTypes with correct args', async () => {
-      await $subject
-      expect(ControllerService.getFogTypes).to.have.been.calledWith(false)
-    })
-
-    context('when ControllerService#getFogTypes fails', () => {
-      const error = 'Error!'
-
-      def('response', () => Promise.reject(error))
-
-      it(`fails with "${error}"`, () => {
-        return expect($subject).to.be.rejectedWith(error)
-      })
-    })
-
-    context('when ControllerService#getFogTypes succeeds', () => {
+    context('when ControllerService#getArchitectures succeeds', () => {
       it(`succeeds`, () => {
         return expect($subject).to.eventually.equal(undefined)
       })

@@ -200,7 +200,7 @@ class SessionManager {
             agentState: newConnection.readyState
           }))
           await MicroserviceExecStatusManager.update(
-            { microserviceUuid: microserviceUuid },
+            { microserviceUuid },
             { execSessionId: execId, status: microserviceExecState.ACTIVE },
             transaction
           )
@@ -227,7 +227,7 @@ class SessionManager {
             agentState: pendingAgent.readyState
           }))
           await MicroserviceExecStatusManager.update(
-            { microserviceUuid: microserviceUuid },
+            { microserviceUuid },
             { execSessionId: execId, status: microserviceExecState.ACTIVE },
             transaction
           )

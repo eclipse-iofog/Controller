@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Datasance Teknoloji A.S.
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 const config = require('../config')
 const fs = require('fs')
 const TransactionDecorator = require('../decorators/transaction-decorator')
@@ -31,7 +18,6 @@ const MicroserviceManager = require('../data/managers/microservice-manager')
 const ApplicationManager = require('../data/managers/application-manager')
 const TagsManager = require('../data/managers/tags-manager')
 const MicroserviceService = require('./microservices-service')
-const EdgeResourceService = require('./edge-resource-service')
 const RouterManager = require('../data/managers/router-manager')
 const MicroserviceExtraHostManager = require('../data/managers/microservice-extra-host-manager')
 const MicroserviceStatusManager = require('../data/managers/microservice-status-manager')
@@ -45,9 +31,15 @@ const {
   ensureSystemApplication,
   getLegacySystemAppName,
   getSystemAppName,
-  getSystemMicroserviceName
+  getSystemMicroserviceName,
+  slugifyName
 } = require('../helpers/system-naming')
 const Constants = require('../helpers/constants')
+const {
+  routerLocalCertificateHosts,
+  buildNatsServerCertificateHostList,
+  buildNatsMqttCertificateHostList
+} = require('../helpers/cert-dns-sans')
 const Op = require('sequelize').Op
 const lget = require('lodash/get')
 const CertificateService = require('./certificate-service')
@@ -58,28 +50,29 @@ const SecretManager = require('../data/managers/secret-manager')
 const vaultManager = require('../vault/vault-manager')
 const SecretHelper = require('../helpers/secret-helper')
 const FogPublicKeyManager = require('../data/managers/iofog-public-key-manager')
+const { getServiceAnnotationTag } = require('../config/flavor')
 
-const SITE_CA_CERT = 'router-site-ca'
-const DEFAULT_ROUTER_LOCAL_CA = 'default-router-local-ca'
-const SERVICE_ANNOTATION_TAG = 'service.datasance.com/tag'
+const SITE_CA_CERT = Constants.ROUTER_SITE_CA
+const DEFAULT_ROUTER_LOCAL_CA = Constants.DEFAULT_ROUTER_LOCAL_CA
+const NATS_SITE_CA = Constants.NATS_SITE_CA
+const DEFAULT_NATS_LOCAL_CA = Constants.DEFAULT_NATS_LOCAL_CA
+
+const _fogToken = (fog) => slugifyName((fog && fog.name) || (fog && fog.uuid) || 'fog')
+
+function _resolveArchId (fogData) {
+  if (fogData.archId !== undefined) return fogData.archId
+  return undefined
+}
 
 async function checkKubernetesEnvironment () {
   const controlPlane = process.env.CONTROL_PLANE || config.get('app.ControlPlane')
   return controlPlane && controlPlane.toLowerCase() === 'kubernetes'
 }
 
-async function getLocalCertificateHosts (fogData) {
-  const hosts = new Set()
-  const defaultHost = ['localhost', '127.0.0.1', 'host.docker.internal', 'host.containers.internal', 'iofog', 'service.local']
-  // Add default hosts individually
-  defaultHost.forEach(host => hosts.add(host))
-  if (fogData.host) hosts.add(fogData.host)
-  if (fogData.ipAddress) hosts.add(fogData.ipAddress)
-  if (fogData.ipAddressExternal) hosts.add(fogData.ipAddressExternal)
-  // if (isKubernetes) {
-  //   return `router-local,router-local.${namespace},router-local.${namespace}.svc.cluster.local,127.0.0.1,localhost,host.docker.internal,host.containers.internal`
-  // }
-  return Array.from(hosts).join(',') || 'localhost'
+async function getLocalCertificateHosts (fogData, uuid, transaction) {
+  const defaultRouter = await RouterManager.findOne({ isDefault: true }, transaction)
+  const isDefaultRouter = !!(defaultRouter && defaultRouter.iofogUuid === uuid)
+  return routerLocalCertificateHosts(fogData, { isDefaultRouter })
 }
 
 async function getSiteCertificateHosts (fogData) {
@@ -112,12 +105,52 @@ async function getSiteCertificateHosts (fogData) {
   return Array.from(hosts).join(',') || 'localhost'
 }
 
-async function _handleRouterCertificates (fogData, uuid, isRouterModeChanged, transaction) {
-  logger.debug('Starting _handleRouterCertificates for fog: ' + JSON.stringify({ uuid: uuid, host: fogData.host }))
+async function _recreateCertificateIfExists (name, subject, hosts, ca, transaction) {
+  try {
+    const existingCert = await CertificateService.getCertificateEndpoint(name, transaction)
+    if (!existingCert) {
+      return
+    }
+    await CertificateService.deleteCertificateEndpoint(name, transaction)
+    await CertificateService.createCertificateEndpoint({
+      name,
+      subject: `${subject}`,
+      hosts,
+      ca
+    }, transaction)
+  } catch (err) {
+    if (err.name === 'NotFoundError') {
+      return
+    }
+    throw err
+  }
+}
 
-  // Check if we're in Kubernetes environment
-  const isKubernetes = await checkKubernetesEnvironment()
-  // const namespace = isKubernetes ? process.env.CONTROLLER_NAMESPACE : null
+async function _reconcileNatsCertificatesOnHostChange (fog, transaction) {
+  const fogToken = _fogToken(fog)
+  const serverCertName = `nats-server-${fogToken}`
+  const mqttCertName = `nats-mqtt-server-${fogToken}`
+  const serverHosts = buildNatsServerCertificateHostList(fog).join(',')
+  const mqttHosts = buildNatsMqttCertificateHostList(fog).join(',')
+
+  await _recreateCertificateIfExists(
+    serverCertName,
+    serverCertName,
+    serverHosts,
+    { type: 'direct', secretName: NATS_SITE_CA },
+    transaction
+  )
+  await _recreateCertificateIfExists(
+    mqttCertName,
+    mqttCertName,
+    mqttHosts,
+    { type: 'direct', secretName: DEFAULT_NATS_LOCAL_CA },
+    transaction
+  )
+}
+
+async function _handleRouterCertificates (fogData, uuid, shouldRecreateCerts, transaction) {
+  logger.debug('Starting _handleRouterCertificates for fog: ' + JSON.stringify({ uuid, host: fogData.host }))
 
   // Helper to check CA existence
   async function ensureCA (name, subject) {
@@ -205,25 +238,16 @@ async function _handleRouterCertificates (fogData, uuid, isRouterModeChanged, tr
     // If routerMode is 'none', only ensure DEFAULT_ROUTER_LOCAL_CA and its signed certificate
     if (fogData.routerMode === 'none') {
       logger.debug('Router mode is none, ensuring DEFAULT_ROUTER_LOCAL_CA exists')
-      if (isKubernetes) {
-        await ensureCA(DEFAULT_ROUTER_LOCAL_CA, DEFAULT_ROUTER_LOCAL_CA)
-      }
+      await ensureCA(DEFAULT_ROUTER_LOCAL_CA, DEFAULT_ROUTER_LOCAL_CA)
       logger.debug('Ensuring local-agent certificate signed by DEFAULT_ROUTER_LOCAL_CA')
-      const localHosts = await getLocalCertificateHosts(fogData)
-      let defaultRouterLocalCA
-      if (isKubernetes) {
-        defaultRouterLocalCA = DEFAULT_ROUTER_LOCAL_CA
-      } else {
-        const defaultRouter = await RouterManager.findOne({ isDefault: true }, transaction)
-        defaultRouterLocalCA = `${defaultRouter.iofogUuid}-local-ca`
-      }
+      const localHosts = await getLocalCertificateHosts(fogData, uuid, transaction)
 
       await ensureCert(
         `router-local-agent-${fogData.name}`,
         `${uuid}`,
         localHosts,
-        { type: 'direct', secretName: defaultRouterLocalCA },
-        isRouterModeChanged
+        { type: 'direct', secretName: DEFAULT_ROUTER_LOCAL_CA },
+        shouldRecreateCerts
       )
       logger.debug('Successfully completed _handleRouterCertificates for routerMode none')
       return
@@ -238,22 +262,21 @@ async function _handleRouterCertificates (fogData, uuid, isRouterModeChanged, tr
       `${uuid}`,
       siteHosts,
       { type: 'direct', secretName: SITE_CA_CERT },
-      false
+      shouldRecreateCerts
     )
 
-    // Always ensure local-ca exists
-    logger.debug('Ensuring local-ca exists')
-    await ensureCA(`router-local-ca-${fogData.name}`, `${uuid}`)
+    logger.debug('Ensuring DEFAULT_ROUTER_LOCAL_CA exists')
+    await ensureCA(DEFAULT_ROUTER_LOCAL_CA, DEFAULT_ROUTER_LOCAL_CA)
 
     // Always ensure local-server cert exists
     logger.debug('Ensuring local-server certificate exists')
-    const localHosts = await getLocalCertificateHosts(fogData)
+    const localHosts = await getLocalCertificateHosts(fogData, uuid, transaction)
     await ensureCert(
       `router-local-server-${fogData.name}`,
       `${uuid}`,
       localHosts,
-      { type: 'direct', secretName: `router-local-ca-${fogData.name}` },
-      isRouterModeChanged
+      { type: 'direct', secretName: DEFAULT_ROUTER_LOCAL_CA },
+      shouldRecreateCerts
     )
 
     // Always ensure local-agent cert exists
@@ -262,8 +285,8 @@ async function _handleRouterCertificates (fogData, uuid, isRouterModeChanged, tr
       `router-local-agent-${fogData.name}`,
       `${uuid}`,
       localHosts,
-      { type: 'direct', secretName: `router-local-ca-${fogData.name}` },
-      isRouterModeChanged
+      { type: 'direct', secretName: DEFAULT_ROUTER_LOCAL_CA },
+      shouldRecreateCerts
     )
 
     logger.debug('Successfully completed _handleRouterCertificates')
@@ -279,6 +302,17 @@ async function createFogEndPoint (fogData, isCLI, transaction) {
   if (isKubernetes && fogData.isSystem) {
     throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_SYSTEM_FOG_KUBERNETES))
   }
+
+  if (!isKubernetes) {
+    const existingFogs = await FogManager.findAll({}, transaction)
+    if (existingFogs.length === 0) {
+      fogData.isSystem = true
+      fogData.routerMode = 'interior'
+      fogData.natsMode = 'server'
+      logger.info('First fog in cluster — promoting to system interior router with NATS server')
+    }
+  }
+
   let createFogData = {
     uuid: AppHelper.generateUUID(),
     name: fogData.name,
@@ -288,7 +322,7 @@ async function createFogEndPoint (fogData, isCLI, transaction) {
     // gpsMode: fogData.latitude || fogData.longitude ? 'manual' : undefined,
     description: fogData.description,
     networkInterface: fogData.networkInterface,
-    dockerUrl: fogData.dockerUrl,
+    containerEngineUrl: fogData.containerEngineUrl,
     containerEngine: fogData.containerEngine,
     deploymentType: fogData.deploymentType,
     diskLimit: fogData.diskLimit,
@@ -304,10 +338,10 @@ async function createFogEndPoint (fogData, isCLI, transaction) {
     bluetoothEnabled: fogData.bluetoothEnabled,
     watchdogEnabled: fogData.watchdogEnabled,
     abstractedHardwareEnabled: fogData.abstractedHardwareEnabled,
-    fogTypeId: fogData.fogType,
+    archId: _resolveArchId(fogData),
     logLevel: fogData.logLevel,
     edgeGuardFrequency: fogData.edgeGuardFrequency,
-    dockerPruningFrequency: fogData.dockerPruningFrequency,
+    pruningFrequency: fogData.pruningFrequency,
     availableDiskThreshold: fogData.availableDiskThreshold,
     isSystem: fogData.isSystem,
     host: fogData.host,
@@ -341,6 +375,11 @@ async function createFogEndPoint (fogData, isCLI, transaction) {
     throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_NATS_MODE, fogData.natsMode))
   }
 
+  const natsMode = fogData.natsMode || 'leaf'
+  if (!isCLI && !fogData.host && (fogData.routerMode !== 'none' || natsMode !== 'none')) {
+    throw new Errors.ValidationError(ErrorMessages.HOST_IS_REQUIRED)
+  }
+
   // // TODO: handle multiple system fogs a.k.a multi-remote-controller and multi interior routers
   // if (fogData.isSystem && !!(await FogManager.findOne({ isSystem: true }, transaction))) {
   //   throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.DUPLICATE_SYSTEM_FOG))
@@ -372,7 +411,7 @@ async function createFogEndPoint (fogData, isCLI, transaction) {
   const res = { uuid: fog.uuid }
 
   const natsConfig = {
-    mode: fogData.natsMode || 'leaf',
+    mode: natsMode,
     serverPort: fogData.natsServerPort,
     leafPort: fogData.natsLeafPort,
     clusterPort: fogData.natsClusterPort,
@@ -396,9 +435,6 @@ async function createFogEndPoint (fogData, isCLI, transaction) {
         await NatsService.ensureNatsForFog(fog, natsConfig, transaction)
 
         if (fogData.routerMode !== 'none') {
-          if (!fogData.host && !isCLI) {
-            throw new Errors.ValidationError(ErrorMessages.HOST_IS_REQUIRED)
-          }
           await RouterService.createRouterForFog(fogData, fog.uuid, upstreamRouters)
 
           // Service Distribution Logic
@@ -461,7 +497,7 @@ async function createFogEndPoint (fogData, isCLI, transaction) {
 
 async function _setTags (fogModel, tagsArray, transaction) {
   if (tagsArray) {
-    let tags = []
+    const tags = []
     for (const tag of tagsArray) {
       let tagModel = await TagsManager.findOne({ value: tag }, transaction)
       if (!tagModel) {
@@ -486,7 +522,7 @@ async function updateFogEndPoint (fogData, isCLI, transaction) {
     // gpsMode: fogData.latitude || fogData.longitude ? 'manual' : undefined,
     description: fogData.description,
     networkInterface: fogData.networkInterface,
-    dockerUrl: fogData.dockerUrl,
+    containerEngineUrl: fogData.containerEngineUrl,
     containerEngine: fogData.containerEngine,
     deploymentType: fogData.deploymentType,
     diskLimit: fogData.diskLimit,
@@ -503,9 +539,9 @@ async function updateFogEndPoint (fogData, isCLI, transaction) {
     watchdogEnabled: fogData.watchdogEnabled,
     isSystem: fogData.isSystem,
     abstractedHardwareEnabled: fogData.abstractedHardwareEnabled,
-    fogTypeId: fogData.fogType,
+    archId: _resolveArchId(fogData),
     logLevel: fogData.logLevel,
-    dockerPruningFrequency: fogData.dockerPruningFrequency,
+    pruningFrequency: fogData.pruningFrequency,
     edgeGuardFrequency: fogData.edgeGuardFrequency,
     host: fogData.host,
     availableDiskThreshold: fogData.availableDiskThreshold,
@@ -546,11 +582,12 @@ async function updateFogEndPoint (fogData, isCLI, transaction) {
     throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_SYSTEM_CHANGE))
   }
 
-  // Prevent overwriting detected fogType (1 or 2) with "auto" (0)
-  // If fogType is being set to "auto" (0) but the agent has already detected its type (1 or 2),
+  // Prevent overwriting detected arch (1 or 2) with "auto" (0)
+  // If arch is being set to "auto" (0) but the agent has already detected its type (1 or 2),
   // preserve the detected type to ensure getAgentMicroservices can find matching images
-  if (fogData.fogType === 0 && (oldFog.fogTypeId === 1 || oldFog.fogTypeId === 2)) {
-    updateFogData.fogTypeId = undefined
+  const requestedArchId = _resolveArchId(fogData)
+  if (requestedArchId === 0 && (oldFog.archId === 1 || oldFog.archId === 2)) {
+    updateFogData.archId = undefined
     // Remove undefined fields again after modifying updateFogData
     updateFogData = AppHelper.deleteUndefinedFields(updateFogData)
   }
@@ -591,6 +628,8 @@ async function updateFogEndPoint (fogData, isCLI, transaction) {
       isRouterModeChanged = true
     }
   }
+  const isHostChanged = !!(updateFogData.host && updateFogData.host !== oldFog.host)
+  const shouldRecreateCerts = isRouterModeChanged || isHostChanged
 
   await FogManager.update(queryFogData, updateFogData, transaction)
   await ChangeTrackingService.update(fogData.uuid, ChangeTrackingService.events.config, transaction)
@@ -617,12 +656,18 @@ async function updateFogEndPoint (fogData, isCLI, transaction) {
       try {
         // --- Begin orchestration logic ---
         const fog = await FogManager.findOne({ uuid: fogData.uuid }, transaction)
-        await _handleRouterCertificates({ ...fogData, name: fog.name }, fog.uuid, isRouterModeChanged, transaction)
+        await _handleRouterCertificates({ ...fogData, name: fog.name }, fog.uuid, shouldRecreateCerts, transaction)
+        if (shouldRecreateCerts) {
+          await ChangeTrackingService.update(fogData.uuid, ChangeTrackingService.events.volumeMounts, transaction)
+        }
         if (natsConfig.mode === 'none') {
           await NatsService.cleanupNatsForFog(fog, transaction)
           await _deleteNatsMicroserviceByFog(fogData, transaction)
           await ChangeTrackingService.update(fogData.uuid, ChangeTrackingService.events.microserviceList, transaction)
         } else {
+          if (isHostChanged) {
+            await _reconcileNatsCertificatesOnHostChange(fog, transaction)
+          }
           await NatsService.ensureNatsForFog(fog, natsConfig, transaction)
         }
 
@@ -915,20 +960,6 @@ async function _getFogNatsConfig (fog, transaction) {
   return natsConfig
 }
 
-async function _getFogEdgeResources (fog, transaction) {
-  const resourceAttributes = [
-    'name',
-    'version',
-    'description',
-    'interfaceProtocol',
-    'displayName',
-    'displayIcon',
-    'displayColor'
-  ]
-  const resources = await fog.getEdgeResources({ attributes: resourceAttributes })
-  return resources.map(EdgeResourceService.buildGetObject)
-}
-
 async function _getFogVolumeMounts (fog, transaction) {
   const volumeMountAttributes = [
     'name',
@@ -950,13 +981,22 @@ async function _getFogVolumeMounts (fog, transaction) {
 async function _getFogExtraInformation (fog, transaction) {
   const routerConfig = await _getFogRouterConfig(fog, transaction)
   const natsConfig = await _getFogNatsConfig(fog, transaction)
-  const edgeResources = await _getFogEdgeResources(fog, transaction)
   const volumeMounts = await _getFogVolumeMounts(fog, transaction)
   // Transform to plain JS object
   if (fog.toJSON && typeof fog.toJSON === 'function') {
     fog = fog.toJSON()
   }
-  return { ...fog, tags: _mapTags(fog), ...routerConfig, ...natsConfig, edgeResources, volumeMounts }
+  const { fogType, fogTypeId, architecture, ...fogFields } = fog
+  const archId = fogFields.archId
+  const arch = architecture
+    ? {
+        id: architecture.id,
+        name: architecture.name,
+        image: architecture.image,
+        description: architecture.description
+      }
+    : undefined
+  return { ...fogFields, archId, arch, tags: _mapTags(fog), ...routerConfig, ...natsConfig, volumeMounts }
 }
 
 // Map tags to string array
@@ -975,9 +1015,10 @@ async function _extractServiceTags (fogTags) {
     return []
   }
 
-  // Filter tags that start with SERVICE_ANNOTATION_TAG
+  // Filter tags that start with the service annotation key
+  const serviceAnnotationTag = getServiceAnnotationTag()
   const serviceTags = fogTags
-    .filter(tag => tag.startsWith(SERVICE_ANNOTATION_TAG))
+    .filter(tag => tag.startsWith(serviceAnnotationTag))
     .map(tag => {
       // Extract the value after the colon
       const parts = tag.split(':')
@@ -1096,18 +1137,26 @@ async function generateProvisioningKeyEndPoint (fogData, isCLI, transaction) {
   return {
     key: provisioningKeyData.provisionKey,
     expirationTime: provisioningKeyData.expirationTime,
-    caCert: caCert
+    caCert
   }
 }
 
 async function setFogVersionCommandEndPoint (fogVersionData, isCLI, transaction) {
-  await Validator.validate(fogVersionData, Validator.schemas.iofogSetVersionCommand)
+  const validationData = {
+    uuid: fogVersionData.uuid,
+    versionCommand: fogVersionData.versionCommand
+  }
+  if (fogVersionData.semver != null) {
+    validationData.semver = fogVersionData.semver
+  }
+  await Validator.validate(validationData, Validator.schemas.iofogSetVersionCommand)
 
   const queryFogData = { uuid: fogVersionData.uuid }
 
   const newVersionCommand = {
     iofogUuid: fogVersionData.uuid,
-    versionCommand: fogVersionData.versionCommand
+    versionCommand: fogVersionData.versionCommand,
+    semver: fogVersionData.semver ?? null
   }
 
   const fog = await FogManager.findOne(queryFogData, transaction)
@@ -1178,7 +1227,7 @@ function _filterFogs (fogs, filters) {
   const filtered = []
   fogs.forEach((fog) => {
     let isMatchFog = true
-    filters.some((filter) => {
+    filters.forEach((filter) => {
       const fld = filter.key
       const val = filter.value
       const condition = filter.condition
@@ -1186,7 +1235,6 @@ function _filterFogs (fogs, filters) {
         (condition === 'has' && fog[fld] && fog[fld].includes(val))
       if (!isMatchField) {
         isMatchFog = false
-        return false
       }
     })
     if (isMatchFog) {
@@ -1403,8 +1451,8 @@ async function enableNodeExecEndPoint (execData, isCLI, transaction) {
 
   if (execData.image) {
     const images = [
-      { fogTypeId: 1, containerImage: execData.image },
-      { fogTypeId: 2, containerImage: execData.image }
+      { archId: 1, containerImage: execData.image },
+      { archId: 2, containerImage: execData.image }
     ]
     debugMicroserviceData.images = images
   } else {
@@ -1449,8 +1497,8 @@ async function enableNodeExecEndPoint (execData, isCLI, transaction) {
 
     if (execData.image) {
       const images = [
-        { fogTypeId: 1, containerImage: execData.image },
-        { fogTypeId: 2, containerImage: execData.image }
+        { archId: 1, containerImage: execData.image },
+        { archId: 2, containerImage: execData.image }
       ]
       await _updateImages(images, existingMicroservice.uuid, transaction)
     }
@@ -1467,8 +1515,8 @@ async function enableNodeExecEndPoint (execData, isCLI, transaction) {
 
       if (execData.image) {
         const images = [
-          { fogTypeId: 1, containerImage: execData.image },
-          { fogTypeId: 2, containerImage: execData.image }
+          { archId: 1, containerImage: execData.image },
+          { archId: 2, containerImage: execData.image }
         ]
         await _createMicroserviceImages(microservice, images, transaction)
       }
@@ -1660,7 +1708,7 @@ async function _createMicroserviceImages (microservice, images, transaction) {
 
 async function _updateImages (images, microserviceUuid, transaction) {
   await CatalogItemImageManager.delete({
-    microserviceUuid: microserviceUuid
+    microserviceUuid
   }, transaction)
   return _createMicroserviceImages({ uuid: microserviceUuid }, images, transaction)
 }
@@ -1678,7 +1726,7 @@ module.exports = {
   setFogRebootCommandEndPoint: TransactionDecorator.generateTransaction(setFogRebootCommandEndPoint),
   getHalHardwareInfoEndPoint: TransactionDecorator.generateTransaction(getHalHardwareInfoEndPoint),
   getHalUsbInfoEndPoint: TransactionDecorator.generateTransaction(getHalUsbInfoEndPoint),
-  getFog: getFog,
+  getFog,
   setFogPruneCommandEndPoint: TransactionDecorator.generateTransaction(setFogPruneCommandEndPoint),
   enableNodeExecEndPoint: TransactionDecorator.generateTransaction(enableNodeExecEndPoint),
   disableNodeExecEndPoint: TransactionDecorator.generateTransaction(disableNodeExecEndPoint),

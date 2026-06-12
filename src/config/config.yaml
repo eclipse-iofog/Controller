@@ -1,14 +1,16 @@
 # Application Configuration
 app:
-  name: pot  # Application name
+  name: iofog  # Application name
   uuid: ""
   controlPlane: Remote        # Control plane type: Remote or Kubernetes or Local
-  namespace: datasance  # Namespace for the application
+  namespace: iofog  # Namespace for the application (PoT: CONTROLLER_NAMESPACE=datasance)
 
 # Server Configuration
 server:
   port: 51121             # Server port number
-  devMode: true   
+  devMode: true
+  publicUrl: ""           # Canonical external URL (CONTROLLER_PUBLIC_URL); https required in prod unless auth.insecureAllowHttp
+  trustProxy: false       # Honor X-Forwarded-* when behind reverse proxy (TRUST_PROXY)
   webSocket:
     perMessageDeflate: false
     allowExtensions: false        # Disable all extensions
@@ -25,20 +27,20 @@ server:
       maxConnectionsPerIp: 10
       maxRequestsPerMinute: 60
       maxPayload: 1048576  # 1MB
-  # ssl:
+  # tls:
   #   path:
-  #     key: ""              # SSL key file path
-  #     cert: ""             # SSL certificate file path
-  #     intermediateCert: "" # Intermediate certificate file path
+  #     key: ""              # TLS key file path (TLS_PATH_KEY)
+  #     cert: ""             # TLS certificate file path (TLS_PATH_CERT)
+  #     intermediateCert: "" # Intermediate certificate file path (TLS_PATH_INTERMEDIATE_CERT)
   #   base64:
-  #     key:  # SSL key in base64 format
-  #     cert:  # SSL certificate in base64 format
-  #     intermediateCert: # Intermediate certificate in base64 format
+  #     key:  # TLS key in base64 format (TLS_BASE64_KEY)
+  #     cert:  # TLS certificate in base64 format (TLS_BASE64_CERT)
+  #     intermediateCert: # Intermediate certificate in base64 format (TLS_BASE64_INTERMEDIATE_CERT)
 
-# Viewer Configuration
-viewer:
-  port: 8008             # Viewer port number
-  url: ""                # Viewer URL
+# Console Configuration
+console:
+  port: 8008             # Console port number
+  url: "http://localhost:8008"                # Console URL (CONSOLE_URL); defaults to server.publicUrl when empty
 
 # Logging Configuration
 log:
@@ -93,16 +95,42 @@ database:
       min: 0          # Minimum connections
       idle: 20000     # Idle timeout in milliseconds
 
-# Auth Configuration
-# auth:
-#   realm:           # Keycloak realm
-#   realmKey:        # Realm public key
-#   url:       # Keycloak authentication server URL
-#   sslRequired:   # SSL requirement level
+# Auth Configuration (OIDC — any compliant provider; env: OIDC_* / AUTH_* per naming-map §13)
+auth:
+  mode: embedded        # embedded | external (AUTH_MODE); resolution
+  insecureAllowHttp: false  # Allow http CONTROLLER_PUBLIC_URL in prod (AUTH_INSECURE_ALLOW_HTTP)
+  bootstrap:
+#     adminUsername: ""  # Bootstrap admin username (OIDC_BOOTSTRAP_ADMIN_USERNAME)
+#     adminPassword: ""  # Bootstrap admin password (OIDC_BOOTSTRAP_ADMIN_PASSWORD)
+    insecureAllowBootstrapLog: false  # Allow bootstrap log in prod (AUTH_INSECURE_ALLOW_BOOTSTRAP_LOG)
+#   issuerUrl:      # OIDC issuer URL (OIDC_ISSUER_URL); external mode only
 #   client:
-#     id:           # ControllerClient ID
-#     secret:        # ControllerClient Client secret
-#   viewerClient:   # Viewer client ID
+#     id:           # Controller API client ID (OIDC_CLIENT_ID)
+#     secret:       # Controller API client secret (OIDC_CLIENT_SECRET)
+#   consoleClient:   # EdgeOps Console SPA client ID (OIDC_CONSOLE_CLIENT_ID)
+#   rateLimit:
+#     enabled: true                 # AUTH_RATE_LIMIT_ENABLED
+#     maxRequestsPerWindow: 60      # AUTH_RATE_LIMIT_MAX_REQUESTS — per-IP auth endpoints
+#     windowMs: 60000               # AUTH_RATE_LIMIT_WINDOW_MS — sliding window (ms)
+#   sessionStore:
+#     type: memory                  # memory | database (AUTH_SESSION_STORE_TYPE); auto database for mysql/postgres
+#     ttlMs: 600000                 # AUTH_SESSION_STORE_TTL_MS — OAuth BFF session TTL (10 min)
+#     secret: ""                    # AUTH_SESSION_SECRET — optional; auto-generated and persisted when unset
+#   tokenTtl:
+#     accessTokenTtlSeconds: 900    # AUTH_ACCESS_TOKEN_TTL_SECONDS — runtime override (default from AuthPolicy)
+#     refreshTokenTtlSeconds: 3600  # AUTH_REFRESH_TOKEN_TTL_SECONDS — runtime override (default 1h from AuthPolicy)
+#   oidcTtl:
+#     interactionTtlSeconds:        # AUTH_OIDC_INTERACTION_TTL_SECONDS — defaults to sessionStore.ttlMs / 1000
+#     grantTtlSeconds:              # AUTH_OIDC_GRANT_TTL_SECONDS — defaults to interactionTtlSeconds
+#     sessionTtlSeconds:            # AUTH_OIDC_SESSION_TTL_SECONDS — defaults to AuthPolicy refresh_token_ttl_seconds
+#     idTokenTtlSeconds:            # AUTH_OIDC_ID_TOKEN_TTL_SECONDS — defaults to AuthPolicy access_token_ttl_seconds
+
+# Build flavor (Plan 12 — override via env or Docker build-arg)
+flavor:
+  distribution: datasance
+  rbacApiVersion: datasance.com/v3
+  serviceAnnotationTag: service.iofog.org/tag
+  componentLabelDomain: iofog.org/component
 
 # Bridge Ports Configuration for Services
 bridgePorts:
@@ -111,23 +139,24 @@ bridgePorts:
 # System Images Configuration
 systemImages:
   router:
-    "1": "ghcr.io/datasance/router:latest"
-    "2": "ghcr.io/datasance/router:latest"
+    "1": "ghcr.io/eclipse-iofog/router:latest"
+    "2": "ghcr.io/eclipse-iofog/router:latest"
+    "3": "ghcr.io/eclipse-iofog/router:latest"
+    "4": "ghcr.io/eclipse-iofog/router:latest"
   debug:
-    "1": "ghcr.io/datasance/node-debugger:latest"
-    "2": "ghcr.io/datasance/node-debugger:latest"
+    "1": "ghcr.io/eclipse-iofog/node-debugger:latest"
+    "2": "ghcr.io/eclipse-iofog/node-debugger:latest"
+    "3": "ghcr.io/eclipse-iofog/node-debugger:latest"
+    "4": "ghcr.io/eclipse-iofog/node-debugger:latest"
   nats:
-    "1": "ghcr.io/datasance/nats:latest"
-    "2": "ghcr.io/datasance/nats:latest"
+    "1": "ghcr.io/eclipse-iofog/nats:latest"
+    "2": "ghcr.io/eclipse-iofog/nats:latest"
+    "3": "ghcr.io/eclipse-iofog/nats:latest"
+    "4": "ghcr.io/eclipse-iofog/nats:latest"
 
 # NATS Configuration
 nats:
   enabled: true
-
-# Diagnostics Configuration
-diagnostics:
-  directory: "diagnostic"  # Diagnostics directory
-
 
 # Vault Configuration (for compliance with NIST, ISO 27001, NATO, IEC 62443)
 # When enabled, sensitive data (secrets, certificates, private keys) will be stored

@@ -94,11 +94,6 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.FLOAT,
       field: 'memory_limit'
     },
-    imageSnapshot: {
-      type: DataTypes.TEXT,
-      field: 'image_snapshot',
-      defaultValue: ''
-    },
     execEnabled: {
       type: DataTypes.BOOLEAN,
       field: 'exec_enabled',
@@ -143,6 +138,11 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER,
       field: 'nats_rule_id',
       allowNull: true
+    },
+    isController: {
+      type: DataTypes.BOOLEAN,
+      field: 'is_controller',
+      defaultValue: false
     }
   }, {
     tableName: 'Microservices',
@@ -200,11 +200,6 @@ module.exports = (sequelize, DataTypes) => {
     Microservice.hasMany(models.VolumeMapping, {
       foreignKey: 'microservice_uuid',
       as: 'volumeMappings'
-    })
-
-    Microservice.hasOne(models.StraceDiagnostics, {
-      foreignKey: 'microservice_uuid',
-      as: 'strace'
     })
 
     Microservice.hasOne(models.MicroserviceStatus, {

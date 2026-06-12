@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Datasance Teknoloji A.S.
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 const { createOperator, createAccount, createUser, fromSeed, encodeOperator, encodeAccount, encodeUser, fmtCreds } = require('@nats-io/jwt')
 const AppHelper = require('../helpers/app-helper')
 const Errors = require('../helpers/errors')
@@ -332,8 +319,8 @@ async function rotateOperator (transaction) {
     const accountRule = account.isSystem
       ? await NatsAccountRuleManager.findOne({ name: NatsSystemRules.SYSTEM_ACCOUNT_RULE_NAME }, transaction)
       : (app && app.natsRuleId
-        ? await NatsAccountRuleManager.findOne({ id: app.natsRuleId }, transaction)
-        : await NatsAccountRuleManager.findOne({ name: NatsSystemRules.APPLICATION_ACCOUNT_RULE_NAME }, transaction))
+          ? await NatsAccountRuleManager.findOne({ id: app.natsRuleId }, transaction)
+          : await NatsAccountRuleManager.findOne({ name: NatsSystemRules.APPLICATION_ACCOUNT_RULE_NAME }, transaction))
     const newAccountJwt = await _encodeAccountJwtWithRuleAndRevocations(
       account.name,
       accountKp,
@@ -529,7 +516,7 @@ async function ensureAccountForApplication (applicationId, transaction) {
 
   const application = await ApplicationManager.findOne({ id: applicationId }, transaction)
   if (!application) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_ID, applicationId))
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_APPLICATION_ID, applicationId))
   }
 
   const operator = await ensureOperator(transaction)
@@ -551,7 +538,7 @@ async function ensureAccountForApplication (applicationId, transaction) {
     name: application.name,
     publicKey: accountKp.getPublicKey(),
     jwt: accountJwt,
-    seedSecretName: seedSecretName,
+    seedSecretName,
     operatorId: operator.id,
     applicationId: application.id,
     isSystem: false,
@@ -600,7 +587,7 @@ async function ensureUserForMicroservice (microservice, transaction) {
     name: userName,
     publicKey: userKp.getPublicKey(),
     jwt: userJwt,
-    credsSecretName: credsSecretName,
+    credsSecretName,
     isBearer: false,
     accountId: account.id,
     microserviceUuid: microservice.uuid,
@@ -686,7 +673,7 @@ async function createMqttBearerUser (applicationId, userName, expiresIn, natsRul
     name: userName,
     publicKey: userKp.getPublicKey(),
     jwt: userJwt,
-    credsSecretName: credsSecretName,
+    credsSecretName,
     isBearer: true,
     accountId: account.id,
     microserviceUuid: null,
@@ -713,7 +700,7 @@ async function createUserForAccount (accountId, userName, expiresIn, natsRuleNam
   await ensureDefaultRules(transaction)
   const account = await NatsAccountManager.findOne({ id: accountId }, transaction)
   if (!account) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_ID, accountId))
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_APPLICATION_ID, accountId))
   }
   const existingUser = await NatsUserManager.findOne({ accountId: account.id, name: userName }, transaction)
   if (existingUser) {
@@ -745,10 +732,10 @@ async function createUserForAccount (accountId, userName, expiresIn, natsRuleNam
     name: userName,
     publicKey: userKp.getPublicKey(),
     jwt: userJwt,
-    credsSecretName: credsSecretName,
+    credsSecretName,
     isBearer: false,
     accountId: account.id,
-    microserviceUuid: microserviceUuid,
+    microserviceUuid,
     natsUserRuleId: userRule ? userRule.id : null
   }, transaction)
 
@@ -822,7 +809,7 @@ async function reissueUserForMicroservice (microserviceUuid, transaction, ...res
       name: microservice.name,
       publicKey: userKp.getPublicKey(),
       jwt: userJwt,
-      credsSecretName: credsSecretName,
+      credsSecretName,
       isBearer: false,
       accountId: account.id,
       microserviceUuid: microservice.uuid,
@@ -855,7 +842,7 @@ async function reissueUserForMicroservice (microserviceUuid, transaction, ...res
       name: microservice.name,
       publicKey: userKp.getPublicKey(),
       jwt: userJwt,
-      credsSecretName: credsSecretName,
+      credsSecretName,
       accountId: account.id,
       natsUserRuleId: currentRuleId
     }, transaction)
@@ -879,7 +866,7 @@ async function reissueUserForMicroservice (microserviceUuid, transaction, ...res
 
 async function ensureLeafUserForAccount (accountId, fogName, transaction, natsInstanceMicroserviceUuid = null) {
   const leafUserName = `leaf-${fogName}`
-  const existing = await NatsUserManager.findOne({ accountId: accountId, name: leafUserName }, transaction)
+  const existing = await NatsUserManager.findOne({ accountId, name: leafUserName }, transaction)
   if (existing) {
     if (natsInstanceMicroserviceUuid != null && existing.microserviceUuid !== natsInstanceMicroserviceUuid) {
       await NatsUserManager.update({ id: existing.id }, { microserviceUuid: natsInstanceMicroserviceUuid }, transaction)
@@ -942,8 +929,8 @@ async function _addRevocationToAccount (account, publicKey, transaction) {
   const accountRule = account.isSystem
     ? await NatsAccountRuleManager.findOne({ name: NatsSystemRules.SYSTEM_ACCOUNT_RULE_NAME }, transaction)
     : (app && app.natsRuleId
-      ? await NatsAccountRuleManager.findOne({ id: app.natsRuleId }, transaction)
-      : await NatsAccountRuleManager.findOne({ name: NatsSystemRules.APPLICATION_ACCOUNT_RULE_NAME }, transaction))
+        ? await NatsAccountRuleManager.findOne({ id: app.natsRuleId }, transaction)
+        : await NatsAccountRuleManager.findOne({ name: NatsSystemRules.APPLICATION_ACCOUNT_RULE_NAME }, transaction))
   const revocations = _extractAccountRevocations(account.jwt)
   revocations[publicKey] = Math.floor(Date.now() / 1000)
   const accountJwt = await encodeAccount(
@@ -965,8 +952,8 @@ async function _reissueOneUserForRule (user, userRuleId, operatorKp, transaction
   const accountRule = account.isSystem
     ? await NatsAccountRuleManager.findOne({ name: NatsSystemRules.SYSTEM_ACCOUNT_RULE_NAME }, transaction)
     : (app && app.natsRuleId
-      ? await NatsAccountRuleManager.findOne({ id: app.natsRuleId }, transaction)
-      : await NatsAccountRuleManager.findOne({ name: NatsSystemRules.APPLICATION_ACCOUNT_RULE_NAME }, transaction))
+        ? await NatsAccountRuleManager.findOne({ id: app.natsRuleId }, transaction)
+        : await NatsAccountRuleManager.findOne({ name: NatsSystemRules.APPLICATION_ACCOUNT_RULE_NAME }, transaction))
   const revocations = _extractAccountRevocations(account.jwt)
   revocations[user.publicKey] = Math.floor(Date.now() / 1000)
   const accountJwt = await encodeAccount(
@@ -1034,8 +1021,8 @@ async function revokeMicroserviceUser (microserviceUuid, transaction) {
   const accountRule = account.isSystem
     ? await NatsAccountRuleManager.findOne({ name: NatsSystemRules.SYSTEM_ACCOUNT_RULE_NAME }, transaction)
     : (app && app.natsRuleId
-      ? await NatsAccountRuleManager.findOne({ id: app.natsRuleId }, transaction)
-      : await NatsAccountRuleManager.findOne({ name: NatsSystemRules.APPLICATION_ACCOUNT_RULE_NAME }, transaction))
+        ? await NatsAccountRuleManager.findOne({ id: app.natsRuleId }, transaction)
+        : await NatsAccountRuleManager.findOne({ name: NatsSystemRules.APPLICATION_ACCOUNT_RULE_NAME }, transaction))
   const revocations = _extractAccountRevocations(account.jwt)
   revocations[user.publicKey] = Math.floor(Date.now() / 1000)
   const accountJwt = await encodeAccount(
@@ -1120,8 +1107,8 @@ async function revokeUserByAccountAndName (accountId, userName, transaction) {
   const accountRule = account.isSystem
     ? await NatsAccountRuleManager.findOne({ name: NatsSystemRules.SYSTEM_ACCOUNT_RULE_NAME }, transaction)
     : (app && app.natsRuleId
-      ? await NatsAccountRuleManager.findOne({ id: app.natsRuleId }, transaction)
-      : await NatsAccountRuleManager.findOne({ name: NatsSystemRules.APPLICATION_ACCOUNT_RULE_NAME }, transaction))
+        ? await NatsAccountRuleManager.findOne({ id: app.natsRuleId }, transaction)
+        : await NatsAccountRuleManager.findOne({ name: NatsSystemRules.APPLICATION_ACCOUNT_RULE_NAME }, transaction))
   const revocations = _extractAccountRevocations(account.jwt)
   revocations[user.publicKey] = Math.floor(Date.now() / 1000)
   const accountJwt = await encodeAccount(

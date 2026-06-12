@@ -1,16 +1,3 @@
-/*
- * *******************************************************************************
- *  * Copyright (c) 2023 Datasance Teknoloji A.S.
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 const Sequelize = require('sequelize')
 const Op = Sequelize.Op
 
@@ -151,7 +138,7 @@ const patchApplicationEndPoint = async function (applicationData, conditions, is
   const oldApplication = await ApplicationManager.findOne({ ...conditions }, transaction)
 
   if (!oldApplication) {
-    throw new Errors.NotFoundError(ErrorMessages.INVALID_FLOW_ID)
+    throw new Errors.NotFoundError(ErrorMessages.INVALID_APPLICATION_ID)
   }
   if (applicationData.name && applicationData.name !== oldApplication.name) {
     throw new Errors.ValidationError('Application Resource Name is immutable')
@@ -217,7 +204,7 @@ const updateApplicationEndPoint = async function (applicationData, name, isCLI, 
   const oldApplication = await ApplicationManager.findOne({ name }, transaction)
 
   if (!oldApplication) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_ID, name))
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_APPLICATION_ID, name))
   }
   if (applicationData.name && applicationData.name !== oldApplication.name) {
     throw new Errors.ValidationError('Application Resource Name is immutable')
@@ -290,7 +277,7 @@ const _updateMicroservices = async function (application, microservices, isCLI, 
   // Update microservices
   const oldMicroservices = await ApplicationManager.findApplicationMicroservices({ name: application }, transaction)
   if (!oldMicroservices) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_ID, application))
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_APPLICATION_ID, application))
   }
   const iofogUuids = []
   const oldMsvcsIofogUuids = []
@@ -395,7 +382,7 @@ async function getApplication (conditions, isCLI, transaction) {
 
   const applicationRaw = await ApplicationManager.findOnePopulated(where, attributes, transaction)
   if (!applicationRaw) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_ID, conditions.name || conditions.id))
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_APPLICATION_ID, conditions.name || conditions.id))
   }
   const application = await _buildApplicationObject(applicationRaw, transaction)
   return application
@@ -409,7 +396,7 @@ async function getSystemApplication (conditions, isCLI, transaction) {
 
   const applicationRaw = await ApplicationManager.findOnePopulated(where, attributes, transaction)
   if (!applicationRaw) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_ID, conditions.name || conditions.id))
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_APPLICATION_ID, conditions.name || conditions.id))
   }
   const application = await _buildApplicationObject(applicationRaw, transaction)
   return application
@@ -423,8 +410,8 @@ const getApplicationEndPoint = async function (conditions, isCLI, transaction) {
 const _checkForDuplicateName = async function (name, applicationId, transaction) {
   if (name) {
     const where = applicationId
-      ? { name: name, id: { [Op.ne]: applicationId } }
-      : { name: name }
+      ? { name, id: { [Op.ne]: applicationId } }
+      : { name }
 
     const result = await ApplicationManager.findOne(where, transaction)
     if (result) {
@@ -440,7 +427,7 @@ const getSystemApplicationEndPoint = async function (conditions, isCLI, transact
 async function _updateChangeTrackingsAndDeleteMicroservicesByApplicationId (conditions, deleteMicroservices, transaction) {
   const microservices = await ApplicationManager.findApplicationMicroservices(conditions, transaction)
   if (!microservices) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_FLOW_NAME, conditions.name || conditions.id))
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_APPLICATION_NAME, conditions.name || conditions.id))
   }
   const iofogUuids = []
   for (const ms of microservices) {
@@ -470,6 +457,6 @@ module.exports = {
   getAllApplicationsEndPoint: TransactionDecorator.generateTransaction(getAllApplicationsEndPoint),
   getApplicationEndPoint: TransactionDecorator.generateTransaction(getApplicationEndPoint),
   getSystemApplicationEndPoint: TransactionDecorator.generateTransaction(getSystemApplicationEndPoint),
-  getApplication: getApplication,
-  getSystemApplication: getSystemApplication
+  getApplication,
+  getSystemApplication
 }

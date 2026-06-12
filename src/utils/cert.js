@@ -1,6 +1,7 @@
 const forge = require('node-forge')
 const k8sClient = require('./k8s-client')
 const BigNumber = require('bignumber.js')
+const logger = require('../logger')
 
 // Types for CA input
 const CA_TYPES = {
@@ -90,7 +91,7 @@ async function storeCA (ca, name) {
     }
 
     const secret = {
-      name: name,
+      name,
       type: 'tls',
       data: secretData
     }
@@ -272,7 +273,7 @@ async function getCAFromK8sSecret (secretName) {
         // Create CA record
         await CertificateManager.createCertificateRecord({
           name: secretName,
-          subject: subject,
+          subject,
           isCA: true,
           validFrom: forgeCert.validity.notBefore,
           validTo: forgeCert.validity.notAfter,
@@ -347,167 +348,186 @@ async function generateCertificate ({
   isRenewal = false
 }) {
   try {
-    const caCert = await getCAFromInput(ca)
-
-    // Generate RSA key pair
-    const keys = forge.pki.rsa.generateKeyPair(2048)
-
-    // Create a certificate
-    const cert = forge.pki.createCertificate()
-
-    // Set certificate fields
-    cert.publicKey = keys.publicKey
-    cert.serialNumber = generateSerialNumber()
-
-    // Set validity period
-    const now = new Date()
-    cert.validity.notBefore = now
-    cert.validity.notAfter = new Date(now.getTime() + expiration)
-
-    // Parse the subject string (format: /CN=Subject Name)
-    const subjectAttrs = []
-
-    // Extract CN from subject string
-    let commonName = subject
-    if (subject.startsWith('/CN=')) {
-      commonName = subject.substring(4)
-    }
-
-    subjectAttrs.push({ name: 'commonName', value: commonName })
-    cert.setSubject(subjectAttrs)
-
-    // Process hosts for Subject Alternative Names
-    const hostsList = hosts ? hosts.split(',').map(h => h.trim()) : []
-    const altNames = []
-
-    for (const host of hostsList) {
-      if (host.match(/^(\d{1,3}\.){3}\d{1,3}$/)) {
-        // IP address
-        altNames.push({ type: 7, ip: host })
-        altNames.push({ type: 2, value: host })
-      } else {
-        // DNS name
-        altNames.push({ type: 2, value: host })
-      }
-    }
-
-    // Set up the certificate based on whether we have a CA or not
-    if (caCert) {
-      // If we have a CA, use it to sign the certificate
-      const caForgeCert = forge.pki.certificateFromPem(caCert.certPem || caCert.crtData)
-      const caForgeKey = forge.pki.privateKeyFromPem(caCert.key)
-
-      // Set the issuer from the CA
-      cert.setIssuer(caForgeCert.subject.attributes)
-
-      // Add extensions for a server certificate
-      cert.setExtensions([
-        {
-          name: 'basicConstraints',
-          cA: false,
-          critical: true
-        },
-        {
-          name: 'keyUsage',
-          digitalSignature: true,
-          keyEncipherment: true,
-          critical: true
-        },
-        {
-          name: 'extKeyUsage',
-          serverAuth: true,
-          clientAuth: true
-        },
-        {
-          name: 'subjectAltName',
-          altNames: altNames
-        },
-        {
-          name: 'authorityKeyIdentifier',
-          authorityCertIssuer: true,
-          serialNumber: caForgeCert.serialNumber
-        }
-      ])
-
-      // Sign the certificate with the CA's private key
-      cert.sign(caForgeKey, forge.md.sha256.create())
-    } else {
-      // Self-signed certificate
-      cert.setIssuer(subjectAttrs)
-
-      // Add extensions for a self-signed server certificate
-      cert.setExtensions([
-        {
-          name: 'basicConstraints',
-          cA: false,
-          critical: true
-        },
-        {
-          name: 'keyUsage',
-          digitalSignature: true,
-          keyEncipherment: true,
-          critical: true
-        },
-        {
-          name: 'extKeyUsage',
-          serverAuth: true,
-          clientAuth: true
-        },
-        {
-          name: 'subjectAltName',
-          altNames: altNames
-        },
-        {
-          name: 'subjectKeyIdentifier'
-        }
-      ])
-
-      // Self-sign the certificate
-      cert.sign(keys.privateKey, forge.md.sha256.create())
-    }
-
-    // Convert to PEM
-    const certPem = forge.pki.certificateToPem(cert)
-    const keyPem = forge.pki.privateKeyToPem(keys.privateKey)
-
-    // Store the certificate as a TLS secret
-    const secretData = {
-      'tls.crt': Buffer.from(certPem).toString('base64'),
-      'tls.key': Buffer.from(keyPem).toString('base64'),
-      'ca.crt': Buffer.from(caCert ? caCert.certPem || caCert.crtData : certPem).toString('base64')
-    }
-
-    const secret = {
-      name: name,
-      type: 'tls',
-      data: secretData
-    }
-
-    // Use the secret service to store the certificate
-    const SecretService = require('../services/secret-service')
-
-    if (isRenewal) {
-      // For renewals, delete the existing secret first
-      try {
-        await SecretService.deleteSecretEndpoint(name)
-      } catch (error) {
-        // If the secret doesn't exist, that's okay, just continue
-        if (error.name !== 'NotFoundError') {
-          throw error
-        }
-      }
-    }
-
-    // Create new secret with certificate data
-    await SecretService.createSecretEndpoint(secret)
-
-    return {
-      cert: certPem,
-      key: keyPem,
-      ca: caCert ? caCert.crtData : certPem
-    }
+    return await _generateCertificateBody({
+      name,
+      subject,
+      hosts,
+      expiration,
+      ca,
+      isRenewal
+    })
   } catch (error) {
+    logger.error(`Certificate generation failed for ${name}:`, error.message)
     throw error
+  }
+}
+
+async function _generateCertificateBody ({
+  name,
+  subject,
+  hosts,
+  expiration,
+  ca,
+  isRenewal
+}) {
+  const caCert = await getCAFromInput(ca)
+
+  // Generate RSA key pair
+  const keys = forge.pki.rsa.generateKeyPair(2048)
+
+  // Create a certificate
+  const cert = forge.pki.createCertificate()
+
+  // Set certificate fields
+  cert.publicKey = keys.publicKey
+  cert.serialNumber = generateSerialNumber()
+
+  // Set validity period
+  const now = new Date()
+  cert.validity.notBefore = now
+  cert.validity.notAfter = new Date(now.getTime() + expiration)
+
+  // Parse the subject string (format: /CN=Subject Name)
+  const subjectAttrs = []
+
+  // Extract CN from subject string
+  let commonName = subject
+  if (subject.startsWith('/CN=')) {
+    commonName = subject.substring(4)
+  }
+
+  subjectAttrs.push({ name: 'commonName', value: commonName })
+  cert.setSubject(subjectAttrs)
+
+  // Process hosts for Subject Alternative Names
+  const hostsList = hosts ? hosts.split(',').map(h => h.trim()) : []
+  const altNames = []
+
+  for (const host of hostsList) {
+    if (host.match(/^(\d{1,3}\.){3}\d{1,3}$/)) {
+      // IP address
+      altNames.push({ type: 7, ip: host })
+      altNames.push({ type: 2, value: host })
+    } else {
+      // DNS name
+      altNames.push({ type: 2, value: host })
+    }
+  }
+
+  // Set up the certificate based on whether we have a CA or not
+  if (caCert) {
+    // If we have a CA, use it to sign the certificate
+    const caForgeCert = forge.pki.certificateFromPem(caCert.certPem || caCert.crtData)
+    const caForgeKey = forge.pki.privateKeyFromPem(caCert.key)
+
+    // Set the issuer from the CA
+    cert.setIssuer(caForgeCert.subject.attributes)
+
+    // Add extensions for a server certificate
+    cert.setExtensions([
+      {
+        name: 'basicConstraints',
+        cA: false,
+        critical: true
+      },
+      {
+        name: 'keyUsage',
+        digitalSignature: true,
+        keyEncipherment: true,
+        critical: true
+      },
+      {
+        name: 'extKeyUsage',
+        serverAuth: true,
+        clientAuth: true
+      },
+      {
+        name: 'subjectAltName',
+        altNames
+      },
+      {
+        name: 'authorityKeyIdentifier',
+        authorityCertIssuer: true,
+        serialNumber: caForgeCert.serialNumber
+      }
+    ])
+
+    // Sign the certificate with the CA's private key
+    cert.sign(caForgeKey, forge.md.sha256.create())
+  } else {
+    // Self-signed certificate
+    cert.setIssuer(subjectAttrs)
+
+    // Add extensions for a self-signed server certificate
+    cert.setExtensions([
+      {
+        name: 'basicConstraints',
+        cA: false,
+        critical: true
+      },
+      {
+        name: 'keyUsage',
+        digitalSignature: true,
+        keyEncipherment: true,
+        critical: true
+      },
+      {
+        name: 'extKeyUsage',
+        serverAuth: true,
+        clientAuth: true
+      },
+      {
+        name: 'subjectAltName',
+        altNames
+      },
+      {
+        name: 'subjectKeyIdentifier'
+      }
+    ])
+
+    // Self-sign the certificate
+    cert.sign(keys.privateKey, forge.md.sha256.create())
+  }
+
+  // Convert to PEM
+  const certPem = forge.pki.certificateToPem(cert)
+  const keyPem = forge.pki.privateKeyToPem(keys.privateKey)
+
+  // Store the certificate as a TLS secret
+  const secretData = {
+    'tls.crt': Buffer.from(certPem).toString('base64'),
+    'tls.key': Buffer.from(keyPem).toString('base64'),
+    'ca.crt': Buffer.from(caCert ? caCert.certPem || caCert.crtData : certPem).toString('base64')
+  }
+
+  const secret = {
+    name,
+    type: 'tls',
+    data: secretData
+  }
+
+  // Use the secret service to store the certificate
+  const SecretService = require('../services/secret-service')
+
+  if (isRenewal) {
+    // For renewals, delete the existing secret first
+    try {
+      await SecretService.deleteSecretEndpoint(name)
+    } catch (error) {
+      // If the secret doesn't exist, that's okay, just continue
+      if (error.name !== 'NotFoundError') {
+        throw error
+      }
+    }
+  }
+
+  // Create new secret with certificate data
+  await SecretService.createSecretEndpoint(secret)
+
+  return {
+    cert: certPem,
+    key: keyPem,
+    ca: caCert ? caCert.crtData : certPem
   }
 }
 

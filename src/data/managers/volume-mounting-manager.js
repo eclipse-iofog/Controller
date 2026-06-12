@@ -1,16 +1,3 @@
-/*
- * *******************************************************************************
- *  * Copyright (c) 2023 Datasance Teknoloji A.S.
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 const BaseManager = require('./base-manager')
 const models = require('../models')
 const VolumeMount = models.VolumeMount
@@ -31,30 +18,30 @@ class VolumeMountingManager extends BaseManager {
 
   getAll (where, transaction) {
     return VolumeMount.findAll({
-      where: where,
+      where,
       attributes: ['uuid', 'name', 'configMapName', 'secretName']
-    }, { transaction: transaction })
+    }, { transaction })
   }
 
   getOne (where, transaction) {
     return VolumeMount.findOne({
-      where: where,
+      where,
       attributes: ['uuid', 'name', 'configMapName', 'secretName', 'version']
-    }, { transaction: transaction })
+    }, { transaction })
   }
 
   findOne (where, transaction) {
     return VolumeMount.findOne({
-      where: where,
+      where,
       attributes: ['uuid', 'name', 'configMapName', 'secretName', 'version']
-    }, { transaction: transaction })
+    }, { transaction })
   }
 
   findAll (where, transaction) {
     return VolumeMount.findAll({
-      where: where,
+      where,
       attributes: ['uuid', 'name', 'configMapName', 'secretName', 'version']
-    }, { transaction: transaction })
+    }, { transaction })
   }
 }
 

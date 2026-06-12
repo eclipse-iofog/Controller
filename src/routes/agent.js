@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Datasance Teknoloji A.S.
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 const constants = require('../helpers/constants')
 const AgentController = require('../controllers/agent-controller')
 const ResponseDecorator = require('../decorators/response-decorator')
@@ -49,7 +36,7 @@ module.exports = [
         .status(responseObject.code)
         .send(responseObject.body)
 
-      logger.apiRes({ req: req, res: res, responseObject: responseObject })
+      logger.apiRes({ req, res, responseObject })
     }
   },
   {
@@ -78,7 +65,7 @@ module.exports = [
         .status(responseObject.code)
         .send(responseObject.body)
 
-      logger.apiRes({ req: req, res: res, responseObject: responseObject })
+      logger.apiRes({ req, res, responseObject })
     }
   },
   {
@@ -102,7 +89,7 @@ module.exports = [
         .status(responseObject.code)
         .send(responseObject.body)
 
-      logger.apiRes({ req: req, res: res, responseObject: responseObject })
+      logger.apiRes({ req, res, responseObject })
     }
   },
   {
@@ -131,7 +118,7 @@ module.exports = [
         .status(responseObject.code)
         .send(responseObject.body)
 
-      logger.apiRes({ req: req, res: res, responseObject: responseObject })
+      logger.apiRes({ req, res, responseObject })
     }
   },
   {
@@ -160,7 +147,7 @@ module.exports = [
         .status(responseObject.code)
         .send(responseObject.body)
 
-      logger.apiRes({ req: req, res: res, responseObject: responseObject })
+      logger.apiRes({ req, res, responseObject })
     }
   },
   {
@@ -189,7 +176,7 @@ module.exports = [
         .status(responseObject.code)
         .send(responseObject.body)
 
-      logger.apiRes({ req: req, res: res, responseObject: responseObject })
+      logger.apiRes({ req, res, responseObject })
     }
   },
   {
@@ -218,7 +205,7 @@ module.exports = [
         .status(responseObject.code)
         .send(responseObject.body)
 
-      logger.apiRes({ req: req, res: res, responseObject: responseObject })
+      logger.apiRes({ req, res, responseObject })
     }
   },
   {
@@ -247,32 +234,7 @@ module.exports = [
         .status(responseObject.code)
         .send(responseObject.body)
 
-      logger.apiRes({ req: req, res: res, responseObject: responseObject })
-    }
-  },
-  {
-    method: 'get',
-    path: '/api/v3/agent/edgeResources',
-    middleware: async (req, res) => {
-      logger.apiReq(req)
-
-      const successCode = constants.HTTP_CODE_SUCCESS
-      const errorCodes = [
-        {
-          code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError]
-        }
-      ]
-
-      const getAgentLinkedEdgeResourcesEndpoint = ResponseDecorator.handleErrors(AgentController.getAgentLinkedEdgeResourcesEndpoint,
-        successCode, errorCodes)
-      const responseObject = await getAgentLinkedEdgeResourcesEndpoint(req)
-
-      res
-        .status(responseObject.code)
-        .send(responseObject.body)
-
-      logger.apiRes({ req: req, res: res, responseObject: responseObject })
+      logger.apiRes({ req, res, responseObject })
     }
   },
   {
@@ -297,7 +259,7 @@ module.exports = [
         .status(responseObject.code)
         .send(responseObject.body)
 
-      logger.apiRes({ req: req, res: res, responseObject: responseObject })
+      logger.apiRes({ req, res, responseObject })
     }
   },
   {
@@ -322,7 +284,7 @@ module.exports = [
         .status(responseObject.code)
         .send(responseObject.body)
 
-      logger.apiRes({ req: req, res: res, responseObject: responseObject })
+      logger.apiRes({ req, res, responseObject })
     }
   },
   {
@@ -351,7 +313,43 @@ module.exports = [
         .status(responseObject.code)
         .send(responseObject.body)
 
-      logger.apiRes({ req: req, res: res, responseObject: responseObject })
+      logger.apiRes({ req, res, responseObject })
+    }
+  },
+  {
+    method: 'post',
+    path: '/api/v3/agent/controller/register',
+    middleware: async (req, res) => {
+      logger.apiReq(req)
+
+      const successCode = constants.HTTP_CODE_SUCCESS
+      const errorCodes = [
+        {
+          code: constants.HTTP_CODE_UNAUTHORIZED,
+          errors: [Errors.AuthenticationError]
+        },
+        {
+          code: constants.HTTP_CODE_FORBIDDEN,
+          errors: [Errors.ForbiddenError]
+        },
+        {
+          code: constants.HTTP_CODE_BAD_REQUEST,
+          errors: [Errors.ValidationError]
+        }
+      ]
+
+      const registerControllerMicroserviceEndPoint = ResponseDecorator.handleErrors(
+        AgentController.registerControllerMicroserviceEndPoint,
+        successCode,
+        errorCodes
+      )
+      const responseObject = await registerControllerMicroserviceEndPoint(req)
+
+      res
+        .status(responseObject.code)
+        .send(responseObject.body)
+
+      logger.apiRes({ req, res, responseObject })
     }
   },
   {
@@ -376,7 +374,7 @@ module.exports = [
         .status(responseObject.code)
         .send(responseObject.body)
 
-      logger.apiRes({ req: req, res: res, responseObject: responseObject })
+      logger.apiRes({ req, res, responseObject })
     }
   },
   {
@@ -405,69 +403,7 @@ module.exports = [
         .status(responseObject.code)
         .send(responseObject.body)
 
-      logger.apiRes({ req: req, res: res, responseObject: responseObject })
-    }
-  },
-  {
-    method: 'get',
-    path: '/api/v3/agent/strace',
-    middleware: async (req, res) => {
-      logger.apiReq(req)
-
-      const successCode = constants.HTTP_CODE_SUCCESS
-      const errorCodes = [
-        {
-          code: constants.HTTP_CODE_NOT_FOUND,
-          errors: [Errors.NotFoundError]
-        },
-        {
-          code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError]
-        }
-      ]
-
-      const getAgentStraceEndPoint = ResponseDecorator.handleErrors(AgentController.getAgentStraceEndPoint,
-        successCode, errorCodes)
-      const responseObject = await getAgentStraceEndPoint(req)
-
-      res
-        .status(responseObject.code)
-        .send(responseObject.body)
-
-      logger.apiRes({ req: req, res: res, responseObject: responseObject })
-    }
-  },
-  {
-    method: 'put',
-    path: '/api/v3/agent/strace',
-    middleware: async (req, res) => {
-      logger.apiReq(req)
-
-      const successCode = constants.HTTP_CODE_NO_CONTENT
-      const errorCodes = [
-        {
-          code: constants.HTTP_CODE_NOT_FOUND,
-          errors: [Errors.NotFoundError]
-        },
-        {
-          code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError]
-        },
-        {
-          code: constants.HTTP_CODE_BAD_REQUEST,
-          errors: [Errors.ValidationError]
-        }
-      ]
-
-      const updateAgentStraceEndPoint = ResponseDecorator.handleErrors(AgentController.updateAgentStraceEndPoint,
-        successCode, errorCodes)
-      const responseObject = await updateAgentStraceEndPoint(req)
-
-      res
-        .status(responseObject.code)
-        .send(responseObject.body)
-
-      logger.apiRes({ req: req, res: res, responseObject: responseObject })
+      logger.apiRes({ req, res, responseObject })
     }
   },
   {
@@ -496,7 +432,7 @@ module.exports = [
         .status(responseObject.code)
         .send(responseObject.body)
 
-      logger.apiRes({ req: req, res: res, responseObject: responseObject })
+      logger.apiRes({ req, res, responseObject })
     }
   },
   {
@@ -525,7 +461,7 @@ module.exports = [
         .status(responseObject.code)
         .send(responseObject.body)
 
-      logger.apiRes({ req: req, res: res, responseObject: responseObject })
+      logger.apiRes({ req, res, responseObject })
     }
   },
   {
@@ -554,7 +490,7 @@ module.exports = [
         .status(responseObject.code)
         .send(responseObject.body)
 
-      logger.apiRes({ req: req, res: res, responseObject: responseObject })
+      logger.apiRes({ req, res, responseObject })
     }
   },
   {
@@ -579,65 +515,7 @@ module.exports = [
         .status(responseObject.code)
         .send(responseObject.body)
 
-      logger.apiRes({ req: req, res: res, responseObject: responseObject })
-    }
-  },
-  {
-    method: 'get',
-    path: '/api/v3/agent/image-snapshot',
-    middleware: async (req, res) => {
-      logger.apiReq(req)
-
-      const successCode = constants.HTTP_CODE_SUCCESS
-      const errorCodes = [
-        {
-          code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError]
-        },
-        {
-          code: constants.HTTP_CODE_NOT_FOUND,
-          errors: [Errors.NotFoundError]
-        }
-      ]
-
-      const getImageSnapshotEndPoint = ResponseDecorator.handleErrors(AgentController.getImageSnapshotEndPoint,
-        successCode, errorCodes)
-      const responseObject = await getImageSnapshotEndPoint(req)
-
-      res
-        .status(responseObject.code)
-        .send(responseObject.body)
-
-      logger.apiRes({ req: req, res: res, responseObject: responseObject })
-    }
-  },
-  {
-    method: 'put',
-    path: '/api/v3/agent/image-snapshot',
-    middleware: async (req, res) => {
-      logger.apiReq(req)
-
-      const successCode = constants.HTTP_CODE_SUCCESS
-      const errorCodes = [
-        {
-          code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError]
-        },
-        {
-          code: constants.HTTP_CODE_BAD_REQUEST,
-          errors: [Errors.ValidationError]
-        }
-      ]
-
-      const putImageSnapshotEndPoint = ResponseDecorator.handleErrors(AgentController.putImageSnapshotEndPoint,
-        successCode, errorCodes)
-      const responseObject = await putImageSnapshotEndPoint(req)
-
-      res
-        .status(responseObject.code)
-        .send(responseObject.body)
-
-      logger.apiRes({ req: req, res: res, responseObject: responseObject })
+      logger.apiRes({ req, res, responseObject })
     }
   },
   {
@@ -666,7 +544,7 @@ module.exports = [
         .status(responseObject.code)
         .send(responseObject.body)
 
-      logger.apiRes({ req: req, res: res, responseObject: responseObject })
+      logger.apiRes({ req, res, responseObject })
     }
   },
   {
@@ -690,7 +568,7 @@ module.exports = [
         .status(responseObject.code)
         .send(responseObject.body)
 
-      logger.apiRes({ req: req, res: res, responseObject: responseObject })
+      logger.apiRes({ req, res, responseObject })
     }
   },
   {

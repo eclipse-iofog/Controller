@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2023 Datasance Teknoloji A.S.
+ *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -13,7 +13,8 @@
 
 const os = require('os')
 const fs = require('fs')
-const ROOT_DIR = `${__dirname}/..`
+const path = require('path')
+const ROOT_DIR = path.join(__dirname, '..')
 const TEMP_DIR = getTempDir()
 
 const DEV_DB = `${ROOT_DIR}/src/data/sqlite_files/dev_database.sqlite`
@@ -22,7 +23,7 @@ const DEV_DB_BACKUP = `${TEMP_DIR}/dev_database.sqlite`
 const PROD_DB = `${ROOT_DIR}/src/data/sqlite_files/prod_database.sqlite`
 const PROD_DB_BACKUP = `${TEMP_DIR}/prod_database.sqlite`
 
-let dbName = process.env.DB_NAME || 'pot-controller'
+let dbName = process.env.DB_NAME || 'iofog-controller'
 if (!dbName.endsWith('.sqlite')) {
   dbName += '.sqlite'
 }
@@ -104,14 +105,14 @@ function setDbEnvVars (env) {
 }
 
 module.exports = {
-  backupDBs: backupDBs,
-  restoreDBs: restoreDBs,
-  backupConfigs: backupConfigs,
-  restoreConfigs: restoreConfigs,
-  renameFile: renameFile,
-  getTempDir: getTempDir,
-  setDbEnvVars: setDbEnvVars,
+  backupDBs,
+  restoreDBs,
+  backupConfigs,
+  restoreConfigs,
+  renameFile,
+  getTempDir,
+  setDbEnvVars,
 
-  TEMP_DIR: TEMP_DIR,
-  INSTALLATION_VARIABLES_FILE: INSTALLATION_VARIABLES_FILE
+  TEMP_DIR,
+  INSTALLATION_VARIABLES_FILE
 }

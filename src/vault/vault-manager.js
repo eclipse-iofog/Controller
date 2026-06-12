@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Datasance Teknoloji A.S.
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 const HashiCorpVaultProvider = require('./hashicorp-vault-provider')
 const AWSSecretsManagerProvider = require('./aws-secrets-manager-provider')
 const AzureKeyVaultProvider = require('./azure-key-vault-provider')
@@ -30,7 +17,7 @@ class VaultManager {
    */
   _getBasePath () {
     // Get basePath from env var or config, with default
-    const basePath = process.env.VAULT_BASE_PATH || config.get('vault.basePath', 'pot/$namespace/secrets')
+    const basePath = process.env.VAULT_BASE_PATH || config.get('vault.basePath', 'iofog/$namespace/secrets')
     const namespace = process.env.CONTROLLER_NAMESPACE || config.get('app.namespace', 'datasance')
 
     // Replace $namespace variable

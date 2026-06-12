@@ -1,20 +1,5 @@
-/*
- * *******************************************************************************
- *  * Copyright (c) 2023 Datasance Teknoloji A.S.
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 const config = require('../config')
-const path = require('path')
 const fs = require('fs')
-const formidable = require('formidable')
 // const Sequelize = require('sequelize')
 const moment = require('moment')
 // const Op = Sequelize.Op
@@ -26,7 +11,6 @@ const FogManager = require('../data/managers/iofog-manager')
 const FogKeyService = require('../services/iofog-key-service')
 const ChangeTrackingService = require('./change-tracking-service')
 const FogVersionCommandManager = require('../data/managers/iofog-version-command-manager')
-const StraceManager = require('../data/managers/strace-manager')
 const RegistryManager = require('../data/managers/registry-manager')
 const MicroserviceStatusManager = require('../data/managers/microservice-status-manager')
 const MicroserviceExecStatusManager = require('../data/managers/microservice-exec-status-manager')
@@ -42,7 +26,6 @@ const TunnelManager = require('../data/managers/tunnel-manager')
 const MicroserviceManager = require('../data/managers/microservice-manager')
 const MicroserviceService = require('../services/microservices-service')
 const ApplicationManager = require('../data/managers/application-manager')
-const EdgeResourceService = require('./edge-resource-service')
 const constants = require('../helpers/constants')
 const SecretManager = require('../data/managers/secret-manager')
 const ConfigMapManager = require('../data/managers/config-map-manager')
@@ -50,9 +33,8 @@ const MicroserviceLogStatusManager = require('../data/managers/microservice-log-
 const FogLogStatusManager = require('../data/managers/fog-log-status-manager')
 const RbacRoleManager = require('../data/managers/rbac-role-manager')
 
-const IncomingForm = formidable.IncomingForm
 const CHANGE_TRACKING_DEFAULT = {}
-const CHANGE_TRACKING_KEYS = ['config', 'version', 'reboot', 'deleteNode', 'microserviceList', 'microserviceConfig', 'registries', 'tunnel', 'diagnostics', 'isImageSnapshot', 'prune', 'routerChanged', 'linkedEdgeResources', 'volumeMounts', 'execSessions', 'microserviceLogs', 'fogLogs']
+const CHANGE_TRACKING_KEYS = ['config', 'version', 'reboot', 'deleteNode', 'microserviceList', 'microserviceConfig', 'registries', 'tunnel', 'prune', 'routerChanged', 'volumeMounts', 'execSessions', 'microserviceLogs', 'fogLogs']
 for (const key of CHANGE_TRACKING_KEYS) {
   CHANGE_TRACKING_DEFAULT[key] = false
 }
@@ -60,7 +42,7 @@ for (const key of CHANGE_TRACKING_KEYS) {
 const agentProvision = async function (provisionData, transaction) {
   await Validator.validate(provisionData, Validator.schemas.agentProvision)
 
-  const namespace = process.env.CONTROLLER_NAMESPACE || config.get('app.namespace', 'datasance')
+  const namespace = process.env.CONTROLLER_NAMESPACE || config.get('app.namespace', 'iofog')
 
   const provision = await FogProvisionKeyManager.findOne({
     provisionKey: provisionData.key
@@ -91,11 +73,16 @@ const agentProvision = async function (provisionData, transaction) {
   // Store the public key
   await FogKeyService.storePublicKey(fog.uuid, keyPair.publicKey, transaction)
 
+  const provisionUpdate = {
+    archId: provisionData.type
+  }
+  if (provisionData.engine) {
+    provisionUpdate.containerEngine = provisionData.engine
+  }
+
   await FogManager.update({
     uuid: fog.uuid
-  }, {
-    fogTypeId: provisionData.type
-  }, transaction)
+  }, provisionUpdate, transaction)
 
   await FogProvisionKeyManager.delete({
     provisionKey: provisionData.key
@@ -108,7 +95,7 @@ const agentProvision = async function (provisionData, transaction) {
   return {
     uuid: fog.uuid,
     privateKey: keyPair.privateKey,
-    namespace: namespace
+    namespace
   }
 }
 
@@ -150,7 +137,7 @@ const getAgentConfig = async function (fog, transaction) {
   }, transaction)
   const resp = {
     networkInterface: fogData.networkInterface,
-    dockerUrl: fogData.dockerUrl,
+    containerEngineUrl: fogData.containerEngineUrl,
     diskLimit: fogData.diskLimit,
     diskDirectory: fogData.diskDirectory,
     memoryLimit: fogData.memoryLimit,
@@ -170,7 +157,7 @@ const getAgentConfig = async function (fog, transaction) {
     longitude: fogData.longitude,
     logLevel: fogData.logLevel,
     availableDiskThreshold: fogData.availableDiskThreshold,
-    dockerPruningFrequency: fogData.dockerPruningFrequency,
+    pruningFrequency: fogData.pruningFrequency,
     timeZone: fogData.timeZone
   }
   return resp
@@ -181,7 +168,7 @@ const updateAgentConfig = async function (updateData, fog, transaction) {
 
   let update = {
     networkInterface: updateData.networkInterface,
-    dockerUrl: updateData.dockerUrl,
+    containerEngineUrl: updateData.containerEngineUrl,
     diskLimit: updateData.diskLimit,
     diskDirectory: updateData.diskDirectory,
     memoryLimit: updateData.memoryLimit,
@@ -199,7 +186,7 @@ const updateAgentConfig = async function (updateData, fog, transaction) {
     gpsDevice: updateData.gpsDevice,
     gpsScanFrequency: updateData.gpsScanFrequency,
     edgeGuardFrequency: updateData.edgeGuardFrequency,
-    dockerPruningFrequency: updateData.dockerPruningFrequency,
+    pruningFrequency: updateData.pruningFrequency,
     availableDiskThreshold: updateData.availableDiskThreshold,
     logLevel: updateData.logLevel,
     timeZone: updateData.timeZone
@@ -268,9 +255,9 @@ const updateAgentStatus = async function (agentStatus, fog, transaction) {
     lastStatusTime: agentStatus.lastStatusTime,
     ipAddress: agentStatus.ipAddress,
     ipAddressExternal: agentStatus.ipAddressExternal,
-    processedMessages: agentStatus.processedMessages,
-    microserviceMessageCounts: agentStatus.microserviceMessageCounts,
-    messageSpeed: agentStatus.messageSpeed,
+    availableRuntimes: agentStatus.availableRuntimes != null
+      ? JSON.stringify(agentStatus.availableRuntimes)
+      : undefined,
     lastCommandTime: agentStatus.lastCommandTime,
     tunnelStatus: agentStatus.tunnelStatus,
     version: agentStatus.version,
@@ -374,12 +361,12 @@ async function _resolveServiceAccountRules (serviceAccount, transaction) {
 const getAgentMicroservices = async function (fog, transaction) {
   const microservices = await MicroserviceManager.findAllActiveApplicationMicroservices(fog.uuid, transaction)
 
-  const fogTypeId = fog.fogTypeId
+  const archId = fog.archId
 
   const response = []
   for (const microservice of microservices) {
     const images = (microservice.images && microservice.images.length > 0) ? microservice.images : microservice.catalogItem.images
-    const image = images.find((image) => image.fogTypeId === fogTypeId)
+    const image = images.find((image) => image.archId === archId)
     const imageId = image ? image.containerImage : ''
     if (!imageId || imageId === '') {
       continue
@@ -444,7 +431,7 @@ const getAgentMicroservices = async function (fog, transaction) {
       uuid: microservice.uuid,
       name: microservice.name,
       application,
-      imageId: imageId,
+      imageId,
       config: microservice.config,
       annotations: microservice.annotations,
       rebuild: microservice.rebuild,
@@ -452,7 +439,7 @@ const getAgentMicroservices = async function (fog, transaction) {
       isPrivileged: microservice.isPrivileged,
       cpuSetCpus: microservice.cpuSetCpus,
       memoryLimit: microservice.memoryLimit,
-      healthCheck: healthCheck,
+      healthCheck,
       pidMode: microservice.pidMode,
       ipcMode: microservice.ipcMode,
       runAsUser: microservice.runAsUser,
@@ -462,7 +449,6 @@ const getAgentMicroservices = async function (fog, transaction) {
       registryId,
       portMappings: microservice.ports,
       volumeMappings: microservice.volumeMappings,
-      imageSnapshot: microservice.imageSnapshot,
       delete: microservice.delete,
       deleteWithCleanup: microservice.deleteWithCleanup,
       env,
@@ -473,6 +459,7 @@ const getAgentMicroservices = async function (fog, transaction) {
       capDrop,
       isRouter,
       isNats,
+      isController: microservice.isController,
       execEnabled: microservice.execEnabled,
       schedule: microservice.schedule
     }
@@ -504,30 +491,6 @@ const getAgentMicroservices = async function (fog, transaction) {
   }
 }
 
-const getAgentLinkedEdgeResources = async function (fog, transaction) {
-  const edgeResources = []
-  const resourceAttributes = [
-    'id',
-    'interfaceId',
-    'name',
-    'version',
-    'description',
-    'interfaceProtocol',
-    'displayName',
-    'displayIcon',
-    'displayColor',
-    'custom'
-  ]
-  const resources = await fog.getEdgeResources({ attributes: resourceAttributes })
-  for (const resource of resources) {
-    const intrface = await EdgeResourceService.getInterface(resource, transaction)
-    // Transform Sequelize objects into plain JSON objects
-    const resourceObject = { ...resource.toJSON(), interface: intrface.toJSON() }
-    edgeResources.push(EdgeResourceService.buildGetObject(resourceObject))
-  }
-  return edgeResources
-}
-
 const getAgentMicroservice = async function (microserviceUuid, fog, transaction) {
   const microservice = await MicroserviceManager.findOneWithDependencies({
     uuid: microserviceUuid,
@@ -538,14 +501,14 @@ const getAgentMicroservice = async function (microserviceUuid, fog, transaction)
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, microserviceUuid))
   }
   return {
-    microservice: microservice
+    microservice
   }
 }
 
 const getAgentRegistries = async function (fog, transaction) {
   const registries = await RegistryManager.findAll({}, transaction)
   return {
-    registries: registries
+    registries
   }
 }
 
@@ -559,39 +522,7 @@ const getAgentTunnel = async function (fog, transaction) {
   }
 
   return {
-    tunnel: tunnel
-  }
-}
-
-const getAgentStrace = async function (fog, transaction) {
-  const fogWithStrace = await FogManager.findFogStraces({
-    uuid: fog.uuid
-  }, transaction)
-
-  if (!fogWithStrace) {
-    throw new Errors.NotFoundError(ErrorMessages.STRACE_NOT_FOUND)
-  }
-
-  const straceArr = []
-  for (const msData of fogWithStrace.microservice) {
-    straceArr.push({
-      microserviceUuid: msData.strace.microserviceUuid,
-      straceRun: msData.strace.straceRun
-    })
-  }
-
-  return {
-    straceValues: straceArr
-  }
-}
-
-const updateAgentStrace = async function (straceData, fog, transaction) {
-  await Validator.validate(straceData, Validator.schemas.updateAgentStrace)
-
-  for (const strace of straceData.straceData) {
-    const microserviceUuid = strace.microserviceUuid
-    const buffer = strace.buffer
-    await StraceManager.pushBufferByMicroserviceUuid(microserviceUuid, buffer, transaction)
+    tunnel
   }
 }
 
@@ -607,11 +538,17 @@ const getAgentChangeVersionCommand = async function (fog, transaction) {
     iofogUuid: fog.uuid
   }, transaction)
 
-  return {
+  const response = {
     versionCommand: versionCommand.versionCommand,
     provisionKey: provision.provisionKey,
     expirationTime: provision.expirationTime
   }
+
+  if (versionCommand.semver) {
+    response.semver = versionCommand.semver
+  }
+
+  return response
 }
 
 const updateHalHardwareInfo = async function (hardwareData, fog, transaction) {
@@ -640,69 +577,7 @@ const deleteNode = async function (fog, transaction) {
   }, transaction)
 }
 
-const getImageSnapshot = async function (fog, transaction) {
-  const microservice = await MicroserviceManager.findOne({
-    iofogUuid: fog.uuid,
-    imageSnapshot: 'get_image'
-  }, transaction)
-  if (!microservice) {
-    throw new Errors.NotFoundError(ErrorMessages.IMAGE_SNAPSHOT_NOT_FOUND)
-  }
-
-  return {
-    uuid: microservice.uuid
-  }
-}
-
-const putImageSnapshot = async function (req, fog, transaction) {
-  const opts = {
-    maxFieldsSize: 500 * 1024 * 1024,
-    maxFileSize: 500 * 1024 * 1024
-  }
-  if (!req.headers['content-type'].includes('multipart/form-data')) {
-    throw new Errors.ValidationError(ErrorMessages.INVALID_CONTENT_TYPE)
-  }
-
-  const form = new IncomingForm(opts)
-  form.uploadDir = path.join(global.appRoot, '../') + 'data'
-  if (!fs.existsSync(form.uploadDir)) {
-    fs.mkdirSync(form.uploadDir)
-  }
-  await _saveSnapShot(req, form, fog, transaction)
-  return {}
-}
-
-const _saveSnapShot = function (req, form, fog, transaction) {
-  return new Promise((resolve, reject) => {
-    form.parse(req, async function (error, fields, files) {
-      if (error) {
-        reject(new Errors.ValidationError(ErrorMessages.UPLOADED_FILE_NOT_FOUND))
-        return
-      }
-      const file = files['upstream']
-      if (file === undefined) {
-        reject(new Errors.ValidationError(ErrorMessages.UPLOADED_FILE_NOT_FOUND))
-        return
-      }
-
-      const filePath = file['path']
-
-      const absolutePath = path.resolve(filePath)
-      fs.renameSync(absolutePath, absolutePath + '.tar.gz')
-
-      await MicroserviceManager.update({
-        iofogUuid: fog.uuid,
-        imageSnapshot: 'get_image'
-      }, {
-        imageSnapshot: absolutePath + '.tar.gz'
-      }, transaction)
-
-      resolve()
-    })
-  })
-}
-
-async function _checkMicroservicesFogType (fog, fogTypeId, transaction) {
+async function _checkMicroservicesFogType (fog, archId, transaction) {
   const where = {
     iofogUuid: fog.uuid
   }
@@ -714,7 +589,7 @@ async function _checkMicroservicesFogType (fog, fogTypeId, transaction) {
       let exists = false
       const images = (microservice.images && microservice.images.length > 0) ? microservice.images : microservice.catalogItem.images
       for (const image of images) {
-        if (image.fogTypeId === fogTypeId) {
+        if (image.archId === archId) {
           exists = true
           break
         }
@@ -888,8 +763,8 @@ const getAgentLinkedVolumeMounts = async function (fog, transaction) {
       uuid: resourceObject.uuid,
       name: resourceObject.name,
       version: resourceObject.version,
-      type: type,
-      data: data
+      type,
+      data
     }
     volumeMounts.push(responseObject)
   }
@@ -909,15 +784,10 @@ module.exports = {
   getAgentMicroservice: TransactionDecorator.generateTransaction(getAgentMicroservice),
   getAgentRegistries: TransactionDecorator.generateTransaction(getAgentRegistries),
   getAgentTunnel: TransactionDecorator.generateTransaction(getAgentTunnel),
-  getAgentStrace: TransactionDecorator.generateTransaction(getAgentStrace),
-  updateAgentStrace: TransactionDecorator.generateTransaction(updateAgentStrace),
   getAgentChangeVersionCommand: TransactionDecorator.generateTransaction(getAgentChangeVersionCommand),
   updateHalHardwareInfo: TransactionDecorator.generateTransaction(updateHalHardwareInfo),
   updateHalUsbInfo: TransactionDecorator.generateTransaction(updateHalUsbInfo),
   deleteNode: TransactionDecorator.generateTransaction(deleteNode),
-  getImageSnapshot: TransactionDecorator.generateTransaction(getImageSnapshot),
-  putImageSnapshot: TransactionDecorator.generateTransaction(putImageSnapshot),
-  getAgentLinkedEdgeResources: TransactionDecorator.generateTransaction(getAgentLinkedEdgeResources),
   getAgentLinkedVolumeMounts: TransactionDecorator.generateTransaction(getAgentLinkedVolumeMounts),
   getControllerCA: TransactionDecorator.generateTransaction(getControllerCA),
   getAgentLogSessions: TransactionDecorator.generateTransaction(getAgentLogSessions)

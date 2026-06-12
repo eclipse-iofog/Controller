@@ -1,18 +1,6 @@
-/*
- * *******************************************************************************
- *  * Copyright (c) 2023 Datasance Teknoloji A.S.
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 const TransactionDecorator = require('../decorators/transaction-decorator')
 const AppHelper = require('../helpers/app-helper')
+const { validateUniqueArchIds } = require('../helpers/arch-images')
 const Errors = require('../helpers/errors')
 const ErrorMessages = require('../helpers/error-messages')
 const CatalogItemManager = require('../data/managers/catalog-item-manager')
@@ -46,11 +34,11 @@ const updateCatalogItemEndPoint = async function (id, data, isCLI, transaction) 
 
   const where = isCLI
     ? {
-      id: id
-    }
+        id
+      }
     : {
-      id: id
-    }
+        id
+      }
 
   data.id = id
   await _updateCatalogItem(data, where, transaction)
@@ -72,18 +60,18 @@ const listCatalogItemsEndPoint = async function (isCLI, transaction) {
 
   const catalogItems = await CatalogItemManager.findAllWithDependencies(where, attributes, transaction)
   return {
-    catalogItems: catalogItems
+    catalogItems
   }
 }
 
 async function getCatalogItem (id, isCLI, transaction) {
   const where = isCLI
-    ? { id: id }
+    ? { id }
     // : {
     //   id: id,
     //   [Op.or]: [{ category: { [Op.ne]: 'SYSTEM' } }, { category: null }]
     // }
-    : { id: id }
+    : { id }
 
   const attributes = isCLI
     ? {}
@@ -98,7 +86,7 @@ async function getCatalogItem (id, isCLI, transaction) {
 
 async function getSystemCatalogItem (id, isCLI, transaction) {
   const where = {
-    id: id,
+    id,
     category: 'SYSTEM'
   }
 
@@ -118,11 +106,11 @@ const getCatalogItemEndPoint = async function (id, isCLI, transaction) {
 const deleteCatalogItemEndPoint = async function (id, isCLI, transaction) {
   const where = isCLI
     ? {
-      id: id
-    }
+        id
+      }
     : {
-      id: id
-    }
+        id
+      }
 
   const item = await _checkIfItemExists(where, transaction)
 
@@ -146,7 +134,7 @@ async function getNatsCatalogItem (transaction) {
   return CatalogItemManager.findOne({
     name: 'NATs',
     category: 'SYSTEM',
-    publisher: 'Datasance',
+    publisher: 'Eclipse ioFog',
     registry_id: 1
   }, transaction)
 }
@@ -155,7 +143,7 @@ async function getRouterCatalogItem (transaction) {
   return CatalogItemManager.findOne({
     name: DBConstants.ROUTER_CATALOG_NAME,
     category: 'SYSTEM',
-    publisher: 'Datasance',
+    publisher: 'Eclipse ioFog',
     registry_id: 1
   }, transaction)
 }
@@ -164,7 +152,7 @@ async function getDebugCatalogItem (transaction) {
   return CatalogItemManager.findOne({
     name: DBConstants.DEBUG_CATALOG_NAME,
     category: 'SYSTEM',
-    publisher: 'Datasance',
+    publisher: 'Eclipse ioFog',
     registry_id: 1
   }, transaction)
 }
@@ -173,7 +161,7 @@ async function getBluetoothCatalogItem (transaction) {
   return CatalogItemManager.findOne({
     name: 'RESTBlue',
     category: 'SYSTEM',
-    publisher: 'Datasance',
+    publisher: 'Eclipse ioFog',
     registry_id: 1
   }, transaction)
 }
@@ -182,7 +170,7 @@ async function getHalCatalogItem (transaction) {
   return CatalogItemManager.findOne({
     name: 'HAL',
     category: 'SYSTEM',
-    publisher: 'Datasance',
+    publisher: 'Eclipse ioFog',
     registry_id: 1
   }, transaction)
 }
@@ -190,8 +178,8 @@ async function getHalCatalogItem (transaction) {
 const _checkForDuplicateName = async function (name, item, transaction) {
   if (name) {
     const where = (item && item.id)
-      ? { name: name, id: { [Op.ne]: item.id } }
-      : { name: name }
+      ? { name, id: { [Op.ne]: item.id } }
+      : { name }
 
     const result = await CatalogItemManager.findOne(where, transaction)
     if (result) {
@@ -241,29 +229,15 @@ const _createCatalogItem = async function (data, transaction) {
 }
 
 const _createCatalogImages = async function (data, catalogItem, transaction) {
-  const catalogItemImages = [
-    {
-      fogTypeId: 1,
-      catalogItemId: catalogItem.id
-    },
-    {
-      fogTypeId: 2,
-      catalogItemId: catalogItem.id
-    }
-  ]
-  if (data.images) {
-    for (const image of data.images) {
-      switch (image.fogTypeId) {
-        case 1:
-          catalogItemImages[0].containerImage = image.containerImage
-          break
-        case 2:
-          catalogItemImages[1].containerImage = image.containerImage
-          break
-      }
-    }
+  if (!data.images || !data.images.length) {
+    return []
   }
-
+  validateUniqueArchIds(data.images)
+  const catalogItemImages = data.images.map((image) => ({
+    catalogItemId: catalogItem.id,
+    archId: image.archId,
+    containerImage: image.containerImage
+  }))
   return CatalogItemImageManager.bulkCreate(catalogItemImages, transaction)
 }
 
@@ -348,13 +322,14 @@ const _updateCatalogItemImages = async function (data, transaction) {
     //   }
     // }
 
+    validateUniqueArchIds(data.images)
     for (const image of data.images) {
       await CatalogItemImageManager.updateOrCreate({
         catalogItemId: data.id,
-        fogTypeId: image.fogTypeId
+        archId: image.archId
       }, {
         catalogItemId: data.id,
-        fogTypeId: image.fogTypeId,
+        archId: image.archId,
         containerImage: image.containerImage
       }, transaction)
     }
@@ -395,11 +370,11 @@ module.exports = {
   getCatalogItemEndPoint: TransactionDecorator.generateTransaction(getCatalogItemEndPoint),
   deleteCatalogItemEndPoint: TransactionDecorator.generateTransaction(deleteCatalogItemEndPoint),
   updateCatalogItemEndPoint: TransactionDecorator.generateTransaction(updateCatalogItemEndPoint),
-  getCatalogItem: getCatalogItem,
-  getSystemCatalogItem: getSystemCatalogItem,
-  getNatsCatalogItem: getNatsCatalogItem,
-  getBluetoothCatalogItem: getBluetoothCatalogItem,
-  getHalCatalogItem: getHalCatalogItem,
-  getRouterCatalogItem: getRouterCatalogItem,
-  getDebugCatalogItem: getDebugCatalogItem
+  getCatalogItem,
+  getSystemCatalogItem,
+  getNatsCatalogItem,
+  getBluetoothCatalogItem,
+  getHalCatalogItem,
+  getRouterCatalogItem,
+  getDebugCatalogItem
 }

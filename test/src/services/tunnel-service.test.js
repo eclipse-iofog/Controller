@@ -23,12 +23,11 @@ describe('Tunnel Service', () => {
     const transaction = {}
     const error = 'Error!'
 
-    def('subject', () => $subject.openTunnel($tunnelData, $user, $cli, transaction))
+    def('subject', () => $subject.openTunnel($tunnelData, $cli, transaction))
     def('tunnelData', () => ({
       iofogUuid: uuid,
       host: tunnelHost,
     }))
-    def('user', () => 'user')
     def('cli', () => false)
     def('fog', () => ({ uuid }))
     def('fogResponse', () => Promise.resolve($fog))
@@ -176,12 +175,11 @@ describe('Tunnel Service', () => {
     const transaction = {}
     const error = 'Error!'
 
-    def('subject', () => $subject.findTunnel($tunnelData, $user, transaction))
+    def('subject', () => $subject.findTunnel($tunnelData, transaction))
     def('tunnelData', () => ({
       iofogUuid: uuid,
       host: tunnelHost,
     }))
-    def('user', () => 'user')
     def('tunnelManagerResponse', () => Promise.resolve(tunnel))
 
     beforeEach(() => {
@@ -264,12 +262,11 @@ describe('Tunnel Service', () => {
     const transaction = {}
     const error = 'Error!'
 
-    def('subject', () => $subject.closeTunnel($tunnelData, $user, transaction))
+    def('subject', () => $subject.closeTunnel($tunnelData, transaction))
     def('tunnelData', () => ({
       iofogUuid: uuid,
       host: tunnelHost,
     }))
-    def('user', () => 'user')
     def('findTunnelResponse', () => Promise.resolve(tunnel))
     def('tunnelManagerResponse', () => Promise.resolve())
     def('changeResponse', () => Promise.resolve())
@@ -282,7 +279,7 @@ describe('Tunnel Service', () => {
 
     it('calls TunnelService#findTunnel() with correct args', async () => {
       await $subject
-      expect(TunnelService.findTunnel).to.have.been.calledWith($tunnelData, $user, transaction)
+      expect(TunnelService.findTunnel).to.have.been.calledWith($tunnelData, transaction)
     })
 
     context('when TunnelService#findTunnel() fails', () => {

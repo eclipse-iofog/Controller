@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2023 Datasance Teknoloji A.S.
+ *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -18,9 +18,9 @@ const { setDbEnvVars } = require('./util')
 function init () {
   const options = {
     env: {
-      'NODE_ENV': 'production',
-      'VIEWER_PORT': '8008',
-      'PATH': process.env.PATH
+      NODE_ENV: 'production',
+      CONSOLE_PORT: '8008',
+      PATH: process.env.PATH
     },
     stdio: [process.stdin, process.stdout, process.stderr]
   }
@@ -31,5 +31,5 @@ function init () {
 }
 
 module.exports = {
-  init: init
+  init
 }

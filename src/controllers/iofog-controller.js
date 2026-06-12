@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Datasance Teknoloji A.S.
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 const FogService = require('../services/iofog-service')
 const qs = require('qs')
 
@@ -59,6 +46,10 @@ async function setFogVersionCommandEndPoint (req) {
   const fogVersionCommand = {
     uuid: req.params.uuid,
     versionCommand: req.params.versionCommand
+  }
+
+  if (req.body && Object.hasOwn(req.body, 'semver')) {
+    fogVersionCommand.semver = req.body.semver
   }
 
   return FogService.setFogVersionCommandEndPoint(fogVersionCommand, false)
@@ -112,17 +103,17 @@ async function disableNodeExecEndPoint (req) {
 }
 
 module.exports = {
-  createFogEndPoint: (createFogEndPoint),
-  updateFogEndPoint: (updateFogEndPoint),
-  deleteFogEndPoint: (deleteFogEndPoint),
-  getFogEndPoint: (getFogEndPoint),
-  getFogListEndPoint: (getFogListEndPoint),
+  createFogEndPoint,
+  updateFogEndPoint,
+  deleteFogEndPoint,
+  getFogEndPoint,
+  getFogListEndPoint,
   generateProvisioningKeyEndPoint: (generateProvisionKeyEndPoint),
-  setFogVersionCommandEndPoint: (setFogVersionCommandEndPoint),
-  setFogRebootCommandEndPoint: (setFogRebootCommandEndPoint),
-  getHalHardwareInfoEndPoint: (getHalHardwareInfoEndPoint),
-  getHalUsbInfoEndPoint: (getHalUsbInfoEndPoint),
-  setFogPruneCommandEndPoint: (setFogPruneCommandEndPoint),
-  enableNodeExecEndPoint: (enableNodeExecEndPoint),
-  disableNodeExecEndPoint: (disableNodeExecEndPoint)
+  setFogVersionCommandEndPoint,
+  setFogRebootCommandEndPoint,
+  getHalHardwareInfoEndPoint,
+  getHalUsbInfoEndPoint,
+  setFogPruneCommandEndPoint,
+  enableNodeExecEndPoint,
+  disableNodeExecEndPoint
 }

@@ -1,6 +1,7 @@
 const rhea = require('rhea')
 const config = require('../config')
 const logger = require('../logger')
+const Constants = require('../helpers/constants')
 const RouterManager = require('../data/managers/router-manager')
 const FogManager = require('../data/managers/iofog-manager')
 const CertificateService = require('./certificate-service')
@@ -42,59 +43,62 @@ class RouterConnectionService {
 
   async _createConnection () {
     try {
-      const options = await this._buildConnectionOptions()
-      return await new Promise((resolve, reject) => {
-        const connection = this.container.connect(options)
+      logger.debug({ msg: '[AMQP] Preparing router connection options' })
 
-        const cleanupPromise = () => {
-          this.connection = null
-          this.connectionPromise = null
+      const { hosts, port } = await this._resolveRouterEndpoint()
+      logger.debug({ msg: '[AMQP] Router endpoint resolved', hosts, port })
+      const certBundle = await this._ensureControllerCertificate()
+
+      let lastError = null
+      for (let attempt = 0; attempt < hosts.length; attempt++) {
+        const host = hosts[attempt]
+        const options = this._buildConnectOptions(host, port, certBundle)
+        try {
+          const connection = await this._connectToHost(host, port, options)
+          this.connectionOptions = {
+            transport: 'tls',
+            host,
+            hostname: host,
+            port,
+            rejectUnauthorized: true,
+            idle_time_out: 300000,
+            reconnect: true,
+            reconnect_limit: 100,
+            username: '',
+            password: '',
+            container_id: 'controller-exec-session-client'
+          }
+          this.cachedCertificate = certBundle
+          logger.info({
+            msg: '[AMQP] Router connection established',
+            host,
+            port,
+            attempt: attempt + 1,
+            totalAttempts: hosts.length
+          })
+          return connection
+        } catch (error) {
+          lastError = error
+          logger.warn({
+            msg: '[AMQP] Router connect attempt failed',
+            host,
+            port,
+            attempt: attempt + 1,
+            totalAttempts: hosts.length,
+            err: error.message || String(error)
+          })
         }
+      }
 
-        connection.once('connection_open', () => {
-          logger.info('[AMQP] Router connection established')
-          this.connection = connection
-          this.connectionPromise = null
-          connection.on('connection_error', (context) => {
-            logger.error({
-              err: context.error,
-              transport: 'amqp',
-              msg: '[AMQP] Connection error event'
-            })
-          })
-          connection.on('connection_close', () => {
-            logger.warn('[AMQP] Router connection closed')
-            cleanupPromise()
-          })
-          connection.on('disconnected', (context) => {
-            logger.warn('[AMQP] Router connection disconnected', {
-              error: context.error ? context.error.message : 'unknown'
-            })
-            cleanupPromise()
-          })
-          resolve(connection)
-        })
-
-        connection.once('connection_close', (context) => {
-          logger.error({
-            err: context.error,
-            transport: 'amqp',
-            msg: '[AMQP] Unable to open router connection (closed before open)'
-          })
-          cleanupPromise()
-          reject(new Error('Router connection closed before opening'))
-        })
-
-        connection.once('disconnected', (context) => {
-          logger.error({
-            err: context.error,
-            transport: 'amqp',
-            msg: '[AMQP] Unable to connect to router'
-          })
-          cleanupPromise()
-          reject(context.error || new Error('Router disconnected during connect'))
-        })
+      const aggregateError = lastError || new Error('No router hosts available for connection')
+      logger.error({
+        err: aggregateError,
+        transport: 'amqp',
+        msg: '[AMQP] Unable to connect to router after all fallback hosts',
+        hosts,
+        port
       })
+      throw aggregateError
     } catch (error) {
       this.connectionPromise = null
       logger.error('[AMQP] Failed to create router connection', {
@@ -105,45 +109,76 @@ class RouterConnectionService {
     }
   }
 
-  async _buildConnectionOptions () {
-    if (this.connectionOptions && this.cachedCertificate) {
-      return {
-        ...this.connectionOptions,
-        cert: this.cachedCertificate.cert,
-        key: this.cachedCertificate.key,
-        ca: [this.cachedCertificate.ca]
-      }
-    }
-
-    logger.debug({ msg: '[AMQP] Preparing router connection options' })
-
-    const { host, port } = await this._resolveRouterEndpoint()
-    logger.debug({ msg: '[AMQP] Router endpoint resolved', host, port })
-    const certBundle = await this._ensureControllerCertificate()
-
-    this.connectionOptions = {
+  _buildConnectOptions (host, port, certBundle) {
+    logger.debug({ msg: '[AMQP] Router connection options built', host, port })
+    return {
       transport: 'tls',
       host,
       hostname: host,
       port,
       rejectUnauthorized: true,
       idle_time_out: 300000,
-      reconnect: true,
-      reconnect_limit: 100,
+      reconnect: false,
       username: '',
       password: '',
-      container_id: 'controller-exec-session-client'
-    }
-    this.cachedCertificate = certBundle
-
-    logger.debug({ msg: '[AMQP] Router connection options built', host, port })
-
-    return {
-      ...this.connectionOptions,
+      container_id: 'controller-exec-session-client',
       cert: certBundle.cert,
       key: certBundle.key,
       ca: [certBundle.ca]
     }
+  }
+
+  _connectToHost (host, port, options) {
+    return new Promise((resolve, reject) => {
+      const connection = this.container.connect(options)
+      let settled = false
+
+      const settle = (handler) => (context) => {
+        if (settled) return
+        settled = true
+        handler(context)
+      }
+
+      const cleanupPromise = () => {
+        this.connection = null
+        this.connectionPromise = null
+      }
+
+      connection.once('connection_open', settle(() => {
+        this.connection = connection
+        this.connectionPromise = null
+        connection.on('connection_error', (context) => {
+          logger.error({
+            err: context.error,
+            transport: 'amqp',
+            msg: '[AMQP] Connection error event',
+            host,
+            port
+          })
+        })
+        connection.on('connection_close', () => {
+          logger.warn('[AMQP] Router connection closed', { host, port })
+          cleanupPromise()
+        })
+        connection.on('disconnected', (context) => {
+          logger.warn('[AMQP] Router connection disconnected', {
+            host,
+            port,
+            error: context.error ? context.error.message : 'unknown'
+          })
+          cleanupPromise()
+        })
+        resolve(connection)
+      }))
+
+      connection.once('connection_close', settle((context) => {
+        reject(context.error || new Error('Router connection closed before opening'))
+      }))
+
+      connection.once('disconnected', settle((context) => {
+        reject(context.error || new Error('Router disconnected during connect'))
+      }))
+    })
   }
 
   async _resolveRouterEndpoint () {
@@ -151,29 +186,20 @@ class RouterConnectionService {
     try {
       const router = await this._getDefaultRouterRecord()
       const port = router.messagingPort || AMQP_DEFAULT_PORT
-      let host = router.host && router.host.trim().length > 0 ? router.host.trim() : ''
-
-      if (this._isKubernetes()) {
-        const namespace = process.env.CONTROLLER_NAMESPACE || config.get('app.namespace')
-        if (namespace && namespace.trim().length > 0) {
-          host = `${DEFAULT_ROUTER_SERVICE}.${namespace}.svc.cluster.local`
-        } else if (!host) {
-          host = DEFAULT_ROUTER_SERVICE
-        }
-      } else {
-        if (!host) {
-          host = 'localhost'
-        }
-      }
+      const hosts = this._buildRouterHostList(router)
+      const host = hosts[0]
       logger.debug({
         msg: '[AMQP] Default router resolved',
         routerHost: router.host,
-        computedHost: host,
+        hosts,
+        host,
         port,
-        routerUuid: router.iofogUuid
+        routerUuid: router.iofogUuid,
+        controlPlane: this._isKubernetes() ? 'kubernetes' : 'remote'
       })
       return {
         host,
+        hosts,
         port,
         routerUuid: router.iofogUuid
       }
@@ -181,6 +207,47 @@ class RouterConnectionService {
       logger.error({ err: error, msg: '[AMQP] Failed while resolving router endpoint' })
       throw error
     }
+  }
+
+  _buildRouterHostList (router) {
+    if (this._isKubernetes()) {
+      return [this._kubernetesRouterHost(router)]
+    }
+    return this._remoteRouterHosts(router)
+  }
+
+  _kubernetesRouterHost (router) {
+    const namespace = process.env.CONTROLLER_NAMESPACE || config.get('app.namespace')
+    if (namespace && namespace.trim().length > 0) {
+      return `${DEFAULT_ROUTER_SERVICE}.${namespace.trim()}.svc.cluster.local`
+    }
+    const dbHost = router.host && router.host.trim().length > 0 ? router.host.trim() : ''
+    return dbHost || DEFAULT_ROUTER_SERVICE
+  }
+
+  _remoteRouterHosts (router) {
+    const hosts = []
+    const seen = new Set()
+    const addHost = (candidate) => {
+      if (!candidate) return
+      const trimmed = String(candidate).trim()
+      if (trimmed.length === 0 || seen.has(trimmed)) return
+      seen.add(trimmed)
+      hosts.push(trimmed)
+    }
+
+    addHost(Constants.ROUTER_BRIDGE_DNS_SAN)
+
+    if (router.host) {
+      addHost(router.host)
+    }
+
+    const namespace = process.env.CONTROLLER_NAMESPACE || config.get('app.namespace')
+    if (namespace && namespace.trim().length > 0) {
+      addHost(`${DEFAULT_ROUTER_SERVICE}.${namespace.trim()}.svc.cluster.local`)
+    }
+
+    return hosts
   }
 
   async _getDefaultRouterRecord () {

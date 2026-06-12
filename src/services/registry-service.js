@@ -1,16 +1,3 @@
-/*
- * *******************************************************************************
- *  * Copyright (c) 2023 Datasance Teknoloji A.S.
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 const RegistryManager = require('../data/managers/registry-manager')
 const SecretHelper = require('../helpers/secret-helper')
 const Validator = require('../schemas')
@@ -70,7 +57,7 @@ const findRegistries = async function (isCLI, transaction) {
 
   const registries = await RegistryManager.findAllWithAttributes(queryRegistry, { exclude: ['password'] }, transaction)
   return {
-    registries: registries
+    registries
   }
 }
 
@@ -128,14 +115,14 @@ const updateRegistry = async function (registry, registryId, isCLI, transaction)
 
   const where = isCLI
     ? {
-      id: registryId
-    }
+        id: registryId
+      }
     : {
-      id: registryId
-    }
+        id: registryId
+      }
 
   await RegistryManager.update(where, registryUpdate, transaction)
-  const microservices = await MicroserviceManager.findAllWithStatuses({ registryId: registryId }, transaction)
+  const microservices = await MicroserviceManager.findAllWithStatuses({ registryId }, transaction)
   if (microservices.length > 0) {
     for (const ms of microservices) {
       await MicroserviceManager.updateAndFind({ uuid: ms.uuid }, { rebuild: true }, transaction)

@@ -162,7 +162,7 @@ describe('NATS Controller', () => {
     it('should return all users with account/application context', async () => {
       const response = await $subject.listAllUsersEndPoint()
       expect(response).to.eql(payload)
-      expect(NatsApiService.listAllUsers).to.have.been.calledOnce()
+      expect(NatsApiService.listAllUsers).to.have.been.calledOnce
     })
   })
 

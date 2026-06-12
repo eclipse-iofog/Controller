@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Datasance Teknoloji A.S.
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 const EventManager = require('../data/managers/event-manager')
 const config = require('../config')
 const logger = require('../logger')
@@ -42,9 +29,6 @@ function extractResourceType (path) {
     { pattern: /^\/api\/v3\/registries/, type: 'registry' },
     { pattern: /^\/api\/v3\/volumeMounts/, type: 'volumeMount' },
     { pattern: /^\/api\/v3\/configMaps/, type: 'configMap' },
-    { pattern: /^\/api\/v3\/edgeResources/, type: 'edgeResource' },
-    { pattern: /^\/api\/v3\/diagnostics/, type: 'diagnostics' },
-    { pattern: /^\/api\/v3\/flows/, type: 'application' },
     { pattern: /^\/api\/v3\/applicationTemplates/, type: 'applicationTemplate' },
     { pattern: /^\/api\/v3\/catalog/, type: 'catalog' },
     { pattern: /^\/api\/v3\/controller/, type: 'controller' },
@@ -393,14 +377,14 @@ async function createHttpEvent (req, res, startTime) {
   const eventData = {
     timestamp: startTime,
     eventType: 'HTTP',
-    endpointType: endpointType,
-    actorId: actorId,
+    endpointType,
+    actorId,
     method: req.method,
-    resourceType: resourceType,
-    resourceId: resourceId,
+    resourceType,
+    resourceId,
     endpointPath: req.path,
     ipAddress: captureIp ? extractIPv4Address(req) : null,
-    status: status,
+    status,
     statusCode: res.statusCode,
     statusMessage: status === 'SUCCESS' ? 'Success' : `HTTP ${res.statusCode}`,
     requestId: req.id || null
@@ -434,10 +418,10 @@ async function createWsConnectEvent (connectionData) {
   const eventData = {
     timestamp: connectionData.timestamp || Date.now(),
     eventType: 'WS_CONNECT',
-    endpointType: endpointType,
+    endpointType,
     actorId: connectionData.actorId || null,
     method: 'WS',
-    resourceType: resourceType,
+    resourceType,
     resourceId: connectionData.resourceId || null,
     endpointPath: sanitizedPath,
     ipAddress: captureIp ? (connectionData.ipAddress || null) : null,
@@ -476,14 +460,14 @@ async function createWsDisconnectEvent (connectionData) {
   const eventData = {
     timestamp: connectionData.timestamp || Date.now(),
     eventType: 'WS_DISCONNECT',
-    endpointType: endpointType,
+    endpointType,
     actorId: connectionData.actorId || null,
     method: 'WS',
-    resourceType: resourceType,
+    resourceType,
     resourceId: connectionData.resourceId || null,
     endpointPath: sanitizedPath,
     ipAddress: captureIp ? (connectionData.ipAddress || null) : null,
-    status: status,
+    status,
     statusCode: connectionData.closeCode || null,
     statusMessage: status === 'SUCCESS' ? 'WebSocket connection closed normally' : `WebSocket closed with code ${connectionData.closeCode}`,
     requestId: null

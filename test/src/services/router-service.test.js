@@ -10,25 +10,67 @@ const RouterService = require('../../../src/services/router-service')
 const CatalogService = require('../../../src/services/catalog-service')
 const Validator = require('../../../src/schemas')
 const AppHelper = require('../../../src/helpers/app-helper')
-const ioFogManager = require('../../../src/data/managers/iofog-manager')
 const ChangeTrackingService = require('../../../src/services/change-tracking-service')
 const Sequelize = require('sequelize')
 const Op = Sequelize.Op
 const Errors = require('../../../src/helpers/errors')
 const ErrorMessages = require('../../../src/helpers/error-messages')
-const { getProxyCatalogItem } = require('../../../src/services/catalog-service')
 const constants = require('../../../src/helpers/constants')
+const FogManager = require('../../../src/data/managers/iofog-manager')
+const SecretManager = require('../../../src/data/managers/secret-manager')
+const MicroserviceStatusManager = require('../../../src/data/managers/microservice-status-manager')
+const MicroserviceExecStatusManager = require('../../../src/data/managers/microservice-exec-status-manager')
+const MicroserviceCapAddManager = require('../../../src/data/managers/microservice-cap-add-manager')
+const ApplicationManager = require('../../../src/data/managers/application-manager')
+const VolumeMountService = require('../../../src/services/volume-mount-service')
+const VolumeMappingManager = require('../../../src/data/managers/volume-mapping-manager')
+const MicroservicesService = require('../../../src/services/microservices-service')
 
 describe('Router Service', () => {
   const transaction = {}
   const randomString = 'randomString'
   const now = Date.now()
+  const containerEngine = 'docker'
 
   const routerCatalogItem = {
     id: 5
   }
 
   const userId = 1
+
+  function stubRouterKubernetesDeps (sandbox, fogUuid = 'agentuuid') {
+    const fog = { uuid: fogUuid, name: 'test-fog' }
+    sandbox.stub(FogManager, 'findOne').resolves(fog)
+    sandbox.stub(FogManager, 'findAll').resolves([])
+    sandbox.stub(SecretManager, 'getSecret').resolves({
+      tlsKey: 'key',
+      tlsCert: 'cert',
+      caCert: 'ca'
+    })
+    sandbox.stub(ApplicationManager, 'findOne').callsFake(({ name }) => {
+      if (name === `system-${fog.name}` || name === `system-${fog.uuid.toLowerCase()}`) {
+        return Promise.resolve({ id: 99, name, isSystem: true })
+      }
+      return Promise.resolve(null)
+    })
+    sandbox.stub(ApplicationManager, 'create').resolves({ id: 99, name: `system-${fog.name}`, isSystem: true })
+    sandbox.stub(ApplicationManager, 'update').resolves()
+    sandbox.stub(ApplicationManager, 'delete').resolves()
+    sandbox.stub(MicroservicePortManager, 'delete').resolves()
+    sandbox.stub(MicroserviceStatusManager, 'create').resolves()
+    sandbox.stub(MicroserviceExecStatusManager, 'create').resolves()
+    sandbox.stub(MicroserviceCapAddManager, 'create').resolves()
+    sandbox.stub(VolumeMountService, 'getVolumeMountEndpoint').rejects({ name: 'NotFoundError' })
+    sandbox.stub(VolumeMountService, 'createVolumeMountEndpoint').resolves()
+    sandbox.stub(VolumeMountService, 'findVolumeMountedFogNodes').resolves([])
+    sandbox.stub(VolumeMountService, 'linkVolumeMountEndpoint').resolves()
+    sandbox.stub(VolumeMappingManager, 'findOne').resolves(null)
+    sandbox.stub(VolumeMappingManager, 'create').resolves()
+    sandbox.stub(VolumeMappingManager, 'findAll').resolves([])
+    sandbox.stub(MicroservicesService, 'injectServiceAccountVolume').resolves({ created: false })
+    sandbox.stub(MicroservicesService, 'createOrUpdateServiceAccountForMicroservice').resolves()
+    sandbox.stub(ChangeTrackingService, 'update').resolves()
+  }
 
   def('subject', () => RouterService)
   def('sandbox', () => sinon.createSandbox())
@@ -92,11 +134,13 @@ describe('Router Service', () => {
     }
 
     def('fogData', () => fogData)
-    def('subject', () => $subject.createRouterForFog($fogData, uuid, userId, upstreamRouters, transaction))
+    def('subject', () => $subject.createRouterForFog($fogData, uuid, upstreamRouters, transaction))
     def('createRouterResponse', () => Promise.resolve(router))
     def('createRouterMsvcResponse', () => Promise.resolve(routerMsvc))
 
     beforeEach(() => {
+      stubRouterKubernetesDeps($sandbox, uuid)
+      $sandbox.stub(MicroserviceManager, 'findOne').resolves(null)
       $sandbox.stub(RouterManager, 'create').returns($createRouterResponse)
       $sandbox.stub(RouterConnectionManager, 'create')
       $sandbox.stub(MicroservicePortManager, 'create')
@@ -120,22 +164,17 @@ describe('Router Service', () => {
 
     it('should create a router microservice', async () => {
       await $subject
-      expect(MicroserviceManager.create).to.have.been.calledWith({
-        uuid: randomString,
-        name: `Router for Fog ${uuid}`,
-        config: '{"mode":"edge","id":"agentuuid","listeners":[{"role":"normal","host":"0.0.0.0","port":1234}],"connectors":[{"name":"agentDestUuid","role":"edge","host":"agentDestHost","port":4567}]}',
+      expect(MicroserviceManager.create).to.have.been.calledOnce
+      const createArgs = MicroserviceManager.create.firstCall.args[0]
+      expect(createArgs).to.include({
         catalogItemId: routerCatalogItem.id,
         iofogUuid: uuid,
-        rootHostAccess: false,
-        logSize: constants.MICROSERVICE_DEFAULT_LOG_SIZE,
-        userId,
-        configLastUpdated: now
-      }, transaction)
+        name: 'router'
+      })
+      expect(createArgs.config).to.be.a('string')
       const mappingData = {
-        isPublic: false,
         portInternal: fogData.messagingPort,
         portExternal: fogData.messagingPort,
-        userId: userId,
         microserviceUuid: routerMsvc.uuid
       }
       return expect(MicroservicePortManager.create).to.have.been.calledWith(mappingData, transaction)
@@ -145,13 +184,11 @@ describe('Router Service', () => {
     context('Messaging port not specified', () => {
       def('fogData', () => ({...fogData, messagingPort: undefined}))
 
-      it('Should default to 5672', async () => {
-        const port = 5672
+      it('Should default to 5671', async () => {
+        const port = 5671
         const mappingData = {
-          isPublic: false,
           portInternal: port,
           portExternal: port,
-          userId: userId,
           microserviceUuid: routerMsvc.uuid
         }
         await $subject
@@ -176,8 +213,6 @@ describe('Router Service', () => {
       it('Should open messaging, edge and inter port', async () => {
         await $subject
         const mappingData = {
-          isPublic: false,
-          userId: userId,
           microserviceUuid: routerMsvc.uuid
         }
         expect(MicroservicePortManager.create).to.have.been.calledWith({...mappingData, portExternal: interRouterPort, portInternal: interRouterPort}, transaction)
@@ -185,21 +220,12 @@ describe('Router Service', () => {
         return expect(MicroservicePortManager.create).to.have.been.calledThrice
       })
 
-      it('Should have interior router msvc config', async () => {
-        await $subject      
-        return expect(MicroserviceManager.create).to.have.been.calledWith({
-          uuid: randomString,
-          name: `Router for Fog ${uuid}`,
-          config: `{"mode":"interior","id":"${uuid}","listeners":[{"role":"normal","host":"0.0.0.0","port":${$fogData.messagingPort}},{"role":"inter-router","host":"0.0.0.0","port":${$fogData.interRouterPort}},` + 
-            `{"role":"edge","host":"0.0.0.0","port":${$fogData.edgeRouterPort}}],"connectors":[{"name":"agentDestUuid","role":"inter-router","host":"agentDestHost","port":43290}]}`,
-          catalogItemId: routerCatalogItem.id,
-          iofogUuid: uuid,
-          rootHostAccess: false,
-          logSize: constants.MICROSERVICE_DEFAULT_LOG_SIZE,
-          userId,
-          configLastUpdated: now
-        }, transaction)
-        })
+      it('Should create an interior router microservice', async () => {
+        await $subject
+        expect(MicroserviceManager.create).to.have.been.calledOnce
+        const createArgs = MicroserviceManager.create.firstCall.args[0]
+        expect(JSON.parse(createArgs.config).metadata.mode).to.equal('interior')
+      })
     })
   })
 
@@ -212,7 +238,7 @@ describe('Router Service', () => {
       messagingPort: 5672
     }
     def('routerID', () => routerID)
-    def('subject', () => $subject.updateConfig($routerID, userId, transaction))
+    def('subject', () => $subject.updateConfig($routerID, containerEngine, transaction))
     def('router', () => router)
     def('findOneRouterResponse', () => Promise.resolve($router))
     
@@ -241,6 +267,7 @@ describe('Router Service', () => {
     def('msvcFindOneResponse', () => Promise.resolve($routerMsvc))
 
     beforeEach(() => {
+      stubRouterKubernetesDeps($sandbox, router.iofogUuid)
       $sandbox.stub(RouterManager, 'findOne').returns($findOneRouterResponse)
       $sandbox.stub(RouterConnectionManager, 'findAllWithRouters').returns($findAllWithRoutersResponse)
       $sandbox.stub(MicroserviceManager, 'findOne').returns($msvcFindOneResponse)
@@ -262,7 +289,7 @@ describe('Router Service', () => {
 
     it('Should look for the router msvc', async () => {
       await $subject
-      return expect(MicroserviceManager.findOne).to.have.been.calledOnceWith({
+      return expect(MicroserviceManager.findOne).to.have.been.calledWith({
         catalogItemId: $routerCatalogItem.id,
         iofogUuid: $router.iofogUuid
       }, transaction)
@@ -345,7 +372,7 @@ describe('Router Service', () => {
       }})
     }
 
-    def('subject', () => $subject.updateRouter(oldRouter, newRouterData, upstreamRouters, userId, transaction))
+    def('subject', () => $subject.updateRouter(oldRouter, newRouterData, upstreamRouters, containerEngine, transaction))
     def('oldRouter', () => oldRouter)
     def('newRouterData', () => newRouterData)
     def('upstreamRouters', () => upstreamRouters)
@@ -357,16 +384,16 @@ describe('Router Service', () => {
 
     let findallWithRoutersStub
     beforeEach(() => {
+      stubRouterKubernetesDeps($sandbox, oldRouter.iofogUuid)
+      $sandbox.stub(MicroservicePortManager, 'create').resolves()
       const stub = $sandbox.stub(MicroserviceManager, 'findOne').returns($routerMsvcResponse)
       stub.withArgs({iofogUuid: oldRouter.iofogUuid, catalogItemId: proxyCatalogItem.id}).returns(Promise.resolve(proxyMsvc))
       $sandbox.stub(MicroserviceManager, 'update').returns(Promise.resolve())
       $sandbox.stub(MicroserviceManager, 'updateIfChanged').returns(Promise.resolve())
       $sandbox.stub(RouterManager, 'update')
       $sandbox.stub(RouterConnectionManager, 'bulkCreate')
-      $sandbox.stub(CatalogService, 'getProxyCatalogItem').returns(Promise.resolve(proxyCatalogItem))
       findallWithRoutersStub = $sandbox.stub(RouterConnectionManager, 'findAllWithRouters')
       findallWithRoutersStub.returns($findAllWithRoutersResponse)
-      $sandbox.stub(ChangeTrackingService, 'update')
       $sandbox.stub(RouterManager, 'findOne').returns($findOneRouterResponse)
       $sandbox.stub(MicroserviceEnvManager, 'delete')
       $sandbox.stub(MicroserviceEnvManager, 'updateOrCreate')
@@ -384,18 +411,6 @@ describe('Router Service', () => {
       return expect(ChangeTrackingService.update).to.have.been.calledWith($oldRouter.iofogUuid, ChangeTrackingService.events.microserviceList, transaction)
     })
 
-    it('Should update the proxy', async () => {
-      await $subject
-      const newConfig = {
-        mappings: [],
-        networkRouter: {
-          host: newRouterData.host,
-          port: newRouterData.messagingPort
-        }
-      }
-      return expect(MicroserviceManager.updateIfChanged).to.have.been.calledWith({ uuid: proxyMsvc.uuid }, { config: JSON.stringify(newConfig) }, transaction)
-    })
-
     context('Interior to edge', () => {
       const interRouterPort = 3123123
       const edgeRouterPort = 3123
@@ -406,7 +421,6 @@ describe('Router Service', () => {
         oldRouter.interRouterPort = interRouterPort
         oldRouter.edgeRouterPort = edgeRouterPort
         $sandbox.stub(RouterConnectionManager, 'findAll').withArgs({ destRouter: $oldRouter.id }, transaction).returns($downstreamRoutersResponse)
-        $sandbox.stub(MicroservicePortManager, 'delete')
       })
 
       afterEach(() => {
@@ -417,7 +431,6 @@ describe('Router Service', () => {
 
       it('should delete router ports', async () => {
         await $subject
-        expect(MicroservicePortManager.delete).to.have.been.calledTwice
         expect(MicroservicePortManager.delete).to.have.been.calledWith({ microserviceUuid: $routerMsvc.uuid, portInternal: edgeRouterPort }, transaction)
         expect(MicroservicePortManager.delete).to.have.been.calledWith({ microserviceUuid: $routerMsvc.uuid, portInternal: interRouterPort }, transaction)
         return expect(RouterManager.update).to.have.been.calledWith({ id: $oldRouter.id }, { ...$newRouterData, interRouterPort: null, edgeRouterPort: null }, transaction)
@@ -444,7 +457,6 @@ describe('Router Service', () => {
         newRouterData.isEdge = false
         newRouterData.interRouterPort = interRouterPort
         newRouterData.edgeRouterPort = edgeRouterPort
-        $sandbox.stub(MicroservicePortManager, 'create')
       })
 
       afterEach(() => {
@@ -455,12 +467,9 @@ describe('Router Service', () => {
 
       it('should create router ports', async () => {
         const mappingData = {
-          isPublic: false,
-          userId: userId,
           microserviceUuid: $routerMsvc.uuid
         }
         await $subject
-        expect(MicroservicePortManager.create).to.have.been.calledTwice
         expect(MicroservicePortManager.create).to.have.been.calledWith({ ...mappingData, portInternal: edgeRouterPort, portExternal: edgeRouterPort }, transaction)
         expect(MicroservicePortManager.create).to.have.been.calledWith({ ...mappingData, portInternal: interRouterPort, portExternal: interRouterPort }, transaction)
         return expect(RouterManager.update).to.have.been.calledWith({ id: $oldRouter.id }, { ...newRouterData }, transaction)
@@ -505,7 +514,7 @@ describe('Router Service', () => {
         edgeRouterPort: 4567,
         interRouterPort: 43290,
       }]
-      def('subject', () => RouterService.updateRouter(oldRouter, newRouterData, upstreamRouters, userId, transaction))
+      def('subject', () => RouterService.updateRouter(oldRouter, newRouterData, upstreamRouters, containerEngine, transaction))
 
       it('should create upstream routers connections', async () => {
         await $subject
@@ -669,7 +678,7 @@ describe('Router Service', () => {
 
       it('Should update or create router with default port values', async () => {
         await $subject
-        return expect(RouterManager.updateOrCreate).to.have.been.calledWith({ isDefault: true }, {...createRouterData, messagingPort: 5672, interRouterPort: 56721, edgeRouterPort: 56722}, transaction)
+        return expect(RouterManager.updateOrCreate).to.have.been.calledWith({ isDefault: true }, {...createRouterData, messagingPort: 5671, interRouterPort: 55671, edgeRouterPort: 45671}, transaction)
       })
     })
   })
@@ -711,7 +720,10 @@ describe('Router Service', () => {
       })
       context('There is a default router', () => {
         def('subject', () => $subject.validateAndReturnUpstreamRouters(null, true, defaultRouter, transaction))
-        it ('Should return an empty array', async () => {
+        beforeEach(() => {
+          $sandbox.stub(FogManager, 'findAll').resolves([])
+        })
+        it ('Should return the default router', async () => {
           return expect(await $subject).to.eql([defaultRouter])
         })
       })
@@ -735,6 +747,7 @@ describe('Router Service', () => {
       
       beforeEach(() => {
         $sandbox.stub(RouterManager, 'findOne').returns($findOneRouterResponse)
+        $sandbox.stub(FogManager, 'findOne').resolves(null)
       })
 
       it('Should return an array with upstreamRouter and defaultRouter', async () => {

@@ -1,15 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Datasance Teknoloji A.S.
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
 const logger = require('../logger')
 const { isTest } = require('../helpers/app-helper')
 
@@ -38,20 +26,19 @@ function handleErrors (f, successCode, errorsCodes) {
       if (errorsCodes) {
         errorsCodes.some((errCodeDescr) => {
           const isCurrentCode = errCodeDescr.errors.some((err) => {
-            if (errorObj instanceof err) {
-              return true
-            }
+            return errorObj instanceof err
           })
           if (isCurrentCode) {
             code = errCodeDescr.code
             return true
           }
+          return false
         })
       }
       code = code || 500
 
       responseObject = {
-        code: code,
+        code,
         body: {
           name: errorObj.name,
           message: errorObj.message,
@@ -68,5 +55,5 @@ function handleErrors (f, successCode, errorsCodes) {
 }
 
 module.exports = {
-  handleErrors: handleErrors
+  handleErrors
 }

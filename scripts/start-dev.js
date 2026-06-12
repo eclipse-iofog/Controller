@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2023 Datasance Teknoloji A.S.
+ *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -19,7 +19,7 @@ const { setDbEnvVars } = require('./util')
 function startDev () {
   // Load .env file if it exists
   const envPath = path.resolve(process.cwd(), '.env')
-  let envVars = {}
+  const envVars = {}
 
   if (fs.existsSync(envPath)) {
     const envContent = fs.readFileSync(envPath, 'utf8')
@@ -32,15 +32,14 @@ function startDev () {
         }
       }
     })
-  } else {
   }
 
   // Create a new environment object with all variables
   const newEnv = {
     ...process.env, // Include existing environment variables
     ...envVars, // Override with .env variables
-    'NODE_ENV': 'development',
-    'PATH': process.env.PATH
+    NODE_ENV: 'development',
+    PATH: process.env.PATH
   }
 
   // Apply database environment variables
@@ -53,5 +52,5 @@ function startDev () {
 }
 
 module.exports = {
-  startDev: startDev
+  startDev
 }

@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2023 Datasance Teknoloji A.S.
+ *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -18,17 +18,17 @@ const { setDbEnvVars } = require('./util')
 function coverage () {
   const options = {
     env: {
-      'NODE_ENV': 'test',
-      'PATH': process.env.PATH
+      NODE_ENV: 'test',
+      PATH: process.env.PATH
     },
     stdio: [process.stdin, process.stdout, process.stderr]
   }
 
   options.env = setDbEnvVars(options.env)
 
-  execSync('nyc mocha', options)
+  execSync('nyc mocha "test/src/**/*.js"', options)
 }
 
 module.exports = {
-  coverage: coverage
+  coverage
 }

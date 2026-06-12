@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Datasance Teknoloji A.S.
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 'use strict'
 module.exports = (sequelize, DataTypes) => {
   const ChangeTracking = sequelize.define('ChangeTracking', {
@@ -61,29 +48,14 @@ module.exports = (sequelize, DataTypes) => {
       field: 'tunnel',
       defaultValue: false
     },
-    diagnostics: {
-      type: DataTypes.BOOLEAN,
-      field: 'diagnostics',
-      defaultValue: false
-    },
     routerChanged: {
       type: DataTypes.BOOLEAN,
       field: 'router_changed',
       defaultValue: false
     },
-    isImageSnapshot: {
-      type: DataTypes.BOOLEAN,
-      field: 'image_snapshot',
-      defaultValue: false
-    },
     prune: {
       type: DataTypes.BOOLEAN,
       field: 'prune',
-      defaultValue: false
-    },
-    linkedEdgeResources: {
-      type: DataTypes.BOOLEAN,
-      field: 'linked_edge_resources',
       defaultValue: false
     },
     volumeMounts: {

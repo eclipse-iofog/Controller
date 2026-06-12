@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Datasance Teknoloji A.S.
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 class AuthenticationError extends Error {
   constructor (message) {
     super(message)
@@ -118,18 +105,36 @@ class ForbiddenError extends Error {
   }
 }
 
+class NotImplementedError extends Error {
+  constructor (message = 'This endpoint is only available in embedded auth mode') {
+    super(message)
+    this.message = message
+    this.name = 'NotImplementedError'
+  }
+}
+
+class RateLimitExceededError extends Error {
+  constructor (message = 'Too many authentication requests from this IP address') {
+    super(message)
+    this.message = message
+    this.name = 'RateLimitExceededError'
+  }
+}
+
 module.exports = {
-  AuthenticationError: AuthenticationError,
-  TransactionError: TransactionError,
-  ValidationError: ValidationError,
-  InvalidCredentialsError: InvalidCredentialsError,
-  NotFoundError: NotFoundError,
-  ModelNotFoundError: ModelNotFoundError,
-  DuplicatePropertyError: DuplicatePropertyError,
-  FtpError: FtpError,
-  InvalidArgumentError: InvalidArgumentError,
-  InvalidArgumentTypeError: InvalidArgumentTypeError,
-  CLIArgsNotProvidedError: CLIArgsNotProvidedError,
-  ConflictError: ConflictError,
-  ForbiddenError: ForbiddenError
+  AuthenticationError,
+  TransactionError,
+  ValidationError,
+  InvalidCredentialsError,
+  NotFoundError,
+  ModelNotFoundError,
+  DuplicatePropertyError,
+  FtpError,
+  InvalidArgumentError,
+  InvalidArgumentTypeError,
+  CLIArgsNotProvidedError,
+  ConflictError,
+  ForbiddenError,
+  NotImplementedError,
+  RateLimitExceededError
 }

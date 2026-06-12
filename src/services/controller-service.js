@@ -1,36 +1,51 @@
-/*
- * *******************************************************************************
- *  * Copyright (c) 2023 Datasance Teknoloji A.S.
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
+const fs = require('fs')
+const path = require('path')
 
-const ioFogTypesManager = require('../data/managers/iofog-type-manager')
+const architectureManager = require('../data/managers/architecture-manager')
 const TransactionDecorator = require('../decorators/transaction-decorator')
 const packageJson = require('../../package')
 const AppHelper = require('../helpers/app-helper')
 
-const getFogTypes = async function (isCLI, transaction) {
-  const ioFogTypes = await ioFogTypesManager.findAll({}, transaction)
+function readVersionFile (filePath) {
+  try {
+    if (fs.existsSync(filePath)) {
+      return fs.readFileSync(filePath, 'utf8').trim()
+    }
+  } catch (_) {
+    // ignore unreadable VERSION file
+  }
+  return undefined
+}
+
+function resolveConsoleVersion () {
+  if (process.env.EDGEOPS_CONSOLE_VERSION) {
+    return process.env.EDGEOPS_CONSOLE_VERSION
+  }
+  const consolePath = process.env.EDGEOPS_CONSOLE_PATH
+  if (consolePath) {
+    const fromConsolePath = readVersionFile(path.join(consolePath, 'VERSION'))
+    if (fromConsolePath) {
+      return fromConsolePath
+    }
+  }
+  return readVersionFile(path.join(__dirname, '..', '..', 'static', 'console', 'VERSION'))
+}
+
+const getArchitectures = async function (isCLI, transaction) {
+  const architectures = await architectureManager.findAll({}, transaction)
   const response = []
 
-  for (const ioFogType of ioFogTypes) {
+  for (const architecture of architectures) {
     response.push({
-      id: ioFogType.id,
-      name: ioFogType.name,
-      image: ioFogType.image,
-      description: ioFogType.description
+      id: architecture.id,
+      name: architecture.name,
+      image: architecture.image,
+      description: architecture.description
     })
   }
 
   return {
-    fogTypes: response
+    architectures: response
   }
 }
 
@@ -44,12 +59,12 @@ const statusController = async function (isCLI) {
   }
 
   return {
-    'status': status,
-    'timestamp': Date.now(),
-    'uptimeSec': process.uptime(),
+    status,
+    timestamp: Date.now(),
+    uptimeSec: process.uptime(),
     versions: {
       controller: packageJson.version,
-      ecnViewer: packageJson.dependencies['@datasance/ecn-viewer']
+      ecnViewer: resolveConsoleVersion()
     }
   }
 }
@@ -59,7 +74,7 @@ const getVersion = async function (isCLI) {
 }
 
 module.exports = {
-  getFogTypes: TransactionDecorator.generateTransaction(getFogTypes),
-  statusController: statusController,
-  getVersion: getVersion
+  getArchitectures: TransactionDecorator.generateTransaction(getArchitectures),
+  statusController,
+  getVersion
 }

@@ -135,7 +135,7 @@ describe('App Helpers', () => {
 
     beforeEach(() => {
       $sandbox.stub(Config, 'get')
-          .withArgs('Tunnel:PortRange')
+          .withArgs('tunnel.portRange')
           .returns(`${portRangeFrom}-${portRangeTo}`)
 
       $sandbox.stub(portscanner, 'findAPortNotInUse').returns(Promise.resolve(availablePort))

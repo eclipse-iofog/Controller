@@ -33,7 +33,7 @@ describe('rvalues variable substition and scripting', () => {
 
   async function subsForFileName(filename, context = {} ) {
     // Get document, or throw exception on error
-    let doc = yaml.safeLoad(fs.readFileSync(path.join(__dirname, filename), 'utf8'))
+    let doc = yaml.load(fs.readFileSync(path.join(__dirname, filename), 'utf8'))
     Object.assign( context, { self: doc, microservices: [ { iofogUuid: 'edai-smartbuilding-rules-engines' }], 'external-port': $externalPort} )
     // console.log('source doc: %j', doc)
     let response = await rvaluesVarSubstition(doc, context, $user)

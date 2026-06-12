@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Datasance Teknoloji A.S.
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 const fs = require('fs')
 const path = require('path')
 const crypto = require('crypto')
@@ -39,17 +26,23 @@ const NatsUserManager = require('../data/managers/nats-user-manager')
 const ApplicationManager = require('../data/managers/application-manager')
 const NatsAuthService = require('./nats-auth-service')
 const ChangeTrackingService = require('./change-tracking-service')
+const MicroservicesService = require('./microservices-service')
 const FogManager = require('../data/managers/iofog-manager')
 const databaseProvider = require('../data/providers/database-factory')
 const config = require('../config')
 const Constants = require('../helpers/constants')
 const { ensureSystemApplication, getSystemMicroserviceName, slugifyName } = require('../helpers/system-naming')
 const TransactionDecorator = require('../decorators/transaction-decorator')
+const {
+  buildNatsServerCertificateHostList,
+  buildNatsMqttCertificateHostList
+} = require('../helpers/cert-dns-sans')
 const logger = require('../logger')
 const K8sClient = require('../utils/k8s-client')
 const { Op } = require('sequelize')
 
-const NATS_SITE_CA = 'nats-site-ca'
+const NATS_SITE_CA = Constants.NATS_SITE_CA
+const DEFAULT_NATS_LOCAL_CA = Constants.DEFAULT_NATS_LOCAL_CA
 const NATS_CONFIG_DIR = '/etc/nats/config'
 const NATS_JWT_DIR = '/home/runner/nats/jwt'
 const NATS_JWT_MOUNT_DIR = '/tmp/nats/jwt'
@@ -243,7 +236,7 @@ async function _ensureNatsCertificates (fog, transaction) {
       }
       await CertificateService.createCAEndpoint({
         name,
-        subject: subject,
+        subject,
         expiration: 60,
         type: 'self-signed'
       }, transaction)
@@ -259,7 +252,7 @@ async function _ensureNatsCertificates (fog, transaction) {
       }
       await CertificateService.createCertificateEndpoint({
         name,
-        subject: subject,
+        subject,
         hosts: hosts.join(','),
         ca: {
           type: 'direct',
@@ -271,17 +264,15 @@ async function _ensureNatsCertificates (fog, transaction) {
   }
 
   await ensureCA(NATS_SITE_CA, NATS_SITE_CA)
-  await ensureCA(natsLocalCaName(fog), natsLocalCaName(fog))
+  await ensureCA(DEFAULT_NATS_LOCAL_CA, DEFAULT_NATS_LOCAL_CA)
 
-  const hosts = [fog.host, fog.ipAddress, fog.ipAddressExternal].filter(Boolean)
-  if (hosts.length === 0) {
-    hosts.push('localhost')
-  }
+  const serverHosts = buildNatsServerCertificateHostList(fog)
+  const mqttHosts = buildNatsMqttCertificateHostList(fog)
   const serverCertName = natsServerCertName(fog)
   const mqttCertName = natsLocalMQTTCertName(fog)
 
-  await ensureCert(serverCertName, serverCertName, hosts, NATS_SITE_CA)
-  await ensureCert(mqttCertName, mqttCertName, hosts, natsLocalCaName(fog))
+  await ensureCert(serverCertName, serverCertName, serverHosts, NATS_SITE_CA)
+  await ensureCert(mqttCertName, mqttCertName, mqttHosts, DEFAULT_NATS_LOCAL_CA)
 
   return {
     serverCertName,
@@ -500,14 +491,16 @@ async function _computeLeafRemotesForInstance (fog, natsInstance, transaction, c
   if (!upstreamConnections || upstreamConnections.length === 0) {
     return remotes
   }
-  const tlsConfig = certName ? {
-    ca_file: `${NATS_CERTS_DIR}/${certName}/ca.crt`,
-    cert_file: `${NATS_CERTS_DIR}/${certName}/tls.crt`,
-    key_file: `${NATS_CERTS_DIR}/${certName}/tls.key`,
-    verify: true,
-    handshake_first: true,
-    timeout: '3s'
-  } : undefined
+  const tlsConfig = certName
+    ? {
+        ca_file: `${NATS_CERTS_DIR}/${certName}/ca.crt`,
+        cert_file: `${NATS_CERTS_DIR}/${certName}/tls.crt`,
+        key_file: `${NATS_CERTS_DIR}/${certName}/tls.key`,
+        verify: true,
+        handshake_first: true,
+        timeout: '3s'
+      }
+    : undefined
   const appIds = await _getLeafAppIds(fog, transaction)
   for (const appId of appIds) {
     const account = await NatsAuthService.ensureAccountForApplication(appId, transaction)
@@ -647,7 +640,7 @@ async function _renderAndPersistNatsConfig (fog, natsInstance, certName, mqttCer
     NATS_SSL_DIR: NATS_CERTS_DIR,
     NATS_CERT_NAME: certName,
     NATS_MQTT_CERT_NAME: mqttCertName,
-    NATS_JWT_DIR: NATS_JWT_DIR,
+    NATS_JWT_DIR,
     NATS_JS_MAX_MEMORY_STORE: jsMaxMemory,
     NATS_JS_MAX_FILE_STORE: jsMaxFile
   }
@@ -746,7 +739,7 @@ async function _ensureNatsMicroservice (fog, mode, transaction) {
     }
     const data = {
       uuid: AppHelper.generateUUID(),
-      name: name,
+      name,
       config: '{}',
       catalogItemId: catalog.id,
       iofogUuid: fog.uuid,
@@ -808,6 +801,20 @@ async function _ensureNatsMicroservice (fog, mode, transaction) {
     )
   } else {
     await MicroserviceHealthCheckManager.create(healthCheckData, transaction)
+  }
+
+  const { created: saVolumeCreated } = await MicroservicesService.injectServiceAccountVolume(
+    microservice,
+    transaction
+  )
+  await MicroservicesService.createOrUpdateServiceAccountForMicroservice(
+    microservice.uuid,
+    microservice.name,
+    null,
+    transaction
+  )
+  if (saVolumeCreated) {
+    microservice._volumeMappingCreated = true
   }
 
   return microservice
@@ -959,7 +966,7 @@ async function ensureNatsForFog (fog, natsConfig, transaction) {
     clusterPort,
     mqttPort,
     httpPort,
-    configMapName: configMapName,
+    configMapName,
     jwtDirMountName: natsJwtDirMount(fog),
     certSecretName: certName,
     jsStorageSize: jsStorageSize || DEFAULT_JS_STORAGE_SIZE,
@@ -1044,7 +1051,7 @@ async function ensureNatsForFog (fog, natsConfig, transaction) {
     }
   }
 
-  await _ensureVolumeMount(configMapName, { configMapName: configMapName }, transaction)
+  await _ensureVolumeMount(configMapName, { configMapName }, transaction)
   await _ensureVolumeMount(natsJwtDirMount(fog), { configMapName: jwtBundleConfigMapName }, transaction)
   await _ensureVolumeMount(certName, { secretName: certName }, transaction)
   await _ensureVolumeMount(mqttCertName, { secretName: mqttCertName }, transaction)
@@ -1613,7 +1620,7 @@ function normalizeJetstreamSize (value, defaultValue) {
 module.exports = {
   ensureNatsForFog: TransactionDecorator.generateTransaction(ensureNatsForFog),
   reconcileResolverArtifacts: TransactionDecorator.generateTransaction(reconcileResolverArtifacts),
-  scheduleResolverArtifactsReconcile: scheduleResolverArtifactsReconcile,
+  scheduleResolverArtifactsReconcile,
   enqueueReconcileTask: TransactionDecorator.generateTransaction(enqueueReconcileTask),
   claimNextTask,
   cleanupNatsForFog: TransactionDecorator.generateTransaction(cleanupNatsForFog),

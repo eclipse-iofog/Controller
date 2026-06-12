@@ -21,7 +21,6 @@ resources:
         methods:
           GET: [get]
           PATCH: [patch]
-          PUT: [update]
           DELETE: [delete]
         resourceNameParam: uuid
       - path: /api/v3/microservices/:uuid/rebuild
@@ -63,17 +62,6 @@ resources:
       - path: /api/v3/microservices/:uuid/stop
         methods:
           PATCH: [patch]
-        resourceNameParam: uuid
-      - path: /api/v3/microservices/:uuid/image-snapshot
-        methods:
-          GET: [get]
-          POST: [create]
-        resourceNameParam: uuid
-      - path: /api/v3/microservices/:uuid/strace
-        methods:
-          GET: [get]
-          PATCH: [patch]
-          PUT: [update]
         resourceNameParam: uuid
 
   # System Microservices
@@ -394,21 +382,6 @@ resources:
           PATCH: [patch]
         resourceNameParam: name
 
-  # Flows
-  flows:
-    basePath: /api/v3/flow
-    routes:
-      - path: /api/v3/flow
-        methods:
-          GET: [list]
-          POST: [create]
-      - path: /api/v3/flow/:id
-        methods:
-          GET: [get]
-          PATCH: [patch]
-          DELETE: [delete]
-        resourceNameParam: id
-
   # Catalog
   catalog:
     basePath: /api/v3/catalog
@@ -421,12 +394,6 @@ resources:
         methods:
           GET: [get]
           PATCH: [patch]
-          DELETE: [delete]
-        resourceNameParam: id
-      - path: /api/v3/catalog/microservices/:id/images
-        methods:
-          GET: [get]
-          POST: [create]
           DELETE: [delete]
         resourceNameParam: id
 
@@ -560,32 +527,6 @@ resources:
         methods:
           POST: [create]
 
-  # Edge Resources
-  edgeResources:
-    basePath: /api/v3/edgeResource
-    routes:
-      - path: /api/v3/edgeResources
-        methods:
-          GET: [list]
-      - path: /api/v3/edgeResource/:name/:version
-        methods:
-          GET: [get]
-          PUT: [update]
-          DELETE: [delete]
-        resourceNameParam: name
-      - path: /api/v3/edgeResource/:name
-        methods:
-          GET: [get]
-        resourceNameParam: name
-      - path: /api/v3/edgeResource
-        methods:
-          POST: [create]
-      - path: /api/v3/edgeResource/:name/:version/link
-        methods:
-          POST: [patch]
-          DELETE: [patch]
-        resourceNameParam: name
-
   # Application Templates
   applicationTemplates:
     basePath: /api/v3/applicationTemplate
@@ -615,9 +556,6 @@ resources:
   capabilities:
     basePath: /api/v3/capabilities
     routes:
-      - path: /api/v3/capabilities/edgeResources
-        methods:
-          HEAD: [get]
       - path: /api/v3/capabilities/applicationTemplates
         methods:
           HEAD: [get]
@@ -633,22 +571,6 @@ resources:
         methods:
           GET: [list]
           DELETE: [delete]
-
-  # Diagnostics
-  diagnostics:
-    basePath: /api/v3/microservices
-    routes:
-      - path: /api/v3/microservices/:uuid/image-snapshot
-        methods:
-          GET: [get]
-          POST: [create]
-        resourceNameParam: uuid
-      - path: /api/v3/microservices/:uuid/strace
-        methods:
-          GET: [get]
-          PATCH: [patch]
-          PUT: [update]
-        resourceNameParam: uuid
 
   # Agent endpoints (for agent-to-controller communication)
   agent:
@@ -674,9 +596,6 @@ resources:
       - path: /api/v3/agent/status
         methods:
           PUT: [update]
-      - path: /api/v3/agent/edgeResources
-        methods:
-          GET: [list]
       - path: /api/v3/agent/volumeMounts
         methods:
           GET: [list]
@@ -693,10 +612,6 @@ resources:
       - path: /api/v3/agent/tunnel
         methods:
           GET: [get]
-      - path: /api/v3/agent/strace
-        methods:
-          GET: [get]
-          PUT: [update]
       - path: /api/v3/agent/version
         methods:
           GET: [get]
@@ -709,13 +624,12 @@ resources:
       - path: /api/v3/agent/delete-node
         methods:
           DELETE: [delete]
-      - path: /api/v3/agent/image-snapshot
-        methods:
-          GET: [get]
-          PUT: [update]
       - path: /api/v3/agent/cert
         methods:
           GET: [get]
+      - path: /api/v3/agent/controller/register
+        methods:
+          POST: [create]
       - path: /api/v3/agent/logs/sessions
         methods:
           GET: [list]
@@ -748,6 +662,91 @@ resources:
       - path: /api/v3/user/logout
         methods:
           POST: []
+      - path: /api/v3/user/change-password
+        methods:
+          POST: [patch]
+      - path: /api/v3/user/mfa/enroll
+        methods:
+          POST: [patch]
+      - path: /api/v3/user/mfa/confirm
+        methods:
+          POST: [patch]
+      - path: /api/v3/user/mfa
+        methods:
+          DELETE: [delete]
+      - path: /api/v3/user/oauth/authorize
+        methods:
+          GET: []
+      - path: /api/v3/user/oauth/callback
+        methods:
+          GET: []
+      - path: /api/v3/user/interaction/:uid
+        methods:
+          GET: []
+      - path: /api/v3/user/interaction/:uid/login
+        methods:
+          POST: []
+      - path: /api/v3/user/interaction/:uid/mfa
+        methods:
+          POST: []
+      - path: /api/v3/user/interaction/:uid/enroll
+        methods:
+          POST: []
+      - path: /api/v3/user/interaction/:uid/confirm-enroll
+        methods:
+          POST: []
+      - path: /api/v3/user/interaction/:uid/change-password
+        methods:
+          POST: []
+      - path: /api/v3/user/interaction/:uid/complete
+        methods:
+          POST: []
+
+  authAdmin:
+    basePath: /api/v3/auth
+    routes:
+      - path: /api/v3/auth/migration/export
+        methods:
+          POST: [create]
+      - path: /api/v3/auth/jwks/rotate
+        methods:
+          POST: [patch]
+
+  authUsers:
+    basePath: /api/v3/users
+    routes:
+      - path: /api/v3/users
+        methods:
+          GET: [list]
+          POST: [create]
+      - path: /api/v3/users/:id
+        methods:
+          GET: [get]
+          PATCH: [patch]
+          DELETE: [delete]
+        resourceNameParam: id
+      - path: /api/v3/users/:id/reset-password
+        methods:
+          POST: [patch]
+        resourceNameParam: id
+      - path: /api/v3/users/:id/reset-token
+        methods:
+          POST: [patch]
+        resourceNameParam: id
+
+  authGroups:
+    basePath: /api/v3/groups
+    routes:
+      - path: /api/v3/groups
+        methods:
+          GET: [list]
+          POST: [create]
+      - path: /api/v3/groups/:name
+        methods:
+          GET: [get]
+          PATCH: [patch]
+          DELETE: [delete]
+        resourceNameParam: name
 
   # Config management
   config:
@@ -769,7 +768,7 @@ resources:
       - path: /api/v3/status
         methods:
           GET: []
-      - path: /api/v3/fog-types/
+      - path: /api/v3/architectures/
         methods:
           GET: []
 

@@ -1,88 +1,88 @@
 const { serviceNameRegex } = require('./utils/utils')
 
 const volumeMountCreate = {
-  'id': '/volumeMountCreate',
-  'type': 'object',
-  'properties': {
-    'name': {
-      'type': 'string',
-      'pattern': serviceNameRegex
+  id: '/volumeMountCreate',
+  type: 'object',
+  properties: {
+    name: {
+      type: 'string',
+      pattern: serviceNameRegex
     },
-    'secretName': {
-      'type': 'string'
+    secretName: {
+      type: 'string'
     },
-    'configMapName': {
-      'type': 'string'
+    configMapName: {
+      type: 'string'
     }
   },
-  'required': ['name'],
-  'oneOf': [
+  required: ['name'],
+  oneOf: [
     {
-      'required': ['secretName']
+      required: ['secretName']
     },
     {
-      'required': ['configMapName']
+      required: ['configMapName']
     }
   ],
-  'additionalProperties': false
+  additionalProperties: false
 }
 
 const volumeMountUpdate = {
-  'id': '/volumeMountUpdate',
-  'type': 'object',
-  'properties': {
-    'name': {
-      'type': 'string',
-      'pattern': serviceNameRegex
+  id: '/volumeMountUpdate',
+  type: 'object',
+  properties: {
+    name: {
+      type: 'string',
+      pattern: serviceNameRegex
     },
-    'secretName': {
-      'type': 'string'
+    secretName: {
+      type: 'string'
     },
-    'configMapName': {
-      'type': 'string'
+    configMapName: {
+      type: 'string'
     }
   },
-  'oneOf': [
+  oneOf: [
     {
-      'required': ['secretName']
+      required: ['secretName']
     },
     {
-      'required': ['configMapName']
+      required: ['configMapName']
     }
   ],
-  'additionalProperties': false
+  additionalProperties: false
 }
 
 const volumeMountLink = {
-  'id': '/volumeMountLink',
-  'type': 'object',
-  'properties': {
-    'fogUuids': {
-      'type': 'array',
-      'items': {
-        'type': 'string'
+  id: '/volumeMountLink',
+  type: 'object',
+  properties: {
+    fogUuids: {
+      type: 'array',
+      items: {
+        type: 'string'
       },
-      'minItems': 1
+      minItems: 1
     }
   },
-  'required': ['fogUuids'],
-  'additionalProperties': false
+  required: ['fogUuids'],
+  additionalProperties: false
 }
 
 const volumeMountUnlink = {
-  'id': '/volumeMountUnlink',
-  'type': 'object',
-  'properties': {
-    'fogUuids': {
-      'type': 'array',
-      'items': {
-        'type': 'string'
+  id: '/volumeMountUnlink',
+  type: 'object',
+  properties: {
+    fogUuids: {
+      type: 'array',
+      items: {
+        type: 'string'
       },
-      'minItems': 1
+      minItems: 1
     }
   },
-  'required': ['fogUuids'],
-  'additionalProperties': false
+  required: ['fogUuids'],
+  additionalProperties: false
 }
 
 module.exports = {

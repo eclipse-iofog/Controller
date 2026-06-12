@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Datasance Teknoloji A.S.
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 const BaseVaultProvider = require('./base-vault-provider')
 const logger = require('../logger')
 
@@ -43,7 +30,7 @@ class AWSSecretsManagerProvider extends BaseVaultProvider {
 
       this.client = new SecretsManagerClient({
         region: config.region,
-        credentials: credentials
+        credentials
       })
 
       this.GetSecretValueCommand = GetSecretValueCommand
@@ -60,13 +47,13 @@ class AWSSecretsManagerProvider extends BaseVaultProvider {
     } catch (error) {
       // Provide more specific error messages
       if (error.code === 'MODULE_NOT_FOUND' || error.message.includes('Cannot find module')) {
-        throw new Error(`Failed to initialize AWS Secrets Manager: @aws-sdk/client-secrets-manager package is not installed. Please run: npm install @aws-sdk/client-secrets-manager`)
+        throw new Error('Failed to initialize AWS Secrets Manager: @aws-sdk/client-secrets-manager package is not installed. Please run: npm install @aws-sdk/client-secrets-manager')
       }
       if (error.code === 'ENOTFOUND' || error.message.includes('getaddrinfo ENOTFOUND')) {
         throw new Error(`Failed to connect to AWS Secrets Manager: Invalid region "${config.region}" or network connectivity issue. Please verify the AWS region is correct (e.g., us-east-1, eu-west-1).`)
       }
       if (error.name === 'CredentialsProviderError' || error.message.includes('credentials')) {
-        throw new Error(`Failed to initialize AWS Secrets Manager: Invalid credentials. Please verify AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY are correct.`)
+        throw new Error('Failed to initialize AWS Secrets Manager: Invalid credentials. Please verify AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY are correct.')
       }
       throw new Error(`Failed to initialize AWS Secrets Manager: ${error.message}`)
     }
@@ -77,7 +64,7 @@ class AWSSecretsManagerProvider extends BaseVaultProvider {
     const command = new this.CreateSecretCommand({
       Name: secretName,
       SecretString: JSON.stringify(data),
-      Description: `Datasance PoT controller secret: ${path}`
+      Description: `Controller secret: ${path}`
     })
 
     try {
@@ -184,7 +171,7 @@ class AWSSecretsManagerProvider extends BaseVaultProvider {
     if (this.config && this.config.basePath && typeof this.config.basePath === 'string') {
       return this.config.basePath
     }
-    return 'pot-controller/secrets'
+    return 'controller/secrets'
   }
 }
 

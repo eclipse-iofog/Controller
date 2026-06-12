@@ -9,7 +9,8 @@ const NatsUserManager = require('../../../src/data/managers/nats-user-manager')
 const MicroserviceManager = require('../../../src/data/managers/microservice-manager')
 const VolumeMappingManager = require('../../../src/data/managers/volume-mapping-manager')
 const VolumeMountService = require('../../../src/services/volume-mount-service')
-const ConfigMapManager = require('../../../src/data/managers/config-map-manager')
+const ConfigMapService = require('../../../src/services/config-map-service')
+const NatsAuthService = require('../../../src/services/nats-auth-service')
 const SecretService = require('../../../src/services/secret-service')
 
 describe('NATS Service', () => {
@@ -20,13 +21,14 @@ describe('NATS Service', () => {
   describe('.cleanupNatsForFog()', () => {
     const transaction = {}
     const fog = { uuid: 'fog-1', name: 'local-agent' }
-    const natsInstance = { id: 77 }
+    const natsInstance = { id: 77, isLeaf: true, isHub: false }
     const microservices = [{ uuid: 'ms-1' }]
 
     def('subject', () => NatsService.cleanupNatsForFog(fog, transaction))
 
     beforeEach(() => {
       $sandbox.stub(NatsInstanceManager, 'findByFog').returns(Promise.resolve(natsInstance))
+      $sandbox.stub(NatsInstanceManager, 'findAll').returns(Promise.resolve([]))
       $sandbox.stub(NatsAccountManager, 'findOne').returns(Promise.resolve({ id: 1 }))
       $sandbox.stub(NatsUserManager, 'findOne').returns(Promise.resolve({ credsSecretName: 'nats-creds-sys-admin-hub' }))
       $sandbox.stub(NatsConnectionManager, 'delete').returns(Promise.resolve())
@@ -36,8 +38,9 @@ describe('NATS Service', () => {
       $sandbox.stub(VolumeMountService, 'unlinkVolumeMountEndpoint').returns(Promise.resolve())
       $sandbox.stub(VolumeMountService, 'findVolumeMountedFogNodes').returns(Promise.resolve([]))
       $sandbox.stub(VolumeMountService, 'deleteVolumeMountEndpoint').returns(Promise.resolve())
-      $sandbox.stub(ConfigMapManager, 'getConfigMap').returns(Promise.resolve({ name: 'cm' }))
-      $sandbox.stub(ConfigMapManager, 'deleteConfigMap').returns(Promise.resolve())
+      $sandbox.stub(ConfigMapService, 'deleteConfigMapEndpoint').returns(Promise.resolve())
+      $sandbox.stub(NatsAuthService, 'getLeafSystemArtifactSecretNames').returns(Promise.resolve(null))
+      $sandbox.stub(NatsAuthService, 'deleteLeafSystemArtifactsForFog').returns(Promise.resolve())
       $sandbox.stub(SecretService, 'deleteSecretEndpoint').returns(Promise.resolve())
     })
 
@@ -48,7 +51,7 @@ describe('NATS Service', () => {
       expect(NatsConnectionManager.delete).to.have.been.calledWith({ sourceNats: natsInstance.id }, transaction)
       expect(NatsConnectionManager.delete).to.have.been.calledWith({ destNats: natsInstance.id }, transaction)
       expect(NatsInstanceManager.delete).to.have.been.calledWith({ id: natsInstance.id }, transaction)
-      expect(ConfigMapManager.deleteConfigMap).to.have.been.called
+      expect(ConfigMapService.deleteConfigMapEndpoint).to.have.been.called
       expect(SecretService.deleteSecretEndpoint).to.have.been.called
     })
   })
