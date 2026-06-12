@@ -30,5 +30,6 @@ module.exports = {
   getRbacApiVersion,
   getControllerDistribution,
   getServiceAnnotationTag,
-  getComponentLabelKey
+  getComponentLabelKey,
+  getAppLabelKey
 }

@@ -18,7 +18,7 @@ const {
   ensureSystemApplication,
   getSystemMicroserviceName
 } = require('../helpers/system-naming')
-const { getServiceAnnotationTag, getComponentLabelKey } = require('../config/flavor')
+const { getServiceAnnotationTag, getComponentLabelKey, getAppLabelKey } = require('../config/flavor')
 // const { Op } = require('sequelize')
 
 const K8S_ROUTER_CONFIG_MAP = 'iofog-router'
