@@ -1,7 +1,7 @@
 openapi : "3.0.0"
 info:
   version: 3.8.0
-  title: Cloud Natice Controller for Edge Native Workloads
+  title: Cloud Native Controller for Edge Native Workloads
 paths:
   /status:
     get:
@@ -245,6 +245,17 @@ paths:
             enum:
               - upgrade
               - rollback
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                semver:
+                  type: string
+                  description: Target semver for upgrade or rollback
+                  pattern: ^v?(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:[+]([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$
       security:
         - authToken: []
       responses:
@@ -7380,7 +7391,7 @@ components:
           type: string
         containerEngineUrl:
           type: string
-          default: unix:///var/run/docker.sock
+          default: unix:///run/edgelet/contaienrd.sock
         containerEngine:
           type: string
           enum:
@@ -9129,6 +9140,10 @@ components:
           type: string
         expirationTime:
           type: string
+        semver:
+          type: string
+          description: Target semver for upgrade or rollback
+          pattern: ^v?(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:[+]([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$
     HalInfo:
       type: object
       required:

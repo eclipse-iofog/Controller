@@ -87,7 +87,7 @@ CREATE TABLE IF NOT EXISTS "Fogs" (
     catalog_item_message_counts TEXT,
     last_command_time BIGINT,
     network_interface VARCHAR(36) DEFAULT 'dynamic',
-    docker_url VARCHAR(255) DEFAULT 'unix:///var/run/docker.sock',
+    docker_url VARCHAR(255) DEFAULT 'unix:///run/edgelet/contaienrd.sock',
     disk_limit DOUBLE PRECISION DEFAULT 50,
     disk_directory VARCHAR(255) DEFAULT '/var/lib/iofog-agent/',
     memory_limit DOUBLE PRECISION DEFAULT 4096,
@@ -166,6 +166,7 @@ CREATE INDEX idx_fog_provision_keys_iofogUuid ON "FogProvisionKeys" (iofog_uuid)
 CREATE TABLE IF NOT EXISTS "FogVersionCommands" (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY NOT NULL,
     version_command VARCHAR(100),
+    semver VARCHAR(100),
     iofog_uuid VARCHAR(36),
     FOREIGN KEY (iofog_uuid) REFERENCES "Fogs" (uuid) ON DELETE CASCADE
 );
