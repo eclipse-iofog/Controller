@@ -2,7 +2,7 @@
   "openapi": "3.0.0",
   "info": {
     "version": "1.0.0",
-    "title": "Datasance PoT Controller"
+    "title": "Cloud Natice Controller for Edge Native Workloads"
   },
   "tags": [
     {

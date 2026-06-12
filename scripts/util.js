@@ -23,7 +23,7 @@ const DEV_DB_BACKUP = `${TEMP_DIR}/dev_database.sqlite`
 const PROD_DB = `${ROOT_DIR}/src/data/sqlite_files/prod_database.sqlite`
 const PROD_DB_BACKUP = `${TEMP_DIR}/prod_database.sqlite`
 
-let dbName = process.env.DB_NAME || 'pot-controller'
+let dbName = process.env.DB_NAME || 'iofog-controller'
 if (!dbName.endsWith('.sqlite')) {
   dbName += '.sqlite'
 }

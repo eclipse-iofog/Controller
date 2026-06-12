@@ -1,7 +1,7 @@
 openapi : "3.0.0"
 info:
   version: 3.8.0
-  title: Edge Compute Network Controller
+  title: Cloud Natice Controller for Edge Native Workloads
 paths:
   /status:
     get:
@@ -3041,7 +3041,7 @@ paths:
       summary: Login
       operationId: login
       description: >
-        CLI login (potctl). The `email` field is the login identifier (username or email);
+        CLI login. The `email` field is the login identifier (username or email);
         bootstrap admin may use a non-email username. User creation via POST /users still
         requires a valid email address.
 
