@@ -1,0 +1,69 @@
+name: Set Docker build environment
+description: Resolves EdgeOps Console, image registry, and controller flavor build args from repository variables.
+
+runs:
+  using: composite
+  steps:
+    - name: Set EdgeOps Console build args
+      shell: bash
+      run: |
+        VERSION="${{ vars.EDGEOPS_CONSOLE_VERSION }}"
+        if [ -z "$VERSION" ]; then VERSION="1.0.0"; fi
+        echo "EDGEOPS_CONSOLE_VERSION=$VERSION" >> "${GITHUB_ENV}"
+
+        REPO="${{ vars.EDGEOPS_CONSOLE_REPO }}"
+        FLAVOR="${{ vars.EDGEOPS_CONSOLE_FLAVOR }}"
+        if [ -z "$REPO" ] || [ -z "$FLAVOR" ]; then
+          case "${{ github.repository }}" in
+            eclipse-iofog/Controller|eclipse-iofog/controller)
+              REPO="${REPO:-https://github.com/eclipse-iofog/edgeops-console}"
+              FLAVOR="${FLAVOR:-iofog}"
+              ;;
+            *)
+              REPO="${REPO:-https://github.com/Datasance/edgeops-console}"
+              FLAVOR="${FLAVOR:-datasance}"
+              ;;
+          esac
+        fi
+        echo "EDGEOPS_CONSOLE_REPO=$REPO" >> "${GITHUB_ENV}"
+        echo "EDGEOPS_CONSOLE_FLAVOR=$FLAVOR" >> "${GITHUB_ENV}"
+
+    - name: Set image registry and OCI source
+      shell: bash
+      run: |
+        REGISTRY="${{ vars.IMAGE_REGISTRY }}"
+        OCI_SOURCE="${{ vars.OCI_SOURCE_REPO }}"
+        if [ -z "$REGISTRY" ] || [ -z "$OCI_SOURCE" ]; then
+          case "${{ github.repository }}" in
+            eclipse-iofog/Controller|eclipse-iofog/controller)
+              REGISTRY="${REGISTRY:-ghcr.io/eclipse-iofog}"
+              OCI_SOURCE="${OCI_SOURCE:-https://github.com/eclipse-iofog/Controller}"
+              ;;
+            *)
+              REGISTRY="${REGISTRY:-ghcr.io/datasance}"
+              OCI_SOURCE="${OCI_SOURCE:-https://github.com/Datasance/Controller}"
+              ;;
+          esac
+        fi
+        echo "IMAGE_REGISTRY=$REGISTRY" >> "${GITHUB_ENV}"
+        echo "OCI_SOURCE_REPO=$OCI_SOURCE" >> "${GITHUB_ENV}"
+
+    - name: Set controller flavor build args
+      shell: bash
+      run: |
+        DISTRIBUTION="${{ vars.CONTROLLER_DISTRIBUTION }}"
+        RBAC_API="${{ vars.RBAC_API_VERSION }}"
+        if [ -z "$DISTRIBUTION" ] || [ -z "$RBAC_API" ]; then
+          case "${{ github.repository }}" in
+            eclipse-iofog/Controller|eclipse-iofog/controller)
+              DISTRIBUTION="${DISTRIBUTION:-iofog}"
+              RBAC_API="${RBAC_API:-iofog.org/v3}"
+              ;;
+            *)
+              DISTRIBUTION="${DISTRIBUTION:-datasance}"
+              RBAC_API="${RBAC_API:-datasance.com/v3}"
+              ;;
+          esac
+        fi
+        echo "CONTROLLER_DISTRIBUTION=$DISTRIBUTION" >> "${GITHUB_ENV}"
+        echo "RBAC_API_VERSION=$RBAC_API" >> "${GITHUB_ENV}"
