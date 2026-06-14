@@ -128,21 +128,27 @@ describe('Controller MS Service', () => {
       )
     })
 
-    it('accepts optional schedule 0 in register body', async () => {
+    context('when schedule 0 is sent in body', () => {
       def('body', () => ({ ...registerData, schedule: 0 }))
-      await expect($subject).to.be.fulfilled
+
+      it('accepts optional schedule 0 in register body', async () => {
+        await expect($subject).to.be.fulfilled
+      })
     })
 
-    it('defaults name to controller when omitted', async () => {
+    context('when name is omitted', () => {
       def('body', () => {
         const { name, ...rest } = registerData
         return rest
       })
-      await $subject
-      expect(MicroserviceManager.create).to.have.been.calledWith(
-        sinon.match({ name: 'controller' }),
-        transaction
-      )
+
+      it('defaults name to controller when omitted', async () => {
+        await $subject
+        expect(MicroserviceManager.create).to.have.been.calledWith(
+          sinon.match({ name: 'controller' }),
+          transaction
+        )
+      })
     })
 
     it('uses microserviceList change tracking on create', async () => {

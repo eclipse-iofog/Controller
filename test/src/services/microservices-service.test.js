@@ -325,14 +325,17 @@ describe('Microservices Service', () => {
       stubUpdateMicroserviceDeps($sandbox, existing)
     })
 
-    it('forces schedule to 0 for controller microservices', async () => {
+    context('when schedule is sent for controller microservice', () => {
       def('updateData', () => ({ schedule: 3 }))
-      await $subject
-      expect(MicroserviceManager.updateAndFind).to.have.been.calledWith(
-        { uuid: msvcUuid },
-        sinon.match({ schedule: 0 }),
-        transaction
-      )
+
+      it('forces schedule to 0 for controller microservices', async () => {
+        await $subject
+        expect(MicroserviceManager.updateAndFind).to.have.been.calledWith(
+          { uuid: msvcUuid },
+          sinon.match({ schedule: 0 }),
+          transaction
+        )
+      })
     })
 
     it('keeps schedule at 0 when user omits schedule', async () => {
@@ -345,6 +348,8 @@ describe('Microservices Service', () => {
     })
 
     context('when microservice is not controller', () => {
+      def('updateData', () => ({ schedule: 4 }))
+
       beforeEach(() => {
         MicroserviceManager.findOneWithCategory.resolves({
           ...existing,
@@ -356,7 +361,6 @@ describe('Microservices Service', () => {
       })
 
       it('preserves user-provided schedule', async () => {
-        def('updateData', () => ({ schedule: 4 }))
         await $subject
         expect(MicroserviceManager.updateAndFind).to.have.been.calledWith(
           { uuid: msvcUuid },
