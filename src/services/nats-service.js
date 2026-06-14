@@ -59,7 +59,6 @@ let natsReconcilePending = false
 let natsReconcileScheduled = false
 
 const _fogToken = (fog) => slugifyName((fog && fog.name) || (fog && fog.uuid) || 'fog')
-const natsLocalCaName = (fog) => `nats-local-ca-${_fogToken(fog)}`
 const natsLocalMQTTCertName = (fog) => `nats-mqtt-server-${_fogToken(fog)}`
 const natsServerCertName = (fog) => `nats-server-${_fogToken(fog)}`
 const natsServerConfigMap = (fog) => `nats-server-conf-${_fogToken(fog)}`
@@ -1134,8 +1133,7 @@ async function cleanupNatsForFog (fog, transaction) {
   const secretNames = [
     natsServerCertName(fog),
     natsLocalMQTTCertName(fog),
-    natsJetstreamKeySecretName(fog),
-    natsLocalCaName(fog)
+    natsJetstreamKeySecretName(fog)
   ]
   if (sysCredsSecretName) {
     secretNames.push(sysCredsSecretName)

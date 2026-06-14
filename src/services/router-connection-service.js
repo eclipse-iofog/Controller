@@ -3,7 +3,6 @@ const config = require('../config')
 const logger = require('../logger')
 const Constants = require('../helpers/constants')
 const RouterManager = require('../data/managers/router-manager')
-const FogManager = require('../data/managers/iofog-manager')
 const CertificateService = require('./certificate-service')
 const SecretService = require('./secret-service')
 const os = require('os')
@@ -289,7 +288,7 @@ class RouterConnectionService {
   async _createControllerCertificate () {
     logger.debug('[AMQP] Ensuring controller certificate secret exists', { name: CONTROLLER_CERT_NAME })
     const existingSecret = await this._safeGetSecret(CONTROLLER_CERT_NAME)
-    const caName = await this._resolveCaName()
+    const caName = Constants.DEFAULT_ROUTER_LOCAL_CA
     if (existingSecret) {
       const caSecret = await this._safeGetSecret(caName)
       const bundle = this._decodeCertificate(existingSecret, caSecret)
@@ -323,18 +322,6 @@ class RouterConnectionService {
     }
     logger.debug({ msg: '[AMQP] controller-exec-session-client certificate generated successfully', ca: caName })
     return this._decodeCertificate(certSecret, caSecret)
-  }
-
-  async _resolveCaName () {
-    if (this._isKubernetes()) {
-      return 'default-router-local-ca'
-    }
-    const router = await this._getDefaultRouterRecord()
-    const fog = await FogManager.findOne({ uuid: router.iofogUuid }, this.fakeTransaction)
-    if (!fog) {
-      throw new Error('Router not found. Please ensure router is provisioned.')
-    }
-    return `router-local-ca-${fog.name}`
   }
 
   _buildControllerHosts () {
