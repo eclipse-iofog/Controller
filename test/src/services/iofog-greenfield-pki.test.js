@@ -15,13 +15,13 @@ describe('iofog greenfield PKI (central local CAs)', () => {
   afterEach(() => $sandbox.restore())
 
   describe('provision source gates', () => {
-    it('does not create per-agent router-local-ca secrets in iofog-service (delete cleanup only)', () => {
+    it('does not reference per-agent router-local-ca secrets in iofog-service', () => {
       const source = fs.readFileSync(
         path.join(__dirname, '../../../src/services/iofog-service.js'),
         'utf8'
       )
       const matches = source.match(/router-local-ca-\$\{/g) || []
-      expect(matches).to.have.lengthOf(1)
+      expect(matches).to.have.lengthOf(0)
       expect(source).to.include('_processDeleteCommand')
       expect(source).to.not.match(/ensureCA\(\s*`router-local-ca-\$\{/)
       expect(source).to.not.match(/createCAEndpoint\([^)]*router-local-ca-\$\{/)

@@ -36,8 +36,8 @@ async function resolveBootstrapPassword (passwordRef) {
 
 function getBootstrapConfig () {
   return {
-    username: (process.env.OIDC_BOOTSTRAP_ADMIN_USERNAME || config.get('auth.bootstrap.adminUsername') || '').trim(),
-    passwordRef: process.env.OIDC_BOOTSTRAP_ADMIN_PASSWORD || config.get('auth.bootstrap.adminPassword') || '',
+    username: (process.env.OIDC_BOOTSTRAP_ADMIN_USERNAME || config.get('auth.bootstrap.username') || '').trim(),
+    passwordRef: process.env.OIDC_BOOTSTRAP_ADMIN_PASSWORD || config.get('auth.bootstrap.password') || '',
     allowBootstrapLog: config.get('auth.insecureAllowBootstrapLog', false) === true
   }
 }

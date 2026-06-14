@@ -315,6 +315,7 @@ async function _updateControllerMicroservice (existing, registerData, fog, trans
 
   const microserviceUpdate = AppHelper.deleteUndefinedFields({
     isController: true,
+    schedule: 0,
     registryId: registerData.registryId,
     hostNetworkMode: registerData.hostNetworkMode,
     runtime: registerData.runtime,
@@ -328,6 +329,7 @@ async function _updateControllerMicroservice (existing, registerData, fog, trans
   }
 
   microserviceUpdate.rebuild = microserviceUpdate.rebuild || !!(
+    existing.schedule !== 0 ||
     (registerData.hostNetworkMode !== undefined && existing.hostNetworkMode !== registerData.hostNetworkMode) ||
     (registerData.runtime !== undefined && existing.runtime !== registerData.runtime) ||
     (config !== undefined && existing.config !== config) ||

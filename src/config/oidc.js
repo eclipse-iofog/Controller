@@ -17,11 +17,8 @@
  * 5. ensureDiscovery() — optional cert-bound token exchange at issuer (RFC 8705) if
  *    provider requires OIDC token alongside mTLS termination.
  *
- * Edgelet CP: no v3.8 env changes for mTLS; Plan 8.1 embedded issuer is separate.
- * See .cursor/rules/controller-oidc-handoff.mdc for v3.8 OIDC env contract.
  */
 const oidcClient = require('openid-client')
-const { allowInsecureRequests } = oidcClient
 const { createRemoteJWKSet, createLocalJWKSet, jwtVerify } = require('jose')
 const config = require('./index')
 const logger = require('../logger')
@@ -131,7 +128,9 @@ function getDiscoveryOptions () {
   if (!allowHttp) {
     return undefined
   }
-  return { execute: [allowInsecureRequests] }
+  // openid-client marks allowInsecureRequests @deprecated to discourage prod use;
+  // required for local http:// when AUTH_INSECURE_ALLOW_HTTP=true.
+  return { execute: [oidcClient.allowInsecureRequests] }
 }
 
 async function ensureEmbeddedJwks () {

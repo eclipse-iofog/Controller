@@ -1434,11 +1434,11 @@ describe('Agent Service', () => {
     def('subject', () => $subject.getAgentChangeVersionCommand($fog, transaction))
 
     def('findCommandResponse', () => Promise.resolve($versionCommand))
-    def('findProvisionResponse', () => Promise.resolve($provision))
+    def('refreshProvisionResponse', () => Promise.resolve($provision))
 
     beforeEach(() => {
       $sandbox.stub(ioFogVersionCommandManager, 'findOne').returns($findCommandResponse)
-      $sandbox.stub(ioFogProvisionKeyManager, 'findOne').returns($findProvisionResponse)
+      $sandbox.stub(ioFogProvisionKeyManager, 'updateOrCreate').returns($refreshProvisionResponse)
     })
 
     it('calls ioFogVersionCommandManager#findOne() with correct args', async () => {
@@ -1457,24 +1457,25 @@ describe('Agent Service', () => {
     })
 
     context('when ioFogVersionCommandManager#findOne() succeeds', () => {
-      it('calls ioFogProvisionKeyManager#findOne() with correct args', async () => {
+      it('refreshes provision key via updateOrCreate', async () => {
         await $subject
-        expect(ioFogProvisionKeyManager.findOne).to.have.been.calledWith({
-          iofogUuid: $uuid,
-        }, transaction)
+        expect(ioFogProvisionKeyManager.updateOrCreate).to.have.been.calledOnce
+        const [where, payload] = ioFogProvisionKeyManager.updateOrCreate.firstCall.args
+        expect(where).to.eql({ iofogUuid: $uuid })
+        expect(payload.iofogUuid).to.equal($uuid)
+        expect(payload.provisionKey).to.be.a('string').and.not.be.empty
+        expect(payload.expirationTime).to.be.a('number')
+      })
 
-        context('when ioFogProvisionKeyManager#findOne() fails', () => {
-          def('findProvisionResponse', () => Promise.reject(error))
+      it('returns version command and refreshed provision key', () => {
+        return expect($subject).to.eventually.eql($response)
+      })
 
-          it(`fails with ${error}`, () => {
-            return expect($subject).to.be.equal(undefined)
-          })
-        })
+      context('when ioFogProvisionKeyManager#updateOrCreate() fails', () => {
+        def('refreshProvisionResponse', () => Promise.reject(error))
 
-        context('when ioFogProvisionKeyManager#findOne() succeeds', () => {
-          it(`succeeds`, () => {
-            return expect($subject).to.equal($response)
-          })
+        it(`fails with ${error}`, () => {
+          return expect($subject).to.be.rejectedWith(error)
         })
       })
     })

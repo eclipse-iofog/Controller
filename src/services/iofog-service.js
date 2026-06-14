@@ -1074,23 +1074,26 @@ async function getFogListEndPoint (filters, isCLI, transaction) {
   }
 }
 
+async function refreshProvisionKeyForFog (iofogUuid, transaction) {
+  const newProvision = {
+    iofogUuid,
+    provisionKey: AppHelper.generateUUID(),
+    expirationTime: new Date().getTime() + (20 * 60 * 1000)
+  }
+  return FogProvisionKeyManager.updateOrCreate({ iofogUuid }, newProvision, transaction)
+}
+
 async function generateProvisioningKeyEndPoint (fogData, isCLI, transaction) {
   await Validator.validate(fogData, Validator.schemas.iofogGenerateProvision)
 
   const queryFogData = { uuid: fogData.uuid }
-
-  const newProvision = {
-    iofogUuid: fogData.uuid,
-    provisionKey: AppHelper.generateUUID(),
-    expirationTime: new Date().getTime() + (20 * 60 * 1000)
-  }
 
   const fog = await FogManager.findOne(queryFogData, transaction)
   if (!fog) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, fogData.uuid))
   }
 
-  const provisioningKeyData = await FogProvisionKeyManager.updateOrCreate({ iofogUuid: fogData.uuid }, newProvision, transaction)
+  const provisioningKeyData = await refreshProvisionKeyForFog(fogData.uuid, transaction)
 
   const devMode = process.env.DEV_MODE || config.get('server.devMode')
   const sslCert = process.env.SSL_CERT || config.get('server.ssl.path.cert')
@@ -1259,7 +1262,6 @@ async function _processDeleteCommand (fog, transaction) {
   // Delete router-related secrets if they exist
   const secretNames = [
     `router-site-server-${fog.name}`,
-    `router-local-ca-${fog.name}`,
     `router-local-server-${fog.name}`,
     `router-local-agent-${fog.name}`
   ]
@@ -1727,6 +1729,7 @@ module.exports = {
   getHalHardwareInfoEndPoint: TransactionDecorator.generateTransaction(getHalHardwareInfoEndPoint),
   getHalUsbInfoEndPoint: TransactionDecorator.generateTransaction(getHalUsbInfoEndPoint),
   getFog,
+  refreshProvisionKeyForFog,
   setFogPruneCommandEndPoint: TransactionDecorator.generateTransaction(setFogPruneCommandEndPoint),
   enableNodeExecEndPoint: TransactionDecorator.generateTransaction(enableNodeExecEndPoint),
   disableNodeExecEndPoint: TransactionDecorator.generateTransaction(disableNodeExecEndPoint),

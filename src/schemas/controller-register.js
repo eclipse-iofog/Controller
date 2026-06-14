@@ -25,7 +25,11 @@ const controllerRegister = {
     },
     config: { type: 'string' },
     hostNetworkMode: { type: 'boolean' },
-    runtime: { type: 'string' }
+    runtime: { type: 'string' },
+    schedule: {
+      type: 'integer',
+      enum: [0]
+    }
   },
   required: ['uuid', 'images', 'registryId'],
   additionalProperties: false

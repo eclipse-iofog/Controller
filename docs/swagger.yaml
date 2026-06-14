@@ -7903,6 +7903,11 @@ components:
           type: boolean
         runtime:
           type: string
+        schedule:
+          type: integer
+          enum:
+            - 0
+          description: Optional; controller workload schedule is always 0 (server-enforced)
     ControllerRegisterResponse:
       type: object
       properties:

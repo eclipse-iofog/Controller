@@ -121,22 +121,34 @@ describe('Controller MS Service', () => {
           iofogUuid: fogUuid,
           applicationId: application.id,
           isController: true,
+          schedule: 0,
           registryId: 1
         }),
         transaction
       )
     })
 
-    it('defaults name to controller when omitted', async () => {
+    context('when schedule 0 is sent in body', () => {
+      def('body', () => ({ ...registerData, schedule: 0 }))
+
+      it('accepts optional schedule 0 in register body', async () => {
+        await expect($subject).to.be.fulfilled
+      })
+    })
+
+    context('when name is omitted', () => {
       def('body', () => {
         const { name, ...rest } = registerData
         return rest
       })
-      await $subject
-      expect(MicroserviceManager.create).to.have.been.calledWith(
-        sinon.match({ name: 'controller' }),
-        transaction
-      )
+
+      it('defaults name to controller when omitted', async () => {
+        await $subject
+        expect(MicroserviceManager.create).to.have.been.calledWith(
+          sinon.match({ name: 'controller' }),
+          transaction
+        )
+      })
     })
 
     it('uses microserviceList change tracking on create', async () => {
@@ -186,6 +198,33 @@ describe('Controller MS Service', () => {
         expect(MicroserviceManager.updateAndFind).to.have.been.calledWith(
           { uuid: msUuid },
           sinon.match({ isController: true }),
+          transaction
+        )
+      })
+
+      it('forces schedule to 0 on update', async () => {
+        await $subject
+        expect(MicroserviceManager.updateAndFind).to.have.been.calledWith(
+          { uuid: msUuid },
+          sinon.match({ schedule: 0 }),
+          transaction
+        )
+      })
+
+      it('rebuilds when existing schedule is not 0', async () => {
+        MicroserviceManager.findOne.callsFake((where) => {
+          if (where.uuid === msUuid) {
+            return Promise.resolve({
+              ...existing,
+              schedule: 3
+            })
+          }
+          return Promise.resolve(null)
+        })
+        await $subject
+        expect(MicroserviceManager.updateAndFind).to.have.been.calledWith(
+          { uuid: msUuid },
+          sinon.match({ schedule: 0, rebuild: true }),
           transaction
         )
       })
