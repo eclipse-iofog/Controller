@@ -82,6 +82,15 @@ Controller v3.8 is a **greenfield** release aligned with **Edgelet**. There is *
 - **NOTICE** file replaces per-file copyright headers.
 - Neutral in-tree identity: RBAC **`iofog.org/v3`**, default namespace **`iofog`**, `package.json` name **`controller`**.
 
+### Fixed
+
+- Controller register accepts optional **`schedule: 0`**; server always enforces schedule **0** on create, re-register, and **`PATCH /api/v3/microservices/system/:uuid`** for controller workloads.
+- Agent version command (**`GET /api/v3/agent/version`**) refreshes the provision key on each pull instead of returning a stale or deleted key.
+- Controller AMQP certificate provisioning uses shared **`default-router-local-ca`** instead of per-fog router local CA secret names.
+- Fog teardown drops obsolete per-fog **`nats-local-ca-*`** and **`router-local-ca-*`** secret names from cleanup lists.
+- OIDC discovery with **`AUTH_INSECURE_ALLOW_HTTP`** uses the supported `openid-client` insecure-request hook for local **`http://`** issuers.
+- Config keys **`auth.bootstrap.adminUsername`** / **`adminPassword`** renamed to **`auth.bootstrap.username`** / **`password`** (**`OIDC_BOOTSTRAP_ADMIN_*`** env vars unchanged).
+
 ### Removed
 
 - v3.7 legacy field-agent wire protocol and deprecated agent field names.
