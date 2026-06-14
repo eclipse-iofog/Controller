@@ -11,6 +11,7 @@ const FogManager = require('../data/managers/iofog-manager')
 const FogKeyService = require('../services/iofog-key-service')
 const ChangeTrackingService = require('./change-tracking-service')
 const FogVersionCommandManager = require('../data/managers/iofog-version-command-manager')
+const { refreshProvisionKeyForFog } = require('./iofog-service')
 const RegistryManager = require('../data/managers/registry-manager')
 const MicroserviceStatusManager = require('../data/managers/microservice-status-manager')
 const MicroserviceExecStatusManager = require('../data/managers/microservice-exec-status-manager')
@@ -534,9 +535,7 @@ const getAgentChangeVersionCommand = async function (fog, transaction) {
     throw new Errors.NotFoundError(ErrorMessages.VERSION_COMMAND_NOT_FOUND)
   }
 
-  const provision = await FogProvisionKeyManager.findOne({
-    iofogUuid: fog.uuid
-  }, transaction)
+  const provision = await refreshProvisionKeyForFog(fog.uuid, transaction)
 
   const response = {
     versionCommand: versionCommand.versionCommand,
