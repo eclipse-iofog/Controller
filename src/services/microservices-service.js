@@ -903,6 +903,9 @@ async function updateSystemMicroserviceEndPoint (microserviceUuid, microserviceD
   if (!microservice) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, microserviceUuid))
   }
+  if (microservice.isController) {
+    microserviceDataUpdate.schedule = 0
+  }
   if (microserviceDataUpdate.name && microserviceDataUpdate.name !== microservice.name) {
     throw new Errors.ValidationError('Microservice Resource Name is immutable')
   }

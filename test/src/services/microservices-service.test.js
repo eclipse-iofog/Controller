@@ -308,6 +308,65 @@ describe('Microservices Service', () => {
     })
   })
 
+  describe('.updateSystemMicroserviceEndPoint()', () => {
+    const msvcUuid = 'msvc-uuid'
+    const existing = buildMicroserviceRecord({
+      uuid: msvcUuid,
+      name: 'controller',
+      catalogItem: null,
+      isController: true,
+      schedule: 3
+    })
+
+    def('subject', () => $service.updateSystemMicroserviceEndPoint(msvcUuid, $updateData, isCLI, transaction))
+    def('updateData', () => ({ config: '{"k":"v"}' }))
+
+    beforeEach(() => {
+      stubUpdateMicroserviceDeps($sandbox, existing)
+    })
+
+    it('forces schedule to 0 for controller microservices', async () => {
+      def('updateData', () => ({ schedule: 3 }))
+      await $subject
+      expect(MicroserviceManager.updateAndFind).to.have.been.calledWith(
+        { uuid: msvcUuid },
+        sinon.match({ schedule: 0 }),
+        transaction
+      )
+    })
+
+    it('keeps schedule at 0 when user omits schedule', async () => {
+      await $subject
+      expect(MicroserviceManager.updateAndFind).to.have.been.calledWith(
+        { uuid: msvcUuid },
+        sinon.match({ schedule: 0 }),
+        transaction
+      )
+    })
+
+    context('when microservice is not controller', () => {
+      beforeEach(() => {
+        MicroserviceManager.findOneWithCategory.resolves({
+          ...existing,
+          isController: false,
+          schedule: 3,
+          getPorts: () => Promise.resolve([]),
+          getImages: () => Promise.resolve([])
+        })
+      })
+
+      it('preserves user-provided schedule', async () => {
+        def('updateData', () => ({ schedule: 4 }))
+        await $subject
+        expect(MicroserviceManager.updateAndFind).to.have.been.calledWith(
+          { uuid: msvcUuid },
+          sinon.match({ schedule: 4 }),
+          transaction
+        )
+      })
+    })
+  })
+
   describe('.deleteMicroserviceEndPoint()', () => {
     const msvcUuid = 'msvc-uuid'
     const microservice = buildMicroserviceRecord({

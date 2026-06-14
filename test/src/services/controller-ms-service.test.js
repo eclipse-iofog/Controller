@@ -121,10 +121,16 @@ describe('Controller MS Service', () => {
           iofogUuid: fogUuid,
           applicationId: application.id,
           isController: true,
+          schedule: 0,
           registryId: 1
         }),
         transaction
       )
+    })
+
+    it('accepts optional schedule 0 in register body', async () => {
+      def('body', () => ({ ...registerData, schedule: 0 }))
+      await expect($subject).to.be.fulfilled
     })
 
     it('defaults name to controller when omitted', async () => {
@@ -186,6 +192,33 @@ describe('Controller MS Service', () => {
         expect(MicroserviceManager.updateAndFind).to.have.been.calledWith(
           { uuid: msUuid },
           sinon.match({ isController: true }),
+          transaction
+        )
+      })
+
+      it('forces schedule to 0 on update', async () => {
+        await $subject
+        expect(MicroserviceManager.updateAndFind).to.have.been.calledWith(
+          { uuid: msUuid },
+          sinon.match({ schedule: 0 }),
+          transaction
+        )
+      })
+
+      it('rebuilds when existing schedule is not 0', async () => {
+        MicroserviceManager.findOne.callsFake((where) => {
+          if (where.uuid === msUuid) {
+            return Promise.resolve({
+              ...existing,
+              schedule: 3
+            })
+          }
+          return Promise.resolve(null)
+        })
+        await $subject
+        expect(MicroserviceManager.updateAndFind).to.have.been.calledWith(
+          { uuid: msUuid },
+          sinon.match({ schedule: 0, rebuild: true }),
           transaction
         )
       })
