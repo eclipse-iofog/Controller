@@ -100,6 +100,8 @@ Controller v3.8 is a **greenfield** release aligned with **Edgelet**. There is *
 - TCP bridge background provisioning resolves agent router mode via **`RouterManager.findOne`** (fixes **`TypeError`** when **`fakeTransaction`** is used in background jobs).
 - TCP bridge / router provisioning **background error logging** uses pino object-first `{ err, msg, … }` so failures are no longer logged as empty errors.
 - Router microservice **`siteConfig.platform`** defaults to **`edgelet`** (was **`docker`**) when the agent uses the Edgelet runtime.
+- Boolean env vars (`TRUST_PROXY`, `SERVER_DEV_MODE`, `DB_USE_SSL`, `VAULT_ENABLED`, `ENABLE_TELEMETRY`, and other mapped flags) are parsed consistently from Kubernetes string values (`true`/`false`, `1`/`0`) via shared **`config.getBoolean()`** — fixes startup crash when **`TRUST_PROXY=true`** was passed as a string to Express.
+- Postgres/MySQL SSL reads canonical **`DB_SSL_CA`** (via config) instead of undocumented **`DB_SSL_CA_B64`**; **`database.*.useSSL`** config key honored (was **`useSsl`** typo).
 
 ### Changed
 

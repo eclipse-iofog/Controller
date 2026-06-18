@@ -352,7 +352,7 @@ async function createEvent (eventData, transaction) {
 async function createHttpEvent (req, res, startTime) {
   // Check if auditing is enabled
   // Use config.get() which properly parses boolean strings from env vars
-  const auditEnabled = config.get('settings.eventAuditEnabled', true)
+  const auditEnabled = config.getBoolean('settings.eventAuditEnabled', true)
   if (!auditEnabled) {
     return
   }
@@ -367,7 +367,7 @@ async function createHttpEvent (req, res, startTime) {
     return
   }
 
-  const captureIp = config.get('settings.eventCaptureIpAddress', true)
+  const captureIp = config.getBoolean('settings.eventCaptureIpAddress', true)
   const endpointType = req.path.startsWith('/api/v3/agent/') ? 'agent' : 'user'
   const actorId = extractActorId(req)
   const resourceType = extractResourceType(req.path)
@@ -404,12 +404,12 @@ async function createHttpEvent (req, res, startTime) {
 async function createWsConnectEvent (connectionData) {
   // Check if auditing is enabled
   // Use config.get() which properly parses boolean strings from env vars
-  const auditEnabled = config.get('settings.eventAuditEnabled', true)
+  const auditEnabled = config.getBoolean('settings.eventAuditEnabled', true)
   if (!auditEnabled) {
     return
   }
 
-  const captureIp = config.get('settings.eventCaptureIpAddress', true)
+  const captureIp = config.getBoolean('settings.eventCaptureIpAddress', true)
   const endpointType = connectionData.endpointType || 'user'
   // Sanitize path to remove sensitive query parameters (e.g., token)
   const sanitizedPath = sanitizeEndpointPath(connectionData.path)
@@ -445,12 +445,12 @@ async function createWsConnectEvent (connectionData) {
 async function createWsDisconnectEvent (connectionData) {
   // Check if auditing is enabled
   // Use config.get() which properly parses boolean strings from env vars
-  const auditEnabled = config.get('settings.eventAuditEnabled', true)
+  const auditEnabled = config.getBoolean('settings.eventAuditEnabled', true)
   if (!auditEnabled) {
     return
   }
 
-  const captureIp = config.get('settings.eventCaptureIpAddress', true)
+  const captureIp = config.getBoolean('settings.eventCaptureIpAddress', true)
   const endpointType = connectionData.endpointType || 'user'
   // Sanitize path to remove sensitive query parameters (e.g., token)
   const sanitizedPath = sanitizeEndpointPath(connectionData.path)
@@ -631,7 +631,7 @@ async function deleteEvents (params = {}, context = {}, transaction) {
   setImmediate(async () => {
     try {
       // Use config.get() which properly parses boolean strings from env vars
-      const captureIp = config.get('settings.eventCaptureIpAddress', true)
+      const captureIp = config.getBoolean('settings.eventCaptureIpAddress', true)
       const endpointType = request.path && request.path.startsWith('/api/v3/agent/') ? 'agent' : 'user'
       const actorId = extractActorId(request)
 

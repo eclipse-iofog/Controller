@@ -133,7 +133,7 @@ describe('User service OIDC', () => {
 
   describe('without auth config', () => {
     beforeEach(() => {
-      applyOidcEnv({})
+      applyOidcEnv({}, { sandbox: $sandbox })
       reloadOidcModule()
     })
 

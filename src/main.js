@@ -8,7 +8,7 @@ const fetch = require('node-fetch-npm')
 
 const isHTTPS = () => {
   const sslKey = config.get('server.ssl.path.key', '')
-  const devMode = config.get('server.devMode', false)
+  const devMode = config.getBoolean('server.devMode', false)
   const sslCert = config.get('server.ssl.path.cert', '')
   return !devMode && sslKey && sslCert
 }

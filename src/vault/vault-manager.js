@@ -149,7 +149,7 @@ class VaultManager {
    */
   async initialize () {
     // Check if vault is enabled using env var or config
-    const vaultEnabled = process.env.VAULT_ENABLED === 'true' || config.get('vault.enabled', false)
+    const vaultEnabled = config.getBoolean('vault.enabled', false)
 
     // If vault is not enabled, use internal encryption
     if (!vaultEnabled) {

@@ -22,9 +22,9 @@ class PostgresDatabaseProvider extends DatabaseProvider {
     }
 
     // Configure SSL if enabled
-    const useSSL = process.env.DB_USE_SSL === 'true' || postgresConfig.useSsl === true
+    const useSSL = config.getBoolean('database.postgres.useSSL', false)
     if (useSSL) {
-      const caBase64 = process.env.DB_SSL_CA_B64
+      const caBase64 = config.get('database.postgres.sslCA', '')
       const sslOptions = caBase64
         ? {
             ca: Buffer.from(caBase64, 'base64').toString('utf-8'),
@@ -50,7 +50,7 @@ class PostgresDatabaseProvider extends DatabaseProvider {
     }
     // Add SSL configuration to Sequelize if enabled
     if (useSSL) {
-      const caBase64 = process.env.DB_SSL_CA_B64
+      const caBase64 = config.get('database.postgres.sslCA', '')
       sequelizeConfig.dialectOptions.ssl = caBase64
         ? {
             ca: Buffer.from(caBase64, 'base64').toString('utf-8'),

@@ -2,6 +2,7 @@ const nconf = require('nconf')
 const path = require('path')
 const fs = require('fs')
 const yaml = require('js-yaml')
+const { parseBoolean } = require('./parse-boolean')
 
 class Config {
   constructor () {
@@ -107,11 +108,21 @@ class Config {
   }
 
   parseEnvValue (value) {
-    // Handle different types
-    if (value === 'true') return true
-    if (value === 'false') return false
+    const bool = parseBoolean(value)
+    if (bool !== undefined) {
+      return bool
+    }
     if (!isNaN(value) && value !== '') return Number(value)
     return value
+  }
+
+  getBoolean (key, defaultValue = false) {
+    const value = this.get(key)
+    if (value === undefined) {
+      return defaultValue
+    }
+    const parsed = parseBoolean(value)
+    return parsed !== undefined ? parsed : defaultValue
   }
 
   formatValue (value) {
