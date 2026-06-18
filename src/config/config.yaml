@@ -9,7 +9,7 @@ app:
 server:
   port: 51121             # Server port number
   devMode: true
-  publicUrl: ""           # Canonical external URL (CONTROLLER_PUBLIC_URL); https required in prod unless auth.insecureAllowHttp
+  publicUrl: "https://localhost:51121"           # Canonical external URL (CONTROLLER_PUBLIC_URL); https required in prod unless auth.insecureAllowHttp
   trustProxy: false       # Honor X-Forwarded-* when behind reverse proxy (TRUST_PROXY)
   webSocket:
     perMessageDeflate: false
