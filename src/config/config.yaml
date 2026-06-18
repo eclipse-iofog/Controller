@@ -144,10 +144,10 @@ systemImages:
     "3": "ghcr.io/eclipse-iofog/router:latest"
     "4": "ghcr.io/eclipse-iofog/router:latest"
   debug:
-    "1": "ghcr.io/eclipse-iofog/node-debugger:latest"
-    "2": "ghcr.io/eclipse-iofog/node-debugger:latest"
-    "3": "ghcr.io/eclipse-iofog/node-debugger:latest"
-    "4": "ghcr.io/eclipse-iofog/node-debugger:latest"
+    "1": "ghcr.io/eclipse-iofog/debugger:latest"
+    "2": "ghcr.io/eclipse-iofog/debugger:latest"
+    "3": "ghcr.io/eclipse-iofog/debugger:latest"
+    "4": "ghcr.io/eclipse-iofog/debugger:latest"
   nats:
     "1": "ghcr.io/eclipse-iofog/nats:latest"
     "2": "ghcr.io/eclipse-iofog/nats:latest"

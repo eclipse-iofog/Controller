@@ -59,21 +59,21 @@ Images publish to `${IMAGE_REGISTRY}/controller` on **`v*` tags only**; both mir
 
 ## Edgelet (required agent)
 
-Controller v3.8 requires **Edgelet v1.0.0-beta.1+** on the same release train. Install Edgelet on each edge node before provisioning:
+Controller v3.8 requires **Edgelet v1.0.0-rc.1+** on the same release train. Install Edgelet on each edge node before provisioning:
 
 | Channel | GitHub repo | Container image |
 |---------|-------------|-----------------|
 | **Eclipse (canonical)** | [eclipse-iofog/edgelet](https://github.com/eclipse-iofog/edgelet) | `ghcr.io/eclipse-iofog/edgelet:<tag>` |
 | **Datasance mirror** | [Datasance/edgelet](https://github.com/Datasance/edgelet) | `ghcr.io/datasance/edgelet:<tag>` |
 
-**Pin:** use an Edgelet release tag that matches your Controller version (e.g. **`v1.0.0-beta.2`** with Controller **`v3.8.0`**). Identical builds and tags on both mirrors.
+**Pin:** use an Edgelet release tag that matches your Controller version (e.g. **`v1.0.0-rc.1`** with Controller **`v3.8.0`**). Identical builds and tags on both mirrors.
 
 ### Eclipse (canonical)
 
 ```bash
-curl -fsSL https://github.com/eclipse-iofog/edgelet/releases/download/v1.0.0-beta.2/install.sh -o install.sh
+curl -fsSL https://github.com/eclipse-iofog/edgelet/releases/download/v1.0.0-rc.1/install.sh -o install.sh
 chmod +x install.sh
-sudo ./install.sh --version=v1.0.0-beta.2
+sudo ./install.sh --version=v1.0.0-rc.1
 edgelet config --a http://<controller-host>:51121/api/v3/
 edgelet provision <provisioning-key>
 ```
@@ -81,9 +81,9 @@ edgelet provision <provisioning-key>
 ### Datasance mirror
 
 ```bash
-curl -fsSL https://github.com/Datasance/edgelet/releases/download/v1.0.0-beta.2/install.sh -o install.sh
+curl -fsSL https://github.com/Datasance/edgelet/releases/download/v1.0.0-rc.1/install.sh -o install.sh
 chmod +x install.sh
-sudo ./install.sh --version=v1.0.0-beta.2
+sudo ./install.sh --version=v1.0.0-rc.1
 edgelet config --a http://<controller-host>:51121/api/v3/
 edgelet provision <provisioning-key>
 ```

@@ -2,36 +2,10 @@ const { NodeSDK } = require('@opentelemetry/sdk-node')
 const { OTLPTraceExporter } = require('@opentelemetry/exporter-trace-otlp-http')
 const { HttpInstrumentation } = require('@opentelemetry/instrumentation-http')
 const { ExpressInstrumentation } = require('@opentelemetry/instrumentation-express')
-const {
-  Resource,
-  envDetectorSync,
-  hostDetectorSync,
-  processDetectorSync
-} = require('@opentelemetry/resources')
 const logger = require('../logger')
 
-// Workaround for async attributes
-function awaitAttributes (detector) {
-  return {
-    async detect (config) {
-      const resource = detector.detect(config)
-      if (resource.waitForAsyncAttributes) {
-        await resource.waitForAsyncAttributes()
-      }
-      return resource
-    }
-  }
-}
-
-// Initialize OpenTelemetry
 const sdk = new NodeSDK({
   serviceName: process.env.OTEL_SERVICE_NAME || 'iofog-controller',
-  resource: new Resource({}),
-  resourceDetectors: [
-    awaitAttributes(envDetectorSync),
-    awaitAttributes(processDetectorSync),
-    awaitAttributes(hostDetectorSync)
-  ],
   traceExporter: new OTLPTraceExporter({
     url: process.env.OTEL_EXPORTER_OTLP_ENDPOINT || 'http://localhost:4318/v1/traces',
     headers: {}

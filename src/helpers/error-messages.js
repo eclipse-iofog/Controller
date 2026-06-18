@@ -120,6 +120,7 @@ module.exports = {
   INVALID_DEFAULT_BRIDGE: 'Invalid default bridge, If service type is not microservice, defaultBridge must be default-router\'{}\'',
   INVALID_ROUTER_CONNECTION: 'Invalid router connection, router {} is not connected to {}',
   NO_AVAILABLE_BRIDGE_PORT: 'No bridge port available in range for {}',
+  SERVICE_REQUIRES_ROUTER: 'TCP bridge service requires a router on agent \'{}\'',
   CONFIGMAP_ALREADY_EXISTS: 'ConfigMap with name {} already exists',
   CONFIGMAP_NOT_FOUND: 'ConfigMap with name {} not found',
   INVALID_SECRET_REFERENCE: 'Invalid secret reference: {}',

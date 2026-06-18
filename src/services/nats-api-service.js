@@ -12,6 +12,7 @@ const ErrorMessages = require('../helpers/error-messages')
 const AppHelper = require('../helpers/app-helper')
 const Validator = require('../schemas')
 const NatsSystemRules = require('../config/nats-system-rules')
+const NatsRuleJwtValidation = require('../helpers/nats-rule-jwt-validation')
 const TransactionDecorator = require('../decorators/transaction-decorator')
 const config = require('../config')
 // const logger = require('../logger')
@@ -254,6 +255,7 @@ async function ensureAccount (appName, payload, transaction) {
   if (!rule) {
     throw new Errors.ValidationError(`NATS account rule '${ruleName}' not found`)
   }
+  NatsRuleJwtValidation.assertAccountRuleJwtEncodable(rule)
   const account = await NatsAuthService.ensureAccountForApplication(application.id, transaction)
   await ApplicationManager.update({ id: application.id }, {
     natsAccess: true,
@@ -322,6 +324,13 @@ async function createUser (appName, payload, transaction) {
   const account = await NatsAuthService.ensureAccountForApplication(application.id, transaction)
   const expiresIn = payload && payload.expiresIn
   const natsRule = payload && payload.natsRule
+  if (natsRule) {
+    const userRule = await NatsUserRuleManager.findOne({ name: natsRule }, transaction)
+    if (!userRule) {
+      throw new Errors.ValidationError(`NATS user rule ${natsRule} does not exist`)
+    }
+    NatsRuleJwtValidation.assertUserRuleJwtEncodable(userRule)
+  }
   const { user } = await NatsAuthService.createUserForAccount(account.id, userName, expiresIn, natsRule, null, transaction)
   return {
     id: user.id,
@@ -383,6 +392,13 @@ async function createMqttBearer (appName, payload, transaction) {
   }
   const expiresIn = payload && payload.expiresIn
   const natsRule = payload && payload.natsRule
+  if (natsRule) {
+    const userRule = await NatsUserRuleManager.findOne({ name: natsRule }, transaction)
+    if (!userRule) {
+      throw new Errors.ValidationError(`NATS user rule ${natsRule} does not exist`)
+    }
+    NatsRuleJwtValidation.assertUserRuleJwtEncodable(userRule)
+  }
   const { user, bearerJwt } = await NatsAuthService.createMqttBearerUser(application.id, userName, expiresIn, natsRule, transaction)
   return {
     id: user.id,
@@ -452,6 +468,7 @@ async function createAccountRule (payload, transaction) {
   if (existing) {
     throw new Errors.ValidationError(`NATS account rule ${payload.name} already exists`)
   }
+  NatsRuleJwtValidation.assertAccountRuleJwtEncodable(payload)
   const created = await NatsAccountRuleManager.create(_normalizeRulePayload(payload, true), transaction)
   return _hydrateRulePayload(created, true)
 }
@@ -463,6 +480,7 @@ async function updateAccountRule (ruleName, payload, transaction) {
   if (!rule) {
     throw new Errors.NotFoundError(`NATS account rule ${ruleName} not found`)
   }
+  NatsRuleJwtValidation.assertAccountRuleJwtEncodable(payload, { ruleName, partial: true })
   const normalizedPayload = _normalizeRulePayload(payload, true)
   delete normalizedPayload.name
   await NatsAccountRuleManager.update({ id: rule.id }, normalizedPayload, transaction)
@@ -516,6 +534,7 @@ async function createUserRule (payload, transaction) {
   if (existing) {
     throw new Errors.ValidationError(`NATS user rule ${payload.name} already exists`)
   }
+  NatsRuleJwtValidation.assertUserRuleJwtEncodable(payload)
   const created = await NatsUserRuleManager.create(_normalizeRulePayload(payload, false), transaction)
   return _hydrateRulePayload(created, false)
 }
@@ -527,6 +546,7 @@ async function updateUserRule (ruleName, payload, transaction) {
   if (!rule) {
     throw new Errors.NotFoundError(`NATS user rule ${ruleName} not found`)
   }
+  NatsRuleJwtValidation.assertUserRuleJwtEncodable(payload, { ruleName, partial: true })
   const normalizedPayload = _normalizeRulePayload(payload, false)
   delete normalizedPayload.name
   await NatsUserRuleManager.update({ id: rule.id }, normalizedPayload, transaction)
