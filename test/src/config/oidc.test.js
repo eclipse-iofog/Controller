@@ -165,6 +165,22 @@ describe('OIDC config', () => {
       expect(result.nextCalled).to.equal(true)
       expect(result.req.kauth).to.equal(undefined)
     })
+
+    it('skips OIDC validation for public catalog routes such as /api/v3/status', async () => {
+      const { modules } = await $harness
+      modules.oidc.initOidc()
+
+      const result = await runMiddleware(modules.oidc.getOidcMiddleware(), {
+        method: 'GET',
+        path: '/api/v3/status',
+        headers: {
+          authorization: 'Bearer not-an-oidc-token'
+        }
+      })
+
+      expect(result.nextCalled).to.equal(true)
+      expect(result.req.kauth).to.equal(undefined)
+    })
   })
 
   describe('getOauthClientConfiguration()', () => {

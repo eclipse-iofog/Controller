@@ -24,6 +24,7 @@ const config = require('./index')
 const logger = require('../logger')
 const { getPublicUrl: resolvePublicUrl } = require('./auth-urls')
 const { getActiveSigningMaterial, getPublicJwk } = require('./auth-jwks')
+const { isPublicCatalogRoute } = require('../lib/rbac/route-catalog-utils')
 
 let oidcInstance = null
 let discoveryPromise = null
@@ -228,6 +229,11 @@ function getOidcMiddleware () {
     // Agent routes use fog JWTs (checkFogToken), not OIDC bearer tokens
     const requestPath = req.path || (req.url && req.url.split('?')[0]) || ''
     if (requestPath.startsWith('/api/v3/agent') || requestPath.startsWith('/oidc')) {
+      return next()
+    }
+
+    // Public catalog routes (e.g. GET /api/v3/status) do not require OIDC bearer validation
+    if (isPublicCatalogRoute(req.method, requestPath)) {
       return next()
     }
 
