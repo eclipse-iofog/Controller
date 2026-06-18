@@ -100,6 +100,7 @@ function stubCreateMicroserviceDeps (sandbox, { msvcUuid = 'msvc-uuid', appId = 
   sandbox.stub(MicroserviceStatusManager, 'create').resolves()
   sandbox.stub(MicroserviceExecStatusManager, 'create').resolves()
   sandbox.stub(ChangeTrackingService, 'update').resolves()
+  sandbox.stub(VolumeMappingManager, 'bulkCreate').resolves()
   stubServiceAccountDeps(sandbox)
 }
 
@@ -122,6 +123,7 @@ function stubUpdateMicroserviceDeps (sandbox, existing) {
   sandbox.stub(MicroserviceExtraHostManager, 'findAll').resolves([])
   sandbox.stub(ServiceManager, 'findOne').resolves(null)
   sandbox.stub(ChangeTrackingService, 'update').resolves()
+  sandbox.stub(VolumeMappingManager, 'delete').resolves()
   stubServiceAccountDeps(sandbox)
 }
 
@@ -250,6 +252,40 @@ describe('Microservices Service', () => {
 
       it('rejects with ValidationError', () => expect($subject).to.be.rejectedWith(Errors.ValidationError))
     })
+
+    context('when volumeMappings include a system serviceAccount volume', () => {
+      const userVolume = {
+        hostDestination: 'nats-creds-data',
+        containerDestination: '/etc/nats/creds',
+        accessMode: 'ro',
+        type: 'volume'
+      }
+      const serviceAccountVolume = {
+        hostDestination: 'new-msvc',
+        containerDestination: '/var/run/secrets/edgelet.iofog.org/serviceaccount',
+        accessMode: 'ro',
+        type: 'serviceAccount'
+      }
+      const payloadWithServiceAccountVolume = {
+        name: 'new-msvc',
+        application: 'my-app',
+        iofogUuid: 'fog-uuid',
+        images: [{ containerImage: 'demo:latest', archId: 1 }],
+        registryId: 1,
+        volumeMappings: [userVolume, serviceAccountVolume, serviceAccountVolume]
+      }
+
+      def('subject', () => $service.createMicroserviceEndPoint(payloadWithServiceAccountVolume, isCLI, transaction))
+
+      it('strips serviceAccount volumes and creates only user mappings', async () => {
+        await $subject
+        expect(VolumeMappingManager.bulkCreate).to.have.been.calledOnce
+        const [mappings] = VolumeMappingManager.bulkCreate.firstCall.args
+        expect(mappings).to.have.length(1)
+        expect(mappings[0]).to.include(userVolume)
+        expect(VolumeMappingManager.create).to.have.been.called
+      })
+    })
   })
 
   describe('.updateMicroserviceEndPoint()', () => {
@@ -305,6 +341,45 @@ describe('Microservices Service', () => {
       })
 
       it('rejects updates', () => expect($subject).to.be.rejectedWith(Errors.ValidationError))
+    })
+
+    context('when volumeMappings include a system serviceAccount volume', () => {
+      const userVolume = {
+        hostDestination: 'nats-creds-data',
+        containerDestination: '/etc/nats/creds',
+        accessMode: 'ro',
+        type: 'volume'
+      }
+      const serviceAccountVolume = {
+        hostDestination: 'immutable-name',
+        containerDestination: '/var/run/secrets/edgelet.iofog.org/serviceaccount',
+        accessMode: 'ro',
+        type: 'serviceAccount'
+      }
+
+      def('updateData', () => ({
+        volumeMappings: [userVolume, serviceAccountVolume]
+      }))
+
+      it('strips serviceAccount volumes, updates user mappings, and re-injects service account volume', async () => {
+        await $subject
+        expect(VolumeMappingManager.delete).to.have.been.calledWith({ microserviceUuid: msvcUuid }, transaction)
+        expect(VolumeMappingManager.create).to.have.been.calledTwice
+        const [createdMapping] = VolumeMappingManager.create.firstCall.args
+        expect(createdMapping).to.include({
+          microserviceUuid: msvcUuid,
+          hostDestination: userVolume.hostDestination,
+          containerDestination: userVolume.containerDestination,
+          accessMode: userVolume.accessMode,
+          type: userVolume.type
+        })
+        const [injectedMapping] = VolumeMappingManager.create.secondCall.args
+        expect(injectedMapping).to.include({
+          microserviceUuid: msvcUuid,
+          type: 'serviceAccount',
+          containerDestination: '/var/run/secrets/edgelet.iofog.org/serviceaccount'
+        })
+      })
     })
   })
 
@@ -457,6 +532,73 @@ describe('Microservices Service', () => {
       })
 
       it('rejects with NotFoundError', () => expect($subject).to.be.rejectedWith(Errors.NotFoundError))
+    })
+  })
+
+  describe('.stripUserServiceAccountVolumeMappings()', () => {
+    it('removes serviceAccount entries in place and leaves user volumes', () => {
+      const userVolume = {
+        hostDestination: 'data',
+        containerDestination: '/data',
+        accessMode: 'rw',
+        type: 'volume'
+      }
+      const serviceAccountVolume = {
+        hostDestination: 'msvc',
+        containerDestination: '/var/run/secrets/edgelet.iofog.org/serviceaccount',
+        accessMode: 'ro',
+        type: 'serviceAccount'
+      }
+      const volumeMappings = [userVolume, serviceAccountVolume, serviceAccountVolume]
+
+      $service.stripUserServiceAccountVolumeMappings(volumeMappings)
+
+      expect(volumeMappings).to.eql([userVolume])
+    })
+
+    it('no-ops for non-array input', () => {
+      expect(() => $service.stripUserServiceAccountVolumeMappings(null)).to.not.throw()
+      expect(() => $service.stripUserServiceAccountVolumeMappings(undefined)).to.not.throw()
+    })
+  })
+
+  describe('.createVolumeMappingEndPoint()', () => {
+    const msvcUuid = 'msvc-uuid'
+    const microservice = buildMicroserviceRecord({ uuid: msvcUuid })
+
+    def('subject', () => $service.createVolumeMappingEndPoint(msvcUuid, $volumeMappingData, isCLI, transaction))
+    def('volumeMappingData', () => ({
+      hostDestination: 'data',
+      containerDestination: '/data',
+      accessMode: 'rw',
+      type: 'volume'
+    }))
+
+    beforeEach(() => {
+      $sandbox.stub(Validator, 'validate').resolves(true)
+      $sandbox.stub(MicroserviceManager, 'findMicroserviceOnGet').resolves(microservice)
+      $sandbox.stub(VolumeMappingManager, 'findOne').resolves(null)
+      $sandbox.stub(VolumeMappingManager, 'create').resolves({ uuid: 'vol-uuid' })
+    })
+
+    it('creates a user volume mapping', async () => {
+      await $subject
+      expect(VolumeMappingManager.create).to.have.been.calledOnce
+    })
+
+    context('when type is serviceAccount', () => {
+      def('volumeMappingData', () => ({
+        hostDestination: 'immutable-name',
+        containerDestination: '/var/run/secrets/edgelet.iofog.org/serviceaccount',
+        accessMode: 'ro',
+        type: 'serviceAccount'
+      }))
+
+      it('rejects direct creation of system-managed volume mappings', () => {
+        return expect($subject).to.be.rejectedWith(
+          'Volume mappings of type serviceAccount are system-managed and cannot be created by users'
+        )
+      })
     })
   })
 })
