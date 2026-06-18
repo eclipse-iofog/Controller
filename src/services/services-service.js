@@ -22,7 +22,8 @@ const { getServiceAnnotationTag, getComponentLabelKey, getAppLabelKey } = requir
 // const { Op } = require('sequelize')
 
 const K8S_ROUTER_CONFIG_MAP = 'iofog-router'
-const EDGELET_BRIDGE_CONNECTOR_HOST = 'edgelet.default.bridge.local'
+const EDGELET_BRIDGE_CONNECTOR_HOST = 'edgelet.default.svc.bridge.local'
+const INTERIOR_BRIDGE_CONNECTOR_HOST = '127.0.0.1'
 
 // Map service tags to string array
 // Return plain JS object
@@ -257,6 +258,26 @@ async function defineBridgePort (serviceConfig, transaction) {
   throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.NO_AVAILABLE_BRIDGE_PORT, bridgePortRangeStr))
 }
 
+async function _resolveFogRouterMode (fogUuid, transaction) {
+  const fog = await FogManager.findOne({ uuid: fogUuid }, transaction)
+  if (!fog) {
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, fogUuid))
+  }
+  const router = await RouterManager.findOne({ iofogUuid: fogUuid }, transaction)
+  if (!router) {
+    return 'none'
+  }
+  return router.isEdge ? 'edge' : 'interior'
+}
+
+function _assertBridgeRouterMode (routerMode, fogUuid) {
+  if (routerMode === 'none') {
+    throw new Errors.ValidationError(
+      AppHelper.formatMessage(ErrorMessages.SERVICE_REQUIRES_ROUTER, fogUuid)
+    )
+  }
+}
+
 // Helper function to determine host based on service type
 async function _determineConnectorHost (serviceConfig, transaction) {
   switch (serviceConfig.type.toLowerCase()) {
@@ -265,17 +286,31 @@ async function _determineConnectorHost (serviceConfig, transaction) {
       if (!microservice) {
         throw new Errors.NotFoundError(`Microservice not found: ${serviceConfig.resource}`)
       }
+      const routerMode = await _resolveFogRouterMode(microservice.iofogUuid, transaction)
+      _assertBridgeRouterMode(routerMode, microservice.iofogUuid)
+
+      if (routerMode === 'interior') {
+        return INTERIOR_BRIDGE_CONNECTOR_HOST
+      }
+
       if (microservice.hostNetworkMode) {
         return EDGELET_BRIDGE_CONNECTOR_HOST
       }
+
       const application = await ApplicationManager.findOne({ id: microservice.applicationId }, transaction)
       if (!application) {
         throw new Errors.NotFoundError(`Application not found for microservice: ${serviceConfig.resource}`)
       }
       return `${application.name}.${microservice.name}`
     }
-    case 'agent':
-      return EDGELET_BRIDGE_CONNECTOR_HOST
+    case 'agent': {
+      const fogUuid = serviceConfig.resource
+      const routerMode = await _resolveFogRouterMode(fogUuid, transaction)
+      _assertBridgeRouterMode(routerMode, fogUuid)
+      return routerMode === 'interior'
+        ? INTERIOR_BRIDGE_CONNECTOR_HOST
+        : EDGELET_BRIDGE_CONNECTOR_HOST
+    }
     case 'k8s':
     case 'external':
       return serviceConfig.resource
@@ -284,7 +319,7 @@ async function _determineConnectorHost (serviceConfig, transaction) {
   }
 }
 
-// Helper function to determine siteId for connector
+// Resolves which edgelet's router will receive the tcpConnector (not persisted in skrouter config).
 async function _determineConnectorSiteId (serviceConfig, transaction) {
   switch (serviceConfig.type.toLowerCase()) {
     case 'microservice': {
@@ -323,7 +358,6 @@ async function _determineConnectorProcessId (serviceConfig) {
 // Helper function to build tcpConnector configuration
 async function _buildTcpConnector (serviceConfig, transaction) {
   const host = await _determineConnectorHost(serviceConfig, transaction)
-  const siteId = await _determineConnectorSiteId(serviceConfig, transaction)
   const processId = await _determineConnectorProcessId(serviceConfig)
 
   return {
@@ -331,20 +365,17 @@ async function _buildTcpConnector (serviceConfig, transaction) {
     host,
     port: serviceConfig.targetPort.toString(),
     address: serviceConfig.name,
-    siteId,
     processId
   }
 }
 
 // Helper function to build tcpListener configuration
-async function _buildTcpListener (serviceConfig, fogNodeUuid = null) {
-  const listener = {
+function _buildTcpListener (serviceConfig) {
+  return {
     name: `${serviceConfig.name}-listener`,
     port: serviceConfig.bridgePort.toString(),
-    address: serviceConfig.name,
-    siteId: fogNodeUuid || serviceConfig.defaultBridge
+    address: serviceConfig.name
   }
-  return listener
 }
 
 // Helper function to get router microservice by fog node UUID
@@ -399,10 +430,10 @@ async function _updateRouterMicroserviceConfig (fogNodeUuid, config, transaction
 // Helper function to add tcpConnector to router config
 async function _addTcpConnector (serviceConfig, transaction) {
   const isK8s = await checkKubernetesEnvironment()
+  const targetRouterNode = await _determineConnectorSiteId(serviceConfig, transaction)
   const connector = await _buildTcpConnector(serviceConfig, transaction)
-  const siteId = connector.siteId
 
-  if (siteId === 'default-router') {
+  if (targetRouterNode === 'default-router') {
     if (isK8s) {
       // Update K8s router config
       logger.debug('Updating K8s router config')
@@ -440,7 +471,7 @@ async function _addTcpConnector (serviceConfig, transaction) {
     }
   } else {
     // Update specific router microservice config
-    const fogNodeUuid = siteId
+    const fogNodeUuid = targetRouterNode
     const routerMicroservice = await _getRouterMicroservice(fogNodeUuid, transaction)
     const currentConfig = JSON.parse(routerMicroservice.config || '{}')
 
@@ -462,7 +493,7 @@ async function _addTcpListener (serviceConfig, transaction) {
 
   // First handle K8s case if we're in K8s environment
   if (isK8s) {
-    const k8sListener = await _buildTcpListener(serviceConfig, null) // null for K8s case
+    const k8sListener = _buildTcpListener(serviceConfig)
     const configMap = await K8sClient.getConfigMap(K8S_ROUTER_CONFIG_MAP)
     if (!configMap) {
       logger.error('ConfigMap not found:' + K8S_ROUTER_CONFIG_MAP)
@@ -511,7 +542,7 @@ async function _addTcpListener (serviceConfig, transaction) {
   // Add listener to each router microservice
   for (const fogNodeUuid of fogNodeUuids) {
     try {
-      const listener = await _buildTcpListener(serviceConfig, fogNodeUuid)
+      const listener = _buildTcpListener(serviceConfig)
       const routerMicroservice = await _getRouterMicroservice(fogNodeUuid, transaction)
       const currentConfig = JSON.parse(routerMicroservice.config || '{}')
       if (!currentConfig.bridges) currentConfig.bridges = {}
@@ -531,10 +562,10 @@ async function _addTcpListener (serviceConfig, transaction) {
 // Helper function to update tcpConnector in router config
 async function _updateTcpConnector (serviceConfig, transaction) {
   const isK8s = await checkKubernetesEnvironment()
+  const targetRouterNode = await _determineConnectorSiteId(serviceConfig, transaction)
   const connector = await _buildTcpConnector(serviceConfig, transaction)
-  const siteId = connector.siteId
 
-  if (siteId === 'default-router') {
+  if (targetRouterNode === 'default-router') {
     if (isK8s) {
       // Update K8s router config
       const configMap = await K8sClient.getConfigMap(K8S_ROUTER_CONFIG_MAP)
@@ -575,7 +606,7 @@ async function _updateTcpConnector (serviceConfig, transaction) {
     }
   } else {
     // Update specific router microservice config
-    const fogNodeUuid = siteId
+    const fogNodeUuid = targetRouterNode
     const routerMicroservice = await _getRouterMicroservice(fogNodeUuid, transaction)
     const currentConfig = JSON.parse(routerMicroservice.config || '{}')
 
@@ -834,7 +865,11 @@ async function _deleteTcpListener (serviceName, transaction) {
         logger.info('_deleteTcpListener: router microservice not found, skipping', { fogNodeUuid })
         continue
       }
-      logger.error('_deleteTcpListener: error updating router config', { fogNodeUuid, message: err.message })
+      logger.error({
+        err,
+        msg: '_deleteTcpListener: error updating router config',
+        fogNodeUuid
+      })
       throw err
     }
   }
@@ -1051,7 +1086,13 @@ async function createServiceEndpoint (serviceData, transaction) {
       // Update provisioning status to ready
       await ServiceManager.update({ id: service.id }, { provisioningStatus: 'ready', provisioningError: null }, transaction)
     } catch (err) {
-      logger.error('Background provisioning failed:', err)
+      logger.error({
+        err,
+        msg: 'Background provisioning failed',
+        serviceId: service.id,
+        serviceName: serviceData.name,
+        serviceType: serviceData.type
+      })
       // Update provisioning status to failed and set error message
       await ServiceManager.update({ id: service.id }, { provisioningStatus: 'failed', provisioningError: err.message }, transaction)
     }
@@ -1169,7 +1210,11 @@ async function updateServiceEndpoint (serviceName, serviceData, transaction) {
         transaction
       )
     } catch (err) {
-      logger.error('Background provisioning failed (update):', err)
+      logger.error({
+        err,
+        msg: 'Background provisioning failed (update)',
+        serviceName
+      })
       // Update provisioning status to failed and set error message
       await ServiceManager.update(
         { name: serviceName },
@@ -1220,11 +1265,10 @@ async function deleteServiceEndpoint (serviceName, transaction) {
 
     return { message: `Service ${serviceName} deleted successfully` }
   } catch (error) {
-    logger.error('deleteServiceEndpoint: error', {
-      serviceName,
-      message: error.message,
-      stack: error.stack,
-      constructorName: error.constructor && error.constructor.name
+    logger.error({
+      err: error,
+      msg: 'deleteServiceEndpoint: error',
+      serviceName
     })
 
     // Wrap the error in a proper error type if it's not already
@@ -1334,5 +1378,10 @@ module.exports = {
   getServicesListEndpoint: TransactionDecorator.generateTransaction(getServicesListEndpoint),
   getServiceEndpoint: TransactionDecorator.generateTransaction(getServiceEndpoint),
   moveMicroserviceTcpBridgeToNewFog: TransactionDecorator.generateTransaction(moveMicroserviceTcpBridgeToNewFog),
-  _determineConnectorHost
+  _determineConnectorHost,
+  _determineConnectorSiteId,
+  _buildTcpConnector,
+  _buildTcpListener,
+  _addTcpConnector,
+  _resolveFogRouterMode
 }

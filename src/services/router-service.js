@@ -427,9 +427,9 @@ async function _getRouterMicroserviceConfig (isEdge, uuid, messagingPort, interR
   const siteServerSecret = await SecretManager.getSecret(`router-site-server-${fog.name}`, transaction)
   const localServerSecret = await SecretManager.getSecret(`router-local-server-${fog.name}`, transaction)
   const localAgentSecret = await SecretManager.getSecret(`router-local-agent-${fog.name}`, transaction)
-  let platform = 'docker'
-  if (containerEngine === 'podman') {
-    platform = 'podman'
+  let platform = 'edgelet'
+  if (containerEngine && containerEngine !== 'edgelet') {
+    platform = containerEngine
   }
 
   const config = {

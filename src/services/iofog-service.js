@@ -453,7 +453,7 @@ async function createFogEndPoint (fogData, isCLI, transaction) {
               }
               let config = JSON.parse(routerMicroservice.config || '{}')
               for (const service of services) {
-                const listenerConfig = _buildTcpListenerForFog(service, fog.uuid)
+                const listenerConfig = _buildTcpListenerForFog(service)
                 config = _mergeTcpListener(config, listenerConfig)
               }
               await MicroserviceManager.update(
@@ -700,7 +700,7 @@ async function updateFogEndPoint (fogData, isCLI, transaction) {
                 }
                 let config = JSON.parse(routerMicroservice.config || '{}')
                 for (const service of services) {
-                  const listenerConfig = _buildTcpListenerForFog(service, fogData.uuid)
+                  const listenerConfig = _buildTcpListenerForFog(service)
                   config = _mergeTcpListener(config, listenerConfig)
                 }
                 await MicroserviceManager.update(
@@ -732,7 +732,7 @@ async function updateFogEndPoint (fogData, isCLI, transaction) {
               const services = await _findMatchingServices(serviceTags, transaction)
               if (services.length > 0) {
                 for (const service of services) {
-                  const listenerConfig = _buildTcpListenerForFog(service, fogData.uuid)
+                  const listenerConfig = _buildTcpListenerForFog(service)
                   config = _mergeTcpListener(config, listenerConfig)
                 }
               }
@@ -1609,12 +1609,11 @@ async function _findMatchingServices (serviceTags, transaction) {
  * @param {string} fogNodeUuid - UUID of the fog node
  * @returns {Object} TCP listener configuration
  */
-function _buildTcpListenerForFog (service, fogNodeUuid) {
+function _buildTcpListenerForFog (service) {
   return {
     name: `${service.name}-listener`,
     port: service.bridgePort.toString(),
-    address: service.name,
-    siteId: fogNodeUuid
+    address: service.name
   }
 }
 
