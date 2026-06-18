@@ -123,9 +123,7 @@ function buildKauthGrant (claims, rawToken) {
 }
 
 function getDiscoveryOptions () {
-  const allowHttp = process.env.AUTH_INSECURE_ALLOW_HTTP !== undefined
-    ? process.env.AUTH_INSECURE_ALLOW_HTTP === 'true'
-    : config.get('auth.insecureAllowHttp', false) === true
+  const allowHttp = config.getBoolean('auth.insecureAllowHttp', false)
   if (!allowHttp) {
     return undefined
   }
@@ -199,7 +197,7 @@ function initOidc () {
 
   // v3.9: read TLS client-auth policy when HTTPS + requestCert enabled (server.js listener)
   if (!isAuthConfigured()) {
-    const isProduction = !config.get('server.devMode', true)
+    const isProduction = !config.getBoolean('server.devMode', true)
     if (isProduction) {
       const error = new Error('Auth configuration required in production mode')
       logger.error('Failed to initialize OIDC:', error)

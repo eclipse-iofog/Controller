@@ -14,6 +14,7 @@ const { createOidcProviderAdapterFactory } = require('../data/adapters/oidc-prov
 const { buildUserAccessClaims } = require('../services/auth-token-service')
 const { loadOidcProviderTtls } = require('./auth-oidc-ttl')
 const { getPublicUrl, getConsoleUrl } = require('./auth-urls')
+const { getTrustProxySetting } = require('./trust-proxy')
 
 const DEFAULT_CONSOLE_CLIENT_ID = 'ecn-viewer'
 
@@ -40,11 +41,7 @@ function buildInteractionPolicy () {
 }
 
 function isConsoleClientEnabled () {
-  const envValue = process.env.AUTH_CONSOLE_CLIENT_ENABLED
-  if (envValue !== undefined && envValue !== null && envValue !== '') {
-    return envValue === 'true' || envValue === '1'
-  }
-  return config.get('auth.consoleClient.enabled', false) === true
+  return config.getBoolean('auth.consoleClient.enabled', false)
 }
 
 function getConsoleClientId () {
@@ -77,14 +74,6 @@ async function ensureConfidentialClientMetadata (db) {
     token_endpoint_auth_method: 'client_secret_basic',
     redirect_uris: [`${publicUrl}/api/v3/user/oauth/callback`]
   }
-}
-
-function getTrustProxySetting () {
-  const trustProxy = process.env.TRUST_PROXY || config.get('server.trustProxy', false)
-  if (trustProxy === true || trustProxy === 'true' || trustProxy === 1 || trustProxy === '1') {
-    return true
-  }
-  return trustProxy || false
 }
 
 async function ensureConsoleClientMetadata (db) {

@@ -34,6 +34,7 @@ initialize().then(() => {
     resolveSessionSecret
   } = require('./config/auth-session-store.js')
   const { getPublicUrl, getConsoleUrl } = require('./config/auth-urls.js')
+  const { getTrustProxySetting } = require('./config/trust-proxy.js')
 
   function resolveConsolePath () {
     if (process.env.EDGEOPS_CONSOLE_PATH) {
@@ -49,20 +50,20 @@ initialize().then(() => {
   const consoleApp = express()
   const app = express()
 
-  const trustProxy = process.env.TRUST_PROXY || config.get('server.trustProxy', false)
+  const trustProxy = getTrustProxySetting()
   if (trustProxy) {
     app.set('trust proxy', trustProxy === true ? 1 : trustProxy)
     consoleApp.set('trust proxy', trustProxy === true ? 1 : trustProxy)
   }
 
   function validateProductionPublicUrl () {
-    const devMode = process.env.DEV_MODE || config.get('server.devMode', true)
+    const devMode = config.getBoolean('server.devMode', true)
     if (devMode) {
       return
     }
 
     const publicUrl = process.env.CONTROLLER_PUBLIC_URL || config.get('server.publicUrl')
-    const insecureAllowHttp = config.get('auth.insecureAllowHttp', false)
+    const insecureAllowHttp = config.getBoolean('auth.insecureAllowHttp', false)
 
     if (!publicUrl) {
       throw new Error('CONTROLLER_PUBLIC_URL is required in production mode')
@@ -82,8 +83,8 @@ initialize().then(() => {
 
   validateProductionPublicUrl()
 
-  const devMode = process.env.DEV_MODE || config.get('server.devMode', true)
-  const insecureAllowHttp = config.get('auth.insecureAllowHttp', false)
+  const devMode = config.getBoolean('server.devMode', true)
+  const insecureAllowHttp = config.getBoolean('auth.insecureAllowHttp', false)
 
   const consoleURLForCors = getConsoleUrl()
   app.use(cors({

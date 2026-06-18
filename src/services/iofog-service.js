@@ -1095,7 +1095,7 @@ async function generateProvisioningKeyEndPoint (fogData, isCLI, transaction) {
 
   const provisioningKeyData = await refreshProvisionKeyForFog(fogData.uuid, transaction)
 
-  const devMode = process.env.DEV_MODE || config.get('server.devMode')
+  const devMode = config.getBoolean('server.devMode', false)
   const sslCert = process.env.SSL_CERT || config.get('server.ssl.path.cert')
   const intermedKey = process.env.INTERMEDIATE_CERT || config.get('server.ssl.path.intermediateCert')
   const sslCertBase64 = config.get('server.ssl.base64.cert')

@@ -2,6 +2,7 @@ const { NodeSDK } = require('@opentelemetry/sdk-node')
 const { OTLPTraceExporter } = require('@opentelemetry/exporter-trace-otlp-http')
 const { HttpInstrumentation } = require('@opentelemetry/instrumentation-http')
 const { ExpressInstrumentation } = require('@opentelemetry/instrumentation-express')
+const config = require('./index')
 const logger = require('../logger')
 
 const sdk = new NodeSDK({
@@ -16,10 +17,13 @@ const sdk = new NodeSDK({
   ]
 })
 
+function isTelemetryEnabled () {
+  return config.getBoolean('otel.enabled', false)
+}
+
 // Start the SDK
 async function startTelemetry () {
-  const isTelemetryEnabled = process.env.ENABLE_TELEMETRY === 'true'
-  if (!isTelemetryEnabled) {
+  if (!isTelemetryEnabled()) {
     logger.info('Telemetry is disabled via ENABLE_TELEMETRY environment variable')
     return
   }
@@ -35,7 +39,7 @@ async function startTelemetry () {
 
 // Handle process termination
 process.on('SIGTERM', () => {
-  if (process.env.ENABLE_TELEMETRY !== 'true') return
+  if (!isTelemetryEnabled()) return
 
   try {
     sdk.shutdown()

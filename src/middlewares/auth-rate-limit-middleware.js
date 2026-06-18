@@ -17,7 +17,7 @@ const rateLimits = new Map()
 
 function getRateLimitConfig () {
   return {
-    enabled: config.get('auth.rateLimit.enabled', true),
+    enabled: config.getBoolean('auth.rateLimit.enabled', true),
     maxRequests: config.get('auth.rateLimit.maxRequestsPerWindow', 60),
     windowMs: config.get('auth.rateLimit.windowMs', 60000)
   }

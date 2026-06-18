@@ -23,7 +23,7 @@ module.exports = [
 
       // Add rbacMiddleware.protect middleware to protect the route
       await rbacMiddleware.protect()(req, res, async () => {
-        if (config.get('nats.enabled')) {
+        if (config.getBoolean('nats.enabled', false)) {
           res.sendStatus(204)
           return
         }
