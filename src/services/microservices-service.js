@@ -38,6 +38,7 @@ const RbacRoleManager = require('../data/managers/rbac-role-manager')
 const RbacCacheVersionManager = require('../data/managers/rbac-cache-version-manager')
 const NatsAuthService = require('./nats-auth-service')
 const NatsUserRuleManager = require('../data/managers/nats-user-rule-manager')
+const NatsRuleJwtValidation = require('../helpers/nats-rule-jwt-validation')
 
 const Op = require('sequelize').Op
 const FogManager = require('../data/managers/iofog-manager')
@@ -435,18 +436,19 @@ function _buildServiceAccountVolumeMapping (microserviceName) {
   }
 }
 
-function _rejectUserServiceAccountVolumeMappings (volumeMappings) {
-  if (!volumeMappings) {
+function _stripUserServiceAccountVolumeMappings (volumeMappings) {
+  if (!Array.isArray(volumeMappings)) {
     return
   }
-  for (const mapping of volumeMappings) {
+  let writeIndex = 0
+  for (let readIndex = 0; readIndex < volumeMappings.length; readIndex++) {
+    const mapping = volumeMappings[readIndex]
     const type = mapping.type || VOLUME_MAPPING_DEFAULT
-    if (_isServiceAccountVolumeType(type)) {
-      throw new Errors.ValidationError(
-        'Volume mappings of type serviceAccount are system-managed and cannot be set by users'
-      )
+    if (!_isServiceAccountVolumeType(type)) {
+      volumeMappings[writeIndex++] = mapping
     }
   }
+  volumeMappings.length = writeIndex
 }
 
 async function _injectServiceAccountVolume (microservice, transaction) {
@@ -492,6 +494,7 @@ async function _normalizeMicroserviceNatsConfig (microserviceData, transaction, 
     if (!rule) {
       throw new Errors.ValidationError(`NATS user rule ${natsConfig.natsRule} does not exist`)
     }
+    NatsRuleJwtValidation.assertUserRuleJwtEncodable(rule)
     microserviceData.natsRuleId = rule.id
   } else if (existingMicroservice && !Object.prototype.hasOwnProperty.call(natsConfig, 'natsRule')) {
     microserviceData.natsRuleId = existingMicroservice.natsRuleId
@@ -664,7 +667,7 @@ async function createMicroserviceEndPoint (microserviceData, isCLI, transaction)
 }
 
 function _validateVolumeMappings (volumeMappings) {
-  _rejectUserServiceAccountVolumeMappings(volumeMappings)
+  _stripUserServiceAccountVolumeMappings(volumeMappings)
   if (volumeMappings) {
     for (const mapping of volumeMappings) {
       mapping.type = mapping.type || VOLUME_MAPPING_DEFAULT
@@ -2847,5 +2850,6 @@ module.exports = {
   stopMicroserviceEndPoint: TransactionDecorator.generateTransaction(stopMicroserviceEndPoint),
   reconcileNatsForApplication: TransactionDecorator.generateTransaction(reconcileNatsForApplication, bypassOptions),
   injectServiceAccountVolume: _injectServiceAccountVolume,
+  stripUserServiceAccountVolumeMappings: _stripUserServiceAccountVolumeMappings,
   createOrUpdateServiceAccountForMicroservice: _createOrUpdateServiceAccountForMicroservice
 }

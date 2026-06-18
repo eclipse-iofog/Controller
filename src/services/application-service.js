@@ -12,6 +12,7 @@ const ApplicationTemplateService = require('./application-template-service')
 const Validator = require('../schemas')
 const remove = require('lodash/remove')
 const NatsAccountRuleManager = require('../data/managers/nats-account-rule-manager')
+const NatsRuleJwtValidation = require('../helpers/nats-rule-jwt-validation')
 const NatsAuthService = require('./nats-auth-service')
 const logger = require('../logger')
 
@@ -264,6 +265,7 @@ async function _resolveApplicationNatsConfig (applicationData, transaction, exis
     if (!rule) {
       throw new Errors.ValidationError(`NATS account rule ${applicationData.natsConfig.natsRule} does not exist`)
     }
+    NatsRuleJwtValidation.assertAccountRuleJwtEncodable(rule)
     natsRuleId = rule.id
   }
   if (natsAccess === false) {
