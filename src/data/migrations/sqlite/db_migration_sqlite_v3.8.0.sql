@@ -216,7 +216,6 @@ CREATE TABLE IF NOT EXISTS Microservices (
     name VARCHAR(255) DEFAULT 'New Microservice',
     config_last_updated BIGINT,
     rebuild BOOLEAN DEFAULT false,
-    root_host_access BOOLEAN DEFAULT false,
     log_size BIGINT DEFAULT 0,
     `delete` BOOLEAN DEFAULT false,
     delete_with_cleanup BOOLEAN DEFAULT false,
