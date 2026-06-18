@@ -140,7 +140,7 @@ describe('Embedded OIDC issuer', () => {
       CONTROLLER_PUBLIC_URL: $publicUrl,
       AUTH_CONSOLE_CLIENT_ENABLED: 'true',
       OIDC_CONSOLE_CLIENT_ID: 'ecn-viewer'
-    })
+    }, { sandbox: $sandbox })
 
     const embeddedOidc = reloadEmbeddedOidcModule()
     const app = express()

@@ -42,7 +42,7 @@ describe('OIDC config', () => {
 
   describe('isAuthConfigured()', () => {
     it('returns false when embedded mode has no public URL', () => {
-      applyOidcEnv({})
+      applyOidcEnv({}, { sandbox: $sandbox })
       const oidc = reloadOidcModule()
       expect(oidc.isAuthConfigured()).to.equal(false)
     })
@@ -62,7 +62,7 @@ describe('OIDC config', () => {
 
   describe('initOidc() without auth config', () => {
     it('initializes without bearer validation when auth is not configured in dev mode', async () => {
-      applyOidcEnv({})
+      applyOidcEnv({}, { sandbox: $sandbox })
       const oidc = reloadOidcModule()
       oidc.initOidc()
 
@@ -78,18 +78,13 @@ describe('OIDC config', () => {
   })
 
   describe('initOidc() production mode', () => {
-    beforeEach(() => {
-      const originalGet = config.get.bind(config)
-      $sandbox.stub(config, 'get').callsFake((key, defaultValue) => {
-        if (key === 'server.devMode') {
-          return false
-        }
-        return originalGet(key, defaultValue)
-      })
-    })
-
     it('throws when auth is not configured', () => {
-      applyOidcEnv({})
+      applyOidcEnv({}, {
+        sandbox: $sandbox,
+        configExtras: {
+          getBoolean: { 'server.devMode': false }
+        }
+      })
       const oidc = reloadOidcModule()
       expect(() => oidc.initOidc()).to.throw('Auth configuration required in production mode')
     })
