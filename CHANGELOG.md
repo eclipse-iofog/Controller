@@ -1,6 +1,6 @@
 # Changelog
 
-## [v3.8.0] - 2026-06-12
+## [v3.8.0] - 2026-06-17
 
 Controller v3.8 is a **greenfield** release aligned with **Edgelet**. There is **no upgrade path** from v3.7: use a fresh database and redeploy Controller + Edgelet together.
 
@@ -9,14 +9,14 @@ Controller v3.8 is a **greenfield** release aligned with **Edgelet**. There is *
 #### Agent runtime
 
 - **Edgelet only** — v3.7 legacy field agents are **not supported**.
-- Requires **Edgelet v1.0.0-beta.1+** on the same release train (pin e.g. `v1.0.0-beta.2` with Controller `v3.8.0`).
+- Requires **Edgelet v1.0.0-rc.1+** on the same release train (pin e.g. `v1.0.0-rc.1` with Controller `v3.8.0`).
 - Provision accepts `containerEngine`: `edgelet` | `docker` | `podman` (was docker-implied).
 - Agent config: `dockerUrl` → **`containerEngineUrl`**; `dockerPruningFrequency` → **`pruningFrequency`**.
 - Agent architecture: `fogType` / `fogTypeId` → **`arch`** / **`archId`** (ids: 0=auto, 1=amd64, 2=arm64, 3=riscv64, 4=arm).
 - Agent status: removed **`processedMessages`**, **`messageSpeed`**; added **`availableRuntimes`**, optional **`runtimeAgentPhase`**, **`controlPlaneQuiesced`**.
 - Default container registry: **`docker.io`** (was `registry.hub.docker.com`).
 - Reserved ports: **54321**, **54322**, **53**.
-- New field-agent endpoint: **`POST /api/v3/agent/controller/register`** (system fogs only; Edgelet beta.1+).
+- New field-agent endpoint: **`POST /api/v3/agent/controller/register`** (system fogs only; Edgelet rc.1+).
 
 #### API — architectures and applications
 
@@ -28,7 +28,10 @@ Controller v3.8 is a **greenfield** release aligned with **Edgelet**. There is *
 - Microservice **`runtime`** must be in agent **`availableRuntimes`**.
 - Service account volume type **`serviceAccount`** (immutable); `roleRef.apiGroup` **`edgelet.iofog.org/v1`** (was `agent.datasance.com/v3`).
 - System microservice **`controller`** in application `system-{agentName}`; user delete → **403**, user PATCH → **400**.
-- TCP bridge connector hosts: **`{appName}.{microserviceName}`** or **`edgelet.default.bridge.local`** (removed `iofog`, `iofog_{uuid}`).
+- **TCP bridge** connector `host` depends on target agent **router mode** and service type. A router is **required** (`routerMode` ≠ `none`) for `microservice` and `agent` services. **Interior** router: **`127.0.0.1`**. **Edge** router: **`edgelet.default.svc.bridge.local`** for host-network microservices and `agent` services; **`{appName}.{microserviceName}`** for pod-network microservices (removed `iofog`, `iofog_{uuid}`, and `edgelet.default.bridge.local`).
+- Skupper router **`siteId`** removed from persisted **`tcpConnector`** / **`tcpListener`** entries in router microservice config (target router is implied by which router microservice holds the config).
+- NATS system microservice env and config templates: **`NATS_SSL_DIR`** → **`NATS_TLS_DIR`**.
+- Debug catalog image: **`ghcr.io/eclipse-iofog/node-debugger`** → **`ghcr.io/eclipse-iofog/debugger`** (seeders and `config.yaml`).
 
 #### Removed APIs
 
@@ -81,6 +84,8 @@ Controller v3.8 is a **greenfield** release aligned with **Edgelet**. There is *
 - HA BFF session store support for multi-replica Controller deployments.
 - **NOTICE** file replaces per-file copyright headers.
 - Neutral in-tree identity: RBAC **`iofog.org/v3`**, default namespace **`iofog`**, `package.json` name **`controller`**.
+- NATS account/user rule **JWT Latin-1 validation** — rejects rules whose fields cannot be encoded in a NATS JWT (create/update on rules, applications, microservices, and NATS API).
+- RBAC **route catalog utils** (`isPublicCatalogRoute`) — shared lookup of public routes from `rbac-resources.yaml` (empty verb list = no auth required).
 
 ### Fixed
 
@@ -90,6 +95,16 @@ Controller v3.8 is a **greenfield** release aligned with **Edgelet**. There is *
 - Fog teardown drops obsolete per-fog **`nats-local-ca-*`** and **`router-local-ca-*`** secret names from cleanup lists.
 - OIDC discovery with **`AUTH_INSECURE_ALLOW_HTTP`** uses the supported `openid-client` insecure-request hook for local **`http://`** issuers.
 - Config keys **`auth.bootstrap.adminUsername`** / **`adminPassword`** renamed to **`auth.bootstrap.username`** / **`password`** (**`OIDC_BOOTSTRAP_ADMIN_*`** env vars unchanged).
+- Microservice create/update **strips** user-supplied **`serviceAccount`** volume mappings instead of rejecting them — allows GET → PATCH round-trips; system still injects the canonical binding.
+- OIDC middleware **skips Bearer validation** on public catalog routes (e.g. **`GET /api/v3/status`**, **`GET /api/v3/architectures/`**, OAuth BFF) so agent/controller tokens on health checks no longer spam JWKS warnings.
+- TCP bridge background provisioning resolves agent router mode via **`RouterManager.findOne`** (fixes **`TypeError`** when **`fakeTransaction`** is used in background jobs).
+- TCP bridge / router provisioning **background error logging** uses pino object-first `{ err, msg, … }` so failures are no longer logged as empty errors.
+- Router microservice **`siteConfig.platform`** defaults to **`edgelet`** (was **`docker`**) when the agent uses the Edgelet runtime.
+
+### Changed
+
+- OpenTelemetry SDK dependencies bumped to **0.219.x**; telemetry init simplified (removed custom resource detector wrapper).
+- **`js-yaml`** bumped to **4.2.0**.
 
 ### Removed
 

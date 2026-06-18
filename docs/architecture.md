@@ -143,7 +143,7 @@ Full request/response shapes: **`docs/swagger.yaml`** (agent paths).
 
 ## Edgelet agent contract (summary)
 
-Controller v3.8 and Edgelet share a **frozen field-agent REST contract** on `/api/v3/agent/*`. The same release train must be deployed together (e.g. Controller `v3.8.0` + Edgelet `v1.0.0-beta.2`). Edgelet maintains the authoritative wire spec; Controller implements the server side.
+Controller v3.8 and Edgelet share a **frozen field-agent REST contract** on `/api/v3/agent/*`. The same release train must be deployed together (e.g. Controller `v3.8.0` + Edgelet `v1.0.0-rc.1`). Edgelet maintains the authoritative wire spec; Controller implements the server side.
 
 **Greenfield rules**
 
@@ -201,7 +201,7 @@ For the full bilateral contract (including ControlPlane env vars and verificatio
 | **Applications** | Table `Applications` (was `Flows`); API identity by **name** string. |
 | **Architectures** | Table `Architectures` (was `FogTypes`); `archId` 0–4. |
 | **PKI** | Central **default-router-local-ca** and **default-nats-local-ca** for all new agents; no per-agent local CAs on provision (greenfield — no v3.7 PKI migration job). See [pki.md](pki.md). |
-| **TCP bridge** | Connector hosts `{appName}.{microserviceName}` or `edgelet.default.bridge.local`; reserved ports **54321**, **54322**, **53**. |
+| **TCP bridge** | Connector `host` depends on target agent **router mode** and service type. **Router required** (`routerMode` ≠ `none`) for `microservice` and `agent` services. **Interior** router: `127.0.0.1` (router runs host-network; bridge is reached via localhost). **Edge** router: `edgelet.default.svc.bridge.local` for host-network microservices and `agent` services; `{appName}.{microserviceName}` for pod-network microservices. Reserved ports **54321**, **54322**, **53**. |
 
 ---
 
