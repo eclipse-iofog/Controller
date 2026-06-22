@@ -77,7 +77,8 @@ Controller v3.8 is a **greenfield** release aligned with **Edgelet**. There is *
 
 ### Added
 
-- Embedded OIDC identity service with TOTP MFA (mandatory for `admin` group).
+- Embedded OIDC identity service with TOTP MFA (`mfaRequired` per auth group; all system groups default to MFA off on install).
+- **`GET /api/v3/user/profile`** (embedded mode) — includes **`mfaEnabled`** for the authenticated user.
 - **`POST /api/v3/auth/migration/export`** — one-way embedded → external IdP migration.
 - **`POST /api/v3/auth/jwks/rotate`** — manual JWKS rotation (embedded mode).
 - Built-in rate limiting on auth endpoints.
@@ -105,6 +106,7 @@ Controller v3.8 is a **greenfield** release aligned with **Edgelet**. There is *
 
 ### Changed
 
+- Embedded auth login MFA challenge — users with enrolled TOTP (**`mfaEnabled`**) are always prompted for TOTP at login, including voluntary My Account enrollment when all groups have **`mfaRequired: false`**. Group **`mfaRequired`** still forces enrollment for members who have not enrolled.
 - OpenTelemetry SDK dependencies bumped to **0.219.x**; telemetry init simplified (removed custom resource detector wrapper).
 - **`js-yaml`** bumped to **4.2.0**.
 
