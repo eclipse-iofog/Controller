@@ -406,12 +406,23 @@ function formatGroupResponse (group) {
     id: group.id,
     name: group.name,
     isSystem: group.isSystem,
+    mfaRequired: Boolean(group.mfaRequired),
     createdAt: group.createdAt,
     updatedAt: group.updatedAt
   }
 }
 
-async function createGroup ({ name }, transaction) {
+function parseMfaRequired (value) {
+  if (value === undefined) {
+    return undefined
+  }
+  if (typeof value !== 'boolean') {
+    throw new Errors.ValidationError('mfaRequired must be a boolean')
+  }
+  return value
+}
+
+async function createGroup ({ name, mfaRequired = false }, transaction) {
   const normalizedName = normalizeGroupName(name)
   if (SYSTEM_GROUP_NAMES.includes(normalizedName)) {
     throw new Errors.ConflictError('A system group with this name already exists')
@@ -424,9 +435,11 @@ async function createGroup ({ name }, transaction) {
     throw new Errors.ConflictError('A group with this name already exists')
   }
 
+  const parsedMfaRequired = parseMfaRequired(mfaRequired)
   const group = await db.AuthGroup.create({
     name: normalizedName,
-    isSystem: false
+    isSystem: false,
+    mfaRequired: parsedMfaRequired === undefined ? false : parsedMfaRequired
   }, withTransaction(transaction))
 
   return formatGroupResponse(group)
@@ -446,24 +459,43 @@ async function updateGroup (groupName, payload, transaction) {
   if (!group) {
     throw new Errors.NotFoundError('Group not found')
   }
+
+  const hasName = payload.name !== undefined
+  const hasMfaRequired = payload.mfaRequired !== undefined
+
+  if (!hasName && !hasMfaRequired) {
+    throw new Errors.ValidationError('At least one of name or mfaRequired is required')
+  }
+
   if (group.isSystem) {
-    throw new Errors.ForbiddenError('System groups cannot be modified')
-  }
-
-  const normalizedName = normalizeGroupName(payload.name)
-
-  const duplicate = await db.AuthGroup.findOne(withTransaction(transaction, {
-    where: {
-      name: normalizedName,
-      id: { [Op.ne]: group.id }
+    if (hasName) {
+      throw new Errors.ForbiddenError('System group names cannot be changed')
     }
-  }))
-  if (duplicate) {
-    throw new Errors.ConflictError('A group with this name already exists')
+    const mfaRequired = parseMfaRequired(payload.mfaRequired)
+    await group.update({ mfaRequired }, withTransaction(transaction))
+    return formatGroupResponse(group)
   }
 
-  await group.update({ name: normalizedName }, withTransaction(transaction))
-  return getGroup(normalizedName, transaction)
+  const updates = {}
+  if (hasMfaRequired) {
+    updates.mfaRequired = parseMfaRequired(payload.mfaRequired)
+  }
+  if (hasName) {
+    const normalizedName = normalizeGroupName(payload.name)
+    const duplicate = await db.AuthGroup.findOne(withTransaction(transaction, {
+      where: {
+        name: normalizedName,
+        id: { [Op.ne]: group.id }
+      }
+    }))
+    if (duplicate) {
+      throw new Errors.ConflictError('A group with this name already exists')
+    }
+    updates.name = normalizedName
+  }
+
+  await group.update(updates, withTransaction(transaction))
+  return getGroup(group.name, transaction)
 }
 
 async function deleteGroup (groupName, transaction) {

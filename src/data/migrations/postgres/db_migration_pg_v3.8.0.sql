@@ -983,6 +983,7 @@ CREATE TABLE IF NOT EXISTS "AuthGroups" (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY NOT NULL,
     name VARCHAR(255) NOT NULL UNIQUE,
     is_system BOOLEAN DEFAULT false,
+    mfa_required BOOLEAN NOT NULL DEFAULT false,
     created_at TIMESTAMP(0),
     updated_at TIMESTAMP(0)
 );

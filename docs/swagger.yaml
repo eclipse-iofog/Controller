@@ -3131,6 +3131,11 @@ paths:
       tags:
         - User
       summary: Get current user profile data
+      description: |
+        In **embedded** auth mode, returns a flat profile object derived from the access token
+        plus embedded MFA enrollment state (`mfaEnabled`).
+
+        In **external** auth mode, returns the upstream IdP UserInfo payload (shape depends on the IdP).
       operationId: getUserProfile
       security:
         - authToken: []
@@ -3882,8 +3887,12 @@ paths:
     patch:
       tags:
         - Auth Groups
-      summary: Update custom auth group
+      summary: Update auth group
       operationId: updateAuthGroup
+      description: >
+        Updates a custom auth group name and/or `mfaRequired`. System groups (`admin`, `sre`,
+        `developer`, `viewer`) allow `mfaRequired` changes only; rename is forbidden. Requires RBAC
+        `authGroups` resource with `patch` verb.
       security:
         - authToken: []
       parameters:
@@ -8946,32 +8955,27 @@ components:
           type: string
     UserProfileDetailsResponse:
       type: object
+      description: |
+        Embedded auth mode response. External auth mode returns the IdP UserInfo object instead
+        (may include different fields; `mfaEnabled` is not supplied by Controller in external mode).
       properties:
-        userinfo:
+        sub:
+          type: string
+        email:
+          type: string
+          description: Omitted when the login identifier has no `@` (e.g. bootstrap username).
+        preferred_username:
+          type: string
+        groups:
           type: array
           items:
-            properties:
-              sub:
-                type: string
-              SubscriptionKey:
-                type: string
-              email_verified:
-                type: string
-              name:
-                type: string
-              preferred_username:
-                type: string
-              locale:
-                type: string
-              given_name:
-                type: string
-              family_name:
-                type: string
-              email:
-                type: string
-              password_change_required:
-                type: boolean
-                description: Present when JWT claim `password_change_required` is true
+            type: string
+        password_change_required:
+          type: boolean
+          description: Present when JWT claim `password_change_required` is true
+        mfaEnabled:
+          type: boolean
+          description: Embedded auth only — whether the user has enrolled TOTP MFA (login requires TOTP when true, except bootstrap)
     ChangePasswordRequest:
       type: object
       required:
@@ -9067,13 +9071,19 @@ components:
       properties:
         name:
           type: string
+        mfaRequired:
+          type: boolean
+          default: false
+          description: When true, members of this group must enroll and use TOTP MFA at login
     AuthGroupUpdateRequest:
       type: object
-      required:
-        - name
+      description: At least one of `name` or `mfaRequired` is required
       properties:
         name:
           type: string
+        mfaRequired:
+          type: boolean
+          description: When true, members of this group must enroll and use TOTP MFA at login
     AuthGroupResponse:
       type: object
       properties:
@@ -9082,6 +9092,8 @@ components:
         name:
           type: string
         isSystem:
+          type: boolean
+        mfaRequired:
           type: boolean
         createdAt:
           type: string

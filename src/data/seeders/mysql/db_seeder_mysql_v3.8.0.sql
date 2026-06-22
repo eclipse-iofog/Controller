@@ -65,12 +65,12 @@ INSERT IGNORE INTO AuthPolicy (
 )
 VALUES (1, 12, true, true, true, 0, 5, 5, 15, 900, 3600, true, NULL);
 
-INSERT IGNORE INTO AuthGroups (name, is_system)
+INSERT IGNORE INTO AuthGroups (name, is_system, mfa_required)
 VALUES
-    ('admin', true),
-    ('sre', true),
-    ('developer', true),
-    ('viewer', true);
+    ('admin', true, false),
+    ('sre', true, false),
+    ('developer', true, false),
+    ('viewer', true, false);
 
 INSERT IGNORE INTO AuthBootstrapMeta (id, completed_at)
 VALUES (1, NULL);

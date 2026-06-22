@@ -69,10 +69,10 @@ function stubModelMethod (db, modelName, methodName, sandbox, impl) {
 
 function createEmbeddedAuthStore () {
   const groups = new Map([
-    ['admin', createRecord({ id: 'grp-admin', name: 'admin', isSystem: true })],
-    ['sre', createRecord({ id: 'grp-sre', name: 'sre', isSystem: true })],
-    ['developer', createRecord({ id: 'grp-developer', name: 'developer', isSystem: true })],
-    ['viewer', createRecord({ id: 'grp-viewer', name: 'viewer', isSystem: true })]
+    ['admin', createRecord({ id: 'grp-admin', name: 'admin', isSystem: true, mfaRequired: false })],
+    ['sre', createRecord({ id: 'grp-sre', name: 'sre', isSystem: true, mfaRequired: false })],
+    ['developer', createRecord({ id: 'grp-developer', name: 'developer', isSystem: true, mfaRequired: false })],
+    ['viewer', createRecord({ id: 'grp-viewer', name: 'viewer', isSystem: true, mfaRequired: false })]
   ])
 
   const users = new Map()

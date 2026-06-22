@@ -46,7 +46,11 @@ async function ensureSystemGroups (transaction) {
   for (const name of SYSTEM_GROUPS) {
     await db.AuthGroup.findOrCreate({
       where: { name },
-      defaults: { name, isSystem: true },
+      defaults: {
+        name,
+        isSystem: true,
+        mfaRequired: false
+      },
       transaction
     })
   }
