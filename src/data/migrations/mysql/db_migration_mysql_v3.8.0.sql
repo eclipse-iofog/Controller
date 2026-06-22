@@ -991,6 +991,7 @@ CREATE TABLE IF NOT EXISTS AuthGroups (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL UNIQUE,
     is_system BOOLEAN DEFAULT false,
+    mfa_required BOOLEAN NOT NULL DEFAULT false,
     created_at DATETIME,
     updated_at DATETIME
 );

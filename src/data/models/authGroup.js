@@ -20,6 +20,12 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       defaultValue: false,
       field: 'is_system'
+    },
+    mfaRequired: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      field: 'mfa_required'
     }
   }, {
     tableName: 'AuthGroups',
