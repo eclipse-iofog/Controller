@@ -48,6 +48,7 @@ describe('Embedded auth integration', () => {
 
     it('issues tokens for admin users with MFA when totp is provided', async () => {
       const { store, modules } = await $harness
+      store.groups.get('admin').mfaRequired = true
       const totpSecret = generateSecret()
       await store.seedUser({
         email: 'admin@example.com',
@@ -71,6 +72,7 @@ describe('Embedded auth integration', () => {
 
     it('rejects admin login without totp when MFA is enabled', async () => {
       const { store, modules } = await $harness
+      store.groups.get('admin').mfaRequired = true
       await store.seedUser({
         email: 'admin@example.com',
         groupNames: ['admin'],
@@ -87,6 +89,36 @@ describe('Embedded auth integration', () => {
       } catch (error) {
         expect(error).to.be.instanceOf(Errors.InvalidCredentialsError)
       }
+    })
+
+    it('requires totp for voluntary MFA when group mfaRequired is false', async () => {
+      const { store, modules } = await $harness
+      const totpSecret = generateSecret()
+      await store.seedUser({
+        email: 'mfa-viewer@example.com',
+        groupNames: ['viewer'],
+        mfaEnabled: true,
+        totpSecret
+      })
+
+      try {
+        await modules.UserService.login({
+          email: 'mfa-viewer@example.com',
+          password: DEFAULT_TEST_PASSWORD
+        }, false)
+        expect.fail('expected login to fail')
+      } catch (error) {
+        expect(error).to.be.instanceOf(Errors.InvalidCredentialsError)
+      }
+
+      const code = generateSync({ secret: totpSecret })
+      const result = await modules.UserService.login({
+        email: 'mfa-viewer@example.com',
+        password: DEFAULT_TEST_PASSWORD,
+        totp: code
+      }, false)
+
+      expect(result.accessToken).to.be.a('string').that.is.not.empty
     })
 
     it('allows bootstrap admin login without MFA', async () => {
@@ -110,6 +142,7 @@ describe('Embedded auth integration', () => {
 
     it('rejects non-bootstrap admin login when MFA is not enrolled', async () => {
       const { store, modules } = await $harness
+      store.groups.get('admin').mfaRequired = true
       await store.seedUser({
         email: 'newadmin@example.com',
         groupNames: ['admin']
@@ -118,6 +151,46 @@ describe('Embedded auth integration', () => {
       try {
         await modules.UserService.login({
           email: 'newadmin@example.com',
+          password: DEFAULT_TEST_PASSWORD
+        }, false)
+        expect.fail('expected login to fail')
+      } catch (error) {
+        expect(error).to.be.instanceOf(Errors.InvalidCredentialsError)
+      }
+    })
+
+    it('allows admin login without MFA by default on install', async () => {
+      const { store, modules } = await $harness
+      await store.seedUser({
+        email: 'newadmin@example.com',
+        groupNames: ['admin']
+      })
+
+      const result = await modules.UserService.login({
+        email: 'newadmin@example.com',
+        password: DEFAULT_TEST_PASSWORD
+      }, false)
+
+      expect(result.accessToken).to.be.a('string').that.is.not.empty
+    })
+
+    it('requires MFA enrollment for custom group with mfaRequired true', async () => {
+      const { store, modules } = await $harness
+      const groupId = 'grp-secops'
+      store.groups.set('secops', {
+        id: groupId,
+        name: 'secops',
+        isSystem: false,
+        mfaRequired: true
+      })
+      await store.seedUser({
+        email: 'secops@example.com',
+        groupNames: ['secops']
+      })
+
+      try {
+        await modules.UserService.login({
+          email: 'secops@example.com',
           password: DEFAULT_TEST_PASSWORD
         }, false)
         expect.fail('expected login to fail')

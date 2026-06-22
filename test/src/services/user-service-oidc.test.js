@@ -105,6 +105,29 @@ describe('User service OIDC', () => {
       expect(profile.preferred_username).to.equal('viewer@example.com')
       expect(profile.email).to.equal('viewer@example.com')
       expect(profile.groups).to.deep.equal(['viewer'])
+      expect(profile.mfaEnabled).to.equal(false)
+    })
+
+    it('returns mfaEnabled true when the user has enrolled MFA', async () => {
+      const { store, modules } = await $harness
+      await store.seedUser({
+        email: 'mfa-user@example.com',
+        groupNames: ['viewer'],
+        mfaEnabled: true
+      })
+
+      const loginResult = await modules.UserService.login({
+        email: 'mfa-user@example.com',
+        password: DEFAULT_TEST_PASSWORD
+      }, false)
+
+      const profile = await modules.UserService.profile({
+        headers: {
+          authorization: `Bearer ${loginResult.accessToken}`
+        }
+      }, false)
+
+      expect(profile.mfaEnabled).to.equal(true)
     })
   })
 

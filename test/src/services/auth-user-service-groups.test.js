@@ -16,6 +16,7 @@ function createGroupRecord (data) {
     id: 4,
     name: 'viewer',
     isSystem: true,
+    mfaRequired: false,
     createdAt: new Date('2026-01-01T00:00:00Z'),
     updatedAt: new Date('2026-01-01T00:00:00Z'),
     ...data
@@ -55,7 +56,7 @@ describe('auth-user-service groups by name', () => {
     const { getGroup } = reloadAuthUserService()
     const result = await getGroup('viewer')
 
-    expect(result).to.deep.include({ id: 4, name: 'viewer', isSystem: true })
+    expect(result).to.deep.include({ id: 4, name: 'viewer', isSystem: true, mfaRequired: false })
     expect(db.AuthGroup.findOne.firstCall.args[0].where).to.deep.equal({ name: 'viewer' })
   })
 
@@ -95,5 +96,48 @@ describe('auth-user-service groups by name', () => {
     } catch (error) {
       expect(error).to.be.instanceOf(Errors.ForbiddenError)
     }
+  })
+
+  it('updates mfaRequired on a system group', async () => {
+    const db = require('../../../src/data/models')
+    const adminGroup = createGroupRecord({ id: 1, name: 'admin', isSystem: true, mfaRequired: true })
+    stubModelMethod(db, 'AuthGroup', 'findOne', $sandbox, async () => adminGroup)
+
+    const { updateGroup } = reloadAuthUserService()
+    const result = await updateGroup('admin', { mfaRequired: false })
+
+    expect(result.mfaRequired).to.equal(false)
+    expect(adminGroup.mfaRequired).to.equal(false)
+  })
+
+  it('rejects renaming a system group', async () => {
+    const db = require('../../../src/data/models')
+    stubModelMethod(db, 'AuthGroup', 'findOne', $sandbox, async () => $viewerGroup)
+
+    const { updateGroup } = reloadAuthUserService()
+
+    try {
+      await updateGroup('viewer', { name: 'read-only' })
+      expect.fail('expected forbidden')
+    } catch (error) {
+      expect(error).to.be.instanceOf(Errors.ForbiddenError)
+    }
+  })
+
+  it('creates a custom group with mfaRequired', async () => {
+    const db = require('../../../src/data/models')
+    stubModelMethod(db, 'AuthGroup', 'findOne', $sandbox, async () => null)
+    stubModelMethod(db, 'AuthGroup', 'create', $sandbox, async (values) => createGroupRecord({
+      id: 10,
+      isSystem: false,
+      createdAt: new Date('2026-01-01T00:00:00Z'),
+      updatedAt: new Date('2026-01-01T00:00:00Z'),
+      ...values
+    }))
+
+    const { createGroup } = reloadAuthUserService()
+    const result = await createGroup({ name: 'secops', mfaRequired: true })
+
+    expect(result).to.deep.include({ name: 'secops', isSystem: false, mfaRequired: true })
   })
 })

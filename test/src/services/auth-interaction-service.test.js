@@ -66,7 +66,17 @@ describe('Auth interaction service', () => {
     it('returns mfa for admin with MFA enabled after login', () => {
       const authContext = {
         user: { id: 'user-1', mustChangePassword: false, isBootstrap: false },
-        groups: [{ name: 'admin' }],
+        groups: [{ name: 'admin', mfaRequired: true }],
+        mfa: { enabled: true }
+      }
+      const state = { userId: 'user-1' }
+      expect(AuthInteractionService.resolveNextStep(authContext, state)).to.equal('mfa')
+    })
+
+    it('returns mfa for viewer with voluntary MFA when group mfaRequired is false', () => {
+      const authContext = {
+        user: { id: 'user-1', mustChangePassword: false, isBootstrap: false },
+        groups: [{ name: 'viewer', mfaRequired: false }],
         mfa: { enabled: true }
       }
       const state = { userId: 'user-1' }
@@ -76,7 +86,7 @@ describe('Auth interaction service', () => {
     it('returns enroll for admin without MFA enrollment', () => {
       const authContext = {
         user: { id: 'user-1', mustChangePassword: false, isBootstrap: false },
-        groups: [{ name: 'admin' }],
+        groups: [{ name: 'admin', mfaRequired: true }],
         mfa: null
       }
       const state = { userId: 'user-1' }
@@ -86,7 +96,7 @@ describe('Auth interaction service', () => {
     it('returns change-password for viewer with mustChangePassword after login', () => {
       const authContext = {
         user: { id: 'user-1', mustChangePassword: true, isBootstrap: false },
-        groups: [{ name: 'viewer' }],
+        groups: [{ name: 'viewer', mfaRequired: false }],
         mfa: null
       }
       const state = { userId: 'user-1' }
@@ -96,7 +106,7 @@ describe('Auth interaction service', () => {
     it('returns complete for viewer after forced password change', () => {
       const authContext = {
         user: { id: 'user-1', mustChangePassword: false, isBootstrap: false },
-        groups: [{ name: 'viewer' }],
+        groups: [{ name: 'viewer', mfaRequired: false }],
         mfa: null
       }
       const state = { userId: 'user-1' }
@@ -106,7 +116,7 @@ describe('Auth interaction service', () => {
     it('returns complete for viewer after login when password change is not required', () => {
       const authContext = {
         user: { id: 'user-1', mustChangePassword: false, isBootstrap: false },
-        groups: [{ name: 'viewer' }],
+        groups: [{ name: 'viewer', mfaRequired: false }],
         mfa: null
       }
       const state = { userId: 'user-1', passwordChanged: true }
@@ -183,6 +193,7 @@ describe('Auth interaction service', () => {
 
     it('returns mfa step for admin with MFA enabled', async () => {
       const { store } = await $harness
+      store.groups.get('admin').mfaRequired = true
       const totpSecret = generateSecret()
       await store.seedUser({
         email: 'admin@example.com',
@@ -193,6 +204,22 @@ describe('Auth interaction service', () => {
 
       const result = await AuthInteractionService.submitLogin($interactionUid, {
         email: 'admin@example.com',
+        password: DEFAULT_TEST_PASSWORD
+      }, false)
+
+      expect(result.step).to.equal('mfa')
+    })
+
+    it('returns mfa step for viewer with voluntary MFA when group mfaRequired is false', async () => {
+      const { store } = await $harness
+      await store.seedUser({
+        email: 'mfa-viewer@example.com',
+        groupNames: ['viewer'],
+        mfaEnabled: true
+      })
+
+      const result = await AuthInteractionService.submitLogin($interactionUid, {
+        email: 'mfa-viewer@example.com',
         password: DEFAULT_TEST_PASSWORD
       }, false)
 
@@ -219,6 +246,7 @@ describe('Auth interaction service', () => {
 
     it('completes interaction and returns OAuth resume URL after MFA', async () => {
       const { store } = await $harness
+      store.groups.get('admin').mfaRequired = true
       const totpSecret = generateSecret()
       await store.seedUser({
         email: 'admin@example.com',

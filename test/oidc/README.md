@@ -78,7 +78,7 @@ Test harness: `test/support/embedded-auth-harness.js` (in-memory auth store + em
    curl -H "Authorization: Bearer <accessToken>" http://localhost:51121/api/v3/user/profile
    ```
 
-7. Admin accounts require MFA to be enrolled before login succeeds (except **bootstrap admin** with `isBootstrap: true`). Login accepts optional `totp` on the same request; missing or invalid MFA returns **401**. Enroll/confirm via Bearer on `/user/mfa/enroll` and `/user/mfa/confirm`.
+7. **Group policy:** users in auth groups with `mfaRequired: true` must enroll MFA before login succeeds (except **bootstrap admin** with `isBootstrap: true`). All system groups including `admin` default to `mfaRequired: false` on install; operators enable MFA per group via `PATCH /api/v3/groups/:name` (requires RBAC `authGroups` patch). **Voluntary MFA:** users who enroll via `/user/mfa/enroll` + confirm (`mfaEnabled: true`) are always challenged with TOTP at login even when no group requires MFA. Login accepts optional `totp` on the same request; missing or invalid MFA returns **401**. Enroll/confirm via Bearer on `/user/mfa/enroll` and `/user/mfa/confirm`.
 
 ## External IdP smoke
 
