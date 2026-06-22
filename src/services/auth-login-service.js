@@ -1,7 +1,9 @@
 'use strict'
 
 const { decodeJwt } = require('jose')
+const db = require('../data/models')
 const Errors = require('../helpers/errors')
+const { withTransaction } = require('../helpers/app-helper')
 const AuthPolicyService = require('./auth-policy-service')
 const AuthPasswordService = require('./auth-password-service')
 const AuthTokenService = require('./auth-token-service')
@@ -54,12 +56,17 @@ async function profile (req, transaction) {
   const accessToken = req.headers.authorization.replace('Bearer ', '')
   const claims = decodeJwt(accessToken)
 
+  const mfaRecord = claims.sub
+    ? await db.AuthMfa.findOne(withTransaction(transaction, { where: { userId: claims.sub } }))
+    : null
+
   return {
     sub: claims.sub,
     email: claims.email,
     preferred_username: claims.preferred_username,
     groups: claims.groups || [],
-    password_change_required: claims.password_change_required === true
+    password_change_required: claims.password_change_required === true,
+    mfaEnabled: Boolean(mfaRecord && mfaRecord.enabled)
   }
 }
 

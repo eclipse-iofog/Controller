@@ -120,7 +120,8 @@ const createAuthGroup = {
   id: '/createAuthGroup',
   type: 'object',
   properties: {
-    name: { type: 'string', minLength: 1 }
+    name: { type: 'string', minLength: 1 },
+    mfaRequired: { type: 'boolean' }
   },
   required: ['name'],
   additionalProperties: true
@@ -130,9 +131,9 @@ const updateAuthGroup = {
   id: '/updateAuthGroup',
   type: 'object',
   properties: {
-    name: { type: 'string', minLength: 1 }
+    name: { type: 'string', minLength: 1 },
+    mfaRequired: { type: 'boolean' }
   },
-  required: ['name'],
   additionalProperties: true
 }
 

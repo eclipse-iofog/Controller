@@ -24,7 +24,7 @@ function isMfaExempt (user) {
 }
 
 function userRequiresMfa (groups) {
-  return normalizeGroupNames(groups).includes(ADMIN_GROUP)
+  return (groups || []).some((group) => group.mfaRequired === true)
 }
 
 function userMustEnrollMfa (user, groups, mfaRecord) {
@@ -38,7 +38,7 @@ function userRequiresMfaChallenge (user, groups, mfaRecord) {
   if (isMfaExempt(user)) {
     return false
   }
-  return userRequiresMfa(groups) && Boolean(mfaRecord && mfaRecord.enabled)
+  return Boolean(mfaRecord && mfaRecord.enabled)
 }
 
 async function loadUserAuthContext (email, transaction) {
