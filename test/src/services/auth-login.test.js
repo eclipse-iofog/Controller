@@ -97,11 +97,11 @@ describe('Embedded auth login service', () => {
       }
     })
 
-    it('throws InvalidCredentialsError for non-bootstrap admin without MFA enrolled', async () => {
+    it('throws InvalidCredentialsError for non-bootstrap admin without MFA when group mfaRequired is true', async () => {
       const user = { id: 'admin-2', email: 'admin2@example.com', passwordHash: 'hash', isBootstrap: false }
       $sandbox.stub(AuthMfaService, 'loadUserAuthContext').resolves({
         user,
-        groups: [{ name: 'admin' }],
+        groups: [{ name: 'admin', mfaRequired: true }],
         mfa: null,
         groupNames: ['admin']
       })
@@ -118,6 +118,31 @@ describe('Embedded auth login service', () => {
       } catch (error) {
         expect(error).to.be.instanceOf(Errors.InvalidCredentialsError)
       }
+    })
+
+    it('returns tokens for non-bootstrap admin without MFA when group mfaRequired is false', async () => {
+      const user = { id: 'admin-2', email: 'admin2@example.com', passwordHash: 'hash', isBootstrap: false }
+      $sandbox.stub(AuthMfaService, 'loadUserAuthContext').resolves({
+        user,
+        groups: [{ name: 'admin', mfaRequired: false }],
+        mfa: null,
+        groupNames: ['admin']
+      })
+      $sandbox.stub(AuthPolicyService, 'getPolicy').resolves(AuthPolicyService.DEFAULT_POLICY)
+      $sandbox.stub(AuthPolicyService, 'isAccountLocked').returns(false)
+      $sandbox.stub(AuthPasswordService, 'verifyPassword').resolves(true)
+      $sandbox.stub(AuthPolicyService, 'resetFailedLogin').resolves(user)
+      $sandbox.stub(AuthTokenService, 'issueTokenPair').resolves({
+        accessToken: 'access-token',
+        refreshToken: 'refresh-token'
+      })
+
+      const result = await AuthLoginService.login({
+        email: 'admin2@example.com',
+        password: 'correct-password'
+      })
+
+      expect(result.accessToken).to.equal('access-token')
     })
 
     it('returns tokens for bootstrap admin without MFA', async () => {

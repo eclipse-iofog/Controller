@@ -1,5 +1,6 @@
 const { expect } = require('chai')
 const sinon = require('sinon')
+const { generateSync } = require('otplib')
 
 const {
   snapshotOidcEnv,
@@ -110,7 +111,7 @@ describe('User service OIDC', () => {
 
     it('returns mfaEnabled true when the user has enrolled MFA', async () => {
       const { store, modules } = await $harness
-      await store.seedUser({
+      const { totpSecret } = await store.seedUser({
         email: 'mfa-user@example.com',
         groupNames: ['viewer'],
         mfaEnabled: true
@@ -118,7 +119,8 @@ describe('User service OIDC', () => {
 
       const loginResult = await modules.UserService.login({
         email: 'mfa-user@example.com',
-        password: DEFAULT_TEST_PASSWORD
+        password: DEFAULT_TEST_PASSWORD,
+        totp: generateSync({ secret: totpSecret })
       }, false)
 
       const profile = await modules.UserService.profile({
